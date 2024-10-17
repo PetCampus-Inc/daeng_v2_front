@@ -1,0 +1,16 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@repo/config": "workspace:*",
+    "@repo/tsconfig": "workspace:*",
+    "@repo/ui": "workspace:*"
+  }
+}
