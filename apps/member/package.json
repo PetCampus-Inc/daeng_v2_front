@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@repo/config": "workspace:*",
-    "@repo/tsconfig": "workspace:*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@repo/ui": "workspace:*"
   }
 }
