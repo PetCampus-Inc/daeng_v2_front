@@ -1,14 +1,10 @@
-'use client';
-
-import { Button } from 'shared/ui/button';
-import { HomePage } from 'pages/home';
+import { Button } from '@repo/ui/components/ui/button';
 
 export default function Home() {
   return (
-    <div className=''>
-      <HomePage />
-      <Button></Button>
-      <button>MAIN</button>
+    <div>
+      <h1>똑독 견주</h1>
+      <Button>버튼 테스트</Button>
     </div>
   );
 }

@@ -1,1 +1,3 @@
-module.exports = require('@repo/config/next.config');
+const nextConfig = {};
+
+module.exports = nextConfig;

@@ -10,16 +10,16 @@
     "@radix-ui/react-slot": "^1.1.0"
   },
   "devDependencies": {
+    "@turbo/gen": "^1.12.4",
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*",
+    "@repo/tailwind-config": "workspace:*",
+    "@repo/design-system": "workspace:*"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
-    "./theme/*": "./src/styles/theme/*.ts",
     "./lib/*": "./src/lib/*.ts",
-    "./components/*": "./src/components/*.tsx",
-    "./assets/*": "./src/assets/*",
-    "./tailwind.config.ts": "./tailwind.config.ts",
-    "./postcss.config.mjs": "./postcss.config.mjs"
+    "./components": "./src/components/ui/index.ts",
+    "./assets/*": "./src/assets/*"
   }
 }
