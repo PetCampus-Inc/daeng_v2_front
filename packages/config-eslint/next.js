@@ -24,7 +24,7 @@ module.exports = {
     node: true,
     browser: true,
   },
-  plugins: ['only-warn'],
+  plugins: ['only-warn', '@typescript-eslint'],
   settings: {
     'import/resolver': {
       typescript: {
@@ -34,4 +34,17 @@ module.exports = {
   },
   ignorePatterns: ['.*.js', 'node_modules/'],
   overrides: [{ files: ['*.js?(x)', '*.ts?(x)'] }],
+  rules: {
+    '@typescript-eslint/no-empty-function': 'error',
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-unused-vars': 'error',
+    'no-debugger': 'error',
+    eqeqeq: ['error', 'always'],
+    curly: ['error', 'multi-line'],
+    camelcase: ['error', { properties: 'always' }],
+    'id-length': [
+      'error',
+      { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y'] },
+    ],
+  },
 };
