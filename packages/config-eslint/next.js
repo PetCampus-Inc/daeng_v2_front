@@ -46,5 +46,6 @@ module.exports = {
       'error',
       { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y'] },
     ],
+    'import/prefer-default-export': 'off',
   },
 };
