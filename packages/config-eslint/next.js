@@ -47,5 +47,6 @@ module.exports = {
       { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y'] },
     ],
     'import/prefer-default-export': 'off',
+    'import/no-internal-modules': 'off',
   },
 };

@@ -1,5 +1,5 @@
 {
-  "name": "@repo/ui",
+  "name": "@knockdog/ui",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -10,16 +10,17 @@
     "@radix-ui/react-slot": "^1.1.0"
   },
   "devDependencies": {
-    "@turbo/gen": "^1.12.4",
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@repo/tailwind-config": "workspace:*",
-    "@repo/design-system": "workspace:*"
+    "@knockdog/design-system": "workspace:*",
+    "@knockdog/eslint-config": "workspace:*",
+    "@knockdog/tailwind-config": "workspace:*",
+    "@knockdog/typescript-config": "workspace:*",
+    "@turbo/gen": "^1.12.4"
   },
   "exports": {
+    ".": "./src/components/index.ts",
     "./globals.css": "./src/styles/globals.css",
-    "./lib/*": "./src/lib/*.ts",
-    "./components": "./src/components/ui/index.ts",
-    "./assets/*": "./src/assets/*"
+    "./lib": "./src/lib/index.ts",
+    "./lotties/*": "./src/assets/lotties/*.json",
+    "./svgs/*": "./src/assets/svgs/*.svg"
   }
 }

@@ -1,4 +1,4 @@
-import { Button } from '@repo/ui/components';
+import { Button } from '@knockdog/ui';
 
 export default function Home() {
   return (

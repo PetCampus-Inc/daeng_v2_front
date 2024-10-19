@@ -1,11 +1,11 @@
 {
-  "extends": "@repo/typescript-config/react-library.json",
+  "extends": "@knockdog/typescript-config/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@repo/ui/*": ["./src/*"]
+      "@knockdog/ui/*": ["./src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "svg.d.ts"],
   "exclude": ["node_modules"]
 }

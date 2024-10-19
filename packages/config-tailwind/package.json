@@ -1,13 +1,13 @@
 {
-  "name": "@repo/tailwind-config",
+  "name": "@knockdog/tailwind-config",
   "version": "0.0.0",
   "private": true,
   "exports": {
     ".": "./tailwind.config.ts"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@repo/design-system": "workspace:*",
+    "@knockdog/typescript-config": "workspace:*",
+    "@knockdog/design-system": "workspace:*",
     "tailwindcss": "^3.4.14"
   },
   "dependencies": {

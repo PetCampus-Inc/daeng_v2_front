@@ -9,11 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@repo/tailwind-config": "workspace:*",
-    "@repo/design-system": "workspace:*",
-    "@repo/ui": "workspace:*",
+    "@knockdog/eslint-config": "workspace:*",
+    "@knockdog/typescript-config": "workspace:*",
+    "@knockdog/tailwind-config": "workspace:*",
+    "@knockdog/design-system": "workspace:*",
+    "@knockdog/ui": "workspace:*",
     "typescript": "5.3.3"
   }
 }
