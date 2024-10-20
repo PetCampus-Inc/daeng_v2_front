@@ -5,7 +5,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ButtonHTMLAttributes } from 'react';
 import { forwardRef } from 'react';
 import { cn } from '@knockdog/ui/lib';
-import { Icon } from '@knockdog/ui/components/icon';
 
 const buttonVariants = cva('border border-transparent', {
   variants: {
@@ -46,7 +45,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           ref={ref}
           {...props}
         />
-        <Icon icon='abandon' />
       </>
     );
   }

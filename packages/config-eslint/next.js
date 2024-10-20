@@ -48,5 +48,6 @@ module.exports = {
     ],
     'import/prefer-default-export': 'off',
     'import/no-internal-modules': 'off',
+    'import/no-extraneous-dependencies': 'off',
   },
 };
