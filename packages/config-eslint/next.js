@@ -32,7 +32,7 @@ module.exports = {
       },
     },
   },
-  ignorePatterns: ['.*.js', 'node_modules/'],
+  ignorePatterns: ['.*.js', 'node_modules/', 'next.config.js'],
   overrides: [{ files: ['*.js?(x)', '*.ts?(x)'] }],
   rules: {
     '@typescript-eslint/no-empty-function': 'error',
