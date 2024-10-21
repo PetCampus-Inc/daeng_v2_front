@@ -1,10 +1,4 @@
 /** @type {import('cz-git').UserConfig} */
-const fs = require('node:fs');
-const path = require('node:path');
-
-const packages = fs.readdirSync(path.resolve(__dirname, 'packages'));
-const apps = fs.readdirSync(path.resolve(__dirname, 'apps'));
-
 module.exports = {
   rules: {
     // @see: https://commitlint.js.org/#/reference-rules
@@ -86,14 +80,19 @@ module.exports = {
     useAI: false,
     aiNumber: 1,
     themeColorCode: '38;5;043',
-    scopes: [...packages, ...apps],
+    scopes: [
+      'admin',
+      'member',
+      'storybook',
+      'ui',
+      'config',
+      'design-system',
+      'root',
+    ],
     enableMultipleScopes: true,
     scopeEnumSeparator: ',',
-    allowEmptyScopes: true,
-    allowEmptyScopes: true,
-    customScopesAlign: 'bottom',
-    customScopesAlias: 'custom',
-    emptyScopesAlias: 'empty',
+    allowEmptyScopes: false,
+    allowCustomScopes: false,
     upperCaseSubject: false,
     markBreakingChangeMode: false,
     allowBreakingChanges: ['feat', 'fix'],
