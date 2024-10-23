@@ -1,0 +1,9 @@
+{
+  "extends": "@knockdog/typescript-config/nextjs.json",
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "baseUrl": "."
+  }
+}
