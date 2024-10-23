@@ -12,10 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@knockdog/tailwind-config": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
-    "@knockdog/design-system": "workspace:*",
     "@knockdog/ui": "workspace:*"
   },
   "devDependencies": {

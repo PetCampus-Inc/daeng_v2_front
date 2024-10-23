@@ -1,8 +1,0 @@
-{
-  "name": "@knockdog/design-system",
-  "version": "0.0.0",
-  "private": true,
-  "exports": {
-    "./theme": "./theme/index.ts"
-  }
-}

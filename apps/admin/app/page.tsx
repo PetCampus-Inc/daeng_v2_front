@@ -1,4 +1,4 @@
-import { Button, Input } from '@knockdog/ui';
+import { Button } from '@knockdog/ui';
 
 export default function Home() {
   return (
@@ -7,7 +7,6 @@ export default function Home() {
         처음이신가요? 회원가입하기
       </span>
       <h1 className='typo-title-24-b'>똑독 관리자</h1>
-      <Input placeholder='아이디를 입력해주세요.' />
       <div className='flex gap-2'>
         <Button>버튼</Button>
         <Button variant='secondary'>버튼</Button>

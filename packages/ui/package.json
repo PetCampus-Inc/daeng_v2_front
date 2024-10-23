@@ -11,18 +11,18 @@
     "@radix-ui/react-slot": "^1.1.0"
   },
   "devDependencies": {
-    "@knockdog/design-system": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
-    "@knockdog/tailwind-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@storybook/react": "^8.3.6",
     "@turbo/gen": "^1.12.4"
   },
   "exports": {
     ".": "./src/components/index.ts",
+    "./tailwind.config": "./tailwind.config.ts",
     "./globals.css": "./src/styles/globals.css",
     "./lib": "./src/lib/index.ts",
     "./lotties/*": "./src/assets/lotties/*.json",
-    "./svgs/*": "./src/assets/svgs/*.svg"
+    "./svgs/*": "./src/assets/svgs/*.svg",
+    "./theme": "./src/styles/theme/index.ts"
   }
 }
