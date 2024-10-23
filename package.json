@@ -4,7 +4,8 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "lint": "turbo lint && tsc --noEmit",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
     "commit": "cz"
@@ -12,9 +13,11 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --fix",
-      "prettier --write",
-      "tsc --noEmit --skipLibCheck --pretty false"
-    ]
+      "prettier --write"
+    ],
+    "./apps/admin/**/*.{ts,tsx}": "pnpm run --filter admin type-check",
+    "./apps/member/**/*.{ts,tsx}": "pnpm run --filter member type-check",
+    "./packages/ui/**/*.{ts,tsx}": "pnpm run --filter @knockdog/ui type-check"
   },
   "config": {
     "commitizen": {
