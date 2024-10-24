@@ -6,13 +6,12 @@
     "dev": "next dev --turbo --port 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
-    "@knockdog/tailwind-config": "workspace:*",
-    "@knockdog/design-system": "workspace:*",
     "@knockdog/ui": "workspace:*",
     "typescript": "5.3.3"
   }

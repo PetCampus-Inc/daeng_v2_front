@@ -1,4 +1,4 @@
-import sharedConfig from '@knockdog/tailwind-config';
+import sharedConfig from '@knockdog/ui/tailwind.config';
 import type { Config } from 'tailwindcss';
 
 const config: Pick<
