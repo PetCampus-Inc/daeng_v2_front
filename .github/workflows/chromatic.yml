@@ -53,10 +53,20 @@ jobs:
           onlyChanged: true # TurboSnap 활성화
           externals: packages/(ui/src)/** # 외부 의존성 경로
 
+      # 현재 시간
+      - name: Get Current Time
+        id: current-time
+        uses: josStorer/get-current-time@v2
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: '+09:00'
+
       # PR에 코멘트 추가
       - name: Create comment PR
         uses: thollander/actions-comment-pull-request@v3
         with:
-          message: '🚀storybook: ${{ steps.chromatic.outputs.storybookUrl }}'
-          comment_tag: 'storybook-deployment'
+          message: |
+            🚀 Storybook: ${{ steps.chromatic.outputs.storybookUrl }}
+            🕖 Updated At: ${{ steps.current-time.outputs.formattedTime }}
+          comment-tag: ${{github.event.number}}-storybook
           mode: 'recreate' # 기존 코멘트를 삭제하고 새로 생성
