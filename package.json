@@ -8,7 +8,8 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
-    "commit": "cz"
+    "commit": "cz",
+    "build:storybook": "pnpm run -F storybook chromatic"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
