@@ -8,8 +8,7 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
-    "commit": "cz",
-    "build:storybook": "pnpm run -F storybook chromatic"
+    "commit": "cz"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -30,7 +29,6 @@
     "@types/react-lottie": "^1.2.10",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "dotenv": "^16.4.5",
     "next": "^14.2.15",
     "react": "^18.2.0",
     "react-dom": "^18.3.1",
@@ -48,7 +46,6 @@
     "autoprefixer": "^10.4.20",
     "commitizen": "^4.3.1",
     "cz-git": "^1.10.1",
-    "dotenv-cli": "^7.4.2",
     "eslint": "^8.56.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
