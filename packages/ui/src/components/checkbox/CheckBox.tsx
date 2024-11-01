@@ -1,7 +1,7 @@
 'use client';
 
 import { InputHTMLAttributes } from 'react';
-import { Icon } from '@knockdog/ui/components';
+import { Icon } from '../icon';
 
 interface CheckBoxProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
