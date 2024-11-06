@@ -21,7 +21,7 @@ const meta: Meta<ButtonProps> = {
     },
     size: {
       control: { type: 'select' },
-      options: [['sm', 'md', 'lg']],
+      options: ['sm', 'md', 'lg'],
       description: '버튼의 크기를 설정합니다.',
       table: { defaultValue: { summary: 'lg' } },
     },
