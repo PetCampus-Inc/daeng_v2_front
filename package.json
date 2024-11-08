@@ -15,7 +15,7 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "./apps/member/**/*.{ts,tsx}": "bash -c 'pnpm run --filter member type-check'",
+    "./apps/knockdog/**/*.{ts,tsx}": "bash -c 'pnpm run --filter knockdog type-check'",
     "./packages/ui/**/*.{ts,tsx}": "bash -c 'pnpm run --filter @knockdog/ui type-check'"
   },
   "config": {
