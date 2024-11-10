@@ -80,7 +80,7 @@ module.exports = {
     useAI: false,
     aiNumber: 1,
     themeColorCode: '38;5;043',
-    scopes: ['admin', 'member', 'storybook', 'ui', 'config', 'root'],
+    scopes: ['knockdog', 'storybook', 'ui', 'config', 'root'],
     enableMultipleScopes: true,
     scopeEnumSeparator: ',',
     allowEmptyScopes: false,
