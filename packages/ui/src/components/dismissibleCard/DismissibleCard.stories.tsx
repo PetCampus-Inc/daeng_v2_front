@@ -33,11 +33,11 @@ export const Default: Story = {
 export const PhotoExample: Story = {
   render: (args) => {
     return (
-      <DismissibleCard {...args}>
+      <DismissibleCard {...args} className='w-20 border-none p-0'>
         <img
-          src='https://source.unsplash.com/random/300x300'
+          src='https://placehold.co/600x400'
           alt='Example'
-          className='h-auto w-full rounded-md object-cover'
+          className='h-10 w-full rounded-md object-cover'
         />
       </DismissibleCard>
     );
