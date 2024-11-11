@@ -1,2 +1,2 @@
-export * from './Select';
-export * from './SimpleSelect';
+export * from './ui/Select';
+export * from './ui/SimpleSelect';

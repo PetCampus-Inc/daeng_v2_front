@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Icon } from '../icon';
+import { Icon } from '../../icon';
 
 import { cn } from '@knockdog/ui/lib';
 
