@@ -25,6 +25,11 @@ const meta: Meta<typeof MultiCheck> = {
       description: 'Slot을 사용하도록 설정합니다.',
       defaultValue: false,
     },
+    variant: {
+      action: 'selected',
+      description: '스타일을 지정합니다.',
+      defaultValue: 'primary',
+    },
     disabled: {
       control: 'boolean',
       description: '비활성화 여부를 설정합니다.',
@@ -44,11 +49,19 @@ export const Default: Story = {
     return (
       <MultiCheck
         {...args}
+        variant='primary'
         options={['Option 1', 'Option 2', 'Option 3']}
         selectedValues={values}
         onSelect={(selectedValues) => setValues(selectedValues)}
       />
     );
+  },
+};
+
+export const Secondary: Story = {
+  args: {
+    options: ['월', '화', '수', '목', '금', '토', '일'],
+    variant: 'secondary',
   },
 };
 
@@ -61,6 +74,7 @@ export const Disabled: Story = {
 
 export const WithCustomOptions: Story = {
   args: {
+    variant: 'primary',
     options: ['Custom 1', 'Custom 2', 'Custom 3'],
     selectedValues: ['Custom 2'],
   },

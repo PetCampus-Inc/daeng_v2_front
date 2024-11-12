@@ -4,24 +4,22 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
 import { cn } from '@knockdog/ui/lib';
 
-const multiCheckStyles = cva('transition-all rounded-md p-2 border grow', {
-  variants: {
-    selected: {
-      true: 'border-brown3 bg-brown4 text-primary',
-      false: 'border-gray4 text-gray3',
+const multiCheckStyles = cva(
+  'transition-all rounded-md p-2 grow disabled:bg-gray5 disabled:cursor-not-allowed data-[selected=true]:border disabled:opacity-50 data-[selected=true]:bg-brown4 data-[selected=true]:border-brown3 data-[selected=true]:text-primary',
+  {
+    variants: {
+      variant: {
+        primary: 'border border-gray4 text-gray3',
+        secondary: 'bg-gray4 text-gray2 border border-gray4',
+      },
     },
-    disabled: {
-      true: 'disabled:bg-gray5 cursor-not-allowed opacity-50',
-      false: '',
-    },
-  },
-  defaultVariants: {
-    selected: false,
-    disabled: false,
-  },
-});
+    defaultVariants: { variant: 'primary' },
+  }
+);
 
+type ThemeType = 'primary' | 'secondary';
 interface MultiCheckProps {
+  variant?: ThemeType;
   options: string[];
   selectedValues: string[];
   onSelect?: (values: string[]) => void;
@@ -30,6 +28,7 @@ interface MultiCheckProps {
 }
 
 const MultiCheck = ({
+  variant = 'primary',
   options = [],
   asChild,
   selectedValues = [],
@@ -53,11 +52,11 @@ const MultiCheck = ({
       {options.map((option) => {
         return (
           <Comp
+            data-selected={selectedValues.includes(option)}
             key={option}
             className={cn(
               multiCheckStyles({
-                selected: selectedValues.includes(option),
-                disabled,
+                variant,
               })
             )}
             onClick={() => !disabled && handleSelect(option)}
