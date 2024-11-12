@@ -4,4 +4,4 @@ export * from './singleRadio';
 export * from './multiCheck';
 export * from './checkbox';
 export * from './select';
-export * from './dismissibleCard';
+export * from './dismissible-card';
