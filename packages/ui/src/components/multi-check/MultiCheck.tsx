@@ -4,7 +4,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
 import { cn } from '@knockdog/ui/lib';
 
-const multiCheckStyles = cva(
+const multiCheckVariants = cva(
   'transition-all rounded-md p-2 grow disabled:bg-gray5 disabled:cursor-not-allowed data-[selected=true]:border disabled:opacity-50 data-[selected=true]:bg-brown4 data-[selected=true]:border-brown3 data-[selected=true]:text-primary',
   {
     variants: {
@@ -55,7 +55,7 @@ const MultiCheck = ({
             data-selected={selectedValues.includes(option)}
             key={option}
             className={cn(
-              multiCheckStyles({
+              multiCheckVariants({
                 variant,
               })
             )}
