@@ -6,4 +6,5 @@ export * from './checkbox';
 export * from './input';
 export * from './select';
 export * from './dismissible-card';
+export * from './badge';
 export * from './textarea';
