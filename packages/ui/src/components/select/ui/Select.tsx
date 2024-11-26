@@ -13,14 +13,14 @@ const SelectValue = SelectPrimitive.Value;
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, disabled, children, ...props }, ref) => (
+>(({ className, disabled, children, ...restProps }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
       'data-[state=open]:border-brown2 data-[state=open]:text-brown2 disabled:border-gray2 disabled:text-gray2 border-darkBlack text-darkBlack flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
       className
     )}
-    {...props}
+    {...restProps}
   >
     {children}
     <SelectPrimitive.Icon asChild>
