@@ -8,4 +8,5 @@ export * from './select';
 export * from './dismissible-card';
 export * from './badge';
 export * from './textarea';
+export * from './alert-dialog';
 export * from './sheet';
