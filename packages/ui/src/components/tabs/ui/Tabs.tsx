@@ -30,10 +30,10 @@ type TabsContextValue = {
 
 const TabsContext = createContext<TabsContextValue | null>(null);
 
-const useTabsContext = () => {
+const useTabsContext = (component: string) => {
   const context = useContext(TabsContext);
   if (!context) {
-    throw new Error('Tabs components must be used within a Tabs component');
+    throw new Error(`${component} must be used within a Tabs`);
   }
   return context;
 };
@@ -49,6 +49,8 @@ type TabsProps = {
   variant?: 'underline' | 'divider';
   children?: React.ReactNode;
 };
+
+const TABS = 'Tabs';
 
 const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   (
@@ -90,11 +92,13 @@ const Tabs = forwardRef<HTMLDivElement, TabsProps>(
     );
   }
 );
+Tabs.displayName = TABS;
 
 /* -------------------------------------------------------------------------------------------------
  * TabsList
  * -----------------------------------------------------------------------------------------------*/
 
+const TABS_LIST = 'TabsList';
 interface TabsListProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof tabsListVariants>,
@@ -102,7 +106,7 @@ interface TabsListProps
 
 const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
   ({ margin, gap, align, className, ...props }, ref) => {
-    const { baseId, value: selectedValue, variant } = useTabsContext();
+    const { baseId, value: selectedValue, variant } = useTabsContext(TABS_LIST);
 
     const tabsListRef = useRef<HTMLDivElement | null>(null);
     const [indicatorStyle, setIndicatorStyle] = useState({
@@ -177,10 +181,13 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
   }
 );
 
+TabsList.displayName = TABS_LIST;
+
 /* -------------------------------------------------------------------------------------------------
  * TabsTrigger
  * -----------------------------------------------------------------------------------------------*/
 
+const TABS_TRIGGER = 'TabsTrigger';
 interface TabsTriggerProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof tabsTriggerVariants> {
@@ -200,7 +207,7 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
       value: selectedValue,
       onValueChange,
       variant,
-    } = useTabsContext();
+    } = useTabsContext(TABS_TRIGGER);
 
     const isSelected = value === selectedValue;
 
@@ -260,9 +267,13 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
   }
 );
 
+TabsTrigger.displayName = TABS_TRIGGER;
+
 /* -------------------------------------------------------------------------------------------------
  * TabsContent
  * -----------------------------------------------------------------------------------------------*/
+
+const TABS_CONTENT = 'TabsContent';
 
 type TabsContentProps = {
   value: string;
@@ -271,7 +282,7 @@ type TabsContentProps = {
 
 const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
   ({ value, children, ...props }, ref) => {
-    const { baseId, value: selectedValue } = useTabsContext();
+    const { baseId, value: selectedValue } = useTabsContext(TABS_CONTENT);
     const isSelected = value === selectedValue;
 
     if (!isSelected) {
@@ -293,6 +304,8 @@ const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
     );
   }
 );
+
+TabsContent.displayName = TABS_CONTENT;
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };
 
