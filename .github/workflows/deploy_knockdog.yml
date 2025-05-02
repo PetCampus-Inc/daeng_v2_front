@@ -2,7 +2,7 @@ name: Build & Deploy Knockdog
 
 on:
   push:
-    branches: [chore/init-docker]
+    branches: [main]
 
 jobs:
   deploy:
