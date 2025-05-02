@@ -35,7 +35,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_IMAGE }}:latest
           build-args: |
-            PROJECT: knockdog
+            PROJECT= knockdog
             ENV_FILE=.env.production
 
       - name: Deploy to server
