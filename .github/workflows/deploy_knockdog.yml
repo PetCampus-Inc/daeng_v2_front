@@ -50,5 +50,6 @@ jobs:
             docker stop knockdog || true
             docker rm knockdog || true
             docker run -d --name knockdog -p 3000:3000 \
+              --restart unless-stopped \
               -e NODE_ENV=production \
               ${{ secrets.DOCKER_IMAGE }}:latest
