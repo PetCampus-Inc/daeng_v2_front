@@ -49,7 +49,7 @@ WORKDIR /app
 # Pruner 스테이지의 'out' 디렉토리에서 prune된 결과물 복사
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml*
+COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 # 종속성 설치
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile --ignore-scripts
@@ -81,8 +81,8 @@ RUN adduser --system --uid 1001 nextjs
 USER nextjs
 
 # 필수 파일 복사
-COPY --from=builder /app/apps/${PROJECT}/next.config.js .
-COPY --from=builder /app/apps/${PROJECT}/package.json .
+COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/next.config.js .
+COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/package.json .
 
 # standalone 빌드 결과 복사
 COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/.next/standalone ./
