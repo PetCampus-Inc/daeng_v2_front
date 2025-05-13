@@ -46,6 +46,8 @@ WORKDIR /app
 
 ARG PROJECT
 
+RUN echo ">> Build Arg PROJECT=${PROJECT}"
+
 
 #비루트 사용자 생성
 RUN addgroup --system --gid 1001 nodejs \
