@@ -42,6 +42,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # 기존 Build Knockdog 직후에 삽입
+      - name: Debug .next directory
+        run: |
+          echo "🔍 apps/knockdog 디렉터리 구조:"
+          ls -R apps/knockdog
+
+          echo "🔍 .next 내부 구조:"
+          ls -R apps/knockdog/.next || true
+
+          echo "🔍 standalone 유무 확인:"
+          if [ -d apps/knockdog/.next/standalone ]; then
+            echo "✅ standalone 폴더 존재!"
+            ls -R apps/knockdog/.next/standalone
+          else
+            echo "❌ standalone 폴더가 없습니다!"
+            # 실패로 처리하고 싶으면 아래 줄 주석 해제
+            # exit 1
+          fi
+
       # 정적 파일을 S3로 업로드
       - name: Upload .next/static to S3
         run: |
