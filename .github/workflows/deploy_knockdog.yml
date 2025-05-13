@@ -18,6 +18,7 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
+
       - name: Enable pnpm via Corepack
         run: |
           corepack enable
@@ -29,10 +30,10 @@ jobs:
       - name: Create empty .env.production
         run: |
           mkdir -p apps/knockdog
-          echo "PUBLIC_ASSET_PREFIX=${{ secrets.PUBLIC_ASSET_PREFIX }}" > apps/knockdog/.env.production
+          echo "PUBLIC_ASSET_PREFIX=${{ secrets.CDN_URL }}" > apps/knockdog/.env.production
 
       - name: Build Knockdog
-        run: pnpm dlx turbo build --filter=knockdog...
+        run: pnpm dlx turbo run build --filter=knockdog...
 
       # AWS 자격증명 설정 (S3 업로드용)
       - name: Configure AWS credentials for S3
