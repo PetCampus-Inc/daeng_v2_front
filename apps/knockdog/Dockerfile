@@ -86,9 +86,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/package.json .
 
 # standalone 빌드 결과 복사
 COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/.next/static ./apps/${PROJECT}/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/public ./apps/${PROJECT}/public
 
+USER nextjs
 
 WORKDIR /app/apps/${PROJECT}
 
