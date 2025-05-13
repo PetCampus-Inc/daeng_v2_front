@@ -40,3 +40,8 @@ pnpm-debug.log*
 
 # Turbo artifacts
 turbo/
+
+
+# standalone 폴더만 Docker 컨텍스트에 포함
+!apps/knockdog/.next/standalone
+!apps/knockdog/.next/standalone/**
