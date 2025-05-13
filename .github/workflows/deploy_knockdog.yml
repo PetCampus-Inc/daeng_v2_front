@@ -17,12 +17,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
-      - name: Enable pnpm via Corepack
-        run: |
-          corepack enable
-          corepack prepare pnpm@8.15.6 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.6
 
       - name: Install dependencies
         run: pnpm install
@@ -30,7 +29,7 @@ jobs:
       - name: Create empty .env.production
         run: |
           mkdir -p apps/knockdog
-          echo "PUBLIC_ASSET_PREFIX=${{ secrets.CDN_URL }}" > apps/knockdog/.env.production
+          echo "NEXT_PUBLIC_ASSET_PREFIX=${{ secrets.CDN_URL }}" > apps/knockdog/.env.production
 
       - name: Build Knockdog
         run: pnpm dlx turbo run build --filter=knockdog...
