@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@knockdog/ui';
 
 export default function Home() {

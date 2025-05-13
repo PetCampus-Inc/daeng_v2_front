@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+**/node_modules
+.pnpm-store
+
+# Build Outputs
+.next/
+**/.next
+dist/
+**/dist
+build
+**/build
+out/
+
+# Local env files
+.env
+.env.*
+
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Misc
+.vscode/
+.prettier*
+.husky/
+.github/
+.DS_Store 
+
+# Debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Turbo artifacts
+turbo/
+
+
+# standalone 폴더만 Docker 컨텍스트에 포함
+!apps/knockdog/.next/standalone
+!apps/knockdog/.next/standalone/**

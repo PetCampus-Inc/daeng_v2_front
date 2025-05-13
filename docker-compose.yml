@@ -1,0 +1,17 @@
+services:
+  knockdog-dev:
+    build:
+      context: .
+      dockerfile: ./apps/knockdog/Dockerfile
+      target: dev
+      args:
+        PROJECT: knockdog
+        ENV_FILE: .env.development
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    ports:
+      - '3001:3001'
+    volumes:
+      - .:/app
+    command: sh -c "pnpm dlx turbo run dev --filter=knockdog..."
