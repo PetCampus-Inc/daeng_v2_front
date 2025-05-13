@@ -5,97 +5,60 @@ FROM node:20.19.1-alpine3.21 AS base
 LABEL stage=base
 
 # Alpine Linux: 가벼운 환경을 위해 libc6-compat 추가
-RUN apk add --no-cache libc6-compat
-RUN apk update
+RUN apk add --no-cache libc6-compat && apk update
 
 # Corepack 활성화
 RUN corepack enable
 RUN corepack prepare pnpm@8.15.6 --activate
 RUN pnpm config set store-dir ~/.pnpm-store
 
-# ----------------------------------------------------------------------
-# Stage 2: Pruner - Turbo Prune
-# ----------------------------------------------------------------------
-FROM base AS pruner
-LABEL stage=pruner
-
-ARG PROJECT
-ARG ENV_FILE
-
-# 작업 디렉토리 설정
-WORKDIR /app
-
-# 전체 소스코드 복사
-COPY . .
-
-# ENV 환경에 맞게 세팅
-RUN find . -name ".env.*" -exec rm {} \;
-COPY apps/${PROJECT}/${ENV_FILE} apps/${PROJECT}
-RUN mv apps/${PROJECT}/${ENV_FILE} apps/${PROJECT}/.env.production
-
-# Turbo Prune 실행
-RUN pnpm dlx turbo prune --scope=${PROJECT} --docker
 
 # ----------------------------------------------------------------------
-# Stage 3: Builder - Pruned된 소스 기반으로 종속성 설치 및 빌드
+# Dev Stage: 개발 환경을 위한 이미지
 # ----------------------------------------------------------------------
-FROM base AS builder
-LABEL stage=builder
-
-ARG PROJECT
+FROM base AS dev
+LABEL stage=dev
 
 WORKDIR /app
 
-# Pruner 스테이지의 'out' 디렉토리에서 prune된 결과물 복사
-COPY --from=pruner /app/out/json/ .
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
-# 종속성 설치
-RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile --ignore-scripts
-
-# Pruner 스테이지의 'out' 디렉토리에서 prune된 전체 소스코드 복사
-COPY --from=pruner /app/out/full/ .
-
-# 애플리케이션 빌드
-RUN pnpm dlx turbo run build --filter=${PROJECT}...
-
-# 프로덕션 종속성만 남기기
-RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
-
-# ----------------------------------------------------------------------
-# Stage 4: Runner - 최종 런타임 환경
-# ----------------------------------------------------------------------
-FROM base AS runner
-LABEL stage=runner
-
-ARG PROJECT
-
-WORKDIR /app
-
-# 사용자 및 그룹 생성
+#비루트 사용자 생성
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 권한을 nextjs 사용자로 설정
+# 프로젝트 의존성 설치 (Monorepo 필터링)
 USER nextjs
+# apps/knockdog 의존성만 설치하여 가볍게 유지
+RUN pnpm install --filter=knockdog...
 
-# 필수 파일 복사
-COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/next.config.js .
-COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/package.json .
-
-# standalone 빌드 결과 복사
-COPY --from=builder --chown=nextjs:nodejs /app/apps/${PROJECT}/.next/standalone ./
-
-USER nextjs
-
-WORKDIR /app/apps/${PROJECT}
-
-# 포트 설정
-ENV NODE_ENV=production
-ENV PORT=3000
+# 전체 파일 복사 및 개발 서버 실행
+COPY . .
 EXPOSE 3000
+CMD ["pnpm", "dlx", "turbo", "run", "dev", "--filter=knockdog..."]
 
-# 서버 실행 (standalone 기반)
-CMD ["node", "server.js"]
+
+# ----------------------------------------------------------------------
+# Runner Stage: Production SSR 서버
+# ----------------------------------------------------------------------
+FROM node:20.19.1-alpine3.21 AS runner
+LABEL stage=runner
+WORKDIR /app
+
+#비루트 사용자 생성
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs
+
+ # CI에서 pre-built 산출물 복사
+ USER nextjs
+ COPY --chown=nextjs:nodejs apps/${PROJECT}/.next/standalone ./
+ COPY --chown=nextjs:nodejs apps/${PROJECT}/next.config.js ./
+ COPY --chown=nextjs:nodejs apps/${PROJECT}/package.json ./
+
+ # 환경 변수 및 포트
+ ENV NODE_ENV=production
+ ENV PORT=3000
+ EXPOSE 3000
+
+ # 서버 실행
+ CMD ["node", "server.js"]  
 

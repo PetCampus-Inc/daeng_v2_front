@@ -12,10 +12,49 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2) Node.js + pnpm 설치 (정적 파일 빌드를 위해)
+      - name: Setup Node.js & PNPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Create empty .env.production
+        run: |
+          mkdir -p apps/knockdog
+          echo "PUBLIC_ASSET_PREFIX=${{ secrets.PUBLIC_ASSET_PREFIX }}" > apps/knockdog/.env.production
+
+      - name: Build Knockdog
+        run: pnpm dlx turbo build --filter=knockdog...
+
+      # AWS 자격증명 설정 (S3 업로드용)
+      - name: Configure AWS credentials for S3
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 정적 파일을 S3로 업로드
+      - name: Upload .next/static to S3
+        run: |
+          aws s3 sync apps/knockdog/.next/static \
+            s3://my-app-static-assets/knockdog/_next/static \
+            --acl private --delete
+
+      - name: Upload public to S3
+        run: |
+          aws s3 sync apps/knockdog/public \
+            s3://my-app-static-assets/knockdog/public \
+            --acl private --delete
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # AWS 자격증명 설정
+      # AWS 자격증명 설정 (ECR 로그인용)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -28,16 +67,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Create empty .env.production file
-        run: |
-          mkdir -p apps/knockdog
-          touch apps/knockdog/.env.production
-
       - name: Build and push Docker image to ECR
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./apps/knockdog/Dockerfile
+          target: runner
           push: true
           tags: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
           build-args: |
@@ -51,11 +86,11 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+              | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
             docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
             docker stop knockdog || true
-            docker rm knockdog || true
-
+            docker rm knockdog   || true
             docker run -d --name knockdog -p 3000:3000 \
               --restart unless-stopped \
               -e NODE_ENV=production \

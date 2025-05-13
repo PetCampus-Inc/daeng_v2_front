@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/knockdog/Dockerfile
+      target: dev
       args:
         PROJECT: knockdog
         ENV_FILE: .env.development
@@ -13,4 +14,4 @@ services:
       - '3001:3001'
     volumes:
       - .:/app
-    command: sh -c "pnpm dev"
+    command: sh -c "pnpm dlx turbo run dev --filter=knockdog..."
