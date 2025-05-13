@@ -44,6 +44,9 @@ FROM node:20.19.1-alpine3.21 AS runner
 LABEL stage=runner
 WORKDIR /app
 
+ARG PROJECT
+
+
 #비루트 사용자 생성
 RUN addgroup --system --gid 1001 nodejs \
  && adduser --system --uid 1001 nextjs
