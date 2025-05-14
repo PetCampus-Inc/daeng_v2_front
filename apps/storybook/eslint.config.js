@@ -1,28 +1,25 @@
-const {
-    defineConfig,
-} = require("eslint/config");
+const { defineConfig } = require('eslint/config');
 
-const tsParser = require("@typescript-eslint/parser");
-const js = require("@eslint/js");
+const tsParser = require('@typescript-eslint/parser');
+const js = require('@eslint/js');
 
-const {
-    FlatCompat,
-} = require("@eslint/eslintrc");
+const { FlatCompat } = require('@eslint/eslintrc');
 
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all,
 });
 
-module.exports = defineConfig([{
-    extends: compat.extends("@knockdog/eslint-config/next.js"),
-
+module.exports = defineConfig([
+  ...compat.extends('@knockdog/eslint-config/next.js'),
+  {
     languageOptions: {
-        parser: tsParser,
+      parser: tsParser,
 
-        parserOptions: {
-            project: true,
-        },
+      parserOptions: {
+        project: true,
+      },
     },
-}]);
+  },
+]);
