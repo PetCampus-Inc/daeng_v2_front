@@ -23,7 +23,7 @@
     "@knockdog/typescript-config": "workspace:*",
     "@storybook/react": "^8.3.6",
     "@svgr/cli": "^8.1.0",
-    "@turbo/gen": "^1.12.4"
+    "@turbo/gen": "^2.5.3"
   },
   "exports": {
     ".": "./src/components/index.ts",
