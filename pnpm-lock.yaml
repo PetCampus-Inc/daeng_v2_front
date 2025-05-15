@@ -139,6 +139,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.6
         version: 4.1.6
+      eslint-plugin-storybook:
+        specifier: ^0.12.0
+        version: 0.12.0(eslint@9.26.0)(typescript@5.8.3)
       postcss:
         specifier: ^8.5.3
         version: 8.5.3
@@ -3258,6 +3261,12 @@ packages:
     dependencies:
       storybook: 8.6.12(prettier@3.5.3)
       unplugin: 1.16.1
+    dev: true
+
+  /@storybook/csf@0.1.13:
+    resolution: {integrity: sha512-7xOOwCLGB3ebM87eemep89MYRFTko+D8qE7EdAAq74lgdqRR5cOUtYWJLjO2dLtP94nqoOdHJo6MdLLKzg412Q==}
+    dependencies:
+      type-fest: 2.19.0
     dev: true
 
   /@storybook/global@5.0.0:
@@ -6783,6 +6792,21 @@ packages:
       semver: 6.3.1
       string.prototype.matchall: 4.0.12
       string.prototype.repeat: 1.0.0
+    dev: true
+
+  /eslint-plugin-storybook@0.12.0(eslint@9.26.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-Lg5I0+npTgiYgZ4KSvGWGDFZi3eOCNJPaWX0c9rTEEXC5wvooOClsP9ZtbI4hhFKyKgYR877KiJxbRTSJq9gWA==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      eslint: '>=8'
+    dependencies:
+      '@storybook/csf': 0.1.13
+      '@typescript-eslint/utils': 8.32.1(eslint@9.26.0)(typescript@5.8.3)
+      eslint: 9.26.0
+      ts-dedent: 2.2.0
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
     dev: true
 
   /eslint-plugin-turbo@2.5.3(eslint@9.26.0)(turbo@2.5.3):

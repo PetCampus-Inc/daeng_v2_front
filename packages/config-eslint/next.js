@@ -15,9 +15,8 @@ export const nextJsConfig = [
   js.configs.recommended,
   ...neostandard({ noStyle: true }),
   eslintConfigPrettier,
-  ...tseslint.configs.recommended,
   importPlugin.flatConfigs.recommended,
-  fsdPlugin.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
@@ -45,6 +44,20 @@ export const nextJsConfig = [
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
       'react/react-in-jsx-scope': 'off',
+    },
+  },
+  {
+    plugins: {
+      fsd: fsdPlugin,
+    },
+    rules: {
+      'fsd/forbidden-imports': 'error',
+      'fsd/no-cross-slice-dependency': 'error',
+      'fsd/no-global-store-imports': 'error',
+      'fsd/no-public-api-sidestep': 'error',
+      'fsd/no-relative-imports': 'error',
+      'fsd/no-ui-in-business-logic': 'error',
+      'fsd/ordered-imports': 'warn',
     },
   },
   {
