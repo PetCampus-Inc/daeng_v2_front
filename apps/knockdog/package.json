@@ -13,6 +13,6 @@
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
-    "typescript": "5.3.3"
+    "typescript": "5.8.3"
   }
 }
