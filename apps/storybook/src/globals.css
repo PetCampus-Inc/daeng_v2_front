@@ -1,0 +1,4 @@
+@import 'tailwindcss';
+@import '@knockdog/ui/styles';
+@config '@knockdog/ui/tailwind-config';
+@source '@knockdog/ui';

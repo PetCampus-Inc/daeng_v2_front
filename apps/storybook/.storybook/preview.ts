@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react';
-import '@knockdog/ui/globals.css';
+
+import '../src/globals.css';
 
 /** @type { import('@storybook/react').Preview } */
 const preview: Preview = {
