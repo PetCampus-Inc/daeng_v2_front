@@ -65,5 +65,5 @@ RUN addgroup --system --gid 1001 nodejs \
  EXPOSE 3000
 
  # 서버 실행
- CMD ["node", "server.js"]  
+ CMD ["node", "apps/knockdog/server.js"]  
 
