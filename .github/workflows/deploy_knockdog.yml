@@ -34,14 +34,16 @@ jobs:
       - name: Build Knockdog
         run: pnpm dlx turbo run build --filter=knockdog...
 
-      # AWS 자격증명 설정 (S3 업로드용)
-      - name: Configure AWS credentials for S3
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
+      # 빌드 결과물 디렉토리 구조 잘 있는지 확인
+      - name: Verify .next/standalone/server.js exists
+        run: |
+          echo "🔍 Checking for server.js in .next/standalone..."
+          if [ -f apps/knockdog/.next/standalone/server.js ]; then
+            echo "✅ server.js exists!"
+          else
+            echo "❌ server.js not found! Failing the build."
+            exit 1
+          fi
       # 기존 Build Knockdog 직후에 삽입
       - name: Debug .next directory
         run: |
@@ -59,7 +61,17 @@ jobs:
             echo "❌ standalone 폴더가 없습니다!"
             # 실패로 처리하고 싶으면 아래 줄 주석 해제
             # exit 1
-          fi
+        fi
+
+
+      # AWS 자격증명 설정 (S3 업로드용)
+      - name: Configure AWS credentials for S3
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
 
       # 정적 파일을 S3로 업로드
       - name: Upload .next/static to S3
