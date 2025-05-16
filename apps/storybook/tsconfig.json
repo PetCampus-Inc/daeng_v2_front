@@ -1,6 +1,6 @@
 {
   "extends": "@knockdog/typescript-config/nextjs.json",
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": [".storybook/**/*.ts", ".storybook/**/*.tsx"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "strictNullChecks": true,

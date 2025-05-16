@@ -1,4 +1,4 @@
-import '@knockdog/ui/globals.css';
+import './globals.css';
 import { cn } from '@knockdog/ui/lib';
 import type { Metadata } from 'next';
 
