@@ -38,7 +38,7 @@ jobs:
       - name: Verify .next/standalone/server.js exists
         run: |
           echo "🔍 Checking for server.js in .next/standalone..."
-          if [ -f apps/knockdog/.next/standalone/server.js ]; then
+          if [ -f apps/knockdog/.next/standalone/apps/knockdog/server.js ]; then
             echo "✅ server.js exists!"
           else
             echo "❌ server.js not found! Failing the build."
