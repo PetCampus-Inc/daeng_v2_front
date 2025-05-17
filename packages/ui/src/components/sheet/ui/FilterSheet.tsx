@@ -1,3 +1,4 @@
+'use client';
 import { SheetClose } from './Sheet';
 import { Button } from '../../button';
 import { cn } from '@knockdog/ui/lib';
