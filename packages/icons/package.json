@@ -1,0 +1,27 @@
+{
+  "name": "@knockdog/icons",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "extract-icons": "node scripts/extractFigmaIconsToJSX.js"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^4.1.6"
+  },
+  "devDependencies": {
+    "@knockdog/eslint-config": "workspace:*",
+    "@knockdog/typescript-config": "workspace:*",
+    "@storybook/react": "^8.3.6",
+    "@turbo/gen": "^2.5.3",
+    "dotenv": "^16.5.0"
+  },
+  "exports": {
+    ".": "./src/Icon.tsx"
+  }
+}
