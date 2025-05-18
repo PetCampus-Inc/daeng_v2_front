@@ -1,6 +1,6 @@
 'use client';
 
-import { IconButton } from '../../icon-button';
+// import { IconButton } from '../../icon-button';
 import { Input, type InputProps } from './Input';
 
 export interface SearchInputProps extends InputProps {
@@ -13,18 +13,18 @@ export const SearchInput = ({ value, onClear, ...props }: SearchInputProps) => {
       type='search'
       inputMode='search'
       value={value}
-      suffixElement={
-        value ? (
-          <IconButton
-            className='mx-1'
-            icon='CircleCloseGray'
-            pressEffect
-            onClick={onClear}
-          />
-        ) : (
-          <IconButton className='mx-1' icon='Search' />
-        )
-      }
+      // suffixElement={
+      //   value ? (
+      //     <IconButton
+      //       className='mx-1'
+      //       icon='CircleCloseGray'
+      //       pressEffect
+      //       onClick={onClear}
+      //     />
+      //   ) : (
+      //     <IconButton className='mx-1' icon='Search' />
+      //   )
+      // }
       {...props}
     />
   );

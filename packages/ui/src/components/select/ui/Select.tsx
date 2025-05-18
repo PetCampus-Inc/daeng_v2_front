@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Icon } from '../../icon';
+// import { Icon } from '../../icon';
 
 import { cn } from '@knockdog/ui/lib';
 
@@ -24,7 +24,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <Icon icon='ArrowDown' className={cn(disabled ? 'text-gray2' : '')} />
+      {/* <Icon icon='ArrowDown' className={cn(disabled ? 'text-gray2' : '')} /> */}
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));

@@ -1,7 +1,7 @@
 'use client';
 
 import { InputHTMLAttributes } from 'react';
-import { Icon } from '../icon';
+// import { Icon } from '../icon';
 
 interface CheckBoxProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -38,10 +38,10 @@ const CheckBox = ({
         {...restProps}
       />
       <div className='inline cursor-pointer' onClick={handleIconClick}>
-        <Icon
+        {/* <Icon
           className='inline'
           icon={checked ? 'CircleCheckOn' : 'CircleCheckOff'}
-        />
+        /> */}
       </div>
       <label htmlFor={id} className='ml-2 cursor-pointer'>
         {label}

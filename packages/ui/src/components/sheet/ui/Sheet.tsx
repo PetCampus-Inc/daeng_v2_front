@@ -8,7 +8,7 @@ import {
   HTMLAttributes,
 } from 'react';
 import { cn } from '@knockdog/ui/lib';
-import { Icon } from '../../icon';
+// import { Icon } from '../../icon';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -83,7 +83,7 @@ const SheetContent = forwardRef<
         >
           {showCloseButton && (
             <SheetPrimitive.Close className='absolute right-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none'>
-              <Icon icon='Close' />
+              {/* <Icon icon='Close' /> */}
               <span className='sr-only'>Close</span>
             </SheetPrimitive.Close>
           )}

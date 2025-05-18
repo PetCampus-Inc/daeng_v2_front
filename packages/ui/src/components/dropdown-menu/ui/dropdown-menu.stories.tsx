@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { Button } from '../../button';
-import { Icon } from '../../icon';
+// import { Icon } from '../../icon';
 
 const meta: Meta<typeof DropdownMenu> = {
   title: 'Components/DropdownMenu',
@@ -69,19 +69,19 @@ export const Default: Story = {
       >
         <DropdownMenuItem>
           <span className='bg-yellow3 rounded-md'>
-            <Icon icon='CallDogOwner' className='size-5' />
+            {/* <Icon icon='CallDogOwner' className='size-5' /> */}
           </span>
           전화 걸기
         </DropdownMenuItem>
         <DropdownMenuItem>
           <span className='bg-yellow3 rounded-md'>
-            <Icon icon='SendNotification' className='size-5' />
+            {/* <Icon icon='SendNotification' className='size-5' /> */}
           </span>
           알림 전송하기
         </DropdownMenuItem>
         <DropdownMenuItem>
           <span className='bg-yellow3 rounded-md'>
-            <Icon icon='CircleClose' className='size-5' />
+            {/* <Icon icon='CircleClose' className='size-5' /> */}
           </span>
           강아지 삭제
         </DropdownMenuItem>

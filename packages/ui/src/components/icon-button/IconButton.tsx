@@ -5,7 +5,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ButtonHTMLAttributes } from 'react';
 import { forwardRef } from 'react';
 import { cn } from '@knockdog/ui/lib';
-import { Icon, IconType } from '../icon';
 
 const iconButtonVariants = cva(
   'inline-flex items-center justify-center bg-transparent rounded-md',
@@ -29,7 +28,7 @@ const iconButtonVariants = cva(
 export interface IconButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof iconButtonVariants> {
-  icon: IconType;
+  // icon: IconType;
   iconClassName?: string;
   asChild?: boolean;
 }
@@ -38,9 +37,9 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   (
     {
       className,
-      iconClassName,
+      // iconClassName,
       size,
-      icon,
+      // icon,
       pressEffect,
       asChild = false,
       ...props
@@ -54,7 +53,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ref={ref}
         {...props}
       >
-        <Icon className={iconClassName} icon={icon} />
+        {/* <Icon className={iconClassName} icon={icon} /> */}
       </Comp>
     );
   }

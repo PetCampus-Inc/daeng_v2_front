@@ -1,6 +1,6 @@
 import { cn } from '@knockdog/ui/lib';
 import { ReactNode } from 'react';
-import { Icon } from '../icon';
+// import { Icon } from '../icon';
 
 interface DismissibleCardProps {
   children?: ReactNode;
@@ -23,7 +23,7 @@ const DismissibleCard = ({
         className={cn('absolute right-[-15px] top-[-15px] rounded-full p-1')}
         onClick={onRemove}
       >
-        <Icon icon='CircleClose' />
+        {/* <Icon icon='CircleClose' /> */}
       </button>
       <div className={cn('flex items-center justify-center')}>{children}</div>
     </div>
