@@ -1,6 +1,6 @@
 import { ReactElement } from 'react';
 
-import * as icons from './icons';
+import * as icons from '@knockdog/icons';
 import { cn } from '@knockdog/ui/lib';
 
 export type IconType = keyof typeof icons;
