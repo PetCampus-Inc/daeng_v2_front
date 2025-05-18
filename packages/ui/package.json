@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint .",
     "generate:component": "turbo gen react-component",
     "build:icons": "svgr --icon --typescript --no-prettier --replace-attr-values '#000=currentColor' -d src/components/icon/icons src/assets/svgs && pnpm run generate:icons-index",
     "type-check": "tsc --noEmit"

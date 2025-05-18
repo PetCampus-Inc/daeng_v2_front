@@ -1,3 +1,4 @@
+import { defineConfig } from 'eslint/config';
 import { config } from '@knockdog/eslint-config/react-internal';
 import tsParser from '@typescript-eslint/parser';
 import path from 'node:path';
@@ -7,13 +8,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** @type {import("eslint").Linter.Config} */
-export default [
+export default defineConfig([
   ...config,
   {
+    ignores: ['**/*.config.js', '**/*.config.mjs'],
+  },
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx', 'svg.d.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         tsconfigRootDir: __dirname,
       },
     },
@@ -21,4 +26,4 @@ export default [
       'no-redeclare': 'off',
     },
   },
-];
+]);
