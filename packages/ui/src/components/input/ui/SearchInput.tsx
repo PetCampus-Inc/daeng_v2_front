@@ -17,7 +17,7 @@ export const SearchInput = ({ value, onClear, ...props }: SearchInputProps) => {
         value ? (
           <IconButton
             className='mx-1'
-            icon='CircleCloseGray'
+            icon='Search'
             pressEffect
             onClick={onClear}
           />
