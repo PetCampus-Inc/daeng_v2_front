@@ -1,11 +1,12 @@
-import { fetchFigmaFile, fetchFigmaImages } from '../api/index.js';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { fetchFigmaFile, fetchFigmaImages } = require('../api/index.js');
 
 /**
  * 피그마 아이콘을 조회합니다.
  * @param {RegExp} iconReg 아이콘 노드 이름 정규식 (기본값: `/^ico_/`)
  * @returns 아이콘 목록
  */
-export const getFigmaIcons = async (iconReg = /^ico_/) => {
+module.exports.getFigmaIcons = async (iconReg = /^ico_/) => {
   try {
     // 피그마 파일 조회
     const { components } = await fetchFigmaFile();

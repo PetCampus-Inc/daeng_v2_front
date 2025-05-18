@@ -60,7 +60,7 @@ const createSvgComponent = (componentName, svgAttributes, svgContent) => {
  * @param {string} componentName - 생성할 컴포넌트 이름
  * @returns {string} React 컴포넌트 문자열
  */
-export const transSVGToJSX = (svgString, componentName) => {
+module.exports.transSVGToJSX = (svgString, componentName) => {
   const jsxCompatibleSvg = convertSvgAttributesToJsx(svgString);
 
   // SVG 태그의 속성만 추출

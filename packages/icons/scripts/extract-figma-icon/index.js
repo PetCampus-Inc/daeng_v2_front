@@ -1,11 +1,12 @@
-import fs from 'fs';
-import path from 'path';
+/* eslint-disable @typescript-eslint/no-require-imports */
+const fs = require('fs');
+const path = require('path');
 
-import { ICON_OUTPUT_PATH, ICON_REG } from './config/index.js';
-import { getFigmaIcons } from './core/getFigmaIcons.js';
-import { fetchSVG } from './api/index.js';
-import { snakeToPascal } from './utils/snakeToPascal.js';
-import { transSVGToJSX } from './utils/transSVGToJSX.js';
+const { ICON_OUTPUT_PATH, ICON_REG } = require('./config/index.js');
+const { getFigmaIcons } = require('./core/getFigmaIcons.js');
+const { fetchSVG } = require('./api/index.js');
+const { snakeToPascal } = require('./utils/snakeToPascal.js');
+const { transSVGToJSX } = require('./utils/transSVGToJSX.js');
 
 /** 피그마에서 아이콘을 추출해 React 컴포넌트 파일로 생성합니다. */
 async function extractFigmaIconsToJSX() {
