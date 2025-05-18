@@ -1,8 +1,6 @@
 {
   "extends": "@knockdog/typescript-config/react-library.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
       "@knockdog/icons": ["./src/components/index.ts"]
