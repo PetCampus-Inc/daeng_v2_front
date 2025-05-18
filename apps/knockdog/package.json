@@ -13,10 +13,10 @@
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.6",
+    "@tailwindcss/postcss": "^4.1.7",
     "class-variance-authority": "^0.7.1",
     "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.6",
+    "tailwindcss": "^4.1.7",
     "typescript": "5.8.3"
   }
 }
