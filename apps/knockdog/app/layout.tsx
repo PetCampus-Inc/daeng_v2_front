@@ -2,7 +2,7 @@ import './globals.css';
 import { cn } from '@knockdog/ui/lib';
 import type { Metadata } from 'next';
 import { pretendard } from 'public/fonts/font';
-import { ReactQueryProvider } from '@common/ReactQueryProvider';
+import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 
 export const metadata: Metadata = { title: '똑독 견주' };
 

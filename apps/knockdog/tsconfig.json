@@ -19,11 +19,10 @@
       "@features/*": ["./src/features/*"],
       "@entities/*": ["./src/entities/*"],
       "@shared/*": ["./src/shared/*"],
-      "@hooks/*": ["./hooks/*"],
-      "@stores/*": ["./stores/*"],
-      "types/*": ["./types/*"],
-      "@lib/*": ["./lib/*"],
-      "@common/*": ["./common/*"]
+      "@stores/*": ["./src/shared/store/*"],
+      "@utils/*": ["./src/shared/utils/*"],
+      "@providers/*": ["./common/*"],
+      "@constants/*": ["./src/shared/constants/*"]
     }
   }
 }
