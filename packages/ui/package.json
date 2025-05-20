@@ -9,6 +9,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@knockdog/icons": "workspace:*",
     "@radix-ui/react-alert-dialog": "^1.1.13",
     "@radix-ui/react-compose-refs": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.13",
@@ -25,7 +26,6 @@
   "devDependencies": {
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
-    "@knockdog/icons": "workspace:*",
     "@storybook/react": "^8.3.6",
     "@svgr/cli": "^8.1.0",
     "@turbo/gen": "^2.5.3",
