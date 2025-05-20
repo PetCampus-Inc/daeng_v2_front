@@ -17,7 +17,7 @@ export const PasswordInput = ({ ...props }: InputProps) => {
         <IconButton
           className='mx-1'
           iconClassName='size-4'
-          icon={isShowPassword ? 'EyesClosed' : 'EyesOpened'}
+          icon={isShowPassword ? 'Alldogs' : 'Alldogs'}
           pressEffect
           onClick={handleTogglePassword}
         />

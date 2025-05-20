@@ -23,7 +23,7 @@ const DismissibleCard = ({
         className={cn('absolute right-[-15px] top-[-15px] rounded-full p-1')}
         onClick={onRemove}
       >
-        <Icon icon='CircleClose' />
+        <Icon icon='Alldogs' />
       </button>
       <div className={cn('flex items-center justify-center')}>{children}</div>
     </div>
