@@ -83,7 +83,7 @@ const SheetContent = forwardRef<
         >
           {showCloseButton && (
             <SheetPrimitive.Close className='absolute right-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none'>
-              <Icon icon='Close' />
+              <Icon icon='Alldogs' />
               <span className='sr-only'>Close</span>
             </SheetPrimitive.Close>
           )}

@@ -8,7 +8,8 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
-    "commit": "cz"
+    "commit": "cz",
+    "extract-icons": "pnpm run --filter @knockdog/icons extract-icons"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --flag unstable_config_lookup_from_file",

@@ -9,6 +9,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@knockdog/icons": "workspace:*",
     "@radix-ui/react-alert-dialog": "^1.1.13",
     "@radix-ui/react-compose-refs": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.13",

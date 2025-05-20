@@ -38,10 +38,7 @@ const CheckBox = ({
         {...restProps}
       />
       <div className='inline cursor-pointer' onClick={handleIconClick}>
-        <Icon
-          className='inline'
-          icon={checked ? 'CircleCheckOn' : 'CircleCheckOff'}
-        />
+        <Icon className='inline' icon={checked ? 'Alldogs' : 'Alldogs'} />
       </div>
       <label htmlFor={id} className='ml-2 cursor-pointer'>
         {label}
