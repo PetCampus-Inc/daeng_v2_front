@@ -8,7 +8,7 @@ dotenv.config();
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 // 아이콘 컴포넌트 파일 생성 경로
-const ICON_OUTPUT_PATH = path.join(ROOT_DIR, 'src', 'components2');
+const ICON_OUTPUT_PATH = path.join(ROOT_DIR, 'src', 'components');
 
 // 아이콘 노드 이름 정규식
 const ICON_REG = /^ico_/;
