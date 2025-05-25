@@ -1,9 +1,10 @@
 import { ComponentProps } from 'react';
+import { Icon } from '@knockdog/ui';
 
-function CloseButton({ children = 'X', ...props }: ComponentProps<'button'>) {
+function CloseButton({ children, ...props }: ComponentProps<'button'>) {
   return (
     <button className='size-6' {...props}>
-      {children}
+      {children ?? <Icon icon='Close' />}
     </button>
   );
 }

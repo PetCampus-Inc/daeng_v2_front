@@ -75,6 +75,9 @@ importers:
       '@knockdog/eslint-config':
         specifier: workspace:*
         version: link:../../packages/config-eslint
+      '@knockdog/icons':
+        specifier: workspace:*
+        version: link:../../packages/icons
       '@knockdog/typescript-config':
         specifier: workspace:*
         version: link:../../packages/config-typescript

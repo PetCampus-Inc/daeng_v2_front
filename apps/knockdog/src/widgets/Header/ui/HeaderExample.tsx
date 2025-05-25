@@ -17,6 +17,7 @@ export default function HeaderWrapper({ title }: HeaderWrapperProps) {
       <Header.RightSection>
         <Header.ShareButton />
         <Header.MenuButton />
+        <Header.CloseButton />
       </Header.RightSection>
     </Header>
   );

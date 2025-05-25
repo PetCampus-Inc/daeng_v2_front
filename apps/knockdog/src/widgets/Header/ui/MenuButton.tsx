@@ -1,9 +1,9 @@
 import { ComponentProps } from 'react';
-
-function MenuButton({ children = '⋮', ...props }: ComponentProps<'button'>) {
+import { Icon } from '@knockdog/ui';
+function MenuButton({ children, ...props }: ComponentProps<'button'>) {
   return (
     <button className='size-6' {...props}>
-      {children}
+      {children ?? <Icon icon='More' />}
     </button>
   );
 }
