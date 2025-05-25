@@ -30,14 +30,16 @@ module.exports.getFigmaIcons = async (iconReg = /^ico_/) => {
       `🔍 피그마 아이콘 이미지 조회 완료 (${Object.keys(images).length}개)`
     );
 
-    // 매핑된 데이터 반환
-    return iconNodes.map(([key, value]) => {
-      const image = images[key];
-      return {
-        name: value.name.replace(iconReg, ''),
-        iconUrl: image,
-      };
-    });
+    // 매핑된 데이터 반환 (iconUrl이 null이 아닌 객체만 반환)
+    return iconNodes
+      .map(([key, value]) => {
+        const image = images[key];
+        return {
+          name: value.name.replace(iconReg, ''),
+          iconUrl: image,
+        };
+      })
+      .filter((icon) => icon.iconUrl !== null);
   } catch (error) {
     console.error('❌ 피그마 API 호출 중 오류 발생:', error);
     return [];
