@@ -24,6 +24,7 @@
     "tailwindcss": "^4.1.7"
   },
   "devDependencies": {
+    "@knockdog/design-token": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@storybook/react": "^8.3.6",
@@ -33,7 +34,7 @@
   },
   "exports": {
     ".": "./src/components/index.ts",
-    "./tailwind-config": "./tailwind.config.js",
+    "./tailwind-config": "./tailwind.config.mjs",
     "./styles": "./src/styles/globals.css",
     "./lib": "./src/lib/index.ts",
     "./lotties/*": "./src/assets/lotties/*.json",
