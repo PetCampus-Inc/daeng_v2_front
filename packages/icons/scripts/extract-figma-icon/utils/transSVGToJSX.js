@@ -68,7 +68,7 @@ const convertSvgAttributesToJsx = (svgText) => {
   const attributesRegex = /(\S+)=["']([^"']*)["']/g;
   return result.replace(attributesRegex, (_, attr, value) => {
     // style 속성은 이미 처리했으므로 건너뛰기
-    if (attr === 'style') return `style={${value}}`;
+    if (attr === 'style') return _;
 
     const jsxAttr = attr.replace(/[-:]([a-z])/g, (_, char) =>
       char.toUpperCase()
