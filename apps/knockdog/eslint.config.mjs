@@ -1,4 +1,4 @@
-import { nextJsConfig } from '@knockdog/eslint-config/next-js';
+import nextConfig from '@knockdog/eslint-config/next-js';
 import tsParser from '@typescript-eslint/parser';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tsconfigPath = path.resolve(__dirname, 'tsconfig.json');
 
 export default [
-  ...nextJsConfig,
+  nextConfig,
 
   {
     files: ['**/*.ts', '**/*.tsx'],
