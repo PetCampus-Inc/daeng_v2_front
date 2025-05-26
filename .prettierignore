@@ -3,3 +3,4 @@ coverage
 pnpm-lock.yaml
 pnpm-workspace.yaml
 dist
+packages/design-token/index.css

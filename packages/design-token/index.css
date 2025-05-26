@@ -251,98 +251,98 @@
 }
 
 @utility size-* {
-  width: --value(--dimension- *);
-  height: --value(--dimension- *);
+  width: --value(--dimension-*);
+  height: --value(--dimension-*);
 }
 
 @utility w-* {
-  width: --value(--dimension- *);
+  width: --value(--dimension-*);
 }
 
 @utility h-* {
-  height: --value(--dimension- *);
+  height: --value(--dimension-*);
 }
 
 @utility p-* {
-  padding: --value(--dimension- *);
+  padding: --value(--dimension-*);
 }
 
 @utility pt-* {
-  padding-top: --value(--dimension- *);
+  padding-top: --value(--dimension-*);
 }
 
 @utility pb-* {
-  padding-bottom: --value(--dimension- *);
+  padding-bottom: --value(--dimension-*);
 }
 
 @utility pl-* {
-  padding-left: --value(--dimension- *);
+  padding-left: --value(--dimension-*);
 }
 
 @utility pr-* {
-  padding-right: --value(--dimension- *);
+  padding-right: --value(--dimension-*);
 }
 
 @utility px-* {
-  padding-left: --value(--dimension- *);
-  padding-right: --value(--dimension- *);
+  padding-left: --value(--dimension-*);
+  padding-right: --value(--dimension-*);
 }
 
 @utility py-* {
-  padding-top: --value(--dimension- *);
-  padding-bottom: --value(--dimension- *);
+  padding-top: --value(--dimension-*);
+  padding-bottom: --value(--dimension-*);
 }
 
 @utility m-* {
-  margin: --value(--dimension- *);
+  margin: --value(--dimension-*);
 }
 
 @utility mt-* {
-  margin-top: --value(--dimension- *);
+  margin-top: --value(--dimension-*);
 }
 
 @utility mb-* {
-  margin-bottom: --value(--dimension- *);
+  margin-bottom: --value(--dimension-*);
 }
 
 @utility ml-* {
-  margin-left: --value(--dimension- *);
+  margin-left: --value(--dimension-*);
 }
 
 @utility mr-* {
-  margin-right: --value(--dimension- *);
+  margin-right: --value(--dimension-*);
 }
 
 @utility mx-* {
-  margin-left: --value(--dimension- *);
-  margin-right: --value(--dimension- *);
+  margin-left: --value(--dimension-*);
+  margin-right: --value(--dimension-*);
 }
 
 @utility my-* {
-  margin-top: --value(--dimension- *);
-  margin-bottom: --value(--dimension- *);
+  margin-top: --value(--dimension-*);
+  margin-bottom: --value(--dimension-*);
 }
 
 @utility gap-* {
-  gap: --value(--dimension- *);
+  gap: --value(--dimension-*);
 }
 
 @utility gap-x-* {
-  column-gap: --value(--dimension- *);
+  column-gap: --value(--dimension-*);
 }
 
 @utility gap-y-* {
-  row-gap: --value(--dimension- *);
+  row-gap: --value(--dimension-*);
 }
 
 @utility radius-* {
-  border-radius: --value(--radius- *);
+  border-radius: --value(--radius-*);
 }
 
 @utility text-size-* {
-  font-size: --value(--font-size- *);
+  font-size: --value(--font-size-*);
 }
 
 @utility font-* {
-  font-weight: --value(--font-weight- *);
+  font-weight: --value(--font-weight-*);
 }
