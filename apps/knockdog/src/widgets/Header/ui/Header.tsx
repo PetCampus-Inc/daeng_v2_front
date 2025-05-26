@@ -1,6 +1,6 @@
 'use client';
 
-import { ComponentProps, createContext, useContext } from 'react';
+import { ComponentProps, createContext } from 'react';
 import BackButton from './BackButton';
 import Title from './Title';
 import ShareButton from './ShareButton';
@@ -8,13 +8,7 @@ import MenuButton from './MenuButton';
 import CloseButton from './CloseButton';
 import InputField from './InputField';
 import { cn } from '@knockdog/ui/lib';
-
-type HeaderContextType = {
-  className?: string;
-  variant: 'solid' | 'transparent';
-};
-
-const HeaderContext = createContext<HeaderContextType | null>(null);
+import { HeaderVariant, HeaderContext } from '../model/useHeaderContext';
 
 export function Header({
   className,
@@ -22,7 +16,7 @@ export function Header({
   children,
   ...props
 }: ComponentProps<'header'> & {
-  variant?: 'solid' | 'transparent';
+  variant?: HeaderVariant;
 }) {
   const variantClass = {
     solid: 'bg-white',

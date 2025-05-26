@@ -4,6 +4,7 @@ export type HeaderVariant = 'solid' | 'transparent';
 
 type HeaderContextType = {
   variant: HeaderVariant;
+  className?: string;
 };
 
 const HeaderContext = createContext<HeaderContextType | null>(null);
