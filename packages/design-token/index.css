@@ -109,9 +109,9 @@
   --font-size-caption1: 0.75rem;
   --font-size-caption2: 0.6875rem;
 
-  --opacity-low: 20%;
-  --opacity-md: 40%;
-  --opacity-high: 70%;
+  --opacity-low: 0.2;
+  --opacity-md: 0.4;
+  --opacity-high: 0.7;
 }
 
 @utility h1-extrabold {
