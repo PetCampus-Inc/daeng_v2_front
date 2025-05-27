@@ -1,11 +1,11 @@
-import './globals.css';
-import { cn } from '@knockdog/ui/lib';
 import type { Metadata } from 'next';
-import { pretendard } from 'public/fonts/font';
+import { cn } from '@knockdog/ui/lib';
 import { BottomNavigationBar } from '../src/widgets/BottomNavigationBar';
 import HeaderWrapper from '../src/widgets/Header/ui/HeaderExample';
-import { Header } from '../src/widgets/Header';
+
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { suit } from './font';
+import './globals.css';
 
 export const metadata: Metadata = { title: '똑독 견주' };
 
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='ko' className={cn(pretendard.variable, 'font-pretendard')}>
+    <html lang='ko' className={cn(suit.variable)}>
       <body>
         <ReactQueryProvider>
           <HeaderWrapper title='타이틀' />

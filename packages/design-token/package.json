@@ -1,0 +1,15 @@
+{
+  "name": "@knockdog/design-token",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.css",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "exports": {
+    ".": "./index.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.7"
+  }
+}
