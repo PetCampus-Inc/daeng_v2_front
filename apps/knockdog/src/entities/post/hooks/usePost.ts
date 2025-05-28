@@ -1,5 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { Fetch } from '@utils/fetch';
+import { Fetch } from '@shared/utils/fetch';
 import { postsKeys } from '@constants/queryKeys/postKey';
 import { AxiosError } from 'axios';
 
