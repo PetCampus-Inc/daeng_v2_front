@@ -15,7 +15,7 @@
     "@knockdog/ui": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@tanstack/react-query": "^5.76.1",
-    "@tanstack/react-query-devtools": "^5.76.1",
+    "@tanstack/react-query-devtools": "^5.79.0",
     "next": "^15.3.2",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
