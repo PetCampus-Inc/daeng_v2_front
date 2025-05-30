@@ -8,6 +8,11 @@ export function useCurrentLocation() {
   );
 
   useEffect(() => {
+    if (typeof naver === 'undefined')
+      throw new Error(
+        '네이버 지도 인스턴스가 초기화되지 않았습니다.\n> NaverMap 컴포넌트 내부에서 사용해 주세요.'
+      );
+
     try {
       window.navigator.geolocation.getCurrentPosition((position) => {
         setPosition(
