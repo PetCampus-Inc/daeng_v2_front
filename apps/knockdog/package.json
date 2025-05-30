@@ -13,6 +13,7 @@
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
+    "@knockdog/naver-map": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@tanstack/react-query": "^5.76.1",
     "@tanstack/react-query-devtools": "^5.76.1",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
     "postcss": "^8.5.3",
-    "eslint-import-resolver-typescript": "^4.3.5"
+    "eslint-import-resolver-typescript": "^4.3.5",
+    "@types/navermaps": "^3.7.10"
   }
 }
