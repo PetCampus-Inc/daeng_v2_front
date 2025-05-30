@@ -1,1 +1,2 @@
-export { useNaverMap } from './useNaverMap';
+export { useCurrentLocation } from './useCurrentLocation';
+export { useNaverMaps } from './useNaverMaps';
