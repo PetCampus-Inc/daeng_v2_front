@@ -16,6 +16,7 @@ interface OverlayProps extends OverlayOptions {
 export function Overlay({
   offset,
   direction = 'center',
+  zIndex = 1,
   ...options
 }: OverlayProps) {
   const overlayRef = useRef<ReactOverlayView | null>(null);
@@ -34,6 +35,7 @@ export function Overlay({
 
   const overlayOptions = {
     ...options,
+    zIndex,
     content: renderOriginContent,
   };
 

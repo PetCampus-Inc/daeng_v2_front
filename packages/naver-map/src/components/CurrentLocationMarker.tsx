@@ -10,7 +10,7 @@ interface CurrentLocationMarkerProps {
 
 export function CurrentLocationMarker({
   icon,
-  zIndex,
+  zIndex = 0,
 }: CurrentLocationMarkerProps) {
   const location = useCurrentLocation();
 
