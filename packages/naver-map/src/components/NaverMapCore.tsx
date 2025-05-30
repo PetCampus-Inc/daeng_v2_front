@@ -3,7 +3,6 @@
 import { PropsWithChildren, use, useLayoutEffect, useRef } from 'react';
 
 import { MapInstanceContext } from '../contexts';
-import { CurrentLocationMarker } from './CurrentLocationMarker';
 import { useCurrentLocation, useNaverMaps } from '../hooks';
 import { NaverMapOptions } from '../types';
 
@@ -42,7 +41,6 @@ export function NaverMapCore({
   return (
     <>
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-      {userLocationMarker && <CurrentLocationMarker />}
       {children}
     </>
   );
