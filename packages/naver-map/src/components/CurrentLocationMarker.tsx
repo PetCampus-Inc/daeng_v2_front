@@ -5,9 +5,13 @@ import { useCurrentLocation } from '../hooks';
 
 interface CurrentLocationMarkerProps {
   icon?: React.ReactNode;
+  zIndex?: number;
 }
 
-export function CurrentLocationMarker({ icon }: CurrentLocationMarkerProps) {
+export function CurrentLocationMarker({
+  icon,
+  zIndex,
+}: CurrentLocationMarkerProps) {
   const location = useCurrentLocation();
 
   const renderIcon = () => {
@@ -31,5 +35,5 @@ export function CurrentLocationMarker({ icon }: CurrentLocationMarkerProps) {
   };
 
   if (!location) return null;
-  return <Overlay position={location} content={renderIcon()}></Overlay>;
+  return <Overlay position={location} zIndex={zIndex} content={renderIcon()} />;
 }
