@@ -1,10 +1,11 @@
-'use client';
-
 import { Button } from '@knockdog/ui';
+import { NaverMap } from '@shared/ui/naver-map';
 
 export default function Home() {
   return (
     <div>
+      <NaverMap />
+
       <h1 className='font-suit'>똑독 견주</h1>
       <div className='h1-extrabold bg-fill-primary-500 p-x8 text-white'>
         테스트
