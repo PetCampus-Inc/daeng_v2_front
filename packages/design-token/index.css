@@ -250,6 +250,78 @@
   letter-spacing: -0.01em;
 }
 
+@utility label-extrabold {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-extrabold);
+  font-size: var(--font-size-label);
+  line-height: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+@utility label-semibold {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-label);
+  line-height: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+@utility label-medium {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-label);
+  line-height: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+@utility caption1-extrabold {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-extrabold);
+  font-size: var(--font-size-caption1);
+  line-height: 1rem;
+  letter-spacing: -0.02em;
+}
+
+@utility caption1-semibold {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-caption1);
+  line-height: 1rem;
+  letter-spacing: -0.02em;
+}
+
+@utility caption1-regular {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-caption1);
+  line-height: 1rem;
+  letter-spacing: -0.02em;
+}
+
+@utility caption2-extrabold {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-extrabold);
+  font-size: var(--font-size-caption2);
+  line-height: 0.875rem;
+  letter-spacing: 0;
+}
+
+@utility caption2-semibold {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-caption2);
+  line-height: 0.875rem;
+  letter-spacing: 0;
+}
+
+@utility caption2-medium {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-caption2);
+  line-height: 0.875rem;
+  letter-spacing: 0;
+}
+
 @utility size-* {
   width: --value(--dimension-*);
   height: --value(--dimension-*);
