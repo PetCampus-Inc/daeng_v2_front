@@ -37,11 +37,7 @@ export const NaverMap = () => {
 
   return (
     <div className='mt-20'>
-      <NaverMapComponent
-        className='relative h-[500px] w-full'
-        currentCenter
-        userLocationMarker
-      >
+      <NaverMapComponent className='relative h-[500px] w-full' currentCenter>
         {/* 현재 위치 마커 */}
         <CurrentLocationMarker />
 
@@ -58,6 +54,7 @@ export const NaverMap = () => {
               position={overlay.position}
               zIndex={isSelected ? 10 : undefined}
               direction='top'
+              offset={{ y: 12 }}
               content={
                 <PlaceMarker
                   title={overlay.title}
