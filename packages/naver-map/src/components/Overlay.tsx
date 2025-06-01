@@ -39,7 +39,22 @@ export function Overlay({
     content: renderOriginContent,
   };
 
-  // 오버레이 초기화
+  const drawOverlay = () => {
+    if (!map.current || !overlayRef.current) return;
+
+    const mapBounds = map.current.getBounds();
+    const markerPosition = overlayRef.current.getPosition();
+    const isMapBounds = mapBounds.hasPoint(markerPosition);
+
+    // 오버레이 좌표가 지도 영역 안에 있는지 확인
+    if (isMapBounds && !overlayRef.current.getMap()) {
+      overlayRef.current.setMap(map.current);
+    } else if (!isMapBounds && overlayRef.current.getMap()) {
+      overlayRef.current.setMap(null);
+    }
+  };
+
+  // 오버레이 초기화 및 마운트/언마운트
   useLayoutEffect(() => {
     const overlay = createReactOverlay({
       navermaps,
@@ -47,12 +62,7 @@ export function Overlay({
     });
 
     overlayRef.current = overlay;
-  }, []);
-
-  // 오버레이 마운트/언마운트
-  useEffect(() => {
-    if (map.current && overlayRef.current)
-      overlayRef.current.setMap(map.current);
+    drawOverlay();
 
     return () => {
       if (overlayRef.current) {
@@ -62,12 +72,26 @@ export function Overlay({
     };
   }, []);
 
+  // 오버레이 이벤트
+  useEffect(() => {
+    if (!map.current) return;
+
+    const listeners = [
+      map.current.addListener('dragend', drawOverlay),
+      map.current.addListener('zoom_changed', drawOverlay),
+    ];
+
+    return () => {
+      navermaps.Event.removeListener(listeners);
+    };
+  }, [drawOverlay]);
+
   // 오버레이 옵션 업데이트
   useEffect(() => {
     if (!overlayRef.current) return;
 
     overlayRef.current.setOptions(overlayOptions);
-  }, [options]);
+  }, [overlayOptions]);
 
   return null;
 }
