@@ -5,6 +5,8 @@ import { OverlayOptions } from '../types';
 import { capitalize } from '../utils';
 
 export interface ReactOverlayView extends naver.maps.OverlayView {
+  /** 오버레이 좌표 반환 */
+  getPosition(): naver.maps.Coord;
   /** 오버레이 레이어 순서 변경 */
   setZIndex(zIndex: number): void;
   /** 오버레이 컨텐츠 변경 */
@@ -83,7 +85,7 @@ export function createReactOverlay({
 
     // 루트 컴포넌트 언마운트
     if (_mounted && _root) {
-      const rootToUnmount = _root; // 참조 복사
+      const rootToUnmount = _root;
 
       // 현재 렌더링 사이클 이후에 언마운트
       queueMicrotask(() => rootToUnmount.unmount());
@@ -91,6 +93,10 @@ export function createReactOverlay({
       _root = null;
       _mounted = false;
     }
+  };
+
+  overlay.getPosition = function () {
+    return new navermaps.LatLng(_position);
   };
 
   overlay.setContent = function (content: ReactNode) {
