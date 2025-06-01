@@ -1,22 +1,33 @@
 'use client';
 
-import {
-  PropsWithChildren,
-  use,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { use, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { MapInstanceContext } from '../contexts';
 import { useCurrentLocation, useNaverMaps } from '../hooks';
+import { createEventListeners } from '../lib';
 import { NaverMapOptions } from '../types';
+
+interface NaverMapEventHandlers {
+  onClick?: (e: naver.maps.PointerEvent) => void;
+  onTap?: (e: naver.maps.PointerEvent) => void;
+  onZoomChanged?: (zoom: number) => void;
+  onDragStart?: (e: naver.maps.PointerEvent) => void;
+  onDragEnd?: (e: naver.maps.PointerEvent) => void;
+  onLoad?: (map: naver.maps.Map) => void;
+}
+
+export interface NaverMapCoreProps
+  extends NaverMapOptions,
+    NaverMapEventHandlers {
+  children?: React.ReactNode;
+}
 
 export function NaverMapCore({
   children,
+  onLoad,
   currentCenter,
   ...options
-}: PropsWithChildren<NaverMapOptions>) {
+}: NaverMapCoreProps) {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = use(MapInstanceContext);
@@ -30,11 +41,8 @@ export function NaverMapCore({
 
     const mapOptions = {
       ...options,
+      ...(currentCenter && currentLocation && { center: currentLocation }),
     };
-
-    if (currentCenter && currentLocation) {
-      mapOptions.center = currentLocation;
-    }
 
     const mapInstance = new navermaps.Map(mapRef.current, mapOptions);
     mapInstanceRef.current = mapInstance;
@@ -43,9 +51,24 @@ export function NaverMapCore({
 
     return () => {
       mapInstance.destroy();
+      mapInstanceRef.current = null;
       setIsMapLoaded(false);
     };
-  }, [navermaps, currentCenter, currentLocation]);
+  }, [currentCenter, currentLocation]);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapInstanceRef.current) return;
+    onLoad?.(mapInstanceRef.current);
+
+    // 이벤트 리스너 등록
+    const listeners = createEventListeners(mapInstanceRef.current, options);
+
+    return () => {
+      if (listeners) {
+        naver.maps.Event.removeListener(listeners);
+      }
+    };
+  }, [isMapLoaded, mapInstanceRef, options, onLoad]);
 
   return (
     <>
