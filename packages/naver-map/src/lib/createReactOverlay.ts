@@ -41,7 +41,6 @@ export function createReactOverlay({
   let _position = options.position;
   let _root: Root | null = null;
   let _mounted = false;
-  let _resizeObserver: ResizeObserver | null = null;
 
   overlay.onAdd = function () {
     // 오버레이 레이어에 엘리먼트 추가
@@ -72,12 +71,6 @@ export function createReactOverlay({
   };
 
   overlay.onRemove = function () {
-    // 리사이즈 옵저버 제거
-    if (_resizeObserver) {
-      _resizeObserver.disconnect();
-      _resizeObserver = null;
-    }
-
     // 오버레이 레이어에서 엘리먼트 제거
     if (element.parentNode) {
       element.parentNode.removeChild(element);
