@@ -2,10 +2,9 @@
 
 import { Suspense, useEffect, useState } from 'react';
 
-import { NaverMapCore } from './NaverMapCore';
-import { NaverMapOptions } from '../types';
+import { NaverMapCore, NaverMapCoreProps } from './NaverMapCore';
 
-interface NaverMapProps extends NaverMapOptions {
+interface NaverMapProps extends NaverMapCoreProps {
   children?: React.ReactNode;
   className?: string;
 }
