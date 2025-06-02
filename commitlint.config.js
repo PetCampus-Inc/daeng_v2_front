@@ -84,6 +84,7 @@ module.exports = {
       'storybook',
       'ui',
       'icons',
+      'naver-map',
       'config',
       'design-token',
       'root',

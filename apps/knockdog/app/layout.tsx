@@ -4,6 +4,7 @@ import { BottomNavigationBar } from '../src/widgets/BottomNavigationBar';
 import HeaderWrapper from '../src/widgets/Header/ui/HeaderExample';
 
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { NaverMapProvider } from '@knockdog/naver-map';
 import { suit } from './font';
 import './globals.css';
 
@@ -21,7 +22,9 @@ export default function RootLayout({
           <HeaderWrapper title='타이틀' />
           <div className='flex h-dvh flex-col'>
             <div className='flex-1 overflow-y-auto p-4'>
-              <div className='h-full'>{children}</div>
+              <div className='h-full'>
+                <NaverMapProvider>{children}</NaverMapProvider>
+              </div>
             </div>
             <BottomNavigationBar />
           </div>

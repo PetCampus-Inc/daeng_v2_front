@@ -18,5 +18,7 @@
       "cache": false,
       "persistent": true
     }
-  }
+  },
+  "globalEnv": ["*"],
+  "globalDependencies": [".env"]
 }
