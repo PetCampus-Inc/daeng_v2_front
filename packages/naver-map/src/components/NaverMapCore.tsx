@@ -29,7 +29,6 @@ export function NaverMapCore({
   ...options
 }: NaverMapCoreProps) {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = use(MapInstanceContext);
 
   const navermaps = useNaverMaps();
@@ -37,14 +36,14 @@ export function NaverMapCore({
 
   // 지도 초기화
   useLayoutEffect(() => {
-    if (!mapRef.current || (currentCenter && !currentLocation)) return;
+    if (currentCenter && !currentLocation) return;
 
     const mapOptions = {
       ...options,
       ...(currentCenter && currentLocation && { center: currentLocation }),
     };
 
-    const mapInstance = new navermaps.Map(mapRef.current, mapOptions);
+    const mapInstance = new navermaps.Map('map', mapOptions);
     mapInstanceRef.current = mapInstance;
 
     setIsMapLoaded(true);
@@ -72,7 +71,7 @@ export function NaverMapCore({
 
   return (
     <>
-      <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+      <div id='map' style={{ width: '100%', height: '100%' }} />
       {isMapLoaded && children}
     </>
   );
