@@ -80,7 +80,6 @@ export default function Page() {
                 className='h-[292px] w-full'
               />
             </SwiperSlide>
-            ...
           </Swiper>
 
           {/* swiper 카운트 */}
@@ -527,7 +526,7 @@ export default function Page() {
                           유치원・호텔
                         </span>
                         <div>
-                          <span className='body2-bold min-w-13 mr-1 inline-block'>
+                          <span className='body2-bold mr-1 inline-block min-w-[13]'>
                             10.9km
                           </span>
                           <span className='body2-regular text-text-tertiary'>
@@ -730,7 +729,7 @@ export default function Page() {
                       key={index}
                       src={img}
                       alt='페이지 이미지'
-                      className='w-30 h-30 rounded-lg'
+                      className='h-[120px] w-[120px] rounded-lg'
                     />
                   ))}
                 </div>
@@ -810,7 +809,7 @@ export default function Page() {
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <div className='z-11 flex w-screen items-center gap-1 bg-white p-4'>
+      <div className='z-10 flex w-screen items-center gap-1 bg-white p-4'>
         <button className='text-text-accent border-accent body2-bold flex-1 rounded-lg border px-4 py-[14px]'>
           길찾기
         </button>
