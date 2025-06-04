@@ -5,7 +5,7 @@ export function useNaverMap() {
   const map = use(MapInstanceContext);
 
   const moveTo = (position: naver.maps.Coord | naver.maps.CoordLiteral) => {
-    if (map.current) map.current.setCenter(new naver.maps.LatLng(position));
+    if (map.current) map.current.panTo(new naver.maps.LatLng(position));
   };
 
   const zoomTo = (zoom: number) => {
