@@ -10,6 +10,7 @@ import {
   OverlayHandlersContext,
   type OverlayMap,
 } from '../contexts';
+import { throttle } from '../utils/throttle';
 
 interface OverlayProviderProps {
   children: React.ReactNode;
@@ -21,23 +22,21 @@ export function OverlayProvider({ children }: OverlayProviderProps) {
   const map = use(MapInstanceContext);
   const navermaps = useNaverMaps();
 
-  const drawOverlays = () => {
-    if (!map.current || !overlayMapRef) return;
+  const drawOverlays = throttle(() => {
+    if (!map.current) return;
 
     const mapBounds = map.current.getBounds();
-
-    overlayMapRef.current.forEach((overlay, id) => {
+    overlayMapRef.current.forEach((overlay) => {
       const overlayPosition = overlay.getPosition();
       const isMapBounds = mapBounds.hasPoint(overlayPosition);
 
       if (isMapBounds && !overlay.getMap()) {
-        console.log(!!overlay.getMap(), id);
         overlay.setMap(map.current);
       } else if (!isMapBounds && overlay.getMap()) {
         overlay.setMap(null);
       }
     });
-  };
+  }, 300);
 
   const registerOverlay = (id: string, overlay: ReactOverlayView) => {
     overlayMapRef.current.set(id, overlay);
@@ -59,14 +58,8 @@ export function OverlayProvider({ children }: OverlayProviderProps) {
 
     drawOverlays();
 
-    const listeners = [
-      map.current.addListener('dragend', drawOverlays),
-      map.current.addListener('zoom_changed', drawOverlays),
-    ];
-
-    return () => {
-      navermaps.Event.removeListener(listeners);
-    };
+    const listener = map.current.addListener('bounds_changed', drawOverlays);
+    return () => navermaps.Event.removeListener(listener);
   }, [drawOverlays]);
 
   return (
