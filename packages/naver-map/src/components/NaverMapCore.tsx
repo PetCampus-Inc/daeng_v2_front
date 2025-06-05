@@ -1,9 +1,9 @@
 'use client';
 
-import { use, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { use, useEffect, useLayoutEffect, useState } from 'react';
 
 import { MapInstanceContext } from '../contexts';
-import { useCurrentLocation, useNaverMaps } from '../hooks';
+import { useNaverMaps } from '../hooks';
 import { createEventListeners } from '../lib';
 import { NaverMapOptions } from '../types';
 
@@ -25,25 +25,26 @@ export interface NaverMapCoreProps
 export function NaverMapCore({
   children,
   onLoad,
-  currentCenter,
   ...options
 }: NaverMapCoreProps) {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapInstanceRef = use(MapInstanceContext);
 
   const navermaps = useNaverMaps();
-  const currentLocation = useCurrentLocation();
 
   // 지도 초기화
   useLayoutEffect(() => {
-    if (currentCenter && !currentLocation) return;
+    if (!options.center) return;
 
-    const mapOptions = {
+    const initMapCenter = new naver.maps.LatLng(
+      options.center.lat,
+      options.center.lng
+    );
+
+    const mapInstance = new navermaps.Map('map', {
       ...options,
-      ...(currentCenter && currentLocation && { center: currentLocation }),
-    };
-
-    const mapInstance = new navermaps.Map('map', mapOptions);
+      center: initMapCenter,
+    });
     mapInstanceRef.current = mapInstance;
 
     setIsMapLoaded(true);
@@ -53,7 +54,23 @@ export function NaverMapCore({
       mapInstanceRef.current = null;
       setIsMapLoaded(false);
     };
-  }, [currentCenter, currentLocation]);
+  }, []);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapInstanceRef.current || !options.center) return;
+
+    const map = mapInstanceRef.current;
+    const prevCenter = map.getCenter();
+
+    const newCenter = new naver.maps.LatLng(
+      options.center.lat,
+      options.center.lng
+    );
+
+    if (prevCenter.equals(newCenter)) return;
+
+    map.panTo(newCenter);
+  }, [isMapLoaded, mapInstanceRef, options.center]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapInstanceRef.current) return;
