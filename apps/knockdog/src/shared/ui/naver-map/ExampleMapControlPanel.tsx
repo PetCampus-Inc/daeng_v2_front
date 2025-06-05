@@ -1,4 +1,5 @@
-import { useCurrentLocation, useNaverMap } from '@knockdog/naver-map';
+import { useNaverMap } from '@knockdog/naver-map';
+import { useCurrentLocation } from '@shared/lib/geolocation';
 
 export const ExampleMapControlPanel = () => {
   const { moveTo, zoomIn, zoomOut } = useNaverMap();

@@ -1,6 +1,7 @@
 'use client';
 
-import { Overlay, useCurrentLocation } from '@knockdog/naver-map';
+import { Overlay } from '@knockdog/naver-map';
+import { useCurrentLocation } from '@shared/lib/geolocation';
 
 interface CurrentLocationMarkerProps {
   icon?: React.ReactNode;

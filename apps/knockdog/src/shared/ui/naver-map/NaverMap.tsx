@@ -7,9 +7,12 @@ import { ExampleMapControlPanel } from './ExampleMapControlPanel';
 import { CurrentLocationMarker } from './CurrentLocationMarker';
 
 import { PlaceMarker } from '@features/place-info';
+import { useCurrentLocation } from '@shared/lib/geolocation';
 
 export const NaverMap = () => {
+  const currentLocation = useCurrentLocation();
   const [selected, setSelected] = useState<string | null>(null);
+
   const overlays = [
     {
       id: '1',
@@ -34,6 +37,7 @@ export const NaverMap = () => {
   return (
     <div className='relative mt-20'>
       <NaverMapComponent
+        center={currentLocation}
         className='relative h-[500px] w-full'
         onClick={(e) => console.log('click', e)}
         onDragEnd={(e) => console.log('dragend', e)}
