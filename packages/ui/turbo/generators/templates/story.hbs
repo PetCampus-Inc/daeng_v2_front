@@ -1,0 +1,58 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { {{pascalCase name}} } from './{{kebabCase name}}';
+
+
+const meta = {
+  title: 'Component/{{pascalCase name}}',
+  component: {{pascalCase name}},
+  tags: ['autodocs'],
+  parameters: {
+    layout: 'centered',
+  },
+  argTypes: {
+    variant: {
+      description: '컴포넌트의 시각적 스타일 변형이에요',
+      table: {
+        /**
+         * 컴포넌트의 속성 타입을 정의합니다.
+         * 필수가 아닐 경우 required 제거
+         */
+        type: { summary: '"primary" | "secondary"', required: true },
+        /**
+         * 기본값을 정의합니다.
+         */
+        defaultValue: { summary: '"primary"' }
+      },
+      /**
+       * 스토리북 컨트롤러 패널에서 컴포넌트의 속성을 조작할 수 있게 해줍니다.
+       * @docs https://storybook.js.org/docs/essentials/controls
+       */
+      control: {
+        type: 'select',
+        options: ['primary', 'secondary']
+      }
+    }
+  },
+  /**
+   * Decorators (Optional)
+   * 모든 스토리에 공통으로 적용할 래퍼 컴포넌트나 스타일
+   */
+  decorators: [
+    (Story) => (
+      <>
+        <Story />
+      </>
+    ),
+  ],
+} satisfies Meta<typeof {{pascalCase name}}>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+
+export const Default: Story = {
+  args: {
+    // 기본 props 값들을 여기에 설정하세요
+    // variant: 'primary',
+  },
+};
