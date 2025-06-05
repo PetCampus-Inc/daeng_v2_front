@@ -2,18 +2,14 @@
 
 import React, { useState } from 'react';
 
-import {
-  NaverMap as NaverMapComponent,
-  Overlay,
-  CurrentLocationMarker,
-} from '@knockdog/naver-map';
+import { NaverMap as NaverMapComponent, Overlay } from '@knockdog/naver-map';
+import { ExampleMapControlPanel } from './ExampleMapControlPanel';
+import { CurrentLocationMarker } from './CurrentLocationMarker';
 
 import { PlaceMarker } from '@features/place-info';
-import { ExampleMapControlPanel } from './ExampleMapControlPanel';
 
 export const NaverMap = () => {
   const [selected, setSelected] = useState<string | null>(null);
-
   const overlays = [
     {
       id: '1',
@@ -36,10 +32,9 @@ export const NaverMap = () => {
   ];
 
   return (
-    <div className='mt-20'>
+    <div className='relative mt-20'>
       <NaverMapComponent
         className='relative h-[500px] w-full'
-        currentCenter
         onClick={(e) => console.log('click', e)}
         onDragEnd={(e) => console.log('dragend', e)}
         onZoomChanged={(zoom) => console.log('zoomchanged', zoom)}
@@ -48,9 +43,6 @@ export const NaverMap = () => {
         {/* 현재 위치 마커 */}
         <CurrentLocationMarker />
 
-        {/* 컨트롤 패널 예제 */}
-        <ExampleMapControlPanel />
-
         {/* 장소 오버레이 */}
         {overlays.map((overlay) => {
           const isSelected = selected === overlay.id;
@@ -58,6 +50,7 @@ export const NaverMap = () => {
           return (
             <Overlay
               key={overlay.id}
+              id={overlay.id}
               position={overlay.position}
               zIndex={isSelected ? 10 : undefined}
               direction='top'
@@ -74,6 +67,9 @@ export const NaverMap = () => {
           );
         })}
       </NaverMapComponent>
+
+      {/* 컨트롤 패널 예제 */}
+      <ExampleMapControlPanel />
     </div>
   );
 };
