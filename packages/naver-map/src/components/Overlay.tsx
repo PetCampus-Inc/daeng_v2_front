@@ -15,6 +15,7 @@ interface OverlayProps extends OverlayOptions {
 }
 
 export function Overlay({
+  id,
   offset,
   direction = 'center',
   zIndex = 1,
@@ -47,14 +48,13 @@ export function Overlay({
       options: overlayOptions,
     });
 
-    registerOverlay(options.id, overlay);
-
-    return () => unregisterOverlay(options.id);
+    registerOverlay(id, overlay);
+    return () => unregisterOverlay(id);
   }, []);
 
   // 오버레이 옵션 업데이트
   useEffect(() => {
-    const overlay = overlayRefs.get(options.id);
+    const overlay = overlayRefs.get(id);
 
     if (overlay) overlay.setOptions(overlayOptions);
   }, [overlayOptions]);
