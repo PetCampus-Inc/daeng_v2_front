@@ -13,5 +13,5 @@ export interface IconProps {
 
 export function Icon({ icon, className }: IconProps): ReactElement {
   const SVGIcon = icons[icon];
-  return <SVGIcon className={cn('text-darkBlack size-6', className)} />;
+  return <SVGIcon className={cn('text-darkBlack', 'size-6', className)} />;
 }
