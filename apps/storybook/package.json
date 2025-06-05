@@ -15,7 +15,7 @@
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^1.9.0",
