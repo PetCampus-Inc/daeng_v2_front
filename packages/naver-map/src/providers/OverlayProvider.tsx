@@ -45,7 +45,6 @@ export function OverlayProvider({ children }: OverlayProviderProps) {
 
   const unregisterOverlay = (id: string) => {
     const overlay = overlayMapRef.current.get(id);
-    drawOverlays();
 
     if (overlay) {
       overlay.setMap(null);
