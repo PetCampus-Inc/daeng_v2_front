@@ -1,7 +1,6 @@
 'use client';
 
-import { Overlay } from './Overlay';
-import { useCurrentLocation } from '../hooks';
+import { Overlay, useCurrentLocation } from '@knockdog/naver-map';
 
 interface CurrentLocationMarkerProps {
   icon?: React.ReactNode;
@@ -35,5 +34,12 @@ export function CurrentLocationMarker({
   };
 
   if (!location) return null;
-  return <Overlay position={location} zIndex={zIndex} content={renderIcon()} />;
+  return (
+    <Overlay
+      id='current-location-marker'
+      position={location}
+      zIndex={zIndex}
+      content={renderIcon()}
+    />
+  );
 }
