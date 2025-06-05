@@ -1,7 +1,8 @@
 'use client';
 
-import { use, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { use, useEffect, useLayoutEffect, useState } from 'react';
 
+import { OverlayProvider } from '../providers';
 import { MapInstanceContext } from '../contexts';
 import { useCurrentLocation, useNaverMaps } from '../hooks';
 import { createEventListeners } from '../lib';
@@ -72,7 +73,7 @@ export function NaverMapCore({
   return (
     <>
       <div id='map' style={{ width: '100%', height: '100%' }} />
-      {isMapLoaded && children}
+      {isMapLoaded && <OverlayProvider>{children}</OverlayProvider>}
     </>
   );
 }

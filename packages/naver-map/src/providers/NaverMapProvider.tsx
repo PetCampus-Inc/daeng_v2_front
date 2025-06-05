@@ -1,7 +1,8 @@
 'use client';
 
-import { MapInstanceContext } from '../contexts';
 import { useRef } from 'react';
+
+import { MapInstanceContext } from '../contexts';
 
 interface NaverMapProviderProps {
   children: React.ReactNode;
