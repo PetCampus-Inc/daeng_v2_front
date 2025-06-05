@@ -4,9 +4,8 @@ import { use, useEffect, useLayoutEffect, useState } from 'react';
 
 import { OverlayProvider } from '../providers';
 import { MapInstanceContext } from '../contexts';
-import { useCurrentLocation, useNaverMaps } from '../hooks';
+import { useNaverMaps } from '../hooks';
 import { createEventListeners } from '../lib';
-import { NaverMapOptions } from '../types';
 
 interface NaverMapEventHandlers {
   onClick?: (e: naver.maps.PointerEvent) => void;
@@ -18,7 +17,7 @@ interface NaverMapEventHandlers {
 }
 
 export interface NaverMapCoreProps
-  extends NaverMapOptions,
+  extends naver.maps.MapOptions,
     NaverMapEventHandlers {
   children?: React.ReactNode;
 }
@@ -26,25 +25,16 @@ export interface NaverMapCoreProps
 export function NaverMapCore({
   children,
   onLoad,
-  currentCenter,
   ...options
 }: NaverMapCoreProps) {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const mapInstanceRef = use(MapInstanceContext);
 
   const navermaps = useNaverMaps();
-  const currentLocation = useCurrentLocation();
 
   // 지도 초기화
   useLayoutEffect(() => {
-    if (currentCenter && !currentLocation) return;
-
-    const mapOptions = {
-      ...options,
-      ...(currentCenter && currentLocation && { center: currentLocation }),
-    };
-
-    const mapInstance = new navermaps.Map('map', mapOptions);
+    const mapInstance = new navermaps.Map('map', { ...options });
     mapInstanceRef.current = mapInstance;
 
     setIsMapLoaded(true);
@@ -54,20 +44,28 @@ export function NaverMapCore({
       mapInstanceRef.current = null;
       setIsMapLoaded(false);
     };
-  }, [currentCenter, currentLocation]);
+  }, []);
+
+  useEffect(() => {
+    if (!isMapLoaded || !mapInstanceRef.current || !options.center) return;
+
+    const map = mapInstanceRef.current;
+    const prevCenter = map.getCenter();
+
+    const newCenter = new naver.maps.LatLng(options.center);
+
+    if (prevCenter.equals(newCenter)) return;
+
+    map.panTo(newCenter);
+  }, [isMapLoaded, mapInstanceRef, options.center]);
 
   useEffect(() => {
     if (!isMapLoaded || !mapInstanceRef.current) return;
+
     onLoad?.(mapInstanceRef.current);
 
-    // 이벤트 리스너 등록
     const listeners = createEventListeners(mapInstanceRef.current, options);
-
-    return () => {
-      if (listeners) {
-        naver.maps.Event.removeListener(listeners);
-      }
-    };
+    return () => naver.maps.Event.removeListener(listeners);
   }, [isMapLoaded, mapInstanceRef, options, onLoad]);
 
   return (

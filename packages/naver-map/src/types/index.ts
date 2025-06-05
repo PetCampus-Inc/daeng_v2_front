@@ -1,8 +1,3 @@
-export interface NaverMapOptions extends naver.maps.MapOptions {
-  /** 현재 사용자의 위치를 지도의 중심으로 설정 */
-  currentCenter?: boolean;
-}
-
 export type OverlayOffset = { x?: number; y?: number };
 
 export type OverlayDirection = 'top' | 'bottom' | 'left' | 'right' | 'center';
