@@ -39,7 +39,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     actions: [
       {
         type: 'add',
-        path: 'src/{{kebabCase name}}/{{kebabCase name}}.stories.tsx',
+        path: 'src/components/{{kebabCase name}}/{{kebabCase name}}.stories.tsx',
         templateFile: 'templates/story.hbs',
       },
     ],
