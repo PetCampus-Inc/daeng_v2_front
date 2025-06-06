@@ -1,4 +1,4 @@
-import { COMPANY_SLUG_PATHNAME } from '@/shared/constants/pathname';
+import { COMPANY_SLUG_PATHNAME } from '@shared/constants/pathname';
 
 export const createPath = {
   /**
