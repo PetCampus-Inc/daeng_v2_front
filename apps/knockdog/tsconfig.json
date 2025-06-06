@@ -14,15 +14,7 @@
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["./src/app/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@features/*": ["./src/features/*"],
-      "@entities/*": ["./src/entities/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@stores/*": ["./src/shared/store/*"],
-      "@utils/*": ["./src/shared/utils/*"],
-      "@providers/*": ["./common/*"],
-      "@constants/*": ["./src/shared/constants/*"]
+      "@/*": ["./src/*"]
     }
   }
 }
