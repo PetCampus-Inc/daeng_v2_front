@@ -7,6 +7,7 @@ import ShareButton from './ShareButton';
 import MenuButton from './MenuButton';
 import CloseButton from './CloseButton';
 import InputField from './InputField';
+import HomeButton from './HomeButton';
 import { cn } from '@knockdog/ui/lib';
 import { HeaderVariant, HeaderContext } from '../model/useHeaderContext';
 
@@ -39,6 +40,14 @@ export function Header({
   );
 }
 
+function LeftSection({ children, ...props }: ComponentProps<'div'>) {
+  return (
+    <div className='flex items-center gap-x-1' {...props}>
+      {children}
+    </div>
+  );
+}
+
 function RightSection({ children, ...props }: ComponentProps<'div'>) {
   return (
     <div className='flex items-center gap-x-1' {...props}>
@@ -54,3 +63,5 @@ Header.ShareButton = ShareButton;
 Header.MenuButton = MenuButton;
 Header.CloseButton = CloseButton;
 Header.InputField = InputField;
+Header.HomeButton = HomeButton;
+Header.LeftSection = LeftSection;
