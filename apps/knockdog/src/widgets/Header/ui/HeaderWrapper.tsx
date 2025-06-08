@@ -9,7 +9,8 @@ export default function HeaderWrapper() {
   const pathname = usePathname();
   const { variant, title } = useHeaderContext();
 
-  if (pathname.startsWith(COMPANY_SLUG_PATHNAME.split('[')[0]!)) {
+  const companyBasePath = COMPANY_SLUG_PATHNAME.replace(/\[.*?\]/g, '');
+  if (pathname.startsWith(companyBasePath)) {
     return (
       <Header variant={variant}>
         <Header.LeftSection>
