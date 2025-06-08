@@ -9,6 +9,9 @@ import { Icon } from '@knockdog/ui';
 import { useState, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
+import Link from 'next/link';
+import { createPath } from '@shared/lib/path';
+import { useParams } from 'next/navigation';
 
 import 'swiper/css';
 
@@ -21,6 +24,7 @@ export default function Page() {
   const reviewsTabRef = useRef<HTMLDivElement>(null); // 후기 탭 ref 추가
   const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
   const { setVariant, setTitle, setTextColor } = useHeaderContext();
+  const { slug } = useParams();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -507,9 +511,12 @@ export default function Page() {
                     </span>
                   </div>
                   <div>
-                    <button className='text-text-accent text-size-caption2 border-accent rounded-lg border px-3 py-2 font-semibold'>
+                    <Link
+                      href={createPath.reportInfoUpdate(slug as string)}
+                      className='text-text-accent text-size-caption2 border-accent rounded-lg border px-3 py-2 font-semibold'
+                    >
                       정보 수정 제보하기
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,7 @@
-import { COMPANY_SLUG_PATHNAME } from '@shared/constants/pathname';
+import {
+  COMPANY_SLUG_PATHNAME,
+  COMPANY_SLUG_REPORT_INFO_UPDATE_PATHNAME,
+} from '@shared/constants/pathname';
 
 export const createPath = {
   /**
@@ -7,6 +10,9 @@ export const createPath = {
    * @returns /company/[slug] 형태의 경로
    */
   company: (slug: string) => COMPANY_SLUG_PATHNAME.replace('[slug]', slug),
+
+  reportInfoUpdate: (slug: string) =>
+    COMPANY_SLUG_REPORT_INFO_UPDATE_PATHNAME.replace('[slug]', slug),
 
   // 다른 동적 경로에 대한 헬퍼 함수들...
 };
