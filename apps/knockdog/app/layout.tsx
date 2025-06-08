@@ -5,6 +5,7 @@ import HeaderWrapper from '../src/widgets/Header/ui/HeaderWrapper';
 import { HeaderProvider } from '../src/widgets/Header/model/HeaderProvider';
 
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { NaverMapProvider } from '@knockdog/naver-map';
 import { suit } from './font';
 import './globals.css';
 
@@ -19,15 +20,17 @@ export default function RootLayout({
     <html lang='ko' className={cn(suit.variable)}>
       <body>
         <ReactQueryProvider>
-          <HeaderProvider>
-            <div className='flex h-dvh flex-col'>
-              <HeaderWrapper />
-              <div className='flex-1'>
-                <div>{children}</div>
+          <NaverMapProvider>
+            <HeaderProvider>
+              <div className='flex h-dvh flex-col'>
+                <HeaderWrapper />
+                <div className='flex-1'>
+                  <div>{children}</div>
+                </div>
+                <BottomNavigationBar />
               </div>
-              <BottomNavigationBar />
-            </div>
-          </HeaderProvider>
+            </HeaderProvider>
+          </NaverMapProvider>
         </ReactQueryProvider>
       </body>
     </html>
