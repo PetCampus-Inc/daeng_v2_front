@@ -8,10 +8,14 @@ import img3 from './img3.jpg';
 import { Icon } from '@knockdog/ui';
 import { useState, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import 'swiper/css';
 
 export default function Page() {
+  const { slug } = useParams();
+
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState('기본정보');
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -818,10 +822,14 @@ export default function Page() {
                   <span className='body1-regular'>
                     자유롭게 메모를 작성하세요
                   </span>
-                  <button className='text-text-tertiary flex items-center gap-1'>
+                  {/* @TODO: 화면 이동 경로의 경우 상수 이용할것 */}
+                  <Link
+                    href={`/company/${slug}/edit-memo`}
+                    className='text-text-tertiary flex items-center gap-1'
+                  >
                     <span className='label-semibold'>편집</span>
                     <Icon icon='ChevronRight' className='h-4 w-4' />
-                  </button>
+                  </Link>
                 </div>
                 <span className='body2-regular text-text-tertiary'>
                   사진 최대 5개 등록 가능

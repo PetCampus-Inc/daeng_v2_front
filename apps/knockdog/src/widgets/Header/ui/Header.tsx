@@ -27,7 +27,8 @@ export function Header({
       <header
         className={cn(
           'fixed left-0 top-0 z-10 w-full px-4 py-5',
-          variantClass[variant]
+          variantClass[variant],
+          className
         )}
         {...props}
       >
