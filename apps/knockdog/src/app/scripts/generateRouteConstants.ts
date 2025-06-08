@@ -19,13 +19,16 @@ function pathToConstantName(filePath: string) {
     .relative(appDirectory, filePath)
     .replace(/\/page\.tsx$/, '');
 
+  if (!relativePath) {
+    throw new Error(`Invalid path: ${filePath}`);
+  }
+
   const constantNamePart = relativePath
-    .replace(/\[/g, '')
-    .replace(/\]/g, '')
-    .replace(/\.\.\./g, '') // `...` 제거
+    .replace(/\[([^\]]+)\]/g, '$1') // 대괄호 내용 보존
+    .replace(/\.\.\./g, 'CATCH_ALL') // 명시적 catch-all 처리
     .toUpperCase()
-    .replace(/\//g, '_')
-    .replace(/-/g, '_');
+    .replace(/[\/\-]/g, '_')
+    .replace(/[^A-Z0-9_]/g, '_'); // 특수문자 처리
 
   return `${constantNamePart}_PATHNAME`;
 }
@@ -39,20 +42,28 @@ function createConstantValue(filePath: string) {
 
 // 디렉토리를 재귀적으로 탐색하는 함수
 function traverseDirectory(dir: string, fileList: string[] = []) {
-  const files = fs.readdirSync(dir);
-
-  files.forEach((file: string) => {
-    const filePath = path.join(dir, file);
-    if (fs.statSync(filePath).isDirectory()) {
-      traverseDirectory(filePath, fileList);
-    } else if (
-      file === 'page.tsx' &&
-      // app/page.tsx 제외
-      filePath !== path.join(appDirectory, 'page.tsx')
-    ) {
-      fileList.push(filePath);
-    }
-  });
+  try {
+    const files = fs.readdirSync(dir);
+    files.forEach((file: string) => {
+      const filePath = path.join(dir, file);
+      try {
+        if (fs.statSync(filePath).isDirectory()) {
+          traverseDirectory(filePath, fileList);
+        } else if (
+          file === 'page.tsx' &&
+          // app/page.tsx 제외
+          filePath !== path.join(appDirectory, 'page.tsx')
+        ) {
+          fileList.push(filePath);
+        }
+      } catch (statError) {
+        console.warn(`파일 상태 확인 실패: ${filePath}`, statError);
+      }
+    });
+  } catch (error) {
+    console.error(`디렉토리 읽기 실패: ${dir}`, error);
+    throw error;
+  }
 
   return fileList;
 }
@@ -74,8 +85,17 @@ pageFiles.forEach((filePath) => {
 const updatedContent = `${newConstants.join('\n')}\n`;
 
 // 파일에 쓰기
-fs.writeFileSync(constantFilePath, updatedContent);
+try {
+  const dir = path.dirname(constantFilePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
-console.log(
-  `${newConstants.length}개의 상수가 ${constantFilePath}에 업데이트되었습니다.`
-);
+  fs.writeFileSync(constantFilePath, updatedContent);
+  console.log(
+    `${newConstants.length}개의 상수가 ${constantFilePath}에 업데이트되었습니다.`
+  );
+} catch (error) {
+  console.error(`파일 쓰기 실패: ${constantFilePath}`, error);
+  process.exit(1);
+}
