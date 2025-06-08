@@ -9,7 +9,7 @@
     "turbo/generators/config.ts"
   ],
 
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", ".next", ".next/types"],
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
