@@ -66,7 +66,7 @@ export default function Page() {
                   <div className='border-line-400 peer-checked:border-primitive-orange-500 peer-checked:bg-primitive-orange-500 flex h-5 w-5 items-center justify-center rounded-sm border'>
                     <Icon
                       icon='Check'
-                      className='h-4 w-4 stroke-[#fff] text-white opacity-0 transition-opacity peer-checked:opacity-100'
+                      className='h-4 w-4 stroke-[#fff] text-white'
                     />
                   </div>
                 </label>
