@@ -26,11 +26,9 @@ export default function Page() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) {
-          console.log('👀 Header가 트리거 기준 아래로 내려왔습니다!');
           setTextColor('text-black');
           setVariant('solid');
         } else {
-          console.log('🔼 다시 위로 올라왔습니다!');
           setTextColor('text-white');
           setVariant('transparent');
         }
@@ -46,11 +44,11 @@ export default function Page() {
     return () => {
       if (current) observer.unobserve(current);
     };
-  }, []);
+  }, [setTextColor, setVariant]);
 
   useEffect(() => {
     setTitle('바우라움 유치원');
-  }, []);
+  }, [setTitle]);
 
   const handleBookmarkClick = () => {
     setIsBookmarked(!isBookmarked);
