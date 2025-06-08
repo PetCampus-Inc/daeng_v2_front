@@ -1,6 +1,6 @@
 'use client';
 
-import HeaderExample from 'src/widgets/Header/ui/HeaderExample';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import img from './img.png';
 import img2 from './img2.png';
@@ -8,6 +8,7 @@ import img3 from './img3.jpg';
 import { Icon } from '@knockdog/ui';
 import { useState, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
 
 import 'swiper/css';
 
@@ -18,6 +19,36 @@ export default function Page() {
   const [totalSlides, setTotalSlides] = useState(3); // 실제 슬라이드 개수에 맞게 초기화
   const scrollableDivRef = useRef<HTMLDivElement>(null);
   const reviewsTabRef = useRef<HTMLDivElement>(null); // 후기 탭 ref 추가
+  const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
+  const { setVariant, setTitle, setTextColor } = useHeaderContext();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
+          setTextColor('text-black');
+          setVariant('solid');
+        } else {
+          setTextColor('text-white');
+          setVariant('transparent');
+        }
+      },
+      {
+        threshold: 0,
+      }
+    );
+
+    const current = infoObserverRef.current;
+    if (current) observer.observe(current);
+
+    return () => {
+      if (current) observer.unobserve(current);
+    };
+  }, [setTextColor, setVariant]);
+
+  useEffect(() => {
+    setTitle('바우라움 유치원');
+  }, [setTitle]);
 
   const handleBookmarkClick = () => {
     setIsBookmarked(!isBookmarked);
@@ -39,8 +70,7 @@ export default function Page() {
   };
 
   return (
-    <div>
-      <HeaderExample title='바우라움 유치원' />
+    <>
       <div
         className='h-[calc(100vh-150px)] overflow-y-auto'
         ref={scrollableDivRef} // ref 할당
@@ -90,7 +120,8 @@ export default function Page() {
           </div>
         </div>
         {/* 컨텐츠 영역 */}
-        <div>
+        <div className='relative'>
+          <div ref={infoObserverRef} className='absolute top-[-50px]'></div>
           {/* 대표 컨텐츠 영역 */}
           <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pb-12 pt-[20px]'>
             <div>
@@ -821,6 +852,6 @@ export default function Page() {
           <Icon icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'} />
         </button>
       </div>
-    </div>
+    </>
   );
 }
