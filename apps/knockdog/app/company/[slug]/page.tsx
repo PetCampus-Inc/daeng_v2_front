@@ -882,10 +882,14 @@ export default function Page() {
                     <Icon icon='Note' className='text-text-accent h-7 w-7' />
                     <span className='h3-extrabold'>상담시 체크리스트</span>
                   </div>
-                  <button className='text-text-tertiary flex items-center gap-1'>
+                  {/* @TODO: 화면 이동 경우 상수 이용할것 */}
+                  <Link
+                    href={`/company/${slug}/edit-checklist`}
+                    className='text-text-tertiary flex items-center gap-1'
+                  >
                     <span className='label-semibold'>편집</span>
                     <Icon icon='ChevronRight' className='h-4 w-4' />
-                  </button>
+                  </Link>
                 </div>
                 <div className='py-3'>
                   <div className='mb-3'>
