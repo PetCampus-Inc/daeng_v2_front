@@ -1,5 +1,7 @@
 export const COMPANY_SLUG_EDIT_MEMO_PATHNAME = '/company/[slug]/edit-memo';
 export const COMPANY_SLUG_PATHNAME = '/company/[slug]';
+export const COMPANY_SLUG_REPORT_INFO_UPDATE_MANUAL_ADRESS_PATHNAME =
+  '/company/[slug]/report-info-update/manual-adress';
 export const COMPANY_SLUG_REPORT_INFO_UPDATE_PATHNAME =
   '/company/[slug]/report-info-update';
 export const COMPARE_PATHNAME = '/compare';
