@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { cn } from '@knockdog/ui/lib';
 import { BottomNavigationBar } from '../src/widgets/BottomNavigationBar';
-import HeaderWrapper from '../src/widgets/Header/ui/HeaderExample';
+import HeaderWrapper from '../src/widgets/Header/ui/HeaderWrapper';
+import { HeaderProvider } from '../src/widgets/Header/model/HeaderProvider';
 
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { NaverMapProvider } from '@knockdog/naver-map';
 import { suit } from './font';
 import './globals.css';
 
@@ -18,12 +20,17 @@ export default function RootLayout({
     <html lang='ko' className={cn(suit.variable)}>
       <body>
         <ReactQueryProvider>
-          <div className='flex h-dvh flex-col'>
-            <div className='flex-1 overflow-y-auto'>
-              <div>{children}</div>
-            </div>
-            <BottomNavigationBar />
-          </div>
+          <NaverMapProvider>
+            <HeaderProvider>
+              <div className='flex h-dvh flex-col'>
+                <HeaderWrapper />
+                <div className='flex-1'>
+                  <div>{children}</div>
+                </div>
+                <BottomNavigationBar />
+              </div>
+            </HeaderProvider>
+          </NaverMapProvider>
         </ReactQueryProvider>
       </body>
     </html>

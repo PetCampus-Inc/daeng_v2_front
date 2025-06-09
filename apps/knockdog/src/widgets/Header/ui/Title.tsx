@@ -1,5 +1,6 @@
 import { ComponentProps } from 'react';
 import { cn } from '@knockdog/ui/lib';
+import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
 
 function Title({
   children,
@@ -7,6 +8,8 @@ function Title({
   className,
   ...props
 }: ComponentProps<'span'> & { position?: 'left' | 'center' | 'right' }) {
+  const { textColor } = useHeaderContext();
+
   return (
     <span
       className={cn(
@@ -15,6 +18,7 @@ function Title({
           'mx-auto': position === 'center',
           'ml-auto': position === 'right',
         },
+        textColor,
         className
       )}
       {...props}
