@@ -2,123 +2,101 @@
 
 import { Icon } from '@knockdog/ui';
 import { useState } from 'react';
-import { cn } from '@knockdog/ui/lib';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
 
-const checkOptions = [
-  {
-    key: 'closed',
-    title: '폐업한 가게에요!',
-    description: '폐업 전경, 안내문 등 폐업 사실을 보여주는 사진',
-  },
-  {
-    key: 'price',
-    title: '상품 및 가격 정보가 달라요!',
-    description: '가격표, 전단지 등 최신 상품 및 가격 정보를 보여주는 사진',
-  },
-  {
-    key: 'phone',
-    title: '전화번호가 달라요!',
-    description: '명함, 간판, 전단지 등 현재 전화번호를 보여주는 사진',
-  },
-  {
-    key: 'time',
-    title: '영업시간이 달라요!',
-    description: '영업시간을 보여주는 사진',
-  },
-  {
-    key: 'address',
-    title: '주소가 달라요!',
-    description: '주소 정보를 입력해 주세요',
-  },
-];
+function highlightText(text: string, keyword: string) {
+  if (!keyword) return text;
+  const regex = new RegExp(`(${keyword})`, 'gi');
+  const parts = text.split(regex);
+
+  return parts.map((part, i) =>
+    part.toLowerCase() === keyword.toLowerCase() ? (
+      <span key={i} className='text-text-accent'>
+        {part}
+      </span>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+}
 
 export default function Page() {
-  const [checkedList, setCheckedList] = useState<string[]>([]);
-  const { slug } = useParams();
+  const [search, setSearch] = useState('테헤란로');
+
+  const mockResults: { main: string; sub: string }[] = [
+    {
+      main: '서울특별시 강남구 테헤란로 지하 156 (역삼동, 역삼역)',
+      sub: '서울특별시 강남구 역삼동 804 (역삼역)',
+    },
+    {
+      main: '서울특별시 강남구 테헤란로 212 (삼성동, 한국빌딩)',
+      sub: '서울특별시 강남구 삼성동 123 (한국빌딩)',
+    },
+    {
+      main: '서울특별시 강남구 봉은사로 123 (삼성동)',
+      sub: '서울특별시 강남구 삼성동 321',
+    },
+  ];
 
   return (
     <>
-      <div className='h-[calc(100vh-155px)] overflow-y-auto pb-6'>
-        <div className='label-medium bg-fill-primary-50 text-text-secondary mt-[65px] px-4 py-3'>
-          최대 <span className='text-text-accent'>3장</span>까지 등록 가능
+      <div className='mt-[65px] h-[calc(100vh-155px)] overflow-y-auto pb-6'>
+        <div className='px-4'>
+          <div className='bg-primitive-neutral-50 my-2 flex items-center gap-2 rounded-lg px-4 py-3'>
+            <Icon icon='Search' className='h-5 w-5' />
+            <input
+              placeholder='시/군/구 혹은 도로명 검색'
+              className=''
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
-        {checkOptions.map((option) => {
-          const isChecked = checkedList.includes(option.key);
 
-          return (
-            <div key={option.key} className='flex flex-col'>
-              <div className='flex gap-2 p-4'>
-                <label className='inline-flex cursor-pointer items-center'>
-                  <input
-                    type='checkbox'
-                    className='peer hidden'
-                    checked={isChecked}
-                    onChange={() => {
-                      setCheckedList((prev) => {
-                        if (isChecked) {
-                          return prev.filter((k) => k !== option.key);
-                        } else {
-                          if (prev.length >= 3) return prev; // 최대 3개 제한
-                          return [...prev, option.key];
-                        }
-                      });
-                    }}
-                  />
-                  <div className='border-line-400 peer-checked:border-primitive-orange-500 peer-checked:bg-primitive-orange-500 flex h-5 w-5 items-center justify-center rounded-sm border'>
-                    <Icon
-                      icon='Check'
-                      className='h-4 w-4 stroke-[#fff] text-white'
-                    />
+        {/* 아무 입력도 없을 때 */}
+        {search === '' && (
+          <div className='mt-5 px-8'>
+            <ul className='text-text-tertiary body2-regular flex list-disc flex-col gap-2'>
+              <li>
+                시/군/구 + 도로명, 동명 또는 건물명 <br />
+                <span>예) 동해시 중앙로, 여수 중앙동, 대전 현대아파트</span>
+              </li>
+              <li>도로명 + 건물번호 예) 종로 6</li>
+              <li>읍/면/동/리 + 지번 예) 서린동 154-1 </li>
+            </ul>
+          </div>
+        )}
+
+        {/* 검색어 있을 때 결과 */}
+        {mockResults.length > 0 && (
+          <div className='mt-5 px-4'>
+            <ul>
+              {mockResults.map((item, index) => (
+                <li
+                  key={index}
+                  className='border-b border-neutral-100 py-4 last:border-b-0'
+                >
+                  <div className='body2-semibold'>
+                    {highlightText(item.main, search)}
                   </div>
-                </label>
-                <div className='flex flex-col'>
-                  <span className='body1-extrabold'>{option.title}</span>
                   <span className='body2-regular text-text-tertiary'>
-                    {option.description}
+                    {highlightText(item.sub, search)}
                   </span>
-                </div>
-              </div>
-
-              {/* 조건부 렌더링: 체크된 항목에 따라 부가 UI 표시 */}
-              {option.key === 'closed' && isChecked && (
-                <div className='my-5 px-4'>
-                  <button className='border-primitive-neutral-400 text-text-secondary body2-bold w-full rounded-lg border px-4 py-[14px]'>
-                    <Icon icon='Plus' className='inline-block h-4 w-4' />
-                    사진등록
-                  </button>
-                </div>
-              )}
-
-              {option.key === 'address' && isChecked && (
-                <div className='my-5 flex gap-2 px-4'>
-                  <button className='border-primitive-neutral-400 text-text-secondary body2-bold flex-1 rounded-lg border px-4 py-[14px]'>
-                    지도에서 선택
-                  </button>
-                  <Link
-                    href={`/company/${slug}/report-info-update/manual-address`}
-                    className='border-primitive-neutral-400 text-text-secondary body2-bold flex-1 rounded-lg border px-4 py-[14px] text-center'
-                  >
-                    직접입력
-                  </Link>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <div className='z-10 flex w-screen items-center gap-1 bg-white p-4'>
-        <button
-          className={cn(
-            'body1-bold flex-1 rounded-lg px-4 py-[14px]',
-            checkedList.length > 0
-              ? 'bg-fill-primary-500 border-accent border text-neutral-100'
-              : 'bg-fill-primary-50 text-text-secondary-inverse'
-          )}
-        >
-          정보 수정 제보하기 {checkedList.length}개
-        </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* 검색 결과가 없을때, */}
+        {search !== '' && mockResults.length === 0 && (
+          <div className='flex min-h-[300px] flex-col items-center justify-center px-4 text-center'>
+            <span className='h3-semibold text-primitive-neutral-900'>
+              검색 결과가 없어요
+            </span>
+            <span className='body1-regular text-primitive-neutral-600 mt-1'>
+              검색어를 확인해주세요
+            </span>
+          </div>
+        )}
       </div>
     </>
   );
