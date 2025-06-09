@@ -25,7 +25,7 @@ export function Header({
     transparent: 'bg-transparent',
   };
 
-  return (
+  return (.
     <header
       className={cn(
         'z-15 fixed left-0 top-0 w-full px-4 py-5',
