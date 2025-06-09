@@ -20,7 +20,7 @@
   },
   "scripts": {
     "type-check": "tsc --noEmit",
-    "build": "pnpm type-check && bunchee && pnpm copy-assets",
+    "build": "bunchee && pnpm copy-assets",
     "copy-assets": "cp -r ./src/style.css ./style.css",
     "dev": "bunchee --watch",
     "format": "prettier --write ."
