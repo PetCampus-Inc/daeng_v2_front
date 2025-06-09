@@ -27,8 +27,6 @@
   },
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*",
-    "react": "workspace:*",
-    "react-dom": "workspace:*",
     "bunchee": "^5.1.5"
   },
   "peerDependencies": {
