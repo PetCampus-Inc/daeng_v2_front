@@ -1,29 +1,78 @@
 import type { PlopTypes } from '@turbo/gen';
 
-// Learn more about Turborepo Generators at https://turbo.build/repo/docs/core-concepts/monorepos/code-generation
-
 export default function generator(plop: PlopTypes.NodePlopAPI): void {
-  // A simple generator to add a new React component to the internal UI library
-  plop.setGenerator('react-component', {
+  plop.setGenerator('component', {
     description: 'Adds a new react component',
     prompts: [
       {
         type: 'input',
         name: 'name',
         message: 'What is the name of the component?',
+        validate: (input) => {
+          if (!input) return 'Component name is required';
+          return true;
+        },
       },
     ],
     actions: [
       {
         type: 'add',
-        path: 'src/{{kebabCase name}}.tsx',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.tsx',
+        templateFile: 'templates/component.hbs',
+      },
+    ],
+  });
+
+  plop.setGenerator('story', {
+    description: 'Adds a new storybook story for existing component',
+    prompts: [
+      {
+        type: 'input',
+        name: 'name',
+        message: 'What is the name of the component?',
+        validate: (input) => {
+          if (!input) return 'Component name is required';
+          return true;
+        },
+      },
+    ],
+    actions: [
+      {
+        type: 'add',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.stories.tsx',
+        templateFile: 'templates/story.hbs',
+      },
+    ],
+  });
+
+  plop.setGenerator('딸깍', {
+    description: 'Adds a new react component with storybook story',
+    prompts: [
+      {
+        type: 'input',
+        name: 'name',
+        message: 'What is the name of the component?',
+        validate: (input) => {
+          if (!input) return 'Component name is required';
+          return true;
+        },
+      },
+    ],
+    actions: [
+      {
+        type: 'add',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.tsx',
         templateFile: 'templates/component.hbs',
       },
       {
-        type: 'append',
-        path: 'package.json',
-        pattern: /"exports": {(?<insertion>)/g,
-        template: '    "./{{kebabCase name}}": "./src/{{kebabCase name}}.tsx",',
+        type: 'add',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.stories.tsx',
+        templateFile: 'templates/story.hbs',
+      },
+      {
+        type: 'add',
+        path: 'src/components/{{kebabCase name}}/index.ts',
+        templateFile: 'templates/index.hbs',
       },
     ],
   });
