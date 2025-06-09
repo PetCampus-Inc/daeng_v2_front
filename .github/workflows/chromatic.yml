@@ -41,7 +41,6 @@ jobs:
       # 의존성 설치
       - name: Install Dependency
         run: pnpm install --no-frozen-lockfile # 의존성 버전 불일치 허용
-        working-directory: apps/storybook
 
       # storybook 배포
       - name: Publish Chromatic
