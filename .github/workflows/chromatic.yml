@@ -42,6 +42,10 @@ jobs:
       - name: Install Dependency
         run: pnpm install --no-frozen-lockfile # 의존성 버전 불일치 허용
 
+      # 의존성 빌드
+      - name: Build dependent packages
+        run: pnpm build --filter=storybook...
+
       # storybook 배포
       - name: Publish Chromatic
         id: chromatic
