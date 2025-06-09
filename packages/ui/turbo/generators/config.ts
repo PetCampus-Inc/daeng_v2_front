@@ -17,7 +17,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     actions: [
       {
         type: 'add',
-        path: 'src/components/{{kebabCase name}}/{{kebabCase name}}.tsx',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.tsx',
         templateFile: 'templates/component.hbs',
       },
     ],
@@ -39,7 +39,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     actions: [
       {
         type: 'add',
-        path: 'src/components/{{kebabCase name}}/{{kebabCase name}}.stories.tsx',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.stories.tsx',
         templateFile: 'templates/story.hbs',
       },
     ],
@@ -61,12 +61,12 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     actions: [
       {
         type: 'add',
-        path: 'src/components/{{kebabCase name}}/{{kebabCase name}}.tsx',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.tsx',
         templateFile: 'templates/component.hbs',
       },
       {
         type: 'add',
-        path: 'src/components/{{kebabCase name}}/{{kebabCase name}}.stories.tsx',
+        path: 'src/components/{{kebabCase name}}/{{pascalCase name}}.stories.tsx',
         templateFile: 'templates/story.hbs',
       },
       {
