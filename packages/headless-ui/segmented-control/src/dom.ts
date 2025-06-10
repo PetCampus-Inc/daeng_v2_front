@@ -1,10 +1,3 @@
-export const getItemById = (rootEl: HTMLElement | null, value: string) => {
-  if (!rootEl || !value) return null;
-  return rootEl.querySelector(
-    `[data-value="${value}"][data-state="active"]`
-  ) as HTMLElement | null;
-};
-
 export const getOffsetRect = (el: HTMLElement | null) => ({
   left: el?.offsetLeft ?? 0,
   top: el?.offsetTop ?? 0,
