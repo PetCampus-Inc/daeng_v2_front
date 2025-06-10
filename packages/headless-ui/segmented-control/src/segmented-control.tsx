@@ -41,7 +41,7 @@ const SegmentedControlRoot = React.forwardRef<
   });
 
   return (
-    <SegmentedControlContext value={api}>
+    <SegmentedControlContext.Provider value={api}>
       <div
         ref={composeRefs(api.refs.root, ref)}
         {...api.getRootProps()}
@@ -49,7 +49,7 @@ const SegmentedControlRoot = React.forwardRef<
       >
         {children}
       </div>
-    </SegmentedControlContext>
+    </SegmentedControlContext.Provider>
   );
 });
 SegmentedControlRoot.displayName = 'SegmentedControl';
@@ -66,7 +66,7 @@ const SegmentedControlItem = React.forwardRef<
   const api = useSegmentedControlContext();
 
   return (
-    <SegmentedControlItemContext value={{ value, disabled }}>
+    <SegmentedControlItemContext.Provider value={{ value, disabled }}>
       <label
         ref={ref}
         {...api.getItemProps({ value, disabled })}
@@ -74,7 +74,7 @@ const SegmentedControlItem = React.forwardRef<
       >
         {children}
       </label>
-    </SegmentedControlItemContext>
+    </SegmentedControlItemContext.Provider>
   );
 });
 SegmentedControlItem.displayName = 'SegmentedControlItem';

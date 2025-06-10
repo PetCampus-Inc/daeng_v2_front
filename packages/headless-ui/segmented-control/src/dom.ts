@@ -14,35 +14,13 @@ export const resolveRect = (
   top: `${rect.top}px`,
 });
 
-const itemMap = new Map<string, HTMLElement>();
-
 export const getItemElement = (rootEl: HTMLElement | null, value: string) => {
   if (!rootEl || !value) return null;
 
-  const cachedEl = itemMap.get(value);
-  if (
-    cachedEl &&
-    rootEl.contains(cachedEl) &&
-    cachedEl.getAttribute('data-state') === 'checked'
-  ) {
-    return cachedEl;
-  }
-
-  const element = rootEl.querySelector(
-    `[data-value="${value}"][data-state="checked"]`
+  // TODO: 인스턴스별 캐시 적용
+  return rootEl.querySelector(
+    `[data-value="${CSS.escape(value)}"][data-state="checked"]`
   ) as HTMLElement | null;
-
-  if (element) {
-    itemMap.set(value, element);
-  } else {
-    itemMap.delete(value);
-  }
-
-  return element;
-};
-
-export const clearItemCache = () => {
-  itemMap.clear();
 };
 
 export const trackElementRect = (

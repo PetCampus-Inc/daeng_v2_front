@@ -66,6 +66,7 @@ function useSegmentedControlState(props: UseSegmentedControlStateProps) {
   }, [value, rootEl]);
 
   useEffect(() => {
+    setIndicatorTransition(Boolean(value));
     syncIndicatorRect();
   }, [value, syncIndicatorRect]);
 
@@ -74,14 +75,8 @@ function useSegmentedControlState(props: UseSegmentedControlStateProps) {
   }, [cleanupObserver]);
 
   useEffect(() => {
-    setIndicatorTransition(Boolean(value));
-    syncIndicatorRect();
-  }, [value, syncIndicatorRect]);
-
-  useEffect(() => {
     return () => {
       cleanupObserver();
-      dom.clearItemCache();
     };
   }, [cleanupObserver]);
 
