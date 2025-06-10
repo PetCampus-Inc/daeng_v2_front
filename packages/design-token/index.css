@@ -84,8 +84,11 @@
   --dimension-x6: 24px;
   --dimension-x7: 28px;
   --dimension-x8: 32px;
+  --dimension-x9: 36px;
   --dimension-x10: 40px;
+  --dimension-x11: 44px;
   --dimension-x12: 48px;
+  --dimension-x13: 52px;
   --dimension-x14: 56px;
 
   --radius-r1: 4px;
@@ -93,6 +96,7 @@
   --radius-r3: 12px;
   --radius-r4: 16px;
   --radius-r5: 20px;
+  --radius-full: 9999px;
 
   --font-weight-extrabold: 800;
   --font-weight-bold: 700;
@@ -112,6 +116,8 @@
   --opacity-low: 0.2;
   --opacity-md: 0.4;
   --opacity-high: 0.7;
+
+  --ease-easing: cubic-bezier(0.4, 0, 0.35, 0.1);
 }
 
 @utility h1-extrabold {
@@ -237,6 +243,14 @@
 @utility body2-semibold {
   font-family: var(--font-suit);
   font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-body2);
+  line-height: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+@utility body2-medium {
+  font-family: var(--font-suit);
+  font-weight: var(--font-weight-medium);
   font-size: var(--font-size-body2);
   line-height: 1.25rem;
   letter-spacing: -0.01em;
