@@ -29,9 +29,9 @@
   },
   "devDependencies": {
     "tsx": "^4.19.4",
-    "@tailwindcss/postcss": "^4.1.7",
-    "postcss": "^8.5.3",
-    "eslint-import-resolver-typescript": "^4.3.5",
-    "@types/navermaps": "^3.7.10"
+    "@tailwindcss/postcss": "^4.1.8",
+    "postcss": "^8.5.4",
+    "eslint-import-resolver-typescript": "^4.4.3",
+    "@types/navermaps": "^3.9.1"
   }
 }
