@@ -15,6 +15,13 @@ interface UseSegmentedControlStateProps {
   onValueChange?: (value: string) => void;
 }
 
+/**
+ * Manages the internal state and indicator positioning for a segmented control component.
+ *
+ * Handles controlled and uncontrolled selection state, tracks hovered, active, and focused item values, and manages the indicator's position and transition state based on the selected item. Provides setters for interaction states and a root element ref for DOM tracking.
+ *
+ * @returns An object containing the current value, setters for value and interaction states, a root element setter, the indicator's bounding rectangle, and a flag indicating if the indicator should animate transitions.
+ */
 function useSegmentedControlState(props: UseSegmentedControlStateProps) {
   const [value, setValue] = useControllableState({
     prop: props.value,
@@ -108,6 +115,13 @@ interface UseSegmentedControlItemProps {
 
 type UseSegmentedControlReturn = ReturnType<typeof useSegmentedControl>;
 
+/**
+ * Provides props and state management for a segmented control component, including selection, interaction states, and indicator positioning.
+ *
+ * Returns methods to obtain props for the root container, each item, hidden radio inputs for accessibility, and the animated indicator element. Handles controlled and uncontrolled selection, disabled state, and all relevant pointer and keyboard interactions.
+ *
+ * @returns An object with the current value, setter, refs, and prop getter functions for root, items, hidden inputs, and indicator.
+ */
 function useSegmentedControl(props: UseSegmentedControlProps) {
   const {
     value,
