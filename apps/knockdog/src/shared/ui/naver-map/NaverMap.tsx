@@ -35,14 +35,10 @@ export const NaverMap = () => {
   ];
 
   return (
-    <div className='relative mt-20'>
+    <>
       <NaverMapComponent
         center={currentLocation}
-        className='relative h-[500px] w-full'
-        onClick={(e) => console.log('click', e)}
-        onDragEnd={(e) => console.log('dragend', e)}
-        onZoomChanged={(zoom) => console.log('zoomchanged', zoom)}
-        onLoad={(map) => console.log('load', map)}
+        className='relative h-full w-full'
       >
         {/* 현재 위치 마커 */}
         <CurrentLocationMarker />
@@ -74,6 +70,6 @@ export const NaverMap = () => {
 
       {/* 컨트롤 패널 예제 */}
       <ExampleMapControlPanel />
-    </div>
+    </>
   );
 };
