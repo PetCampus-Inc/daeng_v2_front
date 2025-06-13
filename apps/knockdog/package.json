@@ -13,6 +13,7 @@
   "dependencies": {
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
+    "@knockdog/naver-map": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
     "@knockdog/naver-map": "workspace:*",
@@ -20,16 +21,19 @@
     "@tanstack/react-query-devtools": "^5.76.1",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
+    "embla-carousel": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "next": "^15.3.2",
+    "react-remove-scroll": "^2.7.1",
     "swiper": "^11.2.8",
     "tailwindcss": "^4.1.8",
     "typescript": "5.8.3",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "tsx": "^4.19.4",
     "@tailwindcss/postcss": "^4.1.7",
     "postcss": "^8.5.3",
     "@types/navermaps": "^3.7.10"
+    "tsx": "^4.19.4"
   }
 }
