@@ -1,2 +1,3 @@
-export * from './ui/Header';
-export * from './ui/HeaderExample';
+export { Header } from './ui/Header';
+export { HeaderWrapper } from './ui/HeaderWrapper';
+export { HeaderProvider } from './model/HeaderProvider';
