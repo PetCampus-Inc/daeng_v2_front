@@ -85,11 +85,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
-        specifier: ^5.76.1
-        version: 5.76.1(react@19.1.0)
+        specifier: ^5.80.7
+        version: 5.80.7(react@19.1.0)
       '@tanstack/react-query-devtools':
         specifier: ^5.76.1
-        version: 5.76.1(@tanstack/react-query@5.76.1)(react@19.1.0)
+        version: 5.76.1(@tanstack/react-query@5.80.7)(react@19.1.0)
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -355,7 +355,7 @@ importers:
         version: 8.1.0(typescript@5.8.3)
       '@turbo/gen':
         specifier: ^2.5.3
-        version: 2.5.3(@types/node@24.0.1)(typescript@5.8.3)
+        version: 2.5.3(@types/node@22.15.19)(typescript@5.8.3)
       tw-animate-css:
         specifier: ^1.3.0
         version: 1.3.0
@@ -4563,31 +4563,31 @@ packages:
       tailwindcss: 4.1.7
     dev: true
 
-  /@tanstack/query-core@5.76.0:
-    resolution: {integrity: sha512-FN375hb8ctzfNAlex5gHI6+WDXTNpe0nbxp/d2YJtnP+IBM6OUm7zcaoCW6T63BawGOYZBbKC0iPvr41TteNVg==}
+  /@tanstack/query-core@5.80.7:
+    resolution: {integrity: sha512-s09l5zeUKC8q7DCCCIkVSns8zZrK4ZDT6ryEjxNBFi68G4z2EBobBS7rdOY3r6W1WbUDpc1fe5oY+YO/+2UVUg==}
     dev: false
 
   /@tanstack/query-devtools@5.76.0:
     resolution: {integrity: sha512-1p92nqOBPYVqVDU0Ua5nzHenC6EGZNrLnB2OZphYw8CNA1exuvI97FVgIKON7Uug3uQqvH/QY8suUKpQo8qHNQ==}
     dev: false
 
-  /@tanstack/react-query-devtools@5.76.1(@tanstack/react-query@5.76.1)(react@19.1.0):
+  /@tanstack/react-query-devtools@5.76.1(@tanstack/react-query@5.80.7)(react@19.1.0):
     resolution: {integrity: sha512-LFVWgk/VtXPkerNLfYIeuGHh0Aim/k9PFGA+JxLdRaUiroQ4j4eoEqBrUpQ1Pd/KXoG4AB9vVE/M6PUQ9vwxBQ==}
     peerDependencies:
       '@tanstack/react-query': ^5.76.1
       react: ^18 || ^19
     dependencies:
       '@tanstack/query-devtools': 5.76.0
-      '@tanstack/react-query': 5.76.1(react@19.1.0)
+      '@tanstack/react-query': 5.80.7(react@19.1.0)
       react: 19.1.0
     dev: false
 
-  /@tanstack/react-query@5.76.1(react@19.1.0):
-    resolution: {integrity: sha512-YxdLZVGN4QkT5YT1HKZQWiIlcgauIXEIsMOTSjvyD5wLYK8YVvKZUPAysMqossFJJfDpJW3pFn7WNZuPOqq+fw==}
+  /@tanstack/react-query@5.80.7(react@19.1.0):
+    resolution: {integrity: sha512-u2F0VK6+anItoEvB3+rfvTO9GEh2vb00Je05OwlUe/A0lkJBgW1HckiY3f9YZa+jx6IOe4dHPh10dyp9aY3iRQ==}
     peerDependencies:
       react: ^18 || ^19
     dependencies:
-      '@tanstack/query-core': 5.76.0
+      '@tanstack/query-core': 5.80.7
       react: 19.1.0
     dev: false
 
@@ -4652,7 +4652,7 @@ packages:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
     dev: true
 
-  /@turbo/gen@2.5.3(@types/node@24.0.1)(typescript@5.8.3):
+  /@turbo/gen@2.5.3(@types/node@22.15.19)(typescript@5.8.3):
     resolution: {integrity: sha512-Pek4Amm5HcBzHkR0GdnMmRZlMwIRkgKW2SZ4/BfN+CY8BolJH6Wesjg1FkFEYD/DqnqeKUf98YWDsxmfILrpSA==}
     hasBin: true
     dependencies:
@@ -4664,7 +4664,7 @@ packages:
       node-plop: 0.26.3
       picocolors: 1.0.1
       proxy-agent: 6.5.0
-      ts-node: 10.9.2(@types/node@24.0.1)(typescript@5.8.3)
+      ts-node: 10.9.2(@types/node@22.15.19)(typescript@5.8.3)
       update-check: 1.5.4
       validate-npm-package-name: 5.0.1
     transitivePeerDependencies:
@@ -4813,12 +4813,6 @@ packages:
     resolution: {integrity: sha512-3vMNr4TzNQyjHcRZadojpRaD9Ofr6LsonZAoQ+HMUa/9ORTPoxVIw0e0mpqWpdjj8xybyCM+oKOUH2vwFu/oEw==}
     dependencies:
       undici-types: 6.21.0
-    dev: true
-
-  /@types/node@24.0.1:
-    resolution: {integrity: sha512-MX4Zioh39chHlDJbKmEgydJDS3tspMP/lnQC67G3SWsTnb9NeYVWOjkxpOSy4oMfPs4StcWHwBrvUb4ybfnuaw==}
-    dependencies:
-      undici-types: 7.8.0
     dev: true
 
   /@types/parse-json@4.0.2:
@@ -12141,7 +12135,7 @@ packages:
     engines: {node: '>=6.10'}
     dev: true
 
-  /ts-node@10.9.2(@types/node@24.0.1)(typescript@5.8.3):
+  /ts-node@10.9.2(@types/node@22.15.19)(typescript@5.8.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
     peerDependencies:
@@ -12160,7 +12154,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 24.0.1
+      '@types/node': 22.15.19
       acorn: 8.14.1
       acorn-walk: 8.3.4
       arg: 4.1.3
@@ -12466,10 +12460,6 @@ packages:
 
   /undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-    dev: true
-
-  /undici-types@7.8.0:
-    resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
     dev: true
 
   /unicode-canonical-property-names-ecmascript@2.0.1:
