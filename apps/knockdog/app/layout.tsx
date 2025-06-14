@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
 import { cn } from '@knockdog/ui/lib';
-import { BottomNavigationBar } from '../src/widgets/BottomNavigationBar';
-import HeaderWrapper from '../src/widgets/Header/ui/HeaderWrapper';
-import { HeaderProvider } from '../src/widgets/Header/model/HeaderProvider';
 
-import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
-import { NaverMapProvider } from '@knockdog/naver-map';
 import { suit } from './font';
 import './globals.css';
 
-// export const metadata: Metadata = { title: '똑독 견주' };
+import { NaverMapProvider } from '@knockdog/naver-map';
+import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
+import { BottomNavigationBar } from '@widgets/BottomNavigationBar';
 
 export default function RootLayout({
   children,

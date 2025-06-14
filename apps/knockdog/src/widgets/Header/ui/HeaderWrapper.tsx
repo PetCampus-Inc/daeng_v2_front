@@ -3,9 +3,9 @@
 import { usePathname } from 'next/navigation';
 import { COMPANY_SLUG_PATHNAME } from '@constants/pathname';
 import { Header } from './Header';
-import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
+import { useHeaderContext } from '../model/HeaderProvider';
 
-export default function HeaderWrapper() {
+export function HeaderWrapper() {
   const pathname = usePathname();
   const { variant, title } = useHeaderContext();
 
