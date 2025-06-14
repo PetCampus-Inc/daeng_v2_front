@@ -12,18 +12,17 @@
   "exclude": ["node_modules", ".next", ".next/types"],
   "compilerOptions": {
     "strictNullChecks": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-      "@app/*": ["./src/app/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@widgets/*": ["./src/widgets/*"],
-      "@features/*": ["./src/features/*"],
-      "@entities/*": ["./src/entities/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@stores/*": ["./src/shared/store/*"],
-      "@utils/*": ["./src/shared/utils/*"],
-      "@providers/*": ["./common/*"],
-      "@constants/*": ["./src/shared/constants/*"]
+      "@app/*": ["app/*"],
+      "@widgets/*": ["widgets/*"],
+      "@features/*": ["features/*"],
+      "@entities/*": ["entities/*"],
+      "@shared/*": ["shared/*"],
+      "@stores/*": ["shared/store/*"],
+      "@utils/*": ["shared/utils/*"],
+      "@providers/*": ["app/providers/*"],
+      "@constants/*": ["shared/constants/*"]
     }
   }
 }
