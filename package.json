@@ -16,9 +16,7 @@
       "prettier --write"
     ],
     "*.{ts,tsx}": "eslint --flag unstable_config_lookup_from_file",
-    "*": "prettier --write --ignore-unknown",
-    "./apps/knockdog/**/*.{ts,tsx}": "bash -c 'pnpm run --filter knockdog type-check'",
-    "./packages/ui/**/*.{ts,tsx}": "bash -c 'pnpm run --filter @knockdog/ui type-check'"
+    "*": "prettier --write --ignore-unknown"
   },
   "config": {
     "commitizen": {
