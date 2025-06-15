@@ -77,18 +77,31 @@
 
   --dimension-x0_5: 2px;
   --dimension-x1: 4px;
+  --dimension-x1_5: 6px;
   --dimension-x2: 8px;
+  --dimension-x2_5: 10px;
   --dimension-x3: 12px;
+  --dimension-x3_5: 14px;
   --dimension-x4: 16px;
+  --dimension-x4_5: 18px;
   --dimension-x5: 20px;
+  --dimension-x5_5: 22px;
   --dimension-x6: 24px;
+  --dimension-x6_5: 26px;
   --dimension-x7: 28px;
+  --dimension-x7_5: 30px;
   --dimension-x8: 32px;
+  --dimension-x8_5: 34px;
   --dimension-x9: 36px;
+  --dimension-x9_5: 38px;
   --dimension-x10: 40px;
+  --dimension-x10_5: 42px;
   --dimension-x11: 44px;
+  --dimension-x11_5: 46px;
   --dimension-x12: 48px;
+  --dimension-x12_5: 50px;
   --dimension-x13: 52px;
+  --dimension-x13_5: 54px;
   --dimension-x14: 56px;
 
   --radius-r1: 4px;
