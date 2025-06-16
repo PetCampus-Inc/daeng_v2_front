@@ -45,7 +45,6 @@ export default function Page() {
             <Icon icon='Search' className='h-5 w-5' />
             <input
               placeholder='시/군/구 혹은 도로명 검색'
-              className=''
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
