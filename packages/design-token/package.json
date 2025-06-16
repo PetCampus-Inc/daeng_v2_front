@@ -10,6 +10,6 @@
     ".": "./index.css"
   },
   "devDependencies": {
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.8"
   }
 }

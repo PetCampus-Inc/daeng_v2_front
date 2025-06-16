@@ -1,10 +1,11 @@
 {
-  "eslint.workingDirectories": [
-    {
-      "mode": "auto"
-    }
-  ],
-  "cSpell.words": ["knockdog", "pretendard"],
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "cSpell.words": ["knockdog", "daeng"],
+  "tailwindCSS.experimental.configFile": {
+    "apps/knockdog/app/globals.css": "apps/knockdog/**",
+    "packages/ui/src/styles/globals.css": "packages/ui/src/**"
+  },
   "tailwindCSS.experimental.classRegex": [
     ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
   ]

@@ -1,14 +1,11 @@
-import type { Metadata } from 'next';
 import { cn } from '@knockdog/ui/lib';
-import { BottomNavigationBar } from '../src/widgets/BottomNavigationBar';
-import HeaderWrapper from '../src/widgets/Header/ui/HeaderWrapper';
-import { HeaderProvider } from '../src/widgets/Header/model/HeaderProvider';
 
-import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { suit } from './font';
 import './globals.css';
-
-// export const metadata: Metadata = { title: '똑독 견주' };
+import { NaverMapProvider } from '@knockdog/naver-map';
+import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
+import { BottomNavigationBar } from '@widgets/bottom-bar';
 
 export default function RootLayout({
   children,
@@ -19,15 +16,17 @@ export default function RootLayout({
     <html lang='ko' className={cn(suit.variable)}>
       <body>
         <ReactQueryProvider>
-          <HeaderProvider>
-            <div className='flex h-dvh flex-col'>
-              <HeaderWrapper />
-              <div className='flex-1'>
-                <div>{children}</div>
+          <NaverMapProvider>
+            <HeaderProvider>
+              <div className='flex h-dvh flex-col'>
+                <HeaderWrapper />
+                {children}
+                <div className='fixed inset-x-0 bottom-0 z-50'>
+                  <BottomNavigationBar />
+                </div>
               </div>
-              <BottomNavigationBar />
-            </div>
-          </HeaderProvider>
+            </HeaderProvider>
+          </NaverMapProvider>
         </ReactQueryProvider>
       </body>
     </html>

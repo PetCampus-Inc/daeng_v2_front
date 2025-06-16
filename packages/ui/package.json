@@ -5,23 +5,17 @@
   "scripts": {
     "lint": "eslint .",
     "generate:component": "turbo gen react-component",
-    "build:icons": "svgr --icon --typescript --no-prettier --replace-attr-values '#000=currentColor' -d src/components/icon/icons src/assets/svgs && pnpm run generate:icons-index",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@daeng-design/react-drawer": "workspace:*",
+    "@daeng-design/react-segmented-control": "workspace:*",
     "@knockdog/icons": "workspace:*",
-    "@radix-ui/react-alert-dialog": "^1.1.13",
-    "@radix-ui/react-compose-refs": "^1.1.1",
-    "@radix-ui/react-dialog": "^1.1.13",
-    "@radix-ui/react-popper": "^1.2.6",
-    "@radix-ui/react-portal": "^1.1.8",
-    "@radix-ui/react-select": "^2.2.4",
-    "@radix-ui/react-slot": "^1.2.2",
-    "@radix-ui/react-switch": "^1.1.3",
+    "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.0",
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
     "@knockdog/design-token": "workspace:*",
@@ -37,8 +31,6 @@
     "./tailwind-config": "./tailwind.config.mjs",
     "./styles": "./src/styles/globals.css",
     "./lib": "./src/lib/index.ts",
-    "./lotties/*": "./src/assets/lotties/*.json",
-    "./svgs/*": "./src/assets/svgs/*.svg",
-    "./theme": "./src/styles/theme/index.ts"
+    "./lotties/*": "./src/assets/lotties/*.json"
   }
 }

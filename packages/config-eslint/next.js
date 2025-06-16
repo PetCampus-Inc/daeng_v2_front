@@ -1,22 +1,14 @@
-import js from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import neostandard from 'neostandard';
-import tseslint from 'typescript-eslint';
+import neostandard, { plugins } from 'neostandard';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginReact from 'eslint-plugin-react';
 import globals from 'globals';
 import pluginNext from '@next/eslint-plugin-next';
-import { config as baseConfig } from './base.js';
-import importPlugin from 'eslint-plugin-import';
 import fsdPlugin from 'eslint-plugin-fsd-lint';
+import { config as baseConfig } from './base.js';
 
 export const nextJsConfig = [
   ...baseConfig,
-  js.configs.recommended,
-  ...neostandard({ noStyle: true }),
-  eslintConfigPrettier,
-  importPlugin.flatConfigs.recommended,
-  ...tseslint.configs.recommended,
+  ...neostandard({ noStyle: true, ts: true }),
   {
     ...pluginReact.configs.flat.recommended,
     languageOptions: {
@@ -54,8 +46,18 @@ export const nextJsConfig = [
       'fsd/forbidden-imports': 'error',
       'fsd/no-cross-slice-dependency': 'error',
       'fsd/no-global-store-imports': 'error',
-      'fsd/no-public-api-sidestep': 'error',
-      'fsd/no-relative-imports': 'error',
+      'fsd/no-public-api-sidestep': [
+        'error',
+        {
+          layers: ['@app', '@widgets', '@features', '@entities', '@shared'],
+        },
+      ],
+      'fsd/no-relative-imports': [
+        'error',
+        {
+          allowSameSlice: true,
+        },
+      ],
       'fsd/no-ui-in-business-logic': 'error',
       'fsd/ordered-imports': 'warn',
     },
@@ -73,9 +75,6 @@ export const nextJsConfig = [
         'error',
         { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y'] },
       ],
-      'import/prefer-default-export': 'off',
-      'import/no-internal-modules': 'off',
-      'import/no-extraneous-dependencies': 'off',
     },
   },
 ];
