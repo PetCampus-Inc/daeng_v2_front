@@ -44,7 +44,7 @@ const BottomSheetContent = React.forwardRef<
   <DrawerPrimitive.Content
     ref={ref}
     className={cn(
-      'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-50 flex h-auto flex-col rounded-t-[16px] shadow-[0px_-16px_20px_rgba(0,0,0,0.05)]',
+      'bg-primitive-neutral-0 z-50 rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
       className
     )}
     {...props}
