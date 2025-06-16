@@ -25,7 +25,7 @@
     "next": "^15.3.2",
     "react-remove-scroll": "^2.7.1",
     "swiper": "^11.2.8",
-    "tailwindcss": "^4.1.8",
+    "tailwindcss": "^4.1.10",
     "typescript": "5.8.3",
     "zustand": "^5.0.5"
   },
