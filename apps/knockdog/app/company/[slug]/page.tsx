@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import img from './img.png';
 import img2 from './img2.png';
 import img3 from './img3.jpg';
 import { Icon } from '@knockdog/ui';
-import { useState, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
 
 import 'swiper/css';
+import { createPath } from '@shared/lib/path';
 
 export default function Page() {
   const { slug } = useParams();
@@ -25,6 +24,7 @@ export default function Page() {
   const reviewsTabRef = useRef<HTMLDivElement>(null); // 후기 탭 ref 추가
   const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
   const { setVariant, setTitle, setTextColor } = useHeaderContext();
+  const { slug } = useParams();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -125,7 +125,7 @@ export default function Page() {
         </div>
         {/* 컨텐츠 영역 */}
         <div className='relative'>
-          <div ref={infoObserverRef} className='absolute top-[-50px]'></div>
+          <div ref={infoObserverRef} className='absolute top-[-50px]' />
           {/* 대표 컨텐츠 영역 */}
           <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pb-12 pt-[20px]'>
             <div>
@@ -176,7 +176,7 @@ export default function Page() {
               <span className='h3-extrabold'>1,000,000원~</span>
             </div>
             {/* Divider */}
-            <div className='bg-line-200 h-px'></div>
+            <div className='bg-line-200 h-px' />
 
             <div className='scrollbar-hide flex gap-[4px] overflow-x-auto whitespace-nowrap pb-2'>
               {/* 뱃지 리스트 */}
@@ -198,7 +198,7 @@ export default function Page() {
             </div>
           </div>
           {/* Divider */}
-          <div className='bg-line-100 h-2'></div>
+          <div className='bg-line-100 h-2' />
           {/* 세부 컨텐츠 영역 */}
           {/* 탭 */}
           <div className='border-b-1 border-line-200 sticky top-[56px] z-10 bg-white'>
@@ -511,14 +511,17 @@ export default function Page() {
                     </span>
                   </div>
                   <div>
-                    <button className='text-text-accent text-size-caption2 border-accent rounded-lg border px-3 py-2 font-semibold'>
+                    <Link
+                      href={`/company/${slug}/report-info-update`}
+                      className='text-text-accent text-size-caption2 border-accent rounded-lg border px-3 py-2 font-semibold'
+                    >
                       정보 수정 제보하기
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
               {/* Divider */}
-              <div className='bg-line-100 mb-12 h-2'></div>
+              <div className='bg-line-100 mb-12 h-2' />
 
               {/* 이 근처 다른 유치원은 어때요? */}
               <div className='px-4'>
@@ -778,9 +781,12 @@ export default function Page() {
                   </span>
                 </div>
                 <div>
-                  <button className='text-text-accent text-size-caption2 border-accent rounded-lg border px-3 py-2 font-semibold'>
+                  <Link
+                    href={`/company/${slug}/report-info-update`}
+                    className='text-text-accent text-size-caption2 border-accent rounded-lg border px-3 py-2 font-semibold'
+                  >
                     정보 수정 제보하기
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

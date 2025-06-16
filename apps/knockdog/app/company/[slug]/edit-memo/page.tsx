@@ -52,7 +52,7 @@ export default function Page() {
       </Header>
 
       <div className='relative mt-[65px] h-[calc(100vh-186px)] px-4'>
-        <div className='body2-regular mb-7] sticky top-[65px] flex items-center justify-center bg-white py-3'>
+        <div className='body2-regular sticky top-[65px] mb-7 flex items-center justify-center bg-white py-3'>
           <span className='text-text-accent'>{memo.length}</span>
           <span>/2000</span>
         </div>
