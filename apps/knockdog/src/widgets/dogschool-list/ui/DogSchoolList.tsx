@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, SegmentedControl } from '@knockdog/ui';
+import { Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { DogSchoolCard } from '@features/dogschool-list';
 import { filterOptions, type DogSchool } from '@entities/dogschool';
 
@@ -24,16 +24,14 @@ export function DogSchoolList({
     <main className='relative min-h-full w-full pb-[68px]'>
       <div className='bg-bg-0 sticky top-[-.5px] z-20'>
         <div className='px-x4 py-x4'>
-          <SegmentedControl.Root
+          <SegmentedControl
             defaultValue={selectedLocation}
             onValueChange={handleLocationChange}
           >
-            <SegmentedControl.Item value='current'>
-              현 위치
-            </SegmentedControl.Item>
-            <SegmentedControl.Item value='home'>집</SegmentedControl.Item>
-            <SegmentedControl.Item value='work'>직장</SegmentedControl.Item>
-          </SegmentedControl.Root>
+            <SegmentedControlItem value='current'>현 위치</SegmentedControlItem>
+            <SegmentedControlItem value='home'>집</SegmentedControlItem>
+            <SegmentedControlItem value='work'>직장</SegmentedControlItem>
+          </SegmentedControl>
         </div>
         <div className='border-line-200 flex h-[52px] w-full items-center border-b border-t'>
           <div className='px-x4 py-x2 scrollbar-hide flex w-full items-center gap-x-2 overflow-x-auto whitespace-nowrap'>

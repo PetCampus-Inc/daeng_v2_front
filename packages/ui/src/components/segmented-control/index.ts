@@ -1,8 +1,6 @@
 export {
-  SegmentedControlRoot,
+  SegmentedControl,
   SegmentedControlItem,
-  type SegmentedControlRootProps,
+  type SegmentedControlProps,
   type SegmentedControlItemProps,
 } from './SegmentedControl';
-
-export * as SegmentedControl from './SegmentedControl.namespace';
