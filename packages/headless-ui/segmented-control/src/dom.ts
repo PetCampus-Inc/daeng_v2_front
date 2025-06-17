@@ -48,9 +48,6 @@ export const trackElementRect = (
   };
 };
 
-export const dataAttr = (guard: boolean | undefined) =>
-  (guard ? '' : undefined) as boolean | 'true' | 'false';
-
 export const visuallyHiddenStyle = {
   border: '0',
   clip: 'rect(0 0 0 0)',

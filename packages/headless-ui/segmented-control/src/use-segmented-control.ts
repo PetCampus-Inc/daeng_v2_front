@@ -1,4 +1,5 @@
 import { useControllableState } from '@radix-ui/react-use-controllable-state';
+import { dataAttr } from '@daeng-design/utils';
 import { useState, useCallback, useRef, useEffect, useId } from 'react';
 import * as dom from './dom';
 
@@ -150,7 +151,7 @@ function useSegmentedControl(props: UseSegmentedControlProps) {
     getRootProps() {
       return {
         role: 'group',
-        'data-disabled': dom.dataAttr(disabled),
+        'data-disabled': dataAttr(disabled),
       };
     },
 
@@ -158,10 +159,10 @@ function useSegmentedControl(props: UseSegmentedControlProps) {
       const itemState = getItemState(itemProps);
 
       const itemDataAttrs = {
-        'data-focus': dom.dataAttr(itemState.focused),
-        'data-disabled': dom.dataAttr(itemState.disabled),
+        'data-focus': dataAttr(itemState.focused),
+        'data-disabled': dataAttr(itemState.disabled),
         'data-state': itemState.checked ? 'checked' : 'unchecked',
-        'data-active': dom.dataAttr(itemState.active),
+        'data-active': dataAttr(itemState.active),
         'data-value': itemProps.value,
       };
 
