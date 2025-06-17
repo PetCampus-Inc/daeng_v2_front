@@ -23,8 +23,10 @@
     "dev": "bunchee --watch",
     "format": "prettier --write ."
   },
+  "dependencies": {
+    "@daeng-design/utils": "workspace:*"
+  },
   "devDependencies": {
-    "@daeng-design/utils": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@radix-ui/react-compose-refs": "^1.1.2",
     "@radix-ui/react-use-controllable-state": "^1.2.2",

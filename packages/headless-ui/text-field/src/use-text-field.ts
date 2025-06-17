@@ -162,7 +162,7 @@ function useTextField(props: UseTextFieldProps) {
           setIsFocused(false);
           setIsFocusVisible(false);
         },
-        onFocus(event: React.ChangeEvent<HTMLInputElement>) {
+        onFocus(event: React.FocusEvent<HTMLInputElement>) {
           setIsFocused(true);
           setIsFocusVisible(event.target.matches(':focus-visible'));
         },

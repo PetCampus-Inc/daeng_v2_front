@@ -269,6 +269,9 @@ importers:
 
   packages/headless-ui/segmented-control:
     dependencies:
+      '@daeng-design/utils':
+        specifier: workspace:*
+        version: link:../utils
       react:
         specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
         version: 19.1.0
@@ -276,9 +279,6 @@ importers:
         specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
         version: 19.1.0(react@19.1.0)
     devDependencies:
-      '@daeng-design/utils':
-        specifier: workspace:*
-        version: link:../utils
       '@knockdog/typescript-config':
         specifier: workspace:*
         version: link:../../config-typescript
@@ -294,6 +294,9 @@ importers:
 
   packages/headless-ui/text-field:
     dependencies:
+      '@daeng-design/utils':
+        specifier: workspace:*
+        version: link:../utils
       react:
         specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
         version: 19.1.0
@@ -301,9 +304,6 @@ importers:
         specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
         version: 19.1.0(react@19.1.0)
     devDependencies:
-      '@daeng-design/utils':
-        specifier: workspace:*
-        version: link:../utils
       '@knockdog/typescript-config':
         specifier: workspace:*
         version: link:../../config-typescript
@@ -313,6 +313,9 @@ importers:
       bunchee:
         specifier: ^5.1.5
         version: 5.6.2(typescript@5.8.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
   packages/headless-ui/utils:
     dependencies:

@@ -22,11 +22,14 @@
     "build": "bunchee",
     "dev": "bunchee --watch"
   },
+  "dependencies": {
+    "@daeng-design/utils": "workspace:*"
+  },
   "devDependencies": {
-    "@daeng-design/utils": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
-    "bunchee": "^5.1.5"
+    "bunchee": "^5.1.5",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "react": "^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc",
