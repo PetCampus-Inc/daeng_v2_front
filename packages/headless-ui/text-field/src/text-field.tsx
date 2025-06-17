@@ -18,6 +18,7 @@ function TextFieldRoot({ ref, ...props }: TextFieldRootProps) {
     onValueChange,
     disabled,
     invalid,
+    valid,
     required,
     readOnly,
     name,
@@ -29,6 +30,7 @@ function TextFieldRoot({ ref, ...props }: TextFieldRootProps) {
     onValueChange,
     disabled,
     invalid,
+    valid,
     required,
     readOnly,
     name,
@@ -45,6 +47,28 @@ TextFieldRoot.displayName = 'TextFieldRoot';
 interface TextFieldLabelProps extends React.HTMLAttributes<HTMLLabelElement> {
   ref?: React.Ref<HTMLLabelElement>;
 }
+
+interface TextFieldIndicatorProps
+  extends React.HTMLAttributes<HTMLSpanElement> {
+  ref?: React.Ref<HTMLSpanElement>;
+}
+
+function TextFieldIndicator(props: TextFieldIndicatorProps) {
+  const { ref, ...restProps } = props;
+  const api = useTextFieldContext();
+  return <span ref={ref} {...api.getStateProps()} {...restProps} />;
+}
+TextFieldIndicator.displayName = 'TextFieldIndicator';
+
+interface TextFieldFieldProps extends React.HTMLAttributes<HTMLDivElement> {
+  ref?: React.Ref<HTMLDivElement>;
+}
+function TextFieldField(props: TextFieldFieldProps) {
+  const { ref, ...restProps } = props;
+  const api = useTextFieldContext();
+  return <div ref={ref} {...api.getStateProps()} {...restProps} />;
+}
+TextFieldField.displayName = 'TextFieldField';
 
 function TextFieldLabel(props: TextFieldLabelProps) {
   const { ref, ...restProps } = props;
@@ -77,41 +101,30 @@ function TextFieldDescription(props: TextFieldDescriptionProps) {
 }
 TextFieldDescription.displayName = 'TextFieldDescription';
 
-interface TextFieldErrorMessageProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+interface TextFieldMessageProps extends React.HTMLAttributes<HTMLSpanElement> {
   ref?: React.Ref<HTMLSpanElement>;
 }
 
-function TextFieldErrorMessage(props: TextFieldErrorMessageProps) {
+function TextFieldMessage(props: TextFieldMessageProps) {
   const { ref, ...restProps } = props;
   const api = useTextFieldContext();
-  return <span ref={ref} {...api.getErrorMessageProps()} {...restProps} />;
+  return <span ref={ref} {...api.getMessageProps()} {...restProps} />;
 }
-TextFieldErrorMessage.displayName = 'TextFieldErrorMessage';
-
-interface TextFieldSuccessMessageProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
-  ref?: React.Ref<HTMLSpanElement>;
-}
-
-function TextFieldSuccessMessage(props: TextFieldSuccessMessageProps) {
-  const { ref, ...restProps } = props;
-  const api = useTextFieldContext();
-  return <span ref={ref} {...api.getSuccessMessageProps()} {...restProps} />;
-}
-TextFieldSuccessMessage.displayName = 'TextFieldSuccessMessage';
+TextFieldMessage.displayName = 'TextFieldMessage';
 
 export {
   TextFieldRoot,
   TextFieldLabel,
   TextFieldInput,
   TextFieldDescription,
-  TextFieldErrorMessage,
-  TextFieldSuccessMessage,
+  TextFieldMessage,
+  TextFieldField,
+  TextFieldIndicator,
   type TextFieldRootProps,
   type TextFieldLabelProps,
   type TextFieldInputProps,
   type TextFieldDescriptionProps,
-  type TextFieldErrorMessageProps,
-  type TextFieldSuccessMessageProps,
+  type TextFieldMessageProps,
+  type TextFieldFieldProps,
+  type TextFieldIndicatorProps,
 };

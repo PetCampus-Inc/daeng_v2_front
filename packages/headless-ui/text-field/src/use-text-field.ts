@@ -43,7 +43,7 @@ function useTextFieldState(props: UseTextFieldStateProps) {
 interface UseTextFieldProps extends UseTextFieldStateProps {
   disabled?: boolean;
   invalid?: boolean;
-  success?: boolean;
+  valid?: boolean;
   readOnly?: boolean;
   required?: boolean;
   name?: string;
@@ -58,7 +58,7 @@ function useTextField(props: UseTextFieldProps) {
     onValueChange,
     disabled = false,
     invalid = false,
-    success = false,
+    valid = false,
     readOnly = false,
     required = false,
     name,
@@ -83,16 +83,28 @@ function useTextField(props: UseTextFieldProps) {
   const id = useId();
 
   return {
-    value,
-    disabled,
-    invalid,
-    active: isActive,
-    focused: isFocused,
+    getStateProps() {
+      return {
+        'data-hover': dataAttr(isHovered),
+        'data-active': dataAttr(isActive),
+        'data-focus': dataAttr(isFocused),
+        'data-focus-visible': dataAttr(isFocusVisible),
+        'data-readonly': dataAttr(readOnly),
+        'data-disabled': dataAttr(disabled),
+        'data-invalid': dataAttr(invalid),
+        'data-valid': dataAttr(valid),
+        'aria-invalid': ariaAttr(invalid),
+        'aria-required': ariaAttr(required),
+        'aria-readonly': ariaAttr(readOnly),
+        'aria-disabled': ariaAttr(disabled),
+      };
+    },
 
     getRootProps() {
       return elementProps<HTMLAttributes<HTMLDivElement>>({
         'data-disabled': dataAttr(disabled),
         'data-invalid': dataAttr(invalid),
+        'data-valid': dataAttr(valid),
         'data-readonly': dataAttr(readOnly),
 
         onPointerMove() {
@@ -118,6 +130,7 @@ function useTextField(props: UseTextFieldProps) {
         'aria-required': ariaAttr(required),
         'data-disabled': dataAttr(disabled),
         'data-invalid': dataAttr(invalid),
+        'data-valid': dataAttr(valid),
         'data-readonly': dataAttr(readOnly),
       });
     },
@@ -136,6 +149,7 @@ function useTextField(props: UseTextFieldProps) {
         'data-readonly': dataAttr(readOnly),
         'data-disabled': dataAttr(disabled),
         'data-invalid': dataAttr(invalid),
+        'data-valid': dataAttr(valid),
         'aria-invalid': ariaAttr(invalid),
         'aria-required': ariaAttr(required),
         'aria-readonly': ariaAttr(readOnly),
@@ -162,20 +176,13 @@ function useTextField(props: UseTextFieldProps) {
       });
     },
 
-    getErrorMessageProps() {
+    getMessageProps() {
       return elementProps<HTMLAttributes<HTMLSpanElement>>({
-        id: dom.getErrorMessageId(id),
+        id: dom.getMessageId(id),
         'data-disabled': dataAttr(disabled),
         'data-invalid': dataAttr(invalid),
-        'aria-live': 'polite',
-      });
-    },
-
-    getSuccessMessageProps() {
-      return elementProps<HTMLAttributes<HTMLSpanElement>>({
-        id: dom.getSuccessMessageId(id),
-        'data-disabled': dataAttr(disabled),
-        'data-success': dataAttr(success),
+        'data-valid': dataAttr(valid),
+        'aria-live': invalid ? 'polite' : undefined,
       });
     },
   };
