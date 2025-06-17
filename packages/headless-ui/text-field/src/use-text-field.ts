@@ -82,6 +82,8 @@ function useTextField(props: UseTextFieldProps) {
 
   const id = useId();
 
+  const isUncontrolled = propValue === undefined;
+
   return {
     getStateProps() {
       return {
@@ -137,6 +139,8 @@ function useTextField(props: UseTextFieldProps) {
 
     getInputProps() {
       return elementProps<InputHTMLAttributes<HTMLInputElement>>({
+        ...(isUncontrolled && defaultValue && { defaultValue }),
+        ...(!isUncontrolled && { value }),
         id: dom.getInputId(id),
         name: name || id,
         required,
