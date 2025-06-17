@@ -4,15 +4,11 @@ import * as React from 'react';
 import { SegmentedControl as SegmentedControlPrimitive } from '@daeng-design/react-segmented-control';
 import { cn } from '@knockdog/ui/lib';
 
-interface SegmentedControlRootProps
-  extends SegmentedControlPrimitive.RootProps {}
+interface SegmentedControlProps extends SegmentedControlPrimitive.RootProps {}
 
-interface SegmentedControlItemProps
-  extends SegmentedControlPrimitive.ItemProps {}
-
-const SegmentedControlRoot = React.forwardRef<
+const SegmentedControl = React.forwardRef<
   HTMLDivElement,
-  SegmentedControlRootProps
+  SegmentedControlProps
 >(({ className, children, ...props }, ref) => (
   <SegmentedControlPrimitive.Root
     ref={ref}
@@ -26,7 +22,10 @@ const SegmentedControlRoot = React.forwardRef<
     <SegmentedControlPrimitive.Indicator className='radius-full bg-fill-secondary-700 -z-1 absolute h-[var(--height)] w-[var(--width)] shadow' />
   </SegmentedControlPrimitive.Root>
 ));
-SegmentedControlRoot.displayName = 'SegmentedControl';
+SegmentedControl.displayName = 'SegmentedControl';
+
+interface SegmentedControlItemProps
+  extends SegmentedControlPrimitive.ItemProps {}
 
 const SegmentedControlItem = React.forwardRef<
   HTMLLabelElement,
@@ -47,5 +46,5 @@ const SegmentedControlItem = React.forwardRef<
 ));
 SegmentedControlItem.displayName = 'SegmentedControlItem';
 
-export { SegmentedControlRoot, SegmentedControlItem };
-export type { SegmentedControlRootProps, SegmentedControlItemProps };
+export { SegmentedControl, SegmentedControlItem };
+export type { SegmentedControlProps, SegmentedControlItemProps };
