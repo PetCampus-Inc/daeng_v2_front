@@ -10,6 +10,7 @@
   "dependencies": {
     "@daeng-design/react-drawer": "workspace:*",
     "@daeng-design/react-segmented-control": "workspace:*",
+    "@daeng-design/react-text-field": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.0",
