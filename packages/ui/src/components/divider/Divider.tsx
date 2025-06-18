@@ -27,23 +27,23 @@ const dividerVariants = cva('', {
 });
 
 const sizeClasses = {
-  xs: {
+  xsmall: {
     horizontal: 'border-t-1',
     vertical: 'border-l-1',
   },
-  sm: {
+  small: {
     horizontal: 'border-t-4',
     vertical: 'border-l-4',
   },
-  md: {
+  medium: {
     horizontal: 'border-t-8',
     vertical: 'border-l-8',
   },
-  lg: {
+  large: {
     horizontal: 'border-t-16',
     vertical: 'border-l-16',
   },
-  xl: {
+  xlarge: {
     horizontal: 'border-t-32',
     vertical: 'border-l-32',
   },
@@ -61,7 +61,7 @@ const Divider = forwardRef<HTMLDivElement, DividerProps>(
       className,
       variant,
       orientation = 'horizontal',
-      size = 'md',
+      size = 'medium',
       dividerColor,
       ...props
     },
@@ -71,6 +71,8 @@ const Divider = forwardRef<HTMLDivElement, DividerProps>(
 
     return (
       <div
+        role='separator'
+        aria-orientation={orientation ?? 'horizontal'}
         className={cn(
           dividerVariants({
             variant,
