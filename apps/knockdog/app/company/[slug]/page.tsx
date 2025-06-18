@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import 'swiper/css';
+import { createPath } from '@shared/lib/utils/path';
 import { useHeaderContext } from '@widgets/Header';
 
 export default function Page() {
@@ -22,7 +23,6 @@ export default function Page() {
   const reviewsTabRef = useRef<HTMLDivElement>(null); // 후기 탭 ref 추가
   const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
   const { setVariant, setTitle, setTextColor } = useHeaderContext();
-  const { slug } = useParams();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
