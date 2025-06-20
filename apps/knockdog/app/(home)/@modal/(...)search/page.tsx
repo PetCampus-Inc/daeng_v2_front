@@ -1,19 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { SearchView } from '../../../search/ui/SearchView';
+import { RemoveScroll } from 'react-remove-scroll';
+import { SearchView } from '@features/search';
 
+// (home)/@modal/(...)search/page.tsx
+// 👉 This file is only a route-level entry point for modal-based search.
+//    Actual UI logic is managed by @features/search.
+//    This is because the search view is a modal and needs to be rendered in a modal.
 export default function Page() {
-  const router = useRouter();
-
-  const handleBack = () => {
-    router.back();
-  };
-  console.log('⚠️ 모달 검색 페이지 로드됨');
-
   return (
-    <div className='absolute inset-0 z-[100]'>
-      <SearchView handleBack={handleBack} />
-    </div>
+    <RemoveScroll className='absolute inset-0 z-[100]'>
+      <SearchView />
+    </RemoveScroll>
   );
 }
