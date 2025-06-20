@@ -28,6 +28,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
     description,
     errorMessage,
     successMessage,
+    className,
     ...restProps
   } = props;
 
@@ -56,7 +57,12 @@ function TextField({ ref, ...props }: TextFieldProps) {
           </TextFieldPrimitive.Indicator>
         </div>
       )}
-      <TextFieldPrimitive.Field className='bg-fill-secondary-0 border-line-200 invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 [&_svg]:size-x5 flex items-center border transition-colors'>
+      <TextFieldPrimitive.Field
+        className={cn(
+          'bg-fill-secondary-0 border-line-200 invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 flex items-center border transition-colors',
+          className
+        )}
+      >
         {prefix}
         {children}
         {suffix}

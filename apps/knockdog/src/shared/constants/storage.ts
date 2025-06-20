@@ -1,0 +1,6 @@
+export const STORAGE_KEYS = {
+  RECENT_PLACE: 'RECENT_PLACE',
+  RECENT_SEARCH_KEYWORD: 'RECENT_SEARCH_KEYWORD',
+} as const;
+
+export const MAX_RECENT_ITEMS = 30;
