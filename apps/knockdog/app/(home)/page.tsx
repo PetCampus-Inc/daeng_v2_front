@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { DogSchoolListWidget } from '@widgets/dogschool-list';
+import { useRef, useState } from 'react';
 import { cn } from '@knockdog/ui/lib';
 import { BottomSheet, Icon } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
+import Link from 'next/link';
+
+import { DogSchoolListWidget } from '@widgets/dogschool-list';
 import { NaverMap } from '@shared/ui/naver-map';
-import { getViewportSize } from '@shared/lib';
+import { getViewportSize, useIsomorphicLayoutEffect } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이) + 1px(보더)
@@ -20,11 +22,11 @@ export default function Home() {
     snapPoints[0] ?? null
   );
   const containerRef = useRef<HTMLDivElement>(null);
-  const [container, setContainer] = React.useState<HTMLElement | null>(null);
+  const [container, setContainer] = useState<HTMLElement | null>(null);
 
   const isFullyExtended = snap === snapPoints[snapPoints.length - 1];
 
-  React.useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (containerRef.current) {
       setContainer(containerRef.current);
     }
@@ -42,15 +44,18 @@ export default function Home() {
           isFullyExtended && 'bg-fill-secondary-0'
         )}
       >
-        <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
-          <div
-            role='button'
-            aria-label='검색창 열기'
-            className='text-text-tertiary body1-regular flex-1'
-          >
-            업체 또는 주소를 검색하세요
+        <Link href='/search'>
+          <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
+            <div
+              role='button'
+              aria-label='검색창 열기'
+              className='text-text-tertiary body1-regular flex-1'
+            >
+              업체 또는 주소를 검색하세요
+            </div>
+            <Icon icon='Search' className='size-x5 text-text-tertiary' />
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* chips */}
