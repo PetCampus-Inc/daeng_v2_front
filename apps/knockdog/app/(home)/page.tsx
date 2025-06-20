@@ -93,7 +93,7 @@ export default function Home() {
           setActiveSnapPoint={setSnap}
           container={container}
         >
-          <RemoveScroll>
+          <RemoveScroll forwardProps>
             <BottomSheet.Content
               className={cn(
                 'shadow-black/6 absolute inset-x-0 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
