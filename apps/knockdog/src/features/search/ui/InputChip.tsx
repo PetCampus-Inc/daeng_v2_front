@@ -13,9 +13,9 @@ export function InputChip({ name, onRemove }: InputChipProps) {
         <img src='https://picsum.photos/200/300' className='h-full w-full' />
       </div>
       <span className='body2-regular text-text-primary'>{name}</span>
-      <div onClick={onRemove}>
+      <button onClick={onRemove} type="button" className="flex items-center justify-center">
         <Icon icon='Close' className='size-x5 text-fill-secondary-400' />
-      </div>
+      </button>
     </div>
   );
 }
