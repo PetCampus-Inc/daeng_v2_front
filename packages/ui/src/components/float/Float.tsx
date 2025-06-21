@@ -151,3 +151,4 @@ export function Float(props: FloatProps) {
     />
   );
 }
+Float.displayName = 'Float';

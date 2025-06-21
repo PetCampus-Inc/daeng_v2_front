@@ -55,7 +55,10 @@ export interface FloatingActionButtonProps
   icon?: IconType;
 }
 
-const FloatingActionButton = ({ ref, ...props }: FloatingActionButtonProps) => {
+export function FloatingActionButton({
+  ref,
+  ...props
+}: FloatingActionButtonProps) {
   const {
     asChild,
     variant,
@@ -90,6 +93,5 @@ const FloatingActionButton = ({ ref, ...props }: FloatingActionButtonProps) => {
       </span>
     </Comp>
   );
-};
-
-export { FloatingActionButton };
+}
+FloatingActionButton.displayName = 'FloatingActionButton';
