@@ -30,7 +30,7 @@ export const Default: Story = {
 export const Scrollable: Story = {
   render: () => (
     <Tabs defaultValue='tab1' className='w-[500px]'>
-      <TabsList scrollable className='scrollbar-hide'>
+      <TabsList scrollable>
         <TabsTrigger value='tab1'>Tab 1</TabsTrigger>
         <TabsTrigger value='tab2'>Tab 2</TabsTrigger>
         <TabsTrigger value='tab3'>Tab 3</TabsTrigger>
