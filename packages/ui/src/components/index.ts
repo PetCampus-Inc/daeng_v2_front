@@ -3,3 +3,4 @@ export * from './bottom-sheet';
 export * from './icon';
 export * from './segmented-control';
 export * from './divider';
+export * from './tab-menu';
