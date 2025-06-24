@@ -1,4 +1,5 @@
 @import 'tailwindcss';
-@import '@knockdog/design-token';
+@import '@daeng-design/design-token/index.css';
+@import '@daeng-design/design-token/tailwind4-theme';
 
 @import 'tw-animate-css';

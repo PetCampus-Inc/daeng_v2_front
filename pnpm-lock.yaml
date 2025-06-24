@@ -366,6 +366,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@daeng-design/design-token':
+        specifier: workspace:*
+        version: link:../design-token
       '@daeng-design/react-drawer':
         specifier: workspace:*
         version: link:../headless-ui/drawer
@@ -397,9 +400,6 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10
     devDependencies:
-      '@knockdog/design-token':
-        specifier: workspace:*
-        version: link:../design-token
       '@knockdog/eslint-config':
         specifier: workspace:*
         version: link:../config-eslint
