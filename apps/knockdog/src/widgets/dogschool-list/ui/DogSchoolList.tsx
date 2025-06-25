@@ -1,24 +1,27 @@
-import React from 'react';
 import { Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
 import { DogSchoolCard } from '@features/dogschool-list';
+import { FilterBottomSheet } from '@features/search-filter';
 import { filterOptions, type DogSchool } from '@entities/dogschool';
-
 export interface DogSchoolListProps {
   data: DogSchool[];
   selectedLocation: 'current' | 'home' | 'work';
   onLocationChange: (location: 'current' | 'home' | 'work') => void;
-  // onFilterToggle: (id: string) => void;
 }
 
 export function DogSchoolList({
   data,
   selectedLocation,
   onLocationChange,
-  // onFilterToggle,
 }: DogSchoolListProps) {
   const handleLocationChange = (value: string) => {
     onLocationChange(value as 'current' | 'home' | 'work');
   };
+
+  const openFilterBottomSheet = () =>
+    overlay.open(({ isOpen, close }) => (
+      <FilterBottomSheet isOpen={isOpen} close={close} />
+    ));
 
   return (
     <main className='relative min-h-full w-full pb-[68px]'>
@@ -36,7 +39,10 @@ export function DogSchoolList({
         <div className='border-line-200 flex h-[52px] w-full items-center border-b border-t'>
           <div className='px-x4 py-x2 scrollbar-hide flex w-full items-center gap-x-2 overflow-x-auto whitespace-nowrap'>
             {/* 필터 버튼 */}
-            <div className='bg-fill-secondary-0 outline-line-200 gap-x0_5 radius-full px-x3 py-x2 body2-semibold text-text-primary flex shrink-0 items-center outline-[1.4px] outline-offset-[-1.40px]'>
+            <div
+              className='bg-fill-secondary-0 outline-line-200 gap-x0_5 radius-full px-x3 py-x2 body2-semibold text-text-primary flex shrink-0 items-center outline-[1.4px] outline-offset-[-1.40px]'
+              onClick={openFilterBottomSheet}
+            >
               <Icon icon='Filter' className='size-x4 text-fill-secondary-700' />
               필터
             </div>
