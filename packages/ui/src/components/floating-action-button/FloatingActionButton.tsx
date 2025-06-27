@@ -18,12 +18,39 @@ const floatingActionButtonVariants = cva(
           'bg-fill-secondary-0 text-text-primary active:bg-fill-secondary-100',
       },
       extended: {
-        true: 'px-x3.5 h-[48px] w-fit',
-        false: 'h-[48px] w-[48px]',
+        true: 'px-x3.5 w-fit',
+        false: '',
+      },
+      size: {
+        small: 'h-[40px]',
+        medium: 'h-[48px]',
       },
     },
+    compoundVariants: [
+      {
+        extended: true,
+        size: 'small',
+        className: 'h-[40px]',
+      },
+      {
+        extended: true,
+        size: 'medium',
+        className: 'h-[48px]',
+      },
+      {
+        extended: false,
+        size: 'small',
+        className: 'h-[40px] w-[40px]',
+      },
+      {
+        extended: false,
+        size: 'medium',
+        className: 'h-[48px] w-[48px]',
+      },
+    ],
     defaultVariants: {
       variant: 'primarySolid',
+      size: 'medium',
     },
   }
 );
@@ -63,6 +90,7 @@ export function FloatingActionButton({
     asChild,
     variant,
     extended = true,
+    size = 'medium',
     label,
     icon,
     className,
@@ -77,6 +105,7 @@ export function FloatingActionButton({
         floatingActionButtonVariants({
           variant,
           extended,
+          size,
         }),
         className
       )}
