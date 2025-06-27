@@ -1,5 +1,6 @@
 export {
   BottomSheetRoot as Root,
+  BottomSheetNestedRoot as NestedRoot,
   BottomSheetPortal as Portal,
   BottomSheetOverlay as Overlay,
   BottomSheetHandle as Handle,

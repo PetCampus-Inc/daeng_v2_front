@@ -72,24 +72,24 @@ function getPlacementStyle(
   switch (placement) {
     case 'top-start':
       return {
-        top: offsetYValue ?? 0,
-        left: offsetXValue ?? 0,
+        top: offsetYValue,
+        left: offsetXValue,
       };
     case 'top-center':
       return {
-        top: offsetYValue ?? 0,
+        top: offsetYValue,
         left: centerLeft,
         transform: shiftLeft,
       };
     case 'top-end':
       return {
-        top: offsetYValue ?? 0,
-        right: offsetXValue ?? 0,
+        top: offsetYValue,
+        right: offsetXValue,
       };
     case 'middle-start':
       return {
         top: middleTop,
-        left: offsetXValue ?? 0,
+        left: offsetXValue,
         transform: shiftTop,
       };
     case 'middle-center':
@@ -101,24 +101,24 @@ function getPlacementStyle(
     case 'middle-end':
       return {
         top: middleTop,
-        right: offsetXValue ?? 0,
+        right: offsetXValue,
         transform: shiftTop,
       };
     case 'bottom-start':
       return {
-        bottom: offsetYValue ?? 0,
-        left: offsetXValue ?? 0,
+        bottom: offsetYValue,
+        left: offsetXValue,
       };
     case 'bottom-center':
       return {
-        bottom: offsetYValue ?? 0,
+        bottom: offsetYValue,
         left: centerLeft,
         transform: shiftLeft,
       };
     case 'bottom-end':
       return {
-        bottom: offsetYValue ?? 0,
-        right: offsetXValue ?? 0,
+        bottom: offsetYValue,
+        right: offsetXValue,
       };
   }
 }
@@ -131,6 +131,7 @@ export function Float(props: FloatProps) {
     offsetY,
     zIndex,
     className,
+    style,
     ...restProps
   } = props;
   const ref = React.useRef<HTMLDivElement>(null);
@@ -141,12 +142,12 @@ export function Float(props: FloatProps) {
   return (
     <Comp
       ref={ref}
-      className={cn('absolute', className)}
       style={{
         zIndex,
         ...placementStyle,
-        ...restProps.style,
+        ...style,
       }}
+      className={cn('absolute', className)}
       {...restProps}
     />
   );

@@ -23,7 +23,7 @@ const actionButtonVariants = cva(
       size: {
         small: 'radius-r2 h-x7_5 caption1-semibold py-x2 px-x3 gap-x1',
         medium: 'h-x12 radius-r2 body2-bold py-x3.5 px-x4 gap-x1',
-        large: 'h-x14 radius-r2 body1-bold p-x4 gap-x1',
+        large: 'h-x14 radius-r2 body1-bold p-x4 gap-x1 w-full',
       },
     },
     defaultVariants: {

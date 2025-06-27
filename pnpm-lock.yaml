@@ -105,6 +105,9 @@ importers:
       next:
         specifier: ^15.3.2
         version: 15.3.3(@babel/core@7.26.10)(react-dom@19.1.0)(react@19.1.0)
+      overlay-kit:
+        specifier: ^1.8.2
+        version: 1.8.2(react-dom@19.1.0)(react@19.1.0)
       react-remove-scroll:
         specifier: ^2.7.1
         version: 2.7.1(@types/react@19.1.6)(react@19.1.0)
@@ -248,25 +251,6 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10
 
-  packages/headless-ui/drawer:
-    dependencies:
-      '@radix-ui/react-dialog':
-        specifier: ^1.1.14
-        version: 1.1.14(@types/react-dom@19.1.5)(@types/react@19.1.6)(react-dom@19.1.0)(react@19.1.0)
-      react:
-        specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
-        version: 19.1.0
-      react-dom:
-        specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
-        version: 19.1.0(react@19.1.0)
-    devDependencies:
-      '@knockdog/typescript-config':
-        specifier: workspace:*
-        version: link:../../config-typescript
-      bunchee:
-        specifier: ^5.1.5
-        version: 5.6.2(typescript@5.8.3)
-
   packages/headless-ui/segmented-control:
     dependencies:
       '@daeng-design/utils':
@@ -369,9 +353,6 @@ importers:
       '@daeng-design/design-token':
         specifier: workspace:*
         version: link:../design-token
-      '@daeng-design/react-drawer':
-        specifier: workspace:*
-        version: link:../headless-ui/drawer
       '@daeng-design/react-segmented-control':
         specifier: workspace:*
         version: link:../headless-ui/segmented-control
@@ -381,6 +362,9 @@ importers:
       '@knockdog/icons':
         specifier: workspace:*
         version: link:../icons
+      '@radix-ui/react-dialog':
+        specifier: ^1.1.14
+        version: 1.1.14(@types/react-dom@19.1.5)(@types/react@19.1.6)(react-dom@19.1.0)(react@19.1.0)
       '@radix-ui/react-slot':
         specifier: ^1.2.3
         version: 1.2.3(@types/react@19.1.6)(react@19.1.0)
@@ -399,6 +383,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.10
         version: 4.1.10
+      vaul:
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@19.1.5)(@types/react@19.1.6)(react-dom@19.1.0)(react@19.1.0)
     devDependencies:
       '@knockdog/eslint-config':
         specifier: workspace:*
@@ -414,7 +401,7 @@ importers:
         version: 8.1.0(typescript@5.8.3)
       '@turbo/gen':
         specifier: ^2.5.3
-        version: 2.5.3(@types/node@24.0.3)(typescript@5.8.3)
+        version: 2.5.3(@types/node@22.15.19)(typescript@5.8.3)
       tw-animate-css:
         specifier: ^1.3.0
         version: 1.3.0
@@ -4888,7 +4875,7 @@ packages:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
     dev: true
 
-  /@turbo/gen@2.5.3(@types/node@24.0.3)(typescript@5.8.3):
+  /@turbo/gen@2.5.3(@types/node@22.15.19)(typescript@5.8.3):
     resolution: {integrity: sha512-Pek4Amm5HcBzHkR0GdnMmRZlMwIRkgKW2SZ4/BfN+CY8BolJH6Wesjg1FkFEYD/DqnqeKUf98YWDsxmfILrpSA==}
     hasBin: true
     dependencies:
@@ -4900,7 +4887,7 @@ packages:
       node-plop: 0.26.3
       picocolors: 1.0.1
       proxy-agent: 6.5.0
-      ts-node: 10.9.2(@types/node@24.0.3)(typescript@5.8.3)
+      ts-node: 10.9.2(@types/node@22.15.19)(typescript@5.8.3)
       update-check: 1.5.4
       validate-npm-package-name: 5.0.1
     transitivePeerDependencies:
@@ -5049,12 +5036,6 @@ packages:
     resolution: {integrity: sha512-3vMNr4TzNQyjHcRZadojpRaD9Ofr6LsonZAoQ+HMUa/9ORTPoxVIw0e0mpqWpdjj8xybyCM+oKOUH2vwFu/oEw==}
     dependencies:
       undici-types: 6.21.0
-    dev: true
-
-  /@types/node@24.0.3:
-    resolution: {integrity: sha512-R4I/kzCYAdRLzfiCabn9hxWfbuHS573x+r0dJMkkzThEa7pbrcDWK+9zu3e7aBOouf+rQAciqPFMnxwr0aWgKg==}
-    dependencies:
-      undici-types: 7.8.0
     dev: true
 
   /@types/parse-json@4.0.2:
@@ -10496,6 +10477,16 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /overlay-kit@1.8.2(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-CtmkatsQaEZj0l/GDZyZBJyGQbuYPwaSmXJaH3u/VpZn5k+/Hmy+Ilj+DM53Bd+G6iLyDBWyB+SSf9uPe+Db1Q==}
+    peerDependencies:
+      react: ^16.8 || ^17 || ^18 || ^19
+      react-dom: ^16.8 || ^17 || ^18 || ^19
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+    dev: false
+
   /own-keys@1.0.1:
     resolution: {integrity: sha512-qFOyK5PjiWZd+QQIh+1jhdb9LpxTF0qs7Pm8o5QHYZ0M3vKqSqzsZaEB6oWlxZ+q2sJBMI/Ktgd2N5ZwQoRHfg==}
     engines: {node: '>= 0.4'}
@@ -12446,7 +12437,7 @@ packages:
     engines: {node: '>=6.10'}
     dev: true
 
-  /ts-node@10.9.2(@types/node@24.0.3)(typescript@5.8.3):
+  /ts-node@10.9.2(@types/node@22.15.19)(typescript@5.8.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
     peerDependencies:
@@ -12465,7 +12456,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 24.0.3
+      '@types/node': 22.15.19
       acorn: 8.14.1
       acorn-walk: 8.3.4
       arg: 4.1.3
@@ -12713,10 +12704,6 @@ packages:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
     dev: true
 
-  /undici-types@7.8.0:
-    resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
-    dev: true
-
   /unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
     engines: {node: '>=4'}
@@ -12924,6 +12911,20 @@ packages:
     resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dev: true
+
+  /vaul@1.1.2(@types/react-dom@19.1.5)(@types/react@19.1.6)(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-ZFkClGpWyI2WUQjdLJ/BaGuV6AVQiJ3uELGk3OYtP+B6yCO7Cmn9vPFXVJkRaGkOJu3m8bQMgtyzNHixULceQA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+    dependencies:
+      '@radix-ui/react-dialog': 1.1.14(@types/react-dom@19.1.5)(@types/react@19.1.6)(react-dom@19.1.0)(react@19.1.0)
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+    dev: false
 
   /vm-browserify@1.1.2:
     resolution: {integrity: sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==}
