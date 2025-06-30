@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { getChildren } from './get-children';
 
 interface UseSwiperProps {
@@ -6,12 +6,19 @@ interface UseSwiperProps {
   slideStep?: number;
   loop?: boolean;
   children: React.ReactNode;
+  onSlideChange?: (currentIndex: number) => void;
 }
 
 type UseSwiperReturn = ReturnType<typeof useSwiper>;
 
 function useSwiper(props: UseSwiperProps) {
-  const { slidesPerView = 1, slideStep = 1, loop = false, children } = props;
+  const {
+    slidesPerView = 1,
+    slideStep = 1,
+    loop = false,
+    children,
+    onSlideChange,
+  } = props;
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -32,6 +39,13 @@ function useSwiper(props: UseSwiperProps) {
   const currentTranslateX = useMemo(() => {
     return -(currentIndex * slideWidth);
   }, [currentIndex, slideWidth]);
+
+  // currentIndex가 바뀔 때 onSlideChange 호출
+  useEffect(() => {
+    if (onSlideChange) {
+      onSlideChange(currentIndex);
+    }
+  }, [currentIndex, onSlideChange]);
 
   const next = () => {
     if (loop) {
