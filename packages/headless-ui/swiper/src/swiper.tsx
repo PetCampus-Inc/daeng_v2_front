@@ -19,18 +19,10 @@ interface SwiperRootProps
 
 const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
   (props, ref) => {
-    const {
-      children,
-      slidesPerView,
-      spaceBetween,
-      slideStep,
-      loop,
-      ...restProps
-    } = props;
+    const { children, slidesPerView, slideStep, loop, ...restProps } = props;
 
     const api = useSwiper({
       slidesPerView,
-      spaceBetween,
       slideStep,
       loop,
       children,

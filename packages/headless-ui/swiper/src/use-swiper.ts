@@ -106,6 +106,7 @@ function useSwiper(props: UseSwiperProps) {
           height: '100%',
           overflow: 'hidden',
           position: 'relative' as const,
+          touchAction: 'pan-y',
         },
       };
     },
