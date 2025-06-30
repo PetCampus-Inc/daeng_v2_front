@@ -84,6 +84,9 @@ importers:
 
   apps/knockdog:
     dependencies:
+      '@daeng-design/react-swiper':
+        specifier: workspace:*
+        version: link:../../packages/headless-ui/swiper
       '@knockdog/eslint-config':
         specifier: workspace:*
         version: link:../../packages/config-eslint
@@ -322,6 +325,9 @@ importers:
       '@knockdog/typescript-config':
         specifier: workspace:*
         version: link:../../config-typescript
+      '@radix-ui/react-compose-refs':
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react@19.1.6)(react@19.1.0)
       '@radix-ui/react-use-controllable-state':
         specifier: ^1.2.2
         version: 1.2.2(@types/react@19.1.6)(react@19.1.0)
@@ -412,6 +418,9 @@ importers:
       '@daeng-design/react-segmented-control':
         specifier: workspace:*
         version: link:../headless-ui/segmented-control
+      '@daeng-design/react-swiper':
+        specifier: workspace:*
+        version: link:../headless-ui/swiper
       '@daeng-design/react-text-field':
         specifier: workspace:*
         version: link:../headless-ui/text-field
