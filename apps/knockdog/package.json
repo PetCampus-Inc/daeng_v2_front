@@ -11,6 +11,7 @@
     "update-route": "tsx src/app/scripts/generateRouteConstants.ts"
   },
   "dependencies": {
+    "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@knockdog/naver-map": "workspace:*",
