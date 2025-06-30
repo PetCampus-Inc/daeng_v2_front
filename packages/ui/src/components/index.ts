@@ -4,3 +4,4 @@ export * from './icon';
 export * from './segmented-control';
 export * from './divider';
 export * from './tab-menu';
+export * from './swiper';
