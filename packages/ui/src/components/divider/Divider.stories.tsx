@@ -30,13 +30,9 @@ const meta: Meta<typeof Divider> = {
       control: { type: 'radio' },
       options: ['solid', 'dashed', 'dotted'],
     },
-    dividerColor: {
-      control: { type: 'radio' },
-      options: ['default', 'subtle', 'accent'],
-    },
     size: {
       control: { type: 'select' },
-      options: ['xs', 'sm', 'md', 'lg', 'xl'],
+      options: ['normal', 'thick'],
     },
   },
 };
@@ -49,8 +45,7 @@ export const Horizontal: Story = {
   args: {
     orientation: 'horizontal',
     variant: 'solid',
-    dividerColor: 'default',
-    size: 'md',
+    size: 'normal',
   },
 };
 
@@ -58,8 +53,7 @@ export const Vertical: Story = {
   args: {
     orientation: 'vertical',
     variant: 'dotted',
-    dividerColor: 'accent',
-    size: 'lg',
+    size: 'thick',
   },
 };
 
@@ -67,7 +61,6 @@ export const DashedSubtle: Story = {
   args: {
     orientation: 'horizontal',
     variant: 'dashed',
-    dividerColor: 'subtle',
-    size: 'sm',
+    size: 'normal',
   },
 };
