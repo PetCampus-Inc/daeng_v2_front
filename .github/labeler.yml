@@ -1,0 +1,31 @@
+✨ feature:
+  - head-branch: ['^feat/', '^feature/', '^FEAT-', '.*-feat/']
+
+🐛 bug:
+  - head-branch:
+      ['^fix/', '^bugfix/', '^hotfix/', '.*-fix/', '.*-bugfix/', '.*-hotfix/']
+
+📚 documentation:
+  - head-branch: ['^docs/', '^doc/', '.*-docs/', '.*-doc/']
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.md', 'docs/**', 'README*']
+
+♻️ refactor:
+  - head-branch: ['^refactor/', '.*-refactor/']
+
+⚡️ perf:
+  - head-branch: ['^perf/', '.*-perf/']
+
+👷 ci:
+  - head-branch: ['^ci/', '.*-ci/']
+
+📦 build:
+  - head-branch: ['^build/', '.*-build/']
+
+🧪 test:
+  - head-branch: ['^test/', '.*-test/']
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.test.*', '**/*.spec.*', 'tests/**']
+
+⚙️ chore:
+  - head-branch: ['^chore/', '^settings/', '.*-chore/', '.*-settings/']
