@@ -28,5 +28,19 @@ export function HeaderWrapper() {
     );
   }
 
+  const isAccountLinking = pathname.startsWith('/account-linking');
+  if (isAccountLinking) {
+    return (
+      <Header variant={variant}>
+        <Header.LeftSection>
+          <Header.BackButton />
+        </Header.LeftSection>
+        <Header.CenterSection>
+          <Header.Title>기존 회원 로그인</Header.Title>
+        </Header.CenterSection>
+      </Header>
+    );
+  }
+
   return null;
 }
