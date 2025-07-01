@@ -32,12 +32,12 @@ const sizeClasses = {
 } as const;
 
 export interface DividerProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLHRElement>,
     VariantProps<typeof dividerVariants> {
   size?: keyof typeof sizeClasses;
 }
 
-const Divider = forwardRef<HTMLDivElement, DividerProps>(
+const Divider = forwardRef<HTMLHRElement, DividerProps>(
   (
     {
       className,
@@ -51,7 +51,7 @@ const Divider = forwardRef<HTMLDivElement, DividerProps>(
     const sizeClass = sizeClasses[size]?.[orientation || 'horizontal'];
 
     return (
-      <div
+      <hr
         role='separator'
         aria-orientation={orientation ?? 'horizontal'}
         className={cn(
