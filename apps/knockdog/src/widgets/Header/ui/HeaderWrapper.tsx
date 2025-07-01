@@ -36,7 +36,7 @@ export function HeaderWrapper() {
           <Header.BackButton />
         </Header.LeftSection>
         <Header.CenterSection>
-          <Header.Title>기존 회원 로그인</Header.Title>
+          <Header.Title>{title}</Header.Title>
         </Header.CenterSection>
       </Header>
     );
