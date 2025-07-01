@@ -5,7 +5,8 @@ import { cn } from '@knockdog/ui/lib';
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import Link from 'next/link';
-import { DogSchoolListWidget } from '@widgets/dogschool-list';
+import { DogSchoolList } from '@features/dogschool';
+
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { getViewportSize, useIsomorphicLayoutEffect } from '@shared/lib';
 
@@ -120,7 +121,7 @@ export default function MapBottomSheet() {
                     }}
                   />
                 </Float>
-                <DogSchoolListWidget />
+                <DogSchoolList />
               </div>
             </BottomSheet.Content>
           </RemoveScroll>
