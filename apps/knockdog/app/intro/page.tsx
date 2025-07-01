@@ -19,7 +19,11 @@ export default function IntroPage() {
           Apple로 시작하기
         </button>
 
-        <Divider className='my-[28px]' />
+        <div className='my-[28px] flex items-center gap-x-2'>
+          <Divider className='flex-1' />
+          <span className='text-text-tertiary body2-regular'>또는</span>
+          <Divider className='flex-1' />
+        </div>
 
         <div className='label-semibold flex items-center justify-center gap-x-1'>
           게스트로 둘러보기

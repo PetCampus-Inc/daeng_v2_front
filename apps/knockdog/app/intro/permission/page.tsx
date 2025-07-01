@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon, Divider, ActionButton } from '@knockdog/ui';
+import Link from 'next/link';
 
 export default function PermissionPage() {
   return (
@@ -53,9 +54,11 @@ export default function PermissionPage() {
           </div>
         </div>
         <div className='fixed bottom-[58px] left-0 right-0 bg-white p-4'>
-          <ActionButton variant='secondaryFill' className='w-full'>
-            확인
-          </ActionButton>
+          <Link href='/intro'>
+            <ActionButton variant='secondaryFill' className='w-full'>
+              확인
+            </ActionButton>
+          </Link>
         </div>
       </div>
     </>
