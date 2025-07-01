@@ -7,14 +7,6 @@ export function DogSchoolListWidget() {
     'current'
   );
 
-  // TODO: 필터 기능 추가
-  //   const {
-  //     filterOptions: filters,
-  //     selectedFilters,
-  //     toggleFilter,
-  //   } = useDogSchoolFilter(filterOptions);
-  //   const selectedFilterIds = selectedFilters.map((filter) => filter.id);
-
   // TODO: 데이터 쿼리 추가
   //   const { data, isLoading, error } = useDogSchoolsQuery({
   //     location,

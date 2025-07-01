@@ -4,6 +4,7 @@ import { suit } from './font';
 import './globals.css';
 import { NaverMapProvider } from '@knockdog/naver-map';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
+import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BottomNavigationBar } from '@widgets/bottom-bar';
 
@@ -17,15 +18,17 @@ export default function RootLayout({
       <body>
         <ReactQueryProvider>
           <NaverMapProvider>
-            <HeaderProvider>
-              <div className='flex h-dvh flex-col'>
-                <HeaderWrapper />
-                {children}
-                <div className='fixed inset-x-0 bottom-0 z-50'>
-                  <BottomNavigationBar />
+            <OverlayProvider>
+              <HeaderProvider>
+                <div className='flex h-dvh flex-col'>
+                  <HeaderWrapper />
+                  {children}
+                  <div className='fixed inset-x-0 bottom-0 z-50'>
+                    <BottomNavigationBar />
+                  </div>
                 </div>
-              </div>
-            </HeaderProvider>
+              </HeaderProvider>
+            </OverlayProvider>
           </NaverMapProvider>
         </ReactQueryProvider>
       </body>

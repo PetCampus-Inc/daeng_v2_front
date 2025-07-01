@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { cn } from '@knockdog/ui/lib';
-import { BottomSheet, Icon } from '@knockdog/ui';
+import { BottomSheet, Float, FloatingActionButton, Icon } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 import Link from 'next/link';
 
@@ -46,6 +46,10 @@ export default function Home() {
       >
         <Link href='/search'>
           <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
+            <Icon
+              icon='Search'
+              className='size-x5 text-fill-secondary-700 mr-x2'
+            />
             <div
               role='button'
               aria-label='검색창 열기'
@@ -53,7 +57,6 @@ export default function Home() {
             >
               업체 또는 주소를 검색하세요
             </div>
-            <Icon icon='Search' className='size-x5 text-text-tertiary' />
           </div>
         </Link>
       </div>
@@ -109,6 +112,21 @@ export default function Home() {
                   isFullyExtended ? 'overflow-y-auto' : 'overflow-hidden'
                 )}
               >
+                <Float
+                  placement='bottom-center'
+                  zIndex={50}
+                  style={{
+                    bottom: `calc(${BOTTOM_BAR_HEIGHT}px + 12px)`,
+                  }}
+                >
+                  <FloatingActionButton
+                    label='지도보기'
+                    size='small'
+                    onClick={() => {
+                      setSnap(snapPoints[0] ?? null);
+                    }}
+                  />
+                </Float>
                 <DogSchoolListWidget />
               </div>
             </BottomSheet.Content>

@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Drawer as DrawerPrimitive } from '@daeng-design/react-drawer';
-import type {
-  ContentProps,
-  DialogProps,
-  HandleProps,
-} from '@daeng-design/react-drawer';
+import {
+  type ContentProps,
+  type DialogProps,
+  type HandleProps,
+  Drawer as DrawerPrimitive,
+} from 'vaul';
 
 import { cn } from '@knockdog/ui/lib';
 
@@ -16,6 +16,8 @@ const BottomSheetRoot = (props: BottomSheetRootProps) => (
   <DrawerPrimitive.Root {...props} />
 );
 BottomSheetRoot.displayName = 'BottomSheetRoot';
+
+const BottomSheetNestedRoot = DrawerPrimitive.NestedRoot;
 
 const BottomSheetTrigger = DrawerPrimitive.Trigger;
 
@@ -89,10 +91,7 @@ const BottomSheetFooter = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn('mt-auto flex flex-col gap-2 p-4', className)}
-    {...props}
-  />
+  <footer className={cn('fixed bottom-0 w-full', className)} {...props} />
 );
 BottomSheetFooter.displayName = 'BottomSheetFooter';
 
@@ -102,7 +101,7 @@ const BottomSheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
-    className={cn('body1-extrabold', className)}
+    className={cn('h3-extrabold text-text-primary', className)}
     {...props}
   />
 ));
@@ -122,6 +121,7 @@ BottomSheetDescription.displayName = DrawerPrimitive.Description.displayName;
 
 export {
   BottomSheetRoot,
+  BottomSheetNestedRoot,
   BottomSheetPortal,
   BottomSheetOverlay,
   BottomSheetHandle,
