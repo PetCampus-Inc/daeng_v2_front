@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
 import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
-import { useSearchFilter } from '../hooks/useSearchFilter';
+import { useSearchFilter } from '../model/useSearchFilter';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import { Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
-import { useSearchFilter } from '../hooks/useSearchFilter';
+import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterBottomSheet } from './FilterBottomSheet';
 import { FilterChip } from './FilterChip';
 import { DogSchoolCard } from './DogSchoolCard';
@@ -9,7 +9,7 @@ import {
   mockData,
   FILTER_OPTIONS,
   type FilterOption,
-} from '@entities/dogschool';
+} from '@entities/dog-school';
 
 export function DogSchoolList() {
   const {

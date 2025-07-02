@@ -3,7 +3,7 @@ import { Icon } from '@knockdog/ui';
 import { DogSchoolImageSlider } from './DogSchoolImageSlider';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 
-import type { DogSchool } from '@entities/dogschool';
+import type { DogSchool } from '@entities/dog-school';
 
 type DogSchoolCardProps = DogSchool & {
   onBookmarkClick?: (id: string) => void;

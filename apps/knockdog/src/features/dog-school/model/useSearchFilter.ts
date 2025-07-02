@@ -4,7 +4,7 @@ import {
   type FilterOption,
   type FilterState,
   FILTER_OPTIONS,
-} from '@entities/dogschool';
+} from '@entities/dog-school';
 
 export interface UseSearchFilterReturn {
   /** 필터 상태 (선택된 옵션 배열) */

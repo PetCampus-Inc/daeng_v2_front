@@ -5,7 +5,7 @@ import { cn } from '@knockdog/ui/lib';
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import Link from 'next/link';
-import { DogSchoolList } from '@features/dogschool';
+import { DogSchoolList } from '@features/dog-school';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { getViewportSize, useIsomorphicLayoutEffect } from '@shared/lib';
