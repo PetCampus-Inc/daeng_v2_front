@@ -8,4 +8,5 @@ export * from './config/constant';
 export * from './ui/FilterList';
 export * from './ui/FilterChip';
 export * from './ui/ServiceBadge';
+export * from './ui/ServiceBadgeGroup';
 export * from './ui/DogSchoolImageSlider';
