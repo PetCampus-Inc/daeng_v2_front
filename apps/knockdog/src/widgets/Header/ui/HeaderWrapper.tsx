@@ -42,5 +42,19 @@ export function HeaderWrapper() {
     );
   }
 
+  const isSignupPage = pathname.startsWith('/signup');
+  if (isSignupPage) {
+    return (
+      <Header variant={variant} className='border-line-100 border-b'>
+        <Header.LeftSection>
+          <Header.BackButton />
+        </Header.LeftSection>
+        <Header.CenterSection>
+          <Header.Title>{title}</Header.Title>
+        </Header.CenterSection>
+      </Header>
+    );
+  }
+
   return null;
 }
