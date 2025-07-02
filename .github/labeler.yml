@@ -29,3 +29,5 @@
 
 ⚙️ chore:
   - head-branch: ['^chore/', '^settings/', '.*-chore/', '.*-settings/']
+
+D-3: '*'
