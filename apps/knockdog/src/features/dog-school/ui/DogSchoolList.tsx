@@ -4,11 +4,11 @@ import { Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
-import { FilterChip } from '@entities/dog-school';
 import {
-  mockData,
+  FilterChip,
+  FilterOption,
   FILTER_OPTIONS,
-  type FilterOption,
+  getCombinedMockData,
 } from '@entities/dog-school';
 
 export function DogSchoolList() {
@@ -26,7 +26,7 @@ export function DogSchoolList() {
   >('current');
 
   // TODO: 데이터 패칭 훅 추가
-  const data = mockData;
+  const data = getCombinedMockData();
   const selectedFilters = getSelectedFilterWithLabel();
 
   const handleLocationChange = (value: string) => {
@@ -116,8 +116,8 @@ export function DogSchoolList() {
         </div>
       </div>
 
-      {data.map((item) => (
-        <DogSchoolCard key={item.providerId} {...item} />
+      {data.shops.map((item) => (
+        <DogSchoolCard key={item.id} {...item} />
       ))}
     </main>
   );
