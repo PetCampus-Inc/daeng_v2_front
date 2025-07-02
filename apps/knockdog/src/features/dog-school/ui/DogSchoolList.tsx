@@ -39,7 +39,7 @@ export function DogSchoolList() {
     ));
 
   return (
-    <main className='relative min-h-full w-full pb-[68px]'>
+    <main className='relative flex h-full w-full flex-col overflow-hidden pb-[68px]'>
       <div className='bg-bg-0 sticky top-[-.5px] z-20'>
         <div className='px-x4 py-x4'>
           <SegmentedControl
@@ -116,12 +116,14 @@ export function DogSchoolList() {
         </div>
       </div>
 
-      <div className='px-x4 py-x2 body2-semibold text-text-tertiary border-line-200 flex h-[52px] items-center border-b'>
-        총 {data.shops.length}개
+      <div className='min-h-0 w-full flex-1 overflow-auto'>
+        <div className='px-x4 py-x2 body2-semibold text-text-tertiary border-line-200 flex h-[52px] items-center border-b'>
+          총 {data.shops.length}개
+        </div>
+        {data.shops.map((item) => (
+          <DogSchoolCard key={item.id} {...item} />
+        ))}
       </div>
-      {data.shops.map((item) => (
-        <DogSchoolCard key={item.id} {...item} />
-      ))}
     </main>
   );
 }
