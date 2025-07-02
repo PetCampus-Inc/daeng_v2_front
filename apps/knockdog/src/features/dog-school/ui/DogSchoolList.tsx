@@ -116,6 +116,9 @@ export function DogSchoolList() {
         </div>
       </div>
 
+      <div className='px-x4 py-x2 body2-semibold text-text-tertiary border-line-200 flex h-[52px] items-center border-b'>
+        총 {data.shops.length}개
+      </div>
       {data.shops.map((item) => (
         <DogSchoolCard key={item.id} {...item} />
       ))}
