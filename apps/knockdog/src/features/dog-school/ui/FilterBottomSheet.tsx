@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
-import { FilterList } from './FilterList';
-import { FilterChip } from './FilterChip';
-import { useSearchFilter } from '../hooks/useSearchFilter';
+import { useSearchFilter } from '../model/useSearchFilter';
+import { FilterList, FilterChip } from '@entities/dog-school';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -24,7 +23,7 @@ export function FilterBottomSheet({
     onChangeResultCount,
     isSelectedOption,
     isEmptyFilters,
-    getSelectedFilters,
+    getSelectedFilterWithLabel,
   } = useSearchFilter();
 
   // 필터 변경 시 결과 개수 시뮬레이션
@@ -58,8 +57,8 @@ export function FilterBottomSheet({
     close();
   };
 
-  /** 선택된 필터들 */
-  const selectedFilters = getSelectedFilters();
+  // 선택된 필터옵션 + 라벨 가져오기
+  const selectedFilters = getSelectedFilterWithLabel();
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={(open) => !open && close()}>
@@ -101,11 +100,12 @@ export function FilterBottomSheet({
                 </div>
 
                 <div className='gap-x2 scrollbar-hide flex items-center overflow-x-scroll'>
-                  {selectedFilters.map(({ category, option, optionLabel }) => (
+                  {selectedFilters.map(({ option, optionLabel }) => (
                     <FilterChip
-                      key={`${category}-${option}`}
+                      variant='toggle'
+                      key={option}
                       activated
-                      onClick={() => onRemoveOption(category, option)}
+                      onClick={() => onRemoveOption(option)}
                     >
                       {optionLabel}
                       <Icon
