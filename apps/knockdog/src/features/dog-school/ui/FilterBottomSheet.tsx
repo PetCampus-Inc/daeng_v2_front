@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
-import { FilterList } from './FilterList';
-import { FilterChip } from './FilterChip';
 import { useSearchFilter } from '../model/useSearchFilter';
+import { FilterList, FilterChip } from '@entities/dog-school';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;

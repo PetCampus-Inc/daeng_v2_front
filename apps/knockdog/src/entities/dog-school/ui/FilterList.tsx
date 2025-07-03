@@ -3,7 +3,7 @@ import {
   FILTER_CONFIG,
   FILTER_OPTIONS,
   type FilterOption,
-} from '@entities/dog-school';
+} from '../config/constant';
 
 interface FilterContentProps {
   isSelected: (option: FilterOption) => boolean;

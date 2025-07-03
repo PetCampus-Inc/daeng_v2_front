@@ -1,10 +1,10 @@
-import { Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
+import { useState } from 'react';
 import { overlay } from 'overlay-kit';
+import { Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterBottomSheet } from './FilterBottomSheet';
-import { FilterChip } from './FilterChip';
 import { DogSchoolCard } from './DogSchoolCard';
-import { useState } from 'react';
+import { FilterChip } from '@entities/dog-school';
 import {
   mockData,
   FILTER_OPTIONS,
