@@ -72,7 +72,7 @@ function BadgeGroup({ children }: BadgeGroupProps) {
           setButtonClientRect(nodeClientRect);
         }
 
-        // @ts-ignore you can set `.current` on ref objects or ref callbacks in React
+        // @ts-expect-error you can set `.current` on ref objects or ref callbacks in React
         moreButtonRef.current = node;
       }
     },
@@ -108,8 +108,8 @@ function BadgeGroup({ children }: BadgeGroupProps) {
       },
       {
         root: containerRef.current,
-        rootMargin: `0px -${buttonClientRect.width + 1.1}px 0px 0px`,
-        threshold: 1,
+        rootMargin: `0px -${buttonClientRect.width}px 0px 0px`,
+        threshold: 0.999,
       }
     );
 
