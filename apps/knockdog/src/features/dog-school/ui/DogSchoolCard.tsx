@@ -1,43 +1,45 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
-import { DogSchoolImageSlider } from '@entities/dog-school';
-import type { DogSchool } from '@entities/dog-school';
+import { DogSchoolImageSlider, ServiceBadgeGroup } from '@entities/dog-school';
 
-type DogSchoolCardProps = DogSchool & {
+import type { DogSchoolWithMeta } from '@entities/dog-school';
+
+interface DogSchoolCardProps extends DogSchoolWithMeta {
   onBookmarkClick?: (id: string) => void;
-};
+}
 
 export function DogSchoolCard({
-  providerId,
-  providerName,
+  id,
+  title,
   images,
-  businessType,
-  userDistance,
-  address,
+  ctg,
+  dist,
+  roadAddress,
   reviewCount,
   operationStatus,
   operationTimes,
   price,
-  bookmarked = false,
+  serviceTags,
+  pickupType,
+  memo,
+  isBookmarked = false,
+  onBookmarkClick,
 }: DogSchoolCardProps) {
   return (
     <div className='gap-x4 px-x4 py-x6 border-line-100 flex w-full flex-col items-center border-b-8'>
       {/* 이미지 컨테이너 */}
       <div className='relative aspect-[16/9] w-full overflow-hidden'>
-        <DogSchoolImageSlider
-          id={providerId}
-          name={providerName}
-          slides={images}
-        />
-        <CardBtnClipDefs id={providerId} />
+        <DogSchoolImageSlider id={id} name={title} slides={images} />
+        <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
           className='bg-bg-0 absolute right-0 top-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
-          style={{ clipPath: `url(#card-btn-${providerId})` }}
+          style={{ clipPath: `url(#card-btn-${id})` }}
+          onClick={() => onBookmarkClick?.(id)}
         >
           <Icon
-            icon={bookmarked ? 'BookmarkFill' : 'BookmarkLine'}
-            className={`size-x6 ${bookmarked ? 'text-fill-secondary-700' : 'text-fill-secondary-500'}`}
+            icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
+            className={`size-x6 ${isBookmarked ? 'text-fill-secondary-700' : 'text-fill-secondary-500'}`}
           />
         </button>
       </div>
@@ -49,10 +51,13 @@ export function DogSchoolCard({
           {/* 타이틀 */}
           <div className='flex min-w-0 flex-col items-start justify-center gap-[2px]'>
             <h1 className='h2-extrabold text-text-primary w-full truncate'>
-              {providerName}
+              {title}
             </h1>
             <p className='body2-regular text-text-tertiary w-full truncate'>
-              {businessType.join(' • ')}
+              {ctg
+                .split(',')
+                .map((tag) => tag.trim())
+                .join(' ・ ')}
             </p>
           </div>
 
@@ -72,13 +77,15 @@ export function DogSchoolCard({
               {operationStatus === 'OPEN' ? '영업중' : '영업종료'}
             </span>
             <span className='body2-regular text-text-secondary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
-              {operationTimes.endTime}에 영업종료
+              {operationStatus === 'OPEN'
+                ? `${operationTimes.endTime}에 영업종료`
+                : `${operationTimes.startTime}에 영업시작`}
             </span>
             <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
-              {userDistance}km
+              {dist.toFixed(2)}km
             </span>
             <span className='body2-regular text-text-secondary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
-              {address}
+              {roadAddress}
             </span>
           </div>
         </div>
@@ -86,35 +93,28 @@ export function DogSchoolCard({
         {/* 구분선 */}
         <div className='bg-line-100 flex h-[1px] w-full items-center justify-center' />
 
-        {/* 하단 필터 + 가격 영역 */}
-        <div className='flex min-w-0 items-center justify-between self-stretch'>
-          {/* chips 영역 */}
-          <div className='gap-x1 flex min-w-0 items-center'>
-            {/* 무료픽드랍 chip */}
-            <div className='px-x2 py-x1 gap-x1 bg-fill-secondary-700 flex shrink-0 items-center justify-center rounded-full'>
-              <Icon
-                icon='PickupFree'
-                className='size-x4 text-fill-secondary-100 flex items-center justify-center'
-              />
-              <span className='caption1-semibold text-text-primary-inverse overflow-hidden text-ellipsis'>
-                무료 픽드랍
+        {/* 메모 영역 */}
+        {memo && (
+          <div className='bg-fill-secondary-100 px-x3 py-x4 gap-x1 radius-r2 flex w-full flex-col'>
+            <div className='gap-x1 flex items-center'>
+              <Icon icon='Note' className='size-x4 text-fill-secondary-600' />
+              <span className='caption1-extrabold text-primitive-neutral-700'>
+                {memo.updatedAt} 메모
               </span>
             </div>
-
-            {/* 24시간 상주 chip */}
-            <div className='px-x2 py-x1 border-line-200 bg-fill-secondary-0 flex shrink-0 items-center justify-center gap-[2px] rounded-full border'>
-              <span className='caption1-semibold text-text-secondary'>
-                24시간 상주
-              </span>
-            </div>
-
-            {/* 외 영역 */}
-            <div className='flex shrink-0 items-center gap-[2px]'>
-              <span className='caption1-semibold text-text-tertiary'>
-                외 +3
-              </span>
-            </div>
+            <p className='body2-regular text-text-primary line-clamp-2'>
+              {memo.content}
+            </p>
           </div>
+        )}
+
+        {/* 하단 필터 + 가격 영역 */}
+        <div className='gap-x2 flex min-w-0 items-center justify-between self-stretch'>
+          {/* badge 영역 */}
+          <ServiceBadgeGroup
+            serviceTags={serviceTags}
+            pickupType={pickupType}
+          />
 
           {/* 가격 영역 */}
           <div className='gap-x1 flex shrink-0 items-center'>

@@ -1,14 +1,18 @@
 'use client';
 
-import { BottomSheet, Float, FloatingActionButton, Icon } from '@knockdog/ui';
-import { cn } from '@knockdog/ui/lib';
 import React, { useRef, useState } from 'react';
-import { RemoveScroll } from 'react-remove-scroll';
 import Link from 'next/link';
+import { RemoveScroll } from 'react-remove-scroll';
+import { BottomSheet, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import { DogSchoolList } from '@features/dog-school';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { getViewportSize, useIsomorphicLayoutEffect } from '@shared/lib';
+import {
+  getViewportSize,
+  useBottomSheetSnapIndex,
+  useIsomorphicLayoutEffect,
+} from '@shared/lib';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이) + 1px(보더)
 // 최대 스냅포인트: 화면높이 - 48px(검색바 높이) + 8px(여백)
@@ -17,13 +21,19 @@ const MAX_SNAP_POINT = getViewportSize().height - 64 + 8;
 
 export default function MapBottomSheet() {
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
-  const [snap, setSnap] = useState<number | string | null>(
-    snapPoints[0] ?? null
-  );
+  const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
-  const isFullyExtended = snap === snapPoints[snapPoints.length - 1];
+  const activeSnapPoint = snapPoints[snapIndex] ?? snapPoints[0];
+
+  const handleSnapChange = (newSnap: number | string | null) => {
+    const index = snapPoints.findIndex((point) => point === newSnap);
+    if (index !== -1) {
+      setSnapIndex(index as 0 | 1 | 2);
+    }
+  };
 
   useIsomorphicLayoutEffect(() => {
     if (containerRef.current) {
@@ -36,7 +46,7 @@ export default function MapBottomSheet() {
       <div
         className={cn(
           'px-x4 pb-x2 absolute top-0 z-50 w-full pt-[calc(env(safe-area-inset-top)+8px)] transition-colors ease-out',
-          isFullyExtended && 'bg-fill-secondary-0'
+          isFullExtended && 'bg-fill-secondary-0'
         )}
       >
         <Link href='/search'>
@@ -84,45 +94,23 @@ export default function MapBottomSheet() {
         <BottomSheet.Root
           defaultOpen
           dismissible={false}
-          modal={isFullyExtended}
+          modal={isFullExtended}
           snapPoints={snapPoints}
-          activeSnapPoint={snap}
-          setActiveSnapPoint={setSnap}
+          activeSnapPoint={activeSnapPoint}
+          setActiveSnapPoint={handleSnapChange}
           container={container}
         >
           <RemoveScroll forwardProps>
             <BottomSheet.Content
               className={cn(
                 'shadow-black/6 absolute inset-x-0 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
-                isFullyExtended && 'rounded-none shadow-none'
+                isFullExtended && 'rounded-none shadow-none'
               )}
             >
-              {!isFullyExtended && (
+              {!isFullExtended && (
                 <BottomSheet.Handle className='mt-x3 mb-x1' />
               )}
-              <div
-                className={cn(
-                  'scrollbar-hide mx-auto h-full w-full',
-                  isFullyExtended ? 'overflow-y-auto' : 'overflow-hidden'
-                )}
-              >
-                <Float
-                  placement='bottom-center'
-                  zIndex={50}
-                  style={{
-                    bottom: `calc(${BOTTOM_BAR_HEIGHT}px + 12px)`,
-                  }}
-                >
-                  <FloatingActionButton
-                    label='지도보기'
-                    size='small'
-                    onClick={() => {
-                      setSnap(snapPoints[0] ?? null);
-                    }}
-                  />
-                </Float>
-                <DogSchoolList />
-              </div>
+              <DogSchoolList />
             </BottomSheet.Content>
           </RemoveScroll>
         </BottomSheet.Root>

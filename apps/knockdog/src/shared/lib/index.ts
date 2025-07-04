@@ -1,3 +1,4 @@
+export * from './bottom-sheet';
 export * from './device';
 export * from './dom';
 export * from './react';
