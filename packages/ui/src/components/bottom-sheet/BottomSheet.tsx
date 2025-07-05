@@ -46,7 +46,7 @@ const BottomSheetContent = React.forwardRef<
   <DrawerPrimitive.Content
     ref={ref}
     className={cn(
-      'bg-primitive-neutral-0 z-50 rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
+      'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-50 w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
       className
     )}
     {...props}
@@ -91,7 +91,7 @@ const BottomSheetFooter = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <footer className={cn('fixed bottom-0 w-full', className)} {...props} />
+  <footer className={cn('py-x5 flex flex-col px-4', className)} {...props} />
 );
 BottomSheetFooter.displayName = 'BottomSheetFooter';
 
