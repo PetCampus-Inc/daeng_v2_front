@@ -42,6 +42,11 @@ export function HeaderWrapper() {
     );
   }
 
+  const isSignupComplete = pathname.startsWith('/signup/complete');
+  if (isSignupComplete) {
+    return null;
+  }
+
   const isSignupPetDetailsSteps = pathname.startsWith('/signup/pet-details');
   if (isSignupPetDetailsSteps) {
     return (
