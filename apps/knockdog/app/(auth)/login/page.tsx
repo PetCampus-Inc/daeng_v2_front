@@ -1,25 +1,30 @@
 import React from 'react';
 import { Icon, Divider } from '@knockdog/ui';
+import Link from 'next/link';
 
 export default function LoginPage() {
   return (
     <div>
       {/* 하단 영역 */}
       <div className='fixed bottom-[78px] left-0 right-0 flex flex-col gap-y-3 bg-white px-4'>
-        <button
-          type='button'
-          className='body1-bold text-text-primary flex w-full items-center justify-center gap-x-2 rounded-lg bg-[#FEE500] py-4'
-        >
-          <Icon icon='KakaoLogo' />
-          카카오톡으로 시작하기
-        </button>
-        <button
-          type='button'
-          className='body1-bold border-line-400 flex w-full items-center justify-center gap-x-2 rounded-lg border py-4'
-        >
-          <Icon icon='GoogleLogo' />
-          구글로 시작하기
-        </button>
+        <Link href='/account-linking/kakao'>
+          <button
+            type='button'
+            className='body1-bold text-text-primary flex w-full items-center justify-center gap-x-2 rounded-lg bg-[#FEE500] py-4'
+          >
+            <Icon icon='KakaoLogo' />
+            카카오톡으로 시작하기
+          </button>
+        </Link>
+        <Link href='/account-linking/deleted-account'>
+          <button
+            type='button'
+            className='body1-bold border-line-400 flex w-full items-center justify-center gap-x-2 rounded-lg border py-4'
+          >
+            <Icon icon='GoogleLogo' />
+            구글로 시작하기
+          </button>
+        </Link>
         <button
           type='button'
           className='body1-bold text-text-primary-inverse flex w-full items-center justify-center gap-x-2 rounded-lg border bg-[#000000] py-4'

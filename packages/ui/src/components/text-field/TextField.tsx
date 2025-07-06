@@ -65,7 +65,8 @@ function TextField({ ref, ...props }: TextFieldProps) {
       >
         {prefix}
         {children}
-        {suffix}
+
+        <div className='body2-bold'>{suffix}</div>
       </TextFieldPrimitive.Field>
       {renderFooter && (
         <div className='pt-x2'>
