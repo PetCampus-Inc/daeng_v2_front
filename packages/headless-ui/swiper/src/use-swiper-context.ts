@@ -25,7 +25,7 @@ function useSwiperSlideItemContext() {
   const context = useContext(SwiperSlideItemContext);
   if (!context) {
     throw new Error(
-      'useSwiperSlideContext must be used within SwiperSlideContext'
+      'useSwiperSlideItemContext must be used within SwiperSlideItemContext'
     );
   }
 
