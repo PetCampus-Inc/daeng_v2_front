@@ -38,7 +38,7 @@ const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
       onSlideChange,
       trackRef,
     });
-    const { handleTouchStart, handleTouchMove, handleTouchEnd } =
+    const { handlePointerDown, handlePointerMove, handlePointerUp } =
       useSwiperGesture(api, trackRef);
 
     return (
@@ -47,9 +47,9 @@ const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
           <div
             ref={trackRef}
             {...api.getTrackProps()}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
           >
             {children}
           </div>

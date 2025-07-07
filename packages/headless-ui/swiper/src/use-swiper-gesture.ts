@@ -21,23 +21,23 @@ function useSwiperGesture(
   const percentToPx = (percent: number, width: number) =>
     (percent / 100) * width;
 
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!trackRef.current || !e.touches[0]) return;
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!trackRef.current || !e.pointerId) return;
     isDragging.current = true;
 
-    startX.current = e.touches[0].clientX;
+    startX.current = e.clientX;
 
     // 현재 % 단위인 translateX 을 px 로 환산
     const trackWidth = trackRef.current.offsetWidth;
     startTranslatePx.current = percentToPx(translateX, trackWidth);
   };
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current || !trackRef.current) return;
-    const touch = e.touches[0];
-    if (!touch) return;
+    const pointer = e.pointerId;
+    if (!pointer) return;
 
-    const dx = touch.clientX - startX.current;
+    const dx = e.clientX - startX.current;
 
     // 터치가 얼마나 이동했는지
     // 엣지에서는 반대 방향 드래그 무시
@@ -49,14 +49,12 @@ function useSwiperGesture(
     }px)`;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current || !trackRef.current) return;
 
     isDragging.current = false;
 
-    const touch = e.changedTouches[0];
-    if (!touch) return;
-    const dx = touch.clientX - startX.current;
+    const dx = e.clientX - startX.current;
     const trackWidth = trackRef.current.offsetWidth;
     const thresholdPx = trackWidth * threshold;
 
@@ -73,9 +71,9 @@ function useSwiperGesture(
   };
 
   return {
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
   };
 }
 
