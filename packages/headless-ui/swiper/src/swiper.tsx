@@ -1,7 +1,5 @@
 import * as React from 'react';
 
-import { getChildren } from './get-children';
-
 import {
   useSwiperContext,
   SwiperContext,
@@ -37,18 +35,18 @@ const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
       children,
       onSlideChange,
     });
-    const { handlePointerDown, handlePointerMove, handlePointerUp } =
-      useSwiperGesture(api, trackRef);
+
+    const gestureApi = useSwiperGesture(api, trackRef);
 
     return (
-      <div ref={ref} {...api.getRootProps()} {...restProps}>
-        <SwiperContext.Provider value={api}>
+      <div ref={ref} style={gestureApi.rootStyle} {...restProps} role='group'>
+        <SwiperContext.Provider value={{ ...api, ...gestureApi }}>
           <div
             ref={trackRef}
-            {...api.getTrackProps()}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
+            style={gestureApi.trackStyle}
+            onPointerDown={gestureApi.handlePointerDown}
+            onPointerMove={gestureApi.handlePointerMove}
+            onPointerUp={gestureApi.handlePointerUp}
           >
             {children}
           </div>
@@ -68,11 +66,9 @@ const SwiperSlideItem = React.forwardRef<HTMLDivElement, SwiperSlideItemProps>(
     const { children, ...restProps } = props;
     const api = useSwiperContext();
 
-    const slideProps = api.getSlideProps();
-
     return (
       <SwiperSlideItemContext.Provider value={{ slideWidth: api.slideWidth }}>
-        <div ref={ref} style={slideProps.style} {...restProps}>
+        <div ref={ref} style={api.slideStyle} {...restProps}>
           {children}
         </div>
       </SwiperSlideItemContext.Provider>

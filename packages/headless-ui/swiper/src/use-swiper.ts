@@ -78,7 +78,7 @@ function useSwiper(props: UseSwiperProps) {
     setCurrentIndex(clampedIndex);
   };
 
-  const slideTo = (index: number, duration: number = 300) => {
+  const slideTo = (index: number) => {
     const clampedIndex = Math.max(0, Math.min(index, maxIndex));
     setCurrentIndex(clampedIndex);
   };
@@ -93,47 +93,11 @@ function useSwiper(props: UseSwiperProps) {
     goTo,
     slideTo,
     currentIndex,
+    slidesPerView,
     activeIndex: currentIndex,
-    translateX: currentTranslateX,
-    slideWidth,
     maxIndex,
     canGoNext,
     canGoPrev,
-    getRootProps() {
-      return {
-        role: 'group',
-        style: {
-          width: '100%',
-          overflow: 'hidden',
-          position: 'relative' as const,
-          touchAction: 'pan-y',
-        },
-      };
-    },
-    getTrackProps() {
-      return {
-        'data-swiper-track': '',
-        style: {
-          display: 'flex',
-          width: '100%',
-          height: '100%',
-          position: 'relative' as const,
-          cursor: 'grab',
-          transform: `translateX(${currentTranslateX}%)`,
-        },
-      };
-    },
-    getSlideProps() {
-      return {
-        style: {
-          flexShrink: 0,
-          width: `${slideWidth}%`,
-          height: '100%',
-          display: 'block',
-          transitionProperty: 'transform',
-        },
-      };
-    },
   };
 }
 

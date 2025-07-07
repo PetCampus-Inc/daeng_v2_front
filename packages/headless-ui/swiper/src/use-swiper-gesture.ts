@@ -1,42 +1,64 @@
-import { useRef } from 'react';
+'use client';
+
+import { useRef, useState, useMemo } from 'react';
 import type { UseSwiperReturn } from './use-swiper';
 
 interface UseSwiperGestureOptions {
   threshold?: number;
 }
 
+type UseSwiperGestureReturn = ReturnType<typeof useSwiperGesture>;
+
 function useSwiperGesture(
   api: UseSwiperReturn,
   trackRef: React.RefObject<HTMLDivElement | null>,
   { threshold = 0.1 }: UseSwiperGestureOptions = {}
 ) {
-  const { translateX, canGoNext, next, prev, canGoPrev } = api;
+  const { canGoNext, next, prev, canGoPrev, currentIndex, slidesPerView } = api;
 
-  const isDragging = useRef(false);
+  // 드래그 중 적용할 translate 오프셋
+  const [dragOffset, setDragOffset] = useState<number | null>(null);
+
+  const [transition, setTransition] = useState('transform 300ms ease-out');
+
+  const pointerId = useRef<number | null>(null);
   const startX = useRef(0);
 
   // 드래그 시작 시점 트랙의 translateX 값을 (px)로 저장
-  const startTranslatePx = useRef(0);
+  const startTranslate = useRef(0);
 
-  const percentToPx = (percent: number, width: number) =>
-    (percent / 100) * width;
+  // 슬라이드 크기 계산 (100% / slidesPerView)
+  const slideWidth = useMemo(() => {
+    return 100 / slidesPerView;
+  }, [slidesPerView]);
+
+  // translateX 계산 (현재 인덱스 * 슬라이드 너비)
+  const currentTranslateX = useMemo(() => {
+    return -(currentIndex * slideWidth);
+  }, [currentIndex, slideWidth]);
+
+  const getTranslateXByIndex = (index: number) => {
+    if (!trackRef.current) return 0;
+    const trackWidth = trackRef.current.offsetWidth;
+    return -((trackWidth * index) / slidesPerView);
+  };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!trackRef.current || !e.pointerId) return;
-    isDragging.current = true;
-
+    if (!trackRef.current) return;
+    pointerId.current = e.pointerId;
     startX.current = e.clientX;
 
     // 현재 % 단위인 translateX 을 px 로 환산
-    const trackWidth = trackRef.current.offsetWidth;
-    startTranslatePx.current = percentToPx(translateX, trackWidth);
+    const style = window.getComputedStyle(trackRef.current);
+    const matrix = new DOMMatrixReadOnly(style.transform);
+    startTranslate.current = matrix.m41;
+
+    // transition 해제
+    setTransition('none');
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current || !trackRef.current) return;
-    const pointer = e.pointerId;
-    if (!pointer) return;
-
+    if (!trackRef.current || pointerId.current !== e.pointerId) return;
     const dx = e.clientX - startX.current;
 
     // 터치가 얼마나 이동했는지
@@ -44,15 +66,12 @@ function useSwiperGesture(
     if (dx > 0 && !canGoPrev) return; // 맨 왼쪽에서 오른쪽 드래그 금지
     if (dx < 0 && !canGoNext) return; // 맨 오른쪽에서 왼쪽 드래그 금지
 
-    trackRef.current.style.transform = `translateX(${
-      startTranslatePx.current + dx
-    }px)`;
+    setDragOffset(startTranslate.current + dx);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current || !trackRef.current) return;
-
-    isDragging.current = false;
+    if (!trackRef.current || pointerId.current !== e.pointerId) return;
+    pointerId.current = null;
 
     const dx = e.clientX - startX.current;
     const trackWidth = trackRef.current.offsetWidth;
@@ -65,16 +84,39 @@ function useSwiperGesture(
     // 오른쪽으로 스와이프 (dx > 0) → 이전 슬라이드
     else if (dx > thresholdPx && canGoPrev) {
       prev();
-    } else {
-      trackRef.current.style.transform = `translateX(${startTranslatePx.current}px)`;
     }
+    setDragOffset(null);
+    setTransition('transform 300ms ease-out');
   };
 
   return {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    slideWidth,
+    rootStyle: {
+      overflow: 'hidden',
+      position: 'relative' as const,
+      touchAction: 'pan-y',
+    },
+    trackStyle: {
+      display: 'flex',
+      position: 'relative' as const,
+      cursor: 'grab',
+      transform:
+        dragOffset !== null
+          ? `translateX(${dragOffset}px)`
+          : `translateX(-${currentIndex * slideWidth}%)`,
+      transition,
+    },
+    slideStyle: {
+      flexShrink: 0,
+      width: `${slideWidth}%`,
+      display: 'block',
+      transitionProperty: 'transform',
+    },
   };
 }
 
 export { useSwiperGesture };
+export type { UseSwiperGestureReturn };
