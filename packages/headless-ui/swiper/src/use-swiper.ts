@@ -7,7 +7,6 @@ interface UseSwiperProps {
   loop?: boolean;
   children: React.ReactNode;
   onSlideChange?: (currentIndex: number) => void;
-  trackRef: React.RefObject<HTMLDivElement | null>;
 }
 
 type UseSwiperReturn = ReturnType<typeof useSwiper>;
@@ -19,7 +18,6 @@ function useSwiper(props: UseSwiperProps) {
     loop = false,
     children,
     onSlideChange,
-    trackRef,
   } = props;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -80,16 +78,6 @@ function useSwiper(props: UseSwiperProps) {
     setCurrentIndex(clampedIndex);
   };
 
-  const translateTo = (translateX: number, duration: number = 0) => {
-    // translateX를 픽셀 단위로 받아서 처리
-    const trackElement = trackRef.current;
-    if (trackElement) {
-      trackElement.style.transition =
-        duration > 0 ? `transform ${duration}ms ease-out` : 'none';
-      trackElement.style.transform = `translateX(${translateX}px)`;
-    }
-  };
-
   const slideTo = (index: number, duration: number = 300) => {
     const clampedIndex = Math.max(0, Math.min(index, maxIndex));
     setCurrentIndex(clampedIndex);
@@ -103,7 +91,6 @@ function useSwiper(props: UseSwiperProps) {
     next,
     prev,
     goTo,
-    translateTo,
     slideTo,
     currentIndex,
     activeIndex: currentIndex,
@@ -133,7 +120,6 @@ function useSwiper(props: UseSwiperProps) {
           position: 'relative' as const,
           cursor: 'grab',
           transform: `translateX(${currentTranslateX}%)`,
-          transition: 'transform 300ms ease-out',
         },
       };
     },
