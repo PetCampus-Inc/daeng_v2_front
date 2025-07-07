@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet, Icon } from '@knockdog/ui';
@@ -8,23 +8,18 @@ import { cn } from '@knockdog/ui/lib';
 import { DogSchoolList } from '@features/dog-school';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import {
-  getViewportSize,
-  useBottomSheetSnapIndex,
-  useIsomorphicLayoutEffect,
-} from '@shared/lib';
+import { useBottomSheetSnapIndex } from '@shared/lib';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이) + 1px(보더)
-// 최대 스냅포인트: 화면높이 - 48px(검색바 높이) + 8px(여백)
+// 최대 스냅포인트: 화면높이 - 64px(검색바 높이) - 8px(여백)
 const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 149;
-const MAX_SNAP_POINT = getViewportSize().height - 64 + 8;
+const MAX_SNAP_POINT_OFFSET = 64 - 8;
 
 export default function MapBottomSheet() {
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [container, setContainer] = useState<HTMLElement | null>(null);
 
   const activeSnapPoint = snapPoints[snapIndex] ?? snapPoints[0];
 
@@ -34,12 +29,6 @@ export default function MapBottomSheet() {
       setSnapIndex(index as 0 | 1 | 2);
     }
   };
-
-  useIsomorphicLayoutEffect(() => {
-    if (containerRef.current) {
-      setContainer(containerRef.current);
-    }
-  }, []);
 
   return (
     <>
@@ -88,7 +77,7 @@ export default function MapBottomSheet() {
         ref={containerRef}
         className='pointer-events-none absolute bottom-0 w-full'
         style={{
-          height: `${MAX_SNAP_POINT}px`,
+          height: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
         }}
       >
         <BottomSheet.Root
@@ -98,7 +87,7 @@ export default function MapBottomSheet() {
           snapPoints={snapPoints}
           activeSnapPoint={activeSnapPoint}
           setActiveSnapPoint={handleSnapChange}
-          container={container}
+          container={containerRef.current}
         >
           <RemoveScroll forwardProps>
             <BottomSheet.Content
