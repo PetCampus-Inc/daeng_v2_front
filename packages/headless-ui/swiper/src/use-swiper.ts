@@ -117,7 +117,6 @@ function useSwiper(props: UseSwiperProps) {
         role: 'group',
         style: {
           width: '100%',
-          height: '100%',
           overflow: 'hidden',
           position: 'relative' as const,
           touchAction: 'pan-y',
@@ -142,7 +141,7 @@ function useSwiper(props: UseSwiperProps) {
       return {
         style: {
           flexShrink: 0,
-          width: '100%',
+          width: `${slideWidth}%`,
           height: '100%',
           display: 'block',
           transitionProperty: 'transform',
