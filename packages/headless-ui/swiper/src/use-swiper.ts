@@ -7,6 +7,7 @@ interface UseSwiperProps {
   loop?: boolean;
   children: React.ReactNode;
   onSlideChange?: (currentIndex: number) => void;
+  trackRef: React.RefObject<HTMLDivElement | null>;
 }
 
 type UseSwiperReturn = ReturnType<typeof useSwiper>;
@@ -18,6 +19,7 @@ function useSwiper(props: UseSwiperProps) {
     loop = false,
     children,
     onSlideChange,
+    trackRef,
   } = props;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -80,9 +82,7 @@ function useSwiper(props: UseSwiperProps) {
 
   const translateTo = (translateX: number, duration: number = 0) => {
     // translateX를 픽셀 단위로 받아서 처리
-    const trackElement = document.querySelector(
-      '[data-swiper-track]'
-    ) as HTMLElement;
+    const trackElement = trackRef.current;
     if (trackElement) {
       trackElement.style.transition =
         duration > 0 ? `transform ${duration}ms ease-out` : 'none';
