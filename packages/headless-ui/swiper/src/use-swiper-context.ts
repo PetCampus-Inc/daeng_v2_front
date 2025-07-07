@@ -16,7 +16,6 @@ function useSwiperContext() {
 }
 
 interface SwiperSlideItemContextValue {
-  index: number;
   slideWidth: number;
 }
 

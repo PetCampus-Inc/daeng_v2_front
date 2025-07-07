@@ -65,15 +65,13 @@ interface SwiperSlideItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const SwiperSlideItem = React.forwardRef<HTMLDivElement, SwiperSlideItemProps>(
   (props, ref) => {
-    const { children, index = 0, ...restProps } = props;
+    const { children, ...restProps } = props;
     const api = useSwiperContext();
 
     const slideProps = api.getSlideProps();
 
     return (
-      <SwiperSlideItemContext.Provider
-        value={{ index, slideWidth: api.slideWidth }}
-      >
+      <SwiperSlideItemContext.Provider value={{ slideWidth: api.slideWidth }}>
         <div ref={ref} style={slideProps.style} {...restProps}>
           {children}
         </div>
