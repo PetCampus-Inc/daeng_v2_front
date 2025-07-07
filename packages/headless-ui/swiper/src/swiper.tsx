@@ -14,7 +14,7 @@ import { useSwiperGesture } from './use-swiper-gesture';
 // - SwiperSlide: 개별 슬라이드
 
 interface SwiperRootProps
-  extends Omit<UseSwiperProps, 'children' | 'trackRef'>,
+  extends Omit<UseSwiperProps, 'children'>,
     React.HTMLAttributes<HTMLDivElement> {}
 
 const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
@@ -36,7 +36,6 @@ const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
       loop,
       children,
       onSlideChange,
-      trackRef,
     });
     const { handlePointerDown, handlePointerMove, handlePointerUp } =
       useSwiperGesture(api, trackRef);
