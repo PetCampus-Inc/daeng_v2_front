@@ -30,16 +30,6 @@ function useSwiper(props: UseSwiperProps) {
     return Math.max(0, totalSlides - slidesPerView);
   }, [totalSlides, slidesPerView]);
 
-  // 슬라이드 크기 계산 (100% / slidesPerView)
-  const slideWidth = useMemo(() => {
-    return 100 / slidesPerView;
-  }, [slidesPerView]);
-
-  // translateX 계산 (현재 인덱스 * 슬라이드 너비)
-  const currentTranslateX = useMemo(() => {
-    return -(currentIndex * slideWidth);
-  }, [currentIndex, slideWidth]);
-
   // currentIndex가 바뀔 때 onSlideChange 호출
   useEffect(() => {
     if (onSlideChange) {
