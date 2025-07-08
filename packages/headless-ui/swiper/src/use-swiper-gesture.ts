@@ -32,17 +32,6 @@ function useSwiperGesture(
     return 100 / slidesPerView;
   }, [slidesPerView]);
 
-  // translateX 계산 (현재 인덱스 * 슬라이드 너비)
-  const currentTranslateX = useMemo(() => {
-    return -(currentIndex * slideWidth);
-  }, [currentIndex, slideWidth]);
-
-  const getTranslateXByIndex = (index: number) => {
-    if (!trackRef.current) return 0;
-    const trackWidth = trackRef.current.offsetWidth;
-    return -((trackWidth * index) / slidesPerView);
-  };
-
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!trackRef.current) return;
     pointerId.current = e.pointerId;
