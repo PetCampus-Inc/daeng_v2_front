@@ -89,7 +89,7 @@ export default function MapBottomSheet() {
           setActiveSnapPoint={handleSnapChange}
           container={containerRef.current}
         >
-          <RemoveScroll forwardProps>
+          <RemoveScroll forwardProps noIsolation>
             <BottomSheet.Content
               className={cn(
                 'shadow-black/6 absolute inset-x-0 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
