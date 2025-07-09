@@ -3,11 +3,11 @@ import { cn } from '@knockdog/ui/lib';
 import { suit } from './font';
 import './globals.css';
 import { NaverMapProvider } from '@knockdog/naver-map';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BottomNavigationBar } from '@widgets/bottom-bar';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 export default function RootLayout({
   children,
