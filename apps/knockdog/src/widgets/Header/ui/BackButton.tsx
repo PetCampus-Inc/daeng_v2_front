@@ -1,7 +1,7 @@
-import { ComponentProps } from 'react';
 import { Icon } from '@knockdog/ui';
-import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
+import { useHeaderContext } from '../model/HeaderProvider';
 import { cn } from '@knockdog/ui/lib';
+import type { ComponentProps } from 'react';
 
 type BackButtonProps = ComponentProps<'button'> & {
   children?: string;

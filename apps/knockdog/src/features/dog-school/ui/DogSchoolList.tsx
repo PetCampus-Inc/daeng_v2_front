@@ -11,8 +11,7 @@ import { overlay } from 'overlay-kit';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
-import { DogSchoolEmptySection } from './DogSchoolEmptySection';
-import { PermissionSection } from './PermissionSection';
+import { SortSelect } from './SortSelect';
 import {
   FilterChip,
   FilterOption,
@@ -21,7 +20,6 @@ import {
 } from '@entities/dog-school';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { SortSelect } from './SortSelect';
 
 export function DogSchoolList() {
   const {

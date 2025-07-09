@@ -1,6 +1,6 @@
 import { ComponentProps } from 'react';
 import { cn } from '@knockdog/ui/lib';
-import { useHeaderContext } from '@widgets/Header/model/HeaderProvider';
+import { useHeaderContext } from '../model/HeaderProvider';
 
 function Title({
   children,

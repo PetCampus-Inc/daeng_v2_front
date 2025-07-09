@@ -29,8 +29,6 @@ export function FilterBottomSheet({
   // 필터 변경 시 결과 개수 시뮬레이션
   // TODO: 실제 결과 개수 조회 로직 추가
   useEffect(() => {
-    console.log('filter', filter);
-
     if (isEmptyFilters) {
       onChangeResultCount(null);
       return;

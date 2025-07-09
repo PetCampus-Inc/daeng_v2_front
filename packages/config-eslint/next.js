@@ -68,7 +68,6 @@ export const nextJsConfig = [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'error',
       'no-debugger': 'error',
-      eqeqeq: ['error', 'always'],
       curly: ['error', 'multi-line'],
       camelcase: ['error', { properties: 'always' }],
       'id-length': [

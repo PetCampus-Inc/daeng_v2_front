@@ -4,7 +4,6 @@ import Image from 'next/image';
 export function PermissionSection() {
   const handleMapView = () => {
     // TODO: 지도 페이지로 이동 로직 추가
-    console.log('지도보기 클릭');
   };
 
   return (

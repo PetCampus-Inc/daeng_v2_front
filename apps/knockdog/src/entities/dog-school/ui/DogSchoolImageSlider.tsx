@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import { CardClipDefs } from './CardClipDefs';
 
@@ -28,7 +29,7 @@ export function DogSchoolImageSlider(props: DogSchoolImageSliderProps) {
         <div className='flex'>
           {slides.map((item) => (
             <div className='flex-[0_0_100%]' key={item}>
-              <img
+              <Image
                 src={item}
                 alt={name}
                 className='aspect-[16/9] h-full w-full object-cover'
