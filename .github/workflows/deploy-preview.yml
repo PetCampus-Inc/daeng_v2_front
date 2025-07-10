@@ -1,0 +1,36 @@
+name: 'Deploy Preview'
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute diff
+        uses: dorny/paths-filter@v3
+        id: compute_diff
+        with:
+          filters: |
+            app:
+              - 'apps/knockdog/**'
+              - 'packages/**'
+
+      - name: Deploy to Vercel (Preview)
+        if: steps.compute_diff.outputs.app == 'true'
+        uses: mountainash/deploy-to-vercel-action@v2.5.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          PRODUCTION: false
+          GITHUB_DEPLOYMENT_ENV: Preview
