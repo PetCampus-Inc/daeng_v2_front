@@ -6,10 +6,11 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  deploy:
+  deploy-staging:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      deployments: write
       contents: read
     steps:
       - name: Checkout
@@ -25,25 +26,25 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           PRODUCTION: false
           GITHUB_DEPLOYMENT_ENV: Staging
+          CREATE_COMMENT: false
 
       - name: Create Comment
         if: ${{ steps.vercel-deploy.outputs.DEPLOYMENT_CREATED }}
         uses: phulsechinmay/rewritable-pr-comment@v0.3.0
         with:
           message: |
-            ✅ **Staging Preview has been deployed to Vercel.**
+            ✅ **Staging Preview has been deployed to Vercel** ▲ - [View GitHub Actions Workflow Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
             <table>
               <tr>
                 <th>👀 Preview</th>
-                <td><a href='${{ steps.vercel-deploy.outputs.PREVIEW_URL }}'>${{ steps.vercel-deploy.outputs.PREVIEW_URL }}</a></td>
+                <td><a href='${{ steps.vercel-deploy.outputs.DEPLOYMENT_UNIQUE_URL }}'>${{ steps.vercel-deploy.outputs.DEPLOYMENT_UNIQUE_URL }}</a></td>
               </tr>
               <tr>
-                <th>🔍 Inspector</th>
+                <th>🔍 Inspect</th>
                 <td><a href='${{ steps.vercel-deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}'>${{ steps.vercel-deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}</a></td>
               </tr>
             </table>
 
-            [View Workflow Logs](${ LOG_URL })
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_IDENTIFIER: vercel-deploy-${{ github.event.number }}
