@@ -1,0 +1,49 @@
+name: Deploy Staging
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Staging)
+        id: vercel-deploy
+        uses: mountainash/deploy-to-vercel-action@v2.5.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          PRODUCTION: false
+          GITHUB_DEPLOYMENT_ENV: Staging
+
+      - name: Create Comment
+        if: ${{ steps.vercel-deploy.outputs.DEPLOYMENT_CREATED }}
+        uses: phulsechinmay/rewritable-pr-comment@v0.3.0
+        with:
+          message: |
+            ✅ **Staging Preview has been deployed to Vercel.**
+
+            <table>
+              <tr>
+                <th>👀 Preview</th>
+                <td><a href='${{ steps.vercel-deploy.outputs.PREVIEW_URL }}'>${{ steps.vercel-deploy.outputs.PREVIEW_URL }}</a></td>
+              </tr>
+              <tr>
+                <th>🔍 Inspector</th>
+                <td><a href='${{ steps.vercel-deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}'>${{ steps.vercel-deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}</a></td>
+              </tr>
+            </table>
+
+            [View Workflow Logs](${ LOG_URL })
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_IDENTIFIER: vercel-deploy-${{ github.event.number }}
