@@ -1,4 +1,4 @@
-name: 'Storybook Deployment'
+name: 'Deploy Storybook'
 run-name: ${{ github.actor }}의 스토리북 배포
 on:
   pull_request:
@@ -8,68 +8,68 @@ on:
       - packages/ui/src/**
 
 jobs:
-  chromatic-deploy:
+  deploy-chromatic:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: read
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
     steps:
-      # 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # pnpm 설정
-      - name: Install pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        id: pnpm-install
-        with:
-          run_install: false
 
-      # Node.js 설정
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
 
-      # 의존성 설치
-      - name: Install Dependency
-        run: pnpm install --no-frozen-lockfile # 의존성 버전 불일치 허용
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
 
-      # 의존성 빌드
-      - name: Build dependent packages
-        run: pnpm build --filter=storybook...
-
-      # storybook 배포
-      - name: Publish Chromatic
+      - name: Publish to Chromatic
         id: chromatic
         uses: chromaui/action@latest
         with:
-          workingDir: apps/storybook
           projectToken: ${{ secrets.CHROMATIC_TOKEN }}
-          onlyChanged: true # TurboSnap 활성화
-          externals: packages/(ui/src)/** # 외부 의존성 경로
+          workingDir: apps/storybook
+          onlyChanged: true
+          externals: packages/(ui/src)/**
 
-      # 현재 시간
       - name: Get Current Time
         id: current-time
         uses: josStorer/get-current-time@v2
         with:
-          format: YYYY-MM-DDTHH-mm-ss
+          format: YYYY년 MM월 DD일 HH시 mm분 ss초
           utcOffset: '+09:00'
 
-      # PR에 코멘트 추가
-      - name: Create comment PR
+      - name: Create Comment
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
-            🚀 Storybook: ${{ steps.chromatic.outputs.storybookUrl }}
-            🕖 Updated At: ${{ steps.current-time.outputs.formattedTime }}
-          comment-tag: ${{github.event.number}}-storybook
-          mode: 'recreate' # 기존 코멘트를 삭제하고 새로 생성
+            This pull request has been deployed to Chromatic.
+
+             <table>
+              <tr>
+                <th>🚀 Preview</th>
+                <td><a href='${{ steps.chromatic.outputs.storybookUrl }}'>${{ steps.chromatic.outputs.storybookUrl }}</a></td>
+              </tr>
+              <tr>
+                <th>🔗 Chromatic</th>
+                <td><a href='${{ steps.chromatic.outputs.buildUrl }}'>${{ steps.chromatic.outputs.buildUrl }}</a></td>
+              </tr>
+              <tr>
+                <th>🕖 Updated At</th>
+                <td>${{ steps.current-time.outputs.formattedTime }}</td>
+              </tr>
+            </table>
+          comment-tag: chromatic-deploy-${{ github.event.number }}
+          mode: 'recreate'
