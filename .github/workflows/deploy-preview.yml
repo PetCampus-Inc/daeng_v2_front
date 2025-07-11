@@ -8,6 +8,9 @@ on:
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
+
+    # Dependabot 봇인 경우 Preview 배포 스킵
+    if: github.actor != 'dependabot[bot]'
     permissions:
       pull-requests: read
       deployments: write

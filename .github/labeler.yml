@@ -2,8 +2,9 @@ repo:
   - all:
       - changed-files:
           - any-glob-to-any-file: ['**']
-          - all-globs-to-all-files: '!apps/**'
-          - all-globs-to-all-files: '!packages/**'
+          - all-globs-to-all-files:
+              - '!apps/**'
+              - '!packages/**'
 
 'app:web':
   - changed-files:
@@ -15,8 +16,9 @@ repo:
 
 'packages:config':
   - changed-files:
-      - any-glob-to-any-file: ['packages/config-eslint/**']
-      - any-glob-to-any-file: ['packages/config-typescript/**']
+      - any-glob-to-any-file:
+          - 'packages/config-eslint/**'
+          - 'packages/config-typescript/**'
 
 'packages:ui':
   - changed-files:
