@@ -48,7 +48,7 @@ const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>(
             onPointerMove={gestureApi.handlePointerMove}
             onPointerUp={gestureApi.handlePointerUp}
           >
-            {children}
+            {...api.slides}
           </div>
         </SwiperContext.Provider>
       </div>

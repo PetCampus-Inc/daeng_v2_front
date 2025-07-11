@@ -25,6 +25,13 @@ function useSwiper(props: UseSwiperProps) {
   const slides = getChildren(children);
   const totalSlides = slides.length;
 
+  const extendedSlides = useMemo(() => {
+    if (!loop) return slides;
+    const head = slides.slice(-slidesPerView); // 뒤에서 슬라이드 복제
+    const tail = slides.slice(0, slidesPerView); // 앞에서 슬라이드 복제
+    return [...head, ...slides, ...tail];
+  }, [slides, loop, slidesPerView]);
+
   // slidesPerView를 고려한 실제 이동 가능한 최대 인덱스
   const maxIndex = useMemo(() => {
     return Math.max(0, totalSlides - slidesPerView);
@@ -78,6 +85,7 @@ function useSwiper(props: UseSwiperProps) {
   const canGoPrev = loop || currentIndex > 0;
 
   return {
+    slides: extendedSlides,
     next,
     prev,
     goTo,
