@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
 import { useSearchFilter } from '../model/useSearchFilter';
-import { FilterList, FilterChip } from '@entities/dog-school';
+import { FilterList } from './FilterList';
+import { FilterChip } from './FilterChip';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export function FilterBottomSheet({
     <BottomSheet.Root open={isOpen} onOpenChange={(open) => !open && close()}>
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
-        <BottomSheet.Content className='fixed bottom-0 h-max w-full'>
+        <BottomSheet.Content className='h-full max-h-[calc(100vh-80px)] w-full'>
           <BottomSheet.Handle />
           <BottomSheet.Header className='border-line-100 border-b'>
             <BottomSheet.Title>필터</BottomSheet.Title>
@@ -76,7 +77,7 @@ export function FilterBottomSheet({
             onToggleOption={onToggleOption}
           />
 
-          <BottomSheet.Footer>
+          <div className='fixed bottom-0 w-full'>
             <div
               className='flex h-[28px]'
               style={{
@@ -136,7 +137,7 @@ export function FilterBottomSheet({
                   : `결과보기 ${resultCount > 999 ? '999+' : resultCount}개`}
               </ActionButton>
             </div>
-          </BottomSheet.Footer>
+          </div>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet.Root>
