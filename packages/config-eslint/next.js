@@ -1,6 +1,5 @@
-import neostandard, { plugins } from 'neostandard';
+import neostandard from 'neostandard';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import pluginReact from 'eslint-plugin-react';
 import globals from 'globals';
 import pluginNext from '@next/eslint-plugin-next';
 import fsdPlugin from 'eslint-plugin-fsd-lint';
@@ -10,9 +9,7 @@ export const nextJsConfig = [
   ...baseConfig,
   ...neostandard({ noStyle: true, ts: true }),
   {
-    ...pluginReact.configs.flat.recommended,
     languageOptions: {
-      ...pluginReact.configs.flat.recommended.languageOptions,
       globals: {
         ...globals.serviceworker,
       },
