@@ -12,8 +12,8 @@ import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
 import { SortSelect } from './SortSelect';
+import { FilterChip } from './FilterChip';
 import {
-  FilterChip,
   FilterOption,
   FILTER_OPTIONS,
   getCombinedMockData,
@@ -73,7 +73,7 @@ export function DogSchoolList() {
             </SegmentedControl>
           </div>
 
-          <div className='border-line-200 flex h-[52px] w-full items-center border-b border-t'>
+          <div className='border-line-200 flex h-[52px] w-full items-center border-t border-b'>
             <div className='px-x4 py-x2 scrollbar-hide flex w-full items-center gap-x-2 overflow-x-auto whitespace-nowrap'>
               {/* 필터 버튼 */}
               <button

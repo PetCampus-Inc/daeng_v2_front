@@ -28,11 +28,13 @@ export function DogSchoolImageSlider(props: DogSchoolImageSliderProps) {
       <div ref={emblaRef}>
         <div className='flex'>
           {slides.map((item) => (
-            <div className='flex-[0_0_100%]' key={item}>
+            <div className='relative aspect-[16/9] flex-[0_0_100%]' key={item}>
               <Image
                 src={item}
                 alt={name}
-                className='aspect-[16/9] h-full w-full object-cover'
+                fill
+                sizes='(max-width: 768px) 100vw, 50vw'
+                className='object-cover'
               />
             </div>
           ))}
@@ -40,7 +42,7 @@ export function DogSchoolImageSlider(props: DogSchoolImageSliderProps) {
       </div>
 
       {/* 슬라이더 인디케이터 */}
-      <div className='radius-r3 bg-dim-70 absolute bottom-2 right-2 inline-flex items-center gap-px px-[10px] py-[3px]'>
+      <div className='radius-r3 bg-dim-70 absolute right-2 bottom-2 inline-flex items-center gap-px px-[10px] py-[3px]'>
         <span className='caption1-regular text-text-primary-inverse'>
           {selectedSnap + 1}
         </span>
