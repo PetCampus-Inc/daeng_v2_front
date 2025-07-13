@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-import { TypedStorage } from '@shared/lib';
-import { STORAGE_KEYS, MAX_RECENT_ITEMS } from '@shared/constants';
+import { TypedStorage } from '../lib';
+import { STORAGE_KEYS, MAX_RECENT_ITEMS } from '../constants';
 
 export interface RecentPlace {
   code: string;

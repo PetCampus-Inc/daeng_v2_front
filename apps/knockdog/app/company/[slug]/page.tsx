@@ -24,6 +24,8 @@ export default function Page() {
   const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
   const { setVariant, setTitle, setTextColor } = useHeaderContext();
 
+  const { slug } = useParams();
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -871,7 +873,7 @@ export default function Page() {
                           className='rounded-lg'
                         />
                         <Icon
-                          icon='CloseFill'
+                          icon='Close'
                           className='absolute right-1 top-1 h-6 w-6'
                         />
                       </div>
@@ -944,7 +946,7 @@ export default function Page() {
                       </div>
                       <div className='bg-fill-secondary-700 text-text-primary-inverse body2-semibold inline-flex gap-1 rounded-lg px-[14px] py-[9px]'>
                         <span className='body2-semibold'>커리큘럼</span>
-                        <Icon icon='CloseFill' className='h-5 w-5 text-white' />
+                        <Icon icon='Close' className='h-5 w-5 text-white' />
                       </div>
                     </div>
                   </div>

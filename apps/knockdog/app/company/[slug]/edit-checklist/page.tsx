@@ -1,7 +1,7 @@
 'use client';
 
-import { Header } from '@widgets/Header';
 import { useState } from 'react';
+import { Header } from '@widgets/Header';
 
 export default function Page() {
   const [isEditing, setIsEditing] = useState(false);

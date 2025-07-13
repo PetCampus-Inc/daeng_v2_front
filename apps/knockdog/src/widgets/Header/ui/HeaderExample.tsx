@@ -1,6 +1,5 @@
 'use client';
 
-import { ComponentProps, useContext, createContext } from 'react';
 import { Header } from './Header';
 
 type HeaderWrapperProps = {

@@ -1,6 +1,5 @@
 'use client';
 
-import { ComponentProps } from 'react';
 import BackButton from './BackButton';
 import Title from './Title';
 import ShareButton from './ShareButton';
@@ -9,7 +8,8 @@ import CloseButton from './CloseButton';
 import InputField from './InputField';
 import HomeButton from './HomeButton';
 import { cn } from '@knockdog/ui/lib';
-import { type HeaderVariant } from '@widgets/Header/model/HeaderProvider';
+import type { ComponentProps } from 'react';
+import type { HeaderVariant } from '../model/HeaderProvider';
 
 export function Header({
   className,

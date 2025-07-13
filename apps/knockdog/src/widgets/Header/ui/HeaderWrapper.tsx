@@ -77,6 +77,5 @@ export function HeaderWrapper() {
       </Header>
     );
   }
-
   return null;
 }
