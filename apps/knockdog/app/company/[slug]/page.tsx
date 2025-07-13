@@ -11,10 +11,10 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import 'swiper/css';
-import { createPath } from '@shared/lib/utils/path';
 import { useHeaderContext } from '@widgets/Header';
 
 export default function Page() {
+  const { slug } = useParams();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState('기본정보');
   const [currentSlide, setCurrentSlide] = useState(1);
