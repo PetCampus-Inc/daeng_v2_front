@@ -24,8 +24,6 @@ export default function Page() {
   const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
   const { setVariant, setTitle, setTextColor } = useHeaderContext();
 
-  const { slug } = useParams();
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
