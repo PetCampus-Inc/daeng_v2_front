@@ -14,8 +14,8 @@ import { DogSchoolCard } from './DogSchoolCard';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
 import {
-  FilterOption,
   FILTER_OPTIONS,
+  SHORT_CUT_FILTER_OPTIONS,
   getCombinedMockData,
 } from '@entities/dog-school';
 import { useBottomSheetSnapIndex } from '@shared/lib';
@@ -24,7 +24,6 @@ import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 export function DogSchoolList() {
   const {
     getSelectedFilterWithLabel,
-    onRemoveOption,
     onToggleOption,
     isSelectedOption,
     isEmptyFilters,
@@ -103,38 +102,22 @@ export function DogSchoolList() {
               {/* 구분선 */}
               <div className='bg-line-200 h-[14px] w-px shrink-0' />
 
-              {/* 선택된 필터 칩들 */}
-              {selectedFilters.map(({ option, optionLabel }) => (
-                <FilterChip
-                  variant='status'
-                  key={option}
-                  activated
-                  onClick={() => onRemoveOption(option)}
-                >
-                  {optionLabel}
-                </FilterChip>
-              ))}
+              {/* 바로가기 필터 칩들 */}
+              {SHORT_CUT_FILTER_OPTIONS.map((option) => {
+                const optionLabel = FILTER_OPTIONS[option];
+                const isSelected = isSelectedOption(option);
 
-              {/* 전체 필터 옵션들 */}
-              {Object.entries(FILTER_OPTIONS).map(
-                ([optionKey, optionLabel]) => {
-                  const option = optionKey as FilterOption;
-                  const isSelected = isSelectedOption(option);
-
-                  if (isSelected) return null;
-
-                  return (
-                    <FilterChip
-                      variant='status'
-                      key={option}
-                      activated={false}
-                      onClick={() => onToggleOption(option)}
-                    >
-                      {optionLabel}
-                    </FilterChip>
-                  );
-                }
-              )}
+                return (
+                  <FilterChip
+                    variant='status'
+                    key={option}
+                    activated={isSelected}
+                    onClick={() => onToggleOption(option)}
+                  >
+                    {optionLabel}
+                  </FilterChip>
+                );
+              })}
             </div>
           </div>
         </div>
