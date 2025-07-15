@@ -6,7 +6,7 @@ import { useSearchHistory } from '@shared/store';
 export default function SearchView({
   inputRef,
 }: {
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   const router = useRouter();
 
