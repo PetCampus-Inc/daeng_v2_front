@@ -61,7 +61,6 @@ export const nextJsConfig = [
   },
   {
     rules: {
-      '@typescript-eslint/no-empty-function': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'error',
       'no-debugger': 'error',
@@ -69,7 +68,7 @@ export const nextJsConfig = [
       camelcase: ['error', { properties: 'always' }],
       'id-length': [
         'error',
-        { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y'] },
+        { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y', 'e'] },
       ],
     },
   },
