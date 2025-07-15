@@ -73,51 +73,58 @@ export function DogSchoolList() {
           </div>
 
           <div className='border-line-200 flex h-[52px] w-full items-center border-t border-b'>
-            <div className='px-x4 py-x2 scrollbar-hide flex w-full items-center gap-x-2 overflow-x-auto whitespace-nowrap'>
-              {/* 필터 버튼 */}
-              <button
-                className={`gap-x0_5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
-                  isEmptyFilters
-                    ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
-                    : 'outline-line-accent bg-fill-primary-50 text-text-accent'
-                }`}
-                onClick={openFilterBottomSheet}
-              >
-                <Icon
-                  icon='Filter'
-                  className={`size-x4 ${
+            <div className='py-x2 flex w-full items-center'>
+              {/* 고정 버튼 영역 */}
+              <div className='pl-x4 flex shrink-0 items-center gap-x-2'>
+                <button
+                  className={`gap-x0_5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
                     isEmptyFilters
-                      ? 'text-fill-secondary-700'
-                      : 'text-fill-primary-500'
+                      ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
+                      : 'outline-line-accent bg-fill-primary-50 text-text-accent'
                   }`}
-                />
-                필터
-                {!isEmptyFilters && (
-                  <span className='body2-extrabold text-text-accent'>
-                    {selectedFilters.length}
-                  </span>
-                )}
-              </button>
+                  onClick={openFilterBottomSheet}
+                >
+                  <Icon
+                    icon='Filter'
+                    className={`size-x4 ${
+                      isEmptyFilters
+                        ? 'text-fill-secondary-700'
+                        : 'text-fill-primary-500'
+                    }`}
+                  />
+                  필터
+                  {!isEmptyFilters && (
+                    <span className='body2-extrabold text-text-accent'>
+                      {selectedFilters.length}
+                    </span>
+                  )}
+                </button>
 
-              {/* 구분선 */}
-              <div className='bg-line-200 h-[14px] w-px shrink-0' />
+                {/* 구분선 */}
+                <div className='bg-line-200 h-[14px] w-px shrink-0' />
+              </div>
 
-              {/* 바로가기 필터 칩들 */}
-              {SHORT_CUT_FILTER_OPTIONS.map((option) => {
-                const optionLabel = FILTER_OPTIONS[option];
-                const isSelected = isSelectedOption(option);
+              {/* 스크롤 영역 */}
+              <div className='scrollbar-hide flex-1 touch-pan-x overflow-x-auto'>
+                <div className='before:w-x2 after:w-x2 inline-flex items-center whitespace-nowrap before:flex-shrink-0 before:content-[""] after:flex-shrink-0 after:content-[""]'>
+                  {/* 바로가기 필터 칩들 */}
+                  {SHORT_CUT_FILTER_OPTIONS.map((option) => {
+                    const optionLabel = FILTER_OPTIONS[option];
+                    const isSelected = isSelectedOption(option);
 
-                return (
-                  <FilterChip
-                    variant='status'
-                    key={option}
-                    activated={isSelected}
-                    onClick={() => onToggleOption(option)}
-                  >
-                    {optionLabel}
-                  </FilterChip>
-                );
-              })}
+                    return (
+                      <FilterChip
+                        variant='status'
+                        key={option}
+                        activated={isSelected}
+                        onClick={() => onToggleOption(option)}
+                      >
+                        {optionLabel}
+                      </FilterChip>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
