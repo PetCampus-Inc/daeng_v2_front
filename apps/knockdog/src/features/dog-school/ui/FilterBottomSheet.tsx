@@ -63,7 +63,7 @@ export function FilterBottomSheet({
     <BottomSheet.Root open={isOpen} onOpenChange={(open) => !open && close()}>
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
-        <BottomSheet.Content className='h-full max-h-[calc(100vh-80px)] w-full'>
+        <BottomSheet.Content className='h-full max-h-[87vh] w-full'>
           <BottomSheet.Handle />
           <BottomSheet.Header className='border-line-100 border-b'>
             <BottomSheet.Title>필터</BottomSheet.Title>

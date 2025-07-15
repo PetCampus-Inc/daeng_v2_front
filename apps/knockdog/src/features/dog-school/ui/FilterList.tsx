@@ -12,8 +12,8 @@ interface FilterContentProps {
 
 export function FilterList({ isSelected, onToggleOption }: FilterContentProps) {
   return (
-    <div className='scrollbar-hide max-h-full overflow-y-auto'>
-      <div className='px-x4 pt-x7 gap-x8 flex flex-col pb-[32vh]'>
+    <div className='scrollbar-hide max-h-full overflow-y-auto pb-[60%]'>
+      <div className='px-x4 pt-x7 gap-x8 flex flex-col'>
         {Object.entries(FILTER_CONFIG).map(([category, options]) => (
           <div key={category} className='gap-x2 flex flex-col'>
             <h4 className='body1-bold text-text-primary'>{category}</h4>
