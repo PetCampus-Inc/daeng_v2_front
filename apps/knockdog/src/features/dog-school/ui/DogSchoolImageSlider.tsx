@@ -29,7 +29,11 @@ export function DogSchoolImageSlider(props: DogSchoolImageSliderProps) {
         <div className='flex'>
           {slides.map((item) => (
             <div className='relative aspect-[16/9] flex-[0_0_100%]' key={item}>
-              <img src={item} alt={name} />
+              <img
+                src={item}
+                alt={name}
+                className='h-full w-full object-cover'
+              />
             </div>
           ))}
         </div>
