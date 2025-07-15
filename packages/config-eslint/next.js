@@ -61,7 +61,6 @@ export const nextJsConfig = [
   },
   {
     rules: {
-      '@typescript-eslint/no-empty-function': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'error',
       'no-debugger': 'error',
