@@ -10,6 +10,7 @@ const apps = fs.readdirSync(path.resolve(__dirname, 'apps'));
 export default defineConfig({
   rules: {
     // @see: https://commitlint.js.org/#/reference-rules
+    'subject-case': [0],
   },
   extends: ['@commitlint/config-conventional'],
   prompt: {
@@ -66,6 +67,7 @@ export default defineConfig({
     enableMultipleScopes: true,
     allowEmptyScopes: true,
     allowCustomScopes: false,
+    upperCaseSubject: null,
     skipQuestions: ['breaking', 'footerPrefix', 'footer', 'confirmCommit'],
   },
 });
