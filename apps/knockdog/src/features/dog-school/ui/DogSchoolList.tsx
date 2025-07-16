@@ -11,8 +11,7 @@ import { overlay } from 'overlay-kit';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
-import { DogSchoolEmptySection } from './DogSchoolEmptySection';
-import { PermissionSection } from './PermissionSection';
+import { SortSelect } from './SortSelect';
 import {
   FilterChip,
   FilterOption,
@@ -144,9 +143,13 @@ export function DogSchoolList() {
         {/* <PermissionSection /> */}
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
-          <div className='px-x4 py-x2 body2-semibold text-text-tertiary border-line-200 flex h-[52px] items-center border-b'>
-            총 {data.shops.length}개
+          <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
+            <div className='body2-semibold text-text-tertiary'>
+              총 {data.shops.length}개
+            </div>
+            <SortSelect />
           </div>
+
           {data.shops.map((item) => (
             <DogSchoolCard key={item.id} {...item} />
           ))}
