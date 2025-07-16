@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable turbo/no-undeclared-env-vars */
+
 const path = require('path');
 const dotenv = require('dotenv');
 
