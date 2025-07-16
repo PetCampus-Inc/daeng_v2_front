@@ -1,11 +1,13 @@
-import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { useEffect } from 'react';
-
-import { InputChip } from './InputChip';
 import { useRouter } from 'next/navigation';
+import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { InputChip } from './InputChip';
 import { useSearchHistory } from '@shared/store';
 
-export default function SearchView() {
+export default function SearchView({
+  inputRef,
+}: {
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+}) {
   const router = useRouter();
 
   const handleBack = () => {
@@ -13,7 +15,7 @@ export default function SearchView() {
   };
 
   const {
-    initialize,
+    // initialize,
     recentPlaces,
     recentSearchKeywords,
     removeRecentPlace,
@@ -22,10 +24,11 @@ export default function SearchView() {
     clearRecentSearchKeywords,
   } = useSearchHistory();
 
-  useEffect(() => {
-    // 로컬스토리지에서 최근 찾아본 장소 및 검색어 가져오기
-    initialize();
-  }, [initialize]);
+  // TODO: 최근 찾아본 장소 및 검색어 가져오기 로직 변경
+  // useEffect(() => {
+  //   // 로컬스토리지에서 최근 찾아본 장소 및 검색어 가져오기
+  //   initialize();
+  // }, [initialize]);
 
   return (
     <div className='bg-fill-secondary-0 flex h-full flex-col'>
@@ -41,6 +44,7 @@ export default function SearchView() {
           className='bg-fill-secondary-50 h-x12 border-0'
         >
           <TextFieldInput
+            ref={inputRef}
             type='text'
             placeholder='업체 또는 주소를 검색하세요'
             autoFocus

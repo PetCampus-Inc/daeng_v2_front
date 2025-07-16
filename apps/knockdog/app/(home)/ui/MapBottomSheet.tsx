@@ -1,16 +1,20 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { DogSchoolList } from '@features/dog-school';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useBottomSheetSnapIndex } from '@shared/lib';
+import {
+  useBottomSheetSnapIndex,
+  useIsomorphicLayoutEffect,
+} from '@shared/lib';
 
-// 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이) + 1px(보더)
+// 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이)
 // 최대 스냅포인트: 화면높이 - 64px(검색바 높이) - 8px(여백)
 const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 149;
 const MAX_SNAP_POINT_OFFSET = 64 - 8;
@@ -18,8 +22,10 @@ const MAX_SNAP_POINT_OFFSET = 64 - 8;
 export default function MapBottomSheet() {
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
+  const searchParams = useSearchParams();
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
   const activeSnapPoint = snapPoints[snapIndex] ?? snapPoints[0];
 
@@ -30,6 +36,12 @@ export default function MapBottomSheet() {
     }
   };
 
+  useIsomorphicLayoutEffect(() => {
+    if (containerRef.current) {
+      setContainer(containerRef.current);
+    }
+  }, [containerRef]);
+
   return (
     <>
       <div
@@ -38,7 +50,9 @@ export default function MapBottomSheet() {
           isFullExtended && 'bg-fill-secondary-0'
         )}
       >
-        <Link href='/search'>
+        <Link
+          href={`/search${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+        >
           <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
             <Icon
               icon='Search'
@@ -83,16 +97,16 @@ export default function MapBottomSheet() {
         <BottomSheet.Root
           defaultOpen
           dismissible={false}
-          modal={isFullExtended}
+          modal={false}
           snapPoints={snapPoints}
           activeSnapPoint={activeSnapPoint}
           setActiveSnapPoint={handleSnapChange}
-          container={containerRef.current}
+          container={container}
         >
           <RemoveScroll forwardProps noIsolation>
             <BottomSheet.Content
               className={cn(
-                'shadow-black/6 absolute inset-x-0 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
+                'absolute inset-x-0 h-full shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
                 isFullExtended && 'rounded-none shadow-none'
               )}
             >

@@ -10,8 +10,4 @@ export {
   BottomSheetHeader as Header,
   BottomSheetFooter as Footer,
   BottomSheetTitle as Title,
-  BottomSheetDescription as Description,
-  type BottomSheetRootProps as RootProps,
-  type BottomSheetContentProps as ContentProps,
-  type BottomSheetHandleProps as HandleProps,
 } from './BottomSheet';

@@ -2,7 +2,7 @@ import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { ServiceBadge } from './ServiceBadge';
-import { ServiceTag, PickupType } from '../model/mock';
+import { ServiceTag, PickupType } from '@entities/dog-school';
 
 interface ServiceBadgeGroupProps {
   serviceTags: (keyof typeof ServiceTag)[];

@@ -1,6 +1,7 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
-import { DogSchoolImageSlider, ServiceBadgeGroup } from '@entities/dog-school';
+import { DogSchoolImageSlider } from './DogSchoolImageSlider';
+import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 
 import type { DogSchoolWithMeta } from '@entities/dog-school';
 
@@ -33,7 +34,7 @@ export function DogSchoolCard({
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
-          className='bg-bg-0 absolute right-0 top-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
+          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={() => onBookmarkClick?.(id)}
         >

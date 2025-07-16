@@ -54,7 +54,7 @@ export default function PermissionPage() {
           </div>
         </div>
         <div className='fixed bottom-[58px] left-0 right-0 bg-white p-4'>
-          <Link href='/intro'>
+          <Link href='/login'>
             <ActionButton variant='secondaryFill' className='w-full'>
               확인
             </ActionButton>
