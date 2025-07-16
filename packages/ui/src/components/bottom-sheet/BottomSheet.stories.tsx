@@ -3,7 +3,7 @@ import { BottomSheet } from './index';
 import { ActionButton } from '../action-button';
 import { Icon } from '../icon';
 
-const meta: Meta<BottomSheet.RootProps> = {
+const meta: Meta<typeof BottomSheet.Root> = {
   title: 'Components/BottomSheet',
   component: BottomSheet.Root,
   parameters: {
@@ -18,7 +18,7 @@ const meta: Meta<BottomSheet.RootProps> = {
 };
 
 export default meta;
-type Story = StoryObj<BottomSheet.RootProps>;
+type Story = StoryObj<typeof BottomSheet.Root>;
 
 export const Default: Story = {
   render: () => (
