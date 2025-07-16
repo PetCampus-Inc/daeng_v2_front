@@ -9,6 +9,7 @@ export const nextJsConfig = [
   ...baseConfig,
   ...neostandard({ noStyle: true, ts: true }),
   {
+    //  // eslint-plugin-react
     languageOptions: {
       globals: {
         ...globals.serviceworker,
