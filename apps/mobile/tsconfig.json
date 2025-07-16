@@ -1,0 +1,11 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".", // mobile 기준
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["."]
+}
