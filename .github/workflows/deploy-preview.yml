@@ -9,8 +9,10 @@ jobs:
   deploy-preview:
     runs-on: ubuntu-latest
 
-    # Dependabot 봇인 경우 Preview 배포 스킵
-    if: github.actor != 'dependabot[bot]'
+    # Dependabot 봇인 경우 또는 PR 본문에 [skip ci] 포함되어 있으면 배포 스킵
+    if:
+      github.actor != 'dependabot[bot]' &&
+      !contains(github.event.pull_request.body, '[skip ci]')
     permissions:
       pull-requests: write
       deployments: write
