@@ -53,6 +53,7 @@ export { MinusFill } from './MinusFill';
 export { More } from './More';
 export { MypageNav } from './MypageNav';
 export { Naver } from './Naver';
+export { NaverFill } from './NaverFill';
 export { Navigation } from './Navigation';
 export { None } from './None';
 export { Note } from './Note';
