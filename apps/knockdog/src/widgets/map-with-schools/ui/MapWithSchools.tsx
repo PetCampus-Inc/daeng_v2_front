@@ -1,8 +1,16 @@
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+'use client';
+
 import { cn } from '@knockdog/ui/lib';
 import { Float, Icon } from '@knockdog/ui';
-import { ListFAB, CurrentLocationFAB, Map, RefreshFAB } from '@features/map';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+import {
+  ListFAB,
+  CurrentLocationFAB,
+  MapView,
+  RefreshFAB,
+} from '@features/map';
 import { DogSchoolCardSheet, DogSchoolListSheet } from '@features/dog-school';
 import { getCombinedMockData } from '@entities/dog-school';
 import { useMarkerState } from '@shared/store';
@@ -32,7 +40,7 @@ export function MapWithSchools() {
 
   return (
     <>
-      <Map
+      <MapView
         onMarkerClick={handleMarkerClick}
         selectedMarkerId={activeMarkerId}
       />

@@ -25,12 +25,12 @@ const overlays = [
   },
 ];
 
-interface MapProps {
+interface MapViewProps {
   onMarkerClick?: (id: string) => void;
   selectedMarkerId?: string | null;
 }
 
-export function Map(props: MapProps) {
+export function MapView(props: MapViewProps) {
   const { onMarkerClick, selectedMarkerId } = props;
   const currentLocation = useCurrentLocation();
 
