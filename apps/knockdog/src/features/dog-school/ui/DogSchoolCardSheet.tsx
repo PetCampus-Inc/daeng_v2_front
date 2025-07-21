@@ -29,10 +29,11 @@ export function DogSchoolCardSheet({
     ));
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={onChangeOpen}>
-      <BottomSheet.Body className='bottom-[68px] z-51'>
+      <BottomSheet.Body className='bottom-[68px] z-50'>
         <BottomSheet.Handle />
+
         {/* 컨텐츠 영역 */}
-        <div className='gap-x3 px-x4 flex w-full flex-col'>
+        <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
           <div className='gap-x2 flex'>
             {/* 이미지 */}
             <img
@@ -126,7 +127,7 @@ export function DogSchoolCardSheet({
         </div>
 
         <BottomSheet.Footer className='pt-x6 pb-x4'>
-          <div className='gap-x2 flex'>
+          <div className='gap-x2 flex items-center'>
             <ActionButton
               variant='primaryLine'
               size='medium'

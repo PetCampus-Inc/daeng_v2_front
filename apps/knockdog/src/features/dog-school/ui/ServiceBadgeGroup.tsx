@@ -148,7 +148,7 @@ function BadgeGroup({ children }: BadgeGroupProps) {
       {hiddenItemIds.length > 0 && (
         <span
           ref={moreButtonRef}
-          className='caption1-semibold text-text-tertiary shrink-0'
+          className='caption1-semibold text-text-secondary shrink-0'
         >
           외+{hiddenItemIds.length}
         </span>
