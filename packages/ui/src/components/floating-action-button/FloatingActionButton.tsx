@@ -18,7 +18,7 @@ const floatingActionButtonVariants = cva(
           'bg-fill-secondary-0 text-text-primary active:bg-fill-secondary-100 border-line-200 border',
       },
       extended: {
-        true: 'px-x3.5 w-fix',
+        true: 'px-x3.5 w-fit',
         false: 'max-w-[52px] min-w-[52px]',
       },
       size: {
