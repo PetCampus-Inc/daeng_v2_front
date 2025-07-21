@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { BottomSheet } from './index';
 import { ActionButton } from '../action-button';
-import { Icon } from '../icon';
 
 const meta: Meta<typeof BottomSheet.Root> = {
   title: 'Components/BottomSheet',
@@ -28,19 +27,17 @@ export const Default: Story = {
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
-        <BottomSheet.Content>
+        <BottomSheet.Body>
           <BottomSheet.Handle />
           <BottomSheet.Header>
             <BottomSheet.Title>제목</BottomSheet.Title>
-            <BottomSheet.Close className='absolute right-4 flex cursor-pointer items-center justify-center'>
-              <Icon icon='Close' />
-            </BottomSheet.Close>
+            <BottomSheet.CloseButton />
           </BottomSheet.Header>
-          <div className='px-x4 pt-x3'>컨텐츠 영역</div>
+          <BottomSheet.Content>컨텐츠 영역</BottomSheet.Content>
           <BottomSheet.Footer>
             <ActionButton>확인</ActionButton>
           </BottomSheet.Footer>
-        </BottomSheet.Content>
+        </BottomSheet.Body>
       </BottomSheet.Portal>
     </BottomSheet.Root>
   ),
