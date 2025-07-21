@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { overlay } from 'overlay-kit';
 import {
   Float,
   FloatingActionButton,
@@ -7,8 +8,8 @@ import {
   SegmentedControlItem,
 } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { overlay } from 'overlay-kit';
 import { useSearchFilter } from '../model/useSearchFilter';
+import { useFabExtension } from '../model/useFabExtension';
 import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
 import { SortSelect } from './SortSelect';
@@ -30,6 +31,7 @@ export function DogSchoolList() {
   } = useSearchFilter();
 
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+  const { isFabExtended, sentinelRef } = useFabExtension();
 
   // TODO: 위치 선택 기능 추가 및 훅으로 빼기
   const [selectedLocation, setSelectedLocation] = useState<
@@ -57,6 +59,13 @@ export function DogSchoolList() {
           isFullExtended ? 'overflow-y-auto' : 'min-h-full overflow-hidden'
         )}
       >
+        {/* 스크롤 감지용 sentinel 요소 */}
+        <div
+          ref={sentinelRef}
+          className='pointer-events-none absolute top-0 h-1 w-full'
+          aria-hidden='true'
+        />
+
         {/* 헤더 영역  */}
         <div className='bg-bg-0 sticky top-[-.5px] z-20'>
           <div className='px-x4 py-x4'>
@@ -148,16 +157,21 @@ export function DogSchoolList() {
 
       {/* 지도보기 FAB */}
       <Float
-        placement='bottom-center'
+        placement='bottom-end'
+        offsetX='x4'
         zIndex={50}
         style={{
           bottom: `calc(${BOTTOM_BAR_HEIGHT}px + 12px)`,
         }}
       >
         <FloatingActionButton
+          className='max-w-[103px]'
+          variant='neutralLight'
           label='지도보기'
-          size='small'
+          size='medium'
+          icon='Map'
           onClick={() => setSnapIndex(0)}
+          extended={isFabExtended}
         />
       </Float>
     </>

@@ -4,7 +4,7 @@ export {
   BottomSheetOverlay,
   BottomSheetHandle,
   BottomSheetTrigger,
-  BottomSheetClose,
+  BottomSheetCloseButton,
   BottomSheetContent,
   BottomSheetHeader,
   BottomSheetFooter,

@@ -44,7 +44,7 @@ export default function PermissionPage() {
             <Divider className='my-5' />
             <div>
               <div className='body1-bold flex items-center gap-x-1'>
-                <Icon icon='Alram' />
+                <Icon icon='AlarmFill' />
                 알림
               </div>
               <span className='text-text-secondary body2-regular'>
@@ -53,7 +53,7 @@ export default function PermissionPage() {
             </div>
           </div>
         </div>
-        <div className='fixed bottom-[58px] left-0 right-0 bg-white p-4'>
+        <div className='fixed right-0 bottom-[58px] left-0 bg-white p-4'>
           <Link href='/login'>
             <ActionButton variant='secondaryFill' className='w-full'>
               확인
