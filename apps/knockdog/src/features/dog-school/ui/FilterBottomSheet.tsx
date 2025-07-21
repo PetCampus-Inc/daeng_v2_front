@@ -60,16 +60,14 @@ export function FilterBottomSheet({
   const selectedFilters = getSelectedFilterWithLabel();
 
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={(open) => !open && close()}>
+    <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Portal>
-        <BottomSheet.Overlay />
-        <BottomSheet.Content className='h-full max-h-[87vh] w-full'>
+        <BottomSheet.Overlay className='z-overlay' />
+        <BottomSheet.Body className='z-modal h-full'>
           <BottomSheet.Handle />
           <BottomSheet.Header className='border-line-100 border-b'>
             <BottomSheet.Title>필터</BottomSheet.Title>
-            <BottomSheet.Close className='absolute right-4 flex items-center justify-center'>
-              <Icon icon='Close' />
-            </BottomSheet.Close>
+            <BottomSheet.CloseButton />
           </BottomSheet.Header>
 
           <FilterList
@@ -138,7 +136,7 @@ export function FilterBottomSheet({
               </ActionButton>
             </div>
           </div>
-        </BottomSheet.Content>
+        </BottomSheet.Body>
       </BottomSheet.Portal>
     </BottomSheet.Root>
   );
