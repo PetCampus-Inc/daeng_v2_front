@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
@@ -26,9 +25,8 @@ export const RecommendedDogSchoolCard = ({
   pickupType,
   memo,
   isBookmarked = false,
+  onBookmarkClick,
 }: RecommendedDogSchoolCardProps) => {
-  const [isBookmark, setIsBookmark] = useState(isBookmarked);
-
   return (
     <div className='min-w-[233px]'>
       <div className='relative mb-2 rounded-lg'>
@@ -57,8 +55,8 @@ export const RecommendedDogSchoolCard = ({
         {/* 내용 영역 */}
         <div className='flex justify-between'>
           <span className='body1-extrabold'>{title}</span>
-          <div onClick={() => setIsBookmark(!isBookmark)}>
-            <Icon icon={isBookmark ? 'BookmarkFill' : 'BookmarkLine'} />
+          <div onClick={() => onBookmarkClick?.(id)}>
+            <Icon icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'} />
           </div>
         </div>
         <span className='body2-regular text-text-tertiary'>
@@ -68,7 +66,7 @@ export const RecommendedDogSchoolCard = ({
             .join(' ・ ')}
         </span>
         <div>
-          <span className='body2-bold mr-1 inline-block min-w-[13]'>
+          <span className='body2-bold mr-1 inline-block min-w-[52px]'>
             {dist.toFixed(2)}km
           </span>
           <span className='body2-regular text-text-tertiary'>

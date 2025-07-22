@@ -22,6 +22,12 @@ export const RecommendedDogSchoolSection = () => {
         lat: 37.511281,
         lng: 126.883439,
       },
+      memo: {
+        id: '1',
+        shopId: '1',
+        content: '바우라움 유치원 내돈내산 이용후기',
+        updatedAt: '2025.04.15',
+      },
     },
     {
       image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba',
@@ -50,8 +56,8 @@ export const RecommendedDogSchoolSection = () => {
       </div>
 
       <div className='scrollbar-hide flex gap-5 overflow-x-auto'>
-        {recommendedDogSchools.map((dogSchool, index) => (
-          <RecommendedDogSchoolCard key={index} {...dogSchool} />
+        {recommendedDogSchools.map((dogSchool) => (
+          <RecommendedDogSchoolCard key={dogSchool.id} {...dogSchool} />
         ))}
       </div>
     </div>
