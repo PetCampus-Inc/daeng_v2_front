@@ -7,4 +7,5 @@ export * from './floating-action-button';
 export * from './icon';
 export * from './segmented-control';
 export * from './tab-menu';
+export * from './swiper';
 export * from './text-field';
