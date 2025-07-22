@@ -12,7 +12,7 @@ export function HeaderWrapper() {
   const companyBasePath = COMPANY_SLUG_PATHNAME.replace(/\[.*?\]/g, '');
   if (pathname.startsWith(companyBasePath)) {
     return (
-      <Header variant={variant}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
           <Header.HomeButton />
