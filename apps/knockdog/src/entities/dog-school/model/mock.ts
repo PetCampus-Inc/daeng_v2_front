@@ -130,6 +130,15 @@ export interface DogSchoolBookmark {
   shopId: string;
 }
 
+export interface DogSchoolReview {
+  id: string;
+  userName: string;
+  profileImage: string;
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
 export const memoMockData: DogSchoolMemo[] = [
   {
     id: '1',
