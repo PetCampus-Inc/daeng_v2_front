@@ -23,11 +23,9 @@ export function DogSchoolImageSwiper({ images }: DogSchoolImageSwiperProps) {
       <Swiper onSlideChange={handleSlideChange}>
         {images.map((image, index) => (
           <SwiperSlide key={index}>
-            <Image
-              src={image}
-              alt=''
-              className='h-[292px] w-full object-cover'
-            />
+            <div className='h-[292px] w-full'>
+              <Image src={image} alt='' fill className='object-cover' />
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>
