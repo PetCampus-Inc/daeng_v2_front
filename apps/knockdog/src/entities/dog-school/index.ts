@@ -1,6 +1,5 @@
 /* model */
 export * from './model/mock';
-export * from './model/dogSchool.types';
 export * from './model/constants';
 
 /* config */

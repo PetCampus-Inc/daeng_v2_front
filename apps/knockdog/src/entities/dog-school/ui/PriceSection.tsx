@@ -1,12 +1,24 @@
-import { ProductType } from './ProductType';
+import { ProductTypeInfo } from './ProductTypeInfo';
 import { PriceImageSlider } from './PriceImageSlider';
 import { LastUpdatedSection } from './LastUpdatedSection';
+import type { DogSchoolProduct } from '../model/mock';
 
 export function PriceSection() {
+  const dogSchoolProductMock: DogSchoolProduct = {
+    productTypes: ['COUNT', 'MEMBERSHIP'],
+    priceImages: [
+      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+    ],
+    lastUpdated: '2025-04-29',
+  };
   return (
     <div className='mb-12 mt-8 flex flex-col gap-12 px-4'>
       {/* 상품유형 */}
-      <ProductType productTypes={['COUNT', 'MEMBERSHIP']} />
+      <ProductTypeInfo productTypes={dogSchoolProductMock.productTypes} />
 
       {/* 서비스 및 이용요금 */}
       <div>
@@ -93,17 +105,9 @@ export function PriceSection() {
       </div>
 
       {/* 가격표 */}
-      <PriceImageSlider
-        images={[
-          'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-          'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-          'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-          'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-          'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-        ]}
-      />
+      <PriceImageSlider images={dogSchoolProductMock.priceImages} />
       {/* 최종 정보 업데이트 */}
-      <LastUpdatedSection lastUpdated='2025-04-29' />
+      <LastUpdatedSection lastUpdated={dogSchoolProductMock.lastUpdated} />
     </div>
   );
 }

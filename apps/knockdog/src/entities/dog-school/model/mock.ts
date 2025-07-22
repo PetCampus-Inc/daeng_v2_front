@@ -106,6 +106,13 @@ export interface DogSchool {
   pickupType: keyof typeof PickupType;
 }
 
+export type ProductType = 'COUNT' | 'PERIOD' | 'MEMBERSHIP';
+export interface DogSchoolProduct {
+  productTypes: ProductType[];
+  priceImages: string[];
+  lastUpdated: string;
+}
+
 export interface DogSchoolWithMeta extends DogSchool {
   memo?: DogSchoolMemo;
   isBookmarked?: boolean;

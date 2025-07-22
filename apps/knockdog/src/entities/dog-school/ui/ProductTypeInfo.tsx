@@ -1,8 +1,9 @@
 import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+import type { ProductType } from '../model/mock';
 
 interface ProductTypeProps {
-  productTypes: string[];
+  productTypes: ProductType[];
 }
 
 const PRODUCT_TYPE_LIST = [
@@ -20,7 +21,7 @@ const PRODUCT_TYPE_LIST = [
   },
 ] as const;
 
-export function ProductType({ productTypes }: ProductTypeProps) {
+export function ProductTypeInfo({ productTypes }: ProductTypeProps) {
   return (
     <div>
       <div className='mb-3'>

@@ -16,7 +16,7 @@ export function PriceImageSlider({ images }: PriceImageSliderProps) {
           <Image
             key={index}
             src={image}
-            alt='페이지 이미지'
+            alt=''
             className='h-[120px] w-[120px] rounded-lg object-cover'
             width={120}
             height={120}
