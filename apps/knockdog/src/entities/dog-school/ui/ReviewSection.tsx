@@ -1,5 +1,6 @@
 import { Icon } from '@knockdog/ui';
 import { DogSchoolReviewCard } from './DogSchoolReviewCard';
+import type { DogSchoolReview } from '../model/mock';
 
 interface ReviewSectionProps {
   reviews: {
@@ -15,6 +16,18 @@ export const ReviewSection = function ReviewSection({
   reviews,
   onScrollTop,
 }: ReviewSectionProps) {
+  const reviewListMock: DogSchoolReview[] = [
+    {
+      id: '1',
+      userName: 'John Doe',
+      profileImage:
+        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      title: '정말 좋은 곳이에요!',
+      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
+      createdAt: '2025-04-29',
+    },
+  ];
+
   return (
     <div className='mb-12 mt-10 flex flex-col px-4'>
       <div className='mb-9'>
@@ -25,17 +38,8 @@ export const ReviewSection = function ReviewSection({
           <span className='body1-bold'>블로그 리뷰</span>
         </div>
         {/* 후기 리스트 */}
-        {reviews.map((review, index) => (
-          <DogSchoolReviewCard
-            key={index}
-            image={
-              'https://images.unsplash.com/photo-1518717758536-85ae29035b6d'
-            }
-            name={review.name}
-            title={review.title}
-            content={review.content}
-            date={review.date}
-          />
+        {reviewListMock.map((review, index) => (
+          <DogSchoolReviewCard key={index} {...review} />
         ))}
       </div>
 
