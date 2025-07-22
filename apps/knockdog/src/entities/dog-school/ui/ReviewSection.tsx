@@ -3,22 +3,50 @@ import { DogSchoolReviewCard } from './DogSchoolReviewCard';
 import type { DogSchoolReview } from '../model/mock';
 
 interface ReviewSectionProps {
-  reviews: {
-    image: string;
-    name: string;
-    title: string;
-    content: string;
-    date: string;
-  }[];
   onScrollTop?: () => void;
 }
 export const ReviewSection = function ReviewSection({
-  reviews,
   onScrollTop,
 }: ReviewSectionProps) {
   const reviewListMock: DogSchoolReview[] = [
     {
       id: '1',
+      userName: 'John Doe',
+      profileImage:
+        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      title: '정말 좋은 곳이에요!',
+      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
+      createdAt: '2025-04-29',
+    },
+    {
+      id: '2',
+      userName: 'Jane Doe',
+      profileImage:
+        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      title: '정말 좋은 곳이에요!',
+      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
+      createdAt: '2025-04-29',
+    },
+    {
+      id: '3',
+      userName: 'John Doe',
+      profileImage:
+        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      title: '정말 좋은 곳이에요!',
+      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
+      createdAt: '2025-04-29',
+    },
+    {
+      id: '4',
+      userName: 'John Doe',
+      profileImage:
+        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      title: '정말 좋은 곳이에요!',
+      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
+      createdAt: '2025-04-29',
+    },
+    {
+      id: '5',
       userName: 'John Doe',
       profileImage:
         'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
