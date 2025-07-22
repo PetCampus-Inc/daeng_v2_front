@@ -1,6 +1,5 @@
 'use client';
 
-import { ComponentProps } from 'react';
 import BackButton from './BackButton';
 import Title from './Title';
 import ShareButton from './ShareButton';
@@ -9,7 +8,8 @@ import CloseButton from './CloseButton';
 import InputField from './InputField';
 import HomeButton from './HomeButton';
 import { cn } from '@knockdog/ui/lib';
-import { type HeaderVariant } from '@widgets/Header/model/HeaderProvider';
+import type { ComponentProps } from 'react';
+import type { HeaderVariant } from '../model/HeaderProvider';
 
 export function Header({
   className,
@@ -34,9 +34,7 @@ export function Header({
       )}
       {...props}
     >
-      <div className='flex h-[26px] items-center justify-between'>
-        {children}
-      </div>
+      <div className='relative flex h-[26px]'>{children}</div>
     </header>
   );
 }
@@ -57,9 +55,21 @@ function RightSection({ children, ...props }: ComponentProps<'div'>) {
   );
 }
 
+function CenterSection({ children, ...props }: ComponentProps<'div'>) {
+  return (
+    <div
+      className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
 Header.BackButton = BackButton;
 Header.Title = Title;
 Header.RightSection = RightSection;
+Header.CenterSection = CenterSection;
 Header.ShareButton = ShareButton;
 Header.MenuButton = MenuButton;
 Header.CloseButton = CloseButton;

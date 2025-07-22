@@ -11,7 +11,7 @@ export function ChevronLeft(props: React.SVGProps<SVGSVGElement>) {
       <path
         fillRule='evenodd'
         clipRule='evenodd'
-        d='M9.53656 12L15.6508 6.75927L14.3492 5.24075L7.34918 11.2408L6.46338 12L7.34918 12.7593L14.3492 18.7593L15.6508 17.2408L9.53656 12Z'
+        d='M9.53705 12L15.6512 6.75925L14.3497 5.24074L7.34967 11.2407L6.46387 12L7.34967 12.7593L14.3497 18.7593L15.6512 17.2407L9.53705 12Z'
         fill='currentColor'
       />
     </svg>

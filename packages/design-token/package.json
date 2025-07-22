@@ -1,15 +1,23 @@
 {
-  "name": "@knockdog/design-token",
+  "name": "@daeng-design/design-token",
   "version": "0.0.1",
-  "description": "",
   "main": "index.css",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "type": "module",
+  "files": [
+    "index.css",
+    "tailwind4-theme",
+    "vars"
+  ],
   "exports": {
-    ".": "./index.css"
+    ".": "./index.css",
+    "./index.css": "./index.css",
+    "./tailwind4-theme": "./tailwind4-theme/theme.css",
+    "./vars": {
+      "types": "./vars/index.d.ts",
+      "default": "./vars/index.mjs"
+    }
   },
   "devDependencies": {
-    "tailwindcss": "^4.1.10"
+    "tailwindcss": "^4.1.11"
   }
 }

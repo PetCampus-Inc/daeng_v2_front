@@ -1,0 +1,33 @@
+repo:
+  - all:
+      - changed-files:
+          - any-glob-to-any-file: ['**']
+          - all-globs-to-all-files:
+              - '!apps/**'
+              - '!packages/**'
+
+'app:web':
+  - changed-files:
+      - any-glob-to-any-file: ['apps/knockdog/**']
+
+'app:mobile':
+  - changed-files:
+      - any-glob-to-any-file: ['apps/mobile/**']
+
+'packages:config':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'packages/config-eslint/**'
+          - 'packages/config-typescript/**'
+
+'packages:ui':
+  - changed-files:
+      - any-glob-to-any-file: ['packages/ui/**']
+
+'packages:naver-map':
+  - changed-files:
+      - any-glob-to-any-file: ['packages/naver-map/**']
+
+'packages:icons':
+  - changed-files:
+      - any-glob-to-any-file: ['packages/icons/**']

@@ -5,7 +5,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const actionButtonVariants = cva(
-  'ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center whitespace-nowrap border-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0',
+  'ring-offset-background focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center border-none whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -22,8 +22,8 @@ const actionButtonVariants = cva(
       },
       size: {
         small: 'radius-r2 h-x7_5 caption1-semibold py-x2 px-x3 gap-x1',
-        medium: 'h-x12 radius-r2 body2-bold py-x3.5 px-x4 gap-x1',
-        large: 'h-x14 radius-r2 body1-bold p-x4 gap-x1',
+        medium: 'h-x12 radius-r2 body2-bold py-x3.5 px-x4 gap-x1 w-full',
+        large: 'h-x14 radius-r2 body1-bold p-x4 gap-x1 w-full',
       },
     },
     defaultVariants: {
@@ -55,4 +55,4 @@ const ActionButton = ({ ref, ...props }: ActionButtonProps) => {
 };
 ActionButton.displayName = 'ActionButton';
 
-export { ActionButton, type ActionButtonProps };
+export { ActionButton, actionButtonVariants, type ActionButtonProps };

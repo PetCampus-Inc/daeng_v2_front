@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { BottomSheet } from './index';
-import { IconButton } from '../icon-button';
+import { ActionButton } from '../action-button';
 
-const meta: Meta<BottomSheet.RootProps> = {
+const meta: Meta<typeof BottomSheet.Root> = {
   title: 'Components/BottomSheet',
   component: BottomSheet.Root,
   parameters: {
@@ -17,31 +17,28 @@ const meta: Meta<BottomSheet.RootProps> = {
 };
 
 export default meta;
-type Story = StoryObj<BottomSheet.RootProps>;
+type Story = StoryObj<typeof BottomSheet.Root>;
 
 export const Default: Story = {
   render: () => (
     <BottomSheet.Root>
       <BottomSheet.Trigger asChild>
-        <button className='font-regular relative flex h-10 flex-shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-white px-4 text-sm shadow-sm transition-all hover:bg-[#FAFAFA] dark:bg-[#161615] dark:text-white dark:hover:bg-[#1A1A19]'>
-          Open Drawer
-        </button>
+        <ActionButton>Open Drawer</ActionButton>
       </BottomSheet.Trigger>
-      <BottomSheet.Content>
-        <BottomSheet.Handle />
-        <BottomSheet.Header>
-          <BottomSheet.Title>Title</BottomSheet.Title>
-          <BottomSheet.Close
-            asChild
-            className='absolute right-4 flex items-center justify-center'
-          >
-            <IconButton icon='Close' />
-          </BottomSheet.Close>
-        </BottomSheet.Header>
-        <div className='px-x4 pt-x7 pb-x10'>
-          <div className='bg-primitive-neutral-300 h-[400px] w-full' />
-        </div>
-      </BottomSheet.Content>
+      <BottomSheet.Portal>
+        <BottomSheet.Overlay />
+        <BottomSheet.Body>
+          <BottomSheet.Handle />
+          <BottomSheet.Header>
+            <BottomSheet.Title>제목</BottomSheet.Title>
+            <BottomSheet.CloseButton />
+          </BottomSheet.Header>
+          <BottomSheet.Content>컨텐츠 영역</BottomSheet.Content>
+          <BottomSheet.Footer>
+            <ActionButton>확인</ActionButton>
+          </BottomSheet.Footer>
+        </BottomSheet.Body>
+      </BottomSheet.Portal>
     </BottomSheet.Root>
   ),
 };

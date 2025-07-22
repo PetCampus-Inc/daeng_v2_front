@@ -8,20 +8,22 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@daeng-design/react-drawer": "workspace:*",
+    "@daeng-design/design-token": "workspace:*",
     "@daeng-design/react-segmented-control": "workspace:*",
     "@daeng-design/react-swiper": "workspace:*",
     "@daeng-design/react-text-field": "workspace:*",
     "@knockdog/icons": "workspace:*",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.10"
+    "tailwindcss": "^4.1.11",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
-    "@knockdog/design-token": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@storybook/react": "^8.3.6",

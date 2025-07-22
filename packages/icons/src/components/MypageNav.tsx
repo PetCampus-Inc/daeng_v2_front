@@ -8,7 +8,7 @@ export function MypageNav(props: React.SVGProps<SVGSVGElement>) {
       xmlns='http://www.w3.org/2000/svg'
       {...props}
     >
-      <circle cx='11.9999' cy='6.6' r='3.6' fill='currentColor' />
+      <circle cx='12.0004' cy='6.6' r='3.6' fill='currentColor' />
       <path
         d='M3 15C3 13.3431 4.34315 12 6 12H18C19.6569 12 21 13.3431 21 15V21H3V15Z'
         fill='currentColor'
