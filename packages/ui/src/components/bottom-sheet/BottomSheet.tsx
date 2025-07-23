@@ -76,9 +76,16 @@ function BottomSheetBody({
   children,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
-  // TODO: vaul patch 되면 서버환경 확인 코드 제거하기
-  const isServer = typeof window === 'undefined' || 'Deno' in globalThis;
-  if (isServer) return null;
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useLayoutEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <DrawerPrimitive.Content
       data-slot='bottom-sheet-body'
