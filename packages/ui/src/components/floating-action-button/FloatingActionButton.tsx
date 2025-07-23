@@ -6,48 +6,25 @@ import { cn } from '@knockdog/ui/lib';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const floatingActionButtonVariants = cva(
-  'radius-full shadow-black/16 body2-semibold relative inline-flex items-center justify-center overflow-hidden shadow-[0_0_4px_0] transition-all',
+  'radius-full label-semibold relative inline-flex cursor-pointer items-center justify-center overflow-hidden shadow-[0_0_4px_0] shadow-black/16 transition-all',
   {
     variants: {
       variant: {
         primarySolid:
           'bg-fill-primary-500 text-text-primary-inverse active:bg-fill-primary-700',
         neutralSolid:
-          'bg-fill-secondary-700 text-text-primary-inverse active:bg-fill-secondary-400',
+          'bg-primitive-neutral-800 text-text-primary-inverse active:bg-fill-secondary-400',
         neutralLight:
-          'bg-fill-secondary-0 text-text-primary active:bg-fill-secondary-100',
+          'bg-fill-secondary-0 text-text-primary active:bg-fill-secondary-100 border-line-200 border',
       },
       extended: {
         true: 'px-x3.5 w-fit',
-        false: '',
+        false: 'max-w-[52px] min-w-[52px]',
       },
       size: {
-        small: 'h-[40px]',
-        medium: 'h-[48px]',
+        medium: 'h-[52px]',
       },
     },
-    compoundVariants: [
-      {
-        extended: true,
-        size: 'small',
-        className: 'h-[40px]',
-      },
-      {
-        extended: true,
-        size: 'medium',
-        className: 'h-[48px]',
-      },
-      {
-        extended: false,
-        size: 'small',
-        className: 'h-[40px] w-[40px]',
-      },
-      {
-        extended: false,
-        size: 'medium',
-        className: 'h-[48px] w-[48px]',
-      },
-    ],
     defaultVariants: {
       variant: 'primarySolid',
       size: 'medium',
@@ -60,9 +37,9 @@ const iconVariants = cva(
   {
     variants: {
       extended: {
-        true: 'mr-x1 size-x5',
+        true: 'mr-x0_5 size-x6',
         false:
-          'size-x6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
+          'size-x6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
       },
     },
   }

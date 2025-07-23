@@ -5,16 +5,24 @@ import Image from 'next/image';
 import img from './img.png';
 import img2 from './img2.png';
 import img3 from './img3.jpg';
-import { Icon, Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
+import {
+  Icon,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  SwiperRoot,
+  SwiperSlideItem,
+} from '@knockdog/ui';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import 'swiper/css';
-import { createPath } from '@shared/lib/utils/path';
 import { useHeaderContext } from '@widgets/Header';
 
 export default function Page() {
+  const { slug } = useParams();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState('기본정보');
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -23,8 +31,6 @@ export default function Page() {
   const reviewsTabRef = useRef<HTMLDivElement>(null); // 후기 탭 ref 추가
   const infoObserverRef = useRef<HTMLDivElement>(null); // 기본정보 탭 ref 추가
   const { setVariant, setTitle, setTextColor } = useHeaderContext();
-
-  const { slug } = useParams();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -81,40 +87,34 @@ export default function Page() {
       >
         {/* 업체 메인이미지 슬라이드형 */}
         <div>
-          <Swiper
+          <SwiperRoot
             slidesPerView={1}
-            onSlideChange={(swiper) => {
-              console.log('slide change');
-              setCurrentSlide(swiper.activeIndex + 1);
-            }}
-            onSwiper={(swiper) => {
-              console.log(swiper);
-              // 실제 슬라이드 개수를 여기서 설정할 수도 있습니다.
-              // 예: setTotalSlides(swiper.slides.length - 2); // '...' 같은 추가 요소를 고려해야 함
+            onSlideChange={(currentIndex) => {
+              setCurrentSlide(currentIndex + 1);
             }}
           >
-            <SwiperSlide>
+            <SwiperSlideItem>
               <Image
                 src={img}
                 alt='페이지 이미지'
                 className='h-[292px] w-full'
               />
-            </SwiperSlide>
-            <SwiperSlide>
+            </SwiperSlideItem>
+            <SwiperSlideItem>
               <Image
                 src={img2}
                 alt='페이지 이미지'
                 className='h-[292px] w-full'
               />
-            </SwiperSlide>
-            <SwiperSlide>
+            </SwiperSlideItem>
+            <SwiperSlideItem>
               <Image
                 src={img3}
                 alt='페이지 이미지'
                 className='h-[292px] w-full'
               />
-            </SwiperSlide>
-          </Swiper>
+            </SwiperSlideItem>
+          </SwiperRoot>
 
           {/* swiper 카운트 */}
           <div className='z-5 absolute bottom-10 right-4 rounded-xl bg-[#0F141A] px-[10px] py-[3px] opacity-70'>

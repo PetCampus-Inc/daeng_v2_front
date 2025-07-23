@@ -2,7 +2,6 @@ export const FILTER_OPTIONS = {
   // 영업 시간
   OPEN_NOW: '영업중',
   OPEN_HOLIDAY: '공휴일 영업',
-  DISTANCE: '거리순',
 
   // 견종 조건
   DOG_FREE: '견종 무관',
@@ -43,7 +42,7 @@ export const FILTER_OPTIONS = {
 } as const;
 
 export const FILTER_CONFIG = {
-  '영업 시간': ['OPEN_NOW', 'OPEN_HOLIDAY', 'DISTANCE'],
+  '영업 시간': ['OPEN_NOW', 'OPEN_HOLIDAY'],
   '견종 조건': ['DOG_FREE', 'SMALL_DOG_ONLY', 'MEDIUM_LARGE_DOG_ONLY'],
   '강아지 서비스': [
     'DAYCARE',
@@ -68,6 +67,19 @@ export const FILTER_CONFIG = {
   ],
   '상품 유형': ['PASS_TICKET', 'SUBSCRIPTION', 'MEMBERSHIP'],
 } as const;
+
+export const SHORT_CUT_FILTER_OPTIONS: FilterOption[] = [
+  'STAY_24H',
+  'CCTV',
+  'DAYCARE',
+  'HOTEL',
+  'PICK_DROP',
+  'WALK',
+  'TRAINING',
+  'SPLIT_CLASS',
+  'SMALL_DOG_ONLY',
+  'MEDIUM_LARGE_DOG_ONLY',
+];
 
 export type FilterOption = keyof typeof FILTER_OPTIONS;
 export type FilterCategory = keyof typeof FILTER_CONFIG;

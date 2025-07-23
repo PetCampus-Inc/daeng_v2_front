@@ -1,9 +1,9 @@
 export function ChevronBottom(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
+      width='20'
+      height='20'
+      viewBox='0 0 20 20'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
       {...props}
@@ -11,8 +11,8 @@ export function ChevronBottom(props: React.SVGProps<SVGSVGElement>) {
       <path
         fillRule='evenodd'
         clipRule='evenodd'
-        d='M12.0005 13.4638L17.2413 7.34961L18.7598 8.65119L12.0005 16.537L5.24125 8.65119L6.75977 7.34961L12.0005 13.4638Z'
-        fill='currentColor'
+        d='M10.0001 11.2202L14.3674 6.125L15.6328 7.20965L10.0001 13.7812L4.36739 7.20965L5.63281 6.125L10.0001 11.2202Z'
+        fill='#B4B4BB'
       />
     </svg>
   );
