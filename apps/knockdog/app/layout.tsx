@@ -25,9 +25,6 @@ export default function RootLayout({
                   <div className='flex h-dvh flex-col'>
                     <HeaderWrapper />
                     {children}
-                    <div className='fixed inset-x-0 bottom-0 z-99'>
-                      <BottomNavigationBar />
-                    </div>
                   </div>
                 </HeaderProvider>
               </OverlayProvider>
