@@ -13,7 +13,7 @@
   "devDependencies": {
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
-    "@types/navermaps": "^3.7.10"
+    "@types/navermaps": "^3.9.1"
   },
   "exports": {
     ".": "./index.ts"
