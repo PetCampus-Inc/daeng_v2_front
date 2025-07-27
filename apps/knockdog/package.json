@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@daeng-design/react-portal": "workspace:*",
-    "@floating-ui/react": "^0.27.13",
+    "@floating-ui/react": "^0.27.14",
     "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
