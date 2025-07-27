@@ -19,7 +19,7 @@
     "@knockdog/naver-map": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
-    "@tanstack/react-query": "^5.81.2",
+    "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-query-devtools": "^5.81.2",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
