@@ -9,3 +9,4 @@ export * from './segmented-control';
 export * from './tab-menu';
 export * from './swiper';
 export * from './text-field';
+export * from './progress-bar';
