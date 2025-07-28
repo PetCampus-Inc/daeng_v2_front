@@ -12,6 +12,7 @@
     "@daeng-design/react-segmented-control": "workspace:*",
     "@daeng-design/react-swiper": "workspace:*",
     "@daeng-design/react-text-field": "workspace:*",
+    "@daeng-design/react-progress": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.14",
