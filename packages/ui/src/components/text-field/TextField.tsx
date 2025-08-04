@@ -4,8 +4,23 @@ import * as React from 'react';
 import { TextField as TextFieldPrimitive } from '@daeng-design/react-text-field';
 import { cn } from '@knockdog/ui/lib';
 import { Slot } from '@radix-ui/react-slot';
+import { cva, VariantProps } from 'class-variance-authority';
 
-interface TextFieldProps extends Omit<TextFieldPrimitive.RootProps, 'prefix'> {
+const textFieldVariants = cva('', {
+  variants: {
+    variant: {
+      default: 'border-line-200 bg-fill-secondary-0 border',
+      secondary: 'bg-neutral-50',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+interface TextFieldProps
+  extends Omit<TextFieldPrimitive.RootProps, 'prefix'>,
+    VariantProps<typeof textFieldVariants> {
   ref?: React.Ref<HTMLDivElement>;
   label?: React.ReactNode;
   indicator?: React.ReactNode;
@@ -29,6 +44,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
     errorMessage,
     successMessage,
     className,
+    variant,
     ...restProps
   } = props;
 
@@ -59,7 +75,8 @@ function TextField({ ref, ...props }: TextFieldProps) {
       )}
       <TextFieldPrimitive.Field
         className={cn(
-          'bg-fill-secondary-0 border-line-200 invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 flex items-center border transition-colors',
+          'invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 flex items-center transition-colors',
+          textFieldVariants({ variant }),
           className
         )}
       >

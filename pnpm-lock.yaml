@@ -397,6 +397,31 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/headless-ui/toggle:
+    dependencies:
+      '@daeng-design/utils':
+        specifier: workspace:*
+        version: link:../utils
+      react:
+        specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+        version: 19.1.0
+      react-dom:
+        specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+        version: 19.1.0(react@19.1.0)
+    devDependencies:
+      '@knockdog/typescript-config':
+        specifier: workspace:*
+        version: link:../../config-typescript
+      '@radix-ui/react-use-controllable-state':
+        specifier: ^1.2.2
+        version: 1.2.2(@types/react@19.1.6)(react@19.1.0)
+      bunchee:
+        specifier: ^5.1.5
+        version: 5.6.2(typescript@5.8.3)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/headless-ui/utils:
     dependencies:
       react:
@@ -461,6 +486,9 @@ importers:
       '@daeng-design/react-text-field':
         specifier: workspace:*
         version: link:../headless-ui/text-field
+      '@daeng-design/react-toggle':
+        specifier: workspace:*
+        version: link:../headless-ui/toggle
       '@knockdog/icons':
         specifier: workspace:*
         version: link:../icons
