@@ -11,12 +11,24 @@ export interface ProgressBarRootProps
 
 export const ProgressBarRoot = forwardRef<HTMLDivElement, ProgressBarRootProps>(
   (props, ref) => {
-    const { value, maxValue, minValue, totalSteps, ...otherProps } = props;
+    const {
+      value,
+      maxValue,
+      minValue,
+      totalSteps,
+      currentStep,
+      defaultStep,
+      onStepChange,
+      ...otherProps
+    } = props;
     const api = useProgressBar({
       value,
       maxValue,
       minValue,
       totalSteps,
+      currentStep,
+      defaultStep,
+      onStepChange,
     });
     return (
       <ProgressBarProvider value={api}>
