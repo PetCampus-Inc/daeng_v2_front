@@ -13,6 +13,7 @@
   "dependencies": {
     "@daeng-design/react-portal": "workspace:*",
     "@floating-ui/react": "^0.27.13",
+    "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@knockdog/naver-map": "workspace:*",
@@ -26,12 +27,12 @@
     "embla-carousel-react": "^8.6.0",
     "next": "^15.3.2",
     "nuqs": "^2.4.3",
-    "overlay-kit": "^1.8.2",
+    "overlay-kit": "^1.8.4",
     "react-remove-scroll": "^2.7.1",
-    "swiper": "^11.2.8",
-    "tailwindcss": "^4.1.10",
+    "swiper": "^11.2.10",
+    "tailwindcss": "^4.1.11",
     "typescript": "5.8.3",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",

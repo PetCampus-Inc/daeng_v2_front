@@ -77,7 +77,7 @@ export function DogSchoolCard({
             <span className='body2-extrabold text-text-accent col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
               {operationStatus === 'OPEN' ? '영업중' : '영업종료'}
             </span>
-            <span className='body2-regular text-text-secondary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
+            <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
               {operationStatus === 'OPEN'
                 ? `${operationTimes.endTime}에 영업종료`
                 : `${operationTimes.startTime}에 영업시작`}
@@ -85,7 +85,7 @@ export function DogSchoolCard({
             <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
               {dist.toFixed(2)}km
             </span>
-            <span className='body2-regular text-text-secondary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
+            <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
               {roadAddress}
             </span>
           </div>

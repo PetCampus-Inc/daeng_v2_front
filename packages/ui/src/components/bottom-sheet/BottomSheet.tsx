@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 
 import { cn } from '@knockdog/ui/lib';
+import { Icon } from '../icon';
 
 function BottomSheetRoot({
   ...props
@@ -36,10 +37,22 @@ function BottomSheetPortal({
   return <DrawerPrimitive.Portal data-slot='bottom-sheet-portal' {...props} />;
 }
 
-function BottomSheetClose({
+function BottomSheetCloseButton({
+  className,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
-  return <DrawerPrimitive.Close data-slot='bottom-sheet-close' {...props} />;
+  return (
+    <DrawerPrimitive.Close
+      data-slot='bottom-sheet-close'
+      className={cn(
+        'absolute right-4 flex cursor-pointer items-center justify-center',
+        className
+      )}
+      {...props}
+    >
+      <Icon icon='Close' className='size-x6 text-fill-secondary-700' />
+    </DrawerPrimitive.Close>
+  );
 }
 
 function BottomSheetOverlay({
@@ -49,31 +62,54 @@ function BottomSheetOverlay({
   return (
     <DrawerPrimitive.Overlay
       data-slot='bottom-sheet-overlay'
-      className={cn('fixed inset-0 z-50 bg-black/40', className)}
+      className={cn(
+        'fixed inset-0 z-(--z-index-overlay) bg-black/40',
+        className
+      )}
       {...props}
     />
   );
 }
 
-function BottomSheetContent({
+function BottomSheetBody({
   className,
   children,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
-  // TODO: vaul patch 되면 서버환경 확인 코드 제거하기
-  const isServer = typeof window === 'undefined' || 'Deno' in globalThis;
-  if (isServer) return null;
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useLayoutEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <DrawerPrimitive.Content
-      data-slot='bottom-sheet-content'
+      data-slot='bottom-sheet-body'
       className={cn(
-        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-50 w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
+        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-(--z-index-modal) h-max max-h-[calc(env(safe-area-inset-top)+100vh-72px)] w-full rounded-t-[16px] pb-[calc(env(safe-area-inset-bottom)+0px)] shadow-[0px_-16px_20px] shadow-black/5',
         className
       )}
       {...props}
     >
       {children}
     </DrawerPrimitive.Content>
+  );
+}
+
+function BottomSheetContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+  return (
+    <div
+      data-slot='bottom-sheet-content'
+      className={cn('px-x6 py-x2', className)}
+      {...props}
+    />
   );
 }
 
@@ -85,7 +121,7 @@ function BottomSheetHandle({
     <DrawerPrimitive.Handle
       data-slot='bottom-sheet-handle'
       className={cn(
-        'bg-fill-secondary-400 mx-auto my-[12px] h-[5px] w-[36px] rounded-full',
+        'bg-fill-secondary-200 mx-auto mt-[12px] mb-[8px] h-[5px] w-[36px] rounded-full',
         className
       )}
       {...props}
@@ -100,7 +136,7 @@ function BottomSheetHeader({
   return (
     <div
       data-slot='bottom-sheet-header'
-      className={cn('px-x5 relative flex h-[48px] items-center', className)}
+      className={cn('px-x6 py-x3_5 relative flex items-center', className)}
       {...props}
     />
   );
@@ -113,7 +149,7 @@ function BottomSheetFooter({
   return (
     <footer
       data-slot='bottom-sheet-footer'
-      className={cn('py-x5 flex flex-col px-4', className)}
+      className={cn('py-x5 flex flex-col px-6', className)}
       {...props}
     />
   );
@@ -139,7 +175,8 @@ export {
   BottomSheetOverlay,
   BottomSheetHandle,
   BottomSheetTrigger,
-  BottomSheetClose,
+  BottomSheetCloseButton,
+  BottomSheetBody,
   BottomSheetContent,
   BottomSheetHeader,
   BottomSheetFooter,

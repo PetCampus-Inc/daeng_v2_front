@@ -1,7 +1,24 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Icon, ActionButton, Divider } from '@knockdog/ui';
+import Image from 'next/image';
+import img from './img.png';
+import img2 from './img2.png';
+import img3 from './img3.jpg';
+import {
+  Icon,
+  Tabs,
+  Divider,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  SwiperRoot,
+  ActionButton,
+  SwiperSlideItem,
+} from '@knockdog/ui';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import 'swiper/css';
 import { DogSchoolTabs } from '@widgets/dog-school-tabs';
@@ -32,6 +49,7 @@ export default function Page() {
             'https://images.unsplash.com/photo-1391060870165-09b84787e704',
           ]}
         />
+
         {/* 컨텐츠 영역 */}
         <div className='relative'>
           <div className='absolute top-[-50px]' />

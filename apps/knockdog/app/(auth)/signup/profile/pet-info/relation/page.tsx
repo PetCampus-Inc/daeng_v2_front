@@ -86,13 +86,11 @@ export default function PetInfoRelationPage() {
       </div>
       {/* bottom sheet container */}
       <BottomSheet.Root open={isOpen} onOpenChange={setIsOpen}>
-        <BottomSheet.Content>
+        <BottomSheet.Body>
           <BottomSheet.Handle />
           <BottomSheet.Header className='border-line-200 justify-between border-b'>
             <BottomSheet.Title>관계 선택</BottomSheet.Title>
-            <BottomSheet.Close className='absolute right-4 flex items-center justify-center'>
-              <Icon icon='Close' />
-            </BottomSheet.Close>
+            <BottomSheet.CloseButton />
           </BottomSheet.Header>
           <div className='px-6'>
             {RELATION_OPTIONS.map((option) => (
@@ -132,7 +130,7 @@ export default function PetInfoRelationPage() {
               </div>
             ))}
           </div>
-        </BottomSheet.Content>
+        </BottomSheet.Body>
       </BottomSheet.Root>
     </>
   );
