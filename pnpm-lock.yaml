@@ -160,6 +160,9 @@ importers:
 
   apps/storybook:
     dependencies:
+      '@daeng-design/react-progress':
+        specifier: workspace:*
+        version: link:../../packages/headless-ui/progress
       '@knockdog/eslint-config':
         specifier: workspace:*
         version: link:../../packages/config-eslint
