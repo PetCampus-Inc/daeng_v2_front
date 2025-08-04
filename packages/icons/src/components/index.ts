@@ -53,6 +53,7 @@ export { MinusFill } from './MinusFill';
 export { More } from './More';
 export { MypageNav } from './MypageNav';
 export { Naver } from './Naver';
+export { NaverFill } from './NaverFill';
 export { Navigation } from './Navigation';
 export { None } from './None';
 export { Note } from './Note';
@@ -86,3 +87,5 @@ export { UnderBar } from './UnderBar';
 export { Valet } from './Valet';
 export { Walk } from './Walk';
 export { Won } from './Won';
+
+export type { IconName } from './types';
