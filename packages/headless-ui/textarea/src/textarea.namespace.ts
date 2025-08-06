@@ -1,0 +1,16 @@
+export {
+  TextareaRoot as Root,
+  TextareaLabel as Label,
+  TextareaTextarea as Textarea,
+  TextareaDescription as Description,
+  TextareaMessage as Message,
+  TextareaField as Field,
+  TextareaIndicator as Indicator,
+  type TextareaRootProps as RootProps,
+  type TextareaLabelProps as LabelProps,
+  type TextareaTextareaProps as TextareaProps,
+  type TextareaDescriptionProps as DescriptionProps,
+  type TextareaMessageProps as MessageProps,
+  type TextareaFieldProps as FieldProps,
+  type TextareaIndicatorProps as IndicatorProps,
+} from './textarea'; 
