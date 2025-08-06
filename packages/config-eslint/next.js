@@ -1,6 +1,5 @@
-import neostandard, { plugins } from 'neostandard';
+import neostandard from 'neostandard';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import pluginReact from 'eslint-plugin-react';
 import globals from 'globals';
 import pluginNext from '@next/eslint-plugin-next';
 import fsdPlugin from 'eslint-plugin-fsd-lint';
@@ -10,9 +9,8 @@ export const nextJsConfig = [
   ...baseConfig,
   ...neostandard({ noStyle: true, ts: true }),
   {
-    ...pluginReact.configs.flat.recommended,
+    //  // eslint-plugin-react
     languageOptions: {
-      ...pluginReact.configs.flat.recommended.languageOptions,
       globals: {
         ...globals.serviceworker,
       },
@@ -64,7 +62,6 @@ export const nextJsConfig = [
   },
   {
     rules: {
-      '@typescript-eslint/no-empty-function': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'error',
       'no-debugger': 'error',
@@ -72,7 +69,7 @@ export const nextJsConfig = [
       camelcase: ['error', { properties: 'always' }],
       'id-length': [
         'error',
-        { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y'] },
+        { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y', 'e'] },
       ],
     },
   },

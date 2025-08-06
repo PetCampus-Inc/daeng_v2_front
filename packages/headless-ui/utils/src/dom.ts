@@ -11,7 +11,12 @@ export function ariaAttr(guard: boolean | undefined): Booleanish | undefined {
 }
 
 type DataAttr = { [key in `data-${string}`]?: string | undefined };
+type WithoutRef<T> = Omit<T, 'ref'>;
 
 export const elementProps = <T extends HTMLAttributes<any>>(
   props: T & DataAttr
 ): T => props;
+
+export const buttonProps = (
+  props: React.ButtonHTMLAttributes<HTMLButtonElement> & DataAttr
+): WithoutRef<React.ButtonHTMLAttributes<HTMLButtonElement>> => props;

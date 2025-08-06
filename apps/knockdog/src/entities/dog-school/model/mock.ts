@@ -8,7 +8,44 @@ export interface DogSchoolWithMetaResult {
   shops: DogSchoolWithMeta[];
 }
 
+export type 견종 = 'ALL_BREEDS' | 'SMALL_DOGS_ONLY' | 'MEDIUM_LARGE_DOGS_ONLY';
+export type 강아지_서비스 =
+  | 'DAYCARE'
+  | 'HOTEL'
+  | 'STAY_24H'
+  | 'TEMPERAMENT'
+  | 'SPLIT_CLASS'
+  | 'BATH_SERVICE'
+  | 'WALK'
+  | 'TRAINING'
+  | 'GROOMING'
+  | 'REHABILITATION';
+
+export type 강아지_안전_시설 =
+  | 'NON_SLIP'
+  | 'CCTV'
+  | 'PLAYGROUND'
+  | 'ROOFTOP'
+  | 'TERRACE'
+  | 'TRAINING_GROUND'
+  | 'YARD';
+
+export type 방문객_편의_시설 =
+  | 'PICK_DROP'
+  | 'DIARY'
+  | 'DOG_SHOP'
+  | 'DOG_CAFE'
+  | 'PARKING'
+  | 'VALET';
+
+export const DogBreed = {
+  ALL_BREEDS: '견종무관',
+  SMALL_DOGS_ONLY: '소형견 전용',
+  MEDIUM_LARGE_DOGS_ONLY: '중대형견 전용',
+} as const;
+
 export const ServiceTag = {
+  PICK_DROP: '픽드랍',
   DIARY: '1:1 알림장',
   DOG_SHOP: '강아지 용품샵',
   DOG_CAFE: '강아지 카페',
@@ -69,6 +106,13 @@ export interface DogSchool {
   pickupType: keyof typeof PickupType;
 }
 
+export type ProductType = 'COUNT' | 'PERIOD' | 'MEMBERSHIP';
+export interface DogSchoolProduct {
+  productTypes: ProductType[];
+  priceImages: string[];
+  lastUpdated: string;
+}
+
 export interface DogSchoolWithMeta extends DogSchool {
   memo?: DogSchoolMemo;
   isBookmarked?: boolean;
@@ -84,6 +128,15 @@ export interface DogSchoolMemo {
 export interface DogSchoolBookmark {
   id: string;
   shopId: string;
+}
+
+export interface DogSchoolReview {
+  id: string;
+  userName: string;
+  profileImage: string;
+  title: string;
+  content: string;
+  createdAt: string;
 }
 
 export const memoMockData: DogSchoolMemo[] = [

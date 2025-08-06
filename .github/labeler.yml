@@ -1,31 +1,33 @@
-✨ feature:
-  - head-branch: ['^feat/', '^feature/', '^FEAT-', '.*-feat/']
+repo:
+  - all:
+      - changed-files:
+          - any-glob-to-any-file: ['**']
+          - all-globs-to-all-files:
+              - '!apps/**'
+              - '!packages/**'
 
-🐛 bug:
-  - head-branch:
-      ['^fix/', '^bugfix/', '^hotfix/', '.*-fix/', '.*-bugfix/', '.*-hotfix/']
-
-📚 documentation:
-  - head-branch: ['^docs/', '^doc/', '.*-docs/', '.*-doc/']
+'app:web':
   - changed-files:
-      - any-glob-to-any-file: ['**/*.md', 'docs/**', 'README*']
+      - any-glob-to-any-file: ['apps/knockdog/**']
 
-♻️ refactor:
-  - head-branch: ['^refactor/', '.*-refactor/']
-
-⚡️ perf:
-  - head-branch: ['^perf/', '.*-perf/']
-
-👷 ci:
-  - head-branch: ['^ci/', '.*-ci/']
-
-📦 build:
-  - head-branch: ['^build/', '.*-build/']
-
-🧪 test:
-  - head-branch: ['^test/', '.*-test/']
+'app:mobile':
   - changed-files:
-      - any-glob-to-any-file: ['**/*.test.*', '**/*.spec.*', 'tests/**']
+      - any-glob-to-any-file: ['apps/mobile/**']
 
-⚙️ chore:
-  - head-branch: ['^chore/', '^settings/', '.*-chore/', '.*-settings/']
+'packages:config':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'packages/config-eslint/**'
+          - 'packages/config-typescript/**'
+
+'packages:ui':
+  - changed-files:
+      - any-glob-to-any-file: ['packages/ui/**']
+
+'packages:naver-map':
+  - changed-files:
+      - any-glob-to-any-file: ['packages/naver-map/**']
+
+'packages:icons':
+  - changed-files:
+      - any-glob-to-any-file: ['packages/icons/**']

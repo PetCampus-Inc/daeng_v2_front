@@ -1,12 +1,14 @@
 /* model */
 export * from './model/mock';
+export * from './model/constants';
 
 /* config */
 export * from './config/constant';
 
 /* ui */
-export * from './ui/FilterList';
-export * from './ui/FilterChip';
-export * from './ui/ServiceBadge';
-export * from './ui/ServiceBadgeGroup';
-export * from './ui/DogSchoolImageSlider';
+export * from './ui/LastUpdatedSection';
+export * from './ui/PriceSection';
+export * from './ui/DefaultInfoSection';
+export * from './ui/DogSchoolImageSwiper';
+export * from './ui/ReviewSection';
+export * from './ui/DogSchoolDetail';
