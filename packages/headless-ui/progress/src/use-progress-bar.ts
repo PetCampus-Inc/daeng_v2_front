@@ -45,13 +45,21 @@ export function useProgressBar(props: UseProgressBarProps) {
   const steps = Array.from({ length: totalSteps }, (_, index) => {
     const stepNumber = index + 1;
     let state: StepState = 'upcoming';
-    if (stepNumber < progress.value!) state = 'completed';
-    else if (stepNumber === Math.ceil(progress.value!)) state = 'current';
+    if (progress.value !== undefined && stepNumber < progress.value)
+      state = 'completed';
+    else if (
+      progress.value !== undefined &&
+      stepNumber === Math.ceil(progress.value)
+    )
+      state = 'current';
 
     let width = '0%';
     if (state === 'completed') width = '100%';
     else if (state === 'current')
-      width = `${(progress.value! % 1) * 100 || 100}%`;
+      width =
+        progress.value !== undefined
+          ? `${(progress.value % 1) * 100 || 100}%`
+          : '0%';
 
     return {
       state,
