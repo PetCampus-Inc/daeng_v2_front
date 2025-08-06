@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@daeng-design/react-portal": "workspace:*",
-    "@floating-ui/react": "^0.27.13",
+    "@floating-ui/react": "^0.27.15",
     "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
@@ -32,7 +32,7 @@
     "swiper": "^11.2.10",
     "tailwindcss": "^4.1.11",
     "typescript": "5.8.3",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
