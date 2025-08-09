@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet } from '@knockdog/ui';

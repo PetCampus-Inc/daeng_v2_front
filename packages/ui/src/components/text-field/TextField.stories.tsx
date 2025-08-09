@@ -12,6 +12,16 @@ const meta = {
     layout: 'centered',
   },
   argTypes: {
+    variant: {
+      control: { type: 'select' },
+      options: ['default', 'secondary'],
+      table: {
+        type: {
+          summary: 'default | secondary',
+        },
+        defaultValue: { summary: 'default' },
+      },
+    },
     asChild: {
       table: {
         type: {
@@ -136,9 +146,25 @@ export const Default: Story = {
   ),
 };
 
+export const Secondary: Story = {
+  render: () => (
+    <TextField variant='secondary'>
+      <TextFieldInput placeholder='보조 스타일 입력' />
+    </TextField>
+  ),
+};
+
 export const WithLabel: Story = {
   render: () => (
     <TextField label='이름'>
+      <TextFieldInput placeholder='이름을 입력하세요' />
+    </TextField>
+  ),
+};
+
+export const WithLabelSecondary: Story = {
+  render: () => (
+    <TextField label='이름' variant='secondary'>
       <TextFieldInput placeholder='이름을 입력하세요' />
     </TextField>
   ),
@@ -155,6 +181,14 @@ export const WithIndicator: Story = {
 export const WithPrefix: Story = {
   render: () => (
     <TextField label='검색' prefix={<Icon icon='Search' />}>
+      <TextFieldInput placeholder='검색어를 입력하세요' />
+    </TextField>
+  ),
+};
+
+export const WithPrefixSecondary: Story = {
+  render: () => (
+    <TextField label='검색' prefix={<Icon icon='Search' />} variant='secondary'>
       <TextFieldInput placeholder='검색어를 입력하세요' />
     </TextField>
   ),
@@ -188,9 +222,35 @@ export const WithError: Story = {
   ),
 };
 
+export const WithErrorSecondary: Story = {
+  render: () => (
+    <TextField
+      label='이메일'
+      invalid
+      errorMessage='올바른 이메일 형식이 아닙니다'
+      variant='secondary'
+    >
+      <TextFieldInput placeholder='이메일을 입력하세요' />
+    </TextField>
+  ),
+};
+
 export const WithSuccess: Story = {
   render: () => (
     <TextField label='이메일' valid successMessage='사용 가능한 이메일입니다'>
+      <TextFieldInput placeholder='이메일을 입력하세요' />
+    </TextField>
+  ),
+};
+
+export const WithSuccessSecondary: Story = {
+  render: () => (
+    <TextField
+      label='이메일'
+      valid
+      successMessage='사용 가능한 이메일입니다'
+      variant='secondary'
+    >
       <TextFieldInput placeholder='이메일을 입력하세요' />
     </TextField>
   ),
@@ -216,6 +276,7 @@ export const Form = () => {
     name: '',
     email: '',
   });
+  const [variant, setVariant] = useState<'default' | 'secondary'>('default');
 
   const [fieldStates, setFieldStates] = useState<
     Record<
@@ -318,6 +379,20 @@ export const Form = () => {
       noValidate
       className='flex w-[400px] flex-col gap-4'
     >
+      <div className='mb-4'>
+        <label className='text-sm font-medium'>Variant 선택:</label>
+        <select
+          value={variant}
+          onChange={(e) =>
+            setVariant(e.target.value as 'default' | 'secondary')
+          }
+          className='ml-2 rounded border px-2 py-1'
+        >
+          <option value='default'>Default</option>
+          <option value='secondary'>Secondary</option>
+        </select>
+      </div>
+
       <TextField
         label='이름'
         required
@@ -332,6 +407,7 @@ export const Form = () => {
         successMessage={
           fieldStates.name.isValid ? fieldStates.name.message : undefined
         }
+        variant={variant}
       >
         <TextFieldInput placeholder='댕댕이' />
       </TextField>
@@ -350,6 +426,7 @@ export const Form = () => {
         successMessage={
           fieldStates.email.isValid ? fieldStates.email.message : undefined
         }
+        variant={variant}
       >
         <TextFieldInput placeholder='daeng@knockdog.com' />
       </TextField>

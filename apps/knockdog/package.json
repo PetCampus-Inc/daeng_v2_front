@@ -13,6 +13,7 @@
   "dependencies": {
     "@daeng-design/react-portal": "workspace:*",
     "@floating-ui/react": "^0.27.13",
+    "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@knockdog/naver-map": "workspace:*",
