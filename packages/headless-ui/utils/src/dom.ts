@@ -20,3 +20,11 @@ export const elementProps = <T extends HTMLAttributes<any>>(
 export const buttonProps = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & DataAttr
 ): WithoutRef<React.ButtonHTMLAttributes<HTMLButtonElement>> => props;
+
+export const labelProps = (
+  props: React.LabelHTMLAttributes<HTMLLabelElement> & DataAttr,
+): WithoutRef<React.LabelHTMLAttributes<HTMLLabelElement>> => props;
+
+export const inputProps = (
+  props: React.InputHTMLAttributes<HTMLInputElement> & DataAttr,
+): WithoutRef<React.InputHTMLAttributes<HTMLInputElement>> => props;
