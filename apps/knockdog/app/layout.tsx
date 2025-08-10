@@ -4,11 +4,11 @@ import { suit } from './font';
 import './globals.css';
 import { NaverMapProvider } from '@knockdog/naver-map';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import Script from 'next/script';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BottomNavBar } from '@widgets/bottom-nav-bar';
-import Script from 'next/script';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ActionButton, Divider, Icon } from '@knockdog/ui';
+import { ActionButton } from '@knockdog/ui';
 import Link from 'next/link';
 import { useHeaderContext } from '@widgets/Header';
 
