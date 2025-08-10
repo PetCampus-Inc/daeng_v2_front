@@ -8,7 +8,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from "@knockdog/ui/lib"
 
 const checkboxVariants = cva(
-  "flex shrink-0 items-center justify-center rounded-sm border",
+  "flex shrink-0 items-center justify-center rounded-sm border border-line-400 bg-white data-[checked]:bg-orange-500 data-[checked]:border-orange-500",
   {
     variants: {
       size: {
@@ -48,23 +48,8 @@ function Checkbox({
   label,
   children,
   size,
-  disabled,
   ...props
 }: CheckboxProps) {
-  const getCheckboxStyles = () => {
-    if (disabled) {
-      return "border-line-400 bg-fill-secondary-100"
-    }
-    return "border-line-400 bg-white data-[checked]:bg-orange-500 data-[checked]:border-orange-500"
-  }
-
-  const getIconStyles = () => {
-    if (disabled) {
-      return "text-fill-secondary-100"
-    }
-    return "text-white"
-  }
-
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
@@ -72,14 +57,13 @@ function Checkbox({
         "flex items-center gap-2",
         className
       )}
-      disabled={disabled}
       {...props}
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className={cn(checkboxVariants({ size }), getCheckboxStyles())}
+        className={cn(checkboxVariants({ size }))}
       >
-        <Icon icon="Check" className={cn(iconVariants({ size }), getIconStyles())} />
+        <Icon icon="Check" className={cn(iconVariants({ size }))} />
       </CheckboxPrimitive.Indicator>
       {label && <span className="text-sm text-gray-700">{label}</span>}
       {children}

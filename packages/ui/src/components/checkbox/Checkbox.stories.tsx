@@ -96,26 +96,6 @@ export const SizeVariantsChecked: Story = {
   ),
 }
 
-export const DisabledVariants: Story = {
-  render: () => (
-    <div className="space-y-4">
-      <Checkbox size="sm" label="Small 체크박스 (비활성화)" disabled />
-      <Checkbox size="md" label="Medium 체크박스 (비활성화)" disabled />
-      <Checkbox size="lg" label="Large 체크박스 (비활성화)" disabled />
-    </div>
-  ),
-}
-
-export const DisabledCheckedVariants: Story = {
-  render: () => (
-    <div className="space-y-4">
-      <Checkbox size="sm" label="Small 체크박스 (체크됨, 비활성화)" checked disabled />
-      <Checkbox size="md" label="Medium 체크박스 (체크됨, 비활성화)" checked disabled />
-      <Checkbox size="lg" label="Large 체크박스 (체크됨, 비활성화)" checked disabled />
-    </div>
-  ),
-}
-
 export const MultipleCheckboxes: Story = {
   render: () => (
     <div className="space-y-3">
