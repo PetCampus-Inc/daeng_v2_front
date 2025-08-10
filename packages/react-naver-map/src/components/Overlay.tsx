@@ -40,15 +40,7 @@ type OverlayProps = OverlayOptions & {
   children?: React.ReactNode;
 };
 
-export function Overlay({
-  ref,
-  children,
-  position,
-  offsetX,
-  offsetY,
-  zIndex,
-  onLoad,
-}: OverlayProps) {
+export function Overlay({ ref, children, position, offsetX, offsetY, zIndex, onLoad }: OverlayProps) {
   const map = useMapContext();
 
   const overlayPosition = useMemo(() => {
@@ -76,7 +68,7 @@ export function Overlay({
 
   useIsomorphicLayoutEffect(() => {
     onLoad?.(overlay);
-  }, [overlay, onLoad]);
+  }, [overlay]);
 
   useNaverMapSetEffect(overlay, 'setPosition', overlayPosition);
   useNaverMapSetEffect(overlay, 'setZIndex', zIndex);
