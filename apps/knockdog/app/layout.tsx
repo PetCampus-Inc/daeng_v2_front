@@ -8,6 +8,7 @@ import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BottomNavBar } from '@widgets/bottom-nav-bar';
+import Script from 'next/script';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </NaverMapProvider>
           </ReactQueryProvider>
         </NuqsAdapter>
+        <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
       </body>
     </html>
   );
