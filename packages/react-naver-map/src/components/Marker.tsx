@@ -1,29 +1,40 @@
-import React, { useImperativeHandle, useMemo, useRef } from 'react';
-import { createRoot, Root } from 'react-dom/client';
+import React, { useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useMapContext } from '../hooks/useMapContext';
 import { useNaverEvent } from '../hooks/useNaverEvent';
 import { useNaverMapSetEffect } from '../hooks/useNaverMapSetEffect';
 import { useIsomorphicLayoutEffect } from '../utils/useIsomorphicLayoutEffect';
 
-type ReactIcon = {
-  content: React.ReactNode;
-  size?: {
-    width: number;
-    height: number;
-  };
-  anchor?:
-    | {
-        x: number;
-        y: number;
-      }
-    | naver.maps.Position;
-};
-
 type MarkerOptions = naver.maps.MarkerOptions & {
   /**
    * 마커의 모양입니다. (ReactNode 전용)
    */
-  content?: ReactIcon;
+  customIcon?: {
+    /**
+     * 마커의 아이콘으로 사용할 ReactNode 요소입니다.
+     */
+    content: React.ReactNode;
+
+    /**
+     * 화면에 나타나는 마커의 크기입니다.
+     */
+    size: {
+      width: number;
+      height: number;
+    };
+
+    /**
+     * 지도 위에 놓이는 마커의 위치와 일치시킬 아이콘의 기준 위치입니다.
+     * Position 사용 시 Size값은 필수입니다.
+     * @default naver.maps.Position.BOTTOM_CENTER = 11
+     */
+    anchor?:
+      | {
+          x: number;
+          y: number;
+        }
+      | naver.maps.Position;
+  };
 
   /**
    * 마커 생성 후에 호출되는 함수입니다.
@@ -54,53 +65,25 @@ type MarkerProps = MarkerOptions & {
   ref?: React.RefObject<naver.maps.Marker>;
 };
 
-export function Marker({ ref, content, onLoad, onClick, onMouseDown, onMouseUp, ...markerOptions }: MarkerProps) {
+export function Marker({ ref, customIcon, onLoad, onClick, onMouseDown, onMouseUp, ...markerOptions }: MarkerProps) {
   const map = useMapContext();
 
   const container = useRef<HTMLDivElement | null>(
     typeof document !== 'undefined' ? document.createElement('div') : null
   );
-  const root = useRef<Root | null>(null);
 
-  useIsomorphicLayoutEffect(() => {
-    if (container.current && !root.current) {
-      root.current = createRoot(container.current);
-    }
-    return () => {
-      root.current?.unmount();
-      root.current = null;
-    };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const marker = useMemo(() => new naver.maps.Marker({ ...markerOptions }), []);
 
-  const reactIcon = content ?? null;
-
-  useIsomorphicLayoutEffect(() => {
-    if (!root.current || !container.current) return;
-    if (!reactIcon) {
-      root.current.render(null);
-      return;
-    }
-
-    root.current.render(<>{reactIcon.content}</>);
-  }, [reactIcon]);
-
-  const icon = useMemo(() => {
-    if (reactIcon && container.current) {
-      const htmlIcon: naver.maps.HtmlIcon = {
+  const ReactIcon: naver.maps.HtmlIcon | undefined = useMemo(() => {
+    if (customIcon && container.current) {
+      return {
         content: container.current,
-        size: reactIcon.size,
-        anchor: reactIcon.anchor,
-      };
-      return htmlIcon;
+        size: customIcon.size,
+        anchor: customIcon.anchor ?? naver.maps.Position.BOTTOM_CENTER,
+      } satisfies naver.maps.HtmlIcon;
     }
-    return markerOptions.icon;
-  }, [reactIcon, markerOptions.icon]);
-
-  const marker = useMemo(
-    () => new naver.maps.Marker({ ...markerOptions, icon }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  }, [customIcon]);
 
   useImperativeHandle(ref, () => marker, [marker]);
 
@@ -109,15 +92,24 @@ export function Marker({ ref, content, onLoad, onClick, onMouseDown, onMouseUp, 
     return () => marker.setMap(null);
   }, [marker, map]);
 
-  useIsomorphicLayoutEffect(() => {
-    if (onLoad) onLoad(marker);
-  }, [marker, onLoad]);
+  useEffect(() => {
+    if (!marker) return;
+
+    if (customIcon) {
+      if (!ReactIcon) return;
+      marker.setIcon(ReactIcon);
+    }
+  }, [marker, ReactIcon, customIcon]);
+
+  useEffect(() => {
+    onLoad?.(marker);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marker]);
 
   useNaverMapSetEffect(marker, 'setAnimation', markerOptions.animation);
   useNaverMapSetEffect(marker, 'setClickable', markerOptions.clickable);
   useNaverMapSetEffect(marker, 'setCursor', markerOptions.cursor);
   useNaverMapSetEffect(marker, 'setDraggable', markerOptions.draggable);
-  useNaverMapSetEffect(marker, 'setIcon', icon);
   useNaverMapSetEffect(marker, 'setOptions', markerOptions);
   useNaverMapSetEffect(marker, 'setPosition', markerOptions.position);
   useNaverMapSetEffect(marker, 'setShape', markerOptions.shape);
@@ -129,5 +121,5 @@ export function Marker({ ref, content, onLoad, onClick, onMouseDown, onMouseUp, 
   useNaverEvent(marker, 'mousedown', onMouseDown);
   useNaverEvent(marker, 'mouseup', onMouseUp);
 
-  return null;
+  return <>{customIcon && container.current ? createPortal(<>{customIcon.content}</>, container.current) : null}</>;
 }
