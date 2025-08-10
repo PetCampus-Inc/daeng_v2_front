@@ -1,12 +1,5 @@
-import { useState } from 'react';
 import { overlay } from 'overlay-kit';
-import {
-  Float,
-  FloatingActionButton,
-  Icon,
-  SegmentedControl,
-  SegmentedControlItem,
-} from '@knockdog/ui';
+import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
@@ -14,42 +7,27 @@ import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import {
-  FILTER_OPTIONS,
-  SHORT_CUT_FILTER_OPTIONS,
-  getCombinedMockData,
-} from '@entities/dog-school';
+import { FILTER_OPTIONS, getCombinedMockData, SHORT_CUT_FILTER_OPTIONS } from '@entities/dog-school';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { useBasePointType } from '@shared/store';
 
 export function DogSchoolList() {
-  const {
-    getSelectedFilterWithLabel,
-    onToggleOption,
-    isSelectedOption,
-    isEmptyFilters,
-  } = useSearchFilter();
-
+  const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { isFabExtended, sentinelRef } = useFabExtension();
+  const { selectedBaseType, setBaseType } = useBasePointType();
 
-  // TODO: 위치 선택 기능 추가 및 훅으로 빼기
-  const [selectedLocation, setSelectedLocation] = useState<
-    'current' | 'home' | 'work'
-  >('current');
-
-  // TODO: 데이터 패칭 훅 추가
-  const data = getCombinedMockData();
   const selectedFilters = getSelectedFilterWithLabel();
 
   const handleLocationChange = (value: string) => {
-    setSelectedLocation(value as 'current' | 'home' | 'work');
+    setBaseType(value as 'current' | 'home' | 'work');
   };
 
   const openFilterBottomSheet = () =>
-    overlay.open(({ isOpen, close }) => (
-      <FilterBottomSheet isOpen={isOpen} close={close} />
-    ));
+    overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} />);
+
+  const { shops: allSchools } = getCombinedMockData();
 
   return (
     <>
@@ -60,22 +38,13 @@ export function DogSchoolList() {
         )}
       >
         {/* 스크롤 감지용 sentinel 요소 */}
-        <div
-          ref={sentinelRef}
-          className='pointer-events-none absolute top-0 h-1 w-full'
-          aria-hidden='true'
-        />
+        <div ref={sentinelRef} className='pointer-events-none absolute top-0 h-1 w-full' aria-hidden='true' />
 
         {/* 헤더 영역  */}
         <div className='bg-bg-0 sticky top-[-.5px] z-20'>
           <div className='px-x4 py-x4'>
-            <SegmentedControl
-              defaultValue={selectedLocation}
-              onValueChange={handleLocationChange}
-            >
-              <SegmentedControlItem value='current'>
-                현 위치
-              </SegmentedControlItem>
+            <SegmentedControl defaultValue={selectedBaseType} onValueChange={handleLocationChange}>
+              <SegmentedControlItem value='current'>현 위치</SegmentedControlItem>
               <SegmentedControlItem value='home'>집</SegmentedControlItem>
               <SegmentedControlItem value='work'>직장</SegmentedControlItem>
             </SegmentedControl>
@@ -95,17 +64,11 @@ export function DogSchoolList() {
                 >
                   <Icon
                     icon='Filter'
-                    className={`size-x4 ${
-                      isEmptyFilters
-                        ? 'text-fill-secondary-700'
-                        : 'text-fill-primary-500'
-                    }`}
+                    className={`size-x4 ${isEmptyFilters ? 'text-fill-secondary-700' : 'text-fill-primary-500'}`}
                   />
                   필터
                   {!isEmptyFilters && (
-                    <span className='body2-extrabold text-text-accent'>
-                      {selectedFilters.length}
-                    </span>
+                    <span className='body2-extrabold text-text-accent'>{selectedFilters.length}</span>
                   )}
                 </button>
 
@@ -143,13 +106,11 @@ export function DogSchoolList() {
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
           <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
-            <div className='body2-semibold text-text-tertiary'>
-              총 {data.shops.length}개
-            </div>
+            <div className='body2-semibold text-text-tertiary'>총 {allSchools.length}개</div>
             <SortSelect />
           </div>
 
-          {data.shops.map((item) => (
+          {allSchools.map((item) => (
             <DogSchoolCard key={item.id} {...item} />
           ))}
         </div>
