@@ -58,8 +58,15 @@ export class NaverMapLoader {
    * @param callback - 로드 완료/실패 시 실행될 콜백 함수
    */
   public static addLoadListener(callback: (error?: LoaderError) => void) {
-    if (window.naver?.maps?.jsContentLoaded) {
+    if (window.naver?.maps) {
       callback();
+    } else {
+      const interval = setInterval(() => {
+        if (window.naver?.maps?.Map) {
+          clearInterval(interval);
+          callback();
+        }
+      }, 50);
     }
     NaverMapLoader.loadCallbacks.add(callback);
     return callback;
