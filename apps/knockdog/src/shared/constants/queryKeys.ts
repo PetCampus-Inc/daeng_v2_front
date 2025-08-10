@@ -1,9 +1,11 @@
-export const globalQueryKeys = {
-  basePoint: {
-    all: ['basePoint'] as const,
-    current: () => [...globalQueryKeys.basePoint.all, 'current'] as const,
-    home: () => [...globalQueryKeys.basePoint, 'home'] as const,
-    work: () => [...globalQueryKeys.basePoint, 'work'] as const,
-    type: (type: 'current' | 'home' | 'work') => [...globalQueryKeys.basePoint, type] as const,
-  },
+const basePoint = {
+  all: ['basePoint'] as const,
+  current: () => [...basePoint.all, 'current'] as const,
+  home: () => [...basePoint.all, 'home'] as const,
+  work: () => [...basePoint.all, 'work'] as const,
+  type: (type: 'current' | 'home' | 'work') => [...basePoint.all, type] as const,
 };
+
+export const globalQueryKeys = {
+  basePoint,
+} as const;
