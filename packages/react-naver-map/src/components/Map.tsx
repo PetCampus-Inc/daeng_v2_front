@@ -219,9 +219,7 @@ export function Map({
   const container = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    const callback = NaverMapLoader.addLoadListener((error) => {
-      setIsLoaded(!error);
-    });
+    const callback = NaverMapLoader.addLoadListener((error) => setIsLoaded(!error));
     return () => {
       NaverMapLoader.removeLoadListener(callback);
     };
@@ -254,9 +252,9 @@ export function Map({
   useImperativeHandle(ref, () => map!, [map]);
 
   useIsomorphicLayoutEffect(() => {
-    if (!map || !onLoad) return;
-    onLoad(map);
-  }, [map, onLoad]);
+    if (!map) return;
+    onLoad?.(map);
+  }, [map]);
 
   useIsomorphicLayoutEffect(() => {
     if (!map) return;
