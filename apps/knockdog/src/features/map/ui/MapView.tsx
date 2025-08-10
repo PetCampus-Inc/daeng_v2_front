@@ -1,73 +1,96 @@
-import { NaverMap, Overlay } from '@knockdog/naver-map';
-import { ClusterMarker } from './ClusterMarker';
+import { Map, Marker } from '@knockdog/react-naver-map';
+
+// import { ClusterMarker } from './ClusterMarker';
 import { PlaceMarker } from './PlaceMarker';
-import { useCurrentLocation } from '@shared/lib';
-import { CurrentLocationMarker } from '@shared/ui/naver-map/CurrentLocationMarker';
+import { CurrentLocationMarker } from './CurrentLocationMarker';
+import { useGeolocationQuery } from '@shared/lib';
 
-const overlays = [
-  {
-    id: '12',
-    position: { lat: 37.5440453, lng: 127.0722356 },
-    title: '겨울나그네레스토랑',
-    distance: 1.2,
-  },
-  {
-    id: '2',
-    position: { lat: 37.623465, lng: 127.153074 },
-    title: '총각네횟집다산점',
-    distance: 1.4,
-  },
-  {
-    id: '3',
-    position: { lat: 37.623426, lng: 127.151928 },
-    title: '빅파이브',
-    distance: 1,
-  },
-];
-
+interface OverlayInfo {
+  id: string;
+  coord: { lat: number; lng: number };
+  title: string;
+  dist: number;
+}
 interface MapViewProps {
-  onMarkerClick?: (id: string) => void;
+  ref: React.RefObject<naver.maps.Map | null>;
+  overlays?: OverlayInfo[];
+  onMarkerClick?: (e: naver.maps.PointerEvent, id: string) => void;
   selectedMarkerId?: string | null;
+  center: { lat: number; lng: number };
+  zoom?: number;
+  onLoad?: (map: naver.maps.Map) => void;
+  onDragStart?: (pointerEvent: naver.maps.PointerEvent) => void;
+  onDragEnd?: (pointerEvent: naver.maps.PointerEvent) => void;
+  onPinchStart?: (pointerEvent: naver.maps.PointerEvent) => void;
+  onPinchEnd?: (pointerEvent: naver.maps.PointerEvent) => void;
+  onBoundsChanged?: (bounds: naver.maps.Bounds) => void;
+  onCenterChanged?: (center: naver.maps.Coord) => void;
+  onZoomStart?: () => void;
+  onZoomChanged?: (zoom: number) => void;
+  onZoomEnd?: () => void;
+  onDrag?: (pointerEvent: naver.maps.PointerEvent) => void;
+  onIdle?: () => void;
 }
 
 export function MapView(props: MapViewProps) {
-  const { onMarkerClick, selectedMarkerId } = props;
-  const currentLocation = useCurrentLocation();
+  const { ref, center, overlays = [], onMarkerClick, selectedMarkerId, zoom } = props;
+
+  const { data: current } = useGeolocationQuery();
 
   return (
-    <NaverMap center={currentLocation} className='relative h-full w-full'>
-      {/* 현재 위치 마커 */}
-      <CurrentLocationMarker />
-
-      <Overlay
-        id='cluster'
-        position={{ lat: 37.54, lng: 127.07 }}
-        content={<ClusterMarker label='광진구' count={99} />}
-      />
-
-      {/* 장소 오버레이 */}
-      {overlays.map((overlay) => {
-        const isSelected = selectedMarkerId === overlay.id;
-
-        return (
-          <Overlay
-            key={overlay.id}
-            id={overlay.id}
-            position={overlay.position}
-            zIndex={isSelected ? 10 : undefined}
-            direction='top'
-            offset={{ y: 12 }}
-            content={
-              <PlaceMarker
-                title={overlay.title}
-                distance={overlay.distance}
-                selected={isSelected}
-                onClick={() => onMarkerClick?.(overlay.id)}
-              />
-            }
+    <>
+      <Map
+        ref={ref}
+        center={center}
+        zoom={zoom}
+        isPanto
+        onLoad={props.onLoad}
+        onBoundsChanged={props.onBoundsChanged}
+        onCenterChanged={props.onCenterChanged}
+        onZoomChanged={props.onZoomChanged}
+        onIdle={props.onIdle}
+        onDragStart={props.onDragStart}
+        onDragEnd={props.onDragEnd}
+        onPinchStart={props.onPinchStart}
+        onPinchEnd={props.onPinchEnd}
+        onZoomStart={props.onZoomStart}
+        onZoomEnd={props.onZoomEnd}
+        className='relative h-full w-full'
+      >
+        {/* 현재 위치 마커 */}
+        {current && (
+          <Marker
+            position={current}
+            customIcon={{
+              content: <CurrentLocationMarker />,
+              anchor: 0,
+              size: { width: 44, height: 44 },
+            }}
           />
-        );
-      })}
-    </NaverMap>
+        )}
+
+        {/* <Overlay position={{ lat: 37.54, lng: 127.07 }}>
+          <ClusterMarker label='광진구' count={overlays.length} />
+        </Overlay> */}
+
+        {/* TODO: 클러스터링 로직 추가 */}
+        {overlays.map((overlay) => {
+          const isSelected = selectedMarkerId === overlay.id;
+          return (
+            <Marker
+              key={overlay.id}
+              position={overlay.coord}
+              zIndex={isSelected ? 10 : undefined}
+              onClick={(e) => onMarkerClick?.(e, overlay.id)}
+              customIcon={{
+                content: <PlaceMarker title={overlay.title} distance={overlay.dist.toFixed(2)} selected={isSelected} />,
+                size: { width: 128, height: 62 },
+                anchor: 11,
+              }}
+            />
+          );
+        })}
+      </Map>
+    </>
   );
 }
