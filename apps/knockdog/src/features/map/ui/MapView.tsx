@@ -63,8 +63,7 @@ export function MapView(props: MapViewProps) {
             position={current}
             customIcon={{
               content: <CurrentLocationMarker />,
-              anchor: 0,
-              size: { width: 44, height: 44 },
+              align: 'center',
             }}
           />
         )}
@@ -81,11 +80,11 @@ export function MapView(props: MapViewProps) {
               key={overlay.id}
               position={overlay.coord}
               zIndex={isSelected ? 10 : undefined}
-              onClick={(e) => onMarkerClick?.(e, overlay.id)}
+              onClick={() => onMarkerClick?.(overlay.id, overlay.coord)}
               customIcon={{
                 content: <PlaceMarker title={overlay.title} distance={overlay.dist.toFixed(2)} selected={isSelected} />,
-                size: { width: 128, height: 62 },
-                anchor: 11,
+
+                offsetY: 12,
               }}
             />
           );
