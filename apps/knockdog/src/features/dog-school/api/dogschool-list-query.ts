@@ -9,12 +9,12 @@ export const dogSchoolListOptions = {
   searchList: ({ refPoint, bounds, zoomLevel }: DogSchoolSearchListQueryParams) =>
     infiniteQueryOptions({
       queryKey: dogSchoolKeys.searchList({ refPoint, bounds, zoomLevel }),
-      queryFn: ({ pageParam }) =>
+      queryFn: ({ pageParam = 0 }) =>
         DogSchoolListService.getDogSchoolSearchList({
           refPoint: serializeCoords(refPoint),
           bounds: serializeBounds(bounds),
           zoomLevel: zoomLevel!,
-          page: pageParam as number,
+          page: pageParam,
           size: 10,
         }),
       getNextPageParam: (lastPage) => {
