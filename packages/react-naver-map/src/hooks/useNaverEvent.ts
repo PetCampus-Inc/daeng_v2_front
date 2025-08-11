@@ -47,10 +47,10 @@ export const useNaverEvent = <T extends object>(
   useIsomorphicLayoutEffect(() => {
     if (!target || !callback) return;
 
-    const listener = naver.maps.Event.addListener(target, type, callback);
+    const listener = naver.maps?.Event.addListener(target, type, callback);
 
     return () => {
-      naver.maps.Event.removeListener(listener);
+      naver.maps?.Event.removeListener(listener);
     };
   }, [target, type, callback]);
 };
