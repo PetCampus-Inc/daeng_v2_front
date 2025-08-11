@@ -4,6 +4,7 @@ import { useMapContext } from '../hooks/useMapContext';
 import { useNaverEvent } from '../hooks/useNaverEvent';
 import { useNaverMapSetEffect } from '../hooks/useNaverMapSetEffect';
 import { useIsomorphicLayoutEffect } from '../utils/useIsomorphicLayoutEffect';
+import { getMarkerAnchorTransform, MarkerAnchor } from '../utils/getMarkerAnchorTransform';
 
 type MarkerOptions = naver.maps.MarkerOptions & {
   /**
@@ -16,24 +17,16 @@ type MarkerOptions = naver.maps.MarkerOptions & {
     content: React.ReactNode;
 
     /**
-     * 화면에 나타나는 마커의 크기입니다.
+     * 지도 위에 놓이는 마커의 위치와 일치시킬 아이콘의 기준 위치입니다.
+     * @default 'bottom-center'
      */
-    size: {
-      width: number;
-      height: number;
-    };
+    align?: MarkerAnchor;
 
     /**
-     * 지도 위에 놓이는 마커의 위치와 일치시킬 아이콘의 기준 위치입니다.
-     * Position 사용 시 Size값은 필수입니다.
-     * @default naver.maps.Position.BOTTOM_CENTER = 11
+     * 정렬 기준점에서의 픽셀 오프셋.
      */
-    anchor?:
-      | {
-          x: number;
-          y: number;
-        }
-      | naver.maps.Position;
+    offsetX?: number;
+    offsetY?: number;
   };
 
   /**
@@ -79,8 +72,7 @@ export function Marker({ ref, customIcon, onLoad, onClick, onMouseDown, onMouseU
     if (customIcon && container.current) {
       return {
         content: container.current,
-        size: customIcon.size,
-        anchor: customIcon.anchor ?? naver.maps.Position.BOTTOM_CENTER,
+        anchor: naver.maps.Position.TOP_LEFT,
       } satisfies naver.maps.HtmlIcon;
     }
   }, [customIcon]);
@@ -121,5 +113,21 @@ export function Marker({ ref, customIcon, onLoad, onClick, onMouseDown, onMouseU
   useNaverEvent(marker, 'mousedown', onMouseDown);
   useNaverEvent(marker, 'mouseup', onMouseUp);
 
-  return <>{customIcon && container.current ? createPortal(<>{customIcon.content}</>, container.current) : null}</>;
+  const align = customIcon?.align ?? 'bottom-center';
+  const offsetX = customIcon?.offsetX ?? 0;
+  const offsetY = customIcon?.offsetY ?? 0;
+  const transform = getMarkerAnchorTransform(align, offsetX, offsetY);
+
+  return (
+    <>
+      {customIcon && container.current
+        ? createPortal(
+            <div style={{ position: 'absolute', left: 0, top: 0, transform, willChange: 'transform' }}>
+              {customIcon.content}
+            </div>,
+            container.current
+          )
+        : null}
+    </>
+  );
 }
