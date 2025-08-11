@@ -3,9 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@repo/naver-map-sdk/*": ["./src/*"]
+      "./src/*": ["./src/*"]
     }
   },
-  "include": ["src", "index.d.ts"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }
