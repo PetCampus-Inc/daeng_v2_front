@@ -19,8 +19,11 @@ function combineDogSchoolListWithMeta(
   memosResponse: DogSchoolMemo[],
   bookmarksResponse: DogSchoolBookmark[]
 ): DogSchoolWithMetaResult {
+  const memoByShopId = new Map(memosResponse.map((memo) => [memo.shopId, memo]));
+  const bookmarkedSet = new Set(bookmarksResponse.map((bookmark) => bookmark.shopId));
+
   const combinedSchools = listResponse.schoolResult.list.map((school) =>
-    combineDogSchoolWithMeta(school, memosResponse, bookmarksResponse)
+    combineDogSchoolWithMeta(school, memoByShopId, bookmarkedSet)
   );
 
   return {
@@ -35,25 +38,17 @@ function combineDogSchoolListWithMeta(
 
 function combineDogSchoolWithMeta(
   school: DogSchool,
-  memos: DogSchoolMemo[],
-  bookmarks: DogSchoolBookmark[]
+  memoByShopId: Map<string, DogSchoolMemo>,
+  bookmarkedSet: Set<string>
 ): DogSchoolWithMeta {
-  const memo = findMemoByShopId(school.id, memos);
-  const isBookmarked = isSchoolBookmarked(school.id, bookmarks);
+  const memo = memoByShopId.get(school.id);
+  const isBookmarked = bookmarkedSet.has(school.id);
 
   return {
     ...school,
     memo,
     isBookmarked,
   };
-}
-
-function findMemoByShopId(shopId: string, memos: DogSchoolMemo[]): DogSchoolMemo | undefined {
-  return memos.find((memo) => memo.shopId === shopId);
-}
-
-function isSchoolBookmarked(shopId: string, bookmarks: DogSchoolBookmark[]): boolean {
-  return bookmarks.some((bookmark) => bookmark.shopId === shopId);
 }
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요
