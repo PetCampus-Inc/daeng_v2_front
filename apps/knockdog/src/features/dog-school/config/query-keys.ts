@@ -5,6 +5,7 @@ export const dogSchoolKeys = {
   all: ['dog-school'],
   searchList: (params: Partial<DogSchoolSearchListQueryParams>) => [
     ...dogSchoolKeys.all,
+    'search-list',
     serializeCoords(params.refPoint),
     serializeBounds(params.bounds),
     params.zoomLevel,
