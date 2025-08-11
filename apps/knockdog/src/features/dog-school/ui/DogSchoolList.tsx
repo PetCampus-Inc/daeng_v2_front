@@ -27,7 +27,7 @@ export function DogSchoolList() {
   const openFilterBottomSheet = () =>
     overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} />);
 
-  const { shops: allSchools } = getCombinedMockData();
+  const { list: allSchools } = getCombinedMockData();
 
   return (
     <>
@@ -50,7 +50,7 @@ export function DogSchoolList() {
             </SegmentedControl>
           </div>
 
-          <div className='border-line-200 flex h-[52px] w-full items-center border-t border-b'>
+          <div className='border-line-200 flex h-[52px] w-full items-center border-b border-t'>
             <div className='py-x2 flex w-full items-center'>
               {/* 고정 버튼 영역 */}
               <div className='pl-x4 flex shrink-0 items-center gap-x-2'>

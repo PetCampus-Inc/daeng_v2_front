@@ -36,7 +36,7 @@ export const ServiceTag = {
   DIARY: '1:1 알림장',
   DOG_SHOP: '강아지 용품샵',
   DOG_CAFE: '강아지 카페',
-  PARKING: '주차창',
+  PARKING: '주차장',
   VALET: '발렛파킹',
 
   DAYCARE: '데이케어',
