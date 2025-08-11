@@ -11,9 +11,9 @@ export abstract class DogSchoolListService {
     searchParams.set('size', params.size?.toString() ?? '10');
 
     return await api
-      .get<DogSchoolSearchListResponse>('kindergarten/map-view', {
+      .get('kindergarten/map-view', {
         searchParams,
       })
-      .json();
+      .json<DogSchoolSearchListResponse>();
   }
 }
