@@ -1,12 +1,12 @@
 import { createContext, ReactNode, useContext } from 'react';
 
-type MapContext = naver.maps.Map | null;
+type MapContextValue = naver.maps.Map | null;
 
-const MapContext = createContext<MapContext>(null);
+const MapContext = createContext<MapContextValue>(null);
 
 interface MapContextProviderProps {
   children: ReactNode;
-  value: MapContext;
+  value: MapContextValue;
 }
 
 export const MapProvider = ({ children, value }: MapContextProviderProps) => {
