@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentLocation } from './getCurrentLocation';
 import { globalQueryKeys } from '@shared/constants';
