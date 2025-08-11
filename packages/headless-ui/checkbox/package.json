@@ -23,11 +23,11 @@
   },
   "dependencies": {
     "@daeng-design/utils": "workspace:*",
-    "@radix-ui/react-compose-refs": "^1.1.2"
+    "@radix-ui/react-compose-refs": "^1.1.2",
+    "@radix-ui/react-use-controllable-state": "^1.2.2"
   },
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*",
-    "@radix-ui/react-use-controllable-state": "^1.2.2",
     "bunchee": "^5.1.5",
     "typescript": "^5.8.3"
   },

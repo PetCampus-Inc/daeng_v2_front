@@ -49,6 +49,7 @@ function Checkbox({
   children,
   size,
   disabled,
+  ref,
   ...props
 }: CheckboxProps) {
   const getCheckboxStyles = () => {
@@ -68,11 +69,13 @@ function Checkbox({
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
+      ref={ref}
       className={cn(
         "flex items-center gap-2",
         className
       )}
       disabled={disabled}
+      {...(typeof label === "string" && !children ? { "aria-label": label } : {})}
       {...props}
     >
       <CheckboxPrimitive.Indicator

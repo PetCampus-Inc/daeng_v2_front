@@ -280,6 +280,9 @@ importers:
       '@radix-ui/react-compose-refs':
         specifier: ^1.1.2
         version: 1.1.2(@types/react@19.1.6)(react@19.1.0)
+      '@radix-ui/react-use-controllable-state':
+        specifier: ^1.2.2
+        version: 1.2.2(@types/react@19.1.6)(react@19.1.0)
       react:
         specifier: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
         version: 19.1.0
@@ -290,9 +293,6 @@ importers:
       '@knockdog/typescript-config':
         specifier: workspace:*
         version: link:../../config-typescript
-      '@radix-ui/react-use-controllable-state':
-        specifier: ^1.2.2
-        version: 1.2.2(@types/react@19.1.6)(react@19.1.0)
       bunchee:
         specifier: ^5.1.5
         version: 5.6.2(typescript@5.8.3)
