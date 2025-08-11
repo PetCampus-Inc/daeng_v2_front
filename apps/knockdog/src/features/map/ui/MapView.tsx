@@ -14,7 +14,7 @@ interface OverlayInfo {
 interface MapViewProps {
   ref: React.RefObject<naver.maps.Map | null>;
   overlays?: OverlayInfo[];
-  onMarkerClick?: (e: naver.maps.PointerEvent, id: string) => void;
+  onMarkerClick?: (id: string, coord: { lat: number; lng: number }) => void;
   selectedMarkerId?: string | null;
   center: { lat: number; lng: number };
   zoom?: number;

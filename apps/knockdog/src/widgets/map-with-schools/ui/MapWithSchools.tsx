@@ -101,8 +101,8 @@ export function MapWithSchools() {
     }
   }, [isMapLoaded, center, basePoint, bounds, zoomLevel, mapSnapshot.refPoint]);
 
-  const handleMarkerClick = (e: naver.maps.PointerEvent, id: string) => {
-    map.current?.panTo(e.coord);
+  const handleMarkerClick = (id: string, coord: { lat: number; lng: number }) => {
+    map.current?.panTo(coord);
     setActiveMarker(id);
   };
 
@@ -123,7 +123,7 @@ export function MapWithSchools() {
   return (
     <>
       {/* 지도 배경 오버레이 */}
-      <div className='bg-primitive-neutral-50/12 pointer-events-none absolute top-0 z-2 h-full w-full touch-none' />
+      <div className='bg-primitive-neutral-50/12 z-2 pointer-events-none absolute top-0 h-full w-full touch-none' />
       {/* 지도 */}
       <MapView
         ref={map}
