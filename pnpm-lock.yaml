@@ -473,6 +473,13 @@ importers:
         version: 3.9.0
 
   packages/react-naver-map:
+    dependencies:
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
     devDependencies:
       '@knockdog/eslint-config':
         specifier: workspace:*
