@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -17,11 +17,18 @@ const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 157;
 const MAX_SNAP_POINT_OFFSET = 72 - 8;
 
 export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
+
+  // mount 되기 전까진 snapIndex 관련 로직 무시
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
 
   const activeMarkerId = useMarkerState((state) => state.activeMarkerId);
-  // 마커가 활성화되었는지 여부
   const isMarkerActive = !!activeMarkerId;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,43 +49,44 @@ export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
     }
   }, [containerRef]);
 
+  // hydration mismatch 방지: CSR 이후에만 렌더
+  if (!hasMounted) return null;
+
   return (
-    <>
-      <div
-        ref={containerRef}
-        className='pointer-events-none absolute bottom-0 w-full'
-        style={{
-          height: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
-        }}
+    <div
+      ref={containerRef}
+      className='pointer-events-none absolute bottom-0 w-full'
+      style={{
+        height: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
+      }}
+    >
+      <BottomSheet.Root
+        defaultOpen
+        dismissible={false}
+        modal={false}
+        snapPoints={snapPoints}
+        activeSnapPoint={activeSnapPoint}
+        setActiveSnapPoint={handleSnapChange}
+        container={container}
       >
-        <BottomSheet.Root
-          defaultOpen
-          dismissible={false}
-          modal={false}
-          snapPoints={snapPoints}
-          activeSnapPoint={activeSnapPoint}
-          setActiveSnapPoint={handleSnapChange}
-          container={container}
-        >
-          <RemoveScroll forwardProps noIsolation>
-            <BottomSheet.Body
-              className={cn(
-                'absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
-                isMarkerActive && 'hidden',
-                isFullExtended && 'rounded-none shadow-none'
-              )}
-            >
-              {!isFullExtended && (
-                <>
-                  {fabSlot}
-                  <BottomSheet.Handle className='mt-x3 mb-x1' />
-                </>
-              )}
-              <DogSchoolList />
-            </BottomSheet.Body>
-          </RemoveScroll>
-        </BottomSheet.Root>
-      </div>
-    </>
+        <RemoveScroll forwardProps noIsolation>
+          <BottomSheet.Body
+            className={cn(
+              'shadow-black/6 absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
+              isMarkerActive && 'hidden',
+              isFullExtended && 'rounded-none shadow-none'
+            )}
+          >
+            {!isFullExtended && (
+              <>
+                {fabSlot}
+                <BottomSheet.Handle className='mt-x3 mb-x1' />
+              </>
+            )}
+            <DogSchoolList />
+          </BottomSheet.Body>
+        </RemoveScroll>
+      </BottomSheet.Root>
+    </div>
   );
 }

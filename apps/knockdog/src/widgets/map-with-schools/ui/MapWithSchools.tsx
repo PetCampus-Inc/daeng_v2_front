@@ -3,7 +3,7 @@
 import { cn } from '@knockdog/ui/lib';
 import { Float, Icon } from '@knockdog/ui';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import {
   ListFAB,
@@ -18,7 +18,8 @@ import { useBottomSheetSnapIndex } from '@shared/lib';
 
 export function MapWithSchools() {
   const data = getCombinedMockData();
-  const searchParams = useSearchParams();
+
+  const [searchParamString, setSearchParamString] = useState('');
 
   const { activeMarkerId, setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -33,7 +34,12 @@ export function MapWithSchools() {
     }
   };
 
-  // 선택된 업체 정보 찾기
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const str = searchParams.toString();
+    setSearchParamString(str);
+  }, []);
+
   const selectedShop = activeMarkerId
     ? data.shops.find((shop) => shop.id === activeMarkerId)
     : data.shops[0];
@@ -44,8 +50,7 @@ export function MapWithSchools() {
         onMarkerClick={handleMarkerClick}
         selectedMarkerId={activeMarkerId}
       />
-      {/* 지도 배경 오버레이 */}
-      <div className='bg-primitive-neutral-50/12 pointer-events-none absolute top-0 z-2 h-full w-full touch-none' />
+      <div className='bg-primitive-neutral-50/12 z-2 pointer-events-none absolute top-0 h-full w-full touch-none' />
 
       <div
         className={cn(
@@ -54,7 +59,7 @@ export function MapWithSchools() {
         )}
       >
         <Link
-          href={`/search${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+          href={`/search${searchParamString ? `?${searchParamString}` : ''}`}
         >
           <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
             <Icon
@@ -72,7 +77,6 @@ export function MapWithSchools() {
         </Link>
       </div>
 
-      {/* chips */}
       <div className='px-x4 gap-x2 absolute top-[calc(env(safe-area-inset-top)+72px)] z-20 flex w-full'>
         <button className='radius-r2 py-x2 px-x3_5 gap-x1 border-line-200 bg-fill-secondary-700 body2-semibold text-text-primary-inverse flex shrink-0 items-center border-[1.4px]'>
           <Icon
@@ -103,6 +107,7 @@ export function MapWithSchools() {
           </div>
         }
       />
+
       <DogSchoolCardSheet
         isOpen={!!activeMarkerId}
         onChangeOpen={handleBottomSheetClose}
