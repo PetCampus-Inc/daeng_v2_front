@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo --port 3001",
+    "dev": "next dev --turbo --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -17,14 +17,15 @@
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@knockdog/naver-map": "workspace:*",
+    "@knockdog/react-naver-map": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
     "@tanstack/react-query": "^5.81.2",
     "@tanstack/react-query-devtools": "^5.81.2",
-    "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "ky": "^1.8.2",
     "next": "^15.3.2",
     "nuqs": "^2.4.3",
     "overlay-kit": "^1.8.4",
@@ -32,6 +33,7 @@
     "swiper": "^11.2.10",
     "tailwindcss": "^4.1.11",
     "typescript": "5.8.3",
+    "zod": "^4.0.5",
     "zustand": "^5.0.6"
   },
   "devDependencies": {

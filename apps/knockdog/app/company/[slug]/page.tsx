@@ -1,24 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import Image from 'next/image';
-import img from './img.png';
-import img2 from './img2.png';
-import img3 from './img3.jpg';
-import {
-  Icon,
-  Tabs,
-  Divider,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  SwiperRoot,
-  ActionButton,
-  SwiperSlideItem,
-} from '@knockdog/ui';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { Icon, Divider, ActionButton } from '@knockdog/ui';
 
 import 'swiper/css';
 import { DogSchoolTabs } from '@widgets/dog-school-tabs';
