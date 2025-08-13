@@ -1,8 +1,7 @@
 import { Map, Marker } from '@knockdog/react-naver-map';
-
-// import { ClusterMarker } from './ClusterMarker';
 import { PlaceMarker } from './PlaceMarker';
 import { CurrentLocationMarker } from './CurrentLocationMarker';
+import { AggregationMarker } from './AggregationMarker';
 import { useGeolocationQuery } from '@shared/lib';
 
 interface OverlayInfo {
@@ -11,10 +10,21 @@ interface OverlayInfo {
   title: string;
   dist: number;
 }
+
+interface AggregationInfo {
+  code: string;
+  count: number;
+  label: string;
+  coord: { lat: number; lng: number };
+  nextZoom: number;
+}
+
 interface MapViewProps {
   ref: React.RefObject<naver.maps.Map | null>;
   overlays?: OverlayInfo[];
+  aggregations?: AggregationInfo[];
   onMarkerClick?: (id: string, coord: { lat: number; lng: number }) => void;
+  onAggregationClick?: (nextZoom: number) => void;
   selectedMarkerId?: string | null;
   center: { lat: number; lng: number };
   zoom?: number;
@@ -33,7 +43,16 @@ interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { ref, center, overlays = [], onMarkerClick, selectedMarkerId, zoom } = props;
+  const {
+    ref,
+    center,
+    overlays = [],
+    aggregations = [],
+    onMarkerClick,
+    onAggregationClick,
+    selectedMarkerId,
+    zoom,
+  } = props;
 
   const { data: current } = useGeolocationQuery();
 
@@ -43,6 +62,7 @@ export function MapView(props: MapViewProps) {
         ref={ref}
         center={center}
         zoom={zoom}
+        baseTileOpacity={0.88}
         isPanto
         onLoad={props.onLoad}
         onBoundsChanged={props.onBoundsChanged}
@@ -56,6 +76,8 @@ export function MapView(props: MapViewProps) {
         onZoomStart={props.onZoomStart}
         onZoomEnd={props.onZoomEnd}
         className='relative h-full w-full'
+        minZoom={7}
+        maxZoom={19}
       >
         {/* 현재 위치 마커 */}
         {current && (
@@ -68,9 +90,20 @@ export function MapView(props: MapViewProps) {
           />
         )}
 
-        {/* <Overlay position={{ lat: 37.54, lng: 127.07 }}>
-          <ClusterMarker label='광진구' count={overlays.length} />
-        </Overlay> */}
+        {/* 지도 집계 마커 */}
+        {aggregations.map((aggregation) => {
+          return (
+            <Marker
+              key={aggregation.code}
+              position={aggregation.coord}
+              onClick={() => onAggregationClick?.(aggregation.nextZoom)}
+              customIcon={{
+                content: <AggregationMarker label={aggregation.label} count={aggregation.count} />,
+                align: 'center',
+              }}
+            />
+          );
+        })}
 
         {/* TODO: 클러스터링 로직 추가 */}
         {overlays.map((overlay) => {
@@ -83,7 +116,6 @@ export function MapView(props: MapViewProps) {
               onClick={() => onMarkerClick?.(overlay.id, overlay.coord)}
               customIcon={{
                 content: <PlaceMarker title={overlay.title} distance={overlay.dist.toFixed(2)} selected={isSelected} />,
-
                 offsetY: 12,
               }}
             />
