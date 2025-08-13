@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-'use client';
 
 import { overlay } from 'overlay-kit';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
@@ -23,6 +22,7 @@ export function DogSchoolCardSheet({ isOpen, onChangeOpen, ...props }: DogSchool
     <BottomSheet.Root open={isOpen} onOpenChange={onChangeOpen}>
       <BottomSheet.Body className='bottom-[68px] z-50'>
         <BottomSheet.Handle />
+        <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
 
         {/* 컨텐츠 영역 */}
         <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
