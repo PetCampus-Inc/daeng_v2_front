@@ -9,17 +9,17 @@ import type { DogSchoolWithMeta } from '../model/mappers';
 
 interface DogSchoolCardSheetProps extends DogSchoolWithMeta {
   isOpen: boolean;
-  onChangeOpen: (isOpen: boolean) => void;
+  close: () => void;
 }
 
-export function DogSchoolCardSheet({ isOpen, onChangeOpen, ...props }: DogSchoolCardSheetProps) {
+export function DogSchoolCardSheet({ isOpen, close, ...props }: DogSchoolCardSheetProps) {
   const openPhoneCallActionSheet = () =>
     overlay.open(({ isOpen, close }) => <PhoneCallSheet isOpen={isOpen} close={close} />);
 
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={onChangeOpen}>
+    <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Body className='bottom-[68px] z-50'>
         <BottomSheet.Handle />
         <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>

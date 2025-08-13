@@ -10,6 +10,7 @@ import { useMapState } from '../model/useMapState';
 import { isSameBounds, isSameCoord, isValidBounds, isValidCoord } from '../utils/is';
 import { getRegionLevel } from '../utils/zoom-level';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { overlay } from 'overlay-kit';
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
 import { dogSchoolListOptions, DogSchoolCardSheet, DogSchoolListSheet } from '@features/dog-school';
 import { useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
@@ -59,8 +60,6 @@ export function MapWithSchools() {
   const mapCenter = isValidCoord(center) ? center : isValidCoord(basePoint) ? basePoint : DEFAULT_MAP_CENTER;
 
   const allSchools = data?.pages?.flatMap((page) => page.schoolResult.list) || [];
-
-  const selectedSchool = allSchools.find((school) => school.id === activeMarkerId);
 
   const aggregations = data?.pages?.flatMap(
     (page) => page.aggregations.sidoAggregations ?? page.aggregations.sigunAggregations ?? []
@@ -139,12 +138,7 @@ export function MapWithSchools() {
   const handleMarkerClick = (id: string, coord: { lat: number; lng: number }) => {
     map.current?.panTo(coord);
     setActiveMarker(id);
-  };
-
-  const handleBottomSheetClose = (isOpen: boolean) => {
-    if (!isOpen) {
-      setActiveMarker(null);
-    }
+    openDogSchoolCardSheet(id);
   };
 
   /**
@@ -171,6 +165,27 @@ export function MapWithSchools() {
       });
       setSearchedLevel(currentLevel);
     }
+  };
+
+  const openDogSchoolCardSheet = (id: string) => {
+    overlay.open(({ isOpen, close }) => {
+      const selectedSchool = allSchools.find((school) => school.id === id);
+
+      if (!selectedSchool) return null;
+
+      return (
+        <DogSchoolCardSheet
+          isOpen={isOpen}
+          close={() => {
+            setActiveMarker(null);
+
+            close();
+          }}
+          {...selectedSchool}
+          images={selectedSchool.images || []}
+        />
+      );
+    });
   };
 
   const shouldShowRefresh = useMemo(() => {
@@ -246,9 +261,6 @@ export function MapWithSchools() {
           </div>
         }
       />
-      {selectedSchool && (
-        <DogSchoolCardSheet isOpen={!!activeMarkerId} onChangeOpen={handleBottomSheetClose} {...selectedSchool} />
-      )}
     </>
   );
 }
