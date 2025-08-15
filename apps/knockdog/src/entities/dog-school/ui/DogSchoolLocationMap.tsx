@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { Icon } from '@knockdog/ui';
-import { NaverMap as NaverMapComponent, Overlay } from '@knockdog/naver-map';
-import { PlaceMarker } from '@features/place-info';
 
 import { useCurrentLocation } from '@shared/lib/geolocation';
 
