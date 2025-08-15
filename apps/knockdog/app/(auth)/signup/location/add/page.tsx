@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
-import Link from 'next/link';
 import { useHeaderContext } from '@widgets/Header';
 
 export default function LocationAddPage() {
@@ -59,22 +58,15 @@ export default function LocationAddPage() {
             <h3 className='body2-bold mb-2'>
               장소 이름
               <span className='body1-extrabold text-text-accent'>*</span>
-              <span className='caption1-semibold text-text-tertiary'>
-                (선택)
-              </span>
+              <span className='caption1-semibold text-text-tertiary'>(선택)</span>
             </h3>
             <div className='bg-primitive-neutral-50 my-2 flex items-center justify-between rounded-lg px-4 py-3'>
-              <input
-                placeholder='장소 이름을 등록하세요'
-                className='body1-regular'
-              />
+              <input placeholder='장소 이름을 등록하세요' className='body1-regular' />
               <span className='text-text-tertiary body1-regular'> 0/5</span>
             </div>
             <h3 className='body2-bold mb-2'>
               주소<span className='body1-extrabold text-text-accent'>*</span>
-              <span className='caption1-semibold text-text-tertiary'>
-                (선택)
-              </span>
+              <span className='caption1-semibold text-text-tertiary'>(선택)</span>
             </h3>
             <div className=''>
               <div className='bg-primitive-neutral-50 my-2 flex items-center gap-2 rounded-lg px-4 py-3'>
@@ -91,9 +83,7 @@ export default function LocationAddPage() {
                   <ul className='text-text-tertiary body2-regular flex list-disc flex-col gap-2'>
                     <li>
                       시/군/구 + 도로명, 동명 또는 건물명 <br />
-                      <span>
-                        예) 동해시 중앙로, 여수 중앙동, 대전 현대아파트
-                      </span>
+                      <span>예) 동해시 중앙로, 여수 중앙동, 대전 현대아파트</span>
                     </li>
                     <li>도로명 + 건물번호 예) 종로 6</li>
                     <li>읍/면/동/리 + 지번 예) 서린동 154-1 </li>
@@ -106,16 +96,9 @@ export default function LocationAddPage() {
                 <div className='mt-5 px-4'>
                   <ul>
                     {mockResults.map((item, index) => (
-                      <li
-                        key={index}
-                        className='border-b border-neutral-100 py-4 last:border-b-0'
-                      >
-                        <div className='body2-semibold'>
-                          {highlightText(item.main, search)}
-                        </div>
-                        <span className='body2-regular text-text-tertiary'>
-                          {highlightText(item.sub, search)}
-                        </span>
+                      <li key={index} className='border-b border-neutral-100 py-4 last:border-b-0'>
+                        <div className='body2-semibold'>{highlightText(item.main, search)}</div>
+                        <span className='body2-regular text-text-tertiary'>{highlightText(item.sub, search)}</span>
                       </li>
                     ))}
                   </ul>
@@ -124,12 +107,8 @@ export default function LocationAddPage() {
               {/* 검색 결과가 없을때, */}
               {search !== '' && mockResults.length === 0 && (
                 <div className='flex min-h-[300px] flex-col items-center justify-center px-4 text-center'>
-                  <span className='h3-semibold text-primitive-neutral-900'>
-                    검색 결과가 없어요
-                  </span>
-                  <span className='body1-regular text-primitive-neutral-600 mt-1'>
-                    검색어를 확인해주세요
-                  </span>
+                  <span className='h3-semibold text-primitive-neutral-900'>검색 결과가 없어요</span>
+                  <span className='body1-regular text-primitive-neutral-600 mt-1'>검색어를 확인해주세요</span>
                 </div>
               )}
             </div>
