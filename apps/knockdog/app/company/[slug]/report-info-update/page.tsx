@@ -1,6 +1,7 @@
 'use client';
 
-import { Icon } from '@knockdog/ui';
+import { Icon, Checkbox, ActionButton } from '@knockdog/ui';
+import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { useState } from 'react';
 import { cn } from '@knockdog/ui/lib';
 import Link from 'next/link';
@@ -34,91 +35,80 @@ const checkOptions = [
   },
 ];
 
+const MAX_UPLOAD_COUNT = 3;
+
 export default function Page() {
   const [checkedList, setCheckedList] = useState<string[]>([]);
   const { slug } = useParams();
 
+  const handleCheckboxChange = (key: string, checked: boolean) => {
+    if (checked) {
+      setCheckedList(prev => [...prev, key]);
+    } else {
+      setCheckedList(prev => prev.filter(item => item !== key));
+    }
+  };
+
   return (
     <>
-      <div className='h-[calc(100vh-155px)] overflow-y-auto pb-6'>
-        <div className='label-medium bg-fill-primary-50 text-text-secondary mt-[65px] px-4 py-3'>
-          최대 <span className='text-text-accent'>3장</span>까지 등록 가능
-        </div>
-        {checkOptions.map((option) => {
-          const isChecked = checkedList.includes(option.key);
+      <div className=''>
+        
+        <div className='overflow-y-auto h-[calc(100vh-77px)] '>
+          <div className='label-medium bg-neutral-50 text-text-secondary pt-[80px] px-4 pb-3'>
+            최대 <span className='text-text-accent'>{MAX_UPLOAD_COUNT}장</span>까지 등록 가능
+          </div>
+          {checkOptions.map((option, index) => {
+            const isChecked = checkedList.includes(option.key);
 
-          return (
-            <div key={option.key} className='flex flex-col'>
-              <div className='flex gap-2 p-4'>
-                <label className='inline-flex cursor-pointer items-center'>
-                  <input
-                    type='checkbox'
-                    className='peer hidden'
-                    checked={isChecked}
-                    onChange={() => {
-                      setCheckedList((prev) => {
-                        if (isChecked) {
-                          return prev.filter((k) => k !== option.key);
-                        } else {
-                          if (prev.length >= 3) return prev; // 최대 3개 제한
-                          return [...prev, option.key];
-                        }
-                      });
-                    }}
-                  />
-                  <div className='border-line-400 peer-checked:border-primitive-orange-500 peer-checked:bg-primitive-orange-500 flex h-5 w-5 items-center justify-center rounded-sm border'>
-                    <Icon
-                      icon='Check'
-                      className='h-4 w-4 stroke-[#fff] text-white'
-                    />
+              return (
+                <div key={option.key} className='flex flex-col p-4' style={{paddingBottom: index === checkOptions.length - 1 ? '40px' : '0px'}}>
+                  <div className='flex gap-2'>
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => handleCheckboxChange(option.key, checked as boolean)}
+                      >
+                        <div className='flex flex-col'>
+                          <span className='body1-extrabold'>{option.title}</span>
+                          <span className='body2-regular text-text-tertiary'>
+                            {option.description}
+                          </span>
+                        </div>
+                      </Checkbox>
                   </div>
-                </label>
-                <div className='flex flex-col'>
-                  <span className='body1-extrabold'>{option.title}</span>
-                  <span className='body2-regular text-text-tertiary'>
-                    {option.description}
-                  </span>
-                </div>
-              </div>
 
-              {/* 조건부 렌더링: 체크된 항목에 따라 부가 UI 표시 */}
-              {option.key === 'closed' && isChecked && (
-                <div className='my-5 px-4'>
-                  <button className='border-primitive-neutral-400 text-text-secondary body2-bold w-full rounded-lg border px-4 py-[14px]'>
-                    <Icon icon='Plus' className='inline-block h-4 w-4' />
-                    사진등록
-                  </button>
-                </div>
-              )}
+                  {/* 조건부 렌더링: 체크된 항목에 따라 부가 UI 표시 */}
+                  {['closed', 'price', 'phone', 'time'].includes(option.key) && isChecked && (
+                    <div className='mt-5 px-4'>
+                      <PhotoUploader maxCount={MAX_UPLOAD_COUNT}/>
+                    </div>
+                  )}
 
-              {option.key === 'address' && isChecked && (
-                <div className='my-5 flex gap-2 px-4'>
-                  <button className='border-primitive-neutral-400 text-text-secondary body2-bold flex-1 rounded-lg border px-4 py-[14px]'>
-                    지도에서 선택
-                  </button>
-                  <Link
-                    href={`/company/${slug}/report-info-update/manual-address`}
-                    className='border-primitive-neutral-400 text-text-secondary body2-bold flex-1 rounded-lg border px-4 py-[14px] text-center'
-                  >
-                    직접입력
-                  </Link>
+                  {option.key === 'address' && isChecked && (
+                    <div className='my-5 flex gap-2 px-4'>
+                      <ActionButton className='flex-1' variant='secondaryLine'>
+                        지도에서 선택
+                      </ActionButton>
+                      <ActionButton asChild={true} variant='secondaryLine'>
+                        <Link
+                          href={`/company/${slug}/report-info-update/manual-address`}
+                          className='flex-1'
+                        >
+                          직접입력
+                        </Link>
+                      </ActionButton>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              );
+          })}
+        </div>
       </div>
-      <div className='z-10 flex w-screen items-center gap-1 bg-white p-4'>
-        <button
-          className={cn(
-            'body1-bold flex-1 rounded-lg px-4 py-[14px]',
-            checkedList.length > 0
-              ? 'bg-fill-primary-500 border-accent border text-neutral-100'
-              : 'bg-fill-primary-50 text-text-secondary-inverse'
-          )}
+      <div className='z-10 flex w-screen items-center gap-1 bg-white p-4 fixed bottom-0 left-0 right-0'>
+        <ActionButton
+          disabled={checkedList.length === 0}
         >
-          정보 수정 제보하기 {checkedList.length}개
-        </button>
+          정보 수정 제보하기
+        </ActionButton>
       </div>
     </>
   );

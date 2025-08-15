@@ -7,7 +7,6 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
-import { BottomNavigationBar } from '@widgets/bottom-bar';
 
 export default function RootLayout({
   children,
@@ -16,13 +15,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang='ko' className={cn(suit.variable)}>
-      <body>
+      <body className='overflow-hidden'>
         <NuqsAdapter>
           <ReactQueryProvider>
             <NaverMapProvider>
               <OverlayProvider>
                 <HeaderProvider>
-                  <div className='flex h-dvh flex-col'>
+                  <div className='flex flex-col h-dvh'>
                     <HeaderWrapper />
                     {children}
                   </div>

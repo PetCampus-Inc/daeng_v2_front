@@ -12,3 +12,4 @@ export * from './swiper';
 export * from './text-field';
 export * from './progress-bar';
 export * from './radio-group';
+export * from './checkbox';

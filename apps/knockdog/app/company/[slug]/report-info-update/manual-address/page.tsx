@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon } from '@knockdog/ui';
+import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { useState } from 'react';
 
 function highlightText(text: string, keyword: string) {
@@ -20,7 +20,7 @@ function highlightText(text: string, keyword: string) {
 }
 
 export default function Page() {
-  const [search, setSearch] = useState('테헤란로');
+  const [search, setSearch] = useState('');
 
   const mockResults: { main: string; sub: string }[] = [
     {
@@ -41,14 +41,22 @@ export default function Page() {
     <>
       <div className='mt-[65px] h-[calc(100vh-155px)] overflow-y-auto pb-6'>
         <div className='px-4'>
-          <div className='bg-primitive-neutral-50 my-2 flex items-center gap-2 rounded-lg px-4 py-3'>
+          {/* <div className='bg-primitive-neutral-50 my-2 flex items-center gap-2 rounded-lg px-4 py-3'>
             <Icon icon='Search' className='h-5 w-5' />
             <input
               placeholder='시/군/구 혹은 도로명 검색'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-          </div>
+          </div> */}
+
+          <TextField variant='secondary' prefix={<Icon icon='Search' className='h-5 w-5' />}>
+            <TextFieldInput
+              placeholder='시/군/구 혹은 도로명 검색'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </TextField>
         </div>
 
         {/* 아무 입력도 없을 때 */}

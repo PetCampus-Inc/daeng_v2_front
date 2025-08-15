@@ -1,4 +1,4 @@
-import { useUploader } from "@shared/lib";
+import { useUploader, type UseUploaderOptions } from "@shared/lib";
 import { ActionButton, Icon } from "@knockdog/ui";
 import { MiniPhotoBox } from "./MiniPhotoBox";
 
@@ -6,7 +6,11 @@ interface PhotoUploaderProps {
   maxCount?: number;
 }
 
-function PhotoUploader({ maxCount = 3 }: PhotoUploaderProps) {
+interface PhotoUploaderProps extends Omit<UseUploaderOptions, 'max'> {
+  maxCount?: number;
+}
+
+function PhotoUploader({ maxCount = 3, ...options }: PhotoUploaderProps) {
   const { files, state, open, removeFile, getInputProps } = useUploader({max: maxCount});
 
   return (

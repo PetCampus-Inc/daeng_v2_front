@@ -12,13 +12,13 @@ const checkboxVariants = cva(
   {
     variants: {
       size: {
-        sm: "size-[20px]",
-        md: "size-[25px]",
-        lg: "size-[32px]",
+        sm: "size-[18px]",
+        md: "size-[22px]",
+        lg: "size-[26px]",
       },
     },
     defaultVariants: {
-      size: "md",
+      size: "sm",
     },
   }
 )
@@ -34,7 +34,7 @@ const iconVariants = cva(
       },
     },
     defaultVariants: {
-      size: "md",
+      size: "sm",
     },
   }
 )
