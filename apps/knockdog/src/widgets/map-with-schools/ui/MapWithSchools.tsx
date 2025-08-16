@@ -7,7 +7,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useMapState } from '../model/useMapState';
-import { isSameBounds, isSameCoord, isValidBounds, isValidCoord } from '../utils/is';
+import { isSameCoord, isValidBounds, isValidCoord } from '../utils/is';
 import { getRegionLevel } from '../utils/zoom-level';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { overlay } from 'overlay-kit';
@@ -22,8 +22,7 @@ export function MapWithSchools() {
   const { coord: basePoint } = useBasePoint();
 
   /** 지도 상태(라이브, URL 연동) */
-  const { center, bounds, zoomLevel, searchedLevel, setCenter, setBounds, setZoomLevel, setSearchedLevel } =
-    useMapState();
+  const { center, zoomLevel, searchedLevel, setCenter, setZoomLevel, setSearchedLevel } = useMapState();
 
   /**
    * 지도 상태 스냅샷
@@ -71,7 +70,6 @@ export function MapWithSchools() {
 
     map.current?.setCenter(basePoint);
     setCenter(basePoint);
-    setBounds(map.current?.getBounds() as naver.maps.LatLngBounds);
     setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapLoaded, center, basePoint]);
@@ -80,25 +78,24 @@ export function MapWithSchools() {
   useEffect(() => {
     if (!isMapLoaded || mapSnapshot.center !== null) return;
 
-    if (isValidBounds(bounds)) {
-      const initialCenter = center ? { lat: center.lat, lng: center.lng } : isValidCoord(basePoint) ? basePoint : null;
-      const initialZoom = zoomLevel || DEFAULT_MAP_ZOOM_LEVEL;
-      if (!initialCenter) return;
-      setMapSnapshot({
-        center: initialCenter,
-        bounds,
-        zoomLevel: initialZoom,
-      });
+    const initialCenter = center ? { lat: center.lat, lng: center.lng } : isValidCoord(basePoint) ? basePoint : null;
+    const initialZoom = zoomLevel || DEFAULT_MAP_ZOOM_LEVEL;
+    const initialBounds = map.current?.getBounds() as naver.maps.LatLngBounds;
 
-      const initialLevel = getRegionLevel(initialZoom);
-      setSearchedLevel(initialLevel);
-    }
-  }, [isMapLoaded, center, basePoint, bounds, zoomLevel, mapSnapshot.center, setSearchedLevel]);
+    if (!initialCenter) return;
+    setMapSnapshot({
+      center: initialCenter,
+      bounds: initialBounds,
+      zoomLevel: initialZoom,
+    });
+
+    const initialLevel = getRegionLevel(initialZoom);
+    setSearchedLevel(initialLevel);
+  }, [isMapLoaded, center, basePoint, zoomLevel, mapSnapshot.center, setSearchedLevel]);
 
   /**
    * 지도 로드 핸들러
    * - 지도의 center, zoom 업데이트
-   * - mapState bounds 업데이트
    */
   const handleMapLoad = (map: naver.maps.Map) => {
     setIsMapLoaded(true);
@@ -109,20 +106,18 @@ export function MapWithSchools() {
     if (zoomLevel) {
       map.setZoom(zoomLevel);
     }
-
-    setBounds(map.getBounds() as naver.maps.LatLngBounds);
   };
 
   /**
    * 새로고침 핸들러
-   * - 현재 mapState를 커밋된 상태로 업데이트
+   * - 현재 mapState를 스냅샷으로 저장
    */
   const handleRefresh = () => {
-    if (!isValidCoord(basePoint) || !isValidBounds(bounds) || !zoomLevel) return;
+    if (!isValidCoord(basePoint) || !zoomLevel) return;
 
     setMapSnapshot({
       center: { lat: center?.lat, lng: center?.lng },
-      bounds,
+      bounds: map.current?.getBounds() as naver.maps.LatLngBounds,
       zoomLevel,
     });
   };
@@ -143,7 +138,7 @@ export function MapWithSchools() {
 
   /**
    * 줌 변경 완료 핸들러
-   * - 줌 변경 완료 시 mapState(center, bounds) 업데이트
+   * - 줌 변경 완료 시 local state(center) 업데이트
    * - 검색 레벨 비교 후 커밋된 상태로 업데이트
    */
   const handleZoomEnd = () => {
@@ -153,7 +148,6 @@ export function MapWithSchools() {
     const bounds = map.current.getBounds() as naver.maps.LatLngBounds;
     const zoom = map.current.getZoom();
     setCenter({ lat: coord.y, lng: coord.x });
-    setBounds(bounds);
 
     const currentLevel = getRegionLevel(zoom);
 
@@ -189,12 +183,8 @@ export function MapWithSchools() {
   };
 
   const shouldShowRefresh = useMemo(() => {
-    return !(
-      isSameCoord(center, mapSnapshot.center) &&
-      isSameBounds(bounds, mapSnapshot.bounds) &&
-      zoomLevel === mapSnapshot.zoomLevel
-    );
-  }, [center, bounds, zoomLevel, mapSnapshot.center, mapSnapshot.bounds, mapSnapshot.zoomLevel]);
+    return !(isSameCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
+  }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
 
   return (
     <>
@@ -213,9 +203,6 @@ export function MapWithSchools() {
         center={mapCenter}
         zoom={zoomLevel ?? DEFAULT_MAP_ZOOM_LEVEL}
         onLoad={handleMapLoad}
-        onBoundsChanged={(bounds) => {
-          setBounds(bounds as naver.maps.LatLngBounds);
-        }}
         onDragEnd={() => {
           if (!map.current) return;
           const coord = map.current.getCenter();
@@ -225,11 +212,6 @@ export function MapWithSchools() {
           setZoomLevel(zoom);
         }}
         onZoomEnd={handleZoomEnd}
-        onPinchEnd={() => {
-          if (!map.current) return;
-          const coord = map.current.getCenter();
-          setCenter({ lat: coord.y, lng: coord.x });
-        }}
       />
 
       <div

@@ -1,5 +1,4 @@
 import { createParser, parseAsInteger, useQueryState } from 'nuqs';
-import { useState } from 'react';
 
 const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
   parse: (value: string) => {
@@ -17,7 +16,6 @@ const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
 export function useMapState() {
   const [center, setCenter] = useQueryState('center', CENTER_PARSER);
   const [zoomLevel, setZoomLevel] = useQueryState('zoom', parseAsInteger);
-  const [bounds, setBounds] = useState<naver.maps.LatLngBounds | null>(null);
 
   /**
    * 이전 검색에 사용된 행정구역 단위 스케일
@@ -30,11 +28,9 @@ export function useMapState() {
 
   return {
     center,
-    bounds,
     zoomLevel,
     searchedLevel,
     setCenter,
-    setBounds,
     setZoomLevel,
     setSearchedLevel,
   };
