@@ -14,5 +14,11 @@ export function useGeolocationQuery(enabled = true) {
     gcTime: 5 * 60_000,
     retry: false,
     refetchOnWindowFocus: false,
+    select: (data) => {
+      return {
+        lat: Number(data.lat.toFixed(6)),
+        lng: Number(data.lng.toFixed(6)),
+      };
+    },
   });
 }
