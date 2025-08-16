@@ -124,12 +124,17 @@ export function MapWithSchools() {
 
   /**
    * 집계 마커 클릭 핸들러
-   * - 집계 마커 클릭 시 줌 레벨 변경
+   * - 집계 마커 클릭 시 center, zoom 변경
    */
-  const handleAggregationClick = (nextZoom: number) => {
+  const handleAggregationClick = (code: string, coord: { lat: number; lng: number }, nextZoom: number) => {
+    map.current?.setCenter(coord);
     map.current?.setZoom(nextZoom, true);
   };
 
+  /**
+   * 마커 클릭 핸들러
+   * - 마커 클릭 시 지도 중심 이동 및 상세 정보 표시
+   */
   const handleMarkerClick = (id: string, coord: { lat: number; lng: number }) => {
     map.current?.panTo(coord);
     setActiveMarker(id);
@@ -139,7 +144,7 @@ export function MapWithSchools() {
   /**
    * 줌 변경 완료 핸들러
    * - 줌 변경 완료 시 local state(center) 업데이트
-   * - 검색 레벨 비교 후 커밋된 상태로 업데이트
+   * - 검색 레벨 비교 후 스냅샷 저장
    */
   const handleZoomEnd = () => {
     if (!map.current) return;
@@ -172,7 +177,6 @@ export function MapWithSchools() {
           isOpen={isOpen}
           close={() => {
             setActiveMarker(null);
-
             close();
           }}
           {...selectedSchool}

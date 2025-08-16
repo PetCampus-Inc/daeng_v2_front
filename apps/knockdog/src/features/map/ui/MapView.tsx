@@ -24,22 +24,16 @@ interface MapViewProps {
   overlays?: OverlayInfo[];
   aggregations?: AggregationInfo[];
   onMarkerClick?: (id: string, coord: { lat: number; lng: number }) => void;
-  onAggregationClick?: (nextZoom: number) => void;
+  onAggregationClick?: (code: string, coord: { lat: number; lng: number }, nextZoom: number) => void;
   selectedMarkerId?: string | null;
   center: { lat: number; lng: number };
   zoom?: number;
   onLoad?: (map: naver.maps.Map) => void;
   onDragStart?: (pointerEvent: naver.maps.PointerEvent) => void;
   onDragEnd?: (pointerEvent: naver.maps.PointerEvent) => void;
-  onPinchStart?: (pointerEvent: naver.maps.PointerEvent) => void;
-  onPinchEnd?: (pointerEvent: naver.maps.PointerEvent) => void;
-  onBoundsChanged?: (bounds: naver.maps.Bounds) => void;
-  onCenterChanged?: (center: naver.maps.Coord) => void;
   onZoomStart?: () => void;
   onZoomChanged?: (zoom: number) => void;
   onZoomEnd?: () => void;
-  onDrag?: (pointerEvent: naver.maps.PointerEvent) => void;
-  onIdle?: () => void;
 }
 
 export function MapView(props: MapViewProps) {
@@ -62,17 +56,12 @@ export function MapView(props: MapViewProps) {
         ref={ref}
         center={center}
         zoom={zoom}
-        baseTileOpacity={0.88}
         isPanto
+        baseTileOpacity={0.88}
         onLoad={props.onLoad}
-        onBoundsChanged={props.onBoundsChanged}
-        onCenterChanged={props.onCenterChanged}
         onZoomChanged={props.onZoomChanged}
-        onIdle={props.onIdle}
         onDragStart={props.onDragStart}
         onDragEnd={props.onDragEnd}
-        onPinchStart={props.onPinchStart}
-        onPinchEnd={props.onPinchEnd}
         onZoomStart={props.onZoomStart}
         onZoomEnd={props.onZoomEnd}
         className='relative h-full w-full'
@@ -96,7 +85,7 @@ export function MapView(props: MapViewProps) {
             <Marker
               key={aggregation.code}
               position={aggregation.coord}
-              onClick={() => onAggregationClick?.(aggregation.nextZoom)}
+              onClick={() => onAggregationClick?.(aggregation.code, aggregation.coord, aggregation.nextZoom)}
               customIcon={{
                 content: <AggregationMarker label={aggregation.label} count={aggregation.count} />,
                 align: 'center',
