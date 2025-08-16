@@ -1,6 +1,7 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
-import { DogSchoolImageSlider, ServiceBadgeGroup } from '@entities/dog-school';
+import { DogSchoolImageSlider } from './DogSchoolImageSlider';
+import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 
 import type { DogSchoolWithMeta } from '@entities/dog-school';
 
@@ -33,7 +34,7 @@ export function DogSchoolCard({
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
-          className='bg-bg-0 absolute right-0 top-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
+          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={() => onBookmarkClick?.(id)}
         >
@@ -76,7 +77,7 @@ export function DogSchoolCard({
             <span className='body2-extrabold text-text-accent col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
               {operationStatus === 'OPEN' ? '영업중' : '영업종료'}
             </span>
-            <span className='body2-regular text-text-secondary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
+            <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
               {operationStatus === 'OPEN'
                 ? `${operationTimes.endTime}에 영업종료`
                 : `${operationTimes.startTime}에 영업시작`}
@@ -84,7 +85,7 @@ export function DogSchoolCard({
             <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
               {dist.toFixed(2)}km
             </span>
-            <span className='body2-regular text-text-secondary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
+            <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
               {roadAddress}
             </span>
           </div>

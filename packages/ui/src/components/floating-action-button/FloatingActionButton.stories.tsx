@@ -90,7 +90,7 @@ export const WithFloat: Story = {
   render: (args) => (
     <div className='border-line-100 relative h-[500px] w-[350px] border'>
       <Float placement='bottom-end' offsetX='x4' offsetY='x4'>
-        <FloatingActionButton {...args} />
+        <FloatingActionButton icon='List' {...args} />
       </Float>
     </div>
   ),

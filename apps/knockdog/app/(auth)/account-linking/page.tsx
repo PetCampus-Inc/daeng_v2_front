@@ -35,7 +35,7 @@ export default function AccountLinkingPage() {
               start();
             }}
           >
-            {status === 'IDLE' ? '인증' : '재전송'}
+            {'재전송'}
           </ActionButton>
         </div>
 
