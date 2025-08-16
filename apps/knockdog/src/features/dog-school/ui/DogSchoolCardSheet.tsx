@@ -6,21 +6,32 @@ import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 import { PhoneCallSheet } from './PhoneCallSheet';
 import { DeparturePointSheet } from './DeparturePointSheet';
 import type { DogSchoolWithMeta } from '../model/mappers';
+import { useState } from 'react';
 
 interface DogSchoolCardSheetProps extends DogSchoolWithMeta {
   isOpen: boolean;
   close: () => void;
 }
 
+const snapPoints = ['328px', 1];
+
 export function DogSchoolCardSheet({ isOpen, close, ...props }: DogSchoolCardSheetProps) {
+  const [snap, setSnap] = useState<number | string | null>(snapPoints[0] ?? null);
+
   const openPhoneCallActionSheet = () =>
     overlay.open(({ isOpen, close }) => <PhoneCallSheet isOpen={isOpen} close={close} />);
 
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={close}>
-      <BottomSheet.Body className='bottom-[68px] z-50'>
+    <BottomSheet.Root
+      open={isOpen}
+      onOpenChange={close}
+      snapPoints={snapPoints}
+      activeSnapPoint={snap}
+      setActiveSnapPoint={setSnap}
+    >
+      <BottomSheet.Body className='bottom-[68px] z-50 h-full'>
         <BottomSheet.Handle />
         <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
 
