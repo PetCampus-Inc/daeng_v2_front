@@ -1,14 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  ActionButton,
-  ProgressBar,
-  Icon,
-  TextField,
-  TextFieldInput,
-  IconButton,
-} from '@knockdog/ui';
+import { useEffect, useState, Suspense } from 'react';
+import { ActionButton, ProgressBar, Icon, TextField, TextFieldInput, IconButton } from '@knockdog/ui';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useHeaderContext } from '@widgets/Header';
 import {
@@ -26,10 +19,7 @@ import type { Breed } from '@features/dog-profile';
 
 const MAX_STEP = 5;
 
-const TITLE_COMPONENTS: Record<
-  number,
-  React.ComponentType<{ dogName: string }>
-> = {
+const TITLE_COMPONENTS: Record<number, React.ComponentType<{ dogName: string }>> = {
   1: Step1Title,
   2: Step2Title,
   3: Step3Title,
@@ -37,7 +27,7 @@ const TITLE_COMPONENTS: Record<
   5: Step5Title,
 };
 
-const Page = () => {
+function PetDetailsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const dogName = searchParams.get('dog-name') ?? '';
@@ -177,17 +167,20 @@ const Page = () => {
       </div>
 
       <div className='fixed bottom-0 left-0 right-0 flex gap-x-2 bg-white px-4 py-5'>
-        <ActionButton
-          variant='secondaryFill'
-          className='w-full'
-          disabled={isDisabled}
-          onClick={handleNext}
-        >
+        <ActionButton variant='secondaryFill' className='w-full' disabled={isDisabled} onClick={handleNext}>
           <Icon icon='Plus' className='h-4 w-4' />
           {step === 5 ? '완료' : '다음'}
         </ActionButton>
       </div>
     </div>
+  );
+}
+
+const Page = () => {
+  return (
+    <Suspense>
+      <PetDetailsContent />
+    </Suspense>
   );
 };
 
