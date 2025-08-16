@@ -26,7 +26,7 @@ repo:
 
 'packages:naver-map':
   - changed-files:
-      - any-glob-to-any-file: ['packages/naver-map/**']
+      - any-glob-to-any-file: ['packages/react-naver-map/**']
 
 'packages:icons':
   - changed-files:
