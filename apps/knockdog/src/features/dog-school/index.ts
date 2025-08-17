@@ -1,3 +1,10 @@
+/* model */
+export * from './model/mappers';
+
+/* api */
+export * from './api/dogschool-list-query';
+
+/* ui */
 export * from './ui/DogSchoolList';
 export * from './ui/ServiceBadgeGroup';
 export * from './ui/ServiceBadge';

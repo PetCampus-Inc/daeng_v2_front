@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-'use client';
 
 import { overlay } from 'overlay-kit';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
@@ -7,22 +6,34 @@ import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 import { PhoneCallSheet } from './PhoneCallSheet';
 import { DeparturePointSheet } from './DeparturePointSheet';
 import type { DogSchoolWithMeta } from '../model/mappers';
+import { useState } from 'react';
 
 interface DogSchoolCardSheetProps extends DogSchoolWithMeta {
   isOpen: boolean;
-  onChangeOpen: (isOpen: boolean) => void;
+  close: () => void;
 }
 
-export function DogSchoolCardSheet({ isOpen, onChangeOpen, ...props }: DogSchoolCardSheetProps) {
+const snapPoints = ['328px', 1];
+
+export function DogSchoolCardSheet({ isOpen, close, ...props }: DogSchoolCardSheetProps) {
+  const [snap, setSnap] = useState<number | string | null>(snapPoints[0] ?? null);
+
   const openPhoneCallActionSheet = () =>
     overlay.open(({ isOpen, close }) => <PhoneCallSheet isOpen={isOpen} close={close} />);
 
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={onChangeOpen}>
-      <BottomSheet.Body className='bottom-[68px] z-50'>
+    <BottomSheet.Root
+      open={isOpen}
+      onOpenChange={close}
+      snapPoints={snapPoints}
+      activeSnapPoint={snap}
+      setActiveSnapPoint={setSnap}
+    >
+      <BottomSheet.Body className='bottom-[68px] z-50 h-full'>
         <BottomSheet.Handle />
+        <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
 
         {/* 컨텐츠 영역 */}
         <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>

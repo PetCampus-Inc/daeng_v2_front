@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { ActionButton, ProgressBar, Icon, TextField, TextFieldInput, IconButton } from '@knockdog/ui';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useHeaderContext } from '@widgets/Header';
@@ -27,7 +27,7 @@ const TITLE_COMPONENTS: Record<number, React.ComponentType<{ dogName: string }>>
   5: Step5Title,
 };
 
-const Page = () => {
+function PetDetailsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -179,6 +179,14 @@ const Page = () => {
         </ActionButton>
       </div>
     </div>
+  );
+}
+
+const Page = () => {
+  return (
+    <Suspense>
+      <PetDetailsContent />
+    </Suspense>
   );
 };
 

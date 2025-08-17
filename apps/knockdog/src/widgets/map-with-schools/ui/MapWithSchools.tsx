@@ -7,11 +7,12 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useMapState } from '../model/useMapState';
-import { isSameBounds, isSameCoord, isValidBounds, isValidCoord } from '../model/is';
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config';
+import { isSameCoord, isValidBounds, isValidCoord } from '../utils/is';
+import { getRegionLevel } from '../utils/zoom-level';
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { overlay } from 'overlay-kit';
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
-import { dogSchoolListOptions } from '@features/dog-school/api/dogschool-list-query';
-import { DogSchoolCardSheet, DogSchoolListSheet } from '@features/dog-school';
+import { dogSchoolListOptions, DogSchoolCardSheet, DogSchoolListSheet } from '@features/dog-school';
 import { useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
@@ -21,19 +22,18 @@ export function MapWithSchools() {
   const { coord: basePoint } = useBasePoint();
 
   /** 지도 상태(라이브, URL 연동) */
-  const { center, bounds, zoomLevel, setCenter, setBounds, setZoomLevel } = useMapState();
+  const { center, zoomLevel, searchedLevel, setCenter, setZoomLevel, setSearchedLevel } = useMapState();
 
   /**
    * 지도 상태 스냅샷
    * - 쿼리 요청 시 사용될 커밋된 지도 상태
-   * - Refresh 시점의 center/bounds/zoomLevel을 저장
    */
   const [mapSnapshot, setMapSnapshot] = useState<{
-    refPoint: { lat: number; lng: number } | null;
+    center: { lat?: number; lng?: number } | null;
     bounds: naver.maps.LatLngBounds | null;
     zoomLevel: number;
   }>({
-    refPoint: null,
+    center: null,
     bounds: null,
     zoomLevel: 0,
   });
@@ -48,83 +48,150 @@ export function MapWithSchools() {
    */
   const { data } = useInfiniteQuery({
     ...dogSchoolListOptions.searchList({
-      refPoint: mapSnapshot.refPoint!,
+      refPoint: basePoint!,
       bounds: mapSnapshot.bounds!,
       zoomLevel: mapSnapshot.zoomLevel,
     }),
     enabled:
-      isMapLoaded &&
-      isValidCoord(mapSnapshot.refPoint) &&
-      isValidBounds(mapSnapshot.bounds) &&
-      Boolean(mapSnapshot.zoomLevel),
+      isMapLoaded && isValidCoord(basePoint) && isValidBounds(mapSnapshot.bounds) && Boolean(mapSnapshot.zoomLevel),
   });
 
   const mapCenter = isValidCoord(center) ? center : isValidCoord(basePoint) ? basePoint : DEFAULT_MAP_CENTER;
 
   const allSchools = data?.pages?.flatMap((page) => page.schoolResult.list) || [];
 
-  const selectedSchool = allSchools.find((school) => school.id === activeMarkerId);
+  const aggregations = data?.pages?.flatMap(
+    (page) => page.aggregations.sidoAggregations ?? page.aggregations.sigunAggregations ?? []
+  );
 
-  const handleRefresh = () => {
-    if (!isValidCoord(center) || !isValidBounds(bounds)) return;
-
-    // 현재 화면 상태를 커밋된 상태로 업데이트
-    setMapSnapshot({
-      refPoint: { lat: center?.lat, lng: center?.lng },
-      bounds,
-      zoomLevel,
-    });
-  };
-
-  /**
-   * 초기 동기화
-   * - URL center가 없고 basePoint가 준비되면 center로 설정
-   * - 지도 초기화 직후 "실제 중심"으로 맞추기 위함
-   */
+  /** 지도 초기 설정 (mapState 초기화) */
   useEffect(() => {
     if (!isMapLoaded || isValidCoord(center) || !isValidCoord(basePoint)) return;
+
+    map.current?.setCenter(basePoint);
     setCenter(basePoint);
+    setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapLoaded, center, basePoint]);
 
   /** 커밋된 상태 초기화 */
   useEffect(() => {
-    if (!isMapLoaded || mapSnapshot.refPoint !== null) return;
+    if (!isMapLoaded || mapSnapshot.center !== null) return;
 
-    const queryCenter = center ?? basePoint;
-    if (isValidCoord(queryCenter) && isValidBounds(bounds)) {
-      setMapSnapshot({
-        refPoint: queryCenter,
-        bounds,
-        zoomLevel: zoomLevel || DEFAULT_MAP_ZOOM_LEVEL,
-      });
+    const initialCenter = center ? { lat: center.lat, lng: center.lng } : isValidCoord(basePoint) ? basePoint : null;
+    const initialZoom = zoomLevel || DEFAULT_MAP_ZOOM_LEVEL;
+    const initialBounds = map.current?.getBounds() as naver.maps.LatLngBounds;
+
+    if (!initialCenter) return;
+    setMapSnapshot({
+      center: initialCenter,
+      bounds: initialBounds,
+      zoomLevel: initialZoom,
+    });
+
+    const initialLevel = getRegionLevel(initialZoom);
+    setSearchedLevel(initialLevel);
+  }, [isMapLoaded, center, basePoint, zoomLevel, mapSnapshot.center, setSearchedLevel]);
+
+  /**
+   * 지도 로드 핸들러
+   * - 지도의 center, zoom 업데이트
+   */
+  const handleMapLoad = (map: naver.maps.Map) => {
+    setIsMapLoaded(true);
+
+    if (isValidCoord(center)) {
+      map.setCenter(center);
     }
-  }, [isMapLoaded, center, basePoint, bounds, zoomLevel, mapSnapshot.refPoint]);
+    if (zoomLevel) {
+      map.setZoom(zoomLevel);
+    }
+  };
 
+  /**
+   * 새로고침 핸들러
+   * - 현재 mapState를 스냅샷으로 저장
+   */
+  const handleRefresh = () => {
+    if (!isValidCoord(basePoint) || !zoomLevel) return;
+
+    setMapSnapshot({
+      center: { lat: center?.lat, lng: center?.lng },
+      bounds: map.current?.getBounds() as naver.maps.LatLngBounds,
+      zoomLevel,
+    });
+  };
+
+  /**
+   * 집계 마커 클릭 핸들러
+   * - 집계 마커 클릭 시 center, zoom 변경
+   */
+  const handleAggregationClick = (code: string, coord: { lat: number; lng: number }, nextZoom: number) => {
+    map.current?.setCenter(coord);
+    map.current?.setZoom(nextZoom, true);
+  };
+
+  /**
+   * 마커 클릭 핸들러
+   * - 마커 클릭 시 지도 중심 이동 및 상세 정보 표시
+   */
   const handleMarkerClick = (id: string, coord: { lat: number; lng: number }) => {
     map.current?.panTo(coord);
     setActiveMarker(id);
+    openDogSchoolCardSheet(id);
   };
 
-  const handleBottomSheetClose = (isOpen: boolean) => {
-    if (!isOpen) {
-      setActiveMarker(null);
+  /**
+   * 줌 변경 완료 핸들러
+   * - 줌 변경 완료 시 local state(center) 업데이트
+   * - 검색 레벨 비교 후 스냅샷 저장
+   */
+  const handleZoomEnd = () => {
+    if (!map.current) return;
+
+    const coord = map.current.getCenter();
+    const bounds = map.current.getBounds() as naver.maps.LatLngBounds;
+    const zoom = map.current.getZoom();
+    setCenter({ lat: coord.y, lng: coord.x });
+
+    const currentLevel = getRegionLevel(zoom);
+
+    if (searchedLevel !== null && currentLevel !== searchedLevel && isValidCoord(basePoint)) {
+      setMapSnapshot({
+        center: { lat: coord.y, lng: coord.x },
+        bounds,
+        zoomLevel: zoom,
+      });
+      setSearchedLevel(currentLevel);
     }
   };
 
+  const openDogSchoolCardSheet = (id: string) => {
+    overlay.open(({ isOpen, close }) => {
+      const selectedSchool = allSchools.find((school) => school.id === id);
+
+      if (!selectedSchool) return null;
+
+      return (
+        <DogSchoolCardSheet
+          isOpen={isOpen}
+          close={() => {
+            setActiveMarker(null);
+            close();
+          }}
+          {...selectedSchool}
+          images={selectedSchool.images || []}
+        />
+      );
+    });
+  };
+
   const shouldShowRefresh = useMemo(() => {
-    return !(
-      isSameCoord(center, mapSnapshot.refPoint) &&
-      isSameBounds(bounds, mapSnapshot.bounds) &&
-      zoomLevel === mapSnapshot.zoomLevel
-    );
-  }, [center, bounds, zoomLevel, mapSnapshot.refPoint, mapSnapshot.bounds, mapSnapshot.zoomLevel]);
+    return !(isSameCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
+  }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
 
   return (
     <>
-      {/* 지도 배경 오버레이 */}
-      <div className='bg-primitive-neutral-50/12 z-2 pointer-events-none absolute top-0 h-full w-full touch-none' />
-      {/* 지도 */}
       <MapView
         ref={map}
         overlays={allSchools.map((school) => ({
@@ -133,36 +200,22 @@ export function MapWithSchools() {
           title: school.title,
           dist: school.dist,
         }))}
+        aggregations={aggregations}
         onMarkerClick={handleMarkerClick}
+        onAggregationClick={handleAggregationClick}
         selectedMarkerId={activeMarkerId}
         center={mapCenter}
-        zoom={zoomLevel}
-        onLoad={(map) => {
-          setIsMapLoaded(true);
-          setBounds(map.getBounds() as naver.maps.LatLngBounds);
-          setZoomLevel(map.getZoom() as number);
-        }}
+        zoom={zoomLevel ?? DEFAULT_MAP_ZOOM_LEVEL}
+        onLoad={handleMapLoad}
         onDragEnd={() => {
           if (!map.current) return;
           const coord = map.current.getCenter();
           setCenter({ lat: coord.y, lng: coord.x });
-          setBounds(map.current.getBounds() as naver.maps.LatLngBounds);
         }}
         onZoomChanged={(zoom) => {
           setZoomLevel(zoom);
         }}
-        onZoomEnd={() => {
-          if (!map.current) return;
-          const coord = map.current.getCenter();
-          setCenter({ lat: coord.y, lng: coord.x });
-          setBounds(map.current.getBounds() as naver.maps.LatLngBounds);
-        }}
-        onPinchEnd={() => {
-          if (!map.current) return;
-          const coord = map.current.getCenter();
-          setCenter({ lat: coord.y, lng: coord.x });
-          setBounds(map.current.getBounds() as naver.maps.LatLngBounds);
-        }}
+        onZoomEnd={handleZoomEnd}
       />
 
       <div
@@ -194,9 +247,6 @@ export function MapWithSchools() {
           </div>
         }
       />
-      {selectedSchool && (
-        <DogSchoolCardSheet isOpen={!!activeMarkerId} onChangeOpen={handleBottomSheetClose} {...selectedSchool} />
-      )}
     </>
   );
 }
