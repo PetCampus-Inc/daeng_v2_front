@@ -109,8 +109,8 @@ importers:
         specifier: ^5.81.2
         version: 5.81.2(react@19.1.1)
       '@tanstack/react-query-devtools':
-        specifier: ^5.81.2
-        version: 5.81.2(@tanstack/react-query@5.81.2)(react@19.1.1)
+        specifier: ^5.85.3
+        version: 5.85.3(@tanstack/react-query@5.81.2)(react@19.1.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -199,10 +199,10 @@ importers:
         version: 8.6.12(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)
       '@storybook/nextjs':
         specifier: ^8.3.6
-        version: 8.6.12(esbuild@0.25.8)(next@15.4.6)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2)(webpack@5.101.2)
+        version: 8.6.12(esbuild@0.25.8)(next@15.4.6)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3)(webpack@5.101.2)
       '@storybook/react':
         specifier: ^8.3.6
-        version: 8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2)
+        version: 8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3)
       '@storybook/test':
         specifier: ^8.3.6
         version: 8.6.12(storybook@8.6.12)
@@ -348,7 +348,7 @@ importers:
         version: 1.2.2(@types/react@19.1.6)(react@19.1.0)
       bunchee:
         specifier: ^5.1.5
-        version: 5.6.2(typescript@5.9.2)
+        version: 5.6.2(typescript@5.8.3)
 
   packages/headless-ui/segmented-control:
     dependencies:
@@ -373,7 +373,7 @@ importers:
         version: 1.2.2(@types/react@19.1.6)(react@19.1.0)
       bunchee:
         specifier: ^5.1.5
-        version: 5.6.2(typescript@5.9.2)
+        version: 5.6.2(typescript@5.8.3)
 
   packages/headless-ui/swiper:
     dependencies:
@@ -492,7 +492,7 @@ importers:
         version: link:../../config-typescript
       bunchee:
         specifier: ^5.1.5
-        version: 5.6.2(typescript@5.9.2)
+        version: 5.6.2(typescript@5.8.3)
 
   packages/icons:
     devDependencies:
@@ -612,13 +612,13 @@ importers:
         version: link:../config-typescript
       '@storybook/react':
         specifier: ^8.3.6
-        version: 8.6.12(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.14)(typescript@5.9.2)
+        version: 8.6.12(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.14)(typescript@5.8.3)
       '@svgr/cli':
         specifier: ^8.1.0
-        version: 8.1.0(typescript@5.9.2)
+        version: 8.1.0(typescript@5.8.3)
       '@turbo/gen':
         specifier: ^2.5.5
-        version: 2.5.6(@types/node@24.3.0)(typescript@5.9.2)
+        version: 2.5.6(@types/node@22.15.19)(typescript@5.8.3)
       tw-animate-css:
         specifier: ^1.3.6
         version: 1.3.7
@@ -4358,7 +4358,7 @@ packages:
       ts-dedent: 2.2.0
     dev: true
 
-  /@storybook/builder-webpack5@8.6.12(esbuild@0.25.8)(storybook@8.6.12)(typescript@5.9.2):
+  /@storybook/builder-webpack5@8.6.12(esbuild@0.25.8)(storybook@8.6.12)(typescript@5.8.3):
     resolution: {integrity: sha512-Z7RsQ/1+HbxdbM69JrEFcTL+pnVKUTMmeURMn5/eOvYTGjBtM18vbQTj0LjCUDIjC+v9U+uX8ZJEUVxFbGcxBw==}
     peerDependencies:
       storybook: ^8.6.12
@@ -4375,7 +4375,7 @@ packages:
       constants-browserify: 1.0.0
       css-loader: 6.11.0(webpack@5.99.7)
       es-module-lexer: 1.7.0
-      fork-ts-checker-webpack-plugin: 8.0.0(typescript@5.9.2)(webpack@5.99.7)
+      fork-ts-checker-webpack-plugin: 8.0.0(typescript@5.8.3)(webpack@5.99.7)
       html-webpack-plugin: 5.6.3(webpack@5.99.7)
       magic-string: 0.30.17
       path-browserify: 1.0.1
@@ -4385,7 +4385,7 @@ packages:
       style-loader: 3.3.4(webpack@5.99.7)
       terser-webpack-plugin: 5.3.14(esbuild@0.25.8)(webpack@5.99.7)
       ts-dedent: 2.2.0
-      typescript: 5.9.2
+      typescript: 5.8.3
       url: 0.11.4
       util: 0.12.5
       util-deprecate: 1.0.2
@@ -4541,7 +4541,7 @@ packages:
       storybook: 8.6.14(prettier@3.6.2)
     dev: true
 
-  /@storybook/nextjs@8.6.12(esbuild@0.25.8)(next@15.4.6)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2)(webpack@5.101.2):
+  /@storybook/nextjs@8.6.12(esbuild@0.25.8)(next@15.4.6)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3)(webpack@5.101.2):
     resolution: {integrity: sha512-I9y5xpOOSCo91IK4jf8nT/V9R0sPiJblKc0gJg0sOSSNgsswGxJq9anah6PEbYhlZtbptmhGOL6IeUR+pI6Qzw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
@@ -4571,9 +4571,9 @@ packages:
       '@babel/preset-typescript': 7.27.0(@babel/core@7.26.10)
       '@babel/runtime': 7.27.0
       '@pmmmwh/react-refresh-webpack-plugin': 0.5.16(react-refresh@0.14.2)(webpack@5.101.2)
-      '@storybook/builder-webpack5': 8.6.12(esbuild@0.25.8)(storybook@8.6.12)(typescript@5.9.2)
-      '@storybook/preset-react-webpack': 8.6.12(@storybook/test@8.6.12)(esbuild@0.25.8)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2)
-      '@storybook/react': 8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2)
+      '@storybook/builder-webpack5': 8.6.12(esbuild@0.25.8)(storybook@8.6.12)(typescript@5.8.3)
+      '@storybook/preset-react-webpack': 8.6.12(@storybook/test@8.6.12)(esbuild@0.25.8)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3)
+      '@storybook/react': 8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3)
       '@storybook/test': 8.6.12(storybook@8.6.12)
       '@types/semver': 7.7.0
       babel-loader: 9.2.1(@babel/core@7.26.10)(webpack@5.101.2)
@@ -4583,9 +4583,9 @@ packages:
       loader-utils: 3.3.1
       next: 15.4.6(@babel/core@7.26.10)(react-dom@19.1.1)(react@19.1.1)
       node-polyfill-webpack-plugin: 2.0.1(webpack@5.101.2)
-      pnp-webpack-plugin: 1.7.0(typescript@5.9.2)
+      pnp-webpack-plugin: 1.7.0(typescript@5.8.3)
       postcss: 8.5.6
-      postcss-loader: 8.1.1(postcss@8.5.6)(typescript@5.9.2)(webpack@5.101.2)
+      postcss-loader: 8.1.1(postcss@8.5.6)(typescript@5.8.3)(webpack@5.101.2)
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
       react-refresh: 0.14.2
@@ -4598,7 +4598,7 @@ packages:
       ts-dedent: 2.2.0
       tsconfig-paths: 4.2.0
       tsconfig-paths-webpack-plugin: 4.2.0
-      typescript: 5.9.2
+      typescript: 5.8.3
       webpack: 5.101.2(esbuild@0.25.8)
     optionalDependencies:
       sharp: 0.33.5
@@ -4621,7 +4621,7 @@ packages:
       - webpack-plugin-serve
     dev: true
 
-  /@storybook/preset-react-webpack@8.6.12(@storybook/test@8.6.12)(esbuild@0.25.8)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2):
+  /@storybook/preset-react-webpack@8.6.12(@storybook/test@8.6.12)(esbuild@0.25.8)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3):
     resolution: {integrity: sha512-aCCHjR/jsVPVThRH7nK70wS0Od44M6hqkkakg3xr7LETZZGj99heen6t4VHvz8gcQYT9l6R/oZwCl7f/PQ3ZBQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
@@ -4634,8 +4634,8 @@ packages:
         optional: true
     dependencies:
       '@storybook/core-webpack': 8.6.12(storybook@8.6.12)
-      '@storybook/react': 8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2)
-      '@storybook/react-docgen-typescript-plugin': 1.0.6--canary.9.0c3f3b7.0(typescript@5.9.2)(webpack@5.99.7)
+      '@storybook/react': 8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3)
+      '@storybook/react-docgen-typescript-plugin': 1.0.6--canary.9.0c3f3b7.0(typescript@5.8.3)(webpack@5.99.7)
       '@types/semver': 7.7.0
       find-up: 5.0.0
       magic-string: 0.30.17
@@ -4646,7 +4646,7 @@ packages:
       semver: 7.7.2
       storybook: 8.6.12(prettier@3.6.2)
       tsconfig-paths: 4.2.0
-      typescript: 5.9.2
+      typescript: 5.8.3
       webpack: 5.99.7(esbuild@0.25.8)
     transitivePeerDependencies:
       - '@storybook/test'
@@ -4673,7 +4673,7 @@ packages:
       storybook: 8.6.14(prettier@3.6.2)
     dev: true
 
-  /@storybook/react-docgen-typescript-plugin@1.0.6--canary.9.0c3f3b7.0(typescript@5.9.2)(webpack@5.99.7):
+  /@storybook/react-docgen-typescript-plugin@1.0.6--canary.9.0c3f3b7.0(typescript@5.8.3)(webpack@5.99.7):
     resolution: {integrity: sha512-KUqXC3oa9JuQ0kZJLBhVdS4lOneKTOopnNBK4tUAgoxWQ3u/IjzdueZjFr7gyBrXMoU6duutk3RQR9u8ZpYJ4Q==}
     peerDependencies:
       typescript: '>= 4.x'
@@ -4684,9 +4684,9 @@ packages:
       find-cache-dir: 3.3.2
       flat-cache: 3.2.0
       micromatch: 4.0.8
-      react-docgen-typescript: 2.2.2(typescript@5.9.2)
+      react-docgen-typescript: 2.2.2(typescript@5.8.3)
       tslib: 2.8.1
-      typescript: 5.9.2
+      typescript: 5.8.3
       webpack: 5.99.7(esbuild@0.25.8)
     transitivePeerDependencies:
       - supports-color
@@ -4728,7 +4728,7 @@ packages:
       storybook: 8.6.14(prettier@3.6.2)
     dev: true
 
-  /@storybook/react@8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.9.2):
+  /@storybook/react@8.6.12(@storybook/test@8.6.12)(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.12)(typescript@5.8.3):
     resolution: {integrity: sha512-NzxlHLA5DkDgZM/dMwTYinuzRs6rsUPmlqP+NIv6YaciQ4NGnTYyOC7R/SqI6HHFm8ZZ5eMYvpfiFmhZ9rU+rQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
@@ -4753,10 +4753,10 @@ packages:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
       storybook: 8.6.12(prettier@3.6.2)
-      typescript: 5.9.2
+      typescript: 5.8.3
     dev: true
 
-  /@storybook/react@8.6.12(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.14)(typescript@5.9.2):
+  /@storybook/react@8.6.12(react-dom@19.1.1)(react@19.1.1)(storybook@8.6.14)(typescript@5.8.3):
     resolution: {integrity: sha512-NzxlHLA5DkDgZM/dMwTYinuzRs6rsUPmlqP+NIv6YaciQ4NGnTYyOC7R/SqI6HHFm8ZZ5eMYvpfiFmhZ9rU+rQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
@@ -4780,7 +4780,7 @@ packages:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
       storybook: 8.6.14(prettier@3.6.2)
-      typescript: 5.9.2
+      typescript: 5.8.3
     dev: true
 
   /@storybook/test@8.6.12(storybook@8.6.12):
@@ -4928,15 +4928,15 @@ packages:
       '@svgr/babel-plugin-transform-svg-component': 8.0.0(@babel/core@7.26.10)
     dev: true
 
-  /@svgr/cli@8.1.0(typescript@5.9.2):
+  /@svgr/cli@8.1.0(typescript@5.8.3):
     resolution: {integrity: sha512-SnlaLspB610XFXvs3PmhzViHErsXp0yIy4ERyZlHDlO1ro2iYtHMWYk2mztdLD/lBjiA4ZXe4RePON3qU/Tc4A==}
     engines: {node: '>=14'}
     hasBin: true
     dependencies:
-      '@svgr/core': 8.1.0(typescript@5.9.2)
+      '@svgr/core': 8.1.0(typescript@5.8.3)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0)
       '@svgr/plugin-prettier': 8.1.0(@svgr/core@8.1.0)
-      '@svgr/plugin-svgo': 8.1.0(@svgr/core@8.1.0)(typescript@5.9.2)
+      '@svgr/plugin-svgo': 8.1.0(@svgr/core@8.1.0)(typescript@5.8.3)
       camelcase: 6.3.0
       chalk: 4.1.2
       commander: 9.5.0
@@ -4962,20 +4962,6 @@ packages:
       - typescript
     dev: true
 
-  /@svgr/core@8.1.0(typescript@5.9.2):
-    resolution: {integrity: sha512-8QqtOQT5ACVlmsvKOJNEaWmRPmcojMOzCz4Hs2BGG/toAp/K38LcsMRyLp349glq5AzJbCEeimEoxaX6v/fLrA==}
-    engines: {node: '>=14'}
-    dependencies:
-      '@babel/core': 7.26.10
-      '@svgr/babel-preset': 8.1.0(@babel/core@7.26.10)
-      camelcase: 6.3.0
-      cosmiconfig: 8.3.6(typescript@5.9.2)
-      snake-case: 3.0.4
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
-    dev: true
-
   /@svgr/hast-util-to-babel-ast@8.0.0:
     resolution: {integrity: sha512-EbDKwO9GpfWP4jN9sGdYwPBU0kdomaPIL2Eu4YwmgP+sJeXT+L7bMwJUBnhzfH8Q2qMBqZ4fJwpCyYsAN3mt2Q==}
     engines: {node: '>=14'}
@@ -4992,7 +4978,7 @@ packages:
     dependencies:
       '@babel/core': 7.26.10
       '@svgr/babel-preset': 8.1.0(@babel/core@7.26.10)
-      '@svgr/core': 8.1.0(typescript@5.9.2)
+      '@svgr/core': 8.1.0(typescript@5.8.3)
       '@svgr/hast-util-to-babel-ast': 8.0.0
       svg-parser: 2.0.4
     transitivePeerDependencies:
@@ -5005,7 +4991,7 @@ packages:
     peerDependencies:
       '@svgr/core': '*'
     dependencies:
-      '@svgr/core': 8.1.0(typescript@5.9.2)
+      '@svgr/core': 8.1.0(typescript@5.8.3)
       deepmerge: 4.3.1
       prettier: 2.8.8
     dev: true
@@ -5018,20 +5004,6 @@ packages:
     dependencies:
       '@svgr/core': 8.1.0(typescript@5.8.3)
       cosmiconfig: 8.3.6(typescript@5.8.3)
-      deepmerge: 4.3.1
-      svgo: 3.3.2
-    transitivePeerDependencies:
-      - typescript
-    dev: true
-
-  /@svgr/plugin-svgo@8.1.0(@svgr/core@8.1.0)(typescript@5.9.2):
-    resolution: {integrity: sha512-Ywtl837OGO9pTLIN/onoWLmDQ4zFUycI1g76vuKGEz6evR/ZTJlJuz3G/fIkb6OVBJ2g0o6CGJzaEjfmEo3AHA==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@svgr/core': '*'
-    dependencies:
-      '@svgr/core': 8.1.0(typescript@5.9.2)
-      cosmiconfig: 8.3.6(typescript@5.9.2)
       deepmerge: 4.3.1
       svgo: 3.3.2
     transitivePeerDependencies:
@@ -5347,17 +5319,17 @@ packages:
     resolution: {integrity: sha512-QLYkPdrudoMATDFa3MiLEwRhNnAlzHWDf0LKaXUqJd0/+QxN8uTPi7bahRlxoAyH0UbLMBdeDbYzWALj7THOtw==}
     dev: false
 
-  /@tanstack/query-devtools@5.81.2:
-    resolution: {integrity: sha512-jCeJcDCwKfoyyBXjXe9+Lo8aTkavygHHsUHAlxQKKaDeyT0qyQNLKl7+UyqYH2dDF6UN/14873IPBHchcsU+Zg==}
+  /@tanstack/query-devtools@5.84.0:
+    resolution: {integrity: sha512-fbF3n+z1rqhvd9EoGp5knHkv3p5B2Zml1yNRjh7sNXklngYI5RVIWUrUjZ1RIcEoscarUb0+bOvIs5x9dwzOXQ==}
     dev: false
 
-  /@tanstack/react-query-devtools@5.81.2(@tanstack/react-query@5.81.2)(react@19.1.1):
-    resolution: {integrity: sha512-TX0OQ4cbgX6z2uN8c9x0QUNbyePGyUGdcgrGnV6TYEJc7KPT8PqeASuzoA5NGw1CiMGvyFAkIGA2KipvhM9d1g==}
+  /@tanstack/react-query-devtools@5.85.3(@tanstack/react-query@5.81.2)(react@19.1.1):
+    resolution: {integrity: sha512-WSVweCE1Kh1BVvPDHAmLgGT+GGTJQ9+a7bVqzD+zUiUTht+salJjYm5nikpMNaHFPJV102TCYdvgHgBXtURRNg==}
     peerDependencies:
-      '@tanstack/react-query': ^5.81.2
+      '@tanstack/react-query': ^5.85.3
       react: ^18 || ^19
     dependencies:
-      '@tanstack/query-devtools': 5.81.2
+      '@tanstack/query-devtools': 5.84.0
       '@tanstack/react-query': 5.81.2(react@19.1.1)
       react: 19.1.1
     dev: false
@@ -5490,7 +5462,7 @@ packages:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
     dev: true
 
-  /@turbo/gen@2.5.6(@types/node@24.3.0)(typescript@5.9.2):
+  /@turbo/gen@2.5.6(@types/node@22.15.19)(typescript@5.8.3):
     resolution: {integrity: sha512-0ugshQQGJE/lVYHhkFsdAd6prM279Uyl+UVfylkNhrL21YML4/fGKPYb99G0bNJ+okp7bA++4/RDFh3MS0ZeRg==}
     hasBin: true
     dependencies:
@@ -5502,7 +5474,7 @@ packages:
       node-plop: 0.26.3
       picocolors: 1.0.1
       proxy-agent: 6.5.0
-      ts-node: 10.9.2(@types/node@24.3.0)(typescript@5.9.2)
+      ts-node: 10.9.2(@types/node@22.15.19)(typescript@5.8.3)
       update-check: 1.5.4
       validate-npm-package-name: 5.0.1
     transitivePeerDependencies:
@@ -5661,12 +5633,6 @@ packages:
     resolution: {integrity: sha512-3vMNr4TzNQyjHcRZadojpRaD9Ofr6LsonZAoQ+HMUa/9ORTPoxVIw0e0mpqWpdjj8xybyCM+oKOUH2vwFu/oEw==}
     dependencies:
       undici-types: 6.21.0
-    dev: true
-
-  /@types/node@24.3.0:
-    resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
-    dependencies:
-      undici-types: 7.10.0
     dev: true
 
   /@types/parse-json@4.0.2:
@@ -7086,37 +7052,6 @@ packages:
       yargs: 17.7.2
     dev: true
 
-  /bunchee@5.6.2(typescript@5.9.2):
-    resolution: {integrity: sha512-r5AaDJBsMhx7oFPcE7+vJjDylhvNK0C8E3NA6VON5T5vr3p+JIaWHgg4RK8jNIzFFWyHgjcda80aqZTxYjunHA==}
-    engines: {node: '>= 18.0.0'}
-    hasBin: true
-    peerDependencies:
-      typescript: ^4.1 || ^5.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@rollup/plugin-commonjs': 28.0.3(rollup@4.42.0)
-      '@rollup/plugin-json': 6.1.0(rollup@4.42.0)
-      '@rollup/plugin-node-resolve': 15.3.1(rollup@4.42.0)
-      '@rollup/plugin-replace': 6.0.2(rollup@4.42.0)
-      '@rollup/plugin-wasm': 6.2.2(rollup@4.42.0)
-      '@rollup/pluginutils': 5.1.4(rollup@4.42.0)
-      '@swc/core': 1.11.31(@swc/helpers@0.5.15)
-      '@swc/helpers': 0.5.15
-      clean-css: 5.3.3
-      magic-string: 0.30.17
-      ora: 8.2.0
-      pretty-bytes: 5.6.0
-      rollup: 4.42.0
-      rollup-plugin-dts: 6.2.1(rollup@4.42.0)(typescript@5.9.2)
-      rollup-plugin-swc3: 0.11.2(@swc/core@1.11.31)(rollup@4.42.0)
-      rollup-preserve-directives: 1.1.3(rollup@4.42.0)
-      tslib: 2.8.1
-      typescript: 5.9.2
-      yargs: 17.7.2
-    dev: true
-
   /busboy@1.6.0:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
     engines: {node: '>=10.16.0'}
@@ -7621,22 +7556,6 @@ packages:
       typescript: 5.8.3
     dev: true
 
-  /cosmiconfig@8.3.6(typescript@5.9.2):
-    resolution: {integrity: sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      typescript: '>=4.9.5'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      import-fresh: 3.3.1
-      js-yaml: 4.1.0
-      parse-json: 5.2.0
-      path-type: 4.0.0
-      typescript: 5.9.2
-    dev: true
-
   /cosmiconfig@9.0.0(typescript@5.8.3):
     resolution: {integrity: sha512-itvL5h8RETACmOTFc4UfIyB2RfEHi71Ax6E/PivVxq9NseKbOWpeyHEOIbmAw1rs8Ak0VursQNww7lf7YtUwzg==}
     engines: {node: '>=14'}
@@ -7651,22 +7570,6 @@ packages:
       js-yaml: 4.1.0
       parse-json: 5.2.0
       typescript: 5.8.3
-    dev: true
-
-  /cosmiconfig@9.0.0(typescript@5.9.2):
-    resolution: {integrity: sha512-itvL5h8RETACmOTFc4UfIyB2RfEHi71Ax6E/PivVxq9NseKbOWpeyHEOIbmAw1rs8Ak0VursQNww7lf7YtUwzg==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      typescript: '>=4.9.5'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      env-paths: 2.2.1
-      import-fresh: 3.3.1
-      js-yaml: 4.1.0
-      parse-json: 5.2.0
-      typescript: 5.9.2
     dev: true
 
   /create-ecdh@4.0.4:
@@ -9318,7 +9221,7 @@ packages:
       is-callable: 1.2.7
     dev: true
 
-  /fork-ts-checker-webpack-plugin@8.0.0(typescript@5.9.2)(webpack@5.99.7):
+  /fork-ts-checker-webpack-plugin@8.0.0(typescript@5.8.3)(webpack@5.99.7):
     resolution: {integrity: sha512-mX3qW3idpueT2klaQXBzrIM/pHw+T0B/V9KHEvNrqijTq9NFnMZU6oreVxDYcf33P8a5cW+67PjodNHthGnNVg==}
     engines: {node: '>=12.13.0', yarn: '>=1.0.0'}
     peerDependencies:
@@ -9337,7 +9240,7 @@ packages:
       schema-utils: 3.3.0
       semver: 7.7.2
       tapable: 2.2.1
-      typescript: 5.9.2
+      typescript: 5.8.3
       webpack: 5.99.7(esbuild@0.25.8)
     dev: true
 
@@ -11745,11 +11648,11 @@ packages:
       find-up: 6.3.0
     dev: true
 
-  /pnp-webpack-plugin@1.7.0(typescript@5.9.2):
+  /pnp-webpack-plugin@1.7.0(typescript@5.8.3):
     resolution: {integrity: sha512-2Rb3vm+EXble/sMXNSu6eoBx8e79gKqhNq9F5ZWW6ERNCTE/Q0wQNne5541tE5vKjfM8hpNCYL+LGc1YTfI0dg==}
     engines: {node: '>=6'}
     dependencies:
-      ts-pnp: 1.2.0(typescript@5.9.2)
+      ts-pnp: 1.2.0(typescript@5.8.3)
     transitivePeerDependencies:
       - typescript
     dev: true
@@ -11766,7 +11669,7 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /postcss-loader@8.1.1(postcss@8.5.6)(typescript@5.9.2)(webpack@5.101.2):
+  /postcss-loader@8.1.1(postcss@8.5.6)(typescript@5.8.3)(webpack@5.101.2):
     resolution: {integrity: sha512-0IeqyAsG6tYiDRCYKQJLAmgQr47DX6N7sFSWvQxt6AcupX8DIdmykuk/o/tx0Lze3ErGHJEp5OSRxrelC6+NdQ==}
     engines: {node: '>= 18.12.0'}
     peerDependencies:
@@ -11779,7 +11682,7 @@ packages:
       webpack:
         optional: true
     dependencies:
-      cosmiconfig: 9.0.0(typescript@5.9.2)
+      cosmiconfig: 9.0.0(typescript@5.8.3)
       jiti: 1.21.7
       postcss: 8.5.6
       semver: 7.7.2
@@ -12084,12 +11987,12 @@ packages:
       tween-functions: 1.2.0
     dev: true
 
-  /react-docgen-typescript@2.2.2(typescript@5.9.2):
+  /react-docgen-typescript@2.2.2(typescript@5.8.3):
     resolution: {integrity: sha512-tvg2ZtOpOi6QDwsb3GZhOjDkkX0h8Z2gipvTg6OVMUyoYoURhEiRNePT8NZItTVCDh39JJHnLdfCOkzoLbFnTg==}
     peerDependencies:
       typescript: '>= 4.3.x'
     dependencies:
-      typescript: 5.9.2
+      typescript: 5.8.3
     dev: true
 
   /react-docgen@7.1.1:
@@ -12471,20 +12374,6 @@ packages:
       magic-string: 0.30.17
       rollup: 4.42.0
       typescript: 5.8.3
-    optionalDependencies:
-      '@babel/code-frame': 7.27.1
-    dev: true
-
-  /rollup-plugin-dts@6.2.1(rollup@4.42.0)(typescript@5.9.2):
-    resolution: {integrity: sha512-sR3CxYUl7i2CHa0O7bA45mCrgADyAQ0tVtGSqi3yvH28M+eg1+g5d7kQ9hLvEz5dorK3XVsH5L2jwHLQf72DzA==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      rollup: ^3.29.4 || ^4
-      typescript: ^4.5 || ^5.0
-    dependencies:
-      magic-string: 0.30.17
-      rollup: 4.42.0
-      typescript: 5.9.2
     optionalDependencies:
       '@babel/code-frame': 7.27.1
     dev: true
@@ -13566,7 +13455,7 @@ packages:
     engines: {node: '>=6.10'}
     dev: true
 
-  /ts-node@10.9.2(@types/node@24.3.0)(typescript@5.9.2):
+  /ts-node@10.9.2(@types/node@22.15.19)(typescript@5.8.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
     peerDependencies:
@@ -13585,19 +13474,19 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 24.3.0
+      '@types/node': 22.15.19
       acorn: 8.15.0
       acorn-walk: 8.3.4
       arg: 4.1.3
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.9.2
+      typescript: 5.8.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     dev: true
 
-  /ts-pnp@1.2.0(typescript@5.9.2):
+  /ts-pnp@1.2.0(typescript@5.8.3):
     resolution: {integrity: sha512-csd+vJOb/gkzvcCHgTGSChYpy5f1/XKNsmvBGO4JXS+z1v2HobugDz4s1IeFXM3wZB44uczs+eazB5Q/ccdhQw==}
     engines: {node: '>=6'}
     peerDependencies:
@@ -13606,7 +13495,7 @@ packages:
       typescript:
         optional: true
     dependencies:
-      typescript: 5.9.2
+      typescript: 5.8.3
     dev: true
 
   /tsconfig-paths-webpack-plugin@4.2.0:
@@ -13812,12 +13701,6 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  /typescript@5.9.2:
-    resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-    dev: true
-
   /uglify-js@3.19.3:
     resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
     engines: {node: '>=0.8.0'}
@@ -13838,10 +13721,6 @@ packages:
 
   /undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-    dev: true
-
-  /undici-types@7.10.0:
-    resolution: {integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==}
     dev: true
 
   /unicode-canonical-property-names-ecmascript@2.0.1:
