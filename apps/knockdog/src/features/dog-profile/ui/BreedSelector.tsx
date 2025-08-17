@@ -34,16 +34,9 @@ export const BreedSelector = ({ breed, setBreed }: BreedSelectorProps) => {
         }
         indicator='(선택)'
       >
-        <TextFieldInput
-          placeholder='견종을 검색해 보세요'
-          value={breed?.breedName}
-        />
+        <TextFieldInput placeholder='견종을 검색해 보세요' value={breed?.breedName} />
       </TextField>
-      <DogBreedSheet
-        isOpen={isBreedSheetOpen}
-        close={() => setIsBreedSheetOpen(false)}
-        onSelectBreed={setBreed}
-      />
+      <DogBreedSheet isOpen={isBreedSheetOpen} close={() => setIsBreedSheetOpen(false)} onSelectBreed={setBreed} />
     </>
   );
 };

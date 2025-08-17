@@ -9,10 +9,7 @@ interface YearSelectorProps {
   setBirthYear: (year: string) => void;
 }
 
-export const YearSelector = ({
-  birthYear,
-  setBirthYear,
-}: YearSelectorProps) => {
+export const YearSelector = ({ birthYear, setBirthYear }: YearSelectorProps) => {
   const [isYearSheetOpen, setIsYearSheetOpen] = useState(false);
   return (
     <>

@@ -41,7 +41,7 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
         </div>
       </div>
       <svg
-        className={cn('absolute top-[calc(100%-8px)] left-1/2 -translate-x-1/2')}
+        className={cn('absolute left-1/2 top-[calc(100%-8px)] -translate-x-1/2')}
         width='16'
         height='17'
         viewBox='0 0 16 17'

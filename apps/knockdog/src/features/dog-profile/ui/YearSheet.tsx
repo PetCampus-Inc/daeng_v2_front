@@ -16,12 +16,7 @@ const years = Array.from({ length: 30 }, (_, index) => {
   return String(year);
 });
 
-export const YearSheet = ({
-  isOpen,
-  close,
-  onSelectYear,
-  year: selectedYear,
-}: YearSheetProps) => {
+export const YearSheet = ({ isOpen, close, onSelectYear, year: selectedYear }: YearSheetProps) => {
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) {
       close();
@@ -50,11 +45,7 @@ export const YearSheet = ({
                 onClick={handleYear(year)}
               >
                 <li className='body1-medium text-text-primary text-start'>
-                  {selectedYear === year ? (
-                    <span className='text-text-accent'>{year}</span>
-                  ) : (
-                    year
-                  )}
+                  {selectedYear === year ? <span className='text-text-accent'>{year}</span> : year}
                 </li>
               </button>
             ))}

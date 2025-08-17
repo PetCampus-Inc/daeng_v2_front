@@ -8,9 +8,7 @@ export const useBreedSearch = () => {
   const filteredBreeds = useMemo(() => {
     if (!searchTerm.trim()) return breeds;
 
-    return breeds.filter((breed) =>
-      breed.breedName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return breeds.filter((breed) => breed.breedName.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [breeds, searchTerm]);
 
   return {

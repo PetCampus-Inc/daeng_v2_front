@@ -13,6 +13,7 @@
     "@daeng-design/react-segmented-control": "workspace:*",
     "@daeng-design/react-swiper": "workspace:*",
     "@daeng-design/react-text-field": "workspace:*",
+    "@daeng-design/react-textarea": "workspace:*",
     "@daeng-design/react-toggle": "workspace:*",
     "@daeng-design/react-checkbox": "workspace:*",
     "@knockdog/icons": "workspace:*",

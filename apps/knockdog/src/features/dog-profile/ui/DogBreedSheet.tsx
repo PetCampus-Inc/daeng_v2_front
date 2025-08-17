@@ -12,11 +12,7 @@ interface DogBreedSheetProps {
   onSelectBreed: (breed: Breed) => void;
 }
 
-export const DogBreedSheet = ({
-  isOpen,
-  close,
-  onSelectBreed,
-}: DogBreedSheetProps) => {
+export const DogBreedSheet = ({ isOpen, close, onSelectBreed }: DogBreedSheetProps) => {
   const { breeds, searchTerm, setSearchTerm } = useBreedSearch();
 
   const handleClose = (open?: boolean) => {
@@ -43,9 +39,7 @@ export const DogBreedSheet = ({
           <div className='border-line-200 border-b py-3'>
             <TextField
               value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setSearchTerm(e.target.value)
-              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               variant='secondary'
               prefix={<Icon icon='Search' />}
             >
