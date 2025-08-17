@@ -116,8 +116,10 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
   });
 
   const formatAddress = (item: AddressSearchResult['results']['juso'][0]) => {
-    const main = item.roadAddr || item.jibunAddr;
-    const sub = item.roadAddr ? item.jibunAddr : `${item.siNm} ${item.sggNm} ${item.emdNm}`;
+    const main = item.roadAddr || item.jibunAddr || '주소 정보 없음';
+    const sub = item.roadAddr
+      ? item.jibunAddr || `${item.siNm} ${item.sggNm} ${item.emdNm}`
+      : `${item.siNm} ${item.sggNm} ${item.emdNm}`;
     return { main, sub };
   };
 
@@ -156,7 +158,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
               return (
                 <li
                   key={`${item.bdMgtSn ?? idx}-${idx}`}
-                  className='border-b border-neutral-100 py-4 last:border-b-0'
+                  className='cursor-pointer border-b border-neutral-100 py-4 last:border-b-0'
                   onClick={onSelect ? () => onSelect(item) : undefined}
                 >
                   <div className='body2-semibold'>{TextHighlights(main, search)}</div>
