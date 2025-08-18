@@ -1,6 +1,7 @@
 'use client';
 
-import { Icon, TextArea } from '@knockdog/ui';
+import { useState } from 'react';
+import { Icon, Textarea, TextareaInput } from '@knockdog/ui';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
@@ -8,6 +9,8 @@ import { PhotoUploader } from '@shared/ui/photo-uploader';
 export function FreeMemoSection() {
   const params = useParams<{ slug: string }>();
   const slug = params?.slug;
+
+  const [memo] = useState('');
 
   if (!slug) return null;
 
@@ -28,14 +31,9 @@ export function FreeMemoSection() {
       </div>
       <span className='body2-regular text-text-tertiary'>사진 최대 5개 등록 가능</span>
       <div className='py-3'>
-        <div className='bg-primitive-neutral-50 rounded-lg px-4 py-3'>
-          <textarea
-            readOnly
-            cols={5}
-            className='bg-primitive-neutral-50 body1-regular h-[144px] w-full'
-            value='우리 뽀삐는 말이에요 우리 뽀삐는 말이에요 우리우리 뽀삐는 말이에요 우리 뽀삐는 말이에요 우리우리 뽀삐는 말이에요 우리 뽀삐는 말이에요 우리우리 뽀삐는 말이에요 우리 뽀삐는 말이에요 우리는 말이에요 우에요 우리 뽀삐는 말이에요 뽀삐는 말뽀삐는 말말우리 우리뽀삐우리별이 우리 달이 강아지 고양이 귀여워'
-          />
-        </div>
+        <Textarea cols={5} className='h-[144px]'>
+          <TextareaInput readOnly value={memo} />
+        </Textarea>
       </div>
       <PhotoUploader maxCount={5} />
     </div>
