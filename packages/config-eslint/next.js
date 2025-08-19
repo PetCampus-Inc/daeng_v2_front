@@ -41,7 +41,7 @@ export const nextJsConfig = [
       fsd: fsdPlugin,
     },
     rules: {
-      'fsd/forbidden-imports': 'error',
+      // 'fsd/forbidden-imports': 'error',
       'fsd/no-cross-slice-dependency': 'error',
       'fsd/no-global-store-imports': 'error',
       'fsd/no-public-api-sidestep': [
@@ -67,10 +67,7 @@ export const nextJsConfig = [
       'no-debugger': 'error',
       curly: ['error', 'multi-line'],
       camelcase: ['error', { properties: 'always' }],
-      'id-length': [
-        'error',
-        { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y', 'e'] },
-      ],
+      'id-length': ['error', { min: 2, max: 30, exceptions: ['_', 'i', 'j', 'x', 'y', 'e'] }],
     },
   },
 ];

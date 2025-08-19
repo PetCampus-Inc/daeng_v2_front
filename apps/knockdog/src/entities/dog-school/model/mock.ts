@@ -1,18 +1,42 @@
 export interface DogSchoolResult {
-  totalShopCount: number;
-  shops: DogSchool[];
+  totalCount: number;
+  list: DogSchool[];
 }
 
 export interface DogSchoolWithMetaResult {
-  totalShopCount: number;
-  shops: DogSchoolWithMeta[];
+  totalCount: number;
+  list: DogSchoolWithMeta[];
 }
 
+export type 견종 = 'ALL_BREEDS' | 'SMALL_DOGS_ONLY' | 'MEDIUM_LARGE_DOGS_ONLY';
+export type 강아지_서비스 =
+  | 'DAYCARE'
+  | 'HOTEL'
+  | 'STAY_24H'
+  | 'TEMPERAMENT'
+  | 'SPLIT_CLASS'
+  | 'BATH_SERVICE'
+  | 'WALK'
+  | 'TRAINING'
+  | 'GROOMING'
+  | 'REHABILITATION';
+
+export type 강아지_안전_시설 = 'NON_SLIP' | 'CCTV' | 'PLAYGROUND' | 'ROOFTOP' | 'TERRACE' | 'TRAINING_GROUND' | 'YARD';
+
+export type 방문객_편의_시설 = 'PICK_DROP' | 'DIARY' | 'DOG_SHOP' | 'DOG_CAFE' | 'PARKING' | 'VALET';
+
+export const DogBreed = {
+  ALL_BREEDS: '견종무관',
+  SMALL_DOGS_ONLY: '소형견 전용',
+  MEDIUM_LARGE_DOGS_ONLY: '중대형견 전용',
+} as const;
+
 export const ServiceTag = {
+  PICK_DROP: '픽드랍',
   DIARY: '1:1 알림장',
   DOG_SHOP: '강아지 용품샵',
   DOG_CAFE: '강아지 카페',
-  PARKING: '주차창',
+  PARKING: '주차장',
   VALET: '발렛파킹',
 
   DAYCARE: '데이케어',
@@ -69,6 +93,13 @@ export interface DogSchool {
   pickupType: keyof typeof PickupType;
 }
 
+export type ProductType = 'COUNT' | 'PERIOD' | 'MEMBERSHIP';
+export interface DogSchoolProduct {
+  productTypes: ProductType[];
+  priceImages: string[];
+  lastUpdated: string;
+}
+
 export interface DogSchoolWithMeta extends DogSchool {
   memo?: DogSchoolMemo;
   isBookmarked?: boolean;
@@ -84,6 +115,15 @@ export interface DogSchoolMemo {
 export interface DogSchoolBookmark {
   id: string;
   shopId: string;
+}
+
+export interface DogSchoolReview {
+  id: string;
+  userName: string;
+  profileImage: string;
+  title: string;
+  content: string;
+  createdAt: string;
 }
 
 export const memoMockData: DogSchoolMemo[] = [
@@ -108,8 +148,8 @@ export const bookmarkMockData: DogSchoolBookmark[] = [
 ];
 
 export const mockData: DogSchoolResult = {
-  totalShopCount: 99,
-  shops: [
+  totalCount: 99,
+  list: [
     {
       id: '12',
       title: '전설의강아지',
@@ -131,16 +171,7 @@ export const mockData: DogSchoolResult = {
         lng: 127.041237,
       },
       reviewCount: 165,
-      serviceTags: [
-        'DIARY',
-        'HOTEL',
-        'TRAINING',
-        'PARKING',
-        'DOG_CAFE',
-        'DOG_SHOP',
-        'PLAYGROUND',
-        'YARD',
-      ],
+      serviceTags: ['DIARY', 'HOTEL', 'TRAINING', 'PARKING', 'DOG_CAFE', 'DOG_SHOP', 'PLAYGROUND', 'YARD'],
       pickupType: 'FREE',
     },
     {
@@ -236,14 +267,7 @@ export const mockData: DogSchoolResult = {
         lng: 126.9949,
       },
       reviewCount: 318,
-      serviceTags: [
-        'DOG_CAFE',
-        'PLAYGROUND',
-        'YARD',
-        'DOG_SHOP',
-        'PARKING',
-        'DIARY',
-      ],
+      serviceTags: ['DOG_CAFE', 'PLAYGROUND', 'YARD', 'DOG_SHOP', 'PARKING', 'DIARY'],
       pickupType: 'FREE',
     },
     {
@@ -293,7 +317,7 @@ export function combineShopWithMeta(
 
 export function getCombinedMockData(): DogSchoolWithMetaResult {
   return {
-    totalShopCount: mockData.totalShopCount,
-    shops: combineShopWithMeta(mockData.shops, memoMockData, bookmarkMockData),
+    totalCount: mockData.totalCount,
+    list: combineShopWithMeta(mockData.list, memoMockData, bookmarkMockData),
   };
 }

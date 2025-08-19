@@ -5,21 +5,14 @@ import { suit } from './font';
 import './globals.css';
 import { NaverMapProvider } from '@knockdog/naver-map';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import type { Metadata } from 'next';
+import Script from 'next/script';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import BridgeListenerClient from '@app/_bridge/BridgeListenerClient';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
+import { BottomNavBar } from '@widgets/bottom-nav-bar';
 
-export const metadata: Metadata = { title: 'Knockdog' };
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // useBridgeListener();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='ko' className={cn(suit.variable)}>
       <body>
@@ -32,12 +25,14 @@ export default function RootLayout({
                     <HeaderWrapper />
                     <BridgeListenerClient />
                     {children}
+                    <BottomNavBar />
                   </div>
                 </HeaderProvider>
               </OverlayProvider>
             </NaverMapProvider>
           </ReactQueryProvider>
         </NuqsAdapter>
+        <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
       </body>
     </html>
   );
