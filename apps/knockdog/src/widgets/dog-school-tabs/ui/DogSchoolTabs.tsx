@@ -6,11 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { RecommendedDogSchoolSection } from '@features/dog-school';
-import {
-  ReviewSection,
-  DefaultInfoSection,
-  PriceSection,
-} from '@entities/dog-school';
+import { ReviewSection, DefaultInfoSection, PriceSection } from '@entities/dog-school';
 
 interface DogSchoolTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;
@@ -70,17 +66,12 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
             <div className='flex justify-between'>
               <span className='body1-regular'>자유롭게 메모를 작성하세요</span>
               {/* @TODO: 화면 이동 경로의 경우 상수 이용할것 */}
-              <Link
-                href={`/company/${slug}/edit-memo`}
-                className='text-text-tertiary flex items-center gap-1'
-              >
+              <Link href={`/company/${slug}/edit-memo`} className='text-text-tertiary flex items-center gap-1'>
                 <span className='label-semibold'>편집</span>
                 <Icon icon='ChevronRight' className='h-4 w-4' />
               </Link>
             </div>
-            <span className='body2-regular text-text-tertiary'>
-              사진 최대 5개 등록 가능
-            </span>
+            <span className='body2-regular text-text-tertiary'>사진 최대 5개 등록 가능</span>
             <div className='py-3'>
               <div className='bg-primitive-neutral-50 rounded-lg px-4 py-3'>
                 <textarea
@@ -105,22 +96,14 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
                 <span className='body2-regular'>2/5</span>
               </div>
               {Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={index}
-                  className='relative h-[80px] w-[80px] min-w-[80px] shrink-0'
-                >
+                <div key={index} className='relative h-[80px] w-[80px] min-w-[80px] shrink-0'>
                   <Image
-                    src={
-                      'https://images.unsplash.com/photo-1518717758536-85ae29035b6d'
-                    }
+                    src={'https://images.unsplash.com/photo-1518717758536-85ae29035b6d'}
                     fill
                     alt='페이지 이미지'
                     className='rounded-lg'
                   />
-                  <Icon
-                    icon='Close'
-                    className='absolute right-1 top-1 h-6 w-6'
-                  />
+                  <Icon icon='Close' className='absolute right-1 top-1 h-6 w-6' />
                 </div>
               ))}
             </div>
@@ -132,10 +115,7 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
                 <span className='h3-extrabold'>상담시 체크리스트</span>
               </div>
               {/* @TODO: 화면 이동 경우 상수 이용할것 */}
-              <Link
-                href={`/company/${slug}/edit-checklist`}
-                className='text-text-tertiary flex items-center gap-1'
-              >
+              <Link href={`/company/${slug}/edit-checklist`} className='text-text-tertiary flex items-center gap-1'>
                 <span className='label-semibold'>편집</span>
                 <Icon icon='ChevronRight' className='h-4 w-4' />
               </Link>

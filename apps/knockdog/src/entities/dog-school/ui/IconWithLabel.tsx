@@ -9,10 +9,7 @@ import {
 } from '../model/mock';
 import type { IconName } from '@knockdog/icons';
 
-const iconMap: Record<
-  견종 | 강아지_서비스 | 강아지_안전_시설 | 방문객_편의_시설,
-  IconName
-> = {
+const iconMap: Record<견종 | 강아지_서비스 | 강아지_안전_시설 | 방문객_편의_시설, IconName> = {
   ALL_BREEDS: 'Alldogs',
   SMALL_DOGS_ONLY: 'Smalldog',
   MEDIUM_LARGE_DOGS_ONLY: 'Largedog',
@@ -44,10 +41,7 @@ const iconMap: Record<
   VALET: 'Valet',
 };
 
-const labelMap: Record<
-  견종 | 강아지_서비스 | 강아지_안전_시설 | 방문객_편의_시설,
-  string
-> = {
+const labelMap: Record<견종 | 강아지_서비스 | 강아지_안전_시설 | 방문객_편의_시설, string> = {
   ...DogBreed,
   ...ServiceTag,
 };
@@ -59,9 +53,7 @@ export function IconWithLabel({ code }: IconWithLabelProps) {
   return (
     <div className='flex flex-col items-center'>
       <Icon icon={iconMap[code]} className='h-8 w-8' />
-      <span className='text-size-caption1 text-text-secondary'>
-        {labelMap[code]}
-      </span>
+      <span className='text-size-caption1 text-text-secondary'>{labelMap[code]}</span>
     </div>
   );
 }

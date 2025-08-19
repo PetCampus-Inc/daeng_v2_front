@@ -8,7 +8,6 @@ import {
   type ProgressBarRootProps,
 } from '@daeng-design/react-progress';
 
-
 interface ProgressBarProps extends ProgressBarRootProps {
   ref?: Ref<HTMLDivElement>;
 }
@@ -27,14 +26,8 @@ export function ProgressBar(props: ProgressBarProps) {
       className={`relative flex h-2 gap-2 ${className || ''}`}
     >
       {Array.from({ length: totalSteps }).map((_, index) => (
-        <ProgressBarTrack
-          key={index}
-          className='bg-fill-secondary-200 flex-1 overflow-hidden rounded-full'
-        >
-          <ProgressBarRange
-            stepIndex={index}
-            className='bg-fill-secondary-700 h-full rounded-full'
-          />
+        <ProgressBarTrack key={index} className='bg-fill-secondary-200 flex-1 overflow-hidden rounded-full'>
+          <ProgressBarRange stepIndex={index} className='bg-fill-secondary-700 h-full rounded-full' />
         </ProgressBarTrack>
       ))}
     </ProgressBarRoot>

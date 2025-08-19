@@ -18,9 +18,7 @@ const textareaVariants = cva('', {
   },
 });
 
-interface TextareaProps
-  extends Omit<TextareaPrimitive.RootProps, 'prefix'>,
-    VariantProps<typeof textareaVariants> {
+interface TextareaProps extends Omit<TextareaPrimitive.RootProps, 'prefix'>, VariantProps<typeof textareaVariants> {
   ref?: React.Ref<HTMLDivElement>;
   label?: React.ReactNode;
   indicator?: React.ReactNode;
@@ -44,12 +42,10 @@ function Textarea({ ref, ...props }: TextareaProps) {
     ...restProps
   } = props;
 
-  const renderDescription =
-    description && !restProps.invalid && !restProps.valid;
+  const renderDescription = description && !restProps.invalid && !restProps.valid;
   const renderErrorMessage = errorMessage && restProps.invalid;
   const renderSuccessMessage = successMessage && restProps.valid;
-  const renderFooter =
-    renderDescription || renderErrorMessage || renderSuccessMessage;
+  const renderFooter = renderDescription || renderErrorMessage || renderSuccessMessage;
   const renderHeader = label || indicator;
 
   const Comp = asChild ? Slot : TextareaPrimitive.Root;
@@ -58,12 +54,8 @@ function Textarea({ ref, ...props }: TextareaProps) {
     <Comp ref={ref} className='flex w-full flex-col' {...restProps}>
       {renderHeader && (
         <div className='pb-x2 gap-x0_5 flex items-center'>
-          <TextareaPrimitive.Label className='text-text-primary body2-bold'>
-            {label}
-          </TextareaPrimitive.Label>
-          {restProps.required && (
-            <span className='text-text-accent body2-bold'>*</span>
-          )}
+          <TextareaPrimitive.Label className='text-text-primary body2-bold'>{label}</TextareaPrimitive.Label>
+          {restProps.required && <span className='text-text-accent body2-bold'>*</span>}
           <TextareaPrimitive.Indicator className='text-text-tertiary caption1-semibold'>
             {indicator}
           </TextareaPrimitive.Indicator>
@@ -86,9 +78,7 @@ function Textarea({ ref, ...props }: TextareaProps) {
             </TextareaPrimitive.Description>
           )}
           {renderErrorMessage && (
-            <TextareaPrimitive.Message className='text-error body2-regular'>
-              {errorMessage}
-            </TextareaPrimitive.Message>
+            <TextareaPrimitive.Message className='text-error body2-regular'>{errorMessage}</TextareaPrimitive.Message>
           )}
           {renderSuccessMessage && (
             <TextareaPrimitive.Message className='text-success body2-regular'>
@@ -115,9 +105,9 @@ function TextareaInput(props: TextareaInputProps) {
     <Comp
       ref={ref}
       className={cn(
-        'placeholder:text-text-tertiary text-text-primary disabled:text-text-secondary data-[disabled]:text-text-secondary body1-regular caret-text-accent w-full h-full outline-none resize-none',
+        'placeholder:text-text-tertiary text-text-primary disabled:text-text-secondary data-[disabled]:text-text-secondary body1-regular caret-text-accent h-full w-full resize-none outline-none',
         // 커스텀 스크롤바 스타일
-        '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-fill-secondary-200 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:p-0.5',
+        '[&::-webkit-scrollbar-track]:bg-fill-secondary-200 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:p-0.5 [&::-webkit-scrollbar]:w-2',
         '[&::-webkit-scrollbar-thumb]:bg-fill-secondary-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-400',
         props.className
       )}
@@ -126,4 +116,4 @@ function TextareaInput(props: TextareaInputProps) {
   );
 }
 
-export { Textarea, TextareaInput }; 
+export { Textarea, TextareaInput };

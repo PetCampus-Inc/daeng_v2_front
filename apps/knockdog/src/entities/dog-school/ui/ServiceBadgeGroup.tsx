@@ -7,19 +7,13 @@ interface ServiceBadgeGroupProps {
   pickupType: keyof typeof PickupType;
 }
 
-export function ServiceBadgeGroup({
-  serviceTags,
-  pickupType,
-}: ServiceBadgeGroupProps) {
+export function ServiceBadgeGroup({ serviceTags, pickupType }: ServiceBadgeGroupProps) {
   const allBadges = [];
 
   if (pickupType !== 'NONE') {
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
-        <Icon
-          icon={pickupType === 'FREE' ? 'PickupFree' : 'PickupPaid'}
-          className='size-x4'
-        />
+        <Icon icon={pickupType === 'FREE' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
         {PickupType[pickupType]}
       </ServiceBadge>
     );

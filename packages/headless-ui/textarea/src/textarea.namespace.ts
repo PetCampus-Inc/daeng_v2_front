@@ -13,4 +13,4 @@ export {
   type TextareaMessageProps as MessageProps,
   type TextareaFieldProps as FieldProps,
   type TextareaIndicatorProps as IndicatorProps,
-} from './textarea'; 
+} from './textarea';

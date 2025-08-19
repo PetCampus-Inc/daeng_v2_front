@@ -21,13 +21,7 @@ export type UseProgressBarReturn = ReturnType<typeof useProgressBar> & {
 };
 
 export function useProgressBar(props: UseProgressBarProps) {
-  const {
-    totalSteps,
-    currentStep: controlledStep,
-    defaultStep = 1,
-    onStepChange,
-    ...core
-  } = props;
+  const { totalSteps, currentStep: controlledStep, defaultStep = 1, onStepChange, ...core } = props;
 
   const [uncontrolledStep, setUncontrolledStep] = useState(defaultStep);
   const isControlled = controlledStep !== undefined;
@@ -45,21 +39,12 @@ export function useProgressBar(props: UseProgressBarProps) {
   const steps = Array.from({ length: totalSteps }, (_, index) => {
     const stepNumber = index + 1;
     let state: StepState = 'upcoming';
-    if (progress.value !== undefined && stepNumber < progress.value)
-      state = 'completed';
-    else if (
-      progress.value !== undefined &&
-      stepNumber === Math.ceil(progress.value)
-    )
-      state = 'current';
+    if (progress.value !== undefined && stepNumber < progress.value) state = 'completed';
+    else if (progress.value !== undefined && stepNumber === Math.ceil(progress.value)) state = 'current';
 
     let width = '0%';
     if (state === 'completed') width = '100%';
-    else if (state === 'current')
-      width =
-        progress.value !== undefined
-          ? `${(progress.value % 1) * 100 || 100}%`
-          : '0%';
+    else if (state === 'current') width = progress.value !== undefined ? `${(progress.value % 1) * 100 || 100}%` : '0%';
 
     return {
       state,

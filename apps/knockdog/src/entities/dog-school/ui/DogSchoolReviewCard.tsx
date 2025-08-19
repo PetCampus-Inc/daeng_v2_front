@@ -1,13 +1,7 @@
 import Image from 'next/image';
 import type { DogSchoolReview } from '../model/mock';
 
-export function DogSchoolReviewCard({
-  userName,
-  profileImage,
-  title,
-  content,
-  createdAt,
-}: DogSchoolReview) {
+export function DogSchoolReviewCard({ userName, profileImage, title, content, createdAt }: DogSchoolReview) {
   return (
     <div className='bg-primitive-neutral-50 mb-2 flex flex-col gap-1 rounded-lg p-4'>
       <div>
@@ -22,9 +16,7 @@ export function DogSchoolReviewCard({
         <span className='body2-extrabold'>{userName}</span>
       </div>
       <span className='body1-bold'>{title}</span>
-      <p className='body2-regular text-text-secondary mb-[15px] line-clamp-2'>
-        {content}
-      </p>
+      <p className='body2-regular text-text-secondary mb-[15px] line-clamp-2'>{content}</p>
 
       <div className='body2-regular text-text-tertiary'>{createdAt}</div>
     </div>

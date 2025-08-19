@@ -26,28 +26,28 @@ const RadioGroup = ({ children, className, ...props }: RadioGroupProps) => {
 const RadioGroupItem = ({ children, className, id, ...props }: RadioGroupItemProps) => {
   const generatedId = useId();
   const itemId = id || generatedId;
-  
+
   return (
-    <div className="flex items-center space-x-2">
+    <div className='flex items-center space-x-2'>
       <RadioGroupPrimitive.Item
         id={itemId}
         className={cn(
-            'aspect-square h-5 w-5 rounded-full border border-line-400',
-            'focus:outline-none',
-            'data-[state=checked]:border-fill-primary-500 data-[state=checked]:bg-fill-secondary-0',
-            'disabled:cursor-not-allowed disabled:bg-fill-secondary-100',
-            className
-          )}
+          'border-line-400 aspect-square h-5 w-5 rounded-full border',
+          'focus:outline-none',
+          'data-[state=checked]:border-fill-primary-500 data-[state=checked]:bg-fill-secondary-0',
+          'disabled:bg-fill-secondary-100 disabled:cursor-not-allowed',
+          className
+        )}
         {...props}
       >
-        <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-          <div className={cn("h-3 w-3 rounded-full bg-fill-primary-500")} />
+        <RadioGroupPrimitive.Indicator className='flex items-center justify-center'>
+          <div className={cn('bg-fill-primary-500 h-3 w-3 rounded-full')} />
         </RadioGroupPrimitive.Indicator>
       </RadioGroupPrimitive.Item>
       {children && (
-        <label 
+        <label
           htmlFor={itemId}
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
         >
           {children}
         </label>

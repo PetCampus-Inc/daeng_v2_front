@@ -18,9 +18,7 @@ const textFieldVariants = cva('', {
   },
 });
 
-interface TextFieldProps
-  extends Omit<TextFieldPrimitive.RootProps, 'prefix'>,
-    VariantProps<typeof textFieldVariants> {
+interface TextFieldProps extends Omit<TextFieldPrimitive.RootProps, 'prefix'>, VariantProps<typeof textFieldVariants> {
   ref?: React.Ref<HTMLDivElement>;
   label?: React.ReactNode;
   indicator?: React.ReactNode;
@@ -48,12 +46,10 @@ function TextField({ ref, ...props }: TextFieldProps) {
     ...restProps
   } = props;
 
-  const renderDescription =
-    description && !restProps.invalid && !restProps.valid;
+  const renderDescription = description && !restProps.invalid && !restProps.valid;
   const renderErrorMessage = errorMessage && restProps.invalid;
   const renderSuccessMessage = successMessage && restProps.valid;
-  const renderFooter =
-    renderDescription || renderErrorMessage || renderSuccessMessage;
+  const renderFooter = renderDescription || renderErrorMessage || renderSuccessMessage;
   const renderHeader = label || indicator;
 
   const Comp = asChild ? Slot : TextFieldPrimitive.Root;
@@ -62,12 +58,8 @@ function TextField({ ref, ...props }: TextFieldProps) {
     <Comp ref={ref} className='flex w-full flex-col' {...restProps}>
       {renderHeader && (
         <div className='pb-x2 gap-x0_5 flex items-center'>
-          <TextFieldPrimitive.Label className='text-text-primary body2-bold'>
-            {label}
-          </TextFieldPrimitive.Label>
-          {restProps.required && (
-            <span className='text-text-accent body2-bold'>*</span>
-          )}
+          <TextFieldPrimitive.Label className='text-text-primary body2-bold'>{label}</TextFieldPrimitive.Label>
+          {restProps.required && <span className='text-text-accent body2-bold'>*</span>}
           <TextFieldPrimitive.Indicator className='text-text-tertiary caption1-semibold'>
             {indicator}
           </TextFieldPrimitive.Indicator>
@@ -93,9 +85,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
             </TextFieldPrimitive.Description>
           )}
           {renderErrorMessage && (
-            <TextFieldPrimitive.Message className='text-error body2-regular'>
-              {errorMessage}
-            </TextFieldPrimitive.Message>
+            <TextFieldPrimitive.Message className='text-error body2-regular'>{errorMessage}</TextFieldPrimitive.Message>
           )}
           {renderSuccessMessage && (
             <TextFieldPrimitive.Message className='text-success body2-regular'>
