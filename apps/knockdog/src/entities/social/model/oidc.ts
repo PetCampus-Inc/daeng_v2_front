@@ -1,17 +1,3 @@
-import { SocialProvider, SocialUser } from './social-user';
-
-export interface VerifyOidcTokenParams {
-  idToken: string;
-  provider: SocialProvider;
-  name?: string;
-  picture?: string;
-}
-
-export interface VerifyOidcResponse extends SocialUser {
-  oidcAuthToken: string;
-  code: VerifyOidcResultCode;
-}
-
 export const VERIFY_OIDC_RESULT_CODE = {
   /** 정상 처리 되었을 때 */
   SUCCESS: 'SUCCESS',
