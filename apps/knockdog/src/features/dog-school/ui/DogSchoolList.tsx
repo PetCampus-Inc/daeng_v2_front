@@ -7,18 +7,50 @@ import { FilterBottomSheet } from './FilterBottomSheet';
 import { DogSchoolCard } from './DogSchoolCard';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { FILTER_OPTIONS, getCombinedMockData, SHORT_CUT_FILTER_OPTIONS } from '@entities/dog-school';
+import { useDogSchoolSearch } from '../model/useDogSchoolSearchContext';
+import { useEffect, useRef } from 'react';
+import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/dog-school';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType } from '@shared/store';
 
 export function DogSchoolList() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-  const { isFabExtended, sentinelRef } = useFabExtension();
+  const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
   const { selectedBaseType, setBaseType } = useBasePointType();
 
+  const { query, schoolList } = useDogSchoolSearch();
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
+
   const selectedFilters = getSelectedFilterWithLabel();
+  const totalCount = query.data?.pages[0]?.schoolResult.totalCount || 0;
+
+  useEffect(() => {
+    const root = isFullExtended ? containerRef.current : null;
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        if (!hasNextPage || isFetchingNextPage) return;
+        fetchNextPage();
+      },
+      {
+        root,
+        rootMargin: '0px 0px 30% 0px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasNextPage, isFetchingNextPage]);
 
   const handleLocationChange = (value: string) => {
     setBaseType(value as 'current' | 'home' | 'work');
@@ -27,11 +59,10 @@ export function DogSchoolList() {
   const openFilterBottomSheet = () =>
     overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} />);
 
-  const { list: allSchools } = getCombinedMockData();
-
   return (
     <>
       <main
+        ref={containerRef}
         className={cn(
           'scrollbar-hide relative flex h-full w-full flex-col pb-[68px]',
           isFullExtended ? 'overflow-y-auto' : 'min-h-full overflow-hidden'
@@ -106,14 +137,15 @@ export function DogSchoolList() {
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
           <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
-            <div className='body2-semibold text-text-tertiary'>총 {allSchools.length}개</div>
+            <div className='body2-semibold text-text-tertiary'>총 {totalCount}개</div>
             <SortSelect />
           </div>
 
-          {allSchools.map((item) => (
-            <DogSchoolCard key={item.id} {...item} />
+          {schoolList.map((item) => (
+            <DogSchoolCard key={item.id} {...item} images={item.images ?? []} />
           ))}
         </div>
+        <div ref={loadMoreRef} aria-hidden className='h-4' />
       </main>
 
       {/* 지도보기 FAB */}
