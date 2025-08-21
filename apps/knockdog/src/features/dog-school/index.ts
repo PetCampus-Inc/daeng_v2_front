@@ -1,5 +1,6 @@
 /* model */
 export * from './model/mappers';
+export * from './model/useDogSchoolSearchContext';
 
 /* api */
 export * from './api/dogschool-list-query';
