@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, type RefObject } from 'react';
 
 /**
  * FAB(Floating Action Button)의 확장 상태를 관리하는 훅
@@ -11,7 +11,7 @@ import { useRef, useState, useEffect } from 'react';
  * @returns {boolean} isFabExtended - FAB의 현재 확장 상태
  * @returns {React.RefObject} sentinelRef - 스크롤 감지를 위한 sentinel 요소의 참조
  */
-export function useFabExtension() {
+export function useFabExtension(root: RefObject<HTMLElement | null>) {
   const [isFabExtended, setIsFabExtended] = useState(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
 

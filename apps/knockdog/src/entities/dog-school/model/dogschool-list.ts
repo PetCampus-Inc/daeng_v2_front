@@ -15,7 +15,7 @@ interface AggregationsDto {
   geoBoundAggregation: GeoBoundAggregation;
 }
 
-interface SidoGunguAggregation {
+export interface SidoGunguAggregation {
   code: string;
   count: number;
   label: string;
