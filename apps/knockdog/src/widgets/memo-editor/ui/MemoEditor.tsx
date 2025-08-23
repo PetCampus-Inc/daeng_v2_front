@@ -26,7 +26,7 @@ export function MemoEditor({
   };
 
   return (
-    <div className={`relative w-fit ${className}`}>
+    <div className={`relative ${className}`}>
       <div className='body2-regular sticky top-[65px] mb-7 flex items-center justify-center bg-white py-3'>
         <span className='text-text-accent'>{memo.length}</span>
         <span>/{maxLength}</span>
