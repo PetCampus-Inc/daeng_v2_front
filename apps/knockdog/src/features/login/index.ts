@@ -1,3 +1,3 @@
-export { useLogin } from './model';
+export { useLogin, useVerificationTimer } from './model';
 
 export { LoginButton } from './ui';
