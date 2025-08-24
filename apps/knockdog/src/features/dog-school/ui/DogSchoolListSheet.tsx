@@ -5,10 +5,7 @@ import { cn } from '@knockdog/ui/lib';
 import { DogSchoolList } from './DogSchoolList';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import {
-  useBottomSheetSnapIndex,
-  useIsomorphicLayoutEffect,
-} from '@shared/lib';
+import { useBottomSheetSnapIndex, useIsomorphicLayoutEffect } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이)
@@ -63,7 +60,7 @@ export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
           <RemoveScroll forwardProps noIsolation>
             <BottomSheet.Body
               className={cn(
-                'absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
+                'shadow-black/6 absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
                 isMarkerActive && 'hidden',
                 isFullExtended && 'rounded-none shadow-none'
               )}
@@ -74,6 +71,7 @@ export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
                   <BottomSheet.Handle className='mt-x3 mb-x1' />
                 </>
               )}
+              <BottomSheet.Title className='sr-only'>강아지 유치원 목록</BottomSheet.Title>
               <DogSchoolList />
             </BottomSheet.Body>
           </RemoveScroll>

@@ -28,21 +28,21 @@ function useCheckboxState(props: UseCheckboxStateProps) {
 
   useEffect(() => {
     const form = inputRef.current?.form;
-    if(form && !isControlled) {
+    if (form && !isControlled) {
       const reset = () => setIsChecked(initialCheckedRef.current);
       form.addEventListener('reset', reset);
       return () => form.removeEventListener('reset', reset);
     }
-  }, [setIsChecked])
+  }, [setIsChecked]);
 
   useEffect(() => {
-    if(!inputRef.current) return;
+    if (!inputRef.current) return;
 
     inputRef.current.indeterminate = props.indeterminate ?? false;
-  }, [props.indeterminate])
+  }, [props.indeterminate]);
 
   return {
-    refs: { input: inputRef},
+    refs: { input: inputRef },
     isIndeterminate: props.indeterminate ?? false,
     isControlled,
     isChecked,
@@ -58,9 +58,8 @@ function useCheckboxState(props: UseCheckboxStateProps) {
   };
 }
 
-
 export interface UseCheckboxProps extends UseCheckboxStateProps {
-  disabled ?: boolean;
+  disabled?: boolean;
   invalid?: boolean;
   required?: boolean;
   children?: React.ReactNode;
@@ -72,25 +71,41 @@ export interface UseCheckboxProps extends UseCheckboxStateProps {
 export type UseCheckboxReturn = ReturnType<typeof useCheckbox>;
 
 export function useCheckbox(props: UseCheckboxProps) {
-  const {refs,isChecked, isIndeterminate, setIsChecked, isHovered, setIsHovered, isActive, setIsActive, isFocused, setIsFocused, isFocusVisible, setIsFocusVisible, isControlled, ...restStats} = useCheckboxState(props);
+  const {
+    refs,
+    isChecked,
+    isIndeterminate,
+    setIsChecked,
+    isHovered,
+    setIsHovered,
+    isActive,
+    setIsActive,
+    isFocused,
+    setIsFocused,
+    isFocusVisible,
+    setIsFocusVisible,
+    isControlled,
+    ...restStats
+  } = useCheckboxState(props);
 
   const checkboxId = useId();
   const hasLabel = React.Children.toArray(props.children).some(
-    child => typeof child === 'string' || (React.isValidElement(child) && (child.type as any)?.displayName !== 'CheckboxIndicator')
+    (child) =>
+      typeof child === 'string' ||
+      (React.isValidElement(child) && (child.type as any)?.displayName !== 'CheckboxIndicator')
   );
 
   const stateProps = elementProps({
-    "data-checked": dataAttr(isChecked),
-    "data-indeterminate": dataAttr(isIndeterminate),
-    "data-hover": dataAttr(isHovered),
-    "data-active": dataAttr(isActive),
-    "data-focus": dataAttr(isFocused),
-    "data-focus-visible": dataAttr(isFocusVisible),
-    "data-disabled": dataAttr(props.disabled),
-    "data-invalid": dataAttr(props.invalid),
-    "data-required": dataAttr(props.required),
-  })
-
+    'data-checked': dataAttr(isChecked),
+    'data-indeterminate': dataAttr(isIndeterminate),
+    'data-hover': dataAttr(isHovered),
+    'data-active': dataAttr(isActive),
+    'data-focus': dataAttr(isFocused),
+    'data-focus-visible': dataAttr(isFocusVisible),
+    'data-disabled': dataAttr(props.disabled),
+    'data-invalid': dataAttr(props.invalid),
+    'data-required': dataAttr(props.required),
+  });
 
   return {
     indeterminate: isIndeterminate,
@@ -105,29 +120,29 @@ export function useCheckbox(props: UseCheckboxProps) {
 
     refs,
     stateProps,
-    rootProps : labelProps({
+    rootProps: labelProps({
       ...stateProps,
       onPointerMove: () => {
-        if(props.disabled) return;
-        setIsHovered(true)
+        if (props.disabled) return;
+        setIsHovered(true);
       },
       onPointerDown: () => {
-        if(props.disabled) return;
-        setIsActive(true)
+        if (props.disabled) return;
+        setIsActive(true);
       },
       onPointerUp: () => {
-        if(props.disabled) return;
-        setIsActive(false)
+        if (props.disabled) return;
+        setIsActive(false);
       },
       onPointerLeave: () => {
-        if(props.disabled) return;
+        if (props.disabled) return;
         setIsHovered(false);
         setIsActive(false);
       },
     }),
     controlProps: elementProps({
       ...stateProps,
-      "aria-hidden": true,
+      'aria-hidden': true,
     }),
     hiddenInputProps: inputProps({
       type: 'checkbox',
@@ -142,38 +157,38 @@ export function useCheckbox(props: UseCheckboxProps) {
       'aria-checked': isIndeterminate ? 'mixed' : isChecked,
       style: {
         border: 0,
-        clip: "rect(0 0 0 0)",
-        height: "1px",
-        margin: "-1px",
-        overflow: "hidden",
+        clip: 'rect(0 0 0 0)',
+        height: '1px',
+        margin: '-1px',
+        overflow: 'hidden',
         padding: 0,
-        position: "absolute",
-        whiteSpace: "nowrap",
-        width: "1px",
+        position: 'absolute',
+        whiteSpace: 'nowrap',
+        width: '1px',
       },
       ...stateProps,
       onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
         setIsChecked(event.currentTarget.checked);
-        setIsFocusVisible(event.target.matches(":focus-visible"));
+        setIsFocusVisible(event.target.matches(':focus-visible'));
       },
       onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
         setIsFocused(true);
-        setIsFocusVisible(event.target.matches(":focus-visible"));
+        setIsFocusVisible(event.target.matches(':focus-visible'));
       },
       onBlur: () => {
         setIsFocused(false);
         setIsFocusVisible(false);
       },
       onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if(event.key === ' ') {
+        if (event.key === ' ') {
           setIsActive(true);
         }
       },
       onKeyUp: (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if(event.key === ' ') {
+        if (event.key === ' ') {
           setIsActive(false);
         }
       },
-    })
-  }
+    }),
+  };
 }

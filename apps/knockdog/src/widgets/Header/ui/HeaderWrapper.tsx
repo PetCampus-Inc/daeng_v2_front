@@ -9,8 +9,16 @@ export function HeaderWrapper() {
   const pathname = usePathname();
   const { variant, title } = useHeaderContext();
 
+  // pathname이 null인 경우 헤더를 표시하지 않음
+  if (!pathname) {
+    return null;
+  }
+
   const companyBasePath = COMPANY_SLUG_PATHNAME.replace(/\[.*?\]/g, '');
-  if (pathname.startsWith(companyBasePath)) {
+  const isCompanyPath = pathname.startsWith(companyBasePath);
+  const isFullImagePath = pathname.includes('/full-image');
+
+  if (isCompanyPath && !isFullImagePath) {
     return (
       <Header>
         <Header.LeftSection>
