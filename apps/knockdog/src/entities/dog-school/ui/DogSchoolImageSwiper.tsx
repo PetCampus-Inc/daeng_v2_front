@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
 import Image from 'next/image';
 
-// @TODO 추후, knockdog-ui swiper로 대체한다.
 interface DogSchoolImageSwiperProps {
   images: string[];
 }
@@ -13,8 +12,8 @@ export function DogSchoolImageSwiper({ images }: DogSchoolImageSwiperProps) {
   const totalSlides = images.length;
   const [currentSlide, setCurrentSlide] = useState(1);
 
-  const handleSlideChange = (swiper: any) => {
-    setCurrentSlide(swiper.activeIndex + 1);
+  const handleSlideChange = (currentIndex: number) => {
+    setCurrentSlide(currentIndex + 1);
   };
 
   return (
@@ -22,8 +21,15 @@ export function DogSchoolImageSwiper({ images }: DogSchoolImageSwiperProps) {
       <SwiperRoot onSlideChange={handleSlideChange}>
         {images.map((image, index) => (
           <SwiperSlideItem key={index}>
-            <div className='h-[292px] w-full'>
-              <Image src={image} alt='' fill className='object-cover' />
+            <div className='relative h-[292px] w-full'>
+              <Image
+                src={image}
+                alt={`업체 이미지 ${index + 1}`}
+                fill
+                sizes='100vw'
+                className='object-cover'
+                priority={index === 0}
+              />
             </div>
           </SwiperSlideItem>
         ))}

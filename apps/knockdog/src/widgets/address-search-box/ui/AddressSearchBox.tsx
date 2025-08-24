@@ -42,6 +42,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    setIsLoading(true);
     setError(null);
 
     try {
