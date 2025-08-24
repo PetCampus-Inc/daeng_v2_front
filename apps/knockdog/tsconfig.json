@@ -22,7 +22,9 @@
       "@stores/*": ["shared/store/*"],
       "@utils/*": ["shared/utils/*"],
       "@providers/*": ["app/providers/*"],
-      "@constants/*": ["shared/constants/*"]
+      "@constants/*": ["shared/constants/*"],
+      "@bridgeStore": ["src/shared/store/useBridgeStore.ts"],
+      "@type/*": ["./src/shared/types/*"]
     }
   }
 }

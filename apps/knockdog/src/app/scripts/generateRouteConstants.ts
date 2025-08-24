@@ -1,23 +1,14 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // 현재 스크립트 파일의 디렉토리를 기준으로 경로 설정
 const currentDir = __dirname;
 const appDirectory = path.join(currentDir, '..', '..', '..', 'app');
-const constantFilePath = path.join(
-  currentDir,
-  '..',
-  '..',
-  'shared',
-  'constants',
-  'pathname.ts'
-);
+const constantFilePath = path.join(currentDir, '..', '..', 'shared', 'constants', 'pathname.ts');
 
 // 경로를 상수 이름으로 변환하는 함수
 function pathToConstantName(filePath: string) {
-  const relativePath = path
-    .relative(appDirectory, filePath)
-    .replace(/\/page\.tsx$/, '');
+  const relativePath = path.relative(appDirectory, filePath).replace(/\/page\.tsx$/, '');
 
   if (!relativePath) {
     throw new Error(`Invalid path: ${filePath}`);
@@ -27,7 +18,7 @@ function pathToConstantName(filePath: string) {
     .replace(/\[([^\]]+)\]/g, '$1') // 대괄호 내용 보존
     .replace(/\.\.\./g, 'CATCH_ALL') // 명시적 catch-all 처리
     .toUpperCase()
-    .replace(/[\/\-]/g, '_')
+    .replace(/[\\/\\-]/g, '_')
     .replace(/[^A-Z0-9_]/g, '_'); // 특수문자 처리
 
   return `${constantNamePart}_PATHNAME`;
@@ -35,9 +26,7 @@ function pathToConstantName(filePath: string) {
 
 // 상수 값 생성
 function createConstantValue(filePath: string) {
-  return (
-    '/' + path.relative(appDirectory, filePath).replace(/\/page\.tsx$/, '')
-  );
+  return '/' + path.relative(appDirectory, filePath).replace(/\/page\.tsx$/, '');
 }
 
 // 디렉토리를 재귀적으로 탐색하는 함수
@@ -92,9 +81,7 @@ try {
   }
 
   fs.writeFileSync(constantFilePath, updatedContent);
-  console.log(
-    `${newConstants.length}개의 상수가 ${constantFilePath}에 업데이트되었습니다.`
-  );
+  console.log(`${newConstants.length}개의 상수가 ${constantFilePath}에 업데이트되었습니다.`);
 } catch (error) {
   console.error(`파일 쓰기 실패: ${constantFilePath}`, error);
   process.exit(1);
