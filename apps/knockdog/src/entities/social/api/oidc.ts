@@ -1,4 +1,5 @@
 import { SocialProvider, SocialUser, VerifyOidcResultCode } from '../model';
+import { ApiResponse } from '@shared/types/api';
 import api from '@shared/api/ky-client';
 
 export interface VerifyOidcTokenParams {
@@ -8,15 +9,8 @@ export interface VerifyOidcTokenParams {
   picture?: string;
 }
 
-export interface VerifyOidcResponse extends SocialUser {
-  oidcAuthToken: string;
-  code: VerifyOidcResultCode;
-}
-
-export const postVerifyOidc = async (params: VerifyOidcTokenParams): Promise<VerifyOidcResponse> => {
-  return await api
-    .post('auth/verify/oidc', {
-      json: params,
-    })
-    .json<VerifyOidcResponse>();
+export const postVerifyOidc = async (
+  params: VerifyOidcTokenParams
+): Promise<ApiResponse<SocialUser, VerifyOidcResultCode>> => {
+  return await api.post('auth/verify/oidc', { json: params }).json<ApiResponse<SocialUser, VerifyOidcResultCode>>();
 };
