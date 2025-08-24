@@ -98,7 +98,7 @@ interface TextareaInputProps extends TextareaPrimitive.TextareaProps {
 }
 
 function TextareaInput(props: TextareaInputProps) {
-  const { ref, asChild, ...restProps } = props;
+  const { ref, asChild, className, ...restProps } = props;
 
   const Comp = asChild ? Slot : TextareaPrimitive.Textarea;
   return (
@@ -109,7 +109,7 @@ function TextareaInput(props: TextareaInputProps) {
         // 커스텀 스크롤바 스타일
         '[&::-webkit-scrollbar-track]:bg-fill-secondary-200 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:p-0.5 [&::-webkit-scrollbar]:w-2',
         '[&::-webkit-scrollbar-thumb]:bg-fill-secondary-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-400',
-        props.className
+        className
       )}
       {...restProps}
     />

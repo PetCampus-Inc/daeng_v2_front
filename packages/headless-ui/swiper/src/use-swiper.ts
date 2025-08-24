@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { getChildren } from './get-children';
 
 export interface UseSwiperProps {
+  initialIndex?: number;
   slidesPerView?: number;
   slideStep?: number;
   loop?: boolean;
@@ -15,34 +16,34 @@ export interface UseSwiperProps {
 export type UseSwiperReturn = ReturnType<typeof useSwiper>;
 
 export function useSwiper(props: UseSwiperProps) {
-  const {
-    slidesPerView = 1,
-    slideStep = 1,
-    loop = false,
-    children,
-    onSlideChange,
-  } = props;
+  const { initialIndex = 0, slidesPerView = 1, slideStep = 1, loop = false, children, onSlideChange } = props;
 
-  // 원본 슬라이드 배열
   const originalSlides = useMemo(() => getChildren(children), [children]);
   const totalSlides = originalSlides.length;
 
-  // 앞뒤 복제용
   const head = loop ? originalSlides.slice(-slidesPerView) : [];
   const tail = loop ? originalSlides.slice(0, slidesPerView) : [];
 
-  // 최종 사용 슬라이드(클론 포함)
   const slides = useMemo(
     () => (loop ? [...head, ...originalSlides, ...tail] : originalSlides),
     [originalSlides, loop, slidesPerView]
   );
 
-  // 가상 인덱스 초기화
-  const initialVirtual = loop ? slidesPerView : 0;
+  const maxVirtual = Math.max(0, totalSlides - slidesPerView);
+  const clampReal = (i: number) => Math.max(0, Math.min(i, maxVirtual));
+
+  const initialReal = clampReal(initialIndex);
+  const initialVirtual = loop ? initialReal + slidesPerView : initialReal;
+
   const [virtualIndex, setVirtualIndex] = useState(initialVirtual);
 
-  // non-loop 모드에서 clamp 할 최대 가상 인덱스
-  const maxVirtual = totalSlides - slidesPerView;
+  useEffect(() => {
+    const nextMaxVirtual = Math.max(0, (originalSlides.length ?? 0) - slidesPerView);
+    const nextReal = clampReal(initialIndex);
+    const nextVirtual = loop ? nextReal + slidesPerView : nextReal;
+    setVirtualIndex(nextVirtual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalSlides, slidesPerView, loop, initialIndex]);
 
   const canGoNext = loop || virtualIndex < maxVirtual;
   const canGoPrev = loop || virtualIndex > 0;
@@ -64,20 +65,16 @@ export function useSwiper(props: UseSwiperProps) {
   };
 
   const goTo = (index: number) => {
-    const realIndex = Math.max(0, Math.min(index, maxVirtual));
+    const realIndex = clampReal(index);
     setVirtualIndex(loop ? realIndex + slidesPerView : realIndex);
   };
 
-  // 외부에 노출할 “실제” 인덱스 계산
   const currentIndex = useMemo(() => {
     if (!loop) return virtualIndex;
-    return (
-      (((virtualIndex - slidesPerView) % totalSlides) + totalSlides) %
-      totalSlides
-    );
+    if (totalSlides === 0) return 0;
+    return (((virtualIndex - slidesPerView) % totalSlides) + totalSlides) % totalSlides;
   }, [virtualIndex, slidesPerView, totalSlides, loop]);
 
-  // 인덱스 변경 콜백
   useEffect(() => {
     onSlideChange?.(currentIndex);
   }, [currentIndex, onSlideChange]);

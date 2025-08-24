@@ -10,12 +10,11 @@ import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import BridgeListenerClient from '@app/_bridge/BridgeListenerClient';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
-import { BottomNavBar } from '@widgets/bottom-nav-bar';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='ko' className={cn(suit.variable)}>
-      <body>
+      <body className='overflow-hidden'>
         <NuqsAdapter>
           <ReactQueryProvider>
             <NaverMapProvider>
@@ -25,7 +24,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <HeaderWrapper />
                     <BridgeListenerClient />
                     {children}
-                    <BottomNavBar />
                   </div>
                 </HeaderProvider>
               </OverlayProvider>
