@@ -13,12 +13,8 @@ export const SOCIAL_PROVIDER = {
 export type SocialProvider = (typeof SOCIAL_PROVIDER)[keyof typeof SOCIAL_PROVIDER];
 
 export interface SocialUser {
-  id: number;
   provider: SocialProvider;
-  userId: string;
   name: string;
   picture: string;
   email: string;
-  linkedAt: Date;
-  createdAt: Date;
 }
