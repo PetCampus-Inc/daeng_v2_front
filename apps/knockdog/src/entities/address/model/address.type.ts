@@ -7,7 +7,7 @@ export interface AddressSearchResult {
       errorCode: string;
       errorMessage: string;
     };
-    juso: Array<{
+    juso?: Array<{
       roadAddr?: string;
       jibunAddr?: string;
       zipNo: string;

@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { AddressSearchParams, AddressSearchResult, AddressSearchError } from './types';
 
-const JUSO_API_KEY = process.env.JUSO_API_KEY || 'devU01TX0FVVEgyMDI1MDgxNTE5NTgxNTExNjA3NDE=';
+const JUSO_API_KEY = process.env.JUSO_API_KEY;
 const JUSO_API_URL = 'https://business.juso.go.kr/addrlink/addrLinkApi.do';
 
 export async function GET(request: NextRequest) {
   try {
+    if (!JUSO_API_KEY) {
+      return NextResponse.json({ error: 'API 키가 설정되지 않았습니다.' } as AddressSearchError, { status: 500 });
+    }
+
     const { searchParams } = new URL(request.url);
 
     // 필수 파라미터 검증
@@ -36,7 +40,11 @@ export async function GET(request: NextRequest) {
     apiUrl.searchParams.set('firstSort', params.firstSort);
     apiUrl.searchParams.set('addInfoYn', params.addInfoYn);
 
-    console.log('도로명주소 API 호출:', apiUrl.toString());
+    {
+      const loggedUrl = new URL(apiUrl.toString());
+      loggedUrl.searchParams.set('confmKey', '********');
+      console.log('도로명주소 API 호출:', loggedUrl.toString());
+    }
 
     const response = await fetch(apiUrl.toString(), {
       method: 'GET',
@@ -47,7 +55,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data: AddressSearchResult = await response.json();
-    console.log('도로명주소 API 응답:', JSON.stringify(data, null, 2));
 
     // 에러 코드 확인
     if (data.results.common.errorCode !== '0') {
@@ -76,6 +83,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!JUSO_API_KEY) {
+      return NextResponse.json({ error: 'API 키가 설정되지 않았습니다.' } as AddressSearchError, { status: 500 });
+    }
+
     const body = await request.json();
 
     // 필수 파라미터 검증

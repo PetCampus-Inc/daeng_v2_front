@@ -47,8 +47,8 @@ const response = await fetch('/api/address/search', {
 | 파라미터       | 타입                           | 필수 | 기본값 | 설명                      |
 | -------------- | ------------------------------ | ---- | ------ | ------------------------- |
 | `keyword`      | string                         | ✅   | -      | 검색할 주소 키워드        |
-| `currentPage`  | string                         | ❌   | "1"    | 현재 페이지 번호          |
-| `countPerPage` | string                         | ❌   | "10"   | 페이지당 결과 수          |
+| `currentPage`  | string \| number               | ❌   | "1"    | 현재 페이지 번호          |
+| `countPerPage` | string \| number               | ❌   | "10"   | 페이지당 결과 수          |
 | `resultType`   | 'xml' \| 'json'                | ❌   | "json" | 응답 형식                 |
 | `hstryYn`      | 'Y' \| 'N'                     | ❌   | "N"    | 변동된 주소정보 포함 여부 |
 | `firstSort`    | 'none' \| 'road' \| 'location' | ❌   | "none" | 정렬 우선순위             |

@@ -1,4 +1,4 @@
-import { Icon } from "@knockdog/ui";
+import { Icon } from '@knockdog/ui';
 
 interface MiniPhotoBoxProps {
   imageUrl?: string;
@@ -7,21 +7,17 @@ interface MiniPhotoBoxProps {
   onRemove?: () => void;
 }
 
-function MiniPhotoBox({ imageUrl, alt = "사진", className = "", onRemove }: MiniPhotoBoxProps) {
-
+function MiniPhotoBox({ imageUrl, alt = '사진', className = '', onRemove }: MiniPhotoBoxProps) {
   return (
-    <div className="relative">
-      <div className={`rounded-lg overflow-hidden ${className}`}>
-        <img 
-          src={imageUrl} 
-          alt={alt}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+    <div className='relative'>
+      <div className={`overflow-hidden rounded-lg ${className}`}>
+        {imageUrl && <img src={imageUrl} alt={alt} className='h-full w-full object-cover' loading='lazy' />}
       </div>
-        <button onClick={onRemove} type="button" >
-          <Icon icon="DeleteInput" className="absolute right-1 top-1 h-5 w-5 text-neutral-700" />
+      {onRemove && (
+        <button onClick={onRemove} type='button' aria-label='사진 삭제'>
+          <Icon icon='DeleteInput' className='absolute right-1 top-1 h-5 w-5 text-neutral-700' />
         </button>
+      )}
     </div>
   );
 }

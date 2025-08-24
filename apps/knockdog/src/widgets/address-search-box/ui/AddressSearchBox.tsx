@@ -6,15 +6,17 @@ import { useDebounced, useInfiniteObserver } from '@shared/lib';
 
 const PAGE_SIZE = 30;
 
+type JusoItem = NonNullable<AddressSearchResult['results']['juso']>[0];
+
 interface AddressSearchBoxProps {
-  onSelect?: (address: AddressSearchResult['results']['juso'][0]) => void;
+  onSelect?: (address: JusoItem) => void;
 }
 
 export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounced(search, 500);
 
-  const [results, setResults] = useState<AddressSearchResult['results']['juso']>([]);
+  const [results, setResults] = useState<JusoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,10 +25,9 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const inFlightRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const triStateHasMore = useMemo(() => results.length < totalCount, [results.length, totalCount]);
+  const triStateHasMore = useMemo(() => (results?.length ?? 0) < totalCount, [results?.length, totalCount]);
 
   const fetchPage = useCallback(async (keyword: string, page: number, append: boolean) => {
     if (!keyword.trim()) {
@@ -36,15 +37,11 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
       setCurrentPage(1);
       return;
     }
-    // 중복/경합 가드
-    if (inFlightRef.current) return;
-    inFlightRef.current = true;
 
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setIsLoading(true);
     setError(null);
 
     try {
@@ -72,7 +69,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
 
       if (append) {
         setResults((prev) => {
-          const merged = prev.concat(fetched);
+          const merged = (prev ?? []).concat(fetched);
           setHasMore(merged.length < total);
           return merged;
         });
@@ -90,7 +87,6 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
       }
     } finally {
       setIsLoading(false);
-      inFlightRef.current = false;
     }
   }, []);
 
@@ -115,7 +111,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
     },
   });
 
-  const formatAddress = (item: AddressSearchResult['results']['juso'][0]) => {
+  const formatAddress = (item: JusoItem) => {
     const main = item.roadAddr || item.jibunAddr || '주소 정보 없음';
     const sub = item.roadAddr
       ? item.jibunAddr || `${item.siNm} ${item.sggNm} ${item.emdNm}`
@@ -137,7 +133,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
       </div>
 
       <div ref={scrollRef} className='max-h-[calc(100vh-134px)] overflow-y-auto px-4'>
-        {search === '' && results.length === 0 && (
+        {search === '' && (results?.length ?? 0) === 0 && (
           <div className='mt-5 px-4'>
             <ul className='text-text-tertiary body2-regular list-disc space-y-2'>
               <li>
@@ -151,9 +147,9 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
         )}
 
         {/* 결과 목록 */}
-        {results.length > 0 && (
+        {(results?.length ?? 0) > 0 && (
           <ul>
-            {results.map((item, idx) => {
+            {results?.map((item, idx) => {
               const { main, sub } = formatAddress(item);
               return (
                 <li
@@ -170,7 +166,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
         )}
 
         {/* 빈 상태 */}
-        {debouncedSearch !== '' && !isLoading && !error && results.length === 0 && (
+        {debouncedSearch !== '' && !isLoading && !error && (results?.length ?? 0) === 0 && (
           <div className='flex min-h-[300px] flex-col items-center justify-center px-4 text-center'>
             <span className='h3-semibold text-primitive-neutral-900'>검색 결과가 없어요</span>
             <span className='body2-regular text-primitive-neutral-600 mt-1'>검색어를 확인해주세요</span>

@@ -14,7 +14,6 @@ type CheckedKey = (typeof checkOptions)[number]['key'];
 export function ReportUpdateSection() {
   const params = useParams<{ slug: string }>();
   const slug = params?.slug;
-  if (!slug) return null;
 
   const [checkedSet, setCheckedSet] = useState<Set<CheckedKey>>(new Set());
   const [currentAddress] = useState<string | null>('서울특별시 강남구 테헤란로 77-2');
@@ -35,6 +34,8 @@ export function ReportUpdateSection() {
     (key: CheckedKey) => key === 'closed' || key === 'price' || key === 'phone' || key === 'time',
     []
   );
+
+  if (!slug) return null;
 
   return (
     <>
