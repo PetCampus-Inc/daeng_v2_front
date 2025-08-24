@@ -5,8 +5,6 @@ export const VERIFY_OIDC_RESULT_CODE = {
   UNLINKED: 'UNLINKED',
   /** 이미 존재하는 이메일 주소 */
   EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
-  /** 이미 연동된 계정 */
-  ALREADY_LINKED: 'ALREADY_LINKED',
 } as const;
 
 export type VerifyOidcResultCode = (typeof VERIFY_OIDC_RESULT_CODE)[keyof typeof VERIFY_OIDC_RESULT_CODE];
