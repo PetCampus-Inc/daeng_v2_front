@@ -13,12 +13,7 @@ export type ProgressState = 'complete' | 'loading' | 'indeterminate';
 export type UseProgressReturn = ReturnType<typeof useProgress>;
 
 export function useProgress(props: UseProgressProps) {
-  const {
-    value,
-    minValue = 0,
-    maxValue = 100,
-    getValueText = (p) => `${Math.round(p)}%`,
-  } = props;
+  const { value, minValue = 0, maxValue = 100, getValueText = (p) => `${Math.round(p)}%` } = props;
 
   const indeterminate = typeof value !== 'number';
   const clamped = useMemo(() => {
@@ -26,15 +21,9 @@ export function useProgress(props: UseProgressProps) {
     return Math.min(Math.max(value!, minValue), maxValue);
   }, [indeterminate, value, minValue, maxValue]);
 
-  const percent = indeterminate
-    ? -1
-    : ((clamped! - minValue) / (maxValue - minValue)) * 100;
+  const percent = indeterminate ? -1 : ((clamped! - minValue) / (maxValue - minValue)) * 100;
 
-  const state: ProgressState = indeterminate
-    ? 'indeterminate'
-    : clamped === maxValue
-      ? 'complete'
-      : 'loading';
+  const state: ProgressState = indeterminate ? 'indeterminate' : clamped === maxValue ? 'complete' : 'loading';
 
   const stateProps = elementProps({
     'data-progress-state': state,

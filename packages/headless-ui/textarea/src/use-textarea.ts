@@ -1,12 +1,6 @@
 import { useControllableState } from '@radix-ui/react-use-controllable-state';
 import { ariaAttr, dataAttr, elementProps } from '@daeng-design/utils';
-import {
-  useId,
-  useState,
-  type TextareaHTMLAttributes,
-  type HTMLAttributes,
-  type LabelHTMLAttributes,
-} from 'react';
+import { useId, useState, type TextareaHTMLAttributes, type HTMLAttributes, type LabelHTMLAttributes } from 'react';
 import * as dom from './dom';
 
 interface UseTextareaStateProps {
@@ -219,4 +213,4 @@ function useTextarea(props: UseTextareaProps) {
   };
 }
 
-export { useTextarea, type UseTextareaProps, type UseTextareaReturn }; 
+export { useTextarea, type UseTextareaProps, type UseTextareaReturn };

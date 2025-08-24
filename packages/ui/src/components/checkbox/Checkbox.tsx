@@ -10,13 +10,13 @@ import { cn } from '@knockdog/ui/lib';
 const checkboxVariants = cva('flex shrink-0 items-center justify-center rounded-sm border', {
   variants: {
     size: {
-      sm: 'size-[18px]',
-      md: 'size-[22px]',
-      lg: 'size-[26px]',
+      sm: 'size-[20px]',
+      md: 'size-[25px]',
+      lg: 'size-[32px]',
     },
   },
   defaultVariants: {
-    size: 'sm',
+    size: 'md',
   },
 });
 
@@ -29,7 +29,7 @@ const iconVariants = cva('text-white', {
     },
   },
   defaultVariants: {
-    size: 'sm',
+    size: 'md',
   },
 });
 

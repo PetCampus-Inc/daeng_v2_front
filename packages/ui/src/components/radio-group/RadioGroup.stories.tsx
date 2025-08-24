@@ -31,7 +31,7 @@ const meta: Meta<typeof RadioGroup> = {
   },
   decorators: [
     (Story) => (
-      <div className="p-4">
+      <div className='p-4'>
         <Story />
       </div>
     ),
@@ -48,13 +48,13 @@ export const Default: Story = {
   },
   render: (args) => (
     <RadioGroup {...args}>
-      <RadioGroupItem value="option1" id="option1">
+      <RadioGroupItem value='option1' id='option1'>
         첫 번째 옵션
       </RadioGroupItem>
-      <RadioGroupItem value="option2" id="option2">
+      <RadioGroupItem value='option2' id='option2'>
         두 번째 옵션
       </RadioGroupItem>
-      <RadioGroupItem value="option3" id="option3">
+      <RadioGroupItem value='option3' id='option3'>
         세 번째 옵션
       </RadioGroupItem>
     </RadioGroup>
@@ -68,13 +68,13 @@ export const WithDefaultValue: Story = {
   },
   render: (args) => (
     <RadioGroup {...args}>
-      <RadioGroupItem value="option1" id="default-option1">
+      <RadioGroupItem value='option1' id='default-option1'>
         기본값이 없는 옵션
       </RadioGroupItem>
-      <RadioGroupItem value="option2" id="default-option2">
+      <RadioGroupItem value='option2' id='default-option2'>
         기본값으로 선택된 옵션
       </RadioGroupItem>
-      <RadioGroupItem value="option3" id="default-option3">
+      <RadioGroupItem value='option3' id='default-option3'>
         다른 옵션
       </RadioGroupItem>
     </RadioGroup>
@@ -89,13 +89,13 @@ export const Disabled: Story = {
   },
   render: (args) => (
     <RadioGroup {...args}>
-      <RadioGroupItem value="option1" id="disabled-option1">
+      <RadioGroupItem value='option1' id='disabled-option1'>
         비활성화된 옵션 1
       </RadioGroupItem>
-      <RadioGroupItem value="option2" id="disabled-option2">
+      <RadioGroupItem value='option2' id='disabled-option2'>
         비활성화된 옵션 2
       </RadioGroupItem>
-      <RadioGroupItem value="option3" id="disabled-option3">
+      <RadioGroupItem value='option3' id='disabled-option3'>
         비활성화된 옵션 3
       </RadioGroupItem>
     </RadioGroup>
@@ -109,13 +109,13 @@ export const MixedDisabled: Story = {
   },
   render: (args) => (
     <RadioGroup {...args}>
-      <RadioGroupItem value="option1" id="mixed-option1">
+      <RadioGroupItem value='option1' id='mixed-option1'>
         활성화된 옵션 1
       </RadioGroupItem>
-      <RadioGroupItem value="option2" id="mixed-option2" disabled>
+      <RadioGroupItem value='option2' id='mixed-option2' disabled>
         비활성화된 옵션 2
       </RadioGroupItem>
-      <RadioGroupItem value="option3" id="mixed-option3">
+      <RadioGroupItem value='option3' id='mixed-option3'>
         활성화된 옵션 3
       </RadioGroupItem>
     </RadioGroup>
@@ -129,16 +129,15 @@ export const Required: Story = {
   },
   render: (args) => (
     <RadioGroup {...args}>
-      <RadioGroupItem value="option1" id="required-option1">
+      <RadioGroupItem value='option1' id='required-option1'>
         필수 선택 옵션 1
       </RadioGroupItem>
-      <RadioGroupItem value="option2" id="required-option2">
+      <RadioGroupItem value='option2' id='required-option2'>
         필수 선택 옵션 2
       </RadioGroupItem>
-      <RadioGroupItem value="option3" id="required-option3">
+      <RadioGroupItem value='option3' id='required-option3'>
         필수 선택 옵션 3
       </RadioGroupItem>
     </RadioGroup>
   ),
 };
-

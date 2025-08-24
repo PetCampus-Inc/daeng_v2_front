@@ -3,12 +3,7 @@ import { BusinessHours } from './BusinessHours';
 import { DogSchoolLocationMap } from './DogSchoolLocationMap';
 import { IconWithLabel } from './IconWithLabel';
 import { WebSiteInfo } from './WebSiteInfo';
-import type {
-  견종,
-  강아지_서비스,
-  강아지_안전_시설,
-  방문객_편의_시설,
-} from '../model/mock';
+import type { 견종, 강아지_서비스, 강아지_안전_시설, 방문객_편의_시설 } from '../model/mock';
 
 export function DefaultInfoSection() {
   return (
@@ -22,11 +17,9 @@ export function DefaultInfoSection() {
           <span className='body1-bold'>견종</span>
         </div>
         <div className='grid grid-cols-4 gap-3'>
-          {['ALL_BREEDS', 'SMALL_DOGS_ONLY', 'MEDIUM_LARGE_DOGS_ONLY'].map(
-            (code) => (
-              <IconWithLabel key={code} code={code as 견종} />
-            )
-          )}
+          {['ALL_BREEDS', 'SMALL_DOGS_ONLY', 'MEDIUM_LARGE_DOGS_ONLY'].map((code) => (
+            <IconWithLabel key={code} code={code as 견종} />
+          ))}
         </div>
       </div>
       {/* 강아지 서비스 */}
@@ -35,11 +28,9 @@ export function DefaultInfoSection() {
           <span className='body1-bold'>강아지 서비스</span>
         </div>
         <div className='grid grid-cols-4 gap-3'>
-          {['DAYCARE', 'HOTEL', 'STAY_24H', 'TEMPERAMENT', 'SPLIT_CLASS'].map(
-            (code) => (
-              <IconWithLabel key={code} code={code as 강아지_서비스} />
-            )
-          )}
+          {['DAYCARE', 'HOTEL', 'STAY_24H', 'TEMPERAMENT', 'SPLIT_CLASS'].map((code) => (
+            <IconWithLabel key={code} code={code as 강아지_서비스} />
+          ))}
         </div>
       </div>
       {/* 강아지 안전시설 */}
@@ -48,15 +39,7 @@ export function DefaultInfoSection() {
           <span className='body1-bold'>강아지 안전·시설</span>
         </div>
         <div className='grid grid-cols-4 gap-3'>
-          {[
-            'NON_SLIP',
-            'CCTV',
-            'PLAYGROUND',
-            'ROOFTOP',
-            'TERRACE',
-            'TRAINING_GROUND',
-            'YARD',
-          ].map((code) => (
+          {['NON_SLIP', 'CCTV', 'PLAYGROUND', 'ROOFTOP', 'TERRACE', 'TRAINING_GROUND', 'YARD'].map((code) => (
             <IconWithLabel key={code} code={code as 강아지_안전_시설} />
           ))}
         </div>
@@ -67,14 +50,7 @@ export function DefaultInfoSection() {
           <span className='body1-bold'>방문객 편의·시설</span>
         </div>
         <div className='grid grid-cols-4 gap-3'>
-          {[
-            'PICK_DROP',
-            'DIARY',
-            'DOG_SHOP',
-            'DOG_CAFE',
-            'PARKING',
-            'VALET',
-          ].map((code) => (
+          {['PICK_DROP', 'DIARY', 'DOG_SHOP', 'DOG_CAFE', 'PARKING', 'VALET'].map((code) => (
             <IconWithLabel key={code} code={code as 방문객_편의_시설} />
           ))}
         </div>

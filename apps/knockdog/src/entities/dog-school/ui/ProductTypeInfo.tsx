@@ -33,20 +33,13 @@ export function ProductTypeInfo({ productTypes }: ProductTypeProps) {
             key={code}
             className={cn(
               'bg-primitive-neutral-50 body2-bold flex flex-1 items-center justify-center gap-1 rounded-lg px-4 py-2',
-              productTypes.includes(code)
-                ? 'text-text-primary'
-                : 'text-text-tertiary'
+              productTypes.includes(code) ? 'text-text-primary' : 'text-text-tertiary'
             )}
           >
             <span>{name}</span>
             <Icon
               icon='CheckFill'
-              className={cn(
-                'h-5 w-5',
-                productTypes.includes(code)
-                  ? 'text-text-accent'
-                  : 'text-text-tertiary'
-              )}
+              className={cn('h-5 w-5', productTypes.includes(code) ? 'text-text-accent' : 'text-text-tertiary')}
             />
           </div>
         ))}

@@ -212,11 +212,7 @@ export const Disabled: Story = {
 
 export const WithError: Story = {
   render: () => (
-    <TextField
-      label='이메일'
-      invalid
-      errorMessage='올바른 이메일 형식이 아닙니다'
-    >
+    <TextField label='이메일' invalid errorMessage='올바른 이메일 형식이 아닙니다'>
       <TextFieldInput placeholder='이메일을 입력하세요' />
     </TextField>
   ),
@@ -224,12 +220,7 @@ export const WithError: Story = {
 
 export const WithErrorSecondary: Story = {
   render: () => (
-    <TextField
-      label='이메일'
-      invalid
-      errorMessage='올바른 이메일 형식이 아닙니다'
-      variant='secondary'
-    >
+    <TextField label='이메일' invalid errorMessage='올바른 이메일 형식이 아닙니다' variant='secondary'>
       <TextFieldInput placeholder='이메일을 입력하세요' />
     </TextField>
   ),
@@ -245,12 +236,7 @@ export const WithSuccess: Story = {
 
 export const WithSuccessSecondary: Story = {
   render: () => (
-    <TextField
-      label='이메일'
-      valid
-      successMessage='사용 가능한 이메일입니다'
-      variant='secondary'
-    >
+    <TextField label='이메일' valid successMessage='사용 가능한 이메일입니다' variant='secondary'>
       <TextFieldInput placeholder='이메일을 입력하세요' />
     </TextField>
   ),
@@ -258,10 +244,7 @@ export const WithSuccessSecondary: Story = {
 
 export const WithDescription: Story = {
   render: () => (
-    <TextField
-      label='비밀번호'
-      description='8자 이상의 영문, 숫자, 특수문자를 포함해주세요'
-    >
+    <TextField label='비밀번호' description='8자 이상의 영문, 숫자, 특수문자를 포함해주세요'>
       <TextFieldInput type='password' placeholder='비밀번호를 입력하세요' />
     </TextField>
   ),
@@ -373,19 +356,12 @@ export const Form = () => {
   }, []);
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      onInvalid={handleInvalid}
-      noValidate
-      className='flex w-[400px] flex-col gap-4'
-    >
+    <form onSubmit={handleSubmit} onInvalid={handleInvalid} noValidate className='flex w-[400px] flex-col gap-4'>
       <div className='mb-4'>
         <label className='text-sm font-medium'>Variant 선택:</label>
         <select
           value={variant}
-          onChange={(e) =>
-            setVariant(e.target.value as 'default' | 'secondary')
-          }
+          onChange={(e) => setVariant(e.target.value as 'default' | 'secondary')}
           className='ml-2 rounded border px-2 py-1'
         >
           <option value='default'>Default</option>
@@ -401,12 +377,8 @@ export const Form = () => {
         onValueChange={(value) => handleNameChange(value)}
         invalid={fieldStates.name.isInvalid}
         valid={fieldStates.name.isValid}
-        errorMessage={
-          fieldStates.name.isInvalid ? fieldStates.name.message : undefined
-        }
-        successMessage={
-          fieldStates.name.isValid ? fieldStates.name.message : undefined
-        }
+        errorMessage={fieldStates.name.isInvalid ? fieldStates.name.message : undefined}
+        successMessage={fieldStates.name.isValid ? fieldStates.name.message : undefined}
         variant={variant}
       >
         <TextFieldInput placeholder='댕댕이' />
@@ -420,12 +392,8 @@ export const Form = () => {
         onValueChange={(value) => handleEmailChange(value)}
         invalid={fieldStates.email.isInvalid}
         valid={fieldStates.email.isValid}
-        errorMessage={
-          fieldStates.email.isInvalid ? fieldStates.email.message : undefined
-        }
-        successMessage={
-          fieldStates.email.isValid ? fieldStates.email.message : undefined
-        }
+        errorMessage={fieldStates.email.isInvalid ? fieldStates.email.message : undefined}
+        successMessage={fieldStates.email.isValid ? fieldStates.email.message : undefined}
         variant={variant}
       >
         <TextFieldInput placeholder='daeng@knockdog.com' />

@@ -40,9 +40,7 @@ export const Controlled: Story = {
         <ToggleButton pressed={pressed} onPressedChange={setPressed}>
           {pressed ? 'Pressed' : 'Unpressed'}
         </ToggleButton>
-        <div className='text-sm text-gray-600'>
-          State: {pressed ? 'Pressed' : 'Unpressed'}
-        </div>
+        <div className='text-sm text-gray-600'>State: {pressed ? 'Pressed' : 'Unpressed'}</div>
       </div>
     );
   },
@@ -62,17 +60,8 @@ export const WithIcon: Story = {
     return (
       <div className='flex gap-2'>
         <ToggleButton pressed={pressed} onPressedChange={setPressed}>
-          <svg
-            width='16'
-            height='16'
-            viewBox='0 0 24 24'
-            fill='none'
-            xmlns='http://www.w3.org/2000/svg'
-          >
-            <path
-              d='M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z'
-              fill='currentColor'
-            />
+          <svg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+            <path d='M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z' fill='currentColor' />
           </svg>
           Star {pressed ? '(Pressed)' : ''}
         </ToggleButton>
@@ -109,15 +98,11 @@ export const States: Story = {
 export const ToggleButtonGroup: Story = {
   render: () => {
     const ToggleButtonGroupComponent = () => {
-      const [selectedOptions, setSelectedOptions] = useState<string[]>([
-        'option1',
-      ]);
+      const [selectedOptions, setSelectedOptions] = useState<string[]>(['option1']);
 
       const handleOptionChange = (option: string) => {
         setSelectedOptions((prev) =>
-          prev.includes(option)
-            ? prev.filter((item) => item !== option)
-            : [...prev, option]
+          prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]
         );
       };
 
@@ -146,9 +131,7 @@ export const ToggleButtonGroup: Story = {
               Option 3
             </ToggleButton>
           </div>
-          <div className='text-sm text-gray-600'>
-            Selected: {selectedOptions.join(', ') || 'None'}
-          </div>
+          <div className='text-sm text-gray-600'>Selected: {selectedOptions.join(', ') || 'None'}</div>
         </div>
       );
     };
@@ -187,9 +170,7 @@ export const SingleSelectGroup: Story = {
               Large
             </ToggleButton>
           </div>
-          <div className='text-sm text-gray-600'>
-            Selected: {selectedOption}
-          </div>
+          <div className='text-sm text-gray-600'>Selected: {selectedOption}</div>
         </div>
       );
     };
@@ -204,11 +185,7 @@ export const IconGroup: Story = {
       const [selectedIcons, setSelectedIcons] = useState<string[]>(['star']);
 
       const handleIconChange = (icon: string) => {
-        setSelectedIcons((prev) =>
-          prev.includes(icon)
-            ? prev.filter((item) => item !== icon)
-            : [...prev, icon]
-        );
+        setSelectedIcons((prev) => (prev.includes(icon) ? prev.filter((item) => item !== icon) : [...prev, icon]));
       };
 
       const icons = [
@@ -232,9 +209,7 @@ export const IconGroup: Story = {
               </ToggleButton>
             ))}
           </div>
-          <div className='text-sm text-gray-600'>
-            Selected: {selectedIcons.join(', ') || 'None'}
-          </div>
+          <div className='text-sm text-gray-600'>Selected: {selectedIcons.join(', ') || 'None'}</div>
         </div>
       );
     };

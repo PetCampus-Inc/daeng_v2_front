@@ -12,16 +12,12 @@ export function BusinessHours() {
           <dt className='body2-bold mb-1'>평일</dt>
 
           <div className='mb-[4px] flex'>
-            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-              운영시간
-            </dt>
+            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>운영시간</dt>
             <dd className='body2-regular text-text-primary'>08:00 - 20:00</dd>
           </div>
 
           <div className='mb-[4px] flex'>
-            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-              브레이크 타임
-            </dt>
+            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>브레이크 타임</dt>
             <dd className='body2-regular text-text-primary'>12:00 - 14:00</dd>
           </div>
         </div>
@@ -29,23 +25,17 @@ export function BusinessHours() {
           <dt className='body2-bold mb-1'>주말</dt>
 
           <div className='mb-[4px] flex'>
-            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-              운영시간
-            </dt>
+            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>운영시간</dt>
             <dd className='body2-regular text-text-primary'>08:00 - 20:00</dd>
           </div>
 
           <div className='mb-[4px] flex'>
-            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-              브레이크 타임
-            </dt>
+            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>브레이크 타임</dt>
             <dd className='body2-regular text-text-primary'>12:00 - 14:00</dd>
           </div>
         </div>
         <div className='flex'>
-          <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-            정기 휴무일
-          </dt>
+          <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>정기 휴무일</dt>
           <dd className='body2-regular text-text-primary'>목요일 공휴일</dd>
         </div>
       </dl>

@@ -11,4 +11,4 @@ function useTextareaContext() {
   return context;
 }
 
-export { TextareaContext, useTextareaContext }; 
+export { TextareaContext, useTextareaContext };

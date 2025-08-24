@@ -15,4 +15,4 @@ export {
   type TextareaIndicatorProps,
 } from './textarea';
 
-export * as Textarea from './textarea.namespace'; 
+export * as Textarea from './textarea.namespace';
