@@ -42,7 +42,7 @@ export const useLogin = () => {
     const apiError = error as ApiError;
 
     // 탈퇴한 유저 (재가입 제한 기간 이후)
-    if (apiError.code === API_ERROR_CODE.WITHDRAWN_USER) push('/auth/signup');
+    if (apiError.code === API_ERROR_CODE.WITHDRAWN_USER) push('/profile/location');
     // 재가입 제한 기간 이내
     else if (apiError.code === API_ERROR_CODE.REJOINING_RESTRICTION_PERIOD) push('/auth/withdraw');
   };
