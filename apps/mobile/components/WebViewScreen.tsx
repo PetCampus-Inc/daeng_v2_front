@@ -46,9 +46,7 @@ interface Props {
   webviewRef?: AnyWebViewRef;
 }
 
-type AnyWebViewRef =
-  | RefObject<WebView | null>
-  | MutableRefObject<WebView | null>;
+type AnyWebViewRef = RefObject<WebView | null> | MutableRefObject<WebView | null>;
 
 export default function WebViewScreen({ uri, webviewRef }: Props) {
   const internalRef = useRef<WebView>(null);
@@ -84,11 +82,8 @@ export default function WebViewScreen({ uri, webviewRef }: Props) {
       // 브릿지 메시지 처리
       const { type, payload } = data ?? {};
       useBridgeStore.setState({ lastReceivedType: type, payload });
-      useBridgeStore
-        .getState()
-        .addLog({ dir: 'in', type, payload, t: Date.now() });
-      if (type === 'ping')
-        useBridgeStore.getState().sendBridgeMessage?.('pong', { from: 'app' });
+      useBridgeStore.getState().addLog({ dir: 'in', type, payload, t: Date.now() });
+      if (type === 'ping') useBridgeStore.getState().sendBridgeMessage?.('pong', { from: 'app' });
     } catch {
       /* ignore */
     }

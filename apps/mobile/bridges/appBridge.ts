@@ -4,11 +4,7 @@ import { WebViewMessageEvent } from 'react-native-webview';
 export const eventEmitter = new EventEmitter();
 
 // Native → Web
-export const postMessage = (
-  webViewRef: any,
-  event: string,
-  payload: any = {}
-) => {
+export const postMessage = (webViewRef: any, event: string, payload: any = {}) => {
   const message = JSON.stringify({ event, payload });
   webViewRef?.current?.postMessage(message);
 };
