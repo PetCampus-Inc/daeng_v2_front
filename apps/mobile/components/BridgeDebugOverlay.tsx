@@ -13,8 +13,7 @@ export default function BridgeDebugOverlay() {
       <ScrollView style={{ maxHeight: 160, marginTop: 8 }}>
         {logs.slice(-20).map((l, i) => (
           <Text key={i} style={styles.log}>
-            {new Date(l.t).toLocaleTimeString()} [{l.dir}] {l.type}{' '}
-            {JSON.stringify(l.payload)}
+            {new Date(l.t).toLocaleTimeString()} [{l.dir}] {l.type} {JSON.stringify(l.payload)}
           </Text>
         ))}
       </ScrollView>
