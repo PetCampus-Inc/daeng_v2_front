@@ -1,4 +1,4 @@
 export * from './pathname';
-export * from './ui';
-export * from './queryKeys/postKey';
+export * from './queryKeys';
 export * from './storage';
+export * from './ui';

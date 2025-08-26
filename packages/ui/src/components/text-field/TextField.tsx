@@ -4,8 +4,21 @@ import * as React from 'react';
 import { TextField as TextFieldPrimitive } from '@daeng-design/react-text-field';
 import { cn } from '@knockdog/ui/lib';
 import { Slot } from '@radix-ui/react-slot';
+import { cva, VariantProps } from 'class-variance-authority';
 
-interface TextFieldProps extends Omit<TextFieldPrimitive.RootProps, 'prefix'> {
+const textFieldVariants = cva('', {
+  variants: {
+    variant: {
+      default: 'border-line-200 bg-fill-secondary-0 border',
+      secondary: 'bg-neutral-50',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+interface TextFieldProps extends Omit<TextFieldPrimitive.RootProps, 'prefix'>, VariantProps<typeof textFieldVariants> {
   ref?: React.Ref<HTMLDivElement>;
   label?: React.ReactNode;
   indicator?: React.ReactNode;
@@ -29,15 +42,14 @@ function TextField({ ref, ...props }: TextFieldProps) {
     errorMessage,
     successMessage,
     className,
+    variant,
     ...restProps
   } = props;
 
-  const renderDescription =
-    description && !restProps.invalid && !restProps.valid;
+  const renderDescription = description && !restProps.invalid && !restProps.valid;
   const renderErrorMessage = errorMessage && restProps.invalid;
   const renderSuccessMessage = successMessage && restProps.valid;
-  const renderFooter =
-    renderDescription || renderErrorMessage || renderSuccessMessage;
+  const renderFooter = renderDescription || renderErrorMessage || renderSuccessMessage;
   const renderHeader = label || indicator;
 
   const Comp = asChild ? Slot : TextFieldPrimitive.Root;
@@ -46,12 +58,8 @@ function TextField({ ref, ...props }: TextFieldProps) {
     <Comp ref={ref} className='flex w-full flex-col' {...restProps}>
       {renderHeader && (
         <div className='pb-x2 gap-x0_5 flex items-center'>
-          <TextFieldPrimitive.Label className='text-text-primary body2-bold'>
-            {label}
-          </TextFieldPrimitive.Label>
-          {restProps.required && (
-            <span className='text-text-accent body2-bold'>*</span>
-          )}
+          <TextFieldPrimitive.Label className='text-text-primary body2-bold'>{label}</TextFieldPrimitive.Label>
+          {restProps.required && <span className='text-text-accent body2-bold'>*</span>}
           <TextFieldPrimitive.Indicator className='text-text-tertiary caption1-semibold'>
             {indicator}
           </TextFieldPrimitive.Indicator>
@@ -59,7 +67,8 @@ function TextField({ ref, ...props }: TextFieldProps) {
       )}
       <TextFieldPrimitive.Field
         className={cn(
-          'bg-fill-secondary-0 border-line-200 invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 flex items-center border transition-colors',
+          'invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 flex items-center transition-colors',
+          textFieldVariants({ variant }),
           className
         )}
       >
@@ -76,9 +85,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
             </TextFieldPrimitive.Description>
           )}
           {renderErrorMessage && (
-            <TextFieldPrimitive.Message className='text-error body2-regular'>
-              {errorMessage}
-            </TextFieldPrimitive.Message>
+            <TextFieldPrimitive.Message className='text-error body2-regular'>{errorMessage}</TextFieldPrimitive.Message>
           )}
           {renderSuccessMessage && (
             <TextFieldPrimitive.Message className='text-success body2-regular'>

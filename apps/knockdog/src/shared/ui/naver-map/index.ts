@@ -1,1 +1,0 @@
-export { NaverMap } from './NaverMap';

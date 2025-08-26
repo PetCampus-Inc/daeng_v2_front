@@ -6,48 +6,22 @@ import { cn } from '@knockdog/ui/lib';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const floatingActionButtonVariants = cva(
-  'radius-full shadow-black/16 body2-semibold relative inline-flex items-center justify-center overflow-hidden shadow-[0_0_4px_0] transition-all',
+  'radius-full label-semibold shadow-black/16 relative inline-flex cursor-pointer items-center justify-center overflow-hidden shadow-[0_0_4px_0] transition-all',
   {
     variants: {
       variant: {
-        primarySolid:
-          'bg-fill-primary-500 text-text-primary-inverse active:bg-fill-primary-700',
-        neutralSolid:
-          'bg-fill-secondary-700 text-text-primary-inverse active:bg-fill-secondary-400',
-        neutralLight:
-          'bg-fill-secondary-0 text-text-primary active:bg-fill-secondary-100',
+        primarySolid: 'bg-fill-primary-500 text-text-primary-inverse active:bg-fill-primary-700',
+        neutralSolid: 'bg-primitive-neutral-800 text-text-primary-inverse active:bg-fill-secondary-400',
+        neutralLight: 'bg-fill-secondary-0 text-text-primary active:bg-fill-secondary-100 border-line-200 border',
       },
       extended: {
         true: 'px-x3.5 w-fit',
-        false: '',
+        false: 'min-w-[52px] max-w-[52px]',
       },
       size: {
-        small: 'h-[40px]',
-        medium: 'h-[48px]',
+        medium: 'h-[52px]',
       },
     },
-    compoundVariants: [
-      {
-        extended: true,
-        size: 'small',
-        className: 'h-[40px]',
-      },
-      {
-        extended: true,
-        size: 'medium',
-        className: 'h-[48px]',
-      },
-      {
-        extended: false,
-        size: 'small',
-        className: 'h-[40px] w-[40px]',
-      },
-      {
-        extended: false,
-        size: 'medium',
-        className: 'h-[48px] w-[48px]',
-      },
-    ],
     defaultVariants: {
       variant: 'primarySolid',
       size: 'medium',
@@ -55,18 +29,14 @@ const floatingActionButtonVariants = cva(
   }
 );
 
-const iconVariants = cva(
-  'inline-flex flex-shrink-0 items-center justify-center text-inherit',
-  {
-    variants: {
-      extended: {
-        true: 'mr-x1 size-x5',
-        false:
-          'size-x6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
-      },
+const iconVariants = cva('inline-flex flex-shrink-0 items-center justify-center text-inherit', {
+  variants: {
+    extended: {
+      true: 'mr-x0_5 size-x6',
+      false: 'size-x6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
     },
-  }
-);
+  },
+});
 
 export interface FloatingActionButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -82,25 +52,14 @@ export interface FloatingActionButtonProps
   icon?: IconType;
 }
 
-export function FloatingActionButton({
-  ref,
-  ...props
-}: FloatingActionButtonProps) {
-  const {
-    asChild,
-    variant,
-    extended = true,
-    size = 'medium',
-    label,
-    icon,
-    className,
-    ...restProps
-  } = props;
+export function FloatingActionButton({ ref, ...props }: FloatingActionButtonProps) {
+  const { asChild, variant, extended = true, size = 'medium', label, icon, className, ...restProps } = props;
 
   const Comp = asChild ? Slot : 'button';
   return (
     <Comp
       ref={ref}
+      type='button'
       className={cn(
         floatingActionButtonVariants({
           variant,
@@ -112,14 +71,7 @@ export function FloatingActionButton({
       {...restProps}
     >
       {icon && <Icon icon={icon} className={iconVariants({ extended })} />}
-      <span
-        className={cn(
-          'overflow-hidden whitespace-nowrap',
-          !extended && 'opacity-0'
-        )}
-      >
-        {label}
-      </span>
+      <span className={cn('overflow-hidden whitespace-nowrap', !extended && 'opacity-0')}>{label}</span>
     </Comp>
   );
 }
