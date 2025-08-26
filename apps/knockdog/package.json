@@ -21,7 +21,7 @@
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
     "@tanstack/react-query": "^5.81.2",
-    "@tanstack/react-query-devtools": "^5.81.2",
+    "@tanstack/react-query-devtools": "^5.85.5",
     "class-variance-authority": "^0.7.1",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
