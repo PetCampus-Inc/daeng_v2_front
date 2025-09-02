@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { User } from './user';
+import { User } from '../user';
 
 interface UserStore {
   user: User | null;
