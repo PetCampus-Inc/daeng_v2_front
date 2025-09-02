@@ -4,3 +4,13 @@ export const API_ERROR_CODE = {
 } as const;
 
 export type ApiErrorCode = (typeof API_ERROR_CODE)[keyof typeof API_ERROR_CODE];
+
+export class ApiError extends Error {
+  constructor(
+    public code: ApiErrorCode,
+    public message: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}

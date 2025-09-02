@@ -6,4 +6,3 @@ export * from './storage';
 export * from './utils';
 export * from './embla';
 export * from './geolocation';
-export * from './error';
