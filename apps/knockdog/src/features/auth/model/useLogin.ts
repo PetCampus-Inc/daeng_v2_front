@@ -1,17 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-
-import { tempBridgeLogin } from '../lib';
 import { useMutation } from '@tanstack/react-query';
+
+import { tempBridgeLogin } from '../lib/tempBridgeLogin';
+
 import { SocialProvider, VERIFY_OIDC_RESULT_CODE, postVerifyOidc, useSocialUserStore } from '@entities/social';
-import { USER_STATUS, useUserStore, User, postLogin } from '@entities/user';
-import { API_ERROR_CODE, ApiError } from '@shared/lib';
+import { USER_STATUS, useUserStore, User } from '@entities/user';
+import { API_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
 
 export const useLogin = () => {
   const { push } = useRouter();
 
-  const { mutate: loginMutate } = useMutation({ mutationFn: postLogin });
+  const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
   const { mutateAsync: oidcMutateAsync } = useMutation({ mutationFn: postVerifyOidc });
 
   const setUser = useUserStore((state) => state.setUser);

@@ -2,7 +2,7 @@
 
 import { Icon, IconType } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { useLogin } from '../model/use-login';
+import { useLogin } from '../model/useLogin';
 
 import { SocialProvider } from '@entities/social';
 
