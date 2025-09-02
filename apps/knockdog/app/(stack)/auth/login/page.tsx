@@ -3,8 +3,8 @@
 import React from 'react';
 
 import { Icon, Divider } from '@knockdog/ui';
-import { LoginButton } from '@features/login';
-import { SOCIAL_PROVIDER } from '@entities/social';
+import { LoginButton } from '@features/auth';
+import { SOCIAL_PROVIDER } from '@entities/social-user';
 
 export default function LoginPage() {
   return (

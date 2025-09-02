@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Icon, ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { useHeaderContext } from '@widgets/Header';
-import { useVerificationTimer } from '@features/login';
+import { useVerificationTimer } from '@features/auth';
 
 export default function AccountLinkingPage() {
   // 인증여부

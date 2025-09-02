@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-import { LoginButton } from '@features/login';
-import { SOCIAL_PROVIDER_KO, useSocialUserStore } from '@entities/social';
+import { LoginButton } from '@features/auth';
+import { SOCIAL_PROVIDER_KO, useSocialUserStore } from '@entities/social-user';
 
 export default function RedirectLoginPage() {
   const socialUser = useSocialUserStore((state) => state.socialUser);

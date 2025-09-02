@@ -1,5 +1,5 @@
 import type { DogSchoolSearchListParams, DogSchoolSearchListResponse } from '../model/dogschool-list';
-import api from '@shared/api/ky-client';
+import { api } from '@shared/api';
 
 export abstract class DogSchoolListService {
   static async getDogSchoolSearchList(params: DogSchoolSearchListParams) {
