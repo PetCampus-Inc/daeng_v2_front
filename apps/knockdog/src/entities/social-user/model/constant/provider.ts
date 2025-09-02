@@ -9,12 +9,3 @@ export const SOCIAL_PROVIDER = {
   GOOGLE: 'GOOGLE',
   APPLE: 'APPLE',
 } as const;
-
-export type SocialProvider = (typeof SOCIAL_PROVIDER)[keyof typeof SOCIAL_PROVIDER];
-
-export interface SocialUser {
-  provider: SocialProvider;
-  name: string;
-  picture: string;
-  email: string;
-}
