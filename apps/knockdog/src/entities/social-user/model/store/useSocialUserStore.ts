@@ -9,7 +9,9 @@ interface SocialUserStore {
   setSocialUser: (socialUser: SocialUser | null) => void;
 }
 
-export const useSocialUserStore = create<SocialUserStore>((set) => ({
+const useSocialUserStore = create<SocialUserStore>((set) => ({
   socialUser: null,
   setSocialUser: (socialUser) => set({ socialUser }),
 }));
+
+export { useSocialUserStore };
