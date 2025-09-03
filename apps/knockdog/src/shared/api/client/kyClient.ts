@@ -1,6 +1,6 @@
 import ky from 'ky';
 
-import { ApiError } from '../response/apiResponse';
+import { ApiError } from '../model/error';
 
 const api = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
