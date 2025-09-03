@@ -1,7 +1,5 @@
-import { USER_STATUS, USER_ADDRESS_TYPE } from './constants/user';
-
 /** 유저 */
-export interface User {
+interface User {
   status: UserStatus;
   nickname: string;
   profileImageUrl: string;
@@ -10,10 +8,17 @@ export interface User {
 }
 
 /** 유저 상태 */
-export type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS];
+const USER_STATUS = {
+  /** 활동중인 유저 */
+  ACTIVE: 'ACTIVE',
+  /** 탈퇴한 유저 */
+  WITHDRAWN: 'WITHDRAWN',
+} as const;
+
+type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS];
 
 /** 주소 */
-export interface UserAddress {
+interface UserAddress {
   id: string;
   type: UserAddressType;
   alias: string;
@@ -25,4 +30,15 @@ export interface UserAddress {
 }
 
 /** 주소 타입 */
-export type UserAddressType = (typeof USER_ADDRESS_TYPE)[keyof typeof USER_ADDRESS_TYPE];
+const USER_ADDRESS_TYPE = {
+  /** 자택 */
+  HOME: 'HOME',
+  /** 직장 */
+  WORK: 'WORK',
+  /** 기타 */
+  OTHER: 'OTHER',
+} as const;
+
+type UserAddressType = (typeof USER_ADDRESS_TYPE)[keyof typeof USER_ADDRESS_TYPE];
+
+export { USER_STATUS, USER_ADDRESS_TYPE, type User, type UserAddress, type UserAddressType };
