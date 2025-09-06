@@ -5,7 +5,14 @@ export { postVerifyEmail } from './api/verifyEmail';
 export { USER_ADDRESS_TYPE_KR } from './model/constants/user';
 
 /** Store */
-export { useUserStore } from './model/store/useUerStore';
+export { useUserStore } from './model/store/useUserStore';
 
 /** Model */
-export { USER_STATUS, USER_ADDRESS_TYPE, type User, type UserAddress, type UserAddressType } from './model/user';
+export {
+  USER_STATUS,
+  USER_ADDRESS_TYPE,
+  type User,
+  type UserStatus,
+  type UserAddress,
+  type UserAddressType,
+} from './model/user';
