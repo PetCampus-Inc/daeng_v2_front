@@ -1,4 +1,4 @@
-import { SocialProvider } from '@entities/social';
+import { SocialProvider } from '@entities/social-user';
 
 interface TempBridgeLoginResponse {
   idToken: string;

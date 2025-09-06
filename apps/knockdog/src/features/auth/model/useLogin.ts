@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { tempBridgeLogin } from '../lib/tempBridgeLogin';
 
-import { SocialProvider, VERIFY_OIDC_RESULT_CODE, postVerifyOidc, useSocialUserStore } from '@entities/social';
+import { SocialProvider, VERIFY_OIDC_RESULT_CODE, postVerifyOidc, useSocialUserStore } from '@entities/social-user';
 import { USER_STATUS, useUserStore, User } from '@entities/user';
 import { API_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
 

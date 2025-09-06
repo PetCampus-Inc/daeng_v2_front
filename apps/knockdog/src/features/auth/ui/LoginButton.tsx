@@ -4,7 +4,7 @@ import { Icon, IconType } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useLogin } from '../model/useLogin';
 
-import { SocialProvider } from '@entities/social';
+import { SocialProvider } from '@entities/social-user';
 
 const BUTTON_STYLE_MAP = {
   KAKAO: {

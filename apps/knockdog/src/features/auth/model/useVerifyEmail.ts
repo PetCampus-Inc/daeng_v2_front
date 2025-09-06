@@ -18,10 +18,10 @@ export const useVerifyEmail = () => {
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(VERIFICATION_STATUS.PENDING);
 
   const params = useParams();
-  const code = params.code as string;
+  const code = params?.code as string;
 
   const searchParams = useSearchParams();
-  const email = searchParams.get('email');
+  const email = searchParams?.get('email');
 
   const { mutate } = useMutation({
     mutationFn: postVerifyEmail,
