@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { redirect } from 'next/navigation';
 
 import { LoginButton } from '@features/auth';
 import { SOCIAL_PROVIDER_KO, useSocialUserStore } from '@entities/social-user';
@@ -8,7 +9,8 @@ import { SOCIAL_PROVIDER_KO, useSocialUserStore } from '@entities/social-user';
 export default function RedirectLoginPage() {
   const socialUser = useSocialUserStore((state) => state.socialUser);
 
-  if (!socialUser) throw new Error('소셜 유저 정보가 없습니다.');
+  // 소셜 유저 정보가 없으면 로그인 페이지로 이동
+  if (!socialUser) redirect('/auth/login');
 
   return (
     <>
