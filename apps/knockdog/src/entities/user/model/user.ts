@@ -41,4 +41,4 @@ const USER_ADDRESS_TYPE = {
 
 type UserAddressType = (typeof USER_ADDRESS_TYPE)[keyof typeof USER_ADDRESS_TYPE];
 
-export { USER_STATUS, USER_ADDRESS_TYPE, type User, type UserAddress, type UserAddressType };
+export { USER_STATUS, USER_ADDRESS_TYPE, type User, type UserStatus, type UserAddress, type UserAddressType };
