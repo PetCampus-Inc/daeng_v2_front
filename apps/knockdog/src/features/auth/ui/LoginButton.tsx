@@ -24,7 +24,7 @@ const BUTTON_STYLE_MAP = {
   },
 };
 
-interface LoginButtonProps extends React.ComponentProps<'button'> {
+interface LoginButtonProps extends Omit<React.ComponentProps<'button'>, 'onClick'> {
   provider: SocialProvider;
 }
 
@@ -35,6 +35,7 @@ export function LoginButton({ className, provider, ...props }: LoginButtonProps)
 
   return (
     <button
+      type='button'
       className={cn('flex items-center justify-center gap-1 rounded-lg py-4', styles, className)}
       onClick={() => login(provider)}
       {...props}
