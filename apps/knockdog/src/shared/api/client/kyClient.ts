@@ -1,6 +1,11 @@
 import ky from 'ky';
 
-import { ApiError } from '../model/error';
+import {
+  insertAuthHeaderInterceptor,
+  updateAccessTokenInterceptor,
+  tokenRefreshInterceptor,
+  transformErrorInterceptor,
+} from '../interceptor';
 
 const api = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -10,12 +15,9 @@ const api = ky.create({
   },
   retry: 0,
   hooks: {
-    beforeError: [
-      async (error) => {
-        const data = (await error.response.json()) as ApiError;
-        throw new ApiError(data.code, data.message);
-      },
-    ],
+    beforeRequest: [insertAuthHeaderInterceptor],
+    afterResponse: [updateAccessTokenInterceptor],
+    beforeError: [tokenRefreshInterceptor, transformErrorInterceptor],
   },
 });
 
