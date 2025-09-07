@@ -9,3 +9,8 @@ export const postLogin = async <T>(): Promise<ApiResponse<T>> => {
 export const postLogout = async () => {
   return await api.post('auth/logout');
 };
+
+/** `POST` - 엑세스 토큰 재발급 API */
+export const postTokenReissue = async () => {
+  return await api.post('auth/refresh');
+};
