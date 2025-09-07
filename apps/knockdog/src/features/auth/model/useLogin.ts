@@ -7,7 +7,7 @@ import { tempBridgeLogin } from '../lib/tempBridgeLogin';
 
 import { SocialProvider, VERIFY_OIDC_RESULT_CODE, postVerifyOidc, useSocialUserStore } from '@entities/social-user';
 import { USER_STATUS, useUserStore, User } from '@entities/user';
-import { API_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
+import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
 
 export const useLogin = () => {
   const { push } = useRouter();
@@ -35,6 +35,8 @@ export const useLogin = () => {
   const handleLoginSuccess = (data: User) => {
     if (data.status === USER_STATUS.ACTIVE) {
       setUser(data);
+
+      // TODO: 네이티브일 경우 로그인 스택 pop, 웹일 경우 이전 페이지로 돌아가도록 수정할 것
       push('/');
     }
   };
@@ -43,9 +45,9 @@ export const useLogin = () => {
     const apiError = error as ApiError;
 
     // 탈퇴한 유저 (재가입 제한 기간 이후)
-    if (apiError.code === API_ERROR_CODE.WITHDRAWN_USER) push('/profile/location');
+    if (apiError.code === LOGIN_ERROR_CODE.WITHDRAWN_USER) push('/profile/location');
     // 재가입 제한 기간 이내
-    else if (apiError.code === API_ERROR_CODE.REJOINING_RESTRICTION_PERIOD) push('/auth/withdraw');
+    else if (apiError.code === LOGIN_ERROR_CODE.REJOINING_RESTRICTION_PERIOD) push('/auth/withdraw');
   };
 
   /** 로그인 */
