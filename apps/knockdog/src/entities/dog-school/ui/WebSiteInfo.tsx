@@ -7,9 +7,7 @@ interface WebSiteInfoProps {
 function WebsiteRow({ website }: { website?: string }) {
   return (
     <div className='flex'>
-      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-        홈페이지
-      </dt>
+      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>홈페이지</dt>
       <dd className='body2-regular'>
         {website ? (
           <span className='underline'>{website}</span>
@@ -24,9 +22,7 @@ function WebsiteRow({ website }: { website?: string }) {
 function InstagramRow({ instagram }: { instagram?: string }) {
   return (
     <div className='flex'>
-      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-        인스타그램
-      </dt>
+      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>인스타그램</dt>
       <dd className='body2-regular'>
         {instagram ? (
           <span className='underline'>{instagram}</span>
@@ -41,9 +37,7 @@ function InstagramRow({ instagram }: { instagram?: string }) {
 function YoutubeRow({ youtube }: { youtube?: string }) {
   return (
     <div className='flex'>
-      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>
-        유튜브
-      </dt>
+      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>유튜브</dt>
       <dd className='body2-regular'>
         {youtube ? (
           <span className='underline'>{youtube}</span>

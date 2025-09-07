@@ -9,15 +9,11 @@ export const ProgressBarProvider = ProgressBarContext.Provider;
 
 export function useProgressBarContext<T extends boolean | undefined = true>({
   strict = true,
-}: { strict?: T } = {}): T extends false
-  ? UseProgressBarContext | null
-  : UseProgressBarContext {
+}: { strict?: T } = {}): T extends false ? UseProgressBarContext | null : UseProgressBarContext {
   const context = useContext(ProgressBarContext);
 
   if (strict && !context) {
-    throw new Error(
-      'useProgressBarContext must be used within a ProgressBarProvider'
-    );
+    throw new Error('useProgressBarContext must be used within a ProgressBarProvider');
   }
 
   return context as UseProgressBarContext;

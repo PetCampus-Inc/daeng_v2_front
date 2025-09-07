@@ -1,4 +1,1 @@
-export {
-  ToggleRoot as Root,
-  type ToggleRootProps as RootProps,
-} from './toggle';
+export { ToggleRoot as Root, type ToggleRootProps as RootProps } from './toggle';

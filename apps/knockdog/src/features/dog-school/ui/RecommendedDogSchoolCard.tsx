@@ -3,8 +3,7 @@ import { Icon } from '@knockdog/ui';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 import { OPEN_STATUS_MAP, type DogSchoolWithMeta } from '@entities/dog-school';
 
-interface RecommendedDogSchoolCardProps
-  extends Omit<DogSchoolWithMeta, 'images' | 'operationTimes'> {
+interface RecommendedDogSchoolCardProps extends Omit<DogSchoolWithMeta, 'images' | 'operationTimes'> {
   image: string;
   operationDescription: string;
   onBookmarkClick?: (id: string) => void;
@@ -66,25 +65,17 @@ export const RecommendedDogSchoolCard = ({
             .join(' ・ ')}
         </span>
         <div>
-          <span className='body2-bold mr-1 inline-block min-w-[52px]'>
-            {dist.toFixed(2)}km
-          </span>
-          <span className='body2-regular text-text-tertiary'>
-            {roadAddress}
-          </span>
+          <span className='body2-bold mr-1 inline-block min-w-[52px]'>{dist.toFixed(2)}km</span>
+          <span className='body2-regular text-text-tertiary'>{roadAddress}</span>
         </div>
         <div>
           <span className='body2-bold min-w-13 text-text-accent mr-1 inline-block'>
             {OPEN_STATUS_MAP[operationStatus]}
           </span>
-          <span className='body2-regular text-text-tertiary'>
-            {operationDescription}
-          </span>
+          <span className='body2-regular text-text-tertiary'>{operationDescription}</span>
         </div>
         <div>
-          <span className='body2-bold min-w-13 mr-1 inline-block'>
-            이용요금
-          </span>
+          <span className='body2-bold min-w-13 mr-1 inline-block'>이용요금</span>
           <span className='body2-bold'>{price.toLocaleString()}원~</span>
         </div>
       </div>

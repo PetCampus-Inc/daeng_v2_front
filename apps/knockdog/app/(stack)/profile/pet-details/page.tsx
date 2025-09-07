@@ -30,8 +30,10 @@ const TITLE_COMPONENTS: Record<number, React.ComponentType<{ dogName: string }>>
 function PetDetailsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const dogName = searchParams.get('dog-name') ?? '';
-  const urlStep = searchParams.get('step');
+
+  // searchParams가 null일 수 있으므로 안전하게 처리
+  const dogName = searchParams?.get('dog-name') ?? '';
+  const urlStep = searchParams?.get('step');
 
   const { setTitle } = useHeaderContext();
 
@@ -52,14 +54,16 @@ function PetDetailsContent() {
 
   // URL의 step 값이 변경될 때마다 상태 업데이트
   useEffect(() => {
-    const urlStep = searchParams.get('step');
-    if (urlStep) {
-      const newStep = parseInt(urlStep);
-      if (newStep >= 1 && newStep <= MAX_STEP && newStep !== step) {
-        setStep(newStep);
+    if (searchParams) {
+      const urlStep = searchParams.get('step');
+      if (urlStep) {
+        const newStep = parseInt(urlStep);
+        if (newStep >= 1 && newStep <= MAX_STEP && newStep !== step) {
+          setStep(newStep);
+        }
+      } else if (step !== 1) {
+        setStep(1);
       }
-    } else if (step !== 1) {
-      setStep(1);
     }
   }, [searchParams, step]);
 
@@ -88,10 +92,12 @@ function PetDetailsContent() {
   })();
 
   const updateStep = (newStep: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('step', newStep.toString());
-    router.push(`?${params.toString()}`);
-    setStep(newStep);
+    if (searchParams) {
+      const params = new URLSearchParams(searchParams);
+      params.set('step', newStep.toString());
+      router.push(`?${params.toString()}`);
+      setStep(newStep);
+    }
   };
 
   const handleNext = () => {

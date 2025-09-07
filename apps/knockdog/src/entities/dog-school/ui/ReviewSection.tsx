@@ -5,15 +5,12 @@ import type { DogSchoolReview } from '../model/mock';
 interface ReviewSectionProps {
   onScrollTop?: () => void;
 }
-export const ReviewSection = function ReviewSection({
-  onScrollTop,
-}: ReviewSectionProps) {
+export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSectionProps) {
   const reviewListMock: DogSchoolReview[] = [
     {
       id: '1',
       userName: 'John Doe',
-      profileImage:
-        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
       createdAt: '2025-04-29',
@@ -21,8 +18,7 @@ export const ReviewSection = function ReviewSection({
     {
       id: '2',
       userName: 'Jane Doe',
-      profileImage:
-        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
       createdAt: '2025-04-29',
@@ -30,8 +26,7 @@ export const ReviewSection = function ReviewSection({
     {
       id: '3',
       userName: 'John Doe',
-      profileImage:
-        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
       createdAt: '2025-04-29',
@@ -39,8 +34,7 @@ export const ReviewSection = function ReviewSection({
     {
       id: '4',
       userName: 'John Doe',
-      profileImage:
-        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
       createdAt: '2025-04-29',
@@ -48,8 +42,7 @@ export const ReviewSection = function ReviewSection({
     {
       id: '5',
       userName: 'John Doe',
-      profileImage:
-        'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
+      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
       createdAt: '2025-04-29',

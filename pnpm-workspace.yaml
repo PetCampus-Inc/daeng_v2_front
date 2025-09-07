@@ -2,3 +2,12 @@ packages:
   - "apps/*"
   - "packages/*"
   - "packages/headless-ui/*"
+
+# mobile은 자체 react를 사용하도록 분리
+pnpm:
+  overrides:
+    # 모바일 전용 React를 따로 관리
+    react@*:
+      - link:apps/mobile/node_modules/react
+    react-dom@*:
+      - link:apps/mobile/node_modules/react-dom

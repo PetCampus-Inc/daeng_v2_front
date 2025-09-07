@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { useTextarea, type UseTextareaProps } from './use-textarea';
-import {
-  TextareaContext,
-  useTextareaContext,
-} from './use-textarea-context';
+import { TextareaContext, useTextareaContext } from './use-textarea-context';
 
 interface TextareaRootProps
   extends Omit<UseTextareaProps, 'spellCheck'>,
@@ -64,8 +61,7 @@ interface TextareaLabelProps extends React.HTMLAttributes<HTMLLabelElement> {
   ref?: React.Ref<HTMLLabelElement>;
 }
 
-interface TextareaIndicatorProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+interface TextareaIndicatorProps extends React.HTMLAttributes<HTMLSpanElement> {
   ref?: React.Ref<HTMLSpanElement>;
 }
 
@@ -93,8 +89,7 @@ function TextareaLabel(props: TextareaLabelProps) {
 }
 TextareaLabel.displayName = 'TextareaLabel';
 
-interface TextareaTextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextareaTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   ref?: React.Ref<HTMLTextAreaElement>;
 }
 
@@ -105,8 +100,7 @@ function TextareaTextarea(props: TextareaTextareaProps) {
 }
 TextareaTextarea.displayName = 'TextareaTextarea';
 
-interface TextareaDescriptionProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+interface TextareaDescriptionProps extends React.HTMLAttributes<HTMLSpanElement> {
   ref?: React.Ref<HTMLSpanElement>;
 }
 
@@ -143,4 +137,4 @@ export {
   type TextareaMessageProps,
   type TextareaFieldProps,
   type TextareaIndicatorProps,
-}; 
+};

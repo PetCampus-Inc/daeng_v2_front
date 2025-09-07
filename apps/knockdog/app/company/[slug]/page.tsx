@@ -21,7 +21,7 @@ export default function Page() {
   return (
     <>
       <div
-        className='mt-[66px] h-[calc(100vh-210px)] overflow-y-auto'
+        className='mt-[66px] h-[calc(100vh-110px)] overflow-y-auto'
         ref={scrollableDivRef} // ref 할당
       >
         {/* 업체 메인이미지 슬라이드형 */}

@@ -39,9 +39,7 @@ export const DogSchoolDetail = ({
       </div>
       <div className='flex flex-col gap-[4px]'>
         <div>
-          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>
-            {dist.toFixed(2)}km
-          </span>
+          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist.toFixed(2)}km</span>
           <span className='body2-regular'>{roadAddress}</span>
         </div>
         <div>

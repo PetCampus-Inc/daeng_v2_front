@@ -226,15 +226,8 @@ export const WithRows: Story = {
 
 export const WithMaxLength: Story = {
   render: () => (
-    <Textarea 
-      label='짧은 메모' 
-      description='최대 100자까지 입력 가능합니다.'
-    >
-      <TextareaInput 
-        placeholder='짧은 메모를 입력하세요' 
-        maxLength={100}
-        rows={3}
-      />
+    <Textarea label='짧은 메모' description='최대 100자까지 입력 가능합니다.'>
+      <TextareaInput placeholder='짧은 메모를 입력하세요' maxLength={100} rows={3} />
     </Textarea>
   ),
 };
@@ -249,11 +242,7 @@ export const Disabled: Story = {
 
 export const WithError: Story = {
   render: () => (
-    <Textarea
-      label='메모'
-      invalid
-      errorMessage='메모를 입력해주세요'
-    >
+    <Textarea label='메모' invalid errorMessage='메모를 입력해주세요'>
       <TextareaInput placeholder='메모를 입력하세요' />
     </Textarea>
   ),
@@ -261,12 +250,7 @@ export const WithError: Story = {
 
 export const WithErrorSecondary: Story = {
   render: () => (
-    <Textarea
-      label='메모'
-      invalid
-      errorMessage='메모를 입력해주세요'
-      variant='secondary'
-    >
+    <Textarea label='메모' invalid errorMessage='메모를 입력해주세요' variant='secondary'>
       <TextareaInput placeholder='메모를 입력하세요' />
     </Textarea>
   ),
@@ -282,12 +266,7 @@ export const WithSuccess: Story = {
 
 export const WithSuccessSecondary: Story = {
   render: () => (
-    <Textarea
-      label='메모'
-      valid
-      successMessage='메모가 성공적으로 저장되었습니다'
-      variant='secondary'
-    >
+    <Textarea label='메모' valid successMessage='메모가 성공적으로 저장되었습니다' variant='secondary'>
       <TextareaInput placeholder='메모를 입력하세요' />
     </Textarea>
   ),
@@ -295,25 +274,15 @@ export const WithSuccessSecondary: Story = {
 
 export const WithDescription: Story = {
   render: () => (
-    <Textarea
-      label='자기소개'
-      description='자신에 대해 자유롭게 작성해주세요'
-    >
-      <TextareaInput 
-        placeholder='자기소개를 입력하세요' 
-        rows={4}
-      />
+    <Textarea label='자기소개' description='자신에 대해 자유롭게 작성해주세요'>
+      <TextareaInput placeholder='자기소개를 입력하세요' rows={4} />
     </Textarea>
   ),
 };
 
 export const Required: Story = {
   render: () => (
-    <Textarea
-      label='필수 메모'
-      required
-      description='이 항목은 필수입니다'
-    >
+    <Textarea label='필수 메모' required description='이 항목은 필수입니다'>
       <TextareaInput placeholder='필수 메모를 입력하세요' />
     </Textarea>
   ),
@@ -321,41 +290,24 @@ export const Required: Story = {
 
 export const WithWrap: Story = {
   render: () => (
-    <Textarea
-      label='긴 텍스트'
-      description='hard wrap으로 줄바꿈이 적용됩니다'
-    >
-      <TextareaInput 
-        placeholder='긴 텍스트를 입력하세요' 
-        rows={4}
-        wrap="hard"
-      />
+    <Textarea label='긴 텍스트' description='hard wrap으로 줄바꿈이 적용됩니다'>
+      <TextareaInput placeholder='긴 텍스트를 입력하세요' rows={4} wrap='hard' />
     </Textarea>
   ),
 };
 
 export const WithScroll: Story = {
   render: () => (
-    <Textarea
-      label='긴 메모'
-      description='높이가 제한되어 있어 스크롤이 생깁니다'
-    >
-      <TextareaInput 
-        placeholder='긴 메모를 입력하세요' 
-        rows={8}
-        style={{ maxHeight: '200px', overflowY: 'auto' }}
-      />
+    <Textarea label='긴 메모' description='높이가 제한되어 있어 스크롤이 생깁니다'>
+      <TextareaInput placeholder='긴 메모를 입력하세요' rows={8} style={{ maxHeight: '200px', overflowY: 'auto' }} />
     </Textarea>
   ),
 };
 
 export const WithScrollAndContent: Story = {
   render: () => (
-    <Textarea
-      label='긴 내용'
-      description='미리 긴 내용이 들어있는 상태에서 스크롤 확인'
-    >
-      <TextareaInput 
+    <Textarea label='긴 내용' description='미리 긴 내용이 들어있는 상태에서 스크롤 확인'>
+      <TextareaInput
         defaultValue={`안녕하세요! 이것은 매우 긴 텍스트입니다.
 
 여러 줄에 걸쳐서 작성된 내용으로, textarea의 높이를 초과하게 됩니다.
@@ -384,15 +336,8 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 
 export const WithScrollCSS: Story = {
   render: () => (
-    <Textarea
-      label='CSS 클래스로 스크롤'
-      description='Tailwind CSS 클래스를 사용한 스크롤 예시'
-    >
-      <TextareaInput 
-        placeholder='긴 내용을 입력하세요' 
-        rows={6}
-        className="max-h-48 overflow-y-auto"
-      />
+    <Textarea label='CSS 클래스로 스크롤' description='Tailwind CSS 클래스를 사용한 스크롤 예시'>
+      <TextareaInput placeholder='긴 내용을 입력하세요' rows={6} className='max-h-48 overflow-y-auto' />
     </Textarea>
   ),
 };
@@ -405,7 +350,7 @@ export const WithScrollAndError: Story = {
       invalid
       errorMessage='내용이 너무 길어서 에러가 발생했습니다'
     >
-      <TextareaInput 
+      <TextareaInput
         defaultValue={`이것은 에러 상태의 긴 텍스트입니다.
 
 여러 줄에 걸쳐서 작성된 내용으로, textarea의 높이를 초과하게 됩니다.
@@ -546,19 +491,12 @@ export const Form = () => {
   }, []);
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      onInvalid={handleInvalid}
-      noValidate
-      className='flex w-[500px] flex-col gap-4'
-    >
+    <form onSubmit={handleSubmit} onInvalid={handleInvalid} noValidate className='flex w-[500px] flex-col gap-4'>
       <div className='mb-4'>
         <label className='text-sm font-medium'>Variant 선택:</label>
         <select
           value={variant}
-          onChange={(e) =>
-            setVariant(e.target.value as 'default' | 'secondary')
-          }
+          onChange={(e) => setVariant(e.target.value as 'default' | 'secondary')}
           className='ml-2 rounded border px-2 py-1'
         >
           <option value='default'>Default</option>
@@ -574,19 +512,11 @@ export const Form = () => {
         onValueChange={(value) => handleMemoChange(value)}
         invalid={fieldStates.memo.isInvalid}
         valid={fieldStates.memo.isValid}
-        errorMessage={
-          fieldStates.memo.isInvalid ? fieldStates.memo.message : undefined
-        }
-        successMessage={
-          fieldStates.memo.isValid ? fieldStates.memo.message : undefined
-        }
+        errorMessage={fieldStates.memo.isInvalid ? fieldStates.memo.message : undefined}
+        successMessage={fieldStates.memo.isValid ? fieldStates.memo.message : undefined}
         variant={variant}
       >
-        <TextareaInput 
-          placeholder='메모를 입력하세요' 
-          rows={3}
-          maxLength={200}
-        />
+        <TextareaInput placeholder='메모를 입력하세요' rows={3} maxLength={200} />
       </Textarea>
 
       <Textarea
@@ -597,27 +527,16 @@ export const Form = () => {
         onValueChange={(value) => handleDescriptionChange(value)}
         invalid={fieldStates.description.isInvalid}
         valid={fieldStates.description.isValid}
-        errorMessage={
-          fieldStates.description.isInvalid ? fieldStates.description.message : undefined
-        }
-        successMessage={
-          fieldStates.description.isValid ? fieldStates.description.message : undefined
-        }
+        errorMessage={fieldStates.description.isInvalid ? fieldStates.description.message : undefined}
+        successMessage={fieldStates.description.isValid ? fieldStates.description.message : undefined}
         variant={variant}
       >
-        <TextareaInput 
-          placeholder='상세 설명을 입력하세요' 
-          rows={4}
-          maxLength={500}
-        />
+        <TextareaInput placeholder='상세 설명을 입력하세요' rows={4} maxLength={500} />
       </Textarea>
 
-      <button 
-        type='submit' 
-        className='mt-4 w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
-      >
+      <button type='submit' className='mt-4 w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'>
         제출
       </button>
     </form>
   );
-}; 
+};
