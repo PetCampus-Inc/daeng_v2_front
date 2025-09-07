@@ -1,7 +1,7 @@
-import ky from 'ky';
 import { ApiError } from '../model/error';
 import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 import { postTokenReissue } from '../endpoint/auth';
+import api from '../client/kyClient';
 
 import { tokenUtils } from '@shared/utils';
 
@@ -27,7 +27,7 @@ const retryWithTokenRefresh = async (request: Request): Promise<Response> => {
     // 3. 새 토큰으로 요청 재시도
     const authRequest = createAuthRequest(request, newAccessToken);
 
-    return ky(authRequest);
+    return api(authRequest);
   } catch (error) {
     // 리프레시 중 오류 발생 시, 대기열에 추가된 요청들 rejected 처리
     subscribers.forEach((cb) => cb());
@@ -80,7 +80,7 @@ const enqueueRequest = async (request: Request): Promise<Response> => {
       }
 
       const authRequest = createAuthRequest(request, newToken);
-      resolve(ky(authRequest));
+      resolve(api(authRequest));
     });
   });
 };
