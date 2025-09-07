@@ -1,12 +1,10 @@
-const API_ERROR_CODE = {
-  WITHDRAWN_USER: 'WITHDRAWN_USER',
-  REJOINING_RESTRICTION_PERIOD: 'REJOINING_RESTRICTION_PERIOD',
-} as const;
+import { API_ERROR_CODE } from './constant/apiErrorCode';
 
 type ApiErrorCode = (typeof API_ERROR_CODE)[keyof typeof API_ERROR_CODE];
 
 class ApiError extends Error {
   constructor(
+    public status: number,
     public code: ApiErrorCode,
     public message: string
   ) {
@@ -15,4 +13,4 @@ class ApiError extends Error {
   }
 }
 
-export { ApiError, type ApiErrorCode, API_ERROR_CODE };
+export { ApiError, type ApiErrorCode };
