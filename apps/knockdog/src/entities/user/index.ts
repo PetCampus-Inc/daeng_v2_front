@@ -2,7 +2,7 @@
 export { postVerifyEmail } from './api/verifyEmail';
 
 /** Constant */
-export { USER_ADDRESS_TYPE_KR } from './model/constants/user';
+export { USER_ADDRESS_TYPE_KR } from './model/constant/user';
 
 /** Store */
 export { useUserStore } from './model/store/useUserStore';
