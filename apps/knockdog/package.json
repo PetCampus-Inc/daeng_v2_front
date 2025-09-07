@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@daeng-design/react-portal": "workspace:*",
-    "@floating-ui/react": "^0.27.13",
+    "@floating-ui/react": "^0.27.16",
     "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
@@ -28,13 +28,13 @@
     "ky": "^1.8.2",
     "next": "^15.3.2",
     "nuqs": "^2.4.3",
-    "overlay-kit": "^1.8.4",
+    "overlay-kit": "^1.8.5",
     "react-remove-scroll": "^2.7.1",
     "swiper": "^11.2.10",
-    "tailwindcss": "^4.1.11",
+    "tailwindcss": "^4.1.13",
     "typescript": "5.8.3",
     "zod": "^4.0.5",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
