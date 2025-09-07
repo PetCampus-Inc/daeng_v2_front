@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { RecommendedDogSchoolSection } from '@features/dog-school';
 import { ReviewSection, DefaultInfoSection, PriceSection } from '@entities/dog-school';
-import { FreeMemoSection, CheckListSection } from '@features/dog-school';
+import { FreeMemoSection } from '@features/memo';
+import { CheckListSection } from '@features/dog-school';
 
 interface DogSchoolTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;

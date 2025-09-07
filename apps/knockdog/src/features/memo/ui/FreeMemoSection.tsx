@@ -5,14 +5,19 @@ import { Icon, Textarea, TextareaInput } from '@knockdog/ui';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
+import { useMemoQuery } from '../api/useMemoQuery';
+import type { Photo } from '@entities/memo';
+
+const MEMO_PHOTO_MAX_COUNT = 5;
 
 export function FreeMemoSection() {
-  const params = useParams<{ slug: string }>();
-  const slug = params?.slug;
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
 
-  const [memo] = useState('');
+  if (!id) throw new Error('Company ID is required for free memo section');
 
-  if (!slug) return null;
+  const { data: memo } = useMemoQuery(id);
+  const [photos, setPhotos] = useState<Photo[]>(memo?.photos ?? []);
 
   return (
     <div>
@@ -24,18 +29,19 @@ export function FreeMemoSection() {
         <span className='body1-regular'>자유롭게 메모를 작성하세요</span>
 
         {/* @TODO: 화면 이동 경로의 경우 상수 이용할것 */}
-        <Link href={`/company/${slug}/edit-memo`} className='text-text-tertiary flex items-center gap-1'>
+        <Link href={`/company/${id}/edit-memo`} className='text-text-tertiary flex items-center gap-1'>
           <span className='label-semibold'>편집</span>
           <Icon icon='ChevronRight' className='h-4 w-4' />
         </Link>
       </div>
-      <span className='body2-regular text-text-tertiary'>사진 최대 5개 등록 가능</span>
+      <span className='body2-regular text-text-tertiary'>사진 최대 {MEMO_PHOTO_MAX_COUNT}개 등록 가능</span>
       <div className='py-3'>
         <Textarea cols={5} className='h-[144px]'>
-          <TextareaInput readOnly value={memo} />
+          <TextareaInput readOnly value={memo?.content ?? ''} />
         </Textarea>
       </div>
-      <PhotoUploader maxCount={5} />
+      {/* @TODO: API 수정 완료시, 여기도 수정 필욘 */}
+      <PhotoUploader maxCount={MEMO_PHOTO_MAX_COUNT} />
     </div>
   );
 }
