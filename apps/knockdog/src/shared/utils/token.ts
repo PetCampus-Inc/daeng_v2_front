@@ -21,6 +21,6 @@ export const tokenUtils = {
   },
 
   removeBearerPrefix: (token: string): string => {
-    return token.startsWith('Bearer ') ? token.replace(/^Bearer\s+/i, '') : token;
+    return token.replace(/^Bearer\s+/i, '');
   },
 };
