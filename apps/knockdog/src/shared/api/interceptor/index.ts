@@ -84,8 +84,12 @@ const tokenRefreshInterceptor = async (error: HTTPError): Promise<HTTPError> => 
  * @description API 에러 응답 데이터를 `ApiError` 객체로 변환하여 반환하는 인터셉터입니다.
  */
 const transformErrorInterceptor = async (error: HTTPError) => {
-  const response = (await error.response.json()) as ApiError;
-  throw new ApiError(response.status, response.code, response.message);
+  try {
+    const { status, code, message } = (await error.response.json()) as ApiError;
+    return new ApiError(status, code, message);
+  } catch {
+    return error;
+  }
 };
 
 export {
