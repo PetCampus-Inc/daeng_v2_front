@@ -16,8 +16,8 @@ const api = ky.create({
   retry: 0,
   hooks: {
     beforeRequest: [insertAuthHeaderInterceptor],
-    afterResponse: [updateAccessTokenInterceptor],
-    beforeError: [tokenRefreshInterceptor, transformErrorInterceptor],
+    afterResponse: [tokenRefreshInterceptor, updateAccessTokenInterceptor],
+    beforeError: [transformErrorInterceptor],
   },
 });
 

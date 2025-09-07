@@ -8,7 +8,8 @@ import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 import { tokenUtils } from '@shared/utils';
 import { logout } from '@shared/lib/auth';
 
-const EXCLUDE_PATHS = ['/auth'];
+// 제외 경로 패턴 (/^\/auth(?:\/|$)/ = /auth 또는 /auth/ 로 시작하는 경로)
+const EXCLUDE_PATHS = [/^\/auth(?:\/|$)/];
 
 /**
  * `beforeRequest` - `Authorization` 헤더에 액세스 토큰 삽입 인터셉터
@@ -16,12 +17,25 @@ const EXCLUDE_PATHS = ['/auth'];
  * @description API 요청에 `Authorization` 헤더를 추가하는 인터셉터입니다.
  */
 const insertAuthHeaderInterceptor = (request: Request) => {
-  if (!EXCLUDE_PATHS.some((excludePath) => request.url.includes(excludePath))) {
+  if (!isSameOrigin(request)) return;
+
+  if (!EXCLUDE_PATHS.some((excludePath) => excludePath.test(request.url))) {
     // 제외 경로가 아니라면 Authorization 헤더 추가
     const token = tokenUtils.getAccessToken();
 
     if (token) request.headers.set('Authorization', `Bearer ${token}`);
   }
+};
+
+/**
+ * 요청 URL이 동일한 `Origin`인지 확인하는 함수
+ *
+ * @param request - 요청 객체
+ * @returns 동일 출처 여부
+ */
+const isSameOrigin = (request: Request) => {
+  const url = new URL(request.url, typeof window !== 'undefined' ? window.location.origin : undefined);
+  return typeof window !== 'undefined' && url.origin === window.location.origin;
 };
 
 /**
@@ -46,20 +60,26 @@ const updateAccessTokenInterceptor = (_request: Request, _options: NormalizedOpt
 };
 
 /**
- * `beforeError` - 액세스 토큰 리프레시 인터셉터
+ * `afterResponse` - 액세스 토큰 리프레시 인터셉터
  *
  * @description 액세스 토큰 만료 시, 토큰을 갱신한 뒤 API 요청을 재시도하는 인터셉터입니다.
  */
-const tokenRefreshInterceptor = async (error: HTTPError): Promise<HTTPError> => {
+const tokenRefreshInterceptor = async (
+  request: Request,
+  _options: NormalizedOptions,
+  response: Response
+): Promise<Response> => {
+  // 401 에러가 아니라면 그대로 반환
+  if (response.status !== 401) return response;
+
   try {
-    const { code } = (await error.response.json()) as ApiError;
+    const { code } = (await response.clone().json()) as ApiError;
 
     switch (code) {
-      // 액세스 토큰 만료 시, 토큰 갱신
+      // 액세스 토큰 만료 시, 토큰 갱신 후 재요청
       case TOKEN_ERROR_CODE.EXPIRED_TOKEN:
         tokenUtils.removeAccessToken();
-        await retryWithTokenRefresh(error.request);
-        break;
+        return await retryWithTokenRefresh(request);
 
       // 리프레시 토큰 만료, 유효하지 않은 토큰, 토큰 검증 실패 시 로그아웃 처리
       case TOKEN_ERROR_CODE.EXPIRED_REFRESH_TOKEN:
@@ -75,7 +95,7 @@ const tokenRefreshInterceptor = async (error: HTTPError): Promise<HTTPError> => 
     logout();
   }
 
-  return error;
+  return response;
 };
 
 /**
@@ -84,11 +104,13 @@ const tokenRefreshInterceptor = async (error: HTTPError): Promise<HTTPError> => 
  * @description API 에러 응답 데이터를 `ApiError` 객체로 변환하여 반환하는 인터셉터입니다.
  */
 const transformErrorInterceptor = async (error: HTTPError) => {
+  const { status } = error.response;
+
   try {
-    const { status, code, message } = (await error.response.json()) as ApiError;
-    return new ApiError(status, code, message);
+    const { code, message } = (await error.response.clone().json()) as ApiError;
+    throw new ApiError(status, code, message);
   } catch {
-    return error;
+    throw new ApiError(status, 'UNKNOWN_ERROR', '알 수 없는 에러가 발생했습니다.');
   }
 };
 
