@@ -1,5 +1,5 @@
 import { postLogout } from '@shared/api';
-import { tokenUtils } from '@shared/utils';
+import { eventBus, tokenUtils } from '@shared/utils';
 
 /**
  * 로그아웃 함수
@@ -14,6 +14,7 @@ const logout = async () => {
   } finally {
     // 로그아웃 API가 실패해도 로그아웃 처리
     tokenUtils.removeAccessToken();
+    eventBus.publish('auth:logout');
   }
 };
 
