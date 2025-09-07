@@ -10,7 +10,7 @@ import { USER_STATUS, useUserStore, User } from '@entities/user';
 import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
 
 export const useLogin = () => {
-  const { push } = useRouter();
+  const { push, replace } = useRouter();
 
   const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
   const { mutateAsync: oidcMutateAsync } = useMutation({ mutationFn: postVerifyOidc });
@@ -37,7 +37,7 @@ export const useLogin = () => {
       setUser(data);
 
       // TODO: 네이티브일 경우 로그인 스택 pop, 웹일 경우 이전 페이지로 돌아가도록 수정할 것
-      push('/');
+      replace('/');
     }
   };
 
