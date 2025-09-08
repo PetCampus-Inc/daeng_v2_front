@@ -1,8 +1,20 @@
+'use client';
+
 import { Divider, Icon } from '@knockdog/ui';
 import Link from 'next/link';
 import { cn } from '@knockdog/ui/lib';
+import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
+import { useParams } from 'next/navigation';
 
-export function CheckListSection() {
+function CheckListSection() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
+
+  if (!id) throw new Error('Company ID is required for checklist section');
+
+  //@TODO: API 완성 후 수정 필요
+  // const { data: checklist } = useChecklistAnswersQuery(id);
+
   const mockData = {
     sections: [
       {
@@ -70,20 +82,26 @@ export function CheckListSection() {
             <div className='mb-3'>
               <span className='body2-semibold'>{section.title}</span>
             </div>
-            {/* @TODO: 숫자 응답의 경우도 처리 필요 */}
+
             <div className='flex flex-wrap gap-2'>
-              {section.answers.map((answer) => (
-                <div
-                  key={answer.question}
-                  className={cn(
-                    'rounded-lg px-2 py-[6px]',
-                    answer.value === 'YES' && 'text-text-accent border-line-accent border',
-                    (answer.value === 'NO' || answer.value === 'UNKNOWN') && 'text-text-secondary bg-fill-secondary-50'
-                  )}
-                >
-                  <span className='body2-semibold'>{answer.question}</span>
-                </div>
-              ))}
+              {section.answers.map((answer) => {
+                const isActive =
+                  answer.value === 'YES' ||
+                  (answer.question === '총원' && typeof answer.value === 'number' && answer.value >= 1);
+
+                return (
+                  <div
+                    key={answer.question}
+                    className={cn(
+                      'rounded-lg px-2 py-[6px]',
+                      isActive && 'text-text-accent border-line-accent border',
+                      !isActive && 'text-text-secondary bg-fill-secondary-50'
+                    )}
+                  >
+                    <span className='body2-semibold'>{answer.question}</span>
+                  </div>
+                );
+              })}
             </div>
             {index < mockData.sections.length - 1 && <Divider className='my-5' />}
           </div>
@@ -92,3 +110,5 @@ export function CheckListSection() {
     </div>
   );
 }
+
+export { CheckListSection };
