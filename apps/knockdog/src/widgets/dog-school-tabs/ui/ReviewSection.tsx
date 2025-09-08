@@ -1,51 +1,52 @@
 import { Icon } from '@knockdog/ui';
-import { DogSchoolReviewCard } from './DogSchoolReviewCard';
-import type { DogSchoolReview } from '../model/mock';
+
+import type { Review } from '@entities/review';
+import { ReviewCard } from '@features/review';
 
 interface ReviewSectionProps {
   onScrollTop?: () => void;
 }
 export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSectionProps) {
-  const reviewListMock: DogSchoolReview[] = [
+  const reviewListMock: Review[] = [
     {
-      id: '1',
+      reviewIdx: '1',
       userName: 'John Doe',
       profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      createdAt: '2025-04-29',
+      updatedAt: '2025-04-29',
     },
     {
-      id: '2',
+      reviewIdx: '2',
       userName: 'Jane Doe',
       profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      createdAt: '2025-04-29',
+      updatedAt: '2025-04-29',
     },
     {
-      id: '3',
+      reviewIdx: '3',
       userName: 'John Doe',
       profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      createdAt: '2025-04-29',
+      updatedAt: '2025-04-29',
     },
     {
-      id: '4',
+      reviewIdx: '4',
       userName: 'John Doe',
       profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      createdAt: '2025-04-29',
+      updatedAt: '2025-04-29',
     },
     {
-      id: '5',
+      reviewIdx: '5',
       userName: 'John Doe',
       profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
       title: '정말 좋은 곳이에요!',
       content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      createdAt: '2025-04-29',
+      updatedAt: '2025-04-29',
     },
   ];
 
@@ -60,7 +61,7 @@ export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSecti
         </div>
         {/* 후기 리스트 */}
         {reviewListMock.map((review, index) => (
-          <DogSchoolReviewCard key={index} {...review} />
+          <ReviewCard key={index} {...review} />
         ))}
       </div>
 

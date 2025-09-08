@@ -6,9 +6,9 @@ import Link from 'next/link';
 
 import { useParams } from 'next/navigation';
 import { RecommendedDogSchoolSection } from '@features/dog-school';
-import { ReviewSection, DefaultInfoSection, PriceSection } from '@entities/dog-school';
-import { FreeMemoSection } from '@features/memo';
-import { CheckListSection } from '@features/checklist';
+import { DefaultInfoSection, PriceSection } from '@entities/dog-school';
+import { MemoSection } from './MemoSection';
+import { ReviewSection } from './ReviewSection';
 interface DogSchoolTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -56,10 +56,7 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
         <ReviewSection onScrollTop={handleScrollToDivider} />
       </TabsContent>
       <TabsContent value='메모'>
-        <div className='mb-12 mt-8 flex flex-col gap-4 px-4'>
-          <FreeMemoSection />
-          <CheckListSection />
-        </div>
+        <MemoSection />
       </TabsContent>
     </Tabs>
   );
