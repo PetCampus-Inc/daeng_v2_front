@@ -3,7 +3,7 @@ import { cn } from '@knockdog/ui/lib';
 import type { ProductType } from '@entities/pricing';
 import { PRODUCT_TYPE_MAP_LIST } from '@entities/pricing';
 
-export function ProductTypeInfo({ productType }: { productType: ProductType[] }) {
+function ProductTypeSection({ productType }: { productType: ProductType[] }) {
   return (
     <div>
       <div className='mb-3'>
@@ -29,3 +29,5 @@ export function ProductTypeInfo({ productType }: { productType: ProductType[] })
     </div>
   );
 }
+
+export { ProductTypeSection };

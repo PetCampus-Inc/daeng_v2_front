@@ -6,9 +6,10 @@ import Link from 'next/link';
 
 import { useParams } from 'next/navigation';
 import { RecommendedDogSchoolSection } from '@features/dog-school';
-import { DefaultInfoSection, PriceSection } from '@entities/dog-school';
+import { DefaultInfoSection } from '@entities/dog-school';
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
+import { PricingSection } from './PricingSection';
 interface DogSchoolTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -50,7 +51,7 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
         </>
       </TabsContent>
       <TabsContent value='요금'>
-        <PriceSection />
+        <PricingSection />
       </TabsContent>
       <TabsContent value='후기'>
         <ReviewSection onScrollTop={handleScrollToDivider} />
