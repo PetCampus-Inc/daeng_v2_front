@@ -28,6 +28,7 @@ interface MapViewProps {
   selectedMarkerId?: string | null;
   center: { lat: number; lng: number };
   zoom?: number;
+  current?: { lat: number; lng: number };
   onLoad?: (map: naver.maps.Map) => void;
   onDragStart?: (pointerEvent: naver.maps.PointerEvent) => void;
   onDragEnd?: (pointerEvent: naver.maps.PointerEvent) => void;
@@ -46,9 +47,13 @@ export function MapView(props: MapViewProps) {
     onAggregationClick,
     selectedMarkerId,
     zoom,
+    current: currentFromProps,
   } = props;
 
-  const { data: current } = useGeolocationQuery();
+  const { data: currentFromGeolocation } = useGeolocationQuery();
+
+  // props로 받은 current가 있으면 우선 사용, 없으면 geolocation에서 가져온 값 사용
+  const current = currentFromProps || currentFromGeolocation;
 
   return (
     <>

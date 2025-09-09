@@ -2,14 +2,13 @@
 
 import { Icon, Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
 import { useRef } from 'react';
-import Link from 'next/link';
 
-import { useParams } from 'next/navigation';
 import { RecommendedDogSchoolSection } from '@features/dog-school';
-import { DefaultInfoSection } from '@entities/dog-school';
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
 import { PricingSection } from './PricingSection';
+import { BasicSection } from './BasicSection';
+
 interface DogSchoolTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -42,7 +41,7 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
       </TabsList>
       <TabsContent value='기본정보'>
         <>
-          <DefaultInfoSection />
+          <BasicSection />
           {/* Divider */}
           <div className='bg-line-100 mb-12 h-2' />
 

@@ -6,7 +6,6 @@ export * from './model/constants';
 export * from './config/constant';
 
 /* ui */
-export * from './ui/LastUpdatedSection';
 export * from './ui/DefaultInfoSection';
 export * from './ui/DogSchoolImageSwiper';
 export * from './ui/DogSchoolDetail';
