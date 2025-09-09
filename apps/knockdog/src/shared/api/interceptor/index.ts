@@ -43,10 +43,12 @@ const isSameOrigin = (request: Request) => {
  *
  * @description API 응답 헤더에서 액세스 토큰을 추출하여 로컬 스토리지에 저장하는 인터셉터입니다.
  */
-const updateAccessTokenInterceptor = (_request: Request, _options: NormalizedOptions, response: Response): Response => {
+const updateAccessTokenInterceptor = (request: Request, _options: NormalizedOptions, response: Response): Response => {
+  if (!isSameOrigin(request)) return response;
+
   const authHeader = response.headers.get('authorization');
 
-  if (authHeader) {
+  if (authHeader && /^Bearer\s+/i.test(authHeader)) {
     const existingToken = tokenUtils.getAccessToken();
     const newToken = tokenUtils.removeBearerPrefix(authHeader);
 
