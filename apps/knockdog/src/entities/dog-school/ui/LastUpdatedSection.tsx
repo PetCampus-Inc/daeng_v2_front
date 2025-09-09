@@ -8,7 +8,9 @@ interface LastUpdatedSectionProps {
 }
 
 export function LastUpdatedSection({ lastUpdated }: LastUpdatedSectionProps) {
-  const { slug } = useParams();
+  // FIX: 가희
+  const params = useParams();
+  const slug = params?.slug;
 
   return (
     <div className='flex justify-between py-4'>

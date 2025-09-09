@@ -224,7 +224,8 @@ export function MapWithSchools() {
           isFullExtended && 'bg-fill-secondary-0'
         )}
       >
-        <Link href={`/search${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}>
+        {/* FIX: 나영 */}
+        <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`}>
           <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
             <Icon icon='Search' className='size-x5 text-fill-secondary-700 mr-x2' />
             <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
