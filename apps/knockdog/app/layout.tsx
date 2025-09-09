@@ -1,11 +1,12 @@
-'use client;';
+import Script from 'next/script';
+
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 import { cn } from '@knockdog/ui/lib';
+import { NaverMapProvider } from '@knockdog/naver-map';
+
 import { suit } from './font';
 import './globals.css';
-import { NaverMapProvider } from '@knockdog/naver-map';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import Script from 'next/script';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import BridgeListenerClient from '@app/_bridge/BridgeListenerClient';

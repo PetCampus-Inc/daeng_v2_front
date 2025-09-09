@@ -7,21 +7,15 @@ export const VERIFICATION_STATUS = {
   EXPIRED: 'EXPIRED', // 시간 만료
 } as const;
 
-export type VerificationStatus =
-  (typeof VERIFICATION_STATUS)[keyof typeof VERIFICATION_STATUS];
+export type VerificationStatus = (typeof VERIFICATION_STATUS)[keyof typeof VERIFICATION_STATUS];
 
 interface VerificationTimerProps {
   duration: number;
   onExpired?: () => void | Promise<void>;
 }
 
-export const useVerificationTimer = ({
-  duration,
-  onExpired,
-}: VerificationTimerProps) => {
-  const [status, setStatus] = useState<VerificationStatus>(
-    VERIFICATION_STATUS.IDLE
-  );
+export const useVerificationTimer = ({ duration, onExpired }: VerificationTimerProps) => {
+  const [status, setStatus] = useState<VerificationStatus>(VERIFICATION_STATUS.IDLE);
   const [timeLeft, setTimeLeft] = useState(duration);
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const onExpiredRef = useRef(onExpired);
@@ -79,10 +73,7 @@ export const useVerificationTimer = ({
 
   // MM:SS 형식으로 시간 포맷팅
   const formattedTime = useMemo(
-    () =>
-      `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(
-        timeLeft % 60
-      ).padStart(2, '0')}`,
+    () => `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`,
     [timeLeft]
   );
 
