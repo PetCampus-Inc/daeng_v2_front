@@ -25,7 +25,7 @@ const retryWithTokenRefresh = async (request: Request): Promise<Response> => {
     subscribers.forEach((cb) => cb(newAccessToken));
 
     // 3. 새 토큰으로 요청 재시도
-    const authRequest = createAuthRequest(request, newAccessToken);
+    const authRequest = await createAuthRequest(request, newAccessToken);
 
     return api(authRequest);
   } catch (error) {
@@ -73,13 +73,13 @@ const addSubscriber = (cb: (token?: string) => void) => subscribers.push(cb);
  */
 const enqueueRequest = async (request: Request): Promise<Response> => {
   return new Promise((resolve, reject) => {
-    addSubscriber((newToken?: string) => {
+    addSubscriber(async (newToken?: string) => {
       if (!newToken) {
         reject(new ApiError(401, TOKEN_ERROR_CODE.INVALID_TOKEN, '액세스 토큰이 만료되었습니다.'));
         return;
       }
 
-      const authRequest = createAuthRequest(request, newToken);
+      const authRequest = await createAuthRequest(request, newToken);
       resolve(api(authRequest));
     });
   });
@@ -90,13 +90,27 @@ const enqueueRequest = async (request: Request): Promise<Response> => {
  *
  * @description 요청 `Authorization` 헤더에 액세스 토큰 추가하는 함수입니다.
  */
-const createAuthRequest = (request: Request, accessToken: string) => {
-  const headers = new Headers(request.headers);
+const createAuthRequest = async (request: Request, accessToken: string) => {
+  // 요청 바디 복사
+  let body = null;
+  if (request.body) body = await request.clone().arrayBuffer();
 
+  // 헤더 복사 후 액세스 토큰 추가
+  const headers = new Headers(request.headers);
   headers.delete('Authorization');
   headers.set('Authorization', `Bearer ${accessToken}`);
 
-  return new Request(request, { headers });
+  return new Request(request.url, {
+    method: request.method,
+    headers,
+    body,
+    mode: request.mode,
+    credentials: request.credentials,
+    cache: request.cache,
+    redirect: request.redirect,
+    referrer: request.referrer,
+    integrity: request.integrity,
+  });
 };
 
 export { retryWithTokenRefresh };
