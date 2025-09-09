@@ -34,8 +34,8 @@ const insertAuthHeaderInterceptor = (request: Request) => {
  * @returns 동일 출처 여부
  */
 const isSameOrigin = (request: Request) => {
-  const url = new URL(request.url, typeof window !== 'undefined' ? window.location.origin : undefined);
-  return typeof window !== 'undefined' && url.origin === window.location.origin;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  return !!(apiBaseUrl && request.url.includes(apiBaseUrl));
 };
 
 /**
@@ -108,12 +108,12 @@ const tokenRefreshInterceptor = async (
 const transformErrorInterceptor = async (error: HTTPError) => {
   const { status } = error.response;
 
-  try {
-    const { code, message } = (await error.response.clone().json()) as ApiError;
-    throw new ApiError(status, code, message);
-  } catch {
-    throw new ApiError(status, 'UNKNOWN_ERROR', '알 수 없는 에러가 발생했습니다.');
+  const response = await error.response.clone().json();
+  if (response.code !== undefined && response.message !== undefined) {
+    throw new ApiError(status, response.code, response.message);
   }
+
+  throw new ApiError(status, 'UNKNOWN_ERROR', '알 수 없는 오류가 발생했습니다.');
 };
 
 export {
