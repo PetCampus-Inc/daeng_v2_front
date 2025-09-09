@@ -7,8 +7,12 @@ import {
   transformErrorInterceptor,
 } from '../interceptor';
 
+if (!process.env.NEXT_PUBLIC_API_BASE_URL) throw new Error('NEXT_PUBLIC_API_BASE_URL is not defined');
+
+const baseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v0`;
+
 const api = ky.create({
-  prefixUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+  prefixUrl: baseUrl,
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',
