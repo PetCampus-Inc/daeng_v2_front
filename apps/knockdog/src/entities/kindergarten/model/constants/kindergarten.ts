@@ -34,6 +34,19 @@ const VISITOR_AMENITY_MAP = {
   VALET: '발렛파킹',
 } as const;
 
+const PICKUP_TYPE_MAP = {
+  NONE: null,
+  FREE: '무료 픽드랍',
+  PAID: '유료 픽드랍',
+} as const;
+
+const ALL_SERVICE_MAP = {
+  ...DOG_BREED_MAP,
+  ...DOG_SERVICE_MAP,
+  ...DOG_SAFETY_FACILITY_MAP,
+  ...VISITOR_AMENITY_MAP,
+};
+
 const SERVICE_ICON_MAP = {
   ALL_BREEDS: 'Alldogs',
   SMALL_DOGS_ONLY: 'Smalldog',
@@ -62,4 +75,28 @@ const SERVICE_ICON_MAP = {
   VALET: 'Valet',
 } as const;
 
-export { SERVICE_ICON_MAP, DOG_BREED_MAP, DOG_SERVICE_MAP, DOG_SAFETY_FACILITY_MAP, VISITOR_AMENITY_MAP };
+const OPEN_STATUS_MAP = {
+  OPEN: '영업중',
+  CLOSED: '영업종료',
+  DAY_OFF: '휴무',
+} as const;
+
+const CTAG_MAP = {
+  KINDERGARTEN: '유치원',
+  HOTEL: '호텔',
+  GROOMING: '미용',
+  TRAINING: '훈련',
+  PET_SHOP: '강아지 용품',
+} as const;
+
+export {
+  SERVICE_ICON_MAP,
+  DOG_BREED_MAP,
+  PICKUP_TYPE_MAP,
+  DOG_SERVICE_MAP,
+  DOG_SAFETY_FACILITY_MAP,
+  VISITOR_AMENITY_MAP,
+  ALL_SERVICE_MAP,
+  CTAG_MAP,
+  OPEN_STATUS_MAP,
+};

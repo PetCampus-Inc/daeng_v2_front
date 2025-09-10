@@ -3,11 +3,12 @@
 import { Icon, Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
 import { useRef } from 'react';
 
-import { RecommendedDogSchoolSection } from '@features/dog-school';
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
 import { PricingSection } from './PricingSection';
 import { BasicSection } from './BasicSection';
+import { Divider } from '@knockdog/ui';
+import { KindergartenNearSection } from './KindergartenNearSection';
 
 interface DogSchoolTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;
@@ -43,10 +44,10 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
         <>
           <BasicSection />
           {/* Divider */}
-          <div className='bg-line-100 mb-12 h-2' />
+          <Divider size='thick' className='mb-12' />
 
           {/* 이 근처 다른 유치원은 어때요? */}
-          <RecommendedDogSchoolSection />
+          <KindergartenNearSection />
         </>
       </TabsContent>
       <TabsContent value='요금'>
