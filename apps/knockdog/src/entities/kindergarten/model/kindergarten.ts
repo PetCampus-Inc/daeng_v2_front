@@ -1,19 +1,20 @@
-type OperationStatus = 'OPEN' | 'CLOSED' | 'DAY_OFF';
+import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
 
 interface Kindergarten {
   id: string;
   title: string;
-  ctg: string;
+  ctg: keyof typeof CTAG_MAP;
   operationDescription: string;
-  operationStatus: OperationStatus;
+  operationStatus: keyof typeof OPEN_STATUS_MAP;
   price: number;
   dist: number;
   roadAddress: string;
   reviewCount: number;
-  serviceTags: string[];
+  serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
+  pickupType: keyof typeof PICKUP_TYPE_MAP;
   images: string[];
   bookmarked: boolean;
   memoDate: string;
 }
 
-export type { Kindergarten, OperationStatus };
+export type { Kindergarten };

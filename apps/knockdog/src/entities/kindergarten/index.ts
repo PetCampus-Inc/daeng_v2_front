@@ -1,9 +1,10 @@
 // config
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
 export { createKindergartenNearQueryOptions } from './config/kindergartenNearQueryKeys';
+export { createKindergartenMainQueryOptions } from './config/kindergartenMainQueryKeys';
 
 // model
-export type { Kindergarten, OperationStatus } from './model/kindergarten';
+export type { Kindergarten } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
 export type { DogBreed, DogService, DogSafetyFacility, VisitorAmenity } from './model/service';
@@ -21,3 +22,4 @@ export {
 
 // ui
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
+export { ServiceBadgeList } from './ui/ServiceBadgeList';

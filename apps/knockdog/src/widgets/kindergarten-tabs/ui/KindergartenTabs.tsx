@@ -10,11 +10,11 @@ import { BasicSection } from './BasicSection';
 import { Divider } from '@knockdog/ui';
 import { KindergartenNearSection } from './KindergartenNearSection';
 
-interface DogSchoolTabsProps {
+interface KindergartenTabsProps {
   scrollableDivRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
+function KindergartenTabs({ scrollableDivRef }: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
 
   const handleScrollToDivider = () => {
@@ -62,3 +62,5 @@ export function DogSchoolTabs({ scrollableDivRef }: DogSchoolTabsProps) {
     </Tabs>
   );
 }
+
+export { KindergartenTabs };
