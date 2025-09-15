@@ -1,7 +1,12 @@
 const nextConfig = {
   // 임시 주소
   images: {
-    domains: ['images.unsplash.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
   },
   // API Proxy
   async rewrites() {
