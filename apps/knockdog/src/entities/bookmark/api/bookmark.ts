@@ -1,5 +1,6 @@
-import api from '@shared/api/ky-client';
+import { api } from '@shared/api';
 
+// @TODO API Response, 타입 정의 필요
 function postBookmark(id: string) {
   return api.post(`/api/v0/bookmark/${id}`);
 }
