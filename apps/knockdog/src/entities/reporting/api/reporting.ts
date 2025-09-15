@@ -1,5 +1,6 @@
-import api from '@shared/api/ky-client';
 import ky from 'ky';
+
+// @TODO API Response, 타입 정의 필요
 
 interface ReportingRequest {
   businessChange?: File[];

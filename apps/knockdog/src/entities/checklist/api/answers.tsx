@@ -1,6 +1,7 @@
-import api from '@shared/api/ky-client';
 import type { AnswerGroup } from '../model/checklist';
+import { api } from '@shared/api';
 
+// @TODO API Response, 타입 정의 필요
 interface AnswersResponse {
   sections: AnswerGroup[];
 }

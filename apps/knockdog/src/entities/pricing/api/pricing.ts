@@ -1,6 +1,7 @@
-import api from '@shared/api/ky-client';
+import { api } from '@shared/api';
 import type { ProductType, ProductCategory } from '../model/price';
 
+// @TODO API Response, 타입 정의 필요
 interface PricingInfoResponse {
   productType: ProductType[];
   productCategories: ProductCategory[];

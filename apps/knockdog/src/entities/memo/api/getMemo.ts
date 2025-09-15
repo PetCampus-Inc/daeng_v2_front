@@ -1,4 +1,4 @@
-import api from '@shared/api/ky-client';
+import { api } from '@shared/api';
 import { Photo } from '../model/memo';
 
 export interface MemoResponse {

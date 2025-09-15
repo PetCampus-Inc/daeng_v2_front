@@ -1,6 +1,7 @@
-import api from '@shared/api/ky-client';
+import { api } from '@shared/api';
 import { Photo } from '../model/memo';
 
+// @TODO API Response, 타입 정의 필요
 export interface UpdateMemoRequest {
   targetId: string;
   content?: string;

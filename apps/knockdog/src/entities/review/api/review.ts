@@ -1,7 +1,8 @@
-import api from '@shared/api/ky-client';
+import { api } from '@shared/api';
 import { Review } from '../model/review';
 
 // @TODO  API 완성 후 수정 필요 -> shared로 이동해야함
+// @TODO API Response, 타입 정의 필요
 interface PagingDto {
   currentPage: number;
   hasNext: boolean;
