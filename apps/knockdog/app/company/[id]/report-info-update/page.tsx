@@ -1,5 +1,5 @@
-import { ReportUpdateSection } from '@widgets/report-update-section';
+import { ReportingKindergartenUpdate } from '@pages/reporting-kindergarten-update';
 
 export default function Page() {
-  return <ReportUpdateSection />;
+  return <ReportingKindergartenUpdate />;
 }
