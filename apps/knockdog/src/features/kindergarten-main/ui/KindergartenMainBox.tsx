@@ -1,9 +1,11 @@
 import React from 'react';
+import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { ServiceBadgeList } from '@entities/kindergarten';
+import { DeparturePointSheet } from '@entities/kindergarten';
 import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
 
-interface KindergartenMainBoxProps extends Omit<Kindergarten, 'images'> {}
+interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}
 
 const KindergartenMainBox = ({
   title,
@@ -18,6 +20,9 @@ const KindergartenMainBox = ({
   pickupType,
   memoDate,
 }: KindergartenMainBoxProps) => {
+  const openDeparturePointSheet = () =>
+    overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
+
   return (
     <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pb-12 pt-[20px]'>
       <div className='flex justify-between'>
@@ -32,7 +37,10 @@ const KindergartenMainBox = ({
           </span>
         </div>
         <div className='flex'>
-          <Icon icon='Navigation' className='text-text-tertiary h-9 w-9' />
+          {/* 길찾기 버튼 */}
+          <button onClick={openDeparturePointSheet}>
+            <Icon icon='Navigation' className='text-fill-secondary-500 size-x8' />
+          </button>
         </div>
       </div>
       <div className='flex flex-col gap-[4px]'>

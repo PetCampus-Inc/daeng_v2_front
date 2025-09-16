@@ -12,9 +12,10 @@ interface Kindergarten {
   reviewCount: number;
   serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
   pickupType: keyof typeof PICKUP_TYPE_MAP;
-  images: string[];
+  banner: string[];
   bookmarked: boolean;
   memoDate: string;
+  phoneNumber: string;
 }
 
 export type { Kindergarten };

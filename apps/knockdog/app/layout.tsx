@@ -22,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <OverlayProvider>
                 <HeaderProvider>
                   <div className='flex h-dvh flex-col'>
+                    {/* @TODO HeaderWrapper 추후 삭제 필요 */}
                     <HeaderWrapper />
                     <BridgeListenerClient />
                     {children}

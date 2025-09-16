@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Divider, ActionButton } from '@knockdog/ui';
 
-import { DogSchoolImageSwiper, DogSchoolDetail } from '@entities/dog-school';
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useParams } from 'next/navigation';
 import { BookmarkToggleIcon } from '@entities/bookmark';
+import { PhoneCallSheet } from '@features/dog-school/ui/PhoneCallSheet';
+import { overlay } from 'overlay-kit';
 
 function KindergartenDetailPage() {
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const scrollableDivRef = useRef<HTMLDivElement>(null);
 
   const params = useParams();
@@ -20,16 +20,23 @@ function KindergartenDetailPage() {
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
   if (!id) throw new Error('Kindergarten ID is required');
 
-  // const position = useCurrentLocation();
-  // if (!position) return null;
+  const position = useCurrentLocation();
+  const { data: kindergartenMain } = useKindergartenMainQuery({
+    id,
+    lng: position?.lng ?? 0,
+    lat: position?.lat ?? 0,
+    enabled: Boolean(id && position),
+  });
 
-  const position = { lng: 126.883439, lat: 37.511281 };
+  if (!position || !kindergartenMain) return null;
 
-  const { data: kindergartenMain } = useKindergartenMainQuery(id, position.lng, position.lat);
+  const { banner: images, ...restKindergartenMainData } = kindergartenMain;
 
-  if (!kindergartenMain) return null;
-
-  const { images, ...restKindergartenMainData } = kindergartenMain;
+  const openPhoneCallSheet = () => {
+    overlay.open(({ isOpen, close }) => (
+      <PhoneCallSheet phoneNumber={kindergartenMain.phoneNumber} isOpen={isOpen} close={close} />
+    ));
+  };
 
   return (
     <>
@@ -46,12 +53,12 @@ function KindergartenDetailPage() {
         </Header.RightSection>
       </Header>
       <div
-        className='mt-[66px] overflow-y-auto'
+        className='mb-[80px] mt-[66px] h-[calc(100vh-146px)] overflow-y-auto'
         ref={scrollableDivRef} // ref 할당
       >
         <div className='mt-[66px]'>
           {/* 업체 메인이미지 슬라이드형 */}
-          <MainBannerSwiper images={images ?? []} />
+          {/* <MainBannerSwiper images={images ?? []} /> */}
         </div>
 
         {/* 컨텐츠 영역 */}
@@ -68,10 +75,11 @@ function KindergartenDetailPage() {
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <div className='z-10 flex w-screen items-center gap-1 bg-white p-4'>
-        <ActionButton variant='primaryLine' className='flex-1'>
-          길찾기
+      <div className='absolute bottom-0 z-10 flex w-screen items-center gap-1 bg-white p-4'>
+        <ActionButton variant='primaryLine' className='flex-1' onClick={openPhoneCallSheet}>
+          <a href={`tel:${kindergartenMain.phoneNumber}`}>전화 걸기</a>
         </ActionButton>
+        {/* @TODO 비교하기 페이지로 Route */}
         <ActionButton className='flex-1'>비교하기</ActionButton>
 
         <BookmarkToggleIcon id={id} bookmarked={kindergartenMain?.bookmarked ?? false} />

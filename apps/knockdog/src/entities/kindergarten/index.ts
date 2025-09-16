@@ -1,7 +1,7 @@
 // config
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
-export { createKindergartenNearQueryOptions } from './config/kindergartenNearQueryKeys';
-export { createKindergartenMainQueryOptions } from './config/kindergartenMainQueryKeys';
+export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from './config/kindergartenNearQueryKeys';
+export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
 // model
 export type { Kindergarten } from './model/kindergarten';
@@ -23,3 +23,4 @@ export {
 // ui
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
 export { ServiceBadgeList } from './ui/ServiceBadgeList';
+export { DeparturePointSheet } from './ui/DeparturePointSheet';

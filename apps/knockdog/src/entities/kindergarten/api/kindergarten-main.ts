@@ -1,4 +1,4 @@
-import { api } from '@shared/api';
+import { api, type ApiResponse } from '@shared/api';
 
 import type { Kindergarten } from '../model/kindergarten';
 
@@ -11,7 +11,7 @@ export interface KindergartenMainRequest {
 
 function getKindergartenMain({ id, lng, lat }: KindergartenMainRequest): Promise<Kindergarten> {
   return api
-    .get(`/api/v0/kindergarten/main/${id}`, {
+    .get(`kindergarten/main/${id}`, {
       searchParams: {
         lng,
         lat,
