@@ -24,3 +24,4 @@ export {
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
 export { ServiceBadgeList } from './ui/ServiceBadgeList';
 export { DeparturePointSheet } from './ui/DeparturePointSheet';
+export { PhoneCallSheet } from './ui/PhoneCallSheet';

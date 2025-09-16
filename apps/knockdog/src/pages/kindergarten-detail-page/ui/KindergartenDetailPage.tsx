@@ -9,7 +9,7 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useParams } from 'next/navigation';
 import { BookmarkToggleIcon } from '@entities/bookmark';
-import { PhoneCallSheet } from '@features/dog-school/ui/PhoneCallSheet';
+import { PhoneCallSheet } from '@entities/kindergarten';
 import { overlay } from 'overlay-kit';
 
 function KindergartenDetailPage() {
@@ -52,10 +52,7 @@ function KindergartenDetailPage() {
           <Header.ShareButton />
         </Header.RightSection>
       </Header>
-      <div
-        className='mb-[80px] mt-[66px] h-[calc(100vh-146px)] overflow-y-auto'
-        ref={scrollableDivRef} // ref 할당
-      >
+      <div className='mb-[80px] mt-[66px] h-[calc(100vh-146px)] overflow-y-auto' ref={scrollableDivRef}>
         <div className='mt-[66px]'>
           {/* 업체 메인이미지 슬라이드형 */}
           {/* <MainBannerSwiper images={images ?? []} /> */}
@@ -75,9 +72,9 @@ function KindergartenDetailPage() {
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <div className='absolute bottom-0 z-10 flex w-screen items-center gap-1 bg-white p-4'>
+      <div className='absolute bottom-[100px] z-10 flex w-screen items-center gap-1 bg-white p-4'>
         <ActionButton variant='primaryLine' className='flex-1' onClick={openPhoneCallSheet}>
-          <a href={`tel:${kindergartenMain.phoneNumber}`}>전화 걸기</a>
+          전화 걸기
         </ActionButton>
         {/* @TODO 비교하기 페이지로 Route */}
         <ActionButton className='flex-1'>비교하기</ActionButton>
