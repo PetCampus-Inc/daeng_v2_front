@@ -22,10 +22,12 @@ function OperationHoursCard({ operationTime }: OperationHoursCardProps) {
           <dd className='body2-regular text-text-primary'>{weekend.map((time) => time.breakTime).join(' - ')}</dd>
         </div>
 
-        <div className='flex'>
-          <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>정기 휴무</dt>
-          <dd className='body2-regular text-text-primary'>{closedDays.join(' ')}</dd>
-        </div>
+        {closedDays.length > 0 && (
+          <div className='flex'>
+            <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>정기 휴무</dt>
+            <dd className='body2-regular text-text-primary'>{closedDays.join(' ')}</dd>
+          </div>
+        )}
       </div>
     </dl>
   );

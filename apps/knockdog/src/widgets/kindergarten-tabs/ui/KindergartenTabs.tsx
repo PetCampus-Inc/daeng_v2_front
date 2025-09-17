@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
 import { useRef } from 'react';
 
 import { MemoSection } from './MemoSection';

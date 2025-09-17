@@ -68,11 +68,10 @@ function KindergartenDetailPage() {
           {/* 세부 컨텐츠 영역 */}
           {/* 탭 */}
           <KindergartenTabs scrollableDivRef={scrollableDivRef} />
-          {/* 상세 컨텐츠 */}
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <div className='absolute bottom-[100px] z-10 flex w-screen items-center gap-1 bg-white p-4'>
+      <div className='absolute bottom-0 z-10 flex w-screen items-center gap-1 bg-white p-4'>
         <ActionButton variant='primaryLine' className='flex-1' onClick={openPhoneCallSheet}>
           전화 걸기
         </ActionButton>

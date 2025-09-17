@@ -11,7 +11,7 @@ interface PricingInfoResponse {
 }
 
 function getPricing(id: string): Promise<PricingInfoResponse> {
-  return api.get(`/api/v0/kindergarten/${id}/pricing`).json();
+  return api.get(`kindergarten/${id}/pricing`).json();
 }
 
 export { getPricing, type PricingInfoResponse };

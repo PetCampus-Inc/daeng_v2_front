@@ -18,8 +18,8 @@ const LINK_CONFIGS = [
 function LinkRow({ label, value }: LinkRowProps) {
   return (
     <div className='flex'>
-      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>{label}</dt>
-      <dd className='body2-regular'>
+      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px] flex-shrink-0'>{label}</dt>
+      <dd className='body2-regular overflow-wrap-anywhere flex-1 break-all'>
         {value ? <span className='underline'>{value}</span> : <span className='text-text-secondary'>정보 없음</span>}
       </dd>
     </div>
