@@ -42,51 +42,60 @@ function BasicSection() {
       </div>
 
       {/* 견종 */}
-      <div>
-        <div className='mb-3'>
-          <span className='body1-bold'>견종</span>
+      {dogBreeds && dogBreeds.length > 0 && (
+        <div>
+          <div className='mb-3'>
+            <span className='body1-bold'>견종</span>
+          </div>
+          <div className='grid grid-cols-4 gap-3'>
+            {dogBreeds?.map((code) => (
+              <ServiceTagBadge key={code} code={code} />
+            ))}
+          </div>
         </div>
-        <div className='grid grid-cols-4 gap-3'>
-          {dogBreeds?.map((code) => (
-            <ServiceTagBadge key={code} code={code} />
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* 강아지 서비스 */}
-      <div>
-        <div className='mb-3'>
-          <span className='body1-bold'>강아지 서비스</span>
+      {dogServices && dogServices.length > 0 && (
+        <div>
+          <div className='mb-3'>
+            <span className='body1-bold'>강아지 서비스</span>
+          </div>
+          <div className='grid grid-cols-4 gap-3'>
+            {dogServices?.map((code) => (
+              <ServiceTagBadge key={code} code={code} />
+            ))}
+          </div>
         </div>
-        <div className='grid grid-cols-4 gap-3'>
-          {dogServices?.map((code) => (
-            <ServiceTagBadge key={code} code={code} />
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* 강아지 안전시설 */}
-      <div>
-        <div className='mb-3'>
-          <span className='body1-bold'>강아지 안전·시설</span>
+      {dogSafetyFacilities && dogSafetyFacilities.length > 0 && (
+        <div>
+          <div className='mb-3'>
+            <span className='body1-bold'>강아지 안전·시설</span>
+          </div>
+          <div className='grid grid-cols-4 gap-3'>
+            {dogSafetyFacilities?.map((code) => (
+              <ServiceTagBadge key={code} code={code} />
+            ))}
+          </div>
         </div>
-        <div className='grid grid-cols-4 gap-3'>
-          {dogSafetyFacilities?.map((code) => (
-            <ServiceTagBadge key={code} code={code} />
-          ))}
-        </div>
-      </div>
+      )}
+
       {/* 방문객 편의 시설 */}
-      <div>
-        <div className='mb-3'>
-          <span className='body1-bold'>방문객 편의·시설</span>
+      {visitorAmenities && visitorAmenities.length > 0 && (
+        <div>
+          <div className='mb-3'>
+            <span className='body1-bold'>방문객 편의·시설</span>
+          </div>
+          <div className='grid grid-cols-4 gap-3'>
+            {visitorAmenities?.map((code) => (
+              <ServiceTagBadge key={code} code={code} />
+            ))}
+          </div>
         </div>
-        <div className='grid grid-cols-4 gap-3'>
-          {visitorAmenities?.map((code) => (
-            <ServiceTagBadge key={code} code={code} />
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* 웹사이트 SNS */}
       <ExternalLinksCard website={homepageUrl} instagram={instagramUrl} youtube={youtubeUrl} />

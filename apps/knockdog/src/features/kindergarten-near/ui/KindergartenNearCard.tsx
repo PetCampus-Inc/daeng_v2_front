@@ -8,7 +8,7 @@ interface KindergartenNearProps extends KindergartenNear {}
 const KindergartenNearCard = ({
   id,
   title,
-  image,
+  banner,
   ctg,
   dist,
   roadAddress,
@@ -24,13 +24,14 @@ const KindergartenNearCard = ({
   return (
     <div className='min-w-[233px]'>
       <div className='relative mb-2 rounded-lg'>
-        <Image
-          src={image}
-          alt='페이지 이미지'
-          width={233}
-          height={142}
-          className='h-[142px] w-[233px] rounded-lg object-cover'
-        />
+        {/* <Image
+            src={banner[0] ?? ''}
+            alt='페이지 이미지'
+            width={233}
+            height={142}
+            className='h-[142px] w-[233px] rounded-lg object-cover'
+          /> */}
+
         {/* 뱃지 리스트 */}
         <div className='absolute bottom-2 left-2 flex gap-1'>
           <div className='text-size-caption1 flex gap-[2px] rounded-md bg-[#0F141A] px-2 py-1 text-neutral-100 opacity-70'>

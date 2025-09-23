@@ -14,7 +14,7 @@ interface KindergartenNear {
   price: number;
   reviewCount: number;
   memoDate: string;
-  image: string;
+  banner: string[];
   operationDescription: string;
   bookmarked: boolean;
 }

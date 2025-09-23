@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-
 import { KindergartenNearCard, useKindergartenNearQuery } from '@features/kindergarten-near';
 import { useParams } from 'next/navigation';
 import { useCurrentLocation } from '@shared/lib/geolocation';
@@ -11,7 +10,7 @@ const KindergartenNearSection = () => {
   const id = params?.id;
 
   if (!id) throw new Error('Company ID is required for kindergarten near section');
-  // 현재 위치 구하는 hook 추가
+
   const position = useCurrentLocation();
   const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
 
