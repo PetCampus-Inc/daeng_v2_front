@@ -1,5 +1,5 @@
 /** API */
-export { postVerifyEmail } from './api/verifyEmail';
+export { postWithdraw } from './api/user';
 
 /** Constant */
 export { USER_ADDRESS_TYPE_KR } from './model/constant/user';
