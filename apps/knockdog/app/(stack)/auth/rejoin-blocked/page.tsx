@@ -1,7 +1,7 @@
 import { ActionButton } from '@knockdog/ui';
 import React from 'react';
 
-export default function WithdrawPage() {
+export default function RejoinBlockedPage() {
   return (
     <div className='relative mx-5 h-screen'>
       <div className='absolute left-1/2 top-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
