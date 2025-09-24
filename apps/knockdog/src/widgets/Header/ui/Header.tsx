@@ -14,28 +14,34 @@ import type { HeaderVariant } from '../model/HeaderProvider';
 export function Header({
   className,
   variant = 'solid',
+  withSpacing = true,
   children,
   ...props
 }: ComponentProps<'header'> & {
   variant?: HeaderVariant;
   fontColor?: string;
+  withSpacing?: boolean;
 }) {
   const variantClass = {
-    solid: 'bg-white',
+    solid: 'bg-white border-b',
     transparent: 'bg-transparent',
   };
 
   return (
-    <header
-      className={cn(
-        'z-15 fixed left-0 top-0 w-full px-4 py-5',
-        variantClass[variant],
-        className
-      )}
-      {...props}
-    >
-      <div className='relative flex h-[26px]'>{children}</div>
-    </header>
+    <>
+      <header
+        className={cn(
+          'z-15 border-line-100 fixed top-0 flex h-16 w-screen items-center px-4',
+          variantClass[variant],
+          className
+        )}
+        {...props}
+      >
+        <div className='relative flex w-full'>{children}</div>
+      </header>
+
+      {withSpacing && <div className='h-16' />}
+    </>
   );
 }
 
@@ -57,10 +63,7 @@ function RightSection({ children, ...props }: ComponentProps<'div'>) {
 
 function CenterSection({ children, ...props }: ComponentProps<'div'>) {
   return (
-    <div
-      className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
-      {...props}
-    >
+    <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' {...props}>
       {children}
     </div>
   );
