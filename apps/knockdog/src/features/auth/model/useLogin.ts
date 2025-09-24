@@ -5,9 +5,18 @@ import { useMutation } from '@tanstack/react-query';
 
 import { tempBridgeLogin } from '../lib/tempBridgeLogin';
 
-import { SocialProvider, VERIFY_OIDC_RESULT_CODE, postVerifyOidc, useSocialUserStore } from '@entities/social-user';
+import {
+  SocialProvider,
+  SocialUser,
+  VERIFY_OIDC_RESULT_CODE,
+  fetchLinkedSocialUser,
+  postVerifyOidc,
+  useSocialUserStore,
+} from '@entities/social-user';
 import { USER_STATUS, useUserStore, User } from '@entities/user';
 import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
+import { STORAGE_KEYS } from '@shared/constants';
+import { TypedStorage } from '@shared/lib';
 
 export const useLogin = () => {
   const { push, replace } = useRouter();
@@ -18,16 +27,14 @@ export const useLogin = () => {
   const setUser = useUserStore((state) => state.setUser);
   const setSocialUser = useSocialUserStore((state) => state.setSocialUser);
 
+  const linkedSocialUser = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, { initialValue: null });
+
   /** OIDC 인증 */
   const oidcAuth = async (provider: SocialProvider) => {
     const response = await tempBridgeLogin(provider);
 
-    const { code } = await oidcMutateAsync(
-      { provider, ...response },
-      {
-        onSuccess: ({ data }) => setSocialUser(data),
-      }
-    );
+    // OIDC 검증 요청 (IDToken)
+    const { code } = await oidcMutateAsync({ provider, ...response }, { onSuccess: ({ data }) => setSocialUser(data) });
 
     return code;
   };
@@ -64,7 +71,19 @@ export const useLogin = () => {
     // 연동되지 않은 계정 (회원가입)
     else if (code === VERIFY_OIDC_RESULT_CODE.UNLINKED) push('/profile/location');
     // 동일한 이메일의 계정이 존재
-    else if (code === VERIFY_OIDC_RESULT_CODE.EMAIL_ALREADY_EXISTS) push('/auth/login/redirect');
+    else if (code === VERIFY_OIDC_RESULT_CODE.EMAIL_ALREADY_EXISTS) {
+      try {
+        // 연동된 소셜 계정 정보 저장
+        const response = await fetchLinkedSocialUser();
+        linkedSocialUser.set(response.data);
+
+        push('/auth/login/redirect');
+      } catch (error) {
+        // 연동된 소셜 계정 정보 조회 실패 시 로그인 페이지로 이동
+        console.error('알 수 없는 오류가 발생했습니다.', error);
+        push('/auth/login');
+      }
+    }
 
     // TODO: VERIFY_OIDC_RESULT_CODE 예외 처리 필요
   };
