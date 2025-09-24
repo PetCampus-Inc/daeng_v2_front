@@ -1,4 +1,11 @@
-import { BRIDGE_VERSION, safeParse, makeId, type BridgeMessage, type BridgeEventMap } from '@knockdog/bridge-core';
+import {
+  BRIDGE_VERSION,
+  safeParse,
+  makeId,
+  BridgeException,
+  type BridgeMessage,
+  type BridgeEventMap,
+} from '@knockdog/bridge-core';
 
 type Unsubscribes = () => void;
 type Listener<K extends keyof BridgeEventMap = keyof BridgeEventMap> = (payload: BridgeEventMap[K]) => void;
@@ -6,11 +13,11 @@ type Listener<K extends keyof BridgeEventMap = keyof BridgeEventMap> = (payload:
 class WebBridge {
   private pending = new Map<
     string,
-    { resolve: (v: unknown) => void; reject: (e: unknown) => void; timer: ReturnType<typeof setTimeout> }
+    { resolve: (v: unknown) => void; reject: (e: BridgeException) => void; timer: ReturnType<typeof setTimeout> }
   >();
   private listeners = new Map<string, Set<(payload: unknown) => void>>();
 
-  constructor(private timeoutMs = 8000) {
+  constructor(private timeoutMs = 8_000) {
     // WebView환경이 아닐때 대비
     if (typeof window !== 'undefined') {
       window.addEventListener('message', this._onMessage);
@@ -30,7 +37,7 @@ class WebBridge {
       window.removeEventListener('message', this._onMessage);
     }
 
-    this.pending.forEach((p) => p.reject(new Error('bridge_destroyed')));
+    this.pending.forEach((p) => p.reject(new BridgeException({ code: 'EDESTROYED', message: 'bridge_destroyed' })));
     this.pending.clear();
     this.listeners.clear();
   }
@@ -47,15 +54,23 @@ class WebBridge {
   async request<T = unknown>(method: string, params?: unknown): Promise<T> {
     const id = makeId();
 
+    if (typeof window === 'undefined' || !window.ReactNativeWebView) {
+      throw new BridgeException({
+        code: 'ENOTFOUND',
+        message: 'ReactNativeWebView not available',
+        data: { method },
+      });
+    }
+
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject({ code: 'ETIMEDOUT', message: `timeout ${method}` });
+        reject(new BridgeException({ code: 'ETIMEDOUT', message: `timeout ${method}` }));
       }, this.timeoutMs);
 
       this.pending.set(id, {
         resolve: resolve as (v: unknown) => void,
-        reject: reject as (e: unknown) => void,
+        reject: reject as (e: BridgeException) => void,
         timer,
       });
 
@@ -87,7 +102,7 @@ class WebBridge {
       this.pending.delete(msg.id);
 
       if ('error' in msg) {
-        entry.reject(msg.error);
+        entry.reject(new BridgeException({ ...msg.error }));
       } else {
         entry.resolve(msg.result);
       }

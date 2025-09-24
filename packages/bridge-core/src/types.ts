@@ -1,3 +1,5 @@
+import type { BridgeErrorShape } from './error';
+
 type BridgeRequest = {
   id: string;
   type: 'request';
@@ -18,7 +20,7 @@ type BridgeError = {
   id: string;
   type: 'response';
   ok: false;
-  error: { code: string; message: string; details?: string };
+  error: BridgeErrorShape;
   meta: { v: string; source: 'web' | 'native'; ts: number };
 };
 

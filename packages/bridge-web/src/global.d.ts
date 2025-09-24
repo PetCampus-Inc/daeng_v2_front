@@ -1,4 +1,4 @@
-import type { BridgeMessage } from '@knockdog/bridge-core';
+import type { BridgeMessage } from '../../bridge-core/src/types';
 
 declare global {
   interface Window {

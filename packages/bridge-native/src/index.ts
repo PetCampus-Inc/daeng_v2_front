@@ -1,11 +1,12 @@
 import type { RefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { BRIDGE_VERSION, safeParse, type BridgeRequest, type BridgeMessage } from '@knockdog/bridge-core';
+import { normalizeError } from './utils';
 
 /** 네이티브에서 실행될 핸들러 타입 (요청 -> 응답) */
 type NativeHandler = (params: unknown) => unknown | Promise<unknown>;
 
-/** 메서드 라우터: method이름에 따라 핸들러를 찾아 실행 */
+/** 메서드 라우터: method 이름에 따라 핸들러를 찾아 실행 */
 class NativeBridgeRouter {
   private handlers = new Map<string, (params: unknown) => unknown | Promise<unknown>>();
 
@@ -15,12 +16,12 @@ class NativeBridgeRouter {
     this.handlers.set(method, wrapped);
   }
 
-  /** 메서드 제거 ex. device.getGeolocation */
+  /** 메서드 제거 */
   unregister(method: string) {
     this.handlers.delete(method);
   }
 
-  /** 매소두 존재 여부 */
+  /** 메서드 존재 여부 */
   has(method: string) {
     return this.handlers.has(method);
   }
@@ -29,8 +30,8 @@ class NativeBridgeRouter {
   async handle(req: BridgeRequest) {
     const h = this.handlers.get(req.method);
     if (!h) {
-      const error = { code: 'ENOENT', message: `No handler for ${req.method}` };
-      throw error;
+      // 표준 에러로 throw → 상위에서 그대로 사용 가능
+      throw { code: 'ENOENT', message: `No handler for ${req.method}`, data: { method: req.method } };
     }
     return await h(req.params);
   }
@@ -43,8 +44,12 @@ class NativeBridgeRouter {
 
 /** RN -> Web 전송: injectJavaScript로 웹 전역 리시버 호출 */
 function sendToWeb(webRef: RefObject<WebView>, msg: BridgeMessage) {
-  // JSON 안의 </script> 방지 (주로 웹뷰 보안 이슈 회피)
-  const safe = JSON.stringify(msg).replace(/<\/script/gi, '<\\/script');
+  // JSON 직렬화 & 스크립트 컨텍스트 이스케이프(</script>, U+2028/2029)
+  const safe = JSON.stringify(msg)
+    .replace(/<\/script/gi, '<\\/script')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+
   webRef?.current?.injectJavaScript(`window.__bridge?.receive(${safe}); true;`);
 }
 
@@ -60,14 +65,24 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
     const raw = e?.nativeEvent?.data;
     const msg = typeof raw === 'string' ? safeParse(raw) : raw;
 
+    // 최소 유효성 검사
     if (!msg || typeof msg !== 'object') return;
-    if (msg.type !== 'request') {
-      return;
-    }
+    if ((msg as any).type !== 'request') return;
 
     const req = msg as BridgeRequest;
 
-    // 요청 처리 & 응답 반환
+    // 필수 필드 확인
+    if (!req.id || !req.method) {
+      sendToWeb(webRef, {
+        id: (req as any)?.id ?? `invalid-${Date.now()}`,
+        type: 'response',
+        ok: false,
+        error: { code: 'EUNKNOWN', message: 'invalid request', data: msg },
+        meta: { v: BRIDGE_VERSION, source: 'native', ts: Date.now() },
+      });
+      return;
+    }
+
     try {
       const result = await router.handle(req);
       sendToWeb(webRef, {
@@ -77,18 +92,13 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
         result,
         meta: { v: BRIDGE_VERSION, source: 'native', ts: Date.now() },
       });
-    } catch (error: unknown) {
-      const { code, message, details } = error as { code: string; message: string; details: string };
-
+    } catch (err: unknown) {
+      const shape = normalizeError(err, { code: 'EUNKNOWN', message: 'unhandled_native_error' });
       sendToWeb(webRef, {
         id: req.id,
         type: 'response',
         ok: false,
-        error: {
-          code: code ?? 'EUNHANDLED',
-          message: message ?? String(error),
-          details: details,
-        },
+        error: shape, // 항상 { code, message, data?, cause? }
         meta: { v: BRIDGE_VERSION, source: 'native', ts: Date.now() },
       });
     }
@@ -114,4 +124,4 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
 }
 
 export type { NativeHandler };
-export { NativeBridgeRouter, wireWebView };
+export { NativeBridgeRouter, wireWebView, normalizeError };
