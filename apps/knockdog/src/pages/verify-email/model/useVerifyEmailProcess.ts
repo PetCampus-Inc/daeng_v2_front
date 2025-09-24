@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { useSocialUserStore, postReconnectSocial } from '@entities/social-user';
 import { useVerificationTimer, useEmailVerification } from '@entities/email-verification';
+import { route } from '@shared/constants/route';
 
 const useVerifyEmailProcess = () => {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -35,7 +36,9 @@ const useVerifyEmailProcess = () => {
   /** 소셜 계정 재연동 성공 핸들러 */
   const handleReconnectSocialSuccess = () => {
     // TODO: 토스트 메시지 추가 ("계정이 성공적으로 연동되었습니다.")
-    push('/');
+
+    // 루트 페이지로 이동
+    push(route.root);
   };
 
   // isInitialized를 ref로 사용 시, mutate의 처리 상태가 항상 Pending 상태로 유지 됨
