@@ -1,5 +1,6 @@
 /** API */
 export { postVerifyOidc, VERIFY_OIDC_RESULT_CODE } from './api/verifyOidc';
+export { postReconnectSocial, fetchLinkedSocialUser } from './api/socialUser';
 
 /** Constant */
 export { SOCIAL_PROVIDER_KO } from './model/constant/provider';
