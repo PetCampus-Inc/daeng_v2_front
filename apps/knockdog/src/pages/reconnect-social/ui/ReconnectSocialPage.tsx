@@ -14,7 +14,7 @@ function ReconnectSocialPage() {
   if (!socialUser) redirect(route.auth.login.root);
 
   const handleBackClick = () => router.back();
-  const handleMigrateClick = () => router.push(route.auth.socialMigrate.verifyEmail.root);
+  const handleReconnectClick = () => router.push(route.auth.reconnectSocial.verifyEmail.root);
 
   return (
     <>
@@ -41,7 +41,7 @@ function ReconnectSocialPage() {
           <ActionButton size='large' variant='secondaryLine' onClick={handleBackClick}>
             돌아가기
           </ActionButton>
-          <ActionButton size='large' variant='secondaryFill' onClick={handleMigrateClick}>
+          <ActionButton size='large' variant='secondaryFill' onClick={handleReconnectClick}>
             연동하기
           </ActionButton>
         </div>

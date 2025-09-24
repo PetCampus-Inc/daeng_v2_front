@@ -21,7 +21,7 @@ export default function RedirectLoginPage() {
 
   if (!linkedSocialUser) redirect(route.auth.login.root);
 
-  const handleMigrate = () => push(route.auth.socialMigrate.root);
+  const handleReconnectClick = () => push(route.auth.reconnectSocial.root);
 
   return (
     <>
@@ -45,7 +45,7 @@ export default function RedirectLoginPage() {
 
         <div className='mb-5 flex flex-col gap-3 px-4'>
           <LoginButton provider={linkedSocialUser.provider} />
-          <button className='label-semibold text-text-secondary py-3 underline' onClick={handleMigrate}>
+          <button className='label-semibold text-text-secondary py-3 underline' onClick={handleReconnectClick}>
             기존 계정으로 로그인 할 수 없나요?
           </button>
         </div>
