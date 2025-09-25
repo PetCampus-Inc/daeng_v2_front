@@ -18,24 +18,6 @@ export function HeaderWrapper() {
   const isCompanyPath = pathname.startsWith(companyBasePath);
   const isFullImagePath = pathname.includes('/full-image');
 
-  if (isCompanyPath && !isFullImagePath) {
-    return (
-      <Header>
-        <Header.LeftSection>
-          <Header.BackButton />
-          <Header.HomeButton />
-        </Header.LeftSection>
-
-        <Header.Title>{title}</Header.Title>
-
-        <Header.RightSection>
-          <Header.ShareButton />
-          <Header.MenuButton />
-        </Header.RightSection>
-      </Header>
-    );
-  }
-
   const isAccountLinking = pathname.startsWith('/account-linking');
   if (isAccountLinking) {
     return (
