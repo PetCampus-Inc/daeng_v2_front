@@ -18,8 +18,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
-    },
-    "./global": "./src/global.d.ts"
+    }
   },
   "dependencies": {
     "@knockdog/bridge-core": "workspace:*"

@@ -1,4 +1,4 @@
-import { METHODS } from './methods';
+import { METHODS, type CallPhoneParams, type CallPhoneResult } from './methods';
 
 interface RPCSchema {
   [METHODS.getLatLng]: {
@@ -9,6 +9,10 @@ interface RPCSchema {
       lat: number;
       lng: number;
     };
+  };
+  [METHODS.callPhone]: {
+    params: CallPhoneParams;
+    result: CallPhoneResult;
   };
 }
 

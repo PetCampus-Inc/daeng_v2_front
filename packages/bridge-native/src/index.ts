@@ -67,6 +67,30 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
 
     // 최소 유효성 검사
     if (!msg || typeof msg !== 'object') return;
+
+    // 콘솔 메시지 처리
+    if ((msg as any).__console) {
+      const consoleMsg = msg as any;
+      const level = consoleMsg.level || 'log';
+      const args = consoleMsg.args || [];
+
+      // React Native 콘솔로 출력
+      switch (level) {
+        case 'error':
+          console.error('[WebView]', ...args);
+          break;
+        case 'warn':
+          console.warn('[WebView]', ...args);
+          break;
+        case 'log':
+        default:
+          console.log('[WebView]', ...args);
+          break;
+      }
+      return;
+    }
+
+    // 브릿지 요청 처리
     if ((msg as any).type !== 'request') return;
 
     const req = msg as BridgeRequest;

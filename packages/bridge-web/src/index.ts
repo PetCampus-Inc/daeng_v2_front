@@ -5,6 +5,9 @@ import {
   BridgeException,
   type BridgeMessage,
   type BridgeEventMap,
+  RPCMethod,
+  ParamsOf,
+  ResultOf,
 } from '@knockdog/bridge-core';
 
 type Unsubscribes = () => void;
@@ -15,7 +18,7 @@ class WebBridge {
     string,
     { resolve: (v: unknown) => void; reject: (e: BridgeException) => void; timer: ReturnType<typeof setTimeout> }
   >();
-  private listeners = new Map<string, Set<(payload: unknown) => void>>();
+  private listeners = new Map<keyof BridgeEventMap, Set<(payload: unknown) => void>>();
 
   constructor(private timeoutMs = 8_000) {
     // WebView환경이 아닐때 대비
@@ -51,7 +54,10 @@ class WebBridge {
     return () => this.listeners.get(event)?.delete(cb as (payload: unknown) => void);
   }
 
-  async request<T = unknown>(method: string, params?: unknown): Promise<T> {
+  request<K extends RPCMethod>(method: K, params: ParamsOf<K>): Promise<ResultOf<K>>;
+  request<T = unknown>(method: string, params?: unknown): Promise<T>;
+
+  async request(method: string, params?: unknown) {
     const id = makeId();
 
     if (typeof window === 'undefined' || !window.ReactNativeWebView) {

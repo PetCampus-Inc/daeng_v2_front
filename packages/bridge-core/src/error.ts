@@ -9,7 +9,9 @@ type BridgeErrorCode =
   | 'EACCES'
   | 'EPERMISSION'
   | 'EDESTROYED'
-  | 'EUNKNOWN';
+  | 'EUNKNOWN'
+  | 'EINVALID'
+  | 'EUNAVAILABLE';
 
 interface BridgeErrorShape {
   code: BridgeErrorCode;
