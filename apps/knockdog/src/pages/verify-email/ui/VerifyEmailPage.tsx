@@ -1,19 +1,21 @@
 'use client';
 
-import React from 'react';
-import { redirect } from 'next/navigation';
+import React, { useEffect } from 'react';
 import { Icon, ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 
 import { useVerifyEmailProcess } from '../model/useVerifyEmailProcess';
+import { useRouter } from 'next/navigation';
 
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 
 function VerifyEmailPage() {
+  const router = useRouter();
   const { socialUser, timerDisplay, error, sendEmail, verification } = useVerifyEmailProcess();
 
-  // 소셜 유저 정보가 없으면 로그인 페이지로 이동
-  if (!socialUser) redirect(route.auth.login.root);
+  useEffect(() => {
+    if (!socialUser) router.push(route.auth.login.root);
+  }, [socialUser, router]);
 
   return (
     <>
@@ -29,7 +31,7 @@ function VerifyEmailPage() {
           <div className='mt-10 flex gap-x-2'>
             <div className='flex-1 overflow-hidden'>
               <TextField invalid={!!error} errorMessage={error} suffix={timerDisplay}>
-                <TextFieldInput readOnly value={socialUser.email} />
+                <TextFieldInput readOnly value={socialUser?.email} />
               </TextField>
             </div>
 
