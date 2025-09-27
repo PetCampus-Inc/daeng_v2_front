@@ -20,7 +20,6 @@ const useVerifyEmailProcess = () => {
 
   const { startTimer, clearTimer, timerDisplay, isRunning } = useVerificationTimer();
   const { send, verification, error } = useEmailVerification({
-    onSendSuccess: () => startTimer(180),
     onVerificationSuccess: () => reconnectSocialMutate(),
   });
 
@@ -30,6 +29,7 @@ const useVerifyEmailProcess = () => {
 
       if (isRunning) clearTimer();
       send(socialUser.email, socialUser.name);
+      startTimer(180);
     }
   };
 
