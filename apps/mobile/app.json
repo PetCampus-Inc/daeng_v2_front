@@ -35,6 +35,12 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "$(PRODUCT_NAME) 앱을 사용하기 위해 위치 권한을 허용해주세요."
+        }
+      ],
       "expo-font"
     ]
   }

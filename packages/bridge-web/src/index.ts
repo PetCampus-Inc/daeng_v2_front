@@ -57,7 +57,7 @@ class WebBridge {
   request<K extends RPCMethod>(method: K, params: ParamsOf<K>): Promise<ResultOf<K>>;
   request<T = unknown>(method: string, params?: unknown): Promise<T>;
 
-  async request(method: string, params?: unknown) {
+  async request(method: string, params?: unknown, options?: { timeoutMs?: number }) {
     const id = makeId();
 
     if (typeof window === 'undefined' || !window.ReactNativeWebView) {
@@ -72,7 +72,7 @@ class WebBridge {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new BridgeException({ code: 'ETIMEDOUT', message: `timeout ${method}` }));
-      }, this.timeoutMs);
+      }, options?.timeoutMs ?? this.timeoutMs);
 
       this.pending.set(id, {
         resolve: resolve as (v: unknown) => void,

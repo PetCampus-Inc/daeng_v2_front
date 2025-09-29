@@ -1,21 +1,24 @@
-import { useBridgeStore } from '@/stores/bridgeStore';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function BridgeDebugOverlay() {
-  const { lastReceivedType, payload, logs } = useBridgeStore();
+  // 임시로 하드코딩된 데이터 (나중에 실제 브릿지 스토어로 교체)
+  const logs: Array<{ t: number; dir: string; type: string; payload: any }> = [];
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>Bridge Debug</Text>
-      <Text style={styles.line}>Last: {String(lastReceivedType ?? '-')}</Text>
-      <Text style={styles.line}>Payload: {JSON.stringify(payload)}</Text>
+      <Text style={styles.line}>Console messages will appear in React Native console</Text>
       <ScrollView style={{ maxHeight: 160, marginTop: 8 }}>
-        {logs.slice(-20).map((l, i) => (
-          <Text key={i} style={styles.log}>
-            {new Date(l.t).toLocaleTimeString()} [{l.dir}] {l.type} {JSON.stringify(l.payload)}
-          </Text>
-        ))}
+        {logs.length === 0 ? (
+          <Text style={styles.log}>No logs yet</Text>
+        ) : (
+          logs.slice(-20).map((l, i) => (
+            <Text key={i} style={styles.log}>
+              {new Date(l.t).toLocaleTimeString()} [{l.dir}] {l.type} {JSON.stringify(l.payload)}
+            </Text>
+          ))
+        )}
       </ScrollView>
     </View>
   );
