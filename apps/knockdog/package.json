@@ -11,6 +11,8 @@
     "update-route": "tsx src/app/scripts/generateRouteConstants.ts"
   },
   "dependencies": {
+    "@knockdog/bridge-core": "workspace:*",
+    "@knockdog/bridge-web": "workspace:*",
     "@daeng-design/react-portal": "workspace:*",
     "@floating-ui/react": "^0.27.13",
     "@daeng-design/react-swiper": "workspace:*",

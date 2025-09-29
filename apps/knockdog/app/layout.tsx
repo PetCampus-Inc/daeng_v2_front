@@ -9,7 +9,7 @@ import { suit } from './font';
 import './globals.css';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
-import BridgeListenerClient from '@app/_bridge/BridgeListenerClient';
+import { BridgeProvider } from '@shared/lib/bridge';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -19,16 +19,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NuqsAdapter>
           <ReactQueryProvider>
             <NaverMapProvider>
-              <OverlayProvider>
-                <HeaderProvider>
-                  <div className='flex h-dvh flex-col'>
-                    {/* @TODO HeaderWrapper 추후 삭제 필요 */}
-                    <HeaderWrapper />
-                    <BridgeListenerClient />
-                    {children}
-                  </div>
-                </HeaderProvider>
-              </OverlayProvider>
+              <BridgeProvider>
+                <OverlayProvider>
+                  <HeaderProvider>
+                    <div className='flex h-dvh flex-col'>
+                      {/* @TODO HeaderWrapper 추후 삭제 필요 */}
+                      <HeaderWrapper />
+                      {children}
+                    </div>
+                  </HeaderProvider>
+                </OverlayProvider>
+              </BridgeProvider>
             </NaverMapProvider>
           </ReactQueryProvider>
         </NuqsAdapter>
