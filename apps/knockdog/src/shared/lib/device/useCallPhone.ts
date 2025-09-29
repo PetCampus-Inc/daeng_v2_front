@@ -18,7 +18,14 @@ function openWithBrowserTel(phoneNumber: string): boolean {
 }
 
 function normalizeTel(phoneNumber: string): string {
-  return phoneNumber.replace(/[^0-9]/g, '');
+  const trimmed = phoneNumber.trim();
+  const hasPlusPrefix = trimmed.startsWith('+');
+  const cleaned = trimmed.replace(/[^\d*#\+]/g, '');
+
+  if (hasPlusPrefix) {
+    return `+${cleaned}`;
+  }
+  return cleaned;
 }
 
 /**

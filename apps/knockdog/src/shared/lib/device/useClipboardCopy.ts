@@ -62,7 +62,7 @@ function useClipboardCopy() {
             console.error('[WEBVIEW] Bridge error - code:', code, 'message:', message);
 
             if (code === 'EUNAVAILABLE') {
-              return false;
+              return copyWithWeb(text);
             }
           }
         }

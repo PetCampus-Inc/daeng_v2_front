@@ -3,7 +3,7 @@ type ConsoleLevel = 'log' | 'info' | 'warn' | 'error';
 type ConsolePatchOptions = {
   tag?: string; // RN 로그에 붙이 태그
   levels?: ConsoleLevel[]; // 패치할 레벨 목록
-  masLen?: number; // 각 arg 문자열 최대 길이(과도한 로그 방지)
+  maxLen?: number; // 각 arg 문자열 최대 길이(과도한 로그 방지)
 };
 
 /**
@@ -12,9 +12,9 @@ type ConsolePatchOptions = {
  * @returns
  */
 function buildConsolePatch(options: ConsolePatchOptions = {}) {
-  const { tag = '', levels = ['log', 'warn', 'error', 'info'], masLen = 1_000 } = options;
+  const { tag = '', levels = ['log', 'warn', 'error', 'info'], maxLen = 1_000 } = options;
 
-  const cfg = JSON.stringify({ tag, levels, masLen });
+  const cfg = JSON.stringify({ tag, levels, maxLen });
 
   return `
   (function(){

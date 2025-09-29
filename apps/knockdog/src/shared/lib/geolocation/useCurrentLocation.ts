@@ -121,7 +121,7 @@ export function useCurrentLocation(options?: Options) {
       } else {
         const nativeResult = await getFromNative();
 
-        if (nativeResult === null || canUseSecureWeb) {
+        if (nativeResult === null && canUseSecureWeb) {
           await getFromWeb();
         }
       }

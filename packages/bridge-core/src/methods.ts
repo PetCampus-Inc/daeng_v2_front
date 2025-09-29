@@ -16,11 +16,17 @@ type CallPhoneResult = {
   simulated?: boolean; // 시뮬레이터에서 실행된 경우
 };
 
-type ShareParams = {
-  // 공통 필수 파라미터 (최소 하나는 필요)
-  url?: string; // 공유할 URL
-  message?: string; // 공유할 메시지
+type ShareMandatory =
+  | {
+      url: string;
+      message?: string;
+    }
+  | {
+      url?: string;
+      message: string;
+    };
 
+type ShareParams = ShareMandatory & {
   // iOS 전용 옵션
   subject?: string; // 이메일 공유 시 제목
   excludedActivityTypes?: string[]; // 제외할 액티비티 타입들

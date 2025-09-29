@@ -28,12 +28,12 @@ function KindergartenDetailPage() {
     id,
     lng,
     lat,
-    enabled: Boolean(id && lng && lat),
+    enabled: Boolean(id && lng != null && lat != null),
   });
 
   const share = useShare();
 
-  if (!lng || !lat || !kindergartenMain) return null;
+  if (lng == null || lat == null || !kindergartenMain) return null;
 
   const { banner: images, ...restKindergartenMainData } = kindergartenMain;
 
@@ -45,7 +45,7 @@ function KindergartenDetailPage() {
 
   const handleShare = () => {
     const shareData = {
-      // message: kindergartenMain.title,
+      message: `${kindergartenMain.title}\n https://knockdog.com/kindergarten/${id}`,
       url: `https://knockdog.com/kindergarten/${id}`,
     };
 
