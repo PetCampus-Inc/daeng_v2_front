@@ -40,7 +40,7 @@ jobs:
 
       # 의존성 설치
       - name: Install Dependency
-        run: pnpm install --no-frozen-lockfile # 의존성 버전 불일치 허용
+        run: pnpm install --frozen-lockfile
 
       # 의존성 빌드
       - name: Build dependent packages
