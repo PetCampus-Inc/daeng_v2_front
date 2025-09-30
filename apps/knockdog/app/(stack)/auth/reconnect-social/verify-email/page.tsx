@@ -1,3 +1,3 @@
-import { VerifyEmailPage } from '@pages/verify-email';
+import { VerifyEmailPage } from '@views/verify-email';
 
 export default VerifyEmailPage;

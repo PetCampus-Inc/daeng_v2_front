@@ -1,5 +1,5 @@
 'use client';
 
-import { ReconnectSocialPage } from '@pages/reconnect-social';
+import { ReconnectSocialPage } from '@views/reconnect-social';
 
 export default ReconnectSocialPage;
