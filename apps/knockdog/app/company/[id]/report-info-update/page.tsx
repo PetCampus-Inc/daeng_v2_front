@@ -1,4 +1,4 @@
-import { ReportingKindergartenUpdate } from '@pages/reporting-kindergarten-update';
+import { ReportingKindergartenUpdate } from '@views/reporting-kindergarten-update';
 
 export default function Page() {
   return <ReportingKindergartenUpdate />;

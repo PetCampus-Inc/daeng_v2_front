@@ -1,4 +1,4 @@
-import { KindergartenDetailPage } from '@pages/kindergarten-detail-page';
+import { KindergartenDetailPage } from '@views/kindergarten-detail-page';
 
 export default function Page() {
   return (

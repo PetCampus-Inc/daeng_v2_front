@@ -67,7 +67,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
       )}
       <TextFieldPrimitive.Field
         className={cn(
-          'invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 flex items-center transition-colors',
+          'invalid:border-error data-[invalid]:border-error data-[valid]:border-success disabled:bg-fill-secondary-50 data-[disabled]:bg-fill-secondary-50 radius-r2 px-x4 gap-x2 focus-within:border-line-600 relative flex items-center transition-colors',
           textFieldVariants({ variant }),
           className
         )}
@@ -85,10 +85,12 @@ function TextField({ ref, ...props }: TextFieldProps) {
             </TextFieldPrimitive.Description>
           )}
           {renderErrorMessage && (
-            <TextFieldPrimitive.Message className='text-error body2-regular'>{errorMessage}</TextFieldPrimitive.Message>
+            <TextFieldPrimitive.Message className='text-error body2-regular absolute'>
+              {errorMessage}
+            </TextFieldPrimitive.Message>
           )}
           {renderSuccessMessage && (
-            <TextFieldPrimitive.Message className='text-success body2-regular'>
+            <TextFieldPrimitive.Message className='text-success body2-regular absolute'>
               {successMessage}
             </TextFieldPrimitive.Message>
           )}
@@ -111,7 +113,7 @@ function TextFieldInput(props: TextFieldInputProps) {
     <Comp
       ref={ref}
       className={cn(
-        'placeholder:text-text-tertiary text-text-primary disabled:text-text-secondary data-[disabled]:text-text-secondary py-x3 body1-regular caret-text-accent h-full grow outline-none',
+        'placeholder:text-text-tertiary text-text-primary disabled:text-text-secondary data-[disabled]:text-text-secondary py-x3 body1-regular caret-text-accent h-full min-w-0 flex-1 outline-none',
         props.className
       )}
       {...restProps}

@@ -9,9 +9,10 @@ export const useMemoMutation = (
 
   return useMutation({
     mutationFn: updateMemo as (variables: UpdateMemoRequest) => Promise<MemoResponse>,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (...args) => {
+      const [data, variables] = args;
       queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), data);
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(...args);
     },
     ...options,
   });

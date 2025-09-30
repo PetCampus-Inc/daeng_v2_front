@@ -1,4 +1,4 @@
-import { EditMemoPage } from '@pages/edit-memo-page';
+import { EditMemoPage } from '@views/edit-memo-page';
 
 export default function Page() {
   return (

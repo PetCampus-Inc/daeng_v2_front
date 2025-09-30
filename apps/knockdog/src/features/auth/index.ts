@@ -1,4 +1,5 @@
+/** Hook */
 export { useLogin } from './model/useLogin';
-export { useVerificationTimer } from './model/useVerificationTimer';
 
+/** UI */
 export { LoginButton } from './ui/LoginButton';
