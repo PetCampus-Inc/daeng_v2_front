@@ -8,6 +8,8 @@ const nextConfig = {
       },
     ],
   },
+  // App Router만 사용하고 src/pages는 페이지로 인식하지 않도록 설정
+  pageExtensions: ['ts', 'tsx'].map((ext) => `page.${ext}`),
   // API Proxy
   async rewrites() {
     return [
