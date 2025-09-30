@@ -8,14 +8,33 @@
     "scheme": "daengv2mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#FF6600"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile"
+      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#FF6600"
+      }
     },
     "android": {
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#FF6600"
+      },
+      "androidStatusBar": {
+        "barStyle": "light-content",
+        "backgroundColor": "transparent"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FF6600"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.gyulgyuri.daeng_v2_mobile"
@@ -25,17 +44,11 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-font"
-    ]
+    "plugins": ["expo-font"],
+    "extra": {
+      "eas": {
+        "projectId": "195cd90e-dd1c-4963-9d59-7f3a52a82448"
+      }
+    }
   }
 }

@@ -3,6 +3,7 @@ import WebViewScreen from '@/components/WebViewScreen';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useRef } from 'react';
 import WebView from 'react-native-webview';
+import { StatusBar, SafeAreaView } from 'react-native';
 export type RootStackParamList = {
   Tabs: undefined;
   Stack: { path: string };
