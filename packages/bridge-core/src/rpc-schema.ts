@@ -26,6 +26,39 @@ interface RPCSchema {
     params: ShareParams;
     result: ShareResult;
   };
+  [METHODS.navPush]: {
+    params: {
+      name: string;
+      params: Record<string, unknown>;
+    };
+    result: {
+      pushed: boolean;
+    };
+  };
+  [METHODS.navBack]: {
+    params: {};
+    result: {
+      wentBack: boolean;
+    };
+  };
+  [METHODS.navReplace]: {
+    params: {
+      name: string;
+      params: Record<string, unknown>;
+    };
+    result: {
+      replaced: boolean;
+    };
+  };
+  [METHODS.navReset]: {
+    params: {
+      name: string;
+      params: Record<string, unknown>;
+    };
+    result: {
+      reset: boolean;
+    };
+  };
 }
 
 type RPCMethod = keyof RPCSchema;
