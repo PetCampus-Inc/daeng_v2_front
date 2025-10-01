@@ -1,6 +1,6 @@
 import { useBridge } from '@shared/lib/bridge';
 import { useCallback } from 'react';
-import { METHODS, BridgeException, type ShareParams, type ShareResult } from '@knockdog/bridge-core';
+import { METHODS, BridgeException, type ShareParams } from '@knockdog/bridge-core';
 import { isNativeWebView } from './isNativeWebView';
 
 function useShare() {
@@ -9,7 +9,7 @@ function useShare() {
   return useCallback(async function share(params: ShareParams): Promise<boolean> {
     if (isNativeWebView()) {
       try {
-        const response = await bridge.request<ShareResult>(METHODS.share, params, { timeoutMs: 999_999 });
+        const response = await bridge.request(METHODS.share, params);
 
         if (response?.shared) {
           return true;
