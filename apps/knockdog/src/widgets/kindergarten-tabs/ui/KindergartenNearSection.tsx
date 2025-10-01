@@ -11,7 +11,7 @@ const KindergartenNearSection = () => {
 
   if (!id) throw new Error('Company ID is required for kindergarten near section');
 
-  const position = useCurrentLocation();
+  const { position } = useCurrentLocation();
   const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
 
   const { data: nearKindergartens = [] } = useKindergartenNearQuery(id, lng, lat);

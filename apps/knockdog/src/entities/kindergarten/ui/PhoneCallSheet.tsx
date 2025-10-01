@@ -1,5 +1,6 @@
 import { BottomSheet } from '@knockdog/ui';
-import { useCopyToClipboard } from '@shared/lib/react';
+import { useCallPhone } from '@shared/lib/device';
+import { useClipboardCopy } from '@shared/lib/device';
 
 interface PhoneCallSheetProps {
   phoneNumber: string;
@@ -8,7 +9,8 @@ interface PhoneCallSheetProps {
 }
 
 export function PhoneCallSheet({ phoneNumber = '010-1234-5678', isOpen, close }: PhoneCallSheetProps) {
-  const { copy } = useCopyToClipboard();
+  const callPhone = useCallPhone();
+  const copy = useClipboardCopy();
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
@@ -20,12 +22,15 @@ export function PhoneCallSheet({ phoneNumber = '010-1234-5678', isOpen, close }:
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
         <div className='py-x5 flex flex-col'>
-          <button className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'>
-            <a href={`tel:${phoneNumber}`}>전화 걸기</a>
+          <button
+            onClick={() => callPhone(phoneNumber)}
+            className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
+          >
+            전화 걸기
           </button>
           <button
             className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
-            onClick={() => copy(phoneNumber)}
+            onClick={async () => await copy(phoneNumber)}
           >
             전화번호 복사하기
           </button>

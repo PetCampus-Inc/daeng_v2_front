@@ -3,6 +3,7 @@ import { useParams } from 'next/navigation';
 import { ProductTypeSection, PriceImageSlider } from '@features/pricing';
 import type { PricingInfo } from '@entities/pricing';
 import { usePricingQuery } from '@features/pricing';
+import { useCallPhone } from '@shared/lib/device';
 
 function PricingSection() {
   const params = useParams<{ id: string }>();
@@ -10,35 +11,9 @@ function PricingSection() {
 
   if (!id) throw new Error('Company ID is required for pricing section');
 
-  const { data: pricing } = usePricingQuery(id);
+  const callPhone = useCallPhone();
 
-  // @TODO API 완성 후 수정 필요
-  // const dogSchoolProductMock: PricingInfo = {
-  //   productType: ['MEMBERSHIP', 'SUBSCRIPTION'],
-  //   phoneNumber: '010-1234-5678',
-  //   productCategories: [
-  //     {
-  //       productName: 'Aqua Dog Fitness',
-  //       products: [{ name: '5회', price: 720000, count: '5회' }],
-  //     },
-  //     {
-  //       productName: 'Private Personal Lesson',
-  //       products: [{ name: '5회', price: 720000, count: '5회' }],
-  //     },
-  //     {
-  //       productName: 'Private Group Lesson',
-  //       products: [{ name: '5회', price: 720000, count: '5회' }],
-  //     },
-  //   ],
-  //   priceImages: [
-  //     'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-  //     'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-  //     'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-  //     'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-  //     'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-  //   ],
-  //   lastUpdatedAt: '2025-04-29',
-  // };
+  const { data: pricing } = usePricingQuery(id);
 
   return (
     <div className='mb-12 mt-8 flex flex-col gap-12 px-4'>
@@ -49,12 +24,12 @@ function PricingSection() {
       <div>
         <div className='mb-1 flex items-center justify-between'>
           <span className='body1-bold'>서비스 및 이용요금</span>
-          <a
-            href={`tel:${pricing?.phoneNumber}`}
+          <button
+            onClick={() => callPhone(pricing?.phoneNumber ?? '')}
             className='body2-bold cursor-pointer text-neutral-500 hover:text-neutral-700'
           >
             전화걸기
-          </a>
+          </button>
         </div>
         <div className='flex flex-col gap-5'>
           <span className='body2-regular text-text-tertiary'>자세한 내용은 업체로 문의 바랍니다.</span>

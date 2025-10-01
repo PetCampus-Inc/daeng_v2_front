@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { IconButton } from '@knockdog/ui';
 import { MapView } from '@features/map';
 import { Coord } from '@entities/kindergarten';
-import { useCopyToClipboard } from '@shared/lib/react';
+import { useClipboardCopy } from '@shared/lib/device';
 
 interface LocationMapProps {
   address: string;
@@ -15,7 +15,7 @@ const DEFAULT_MAP_ZOOM_LEVEL = 15;
 
 export function LocationMap({ address, coord }: LocationMapProps) {
   const map = useRef<naver.maps.Map | null>(null);
-  const { copy } = useCopyToClipboard();
+  const copy = useClipboardCopy();
 
   return (
     <div>
@@ -24,7 +24,7 @@ export function LocationMap({ address, coord }: LocationMapProps) {
       </div>
       <div className='mb-2 flex items-center gap-2'>
         <span className='body2-regular'>{address}</span>
-        <IconButton icon='Copy' className='h-5 w-5 text-[#70727C]' onClick={() => copy(address)} />
+        <IconButton icon='Copy' className='h-5 w-5 text-[#70727C]' onClick={async () => await copy(address)} />
       </div>
 
       <div className='bg-primitive-neutral-50 h-[166px] rounded-lg'>

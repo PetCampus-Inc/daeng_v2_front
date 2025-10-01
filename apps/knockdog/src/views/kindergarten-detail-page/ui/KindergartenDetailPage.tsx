@@ -11,6 +11,7 @@ import { useParams } from 'next/navigation';
 import { BookmarkToggleIcon } from '@entities/bookmark';
 import { PhoneCallSheet } from '@entities/kindergarten';
 import { overlay } from 'overlay-kit';
+import { useShare } from '@shared/lib/device';
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -18,17 +19,21 @@ function KindergartenDetailPage() {
   const params = useParams();
   const rawId = (params as Record<string, string | string[] | undefined>)?.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
-  if (!id) throw new Error('Kindergarten ID is required');
+  if (!id) return null;
 
-  const position = useCurrentLocation();
+  const { position } = useCurrentLocation();
+  const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
+
   const { data: kindergartenMain } = useKindergartenMainQuery({
     id,
-    lng: position?.lng ?? 0,
-    lat: position?.lat ?? 0,
-    enabled: Boolean(id && position),
+    lng,
+    lat,
+    enabled: Boolean(id && lng != null && lat != null),
   });
 
-  if (!position || !kindergartenMain) return null;
+  const share = useShare();
+
+  if (lng == null || lat == null || !kindergartenMain) return null;
 
   const { banner: images, ...restKindergartenMainData } = kindergartenMain;
 
@@ -36,6 +41,15 @@ function KindergartenDetailPage() {
     overlay.open(({ isOpen, close }) => (
       <PhoneCallSheet phoneNumber={kindergartenMain.phoneNumber} isOpen={isOpen} close={close} />
     ));
+  };
+
+  const handleShare = () => {
+    const shareData = {
+      message: `${kindergartenMain.title}\n https://knockdog.com/kindergarten/${id}`,
+      url: `https://knockdog.com/kindergarten/${id}`,
+    };
+
+    share(shareData);
   };
 
   return (
@@ -49,7 +63,7 @@ function KindergartenDetailPage() {
         <Header.Title>{kindergartenMain?.title}</Header.Title>
 
         <Header.RightSection>
-          <Header.ShareButton />
+          <Header.ShareButton onClick={handleShare} />
         </Header.RightSection>
       </Header>
       <div className='mb-[80px] mt-[66px] h-[calc(100vh-146px)] overflow-y-auto' ref={scrollableDivRef}>

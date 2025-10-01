@@ -1,4 +1,4 @@
-import { METHODS, type CallPhoneParams, type CallPhoneResult } from './methods';
+import { METHODS, type CallPhoneParams, type CallPhoneResult, type ShareParams, type ShareResult } from './methods';
 
 interface RPCSchema {
   [METHODS.getLatLng]: {
@@ -13,6 +13,18 @@ interface RPCSchema {
   [METHODS.callPhone]: {
     params: CallPhoneParams;
     result: CallPhoneResult;
+  };
+  [METHODS.copyToClipboard]: {
+    params: {
+      text: string;
+    };
+    result: {
+      copied: boolean;
+    };
+  };
+  [METHODS.share]: {
+    params: ShareParams;
+    result: ShareResult;
   };
 }
 
