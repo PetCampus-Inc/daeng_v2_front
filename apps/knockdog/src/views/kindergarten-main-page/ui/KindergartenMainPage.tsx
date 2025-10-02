@@ -13,7 +13,12 @@ import { overlay } from 'overlay-kit';
 import { MapSearchContext, useMapSearch } from '../model/useMapSearchContext';
 
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
-import { KindergartenCardSheet, KindergartenListSheet, KindergartenSearchContext } from '@features/kindergarten';
+import {
+  KindergartenCardSheet,
+  KindergartenListSheet,
+  KindergartenSearchContext,
+  SortContext,
+} from '@features/kindergarten';
 
 import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
@@ -226,21 +231,23 @@ export function MapWithSchoolsContent() {
         </Link>
       </div>
 
-      <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel}>
-        <KindergartenListSheet
-          fabSlot={
-            <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
-              <Float placement='top-start' offsetX='x4'>
-                <CurrentLocationFAB />
-              </Float>
-              {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
-              <Float placement='top-end' offsetX='x4'>
-                <ListFAB onClick={() => setSnapIndex(2)} />
-              </Float>
-            </div>
-          }
-        />
-      </KindergartenSearchContext>
+      <SortContext>
+        <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel}>
+          <KindergartenListSheet
+            fabSlot={
+              <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
+                <Float placement='top-start' offsetX='x4'>
+                  <CurrentLocationFAB />
+                </Float>
+                {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
+                <Float placement='top-end' offsetX='x4'>
+                  <ListFAB onClick={() => setSnapIndex(2)} />
+                </Float>
+              </div>
+            }
+          />
+        </KindergartenSearchContext>
+      </SortContext>
     </>
   );
 }

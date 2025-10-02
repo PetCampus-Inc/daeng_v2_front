@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { useInfiniteQuery, type UseInfiniteQueryResult } from '@tanstack/react-query';
 import { DogSchoolWithMeta, DogSchoolWithMetaResult } from './mappers';
 import { kindergartenQueryOptions } from '../api/kindergartenQuery';
+import { useSort } from './useSortContext';
 import { createSafeContext } from '@shared/lib/react/useSafeContext';
 import { useBasePoint } from '@shared/lib';
 
@@ -27,12 +28,14 @@ const [KindergartenSearchContext, useKindergartenSearch] =
 
 export function KindergartenSearchContextImpl({ children, bounds, zoomLevel }: ProviderProps) {
   const { coord: basePoint } = useBasePoint();
+  const { sortType } = useSort();
 
   const query = useInfiniteQuery({
     ...kindergartenQueryOptions.searchList({
       refPoint: basePoint!,
       bounds: bounds!,
       zoomLevel,
+      rank: sortType,
     }),
   });
 

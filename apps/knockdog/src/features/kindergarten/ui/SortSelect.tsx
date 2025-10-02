@@ -15,21 +15,24 @@ import {
 import { Icon } from '@knockdog/ui';
 import { useState, useRef } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
+import { useSort, type SortType } from '../model/useSortContext';
 
 interface SortOption {
-  id: string;
+  id: SortType;
   label: string;
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { id: 'distance', label: '거리순' },
-  { id: 'review', label: '리뷰 많은 순' },
+  { id: 'DISTANCE', label: '거리순' },
+  { id: 'REVIEW', label: '리뷰 많은 순' },
 ];
 
 export function SortSelect() {
+  const { sortType, setSortType } = useSort();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const selectedIndex = SORT_OPTIONS.findIndex((option) => option.id === sortType);
 
   const { refs, floatingStyles, context } = useFloating({
     placement: 'bottom-end',
@@ -57,7 +60,10 @@ export function SortSelect() {
   ]);
 
   const handleSelect = (index: number) => {
-    setSelectedIndex(index);
+    const selectedOption = SORT_OPTIONS[index];
+    if (selectedOption) {
+      setSortType(selectedOption.id);
+    }
     setIsOpen(false);
   };
 
