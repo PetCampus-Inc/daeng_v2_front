@@ -7,7 +7,7 @@ import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useMapState } from '../model/useMapState';
 
-import { getRegionLevel } from '../utils/zoom-level';
+import { getRegionLevel } from '../lib/zoom-level';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { overlay } from 'overlay-kit';
 import { MapSearchContext, useMapSearch } from '../model/useMapSearchContext';
