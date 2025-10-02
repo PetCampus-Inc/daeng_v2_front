@@ -1,7 +1,4 @@
-import type {
-  KindergartenAggregationQueryParams,
-  KindergartenSearchListQueryParams,
-} from '../api/useKindergartenQuery';
+import type { KindergartenAggregationQueryParams, KindergartenSearchListQueryParams } from '../api/kindergartenQuery';
 import { serializeBounds, serializeCoords } from '../lib/serialize';
 
 export const kindergartenKeys = {

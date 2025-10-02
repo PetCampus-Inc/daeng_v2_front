@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import { type UseInfiniteQueryResult } from '@tanstack/react-query';
+import { useInfiniteQuery, type UseInfiniteQueryResult } from '@tanstack/react-query';
 import { DogSchoolWithMeta, DogSchoolWithMetaResult } from './mappers';
-import { useKindergartenSearchListQuery } from '../api/useKindergartenQuery';
+import { kindergartenQueryOptions } from '../api/kindergartenQuery';
 import { createSafeContext } from '@shared/lib/react/useSafeContext';
 import { useBasePoint } from '@shared/lib';
 
@@ -28,10 +28,12 @@ const [KindergartenSearchContext, useKindergartenSearch] =
 export function KindergartenSearchContextImpl({ children, bounds, zoomLevel }: ProviderProps) {
   const { coord: basePoint } = useBasePoint();
 
-  const query = useKindergartenSearchListQuery({
-    refPoint: basePoint!,
-    bounds: bounds!,
-    zoomLevel,
+  const query = useInfiniteQuery({
+    ...kindergartenQueryOptions.searchList({
+      refPoint: basePoint!,
+      bounds: bounds!,
+      zoomLevel,
+    }),
   });
 
   const schoolList = query.data?.pages?.flatMap((page) => page.schoolResult.list) || [];

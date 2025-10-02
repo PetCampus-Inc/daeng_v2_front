@@ -7,7 +7,7 @@ import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useMapState } from '../model/useMapState';
 
-import { getRegionLevel } from '../lib/zoom-level';
+import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../model/markers';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { overlay } from 'overlay-kit';
 import { MapSearchContext, useMapSearch } from '../model/useMapSearchContext';
@@ -168,17 +168,31 @@ export function MapWithSchoolsContent() {
     return !(isSameCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
   }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
 
+  // 줌레벨에 따른 마커 표시 여부
+  const showAggregation = isAggregationZoom(mapSnapshot.zoomLevel);
+  const showBusiness = isBusinessZoom(mapSnapshot.zoomLevel);
+
+  const overlays = useMemo(
+    () =>
+      showBusiness
+        ? schoolList.map((school) => ({
+            id: school.id,
+            coord: { lat: school.coord.lat, lng: school.coord.lng },
+            title: school.title,
+            dist: school.dist,
+          }))
+        : [],
+    [showBusiness, schoolList]
+  );
+
+  const aggregationMarkers = useMemo(() => (showAggregation ? aggregations : []), [aggregations, showAggregation]);
+
   return (
     <>
       <MapView
         ref={map}
-        overlays={schoolList.map((school) => ({
-          id: school.id,
-          coord: { lat: school.coord.lat, lng: school.coord.lng },
-          title: school.title,
-          dist: school.dist,
-        }))}
-        aggregations={aggregations}
+        overlays={overlays}
+        aggregations={aggregationMarkers}
         onMarkerClick={handleMarkerClick}
         onAggregationClick={handleAggregationClick}
         selectedMarkerId={activeMarkerId}
