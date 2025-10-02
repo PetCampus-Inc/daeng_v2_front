@@ -9,6 +9,8 @@ export const kindergartenKeys = {
     serializeCoords(params.refPoint),
     serializeBounds(params.bounds),
     params.zoomLevel,
+    params.filters,
+    params.rank,
   ],
   aggregation: (params: Partial<KindergartenAggregationQueryParams>) => [
     ...kindergartenKeys.all,
@@ -16,5 +18,6 @@ export const kindergartenKeys = {
     serializeCoords(params.refPoint),
     serializeBounds(params.bounds),
     params.zoomLevel,
+    params.filters,
   ],
 } as const;
