@@ -57,14 +57,7 @@ export const FILTER_CONFIG = {
     'REHABILITATION',
   ],
   '강아지 안전 ∙ 시설': ['NON_SLIP', 'CCTV', 'PLAYGROUND', 'ROOFTOP', 'YARD'],
-  '방문객 편의 ∙ 시설': [
-    'PICK_DROP',
-    'DIARY',
-    'DOG_CAFE',
-    'DOG_SHOP',
-    'PARKING',
-    'VALET',
-  ],
+  '방문객 편의 ∙ 시설': ['PICK_DROP', 'DIARY', 'DOG_CAFE', 'DOG_SHOP', 'PARKING', 'VALET'],
   '상품 유형': ['PASS_TICKET', 'SUBSCRIPTION', 'MEMBERSHIP'],
 } as const;
 

@@ -1,6 +1,9 @@
 import { useState, ReactNode } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { type DogSchoolWithMeta, useKindergartenSearchListQuery } from '@features/kindergarten';
+import {
+  type DogSchoolWithMeta,
+  useKindergartenAggregationQuery,
+  useKindergartenSearchListQuery,
+} from '@features/kindergarten';
 import type { SidoGunguAggregation } from '@entities/kindergarten';
 
 import { createSafeContext, useBasePoint } from '@shared/lib';
@@ -17,7 +20,6 @@ interface MapSearchContextValue {
   isMapLoaded: boolean;
   setIsMapLoaded: (loaded: boolean) => void;
 
-  query: ReturnType<typeof useInfiniteQuery>;
   schoolList: DogSchoolWithMeta[];
   aggregations: SidoGunguAggregation[];
 }
@@ -33,23 +35,24 @@ export function MapSearchContextImpl({ children }: { children: ReactNode }) {
     zoomLevel: 0,
   });
 
-  const query = useKindergartenSearchListQuery({
+  const searchListQuery = useKindergartenSearchListQuery({
     refPoint: basePoint!,
     bounds: mapSnapshot.bounds!,
     zoomLevel: mapSnapshot.zoomLevel,
   });
 
-  const schoolList = query.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
+  const aggregationQuery = useKindergartenAggregationQuery({
+    refPoint: basePoint!,
+    bounds: mapSnapshot.bounds!,
+    zoomLevel: mapSnapshot.zoomLevel,
+  });
 
-  const aggregations =
-    query.data?.pages?.flatMap(
-      (page) => page.aggregations.sidoAggregations ?? page.aggregations.sigunAggregations ?? []
-    ) || [];
+  const schoolList = searchListQuery.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
+
+  const aggregations = aggregationQuery.data?.sidoAggregations ?? aggregationQuery.data?.sigunAggregations ?? [];
 
   return (
-    <MapSearchContext
-      value={{ mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, query, schoolList, aggregations }}
-    >
+    <MapSearchContext value={{ mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations }}>
       {children}
     </MapSearchContext>
   );

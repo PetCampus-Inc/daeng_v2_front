@@ -1,8 +1,8 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { kindergartenKeys } from '../config/query-keys';
 import { createDogSchoolListWithMock } from '../model/mappers';
 import { serializeBounds, serializeCoords } from '../lib/serialize';
-import { getKindergartenSearchList } from '@entities/kindergarten';
+import { type FilterOption, getKindergartenSearchList, getKindergartenAggregation } from '@entities/kindergarten';
 import { isValidBounds, isValidCoord } from '@shared/lib';
 
 export type KindergartenSearchListQueryParams = {
@@ -11,6 +11,8 @@ export type KindergartenSearchListQueryParams = {
   zoomLevel: number;
   page?: number;
   size?: number;
+  filters?: FilterOption;
+  rank?: 'DISTANCE' | 'REVIEW';
 };
 
 const getQueryConfigByZoom = (zoomLevel: number) => {
@@ -19,7 +21,12 @@ const getQueryConfigByZoom = (zoomLevel: number) => {
   };
 };
 
-export function useKindergartenSearchListQuery({ refPoint, bounds, zoomLevel }: KindergartenSearchListQueryParams) {
+export function useKindergartenSearchListQuery({
+  refPoint,
+  bounds,
+  zoomLevel,
+  filters,
+}: KindergartenSearchListQueryParams) {
   const queryConfig = getQueryConfigByZoom(zoomLevel);
 
   return useInfiniteQuery({
@@ -31,6 +38,7 @@ export function useKindergartenSearchListQuery({ refPoint, bounds, zoomLevel }: 
         zoomLevel,
         page: pageParam,
         size: queryConfig.size,
+        filters,
       }),
     enabled: isValidCoord(refPoint) && isValidBounds(bounds) && Boolean(zoomLevel),
     initialPageParam: 1,
@@ -41,5 +49,30 @@ export function useKindergartenSearchListQuery({ refPoint, bounds, zoomLevel }: 
       pages: data.pages.map(createDogSchoolListWithMock),
       pageParams: data.pageParams,
     }),
+  });
+}
+
+export type KindergartenAggregationQueryParams = {
+  refPoint: { lat: number; lng: number };
+  bounds: naver.maps.LatLngBounds;
+  zoomLevel: number;
+  filters?: FilterOption;
+};
+
+export function useKindergartenAggregationQuery({
+  refPoint,
+  bounds,
+  zoomLevel,
+  filters,
+}: KindergartenAggregationQueryParams) {
+  return useQuery({
+    queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters }),
+    queryFn: () =>
+      getKindergartenAggregation({
+        refPoint: serializeCoords(refPoint),
+        bounds: serializeBounds(bounds),
+        zoomLevel,
+        filters,
+      }),
   });
 }

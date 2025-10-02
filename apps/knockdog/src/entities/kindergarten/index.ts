@@ -1,17 +1,23 @@
-// api
-export { getKindergartenSearchList } from './api/kindergarten';
-export type { KindergartenSearchListParams } from './api/kindergarten';
+/** api */
+export { getKindergartenSearchList, getKindergartenAggregation } from './api/kindergarten';
+export type { KindergartenSearchListParams, KindergartenAggregationParams } from './api/kindergarten';
 
-// config
+/** config */
 export { FILTER_CONFIG, FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from './config/constant';
 export type { FilterOption, FilterState } from './config/constant';
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
 export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from './config/kindergartenNearQueryKeys';
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
-// model
+/** model */
 export { ServiceTag, PickupType, OperationStatus } from './model/kindergarten';
-export type { KindergartenSearchList, Kindergarten, DogSchool, SidoGunguAggregation } from './model/kindergarten';
+export type {
+  KindergartenSearchList,
+  Aggregation,
+  Kindergarten,
+  KindergartenListItem,
+  SidoGunguAggregation,
+} from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
 export type { DogBreed, DogService, DogSafetyFacility, VisitorAmenity } from './model/service';
@@ -27,7 +33,7 @@ export {
   CTAG_MAP,
 } from './model/constants/kindergarten';
 
-// ui
+/** ui */
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
 export { ServiceBadgeList } from './ui/ServiceBadgeList';
 export { DeparturePointSheet } from './ui/DeparturePointSheet';

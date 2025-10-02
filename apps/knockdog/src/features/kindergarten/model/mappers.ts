@@ -1,4 +1,4 @@
-import type { DogSchool, KindergartenSearchList } from '@entities/kindergarten';
+import type { KindergartenListItem, KindergartenSearchList } from '@entities/kindergarten';
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요
 interface DogSchoolMemo {
@@ -15,7 +15,7 @@ interface DogSchoolBookmark {
 }
 
 // TODO: 데이터 가공 후의 인터페이스는 어디서 관리할지 논의 필요
-export interface DogSchoolWithMeta extends DogSchool {
+export interface DogSchoolWithMeta extends KindergartenListItem {
   memo?: DogSchoolMemo;
   isBookmarked?: boolean;
 }
@@ -41,7 +41,6 @@ function combineDogSchoolListWithMeta(
 
   return {
     paging: listResponse.paging,
-    aggregations: listResponse.aggregations,
     schoolResult: {
       totalCount: listResponse.schoolResult.totalCount,
       list: combinedSchools,
@@ -50,7 +49,7 @@ function combineDogSchoolListWithMeta(
 }
 
 function combineDogSchoolWithMeta(
-  school: DogSchool,
+  school: KindergartenListItem,
   memoByShopId: Map<string, DogSchoolMemo>,
   bookmarkedSet: Set<string>
 ): DogSchoolWithMeta {

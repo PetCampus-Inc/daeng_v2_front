@@ -1,5 +1,5 @@
 /** api */
-export { useKindergartenSearchListQuery } from './api/useKindergartenQuery';
+export { useKindergartenSearchListQuery, useKindergartenAggregationQuery } from './api/useKindergartenQuery';
 
 /** model */
 export type { DogSchoolWithMeta } from './model/mappers';
