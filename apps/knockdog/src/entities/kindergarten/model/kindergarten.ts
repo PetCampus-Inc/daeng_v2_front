@@ -13,9 +13,11 @@ export interface KindergartenSearchList {
 }
 
 export interface Aggregation {
-  sidoAggregations: SidoGunguAggregation[] | null;
-  sigunAggregations: SidoGunguAggregation[] | null;
-  geoBoundAggregation: GeoBoundAggregation;
+  aggregations: {
+    sidoAggregations: SidoGunguAggregation[] | null;
+    sigunAggregations: SidoGunguAggregation[] | null;
+    geoBoundAggregation: GeoBoundAggregation;
+  };
 }
 
 interface Kindergarten {
