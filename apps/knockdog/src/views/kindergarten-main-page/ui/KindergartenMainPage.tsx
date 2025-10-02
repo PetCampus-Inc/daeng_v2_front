@@ -13,11 +13,12 @@ import { overlay } from 'overlay-kit';
 import { MapSearchContext, useMapSearch } from '../model/useMapSearchContext';
 
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
-import { DogSchoolCardSheet, DogSchoolListSheet, DogSchoolSearchContext } from '@features/dog-school';
+import { KindergartenCardSheet, KindergartenListSheet, KindergartenSearchContext } from '@features/kindergarten';
+
 import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
-export function MapWithSchools() {
+export function KindergartenMainPage() {
   return (
     <MapSearchContext>
       <MapWithSchoolsContent />
@@ -150,7 +151,7 @@ export function MapWithSchoolsContent() {
       if (!selectedSchool) return null;
 
       return (
-        <DogSchoolCardSheet
+        <KindergartenCardSheet
           isOpen={isOpen}
           close={() => {
             setActiveMarker(null);
@@ -201,7 +202,6 @@ export function MapWithSchoolsContent() {
           isFullExtended && 'bg-fill-secondary-0'
         )}
       >
-        {/* FIX: 나영 */}
         <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`}>
           <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
             <Icon icon='Search' className='size-x5 text-fill-secondary-700 mr-x2' />
@@ -212,8 +212,8 @@ export function MapWithSchoolsContent() {
         </Link>
       </div>
 
-      <DogSchoolSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel}>
-        <DogSchoolListSheet
+      <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel}>
+        <KindergartenListSheet
           fabSlot={
             <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
               <Float placement='top-start' offsetX='x4'>
@@ -226,7 +226,7 @@ export function MapWithSchoolsContent() {
             </div>
           }
         />
-      </DogSchoolSearchContext>
+      </KindergartenSearchContext>
     </>
   );
 }

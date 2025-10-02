@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
-import { useSearchFilter } from '../model/useSearchFilter';
 import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
+import { useSearchFilter } from '../model/useSearchFilter';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -10,11 +10,7 @@ interface FilterBottomSheetProps {
   onApply?: (resultCount: number) => void;
 }
 
-export function FilterBottomSheet({
-  isOpen,
-  close,
-  onApply,
-}: FilterBottomSheetProps) {
+export function FilterBottomSheet({ isOpen, close, onApply }: FilterBottomSheetProps) {
   const {
     filter,
     resultCount,
@@ -70,17 +66,13 @@ export function FilterBottomSheet({
             <BottomSheet.CloseButton />
           </BottomSheet.Header>
 
-          <FilterList
-            isSelected={isSelectedOption}
-            onToggleOption={onToggleOption}
-          />
+          <FilterList isSelected={isSelectedOption} onToggleOption={onToggleOption} />
 
           <div className='fixed bottom-0 w-full'>
             <div
               className='flex h-[28px]'
               style={{
-                background:
-                  'linear-gradient(0deg, #FFFFFF 0%, rgba(255,255,255,0) 100%)',
+                background: 'linear-gradient(0deg, #FFFFFF 0%, rgba(255,255,255,0) 100%)',
               }}
             />
 
@@ -98,17 +90,9 @@ export function FilterBottomSheet({
 
                 <div className='gap-x2 scrollbar-hide flex items-center overflow-x-scroll'>
                   {selectedFilters.map(({ option, optionLabel }) => (
-                    <FilterChip
-                      variant='toggle'
-                      key={option}
-                      activated
-                      onClick={() => onRemoveOption(option)}
-                    >
+                    <FilterChip variant='toggle' key={option} activated onClick={() => onRemoveOption(option)}>
                       {optionLabel}
-                      <Icon
-                        icon='Close'
-                        className='size-x5 text-fill-secondary-400 ml-x1'
-                      />
+                      <Icon icon='Close' className='size-x5 text-fill-secondary-400 ml-x1' />
                     </FilterChip>
                   ))}
                 </div>
@@ -117,22 +101,11 @@ export function FilterBottomSheet({
 
             {/* 액션 버튼 */}
             <div className='px-x4 py-x5 gap-x2 bg-bg-0 flex items-center'>
-              <ActionButton
-                variant='secondaryLine'
-                size='large'
-                onClick={handleClose}
-              >
+              <ActionButton variant='secondaryLine' size='large' onClick={handleClose}>
                 닫기
               </ActionButton>
-              <ActionButton
-                variant='primaryFill'
-                size='large'
-                disabled={resultCount === null}
-                onClick={handleApply}
-              >
-                {resultCount === null
-                  ? '결과보기 0개'
-                  : `결과보기 ${resultCount > 999 ? '999+' : resultCount}개`}
+              <ActionButton variant='primaryFill' size='large' disabled={resultCount === null} onClick={handleApply}>
+                {resultCount === null ? '결과보기 0개' : `결과보기 ${resultCount > 999 ? '999+' : resultCount}개`}
               </ActionButton>
             </div>
           </div>

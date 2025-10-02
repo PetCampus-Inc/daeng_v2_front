@@ -1,9 +1,5 @@
 import { FilterChip } from './FilterChip';
-import {
-  FILTER_CONFIG,
-  FILTER_OPTIONS,
-  type FilterOption,
-} from '@entities/dog-school';
+import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 
 interface FilterContentProps {
   isSelected: (option: FilterOption) => boolean;

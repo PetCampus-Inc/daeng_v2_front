@@ -1,5 +1,6 @@
 import { FloatingActionButton } from '@knockdog/ui';
-import { useMapState } from '@widgets/map-with-schools/model/useMapState';
+// FIXME: fsd import 위반. 추후 수정예정
+import { useMapState } from '@views/kindergarten-main-page/model/useMapState';
 import { useGeolocationQuery } from '@shared/lib';
 
 export function CurrentLocationFAB() {
