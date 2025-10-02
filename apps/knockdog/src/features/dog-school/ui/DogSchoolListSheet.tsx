@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -14,15 +14,8 @@ const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 157;
 const MAX_SNAP_POINT_OFFSET = 72 - 8;
 
 export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
 
-  // mount 되기 전까진 snapIndex 관련 로직 무시
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
 
   const activeMarkerId = useMarkerState((state) => state.activeMarkerId);
@@ -45,9 +38,6 @@ export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
       setContainer(containerRef.current);
     }
   }, [containerRef]);
-
-  // hydration mismatch 방지: CSR 이후에만 렌더
-  if (!hasMounted) return null;
 
   return (
     <div

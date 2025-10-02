@@ -1,68 +1,45 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useMapState } from '../model/useMapState';
-import { isSameCoord, isValidBounds, isValidCoord } from '../utils/is';
+
 import { getRegionLevel } from '../utils/zoom-level';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { overlay } from 'overlay-kit';
+import { MapSearchContext, useMapSearch } from '../model/useMapSearchContext';
+
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
-import { dogSchoolListOptions, DogSchoolCardSheet, DogSchoolListSheet } from '@features/dog-school';
-import { useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
+import { DogSchoolCardSheet, DogSchoolListSheet, DogSchoolSearchContext } from '@features/dog-school';
+import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 export function MapWithSchools() {
+  return (
+    <MapSearchContext>
+      <MapWithSchoolsContent />
+    </MapSearchContext>
+  );
+}
+
+export function MapWithSchoolsContent() {
   const map = useRef<naver.maps.Map | null>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
   const { coord: basePoint } = useBasePoint();
+
+  /** 지도 스냅샷 */
+  const { mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations } = useMapSearch();
 
   /** 지도 상태(라이브, URL 연동) */
   const { center, zoomLevel, searchedLevel, setCenter, setZoomLevel, setSearchedLevel } = useMapState();
-
-  /**
-   * 지도 상태 스냅샷
-   * - 쿼리 요청 시 사용될 커밋된 지도 상태
-   */
-  const [mapSnapshot, setMapSnapshot] = useState<{
-    center: { lat?: number; lng?: number } | null;
-    bounds: naver.maps.LatLngBounds | null;
-    zoomLevel: number;
-  }>({
-    center: null,
-    bounds: null,
-    zoomLevel: 0,
-  });
 
   const searchParams = useSearchParams();
   const { activeMarkerId, setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
-  /**
-   * 검색 쿼리
-   * - 커밋된 스냅샷이 완성되고, 지도 로드가 끝난 경우에만 실행
-   */
-  const { data } = useInfiniteQuery({
-    ...dogSchoolListOptions.searchList({
-      refPoint: basePoint!,
-      bounds: mapSnapshot.bounds!,
-      zoomLevel: mapSnapshot.zoomLevel,
-    }),
-    enabled:
-      isMapLoaded && isValidCoord(basePoint) && isValidBounds(mapSnapshot.bounds) && Boolean(mapSnapshot.zoomLevel),
-  });
-
   const mapCenter = isValidCoord(center) ? center : isValidCoord(basePoint) ? basePoint : DEFAULT_MAP_CENTER;
-
-  const allSchools = data?.pages?.flatMap((page) => page.schoolResult.list) || [];
-
-  const aggregations = data?.pages?.flatMap(
-    (page) => page.aggregations.sidoAggregations ?? page.aggregations.sigunAggregations ?? []
-  );
 
   /** 지도 초기 설정 (mapState 초기화) */
   useEffect(() => {
@@ -74,7 +51,7 @@ export function MapWithSchools() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapLoaded, center, basePoint]);
 
-  /** 커밋된 상태 초기화 */
+  /** 커밋된 상태 초기 설정 (mapSnapshot 초기화) */
   useEffect(() => {
     if (!isMapLoaded || mapSnapshot.center !== null) return;
 
@@ -91,7 +68,7 @@ export function MapWithSchools() {
 
     const initialLevel = getRegionLevel(initialZoom);
     setSearchedLevel(initialLevel);
-  }, [isMapLoaded, center, basePoint, zoomLevel, mapSnapshot.center, setSearchedLevel]);
+  }, [isMapLoaded, center, basePoint, zoomLevel, mapSnapshot.center, setSearchedLevel, setMapSnapshot]);
 
   /**
    * 지도 로드 핸들러
@@ -168,7 +145,7 @@ export function MapWithSchools() {
 
   const openDogSchoolCardSheet = (id: string) => {
     overlay.open(({ isOpen, close }) => {
-      const selectedSchool = allSchools.find((school) => school.id === id);
+      const selectedSchool = schoolList.find((school) => school.id === id);
 
       if (!selectedSchool) return null;
 
@@ -194,7 +171,7 @@ export function MapWithSchools() {
     <>
       <MapView
         ref={map}
-        overlays={allSchools.map((school) => ({
+        overlays={schoolList.map((school) => ({
           id: school.id,
           coord: { lat: school.coord.lat, lng: school.coord.lng },
           title: school.title,
@@ -235,19 +212,21 @@ export function MapWithSchools() {
         </Link>
       </div>
 
-      <DogSchoolListSheet
-        fabSlot={
-          <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
-            <Float placement='top-start' offsetX='x4'>
-              <CurrentLocationFAB />
-            </Float>
-            {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
-            <Float placement='top-end' offsetX='x4'>
-              <ListFAB onClick={() => setSnapIndex(2)} />
-            </Float>
-          </div>
-        }
-      />
+      <DogSchoolSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel}>
+        <DogSchoolListSheet
+          fabSlot={
+            <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
+              <Float placement='top-start' offsetX='x4'>
+                <CurrentLocationFAB />
+              </Float>
+              {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
+              <Float placement='top-end' offsetX='x4'>
+                <ListFAB onClick={() => setSnapIndex(2)} />
+              </Float>
+            </div>
+          }
+        />
+      </DogSchoolSearchContext>
     </>
   );
 }
