@@ -9,11 +9,11 @@ import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
 import { useKindergartenSearch } from '../model/useKindergartenSearchContext';
 import { useEffect, useRef } from 'react';
+import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 
 import { useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType } from '@shared/store';
-import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 
 export function KindergartenList() {
   const containerRef = useRef<HTMLDivElement>(null);
