@@ -1,9 +1,23 @@
 import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
 
 export interface KindergartenSearchList {
-  paging: PagingDto;
-  aggregations: AggregationsDto;
-  schoolResult: KindergartenResultDto;
+  paging: {
+    currentPage: number;
+    hasNext: boolean;
+    totalPage: number;
+  };
+  schoolResult: {
+    totalCount: number;
+    list: KindergartenListItem[];
+  };
+}
+
+export interface Aggregation {
+  aggregations: {
+    sidoAggregations: SidoGunguAggregation[] | null;
+    sigunAggregations: SidoGunguAggregation[] | null;
+    geoBoundAggregation: GeoBoundAggregation;
+  };
 }
 
 interface Kindergarten {
@@ -23,9 +37,7 @@ interface Kindergarten {
   memoDate: string;
   phoneNumber: string;
 }
-
-// FIXME: Kindergarten 인터페이스 - Dogschool 인터페이스가 왜 다른지 확인 필요..!!
-export interface DogSchool {
+export interface KindergartenListItem {
   id: string;
   title: string;
   ctg: string;
@@ -47,19 +59,6 @@ interface Coord {
   lat: number;
   lng: number;
 }
-
-interface PagingDto {
-  currentPage: number;
-  hasNext: boolean;
-  totalPage: number;
-}
-
-interface AggregationsDto {
-  sidoAggregations: SidoGunguAggregation[] | null;
-  sigunAggregations: SidoGunguAggregation[] | null;
-  geoBoundAggregation: GeoBoundAggregation;
-}
-
 export interface SidoGunguAggregation {
   code: string;
   count: number;
@@ -71,11 +70,6 @@ export interface SidoGunguAggregation {
 interface GeoBoundAggregation {
   sw: Coord;
   ne: Coord;
-}
-
-interface KindergartenResultDto {
-  totalCount: number;
-  list: DogSchool[];
 }
 
 export const ServiceTag = {

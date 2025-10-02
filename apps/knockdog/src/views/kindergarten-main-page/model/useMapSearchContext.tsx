@@ -1,6 +1,7 @@
 import { useState, ReactNode } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { type DogSchoolWithMeta, useKindergartenSearchListQuery } from '@features/kindergarten';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { isAggregationZoom } from './markers';
+import { type DogSchoolWithMeta, kindergartenQueryOptions } from '@features/kindergarten';
 import type { SidoGunguAggregation } from '@entities/kindergarten';
 
 import { createSafeContext, useBasePoint } from '@shared/lib';
@@ -17,7 +18,6 @@ interface MapSearchContextValue {
   isMapLoaded: boolean;
   setIsMapLoaded: (loaded: boolean) => void;
 
-  query: ReturnType<typeof useInfiniteQuery>;
   schoolList: DogSchoolWithMeta[];
   aggregations: SidoGunguAggregation[];
 }
@@ -33,23 +33,31 @@ export function MapSearchContextImpl({ children }: { children: ReactNode }) {
     zoomLevel: 0,
   });
 
-  const query = useKindergartenSearchListQuery({
-    refPoint: basePoint!,
-    bounds: mapSnapshot.bounds!,
-    zoomLevel: mapSnapshot.zoomLevel,
+  // 업체 목록 쿼리
+  const searchListQuery = useInfiniteQuery({
+    ...kindergartenQueryOptions.searchList({
+      refPoint: basePoint!,
+      bounds: mapSnapshot.bounds!,
+      zoomLevel: mapSnapshot.zoomLevel,
+    }),
   });
 
-  const schoolList = query.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
+  const aggregationQuery = useQuery({
+    ...kindergartenQueryOptions.aggregation({
+      refPoint: basePoint!,
+      bounds: mapSnapshot.bounds!,
+      zoomLevel: mapSnapshot.zoomLevel,
+      enabled: isAggregationZoom(mapSnapshot.zoomLevel),
+    }),
+  });
+
+  const schoolList = searchListQuery.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
 
   const aggregations =
-    query.data?.pages?.flatMap(
-      (page) => page.aggregations.sidoAggregations ?? page.aggregations.sigunAggregations ?? []
-    ) || [];
+    aggregationQuery.data?.aggregations.sidoAggregations ?? aggregationQuery.data?.aggregations.sigunAggregations ?? [];
 
   return (
-    <MapSearchContext
-      value={{ mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, query, schoolList, aggregations }}
-    >
+    <MapSearchContext value={{ mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations }}>
       {children}
     </MapSearchContext>
   );
