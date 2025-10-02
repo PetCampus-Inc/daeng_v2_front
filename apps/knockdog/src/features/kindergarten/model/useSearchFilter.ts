@@ -1,10 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQueryState, parseAsArrayOf, parseAsString } from 'nuqs';
-import {
-  type FilterOption,
-  type FilterState,
-  FILTER_OPTIONS,
-} from '@entities/dog-school';
+import { type FilterOption, type FilterState, FILTER_OPTIONS } from '@entities/kindergarten';
 
 export interface UseSearchFilterReturn {
   /** 필터 상태 (선택된 옵션 배열) */
@@ -33,10 +29,7 @@ export interface UseSearchFilterReturn {
 }
 
 export function useSearchFilter(): UseSearchFilterReturn {
-  const [urlFilters, setUrlFilters] = useQueryState(
-    'filters',
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
+  const [urlFilters, setUrlFilters] = useQueryState('filters', parseAsArrayOf(parseAsString).withDefault([]));
   const [resultCount, setResultCount] = useState<number | null>(null);
 
   const filter = useMemo(() => urlFilters as FilterOption[], [urlFilters]);
@@ -52,9 +45,7 @@ export function useSearchFilter(): UseSearchFilterReturn {
       const isSelected = currentFilters.includes(option);
 
       if (isSelected) {
-        const updated = currentFilters.filter(
-          (filterOption) => filterOption !== option
-        );
+        const updated = currentFilters.filter((filterOption) => filterOption !== option);
         setUrlFilters(updated.length === 0 ? null : updated);
       } else {
         setUrlFilters([...currentFilters, option]);
@@ -66,9 +57,7 @@ export function useSearchFilter(): UseSearchFilterReturn {
   /** 필터 옵션 제거 */
   const onRemoveOption = useCallback(
     (option: FilterOption) => {
-      const updated = urlFilters.filter(
-        (filterOption) => filterOption !== option
-      );
+      const updated = urlFilters.filter((filterOption) => filterOption !== option);
       setUrlFilters(updated.length === 0 ? null : updated);
     },
     [urlFilters, setUrlFilters]

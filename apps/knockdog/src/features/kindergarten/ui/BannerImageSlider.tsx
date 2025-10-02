@@ -5,13 +5,13 @@ import { CardClipDefs } from './CardClipDefs';
 
 import { useSelectedSnap } from '@shared/lib';
 
-interface DogSchoolImageSliderProps {
+interface BannerImageSliderProps {
   id: string;
   name: string;
-  slides: string[];
+  slides?: string[];
 }
 
-export function DogSchoolImageSlider(props: DogSchoolImageSliderProps) {
+export function BannerImageSlider(props: BannerImageSliderProps) {
   const { id, name, slides } = props;
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,

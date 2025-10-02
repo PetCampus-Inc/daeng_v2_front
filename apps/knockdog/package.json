@@ -10,6 +10,10 @@
     "type-check": "tsc --noEmit",
     "update-route": "tsx src/app/scripts/generateRouteConstants.ts"
   },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "dependencies": {
     "@knockdog/bridge-core": "workspace:*",
     "@knockdog/bridge-web": "workspace:*",

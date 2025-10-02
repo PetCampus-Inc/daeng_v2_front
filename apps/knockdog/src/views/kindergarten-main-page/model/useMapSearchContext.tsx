@@ -1,7 +1,8 @@
 import { useState, ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { dogSchoolListOptions, type DogSchoolWithMeta } from '@features/dog-school';
-import { SidoGunguAggregation } from '@entities/dog-school/model/dogschool-list';
+import { type DogSchoolWithMeta, useKindergartenSearchListQuery } from '@features/kindergarten';
+import type { SidoGunguAggregation } from '@entities/kindergarten';
+
 import { createSafeContext, useBasePoint } from '@shared/lib';
 
 interface MapSnapshot {
@@ -32,12 +33,10 @@ export function MapSearchContextImpl({ children }: { children: ReactNode }) {
     zoomLevel: 0,
   });
 
-  const query = useInfiniteQuery({
-    ...dogSchoolListOptions.searchList({
-      refPoint: basePoint!,
-      bounds: mapSnapshot.bounds!,
-      zoomLevel: mapSnapshot.zoomLevel,
-    }),
+  const query = useKindergartenSearchListQuery({
+    refPoint: basePoint!,
+    bounds: mapSnapshot.bounds!,
+    zoomLevel: mapSnapshot.zoomLevel,
   });
 
   const schoolList = query.data?.pages?.flatMap((page) => page.schoolResult.list) || [];

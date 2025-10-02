@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { DogSchoolList } from './DogSchoolList';
+import { KindergartenList } from './KindergartenList';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBottomSheetSnapIndex, useIsomorphicLayoutEffect } from '@shared/lib';
@@ -13,7 +13,7 @@ import { useMarkerState } from '@shared/store';
 const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 157;
 const MAX_SNAP_POINT_OFFSET = 72 - 8;
 
-export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
+export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
 
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
@@ -71,7 +71,7 @@ export function DogSchoolListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
               </>
             )}
             <BottomSheet.Title className='sr-only'>강아지 유치원 목록</BottomSheet.Title>
-            <DogSchoolList />
+            <KindergartenList />
           </BottomSheet.Body>
         </RemoveScroll>
       </BottomSheet.Root>

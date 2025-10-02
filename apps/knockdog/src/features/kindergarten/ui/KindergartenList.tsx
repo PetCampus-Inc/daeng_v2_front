@@ -4,17 +4,18 @@ import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
 import { FilterBottomSheet } from './FilterBottomSheet';
-import { DogSchoolCard } from './DogSchoolCard';
+import { KindergartenCard } from './KindergartenCard';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { useDogSchoolSearch } from '../model/useDogSchoolSearchContext';
+import { useKindergartenSearch } from '../model/useKindergartenSearchContext';
 import { useEffect, useRef } from 'react';
-import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/dog-school';
+
 import { useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType } from '@shared/store';
+import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 
-export function DogSchoolList() {
+export function KindergartenList() {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -23,7 +24,7 @@ export function DogSchoolList() {
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
   const { selectedBaseType, setBaseType } = useBasePointType();
 
-  const { query, schoolList } = useDogSchoolSearch();
+  const { query, schoolList } = useKindergartenSearch();
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
   const selectedFilters = getSelectedFilterWithLabel();
@@ -142,7 +143,7 @@ export function DogSchoolList() {
           </div>
 
           {schoolList.map((item) => (
-            <DogSchoolCard key={item.id} {...item} images={item.images ?? []} />
+            <KindergartenCard key={item.id} {...item} images={item.images ?? []} />
           ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />

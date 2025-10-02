@@ -1,0 +1,1 @@
+export { KindergartenMainPage } from "./ui/KindergartenMainPage"

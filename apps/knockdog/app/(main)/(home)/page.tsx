@@ -1,12 +1,12 @@
 'use client';
 
 import { Suspense } from 'react';
-import { MapWithSchools } from '@widgets/map-with-schools';
+import { KindergartenMainPage } from '@views/kindergarten-main-page';
 
 export default function Home() {
   return (
     <Suspense>
-      <MapWithSchools />
+      <KindergartenMainPage />
     </Suspense>
   );
 }

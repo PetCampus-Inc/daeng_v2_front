@@ -8,14 +8,14 @@ import { DeparturePointSheet } from './DeparturePointSheet';
 import type { DogSchoolWithMeta } from '../model/mappers';
 import { useState } from 'react';
 
-interface DogSchoolCardSheetProps extends DogSchoolWithMeta {
+interface KindergartenCardSheetProps extends DogSchoolWithMeta {
   isOpen: boolean;
   close: () => void;
 }
 
 const snapPoints = ['328px', 1];
 
-export function DogSchoolCardSheet({ isOpen, close, ...props }: DogSchoolCardSheetProps) {
+export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenCardSheetProps) {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0] ?? null);
 
   const openPhoneCallActionSheet = () =>

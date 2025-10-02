@@ -1,6 +1,7 @@
 import { Icon } from '@knockdog/ui';
 import { ServiceTag, PickupType } from '../model/mock';
-import { ServiceBadge } from '@features/dog-school';
+// FIXME: fsd import 위반임..! serviceBadgeGroup을 shared로 빼야할지 논의 필요
+import { ServiceBadge } from '@entities/kindergarten/ui/ServiceBadge';
 
 interface ServiceBadgeGroupProps {
   serviceTags: (keyof typeof ServiceTag)[];
