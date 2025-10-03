@@ -3,14 +3,14 @@ export { getKindergartenSearchList, getKindergartenAggregation } from './api/kin
 export type { KindergartenSearchListParams, KindergartenAggregationParams } from './api/kindergarten';
 
 /** config */
-export { FILTER_CONFIG, FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from './config/constant';
-export type { FilterOption, FilterState } from './config/constant';
+export { ServiceTag, PickupType, OperationStatus } from './config/constant';
+export { FILTER_CONFIG, FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from './config/filter-options';
+export type { FilterOption, FilterState } from './config/filter-options';
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
 export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from './config/kindergartenNearQueryKeys';
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
 /** model */
-export { ServiceTag, PickupType, OperationStatus } from './model/kindergarten';
 export type {
   KindergartenSearchList,
   Aggregation,

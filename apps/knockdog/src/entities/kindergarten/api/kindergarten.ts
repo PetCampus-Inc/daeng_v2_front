@@ -1,4 +1,4 @@
-import type { FilterOption } from '../config/constant';
+import type { FilterOption } from '../config/filter-options';
 import type { Aggregation, KindergartenSearchList } from '../model/kindergarten';
 import { api } from '@shared/api';
 
