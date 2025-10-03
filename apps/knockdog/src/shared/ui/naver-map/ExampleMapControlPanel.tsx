@@ -3,11 +3,11 @@ import { useCurrentLocation } from '@shared/lib/geolocation';
 
 export const ExampleMapControlPanel = () => {
   const { moveTo, zoomIn, zoomOut } = useNaverMap();
-  const currentLocation = useCurrentLocation();
+  const { position } = useCurrentLocation();
 
   const handleMoveToCurrentLocation = () => {
-    if (!currentLocation) return;
-    moveTo(currentLocation);
+    if (!position) return;
+    moveTo(position);
   };
 
   const handleZoomIn = () => zoomIn();

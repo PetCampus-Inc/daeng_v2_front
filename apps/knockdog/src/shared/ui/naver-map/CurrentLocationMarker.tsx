@@ -1,3 +1,5 @@
+/** @deprecated Use CurrentLocationMarker instead "features/map/ui/CurrentLocationMarker" */
+
 'use client';
 
 import { Overlay } from '@knockdog/naver-map';
@@ -8,22 +10,13 @@ interface CurrentLocationMarkerProps {
   zIndex?: number;
 }
 
-export function CurrentLocationMarker({
-  icon,
-  zIndex = 0,
-}: CurrentLocationMarkerProps) {
-  const location = useCurrentLocation();
+export function CurrentLocationMarker({ icon, zIndex = 0 }: CurrentLocationMarkerProps) {
+  const { position } = useCurrentLocation();
 
   const renderIcon = () => {
     if (icon) return icon;
     return (
-      <svg
-        width='44'
-        height='44'
-        viewBox='0 0 44 44'
-        fill='none'
-        xmlns='http://www.w3.org/2000/svg'
-      >
+      <svg width='44' height='44' viewBox='0 0 44 44' fill='none' xmlns='http://www.w3.org/2000/svg'>
         <circle cx='22' cy='22' r='22' fill='#FF6E0C' fillOpacity='0.2' />
         <circle cx='22' cy='22' r='16' fill='#FF6E0C' />
         <path
@@ -35,12 +28,5 @@ export function CurrentLocationMarker({
   };
 
   if (!location) return null;
-  return (
-    <Overlay
-      id='current-location-marker'
-      position={location}
-      zIndex={zIndex}
-      content={renderIcon()}
-    />
-  );
+  return <Overlay id='current-location-marker' position={position!} zIndex={zIndex} content={renderIcon()} />;
 }

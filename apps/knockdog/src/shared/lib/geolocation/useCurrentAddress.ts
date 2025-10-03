@@ -27,7 +27,7 @@ interface UseCurrentAddressResult {
 }
 
 export function useCurrentAddress(): UseCurrentAddressResult {
-  const position = useCurrentLocation();
+  const { position } = useCurrentLocation();
   const coords = position ?? undefined;
 
   const reverseQuery = useReverseGeocodeQuery(coords, !!coords);
