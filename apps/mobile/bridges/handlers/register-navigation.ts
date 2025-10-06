@@ -46,13 +46,13 @@ function toRoute(
 function registerNavigationHandlers(router: NativeBridgeRouter) {
   // Push
   router.register<WebNavPayload>(METHODS.navPush, async (payload) => {
-    if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation is not ready' };
+    if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
     const route = toRoute(payload);
 
     if (route.screen === 'Tabs') {
       navigationRef.navigate('Tabs');
     } else {
-      navigationRef.navigate('Stack', route.params);
+      navigationRef.dispatch(StackActions.push('Stack', route.params));
     }
 
     return { pushed: true };
@@ -60,7 +60,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter) {
 
   // Back
   router.register(METHODS.navBack, async () => {
-    if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation is not ready' };
+    if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
 
     if (navigationRef.canGoBack()) {
       navigationRef.goBack();
@@ -70,7 +70,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter) {
     return { wentBack: false };
   });
 
-  // Replace
+  // Replaced
   router.register<WebNavPayload>(METHODS.navReplace, async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
     const route = toRoute(payload);
