@@ -1,4 +1,4 @@
-import ky from 'ky';
+import { api } from '@shared/api';
 
 // @TODO API Response, 타입 정의 필요
 
@@ -7,14 +7,11 @@ interface ReportingRequest {
   priceChange?: File[];
   hoursChange?: File[];
   phoneChange?: File[];
-  address: string;
+  address?: string;
 }
 
 function postReporting(id: string, params: ReportingRequest) {
   const form = new FormData();
-
-  // JSON params (non-file fields)
-  form.append('params', JSON.stringify({ address: params.address ?? '' }));
 
   // File arrays -> multiple parts under the same key
   if (params.businessChange?.length) {
@@ -29,14 +26,16 @@ function postReporting(id: string, params: ReportingRequest) {
   if (params.phoneChange?.length) {
     params.phoneChange.forEach((f) => form.append('phoneChange', f));
   }
+  if (params.address) {
+    form.append('address', params.address);
+  }
 
-  // Use a ky instance without default JSON content-type to let the browser set multipart boundary
-  const multipart = ky.create({
+  const multipart = api.create({
     prefixUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     retry: 0,
   });
 
-  return multipart.post(`/api/v0/kindergarten/${id}/change-requests`, {
+  return multipart.post(`api/v0/kindergarten/${id}/change-requests`, {
     body: form,
   });
 }
