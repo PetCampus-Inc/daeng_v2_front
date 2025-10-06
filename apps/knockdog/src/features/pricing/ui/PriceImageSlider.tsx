@@ -15,7 +15,7 @@ function PriceImageSlider({ images }: PriceImageSliderProps) {
         {images.map((image, index) => (
           <Image
             key={index}
-            src={image}
+            src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
             alt=''
             className='h-[120px] w-[120px] rounded-lg object-cover'
             width={120}

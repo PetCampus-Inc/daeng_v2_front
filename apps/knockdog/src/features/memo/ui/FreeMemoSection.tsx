@@ -7,12 +7,14 @@ import { useParams } from 'next/navigation';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { useMemoQuery } from '../api/useMemoQuery';
 import type { Photo } from '@entities/memo';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 const MEMO_PHOTO_MAX_COUNT = 5;
 
 export function FreeMemoSection() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
+  const { push } = useStackNavigation();
 
   if (!id) throw new Error('Company ID is required for free memo section');
 
@@ -29,10 +31,13 @@ export function FreeMemoSection() {
         <span className='body1-regular'>자유롭게 메모를 작성하세요</span>
 
         {/* @TODO: 화면 이동 경로의 경우 상수 이용할것 */}
-        <Link href={`/company/${id}/edit-memo`} className='text-text-tertiary flex items-center gap-1'>
+        <button
+          onClick={() => push({ pathname: `/company/${id}/edit-memo` })}
+          className='text-text-tertiary flex items-center gap-1'
+        >
           <span className='label-semibold'>편집</span>
           <Icon icon='ChevronRight' className='h-4 w-4' />
-        </Link>
+        </button>
       </div>
       <span className='body2-regular text-text-tertiary'>사진 최대 {MEMO_PHOTO_MAX_COUNT}개 등록 가능</span>
       <div className='py-3'>

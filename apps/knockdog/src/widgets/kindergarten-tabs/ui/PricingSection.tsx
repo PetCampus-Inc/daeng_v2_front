@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ProductTypeSection, PriceImageSlider } from '@features/pricing';
-import type { PricingInfo } from '@entities/pricing';
 import { usePricingQuery } from '@features/pricing';
 import { useCallPhone } from '@shared/lib/device';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 function PricingSection() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
+  const { push } = useStackNavigation();
 
   if (!id) throw new Error('Company ID is required for pricing section');
 
@@ -39,8 +40,8 @@ function PricingSection() {
               <span className='body1-bold mb-3 inline-block'>{category.productName}</span>
 
               <div className='bg-primitive-neutral-50 flex flex-col gap-3 rounded-lg p-4'>
-                {category.products.map((product) => (
-                  <div className='grid grid-cols-3' key={product.name}>
+                {category.products.map((product, index) => (
+                  <div className='grid grid-cols-3' key={`${product.name}-${index}`}>
                     <span className='body2-semibold text-left'>{product.name || product.weightSection}</span>
                     <span className='body2-regular text-center'>{product.count}</span>
                     <span className='body2-regular text-right'>{product.price}</span>
@@ -53,7 +54,7 @@ function PricingSection() {
       </div>
 
       {/* 가격표 */}
-      {/* <PriceImageSlider images={pricing?.priceImages ?? []} /> */}
+      <PriceImageSlider images={pricing?.priceImages ?? []} />
       {/* 최종 정보 업데이트 */}
       <div className='flex justify-between py-4'>
         <div className='flex flex-col'>
@@ -61,12 +62,12 @@ function PricingSection() {
           <span className='body2-regular text-text-tertiary'>{pricing?.lastUpdatedAt}</span>
         </div>
         <div>
-          <Link
-            href={`/company/${id}/report-info-update`}
+          <button
+            onClick={() => push({ pathname: `/company/${id}/report-info-update` })}
             className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'
           >
             정보 수정 제보하기
-          </Link>
+          </button>
         </div>
       </div>
     </div>

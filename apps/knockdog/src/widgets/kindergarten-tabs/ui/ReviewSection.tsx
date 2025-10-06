@@ -1,76 +1,95 @@
+'use client';
+
 import { Icon } from '@knockdog/ui';
 
-import type { Review } from '@entities/review';
 import { ReviewCard } from '@features/review';
+import { useReviewQuery } from '@features/review/api/useReviewQuery';
+import { useInfiniteScroll } from '@shared/lib';
+import { useParams } from 'next/navigation';
 
 interface ReviewSectionProps {
   onScrollTop?: () => void;
 }
+
+const Header = () => (
+  <div className='mb-3 flex'>
+    <Icon icon='NaverFill' className='mr-2 h-[22px] w-[22px]' />
+    <span className='body1-bold'>블로그 리뷰</span>
+  </div>
+);
+
+const LoadingState = () => (
+  <div className='flex justify-center py-8'>
+    <span className='text-text-tertiary'>로딩 중...</span>
+  </div>
+);
+
+const ErrorState = () => (
+  <div className='flex justify-center py-8'>
+    <span className='text-text-tertiary'>리뷰를 불러올 수 없습니다.</span>
+  </div>
+);
+
+const EmptyState = () => (
+  <div className='flex justify-center py-8'>
+    <span className='text-text-tertiary'>아직 등록된 리뷰가 없습니다.</span>
+  </div>
+);
+
 export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSectionProps) {
-  const reviewListMock: Review[] = [
-    {
-      reviewIdx: '1',
-      userName: 'John Doe',
-      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-      title: '정말 좋은 곳이에요!',
-      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      updatedAt: '2025-04-29',
-    },
-    {
-      reviewIdx: '2',
-      userName: 'Jane Doe',
-      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-      title: '정말 좋은 곳이에요!',
-      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      updatedAt: '2025-04-29',
-    },
-    {
-      reviewIdx: '3',
-      userName: 'John Doe',
-      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-      title: '정말 좋은 곳이에요!',
-      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      updatedAt: '2025-04-29',
-    },
-    {
-      reviewIdx: '4',
-      userName: 'John Doe',
-      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-      title: '정말 좋은 곳이에요!',
-      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      updatedAt: '2025-04-29',
-    },
-    {
-      reviewIdx: '5',
-      userName: 'John Doe',
-      profileImage: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d',
-      title: '정말 좋은 곳이에요!',
-      content: '정말 좋은 곳이에요! 정말 좋은 곳이에요!',
-      updatedAt: '2025-04-29',
-    },
-  ];
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
+
+  if (!id) throw new Error('Company ID is required for review section');
+
+  const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
+  const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+
+  const allReviews = data?.pages.flatMap((page) => page.reviews) ?? [];
+
+  const renderContent = () => {
+    if (isLoading) return <LoadingState />;
+    if (isError) return <ErrorState />;
+    if (allReviews.length === 0) return <EmptyState />;
+
+    return (
+      <>
+        {allReviews.map((review, index) => (
+          <div key={review.reviewIdx} ref={index === allReviews.length - 1 ? lastElementCallback : null}>
+            <ReviewCard {...review} />
+          </div>
+        ))}
+
+        {isFetchingNextPage && (
+          <div className='flex justify-center py-4'>
+            <span className='text-text-tertiary text-sm'>더 많은 리뷰를 불러오는 중...</span>
+          </div>
+        )}
+
+        {!hasNextPage && allReviews.length > 0 && (
+          <div className='flex justify-center py-4'>
+            <span className='text-text-tertiary text-sm'>모든 리뷰를 불러왔습니다.</span>
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className='mb-12 mt-10 flex flex-col px-4'>
       <div className='mb-9'>
-        <div className='mb-3 flex'>
-          <div className='mr-2'>
-            <Icon icon='NaverFill' className='h-[22px] w-[22px]' />
-          </div>
-          <span className='body1-bold'>블로그 리뷰</span>
-        </div>
-        {/* 후기 리스트 */}
-        {reviewListMock.map((review, index) => (
-          <ReviewCard key={index} {...review} />
-        ))}
+        <Header />
+        {renderContent()}
       </div>
 
-      <button
-        onClick={onScrollTop}
-        className='text-text-tertiary label-semibold flex items-center justify-center gap-x-1'
-      >
-        맨 위로 가기 <Icon icon='ChevronTop' />
-      </button>
+      {allReviews.length > 0 && (
+        <button
+          onClick={onScrollTop}
+          className='text-text-tertiary label-semibold flex items-center justify-center gap-x-1'
+        >
+          맨 위로 가기 <Icon icon='ChevronTop' />
+        </button>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { BottomSheet, Icon } from '@knockdog/ui';
 import { RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { useCurrentAddress } from '@shared/lib/geolocation';
+import { useCurrentLocation } from '@shared/lib/geolocation';
 
 interface DeparturePointSheetProps {
   isOpen: boolean;
@@ -8,8 +9,24 @@ interface DeparturePointSheetProps {
 }
 
 export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps) {
-  const { primaryText, primaryRoad, primaryParcel, isLoading, error } = useCurrentAddress();
-  const label = isLoading ? '현재 위치 불러오는 중…' : primaryText || primaryRoad || primaryParcel || error;
+  const { position, loading: locationLoading, error: locationError } = useCurrentLocation();
+
+  const coords = position;
+  const shouldFetchAddress = !!coords && !locationLoading && coords.lat !== 0 && coords.lng !== 0;
+  const { primaryText, primaryRoad, primaryParcel, isLoading, error } = useCurrentAddress(
+    coords || { lat: 0, lng: 0 },
+    shouldFetchAddress
+  );
+
+  const label = locationLoading
+    ? '위치 정보 가져오는 중…'
+    : isLoading
+      ? '주소 조회 중…'
+      : locationError
+        ? '위치 정보를 가져올 수 없습니다'
+        : error
+          ? '주소를 조회할 수 없습니다'
+          : primaryText || primaryRoad || primaryParcel || '위치 정보 없음';
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
@@ -34,7 +51,11 @@ export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps)
                   <span className='body2-regular text-text-secondary'>{label}</span>
                 </div>
               </div>
-              <RadioGroupItem disabled={isLoading || !!error} id='1' value='1'></RadioGroupItem>
+              <RadioGroupItem
+                disabled={locationLoading || isLoading || !!locationError || !!error}
+                id='1'
+                value='1'
+              ></RadioGroupItem>
             </label>
             {/*  저장된 주소 확인  */}
             <label

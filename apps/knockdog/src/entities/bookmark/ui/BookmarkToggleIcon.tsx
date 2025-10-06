@@ -24,7 +24,8 @@ const BookmarkToggleIcon = ({ id, bookmarked }: BookmarkToggleIconProps) => {
     <IconButton
       icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
       disabled={isMutating}
-      onClick={() => {
+      onClick={(event) => {
+        event.stopPropagation();
         // 낙관적 토글
         setIsBookmarked((prev) => !prev);
         isBookmarked ? deleteBookmark(id) : postBookmark(id);

@@ -17,7 +17,7 @@ type PushOptions = {
 };
 
 function buildHref(pathname: string, query?: Query, searchParams?: URLSearchParams | null) {
-  const params = new URLSearchParams(searchParams || undefined);
+  const params = query ? new URLSearchParams(searchParams || undefined) : new URLSearchParams();
 
   if (query) {
     for (const [key, value] of Object.entries(query)) {

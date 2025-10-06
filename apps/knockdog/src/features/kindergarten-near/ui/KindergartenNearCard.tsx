@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 import { ServiceBadgesTruncated, OPEN_STATUS_MAP, CTAG_MAP, type KindergartenNear } from '@entities/kindergarten';
 import { BookmarkToggleIcon } from '@entities/bookmark';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenNearProps extends KindergartenNear {}
 
@@ -21,16 +22,22 @@ const KindergartenNearCard = ({
   memoDate,
   bookmarked = false,
 }: KindergartenNearProps) => {
+  const { push } = useStackNavigation();
+
+  const handleClick = () => {
+    push({ pathname: `/kindergarten/${id}` });
+  };
+
   return (
-    <div className='min-w-[233px]'>
+    <div className='min-w-[233px]' onClick={handleClick}>
       <div className='relative mb-2 rounded-lg'>
-        {/* <Image
-            src={banner[0] ?? ''}
-            alt='페이지 이미지'
-            width={233}
-            height={142}
-            className='h-[142px] w-[233px] rounded-lg object-cover'
-          /> */}
+        <Image
+          src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${banner[0]}`}
+          alt='페이지 이미지'
+          width={233}
+          height={142}
+          className='h-[142px] w-[233px] rounded-lg object-cover'
+        />
 
         {/* 뱃지 리스트 */}
         <div className='absolute bottom-2 left-2 flex gap-1'>
