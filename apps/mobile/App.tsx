@@ -12,10 +12,11 @@ import { NavigationContainer } from '@react-navigation/native';
 // }
 
 import RootStackNavigator from './components/navigation/RootStackNavigator';
+import { navigationRef } from './bridges/lib/navigationRef';
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <RootStackNavigator />
     </NavigationContainer>
   );

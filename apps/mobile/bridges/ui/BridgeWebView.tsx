@@ -11,7 +11,7 @@ interface Props {
 
 export function BridgeWebView({ uri, webviewRef }: Props) {
   const CONSOLE_PATCH = useMemo(
-    () => buildConsolePatch({ tag: 'WEBVIEW', levels: ['log', 'warn', 'error'], masLen: 1_000 }),
+    () => buildConsolePatch({ tag: 'WEBVIEW', levels: ['log', 'warn', 'error'], maxLen: 1_000 }),
     []
   );
 

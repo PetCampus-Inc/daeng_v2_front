@@ -3,10 +3,7 @@ import WebViewScreen from '@/components/WebViewScreen';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useRef } from 'react';
 import WebView from 'react-native-webview';
-export type RootStackParamList = {
-  Tabs: undefined;
-  Stack: { path: string };
-};
+import { RootStackParamList } from '@/types/navigation';
 
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
 
@@ -16,7 +13,7 @@ export default function StackScreen() {
 
   return (
     <>
-      <WebViewScreen uri={path} webviewRef={webviewRef} />;
+      <WebViewScreen uri={path} webviewRef={webviewRef} />
       <BridgeDebugOverlay />
     </>
   );

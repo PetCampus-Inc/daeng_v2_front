@@ -1,5 +1,5 @@
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
-import { registerDeviceHandlers } from './device';
+import { registerAllHandlers } from './register-all';
 
 /**
  * 네이티브 브릿지 라우터 생성
@@ -7,7 +7,7 @@ import { registerDeviceHandlers } from './device';
  */
 function makeRouter() {
   const router = new NativeBridgeRouter();
-  registerDeviceHandlers(router);
+  registerAllHandlers(router);
   return router;
 }
 

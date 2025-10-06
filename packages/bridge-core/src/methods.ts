@@ -3,6 +3,10 @@ const METHODS = {
   callPhone: 'system.callPhone',
   copyToClipboard: 'system.copyToClipboard',
   share: 'system.share',
+  navPush: 'system.navPush',
+  navBack: 'system.navBack',
+  navReset: 'system.navReset',
+  navReplace: 'system.navReplace',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];
