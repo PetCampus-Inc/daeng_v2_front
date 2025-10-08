@@ -1,15 +1,15 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 
-/* =========================
- * Types
- * ========================= */
-type Center = {
-  id: number;
-  name: string;
-  type: string;
-  avatar: string; // 원형 썸네일
+type PinkImgProps = {
+  src?: string;
+  className?: string; // 크기/둥근모서리 등은 래퍼에 적용
+  alt?: string;
+  fill?: boolean; // 레이아웃에 따라 쓰기 (기본은 고정 width/height)
+  width?: number;
+  height?: number;
 };
 
 /* =========================
@@ -68,7 +68,7 @@ export default function CompareCompletePage() {
 function SelectedCell({ name, type, src }: { name: string; type: string; src?: string }) {
   return (
     <div className='flex min-w-0 items-center gap-3 px-4 py-3'>
-      <PinkImg src={src} className='h-10 w-10 shrink-0 rounded-full' />
+      <PinkImg src={src} className='rounded-lg' width={80} height={80} />
       <div className='min-w-0 leading-none'>
         <p className='truncate text-sm font-semibold leading-5'>{name}</p>
         <p className='truncate text-xs leading-4 text-gray-500'>{type}</p>
@@ -326,8 +326,8 @@ function DetailsTab() {
               'CCTV',
               '놀이터',
               '테라스',
-            ].map((t) => (
-              <ServiceItem key={t}>{t}</ServiceItem>
+            ].map((option) => (
+              <ServiceItem key={option}>{option}</ServiceItem>
             ))}
           </div>
 
@@ -570,8 +570,8 @@ function DistanceSlide({
       {/* pb로 캐러셀 점과 간격 확보 */}
       <div className='rounded-lg bg-gray-50 px-3 py-2 text-center text-sm text-gray-600'>{title}</div>
       <div className='mt-3 grid grid-cols-2 gap-3'>
-        {rows.map((r) => (
-          <DetailRow key={r.label} label={r.label} left={r.left} right={r.right} />
+        {rows.map((value) => (
+          <DetailRow key={value.label} label={value.label} left={value.left} right={value.right} />
         ))}
       </div>
     </div>
@@ -671,19 +671,26 @@ function ServiceItem({ children }: { children: React.ReactNode }) {
   return <div className='rounded-md border border-gray-200 px-3 py-2'>{children}</div>;
 }
 
-function PinkImg({ src, className = '' }: { src?: string; className?: string }) {
+export function PinkImg({ src, className = '', alt = '', fill = false, width, height }: PinkImgProps) {
+  const [broken, setBroken] = useState(false);
+
   return (
-    <div className={`overflow-hidden bg-pink-200 ${className}`}>
-      {src ? (
-        <img
+    <div className={`relative overflow-hidden bg-pink-200 ${className}`}>
+      {/* 이미지 로드 실패하거나 src 없으면 분홍 배경만 보임 */}
+      {src && !broken && (
+        <Image
           src={src}
-          alt=''
-          className='h-full w-full object-cover'
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = 'none';
-          }}
+          alt={alt}
+          // 1) 고정 크기일 땐 width/height
+          // 2) 부모를 position:relative로 하고 꽉 채우려면 fill
+          {...(fill ? { fill: true } : { width: width ?? 80, height: height ?? 80 })}
+          sizes='(max-width: 768px) 100vw, 50vw'
+          className='object-cover'
+          onError={() => setBroken(true)}
+          // 원격 이미지면 next.config.js에 domains 등록 필요
+          // unoptimized 옵션도 가능(외부 CDN 그대로 사용)
         />
-      ) : null}
+      )}
     </div>
   );
 }

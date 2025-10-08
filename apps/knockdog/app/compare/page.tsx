@@ -66,7 +66,10 @@ export default function Compare() {
 
   // 선택된 2개(또는 1개)를 선택시간 오름차순으로 정렬해서 사용
   const selected = useMemo(
-    () => centers.filter((c) => c.selected).sort((a, b) => (a.selectedAt ?? 0) - (b.selectedAt ?? 0)),
+    () =>
+      centers
+        .filter((center) => center.selected)
+        .sort((first, second) => (first.selectedAt ?? 0) - (second.selectedAt ?? 0)),
     [centers]
   );
   const selectedCount = selected.length;
@@ -75,19 +78,19 @@ export default function Compare() {
   // 리스트 정렬: 선택한 기준(anchor)에 맞춰 km 오름차순
   const sorted = useMemo(() => {
     const key: keyof DistanceBy = anchor === 'home' ? 'homeKm' : anchor === 'work' ? 'workKm' : 'hereKm';
-    return [...centers].sort((a, b) => a.distanceBy[key] - b.distanceBy[key]);
+    return [...centers].sort((first, second) => first.distanceBy[key] - second.distanceBy[key]);
   }, [centers, anchor]);
 
   // 거리 텍스트 포맷
   const formatKm = (km: number) => `${km.toFixed(1)}km`;
-  const anchorLabel = (a: SortAnchor) => (a === 'home' ? '집' : a === 'work' ? '직장' : '현위치');
+  const anchorLabel = (label: SortAnchor) => (label === 'home' ? '집' : label === 'work' ? '직장' : '현위치');
 
-  // ✅ 선택 토글: 최대 2개 유지, 3번째 선택 시 가장 오래된 선택 해제 (TS 안전)
+  // 선택 토글: 최대 2개 유지, 3번째 선택 시 가장 오래된 선택 해제 (TS 안전)
   const toggleSelect = (id: number) => {
     setCenters((prev) => {
-      const next = prev.map((c) => ({ ...c })); // 얕은 복사
+      const next = prev.map((value) => ({ ...value })); // 얕은 복사
       // 인덱스 대신 find로 안전 접근
-      const target = next.find((c) => c.id === id);
+      const target = next.find((value) => value.id === id);
       if (!target) return prev;
 
       // 이미 선택된 항목 클릭 → 해제
@@ -98,7 +101,7 @@ export default function Compare() {
       }
 
       // 새로 선택: 이미 2개면 가장 오래된 선택 해제
-      const selectedList = next.filter((c) => c.selected);
+      const selectedList = next.filter((value) => value.selected);
       if (selectedList.length >= 2) {
         // reduce 대신 루프 사용 → TS가 undefined 의심 안 함
         let oldest = selectedList[0];
@@ -108,7 +111,7 @@ export default function Compare() {
             oldest = cur;
           }
         }
-        const toClear = next.find((c) => c.id === oldest?.id);
+        const toClear = next.find((value) => value.id === oldest?.id);
         if (toClear) {
           toClear.selected = false;
           toClear.selectedAt = undefined;
@@ -178,16 +181,20 @@ export default function Compare() {
 
         {/* List (정렬 반영) */}
         <div className='flex-1 overflow-y-auto'>
-          {sorted.map((c) => {
+          {sorted.map((label) => {
             const km =
-              anchor === 'home' ? c.distanceBy.homeKm : anchor === 'work' ? c.distanceBy.workKm : c.distanceBy.hereKm;
+              anchor === 'home'
+                ? label.distanceBy.homeKm
+                : anchor === 'work'
+                  ? label.distanceBy.workKm
+                  : label.distanceBy.hereKm;
             return (
               <CompareItem
-                key={c.id}
-                center={c}
+                key={label.id}
+                center={label}
                 distanceText={formatKm(km)}
                 anchorLabelText={anchorLabel(anchor)}
-                onToggle={() => toggleSelect(c.id)}
+                onToggle={() => toggleSelect(label.id)}
               />
             );
           })}
@@ -195,7 +202,7 @@ export default function Compare() {
 
         {/* Bottom Compare Bar */}
         <div className='sticky bottom-0 mb-[80px] border-t border-[#F3F3F7] bg-white px-4 py-3'>
-          <div className='sticky bottom-0 border-t border-[#EBEBF0] bg-white px-4 pb-3 pb-[env(safe-area-inset-bottom)] pt-3'>
+          <div className='sticky bottom-0 border-t border-[#EBEBF0] bg-white px-4 pb-[env(safe-area-inset-bottom)] pt-3'>
             {/* 선택 요약 */}
             <div className='relative mb-3 grid grid-cols-2 items-start'>
               <div className='min-w-0'>
