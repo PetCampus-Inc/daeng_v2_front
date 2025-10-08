@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile"
+      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["nmap"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,7 +45,8 @@
         }
       ],
       "expo-font",
-      "expo-router"
+      "expo-router",
+      "./plugins/naver-map-queries"
     ]
   }
 }
