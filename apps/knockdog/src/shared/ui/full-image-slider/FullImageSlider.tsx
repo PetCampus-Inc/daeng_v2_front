@@ -9,7 +9,7 @@ interface FullImageSliderProps {
   images: string[];
 }
 
-export default function FullImageSlider({ initialIndex = 0, images }: FullImageSliderProps) {
+export function FullImageSlider({ initialIndex = 0, images }: FullImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const handleSlideChange = (currentIndex: number) => {
@@ -19,11 +19,6 @@ export default function FullImageSlider({ initialIndex = 0, images }: FullImageS
   return (
     <div className='h-screen w-full'>
       <div className='flex h-full flex-col'>
-        {/* 헤더 영역 */}
-        <div className='flex flex-shrink-0 justify-between px-4 py-5'>
-          <Icon icon='Close' className='h-5 w-5' />
-          <Icon icon='Trash' className='h-5 w-5' />
-        </div>
         {/* 이미지 영역 */}
         <div className='relative min-h-0 flex-1'>
           <SwiperRoot navigation onSlideChange={handleSlideChange} className='h-full' initialIndex={initialIndex}>
@@ -31,7 +26,7 @@ export default function FullImageSlider({ initialIndex = 0, images }: FullImageS
               <SwiperSlideItem key={index} className='h-full'>
                 <div className='flex w-full items-center justify-center' style={{ height: 'calc(70vh)' }}>
                   <Image
-                    src={image}
+                    src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
                     alt=''
                     width={0}
                     height={0}
