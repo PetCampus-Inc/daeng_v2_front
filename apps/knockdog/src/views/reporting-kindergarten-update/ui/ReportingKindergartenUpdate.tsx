@@ -1,24 +1,23 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { overlay } from 'overlay-kit';
+
 import { IconButton, ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
-import { ReportOptionCard } from '@features/dog-school';
-import { checkOptions } from '../model/checkOptions';
-import { useSearchParams } from 'next/navigation';
-import { Header } from '@widgets/Header';
-import { useRouter } from 'next/navigation';
-import { useReportingMutate } from '../api/useReportingMutate';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { ReportOptionCard } from '@features/dog-school';
+import { Header } from '@widgets/Header';
+import { AddressSelectMapSheet } from './AddressSelectMapSheet';
+import { checkOptions } from '../model/checkOptions';
+import { useReportingMutate } from '../api/useReportingMutate';
 
 type CheckedKey = (typeof checkOptions)[number]['key'];
 
 const MAX_UPLOAD_COUNT = 3;
 
 function ReportingKindergartenUpdate() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
@@ -69,6 +68,21 @@ function ReportingKindergartenUpdate() {
     (key: CheckedKey) => key === 'closed' || key === 'price' || key === 'phone' || key === 'time',
     []
   );
+
+  const handleAddressSelectMapSheet = () => {
+    overlay.open(({ isOpen, close }) => {
+      return (
+        <AddressSelectMapSheet
+          isOpen={isOpen}
+          close={close}
+          defaultLocation={{ lat: 37.3595704, lng: 127.105399, name: roadAddress ?? '' }}
+          onSelect={(location) => {
+            setNewAddress(location.name);
+          }}
+        />
+      );
+    });
+  };
 
   return (
     <>
@@ -129,7 +143,7 @@ function ReportingKindergartenUpdate() {
                             <IconButton
                               icon='DeleteInput'
                               onClick={() => setNewAddress('')}
-                              className='cursor-pointer'
+                              className='cursor-pointer text-neutral-700'
                             />
                           )
                         }
@@ -143,7 +157,7 @@ function ReportingKindergartenUpdate() {
                     </div>
 
                     <div className='mt-5 flex gap-2'>
-                      <ActionButton className='flex-1' variant='secondaryLine'>
+                      <ActionButton className='flex-1' variant='secondaryLine' onClick={handleAddressSelectMapSheet}>
                         지도에서 선택
                       </ActionButton>
                       <ActionButton
