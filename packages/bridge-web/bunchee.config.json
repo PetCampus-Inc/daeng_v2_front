@@ -4,5 +4,5 @@
     "dir": "dist",
     "format": ["cjs", "esm"]
   },
-  "dts": false
+  "dts": true
 }

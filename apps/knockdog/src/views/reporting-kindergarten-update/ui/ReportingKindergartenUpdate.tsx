@@ -138,7 +138,6 @@ function ReportingKindergartenUpdate() {
                           value={newAddress ?? ''}
                           readOnly
                           onChange={(e) => setNewAddress(e.target.value)}
-                          placeholder='도로명 주소를 입력하세요'
                         />
                       </TextField>
                     </div>

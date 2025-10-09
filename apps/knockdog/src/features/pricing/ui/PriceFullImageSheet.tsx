@@ -21,7 +21,10 @@ export function PriceFullImageSheet({ isOpen, close, images = [], initialIndex =
           <IconButton icon='Share' />
         </BottomSheet.Header>
         <BottomSheet.Content>
-          <FullImageSlider initialIndex={initialIndex} images={images} />
+          <FullImageSlider
+            initialIndex={initialIndex}
+            images={images.map((image) => `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`)}
+          />
         </BottomSheet.Content>
       </BottomSheet.Body>
     </BottomSheet.Root>

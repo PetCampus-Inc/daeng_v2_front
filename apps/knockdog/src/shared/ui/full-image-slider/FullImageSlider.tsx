@@ -7,13 +7,15 @@ import Image from 'next/image';
 interface FullImageSliderProps {
   initialIndex?: number;
   images: string[];
+  onIndexChange?: (index: number) => void;
 }
 
-export function FullImageSlider({ initialIndex = 0, images }: FullImageSliderProps) {
+export function FullImageSlider({ initialIndex = 0, images, onIndexChange }: FullImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const handleSlideChange = (currentIndex: number) => {
     setCurrentIndex(currentIndex);
+    onIndexChange?.(currentIndex);
   };
 
   return (
@@ -26,7 +28,7 @@ export function FullImageSlider({ initialIndex = 0, images }: FullImageSliderPro
               <SwiperSlideItem key={index} className='h-full'>
                 <div className='flex w-full items-center justify-center' style={{ height: 'calc(70vh)' }}>
                   <Image
-                    src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
+                    src={image}
                     alt=''
                     width={0}
                     height={0}

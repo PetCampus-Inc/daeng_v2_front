@@ -1,6 +1,8 @@
 import { useUploader, type UseUploaderOptions } from '@shared/lib';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { MiniPhotoBox } from './MiniPhotoBox';
+import { FullImageSheet } from './FullImageSheet';
+import { overlay } from 'overlay-kit';
 
 interface PhotoUploaderProps extends Omit<UseUploaderOptions, 'max'> {
   maxCount?: number;
@@ -8,6 +10,23 @@ interface PhotoUploaderProps extends Omit<UseUploaderOptions, 'max'> {
 
 function PhotoUploader({ maxCount = 3, ...options }: PhotoUploaderProps) {
   const { files, state, open, removeFile, getInputProps } = useUploader({ max: maxCount, ...options });
+
+  const handleImageClick = (index: number) => {
+    const fileIds = files.map((file) => file.id);
+    overlay.open(({ isOpen, close }) => (
+      <FullImageSheet
+        isOpen={isOpen}
+        close={close}
+        images={files.map((file) => file.previewUrl)}
+        initialIndex={index}
+        onRemove={(deleteIndex) => {
+          if (fileIds[deleteIndex]) {
+            removeFile(fileIds[deleteIndex]);
+          }
+        }}
+      />
+    ));
+  };
 
   return (
     <div>
@@ -33,13 +52,14 @@ function PhotoUploader({ maxCount = 3, ...options }: PhotoUploaderProps) {
             </button>
           )}
 
-          {files.map((file) => (
-            <MiniPhotoBox
-              key={file.id}
-              imageUrl={file.previewUrl}
-              className='h-[80px] w-[80px]'
-              onRemove={() => removeFile(file.id)}
-            />
+          {files.map((file, index) => (
+            <div key={file.id} onClick={() => handleImageClick(index)}>
+              <MiniPhotoBox
+                imageUrl={file.previewUrl}
+                className='h-[80px] w-[80px]'
+                onRemove={() => removeFile(file.id)}
+              />
+            </div>
           ))}
         </div>
       )}
