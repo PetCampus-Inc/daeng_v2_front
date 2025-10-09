@@ -34,7 +34,7 @@ function ReportingKindergartenUpdate() {
   const checkedList = useMemo(() => Array.from(checkedSet), [checkedSet]);
   const isChecked = useCallback((key: CheckedKey) => checkedSet.has(key), [checkedSet]);
 
-  const { push } = useStackNavigation();
+  const { push, back } = useStackNavigation();
 
   if (!id) return null;
 
@@ -54,7 +54,11 @@ function ReportingKindergartenUpdate() {
     return params;
   }, [checkedSet, newAddress, businessFiles, priceFiles, phoneFiles, hoursFiles]);
 
-  const { mutate: reportingMutate, isPending } = useReportingMutate(id, reportingParams);
+  const { mutate: reportingMutate, isPending } = useReportingMutate(id, reportingParams, {
+    onSuccess: () => {
+      back();
+    },
+  });
 
   const toggleCheck = useCallback((key: CheckedKey, next: boolean) => {
     setCheckedSet((prev) => {
@@ -135,25 +139,27 @@ function ReportingKindergartenUpdate() {
                           <TextFieldInput value={roadAddress} />
                         </TextField>
                       )}
-                      <TextField
-                        className='w-full'
-                        label='변경할 주소'
-                        suffix={
-                          newAddress && (
-                            <IconButton
-                              icon='DeleteInput'
-                              onClick={() => setNewAddress('')}
-                              className='cursor-pointer text-neutral-700'
-                            />
-                          )
-                        }
-                      >
-                        <TextFieldInput
-                          value={newAddress ?? ''}
-                          readOnly
-                          onChange={(e) => setNewAddress(e.target.value)}
-                        />
-                      </TextField>
+                      {newAddress && (
+                        <TextField
+                          className='w-full'
+                          label='변경할 주소'
+                          suffix={
+                            newAddress && (
+                              <IconButton
+                                icon='DeleteInput'
+                                onClick={() => setNewAddress('')}
+                                className='cursor-pointer text-neutral-700'
+                              />
+                            )
+                          }
+                        >
+                          <TextFieldInput
+                            value={newAddress ?? ''}
+                            readOnly
+                            onChange={(e) => setNewAddress(e.target.value)}
+                          />
+                        </TextField>
+                      )}
                     </div>
 
                     <div className='mt-5 flex gap-2'>
