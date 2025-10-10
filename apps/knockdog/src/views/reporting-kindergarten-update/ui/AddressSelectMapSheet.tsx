@@ -39,7 +39,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal h-screen max-h-screen rounded-none' aria-describedby={'지도에서 선택하기'}>
+      <BottomSheet.Body className='z-modal h-screen max-h-screen rounded-none' aria-label={'지도에서 선택하기'}>
         <BottomSheet.Header className='justify-center'>
           <BottomSheet.CloseButton />
           <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>

@@ -11,13 +11,15 @@ const createReviewQueryOptions = (targetId: string) => ({
   queryFn: () => getReviewList({ targetId, page: 1 }),
 });
 
-const createReviewInfiniteQueryOptions = (targetId: string) => ({
-  queryKey: reviewQueryKeys.infinite(targetId),
-  queryFn: ({ pageParam = 1 }) => getReviewList({ targetId, page: pageParam }),
-  initialPageParam: 1,
-  getNextPageParam: (lastPage: { paging: { hasNext: boolean; currentPage: number } }) => {
-    return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
-  },
-});
+function createReviewInfiniteQueryOptions(targetId: string) {
+  return {
+    queryKey: reviewQueryKeys.infinite(targetId),
+    queryFn: ({ pageParam = 1 }) => getReviewList({ targetId, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: { paging: { hasNext: boolean; currentPage: number } }) => {
+      return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
+    },
+  };
+}
 
 export { reviewQueryKeys, createReviewQueryOptions, createReviewInfiniteQueryOptions };

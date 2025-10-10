@@ -63,7 +63,7 @@ function PricingSection() {
         </div>
         <div>
           <button
-            onClick={() => push({ pathname: `/company/${id}/report-info-update` })}
+            onClick={() => push({ pathname: `/kindergarten/${id}/report-info-update` })}
             className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'
           >
             정보 수정 제보하기

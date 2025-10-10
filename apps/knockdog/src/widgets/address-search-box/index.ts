@@ -1,1 +1,1 @@
-export { default as AddressSearchBox } from './ui/AddressSearchBox';
+export { AddressSearchBox } from './ui/AddressSearchBox';

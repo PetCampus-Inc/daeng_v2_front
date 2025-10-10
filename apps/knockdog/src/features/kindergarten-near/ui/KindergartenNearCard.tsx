@@ -29,15 +29,17 @@ const KindergartenNearCard = ({
   };
 
   return (
-    <div className='min-w-[233px]' onClick={handleClick}>
+    <div className='min-w-[233px]' role='button' onClick={handleClick}>
       <div className='relative mb-2 rounded-lg'>
-        <Image
-          src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${banner[0]}`}
-          alt='페이지 이미지'
-          width={233}
-          height={142}
-          className='h-[142px] w-[233px] rounded-lg object-cover'
-        />
+        {banner?.[0] && process.env.NEXT_PUBLIC_IMAGE_BASE_URL && (
+          <Image
+            src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${banner[0]}`}
+            alt='페이지 이미지'
+            width={233}
+            height={142}
+            className='h-[142px] w-[233px] rounded-lg object-cover'
+          />
+        )}
 
         {/* 뱃지 리스트 */}
         <div className='absolute bottom-2 left-2 flex gap-1'>

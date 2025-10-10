@@ -12,7 +12,7 @@ interface AddressSearchBoxProps {
   onSelect?: (address: JusoItem) => void;
 }
 
-export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
+export function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounced(search, 500);
 
@@ -155,7 +155,7 @@ export default function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
               return (
                 <li
                   key={`${item.bdMgtSn ?? idx}-${idx}`}
-                  className='cursor-pointer border-b border-neutral-100 py-4 last:border-b-0'
+                  className='cursor-pointer border-b border-neutral-100 py-4 transition-colors last:border-b-0 active:bg-neutral-100'
                   onClick={onSelect ? () => onSelect(item) : undefined}
                 >
                   <div className='body2-semibold'>{TextHighlights(main, search)}</div>

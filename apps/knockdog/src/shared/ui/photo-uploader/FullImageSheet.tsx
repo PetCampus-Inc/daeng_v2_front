@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BottomSheet,
   IconButton,
@@ -23,6 +23,12 @@ interface PriceFullImageSheetProps {
 export function FullImageSheet({ isOpen, close, images = [], initialIndex = 0, onRemove }: PriceFullImageSheetProps) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+  }, [initialIndex]);
 
   function handleRemove() {
     onRemove?.(currentIndex);
