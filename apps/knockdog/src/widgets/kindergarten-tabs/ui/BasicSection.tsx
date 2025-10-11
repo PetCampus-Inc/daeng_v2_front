@@ -6,10 +6,12 @@ import { useParams } from 'next/navigation';
 import { LocationMap, ServiceTagBadge } from '@features/kindergarten-basic';
 import { OperationHoursCard } from '@features/kindergarten-basic';
 import { useKindergartenBasicQuery } from '@features/kindergarten-basic';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 function BasicSection() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
+  const { push } = useStackNavigation();
 
   if (!id) throw new Error('Company ID is required for basic section');
 
@@ -100,7 +102,7 @@ function BasicSection() {
       {/* 웹사이트 SNS */}
       <ExternalLinksCard website={homepageUrl} instagram={instagramUrl} youtube={youtubeUrl} />
       {/* 위치 */}
-      <LocationMap address={roadAddress || ''} coord={coord || { lat: 0, lng: 0 }} />
+      {/* <LocationMap address={roadAddress || ''} coord={coord || { lat: 0, lng: 0 }} /> */}
       {/* 최종 정보 업데이트 */}
       <div className='flex justify-between py-4'>
         <div className='flex flex-col'>
@@ -108,12 +110,17 @@ function BasicSection() {
           <span className='body2-regular text-text-tertiary'>{lastUpdatedAt}</span>
         </div>
         <div>
-          <Link
-            href={`/company/${id}/report-info-update`}
+          <button
+            onClick={() =>
+              push({
+                pathname: `/kindergarten/${id}/report-info-update`,
+                query: { roadAddress },
+              })
+            }
             className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'
           >
             정보 수정 제보하기
-          </Link>
+          </button>
         </div>
       </div>
     </div>

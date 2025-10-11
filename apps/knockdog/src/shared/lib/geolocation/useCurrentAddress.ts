@@ -6,7 +6,6 @@ import {
   type ReverseGeocodeStandardResponse,
   extractVWorldItems,
 } from './useReverseGeocodeQuery';
-import { useCurrentLocation } from '@shared/lib/geolocation';
 
 interface Coordinates {
   lat: number;
@@ -26,11 +25,8 @@ interface UseCurrentAddressResult {
   error: string | null;
 }
 
-export function useCurrentAddress(): UseCurrentAddressResult {
-  const { position } = useCurrentLocation();
-  const coords = position ?? undefined;
-
-  const reverseQuery = useReverseGeocodeQuery(coords, !!coords);
+export function useCurrentAddress(coords: Coordinates | undefined, enabled = true): UseCurrentAddressResult {
+  const reverseQuery = useReverseGeocodeQuery(coords, enabled);
 
   return useMemo(
     () => ({

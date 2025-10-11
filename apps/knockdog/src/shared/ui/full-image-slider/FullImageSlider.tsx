@@ -7,23 +7,20 @@ import Image from 'next/image';
 interface FullImageSliderProps {
   initialIndex?: number;
   images: string[];
+  onIndexChange?: (index: number) => void;
 }
 
-export default function FullImageSlider({ initialIndex = 0, images }: FullImageSliderProps) {
+export function FullImageSlider({ initialIndex = 0, images, onIndexChange }: FullImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const handleSlideChange = (currentIndex: number) => {
     setCurrentIndex(currentIndex);
+    onIndexChange?.(currentIndex);
   };
 
   return (
     <div className='h-screen w-full'>
       <div className='flex h-full flex-col'>
-        {/* 헤더 영역 */}
-        <div className='flex flex-shrink-0 justify-between px-4 py-5'>
-          <Icon icon='Close' className='h-5 w-5' />
-          <Icon icon='Trash' className='h-5 w-5' />
-        </div>
         {/* 이미지 영역 */}
         <div className='relative min-h-0 flex-1'>
           <SwiperRoot navigation onSlideChange={handleSlideChange} className='h-full' initialIndex={initialIndex}>

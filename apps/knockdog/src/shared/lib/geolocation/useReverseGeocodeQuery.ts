@@ -39,7 +39,7 @@ async function getReverseGeocode({ lat, lng }: ReverseGeocodeParams): Promise<Re
 }
 
 export function useReverseGeocodeQuery(coord: { lat: number; lng: number } | undefined, enabled = true) {
-  const isEnabled = enabled && !!coord;
+  const isEnabled = enabled && !!coord && coord.lat !== 0 && coord.lng !== 0;
   return useQuery<ReverseGeocodeStandardResponse>({
     queryKey: ['reverse-geocode', coord?.lat, coord?.lng],
     queryFn: () => getReverseGeocode({ lat: coord!.lat, lng: coord!.lng }),

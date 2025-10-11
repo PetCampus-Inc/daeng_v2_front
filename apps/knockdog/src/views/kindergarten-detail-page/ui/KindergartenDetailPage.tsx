@@ -9,7 +9,7 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useParams } from 'next/navigation';
 import { BookmarkToggleIcon } from '@entities/bookmark';
-import { PhoneCallSheet } from '@entities/kindergarten';
+import { PhoneCallSheet } from '@features/kindergarten';
 import { overlay } from 'overlay-kit';
 import { useShare } from '@shared/lib/device';
 
@@ -66,10 +66,10 @@ function KindergartenDetailPage() {
           <Header.ShareButton onClick={handleShare} />
         </Header.RightSection>
       </Header>
-      <div className='mb-[80px] mt-[66px] h-[calc(100vh-146px)] overflow-y-auto' ref={scrollableDivRef}>
-        <div className='mt-[66px]'>
+      <div className='mb-[80px] h-[calc(100vh-146px)] overflow-y-auto' ref={scrollableDivRef}>
+        <div>
           {/* 업체 메인이미지 슬라이드형 */}
-          {/* <MainBannerSwiper images={images ?? []} /> */}
+          <MainBannerSwiper images={images ?? []} />
         </div>
 
         {/* 컨텐츠 영역 */}

@@ -7,6 +7,7 @@ const METHODS = {
   navBack: 'system.navBack',
   navReset: 'system.navReset',
   navReplace: 'system.navReplace',
+  naverOpenRoute: 'naver.openRoute',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];

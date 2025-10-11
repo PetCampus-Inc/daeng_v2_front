@@ -2,6 +2,7 @@ import { Map, Marker } from '@knockdog/react-naver-map';
 import { PlaceMarker } from './PlaceMarker';
 import { CurrentLocationMarker } from './CurrentLocationMarker';
 import { AggregationMarker } from './AggregationMarker';
+import { CurrentSelectionMarker } from './CurrentSelectionMarker';
 import { useGeolocationQuery } from '@shared/lib';
 
 interface OverlayInfo {
@@ -27,6 +28,7 @@ interface MapViewProps {
   onAggregationClick?: (code: string, coord: { lat: number; lng: number }, nextZoom: number) => void;
   selectedMarkerId?: string | null;
   center: { lat: number; lng: number };
+  selection?: { lat: number; lng: number };
   zoom?: number;
   current?: { lat: number; lng: number };
   onLoad?: (map: naver.maps.Map) => void;
@@ -35,6 +37,7 @@ interface MapViewProps {
   onZoomStart?: () => void;
   onZoomChanged?: (zoom: number) => void;
   onZoomEnd?: () => void;
+  onClick?: (coord: { lat: number; lng: number }) => void;
 }
 
 export function MapView(props: MapViewProps) {
@@ -47,6 +50,7 @@ export function MapView(props: MapViewProps) {
     onAggregationClick,
     selectedMarkerId,
     zoom,
+    selection,
     current: currentFromProps,
   } = props;
 
@@ -69,6 +73,12 @@ export function MapView(props: MapViewProps) {
         onDragEnd={props.onDragEnd}
         onZoomStart={props.onZoomStart}
         onZoomEnd={props.onZoomEnd}
+        onClick={(e) => {
+          if (props.onClick) {
+            const coord = { lat: e.coord.y, lng: e.coord.x };
+            props.onClick(coord);
+          }
+        }}
         className='relative h-full w-full'
         minZoom={7}
         maxZoom={19}
@@ -80,6 +90,16 @@ export function MapView(props: MapViewProps) {
             customIcon={{
               content: <CurrentLocationMarker />,
               align: 'center',
+            }}
+          />
+        )}
+
+        {/* 선택된 위치 마커 */}
+        {selection && (
+          <Marker
+            position={selection}
+            customIcon={{
+              content: <CurrentSelectionMarker />,
             }}
           />
         )}

@@ -25,7 +25,7 @@ interface ServiceTagBadgeProps {
 function ServiceTagBadge({ code }: ServiceTagBadgeProps) {
   return (
     <div className='flex flex-col items-center'>
-      <Icon icon={SERVICE_ICON_MAP[code]} className='h-8 w-8' />
+      {SERVICE_ICON_MAP[code] && <Icon icon={SERVICE_ICON_MAP[code]} className='h-8 w-8' />}
       <span className='text-size-caption1 text-text-secondary'>{TOTAL_SERVICE_MAP[code]}</span>
     </div>
   );

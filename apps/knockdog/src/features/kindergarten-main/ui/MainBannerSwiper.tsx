@@ -23,7 +23,7 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
           <SwiperSlideItem key={index}>
             <div className='relative h-[292px] w-full'>
               <Image
-                src={image}
+                src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
                 alt={`업체 이미지 ${index + 1}`}
                 fill
                 sizes='100vw'

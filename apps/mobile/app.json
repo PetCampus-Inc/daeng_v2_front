@@ -18,6 +18,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["nmap"]
+      },
       "splash": {
         "image": "./assets/images/splash.png",
         "resizeMode": "cover",
@@ -65,7 +68,8 @@
         }
       ],
       "expo-font",
-      "expo-router"
+      "expo-router",
+      "./plugins/naver-map-queries"
     ],
 
     "extra": {
