@@ -1,8 +1,9 @@
 import WebView from 'react-native-webview';
-import { type RefObject, useRef, useMemo } from 'react';
+import { type RefObject, useRef, useMemo, useEffect } from 'react';
 import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
 import { buildConsolePatch } from '../lib/consolePatch';
+import { navBridgeHub } from '../model/navBridgeHub';
 import type { InitialState } from '@/types/navigation';
 
 interface Props {
@@ -21,7 +22,9 @@ function buildHistoryStateInjector(state?: InitialState) {
       try {
         var __state = ${json};
         var hasState = __state && (Object.keys(__state).length > 0);
-        if (!hasState) return;
+        if (!hasState) {
+          return;
+        }
 
         // URL 동기화 (query가 있으면 searchParams를 대체)
         var url = new URL(window.location.href);
@@ -41,7 +44,7 @@ function buildHistoryStateInjector(state?: InitialState) {
           history.replaceState(__state, '', window.location.href);
         }
       } catch (e) {
-        // 안전하게 무시
+        console.error('[BridgeWebView] state 주입 실패:', e);
       }
     })();
   `;
@@ -69,6 +72,13 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
     scripts.push(INJECT_STATE);
     return scripts.join('\n');
   }, [CONSOLE_PATCH, INJECT_STATE]);
+
+  // unmount 시 이 WebView가 기다리던 모든 txId 정리
+  useEffect(() => {
+    return () => {
+      navBridgeHub.cleanup(refToUse);
+    };
+  }, [refToUse]);
 
   return (
     <WebView

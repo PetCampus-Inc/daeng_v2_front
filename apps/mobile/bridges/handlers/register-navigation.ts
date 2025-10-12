@@ -2,6 +2,9 @@ import { CommonActions, StackActions } from '@react-navigation/native';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS } from '@knockdog/bridge-core';
 import { isNavReady, navigationRef } from '../lib/navigationRef';
+import type { RefObject } from 'react';
+import type WebView from 'react-native-webview';
+import { navBridgeHub } from '../model/navBridgeHub';
 
 type WebNavPayload = {
   name: string; // 예: '/detail'
@@ -60,20 +63,36 @@ function toRoute(
 
   const initialState = extractInitialState(params);
 
-  return {
-    screen: 'Stack',
+  const route = {
+    screen: 'Stack' as const,
     params: {
       path: buildPath(name, params),
       ...(initialState && { initialState }),
     },
   };
+
+  return route;
 }
 
-function registerNavigationHandlers(router: NativeBridgeRouter) {
+function registerNavigationHandlers(router: NativeBridgeRouter, options?: { currentWebRef: RefObject<WebView> }) {
+  const registerIfTx = (
+    route: { screen: 'Tabs'; params: undefined } | { screen: 'Stack'; params: { path: string; initialState?: any } }
+  ) => {
+    if (route.screen === 'Stack') {
+      const txId = route.params?.initialState?._txId as string | undefined;
+
+      if (txId) {
+        navBridgeHub.register(txId, options?.currentWebRef as RefObject<WebView>);
+      }
+    }
+  };
+
   // Push
   router.register<WebNavPayload>(METHODS.navPush, async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
     const route = toRoute(payload);
+
+    registerIfTx(route);
 
     if (route.screen === 'Tabs') {
       navigationRef.navigate('Tabs');
@@ -101,6 +120,8 @@ function registerNavigationHandlers(router: NativeBridgeRouter) {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
     const route = toRoute(payload);
 
+    registerIfTx(route);
+
     if (route.screen === 'Tabs') {
       navigationRef.dispatch(StackActions.replace('Tabs'));
     } else {
@@ -114,6 +135,8 @@ function registerNavigationHandlers(router: NativeBridgeRouter) {
   router.register<WebNavPayload | undefined>(METHODS.navReset, async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
     const route = toRoute(payload);
+
+    registerIfTx(route);
 
     if (route.screen === 'Tabs') {
       navigationRef.dispatch(

@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useBridge } from './BridgeProvider';
+import { useBridge, useBridgeContext } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId } from '@knockdog/bridge-core';
 
@@ -39,6 +39,7 @@ function useStackNavigation() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bridge = useBridge();
+  const { consumePendingTxId } = useBridgeContext();
 
   const isNative = useMemo(() => isNativeWebView(), []);
 
@@ -49,18 +50,28 @@ function useStackNavigation() {
       const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
       const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
 
+      // BridgeProvider에서 pending txId 가져오기 (useNavigationResult.wait()가 설정)
+      const pendingTxId = consumePendingTxId();
+      // pendingTxId가 있거나 params가 있으면 txId 필요
+      const needsTxId = !!pendingTxId || !!params;
+      // txId: pending이 있으면 사용, 아니면 새로 생성
+      const txId = needsTxId ? pendingTxId || makeId() : null;
+
       if (isNative) {
         // 네이티브 환경 — Bridge로 params도 함께 전달
-        if (params) {
-          const txId = makeId();
+        if (txId) {
           await bridge.request(METHODS.navPush, {
             name: fullPath,
-            params: { query, _txId: txId, _params: params },
+            params: {
+              ...(query && { query }),
+              _txId: txId,
+              ...(params && { _params: params }),
+            },
           });
         } else {
           await bridge.request(METHODS.navPush, {
             name: fullPath,
-            params: { query },
+            ...(query && { params: { query } }),
           });
         }
         return;
@@ -69,10 +80,11 @@ function useStackNavigation() {
       // 웹 환경 Fallback
       let finalQuery = query;
 
-      if (params) {
-        // params가 있을 때만 txId 생성 및 sessionStorage에 저장
-        const txId = makeId();
-        sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
+      if (txId) {
+        if (params) {
+          // params가 있을 때만 sessionStorage에 저장
+          sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
+        }
         finalQuery = { ...query, _txId: txId };
       }
 
@@ -85,7 +97,7 @@ function useStackNavigation() {
         router.push(href, { scroll });
       }
     },
-    [bridge, router, isNative, searchParams]
+    [bridge, router, isNative, searchParams, consumePendingTxId]
   );
 
   const back = useCallback(async () => {
@@ -101,17 +113,25 @@ function useStackNavigation() {
       const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
       const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
 
+      // BridgeProvider에서 pending txId 가져오기
+      const pendingTxId = consumePendingTxId();
+      const needsTxId = !!pendingTxId || !!params;
+      const txId = needsTxId ? pendingTxId || makeId() : null;
+
       if (isNative) {
-        if (params) {
-          const txId = makeId();
+        if (txId) {
           await bridge.request(METHODS.navReplace, {
             name: fullPath,
-            params: { query, _txId: txId, _params: params },
+            params: {
+              ...(query && { query }),
+              _txId: txId,
+              ...(params && { _params: params }),
+            },
           });
         } else {
           await bridge.request(METHODS.navReplace, {
             name: fullPath,
-            params: { query },
+            ...(query && { params: { query } }),
           });
         }
         return;
@@ -119,16 +139,17 @@ function useStackNavigation() {
 
       let finalQuery = query;
 
-      if (params) {
-        const txId = makeId();
-        sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
+      if (txId) {
+        if (params) {
+          sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
+        }
         finalQuery = { ...query, _txId: txId };
       }
 
       const href = buildHref(pathname, finalQuery, searchParams);
       router.replace(href, { scroll });
     },
-    [isNative, bridge, router, searchParams]
+    [isNative, bridge, router, searchParams, consumePendingTxId]
   );
 
   const reset = useCallback(
@@ -136,17 +157,25 @@ function useStackNavigation() {
       const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
       const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
 
+      // BridgeProvider에서 pending txId 가져오기
+      const pendingTxId = consumePendingTxId();
+      const needsTxId = !!pendingTxId || !!params;
+      const txId = needsTxId ? pendingTxId || makeId() : null;
+
       if (isNative) {
-        if (params) {
-          const txId = makeId();
+        if (txId) {
           await bridge.request(METHODS.navReset, {
             name: fullPath,
-            params: { query, _txId: txId, _params: params },
+            params: {
+              ...(query && { query }),
+              _txId: txId,
+              ...(params && { _params: params }),
+            },
           });
         } else {
           await bridge.request(METHODS.navReset, {
             name: fullPath,
-            params: { query },
+            ...(query && { params: { query } }),
           });
         }
         return;
@@ -154,16 +183,17 @@ function useStackNavigation() {
 
       let finalQuery = query;
 
-      if (params) {
-        const txId = makeId();
-        sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
+      if (txId) {
+        if (params) {
+          sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
+        }
         finalQuery = { ...query, _txId: txId };
       }
 
       const href = buildHref(pathname, finalQuery);
       router.replace(href);
     },
-    [bridge, router, isNative]
+    [bridge, router, isNative, consumePendingTxId]
   );
 
   /**

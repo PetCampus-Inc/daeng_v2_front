@@ -54,6 +54,43 @@ class WebBridge {
     return () => this.listeners.get(event)?.delete(cb as (payload: unknown) => void);
   }
 
+  /** 1회성 구독 */
+  once<K extends keyof BridgeEventMap>(event: K, cb: Listener<K>): Unsubscribes {
+    const off = this.on(event, (payload) => {
+      try {
+        cb(payload as any);
+      } finally {
+        off();
+      }
+    });
+    return off;
+  }
+
+  /** Web -> Native 이벤트 전송 */
+  emit<K extends keyof BridgeEventMap>(event: K, payload: BridgeEventMap[K]): void {
+    const id = makeId();
+
+    if (typeof window === 'undefined' || !window.ReactNativeWebView) {
+      // RN WebView가 없으면 이벤트를 보낼 상대가 없음 (웹 단독 환경)
+      // 여기서는 조용히 무시하거나 warn만 남김
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.warn('[WebBridge.emit] ReactNativeWebView not available; event dropped:', String(event));
+      }
+      return;
+    }
+
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        id,
+        type: 'event',
+        event: String(event),
+        payload,
+        meta: { v: BRIDGE_VERSION, source: 'web', ts: Date.now() },
+      } satisfies BridgeMessage)
+    );
+  }
+
   request<K extends RPCMethod>(method: K, params: ParamsOf<K>): Promise<ResultOf<K>>;
   request<T = unknown>(method: string, params?: unknown): Promise<T>;
 
