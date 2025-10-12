@@ -114,7 +114,6 @@ function BasicSection() {
             onClick={() =>
               push({
                 pathname: `/kindergarten/${id}/report-info-update`,
-                query: { roadAddress },
               })
             }
             className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'

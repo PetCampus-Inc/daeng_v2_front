@@ -1,11 +1,12 @@
 'use client';
 
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
 import { ActionButton } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { ReportOptionCard } from '@features/dog-school';
+import { useKindergartenBasicQuery } from '@features/kindergarten-basic';
 import { Header } from '@widgets/Header';
 import { AddressSelectMapSheet } from './AddressSelectMapSheet';
 import { PhotoUploadSection } from './PhotoUploadSection';
@@ -21,9 +22,10 @@ const PHOTO_UPLOAD_KEYS: CheckedKey[] = ['closed', 'price', 'phone', 'time'];
 
 function ReportingKindergartenUpdate() {
   const params = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
-  const roadAddress = searchParams?.get('roadAddress') ?? null;
   const id = params?.id;
+
+  const { data: kindergartenBasic } = useKindergartenBasicQuery(id!);
+  const roadAddress = kindergartenBasic?.roadAddress ?? null;
 
   const { push, back } = useStackNavigation();
   const { isChecked, toggleCheck, newAddress, setNewAddress, setFiles, reportingParams, isFormValid } =

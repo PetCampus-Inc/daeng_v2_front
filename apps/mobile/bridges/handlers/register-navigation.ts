@@ -30,17 +30,43 @@ function buildPath(name: string, params?: WebNavPayload['params']) {
   return queryString ? `${name}${name.includes('?') ? '&' : '?'}${queryString}` : name;
 }
 
+// params에서 initialState(_txId, _params) 추출
+function extractInitialState(params?: WebNavPayload['params']) {
+  if (!params) return undefined;
+
+  // params가 { query, _txId, _params } 형태인 경우
+  if ('_txId' in params || '_params' in params) {
+    const result = {
+      _txId: params._txId as string | undefined,
+      _params: params._params,
+      query: 'query' in params ? params.query : undefined,
+    };
+    return result;
+  }
+
+  return undefined;
+}
+
 /** 웹 경로 → 네이티브 라우트 변환 (Tabs / Stack(path)) */
 function toRoute(
   payload?: WebNavPayload
-): { screen: 'Tabs'; params: undefined } | { screen: 'Stack'; params: { path: string } } {
+): { screen: 'Tabs'; params: undefined } | { screen: 'Stack'; params: { path: string; initialState?: any } } {
   const name = payload?.name ?? '/';
   const params = payload?.params;
 
   if (name === '/' || name === '/home') {
     return { screen: 'Tabs', params: undefined };
   }
-  return { screen: 'Stack', params: { path: buildPath(name, params) } };
+
+  const initialState = extractInitialState(params);
+
+  return {
+    screen: 'Stack',
+    params: {
+      path: buildPath(name, params),
+      ...(initialState && { initialState }),
+    },
+  };
 }
 
 function registerNavigationHandlers(router: NativeBridgeRouter) {

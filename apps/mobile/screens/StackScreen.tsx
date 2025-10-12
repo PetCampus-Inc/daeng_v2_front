@@ -8,12 +8,12 @@ import { RootStackParamList } from '@/types/navigation';
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
 
 export default function StackScreen() {
-  const { path } = useRoute<StackRoute>().params;
+  const { path, initialState } = useRoute<StackRoute>().params;
   const webviewRef = useRef<WebView>(null);
 
   return (
     <>
-      <WebViewScreen uri={path} webviewRef={webviewRef} />
+      <WebViewScreen uri={path} webviewRef={webviewRef} initialState={initialState} />
       <BridgeDebugOverlay />
     </>
   );
