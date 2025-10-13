@@ -1,1 +1,1 @@
-export { default as SearchView } from './ui/SearchView';
+export { InputChip } from './ui/InputChip';

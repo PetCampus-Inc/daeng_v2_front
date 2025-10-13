@@ -1,7 +1,7 @@
 'use client';
 
-import { SearchView } from '@features/search';
+import { SearchPage } from '@views/search-page';
 
 export default function Page() {
-  return <SearchView />;
+  return <SearchPage />;
 }
