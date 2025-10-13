@@ -15,6 +15,13 @@ export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from '.
 /** model */
 export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
 export type {
+  RecentSearchKeyword,
+  RecentView,
+  RegionSearchKeyword,
+  FilterItemSearchKeyword,
+  UserQuerySearchKeyword,
+} from './model/search-history';
+export type {
   KindergartenSearchList,
   Aggregation,
   Kindergarten,
