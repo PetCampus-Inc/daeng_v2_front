@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useBridge, useBridgeContext } from './BridgeProvider';
+import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId } from '@knockdog/bridge-core';
 
@@ -39,28 +39,31 @@ function useStackNavigation() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bridge = useBridge();
-  const { consumePendingTxId } = useBridgeContext();
 
   const isNative = useMemo(() => isNativeWebView(), []);
 
-  const push = useCallback(
-    async (options: PushOptions) => {
+  /**
+   * 내부 helper: 실제 navigation 로직 (txId를 직접 받음)
+   * - push, pushForResult가 공통으로 사용
+   */
+  const executeNavigation = useCallback(
+    async (
+      method: typeof METHODS.navPush | typeof METHODS.navReplace,
+      options: PushOptions,
+      forcedTxId?: string | null
+    ) => {
       const { pathname, query, params, replace, scroll } = options;
 
       const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
       const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
 
-      // BridgeProvider에서 pending txId 가져오기 (useNavigationResult.wait()가 설정)
-      const pendingTxId = consumePendingTxId();
-      // pendingTxId가 있거나 params가 있으면 txId 필요
-      const needsTxId = !!pendingTxId || !!params;
-      // txId: pending이 있으면 사용, 아니면 새로 생성
-      const txId = needsTxId ? pendingTxId || makeId() : null;
+      // forcedTxId가 제공되면 사용, params가 있으면 새로 생성, 아니면 null
+      const txId = forcedTxId !== undefined ? forcedTxId : params ? makeId() : null;
 
       if (isNative) {
-        // 네이티브 환경 — Bridge로 params도 함께 전달
+        // 네이티브 환경
         if (txId) {
-          await bridge.request(METHODS.navPush, {
+          await bridge.request(method, {
             name: fullPath,
             params: {
               ...(query && { query }),
@@ -69,7 +72,7 @@ function useStackNavigation() {
             },
           });
         } else {
-          await bridge.request(METHODS.navPush, {
+          await bridge.request(method, {
             name: fullPath,
             ...(query && { params: { query } }),
           });
@@ -77,12 +80,11 @@ function useStackNavigation() {
         return;
       }
 
-      // 웹 환경 Fallback
+      // 웹 환경
       let finalQuery = query;
 
       if (txId) {
         if (params) {
-          // params가 있을 때만 sessionStorage에 저장
           sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
         }
         finalQuery = { ...query, _txId: txId };
@@ -90,14 +92,20 @@ function useStackNavigation() {
 
       const href = buildHref(pathname, finalQuery, searchParams);
 
-      // replace 또는 push에 따라 분기
-      if (replace) {
+      if (replace || method === METHODS.navReplace) {
         router.replace(href, { scroll });
       } else {
         router.push(href, { scroll });
       }
     },
-    [bridge, router, isNative, searchParams, consumePendingTxId]
+    [bridge, router, isNative, searchParams]
+  );
+
+  const push = useCallback(
+    async (options: PushOptions) => {
+      await executeNavigation(METHODS.navPush, options);
+    },
+    [executeNavigation]
   );
 
   const back = useCallback(async () => {
@@ -110,46 +118,9 @@ function useStackNavigation() {
 
   const replace = useCallback(
     async ({ pathname, query, params, scroll }: Omit<PushOptions, 'replace'>) => {
-      const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
-
-      // BridgeProvider에서 pending txId 가져오기
-      const pendingTxId = consumePendingTxId();
-      const needsTxId = !!pendingTxId || !!params;
-      const txId = needsTxId ? pendingTxId || makeId() : null;
-
-      if (isNative) {
-        if (txId) {
-          await bridge.request(METHODS.navReplace, {
-            name: fullPath,
-            params: {
-              ...(query && { query }),
-              _txId: txId,
-              ...(params && { _params: params }),
-            },
-          });
-        } else {
-          await bridge.request(METHODS.navReplace, {
-            name: fullPath,
-            ...(query && { params: { query } }),
-          });
-        }
-        return;
-      }
-
-      let finalQuery = query;
-
-      if (txId) {
-        if (params) {
-          sessionStorage.setItem(`nav_params_${txId}`, JSON.stringify(params));
-        }
-        finalQuery = { ...query, _txId: txId };
-      }
-
-      const href = buildHref(pathname, finalQuery, searchParams);
-      router.replace(href, { scroll });
+      await executeNavigation(METHODS.navReplace, { pathname, query, params, scroll });
     },
-    [isNative, bridge, router, searchParams, consumePendingTxId]
+    [executeNavigation]
   );
 
   const reset = useCallback(
@@ -157,10 +128,8 @@ function useStackNavigation() {
       const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
       const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
 
-      // BridgeProvider에서 pending txId 가져오기
-      const pendingTxId = consumePendingTxId();
-      const needsTxId = !!pendingTxId || !!params;
-      const txId = needsTxId ? pendingTxId || makeId() : null;
+      // params가 있으면 txId 생성
+      const txId = params ? makeId() : null;
 
       if (isNative) {
         if (txId) {
@@ -181,6 +150,7 @@ function useStackNavigation() {
         return;
       }
 
+      // 웹 환경
       let finalQuery = query;
 
       if (txId) {
@@ -193,7 +163,7 @@ function useStackNavigation() {
       const href = buildHref(pathname, finalQuery);
       router.replace(href);
     },
-    [bridge, router, isNative, consumePendingTxId]
+    [bridge, router, isNative]
   );
 
   /**
@@ -240,7 +210,68 @@ function useStackNavigation() {
     }
   }, [isNative]);
 
-  return { push, back, replace, reset, getParams };
+  /**
+   * 결과를 기다리는 push (wait + push 통합)
+   * - 순서 강제 없음, BridgeProvider 의존성 없음
+   * - useNavigationResult.wait() + push() 대신 이것 하나로 해결
+   *
+   * @example
+   * const result = await navigation.pushForResult<AddressData>({
+   *   pathname: '/address-search',
+   *   query: { type: 'manual' }
+   * });
+   */
+  const pushForResult = useCallback(
+    async <T>(options: Omit<PushOptions, 'replace'>, timeoutMs: number = 30_000): Promise<T> => {
+      const txId = makeId();
+
+      // 1. 이벤트 리스너 먼저 등록 (race condition 방지)
+      const resultPromise = new Promise<T>((resolve, reject) => {
+        let settled = false;
+
+        const timeoutTimer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          reject(new Error(`[pushForResult] 타임아웃: ${timeoutMs}ms 내에 응답이 없습니다. (txId: ${txId})`));
+        }, timeoutMs);
+
+        const offResult = bridge.on('nav.result', (payload: any) => {
+          if (settled || payload.txId !== txId) return;
+          settled = true;
+          clearTimeout(timeoutTimer);
+          cleanup();
+          resolve(payload.result as T);
+        });
+
+        const offCancel = bridge.on('nav.cancel', (payload: any) => {
+          if (settled || payload.txId !== txId) return;
+          settled = true;
+          clearTimeout(timeoutTimer);
+          cleanup();
+          reject(new Error(payload.reason || 'Navigation cancelled'));
+        });
+
+        const cleanup = () => {
+          try {
+            offResult?.();
+          } catch {}
+          try {
+            offCancel?.();
+          } catch {}
+        };
+      });
+
+      // 2. executeNavigation 직접 호출 (forcedTxId 전달)
+      await executeNavigation(METHODS.navPush, options, txId);
+
+      // 3. 결과 대기
+      return resultPromise;
+    },
+    [executeNavigation, bridge]
+  );
+
+  return { push, pushForResult, back, replace, reset, getParams };
 }
 
 export { useStackNavigation };
