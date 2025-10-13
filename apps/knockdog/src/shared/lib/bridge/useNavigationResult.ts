@@ -67,10 +67,17 @@ function useNavigationResult<T>() {
       throw new Error('[useNavigationResult.send] _txId를 찾을 수 없습니다.');
     }
 
+    // result가 직렬화 가능한지 검증
+    let serializedResult: string;
+    try {
+      serializedResult = JSON.stringify({ ok: true, result });
+    } catch (err) {
+      throw new Error('[useNavigationResult.send] result를 직렬화할 수 없습니다.');
+    }
+
     // 웹 환경에서는 sessionStorage에 저장
     if (typeof window !== 'undefined' && !isNativeWebView()) {
-      const payload = JSON.stringify({ ok: true, result });
-      sessionStorage.setItem(`nav_result_${txId}`, payload);
+      sessionStorage.setItem(`nav_result_${txId}`, serializedResult);
       return;
     }
 
@@ -99,9 +106,17 @@ function useNavigationResult<T>() {
       throw new Error('[useNavigationResult.cancel] _txId를 찾을 수 없습니다.');
     }
 
+    // reason이 직렬화 가능한지 검증
+    let serializedPayload: string;
+    try {
+      serializedPayload = JSON.stringify({ ok: false, reason });
+    } catch (err) {
+      throw new Error('[useNavigationResult.cancel] reason을 직렬화할 수 없습니다.');
+    }
+
     // 웹 환경에서는 sessionStorage에 저장
     if (typeof window !== 'undefined' && !isNativeWebView()) {
-      sessionStorage.setItem(`nav_result_${txId}`, JSON.stringify({ ok: false, reason }));
+      sessionStorage.setItem(`nav_result_${txId}`, serializedPayload);
       return;
     }
 

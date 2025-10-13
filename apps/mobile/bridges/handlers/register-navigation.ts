@@ -82,7 +82,13 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       const txId = route.params?.initialState?._txId as string | undefined;
 
       if (txId) {
-        navBridgeHub.register(txId, options?.currentWebRef as RefObject<WebView>);
+        if (!options?.currentWebRef) {
+          if (__DEV__) {
+            console.warn('[registerIfTx] currentWebRef not provided for txId:', txId);
+          }
+          return;
+        }
+        navBridgeHub.register(txId, options.currentWebRef);
       }
     }
   };

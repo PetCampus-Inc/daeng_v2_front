@@ -62,8 +62,11 @@ function createBridgeForWebView(webRef: RefObject<WebView>) {
         return;
       }
 
-      forwardEventTo(targetRef, event, payload);
-      navBridgeHub.resolve(txId);
+      try {
+        forwardEventTo(targetRef, event, payload);
+      } finally {
+        navBridgeHub.resolve(txId);
+      }
     },
   });
 }

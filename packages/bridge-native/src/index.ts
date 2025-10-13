@@ -100,7 +100,11 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter, opt
       if (options?.onWebEvent) {
         try {
           options.onWebEvent(evt.event, evt.payload, webRef);
-        } catch {}
+        } catch (err) {
+          if (__DEV__) {
+            console.error('[wireWebView] onWebEvent error:', err, { event: evt.event });
+          }
+        }
       } else {
         // 옵션 미제공 시: 디버깅 편의로 자기 자신에게 루프백
         sendEvent(evt.event, evt.payload);

@@ -58,7 +58,7 @@ class WebBridge {
   once<K extends keyof BridgeEventMap>(event: K, cb: Listener<K>): Unsubscribes {
     const off = this.on(event, (payload) => {
       try {
-        cb(payload as any);
+        cb(payload);
       } finally {
         off();
       }

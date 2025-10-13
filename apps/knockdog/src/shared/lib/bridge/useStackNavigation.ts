@@ -4,7 +4,7 @@ import { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
-import { METHODS, makeId } from '@knockdog/bridge-core';
+import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
 
 type QueryValue = string | number | boolean | null | undefined;
 type Query = Record<string, QueryValue>;
@@ -211,10 +211,6 @@ function useStackNavigation() {
   }, [isNative]);
 
   /**
-   * 결과를 기다리는 push (wait + push 통합)
-   * - 순서 강제 없음, BridgeProvider 의존성 없음
-   * - useNavigationResult.wait() + push() 대신 이것 하나로 해결
-   *
    * @example
    * const result = await navigation.pushForResult<AddressData>({
    *   pathname: '/address-search',
@@ -252,13 +248,13 @@ function useStackNavigation() {
           };
 
           // 네이티브/브리지 이벤트(모바일)에 의존한 기존 경로
-          const offResult = bridge.on('nav.result', (p: any) => {
+          const offResult = bridge.on('nav.result', (p: BridgeEventMap['nav.result']) => {
             if (settled || p.txId !== txId) return;
             settled = true;
             cleanup();
             resolve(p.result as T);
           });
-          const offCancel = bridge.on('nav.cancel', (p: any) => {
+          const offCancel = bridge.on('nav.cancel', (p: BridgeEventMap['nav.cancel']) => {
             if (settled || p.txId !== txId) return;
             settled = true;
             cleanup();

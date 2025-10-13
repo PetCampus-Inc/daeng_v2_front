@@ -20,28 +20,30 @@ function buildHistoryStateInjector(state?: InitialState) {
   return `
     (function(){
       try {
-        var __state = ${json};
-        var hasState = __state && (Object.keys(__state).length > 0);
+        var __BRIDGE_INITIAL_STATE__ = ${json};
+        var hasState = __BRIDGE_INITIAL_STATE__ && (Object.keys(__BRIDGE_INITIAL_STATE__).length > 0);
         if (!hasState) {
           return;
         }
 
         // URL 동기화 (query가 있으면 searchParams를 대체)
         var url = new URL(window.location.href);
-        if (__state.query && typeof __state.query === 'object') {
+        if (__BRIDGE_INITIAL_STATE__.query && 
+            typeof __BRIDGE_INITIAL_STATE__.query === 'object' && 
+            !Array.isArray(__BRIDGE_INITIAL_STATE__.query)) {
           var sp = new URLSearchParams();
-          Object.keys(__state.query).forEach(function(k){
-            var v = __state.query[k];
+          Object.keys(__BRIDGE_INITIAL_STATE__.query).forEach(function(k){
+            var v = __BRIDGE_INITIAL_STATE__.query[k];
             if (v === null || v === undefined) return; // undefined/null은 쿼리 제외
             sp.set(k, String(v));
           });
           var qs = sp.toString();
           var newHref = url.pathname + (qs ? ('?' + qs) : '') + url.hash;
           // state 주입 + URL 변경
-          history.replaceState(__state, '', newHref);
+          history.replaceState(__BRIDGE_INITIAL_STATE__, '', newHref);
         } else {
           // 쿼리 변경 없으면 URL은 그대로, state만 주입
-          history.replaceState(__state, '', window.location.href);
+          history.replaceState(__BRIDGE_INITIAL_STATE__, '', window.location.href);
         }
       } catch (e) {
         console.error('[BridgeWebView] state 주입 실패:', e);
