@@ -1,10 +1,9 @@
 import { BottomNavBar } from '@widgets/bottom-nav-bar';
 
-export default function Layout({ children, modal }: { children: React.ReactNode; modal: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      {modal}
       <BottomNavBar />
     </>
   );
