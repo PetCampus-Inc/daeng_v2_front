@@ -1,4 +1,6 @@
 /** api */
+export { getKindergartenAutocomplete } from './api/autocomplete';
+export type { KindergartenAutocompleteParams } from './api/autocomplete';
 export { getKindergartenSearchList, getKindergartenAggregation } from './api/kindergarten';
 export type { KindergartenSearchListParams, KindergartenAggregationParams } from './api/kindergarten';
 
@@ -11,6 +13,7 @@ export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from '.
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
 /** model */
+export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
 export type {
   KindergartenSearchList,
   Aggregation,
