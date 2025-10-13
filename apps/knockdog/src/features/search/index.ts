@@ -6,4 +6,4 @@ export { FILTER_ICON_MAP } from './config/icon-map';
 
 /** ui */
 export { AutoCompleteList } from './ui/AutoCompleteList';
-export { RecentKeywordList } from './ui/RecentKeywordList';
+export { RecentlyKeywordList } from './ui/RecentlyKeywordList';

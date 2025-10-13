@@ -2,14 +2,16 @@ import { Icon } from '@knockdog/ui';
 import { FILTER_ICON_MAP } from '../config/icon-map';
 import { isRegionSuggestion } from '../lib/is';
 import { HighlightedText } from './HighlightedText';
-import type { Autocomplete } from '@entities/kindergarten';
+import type { Autocomplete, RegionSuggestion, FilterItemSuggestion } from '@entities/kindergarten';
 
 interface AutoCompleteListProps {
   data: Autocomplete;
   query: string;
+  onSuggestionClick?: (suggestion: RegionSuggestion | FilterItemSuggestion) => void;
+  onPlaceClick?: (shop: { id: string; title: string; roadAddress: string }) => void;
 }
 
-export function AutoCompleteList({ data, query }: AutoCompleteListProps) {
+export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick }: AutoCompleteListProps) {
   const getSuggestionIcon = (suggestion: (typeof data.suggestions)[0]) => {
     if (isRegionSuggestion(suggestion)) return 'Map' as const;
     return FILTER_ICON_MAP[suggestion.code];
@@ -23,21 +25,26 @@ export function AutoCompleteList({ data, query }: AutoCompleteListProps) {
     <div className='flex flex-col'>
       {/* 지역/필터 검색어 제안 */}
       {data.suggestions.map((suggestion, index) => (
-        <div
+        <button
           key={`${suggestion.type}-${suggestion.code}-${index}`}
-          className='py-x4 gap-x2 border-primitive-neutral-100 mx-x4 flex items-center border-b'
+          onClick={() => onSuggestionClick?.(suggestion)}
+          className='py-x4 gap-x2 border-primitive-neutral-100 mx-x4 hover:bg-fill-secondary-50 flex w-full items-center border-b text-left'
         >
           <Icon icon={getSuggestionIcon(suggestion)} className='text-fill-secondary-400' />
           <p className='body1-extrabold text-text-primary'>
             <HighlightedText text={suggestion.label} query={query} />
             <span className='text-text-tertiary'> ({suggestion.count}개)</span>
           </p>
-        </div>
+        </button>
       ))}
 
       {/* 업체 검색어 제안 */}
       {data.shops.map((shop) => (
-        <div key={shop.id} className='py-x4 gap-x2 mx-x4 border-primitive-neutral-100 flex items-center border-b'>
+        <button
+          key={shop.id}
+          onClick={() => onPlaceClick?.({ id: shop.id, title: shop.title, roadAddress: shop.roadAddress })}
+          className='py-x4 gap-x2 mx-x4 border-primitive-neutral-100 hover:bg-fill-secondary-50 flex w-full items-center border-b text-left'
+        >
           <Icon icon='Location' className='text-fill-secondary-400' />
           <div className='gap-x1 flex flex-1 flex-col text-ellipsis'>
             <p className='body1-extrabold text-text-primary'>
@@ -50,7 +57,7 @@ export function AutoCompleteList({ data, query }: AutoCompleteListProps) {
             <span className='label-medium text-text-tertiary'>{shop.ctg}</span>
             <span className='label-medium text-text-tertiary'>{shop.dist.toFixed(1)}km</span>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );

@@ -1,9 +1,11 @@
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { AutoCompleteList, RecentKeywordList, searchQueryOptions } from '@features/search';
+import { useState, useCallback } from 'react';
+import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
+import type { RegionSuggestion, FilterItemSuggestion } from '@entities/kindergarten';
 import { useBasePoint } from '@shared/lib';
+import { useSearchHistory } from '@shared/store';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
   const [query, setQuery] = useState('');
@@ -12,11 +14,57 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     ...searchQueryOptions.autocomplete({ query: query.trim(), lat: coord?.lat, lng: coord?.lng }),
   });
 
+  const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
+
   const router = useRouter();
 
   const handleBack = () => {
     router.back();
   };
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: RegionSuggestion | FilterItemSuggestion) => {
+      if (suggestion.type === 'REGION') {
+        addRecentSearchKeyword({
+          type: 'REGION',
+          label: suggestion.label,
+          code: suggestion.code,
+          coord: suggestion.coord,
+          zoom: suggestion.zoom,
+        });
+      } else {
+        addRecentSearchKeyword({
+          type: 'FILTER_ITEM',
+          label: suggestion.label,
+          code: suggestion.code,
+        });
+      }
+      // TODO: 검색 결과 페이지로 이동
+    },
+    [addRecentSearchKeyword]
+  );
+
+  const handlePlaceClick = useCallback(
+    (shop: { id: string; title: string; roadAddress: string }) => {
+      addRecentView({
+        id: shop.id,
+        label: shop.title,
+        address: shop.roadAddress,
+      });
+      // TODO: 상세 페이지로 이동
+    },
+    [addRecentView]
+  );
+
+  const handleSubmit = useCallback(() => {
+    if (query.trim()) {
+      addRecentSearchKeyword({
+        type: 'USER_QUERY',
+        label: query.trim(),
+      });
+      // TODO: 검색 결과 페이지로 이동
+    }
+  }, [query, addRecentSearchKeyword]);
 
   return (
     <div className='bg-fill-secondary-0 flex h-full flex-col'>
@@ -38,6 +86,11 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSubmit();
+                }
+              }}
             />
             {query && (
               <button
@@ -54,7 +107,16 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
       </div>
 
       <main className='flex-1 overflow-y-auto'>
-        {query.trim() && data ? <AutoCompleteList data={data} query={query} /> : <RecentKeywordList />}
+        {query.trim() && data ? (
+          <AutoCompleteList
+            data={data}
+            query={query}
+            onSuggestionClick={handleSuggestionClick}
+            onPlaceClick={handlePlaceClick}
+          />
+        ) : (
+          <RecentlyKeywordList />
+        )}
       </main>
     </div>
   );
