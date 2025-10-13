@@ -222,51 +222,91 @@ function useStackNavigation() {
    * });
    */
   const pushForResult = useCallback(
-    async <T>(options: Omit<PushOptions, 'replace'>, timeoutMs: number = 30_000): Promise<T> => {
+    async <T>(options: Omit<PushOptions, 'replace'>, timeoutMs = 30_000): Promise<T> => {
       const txId = makeId();
 
-      // 1. 이벤트 리스너 먼저 등록 (race condition 방지)
-      const resultPromise = new Promise<T>((resolve, reject) => {
-        let settled = false;
+      const waitWithWebFallback = (): Promise<T> =>
+        new Promise<T>((resolve, reject) => {
+          let settled = false;
 
-        const timeoutTimer = setTimeout(() => {
-          if (settled) return;
-          settled = true;
-          cleanup();
-          reject(new Error(`[pushForResult] 타임아웃: ${timeoutMs}ms 내에 응답이 없습니다. (txId: ${txId})`));
-        }, timeoutMs);
+          const resolveFromStorage = () => {
+            try {
+              const raw = sessionStorage.getItem(`nav_result_${txId}`);
+              if (!raw) return false;
+              const parsed = JSON.parse(raw);
+              sessionStorage.removeItem(`nav_result_${txId}`);
+              if (!settled) {
+                settled = true;
+                cleanup();
+                if (parsed?.ok) {
+                  resolve(parsed.result as T);
+                } else {
+                  reject(new Error(parsed?.reason || 'Navigation cancelled'));
+                }
+              }
+              return true;
+            } catch (e) {
+              console.error('[pushForResult] Error in resolveFromStorage:', e);
+              return false;
+            }
+          };
 
-        const offResult = bridge.on('nav.result', (payload: any) => {
-          if (settled || payload.txId !== txId) return;
-          settled = true;
-          clearTimeout(timeoutTimer);
-          cleanup();
-          resolve(payload.result as T);
+          // 네이티브/브리지 이벤트(모바일)에 의존한 기존 경로
+          const offResult = bridge.on('nav.result', (p: any) => {
+            if (settled || p.txId !== txId) return;
+            settled = true;
+            cleanup();
+            resolve(p.result as T);
+          });
+          const offCancel = bridge.on('nav.cancel', (p: any) => {
+            if (settled || p.txId !== txId) return;
+            settled = true;
+            cleanup();
+            reject(new Error(p.reason || 'Navigation cancelled'));
+          });
+
+          // 웹 전용 경로: 뒤로 돌아왔을 때 sessionStorage에서 복구
+          const onPop = () => {
+            resolveFromStorage();
+          };
+          const onShow = () => {
+            resolveFromStorage();
+          };
+
+          window.addEventListener('popstate', onPop);
+          window.addEventListener('pageshow', onShow);
+
+          const timer = setTimeout(() => {
+            if (!settled) {
+              settled = true;
+              cleanup();
+              console.error(`[pushForResult] timeout ${timeoutMs}ms (txId=${txId})`);
+              reject(new Error(`[pushForResult] timeout ${timeoutMs}ms (txId=${txId})`));
+            }
+          }, timeoutMs);
+
+          const cleanup = () => {
+            try {
+              offResult?.();
+              offCancel?.();
+            } catch {}
+            clearTimeout(timer);
+            window.removeEventListener('popstate', onPop);
+            window.removeEventListener('pageshow', onShow);
+          };
+
+          // 혹시 이미 저장돼 있으면(매우 드묾) 즉시 처리
+          resolveFromStorage();
         });
 
-        const offCancel = bridge.on('nav.cancel', (payload: any) => {
-          if (settled || payload.txId !== txId) return;
-          settled = true;
-          clearTimeout(timeoutTimer);
-          cleanup();
-          reject(new Error(payload.reason || 'Navigation cancelled'));
-        });
+      // 1) 먼저 대기 시작 (레이스 방지)
+      const waiter = waitWithWebFallback();
 
-        const cleanup = () => {
-          try {
-            offResult?.();
-          } catch {}
-          try {
-            offCancel?.();
-          } catch {}
-        };
-      });
-
-      // 2. executeNavigation 직접 호출 (forcedTxId 전달)
+      // 2) txId를 강제 주입해 이동
       await executeNavigation(METHODS.navPush, options, txId);
 
-      // 3. 결과 대기
-      return resultPromise;
+      // 3) 결과 대기
+      return waiter;
     },
     [executeNavigation, bridge]
   );

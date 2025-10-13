@@ -2,6 +2,7 @@
 
 import { useBridge } from './BridgeProvider';
 import { BridgeEventMap } from '@knockdog/bridge-core';
+import { isNativeWebView } from '@shared/lib/device';
 
 type NavResultEvent<T = unknown> = {
   txId: string;
@@ -44,6 +45,7 @@ function useNavigationResult<T>() {
    */
   const send = (result: T) => {
     const txId = getCurrentTxId();
+
     if (!txId) {
       const errorMsg =
         '[useNavigationResult.send] _txId not found in history.state or URL\n\n' +
@@ -65,6 +67,14 @@ function useNavigationResult<T>() {
       throw new Error('[useNavigationResult.send] _txId를 찾을 수 없습니다.');
     }
 
+    // 웹 환경에서는 sessionStorage에 저장
+    if (typeof window !== 'undefined' && !isNativeWebView()) {
+      const payload = JSON.stringify({ ok: true, result });
+      sessionStorage.setItem(`nav_result_${txId}`, payload);
+      return;
+    }
+
+    // 네이티브 환경에서는 브릿지로 전송
     const payload: BridgeEventMap['nav.result'] = { txId, result };
     bridge.emit(EVENT_RESULT, payload);
   };
@@ -89,6 +99,13 @@ function useNavigationResult<T>() {
       throw new Error('[useNavigationResult.cancel] _txId를 찾을 수 없습니다.');
     }
 
+    // 웹 환경에서는 sessionStorage에 저장
+    if (typeof window !== 'undefined' && !isNativeWebView()) {
+      sessionStorage.setItem(`nav_result_${txId}`, JSON.stringify({ ok: false, reason }));
+      return;
+    }
+
+    // 네이티브 환경에서는 브릿지로 전송
     const payload: BridgeEventMap['nav.cancel'] = { txId, reason };
     bridge.emit(EVENT_CANCEL, payload);
   };
