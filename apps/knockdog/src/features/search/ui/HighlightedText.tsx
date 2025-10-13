@@ -21,9 +21,9 @@ export const HighlightedText = memo(function HighlightedText({ text, query }: Hi
       regex.lastIndex = 0;
 
       return isMatch ? (
-        <span key={index} className='text-text-accent'>
+        <mark key={index} className='text-text-accent bg-transparent'>
           {part}
-        </span>
+        </mark>
       ) : (
         part
       );
