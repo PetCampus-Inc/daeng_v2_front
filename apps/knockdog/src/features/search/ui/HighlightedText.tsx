@@ -8,8 +8,8 @@ interface HighlightedTextProps {
 export const HighlightedText = memo(function HighlightedText({ text, query }: HighlightedTextProps) {
   const regex = useMemo(() => {
     if (!query.trim()) return null;
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`(${escapedQuery})`, 'gi');
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(${escaped})`, 'gi');
   }, [query]);
 
   const highlightedText = useMemo(() => {
@@ -17,8 +17,7 @@ export const HighlightedText = memo(function HighlightedText({ text, query }: Hi
 
     const parts = text.split(regex);
     return parts.map((part, index) => {
-      const isMatch = regex.test(part);
-      regex.lastIndex = 0;
+      const isMatch = index % 2 === 1;
 
       return isMatch ? (
         <mark key={index} className='text-text-accent bg-transparent'>
