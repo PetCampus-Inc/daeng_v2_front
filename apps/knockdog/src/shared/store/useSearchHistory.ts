@@ -1,82 +1,27 @@
-import { create } from 'zustand';
+import { useState, useEffect, useCallback } from 'react';
+import { MAX_RECENT_ITEMS, STORAGE_KEYS } from '../constants';
+import type { RecentView, RecentSearchKeyword } from '@entities/kindergarten';
+import { TypedStorage } from '@shared/lib';
 
-import { TypedStorage } from '../lib';
-import { STORAGE_KEYS, MAX_RECENT_ITEMS } from '../constants';
-
-export interface RecentPlace {
-  code: string;
-  label: string;
-  images: string;
-}
-
-export interface SearchKeywordBase<
-  T extends 'REGION' | 'FILTER_ITEM' | 'USER_QUERY',
-> {
-  type: T;
-  label: string;
-  code?: string;
-  coord?: { lat: number; lng: number } | null;
-  count?: number;
-  zoom?: number;
-}
-
-export type RegionSearchKeyword = SearchKeywordBase<'REGION'>;
-
-export type FilterItemSearchKeyword = SearchKeywordBase<'FILTER_ITEM'>;
-
-export type UserQuerySearchKeyword = SearchKeywordBase<'USER_QUERY'>;
-
-type RecentSearchKeyword =
-  | RegionSearchKeyword
-  | FilterItemSearchKeyword
-  | UserQuerySearchKeyword;
-
-interface SearchHistoryStore {
-  recentPlaces: RecentPlace[];
-  recentSearchKeywords: RecentSearchKeyword[];
-
-  addRecentPlace: (place: RecentPlace) => void;
-  removeRecentPlace: (code: string) => void;
-  clearRecentPlaces: () => void;
-
-  addRecentSearchKeyword: (keyword: RecentSearchKeyword) => void;
-  removeRecentSearchKeyword: (index: number) => void;
-  clearRecentSearchKeywords: () => void;
-
-  initialize: () => void;
-}
-
-const recentPlacesStorage = new TypedStorage<RecentPlace[]>(
-  STORAGE_KEYS.RECENT_PLACE,
-  { initialValue: [] }
-);
-
-const recentSearchKeywordsStorage = new TypedStorage<RecentSearchKeyword[]>(
-  STORAGE_KEYS.RECENT_SEARCH_KEYWORD,
-  { initialValue: [] }
-);
+const recentViewStorage = new TypedStorage<RecentView[]>(STORAGE_KEYS.RECENTLY_VIEWED_PLACE);
+const recentKeywordStorage = new TypedStorage<RecentSearchKeyword[]>(STORAGE_KEYS.RECENTLY_SEARCHED_KEYWORD);
 
 /**
- * 최근 찾아본 장소 추가
- * @param items - 최근 찾아본 장소 목록
+ * 찾아본 뷰 추가
+ * @param items - 최근 찾아본 뷰 목록
  * @param newItem - 추가할 장소 정보
  * @param maxItems - 최대 개수
  */
-const addToHistory = <T extends { code: string }>(
-  items: T[],
-  newItem: T,
-  maxItems: number
-): T[] => {
-  const filtered = items.filter((item) => item.code !== newItem.code);
+const addViewToHistory = <T extends { id: string }>(items: T[], newItem: T, maxItems: number): T[] => {
+  const filtered = items.filter((item) => item.id !== newItem.id);
 
   const updated = [newItem, ...filtered];
 
-  // 최대 개수 제한
   return updated.slice(0, maxItems);
 };
 
 /**
- * 최근 검색어 추가
+ * 검색어 추가
  * @param items - 최근 검색어 목록
  * @param newItem - 추가할 검색어 정보
  * @param maxItems - 최대 개수
@@ -86,7 +31,6 @@ const addSearchKeywordToHistory = (
   newItem: RecentSearchKeyword,
   maxItems: number
 ): RecentSearchKeyword[] => {
-  // 중복 검사
   const filtered = items.filter((item) => {
     if (item.type !== newItem.type) return true;
     if (item.label !== newItem.label) return true;
@@ -104,114 +48,109 @@ const addSearchKeywordToHistory = (
   return updated.slice(0, maxItems);
 };
 
-export const useSearchHistory = create<SearchHistoryStore>((set, get) => ({
-  recentPlaces: [],
-  recentSearchKeywords: [],
+export function useSearchHistory() {
+  const [views, setViews] = useState<RecentView[]>([]);
+  const [keywords, setKeywords] = useState<RecentSearchKeyword[]>([]);
+
+  useEffect(() => {
+    setViews(recentViewStorage.get() ?? []);
+    setKeywords(recentKeywordStorage.get() ?? []);
+  }, []);
 
   /**
-   * 최근 찾아본 장소 추가
-   * @param place - 추가할 장소 정보
+   * 최근 찾아본 뷰 추가
    */
-  addRecentPlace: (place) => {
-    if (!place?.code || !place?.label) {
-      console.warn('Invalid place data:', place);
-      return;
-    }
+  const addView = useCallback(
+    (view: RecentView) => {
+      if (!view?.id || !view?.label) {
+        console.warn('Invalid view data:', view);
+        return;
+      }
 
-    const { recentPlaces } = get();
-    const updatedPlaces = addToHistory(recentPlaces, place, MAX_RECENT_ITEMS);
-
-    set({ recentPlaces: updatedPlaces });
-    recentPlacesStorage.set(updatedPlaces);
-  },
+      const updated = addViewToHistory(views, view, MAX_RECENT_ITEMS);
+      setViews(updated);
+      recentViewStorage.set(updated);
+    },
+    [views]
+  );
 
   /**
-   * 최근 찾아본 장소 삭제
-   * @param code - 삭제할 장소 코드
+   * 최근 찾아본 뷰 삭제
    */
-  removeRecentPlace: (code) => {
-    if (!code) {
-      console.warn('Invalid place code for removal');
-      return;
-    }
+  const removeView = useCallback(
+    (id: string) => {
+      if (!id) {
+        console.warn('Invalid place id for removal');
+        return;
+      }
 
-    const { recentPlaces } = get();
-    const updatedPlaces = recentPlaces.filter((place) => place.code !== code);
-
-    set({ recentPlaces: updatedPlaces });
-    recentPlacesStorage.set(updatedPlaces);
-  },
+      const updated = views.filter((place) => place.id !== id);
+      setViews(updated);
+      recentViewStorage.set(updated);
+    },
+    [views]
+  );
 
   /**
-   * 최근 찾아본 장소 초기화
+   * 최근 찾아본 뷰 초기화
    */
-  clearRecentPlaces: () => {
-    set({ recentPlaces: [] });
-    recentPlacesStorage.clear();
-  },
+  const clearViews = useCallback(() => {
+    setViews([]);
+    recentViewStorage.clear();
+  }, []);
 
   /**
-   * 최근 검색어 추가
-   * @param keyword - 추가할 검색어 정보
+   * 검색어 추가
+   * @param keyword {RecentSearchKeyword}
    */
-  addRecentSearchKeyword: (keyword) => {
-    if (!keyword?.type || !keyword?.label) {
-      console.warn('Invalid keyword data:', keyword);
-      return;
-    }
+  const addKeyword = useCallback(
+    (keyword: RecentSearchKeyword) => {
+      if (!keyword?.type || !keyword?.label) {
+        console.warn('Invalid keyword data:', keyword);
+        return;
+      }
 
-    const { recentSearchKeywords } = get();
-    const updatedKeywords = addSearchKeywordToHistory(
-      recentSearchKeywords,
-      keyword,
-      MAX_RECENT_ITEMS
-    );
-
-    set({ recentSearchKeywords: updatedKeywords });
-    recentSearchKeywordsStorage.set(updatedKeywords);
-  },
+      const updated = addSearchKeywordToHistory(keywords, keyword, MAX_RECENT_ITEMS);
+      setKeywords(updated);
+      recentKeywordStorage.set(updated);
+    },
+    [keywords]
+  );
 
   /**
-   * 최근 검색어 삭제
-   * @param index - 삭제할 검색어 인덱스
+   * 검색어 삭제
+   * @param index {number}
    */
-  removeRecentSearchKeyword: (index) => {
-    if (typeof index !== 'number' || index < 0) {
-      console.warn('Invalid index for keyword removal:', index);
-      return;
-    }
+  const removeKeyword = useCallback(
+    (index: number) => {
+      if (typeof index !== 'number' || index < 0 || index >= keywords.length) {
+        console.warn('Invalid index for keyword removal:', index);
+        return;
+      }
 
-    const { recentSearchKeywords } = get();
-
-    if (index >= recentSearchKeywords.length) {
-      console.warn('Index out of bounds for keyword removal:', index);
-      return;
-    }
-
-    const updatedKeywords = recentSearchKeywords.filter((_, i) => i !== index);
-
-    set({ recentSearchKeywords: updatedKeywords });
-    recentSearchKeywordsStorage.set(updatedKeywords);
-  },
+      const updated = keywords.filter((_, i) => i !== index);
+      setKeywords(updated);
+      recentKeywordStorage.set(updated);
+    },
+    [keywords]
+  );
 
   /**
-   * 최근 검색어 초기화
+   * 검색어 초기화
    */
-  clearRecentSearchKeywords: () => {
-    set({ recentSearchKeywords: [] });
-    recentSearchKeywordsStorage.clear();
-  },
+  const clearKeywords = useCallback(() => {
+    setKeywords([]);
+    recentKeywordStorage.clear();
+  }, []);
 
-  /**
-   * 최근 검색어 및 찾아본 장소 가져오기(초기화)
-   */
-  initialize: () => {
-    const places = recentPlacesStorage.get() ?? [];
-    const keywords = recentSearchKeywordsStorage.get() ?? [];
-
-    set({
-      recentPlaces: places,
-      recentSearchKeywords: keywords,
-    });
-  },
-}));
+  return {
+    recentView: views,
+    recentSearchKeywords: keywords,
+    addRecentView: addView,
+    removeRecentView: removeView,
+    clearRecentViews: clearViews,
+    addRecentSearchKeyword: addKeyword,
+    removeRecentSearchKeyword: removeKeyword,
+    clearRecentSearchKeywords: clearKeywords,
+  };
+}
