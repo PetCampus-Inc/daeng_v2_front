@@ -87,7 +87,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
                   handleSubmit();
                 }
               }}
