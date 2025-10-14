@@ -14,7 +14,7 @@ interface AutoCompleteListProps {
 export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick }: AutoCompleteListProps) {
   const getSuggestionIcon = (suggestion: (typeof data.suggestions)[0]) => {
     if (isRegionSuggestion(suggestion)) return 'Map' as const;
-    return FILTER_ICON_MAP[suggestion.code];
+    return FILTER_ICON_MAP[suggestion.code] ?? 'Location';
   };
 
   if (data.suggestions.length === 0 && data.shops.length === 0) {
