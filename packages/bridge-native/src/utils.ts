@@ -28,4 +28,16 @@ function normalizeError(err: unknown, fallback: { code?: BridgeErrorCode; messag
   };
 }
 
-export { normalizeError };
+/**
+ * JSON.stringify 결과를 injectJavaScript에서 안전하게 사용할 수 있도록 이스케이프
+ * - </script 태그 이스케이프
+ * - U+2028 (Line Separator), U+2029 (Paragraph Separator) 이스케이프
+ */
+function serializeForJS(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/<\/script/gi, '<\\/script')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+export { normalizeError, serializeForJS };

@@ -1,27 +1,36 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { AddressSearchBox } from '@widgets/address-search-box';
 import type { AddressSearchResult } from '@entities/address';
 import { Header } from '@widgets/Header';
+import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
-// @TODO : StackComponent 구현시 보완 필요
+type AddressData = {
+  roadAddr: string;
+  jibunAddr: string;
+  siNm: string;
+  sggNm: string;
+  emdNm: string;
+  zipNo: string;
+};
+
 export default function Page() {
-  const router = useRouter();
+  const { send } = useNavigationResult<AddressData>();
+  const { back } = useStackNavigation();
 
-  // FIX: 가희
-  const handleAddressSelect = (address: NonNullable<AddressSearchResult['results']['juso']>[0]) => {
-    // 선택된 주소 정보를 URL 파라미터로 인코딩
-    const addressData = encodeURIComponent(
-      JSON.stringify({
-        roadAddr: address.roadAddr,
-        jibunAddr: address.jibunAddr,
-        siNm: address.siNm,
-        sggNm: address.sggNm,
-        emdNm: address.emdNm,
-        zipNo: address.zipNo,
-      })
-    );
+  const handleAddressSelect = async (address: NonNullable<AddressSearchResult['results']['juso']>[0]) => {
+    // 선택된 주소 정보를 이전 화면으로 전달
+    send({
+      roadAddr: address.roadAddr ?? '',
+      jibunAddr: address.jibunAddr ?? '',
+      siNm: address.siNm ?? '',
+      sggNm: address.sggNm ?? '',
+      emdNm: address.emdNm ?? '',
+      zipNo: address.zipNo ?? '',
+    });
+
+    // 명시적으로 뒤로 가기
+    await back();
   };
 
   return (

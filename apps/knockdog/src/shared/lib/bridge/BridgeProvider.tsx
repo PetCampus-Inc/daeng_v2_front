@@ -3,12 +3,23 @@
 import { createContext, useContext, useMemo } from 'react';
 import { WebBridge } from '@knockdog/bridge-web';
 
-const BridgeContext = createContext<WebBridge | null>(null);
+interface BridgeContextValue {
+  bridge: WebBridge;
+}
+
+const BridgeContext = createContext<BridgeContextValue | null>(null);
 
 function BridgeProvider({ children }: { children: React.ReactNode }) {
   const bridge = useMemo(() => new WebBridge(), []);
 
-  return <BridgeContext.Provider value={bridge}>{children}</BridgeContext.Provider>;
+  const value = useMemo(
+    () => ({
+      bridge,
+    }),
+    [bridge]
+  );
+
+  return <BridgeContext.Provider value={value}>{children}</BridgeContext.Provider>;
 }
 
 function useBridge() {
@@ -16,7 +27,7 @@ function useBridge() {
   if (!context) {
     throw new Error('useBridge must be used within a BridgeProvider');
   }
-  return context;
+  return context.bridge;
 }
 
 export { BridgeProvider, useBridge };

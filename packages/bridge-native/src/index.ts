@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { BRIDGE_VERSION, safeParse, type BridgeRequest, type BridgeMessage } from '@knockdog/bridge-core';
-import { normalizeError } from './utils';
+import { normalizeError, serializeForJS } from './utils';
 
 /** 네이티브에서 실행될 핸들러 타입 (요청 -> 응답) */
 type NativeHandler = (params: unknown) => unknown | Promise<unknown>;
@@ -44,14 +44,18 @@ class NativeBridgeRouter {
 
 /** RN -> Web 전송: injectJavaScript로 웹 전역 리시버 호출 */
 function sendToWeb(webRef: RefObject<WebView>, msg: BridgeMessage) {
-  // JSON 직렬화 & 스크립트 컨텍스트 이스케이프(</script>, U+2028/2029)
-  const safe = JSON.stringify(msg)
-    .replace(/<\/script/gi, '<\\/script')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
-
+  const safe = serializeForJS(msg);
   webRef?.current?.injectJavaScript(`window.__bridge?.receive(${safe}); true;`);
 }
+
+type WireOptions = {
+  /**
+   * Web(이 화면의 WebView)에서 올라온 이벤트를 네이티브 앱 레벨로 끌어올리는 훅.
+   * - nav.result / nav.cancel 같은 이벤트를 받아 이전 스택(A)의 WebView로 전달할 때 사용
+   * - (event, payload, sourceWebRef) 제공
+   */
+  onWebEvent?: (event: string, payload: unknown, source: RefObject<WebView>) => void;
+};
 
 /**
  * 네이티브(WebView 화면)에서 쓸 헬퍼
@@ -59,7 +63,7 @@ function sendToWeb(webRef: RefObject<WebView>, msg: BridgeMessage) {
  * - sendEvent: Native → Web 이벤트 브로드캐스트
  * - notifyReady: 브릿지 준비 및 지원 메서드 목록 통지
  */
-function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
+function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter, options?: WireOptions) {
   /** Web -> Native */
   const onMessage = async (e: WebViewMessageEvent) => {
     const raw = e?.nativeEvent?.data;
@@ -90,9 +94,26 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
       return;
     }
 
+    if ((msg as any).type === 'event') {
+      const evt = msg as BridgeMessage & { type: 'event'; event: string; payload?: unknown };
+      // 앱 레벨 라우터로 올려보냄
+      if (options?.onWebEvent) {
+        try {
+          options.onWebEvent(evt.event, evt.payload, webRef);
+        } catch (err) {
+          if (__DEV__) {
+            console.error('[wireWebView] onWebEvent error:', err, { event: evt.event });
+          }
+        }
+      } else {
+        // 옵션 미제공 시: 디버깅 편의로 자기 자신에게 루프백
+        sendEvent(evt.event, evt.payload);
+      }
+      return;
+    }
+
     // 브릿지 요청 처리
     if ((msg as any).type !== 'request') return;
-
     const req = msg as BridgeRequest;
 
     // 필수 필드 확인
@@ -148,4 +169,4 @@ function wireWebView(webRef: RefObject<WebView>, router: NativeBridgeRouter) {
 }
 
 export type { NativeHandler };
-export { NativeBridgeRouter, wireWebView, normalizeError };
+export { NativeBridgeRouter, wireWebView, normalizeError, serializeForJS };
