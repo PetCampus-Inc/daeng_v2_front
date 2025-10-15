@@ -30,7 +30,7 @@
     "@knockdog/typescript-config": "workspace:*",
     "@radix-ui/react-compose-refs": "^1.1.2",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
-    "bunchee": "^5.1.5"
+    "bunchee": "^6.6.2"
   },
   "peerDependencies": {
     "react": "^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc",

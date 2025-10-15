@@ -27,6 +27,6 @@
   },
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*",
-    "bunchee": "^5.1.5"
+    "bunchee": "^6.6.2"
   }
 }
