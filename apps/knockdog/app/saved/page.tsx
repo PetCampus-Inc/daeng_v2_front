@@ -2,7 +2,33 @@
 
 import { useMemo, useState } from 'react';
 
-/* 공용: 핑크 배경 + img (로드 실패 시 분홍 유지) */
+/* =========================
+ * 타입 (히스토리 API 인터페이스)
+ * ========================= */
+/* eslint-disable @next/next/no-img-element */ // PinkImg에서 <img> 허용
+
+// ===== 인터페이스(조회) — 실제 API 스펙과 맞춤 =====
+type KindergartenCategory = 'HOTEL' | 'GROOMING' | 'KINDERGARTEN' | 'PET_SHOP';
+
+interface Kindergarten {
+  id: string;
+  name: string;
+  thumbnailS3Key: string;
+  categories: KindergartenCategory[];
+}
+
+/** 날짜 배열은 API에서 7개 요소가 오지만 안전하게 undefined 허용 */
+type IsoLikeTuple = ReadonlyArray<number | undefined>;
+
+/** 비교 히스토리 */
+export interface ComparisonHistory {
+  id: number;
+  kindergartens: Kindergarten[]; // 항상 2개가 온다고 가정하지만, TS는 안전하게
+  comparedAt: IsoLikeTuple; // ← 여기!
+}
+/* =========================
+ * 공통: 분홍 배경 + <img> (로딩 실패 시 분홍 유지)
+ * ========================= */
 function PinkImg({ src, className = '' }: { src?: string; className?: string }) {
   return (
     <div className={`overflow-hidden bg-pink-200 ${className}`}>
@@ -18,12 +44,52 @@ function PinkImg({ src, className = '' }: { src?: string; className?: string }) 
   );
 }
 
-/* ================== 페이지 ================== */
+/* =========================
+ * 유틸
+ * ========================= */
+// S3 키를 퍼블릭 URL로 바꾸려면 여기 맵핑
+const s3ToUrl = (key?: string): string | undefined => {
+  if (!key) return undefined;
+  // TODO: CDN 도메인 확정되면 변경
+  return `https://cdn.example.com/${encodeURI(key)}`;
+};
+
+/** 숫자 2자리 패딩 */
+const pad2 = (val: number) => (val < 10 ? `0${val}` : `${val}`);
+
+/** API가 주는 배열 → JS Date (요소가 비어도 안전하게 기본값 대입) */
+const dateFromArray = (arr: IsoLikeTuple): Date => {
+  const [y, mo, d, h, mi, s] = arr;
+  return new Date(y ?? 1970, (mo ?? 1) - 1, d ?? 1, h ?? 0, mi ?? 0, s ?? 0);
+};
+
+/** YYYY.MM.DD 포맷 */
+const formatYmd = (arr: IsoLikeTuple) => {
+  const d = dateFromArray(arr);
+  return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
+};
+
+/* =========================
+ * 페이지
+ * ========================= */
+type FavoriteItem = {
+  id: number;
+  name: string;
+  type: string;
+  img?: string;
+  distance: string;
+  location: string;
+  priceLabel: string;
+  price: string;
+  reviewCount: number;
+  memoDate: string;
+};
+
 export default function SavedPage() {
   const [tab, setTab] = useState<'fav' | 'history'>('fav');
 
-  // 여기 길이를 0으로 만들면 '관심 유치원 비어있음' 화면이 나옵니다.
-  const favorites = useMemo(
+  // 관심 유치원 목데이터 (빈 상태 보려면 []로 변경)
+  const favorites = useMemo<FavoriteItem[]>(
     () => [
       {
         id: 1,
@@ -65,37 +131,86 @@ export default function SavedPage() {
     []
   );
 
-  // 비교 기록 더미(단일 화면)
-  const historyGroups = useMemo(
-    () => [
-      {
-        date: '2025.06.02',
-        items: [
-          {
-            highlight: '바우라움 유치원을 더 선호해요!',
-            left: { name: '바우라움 유치원', type: '유치원 · 호텔', img: '/dog1.png' },
-            right: { name: '다독강아지 유치원', type: '유치원 · 호텔', img: '/dog2.png' },
-          },
-          {
-            left: { name: '바우라움 유치원', type: '유치원 · 호텔', img: '/dog1.png' },
-            right: { name: '다독강아지 유치원', type: '유치원 · 호텔', img: '/dog2.png' },
-          },
-        ],
-      },
-      {
-        date: '2025.06.01',
-        items: [
-          {
-            left: { name: '바우라움 유치원', type: '유치원 · 호텔', img: '/dog1.png' },
-            right: { name: '다독강아지 유치원', type: '유치원 · 호텔', img: '/dog2.png' },
-          },
-        ],
-      },
-    ],
-    []
-  );
+  // 비교 기록 목데이터 (API 응답 그대로)
+  const [history, setHistory] = useState<ComparisonHistory[]>([
+    {
+      id: 2,
+      kindergartens: [
+        {
+          id: '13561634',
+          name: '모모의고양이호텔',
+          thumbnailS3Key: '서울특별시/노원구/13561634/thumbnail.JPG',
+          categories: ['HOTEL'],
+        },
+        {
+          id: '18662526',
+          name: '은평애견',
+          thumbnailS3Key: '서울특별시/은평구/18662526/thumbnail.jpg',
+          categories: ['HOTEL', 'GROOMING'],
+        },
+      ],
+      comparedAt: [2025, 10, 11, 6, 8, 58, 173448000],
+    },
+    {
+      id: 3,
+      kindergartens: [
+        {
+          id: '13561634',
+          name: '모모의고양이호텔',
+          thumbnailS3Key: '서울특별시/노원구/13561634/thumbnail.JPG',
+          categories: ['HOTEL'],
+        },
+        {
+          id: '20555087',
+          name: '곁에 있을개',
+          thumbnailS3Key: '서울특별시/강서구/20555087/thumbnail.jpg',
+          categories: ['KINDERGARTEN', 'HOTEL', 'GROOMING', 'PET_SHOP'],
+        },
+      ],
+      comparedAt: [2025, 10, 11, 4, 39, 44, 822818000],
+    },
+    {
+      id: 1,
+      kindergartens: [
+        {
+          id: '13561634',
+          name: '모모의고양이호텔',
+          thumbnailS3Key: '서울특별시/노원구/13561634/thumbnail.JPG',
+          categories: ['HOTEL'],
+        },
+        {
+          id: '13288005',
+          name: '꼬마애견',
+          thumbnailS3Key: '서울특별시/중랑구/13288005/thumbnail.jpg',
+          categories: ['HOTEL', 'GROOMING', 'PET_SHOP'],
+        },
+      ],
+      comparedAt: [2025, 10, 11, 4, 28, 0, 354260000],
+    },
+  ]);
+
+  // 날짜별 그룹핑 (최신일자 먼저)
+  const historyGroups = useMemo(() => {
+    const map = new Map<string, ComparisonHistory[]>();
+
+    for (const item of history) {
+      const key = formatYmd(item.comparedAt); // comparedAt: IsoLikeTuple
+      const list = map.get(key) ?? [];
+      list.push(item);
+      map.set(key, list);
+    }
+
+    return Array.from(map.entries())
+      .sort(([a], [b]) => (a > b ? -1 : 1))
+      .map(([date, items]) => ({ date, items }));
+  }, [history]);
 
   const favCount = favorites.length;
+
+  // (나중에) DELETE /api/v0/kindergarten/comparisons/{historyId}
+  const onDeleteHistory = (id: number) => {
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+  };
 
   return (
     <div className='flex min-h-screen flex-col bg-white'>
@@ -130,7 +245,7 @@ export default function SavedPage() {
         </button>
       </div>
 
-      {/* 필터 바 */}
+      {/* 필터 바 (디자인 상 탭 공통) */}
       <div className='flex items-center justify-between border-b border-gray-100 px-3 py-2 text-sm'>
         <label className='flex items-center gap-2'>
           <span className='inline-block h-2.5 w-2.5 rounded-full bg-orange-500' />
@@ -153,10 +268,10 @@ export default function SavedPage() {
             <FavList items={favorites} />
           )
         ) : (
-          <HistoryList groups={historyGroups} />
+          <HistoryList groups={historyGroups} onDelete={onDeleteHistory} />
         )}
 
-        {/* 관심유치원 탭에서만 플로팅 버튼 노출(데이터 있을 때) */}
+        {/* 관심유치원 탭에서만 플로팅 버튼(데이터 있을 때) */}
         {tab === 'fav' && favCount > 0 && (
           <button
             className='fixed bottom-20 right-4 flex items-center gap-2 rounded-full bg-black/85 px-4 py-3 text-xs font-semibold text-white shadow-lg'
@@ -195,17 +310,17 @@ function FavEmpty() {
 }
 
 /* ========== 관심 유치원: 리스트 상태 ========== */
-function FavList({ items }: { items: any[] }) {
+function FavList({ items }: { items: FavoriteItem[] }) {
   return (
     <div className='pb-24'>
-      {items.map((value) => (
-        <FavRow key={value.id} item={value} />
+      {items.map((item) => (
+        <FavRow key={item.id} item={item} />
       ))}
     </div>
   );
 }
 
-function FavRow({ item }: { item: any }) {
+function FavRow({ item }: { item: FavoriteItem }) {
   return (
     <div className='flex items-start gap-3 border-b border-[#F3F3F7] bg-white px-3 py-3'>
       {/* 썸네일 */}
@@ -215,7 +330,7 @@ function FavRow({ item }: { item: any }) {
       <div className='min-w-0 flex-1'>
         <div className='flex items-start justify-between'>
           <h3 className='truncate text-base font-bold leading-tight'>{item.name}</h3>
-          {/* 북마크 */}
+          {/* 북마크(저장됨) */}
           <button className='shrink-0 p-1 text-gray-600' aria-label='저장됨'>
             <svg className='h-5 w-5' viewBox='0 0 24 24' fill='currentColor'>
               <path d='M6 2a2 2 0 0 0-2 2v18l8-4 8 4V4a2 2 0 0 0-2-2H6z' />
@@ -262,19 +377,21 @@ function FavRow({ item }: { item: any }) {
   );
 }
 
-/* ========== 비교 기록: 단일 화면 ========== */
+/* ========== 비교 기록 ========== */
 function HistoryList({
   groups,
+  onDelete,
 }: {
-  groups: { date: string; items: { highlight?: string; left: any; right: any }[] }[];
+  groups: { date: string; items: ComparisonHistory[] }[];
+  onDelete: (id: number) => void;
 }) {
   return (
     <div className='space-y-8 px-4 py-6'>
       {groups.map((g) => (
         <section key={g.date} className='space-y-3'>
           <h3 className='text-sm font-semibold text-gray-800'>{g.date}</h3>
-          {g.items.map((it, i) => (
-            <HistoryCard key={g.date + i} {...it} />
+          {g.items.map((it) => (
+            <HistoryCard key={it.id} history={it} onDelete={() => onDelete(it.id)} />
           ))}
         </section>
       ))}
@@ -282,37 +399,38 @@ function HistoryList({
   );
 }
 
-function HistoryCard({
-  highlight,
-  left,
-  right,
-}: {
-  highlight?: string;
-  left: { name: string; type: string; img?: string };
-  right: { name: string; type: string; img?: string };
-}) {
+function HistoryCard({ history, onDelete }: { history: ComparisonHistory; onDelete?: (id: number) => void }) {
+  const left = history.kindergartens[0];
+  const right = history.kindergartens[1];
+
+  // 혹시라도 2개가 안 오면 렌더 스킵(타입/런타임 모두 안전)
+  if (!left || !right) return null;
+
   return (
     <article className='rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5'>
       {/* 상단 라벨/삭제 */}
       <div className='mb-2 flex items-center justify-between'>
-        <div className='flex items-center gap-2 text-sm'>
-          {highlight ? (
-            <>
-              <span className='text-gray-900'>👍 {highlight}</span>
-            </>
-          ) : (
-            <span className='text-gray-400'>비교</span>
-          )}
-        </div>
-        <button className='text-xs text-gray-500' aria-label='삭제'>
+        <div className='text-sm text-gray-400'>비교</div>
+        <button className='text-xs text-gray-500' onClick={() => onDelete?.(history.id)} aria-label='삭제'>
           삭제 ×
         </button>
       </div>
 
-      {/* 두 썸네일 행 */}
+      {/* 비교 일자 */}
+      <div className='mb-2 text-xs text-gray-500'>{formatYmd(history.comparedAt)}</div>
+
+      {/* 두 썸네일 */}
       <div className='grid grid-cols-2 gap-3'>
-        <ThumbCard {...left} />
-        <ThumbCard {...right} />
+        <ThumbCard
+          name={left.name}
+          type={left.categories.includes('KINDERGARTEN') ? '유치원' : '유치원 · 호텔'}
+          img={s3ToUrl(left.thumbnailS3Key)}
+        />
+        <ThumbCard
+          name={right.name}
+          type={right.categories.includes('KINDERGARTEN') ? '유치원' : '유치원 · 호텔'}
+          img={s3ToUrl(right.thumbnailS3Key)}
+        />
       </div>
     </article>
   );
