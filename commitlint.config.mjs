@@ -11,6 +11,7 @@ export default defineConfig({
   rules: {
     // @see: https://commitlint.js.org/#/reference-rules
     'subject-case': [0],
+    'body-max-line-length': [0],
   },
   extends: ['@commitlint/config-conventional'],
   prompt: {
