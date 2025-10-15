@@ -18,7 +18,6 @@
     "@knockdog/bridge-web": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
-    "@knockdog/naver-map": "workspace:*",
     "@knockdog/react-naver-map": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
@@ -43,6 +42,8 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.14",
     "@types/navermaps": "^3.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "postcss": "^8.5.6",
     "tsx": "^4.20.6"
   }
