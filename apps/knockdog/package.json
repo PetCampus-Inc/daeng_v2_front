@@ -10,16 +10,12 @@
     "type-check": "tsc --noEmit",
     "update-route": "tsx src/app/scripts/generateRouteConstants.ts"
   },
-  "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
   "dependencies": {
+    "@daeng-design/react-portal": "workspace:*",
+    "@daeng-design/react-swiper": "workspace:*",
+    "@floating-ui/react": "^0.27.16",
     "@knockdog/bridge-core": "workspace:*",
     "@knockdog/bridge-web": "workspace:*",
-    "@daeng-design/react-portal": "workspace:*",
-    "@floating-ui/react": "^0.27.16",
-    "@daeng-design/react-swiper": "workspace:*",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/icons": "workspace:*",
     "@knockdog/naver-map": "workspace:*",
@@ -35,6 +31,8 @@
     "next": "^15.4.7",
     "nuqs": "^2.4.3",
     "overlay-kit": "^1.8.6",
+    "react": "^19.2.0",
+    "react-dom": "19.2.0",
     "react-remove-scroll": "^2.7.1",
     "swiper": "^11.2.10",
     "tailwindcss": "^4.1.14",
