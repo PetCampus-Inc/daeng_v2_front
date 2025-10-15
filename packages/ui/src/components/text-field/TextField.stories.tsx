@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { TextField, TextFieldInput } from './TextField';
 import { useState, useCallback } from 'react';
 import { Icon } from '../icon';
 import { ActionButton } from '../action-button';
 
-const meta = {
+const meta: Meta<typeof TextField> = {
   title: 'Components/TextField',
   component: TextField,
   tags: ['autodocs'],
@@ -133,7 +133,7 @@ const meta = {
       </div>
     ),
   ],
-} satisfies Meta<typeof TextField>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;

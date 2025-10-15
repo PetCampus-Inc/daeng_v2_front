@@ -1,8 +1,8 @@
-import type { Preview } from '@storybook/react';
+import type { Preview } from '@storybook/nextjs';
 
 import '../src/globals.css';
 
-/** @type { import('@storybook/react').Preview } */
+/** @type { import('@storybook/nextjs').Preview } */
 const preview: Preview = {
   parameters: {
     controls: {
