@@ -18,7 +18,6 @@
     }
   },
   "scripts": {
-    "type-check": "tsc --noEmit",
     "build": "bunchee",
     "dev": "bunchee --watch"
   },
