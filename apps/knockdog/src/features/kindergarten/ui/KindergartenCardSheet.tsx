@@ -1,3 +1,5 @@
+// FIXME: 전화번호 임시 처리 추후 삭제!
+
 /* eslint-disable @next/next/no-img-element */
 
 import { overlay } from 'overlay-kit';
@@ -19,7 +21,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0] ?? null);
 
   const openPhoneCallActionSheet = () =>
-    overlay.open(({ isOpen, close }) => <PhoneCallSheet isOpen={isOpen} close={close} />);
+    overlay.open(({ isOpen, close }) => <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={'010-0000-0000'} />);
 
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
