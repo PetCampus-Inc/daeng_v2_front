@@ -1,4 +1,8 @@
-import type { KindergartenAggregationQueryParams, KindergartenSearchListQueryParams } from '../api/kindergartenQuery';
+import type {
+  FilterResultCountQueryParams,
+  KindergartenAggregationQueryParams,
+  KindergartenSearchListQueryParams,
+} from '../api/kindergartenQuery';
 import { serializeBounds, serializeCoords } from '../lib/serialize';
 
 export const kindergartenKeys = {
@@ -18,6 +22,12 @@ export const kindergartenKeys = {
     serializeCoords(params.refPoint),
     serializeBounds(params.bounds),
     params.zoomLevel,
+    params.filters,
+  ],
+  filterResultCount: (params: Partial<FilterResultCountQueryParams>) => [
+    ...kindergartenKeys.all,
+    'filter-result-count',
+    serializeBounds(params.bounds),
     params.filters,
   ],
 } as const;
