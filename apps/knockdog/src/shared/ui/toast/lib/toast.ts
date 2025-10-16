@@ -11,6 +11,7 @@ function isToastOptions(value: unknown): value is ToastOptions {
     typeof value === 'object' &&
     value != null &&
     ('id' in value ||
+      'title' in value ||
       'duration' in value ||
       'className' in value ||
       'variant' in value ||

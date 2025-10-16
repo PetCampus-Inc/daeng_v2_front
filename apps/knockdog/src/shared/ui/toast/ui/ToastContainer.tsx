@@ -35,15 +35,15 @@ function ToastItem({
   onDismiss: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
+  const handleDismissWithRemove = (toastId: string) => {
+    onDismiss(toastId);
+    setTimeout(() => onRemove(toastId), ANIMATION_DURATION);
+  };
+
   useEffect(() => {
     if (!open) return;
 
-    // duration 후 자동으로 dismiss
-    const timer = setTimeout(() => {
-      onDismiss(id);
-      // 애니메이션 완료 후 제거
-      setTimeout(() => onRemove(id), ANIMATION_DURATION);
-    }, duration);
+    const timer = setTimeout(() => handleDismissWithRemove(id), duration);
 
     return () => clearTimeout(timer);
   }, [id, duration, open, onDismiss, onRemove]);
@@ -52,11 +52,7 @@ function ToastItem({
     <Toast
       open={open}
       onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          // 수동으로 닫을 때
-          onDismiss(id);
-          setTimeout(() => onRemove(id), ANIMATION_DURATION);
-        }
+        if (!isOpen) handleDismissWithRemove(id);
       }}
       duration={duration}
       title={title}
