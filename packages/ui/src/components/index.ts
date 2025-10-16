@@ -15,3 +15,4 @@ export * from './progress-bar';
 export * from './toggle-button';
 export * from './radio-group';
 export * from './checkbox';
+export * from './toast';
