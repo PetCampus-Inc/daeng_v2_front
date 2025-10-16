@@ -67,13 +67,13 @@ function ToastItem({
   );
 }
 
-export function ToastContainer({ store, position, viewportClassName }: ToastContainerProps) {
+export function ToastContainer({ store, position = 'bottom', viewportClassName }: ToastContainerProps) {
   const items = useStore(store, (state) => state.items);
   const dismiss = useStore(store, (state) => state.dismiss);
   const remove = useStore(store, (state) => state.remove);
 
-  // position이 있으면 className으로 변환, viewportClassName이 있으면 그게 우선
-  const positionClassName = position ? getPositionClassName(position) : undefined;
+  // position을 className으로 변환, viewportClassName이 있으면 그게 우선
+  const positionClassName = getPositionClassName(position);
   const finalClassName = viewportClassName || positionClassName;
 
   return (
