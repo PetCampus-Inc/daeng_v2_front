@@ -3,10 +3,12 @@
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { Toast, ToastProvider } from '@knockdog/ui';
-import type { Store } from '../model/types';
+import type { Store, ToastPosition } from '../model/types';
+import { getPositionClassName } from '../lib/position-styles';
 
 type ToastContainerProps = {
   store: Store;
+  position?: ToastPosition;
   viewportClassName?: string;
 };
 
@@ -65,13 +67,17 @@ function ToastItem({
   );
 }
 
-export function ToastContainer({ store, viewportClassName }: ToastContainerProps) {
+export function ToastContainer({ store, position, viewportClassName }: ToastContainerProps) {
   const items = useStore(store, (state) => state.items);
   const dismiss = useStore(store, (state) => state.dismiss);
   const remove = useStore(store, (state) => state.remove);
 
+  // position이 있으면 className으로 변환, viewportClassName이 있으면 그게 우선
+  const positionClassName = position ? getPositionClassName(position) : undefined;
+  const finalClassName = viewportClassName || positionClassName;
+
   return (
-    <ToastProvider className={viewportClassName}>
+    <ToastProvider className={finalClassName}>
       {items.map((item) => (
         <ToastItem key={item.id} {...item} onDismiss={dismiss} onRemove={remove} />
       ))}

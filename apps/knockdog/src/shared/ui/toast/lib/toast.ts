@@ -14,6 +14,7 @@ function isToastOptions(value: unknown): value is ToastOptions {
       'duration' in value ||
       'className' in value ||
       'variant' in value ||
+      'position' in value ||
       'viewportClassName' in value ||
       'description' in value)
   );
@@ -27,8 +28,9 @@ function showToast(titleOrOptions: React.ReactNode | ToastOptions, options?: Toa
     ? titleOrOptions
     : ({ title: titleOrOptions, ...options } as ToastOptions);
 
-  // viewportClassName이 있으면 해당 채널, 없으면 default 채널 (packages/ui 기본값 사용)
-  const { store } = ensureChannel(resolvedOptions.viewportClassName);
+  // position 또는 viewportClassName으로 채널 결정
+  // viewportClassName이 우선순위가 높음 (완전 커스텀)
+  const { store } = ensureChannel(resolvedOptions.position, resolvedOptions.viewportClassName);
 
   const id = resolvedOptions.id ?? generateId();
 

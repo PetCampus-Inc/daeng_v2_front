@@ -9,10 +9,11 @@ interface ToastProviderProps extends ToastPrimitive.ToastProviderProps {
 }
 
 function ToastProvider(props: ToastProviderProps) {
-  const { swipeDirection = 'right', className } = props;
+  const { swipeDirection = 'right', className, ...restProps } = props;
+
   return (
-    <ToastPrimitive.Provider swipeDirection={swipeDirection} {...props}>
-      <ToastPrimitive.Viewport className={cn('fixed bottom-[68px] z-[100] flex flex-col', className)} hotkey={['F8']} />
+    <ToastPrimitive.Provider swipeDirection={swipeDirection} {...restProps}>
+      <ToastPrimitive.Viewport className={cn('fixed z-[100] flex flex-col', className)} hotkey={['F8']} />
       {props.children}
     </ToastPrimitive.Provider>
   );
