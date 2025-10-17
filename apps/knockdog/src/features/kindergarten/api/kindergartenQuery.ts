@@ -32,9 +32,9 @@ export type FilterResultCountQueryParams = {
 } & Omit<FilterResultCountParams, 'bounds' | 'filters'>;
 
 export const kindergartenQueryOptions = {
-  searchList: ({ refPoint, bounds, zoomLevel, filters, rank }: KindergartenSearchListQueryParams) => {
+  searchList: ({ refPoint, bounds, zoomLevel, filters, rank = 'DISTANCE' }: KindergartenSearchListQueryParams) => {
     return infiniteQueryOptions({
-      queryKey: kindergartenKeys.searchList({ refPoint, bounds, zoomLevel, filters, rank: rank ?? 'DISTANCE' }),
+      queryKey: kindergartenKeys.searchList({ refPoint, bounds, zoomLevel, filters, rank }),
       queryFn: ({ pageParam = 1 }) =>
         getKindergartenSearchList({
           refPoint: serializeCoords(refPoint),
