@@ -1,6 +1,8 @@
 /** api */
 export { getKindergartenAutocomplete } from './api/autocomplete';
 export type { KindergartenAutocompleteParams } from './api/autocomplete';
+export { getFilterResultCount } from './api/filters';
+export type { FilterResultCountParams } from './api/filters';
 export { getKindergartenSearchList, getKindergartenAggregation } from './api/kindergarten';
 export type { KindergartenSearchListParams, KindergartenAggregationParams } from './api/kindergarten';
 
@@ -14,13 +16,7 @@ export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from '.
 
 /** model */
 export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
-export type {
-  RecentSearchKeyword,
-  RecentView,
-  RegionSearchKeyword,
-  FilterItemSearchKeyword,
-  UserQuerySearchKeyword,
-} from './model/search-history';
+export type { FilterResultCount } from './model/filters';
 export type {
   KindergartenSearchList,
   Aggregation,
@@ -30,6 +26,13 @@ export type {
 } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
+export type {
+  RecentSearchKeyword,
+  RecentView,
+  RegionSearchKeyword,
+  FilterItemSearchKeyword,
+  UserQuerySearchKeyword,
+} from './model/search-history';
 export type { DogBreed, DogService, DogSafetyFacility, VisitorAmenity } from './model/service';
 export {
   DOG_BREED_MAP,

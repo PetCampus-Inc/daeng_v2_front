@@ -1,8 +1,8 @@
 import { useState, ReactNode } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { isAggregationZoom } from './markers';
+import { isAggregationZoom } from '@views/kindergarten-main-page/model/markers';
 import { type DogSchoolWithMeta, kindergartenQueryOptions } from '@features/kindergarten';
-import type { SidoGunguAggregation } from '@entities/kindergarten';
+import type { FilterOption, SidoGunguAggregation } from '@entities/kindergarten';
 
 import { createSafeContext, useBasePoint } from '@shared/lib';
 
@@ -24,7 +24,7 @@ interface MapSearchContextValue {
 
 const [MapSearchContext, useMapSearch] = createSafeContext<MapSearchContextValue>('MapSearchContext');
 
-export function MapSearchContextImpl({ children }: { children: ReactNode }) {
+export function MapSearchContextImpl({ children, filters = [] }: { children: ReactNode; filters?: FilterOption[] }) {
   const { coord: basePoint } = useBasePoint();
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapSnapshot, setMapSnapshot] = useState<MapSnapshot>({
@@ -39,6 +39,7 @@ export function MapSearchContextImpl({ children }: { children: ReactNode }) {
       refPoint: basePoint!,
       bounds: mapSnapshot.bounds!,
       zoomLevel: mapSnapshot.zoomLevel,
+      filters,
     }),
   });
 
@@ -47,6 +48,7 @@ export function MapSearchContextImpl({ children }: { children: ReactNode }) {
       refPoint: basePoint!,
       bounds: mapSnapshot.bounds!,
       zoomLevel: mapSnapshot.zoomLevel,
+      filters,
       enabled: isAggregationZoom(mapSnapshot.zoomLevel),
     }),
   });
