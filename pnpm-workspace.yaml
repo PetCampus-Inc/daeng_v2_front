@@ -2,6 +2,3 @@ packages:
   - "apps/*"
   - "packages/*"
   - "packages/headless-ui/*"
-  - "packages/bridge-core"
-  - "packages/bridge-web"
-  - "packages/bridge-native"
