@@ -8,7 +8,6 @@
     "tailwind.config.js",
     "turbo/generators/config.ts"
   ],
-
   "exclude": ["node_modules", ".next", ".next/types"],
   "compilerOptions": {
     "strictNullChecks": true,
@@ -25,7 +24,8 @@
       "@providers/*": ["app/providers/*"],
       "@constants/*": ["shared/constants/*"],
       "@bridgeStore": ["src/shared/store/useBridgeStore.ts"],
-      "@type/*": ["./src/shared/types/*"]
+      "@type/*": ["./src/shared/types/*"],
+      "react": ["../node_modules/@types/react"]
     }
   }
 }
