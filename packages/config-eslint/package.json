@@ -9,12 +9,12 @@
     "./react-internal": "./react-internal.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
-    "@next/eslint-plugin-next": "^15.5.5",
+    "@eslint/js": "^9.38.0",
+    "@next/eslint-plugin-next": "^15.5.6",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
-    "eslint": "^9.37.0",
-    "eslint-config-next": "^15.5.5",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^15.5.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-fsd-lint": "^1.0.10",
