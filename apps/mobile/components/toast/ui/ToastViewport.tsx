@@ -30,7 +30,7 @@ const tokens = {
   colors: { bg: '#41424a', fg: '#ffffff' },
   viewportOffset: {
     bottom: 0, // 화면 하단 여백
-    bottomAboveNav: 60, // 네비게이션 바 위 (네비게이션 바 높이 + 여백)
+    bottomAboveNav: 55, // 네비게이션 바 위 (네비게이션 바 높이 + 여백)
   },
 };
 
