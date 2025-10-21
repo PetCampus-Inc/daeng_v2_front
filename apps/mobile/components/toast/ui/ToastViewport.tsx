@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -39,6 +39,13 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
   const dismiss = useStore(store, (s) => s.dismiss);
   const insets = useSafeAreaInsets();
 
+  const handleDismiss = useCallback(
+    (id: string) => {
+      dismiss(id);
+    },
+    [dismiss]
+  );
+
   const topStyle =
     position === 'top'
       ? { top: insets.top + 12 }
@@ -61,13 +68,13 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
       }}
     >
       {items.map((it) => (
-        <ToastRow key={it.id} item={it} onDismiss={() => dismiss(it.id)} />
+        <ToastRow key={it.id} item={it} itemId={it.id} onDismiss={handleDismiss} />
       ))}
     </View>
   );
 }
 
-function ToastRow({ item, onDismiss }: { item: ToastItem; onDismiss: () => void }) {
+function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string; onDismiss: (id: string) => void }) {
   // haptics (한 번만)
   const firedRef = useRef(false);
   useEffect(() => {
@@ -79,9 +86,9 @@ function ToastRow({ item, onDismiss }: { item: ToastItem; onDismiss: () => void 
 
   // auto close
   useEffect(() => {
-    const t = setTimeout(onDismiss, item.duration);
+    const t = setTimeout(() => onDismiss(itemId), item.duration);
     return () => clearTimeout(t);
-  }, [item.duration, onDismiss]);
+  }, [item.duration, itemId, onDismiss]);
 
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -92,7 +99,7 @@ function ToastRow({ item, onDismiss }: { item: ToastItem; onDismiss: () => void 
     })
     .onEnd((e) => {
       if (Math.abs(e.translationX) > 80) {
-        runOnJS(onDismiss)();
+        runOnJS(onDismiss)(itemId);
       } else {
         translateX.value = withTiming(0);
         opacity.value = withTiming(1);
@@ -108,7 +115,13 @@ function ToastRow({ item, onDismiss }: { item: ToastItem; onDismiss: () => void 
     <Animated.View
       entering={FadeInDown.springify().damping(16)}
       exiting={FadeOutUp.springify().damping(16)}
-      style={{ width: '100%' }}
+      style={{
+        width: '100%',
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 4,
+      }}
     >
       <GestureDetector gesture={pan}>
         <Animated.View
@@ -118,14 +131,10 @@ function ToastRow({ item, onDismiss }: { item: ToastItem; onDismiss: () => void 
               backgroundColor: tokens.colors.bg,
               borderRadius: item.shape === 'rounded' ? tokens.radius.rounded : tokens.radius.square,
               padding: tokens.padding,
-              shadowColor: '#000',
-              shadowOpacity: 0.15,
-              shadowRadius: 8,
-              elevation: 4,
             },
           ]}
         >
-          <Pressable onPress={onDismiss} accessibilityRole='alert'>
+          <Pressable onPress={() => onDismiss(itemId)} accessibilityRole='alert'>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
               {item.type === 'success' && <Ionicons name='checkmark-sharp' size={25} color={tokens.colors.fg} />}
               <View style={{ flex: 1 }}>

@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { Toast, ToastProvider } from '@knockdog/ui';
 import type { Store } from '../model/types';
@@ -42,14 +41,6 @@ function ToastItem({
     onDismiss(toastId);
     setTimeout(() => onRemove(toastId), ANIMATION_DURATION);
   };
-
-  useEffect(() => {
-    if (!open) return;
-
-    const timer = setTimeout(() => handleDismissWithRemove(id), duration);
-
-    return () => clearTimeout(timer);
-  }, [id, duration, open, onDismiss, onRemove]);
 
   return (
     <Toast
