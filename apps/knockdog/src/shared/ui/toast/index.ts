@@ -1,2 +1,2 @@
 export { toast } from './lib/toast';
-export type { ToastOptions, ToastDefaults, ToastPosition } from './model/types';
+export type { ToastOptions, ToastDefaults, ToastPosition, ToastShape, ToastType } from './model/types';

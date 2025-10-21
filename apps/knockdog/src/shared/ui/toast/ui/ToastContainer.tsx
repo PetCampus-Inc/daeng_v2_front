@@ -20,17 +20,19 @@ function ToastItem({
   description,
   duration,
   className,
-  variant,
+  shape,
+  type,
   open,
   onDismiss,
   onRemove,
 }: {
   id: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
+  title?: string;
+  description?: string;
   duration: number;
   className?: string;
-  variant?: 'rounded' | 'square';
+  shape?: 'rounded' | 'square';
+  type?: 'default' | 'success';
   open: boolean;
   onDismiss: (id: string) => void;
   onRemove: (id: string) => void;
@@ -58,7 +60,8 @@ function ToastItem({
       title={title}
       description={description}
       className={className}
-      variant={variant}
+      variant={shape}
+      toastType={type}
     />
   );
 }

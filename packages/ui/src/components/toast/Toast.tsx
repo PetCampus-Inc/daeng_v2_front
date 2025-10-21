@@ -3,6 +3,7 @@
 import { cn } from '@knockdog/ui/lib';
 import * as ToastPrimitive from '@radix-ui/react-toast';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { Icon } from '../icon';
 
 interface ToastProviderProps extends ToastPrimitive.ToastProviderProps {
   className?: string;
@@ -45,22 +46,30 @@ const toastVariants = cva(
   }
 );
 
-interface ToastProps extends Omit<ToastPrimitive.ToastProps, 'title'> {
+type ToastType = 'default' | 'success';
+
+interface ToastProps extends Omit<ToastPrimitive.ToastProps, 'title' | 'type'> {
   className?: string;
   variant?: VariantProps<typeof toastVariants>['variant'];
-  title?: React.ReactNode;
-  description?: React.ReactNode;
+  toastType?: ToastType;
+  title?: string;
+  description?: string;
 }
 
 function Toast(props: ToastProps) {
-  const { className, variant, title, description, duration = 2000, ...restProps } = props;
+  const { className, variant, toastType = 'default', title, description, duration = 2000, ...restProps } = props;
 
   return (
     <ToastPrimitive.Root className={cn(toastVariants({ variant }), className)} duration={duration} {...restProps}>
-      {title && <ToastPrimitive.Title>{title}</ToastPrimitive.Title>}
-      {description && (
-        <ToastPrimitive.Description className='caption1-regular'>{description}</ToastPrimitive.Description>
-      )}
+      <div className='flex items-center gap-2'>
+        {toastType === 'success' && <Icon icon='Check' className='text-text-primary-inverse size-5 shrink-0' />}
+        <div className='min-w-0 flex-1'>
+          {title && <ToastPrimitive.Title>{title}</ToastPrimitive.Title>}
+          {description && (
+            <ToastPrimitive.Description className='caption1-regular'>{description}</ToastPrimitive.Description>
+          )}
+        </div>
+      </div>
     </ToastPrimitive.Root>
   );
 }

@@ -6,6 +6,8 @@ let defaults: ToastDefaults = {
   description: undefined,
   duration: 2000,
   className: '',
+  shape: 'rounded',
+  type: 'default',
 };
 
 export function getDefaults(): ToastDefaults {
