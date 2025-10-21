@@ -9,6 +9,9 @@ export type {
   ToastShowParams,
   ToastDismissParams,
   ToastClearParams,
+  ToastShape,
+  ToastPosition,
+  ToastType,
 } from './methods';
 export type { RPCSchema, RPCMethod, ParamsOf, ResultOf } from './rpc-schema';
 export type { BridgeMessage, BridgeRequest, BridgeOk, BridgeError, BridgeEvent } from './types';

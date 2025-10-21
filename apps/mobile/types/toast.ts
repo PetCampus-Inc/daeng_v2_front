@@ -1,6 +1,4 @@
-export type ToastShape = 'rounded' | 'square';
-export type ToastPosition = 'bottom' | 'bottom-above-nav' | 'top';
-export type ToastType = 'default' | 'success';
+import { ToastShape, ToastPosition, ToastType } from '@knockdog/bridge-core';
 
 export type ToastOptions = {
   id?: string;

@@ -1,9 +1,5 @@
-import type React from 'react';
+import type { ToastShape, ToastPosition, ToastType } from '@knockdog/bridge-core';
 import type { ToastStore } from './store';
-
-export type ToastPosition = 'top' | 'bottom' | 'bottom-above-nav';
-export type ToastShape = 'rounded' | 'square';
-export type ToastType = 'default' | 'success';
 
 /**
  * 웹 로컬 Toast Item - string만 지원 (앱과 동일)

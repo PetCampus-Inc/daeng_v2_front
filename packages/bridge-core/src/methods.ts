@@ -75,4 +75,7 @@ export type {
   ToastShowParams,
   ToastDismissParams,
   ToastClearParams,
+  ToastShape,
+  ToastPosition,
+  ToastType,
 };

@@ -1,5 +1,5 @@
 import { createToastStore } from './store';
-import type { ToastPosition } from '@/types/toast';
+import type { ToastPosition } from '@knockdog/bridge-core';
 
 const channels = {
   top: createToastStore(),

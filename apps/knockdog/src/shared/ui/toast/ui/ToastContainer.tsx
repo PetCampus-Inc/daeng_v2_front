@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useStore } from 'zustand';
 import { Toast, ToastProvider } from '@knockdog/ui';
-import type { Store, ToastPosition } from '../model/types';
+import type { Store } from '../model/types';
+import type { ToastPosition, ToastShape, ToastType } from '@knockdog/bridge-core';
 import { getPositionClassName } from '../lib/position-styles';
 
 type ToastContainerProps = {
@@ -31,8 +32,8 @@ function ToastItem({
   description?: string;
   duration: number;
   className?: string;
-  shape?: 'rounded' | 'square';
-  type?: 'default' | 'success';
+  shape?: ToastShape;
+  type?: ToastType;
   open: boolean;
   onDismiss: (id: string) => void;
   onRemove: (id: string) => void;

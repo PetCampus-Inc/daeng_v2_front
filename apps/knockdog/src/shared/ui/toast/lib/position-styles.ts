@@ -1,4 +1,4 @@
-import type { ToastPosition } from '../model/types';
+import type { ToastPosition } from '@knockdog/bridge-core';
 
 /**
  * Toast position 프리셋

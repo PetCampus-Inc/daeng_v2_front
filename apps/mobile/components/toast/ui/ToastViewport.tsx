@@ -15,7 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import type { ToastItem } from '../model/store';
 import type { StoreApi } from 'zustand';
-import type { ToastPosition } from '@/types/toast';
+import type { ToastPosition } from '@knockdog/bridge-core';
 
 type ToastState = {
   items: ToastItem[];

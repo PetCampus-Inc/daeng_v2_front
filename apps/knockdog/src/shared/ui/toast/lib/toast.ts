@@ -1,6 +1,5 @@
 'use client';
 
-import type React from 'react';
 import type { ToastOptions } from '../model/types';
 import { ensureChannel, dismissFromAllChannels, clearAllChannels } from '../model/manager';
 import { generateId } from './utils';
@@ -8,20 +7,23 @@ import { getDefaults, setDefaults } from '../config/defaults';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { METHODS, type ToastShowParams } from '@knockdog/bridge-core';
+import { isValidElement } from 'react';
 
 function isToastOptions(value: unknown): value is ToastOptions {
+  if (typeof value !== 'object' || value == null) return false;
+  if (Array.isArray(value) || isValidElement(value as any)) return false;
+
   return (
     typeof value === 'object' &&
     value != null &&
-    ('id' in value ||
-      'title' in value ||
+    ('title' in value ||
+      'description' in value ||
       'duration' in value ||
+      'position' in value ||
+      'viewportClassName' in value ||
       'className' in value ||
       'shape' in value ||
       'type' in value ||
-      'position' in value ||
-      'viewportClassName' in value ||
-      'description' in value ||
       'onOpen' in value ||
       'onClose' in value)
   );
