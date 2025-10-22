@@ -24,7 +24,7 @@ export function KindergartenList() {
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
   const { selectedBaseType, setBaseType } = useBasePointType();
 
-  const { query, schoolList } = useKindergartenSearch();
+  const { query, schoolList, bounds } = useKindergartenSearch();
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
   const selectedFilters = getSelectedFilterWithLabel();
@@ -57,8 +57,9 @@ export function KindergartenList() {
     setBaseType(value as 'current' | 'home' | 'work');
   };
 
-  const openFilterBottomSheet = () =>
-    overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} />);
+  const openFilterBottomSheet = () => {
+    overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} bounds={bounds} />);
+  };
 
   return (
     <>

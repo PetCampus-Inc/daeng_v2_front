@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { FloatingActionButton } from './FloatingActionButton';
 import { iconTypes } from '../icon';
 import { Float } from '../float/Float';

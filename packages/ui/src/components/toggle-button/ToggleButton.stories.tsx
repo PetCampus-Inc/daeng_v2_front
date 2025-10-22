@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { useState } from 'react';
 import { ToggleButton } from './ToggleButton';
 
@@ -32,7 +32,7 @@ export const Default: Story = {
 };
 
 export const Controlled: Story = {
-  render: () => {
+  render: function Render() {
     const [pressed, setPressed] = useState(false);
 
     return (
@@ -54,7 +54,7 @@ export const Disabled: Story = {
 };
 
 export const WithIcon: Story = {
-  render: () => {
+  render: function Render() {
     const [pressed, setPressed] = useState(false);
 
     return (
@@ -71,7 +71,7 @@ export const WithIcon: Story = {
 };
 
 export const States: Story = {
-  render: () => {
+  render: function Render() {
     const [pressed1, setPressed1] = useState(false);
     const [pressed2, setPressed2] = useState(true);
 

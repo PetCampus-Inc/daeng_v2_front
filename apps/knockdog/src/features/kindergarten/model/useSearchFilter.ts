@@ -14,6 +14,8 @@ export interface UseSearchFilterReturn {
   onRemoveOption: (option: FilterOption) => void;
   /** 전체 필터 초기화 핸들러 */
   onClearAll: () => void;
+  /** 필터 배열 직접 설정 핸들러 */
+  setFilters: (filters: FilterOption[]) => void;
   /** 결과 개수 변경 핸들러 */
   onChangeResultCount: (count: number | null) => void;
 
@@ -69,6 +71,14 @@ export function useSearchFilter(): UseSearchFilterReturn {
     setResultCount(null);
   }, [setUrlFilters]);
 
+  /** 필터 배열 직접 설정 */
+  const setFilters = useCallback(
+    (filters: FilterOption[]) => {
+      setUrlFilters(filters.length === 0 ? null : filters);
+    },
+    [setUrlFilters]
+  );
+
   /** 필터 옵션 선택 여부 */
   const isSelectedOption = useCallback(
     (option: FilterOption) => {
@@ -97,6 +107,7 @@ export function useSearchFilter(): UseSearchFilterReturn {
     onToggleOption,
     onRemoveOption,
     onClearAll,
+    setFilters,
     onChangeResultCount,
 
     isSelectedOption,

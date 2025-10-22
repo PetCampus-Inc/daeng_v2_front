@@ -1,5 +1,4 @@
-// Divider.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Divider } from './Divider';
 
 const meta: Meta<typeof Divider> = {

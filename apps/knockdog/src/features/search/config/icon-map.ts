@@ -23,7 +23,7 @@ export const FILTER_ICON_MAP: Record<FilterItemCode, IconType> = {
   ROOFTOP: 'Rooftop',
   YARD: 'Field',
 
-  PICK_DROP: 'PickdropLine',
+  PICKDROP: 'PickdropLine',
   DIARY: 'Noticebook',
   DOG_CAFE: 'Toyshop',
   DOG_SHOP: 'Cafe',
