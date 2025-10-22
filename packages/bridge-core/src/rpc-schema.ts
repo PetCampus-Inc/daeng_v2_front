@@ -1,4 +1,13 @@
-import { METHODS, type CallPhoneParams, type CallPhoneResult, type ShareParams, type ShareResult } from './methods';
+import {
+  METHODS,
+  type CallPhoneParams,
+  type CallPhoneResult,
+  type ShareParams,
+  type ShareResult,
+  type ToastShowParams,
+  type ToastDismissParams,
+  type ToastClearParams,
+} from './methods';
 
 interface RPCSchema {
   [METHODS.getLatLng]: {
@@ -58,6 +67,18 @@ interface RPCSchema {
     result: {
       reset: boolean;
     };
+  };
+  [METHODS.toastShow]: {
+    params: ToastShowParams;
+    result: void;
+  };
+  [METHODS.toastDismiss]: {
+    params: ToastDismissParams;
+    result: void;
+  };
+  [METHODS.toastClear]: {
+    params: ToastClearParams;
+    result: void;
   };
 }
 

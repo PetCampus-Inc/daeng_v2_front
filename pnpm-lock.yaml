@@ -286,6 +286,9 @@ importers:
       '@babel/core':
         specifier: ^7.28.4
         version: 7.28.4
+      '@expo/config-plugins':
+        specifier: ^10.1.2
+        version: 10.1.2
       '@react-native-community/cli':
         specifier: latest
         version: 20.0.2(typescript@5.8.3)

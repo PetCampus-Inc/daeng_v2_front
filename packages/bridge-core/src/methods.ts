@@ -8,6 +8,9 @@ const METHODS = {
   navReset: 'system.navReset',
   navReplace: 'system.navReplace',
   naverOpenRoute: 'naver.openRoute',
+  toastShow: 'toast.show',
+  toastDismiss: 'toast.dismiss',
+  toastClear: 'toast.clear',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];
@@ -46,5 +49,33 @@ type ShareResult = {
   shared: boolean; // 공유 되었는지 여부
   activityType?: string; // IOS에서 어떤 activity가 선택되었는지
 };
+
+type ToastShape = 'rounded' | 'square';
+type ToastPosition = 'top' | 'bottom' | 'bottom-above-nav';
+type ToastType = 'default' | 'success';
+
+type ToastShowParams = {
+  id?: string;
+  title?: string;
+  description?: string;
+  duration?: number; // ms
+  position?: ToastPosition;
+  shape?: ToastShape;
+  type?: ToastType;
+};
+type ToastDismissParams = { id?: string };
+type ToastClearParams = {};
+
 export { METHODS };
-export type { CallPhoneParams, CallPhoneResult, ShareParams, ShareResult };
+export type {
+  CallPhoneParams,
+  CallPhoneResult,
+  ShareParams,
+  ShareResult,
+  ToastShowParams,
+  ToastDismissParams,
+  ToastClearParams,
+  ToastShape,
+  ToastPosition,
+  ToastType,
+};
