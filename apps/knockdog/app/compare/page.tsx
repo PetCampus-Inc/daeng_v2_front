@@ -2,7 +2,8 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import Layout from '../(main)/layout';
+import { Header } from '@widgets/Header';
 type SortAnchor = 'home' | 'work' | 'here';
 
 type DistanceBy = {
@@ -117,115 +118,110 @@ export default function ComparePage() {
   };
 
   return (
-    <Suspense fallback={<div>로딩중...</div>}>
-      <div className='flex h-screen flex-col bg-white'>
-        {/* Header */}
-        <header className='relative flex items-center justify-center border-b border-[#F3F3F7] bg-white px-3 py-3'>
-          <h1 className='text-[17px] font-semibold'>유치원 비교</h1>
-          <button className='absolute right-3 inline-flex p-1' aria-label='검색'>
-            <svg width='22' height='22' viewBox='0 0 24 24' fill='none'>
-              <circle cx='11' cy='11' r='7' stroke='#111' strokeWidth='2' />
-              <path d='M20 20L16.65 16.65' stroke='#111' strokeWidth='2' strokeLinecap='round' />
-            </svg>
-          </button>
-        </header>
+    <Layout>
+      <Suspense fallback={<div>로딩중...</div>}>
+        <div className='flex h-screen flex-col bg-white'>
+          {/* Header */}
+          <Header>
+            <Header.LeftSection>
+              <Header.BackButton />
+            </Header.LeftSection>
+            <Header.Title>보관함</Header.Title>
+          </Header>
 
-        {/* Filter Bar */}
-        <div className='flex items-center justify-between border-y border-[#EBEBF0] bg-white px-3 py-2 text-sm text-gray-700'>
-          <label className='flex items-center gap-2'>
-            <span className='inline-flex size-[18px] items-center justify-center rounded-sm border border-gray-300'>
-              <span className='size-[10px] rounded-sm bg-[#B4B4BB]' />
-            </span>
-            메모
-          </label>
+          {/* Filter Bar */}
+          <div className='flex items-center justify-between border-y border-[#EBEBF0] bg-white px-3 py-2 text-sm text-gray-700'>
+            <label className='flex items-center gap-2'>
+              <span className='inline-block h-2.5 w-2.5 rounded-full bg-orange-500' />
+              메모
+            </label>
 
-          <label className='flex items-center gap-2'>
-            <span className='text-gray-700'>거리기준:</span>
-            <div className='relative'>
-              <select
-                value={anchor}
-                onChange={(e) => setAnchor(e.target.value as SortAnchor)}
-                className='appearance-none rounded-md border border-[#EBEBF0] bg-white px-3 py-1.5 pr-8 text-sm text-gray-800'
-                aria-label='거리 기준 선택'
-              >
-                <option value='home'>집</option>
-                <option value='work'>직장</option>
-                <option value='here'>현위치</option>
-              </select>
-              <svg
-                className='pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500'
-                viewBox='0 0 24 24'
-                fill='none'
-                aria-hidden='true'
-              >
-                <path d='M6 9l6 6 6-6' stroke='currentColor' strokeWidth='2' strokeLinecap='round' />
-              </svg>
-            </div>
-          </label>
-        </div>
-
-        {/* List */}
-        <div className='flex-1 overflow-y-auto'>
-          {sorted.map((c) => {
-            const km =
-              anchor === 'home' ? c.distanceBy.homeKm : anchor === 'work' ? c.distanceBy.workKm : c.distanceBy.hereKm;
-            return (
-              <CompareItem
-                key={c.id}
-                center={c}
-                distanceText={formatKm(km)}
-                anchorLabelText={anchorLabel(anchor)}
-                onToggle={() => toggle(c.id)}
-              />
-            );
-          })}
-        </div>
-
-        {/* Bottom Compare Bar */}
-        <div className='sticky bottom-0 border-t border-[#F3F3F7] bg-white px-4 pb-[env(safe-area-inset-bottom)] pt-3'>
-          <div className='relative mb-3 grid grid-cols-2 items-start'>
-            <div className='min-w-0'>
-              <div className='truncate text-sm font-semibold'>{selected[0]?.name ?? '유치원 선택'}</div>
-              <div className='truncate text-xs text-gray-500'>{selected[0]?.type ?? '유치원 · 호텔'}</div>
-            </div>
-            <div className='min-w-0 text-right'>
-              <div className='truncate text-sm font-semibold'>{selected[1]?.name ?? '유치원 선택'}</div>
-              <div className='truncate text-xs text-gray-500'>{selected[1]?.type ?? '유치원 · 호텔'}</div>
-            </div>
-
-            <div className='pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
-              <span className='font-extrabold text-orange-500'>VS</span>
-              <span className='mt-1 h-6 w-px bg-gray-300' />
-            </div>
+            <label className='flex items-center gap-2'>
+              <span className='text-gray-700'>거리기준:</span>
+              <div className='relative'>
+                <select
+                  value={anchor}
+                  onChange={(e) => setAnchor(e.target.value as SortAnchor)}
+                  className='appearance-none rounded-md border border-[#EBEBF0] bg-white px-3 py-1.5 pr-8 text-sm text-gray-800'
+                  aria-label='거리 기준 선택'
+                >
+                  <option value='home'>집</option>
+                  <option value='work'>직장</option>
+                  <option value='here'>현위치</option>
+                </select>
+                <svg
+                  className='pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  aria-hidden='true'
+                >
+                  <path d='M6 9l6 6 6-6' stroke='currentColor' strokeWidth='2' strokeLinecap='round' />
+                </svg>
+              </div>
+            </label>
           </div>
 
-          <div className='flex items-center gap-3'>
-            <button
-              type='button'
-              className='h-12 w-[92px] shrink-0 rounded-2xl border border-gray-300 bg-white text-sm font-medium text-gray-700'
-              onClick={() => setCenters((prev) => prev.map((x) => ({ ...x, selected: false, selectedAt: undefined })))}
-            >
-              종료
-            </button>
-
-            <button
-              type='button'
-              disabled={!canCompare}
-              onClick={gotoCompare}
-              className={`h-12 flex-1 rounded-2xl text-sm font-semibold transition-colors ${
-                canCompare ? 'bg-[#FF7A00] text-white' : 'cursor-not-allowed bg-gray-100 text-gray-400'
-              } `}
-            >
-              비교하기 {selectedCount}/2
-            </button>
+          {/* List */}
+          <div className='flex-1 overflow-y-auto'>
+            {sorted.map((c) => {
+              const km =
+                anchor === 'home' ? c.distanceBy.homeKm : anchor === 'work' ? c.distanceBy.workKm : c.distanceBy.hereKm;
+              return (
+                <CompareItem
+                  key={c.id}
+                  center={c}
+                  distanceText={formatKm(km)}
+                  anchorLabelText={anchorLabel(anchor)}
+                  onToggle={() => toggle(c.id)}
+                />
+              );
+            })}
           </div>
 
-          <p className='mt-2 text-center text-xs text-gray-500'>
-            현재 정렬: <b>{anchorLabel(anchor)}</b> 기준 가까운 순
-          </p>
+          {/* Bottom Compare Bar */}
+          <div className='sticky bottom-20 border-t border-[#F3F3F7] bg-white px-4 pb-[env(safe-area-inset-bottom)] pt-3'>
+            <div className='relative mb-3 grid grid-cols-2 items-start'>
+              <div className='min-w-0'>
+                <div className='truncate text-sm font-semibold'>{selected[0]?.name ?? '유치원 선택'}</div>
+                <div className='truncate text-xs text-gray-500'>{selected[0]?.type ?? '유치원 · 호텔'}</div>
+              </div>
+              <div className='min-w-0 text-right'>
+                <div className='truncate text-sm font-semibold'>{selected[1]?.name ?? '유치원 선택'}</div>
+                <div className='truncate text-xs text-gray-500'>{selected[1]?.type ?? '유치원 · 호텔'}</div>
+              </div>
+
+              <div className='pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
+                <span className='font-extrabold text-orange-500'>VS</span>
+                <span className='mt-1 h-6 w-px bg-gray-300' />
+              </div>
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <button
+                type='button'
+                className='h-12 w-[92px] shrink-0 rounded-2xl border border-gray-300 bg-white text-sm font-medium text-gray-700'
+                onClick={() =>
+                  setCenters((prev) => prev.map((x) => ({ ...x, selected: false, selectedAt: undefined })))
+                }
+              >
+                종료
+              </button>
+
+              <button
+                type='button'
+                disabled={!canCompare}
+                onClick={gotoCompare}
+                className={`h-12 flex-1 rounded-2xl text-sm font-semibold transition-colors ${
+                  canCompare ? 'bg-[#FF7A00] text-white' : 'cursor-not-allowed bg-gray-100 text-gray-400'
+                } `}
+              >
+                비교하기 {selectedCount}/2
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </Suspense>
+      </Suspense>
+    </Layout>
   );
 }
 

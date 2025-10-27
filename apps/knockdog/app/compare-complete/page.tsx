@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { Header } from '@widgets/Header';
+
+/* =========================
+ * API 베이스 & 엔드포인트
+ * ========================= */
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
+// 백엔드 문서가 비교 엔드포인트를 compare/comparisons 두 가지로 언급해서 변수로 분리함.
+// 실제 사용하는 걸로 하나만 남겨도 됨.
+const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`; // 예: .../comparisons?ids=a&ids=b
 
 /* =========================
  * 타입 및 상수
@@ -58,9 +67,6 @@ type KindergartenComparison = {
 };
 
 type ApiResp = { data: KindergartenComparison[] };
-
-// 공통 유틸 타입
-type WithClassName = React.PropsWithChildren<{ className?: string }>;
 
 /* =========================
  * 목업 (API 실패 대비)
@@ -141,7 +147,31 @@ const MOCK: ApiResp = {
 };
 
 /* =========================
- * 유틸 컴포넌트
+ * 유틸
+ * ========================= */
+// 리스트 페이지에서 ?ids=a&ids=b OR ?ids=a,b 를 둘 다 지원
+function resolveIds(sp: URLSearchParams): string[] {
+  const repeated = sp.getAll('ids').filter(Boolean);
+  if (repeated.length >= 2) return repeated;
+  const comma = sp.get('ids');
+  if (comma)
+    return comma
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  return [];
+}
+
+// S3 Key -> 이미지 URL (CDN/프록시 쓰면 여기만 교체)
+function s3ToUrl(key?: string) {
+  if (!key) return undefined;
+  // 예: https://cdn.knockdog.net/{key}
+  const CDN = process.env.NEXT_PUBLIC_CDN_BASE;
+  return CDN ? `${CDN}/${encodeURI(key)}` : undefined;
+}
+
+/* =========================
+ * 공용 작은 컴포넌트
  * ========================= */
 function PinkImg({
   src,
@@ -175,27 +205,29 @@ function PinkImg({
     </div>
   );
 }
-/** 라벨 */
-function Label({ children, icon, className = '', center = true }: WithClassName & { icon?: string; center?: boolean }) {
+function Label({
+  children,
+  icon,
+  className = '',
+  center = true,
+}: React.PropsWithChildren<{ icon?: string; className?: string; center?: boolean }>) {
   return (
     <div
-      className={`flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700 ${
-        center ? 'mx-auto w-fit' : ''
-      } ${className}`}
+      className={`flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700 ${center ? 'mx-auto w-fit' : ''} ${className}`}
     >
       {icon && <span aria-hidden>{icon}</span>}
       <span>{children}</span>
     </div>
   );
 }
-
-/** 필(칩) */
-function Pill({ children, className = '', center = true }: WithClassName & { center?: boolean }) {
+function Pill({
+  children,
+  className = '',
+  center = true,
+}: React.PropsWithChildren<{ className?: string; center?: boolean }>) {
   return (
     <span
-      className={`flex rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 ${
-        center ? 'mx-auto w-fit' : ''
-      } ${className}`}
+      className={`flex rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 ${center ? 'mx-auto w-fit' : ''} ${className}`}
     >
       {children}
     </span>
@@ -206,7 +238,7 @@ function CircleAvatar({ src, className = '' }: { src?: string; className?: strin
 }
 
 /* =========================
- * 캐러셀 (스와이프)
+ * 캐러셀
  * ========================= */
 function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
   const [index, setIndex] = useState(0);
@@ -365,224 +397,252 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
 }
 
 /* =========================
- * 페이지 컴포넌트
+ * 페이지: CompareComplete
  * ========================= */
 export default function CompareCompletePage() {
   const params = useSearchParams();
-  const ids = params.get('ids') ?? ''; // "id1,id2"
+  const ids = resolveIds(params); // ['13561634','13288005']
   const [data, setData] = useState<KindergartenComparison[] | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let ignore = false;
-    const run = async () => {
+
+    async function run() {
+      setLoading(true);
       try {
-        const res = await fetch(`/api/v0/kindergarten/compare?ids=${ids}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('bad');
+        // const token =
+        //   typeof window !== 'undefined'
+        //     ? localStorage.getItem('accessToken')
+        //     : 'eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiMDFLNE1GRlJWRzFZUFo1S1dSU1dEVkFHRlEiLCJpc3MiOiJwZXRjYW1wdXMua25vY2tkb2dAZ21haWwuY29tIiwiaWF0IjoxNzYxMTYwNTc0LCJleHAiOjE3NjEyNDY5NzR9.uP0AX7j8_NEQvW1h4IgG3l2SfLXbmheE177dWgVixV0';
+        const token =
+          'eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiMDFLNE1GRlJWRzFZUFo1S1dSU1dEVkFHRlEiLCJpc3MiOiJwZXRjYW1wdXMua25vY2tkb2dAZ21haWwuY29tIiwiaWF0IjoxNzYxMTYwNTc0LCJleHAiOjE3NjEyNDY5NzR9.uP0AX7j8_NEQvW1h4IgG3l2SfLXbmheE177dWgVixV0';
+        // 1) 우선 권장: 중복 키 방식
+        const qs = ids.map((id) => `ids=${encodeURIComponent(id)}`).join('&');
+        const url1 = `${COMPARE_ENDPOINT}?${qs}`;
+
+        const res = await fetch(url1, {
+          headers: {
+            accept: 'application/json;charset=UTF-8',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          cache: 'no-store',
+          credentials: 'include',
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
         const json: ApiResp = await res.json();
         if (!ignore) setData(json.data);
       } catch {
         if (!ignore) setData(MOCK.data);
+      } finally {
+        if (!ignore) setLoading(false);
       }
-    };
-    if (ids) run();
-    else setData(MOCK.data);
+    }
+
+    if (ids.length >= 2) run();
+    else {
+      setData(MOCK.data);
+      setLoading(false);
+    }
+
     return () => {
       ignore = true;
     };
-  }, [ids]);
+  }, [ids.join(',')]);
 
   const left = data?.[0];
   const right = data?.[1];
 
   return (
     <div className='flex h-screen flex-col bg-white'>
-      {/* 헤더 */}
-      <header className='sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3'>
-        <button aria-label='닫기' className='text-xl'>
-          ×
-        </button>
-        <h1 className='text-base font-bold'>비교 결과</h1>
-        <button className='text-sm text-gray-700'>공유하기</button>
-      </header>
+      <Header>
+        <Header.LeftSection>
+          <Header.BackButton />
+        </Header.LeftSection>
+        <Header.Title>비교 결과</Header.Title>
+      </Header>
 
       {/* 선택된 두 유치원 */}
       <div className='grid grid-cols-2 divide-x divide-gray-200 border-b border-gray-100 bg-white'>
-        <SelectedCell name={left?.name ?? '센터 A'} type='유치원 · 호텔' src='/dog1.png' />
-        <SelectedCell name={right?.name ?? '센터 B'} type='유치원 · 호텔' src='/dog2.png' />
+        <SelectedCell
+          name={left?.name ?? '센터 A'}
+          type='유치원 · 호텔'
+          src={s3ToUrl(left?.thumbnailS3Key) ?? '/dog1.png'}
+        />
+        <SelectedCell
+          name={right?.name ?? '센터 B'}
+          type='유치원 · 호텔'
+          src={s3ToUrl(right?.thumbnailS3Key) ?? '/dog2.png'}
+        />
       </div>
 
-      {/* 탭 */}
-      <Tabs
-        summary={
-          <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pb-8 pt-3'>
-            <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-              <Label>이용 요금</Label>
-              <p className='mt-3 text-center text-sm leading-6'>
-                <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>이(가)
-                <br />
-                1시간당 <b className='text-orange-600'>약 124,567원</b> 더 저렴해요
-              </p>
-              <Pill className='mt-3'>정기권 1시간 평균</Pill>
-              <div className='mt-5 flex flex-col items-center gap-4'>
-                <CircleAvatar src='/dog1.png' />
-                <p className='text-center text-sm'>
-                  <b>{left?.name ?? '왼쪽 유치원'}</b>이
+      {loading ? (
+        <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>
+      ) : (
+        <Tabs
+          summary={
+            <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pb-8 pt-3'>
+              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
+                <Label>이용 요금</Label>
+                <p className='mt-3 text-center text-sm leading-6'>
+                  <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>이(가)
                   <br />
-                  <b>약 1,000,000원</b> 더 저렴해요
-                  <br />
-                  <span className='text-xs text-gray-500'>(1,000,000원 &lt; 2,000,000원)</span>
+                  1시간당 <b className='text-orange-600'>약 124,567원</b> 더 저렴해요
                 </p>
-                <Pill>횟수권 1회 평균</Pill>
-              </div>
-            </section>
+                <Pill className='mt-3'>정기권 1시간 평균</Pill>
+                <div className='mt-5 flex flex-col items-center gap-4'>
+                  <CircleAvatar src={s3ToUrl(left?.thumbnailS3Key) ?? '/dog1.png'} />
+                  <p className='text-center text-sm'>
+                    <b>{left?.name ?? '왼쪽 유치원'}</b>이
+                    <br />
+                    <b>약 1,000,000원</b> 더 저렴해요
+                    <br />
+                    <span className='text-xs text-gray-500'>(1,000,000원 &lt; 2,000,000원)</span>
+                  </p>
+                  <Pill>횟수권 1회 평균</Pill>
+                </div>
+              </section>
 
-            <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-              <Label>픽드랍</Label>
-              <p className='mt-3 text-center text-sm'>
-                <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>만
-                <br />
-                픽드랍 서비스를 제공합니다
-              </p>
-            </section>
-
-            <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-              <Label>거리</Label>
-              <p className='mt-3 text-center text-sm'>
-                <span className='text-gray-600'>집</span> 에서 <b className='text-orange-600'>{left?.name ?? ''}</b>이
-                <br />
-                <b>도보</b>로 가장 가까워요
-              </p>
-              <div className='mt-5 space-y-6'>
-                <SummaryDistanceRow
-                  title='자동차'
-                  who={right?.name ?? ''}
-                  diff='N분 더 가까워요'
-                  avg='(100분 &lt; 200분)'
-                />
-                <SummaryDistanceRow
-                  title='대중교통'
-                  who={right?.name ?? ''}
-                  diff='N분 더 가까워요'
-                  avg='(100분 &lt; 200분)'
-                />
-              </div>
-            </section>
-
-            <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-              <Label>영업일</Label>
-              <div className='mt-5 space-y-8'>
-                <SummaryDays
-                  name={left?.name ?? ''}
-                  avatar='/dog1.png'
-                  days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
-                />
-                <SummaryDays
-                  name={right?.name ?? ''}
-                  avatar='/dog2.png'
-                  days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: false }}
-                />
-              </div>
-              <div className='mt-6 rounded-xl bg-white/80 p-4 text-center'>
-                <p className='text-sm'>
-                  <b className='text-orange-600'>두 유치원 모두</b>
+              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
+                <Label>픽드랍</Label>
+                <p className='mt-3 text-center text-sm'>
+                  <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>만
                   <br />
-                  공휴일에 쉬어요
+                  픽드랍 서비스를 제공합니다
                 </p>
-              </div>
-            </section>
-          </div>
-        }
-        details={
-          <div className='space-y-10 px-4 py-6'>
-            {/* 요금 비교 */}
-            <section>
-              <h2 className='mb-3 text-base font-bold'>요금 비교</h2>
-              <SwipeCarousel
-                slides={[
-                  <FeeSlide
-                    key='나이트'
-                    title='나이트케어'
-                    leftUp='약 45,000원'
-                    rightUp='약 20,000원'
-                    leftDown='약 130,000원'
-                    rightDown='약 20,000원'
-                    hasCountPass={true}
-                    hasSubPass={false}
-                  />,
-                  <FeeSlide
-                    key='데이케어'
-                    title='데이케어'
-                    leftUp='약 30,000원'
-                    rightUp='약 25,000원'
-                    leftDown='약 230,000원'
-                    rightDown='약 250,000원'
-                    hasCountPass={true}
-                    hasSubPass={true}
-                  />,
-                ]}
-              />
-            </section>
+              </section>
 
-            {/* 거리 비교 */}
-            <section>
-              <h2 className='mb-3 text-base font-bold'>거리 비교</h2>
-              <SwipeCarousel
-                slides={[
-                  <DistanceSlide
-                    key='집'
-                    title='집으로부터'
-                    rows={[
-                      {
-                        label: '도보',
-                        left: '—',
-                        right: right?.distance[0]?.transitTimes.find((t) => t.type === 'WALKING')?.time ?? '-',
-                      },
-                      {
-                        label: '차량',
-                        left: left?.distance[0]?.transitTimes.find((t) => t.type === 'DRIVING')?.time ?? '-',
-                        right: right?.distance[0]?.transitTimes.find((t) => t.type === 'DRIVING')?.time ?? '-',
-                      },
-                      {
-                        label: '거리',
-                        left: left?.distance[0]?.distance ?? '-',
-                        right: right?.distance[0]?.distance ?? '-',
-                      },
-                    ]}
-                  />,
-                ]}
-              />
-            </section>
+              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
+                <Label>거리</Label>
+                <p className='mt-3 text-center text-sm'>
+                  <span className='text-gray-600'>집</span> 에서 <b className='text-orange-600'>{left?.name ?? ''}</b>이
+                  <br />
+                  <b>도보</b>로 가장 가까워요
+                </p>
+                <div className='mt-5 space-y-6'>
+                  <SummaryDistanceRow
+                    title='자동차'
+                    who={right?.name ?? ''}
+                    diff='N분 더 가까워요'
+                    avg='(100분 &lt; 200분)'
+                  />
+                  <SummaryDistanceRow
+                    title='대중교통'
+                    who={right?.name ?? ''}
+                    diff='N분 더 가까워요'
+                    avg='(100분 &lt; 200분)'
+                  />
+                </div>
+              </section>
 
-            {/* 운영 시간 비교 */}
-            <section>
-              <h2 className='mb-3 text-base font-bold'>운영 시간 비교</h2>
-              <div className='grid grid-cols-2 gap-3'>
-                <DetailRow
-                  label='평일'
-                  left={left?.operatingSchedule.weekdayHours ?? '-'}
-                  right={right?.operatingSchedule.weekdayHours ?? '-'}
+              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
+                <Label>영업일</Label>
+                <div className='mt-5 space-y-8'>
+                  <SummaryDays
+                    name={left?.name ?? ''}
+                    avatar={s3ToUrl(left?.thumbnailS3Key) ?? '/dog1.png'}
+                    days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
+                  />
+                  <SummaryDays
+                    name={right?.name ?? ''}
+                    avatar={s3ToUrl(right?.thumbnailS3Key) ?? '/dog2.png'}
+                    days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: false }}
+                  />
+                </div>
+                <div className='mt-6 rounded-xl bg-white/80 p-4 text-center'>
+                  <p className='text-sm'>
+                    <b className='text-orange-600'>두 유치원 모두</b>
+                    <br />
+                    공휴일에 쉬어요
+                  </p>
+                </div>
+              </section>
+            </div>
+          }
+          details={
+            <div className='space-y-10 px-4 py-6'>
+              {/* 요금 비교 (캐러셀 데모) */}
+              <section>
+                <h2 className='mb-3 text-base font-bold'>요금 비교</h2>
+                <SwipeCarousel
+                  slides={[
+                    <FeeSlide
+                      key='나이트'
+                      title='나이트케어'
+                      leftUp={`약 ${left?.pricing.products.find((p) => p.productType === 'NIGHT_CARE')?.min.price?.toLocaleString() ?? '-'}원`}
+                      rightUp={`약 ${right?.pricing.products.find((p) => p.productType === 'NIGHT_CARE')?.min.price?.toLocaleString() ?? '-'}원`}
+                      leftDown={`약 ${left?.pricing.products.find((p) => p.productType === 'NIGHT_CARE')?.max.price?.toLocaleString() ?? '-'}원`}
+                      rightDown={`약 ${right?.pricing.products.find((p) => p.productType === 'NIGHT_CARE')?.max.price?.toLocaleString() ?? '-'}원`}
+                      hasCountPass={true}
+                      hasSubPass={false}
+                    />,
+                  ]}
                 />
-                <DetailRow
-                  label='주말'
-                  left={left?.operatingSchedule.weekendHours ?? '-'}
-                  right={right?.operatingSchedule.weekendHours ?? '-'}
+              </section>
+
+              {/* 거리 비교 */}
+              <section>
+                <h2 className='mb-3 text-base font-bold'>거리 비교</h2>
+                <SwipeCarousel
+                  slides={[
+                    <DistanceSlide
+                      key='집'
+                      title='집으로부터'
+                      rows={[
+                        {
+                          label: '도보',
+                          left: left?.distance[0]?.transitTimes.find((t) => t.type === 'WALKING')?.time ?? '-',
+                          right: right?.distance[0]?.transitTimes.find((t) => t.type === 'WALKING')?.time ?? '-',
+                        },
+                        {
+                          label: '차량',
+                          left: left?.distance[0]?.transitTimes.find((t) => t.type === 'DRIVING')?.time ?? '-',
+                          right: right?.distance[0]?.transitTimes.find((t) => t.type === 'DRIVING')?.time ?? '-',
+                        },
+                        {
+                          label: '거리',
+                          left: left?.distance[0]?.distance ?? '-',
+                          right: right?.distance[0]?.distance ?? '-',
+                        },
+                      ]}
+                    />,
+                  ]}
                 />
-                <DetailRow
-                  label='휴무'
-                  left={(left?.operatingSchedule.closedDays ?? []).map((d) => DAY_OF_WEEK[d]).join(', ') || '-'}
-                  right={(right?.operatingSchedule.closedDays ?? []).map((d) => DAY_OF_WEEK[d]).join(', ') || '-'}
-                />
-              </div>
-            </section>
-          </div>
-        }
-      />
+              </section>
+
+              {/* 운영 시간 비교 */}
+              <section>
+                <h2 className='mb-3 text-base font-bold'>운영 시간 비교</h2>
+                <div className='grid grid-cols-2 gap-3'>
+                  <DetailRow
+                    label='평일'
+                    left={left?.operatingSchedule.weekdayHours ?? '-'}
+                    right={right?.operatingSchedule.weekdayHours ?? '-'}
+                  />
+                  <DetailRow
+                    label='주말'
+                    left={left?.operatingSchedule.weekendHours ?? '-'}
+                    right={right?.operatingSchedule.weekendHours ?? '-'}
+                  />
+                  <DetailRow
+                    label='휴무'
+                    left={(left?.operatingSchedule.closedDays ?? []).map((d) => DAY_OF_WEEK[d]).join(', ') || '-'}
+                    right={(right?.operatingSchedule.closedDays ?? []).map((d) => DAY_OF_WEEK[d]).join(', ') || '-'}
+                  />
+                </div>
+              </section>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 }
 
 /* =========================
- * Tabs (요약/자세히)
+ * Tabs
  * ========================= */
 function Tabs({ summary, details }: { summary: React.ReactNode; details: React.ReactNode }) {
   const [tab, setTab] = useState<'summary' | 'details'>('summary');
@@ -608,7 +668,7 @@ function Tabs({ summary, details }: { summary: React.ReactNode; details: React.R
 }
 
 /* =========================
- * Summary helpers
+ * Summary helpers & Detail slides
  * ========================= */
 function SummaryDistanceRow({ title, who, diff, avg }: { title: string; who: string; diff: string; avg: string }) {
   return (
@@ -626,9 +686,6 @@ function SummaryDistanceRow({ title, who, diff, avg }: { title: string; who: str
   );
 }
 
-/* =========================
- * Detail slides
- * ========================= */
 function FeeSlide({
   title,
   leftUp,
@@ -660,7 +717,6 @@ function FeeSlide({
         <DetailMoney title={rightUp} subtitle='상품명' />
         <DetailMoney title={leftDown} subtitle='상품명' />
         <DetailMoney title={rightDown} subtitle='상품명' />
-        {/* ○/× 표기 */}
         <div className='rounded-lg bg-gray-50 p-3 text-center'>
           <div className='text-sm'>{hasCountPass ? '○' : '–'}</div>
           <div className='mt-1 text-xs text-gray-500'>횟수권 (1h)</div>
