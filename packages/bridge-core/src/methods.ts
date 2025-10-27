@@ -66,6 +66,34 @@ type ToastShowParams = {
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};
 
+type PickImageParams = {
+  allowsEditing?: boolean; // 이미지 편집 허용 여부
+  quality?: number; // 0~1 사이의 압축 품질
+  aspect?: [number, number]; // 종횡비 [가로, 세로]
+  mediaTypes?: 'images' | 'videos' | 'all'; // 미디어 타입
+};
+
+type PickImagesParams = {
+  quality?: number; // 0~1 사이의 압축 품질
+  orderedSelection?: boolean; // 선택 순서 유지 여부 (iOS만 지원)
+  selectionLimit?: number; // 선택 가능한 최대 개수 (0 = 무제한)
+};
+
+type ImageAsset = {
+  uri: string; // 이미지 URI
+  width: number; // 이미지 너비
+  height: number; // 이미지 높이
+  fileSize?: number; // 파일 크기 (bytes)
+  type?: 'image' | 'video' | 'livePhoto' | 'pairedVideo'; // 미디어 타입
+  fileName?: string; // 파일명
+  mimeType?: string; // MIME 타입
+};
+
+type PickImageResult = {
+  cancelled: boolean; // 취소 여부
+  assets?: ImageAsset[]; // 선택된 이미지들
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -78,4 +106,8 @@ export type {
   ToastShape,
   ToastPosition,
   ToastType,
+  PickImageParams,
+  PickImagesParams,
+  PickImageResult,
+  ImageAsset,
 };

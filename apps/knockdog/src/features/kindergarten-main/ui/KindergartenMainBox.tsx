@@ -4,6 +4,7 @@ import { Icon, Divider } from '@knockdog/ui';
 import { ServiceBadgeList } from '@entities/kindergarten';
 import { DeparturePointSheet } from '@entities/kindergarten';
 import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
+import { toast } from '@shared/ui/toast';
 
 interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}
 
@@ -21,7 +22,18 @@ const KindergartenMainBox = ({
   memoDate,
 }: KindergartenMainBoxProps) => {
   const openDeparturePointSheet = () =>
-    overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
+    // @TODO API 수정후, 수정 필요
+    overlay.open(({ isOpen, close }) => (
+      <DeparturePointSheet
+        isOpen={isOpen}
+        close={close}
+        to={{
+          lat: 37.3585196,
+          lng: 127.1195825,
+          name: title,
+        }}
+      />
+    ));
 
   return (
     <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pb-12 pt-[20px]'>

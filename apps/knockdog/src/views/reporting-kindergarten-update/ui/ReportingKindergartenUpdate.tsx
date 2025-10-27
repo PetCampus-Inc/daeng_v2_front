@@ -2,20 +2,29 @@
 
 import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
-
 import { ActionButton } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { ReportOptionCard } from '@features/dog-school';
+import { toast } from '@shared/ui/toast';
+import { PhotoUploader } from '@shared/ui/photo-uploader';
+import { ReportOptionCard } from '@entities/reporting';
 import { useKindergartenBasicQuery } from '@features/kindergarten-basic';
 import { Header } from '@widgets/Header';
 import { AddressSelectMapSheet } from './AddressSelectMapSheet';
-import { PhotoUploadSection } from './PhotoUploadSection';
 import { AddressChangeSection } from './AddressChangeSection';
 import { checkOptions } from '../model/checkOptions';
 import { useReportingForm } from '../model/useReportingForm';
 import { useReportingMutate } from '../api/useReportingMutate';
 
 type CheckedKey = (typeof checkOptions)[number]['key'];
+
+type AddressData = {
+  roadAddr: string;
+  jibunAddr: string;
+  siNm: string;
+  sggNm: string;
+  emdNm: string;
+  zipNo: string;
+};
 
 const MAX_UPLOAD_COUNT = 3;
 const PHOTO_UPLOAD_KEYS: CheckedKey[] = ['closed', 'price', 'phone', 'time'];
@@ -27,12 +36,21 @@ function ReportingKindergartenUpdate() {
   const { data: kindergartenBasic } = useKindergartenBasicQuery(id!);
   const roadAddress = kindergartenBasic?.roadAddress ?? null;
 
-  const { push, back } = useStackNavigation();
+  const { pushForResult, back } = useStackNavigation();
   const { isChecked, toggleCheck, newAddress, setNewAddress, setFiles, reportingParams, isFormValid } =
     useReportingForm();
 
   const { mutate: reportingMutate, isPending } = useReportingMutate(id!, reportingParams, {
-    onSuccess: back,
+    onSuccess: () => {
+      toast({
+        title: '제보가 성공적으로 접수 되었어요!',
+        type: 'success',
+        shape: 'square', 
+        position: 'bottom-above-nav',
+      });
+
+      back();
+    },
   });
 
   if (!id) return null;
@@ -43,22 +61,38 @@ function ReportingKindergartenUpdate() {
         isOpen={isOpen}
         close={close}
         defaultLocation={{ lat: 37.3595704, lng: 127.105399, name: roadAddress ?? '' }}
-        onSelect={(location) => setNewAddress(location.name)}
+        onSelect={(location) => {
+          setNewAddress(location.name);
+        }}
       />
     ));
   };
 
-  const handleManualAddress = () => {
-    push({ pathname: `/kindergarten/${id}/report-info-update/manual-address` });
+  const handleManualAddress = async () => {
+    try {
+      // pushForResult로 간단하게 통합
+      const result = await pushForResult<AddressData>({
+        pathname: `/kindergarten/${id}/report-info-update/manual-address`,
+      });
+
+      if (result) {
+        setNewAddress(result.roadAddr);
+        toggleCheck('address', true);
+      }
+    } catch (error) {
+      console.error('[handleManualAddress] Error:', error);
+    }
   };
 
   const renderOptionContent = (key: CheckedKey) => {
     if (PHOTO_UPLOAD_KEYS.includes(key)) {
       return (
-        <PhotoUploadSection
-          maxCount={MAX_UPLOAD_COUNT}
-          onChange={(files) => setFiles(key as 'closed' | 'price' | 'phone' | 'time', files)}
-        />
+        <div className='mt-5 px-4'>
+          <PhotoUploader
+            maxCount={MAX_UPLOAD_COUNT}
+            onChange={(files) => setFiles(key as 'closed' | 'price' | 'phone' | 'time', files)}
+          />
+        </div>
       );
     }
 

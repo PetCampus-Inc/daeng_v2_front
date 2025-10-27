@@ -7,6 +7,25 @@ export interface ReverseGeocodeParams {
   lng: number;
 }
 
+// API 응답 구조
+interface RawAddressItem {
+  zipcode?: string;
+  type?: 'road' | 'parcel';
+  text?: string;
+  structure?: {
+    level0?: string;
+    level1?: string;
+    level2?: string;
+    level3?: string;
+    level4L?: string;
+    level4A?: string;
+    level5?: string;
+    detail?: string;
+  };
+  [x: string]: unknown;
+}
+
+// 내부적으로 사용하는 정규화된 구조
 export interface VWorldAddressItem {
   id?: string;
   address?: {
@@ -19,11 +38,30 @@ export interface VWorldAddressItem {
 }
 
 export interface ReverseGeocodeStandardResponse {
-  result: VWorldAddressItem[];
+  result: RawAddressItem[];
 }
 
 export function extractVWorldItems(data: ReverseGeocodeStandardResponse | undefined): VWorldAddressItem[] {
-  return data?.result ?? [];
+  if (!data?.result) return [];
+
+  const roadItem = data.result.find((item) => item.type === 'road');
+  const parcelItem = data.result.find((item) => item.type === 'parcel');
+
+  // 도로명 주소가 있으면 그걸 우선으로 사용
+  const primaryItem = roadItem || parcelItem;
+
+  if (!primaryItem) return [];
+
+  return [
+    {
+      text: primaryItem.text,
+      address: {
+        road: roadItem?.text,
+        parcel: parcelItem?.text,
+        zipcode: primaryItem.zipcode,
+      },
+    },
+  ];
 }
 
 async function getReverseGeocode({ lat, lng }: ReverseGeocodeParams): Promise<ReverseGeocodeStandardResponse> {

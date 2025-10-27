@@ -28,19 +28,20 @@ interface UseCurrentAddressResult {
 export function useCurrentAddress(coords: Coordinates | undefined, enabled = true): UseCurrentAddressResult {
   const reverseQuery = useReverseGeocodeQuery(coords, enabled);
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    const items = extractVWorldItems(reverseQuery.data);
+
+    return {
       coords,
       address: reverseQuery.data,
-      items: extractVWorldItems(reverseQuery.data),
-      primaryText: extractVWorldItems(reverseQuery.data)[0]?.text,
-      primaryRoad: extractVWorldItems(reverseQuery.data)[0]?.address?.road,
-      primaryParcel: extractVWorldItems(reverseQuery.data)[0]?.address?.parcel,
-      zipcode: extractVWorldItems(reverseQuery.data)[0]?.address?.zipcode,
+      items,
+      primaryText: items[0]?.text,
+      primaryRoad: items[0]?.address?.road,
+      primaryParcel: items[0]?.address?.parcel,
+      zipcode: items[0]?.address?.zipcode,
       isLoading: reverseQuery.isLoading,
       isFetching: reverseQuery.isFetching,
       error: (reverseQuery.error as Error | null | undefined)?.message ?? null,
-    }),
-    [coords, reverseQuery.data, reverseQuery.isLoading, reverseQuery.isFetching, reverseQuery.error]
-  );
+    };
+  }, [coords, reverseQuery.data, reverseQuery.isLoading, reverseQuery.isFetching, reverseQuery.error]);
 }

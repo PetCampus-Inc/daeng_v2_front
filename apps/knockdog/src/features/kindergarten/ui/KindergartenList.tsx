@@ -10,6 +10,7 @@ import { FilterChip } from './FilterChip';
 import { useKindergartenSearch } from '../model/useKindergartenSearchContext';
 import { useEffect, useRef } from 'react';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 import { useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -61,6 +62,8 @@ export function KindergartenList() {
     overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} bounds={bounds} />);
   };
 
+  const { push } = useStackNavigation();
+
   return (
     <>
       <main
@@ -82,6 +85,8 @@ export function KindergartenList() {
               <SegmentedControlItem value='work'>직장</SegmentedControlItem>
             </SegmentedControl>
           </div>
+
+          <button onClick={() => push({ pathname: '/kindergarten/1253111667' })}> 유치원으로 바로가기</button>
 
           <div className='border-line-200 flex h-[52px] w-full items-center border-b border-t'>
             <div className='py-x2 flex w-full items-center'>

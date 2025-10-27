@@ -16,6 +16,7 @@ const api = ky.create({
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiMDFLNE1GRlJWRzFZUFo1S1dSU1dEVkFHRlEiLCJpc3MiOiJwZXRjYW1wdXMua25vY2tkb2dAZ21haWwuY29tIiwiaWF0IjoxNzYxNDY4ODM0LCJleHAiOjE3NjE1NTUyMzR9.aCnGey0Pn8b7GLsLuTAoO3pNky04aux99K_lVrEVRFA',
   },
   retry: 0,
   hooks: {

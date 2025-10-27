@@ -14,7 +14,7 @@ export default function StackScreen() {
   return (
     <>
       <WebViewScreen uri={path} webviewRef={webviewRef} initialState={initialState} />
-      <BridgeDebugOverlay />
+      {/* <BridgeDebugOverlay /> */}
     </>
   );
 }

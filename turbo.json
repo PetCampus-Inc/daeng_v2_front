@@ -15,6 +15,7 @@
       "dependsOn": ["^type-check"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     }
