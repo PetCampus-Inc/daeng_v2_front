@@ -7,8 +7,8 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "bunchee src/index.ts --format cjs,esm --out-dir dist && tsc --emitDeclarationOnly --outDir dist",
-    "dev": "bunchee src/index.ts --watch --format cjs,esm --out-dir dist"
+    "build": "pnpm exec bunchee src/index.ts --format cjs,esm --out-dir dist && pnpm exec tsc --emitDeclarationOnly --outDir dist",
+    "dev": "pnpm exec bunchee src/index.ts --watch --format cjs,esm --dts --out-dir dist"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +21,6 @@
     }
   },
   "devDependencies": {
-    "@knockdog/typescript-config": "workspace:*",
-    "bunchee": "^6.6.2"
+    "@knockdog/typescript-config": "workspace:*"
   }
 }

@@ -7,8 +7,9 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "bunchee",
-    "dev": "bunchee src/index.ts --watch --format cjs,esm --dts --out-dir dist"
+    "build": "pnpm exec bunchee",
+    "dev": "pnpm exec bunchee src/index.ts --watch --format cjs,esm --dts --out-dir dist",
+    "prepare": "pnpm run build"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +25,6 @@
     "@knockdog/bridge-core": "workspace:*"
   },
   "devDependencies": {
-    "@knockdog/typescript-config": "workspace:*",
-    "bunchee": "^6.6.2"
+    "@knockdog/typescript-config": "workspace:*"
   }
 }
