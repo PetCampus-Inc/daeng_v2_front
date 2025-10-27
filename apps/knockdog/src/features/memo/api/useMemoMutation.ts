@@ -9,9 +9,9 @@ export const useMemoMutation = (
 
   return useMutation({
     mutationFn: updateMemo as (variables: UpdateMemoRequest) => Promise<MemoResponse>,
-    onSuccess: (...args) => {
+    onSuccess: async (...args) => {
       const [data, variables] = args;
-      queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), data);
+      await queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
       options?.onSuccess?.(...args);
     },
     ...options,

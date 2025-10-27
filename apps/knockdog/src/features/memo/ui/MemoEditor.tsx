@@ -32,7 +32,7 @@ export function MemoEditor({
   };
 
   return (
-    <div className={cn('relative mt-[66px]', className)}>
+    <div className={cn('relative', className)}>
       <div className='body2-regular sticky top-[65px] mb-7 flex items-center justify-center bg-white py-3'>
         <span className='text-text-accent'>{currentValue.length}</span>
         <span>/{maxLength}</span>

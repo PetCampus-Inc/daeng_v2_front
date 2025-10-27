@@ -7,7 +7,7 @@ export interface MemoResponse {
 }
 
 export const getMemo = async (targetId: string): Promise<MemoResponse> => {
-  const response = await api.get(`/api/v0/memo`, {
+  const response = await api.get(`memo`, {
     searchParams: {
       targetId,
     },
