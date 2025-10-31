@@ -1,0 +1,39 @@
+{
+  "name": "@daeng-design/react-textarea",
+  "version": "0.0.1",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "require": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bunchee",
+    "dev": "bunchee --watch"
+  },
+  "dependencies": {
+    "@daeng-design/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@knockdog/typescript-config": "workspace:*",
+    "@radix-ui/react-use-controllable-state": "^1.2.2",
+    "@types/react": "^19.2.2",
+    "bunchee": "^6.6.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
+}

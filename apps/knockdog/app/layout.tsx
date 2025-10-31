@@ -1,39 +1,33 @@
+import Script from 'next/script';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { cn } from '@knockdog/ui/lib';
-
 import { suit } from './font';
 import './globals.css';
-import { NaverMapProvider } from '@knockdog/naver-map';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
-import { BottomNavigationBar } from '@widgets/bottom-bar';
+import { BridgeProvider } from '@shared/lib/bridge';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='ko' className={cn(suit.variable)}>
-      <body>
+      <body className='overflow-hidden'>
         <NuqsAdapter>
           <ReactQueryProvider>
-            <NaverMapProvider>
+            <BridgeProvider>
               <OverlayProvider>
                 <HeaderProvider>
                   <div className='flex h-dvh flex-col'>
+                    {/* @TODO HeaderWrapper 추후 삭제 필요 */}
                     <HeaderWrapper />
                     {children}
-                    <div className='fixed inset-x-0 bottom-0 z-50'>
-                      <BottomNavigationBar />
-                    </div>
                   </div>
                 </HeaderProvider>
               </OverlayProvider>
-            </NaverMapProvider>
+            </BridgeProvider>
           </ReactQueryProvider>
         </NuqsAdapter>
+        <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
       </body>
     </html>
   );

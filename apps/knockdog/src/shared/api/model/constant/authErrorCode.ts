@@ -1,0 +1,23 @@
+const LOGIN_ERROR_CODE = {
+  /** 유효하지 않은 소셜 플랫폼 */
+  INVALID_PROVIDER: 'INVALID_PROVIDER',
+  /** 탈퇴한 사용자 */
+  WITHDRAWN_USER: 'WITHDRAWN_USER',
+  /** 재가입 제한 기간 */
+  REJOINING_RESTRICTION_PERIOD: 'REJOINING_RESTRICTION_PERIOD',
+} as const;
+
+const TOKEN_ERROR_CODE = {
+  /** 유효하지 않은 토큰 */
+  INVALID_TOKEN: 'INVALID_TOKEN',
+  /** 토큰 만료 */
+  EXPIRED_TOKEN: 'EXPIRED_TOKEN',
+  /** 토큰 누락 */
+  TOKEN_MISSING: 'TOKEN_MISSING',
+  /** 토큰 검증 실패 */
+  TOKEN_VERIFICATION_FAILED: 'TOKEN_VERIFICATION_FAILED',
+  /** 리프레시 토큰 만료 */
+  EXPIRED_REFRESH_TOKEN: 'EXPIRED_REFRESH_TOKEN',
+} as const;
+
+export { LOGIN_ERROR_CODE, TOKEN_ERROR_CODE };

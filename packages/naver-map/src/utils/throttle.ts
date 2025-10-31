@@ -2,7 +2,7 @@ export function throttle<T extends (...args: any[]) => void>(
   func: T,
   wait: number
 ): T {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   let previous = 0;
 
   return ((...args: Parameters<T>) => {
