@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
 import { Header } from '@widgets/Header';
+
 type SortAnchor = 'home' | 'work' | 'here';
 
 type DistanceBy = {
@@ -13,7 +14,7 @@ type DistanceBy = {
 };
 
 interface Center {
-  id: string; // ← compare-complete API가 string id 이므로 string 사용
+  id: string;
   name: string;
   type: string;
   location: string;
@@ -25,6 +26,9 @@ interface Center {
   distanceBy: DistanceBy;
 }
 
+/* =========================
+ * Mock Data (그대로)
+ * ========================= */
 const mockData: Center[] = [
   {
     id: '13561634',
@@ -59,10 +63,14 @@ const mockData: Center[] = [
   },
 ];
 
+/* =========================
+ * 페이지
+ * ========================= */
 export default function ComparePage() {
   const router = useRouter();
   const [centers, setCenters] = useState<Center[]>(mockData);
   const [anchor, setAnchor] = useState<SortAnchor>('home');
+  const [loading, setLoading] = useState(false); // 버튼 스피너용
 
   const selected = useMemo(
     () => centers.filter((c) => c.selected).sort((a, b) => (a.selectedAt ?? 0) - (b.selectedAt ?? 0)),
@@ -79,7 +87,48 @@ export default function ComparePage() {
   const formatKm = (km: number) => `${km.toFixed(1)}km`;
   const anchorLabel = (label: SortAnchor) => (label === 'home' ? '집' : label === 'work' ? '직장' : '현위치');
 
-  // 안전한 선택 토글 (최대 2개 유지)
+  /* =========================
+   * DEV 로그인 (토큰 갱신 → localStorage 저장)
+   * ========================= */
+  const handleDevLogin = async () => {
+    try {
+      const res = await fetch('/api/v0/auth/dev/1', {
+        method: 'GET',
+        headers: { accept: 'application/json;charset=UTF-8' },
+        cache: 'no-store',
+        credentials: 'include',
+      });
+
+      if (!res.ok) throw new Error(`로그인 실패: ${res.status}`);
+      const authHeader = res.headers.get('authorization') || res.headers.get('Authorization');
+      if (!authHeader) throw new Error('Authorization 헤더 없음');
+
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      localStorage.setItem('accessToken', token);
+
+      alert('✅ DEV 로그인 성공! 토큰이 저장되었습니다.');
+      // 필요하면 새로고침
+      // window.location.reload();
+    } catch (err) {
+      console.error('DEV 로그인 중 오류:', err);
+      alert('❌ 로그인 실패. 콘솔을 확인하세요.');
+    }
+  };
+
+  /* =========================
+   * 비교 → compare-complete로 이동 (여기선 API 호출 안 함)
+   * ========================= */
+  const gotoCompare = () => {
+    if (!canCompare) return;
+    setLoading(true);
+    const ids = selected.map((s) => s.id).join(',');
+    // 스펙: GET + ids 파라미터 → compare-complete에서 실제 API 호출
+    router.push(`/compare-complete?ids=${encodeURIComponent(ids)}`);
+  };
+
+  /* =========================
+   * 유치원 선택 토글 (최대 2개 유지)
+   * ========================= */
   const toggle = (id: string) =>
     setCenters((prev) => {
       const next = prev.map((x) => ({ ...x }));
@@ -110,12 +159,6 @@ export default function ComparePage() {
       next[targetIndex] = { ...target, selected: true, selectedAt: Date.now() };
       return next;
     });
-
-  const gotoCompare = () => {
-    if (!canCompare) return;
-    const ids = selected.map((s) => s.id).join(',');
-    router.push(`/compare-complete?ids=${encodeURIComponent(ids)}`);
-  };
 
   return (
     <Layout>
@@ -209,22 +252,33 @@ export default function ComparePage() {
 
               <button
                 type='button'
-                disabled={!canCompare}
+                disabled={!canCompare || loading}
                 onClick={gotoCompare}
                 className={`h-12 flex-1 rounded-2xl text-sm font-semibold transition-colors ${
                   canCompare ? 'bg-[#FF7A00] text-white' : 'cursor-not-allowed bg-gray-100 text-gray-400'
                 } `}
               >
-                비교하기 {selectedCount}/2
+                {loading ? '요청 중...' : `비교하기 ${selectedCount}/2`}
               </button>
             </div>
           </div>
+
+          {/* ✅ 왼쪽 하단 Dev 로그인 버튼 */}
+          <button
+            onClick={handleDevLogin}
+            className='fixed bottom-20 left-4 flex items-center gap-2 rounded-full bg-[#333] px-4 py-3 text-xs font-semibold text-white shadow-lg'
+          >
+            🔑 DEV 로그인
+          </button>
         </div>
       </Suspense>
     </Layout>
   );
 }
 
+/* =========================
+ * 유치원 아이템
+ * ========================= */
 function CompareItem({
   center,
   onToggle,
@@ -239,10 +293,8 @@ function CompareItem({
   return (
     <div className='flex items-start gap-3 border-b border-[#F3F3F7] bg-white px-3 py-3'>
       <input type='checkbox' checked={center.selected} onChange={onToggle} className='mt-2 accent-yellow-400' />
-
       <div className='grid flex-1 grid-cols-[80px_1fr] gap-3'>
         <div className='h-20 w-20 rounded-lg bg-pink-200' />
-
         <div className='min-w-0'>
           <div className='flex items-start justify-between gap-2'>
             <h3 className='truncate text-base font-bold leading-tight'>{center.name}</h3>
@@ -252,9 +304,7 @@ function CompareItem({
               </svg>
             </button>
           </div>
-
           <div className='mt-0.5 text-sm text-gray-500'>{center.type}</div>
-
           <div className='mt-2 flex items-center gap-2'>
             <span className='inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[11px] font-medium text-green-700'>
               <span className='font-bold'>N</span>
@@ -279,9 +329,7 @@ function CompareItem({
               {center.location} · {anchorLabelText} 기준
             </span>
           </span>
-
           <span className='h-3.5 w-px bg-gray-300' aria-hidden='true' />
-
           <span className='inline-flex items-center gap-1'>
             <span className='text-sm'>₩</span>
             <span className='font-semibold'>이용요금</span>

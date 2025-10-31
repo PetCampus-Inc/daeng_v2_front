@@ -9,9 +9,7 @@ import { Header } from '@widgets/Header';
  * API 베이스 & 엔드포인트
  * ========================= */
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
-// 백엔드 문서가 비교 엔드포인트를 compare/comparisons 두 가지로 언급해서 변수로 분리함.
-// 실제 사용하는 걸로 하나만 남겨도 됨.
-const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`; // 예: .../comparisons?ids=a&ids=b
+const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`; // 예: .../comparisons?ids=a,b
 
 /* =========================
  * 타입 및 상수
@@ -149,7 +147,7 @@ const MOCK: ApiResp = {
 /* =========================
  * 유틸
  * ========================= */
-// 리스트 페이지에서 ?ids=a&ids=b OR ?ids=a,b 를 둘 다 지원
+// ?ids=a&ids=b OR ?ids=a,b 모두 지원
 function resolveIds(sp: URLSearchParams): string[] {
   const repeated = sp.getAll('ids').filter(Boolean);
   if (repeated.length >= 2) return repeated;
@@ -162,10 +160,9 @@ function resolveIds(sp: URLSearchParams): string[] {
   return [];
 }
 
-// S3 Key -> 이미지 URL (CDN/프록시 쓰면 여기만 교체)
+// S3 Key -> 이미지 URL
 function s3ToUrl(key?: string) {
   if (!key) return undefined;
-  // 예: https://cdn.knockdog.net/{key}
   const CDN = process.env.NEXT_PUBLIC_CDN_BASE;
   return CDN ? `${CDN}/${encodeURI(key)}` : undefined;
 }
@@ -401,7 +398,7 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
  * ========================= */
 export default function CompareCompletePage() {
   const params = useSearchParams();
-  const ids = resolveIds(params); // ['13561634','13288005']
+  const ids = resolveIds(params); // 예: ['13561634','13288005']
   const [data, setData] = useState<KindergartenComparison[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -411,17 +408,15 @@ export default function CompareCompletePage() {
     async function run() {
       setLoading(true);
       try {
-        // const token =
-        //   typeof window !== 'undefined'
-        //     ? localStorage.getItem('accessToken')
-        //     : 'eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiMDFLNE1GRlJWRzFZUFo1S1dSU1dEVkFHRlEiLCJpc3MiOiJwZXRjYW1wdXMua25vY2tkb2dAZ21haWwuY29tIiwiaWF0IjoxNzYxMTYwNTc0LCJleHAiOjE3NjEyNDY5NzR9.uP0AX7j8_NEQvW1h4IgG3l2SfLXbmheE177dWgVixV0';
-        const token =
-          'eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiMDFLNE1GRlJWRzFZUFo1S1dSU1dEVkFHRlEiLCJpc3MiOiJwZXRjYW1wdXMua25vY2tkb2dAZ21haWwuY29tIiwiaWF0IjoxNzYxMTYwNTc0LCJleHAiOjE3NjEyNDY5NzR9.uP0AX7j8_NEQvW1h4IgG3l2SfLXbmheE177dWgVixV0';
-        // 1) 우선 권장: 중복 키 방식
-        const qs = ids.map((id) => `ids=${encodeURIComponent(id)}`).join('&');
-        const url1 = `${COMPARE_ENDPOINT}?${qs}`;
+        // 1) 토큰: 클라이언트에서만 localStorage 접근
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-        const res = await fetch(url1, {
+        // 2) API: GET + ids(콤마) 단일 파라미터로 호출
+        const idsParam = ids.join(',');
+        const url = `${COMPARE_ENDPOINT}?ids=${encodeURIComponent(idsParam)}`;
+
+        const res = await fetch(url, {
+          method: 'GET',
           headers: {
             accept: 'application/json;charset=UTF-8',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -434,13 +429,15 @@ export default function CompareCompletePage() {
 
         const json: ApiResp = await res.json();
         if (!ignore) setData(json.data);
-      } catch {
+      } catch (e) {
+        console.error('비교 API 실패, MOCK으로 대체:', e);
         if (!ignore) setData(MOCK.data);
       } finally {
         if (!ignore) setLoading(false);
       }
     }
 
+    // ids가 2개 미만이면 MOCK으로 표시
     if (ids.length >= 2) run();
     else {
       setData(MOCK.data);

@@ -5,6 +5,21 @@ import Layout from '../(main)/layout';
 import { Header } from '@widgets/Header';
 
 /* =========================
+ * 환경 & 공통 유틸
+ * ========================= */
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? ''; // 예: https://api.knockdog.net
+const DEV_LOGIN_ID = Number(process.env.NEXT_PUBLIC_DEV_LOGIN_ID ?? '1'); // 필요시 .env 에서 바꿔줘
+
+// localStorage 에서 토큰을 읽어 Header 구성
+const makeAuthHeaders = (): HeadersInit => {
+  // 항상 'accept' 헤더는 넣고, 토큰이 있으면 Authorization 추가
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const base: Record<string, string> = { accept: 'application/json;charset=UTF-8' };
+  if (token) base['Authorization'] = `Bearer ${token}`;
+  return base;
+};
+
+/* =========================
  * 타입 (히스토리 API 인터페이스)
  * ========================= */
 /* eslint-disable @next/next/no-img-element */
@@ -27,7 +42,7 @@ export interface ComparisonHistory {
 }
 
 /* =========================
- * 유틸 함수들
+ * 유틸 함수들 (그대로)
  * ========================= */
 function PinkImg({ src, className = '' }: { src?: string; className?: string }) {
   return (
@@ -62,16 +77,6 @@ const formatYmd = (arr: IsoLikeTuple) => {
 };
 
 /* =========================
- * 인증 헤더 유틸
- * ========================= */
-const authHeaders = () => {
-  //   const token = localStorage.getItem('accessToken'); // 토큰 키
-  const token =
-    'eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiMDFLNE1GRlJWRzFZUFo1S1dSU1dEVkFHRlEiLCJpc3MiOiJwZXRjYW1wdXMua25vY2tkb2dAZ21haWwuY29tIiwiaWF0IjoxNzYxMTYwNTc0LCJleHAiOjE3NjEyNDY5NzR9.uP0AX7j8_NEQvW1h4IgG3l2SfLXbmheE177dWgVixV0';
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-/* =========================
  * 메인 페이지
  * ========================= */
 type FavoriteItem = {
@@ -103,12 +108,10 @@ export default function SavedPage() {
     const fetchHistory = async () => {
       try {
         setLoading(true);
+        // 상대경로 그대로 유지 (/api/v0/...), 헤더는 makeAuthHeaders 사용
         const res = await fetch('/api/v0/kindergarten/comparisons/history?limit=50', {
           method: 'GET',
-          headers: {
-            accept: 'application/json;charset=UTF-8',
-            ...authHeaders(), // ✅ 토큰 추가
-          } as HeadersInit,
+          headers: makeAuthHeaders(),
           cache: 'no-store',
           signal: controller.signal,
         });
@@ -150,10 +153,7 @@ export default function SavedPage() {
     try {
       const res = await fetch(`/api/v0/kindergarten/comparisons/history/${id}`, {
         method: 'DELETE',
-        headers: {
-          accept: 'application/json;charset=UTF-8',
-          ...authHeaders(),
-        } as HeadersInit,
+        headers: makeAuthHeaders(),
         cache: 'no-store',
       });
 
@@ -178,6 +178,10 @@ export default function SavedPage() {
           </Header.LeftSection>
           <Header.Title>보관함</Header.Title>
         </Header>
+
+        {/* ▼▼ DEV 로그인 플로팅 버튼 (좌측 고정) ▼▼ */}
+        <DevLoginFab />
+        {/* ▲▲ DEV 로그인 플로팅 버튼 ▲▲ */}
 
         {/* 탭 */}
         <div className='flex border-b border-gray-200'>
@@ -218,7 +222,65 @@ export default function SavedPage() {
 }
 
 /* =========================
- * 관심 유치원
+ * DEV 로그인 FAB
+ * ========================= */
+function DevLoginFab() {
+  const [busy, setBusy] = useState(false);
+  const [ok, setOk] = useState<boolean | null>(null);
+
+  const runDevLogin = async () => {
+    if (!API_BASE) {
+      alert('API_BASE가 비어 있습니다. NEXT_PUBLIC_API_BASE를 설정하세요.');
+      return;
+    }
+    try {
+      setBusy(true);
+      setOk(null);
+
+      // 스펙: GET /api/v0/auth/dev/{id}
+      const res = await fetch(`${API_BASE}/api/v0/auth/dev/${DEV_LOGIN_ID}`, {
+        method: 'GET',
+        headers: { accept: 'application/json;charset=UTF-8' },
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      // 토큰은 응답 헤더의 authorization 에 담겨 옴 (예: "Bearer xxxxx")
+      const authHeader = res.headers.get('authorization') || res.headers.get('Authorization');
+      if (!authHeader) throw new Error('응답 헤더에 authorization이 없습니다.');
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      if (!token) throw new Error('토큰 파싱 실패');
+
+      localStorage.setItem('accessToken', token);
+      setOk(true);
+      // 필요시 토스트 교체
+      alert('DEV 로그인 완료! 토큰이 저장됐어요.');
+    } catch (e) {
+      console.error(e);
+      setOk(false);
+      alert('DEV 로그인 실패');
+    } finally {
+      setBusy(false);
+      // 히스토리 탭이 열려 있었다면, 사용자가 새로고침하거나 다시 탭 전환하면 최신 토큰으로 재요청됩니다.
+    }
+  };
+
+  return (
+    <button
+      type='button'
+      onClick={runDevLogin}
+      disabled={busy}
+      aria-label='DEV 로그인'
+      title='DEV 로그인 (토큰 저장)'
+      className={`fixed bottom-24 left-3 z-50 rounded-full px-4 py-3 text-xs font-semibold shadow-md transition ${busy ? 'bg-gray-300 text-gray-600' : 'bg-black text-white hover:bg-gray-800'}`}
+    >
+      {busy ? '로그인…' : ok === true ? 'DEV ✓' : ok === false ? 'DEV ✗' : 'DEV'}
+    </button>
+  );
+}
+
+/* =========================
+ * 관심 유치원 (그대로)
  * ========================= */
 function FavEmpty() {
   return (
@@ -262,7 +324,7 @@ function FavRow({ item }: { item: FavoriteItem }) {
 }
 
 /* =========================
- * 비교 히스토리
+ * 비교 히스토리 (그대로)
  * ========================= */
 function HistoryList({
   groups,
