@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@widgets/Header';
@@ -278,7 +278,7 @@ function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
   return (
     <div className='w-full'>
       <div
-        className='relative select-none overflow-hidden rounded-lg border border-gray-200 bg-white'
+        className='relative overflow-hidden rounded-lg border border-gray-200 bg-white select-none'
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -299,7 +299,7 @@ function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
           aria-label='이전'
           onClick={prev}
           disabled={index === 0}
-          className='absolute left-2 top-2 rounded-md bg-white/90 px-2 py-1 text-lg shadow disabled:opacity-40'
+          className='absolute top-2 left-2 rounded-md bg-white/90 px-2 py-1 text-lg shadow disabled:opacity-40'
         >
           ‹
         </button>
@@ -307,7 +307,7 @@ function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
           aria-label='다음'
           onClick={next}
           disabled={index === count - 1}
-          className='absolute right-2 top-2 rounded-md bg-white/90 px-2 py-1 text-lg shadow disabled:opacity-40'
+          className='absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-lg shadow disabled:opacity-40'
         >
           ›
         </button>
@@ -329,7 +329,7 @@ function SelectedCell({ name, type, src }: { name: string; type: string; src?: s
     <div className='flex min-w-0 items-center gap-3 px-4 py-3'>
       <PinkImg src={src} className='h-14 w-14 rounded-lg' />
       <div className='min-w-0 leading-none'>
-        <p className='truncate text-sm font-semibold leading-5'>{name}</p>
+        <p className='truncate text-sm leading-5 font-semibold'>{name}</p>
         <p className='truncate text-xs leading-4 text-gray-500'>{type}</p>
       </div>
     </div>
@@ -396,7 +396,7 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
 /* =========================
  * 페이지: CompareComplete
  * ========================= */
-export default function CompareCompletePage() {
+function CompareCompleteContent() {
   const params = useSearchParams();
   const ids = resolveIds(params); // 예: ['13561634','13288005']
   const [data, setData] = useState<KindergartenComparison[] | null>(null);
@@ -456,7 +456,9 @@ export default function CompareCompletePage() {
     <div className='flex h-screen flex-col bg-white'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
+          <Suspense fallback={null}>
+            <Header.BackButton />
+          </Suspense>
         </Header.LeftSection>
         <Header.Title>비교 결과</Header.Title>
       </Header>
@@ -480,7 +482,7 @@ export default function CompareCompletePage() {
       ) : (
         <Tabs
           summary={
-            <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pb-8 pt-3'>
+            <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pt-3 pb-8'>
               <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
                 <Label>이용 요금</Label>
                 <p className='mt-3 text-center text-sm leading-6'>
@@ -635,6 +637,14 @@ export default function CompareCompletePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CompareCompletePage() {
+  return (
+    <Suspense fallback={<div className='flex h-screen items-center justify-center'>로딩 중...</div>}>
+      <CompareCompleteContent />
+    </Suspense>
   );
 }
 

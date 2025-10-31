@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import Layout from '../(main)/layout';
 import { Header } from '@widgets/Header';
 
@@ -174,7 +174,9 @@ export default function SavedPage() {
       <div className='flex min-h-screen flex-col bg-white'>
         <Header>
           <Header.LeftSection>
-            <Header.BackButton />
+            <Suspense fallback={null}>
+              <Header.BackButton />
+            </Suspense>
           </Header.LeftSection>
           <Header.Title>보관함</Header.Title>
         </Header>
@@ -310,7 +312,7 @@ function FavRow({ item }: { item: FavoriteItem }) {
       <PinkImg src={item.img} className='h-20 w-20 shrink-0 rounded-lg' />
       <div className='min-w-0 flex-1'>
         <div className='flex items-start justify-between'>
-          <h3 className='truncate text-base font-bold leading-tight'>{item.name}</h3>
+          <h3 className='truncate text-base leading-tight font-bold'>{item.name}</h3>
           <button className='shrink-0 p-1 text-gray-600' aria-label='저장됨'>
             <svg className='h-5 w-5' viewBox='0 0 24 24' fill='currentColor'>
               <path d='M6 2a2 2 0 0 0-2 2v18l8-4 8 4V4a2 2 0 0 0-2-2H6z' />
@@ -385,7 +387,7 @@ function ThumbCard({ name, type, img }: { name: string; type: string; img?: stri
       <div className='relative'>
         <PinkImg src={img} className='h-28 w-full rounded-lg' />
         <button
-          className='absolute right-1 top-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white'
+          className='absolute top-1 right-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white'
           aria-label='삭제'
         >
           ×
