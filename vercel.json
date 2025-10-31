@@ -1,10 +1,15 @@
 {
   "version": 2,
-  "rootDirectory": "apps/knockdog",
   "framework": "nextjs",
+  "builds": [
+    {
+      "src": "apps/knockdog/package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "buildCommand": "pnpm build",
-  "outputDirectory": "apps/knockdog/.next",
   "installCommand": "pnpm install",
+  "outputDirectory": "apps/knockdog/.next",
   "env": {
     "NEXT_PUBLIC_API_BASE": "https://api.knockdog.net"
   }
