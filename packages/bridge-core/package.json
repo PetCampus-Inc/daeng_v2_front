@@ -6,19 +6,20 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "pnpm exec bunchee src/index.ts --format cjs,esm --out-dir dist && pnpm exec tsc --emitDeclarationOnly --outDir dist",
-    "dev": "pnpm exec bunchee src/index.ts --watch --format cjs,esm --dts --out-dir dist"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "pnpm exec bunchee src/index.ts --format cjs,esm --out-dir dist && pnpm exec tsc --emitDeclarationOnly --outDir dist"
   },
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*"

@@ -1,1 +1,1 @@
-export const API_URL = `${process.env.EXPO_PUBLIC_LOCAL_SERVER_IP}:${process.env.EXPO_PUBLIC_LOCAL_SERVER_PORT}`;
+export const API_URL = `https://knockdog-v2.vercel.app`;

@@ -4,8 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build:bridges": "pnpm -r --filter \"@knockdog/bridge-native...\" build",
-    "eas-build-pre-install": "if [ \"$EAS_BUILD_PLATFORM\" = \"android\" ]; then rm -rf apps/mobile/android/app/build/generated/autolinking || true; fi",
-    "eas-build-post-install": "pnpm run build:bridges && if [ \"$EAS_BUILD_PLATFORM\" = \"android\" ]; then pnpm --filter mobile exec expo prebuild --clean --non-interactive --platform android; else pnpm --filter mobile exec expo prebuild --clean --non-interactive --platform ios; fi",
+    "eas-build-post-install": "pnpm run build:bridges && if [ \"$EAS_BUILD_PLATFORM\" = \"android\" ]; then pnpm --filter mobile exec expo prebuild --platform android; else pnpm --filter mobile exec expo prebuild --platform ios; fi",
     "start": "expo start",
     "dev": "expo start",
     "android": "expo run:android",

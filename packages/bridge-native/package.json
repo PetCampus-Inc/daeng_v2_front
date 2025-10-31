@@ -4,36 +4,32 @@
   "private": true,
   "description": "Native bridge for React Native WebView communication",
   "react-native": "./src/index.ts",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "pnpm exec bunchee src/index.ts --format cjs,esm --out-dir dist --external react-native-webview && pnpm exec tsc --emitDeclarationOnly --outDir dist",
-    "dev": "pnpm exec bunchee src/index.ts --watch --format cjs,esm --dts --out-dir dist --external react-native-webview"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "exports": {
     ".": {
+      "react-native": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.cjs"
+      "default": "./src/index.ts"
     }
   },
   "files": [
-    "dist"
+    "src"
   ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "pnpm exec tsx watch src/index.ts"
+  },
   "dependencies": {
     "@knockdog/bridge-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-webview": "*"
   },
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*",
     "@types/react": "^19.2.2",
-    "react": "^19.2.0"
-  },
-  "peerDependencies": {
-    "react-native-webview": "*"
+    "typescript": "^5.6.0"
   }
 }

@@ -374,9 +374,15 @@ importers:
       '@knockdog/bridge-core':
         specifier: workspace:*
         version: link:../bridge-core
+      react:
+        specifier: '*'
+        version: 19.2.0
+      react-native:
+        specifier: '*'
+        version: 0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0)
       react-native-webview:
         specifier: '*'
-        version: 13.13.5(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
+        version: 13.13.5(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
     devDependencies:
       '@knockdog/typescript-config':
         specifier: workspace:*
@@ -384,9 +390,9 @@ importers:
       '@types/react':
         specifier: ^19.2.2
         version: 19.2.2
-      react:
-        specifier: ^19.2.0
-        version: 19.2.0
+      typescript:
+        specifier: ^5.6.0
+        version: 5.8.3
 
   packages/bridge-web:
     dependencies:
@@ -11548,42 +11554,9 @@ snapshots:
       - typescript
     optional: true
 
-  '@react-native-community/cli-config@20.0.2(typescript@5.9.3)':
-    dependencies:
-      '@react-native-community/cli-tools': 20.0.2
-      chalk: 4.1.2
-      cosmiconfig: 9.0.0(typescript@5.9.3)
-      deepmerge: 4.3.1
-      fast-glob: 3.3.3
-      joi: 17.13.3
-    transitivePeerDependencies:
-      - typescript
-    optional: true
-
   '@react-native-community/cli-doctor@20.0.2(typescript@5.8.3)':
     dependencies:
       '@react-native-community/cli-config': 20.0.2(typescript@5.8.3)
-      '@react-native-community/cli-platform-android': 20.0.2
-      '@react-native-community/cli-platform-apple': 20.0.2
-      '@react-native-community/cli-platform-ios': 20.0.2
-      '@react-native-community/cli-tools': 20.0.2
-      chalk: 4.1.2
-      command-exists: 1.2.9
-      deepmerge: 4.3.1
-      envinfo: 7.18.0
-      execa: 5.1.1
-      node-stream-zip: 1.15.0
-      ora: 5.4.1
-      semver: 7.7.3
-      wcwidth: 1.0.1
-      yaml: 2.8.1
-    transitivePeerDependencies:
-      - typescript
-    optional: true
-
-  '@react-native-community/cli-doctor@20.0.2(typescript@5.9.3)':
-    dependencies:
-      '@react-native-community/cli-config': 20.0.2(typescript@5.9.3)
       '@react-native-community/cli-platform-android': 20.0.2
       '@react-native-community/cli-platform-apple': 20.0.2
       '@react-native-community/cli-platform-ios': 20.0.2
@@ -11667,30 +11640,6 @@ snapshots:
       '@react-native-community/cli-clean': 20.0.2
       '@react-native-community/cli-config': 20.0.2(typescript@5.8.3)
       '@react-native-community/cli-doctor': 20.0.2(typescript@5.8.3)
-      '@react-native-community/cli-server-api': 20.0.2
-      '@react-native-community/cli-tools': 20.0.2
-      '@react-native-community/cli-types': 20.0.2
-      chalk: 4.1.2
-      commander: 9.5.0
-      deepmerge: 4.3.1
-      execa: 5.1.1
-      find-up: 5.0.0
-      fs-extra: 8.1.0
-      graceful-fs: 4.2.11
-      prompts: 2.4.2
-      semver: 7.7.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - typescript
-      - utf-8-validate
-    optional: true
-
-  '@react-native-community/cli@20.0.2(typescript@5.9.3)':
-    dependencies:
-      '@react-native-community/cli-clean': 20.0.2
-      '@react-native-community/cli-config': 20.0.2(typescript@5.9.3)
-      '@react-native-community/cli-doctor': 20.0.2(typescript@5.9.3)
       '@react-native-community/cli-server-api': 20.0.2
       '@react-native-community/cli-tools': 20.0.2
       '@react-native-community/cli-types': 20.0.2
@@ -11806,23 +11755,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@react-native/community-cli-plugin@0.79.5(@react-native-community/cli@20.0.2(typescript@5.9.3))':
-    dependencies:
-      '@react-native/dev-middleware': 0.79.5
-      chalk: 4.1.2
-      debug: 2.6.9
-      invariant: 2.2.4
-      metro: 0.82.5
-      metro-config: 0.82.5
-      metro-core: 0.82.5
-      semver: 7.7.3
-    optionalDependencies:
-      '@react-native-community/cli': 20.0.2(typescript@5.9.3)
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   '@react-native/debugger-frontend@0.79.5': {}
 
   '@react-native/debugger-frontend@0.79.6': {}
@@ -11882,12 +11814,12 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.0.14
 
-  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)':
+  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
       react: 19.2.0
-      react-native: 0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0)
+      react-native: 0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0)
     optionalDependencies:
       '@types/react': 19.2.2
 
@@ -18018,12 +17950,12 @@ snapshots:
       react: 19.0.0
       react-native: 0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.0.14)(react@19.0.0)
 
-  react-native-webview@13.13.5(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0):
+  react-native-webview@13.13.5(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0):
     dependencies:
       escape-string-regexp: 4.0.0
       invariant: 2.2.4
       react: 19.2.0
-      react-native: 0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0)
+      react-native: 0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0)
 
   react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.0.14)(react@19.0.0):
     dependencies:
@@ -18073,16 +18005,16 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0):
+  react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.79.5
       '@react-native/codegen': 0.79.5(@babel/core@7.28.4)
-      '@react-native/community-cli-plugin': 0.79.5(@react-native-community/cli@20.0.2(typescript@5.9.3))
+      '@react-native/community-cli-plugin': 0.79.5(@react-native-community/cli@20.0.2(typescript@5.8.3))
       '@react-native/gradle-plugin': 0.79.5
       '@react-native/js-polyfills': 0.79.5
       '@react-native/normalize-colors': 0.79.5
-      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
+      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.4)(@react-native-community/cli@20.0.2(typescript@5.8.3))(@types/react@19.2.2)(react@19.2.0))(react@19.2.0)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
