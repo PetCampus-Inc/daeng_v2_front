@@ -4,14 +4,12 @@ export {
   BottomSheetOverlay,
   BottomSheetHandle,
   BottomSheetTrigger,
-  BottomSheetClose,
+  BottomSheetCloseButton,
+  BottomSheetBody,
   BottomSheetContent,
   BottomSheetHeader,
   BottomSheetFooter,
   BottomSheetTitle,
-  type BottomSheetRootProps,
-  type BottomSheetContentProps,
-  type BottomSheetHandleProps,
 } from './BottomSheet';
 
 export * as BottomSheet from './BottomSheet.namespace';

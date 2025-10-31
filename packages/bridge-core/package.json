@@ -1,0 +1,27 @@
+{
+  "name": "@knockdog/bridge-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Core types and utilities for bridge communication",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "bunchee src/index.ts --format cjs,esm --out-dir dist && tsc --emitDeclarationOnly --outDir dist",
+    "dev": "bunchee src/index.ts --watch --format cjs,esm --out-dir dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "devDependencies": {
+    "@knockdog/typescript-config": "workspace:*",
+    "bunchee": "^6.6.2"
+  }
+}

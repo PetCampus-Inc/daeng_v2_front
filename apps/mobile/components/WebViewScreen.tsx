@@ -1,47 +1,17 @@
-// app/(tabs)/WebViewScreen.tsx
-import { eventEmitter, handleMessage, postMessage } from '@/bridges';
-import React, { useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React from 'react';
+import type { RefObject } from 'react';
+import WebView from 'react-native-webview';
+import { BridgeWebView } from '@/bridges/ui/BridgeWebView';
+import type { InitialState } from '@/types/navigation';
 
-interface Props {
+type AnyWebViewRef = RefObject<WebView | null> | RefObject<WebView | null>;
+
+interface WebViewScreenProps {
   uri: string;
+  webviewRef?: AnyWebViewRef;
+  initialState?: InitialState;
 }
 
-export default function WebViewScreen({ uri }: Props) {
-  const webViewRef = useRef<WebView>(null);
-
-  const sendMessageToWeb = () => {
-    postMessage(webViewRef, 'nativePing', { message: 'Hello from Native!' });
-  };
-
-  React.useEffect(() => {
-    eventEmitter.on('webPing', (payload) => {
-      console.log('✅ Web에서 보낸 메시지:', payload);
-    });
-
-    return () => {
-      eventEmitter.removeAllListeners();
-    };
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <WebView
-        ref={webViewRef}
-        source={{ uri }}
-        onMessage={handleMessage}
-        javaScriptEnabled
-        cacheEnabled={false}
-        originWhitelist={['*']}
-        startInLoadingState
-      />
-    </View>
-  );
+export default function WebViewScreen({ uri, webviewRef, initialState }: WebViewScreenProps) {
+  return <BridgeWebView uri={uri} webviewRef={webviewRef as RefObject<WebView>} initialState={initialState} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

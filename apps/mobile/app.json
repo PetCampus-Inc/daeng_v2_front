@@ -8,6 +8,7 @@
     "scheme": "daengv2mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+<<<<<<< HEAD
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile"
@@ -16,19 +17,63 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+=======
+
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#FF6600"
+    },
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["nmap"]
+      },
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#FF6600"
+      }
+    },
+
+    "android": {
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#FF6600"
+      },
+      "androidStatusBar": {
+        "barStyle": "light-content",
+        "backgroundColor": "transparent"
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FF6600"
+>>>>>>> develop
       },
       "edgeToEdgeEnabled": true,
       "package": "com.gyulgyuri.daeng_v2_mobile"
     },
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
     "plugins": [
       [
         "expo-splash-screen",
         {
+<<<<<<< HEAD
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
@@ -37,5 +82,28 @@
       ],
       "expo-font"
     ]
+=======
+          "image": "./assets/images/splash.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#FF6600"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "$(PRODUCT_NAME) 앱을 사용하기 위해 위치 권한을 허용해주세요."
+        }
+      ],
+      "expo-font",
+      "expo-router",
+      "./plugins/naver-map-queries"
+    ],
+
+    "extra": {
+      "eas": {
+        "projectId": "195cd90e-dd1c-4963-9d59-7f3a52a82448"
+      }
+    }
+>>>>>>> develop
   }
 }

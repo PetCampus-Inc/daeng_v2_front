@@ -9,9 +9,7 @@ export function useNaverMaps() {
 
   const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_NCP_KEY;
   if (!clientId) {
-    throw new Error(
-      "'NAVER_MAP_NCP_KEY' 값을 찾을 수 없습니다. .env 파일을 확인하세요."
-    );
+    throw new Error("'NAVER_MAP_NCP_KEY' 값을 찾을 수 없습니다. .env 파일을 확인하세요.");
   }
 
   return suspend(loadNavermapsScript, [clientId, 'naver-map']);

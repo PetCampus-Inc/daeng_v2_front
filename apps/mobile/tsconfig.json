@@ -2,10 +2,14 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".", // mobile 기준
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@assets": ["./assets/*"],
+      "@stores/*": ["./stores/*"],
+      "@utils/*": ["../utils/*"],
+      "@type/*": ["./types/*"],
+      "@screens": ["./screens/*"]
     }
   },
-  "include": ["."]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

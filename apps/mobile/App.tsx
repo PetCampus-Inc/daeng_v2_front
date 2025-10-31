@@ -1,89 +1,67 @@
-// App.tsx
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {
-  DarkTheme,
-  DefaultTheme,
-  NavigationContainer,
-} from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context'; // ★ SafeAreaProvider 사용
+import { PortalProvider } from '@gorhom/portal'; // ★ 포털
+import RootStackNavigator from './components/navigation/RootStackNavigator';
+import { navigationRef } from './bridges/lib/navigationRef';
+import { ToastProvider } from './components/toast'; // ★ 토스트 프로바이더 (네이티브 구현)
 
-import CompareIcon from '@/assets/icons/compare_basic.svg';
-import ExploreIcon from '@/assets/icons/explore_basic.svg';
-import MypageIcon from '@/assets/icons/mypage_basic.svg';
-import SaveIcon from '@/assets/icons/save_basic.svg';
-
-import CompareTab from './screens/compare';
-import ExploreTab from './screens/explore';
-import MypageTab from './screens/mypage';
-import SaveTab from './screens/save';
-
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
-
-function TabNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused }) => {
-          const iconProps = {
-            width: 24,
-            height: 24,
-            fill: focused ? '#FF6F0F' : '#C2C2C2',
-          };
-          switch (route.name) {
-            case 'Explore':
-              return <ExploreIcon {...iconProps} />;
-            case 'Save':
-              return <SaveIcon {...iconProps} />;
-            case 'Compare':
-              return <CompareIcon {...iconProps} />;
-            case 'Mypage':
-              return <MypageIcon {...iconProps} />;
-            default:
-              return null;
-          }
-        },
-        tabBarActiveTintColor: '#FF6F0F',
-        tabBarInactiveTintColor: '#C2C2C2',
-        headerShown: false,
-      })}
-    >
-      <Tab.Screen
-        name='Explore'
-        component={ExploreTab}
-        options={{ title: '탐색' }}
-      />
-      <Tab.Screen name='Save' component={SaveTab} options={{ title: '저장' }} />
-      <Tab.Screen
-        name='Compare'
-        component={CompareTab}
-        options={{ title: '비교' }}
-      />
-      <Tab.Screen
-        name='Mypage'
-        component={MypageTab}
-        options={{ title: '마이페이지' }}
-      />
-    </Tab.Navigator>
-  );
-}
+// 앱 시작 시 스플래시 자동 숨김 방지
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
-  const scheme = useColorScheme();
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // 필요한 리소스(폰트, 이미지 프리로드 등) 로드 위치
+        // 예) await Font.loadAsync({ ... });
+
+        // UX용 최소 노출 시간(선택)
+        await new Promise((r) => setTimeout(r, 350));
+      } finally {
+        setAppIsReady(true);
+      }
+    })();
+  }, []);
+
+  // 루트 레이아웃이 그려지면 스플래시 숨김
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [appIsReady]);
+
+  // 준비 전엔 네이티브 스플래시 유지(리액트 트리 렌더 안 함)
+  if (!appIsReady) {
+    return null;
+  }
 
   return (
-    <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar style='auto' />
-      <Stack.Navigator>
-        <Stack.Screen
-          name='Main'
-          component={TabNavigator}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    // 제스처가 최상단을 감싸야 스와이프-투-디스미스 제스처가 안정적으로 동작
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* 세이프에어리어를 먼저 공급 (토스트 뷰포트가 bottom inset을 사용) */}
+      <SafeAreaProvider>
+        {/* 포털 루트: 토스트가 네비게이션 위 레이어로 뜨도록 */}
+        <PortalProvider>
+          {/* 상태바는 취향에 따라 */}
+          <StatusBar style='light' />
+          {/* onLayout에서 스플래시 숨김 */}
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            {/* 토스트 프로바이더가 네비게이션 바/스크린 “밖”에 있어야 어디서든 toast() 가능 */}
+            <ToastProvider>
+              <NavigationContainer ref={navigationRef}>
+                <RootStackNavigator />
+              </NavigationContainer>
+            </ToastProvider>
+          </View>
+        </PortalProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
