@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { useMapState } from '../model/useMapState';
+import { useMapState } from '@views/kindergarten-main-page/model/useMapState';
 
-import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../model/markers';
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '@views/kindergarten-main-page/model/markers';
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '@views/kindergarten-main-page/config/map';
 import { overlay } from 'overlay-kit';
-import { MapSearchContext, useMapSearch } from '../model/useMapSearchContext';
+import { MapSearchContext, useMapSearch } from '@views/kindergarten-main-page/model/useMapSearchContext';
 
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
 import {
@@ -18,14 +18,17 @@ import {
   KindergartenListSheet,
   KindergartenSearchContext,
   SortContext,
+  useSearchFilter,
 } from '@features/kindergarten';
 
 import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 export function KindergartenMainPage() {
+  const { filter } = useSearchFilter();
+
   return (
-    <MapSearchContext>
+    <MapSearchContext filters={filter}>
       <MapWithSchoolsContent />
     </MapSearchContext>
   );
@@ -34,6 +37,7 @@ export function KindergartenMainPage() {
 export function MapWithSchoolsContent() {
   const map = useRef<naver.maps.Map | null>(null);
   const { coord: basePoint } = useBasePoint();
+  const { filter } = useSearchFilter();
 
   /** 지도 스냅샷 */
   const { mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations } = useMapSearch();
@@ -232,7 +236,7 @@ export function MapWithSchoolsContent() {
       </div>
 
       <SortContext>
-        <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel}>
+        <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel} filters={filter}>
           <KindergartenListSheet
             fabSlot={
               <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>

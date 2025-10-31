@@ -9,8 +9,16 @@ interface BridgeContextValue {
 
 const BridgeContext = createContext<BridgeContextValue | null>(null);
 
+// 전역 bridge 인스턴스 (hook 없이 접근 가능)
+let globalBridgeInstance: WebBridge | null = null;
+
 function BridgeProvider({ children }: { children: React.ReactNode }) {
-  const bridge = useMemo(() => new WebBridge(), []);
+  const bridge = useMemo(() => {
+    if (!globalBridgeInstance) {
+      globalBridgeInstance = new WebBridge();
+    }
+    return globalBridgeInstance;
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -30,4 +38,12 @@ function useBridge() {
   return context.bridge;
 }
 
-export { BridgeProvider, useBridge };
+/**
+ * hook 없이 bridge 인스턴스에 접근 (컴포넌트 외부에서 사용)
+ * BridgeProvider가 마운트되기 전에는 null 반환
+ */
+function getBridgeInstance(): WebBridge | null {
+  return globalBridgeInstance;
+}
+
+export { BridgeProvider, useBridge, getBridgeInstance };

@@ -5,6 +5,7 @@ export {
   BottomSheetHandle,
   BottomSheetTrigger,
   BottomSheetCloseButton,
+  BottomSheetBody,
   BottomSheetContent,
   BottomSheetHeader,
   BottomSheetFooter,

@@ -1,3 +1,3 @@
-export { BridgeProvider, useBridge } from './BridgeProvider';
+export { BridgeProvider, useBridge, getBridgeInstance } from './BridgeProvider';
 export { useStackNavigation } from './useStackNavigation';
 export { useNavigationResult } from './useNavigationResult';

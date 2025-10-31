@@ -28,7 +28,7 @@ export const FILTER_OPTIONS = {
   YARD: '운동장·마당',
 
   // 방문객 편의 ∙ 시설
-  PICK_DROP: '픽드랍',
+  PICKDROP: '픽드랍',
   DIARY: '1:1 알림장',
   DOG_CAFE: '강아지 카페',
   DOG_SHOP: '강아지 용품',
@@ -57,7 +57,7 @@ export const FILTER_CONFIG = {
     'REHABILITATION',
   ],
   '강아지 안전 ∙ 시설': ['NON_SLIP', 'CCTV', 'PLAYGROUND', 'ROOFTOP', 'YARD'],
-  '방문객 편의 ∙ 시설': ['PICK_DROP', 'DIARY', 'DOG_CAFE', 'DOG_SHOP', 'PARKING', 'VALET'],
+  '방문객 편의 ∙ 시설': ['PICKDROP', 'DIARY', 'DOG_CAFE', 'DOG_SHOP', 'PARKING', 'VALET'],
   '상품 유형': ['PASS_TICKET', 'SUBSCRIPTION', 'MEMBERSHIP'],
 } as const;
 
@@ -66,7 +66,7 @@ export const SHORT_CUT_FILTER_OPTIONS: FilterOption[] = [
   'CCTV',
   'DAYCARE',
   'HOTEL',
-  'PICK_DROP',
+  'PICKDROP',
   'WALK',
   'TRAINING',
   'SPLIT_CLASS',

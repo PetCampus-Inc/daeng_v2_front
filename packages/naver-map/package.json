@@ -13,7 +13,11 @@
   "devDependencies": {
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
-    "@types/navermaps": "^3.9.1"
+    "@types/navermaps": "^3.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "exports": {
     ".": "./index.ts"
