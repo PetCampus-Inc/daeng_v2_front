@@ -7,7 +7,7 @@ import { Header } from '@widgets/Header';
 /* =========================
  * 환경 & 공통 유틸
  * ========================= */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? ''; // 예: https://api.knockdog.net
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? ''; // 예: https://api.knockdog.net
 const DEV_LOGIN_ID = Number(process.env.NEXT_PUBLIC_DEV_LOGIN_ID ?? '1'); // 필요시 .env 에서 바꿔줘
 
 // localStorage 에서 토큰을 읽어 Header 구성
@@ -230,7 +230,7 @@ function DevLoginFab() {
 
   const runDevLogin = async () => {
     if (!API_BASE) {
-      alert('API_BASE가 비어 있습니다. NEXT_PUBLIC_API_BASE를 설정하세요.');
+      alert('API_BASE가 비어 있습니다. NEXT_PUBLIC_API_BASE_URL를 설정하세요.');
       return;
     }
     try {

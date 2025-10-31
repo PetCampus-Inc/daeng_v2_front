@@ -8,7 +8,7 @@ import { Header } from '@widgets/Header';
 /* =========================
  * API 베이스 & 엔드포인트
  * ========================= */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`; // 예: .../comparisons?ids=a,b
 
 /* =========================
