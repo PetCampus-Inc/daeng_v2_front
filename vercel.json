@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "rootDirectory": "apps/knockdog",
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "apps/knockdog/.next",
+  "installCommand": "pnpm install",
+  "env": {
+    "NEXT_PUBLIC_API_BASE": "https://api.knockdog.net"
+  }
+}
