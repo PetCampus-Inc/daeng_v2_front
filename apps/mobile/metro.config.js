@@ -8,7 +8,7 @@ config.transformer = {
 config.resolver = {
   ...config.resolver,
   assetExts: config.resolver.assetExts.filter((ext) => ext !== 'svg'),
-  sourceExts: [...config.resolver.sourceExts, 'svg', "mjs"],
+  sourceExts: [...config.resolver.sourceExts, 'svg', 'mjs'],
 };
 
 module.exports = config;

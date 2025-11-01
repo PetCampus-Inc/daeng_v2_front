@@ -17,9 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "nmap"
-        ]
+        "LSApplicationQueriesSchemes": ["nmap"]
       },
       "splash": {
         "image": "./assets/images/splash.png",
@@ -43,10 +41,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.gyulgyuri.daeng_v2_mobile",
-      "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      "permissions": ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"]
     },
     "web": {
       "bundler": "metro",
