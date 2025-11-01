@@ -18,7 +18,7 @@
     }
   },
   "scripts": {
-    "build": "bunchee"
+    "build": "pnpm exec bunchee"
   },
   "dependencies": {
     "@daeng-design/utils": "workspace:*",
@@ -28,7 +28,6 @@
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*",
     "@types/react": "^19.2.2",
-    "bunchee": "^6.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

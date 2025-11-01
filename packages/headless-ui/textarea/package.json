@@ -18,8 +18,8 @@
     }
   },
   "scripts": {
-    "build": "bunchee",
-    "dev": "bunchee --watch"
+    "build": "pnpm exec bunchee",
+    "dev": "pnpm exec bunchee --watch"
   },
   "dependencies": {
     "@daeng-design/utils": "workspace:*"
@@ -28,7 +28,6 @@
     "@knockdog/typescript-config": "workspace:*",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@types/react": "^19.2.2",
-    "bunchee": "^6.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

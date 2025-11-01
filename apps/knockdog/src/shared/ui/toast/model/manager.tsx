@@ -2,7 +2,8 @@
 'use client';
 
 import { createRoot } from 'react-dom/client';
-import type { Store, ToastPosition } from './types';
+import type { Store } from './types';
+import type { ToastPosition } from '@knockdog/bridge-core';
 import { createStore } from './store';
 import { ToastContainer } from '../ui/ToastContainer';
 
