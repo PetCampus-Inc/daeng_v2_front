@@ -1,1 +1,1 @@
-export * from './model/address.type';
+export * from './model/address';
