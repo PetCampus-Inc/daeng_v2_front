@@ -3,6 +3,8 @@
   "main": "index.tsx",
   "version": "1.0.0",
   "scripts": {
+    "build:bridges": "pnpm -r --filter \"@knockdog/bridge-native...\" build",
+    "eas-build-post-install": "pnpm run build:bridges && if [ \"$EAS_BUILD_PLATFORM\" = \"android\" ]; then pnpm --filter mobile exec expo prebuild --platform android; else pnpm --filter mobile exec expo prebuild --platform ios; fi",
     "start": "expo start",
     "dev": "expo start",
     "android": "expo run:android",
@@ -56,10 +58,10 @@
   "devDependencies": {
     "@babel/core": "^7.28.4",
     "@expo/config-plugins": "^10.1.2",
-    "@react-native-community/cli": "latest",
     "@types/react": "~19.0.10",
     "eslint": "^9.37.0",
     "eslint-config-expo": "~9.2.0",
+    "expo-modules-autolinking": "^3.0.19",
     "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.8.3"
   },
