@@ -1,25 +1,25 @@
 {
   "expo": {
     "name": "daeng_v2_mobile",
-    "slug": "daeng_v2_mobile",
+    "slug": "petcampus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "daengv2mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "cover",
       "backgroundColor": "#FF6600"
     },
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["nmap"]
+        "LSApplicationQueriesSchemes": [
+          "nmap"
+        ]
       },
       "splash": {
         "image": "./assets/images/splash.png",
@@ -27,7 +27,6 @@
         "backgroundColor": "#FF6600"
       }
     },
-
     "android": {
       "splash": {
         "image": "./assets/images/splash.png",
@@ -43,15 +42,17 @@
         "backgroundColor": "#FF6600"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.gyulgyuri.daeng_v2_mobile"
+      "package": "com.gyulgyuri.daeng_v2_mobile",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       [
         "expo-splash-screen",
@@ -71,11 +72,12 @@
       "expo-router",
       "./plugins/naver-map-queries"
     ],
-
     "extra": {
       "eas": {
-        "projectId": "195cd90e-dd1c-4963-9d59-7f3a52a82448"
-      }
-    }
+        "projectId": "226d42fd-7ef3-4c94-b193-414946151e41"
+      },
+      "router": {}
+    },
+    "owner": "petcampus"
   }
 }
