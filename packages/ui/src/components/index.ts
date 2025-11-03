@@ -9,6 +9,7 @@ export * from './icon-button';
 export * from './segmented-control';
 export * from './tab-menu';
 export * from './swiper';
+export * from './switch';
 export * from './text-field';
 export * from './textarea';
 export * from './progress-bar';
