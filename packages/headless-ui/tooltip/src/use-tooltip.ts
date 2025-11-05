@@ -13,7 +13,6 @@ export interface UseTooltipStateProps {
   autoCloseMs?: number;
   closeOnOutsideClick?: boolean;
   closeOnEsc?: boolean;
-  closeOnScroll?: boolean;
 }
 
 function useTooltipState(props: UseTooltipStateProps) {
@@ -57,9 +56,9 @@ function useTooltipState(props: UseTooltipStateProps) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open, props.closeOnEsc, setOpen]);
 
-  // 스크롤 시 닫기
+  // 스크롤 시 닫기 (항상 활성화)
   useEffect(() => {
-    if (!open || props.closeOnScroll === false) return;
+    if (!open) return;
     const onScroll = () => setOpen(false);
 
     // 모든 스크롤 가능한 부모 요소에 리스너 추가
@@ -87,7 +86,7 @@ function useTooltipState(props: UseTooltipStateProps) {
         element.removeEventListener('scroll', onScroll);
       });
     };
-  }, [open, props.closeOnScroll, setOpen]);
+  }, [open, setOpen]);
 
   return {
     open,

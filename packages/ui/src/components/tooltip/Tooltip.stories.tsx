@@ -47,13 +47,6 @@ const meta = {
         defaultValue: { summary: 'false' },
       },
     },
-    closeOnScroll: {
-      control: { type: 'boolean' },
-      table: {
-        type: { summary: 'boolean' },
-        defaultValue: { summary: 'false' },
-      },
-    },
     defaultOpen: {
       control: { type: 'boolean' },
       table: {
@@ -180,5 +173,25 @@ export const LongContent: Story = {
         제공합니다.
       </TooltipContent>
     </Tooltip>
+  ),
+};
+
+export const ScrollableContainer: Story = {
+  render: () => (
+    <div className='h-[400px] w-[300px] overflow-y-auto border border-gray-300 p-4'>
+      <div className='mb-[800px]'>
+        <p className='mb-4'>스크롤 가능한 컨테이너입니다. 아래로 스크롤해보세요.</p>
+        <Tooltip placement='bottom-right'>
+          <TooltipTrigger />
+          <TooltipContent>툴팁을 클릭한 후 스크롤하면 자동으로 닫힙니다</TooltipContent>
+        </Tooltip>
+      </div>
+      <div className='mt-4'>
+        <Tooltip placement='bottom-right'>
+          <TooltipTrigger />
+          <TooltipContent>스크롤하면 자동으로 닫힙니다</TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
   ),
 };

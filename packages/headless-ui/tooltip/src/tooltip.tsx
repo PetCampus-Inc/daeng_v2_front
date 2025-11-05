@@ -21,7 +21,6 @@ export const TooltipRoot = forwardRef<HTMLDivElement, TooltipRootProps>((props, 
     autoCloseMs,
     closeOnOutsideClick,
     closeOnEsc,
-    closeOnScroll,
     children,
     ...otherProps
   } = props;
@@ -35,7 +34,6 @@ export const TooltipRoot = forwardRef<HTMLDivElement, TooltipRootProps>((props, 
     autoCloseMs,
     closeOnOutsideClick,
     closeOnEsc,
-    closeOnScroll,
   });
 
   return (
