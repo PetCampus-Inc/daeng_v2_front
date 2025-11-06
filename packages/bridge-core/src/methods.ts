@@ -11,6 +11,7 @@ const METHODS = {
   toastShow: 'toast.show',
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
+  openExternalLink: 'system.openExternalLink',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];

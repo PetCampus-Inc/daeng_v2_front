@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { Icon } from '@knockdog/ui';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { isNativeWebView } from '@shared/lib';
 
 const NAV_ITEMS = [
   { href: '/search', icon: 'SearchNav' as const, label: '탐색' },
@@ -10,8 +13,11 @@ const NAV_ITEMS = [
 ];
 
 export function BottomNavBar() {
+  if (isNativeWebView()) {
+    return null;
+  }
   return (
-    <div className='z-99 fixed inset-x-0 bottom-0'>
+    <div className='fixed inset-x-0 bottom-0 z-99'>
       <div
         style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
         className='border-t-line-100 bg-bg-0 flex w-full border-t px-4 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'

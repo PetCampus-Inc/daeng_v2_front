@@ -136,4 +136,16 @@ export function registerDeviceHandlers(router: NativeBridgeRouter) {
       throw { code: 'EUNAVAILABLE', message: '공유할 수 없습니다.' };
     }
   });
+
+  // 외부 링크 연결
+  router.register(METHODS.openExternalLink, async (params: { url: string }) => {
+    const { url } = params;
+    if (!url || typeof url !== 'string') {
+      throw { code: 'EINVALID', message: '외부 링크가 유효하지 않습니다.' };
+    }
+
+    await Linking.openURL(url);
+
+    return { opened: true };
+  });
 }
