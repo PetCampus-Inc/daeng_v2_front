@@ -3,10 +3,10 @@ import { RemoveScroll } from 'react-remove-scroll';
 import { BottomSheet } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { KindergartenList } from './KindergartenList';
+import { useMarkerState } from '../model/useMarkerState';
 
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBottomSheetSnapIndex, useIsomorphicLayoutEffect } from '@shared/lib';
-import { useMarkerState } from '@shared/store';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이)
 // 최대 스냅포인트: 화면높이 - 72px(검색바 높이) - 8px(여백)
@@ -18,8 +18,8 @@ export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode })
 
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
 
-  const activeMarkerId = useMarkerState((state) => state.activeMarkerId);
-  const isMarkerActive = !!activeMarkerId;
+  const { selectedId } = useMarkerState();
+  const isMarkerActive = !!selectedId;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
