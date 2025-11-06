@@ -132,6 +132,16 @@ export type DialogProps = {
    * Useful to revert any state changes for example.
    */
   onAnimationEnd?: (open: boolean) => void;
+  /**
+   * Gets triggered when the drawer starts transitioning to closed state (before animation completes).
+   * Useful for coordinating transitions between multiple drawers.
+   */
+  onTransitionStart?: () => void;
+  /**
+   * Control whether the drawer should animate. When false, skips animations.
+   * @default true
+   */
+  shouldAnimate?: boolean;
   preventScrollRestoration?: boolean;
   autoFocus?: boolean;
 } & (WithFadeFromProps | WithoutFadeFromProps);
@@ -164,6 +174,8 @@ export function Root({
   preventScrollRestoration = false,
   repositionInputs = true,
   onAnimationEnd,
+  onTransitionStart,
+  shouldAnimate: shouldAnimateProp,
   container,
   autoFocus = false,
 }: DialogProps) {
@@ -207,7 +219,7 @@ export function Root({
   const nestedOpenChangeTimer = React.useRef<NodeJS.Timeout | null>(null);
   const pointerStart = React.useRef(0);
   const keyboardIsOpen = React.useRef(false);
-  const shouldAnimate = React.useRef(!defaultOpen);
+  const shouldAnimate = React.useRef(shouldAnimateProp ?? !defaultOpen);
   const previousDiffFromInitial = React.useRef(0);
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const drawerHeightRef = React.useRef(drawerRef.current?.getBoundingClientRect().height || 0);
@@ -240,7 +252,6 @@ export function Root({
     container,
     snapToSequentialPoint,
   });
-
   usePreventScroll({
     isDisabled:
       !isOpen || isDragging || !modal || justReleased || !hasBeenOpened || !repositionInputs || !disablePreventScroll,
@@ -468,10 +479,14 @@ export function Root({
   }
 
   React.useEffect(() => {
-    window.requestAnimationFrame(() => {
-      shouldAnimate.current = true;
-    });
-  }, []);
+    if (shouldAnimateProp !== undefined) {
+      shouldAnimate.current = shouldAnimateProp;
+    } else {
+      window.requestAnimationFrame(() => {
+        shouldAnimate.current = true;
+      });
+    }
+  }, [shouldAnimateProp]);
 
   React.useEffect(() => {
     function onVisualViewportChange() {
