@@ -29,7 +29,9 @@ export default function Page() {
         outsideElementsInert
       >
         <RemoveScroll ref={refs.setFloating} className='absolute inset-0 z-[100]'>
-          <SearchPage inputRef={searchInputRef} />
+          <div className='flex h-full flex-col pt-[env(safe-area-inset-top)]'>
+            <SearchPage inputRef={searchInputRef} />
+          </div>
         </RemoveScroll>
       </FloatingFocusManager>
     </FloatingPortal>
