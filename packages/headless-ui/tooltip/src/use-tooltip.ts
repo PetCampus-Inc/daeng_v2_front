@@ -203,7 +203,7 @@ export function useTooltip(props: UseTooltipProps) {
     contentProps: {
       ref: contentRef,
       id,
-      role: 'tooltip',
+      role: 'dialog',
       'data-state': open ? 'open' : 'closed',
       style: positionStyle,
     },
