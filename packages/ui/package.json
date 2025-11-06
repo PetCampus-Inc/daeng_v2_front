@@ -36,7 +36,7 @@
     "@knockdog/typescript-config": "workspace:*",
     "@storybook/nextjs": "9.1.10",
     "@svgr/cli": "^8.1.0",
-    "@turbo/gen": "^2.5.8",
+    "@turbo/gen": "^2.6.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.0",
     "react": "^19.2.0",
