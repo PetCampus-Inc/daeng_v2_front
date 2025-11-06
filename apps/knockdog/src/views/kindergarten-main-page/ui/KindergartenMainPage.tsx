@@ -1,26 +1,26 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useMapState } from '@views/kindergarten-main-page/model/useMapState';
-
 import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '@views/kindergarten-main-page/model/markers';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '@views/kindergarten-main-page/config/map';
-import { overlay } from 'overlay-kit';
 import { MapSearchContext, useMapSearch } from '@views/kindergarten-main-page/model/useMapSearchContext';
-
 import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
 import {
   KindergartenCardSheet,
+  KindergartenDetailSheet,
   KindergartenListSheet,
   KindergartenSearchContext,
+  MarkerStateContext,
   SortContext,
   useSearchFilter,
+  useSheetTransition,
+  type DogSchoolWithMeta,
 } from '@features/kindergarten';
-
 import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
@@ -29,7 +29,9 @@ export function KindergartenMainPage() {
 
   return (
     <MapSearchContext filters={filter}>
-      <MapWithSchoolsContent />
+      <MarkerStateContext>
+        <MapWithSchoolsContent />
+      </MarkerStateContext>
     </MapSearchContext>
   );
 }
@@ -50,6 +52,41 @@ export function MapWithSchoolsContent() {
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
   const mapCenter = isValidCoord(center) ? center : isValidCoord(basePoint) ? basePoint : DEFAULT_MAP_CENTER;
+
+  // 선택된 유치원 데이터 관리
+  const [selectedSchool, setSelectedSchool] = useState<DogSchoolWithMeta | null>(null);
+
+  // 바텀시트 전환 관리 (순수 UI 상태만)
+  const {
+    shouldRenderCard,
+    shouldRenderDetail,
+    cardSheetOpen,
+    detailSheetOpen,
+    cardShouldAnimate,
+    detailShouldAnimate,
+    openCardSheet,
+    handleCardExpansion,
+    handleDetailCloseStart,
+    forceCloseDetail,
+    closeAllSheets: closeAllSheetsOriginal,
+    sheetState,
+  } = useSheetTransition();
+
+  const closeAllSheets = useCallback(() => {
+    setActiveMarker(null);
+    setSelectedSchool(null);
+    closeAllSheetsOriginal();
+  }, [closeAllSheetsOriginal, setActiveMarker]);
+
+  const forceCloseDetailWithMarker = useCallback(() => {
+    if (selectedSchool && sheetState === 'detail') {
+      forceCloseDetail();
+    } else {
+      setActiveMarker(null);
+      setSelectedSchool(null);
+      forceCloseDetail();
+    }
+  }, [selectedSchool, sheetState, forceCloseDetail, setActiveMarker]);
 
   /** 지도 초기 설정 (mapState 초기화) */
   useEffect(() => {
@@ -120,12 +157,17 @@ export function MapWithSchoolsContent() {
 
   /**
    * 마커 클릭 핸들러
-   * - 마커 클릭 시 지도 중심 이동 및 상세 정보 표시
+   * - 마커 클릭 시 지도 중심 이동 및 카드시트 표시
    */
   const handleMarkerClick = (id: string, coord: { lat: number; lng: number }) => {
-    map.current?.panTo(coord);
     setActiveMarker(id);
-    openDogSchoolCardSheet(id);
+    map.current?.panTo(coord);
+
+    const school = schoolList.find((school) => school.id === id);
+    if (school) {
+      setSelectedSchool(school);
+      openCardSheet();
+    }
   };
 
   /**
@@ -151,26 +193,6 @@ export function MapWithSchoolsContent() {
       });
       setSearchedLevel(currentLevel);
     }
-  };
-
-  const openDogSchoolCardSheet = (id: string) => {
-    overlay.open(({ isOpen, close }) => {
-      const selectedSchool = schoolList.find((school) => school.id === id);
-
-      if (!selectedSchool) return null;
-
-      return (
-        <KindergartenCardSheet
-          isOpen={isOpen}
-          close={() => {
-            setActiveMarker(null);
-            close();
-          }}
-          {...selectedSchool}
-          images={selectedSchool.images || []}
-        />
-      );
-    });
   };
 
   const shouldShowRefresh = useMemo(() => {
@@ -252,6 +274,33 @@ export function MapWithSchoolsContent() {
           />
         </KindergartenSearchContext>
       </SortContext>
+
+      {/* 카드시트 */}
+      {shouldRenderCard && selectedSchool && (
+        <KindergartenCardSheet
+          isOpen={cardSheetOpen}
+          shouldAnimate={cardShouldAnimate}
+          onCardExpansion={handleCardExpansion}
+          onExit={closeAllSheets}
+          {...selectedSchool}
+        />
+      )}
+
+      {/* 디테일시트 */}
+      {shouldRenderDetail && selectedSchool && (
+        <KindergartenDetailSheet
+          isOpen={detailSheetOpen}
+          shouldAnimate={detailShouldAnimate}
+          onDetailCloseStart={handleDetailCloseStart}
+          onExit={() => {
+            // 전환 상태가 아니면 강제 닫기
+            if (sheetState !== 'detail-closing') {
+              forceCloseDetailWithMarker();
+            }
+          }}
+          data={selectedSchool}
+        />
+      )}
     </>
   );
 }

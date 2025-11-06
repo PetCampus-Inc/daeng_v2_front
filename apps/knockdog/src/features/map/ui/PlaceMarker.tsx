@@ -10,12 +10,11 @@ interface PlaceMarkerProps {
   distance?: string | number;
   selected?: boolean;
   className?: string;
-  onClick?: () => void;
 }
 
-export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, className, onClick }: PlaceMarkerProps) {
+export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, className }: PlaceMarkerProps) {
   return (
-    <div className='relative select-none' onClick={onClick}>
+    <div className='relative select-none'>
       <div
         className={cn(
           'border-line-700 bg-fill-secondary-0 radius-r2 p-x2 flex min-w-[91px] flex-col items-center border',

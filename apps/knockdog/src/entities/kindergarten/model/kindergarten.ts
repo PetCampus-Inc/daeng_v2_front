@@ -55,6 +55,7 @@ export interface KindergartenListItem {
   reviewCount: number;
   serviceTags: (keyof typeof ServiceTag)[];
   pickupType: keyof typeof PickupType;
+  phoneNumber: string;
 }
 interface Coord {
   lat: number;
