@@ -80,6 +80,10 @@ interface RPCSchema {
     params: ToastClearParams;
     result: void;
   };
+  [METHODS.openExternalLink]: {
+    params: { url: string };
+    result: { opened: boolean };
+  };
 }
 
 type RPCMethod = keyof RPCSchema;
