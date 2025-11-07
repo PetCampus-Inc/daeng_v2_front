@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>daengv2mobile</string>
-          <string>com.gyulgyuri.daeng-v2-mobile</string>
+          <string>net.knockdog.petcampus.v2</string>
         </array>
       </dict>
     </array>

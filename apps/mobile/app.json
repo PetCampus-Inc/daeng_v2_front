@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
+      "bundleIdentifier": "net.knockdog.petcampus.v2",
       "infoPlist": {
         "LSApplicationQueriesSchemes": ["nmap"]
       },
@@ -40,7 +40,7 @@
         "backgroundColor": "#FF6600"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.gyulgyuri.daeng_v2_mobile",
+      "package": "net.knockdog.petcampus.v2",
       "permissions": ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"]
     },
     "web": {
