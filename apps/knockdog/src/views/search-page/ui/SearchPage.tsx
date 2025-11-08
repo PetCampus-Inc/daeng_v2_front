@@ -69,7 +69,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   return (
     <div className='flex h-full flex-col'>
       {/* 검색창 헤더 */}
-      <div className='py-x2 pr-x4 pl-x2 gap-x-x2 pt-x2 flex shrink-0'>
+      <div className='py-x2 pr-x4 pl-x2 gap-x-x2 flex shrink-0'>
         <button onClick={handleBack} className='px-x2 shrink-0'>
           <Icon icon='ChevronLeft' className='size-x6' />
         </button>
