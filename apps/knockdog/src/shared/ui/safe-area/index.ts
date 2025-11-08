@@ -1,2 +1,1 @@
-export { SafeArea, SafeAreaView } from './SafeArea';
-
+export { SafeArea } from './SafeArea';
