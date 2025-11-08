@@ -80,27 +80,18 @@ importers:
       '@knockdog/bridge-web':
         specifier: workspace:*
         version: link:../../packages/bridge-web
-      '@knockdog/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/config-eslint
       '@knockdog/icons':
         specifier: workspace:*
         version: link:../../packages/icons
       '@knockdog/react-naver-map':
         specifier: workspace:*
         version: link:../../packages/react-naver-map
-      '@knockdog/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/config-typescript
       '@knockdog/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
         specifier: ^5.85.5
         version: 5.90.3(react@19.2.0)
-      '@tanstack/react-query-devtools':
-        specifier: ^5.85.5
-        version: 5.90.2(@tanstack/react-query@5.90.3(react@19.2.0))(react@19.2.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -147,9 +138,18 @@ importers:
         specifier: ^5.0.8
         version: 5.0.8(@types/react@19.2.2)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0))
     devDependencies:
+      '@knockdog/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/config-eslint
+      '@knockdog/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/config-typescript
       '@tailwindcss/postcss':
         specifier: ^4.1.14
         version: 4.1.14
+      '@tanstack/react-query-devtools':
+        specifier: ^5.90.2
+        version: 5.90.2(@tanstack/react-query@5.90.3(react@19.2.0))(react@19.2.0)
       '@types/navermaps':
         specifier: ^3.9.1
         version: 3.9.1
@@ -12974,16 +12974,16 @@ snapshots:
 
   '@types/babel__generator@7.27.0':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/parser': 7.28.5
+      '@babel/types': 7.28.5
 
   '@types/babel__traverse@7.28.0':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@types/chai@5.2.2':
     dependencies:
@@ -13744,7 +13744,7 @@ snapshots:
   babel-plugin-jest-hoist@29.6.3:
     dependencies:
       '@babel/template': 7.27.2
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
       '@types/babel__core': 7.20.5
       '@types/babel__traverse': 7.28.0
 
@@ -16536,7 +16536,7 @@ snapshots:
   istanbul-lib-instrument@5.2.1:
     dependencies:
       '@babel/core': 7.28.4
-      '@babel/parser': 7.28.4
+      '@babel/parser': 7.28.5
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
       semver: 6.3.1
