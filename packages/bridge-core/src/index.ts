@@ -12,6 +12,7 @@ export type {
   ToastShape,
   ToastPosition,
   ToastType,
+  SafeAreaInsets,
 } from './methods';
 export type { RPCSchema, RPCMethod, ParamsOf, ResultOf } from './rpc-schema';
 export type { BridgeMessage, BridgeRequest, BridgeOk, BridgeError, BridgeEvent } from './types';

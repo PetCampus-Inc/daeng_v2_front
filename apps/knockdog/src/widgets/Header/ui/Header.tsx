@@ -31,7 +31,7 @@ export function Header({
     <>
       <header
         className={cn(
-          'z-15 border-line-100 fixed top-0 flex h-16 w-screen items-center px-4',
+          'border-line-100 sticky top-0 z-15 flex h-16 w-full items-center px-4',
           variantClass[variant],
           className
         )}
@@ -63,7 +63,7 @@ function RightSection({ children, ...props }: ComponentProps<'div'>) {
 
 function CenterSection({ children, ...props }: ComponentProps<'div'>) {
   return (
-    <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' {...props}>
+    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' {...props}>
       {children}
     </div>
   );

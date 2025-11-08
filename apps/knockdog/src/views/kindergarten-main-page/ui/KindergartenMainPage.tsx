@@ -21,7 +21,7 @@ import {
   useSearchFilter,
 } from '@features/kindergarten';
 
-import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
+import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 export function KindergartenMainPage() {
@@ -38,6 +38,7 @@ export function MapWithSchoolsContent() {
   const map = useRef<naver.maps.Map | null>(null);
   const { coord: basePoint } = useBasePoint();
   const { filter } = useSearchFilter();
+  const { top } = useSafeAreaInsets();
 
   /** 지도 스냅샷 */
   const { mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations } = useMapSearch();
@@ -221,9 +222,10 @@ export function MapWithSchoolsContent() {
 
       <div
         className={cn(
-          'px-x4 pb-x2 absolute top-0 z-50 w-full pt-[calc(env(safe-area-inset-top)+16px)] transition-colors ease-out',
+          'px-x4 pb-x2 absolute top-0 z-50 w-full transition-colors ease-out',
           isFullExtended && 'bg-fill-secondary-0'
         )}
+        style={{ paddingTop: top + 20 }}
       >
         <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`}>
           <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>

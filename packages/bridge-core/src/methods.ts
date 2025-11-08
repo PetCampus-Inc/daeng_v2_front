@@ -1,5 +1,6 @@
 const METHODS = {
   getLatLng: 'device.getLatLng',
+  getSafeAreaInsets: 'device.getSafeAreaInsets',
   callPhone: 'system.callPhone',
   copyToClipboard: 'system.copyToClipboard',
   share: 'system.share',
@@ -67,6 +68,13 @@ type ToastShowParams = {
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};
 
+type SafeAreaInsets = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -79,4 +87,5 @@ export type {
   ToastShape,
   ToastPosition,
   ToastType,
+  SafeAreaInsets,
 };
