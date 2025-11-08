@@ -1,5 +1,12 @@
 'use client';
 
+import { useSafeAreaInsets } from '@shared/lib';
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <div className='flex h-dvh flex-col pt-[env(safe-area-inset-top)]'>{children}</div>;
+  const insets = useSafeAreaInsets();
+  return (
+    <div className='flex h-dvh flex-col' style={{ paddingTop: insets.top }}>
+      {children}
+    </div>
+  );
 }
