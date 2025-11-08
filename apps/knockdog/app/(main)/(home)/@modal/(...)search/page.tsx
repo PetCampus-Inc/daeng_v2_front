@@ -5,6 +5,7 @@ import { RemoveScroll } from 'react-remove-scroll';
 import { FloatingFocusManager, FloatingPortal, useFloating } from '@floating-ui/react';
 import { SearchPage } from '@views/search-page';
 import { useSafeAreaInsets } from '@shared/lib';
+import { SafeArea } from '@shared/ui/safe-area';
 
 // (home)/@modal/(...)search/page.tsx
 // 👉 This file is only a route-level entry point for modal-based search.
@@ -30,9 +31,9 @@ export default function Page() {
         outsideElementsInert
       >
         <RemoveScroll ref={refs.setFloating} className='absolute inset-0 z-[100]'>
-          <div className='bg-fill-secondary-0 flex h-full flex-col' style={{ paddingTop: top }}>
+          <SafeArea edges={['top']} className='bg-fill-secondary-0 h-full'>
             <SearchPage inputRef={searchInputRef} />
-          </div>
+          </SafeArea>
         </RemoveScroll>
       </FloatingFocusManager>
     </FloatingPortal>
