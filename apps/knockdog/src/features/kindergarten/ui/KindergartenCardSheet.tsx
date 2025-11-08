@@ -2,13 +2,14 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { useState } from 'react';
 import { overlay } from 'overlay-kit';
-import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 import { PhoneCallSheet } from './PhoneCallSheet';
 import { DeparturePointSheet } from './DeparturePointSheet';
 import type { DogSchoolWithMeta } from '../model/mappers';
-import { useState } from 'react';
 
 interface KindergartenCardSheetProps extends DogSchoolWithMeta {
   isOpen: boolean;

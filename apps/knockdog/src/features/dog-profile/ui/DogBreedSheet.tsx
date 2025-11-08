@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { BottomSheet, TextField, TextFieldInput, Icon } from '@knockdog/ui';
+import { TextField, TextFieldInput, Icon } from '@knockdog/ui';
 import type { Breed } from '../model/breed.type';
 import { useBreedSearch } from '../model/useBreedSearch';
 import { TextHighlights } from '@shared/ui/text-highlights';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface DogBreedSheetProps {
   isOpen: boolean;

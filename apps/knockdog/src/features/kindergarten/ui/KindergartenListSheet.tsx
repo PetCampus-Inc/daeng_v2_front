@@ -1,10 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
-import { BottomSheet } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { KindergartenList } from './KindergartenList';
-
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { isNativeWebView, useBottomSheetSnapIndex, useIsomorphicLayoutEffect, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 

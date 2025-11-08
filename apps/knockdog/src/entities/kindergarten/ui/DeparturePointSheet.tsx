@@ -1,7 +1,8 @@
-import { BottomSheet, Icon } from '@knockdog/ui';
+import { Icon } from '@knockdog/ui';
 import { RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { useCurrentAddress } from '@shared/lib/geolocation';
 import { useCurrentLocation } from '@shared/lib/geolocation';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface DeparturePointSheetProps {
   isOpen: boolean;
