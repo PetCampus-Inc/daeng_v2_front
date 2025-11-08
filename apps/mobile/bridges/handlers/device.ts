@@ -3,14 +3,32 @@ import * as Linking from 'expo-linking';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { Platform, Share } from 'react-native';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
-import { METHODS, type ShareParams, type ShareResult } from '@knockdog/bridge-core';
+import { METHODS, type ShareParams, type ShareResult, type SafeAreaInsets } from '@knockdog/bridge-core';
 
 /**
  * 디바이스 핸들러 등록
  * @param router
  */
 export function registerDeviceHandlers(router: NativeBridgeRouter) {
+  // SafeAreaInsets 가져오기
+  router.register(METHODS.getSafeAreaInsets, async (): Promise<SafeAreaInsets> => {
+    const insets = initialWindowMetrics?.insets;
+
+    if (!insets) {
+      // initialWindowMetrics가 없는 경우 기본값 반환
+      return { top: 0, bottom: 0, left: 0, right: 0 };
+    }
+
+    return {
+      top: insets.top,
+      bottom: insets.bottom,
+      left: insets.left,
+      right: insets.right,
+    };
+  });
+
   // 위도, 경도 가져오기
   router.register(METHODS.getLatLng, async (options?: { accuracy?: 'balanced' | 'high' }) => {
     const { status } = await Location.requestForegroundPermissionsAsync();

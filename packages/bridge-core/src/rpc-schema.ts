@@ -7,6 +7,7 @@ import {
   type ToastShowParams,
   type ToastDismissParams,
   type ToastClearParams,
+  type SafeAreaInsets,
 } from './methods';
 
 interface RPCSchema {
@@ -18,6 +19,10 @@ interface RPCSchema {
       lat: number;
       lng: number;
     };
+  };
+  [METHODS.getSafeAreaInsets]: {
+    params: {};
+    result: SafeAreaInsets;
   };
   [METHODS.callPhone]: {
     params: CallPhoneParams;
