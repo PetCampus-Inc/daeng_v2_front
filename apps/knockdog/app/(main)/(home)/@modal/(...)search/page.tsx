@@ -4,7 +4,6 @@ import { useRef } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { FloatingFocusManager, FloatingPortal, useFloating } from '@floating-ui/react';
 import { SearchPage } from '@views/search-page';
-import { useSafeAreaInsets } from '@shared/lib';
 import { SafeArea } from '@shared/ui/safe-area';
 
 // (home)/@modal/(...)search/page.tsx
@@ -18,7 +17,6 @@ export default function Page() {
   });
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { top } = useSafeAreaInsets();
   return (
     <FloatingPortal>
       <FloatingFocusManager
