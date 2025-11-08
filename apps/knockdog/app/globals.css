@@ -3,6 +3,10 @@
 @config '@knockdog/ui/tailwind-config';
 @source '@knockdog/ui';
 
+@theme {
+  --breakpoint-sm: 30rem;
+}
+
 html body[data-scroll-locked] {
   overflow: hidden !important;
   overscroll-behavior: contain;
