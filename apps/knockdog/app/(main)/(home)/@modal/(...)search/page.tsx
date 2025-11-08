@@ -29,7 +29,7 @@ export default function Page() {
         outsideElementsInert
       >
         <RemoveScroll ref={refs.setFloating} className='absolute inset-0 z-[100]'>
-          <SafeArea edges={['top']} className='bg-fill-secondary-0 h-full'>
+          <SafeArea edges={['top']} className='bg-fill-secondary-0 mx-auto h-full max-w-screen-sm'>
             <SearchPage inputRef={searchInputRef} />
           </SafeArea>
         </RemoveScroll>
