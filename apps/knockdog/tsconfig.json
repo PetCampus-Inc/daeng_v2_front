@@ -10,6 +10,7 @@
   ],
   "exclude": ["node_modules", ".next", ".next/types"],
   "compilerOptions": {
+    "skipLibCheck": true, // 라이브러리 체크 건너뛰기
     "strictNullChecks": true,
     "baseUrl": "src",
     "paths": {
