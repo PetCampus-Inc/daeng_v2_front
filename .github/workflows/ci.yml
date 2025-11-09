@@ -64,9 +64,6 @@ jobs:
 
       - name: Run ${{ matrix.command }}
         run: |
-          echo "## 🚀 ${{ matrix.command }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
           if [ "${{ matrix.command }}" = "build" ]; then
             COMMAND="pnpm build --filter=knockdog..."
           else
@@ -82,3 +79,5 @@ jobs:
           fi
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          # CI 빌드용 환경변수
+          NEXT_PUBLIC_API_BASE_URL: 'https://example.com'
