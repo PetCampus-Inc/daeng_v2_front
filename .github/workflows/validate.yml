@@ -1,0 +1,138 @@
+name: Validate Next.js App
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+
+# 동일 브랜치의 이전 실행 취소
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    permissions:
+      pull-requests: read
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - 'apps/knockdog/**'
+              - 'packages/**'
+
+  # Next.js 앱 검증
+  validate:
+    needs: detect
+    if: needs.detect.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Turbo Cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Type check
+        id: typecheck
+        run: |
+          echo "### 🔍 Type Check" >> $GITHUB_STEP_SUMMARY
+          if pnpm --filter=knockdog type-check; then
+            echo "✅ Type check passed" >> $GITHUB_STEP_SUMMARY
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Type check failed" >> $GITHUB_STEP_SUMMARY
+            echo "result=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Lint
+        id: lint
+        if: success() || failure()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧹 Lint" >> $GITHUB_STEP_SUMMARY
+          if pnpm --filter=knockdog lint; then
+            echo "✅ Lint passed" >> $GITHUB_STEP_SUMMARY
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Lint failed" >> $GITHUB_STEP_SUMMARY
+            echo "result=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Build
+        id: build
+        if: success() || failure()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏗️ Build" >> $GITHUB_STEP_SUMMARY
+          if pnpm --filter=knockdog build; then
+            echo "✅ Build successful" >> $GITHUB_STEP_SUMMARY
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build failed" >> $GITHUB_STEP_SUMMARY
+            echo "result=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Validation Result" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.typecheck.outputs.result }}" = "success" ]; then
+            echo "| Type Check | ✅ |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Type Check | ❌ |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.lint.outputs.result }}" = "success" ]; then
+            echo "| Lint | ✅ |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Lint | ❌ |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.build.outputs.result }}" = "success" ]; then
+            echo "| Build | ✅ |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Build | ❌ |" >> $GITHUB_STEP_SUMMARY
+          fi
