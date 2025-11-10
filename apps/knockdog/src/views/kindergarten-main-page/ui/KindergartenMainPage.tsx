@@ -20,6 +20,7 @@ import {
   SortContext,
   useSearchFilter,
 } from '@features/kindergarten';
+import { useSearchQuery } from '@features/search';
 
 import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
@@ -39,6 +40,7 @@ export function MapWithSchoolsContent() {
   const { coord: basePoint } = useBasePoint();
   const { filter } = useSearchFilter();
   const { top } = useSafeAreaInsets();
+  const { query } = useSearchQuery();
 
   /** 지도 스냅샷 */
   const { mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations } = useMapSearch();
@@ -238,7 +240,12 @@ export function MapWithSchoolsContent() {
       </div>
 
       <SortContext>
-        <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel} filters={filter}>
+        <KindergartenSearchContext
+          bounds={mapSnapshot.bounds}
+          zoomLevel={mapSnapshot.zoomLevel}
+          filters={filter}
+          query={query ?? undefined}
+        >
           <KindergartenListSheet
             fabSlot={
               <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>

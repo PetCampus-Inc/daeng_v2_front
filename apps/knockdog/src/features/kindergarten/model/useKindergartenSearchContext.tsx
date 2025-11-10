@@ -1,8 +1,8 @@
 import { useInfiniteQuery, type UseInfiniteQueryResult } from '@tanstack/react-query';
-import { DogSchoolWithMeta, DogSchoolWithMetaResult } from './mappers';
+
 import { kindergartenQueryOptions } from '../api/kindergartenQuery';
 import { useSort } from './useSortContext';
-import type { FilterOption } from '@entities/kindergarten';
+import type { FilterOption, KindergartenListItemWithMeta, KindergartenListWithMeta } from '@entities/kindergarten';
 import { useBasePoint } from '@shared/lib';
 import { createSafeContext } from '@shared/lib/react/useSafeContext';
 
@@ -11,24 +11,31 @@ interface ProviderProps {
   bounds: naver.maps.LatLngBounds | null;
   zoomLevel: number;
   filters?: FilterOption[];
+  query?: string;
 }
 
 interface KindergartenSearchContextValue {
   query: UseInfiniteQueryResult<
     {
-      pages: DogSchoolWithMetaResult[];
+      pages: KindergartenListWithMeta[];
       pageParams: number[];
     },
     Error
   >;
-  schoolList: DogSchoolWithMeta[];
+  schoolList: KindergartenListItemWithMeta[];
   bounds: naver.maps.LatLngBounds | null;
 }
 
 const [KindergartenSearchContext, useKindergartenSearch] =
   createSafeContext<KindergartenSearchContextValue>('KindergartenSearchContext');
 
-export function KindergartenSearchContextImpl({ children, bounds, zoomLevel, filters = [] }: ProviderProps) {
+export function KindergartenSearchContextImpl({
+  children,
+  bounds,
+  zoomLevel,
+  filters = [],
+  query: searchQuery,
+}: ProviderProps) {
   const { coord: basePoint } = useBasePoint();
   const { sortType } = useSort();
 
@@ -38,6 +45,7 @@ export function KindergartenSearchContextImpl({ children, bounds, zoomLevel, fil
       bounds: bounds!,
       zoomLevel,
       filters,
+      query: searchQuery,
       rank: sortType,
     }),
   });
