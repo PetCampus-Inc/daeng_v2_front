@@ -19,7 +19,8 @@ export type KindergartenSearchListQueryParams = {
   refPoint?: Coord;
   bounds: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
-} & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters'>;
+  query?: string;
+} & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters' | 'query'>;
 
 export type KindergartenAggregationQueryParams = {
   refPoint?: Coord;
