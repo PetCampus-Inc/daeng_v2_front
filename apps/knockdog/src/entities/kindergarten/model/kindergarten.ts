@@ -1,7 +1,7 @@
 import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
 import type { OperationStatus, ServiceTag, PickupType } from '../config/constant';
 
-export interface KindergartenSearchList {
+export interface KindergartenList {
   paging: {
     currentPage: number;
     hasNext: boolean;
@@ -9,6 +9,9 @@ export interface KindergartenSearchList {
   };
   schoolResult: {
     totalCount: number;
+    exactCount: number | null;
+    nearbyCount: number | null;
+    exact: KindergartenListItem | null;
     list: KindergartenListItem[];
   };
 }
@@ -55,6 +58,7 @@ export interface KindergartenListItem {
   reviewCount: number;
   serviceTags: (keyof typeof ServiceTag)[];
   pickupType: keyof typeof PickupType;
+  phoneNumber: string;
 }
 interface Coord {
   lat: number;
