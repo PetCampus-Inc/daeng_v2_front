@@ -39,6 +39,10 @@ body {
   font-smooth: never;
 }
 
+button {
+  cursor: pointer;
+}
+
 /* 스크롤바 숨김 */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
