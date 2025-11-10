@@ -1,5 +1,5 @@
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
@@ -17,6 +17,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleBack = () => {
     router.back();
@@ -62,9 +63,12 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
         type: 'USER_QUERY',
         label: query.trim(),
       });
-      // TODO: 검색 결과 페이지로 이동
+
+      const params = new URLSearchParams(searchParams?.toString());
+      params.set('query', query.trim());
+      router.replace(`/?${params.toString()}`);
     }
-  }, [query, addRecentSearchKeyword]);
+  }, [query, addRecentSearchKeyword, router, searchParams]);
 
   return (
     <div className='flex h-full flex-col'>
@@ -95,7 +99,10 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
             {query && (
               <button
                 type='button'
-                onClick={() => setQuery('')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setQuery('');
+                }}
                 aria-label='검색 결과 초기화'
                 className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
               >
