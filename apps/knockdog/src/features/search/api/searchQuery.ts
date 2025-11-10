@@ -1,22 +1,22 @@
 import { queryOptions } from '@tanstack/react-query';
 import { getKindergartenAutocomplete, type KindergartenAutocompleteParams } from '@entities/kindergarten';
 import { isValidCoord } from '@shared/lib';
+import { serializeCoords } from '@features/kindergarten/lib/serialize';
 
 type AutocompleteQueryParams = {
-  lat?: number;
-  lng?: number;
-} & Omit<KindergartenAutocompleteParams, 'lat' | 'lng'>;
+  coord?: { lat: number; lng: number };
+} & Omit<KindergartenAutocompleteParams, 'coord'>;
 
 export const searchQueryOptions = {
-  autocomplete: ({ query, lat, lng }: AutocompleteQueryParams) => {
+  autocomplete: ({ query, coord }: AutocompleteQueryParams) => {
     return queryOptions({
-      queryKey: ['search', query, lat, lng],
-      queryFn: () => getKindergartenAutocomplete({ query, lat: lat!, lng: lng! }),
+      queryKey: ['search', query, coord],
+      queryFn: () => getKindergartenAutocomplete({ query, coord: serializeCoords(coord) }),
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
       refetchOnWindowFocus: false,
       refetchIntervalInBackground: false,
-      enabled: isValidCoord({ lat, lng }) && query.trim().length > 0,
+      enabled: isValidCoord(coord) && query.trim().length > 0,
       placeholderData: (prev) => prev,
     });
   },

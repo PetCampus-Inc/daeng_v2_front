@@ -3,8 +3,7 @@ import { api } from '@shared/api';
 
 export type KindergartenAutocompleteParams = {
   query: string;
-  lat: number;
-  lng: number;
+  coord: string;
 };
 
 export function getKindergartenAutocomplete(params: KindergartenAutocompleteParams) {
