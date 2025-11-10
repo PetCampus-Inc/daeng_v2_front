@@ -1,10 +1,11 @@
-import type { Aggregation, KindergartenSearchList } from '../model/kindergarten';
+import type { Aggregation, KindergartenList } from '../model/kindergarten';
 import { api } from '@shared/api';
 
 export type KindergartenSearchListParams = {
   refPoint: string;
   bounds: string;
   zoomLevel: number;
+  query?: string;
   page?: number;
   size?: number;
   filters?: string;
@@ -16,6 +17,7 @@ export function getKindergartenSearchList(params: KindergartenSearchListParams) 
     refPoint: params.refPoint,
     bounds: params.bounds,
     zoomLevel: params.zoomLevel.toString(),
+    ...(params.query && { query: params.query }),
     ...(params.page && { page: params.page.toString() }),
     ...(params.size && { size: params.size.toString() }),
     ...(params.filters && { filters: params.filters }),
@@ -26,7 +28,7 @@ export function getKindergartenSearchList(params: KindergartenSearchListParams) 
     .get('kindergarten/map-view', {
       searchParams,
     })
-    .json<KindergartenSearchList>();
+    .json<KindergartenList>();
 }
 
 export type KindergartenAggregationParams = {

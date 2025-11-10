@@ -14,6 +14,7 @@ export const kindergartenKeys = {
     serializeBounds(params.bounds),
     params.zoomLevel,
     params.filters,
+    params.query,
     params.rank,
   ],
   aggregation: (params: Partial<KindergartenAggregationQueryParams>) => [
