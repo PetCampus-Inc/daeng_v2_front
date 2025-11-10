@@ -2,9 +2,9 @@ import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
-import type { DogSchoolWithMeta } from '../model/mappers';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 
-interface KindergartenCardProps extends DogSchoolWithMeta {
+interface KindergartenCardProps extends KindergartenListItemWithMeta {
   onBookmarkClick?: (id: string) => void;
 }
 
@@ -33,7 +33,7 @@ export function KindergartenCard({
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
-          className='bg-bg-0 absolute right-0 top-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
+          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={() => onBookmarkClick?.(id)}
         >
@@ -78,7 +78,7 @@ export function KindergartenCard({
                 : `${operationTimes.startTime}에 영업시작`}
             </span>
             <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
-              {dist.toFixed(2)}km
+              {dist}
             </span>
             <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
               {roadAddress}
@@ -87,7 +87,7 @@ export function KindergartenCard({
         </div>
 
         {/* 구분선 */}
-        <div className='bg-line-100 flex h-[1px] w-full items-center justify-center' />
+        <div className='bg-line-100 flex h-px w-full items-center justify-center' />
 
         {/* 메모 영역 */}
         {memo && (

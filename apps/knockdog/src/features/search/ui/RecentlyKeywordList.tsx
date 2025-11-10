@@ -25,7 +25,7 @@ export function RecentlyKeywordList() {
         {/* 최근 찾아본 장소 목록 */}
         <div className='gap-x2 scrollbar-hide px-x4 flex overflow-x-scroll'>
           {recentView?.map((place) => (
-            <div key={place.id} className='flex-shrink-0'>
+            <div key={place.id} className='shrink-0'>
               <InputChip name={place.label} onRemove={() => removeRecentView(place.id)} />
             </div>
           ))}

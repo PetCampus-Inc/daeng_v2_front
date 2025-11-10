@@ -28,7 +28,7 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
         </p>
         <div className='gap-x0_5 flex items-center'>
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
-            {distance}km
+            {distance}
           </span>
           <Icon
             icon='BookmarkFill'
@@ -41,7 +41,7 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
         </div>
       </div>
       <svg
-        className={cn('absolute left-1/2 top-[calc(100%-8px)] -translate-x-1/2')}
+        className={cn('absolute top-[calc(100%-8px)] left-1/2 -translate-x-1/2')}
         width='16'
         height='17'
         viewBox='0 0 16 17'

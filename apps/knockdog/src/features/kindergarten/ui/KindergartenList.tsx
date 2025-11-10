@@ -112,7 +112,7 @@ export function KindergartenList() {
 
               {/* 스크롤 영역 */}
               <div className='scrollbar-hide flex-1 touch-pan-x overflow-x-auto'>
-                <div className='before:w-x2 after:w-x2 inline-flex items-center whitespace-nowrap before:flex-shrink-0 before:content-[""] after:flex-shrink-0 after:content-[""]'>
+                <div className='before:w-x2 after:w-x2 inline-flex items-center whitespace-nowrap before:shrink-0 before:content-[""] after:shrink-0 after:content-[""]'>
                   {/* 바로가기 필터 칩들 */}
                   {SHORT_CUT_FILTER_OPTIONS.map((option) => {
                     const optionLabel = FILTER_OPTIONS[option];

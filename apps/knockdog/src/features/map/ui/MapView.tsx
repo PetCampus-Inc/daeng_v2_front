@@ -9,7 +9,7 @@ interface OverlayInfo {
   id: string;
   coord: { lat: number; lng: number };
   title: string;
-  dist: number;
+  dist: string;
 }
 
 interface AggregationInfo {
@@ -129,7 +129,7 @@ export function MapView(props: MapViewProps) {
               zIndex={isSelected ? 10 : undefined}
               onClick={() => onMarkerClick?.(overlay.id, overlay.coord)}
               customIcon={{
-                content: <PlaceMarker title={overlay.title} distance={overlay.dist.toFixed(2)} selected={isSelected} />,
+                content: <PlaceMarker title={overlay.title} distance={overlay.dist} selected={isSelected} />,
                 offsetY: 12,
               }}
             />
