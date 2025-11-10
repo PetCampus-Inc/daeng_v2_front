@@ -2,7 +2,6 @@
 export { kindergartenQueryOptions } from './api/kindergartenQuery';
 
 /** model */
-export type { DogSchoolWithMeta } from './model/mappers';
 export { KindergartenSearchContext } from './model/useKindergartenSearchContext';
 export { SortContext } from './model/useSortContext';
 export { useSearchFilter } from './model/useSearchFilter';

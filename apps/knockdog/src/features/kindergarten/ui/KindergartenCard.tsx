@@ -2,10 +2,10 @@ import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
-import type { DogSchoolWithMeta } from '../model/mappers';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-interface KindergartenCardProps extends DogSchoolWithMeta {
+interface KindergartenCardProps extends KindergartenListItemWithMeta {
   onBookmarkClick?: (id: string) => void;
 }
 
@@ -91,7 +91,7 @@ export function KindergartenCard({
                 : `${operationTimes.startTime}에 영업시작`}
             </span>
             <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
-              {dist.toFixed(2)}km
+              {dist}
             </span>
             <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
               {roadAddress}
@@ -100,7 +100,7 @@ export function KindergartenCard({
         </div>
 
         {/* 구분선 */}
-        <div className='bg-line-100 flex h-[1px] w-full items-center justify-center' />
+        <div className='bg-line-100 flex h-px w-full items-center justify-center' />
 
         {/* 메모 영역 */}
         {memo && (

@@ -9,10 +9,10 @@ import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 import { PhoneCallSheet } from '@features/kindergarten';
 import { DeparturePointSheet } from './DeparturePointSheet';
-import type { DogSchoolWithMeta } from '../model/mappers';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-interface KindergartenCardSheetProps extends DogSchoolWithMeta {
+interface KindergartenCardSheetProps extends KindergartenListItemWithMeta {
   isOpen: boolean;
   close: () => void;
 }
@@ -109,7 +109,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
                   : `${props.operationTimes.startTime}에 영업시작`}
               </span>
               <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
-                {props.dist.toFixed(2)}km
+                {props.dist}
               </span>
               <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
                 {props.roadAddress}
@@ -118,7 +118,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
           </div>
 
           {/* 구분선 */}
-          <div className='bg-line-100 flex h-[1px] w-full items-center justify-center' />
+          <div className='bg-line-100 flex h-px w-full items-center justify-center' />
 
           {/* 하단 필터 + 가격 영역 */}
           <div className='gap-x2 flex min-w-0 items-center justify-between self-stretch'>

@@ -1,8 +1,8 @@
 import { useState, ReactNode } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { isAggregationZoom } from '@views/kindergarten-main-page/model/markers';
-import { type DogSchoolWithMeta, kindergartenQueryOptions } from '@features/kindergarten';
-import type { FilterOption, SidoGunguAggregation } from '@entities/kindergarten';
+import { kindergartenQueryOptions } from '@features/kindergarten';
+import type { FilterOption, KindergartenListItemWithMeta, SidoGunguAggregation } from '@entities/kindergarten';
 
 import { createSafeContext, useBasePoint } from '@shared/lib';
 
@@ -18,7 +18,7 @@ interface MapSearchContextValue {
   isMapLoaded: boolean;
   setIsMapLoaded: (loaded: boolean) => void;
 
-  schoolList: DogSchoolWithMeta[];
+  schoolList: KindergartenListItemWithMeta[];
   aggregations: SidoGunguAggregation[];
 }
 
