@@ -15,15 +15,10 @@ export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from '.
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
 /** model */
+export { createKindergartenListWithMock } from './model/mappers';
 export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
 export type { FilterResultCount } from './model/filters';
-export type {
-  KindergartenSearchList,
-  Aggregation,
-  Kindergarten,
-  KindergartenListItem,
-  SidoGunguAggregation,
-} from './model/kindergarten';
+export type { Aggregation, Kindergarten, SidoGunguAggregation } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
 export type {
@@ -45,6 +40,7 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
+export type { KindergartenListItem, KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
 
 /** ui */
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
