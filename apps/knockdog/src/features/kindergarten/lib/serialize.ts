@@ -1,10 +1,25 @@
-// TODO: entities에 위치해야할 지 확인 필요
-
 import type { FilterOption } from '@entities/kindergarten';
 
-export function serializeCoords(coord?: { lat: number; lng: number } | null): string {
+interface SerializeCoordsOptions {
+  /** 좌표 순서 */
+  order?: 'lnglat' | 'latlng';
+}
+
+/**
+ * 좌표 객체를 문자열로 직렬화
+ * @param coord - 좌표 객체
+ * @param options - 직렬화 옵션
+ * @default options.order = 'latlng'
+ */
+export function serializeCoords(
+  coord?: { lat: number; lng: number } | null,
+  options: SerializeCoordsOptions = {}
+): string {
+  const { order = 'latlng' } = options;
+
   if (!coord || typeof coord.lat !== 'number' || typeof coord.lng !== 'number') return 'pending-ref';
-  return `${coord.lng},${coord.lat}`;
+
+  return order === 'latlng' ? `${coord.lat},${coord.lng}` : `${coord.lng},${coord.lat}`;
 }
 
 export function serializeBounds(bounds?: naver.maps.LatLngBounds | null): string {
