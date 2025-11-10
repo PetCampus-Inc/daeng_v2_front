@@ -7,9 +7,9 @@ export type KindergartenSearchListParams = {
   refPoint: string;
   bounds: string;
   zoomLevel: number;
+  query?: string;
   page?: number;
   size?: number;
-  query?: string;
   filters?: string;
   rank?: 'DISTANCE' | 'REVIEW';
 };
@@ -19,6 +19,7 @@ export function getKindergartenSearchList(params: KindergartenSearchListParams) 
     refPoint: params.refPoint,
     bounds: params.bounds,
     zoomLevel: params.zoomLevel.toString(),
+    ...(params.query && { query: params.query }),
     ...(params.page && { page: params.page.toString() }),
     ...(params.size && { size: params.size.toString() }),
     ...(params.query && { query: params.query.trim() }),
