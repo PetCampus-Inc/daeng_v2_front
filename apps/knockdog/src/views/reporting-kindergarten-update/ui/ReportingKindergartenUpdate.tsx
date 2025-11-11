@@ -135,7 +135,7 @@ function ReportingKindergartenUpdate() {
         </div>
       </div>
 
-      <div className='fixed right-0 bottom-0 left-0 z-10 flex w-screen items-center gap-1 bg-white p-4'>
+      <div className='fixed right-0 bottom-0 left-0 z-10 flex w-full items-center gap-1 bg-white p-4'>
         <ActionButton disabled={!isFormValid || isPending} onClick={() => reportingMutate(reportingParams)}>
           정보 수정 제보하기
         </ActionButton>

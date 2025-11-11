@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ActionButton, Icon, TextField, TextFieldInput, BottomSheet } from '@knockdog/ui';
+import { ActionButton, Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import Link from 'next/link';
 import { cn } from '@knockdog/ui/lib';
 import { useHeaderContext } from '@widgets/Header';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 const RELATION_OPTIONS = [
   { label: '엄마', value: 'mother' },
@@ -44,7 +45,7 @@ export default function PetInfoRelationPage() {
             </div>
             <div className='w-1/2'>
               <div
-                className='border-line-200 body1-regular text-text-tertiary flex h-[46px] w-full cursor-pointer items-center justify-between whitespace-nowrap rounded-lg border px-4 py-3'
+                className='border-line-200 body1-regular text-text-tertiary flex h-[46px] w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-3 whitespace-nowrap'
                 onClick={() => setIsOpen(true)}
               >
                 관계 선택
@@ -63,7 +64,7 @@ export default function PetInfoRelationPage() {
           </div>
         </div>
 
-        <div className='fixed bottom-0 left-0 right-0 flex gap-x-2 bg-white px-4 py-5'>
+        <div className='fixed right-0 bottom-0 left-0 flex gap-x-2 bg-white px-4 py-5'>
           <Link href='/signup/profile/pet-info' className='flex-1'>
             <ActionButton variant='secondaryFill' className='w-full' disabled={petName.length === 0}>
               다음

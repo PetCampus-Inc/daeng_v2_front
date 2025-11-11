@@ -11,7 +11,7 @@ import { useKindergartenSearch } from '../model/useKindergartenSearchContext';
 import { useEffect, useRef } from 'react';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 
-import { useBottomSheetSnapIndex } from '@shared/lib';
+import { isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType } from '@shared/store';
 
@@ -66,7 +66,8 @@ export function KindergartenList() {
       <main
         ref={containerRef}
         className={cn(
-          'scrollbar-hide relative flex h-full w-full flex-col pb-[68px]',
+          !isNativeWebView() && 'pb-[68px]',
+          'scrollbar-hide relative flex h-full w-full flex-col',
           isFullExtended ? 'overflow-y-auto' : 'min-h-full overflow-hidden'
         )}
       >
@@ -75,7 +76,7 @@ export function KindergartenList() {
 
         {/* 헤더 영역  */}
         <div className='bg-bg-0 sticky top-[-.5px] z-20'>
-          <div className='px-x4 py-x4'>
+          <div className='px-x4 pb-x4 pt-x2'>
             <SegmentedControl defaultValue={selectedBaseType} onValueChange={handleLocationChange}>
               <SegmentedControlItem value='current'>현 위치</SegmentedControlItem>
               <SegmentedControlItem value='home'>집</SegmentedControlItem>
@@ -83,7 +84,7 @@ export function KindergartenList() {
             </SegmentedControl>
           </div>
 
-          <div className='border-line-200 flex h-[52px] w-full items-center border-b border-t'>
+          <div className='border-line-200 flex h-[52px] w-full items-center border-t border-b'>
             <div className='py-x2 flex w-full items-center'>
               {/* 고정 버튼 영역 */}
               <div className='pl-x4 flex shrink-0 items-center gap-x-2'>
@@ -156,7 +157,7 @@ export function KindergartenList() {
         offsetX='x4'
         zIndex={50}
         style={{
-          bottom: `calc(${BOTTOM_BAR_HEIGHT}px + 12px)`,
+          bottom: isNativeWebView() ? '12px' : `calc(${BOTTOM_BAR_HEIGHT}px + 12px`,
         }}
       >
         <FloatingActionButton

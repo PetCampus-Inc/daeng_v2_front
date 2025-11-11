@@ -1,5 +1,9 @@
 const METHODS = {
   getLatLng: 'device.getLatLng',
+  getSafeAreaInsets: 'device.getSafeAreaInsets',
+  getCurrentLocation: 'device.getCurrentLocation',
+  getLocationPermission: 'device.getLocationPermission',
+  openLocationPermissionDialog: 'device.openLocationPermissionDialog',
   callPhone: 'system.callPhone',
   copyToClipboard: 'system.copyToClipboard',
   share: 'system.share',
@@ -11,6 +15,7 @@ const METHODS = {
   toastShow: 'toast.show',
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
+  openExternalLink: 'system.openExternalLink',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];
@@ -66,6 +71,59 @@ type ToastShowParams = {
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};
 
+type SafeAreaInsets = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+type Accuracy = 'balanced' | 'high' | 'low';
+
+type Location = {
+  /**
+   * 자세한 위치 정보
+   */
+  coords: LocationCoords;
+  /**
+   * 위치가 업데이트된 시점의 타임스탬프
+   */
+  timestamp: number;
+};
+
+interface LocationCoords {
+  /**
+   * 위도
+   */
+  latitude: number;
+  /**
+   * 경도
+   */
+  longitude: number;
+  /**
+   * 정확도
+   */
+  accuracy: number | null;
+  /**
+   * 고도
+   */
+  altitude: number | null;
+  /**
+   * 고도 정확도
+   */
+  altitudeAccuracy: number | null;
+  /**
+   * 방향
+   */
+  heading: number | null;
+  /**
+   * 속도
+   */
+  speed: number | null;
+}
+
+type PermissionStatus = 'allowed' | 'denied' | 'undetermined';
+
 type PickImageParams = {
   allowsEditing?: boolean; // 이미지 편집 허용 여부
   quality?: number; // 0~1 사이의 압축 품질
@@ -98,6 +156,10 @@ export type {
   ToastShape,
   ToastPosition,
   ToastType,
+  SafeAreaInsets,
+  Accuracy,
+  Location,
+  PermissionStatus,
   PickImageParams,
   PickImageResult,
   ImageAsset,

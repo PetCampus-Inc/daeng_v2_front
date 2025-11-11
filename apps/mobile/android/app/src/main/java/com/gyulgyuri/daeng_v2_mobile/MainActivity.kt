@@ -1,4 +1,4 @@
-package com.gyulgyuri.daeng_v2_mobile
+package net.knockdog.petcampus.v2
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

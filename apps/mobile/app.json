@@ -15,11 +15,31 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
+      "bundleIdentifier": "net.knockdog.petcampus.v2",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "nmap"
-        ]
+        "LSApplicationQueriesSchemes": ["nmap"],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSAllowsArbitraryLoadsInWebContent": true,
+          "NSExceptionDomains": {
+            "openapi.map.naver.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": false
+            },
+            "oapi.map.naver.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": false
+            },
+            "map.naver.net": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            },
+            "static.naver.net": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": false
+            }
+          }
+        }
       },
       "splash": {
         "image": "./assets/images/splash.png",
@@ -33,20 +53,17 @@
         "resizeMode": "cover",
         "backgroundColor": "#FF6600"
       },
-      "androidStatusBar": {
-        "barStyle": "light-content",
-        "backgroundColor": "transparent"
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FF6600"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.gyulgyuri.daeng_v2_mobile",
-      "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      "package": "net.knockdog.petcampus.v2",
+      "permissions": ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"]
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "transparent"
     },
     "web": {
       "bundler": "metro",
