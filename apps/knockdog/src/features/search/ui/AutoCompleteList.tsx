@@ -3,13 +3,13 @@ import { formatDistance } from '@shared/lib';
 import { FILTER_ICON_MAP } from '../config/icon-map';
 import { isRegionSuggestion } from '../lib/is';
 import { HighlightedText } from './HighlightedText';
-import type { Autocomplete, RegionSuggestion, FilterItemSuggestion } from '@entities/kindergarten';
+import type { Autocomplete, RegionSuggestion, FilterItemSuggestion, Place } from '@entities/kindergarten';
 
 interface AutoCompleteListProps {
   data: Autocomplete;
   query: string;
   onSuggestionClick?: (suggestion: RegionSuggestion | FilterItemSuggestion) => void;
-  onPlaceClick?: (shop: { id: string; title: string; roadAddress: string }) => void;
+  onPlaceClick?: (place: Place) => void;
 }
 
 export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick }: AutoCompleteListProps) {
@@ -47,10 +47,10 @@ export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick 
 
       {data.place.length > 0 && (
         <ul className='flex flex-col'>
-          {data.place.map((shop) => (
-            <li key={shop.id}>
+          {data.place.map((place) => (
+            <li key={place.id}>
               <button
-                onClick={() => onPlaceClick?.({ id: shop.id, title: shop.title, roadAddress: shop.roadAddress })}
+                onClick={() => onPlaceClick?.(place)}
                 className='px-x4 hover:rounded-r2 hover:bg-fill-secondary-50 w-full text-left'
               >
                 <div className='gap-x2 border-primitive-neutral-100 py-x4 flex w-full items-center border-b'>
@@ -58,15 +58,15 @@ export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick 
 
                   <div className='gap-x1 flex min-w-0 shrink-0 grow flex-col overflow-hidden'>
                     <p className='body1-extrabold text-text-primary truncate'>
-                      <HighlightedText text={shop.title} query={query} />
+                      <HighlightedText text={place.title} query={query} />
                     </p>
-                    <span className='label-medium text-text-tertiary truncate'>{shop.roadAddress}</span>
+                    <span className='label-medium text-text-tertiary truncate'>{place.roadAddress}</span>
                   </div>
 
                   <div className='gap-x1 flex min-w-0 shrink flex-col overflow-hidden text-right'>
-                    <span className='label-medium text-text-tertiary truncate'>{shop.ctg}</span>
+                    <span className='label-medium text-text-tertiary truncate'>{place.ctg}</span>
                     <span className='label-medium text-text-tertiary whitespace-nowrap'>
-                      {formatDistance(shop.dist)}
+                      {formatDistance(place.dist)}
                     </span>
                   </div>
                 </div>
