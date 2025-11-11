@@ -8,6 +8,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "19.2.0",
     "@daeng-design/design-token": "workspace:*",
     "@daeng-design/react-checkbox": "workspace:*",
     "@daeng-design/react-progress": "workspace:*",
@@ -30,6 +32,8 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@storybook/nextjs": "9.1.10",
