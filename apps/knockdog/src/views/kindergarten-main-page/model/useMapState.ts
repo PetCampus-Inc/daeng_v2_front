@@ -3,13 +3,13 @@ import { createParser, parseAsInteger, useQueryState } from 'nuqs';
 const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
   parse: (value: string) => {
     if (!value) return null;
-    const [lngRaw, latRaw] = value.split(',');
+    const [latRaw, lngRaw] = value.split(',');
     const lat = Number.parseFloat(latRaw ?? '');
     const lng = Number.parseFloat(lngRaw ?? '');
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
     return { lat, lng };
   },
-  serialize: (value) => `${value.lng},${value.lat}`,
+  serialize: (value) => `${value.lat},${value.lng}`,
   eq: (a, b) => a.lat === b.lat && a.lng === b.lng,
 });
 
