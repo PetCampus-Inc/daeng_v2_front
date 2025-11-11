@@ -26,6 +26,7 @@ export type KindergartenAggregationQueryParams = {
   refPoint?: Coord;
   bounds: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
+  query?: string;
   enabled?: boolean;
 } & Omit<KindergartenAggregationParams, 'refPoint' | 'bounds' | 'filters'>;
 
@@ -58,6 +59,10 @@ export const kindergartenQueryOptions = {
         pages: data.pages.map(createKindergartenListWithMock),
         pageParams: data.pageParams,
       }),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retryOnMount: false,
+      refetchOnWindowFocus: false,
     });
   },
 
@@ -66,21 +71,27 @@ export const kindergartenQueryOptions = {
     bounds,
     zoomLevel,
     filters,
+    query,
     enabled: additionalEnabled = true,
   }: KindergartenAggregationQueryParams) => {
     const baseEnabled =
       isValidCoord(refPoint) && isValidLatLngBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0;
 
     return queryOptions({
-      queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters }),
+      queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters, query }),
       queryFn: () =>
         getKindergartenAggregation({
           refPoint: serializeCoords(refPoint),
           bounds: serializeBounds(bounds),
           zoomLevel,
           filters: serializeFilters(filters),
+          query,
         }),
       enabled: baseEnabled && additionalEnabled,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retryOnMount: false,
+      refetchOnWindowFocus: false,
     });
   },
 
