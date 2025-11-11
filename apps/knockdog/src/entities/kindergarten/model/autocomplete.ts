@@ -27,7 +27,7 @@ export interface FilterItemSuggestion {
   zoom: number;
 }
 
-interface Place {
+export interface Place {
   id: string;
   title: string;
   coord: {
