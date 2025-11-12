@@ -5,7 +5,16 @@ import { MemoEditor, useMemoQuery, useMemoMutation } from '@features/memo';
 import { Header } from '@widgets/Header';
 import { useParams, useRouter } from 'next/navigation';
 import { overlay } from 'overlay-kit';
-import { AlertDialog, AlertDialogContent,AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@knockdog/ui';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 const MAX_LENGTH = 2000;
@@ -49,13 +58,14 @@ export function EditMemoPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>앗, 아직 저장하지 않았어요!</AlertDialogTitle>
               <AlertDialogDescription>
-                지금 나가면 현재까지 쓴 내용이 사라져요.<br />
+                지금 나가면 현재까지 쓴 내용이 사라져요.
+                <br />
                 저장 없이 나갈까요?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back()}>확인</AlertDialogAction>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={() => back()}>확인</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -67,7 +77,7 @@ export function EditMemoPage() {
 
   return (
     <div>
-      <Header>
+      <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
@@ -86,12 +96,7 @@ export function EditMemoPage() {
         </Header.RightSection>
       </Header>
 
-      <MemoEditor
-        readOnly={!isEditing}
-        value={memo}
-        maxLength={MAX_LENGTH}
-        onChange={(e) => setMemo(e.target.value)}
-      />
+      <MemoEditor readOnly={!isEditing} value={memo} maxLength={MAX_LENGTH} onChange={(e) => setMemo(e.target.value)} />
     </div>
   );
 }
