@@ -54,7 +54,7 @@ function KindergartenDetailPage() {
 
   return (
     <>
-      <Header>
+      <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton />
           <Header.HomeButton />

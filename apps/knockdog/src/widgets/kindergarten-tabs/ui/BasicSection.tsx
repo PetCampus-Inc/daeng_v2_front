@@ -32,9 +32,9 @@ function BasicSection() {
   } = kindergartenBasic || {};
 
   return (
-    <div className='mb-12 mt-7 flex flex-col gap-12 px-4'>
+    <div className='mt-7 mb-12 flex flex-col gap-12 px-4'>
       {/* 운영시간 */}
-      { operationTimes && operationTimes.length > 0 && (
+      {operationTimes && operationTimes.length > 0 && (
         <div>
           <div className='mb-3'>
             <span className='body1-bold'>운영시간</span>
@@ -103,7 +103,7 @@ function BasicSection() {
       {/* 웹사이트 SNS */}
       <ExternalLinksCard website={homepageUrl} instagram={instagramUrl} youtube={youtubeUrl} />
       {/* 위치 */}
-      {/* <LocationMap address={roadAddress || ''} coord={coord || { lat: 0, lng: 0 }} /> */}
+      <LocationMap address={roadAddress || ''} coord={coord || { lat: 0, lng: 0 }} />
       {/* 최종 정보 업데이트 */}
       <div className='flex justify-between py-4'>
         <div className='flex flex-col'>
