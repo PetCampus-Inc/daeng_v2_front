@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { RadioGroup, RadioGroupItem, TextField, TextFieldInput, Divider } from '@knockdog/ui';
 import { vaccinationOptions } from '@features/dog-school';
 import { useChecklistQuestionsQuery } from '../api/useChecklistQuery';
@@ -8,17 +7,17 @@ import { AnswerGroup } from '@entities/checklist';
 
 interface ChecklistEditorProps {
   isEditing: boolean;
-  initialAnswers: AnswerGroup[];
+  answers: AnswerGroup[];
+  onAnswersChange: (nextAnswers: AnswerGroup[]) => void;
 }
 
-function ChecklistEditor({ isEditing, initialAnswers }: ChecklistEditorProps) {
-  const [answers, setAnswers] = useState<AnswerGroup[]>(initialAnswers ?? []);
+function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEditorProps) {
+  const safeAnswers = answers ?? [];
   const { data: questions } = useChecklistQuestionsQuery();
-
 
   // answerId와 questionId를 매칭하는 함수
   const findAnswerForQuestion = (questionId: string) => {
-    for (const answerGroup of answers) {
+    for (const answerGroup of safeAnswers) {
       const answer = answerGroup.answers.find((answer) => answer.questionId === questionId);
       if (answer) return answer;
     }
@@ -26,57 +25,53 @@ function ChecklistEditor({ isEditing, initialAnswers }: ChecklistEditorProps) {
   };
 
   const updateAnswer = (questionId: string, value: string) => {
-    setAnswers((prevAnswers) => {
-      // questionId가 속한 섹션 찾기
-      const questionSection = questions?.sections.find((section) =>
-        section.questions.some((q) => q.id === questionId)
-      );
+    if (!isEditing) return;
 
-      if (!questionSection) return prevAnswers;
+    const questionSection = questions?.sections.find((section) =>
+      section.questions.some((question) => question.id === questionId)
+    );
 
-      // 해당 섹션이 이미 있는지 확인
-      const sectionIndex = prevAnswers.findIndex((ag) => ag.sectionId === questionSection.id);
+    if (!questionSection) return;
 
-      if (sectionIndex >= 0) {
-        // 섹션이 있으면 기존 답변 업데이트 또는 새 답변 추가
-        return prevAnswers.map((answerGroup, idx) => {
-          if (idx !== sectionIndex) return answerGroup;
+    const sectionIndex = safeAnswers.findIndex((answerGroup) => answerGroup.sectionId === questionSection.id);
 
-          const answerIndex = answerGroup.answers.findIndex((a) => a.questionId === questionId);
-          const question = questionSection.questions.find((q) => q.id === questionId);
+    if (sectionIndex >= 0) {
+      const nextAnswers = safeAnswers.map((answerGroup, idx) => {
+        if (idx !== sectionIndex) return answerGroup;
 
-          if (answerIndex >= 0) {
-            // 기존 답변 업데이트
-            return {
-              ...answerGroup,
-              answers: answerGroup.answers.map((answer) =>
-                answer.questionId === questionId ? { ...answer, value } : answer
-              ),
-            };
-          } else {
-            // 새 답변 추가
-            return {
-              ...answerGroup,
-              answers: [
-                ...answerGroup.answers,
-                { questionId, question: question?.label || '', value },
-              ],
-            };
-          }
-        });
-      } else {
-        // 섹션이 없으면 새로 생성
-        const question = questionSection.questions.find((q) => q.id === questionId);
-        return [
-          ...prevAnswers,
-          {
-            sectionId: questionSection.id,
-            title: questionSection.title,
-            answers: [{ questionId, question: question?.label || '', value }],
-          },
-        ];
-      }
-    });
+        const question = questionSection.questions.find((item) => item.id === questionId);
+        const answerIndex = answerGroup.answers.findIndex((item) => item.questionId === questionId);
+
+        if (answerIndex >= 0) {
+          return {
+            ...answerGroup,
+            answers: answerGroup.answers.map((answer) =>
+              answer.questionId === questionId ? { ...answer, value } : answer
+            ),
+          };
+        }
+
+        return {
+          ...answerGroup,
+          answers: [...answerGroup.answers, { questionId, question: question?.label ?? '', value }],
+        };
+      });
+
+      onAnswersChange(nextAnswers);
+      return;
+    }
+
+    const question = questionSection.questions.find((item) => item.id === questionId);
+    const nextAnswers: AnswerGroup[] = [
+      ...safeAnswers,
+      {
+        sectionId: questionSection.id,
+        title: questionSection.title,
+        answers: [{ questionId, question: question?.label ?? '', value }],
+      },
+    ];
+
+    onAnswersChange(nextAnswers);
   };
 
   return (
