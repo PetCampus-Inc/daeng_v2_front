@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
 import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
 import { kindergartenQueryOptions } from '../api/kindergartenQuery';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -78,8 +79,8 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
-      <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal h-full'>
+      <BottomSheet.Overlay />
+      <BottomSheet.Body className='h-full'>
         <BottomSheet.Handle />
         <BottomSheet.Header className='border-line-100 border-b'>
           <BottomSheet.Title>필터</BottomSheet.Title>

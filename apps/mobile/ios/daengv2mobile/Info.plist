@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>daengv2mobile</string>
-          <string>com.gyulgyuri.daeng-v2-mobile</string>
+          <string>net.knockdog.petcampus.v2</string>
         </array>
       </dict>
     </array>
@@ -46,8 +46,39 @@
     <dict>
       <key>NSAllowsArbitraryLoads</key>
       <false/>
-      <key>NSAllowsLocalNetworking</key>
+      <key>NSAllowsArbitraryLoadsInWebContent</key>
       <true/>
+      <key>NSExceptionDomains</key>
+      <dict>
+        <key>openapi.map.naver.com</key>
+        <dict>
+          <key>NSExceptionAllowsInsecureHTTPLoads</key>
+          <true/>
+          <key>NSIncludesSubdomains</key>
+          <false/>
+        </dict>
+        <key>oapi.map.naver.com</key>
+        <dict>
+          <key>NSExceptionAllowsInsecureHTTPLoads</key>
+          <true/>
+          <key>NSIncludesSubdomains</key>
+          <false/>
+        </dict>
+        <key>map.naver.net</key>
+        <dict>
+          <key>NSExceptionAllowsInsecureHTTPLoads</key>
+          <true/>
+          <key>NSIncludesSubdomains</key>
+          <true/>
+        </dict>
+        <key>static.naver.net</key>
+        <dict>
+          <key>NSExceptionAllowsInsecureHTTPLoads</key>
+          <true/>
+          <key>NSIncludesSubdomains</key>
+          <false/>
+        </dict>
+      </dict>
     </dict>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>$(PRODUCT_NAME) 앱을 사용하기 위해 위치 권한을 허용해주세요.</string>

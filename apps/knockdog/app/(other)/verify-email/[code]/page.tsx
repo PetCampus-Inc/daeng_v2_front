@@ -46,7 +46,7 @@ export default function VerifyEmail() {
       </div>
 
       {/* Footer */}
-      <div className='bg-primitive-neutral-800 fixed bottom-0 flex w-screen justify-between gap-4 p-10'>
+      <div className='bg-primitive-neutral-800 fixed bottom-0 flex w-full justify-between gap-4 p-10'>
         <div>
           <p className='h3-semibold text-white'>(주) 펫캠퍼스</p>
 

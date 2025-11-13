@@ -1,5 +1,11 @@
 'use client';
 
+import { SafeArea } from '@shared/ui/safe-area';
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <div className='flex h-dvh flex-col pt-[env(safe-area-inset-top)]'>{children}</div>;
+  return (
+    <SafeArea edges={['top']} className='flex h-dvh flex-col'>
+      {children}
+    </SafeArea>
+  );
 }

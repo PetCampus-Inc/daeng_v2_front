@@ -90,7 +90,7 @@ function ReportingKindergartenUpdate() {
 
       <div>
         <div className='h-[calc(100vh-77px)]'>
-          <div className='label-medium text-text-secondary bg-neutral-50 px-4 pb-3 pt-[10px]'>
+          <div className='label-medium text-text-secondary bg-neutral-50 px-4 pt-[10px] pb-3'>
             최대 <span className='text-text-accent'>{MAX_UPLOAD_COUNT}</span>장까지 등록 가능
           </div>
 
@@ -110,7 +110,7 @@ function ReportingKindergartenUpdate() {
         </div>
       </div>
 
-      <div className='fixed bottom-0 left-0 right-0 z-10 flex w-screen items-center gap-1 bg-white p-4'>
+      <div className='fixed right-0 bottom-0 left-0 z-10 flex w-full items-center gap-1 bg-white p-4'>
         <ActionButton disabled={!isFormValid || isPending} onClick={() => reportingMutate(reportingParams)}>
           정보 수정 제보하기
         </ActionButton>

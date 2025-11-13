@@ -1,1 +1,1 @@
-export const API_URL = `https://knockdog-v2.vercel.app`;
+export const API_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL;

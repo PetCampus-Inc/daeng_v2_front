@@ -67,13 +67,13 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   }, [query, addRecentSearchKeyword]);
 
   return (
-    <div className='bg-fill-secondary-0 flex h-full flex-col'>
+    <div className='flex h-full flex-col'>
       {/* 검색창 헤더 */}
-      <div className='py-x2 pr-x4 pl-x2 gap-x-x2 pt-[calc(env(safe-area-inset-top) + 8px)] flex shrink-0'>
+      <div className='py-x2 pr-x4 pl-x2 gap-x-x2 flex shrink-0'>
         <button onClick={handleBack} className='px-x2 shrink-0'>
           <Icon icon='ChevronLeft' className='size-x6' />
         </button>
-        <div className='relative flex-1'>
+        <div className='relative min-w-0 flex-1'>
           <TextField
             prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
             className='bg-fill-secondary-50 h-x12 border-0'
@@ -97,7 +97,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
                 type='button'
                 onClick={() => setQuery('')}
                 aria-label='검색 결과 초기화'
-                className='absolute right-4 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center'
+                className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
               >
                 <Icon icon='DeleteInput' className='size-x5 text-primitive-neutral-700' />
               </button>

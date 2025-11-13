@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ActionButton, Icon, BottomSheet } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 export default function Page() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +25,7 @@ export default function Page() {
           </p>
         </div>
 
-        <div className='fixed bottom-0 left-0 right-0 bg-white'>
+        <div className='fixed right-0 bottom-0 left-0 bg-white'>
           <div className='mb-4 flex items-center justify-center bg-white'>
             <button
               onClick={() => setIsOpen(true)}

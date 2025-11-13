@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  BottomSheet,
   IconButton,
   AlertDialog,
   AlertDialogContent,
@@ -11,6 +10,7 @@ import {
   AlertDialogAction,
 } from '@knockdog/ui';
 import { FullImageSlider } from '@shared/ui/full-image-slider';
+import { BottomSheet } from '../bottom-sheet';
 
 interface PriceFullImageSheetProps {
   isOpen: boolean;

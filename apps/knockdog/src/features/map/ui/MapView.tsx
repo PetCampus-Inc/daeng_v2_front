@@ -79,7 +79,7 @@ export function MapView(props: MapViewProps) {
             props.onClick(coord);
           }
         }}
-        className='relative h-full w-full'
+        className='relative z-0 h-full w-full'
         minZoom={7}
         maxZoom={19}
       >
