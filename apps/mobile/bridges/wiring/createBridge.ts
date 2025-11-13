@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import type { WebView as RNWebView } from 'react-native-webview';
 import { wireWebView, serializeForJS } from '@knockdog/bridge-native';
 import { makeRouter } from '../handlers/router';
+import { handleSystemEvent } from '../handlers/open-external-link';
 import { navBridgeHub } from '../model/navBridgeHub';
 import { BRIDGE_VERSION, type BridgeEventMap } from '@knockdog/bridge-core';
 
@@ -25,7 +26,7 @@ function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: un
     }
   }
 }
-
+// @TODO 가독성 및 유지보수성 리팩토링 필요
 /**
  * WebView에 브릿지를 연결하는 함수
  * @param webRef WebView 참조
@@ -64,6 +65,10 @@ function createBridgeForWebView(webRef: RefObject<RNWebView>) {
         } finally {
           navBridgeHub.resolve(txId);
         }
+        return;
+      }
+
+      if (handleSystemEvent(event, payload)) {
         return;
       }
 

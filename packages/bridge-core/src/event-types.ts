@@ -28,6 +28,7 @@ interface BridgeEventMap {
     assets?: ImageAsset[];
   };
   'media.pickImage.cancel': { requestId: string; reason?: string };
+  'system.openExternalLink': { url: string };
 }
 
 export type { BridgeEventMap };
