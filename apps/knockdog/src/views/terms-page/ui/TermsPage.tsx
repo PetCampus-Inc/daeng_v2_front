@@ -34,10 +34,14 @@ function TermsPage() {
         <div className='py-2'>
           {TERMS_URLS.map((term, index) => (
             <div key={term.title}>
-              <div className='flex justify-between py-4' onClick={() => openExternalLink(term.url)}>
+              <button
+                type='button'
+                className='flex w-full items-center justify-between rounded-lg px-2 py-4 text-left transition-colors hover:bg-gray-50 active:bg-gray-100'
+                onClick={() => openExternalLink(term.url)}
+              >
                 <span className='h3-semibold'>{term.title}</span>
                 <Icon icon='ChevronRight' />
-              </div>
+              </button>
               {index !== TERMS_URLS.length - 1 && <Divider className='my-2' />}
             </div>
           ))}
