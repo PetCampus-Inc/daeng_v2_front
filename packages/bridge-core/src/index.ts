@@ -16,6 +16,9 @@ export type {
   Accuracy,
   Location,
   PermissionStatus,
+  PickImageParams,
+  PickImageResult,
+  ImageAsset,
 } from './methods';
 export type { RPCSchema, RPCMethod, ParamsOf, ResultOf } from './rpc-schema';
 export type { BridgeMessage, BridgeRequest, BridgeOk, BridgeError, BridgeEvent } from './types';

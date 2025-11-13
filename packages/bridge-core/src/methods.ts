@@ -124,6 +124,26 @@ interface LocationCoords {
 
 type PermissionStatus = 'allowed' | 'denied' | 'undetermined';
 
+type PickImageParams = {
+  allowsEditing?: boolean; // 이미지 편집 허용 여부
+  quality?: number; // 0~1 사이의 압축 품질
+  aspect?: [number, number]; // 종횡비 [가로, 세로]
+  mediaTypes?: 'images' | 'videos' | 'all'; // 미디어 타입
+  allowsMultipleSelection?: boolean; // 다중 선택 여부 (기본: false)
+  orderedSelection?: boolean; // 선택 순서 유지 여부 (iOS만 지원, 다중 선택 시)
+  selectionLimit?: number; // 선택 가능한 최대 개수 (0 = 무제한, 다중 선택 시)
+};
+
+type ImageAsset = {
+  preSignedUrl: string; // 업로드된 이미지 pre-signed URL
+  key: string; // 업로드된 이미지 키
+};
+
+type PickImageResult = {
+  cancelled: boolean; // 취소 여부
+  assets?: ImageAsset[]; // 업로드된 이미지 정보
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -140,4 +160,7 @@ export type {
   Accuracy,
   Location,
   PermissionStatus,
+  PickImageParams,
+  PickImageResult,
+  ImageAsset,
 };

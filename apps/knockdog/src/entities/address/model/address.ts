@@ -1,4 +1,4 @@
-export interface AddressSearchResult {
+interface AddressSearchResult {
   results: {
     common: {
       totalCount: string;
@@ -41,3 +41,14 @@ export interface AddressSearchResult {
     }>;
   };
 }
+
+interface AddressData {
+  roadAddr: string;
+  jibunAddr: string;
+  siNm: string;
+  sggNm: string;
+  emdNm: string;
+  zipNo: string;
+}
+
+export type { AddressSearchResult, AddressData };

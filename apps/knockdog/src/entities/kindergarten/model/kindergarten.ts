@@ -29,6 +29,7 @@ export interface Kindergarten {
   operationStatus: keyof typeof OPEN_STATUS_MAP;
   price: number;
   dist: number;
+  coords: Coord;
   roadAddress: string;
   reviewCount: number;
   serviceTags: (keyof typeof ALL_SERVICE_MAP)[];

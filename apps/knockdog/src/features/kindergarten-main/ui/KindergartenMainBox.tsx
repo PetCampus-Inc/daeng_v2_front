@@ -2,7 +2,7 @@ import React from 'react';
 import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { ServiceBadgeList } from '@entities/kindergarten';
-import { DeparturePointSheet } from '@entities/kindergarten';
+import { DeparturePointSheet } from '@features/kindergarten';
 import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
 
 interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}
@@ -19,12 +19,15 @@ const KindergartenMainBox = ({
   reviewCount,
   pickupType,
   memoDate,
+  coords,
 }: KindergartenMainBoxProps) => {
   const openDeparturePointSheet = () =>
-    overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
+    overlay.open(({ isOpen, close }) => (
+      <DeparturePointSheet isOpen={isOpen} close={close} to={{ lat: coords.lat, lng: coords.lng, name: title }} />
+    ));
 
   return (
-    <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pb-12 pt-[20px]'>
+    <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px] pb-12'>
       <div className='flex justify-between'>
         <div className='flex flex-col'>
           <span className='h2-extrabold'>{title}</span>

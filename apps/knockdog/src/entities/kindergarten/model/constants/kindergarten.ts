@@ -78,7 +78,7 @@ const SERVICE_ICON_MAP = {
 const OPEN_STATUS_MAP = {
   OPEN: '영업중',
   CLOSED: '영업종료',
-  DAY_OFF: '휴무',
+  HOLIDAY: '오늘 휴무',
 } as const;
 
 const CTAG_MAP = {

@@ -1,13 +1,14 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { checkOptions } from './checkOptions';
+import type { WebImageAsset } from '@shared/lib/media';
 
 type CheckedKey = (typeof checkOptions)[number]['key'];
 
 interface FilesByType {
-  closed: File[];
-  price: File[];
-  phone: File[];
-  time: File[];
+  closed: WebImageAsset[];
+  price: WebImageAsset[];
+  phone: WebImageAsset[];
+  time: WebImageAsset[];
 }
 
 interface UseReportingFormReturn {
@@ -18,7 +19,7 @@ interface UseReportingFormReturn {
   newAddress: string | null | undefined;
   setNewAddress: (address: string | null | undefined) => void;
   files: FilesByType;
-  setFiles: (key: keyof FilesByType, files: File[]) => void;
+  setFiles: (key: keyof FilesByType, files: WebImageAsset[]) => void;
   reportingParams: Record<string, any>;
   isFormValid: boolean;
 }
@@ -35,7 +36,7 @@ export function useReportingForm(): UseReportingFormReturn {
 
   const checkedList = useMemo(() => Array.from(checkedSet), [checkedSet]);
 
-  const isChecked = useCallback((key: CheckedKey) => checkedSet.has(key), [checkedSet]);
+  const isChecked = (key: CheckedKey) => checkedSet.has(key);
 
   const toggleCheck = useCallback((key: CheckedKey, checked: boolean) => {
     setCheckedSet((prev) => {
@@ -45,7 +46,7 @@ export function useReportingForm(): UseReportingFormReturn {
     });
   }, []);
 
-  const setFiles = useCallback((key: keyof FilesByType, newFiles: File[]) => {
+  const setFiles = useCallback((key: keyof FilesByType, newFiles: WebImageAsset[]) => {
     setFilesState((prev) => ({ ...prev, [key]: newFiles }));
   }, []);
 
