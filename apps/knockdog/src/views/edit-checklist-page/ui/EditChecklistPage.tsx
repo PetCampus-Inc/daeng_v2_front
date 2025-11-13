@@ -31,6 +31,22 @@ function EditChecklistPage() {
 
   const { back } = useStackNavigation();
 
+  const originalSections = answers?.sections ?? [];
+  const hasUnsavedChanges =
+    isEditing &&
+    (draftAnswers.length !== originalSections.length ||
+      draftAnswers.some((section, index) => {
+        const originalSection = originalSections[index];
+        if (!originalSection) return true;
+        if (section.answers.length !== originalSection.answers.length) return true;
+        return section.answers.some((answer, answerIndex) => {
+          const originalAnswer = originalSection.answers[answerIndex];
+          if (!originalAnswer) return true;
+          if (answer.value !== originalAnswer.value) return true;
+          return false;
+        });
+      }));
+
   useEffect(() => {
     if (!isEditing) {
       setDraftAnswers(answers?.sections ?? []);
@@ -50,7 +66,7 @@ function EditChecklistPage() {
   };
 
   const handleBack = () => {
-    if (isEditing) {
+    if (hasUnsavedChanges) {
       overlay.open(({ isOpen, close }) => (
         <AlertDialog open={isOpen} onOpenChange={close}>
           <AlertDialogContent>

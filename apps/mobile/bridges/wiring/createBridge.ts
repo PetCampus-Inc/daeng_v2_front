@@ -50,10 +50,12 @@ function createBridgeForWebView(webRef: RefObject<RNWebView>) {
         }
 
         const targetRef = navBridgeHub.get(txId);
+
         if (!targetRef?.current) {
           if (__DEV__) {
             console.warn('[createBridgeForWebView] no target WebView for txId:', txId);
           }
+          navBridgeHub.resolve(txId);
           return;
         }
 

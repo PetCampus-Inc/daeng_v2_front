@@ -6,7 +6,13 @@ interface PreviewImageResponse {
 }
 
 async function getPreviewImage(key: string): Promise<ApiResponse<PreviewImageResponse, string>> {
-  return api.get(`s3/image/pre-signed-url?key=${key}`).json<ApiResponse<PreviewImageResponse, string>>();
+  return api
+    .get(`s3/image/pre-signed-url`, {
+      searchParams: {
+        key,
+      },
+    })
+    .json<ApiResponse<PreviewImageResponse, string>>();
 }
 
 export { getPreviewImage, type PreviewImageResponse };

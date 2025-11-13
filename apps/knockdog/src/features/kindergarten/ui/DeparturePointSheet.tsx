@@ -94,11 +94,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                   <span className='body2-regular text-text-secondary'>{label}</span>
                 </div>
               </div>
-              <RadioGroupItem
-                disabled={locationLoading || isLoading || !!error || !hasValidAddress}
-                id='1'
-                value='1'
-              ></RadioGroupItem>
+              <RadioGroupItem disabled={isLoading || locationLoading || !coords} id='1' value='1'></RadioGroupItem>
             </label>
             {/*  저장된 주소 확인  */}
             <label

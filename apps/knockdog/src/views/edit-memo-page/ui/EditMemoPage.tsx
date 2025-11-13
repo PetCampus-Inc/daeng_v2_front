@@ -50,8 +50,11 @@ export function EditMemoPage() {
     updateMemo({ targetId: id, content: memo });
   };
 
+  const originalContent = memoData?.content ?? '';
+
   const handleBack = () => {
-    if (memo && isEditing) {
+    const hasUnsavedChanges = isEditing && memo !== originalContent;
+    if (hasUnsavedChanges) {
       overlay.open(({ isOpen, close }) => (
         <AlertDialog open={isOpen} onOpenChange={close}>
           <AlertDialogContent>

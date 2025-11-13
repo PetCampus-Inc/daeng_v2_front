@@ -25,7 +25,7 @@ interface BridgeEventMap {
   'media.pickImage.result': {
     requestId: string;
     cancelled: boolean;
-    assets: ImageAsset[];
+    assets?: ImageAsset[];
   };
   'media.pickImage.cancel': { requestId: string; reason?: string };
 }
