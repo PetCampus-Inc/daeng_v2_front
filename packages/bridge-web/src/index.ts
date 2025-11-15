@@ -91,8 +91,8 @@ class WebBridge {
     );
   }
 
-  request<K extends RPCMethod>(method: K, params: ParamsOf<K>): Promise<ResultOf<K>>;
-  request<T = unknown>(method: string, params?: unknown): Promise<T>;
+  request<K extends RPCMethod>(method: K, params: ParamsOf<K>, options?: { timeoutMs?: number }): Promise<ResultOf<K>>;
+  request<T = unknown>(method: string, params?: unknown, options?: { timeoutMs?: number }): Promise<T>;
 
   async request(method: string, params?: unknown, options?: { timeoutMs?: number }) {
     const id = makeId();
