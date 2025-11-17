@@ -1,4 +1,4 @@
-import { BottomSheet } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCallPhone, useClipboardCopy } from '@shared/lib/device';
 
 interface PhoneCallSheetProps {

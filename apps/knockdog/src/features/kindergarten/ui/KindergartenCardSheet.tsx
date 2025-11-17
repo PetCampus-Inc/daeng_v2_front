@@ -2,13 +2,15 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { useState } from 'react';
 import { overlay } from 'overlay-kit';
-import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
-import { PhoneCallSheet } from './PhoneCallSheet';
+import { PhoneCallSheet } from '@features/kindergarten';
 import { DeparturePointSheet } from './DeparturePointSheet';
 import type { DogSchoolWithMeta } from '../model/mappers';
-import { useState } from 'react';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenCardSheetProps extends DogSchoolWithMeta {
   isOpen: boolean;
@@ -19,12 +21,31 @@ const snapPoints = ['328px', 1];
 
 export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenCardSheetProps) {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0] ?? null);
+  const { push } = useStackNavigation();
 
-  const openPhoneCallActionSheet = () =>
-    overlay.open(({ isOpen, close }) => <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={'010-0000-0000'} />);
+  const openPhoneCallActionSheet = (event?: React.MouseEvent) => {
+    event?.stopPropagation();
+    overlay.open(({ isOpen, close }) => (
+      <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={props.phoneNumber} />
+    ));
+  };
 
-  const openDeparturePointSheet = () =>
-    overlay.open(({ isOpen, close }) => <DeparturePointSheet isOpen={isOpen} close={close} />);
+  const openDeparturePointSheet = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    overlay.open(({ isOpen, close }) => (
+      <DeparturePointSheet
+        isOpen={isOpen}
+        close={close}
+        to={{ lat: props.coord.lat, lng: props.coord.lng, name: props.title }}
+      />
+    ));
+  };
+
+  const goToKindergartenDetail = () => {
+    push({ pathname: `/kindergarten/${props.id}` });
+    close();
+  };
+
   return (
     <BottomSheet.Root
       open={isOpen}
@@ -39,7 +60,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
 
         {/* 컨텐츠 영역 */}
         <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
-          <div className='gap-x2 flex'>
+          <div onClick={goToKindergartenDetail} className='gap-x2 flex'>
             {/* 이미지 */}
             <img src={props.images?.[0]} className='radius-r2 size-[90px] object-cover' />
 

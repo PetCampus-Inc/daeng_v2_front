@@ -34,5 +34,5 @@ export const PickupType = {
 export const OperationStatus = {
   OPEN: '영업중',
   CLOSED: '영업종료',
-  DAY_OFF: '휴무',
+  HOLIDAY: '오늘 휴무',
 } as const;

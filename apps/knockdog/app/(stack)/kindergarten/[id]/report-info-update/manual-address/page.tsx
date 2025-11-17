@@ -1,18 +1,9 @@
 'use client';
 
 import { AddressSearchBox } from '@widgets/address-search-box';
-import type { AddressSearchResult } from '@entities/address';
+import type { AddressSearchResult, AddressData } from '@entities/address';
 import { Header } from '@widgets/Header';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
-
-type AddressData = {
-  roadAddr: string;
-  jibunAddr: string;
-  siNm: string;
-  sggNm: string;
-  emdNm: string;
-  zipNo: string;
-};
 
 export default function Page() {
   const { send } = useNavigationResult<AddressData>();

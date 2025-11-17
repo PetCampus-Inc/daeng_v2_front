@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BridgeProvider>
               <OverlayProvider>
                 <HeaderProvider>
-                  <div className='flex h-dvh flex-col'>
+                  <div className='relative mx-auto flex h-dvh w-screen max-w-screen-sm flex-col shadow-lg'>
                     {/* @TODO HeaderWrapper 추후 삭제 필요 */}
                     <HeaderWrapper />
                     {children}

@@ -22,8 +22,6 @@ export function useSwiperNavigation(api: UseSwiperReturn, options: UseSwiperNavi
     return getSwiperNavigation(children);
   }, [children]);
 
-  console.log('navigationComponent', navigationComponent);
-
   const getPrevButtonProps = useCallback(
     (): React.ButtonHTMLAttributes<HTMLButtonElement> => ({
       type: 'button',

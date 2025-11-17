@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BottomSheet } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface YearSheetProps {
   isOpen: boolean;
