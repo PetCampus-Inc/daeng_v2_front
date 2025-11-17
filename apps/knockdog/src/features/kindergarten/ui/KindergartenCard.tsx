@@ -3,6 +3,7 @@ import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
 import type { DogSchoolWithMeta } from '../model/mappers';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenCardProps extends DogSchoolWithMeta {
   onBookmarkClick?: (id: string) => void;
@@ -25,17 +26,29 @@ export function KindergartenCard({
   isBookmarked = false,
   onBookmarkClick,
 }: KindergartenCardProps) {
+  const { push } = useStackNavigation();
+
+  const handleClick = () => {
+    push({ pathname: `/kindergarten/${id}` });
+  };
+
   return (
-    <div className='gap-x4 px-x4 py-x6 border-line-100 flex w-full flex-col items-center border-b-8'>
+    <div
+      onClick={handleClick}
+      className='gap-x4 px-x4 py-x6 border-line-100 flex w-full flex-col items-center border-b-8'
+    >
       {/* 이미지 컨테이너 */}
       <div className='relative aspect-[16/9] w-full overflow-hidden'>
         <BannerImageSlider id={id} name={title} slides={images} />
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
-          className='bg-bg-0 absolute right-0 top-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
+          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
           style={{ clipPath: `url(#card-btn-${id})` }}
-          onClick={() => onBookmarkClick?.(id)}
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            event.stopPropagation();
+            onBookmarkClick?.(id);
+          }}
         >
           <Icon
             icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
