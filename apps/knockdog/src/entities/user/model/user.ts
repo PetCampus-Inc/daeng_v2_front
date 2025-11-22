@@ -16,10 +16,10 @@ type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS];
 interface UserAddress {
   id: string;
   type: UserAddressType;
-  alias: string;
+  alias?: string;
   roadAddress: string;
-  jibunAddress: string;
-  detailAddress: string;
+  address: string;
+  detail?: string;
   lat: number;
   lng: number;
 }
