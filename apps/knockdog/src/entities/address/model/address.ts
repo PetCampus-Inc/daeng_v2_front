@@ -1,4 +1,26 @@
-export interface AddressSearchResult {
+/** 주소 */
+interface Address {
+  /** 필지 고유 번호 */
+  pnu: string;
+  /** 지번 주소 */
+  address: string;
+  /** 도로명 주소 */
+  roadAddress: string;
+  /** 상세 주소 */
+  detail?: string;
+  /** 위도 */
+  lat: number;
+  /** 경도 */
+  lng: number;
+}
+
+/** 위도, 경도 좌표 */
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+interface AddressSearchResult {
   results: {
     common: {
       totalCount: string;
@@ -41,3 +63,5 @@ export interface AddressSearchResult {
     }>;
   };
 }
+
+export type { Address, LatLng, AddressSearchResult };
