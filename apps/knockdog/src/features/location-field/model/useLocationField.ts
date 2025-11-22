@@ -15,7 +15,7 @@ const useLocationField = ({ type, onChange }: UseLocationFieldOptions) => {
   const navigateToAddressForm = async (params?: Record<string, unknown>) => {
     const result = await pushForResult<Omit<UserAddress, 'id'>>(
       {
-        pathname: '/register/location/add',
+        pathname: '/register/location-add',
         query: { type },
         params,
       },
@@ -27,7 +27,10 @@ const useLocationField = ({ type, onChange }: UseLocationFieldOptions) => {
   };
 
   /** 추가하기 버튼 */
-  const add = () => navigateToAddressForm();
+  const add = () => {
+    if (address) return;
+    navigateToAddressForm();
+  };
 
   /** 수정 버튼 */
   const modify = async () => {
