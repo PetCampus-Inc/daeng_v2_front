@@ -11,6 +11,10 @@ const METHODS = {
   toastShow: 'toast.show',
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
+
+  kakaoLogin: 'auth.kakaoLogin',
+  googleLogin: 'auth.googleLogin',
+  appleLogin: 'auth.appleLogin',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];
@@ -66,6 +70,13 @@ type ToastShowParams = {
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};
 
+type SocialLoginResult = {
+  idToken: string;
+  email: string;
+  name?: string;
+  picture?: string;
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -78,4 +89,5 @@ export type {
   ToastShape,
   ToastPosition,
   ToastType,
+  SocialLoginResult,
 };
