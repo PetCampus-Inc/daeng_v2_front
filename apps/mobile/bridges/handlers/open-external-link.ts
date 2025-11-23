@@ -1,7 +1,7 @@
 import * as Linking from 'expo-linking';
 import { METHODS } from '@knockdog/bridge-core';
 
-function handleSystemEvent(event: string, payload: unknown): boolean {
+function handleOpenExternalLink(event: string, payload: unknown): boolean {
   if (event !== METHODS.openExternalLink) return false;
 
   const { url } = (payload ?? {}) as { url?: string };
@@ -20,4 +20,4 @@ function handleSystemEvent(event: string, payload: unknown): boolean {
   return true;
 }
 
-export { handleSystemEvent };
+export { handleOpenExternalLink };
