@@ -1,4 +1,5 @@
-import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR, UserAddress, UserAddressType } from '@entities/user';
+import { USER_ADDRESS_TYPE_KR, UserAddress, UserAddressType } from '@entities/user';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useState } from 'react';
 
@@ -15,7 +16,7 @@ const useLocationField = ({ type, onChange }: UseLocationFieldOptions) => {
   const navigateToAddressForm = async (params?: Record<string, unknown>) => {
     const result = await pushForResult<Omit<UserAddress, 'id'>>(
       {
-        pathname: '/register/location-add',
+        pathname: route.register.location.add.root,
         query: { type },
         params,
       },
