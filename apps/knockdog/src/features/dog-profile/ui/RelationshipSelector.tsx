@@ -1,32 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BottomSheet, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-
-export type Relationship = 'MOTHER' | 'FATHER' | 'FAMILY' | 'GUARDIAN' | 'ETC';
-
-const RELATION_OPTIONS: { label: string; value: Relationship }[] = [
-  { label: '엄마', value: 'MOTHER' },
-  { label: '아빠', value: 'FATHER' },
-  { label: '가족', value: 'FAMILY' },
-  { label: '보호자', value: 'GUARDIAN' },
-  { label: '기타', value: 'ETC' },
-];
+import { RELATIONSHIP, Relationship } from '@entities/pet';
 
 interface RelationshipSelectorProps {
   className?: string;
   value?: Relationship | null;
+  autoFocus?: boolean;
   onChange?: (value: Relationship) => void;
 }
 
-function RelationshipSelector({ className, value, onChange }: RelationshipSelectorProps) {
+function RelationshipSelector({ className, value, autoFocus, onChange }: RelationshipSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const options: { label: string; value: Relationship }[] = useMemo(
+    () => [
+      { label: '엄마', value: RELATIONSHIP.MOTHER },
+      { label: '아빠', value: RELATIONSHIP.FATHER },
+      { label: '가족', value: RELATIONSHIP.FAMILY },
+      { label: '보호자', value: RELATIONSHIP.GUARDIAN },
+      { label: '기타', value: RELATIONSHIP.ETC },
+    ],
+    []
+  );
 
   const handleChange = (value: Relationship) => () => {
     onChange?.(value);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (autoFocus) setIsOpen(true);
+  }, [autoFocus]);
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={setIsOpen}>
@@ -41,7 +48,7 @@ function RelationshipSelector({ className, value, onChange }: RelationshipSelect
             value && 'text-text-primary'
           )}
         >
-          {value ? RELATION_OPTIONS.find((option) => option.value === value)?.label : '관계 선택'}
+          {value ? options.find((option) => option.value === value)?.label : '관계 선택'}
           <Icon icon='ChevronBottom' className='h-5 w-5' />
         </button>
       </BottomSheet.Trigger>
@@ -53,7 +60,7 @@ function RelationshipSelector({ className, value, onChange }: RelationshipSelect
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
         <div className='px-6'>
-          {RELATION_OPTIONS.map((option) => (
+          {options.map((option) => (
             <div
               key={option.value}
               className={cn(
