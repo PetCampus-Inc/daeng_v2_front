@@ -16,3 +16,5 @@ export * from './toggle-button';
 export * from './radio-group';
 export * from './checkbox';
 export * from './toast';
+export * from './field';
+export * from './slot';
