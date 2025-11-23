@@ -2,6 +2,7 @@ import { USER_STATUS, USER_ADDRESS_TYPE } from './constant/user';
 
 /** 유저 */
 interface User {
+  id: string;
   status: UserStatus;
   nickname: string;
   profileImageUrl: string;
@@ -19,7 +20,6 @@ interface UserAddress {
   alias?: string;
   roadAddress: string;
   address: string;
-  detail?: string;
   lat: number;
   lng: number;
 }
