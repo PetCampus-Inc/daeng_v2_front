@@ -6,6 +6,7 @@ import { registerRouteMapHandlers } from './register-route-map';
 import { registerToastHandlers } from './register-toast';
 
 import { registerImagePickerHandlers } from './register-image-picker';
+import { registerAuthHandlers } from './register-auth';
 import type { RefObject } from 'react';
 import type { WebView } from 'react-native-webview';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
@@ -27,4 +28,5 @@ export function registerAllHandlers(
   router.setImagePickerHandlers = (webRef, sendEvent) => {
     router.imagePickerHandlers = registerImagePickerHandlers({ sendEvent });
   };
+  registerAuthHandlers(router);
 }

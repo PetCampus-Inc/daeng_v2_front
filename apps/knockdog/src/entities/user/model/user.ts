@@ -2,6 +2,7 @@ import { USER_STATUS, USER_ADDRESS_TYPE } from './constant/user';
 
 /** 유저 */
 interface User {
+  id: string;
   status: UserStatus;
   nickname: string;
   profileImageUrl: string;
@@ -16,10 +17,9 @@ type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS];
 interface UserAddress {
   id: string;
   type: UserAddressType;
-  alias: string;
+  alias?: string;
   roadAddress: string;
-  jibunAddress: string;
-  detailAddress: string;
+  address: string;
   lat: number;
   lng: number;
 }
