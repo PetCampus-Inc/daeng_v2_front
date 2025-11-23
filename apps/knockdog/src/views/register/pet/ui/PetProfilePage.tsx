@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { Icon, TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 
 function PetProfilePage() {
   const { push } = useStackNavigation();
   const [petName, setPetName] = useState('');
 
-  const handleNext = () => push({ pathname: '/register/pet/relationship', query: { petName } });
+  const handleNext = () => push({ pathname: route.register.pet.relationship.root, query: { petName } });
 
   return (
     <div className='flex h-full flex-col'>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { ActionButton, Icon, BottomSheet } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 
 function MarketingConsentPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,12 +14,12 @@ function MarketingConsentPage() {
   const handleOpenBottomSheet = () => setIsOpen(true);
 
   /** [아니오] 버튼 클릭 */
-  const handleSkip = () => reset('/');
+  const handleSkip = () => reset(route.root);
 
   /** [예] 버튼 클릭 */
   const handleAgree = () => {
     // TODO: 수신 동의 로직 추가
-    reset('/');
+    reset(route.root);
   };
 
   return (

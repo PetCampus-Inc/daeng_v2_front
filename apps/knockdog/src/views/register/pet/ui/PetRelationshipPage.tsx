@@ -1,7 +1,9 @@
 'use client';
 
-import { Relationship, RelationshipSelector } from '@features/dog-profile';
+import { Relationship, usePetRegisterMutation } from '@entities/pet';
+import { RelationshipSelector } from '@features/dog-profile';
 import { TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -13,9 +15,18 @@ function PetRelationshipPage() {
   const petName = searchParams.get('petName') as string;
 
   const [relation, setRelation] = useState<Relationship | null>(null);
+  const { mutateAsync: registerPetMutateAsync } = usePetRegisterMutation();
 
-  const handleNext = () => {
-    push({ pathname: '/register/pet/detail', query: { petName, relation } });
+  const handleNext = async () => {
+    if (!relation || !petName) return;
+
+    const { data } = await registerPetMutateAsync({
+      name: petName,
+      relationship: relation,
+      profileImage: '',
+    });
+
+    push({ pathname: route.register.pet.detail.root, query: { petName, relation, petId: data.id } });
   };
 
   return (
@@ -30,7 +41,7 @@ function PetRelationshipPage() {
             <TextFieldInput value={petName} />
           </TextField>
 
-          <RelationshipSelector className='w-full' value={relation} onChange={setRelation} />
+          <RelationshipSelector className='w-full' value={relation} autoFocus onChange={setRelation} />
         </div>
       </div>
 
