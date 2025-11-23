@@ -11,3 +11,4 @@ export { useSearchFilter } from './model/useSearchFilter';
 export { KindergartenCardSheet } from './ui/KindergartenCardSheet';
 export { KindergartenListSheet } from './ui/KindergartenListSheet';
 export { PhoneCallSheet } from './ui/PhoneCallSheet';
+export { DeparturePointSheet } from './ui/DeparturePointSheet';

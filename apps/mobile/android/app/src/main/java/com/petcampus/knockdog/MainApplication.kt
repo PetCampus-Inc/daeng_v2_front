@@ -1,4 +1,4 @@
-package com.gyulgyuri.daeng_v2_mobile
+package com.petcampus.knockdog
 
 import android.app.Application
 import android.content.res.Configuration

@@ -1,19 +1,20 @@
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
-import { BottomSheet } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { KindergartenList } from './KindergartenList';
-
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useBottomSheetSnapIndex, useIsomorphicLayoutEffect } from '@shared/lib';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { isNativeWebView, useBottomSheetSnapIndex, useIsomorphicLayoutEffect, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이)
 // 최대 스냅포인트: 화면높이 - 72px(검색바 높이) - 8px(여백)
-const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 157;
-const MAX_SNAP_POINT_OFFSET = 72 - 8;
 
 export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
+  const { top } = useSafeAreaInsets();
+  const MIN_SNAP_POINT = isNativeWebView() ? 141 : BOTTOM_BAR_HEIGHT + 141;
+  const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? 72 + top : 72;
+
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
 
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
@@ -59,7 +60,7 @@ export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode })
         <RemoveScroll forwardProps noIsolation>
           <BottomSheet.Body
             className={cn(
-              'shadow-black/6 absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
+              'absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
               isMarkerActive && 'hidden',
               isFullExtended && 'rounded-none shadow-none'
             )}

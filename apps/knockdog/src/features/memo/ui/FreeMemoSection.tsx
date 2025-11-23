@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Icon, Textarea, TextareaInput } from '@knockdog/ui';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { useMemoQuery } from '../api/useMemoQuery';
@@ -18,7 +17,7 @@ export function FreeMemoSection() {
 
   if (!id) throw new Error('Company ID is required for free memo section');
 
-  const { data: memo } = useMemoQuery(id);
+  const { data: memo = { content: '', photos: [] } } = useMemoQuery(id);
   const [photos, setPhotos] = useState<Photo[]>(memo?.photos ?? []);
 
   return (
@@ -32,7 +31,7 @@ export function FreeMemoSection() {
 
         {/* @TODO: 화면 이동 경로의 경우 상수 이용할것 */}
         <button
-          onClick={() => push({ pathname: `/company/${id}/edit-memo` })}
+          onClick={() => push({ pathname: `/kindergarten/${id}/edit-memo` })}
           className='text-text-tertiary flex items-center gap-1'
         >
           <span className='label-semibold'>편집</span>

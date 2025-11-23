@@ -1,8 +1,9 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { BottomSheet, ActionButton, Icon } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
 import { MapView } from '@features/map';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCurrentAddress } from '@shared/lib';
 
 interface AddressSelectMapSheetProps {

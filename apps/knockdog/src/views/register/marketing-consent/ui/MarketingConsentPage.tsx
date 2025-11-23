@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 
-import { ActionButton, Icon, BottomSheet } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 

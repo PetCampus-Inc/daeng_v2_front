@@ -1,29 +1,91 @@
 'use client';
 
-import { ChecklistEditor, mockAnswers } from '@features/checklist';
+import { ChecklistEditor } from '@features/checklist';
 import { Header } from '@widgets/Header';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { AnswerGroup } from '@entities/checklist';
+import { useEffect, useState } from 'react';
+import { overlay } from 'overlay-kit';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@knockdog/ui';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { useParams } from 'next/navigation';
+import { useChecklistMutate, useChecklistAnswersQuery } from '@features/checklist';
+import type { AnswerGroup } from '@entities/checklist';
 
 function EditChecklistPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [isEditing, setIsEditing] = useState(false);
-  const [answers, setAnswers] = useState<AnswerGroup[]>(mockAnswers);
+  const { data: answers } = useChecklistAnswersQuery(id);
+  const { mutate: updateAnswers } = useChecklistMutate();
+  const [draftAnswers, setDraftAnswers] = useState<AnswerGroup[]>([]);
 
-  const handleSave = (updatedAnswers: AnswerGroup[]) => {
-    // Mock API 호출 시뮬레이션
-    console.log('저장할 답변 데이터:', updatedAnswers);
+  const { back } = useStackNavigation();
 
-    // @TODO 실제 API 호출 로직 (현재는 mock)
+  const originalSections = answers?.sections ?? [];
+  const hasUnsavedChanges =
+    isEditing &&
+    (draftAnswers.length !== originalSections.length ||
+      draftAnswers.some((section, index) => {
+        const originalSection = originalSections[index];
+        if (!originalSection) return true;
+        if (section.answers.length !== originalSection.answers.length) return true;
+        return section.answers.some((answer, answerIndex) => {
+          const originalAnswer = originalSection.answers[answerIndex];
+          if (!originalAnswer) return true;
+          if (answer.value !== originalAnswer.value) return true;
+          return false;
+        });
+      }));
 
-    setAnswers(updatedAnswers);
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftAnswers(answers?.sections ?? []);
+    }
+  }, [answers?.sections, isEditing]);
+
+  const handleSave = () => {
+    if (!id) return;
+
+    updateAnswers({
+      targetId: id,
+      answers: draftAnswers.flatMap((section) =>
+        section.answers.map((answer) => ({ questionId: answer.questionId, value: answer.value }))
+      ),
+    });
     setIsEditing(false);
   };
 
   const handleBack = () => {
-    if (isEditing) {
-      // @TODO AlertDialog 모달 띄우기
+    if (hasUnsavedChanges) {
+      overlay.open(({ isOpen, close }) => (
+        <AlertDialog open={isOpen} onOpenChange={close}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>앗, 아직 저장하지 않았어요!</AlertDialogTitle>
+              <AlertDialogDescription>
+                지금 나가면 현재까지 쓴 내용이 사라져요.
+                <br />
+                저장 없이 나갈까요?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={() => back()}>확인</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ));
+      return;
     }
 
     router.back();
@@ -31,14 +93,14 @@ function EditChecklistPage() {
 
   return (
     <div>
-      <Header>
+      <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>체크리스트 편집</Header.Title>
         <Header.RightSection>
           {isEditing && (
-            <button onClick={() => setIsEditing(false)} className='label-semibold'>
+            <button onClick={handleSave} className='label-semibold'>
               완료
             </button>
           )}
@@ -49,8 +111,8 @@ function EditChecklistPage() {
           )}
         </Header.RightSection>
       </Header>
-      <div className='mt-[65px] h-[calc(100vh-66px)] overflow-y-auto'>
-        <ChecklistEditor isEditing={isEditing} initialAnswers={answers} onSave={handleSave} />
+      <div className='h-[calc(100vh-66px)] overflow-y-auto'>
+        <ChecklistEditor isEditing={isEditing} answers={draftAnswers} onAnswersChange={setDraftAnswers} />
       </div>
     </div>
   );

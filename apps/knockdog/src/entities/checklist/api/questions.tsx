@@ -7,7 +7,7 @@ interface QuestionGroupResponse {
 }
 
 async function getQuestions(): Promise<QuestionGroupResponse> {
-  const response = await api.get('/api/v0/memo/checklist');
+  const response = await api.get('memo/checklist');
   return response.json();
 }
 

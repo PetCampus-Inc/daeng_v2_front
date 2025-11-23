@@ -30,7 +30,11 @@ export function Header({
   return (
     <>
       <header
-        className={cn('fixed top-[env(safe-area-inset-top)] z-15 w-screen px-4', variantClass[variant], className)}
+        className={cn(
+          'border-line-100 sticky top-0 z-15 flex h-16 w-full items-center px-4',
+          variantClass[variant],
+          className
+        )}
         {...props}
       >
         <div className={cn('flex h-16 w-full items-center')}>{children}</div>

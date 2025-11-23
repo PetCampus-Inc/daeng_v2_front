@@ -29,6 +29,28 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.petcampus.knockdog',
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap'],
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: false,
+        NSAllowsArbitraryLoadsInWebContent: true,
+        NSExceptionDomains: {
+          'openapi.map.naver.com': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: false,
+          },
+          'oapi.map.naver.com': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: false,
+          },
+          'map.naver.net': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: true,
+          },
+          'static.naver.net': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: false,
+          },
+        },
+      },
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [iosUrlScheme],
