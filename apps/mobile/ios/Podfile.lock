@@ -1,4 +1,15 @@
 PODS:
+  - Alamofire (5.9.1)
+  - AppAuth (2.0.0):
+    - AppAuth/Core (= 2.0.0)
+    - AppAuth/ExternalUserAgent (= 2.0.0)
+  - AppAuth/Core (2.0.0)
+  - AppAuth/ExternalUserAgent (2.0.0):
+    - AppAuth/Core
+  - AppCheckCore (11.2.0):
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - EXApplication (7.0.7):
@@ -32,6 +43,12 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoAdapterGoogleSignIn (16.0.0):
+    - ExpoModulesCore
+    - GoogleSignIn (~> 9.0)
+    - React-Core
+  - ExpoAppleAuthentication (8.0.7):
+    - ExpoModulesCore
   - ExpoAsset (11.1.7):
     - ExpoModulesCore
   - ExpoBlur (14.1.5):
@@ -98,9 +115,38 @@ PODS:
   - FBLazyVector (0.79.5)
   - fmt (11.0.2)
   - glog (0.3.5)
+  - GoogleSignIn (9.0.0):
+    - AppAuth (~> 2.0)
+    - AppCheckCore (~> 11.0)
+    - GTMAppAuth (~> 5.0)
+    - GTMSessionFetcher/Core (~> 3.3)
+  - GoogleUtilities/Environment (8.1.0):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.1.0):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.1.0)
+  - GoogleUtilities/UserDefaults (8.1.0):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GTMAppAuth (5.0.0):
+    - AppAuth/Core (~> 2.0)
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3)
+  - GTMSessionFetcher/Core (3.5.0)
   - hermes-engine (0.79.5):
     - hermes-engine/Pre-built (= 0.79.5)
   - hermes-engine/Pre-built (0.79.5)
+  - KakaoSDKAuth (2.22.0):
+    - KakaoSDKCommon (= 2.22.0)
+  - KakaoSDKCommon (2.22.0):
+    - KakaoSDKCommon/Common (= 2.22.0)
+    - KakaoSDKCommon/Network (= 2.22.0)
+  - KakaoSDKCommon/Common (2.22.0)
+  - KakaoSDKCommon/Network (2.22.0):
+    - Alamofire (~> 5.9.0)
+    - KakaoSDKCommon/Common (= 2.22.0)
+  - KakaoSDKUser (2.22.0):
+    - KakaoSDKAuth (= 2.22.0)
   - libavif/core (0.11.1)
   - libavif/libdav1d (0.11.1):
     - libavif/core
@@ -118,6 +164,7 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
+  - PromisesObjC (2.4.0)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -1863,9 +1910,85 @@ PODS:
     - React-logger (= 0.79.5)
     - React-perflogger (= 0.79.5)
     - React-utils (= 0.79.5)
+  - RNCKakaoCore (2.4.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - KakaoSDKCommon (= 2.22.0)
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - RNCKakaoUser (2.4.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - KakaoSDKUser (= 2.22.0)
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNCKakaoCore
+    - Yoga
   - RNGestureHandler (2.24.0):
     - DoubleConversion
     - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - RNGoogleSignin (16.0.0):
+    - DoubleConversion
+    - glog
+    - GoogleSignIn (~> 9.0)
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
     - RCTRequired
@@ -2131,6 +2254,8 @@ DEPENDENCIES:
   - "EXApplication (from `../../../node_modules/.pnpm/expo-application@7.0.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-_04ab011f54217f5131ac53db9610bc22/node_modules/expo-application/ios`)"
   - "EXConstants (from `../../../node_modules/.pnpm/expo-constants@17.1.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-n_9316d5b7e866cc162a00adba85e8cf2d/node_modules/expo-constants/ios`)"
   - "Expo (from `../../../node_modules/.pnpm/expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-native@0.79.5_@babel+co_8cdb288218bb748c54fb840a5dd888eb/node_modules/expo`)"
+  - "ExpoAdapterGoogleSignIn (from `../../../node_modules/.pnpm/@react-native-google-signin+google-signin@16.0.0_expo@53.0.23_@babel+core@7.28.4_@expo+_addb80219b8d8d2cd7e40ce913f36955/node_modules/@react-native-google-signin/google-signin/expo/ios`)"
+  - "ExpoAppleAuthentication (from `../../../node_modules/.pnpm/expo-apple-authentication@8.0.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0_bc72abf286146271683d5120f9a8840a/node_modules/expo-apple-authentication/ios`)"
   - "ExpoAsset (from `../../../node_modules/.pnpm/expo-asset@11.1.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-nativ_4e899631b124adb7506a2205b2dfc23a/node_modules/expo-asset/ios`)"
   - "ExpoBlur (from `../../../node_modules/.pnpm/expo-blur@14.1.5_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-native_1be645ef429b4433e410fddbe475f1ac/node_modules/expo-blur/ios`)"
   - "ExpoClipboard (from `../../../node_modules/.pnpm/expo-clipboard@7.1.5_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-na_b46e951f1860654a538f170842c19fa7/node_modules/expo-clipboard/ios`)"
@@ -2219,7 +2344,10 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - "ReactCommon/turbomodule/core (from `../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.4_@react-native-community+cli@20.0.2_typescript@5._8b2ffa12335e6edfe68cb2d8cdf6dbc9/node_modules/react-native/ReactCommon`)"
+  - "RNCKakaoCore (from `../../../node_modules/.pnpm/@react-native-kakao+core@2.4.2_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0._7bff716108c01c3d386dc19ca11358cd/node_modules/@react-native-kakao/core`)"
+  - "RNCKakaoUser (from `../../../node_modules/.pnpm/@react-native-kakao+user@2.4.2_@react-native-kakao+core@2.4.2_expo@53.0.23_@babel+core@_29d6aa7ab16819c54f90cde65ee854f6/node_modules/@react-native-kakao/user`)"
   - "RNGestureHandler (from `../../../node_modules/.pnpm/react-native-gesture-handler@2.24.0_react-native@0.79.5_@babel+core@7.28.4_@react-nativ_281b90104c0d1e81942cdb75c607deb9/node_modules/react-native-gesture-handler`)"
+  - "RNGoogleSignin (from `../../../node_modules/.pnpm/@react-native-google-signin+google-signin@16.0.0_expo@53.0.23_@babel+core@7.28.4_@expo+_addb80219b8d8d2cd7e40ce913f36955/node_modules/@react-native-google-signin/google-signin`)"
   - "RNReanimated (from `../../../node_modules/.pnpm/react-native-reanimated@3.17.5_@babel+core@7.28.4_react-native@0.79.5_@babel+core@7.28._20cafd19dde06fc5a2a8a4566af3fb7f/node_modules/react-native-reanimated`)"
   - "RNScreens (from `../../../node_modules/.pnpm/react-native-screens@4.11.1_react-native@0.79.5_@babel+core@7.28.4_@react-native-commun_69be60034765a4b570c98da595d65dd7/node_modules/react-native-screens`)"
   - "RNSVG (from `../../../node_modules/.pnpm/react-native-svg@15.11.2_react-native@0.79.5_@babel+core@7.28.4_@react-native-community_85ad282b11ed735aa2265ce05e8718be/node_modules/react-native-svg`)"
@@ -2227,9 +2355,20 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Alamofire
+    - AppAuth
+    - AppCheckCore
+    - GoogleSignIn
+    - GoogleUtilities
+    - GTMAppAuth
+    - GTMSessionFetcher
+    - KakaoSDKAuth
+    - KakaoSDKCommon
+    - KakaoSDKUser
     - libavif
     - libdav1d
     - libwebp
+    - PromisesObjC
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -2247,6 +2386,10 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-constants@17.1.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-n_9316d5b7e866cc162a00adba85e8cf2d/node_modules/expo-constants/ios"
   Expo:
     :path: "../../../node_modules/.pnpm/expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-native@0.79.5_@babel+co_8cdb288218bb748c54fb840a5dd888eb/node_modules/expo"
+  ExpoAdapterGoogleSignIn:
+    :path: "../../../node_modules/.pnpm/@react-native-google-signin+google-signin@16.0.0_expo@53.0.23_@babel+core@7.28.4_@expo+_addb80219b8d8d2cd7e40ce913f36955/node_modules/@react-native-google-signin/google-signin/expo/ios"
+  ExpoAppleAuthentication:
+    :path: "../../../node_modules/.pnpm/expo-apple-authentication@8.0.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0_bc72abf286146271683d5120f9a8840a/node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../../../node_modules/.pnpm/expo-asset@11.1.7_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0.5_react-nativ_4e899631b124adb7506a2205b2dfc23a/node_modules/expo-asset/ios"
   ExpoBlur:
@@ -2420,8 +2563,14 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.4_@react-native-community+cli@20.0.2_typescript@5._8b2ffa12335e6edfe68cb2d8cdf6dbc9/node_modules/react-native/ReactCommon"
+  RNCKakaoCore:
+    :path: "../../../node_modules/.pnpm/@react-native-kakao+core@2.4.2_expo@53.0.23_@babel+core@7.28.4_@expo+metro-runtime@5.0._7bff716108c01c3d386dc19ca11358cd/node_modules/@react-native-kakao/core"
+  RNCKakaoUser:
+    :path: "../../../node_modules/.pnpm/@react-native-kakao+user@2.4.2_@react-native-kakao+core@2.4.2_expo@53.0.23_@babel+core@_29d6aa7ab16819c54f90cde65ee854f6/node_modules/@react-native-kakao/user"
   RNGestureHandler:
     :path: "../../../node_modules/.pnpm/react-native-gesture-handler@2.24.0_react-native@0.79.5_@babel+core@7.28.4_@react-nativ_281b90104c0d1e81942cdb75c607deb9/node_modules/react-native-gesture-handler"
+  RNGoogleSignin:
+    :path: "../../../node_modules/.pnpm/@react-native-google-signin+google-signin@16.0.0_expo@53.0.23_@babel+core@7.28.4_@expo+_addb80219b8d8d2cd7e40ce913f36955/node_modules/@react-native-google-signin/google-signin"
   RNReanimated:
     :path: "../../../node_modules/.pnpm/react-native-reanimated@3.17.5_@babel+core@7.28.4_react-native@0.79.5_@babel+core@7.28._20cafd19dde06fc5a2a8a4566af3fb7f/node_modules/react-native-reanimated"
   RNScreens:
@@ -2432,11 +2581,16 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.4_@react-native-community+cli@20.0.2_typescript@5._8b2ffa12335e6edfe68cb2d8cdf6dbc9/node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  Alamofire: f36a35757af4587d8e4f4bfa223ad10be2422b8c
+  AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
+  AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXApplication: a9d1c46d473d36f61302a9a81db2379441f3f094
   EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
   Expo: 9fd4973ed0baa42f7418917152d86b39ef466104
+  ExpoAdapterGoogleSignIn: bf36536501f7d1472951f2e227492435c7add98b
+  ExpoAppleAuthentication: 414e4316f8e25a2afbc3943cf725579c910f24b8
   ExpoAsset: 7bdbbacf4e6752ae6e3cf70555cee076f6229e6e
   ExpoBlur: 846780b2c90f59e964b9a50385d4deb67174ebfb
   ExpoClipboard: 6b9aae54fd48a579473fb101051ad693435b9294
@@ -2458,10 +2612,18 @@ SPEC CHECKSUMS:
   FBLazyVector: d2a9cd223302b6c9aa4aa34c1a775e9db609eb52
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
+  GoogleSignIn: c7f09cfbc85a1abf69187be091997c317cc33b77
+  GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: f03b0e06d3882d71e67e45b073bb827da1a21aae
+  KakaoSDKAuth: 569b377eda622d93d4575240b8031cd658163eef
+  KakaoSDKCommon: d57127c339fc79e73aa8b236a4c77211c29924f1
+  KakaoSDKUser: 043bcd7e91454ebf3bf64f150c430e6f65f0a08d
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
   RCTDeprecation: 5f638f65935e273753b1f31a365db6a8d6dc53b5
   RCTRequired: 8b46a520ea9071e2bc47d474aa9ca31b4a935bd8
@@ -2526,7 +2688,10 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: c42e7abdd2228ae583bdabc3dcd8e5cda6bef944
   ReactCodegen: 53fcd7e290223599121f0cf8163f61c7bafc68fb
   ReactCommon: 41137f7e87cf7fd1c041a7124dfa3d0d48aa43f3
+  RNCKakaoCore: 7d1cb520afc3987b413ae1cd718f901baed9da6e
+  RNCKakaoUser: 181a6bc42794701e60af41b68223d8ffb8e3ed12
   RNGestureHandler: ccf4105b125002bd88e39d2a1f2b7e6001bcdf34
+  RNGoogleSignin: dd3d9213afd5b94af0ef1348b56e6be76f029109
   RNReanimated: ea0d93ba23d2b91f16454d099450ffb5831ed16e
   RNScreens: c2e3cc506212228c607b4785b315205e28acbf0f
   RNSVG: ee32efbed652c5151fd3f98bed13c68af285bc38

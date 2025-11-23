@@ -4,6 +4,8 @@
   <dict>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
@@ -27,9 +29,16 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>daengv2mobile</string>
-          <string>com.gyulgyuri.daeng-v2-mobile</string>
+          <string>com.googleusercontent.apps.589885832776-1g7ggi6t1pp3ijthg4ql90h6p0vdskod</string>
         </array>
+      </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>kakaofe0efd15adb3a7392e0688cb16dcaec5</string>
+        </array>
+        <key>CFBundleURLName</key>
+        <string>Kakao</string>
       </dict>
     </array>
     <key>CFBundleVersion</key>
@@ -37,6 +46,9 @@
     <key>LSApplicationQueriesSchemes</key>
     <array>
       <string>nmap</string>
+      <string>kakaokompassauth</string>
+      <string>kakaolink</string>
+      <string>kakaoplus</string>
     </array>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
