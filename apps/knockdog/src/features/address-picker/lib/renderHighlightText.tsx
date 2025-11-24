@@ -1,10 +1,12 @@
+const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const highlightSpanText = (text: string, keyword: string) => {
   if (!keyword) return text;
-  const regex = new RegExp(`(${keyword})`, 'gi');
+  const regex = new RegExp(`(${escapeRegex(keyword)})`, 'gi');
 
   const parts = text.split(regex).map((part) => ({
     text: part,
-    className: part.toLowerCase() === keyword.toLowerCase() ? 'text-text-accent' : '',
+    className: regex.test(part) ? 'text-text-accent' : '',
   }));
 
   return parts.map((part, index) => (
