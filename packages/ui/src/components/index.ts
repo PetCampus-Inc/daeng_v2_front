@@ -18,3 +18,5 @@ export * from './radio-group';
 export * from './checkbox';
 export * from './toast';
 export * from './tooltip';
+export * from './field';
+export * from './slot';

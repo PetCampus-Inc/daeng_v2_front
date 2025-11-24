@@ -23,7 +23,7 @@ export function Header({
   withSpacing?: boolean;
 }) {
   const variantClass = {
-    solid: 'bg-white border-b',
+    solid: 'bg-white border-b border-line-100',
     transparent: 'bg-transparent',
   };
 
@@ -37,7 +37,7 @@ export function Header({
         )}
         {...props}
       >
-        <div className='relative flex w-full'>{children}</div>
+        <div className={cn('flex h-16 w-full items-center')}>{children}</div>
       </header>
 
       {withSpacing && <div className='h-16' />}
