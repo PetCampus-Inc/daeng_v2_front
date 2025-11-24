@@ -1,11 +1,11 @@
 'use client';
 
-import { Icon } from '@knockdog/ui';
+import { useParams } from 'next/navigation';
 
 import { ReviewCard } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import { useInfiniteScroll } from '@shared/lib';
-import { useParams } from 'next/navigation';
+import { Icon } from '@knockdog/ui';
 
 interface ReviewSectionProps {
   onScrollTop?: () => void;

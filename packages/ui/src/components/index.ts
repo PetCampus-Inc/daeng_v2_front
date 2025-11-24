@@ -1,5 +1,6 @@
 export * from './action-button';
 export * from './alert-dialog';
+export * from './avatar';
 export * from './bottom-sheet';
 export * from './divider';
 export * from './float';

@@ -23,10 +23,10 @@ function NeuteredSelector({ value, required = false, onChange, onComplete }: Neu
       </h5>
 
       <div className='flex gap-x-2'>
-        <ToggleButton className='flex-1' pressed={value === 'Y'} onPressedChange={handleChange('Y')}>
+        <ToggleButton className='body2-semibold flex-1' pressed={value === 'Y'} onPressedChange={handleChange('Y')}>
           했어요
         </ToggleButton>
-        <ToggleButton className='flex-1' pressed={value === 'N'} onPressedChange={handleChange('N')}>
+        <ToggleButton className='body2-semibold flex-1' pressed={value === 'N'} onPressedChange={handleChange('N')}>
           안했어요
         </ToggleButton>
       </div>
