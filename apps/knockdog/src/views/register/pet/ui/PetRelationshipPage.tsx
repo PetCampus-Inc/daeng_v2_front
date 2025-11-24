@@ -26,7 +26,7 @@ function PetRelationshipPage() {
       profileImage: '',
     });
 
-    push({ pathname: route.register.pet.detail.root, query: { petName, relation, petId: data.id } });
+    push({ pathname: route.register.pet.detail.root, query: { petName, petId: data.id } });
   };
 
   return (
