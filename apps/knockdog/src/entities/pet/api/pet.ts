@@ -31,9 +31,11 @@ interface UpdatePetDetailRequest {
 }
 
 const postUpdatePetDetail = async ({ petId, ...details }: UpdatePetDetailRequest) => {
-  return await api.post(`pet/detail/update/${petId}`, {
-    json: details,
-  });
+  return await api
+    .post(`pet/detail/update/${petId}`, {
+      json: details,
+    })
+    .json<ApiResponse<PetResponse>>();
 };
 
 export { postRegisterPet, postUpdatePetDetail, type RegisterPetRequest, type UpdatePetDetailRequest, type PetResponse };
