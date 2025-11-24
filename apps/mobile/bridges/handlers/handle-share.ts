@@ -26,15 +26,14 @@ function handleShare(event: string, payload: unknown): boolean {
     content.url = url;
   }
 
-  // 플랫폼별 제목 설정
-  if (Platform.OS === 'ios' && subject) {
-    content.title = subject;
-  } else if (Platform.OS === 'android' && title) {
+  // Android 제목 설정
+  if (Platform.OS === 'android' && title) {
     content.title = title;
   }
 
   // 플랫폼별 옵션 설정
   const options: {
+    subject?: string;
     dialogTitle?: string;
     excludedActivityTypes?: string[];
     tintColor?: string;
@@ -45,6 +44,9 @@ function handleShare(event: string, payload: unknown): boolean {
   }
 
   if (Platform.OS === 'ios') {
+    if (subject) {
+      options.subject = subject;
+    }
     if (excludedActivityTypes) {
       options.excludedActivityTypes = excludedActivityTypes;
     }
