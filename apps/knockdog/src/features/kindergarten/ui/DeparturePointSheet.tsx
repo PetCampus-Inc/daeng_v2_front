@@ -2,8 +2,9 @@ import { Icon } from '@knockdog/ui';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { useCurrentAddress } from '@shared/lib/geolocation';
-import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useNaverOpenRoute } from '@features/map';
+import { getCurrentLocation } from '@shared/lib/geolocation';
+import { useState, useEffect } from 'react';
 
 interface DeparturePointSheetProps {
   isOpen: boolean;
@@ -12,10 +13,33 @@ interface DeparturePointSheetProps {
 }
 
 export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetProps) {
-  const { position: coords, loading: locationLoading, error: locationError } = useCurrentLocation();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const openNaverOpenRoute = useNaverOpenRoute();
 
-  // const coords = { lat: 37.3595704, lng: 127.105399 }; // 내 위치 임시로 네이버 사옥으로 설정
+  useEffect(() => {
+    async function fetchLocation() {
+      setLocationLoading(true);
+      setLocationError(null);
+      try {
+        const location = await getCurrentLocation();
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+        setCoords({ lat: latitude, lng: longitude });
+      } catch (error) {
+        console.error('위치 정보를 가져올 수 없습니다:', error);
+        setLocationError(error instanceof Error ? error.message : '위치 정보를 가져올 수 없습니다');
+      } finally {
+        setLocationLoading(false);
+      }
+    }
+
+    if (isOpen) {
+      fetchLocation();
+    }
+  }, [isOpen]);
+
   const shouldFetchAddress = !!coords && !locationLoading && coords.lat !== 0 && coords.lng !== 0;
   const { primaryText, primaryRoad, primaryParcel, isLoading, error } = useCurrentAddress(
     coords || { lat: 0, lng: 0 },
