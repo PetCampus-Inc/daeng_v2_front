@@ -9,7 +9,7 @@ interface NeuteredSelectorProps {
   onComplete?: () => void;
 }
 
-export function NeuteredSelector({ value, required = false, onChange, onComplete }: NeuteredSelectorProps) {
+function NeuteredSelector({ value, required = false, onChange, onComplete }: NeuteredSelectorProps) {
   const handleChange = (isNeutered: 'Y' | 'N') => () => {
     onChange?.(isNeutered);
     onComplete?.();
@@ -33,3 +33,5 @@ export function NeuteredSelector({ value, required = false, onChange, onComplete
     </div>
   );
 }
+
+export { NeuteredSelector };

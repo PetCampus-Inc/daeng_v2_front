@@ -9,7 +9,7 @@ interface GenderSelectorProps {
   onComplete?: () => void;
 }
 
-export function GenderSelector({ value, required = false, onChange, onComplete }: GenderSelectorProps) {
+function GenderSelector({ value, required = false, onChange, onComplete }: GenderSelectorProps) {
   const handleChange = (gender: 'MALE' | 'FEMALE' | null) => () => {
     onChange?.(gender);
     onComplete?.();
@@ -33,3 +33,5 @@ export function GenderSelector({ value, required = false, onChange, onComplete }
     </div>
   );
 }
+
+export { GenderSelector };

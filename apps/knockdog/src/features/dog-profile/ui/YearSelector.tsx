@@ -13,7 +13,7 @@ interface YearSelectorProps {
   onComplete?: () => void;
 }
 
-export const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelectorProps) => {
+const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const yearList = useMemo(
@@ -83,3 +83,5 @@ export const YearSelector = ({ ref, className, value, onChange, onComplete }: Ye
     </BottomSheet.Root>
   );
 };
+
+export { YearSelector };

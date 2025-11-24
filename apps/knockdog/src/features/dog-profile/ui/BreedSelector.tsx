@@ -15,7 +15,7 @@ interface BreedSelectorProps {
   onComplete?: () => void;
 }
 
-export const BreedSelector = ({ ref, className, value, onChange, onBlur, onComplete }: BreedSelectorProps) => {
+const BreedSelector = ({ ref, className, value, onChange, onBlur, onComplete }: BreedSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { breeds, searchTerm, setSearchTerm } = useBreedSearch();
 
@@ -121,3 +121,5 @@ function BreedSelectList({ className, query, breeds = [], onSearch, onSelect }: 
     </div>
   );
 }
+
+export { BreedSelector };
