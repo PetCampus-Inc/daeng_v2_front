@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /** 주소 */
 interface Address {
   /** 필지 고유 번호 */
@@ -21,8 +20,6 @@ interface LatLng {
   lng: number;
 }
 
-=======
->>>>>>> develop
 interface AddressSearchResult {
   results: {
     common: {
@@ -67,9 +64,6 @@ interface AddressSearchResult {
   };
 }
 
-<<<<<<< HEAD
-export type { Address, LatLng, AddressSearchResult };
-=======
 interface AddressData {
   roadAddr: string;
   jibunAddr: string;
@@ -79,5 +73,4 @@ interface AddressData {
   zipNo: string;
 }
 
-export type { AddressSearchResult, AddressData };
->>>>>>> develop
+export type { Address, LatLng, AddressSearchResult, AddressData };
