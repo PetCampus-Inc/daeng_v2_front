@@ -11,9 +11,15 @@ import {
 interface PetAddDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onConfirm?: () => void;
 }
 
-function PetAddDialog({ isOpen, onOpenChange }: PetAddDialogProps) {
+function PetAddDialog({ isOpen, onOpenChange, onConfirm }: PetAddDialogProps) {
+  const handleConfirm = () => {
+    onOpenChange(false);
+    onConfirm?.();
+  };
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -36,7 +42,7 @@ function PetAddDialog({ isOpen, onOpenChange }: PetAddDialogProps) {
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogAction onClick={() => onOpenChange(false)}>확인</AlertDialogAction>
+          <AlertDialogAction onClick={handleConfirm}>확인</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

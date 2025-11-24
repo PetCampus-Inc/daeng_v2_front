@@ -12,5 +12,7 @@ export * from './ui/DogHouseSection';
 export * from './ui/DogSelectSheet';
 export * from './ui/NoDogPrompt';
 export * from './ui/PetAddDialog';
+export * from './ui/PetProfileForm';
 
 export type { Breed } from './model/breed.type';
+export { usePetProfileForm, type PetProfileFormData } from './model/usePetProfileForm';
