@@ -14,11 +14,12 @@ import {
   RefreshFAB,
   useMapUrlState,
 } from '@features/kindergarten-map';
-import { FilterBottomSheet, KindergartenListSheet } from '@features/kindergarten-list';
+import { FilterBottomSheet, KindergartenCardSheet, KindergartenListSheet } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import { isValidLatLngBounds } from '@entities/kindergarten';
+import { isValidLatLngBounds, type KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import type { Coord } from '@shared/types';
+import { useMarkerState } from '@shared/store';
 
 export default function KindergartenMainPage() {
   const mapRef = useRef<naver.maps.Map | null>(null);
@@ -27,6 +28,7 @@ export default function KindergartenMainPage() {
 
   const { center, zoomLevel, setSearchedLevel } = useMapUrlState();
   const { coord: basePoint } = useBasePoint();
+  const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
 
@@ -93,24 +95,23 @@ export default function KindergartenMainPage() {
     });
   };
 
-  // const openDogSchoolCardSheet = (id: string) => {
-  //   overlay.open(({ isOpen, close }) => {
-  //     const selectedSchool = searchList.find((school) => school.id === id);
+  const handleOpenCard = (item: KindergartenListItemWithMeta) => {
+    const itemId = item.id;
 
-  //     if (!selectedSchool) return null;
-
-  //     return (
-  //       <KindergartenCardSheet
-  //         isOpen={isOpen}
-  //         close={() => {
-  //           close();
-  //         }}
-  //         {...selectedSchool}
-  //         images={selectedSchool.images || []}
-  //       />
-  //     );
-  //   });
-  // };
+    overlay.open(({ isOpen, close }) => (
+      <KindergartenCardSheet
+        isOpen={isOpen}
+        close={() => {
+          // 닫히는 시점에 현재 활성화된 마커가 이 카드의 마커라면 비활성화
+          if (useMarkerState.getState().activeMarkerId === itemId) {
+            setActiveMarker(null);
+          }
+          close();
+        }}
+        {...item}
+      />
+    ));
+  };
 
   const handleOpenFilter = () => {
     overlay.open(({ isOpen, close }) => (
@@ -125,6 +126,7 @@ export default function KindergartenMainPage() {
         isMapLoaded={isMapLoaded}
         onSearchLevelChange={handleSearchLevelChange}
         onMapLoadChange={setIsMapLoaded}
+        onOpenCard={handleOpenCard}
         mapSnapshot={mapSnapshot}
       />
       <div

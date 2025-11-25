@@ -8,13 +8,15 @@ import { useMapQuery } from '../model/useMapQuery';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { useMarkerState } from '@shared/store';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
   isMapLoaded: boolean;
   onMapLoadChange?: (loaded: boolean) => void;
   onSearchLevelChange?: (center: Coord, zoom: number, bounds: naver.maps.LatLngBounds) => void;
-
+  onOpenCard?: (item: KindergartenListItemWithMeta) => void;
   mapSnapshot: {
     center: Partial<Coord> | null;
     bounds: naver.maps.LatLngBounds | null;
@@ -22,7 +24,7 @@ interface MapViewProps {
   };
 }
 export function MapView(props: MapViewProps) {
-  const { ref, isMapLoaded, onMapLoadChange, onSearchLevelChange, mapSnapshot } = props;
+  const { ref, isMapLoaded, onMapLoadChange, onSearchLevelChange, onOpenCard, mapSnapshot } = props;
 
   const map = useRef<naver.maps.Map | null>(null);
   useImperativeHandle(ref, () => map.current!);
@@ -30,6 +32,7 @@ export function MapView(props: MapViewProps) {
   const { center, setCenter, zoomLevel, setZoomLevel, searchedLevel, setSearchedLevel } = useMapUrlState();
   const { coord: basePoint } = useBasePoint();
   const { data: currentLocation } = useGeolocationQuery();
+  const { activeMarkerId, setActiveMarker } = useMarkerState();
 
   const mapCenter = getMapCenter({ center, basePoint });
   const mapZoom = getMapZoom(zoomLevel);
@@ -81,12 +84,12 @@ export function MapView(props: MapViewProps) {
 
   /**
    * 마커 클릭 핸들러
-   * @description 마커 클릭 시 지도 중심 이동 및 상세 정보 표시
+   * @description 마커 클릭 시 지도 중심 이동, 상세 정보 표시 및 마커 활성화 처리
    */
-  const handleMarkerClick = (id: string, coord: Coord) => {
-    map.current?.panTo(coord);
-    // 마커 활성화
-    // 카드 바텀시트 오픈
+  const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
+    map.current?.panTo(item.coord);
+    setActiveMarker(item.id);
+    onOpenCard?.(item);
   };
 
   /**
@@ -152,9 +155,9 @@ export function MapView(props: MapViewProps) {
           <Marker
             key={item.id}
             position={item.coord}
-            onClick={() => handleMarkerClick(item.id, item.coord)}
+            onClick={() => handleMarkerClick(item)}
             customIcon={{
-              content: <PlaceMarker title={item.title} distance={item.dist} />,
+              content: <PlaceMarker title={item.title} distance={item.dist} selected={item.id === activeMarkerId} />,
               offsetY: 12,
             }}
           />
