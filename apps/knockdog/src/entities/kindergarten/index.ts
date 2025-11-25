@@ -21,7 +21,7 @@ export { isValidLatLngBounds, isSameBounds } from './lib/is';
 
 /** model */
 export { createKindergartenListWithMock } from './model/mappers';
-export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode, Place } from './model/autocomplete';
+export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
 export type { FilterResultCount } from './model/filters';
 export type { Aggregation, Kindergarten, SidoGunguAggregation } from './model/search-list';
 export type { KindergartenNear } from './model/kindergarten-near';
