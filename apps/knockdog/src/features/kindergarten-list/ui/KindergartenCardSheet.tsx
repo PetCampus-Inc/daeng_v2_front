@@ -7,10 +7,10 @@ import { overlay } from 'overlay-kit';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
-import { PhoneCallSheet } from '@features/kindergarten';
 import { DeparturePointSheet } from './DeparturePointSheet';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { PhoneCallSheet } from './PhoneCallSheet';
 
 interface KindergartenCardSheetProps extends KindergartenListItemWithMeta {
   isOpen: boolean;
@@ -21,7 +21,7 @@ const snapPoints = ['328px', 1];
 
 export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenCardSheetProps) {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0] ?? null);
-  const { push } = useStackNavigation();
+  // const { push } = useStackNavigation();
 
   const openPhoneCallActionSheet = (event?: React.MouseEvent) => {
     event?.stopPropagation();
@@ -41,11 +41,6 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
     ));
   };
 
-  const goToKindergartenDetail = () => {
-    push({ pathname: `/kindergarten/${props.id}` });
-    close();
-  };
-
   return (
     <BottomSheet.Root
       open={isOpen}
@@ -60,7 +55,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
 
         {/* 컨텐츠 영역 */}
         <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
-          <div onClick={goToKindergartenDetail} className='gap-x2 flex'>
+          <div className='gap-x2 flex'>
             {/* 이미지 */}
             <img src={props.images?.[0]} className='radius-r2 size-[90px] object-cover' />
 
