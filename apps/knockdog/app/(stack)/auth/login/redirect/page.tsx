@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { redirect, useRouter } from 'next/navigation';
 import { Header } from '@widgets/Header';
 
@@ -11,7 +11,15 @@ import { TypedStorage } from '@shared/lib';
 import { STORAGE_KEYS } from '@shared/constants';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-export default function RedirectLoginPage() {
+export default function Page() {
+  return (
+    <Suspense>
+      <RedirectLoginPage />
+    </Suspense>
+  );
+}
+
+function RedirectLoginPage() {
   const { push } = useStackNavigation();
   const [linkedSocialUser, setLinkedSocialUser] = useState<SocialUser | null>(null);
 

@@ -13,8 +13,8 @@ import {
   useUserRegisterMutation,
   useUserStore,
 } from '@entities/user';
-import { useStackNavigation } from '@shared/lib/bridge';
 import { useSocialUserStore } from '@entities/social-user';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 
 type LocationFormState = Record<UserAddressType, Omit<UserAddress, 'id'>>;

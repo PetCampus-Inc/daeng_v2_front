@@ -1,3 +1,5 @@
 import { WelcomePage } from '@views/register/welcome';
 
-export default WelcomePage;
+export default function Page() {
+  return <WelcomePage />;
+}

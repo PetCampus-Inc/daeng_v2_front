@@ -129,6 +129,7 @@ export default function KindergartenMainPage() {
         onOpenCard={handleOpenCard}
         mapSnapshot={mapSnapshot}
       />
+
       <div
         className={cn(
           'px-x4 pb-x2 absolute top-0 z-50 w-full transition-colors ease-out',

@@ -1,3 +1,5 @@
 import { PetOwnershipPage } from '@views/register/pet';
 
-export default PetOwnershipPage;
+export default function Page() {
+  return <PetOwnershipPage />;
+}
