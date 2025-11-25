@@ -5,12 +5,11 @@
 import { useState } from 'react';
 import { overlay } from 'overlay-kit';
 import { ActionButton, Icon } from '@knockdog/ui';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { ServiceBadgeGroup } from './ServiceBadgeGroup';
-import { DeparturePointSheet } from './DeparturePointSheet';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { useStackNavigation } from '@shared/lib/bridge';
 import { PhoneCallSheet } from './PhoneCallSheet';
+import { DeparturePointSheet, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenCardSheetProps extends KindergartenListItemWithMeta {
   isOpen: boolean;

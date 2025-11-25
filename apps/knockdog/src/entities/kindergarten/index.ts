@@ -49,5 +49,6 @@ export {
 export type { KindergartenListItem, KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
 
 /** ui */
+export { DeparturePointSheet } from './ui/DeparturePointSheet';
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
 export { ServiceBadgeList } from './ui/ServiceBadgeList';

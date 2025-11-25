@@ -1,10 +1,50 @@
-import { Icon } from '@knockdog/ui';
+// FIXME: fsd 원칙에 맞는지 논의 필요
+
+import { Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
+import { useState, useEffect, useCallback } from 'react';
+import { METHODS } from '@knockdog/bridge-core';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { RadioGroup, RadioGroupItem } from '@knockdog/ui';
-import { useCurrentAddress } from '@shared/lib/geolocation';
-import { useNaverOpenRoute } from '@features/map';
-import { getCurrentLocation } from '@shared/lib/geolocation';
-import { useState, useEffect } from 'react';
+import { useCurrentAddress, getCurrentLocation } from '@shared/lib/geolocation';
+import { useBridge } from '@shared/lib/bridge';
+
+type NaverRouteMode = 'car' | 'public' | 'walk' | 'bicycle';
+
+interface OpenNaverRouteParams {
+  mode: NaverRouteMode;
+  to: { lat: number; lng: number; name?: string };
+  from: { lat: number; lng: number; name?: string }; // 없으면 현재 위치
+}
+
+function assertParamsValid(params: OpenNaverRouteParams) {
+  if (!params || !params.to) throw new Error('naver.openRoute: "to" 가 필요합니다.');
+  const { lat, lng } = params.to;
+  if (typeof lat !== 'number' || typeof lng !== 'number') {
+    throw new Error('naver.openRoute: "to.lat" 와 "to.lng"는 숫자여야 합니다.');
+  }
+  if (params.from) {
+    const { lat: slat, lng: slng } = params.from;
+    if (typeof slat !== 'number' || typeof slng !== 'number') {
+      throw new Error('naver.openRoute: "from.lat" 와 "from.lng"는 숫자여야 합니다.');
+    }
+  }
+  if (!['car', 'public', 'walk', 'bicycle'].includes(params.mode)) {
+    throw new Error('naver.openRoute: 유효하지 않은 모드입니다.');
+  }
+}
+
+function useNaverOpenRoute() {
+  const bridge = useBridge();
+
+  const openNaverRoute = useCallback(
+    async (params: OpenNaverRouteParams) => {
+      assertParamsValid(params);
+      await bridge.request(METHODS.naverOpenRoute, params);
+    },
+    [bridge]
+  );
+
+  return openNaverRoute;
+}
 
 interface DeparturePointSheetProps {
   isOpen: boolean;
@@ -118,7 +158,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                   <span className='body2-regular text-text-secondary'>{label}</span>
                 </div>
               </div>
-              <RadioGroupItem disabled={isLoading || locationLoading || !coords} id='1' value='1'></RadioGroupItem>
+              <RadioGroupItem disabled={isLoading || locationLoading || !coords} id='1' value='1' />
             </label>
             {/*  저장된 주소 확인  */}
             <label
@@ -132,7 +172,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                   <span className='body2-regular text-text-secondary'>서울 강남구 논현로</span>
                 </div>
               </div>
-              <RadioGroupItem id='2' value='2'></RadioGroupItem>
+              <RadioGroupItem id='2' value='2' />
             </label>
             <label
               htmlFor='3'
@@ -145,7 +185,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                   <span className='body2-regular text-text-secondary'>서울 강남구 논현로</span>
                 </div>
               </div>
-              <RadioGroupItem id='3' value='3'></RadioGroupItem>
+              <RadioGroupItem id='3' value='3' />
             </label>
           </RadioGroup>
         </div>
