@@ -23,9 +23,9 @@ import {
   useSearchUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
+import { isValidLatLngBounds } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import type { Coord } from '@shared/types';
-import { isValidLatLngBounds } from '@entities/kindergarten';
 
 export default function KindergartenMainPage() {
   const mapRef = useRef<naver.maps.Map | null>(null);
@@ -49,8 +49,8 @@ export default function KindergartenMainPage() {
 
   const searchListQuery = useInfiniteQuery({
     ...kindergartenQueryOptions.searchList({
-      refPoint: basePoint!,
-      bounds: mapSnapshot.bounds!,
+      refPoint: basePoint,
+      bounds: mapSnapshot.bounds,
       zoomLevel: mapSnapshot.zoomLevel,
       filters,
       query,

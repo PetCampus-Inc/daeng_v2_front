@@ -16,14 +16,14 @@ import { isValidCoord, serializeCoords } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 export type KindergartenSearchListQueryParams = {
-  refPoint: Coord;
-  bounds: naver.maps.LatLngBounds;
+  refPoint?: Coord;
+  bounds: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
 } & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters'>;
 
 export type KindergartenAggregationQueryParams = {
-  refPoint: { lat: number; lng: number };
-  bounds: naver.maps.LatLngBounds;
+  refPoint?: Coord;
+  bounds: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
   enabled?: boolean;
 } & Omit<KindergartenAggregationParams, 'refPoint' | 'bounds' | 'filters'>;
