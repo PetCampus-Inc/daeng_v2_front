@@ -4,7 +4,7 @@ import { isValidLatLngBounds, type FilterOption } from '@entities/kindergarten';
  * 지도 경계 객체를 문자열로 직렬화합니다.
  * @returns sw.lng,sw.lat,ne.lng,ne.lat
  */
-export function serializeBounds(bounds: naver.maps.LatLngBounds | null): string {
+export function serializeBounds(bounds?: naver.maps.LatLngBounds | null): string {
   if (!isValidLatLngBounds(bounds)) return 'pending-bounds';
   const sw = bounds.getSW();
   const ne = bounds.getNE();
