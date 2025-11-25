@@ -1,6 +1,6 @@
 import { api, type ApiResponse } from '@shared/api';
 
-import type { Kindergarten } from '../model/search-list';
+import type { Kindergarten } from '../model/kindergarten';
 
 // @TODO API Response, 타입 정의 필요
 export interface KindergartenMainParams {

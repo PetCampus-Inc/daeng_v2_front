@@ -23,7 +23,8 @@ export { isValidLatLngBounds, isSameBounds } from './lib/is';
 export { createKindergartenListWithMock } from './model/mappers';
 export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
 export type { FilterResultCount } from './model/filters';
-export type { Aggregation, Kindergarten, SidoGunguAggregation } from './model/search-list';
+export type { Aggregation, SidoGunguAggregation } from './model/search-list';
+export type { Kindergarten } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
 export type {
