@@ -8,7 +8,10 @@ export interface Kindergarten {
   operationStatus: keyof typeof OPEN_STATUS_MAP;
   price: number;
   dist: number;
-  coords: Coord;
+  coords: {
+    lat: number;
+    lng: number;
+  };
   roadAddress: string;
   reviewCount: number;
   serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
@@ -17,9 +20,4 @@ export interface Kindergarten {
   bookmarked: boolean;
   memoDate: string;
   phoneNumber: string;
-}
-
-export interface Coord {
-  lat: number;
-  lng: number;
 }

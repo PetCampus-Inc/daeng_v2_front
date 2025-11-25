@@ -1,4 +1,5 @@
 import type { OperationStatus, ServiceTag, PickupType } from '../config/constant';
+import type { Coord } from '@shared/types';
 
 export interface KindergartenSearchList {
   paging: {
@@ -47,11 +48,6 @@ export interface KindergartenListItem {
   serviceTags: (keyof typeof ServiceTag)[];
   pickupType: keyof typeof PickupType;
   phoneNumber: string;
-}
-
-export interface Coord {
-  lat: number;
-  lng: number;
 }
 export interface SidoGunguAggregation {
   code: string;
