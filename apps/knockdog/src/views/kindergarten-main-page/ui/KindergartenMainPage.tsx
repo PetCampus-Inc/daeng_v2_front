@@ -26,12 +26,13 @@ import {
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import type { Coord } from '@shared/types';
+import { isValidLatLngBounds } from '@entities/kindergarten';
 
 export default function KindergartenMainPage() {
   const mapRef = useRef<naver.maps.Map | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapSnapshot, setMapSnapshot] = useState<{
-    center: { lat?: number; lng?: number } | null;
+    center: Partial<Coord> | null;
     bounds: naver.maps.LatLngBounds | null;
     zoomLevel: number;
   }>({
@@ -68,7 +69,8 @@ export default function KindergartenMainPage() {
     if (!initialCenter) return;
 
     const initialZoom = zoomLevel ?? DEFAULT_MAP_ZOOM_LEVEL;
-    const initialBounds = mapRef.current?.getBounds() as naver.maps.LatLngBounds;
+    const bounds = mapRef.current?.getBounds();
+    const initialBounds = isValidLatLngBounds(bounds) ? bounds : null;
 
     startTransition(() => {
       setMapSnapshot({
@@ -96,9 +98,12 @@ export default function KindergartenMainPage() {
   const handleRefresh = () => {
     if (!isValidCoord(basePoint) || !zoomLevel) return;
 
+    const bounds = mapRef.current?.getBounds();
+    const validBounds = isValidLatLngBounds(bounds) ? bounds : null;
+
     setMapSnapshot({
       center: { lat: center?.lat, lng: center?.lng },
-      bounds: mapRef.current?.getBounds() as naver.maps.LatLngBounds,
+      bounds: validBounds,
       zoomLevel,
     });
   };
