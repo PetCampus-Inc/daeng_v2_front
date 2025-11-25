@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
@@ -5,39 +7,50 @@ import { useFabExtension } from '../model/useFabExtension';
 import { KindergartenCard } from './KindergartenCard';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-
-import { useEffect, useRef } from 'react';
-import { UseInfiniteQueryResult } from '@tanstack/react-query';
-import { FILTER_OPTIONS, KindergartenListWithMeta, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-
-import { isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
+import { kindergartenQueryOptions } from '../api/kindergartenQuery';
+import { useSearchUrlState } from '../model/useSearchUrlState';
+import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
+import { isNativeWebView, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType } from '@shared/store';
+import type { Coord } from '@shared/types';
 
 interface KindergartenListProps {
-  query: UseInfiniteQueryResult<
-    {
-      pages: KindergartenListWithMeta[];
-      pageParams: number[];
-    },
-    Error
-  >;
+  mapSnapshot: {
+    center: Partial<Coord> | null;
+    bounds: naver.maps.LatLngBounds | null;
+    zoomLevel: number;
+  };
   onOpenFilter: () => void;
 }
 
-export function KindergartenList({ query, onOpenFilter }: KindergartenListProps) {
+export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
-  const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-  const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
+  const { query: searchQuery, filters, rank } = useSearchUrlState();
+  const { coord: basePoint } = useBasePoint();
   const { selectedBaseType, setBaseType } = useBasePointType();
+  const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+
+  const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
+  const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
+
+  const query = useInfiniteQuery({
+    ...kindergartenQueryOptions.searchList({
+      refPoint: basePoint,
+      bounds: mapSnapshot.bounds,
+      zoomLevel: mapSnapshot.zoomLevel,
+      filters,
+      query: searchQuery,
+      rank,
+    }),
+  });
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
+  const totalCount = query.data?.pages[0]?.schoolResult.totalCount || 0;
 
   const selectedFilters = getSelectedFilterWithLabel();
-  const totalCount = query.data?.pages[0]?.schoolResult.totalCount || 0;
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -94,7 +107,7 @@ export function KindergartenList({ query, onOpenFilter }: KindergartenListProps)
               {/* 고정 버튼 영역 */}
               <div className='pl-x4 flex shrink-0 items-center gap-x-2'>
                 <button
-                  className={`gap-x0_5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
+                  className={`gap-x0.5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
                     isEmptyFilters
                       ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
                       : 'outline-line-accent bg-fill-primary-50 text-text-accent'
@@ -152,7 +165,7 @@ export function KindergartenList({ query, onOpenFilter }: KindergartenListProps)
           {query.data?.pages
             ?.flatMap((page) => page.schoolResult.list)
             .map((item) => (
-              <KindergartenCard key={item.id} {...item} images={item.banner ?? []} />
+              <KindergartenCard key={item.id} {...item} banner={item.banner ?? []} />
             ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />

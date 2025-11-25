@@ -1,10 +1,9 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
-import { cn } from '@knockdog/ui/lib';
 import Link from 'next/link';
-import { Float, Icon } from '@knockdog/ui';
 import { useSearchParams } from 'next/navigation';
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
+import { Float, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import {
   CurrentLocationDisplayFAB,
   CurrentLocationFAB,
@@ -15,13 +14,7 @@ import {
   RefreshFAB,
   useMapUrlState,
 } from '@features/kindergarten-map';
-import {
-  FilterBottomSheet,
-  KindergartenCardSheet,
-  KindergartenListSheet,
-  kindergartenQueryOptions,
-  useSearchUrlState,
-} from '@features/kindergarten-list';
+import { FilterBottomSheet, KindergartenListSheet } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
 import { isValidLatLngBounds } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
@@ -29,6 +22,14 @@ import type { Coord } from '@shared/types';
 
 export default function KindergartenMainPage() {
   const mapRef = useRef<naver.maps.Map | null>(null);
+
+  const searchParams = useSearchParams();
+
+  const { center, zoomLevel, setSearchedLevel } = useMapUrlState();
+  const { coord: basePoint } = useBasePoint();
+  const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+  const { top } = useSafeAreaInsets();
+
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapSnapshot, setMapSnapshot] = useState<{
     center: Partial<Coord> | null;
@@ -39,24 +40,10 @@ export default function KindergartenMainPage() {
     bounds: null,
     zoomLevel: 0,
   });
-  const { center, zoomLevel, setSearchedLevel } = useMapUrlState();
-  const { query, sort, filters } = useSearchUrlState();
-  const { coord: basePoint } = useBasePoint();
-  const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
-  const searchParams = useSearchParams();
-  const { top } = useSafeAreaInsets();
-
-  const searchListQuery = useInfiniteQuery({
-    ...kindergartenQueryOptions.searchList({
-      refPoint: basePoint,
-      bounds: mapSnapshot.bounds,
-      zoomLevel: mapSnapshot.zoomLevel,
-      filters,
-      query,
-      rank: sort,
-    }),
-  });
+  const shouldShowRefresh = useMemo(() => {
+    return !(isEqualCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
+  }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
 
   /** 지도 스냅샷 초기화 */
   useEffect(() => {
@@ -106,12 +93,6 @@ export default function KindergartenMainPage() {
     });
   };
 
-  const shouldShowRefresh = useMemo(() => {
-    return !(isEqualCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
-  }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
-
-  const searchList = searchListQuery.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
-
   // const openDogSchoolCardSheet = (id: string) => {
   //   overlay.open(({ isOpen, close }) => {
   //     const selectedSchool = searchList.find((school) => school.id === id);
@@ -141,11 +122,10 @@ export default function KindergartenMainPage() {
     <>
       <MapView
         ref={mapRef}
-        overlay={searchList}
-        aggregation={[]}
         isMapLoaded={isMapLoaded}
         onSearchLevelChange={handleSearchLevelChange}
         onMapLoadChange={setIsMapLoaded}
+        mapSnapshot={mapSnapshot}
       />
       <div
         className={cn(
@@ -177,7 +157,7 @@ export default function KindergartenMainPage() {
           </div>
         }
       >
-        <KindergartenList query={searchListQuery} onOpenFilter={handleOpenFilter} />
+        <KindergartenList mapSnapshot={mapSnapshot} onOpenFilter={handleOpenFilter} />
       </KindergartenListSheet>
     </>
   );

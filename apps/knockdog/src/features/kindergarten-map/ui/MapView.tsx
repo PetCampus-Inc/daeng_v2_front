@@ -4,39 +4,43 @@ import { useMapUrlState } from '../model/useMapUrlState';
 import { getRegionLevel } from '../lib/markers';
 import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { getMapCenter, getMapZoom } from '../lib/map';
-import type { SidoGunguAggregation } from '@entities/kindergarten';
+import { useMapQuery } from '../model/useMapQuery';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 
-interface OverlayInfo {
-  id: string;
-  coord: Coord;
-  title: string;
-  dist: string;
-}
-
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
-  overlay: OverlayInfo[];
-  aggregation: SidoGunguAggregation[];
   isMapLoaded: boolean;
   onMapLoadChange?: (loaded: boolean) => void;
   onSearchLevelChange?: (center: Coord, zoom: number, bounds: naver.maps.LatLngBounds) => void;
+
+  mapSnapshot: {
+    center: Partial<Coord> | null;
+    bounds: naver.maps.LatLngBounds | null;
+    zoomLevel: number;
+  };
 }
 export function MapView(props: MapViewProps) {
-  const { ref, overlay, aggregation, isMapLoaded, onMapLoadChange, onSearchLevelChange } = props;
+  const { ref, isMapLoaded, onMapLoadChange, onSearchLevelChange, mapSnapshot } = props;
 
   const map = useRef<naver.maps.Map | null>(null);
-
   useImperativeHandle(ref, () => map.current!);
 
-  const { data: currentLocation } = useGeolocationQuery();
-  const { coord: basePoint } = useBasePoint();
   const { center, setCenter, zoomLevel, setZoomLevel, searchedLevel, setSearchedLevel } = useMapUrlState();
+  const { coord: basePoint } = useBasePoint();
+  const { data: currentLocation } = useGeolocationQuery();
 
   const mapCenter = getMapCenter({ center, basePoint });
   const mapZoom = getMapZoom(zoomLevel);
+
+  const {
+    searchList: overlay,
+    isLoading,
+    isFetching,
+  } = useMapQuery({
+    mapSnapshot,
+  });
 
   /** 지도 (url)상태 초기화 */
   useEffect(() => {
@@ -94,11 +98,9 @@ export function MapView(props: MapViewProps) {
     if (!map.current) return;
     const coord = map.current.getCenter();
     const zoom = map.current.getZoom();
-
     setCenter({ lat: coord.y, lng: coord.x });
 
     const currentRegionLevel = getRegionLevel(zoom);
-
     if (currentRegionLevel !== searchedLevel) {
       setSearchedLevel(currentRegionLevel);
       onSearchLevelChange?.({ lat: coord.y, lng: coord.x }, zoom, map.current.getBounds() as naver.maps.LatLngBounds);
@@ -133,7 +135,7 @@ export function MapView(props: MapViewProps) {
         )}
 
         {/* 지도 집계 마커 */}
-        {aggregation.map((item) => (
+        {/* {aggregation.map((item) => (
           <Marker
             key={item.code}
             position={item.coord}
@@ -143,7 +145,7 @@ export function MapView(props: MapViewProps) {
               align: 'center',
             }}
           />
-        ))}
+        ))} */}
 
         {/* 업체 마커 */}
         {overlay.map((item) => (
