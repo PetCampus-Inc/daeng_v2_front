@@ -1,4 +1,4 @@
-import type { KindergartenList, KindergartenListItem } from './search-list';
+import type { KindergartenSearchList, KindergartenListItem } from './search-list';
 import type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './types';
 import { formatDistance } from '@shared/lib';
 
@@ -40,7 +40,7 @@ function toKindergartenListItemWithMeta(
  * KindergartenList 전체를 메모/북마크와 결합하고 거리를 포맷팅한 모델로 변환
  */
 function toKindergartenListWithMeta(
-  listData: KindergartenList,
+  listData: KindergartenSearchList,
   memoData: KindergartenMemo[],
   bookmarkData: KindergartenBookmark[]
 ): KindergartenListWithMeta {
@@ -66,13 +66,13 @@ function toKindergartenListWithMeta(
 }
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요
-export function createKindergartenListWithMock(data: KindergartenList): KindergartenListWithMeta {
+export function createKindergartenListWithMock(data: KindergartenSearchList): KindergartenListWithMeta {
   return toKindergartenListWithMeta(data, memoMockData, bookmarkMockData);
 }
 
 // TODO: 향후 실제 (메모, 북마크 조회) API 사용 시 사용될 함수
 export function createKindergartenListWithMeta(memos: KindergartenMemo[], bookmarks: KindergartenBookmark[]) {
-  return (listResponse: KindergartenList): KindergartenListWithMeta =>
+  return (listResponse: KindergartenSearchList): KindergartenListWithMeta =>
     toKindergartenListWithMeta(listResponse, memos, bookmarks);
 }
 

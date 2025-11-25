@@ -57,7 +57,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: KindergartenC
         <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
           <div className='gap-x2 flex'>
             {/* 이미지 */}
-            <img src={props.images?.[0]} className='radius-r2 size-[90px] object-cover' />
+            <img src={props.banner?.[0]} className='radius-r2 size-[90px] object-cover' />
 
             {/* 타이틀 및 카테고리 */}
             <div className='gap-x2 flex flex-1 flex-col'>
