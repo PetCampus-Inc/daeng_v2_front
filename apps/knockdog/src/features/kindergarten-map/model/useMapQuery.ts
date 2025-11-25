@@ -29,13 +29,7 @@ export function useMapQuery(params: UseMapOverlayDataParams) {
   });
 
   const searchList = useMemo(() => {
-    const list = searchListQuery.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
-    return list.map((item) => ({
-      id: item.id,
-      coord: item.coord,
-      title: item.title,
-      dist: item.dist,
-    }));
+    return searchListQuery.data?.pages?.flatMap((page) => page.schoolResult.list) || [];
   }, [searchListQuery.data]);
 
   return {
