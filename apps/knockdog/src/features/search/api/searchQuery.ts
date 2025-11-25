@@ -1,11 +1,11 @@
 import { queryOptions } from '@tanstack/react-query';
 import { getKindergartenAutocomplete, type KindergartenAutocompleteParams } from '@entities/kindergarten';
-import { isValidCoord } from '@shared/lib';
+import { isValidCoord, serializeCoords } from '@shared/lib';
+import type { Coord } from '@shared/types';
 
 type AutocompleteQueryParams = {
-  lat?: number;
-  lng?: number;
-} & Omit<KindergartenAutocompleteParams, 'lat' | 'lng'>;
+  coord?: Coord;
+} & Omit<KindergartenAutocompleteParams, 'coord'>;
 
 export const searchQueryOptions = {
   autocomplete: ({ query, lat, lng }: AutocompleteQueryParams) => {
