@@ -1,4 +1,3 @@
-import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
 import type { OperationStatus, ServiceTag, PickupType } from '../config/constant';
 
 export interface KindergartenSearchList {
@@ -30,29 +29,11 @@ export interface Aggregation {
   };
 }
 
-export interface Kindergarten {
-  id: string;
-  title: string;
-  ctg: keyof typeof CTAG_MAP;
-  operationDescription: string;
-  operationStatus: keyof typeof OPEN_STATUS_MAP;
-  price: number;
-  dist: number;
-  coords: Coord;
-  roadAddress: string;
-  reviewCount: number;
-  serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
-  pickupType: keyof typeof PICKUP_TYPE_MAP;
-  banner: string[];
-  bookmarked: boolean;
-  memoDate: string;
-  phoneNumber: string;
-}
 export interface KindergartenListItem {
   id: string;
   title: string;
   ctg: string;
-  images?: string[];
+  banner?: string[];
   operationTimes: {
     startTime: string;
     endTime: string;
@@ -67,7 +48,8 @@ export interface KindergartenListItem {
   pickupType: keyof typeof PickupType;
   phoneNumber: string;
 }
-interface Coord {
+
+export interface Coord {
   lat: number;
   lng: number;
 }

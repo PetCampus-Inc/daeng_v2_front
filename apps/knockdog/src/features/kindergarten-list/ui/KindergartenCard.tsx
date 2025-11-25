@@ -12,7 +12,7 @@ interface KindergartenCardProps extends KindergartenListItemWithMeta {
 export function KindergartenCard({
   id,
   title,
-  images,
+  banner,
   ctg,
   dist,
   roadAddress,
@@ -39,7 +39,7 @@ export function KindergartenCard({
     >
       {/* 이미지 컨테이너 */}
       <div className='relative aspect-[16/9] w-full overflow-hidden'>
-        <BannerImageSlider id={id} name={title} slides={images} />
+        <BannerImageSlider id={id} name={title} slides={banner} />
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
