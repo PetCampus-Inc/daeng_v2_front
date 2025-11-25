@@ -32,12 +32,12 @@ const FILTERS_PARSER = createParser<FilterOption[]>({
  * @description
  * - query: 검색어
  * - filters: 필터
- * - sort: 정렬 방식
+ * - rank: 정렬 방식
  */
 export function useSearchUrlState() {
   const [query, setQuery] = useQueryState('query', parseAsString.withDefault(''));
   const [filters, setFilters] = useQueryState('filters', FILTERS_PARSER.withDefault([]));
-  const [sort, setSort] = useQueryState('sort', SORT_PARSER.withDefault('DISTANCE'));
+  const [rank, setRank] = useQueryState('rank', SORT_PARSER.withDefault('DISTANCE'));
 
-  return { query, filters, sort, setQuery, setFilters, setSort };
+  return { query, filters, rank, setQuery, setFilters, setRank };
 }
