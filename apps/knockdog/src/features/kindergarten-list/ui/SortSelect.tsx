@@ -29,7 +29,7 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 export function SortSelect() {
-  const { sort: sortType, setSort: setSortType } = useSearchUrlState();
+  const { rank: sortType, setRank: setSortType } = useSearchUrlState();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
