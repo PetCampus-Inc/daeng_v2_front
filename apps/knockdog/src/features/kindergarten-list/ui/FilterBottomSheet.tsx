@@ -6,6 +6,7 @@ import { FilterChip } from './FilterChip';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
 import { kindergartenQueryOptions } from '../api/kindergartenQuery';
+import { useSearchUrlState } from '../model/useSearchUrlState';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface FilterBottomSheetProps {
@@ -15,7 +16,8 @@ interface FilterBottomSheetProps {
 }
 
 export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetProps) {
-  const { filter: urlFilter, resultCount, onChangeResultCount } = useSearchFilter();
+  const { filters } = useSearchUrlState();
+  const { resultCount, onChangeResultCount } = useSearchFilter();
   const {
     localFilters,
     selectedFilters,
@@ -29,7 +31,7 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
 
   useEffect(() => {
     if (isOpen) {
-      setLocalFilters([...urlFilter]);
+      setLocalFilters([...filters]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);

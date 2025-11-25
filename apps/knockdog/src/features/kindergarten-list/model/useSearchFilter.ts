@@ -1,10 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useSearchUrlState } from './useSearchUrlState';
-import { type FilterOption, type FilterState, FILTER_OPTIONS } from '@entities/kindergarten';
+import { type FilterOption, FILTER_OPTIONS } from '@entities/kindergarten';
 
 interface UseSearchFilterReturn {
-  /** 필터 상태 (선택된 옵션 배열) */
-  filter: FilterState;
   /** 결과 개수 */
   resultCount: number | null;
 
@@ -30,11 +28,12 @@ interface UseSearchFilterReturn {
   }>;
 }
 
+/**
+ * 검색 필터를 관리하는 훅
+ */
 export function useSearchFilter(): UseSearchFilterReturn {
-  const { filters: urlFilters, setFilters: setUrlFilters } = useSearchUrlState();
+  const { filters, setFilters: setUrlFilters } = useSearchUrlState();
   const [resultCount, setResultCount] = useState<number | null>(null);
-
-  const filter = useMemo(() => urlFilters as FilterOption[], [urlFilters]);
 
   const onChangeResultCount = useCallback((count: number | null) => {
     setResultCount(count);
@@ -43,26 +42,25 @@ export function useSearchFilter(): UseSearchFilterReturn {
   /** 필터 옵션 토글 */
   const onToggleOption = useCallback(
     (option: FilterOption) => {
-      const currentFilters = [...urlFilters];
-      const isSelected = currentFilters.includes(option);
+      const isSelected = filters.includes(option);
 
       if (isSelected) {
-        const updated = currentFilters.filter((filterOption) => filterOption !== option);
+        const updated = filters.filter((filterOption) => filterOption !== option);
         setUrlFilters(updated.length === 0 ? null : updated);
       } else {
-        setUrlFilters([...currentFilters, option]);
+        setUrlFilters([...filters, option]);
       }
     },
-    [urlFilters, setUrlFilters]
+    [filters, setUrlFilters]
   );
 
   /** 필터 옵션 제거 */
   const onRemoveOption = useCallback(
     (option: FilterOption) => {
-      const updated = urlFilters.filter((filterOption) => filterOption !== option);
+      const updated = filters.filter((filterOption) => filterOption !== option);
       setUrlFilters(updated.length === 0 ? null : updated);
     },
-    [urlFilters, setUrlFilters]
+    [filters, setUrlFilters]
   );
 
   /** 전체 필터 제거 */
@@ -73,8 +71,8 @@ export function useSearchFilter(): UseSearchFilterReturn {
 
   /** 필터 배열 직접 설정 */
   const setFilters = useCallback(
-    (filters: FilterOption[]) => {
-      setUrlFilters(filters.length === 0 ? null : filters);
+    (newFilters: FilterOption[]) => {
+      setUrlFilters(newFilters.length === 0 ? null : newFilters);
     },
     [setUrlFilters]
   );
@@ -82,26 +80,25 @@ export function useSearchFilter(): UseSearchFilterReturn {
   /** 필터 옵션 선택 여부 */
   const isSelectedOption = useCallback(
     (option: FilterOption) => {
-      return urlFilters.includes(option);
+      return filters.includes(option);
     },
-    [urlFilters]
+    [filters]
   );
 
   /** 선택된 필터옵션 + 라벨 가져오기 */
   const getSelectedFilterWithLabel = useCallback(() => {
-    return filter.map((option) => ({
+    return filters.map((option) => ({
       option,
       optionLabel: FILTER_OPTIONS[option],
     }));
-  }, [filter]);
+  }, [filters]);
 
   /** 선택된 필터가 없는지 여부 */
   const isEmptyFilters = useMemo(() => {
-    return filter.length === 0;
-  }, [filter]);
+    return filters.length === 0;
+  }, [filters]);
 
   return {
-    filter,
     resultCount,
 
     onToggleOption,

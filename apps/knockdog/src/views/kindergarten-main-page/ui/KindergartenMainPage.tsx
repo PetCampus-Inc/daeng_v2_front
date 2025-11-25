@@ -20,7 +20,6 @@ import {
   KindergartenCardSheet,
   KindergartenListSheet,
   kindergartenQueryOptions,
-  useSearchFilter,
   useSearchUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
@@ -41,8 +40,7 @@ export default function KindergartenMainPage() {
     zoomLevel: 0,
   });
   const { center, zoomLevel, setSearchedLevel } = useMapUrlState();
-  const { filter } = useSearchFilter();
-  const { query, sort } = useSearchUrlState();
+  const { query, sort, filters } = useSearchUrlState();
   const { coord: basePoint } = useBasePoint();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
@@ -54,7 +52,7 @@ export default function KindergartenMainPage() {
       refPoint: basePoint!,
       bounds: mapSnapshot.bounds!,
       zoomLevel: mapSnapshot.zoomLevel,
-      filters: filter,
+      filters,
       query,
       rank: sort,
     }),
