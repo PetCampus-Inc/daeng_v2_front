@@ -11,7 +11,7 @@ import { BottomSheet } from '@shared/ui/bottom-sheet';
 interface FilterBottomSheetProps {
   isOpen: boolean;
   close: () => void;
-  bounds: naver.maps.LatLngBounds | null;
+  bounds?: naver.maps.Bounds;
 }
 
 export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetProps) {
@@ -36,7 +36,7 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
 
   const { data: filterResultData } = useQuery({
     ...kindergartenQueryOptions.filterResultCount({
-      bounds: bounds!,
+      bounds: bounds as naver.maps.LatLngBounds,
       filters: localFilters,
     }),
   });

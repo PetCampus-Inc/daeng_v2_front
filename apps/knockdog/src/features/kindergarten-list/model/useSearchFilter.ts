@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useQueryState, parseAsArrayOf, parseAsString } from 'nuqs';
+import { useSearchUrlState } from './useSearchUrlState';
 import { type FilterOption, type FilterState, FILTER_OPTIONS } from '@entities/kindergarten';
 
-export interface UseSearchFilterReturn {
+interface UseSearchFilterReturn {
   /** 필터 상태 (선택된 옵션 배열) */
   filter: FilterState;
   /** 결과 개수 */
@@ -31,7 +31,7 @@ export interface UseSearchFilterReturn {
 }
 
 export function useSearchFilter(): UseSearchFilterReturn {
-  const [urlFilters, setUrlFilters] = useQueryState('filters', parseAsArrayOf(parseAsString).withDefault([]));
+  const { filters: urlFilters, setFilters: setUrlFilters } = useSearchUrlState();
   const [resultCount, setResultCount] = useState<number | null>(null);
 
   const filter = useMemo(() => urlFilters as FilterOption[], [urlFilters]);

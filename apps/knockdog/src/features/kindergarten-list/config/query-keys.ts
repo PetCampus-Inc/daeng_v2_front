@@ -3,7 +3,8 @@ import type {
   KindergartenAggregationQueryParams,
   KindergartenSearchListQueryParams,
 } from '../api/kindergartenQuery';
-import { serializeBounds, serializeCoords } from '../lib/serialize';
+import { serializeBounds } from '../lib/serialize';
+import { serializeCoords } from '@shared/lib';
 
 export const kindergartenKeys = {
   all: ['kindergarten'],

@@ -1,21 +1,31 @@
-import { overlay } from 'overlay-kit';
 import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
-import { FilterBottomSheet } from './FilterBottomSheet';
 import { KindergartenCard } from './KindergartenCard';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { useKindergartenSearch } from '../model/useKindergartenSearchContext';
+
 import { useEffect, useRef } from 'react';
-import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
+import { UseInfiniteQueryResult } from '@tanstack/react-query';
+import { FILTER_OPTIONS, KindergartenListWithMeta, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 
 import { isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType } from '@shared/store';
 
-export function KindergartenList() {
+interface KindergartenListProps {
+  query: UseInfiniteQueryResult<
+    {
+      pages: KindergartenListWithMeta[];
+      pageParams: number[];
+    },
+    Error
+  >;
+  onOpenFilter: () => void;
+}
+
+export function KindergartenList({ query, onOpenFilter }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -24,7 +34,6 @@ export function KindergartenList() {
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
   const { selectedBaseType, setBaseType } = useBasePointType();
 
-  const { query, schoolList, bounds } = useKindergartenSearch();
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
   const selectedFilters = getSelectedFilterWithLabel();
@@ -55,10 +64,6 @@ export function KindergartenList() {
 
   const handleLocationChange = (value: string) => {
     setBaseType(value as 'current' | 'home' | 'work');
-  };
-
-  const openFilterBottomSheet = () => {
-    overlay.open(({ isOpen, close }) => <FilterBottomSheet isOpen={isOpen} close={close} bounds={bounds} />);
   };
 
   return (
@@ -94,7 +99,7 @@ export function KindergartenList() {
                       ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
                       : 'outline-line-accent bg-fill-primary-50 text-text-accent'
                   }`}
-                  onClick={openFilterBottomSheet}
+                  onClick={onOpenFilter}
                 >
                   <Icon
                     icon='Filter'
@@ -144,9 +149,11 @@ export function KindergartenList() {
             <SortSelect />
           </div>
 
-          {schoolList.map((item) => (
-            <KindergartenCard key={item.id} {...item} images={item.images ?? []} />
-          ))}
+          {query.data?.pages
+            ?.flatMap((page) => page.schoolResult.list)
+            .map((item) => (
+              <KindergartenCard key={item.id} {...item} images={item.banner ?? []} />
+            ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />
       </main>

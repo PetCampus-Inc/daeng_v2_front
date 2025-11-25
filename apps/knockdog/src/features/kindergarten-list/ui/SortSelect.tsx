@@ -15,7 +15,8 @@ import {
 import { Icon } from '@knockdog/ui';
 import { useState, useRef } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
-import { useSort, type SortType } from '../model/useSortContext';
+import { useSearchUrlState } from '../model/useSearchUrlState';
+import type { SortType } from '@entities/kindergarten';
 
 interface SortOption {
   id: SortType;
@@ -28,7 +29,7 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 export function SortSelect() {
-  const { sortType, setSortType } = useSort();
+  const { sort: sortType, setSort: setSortType } = useSearchUrlState();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 

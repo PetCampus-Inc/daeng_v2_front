@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { kindergartenKeys } from '../config/query-keys';
-import { serializeBounds, serializeCoords, serializeFilters } from '../lib/serialize';
+import { serializeBounds, serializeFilters } from '../lib/serialize';
 import {
   type KindergartenSearchListParams,
   type KindergartenAggregationParams,
@@ -10,15 +10,16 @@ import {
   getKindergartenAggregation,
   getFilterResultCount,
   createKindergartenListWithMock,
+  isValidLatLngBounds,
 } from '@entities/kindergarten';
-import { isValidBounds, isValidCoord } from '@shared/lib';
+import { isValidCoord, serializeCoords } from '@shared/lib';
+import type { Coord } from '@shared/types';
 
 export type KindergartenSearchListQueryParams = {
-  refPoint: { lat: number; lng: number };
+  refPoint: Coord;
   bounds: naver.maps.LatLngBounds;
   filters?: FilterOption[];
-  query?: string;
-} & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters' | 'query'>;
+} & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters'>;
 
 export type KindergartenAggregationQueryParams = {
   refPoint: { lat: number; lng: number };
@@ -33,14 +34,7 @@ export type FilterResultCountQueryParams = {
 } & Omit<FilterResultCountParams, 'bounds' | 'filters'>;
 
 export const kindergartenQueryOptions = {
-  searchList: ({
-    refPoint,
-    bounds,
-    zoomLevel,
-    filters,
-    query,
-    rank = 'DISTANCE',
-  }: KindergartenSearchListQueryParams) => {
+  searchList: ({ refPoint, bounds, zoomLevel, filters, query, rank }: KindergartenSearchListQueryParams) => {
     return infiniteQueryOptions({
       queryKey: kindergartenKeys.searchList({ refPoint, bounds, zoomLevel, filters, query, rank }),
       queryFn: ({ pageParam = 1 }) =>
@@ -54,7 +48,7 @@ export const kindergartenQueryOptions = {
           query,
           rank,
         }),
-      enabled: isValidCoord(refPoint) && isValidBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0,
+      enabled: isValidCoord(refPoint) && isValidLatLngBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0,
       initialPageParam: 1,
       getNextPageParam: (lastPage) => {
         return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
@@ -73,7 +67,8 @@ export const kindergartenQueryOptions = {
     filters,
     enabled: additionalEnabled = true,
   }: KindergartenAggregationQueryParams) => {
-    const baseEnabled = isValidCoord(refPoint) && isValidBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0;
+    const baseEnabled =
+      isValidCoord(refPoint) && isValidLatLngBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0;
 
     return queryOptions({
       queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters }),
@@ -92,7 +87,7 @@ export const kindergartenQueryOptions = {
     return queryOptions({
       queryKey: kindergartenKeys.filterResultCount({ bounds, filters }),
       queryFn: () => getFilterResultCount({ bounds: serializeBounds(bounds), filters: serializeFilters(filters)! }),
-      enabled: filters.length > 0 && isValidBounds(bounds),
+      enabled: filters.length > 0 && isValidLatLngBounds(bounds),
     });
   },
 };
