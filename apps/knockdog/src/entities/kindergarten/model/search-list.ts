@@ -1,7 +1,7 @@
 import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
 import type { OperationStatus, ServiceTag, PickupType } from '../config/constant';
 
-export interface KindergartenList {
+export interface KindergartenSearchList {
   paging: {
     currentPage: number;
     hasNext: boolean;
@@ -21,6 +21,12 @@ export interface Aggregation {
     sidoAggregations: SidoGunguAggregation[] | null;
     sigunAggregations: SidoGunguAggregation[] | null;
     geoBoundAggregation: GeoBoundAggregation;
+  };
+  bounds: {
+    swLng: number;
+    swLat: number;
+    neLng: number;
+    neLat: number;
   };
 }
 
@@ -73,7 +79,7 @@ export interface SidoGunguAggregation {
   nextZoom: number;
 }
 
-interface GeoBoundAggregation {
+export interface GeoBoundAggregation {
   sw: Coord;
   ne: Coord;
 }

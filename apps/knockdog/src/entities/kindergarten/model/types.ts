@@ -1,6 +1,6 @@
 /** 가공된 모델 인터페이스 */
 
-import type { KindergartenListItem as KindergartenListItemDto } from './kindergarten';
+import type { KindergartenListItem as KindergartenListItemDto } from './search-list';
 
 export interface KindergartenListItem extends Omit<KindergartenListItemDto, 'dist'> {
   dist: string;

@@ -1,6 +1,6 @@
-import { formatDistance } from '@shared/lib';
-import type { KindergartenList, KindergartenListItem } from './kindergarten';
+import type { KindergartenList, KindergartenListItem } from './search-list';
 import type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './types';
+import { formatDistance } from '@shared/lib';
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요
 interface KindergartenMemo {

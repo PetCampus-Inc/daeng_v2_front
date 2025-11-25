@@ -1,5 +1,7 @@
-import type { Aggregation, KindergartenSearchList } from '../model/kindergarten';
+import type { Aggregation, KindergartenSearchList } from '../model/search-list';
 import { api } from '@shared/api';
+
+export type SortType = 'DISTANCE' | 'REVIEW';
 
 export type KindergartenSearchListParams = {
   refPoint: string;
