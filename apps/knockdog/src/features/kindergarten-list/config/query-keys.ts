@@ -28,7 +28,7 @@ export const kindergartenKeys = {
   filterResultCount: (params: Partial<FilterResultCountQueryParams>) => [
     ...kindergartenKeys.all,
     'filter-result-count',
-    serializeBounds(params.bounds),
+    serializeBounds(params.bounds as naver.maps.LatLngBounds),
     params.filters,
   ],
 } as const;

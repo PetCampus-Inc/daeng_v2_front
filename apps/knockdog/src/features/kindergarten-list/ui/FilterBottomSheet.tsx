@@ -38,7 +38,7 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
 
   const { data: filterResultData } = useQuery({
     ...kindergartenQueryOptions.filterResultCount({
-      bounds: bounds as naver.maps.LatLngBounds,
+      bounds,
       filters: localFilters,
     }),
   });

@@ -29,7 +29,7 @@ export type KindergartenAggregationQueryParams = {
 } & Omit<KindergartenAggregationParams, 'refPoint' | 'bounds' | 'filters'>;
 
 export type FilterResultCountQueryParams = {
-  bounds: naver.maps.LatLngBounds;
+  bounds?: naver.maps.Bounds;
   filters: FilterOption[];
 } & Omit<FilterResultCountParams, 'bounds' | 'filters'>;
 
@@ -86,7 +86,11 @@ export const kindergartenQueryOptions = {
   filterResultCount: ({ bounds, filters }: FilterResultCountQueryParams) => {
     return queryOptions({
       queryKey: kindergartenKeys.filterResultCount({ bounds, filters }),
-      queryFn: () => getFilterResultCount({ bounds: serializeBounds(bounds), filters: serializeFilters(filters)! }),
+      queryFn: () =>
+        getFilterResultCount({
+          bounds: serializeBounds(isValidLatLngBounds(bounds) ? bounds : null),
+          filters: serializeFilters(filters)!,
+        }),
       enabled: filters.length > 0 && isValidLatLngBounds(bounds),
     });
   },
