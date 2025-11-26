@@ -27,12 +27,8 @@ export function Header({
     transparent: 'bg-transparent',
   };
 
-  /**
-   *  FIXME: Suspense 사용이유: Header.BackButton 내부에서 useSearchParams를 사용하고 있어, Suspense로 감싸야 함.
-   * Header를 Suspense로 감싸는게 맞는지 논의가 필요함.
-   */
   return (
-    <Suspense>
+    <>
       <header
         className={cn(
           'border-line-100 sticky top-0 z-15 flex h-16 w-full items-center px-4',
@@ -43,9 +39,8 @@ export function Header({
       >
         <div className={cn('flex h-16 w-full items-center')}>{children}</div>
       </header>
-
       {withSpacing && <div className='h-16' />}
-    </Suspense>
+    </>
   );
 }
 
