@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
@@ -18,16 +18,14 @@ type PushOptions = {
   scroll?: boolean;
 };
 
-function buildHref(pathname: string, query?: Query, searchParams?: URLSearchParams | null) {
-  const params = query ? new URLSearchParams(searchParams || undefined) : new URLSearchParams();
+function buildHref(pathname: string, query?: Query) {
+  const params = new URLSearchParams();
 
   if (query) {
     for (const [key, value] of Object.entries(query)) {
-      if (value === undefined || value === null) {
-        params.delete(key);
-      } else {
-        params.set(key, String(value));
-      }
+      if (value === undefined || value === null) continue;
+
+      params.set(key, String(value));
     }
   }
 
@@ -37,7 +35,6 @@ function buildHref(pathname: string, query?: Query, searchParams?: URLSearchPara
 
 function useStackNavigation() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const bridge = useBridge();
 
   const isNative = useMemo(() => isNativeWebView(), []);
@@ -90,7 +87,7 @@ function useStackNavigation() {
         finalQuery = { ...query, _txId: txId };
       }
 
-      const href = buildHref(pathname, finalQuery, searchParams);
+      const href = buildHref(pathname, finalQuery);
 
       if (replace || method === METHODS.navReplace) {
         router.replace(href, { scroll });
@@ -98,7 +95,7 @@ function useStackNavigation() {
         router.push(href, { scroll });
       }
     },
-    [bridge, router, isNative, searchParams]
+    [bridge, router, isNative]
   );
 
   const push = useCallback(
