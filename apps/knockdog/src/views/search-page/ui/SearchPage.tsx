@@ -11,7 +11,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   const [query, setQuery] = useState('');
   const { coord } = useBasePoint();
   const { data } = useQuery({
-    ...searchQueryOptions.autocomplete({ query: query.trim(), lat: coord?.lat, lng: coord?.lng }),
+    ...searchQueryOptions.autocomplete({ query: query.trim(), coord }),
   });
 
   const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
