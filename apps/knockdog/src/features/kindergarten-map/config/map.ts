@@ -21,3 +21,13 @@ export const MARKER_THRESHOLDS = {
   /** 업체 마커 최소 줌레벨 (14~) */
   BUSINESS_MIN: REGION_LEVELS[3].min,
 } as const;
+
+/**
+ * 지도 검색 모드 상수
+ */
+export const SEARCH_MODES = {
+  NEARBY: 'nearby',
+  BOUNDARY: 'boundary',
+} as const;
+
+export const DEFAULT_SEARCH_MODE = SEARCH_MODES.NEARBY;
