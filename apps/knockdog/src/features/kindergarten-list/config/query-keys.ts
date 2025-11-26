@@ -18,6 +18,7 @@ export const kindergartenKeys = {
     params.filters,
     params.query,
     params.rank,
+    params.searchMode,
   ],
   aggregation: (params: Partial<KindergartenAggregationQueryParams>) => [
     ...kindergartenKeys.all,

@@ -1,6 +1,9 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { kindergartenKeys } from '../config/query-keys';
 import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
+import { DEFAULT_DISTANCE } from '../config/constants';
+// FIXME: fsd rule 위반...
+import type { SearchMode } from '@features/kindergarten-map';
 import {
   type KindergartenSearchListParams,
   type KindergartenAggregationParams,
@@ -19,6 +22,7 @@ export type KindergartenSearchListQueryParams = {
   bounds?: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
   query?: string;
+  searchMode?: SearchMode;
 } & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters' | 'query'>;
 
 export type KindergartenAggregationQueryParams = {
@@ -35,21 +39,35 @@ export type FilterResultCountQueryParams = {
 } & Omit<FilterResultCountParams, 'bounds' | 'filters'>;
 
 export const kindergartenQueryOptions = {
-  searchList: ({ refPoint, bounds, zoomLevel, filters, query, rank }: KindergartenSearchListQueryParams) => {
+  searchList: ({
+    refPoint,
+    bounds,
+    zoomLevel,
+    filters,
+    query,
+    rank,
+    searchMode = 'nearby',
+  }: KindergartenSearchListQueryParams) => {
+    const isNearbyMode = searchMode === 'nearby';
+
     return infiniteQueryOptions({
-      queryKey: kindergartenKeys.searchList({ refPoint, bounds, zoomLevel, filters, query, rank }),
+      queryKey: kindergartenKeys.searchList({ refPoint, bounds, zoomLevel, filters, query, rank, searchMode }),
       queryFn: ({ pageParam = 1 }) =>
         getKindergartenSearchList({
           refPoint: refPoint!,
-          bounds: toBounds(bounds),
           zoomLevel,
           page: pageParam,
           size: 10,
           filters,
           query,
           rank,
+          ...(isNearbyMode ? { distance: DEFAULT_DISTANCE } : { bounds: toBounds(bounds) }),
         }),
-      enabled: isValidCoord(refPoint) && isValidLatLngBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0,
+      enabled:
+        isValidCoord(refPoint) &&
+        Number.isFinite(zoomLevel) &&
+        zoomLevel > 0 &&
+        (!isNearbyMode ? isValidLatLngBounds(bounds) : true),
       initialPageParam: 1,
       getNextPageParam: (lastPage) => {
         return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
