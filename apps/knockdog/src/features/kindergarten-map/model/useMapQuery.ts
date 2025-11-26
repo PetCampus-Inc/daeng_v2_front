@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useMapUrlState } from './useMapUrlState';
 // FIXME: fsd import rule 위반! 수정이 필요함..
@@ -14,7 +14,7 @@ interface UseMapOverlayDataParams {
   };
 }
 
-export function useMapQuery(params: UseMapOverlayDataParams) {
+export function useSearchListQuery(params: UseMapOverlayDataParams) {
   const { coord: basePoint } = useBasePoint();
   const { query, filters, rank } = useSearchUrlState();
   const { searchMode } = useMapUrlState();
@@ -39,5 +39,47 @@ export function useMapQuery(params: UseMapOverlayDataParams) {
     searchList,
     isLoading: searchListQuery.isLoading,
     isFetching: searchListQuery.isFetching,
+  };
+}
+
+interface UseAggregationQueryParams {
+  mapSnapshot: {
+    center: Partial<Coord> | null;
+    bounds: naver.maps.LatLngBounds | null;
+    zoomLevel: number;
+  };
+}
+
+export function useAggregationQuery(params: UseAggregationQueryParams) {
+  const { coord: basePoint } = useBasePoint();
+  const { query, filters } = useSearchUrlState();
+  const { searchMode } = useMapUrlState();
+
+  const aggregationQuery = useQuery({
+    ...kindergartenQueryOptions.aggregation({
+      refPoint: basePoint,
+      bounds: params.mapSnapshot.bounds,
+      zoomLevel: params.mapSnapshot.zoomLevel,
+      filters,
+      query,
+      searchMode,
+    }),
+  });
+
+  const aggregation = useMemo(() => {
+    if (!aggregationQuery.data?.aggregations) return [];
+    const { sidoAggregations, sigunAggregations } = aggregationQuery.data.aggregations;
+    return sigunAggregations || sidoAggregations || [];
+  }, [aggregationQuery.data]);
+
+  const geoBounds = useMemo(() => {
+    return aggregationQuery.data?.bounds || null;
+  }, [aggregationQuery.data]);
+
+  return {
+    aggregation,
+    geoBounds,
+    isLoading: aggregationQuery.isLoading,
+    isFetching: aggregationQuery.isFetching,
   };
 }
