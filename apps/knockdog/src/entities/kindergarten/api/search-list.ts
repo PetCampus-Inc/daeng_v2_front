@@ -11,7 +11,7 @@ export type KindergartenSearchListParams = {
   refPoint: Coord;
   zoomLevel: number;
   bounds?: Bounds | null;
-  distance?: string;
+  distance?: number;
   query?: string;
   filters?: FilterOption[];
   rank?: 'DISTANCE' | 'REVIEW';
@@ -28,7 +28,7 @@ export function getKindergartenSearchList(params: KindergartenSearchListParams) 
     refPoint: serializedRefPoint,
     zoomLevel: params.zoomLevel.toString(),
     ...(serializedBounds && { bounds: serializedBounds }),
-    ...(params.distance && { distance: params.distance }),
+    ...(params.distance && { distance: params.distance.toString() }),
     ...(params.query && { query: params.query.trim() }),
     ...(serializedFilters && { filters: serializedFilters }),
     ...(params.rank && { rank: params.rank }),
@@ -47,7 +47,7 @@ export type KindergartenAggregationParams = {
   refPoint: Coord;
   zoomLevel: number;
   bounds?: Bounds | null;
-  distance?: string;
+  distance?: number;
   query?: string;
   filters?: FilterOption[];
 };
@@ -61,7 +61,7 @@ export function getKindergartenAggregation(params: KindergartenAggregationParams
     refPoint: serializedRefPoint,
     zoomLevel: params.zoomLevel.toString(),
     ...(serializedBounds && { bounds: serializedBounds }),
-    ...(params.distance && { distance: params.distance }),
+    ...(params.distance && { distance: params.distance.toString() }),
     ...(serializedFilters && { filters: serializedFilters }),
   });
   return api.get('kindergarten/map-view/aggregation', { searchParams }).json<Aggregation>();
