@@ -4,18 +4,19 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Divider, ActionButton, Avatar, RadioGroup, RadioGroupItem, AvatarImage, AvatarFallback } from '@knockdog/ui';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import type { Dog } from './DogHouseSection';
+import { usePetUpdateRepresentativeMutation, type Pet } from '@entities/pet';
 
 interface DogSelectSheetProps {
   isOpen: boolean;
   close: () => void;
-  dogs: Dog[];
-  onSelect?: (dogId: string) => void;
+  dogs: Pet[];
 }
 
-export const DogSelectSheet = ({ isOpen, close, dogs, onSelect }: DogSelectSheetProps) => {
-  const [selectedDogId, setSelectedDogId] = useState<string>(
-    dogs.find((dog) => dog.isRepresentative)?.id || dogs[0]?.id || ''
+export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => {
+  const { mutateAsync: updatePetRepresentative } = usePetUpdateRepresentativeMutation();
+
+  const [selectedDogId, setSelectedDogId] = useState(
+    dogs.find((dog) => dog.isRepresentative)?.id || dogs[0]?.id || null
   );
 
   const handleClose = (open?: boolean) => {
@@ -24,9 +25,9 @@ export const DogSelectSheet = ({ isOpen, close, dogs, onSelect }: DogSelectSheet
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedDogId) {
-      onSelect?.(selectedDogId);
+      await updatePetRepresentative(Number(selectedDogId));
     }
     close();
   };
@@ -41,14 +42,14 @@ export const DogSelectSheet = ({ isOpen, close, dogs, onSelect }: DogSelectSheet
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
         <div className='px-4'>
-          <div className='py-5'>
+          <div className='max-h-[60vh] overflow-y-auto py-5'>
             <RadioGroup value={selectedDogId} onValueChange={setSelectedDogId}>
               {dogs.map((dog, index) => (
                 <React.Fragment key={dog.id}>
                   <label className='flex items-center justify-between py-2' htmlFor={`dog-${dog.id}`}>
                     <div className='flex items-center gap-x-2'>
                       <Avatar>
-                        <AvatarImage src={dog.imageUrl} />
+                        <AvatarImage src={dog.profileImageUrl} />
                         <AvatarFallback className='border-line-200 rounded-full border p-0.5'>
                           <Image src='/images/img_default_image.png' alt={dog.name} width={40} height={40} />
                         </AvatarFallback>

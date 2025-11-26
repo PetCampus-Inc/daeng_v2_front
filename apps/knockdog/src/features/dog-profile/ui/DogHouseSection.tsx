@@ -1,18 +1,9 @@
 import { DogHouseHeader } from './DogHouseHeader';
 import { DogCard } from './DogCard';
 import { AddDogCard } from './AddDogCard';
-
-interface Dog {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  imageUrl?: string;
-  isRepresentative: boolean;
-}
-
+import type { Pet } from '@entities/pet';
 interface DogHouseSectionProps {
-  dogs: Dog[];
+  dogs: Pet[];
   maxDogs?: number;
   onChangeRepresentative: () => void;
   onDogClick: (dogId: string) => void;
@@ -37,8 +28,8 @@ function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick
             key={dog.id}
             name={dog.name}
             breed={dog.breed}
-            age={dog.age}
-            imageUrl={dog.imageUrl}
+            age={dog.birthYear}
+            imageUrl={dog.profileImageUrl}
             isRepresentative={dog.isRepresentative}
             onClick={() => onDogClick(dog.id)}
           />
@@ -51,4 +42,3 @@ function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick
 }
 
 export { DogHouseSection };
-export type { Dog };

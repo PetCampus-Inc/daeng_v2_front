@@ -10,9 +10,7 @@ import {
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogAction,
   AlertDialogCancel,
 } from '@knockdog/ui';
 import { RelationshipSelector } from './RelationshipSelector';
@@ -21,13 +19,14 @@ import { YearSelector } from './YearSelector';
 import { GenderSelector } from './GenderSelector';
 import { NeuteredSelector } from './NeuteredSelector';
 import { ProfileImageUploader } from './ProfileImageUploader';
-import { usePetProfileForm, type PetProfileFormData } from '../model/usePetProfileForm';
+import { usePetProfileForm } from '../model/usePetProfileForm';
 import { overlay } from 'overlay-kit';
+import { type Pet } from '@entities/pet';
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
   petId?: string;
-  defaultValues?: Partial<PetProfileFormData>;
+  defaultValues?: Pet;
   submitButtonText?: string;
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
@@ -96,7 +95,7 @@ function PetProfileForm({
   return (
     <>
       <Controller
-        name='profileImage'
+        name='profileImageUrl'
         control={control}
         render={({ field }) => (
           <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />

@@ -16,23 +16,15 @@ import {
 import { PetProfileForm } from '@features/dog-profile';
 import { overlay } from 'overlay-kit';
 import { useStackNavigation } from '@shared/lib/bridge';
-
-const MOCK_PET = {
-  name: '살구',
-  profileImage: 'https://github.com/shadcn.png',
-  relationship: 'FAMILY' as const,
-  breed: { breedId: 1, breedName: '페키니즈' },
-  birthYear: '2020',
-  weight: '10',
-  gender: 'FEMALE' as const,
-  isNeutered: 'Y' as const,
-};
+import { usePetByIdQuery, type Pet } from '@entities/pet';
 
 export function MypagePetEditPage() {
   const { back } = useStackNavigation();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
   const isDirtyRef = useRef(false);
+
+  const { data: petResponse } = usePetByIdQuery(petId);
 
   const handleBack = () => {
     // 변경사항이 없으면 바로 뒤로가기
@@ -71,9 +63,6 @@ export function MypagePetEditPage() {
     // TODO: 에러 토스트 메시지 표시
   };
 
-  // TODO: petId로 기존 데이터 fetch 후 defaultValues에 전달
-  const defaultValues = MOCK_PET;
-
   return (
     <div className='flex h-screen flex-col'>
       <Header withSpacing={false}>
@@ -87,7 +76,7 @@ export function MypagePetEditPage() {
         <PetProfileForm
           mode='edit'
           petId={petId}
-          defaultValues={defaultValues}
+          defaultValues={petResponse}
           onSuccess={handleSuccess}
           onError={handleError}
           onDirtyChange={(isDirty) => {

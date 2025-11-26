@@ -4,58 +4,36 @@ import { Header } from '@widgets/Header';
 import { Divider, IconButton } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { DogSelectSheet, DogHouseSection, NoDogPrompt, type Dog } from '@features/dog-profile';
+import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
 import { LoginPrompt } from '@features/auth';
 import { AccountSection, type AccountInfo } from '@features/user-account';
 import { QuickActionsSection } from '@features/support';
 import { SettingsSection } from '@features/app-settings';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
+import { usePetListQuery } from '@entities/pet';
 
 function Mypage() {
   const { push } = useStackNavigation();
   const user = useUserStore((state) => state.user);
 
+  const { data: petListResponse } = usePetListQuery();
+
   const openDogSelectSheet = () => {
-    overlay.open(({ isOpen, close }) => <DogSelectSheet isOpen={isOpen} close={close} dogs={mockDogs} />);
+    overlay.open(({ isOpen, close }) => (
+      <DogSelectSheet isOpen={isOpen} close={close} dogs={petListResponse?.data || []} />
+    ));
   };
 
   const isLoggedIn = !!user;
-  const hasDogs = true; // TODO: 실제 강아지 데이터로 교체
-
-  const mockDogs: Dog[] = [
-    {
-      id: '1',
-      name: '살구',
-      breed: '페키니즈',
-      age: 14,
-      imageUrl: '/images/img_location.png',
-      isRepresentative: true,
-    },
-    {
-      id: '2',
-      name: '살구',
-      breed: '페키니즈',
-      age: 14,
-      // imageUrl: '/images/img_location.png',
-      isRepresentative: false,
-    },
-    {
-      id: '3',
-      name: '살구',
-      breed: '페키니즈',
-      age: 14,
-      imageUrl: '/images/img_location.png',
-      isRepresentative: false,
-    },
-  ];
+  const hasDogs = (petListResponse?.data?.length ?? 0) > 0;
 
   const accountInfo: AccountInfo = {
     nickname: user?.nickname || '살구형',
     userId: user?.id || '123456',
   };
 
-  const handleDogClick = (dogId: string) => {
-    push({ pathname: '/mypage/pet-detail', query: { dogId } });
+  const handleDogClick = (petId: string) => {
+    push({ pathname: '/mypage/pet-detail', query: { petId } });
   };
 
   const handleAddDog = () => {
@@ -80,7 +58,7 @@ function Mypage() {
 
         {isLoggedIn && hasDogs && (
           <DogHouseSection
-            dogs={mockDogs}
+            dogs={petListResponse?.data || []}
             onChangeRepresentative={openDogSelectSheet}
             onDogClick={handleDogClick}
             onAddDog={handleAddDog}

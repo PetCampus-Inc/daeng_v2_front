@@ -3,6 +3,8 @@
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { PetDetailInfo } from '@features/dog-profile';
+import { useSearchParams } from 'next/navigation';
+import { usePetByIdQuery } from '@entities/pet';
 import {
   ActionButton,
   Icon,
@@ -17,21 +19,15 @@ import {
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
-const MOCK_PET = {
-  name: '살구',
-  profileImage: 'https://github.com/shadcn.png',
-  relationship: '형',
-  breed: '페키니즈',
-  weight: '10',
-  gender: 'FEMALE' as const,
-  isNeutered: 'Y' as const,
-};
-
 export function MypagePetDetailPage() {
   const { push } = useStackNavigation();
+  const searchParams = useSearchParams();
+  const petId = searchParams.get('petId') as string;
+
+  const { data: petResponse } = usePetByIdQuery(petId);
 
   const handlePetEdit = () => {
-    push({ pathname: '/mypage/pet-edit' });
+    push({ pathname: '/mypage/pet-edit', query: { petId } });
   };
 
   const handleDeleteClick = () => {
@@ -74,7 +70,7 @@ export function MypagePetDetailPage() {
         </Header.RightSection>
       </Header>
 
-      <PetDetailInfo petData={MOCK_PET} />
+      <PetDetailInfo pet={petResponse} />
 
       <div className='mb-10 flex items-center justify-center px-4 py-4'>
         <ActionButton size='small' variant='tertiaryFill' className='w-[128px]' onClick={handlePetEdit}>

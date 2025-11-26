@@ -1,24 +1,25 @@
-import { useForm } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { usePetRegisterMutation, usePetUpdateDetailMutation, type Gender, type Relationship } from '@entities/pet';
 import { useMoveImageMutation } from '@shared/lib/media';
 import { useUserStore } from '@entities/user';
 import type { Breed } from './breed.type';
+import type { Pet } from '@entities/pet';
 
-export interface PetProfileFormData {
+interface PetFormData {
   name: string;
-  relationship?: Relationship;
+  relationship: Relationship | '';
   breed?: Breed | null;
   birthYear?: string;
-  weight?: string;
-  gender?: Gender;
-  isNeutered?: 'Y' | 'N';
-  profileImage?: string;
+  weight?: number;
+  gender: Gender | '';
+  isNeutered: 'Y' | 'N' | '';
+  profileImageUrl?: string;
 }
 
 interface UsePetProfileFormProps {
   mode: 'add' | 'edit';
   petId?: string;
-  defaultValues?: Partial<PetProfileFormData>;
+  defaultValues?: Pet;
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
 }
@@ -35,49 +36,50 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
     getValues,
     trigger,
     formState: { isValid, isDirty, isSubmitting },
-  } = useForm<PetProfileFormData>({
+  } = useForm<PetFormData>({
     mode: 'onChange',
     defaultValues: {
       name: defaultValues?.name || '',
-      relationship: defaultValues?.relationship || ('' as any),
-      breed: defaultValues?.breed || null,
-      birthYear: defaultValues?.birthYear || '',
-      weight: defaultValues?.weight || '',
-      gender: defaultValues?.gender || ('' as any),
-      isNeutered: defaultValues?.isNeutered || ('' as any),
-      profileImage: defaultValues?.profileImage || '',
+      relationship: defaultValues?.relationship || '',
+      breed: defaultValues?.breed ? { breedId: 0, breedName: defaultValues.breed } : null,
+      birthYear: defaultValues?.birthYear ? String(defaultValues.birthYear) : undefined,
+      weight: defaultValues?.weight || undefined,
+      gender: defaultValues?.gender || '',
+      isNeutered: defaultValues?.isNeutered !== undefined ? (defaultValues.isNeutered ? 'Y' : 'N') : '',
+      profileImageUrl: defaultValues?.profileImageUrl || '',
     },
   });
 
-  const onSubmit = async (data: PetProfileFormData) => {
+  const onSubmit: SubmitHandler<PetFormData> = async (data) => {
     try {
+      if (!data.relationship) {
+        throw new Error('관계는 필수입니다');
+      }
+
+      // 이미지가 temp 경로인 경우 user 경로로 이동
+      let finalProfileImage = data.profileImageUrl || '';
+      if (finalProfileImage && finalProfileImage.includes('temp') && user?.id) {
+        try {
+          // URL에서 key 추출 (pathname 부분)
+          const imageUrl = new URL(finalProfileImage);
+          const key = imageUrl.pathname.substring(1); // 맨 앞 '/' 제거
+
+          // 이미지를 user 경로로 이동
+          const moveResponse = await moveImage({
+            key,
+            path: `/user/${user.id}`,
+          });
+
+          // 이동된 이미지 URL 사용
+          finalProfileImage = moveResponse.data;
+        } catch (error) {
+          console.error('이미지 이동 실패:', error);
+          // 이미지 이동 실패해도 원본 URL로 진행
+        }
+      }
+
       if (mode === 'add') {
         // 추가 모드: 펫 등록
-        if (!data.relationship) {
-          throw new Error('관계는 필수입니다');
-        }
-
-        // 이미지가 temp 경로인 경우 user 경로로 이동
-        let finalProfileImage = data.profileImage || '';
-        if (finalProfileImage && finalProfileImage.includes('temp') && user?.id) {
-          try {
-            // URL에서 key 추출 (pathname 부분)
-            const imageUrl = new URL(finalProfileImage);
-            const key = imageUrl.pathname.substring(1); // 맨 앞 '/' 제거
-
-            // 이미지를 user 경로로 이동
-            const moveResponse = await moveImage({
-              key,
-              path: `/user/${user.id}`,
-            });
-
-            // 이동된 이미지 URL 사용
-            finalProfileImage = moveResponse.data;
-          } catch (error) {
-            console.error('이미지 이동 실패:', error);
-            // 이미지 이동 실패해도 원본 URL로 진행
-          }
-        }
 
         const registerResponse = await registerPet({
           name: data.name,
@@ -94,10 +96,10 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           await updatePetDetail({
             petId: newPetId,
             breed: data.breed?.breedName,
-            birthYear: data.birthYear ? parseInt(data.birthYear) : undefined,
+            birthYear: data.birthYear ? Number(data.birthYear) : undefined,
             gender: data.gender || undefined,
-            isNeutered: data.isNeutered ? data.isNeutered === 'Y' : undefined,
-            weight: data.weight ? parseInt(data.weight) : undefined,
+            isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
+            weight: data.weight,
           });
         }
       } else {
@@ -106,11 +108,14 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
         await updatePetDetail({
           petId,
+          name: data.name,
+          relationship: data.relationship,
+          profileImageUrl: data.profileImageUrl,
           breed: data.breed?.breedName,
-          birthYear: data.birthYear ? parseInt(data.birthYear) : undefined,
-          gender: data.gender,
-          isNeutered: data.isNeutered ? data.isNeutered === 'Y' : undefined,
-          weight: data.weight ? parseInt(data.weight) : undefined,
+          birthYear: data.birthYear ? Number(data.birthYear) : undefined,
+          gender: data.gender || undefined,
+          isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
+          weight: data.weight,
         });
       }
 
@@ -121,9 +126,11 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
     }
   };
 
+  const submit = (e?: React.BaseSyntheticEvent) => handleSubmit(onSubmit)(e);
+
   return {
     control,
-    handleSubmit: handleSubmit(onSubmit),
+    handleSubmit: submit,
     getValues,
     trigger,
     isValid,
