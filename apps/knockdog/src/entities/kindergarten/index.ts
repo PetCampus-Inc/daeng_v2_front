@@ -9,7 +9,7 @@ export { getKindergartenMain } from './api/kindergarten-main';
 export type { KindergartenMainParams } from './api/kindergarten-main';
 
 /** config */
-export { ServiceTag, PickupType, OperationStatus } from './config/constant';
+export { SERVICE_TAGS, PICKUP_TYPE, OPERATION_STATUS } from './config/constant';
 export { FILTER_CONFIG, FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from './config/filter-options';
 export type { FilterOption, FilterState } from './config/filter-options';
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';

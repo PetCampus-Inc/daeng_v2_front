@@ -1,4 +1,4 @@
-import type { OperationStatus, ServiceTag, PickupType } from '../config/constant';
+import type { OPERATION_STATUS, SERVICE_TAGS, PICKUP_TYPE } from '../config/constant';
 import type { Coord } from '@shared/types';
 
 export interface KindergartenSearchList {
@@ -39,14 +39,14 @@ export interface KindergartenListItem {
     startTime: string;
     endTime: string;
   };
-  operationStatus: keyof typeof OperationStatus;
+  operationStatus: keyof typeof OPERATION_STATUS;
   price: number;
   dist: number;
   roadAddress: string;
   coord: Coord;
   reviewCount: number;
-  serviceTags: (keyof typeof ServiceTag)[];
-  pickupType: keyof typeof PickupType;
+  serviceTags: (keyof typeof SERVICE_TAGS)[];
+  pickupType: keyof typeof PICKUP_TYPE;
   phoneNumber: string;
 }
 export interface SidoGunguAggregation {
