@@ -13,7 +13,13 @@ import { useMarkerState } from '@shared/store';
 const MIN_SNAP_POINT = BOTTOM_BAR_HEIGHT + 157;
 const MAX_SNAP_POINT_OFFSET = 72 - 8;
 
-export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode }) {
+export function KindergartenListSheet({
+  fabSlot,
+  bottomSlot,
+}: {
+  fabSlot: React.ReactNode;
+  bottomSlot?: React.ReactNode;
+}) {
   const snapPoints = [`${MIN_SNAP_POINT}px`, 0.5, 1];
 
   const { snapIndex, setSnapIndex, isFullExtended } = useBottomSheetSnapIndex();
@@ -59,7 +65,7 @@ export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode })
         <RemoveScroll forwardProps noIsolation>
           <BottomSheet.Body
             className={cn(
-              'shadow-black/6 absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] focus-visible:outline-none',
+              'absolute inset-x-0 z-50 h-full shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
               isMarkerActive && 'hidden',
               isFullExtended && 'rounded-none shadow-none'
             )}
@@ -72,6 +78,7 @@ export function KindergartenListSheet({ fabSlot }: { fabSlot: React.ReactNode })
             )}
             <BottomSheet.Title className='sr-only'>강아지 유치원 목록</BottomSheet.Title>
             <KindergartenList />
+            {bottomSlot}
           </BottomSheet.Body>
         </RemoveScroll>
       </BottomSheet.Root>
