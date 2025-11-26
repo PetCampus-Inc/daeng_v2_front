@@ -41,7 +41,7 @@ function Mypage() {
   };
 
   return (
-    <div className='flex h-screen flex-col'>
+    <div className='flex flex-1 flex-col overflow-hidden'>
       <Header withSpacing={false}>
         <Header.Title>마이페이지</Header.Title>
         <Header.RightSection>
@@ -49,7 +49,7 @@ function Mypage() {
         </Header.RightSection>
       </Header>
 
-      <div className='mb-16 flex-1 overflow-y-auto'>
+      <div className='flex-1 overflow-y-auto pb-16'>
         {!isLoggedIn && <LoginPrompt />}
 
         {isLoggedIn && !hasDogs && (

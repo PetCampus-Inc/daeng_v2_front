@@ -1,10 +1,22 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useRef, useState, PropsWithChildren, useMemo } from 'react';
+import { useEffect, useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@widgets/Header';
+import { SafeArea } from '@shared/ui/safe-area';
+
+// FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
+export default function Page() {
+  return (
+    <SafeArea edges={['top']} className='flex h-dvh flex-col'>
+      <Suspense>
+        <CompareCompletePage />
+      </Suspense>
+    </SafeArea>
+  );
+}
 
 /* =========================
  * API & ENDPOINT
@@ -125,7 +137,7 @@ const MOCK: ApiResp = {
           },
         ],
       },
-      service: ['DOG_FREE', 'CAT', 'VALET', 'HOTEL', 'BATH_SERVICE', 'GROOMING', 'PARKING'],
+      service: ['ALL_BREEDS', 'CAT', 'VALET', 'HOTEL', 'BATH_SERVICE', 'GROOMING', 'PARKING'],
       distance: [
         {
           referencePoint: 'HOME',
@@ -560,7 +572,7 @@ function DistanceSlide({
 /* =========================
  * PAGE
  * ========================= */
-export default function CompareCompletePage() {
+function CompareCompletePage() {
   const params = useSearchParams();
 
   // 🔒 안정화: params 객체 대신 문자열 키를 메모이즈해서 파싱
