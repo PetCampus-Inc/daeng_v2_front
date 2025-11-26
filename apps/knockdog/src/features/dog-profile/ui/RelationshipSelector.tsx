@@ -10,9 +10,16 @@ interface RelationshipSelectorProps {
   value?: Relationship | null;
   autoFocus?: boolean;
   onChange?: (value: Relationship) => void;
+  placeholder?: string;
 }
 
-function RelationshipSelector({ className, value, autoFocus, onChange }: RelationshipSelectorProps) {
+function RelationshipSelector({
+  className,
+  value,
+  autoFocus,
+  onChange,
+  placeholder = '관계 선택',
+}: RelationshipSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const options: { label: string; value: Relationship }[] = useMemo(
@@ -48,7 +55,7 @@ function RelationshipSelector({ className, value, autoFocus, onChange }: Relatio
             value && 'text-text-primary'
           )}
         >
-          {value ? options.find((option) => option.value === value)?.label : '관계 선택'}
+          {value ? options.find((option) => option.value === value)?.label : placeholder}
           <Icon icon='ChevronBottom' className='h-5 w-5' />
         </button>
       </BottomSheet.Trigger>

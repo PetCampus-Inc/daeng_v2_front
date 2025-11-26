@@ -1,17 +1,23 @@
 import { USER_ADDRESS_TYPE_KR, UserAddress, UserAddressType } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface UseLocationFieldOptions {
   type: UserAddressType;
+  value?: Omit<UserAddress, 'id'>;
   onChange?: (address?: Omit<UserAddress, 'id'>) => void;
 }
 
-const useLocationField = ({ type, onChange }: UseLocationFieldOptions) => {
-  const [address, setAddress] = useState<Omit<UserAddress, 'id'> | null>(null);
+const useLocationField = ({ type, value, onChange }: UseLocationFieldOptions) => {
+  const [address, setAddress] = useState<Omit<UserAddress, 'id'> | null>(value ?? null);
 
   const { pushForResult } = useStackNavigation();
+
+  // value prop이 변경되면 address 업데이트
+  useEffect(() => {
+    setAddress(value ?? null);
+  }, [value]);
 
   const navigateToAddressForm = async (params?: Record<string, unknown>) => {
     const result = await pushForResult<Omit<UserAddress, 'id'>>(

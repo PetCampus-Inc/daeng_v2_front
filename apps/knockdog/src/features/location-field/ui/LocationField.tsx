@@ -8,13 +8,14 @@ import { useLocationField } from '../model/useLocationField';
 
 interface LocationFieldProps {
   type: UserAddressType;
+  value?: Omit<UserAddress, 'id'>;
   required?: boolean;
   optional?: boolean;
   onChange?: (address?: Omit<UserAddress, 'id'>) => void;
 }
 
-export function LocationField({ type, required, optional, onChange }: LocationFieldProps) {
-  const { alias, address, add, modify, remove } = useLocationField({ type, onChange });
+export function LocationField({ type, value, required, optional, onChange }: LocationFieldProps) {
+  const { alias, address, add, modify, remove } = useLocationField({ type, value, onChange });
 
   return (
     <div className='flex flex-col gap-y-2 py-5'>

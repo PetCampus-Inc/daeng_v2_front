@@ -23,10 +23,18 @@ function GenderSelector({ value, required = false, onChange, onComplete }: Gende
       </h5>
 
       <div className='flex gap-x-2'>
-        <ToggleButton className='flex-1' pressed={value === 'MALE'} onPressedChange={handleChange('MALE')}>
+        <ToggleButton
+          className='body2-semibold flex-1'
+          pressed={value === 'MALE'}
+          onPressedChange={handleChange('MALE')}
+        >
           남자아이
         </ToggleButton>
-        <ToggleButton className='flex-1' pressed={value === 'FEMALE'} onPressedChange={handleChange('FEMALE')}>
+        <ToggleButton
+          className='body2-semibold flex-1'
+          pressed={value === 'FEMALE'}
+          onPressedChange={handleChange('FEMALE')}
+        >
           여자아이
         </ToggleButton>
       </div>
