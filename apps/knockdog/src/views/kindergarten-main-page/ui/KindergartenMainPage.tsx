@@ -12,9 +12,15 @@ import {
   ListFAB,
   MapView,
   RefreshFAB,
+  SEARCH_MODES,
   useMapUrlState,
 } from '@features/kindergarten-map';
-import { FilterBottomSheet, KindergartenCardSheet, KindergartenListSheet, isValidLatLngBounds } from '@features/kindergarten-list';
+import {
+  FilterBottomSheet,
+  KindergartenCardSheet,
+  KindergartenListSheet,
+  isValidLatLngBounds,
+} from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
@@ -26,7 +32,7 @@ export default function KindergartenMainPage() {
 
   const searchParams = useSearchParams();
 
-  const { center, zoomLevel, setSearchedLevel } = useMapUrlState();
+  const { center, zoomLevel, setSearchedLevel, setSearchMode } = useMapUrlState();
   const { coord: basePoint } = useBasePoint();
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -79,8 +85,9 @@ export default function KindergartenMainPage() {
   };
 
   /**
-   * 새로고침 핸들러
+   * 재검색 핸들러
    * - 현재 mapState를 스냅샷으로 저장
+   * - 검색 모드를 boundary로 전환
    */
   const handleRefresh = () => {
     if (!isValidCoord(basePoint) || !zoomLevel) return;
@@ -93,6 +100,7 @@ export default function KindergartenMainPage() {
       bounds: validBounds,
       zoomLevel,
     });
+    setSearchMode(SEARCH_MODES.BOUNDARY);
   };
 
   const handleOpenCard = (item: KindergartenListItemWithMeta) => {
