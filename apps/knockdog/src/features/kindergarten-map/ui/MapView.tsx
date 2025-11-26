@@ -2,13 +2,13 @@ import { useEffect, useImperativeHandle, useRef } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { useMapUrlState } from '../model/useMapUrlState';
 import { getRegionLevel } from '../lib/markers';
-import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { DEFAULT_MAP_ZOOM_LEVEL, SEARCH_MODES } from '../config/map';
 import { getMapCenter, getMapZoom } from '../lib/map';
 import { useMapQuery } from '../model/useMapQuery';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useMarkerState } from '@shared/store';
 
 interface MapViewProps {
@@ -29,7 +29,7 @@ export function MapView(props: MapViewProps) {
   const map = useRef<naver.maps.Map | null>(null);
   useImperativeHandle(ref, () => map.current!);
 
-  const { center, setCenter, zoomLevel, setZoomLevel, searchedLevel, setSearchedLevel } = useMapUrlState();
+  const { center, setCenter, zoomLevel, setZoomLevel, searchedLevel, setSearchedLevel, searchMode } = useMapUrlState();
   const { coord: basePoint } = useBasePoint();
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId, setActiveMarker } = useMarkerState();
@@ -95,7 +95,7 @@ export function MapView(props: MapViewProps) {
   /**
    * 줌 변경 완료 핸들러
    * - 줌 변경 완료 시 center, zoom 업데이트
-   * - 검색 레벨 비교 후 스냅샷 업데이트
+   * - nearby 모드일 때만 검색 레벨 비교 후 스냅샷 업데이트
    */
   const handleZoomEnd = () => {
     if (!map.current) return;
@@ -103,10 +103,13 @@ export function MapView(props: MapViewProps) {
     const zoom = map.current.getZoom();
     setCenter({ lat: coord.y, lng: coord.x });
 
-    const currentRegionLevel = getRegionLevel(zoom);
-    if (currentRegionLevel !== searchedLevel) {
-      setSearchedLevel(currentRegionLevel);
-      onSearchLevelChange?.({ lat: coord.y, lng: coord.x }, zoom, map.current.getBounds() as naver.maps.LatLngBounds);
+    // nearby 모드일 때만 검색 레벨 변경 시 스냅샷 업데이트
+    if (searchMode === SEARCH_MODES.NEARBY) {
+      const currentRegionLevel = getRegionLevel(zoom);
+      if (currentRegionLevel !== searchedLevel) {
+        setSearchedLevel(currentRegionLevel);
+        onSearchLevelChange?.({ lat: coord.y, lng: coord.x }, zoom, map.current.getBounds() as naver.maps.LatLngBounds);
+      }
     }
   };
 
