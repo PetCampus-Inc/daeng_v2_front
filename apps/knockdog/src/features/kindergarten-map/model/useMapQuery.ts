@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useMapUrlState } from './useMapUrlState';
 // FIXME: fsd import rule 위반! 수정이 필요함..
 import { kindergartenQueryOptions, useSearchUrlState } from '@features/kindergarten-list';
 import { useBasePoint } from '@shared/lib';
@@ -16,6 +17,7 @@ interface UseMapOverlayDataParams {
 export function useMapQuery(params: UseMapOverlayDataParams) {
   const { coord: basePoint } = useBasePoint();
   const { query, filters, rank } = useSearchUrlState();
+  const { searchMode } = useMapUrlState();
 
   const searchListQuery = useInfiniteQuery({
     ...kindergartenQueryOptions.searchList({
@@ -25,6 +27,7 @@ export function useMapQuery(params: UseMapOverlayDataParams) {
       filters,
       query,
       rank,
+      searchMode,
     }),
   });
 
