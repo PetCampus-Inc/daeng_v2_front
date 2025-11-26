@@ -1,10 +1,10 @@
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { useMapUrlState } from '../model/useMapUrlState';
-import { getRegionLevel } from '../lib/markers';
+import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../lib/markers';
 import { DEFAULT_MAP_ZOOM_LEVEL, SEARCH_MODES } from '../config/map';
 import { getMapCenter, getMapZoom } from '../lib/map';
-import { useMapQuery } from '../model/useMapQuery';
+import { useSearchListQuery, useAggregationQuery } from '../model/useMapQuery';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
@@ -37,11 +37,18 @@ export function MapView(props: MapViewProps) {
   const mapCenter = getMapCenter({ center, basePoint });
   const mapZoom = getMapZoom(zoomLevel);
 
+  const showAggregationMarkers = isAggregationZoom(zoomLevel ?? 0);
+  const showBusinessMarkers = isBusinessZoom(zoomLevel ?? 0);
+
   const {
     searchList: overlay,
     isLoading,
     isFetching,
-  } = useMapQuery({
+  } = useSearchListQuery({
+    mapSnapshot,
+  });
+
+  const { aggregation, geoBounds } = useAggregationQuery({
     mapSnapshot,
   });
 
@@ -140,31 +147,33 @@ export function MapView(props: MapViewProps) {
           />
         )}
 
-        {/* 지도 집계 마커 */}
-        {/* {aggregation.map((item) => (
-          <Marker
-            key={item.code}
-            position={item.coord}
-            onClick={() => handleAggregationClick(item.code, item.coord, item.nextZoom)}
-            customIcon={{
-              content: <AggregationMarker label={item.label} count={item.count} />,
-              align: 'center',
-            }}
-          />
-        ))} */}
+        {/* 지도 집계 마커 (줌레벨 0~13) */}
+        {showAggregationMarkers &&
+          aggregation.map((item) => (
+            <Marker
+              key={item.code}
+              position={item.coord}
+              onClick={() => handleAggregationClick(item.code, item.coord, item.nextZoom)}
+              customIcon={{
+                content: <AggregationMarker label={item.label} count={item.count} />,
+                align: 'center',
+              }}
+            />
+          ))}
 
-        {/* 업체 마커 */}
-        {overlay.map((item) => (
-          <Marker
-            key={item.id}
-            position={item.coord}
-            onClick={() => handleMarkerClick(item)}
-            customIcon={{
-              content: <PlaceMarker title={item.title} distance={item.dist} selected={item.id === activeMarkerId} />,
-              offsetY: 12,
-            }}
-          />
-        ))}
+        {/* 업체 마커 (줌레벨 14~) */}
+        {showBusinessMarkers &&
+          overlay.map((item) => (
+            <Marker
+              key={item.id}
+              position={item.coord}
+              onClick={() => handleMarkerClick(item)}
+              customIcon={{
+                content: <PlaceMarker title={item.title} distance={item.dist} selected={item.id === activeMarkerId} />,
+                offsetY: 12,
+              }}
+            />
+          ))}
       </NaverMap>
     </>
   );
