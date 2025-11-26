@@ -30,7 +30,7 @@ export type KindergartenAggregationQueryParams = {
   bounds: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
   query?: string;
-  enabled?: boolean;
+  searchMode?: SearchMode;
 } & Omit<KindergartenAggregationParams, 'refPoint' | 'bounds' | 'filters'>;
 
 export type FilterResultCountQueryParams = {
@@ -89,22 +89,25 @@ export const kindergartenQueryOptions = {
     zoomLevel,
     filters,
     query,
-    enabled: additionalEnabled = true,
+    searchMode = 'nearby',
   }: KindergartenAggregationQueryParams) => {
-    const baseEnabled =
-      isValidCoord(refPoint) && isValidLatLngBounds(bounds) && Number.isFinite(zoomLevel) && zoomLevel > 0;
+    const isNearbyMode = searchMode === 'nearby';
 
     return queryOptions({
-      queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters, query }),
+      queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters, query, searchMode }),
       queryFn: () =>
         getKindergartenAggregation({
           refPoint: refPoint!,
-          bounds: toBounds(bounds),
           zoomLevel,
           filters,
           query,
+          ...(isNearbyMode ? { distance: DEFAULT_DISTANCE } : { bounds: toBounds(bounds) }),
         }),
-      enabled: baseEnabled && additionalEnabled,
+      enabled:
+        isValidCoord(refPoint) &&
+        Number.isFinite(zoomLevel) &&
+        zoomLevel > 0 &&
+        (!isNearbyMode ? isValidLatLngBounds(bounds) : true),
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       retryOnMount: false,

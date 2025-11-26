@@ -27,6 +27,8 @@ export const kindergartenKeys = {
     serializeBounds(params.bounds ? toBounds(params.bounds) : null),
     params.zoomLevel,
     params.filters,
+    params.query,
+    params.searchMode,
   ],
   filterResultCount: (params: Partial<FilterResultCountQueryParams>) => [
     ...kindergartenKeys.all,
