@@ -17,7 +17,8 @@ export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from '.
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
 /** lib */
-export { isValidLatLngBounds, isSameBounds } from './lib/is';
+export { isValidBounds, isEqualBounds } from './lib/is';
+export { serializeBounds, serializeFilters } from './lib/serialize';
 
 /** model */
 export { createKindergartenListWithMock } from './model/mappers';
