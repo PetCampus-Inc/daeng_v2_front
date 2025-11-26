@@ -45,7 +45,7 @@ export function SafeArea({ edges, style, children, ...props }: SafeAreaProps) {
   };
 
   const calculatePadding = (edge: Edge, safeAreaValue: number): number => {
-    const mode = normalizedEdges[edge];
+    const mode = normalizedEdges[edge] ?? 'off';
     const existingValue = existingPadding[edge];
 
     if (mode === 'off') {

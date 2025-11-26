@@ -1,8 +1,7 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
-import { ServiceBadgeGroup } from './ServiceBadgeGroup';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenCardProps extends KindergartenListItemWithMeta {
@@ -116,7 +115,7 @@ export function KindergartenCard({
         {/* 하단 필터 + 가격 영역 */}
         <div className='gap-x2 flex min-w-0 items-center justify-between self-stretch'>
           {/* badge 영역 */}
-          <ServiceBadgeGroup serviceTags={serviceTags} pickupType={pickupType} />
+          <ServiceBadgesTruncated serviceTags={serviceTags} pickupType={pickupType} />
 
           {/* 가격 영역 */}
           <div className='gap-x1 flex shrink-0 items-center'>

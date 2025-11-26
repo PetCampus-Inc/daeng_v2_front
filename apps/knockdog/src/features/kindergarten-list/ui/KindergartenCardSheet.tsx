@@ -5,9 +5,9 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 import { ActionButton, Icon } from '@knockdog/ui';
-import { ServiceBadgeGroup } from './ServiceBadgeGroup';
+
 import { PhoneCallSheet } from './PhoneCallSheet';
-import { DeparturePointSheet, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { DeparturePointSheet, ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCompareStore } from '@shared/store/useCompareStore';
 
@@ -76,7 +76,11 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: Props) {
       <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
         <div className='gap-x2 flex'>
           {/* 썸네일 */}
-          <img src={props.banner?.[0]} className='radius-r2 size-[90px] object-cover' alt='' />
+          <img
+            src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${props.banner?.[0]}`}
+            className='radius-r2 size-[90px] object-cover'
+            alt=''
+          />
 
           {/* 타이틀/카테고리 */}
           <div className='gap-x2 flex flex-1 flex-col'>
@@ -135,7 +139,7 @@ export function KindergartenCardSheet({ isOpen, close, ...props }: Props) {
 
         {/* 배지/가격 */}
         <div className='flex min-w-0 items-center justify-between self-stretch'>
-          <ServiceBadgeGroup serviceTags={props.serviceTags} pickupType={props.pickupType} />
+          <ServiceBadgesTruncated serviceTags={props.serviceTags} pickupType={props.pickupType} />
           <div className='gap-x1 flex shrink-0 items-center'>
             <span className='body2-regular text-text-primary'>이용요금</span>
             <span className='h3-extrabold text-text-primary'>{priceText}</span>
