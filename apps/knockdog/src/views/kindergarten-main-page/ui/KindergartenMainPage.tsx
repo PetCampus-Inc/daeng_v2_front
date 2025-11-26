@@ -14,9 +14,9 @@ import {
   RefreshFAB,
   useMapUrlState,
 } from '@features/kindergarten-map';
-import { FilterBottomSheet, KindergartenCardSheet, KindergartenListSheet } from '@features/kindergarten-list';
+import { FilterBottomSheet, KindergartenCardSheet, KindergartenListSheet, isValidLatLngBounds } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import { isValidLatLngBounds, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
