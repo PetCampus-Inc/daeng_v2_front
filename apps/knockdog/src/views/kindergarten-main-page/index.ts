@@ -1,1 +1,1 @@
-export { KindergartenMainPage } from "./ui/KindergartenMainPage"
+export { default } from './ui/KindergartenMainPage';

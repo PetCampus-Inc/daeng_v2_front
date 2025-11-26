@@ -1,5 +1,9 @@
 const METHODS = {
   getLatLng: 'device.getLatLng',
+  getSafeAreaInsets: 'device.getSafeAreaInsets',
+  getCurrentLocation: 'device.getCurrentLocation',
+  getLocationPermission: 'device.getLocationPermission',
+  openLocationPermissionDialog: 'device.openLocationPermissionDialog',
   callPhone: 'system.callPhone',
   copyToClipboard: 'system.copyToClipboard',
   share: 'system.share',
@@ -12,6 +16,9 @@ const METHODS = {
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
   openExternalLink: 'system.openExternalLink',
+  kakaoLogin: 'auth.kakaoLogin',
+  googleLogin: 'auth.googleLogin',
+  appleLogin: 'auth.appleLogin',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];
@@ -67,6 +74,86 @@ type ToastShowParams = {
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};
 
+type SafeAreaInsets = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+type Accuracy = 'balanced' | 'high' | 'low';
+
+type Location = {
+  /**
+   * 자세한 위치 정보
+   */
+  coords: LocationCoords;
+  /**
+   * 위치가 업데이트된 시점의 타임스탬프
+   */
+  timestamp: number;
+};
+
+interface LocationCoords {
+  /**
+   * 위도
+   */
+  latitude: number;
+  /**
+   * 경도
+   */
+  longitude: number;
+  /**
+   * 정확도
+   */
+  accuracy: number | null;
+  /**
+   * 고도
+   */
+  altitude: number | null;
+  /**
+   * 고도 정확도
+   */
+  altitudeAccuracy: number | null;
+  /**
+   * 방향
+   */
+  heading: number | null;
+  /**
+   * 속도
+   */
+  speed: number | null;
+}
+
+type PermissionStatus = 'allowed' | 'denied' | 'undetermined';
+
+type PickImageParams = {
+  allowsEditing?: boolean; // 이미지 편집 허용 여부
+  quality?: number; // 0~1 사이의 압축 품질
+  aspect?: [number, number]; // 종횡비 [가로, 세로]
+  mediaTypes?: 'images' | 'videos' | 'all'; // 미디어 타입
+  allowsMultipleSelection?: boolean; // 다중 선택 여부 (기본: false)
+  orderedSelection?: boolean; // 선택 순서 유지 여부 (iOS만 지원, 다중 선택 시)
+  selectionLimit?: number; // 선택 가능한 최대 개수 (0 = 무제한, 다중 선택 시)
+};
+
+type ImageAsset = {
+  preSignedUrl: string; // 업로드된 이미지 pre-signed URL
+  key: string; // 업로드된 이미지 키
+};
+
+type PickImageResult = {
+  cancelled: boolean; // 취소 여부
+  assets?: ImageAsset[]; // 업로드된 이미지 정보
+};
+
+type SocialLoginResult = {
+  idToken: string;
+  email: string;
+  name?: string;
+  picture?: string;
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -79,4 +166,12 @@ export type {
   ToastShape,
   ToastPosition,
   ToastType,
+  SafeAreaInsets,
+  Accuracy,
+  Location,
+  PermissionStatus,
+  PickImageParams,
+  PickImageResult,
+  ImageAsset,
+  SocialLoginResult,
 };

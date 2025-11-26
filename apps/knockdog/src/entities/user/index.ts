@@ -1,5 +1,6 @@
 /** API */
 export { postWithdraw } from './api/user';
+export { useUserRegisterMutation } from './api/useUserMutation';
 
 /** Constant */
 export { USER_ADDRESS_TYPE_KR } from './model/constant/user';

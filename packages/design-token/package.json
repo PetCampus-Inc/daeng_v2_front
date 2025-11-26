@@ -18,6 +18,7 @@
     }
   },
   "devDependencies": {
-    "tailwindcss": "^4.1.14"
+    "bunchee": "^5.6.2",
+    "tailwindcss": "^4.1.17"
   }
 }

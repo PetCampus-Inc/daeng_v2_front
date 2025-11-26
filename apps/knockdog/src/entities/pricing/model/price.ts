@@ -1,4 +1,4 @@
-type ProductType = 'MEMBERSHIP' | 'SUBSCRIPTION' | 'MULTI_TICKET';
+type ProductType = 'MEMBERSHIP' | 'MONTHLY_TICKET' | 'COUNT_TICKET';
 
 interface ProductItem {
   name?: string;

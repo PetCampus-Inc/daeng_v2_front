@@ -1,11 +1,11 @@
 const PRODUCT_TYPE_MAP_LIST = [
   {
     name: '횟수권',
-    code: 'MULTI_TICKET',
+    code: 'COUNT_TICKET',
   },
   {
     name: '정기권',
-    code: 'SUBSCRIPTION',
+    code: 'MONTHLY_TICKET',
   },
   {
     name: '멤버십',

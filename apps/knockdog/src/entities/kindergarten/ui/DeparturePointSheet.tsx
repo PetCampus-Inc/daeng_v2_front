@@ -1,32 +1,139 @@
-import { BottomSheet, Icon } from '@knockdog/ui';
-import { RadioGroup, RadioGroupItem } from '@knockdog/ui';
-import { useCurrentAddress } from '@shared/lib/geolocation';
-import { useCurrentLocation } from '@shared/lib/geolocation';
+// FIXME: fsd 원칙에 맞는지 논의 필요
+
+import { Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
+import { useState, useEffect, useCallback } from 'react';
+import { METHODS } from '@knockdog/bridge-core';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useCurrentAddress, getCurrentLocation } from '@shared/lib/geolocation';
+import { useBridge } from '@shared/lib/bridge';
+
+type NaverRouteMode = 'car' | 'public' | 'walk' | 'bicycle';
+
+interface OpenNaverRouteParams {
+  mode: NaverRouteMode;
+  to: { lat: number; lng: number; name?: string };
+  from: { lat: number; lng: number; name?: string }; // 없으면 현재 위치
+}
+
+function assertParamsValid(params: OpenNaverRouteParams) {
+  if (!params || !params.to) throw new Error('naver.openRoute: "to" 가 필요합니다.');
+  const { lat, lng } = params.to;
+  if (typeof lat !== 'number' || typeof lng !== 'number') {
+    throw new Error('naver.openRoute: "to.lat" 와 "to.lng"는 숫자여야 합니다.');
+  }
+  if (params.from) {
+    const { lat: slat, lng: slng } = params.from;
+    if (typeof slat !== 'number' || typeof slng !== 'number') {
+      throw new Error('naver.openRoute: "from.lat" 와 "from.lng"는 숫자여야 합니다.');
+    }
+  }
+  if (!['car', 'public', 'walk', 'bicycle'].includes(params.mode)) {
+    throw new Error('naver.openRoute: 유효하지 않은 모드입니다.');
+  }
+}
+
+function useNaverOpenRoute() {
+  const bridge = useBridge();
+
+  const openNaverRoute = useCallback(
+    async (params: OpenNaverRouteParams) => {
+      assertParamsValid(params);
+      await bridge.request(METHODS.naverOpenRoute, params);
+    },
+    [bridge]
+  );
+
+  return openNaverRoute;
+}
 
 interface DeparturePointSheetProps {
   isOpen: boolean;
   close: () => void;
+  to: { lat: number; lng: number; name?: string };
 }
 
-export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps) {
-  const { position, loading: locationLoading, error: locationError } = useCurrentLocation();
+export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetProps) {
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const openNaverOpenRoute = useNaverOpenRoute();
 
-  const coords = position;
+  useEffect(() => {
+    async function fetchLocation() {
+      setLocationLoading(true);
+      setLocationError(null);
+      try {
+        const location = await getCurrentLocation();
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+        setCoords({ lat: latitude, lng: longitude });
+      } catch (error) {
+        console.error('위치 정보를 가져올 수 없습니다:', error);
+        setLocationError(error instanceof Error ? error.message : '위치 정보를 가져올 수 없습니다');
+      } finally {
+        setLocationLoading(false);
+      }
+    }
+
+    if (isOpen) {
+      fetchLocation();
+    }
+  }, [isOpen]);
+
   const shouldFetchAddress = !!coords && !locationLoading && coords.lat !== 0 && coords.lng !== 0;
   const { primaryText, primaryRoad, primaryParcel, isLoading, error } = useCurrentAddress(
     coords || { lat: 0, lng: 0 },
     shouldFetchAddress
   );
 
-  const label = locationLoading
-    ? '위치 정보 가져오는 중…'
-    : isLoading
-      ? '주소 조회 중…'
-      : locationError
-        ? '위치 정보를 가져올 수 없습니다'
-        : error
-          ? '주소를 조회할 수 없습니다'
-          : primaryText || primaryRoad || primaryParcel || '위치 정보 없음';
+  // 임시 좌표를 쓰는 경우에는 주소 조회 결과만 체크
+  const hasValidAddress = primaryText || primaryRoad || primaryParcel;
+
+  const label = (() => {
+    if (locationLoading) return '위치 정보 가져오는 중…';
+    if (isLoading) return '주소 조회 중…';
+    if (error) return '주소를 조회할 수 없습니다';
+    if (hasValidAddress) return (primaryText || primaryRoad || primaryParcel)!;
+    if (locationError) return '위치 정보를 가져올 수 없습니다';
+    return '위치 정보 없음';
+  })();
+
+  // @TODO : 임시 더미 데이터 (나중에 실제 저장된 주소 데이터로 대체)
+  const savedAddresses = {
+    home: { lat: 37.4979, lng: 127.0276 }, // 강남구 논현로 예시
+    work: { lat: 37.5665, lng: 126.978 }, // 서울역 예시
+  };
+
+  function handleRadioChange(value: string) {
+    let selectedCoords: { lat: number; lng: number } | undefined;
+    let locationName: string;
+
+    switch (value) {
+      case '1': // 현재 위치
+        if (!coords) return;
+        selectedCoords = coords;
+        locationName = '현재 위치';
+        break;
+      case '2': // 집
+        selectedCoords = savedAddresses.home;
+        locationName = '집';
+        break;
+      case '3': // 직장
+        selectedCoords = savedAddresses.work;
+        locationName = '직장';
+        break;
+      default:
+        return;
+    }
+
+    if (!selectedCoords) return;
+
+    openNaverOpenRoute({
+      mode: 'car',
+      to,
+      from: { ...selectedCoords, name: locationName },
+    });
+  }
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
@@ -38,7 +145,7 @@ export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps)
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
         <div className='py-x5 flex flex-col'>
-          <RadioGroup>
+          <RadioGroup onValueChange={handleRadioChange}>
             {/* 네이버 API 연동 */}
             <label
               htmlFor='1'
@@ -51,11 +158,7 @@ export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps)
                   <span className='body2-regular text-text-secondary'>{label}</span>
                 </div>
               </div>
-              <RadioGroupItem
-                disabled={locationLoading || isLoading || !!locationError || !!error}
-                id='1'
-                value='1'
-              ></RadioGroupItem>
+              <RadioGroupItem disabled={isLoading || locationLoading || !coords} id='1' value='1' />
             </label>
             {/*  저장된 주소 확인  */}
             <label
@@ -69,7 +172,7 @@ export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps)
                   <span className='body2-regular text-text-secondary'>서울 강남구 논현로</span>
                 </div>
               </div>
-              <RadioGroupItem id='2' value='2'></RadioGroupItem>
+              <RadioGroupItem id='2' value='2' />
             </label>
             <label
               htmlFor='3'
@@ -82,7 +185,7 @@ export function DeparturePointSheet({ isOpen, close }: DeparturePointSheetProps)
                   <span className='body2-regular text-text-secondary'>서울 강남구 논현로</span>
                 </div>
               </div>
-              <RadioGroupItem id='3' value='3'></RadioGroupItem>
+              <RadioGroupItem id='3' value='3' />
             </label>
           </RadioGroup>
         </div>

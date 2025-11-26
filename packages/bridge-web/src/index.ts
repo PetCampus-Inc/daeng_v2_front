@@ -67,7 +67,7 @@ class WebBridge {
   }
 
   /** Web -> Native 이벤트 전송 */
-  emit<K extends keyof BridgeEventMap>(event: K, payload: BridgeEventMap[K]): void {
+  emit<K extends keyof BridgeEventMap>(event: K, payload?: BridgeEventMap[K] | undefined): void {
     const id = makeId();
 
     if (typeof window === 'undefined' || !window.ReactNativeWebView) {
@@ -91,8 +91,8 @@ class WebBridge {
     );
   }
 
-  request<K extends RPCMethod>(method: K, params: ParamsOf<K>): Promise<ResultOf<K>>;
-  request<T = unknown>(method: string, params?: unknown): Promise<T>;
+  request<K extends RPCMethod>(method: K, params: ParamsOf<K>, options?: { timeoutMs?: number }): Promise<ResultOf<K>>;
+  request<T = unknown>(method: string, params?: unknown, options?: { timeoutMs?: number }): Promise<T>;
 
   async request(method: string, params?: unknown, options?: { timeoutMs?: number }) {
     const id = makeId();

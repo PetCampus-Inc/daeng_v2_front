@@ -7,6 +7,10 @@ import {
   type ToastShowParams,
   type ToastDismissParams,
   type ToastClearParams,
+  type SafeAreaInsets,
+  type Accuracy,
+  type Location,
+  type PermissionStatus,
 } from './methods';
 
 interface RPCSchema {
@@ -18,6 +22,22 @@ interface RPCSchema {
       lat: number;
       lng: number;
     };
+  };
+  [METHODS.getSafeAreaInsets]: {
+    params: {};
+    result: SafeAreaInsets;
+  };
+  [METHODS.getCurrentLocation]: {
+    params: { accuracy?: Accuracy };
+    result: Location;
+  };
+  [METHODS.getLocationPermission]: {
+    params: {};
+    result: { status: PermissionStatus };
+  };
+  [METHODS.openLocationPermissionDialog]: {
+    params: {};
+    result: { status: PermissionStatus };
   };
   [METHODS.callPhone]: {
     params: CallPhoneParams;
@@ -79,10 +99,6 @@ interface RPCSchema {
   [METHODS.toastClear]: {
     params: ToastClearParams;
     result: void;
-  };
-  [METHODS.openExternalLink]: {
-    params: { url: string };
-    result: { opened: boolean };
   };
 }
 
