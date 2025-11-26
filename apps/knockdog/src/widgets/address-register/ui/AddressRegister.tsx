@@ -8,11 +8,14 @@ import { USER_ADDRESS_TYPE, UserAddress, UserAddressType } from '@entities/user'
 type LocationFormState = Record<UserAddressType, Omit<UserAddress, 'id'>>;
 
 interface AddressRegisterProps extends Omit<React.ComponentProps<'form'>, 'onSubmit' | 'children'> {
+  defaultValues?: Partial<LocationFormState>;
   onSubmit?: (data: LocationFormState) => void;
 }
 
-function AddressRegister({ className, onSubmit, ...props }: AddressRegisterProps) {
-  const { control, handleSubmit: submit } = useForm<LocationFormState>();
+function AddressRegister({ className, defaultValues, onSubmit, ...props }: AddressRegisterProps) {
+  const { control, handleSubmit: submit } = useForm<LocationFormState>({
+    defaultValues,
+  });
 
   const handleSubmit = (data: LocationFormState) => onSubmit?.(data);
 
@@ -30,6 +33,7 @@ function AddressRegister({ className, onSubmit, ...props }: AddressRegisterProps
                 <LocationField
                   key={type}
                   type={type}
+                  value={field.value}
                   required={isRequired}
                   optional={!isRequired}
                   onChange={field.onChange}
