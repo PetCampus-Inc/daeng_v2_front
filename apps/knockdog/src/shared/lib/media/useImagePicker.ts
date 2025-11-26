@@ -106,6 +106,11 @@ async function getPreviewImageAsset(asset: ImageAsset): Promise<WebImageAsset> {
  */
 async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> {
   return new Promise((resolve) => {
+    if (typeof document === 'undefined') {
+      resolve({ cancelled: true });
+      return;
+    }
+
     const input = document.createElement('input');
     input.type = 'file';
 

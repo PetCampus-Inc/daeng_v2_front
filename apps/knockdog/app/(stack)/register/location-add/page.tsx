@@ -1,3 +1,10 @@
 import { LocationAddPage } from '@views/register/location';
+import { Suspense } from 'react';
 
-export default LocationAddPage;
+export default function Page() {
+  return (
+    <Suspense>
+      <LocationAddPage />
+    </Suspense>
+  );
+}

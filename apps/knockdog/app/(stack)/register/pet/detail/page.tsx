@@ -1,3 +1,10 @@
 import { PetDetailPage } from '@views/register/pet';
+import { Suspense } from 'react';
 
-export default PetDetailPage;
+export default function Page() {
+  return (
+    <Suspense>
+      <PetDetailPage />
+    </Suspense>
+  );
+}
