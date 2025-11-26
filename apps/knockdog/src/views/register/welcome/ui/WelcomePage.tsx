@@ -1,5 +1,4 @@
 import { ActionButton } from '@knockdog/ui';
-import { Suspense } from 'react';
 import { StackLink } from '@shared/lib/bridge';
 
 function WelcomePage() {
@@ -14,13 +13,11 @@ function WelcomePage() {
       </div>
 
       <div className='py-5'>
-        <Suspense>
-          <StackLink href='/register/marketing-consent'>
-            <ActionButton className='w-full' size='large'>
-              시작하기
-            </ActionButton>
-          </StackLink>
-        </Suspense>
+        <StackLink href='/register/marketing-consent'>
+          <ActionButton className='w-full' size='large'>
+            시작하기
+          </ActionButton>
+        </StackLink>
       </div>
     </div>
   );

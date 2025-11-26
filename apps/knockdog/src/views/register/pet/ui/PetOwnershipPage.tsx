@@ -1,5 +1,4 @@
 import { ActionButton } from '@knockdog/ui';
-import { Suspense } from 'react';
 import { route } from '@shared/constants/route';
 
 import { StackLink } from '@shared/lib/bridge';
@@ -16,18 +15,16 @@ function PetOwnershipPage() {
       </div>
 
       <div className='flex gap-2'>
-        <Suspense>
-          <StackLink href={route.register.userNickname.root}>
-            <ActionButton variant='secondaryLine' size='large' className='w-full'>
-              아니오
-            </ActionButton>
-          </StackLink>
-          <StackLink href={route.register.pet.profile.root}>
-            <ActionButton variant='secondaryFill' size='large' className='w-full'>
-              예
-            </ActionButton>
-          </StackLink>
-        </Suspense>
+        <StackLink href={route.register.userNickname.root}>
+          <ActionButton variant='secondaryLine' size='large' className='w-full'>
+            아니오
+          </ActionButton>
+        </StackLink>
+        <StackLink href={route.register.pet.profile.root}>
+          <ActionButton variant='secondaryFill' size='large' className='w-full'>
+            예
+          </ActionButton>
+        </StackLink>
       </div>
     </div>
   );
