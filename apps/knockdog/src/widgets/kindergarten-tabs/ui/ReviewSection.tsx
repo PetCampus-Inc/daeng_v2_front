@@ -1,11 +1,11 @@
 'use client';
 
+import { Icon } from '@knockdog/ui';
 import { useParams } from 'next/navigation';
 
 import { ReviewCard } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import { useInfiniteScroll } from '@shared/lib';
-import { Icon } from '@knockdog/ui';
 
 interface ReviewSectionProps {
   onScrollTop?: () => void;
@@ -76,7 +76,7 @@ export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSecti
   };
 
   return (
-    <div className='mb-12 mt-10 flex flex-col px-4'>
+    <div className='mt-10 mb-12 flex flex-col px-4'>
       <div className='mb-9'>
         <Header />
         {renderContent()}

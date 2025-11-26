@@ -1,10 +1,10 @@
 'use client';
 
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
-import { ActionButton, Divider } from '@knockdog/ui';
+import { ActionButton } from '@knockdog/ui';
+import { AddressRegister } from '@widgets/address-register';
 
-import { LocationField } from '@features/location-field';
 import {
   USER_ADDRESS_TYPE,
   USER_ADDRESS_TYPE_KR,
@@ -13,8 +13,8 @@ import {
   useUserRegisterMutation,
   useUserStore,
 } from '@entities/user';
-import { useStackNavigation } from '@shared/lib/bridge';
 import { useSocialUserStore } from '@entities/social-user';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 
 type LocationFormState = Record<UserAddressType, Omit<UserAddress, 'id'>>;
@@ -66,30 +66,7 @@ function LocationRegisterPage() {
         어디 기준으로 찾아볼까요?
       </p>
 
-      <form id='location-form' className='mt-10 flex flex-1 flex-col overflow-hidden' onSubmit={submit(handleSubmit)}>
-        {Object.values(USER_ADDRESS_TYPE).map((type, index) => (
-          <Controller
-            key={type}
-            control={control}
-            name={type}
-            render={({ field }) => {
-              const isRequired = type === USER_ADDRESS_TYPE.HOME;
-              return (
-                <>
-                  <LocationField
-                    key={type}
-                    type={type}
-                    required={isRequired}
-                    optional={!isRequired}
-                    onChange={field.onChange}
-                  />
-                  {index < Object.values(USER_ADDRESS_TYPE).length - 1 && <Divider />}
-                </>
-              );
-            }}
-          />
-        ))}
-      </form>
+      <AddressRegister id='location-form' className='mt-10' onSubmit={handleSubmit} />
 
       <ActionButton
         variant='secondaryFill'

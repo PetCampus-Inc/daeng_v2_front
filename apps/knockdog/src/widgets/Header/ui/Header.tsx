@@ -8,7 +8,7 @@ import CloseButton from './CloseButton';
 import InputField from './InputField';
 import HomeButton from './HomeButton';
 import { cn } from '@knockdog/ui/lib';
-import type { ComponentProps } from 'react';
+import { Suspense, type ComponentProps } from 'react';
 import type { HeaderVariant } from '../model/HeaderProvider';
 
 export function Header({
@@ -39,7 +39,6 @@ export function Header({
       >
         <div className={cn('flex h-16 w-full items-center')}>{children}</div>
       </header>
-
       {withSpacing && <div className='h-16' />}
     </>
   );
