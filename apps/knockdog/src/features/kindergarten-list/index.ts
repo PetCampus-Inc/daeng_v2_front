@@ -1,6 +1,9 @@
 /** api */
 export { kindergartenQueryOptions } from './api/kindergartenQuery';
 
+/** lib */
+export { isValidLatLngBounds, toBounds } from './lib/map-adapter';
+
 /** model */
 export * from './model/useSearchUrlState';
 export * from './model/useSearchFilter';
