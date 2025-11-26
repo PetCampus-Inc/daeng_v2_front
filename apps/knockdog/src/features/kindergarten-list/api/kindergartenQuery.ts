@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { kindergartenKeys } from '../config/query-keys';
-import { serializeBounds, serializeFilters } from '../lib/serialize';
+import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
 import {
   type KindergartenSearchListParams,
   type KindergartenAggregationParams,
@@ -10,14 +10,13 @@ import {
   getKindergartenAggregation,
   getFilterResultCount,
   createKindergartenListWithMock,
-  isValidLatLngBounds,
 } from '@entities/kindergarten';
-import { isValidCoord, serializeCoords } from '@shared/lib';
+import { isValidCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 export type KindergartenSearchListQueryParams = {
   refPoint?: Coord;
-  bounds: naver.maps.LatLngBounds | null;
+  bounds?: naver.maps.LatLngBounds | null;
   filters?: FilterOption[];
   query?: string;
 } & Omit<KindergartenSearchListParams, 'refPoint' | 'bounds' | 'filters' | 'query'>;
@@ -41,12 +40,12 @@ export const kindergartenQueryOptions = {
       queryKey: kindergartenKeys.searchList({ refPoint, bounds, zoomLevel, filters, query, rank }),
       queryFn: ({ pageParam = 1 }) =>
         getKindergartenSearchList({
-          refPoint: serializeCoords(refPoint, { order: 'lnglat' }),
-          bounds: serializeBounds(bounds),
+          refPoint: refPoint!,
+          bounds: toBounds(bounds),
           zoomLevel,
           page: pageParam,
           size: 10,
-          filters: serializeFilters(filters),
+          filters,
           query,
           rank,
         }),
@@ -81,10 +80,10 @@ export const kindergartenQueryOptions = {
       queryKey: kindergartenKeys.aggregation({ refPoint, bounds, zoomLevel, filters, query }),
       queryFn: () =>
         getKindergartenAggregation({
-          refPoint: serializeCoords(refPoint),
-          bounds: serializeBounds(bounds),
+          refPoint: refPoint!,
+          bounds: toBounds(bounds),
           zoomLevel,
-          filters: serializeFilters(filters),
+          filters,
           query,
         }),
       enabled: baseEnabled && additionalEnabled,
@@ -96,14 +95,15 @@ export const kindergartenQueryOptions = {
   },
 
   filterResultCount: ({ bounds, filters }: FilterResultCountQueryParams) => {
+    const abstractBounds = bounds ? toBounds(isValidLatLngBounds(bounds) ? bounds : null) : null;
     return queryOptions({
       queryKey: kindergartenKeys.filterResultCount({ bounds, filters }),
       queryFn: () =>
         getFilterResultCount({
-          bounds: serializeBounds(isValidLatLngBounds(bounds) ? bounds : null),
-          filters: serializeFilters(filters)!,
+          bounds: abstractBounds,
+          filters,
         }),
-      enabled: filters.length > 0 && isValidLatLngBounds(bounds),
+      enabled: filters.length > 0 && bounds !== undefined && isValidLatLngBounds(bounds),
     });
   },
 };
