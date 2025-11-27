@@ -1,7 +1,7 @@
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { CONSENT_TEXT } from '../lib/consent';
 
-function MarketingConsentSheet({ isOpen, close }: { isOpen: boolean; close: () => void }) {
+function MarketingConsentSheet({ isOpen, close }: { isOpen: boolean; close: (open: boolean) => void }) {
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Body>
