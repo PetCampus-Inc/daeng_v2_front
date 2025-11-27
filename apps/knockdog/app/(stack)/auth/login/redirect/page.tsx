@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { redirect, useRouter } from 'next/navigation';
 import { Header } from '@widgets/Header';
 
@@ -9,20 +9,22 @@ import { SOCIAL_PROVIDER_KO, SocialUser } from '@entities/social-user';
 import { route } from '@shared/constants/route';
 import { TypedStorage } from '@shared/lib';
 import { STORAGE_KEYS } from '@shared/constants';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function RedirectLoginPage() {
-  const { push } = useRouter();
+  const { push } = useStackNavigation();
+  const [linkedSocialUser, setLinkedSocialUser] = useState<SocialUser | null>(null);
 
-  const linkedSocialUserStorage = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, {
-    initialValue: null,
-  });
+  useEffect(() => {
+    const linkedSocialUserStorage = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, {
+      initialValue: null,
+    });
+    setLinkedSocialUser(linkedSocialUserStorage.get());
+  }, []);
 
-  const linkedSocialUser = linkedSocialUserStorage.get();
+  const handleReconnectClick = () => push({ pathname: route.auth.reconnectSocial.root });
 
-  if (!linkedSocialUser) redirect(route.auth.login.root);
-
-  const handleReconnectClick = () => push(route.auth.reconnectSocial.root);
-
+  if (!linkedSocialUser) return null;
   return (
     <>
       <Header>

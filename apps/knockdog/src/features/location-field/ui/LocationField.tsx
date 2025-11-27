@@ -1,33 +1,74 @@
-import { Icon } from '@knockdog/ui';
-import { USER_ADDRESS_TYPE_KR, UserAddressType } from '@entities/user';
+'use client';
+
+import { Divider, Field, FieldContent, FieldLabel, FieldLabelIndicator, Icon } from '@knockdog/ui';
+
+import { USER_ADDRESS_TYPE, UserAddress, UserAddressType } from '@entities/user';
+
+import { useLocationField } from '../model/useLocationField';
 
 interface LocationFieldProps {
   type: UserAddressType;
+  value?: Omit<UserAddress, 'id'>;
   required?: boolean;
-  onAdd?: () => void;
+  optional?: boolean;
+  onChange?: (address?: Omit<UserAddress, 'id'>) => void;
 }
 
-export function LocationField({ type, required, onAdd }: LocationFieldProps) {
+export function LocationField({ type, value, required, optional, onChange }: LocationFieldProps) {
+  const { alias, address, add, modify, remove } = useLocationField({ type, value, onChange });
+
   return (
     <div className='flex flex-col gap-y-2 py-5'>
-      {/* 라벨 */}
-      <div className='flex items-center gap-x-px'>
-        <span className='h3-extrabold'>{USER_ADDRESS_TYPE_KR[type]}</span>
+      <Field>
+        <FieldLabel className='h3-extrabold flex items-center'>
+          <div className='flex-1'>
+            {alias}
 
-        {required ? (
-          <span className='body1-extrabold text-text-accent'>*</span>
-        ) : (
-          <span className='body1-medium text-text-secondary'>(선택)</span>
-        )}
-      </div>
+            {required && <FieldLabelIndicator type='required' />}
+            {optional && <FieldLabelIndicator type='optional' />}
+          </div>
 
-      {/* 추가 버튼 */}
-      <button>
-        <div className='text-text-tertiary body1-bold flex items-center gap-x-1'>
-          <Icon icon='Plus' className='h-5 w-5' />
-          추가하기
-        </div>
-      </button>
+          {address && (
+            <div className='flex items-center gap-x-1'>
+              {type !== USER_ADDRESS_TYPE.HOME && (
+                <>
+                  <button
+                    className='label-semibold text-text-tertiary flex items-center gap-1 px-2 py-1'
+                    type='button'
+                    onClick={remove}
+                  >
+                    <Icon icon='Edit' className='text-fill-secondary-400 size-4' />
+                    삭제
+                  </button>
+                  <Divider orientation='vertical' className='h-3.5' />
+                </>
+              )}
+
+              <button
+                className='label-semibold text-text-tertiary flex items-center gap-1 px-2 py-1'
+                type='button'
+                onClick={modify}
+              >
+                <Icon icon='Edit' className='text-fill-secondary-400 size-4' />
+                수정
+              </button>
+            </div>
+          )}
+        </FieldLabel>
+
+        <FieldContent>
+          <button className='text-left' type='button' onClick={add}>
+            {address ? (
+              <span className='text-text-primary body1-regular'>{address.address}</span>
+            ) : (
+              <span className='text-text-tertiary body1-bold flex items-center gap-x-1'>
+                <Icon icon='Plus' className='size-4' />
+                추가하기
+              </span>
+            )}
+          </button>
+        </FieldContent>
+      </Field>
     </div>
   );
 }

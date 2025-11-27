@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from 'react';
 import Layout from '../(main)/layout';
 import { Header } from '@widgets/Header';
+import { SafeArea } from '@shared/ui/safe-area';
 
 /* =========================
  * 환경 & 공통 유틸
@@ -171,54 +172,56 @@ export default function SavedPage() {
 
   return (
     <Layout>
-      <div className='flex min-h-screen flex-col bg-white'>
-        <Header>
-          <Header.LeftSection>
-            <Suspense fallback={null}>
-              <Header.BackButton />
-            </Suspense>
-          </Header.LeftSection>
-          <Header.Title>보관함</Header.Title>
-        </Header>
+      <SafeArea edges={['top']} className='flex h-dvh flex-col'>
+        <div className='flex min-h-screen flex-col bg-white'>
+          <Header>
+            <Header.LeftSection>
+              <Suspense fallback={null}>
+                <Header.BackButton />
+              </Suspense>
+            </Header.LeftSection>
+            <Header.Title>보관함</Header.Title>
+          </Header>
 
-        {/* ▼▼ DEV 로그인 플로팅 버튼 (좌측 고정) ▼▼ */}
-        <DevLoginFab />
-        {/* ▲▲ DEV 로그인 플로팅 버튼 ▲▲ */}
+          {/* ▼▼ DEV 로그인 플로팅 버튼 (좌측 고정) ▼▼ */}
+          <DevLoginFab />
+          {/* ▲▲ DEV 로그인 플로팅 버튼 ▲▲ */}
 
-        {/* 탭 */}
-        <div className='flex border-b border-gray-200'>
-          <button
-            onClick={() => setTab('fav')}
-            className={`flex-1 py-3 text-center text-sm ${
-              tab === 'fav' ? 'border-b-2 border-orange-500 font-semibold text-orange-500' : 'text-gray-500'
-            }`}
-          >
-            관심 유치원 ({favCount})
-          </button>
-          <button
-            onClick={() => setTab('history')}
-            className={`flex-1 py-3 text-center text-sm ${
-              tab === 'history' ? 'border-b-2 border-orange-500 font-semibold text-orange-500' : 'text-gray-500'
-            }`}
-          >
-            비교 기록
-          </button>
-        </div>
+          {/* 탭 */}
+          <div className='flex border-b border-gray-200'>
+            <button
+              onClick={() => setTab('fav')}
+              className={`flex-1 py-3 text-center text-sm ${
+                tab === 'fav' ? 'border-b-2 border-orange-500 font-semibold text-orange-500' : 'text-gray-500'
+              }`}
+            >
+              관심 유치원 ({favCount})
+            </button>
+            <button
+              onClick={() => setTab('history')}
+              className={`flex-1 py-3 text-center text-sm ${
+                tab === 'history' ? 'border-b-2 border-orange-500 font-semibold text-orange-500' : 'text-gray-500'
+              }`}
+            >
+              비교 기록
+            </button>
+          </div>
 
-        <div className='relative flex-1 overflow-y-auto'>
-          {tab === 'fav' ? (
-            favCount === 0 ? (
-              <FavEmpty />
+          <div className='relative flex-1 overflow-y-auto'>
+            {tab === 'fav' ? (
+              favCount === 0 ? (
+                <FavEmpty />
+              ) : (
+                <FavList items={favorites} />
+              )
+            ) : loading ? (
+              <div className='p-8 text-center text-gray-500'>불러오는 중...</div>
             ) : (
-              <FavList items={favorites} />
-            )
-          ) : loading ? (
-            <div className='p-8 text-center text-gray-500'>불러오는 중...</div>
-          ) : (
-            <HistoryList groups={historyGroups} onDelete={onDeleteHistory} />
-          )}
+              <HistoryList groups={historyGroups} onDelete={onDeleteHistory} />
+            )}
+          </div>
         </div>
-      </div>
+      </SafeArea>
     </Layout>
   );
 }

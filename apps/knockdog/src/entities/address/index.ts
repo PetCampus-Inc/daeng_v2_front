@@ -1,1 +1,1 @@
-export * from './model/address';
+export type { Address, LatLng, AddressSearchResult, AddressData } from './model/address';

@@ -2,11 +2,11 @@ import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { ServiceBadge } from './ServiceBadge';
-import { PICKUP_TYPE_MAP, ALL_SERVICE_MAP } from '../model/constants/kindergarten';
+import { PICKUP_TYPE, SERVICE_TAGS } from '../config/constant';
 
 interface ServiceBadgesTruncatedProps {
-  serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
-  pickupType: keyof typeof PICKUP_TYPE_MAP;
+  serviceTags: (keyof typeof SERVICE_TAGS)[];
+  pickupType: keyof typeof PICKUP_TYPE;
 }
 
 function ServiceBadgesTruncated({ serviceTags, pickupType }: ServiceBadgesTruncatedProps) {
@@ -16,18 +16,20 @@ function ServiceBadgesTruncated({ serviceTags, pickupType }: ServiceBadgesTrunca
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
         <Icon icon={pickupType === 'FREE' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
-        {PICKUP_TYPE_MAP[pickupType]}
+        {PICKUP_TYPE[pickupType]}
       </ServiceBadge>
     );
   }
 
-  serviceTags.forEach((tag) => {
-    allBadges.push(
-      <ServiceBadge key={`service-${tag}`} variant='outline'>
-        {ALL_SERVICE_MAP[tag]}
-      </ServiceBadge>
-    );
-  });
+  serviceTags
+    .filter((tag) => SERVICE_TAGS[tag])
+    .forEach((tag) => {
+      allBadges.push(
+        <ServiceBadge key={`service-${tag}`} variant='outline'>
+          {SERVICE_TAGS[tag]}
+        </ServiceBadge>
+      );
+    });
 
   return <BadgeGroup>{allBadges}</BadgeGroup>;
 }

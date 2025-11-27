@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import {
   useReverseGeocodeQuery,
   type ReverseGeocodeStandardResponse,
@@ -23,10 +23,17 @@ interface UseCurrentAddressResult {
   isLoading: boolean;
   isFetching: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export function useCurrentAddress(coords: Coordinates | undefined, enabled = true): UseCurrentAddressResult {
   const reverseQuery = useReverseGeocodeQuery(coords, enabled);
+
+  const refetch = useCallback(() => {
+    if (coords && coords.lat !== 0 && coords.lng !== 0) {
+      reverseQuery.refetch();
+    }
+  }, [coords, reverseQuery.refetch]);
 
   return useMemo(() => {
     const items = extractVWorldItems(reverseQuery.data);
@@ -42,6 +49,7 @@ export function useCurrentAddress(coords: Coordinates | undefined, enabled = tru
       isLoading: reverseQuery.isLoading,
       isFetching: reverseQuery.isFetching,
       error: (reverseQuery.error as Error | null | undefined)?.message ?? null,
+      refetch,
     };
-  }, [coords, reverseQuery.data, reverseQuery.isLoading, reverseQuery.isFetching, reverseQuery.error]);
+  }, [coords, reverseQuery.data, reverseQuery.isLoading, reverseQuery.isFetching, reverseQuery.error, refetch]);
 }

@@ -15,7 +15,7 @@ export interface RegionSuggestion {
 // TODO: 다른 곳에서도 활용되는지 확인 필요
 export type FilterItemCode = Exclude<
   FilterOption,
-  'OPEN_NOW' | 'OPEN_HOLIDAY' | 'PASS_TICKET' | 'SUBSCRIPTION' | 'MEMBERSHIP'
+  'OPEN_NOW' | 'OPEN_HOLIDAY' | 'COUNT_TICKET' | 'MONTHLY_TICKET' | 'MEMBERSHIP'
 >;
 
 export interface FilterItemSuggestion {

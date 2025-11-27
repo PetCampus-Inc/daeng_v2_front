@@ -2,9 +2,10 @@
 
 import { useRef } from 'react';
 import { IconButton } from '@knockdog/ui';
-import { MapView } from '@features/map';
+import { Map, Marker } from '@knockdog/react-naver-map';
 import { Coord } from '@entities/kindergarten';
 import { useClipboardCopy } from '@shared/lib/device';
+import { CurrentLocationMarker } from '@shared/ui/map';
 
 interface LocationMapProps {
   address: string;
@@ -28,7 +29,15 @@ export function LocationMap({ address, coord }: LocationMapProps) {
       </div>
 
       <div className='bg-primitive-neutral-50 h-[166px] rounded-lg'>
-        <MapView ref={map} current={coord} center={coord} zoom={DEFAULT_MAP_ZOOM_LEVEL} />
+        <Map ref={map} center={coord} zoom={DEFAULT_MAP_ZOOM_LEVEL}>
+          <Marker
+            position={coord}
+            customIcon={{
+              content: <CurrentLocationMarker />,
+              align: 'center',
+            }}
+          />
+        </Map>
       </div>
     </div>
   );

@@ -67,7 +67,7 @@ class WebBridge {
   }
 
   /** Web -> Native 이벤트 전송 */
-  emit<K extends keyof BridgeEventMap>(event: K, payload: BridgeEventMap[K]): void {
+  emit<K extends keyof BridgeEventMap>(event: K, payload?: BridgeEventMap[K] | undefined): void {
     const id = makeId();
 
     if (typeof window === 'undefined' || !window.ReactNativeWebView) {

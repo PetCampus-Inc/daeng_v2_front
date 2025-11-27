@@ -1,9 +1,8 @@
 import * as Linking from 'expo-linking';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
-import { Platform, Share } from 'react-native';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
-import { METHODS, type ShareParams, type ShareResult } from '@knockdog/bridge-core';
+import { METHODS } from '@knockdog/bridge-core';
 
 /**
  * 시스템 핸들러
@@ -61,65 +60,6 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     } catch (error) {
       console.error('[APP] copyToClipboard error', error);
       throw { code: 'EUNAVAILABLE', message: '클립보드에 복사할 수 없습니다.' };
-    }
-  });
-
-  /** 공유하기 */
-  router.register(METHODS.share, async (params: ShareParams): Promise<ShareResult> => {
-    const { message, url, subject, excludedActivityTypes, tintColor, title, dialogTitle } = params ?? {};
-
-    if (!message && !url) {
-      throw { code: 'EINVALID', message: '공유할 메시지 또는 URL이 필요합니다.' };
-    }
-
-    try {
-      // React Native Share는 message가 필수이므로 기본값 설정
-      const shareMessage = message || url || '';
-
-      const content: { message: string; url?: string; title?: string } = {
-        message: shareMessage,
-      };
-
-      // URL 설정
-      if (url) {
-        content.url = url;
-      }
-
-      // 플랫폼별 제목 설정
-      if (Platform.OS === 'ios' && subject) {
-        content.title = subject;
-      } else if (Platform.OS === 'android' && title) {
-        content.title = title;
-      }
-
-      // 플랫폼별 옵션 설정
-      const options: {
-        dialogTitle?: string;
-        excludedActivityTypes?: string[];
-        tintColor?: string;
-      } = {};
-
-      if (Platform.OS === 'android' && dialogTitle) {
-        options.dialogTitle = dialogTitle;
-      }
-
-      if (Platform.OS === 'ios') {
-        if (excludedActivityTypes) {
-          options.excludedActivityTypes = excludedActivityTypes;
-        }
-        if (tintColor) {
-          options.tintColor = tintColor;
-        }
-      }
-
-      const response = await Share.share(content, options);
-
-      const shared = response?.action === Share.sharedAction;
-
-      return { shared: !!shared, activityType: response?.activityType ?? undefined };
-    } catch (error) {
-      console.error('[APP] share error', error);
-      throw { code: 'EUNAVAILABLE', message: '공유할 수 없습니다.' };
     }
   });
 }
