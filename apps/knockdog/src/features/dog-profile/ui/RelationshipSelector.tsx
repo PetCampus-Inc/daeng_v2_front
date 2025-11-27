@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BottomSheet, Icon } from '@knockdog/ui';
+import { Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, Relationship } from '@entities/pet';
 

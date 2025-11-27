@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 
-import { TextField, TextFieldInput, Icon, BottomSheet } from '@knockdog/ui';
+import { TextField, TextFieldInput, Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface YearSelectorProps {
   ref?: React.Ref<HTMLInputElement>;

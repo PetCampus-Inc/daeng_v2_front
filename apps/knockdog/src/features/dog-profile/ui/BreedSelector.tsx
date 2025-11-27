@@ -1,6 +1,7 @@
 'use client';
 
-import { TextField, TextFieldInput, Icon, IconButton, BottomSheet } from '@knockdog/ui';
+import { TextField, TextFieldInput, Icon, IconButton } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import type { Breed } from '../model/breed.type';
 import { useBreedSearch } from '@features/dog-profile/model/useBreedSearch';
 import { TextHighlights } from '@shared/ui/text-highlights';
