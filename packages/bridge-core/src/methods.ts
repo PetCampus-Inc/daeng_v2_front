@@ -16,6 +16,9 @@ const METHODS = {
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
   openExternalLink: 'system.openExternalLink',
+  kakaoLogin: 'auth.kakaoLogin',
+  googleLogin: 'auth.googleLogin',
+  appleLogin: 'auth.appleLogin',
 } as const;
 
 export type MethodName = (typeof METHODS)[keyof typeof METHODS];
@@ -144,6 +147,13 @@ type PickImageResult = {
   assets?: ImageAsset[]; // 업로드된 이미지 정보
 };
 
+type SocialLoginResult = {
+  idToken: string;
+  email: string;
+  name?: string;
+  picture?: string;
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -163,4 +173,5 @@ export type {
   PickImageParams,
   PickImageResult,
   ImageAsset,
+  SocialLoginResult,
 };

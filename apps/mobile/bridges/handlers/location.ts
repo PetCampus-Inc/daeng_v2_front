@@ -51,7 +51,7 @@ export function registerLocationHandlers(router: NativeBridgeRouter) {
    * @param {Accuracy} params.accuracy - 정확도
    */
   router.register(METHODS.getCurrentLocation, async (params: { accuracy: Accuracy }) => {
-    const { status } = await Location.getForegroundPermissionsAsync();
+    const { status } = await Location.requestForegroundPermissionsAsync();
 
     if (status !== Location.PermissionStatus.GRANTED) {
       throw {

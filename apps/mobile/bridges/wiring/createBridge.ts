@@ -2,9 +2,11 @@ import type { RefObject } from 'react';
 import type { WebView as RNWebView } from 'react-native-webview';
 import { wireWebView, serializeForJS } from '@knockdog/bridge-native';
 import { makeRouter } from '../handlers/router';
-import { handleSystemEvent } from '../handlers/open-external-link';
+import { handleOpenExternalLink } from '../handlers/open-external-link';
 import { navBridgeHub } from '../model/navBridgeHub';
 import { BRIDGE_VERSION, type BridgeEventMap } from '@knockdog/bridge-core';
+import { handleOpenSystemSetting } from '../handlers/open-system-setting';
+import { handleShare } from '../handlers/handle-share';
 
 // A의 WebView로 이벤트 재주입
 function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: unknown) {
@@ -68,7 +70,15 @@ function createBridgeForWebView(webRef: RefObject<RNWebView>) {
         return;
       }
 
-      if (handleSystemEvent(event, payload)) {
+      if (handleOpenExternalLink(event, payload)) {
+        return;
+      }
+
+      if (handleOpenSystemSetting(event)) {
+        return;
+      }
+
+      if (handleShare(event, payload)) {
         return;
       }
 

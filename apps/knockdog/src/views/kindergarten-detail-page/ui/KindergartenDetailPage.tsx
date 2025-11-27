@@ -9,7 +9,7 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useParams } from 'next/navigation';
 import { BookmarkToggleIcon } from '@entities/bookmark';
-import { PhoneCallSheet } from '@features/kindergarten';
+import { PhoneCallSheet } from '@features/kindergarten-list';
 import { overlay } from 'overlay-kit';
 import { useShare } from '@shared/lib/device';
 

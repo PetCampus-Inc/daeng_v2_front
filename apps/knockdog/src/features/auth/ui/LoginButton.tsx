@@ -22,7 +22,7 @@ const BUTTON_STYLE_MAP = {
     icon: 'AppleLogo',
     styles: 'text-text-primary-inverse bg-black',
   },
-};
+} as const;
 
 interface LoginButtonProps extends Omit<React.ComponentProps<'button'>, 'onClick'> {
   provider: SocialProvider;

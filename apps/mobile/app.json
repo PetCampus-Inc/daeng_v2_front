@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "daeng_v2_mobile",
+    "name": "똑독",
     "slug": "petcampus",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,74 +9,52 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "cover",
-      "backgroundColor": "#FF6600"
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "net.knockdog.petcampus.v2",
+      "bundleIdentifier": "com.gyulgyuri.daeng-v2-mobile",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["nmap"],
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": false,
-          "NSAllowsArbitraryLoadsInWebContent": true,
-          "NSExceptionDomains": {
-            "openapi.map.naver.com": {
-              "NSExceptionAllowsInsecureHTTPLoads": true,
-              "NSIncludesSubdomains": false
-            },
-            "oapi.map.naver.com": {
-              "NSExceptionAllowsInsecureHTTPLoads": true,
-              "NSIncludesSubdomains": false
-            },
-            "map.naver.net": {
-              "NSExceptionAllowsInsecureHTTPLoads": true,
-              "NSIncludesSubdomains": true
-            },
-            "static.naver.net": {
-              "NSExceptionAllowsInsecureHTTPLoads": true,
-              "NSIncludesSubdomains": false
-            }
-          }
-        }
+        "LSApplicationQueriesSchemes": ["nmap"]
       },
       "splash": {
-        "image": "./assets/images/splash.png",
+        "image": "./assets/images/splash-icon.png",
         "resizeMode": "cover",
-        "backgroundColor": "#FF6600"
+        "backgroundColor": "#ffffff"
       }
     },
     "android": {
       "splash": {
-        "image": "./assets/images/splash.png",
+        "image": "./assets/images/splash-icon.png",
         "resizeMode": "cover",
-        "backgroundColor": "#FF6600"
+        "backgroundColor": "#ffffff"
+      },
+      "androidStatusBar": {
+        "barStyle": "light-content",
+        "backgroundColor": "transparent"
       },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#FF6600"
+        "foregroundImage": "./assets/images/splash-icon.png",
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "net.knockdog.petcampus.v2",
+      "package": "com.gyulgyuri.daeng_v2_mobile",
       "permissions": ["android.permission.ACCESS_COARSE_LOCATION", "android.permission.ACCESS_FINE_LOCATION"]
-    },
-    "androidStatusBar": {
-      "barStyle": "light-content",
-      "backgroundColor": "transparent"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/splash-icon.png"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
+          "image": "./assets/images/splash-icon.png",
           "resizeMode": "cover",
-          "backgroundColor": "#FF6600"
+          "backgroundColor": "#ffffff"
         }
       ],
       [

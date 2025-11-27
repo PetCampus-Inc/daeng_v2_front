@@ -1,4 +1,4 @@
-import type { ImageAsset } from './methods';
+import type { ImageAsset, ShareParams } from './methods';
 
 interface BridgeEventMap {
   'bridge.ready': { nativeVersion: string; methods: string[] };
@@ -29,6 +29,8 @@ interface BridgeEventMap {
   };
   'media.pickImage.cancel': { requestId: string; reason?: string };
   'system.openExternalLink': { url: string };
+  'system.openSystemSetting': undefined;
+  'system.share': ShareParams;
 }
 
 export type { BridgeEventMap };

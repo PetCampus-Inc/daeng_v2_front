@@ -9,12 +9,24 @@ import { PortalProvider } from '@gorhom/portal'; // ★ 포털
 import RootStackNavigator from './components/navigation/RootStackNavigator';
 import { navigationRef } from './bridges/lib/navigationRef';
 import { ToastProvider } from './components/toast'; // ★ 토스트 프로바이더 (네이티브 구현)
+import { initializeKakaoSDK } from '@react-native-kakao/core';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // 앱 시작 시 스플래시 자동 숨김 방지
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY || '';
+  const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '';
+
+  useEffect(() => {
+    // Kakao SDK 초기화
+    initializeKakaoSDK(kakaoNativeAppKey);
+
+    // Google SDK 초기화
+    GoogleSignin.configure({ iosClientId });
+  }, []);
 
   useEffect(() => {
     (async () => {

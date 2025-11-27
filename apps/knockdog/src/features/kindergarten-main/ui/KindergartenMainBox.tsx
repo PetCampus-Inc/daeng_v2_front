@@ -1,8 +1,8 @@
 import React from 'react';
 import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
-import { ServiceBadgeList } from '@entities/kindergarten';
-import { DeparturePointSheet } from '@features/kindergarten';
+import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
+
 import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
 
 interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}

@@ -1,5 +1,5 @@
-import { useBasePointType } from '@shared/store';
 import { useGeolocationQuery } from './useGeolocationQuery';
+import { useBasePointType } from '@shared/store';
 
 export function useBasePoint() {
   const { selectedBaseType } = useBasePointType();
