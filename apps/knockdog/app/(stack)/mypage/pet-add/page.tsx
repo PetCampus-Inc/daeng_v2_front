@@ -5,9 +5,8 @@ import { Suspense } from 'react';
 
 export default function Page() {
   return (
-    <div>test</div>
-    // <Suspense>
-    //   <MypagePetAddPage />
-    // </Suspense>
+    <Suspense>
+      <MypagePetAddPage />
+    </Suspense>
   );
 }
