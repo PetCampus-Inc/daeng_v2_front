@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { postRegisterUser } from './user';
+import { postRegisterUser, postUpdateUserNickname, postUpdateUserEmail } from './user';
 
 const useUserRegisterMutation = () => {
   return useMutation({
@@ -7,4 +7,16 @@ const useUserRegisterMutation = () => {
   });
 };
 
-export { useUserRegisterMutation };
+const useUserUpdateNicknameMutation = () => {
+  return useMutation({
+    mutationFn: postUpdateUserNickname,
+  });
+};
+
+const useUserUpdateUserEmailMutation = () => {
+  return useMutation({
+    mutationFn: postUpdateUserEmail,
+  });
+};
+
+export { useUserRegisterMutation, useUserUpdateNicknameMutation, useUserUpdateUserEmailMutation };

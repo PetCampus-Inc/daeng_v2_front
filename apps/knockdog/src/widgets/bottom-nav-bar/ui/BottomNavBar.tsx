@@ -1,15 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Icon } from '@knockdog/ui';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 import { NAV_ITEMS } from '../config/navitem';
 
-export function BottomNavBar() {
+function BottomNavBarContent() {
   if (isNativeWebView()) {
     return null;
   }
+
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>
       <nav
@@ -28,3 +30,7 @@ export function BottomNavBar() {
     </div>
   );
 }
+
+export const BottomNavBar = dynamic(() => Promise.resolve(BottomNavBarContent), {
+  ssr: false,
+});

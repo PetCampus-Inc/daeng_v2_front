@@ -4,22 +4,22 @@ import { Icon, IconType } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useLogin } from '../model/useLogin';
 
-import { SocialProvider } from '@entities/social-user';
+import { SocialProvider, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
 
 const BUTTON_STYLE_MAP = {
   KAKAO: {
     text: '카카오톡으로 시작하기',
-    icon: 'KakaoLogo',
+    icon: SOCIAL_PROVIDER_ICONS.KAKAO,
     styles: 'text-text-primary bg-[#FEE500]',
   },
   GOOGLE: {
     text: '구글로 시작하기',
-    icon: 'GoogleLogo',
+    icon: SOCIAL_PROVIDER_ICONS.GOOGLE,
     styles: 'text-text-primary bg-white border border-line-400',
   },
   APPLE: {
     text: 'Apple로 시작하기',
-    icon: 'AppleLogo',
+    icon: SOCIAL_PROVIDER_ICONS.APPLE,
     styles: 'text-text-primary-inverse bg-black',
   },
 } as const;

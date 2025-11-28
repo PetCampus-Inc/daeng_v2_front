@@ -8,4 +8,4 @@ export {
   usePetUpdateDetailMutation,
   usePetUpdateRepresentativeMutation,
 } from './api/usePetMutation';
-export { usePetListQuery, usePetByIdQuery } from './api/usePetQuery';
+export { usePetListQuery, usePetByIdQuery, usePetRepresentativeQuery } from './api/usePetQuery';
