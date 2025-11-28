@@ -66,7 +66,7 @@ function LocationRegisterPage() {
         어디 기준으로 찾아볼까요?
       </p>
 
-      <AddressRegister id='location-form' className='mt-10' onSubmit={handleSubmit} />
+      <AddressRegister id='location-form' className='mt-10' control={control} onSubmit={submit(handleSubmit)} />
 
       <ActionButton
         variant='secondaryFill'
