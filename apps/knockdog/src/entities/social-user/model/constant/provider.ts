@@ -10,4 +10,10 @@ const SOCIAL_PROVIDER_KO = {
   APPLE: '애플',
 } as const;
 
-export { SOCIAL_PROVIDER, SOCIAL_PROVIDER_KO };
+const SOCIAL_PROVIDER_ICONS = {
+  KAKAO: 'KakaoLogo',
+  GOOGLE: 'GoogleLogo',
+  APPLE: 'AppleLogo',
+} as const;
+
+export { SOCIAL_PROVIDER, SOCIAL_PROVIDER_KO, SOCIAL_PROVIDER_ICONS };

@@ -1,6 +1,11 @@
 /** API */
 export { postWithdraw } from './api/user';
-export { useUserRegisterMutation } from './api/useUserMutation';
+export {
+  useUserRegisterMutation,
+  useUserUpdateNicknameMutation,
+  useUserUpdateUserEmailMutation,
+} from './api/useUserMutation';
+export { useUserInfoQuery } from './api/useUserQuery';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';
 export { type PushSetting } from './api/pushSetting';

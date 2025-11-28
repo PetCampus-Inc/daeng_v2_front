@@ -21,4 +21,31 @@ const postWithdraw = async (userId: string) => {
   return await api.post(`auth/withdraw/${userId}`);
 };
 
-export { type RegisterUserRequest, postRegisterUser, postWithdraw };
+interface UserInfo extends User {
+  infoRcvEmail: string;
+}
+
+/** `GET` - 유저 정보 조회 API */
+const getUserInfo = async () => {
+  return await api.get(`mypage/getUserInfo`).json<ApiResponse<UserInfo>>();
+};
+
+/** `POST` - 유저 정보 수정 API */
+const postUpdateUserNickname = async (nickname: string) => {
+  return await api.post(`mypage/updateNickname`, { json: { nickname } }).json<ApiResponse<void>>();
+};
+
+/** `POST` - 유저 정보 수신 이메일 수정 API */
+const postUpdateUserEmail = async (userEmail: string) => {
+  return await api.post(`mypage/updateInfoRcvEmail`, { json: { userEmail } }).json<ApiResponse<void>>();
+};
+
+export {
+  type RegisterUserRequest,
+  type UserInfo,
+  postRegisterUser,
+  postWithdraw,
+  getUserInfo,
+  postUpdateUserNickname,
+  postUpdateUserEmail,
+};

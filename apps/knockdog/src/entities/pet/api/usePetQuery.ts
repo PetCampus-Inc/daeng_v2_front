@@ -21,4 +21,13 @@ const usePetByIdQuery = (petId: string) => {
   });
 };
 
-export { usePetListQuery, usePetByIdQuery };
+// 대표 강아지 조회
+const usePetRepresentativeQuery = () => {
+  return useQuery({
+    queryKey: ['petList'],
+    queryFn: getPetList,
+    select: (petList) => petList.data?.find((p) => p.isRepresentative),
+  });
+};
+
+export { usePetListQuery, usePetByIdQuery, usePetRepresentativeQuery };

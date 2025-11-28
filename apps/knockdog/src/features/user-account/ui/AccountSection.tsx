@@ -1,6 +1,6 @@
 import { Divider, Icon, IconButton } from '@knockdog/ui';
 import { useSocialUserStore } from '@entities/social-user/model/store/useSocialUserStore';
-import { SOCIAL_PROVIDER } from '@entities/social-user';
+import { SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
 
 interface AccountInfo {
   nickname: string;
@@ -16,12 +16,6 @@ interface AccountSectionProps {
 function AccountSection({ accountInfo, onAccountClick, onLocationClick }: AccountSectionProps) {
   const socialUser = useSocialUserStore((state) => state.socialUser);
 
-  const providerIcons = {
-    [SOCIAL_PROVIDER.GOOGLE]: 'GoogleLogo',
-    [SOCIAL_PROVIDER.KAKAO]: 'KakaoLogo',
-    [SOCIAL_PROVIDER.APPLE]: 'AppleLogo',
-  } as const;
-
   return (
     <div className='px-4 py-5'>
       <div className='body2-semibold text-text-tertiary mb-2'>사용자 계정 관리</div>
@@ -34,7 +28,7 @@ function AccountSection({ accountInfo, onAccountClick, onLocationClick }: Accoun
 
           {socialUser && (
             <div className='bg-fill-secondary-50 flex items-center rounded-lg px-4 py-3'>
-              <Icon icon={providerIcons[socialUser.provider]} className='mr-1' />
+              <Icon icon={SOCIAL_PROVIDER_ICONS[socialUser.provider]} className='mr-1' />
               <span className='body1-regular'>{socialUser.email}</span>
             </div>
           )}
