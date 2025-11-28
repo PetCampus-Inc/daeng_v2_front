@@ -1,21 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Icon } from '@knockdog/ui';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 import { NAV_ITEMS } from '../config/navitem';
 
-export function BottomNavBar() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // hydration 완료 후 네이티브 웹뷰 체크
-  if (isMounted && isNativeWebView()) {
+function BottomNavBarContent() {
+  if (isNativeWebView()) {
     return null;
   }
 
@@ -37,3 +30,7 @@ export function BottomNavBar() {
     </div>
   );
 }
+
+export const BottomNavBar = dynamic(() => Promise.resolve(BottomNavBarContent), {
+  ssr: false,
+});

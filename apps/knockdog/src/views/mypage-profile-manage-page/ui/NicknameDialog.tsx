@@ -73,7 +73,7 @@ function NicknameDialog({ isOpen, close }: NicknameDialogProps) {
 
         <AlertDialogFooter className='min-w-0'>
           <AlertDialogCancel className='min-w-0 flex-1'>취소</AlertDialogCancel>
-          <AlertDialogAction className='min-w-0 flex-1' onClick={handleConfirm}>
+          <AlertDialogAction className='min-w-0 flex-1' disabled={!nickname.trim()} onClick={handleConfirm}>
             확인
           </AlertDialogAction>
         </AlertDialogFooter>
