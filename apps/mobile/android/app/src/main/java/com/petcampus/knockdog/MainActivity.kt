@@ -1,4 +1,4 @@
-package com.petcampus.knockdog
+package net.knockdog.petcampus.v2
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

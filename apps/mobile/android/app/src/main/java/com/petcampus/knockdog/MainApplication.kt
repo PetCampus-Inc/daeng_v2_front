@@ -1,4 +1,4 @@
-package com.petcampus.knockdog
+package net.knockdog.petcampus.v2
 
 import android.app.Application
 import android.content.res.Configuration
