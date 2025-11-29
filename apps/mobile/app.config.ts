@@ -1,4 +1,5 @@
 import { ConfigContext, ExpoConfig } from 'expo/config';
+import 'dotenv/config';
 
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const iosUrlScheme = process.env.EXPO_PUBLIC_IOS_URL_SCHEME;
@@ -26,7 +27,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     usesAppleSignIn: true,
-    bundleIdentifier: 'com.petcampus.knockdog',
+    bundleIdentifier: 'net.knockdog.petcampus.v2',
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap'],
       NSAppTransportSecurity: {
@@ -74,7 +75,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#FF6600',
     },
     edgeToEdgeEnabled: true,
-    package: 'com.petcampus.knockdog',
+    package: 'net.knockdog.petcampus.v2',
     permissions: ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
   },
   web: {
