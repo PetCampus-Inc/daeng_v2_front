@@ -14,7 +14,7 @@ interface LocationMapProps {
 
 const DEFAULT_MAP_ZOOM_LEVEL = 15;
 
-export function LocationMap({ address, coord }: LocationMapProps) {
+export function LocationMap({ address = '', coord = { lat: 0, lng: 0 } }: LocationMapProps) {
   const map = useRef<naver.maps.Map | null>(null);
   const copy = useClipboardCopy();
 
@@ -28,8 +28,8 @@ export function LocationMap({ address, coord }: LocationMapProps) {
         <IconButton icon='Copy' className='h-5 w-5 text-[#70727C]' onClick={async () => await copy(address)} />
       </div>
 
-      <div className='bg-primitive-neutral-50 h-[166px] rounded-lg'>
-        <Map ref={map} center={coord} zoom={DEFAULT_MAP_ZOOM_LEVEL}>
+      <div className='bg-primitive-neutral-50 h-[166px] overflow-hidden rounded-lg'>
+        <Map ref={map} center={coord} zoom={DEFAULT_MAP_ZOOM_LEVEL} className='h-full w-full'>
           <Marker
             position={coord}
             customIcon={{

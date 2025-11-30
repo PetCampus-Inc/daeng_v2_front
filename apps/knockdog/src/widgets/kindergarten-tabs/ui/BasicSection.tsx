@@ -103,7 +103,7 @@ function BasicSection() {
       {/* 웹사이트 SNS */}
       <ExternalLinksCard website={homepageUrl} instagram={instagramUrl} youtube={youtubeUrl} />
       {/* 위치 */}
-      {/* <LocationMap address={roadAddress || ''} coord={coord || { lat: 0, lng: 0 }} /> */}
+      {roadAddress && coord && <LocationMap address={roadAddress} coord={coord} />}
       {/* 최종 정보 업데이트 */}
       <div className='flex justify-between py-4'>
         <div className='flex flex-col'>

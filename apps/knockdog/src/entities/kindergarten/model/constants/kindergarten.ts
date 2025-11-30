@@ -23,6 +23,7 @@ const DOG_SAFETY_FACILITY_MAP = {
   PLAYGROUND: '놀이터',
   ROOFTOP: '루프탑·테라스',
   YARD: '운동장·마당',
+  TRAINING_GROUND_YARD: '운동장',
 } as const;
 
 const VISITOR_AMENITY_MAP = {
@@ -67,6 +68,7 @@ const SERVICE_ICON_MAP = {
   PLAYGROUND: 'Playground',
   ROOFTOP: 'Rooftop',
   YARD: 'Frontyard',
+  TRAINING_GROUND_YARD: 'Frontyard',
   PICK_DROP: 'PickdropLine',
   DIARY: 'Noticebook',
   DOG_SHOP: 'Toyshop',

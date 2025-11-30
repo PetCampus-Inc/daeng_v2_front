@@ -1,5 +1,5 @@
-import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
-
+import { OPEN_STATUS_MAP, CTAG_MAP } from './constants/kindergarten';
+import { PICKUP_TYPE, SERVICE_TAGS } from '../config/constant';
 export interface Kindergarten {
   id: string;
   title: string;
@@ -14,8 +14,8 @@ export interface Kindergarten {
   };
   roadAddress: string;
   reviewCount: number;
-  serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
-  pickupType: keyof typeof PICKUP_TYPE_MAP;
+  serviceTags: (keyof typeof SERVICE_TAGS)[];
+  pickupType: keyof typeof PICKUP_TYPE;
   banner: string[];
   bookmarked: boolean;
   memoDate: string;
