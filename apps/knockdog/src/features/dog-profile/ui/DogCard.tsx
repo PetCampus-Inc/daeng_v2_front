@@ -22,14 +22,9 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
     >
       {imageUrl && <Image src={imageUrl} alt={name} fill className='object-cover' />}
 
-      {isRepresentative && (
-        <div className='bg-fill-primary-500 caption1-regular text-text-primary-inverse absolute top-4 left-4 rounded-full px-2 py-0.5'>
-          대표
-        </div>
-      )}
       <div className='absolute bottom-4 left-4 flex flex-col gap-y-1'>
         <div className='h3-semibold flex items-center gap-x-0.5'>
-          <Icon icon='Smalldog' />
+          {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-5' />}
           <span className='text-text-primary-inverse'>{name}</span>
         </div>
         <div className='body2-regular text-text-primary-inverse'>
