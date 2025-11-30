@@ -63,7 +63,7 @@ function MypageProfileLocationPage() {
 
       <Divider size='thick' className='my-4' />
 
-      <AddressRegister id='location-form' className='px-4' defaultValues={defaultValues} onSubmit={handleSubmit} />
+      {/* <AddressRegister id='location-form' className='px-4' /> */}
     </div>
   );
 }

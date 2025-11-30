@@ -5,6 +5,12 @@ export {
   useUserUpdateNicknameMutation,
   useUserUpdateUserEmailMutation,
 } from './api/useUserMutation';
+export {
+  useAddUserAddressMutation,
+  useUpdateUserAddressMutation,
+  useDeleteUserAddressMutation,
+  useUpdateUserAddressesMutation,
+} from './api/useAddressMutation';
 export { useUserInfoQuery } from './api/useUserQuery';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';
