@@ -54,7 +54,6 @@ export const useLogin = () => {
     if (data.status === USER_STATUS.ACTIVE) {
       setUser(data);
 
-      // TODO: 네이티브일 경우 로그인 스택 pop, 웹일 경우 이전 페이지로 돌아가도록 수정할 것
       back();
     }
   };

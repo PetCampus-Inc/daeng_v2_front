@@ -50,6 +50,17 @@ function extractInitialState(params?: WebNavPayload['params']) {
   return undefined;
 }
 
+/** URL에서 경로만 추출 */
+function extractPathFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.pathname;
+  } catch {
+    // URL 파싱 실패 시 원본 반환 (이미 경로일 수 있음)
+    return url;
+  }
+}
+
 /** 웹 경로 → 네이티브 라우트 변환 (Tabs / Stack(path)) */
 function toRoute(
   payload?: WebNavPayload
@@ -57,7 +68,11 @@ function toRoute(
   const name = payload?.name ?? '/';
   const params = payload?.params;
 
-  if (name === '/' || name === '/home') {
+  // 전체 URL이 들어올 수 있으므로 경로만 추출
+  const pathname = extractPathFromUrl(name);
+  const normalizedPath = pathname === '/' || pathname === '' ? '/' : pathname;
+
+  if (normalizedPath === '/' || normalizedPath === '/home') {
     return { screen: 'Tabs', params: undefined };
   }
 
