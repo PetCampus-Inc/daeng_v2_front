@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-
+import { IconButton, Icon } from '@knockdog/ui';
 type SortAnchor = 'home' | 'work' | 'here';
 
 type DistanceBy = {
@@ -172,6 +172,9 @@ export default function ComparePage() {
                 <Header.BackButton />
               </Header.LeftSection>
               <Header.Title>보관함</Header.Title>
+              <Header.RightSection>
+                <IconButton icon='Search' />
+              </Header.RightSection>
             </Header>
 
             {/* Filter Bar */}
