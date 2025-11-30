@@ -11,11 +11,17 @@ import { QuickActionsSection } from '@features/support';
 import { SettingsSection } from '@features/app-settings';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { usePetListQuery } from '@entities/pet';
+import { useOpenExternalLink } from '@shared/lib/bridge';
+
+const EXTERNAL_LINKS = {
+  NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
+  OPEN_SOURCE_LICENSE: 'https://fifth-potato-175.notion.site/2ba6c15f67fb805d9b8df5db96f2bfc1?source=copy_link',
+};
 
 function Mypage() {
   const { push } = useStackNavigation();
   const user = useUserStore((state) => state.user);
-
+  const openExternalLink = useOpenExternalLink();
   const { data: petListResponse } = usePetListQuery();
 
   const openDogSelectSheet = () => {
@@ -38,6 +44,10 @@ function Mypage() {
 
   const handleAddDog = () => {
     push({ pathname: '/mypage/pet-add' });
+  };
+
+  const handleOpenLink = (key: keyof typeof EXTERNAL_LINKS) => {
+    openExternalLink(EXTERNAL_LINKS[key]);
   };
 
   return (
@@ -82,8 +92,10 @@ function Mypage() {
         <SettingsSection
           version='v1.0.000'
           hasUpdate
+          onNoticeClick={() => handleOpenLink('NOTICE')}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
+          onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
         />
       </div>
     </div>
