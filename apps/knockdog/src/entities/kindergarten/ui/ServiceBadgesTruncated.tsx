@@ -12,7 +12,7 @@ interface ServiceBadgesTruncatedProps {
 function ServiceBadgesTruncated({ serviceTags, pickupType }: ServiceBadgesTruncatedProps) {
   const allBadges = [];
 
-  if (pickupType !== 'NONE') {
+  if (!!pickupType && pickupType !== 'NONE') {
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
         <Icon icon={pickupType === 'FREE' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />

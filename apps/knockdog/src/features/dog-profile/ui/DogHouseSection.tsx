@@ -2,6 +2,7 @@ import { DogHouseHeader } from './DogHouseHeader';
 import { DogCard } from './DogCard';
 import { AddDogCard } from './AddDogCard';
 import type { Pet } from '@entities/pet';
+import { calculateAge } from '@entities/pet';
 interface DogHouseSectionProps {
   dogs: Pet[];
   maxDogs?: number;
@@ -28,7 +29,7 @@ function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick
             key={dog.id}
             name={dog.name}
             breed={dog.breed}
-            age={dog.birthYear}
+            age={calculateAge(dog.birthYear)}
             imageUrl={dog.profileImageUrl}
             isRepresentative={dog.isRepresentative}
             onClick={() => onDogClick(dog.id)}

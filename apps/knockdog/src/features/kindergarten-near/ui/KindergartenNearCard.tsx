@@ -73,13 +73,13 @@ const KindergartenNearCard = ({
           <span className='body2-regular text-text-tertiary'>{roadAddress}</span>
         </div>
         <div>
-          <span className='body2-bold min-w-13 text-text-accent mr-1 inline-block'>
+          <span className='body2-bold text-text-accent mr-1 inline-block min-w-13'>
             {OPEN_STATUS_MAP[operationStatus]}
           </span>
           <span className='body2-regular text-text-tertiary'>{operationDescription}</span>
         </div>
         <div>
-          <span className='body2-bold min-w-13 mr-1 inline-block'>이용요금</span>
+          <span className='body2-bold mr-1 inline-block min-w-13'>이용요금</span>
           <span className='body2-bold'>{price.toLocaleString()}원~</span>
         </div>
       </div>
