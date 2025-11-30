@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { getPetList } from './pet';
 import type { Pet } from '../model/pet';
 
-const usePetListQuery = () => {
+const usePetListQuery = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['petList'],
     queryFn: getPetList,
+    enabled: options?.enabled ?? true,
     select: (data) => ({
       ...data,
       data: data.data?.sort((a, b) => (b.isRepresentative ? 1 : 0) - (a.isRepresentative ? 1 : 0)),

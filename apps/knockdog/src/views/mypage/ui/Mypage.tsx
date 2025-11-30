@@ -22,7 +22,8 @@ function Mypage() {
   const { push } = useStackNavigation();
   const user = useUserStore((state) => state.user);
   const openExternalLink = useOpenExternalLink();
-  const { data: petListResponse } = usePetListQuery();
+  const isLoggedIn = !!user;
+  const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn });
 
   const openDogSelectSheet = () => {
     overlay.open(({ isOpen, close }) => (
@@ -30,7 +31,6 @@ function Mypage() {
     ));
   };
 
-  const isLoggedIn = !!user;
   const hasDogs = (petListResponse?.data?.length ?? 0) > 0;
 
   const accountInfo: AccountInfo = {
