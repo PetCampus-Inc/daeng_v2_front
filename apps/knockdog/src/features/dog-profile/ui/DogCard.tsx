@@ -27,8 +27,9 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
           {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-5' />}
           <span className='text-text-primary-inverse'>{name}</span>
         </div>
-        <div className='body2-regular text-text-primary-inverse'>
-          {breed} • {age}살
+        <div className='body2-regular text-text-primary-inverse flex max-w-[118px] items-center gap-x-1'>
+          <span className='truncate'>{breed}</span>
+          <span className='shrink-0'>• {age}살</span>
         </div>
       </div>
     </div>
