@@ -3,13 +3,13 @@ import { formatDistance } from '@shared/lib';
 import { FILTER_ICON_MAP } from '../config/icon-map';
 import { isRegionSuggestion } from '../lib/is';
 import { HighlightedText } from './HighlightedText';
-import type { Autocomplete, RegionSuggestion, FilterItemSuggestion, Place } from '@entities/kindergarten';
+import type { Autocomplete, RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 
 interface AutoCompleteListProps {
   data: Autocomplete;
   query: string;
   onSuggestionClick?: (suggestion: RegionSuggestion | FilterItemSuggestion) => void;
-  onPlaceClick?: (place: Place) => void;
+  onPlaceClick?: (place: AutocompletePlace) => void;
 }
 
 export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick }: AutoCompleteListProps) {
