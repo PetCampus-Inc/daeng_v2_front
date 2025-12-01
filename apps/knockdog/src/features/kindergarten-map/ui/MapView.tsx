@@ -74,25 +74,25 @@ export function MapView(props: MapViewProps) {
    * 2. 내주변 && 집계 조회했을 때
    * 3. 시군구 레벨(2)에서 조회했을 때
    */
-  useEffect(() => {
-    if (!map.current || !geoBounds) return;
+  // useEffect(() => {
+  //   if (!map.current || !geoBounds) return;
 
-    const hasQuery = !!query && query.trim().length > 0;
-    const isNearbyWithAggregation = searchMode === SEARCH_MODES.NEARBY && showAggregationMarkers;
-    const isSigunguLevel = searchedLevel === 2;
+  //   const hasQuery = !!query && query.trim().length > 0;
+  //   const isNearbyWithAggregation = searchMode === SEARCH_MODES.NEARBY && showAggregationMarkers;
+  //   const isSigunguLevel = searchedLevel === 2;
 
-    const shouldFitBounds = hasQuery || isNearbyWithAggregation || isSigunguLevel;
+  //   const shouldFitBounds = hasQuery || isNearbyWithAggregation || isSigunguLevel;
 
-    if (!shouldFitBounds) return;
+  //   if (!shouldFitBounds) return;
 
-    const { swLng, swLat, neLng, neLat } = geoBounds;
-    const bounds = new naver.maps.LatLngBounds(
-      new naver.maps.LatLng(swLat, swLng),
-      new naver.maps.LatLng(neLat, neLng)
-    );
+  //   const { swLng, swLat, neLng, neLat } = geoBounds;
+  //   const bounds = new naver.maps.LatLngBounds(
+  //     new naver.maps.LatLng(swLat, swLng),
+  //     new naver.maps.LatLng(neLat, neLng)
+  //   );
 
-    map.current.fitBounds(bounds);
-  }, [geoBounds, query, searchMode, showAggregationMarkers, searchedLevel]);
+  //   map.current.fitBounds(bounds);
+  // }, [geoBounds, query, searchMode, showAggregationMarkers, searchedLevel]);
 
   /**
    * 지도 로드 핸들러
