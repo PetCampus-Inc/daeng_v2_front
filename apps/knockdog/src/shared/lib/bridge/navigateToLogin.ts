@@ -10,9 +10,15 @@ import { route } from '@shared/constants/route';
 async function navigateToLogin() {
   const pathname = route.auth.login.root;
   const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-  const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
 
   if (isNativeWebView()) {
+    const webUrl = process.env.NEXT_PUBLIC_WEB_URL;
+    if (!webUrl) {
+      console.error('[navigateToLogin] NEXT_PUBLIC_WEB_URL is not defined');
+      window.location.href = pathname;
+      return;
+    }
+    const fullPath = `${webUrl}/${normalizedPath}`;
     // 네이티브 환경: bridge를 통해 stack push
     const bridge = getBridgeInstance();
 
