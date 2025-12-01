@@ -9,24 +9,10 @@ export interface KindergartenSearchList {
   };
   schoolResult: {
     totalCount: number;
-    exactCount: number | null;
-    nearbyCount: number | null;
+    exactCount: number;
+    nearbyCount: number;
     exact: KindergartenListItem | null;
     list: KindergartenListItem[];
-  };
-}
-
-export interface Aggregation {
-  aggregations: {
-    sidoAggregations: SidoGunguAggregation[] | null;
-    sigunAggregations: SidoGunguAggregation[] | null;
-    geoBoundAggregation: GeoBoundAggregation;
-  };
-  bounds: {
-    swLng: number;
-    swLat: number;
-    neLng: number;
-    neLat: number;
   };
 }
 
@@ -48,6 +34,20 @@ export interface KindergartenListItem {
   serviceTags: (keyof typeof SERVICE_TAGS)[];
   pickupType: keyof typeof PICKUP_TYPE;
   phoneNumber: string;
+}
+
+export interface Aggregation {
+  aggregations: {
+    sidoAggregations: SidoGunguAggregation[] | null;
+    sigunAggregations: SidoGunguAggregation[] | null;
+    geoBoundAggregation: GeoBoundAggregation;
+  };
+  bounds: {
+    swLng: number;
+    swLat: number;
+    neLng: number;
+    neLat: number;
+  };
 }
 export interface SidoGunguAggregation {
   code: string;

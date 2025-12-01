@@ -3,7 +3,8 @@ import type {
   KindergartenAggregationQueryParams,
   KindergartenSearchListQueryParams,
 } from '../api/kindergartenQuery';
-import { serializeBounds } from '../lib/serialize';
+import { toBounds, isValidLatLngBounds } from '../lib/map-adapter';
+import { serializeBounds } from '@entities/kindergarten';
 import { serializeCoords } from '@shared/lib';
 
 export const kindergartenKeys = {
@@ -12,23 +13,27 @@ export const kindergartenKeys = {
     ...kindergartenKeys.all,
     'search-list',
     serializeCoords(params.refPoint),
-    serializeBounds(params.bounds),
+    serializeBounds(params.bounds ? toBounds(params.bounds) : null),
     params.zoomLevel,
     params.filters,
+    params.query,
     params.rank,
+    params.searchMode,
   ],
   aggregation: (params: Partial<KindergartenAggregationQueryParams>) => [
     ...kindergartenKeys.all,
     'aggregation',
     serializeCoords(params.refPoint),
-    serializeBounds(params.bounds),
+    serializeBounds(params.bounds ? toBounds(params.bounds) : null),
     params.zoomLevel,
     params.filters,
+    params.query,
+    params.searchMode,
   ],
   filterResultCount: (params: Partial<FilterResultCountQueryParams>) => [
     ...kindergartenKeys.all,
     'filter-result-count',
-    serializeBounds(params.bounds as naver.maps.LatLngBounds),
+    serializeBounds(params.bounds && isValidLatLngBounds(params.bounds) ? toBounds(params.bounds) : null),
     params.filters,
   ],
 } as const;

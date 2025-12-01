@@ -1,11 +1,11 @@
-import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useCallback } from 'react';
+import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
-import type { RegionSuggestion, FilterItemSuggestion } from '@entities/kindergarten';
 import { useBasePoint } from '@shared/lib';
 import { useSearchHistory } from '@shared/store';
+import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
   const [query, setQuery] = useState('');
@@ -17,54 +17,66 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleSuggestionClick = useCallback(
-    (suggestion: RegionSuggestion | FilterItemSuggestion) => {
-      if (suggestion.type === 'REGION') {
-        addRecentSearchKeyword({
-          type: 'REGION',
-          label: suggestion.label,
-          code: suggestion.code,
-          coord: suggestion.coord,
-          zoom: suggestion.zoom,
-        });
-      } else {
-        addRecentSearchKeyword({
-          type: 'FILTER_ITEM',
-          label: suggestion.label,
-          code: suggestion.code,
-        });
-      }
-      // TODO: 검색 결과 페이지로 이동
-    },
-    [addRecentSearchKeyword]
-  );
-
-  const handlePlaceClick = useCallback(
-    (shop: { id: string; title: string; roadAddress: string }) => {
-      addRecentView({
-        id: shop.id,
-        label: shop.title,
-        address: shop.roadAddress,
+  const handleSuggestionClick = (suggestion: RegionSuggestion | FilterItemSuggestion) => {
+    if (suggestion.type === 'REGION') {
+      addRecentSearchKeyword({
+        type: 'REGION',
+        label: suggestion.label,
+        code: suggestion.code,
+        coord: suggestion.coord,
+        zoom: suggestion.zoom,
       });
-      // TODO: 상세 페이지로 이동
-    },
-    [addRecentView]
-  );
 
-  const handleSubmit = useCallback(() => {
+      const params = new URLSearchParams(searchParams?.toString());
+      params.set('query', suggestion.label);
+      params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
+      params.set('zoom', String(suggestion.zoom));
+      router.replace(`/?${params.toString()}`);
+    } else {
+      addRecentSearchKeyword({
+        type: 'FILTER_ITEM',
+        label: suggestion.label,
+        code: suggestion.code,
+      });
+
+      const params = new URLSearchParams(searchParams?.toString());
+      params.set('query', suggestion.label);
+      params.set('filters', suggestion.code);
+      router.replace(`/?${params.toString()}`);
+    }
+  };
+
+  const handlePlaceClick = (place: AutocompletePlace) => {
+    addRecentView({
+      id: place.id,
+      label: place.title,
+      address: place.roadAddress,
+    });
+
+    const params = new URLSearchParams(searchParams?.toString());
+    params.set('query', place.title);
+    params.set('center', `${place.coord.lat},${place.coord.lng}`);
+    router.replace(`/?${params.toString()}`);
+  };
+
+  const handleSubmit = () => {
     if (query.trim()) {
       addRecentSearchKeyword({
         type: 'USER_QUERY',
         label: query.trim(),
       });
-      // TODO: 검색 결과 페이지로 이동
+
+      const params = new URLSearchParams(searchParams?.toString());
+      params.set('query', query.trim());
+      router.replace(`/?${params.toString()}`);
     }
-  }, [query, addRecentSearchKeyword]);
+  };
 
   return (
     <div className='flex h-full flex-col'>
@@ -95,7 +107,10 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
             {query && (
               <button
                 type='button'
-                onClick={() => setQuery('')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setQuery('');
+                }}
                 aria-label='검색 결과 초기화'
                 className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
               >

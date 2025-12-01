@@ -9,6 +9,7 @@ import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
 import { kindergartenQueryOptions } from '../api/kindergartenQuery';
 import { useSearchUrlState } from '../model/useSearchUrlState';
+import { useMapUrlState } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 import { isNativeWebView, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -29,6 +30,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { query: searchQuery, filters, rank } = useSearchUrlState();
+  const { searchMode } = useMapUrlState();
   const { coord: basePoint } = useBasePoint();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -44,6 +46,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
       filters,
       query: searchQuery,
       rank,
+      searchMode,
     }),
   });
 

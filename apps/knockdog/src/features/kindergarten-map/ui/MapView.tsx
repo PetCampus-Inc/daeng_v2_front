@@ -1,14 +1,16 @@
 import { useEffect, useImperativeHandle, useRef } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { useMapUrlState } from '../model/useMapUrlState';
-import { getRegionLevel } from '../lib/markers';
-import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../lib/markers';
+import { DEFAULT_MAP_ZOOM_LEVEL, SEARCH_MODES } from '../config/map';
 import { getMapCenter, getMapZoom } from '../lib/map';
-import { useMapQuery } from '../model/useMapQuery';
+import { useSearchListQuery, useAggregationQuery } from '../model/useMapQuery';
+import { BBoxDebug } from './BBoxDebug';
+import { useSearchUrlState } from '@features/kindergarten-list';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useMarkerState } from '@shared/store';
 
 interface MapViewProps {
@@ -29,7 +31,8 @@ export function MapView(props: MapViewProps) {
   const map = useRef<naver.maps.Map | null>(null);
   useImperativeHandle(ref, () => map.current!);
 
-  const { center, setCenter, zoomLevel, setZoomLevel, searchedLevel, setSearchedLevel } = useMapUrlState();
+  const { center, setCenter, zoomLevel, setZoomLevel, searchedLevel, setSearchedLevel, searchMode } = useMapUrlState();
+  const { query } = useSearchUrlState();
   const { coord: basePoint } = useBasePoint();
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId, setActiveMarker } = useMarkerState();
@@ -37,11 +40,18 @@ export function MapView(props: MapViewProps) {
   const mapCenter = getMapCenter({ center, basePoint });
   const mapZoom = getMapZoom(zoomLevel);
 
+  const showAggregationMarkers = isAggregationZoom(zoomLevel ?? 0);
+  const showBusinessMarkers = isBusinessZoom(zoomLevel ?? 0);
+
   const {
     searchList: overlay,
     isLoading,
     isFetching,
-  } = useMapQuery({
+  } = useSearchListQuery({
+    mapSnapshot,
+  });
+
+  const { aggregation, geoBounds } = useAggregationQuery({
     mapSnapshot,
   });
 
@@ -54,6 +64,35 @@ export function MapView(props: MapViewProps) {
     setCenter(basePoint);
     setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
   }, [isMapLoaded, basePoint, center, setCenter, setZoomLevel]);
+
+  /**
+   * fitBounds 처리
+   * @description 특정 케이스에만 서버에서 계산된 bounds로 지도 영역을 조정
+   *
+   * 케이스:
+   * 1. 검색어로 조회했을 경우
+   * 2. 내주변 && 집계 조회했을 때
+   * 3. 시군구 레벨(2)에서 조회했을 때
+   */
+  // useEffect(() => {
+  //   if (!map.current || !geoBounds) return;
+
+  //   const hasQuery = !!query && query.trim().length > 0;
+  //   const isNearbyWithAggregation = searchMode === SEARCH_MODES.NEARBY && showAggregationMarkers;
+  //   const isSigunguLevel = searchedLevel === 2;
+
+  //   const shouldFitBounds = hasQuery || isNearbyWithAggregation || isSigunguLevel;
+
+  //   if (!shouldFitBounds) return;
+
+  //   const { swLng, swLat, neLng, neLat } = geoBounds;
+  //   const bounds = new naver.maps.LatLngBounds(
+  //     new naver.maps.LatLng(swLat, swLng),
+  //     new naver.maps.LatLng(neLat, neLng)
+  //   );
+
+  //   map.current.fitBounds(bounds);
+  // }, [geoBounds, query, searchMode, showAggregationMarkers, searchedLevel]);
 
   /**
    * 지도 로드 핸들러
@@ -95,7 +134,7 @@ export function MapView(props: MapViewProps) {
   /**
    * 줌 변경 완료 핸들러
    * - 줌 변경 완료 시 center, zoom 업데이트
-   * - 검색 레벨 비교 후 스냅샷 업데이트
+   * - nearby 모드일 때만 검색 레벨 비교 후 스냅샷 업데이트
    */
   const handleZoomEnd = () => {
     if (!map.current) return;
@@ -103,10 +142,13 @@ export function MapView(props: MapViewProps) {
     const zoom = map.current.getZoom();
     setCenter({ lat: coord.y, lng: coord.x });
 
-    const currentRegionLevel = getRegionLevel(zoom);
-    if (currentRegionLevel !== searchedLevel) {
-      setSearchedLevel(currentRegionLevel);
-      onSearchLevelChange?.({ lat: coord.y, lng: coord.x }, zoom, map.current.getBounds() as naver.maps.LatLngBounds);
+    // nearby 모드일 때만 검색 레벨 변경 시 스냅샷 업데이트
+    if (searchMode === SEARCH_MODES.NEARBY) {
+      const currentRegionLevel = getRegionLevel(zoom);
+      if (currentRegionLevel !== searchedLevel) {
+        setSearchedLevel(currentRegionLevel);
+        onSearchLevelChange?.({ lat: coord.y, lng: coord.x }, zoom, map.current.getBounds() as naver.maps.LatLngBounds);
+      }
     }
   };
 
@@ -137,31 +179,38 @@ export function MapView(props: MapViewProps) {
           />
         )}
 
-        {/* 지도 집계 마커 */}
-        {/* {aggregation.map((item) => (
-          <Marker
-            key={item.code}
-            position={item.coord}
-            onClick={() => handleAggregationClick(item.code, item.coord, item.nextZoom)}
-            customIcon={{
-              content: <AggregationMarker label={item.label} count={item.count} />,
-              align: 'center',
-            }}
-          />
-        ))} */}
+        {/* 지도 집계 마커 (줌레벨 0~13) */}
+        {showAggregationMarkers &&
+          aggregation.map((item) => (
+            <Marker
+              key={item.code}
+              position={item.coord}
+              onClick={() => handleAggregationClick(item.code, item.coord, item.nextZoom)}
+              customIcon={{
+                content: <AggregationMarker label={item.label} count={item.count} />,
+                align: 'center',
+              }}
+            />
+          ))}
 
-        {/* 업체 마커 */}
-        {overlay.map((item) => (
-          <Marker
-            key={item.id}
-            position={item.coord}
-            onClick={() => handleMarkerClick(item)}
-            customIcon={{
-              content: <PlaceMarker title={item.title} distance={item.dist} selected={item.id === activeMarkerId} />,
-              offsetY: 12,
-            }}
-          />
-        ))}
+        {/* 업체 마커 (줌레벨 14~) */}
+        {showBusinessMarkers &&
+          overlay.map((item) => (
+            <Marker
+              key={item.id}
+              position={item.coord}
+              onClick={() => handleMarkerClick(item)}
+              customIcon={{
+                content: <PlaceMarker title={item.title} distance={item.dist} selected={item.id === activeMarkerId} />,
+                offsetY: 12,
+              }}
+            />
+          ))}
+
+        {/* 개발용 BBox 디버깅 - 개발 환경에서만 표시 */}
+        {process.env.NODE_ENV === 'development' && (
+          <BBoxDebug serverBounds={geoBounds} viewportBounds={mapSnapshot.bounds} map={map.current} />
+        )}
       </NaverMap>
     </>
   );
