@@ -1,6 +1,6 @@
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS } from '@knockdog/bridge-core';
-import { kakaoLogin, googleLogin } from '../../lib/auth';
+import { kakaoLogin, googleLogin, appleLogin } from '../../lib/auth';
 
 function registerAuthHandlers(router: NativeBridgeRouter) {
   // Kakao 로그인
@@ -32,6 +32,22 @@ function registerAuthHandlers(router: NativeBridgeRouter) {
     } catch (error) {
       console.error('[Bridge] Google login error:', error);
       throw { code: 'AUTH_FAILED', message: 'Google login failed', error };
+    }
+  });
+
+  // Apple 로그인
+  router.register(METHODS.appleLogin, async () => {
+    try {
+      const result = await appleLogin();
+
+      if (!result) {
+        throw { code: 'AUTH_FAILED', message: 'Apple login failed' };
+      }
+
+      return result;
+    } catch (error) {
+      console.error('[Bridge] Apple login error:', error);
+      throw { code: 'AUTH_FAILED', message: 'Apple login failed', error };
     }
   });
 }

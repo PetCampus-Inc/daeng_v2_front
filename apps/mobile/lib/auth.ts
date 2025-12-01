@@ -1,5 +1,6 @@
 import { login, me } from '@react-native-kakao/user';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 const kakaoLogin = async () => {
   try {
@@ -37,6 +38,24 @@ const googleLogin = async () => {
   }
 };
 
-const appleLogin = async () => {};
+const appleLogin = async () => {
+  try {
+    const { identityToken, fullName, email } = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+
+    return {
+      idToken: identityToken,
+      name: fullName?.givenName + ' ' + fullName?.familyName,
+      email,
+      picture: '',
+    };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
 export { kakaoLogin, googleLogin, appleLogin };
