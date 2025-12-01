@@ -27,7 +27,7 @@ export interface FilterItemSuggestion {
   zoom: number;
 }
 
-export interface Place {
+export interface AutocompletePlace {
   id: string;
   title: string;
   coord: {
@@ -41,5 +41,5 @@ export interface Place {
 
 export interface Autocomplete {
   suggestion: RegionSuggestion[] | FilterItemSuggestion[];
-  place: Place[];
+  place: AutocompletePlace[];
 }

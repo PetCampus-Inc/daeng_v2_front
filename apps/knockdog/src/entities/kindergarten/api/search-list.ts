@@ -22,7 +22,7 @@ export type KindergartenSearchListParams = {
 export function getKindergartenSearchList(params: KindergartenSearchListParams) {
   const serializedBounds = serializeBounds(params.bounds);
   const serializedFilters = serializeFilters(params.filters);
-  const serializedRefPoint = serializeCoords(params.refPoint, { order: 'lnglat' });
+  const serializedRefPoint = serializeCoords(params.refPoint);
 
   const searchParams = new URLSearchParams({
     refPoint: serializedRefPoint,
@@ -62,6 +62,7 @@ export function getKindergartenAggregation(params: KindergartenAggregationParams
     zoomLevel: params.zoomLevel.toString(),
     ...(serializedBounds && { bounds: serializedBounds }),
     ...(params.distance && { distance: params.distance.toString() }),
+    ...(params.query && { query: params.query.trim() }),
     ...(serializedFilters && { filters: serializedFilters }),
   });
   return api.get('kindergarten/map-view/aggregation', { searchParams }).json<Aggregation>();
