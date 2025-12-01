@@ -143,7 +143,6 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
   // Push
   router.register<WebNavPayload>(METHODS.navPush, async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
-    console.log('payload -------------------', payload);
 
     const route = toRoute(payload);
 
@@ -152,7 +151,6 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     if (route.screen === 'Tabs') {
       navigationRef.navigate('Tabs');
     } else {
-      console.log('route.params -------------------', route.params);
       navigationRef.dispatch(StackActions.push('Stack', route.params));
     }
 
