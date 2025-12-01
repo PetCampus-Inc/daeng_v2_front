@@ -35,7 +35,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
 
       const params = new URLSearchParams(searchParams?.toString());
       params.set('query', suggestion.label);
-      params.set('center', `${suggestion.coord.lng},${suggestion.coord.lat}`);
+      params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
       params.set('zoom', String(suggestion.zoom));
       router.replace(`/?${params.toString()}`);
     } else {
