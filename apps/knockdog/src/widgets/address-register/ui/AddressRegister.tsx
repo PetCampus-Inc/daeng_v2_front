@@ -9,9 +9,21 @@ type LocationFormState = Record<UserAddressType, Omit<UserAddress, 'id'>>;
 
 interface AddressRegisterProps extends Omit<React.ComponentProps<'form'>, 'children'> {
   control: Control<LocationFormState>;
+  defaultValues?: Partial<LocationFormState>;
+  onAdd?: (type: UserAddressType, address: Omit<UserAddress, 'id'>) => void;
+  onUpdate?: (type: UserAddressType, address: Omit<UserAddress, 'id'>) => void;
+  onDelete?: (type: UserAddressType) => void;
 }
 
-function AddressRegister({ className, control, ...props }: AddressRegisterProps) {
+function AddressRegister({
+  className,
+  control,
+  defaultValues,
+  onAdd,
+  onUpdate,
+  onDelete,
+  ...props
+}: AddressRegisterProps) {
   return (
     <form className={cn('flex flex-1 flex-col overflow-hidden', className)} {...props}>
       {Object.values(USER_ADDRESS_TYPE).map((type, index) => (
@@ -26,10 +38,13 @@ function AddressRegister({ className, control, ...props }: AddressRegisterProps)
                 <LocationField
                   key={type}
                   type={type}
-                  value={field.value}
+                  value={field.value ?? defaultValues?.[type]}
                   required={isRequired}
                   optional={!isRequired}
                   onChange={field.onChange}
+                  onAdd={onAdd ? (address) => onAdd(type, address) : undefined}
+                  onUpdate={onUpdate ? (address) => onUpdate(type, address) : undefined}
+                  onDelete={onDelete ? () => onDelete(type) : undefined}
                 />
                 {index < Object.values(USER_ADDRESS_TYPE).length - 1 && <Divider />}
               </>
