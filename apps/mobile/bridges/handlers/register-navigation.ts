@@ -18,6 +18,7 @@ type ParamsWithQuery = {
 type ParamsWithoutQuery = Record<string, unknown>;
 
 // params에서 query를 추출해서 쿼리스트링으로 변환
+// name은 전체 URL 또는 경로일 수 있음
 function buildPath(name: string, params?: WebNavPayload['params']) {
   const query =
     params && 'query' in params ? (params as ParamsWithQuery).query : (params as ParamsWithoutQuery | undefined);
@@ -30,7 +31,11 @@ function buildPath(name: string, params?: WebNavPayload['params']) {
     }
   }
   const queryString = searchParams.toString();
-  return queryString ? `${name}${name.includes('?') ? '&' : '?'}${queryString}` : name;
+  if (!queryString) return name;
+
+  // 전체 URL인지 경로인지 확인
+  const separator = name.includes('?') ? '&' : '?';
+  return `${name}${separator}${queryString}`;
 }
 
 // params에서 initialState(_txId, _params) 추출
@@ -50,6 +55,30 @@ function extractInitialState(params?: WebNavPayload['params']) {
   return undefined;
 }
 
+/** URL에서 경로만 추출 */
+function extractPathFromUrl(url: string): string {
+  if (!url || typeof url !== 'string') {
+    return '/';
+  }
+
+  // "undefined/..." 같은 잘못된 URL 패턴 체크
+  if (url.startsWith('undefined/') || url.startsWith('undefined?')) {
+    console.error('[extractPathFromUrl] Invalid URL pattern detected:', url);
+    // "undefined/" 제거하고 경로만 반환
+    const cleaned = url.replace(/^undefined/, '');
+    return cleaned.startsWith('/') ? cleaned : `/${cleaned}`;
+  }
+
+  try {
+    const urlObj = new URL(url);
+    return urlObj.pathname;
+  } catch {
+    // URL 파싱 실패 시 원본 반환 (이미 경로일 수 있음)
+    // 하지만 "undefined/..." 같은 패턴은 이미 위에서 처리됨
+    return url.startsWith('/') ? url : `/${url}`;
+  }
+}
+
 /** 웹 경로 → 네이티브 라우트 변환 (Tabs / Stack(path)) */
 function toRoute(
   payload?: WebNavPayload
@@ -57,16 +86,34 @@ function toRoute(
   const name = payload?.name ?? '/';
   const params = payload?.params;
 
-  if (name === '/' || name === '/home') {
+  // 전체 URL인지 경로인지 확인
+  let isFullUrl = false;
+  let pathname = name;
+
+  try {
+    const urlObj = new URL(name);
+    isFullUrl = true;
+    pathname = urlObj.pathname;
+  } catch {
+    // URL 파싱 실패 시 경로로 간주
+    pathname = extractPathFromUrl(name);
+  }
+
+  // Tabs로 이동할 경로인지 확인 (경로 기준)
+  const normalizedPath = pathname === '/' || pathname === '' ? '/' : pathname;
+  if (normalizedPath === '/' || normalizedPath === '/home') {
     return { screen: 'Tabs', params: undefined };
   }
 
   const initialState = extractInitialState(params);
 
+  // 전체 URL이면 전체 URL에 쿼리 추가, 경로면 경로에 쿼리 추가
+  const finalPath = isFullUrl ? buildPath(name, params) : buildPath(normalizedPath, params);
+
   const route = {
     screen: 'Stack' as const,
     params: {
-      path: buildPath(name, params),
+      path: finalPath,
       ...(initialState && { initialState }),
     },
   };
@@ -96,6 +143,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
   // Push
   router.register<WebNavPayload>(METHODS.navPush, async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
+
     const route = toRoute(payload);
 
     registerIfTx(route);

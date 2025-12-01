@@ -12,7 +12,7 @@ import {
   postVerifyOidc,
   useSocialUserStore,
 } from '@entities/social-user';
-import { USER_STATUS, useUserStore, User } from '@entities/user';
+import { USER_STATUS, useUserStore, User, UserAddress } from '@entities/user';
 import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
@@ -26,11 +26,16 @@ const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.APPLE]: METHODS.appleLogin,
 } as const;
 
+/** 백엔드 로그인 응답 타입 (addresses 필드 사용) */
+type LoginResponseUser = Omit<User, 'addressList'> & {
+  addresses?: UserAddress[];
+};
+
 export const useLogin = () => {
   const { push, back } = useStackNavigation();
   const bridge = useBridge();
 
-  const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
+  const { mutate: loginMutate } = useMutation<ApiResponse<LoginResponseUser>>({ mutationFn: postLogin });
   const { mutateAsync: oidcMutateAsync } = useMutation({ mutationFn: postVerifyOidc });
 
   const setUser = useUserStore((state) => state.setUser);
@@ -50,11 +55,17 @@ export const useLogin = () => {
     return code;
   };
 
-  const handleLoginSuccess = (data: User) => {
+  const handleLoginSuccess = (data: LoginResponseUser) => {
     if (data.status === USER_STATUS.ACTIVE) {
-      setUser(data);
+      // 백엔드에서 addresses로 오는 것을 addressList로 변환
+      const user: User = {
+        ...data,
+        addressList: data.addresses || [],
+      };
 
-      // TODO: 네이티브일 경우 로그인 스택 pop, 웹일 경우 이전 페이지로 돌아가도록 수정할 것
+      setUser(user);
+      // eventBus.publish('auth:login', user);
+
       back();
     }
   };

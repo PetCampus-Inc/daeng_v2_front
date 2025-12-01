@@ -73,7 +73,7 @@ const useUpdateUserAddressesMutation = () => {
     }) => {
       // 모든 작업을 병렬로 실행
       const promises = [
-        ...toAdd.map((address) => postAddUserAddress(address as UserAddress)),
+        ...toAdd.map((address) => postAddUserAddress({ ...address, id: 0 })),
         ...toUpdate.map((address) => postUpdateUserAddress(address)),
         ...toDelete.map((addressId) => postDeleteUserAddress(addressId)),
       ];

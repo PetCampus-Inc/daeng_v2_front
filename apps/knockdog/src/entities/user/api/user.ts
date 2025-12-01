@@ -10,7 +10,7 @@ interface RegisterUserRequest {
 /** `POST` - 회원 가입 API */
 const postRegisterUser = async (request: RegisterUserRequest) => {
   return await api
-    .post(`auth/register`, {
+    .post(`user/register`, {
       json: request,
     })
     .json<ApiResponse<User>>();

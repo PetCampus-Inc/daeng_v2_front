@@ -12,10 +12,13 @@ interface LocationFieldProps {
   required?: boolean;
   optional?: boolean;
   onChange?: (address?: Omit<UserAddress, 'id'>) => void;
+  onAdd?: (address: Omit<UserAddress, 'id'>) => void;
+  onUpdate?: (address: Omit<UserAddress, 'id'>) => void;
+  onDelete?: () => void;
 }
 
-export function LocationField({ type, value, required, optional, onChange }: LocationFieldProps) {
-  const { alias, address, add, modify, remove } = useLocationField({ type, value, onChange });
+export function LocationField({ type, value, required, optional, onChange, onAdd, onUpdate, onDelete }: LocationFieldProps) {
+  const { alias, address, add, modify, remove } = useLocationField({ type, value, onChange, onAdd, onUpdate, onDelete });
 
   return (
     <div className='flex flex-col gap-y-2 py-5'>

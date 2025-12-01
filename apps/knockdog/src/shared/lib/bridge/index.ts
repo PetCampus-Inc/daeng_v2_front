@@ -3,3 +3,4 @@ export { useStackNavigation } from './useStackNavigation';
 export { useNavigationResult } from './useNavigationResult';
 export { useOpenExternalLink } from './useOpenExternalLink';
 export { StackLink } from './StackLink';
+export { navigateToLogin } from './navigateToLogin';

@@ -46,6 +46,7 @@ function MypageProfileManagePage() {
   const { mutate: updateUserEmail } = useUserUpdateUserEmailMutation();
 
   const isRepresentativePet = !!representativePet;
+  const hasPets = (petList?.data?.length ?? 0) > 0;
 
   useEffect(() => {
     if (userInfo?.infoRcvEmail) {
@@ -66,7 +67,6 @@ function MypageProfileManagePage() {
               onClick={async () => {
                 logout();
                 reset();
-                close();
               }}
             >
               확인
@@ -119,7 +119,7 @@ function MypageProfileManagePage() {
                   <span>대표 강아지 : </span>
                   <span className='text-text-accent'>{representativePet?.name}</span>
                 </div>
-              ) : (
+              ) : hasPets ? (
                 <button
                   className='label-semibold text-text-secondary flex items-center gap-x-1'
                   onClick={handleRepresentativePetClick}
@@ -127,7 +127,7 @@ function MypageProfileManagePage() {
                   대표 강아지를 등록해 주세요
                   <Icon icon='ChevronRight' className='text-text-secondary h-5 w-5' />
                 </button>
-              )}
+              ) : null}
             </div>
             <TextField
               disabled={isRepresentativePet}
