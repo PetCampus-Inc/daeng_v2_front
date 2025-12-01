@@ -5,7 +5,7 @@ import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
 import { useBasePoint } from '@shared/lib';
 import { useSearchHistory } from '@shared/store';
-import type { RegionSuggestion, FilterItemSuggestion, Place } from '@entities/kindergarten';
+import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
   const [query, setQuery] = useState('');
@@ -52,7 +52,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     }
   };
 
-  const handlePlaceClick = (place: Place) => {
+  const handlePlaceClick = (place: AutocompletePlace) => {
     addRecentView({
       id: place.id,
       label: place.title,
