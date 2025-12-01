@@ -7,6 +7,7 @@ import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 
 import { tokenUtils } from '@shared/utils';
 import { logout } from '@shared/lib/auth';
+import { navigateToLogin } from '@shared/lib/bridge';
 
 // 제외 경로 패턴 (/^\/auth(?:\/|$)/ = /auth 또는 /auth/ 로 시작하는 경로)
 const EXCLUDE_PATHS = [/^\/auth(?:\/|$)/];
@@ -86,15 +87,18 @@ const tokenRefreshInterceptor = async (
       // 리프레시 토큰 만료, 유효하지 않은 토큰, 토큰 검증 실패 시 로그아웃 처리
       case TOKEN_ERROR_CODE.EXPIRED_REFRESH_TOKEN:
       case TOKEN_ERROR_CODE.INVALID_TOKEN:
+      case TOKEN_ERROR_CODE.UNAUTHORIZED_REQUEST:
+        await navigateToLogin();
+        break;
       case TOKEN_ERROR_CODE.TOKEN_VERIFICATION_FAILED:
-        logout();
+        await logout();
         break;
     }
   } catch (refreshError) {
     console.error('액세스 토큰 갱신 중 오류 발생:', refreshError);
 
     // 토큰 갱신 중 오류 발생 시, 로그아웃 처리
-    logout();
+    await logout();
   }
 
   return response;

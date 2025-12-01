@@ -2,7 +2,6 @@
 
 import { ChecklistEditor } from '@features/checklist';
 import { Header } from '@widgets/Header';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import {
@@ -21,7 +20,6 @@ import { useChecklistMutate, useChecklistAnswersQuery } from '@features/checklis
 import type { AnswerGroup } from '@entities/checklist';
 
 function EditChecklistPage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const [isEditing, setIsEditing] = useState(false);
@@ -88,7 +86,7 @@ function EditChecklistPage() {
       return;
     }
 
-    router.back();
+    back();
   };
 
   return (

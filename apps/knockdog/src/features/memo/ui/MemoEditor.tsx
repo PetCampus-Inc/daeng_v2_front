@@ -23,7 +23,7 @@ export function MemoEditor({
   readOnly,
 }: MemoEditorProps) {
   const [memo, setMemo] = useState(defaultValue);
-  const currentValue = value !== undefined ? value : memo;
+  const currentValue = (value !== undefined ? value : memo) ?? '';
 
   const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;

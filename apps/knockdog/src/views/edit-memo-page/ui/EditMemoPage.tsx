@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MemoEditor, useMemoQuery, useMemoMutation } from '@features/memo';
 import { Header } from '@widgets/Header';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 import {
   AlertDialog,
@@ -20,7 +20,6 @@ import { useStackNavigation } from '@shared/lib/bridge';
 const MAX_LENGTH = 2000;
 
 export function EditMemoPage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
@@ -75,7 +74,8 @@ export function EditMemoPage() {
       ));
       return;
     }
-    router.back();
+
+    back();
   };
 
   return (

@@ -2,19 +2,44 @@
 
 import { Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
 import { useParams } from 'next/navigation';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { QUESTION_MAP } from '@entities/checklist';
+import { QUESTION_MAP, getAnswers, type AnswersResponse } from '@entities/checklist';
+import { useUserStore } from '@entities/user/model/store/useUserStore';
+import { useState, useEffect } from 'react';
 
 function CheckListSection() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const { push } = useStackNavigation();
+  const isLoggedIn = useUserStore((state) => !!state.user);
+
+  const [checklist, setChecklist] = useState<AnswersResponse>({ sections: [] });
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!id) throw new Error('Company ID is required for checklist section');
 
-  const { data: checklist = { sections: [] }, error, isLoading } = useChecklistAnswersQuery(id);
+  useEffect(() => {
+    if (!isLoggedIn || !id) {
+      setChecklist({ sections: [] });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    getAnswers(id)
+      .then((data) => {
+        setChecklist(data);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err : new Error('체크리스트를 불러올 수 없습니다'));
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [id, isLoggedIn]);
 
   return (
     <div>
@@ -24,12 +49,15 @@ function CheckListSection() {
           <span className='h3-extrabold'>상담시 체크리스트</span>
         </div>
         {/* @TODO: 화면 이동 경우 상수 이용할것 */}
-        <button onClick={() => push({ pathname: `/kindergarten/${id}/edit-checklist` })} className='text-text-tertiary flex items-center gap-1'>
+        <button
+          onClick={() => push({ pathname: `/kindergarten/${id}/edit-checklist` })}
+          className='text-text-tertiary flex items-center gap-1'
+        >
           <span className='label-semibold'>편집</span>
           <Icon icon='ChevronRight' className='h-4 w-4' />
         </button>
       </div>
-      <div className='border-line-200 border-1 rounded-xl px-5 py-7'>
+      <div className='border-line-200 rounded-xl border-1 px-5 py-7'>
         {isLoading ? (
           <div className='text-text-secondary flex justify-center py-8'>
             <span className='body1-medium'>로딩 중...</span>
@@ -40,7 +68,7 @@ function CheckListSection() {
           </div>
         ) : (
           checklist?.sections
-            .filter(section => section.answers.length > 0)
+            .filter((section) => section.answers.length > 0)
             .map((section, index, filteredSections) => (
               <div key={section.sectionId}>
                 <div className='mb-3'>
@@ -62,7 +90,9 @@ function CheckListSection() {
                           !isActive && 'text-text-secondary bg-fill-secondary-50'
                         )}
                       >
-                        <span className='body2-semibold'>{QUESTION_MAP[answer.questionId as keyof typeof QUESTION_MAP] || answer.question}</span>
+                        <span className='body2-semibold'>
+                          {QUESTION_MAP[answer.questionId as keyof typeof QUESTION_MAP] || answer.question}
+                        </span>
                       </div>
                     );
                   })}
