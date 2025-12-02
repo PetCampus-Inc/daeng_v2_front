@@ -28,6 +28,7 @@ export const MARKER_THRESHOLDS = {
 export const SEARCH_MODES = {
   NEARBY: 'nearby',
   BOUNDARY: 'boundary',
+  GLOBAL: 'global',
 } as const;
 
 export const DEFAULT_SEARCH_MODE = SEARCH_MODES.NEARBY;

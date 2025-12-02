@@ -17,7 +17,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     ...searchQueryOptions.autocomplete({ query: query.trim(), coord }),
   });
 
-  const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
+  const { addRecentSearchKeyword } = useSearchHistory();
   const router = useRouter();
 
   const handleSuggestionClick = (suggestion: RegionSuggestion | FilterItemSuggestion) => {
@@ -61,10 +61,9 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     params.set('center', `${place.coord.lat},${place.coord.lng}`);
     params.set('bottomSheetSnapIndex', '1');
 
-    addRecentView({
-      id: place.id,
+    addRecentSearchKeyword({
+      type: 'USER_QUERY',
       label: place.title,
-      address: place.roadAddress,
     });
 
     router.replace(`/?${params.toString()}`);

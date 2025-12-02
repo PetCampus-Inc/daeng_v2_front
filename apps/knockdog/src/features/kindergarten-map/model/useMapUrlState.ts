@@ -1,5 +1,6 @@
 import { createParser, parseAsInteger, useQueryState } from 'nuqs';
 import { DEFAULT_SEARCH_MODE, SEARCH_MODES } from '../config/map';
+import type { Coord } from '@shared/types';
 
 const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
   parse: (value: string) => {
@@ -10,22 +11,21 @@ const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
     return { lat, lng };
   },
-  serialize: (value) => `${value.lat},${value.lng}`,
-  eq: (a, b) => a.lat === b.lat && a.lng === b.lng,
+  serialize: (value: Coord) => `${value.lat},${value.lng}`,
+  eq: (a: Coord, b: Coord) => a.lat === b.lat && a.lng === b.lng,
 });
 
-export type SearchMode = 'nearby' | 'boundary';
+export type SearchMode = (typeof SEARCH_MODES)[keyof typeof SEARCH_MODES];
 
 const SEARCH_MODE_PARSER = createParser<SearchMode>({
   parse: (value: string) => {
-    if (value === SEARCH_MODES.NEARBY || value === SEARCH_MODES.BOUNDARY) {
+    if (value === SEARCH_MODES.NEARBY || value === SEARCH_MODES.BOUNDARY || value === SEARCH_MODES.GLOBAL) {
       return value;
     }
     return DEFAULT_SEARCH_MODE;
   },
-  serialize: (value) => value,
+  serialize: (value: SearchMode) => value,
 });
-
 /**
  * Kindergarten Map URL 상태를 관리하는 훅
  *
