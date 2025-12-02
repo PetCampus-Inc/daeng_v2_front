@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { postRegisterPet, postUpdatePetDetail, postUpdatePetRepresentative } from './pet';
+import { postRegisterPet, postUpdatePetDetail, postUpdatePetRepresentative, postRemovePet } from './pet';
 
 const usePetRegisterMutation = () => {
   const queryClient = useQueryClient();
@@ -34,4 +34,15 @@ const usePetUpdateRepresentativeMutation = () => {
   });
 };
 
-export { usePetRegisterMutation, usePetUpdateDetailMutation, usePetUpdateRepresentativeMutation };
+const usePetRemoveMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: postRemovePet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['petList'] });
+    },
+  });
+};
+
+export { usePetRegisterMutation, usePetUpdateDetailMutation, usePetUpdateRepresentativeMutation, usePetRemoveMutation };

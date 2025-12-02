@@ -10,5 +10,6 @@ export {
   usePetRegisterMutation,
   usePetUpdateDetailMutation,
   usePetUpdateRepresentativeMutation,
+  usePetRemoveMutation,
 } from './api/usePetMutation';
 export { usePetListQuery, usePetByIdQuery, usePetRepresentativeQuery } from './api/usePetQuery';

@@ -115,7 +115,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         });
       }
 
-      // onSuccess?.();
+      onSuccess?.();
     } catch (error) {
       console.error('펫 프로필 저장 실패:', error);
       onError?.(error);

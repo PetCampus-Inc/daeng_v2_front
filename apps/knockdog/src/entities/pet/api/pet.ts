@@ -49,11 +49,16 @@ const postUpdatePetRepresentative = async (petId: number) => {
   return await api.post(`pet/representative/${petId}`).json<ApiResponse<PetResponse>>();
 };
 
+const postRemovePet = async (petId: string) => {
+  return await api.post(`pet/remove/${petId}`).json<ApiResponse<void>>();
+};
+
 export {
   postRegisterPet,
   postUpdatePetDetail,
   getPetList,
   postUpdatePetRepresentative,
+  postRemovePet,
   type RegisterPetRequest,
   type UpdatePetDetailRequest,
   type PetResponse,

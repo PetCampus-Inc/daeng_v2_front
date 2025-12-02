@@ -12,7 +12,7 @@ interface DogHouseSectionProps {
 }
 
 function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick, onAddDog }: DogHouseSectionProps) {
-  const representativeDog = dogs.find((dog) => dog.isRepresentative);
+  const representativeDog = dogs.find((dog) => dog.isRepresentative) || dogs[0];
 
   return (
     <>
