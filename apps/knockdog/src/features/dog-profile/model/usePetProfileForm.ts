@@ -13,7 +13,7 @@ interface PetFormData {
   weight?: number;
   gender: Gender | '';
   isNeutered: 'Y' | 'N' | '';
-  profileImageUrl?: string;
+  profileImage?: string;
 }
 
 interface UsePetProfileFormProps {
@@ -46,7 +46,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       weight: defaultValues?.weight || undefined,
       gender: defaultValues?.gender || '',
       isNeutered: defaultValues?.isNeutered !== undefined ? (defaultValues.isNeutered ? 'Y' : 'N') : '',
-      profileImageUrl: defaultValues?.profileImageUrl || '',
+      profileImage: defaultValues?.profileImage || '',
     },
   });
 
@@ -57,8 +57,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       }
 
       // 이미지가 temp 경로인 경우 user 경로로 이동
-      let finalProfileImage = data.profileImageUrl || '';
-      if (finalProfileImage && finalProfileImage.includes('temp') && user?.id) {
+      let finalProfileImage = data.profileImage || '';
+      if (finalProfileImage && finalProfileImage.includes('temp') && user?.userId) {
         try {
           // URL에서 key 추출 (pathname 부분)
           const imageUrl = new URL(finalProfileImage);
@@ -67,7 +67,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           // 이미지를 user 경로로 이동
           const moveResponse = await moveImage({
             key,
-            path: `/user/${user.id}`,
+            path: `user/${user.userId}`,
           });
 
           // 이동된 이미지 URL 사용
@@ -80,18 +80,14 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
       if (mode === 'add') {
         // 추가 모드: 펫 등록
-
         const registerResponse = await registerPet({
           name: data.name,
           relationship: data.relationship,
           profileImage: finalProfileImage,
         });
-
         const newPetId = registerResponse.data.id;
-
         // 사용자가 추가 정보를 입력했다면 상세 정보 업데이트
         const hasAdditionalInfo = data.breed || data.birthYear || data.weight || data.gender || data.isNeutered;
-
         if (hasAdditionalInfo) {
           await updatePetDetail({
             petId: newPetId,
@@ -110,7 +106,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           petId,
           name: data.name,
           relationship: data.relationship,
-          profileImageUrl: data.profileImageUrl,
+          profileImage: data.profileImage,
           breed: data.breed?.breedName,
           birthYear: data.birthYear ? Number(data.birthYear) : undefined,
           gender: data.gender || undefined,
@@ -119,7 +115,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         });
       }
 
-      onSuccess?.();
+      // onSuccess?.();
     } catch (error) {
       console.error('펫 프로필 저장 실패:', error);
       onError?.(error);

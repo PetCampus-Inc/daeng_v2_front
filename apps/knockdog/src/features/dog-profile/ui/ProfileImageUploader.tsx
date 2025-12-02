@@ -39,7 +39,7 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
   return (
     <div className='relative flex items-center justify-center px-4 py-7'>
       <Avatar className='h-[120px] w-[120px]'>
-        {selectedImage && <AvatarImage src={selectedImage} />}
+        {selectedImage && <AvatarImage src={selectedImage} className='object-cover' />}
         <AvatarFallback className='border-line-200 rounded-full border p-0.5'>
           <Image src='/images/img_default_image.png' alt='default image' width={120} height={120} />
         </AvatarFallback>

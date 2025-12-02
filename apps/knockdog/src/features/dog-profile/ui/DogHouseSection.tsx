@@ -29,8 +29,8 @@ function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick
             key={dog.id}
             name={dog.name}
             breed={dog.breed}
-            age={calculateAge(dog.birthYear)}
-            imageUrl={dog.profileImageUrl}
+            age={dog.birthYear ? calculateAge(dog.birthYear) : undefined}
+            imageUrl={dog.profileImage}
             isRepresentative={dog.isRepresentative}
             onClick={() => onDogClick(dog.id)}
           />

@@ -35,7 +35,7 @@ function Mypage() {
 
   const accountInfo: AccountInfo = {
     nickname: user?.nickname || '살구형',
-    userId: user?.id || '123456',
+    userId: user?.userId || '123456',
   };
 
   const handleDogClick = (petId: string) => {

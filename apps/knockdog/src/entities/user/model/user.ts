@@ -2,7 +2,7 @@ import { USER_STATUS, USER_ADDRESS_TYPE } from './constant/user';
 
 /** 유저 */
 interface User {
-  id: string;
+  userId: string;
   status: UserStatus;
   nickname: string;
   profileImageUrl: string;

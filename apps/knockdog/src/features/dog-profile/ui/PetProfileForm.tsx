@@ -31,7 +31,7 @@ interface PetProfileFormProps {
   onSuccess?: () => void;
   onError?: (error: unknown) => void;
   onDirtyChange?: (isDirty: boolean) => void;
-  onBeforeSubmit?: (submitFn: () => void) => void;
+  onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
 }
 
 function PetProfileForm({
@@ -86,7 +86,8 @@ function PetProfileForm({
 
     // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
     if (onBeforeSubmit) {
-      onBeforeSubmit(() => handleSubmit(e));
+      const formData = getValues();
+      onBeforeSubmit(() => handleSubmit(e), { name: formData.name });
     } else {
       handleSubmit(e);
     }
@@ -94,16 +95,15 @@ function PetProfileForm({
 
   return (
     <>
-      <Controller
-        name='profileImageUrl'
-        control={control}
-        render={({ field }) => (
-          <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
-        )}
-      />
-
       <div className='px-4'>
         <form id='pet-profile-form' onSubmit={handleFormSubmit} noValidate className='flex flex-col gap-y-5'>
+          <Controller
+            name='profileImage'
+            control={control}
+            render={({ field }) => (
+              <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
+            )}
+          />
           <div className='py-2'>
             <Controller
               name='name'
@@ -190,7 +190,7 @@ function PetProfileForm({
             />
           </div>
 
-          <div className='py-5'>
+          <div className='pb-15'>
             <ActionButton type='submit' disabled={isSubmitting}>
               {submitButtonText}
             </ActionButton>

@@ -25,7 +25,7 @@ interface UpdatePetDetailRequest {
   petId: string;
   name?: string;
   relationship?: Relationship;
-  profileImageUrl?: string;
+  profileImage?: string;
   breed?: string;
   birthYear?: number;
   gender?: Gender;
