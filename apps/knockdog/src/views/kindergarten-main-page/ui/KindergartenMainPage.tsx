@@ -168,7 +168,11 @@ export default function KindergartenMainPage() {
             <Float placement='top-start' offsetX='x4'>
               <CurrentLocationFAB />
             </Float>
-            {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
+            {shouldShowRefresh ? (
+              <RefreshFAB onClick={handleRefresh} />
+            ) : (
+              <CurrentLocationDisplayFAB />
+            )}
             <Float placement='top-end' offsetX='x4'>
               <ListFAB onClick={() => setSnapIndex(2)} />
             </Float>
