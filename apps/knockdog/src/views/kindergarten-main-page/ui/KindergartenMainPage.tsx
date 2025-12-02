@@ -19,7 +19,9 @@ import {
   FilterBottomSheet,
   KindergartenCardSheet,
   KindergartenListSheet,
+  SearchHeader,
   isValidLatLngBounds,
+  useSearchUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
@@ -33,6 +35,7 @@ export default function KindergartenMainPage() {
   const searchParams = useSearchParams();
 
   const { center, zoomLevel, setSearchedLevel, setSearchMode } = useMapUrlState();
+  const { query } = useSearchUrlState();
   const { coord: basePoint } = useBasePoint();
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -138,22 +141,26 @@ export default function KindergartenMainPage() {
         mapSnapshot={mapSnapshot}
       />
 
-      <div
-        className={cn(
-          'px-x4 pb-x2 absolute top-0 z-50 w-full transition-colors ease-out',
-          isFullExtended && 'bg-fill-secondary-0'
-        )}
-        style={{ paddingTop: top + 20 }}
-      >
-        <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`}>
-          <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
-            <Icon icon='Search' className='size-x5 text-fill-secondary-700 mr-x2' />
-            <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
-              업체 또는 주소를 검색하세요
+      {query.trim().length > 0 ? (
+        <SearchHeader query={query} />
+      ) : (
+        <div
+          className={cn(
+            'px-x4 absolute top-0 z-50 flex min-h-16 w-full items-center transition-colors ease-out',
+            isFullExtended && 'bg-fill-secondary-0'
+          )}
+          style={{ paddingTop: top }}
+        >
+          <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`} className='w-full'>
+            <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-12 items-center border'>
+              <Icon icon='Search' className='size-x6 text-fill-secondary-700 mr-x2' />
+              <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
+                업체 또는 주소를 검색하세요
+              </div>
             </div>
-          </div>
-        </Link>
-      </div>
+          </Link>
+        </div>
+      )}
 
       <KindergartenListSheet
         fabSlot={
