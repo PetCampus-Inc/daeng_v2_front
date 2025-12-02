@@ -13,3 +13,4 @@ export * from './ui/FilterBottomSheet';
 export * from './ui/KindergartenCardSheet';
 export * from './ui/KindergartenListSheet';
 export * from './ui/PhoneCallSheet';
+export * from './ui/SearchHeader';

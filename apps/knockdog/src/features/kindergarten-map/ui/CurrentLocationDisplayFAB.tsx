@@ -1,10 +1,41 @@
-import { Icon } from '@knockdog/ui';
+import { useQuery } from '@tanstack/react-query';
+import { mapQueryOptions } from '../api/mapQueryOption';
+import { CurrentLocationDisplay } from './CurrentLocationDisplay';
+import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { getRegionLevel } from '../lib/markers';
+import { useMapUrlState } from '../model/useMapUrlState';
 
 export function CurrentLocationDisplayFAB() {
-  return (
-    <button className='px-x3.5 py-x2 radius-full gap-x1 bg-fill-secondary-700 text-text-primary-inverse label-semibold flex h-[34px] cursor-pointer items-center shadow-[0_0_4px_0] shadow-black/16'>
-      <Icon icon='Location' className='size-x4_5' />
-      강남구 논현동
-    </button>
+  const { center, zoomLevel } = useMapUrlState();
+
+  const { data: address } = useQuery(
+    mapQueryOptions.reverseGeocode({
+      lat: center?.lat ?? 0,
+      lng: center?.lng ?? 0,
+      zoomLevel,
+    })
   );
+
+  const resolvedZoomLevel = zoomLevel ?? DEFAULT_MAP_ZOOM_LEVEL;
+  const regionLevel = getRegionLevel(resolvedZoomLevel);
+
+  const getDisplayAddress = () => {
+    if (!address) return null;
+
+    if (regionLevel === 1) {
+      return address.region_2depth_name;
+    }
+
+    if (regionLevel === 2) {
+      return address.region_2depth_name;
+    }
+
+    if (regionLevel === 3) {
+      return `${address.region_2depth_name} ${address.region_3depth_name}`;
+    }
+
+    return address.address_name;
+  };
+
+  return <CurrentLocationDisplay address={getDisplayAddress()} />;
 }
