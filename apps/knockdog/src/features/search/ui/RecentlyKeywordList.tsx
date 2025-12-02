@@ -1,6 +1,8 @@
 import { Icon } from '@knockdog/ui';
 import { InputChip } from './InputChip';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSearchHistory } from '@shared/store';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 export function RecentlyKeywordList() {
   const {
@@ -10,7 +12,29 @@ export function RecentlyKeywordList() {
     removeRecentSearchKeyword,
     clearRecentViews,
     clearRecentSearchKeywords,
+    addRecentSearchKeyword,
   } = useSearchHistory();
+
+  const searchParams = useSearchParams();
+  const { push } = useStackNavigation();
+  const router = useRouter();
+
+  const handleRecentViewClick = (id: string) => {
+    push({ pathname: `company/${id}` });
+  };
+
+  const handleRecentKeywordClick = (keyword: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('query', keyword);
+    params.set('bottomSheetSnapIndex', '1');
+
+    addRecentSearchKeyword({
+      type: 'USER_QUERY',
+      label: keyword,
+    });
+
+    router.replace(`/?${params.toString()}`);
+  };
 
   return (
     <>
@@ -26,7 +50,11 @@ export function RecentlyKeywordList() {
         <div className='gap-x2 scrollbar-hide px-x4 flex overflow-x-scroll'>
           {recentView?.map((place) => (
             <div key={place.id} className='shrink-0'>
-              <InputChip name={place.label} onRemove={() => removeRecentView(place.id)} />
+              <InputChip
+                name={place.label}
+                onClick={() => handleRecentViewClick(place.id)}
+                onRemove={() => removeRecentView(place.id)}
+              />
             </div>
           ))}
         </div>
@@ -45,6 +73,7 @@ export function RecentlyKeywordList() {
             <a
               key={`${keyword.type}-${keyword.label}-${index}`}
               className='py-x2.5 hover:bg-fill-secondary-50 radius-r2 flex cursor-pointer items-center justify-between'
+              onClick={() => handleRecentKeywordClick(keyword.label)}
             >
               <div className='body2-regular text-text-primary gap-x-x1 px-x2 py-x1 inline-flex flex-1 text-left'>
                 <Icon icon='Time' className='text-fill-secondary-400 size-x5' />
