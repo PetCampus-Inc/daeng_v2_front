@@ -20,7 +20,7 @@ export function RecentlyKeywordList() {
   const router = useRouter();
 
   const handleRecentViewClick = (id: string) => {
-    push({ pathname: `company/${id}` });
+    push({ pathname: `kindergarten/${id}` });
   };
 
   const handleRecentKeywordClick = (keyword: string) => {
