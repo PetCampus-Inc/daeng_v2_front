@@ -2,29 +2,33 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { Header } from '@widgets/Header';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
+import { SEARCH_MODES } from '@features/kindergarten-map';
+import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 import { useBasePoint } from '@shared/lib';
 import { useSearchHistory } from '@shared/store';
-import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('query') ?? '');
   const { coord } = useBasePoint();
   const { data } = useQuery({
     ...searchQueryOptions.autocomplete({ query: query.trim(), coord }),
   });
 
   const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
-
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const handleBack = () => {
-    router.back();
-  };
 
   const handleSuggestionClick = (suggestion: RegionSuggestion | FilterItemSuggestion) => {
     if (suggestion.type === 'REGION') {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('query', suggestion.label);
+      params.set('region', suggestion.code);
+      params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
+      params.set('zoom', String(suggestion.zoom));
+      params.set('bottomSheetSnapIndex', '1');
+
       addRecentSearchKeyword({
         type: 'REGION',
         label: suggestion.label,
@@ -33,47 +37,51 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
         zoom: suggestion.zoom,
       });
 
-      const params = new URLSearchParams(searchParams?.toString());
-      params.set('query', suggestion.label);
-      params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
-      params.set('zoom', String(suggestion.zoom));
       router.replace(`/?${params.toString()}`);
     } else {
+      // FILTER_ITEM 타입 검색
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('query', suggestion.label);
+      params.set('filters', suggestion.code);
+      params.set('bottomSheetSnapIndex', '1');
+
       addRecentSearchKeyword({
         type: 'FILTER_ITEM',
         label: suggestion.label,
         code: suggestion.code,
       });
 
-      const params = new URLSearchParams(searchParams?.toString());
-      params.set('query', suggestion.label);
-      params.set('filters', suggestion.code);
       router.replace(`/?${params.toString()}`);
     }
   };
 
   const handlePlaceClick = (place: AutocompletePlace) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('query', place.title);
+    params.set('center', `${place.coord.lat},${place.coord.lng}`);
+    params.set('bottomSheetSnapIndex', '1');
+
     addRecentView({
       id: place.id,
       label: place.title,
       address: place.roadAddress,
     });
 
-    const params = new URLSearchParams(searchParams?.toString());
-    params.set('query', place.title);
-    params.set('center', `${place.coord.lat},${place.coord.lng}`);
     router.replace(`/?${params.toString()}`);
   };
 
   const handleSubmit = () => {
     if (query.trim()) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('query', query.trim());
+      params.set('searchMode', SEARCH_MODES.GLOBAL);
+      params.set('bottomSheetSnapIndex', '1');
+
       addRecentSearchKeyword({
         type: 'USER_QUERY',
         label: query.trim(),
       });
 
-      const params = new URLSearchParams(searchParams?.toString());
-      params.set('query', query.trim());
       router.replace(`/?${params.toString()}`);
     }
   };
@@ -81,14 +89,15 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   return (
     <div className='flex h-full flex-col'>
       {/* 검색창 헤더 */}
-      <div className='py-x2 pr-x4 pl-x2 gap-x-x2 flex shrink-0'>
-        <button onClick={handleBack} className='px-x2 shrink-0'>
-          <Icon icon='ChevronLeft' className='size-x6' />
-        </button>
+      <Header withSpacing={false}>
+        <Header.LeftSection className='px-4'>
+          <Header.BackButton onClick={() => router.back()} />
+        </Header.LeftSection>
+
         <div className='relative min-w-0 flex-1'>
           <TextField
             prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-            className='bg-fill-secondary-50 h-x12 border-0'
+            className='bg-fill-secondary-50 h-x12 min-w-0 border-0'
           >
             <TextFieldInput
               ref={inputRef}
@@ -119,7 +128,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
             )}
           </TextField>
         </div>
-      </div>
+      </Header>
 
       <main className='flex-1 overflow-y-auto'>
         {query.trim() && data ? (
