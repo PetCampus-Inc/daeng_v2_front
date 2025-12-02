@@ -57,6 +57,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           CFBundleURLSchemes: [iosUrlScheme],
         },
       ],
+      NSPhotoLibraryUsageDescription: '사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
+      NSPhotoLibraryAddUsageDescription: '사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
     },
     splash: {
       image: './assets/images/splash.png',

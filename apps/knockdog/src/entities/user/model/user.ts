@@ -6,7 +6,7 @@ interface User {
   status: UserStatus;
   nickname: string;
   profileImageUrl: string;
-  addressList: UserAddress[];
+  addresses: UserAddress[];
   // TODO: 날짜 타입 어떻게 할지 논의 필요
 }
 

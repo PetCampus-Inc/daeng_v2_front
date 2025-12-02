@@ -24,8 +24,8 @@ function MypageProfileLocationPage() {
   const deleteMutation = useDeleteUserAddressMutation();
 
   // addressList를 LocationFormState 형식으로 변환
-  const defaultValues: Partial<LocationFormState> = user?.addressList
-    ? user.addressList.reduce((acc, address) => {
+  const defaultValues: Partial<LocationFormState> = user?.addresses
+    ? user.addresses.reduce((acc, address) => {
         const { id, ...rest } = address;
         acc[address.type as UserAddressType] = rest;
         return acc;
@@ -33,8 +33,8 @@ function MypageProfileLocationPage() {
     : {};
 
   // 기존 주소 정보를 type별로 매핑 (id 포함)
-  const existingAddressMap: Partial<Record<UserAddressType, UserAddress>> = user?.addressList
-    ? user.addressList.reduce(
+  const existingAddressMap: Partial<Record<UserAddressType, UserAddress>> = user?.addresses
+    ? user.addresses.reduce(
         (acc, address) => {
           acc[address.type as UserAddressType] = address;
           return acc;
