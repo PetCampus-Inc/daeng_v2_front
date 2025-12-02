@@ -16,18 +16,18 @@ export function SearchHeader({ query }: SearchHeaderProps) {
    * 검색창 재활성화 (검색 페이지로 이동)
    */
   const handleGoSearch = () => {
-    const currentQuery = new URLSearchParams(searchParams.toString());
-    router.replace(`/search?${currentQuery.toString()}`);
+    const params = new URLSearchParams(searchParams.toString());
+    router.replace(`/search?${params.toString()}`);
   };
 
   /**
    * 검색 취소 (메인 페이지로 이동)
    */
   const handleClose = () => {
-    const currentQuery = new URLSearchParams(searchParams.toString());
-    currentQuery.delete('query');
-    currentQuery.set('bottomSheetSnapIndex', '0');
-    router.replace(`/?${currentQuery.toString()}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('query');
+    params.set('bottomSheetSnapIndex', '0');
+    router.replace(`/?${params.toString()}`);
   };
 
   return (
