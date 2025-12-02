@@ -30,24 +30,29 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
   const { mutateAsync: moveImage } = useMoveImageMutation();
   const user = useUserStore((state) => state.user);
 
+  const transformDefaultValues = (pet?: Pet): PetFormData => {
+    return {
+      name: pet?.name || '',
+      relationship: pet?.relationship || '',
+      breed: pet?.breed ? { breedId: 0, breedName: pet.breed } : null,
+      birthYear: pet?.birthYear ? String(pet.birthYear) : undefined,
+      weight: pet?.weight || undefined,
+      gender: pet?.gender || '',
+      isNeutered: pet?.isNeutered !== undefined ? (pet.isNeutered ? 'Y' : 'N') : '',
+      profileImage: pet?.profileImage || '',
+    };
+  };
+
   const {
     control,
     handleSubmit,
     getValues,
     trigger,
+    reset,
     formState: { isValid, isDirty, isSubmitting },
   } = useForm<PetFormData>({
     mode: 'onChange',
-    defaultValues: {
-      name: defaultValues?.name || '',
-      relationship: defaultValues?.relationship || '',
-      breed: defaultValues?.breed ? { breedId: 0, breedName: defaultValues.breed } : null,
-      birthYear: defaultValues?.birthYear ? String(defaultValues.birthYear) : undefined,
-      weight: defaultValues?.weight || undefined,
-      gender: defaultValues?.gender || '',
-      isNeutered: defaultValues?.isNeutered !== undefined ? (defaultValues.isNeutered ? 'Y' : 'N') : '',
-      profileImage: defaultValues?.profileImage || '',
-    },
+    defaultValues: transformDefaultValues(defaultValues),
   });
 
   const onSubmit: SubmitHandler<PetFormData> = async (data) => {
@@ -106,7 +111,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           petId,
           name: data.name,
           relationship: data.relationship,
-          profileImage: data.profileImage,
+          profileImage: finalProfileImage,
           breed: data.breed?.breedName,
           birthYear: data.birthYear ? Number(data.birthYear) : undefined,
           gender: data.gender || undefined,
@@ -129,6 +134,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
     handleSubmit: submit,
     getValues,
     trigger,
+    reset,
+    transformDefaultValues,
     isValid,
     isDirty,
     isSubmitting,

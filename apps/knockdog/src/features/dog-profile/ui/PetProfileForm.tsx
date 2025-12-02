@@ -44,13 +44,37 @@ function PetProfileForm({
   onDirtyChange,
   onBeforeSubmit,
 }: PetProfileFormProps) {
-  const { control, handleSubmit, isValid, isSubmitting, isDirty, getValues, trigger } = usePetProfileForm({
-    mode,
-    petId,
-    defaultValues,
-    onSuccess,
-    onError,
-  });
+  const { control, handleSubmit, isValid, isSubmitting, isDirty, getValues, trigger, reset, transformDefaultValues } =
+    usePetProfileForm({
+      mode,
+      petId,
+      defaultValues,
+      onSuccess,
+      onError,
+    });
+
+  // defaultValues가 변경될 때 폼 리셋
+  const defaultValuesKey = React.useMemo(() => {
+    if (!defaultValues) return null;
+    return JSON.stringify({
+      id: defaultValues.id,
+      name: defaultValues.name,
+      relationship: defaultValues.relationship,
+      breed: defaultValues.breed,
+      birthYear: defaultValues.birthYear,
+      weight: defaultValues.weight,
+      gender: defaultValues.gender,
+      isNeutered: defaultValues.isNeutered,
+      profileImage: defaultValues.profileImage,
+    });
+  }, [defaultValues]);
+
+  React.useEffect(() => {
+    if (defaultValues && defaultValuesKey) {
+      reset(transformDefaultValues(defaultValues));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValuesKey, reset]);
 
   // isDirty 상태 변경을 부모에게 알림
   React.useEffect(() => {

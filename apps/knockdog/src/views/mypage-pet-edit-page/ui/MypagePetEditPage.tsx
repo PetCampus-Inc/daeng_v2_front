@@ -17,6 +17,7 @@ import { PetProfileForm } from '@features/dog-profile';
 import { overlay } from 'overlay-kit';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
+import { SafeArea } from '@shared/ui/safe-area';
 
 export function MypagePetEditPage() {
   const { back } = useStackNavigation();
@@ -64,7 +65,7 @@ export function MypagePetEditPage() {
   };
 
   return (
-    <div className='flex h-screen flex-col'>
+    <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
       <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -85,6 +86,6 @@ export function MypagePetEditPage() {
           submitButtonText='수정하기'
         />
       </div>
-    </div>
+    </SafeArea>
   );
 }
