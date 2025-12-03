@@ -1161,3 +1161,5 @@ export const Drawer = {
   Title: DialogPrimitive.Title,
   Description: DialogPrimitive.Description,
 };
+
+export { TRANSITION_DURATION_MS } from './constants';
