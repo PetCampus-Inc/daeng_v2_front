@@ -21,45 +21,22 @@ function BottomSheetTrigger({ ...props }: React.ComponentProps<typeof DrawerPrim
 function BottomSheetPortal({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
   return <DrawerPrimitive.Portal data-slot='bottom-sheet-portal' {...props} />;
 }
-
-function BottomSheetCloseButton({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
-  return (
-    <DrawerPrimitive.Close
-      data-slot='bottom-sheet-close'
-      className={cn('absolute right-4 flex cursor-pointer items-center justify-center', className)}
-      {...props}
-    >
-      <Icon icon='Close' className='size-x6 text-fill-secondary-700' />
-    </DrawerPrimitive.Close>
-  );
-}
-
 function BottomSheetOverlay({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Overlay>) {
   return (
     <DrawerPrimitive.Overlay
       data-slot='bottom-sheet-overlay'
-      className={cn('fixed inset-0 z-(--z-index-overlay) bg-black/40', className)}
+      className={cn('z-(--z-index-overlay) fixed inset-0 bg-black/40', className)}
       {...props}
     />
   );
 }
 
 function BottomSheetBody({ className, children, ...props }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-
   return (
     <DrawerPrimitive.Content
       data-slot='bottom-sheet-body'
       className={cn(
-        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-(--z-index-modal) h-max max-h-[calc(env(safe-area-inset-top)+100vh-72px)] w-full rounded-t-[16px] pb-[calc(env(safe-area-inset-bottom)+0px)] shadow-[0px_-16px_20px] shadow-black/5',
+        'bg-primitive-neutral-0 z-(--z-index-modal) fixed inset-x-0 bottom-0 max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
         className
       )}
       {...props}
@@ -77,7 +54,7 @@ function BottomSheetHandle({ className, ...props }: React.ComponentProps<typeof 
   return (
     <DrawerPrimitive.Handle
       data-slot='bottom-sheet-handle'
-      className={cn('bg-fill-secondary-200 mx-auto mt-[12px] mb-[8px] h-[5px] w-[36px] rounded-full', className)}
+      className={cn('bg-fill-secondary-200 mx-auto mb-[8px] mt-[12px] h-[5px] w-[36px] rounded-full', className)}
       {...props}
     />
   );
@@ -104,6 +81,18 @@ function BottomSheetTitle({ className, ...props }: React.ComponentProps<typeof D
       className={cn('h3-extrabold text-text-primary', className)}
       {...props}
     />
+  );
+}
+
+function BottomSheetCloseButton({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
+  return (
+    <DrawerPrimitive.Close
+      data-slot='bottom-sheet-close'
+      className={cn('absolute right-4 flex cursor-pointer items-center justify-center', className)}
+      {...props}
+    >
+      <Icon icon='Close' className='size-x6 text-fill-secondary-700' />
+    </DrawerPrimitive.Close>
   );
 }
 

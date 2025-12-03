@@ -1,9 +1,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { BottomSheet, ActionButton, Icon } from '@knockdog/ui';
-import { MapView } from '@features/map';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { Map, Overlay } from '@knockdog/react-naver-map';
+import { CurrentSelectionMarker } from './CurrentSelectionMarker';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCurrentAddress } from '@shared/lib';
+import type { Coord } from '@shared/types';
 
 interface AddressSelectMapSheetProps {
   isOpen: boolean;
@@ -24,7 +27,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
 
   const { primaryText, isLoading } = useCurrentAddress(selectedLocation);
 
-  const handleMapClick = (coord: { lat: number; lng: number }) => {
+  const handleMapClick = (coord: Coord) => {
     setSelectedLocation(coord);
   };
 
@@ -47,17 +50,20 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
 
         <div>
           <div className='h-[calc(100vh-184px)]'>
-            <MapView
+            <Map
               ref={map}
-              selection={selectedLocation}
               center={defaultLocation}
               zoom={DEFAULT_MAP_ZOOM_LEVEL}
-              onClick={handleMapClick}
-            />
+              onClick={(e) => handleMapClick({ lat: e.coord.y, lng: e.coord.x })}
+            >
+              <Overlay position={selectedLocation}>
+                <CurrentSelectionMarker />
+              </Overlay>
+            </Map>
           </div>
 
           <div>
-            <div className='px-4'></div>
+            <div className='px-4' />
             <div className='flex items-center justify-center gap-x-1 px-4 py-3'>
               <Icon icon='Location' />
               <span className='body1-bold'>

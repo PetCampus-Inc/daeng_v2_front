@@ -23,6 +23,7 @@ const DOG_SAFETY_FACILITY_MAP = {
   PLAYGROUND: '놀이터',
   ROOFTOP: '루프탑·테라스',
   YARD: '운동장·마당',
+  TRAINING_GROUND_YARD: '운동장',
 } as const;
 
 const VISITOR_AMENITY_MAP = {
@@ -67,6 +68,7 @@ const SERVICE_ICON_MAP = {
   PLAYGROUND: 'Playground',
   ROOFTOP: 'Rooftop',
   YARD: 'Frontyard',
+  TRAINING_GROUND_YARD: 'Frontyard',
   PICK_DROP: 'PickdropLine',
   DIARY: 'Noticebook',
   DOG_SHOP: 'Toyshop',
@@ -78,7 +80,7 @@ const SERVICE_ICON_MAP = {
 const OPEN_STATUS_MAP = {
   OPEN: '영업중',
   CLOSED: '영업종료',
-  DAY_OFF: '휴무',
+  HOLIDAY: '오늘 휴무',
 } as const;
 
 const CTAG_MAP = {

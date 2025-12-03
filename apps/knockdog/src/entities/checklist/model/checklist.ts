@@ -20,6 +20,10 @@ interface Question {
   id: string;
   label: string;
   type: 'TRI_STATE' | 'INTEGER';
+  validation?: {
+    min?: number;
+    max?: number;
+  };
 }
 
 export type { Answer, AnswerGroup, QuestionGroup, Question };

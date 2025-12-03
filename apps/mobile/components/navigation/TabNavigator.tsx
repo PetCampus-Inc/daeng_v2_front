@@ -19,7 +19,8 @@ export default function TabNavigator() {
             const iconProps = {
               width: 24,
               height: 24,
-              fill: focused ? '#FF6F0F' : '#C2C2C2',
+              fill: focused ? '#41424A' : '#8C8C94',
+              color: focused ? '#41424A' : '#8C8C94',
             };
 
             switch (route.name) {
@@ -36,16 +37,16 @@ export default function TabNavigator() {
                 return null;
             }
           },
-          tabBarActiveTintColor: '#FF6F0F',
-          tabBarInactiveTintColor: '#C2C2C2',
+          tabBarActiveTintColor: '#41424A',
+          tabBarInactiveTintColor: '#8C8C94',
           headerShown: false,
         };
       }}
     >
-      <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '탐색' }} />
+      <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
       <Tab.Screen name='Save' component={SaveTab} options={{ title: '저장' }} />
       <Tab.Screen name='Compare' component={CompareTab} options={{ title: '비교' }} />
-      <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이페이지' }} />
+      <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이' }} />
     </Tab.Navigator>
   );
 }

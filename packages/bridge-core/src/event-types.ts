@@ -1,3 +1,5 @@
+import type { ImageAsset, ShareParams } from './methods';
+
 interface BridgeEventMap {
   'bridge.ready': { nativeVersion: string; methods: string[] };
   'nav.result': { txId: string; result: unknown };
@@ -10,6 +12,25 @@ interface BridgeEventMap {
     variant?: 'rounded' | 'square';
     position?: 'top' | 'bottom' | 'bottom-above-nav';
   };
+  'media.pickImage': {
+    requestId: string;
+    mediaTypes?: 'images' | 'videos' | 'all';
+    allowsEditing?: boolean;
+    quality?: number;
+    aspect?: [number, number];
+    allowsMultipleSelection?: boolean;
+    orderedSelection?: boolean;
+    selectionLimit?: number;
+  };
+  'media.pickImage.result': {
+    requestId: string;
+    cancelled: boolean;
+    assets?: ImageAsset[];
+  };
+  'media.pickImage.cancel': { requestId: string; reason?: string };
+  'system.openExternalLink': { url: string };
+  'system.openSystemSetting': undefined;
+  'system.share': ShareParams;
 }
 
 export type { BridgeEventMap };

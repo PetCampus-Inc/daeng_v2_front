@@ -1,0 +1,65 @@
+import * as Linking from 'expo-linking';
+import * as Clipboard from 'expo-clipboard';
+import Constants from 'expo-constants';
+import { NativeBridgeRouter } from '@knockdog/bridge-native';
+import { METHODS } from '@knockdog/bridge-core';
+
+/**
+ * 시스템 핸들러
+ */
+export function registerSystemHandlers(router: NativeBridgeRouter) {
+  /** 전화 걸기 */
+  router.register(METHODS.callPhone, async (params: { phoneNumber: string }) => {
+    const { phoneNumber } = params;
+
+    if (!phoneNumber || phoneNumber.length === 0) {
+      throw { code: 'EINVALID', message: '전화번호가 유효하지 않습니다.' };
+    }
+
+    // 시뮬레이터 환경 체크
+    const isEmulator = !Constants.isDevice;
+
+    if (isEmulator) {
+      console.log('[APP] 시뮬레이터/에뮬레이터 환경에서 전화 기능 사용 불가');
+      console.log(`[APP] 전화번호: ${phoneNumber} (시뮬레이터에서는 실제 전화가 걸리지 않습니다)`);
+
+      // 개발 환경에서는 시뮬레이터에서도 성공으로 처리 (테스트용)
+      if (__DEV__) {
+        console.log('[APP] 개발 모드: 시뮬레이터에서도 전화 성공으로 처리');
+        return { opened: true, simulated: true };
+      }
+
+      throw { code: 'ESIMULATOR', message: '시뮬레이터에서는 전화를 걸 수 없습니다.' };
+    }
+
+    const canOpenURL = await Linking.canOpenURL(`tel:${phoneNumber}`);
+
+    if (!canOpenURL) {
+      throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+    }
+
+    await Linking.openURL(`tel:${phoneNumber}`);
+
+    return { opened: true };
+  });
+
+  /** 클립보드 복사 */
+  router.register(METHODS.copyToClipboard, async (params: { text: string }) => {
+    const { text } = params;
+    if (!text || typeof text !== 'string') {
+      throw { code: 'EINVALID', message: '클립보드에 복사할 텍스트가 유효하지 않습니다.' };
+    }
+
+    // 길이 제한
+    const MAX = 100_000;
+    const payload = text.length > MAX ? text.slice(0, MAX) : text;
+
+    try {
+      await Clipboard.setStringAsync(payload);
+      return { copied: true };
+    } catch (error) {
+      console.error('[APP] copyToClipboard error', error);
+      throw { code: 'EUNAVAILABLE', message: '클립보드에 복사할 수 없습니다.' };
+    }
+  });
+}

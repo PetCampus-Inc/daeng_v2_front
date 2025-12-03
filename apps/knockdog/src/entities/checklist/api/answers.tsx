@@ -6,22 +6,35 @@ interface AnswersResponse {
   sections: AnswerGroup[];
 }
 
+interface ApiResponse {
+  code: string;
+  message: string;
+  success: boolean;
+  result: AnswersResponse;
+}
+
 const getAnswers = async (targetId: string): Promise<AnswersResponse> => {
-  const response = await api.get('/api/v0/memo/checklist/answer', {
+  const response = await api.get('memo/checklist/answer', {
     searchParams: {
       targetId,
     },
   });
-  return response.json();
+  const data = await response.json<ApiResponse>();
+  
+  if (data.success) {
+    return data.result;
+  }
+  
+  throw new Error(data.message || '체크리스트를 불러올 수 없습니다');
 };
 
-interface PostAnswersRequest {
+interface UpdateAnswersRequest {
   targetId: string;
   answers: { questionId: string; value: string }[];
 }
 
-const postAnswers = async ({ targetId, answers }: PostAnswersRequest) => {
-  const response = await api.post('/api/v0/memo/checklist', {
+const updateAnswers = async ({ targetId, answers }: UpdateAnswersRequest) => {
+  const response = await api.post('memo/checklist', {
     searchParams: {
       targetId,
     },
@@ -29,7 +42,13 @@ const postAnswers = async ({ targetId, answers }: PostAnswersRequest) => {
       answers,
     },
   });
-  return response.json();
+  const data = await response.json<ApiResponse>();
+  
+  if (data.success) {
+    return data.result;
+  }
+  
+  throw new Error(data.message || '체크리스트를 저장할 수 없습니다');
 };
 
-export { getAnswers, type AnswersResponse, postAnswers, type PostAnswersRequest };
+export { getAnswers, type AnswersResponse, updateAnswers, type UpdateAnswersRequest };

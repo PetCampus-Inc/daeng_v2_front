@@ -11,5 +11,5 @@ import WebView from 'react-native-webview';
 
 export default function MyTab() {
   const webviewRef = useRef<WebView>(null);
-  return <WebViewScreen uri={`${API_URL}/my`} webviewRef={webviewRef} />;
+  return <WebViewScreen uri={`${API_URL}/mypage`} webviewRef={webviewRef} />;
 }

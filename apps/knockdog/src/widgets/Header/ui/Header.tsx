@@ -8,7 +8,7 @@ import CloseButton from './CloseButton';
 import InputField from './InputField';
 import HomeButton from './HomeButton';
 import { cn } from '@knockdog/ui/lib';
-import type { ComponentProps } from 'react';
+import { Suspense, type ComponentProps } from 'react';
 import type { HeaderVariant } from '../model/HeaderProvider';
 
 export function Header({
@@ -23,7 +23,7 @@ export function Header({
   withSpacing?: boolean;
 }) {
   const variantClass = {
-    solid: 'bg-white border-b',
+    solid: 'bg-white border-b border-line-100',
     transparent: 'bg-transparent',
   };
 
@@ -31,15 +31,14 @@ export function Header({
     <>
       <header
         className={cn(
-          'z-15 border-line-100 fixed top-0 flex h-16 w-screen items-center px-4',
+          'border-line-100 sticky top-0 z-15 flex h-16 w-full items-center px-4',
           variantClass[variant],
           className
         )}
         {...props}
       >
-        <div className='relative flex w-full'>{children}</div>
+        <div className={cn('flex h-16 w-full items-center')}>{children}</div>
       </header>
-
       {withSpacing && <div className='h-16' />}
     </>
   );
@@ -63,7 +62,7 @@ function RightSection({ children, ...props }: ComponentProps<'div'>) {
 
 function CenterSection({ children, ...props }: ComponentProps<'div'>) {
   return (
-    <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' {...props}>
+    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' {...props}>
       {children}
     </div>
   );

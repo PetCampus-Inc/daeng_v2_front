@@ -87,5 +87,6 @@ export { UnderBar } from './UnderBar';
 export { Valet } from './Valet';
 export { Walk } from './Walk';
 export { Won } from './Won';
+export { Maindog } from './Maindog';
 
 export type { IconName } from './types';

@@ -1,5 +1,5 @@
 // api
-export { getAnswers, type AnswersResponse, postAnswers, type PostAnswersRequest } from './api/answers';
+export { getAnswers, type AnswersResponse, updateAnswers, type UpdateAnswersRequest } from './api/answers';
 export { getQuestions, type QuestionGroupResponse } from './api/questions';
 
 // config
@@ -11,3 +11,4 @@ export {
 
 // model
 export type { Answer, AnswerGroup, QuestionGroup, Question } from './model/checklist';
+export { QUESTION_MAP } from './config/questionMap';

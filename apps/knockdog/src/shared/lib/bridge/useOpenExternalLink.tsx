@@ -12,8 +12,8 @@ function useOpenExternalLink() {
 
   if (isNative) {
     return useCallback(
-      async function openExternalLink(url: string) {
-        return bridge.request(METHODS.openExternalLink, { url });
+      function openExternalLink(url: string) {
+        bridge.emit(METHODS.openExternalLink, { url });
       },
       [bridge]
     );

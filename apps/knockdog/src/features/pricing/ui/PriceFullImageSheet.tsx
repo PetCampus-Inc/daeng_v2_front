@@ -1,4 +1,5 @@
-import { BottomSheet, IconButton } from '@knockdog/ui';
+import { IconButton } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { FullImageSlider } from '@shared/ui/full-image-slider';
 
 interface PriceFullImageSheetProps {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useBridge } from '@shared/lib/bridge';
-import { BridgeException } from '@knockdog/bridge-core';
+import { BridgeException, METHODS } from '@knockdog/bridge-core';
 
 type Location = { lat: number; lng: number };
 type Options = {
@@ -29,7 +29,7 @@ export function useCurrentLocation(options?: Options) {
 
     async function getFromNative() {
       try {
-        const res = await bridge.request<Location>('device.getLatLng');
+        const res = await bridge.request<Location>(METHODS.getLatLng);
 
         if (mounted) {
           setPosition(res);

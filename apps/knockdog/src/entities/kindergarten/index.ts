@@ -3,27 +3,35 @@ export { getKindergartenAutocomplete } from './api/autocomplete';
 export type { KindergartenAutocompleteParams } from './api/autocomplete';
 export { getFilterResultCount } from './api/filters';
 export type { FilterResultCountParams } from './api/filters';
-export { getKindergartenSearchList, getKindergartenAggregation } from './api/kindergarten';
-export type { KindergartenSearchListParams, KindergartenAggregationParams } from './api/kindergarten';
+export { getKindergartenSearchList, getKindergartenAggregation } from './api/search-list';
+export type { KindergartenSearchListParams, KindergartenAggregationParams, SortType } from './api/search-list';
+export { getKindergartenMain } from './api/kindergarten-main';
+export type { KindergartenMainParams } from './api/kindergarten-main';
 
 /** config */
-export { ServiceTag, PickupType, OperationStatus } from './config/constant';
+export { SERVICE_TAGS, PICKUP_TYPE, OPERATION_STATUS } from './config/constant';
 export { FILTER_CONFIG, FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from './config/filter-options';
 export type { FilterOption, FilterState } from './config/filter-options';
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
 export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from './config/kindergartenNearQueryKeys';
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
+/** lib */
+export { isValidBounds, isEqualBounds } from './lib/is';
+export { serializeBounds, serializeFilters } from './lib/serialize';
+
 /** model */
-export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
-export type { FilterResultCount } from './model/filters';
+export { createKindergartenListWithMock } from './model/mappers';
 export type {
-  KindergartenSearchList,
-  Aggregation,
-  Kindergarten,
-  KindergartenListItem,
-  SidoGunguAggregation,
-} from './model/kindergarten';
+  Autocomplete,
+  RegionSuggestion,
+  FilterItemSuggestion,
+  FilterItemCode,
+  AutocompletePlace,
+} from './model/autocomplete';
+export type { FilterResultCount } from './model/filters';
+export type { Aggregation, SidoGunguAggregation } from './model/search-list';
+export type { Kindergarten } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
 export type {
@@ -45,8 +53,9 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
+export type { KindergartenListItem, KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
 
 /** ui */
+export { DeparturePointSheet } from './ui/DeparturePointSheet';
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
 export { ServiceBadgeList } from './ui/ServiceBadgeList';
-export { DeparturePointSheet } from './ui/DeparturePointSheet';

@@ -9,9 +9,10 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useParams } from 'next/navigation';
 import { BookmarkToggleIcon } from '@entities/bookmark';
-import { PhoneCallSheet } from '@features/kindergarten';
+import { PhoneCallSheet } from '@features/kindergarten-list';
 import { overlay } from 'overlay-kit';
 import { useShare } from '@shared/lib/device';
+import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,8 @@ function KindergartenDetailPage() {
   });
 
   const share = useShare();
+
+  useRecentKindergartenView(kindergartenMain);
 
   if (lng == null || lat == null || !kindergartenMain) return null;
 
@@ -54,7 +57,7 @@ function KindergartenDetailPage() {
 
   return (
     <>
-      <Header>
+      <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton />
           <Header.HomeButton />
@@ -85,8 +88,13 @@ function KindergartenDetailPage() {
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <div className='absolute bottom-0 z-10 flex w-screen items-center gap-1 bg-white p-4'>
-        <ActionButton variant='primaryLine' className='flex-1' onClick={openPhoneCallSheet}>
+      <div className='absolute bottom-0 z-10 flex w-full items-center gap-1 bg-white p-4'>
+        <ActionButton
+          disabled={!kindergartenMain.phoneNumber}
+          variant='primaryLine'
+          className='flex-1'
+          onClick={openPhoneCallSheet}
+        >
           전화 걸기
         </ActionButton>
         {/* @TODO 비교하기 페이지로 Route */}

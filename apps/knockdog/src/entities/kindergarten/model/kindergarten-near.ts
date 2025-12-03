@@ -1,6 +1,4 @@
-import type { OPEN_STATUS_MAP } from './constants/kindergarten';
-import type { PICKUP_TYPE_MAP } from './constants/kindergarten';
-import type { DogBreed, DogService, DogSafetyFacility, VisitorAmenity } from './service';
+import { SERVICE_TAGS, OPERATION_STATUS, PICKUP_TYPE } from '../config/constant';
 
 interface KindergartenNear {
   id: string;
@@ -8,9 +6,9 @@ interface KindergartenNear {
   ctg: string;
   roadAddress: string;
   dist: number;
-  operationStatus: keyof typeof OPEN_STATUS_MAP;
-  serviceTags: (DogBreed | DogService | DogSafetyFacility | VisitorAmenity)[];
-  pickupType: keyof typeof PICKUP_TYPE_MAP;
+  operationStatus: keyof typeof OPERATION_STATUS;
+  serviceTags: (keyof typeof SERVICE_TAGS)[];
+  pickupType: keyof typeof PICKUP_TYPE;
   price: number;
   reviewCount: number;
   memoDate: string;

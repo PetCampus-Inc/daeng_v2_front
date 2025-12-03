@@ -1,5 +1,6 @@
 export * from './action-button';
 export * from './alert-dialog';
+export * from './avatar';
 export * from './bottom-sheet';
 export * from './divider';
 export * from './float';
@@ -18,3 +19,5 @@ export * from './radio-group';
 export * from './checkbox';
 export * from './toast';
 export * from './tooltip';
+export * from './field';
+export * from './slot';

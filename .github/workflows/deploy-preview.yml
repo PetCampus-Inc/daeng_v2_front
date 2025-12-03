@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     # Dependabot 봇인 경우 또는 PR 본문에 [skip ci] 포함되어 있으면 배포 스킵
-    if:
-      github.actor != 'dependabot[bot]' &&
+    if: |
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
       !contains(github.event.pull_request.body, '[skip ci]')
     permissions:
       pull-requests: write
@@ -19,7 +19,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Compute diff
         uses: dorny/paths-filter@v3

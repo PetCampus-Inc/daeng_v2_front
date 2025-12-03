@@ -3,13 +3,30 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": ["./*"],
-      "@assets": ["./assets/*"],
-      "@stores/*": ["./stores/*"],
-      "@utils/*": ["../utils/*"],
-      "@type/*": ["./types/*"],
-      "@screens": ["./screens/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@assets": [
+        "./assets/*"
+      ],
+      "@stores/*": [
+        "./stores/*"
+      ],
+      "@utils/*": [
+        "../utils/*"
+      ],
+      "@type/*": [
+        "./types/*"
+      ],
+      "@screens": [
+        "./screens/*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

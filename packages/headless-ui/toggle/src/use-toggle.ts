@@ -53,7 +53,8 @@ export function useToggle(props: UseToggleProps) {
     rootProps: buttonProps({
       ...stateProps,
       'aria-pressed': isPressed,
-      onClick() {
+      onClick(event) {
+        event.preventDefault();
         if (props.disabled) return;
         toggle();
       },

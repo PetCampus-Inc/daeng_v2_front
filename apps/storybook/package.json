@@ -15,14 +15,14 @@
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
     "@knockdog/ui": "workspace:*",
-    "tailwindcss": "^4.1.14"
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
     "@storybook/addon-links": "9.1.10",
     "@storybook/addon-onboarding": "9.1.10",
     "@storybook/nextjs": "9.1.10",
-    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/postcss": "^4.1.17",
     "postcss": "^8.5.6",
     "storybook": "9.1.10",
     "eslint-plugin-storybook": "9.1.10",

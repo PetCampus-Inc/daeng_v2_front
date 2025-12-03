@@ -9,13 +9,23 @@ export interface UpdateMemoRequest {
 }
 
 export const updateMemo = async ({ targetId, content, photos }: UpdateMemoRequest) => {
-  const response = await api.post(`/api/v0/memo`, {
+  const formData = new FormData();
+  
+  if (content !== undefined) {
+    formData.append('content', content);
+  }
+  
+  if (photos) {
+    formData.append('photos', JSON.stringify(photos));
+  }
+
+  const response = await api.post(`memo`, {
     searchParams: {
       targetId,
     },
-    json: {
-      content,
-      photos,
+    body: formData,
+    headers: {
+      'Content-Type': undefined, // FormData 사용 시 브라우저가 자동으로 설정하도록 제거
     },
   });
   return response.json();

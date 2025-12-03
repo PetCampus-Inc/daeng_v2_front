@@ -3,6 +3,10 @@
 @config '@knockdog/ui/tailwind-config';
 @source '@knockdog/ui';
 
+@theme {
+  --breakpoint-sm: 30rem;
+}
+
 html body[data-scroll-locked] {
   overflow: hidden !important;
   overscroll-behavior: contain;
@@ -33,6 +37,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-smooth: never;
+}
+
+button {
+  cursor: pointer;
 }
 
 /* 스크롤바 숨김 */

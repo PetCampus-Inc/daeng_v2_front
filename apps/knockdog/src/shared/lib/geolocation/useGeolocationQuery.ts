@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getCurrentLocation } from './getCurrentLocation';
 import { globalQueryKeys } from '@shared/constants';
 
-// TODO: 향후 Native에서 현재 위치 조회 API 사용 시 삭제 필요!!!
 export function useGeolocationQuery(enabled = true) {
   return useQuery({
     queryKey: globalQueryKeys.basePoint.current(),
@@ -16,8 +15,8 @@ export function useGeolocationQuery(enabled = true) {
     refetchOnWindowFocus: false,
     select: (data) => {
       return {
-        lat: Number(data.lat.toFixed(6)),
-        lng: Number(data.lng.toFixed(6)),
+        lat: Number(data.coords.latitude.toFixed(6)),
+        lng: Number(data.coords.longitude.toFixed(6)),
       };
     },
   });

@@ -17,7 +17,7 @@ export const ToggleRoot = forwardRef<HTMLButtonElement, ToggleRootProps>((props,
   });
   return (
     <ToggleProvider value={api}>
-      <button ref={ref} {...api.rootProps} {...otherProps} />
+      <button ref={ref} type='button' {...api.rootProps} {...otherProps} />
     </ToggleProvider>
   );
 });

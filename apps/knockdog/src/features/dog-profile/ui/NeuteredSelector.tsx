@@ -3,12 +3,18 @@
 import { ToggleButton } from '@knockdog/ui';
 
 interface NeuteredSelectorProps {
-  value: boolean | null;
-  onChange: (isNeutered: boolean | null) => void;
+  value?: 'Y' | 'N' | null;
   required?: boolean;
+  onChange?: (isNeutered: 'Y' | 'N' | null) => void;
+  onComplete?: () => void;
 }
 
-export function NeuteredSelector({ value, onChange, required = false }: NeuteredSelectorProps) {
+function NeuteredSelector({ value, required = false, onChange, onComplete }: NeuteredSelectorProps) {
+  const handleChange = (isNeutered: 'Y' | 'N') => () => {
+    onChange?.(isNeutered);
+    onComplete?.();
+  };
+
   return (
     <div>
       <h5 className='text-text-primary body2-bold pb-2'>
@@ -17,13 +23,15 @@ export function NeuteredSelector({ value, onChange, required = false }: Neutered
       </h5>
 
       <div className='flex gap-x-2'>
-        <ToggleButton className='flex-1' pressed={value === true} onPressedChange={() => onChange(true)}>
+        <ToggleButton className='body2-semibold flex-1' pressed={value === 'Y'} onPressedChange={handleChange('Y')}>
           했어요
         </ToggleButton>
-        <ToggleButton className='flex-1' pressed={value === false} onPressedChange={() => onChange(false)}>
+        <ToggleButton className='body2-semibold flex-1' pressed={value === 'N'} onPressedChange={handleChange('N')}>
           안했어요
         </ToggleButton>
       </div>
     </div>
   );
 }
+
+export { NeuteredSelector };

@@ -4,7 +4,7 @@ export const FILTER_OPTIONS = {
   OPEN_HOLIDAY: '공휴일 영업',
 
   // 견종 조건
-  DOG_FREE: '견종 무관',
+  ALL_BREEDS: '견종 무관',
   SMALL_DOG_ONLY: '소형견 전용',
   MEDIUM_LARGE_DOG_ONLY: '중대형견 전용',
 
@@ -24,8 +24,8 @@ export const FILTER_OPTIONS = {
   NON_SLIP: '미끄럼방지 바닥',
   CCTV: 'CCTV',
   PLAYGROUND: '놀이터',
-  ROOFTOP: '루프탑·테라스',
-  YARD: '운동장·마당',
+  ROOFTOP_TERRACE: '루프탑·테라스',
+  TRAINING_GROUND_YARD: '운동장·마당',
 
   // 방문객 편의 ∙ 시설
   PICKDROP: '픽드랍',
@@ -36,14 +36,14 @@ export const FILTER_OPTIONS = {
   VALET: '발렛파킹',
 
   // 상품 유형
-  PASS_TICKET: '횟수권',
-  SUBSCRIPTION: '정기권',
+  COUNT_TICKET: '횟수권',
+  MONTHLY_TICKET: '정기권',
   MEMBERSHIP: '멤버십',
 } as const;
 
 export const FILTER_CONFIG = {
   '영업 시간': ['OPEN_NOW', 'OPEN_HOLIDAY'],
-  '견종 조건': ['DOG_FREE', 'SMALL_DOG_ONLY', 'MEDIUM_LARGE_DOG_ONLY'],
+  '견종 조건': ['ALL_BREEDS', 'SMALL_DOG_ONLY', 'MEDIUM_LARGE_DOG_ONLY'],
   '강아지 서비스': [
     'DAYCARE',
     'HOTEL',
@@ -56,9 +56,9 @@ export const FILTER_CONFIG = {
     'GROOMING',
     'REHABILITATION',
   ],
-  '강아지 안전 ∙ 시설': ['NON_SLIP', 'CCTV', 'PLAYGROUND', 'ROOFTOP', 'YARD'],
+  '강아지 안전 ∙ 시설': ['NON_SLIP', 'CCTV', 'PLAYGROUND', 'ROOFTOP_TERRACE', 'TRAINING_GROUND_YARD'],
   '방문객 편의 ∙ 시설': ['PICKDROP', 'DIARY', 'DOG_CAFE', 'DOG_SHOP', 'PARKING', 'VALET'],
-  '상품 유형': ['PASS_TICKET', 'SUBSCRIPTION', 'MEMBERSHIP'],
+  '상품 유형': ['COUNT_TICKET', 'MONTHLY_TICKET', 'MEMBERSHIP'],
 } as const;
 
 export const SHORT_CUT_FILTER_OPTIONS: FilterOption[] = [
