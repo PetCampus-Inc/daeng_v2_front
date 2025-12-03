@@ -8,8 +8,8 @@ export * from './lib/markers';
 export * from './model/useMapUrlState';
 
 /** ui */
+export * from './ui/CurrentLocationDisplayFAB';
 export * from './ui/CurrentLocationFAB';
 export * from './ui/ListFAB';
 export * from './ui/MapView';
 export * from './ui/RefreshFAB';
-export * from './ui/MapView';
