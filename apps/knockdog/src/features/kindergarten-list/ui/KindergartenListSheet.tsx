@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { cn } from '@knockdog/ui/lib';
-
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { isNativeWebView, useBottomSheetSnapIndex, useIsomorphicLayoutEffect, useSafeAreaInsets } from '@shared/lib';

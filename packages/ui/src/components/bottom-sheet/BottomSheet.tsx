@@ -6,8 +6,8 @@ import { Drawer as DrawerPrimitive } from '@daeng-design/vaul';
 import { cn } from '@knockdog/ui/lib';
 import { Icon } from '../icon';
 
-function BottomSheetRoot({ shouldAnimate = true, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot='bottom-sheet' shouldAnimate={shouldAnimate} {...props} />;
+function BottomSheetRoot({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
+  return <DrawerPrimitive.Root data-slot='bottom-sheet' {...props} />;
 }
 
 function BottomSheetNestedRoot({ ...props }: React.ComponentProps<typeof DrawerPrimitive.NestedRoot>) {
