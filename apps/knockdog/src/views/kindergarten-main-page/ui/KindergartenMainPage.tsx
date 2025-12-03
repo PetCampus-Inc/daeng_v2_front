@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -17,8 +17,7 @@ import {
 } from '@features/kindergarten-map';
 import {
   FilterBottomSheet,
-  KindergartenCardSheet,
-  KindergartenDetailSheet,
+  KindergartenItemSheet,
   KindergartenListSheet,
   SearchHeader,
   isValidLatLngBounds,
@@ -110,19 +109,27 @@ export default function KindergartenMainPage() {
   const handleOpenCard = (item: KindergartenListItemWithMeta) => {
     const itemId = item.id;
 
-    overlay.open(({ isOpen, close }) => (
-      <KindergartenCardSheet
-        isOpen={isOpen}
-        close={() => {
-          // 닫히는 시점에 현재 활성화된 마커가 이 카드의 마커라면 비활성화
-          if (useMarkerState.getState().activeMarkerId === itemId) {
-            setActiveMarker(null);
-          }
-          close();
-        }}
-        {...item}
-      />
-    ));
+    // 이미 활성화된 마커면 시트를 열지 않음
+    if (useMarkerState.getState().activeMarkerId === itemId) {
+      return;
+    }
+
+    setActiveMarker(item.id);
+
+    overlay.open(({ isOpen, unmount }) => {
+      return (
+        <KindergartenItemSheet
+          isOpen={isOpen}
+          close={() => {
+            if (useMarkerState.getState().activeMarkerId === itemId) {
+              setActiveMarker(null);
+            }
+            unmount();
+          }}
+          {...item}
+        />
+      );
+    });
   };
 
   const handleOpenFilter = () => {
@@ -146,20 +153,19 @@ export default function KindergartenMainPage() {
         <SearchHeader query={query} />
       ) : (
         <div
-          className={cn(
-            'px-x4 absolute top-0 z-50 flex min-h-16 w-full items-center transition-colors ease-out',
-            isFullExtended && 'bg-fill-secondary-0'
-          )}
+          className={cn(`absolute top-0 right-0 left-0 z-50 ${isFullExtended ? 'bg-fill-secondary-0' : ''}`)}
           style={{ paddingTop: top }}
         >
-          <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`} className='w-full'>
-            <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-12 items-center border'>
-              <Icon icon='Search' className='size-x6 text-fill-secondary-700 mr-x2' />
-              <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
-                업체 또는 주소를 검색하세요
+          <div className='px-x4 flex h-16 w-full items-center transition-colors ease-out'>
+            <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`} className='w-full'>
+              <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-12 items-center border'>
+                <Icon icon='Search' className='size-x6 text-fill-secondary-700 mr-x2' />
+                <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
+                  업체 또는 주소를 검색하세요
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
       )}
 
