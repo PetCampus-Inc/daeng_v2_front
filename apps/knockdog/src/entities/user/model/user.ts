@@ -1,4 +1,4 @@
-import { USER_STATUS, USER_ADDRESS_TYPE } from './constant/user';
+import { USER_STATUS, USER_ADDRESS_TYPE, WITHDRAW_REASON_TYPE } from './constant/user';
 
 /** 유저 */
 interface User {
@@ -27,4 +27,16 @@ interface UserAddress {
 /** 주소 타입 */
 type UserAddressType = (typeof USER_ADDRESS_TYPE)[keyof typeof USER_ADDRESS_TYPE];
 
-export { USER_STATUS, USER_ADDRESS_TYPE, type User, type UserStatus, type UserAddress, type UserAddressType };
+/** 탈퇴 사유 타입 */
+type WithdrawReasonType = (typeof WITHDRAW_REASON_TYPE)[keyof typeof WITHDRAW_REASON_TYPE];
+
+export {
+  USER_STATUS,
+  USER_ADDRESS_TYPE,
+  WITHDRAW_REASON_TYPE,
+  type User,
+  type UserStatus,
+  type UserAddress,
+  type UserAddressType,
+  type WithdrawReasonType,
+};

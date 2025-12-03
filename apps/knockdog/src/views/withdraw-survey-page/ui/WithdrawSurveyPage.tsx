@@ -1,13 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { createParser, useQueryState } from 'nuqs';
 import { Header } from '@widgets/Header';
 import { ActionButton, RadioGroup, RadioGroupItem, Textarea, TextareaInput } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { WITHDRAW_REASON_TYPE, type WithdrawReasonType, type WithdrawRequest } from '@entities/user';
+import { withdraw } from '@shared/lib/auth';
+import { route } from '@shared/constants/route';
+
+const REASON_TYPE_PARSER = createParser<WithdrawReasonType>({
+  parse: (value: string) => {
+    if (!value) return null;
+    const validTypes = Object.values(WITHDRAW_REASON_TYPE);
+    return validTypes.includes(value as WithdrawReasonType) ? (value as WithdrawReasonType) : null;
+  },
+  serialize: (value) => value,
+});
+
+const REASON_TYPE_MAP: Record<string, WithdrawReasonType> = {
+  '1': WITHDRAW_REASON_TYPE.INACCURATE_INFO,
+  '2': WITHDRAW_REASON_TYPE.POOR_UX,
+  '3': WITHDRAW_REASON_TYPE.MISSING_FEATURE,
+  '4': WITHDRAW_REASON_TYPE.OTHER,
+} as const;
 
 function WithdrawSurveyPage() {
-  const { back } = useStackNavigation();
+  const { back, reset } = useStackNavigation();
   const [selectedValue, setSelectedValue] = useState<string>('');
+  const [reasonType, setReasonType] = useQueryState('reasonType', REASON_TYPE_PARSER);
+  const [isPending, setIsPending] = useState(false);
+  const reasonTextRef = useRef<HTMLTextAreaElement>(null);
+
+  function handleReasonChange(value: string) {
+    setSelectedValue(value);
+    const mappedReasonType = REASON_TYPE_MAP[value];
+    if (mappedReasonType) {
+      setReasonType(mappedReasonType);
+    }
+  }
+
+  async function handleWithdraw() {
+    if (!reasonType || isPending) return;
+
+    const reasonText = reasonTextRef.current?.value?.trim();
+    const request: WithdrawRequest = {
+      reasonType,
+      ...(reasonText && { detail: reasonText }),
+    };
+
+    setIsPending(true);
+    try {
+      await withdraw(request);
+      await reset();
+    } catch (error) {
+      console.error('탈퇴 처리 중 오류 발생:', error);
+    } finally {
+      setIsPending(false);
+    }
+  }
 
   return (
     <>
@@ -21,16 +72,22 @@ function WithdrawSurveyPage() {
           <h1 className='h1-extrabold'>똑독을 떠나시는 이유가 궁금해요.</h1>
         </div>
 
-        <RadioGroup className='gap-0' value={selectedValue} onValueChange={setSelectedValue}>
+        <RadioGroup className='gap-0' value={selectedValue} onValueChange={handleReasonChange}>
           <RadioGroupItem value='1'>
             <div className='h3-medium py-4'>정보가 부정확해요</div>
           </RadioGroupItem>
           {selectedValue === '1' && (
             <div className='flex gap-x-2'>
-              <ActionButton variant='secondaryLine' size='large' className='w-full'>
+              <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
                 더 둘러보기
               </ActionButton>
-              <ActionButton variant='secondaryFill' size='large' className='w-full'>
+              <ActionButton
+                variant='secondaryFill'
+                size='large'
+                className='w-full'
+                onClick={handleWithdraw}
+                disabled={isPending}
+              >
                 탈퇴하기
               </ActionButton>
             </div>
@@ -40,10 +97,16 @@ function WithdrawSurveyPage() {
           </RadioGroupItem>
           {selectedValue === '2' && (
             <div className='flex gap-x-2'>
-              <ActionButton variant='secondaryLine' size='large' className='w-full'>
+              <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
                 더 둘러보기
               </ActionButton>
-              <ActionButton variant='secondaryFill' size='large' className='w-full'>
+              <ActionButton
+                variant='secondaryFill'
+                size='large'
+                className='w-full'
+                onClick={handleWithdraw}
+                disabled={isPending}
+              >
                 탈퇴하기
               </ActionButton>
             </div>
@@ -63,10 +126,16 @@ function WithdrawSurveyPage() {
                 <ActionButton className='mt-4'>아이디어 • 기능 제안하기</ActionButton>
               </div>
               <div className='flex gap-x-2'>
-                <ActionButton variant='secondaryLine' size='large' className='w-full'>
+                <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
                   더 둘러보기
                 </ActionButton>
-                <ActionButton variant='secondaryFill' size='large' className='w-full'>
+                <ActionButton
+                  variant='secondaryFill'
+                  size='large'
+                  className='w-full'
+                  onClick={handleWithdraw}
+                  disabled={isPending}
+                >
                   탈퇴하기
                 </ActionButton>
               </div>
@@ -79,13 +148,22 @@ function WithdrawSurveyPage() {
           {selectedValue === '4' && (
             <div>
               <Textarea className='mb-3' rows={3}>
-                <TextareaInput placeholder='소중한 의견을 바탕으로 더 좋은 서비스를 제공하는 똑독이 되도록 노력할게요.' />
+                <TextareaInput
+                  ref={reasonTextRef}
+                  placeholder='소중한 의견을 바탕으로 더 좋은 서비스를 제공하는 똑독이 되도록 노력할게요.'
+                />
               </Textarea>
               <div className='flex gap-x-2'>
-                <ActionButton variant='secondaryLine' size='large' className='w-full'>
+                <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
                   더 둘러보기
                 </ActionButton>
-                <ActionButton variant='secondaryFill' size='large' className='w-full'>
+                <ActionButton
+                  variant='secondaryFill'
+                  size='large'
+                  className='w-full'
+                  onClick={handleWithdraw}
+                  disabled={isPending}
+                >
                   탈퇴하기
                 </ActionButton>
               </div>
