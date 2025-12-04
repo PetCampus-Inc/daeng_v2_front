@@ -6,6 +6,8 @@ import { METHODS } from '@knockdog/bridge-core';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCurrentAddress, getCurrentLocation } from '@shared/lib/geolocation';
 import { useBridge } from '@shared/lib/bridge';
+import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
+import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
 
 type NaverRouteMode = 'car' | 'public' | 'walk' | 'bicycle';
 
@@ -32,12 +34,57 @@ function assertParamsValid(params: OpenNaverRouteParams) {
   }
 }
 
+function buildNaverMapWebUrl(params: OpenNaverRouteParams): string {
+  const { to, from, mode } = params;
+
+  // 네이버 맵 웹 URL 형식: https://map.naver.com/v5/directions/출발지위도,출발지경도,출발지명/도착지위도,도착지경도,도착지명/이동수단
+  const encodeSegment = (lat: number, lng: number, name?: string) => {
+    const segment = `${lat},${lng}`;
+    if (name) {
+      // 이름에 특수문자가 있을 수 있으므로 URL 인코딩
+      return `${segment},${encodeURIComponent(name)}`;
+    }
+    return segment;
+  };
+
+  let url = 'https://map.naver.com/v5/directions';
+
+  // 출발지가 있으면 추가
+  if (from) {
+    url += `/${encodeSegment(from.lat, from.lng, from.name)}`;
+  }
+
+  // 도착지 추가
+  url += `/${encodeSegment(to.lat, to.lng, to.name)}`;
+
+  // 이동수단 매핑
+  const modeMap: Record<NaverRouteMode, string> = {
+    car: 'car',
+    public: 'transit',
+    walk: 'walk',
+    bicycle: 'bicycle',
+  };
+
+  url += `/${modeMap[mode] || mode}`;
+
+  return url;
+}
+
 function useNaverOpenRoute() {
   const bridge = useBridge();
 
   const openNaverRoute = useCallback(
     async (params: OpenNaverRouteParams) => {
       assertParamsValid(params);
+
+      // 웹 브라우저 환경에서는 네이버 맵 웹 URL을 직접 열기
+      if (!isNativeWebView()) {
+        const url = buildNaverMapWebUrl(params);
+        window.open(url, '_blank');
+        return;
+      }
+
+      // 네이티브 WebView 환경에서는 브리지를 통해 네이버 맵 앱 열기
       await bridge.request(METHODS.naverOpenRoute, params);
     },
     [bridge]
@@ -57,6 +104,11 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const openNaverOpenRoute = useNaverOpenRoute();
+  const user = useUserStore((state) => state.user);
+  const isLoggedIn = !!user;
+
+  // 저장된 주소
+  const savedAddresses = user?.addresses || [];
 
   useEffect(() => {
     async function fetchLocation() {
@@ -98,32 +150,23 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
     return '위치 정보 없음';
   })();
 
-  // @TODO : 임시 더미 데이터 (나중에 실제 저장된 주소 데이터로 대체)
-  const savedAddresses = {
-    home: { lat: 37.4979, lng: 127.0276 }, // 강남구 논현로 예시
-    work: { lat: 37.5665, lng: 126.978 }, // 서울역 예시
-  };
-
   function handleRadioChange(value: string) {
     let selectedCoords: { lat: number; lng: number } | undefined;
     let locationName: string;
 
-    switch (value) {
-      case '1': // 현재 위치
-        if (!coords) return;
-        selectedCoords = coords;
-        locationName = '현재 위치';
-        break;
-      case '2': // 집
-        selectedCoords = savedAddresses.home;
-        locationName = '집';
-        break;
-      case '3': // 직장
-        selectedCoords = savedAddresses.work;
-        locationName = '직장';
-        break;
-      default:
-        return;
+    if (value === '1') {
+      // 현재 위치
+      if (!coords) return;
+      selectedCoords = coords;
+      locationName = '현재 위치';
+    } else {
+      // 저장된 주소
+      const addressId = value;
+      const address = savedAddresses.find((addr) => addr.id === addressId);
+      if (!address) return;
+
+      selectedCoords = { lat: address.lat, lng: address.lng };
+      locationName = address.alias || USER_ADDRESS_TYPE_KR[address.type] || address.roadAddress;
     }
 
     if (!selectedCoords) return;
@@ -160,33 +203,29 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
               </div>
               <RadioGroupItem disabled={isLoading || locationLoading || !coords} id='1' value='1' />
             </label>
-            {/*  저장된 주소 확인  */}
-            <label
-              htmlFor='2'
-              className='border-line-200 p-x4 active:bg-fill-secondary-50 flex justify-between border-b'
-            >
-              <div className='gap-x2 flex items-center'>
-                <Icon icon='Location' className='text-fill-secondary-500 size-x6' />
-                <div className='gap-x0_5 flex flex-col text-start'>
-                  <p className='body1-extrabold text-text-primary'>집</p>
-                  <span className='body2-regular text-text-secondary'>서울 강남구 논현로</span>
-                </div>
-              </div>
-              <RadioGroupItem id='2' value='2' />
-            </label>
-            <label
-              htmlFor='3'
-              className='p-x4 border-line-200 active:bg-fill-secondary-50 flex justify-between border-b'
-            >
-              <div className='gap-x2 flex items-center'>
-                <Icon icon='Location' className='text-fill-secondary-500 size-x6' />
-                <div className='gap-x0_5 flex flex-col text-start'>
-                  <p className='body1-extrabold text-text-primary'>직장</p>
-                  <span className='body2-regular text-text-secondary'>서울 강남구 논현로</span>
-                </div>
-              </div>
-              <RadioGroupItem id='3' value='3' />
-            </label>
+            {/* 저장된 주소 확인 (로그인한 경우에만 표시) */}
+            {isLoggedIn &&
+              savedAddresses.map((address) => {
+                const addressLabel = address.alias || USER_ADDRESS_TYPE_KR[address.type] || '';
+                const addressText = address.roadAddress || address.address;
+
+                return (
+                  <label
+                    key={address.id}
+                    htmlFor={address.id}
+                    className='border-line-200 p-x4 active:bg-fill-secondary-50 flex justify-between border-b'
+                  >
+                    <div className='gap-x2 flex items-center'>
+                      <Icon icon='Location' className='text-fill-secondary-500 size-x6' />
+                      <div className='gap-x0_5 flex flex-col text-start'>
+                        <p className='body1-extrabold text-text-primary'>{addressLabel}</p>
+                        <span className='body2-regular text-text-secondary'>{addressText}</span>
+                      </div>
+                    </div>
+                    <RadioGroupItem id={address.id} value={address.id} />
+                  </label>
+                );
+              })}
           </RadioGroup>
         </div>
       </BottomSheet.Body>

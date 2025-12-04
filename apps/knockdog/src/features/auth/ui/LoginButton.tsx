@@ -2,6 +2,7 @@
 
 import { Icon, IconType } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { useLogin } from '../model/useLogin';
 
 import { SocialProvider, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
@@ -29,7 +30,8 @@ interface LoginButtonProps extends Omit<React.ComponentProps<'button'>, 'onClick
 }
 
 export function LoginButton({ className, provider, ...props }: LoginButtonProps) {
-  const { login } = useLogin();
+  const { getParams } = useStackNavigation();
+  const { login } = useLogin({ redirectTo: getParams()?.redirectTo as string });
 
   const { text, icon, styles } = BUTTON_STYLE_MAP[provider];
 

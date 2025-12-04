@@ -54,9 +54,6 @@ function Mypage() {
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header withSpacing={false}>
         <Header.Title>마이페이지</Header.Title>
-        <Header.RightSection>
-          <IconButton icon='AlarmLine' />
-        </Header.RightSection>
       </Header>
 
       <div className='flex-1 overflow-y-auto pb-16'>

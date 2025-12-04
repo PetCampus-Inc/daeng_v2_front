@@ -26,8 +26,8 @@ const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.APPLE]: METHODS.appleLogin,
 } as const;
 
-export const useLogin = () => {
-  const { push, back } = useStackNavigation();
+export const useLogin = (options?: { redirectTo?: string }) => {
+  const { push, back, replace } = useStackNavigation();
   const bridge = useBridge();
 
   const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
@@ -37,6 +37,8 @@ export const useLogin = () => {
   const setSocialUser = useSocialUserStore((state) => state.setSocialUser);
 
   const linkedSocialUser = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, { initialValue: null });
+
+  const redirectTo = options?.redirectTo;
 
   /** OIDC 인증 */
   const oidcAuth = async (provider: SocialProvider) => {
@@ -53,9 +55,12 @@ export const useLogin = () => {
   const handleLoginSuccess = (data: User) => {
     if (data.status === USER_STATUS.ACTIVE) {
       setUser(data);
-      // eventBus.publish('auth:login', user);
 
-      back();
+      if (redirectTo) {
+        replace({ pathname: redirectTo });
+      } else {
+        back();
+      }
     }
   };
 
