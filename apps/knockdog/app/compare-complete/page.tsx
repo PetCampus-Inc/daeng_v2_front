@@ -56,10 +56,10 @@ type Product = {
   productType: ProductType;
   min: ProductInfo;
   max: ProductInfo;
-  passAvg: number;
-  subscriptionHourlyAvg: number;
+  countTicketAvg: number;
+  monthlyHourlyAvg: number;
 };
-type Pricing = { passHourlyAvg: number; subscriptionHourlyAvg: number; products: Product[] };
+type Pricing = { countHourlyAvg: number; monthlyHourlyAvg: number; products: Product[] };
 
 type TransitTime = { type: TransportationType; time: string };
 type Distance = { referencePoint: string; distance: string; transitTimes: TransitTime[] };
@@ -90,15 +90,15 @@ const MOCK: ApiResp = {
       thumbnailS3Key: '서울특별시/노원구/13561634/thumbnail.JPG',
       categories: ['HOTEL'],
       pricing: {
-        passHourlyAvg: 3365,
-        subscriptionHourlyAvg: 0,
+        countHourlyAvg: 3365,
+        monthlyHourlyAvg: 0,
         products: [
           {
             productType: 'NIGHT_CARE',
             min: { name: 'Standard-A(1일기준, 1묘)', price: 45000 },
             max: { name: 'Special Room(1일기준, 6묘 이상)', price: 130000 },
-            passAvg: 80769,
-            subscriptionHourlyAvg: 0,
+            countTicketAvg: 80769,
+            monthlyHourlyAvg: 0,
           },
         ],
       },
@@ -125,15 +125,15 @@ const MOCK: ApiResp = {
       thumbnailS3Key: '서울특별시/은평구/18662526/thumbnail.jpg',
       categories: ['HOTEL', 'GROOMING'],
       pricing: {
-        passHourlyAvg: 833,
-        subscriptionHourlyAvg: 0,
+        countHourlyAvg: 833,
+        monthlyHourlyAvg: 0,
         products: [
           {
             productType: 'NIGHT_CARE',
             min: { name: '호텔', price: 20000 },
             max: { name: '호텔', price: 20000 },
-            passAvg: 20000,
-            subscriptionHourlyAvg: 0,
+            countTicketAvg: 20000,
+            monthlyHourlyAvg: 0,
           },
         ],
       },
