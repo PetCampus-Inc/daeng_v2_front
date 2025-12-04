@@ -13,8 +13,8 @@ const withdraw = async (request: WithdrawRequest) => {
     await postWithdraw(request);
   } finally {
     // 탈퇴 API가 실패해도 로그아웃 처리
-    // tokenUtils.removeAccessToken();
-    // eventBus.publish('auth:logout');
+    tokenUtils.removeAccessToken();
+    eventBus.publish('auth:logout');
   }
 };
 
