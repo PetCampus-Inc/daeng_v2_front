@@ -32,7 +32,12 @@ function BottomSheetBody({ className, ...props }: React.ComponentProps<typeof Bo
   if (!mounted) {
     return null;
   }
-  return <BottomSheetPrimitive.Body className={cn('mx-auto max-w-screen-sm', className)} {...props} />;
+  return (
+    <BottomSheetPrimitive.Body
+      className={cn('mx-auto max-h-[calc(100vh-64px)] max-w-screen-sm', className)}
+      {...props}
+    />
+  );
 }
 
 function BottomSheetContent({ ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Content>) {

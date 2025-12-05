@@ -55,7 +55,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
   const Comp = asChild ? Slot : TextFieldPrimitive.Root;
 
   return (
-    <Comp ref={ref} className='flex w-full flex-col' {...restProps}>
+    <Comp ref={ref} className='flex w-full min-w-0 flex-col' {...restProps}>
       {renderHeader && (
         <div className='pb-x2 gap-x0_5 flex items-center'>
           <TextFieldPrimitive.Label className='text-text-primary body2-bold'>{label}</TextFieldPrimitive.Label>

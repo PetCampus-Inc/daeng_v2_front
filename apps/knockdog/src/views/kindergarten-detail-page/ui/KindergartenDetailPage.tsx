@@ -13,6 +13,7 @@ import { PhoneCallSheet } from '@features/kindergarten-list';
 import { overlay } from 'overlay-kit';
 import { useShare } from '@shared/lib/device';
 import { SafeArea } from '@shared/ui/safe-area';
+import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -33,6 +34,8 @@ function KindergartenDetailPage() {
   });
 
   const share = useShare();
+
+  useRecentKindergartenView(kindergartenMain);
 
   if (lng == null || lat == null || !kindergartenMain) return null;
 

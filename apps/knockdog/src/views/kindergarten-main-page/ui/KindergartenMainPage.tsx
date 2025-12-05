@@ -12,11 +12,19 @@ import {
   ListFAB,
   MapView,
   RefreshFAB,
+  SEARCH_MODES,
   useMapUrlState,
 } from '@features/kindergarten-map';
-import { FilterBottomSheet, KindergartenCardSheet, KindergartenListSheet } from '@features/kindergarten-list';
+import {
+  FilterBottomSheet,
+  KindergartenItemSheet,
+  KindergartenListSheet,
+  SearchHeader,
+  isValidLatLngBounds,
+  useSearchUrlState,
+} from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import { isValidLatLngBounds, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
@@ -26,7 +34,8 @@ export default function KindergartenMainPage() {
 
   const searchParams = useSearchParams();
 
-  const { center, zoomLevel, setSearchedLevel } = useMapUrlState();
+  const { center, zoomLevel, setSearchedLevel, setSearchMode } = useMapUrlState();
+  const { query } = useSearchUrlState();
   const { coord: basePoint } = useBasePoint();
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -79,8 +88,9 @@ export default function KindergartenMainPage() {
   };
 
   /**
-   * 새로고침 핸들러
+   * 재검색 핸들러
    * - 현재 mapState를 스냅샷으로 저장
+   * - 검색 모드를 boundary로 전환
    */
   const handleRefresh = () => {
     if (!isValidCoord(basePoint) || !zoomLevel) return;
@@ -93,24 +103,33 @@ export default function KindergartenMainPage() {
       bounds: validBounds,
       zoomLevel,
     });
+    setSearchMode(SEARCH_MODES.BOUNDARY);
   };
 
   const handleOpenCard = (item: KindergartenListItemWithMeta) => {
     const itemId = item.id;
 
-    overlay.open(({ isOpen, close }) => (
-      <KindergartenCardSheet
-        isOpen={isOpen}
-        close={() => {
-          // 닫히는 시점에 현재 활성화된 마커가 이 카드의 마커라면 비활성화
-          if (useMarkerState.getState().activeMarkerId === itemId) {
-            setActiveMarker(null);
-          }
-          close();
-        }}
-        {...item}
-      />
-    ));
+    // 이미 활성화된 마커면 시트를 열지 않음
+    if (useMarkerState.getState().activeMarkerId === itemId) {
+      return;
+    }
+
+    setActiveMarker(item.id);
+
+    overlay.open(({ isOpen, unmount }) => {
+      return (
+        <KindergartenItemSheet
+          isOpen={isOpen}
+          close={() => {
+            if (useMarkerState.getState().activeMarkerId === itemId) {
+              setActiveMarker(null);
+            }
+            unmount();
+          }}
+          {...item}
+        />
+      );
+    });
   };
 
   const handleOpenFilter = () => {
@@ -130,22 +149,25 @@ export default function KindergartenMainPage() {
         mapSnapshot={mapSnapshot}
       />
 
-      <div
-        className={cn(
-          'px-x4 pb-x2 absolute top-0 z-50 w-full transition-colors ease-out',
-          isFullExtended && 'bg-fill-secondary-0'
-        )}
-        style={{ paddingTop: top + 20 }}
-      >
-        <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`}>
-          <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
-            <Icon icon='Search' className='size-x5 text-fill-secondary-700 mr-x2' />
-            <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
-              업체 또는 주소를 검색하세요
-            </div>
+      {query.trim().length > 0 ? (
+        <SearchHeader query={query} />
+      ) : (
+        <div
+          className={cn(`absolute top-0 right-0 left-0 z-50 ${isFullExtended ? 'bg-fill-secondary-0' : ''}`)}
+          style={{ paddingTop: top }}
+        >
+          <div className='px-x4 flex h-16 w-full items-center transition-colors ease-out'>
+            <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`} className='w-full'>
+              <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-12 items-center border'>
+                <Icon icon='Search' className='size-x6 text-fill-secondary-700 mr-x2' />
+                <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
+                  업체 또는 주소를 검색하세요
+                </div>
+              </div>
+            </Link>
           </div>
-        </Link>
-      </div>
+        </div>
+      )}
 
       <KindergartenListSheet
         fabSlot={

@@ -1,82 +1,102 @@
-import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useCallback } from 'react';
+import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { Header } from '@widgets/Header';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
-import type { RegionSuggestion, FilterItemSuggestion } from '@entities/kindergarten';
+import { SEARCH_MODES } from '@features/kindergarten-map';
+import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 import { useBasePoint } from '@shared/lib';
 import { useSearchHistory } from '@shared/store';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('query') ?? '');
   const { coord } = useBasePoint();
   const { data } = useQuery({
     ...searchQueryOptions.autocomplete({ query: query.trim(), coord }),
   });
 
-  const { addRecentSearchKeyword, addRecentView } = useSearchHistory();
-
+  const { addRecentSearchKeyword } = useSearchHistory();
   const router = useRouter();
 
-  const handleBack = () => {
-    router.back();
+  const handleSuggestionClick = (suggestion: RegionSuggestion | FilterItemSuggestion) => {
+    if (suggestion.type === 'REGION') {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('query', suggestion.label);
+      params.set('region', suggestion.code);
+      params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
+      params.set('zoom', String(suggestion.zoom));
+      params.set('bottomSheetSnapIndex', '1');
+
+      addRecentSearchKeyword({
+        type: 'REGION',
+        label: suggestion.label,
+        code: suggestion.code,
+        coord: suggestion.coord,
+        zoom: suggestion.zoom,
+      });
+
+      router.replace(`/?${params.toString()}`);
+    } else {
+      // FILTER_ITEM 타입 검색
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('query', suggestion.label);
+      params.set('filters', suggestion.code);
+      params.set('bottomSheetSnapIndex', '1');
+
+      addRecentSearchKeyword({
+        type: 'FILTER_ITEM',
+        label: suggestion.label,
+        code: suggestion.code,
+      });
+
+      router.replace(`/?${params.toString()}`);
+    }
   };
 
-  const handleSuggestionClick = useCallback(
-    (suggestion: RegionSuggestion | FilterItemSuggestion) => {
-      if (suggestion.type === 'REGION') {
-        addRecentSearchKeyword({
-          type: 'REGION',
-          label: suggestion.label,
-          code: suggestion.code,
-          coord: suggestion.coord,
-          zoom: suggestion.zoom,
-        });
-      } else {
-        addRecentSearchKeyword({
-          type: 'FILTER_ITEM',
-          label: suggestion.label,
-          code: suggestion.code,
-        });
-      }
-      // TODO: 검색 결과 페이지로 이동
-    },
-    [addRecentSearchKeyword]
-  );
+  const handlePlaceClick = (place: AutocompletePlace) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('query', place.title);
+    params.set('center', `${place.coord.lat},${place.coord.lng}`);
+    params.set('bottomSheetSnapIndex', '1');
 
-  const handlePlaceClick = useCallback(
-    (shop: { id: string; title: string; roadAddress: string }) => {
-      addRecentView({
-        id: shop.id,
-        label: shop.title,
-        address: shop.roadAddress,
-      });
-      // TODO: 상세 페이지로 이동
-    },
-    [addRecentView]
-  );
+    addRecentSearchKeyword({
+      type: 'USER_QUERY',
+      label: place.title,
+    });
 
-  const handleSubmit = useCallback(() => {
+    router.replace(`/?${params.toString()}`);
+  };
+
+  const handleSubmit = () => {
     if (query.trim()) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('query', query.trim());
+      params.set('searchMode', SEARCH_MODES.GLOBAL);
+      params.set('bottomSheetSnapIndex', '1');
+
       addRecentSearchKeyword({
         type: 'USER_QUERY',
         label: query.trim(),
       });
-      // TODO: 검색 결과 페이지로 이동
+
+      router.replace(`/?${params.toString()}`);
     }
-  }, [query, addRecentSearchKeyword]);
+  };
 
   return (
     <div className='flex h-full flex-col'>
       {/* 검색창 헤더 */}
-      <div className='py-x2 pr-x4 pl-x2 gap-x-x2 flex shrink-0'>
-        <button onClick={handleBack} className='px-x2 shrink-0'>
-          <Icon icon='ChevronLeft' className='size-x6' />
-        </button>
+      <Header withSpacing={false}>
+        <Header.LeftSection className='px-4'>
+          <Header.BackButton onClick={() => router.back()} />
+        </Header.LeftSection>
+
         <div className='relative min-w-0 flex-1'>
           <TextField
             prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-            className='bg-fill-secondary-50 h-x12 border-0'
+            className='bg-fill-secondary-50 h-x12 min-w-0 border-0'
           >
             <TextFieldInput
               ref={inputRef}
@@ -95,7 +115,10 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
             {query && (
               <button
                 type='button'
-                onClick={() => setQuery('')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setQuery('');
+                }}
                 aria-label='검색 결과 초기화'
                 className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
               >
@@ -104,7 +127,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
             )}
           </TextField>
         </div>
-      </div>
+      </Header>
 
       <main className='flex-1 overflow-y-auto'>
         {query.trim() && data ? (

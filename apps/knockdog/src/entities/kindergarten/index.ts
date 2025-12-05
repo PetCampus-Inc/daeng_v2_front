@@ -17,11 +17,18 @@ export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from '.
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
 
 /** lib */
-export { isValidLatLngBounds, isSameBounds } from './lib/is';
+export { isValidBounds, isEqualBounds } from './lib/is';
+export { serializeBounds, serializeFilters } from './lib/serialize';
 
 /** model */
 export { createKindergartenListWithMock } from './model/mappers';
-export type { Autocomplete, RegionSuggestion, FilterItemSuggestion, FilterItemCode } from './model/autocomplete';
+export type {
+  Autocomplete,
+  RegionSuggestion,
+  FilterItemSuggestion,
+  FilterItemCode,
+  AutocompletePlace,
+} from './model/autocomplete';
 export type { FilterResultCount } from './model/filters';
 export type { Aggregation, SidoGunguAggregation } from './model/search-list';
 export type { Kindergarten } from './model/kindergarten';
