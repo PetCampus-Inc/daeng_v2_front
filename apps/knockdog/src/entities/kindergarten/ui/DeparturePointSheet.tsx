@@ -4,9 +4,10 @@ import { Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { useState, useEffect, useCallback } from 'react';
 import { METHODS } from '@knockdog/bridge-core';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { useCurrentAddress, getCurrentLocation } from '@shared/lib/geolocation';
+import { getCurrentLocation } from '@shared/lib/geolocation';
+import { getReverseGeocode } from '@features/address-picker/api/searchAddress';
 import { useBridge } from '@shared/lib/bridge';
-import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
+import { useUserStore, USER_ADDRESS_TYPE_KR } from '@entities/user';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
 
 type NaverRouteMode = 'car' | 'public' | 'walk' | 'bicycle';
@@ -103,6 +104,9 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+  const [addressText, setAddressText] = useState<string | null>(null);
   const openNaverOpenRoute = useNaverOpenRoute();
   const user = useUserStore((state) => state.user);
   const isLoggedIn = !!user;
@@ -132,20 +136,41 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
     }
   }, [isOpen]);
 
-  const shouldFetchAddress = !!coords && !locationLoading && coords.lat !== 0 && coords.lng !== 0;
-  const { primaryText, primaryRoad, primaryParcel, isLoading, error } = useCurrentAddress(
-    coords || { lat: 0, lng: 0 },
-    shouldFetchAddress
-  );
+  useEffect(() => {
+    async function fetchAddress() {
+      if (!coords || locationLoading || coords.lat === 0 || coords.lng === 0) {
+        return;
+      }
 
-  // 임시 좌표를 쓰는 경우에는 주소 조회 결과만 체크
-  const hasValidAddress = primaryText || primaryRoad || primaryParcel;
+      setAddressLoading(true);
+      setAddressError(null);
+      try {
+        const response = await getReverseGeocode(coords.lat, coords.lng);
+        const firstDocument = response.documents?.[0];
+        const address =
+          firstDocument?.address?.roadAddress ||
+          firstDocument?.address?.address ||
+          firstDocument?.road_address?.address_name ||
+          null;
+        setAddressText(address);
+      } catch (error) {
+        console.error('주소 조회 실패:', error);
+        setAddressError(error instanceof Error ? error.message : '주소를 조회할 수 없습니다');
+      } finally {
+        setAddressLoading(false);
+      }
+    }
+
+    fetchAddress();
+  }, [coords, locationLoading]);
+
+  const hasValidAddress = !!addressText;
 
   const label = (() => {
     if (locationLoading) return '위치 정보 가져오는 중…';
-    if (isLoading) return '주소 조회 중…';
-    if (error) return '주소를 조회할 수 없습니다';
-    if (hasValidAddress) return (primaryText || primaryRoad || primaryParcel)!;
+    if (addressLoading) return '주소 조회 중…';
+    if (addressError) return '주소를 조회할 수 없습니다';
+    if (hasValidAddress) return addressText!;
     if (locationError) return '위치 정보를 가져올 수 없습니다';
     return '위치 정보 없음';
   })();
@@ -201,7 +226,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                   <span className='body2-regular text-text-secondary'>{label}</span>
                 </div>
               </div>
-              <RadioGroupItem disabled={isLoading || locationLoading || !coords} id='1' value='1' />
+              <RadioGroupItem disabled={addressLoading || locationLoading || !coords} id='1' value='1' />
             </label>
             {/* 저장된 주소 확인 (로그인한 경우에만 표시) */}
             {isLoggedIn &&
