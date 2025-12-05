@@ -64,11 +64,11 @@ function registerRouteMapHandlers(router: NativeBridgeRouter) {
 
     // 3. 앱 미설치 → 스토어로
     try {
-      const response = await Linking.openURL(NAVER_STORE_URL);
-      return { ok: false, reason: 'store_fallback' };
+      await Linking.openURL(NAVER_STORE_URL);
+      return { opened: true, via: 'store_fallback' };
     } catch (error) {
       console.error('Failed to open app store:', error);
-      throw { code: 'ESTORE_OPEN_FAILED', message: '앱 스토어를 열 수 없습니다.', data: { url: NAVER_STORE_URL } };
+      return { opened: false, error: { code: 'ESTORE_OPEN_FAILED', message: '앱 스토어를 열 수 없습니다.' } };
     }
   });
 }

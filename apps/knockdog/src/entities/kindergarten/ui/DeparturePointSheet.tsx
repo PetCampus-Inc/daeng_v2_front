@@ -232,7 +232,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
             {isLoggedIn &&
               savedAddresses.map((address) => {
                 const addressLabel = address.alias || USER_ADDRESS_TYPE_KR[address.type] || '';
-                const addressText = address.roadAddress || address.address;
+                const savedAddressText = address.roadAddress || address.address;
 
                 return (
                   <label
@@ -244,7 +244,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                       <Icon icon='Location' className='text-fill-secondary-500 size-x6' />
                       <div className='gap-x0_5 flex flex-col text-start'>
                         <p className='body1-extrabold text-text-primary'>{addressLabel}</p>
-                        <span className='body2-regular text-text-secondary'>{addressText}</span>
+                        <span className='body2-regular text-text-secondary'>{savedAddressText}</span>
                       </div>
                     </div>
                     <RadioGroupItem id={address.id} value={address.id} />
