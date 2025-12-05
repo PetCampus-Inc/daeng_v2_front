@@ -358,13 +358,23 @@ function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
 /* =========================
  * SMALL PARTS
  * ========================= */
-function SelectedCell({ name, type, src }: { name: string; type: string; src?: string }) {
+function SelectedCell({
+  name,
+  type,
+  avatar,
+  className,
+}: {
+  name: string;
+  type: string;
+  avatar?: string;
+  className?: string;
+}) {
   return (
-    <div className='flex min-w-0 items-center gap-3 px-4 py-3'>
-      <CircleAvatar size={40} src={src} alt={name} />
-      <div className='min-w-0 leading-none'>
-        <p className='truncate text-sm leading-5 font-semibold'>{name}</p>
-        <p className='truncate text-xs leading-4 text-gray-500'>{type}</p>
+    <div className={`flex min-w-0 items-center gap-2 px-4 py-5 ${className}`}>
+      <CircleAvatar size={40} src={avatar} alt={name} />
+      <div className='flex min-w-0 flex-col gap-0.5 leading-none'>
+        <p className='h3-extrabold truncate'>{name}</p>
+        <p className='text-text-tertiary body2-semibold truncate'>{type}</p>
       </div>
     </div>
   );
@@ -630,9 +640,19 @@ function CompareCompletePage() {
       </Header>
 
       {/* 선택된 두 유치원 */}
-      <div className='grid grid-cols-2 divide-x divide-gray-200 border-b border-gray-100 bg-white'>
-        <SelectedCell name={left?.name ?? '센터 A'} type='유치원 · 호텔' src={s3ToUrl(left?.thumbnailS3Key)} />
-        <SelectedCell name={right?.name ?? '센터 B'} type='유치원 · 호텔' src={s3ToUrl(right?.thumbnailS3Key)} />
+      <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
+        <SelectedCell
+          name={left?.name ?? '센터 A'}
+          type='유치원 · 호텔'
+          avatar={s3ToUrl(left?.thumbnailS3Key)}
+          className='pr-2'
+        />
+        <SelectedCell
+          name={right?.name ?? '센터 B'}
+          type='유치원 · 호텔'
+          avatar={s3ToUrl(right?.thumbnailS3Key)}
+          className='pl-2'
+        />
       </div>
 
       {loading ? (
