@@ -6,7 +6,16 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-import { Avatar, AvatarFallback, AvatarImage, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Icon,
+  IconType,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@knockdog/ui';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -218,17 +227,21 @@ function Label({ children, className = '' }: PropsWithChildren<{ className?: str
     </div>
   );
 }
-function Pill({
+// TODO: 아이콘 수정
+function Badge({
   children,
+  icon = 'AlarmLine',
+  caption,
   className = '',
-  center = true,
-}: PropsWithChildren<{ className?: string; center?: boolean }>) {
+}: PropsWithChildren<{ icon?: IconType; caption?: string; className?: string }>) {
   return (
-    <span
-      className={`flex rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 ${center ? 'mx-auto w-fit' : ''} ${className}`}
+    <div
+      className={`text-text-primary mx-auto flex w-fit items-center justify-center gap-1 rounded-lg bg-neutral-100 px-3 py-1.5 ${className}`}
     >
-      {children}
-    </span>
+      {icon && <Icon icon={icon} className='h-5 w-5' />}
+      <span className='label-medium text-sm'>{children}</span>
+      {caption && <span className='text-text-tertiary caption1-regular'>{caption}</span>}
+    </div>
   );
 }
 function CircleAvatar({
@@ -458,7 +471,7 @@ function SummaryDistanceRow({
 }) {
   return (
     <div className='flex flex-col items-center'>
-      <Pill>{title}</Pill>
+      <Badge>{title}</Badge>
       <CircleAvatar src={avatar} alt={who} className='mt-3' />
       <p className='mt-2 text-center text-sm'>
         <b>{who}</b>이(가)
@@ -642,7 +655,9 @@ function CompareCompletePage() {
                   <br />
                   1시간당 <b className='text-orange-600'>약 124,567원</b> 더 저렴해요
                 </p>
-                <Pill className='mt-3'>정기권 1시간 평균</Pill>
+                <Badge caption='1시간 평균' className='mt-3'>
+                  정기권
+                </Badge>
                 <div className='mt-5 flex flex-col items-center gap-4'>
                   {<CircleAvatar src={s3ToUrl(left?.thumbnailS3Key)} alt={left?.name} />}
                   <p className='text-center text-sm'>
@@ -652,7 +667,7 @@ function CompareCompletePage() {
                     <br />
                     <span className='text-xs text-gray-500'>(1,000,000원 &lt; 2,000,000원)</span>
                   </p>
-                  <Pill>횟수권 1회 평균</Pill>
+                  <Badge caption='1회 평균'>횟수권</Badge>
                 </div>
               </section>
 
