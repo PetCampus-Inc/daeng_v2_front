@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@knockdog/ui';
+import { Avatar, AvatarFallback, AvatarImage, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -211,18 +211,10 @@ const getClosedDaysText = (kg?: KindergartenComparison | null) =>
 /* =========================
  * SHARED SMALL UI
  * ========================= */
-function Label({
-  children,
-  icon,
-  className = '',
-  center = true,
-}: PropsWithChildren<{ icon?: string; className?: string; center?: boolean }>) {
+function Label({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
   return (
-    <div
-      className={`flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700 ${center ? 'mx-auto w-fit' : ''} ${className}`}
-    >
-      {icon && <span aria-hidden>{icon}</span>}
-      <span>{children}</span>
+    <div className={`text-text-primary body2-semibold mx-auto flex w-fit items-center gap-1 ${className}`}>
+      {children}
     </div>
   );
 }
@@ -637,7 +629,14 @@ function CompareCompletePage() {
           summary={
             <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pt-3 pb-8'>
               <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-                <Label>이용 요금</Label>
+                <Label className='mb-2'>
+                  <span>이용 요금</span>
+                  <Tooltip className='flex items-center'>
+                    <TooltipTrigger />
+                    {/* TODO: 툴팁 내용 작성 */}
+                    <TooltipContent>...</TooltipContent>
+                  </Tooltip>
+                </Label>
                 <p className='mt-3 text-center text-sm leading-6'>
                   <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>이(가)
                   <br />
@@ -667,7 +666,7 @@ function CompareCompletePage() {
               </section>
 
               <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-                <Label>거리</Label>
+                <Label className='mb-2'>거리</Label>
                 <p className='mt-3 text-center text-sm'>
                   <span className='text-gray-600'>집</span> 에서 <b className='text-orange-600'>{left?.name ?? ''}</b>이
                   <br />
