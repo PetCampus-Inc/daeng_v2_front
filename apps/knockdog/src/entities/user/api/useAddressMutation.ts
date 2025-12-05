@@ -98,7 +98,6 @@ const useUpdateUserAddressesMutation = () => {
       const promises = [
         ...toAdd.map((address) =>
           postAddUserAddress({
-            operation: 'ADD',
             type: address.type,
             alias: address.alias,
             roadAddress: address.roadAddress,
@@ -110,7 +109,6 @@ const useUpdateUserAddressesMutation = () => {
         ...toUpdate.map((address) =>
           postUpdateUserAddress({
             id: typeof address.id === 'string' ? Number(address.id) : address.id,
-            operation: 'UPDATE',
             type: address.type,
             alias: address.alias,
             roadAddress: address.roadAddress,
