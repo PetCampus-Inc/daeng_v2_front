@@ -12,6 +12,10 @@ import {
   AvatarImage,
   Icon,
   IconType,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -438,32 +442,6 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
 }
 
 /* =========================
- * TABS
- * ========================= */
-function Tabs({ summary, details }: { summary: React.ReactNode; details: React.ReactNode }) {
-  const [activeTab, setActiveTab] = useState<'summary' | 'details'>('summary');
-  return (
-    <>
-      <div className='sticky top-[56px] z-10 flex border-b border-gray-200 bg-white'>
-        <button
-          onClick={() => setActiveTab('summary')}
-          className={`flex-1 py-2 text-center text-sm ${activeTab === 'summary' ? 'border-b-2 border-orange-500 font-semibold text-orange-500' : 'text-gray-500'}`}
-        >
-          요약
-        </button>
-        <button
-          onClick={() => setActiveTab('details')}
-          className={`flex-1 py-2 text-center text-sm ${activeTab === 'details' ? 'border-b-2 border-orange-500 font-semibold text-orange-500' : 'text-gray-500'}`}
-        >
-          자세히
-        </button>
-      </div>
-      <div className='mb-14 flex-1 overflow-y-auto'>{activeTab === 'summary' ? summary : details}</div>
-    </>
-  );
-}
-
-/* =========================
  * DETAIL SLIDES
  * ========================= */
 function SummaryDistanceRow({
@@ -632,7 +610,7 @@ function CompareCompletePage() {
 
   return (
     <div className='flex h-screen flex-col bg-white'>
-      <Header>
+      <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
@@ -658,8 +636,12 @@ function CompareCompletePage() {
       {loading ? (
         <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>
       ) : (
-        <Tabs
-          summary={
+        <Tabs defaultValue='summary' className='flex flex-col overflow-hidden'>
+          <TabsList>
+            <TabsTrigger value='summary'>요약</TabsTrigger>
+            <TabsTrigger value='details'>자세히</TabsTrigger>
+          </TabsList>
+          <TabsContent value='summary' className='overflow-y-auto'>
             <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pt-3 pb-8'>
               <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
                 <Label className='mb-2'>
@@ -748,8 +730,8 @@ function CompareCompletePage() {
                 </div>
               </section>
             </div>
-          }
-          details={
+          </TabsContent>
+          <TabsContent value='details' className='overflow-y-auto'>
             <div className='space-y-10 px-4 py-6'>
               {/* 요금 비교 */}
               <section>
@@ -818,8 +800,8 @@ function CompareCompletePage() {
                 </div>
               </section>
             </div>
-          }
-        />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
