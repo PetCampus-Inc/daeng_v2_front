@@ -29,7 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     usesAppleSignIn: true,
     bundleIdentifier: 'net.knockdog.petcampus.v2',
     infoPlist: {
-      LSApplicationQueriesSchemes: ['nmap'],
+      LSApplicationQueriesSchemes: ['nmap', 'tel'],
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: false,
         NSAllowsArbitraryLoadsInWebContent: true,
