@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@knockdog/ui';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -210,38 +211,6 @@ const getClosedDaysText = (kg?: KindergartenComparison | null) =>
 /* =========================
  * SHARED SMALL UI
  * ========================= */
-function PinkImg({
-  src,
-  className = '',
-  alt = '',
-  fill = false,
-  width,
-  height,
-}: {
-  src?: string;
-  className?: string;
-  alt?: string;
-  fill?: boolean;
-  width?: number;
-  height?: number;
-}) {
-  const [broken, setBroken] = useState(false);
-  return (
-    <div className={`relative overflow-hidden bg-pink-200 ${className}`}>
-      {src && !broken && (
-        <Image
-          src={src}
-          alt={alt}
-          {...(fill ? { fill: true } : { width: width ?? 80, height: height ?? 80 })}
-          sizes='(max-width: 768px) 100vw, 50vw'
-          className='object-cover'
-          onError={() => setBroken(true)}
-          unoptimized
-        />
-      )}
-    </div>
-  );
-}
 function Label({
   children,
   icon,
@@ -270,8 +239,25 @@ function Pill({
     </span>
   );
 }
-function CircleAvatar({ src, className = '' }: { src?: string; className?: string }) {
-  return <PinkImg src={src} className={`h-14 w-14 rounded-full ${className}`} />;
+function CircleAvatar({
+  size = 80,
+  src,
+  alt,
+  className = '',
+}: {
+  size?: number;
+  src?: string;
+  alt?: string;
+  className?: string;
+}) {
+  return (
+    <Avatar className={`h-[${size}px] w-[${size}px] ${className}`}>
+      <AvatarImage src={src} alt={alt} />
+      <AvatarFallback>
+        <Image src='/images/img_default_image.png' alt='default' width={size} height={size} />
+      </AvatarFallback>
+    </Avatar>
+  );
 }
 
 /* =========================
@@ -370,7 +356,7 @@ function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
 function SelectedCell({ name, type, src }: { name: string; type: string; src?: string }) {
   return (
     <div className='flex min-w-0 items-center gap-3 px-4 py-3'>
-      <PinkImg src={src} className='h-14 w-14 rounded-lg' />
+      <CircleAvatar size={40} src={src} alt={name} />
       <div className='min-w-0 leading-none'>
         <p className='truncate text-sm leading-5 font-semibold'>{name}</p>
         <p className='truncate text-xs leading-4 text-gray-500'>{type}</p>
@@ -417,7 +403,7 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
   ];
   return (
     <div className='flex flex-col items-center'>
-      <PinkImg src={avatar} className='h-14 w-14 rounded-full' />
+      <CircleAvatar src={avatar} alt={name} />
       <p className='mt-2 text-sm font-semibold'>{name}</p>
       <div className='mt-3 flex gap-1'>
         {ORDER.map(({ key, label }) => {
@@ -481,7 +467,7 @@ function SummaryDistanceRow({
   return (
     <div className='flex flex-col items-center'>
       <Pill>{title}</Pill>
-      <CircleAvatar src={avatar} className='mt-3' />
+      <CircleAvatar src={avatar} alt={who} className='mt-3' />
       <p className='mt-2 text-center text-sm'>
         <b>{who}</b>이(가)
         <br />
@@ -659,7 +645,7 @@ function CompareCompletePage() {
                 </p>
                 <Pill className='mt-3'>정기권 1시간 평균</Pill>
                 <div className='mt-5 flex flex-col items-center gap-4'>
-                  <CircleAvatar src={s3ToUrl(left?.thumbnailS3Key)} />
+                  {<CircleAvatar src={s3ToUrl(left?.thumbnailS3Key)} alt={left?.name} />}
                   <p className='text-center text-sm'>
                     <b>{left?.name ?? '왼쪽 유치원'}</b>이
                     <br />
