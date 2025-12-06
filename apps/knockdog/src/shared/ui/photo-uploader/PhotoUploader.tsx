@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { MiniPhotoBox } from './MiniPhotoBox';
 import { FullImageSheet } from './FullImageSheet';
@@ -8,12 +8,19 @@ import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 interface PhotoUploaderProps {
   maxCount?: number;
   quality?: number;
+  defaultValue?: WebImageAsset[];
   onChange?: (assets: WebImageAsset[]) => void;
 }
 
-function PhotoUploader({ maxCount = 3, quality = 0.8, onChange }: PhotoUploaderProps) {
+function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: PhotoUploaderProps) {
   const { pickImage } = useImagePicker();
-  const [assets, setAssets] = useState<WebImageAsset[]>([]);
+  const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
+
+  useEffect(() => {
+    if (defaultValue) {
+      setAssets(defaultValue);
+    }
+  }, [defaultValue]);
 
   const state = assets.length === 0 ? 'empty' : assets.length < maxCount ? 'partial' : 'full';
 
