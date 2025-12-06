@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@knockdog/ui';
+import { serializeCategories, type CTag } from '@entities/kindergarten';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -31,7 +32,7 @@ export default function Page() {
 /* =========================
  * API & ENDPOINT
  * ========================= */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`;
 
 /* =========================
@@ -79,7 +80,7 @@ type OperatingSchedule = { closedDays: DayOfWeek[]; weekdayHours: string | null;
 export type KindergartenComparison = {
   id: string;
   name: string;
-  categories: string[];
+  categories: CTag[];
   thumbnailS3Key: string;
   pricing: Pricing;
   service: string[];
@@ -750,8 +751,12 @@ function CompareCompletePage() {
     };
   }, [idsJoined]); // ✅ ids 배열 대신 join된 키만 의존
 
-  const left = payload?.[0] ?? null;
-  const right = payload?.[1] ?? null;
+  const left = payload?.[0];
+  const right = payload?.[1];
+
+  if (loading || !payload || payload.length < 2) {
+    return <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>;
+  }
 
   return (
     <div className='flex h-screen flex-col bg-white'>
@@ -764,235 +769,230 @@ function CompareCompletePage() {
 
       {/* 선택된 두 유치원 */}
       <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
-        <SelectedCell
-          name={left?.name ?? '센터 A'}
-          type='유치원 · 호텔'
-          avatar={s3ToUrl(left?.thumbnailS3Key)}
-          className='pr-2'
-        />
-        <SelectedCell
-          name={right?.name ?? '센터 B'}
-          type='유치원 · 호텔'
-          avatar={s3ToUrl(right?.thumbnailS3Key)}
-          className='pl-2'
-        />
+        {payload.map(({ id = '', name = '', categories = [], thumbnailS3Key = '' }, idx) => {
+          return (
+            <SelectedCell
+              key={id}
+              name={name}
+              type={serializeCategories(categories)}
+              avatar={s3ToUrl(thumbnailS3Key)}
+              className={idx === 0 ? 'pr-2' : 'pl-2'}
+            />
+          );
+        })}
       </div>
 
-      {loading ? (
-        <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>
-      ) : (
-        <Tabs
-          summary={
-            <div className='bg-text-primary min-h-full space-y-3 px-4 py-7'>
-              <ComparisonPanel>
-                <ComparisonSection>
-                  <Label className='mb-2'>
-                    <span>이용 요금</span>
-                    <Tooltip className='flex items-center'>
-                      <TooltipTrigger />
-                      {/* TODO: 툴팁 내용 작성 */}
-                      <TooltipContent>...</TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Heading>
-                    <Heading.Highlight truncate>{right?.name ?? '오른쪽 유치원'}</Heading.Highlight>
-                    <span className='shrink-0'>이(가)</span>
-                  </Heading>
-                  <Heading>
-                    <span>1시간당&nbsp;</span>
-                    <Heading.Highlight>약 124,567원&nbsp;</Heading.Highlight>
-                    <span>더 저렴해요</span>
-                  </Heading>
-                  <div className='my-7 flex flex-col gap-5'>
-                    {Array(2)
-                      .fill(null)
-                      .map((i) => (
-                        <ComparisionDetailedItem
-                          key={i}
-                          kindergarten={{
-                            name: left?.name ?? '왼쪽 유치원',
-                            avatar: s3ToUrl(left?.thumbnailS3Key),
-                            diffValue: '약 1,000,000원',
-                          }}
-                          detail={{
-                            leftValue: '1,000,000원',
-                            rightValue: '2,000,000원',
-                          }}
-                          badge={{
-                            icon: 'AlarmLine',
-                            label: '정기권',
-                            caption: '1시간 평균',
-                          }}
-                          suffix='더 저렴해요'
-                        />
-                      ))}
-                  </div>
-                </ComparisonSection>
-                <ComparisonSection>
-                  <div className='mt-7 flex flex-col gap-5'>
-                    <Label>픽드랍</Label>
-                    <ComparisonSimpleItem
-                      kindergartens={[
-                        {
-                          name: right?.name ?? '오른쪽 유치원',
-                          avatar: s3ToUrl(right?.thumbnailS3Key),
-                        },
-                        {
+      <Tabs
+        summary={
+          <div className='bg-text-primary min-h-full space-y-3 px-4 py-7'>
+            <ComparisonPanel>
+              <ComparisonSection>
+                <Label className='mb-2'>
+                  <span>이용 요금</span>
+                  <Tooltip className='flex items-center'>
+                    <TooltipTrigger />
+                    {/* TODO: 툴팁 내용 작성 */}
+                    <TooltipContent>...</TooltipContent>
+                  </Tooltip>
+                </Label>
+                <Heading>
+                  <Heading.Highlight truncate>{right?.name ?? '오른쪽 유치원'}</Heading.Highlight>
+                  <span className='shrink-0'>이(가)</span>
+                </Heading>
+                <Heading>
+                  <span>1시간당&nbsp;</span>
+                  <Heading.Highlight>약 124,567원&nbsp;</Heading.Highlight>
+                  <span>더 저렴해요</span>
+                </Heading>
+                <div className='my-7 flex flex-col gap-5'>
+                  {Array(2)
+                    .fill(null)
+                    .map((i) => (
+                      <ComparisionDetailedItem
+                        key={i}
+                        kindergarten={{
                           name: left?.name ?? '왼쪽 유치원',
                           avatar: s3ToUrl(left?.thumbnailS3Key),
-                        },
-                      ]}
-                      suffix='픽드랍 서비스를 제공해요'
-                    />
-                  </div>
-                </ComparisonSection>
-              </ComparisonPanel>
-
-              <ComparisonPanel>
-                <ComparisonSection>
-                  <Label className='mb-2'>거리</Label>
-                  <Heading>
-                    <span className='shrink-0'>집에서&nbsp;</span>
-                    <Heading.Highlight truncate>{left?.name ?? ''}</Heading.Highlight>
-                    <span className='shrink-0'>이</span>
-                  </Heading>
-                  <Heading>
-                    <Heading.Highlight>도보</Heading.Highlight>
-                    <span>로 가장 가까워요</span>
-                  </Heading>
-                  <div className='mt-7 flex flex-col gap-5'>
-                    {Array(3)
-                      .fill(null)
-                      .map((i) => (
-                        <ComparisionDetailedItem
-                          key={i}
-                          kindergarten={{
-                            name: left?.name ?? '왼쪽 유치원',
-                            avatar: s3ToUrl(left?.thumbnailS3Key),
-                            diffValue: '100분',
-                          }}
-                          detail={{
-                            leftValue: '100분',
-                            rightValue: '200분',
-                          }}
-                          badge={{
-                            icon: 'AlarmLine',
-                            label: '도보',
-                          }}
-                          suffix='더 가까워요'
-                        />
-                      ))}
-                  </div>
-                </ComparisonSection>
-              </ComparisonPanel>
-              <ComparisonPanel>
-                <ComparisonSection>
-                  <Label>영업일</Label>
-                  <div className='flex flex-col gap-5 pt-5 pb-7'>
-                    {Array(2)
-                      .fill(null)
-                      .map((_, i) => (
-                        <ComparisonDaysItem
-                          key={i}
-                          kindergarten={{ name: left?.name ?? '왼쪽 유치원', avatar: s3ToUrl(left?.thumbnailS3Key) }}
-                          days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
-                        />
-                      ))}
-                  </div>
-                </ComparisonSection>
-                <ComparisonSection>
-                  <div className='mt-7 flex flex-col gap-5'>
-                    <Label>공휴일</Label>
-                    <ComparisonSimpleItem
-                      kindergartens={[
-                        {
-                          name: right?.name ?? '오른쪽 유치원',
-                          avatar: s3ToUrl(right?.thumbnailS3Key),
-                        },
-                        {
-                          name: left?.name ?? '왼쪽 유치원',
-                          avatar: s3ToUrl(left?.thumbnailS3Key),
-                        },
-                      ]}
-                      suffix='공휴일에 쉬어요'
-                    />
-                  </div>
-                </ComparisonSection>
-              </ComparisonPanel>
-            </div>
-          }
-          details={
-            <div className='space-y-10 px-4 py-6'>
-              {/* 요금 비교 */}
-              <section>
-                <h2 className='mb-3 text-base font-bold'>요금 비교</h2>
-                <SwipeCarousel
-                  slides={[
-                    <FeeSlide
-                      key='나이트'
-                      title='나이트케어'
-                      leftUp={`약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      rightUp={`약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      leftDown={`약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      rightDown={`약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      hasCountPass={Boolean(getProduct(left, 'NIGHT_CARE'))}
-                      hasSubPass={false}
-                    />,
-                  ]}
-                />
-              </section>
-
-              {/* 거리 비교 */}
-              <section>
-                <h2 className='mb-3 text-base font-bold'>거리 비교</h2>
-                <SwipeCarousel
-                  slides={[
-                    <DistanceSlide
-                      key='집'
-                      title='집으로부터'
-                      rows={[
-                        {
-                          label: '도보',
-                          left: getTransitTime(left, 'HOME', 'WALKING'),
-                          right: getTransitTime(right, 'HOME', 'WALKING'),
-                        },
-                        {
-                          label: '차량',
-                          left: getTransitTime(left, 'HOME', 'DRIVING'),
-                          right: getTransitTime(right, 'HOME', 'DRIVING'),
-                        },
-                        {
-                          label: '거리',
-                          left: getDistanceString(left, 'HOME'),
-                          right: getDistanceString(right, 'HOME'),
-                        },
-                      ]}
-                    />,
-                  ]}
-                />
-              </section>
-
-              {/* 운영 시간 비교 */}
-              <section>
-                <h2 className='mb-3 text-base font-bold'>운영 시간 비교</h2>
-                <div className='grid grid-cols-2 gap-3'>
-                  <DetailRow
-                    label='평일'
-                    left={left?.operatingSchedule?.weekdayHours ?? '-'}
-                    right={right?.operatingSchedule?.weekdayHours ?? '-'}
-                  />
-                  <DetailRow
-                    label='주말'
-                    left={left?.operatingSchedule?.weekendHours ?? '-'}
-                    right={right?.operatingSchedule?.weekendHours ?? '-'}
-                  />
-                  <DetailRow label='휴무' left={getClosedDaysText(left)} right={getClosedDaysText(right)} />
+                          diffValue: '약 1,000,000원',
+                        }}
+                        detail={{
+                          leftValue: '1,000,000원',
+                          rightValue: '2,000,000원',
+                        }}
+                        badge={{
+                          icon: 'AlarmLine',
+                          label: '정기권',
+                          caption: '1시간 평균',
+                        }}
+                        suffix='더 저렴해요'
+                      />
+                    ))}
                 </div>
-              </section>
-            </div>
-          }
-        />
-      )}
+              </ComparisonSection>
+              <ComparisonSection>
+                <div className='mt-7 flex flex-col gap-5'>
+                  <Label>픽드랍</Label>
+                  <ComparisonSimpleItem
+                    kindergartens={[
+                      {
+                        name: right?.name ?? '오른쪽 유치원',
+                        avatar: s3ToUrl(right?.thumbnailS3Key),
+                      },
+                      {
+                        name: left?.name ?? '왼쪽 유치원',
+                        avatar: s3ToUrl(left?.thumbnailS3Key),
+                      },
+                    ]}
+                    suffix='픽드랍 서비스를 제공해요'
+                  />
+                </div>
+              </ComparisonSection>
+            </ComparisonPanel>
+
+            <ComparisonPanel>
+              <ComparisonSection>
+                <Label className='mb-2'>거리</Label>
+                <Heading>
+                  <span className='shrink-0'>집에서&nbsp;</span>
+                  <Heading.Highlight truncate>{left?.name ?? ''}</Heading.Highlight>
+                  <span className='shrink-0'>이</span>
+                </Heading>
+                <Heading>
+                  <Heading.Highlight>도보</Heading.Highlight>
+                  <span>로 가장 가까워요</span>
+                </Heading>
+                <div className='mt-7 flex flex-col gap-5'>
+                  {Array(3)
+                    .fill(null)
+                    .map((i) => (
+                      <ComparisionDetailedItem
+                        key={i}
+                        kindergarten={{
+                          name: left?.name ?? '왼쪽 유치원',
+                          avatar: s3ToUrl(left?.thumbnailS3Key),
+                          diffValue: '100분',
+                        }}
+                        detail={{
+                          leftValue: '100분',
+                          rightValue: '200분',
+                        }}
+                        badge={{
+                          icon: 'AlarmLine',
+                          label: '도보',
+                        }}
+                        suffix='더 가까워요'
+                      />
+                    ))}
+                </div>
+              </ComparisonSection>
+            </ComparisonPanel>
+            <ComparisonPanel>
+              <ComparisonSection>
+                <Label>영업일</Label>
+                <div className='flex flex-col gap-5 pt-5 pb-7'>
+                  {Array(2)
+                    .fill(null)
+                    .map((_, i) => (
+                      <ComparisonDaysItem
+                        key={i}
+                        kindergarten={{ name: left?.name ?? '왼쪽 유치원', avatar: s3ToUrl(left?.thumbnailS3Key) }}
+                        days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
+                      />
+                    ))}
+                </div>
+              </ComparisonSection>
+              <ComparisonSection>
+                <div className='mt-7 flex flex-col gap-5'>
+                  <Label>공휴일</Label>
+                  <ComparisonSimpleItem
+                    kindergartens={[
+                      {
+                        name: right?.name ?? '오른쪽 유치원',
+                        avatar: s3ToUrl(right?.thumbnailS3Key),
+                      },
+                      {
+                        name: left?.name ?? '왼쪽 유치원',
+                        avatar: s3ToUrl(left?.thumbnailS3Key),
+                      },
+                    ]}
+                    suffix='공휴일에 쉬어요'
+                  />
+                </div>
+              </ComparisonSection>
+            </ComparisonPanel>
+          </div>
+        }
+        details={
+          <div className='space-y-10 px-4 py-6'>
+            {/* 요금 비교 */}
+            <section>
+              <h2 className='mb-3 text-base font-bold'>요금 비교</h2>
+              <SwipeCarousel
+                slides={[
+                  <FeeSlide
+                    key='나이트'
+                    title='나이트케어'
+                    leftUp={`약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
+                    rightUp={`약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
+                    leftDown={`약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
+                    rightDown={`약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
+                    hasCountPass={Boolean(getProduct(left, 'NIGHT_CARE'))}
+                    hasSubPass={false}
+                  />,
+                ]}
+              />
+            </section>
+
+            {/* 거리 비교 */}
+            <section>
+              <h2 className='mb-3 text-base font-bold'>거리 비교</h2>
+              <SwipeCarousel
+                slides={[
+                  <DistanceSlide
+                    key='집'
+                    title='집으로부터'
+                    rows={[
+                      {
+                        label: '도보',
+                        left: getTransitTime(left, 'HOME', 'WALKING'),
+                        right: getTransitTime(right, 'HOME', 'WALKING'),
+                      },
+                      {
+                        label: '차량',
+                        left: getTransitTime(left, 'HOME', 'DRIVING'),
+                        right: getTransitTime(right, 'HOME', 'DRIVING'),
+                      },
+                      {
+                        label: '거리',
+                        left: getDistanceString(left, 'HOME'),
+                        right: getDistanceString(right, 'HOME'),
+                      },
+                    ]}
+                  />,
+                ]}
+              />
+            </section>
+
+            {/* 운영 시간 비교 */}
+            <section>
+              <h2 className='mb-3 text-base font-bold'>운영 시간 비교</h2>
+              <div className='grid grid-cols-2 gap-3'>
+                <DetailRow
+                  label='평일'
+                  left={left?.operatingSchedule?.weekdayHours ?? '-'}
+                  right={right?.operatingSchedule?.weekdayHours ?? '-'}
+                />
+                <DetailRow
+                  label='주말'
+                  left={left?.operatingSchedule?.weekendHours ?? '-'}
+                  right={right?.operatingSchedule?.weekendHours ?? '-'}
+                />
+                <DetailRow label='휴무' left={getClosedDaysText(left)} right={getClosedDaysText(right)} />
+              </div>
+            </section>
+          </div>
+        }
+      />
     </div>
   );
 }
