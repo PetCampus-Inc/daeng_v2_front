@@ -4,7 +4,7 @@ import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlIt
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
-import { KindergartenCard } from './KindergartenCard';
+import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
 import { kindergartenQueryOptions } from '../api/kindergartenQuery';
@@ -168,7 +168,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
           {query.data?.pages
             ?.flatMap((page) => page.schoolResult.list)
             .map((item) => (
-              <KindergartenCard key={item.id} {...item} banner={item.banner ?? []} />
+              <KindergartenListItem key={item.id} {...item} banner={item.banner ?? []} />
             ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />

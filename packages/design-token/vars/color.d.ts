@@ -41,6 +41,7 @@ export declare const textAccent: 'var(--color-text-accent)';
 export declare const fillPrimary700: 'var(--color-fill-primary-700)';
 export declare const fillPrimary500: 'var(--color-fill-primary-500)';
 export declare const fillPrimary50: 'var(--color-fill-primary-50)';
+export declare const fillSecondary800: 'var(--color-fill-secondary-800)';
 export declare const fillSecondary700: 'var(--color-fill-secondary-700)';
 export declare const fillSecondary600: 'var(--color-fill-secondary-600)';
 export declare const fillSecondary500: 'var(--color-fill-secondary-500)';

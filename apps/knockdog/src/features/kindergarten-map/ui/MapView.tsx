@@ -127,7 +127,6 @@ export function MapView(props: MapViewProps) {
    */
   const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
     map.current?.panTo(item.coord);
-    setActiveMarker(item.id);
     onOpenCard?.(item);
   };
 

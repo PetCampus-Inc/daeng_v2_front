@@ -11,5 +11,5 @@ export * from './model/useMapUrlState';
 export * from './ui/CurrentLocationDisplayFAB';
 export * from './ui/CurrentLocationFAB';
 export * from './ui/ListFAB';
-export * from './ui/RefreshFAB';
 export * from './ui/MapView';
+export * from './ui/RefreshFAB';
