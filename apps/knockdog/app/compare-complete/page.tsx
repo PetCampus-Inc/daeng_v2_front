@@ -318,7 +318,7 @@ function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
 
   return (
     <div className='w-full'>
-      {title && <h2 className='m-2 text-lg font-bold'>{title}</h2>}
+      {title && <DetailSectionTitle>{title}</DetailSectionTitle>}
       <div
         className='relative overflow-hidden rounded-lg bg-white select-none'
         onPointerDown={handlePointerDown}
@@ -402,6 +402,11 @@ function SelectedCell({
     </div>
   );
 }
+
+function DetailSectionTitle({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <h2 className={`m-2 text-lg font-bold ${className}`}>{children}</h2>;
+}
+
 function DetailRow({ label, left, right }: { label: string; left: CellData; right: CellData }) {
   return (
     <div className='grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] odd:bg-gray-50'>
@@ -521,7 +526,7 @@ function Slide({ type, rows }: SlideProps) {
 function Table({ title, rows }: TableProps) {
   return (
     <div className='w-full'>
-      {title && <h2 className='m-2 text-lg font-bold'>{title}</h2>}
+      {title && <DetailSectionTitle>{title}</DetailSectionTitle>}
       <RowList rows={rows} />
     </div>
   );
