@@ -23,4 +23,16 @@ const USER_ADDRESS_TYPE = {
   OTHER: 'OTHER',
 } as const;
 
-export { USER_STATUS, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR };
+/** 탈퇴 사유 타입 */
+const WITHDRAW_REASON_TYPE = {
+  /** 정보가 부정확해요 */
+  INACCURATE_INFO: 'INACCURATE_INFO',
+  /** 탐색 경험이 불편해요 */
+  POOR_UX: 'POOR_UX',
+  /** 필요한 기능이 부족해요 */
+  MISSING_FEATURE: 'MISSING_FEATURE',
+  /** 기타 */
+  OTHER: 'OTHER',
+} as const;
+
+export { USER_STATUS, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR, WITHDRAW_REASON_TYPE };

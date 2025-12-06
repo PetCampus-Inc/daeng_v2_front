@@ -24,8 +24,8 @@ function MypageProfileLocationPage() {
   const deleteMutation = useDeleteUserAddressMutation();
 
   // addressList를 LocationFormState 형식으로 변환
-  const defaultValues: Partial<LocationFormState> = user?.addressList
-    ? user.addressList.reduce((acc, address) => {
+  const defaultValues: Partial<LocationFormState> = user?.addresses
+    ? user.addresses.reduce((acc, address) => {
         const { id, ...rest } = address;
         acc[address.type as UserAddressType] = rest;
         return acc;
@@ -33,8 +33,8 @@ function MypageProfileLocationPage() {
     : {};
 
   // 기존 주소 정보를 type별로 매핑 (id 포함)
-  const existingAddressMap: Partial<Record<UserAddressType, UserAddress>> = user?.addressList
-    ? user.addressList.reduce(
+  const existingAddressMap: Partial<Record<UserAddressType, UserAddress>> = user?.addresses
+    ? user.addresses.reduce(
         (acc, address) => {
           acc[address.type as UserAddressType] = address;
           return acc;
@@ -49,9 +49,9 @@ function MypageProfileLocationPage() {
 
   const handleAdd = async (type: UserAddressType, address: Omit<UserAddress, 'id'>) => {
     const alias = address.alias || USER_ADDRESS_TYPE_KR[type];
-    const addressData = {
+    const addressData: UserAddress = {
       ...address,
-      id: 0,
+      id: '0',
       type,
       alias,
     };
@@ -63,10 +63,10 @@ function MypageProfileLocationPage() {
     if (!existingAddress) return;
 
     const alias = address.alias || USER_ADDRESS_TYPE_KR[type];
-    const addressId = typeof existingAddress.id === 'string' ? Number(existingAddress.id) : existingAddress.id;
-    const addressData = {
+
+    const addressData: UserAddress = {
       ...address,
-      id: addressId,
+      id: existingAddress.id,
       type,
       alias,
     };
@@ -78,34 +78,6 @@ function MypageProfileLocationPage() {
     if (!existingAddress) return;
 
     await deleteMutation.mutateAsync(existingAddress.id);
-  };
-
-  const handleSubmit = async (data: LocationFormState) => {
-    if (!user) return;
-
-    // TODO: 집 주소 입력 안 했을 경우 처리
-    if (!data.HOME) {
-      console.log('no home');
-      return;
-    }
-
-    const addresses = Object.values(data)
-      .filter((address): address is Omit<UserAddress, 'id'> => address !== undefined)
-      .map((address) => {
-        const alias = address.alias || USER_ADDRESS_TYPE_KR[address.type as UserAddressType];
-
-        return {
-          ...address,
-          alias,
-          addressType: address.type as UserAddressType,
-        };
-      });
-
-    // TODO: 주소 업데이트 mutation 호출
-    console.log('Update addresses:', addresses);
-
-    // 완료 후 이전 페이지로
-    back();
   };
 
   return (

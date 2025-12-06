@@ -4,8 +4,8 @@ import { cn } from '@knockdog/ui/lib';
 
 interface DogCardProps {
   name: string;
-  breed: string;
-  age: number;
+  breed?: string;
+  age?: number;
   imageUrl?: string;
   isRepresentative?: boolean;
   onClick?: () => void;
@@ -28,8 +28,8 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
           <span className='text-text-primary-inverse'>{name}</span>
         </div>
         <div className='body2-regular text-text-primary-inverse flex max-w-[118px] items-center gap-x-1'>
-          <span className='truncate'>{breed}</span>
-          <span className='shrink-0'>• {age}살</span>
+          {breed && <span className='truncate'>{breed} • </span>}
+          {age && <span className='shrink-0'>{age}살</span>}
         </div>
       </div>
     </div>

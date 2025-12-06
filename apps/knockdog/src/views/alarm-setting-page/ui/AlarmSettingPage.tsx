@@ -6,6 +6,7 @@ import { MarketingConsentSheet } from '@features/marketing-consent';
 import { overlay } from 'overlay-kit';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { usePushSettingQuery, usePushSettingMutation, type PushSetting } from '@entities/user';
+import { PrivateAccess } from '@shared/ui/private-access';
 
 function AlarmSettingPage() {
   const { push } = useStackNavigation();
@@ -26,7 +27,7 @@ function AlarmSettingPage() {
   };
 
   return (
-    <>
+    <PrivateAccess>
       <Header withSpacing={false}>
         <Header.BackButton />
         <Header.Title>알림 설정</Header.Title>
@@ -101,7 +102,7 @@ function AlarmSettingPage() {
           </div>
         )}
       </div>
-    </>
+    </PrivateAccess>
   );
 }
 

@@ -1,9 +1,13 @@
 import { api } from '@shared/api';
-import { Photo } from '../model/memo';
+
+export interface MemoPhoto {
+  key: string;
+  url: string;
+}
 
 export interface MemoResponse {
   content: string;
-  photos: Photo[];
+  photos: MemoPhoto[];
 }
 
 export const getMemo = async (targetId: string): Promise<MemoResponse> => {

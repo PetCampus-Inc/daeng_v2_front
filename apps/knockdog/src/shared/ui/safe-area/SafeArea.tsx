@@ -1,5 +1,5 @@
 import { useSafeAreaInsets } from '@shared/lib';
-import { CSSProperties } from 'react';
+import { CSSProperties, useState, useEffect } from 'react';
 
 type EdgeMode = 'off' | 'additive' | 'maximum';
 type Edge = 'top' | 'right' | 'bottom' | 'left';
@@ -9,6 +9,8 @@ type EdgesObject = Partial<Record<Edge, EdgeMode>>;
 interface SafeAreaProps extends React.HTMLAttributes<HTMLDivElement> {
   edges?: EdgesArray | EdgesObject;
 }
+
+const DEFAULT_INSETS = { top: 0, bottom: 0, left: 0, right: 0 };
 
 /**
  * 안전 영역
@@ -25,6 +27,14 @@ interface SafeAreaProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export function SafeArea({ edges, style, children, ...props }: SafeAreaProps) {
   const insets = useSafeAreaInsets();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // 서버 사이드 렌더링이나 하이드레이션 전에는 기본값 사용하여 mismatch 방지
+  const safeInsets = isMounted ? insets : DEFAULT_INSETS;
 
   const normalizedEdges: EdgesObject = Array.isArray(edges)
     ? edges.reduce((acc, edge) => ({ ...acc, [edge]: 'additive' as EdgeMode }), {})
@@ -62,10 +72,10 @@ export function SafeArea({ edges, style, children, ...props }: SafeAreaProps) {
 
   const finalStyle: CSSProperties = {
     ...existingStyle,
-    paddingTop: calculatePadding('top', insets.top),
-    paddingRight: calculatePadding('right', insets.right),
-    paddingBottom: calculatePadding('bottom', insets.bottom),
-    paddingLeft: calculatePadding('left', insets.left),
+    paddingTop: calculatePadding('top', safeInsets.top),
+    paddingRight: calculatePadding('right', safeInsets.right),
+    paddingBottom: calculatePadding('bottom', safeInsets.bottom),
+    paddingLeft: calculatePadding('left', safeInsets.left),
   };
 
   return (

@@ -26,9 +26,20 @@ const BookmarkToggleIcon = ({ id, bookmarked }: BookmarkToggleIconProps) => {
       disabled={isMutating}
       onClick={(event) => {
         event.stopPropagation();
-        // 낙관적 토글
-        setIsBookmarked((prev) => !prev);
-        isBookmarked ? deleteBookmark(id) : postBookmark(id);
+
+        if (isBookmarked) {
+          deleteBookmark(id, {
+            onSuccess: () => {
+              setIsBookmarked(false);
+            },
+          });
+        } else {
+          postBookmark(id, {
+            onSuccess: () => {
+              setIsBookmarked(true);
+            },
+          });
+        }
       }}
     />
   );

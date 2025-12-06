@@ -31,7 +31,7 @@ export function EditMemoPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const { data: memoData } = useMemoQuery(id);
-  const { mutate: updateMemo } = useMemoMutation({
+  const { mutate: updateMemo, isPending } = useMemoMutation({
     onSuccess: () => {
       setIsEditing(false);
     },
@@ -86,8 +86,8 @@ export function EditMemoPage() {
         </Header.LeftSection>
         <Header.Title>자유메모 작성</Header.Title>
         <Header.RightSection>
-          {isEditing && memo && (
-            <button className='label-semibold' onClick={handleSave}>
+          {isEditing && (
+            <button className='label-semibold' onClick={handleSave} disabled={isPending}>
               완료
             </button>
           )}

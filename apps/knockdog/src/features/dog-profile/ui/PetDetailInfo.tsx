@@ -28,7 +28,7 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
     <div className='h-full overflow-y-auto'>
       <div className='flex items-center justify-center px-4 py-7'>
         <Avatar className='h-[120px] w-[120px]'>
-          {pet?.profileImageUrl && <AvatarImage src={pet.profileImageUrl} />}
+          {pet?.profileImage && <AvatarImage src={pet.profileImage} className='object-cover' />}
           <AvatarFallback>
             <Image src='/images/img_default_image.png' alt='default' width={120} height={120} />
           </AvatarFallback>

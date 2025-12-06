@@ -65,12 +65,6 @@ export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSecti
             <span className='text-text-tertiary text-sm'>더 많은 리뷰를 불러오는 중...</span>
           </div>
         )}
-
-        {!hasNextPage && allReviews.length > 0 && (
-          <div className='flex justify-center py-4'>
-            <span className='text-text-tertiary text-sm'>모든 리뷰를 불러왔습니다.</span>
-          </div>
-        )}
       </>
     );
   };

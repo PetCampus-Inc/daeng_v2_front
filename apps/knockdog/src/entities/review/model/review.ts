@@ -1,6 +1,6 @@
 interface Review {
   reviewIdx: string;
-  userName: string;
+  username: string;
   profileImage: string;
   title: string;
   content: string;

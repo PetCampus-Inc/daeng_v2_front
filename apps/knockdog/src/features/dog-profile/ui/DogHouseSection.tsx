@@ -12,7 +12,7 @@ interface DogHouseSectionProps {
 }
 
 function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick, onAddDog }: DogHouseSectionProps) {
-  const representativeDog = dogs.find((dog) => dog.isRepresentative);
+  const representativeDog = dogs.find((dog) => dog.isRepresentative) || dogs[0];
 
   return (
     <>
@@ -29,8 +29,8 @@ function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick
             key={dog.id}
             name={dog.name}
             breed={dog.breed}
-            age={calculateAge(dog.birthYear)}
-            imageUrl={dog.profileImageUrl}
+            age={dog.birthYear ? calculateAge(dog.birthYear) : undefined}
+            imageUrl={dog.profileImage}
             isRepresentative={dog.isRepresentative}
             onClick={() => onDogClick(dog.id)}
           />

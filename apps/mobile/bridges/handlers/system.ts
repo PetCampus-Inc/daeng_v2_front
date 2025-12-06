@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS } from '@knockdog/bridge-core';
 
@@ -32,15 +33,26 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
       throw { code: 'ESIMULATOR', message: '시뮬레이터에서는 전화를 걸 수 없습니다.' };
     }
 
-    const canOpenURL = await Linking.canOpenURL(`tel:${phoneNumber}`);
+    // 전화번호 정규화: 공백, 하이픈, 괄호 등 제거
+    const normalizedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    const telUrl = `tel:${normalizedPhoneNumber}`;
 
-    if (!canOpenURL) {
-      throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+    // iOS에서는 tel: 스킴이 항상 작동하므로 canOpenURL 체크를 건너뛰고 바로 시도
+    // Android에서는 canOpenURL 체크를 먼저 수행하여 안정성 확보
+    if (Platform.OS === 'android') {
+      const canOpenURL = await Linking.canOpenURL(telUrl);
+      if (!canOpenURL) {
+        throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+      }
     }
 
-    await Linking.openURL(`tel:${phoneNumber}`);
-
-    return { opened: true };
+    try {
+      await Linking.openURL(telUrl);
+      return { opened: true };
+    } catch (error) {
+      console.error('[APP] openURL error', error);
+      throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+    }
   });
 
   /** 클립보드 복사 */

@@ -12,9 +12,11 @@ interface PetAddDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onConfirm?: () => void;
+  userNickName?: string;
+  petNickName?: string;
 }
 
-function PetAddDialog({ isOpen, onOpenChange, onConfirm }: PetAddDialogProps) {
+function PetAddDialog({ isOpen, onOpenChange, onConfirm, userNickName, petNickName }: PetAddDialogProps) {
   const handleConfirm = () => {
     onOpenChange(false);
     onConfirm?.();
@@ -30,9 +32,9 @@ function PetAddDialog({ isOpen, onOpenChange, onConfirm }: PetAddDialogProps) {
 
           <div>
             <div className='bg-fill-secondary-50 mb-2 flex flex-col items-center justify-center gap-y-2 rounded-lg p-4'>
-              <span className='h3-medium text-text-tertiary'>일이삼사오육칠팔구십일이삼</span>
+              <span className='h3-medium text-text-tertiary'>{userNickName || '일이삼사오육칠팔구십일이삼'}</span>
               <Icon icon='ChevronBottom' />
-              <span className='h3-medium'>일이삼사오육칠팔구십일이삼</span>
+              <span className='h3-medium'>{petNickName || '일이삼사오육칠팔구십일이삼'}</span>
             </div>
 
             <span className='body1-regular text-text-secondary'>

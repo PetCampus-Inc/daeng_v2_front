@@ -1,5 +1,5 @@
 /** API */
-export { postWithdraw } from './api/user';
+export { postWithdraw, type WithdrawRequest } from './api/user';
 export {
   useUserRegisterMutation,
   useUserUpdateNicknameMutation,
@@ -26,8 +26,10 @@ export { useUserStore } from './model/store/useUserStore';
 export {
   USER_STATUS,
   USER_ADDRESS_TYPE,
+  WITHDRAW_REASON_TYPE,
   type User,
   type UserStatus,
   type UserAddress,
   type UserAddressType,
+  type WithdrawReasonType,
 } from './model/user';
