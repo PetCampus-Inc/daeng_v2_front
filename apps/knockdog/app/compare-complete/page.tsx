@@ -278,9 +278,15 @@ interface CellData {
   detail?: string;
 }
 
+interface RowData {
+  label: string;
+  left: CellData;
+  right: CellData;
+}
+
 interface SlideData {
   title: string;
-  rows: { label: string; left: CellData; right: CellData }[];
+  rows: RowData[];
 }
 
 interface SwipeCarouselProps {
@@ -421,6 +427,16 @@ function DetailRow({ label, left, right }: { label: string; left: CellData; righ
   );
 }
 
+function RowList({ rows, className }: { rows: RowData[]; className?: string }) {
+  return (
+    <div className={`min-w-full overflow-hidden rounded-lg bg-white ${className}`}>
+      {rows.map((row, i) => (
+        <DetailRow key={i} label={row.label} left={row.left} right={row.right} />
+      ))}
+    </div>
+  );
+}
+
 /* =========================
  * SUMMARY PARTS
  * ========================= */
@@ -459,6 +475,11 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
 /* =========================
  * DETAIL SLIDES
  * ========================= */
+interface TableProps {
+  title: string;
+  rows: RowData[];
+}
+
 function SummaryDistanceRow({
   title,
   who,
@@ -489,13 +510,20 @@ function SummaryDistanceRow({
 
 function Slide({ title, rows }: SlideData) {
   return (
-    <div className='min-w-full overflow-hidden rounded-lg bg-white'>
+    <div className='min-w-full'>
       <div className='flex items-center justify-center bg-gray-50 px-2 py-3'>
         <span className='text-sm font-semibold text-neutral-700'>{title}</span>
       </div>
-      {rows.map((row, i) => (
-        <DetailRow key={i} label={row.label} left={row.left} right={row.right} />
-      ))}
+      <RowList rows={rows} />
+    </div>
+  );
+}
+
+function Table({ title, rows }: TableProps) {
+  return (
+    <div className='w-full'>
+      {title && <h2 className='m-2 text-lg font-bold'>{title}</h2>}
+      <RowList rows={rows} />
     </div>
   );
 }
@@ -684,102 +712,96 @@ function CompareCompletePage() {
             </div>
           </TabsContent>
           <TabsContent value='details' className='overflow-y-auto'>
-            <div className='space-y-10 px-4 py-6'>
-              <section>
-                <SwipeCarousel
-                  title='요금 비교'
-                  slides={[
-                    {
-                      title: '나이트케어',
-                      rows: [
-                        {
-                          label: '최저가',
-                          left: {
-                            value: `약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                            detail: getProduct(left, 'NIGHT_CARE')?.min?.name,
-                          },
-                          right: {
-                            value: `약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                            detail: getProduct(right, 'NIGHT_CARE')?.min?.name,
-                          },
+            <div className='flex flex-col gap-5 px-4 py-7'>
+              <SwipeCarousel
+                title='요금 비교'
+                slides={[
+                  {
+                    title: '나이트케어',
+                    rows: [
+                      {
+                        label: '최저가',
+                        left: {
+                          value: `약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                          detail: getProduct(left, 'NIGHT_CARE')?.min?.name,
                         },
-                        {
-                          label: '최대가',
-                          left: {
-                            value: `약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                            detail: getProduct(left, 'NIGHT_CARE')?.max?.name,
-                          },
-                          right: {
-                            value: `약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                            detail: getProduct(right, 'NIGHT_CARE')?.max?.name,
-                          },
+                        right: {
+                          value: `약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                          detail: getProduct(right, 'NIGHT_CARE')?.min?.name,
                         },
-                        {
-                          label: '횟수권\n(1h)',
-                          left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
-                          right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
+                      },
+                      {
+                        label: '최대가',
+                        left: {
+                          value: `약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                          detail: getProduct(left, 'NIGHT_CARE')?.max?.name,
                         },
-                        {
-                          label: '정기권\n(1h)',
-                          left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
-                          right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
+                        right: {
+                          value: `약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                          detail: getProduct(right, 'NIGHT_CARE')?.max?.name,
                         },
-                      ],
-                    },
-                  ]}
-                />
-              </section>
+                      },
+                      {
+                        label: '횟수권\n(1h)',
+                        left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
+                        right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
+                      },
+                      {
+                        label: '정기권\n(1h)',
+                        left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
+                        right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
+                      },
+                    ],
+                  },
+                ]}
+              />
 
-              {/* 거리 비교 */}
-              <section>
-                <SwipeCarousel
-                  title='거리 비교'
-                  slides={[
-                    {
-                      title: '집으로부터',
-                      rows: [
-                        {
-                          label: '도보',
-                          left: { value: getTransitTime(left, 'HOME', 'WALKING') },
-                          right: { value: getTransitTime(right, 'HOME', 'WALKING') },
-                        },
-                        {
-                          label: '차량',
-                          left: { value: getTransitTime(left, 'HOME', 'DRIVING') },
-                          right: { value: getTransitTime(right, 'HOME', 'DRIVING') },
-                        },
-                        {
-                          label: '거리',
-                          left: { value: getDistanceString(left, 'HOME') },
-                          right: { value: getDistanceString(right, 'HOME') },
-                        },
-                      ],
-                    },
-                  ]}
-                />
-              </section>
+              <SwipeCarousel
+                title='거리 비교'
+                slides={[
+                  {
+                    title: '집으로부터',
+                    rows: [
+                      {
+                        label: '도보',
+                        left: { value: getTransitTime(left, 'HOME', 'WALKING') },
+                        right: { value: getTransitTime(right, 'HOME', 'WALKING') },
+                      },
+                      {
+                        label: '차량',
+                        left: { value: getTransitTime(left, 'HOME', 'DRIVING') },
+                        right: { value: getTransitTime(right, 'HOME', 'DRIVING') },
+                      },
+                      {
+                        label: '거리',
+                        left: { value: getDistanceString(left, 'HOME') },
+                        right: { value: getDistanceString(right, 'HOME') },
+                      },
+                    ],
+                  },
+                ]}
+              />
 
-              {/* 운영 시간 비교 */}
-              <section>
-                <h2 className='mb-3 text-base font-bold'>운영 시간 비교</h2>
-                <div className='space-y-3'>
-                  <DetailRow
-                    label='평일'
-                    left={{ value: left?.operatingSchedule?.weekdayHours ?? '-' }}
-                    right={{ value: right?.operatingSchedule?.weekdayHours ?? '-' }}
-                  />
-                  <DetailRow
-                    label='주말'
-                    left={{ value: left?.operatingSchedule?.weekendHours ?? '-' }}
-                    right={{ value: right?.operatingSchedule?.weekendHours ?? '-' }}
-                  />
-                  <DetailRow
-                    label='휴무'
-                    left={{ value: getClosedDaysText(left) }}
-                    right={{ value: getClosedDaysText(right) }}
-                  />
-                </div>
-              </section>
+              <Table
+                title='운영 시간 비교'
+                rows={[
+                  {
+                    label: '평일',
+                    left: { value: left?.operatingSchedule?.weekdayHours ?? '-' },
+                    right: { value: right?.operatingSchedule?.weekdayHours ?? '-' },
+                  },
+                  {
+                    label: '주말',
+                    left: { value: left?.operatingSchedule?.weekendHours ?? '-' },
+                    right: { value: right?.operatingSchedule?.weekendHours ?? '-' },
+                  },
+                  {
+                    label: '휴무',
+                    left: { value: getClosedDaysText(left) },
+                    right: { value: getClosedDaysText(right) },
+                  },
+                ]}
+              />
             </div>
           </TabsContent>
         </Tabs>
