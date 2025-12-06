@@ -1,241 +1,238 @@
-import { getRegionLevel } from './markers';
-import type { KindergartenListWithMeta } from '@entities/kindergarten';
+import type { FilterOption } from '@entities/kindergarten';
+import type { Coord } from '@shared/types';
 
-/**
- * ─────────────────────────────────────────────
- * 1. 타입 정의
- * ─────────────────────────────────────────────
- */
+// 검색 스코프
+export type SearchScope = 'nearby' | 'global' | 'bounds';
 
-export type SearchScope = 'global' | 'nearby' | 'boundary';
+// 줌 레벨 → 논리 레벨
+export type RegionLevel = 1 | 2 | 3;
 
-export type FetchPolicy =
-  | 'static' // EP-01: boundary 진입 후 줌/이동으로는 아무 호출도 안 함
-  | 'agg-only' // EP-02: boundary 진입 후 줌/이동 시 agg만 호출
-  | 'full'; // global / nearby 기본 모드에서 L3 진입 시 list+agg 허용
-
-export type ResultKind = 'empty' | 'single' | 'multi';
-
-export interface Coord {
-  lat: number;
-  lng: number;
+// SDK 타입을 직접 쓰지 않는 추상 Bounds
+export interface BoundsSnapshot {
+  swLat: number;
+  swLng: number;
+  neLat: number;
+  neLng: number;
 }
 
-export type SchoolResult = KindergartenListWithMeta['schoolResult'];
+// MapSnapshot: 화면 뷰포트 상태 (로컬)
+export interface MapSnapshot {
+  center: Coord | null;
+  zoom: number;
+  viewportBounds: BoundsSnapshot | null;
+}
 
-export interface SearchState {
+// SearchSnapshot: 검색 확정 상태 (API 트리거 기준)
+export interface SearchSnapshot {
   scope: SearchScope;
-  fetchPolicy: FetchPolicy;
-  resultKind: ResultKind;
-  zoomLevel: number;
-  regionLevel: 1 | 2 | 3;
+  searchedLevel: RegionLevel;
+  query: string;
+  filters: FilterOption[];
+  refPoint: Coord | null;
+  searchBounds: BoundsSnapshot | null;
+  searchLock: 0 | 1;
 }
-
-/**
- * ─────────────────────────────────────────────
- * 2. 이벤트 정의
- * ─────────────────────────────────────────────
- */
 
 export type SearchEvent =
-  // 새 검색 시작 (쿼리/필터/지역/nearby 토글 변경)
-  // EP-02도 최종적으로는 NEW_SEARCH('boundary')로 취급 가능
-  | { type: 'NEW_SEARCH'; scope: Exclude<SearchScope, 'boundary'> }
-  // map-view 응답 도착 → 단일/다건/0건 판정
-  | { type: 'RESULT_RESOLVED'; schoolResult: SchoolResult }
-  // 줌/이동으로 zoomLevel 변경
-  | { type: 'ZOOM_CHANGED'; zoomLevel: number }
-  // EP-01: “현 위치에서 재검색” 버튼
-  | { type: 'REFRESH_HERE' };
+  // 앱 진입 / 초기 검색 시작
+  | {
+      type: 'ENTER';
+    }
+  // query 변경
+  | {
+      type: 'SET_QUERY';
+      query: string;
+    }
+  // filters 변경
+  | {
+      type: 'SET_FILTERS';
+      filters: FilterOption[];
+    }
+  // query 제거
+  | {
+      type: 'CLEAR_QUERY';
+    }
+  // filters 제거
+  | {
+      type: 'CLEAR_FILTERS';
+    }
+  // 지도 이동/줌 (MapSnapshot만 바뀌는 이벤트)
+  | {
+      type: 'MAP_CHANGE';
+      mapSnapshot: MapSnapshot;
+    }
+  // 줌 레벨 경계 통과 등 레벨 변화
+  | {
+      type: 'ZOOM_LEVEL_CHANGE';
+      prevLevel: RegionLevel;
+      nextLevel: RegionLevel;
+      viewportBounds: BoundsSnapshot | null;
+    }
+  // 집계 마커 클릭 → bounds 확정
+  | {
+      type: 'AGG_MARKER_CLICK';
+      bounds: BoundsSnapshot;
+    }
+  // “현 위치에서 재검색” → 현재 viewportBounds로 bounds 확정
+  | {
+      type: 'RESEARCH_HERE';
+      viewportBounds: BoundsSnapshot | null;
+      levelFromZoom: RegionLevel;
+    };
 
 /**
- * ─────────────────────────────────────────────
- * 3. Helper
- * ─────────────────────────────────────────────
+ * Reducer Context
  */
 
-export function deriveResultKind(schoolResult: SchoolResult): ResultKind {
-  if (schoolResult.totalCount === 0) return 'empty';
-  if (schoolResult.exact != null) return 'single';
-  return 'multi';
+export interface SearchReducerContext {
+  mapSnapshot: MapSnapshot;
+  regionLevelFromZoom: RegionLevel;
+  refPointFromBase: Coord | null;
 }
 
 /**
- * EP-01: 버튼 기반 바운더리 진입 (“현 위치에서 재검색”)
- *
- * - scope: boundary
- * - fetchPolicy: static
- * - boundaryJustEntered: false (버튼 클릭 시점에 list+agg를 따로 호출)
+ * SearchSnapshot Reducer Interface
  */
-export function enterBoundaryByButton(prev: SearchState): SearchState {
-  return {
-    ...prev,
-    scope: 'boundary',
-    fetchPolicy: 'static',
-  };
-}
 
-/**
- * EP-02: global → boundary 자동 전환
- *
- * 조건:
- * - prev.scope === 'global'
- * - prev.resultKind === 'multi'
- * - prev.regionLevel === 3 (읍/면/동)
- *
- * 동작:
- * - scope: boundary
- * - fetchPolicy: agg-only
- */
-export function maybeEnterBoundaryByZoom(prev: SearchState): SearchState {
-  if (prev.scope !== 'global') {
-    return { ...prev };
-  }
-
-  if (prev.resultKind !== 'multi') {
-    return { ...prev };
-  }
-
-  if (prev.regionLevel !== 3) {
-    return { ...prev };
-  }
-
-  return {
-    ...prev,
-    scope: 'boundary',
-    fetchPolicy: 'agg-only',
-  };
-}
-
-/**
- * ─────────────────────────────────────────────
- * 4. 상태 전이 코어
- * ─────────────────────────────────────────────
- */
-export function transition(prev: SearchState, event: SearchEvent): SearchState {
+export function searchSnapshotReducer(
+  state: SearchSnapshot,
+  event: SearchEvent,
+  context: SearchReducerContext
+): SearchSnapshot {
   switch (event.type) {
-    case 'NEW_SEARCH': {
-      // scope에 따라 fetchPolicy 기본값 설정
-      // - global / nearby: full
-      // - boundary(EP-02): full → 응답 도착 후 agg-only로 바뀜
+    case 'ENTER': {
+      const nextScope = deriveScopeFromInputs(state.scope, state.query, state.filters);
+      const scoped = adjustScope(state, nextScope);
       return {
-        ...prev,
-        scope: event.scope,
-        fetchPolicy: 'full',
-        resultKind: 'empty', // 응답 전
+        ...scoped,
+        searchedLevel: context.regionLevelFromZoom,
+        refPoint: context.refPointFromBase ?? state.refPoint,
       };
     }
 
-    case 'RESULT_RESOLVED': {
-      const resultKind = deriveResultKind(event.schoolResult);
+    case 'SET_QUERY': {
+      return applyQueryChange(state, event.query);
+    }
 
-      let nextFetchPolicy = prev.fetchPolicy;
+    case 'SET_FILTERS': {
+      return applyFilterChange(state, event.filters);
+    }
 
-      // EP-02: boundary로 NEW_SEARCH 후 첫 응답이 들어온 시점
-      // → 이후부터는 agg-only로 동작
-      if (prev.scope === 'boundary' && prev.fetchPolicy === 'full') {
-        nextFetchPolicy = 'agg-only';
+    case 'CLEAR_QUERY': {
+      return applyQueryChange(state, '');
+    }
+
+    case 'CLEAR_FILTERS': {
+      return applyFilterChange(state, []);
+    }
+
+    case 'MAP_CHANGE': {
+      // MapSnapshot만 변경되는 이벤트이므로 SearchSnapshot은 그대로 둔다.
+      return state;
+    }
+
+    case 'ZOOM_LEVEL_CHANGE': {
+      const { prevLevel, nextLevel, viewportBounds } = event;
+
+      // 1) L2 → L3 자동 BOUNDS 확정
+      if (prevLevel === 2 && nextLevel === 3) {
+        const nextBounds = viewportBounds ?? state.searchBounds;
+
+        return {
+          ...state,
+          scope: 'bounds',
+          searchedLevel: 3,
+          searchBounds: nextBounds,
+          searchLock: 1,
+        };
       }
 
+      // 2) scope=bounds & lock=1 이면 자동 호출 금지 → SearchSnapshot 변경 없음
+      if (state.scope === 'bounds' && state.searchLock === 1) {
+        return state;
+      }
+
+      // 3) 그 외 레벨 경계 변화만이면 searchedLevel만 갱신 (agg-only 트리거)
+      if (prevLevel !== nextLevel) {
+        return {
+          ...state,
+          searchedLevel: nextLevel,
+        };
+      }
+
+      // 레벨이 안 바뀐 경우에는 SearchSnapshot 변경 없음
+      return state;
+    }
+
+    case 'AGG_MARKER_CLICK': {
+      // 집계 마커 클릭 → bounds 확정 + lock=0 + L3
       return {
-        ...prev,
-        resultKind,
-        fetchPolicy: nextFetchPolicy,
+        ...state,
+        scope: 'bounds',
+        searchedLevel: 3,
+        searchBounds: event.bounds,
+        searchLock: 0,
       };
     }
 
-    case 'ZOOM_CHANGED': {
-      const zoomLevel = event.zoomLevel;
-      const regionLevel = getRegionLevel(zoomLevel);
+    case 'RESEARCH_HERE': {
+      // 현 위치에서 재검색 → 현재 viewportBounds로 bounds 확정 + lock=1
+      const nextBounds = event.viewportBounds ?? context.mapSnapshot.viewportBounds ?? state.searchBounds;
 
       return {
-        ...prev,
-        zoomLevel,
-        regionLevel,
-      };
-    }
-
-    case 'REFRESH_HERE': {
-      // EP-01: 버튼 기반 boundary 진입
-      // - scope: boundary
-      // - fetchPolicy: static
-      // - resultKind는 그대로 (어차피 NEW_SEARCH처럼 hasResponse를 리셋해 버림)
-      return {
-        ...prev,
-        scope: 'boundary',
-        fetchPolicy: 'static',
+        ...state,
+        scope: 'bounds',
+        searchedLevel: event.levelFromZoom,
+        searchBounds: nextBounds,
+        searchLock: 1,
       };
     }
 
     default:
-      return prev;
+      return state;
   }
 }
 
-/**
- * ─────────────────────────────────────────────
- * 5. API 호출 결정 유틸
- * ─────────────────────────────────────────────
- */
-
-export interface ApiCallDecision {
-  callList: boolean;
-  callAgg: boolean;
+function deriveScopeFromInputs(scope: SearchScope, query: string, filters: FilterOption[]): SearchScope {
+  const hasQuery = query.trim().length > 0;
+  const hasFilters = filters.length > 0;
+  if (hasQuery || hasFilters) return 'global';
+  if (scope === 'bounds') return 'bounds';
+  return 'nearby';
 }
 
-/**
- * 뷰포트 변경(줌/이동) 이후 list / agg 중 무엇을 호출할지 결정
- *
- * - viewport 변경 직후, React Query enabled 조건에만 사용
- * - "최초 검색 전" 케이스는 Provider에서 hasResponse로 따로 처리
- */
-export function resolveApiCallsOnViewportChange(state: SearchState): ApiCallDecision {
-  console.log('state', state);
-  // 1) boundary 스코프 (EP-01 / EP-02)
-
-  if (state.scope === 'boundary') {
-    if (state.fetchPolicy === 'static') {
-      // EP-01: 현 위치 재검색 이후 → 줌/이동으로는 재조회 금지
-      return { callList: false, callAgg: false };
-    }
-
-    if (state.fetchPolicy === 'agg-only') {
-      // EP-02: boundary 모드 → 줌/이동 시 agg만
-      return { callList: false, callAgg: true };
-    }
-
-    // boundary + full 상태는
-    // - NEW_SEARCH 직후 응답 오기 전 (hasResponse=false 구간)에서만 의미 있음
-    // - hasResponse=false일 땐 Context에서 list+agg를 이미 강제로 켜므로
-    // 여기서는 보호 차원에서 agg-only로 둔다
-    return { callList: false, callAgg: true };
+function adjustScope(state: SearchSnapshot, nextScope: SearchScope): SearchSnapshot {
+  if (nextScope === state.scope) {
+    return state;
   }
-
-  // 2) global / nearby 공통 로직
-
-  // 결과 0건 → 자동으로 다시 안 부름
-  if (state.resultKind === 'empty') {
-    return { callList: false, callAgg: false };
+  if (nextScope === 'bounds') {
+    return {
+      ...state,
+      scope: nextScope,
+    };
   }
+  return {
+    ...state,
+    scope: nextScope,
+    searchBounds: null,
+    searchLock: 0,
+  };
+}
 
-  // 단일건 → list는 더 안 부르고 agg만
-  if (state.resultKind === 'single') {
-    return { callList: false, callAgg: true };
-  }
+function applyQueryChange(state: SearchSnapshot, query: string): SearchSnapshot {
+  const nextScope = deriveScopeFromInputs(state.scope, query, state.filters);
+  const scoped = adjustScope(state, nextScope);
+  return {
+    ...scoped,
+    query,
+  };
+}
 
-  // 다건 + nearby/global 기본 정책 (fetchPolicy = full)
-
-  if (state.fetchPolicy === 'full') {
-    if (state.regionLevel === 3) {
-      // L3(읍면동) 레벨에서 재진입 → "내주변 기본", "전체 기본" 정책
-      // → list+agg 재호출
-      return { callList: true, callAgg: true };
-    }
-
-    // L1/L2에서는 집계만
-    return { callList: false, callAgg: true };
-  }
-
-  // 이 밖의 조합은 안전하게 agg-only
-  return { callList: false, callAgg: true };
+function applyFilterChange(state: SearchSnapshot, filters: FilterOption[]): SearchSnapshot {
+  const nextScope = deriveScopeFromInputs(state.scope, state.query, filters);
+  const scoped = adjustScope(state, nextScope);
+  return {
+    ...scoped,
+    filters,
+  };
 }
