@@ -1,36 +1,31 @@
-import { useEffect, useRef } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef } from 'react';
 import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
+import { inferSearchKindFromUrl, type UrlSearchKind } from '../model/searchKind';
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { kindergartenQueryOptions } from '../api/kindergartenQuery';
 import { useSearchUrlState } from '../model/useSearchUrlState';
-import { useMapUrlState } from '@features/kindergarten-map';
+import { useSearchListQuery, useSearchState } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { isNativeWebView, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
+import { getCurrentLocation, isNativeWebView, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useBasePointType } from '@shared/store';
-import type { Coord } from '@shared/types';
+import { useBasePointType, useSearchListScroll } from '@shared/store';
+import { PermissionSection } from './PermissionSection';
 
 interface KindergartenListProps {
-  mapSnapshot: {
-    center: Partial<Coord> | null;
-    bounds: naver.maps.LatLngBounds | null;
-    zoomLevel: number;
-  };
   onOpenFilter: () => void;
+  region?: string | null;
 }
 
-export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenListProps) {
+export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { query: searchQuery, filters, rank } = useSearchUrlState();
-  const { searchMode } = useMapUrlState();
+  const { setFilters: setSearchFilters, clearFilters } = useSearchState();
   const { coord: basePoint } = useBasePoint();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -38,22 +33,48 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
-  const query = useInfiniteQuery({
-    ...kindergartenQueryOptions.searchList({
-      refPoint: basePoint,
-      bounds: mapSnapshot.bounds,
-      zoomLevel: mapSnapshot.zoomLevel,
-      filters,
-      query: searchQuery,
-      rank,
-      searchMode,
-    }),
-  });
+  const { listQuery, searchList } = useSearchListQuery({ rank });
 
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
-  const totalCount = query.data?.pages[0]?.schoolResult.totalCount || 0;
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
+  const totalCount = listQuery.data?.pages[0]?.schoolResult.totalCount || 0;
 
   const selectedFilters = getSelectedFilterWithLabel();
+  const { scrollTop, setScrollTop } = useSearchListScroll();
+
+  const searchKind: UrlSearchKind = useMemo(
+    () => inferSearchKindFromUrl({ query: searchQuery, filters, region }),
+    [searchQuery, filters, region]
+  );
+
+  // SET_FILTERS / CLEAR_FILTERS 이벤트: URL filters 변경 시
+  useEffect(() => {
+    if (filters.length > 0) {
+      setSearchFilters(filters);
+      return;
+    }
+    clearFilters();
+  }, [filters, setSearchFilters, clearFilters]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setScrollTop(container.scrollTop);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [setScrollTop]);
+
+  useEffect(() => {
+    if (!isFullExtended) return;
+    const container = containerRef.current;
+    if (!container) return;
+    container.scrollTop = scrollTop;
+  }, [isFullExtended, scrollTop]);
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -78,6 +99,11 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasNextPage, isFetchingNextPage]);
 
+  const isGranted = useMemo(async () => {
+    const status = await getCurrentLocation.getPermission();
+    return status === 'allowed';
+  }, []);
+
   const handleLocationChange = (value: string) => {
     setBaseType(value as 'current' | 'home' | 'work');
   };
@@ -86,6 +112,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
     <>
       <main
         ref={containerRef}
+        data-search-kind={searchKind}
         className={cn(
           !isNativeWebView() && 'pb-[68px]',
           'scrollbar-hide relative flex h-full w-full flex-col',
@@ -157,7 +184,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
         </div>
 
         {/* <DogSchoolEmptySection /> */}
-        {/* <PermissionSection /> */}
+        {!isGranted && <PermissionSection />}
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
           <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
@@ -165,11 +192,9 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
             <SortSelect />
           </div>
 
-          {query.data?.pages
-            ?.flatMap((page) => page.schoolResult.list)
-            .map((item) => (
-              <KindergartenListItem key={item.id} {...item} banner={item.banner ?? []} />
-            ))}
+          {searchList.map((item) => (
+            <KindergartenListItem key={item.id} {...item} banner={item.banner ?? []} />
+          ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />
       </main>
