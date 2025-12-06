@@ -49,7 +49,7 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
                   <label className='flex items-center justify-between py-2' htmlFor={`dog-${dog.id}`}>
                     <div className='flex items-center gap-x-2'>
                       <Avatar>
-                        <AvatarImage src={dog.profileImageUrl} />
+                        <AvatarImage src={dog.profileImage} />
                         <AvatarFallback className='border-line-200 rounded-full border p-0.5'>
                           <Image src='/images/img_default_image.png' alt={dog.name} width={40} height={40} />
                         </AvatarFallback>
