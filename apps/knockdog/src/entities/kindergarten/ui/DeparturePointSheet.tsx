@@ -4,8 +4,8 @@ import { Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { useState, useEffect, useCallback } from 'react';
 import { METHODS } from '@knockdog/bridge-core';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { getCurrentLocation } from '@shared/lib/geolocation';
-import { getReverseGeocode } from '@features/address-picker/api/searchAddress';
+import { useGeolocationQuery } from '@shared/lib/geolocation';
+import { getReverseGeocode } from '@features/address-picker';
 import { useBridge } from '@shared/lib/bridge';
 import { useUserStore, USER_ADDRESS_TYPE_KR } from '@entities/user';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
@@ -101,9 +101,7 @@ interface DeparturePointSheetProps {
 }
 
 export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetProps) {
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const { data: coords, isLoading: locationLoading, error: locationError } = useGeolocationQuery(isOpen);
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
   const [addressText, setAddressText] = useState<string | null>(null);
@@ -113,28 +111,6 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
 
   // 저장된 주소
   const savedAddresses = user?.addresses || [];
-
-  useEffect(() => {
-    async function fetchLocation() {
-      setLocationLoading(true);
-      setLocationError(null);
-      try {
-        const location = await getCurrentLocation();
-        const latitude = location.coords.latitude;
-        const longitude = location.coords.longitude;
-        setCoords({ lat: latitude, lng: longitude });
-      } catch (error) {
-        console.error('위치 정보를 가져올 수 없습니다:', error);
-        setLocationError(error instanceof Error ? error.message : '위치 정보를 가져올 수 없습니다');
-      } finally {
-        setLocationLoading(false);
-      }
-    }
-
-    if (isOpen) {
-      fetchLocation();
-    }
-  }, [isOpen]);
 
   useEffect(() => {
     async function fetchAddress() {
@@ -171,7 +147,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
     if (addressLoading) return '주소 조회 중…';
     if (addressError) return '주소를 조회할 수 없습니다';
     if (hasValidAddress) return addressText!;
-    if (locationError) return '위치 정보를 가져올 수 없습니다';
+    if (locationError) return locationError instanceof Error ? locationError.message : '위치 정보를 가져올 수 없습니다';
     return '위치 정보 없음';
   })();
 
