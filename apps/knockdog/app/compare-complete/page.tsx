@@ -11,6 +11,7 @@ import {
   AvatarFallback,
   AvatarImage,
   Icon,
+  IconButton,
   IconType,
   Tabs,
   TabsContent,
@@ -272,7 +273,22 @@ function CircleAvatar({
 /* =========================
  * SWIPE CAROUSEL
  * ========================= */
-function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
+interface CellData {
+  value: string;
+  detail?: string;
+}
+
+interface SlideData {
+  title: string;
+  rows: { label: string; left: CellData; right: CellData }[];
+}
+
+interface SwipeCarouselProps {
+  title?: string;
+  slides: SlideData[];
+}
+
+function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const count = slides.length;
   const startX = useRef(0);
@@ -312,45 +328,47 @@ function SwipeCarousel({ slides }: { slides: React.ReactNode[] }) {
 
   return (
     <div className='w-full'>
+      {title && <h2 className='m-2 text-lg font-bold'>{title}</h2>}
       <div
-        className='relative overflow-hidden rounded-lg border border-gray-200 bg-white select-none'
+        className='relative overflow-hidden rounded-lg bg-white select-none'
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
+        {/* 버튼 */}
+        <IconButton
+          aria-label='이전'
+          icon='ChevronLeft'
+          onClick={prev}
+          disabled={currentIndex === 0}
+          className='text-text-secondary absolute top-2 left-1 z-1 disabled:opacity-40'
+        />
+        <IconButton
+          icon='ChevronRight'
+          aria-label='다음'
+          onClick={next}
+          disabled={currentIndex === count - 1}
+          className='text-text-secondary absolute top-2 right-1 z-1 disabled:opacity-40'
+        />
+
+        {/* 슬라이드 */}
         <div
           ref={trackRef}
           className='flex w-full touch-pan-y'
           style={{ transform: `translateX(${-currentIndex * 100}%)`, transition: 'transform 250ms ease' }}
         >
-          {slides.map((node, index) => (
-            <div key={index} className='w-full shrink-0'>
-              {node}
-            </div>
+          {slides.map((slide, index) => (
+            <Slide key={index} title={slide.title} rows={slide.rows} />
           ))}
         </div>
-        <button
-          aria-label='이전'
-          onClick={prev}
-          disabled={currentIndex === 0}
-          className='absolute top-2 left-2 rounded-md bg-white/90 px-2 py-1 text-lg shadow disabled:opacity-40'
-        >
-          ‹
-        </button>
-        <button
-          aria-label='다음'
-          onClick={next}
-          disabled={currentIndex === count - 1}
-          className='absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-lg shadow disabled:opacity-40'
-        >
-          ›
-        </button>
-        <div className='pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1'>
+
+        {/* 인디케이터 */}
+        <div className='mt-2 flex justify-center gap-2 p-2'>
           {Array.from({ length: count }).map((_, index) => (
             <span
               key={index}
-              className={`h-1.5 w-1.5 rounded-full ${index === currentIndex ? 'bg-gray-600' : 'bg-gray-300'}`}
+              className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentIndex ? 'bg-fill-secondary-700' : 'bg-fill-secondary-400'}`}
             />
           ))}
         </div>
@@ -383,26 +401,23 @@ function SelectedCell({
     </div>
   );
 }
-function DetailMoney({ title, subtitle }: { title: string; subtitle: string }) {
+function DetailRow({ label, left, right }: { label: string; left: CellData; right: CellData }) {
   return (
-    <div className='rounded-lg bg-gray-50 p-3 text-center'>
-      <div className='text-sm font-semibold'>{title}</div>
-      <div className='mt-1 text-xs text-gray-500'>{subtitle}</div>
+    <div className='grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] odd:bg-gray-50'>
+      <div className='flex min-w-0 flex-col items-center justify-center p-4'>
+        <div className='font-semibold'>{left.value}</div>
+        {left.detail && <div className='mt-0.5 w-full truncate text-center text-sm'>{left.detail}</div>}
+      </div>
+      <div className='flex items-center justify-center p-1.5'>
+        <div className='caption1-regular text-center text-sm font-semibold whitespace-pre-line text-neutral-600'>
+          {label}
+        </div>
+      </div>
+      <div className='flex min-w-0 flex-col items-center justify-center p-4'>
+        <div className='font-semibold'>{right.value}</div>
+        {right.detail && <div className='mt-0.5 w-full truncate text-center text-sm'>{right.detail}</div>}
+      </div>
     </div>
-  );
-}
-function DetailRow({ label, left, right }: { label: string; left: string; right: string }) {
-  return (
-    <>
-      <div className='rounded-lg bg-gray-50 p-3 text-center'>
-        <div className='text-base font-medium'>{left}</div>
-        <div className='mt-1 text-xs text-gray-500'>{label}</div>
-      </div>
-      <div className='rounded-lg bg-gray-50 p-3 text-center'>
-        <div className='text-base font-medium'>{right}</div>
-        <div className='mt-1 text-xs text-gray-500'>{label}</div>
-      </div>
-    </>
   );
 }
 
@@ -472,78 +487,15 @@ function SummaryDistanceRow({
   );
 }
 
-function FeeSlide({
-  title,
-  leftUp,
-  rightUp,
-  leftDown,
-  rightDown,
-  hasCountPass,
-  hasSubPass,
-  altRow,
-}: {
-  title: string;
-  leftUp: string;
-  rightUp: string;
-  leftDown: string;
-  rightDown: string;
-  hasCountPass: boolean;
-  hasSubPass: boolean;
-  altRow?: string;
-}) {
+function Slide({ title, rows }: SlideData) {
   return (
-    <div className='p-3 pb-6'>
-      <div className='mb-2 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2'>
-        <span className='px-2 py-1 opacity-0'>‹</span>
-        <span className='text-sm text-gray-700'>{title}</span>
-        <span className='px-2 py-1 opacity-0'>›</span>
+    <div className='min-w-full overflow-hidden rounded-lg bg-white'>
+      <div className='flex items-center justify-center bg-gray-50 px-2 py-3'>
+        <span className='text-sm font-semibold text-neutral-700'>{title}</span>
       </div>
-      <div className='grid grid-cols-2 gap-3'>
-        <DetailMoney title={leftUp} subtitle='상품명' />
-        <DetailMoney title={rightUp} subtitle='상품명' />
-        <DetailMoney title={leftDown} subtitle='상품명' />
-        <DetailMoney title={rightDown} subtitle='상품명' />
-        <div className='rounded-lg bg-gray-50 p-3 text-center'>
-          <div className='text-sm'>{hasCountPass ? '○' : '–'}</div>
-          <div className='mt-1 text-xs text-gray-500'>횟수권 (1h)</div>
-        </div>
-        <div className='rounded-lg bg-gray-50 p-3 text-center'>
-          <div className='text-sm'>{hasCountPass ? '○' : '×'}</div>
-          <div className='mt-1 text-xs text-gray-500'>횟수권 (1h)</div>
-        </div>
-        <div className='rounded-lg bg-gray-50 p-3 text-center'>
-          <div className='text-sm'>{hasSubPass ? '○' : '–'}</div>
-          <div className='mt-1 text-xs text-gray-500'>정기권 (1h)</div>
-        </div>
-        <div className='rounded-lg bg-gray-50 p-3 text-center'>
-          <div className='text-sm'>{hasSubPass ? '○' : '×'}</div>
-          <div className='mt-1 text-xs text-gray-500'>정기권 (1h)</div>
-        </div>
-      </div>
-      {altRow && (
-        <div className='mt-4 flex items-center justify-center'>
-          <span className='rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-800'>{altRow}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function DistanceSlide({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: Array<{ label: string; left: string; right: string }>;
-}) {
-  return (
-    <div className='p-3 pb-6'>
-      <div className='rounded-lg bg-gray-50 px-3 py-2 text-center text-sm text-gray-600'>{title}</div>
-      <div className='mt-3 grid grid-cols-2 gap-3'>
-        {rows.map((row) => (
-          <DetailRow key={row.label} label={row.label} left={row.left} right={row.right} />
-        ))}
-      </div>
+      {rows.map((row, i) => (
+        <DetailRow key={i} label={row.label} left={row.left} right={row.right} />
+      ))}
     </div>
   );
 }
@@ -733,51 +685,76 @@ function CompareCompletePage() {
           </TabsContent>
           <TabsContent value='details' className='overflow-y-auto'>
             <div className='space-y-10 px-4 py-6'>
-              {/* 요금 비교 */}
               <section>
-                <h2 className='mb-3 text-base font-bold'>요금 비교</h2>
                 <SwipeCarousel
+                  title='요금 비교'
                   slides={[
-                    <FeeSlide
-                      key='나이트'
-                      title='나이트케어'
-                      leftUp={`약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      rightUp={`약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      leftDown={`약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      rightDown={`약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`}
-                      hasCountPass={Boolean(getProduct(left, 'NIGHT_CARE'))}
-                      hasSubPass={false}
-                    />,
+                    {
+                      title: '나이트케어',
+                      rows: [
+                        {
+                          label: '최저가',
+                          left: {
+                            value: `약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                            detail: getProduct(left, 'NIGHT_CARE')?.min?.name,
+                          },
+                          right: {
+                            value: `약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                            detail: getProduct(right, 'NIGHT_CARE')?.min?.name,
+                          },
+                        },
+                        {
+                          label: '최대가',
+                          left: {
+                            value: `약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                            detail: getProduct(left, 'NIGHT_CARE')?.max?.name,
+                          },
+                          right: {
+                            value: `약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
+                            detail: getProduct(right, 'NIGHT_CARE')?.max?.name,
+                          },
+                        },
+                        {
+                          label: '횟수권\n(1h)',
+                          left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
+                          right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
+                        },
+                        {
+                          label: '정기권\n(1h)',
+                          left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
+                          right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
+                        },
+                      ],
+                    },
                   ]}
                 />
               </section>
 
               {/* 거리 비교 */}
               <section>
-                <h2 className='mb-3 text-base font-bold'>거리 비교</h2>
                 <SwipeCarousel
+                  title='거리 비교'
                   slides={[
-                    <DistanceSlide
-                      key='집'
-                      title='집으로부터'
-                      rows={[
+                    {
+                      title: '집으로부터',
+                      rows: [
                         {
                           label: '도보',
-                          left: getTransitTime(left, 'HOME', 'WALKING'),
-                          right: getTransitTime(right, 'HOME', 'WALKING'),
+                          left: { value: getTransitTime(left, 'HOME', 'WALKING') },
+                          right: { value: getTransitTime(right, 'HOME', 'WALKING') },
                         },
                         {
                           label: '차량',
-                          left: getTransitTime(left, 'HOME', 'DRIVING'),
-                          right: getTransitTime(right, 'HOME', 'DRIVING'),
+                          left: { value: getTransitTime(left, 'HOME', 'DRIVING') },
+                          right: { value: getTransitTime(right, 'HOME', 'DRIVING') },
                         },
                         {
                           label: '거리',
-                          left: getDistanceString(left, 'HOME'),
-                          right: getDistanceString(right, 'HOME'),
+                          left: { value: getDistanceString(left, 'HOME') },
+                          right: { value: getDistanceString(right, 'HOME') },
                         },
-                      ]}
-                    />,
+                      ],
+                    },
                   ]}
                 />
               </section>
@@ -785,18 +762,22 @@ function CompareCompletePage() {
               {/* 운영 시간 비교 */}
               <section>
                 <h2 className='mb-3 text-base font-bold'>운영 시간 비교</h2>
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-3'>
                   <DetailRow
                     label='평일'
-                    left={left?.operatingSchedule?.weekdayHours ?? '-'}
-                    right={right?.operatingSchedule?.weekdayHours ?? '-'}
+                    left={{ value: left?.operatingSchedule?.weekdayHours ?? '-' }}
+                    right={{ value: right?.operatingSchedule?.weekdayHours ?? '-' }}
                   />
                   <DetailRow
                     label='주말'
-                    left={left?.operatingSchedule?.weekendHours ?? '-'}
-                    right={right?.operatingSchedule?.weekendHours ?? '-'}
+                    left={{ value: left?.operatingSchedule?.weekendHours ?? '-' }}
+                    right={{ value: right?.operatingSchedule?.weekendHours ?? '-' }}
                   />
-                  <DetailRow label='휴무' left={getClosedDaysText(left)} right={getClosedDaysText(right)} />
+                  <DetailRow
+                    label='휴무'
+                    left={{ value: getClosedDaysText(left) }}
+                    right={{ value: getClosedDaysText(right) }}
+                  />
                 </div>
               </section>
             </div>
