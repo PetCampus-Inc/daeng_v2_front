@@ -4,17 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
-import { SEARCH_MODES } from '@features/kindergarten-map';
 import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
 import { useBasePoint } from '@shared/lib';
 import { useSearchHistory } from '@shared/store';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(() => searchParams.get('query') ?? '');
+  const [localQuery, setLocalQuery] = useState(() => searchParams.get('query') ?? '');
   const { coord } = useBasePoint();
   const { data } = useQuery({
-    ...searchQueryOptions.autocomplete({ query: query.trim(), coord }),
+    ...searchQueryOptions.autocomplete({ query: localQuery.trim(), coord }),
   });
 
   const { addRecentSearchKeyword } = useSearchHistory();
@@ -70,15 +69,14 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   };
 
   const handleSubmit = () => {
-    if (query.trim()) {
+    if (localQuery.trim()) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set('query', query.trim());
-      params.set('searchMode', SEARCH_MODES.GLOBAL);
+      params.set('query', localQuery.trim());
       params.set('bottomSheetSnapIndex', '1');
 
       addRecentSearchKeyword({
         type: 'USER_QUERY',
-        label: query.trim(),
+        label: localQuery.trim(),
       });
 
       router.replace(`/?${params.toString()}`);
@@ -104,20 +102,20 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
               placeholder='업체 또는 주소를 검색하세요'
               aria-label='검색어 입력'
               autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={localQuery}
+              onChange={(e) => setLocalQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
                   handleSubmit();
                 }
               }}
             />
-            {query && (
+            {localQuery && (
               <button
                 type='button'
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  setQuery('');
+                  setLocalQuery('');
                 }}
                 aria-label='검색 결과 초기화'
                 className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
@@ -130,10 +128,10 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
       </Header>
 
       <main className='flex-1 overflow-y-auto'>
-        {query.trim() && data ? (
+        {localQuery.trim() && data ? (
           <AutoCompleteList
             data={data}
-            query={query}
+            query={localQuery}
             onSuggestionClick={handleSuggestionClick}
             onPlaceClick={handlePlaceClick}
           />

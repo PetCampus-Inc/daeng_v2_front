@@ -5,9 +5,10 @@ import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
-import { kindergartenQueryOptions } from '../api/kindergartenQuery';
 import { useSearchUrlState } from '../model/useSearchUrlState';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
+import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -36,9 +37,10 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  const abstractBounds = isValidLatLngBounds(bounds) ? toBounds(bounds) : null;
   const { data: filterResultData } = useQuery({
     ...kindergartenQueryOptions.filterResultCount({
-      bounds,
+      bounds: abstractBounds,
       filters: localFilters,
     }),
   });
