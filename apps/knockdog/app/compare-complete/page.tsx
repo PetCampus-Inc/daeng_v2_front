@@ -273,25 +273,9 @@ function CircleAvatar({
 /* =========================
  * SWIPE CAROUSEL
  * ========================= */
-interface CellData {
-  value: string;
-  detail?: string;
-}
-
-interface RowData {
-  label: string;
-  left: CellData;
-  right: CellData;
-}
-
-interface SlideData {
-  title: string;
-  rows: RowData[];
-}
-
 interface SwipeCarouselProps {
   title?: string;
-  slides: SlideData[];
+  slides: SlideProps[];
 }
 
 function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
@@ -365,7 +349,7 @@ function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
           style={{ transform: `translateX(${-currentIndex * 100}%)`, transition: 'transform 250ms ease' }}
         >
           {slides.map((slide, index) => (
-            <Slide key={index} title={slide.title} rows={slide.rows} />
+            <Slide key={index} type={slide.type} rows={slide.rows} />
           ))}
         </div>
 
@@ -386,6 +370,17 @@ function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
 /* =========================
  * SMALL PARTS
  * ========================= */
+interface CellData {
+  value: string;
+  detail?: string;
+}
+
+interface RowData {
+  label: string;
+  left: CellData;
+  right: CellData;
+}
+
 function SelectedCell({
   name,
   type,
@@ -475,6 +470,10 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
 /* =========================
  * DETAIL SLIDES
  * ========================= */
+interface SlideProps {
+  type: string;
+  rows: RowData[];
+}
 interface TableProps {
   title: string;
   rows: RowData[];
@@ -508,11 +507,11 @@ function SummaryDistanceRow({
   );
 }
 
-function Slide({ title, rows }: SlideData) {
+function Slide({ type, rows }: SlideProps) {
   return (
     <div className='min-w-full'>
       <div className='flex items-center justify-center bg-gray-50 px-2 py-3'>
-        <span className='text-sm font-semibold text-neutral-700'>{title}</span>
+        <span className='text-sm font-semibold text-neutral-700'>{type}</span>
       </div>
       <RowList rows={rows} />
     </div>
@@ -717,7 +716,7 @@ function CompareCompletePage() {
                 title='요금 비교'
                 slides={[
                   {
-                    title: '나이트케어',
+                    type: '나이트케어',
                     rows: [
                       {
                         label: '최저가',
@@ -760,7 +759,7 @@ function CompareCompletePage() {
                 title='거리 비교'
                 slides={[
                   {
-                    title: '집으로부터',
+                    type: '집으로부터',
                     rows: [
                       {
                         label: '도보',
