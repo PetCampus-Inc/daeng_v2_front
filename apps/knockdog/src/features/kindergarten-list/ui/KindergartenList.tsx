@@ -14,6 +14,7 @@ import { getCurrentLocation, isNativeWebView, useBasePoint, useBottomSheetSnapIn
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType, useSearchListScroll } from '@shared/store';
 import { PermissionSection } from './PermissionSection';
+import { NearByRecommendBanner } from './NearByRecommendBanner';
 
 interface KindergartenListProps {
   onOpenFilter: () => void;
@@ -33,7 +34,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
-  const { listQuery, searchList } = useSearchListQuery({ rank });
+  const { listQuery, searchList, listWithoutExact, exact } = useSearchListQuery({ rank });
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
   const totalCount = listQuery.data?.pages[0]?.schoolResult.totalCount || 0;
@@ -192,7 +193,8 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             <SortSelect />
           </div>
 
-          {searchList.map((item) => (
+          {exact && <NearByRecommendBanner title={exact.title} />}
+          {(listWithoutExact ?? searchList).map((item) => (
             <KindergartenListItem key={item.id} {...item} banner={item.banner ?? []} />
           ))}
         </div>

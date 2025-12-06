@@ -27,7 +27,7 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
   const { snapshot, mapSnapshot } = useSearchState();
 
   // 전역 검색이라도 L1(전국)일 때만 zoom 9로 강제, 그 외에는 실제 줌을 사용한다.
-  const effectiveZoom = snapshot.scope === 'global' && snapshot.searchedLevel === 1 ? 9 : mapSnapshot.zoom;
+  const effectiveZoom = snapshot.scope === 'global' ? 9 : mapSnapshot.zoom;
 
   const snapshotLike: KindergartenSearchSnapshotLike = {
     scope: snapshot.scope,
@@ -57,14 +57,26 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
 
   const listData = searchListQuery.data as InfiniteData<KindergartenListWithMeta> | undefined;
 
-  const searchList = useMemo<KindergartenListItemWithMeta[]>(() => {
-    if (!listData) return [];
-    return listData.pages.flatMap((page) => page.schoolResult.list);
+  const { searchList, exact, listWithoutExact } = useMemo(() => {
+    if (!listData) {
+      return {
+        searchList: [] as KindergartenListItemWithMeta[],
+        exact: null,
+        listWithoutExact: [] as KindergartenListItemWithMeta[],
+      };
+    }
+    const allList = listData.pages.flatMap((page) => page.schoolResult.list);
+    const pageWithExact = listData.pages.find((page) => page.schoolResult.exact);
+    const exactItem = pageWithExact?.schoolResult.exact ?? null;
+    const listExceptExact = exactItem ? allList.filter((item) => item.id !== exactItem.id) : allList;
+    return { searchList: allList, exact: exactItem, listWithoutExact: listExceptExact };
   }, [listData]);
 
   return {
     listQuery: searchListQuery,
     searchList,
+    listWithoutExact,
+    exact,
     isLoading: searchListQuery.isLoading,
     isFetching: searchListQuery.isFetching,
   };

@@ -7,7 +7,7 @@ import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useMapQuery';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchState } from '../model/useSearchState';
-import type { KindergartenListItemWithMeta, KindergartenListWithMeta, SortType } from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta, SortType } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
@@ -26,6 +26,7 @@ export function MapView(props: MapViewProps) {
 
   const map = useRef<naver.maps.Map | null>(null);
   const lastFittedKeyRef = useRef<string | null>(null);
+  const exactHandledRef = useRef<string | null>(null);
   useImperativeHandle(ref, () => map.current!);
 
   const { center, setCenter, zoomLevel, setZoomLevel } = useMapUrlState();
@@ -43,7 +44,7 @@ export function MapView(props: MapViewProps) {
   // 이미 확보한 업체 마커를 계속 보여주기 위해 줌 조건만으로 표시 여부를 결정한다.
   const showBusinessMarkers = isBusinessZoomLevel || snapshot.searchLock === 1;
 
-  const { listQuery, searchList: overlay, isLoading, isFetching } = useSearchListQuery({ rank: sortRank });
+  const { searchList: overlay, listWithoutExact, exact } = useSearchListQuery({ rank: sortRank });
 
   const { aggregation, geoBounds } = useAggregationQuery();
 
@@ -77,6 +78,20 @@ export function MapView(props: MapViewProps) {
     map.current.fitBounds(bounds);
     lastFittedKeyRef.current = fitKey;
   }, [geoBounds, isMapLoaded, snapshot.filters, snapshot.query, snapshot.scope]);
+
+  /**
+   * exact 결과가 있을 때는 자동으로 선택 상태를 만들고 상세 시트를 연다.
+   */
+  useEffect(() => {
+    if (!exact) {
+      exactHandledRef.current = null;
+      return;
+    }
+    if (!onOpenCard) return;
+    if (exactHandledRef.current === exact.id) return;
+    onOpenCard(exact);
+    exactHandledRef.current = exact.id;
+  }, [exact, onOpenCard]);
 
   /**
    * 지도 로드 핸들러
@@ -220,7 +235,7 @@ export function MapView(props: MapViewProps) {
 
         {/* 업체 마커 (줌레벨 14~) */}
         {showBusinessMarkers &&
-          overlay.map((item) => (
+          (listWithoutExact ?? overlay).map((item) => (
             <Marker
               key={item.id}
               position={item.coord}
@@ -232,25 +247,16 @@ export function MapView(props: MapViewProps) {
             />
           ))}
 
-        {listQuery.data?.pages.map(
-          (page: KindergartenListWithMeta) =>
-            page.schoolResult.exact && (
-              <Marker
-                key={page.schoolResult.exact.id}
-                position={page.schoolResult.exact.coord}
-                // onClick={() => handleMarkerClick(page.schoolResult.exact)}
-                customIcon={{
-                  content: (
-                    <PlaceMarker
-                      title={page.schoolResult.exact.title}
-                      distance={page.schoolResult.exact.dist}
-                      selected={page.schoolResult.exact.id === activeMarkerId}
-                    />
-                  ),
-                  offsetY: 12,
-                }}
-              />
-            )
+        {showBusinessMarkers && exact && (
+          <Marker
+            key={exact.id}
+            position={exact.coord}
+            onClick={() => handleMarkerClick(exact)}
+            customIcon={{
+              content: <PlaceMarker title={exact.title} distance={exact.dist} selected={exact.id === activeMarkerId} />,
+              offsetY: 12,
+            }}
+          />
         )}
 
         {/* 개발용 BBox 디버깅 - 개발 환경에서만 표시 */}
