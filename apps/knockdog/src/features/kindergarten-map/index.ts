@@ -6,6 +6,8 @@ export * from './lib/markers';
 
 /** model */
 export * from './model/useMapUrlState';
+export * from './model/useMapQuery';
+export * from './model/useSearchState';
 
 /** ui */
 export * from './ui/CurrentLocationDisplayFAB';
