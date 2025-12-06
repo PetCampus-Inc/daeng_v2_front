@@ -20,7 +20,7 @@ import {
   useSearchUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import { SearchStateProvider, useSearchState } from '@features/kindergarten-map/model/useSearchState';
+import { areBoundsEqual, SearchStateProvider, useSearchState } from '@features/kindergarten-map/model/useSearchState';
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchState';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
@@ -52,23 +52,26 @@ function KindergartenMainPageContent() {
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const shouldShowRefresh = useMemo(() => {
-    if (!mapSnapshot.center || !mapSnapshot.viewportBounds) return false;
+    if (!mapSnapshot.viewportBounds) return false;
 
     const zoomChanged = zoomLevel !== mapSnapshot.zoom;
 
-    const snapshotCoord =
-      snapshot.refPoint ??
-      (snapshot.searchBounds ? { lat: snapshot.searchBounds.swLat, lng: snapshot.searchBounds.swLng } : null);
-    const viewportCoord = { lat: mapSnapshot.viewportBounds.swLat, lng: mapSnapshot.viewportBounds.swLng };
-    const snapshotCenterChanged = !isEqualCoord(snapshotCoord, viewportCoord);
-    return zoomChanged || snapshotCenterChanged;
+    if (snapshot.searchBounds) {
+      return zoomChanged || !areBoundsEqual(snapshot.searchBounds, mapSnapshot.viewportBounds);
+    }
+
+    if (snapshot.refPoint && mapSnapshot.center) {
+      return zoomChanged || !isEqualCoord(snapshot.refPoint, mapSnapshot.center);
+    }
+
+    return zoomChanged;
   }, [
-    mapSnapshot.center,
     mapSnapshot.viewportBounds,
     mapSnapshot.zoom,
-    zoomLevel,
-    snapshot.refPoint,
+    mapSnapshot.center,
     snapshot.searchBounds,
+    snapshot.refPoint,
+    zoomLevel,
   ]);
   // ENTER 이벤트: 메인 페이지 진입 시 1회
   useEffect(() => {

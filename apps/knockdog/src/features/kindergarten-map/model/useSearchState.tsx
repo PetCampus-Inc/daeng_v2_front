@@ -270,7 +270,7 @@ function areCoordsEqual(a: Coord | null, b: Coord | null): boolean {
   return a.lat === b.lat && a.lng === b.lng;
 }
 
-function areBoundsEqual(a: BoundsSnapshot | null, b: BoundsSnapshot | null): boolean {
+export function areBoundsEqual(a: BoundsSnapshot | null, b: BoundsSnapshot | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   return a.swLat === b.swLat && a.swLng === b.swLng && a.neLat === b.neLat && a.neLng === b.neLng;
