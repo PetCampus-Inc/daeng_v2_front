@@ -18,7 +18,7 @@ export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from '.
 
 /** lib */
 export { isValidBounds, isEqualBounds } from './lib/is';
-export { serializeBounds, serializeFilters } from './lib/serialize';
+export { serializeBounds, serializeFilters, serializeCategories } from './lib/serialize';
 
 /** model */
 export { createKindergartenListWithMock } from './model/mappers';
@@ -53,6 +53,7 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
+export type { CTag } from './model/constants/kindergarten';
 export type { KindergartenListItem, KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
 
 /** ui */
