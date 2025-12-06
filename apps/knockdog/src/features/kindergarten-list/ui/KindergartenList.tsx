@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
@@ -8,13 +8,13 @@ import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
 import { useSearchUrlState } from '../model/useSearchUrlState';
-import { useSearchListQuery, useSearchState } from '@features/kindergarten-map';
-import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { getCurrentLocation, isNativeWebView, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useBasePointType, useSearchListScroll } from '@shared/store';
 import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
+import { useSearchListQuery, useSearchState } from '@features/kindergarten-map';
+import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
+import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
+import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { useBasePointType, useSearchListScroll } from '@shared/store';
 
 interface KindergartenListProps {
   onOpenFilter: () => void;
@@ -27,7 +27,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
 
   const { query: searchQuery, filters, rank } = useSearchUrlState();
   const { setFilters: setSearchFilters, clearFilters } = useSearchState();
-  const { coord: basePoint } = useBasePoint();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
@@ -193,9 +192,17 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             <SortSelect />
           </div>
 
-          {exact && <NearByRecommendBanner title={exact.title} />}
+          {exact && (
+            <>
+              <KindergartenListItem {...exact} />
+              <NearByRecommendBanner title={exact.title} />
+            </>
+          )}
           {(listWithoutExact ?? searchList).map((item) => (
-            <KindergartenListItem key={item.id} {...item} banner={item.banner ?? []} />
+            <Fragment key={item.id}>
+              <KindergartenListItem {...item} banner={item.banner ?? []} />
+              <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
+            </Fragment>
           ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />
