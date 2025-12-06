@@ -227,10 +227,9 @@ function Label({ children, className = '' }: PropsWithChildren<{ className?: str
     </div>
   );
 }
-// TODO: 아이콘 수정
 function Badge({
   children,
-  icon = 'AlarmLine',
+  icon,
   caption,
   className = '',
 }: PropsWithChildren<{ icon?: IconType; caption?: string; className?: string }>) {
@@ -264,6 +263,46 @@ function CircleAvatar({
     </Avatar>
   );
 }
+
+function OverlappingAvatars({ avatars, size = 80 }: { avatars: Array<{ src?: string; alt?: string }>; size?: number }) {
+  return (
+    <div className='flex items-center justify-center'>
+      {avatars.map((avatar, index) => (
+        <div
+          key={index}
+          className='relative'
+          style={{
+            marginLeft: index > 0 ? `-${size * 0.4}px` : '0',
+            zIndex: avatars.length + index,
+          }}
+        >
+          <CircleAvatar size={size} src={avatar.src} alt={avatar.alt} className='ring-2 ring-white' />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Heading({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
+  return <p className={`h2-extrabold flex min-w-0 justify-center not-last:mb-0.5 ${className}`}>{children}</p>;
+}
+Heading.Highlight = function Highlight({ children, truncate = false }: PropsWithChildren<{ truncate?: boolean }>) {
+  return <span className={`text-orange-500 ${truncate ? 'inline-block truncate' : ''}`}>{children}</span>;
+};
+
+function Description({ children }: PropsWithChildren) {
+  return <p className='h3-regular flex min-w-0 justify-center not-last:mb-0.5'>{children}</p>;
+}
+Description.Highlight = function Highlight({ children, truncate = false }: PropsWithChildren<{ truncate?: boolean }>) {
+  return <span className={`h3-extrabold ${truncate ? `inline-block truncate` : ''}`}>{children}</span>;
+};
+
+function Detail({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
+  return <p className={`body1-medium text-text-secondary text-center ${className}`}>{children}</p>;
+}
+Detail.Highlight = function Highlight({ children }: PropsWithChildren) {
+  return <span className='text-text-primary'>{children}</span>;
+};
 
 /* =========================
  * SWIPE CAROUSEL
@@ -405,8 +444,116 @@ function DetailRow({ label, left, right }: { label: string; left: string; right:
 /* =========================
  * SUMMARY PARTS
  * ========================= */
+type ComparisionDetailedItemProps = {
+  badge: {
+    icon?: IconType;
+    label: string;
+    caption?: string;
+  };
+  kindergarten: {
+    avatar?: string;
+    name: string;
+    diffValue: string;
+  };
+  detail?: {
+    leftValue: string;
+    rightValue: string;
+  };
+  suffix: string; // "더 저렴해요", "더 가까워요"
+};
+
+type ComparisonSimpleItemProps = {
+  kindergartens: {
+    avatar?: string;
+    name: string;
+  }[];
+  suffix: string; // "픽드랍 서비스를 제공해요", "공휴일에 쉬어요"
+};
+
 type DaysFlags = Partial<Record<'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun', boolean>>;
-function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; days: DaysFlags }) {
+type ComparisonDaysItemProps = {
+  kindergarten: { name: string; avatar?: string };
+  days: DaysFlags;
+};
+
+function ComparisonPanel({ children }: PropsWithChildren) {
+  return <div className='bg-fill-secondary-0 rounded-2xl py-10'>{children}</div>;
+}
+
+function ComparisonSection({ children }: PropsWithChildren) {
+  return <section className='border-line-200 border-b px-4 last:border-b-0'>{children}</section>;
+}
+
+function ComparisionDetailedItem({ badge, kindergarten, detail, suffix }: ComparisionDetailedItemProps) {
+  return (
+    <div className='flex flex-col items-center p-2'>
+      <Badge icon={badge.icon} caption={badge.caption}>
+        {badge.label}
+      </Badge>
+      <div className='mt-4 flex max-w-full flex-col items-center'>
+        <CircleAvatar src={kindergarten.avatar} />
+
+        <div className='mt-2 max-w-full'>
+          <Description>
+            <Description.Highlight truncate>{kindergarten.name}</Description.Highlight>
+            <span className='shrink-0'>이(가)</span>
+          </Description>
+          <Description>
+            <Description.Highlight>{kindergarten.diffValue}&nbsp;</Description.Highlight>
+            <span>{suffix}</span>
+          </Description>
+          {detail && (
+            <Detail className='mt-1'>
+              <Detail.Highlight>{`(${detail.leftValue} < `}</Detail.Highlight>
+              {`${detail.rightValue})`}
+            </Detail>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ComparisonSimpleItem({ kindergartens, suffix }: ComparisonSimpleItemProps) {
+  let content;
+
+  if (kindergartens.length === 1) {
+    const kg = kindergartens?.[0];
+    content = (
+      <>
+        <CircleAvatar src={kg?.avatar} />
+        <Heading className='mt-2 max-w-full'>
+          <Heading.Highlight truncate>{kg?.name}</Heading.Highlight>
+          <span className='shrink-0'>만</span>
+        </Heading>
+      </>
+    );
+  } else {
+    content = (
+      <>
+        <OverlappingAvatars
+          avatars={kindergartens.map((kg) => ({
+            src: kg.avatar,
+            alt: kg.name,
+          }))}
+        />
+        <Heading className='mt-2 max-w-full'>
+          <Heading.Highlight>두 유치원 모두</Heading.Highlight>
+        </Heading>
+      </>
+    );
+  }
+  return (
+    <div className='flex flex-col items-center'>
+      {content}
+      <Heading>
+        <span>{suffix}</span>
+      </Heading>
+    </div>
+  );
+}
+
+function ComparisonDaysItem({ kindergarten, days }: ComparisonDaysItemProps) {
   const ORDER: Array<{ key: keyof DaysFlags; label: string }> = [
     { key: 'mon', label: '월' },
     { key: 'tue', label: '화' },
@@ -417,16 +564,20 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
     { key: 'sun', label: '일' },
   ];
   return (
-    <div className='flex flex-col items-center'>
-      <CircleAvatar src={avatar} alt={name} />
-      <p className='mt-2 text-sm font-semibold'>{name}</p>
-      <div className='mt-3 flex gap-1'>
+    <div className='flex flex-col items-center p-2'>
+      <CircleAvatar src={kindergarten.avatar} />
+      <div className='mt-2 max-w-full'>
+        <Description>
+          <Description.Highlight truncate>{kindergarten.name}</Description.Highlight>
+        </Description>
+      </div>
+      <div className='mt-4 flex gap-1.5'>
         {ORDER.map(({ key, label }) => {
           const on = !!days[key];
           return (
             <span
               key={key}
-              className={`rounded-md px-2 py-1 text-xs font-semibold ${on ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}
+              className={`label-extrabold flex h-10 w-10 items-center justify-center rounded-lg text-sm ${on ? 'bg-fill-secondary-800 text-white' : 'text-text-primary bg-gray-100'}`}
             >
               {label}
             </span>
@@ -466,34 +617,6 @@ function Tabs({ summary, details }: { summary: React.ReactNode; details: React.R
 /* =========================
  * DETAIL SLIDES
  * ========================= */
-function SummaryDistanceRow({
-  title,
-  who,
-  diff,
-  avg,
-  avatar,
-}: {
-  title: string;
-  who: string;
-  diff: string;
-  avg: string;
-  avatar?: string;
-}) {
-  return (
-    <div className='flex flex-col items-center'>
-      <Badge>{title}</Badge>
-      <CircleAvatar src={avatar} alt={who} className='mt-3' />
-      <p className='mt-2 text-center text-sm'>
-        <b>{who}</b>이(가)
-        <br />
-        {diff}
-        <br />
-        <span className='text-xs text-gray-500'>{avg}</span>
-      </p>
-    </div>
-  );
-}
-
 function FeeSlide({
   title,
   leftUp,
@@ -632,7 +755,7 @@ function CompareCompletePage() {
 
   return (
     <div className='flex h-screen flex-col bg-white'>
-      <Header>
+      <Header withSpacing={false}>
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
@@ -660,93 +783,142 @@ function CompareCompletePage() {
       ) : (
         <Tabs
           summary={
-            <div className='min-h-full space-y-4 bg-[#0E0F11] px-3 pt-3 pb-8'>
-              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-                <Label className='mb-2'>
-                  <span>이용 요금</span>
-                  <Tooltip className='flex items-center'>
-                    <TooltipTrigger />
-                    {/* TODO: 툴팁 내용 작성 */}
-                    <TooltipContent>...</TooltipContent>
-                  </Tooltip>
-                </Label>
-                <p className='mt-3 text-center text-sm leading-6'>
-                  <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>이(가)
-                  <br />
-                  1시간당 <b className='text-orange-600'>약 124,567원</b> 더 저렴해요
-                </p>
-                <Badge caption='1시간 평균' className='mt-3'>
-                  정기권
-                </Badge>
-                <div className='mt-5 flex flex-col items-center gap-4'>
-                  {<CircleAvatar src={s3ToUrl(left?.thumbnailS3Key)} alt={left?.name} />}
-                  <p className='text-center text-sm'>
-                    <b>{left?.name ?? '왼쪽 유치원'}</b>이
-                    <br />
-                    <b>약 1,000,000원</b> 더 저렴해요
-                    <br />
-                    <span className='text-xs text-gray-500'>(1,000,000원 &lt; 2,000,000원)</span>
-                  </p>
-                  <Badge caption='1회 평균'>횟수권</Badge>
-                </div>
-              </section>
+            <div className='bg-text-primary min-h-full space-y-3 px-4 py-7'>
+              <ComparisonPanel>
+                <ComparisonSection>
+                  <Label className='mb-2'>
+                    <span>이용 요금</span>
+                    <Tooltip className='flex items-center'>
+                      <TooltipTrigger />
+                      {/* TODO: 툴팁 내용 작성 */}
+                      <TooltipContent>...</TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Heading>
+                    <Heading.Highlight truncate>{right?.name ?? '오른쪽 유치원'}</Heading.Highlight>
+                    <span className='shrink-0'>이(가)</span>
+                  </Heading>
+                  <Heading>
+                    <span>1시간당&nbsp;</span>
+                    <Heading.Highlight>약 124,567원&nbsp;</Heading.Highlight>
+                    <span>더 저렴해요</span>
+                  </Heading>
+                  <div className='my-7 flex flex-col gap-5'>
+                    {Array(2)
+                      .fill(null)
+                      .map((i) => (
+                        <ComparisionDetailedItem
+                          key={i}
+                          kindergarten={{
+                            name: left?.name ?? '왼쪽 유치원',
+                            avatar: s3ToUrl(left?.thumbnailS3Key),
+                            diffValue: '약 1,000,000원',
+                          }}
+                          detail={{
+                            leftValue: '1,000,000원',
+                            rightValue: '2,000,000원',
+                          }}
+                          badge={{
+                            icon: 'AlarmLine',
+                            label: '정기권',
+                            caption: '1시간 평균',
+                          }}
+                          suffix='더 저렴해요'
+                        />
+                      ))}
+                  </div>
+                </ComparisonSection>
+                <ComparisonSection>
+                  <div className='mt-7 flex flex-col gap-5'>
+                    <Label>픽드랍</Label>
+                    <ComparisonSimpleItem
+                      kindergartens={[
+                        {
+                          name: right?.name ?? '오른쪽 유치원',
+                          avatar: s3ToUrl(right?.thumbnailS3Key),
+                        },
+                        {
+                          name: left?.name ?? '왼쪽 유치원',
+                          avatar: s3ToUrl(left?.thumbnailS3Key),
+                        },
+                      ]}
+                      suffix='픽드랍 서비스를 제공해요'
+                    />
+                  </div>
+                </ComparisonSection>
+              </ComparisonPanel>
 
-              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-                <Label>픽드랍</Label>
-                <p className='mt-3 text-center text-sm'>
-                  <b className='text-orange-600'>{right?.name ?? '오른쪽 유치원'}</b>만
-                  <br />
-                  픽드랍 서비스를 제공합니다
-                </p>
-              </section>
-
-              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-                <Label className='mb-2'>거리</Label>
-                <p className='mt-3 text-center text-sm'>
-                  <span className='text-gray-600'>집</span> 에서 <b className='text-orange-600'>{left?.name ?? ''}</b>이
-                  <br />
-                  <b>도보</b>로 가장 가까워요
-                </p>
-                <div className='mt-5 space-y-6'>
-                  <SummaryDistanceRow
-                    title='자동차'
-                    who={right?.name ?? ''}
-                    diff='N분 더 가까워요'
-                    avg='(100분 &lt; 200분)'
-                    avatar={s3ToUrl(right?.thumbnailS3Key)}
-                  />
-                  <SummaryDistanceRow
-                    title='대중교통'
-                    who={right?.name ?? ''}
-                    diff='N분 더 가까워요'
-                    avg='(100분 &lt; 200분)'
-                    avatar={s3ToUrl(right?.thumbnailS3Key)}
-                  />
-                </div>
-              </section>
-
-              <section className='rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5'>
-                <Label>영업일</Label>
-                <div className='mt-5 space-y-8'>
-                  <SummaryDays
-                    name={left?.name ?? ''}
-                    avatar={s3ToUrl(left?.thumbnailS3Key)}
-                    days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
-                  />
-                  <SummaryDays
-                    name={right?.name ?? ''}
-                    avatar={s3ToUrl(right?.thumbnailS3Key)}
-                    days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: false }}
-                  />
-                </div>
-                <div className='mt-6 rounded-xl bg-white/80 p-4 text-center'>
-                  <p className='text-sm'>
-                    <b className='text-orange-600'>두 유치원 모두</b>
-                    <br />
-                    공휴일에 쉬어요
-                  </p>
-                </div>
-              </section>
+              <ComparisonPanel>
+                <ComparisonSection>
+                  <Label className='mb-2'>거리</Label>
+                  <Heading>
+                    <span className='shrink-0'>집에서&nbsp;</span>
+                    <Heading.Highlight truncate>{left?.name ?? ''}</Heading.Highlight>
+                    <span className='shrink-0'>이</span>
+                  </Heading>
+                  <Heading>
+                    <Heading.Highlight>도보</Heading.Highlight>
+                    <span>로 가장 가까워요</span>
+                  </Heading>
+                  <div className='mt-7 flex flex-col gap-5'>
+                    {Array(3)
+                      .fill(null)
+                      .map((i) => (
+                        <ComparisionDetailedItem
+                          key={i}
+                          kindergarten={{
+                            name: left?.name ?? '왼쪽 유치원',
+                            avatar: s3ToUrl(left?.thumbnailS3Key),
+                            diffValue: '100분',
+                          }}
+                          detail={{
+                            leftValue: '100분',
+                            rightValue: '200분',
+                          }}
+                          badge={{
+                            icon: 'AlarmLine',
+                            label: '도보',
+                          }}
+                          suffix='더 가까워요'
+                        />
+                      ))}
+                  </div>
+                </ComparisonSection>
+              </ComparisonPanel>
+              <ComparisonPanel>
+                <ComparisonSection>
+                  <Label>영업일</Label>
+                  <div className='flex flex-col gap-5 pt-5 pb-7'>
+                    {Array(2)
+                      .fill(null)
+                      .map((_, i) => (
+                        <ComparisonDaysItem
+                          key={i}
+                          kindergarten={{ name: left?.name ?? '왼쪽 유치원', avatar: s3ToUrl(left?.thumbnailS3Key) }}
+                          days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
+                        />
+                      ))}
+                  </div>
+                </ComparisonSection>
+                <ComparisonSection>
+                  <div className='mt-7 flex flex-col gap-5'>
+                    <Label>공휴일</Label>
+                    <ComparisonSimpleItem
+                      kindergartens={[
+                        {
+                          name: right?.name ?? '오른쪽 유치원',
+                          avatar: s3ToUrl(right?.thumbnailS3Key),
+                        },
+                        {
+                          name: left?.name ?? '왼쪽 유치원',
+                          avatar: s3ToUrl(left?.thumbnailS3Key),
+                        },
+                      ]}
+                      suffix='공휴일에 쉬어요'
+                    />
+                  </div>
+                </ComparisonSection>
+              </ComparisonPanel>
             </div>
           }
           details={
