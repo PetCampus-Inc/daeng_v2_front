@@ -31,11 +31,7 @@ export function SearchHeader({ query }: SearchHeaderProps) {
   };
 
   return (
-    <Header
-      withSpacing={false}
-      className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full'
-      style={{ paddingTop: top }}
-    >
+    <Header className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full' style={{ paddingTop: top }}>
       <Header.LeftSection className='px-4'>
         <Header.BackButton onClick={handleGoSearch} />
       </Header.LeftSection>

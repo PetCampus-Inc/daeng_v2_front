@@ -58,7 +58,7 @@ function KindergartenDetailPage() {
 
   return (
     <SafeArea edges={['bottom']}>
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
           <Header.HomeButton />

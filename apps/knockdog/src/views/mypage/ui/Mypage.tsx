@@ -52,7 +52,7 @@ function Mypage() {
 
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
-      <Header withSpacing={false}>
+      <Header>
         <Header.Title>마이페이지</Header.Title>
       </Header>
 

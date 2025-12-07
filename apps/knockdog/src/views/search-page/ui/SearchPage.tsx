@@ -86,7 +86,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
   return (
     <div className='flex h-full flex-col'>
       {/* 검색창 헤더 */}
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection className='px-4'>
           <Header.BackButton onClick={() => router.back()} />
         </Header.LeftSection>

@@ -213,7 +213,7 @@ function ReportingKindergartenUpdate() {
   return (
     <>
       <div className='sticky top-0 z-10'>
-        <Header withSpacing={false}>
+        <Header>
           <Header.LeftSection>
             <Header.BackButton />
           </Header.LeftSection>

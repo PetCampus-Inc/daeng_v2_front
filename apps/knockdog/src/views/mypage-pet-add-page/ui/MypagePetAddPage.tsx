@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Header } from '@widgets/Header';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -12,12 +11,13 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@knockdog/ui';
-import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
 import { overlay } from 'overlay-kit';
-import { useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
+import { Header } from '@widgets/Header';
+import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
 import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { SafeArea } from '@shared/ui/safe-area';
 
 export function MypagePetAddPage() {
   const { back } = useStackNavigation();
@@ -92,7 +92,7 @@ export function MypagePetAddPage() {
   return (
     <div className='flex h-screen flex-col'>
       <SafeArea edges={['bottom']} className='flex-1 overflow-y-auto'>
-        <Header withSpacing={false}>
+        <Header>
           <Header.LeftSection>
             <Header.BackButton onClick={handleBack} />
           </Header.LeftSection>
