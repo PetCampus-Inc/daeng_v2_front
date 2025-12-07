@@ -66,7 +66,7 @@ export function MypagePetEditPage() {
 
   return (
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>

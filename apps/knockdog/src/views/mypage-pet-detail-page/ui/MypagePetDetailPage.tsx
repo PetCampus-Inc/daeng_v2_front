@@ -1,10 +1,6 @@
 'use client';
 
-import { Header } from '@widgets/Header';
-import { useStackNavigation } from '@shared/lib/bridge';
-import { PetDetailInfo } from '@features/dog-profile';
 import { useSearchParams } from 'next/navigation';
-import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
 import {
   ActionButton,
   Icon,
@@ -18,7 +14,12 @@ import {
   AlertDialogAction,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { Header } from '@widgets/Header';
+import { PetDetailInfo } from '@features/dog-profile';
+import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetDetailPage() {
   const { push, back } = useStackNavigation();
@@ -45,6 +46,7 @@ export function MypagePetDetailPage() {
               onClick={() => {
                 removePetMutate(petId, {
                   onSuccess: () => {
+                    syncWebViewQuery.refetch(['petList']);
                     back();
                   },
                 });
@@ -60,7 +62,7 @@ export function MypagePetDetailPage() {
 
   return (
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>

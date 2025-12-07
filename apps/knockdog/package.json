@@ -21,6 +21,7 @@
     "@knockdog/react-naver-map": "workspace:*",
     "@knockdog/ui": "workspace:*",
     "@tanstack/react-query": "^5.90.7",
+    "broadcast-channel": "^7.2.0",
     "class-variance-authority": "^0.7.1",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",

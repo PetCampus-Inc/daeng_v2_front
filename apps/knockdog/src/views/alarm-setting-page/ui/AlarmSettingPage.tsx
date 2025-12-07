@@ -1,11 +1,11 @@
 'use client';
 
-import { Header } from '@widgets/Header';
 import { Divider, Icon, Switch } from '@knockdog/ui';
-import { MarketingConsentSheet } from '@features/marketing-consent';
 import { overlay } from 'overlay-kit';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { Header } from '@widgets/Header';
+import { MarketingConsentSheet } from '@features/marketing-consent';
 import { usePushSettingQuery, usePushSettingMutation, type PushSetting } from '@entities/user';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { PrivateAccess } from '@shared/ui/private-access';
 
 function AlarmSettingPage() {
@@ -28,7 +28,7 @@ function AlarmSettingPage() {
 
   return (
     <PrivateAccess>
-      <Header withSpacing={false}>
+      <Header>
         <Header.BackButton />
         <Header.Title>알림 설정</Header.Title>
       </Header>

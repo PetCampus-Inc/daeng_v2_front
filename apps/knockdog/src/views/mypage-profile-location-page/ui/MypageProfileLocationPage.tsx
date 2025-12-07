@@ -82,7 +82,7 @@ function MypageProfileLocationPage() {
 
   return (
     <div className='flex h-full flex-col'>
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
