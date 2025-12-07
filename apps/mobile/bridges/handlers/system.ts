@@ -17,22 +17,6 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
       throw { code: 'EINVALID', message: '전화번호가 유효하지 않습니다.' };
     }
 
-    // 시뮬레이터 환경 체크
-    const isEmulator = !Constants.isDevice;
-
-    if (isEmulator) {
-      console.log('[APP] 시뮬레이터/에뮬레이터 환경에서 전화 기능 사용 불가');
-      console.log(`[APP] 전화번호: ${phoneNumber} (시뮬레이터에서는 실제 전화가 걸리지 않습니다)`);
-
-      // 개발 환경에서는 시뮬레이터에서도 성공으로 처리 (테스트용)
-      if (__DEV__) {
-        console.log('[APP] 개발 모드: 시뮬레이터에서도 전화 성공으로 처리');
-        return { opened: true, simulated: true };
-      }
-
-      throw { code: 'ESIMULATOR', message: '시뮬레이터에서는 전화를 걸 수 없습니다.' };
-    }
-
     // WebView에서 이미 정규화된 번호를 받으므로, 추가 정규화는 최소화
     // 단, 공백과 하이픈만 제거 (이미 WebView에서 숫자, *, #, +만 남긴 상태)
     const normalizedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
