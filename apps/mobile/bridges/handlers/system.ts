@@ -17,40 +17,43 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
       throw { code: 'EINVALID', message: '전화번호가 유효하지 않습니다.' };
     }
 
-    // 시뮬레이터 환경 체크
-    const isEmulator = !Constants.isDevice;
+    // WebView에서 이미 정규화된 번호를 받으므로, 추가 정규화는 최소화
+    // 단, 공백과 하이픈만 제거 (이미 WebView에서 숫자, *, #, +만 남긴 상태)
+    const normalizedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
 
-    if (isEmulator) {
-      console.log('[APP] 시뮬레이터/에뮬레이터 환경에서 전화 기능 사용 불가');
-      console.log(`[APP] 전화번호: ${phoneNumber} (시뮬레이터에서는 실제 전화가 걸리지 않습니다)`);
-
-      // 개발 환경에서는 시뮬레이터에서도 성공으로 처리 (테스트용)
-      if (__DEV__) {
-        console.log('[APP] 개발 모드: 시뮬레이터에서도 전화 성공으로 처리');
-        return { opened: true, simulated: true };
-      }
-
-      throw { code: 'ESIMULATOR', message: '시뮬레이터에서는 전화를 걸 수 없습니다.' };
+    if (!normalizedPhoneNumber || normalizedPhoneNumber.length === 0) {
+      throw { code: 'EINVALID', message: '정규화된 전화번호가 유효하지 않습니다.' };
     }
 
-    // 전화번호 정규화: 공백, 하이픈, 괄호 등 제거
-    const normalizedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
     const telUrl = `tel:${normalizedPhoneNumber}`;
 
-    // iOS에서는 tel: 스킴이 항상 작동하므로 canOpenURL 체크를 건너뛰고 바로 시도
-    // Android에서는 canOpenURL 체크를 먼저 수행하여 안정성 확보
-    if (Platform.OS === 'android') {
+    // iOS에서도 canOpenURL 체크를 수행 (iOS 9+ 권장)
+    // tel: 스키마는 시스템 스키마이지만, 안전을 위해 체크
+    try {
       const canOpenURL = await Linking.canOpenURL(telUrl);
       if (!canOpenURL) {
+        console.warn('[APP] canOpenURL returned false for tel:', telUrl);
+        // iOS에서는 canOpenURL이 false여도 실제로는 열릴 수 있으므로 시도
+        if (Platform.OS === 'android') {
+          throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+        }
+      }
+    } catch (canOpenError) {
+      // canOpenURL 자체가 실패한 경우 (권한 문제 등)
+      if (Platform.OS === 'android') {
+        console.error('[APP] canOpenURL check failed:', canOpenError);
         throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
       }
+      // iOS에서는 canOpenURL 실패해도 시도
     }
 
     try {
-      await Linking.openURL(telUrl);
+      const opened = await Linking.openURL(telUrl);
+      // Linking.openURL은 Promise<boolean>을 반환하지 않을 수 있으므로
+      // 항상 성공으로 간주 (실제로는 시스템이 처리)
       return { opened: true };
     } catch (error) {
-      console.error('[APP] openURL error', error);
+      console.error('[APP] openURL error:', error);
       throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
     }
   });
