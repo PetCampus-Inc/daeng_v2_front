@@ -1,4 +1,5 @@
 import { ActionButton } from '@knockdog/ui';
+import Image from 'next/image';
 import { StackLink } from '@shared/lib/bridge';
 
 function WelcomePage() {
@@ -7,8 +8,8 @@ function WelcomePage() {
       <div className='flex-1'>
         <h1 className='h1-extrabold'>똑독에 온 것을 환영해요!</h1>
 
-        <div className='mt-15 flex aspect-square w-full items-center justify-center bg-gray-100'>
-          {/* 이미지 영역 */}
+        <div className='relative mx-16 mt-15 flex aspect-square items-center justify-center'>
+          <Image src='/images/img_welcome.png' alt='welcome_image' fill className='h-full w-full object-cover' />
         </div>
       </div>
 
