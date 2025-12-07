@@ -18,6 +18,7 @@ import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetAddPage() {
   const { back } = useStackNavigation();
@@ -81,6 +82,7 @@ export function MypagePetAddPage() {
   };
 
   const handleSuccess = () => {
+    syncWebViewQuery.invalidate(['petList']);
     back?.();
   };
 
