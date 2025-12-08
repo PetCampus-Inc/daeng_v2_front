@@ -1,6 +1,15 @@
 // apps/knockdog/app/compare-complete/types.ts
 
 // ===== 상수 =====
+export const CTAG_MAP = {
+  KINDERGARTEN: '유치원',
+  HOTEL: '호텔',
+  GROOMING: '미용',
+  TRAINING: '훈련',
+  PET_SHOP: '강아지 용품',
+} as const;
+export type CTag = keyof typeof CTAG_MAP;
+
 export const PRODUCT_TYPE = {
   DAYCARE: '데이케어',
   NIGHT_CARE: '나이트케어',
@@ -15,6 +24,12 @@ export const TRANSPORTATION_TYPE = {
   DRIVING: '차량',
 } as const;
 export type TransportationType = keyof typeof TRANSPORTATION_TYPE;
+
+export const REFERENCE_POINT_TYPE: Record<string, string> = {
+  HOME: '집',
+  WORK: '직장',
+};
+export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE;
 
 export const DAY_OF_WEEK = {
   MONDAY: '월요일',
@@ -39,13 +54,13 @@ export interface Product {
   productType: ProductType;
   min: ProductInfo;
   max: ProductInfo;
-  passAvg: number; // 횟수권 평균가
-  subscriptionHourlyAvg: number; // 정기권 평균가(시간당)
+  monthlyHourlyAvg: number;
+  countHourlyAvg: number;
 }
 
 export interface Pricing {
-  passHourlyAvg: number;
-  subscriptionHourlyAvg: number;
+  monthlyHourlyAvg: number;
+  countHourlyAvg: number;
   products: Product[];
 }
 
@@ -69,10 +84,12 @@ export interface OperatingSchedule {
 export interface KindergartenComparison {
   id: string;
   name: string;
-  categories: string[]; // 예: ["HOTEL","GROOMING"]
+  categories: CTag[]; // 예: ["HOTEL","GROOMING"]
   thumbnailS3Key: string; // s3 key
   pricing: Pricing;
   service: string[]; // 프로젝트에선 FilterOption[], 여기선 string으로 충분
   distance: Distance[];
   operatingSchedule: OperatingSchedule;
 }
+
+export type ApiResponse = { data: KindergartenComparison[] };

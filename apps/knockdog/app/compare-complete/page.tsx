@@ -16,7 +16,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@knockdog/ui';
-import { serializeCategories, type CTag } from '@entities/kindergarten';
+import {
+  ApiResponse,
+  DAY_OF_WEEK,
+  KindergartenComparison,
+  ProductType,
+  TransportationType,
+} from '@entities/compare/model/types';
+import { serializeCategories } from '@entities/compare/lib/serialize';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -36,64 +43,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`;
 
 /* =========================
- * CONSTANTS / TYPES
- * ========================= */
-export const PRODUCT_TYPE = {
-  DAYCARE: '데이케어',
-  NIGHT_CARE: '나이트케어',
-  TRAINING: '훈련',
-  MEMBERSHIP: '멤버십',
-} as const;
-type ProductType = keyof typeof PRODUCT_TYPE;
-
-export const TRANSPORTATION_TYPE = { WALKING: '도보', TRANSIT: '대중교통', DRIVING: '차량' } as const;
-type TransportationType = keyof typeof TRANSPORTATION_TYPE;
-
-export const DAY_OF_WEEK = {
-  MONDAY: '월요일',
-  TUESDAY: '화요일',
-  WEDNESDAY: '수요일',
-  THURSDAY: '목요일',
-  FRIDAY: '금요일',
-  SATURDAY: '토요일',
-  SUNDAY: '일요일',
-  WEEKEND: '주말',
-  HOLIDAY: '공휴일',
-} as const;
-export type DayOfWeek = keyof typeof DAY_OF_WEEK;
-
-type ProductInfo = { name: string; price: number };
-type Product = {
-  productType: ProductType;
-  min: ProductInfo;
-  max: ProductInfo;
-  countTicketAvg: number;
-  monthlyHourlyAvg: number;
-};
-type Pricing = { countHourlyAvg: number; monthlyHourlyAvg: number; products: Product[] };
-
-type TransitTime = { type: TransportationType; time: string };
-type Distance = { referencePoint: string; distance: string; transitTimes: TransitTime[] };
-
-type OperatingSchedule = { closedDays: DayOfWeek[]; weekdayHours: string | null; weekendHours: string | null };
-
-export type KindergartenComparison = {
-  id: string;
-  name: string;
-  categories: CTag[];
-  thumbnailS3Key: string;
-  pricing: Pricing;
-  service: string[];
-  distance: Distance[];
-  operatingSchedule: OperatingSchedule;
-};
-
-type ApiResp = { data: KindergartenComparison[] };
-
-/* =========================
  * FALLBACK MOCK
  * ========================= */
-const MOCK: ApiResp = {
+const MOCK: ApiResponse = {
   data: [
     {
       id: '13561634',
@@ -108,7 +60,7 @@ const MOCK: ApiResp = {
             productType: 'NIGHT_CARE',
             min: { name: 'Standard-A(1일기준, 1묘)', price: 45000 },
             max: { name: 'Special Room(1일기준, 6묘 이상)', price: 130000 },
-            countTicketAvg: 80769,
+            countHourlyAvg: 80769,
             monthlyHourlyAvg: 0,
           },
         ],
@@ -143,7 +95,7 @@ const MOCK: ApiResp = {
             productType: 'NIGHT_CARE',
             min: { name: '호텔', price: 20000 },
             max: { name: '호텔', price: 20000 },
-            countTicketAvg: 20000,
+            countHourlyAvg: 20000,
             monthlyHourlyAvg: 0,
           },
         ],
@@ -736,7 +688,7 @@ function CompareCompletePage() {
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: ApiResp = await res.json();
+        const json: ApiResponse = await res.json();
         if (!ignore) setPayload(json.data);
       } catch {
         if (!ignore) setPayload(MOCK.data);

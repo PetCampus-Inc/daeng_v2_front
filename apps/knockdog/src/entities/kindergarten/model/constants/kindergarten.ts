@@ -91,8 +91,6 @@ const CTAG_MAP = {
   PET_SHOP: '강아지 용품',
 } as const;
 
-export type CTag = keyof typeof CTAG_MAP;
-
 export {
   SERVICE_ICON_MAP,
   DOG_BREED_MAP,
