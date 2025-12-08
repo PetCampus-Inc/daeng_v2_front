@@ -3,22 +3,18 @@
 
 import { useEffect, useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Icon,
-  IconType,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@knockdog/ui';
-import { ApiResponse, KindergartenComparison } from '@entities/compare/model/types';
-import { serializeCategories } from '@entities/compare/lib/serialize';
-import { MOCK } from '@entities/compare/model/mock';
+  Summary,
+  Description,
+  StackedCircleAvatars,
+  CircleAvatar,
+  Label,
+  MOCK,
+  serializeCategories,
+} from '@entities/compare';
+import type { ApiResponse, KindergartenComparison, DistanceComparisonsByRef } from '@entities/compare/model/types';
 import {
   getClosedDaysText,
   getDistanceString,
@@ -28,7 +24,14 @@ import {
   getTransitTime,
   resolveIds,
   s3ToUrl,
+  extractPrice,
 } from '@entities/compare/lib/utils';
+import {
+  createPriceComparison,
+  createDistanceComparisonsByRef,
+  PricingSection,
+  DistanceSection,
+} from '@features/compare';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -46,93 +49,6 @@ export default function Page() {
  * ========================= */
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`;
-
-/* =========================
- * SHARED SMALL UI
- * ========================= */
-function Label({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
-  return (
-    <div className={`text-text-primary body2-semibold mx-auto flex w-fit items-center gap-1 ${className}`}>
-      {children}
-    </div>
-  );
-}
-function Badge({
-  children,
-  icon,
-  caption,
-  className = '',
-}: PropsWithChildren<{ icon?: IconType; caption?: string; className?: string }>) {
-  return (
-    <div
-      className={`text-text-primary mx-auto flex w-fit items-center justify-center gap-1 rounded-lg bg-neutral-100 px-3 py-1.5 ${className}`}
-    >
-      {icon && <Icon icon={icon} className='h-5 w-5' />}
-      <span className='label-medium text-sm'>{children}</span>
-      {caption && <span className='text-text-tertiary caption1-regular'>{caption}</span>}
-    </div>
-  );
-}
-function CircleAvatar({
-  size = 80,
-  src,
-  alt,
-  className = '',
-}: {
-  size?: number;
-  src?: string;
-  alt?: string;
-  className?: string;
-}) {
-  return (
-    <Avatar className={`h-[${size}px] w-[${size}px] ${className}`}>
-      <AvatarImage src={src} alt={alt} />
-      <AvatarFallback>
-        <Image src='/images/img_default_image.png' alt='default' width={size} height={size} />
-      </AvatarFallback>
-    </Avatar>
-  );
-}
-
-function OverlappingAvatars({ avatars, size = 80 }: { avatars: Array<{ src?: string; alt?: string }>; size?: number }) {
-  return (
-    <div className='flex items-center justify-center'>
-      {avatars.map((avatar, index) => (
-        <div
-          key={index}
-          className='relative'
-          style={{
-            marginLeft: index > 0 ? `-${size * 0.4}px` : '0',
-            zIndex: avatars.length + index,
-          }}
-        >
-          <CircleAvatar size={size} src={avatar.src} alt={avatar.alt} className='ring-2 ring-white' />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Heading({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
-  return <p className={`h2-extrabold flex min-w-0 justify-center not-last:mb-0.5 ${className}`}>{children}</p>;
-}
-Heading.Highlight = function Highlight({ children, truncate = false }: PropsWithChildren<{ truncate?: boolean }>) {
-  return <span className={`text-orange-500 ${truncate ? 'inline-block truncate' : ''}`}>{children}</span>;
-};
-
-function Description({ children }: PropsWithChildren) {
-  return <p className='h3-regular flex min-w-0 justify-center not-last:mb-0.5'>{children}</p>;
-}
-Description.Highlight = function Highlight({ children, truncate = false }: PropsWithChildren<{ truncate?: boolean }>) {
-  return <span className={`h3-extrabold ${truncate ? `inline-block truncate` : ''}`}>{children}</span>;
-};
-
-function Detail({ children, className = '' }: PropsWithChildren<{ className?: string }>) {
-  return <p className={`body1-medium text-text-secondary text-center ${className}`}>{children}</p>;
-}
-Detail.Highlight = function Highlight({ children }: PropsWithChildren) {
-  return <span className='text-text-primary'>{children}</span>;
-};
 
 /* =========================
  * SWIPE CAROUSEL
@@ -274,23 +190,6 @@ function DetailRow({ label, left, right }: { label: string; left: string; right:
 /* =========================
  * SUMMARY PARTS
  * ========================= */
-type ComparisionDetailedItemProps = {
-  badge: {
-    icon?: IconType;
-    label: string;
-    caption?: string;
-  };
-  kindergarten: {
-    avatar?: string;
-    name: string;
-    diffValue: string;
-  };
-  detail?: {
-    leftValue: string;
-    rightValue: string;
-  };
-  suffix: string; // "더 저렴해요", "더 가까워요"
-};
 
 type ComparisonSimpleItemProps = {
   kindergartens: {
@@ -314,73 +213,34 @@ function ComparisonSection({ children }: PropsWithChildren) {
   return <section className='border-line-200 border-b px-4 last:border-b-0'>{children}</section>;
 }
 
-function ComparisionDetailedItem({ badge, kindergarten, detail, suffix }: ComparisionDetailedItemProps) {
-  return (
-    <div className='flex flex-col items-center p-2'>
-      <Badge icon={badge.icon} caption={badge.caption}>
-        {badge.label}
-      </Badge>
-      <div className='mt-4 flex max-w-full flex-col items-center'>
-        <CircleAvatar src={kindergarten.avatar} />
-
-        <div className='mt-2 max-w-full'>
-          <Description>
-            <Description.Highlight truncate>{kindergarten.name}</Description.Highlight>
-            <span className='shrink-0'>이(가)</span>
-          </Description>
-          <Description>
-            <Description.Highlight>{kindergarten.diffValue}&nbsp;</Description.Highlight>
-            <span>{suffix}</span>
-          </Description>
-          {detail && (
-            <Detail className='mt-1'>
-              <Detail.Highlight>{`(${detail.leftValue} < `}</Detail.Highlight>
-              {`${detail.rightValue})`}
-            </Detail>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ComparisonSimpleItem({ kindergartens, suffix }: ComparisonSimpleItemProps) {
-  let content;
-
   if (kindergartens.length === 1) {
     const kg = kindergartens?.[0];
-    content = (
-      <>
+    return (
+      <div className='flex flex-col items-center'>
         <CircleAvatar src={kg?.avatar} />
-        <Heading className='mt-2 max-w-full'>
-          <Heading.Highlight truncate>{kg?.name}</Heading.Highlight>
-          <span className='shrink-0'>만</span>
-        </Heading>
-      </>
+        <div className='mt-2'>
+          <Summary highlight={kg?.name} truncate>{`${kg?.name}만`}</Summary>
+          <Summary>{suffix}</Summary>
+        </div>
+      </div>
     );
   } else {
-    content = (
-      <>
-        <OverlappingAvatars
+    return (
+      <div className='flex flex-col items-center'>
+        <StackedCircleAvatars
           avatars={kindergartens.map((kg) => ({
             src: kg.avatar,
             alt: kg.name,
           }))}
         />
-        <Heading className='mt-2 max-w-full'>
-          <Heading.Highlight>두 유치원 모두</Heading.Highlight>
-        </Heading>
-      </>
+        <div className='mt-2'>
+          <Summary highlight='두 유치원 모두'>두 유치원 모두</Summary>
+          <Summary>{suffix}</Summary>
+        </div>
+      </div>
     );
   }
-  return (
-    <div className='flex flex-col items-center'>
-      {content}
-      <Heading>
-        <span>{suffix}</span>
-      </Heading>
-    </div>
-  );
 }
 
 function ComparisonDaysItem({ kindergarten, days }: ComparisonDaysItemProps) {
@@ -397,9 +257,7 @@ function ComparisonDaysItem({ kindergarten, days }: ComparisonDaysItemProps) {
     <div className='flex flex-col items-center p-2'>
       <CircleAvatar src={kindergarten.avatar} />
       <div className='mt-2 max-w-full'>
-        <Description>
-          <Description.Highlight truncate>{kindergarten.name}</Description.Highlight>
-        </Description>
+        <Description highlight={kindergarten.name} truncate>{`${kindergarten.name}`}</Description>
       </div>
       <div className='mt-4 flex gap-1.5'>
         {ORDER.map(({ key, label }) => {
@@ -583,6 +441,23 @@ function CompareCompletePage() {
   const left = payload?.[0];
   const right = payload?.[1];
 
+  // 가격 비교 결과
+  const monthlyPricingComparison = useMemo(() => {
+    if (!left || !right) return null;
+    return createPriceComparison(left, right, extractPrice('monthlyHourlyAvg'));
+  }, [left, right]);
+
+  const countPricingComparison = useMemo(() => {
+    if (!left || !right) return null;
+    return createPriceComparison(left, right, extractPrice('countHourlyAvg'));
+  }, [left, right]);
+
+  // 거리 비교 결과
+  const distanceComparisons: DistanceComparisonsByRef = useMemo(() => {
+    if (!left || !right) return {};
+    return createDistanceComparisonsByRef(left, right);
+  }, [left, right]);
+
   if (loading || !payload || payload.length < 2) {
     return <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>;
   }
@@ -616,47 +491,10 @@ function CompareCompletePage() {
           <div className='bg-text-primary min-h-full space-y-3 px-4 py-7'>
             <ComparisonPanel>
               <ComparisonSection>
-                <Label className='mb-2'>
-                  <span>이용 요금</span>
-                  <Tooltip className='flex items-center'>
-                    <TooltipTrigger />
-                    {/* TODO: 툴팁 내용 작성 */}
-                    <TooltipContent>...</TooltipContent>
-                  </Tooltip>
-                </Label>
-                <Heading>
-                  <Heading.Highlight truncate>{right?.name ?? '오른쪽 유치원'}</Heading.Highlight>
-                  <span className='shrink-0'>이(가)</span>
-                </Heading>
-                <Heading>
-                  <span>1시간당&nbsp;</span>
-                  <Heading.Highlight>약 124,567원&nbsp;</Heading.Highlight>
-                  <span>더 저렴해요</span>
-                </Heading>
-                <div className='my-7 flex flex-col gap-5'>
-                  {Array(2)
-                    .fill(null)
-                    .map((i) => (
-                      <ComparisionDetailedItem
-                        key={i}
-                        kindergarten={{
-                          name: left?.name ?? '왼쪽 유치원',
-                          avatar: s3ToUrl(left?.thumbnailS3Key),
-                          diffValue: '약 1,000,000원',
-                        }}
-                        detail={{
-                          leftValue: '1,000,000원',
-                          rightValue: '2,000,000원',
-                        }}
-                        badge={{
-                          icon: 'AlarmLine',
-                          label: '정기권',
-                          caption: '1시간 평균',
-                        }}
-                        suffix='더 저렴해요'
-                      />
-                    ))}
-                </div>
+                <PricingSection
+                  monthlyPricingComparison={monthlyPricingComparison}
+                  countPricingComparison={countPricingComparison}
+                />
               </ComparisonSection>
               <ComparisonSection>
                 <div className='mt-7 flex flex-col gap-5'>
@@ -680,39 +518,7 @@ function CompareCompletePage() {
 
             <ComparisonPanel>
               <ComparisonSection>
-                <Label className='mb-2'>거리</Label>
-                <Heading>
-                  <span className='shrink-0'>집에서&nbsp;</span>
-                  <Heading.Highlight truncate>{left?.name ?? ''}</Heading.Highlight>
-                  <span className='shrink-0'>이</span>
-                </Heading>
-                <Heading>
-                  <Heading.Highlight>도보</Heading.Highlight>
-                  <span>로 가장 가까워요</span>
-                </Heading>
-                <div className='mt-7 flex flex-col gap-5'>
-                  {Array(3)
-                    .fill(null)
-                    .map((i) => (
-                      <ComparisionDetailedItem
-                        key={i}
-                        kindergarten={{
-                          name: left?.name ?? '왼쪽 유치원',
-                          avatar: s3ToUrl(left?.thumbnailS3Key),
-                          diffValue: '100분',
-                        }}
-                        detail={{
-                          leftValue: '100분',
-                          rightValue: '200분',
-                        }}
-                        badge={{
-                          icon: 'AlarmLine',
-                          label: '도보',
-                        }}
-                        suffix='더 가까워요'
-                      />
-                    ))}
-                </div>
+                <DistanceSection distanceComparisons={distanceComparisons} referencePoint={'HOME'} />
               </ComparisonSection>
             </ComparisonPanel>
             <ComparisonPanel>
