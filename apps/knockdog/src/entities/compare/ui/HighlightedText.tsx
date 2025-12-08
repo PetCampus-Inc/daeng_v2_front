@@ -20,8 +20,6 @@ export function HighlightedText({
   const regex = new RegExp(`(${escapeRegex(highlight)})`, 'gi');
   const parts = text.split(regex);
 
-  console.log('HighlightedText DEBUG:', { text, highlight, parts });
-
   return (
     <span>
       {parts

@@ -22,6 +22,39 @@ export function s3ToUrl(s3Key?: string) {
 }
 
 /* =========================
+ * SUMMARY CALCULATION
+ * ========================= */
+type PricingType = 'monthlyHourlyAvg' | 'countHourlyAvg';
+
+export function extractPrice(pricingType: PricingType) {
+  return (kg: KindergartenComparison): number => {
+    const price = kg?.pricing?.[pricingType];
+
+    if (!price || price === 0) return 0;
+
+    return price;
+  };
+}
+
+export function extractDistance(refPoint: string, transportType: TransportationType) {
+  return (kg: KindergartenComparison): string => getTransitTime(kg, refPoint, transportType);
+}
+
+// 시간 문자열을 분으로 변환 ("2시간 49분" -> 169)
+export function parseTimeToMinutes(timeStr: string): number {
+  if (!timeStr || timeStr === '-') return 0;
+
+  let totalMinutes = 0;
+  const hourMatch = timeStr.match(/(\d+)시간/);
+  const minMatch = timeStr.match(/(\d+)분/);
+
+  if (hourMatch) totalMinutes += parseInt(hourMatch[1] || '0') * 60;
+  if (minMatch) totalMinutes += parseInt(minMatch[1] || '0');
+
+  return totalMinutes;
+}
+
+/* =========================
  * DETAILS CALCULATION
  * ========================= */
 

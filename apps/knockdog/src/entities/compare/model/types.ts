@@ -29,7 +29,7 @@ export const REFERENCE_POINT_TYPE: Record<string, string> = {
   HOME: '집',
   WORK: '직장',
 };
-export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE;
+export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE | string;
 
 export const DAY_OF_WEEK = {
   MONDAY: '월요일',
@@ -93,3 +93,35 @@ export interface KindergartenComparison {
 }
 
 export type ApiResponse = { data: KindergartenComparison[] };
+
+// 가격 비교
+export type PricingComparisonVariant = 'cheaper' | 'equal' | 'insufficient-data';
+export interface PriceDetailComparison {
+  variant: PricingComparisonVariant;
+  leftKg: PricingComparisonItem;
+  rightKg: PricingComparisonItem;
+}
+export interface PricingComparisonItem {
+  name: string;
+  avatar: string;
+  value: number;
+}
+
+// 거리 비교
+export type DistanceComparisonVariant = 'closer' | 'equal' | 'insufficient-data';
+export interface DistanceDetailComparison {
+  variant: DistanceComparisonVariant;
+  leftKg: DistanceComparisonItem;
+  rightKg: DistanceComparisonItem;
+}
+export interface DistanceComparisonItem {
+  name: string;
+  avatar: string;
+  timeStr: string; // "2시간 49분", "21분"
+  minutes: number; // 비교를 위한 분 단위 값
+}
+
+export type DistanceComparisonsByRef = Record<
+  ReferencePointType,
+  Partial<Record<TransportationType, DistanceDetailComparison>>
+>;
