@@ -7,7 +7,7 @@ export * from './lib/markers';
 /** model */
 export * from './model/useMapUrlState';
 export * from './model/useMapQuery';
-export * from './model/useSearchState';
+export * from './model/useSearchMachine';
 
 /** ui */
 export * from './ui/CurrentLocationDisplayFAB';

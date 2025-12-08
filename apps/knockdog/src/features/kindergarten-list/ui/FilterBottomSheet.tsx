@@ -5,10 +5,11 @@ import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
-import { useSearchUrlState } from '../model/useSearchUrlState';
+
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
 import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
+import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;

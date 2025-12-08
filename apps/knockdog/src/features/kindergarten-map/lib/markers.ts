@@ -1,5 +1,4 @@
-import { MARKER_THRESHOLDS, REGION_LEVELS } from '../config/map';
-type RegionLevel = keyof typeof REGION_LEVELS;
+import { MARKER_THRESHOLDS, REGION_LEVELS, type RegionLevel } from '../config/map';
 
 /**
  * 줌레벨에 따른 행정구역 단위 반환

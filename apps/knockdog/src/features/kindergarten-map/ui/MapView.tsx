@@ -6,13 +6,13 @@ import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useMapQuery';
 import { BBoxDebug } from './BBoxDebug';
-import { useSearchState } from '../model/useSearchState';
+import { useSearchMachine } from '../model/useSearchMachine';
+import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta, SortType } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
-import { toBoundsSnapshot } from '../lib/bounds';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
@@ -33,16 +33,15 @@ export function MapView(props: MapViewProps) {
   const { coord: basePoint } = useBasePoint();
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId } = useMarkerState();
-  const { snapshot, mapSnapshot, mapChange, zoomLevelChange, aggMarkerClick } = useSearchState();
+  const { snapshot, mapSnapshot, dispatch, updateMapSnapshot } = useSearchMachine();
 
   const mapCenter = getMapCenter({ center, basePoint });
   const mapZoom = getMapZoom(zoomLevel);
 
   const isBusinessZoomLevel = isBusinessZoom(zoomLevel ?? 0);
-  const showAggregationMarkers = isAggregationZoom(zoomLevel ?? 0);
-  // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 리스트 쿼리가 멈추더라도
-  // 이미 확보한 업체 마커를 계속 보여주기 위해 줌 조건만으로 표시 여부를 결정한다.
-  const showBusinessMarkers = isBusinessZoomLevel || snapshot.searchLock === 1;
+  // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
+  const showAggregationMarkers = snapshot.searchLock !== 1 && isAggregationZoom(zoomLevel ?? 0);
+  const showBusinessMarkers = snapshot.searchLock === 1 || isBusinessZoomLevel;
 
   const { searchList: overlay, listWithoutExact, exact } = useSearchListQuery({ rank: sortRank });
 
@@ -57,6 +56,29 @@ export function MapView(props: MapViewProps) {
     setCenter(basePoint);
     setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
   }, [isMapLoaded, basePoint, center, setCenter, setZoomLevel]);
+
+  // URL center/zoom 변경이 Map UI에 반영된 뒤
+  // SearchMachine에서도 동일한 mapSnapshot을 보도록 동기화
+  useEffect(() => {
+    if (!isMapLoaded || !map.current) return;
+
+    // URL이 유효하지 않으면 스킵
+    if (!isValidCoord(mapCenter)) return;
+    if (!Number.isFinite(mapZoom) || mapZoom <= 0) return;
+
+    // 현재 mapSnapshot과 같은 값이면 불필요 업데이트 방지
+    const sameCenter = mapSnapshot.center?.lat === mapCenter.lat && mapSnapshot.center?.lng === mapCenter.lng;
+    const sameZoom = mapSnapshot.zoom === mapZoom;
+
+    if (sameCenter && sameZoom) return;
+
+    const bounds = map.current.getBounds();
+    updateMapSnapshot({
+      center: mapCenter,
+      zoom: mapZoom,
+      viewportBounds: toBoundsSnapshot(bounds),
+    });
+  }, [isMapLoaded, mapCenter, mapZoom, mapSnapshot.center, mapSnapshot.zoom, updateMapSnapshot]);
 
   /**
    * GLOBAL 스코프에서 query/filters 변동 후 agg 응답 bounds로 1회 fitBounds.
@@ -103,7 +125,7 @@ export function MapView(props: MapViewProps) {
     const bounds = map.getBounds();
     const zoom = map.getZoom();
 
-    mapChange({
+    updateMapSnapshot({
       center: center ? { lat: center.y, lng: center.x } : null,
       zoom,
       viewportBounds: toBoundsSnapshot(bounds),
@@ -125,7 +147,7 @@ export function MapView(props: MapViewProps) {
 
     const viewportBounds = toBoundsSnapshot(bounds);
 
-    mapChange({
+    updateMapSnapshot({
       center: centerCoord,
       zoom,
       viewportBounds,
@@ -141,7 +163,7 @@ export function MapView(props: MapViewProps) {
       const bounds = map.current.getBounds();
       const viewportBounds = toBoundsSnapshot(bounds);
       if (viewportBounds) {
-        aggMarkerClick(viewportBounds);
+        dispatch({ type: 'AGG_MARKER_CLICK', bounds: viewportBounds });
       }
 
       map.current.setCenter(coord);
@@ -175,13 +197,14 @@ export function MapView(props: MapViewProps) {
 
     const viewportBounds = toBoundsSnapshot(bounds);
 
-    mapChange({
+    updateMapSnapshot({
       center: { lat: coord.y, lng: coord.x },
       zoom,
       viewportBounds,
     });
 
-    zoomLevelChange({
+    dispatch({
+      type: 'ZOOM_LEVEL_CHANGE',
       prevLevel: prevRegionLevel,
       nextLevel: nextRegionLevel,
       viewportBounds,

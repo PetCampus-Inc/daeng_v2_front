@@ -14,7 +14,7 @@ const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
   eq: (a: Coord, b: Coord) => a.lat === b.lat && a.lng === b.lng,
 });
 /**
- * Kindergarten Map URL 상태를 관리하는 훅
+ * MapSnapshot(지도상태) URL 상태를 관리하는 훅
  *
  * @description
  * - center: 지도 중심 좌표
@@ -22,7 +22,7 @@ const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
  */
 export function useMapUrlState() {
   const [center, setCenter] = useQueryState('center', CENTER_PARSER);
-  const [zoomLevel, setZoomLevel] = useQueryState('zoom', parseAsInteger);
+  const [zoomLevel, setZoomLevel] = useQueryState('zoomLevel', parseAsInteger);
 
   return {
     center,

@@ -1,8 +1,9 @@
 import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useSearchState } from './useSearchState';
+import { useSearchMachine } from './useSearchMachine';
+import { boundsSnapshotToBounds } from '../lib/bounds';
+import type { MapSnapshot } from '../lib/searchMachine';
 import { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
-import { useBasePoint } from '@shared/lib';
 import type {
   Aggregation,
   KindergartenListItemWithMeta,
@@ -10,35 +11,27 @@ import type {
   SortType,
   SidoGunguAggregation,
 } from '@entities/kindergarten';
-import type { Coord } from '@shared/types';
 import type {
   KindergartenSearchSnapshotLike,
   KindergartenMapSnapshotLike,
 } from '@entities/kindergarten/api/map-search-query';
-import { boundsSnapshotToBounds } from '../lib/bounds';
-import type { MapSnapshot } from '../lib/searchState';
 
 interface UseSearchListQueryParams {
   rank?: SortType;
 }
 
 export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
-  const { coord: basePoint } = useBasePoint();
-  const { snapshot, mapSnapshot } = useSearchState();
+  const { snapshot, mapSnapshot } = useSearchMachine();
 
   // 전역 검색이라도 L1(전국)일 때만 zoom 9로 강제, 그 외에는 실제 줌을 사용한다.
-  const effectiveZoom = snapshot.scope === 'global' ? 9 : mapSnapshot.zoom;
+  const effectiveZoom = snapshot.scope === 'global' && snapshot.searchedLevel === 1 ? 9 : mapSnapshot.zoom;
 
   const snapshotLike: KindergartenSearchSnapshotLike = {
     scope: snapshot.scope,
     searchedLevel: snapshot.searchedLevel,
     query: snapshot.query,
     filters: snapshot.filters,
-    refPoint: resolveRefPoint({
-      snapshot,
-      basePoint: basePoint ?? null,
-      mapSnapshot,
-    }),
+    refPoint: snapshot.refPoint,
     searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
     searchLock: snapshot.searchLock,
   };
@@ -48,7 +41,7 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
     mapSnapshot: toMapSnapshotLike(mapSnapshot, effectiveZoom),
     rank,
   });
-  const canFetchList = searchListOptions.enabled && mapSnapshot.center !== null;
+  const canFetchList = searchListOptions.enabled;
 
   const searchListQuery = useInfiniteQuery({
     ...searchListOptions,
@@ -83,8 +76,7 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
 }
 
 export function useAggregationQuery() {
-  const { coord: basePoint } = useBasePoint();
-  const { snapshot, mapSnapshot } = useSearchState();
+  const { snapshot, mapSnapshot } = useSearchMachine();
 
   const effectiveZoom = snapshot.scope === 'global' && snapshot.searchedLevel === 1 ? 9 : mapSnapshot.zoom;
 
@@ -93,11 +85,7 @@ export function useAggregationQuery() {
     searchedLevel: snapshot.searchedLevel,
     query: snapshot.query,
     filters: snapshot.filters,
-    refPoint: resolveRefPoint({
-      snapshot,
-      basePoint: basePoint ?? null,
-      mapSnapshot,
-    }),
+    refPoint: snapshot.refPoint,
     searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
     searchLock: snapshot.searchLock,
   };
@@ -106,7 +94,7 @@ export function useAggregationQuery() {
     snapshot: snapshotLike,
     mapSnapshot: toMapSnapshotLike(mapSnapshot, effectiveZoom),
   });
-  const canFetchAgg = aggregationOptions.enabled && mapSnapshot.center !== null;
+  const canFetchAgg = aggregationOptions.enabled;
 
   const aggregationQuery = useQuery({
     ...aggregationOptions,
@@ -131,22 +119,6 @@ export function useAggregationQuery() {
     isLoading: aggregationQuery.isLoading,
     isFetching: aggregationQuery.isFetching,
   };
-}
-
-function resolveRefPoint({
-  snapshot,
-  basePoint,
-  mapSnapshot,
-}: {
-  snapshot: { scope: string; refPoint: Coord | null };
-  basePoint: Coord | null;
-  mapSnapshot: MapSnapshot;
-}): Coord | null {
-  if (snapshot.scope === 'nearby') {
-    return snapshot.refPoint ?? basePoint ?? mapSnapshot.center ?? null;
-  }
-
-  return basePoint ?? mapSnapshot.center ?? snapshot.refPoint ?? null;
 }
 
 function toMapSnapshotLike(mapSnapshot: MapSnapshot, zoomOverride?: number): KindergartenMapSnapshotLike {
