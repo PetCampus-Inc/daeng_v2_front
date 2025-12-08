@@ -5,3 +5,5 @@ export { PricingSummary } from './ui/PricingSummary';
 export { DistanceSummary } from './ui/DistanceSummary';
 export { CircleAvatar } from './ui/CircleAvatar';
 export { StackedCircleAvatars } from './ui/StackedCircleAvatars';
+export { Label } from './ui/Label';
+export { Badge } from './ui/Badge';
