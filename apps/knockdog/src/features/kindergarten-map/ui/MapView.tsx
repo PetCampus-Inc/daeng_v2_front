@@ -39,10 +39,9 @@ export function MapView(props: MapViewProps) {
   const mapZoom = getMapZoom(zoomLevel);
 
   const isBusinessZoomLevel = isBusinessZoom(zoomLevel ?? 0);
-  const showAggregationMarkers = isAggregationZoom(zoomLevel ?? 0);
-  // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 리스트 쿼리가 멈추더라도
-  // 이미 확보한 업체 마커를 계속 보여주기 위해 줌 조건만으로 표시 여부를 결정한다.
-  const showBusinessMarkers = isBusinessZoomLevel || snapshot.searchLock === 1;
+  // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
+  const showAggregationMarkers = snapshot.searchLock !== 1 && isAggregationZoom(zoomLevel ?? 0);
+  const showBusinessMarkers = snapshot.searchLock === 1 || isBusinessZoomLevel;
 
   const { searchList: overlay, listWithoutExact, exact } = useSearchListQuery({ rank: sortRank });
 
