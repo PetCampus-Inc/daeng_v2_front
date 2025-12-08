@@ -88,8 +88,16 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const prev = snapshot;
       const ctx = buildTransitionContext(overrideMap);
 
+      // 디버그: 이벤트 입력과 컨텍스트 확인
+      // eslint-disable-next-line no-console
+      console.log('[searchMachine] event', event, 'ctx.map', ctx.map);
+
       const rawNext = transitionSearchSnapshot(prev, event, ctx);
       const next = normalizeSnapshotForUrl(rawNext);
+
+      // 디버그: 전이 결과
+      // eslint-disable-next-line no-console
+      console.log('[searchMachine] snapshot prev->next', prev, next);
 
       if (
         next.scope !== prev.scope ||
@@ -105,6 +113,9 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     },
     [snapshot, buildTransitionContext, commitSnapshot]
   );
+
+  // TODO: dispatch/commitEvent가 snapshot 변화에 따라 새로 생성되는 구조라 상위 컴포넌트 effect가 반복 실행된다.
+  //       useEvent-stable한 dispatch를 제공하도록 리팩터링하고, URL 커밋은 내부에서만 처리하도록 단일 책임화할 것.
 
   /**
    * low-level dispatch
@@ -141,6 +152,9 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
    * - 단, 후속 FSM 이벤트가 최신 map을 보도록 override 전달 가능 구조 유지
    */
   const updateMapSnapshot = useCallback((next: MapSnapshot) => {
+    // 디버그: 지도 스냅샷 업데이트
+    // eslint-disable-next-line no-console
+    console.log('[searchMachine] updateMapSnapshot', next);
     setMapSnapshot(next);
     mapRef.current = next;
   }, []);

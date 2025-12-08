@@ -7,7 +7,7 @@ import { inferSearchKindFromUrl, type UrlSearchKind } from '../model/searchKind'
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { useSearchUrlState } from '../model/useSearchUrlState';
+import { useListOptionsUrlState } from '../model/useListOptionsUrlState';
 import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
@@ -15,6 +15,8 @@ import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType, useSearchListScroll } from '@shared/store';
+import type { FilterOption } from '@entities/kindergarten';
+import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 
 interface KindergartenListProps {
   onOpenFilter: () => void;
@@ -25,7 +27,8 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { query: searchQuery, filters, rank } = useSearchUrlState();
+  const { query: searchQuery, filters } = useSearchUrlState();
+  const { rank } = useListOptionsUrlState();
   const { dispatch } = useSearchMachine();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -46,7 +49,12 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     [searchQuery, filters, region]
   );
 
+  const prevFiltersRef = useRef(filters);
+
   useEffect(() => {
+    if (areFiltersEqual(filters, prevFiltersRef.current)) return;
+    prevFiltersRef.current = filters;
+
     if (filters.length > 0) {
       dispatch({ type: 'SET_FILTERS', filters });
       return;
@@ -222,10 +230,19 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
           label='지도보기'
           size='medium'
           icon='Map'
-          onClick={() => setSnapIndex(0)}
-          extended={isFabExtended}
-        />
-      </Float>
-    </>
-  );
+      onClick={() => setSnapIndex(0)}
+      extended={isFabExtended}
+    />
+  </Float>
+</>
+);
+}
+
+function areFiltersEqual(a: FilterOption[], b: FilterOption[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }

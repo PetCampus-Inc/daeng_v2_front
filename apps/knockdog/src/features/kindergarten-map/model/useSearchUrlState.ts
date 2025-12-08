@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { createParser, parseAsString, useQueryState } from 'nuqs';
 import type { BoundsSnapshot, SearchSnapshot } from '../lib/searchMachine';
 import type { Coord } from '@shared/types';
@@ -103,10 +103,21 @@ export function useSearchUrlState() {
   const [scopeParam, setScope] = useQueryState('scope', SCOPE_PARSER);
   const [searchedLevel, setSearchedLevel] = useQueryState('searchedLevel', SEARCHED_LEVEL_PARSER.withDefault(3));
   const [query, setQuery] = useQueryState('query', parseAsString.withDefault(''));
-  const [filters, setFilters] = useQueryState('filters', FILTERS_PARSER.withDefault([]));
+  const [filters, setFiltersState] = useQueryState('filters', FILTERS_PARSER.withDefault([]));
   const [refPointRaw, setRefPoint] = useQueryState('refPoint', REF_POINT_PARSER);
   const [boundsRaw, setBounds] = useQueryState('bounds', BOUNDS_PARSER);
   const [searchLock, setSearchLock] = useQueryState('searchLock', SEARCH_LOCK_PARSER.withDefault(0));
+
+  const setFilters = useCallback(
+    (next: FilterOption[] | null) => {
+      if (!next || next.length === 0) {
+        setFiltersState(null);
+        return;
+      }
+      setFiltersState(next);
+    },
+    [setFiltersState]
+  );
 
   const refPoint = refPointRaw ?? null;
   const bounds = boundsRaw ?? null;
@@ -123,6 +134,9 @@ export function useSearchUrlState() {
 
   useEffect(() => {
     if (scopeParam !== resolvedScope) {
+      // 디버그: scope 정규화 로그
+      // eslint-disable-next-line no-console
+      console.log('[useSearchUrlState] normalize scope', { scopeParam, resolvedScope, bounds, query, filters });
       setScope(resolvedScope);
     }
   }, [scopeParam, resolvedScope, setScope]);
@@ -188,9 +202,14 @@ function resolveScope({
   hasQueryOrFilters: boolean;
   hasRefPoint: boolean;
 }): SearchScope {
+  // “상태로부터 유도되는 사실”이 최우선
   if (hasBounds) return 'bounds';
   if (hasQueryOrFilters) return 'global';
+
+  // 그 다음이 scopeParam
   if (scopeParam) return scopeParam;
+
+  // fallback
   if (hasRefPoint) return 'nearby';
   return 'nearby';
 }
