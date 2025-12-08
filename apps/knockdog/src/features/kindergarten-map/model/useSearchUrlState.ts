@@ -105,7 +105,7 @@ export function useSearchUrlState() {
   const [query, setQuery] = useQueryState('query', parseAsString.withDefault(''));
   const [filters, setFiltersState] = useQueryState('filters', FILTERS_PARSER.withDefault([]));
   const [refPointRaw, setRefPoint] = useQueryState('refPoint', REF_POINT_PARSER);
-  const [boundsRaw, setBounds] = useQueryState('bounds', BOUNDS_PARSER);
+  const [boundsRaw, setBoundsState] = useQueryState('bounds', BOUNDS_PARSER);
   const [searchLock, setSearchLock] = useQueryState('searchLock', SEARCH_LOCK_PARSER.withDefault(0));
 
   const setFilters = useCallback(
@@ -117,6 +117,17 @@ export function useSearchUrlState() {
       setFiltersState(next);
     },
     [setFiltersState]
+  );
+
+  const setBounds = useCallback(
+    (next: BoundsSnapshot | null) => {
+      if (!next) {
+        setBoundsState(null);
+        return;
+      }
+      setBoundsState(next);
+    },
+    [setBoundsState]
   );
 
   const refPoint = refPointRaw ?? null;
@@ -202,14 +213,13 @@ function resolveScope({
   hasQueryOrFilters: boolean;
   hasRefPoint: boolean;
 }): SearchScope {
-  // “상태로부터 유도되는 사실”이 최우선
+  // ✅ 파생 신호가 scopeParam보다 우선
   if (hasBounds) return 'bounds';
   if (hasQueryOrFilters) return 'global';
 
-  // 그 다음이 scopeParam
+  // ✅ scopeParam은 fallback
   if (scopeParam) return scopeParam;
 
-  // fallback
   if (hasRefPoint) return 'nearby';
   return 'nearby';
 }
