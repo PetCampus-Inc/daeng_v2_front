@@ -1,4 +1,4 @@
-import type { BoundsSnapshot } from './searchState';
+import type { BoundsSnapshot } from './searchMachine';
 import type { Bounds } from '@shared/types';
 
 function isLatLngBounds(bounds?: naver.maps.Bounds | null): bounds is naver.maps.LatLngBounds {
