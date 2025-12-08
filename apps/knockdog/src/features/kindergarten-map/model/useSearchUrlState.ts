@@ -102,22 +102,11 @@ const SEARCH_LOCK_PARSER = createParser<SearchLock>({
 export function useSearchUrlState() {
   const [scopeParam, setScope] = useQueryState('scope', SCOPE_PARSER);
   const [searchedLevel, setSearchedLevel] = useQueryState('searchedLevel', SEARCHED_LEVEL_PARSER.withDefault(3));
-  const [query, setQuery] = useQueryState('query', parseAsString.withDefault(''));
+  const [query, setQueryState] = useQueryState('query', parseAsString.withDefault(''));
   const [filters, setFiltersState] = useQueryState('filters', FILTERS_PARSER.withDefault([]));
   const [refPointRaw, setRefPoint] = useQueryState('refPoint', REF_POINT_PARSER);
   const [boundsRaw, setBoundsState] = useQueryState('bounds', BOUNDS_PARSER);
   const [searchLock, setSearchLock] = useQueryState('searchLock', SEARCH_LOCK_PARSER.withDefault(0));
-
-  const setFilters = useCallback(
-    (next: FilterOption[] | null) => {
-      if (!next || next.length === 0) {
-        setFiltersState(null);
-        return;
-      }
-      setFiltersState(next);
-    },
-    [setFiltersState]
-  );
 
   const setBounds = useCallback(
     (next: BoundsSnapshot | null) => {
@@ -128,6 +117,31 @@ export function useSearchUrlState() {
       setBoundsState(next);
     },
     [setBoundsState]
+  );
+
+  const setQuery = useCallback(
+    (next: string) => {
+      // 쿼리 변경 시 bounds/searchLock 초기화
+      setBounds(null);
+      setSearchLock(0);
+      setQueryState(next);
+    },
+    [setBounds, setQueryState, setSearchLock]
+  );
+
+  const setFilters = useCallback(
+    (next: FilterOption[] | null) => {
+      // 필터 변경 시 bounds/searchLock 초기화
+      setBounds(null);
+      setSearchLock(0);
+
+      if (!next || next.length === 0) {
+        setFiltersState(null);
+        return;
+      }
+      setFiltersState(next);
+    },
+    [setBounds, setFiltersState, setSearchLock]
   );
 
   const refPoint = refPointRaw ?? null;
