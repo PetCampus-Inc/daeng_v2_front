@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { createParser, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import type { SearchScope, RegionLevel, BoundsSnapshot, SearchSnapshot } from '../lib/searchState';
+import { createParser, parseAsString, useQueryState } from 'nuqs';
+import type { BoundsSnapshot, SearchSnapshot } from '../lib/searchMachine';
 import type { Coord } from '@shared/types';
 import type { FilterOption } from '@entities/kindergarten';
 import { FILTER_OPTIONS } from '@entities/kindergarten';
+import type { RegionLevel, SearchScope } from '../config/map';
 
 type SearchLock = 0 | 1;
 
@@ -84,20 +85,21 @@ const SEARCH_LOCK_PARSER = createParser<SearchLock>({
 });
 
 /**
- * SearchSnapshot URL 상태 훅
+ * SearchSnapshot(검색상태) URL 상태를 관리하는 훅
  *
- * - scope
- * - searchedLevel
- * - query
- * - filters
- * - refPoint (nearby 전용)
- * - bounds (bounds 전용, searchBounds)
- * - searchLock (bounds 전용)
+ * @description
+ * - scope: 검색 스코프(global/nearby/bounds)
+ * - searchedLevel: 검색 레벨(1/2/3)
+ * - query: 검색어
+ * - filters: 필터 옵션
+ * - refPoint: 기준점
+ * - bounds: 검색 범위 (bounds 전용, searchBounds)
+ * - searchLock: 검색 잠금 상태 (bounds 전용)
  *
  * URL 정규화(스코프별 파라미터 정리)는
  * `normalizeSnapshotForUrl` 유틸로 수행한다.
  */
-export function useSearchSnapshotUrlState() {
+export function useSearchUrlState() {
   const [scopeParam, setScope] = useQueryState('scope', SCOPE_PARSER);
   const [searchedLevel, setSearchedLevel] = useQueryState('searchedLevel', SEARCHED_LEVEL_PARSER.withDefault(3));
   const [query, setQuery] = useQueryState('query', parseAsString.withDefault(''));
@@ -140,12 +142,22 @@ export function useSearchSnapshotUrlState() {
     setRefPoint,
     setBounds,
     setSearchLock,
+    commitSnapshot: (next: SearchSnapshot) => {
+      setScope(next.scope);
+      setSearchedLevel(next.searchedLevel);
+      setQuery(next.query);
+      setFilters(next.filters);
+      setRefPoint(next.refPoint);
+      setBounds(next.searchBounds);
+      setSearchLock(next.searchLock);
+    },
   };
 }
 
 /**
- * 스코프별 URL 정규화 규칙 적용
+ * 스코프별 URL 정규화
  *
+ * @description
  * - scope='bounds' 가 아닐 때:
  *   - searchLock=0
  *   - searchBounds=null
