@@ -22,7 +22,7 @@ const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
  */
 export function useMapUrlState() {
   const [center, setCenter] = useQueryState('center', CENTER_PARSER);
-  const [zoomLevel, setZoomLevel] = useQueryState('zoom', parseAsInteger);
+  const [zoomLevel, setZoomLevel] = useQueryState('zoomLevel', parseAsInteger);
 
   return {
     center,
