@@ -25,7 +25,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
       params.set('query', suggestion.label);
       params.set('region', suggestion.code);
       params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
-      params.set('zoom', String(suggestion.zoom));
+      params.set('zoomLevel', String(suggestion.zoom));
       params.set('bottomSheetSnapIndex', '1');
 
       addRecentSearchKeyword({
@@ -41,9 +41,10 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
       // FILTER_ITEM 타입 검색
       const params = new URLSearchParams(searchParams.toString());
       params.set('query', suggestion.label);
+      params.set('zoomLevel', '9');
       params.set('filters', suggestion.code);
-      params.set('bottomSheetSnapIndex', '1');
 
+      params.set('bottomSheetSnapIndex', '1');
       addRecentSearchKeyword({
         type: 'FILTER_ITEM',
         label: suggestion.label,
@@ -58,6 +59,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     const params = new URLSearchParams(searchParams.toString());
     params.set('query', place.title);
     params.set('center', `${place.coord.lat},${place.coord.lng}`);
+    params.set('zoomLevel', '9');
     params.set('bottomSheetSnapIndex', '1');
 
     addRecentSearchKeyword({
@@ -72,6 +74,7 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     if (localQuery.trim()) {
       const params = new URLSearchParams(searchParams.toString());
       params.set('query', localQuery.trim());
+      params.set('zoomLevel', '9');
       params.set('bottomSheetSnapIndex', '1');
 
       addRecentSearchKeyword({
