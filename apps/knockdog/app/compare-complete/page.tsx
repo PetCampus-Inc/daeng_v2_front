@@ -16,15 +16,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@knockdog/ui';
-import {
-  ApiResponse,
-  DAY_OF_WEEK,
-  KindergartenComparison,
-  ProductType,
-  TransportationType,
-} from '@entities/compare/model/types';
+import { ApiResponse, KindergartenComparison } from '@entities/compare/model/types';
 import { serializeCategories } from '@entities/compare/lib/serialize';
 import { MOCK } from '@entities/compare/model/mock';
+import {
+  getClosedDaysText,
+  getDistanceString,
+  getProduct,
+  getProductMax,
+  getProductMin,
+  getTransitTime,
+  resolveIds,
+  s3ToUrl,
+} from '@entities/compare/lib/utils';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -42,56 +46,6 @@ export default function Page() {
  * ========================= */
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`;
-
-/* =========================
- * UTILS
- * ========================= */
-function resolveIds(searchParams: URLSearchParams): string[] {
-  // ids=aaa&ids=bbb
-  const repeated = searchParams.getAll('ids').filter(Boolean);
-  if (repeated.length >= 2) return repeated;
-  // ids=aaa,bbb
-  const commaJoined = searchParams.get('ids');
-  if (commaJoined) {
-    return commaJoined
-      .split(',')
-      .map((text) => text.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-function s3ToUrl(s3Key?: string) {
-  if (!s3Key) return undefined;
-  const CDN = process.env.NEXT_PUBLIC_CDN_BASE;
-  return CDN ? `${CDN}/${encodeURI(s3Key)}` : undefined;
-}
-
-type ProdKey = ProductType;
-
-const getProduct = (kg?: KindergartenComparison | null, prodType?: ProdKey | null) =>
-  kg?.pricing?.products?.find((product) => product?.productType === prodType) ?? null;
-
-const getProductMin = (kg?: KindergartenComparison | null, prodType?: ProdKey | null) =>
-  getProduct(kg, prodType)?.min?.price ?? null;
-
-const getProductMax = (kg?: KindergartenComparison | null, prodType?: ProdKey | null) =>
-  getProduct(kg, prodType)?.max?.price ?? null;
-
-const getTransitTime = (
-  kg?: KindergartenComparison | null,
-  refPoint: string = 'HOME',
-  mode: TransportationType = 'WALKING'
-) =>
-  kg?.distance
-    ?.find((distance) => distance?.referencePoint === refPoint)
-    ?.transitTimes?.find((transit) => transit?.type === mode)?.time ?? '-';
-
-const getDistanceString = (kg?: KindergartenComparison | null, refPoint: string = 'HOME') =>
-  kg?.distance?.find((distance) => distance?.referencePoint === refPoint)?.distance ?? '-';
-
-const getClosedDaysText = (kg?: KindergartenComparison | null) =>
-  (kg?.operatingSchedule?.closedDays ?? []).map((dayKey) => DAY_OF_WEEK[dayKey]).join(', ') || '-';
 
 /* =========================
  * SHARED SMALL UI
