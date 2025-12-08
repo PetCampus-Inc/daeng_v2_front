@@ -20,9 +20,13 @@ import {
   useSearchUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import { areBoundsEqual, SearchStateProvider, useSearchState } from '@features/kindergarten-map/model/useSearchState';
+import {
+  areBoundsEqual,
+  SearchStateProvider,
+  useSearchMachine,
+} from '@features/kindergarten-map/model/useSearchMachine';
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
-import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchState';
+import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
@@ -48,7 +52,7 @@ function KindergartenMainPageContent() {
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
 
-  const { enter, setQuery: setSearchQuery, clearQuery, researchHere, mapSnapshot, snapshot } = useSearchState();
+  const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const shouldShowRefresh = useMemo(() => {
@@ -75,18 +79,18 @@ function KindergartenMainPageContent() {
   ]);
   // ENTER 이벤트: 메인 페이지 진입 시 1회
   useEffect(() => {
-    enter();
-  }, [enter]);
+    dispatch({ type: 'ENTER' });
+  }, [dispatch]);
 
   // SET_QUERY / CLEAR_QUERY 이벤트: URL query 변경 시
   useEffect(() => {
     const trimmed = query.trim();
     if (trimmed.length > 0) {
-      setSearchQuery(trimmed);
+      dispatch({ type: 'SET_QUERY', query: trimmed });
       return;
     }
-    clearQuery();
-  }, [query, setSearchQuery, clearQuery]);
+    dispatch({ type: 'CLEAR_QUERY' });
+  }, [query, dispatch]);
 
   /**
    * 재검색 핸들러
@@ -99,7 +103,8 @@ function KindergartenMainPageContent() {
     const bounds = mapRef.current?.getBounds();
     const viewportBounds: BoundsSnapshot | null = toBoundsSnapshot(bounds);
 
-    researchHere({
+    dispatch({
+      type: 'RESEARCH_HERE',
       viewportBounds,
       levelFromZoom: getRegionLevel(zoomLevel),
     });

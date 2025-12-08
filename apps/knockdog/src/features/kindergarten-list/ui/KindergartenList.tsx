@@ -10,7 +10,7 @@ import { FilterChip } from './FilterChip';
 import { useSearchUrlState } from '../model/useSearchUrlState';
 import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
-import { useSearchListQuery, useSearchState } from '@features/kindergarten-map';
+import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -26,7 +26,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { query: searchQuery, filters, rank } = useSearchUrlState();
-  const { setFilters: setSearchFilters, clearFilters } = useSearchState();
+  const { dispatch } = useSearchMachine();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
@@ -46,14 +46,13 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     [searchQuery, filters, region]
   );
 
-  // SET_FILTERS / CLEAR_FILTERS 이벤트: URL filters 변경 시
   useEffect(() => {
     if (filters.length > 0) {
-      setSearchFilters(filters);
+      dispatch({ type: 'SET_FILTERS', filters });
       return;
     }
-    clearFilters();
-  }, [filters, setSearchFilters, clearFilters]);
+    dispatch({ type: 'CLEAR_FILTERS' });
+  }, [filters, dispatch]);
 
   useEffect(() => {
     const container = containerRef.current;
