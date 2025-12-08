@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Rectangle } from '@knockdog/react-naver-map';
-import type { BoundsSnapshot } from '../lib/searchState';
+import type { BoundsSnapshot } from '../lib/searchMachine';
 import { toBoundsSnapshot } from '../lib/bounds';
 
 interface BBoxDebugProps {
