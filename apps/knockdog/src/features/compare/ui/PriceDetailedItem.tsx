@@ -13,8 +13,10 @@ export function PriceDetailedItem({
     const { leftKg, rightKg } = comparison; // 왼쪽: 저렴한 유치원
 
     const priceDiffStr = Math.abs(leftKg.value - rightKg.value).toLocaleString();
-    const leftPriceStr = leftKg.toLocaleString();
-    const rightPriceStr = rightKg.toLocaleString();
+    const leftPriceStr = leftKg.value.toLocaleString();
+    const rightPriceStr = rightKg.value.toLocaleString();
+
+    console.log(leftPriceStr, rightPriceStr);
 
     return (
       <div className='flex flex-col items-center p-2'>
