@@ -1,12 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
+import { useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-import { CircleAvatar, Label, MOCK, serializeCategories } from '@entities/compare';
-import type { ApiResponse, KindergartenComparison, DistanceComparisonsByRef } from '@entities/compare/model/types';
+import { CircleAvatar, Label, serializeCategories } from '@entities/compare';
+import type { KindergartenComparison, DistanceComparisonsByRef } from '@entities/compare/model/types';
 import {
   getClosedDaysText,
   getDistanceString,
@@ -29,6 +29,7 @@ import {
   getHolidayKindergartens,
   ComparisonDaysItem,
 } from '@features/compare';
+import { useComparisonsQuery } from '@features/compare/api/useComparisonsQuery';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -40,12 +41,6 @@ export default function Page() {
     </SafeArea>
   );
 }
-
-/* =========================
- * API & ENDPOINT
- * ========================= */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
-const COMPARE_ENDPOINT = `${API_BASE}/api/v0/kindergarten/comparisons`;
 
 /* =========================
  * SWIPE CAROUSEL
@@ -310,77 +305,41 @@ function CompareCompletePage() {
   // 🔒 안정화: params 객체 대신 문자열 키를 메모이즈해서 파싱
   const qsKey = params.toString();
   const ids = useMemo(() => resolveIds(new URLSearchParams(qsKey)), [qsKey]);
-  const idsJoined = useMemo(() => ids.join(','), [ids]);
 
-  const [payload, setPayload] = useState<KindergartenComparison[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, error } = useComparisonsQuery(ids);
 
-  useEffect(() => {
-    if (ids.length < 2) {
-      setPayload(MOCK.data); // 최소 UX 보장
-      setLoading(false);
-      return;
-    }
+  const [left, right] = useMemo(() => data?.filter((item): item is KindergartenComparison => !!item) ?? [], [data]);
 
-    let ignore = false;
-    const ac = new AbortController();
+  if (isLoading) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
 
-    (async () => {
-      setLoading(true);
-      try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : undefined;
-        const queryString = ids.map((id) => `ids=${encodeURIComponent(id)}`).join('&');
-        const url = `${COMPARE_ENDPOINT}?${queryString}`;
+  if (error) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>데이터를 불러오는 중 오류가 발생했습니다.</p>
+      </div>
+    );
+  }
 
-        const res = await fetch(url, {
-          headers: {
-            accept: 'application/json;charset=UTF-8',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          cache: 'no-store',
-          credentials: 'include',
-          signal: ac.signal,
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: ApiResponse = await res.json();
-        if (!ignore) setPayload(json.data);
-      } catch {
-        if (!ignore) setPayload(MOCK.data);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    })();
-
-    return () => {
-      ignore = true;
-      ac.abort();
-    };
-  }, [idsJoined]); // ✅ ids 배열 대신 join된 키만 의존
-
-  const left = payload?.[0];
-  const right = payload?.[1];
+  if (!left || !right) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>비교할 데이터가 올바르지 않습니다.</p>
+      </div>
+    );
+  }
 
   // 가격 비교 결과
-  const monthlyPricingComparison = useMemo(() => {
-    if (!left || !right) return null;
-    return createPriceComparison(left, right, extractPrice('monthlyHourlyAvg'));
-  }, [left, right]);
-
-  const countPricingComparison = useMemo(() => {
-    if (!left || !right) return null;
-    return createPriceComparison(left, right, extractPrice('countHourlyAvg'));
-  }, [left, right]);
+  const monthlyPricingComparison = createPriceComparison(left, right, extractPrice('monthlyHourlyAvg'));
+  const countPricingComparison = createPriceComparison(left, right, extractPrice('countHourlyAvg'));
 
   // 거리 비교 결과
-  const distanceComparisons: DistanceComparisonsByRef = useMemo(() => {
-    if (!left || !right) return {};
-    return createDistanceComparisonsByRef(left, right);
-  }, [left, right]);
-
-  if (loading || !payload || !left || !right) {
-    return <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>;
-  }
+  const distanceComparisons: DistanceComparisonsByRef = createDistanceComparisonsByRef(left, right);
 
   const allKindergartens = [left, right].map(mapToSimpleItem);
   const valetKindergartens = getValetKindergartens(left, right);
@@ -397,7 +356,7 @@ function CompareCompletePage() {
 
       {/* 선택된 두 유치원 */}
       <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
-        {payload.map(({ id = '', name = '', categories = [], thumbnailS3Key = '' }, idx) => {
+        {[left, right].map(({ id = '', name = '', categories = [], thumbnailS3Key = '' }, idx) => {
           return (
             <SelectedCell
               key={id}

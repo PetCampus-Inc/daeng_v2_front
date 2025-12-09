@@ -91,8 +91,6 @@ export interface KindergartenComparison {
   operatingSchedule: OperatingSchedule;
 }
 
-export type ApiResponse = { data: KindergartenComparison[] };
-
 // 가격 비교
 export type PricingComparisonVariant = 'cheaper' | 'equal' | 'insufficient-data';
 export interface PriceDetailComparison {
