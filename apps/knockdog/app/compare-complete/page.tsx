@@ -25,12 +25,15 @@ import {
   resolveIds,
   s3ToUrl,
   extractPrice,
+  mapToSimpleItem,
 } from '@entities/compare/lib/utils';
 import {
   createPriceComparison,
   createDistanceComparisonsByRef,
   PricingSection,
   DistanceSection,
+  ComparisonSimpleItem,
+  getValetKindergartens,
 } from '@features/compare';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
@@ -190,15 +193,6 @@ function DetailRow({ label, left, right }: { label: string; left: string; right:
 /* =========================
  * SUMMARY PARTS
  * ========================= */
-
-type ComparisonSimpleItemProps = {
-  kindergartens: {
-    avatar?: string;
-    name: string;
-  }[];
-  suffix: string; // "픽드랍 서비스를 제공해요", "공휴일에 쉬어요"
-};
-
 type DaysFlags = Partial<Record<'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun', boolean>>;
 type ComparisonDaysItemProps = {
   kindergarten: { name: string; avatar?: string };
@@ -211,36 +205,6 @@ function ComparisonPanel({ children }: PropsWithChildren) {
 
 function ComparisonSection({ children }: PropsWithChildren) {
   return <section className='border-line-200 border-b px-4 last:border-b-0'>{children}</section>;
-}
-
-function ComparisonSimpleItem({ kindergartens, suffix }: ComparisonSimpleItemProps) {
-  if (kindergartens.length === 1) {
-    const kg = kindergartens?.[0];
-    return (
-      <div className='flex flex-col items-center'>
-        <CircleAvatar src={kg?.avatar} />
-        <div className='mt-2'>
-          <Summary highlight={kg?.name} truncate>{`${kg?.name}만`}</Summary>
-          <Summary>{suffix}</Summary>
-        </div>
-      </div>
-    );
-  } else {
-    return (
-      <div className='flex flex-col items-center'>
-        <StackedCircleAvatars
-          avatars={kindergartens.map((kg) => ({
-            src: kg.avatar,
-            alt: kg.name,
-          }))}
-        />
-        <div className='mt-2'>
-          <Summary highlight='두 유치원 모두'>두 유치원 모두</Summary>
-          <Summary>{suffix}</Summary>
-        </div>
-      </div>
-    );
-  }
 }
 
 function ComparisonDaysItem({ kindergarten, days }: ComparisonDaysItemProps) {
@@ -458,9 +422,12 @@ function CompareCompletePage() {
     return createDistanceComparisonsByRef(left, right);
   }, [left, right]);
 
-  if (loading || !payload || payload.length < 2) {
+  if (loading || !payload || !left || !right) {
     return <div className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중…</div>;
   }
+
+  const allKindergartens = [left, right].map(mapToSimpleItem);
+  const valetKindergartens = getValetKindergartens(left, right);
 
   return (
     <div className='flex h-screen flex-col bg-white'>
@@ -500,17 +467,10 @@ function CompareCompletePage() {
                 <div className='mt-7 flex flex-col gap-5'>
                   <Label>픽드랍</Label>
                   <ComparisonSimpleItem
-                    kindergartens={[
-                      {
-                        name: right?.name ?? '오른쪽 유치원',
-                        avatar: s3ToUrl(right?.thumbnailS3Key),
-                      },
-                      {
-                        name: left?.name ?? '왼쪽 유치원',
-                        avatar: s3ToUrl(left?.thumbnailS3Key),
-                      },
-                    ]}
-                    suffix='픽드랍 서비스를 제공해요'
+                    allKindergartens={allKindergartens}
+                    matchedKindergartens={valetKindergartens}
+                    trueStatusText='픽드랍 서비스를 제공해요'
+                    falseStatusText='픽드랍 서비스가 없어요'
                   />
                 </div>
               </ComparisonSection>

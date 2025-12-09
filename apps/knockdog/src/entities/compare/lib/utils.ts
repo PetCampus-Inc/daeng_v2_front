@@ -1,4 +1,10 @@
-import { DAY_OF_WEEK, KindergartenComparison, ProductType, TransportationType } from '../model/types';
+import {
+  DAY_OF_WEEK,
+  KindergartenComparison,
+  ProductType,
+  SimpleComparisonItem,
+  TransportationType,
+} from '../model/types';
 
 export function resolveIds(searchParams: URLSearchParams): string[] {
   // ids=aaa&ids=bbb
@@ -52,6 +58,13 @@ export function parseTimeToMinutes(timeStr: string): number {
   if (minMatch) totalMinutes += parseInt(minMatch[1] || '0');
 
   return totalMinutes;
+}
+
+export function mapToSimpleItem(kg: KindergartenComparison): SimpleComparisonItem {
+  return {
+    name: kg.name,
+    avatar: s3ToUrl(kg.thumbnailS3Key) ?? '',
+  };
 }
 
 /* =========================

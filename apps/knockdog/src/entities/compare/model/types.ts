@@ -125,3 +125,8 @@ export type DistanceComparisonsByRef = Record<
   ReferencePointType,
   Partial<Record<TransportationType, DistanceDetailComparison>>
 >;
+
+export interface SimpleComparisonItem {
+  name: string;
+  avatar: string;
+}
