@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, PropsWithChildren, useMemo, Suspense } fro
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-import { Description, CircleAvatar, Label, MOCK, serializeCategories } from '@entities/compare';
+import { CircleAvatar, Label, MOCK, serializeCategories } from '@entities/compare';
 import type { ApiResponse, KindergartenComparison, DistanceComparisonsByRef } from '@entities/compare/model/types';
 import {
   getClosedDaysText,
@@ -27,6 +27,7 @@ import {
   ComparisonSimpleItem,
   getValetKindergartens,
   getHolidayKindergartens,
+  ComparisonDaysItem,
 } from '@features/compare';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
@@ -186,11 +187,6 @@ function DetailRow({ label, left, right }: { label: string; left: string; right:
 /* =========================
  * SUMMARY PARTS
  * ========================= */
-type DaysFlags = Partial<Record<'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun', boolean>>;
-type ComparisonDaysItemProps = {
-  kindergarten: { name: string; avatar?: string };
-  days: DaysFlags;
-};
 
 function ComparisonPanel({ children }: PropsWithChildren) {
   return <div className='bg-fill-secondary-0 rounded-2xl py-10'>{children}</div>;
@@ -198,39 +194,6 @@ function ComparisonPanel({ children }: PropsWithChildren) {
 
 function ComparisonSection({ children }: PropsWithChildren) {
   return <section className='border-line-200 border-b px-4 last:border-b-0'>{children}</section>;
-}
-
-function ComparisonDaysItem({ kindergarten, days }: ComparisonDaysItemProps) {
-  const ORDER: Array<{ key: keyof DaysFlags; label: string }> = [
-    { key: 'mon', label: '월' },
-    { key: 'tue', label: '화' },
-    { key: 'wed', label: '수' },
-    { key: 'thu', label: '목' },
-    { key: 'fri', label: '금' },
-    { key: 'sat', label: '토' },
-    { key: 'sun', label: '일' },
-  ];
-  return (
-    <div className='flex flex-col items-center p-2'>
-      <CircleAvatar src={kindergarten.avatar} />
-      <div className='mt-2 max-w-full'>
-        <Description highlight={kindergarten.name} truncate>{`${kindergarten.name}`}</Description>
-      </div>
-      <div className='mt-4 flex gap-1.5'>
-        {ORDER.map(({ key, label }) => {
-          const on = !!days[key];
-          return (
-            <span
-              key={key}
-              className={`label-extrabold flex h-10 w-10 items-center justify-center rounded-lg text-sm ${on ? 'bg-fill-secondary-800 text-white' : 'text-text-primary bg-gray-100'}`}
-            >
-              {label}
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 /* =========================
@@ -479,15 +442,8 @@ function CompareCompletePage() {
               <ComparisonSection>
                 <Label>영업일</Label>
                 <div className='flex flex-col gap-5 pt-5 pb-7'>
-                  {Array(2)
-                    .fill(null)
-                    .map((_, i) => (
-                      <ComparisonDaysItem
-                        key={i}
-                        kindergarten={{ name: left?.name ?? '왼쪽 유치원', avatar: s3ToUrl(left?.thumbnailS3Key) }}
-                        days={{ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }}
-                      />
-                    ))}
+                  <ComparisonDaysItem kindergarten={left} />
+                  <ComparisonDaysItem kindergarten={right} />
                 </div>
               </ComparisonSection>
               <ComparisonSection>

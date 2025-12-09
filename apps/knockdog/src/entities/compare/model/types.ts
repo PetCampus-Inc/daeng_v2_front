@@ -32,15 +32,13 @@ export const REFERENCE_POINT_TYPE: Record<string, string> = {
 export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE | string;
 
 export const DAY_OF_WEEK = {
-  MONDAY: '월요일',
-  TUESDAY: '화요일',
-  WEDNESDAY: '수요일',
-  THURSDAY: '목요일',
-  FRIDAY: '금요일',
-  SATURDAY: '토요일',
-  SUNDAY: '일요일',
-  WEEKEND: '주말',
-  HOLIDAY: '공휴일',
+  MONDAY: '월',
+  TUESDAY: '화',
+  WEDNESDAY: '수',
+  THURSDAY: '목',
+  FRIDAY: '금',
+  SATURDAY: '토',
+  SUNDAY: '일',
 } as const;
 export type DayOfWeek = keyof typeof DAY_OF_WEEK;
 
@@ -75,8 +73,9 @@ export interface Distance {
   transitTimes: TransitTime[];
 }
 
+type ClosedDay = DayOfWeek | 'HOLIDAY';
 export interface OperatingSchedule {
-  closedDays: DayOfWeek[];
+  closedDays: ClosedDay[];
   weekdayHours: string | null;
   weekendHours: string | null;
 }
