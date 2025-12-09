@@ -5,15 +5,7 @@ import { useEffect, useRef, useState, PropsWithChildren, useMemo, Suspense } fro
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-import {
-  Summary,
-  Description,
-  StackedCircleAvatars,
-  CircleAvatar,
-  Label,
-  MOCK,
-  serializeCategories,
-} from '@entities/compare';
+import { Description, CircleAvatar, Label, MOCK, serializeCategories } from '@entities/compare';
 import type { ApiResponse, KindergartenComparison, DistanceComparisonsByRef } from '@entities/compare/model/types';
 import {
   getClosedDaysText,
@@ -34,6 +26,7 @@ import {
   DistanceSection,
   ComparisonSimpleItem,
   getValetKindergartens,
+  getHolidayKindergartens,
 } from '@features/compare';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
@@ -428,6 +421,7 @@ function CompareCompletePage() {
 
   const allKindergartens = [left, right].map(mapToSimpleItem);
   const valetKindergartens = getValetKindergartens(left, right);
+  const holidayKindergartens = getHolidayKindergartens(left, right);
 
   return (
     <div className='flex h-screen flex-col bg-white'>
@@ -500,17 +494,10 @@ function CompareCompletePage() {
                 <div className='mt-7 flex flex-col gap-5'>
                   <Label>공휴일</Label>
                   <ComparisonSimpleItem
-                    kindergartens={[
-                      {
-                        name: right?.name ?? '오른쪽 유치원',
-                        avatar: s3ToUrl(right?.thumbnailS3Key),
-                      },
-                      {
-                        name: left?.name ?? '왼쪽 유치원',
-                        avatar: s3ToUrl(left?.thumbnailS3Key),
-                      },
-                    ]}
-                    suffix='공휴일에 쉬어요'
+                    allKindergartens={allKindergartens}
+                    matchedKindergartens={holidayKindergartens}
+                    trueStatusText='공휴일에도 영업해요'
+                    falseStatusText='공휴일에 쉬어요'
                   />
                 </div>
               </ComparisonSection>
