@@ -29,8 +29,8 @@ export function createPriceComparison(
   if (leftPrice === rightPrice) {
     return {
       variant: 'equal' as const,
-      leftKg: { name: right.name, avatar: right.thumbnailS3Key, value: rightPrice }, // 순서 상관없으므로 유지
-      rightKg: { name: left.name, avatar: left.thumbnailS3Key, value: leftPrice },
+      leftKg: { name: left.name, avatar: left.thumbnailS3Key, value: leftPrice }, // 순서 상관없으므로 유지
+      rightKg: { name: right.name, avatar: right.thumbnailS3Key, value: rightPrice },
     };
   }
 
