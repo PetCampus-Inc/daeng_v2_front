@@ -18,7 +18,7 @@ export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from '.
 
 /** lib */
 export { isValidBounds, isEqualBounds } from './lib/is';
-export { serializeBounds, serializeFilters, serializeCategories } from './lib/serialize';
+export { serializeBounds, serializeFilters } from './lib/serialize';
 
 /** model */
 export { createKindergartenListWithMock } from './model/mappers';
