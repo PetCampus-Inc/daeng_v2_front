@@ -1,4 +1,4 @@
-import { ComparisonItem, KindergartenComparison, PriceDetailComparison } from '@entities/compare/model/types';
+import { PricingComparisonItem, KindergartenComparison, PriceDetailComparison } from '@entities/compare/model/types';
 
 // 가격 비교 헬퍼 함수
 export function createPriceComparison(
@@ -38,7 +38,7 @@ export function createPriceComparison(
   const [cheaperKg, expensiveKg] = [
     { name: left.name, avatar: left.thumbnailS3Key, value: leftPrice },
     { name: right.name, avatar: right.thumbnailS3Key, value: rightPrice },
-  ].sort((a, b) => a.value - b.value) as [ComparisonItem, ComparisonItem];
+  ].sort((a, b) => a.value - b.value) as [PricingComparisonItem, PricingComparisonItem];
 
   return {
     variant: 'cheaper' as const,

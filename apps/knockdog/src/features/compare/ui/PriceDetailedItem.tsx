@@ -16,8 +16,6 @@ export function PriceDetailedItem({
     const leftPriceStr = leftKg.value.toLocaleString();
     const rightPriceStr = rightKg.value.toLocaleString();
 
-    console.log(leftPriceStr, rightPriceStr);
-
     return (
       <div className='flex flex-col items-center p-2'>
         {badge}
