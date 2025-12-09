@@ -3,7 +3,6 @@ export * from './lib/serialize';
 export * from './lib/utils';
 
 // model
-export { MOCK } from './model/mock';
 export * from './model/types';
 
 // ui
