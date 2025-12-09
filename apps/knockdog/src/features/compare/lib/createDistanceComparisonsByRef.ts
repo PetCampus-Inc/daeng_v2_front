@@ -1,5 +1,5 @@
-import { extractDistance } from '@entities/compare/lib/utils';
 import { createDistanceComparison } from './createDistanceComparison';
+import { extractDistance } from '@entities/compare/lib/utils';
 import {
   KindergartenComparison,
   DistanceComparisonsByRef,

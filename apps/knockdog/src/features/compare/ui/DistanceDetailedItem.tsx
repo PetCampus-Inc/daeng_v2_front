@@ -1,5 +1,5 @@
 import { CircleAvatar, Description, Detail, StackedCircleAvatars } from '@entities/compare';
-import { s3ToUrl } from '@entities/compare/lib/utils';
+import { parseMinutesToTimeStr, s3ToUrl } from '@entities/compare/lib/utils';
 import { DistanceDetailComparison } from '@entities/compare/model/types';
 
 export function DistanceDetailedItem({
@@ -28,7 +28,10 @@ export function DistanceDetailedItem({
 
   if (comparison.variant === 'closer') {
     const { leftKg, rightKg } = comparison; // 왼쪽: 가까운 유치원
-    const timeDiff = Math.abs(leftKg.minutes - rightKg.minutes);
+    const timeDiff = Math.abs(leftKg.value - rightKg.value);
+    const timeDiffStr = parseMinutesToTimeStr(timeDiff);
+    const leftTimeStr = parseMinutesToTimeStr(leftKg.value);
+    const rightTimeStr = parseMinutesToTimeStr(rightKg.value);
 
     return (
       <div className='flex flex-col items-center p-2'>
@@ -38,8 +41,8 @@ export function DistanceDetailedItem({
 
           <div className='mt-2 max-w-full'>
             <Description highlight={leftKg.name} truncate>{`${leftKg.name}이(가)`}</Description>
-            <Description highlight={`${timeDiff}분`}>{`${timeDiff}분 더 가까워요`}</Description>
-            <Detail className='mt-1'>{`(${leftKg.timeStr} < ${rightKg.timeStr})`}</Detail>
+            <Description highlight={`${timeDiffStr}`}>{`${timeDiffStr} 더 가까워요`}</Description>
+            <Detail className='mt-1'>{`(${leftTimeStr} < ${rightTimeStr})`}</Detail>
           </div>
         </div>
       </div>
@@ -48,7 +51,8 @@ export function DistanceDetailedItem({
 
   if (comparison.variant === 'equal') {
     const { leftKg, rightKg } = comparison;
-    const sameTimeStr = leftKg.timeStr;
+    const sameTime = leftKg.value;
+    const sameTimeStr = parseMinutesToTimeStr(sameTime);
 
     return (
       <div className='flex flex-col items-center p-2'>

@@ -23,8 +23,8 @@ export function resolveIds(searchParams: URLSearchParams): string[] {
 
 export function s3ToUrl(s3Key?: string) {
   if (!s3Key) return undefined;
-  const CDN = process.env.NEXT_PUBLIC_CDN_BASE;
-  return CDN ? `${CDN}/${encodeURI(s3Key)}` : undefined;
+  const CDN = process.env.NEXT_PUBLIC_IMAGE_BASE_URL;
+  return CDN ? `${CDN}${encodeURI(s3Key)}` : undefined;
 }
 
 /* =========================
@@ -42,13 +42,14 @@ export function extractPrice(pricingType: PricingType) {
   };
 }
 
+// TODO: api 수정 후 parseTimeStrToMinutes 메서드 삭제
 export function extractDistance(refPoint: string, transportType: TransportationType) {
-  return (kg: KindergartenComparison): string => getTransitTime(kg, refPoint, transportType);
+  return (kg: KindergartenComparison): number => parseTimeStrToMinutes(getTransitTime(kg, refPoint, transportType));
 }
 
 // 시간 문자열을 분으로 변환 ("2시간 49분" -> 169)
-export function parseTimeToMinutes(timeStr: string): number {
-  if (!timeStr || timeStr === '-') return 0;
+export function parseTimeStrToMinutes(timeStr: string): number {
+  if (!timeStr) return 0;
 
   let totalMinutes = 0;
   const hourMatch = timeStr.match(/(\d+)시간/);
@@ -58,6 +59,26 @@ export function parseTimeToMinutes(timeStr: string): number {
   if (minMatch) totalMinutes += parseInt(minMatch[1] || '0');
 
   return totalMinutes;
+}
+
+// 분 단위를 시간 문자열로 변환 (169 -> "2시간 49분")
+export function parseMinutesToTimeStr(minutes: number): string {
+  if (!minutes) {
+    return '-';
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  const parts: string[] = [];
+  if (hours > 0) {
+    parts.push(`${hours}시간`);
+  }
+  if (mins > 0) {
+    parts.push(`${mins}분`);
+  }
+
+  return parts.join(' ');
 }
 
 export function mapToSimpleItem(kg: KindergartenComparison): SimpleComparisonItem {

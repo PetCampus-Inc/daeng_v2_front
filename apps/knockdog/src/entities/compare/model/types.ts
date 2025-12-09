@@ -91,39 +91,30 @@ export interface KindergartenComparison {
   operatingSchedule: OperatingSchedule;
 }
 
-// 가격 비교
-export type PricingComparisonVariant = 'cheaper' | 'equal' | 'insufficient-data';
-export interface PriceDetailComparison {
-  variant: PricingComparisonVariant;
-  leftKg: PricingComparisonItem;
-  rightKg: PricingComparisonItem;
-}
-export interface PricingComparisonItem {
+export interface SimpleComparisonItem {
   name: string;
   avatar: string;
+}
+
+export interface DetailComparisonItem extends SimpleComparisonItem {
   value: number;
 }
 
-// 거리 비교
-export type DistanceComparisonVariant = 'closer' | 'equal' | 'insufficient-data';
-export interface DistanceDetailComparison {
-  variant: DistanceComparisonVariant;
-  leftKg: DistanceComparisonItem;
-  rightKg: DistanceComparisonItem;
-}
-export interface DistanceComparisonItem {
-  name: string;
-  avatar: string;
-  timeStr: string; // "2시간 49분", "21분"
-  minutes: number; // 비교를 위한 분 단위 값
+// 가격 비교
+export interface PriceDetailComparison {
+  variant: 'cheaper' | 'equal' | 'insufficient-data';
+  leftKg: DetailComparisonItem;
+  rightKg: DetailComparisonItem;
 }
 
+// 거리 비교
 export type DistanceComparisonsByRef = Record<
   ReferencePointType,
   Partial<Record<TransportationType, DistanceDetailComparison>>
 >;
 
-export interface SimpleComparisonItem {
-  name: string;
-  avatar: string;
+export interface DistanceDetailComparison {
+  variant: 'closer' | 'equal' | 'insufficient-data';
+  leftKg: DetailComparisonItem;
+  rightKg: DetailComparisonItem;
 }
