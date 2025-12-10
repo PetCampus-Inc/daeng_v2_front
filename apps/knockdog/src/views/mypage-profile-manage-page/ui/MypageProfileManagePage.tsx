@@ -147,7 +147,7 @@ function MypageProfileManagePage() {
               />
             </TextField>
             <TextField disabled>
-              <TextFieldInput value={user?.id || ''} />
+              <TextFieldInput value={`#${user?.userId}` || ''} />
             </TextField>
           </div>
           <div>

@@ -12,7 +12,9 @@ type NaverOpenRouteParams = {
 };
 
 const NAVER_STORE_URL =
-  Platform.OS === 'ios' ? 'https://apps.apple.com/app/id311867728' : 'market://details?id=com.nhn.android.nmap';
+  Platform.OS === 'ios'
+    ? 'https://apps.apple.com/kr/app/naver-map-navigation/id311867728'
+    : 'market://details?id=com.nhn.android.nmap';
 
 function buildRouteQueryParams(params: NaverOpenRouteParams, appname: string): URLSearchParams {
   const queryParams = new URLSearchParams();
@@ -61,8 +63,13 @@ function registerRouteMapHandlers(router: NativeBridgeRouter) {
     }
 
     // 3. 앱 미설치 → 스토어로
-    await Linking.openURL(NAVER_STORE_URL);
-    return { ok: false, reason: 'store_fallback' };
+    try {
+      await Linking.openURL(NAVER_STORE_URL);
+      return { opened: true, via: 'store_fallback' };
+    } catch (error) {
+      console.error('Failed to open app store:', error);
+      return { opened: false, error: { code: 'ESTORE_OPEN_FAILED', message: '앱 스토어를 열 수 없습니다.' } };
+    }
   });
 }
 

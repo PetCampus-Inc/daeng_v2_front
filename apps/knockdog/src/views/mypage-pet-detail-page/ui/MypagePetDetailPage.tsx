@@ -1,10 +1,6 @@
 'use client';
 
-import { Header } from '@widgets/Header';
-import { useStackNavigation } from '@shared/lib/bridge';
-import { PetDetailInfo } from '@features/dog-profile';
 import { useSearchParams } from 'next/navigation';
-import { usePetByIdQuery } from '@entities/pet';
 import {
   ActionButton,
   Icon,
@@ -18,12 +14,18 @@ import {
   AlertDialogAction,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { Header } from '@widgets/Header';
+import { PetDetailInfo } from '@features/dog-profile';
+import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { SafeArea } from '@shared/ui/safe-area';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetDetailPage() {
-  const { push } = useStackNavigation();
+  const { push, back } = useStackNavigation();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
-
+  const { mutate: removePetMutate } = usePetRemoveMutation();
   const { data: petResponse } = usePetByIdQuery(petId);
 
   const handlePetEdit = () => {
@@ -42,9 +44,12 @@ export function MypagePetDetailPage() {
             <AlertDialogCancel>아니오</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                // TODO: 실제 삭제 API 호출 로직 추가
-                console.log('펫 삭제 확인');
-                close();
+                removePetMutate(petId, {
+                  onSuccess: () => {
+                    syncWebViewQuery.refetch(['petList']);
+                    back();
+                  },
+                });
               }}
             >
               예
@@ -56,8 +61,8 @@ export function MypagePetDetailPage() {
   };
 
   return (
-    <div className='flex h-screen flex-col'>
-      <Header withSpacing={false}>
+    <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
@@ -78,6 +83,6 @@ export function MypagePetDetailPage() {
           정보 수정하기
         </ActionButton>
       </div>
-    </div>
+    </SafeArea>
   );
 }

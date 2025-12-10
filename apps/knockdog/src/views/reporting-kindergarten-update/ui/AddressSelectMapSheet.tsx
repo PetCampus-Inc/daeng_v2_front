@@ -7,6 +7,7 @@ import { CurrentSelectionMarker } from './CurrentSelectionMarker';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCurrentAddress } from '@shared/lib';
 import type { Coord } from '@shared/types';
+import { SafeArea } from '@shared/ui/safe-area';
 
 interface AddressSelectMapSheetProps {
   isOpen: boolean;
@@ -43,17 +44,18 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal h-screen max-h-screen rounded-none' aria-label={'지도에서 선택하기'}>
-        <BottomSheet.Header className='justify-center'>
-          <BottomSheet.CloseButton />
-          <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>
-        </BottomSheet.Header>
+        <SafeArea edges={['bottom', 'top']}>
+          <BottomSheet.Header className='justify-center'>
+            <BottomSheet.CloseButton />
+            <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>
+          </BottomSheet.Header>
 
-        <div>
-          <div className='h-[calc(100vh-184px)]'>
+          <div className='h-[calc(100vh-304px)]'>
             <Map
               ref={map}
               center={defaultLocation}
               zoom={DEFAULT_MAP_ZOOM_LEVEL}
+              className='h-full w-full'
               onClick={(e) => handleMapClick({ lat: e.coord.y, lng: e.coord.x })}
             >
               <Overlay position={selectedLocation}>
@@ -77,7 +79,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
               </ActionButton>
             </div>
           </div>
-        </div>
+        </SafeArea>
       </BottomSheet.Body>
     </BottomSheet.Root>
   );

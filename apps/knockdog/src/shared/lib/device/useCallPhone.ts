@@ -47,18 +47,23 @@ function useCallPhone() {
           if (response?.opened) {
             return true;
           }
+          // opened가 false이거나 undefined인 경우
+          console.error('[WEBVIEW] Bridge returned opened: false', response);
+          return false;
         } catch (error) {
           if (error instanceof BridgeException) {
             const code = error?.code;
             const message = error?.message || String(error);
             console.error('[WEBVIEW] Bridge error - code:', code, 'message:', message);
 
-            if (code === 'EUNAVAILABLE') {
-              return false;
-            }
+            // WebView에서는 tel: 스키마를 사용할 수 없으므로
+            // 모든 에러에 대해 false 반환
+            return false;
           }
+          // BridgeException이 아닌 다른 에러
+          console.error('[WEBVIEW] Unexpected error:', error);
+          return false;
         }
-        return openWithBrowserTel(normalizedPhoneNumber);
       }
 
       return openWithBrowserTel(normalizedPhoneNumber);

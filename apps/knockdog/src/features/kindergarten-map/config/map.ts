@@ -4,6 +4,17 @@ export const DEFAULT_MAP_CENTER = { lat: 37.54, lng: 127.07 } as const;
 export const DEFAULT_MAP_ZOOM_LEVEL = 15;
 
 /**
+ * 검색 스코프
+ */
+export const SEARCH_SCOPE = {
+  NEARBY: 'nearby',
+  BOUNDARY: 'bounds',
+  GLOBAL: 'global',
+} as const;
+
+export type SearchScope = (typeof SEARCH_SCOPE)[keyof typeof SEARCH_SCOPE];
+
+/**
  * 줌레벨별 행정구역 단위
  */
 export const REGION_LEVELS = {
@@ -11,6 +22,8 @@ export const REGION_LEVELS = {
   2: { name: 'SIGUNGU', min: 11, max: 13 }, // 시/군/구: 11~13
   3: { name: 'EUPMYEONDONG', min: 14, max: 20 }, // 읍/면/동: 14~
 } as const;
+
+export type RegionLevel = keyof typeof REGION_LEVELS;
 
 /**
  * 마커 표시 임계값
@@ -21,14 +34,3 @@ export const MARKER_THRESHOLDS = {
   /** 업체 마커 최소 줌레벨 (14~) */
   BUSINESS_MIN: REGION_LEVELS[3].min,
 } as const;
-
-/**
- * 지도 검색 모드 상수
- */
-export const SEARCH_MODES = {
-  NEARBY: 'nearby',
-  BOUNDARY: 'boundary',
-  GLOBAL: 'global',
-} as const;
-
-export const DEFAULT_SEARCH_MODE = SEARCH_MODES.NEARBY;

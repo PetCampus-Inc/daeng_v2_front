@@ -1,11 +1,11 @@
 /** api */
-export { kindergartenQueryOptions } from './api/kindergartenQuery';
+export { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
 
 /** lib */
 export { isValidLatLngBounds, toBounds } from './lib/map-adapter';
 
 /** model */
-export * from './model/useSearchUrlState';
+export * from './model/useListOptionsUrlState';
 export * from './model/useSearchFilter';
 
 /** ui */

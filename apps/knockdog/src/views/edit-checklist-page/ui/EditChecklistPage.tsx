@@ -91,7 +91,7 @@ function EditChecklistPage() {
 
   return (
     <div>
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>

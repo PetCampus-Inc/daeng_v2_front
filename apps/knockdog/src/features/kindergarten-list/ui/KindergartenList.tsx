@@ -1,59 +1,87 @@
-import { useEffect, useRef } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
+import { inferSearchKindFromUrl, type UrlSearchKind } from '../model/searchKind';
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { kindergartenQueryOptions } from '../api/kindergartenQuery';
-import { useSearchUrlState } from '../model/useSearchUrlState';
-import { useMapUrlState } from '@features/kindergarten-map';
+import { useListOptionsUrlState } from '../model/useListOptionsUrlState';
+import { PermissionSection } from './PermissionSection';
+import { NearByRecommendBanner } from './NearByRecommendBanner';
+import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { isNativeWebView, useBasePoint, useBottomSheetSnapIndex } from '@shared/lib';
+import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useBasePointType } from '@shared/store';
-import type { Coord } from '@shared/types';
+import { useBasePointType, useSearchListScroll } from '@shared/store';
+import type { FilterOption } from '@entities/kindergarten';
+import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 
 interface KindergartenListProps {
-  mapSnapshot: {
-    center: Partial<Coord> | null;
-    bounds: naver.maps.LatLngBounds | null;
-    zoomLevel: number;
-  };
   onOpenFilter: () => void;
+  region?: string | null;
 }
 
-export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenListProps) {
+export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { query: searchQuery, filters, rank } = useSearchUrlState();
-  const { searchMode } = useMapUrlState();
-  const { coord: basePoint } = useBasePoint();
+  const { query: searchQuery, filters } = useSearchUrlState();
+  const { rank } = useListOptionsUrlState();
+  const { dispatch } = useSearchMachine();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
-  const query = useInfiniteQuery({
-    ...kindergartenQueryOptions.searchList({
-      refPoint: basePoint,
-      bounds: mapSnapshot.bounds,
-      zoomLevel: mapSnapshot.zoomLevel,
-      filters,
-      query: searchQuery,
-      rank,
-      searchMode,
-    }),
-  });
+  const { listQuery, searchList, listWithoutExact, exact } = useSearchListQuery({ rank });
 
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
-  const totalCount = query.data?.pages[0]?.schoolResult.totalCount || 0;
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
+  const totalCount = listQuery.data?.pages[0]?.schoolResult.totalCount || 0;
 
   const selectedFilters = getSelectedFilterWithLabel();
+  const { scrollTop, setScrollTop } = useSearchListScroll();
+
+  const searchKind: UrlSearchKind = useMemo(
+    () => inferSearchKindFromUrl({ query: searchQuery, filters, region }),
+    [searchQuery, filters, region]
+  );
+
+  const prevFiltersRef = useRef(filters);
+
+  useEffect(() => {
+    if (areFiltersEqual(filters, prevFiltersRef.current)) return;
+    prevFiltersRef.current = filters;
+
+    if (filters.length > 0) {
+      dispatch({ type: 'SET_FILTERS', filters });
+      return;
+    }
+    dispatch({ type: 'CLEAR_FILTERS' });
+  }, [filters, dispatch]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setScrollTop(container.scrollTop);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [setScrollTop]);
+
+  useEffect(() => {
+    if (!isFullExtended) return;
+    const container = containerRef.current;
+    if (!container) return;
+    container.scrollTop = scrollTop;
+  }, [isFullExtended, scrollTop]);
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -78,6 +106,11 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasNextPage, isFetchingNextPage]);
 
+  const isGranted = useMemo(async () => {
+    const status = await getCurrentLocation.getPermission();
+    return status === 'allowed';
+  }, []);
+
   const handleLocationChange = (value: string) => {
     setBaseType(value as 'current' | 'home' | 'work');
   };
@@ -86,6 +119,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
     <>
       <main
         ref={containerRef}
+        data-search-kind={searchKind}
         className={cn(
           !isNativeWebView() && 'pb-[68px]',
           'scrollbar-hide relative flex h-full w-full flex-col',
@@ -157,7 +191,7 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
         </div>
 
         {/* <DogSchoolEmptySection /> */}
-        {/* <PermissionSection /> */}
+        {!isGranted && <PermissionSection />}
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
           <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
@@ -165,11 +199,18 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
             <SortSelect />
           </div>
 
-          {query.data?.pages
-            ?.flatMap((page) => page.schoolResult.list)
-            .map((item) => (
-              <KindergartenListItem key={item.id} {...item} banner={item.banner ?? []} />
-            ))}
+          {exact && (
+            <>
+              <KindergartenListItem {...exact} />
+              <NearByRecommendBanner title={exact.title} />
+            </>
+          )}
+          {(listWithoutExact ?? searchList).map((item) => (
+            <Fragment key={item.id}>
+              <KindergartenListItem {...item} banner={item.banner ?? []} />
+              <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
+            </Fragment>
+          ))}
         </div>
         <div ref={loadMoreRef} aria-hidden className='h-4' />
       </main>
@@ -189,10 +230,19 @@ export function KindergartenList({ mapSnapshot, onOpenFilter }: KindergartenList
           label='지도보기'
           size='medium'
           icon='Map'
-          onClick={() => setSnapIndex(0)}
-          extended={isFabExtended}
-        />
-      </Float>
-    </>
-  );
+      onClick={() => setSnapIndex(0)}
+      extended={isFabExtended}
+    />
+  </Float>
+</>
+);
+}
+
+function areFiltersEqual(a: FilterOption[], b: FilterOption[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }

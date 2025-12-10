@@ -1,5 +1,5 @@
 import { api, ApiResponse } from '@shared/api';
-import { AddressSearchResponse } from '../model/address';
+import { AddressSearchResponse, ReverseGeocodeResponse } from '../model/address';
 import { LatLng } from '@entities/address';
 
 const searchAddress = async (query: string, size: number = 10): Promise<ApiResponse<AddressSearchResponse>> => {
@@ -19,4 +19,13 @@ const getGeocode = async (address: string): Promise<LatLng> => {
   return data;
 };
 
-export { searchAddress, getGeocode };
+const getReverseGeocode = async (lat: number, lng: number): Promise<ReverseGeocodeResponse> => {
+  const response = await api.get(`address/reverse-geo`, { searchParams: { lat, lng } });
+
+  const { data, code, message } = await response.json<ApiResponse<ReverseGeocodeResponse>>();
+  if (code !== 'SUCCESS') throw new Error(message);
+
+  return data;
+};
+
+export { searchAddress, getGeocode, getReverseGeocode };

@@ -26,22 +26,19 @@ const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.APPLE]: METHODS.appleLogin,
 } as const;
 
-/** 백엔드 로그인 응답 타입 (addresses 필드 사용) */
-type LoginResponseUser = Omit<User, 'addressList'> & {
-  addresses?: UserAddress[];
-};
-
-export const useLogin = () => {
-  const { push, back } = useStackNavigation();
+export const useLogin = (options?: { redirectTo?: string }) => {
+  const { push, back, replace } = useStackNavigation();
   const bridge = useBridge();
 
-  const { mutate: loginMutate } = useMutation<ApiResponse<LoginResponseUser>>({ mutationFn: postLogin });
+  const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
   const { mutateAsync: oidcMutateAsync } = useMutation({ mutationFn: postVerifyOidc });
 
   const setUser = useUserStore((state) => state.setUser);
   const setSocialUser = useSocialUserStore((state) => state.setSocialUser);
 
   const linkedSocialUser = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, { initialValue: null });
+
+  const redirectTo = options?.redirectTo;
 
   /** OIDC 인증 */
   const oidcAuth = async (provider: SocialProvider) => {
@@ -55,18 +52,15 @@ export const useLogin = () => {
     return code;
   };
 
-  const handleLoginSuccess = (data: LoginResponseUser) => {
+  const handleLoginSuccess = (data: User) => {
     if (data.status === USER_STATUS.ACTIVE) {
-      // 백엔드에서 addresses로 오는 것을 addressList로 변환
-      const user: User = {
-        ...data,
-        addressList: data.addresses || [],
-      };
+      setUser(data);
 
-      setUser(user);
-      // eventBus.publish('auth:login', user);
-
-      back();
+      if (redirectTo) {
+        replace({ pathname: redirectTo });
+      } else {
+        back();
+      }
     }
   };
 

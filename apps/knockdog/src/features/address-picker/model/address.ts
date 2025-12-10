@@ -11,4 +11,19 @@ interface AddressSearchResponse {
   addressList: AddressSearchResult[];
 }
 
-export type { AddressSearchResult, AddressSearchResponse };
+interface ReverseGeocodeDocument {
+  address: {
+    pnu: string;
+    address: string;
+    roadAddress: string;
+  };
+  road_address: {
+    address_name: string;
+  };
+}
+
+interface ReverseGeocodeResponse {
+  documents: ReverseGeocodeDocument[];
+}
+
+export type { AddressSearchResult, AddressSearchResponse, ReverseGeocodeResponse };

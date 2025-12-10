@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { ActionButton, Icon } from '@knockdog/ui';
+import Image from 'next/image';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
@@ -26,14 +27,16 @@ function MarketingConsentPage() {
   return (
     <>
       <div className='flex h-full flex-col px-4 pt-26'>
-        <div className='flex flex-1 flex-col'>
+        <div className='flex-1'>
           <h1 className='h1-extrabold'>
             똑독의 새소식을
             <br />
             꾸준히 받아보실래요?
           </h1>
 
-          <div className='mt-9 flex h-58 w-full items-center justify-center bg-gray-100'>{/* 이미지 영역 */}</div>
+          <div className='relative mx-20 mt-15 flex aspect-square items-center justify-center'>
+            <Image src='/images/img_marketing.png' alt='marketing_image' fill className='object-cover' />
+          </div>
 
           <p className='body1-regular text-text-secondary mt-5 leading-[24px] tracking-[-0.01em]'>
             똑독이 전하는 우리 동네 강아지 유치원의 <br />
@@ -50,7 +53,7 @@ function MarketingConsentPage() {
           <Icon icon='ChevronRight' className='h-4 w-4' />
         </button>
 
-        <div className='mt-9 flex gap-2'>
+        <div className='mt-9 flex gap-2 pb-5'>
           <ActionButton variant='secondaryLine' className='w-full' size='large' onClick={handleSkip}>
             아니오
           </ActionButton>

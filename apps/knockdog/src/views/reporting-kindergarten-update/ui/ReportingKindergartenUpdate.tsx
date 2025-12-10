@@ -28,6 +28,8 @@ function ReportingKindergartenUpdate() {
 
   const { data: kindergartenBasic } = useKindergartenBasicQuery(id!);
   const roadAddress = kindergartenBasic?.roadAddress ?? null;
+  const lat = kindergartenBasic?.coord?.lat ?? 37.3595704;
+  const lng = kindergartenBasic?.coord?.lng ?? 127.105399;
 
   const { pushForResult, back } = useStackNavigation();
   const { isChecked, toggleCheck, newAddress, setNewAddress, setFiles, reportingParams, isFormValid, files } =
@@ -64,7 +66,7 @@ function ReportingKindergartenUpdate() {
       <AddressSelectMapSheet
         isOpen={isOpen}
         close={close}
-        defaultLocation={{ lat: 37.3595704, lng: 127.105399, name: roadAddress ?? '' }}
+        defaultLocation={{ lat, lng, name: roadAddress ?? '' }}
         onSelect={(location) => {
           setNewAddress(location.name);
         }}
@@ -211,7 +213,7 @@ function ReportingKindergartenUpdate() {
   return (
     <>
       <div className='sticky top-0 z-10'>
-        <Header withSpacing={false}>
+        <Header>
           <Header.LeftSection>
             <Header.BackButton />
           </Header.LeftSection>

@@ -1,5 +1,5 @@
 // api
-export { getMemo, type MemoResponse } from './api/getMemo';
+export { getMemo, type MemoResponse, type MemoPhoto } from './api/getMemo';
 export { updateMemo, type UpdateMemoRequest } from './api/updateMemo';
 
 // config

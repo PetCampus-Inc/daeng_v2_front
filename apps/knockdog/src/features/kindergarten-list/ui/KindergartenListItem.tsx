@@ -32,10 +32,7 @@ export function KindergartenListItem({
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className='gap-x4 px-x4 py-x6 border-line-100 flex w-full flex-col items-center border-b-8'
-    >
+    <div onClick={handleClick} className='gap-x4 px-x4 py-x6 flex w-full flex-col items-center'>
       {/* 이미지 컨테이너 */}
       <div className='relative aspect-[16/9] w-full overflow-hidden'>
         <BannerImageSlider id={id} name={title} slides={banner} />

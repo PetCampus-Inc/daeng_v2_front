@@ -9,7 +9,7 @@ export const mapQueryOptions = {
       queryKey: ['reverseGeocode', lat, lng, zoomLevel ?? null],
       queryFn: () => getReverseGeocode({ lat, lng }),
       enabled: !!lat && !!lng && lat !== 0 && lng !== 0,
-      select: (data) => data.documents[0].address,
+      select: (data) => data.documents?.[0]?.address,
     });
   },
 };

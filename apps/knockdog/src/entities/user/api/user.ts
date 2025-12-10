@@ -1,10 +1,15 @@
 import { api, ApiResponse } from '@shared/api';
-import { User, UserAddress } from '../model/user';
+import { User, UserAddress, WithdrawReasonType } from '../model/user';
 
 interface RegisterUserRequest {
   nickname: string;
   profileImage: string;
   addresses: Omit<UserAddress, 'id'>[];
+}
+
+interface WithdrawRequest {
+  reasonType: WithdrawReasonType;
+  detail?: string;
 }
 
 /** `POST` - 회원 가입 API */
@@ -17,8 +22,8 @@ const postRegisterUser = async (request: RegisterUserRequest) => {
 };
 
 /** `POST` - 회원 탈퇴 API */
-const postWithdraw = async (userId: string) => {
-  return await api.post(`auth/withdraw/${userId}`);
+const postWithdraw = async (request: WithdrawRequest) => {
+  return await api.post(`user/withdraw`, { json: request });
 };
 
 interface UserInfo extends User {
@@ -42,6 +47,7 @@ const postUpdateUserEmail = async (userEmail: string) => {
 
 export {
   type RegisterUserRequest,
+  type WithdrawRequest,
   type UserInfo,
   postRegisterUser,
   postWithdraw,

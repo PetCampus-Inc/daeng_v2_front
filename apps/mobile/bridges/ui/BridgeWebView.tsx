@@ -94,7 +94,7 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
       cacheEnabled={false}
       injectedJavaScriptBeforeContentLoaded={INJECT_BEFORE}
       geolocationEnabled
-      webviewDebuggingEnabled={__DEV__}
+      webviewDebuggingEnabled={true}
     />
   );
 }

@@ -2,31 +2,27 @@
 
 import { Controller } from 'react-hook-form';
 
-import { Field } from '@knockdog/ui';
-import { FieldLabel } from '@knockdog/ui';
-import { TextField } from '@knockdog/ui';
-import { TextFieldInput } from '@knockdog/ui';
-import { Divider } from '@knockdog/ui';
-import { ActionButton } from '@knockdog/ui';
+import { Field, FieldLabel, TextField, TextFieldInput, Divider, ActionButton } from '@knockdog/ui';
+import { Suspense } from 'react';
+
+import { useLocationAddPage } from '../model/useLocationAddPage';
 
 import { Header } from '@widgets/Header';
 import { AddressPicker } from '@features/address-picker';
 import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
-import { useLocationAddPage } from '../model/useLocationAddPage';
-import { Suspense } from 'react';
 
 function LocationAddPage() {
   const { type, control, isValid, submit, handleSubmit } = useLocationAddPage();
 
   return (
-    <div className='flex h-full flex-col'>
+    <div className='flex h-full flex-col pb-5'>
       <Header>
         <Header.BackButton />
         <Header.Title>장소 추가하기</Header.Title>
       </Header>
 
       <Suspense>
-        <div className='flex flex-1 flex-col overflow-hidden px-4 pt-10 pb-5'>
+        <div className='flex flex-1 flex-col overflow-hidden px-4 pt-10'>
           <p className='h3-extrabold'>
             {type && USER_ADDRESS_TYPE_KR[type]}
             <span className='body1-extrabold text-text-accent'>*</span>

@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -7,12 +7,9 @@ import { cn } from '@knockdog/ui/lib';
 import {
   CurrentLocationDisplayFAB,
   CurrentLocationFAB,
-  DEFAULT_MAP_ZOOM_LEVEL,
-  getRegionLevel,
   ListFAB,
   MapView,
   RefreshFAB,
-  SEARCH_MODES,
   useMapUrlState,
 } from '@features/kindergarten-map';
 import {
@@ -20,72 +17,90 @@ import {
   KindergartenItemSheet,
   KindergartenListSheet,
   SearchHeader,
-  isValidLatLngBounds,
-  useSearchUrlState,
+  useListOptionsUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
+import {
+  areBoundsEqual,
+  SearchStateProvider,
+  useSearchMachine,
+} from '@features/kindergarten-map/model/useSearchMachine';
+import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
+import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
+import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isEqualCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
-import type { Coord } from '@shared/types';
+import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
+import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 
 export default function KindergartenMainPage() {
+  return (
+    <SearchStateProvider>
+      <KindergartenMainPageContent />
+    </SearchStateProvider>
+  );
+}
+
+function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
 
   const searchParams = useSearchParams();
 
-  const { center, zoomLevel, setSearchedLevel, setSearchMode } = useMapUrlState();
+  const { center, zoomLevel } = useMapUrlState();
   const { query } = useSearchUrlState();
-  const { coord: basePoint } = useBasePoint();
+  const { rank } = useListOptionsUrlState();
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
 
+  const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
+
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapSnapshot, setMapSnapshot] = useState<{
-    center: Partial<Coord> | null;
-    bounds: naver.maps.LatLngBounds | null;
-    zoomLevel: number;
-  }>({
-    center: null,
-    bounds: null,
-    zoomLevel: 0,
-  });
-
   const shouldShowRefresh = useMemo(() => {
-    return !(isEqualCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
-  }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
+    if (!mapSnapshot.viewportBounds) return false;
 
-  /** 지도 스냅샷 초기화 */
+    const zoomChanged = zoomLevel !== mapSnapshot.zoom;
+
+    if (snapshot.searchBounds) {
+      return zoomChanged || !areBoundsEqual(snapshot.searchBounds, mapSnapshot.viewportBounds);
+    }
+
+    if (snapshot.refPoint && mapSnapshot.center) {
+      return zoomChanged || !isEqualCoord(snapshot.refPoint, mapSnapshot.center);
+    }
+
+    return zoomChanged;
+  }, [
+    mapSnapshot.viewportBounds,
+    mapSnapshot.zoom,
+    mapSnapshot.center,
+    snapshot.searchBounds,
+    snapshot.refPoint,
+    zoomLevel,
+  ]);
+
+  // ENTER 이벤트: 메인 페이지 진입 시 1회
   useEffect(() => {
-    if (!isMapLoaded || mapSnapshot.center !== null) return;
+    dispatch({ type: 'ENTER' });
+    // deps를 비워 재실행을 막는다. (dispatch는 안정되지 않으므로 lint 무시)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const initialCenter = center || (isValidCoord(basePoint) && basePoint);
+  // SET_QUERY / CLEAR_QUERY 이벤트: URL query 변경 시
+  const prevQueryRef = useRef<string | null>(null);
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (prevQueryRef.current === trimmed) return;
+    prevQueryRef.current = trimmed;
 
-    if (!initialCenter) return;
-
-    const initialZoom = zoomLevel ?? DEFAULT_MAP_ZOOM_LEVEL;
-    const bounds = mapRef.current?.getBounds();
-    const initialBounds = isValidLatLngBounds(bounds) ? bounds : null;
-
-    startTransition(() => {
-      setMapSnapshot({
-        center: initialCenter,
-        bounds: initialBounds,
-        zoomLevel: initialZoom,
-      });
-    });
-
-    setSearchedLevel(getRegionLevel(initialZoom));
-  }, [isMapLoaded, center, basePoint, zoomLevel, mapSnapshot.center, setSearchedLevel]);
-
-  /**
-   * 검색 레벨 변경 완료 핸들러
-   * @description 검색 레벨 변경 완료 시 스냅샷 업데이트
-   */
-  const handleSearchLevelChange = (center: Coord, zoom: number, bounds: naver.maps.LatLngBounds) => {
-    setMapSnapshot({ center, bounds, zoomLevel: zoom });
-  };
+    if (trimmed.length > 0) {
+      dispatch({ type: 'SET_QUERY', query: trimmed });
+      return;
+    }
+    dispatch({ type: 'CLEAR_QUERY' });
+    // deps에 dispatch를 넣지 않아 동일 값 반복 실행을 차단한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   /**
    * 재검색 핸들러
@@ -93,17 +108,16 @@ export default function KindergartenMainPage() {
    * - 검색 모드를 boundary로 전환
    */
   const handleRefresh = () => {
-    if (!isValidCoord(basePoint) || !zoomLevel) return;
+    if (!zoomLevel) return;
 
     const bounds = mapRef.current?.getBounds();
-    const validBounds = isValidLatLngBounds(bounds) ? bounds : null;
+    const viewportBounds: BoundsSnapshot | null = toBoundsSnapshot(bounds);
 
-    setMapSnapshot({
-      center: { lat: center?.lat, lng: center?.lng },
-      bounds: validBounds,
-      zoomLevel,
+    dispatch({
+      type: 'RESEARCH_HERE',
+      viewportBounds,
+      levelFromZoom: getRegionLevel(zoomLevel),
     });
-    setSearchMode(SEARCH_MODES.BOUNDARY);
   };
 
   const handleOpenCard = (item: KindergartenListItemWithMeta) => {
@@ -143,10 +157,9 @@ export default function KindergartenMainPage() {
       <MapView
         ref={mapRef}
         isMapLoaded={isMapLoaded}
-        onSearchLevelChange={handleSearchLevelChange}
         onMapLoadChange={setIsMapLoaded}
         onOpenCard={handleOpenCard}
-        mapSnapshot={mapSnapshot}
+        sortRank={rank}
       />
 
       {query.trim().length > 0 ? (
@@ -182,7 +195,7 @@ export default function KindergartenMainPage() {
           </div>
         }
       >
-        <KindergartenList mapSnapshot={mapSnapshot} onOpenFilter={handleOpenFilter} />
+        <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
       </KindergartenListSheet>
     </>
   );

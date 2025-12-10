@@ -3,11 +3,12 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { cn } from '@knockdog/ui/lib';
 import { suit } from './font';
 import './globals.css';
+import type { Viewport } from 'next';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
-import type { Viewport } from 'next';
+import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BridgeProvider>
               <OverlayProvider>
                 <HeaderProvider>
+                  <SyncWebViewQueryEffect />
                   <div className='relative mx-auto flex h-dvh w-screen max-w-screen-sm flex-col shadow-lg'>
                     {/* @TODO HeaderWrapper 추후 삭제 필요 */}
                     <HeaderWrapper />

@@ -35,7 +35,7 @@ function Mypage() {
 
   const accountInfo: AccountInfo = {
     nickname: user?.nickname || '살구형',
-    userId: user?.id || '123456',
+    userId: user?.userId || '123456',
   };
 
   const handleDogClick = (petId: string) => {
@@ -52,11 +52,8 @@ function Mypage() {
 
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
-      <Header withSpacing={false}>
+      <Header>
         <Header.Title>마이페이지</Header.Title>
-        <Header.RightSection>
-          <IconButton icon='AlarmLine' />
-        </Header.RightSection>
       </Header>
 
       <div className='flex-1 overflow-y-auto pb-16'>

@@ -14,13 +14,11 @@ import type { HeaderVariant } from '../model/HeaderProvider';
 export function Header({
   className,
   variant = 'solid',
-  withSpacing = true,
   children,
   ...props
 }: ComponentProps<'header'> & {
   variant?: HeaderVariant;
   fontColor?: string;
-  withSpacing?: boolean;
 }) {
   const variantClass = {
     solid: 'bg-white border-b border-line-100',
@@ -39,7 +37,6 @@ export function Header({
       >
         <div className={cn('flex h-16 w-full items-center')}>{children}</div>
       </header>
-      {withSpacing && <div className='h-16' />}
     </>
   );
 }

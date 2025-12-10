@@ -4,15 +4,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Rectangle } from '@knockdog/react-naver-map';
-
-function isValidLatLngBounds(bounds?: naver.maps.Bounds | null): bounds is naver.maps.LatLngBounds {
-  if (!bounds) return false;
-  return (
-    bounds instanceof naver.maps.LatLngBounds &&
-    typeof bounds.getSW === 'function' &&
-    typeof bounds.getNE === 'function'
-  );
-}
+import type { BoundsSnapshot } from '../lib/searchMachine';
+import { toBoundsSnapshot } from '../lib/bounds';
 
 interface BBoxDebugProps {
   /**
@@ -27,34 +20,29 @@ interface BBoxDebugProps {
   /**
    * 현재 뷰포트의 bbox (mapSnapshot.bounds)
    */
-  viewportBounds: naver.maps.LatLngBounds | null;
+  viewportBounds: BoundsSnapshot | null;
   /**
    * 지도 인스턴스
    */
   map: naver.maps.Map | null;
 }
 
-function areBoundsEqual(bounds1: naver.maps.LatLngBounds | null, bounds2: naver.maps.LatLngBounds | null): boolean {
+function areBoundsEqual(bounds1: BoundsSnapshot | null, bounds2: BoundsSnapshot | null): boolean {
   if (!bounds1 || !bounds2) return bounds1 === bounds2;
-
-  const sw1 = bounds1.getSW();
-  const ne1 = bounds1.getNE();
-  const sw2 = bounds2.getSW();
-  const ne2 = bounds2.getNE();
 
   const epsilon = 1e-6;
   return (
-    Math.abs(sw1.x - sw2.x) < epsilon &&
-    Math.abs(sw1.y - sw2.y) < epsilon &&
-    Math.abs(ne1.x - ne2.x) < epsilon &&
-    Math.abs(ne1.y - ne2.y) < epsilon
+    Math.abs(bounds1.swLng - bounds2.swLng) < epsilon &&
+    Math.abs(bounds1.swLat - bounds2.swLat) < epsilon &&
+    Math.abs(bounds1.neLng - bounds2.neLng) < epsilon &&
+    Math.abs(bounds1.neLat - bounds2.neLat) < epsilon
   );
 }
 
-export function BBoxDebug({ serverBounds, viewportBounds, map }: BBoxDebugProps) {
-  const [currentViewportBounds, setCurrentViewportBounds] = useState<naver.maps.LatLngBounds | null>(null);
+export function BBoxDebug({ map, serverBounds, viewportBounds }: BBoxDebugProps) {
+  const [currentViewportBounds, setCurrentViewportBounds] = useState<BoundsSnapshot | null>(null);
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const previousBoundsRef = useRef<naver.maps.LatLngBounds | null>(null);
+  const previousBoundsRef = useRef<BoundsSnapshot | null>(null);
 
   // 지도 bounds 변경 시 현재 뷰포트 bounds 업데이트
   useEffect(() => {
@@ -62,11 +50,10 @@ export function BBoxDebug({ serverBounds, viewportBounds, map }: BBoxDebugProps)
 
     const updateBounds = () => {
       const bounds = map.getBounds();
-      if (isValidLatLngBounds(bounds)) {
-        if (!areBoundsEqual(bounds, previousBoundsRef.current)) {
-          previousBoundsRef.current = bounds;
-          setCurrentViewportBounds(bounds);
-        }
+      const snapshot = toBoundsSnapshot(bounds);
+      if (snapshot && !areBoundsEqual(snapshot, previousBoundsRef.current)) {
+        previousBoundsRef.current = snapshot;
+        setCurrentViewportBounds(snapshot);
       }
     };
 
@@ -95,13 +82,15 @@ export function BBoxDebug({ serverBounds, viewportBounds, map }: BBoxDebugProps)
     );
   }, [serverBounds]);
 
-  //   useEffect(() => {
-  //     if (!serverBoundsLatLng || !activeViewportBounds) return;
-  //     console.log('뷰포트 bbox', activeViewportBounds);
-  //     console.log('서버 bbox', serverBoundsLatLng);
-  //   }, [serverBoundsLatLng, activeViewportBounds]);
+  const viewportBoundsLatLng = useMemo(() => {
+    if (!activeViewportBounds) return null;
+    return new naver.maps.LatLngBounds(
+      new naver.maps.LatLng(activeViewportBounds.swLat, activeViewportBounds.swLng),
+      new naver.maps.LatLng(activeViewportBounds.neLat, activeViewportBounds.neLng)
+    );
+  }, [activeViewportBounds]);
 
-  if (!serverBoundsLatLng || !activeViewportBounds) return null;
+  if (!serverBoundsLatLng || !viewportBoundsLatLng) return null;
 
   return (
     <>
@@ -120,7 +109,7 @@ export function BBoxDebug({ serverBounds, viewportBounds, map }: BBoxDebugProps)
 
       {/* 현재 뷰포트 bbox - 빨간색 */}
       <Rectangle
-        bounds={activeViewportBounds}
+        bounds={viewportBoundsLatLng}
         fillColor='#ef4444'
         fillOpacity={0.2}
         strokeColor='#ef4444'
