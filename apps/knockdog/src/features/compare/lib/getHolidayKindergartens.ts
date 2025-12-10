@@ -8,11 +8,13 @@ export function getHolidayKindergartens(
 
   const holidayOpenKgs: SimpleComparisonItem[] = [];
 
-  if (left?.operatingSchedule?.closedDays?.includes('HOLIDAY')) {
+  const leftClosedDay = left?.operatingSchedule?.closedDays ?? [];
+  if (!leftClosedDay?.includes('HOLIDAY')) {
     holidayOpenKgs.push(mapToSimpleItem(left));
   }
 
-  if (right?.operatingSchedule?.closedDays?.includes('HOLIDAY')) {
+  const rightClosedDay = right?.operatingSchedule?.closedDays ?? [];
+  if (!rightClosedDay?.includes('HOLIDAY')) {
     holidayOpenKgs.push(mapToSimpleItem(right));
   }
 
