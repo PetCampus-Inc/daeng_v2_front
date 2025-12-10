@@ -1,5 +1,6 @@
 import { findShortestFromComparisons } from '../lib/findShortestFromComparisons';
 import { DistanceComparisonsByRef, Summary, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
+import { getDirectionParticle, getSubjectParticle } from '@shared/utils/text';
 
 export function DistanceSummary({ comparisons }: { comparisons: DistanceComparisonsByRef }) {
   const shortestInfo = findShortestFromComparisons(comparisons);
@@ -15,11 +16,16 @@ export function DistanceSummary({ comparisons }: { comparisons: DistanceComparis
 
   const refPointText = REFERENCE_POINT_TYPE[shortestInfo.referencePoint];
   const typeText = TRANSPORTATION_TYPE[shortestInfo.transportType];
+  const subjectParticle = getSubjectParticle(shortestInfo.name);
+  const directionParticle = getDirectionParticle(shortestInfo.transportType);
 
   return (
     <>
-      <Summary highlight={shortestInfo.name} truncate>{`${refPointText}에서 ${shortestInfo.name}이`}</Summary>
-      <Summary highlight={typeText}>{`${typeText}로 가장 가까워요`}</Summary>
+      <Summary
+        highlight={shortestInfo.name}
+        truncate
+      >{`${refPointText}에서 ${shortestInfo.name}${subjectParticle}`}</Summary>
+      <Summary highlight={typeText}>{`${typeText}${directionParticle} 가장 가까워요`}</Summary>
     </>
   );
 }

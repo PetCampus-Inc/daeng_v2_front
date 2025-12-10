@@ -1,4 +1,5 @@
 import { PriceDetailComparison, Summary } from '@entities/compare';
+import { getSubjectParticle } from '@shared/utils/text';
 
 export function PricingSummary({ comparison }: { comparison: PriceDetailComparison }) {
   const { variant, leftKg, rightKg } = comparison;
@@ -6,9 +7,10 @@ export function PricingSummary({ comparison }: { comparison: PriceDetailComparis
   if (variant === 'cheaper') {
     const cheaperKg = leftKg; // 왼쪽: 저렴한 유치원
     const priceDiffStr = Math.abs(leftKg.value - rightKg.value).toLocaleString();
+    const subjectParticle = getSubjectParticle(cheaperKg.name);
     return (
       <>
-        <Summary highlight={cheaperKg.name} truncate>{`${cheaperKg.name}이(가)`}</Summary>
+        <Summary highlight={cheaperKg.name} truncate>{`${cheaperKg.name}${subjectParticle}`}</Summary>
         <Summary highlight={`약 ${priceDiffStr}원`}>{`1시간당 약 ${priceDiffStr}원 더 저렴해요`}</Summary>
       </>
     );
