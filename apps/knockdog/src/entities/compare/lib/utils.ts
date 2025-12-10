@@ -1,5 +1,5 @@
 import {
-  DAY_OF_WEEK,
+  CLOSED_DAYS,
   KindergartenComparison,
   ProductType,
   SimpleComparisonItem,
@@ -116,4 +116,4 @@ export const getDistanceString = (kg?: KindergartenComparison | null, refPoint: 
   kg?.distance?.find((distance) => distance?.referencePoint === refPoint)?.distance ?? '-';
 
 export const getClosedDaysText = (kg?: KindergartenComparison | null) =>
-  (kg?.operatingSchedule?.closedDays ?? []).map((dayKey) => DAY_OF_WEEK[dayKey]).join(', ') || '-';
+  (kg?.operatingSchedule?.closedDays ?? []).map((dayKey) => CLOSED_DAYS[dayKey]).join(', ') || '-';

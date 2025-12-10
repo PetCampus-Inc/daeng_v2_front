@@ -1,4 +1,5 @@
 // apps/knockdog/app/compare-complete/types.ts
+import { DAY_OF_WEEK } from '@shared/constants';
 
 // ===== 상수 =====
 export const CTAG_MAP = {
@@ -31,7 +32,7 @@ export const REFERENCE_POINT_TYPE: Record<string, string> = {
 };
 export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE | string;
 
-export const DAY_OF_WEEK = {
+export const DAY_OF_WEEK_SHORT = {
   MONDAY: '월',
   TUESDAY: '화',
   WEDNESDAY: '수',
@@ -40,7 +41,14 @@ export const DAY_OF_WEEK = {
   SATURDAY: '토',
   SUNDAY: '일',
 } as const;
-export type DayOfWeek = keyof typeof DAY_OF_WEEK;
+export type DayOfWeekShort = keyof typeof DAY_OF_WEEK_SHORT;
+
+export const CLOSED_DAYS = {
+  ...DAY_OF_WEEK,
+  WEEKEND: '주말',
+  HOLIDAY: '공휴일',
+};
+export type ClosedDay = keyof typeof CLOSED_DAYS;
 
 // ===== 타입 =====
 export interface ProductInfo {
@@ -73,7 +81,6 @@ export interface Distance {
   transitTimes: TransitTime[];
 }
 
-type ClosedDay = DayOfWeek | 'HOLIDAY';
 export interface OperatingSchedule {
   closedDays: ClosedDay[];
   weekdayHours: string | null;

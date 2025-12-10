@@ -1,4 +1,11 @@
-import { KindergartenComparison, DayOfWeek, CircleAvatar, s3ToUrl, Description, DAY_OF_WEEK } from '@entities/compare';
+import {
+  KindergartenComparison,
+  DayOfWeekShort,
+  CircleAvatar,
+  s3ToUrl,
+  Description,
+  DAY_OF_WEEK_SHORT,
+} from '@entities/compare';
 
 export function ComparisonDaysItem({ kindergarten }: { kindergarten: KindergartenComparison }) {
   const closedDays = kindergarten?.operatingSchedule?.closedDays;
@@ -14,12 +21,14 @@ export function ComparisonDaysItem({ kindergarten }: { kindergarten: Kindergarte
       </div>
     );
   } else {
-    const openDays = Object.keys(DAY_OF_WEEK).filter((day) => !closedDays.includes(day as DayOfWeek)) as DayOfWeek[];
+    const openDays = Object.keys(DAY_OF_WEEK_SHORT).filter(
+      (day) => !closedDays.includes(day as DayOfWeekShort)
+    ) as DayOfWeekShort[];
 
     DaysContent = (
       <div className='mt-4 flex gap-1.5'>
-        {Object.entries(DAY_OF_WEEK).map(([day, label]) => {
-          const isOpen = openDays.includes(day as DayOfWeek);
+        {Object.entries(DAY_OF_WEEK_SHORT).map(([day, label]) => {
+          const isOpen = openDays.includes(day as DayOfWeekShort);
           return <DayChip key={day} isOn={isOpen} label={label} />;
         })}
       </div>
