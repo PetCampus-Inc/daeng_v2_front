@@ -12,7 +12,7 @@ export function Summary({
   className?: string;
 }) {
   return (
-    <p className={`h2-extrabold flex min-w-0 justify-center not-last:mb-0.5 ${className}`}>
+    <p className={`h2-extrabold mb-0.5 flex min-w-0 justify-center ${className}`}>
       <HighlightedText text={children} highlight={highlight} truncate={truncate} highlightClassName='text-orange-500' />
     </p>
   );

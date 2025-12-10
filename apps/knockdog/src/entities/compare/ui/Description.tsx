@@ -12,7 +12,7 @@ export function Description({
   className?: string;
 }) {
   return (
-    <p className={`h3-regular flex min-w-0 justify-center not-last:mb-0.5 ${className}`}>
+    <p className={`h3-regular mb-0.5 flex min-w-0 justify-center ${className}`}>
       <HighlightedText text={children} highlight={highlight} truncate={truncate} highlightClassName='h3-extrabold' />
     </p>
   );

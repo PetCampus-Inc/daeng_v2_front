@@ -13,7 +13,7 @@ export function CircleAvatar({
   className?: string;
 }) {
   return (
-    <Avatar className={`h-[${size}px] w-[${size}px] ${className}`}>
+    <Avatar style={{ width: size, height: size }} className={`${className}`}>
       <AvatarImage src={src} alt={alt} />
       <AvatarFallback>
         <Image src='/images/img_default_image.png' alt='default' width={size} height={size} />
