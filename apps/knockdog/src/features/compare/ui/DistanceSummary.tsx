@@ -18,10 +18,7 @@ export function DistanceSummary({ comparisons }: { comparisons: DistanceComparis
 
   return (
     <>
-      <Summary
-        highlight={shortestInfo.kindergartenName}
-        truncate
-      >{`${refPointText}에서 ${shortestInfo.kindergartenName}이`}</Summary>
+      <Summary highlight={shortestInfo.name} truncate>{`${refPointText}에서 ${shortestInfo.name}이`}</Summary>
       <Summary highlight={typeText}>{`${typeText}로 가장 가까워요`}</Summary>
     </>
   );

@@ -3,29 +3,31 @@ import {
   TransportationType,
   DistanceComparisonsByRef,
   DistanceDetailComparison,
+  DetailComparisonItem,
 } from '@entities/compare';
 
-type ShortestInfo = {
-  kindergartenName: string;
+interface ShortestInfo extends DetailComparisonItem {
   referencePoint: ReferencePointType;
   transportType: TransportationType;
-  minutes: number;
-};
+}
 
 export function findShortestFromComparisons(comparisons: DistanceComparisonsByRef): ShortestInfo | null {
   let shortest: ShortestInfo | null = null;
 
   for (const [refPoint, transportMap] of Object.entries(comparisons)) {
     for (const [transportType, comparison] of Object.entries(transportMap)) {
+      if (!comparison) continue;
+
       const { variant, leftKg } = comparison as DistanceDetailComparison;
 
       if (variant === 'closer' || variant === 'equal') {
-        if (!shortest || leftKg.minutes < shortest.minutes) {
+        if (!shortest || leftKg.value < shortest.value) {
           shortest = {
-            kindergartenName: leftKg.name,
+            name: leftKg.name,
+            avatar: leftKg.avatar,
+            value: leftKg.value,
             referencePoint: refPoint as ReferencePointType,
             transportType: transportType as TransportationType,
-            minutes: leftKg.minutes,
           };
         }
       }
