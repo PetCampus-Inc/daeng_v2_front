@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
+import { useEffect, useState, PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Header } from '@widgets/Header';
@@ -11,7 +11,6 @@ import {
   AvatarFallback,
   AvatarImage,
   Icon,
-  IconButton,
   IconType,
   Tabs,
   TabsContent,
@@ -21,6 +20,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@knockdog/ui';
+import { SwipeCarousel } from '@widgets/comparisons-tab/ui/SwipeCarousel';
+import { Table } from '@widgets/comparisons-tab/ui/Table';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -271,115 +272,8 @@ function CircleAvatar({
 }
 
 /* =========================
- * SWIPE CAROUSEL
- * ========================= */
-interface SwipeCarouselProps {
-  title?: string;
-  slides: SlideProps[];
-}
-
-function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const count = slides.length;
-  const startX = useRef(0);
-  const deltaX = useRef(0);
-  const isDragging = useRef(false);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-
-  const clampIndex = (index: number) => Math.max(0, Math.min(count - 1, index));
-  const goTo = (index: number) => setCurrentIndex(clampIndex(index));
-  const prev = () => goTo(currentIndex - 1);
-  const next = () => goTo(currentIndex + 1);
-
-  const handlePointerDown = (event: React.PointerEvent) => {
-    isDragging.current = true;
-    startX.current = event.clientX;
-    deltaX.current = 0;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  };
-  const handlePointerMove = (event: React.PointerEvent) => {
-    if (!isDragging.current || !trackRef.current) return;
-    deltaX.current = event.clientX - startX.current;
-    const percent = -currentIndex * 100 + (deltaX.current / trackRef.current.clientWidth) * 100;
-    trackRef.current.style.transform = `translateX(${percent}%)`;
-    trackRef.current.style.transition = 'none';
-  };
-  const handlePointerUp = () => {
-    if (!isDragging.current || !trackRef.current) return;
-    isDragging.current = false;
-    const ratio = Math.abs(deltaX.current) / (trackRef.current.clientWidth || 1);
-    let targetIndex = currentIndex;
-    if (ratio > 0.2) targetIndex = deltaX.current < 0 ? currentIndex + 1 : currentIndex - 1;
-    targetIndex = clampIndex(targetIndex);
-    setCurrentIndex(targetIndex);
-    trackRef.current.style.transition = 'transform 250ms ease';
-    trackRef.current.style.transform = `translateX(${-targetIndex * 100}%)`;
-  };
-
-  return (
-    <div className='w-full'>
-      {title && <DetailSectionTitle>{title}</DetailSectionTitle>}
-      <div
-        className='relative overflow-hidden rounded-lg bg-white select-none'
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-      >
-        {/* 버튼 */}
-        <IconButton
-          aria-label='이전'
-          icon='ChevronLeft'
-          onClick={prev}
-          disabled={currentIndex === 0}
-          className='text-text-secondary absolute top-2 left-1 z-1 disabled:opacity-40'
-        />
-        <IconButton
-          icon='ChevronRight'
-          aria-label='다음'
-          onClick={next}
-          disabled={currentIndex === count - 1}
-          className='text-text-secondary absolute top-2 right-1 z-1 disabled:opacity-40'
-        />
-
-        {/* 슬라이드 */}
-        <div
-          ref={trackRef}
-          className='flex w-full touch-pan-y'
-          style={{ transform: `translateX(${-currentIndex * 100}%)`, transition: 'transform 250ms ease' }}
-        >
-          {slides.map((slide, index) => (
-            <Slide key={index} type={slide.type} rows={slide.rows} />
-          ))}
-        </div>
-
-        {/* 인디케이터 */}
-        <div className='mt-2 flex justify-center gap-2 p-2'>
-          {Array.from({ length: count }).map((_, index) => (
-            <span
-              key={index}
-              className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentIndex ? 'bg-fill-secondary-700' : 'bg-fill-secondary-400'}`}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* =========================
  * SMALL PARTS
  * ========================= */
-interface CellData {
-  value: string;
-  detail?: string;
-}
-
-interface RowData {
-  label: string;
-  left: CellData;
-  right: CellData;
-}
 
 function SelectedCell({
   name,
@@ -399,40 +293,6 @@ function SelectedCell({
         <p className='h3-extrabold truncate'>{name}</p>
         <p className='text-text-tertiary body2-semibold truncate'>{type}</p>
       </div>
-    </div>
-  );
-}
-
-function DetailSectionTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h2 className={`m-2 text-lg font-bold ${className}`}>{children}</h2>;
-}
-
-function DetailRow({ label, left, right }: { label: string; left: CellData; right: CellData }) {
-  return (
-    <div className='grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] odd:bg-gray-50'>
-      <div className='flex min-w-0 flex-col items-center justify-center p-4'>
-        <div className='font-semibold'>{left.value}</div>
-        {left.detail && <div className='mt-0.5 w-full truncate text-center text-sm'>{left.detail}</div>}
-      </div>
-      <div className='flex items-center justify-center p-1.5'>
-        <div className='caption1-regular text-center text-sm font-semibold whitespace-pre-line text-neutral-600'>
-          {label}
-        </div>
-      </div>
-      <div className='flex min-w-0 flex-col items-center justify-center p-4'>
-        <div className='font-semibold'>{right.value}</div>
-        {right.detail && <div className='mt-0.5 w-full truncate text-center text-sm'>{right.detail}</div>}
-      </div>
-    </div>
-  );
-}
-
-function RowList({ rows, className }: { rows: RowData[]; className?: string }) {
-  return (
-    <div className={`min-w-full overflow-hidden rounded-lg bg-white ${className}`}>
-      {rows.map((row, i) => (
-        <DetailRow key={i} label={row.label} left={row.left} right={row.right} />
-      ))}
     </div>
   );
 }
@@ -472,18 +332,6 @@ function SummaryDays({ name, avatar, days }: { name: string; avatar?: string; da
   );
 }
 
-/* =========================
- * DETAIL SLIDES
- * ========================= */
-interface SlideProps {
-  type: string;
-  rows: RowData[];
-}
-interface TableProps {
-  title: string;
-  rows: RowData[];
-}
-
 function SummaryDistanceRow({
   title,
   who,
@@ -508,26 +356,6 @@ function SummaryDistanceRow({
         <br />
         <span className='text-xs text-gray-500'>{avg}</span>
       </p>
-    </div>
-  );
-}
-
-function Slide({ type, rows }: SlideProps) {
-  return (
-    <div className='min-w-full'>
-      <div className='flex items-center justify-center bg-gray-50 px-2 py-3'>
-        <span className='text-sm font-semibold text-neutral-700'>{type}</span>
-      </div>
-      <RowList rows={rows} />
-    </div>
-  );
-}
-
-function Table({ title, rows }: TableProps) {
-  return (
-    <div className='w-full'>
-      {title && <DetailSectionTitle>{title}</DetailSectionTitle>}
-      <RowList rows={rows} />
     </div>
   );
 }
