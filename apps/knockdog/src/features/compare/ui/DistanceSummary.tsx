@@ -15,9 +15,9 @@ export function DistanceSummary({ comparisons }: { comparisons: DistanceComparis
   }
 
   const refPointText = REFERENCE_POINT_TYPE[shortestInfo.referencePoint];
-  const typeText = TRANSPORTATION_TYPE[shortestInfo.transportType];
+  const transportTypeText = TRANSPORTATION_TYPE[shortestInfo.transportType];
   const subjectParticle = getSubjectParticle(shortestInfo.name);
-  const directionParticle = getDirectionParticle(shortestInfo.transportType);
+  const directionParticle = getDirectionParticle(transportTypeText);
 
   return (
     <>
@@ -25,7 +25,7 @@ export function DistanceSummary({ comparisons }: { comparisons: DistanceComparis
         highlight={shortestInfo.name}
         truncate
       >{`${refPointText}에서 ${shortestInfo.name}${subjectParticle}`}</Summary>
-      <Summary highlight={typeText}>{`${typeText}${directionParticle} 가장 가까워요`}</Summary>
+      <Summary highlight={transportTypeText}>{`${transportTypeText}${directionParticle} 가장 가까워요`}</Summary>
     </>
   );
 }
