@@ -347,7 +347,7 @@ function CompareCompletePage() {
 
   return (
     <div className='flex h-screen flex-col bg-white'>
-      <Header withSpacing={false}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
