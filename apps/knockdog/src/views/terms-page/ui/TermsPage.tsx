@@ -1,7 +1,7 @@
 'use client';
 
-import { Header } from '@widgets/Header';
 import { Divider, Icon } from '@knockdog/ui';
+import { Header } from '@widgets/Header';
 import { useOpenExternalLink } from '@shared/lib/bridge';
 
 const TERMS_URLS = [
@@ -24,7 +24,7 @@ function TermsPage() {
 
   return (
     <>
-      <Header withSpacing={false}>
+      <Header>
         <Header.BackButton />
         <Header.Title>이용약관</Header.Title>
       </Header>

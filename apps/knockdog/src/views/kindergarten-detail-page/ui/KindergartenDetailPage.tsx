@@ -12,6 +12,7 @@ import { BookmarkToggleIcon } from '@entities/bookmark';
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { overlay } from 'overlay-kit';
 import { useShare } from '@shared/lib/device';
+import { SafeArea } from '@shared/ui/safe-area';
 import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 function KindergartenDetailPage() {
@@ -56,8 +57,8 @@ function KindergartenDetailPage() {
   };
 
   return (
-    <>
-      <Header withSpacing={false}>
+    <SafeArea edges={['bottom']}>
+      <Header>
         <Header.LeftSection>
           <Header.BackButton />
           <Header.HomeButton />
@@ -69,7 +70,7 @@ function KindergartenDetailPage() {
           <Header.ShareButton onClick={handleShare} />
         </Header.RightSection>
       </Header>
-      <div className='mb-[80px] h-[calc(100vh-146px)] overflow-y-auto' ref={scrollableDivRef}>
+      <div className='mb-[80px] h-[calc(100vh-196px)] overflow-y-auto' ref={scrollableDivRef}>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
           <MainBannerSwiper images={images ?? []} />
@@ -102,7 +103,7 @@ function KindergartenDetailPage() {
 
         <BookmarkToggleIcon id={id} bookmarked={kindergartenMain?.bookmarked ?? false} />
       </div>
-    </>
+    </SafeArea>
   );
 }
 

@@ -1,4 +1,5 @@
 import { ActionButton } from '@knockdog/ui';
+import Image from 'next/image';
 import { route } from '@shared/constants/route';
 
 import { StackLink } from '@shared/lib/bridge';
@@ -9,8 +10,13 @@ function PetOwnershipPage() {
       <div className='flex-1'>
         <h1 className='h1-extrabold'>지금 돌보는 강아지가 있나요?</h1>
 
-        <div className='mx-auto mt-15 flex aspect-square w-[70%] items-center justify-center bg-gray-100'>
-          {/* 이미지 영역 */}
+        <div className='relative mx-16 mt-15 flex aspect-square items-center justify-center'>
+          <Image
+            fill
+            src='/images/img_pet_ownership.png'
+            alt='pet_ownership_image'
+            className='h-full w-full object-cover'
+          />
         </div>
       </div>
 

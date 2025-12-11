@@ -1,19 +1,17 @@
 import Image from 'next/image';
 import type { Review } from '@entities/review';
+import { Avatar, AvatarImage, AvatarFallback } from '@knockdog/ui';
 
-export function ReviewCard({ userName, profileImage, title, content, updatedAt }: Review) {
+export function ReviewCard({ username, profileImage, title, content, updatedAt }: Review) {
   return (
     <div className='bg-primitive-neutral-50 mb-2 flex flex-col gap-1 rounded-lg p-4'>
-      <div>
-        <Image
-          src={profileImage}
-          alt='페이지 이미지'
-          className='mr-1 inline-block h-6 w-6 rounded-full'
-          width={24}
-          height={24}
-        />
+      <div className='flex items-center gap-1'>
+        <Avatar className='mr-1 inline-block size-6'>
+          <AvatarImage src={profileImage} alt='페이지 이미지' />
+          <AvatarFallback>{username?.charAt(0) ?? 'KD'}</AvatarFallback>
+        </Avatar>
 
-        <span className='body2-extrabold'>{userName}</span>
+        <span className='body2-extrabold'>{username}</span>
       </div>
       <span className='body1-bold'>{title}</span>
       <p className='body2-regular text-text-secondary mb-[15px] line-clamp-2'>{content}</p>

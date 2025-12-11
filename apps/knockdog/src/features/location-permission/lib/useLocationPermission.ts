@@ -1,26 +1,24 @@
 import { useEffect, useState } from 'react';
 import type { PermissionStatus } from '@knockdog/bridge-core';
 import { getCurrentLocation } from '@shared/lib/geolocation';
-import { useCurrentAddress } from '@shared/lib/geolocation';
+import { getReverseGeocode } from '@features/address-picker/api/searchAddress';
 
 function useLocationPermission() {
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus>('undetermined');
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-
-  const {
-    primaryText,
-    primaryRoad,
-    primaryParcel,
-    isLoading,
-    error,
-    refetch: refetchAddress,
-  } = useCurrentAddress(
-    {
-      lat: location?.latitude ?? 0,
-      lng: location?.longitude ?? 0,
-    },
-    false
-  );
+  const [address, setAddress] = useState<{
+    primaryText: string | undefined;
+    primaryRoad: string | undefined;
+    primaryParcel: string | undefined;
+    isLoading: boolean;
+    error: string | null;
+  }>({
+    primaryText: undefined,
+    primaryRoad: undefined,
+    primaryParcel: undefined,
+    isLoading: false,
+    error: null,
+  });
 
   async function getLocation() {
     const location = await getCurrentLocation();
@@ -36,10 +34,28 @@ function useLocationPermission() {
     }
   }, [permissionStatus]);
 
-  // 위치가 변경되면 주소 refetch
+  // 위치가 변경되면 주소 가져오기
   useEffect(() => {
     if (location && permissionStatus === 'allowed' && location.latitude !== 0 && location.longitude !== 0) {
-      refetchAddress();
+      setAddress((prev) => ({ ...prev, isLoading: true, error: null }));
+      getReverseGeocode(location.latitude, location.longitude)
+        .then((response) => {
+          const firstDoc = response.documents[0];
+          setAddress({
+            primaryText: firstDoc?.road_address?.address_name || firstDoc?.address?.address,
+            primaryRoad: firstDoc?.address?.roadAddress,
+            primaryParcel: firstDoc?.address?.address,
+            isLoading: false,
+            error: null,
+          });
+        })
+        .catch((err) => {
+          setAddress((prev) => ({
+            ...prev,
+            isLoading: false,
+            error: err instanceof Error ? err.message : '주소를 가져오는데 실패했습니다.',
+          }));
+        });
     }
   }, [location?.latitude, location?.longitude, permissionStatus]);
 
@@ -77,13 +93,7 @@ function useLocationPermission() {
   return {
     permissionStatus,
     location,
-    address: {
-      primaryText,
-      primaryRoad,
-      primaryParcel,
-      isLoading,
-      error,
-    },
+    address,
   };
 }
 

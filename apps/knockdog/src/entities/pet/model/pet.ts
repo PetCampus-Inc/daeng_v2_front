@@ -25,7 +25,7 @@ type Gender = keyof typeof GENDER;
 
 interface Pet {
   id: string;
-  profileImageUrl?: string;
+  profileImage?: string;
   name: string;
   breed: string;
   gender: Gender;

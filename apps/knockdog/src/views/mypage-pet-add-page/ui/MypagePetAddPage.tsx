@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Header } from '@widgets/Header';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -12,16 +11,22 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@knockdog/ui';
-import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
 import { overlay } from 'overlay-kit';
+import { Header } from '@widgets/Header';
+import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
+import { usePetListQuery } from '@entities/pet';
+import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { SafeArea } from '@shared/ui/safe-area';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetAddPage() {
   const { back } = useStackNavigation();
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const { data: petListResponse } = usePetListQuery();
+  const user = useUserStore((state) => state.user);
 
-  // TODO: 실제 펫 목록 API로 체크
-  const isFirstPet = false; // 임시로 true
+  const isFirstPet = (petListResponse?.data?.length ?? 0) === 0;
 
   const handleBack = () => {
     // 폼에 변경사항이 없으면 바로 뒤로가기
@@ -51,7 +56,7 @@ export function MypagePetAddPage() {
     ));
   };
 
-  const handleBeforeSubmit = (submitFn: () => void) => {
+  const handleBeforeSubmit = (submitFn: () => void, formData: { name: string }) => {
     // 첫 번째 강아지가 아니면 바로 제출
     if (!isFirstPet) {
       submitFn();
@@ -70,11 +75,14 @@ export function MypagePetAddPage() {
         onConfirm={() => {
           submitFn(); // 확인 누르면 실제 제출
         }}
+        userNickName={user?.nickname}
+        petNickName={formData.name}
       />
     ));
   };
 
   const handleSuccess = () => {
+    syncWebViewQuery.invalidate(['petList']);
     back?.();
   };
 
@@ -85,14 +93,14 @@ export function MypagePetAddPage() {
 
   return (
     <div className='flex h-screen flex-col'>
-      <Header withSpacing={false}>
-        <Header.LeftSection>
-          <Header.BackButton onClick={handleBack} />
-        </Header.LeftSection>
-        <Header.Title>강아지 프로필 추가하기</Header.Title>
-      </Header>
+      <SafeArea edges={['bottom']} className='flex-1 overflow-y-auto'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>강아지 프로필 추가하기</Header.Title>
+        </Header>
 
-      <div className='flex-1 overflow-y-auto'>
         <PetProfileForm
           mode='add'
           onSuccess={handleSuccess}
@@ -101,7 +109,7 @@ export function MypagePetAddPage() {
           onBeforeSubmit={handleBeforeSubmit}
           submitButtonText='저장하기'
         />
-      </div>
+      </SafeArea>
     </div>
   );
 }

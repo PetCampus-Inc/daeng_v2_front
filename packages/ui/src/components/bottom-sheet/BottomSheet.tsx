@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Drawer as DrawerPrimitive } from 'vaul';
+import { Drawer as DrawerPrimitive } from '@daeng-design/vaul';
 
 import { cn } from '@knockdog/ui/lib';
 import { Icon } from '../icon';
@@ -25,7 +25,7 @@ function BottomSheetOverlay({ className, ...props }: React.ComponentProps<typeof
   return (
     <DrawerPrimitive.Overlay
       data-slot='bottom-sheet-overlay'
-      className={cn('fixed inset-0 z-(--z-index-overlay) bg-black/40', className)}
+      className={cn('z-(--z-index-overlay) fixed inset-0 bg-black/40', className)}
       {...props}
     />
   );
@@ -36,7 +36,7 @@ function BottomSheetBody({ className, children, ...props }: React.ComponentProps
     <DrawerPrimitive.Content
       data-slot='bottom-sheet-body'
       className={cn(
-        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-(--z-index-modal) max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
+        'bg-primitive-neutral-0 z-(--z-index-modal) fixed inset-x-0 bottom-0 max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
         className
       )}
       {...props}
@@ -54,7 +54,7 @@ function BottomSheetHandle({ className, ...props }: React.ComponentProps<typeof 
   return (
     <DrawerPrimitive.Handle
       data-slot='bottom-sheet-handle'
-      className={cn('bg-fill-secondary-200 mx-auto mt-[12px] mb-[8px] h-[5px] w-[36px] rounded-full', className)}
+      className={cn('bg-fill-secondary-200 mx-auto mb-[8px] mt-[12px] h-[5px] w-[36px] rounded-full', className)}
       {...props}
     />
   );

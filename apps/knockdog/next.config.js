@@ -10,6 +10,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'kindergarten-image-bucket.s3.ap-northeast-2.amazonaws.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'blogpfthumb.phinf.naver.net',
+      },
     ],
   },
   // API Proxy

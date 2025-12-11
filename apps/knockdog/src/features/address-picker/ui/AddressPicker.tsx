@@ -10,9 +10,10 @@ import { Address } from '@entities/address';
 interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect'> {
   value?: string;
   onSelect?: (address: Address) => void;
+  showLabel?: boolean;
 }
 
-export function AddressPicker({ className, value, onSelect, ...props }: AddressPickerProps) {
+export function AddressPicker({ className, value, onSelect, showLabel = true, ...props }: AddressPickerProps) {
   const { addressList, inputValue, isSelected, handleSelect, handleChange } = useAddressPicker({
     value,
     onSelect,
@@ -24,7 +25,7 @@ export function AddressPicker({ className, value, onSelect, ...props }: AddressP
     <div className={cn('flex h-full flex-col gap-4', className)} {...props}>
       {/* 주소 검색 필드 */}
       <Field>
-        <FieldLabel>주소</FieldLabel>
+        {showLabel && <FieldLabel>주소</FieldLabel>}
 
         <TextField prefix={<Icon icon='Search' />} variant='secondary'>
           <TextFieldInput value={inputValue} onChange={handleChange} placeholder='시/군/구 혹은 도로명 검색' />

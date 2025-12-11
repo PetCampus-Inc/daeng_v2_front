@@ -7,7 +7,7 @@ import { isNativeWebView, useBottomSheetSnapIndex, useIsomorphicLayoutEffect, us
 import { useMarkerState } from '@shared/store';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이)
-// 최대 스냅포인트: 화면높이 - 64px(검색 헤더바 높이)
+// 최대 스냅포인트: 화면높이 - 64px(검색 헤더바 높이) - 16px (Handle 높이)
 
 // ✅ 구(HEAD)·신(리팩토링) 버전 병합: children을 기본으로 받되, 하위호환으로 bottomSlot도 함께 허용
 export function KindergartenListSheet({
@@ -70,7 +70,7 @@ export function KindergartenListSheet({
         <RemoveScroll forwardProps noIsolation>
           <BottomSheet.Body
             className={cn(
-              'absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)] shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
+              'pointer-events-auto absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)] shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
               isMarkerActive && 'hidden',
               isFullExtended && 'rounded-none shadow-none'
             )}

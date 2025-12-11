@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useSearchUrlState } from './useSearchUrlState';
+
 import { type FilterOption, FILTER_OPTIONS } from '@entities/kindergarten';
+import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 
 interface UseSearchFilterReturn {
   /** 결과 개수 */
