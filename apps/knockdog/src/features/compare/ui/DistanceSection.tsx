@@ -1,31 +1,37 @@
 import { DistanceDetailedItem } from './DistanceDetailedItem';
-import { Label, DistanceSummary, Badge } from '@entities/compare';
-import { TransportationType, TRANSPORTATION_TYPE, DistanceComparisonsByRef } from '@entities/compare/model/types';
+import { createDistanceComparisonsByRef } from '../lib/createDistanceComparisonsByRef';
+import { DistanceSummary } from './DistanceSummary';
+import { Label, Badge } from '@entities/compare';
+import {
+  TransportationType,
+  TRANSPORTATION_TYPE,
+  DistanceComparisonsByRef,
+  KindergartenComparison,
+  ReferencePointType,
+  DistanceComparisonsByTransport,
+} from '@entities/compare/model/types';
 
 export function DistanceSection({
-  distanceComparisons,
+  left,
+  right,
   referencePoint = 'HOME',
 }: {
-  distanceComparisons: DistanceComparisonsByRef;
-  referencePoint?: string;
+  left: KindergartenComparison;
+  right: KindergartenComparison;
+  referencePoint?: ReferencePointType;
 }) {
-  const comparisonForSelectedRefPoint = distanceComparisons[referencePoint];
+  const allDistanceComparisons: DistanceComparisonsByRef = createDistanceComparisonsByRef(left, right);
+  const selectedDistanceComparison: DistanceComparisonsByTransport = allDistanceComparisons[referencePoint] ?? {};
 
-  const comparisonItems = Object.entries(comparisonForSelectedRefPoint ?? {})
-    .filter(([_, comparison]) => comparison != null)
-    .map(([transportType, comparison]) => ({
-      transportType: transportType as TransportationType,
-      comparison: comparison!,
-    }));
-
-  if (comparisonItems.length === 0) {
-    return null;
-  }
+  const comparisonItems = Object.entries(selectedDistanceComparison).map(([transportType, comparison]) => ({
+    transportType: transportType as TransportationType,
+    comparison,
+  }));
 
   return (
     <>
       <Label className='mb-2'>거리</Label>
-      <DistanceSummary comparisons={distanceComparisons} />
+      <DistanceSummary comparisons={allDistanceComparisons} />
       <div className='mt-7 flex flex-col gap-5'>
         {comparisonItems.map(({ transportType, comparison }) => (
           <DistanceDetailedItem

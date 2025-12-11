@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
 import { CircleAvatar, Label, serializeCategories } from '@entities/compare';
-import type { KindergartenComparison, DistanceComparisonsByRef } from '@entities/compare/model/types';
+import type { KindergartenComparison } from '@entities/compare/model/types';
 import {
   getClosedDaysText,
   getDistanceString,
@@ -19,7 +19,6 @@ import {
   mapToSimpleItem,
 } from '@entities/compare/lib/utils';
 import {
-  createDistanceComparisonsByRef,
   PricingSection,
   DistanceSection,
   ComparisonSimpleItem,
@@ -332,9 +331,6 @@ function CompareCompletePage() {
     );
   }
 
-  // 거리 비교 결과
-  const distanceComparisons: DistanceComparisonsByRef = createDistanceComparisonsByRef(left, right);
-
   const allKindergartens = [left, right].map(mapToSimpleItem);
   const valetKindergartens = getValetKindergartens(left, right);
   const holidayKindergartens = getHolidayKindergartens(left, right);
@@ -385,7 +381,7 @@ function CompareCompletePage() {
 
             <ComparisonPanel>
               <ComparisonSection>
-                <DistanceSection distanceComparisons={distanceComparisons} referencePoint={'HOME'} />
+                <DistanceSection left={left} right={right} referencePoint={'HOME'} />
               </ComparisonSection>
             </ComparisonPanel>
             <ComparisonPanel>

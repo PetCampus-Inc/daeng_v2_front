@@ -26,11 +26,12 @@ export const TRANSPORTATION_TYPE = {
 } as const;
 export type TransportationType = keyof typeof TRANSPORTATION_TYPE;
 
-export const REFERENCE_POINT_TYPE: Record<string, string> = {
+export const REFERENCE_POINT_TYPE = {
   HOME: '집',
   WORK: '직장',
-};
-export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE | string;
+  OTHER: '기타',
+} as const;
+export type ReferencePointType = keyof typeof REFERENCE_POINT_TYPE;
 
 export const DAY_OF_WEEK_SHORT = {
   MONDAY: '월',
@@ -76,7 +77,7 @@ export interface TransitTime {
 }
 
 export interface Distance {
-  referencePoint: string; // "HOME" | "WORK" | ...
+  referencePoint: ReferencePointType;
   distance: string; // "9.6km"
   transitTimes: TransitTime[];
 }
@@ -115,10 +116,9 @@ export interface PriceDetailComparison {
 }
 
 // 거리 비교
-export type DistanceComparisonsByRef = Record<
-  ReferencePointType,
-  Partial<Record<TransportationType, DistanceDetailComparison>>
->;
+export type DistanceComparisonsByRef = Partial<Record<ReferencePointType, DistanceComparisonsByTransport>>;
+
+export type DistanceComparisonsByTransport = Partial<Record<TransportationType, DistanceDetailComparison>>;
 
 export interface DistanceDetailComparison {
   variant: 'closer' | 'equal' | 'insufficient-data';

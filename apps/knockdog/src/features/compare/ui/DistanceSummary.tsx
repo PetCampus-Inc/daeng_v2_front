@@ -6,12 +6,7 @@ export function DistanceSummary({ comparisons }: { comparisons: DistanceComparis
   const shortestInfo = findShortestFromComparisons(comparisons);
 
   if (!shortestInfo) {
-    return (
-      <>
-        <Summary>거리 정보가</Summary>
-        <Summary highlight='충분하지 않아요'>충분하지 않아요</Summary>
-      </>
-    );
+    return null;
   }
 
   const refPointText = REFERENCE_POINT_TYPE[shortestInfo.referencePoint];

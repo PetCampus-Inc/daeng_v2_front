@@ -1,10 +1,14 @@
 import { createDistanceComparison } from './createDistanceComparison';
-import { extractDistance } from '@entities/compare/lib/utils';
+import { getTransitTime, parseTimeStrToMinutes } from '@entities/compare/lib/utils';
 import {
   KindergartenComparison,
   DistanceComparisonsByRef,
   ReferencePointType,
   TransportationType,
+  DistanceComparisonsByTransport,
+  DistanceDetailComparison,
+  REFERENCE_POINT_TYPE,
+  TRANSPORTATION_TYPE,
 } from '@entities/compare/model/types';
 
 /**
@@ -18,28 +22,24 @@ export function createDistanceComparisonsByRef(
   left: KindergartenComparison,
   right: KindergartenComparison
 ): DistanceComparisonsByRef {
-  const refPoints = new Set<ReferencePointType>();
-  [...left.distance, ...right.distance].forEach((distanceInfo) => {
-    refPoints.add(distanceInfo.referencePoint);
-  });
+  const refPoints = Object.keys(REFERENCE_POINT_TYPE) as ReferencePointType[];
+  const transportTypes = Object.keys(TRANSPORTATION_TYPE) as TransportationType[];
 
-  const transportTypes = new Set<TransportationType>();
-  [...left.distance, ...right.distance].forEach((distanceInfo) => {
-    distanceInfo.transitTimes.forEach((transit) => {
-      transportTypes.add(transit.type);
-    });
-  });
-
-  const comparisons: DistanceComparisonsByRef = {};
+  const comparisonsByRef: DistanceComparisonsByRef = {};
 
   refPoints.forEach((refPoint) => {
-    comparisons[refPoint] = {};
+    const comparisonsBytransport: DistanceComparisonsByTransport = {};
 
     transportTypes.forEach((transportType) => {
-      const comparison = createDistanceComparison(left, right, extractDistance(refPoint, transportType));
-      comparisons[refPoint]![transportType] = comparison;
+      const comparison: DistanceDetailComparison = createDistanceComparison(
+        left,
+        right,
+        (kg) => parseTimeStrToMinutes(getTransitTime(kg, refPoint, transportType)) // TODO: api 수정 후 parseTimeStrToMinutes 메서드 삭제
+      );
+      comparisonsBytransport[transportType] = comparison;
     });
+    comparisonsByRef[refPoint] = comparisonsBytransport;
   });
 
-  return comparisons;
+  return comparisonsByRef;
 }

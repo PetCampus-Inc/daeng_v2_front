@@ -31,11 +31,6 @@ export function s3ToUrl(s3Key?: string) {
  * SUMMARY CALCULATION
  * ========================= */
 
-// TODO: api 수정 후 parseTimeStrToMinutes 메서드 삭제
-export function extractDistance(refPoint: string, transportType: TransportationType) {
-  return (kg: KindergartenComparison): number => parseTimeStrToMinutes(getTransitTime(kg, refPoint, transportType));
-}
-
 // 시간 문자열을 분으로 변환 ("2시간 49분" -> 169)
 export function parseTimeStrToMinutes(timeStr: string): number {
   if (!timeStr) return 0;
