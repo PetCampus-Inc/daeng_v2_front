@@ -15,8 +15,8 @@ export { DistanceSection } from './ui/DistanceSection';
 export { DistanceDetailedItem } from './ui/DistanceDetailedItem';
 
 export { PickdropSection } from './ui/PickdropSection';
-
 export { HolidaySection } from './ui/HolidaySection';
+export { OperatingDaysSection } from './ui/OperatingDaysSection';
 
 export { ComparisonSimpleItem } from './ui/ComparisonSimpleItem';
 export { ComparisonDaysItem } from './ui/ComparisonDaysItem';

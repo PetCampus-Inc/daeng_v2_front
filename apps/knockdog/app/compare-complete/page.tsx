@@ -5,7 +5,7 @@ import { useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 import { SafeArea } from '@shared/ui/safe-area';
-import { CircleAvatar, Label, serializeCategories } from '@entities/compare';
+import { CircleAvatar, serializeCategories } from '@entities/compare';
 import type { KindergartenComparison } from '@entities/compare/model/types';
 import {
   getClosedDaysText,
@@ -20,9 +20,9 @@ import {
 import {
   PricingSection,
   DistanceSection,
-  ComparisonDaysItem,
   PickdropSection,
   HolidaySection,
+  OperatingDaysSection,
 } from '@features/compare';
 import { useComparisonsQuery } from '@features/compare/api/useComparisonsQuery';
 
@@ -372,11 +372,7 @@ function CompareCompletePage() {
             </ComparisonPanel>
             <ComparisonPanel>
               <ComparisonSection>
-                <Label>영업일</Label>
-                <div className='flex flex-col gap-5 pt-5 pb-7'>
-                  <ComparisonDaysItem kindergarten={left} />
-                  <ComparisonDaysItem kindergarten={right} />
-                </div>
+                <OperatingDaysSection left={left} right={right} />
               </ComparisonSection>
               <ComparisonSection>
                 <HolidaySection left={left} right={right} />
