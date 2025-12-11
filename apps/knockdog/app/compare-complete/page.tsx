@@ -16,15 +16,13 @@ import {
   getTransitTime,
   resolveIds,
   s3ToUrl,
-  mapToSimpleItem,
 } from '@entities/compare/lib/utils';
 import {
   PricingSection,
   DistanceSection,
-  ComparisonSimpleItem,
-  getHolidayKindergartens,
   ComparisonDaysItem,
   PickdropSection,
+  HolidaySection,
 } from '@features/compare';
 import { useComparisonsQuery } from '@features/compare/api/useComparisonsQuery';
 
@@ -331,9 +329,6 @@ function CompareCompletePage() {
     );
   }
 
-  const allKindergartens = [left, right].map(mapToSimpleItem);
-  const holidayKindergartens = getHolidayKindergartens(left, right);
-
   return (
     <div className='flex h-screen flex-col bg-white'>
       <Header>
@@ -384,15 +379,7 @@ function CompareCompletePage() {
                 </div>
               </ComparisonSection>
               <ComparisonSection>
-                <div className='mt-7 flex flex-col gap-5'>
-                  <Label>공휴일</Label>
-                  <ComparisonSimpleItem
-                    allKindergartens={allKindergartens}
-                    matchedKindergartens={holidayKindergartens}
-                    trueStatusText='공휴일에도 영업해요'
-                    falseStatusText='공휴일에 쉬어요'
-                  />
-                </div>
+                <HolidaySection left={left} right={right} />
               </ComparisonSection>
             </ComparisonPanel>
           </div>
