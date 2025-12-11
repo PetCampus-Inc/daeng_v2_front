@@ -58,7 +58,6 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
-export type { CTag } from './model/constants/kindergarten';
 export type { KindergartenListItem, KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
 
 /** ui */
