@@ -1,5 +1,6 @@
 import { ComparisonDaysItem } from './ComparisonDaysItem';
-import { KindergartenComparison, Label } from '@entities/compare';
+import type { KindergartenComparison } from '@entities/compare';
+import { Label } from '@entities/compare';
 
 export function OperatingDaysSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   return (

@@ -1,11 +1,8 @@
 import { PriceDetailedItem } from './PriceDetailedItem';
 import { createPriceComparison } from '../lib/createPriceComparison';
 import { PricingSummary } from './PricingSummary';
-import { CircleAvatar, Description } from '@entities/compare';
-import { s3ToUrl } from '@entities/compare/lib/utils';
-import type { KindergartenComparison } from '@entities/compare/model/types';
-import { Label } from '@entities/compare/ui/Label';
-import { Badge } from '@entities/compare/ui/Badge';
+import type { KindergartenComparison } from '@entities/compare';
+import { Label, Badge, CircleAvatar, Description, s3ToUrl } from '@entities/compare';
 
 function PricingLabel({ className = '' }: { className?: string }) {
   const tooltipText =

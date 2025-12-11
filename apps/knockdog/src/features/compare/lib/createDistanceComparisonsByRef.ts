@@ -1,15 +1,13 @@
 import { createDistanceComparison } from './createDistanceComparison';
-import { getTransitTime, parseTimeStrToMinutes } from '@entities/compare/lib/utils';
-import {
+import type {
   KindergartenComparison,
-  DistanceComparisonsByRef,
   ReferencePointType,
   TransportationType,
+  DistanceComparisonsByRef,
   DistanceComparisonsByTransport,
   DistanceDetailComparison,
-  REFERENCE_POINT_TYPE,
-  TRANSPORTATION_TYPE,
-} from '@entities/compare/model/types';
+} from '@entities/compare';
+import { getTransitTime, parseTimeStrToMinutes, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
 
 /**
  * 두 유치원의 거리 데이터를 기반으로 위치별로 그룹화된 거리 비교를 생성합니다.

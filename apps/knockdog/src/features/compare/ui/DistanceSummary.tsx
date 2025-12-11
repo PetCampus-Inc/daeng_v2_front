@@ -1,6 +1,7 @@
 import { findShortestFromComparisons } from '../lib/findShortestFromComparisons';
-import { DistanceComparisonsByRef, Summary, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
-import { getDirectionParticle, getSubjectParticle } from '@shared/utils/text';
+import type { DistanceComparisonsByRef } from '@entities/compare';
+import { Summary, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
+import { getDirectionParticle, getSubjectParticle } from '@shared/utils';
 
 export function DistanceSummary({ comparisons }: { comparisons: DistanceComparisonsByRef }) {
   const shortestInfo = findShortestFromComparisons(comparisons);

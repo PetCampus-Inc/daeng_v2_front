@@ -1,4 +1,4 @@
-import { DetailComparisonItem, KindergartenComparison, PriceDetailComparison } from '@entities/compare/model/types';
+import type { DetailComparisonItem, KindergartenComparison, PriceDetailComparison } from '@entities/compare';
 
 // 가격 비교 헬퍼 함수
 export function createPriceComparison(

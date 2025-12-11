@@ -1,4 +1,5 @@
-import { KindergartenComparison, mapToSimpleItem, SimpleComparisonItem } from '@entities/compare';
+import type { KindergartenComparison, SimpleComparisonItem } from '@entities/compare';
+import { mapToSimpleItem } from '@entities/compare';
 
 export function getHolidayKindergartens(
   left?: KindergartenComparison,

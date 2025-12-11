@@ -1,11 +1,5 @@
-import {
-  KindergartenComparison,
-  DayOfWeekShort,
-  CircleAvatar,
-  s3ToUrl,
-  Description,
-  DAY_OF_WEEK_SHORT,
-} from '@entities/compare';
+import type { KindergartenComparison, DayOfWeekShort } from '@entities/compare';
+import { CircleAvatar, s3ToUrl, Description, DAY_OF_WEEK_SHORT } from '@entities/compare';
 
 export function ComparisonDaysItem({ kindergarten }: { kindergarten: KindergartenComparison }) {
   const closedDays = kindergarten?.operatingSchedule?.closedDays;

@@ -1,5 +1,6 @@
-import { PriceDetailComparison, Summary } from '@entities/compare';
-import { getSubjectParticle } from '@shared/utils/text';
+import type { PriceDetailComparison } from '@entities/compare';
+import { Summary } from '@entities/compare';
+import { getSubjectParticle } from '@shared/utils';
 
 export function PricingSummary({ comparison }: { comparison: PriceDetailComparison }) {
   const { variant, leftKg, rightKg } = comparison;

@@ -1,6 +1,7 @@
 import { getValetKindergartens } from '../lib/getValetKindergartens';
 import { ComparisonSimpleItem } from './ComparisonSimpleItem';
-import { KindergartenComparison, Label, mapToSimpleItem } from '@entities/compare';
+import type { KindergartenComparison } from '@entities/compare';
+import { Label, mapToSimpleItem } from '@entities/compare';
 
 export function PickdropSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   const allKindergartens = [left, right].map(mapToSimpleItem);

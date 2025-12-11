@@ -1,4 +1,5 @@
-import { CircleAvatar, SimpleComparisonItem, StackedCircleAvatars, Summary } from '@entities/compare';
+import type { SimpleComparisonItem } from '@entities/compare';
+import { CircleAvatar, StackedCircleAvatars, Summary } from '@entities/compare';
 
 export function ComparisonSimpleItem({
   allKindergartens = [],

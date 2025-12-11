@@ -1,4 +1,5 @@
-import { DetailComparisonItem, DistanceDetailComparison, KindergartenComparison } from '@entities/compare/model/types';
+import type { KindergartenComparison } from '@entities/compare';
+import { DetailComparisonItem, DistanceDetailComparison } from '@entities/compare';
 
 // 거리 비교 헬퍼 함수
 export function createDistanceComparison(

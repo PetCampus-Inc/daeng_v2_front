@@ -1,7 +1,13 @@
-import { CircleAvatar, Description, Detail, StackedCircleAvatars } from '@entities/compare';
-import { parseMinutesToTimeStr, s3ToUrl } from '@entities/compare/lib/utils';
-import { DistanceDetailComparison } from '@entities/compare/model/types';
-import { getSubjectParticle } from '@shared/utils/text';
+import type { DistanceDetailComparison } from '@entities/compare';
+import {
+  CircleAvatar,
+  Description,
+  Detail,
+  StackedCircleAvatars,
+  parseMinutesToTimeStr,
+  s3ToUrl,
+} from '@entities/compare';
+import { getSubjectParticle } from '@shared/utils';
 
 export function DistanceDetailedItem({
   comparison,

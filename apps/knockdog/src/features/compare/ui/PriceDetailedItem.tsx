@@ -1,7 +1,6 @@
-import { CircleAvatar, Description, Detail } from '@entities/compare';
-import { s3ToUrl } from '@entities/compare/lib/utils';
-import { PriceDetailComparison } from '@entities/compare/model/types';
-import { getSubjectParticle } from '@shared/utils/text';
+import type { PriceDetailComparison } from '@entities/compare';
+import { CircleAvatar, Description, Detail, s3ToUrl } from '@entities/compare';
+import { getSubjectParticle } from '@shared/utils';
 
 export function PriceDetailedItem({
   comparison,

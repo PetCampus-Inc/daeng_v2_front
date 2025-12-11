@@ -4,19 +4,6 @@
 import { useRef, useState, PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
-import { SafeArea } from '@shared/ui/safe-area';
-import { CircleAvatar, serializeCategories } from '@entities/compare';
-import type { KindergartenComparison } from '@entities/compare/model/types';
-import {
-  getClosedDaysText,
-  getDistanceString,
-  getProduct,
-  getProductMax,
-  getProductMin,
-  getTransitTime,
-  resolveIds,
-  s3ToUrl,
-} from '@entities/compare/lib/utils';
 import {
   PricingSection,
   DistanceSection,
@@ -25,6 +12,20 @@ import {
   OperatingDaysSection,
 } from '@features/compare';
 import { useComparisonsQuery } from '@features/compare/api/useComparisonsQuery';
+import type { KindergartenComparison } from '@entities/compare';
+import {
+  CircleAvatar,
+  serializeCategories,
+  getClosedDaysText,
+  getDistanceString,
+  getProduct,
+  getProductMax,
+  getProductMin,
+  getTransitTime,
+  resolveIds,
+  s3ToUrl,
+} from '@entities/compare';
+import { SafeArea } from '@shared/ui/safe-area';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {

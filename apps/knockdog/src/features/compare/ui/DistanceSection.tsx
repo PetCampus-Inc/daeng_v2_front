@@ -1,15 +1,14 @@
 import { DistanceDetailedItem } from './DistanceDetailedItem';
 import { createDistanceComparisonsByRef } from '../lib/createDistanceComparisonsByRef';
 import { DistanceSummary } from './DistanceSummary';
-import { Label, Badge } from '@entities/compare';
-import {
-  TransportationType,
-  TRANSPORTATION_TYPE,
-  DistanceComparisonsByRef,
+import type {
   KindergartenComparison,
+  TransportationType,
   ReferencePointType,
+  DistanceComparisonsByRef,
   DistanceComparisonsByTransport,
-} from '@entities/compare/model/types';
+} from '@entities/compare';
+import { TRANSPORTATION_TYPE, Label, Badge } from '@entities/compare';
 
 export function DistanceSection({
   left,
