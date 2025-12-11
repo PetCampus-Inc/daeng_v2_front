@@ -31,7 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap', 'tel'],
       NSAppTransportSecurity: {
-        NSAllowsArbitraryLoads: false,
+        NSAllowsArbitraryLoads: true,
         NSAllowsArbitraryLoadsInWebContent: true,
         NSExceptionDomains: {
           'openapi.map.naver.com': {
