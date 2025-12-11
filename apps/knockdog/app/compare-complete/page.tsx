@@ -22,9 +22,9 @@ import {
   PricingSection,
   DistanceSection,
   ComparisonSimpleItem,
-  getValetKindergartens,
   getHolidayKindergartens,
   ComparisonDaysItem,
+  PickdropSection,
 } from '@features/compare';
 import { useComparisonsQuery } from '@features/compare/api/useComparisonsQuery';
 
@@ -332,7 +332,6 @@ function CompareCompletePage() {
   }
 
   const allKindergartens = [left, right].map(mapToSimpleItem);
-  const valetKindergartens = getValetKindergartens(left, right);
   const holidayKindergartens = getHolidayKindergartens(left, right);
 
   return (
@@ -367,15 +366,7 @@ function CompareCompletePage() {
                 <PricingSection left={left} right={right} />
               </ComparisonSection>
               <ComparisonSection>
-                <div className='mt-7 flex flex-col gap-5'>
-                  <Label>픽드랍</Label>
-                  <ComparisonSimpleItem
-                    allKindergartens={allKindergartens}
-                    matchedKindergartens={valetKindergartens}
-                    trueStatusText='픽드랍 서비스를 제공해요'
-                    falseStatusText='픽드랍 서비스가 없어요'
-                  />
-                </div>
+                <PickdropSection left={left} right={right} />
               </ComparisonSection>
             </ComparisonPanel>
 

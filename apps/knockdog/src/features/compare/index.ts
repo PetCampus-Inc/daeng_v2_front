@@ -9,8 +9,12 @@ export { getHolidayKindergartens } from './lib/getHolidayKindergartens';
 export { PricingSummary } from './ui/PricingSummary';
 export { PricingSection } from './ui/PricingSection';
 export { PriceDetailedItem } from './ui/PriceDetailedItem';
+
 export { DistanceSummary } from './ui/DistanceSummary';
 export { DistanceSection } from './ui/DistanceSection';
 export { DistanceDetailedItem } from './ui/DistanceDetailedItem';
+
+export { PickdropSection } from './ui/PickdropSection';
+
 export { ComparisonSimpleItem } from './ui/ComparisonSimpleItem';
 export { ComparisonDaysItem } from './ui/ComparisonDaysItem';
