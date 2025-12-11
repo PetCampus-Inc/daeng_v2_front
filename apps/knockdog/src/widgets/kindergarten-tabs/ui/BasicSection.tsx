@@ -7,6 +7,7 @@ import { LocationMap, ServiceTagBadge } from '@features/kindergarten-basic';
 import { OperationHoursCard } from '@features/kindergarten-basic';
 import { useKindergartenBasicQuery } from '@features/kindergarten-basic';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { SERVICE_ICON_MAP } from '@entities/kindergarten';
 
 function BasicSection() {
   const params = useParams<{ id: string }>();
@@ -45,57 +46,65 @@ function BasicSection() {
         </div>
       )}
       {/* 견종 */}
-      {dogBreeds && dogBreeds.length > 0 && (
+      {dogBreeds && dogBreeds.filter((code) => SERVICE_ICON_MAP[code]).length > 0 && (
         <div>
           <div className='mb-3'>
             <span className='body1-bold'>견종</span>
           </div>
           <div className='grid grid-cols-4 gap-3'>
-            {dogBreeds?.map((code) => (
-              <ServiceTagBadge key={code} code={code} />
-            ))}
+            {dogBreeds
+              ?.filter((code) => SERVICE_ICON_MAP[code])
+              .map((code) => (
+                <ServiceTagBadge key={code} code={code} />
+              ))}
           </div>
         </div>
       )}
 
       {/* 강아지 서비스 */}
-      {dogServices && dogServices.length > 0 && (
+      {dogServices && dogServices.filter((code) => SERVICE_ICON_MAP[code]).length > 0 && (
         <div>
           <div className='mb-3'>
             <span className='body1-bold'>강아지 서비스</span>
           </div>
           <div className='grid grid-cols-4 gap-3'>
-            {dogServices?.map((code) => (
-              <ServiceTagBadge key={code} code={code} />
-            ))}
+            {dogServices
+              ?.filter((code) => SERVICE_ICON_MAP[code])
+              .map((code) => (
+                <ServiceTagBadge key={code} code={code} />
+              ))}
           </div>
         </div>
       )}
 
       {/* 강아지 안전시설 */}
-      {dogSafetyFacilities && dogSafetyFacilities.length > 0 && (
+      {dogSafetyFacilities && dogSafetyFacilities.filter((code) => SERVICE_ICON_MAP[code]).length > 0 && (
         <div>
           <div className='mb-3'>
             <span className='body1-bold'>강아지 안전·시설</span>
           </div>
           <div className='grid grid-cols-4 gap-3'>
-            {dogSafetyFacilities?.map((code) => (
-              <ServiceTagBadge key={code} code={code} />
-            ))}
+            {dogSafetyFacilities
+              ?.filter((code) => SERVICE_ICON_MAP[code])
+              .map((code) => (
+                <ServiceTagBadge key={code} code={code} />
+              ))}
           </div>
         </div>
       )}
 
       {/* 방문객 편의 시설 */}
-      {visitorAmenities && visitorAmenities.length > 0 && (
+      {visitorAmenities && visitorAmenities.filter((code) => SERVICE_ICON_MAP[code]).length > 0 && (
         <div>
           <div className='mb-3'>
             <span className='body1-bold'>방문객 편의·시설</span>
           </div>
           <div className='grid grid-cols-4 gap-3'>
-            {visitorAmenities?.map((code) => (
-              <ServiceTagBadge key={code} code={code} />
-            ))}
+            {visitorAmenities
+              ?.filter((code) => SERVICE_ICON_MAP[code])
+              .map((code) => (
+                <ServiceTagBadge key={code} code={code} />
+              ))}
           </div>
         </div>
       )}

@@ -23,7 +23,7 @@ function PriceImageSlider({ images }: PriceImageSliderProps) {
       </div>
       <div className='scrollbar-hide flex gap-[14px] overflow-x-auto'>
         {images.map((image, index) => (
-          <button key={index} onClick={() => handleImageClick(index)}>
+          <button key={index} onClick={() => handleImageClick(index)} className='shrink-0'>
             <Image
               src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
               alt=''

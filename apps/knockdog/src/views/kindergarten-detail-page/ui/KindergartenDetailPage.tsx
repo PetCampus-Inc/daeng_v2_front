@@ -70,7 +70,7 @@ function KindergartenDetailPage() {
           <Header.ShareButton onClick={handleShare} />
         </Header.RightSection>
       </Header>
-      <div className='mb-[80px] h-[calc(100vh-196px)] overflow-y-auto' ref={scrollableDivRef}>
+      <div className='h-[calc(100vh-206px)] overflow-y-auto' ref={scrollableDivRef}>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
           <MainBannerSwiper images={images ?? []} />
@@ -89,7 +89,7 @@ function KindergartenDetailPage() {
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <div className='absolute bottom-0 z-10 flex w-full items-center gap-1 bg-white p-4'>
+      <div className='absolute bottom-3 z-10 flex w-full items-center gap-1 bg-white p-4'>
         <ActionButton
           disabled={!kindergartenMain.phoneNumber}
           variant='primaryLine'

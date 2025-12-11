@@ -17,7 +17,7 @@ const KindergartenNearSection = () => {
   const { data: nearKindergartens = [] } = useKindergartenNearQuery(id, lng, lat);
 
   return (
-    <div className='px-4'>
+    <div className='mb-6 px-4'>
       <div className='mb-3'>
         <span className='body1-bold'>이 근처 다른 유치원은 어때요?</span>
       </div>
