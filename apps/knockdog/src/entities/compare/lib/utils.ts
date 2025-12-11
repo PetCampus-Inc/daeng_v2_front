@@ -30,17 +30,6 @@ export function s3ToUrl(s3Key?: string) {
 /* =========================
  * SUMMARY CALCULATION
  * ========================= */
-type PricingType = 'monthlyHourlyAvg' | 'countHourlyAvg';
-
-export function extractPrice(pricingType: PricingType) {
-  return (kg: KindergartenComparison): number => {
-    const price = kg?.pricing?.[pricingType];
-
-    if (!price || price === 0) return 0;
-
-    return price;
-  };
-}
 
 // TODO: api 수정 후 parseTimeStrToMinutes 메서드 삭제
 export function extractDistance(refPoint: string, transportType: TransportationType) {

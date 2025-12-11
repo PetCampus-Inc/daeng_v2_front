@@ -1,7 +1,9 @@
 import { PriceDetailedItem } from './PriceDetailedItem';
-import { CircleAvatar, Description, PricingSummary } from '@entities/compare';
+import { createPriceComparison } from '../lib/createPriceComparison';
+import { PricingSummary } from './PricingSummary';
+import { CircleAvatar, Description } from '@entities/compare';
 import { s3ToUrl } from '@entities/compare/lib/utils';
-import { PriceDetailComparison } from '@entities/compare/model/types';
+import type { KindergartenComparison } from '@entities/compare/model/types';
 import { Label } from '@entities/compare/ui/Label';
 import { Badge } from '@entities/compare/ui/Badge';
 
@@ -14,16 +16,10 @@ function PricingLabel({ className = '' }: { className?: string }) {
     </Label>
   );
 }
-export function PricingSection({
-  monthlyPricingComparison,
-  countPricingComparison,
-}: {
-  monthlyPricingComparison?: PriceDetailComparison | null;
-  countPricingComparison?: PriceDetailComparison | null;
-}) {
-  if (!monthlyPricingComparison || !countPricingComparison) {
-    return null;
-  }
+
+export function PricingSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
+  const monthlyPricingComparison = createPriceComparison(left, right, (kg) => kg?.pricing?.monthlyHourlyAvg || 0);
+  const countPricingComparison = createPriceComparison(left, right, (kg) => kg?.pricing?.countHourlyAvg || 0);
 
   const hasInsufficientData =
     monthlyPricingComparison.variant === 'insufficient-data' || countPricingComparison.variant === 'insufficient-data';

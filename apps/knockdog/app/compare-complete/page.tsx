@@ -16,11 +16,9 @@ import {
   getTransitTime,
   resolveIds,
   s3ToUrl,
-  extractPrice,
   mapToSimpleItem,
 } from '@entities/compare/lib/utils';
 import {
-  createPriceComparison,
   createDistanceComparisonsByRef,
   PricingSection,
   DistanceSection,
@@ -334,10 +332,6 @@ function CompareCompletePage() {
     );
   }
 
-  // 가격 비교 결과
-  const monthlyPricingComparison = createPriceComparison(left, right, extractPrice('monthlyHourlyAvg'));
-  const countPricingComparison = createPriceComparison(left, right, extractPrice('countHourlyAvg'));
-
   // 거리 비교 결과
   const distanceComparisons: DistanceComparisonsByRef = createDistanceComparisonsByRef(left, right);
 
@@ -374,10 +368,7 @@ function CompareCompletePage() {
           <div className='bg-text-primary min-h-full space-y-3 px-4 py-7'>
             <ComparisonPanel>
               <ComparisonSection>
-                <PricingSection
-                  monthlyPricingComparison={monthlyPricingComparison}
-                  countPricingComparison={countPricingComparison}
-                />
+                <PricingSection left={left} right={right} />
               </ComparisonSection>
               <ComparisonSection>
                 <div className='mt-7 flex flex-col gap-5'>
