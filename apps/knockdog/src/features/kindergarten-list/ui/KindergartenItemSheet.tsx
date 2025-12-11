@@ -105,7 +105,7 @@ export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenI
     >
       <BottomSheet.Portal>
         <BottomSheet.Body
-          onPointerDownOutside={(e) => {
+          onPointerDownOutside={(e: Event) => {
             e.preventDefault();
             close();
           }}
