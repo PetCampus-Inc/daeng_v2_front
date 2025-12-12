@@ -31,7 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap', 'tel'],
       NSAppTransportSecurity: {
-        NSAllowsArbitraryLoads: true,
+        NSAllowsArbitraryLoads: false,
         NSAllowsArbitraryLoadsInWebContent: true,
         NSExceptionDomains: {
           'openapi.map.naver.com': {
@@ -47,6 +47,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             NSIncludesSubdomains: true,
           },
           'static.naver.net': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: false,
+          },
+          'blogpfthumb.phinf.naver.net': {
             NSExceptionAllowsInsecureHTTPLoads: true,
             NSIncludesSubdomains: false,
           },
