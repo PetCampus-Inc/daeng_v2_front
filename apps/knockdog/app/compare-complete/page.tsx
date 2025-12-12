@@ -3,32 +3,24 @@
 
 import { PropsWithChildren, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
+import { SwipeCarousel } from '@widgets/comparisons-tab/ui/SwipeCarousel';
+import { Table } from '@widgets/comparisons-tab/ui/Table';
 import {
+  useComparisonsQuery,
   PricingSection,
   DistanceSection,
   PickdropSection,
   HolidaySection,
   OperatingDaysSection,
+  createPricingSlides,
+  createDistanceSlides,
+  createOperatingScheduleSlide,
 } from '@features/compare';
-import { useComparisonsQuery } from '@features/compare/api/useComparisonsQuery';
 import type { KindergartenComparison } from '@entities/compare';
-import {
-  CircleAvatar,
-  serializeCategories,
-  getClosedDaysText,
-  getDistanceString,
-  getProduct,
-  getProductMax,
-  getProductMin,
-  getTransitTime,
-  resolveIds,
-  s3ToUrl,
-} from '@entities/compare';
+import { CircleAvatar, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
 import { SafeArea } from '@shared/ui/safe-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
-import { SwipeCarousel } from '@widgets/comparisons-tab/ui/SwipeCarousel';
-import { Table } from '@widgets/comparisons-tab/ui/Table';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -40,7 +32,6 @@ export default function Page() {
     </SafeArea>
   );
 }
-
 /* =========================
  * SMALL PARTS
  * ========================= */
@@ -117,6 +108,10 @@ function CompareCompletePage() {
     );
   }
 
+  const pricingSlidesData = createPricingSlides(left, right);
+  const distanceSlidesData = createDistanceSlides(left, right);
+  const operatingSlideData = createOperatingScheduleSlide(left, right);
+
   return (
     <div className='flex h-screen flex-col bg-white'>
       <Header>
@@ -174,95 +169,11 @@ function CompareCompletePage() {
         </TabsContent>
         <TabsContent value='details' className='overflow-y-auto'>
           <div className='flex flex-col gap-5 px-4 py-7'>
-            <SwipeCarousel
-              title='요금 비교'
-              slides={[
-                {
-                  type: '나이트케어',
-                  rows: [
-                    {
-                      label: '최저가',
-                      left: {
-                        value: `약 ${getProductMin(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                        detail: getProduct(left, 'NIGHT_CARE')?.min?.name,
-                      },
-                      right: {
-                        value: `약 ${getProductMin(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                        detail: getProduct(right, 'NIGHT_CARE')?.min?.name,
-                      },
-                    },
-                    {
-                      label: '최대가',
-                      left: {
-                        value: `약 ${getProductMax(left, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                        detail: getProduct(left, 'NIGHT_CARE')?.max?.name,
-                      },
-                      right: {
-                        value: `약 ${getProductMax(right, 'NIGHT_CARE')?.toLocaleString?.() ?? '-'}원`,
-                        detail: getProduct(right, 'NIGHT_CARE')?.max?.name,
-                      },
-                    },
-                    {
-                      label: '횟수권\n(1h)',
-                      left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
-                      right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
-                    },
-                    {
-                      label: '정기권\n(1h)',
-                      left: { value: `${getProduct(left, 'NIGHT_CARE') ? '○' : '×'}` },
-                      right: { value: `${getProduct(right, 'NIGHT_CARE') ? '○' : '×'}` },
-                    },
-                  ],
-                },
-              ]}
-            />
+            <SwipeCarousel title='요금 비교' slides={pricingSlidesData} />
 
-            <SwipeCarousel
-              title='거리 비교'
-              slides={[
-                {
-                  type: '집으로부터',
-                  rows: [
-                    {
-                      label: '도보',
-                      left: { value: getTransitTime(left, 'HOME', 'WALKING') },
-                      right: { value: getTransitTime(right, 'HOME', 'WALKING') },
-                    },
-                    {
-                      label: '차량',
-                      left: { value: getTransitTime(left, 'HOME', 'DRIVING') },
-                      right: { value: getTransitTime(right, 'HOME', 'DRIVING') },
-                    },
-                    {
-                      label: '거리',
-                      left: { value: getDistanceString(left, 'HOME') },
-                      right: { value: getDistanceString(right, 'HOME') },
-                    },
-                  ],
-                },
-              ]}
-            />
+            <SwipeCarousel title='거리 비교' slides={distanceSlidesData} />
 
-            <Table
-              title='운영 시간 비교'
-              rows={[
-                {
-                  label: '평일',
-                  left: { value: left?.operatingSchedule?.weekdayHours ?? '-' },
-                  right: { value: right?.operatingSchedule?.weekdayHours ?? '-' },
-                },
-                {
-                  label: '주말',
-                  left: { value: left?.operatingSchedule?.weekendHours ?? '-' },
-                  right: { value: right?.operatingSchedule?.weekendHours ?? '-' },
-                },
-                {
-                  label: '휴무',
-                  left: { value: getClosedDaysText(left) },
-                  right: { value: getClosedDaysText(right) },
-                },
-              ]}
-            />
+            <Table title='운영 시간 비교' rows={operatingSlideData} />
           </div>
         </TabsContent>
       </Tabs>
