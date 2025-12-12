@@ -3,7 +3,7 @@
 import { Header } from '@widgets/Header';
 import { Divider, IconButton } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
 import { LoginPrompt } from '@features/auth';
 import { AccountSection, type AccountInfo } from '@features/user-account';
@@ -11,7 +11,7 @@ import { QuickActionsSection } from '@features/support';
 import { SettingsSection } from '@features/app-settings';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { usePetListQuery } from '@entities/pet';
-import { useOpenExternalLink } from '@shared/lib/bridge';
+import { useAppVersion } from '@shared/lib/device';
 
 const EXTERNAL_LINKS = {
   NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
@@ -24,6 +24,7 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn });
+  const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
   const openDogSelectSheet = () => {
     overlay.open(({ isOpen, close }) => (
@@ -87,12 +88,13 @@ function Mypage() {
         <QuickActionsSection />
 
         <SettingsSection
-          version='v1.0.000'
-          hasUpdate
+          version={displayVersion}
+          hasUpdate={hasUpdate}
           onNoticeClick={() => handleOpenLink('NOTICE')}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
           onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
+          onUpdateClick={openStore}
         />
       </div>
     </div>
