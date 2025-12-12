@@ -14,9 +14,9 @@ export function CircleAvatar({
 }) {
   return (
     <Avatar style={{ width: size, height: size }} className={className}>
-      <AvatarImage src={src} alt={alt} />
+      <AvatarImage src={src} alt={alt} className='object-cover' />
       <AvatarFallback>
-        <Image src='/images/img_default_image.png' alt='default' width={size} height={size} />
+        <Image src='/images/img_default_image.png' alt='default' width={size} height={size} className='object-cover' />
       </AvatarFallback>
     </Avatar>
   );
