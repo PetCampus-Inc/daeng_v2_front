@@ -6,3 +6,4 @@ export { useShare } from './useShare';
 export { isNativeWebView } from './isNativeWebView';
 export { getSafeAreaInsets } from './getSafeAreaInsets';
 export { useSafeAreaInsets } from './useSafeAreaInsets';
+export { useAppVersion } from './useAppVersion';

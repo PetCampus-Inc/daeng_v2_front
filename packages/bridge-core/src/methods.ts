@@ -16,6 +16,7 @@ const METHODS = {
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
   openExternalLink: 'system.openExternalLink',
+  getAppVersion: 'system.getAppVersion',
   kakaoLogin: 'auth.kakaoLogin',
   googleLogin: 'auth.googleLogin',
   appleLogin: 'auth.appleLogin',
@@ -154,6 +155,10 @@ type SocialLoginResult = {
   picture?: string;
 };
 
+type GetAppVersionResult = {
+  version: string;
+};
+
 export { METHODS };
 export type {
   CallPhoneParams,
@@ -174,4 +179,5 @@ export type {
   PickImageResult,
   ImageAsset,
   SocialLoginResult,
+  GetAppVersionResult,
 };

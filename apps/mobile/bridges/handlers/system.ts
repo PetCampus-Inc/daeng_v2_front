@@ -1,5 +1,6 @@
 import * as Linking from 'expo-linking';
 import * as Clipboard from 'expo-clipboard';
+import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
@@ -75,6 +76,17 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     } catch (error) {
       console.error('[APP] copyToClipboard error', error);
       throw { code: 'EUNAVAILABLE', message: '클립보드에 복사할 수 없습니다.' };
+    }
+  });
+
+  /** 앱 버전 가져오기 */
+  router.register(METHODS.getAppVersion, async () => {
+    try {
+      const version = Application.nativeApplicationVersion || Constants.expoConfig?.version || '1.0.0';
+      return { version };
+    } catch (error) {
+      console.error('[APP] getAppVersion error', error);
+      throw { code: 'EUNAVAILABLE', message: '앱 버전을 가져올 수 없습니다.' };
     }
   });
 }

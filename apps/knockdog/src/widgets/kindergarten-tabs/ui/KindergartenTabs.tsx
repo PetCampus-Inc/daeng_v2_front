@@ -53,7 +53,7 @@ function KindergartenTabs({ scrollableDivRef }: KindergartenTabsProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>
-      <TabsList scrollable className='sticky top-0 z-10 bg-white'>
+      <TabsList scrollable className='sticky top-0 z-999 bg-white'>
         <TabsTrigger value='기본정보'>기본정보</TabsTrigger>
         <TabsTrigger value='요금'>요금</TabsTrigger>
         <TabsTrigger value='후기'>후기</TabsTrigger>

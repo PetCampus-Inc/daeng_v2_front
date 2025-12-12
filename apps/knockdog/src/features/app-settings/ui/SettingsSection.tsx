@@ -52,7 +52,7 @@ function SettingsSection({
             <span className='body1-medium'>버전 정보</span>
             <div className='relative'>
               <span className='body2-regular text-primitive-neutral-600 ml-1'>{version}</span>
-              <Icon icon='King' className='text-text-accent absolute top-0 -right-2 size-2' />
+              {hasUpdate && <Icon icon='King' className='text-text-accent absolute top-0 -right-2 size-2' />}
             </div>
           </div>
           {hasUpdate && (

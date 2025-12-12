@@ -11,6 +11,7 @@ import {
   type Accuracy,
   type Location,
   type PermissionStatus,
+  type GetAppVersionResult,
 } from './methods';
 
 interface RPCSchema {
@@ -99,6 +100,10 @@ interface RPCSchema {
   [METHODS.toastClear]: {
     params: ToastClearParams;
     result: void;
+  };
+  [METHODS.getAppVersion]: {
+    params: {};
+    result: GetAppVersionResult;
   };
 }
 

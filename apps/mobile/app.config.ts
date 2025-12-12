@@ -50,6 +50,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             NSExceptionAllowsInsecureHTTPLoads: true,
             NSIncludesSubdomains: false,
           },
+          'blogpfthumb.phinf.naver.net': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: false,
+          },
         },
       },
       CFBundleURLTypes: [
