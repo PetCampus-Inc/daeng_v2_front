@@ -27,3 +27,5 @@ export { OperatingDaysSection } from './ui/OperatingDaysSection';
 
 export { ComparisonSimpleItem } from './ui/ComparisonSimpleItem';
 export { ComparisonDaysItem } from './ui/ComparisonDaysItem';
+
+export { DogServiceSection } from './ui/DogServiceSection';

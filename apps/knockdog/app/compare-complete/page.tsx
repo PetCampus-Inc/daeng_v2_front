@@ -17,6 +17,7 @@ import {
   createPricingSlides,
   createDistanceSlides,
   createOperatingScheduleSlide,
+  DogServiceSection,
 } from '@features/compare';
 import type { KindergartenComparison } from '@entities/compare';
 import { CircleAvatar, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
@@ -172,6 +173,8 @@ function CompareCompletePage() {
             <SwipeCarousel title='요금 비교' slides={pricingSlidesData} />
 
             <SwipeCarousel title='거리 비교' slides={distanceSlidesData} />
+
+            <DogServiceSection leftService={left.service} rightService={right.service} />
 
             <Table title='운영 시간 비교' rows={operatingSlideData} />
           </div>
