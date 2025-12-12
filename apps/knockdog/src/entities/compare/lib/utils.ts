@@ -39,14 +39,6 @@ function getProduct(kg?: KindergartenComparison | null, prodType?: ProductType |
   return kg?.pricing?.products?.find((product) => product?.productType === prodType) ?? null;
 }
 
-function getProductMin(kg?: KindergartenComparison | null, prodType?: ProductType | null) {
-  return getProduct(kg, prodType)?.min?.price ?? null;
-}
-
-function getProductMax(kg?: KindergartenComparison | null, prodType?: ProductType | null) {
-  return getProduct(kg, prodType)?.max?.price ?? null;
-}
-
 function getTransitTime(
   kg?: KindergartenComparison | null,
   refPoint: string = 'HOME',
@@ -63,13 +55,4 @@ function getDistanceString(kg?: KindergartenComparison | null, refPoint: string 
   return kg?.distance?.find((distance) => distance?.referencePoint === refPoint)?.distance ?? '-';
 }
 
-export {
-  resolveIds,
-  s3ToUrl,
-  mapToSimpleItem,
-  getProduct,
-  getProductMin,
-  getProductMax,
-  getTransitTime,
-  getDistanceString,
-};
+export { resolveIds, s3ToUrl, mapToSimpleItem, getProduct, getTransitTime, getDistanceString };

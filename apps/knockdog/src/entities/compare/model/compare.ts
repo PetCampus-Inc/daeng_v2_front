@@ -33,7 +33,7 @@ interface Product {
   min: ProductInfo;
   max: ProductInfo;
   monthlyHourlyAvg: number;
-  countHourlyAvg: number;
+  countTicketAvg: number;
 }
 
 type ProductType = keyof typeof PRODUCT_TYPE;

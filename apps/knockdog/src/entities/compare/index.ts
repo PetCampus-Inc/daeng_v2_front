@@ -13,16 +13,7 @@ export { createComparisonsQueryOptions } from './config/comparisonsQueryKeys';
 
 /** lib */
 export { parseTimeStrToMinutes, parseMinutesToTimeStr, getClosedDaysText } from './lib/formatters';
-export {
-  resolveIds,
-  s3ToUrl,
-  mapToSimpleItem,
-  getProduct,
-  getProductMin,
-  getProductMax,
-  getTransitTime,
-  getDistanceString,
-} from './lib/utils';
+export { resolveIds, s3ToUrl, mapToSimpleItem, getProduct, getTransitTime, getDistanceString } from './lib/utils';
 export { serializeCategories } from './lib/serialize';
 
 /** model */
