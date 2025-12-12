@@ -20,7 +20,7 @@ import {
   DogServiceSection,
 } from '@features/compare';
 import type { KindergartenComparison } from '@entities/compare';
-import { CircleAvatar, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
+import { SelectedCell, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
 import { SafeArea } from '@shared/ui/safe-area';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
@@ -33,32 +33,6 @@ export default function Page() {
     </SafeArea>
   );
 }
-/* =========================
- * SMALL PARTS
- * ========================= */
-
-function SelectedCell({
-  name,
-  type,
-  avatar,
-  className,
-}: {
-  name: string;
-  type: string;
-  avatar?: string;
-  className?: string;
-}) {
-  return (
-    <div className={`flex min-w-0 items-center gap-2 px-4 py-5 ${className}`}>
-      <CircleAvatar size={40} src={avatar} alt={name} />
-      <div className='flex min-w-0 flex-col gap-0.5 leading-none'>
-        <p className='h3-extrabold truncate'>{name}</p>
-        <p className='text-text-tertiary body2-semibold truncate'>{type}</p>
-      </div>
-    </div>
-  );
-}
-
 /* =========================
  * SUMMARY PARTS
  * ========================= */
