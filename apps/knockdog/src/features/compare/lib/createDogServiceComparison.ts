@@ -13,9 +13,9 @@ export function createDogServiceComparison(
   const leftSet = new Set(leftServices);
   const rightSet = new Set(rightServices);
 
-  const leftOnly = leftServices.filter((service) => !rightSet.has(service));
-  const rightOnly = rightServices.filter((service) => !leftSet.has(service));
-  const common = leftServices.filter((service) => rightSet.has(service));
+  const leftOnly = allServices.filter((service) => leftSet.has(service) && !rightSet.has(service));
+  const rightOnly = allServices.filter((service) => !leftSet.has(service) && rightSet.has(service));
+  const common = allServices.filter((service) => leftSet.has(service) && rightSet.has(service));
   const unavailable = allServices.filter((service) => !leftSet.has(service) && !rightSet.has(service));
 
   return {
