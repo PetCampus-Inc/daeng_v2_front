@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import type { Review } from '@entities/review';
 import { Avatar, AvatarImage, AvatarFallback } from '@knockdog/ui';
-import { decodeHtmlEntity } from '@shared/lib/utils';
 
 export function ReviewCard({ username, profileImage, title, content, updatedAt }: Review) {
   return (
@@ -14,8 +13,8 @@ export function ReviewCard({ username, profileImage, title, content, updatedAt }
 
         <span className='body2-extrabold'>{username}</span>
       </div>
-      <span className='body1-bold'>{decodeHtmlEntity(title)}</span>
-      <p className='body2-regular text-text-secondary mb-[15px] line-clamp-2'>{decodeHtmlEntity(content)}</p>
+      <span className='body1-bold'>{title}</span>
+      <p className='body2-regular text-text-secondary mb-[15px] line-clamp-2'>{content}</p>
 
       <div className='body2-regular text-text-tertiary'>{updatedAt}</div>
     </div>
