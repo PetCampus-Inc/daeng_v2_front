@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { kindergartenMainQueryKeys, kindergartenNearQueryKeys } from '@entities/kindergarten';
+import { bookmarkQueryKeys } from '../config/bookmarkQueryKeys';
 import { useUserStore } from '@entities/user';
 
 import { deleteBookmark, postBookmark } from '../api/bookmark';
@@ -22,6 +23,7 @@ const useBookmarkPostMutation = () => {
         if (!Array.isArray(prev)) return prev;
         return prev.map((item) => (item?.id === id ? { ...item, bookmarked: true } : item));
       });
+      queryClient.invalidateQueries({ queryKey: bookmarkQueryKeys.all });
     },
   });
 };
@@ -44,6 +46,7 @@ const useBookmarkDeleteMutation = () => {
         if (!Array.isArray(prev)) return prev;
         return prev.map((item) => (item?.id === id ? { ...item, bookmarked: false } : item));
       });
+      queryClient.invalidateQueries({ queryKey: bookmarkQueryKeys.all });
     },
   });
 };
