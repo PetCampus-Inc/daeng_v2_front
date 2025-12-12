@@ -10,6 +10,7 @@ export { getHolidayKindergartens } from './lib/getHolidayKindergartens';
 
 export { createPricingSlides } from './lib/createPricingSlides';
 export { createDistanceSlides } from './lib/createDistanceSlides';
+export { createDogServiceComparison } from './lib/createDogServiceComparison';
 export { createOperatingScheduleSlide } from './lib/createOperatingScheduleSlide';
 
 /** ui */

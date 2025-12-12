@@ -1,24 +1,6 @@
 import { Icon } from '@knockdog/ui';
-import {
-  DOG_BREED_MAP,
-  DOG_SERVICE_MAP,
-  DOG_SAFETY_FACILITY_MAP,
-  VISITOR_AMENITY_MAP,
-  SERVICE_ICON_MAP,
-  type DogBreed,
-  type DogService,
-  type DogSafetyFacility,
-  type VisitorAmenity,
-} from '@entities/kindergarten';
-
-const TOTAL_SERVICE_MAP = {
-  ...DOG_BREED_MAP,
-  ...DOG_SERVICE_MAP,
-  ...DOG_SAFETY_FACILITY_MAP,
-  ...VISITOR_AMENITY_MAP,
-};
-
-type ServiceCode = DogBreed | DogService | DogSafetyFacility | VisitorAmenity;
+import { TOTAL_SERVICE_MAP, SERVICE_ICON_MAP } from '../model/constants/dog-service';
+import { ServiceCode } from '../model/dog-service';
 
 interface ServiceTagBadgeProps {
   code: string;
@@ -37,4 +19,4 @@ function ServiceTagBadge({ code }: ServiceTagBadgeProps) {
   );
 }
 
-export { type ServiceCode, ServiceTagBadge };
+export { ServiceTagBadge };
