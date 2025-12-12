@@ -2,7 +2,7 @@ import { RowData, RowList } from './RowList';
 import { Title } from './Title';
 
 interface TableProps {
-  title: string;
+  title?: string;
   rows: RowData[];
 }
 
