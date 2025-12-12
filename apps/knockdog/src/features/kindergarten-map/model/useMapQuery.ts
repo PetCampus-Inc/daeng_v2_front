@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { useSearchMachine } from './useSearchMachine';
 import { boundsSnapshotToBounds } from '../lib/bounds';
 import type { MapSnapshot } from '../lib/searchMachine';
+import { bookmarkQueryOptions } from '../api/bookmarkQueryOption';
+import { useUserStore } from '@entities/user';
 import { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
 import type {
   Aggregation,
@@ -15,6 +17,7 @@ import type {
   KindergartenSearchSnapshotLike,
   KindergartenMapSnapshotLike,
 } from '@entities/kindergarten/api/map-search-query';
+import { tokenUtils } from '@shared/utils';
 
 interface UseSearchListQueryParams {
   rank?: SortType;
@@ -22,6 +25,10 @@ interface UseSearchListQueryParams {
 
 export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
   const { snapshot, mapSnapshot } = useSearchMachine();
+  const user = useUserStore((state) => state.user);
+  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
+
+  const bookmarksQuery = useQuery(bookmarkQueryOptions.list(isLoggedIn));
 
   // 전역 검색이라도 L1(전국)일 때만 zoom 9로 강제, 그 외에는 실제 줌을 사용한다.
   const effectiveZoom = snapshot.scope === 'global' && snapshot.searchedLevel === 1 ? 9 : mapSnapshot.zoom;
@@ -40,8 +47,9 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
     snapshot: snapshotLike,
     mapSnapshot: toMapSnapshotLike(mapSnapshot, effectiveZoom),
     rank,
+    bookmarks: isLoggedIn ? (bookmarksQuery.data ?? []) : [],
   });
-  const canFetchList = searchListOptions.enabled;
+  const canFetchList = searchListOptions.enabled && (isLoggedIn ? !bookmarksQuery.isLoading : true);
 
   const searchListQuery = useInfiniteQuery({
     ...searchListOptions,
@@ -67,6 +75,7 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
 
   return {
     listQuery: searchListQuery,
+    searchListQueryKey: searchListOptions.queryKey,
     searchList,
     listWithoutExact,
     exact,
