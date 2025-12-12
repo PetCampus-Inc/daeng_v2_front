@@ -5,7 +5,7 @@ import { ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@enti
 import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenListItemProps extends KindergartenListItemWithMeta {
-  onBookmarkClick?: (id: string) => void;
+  onBookmarkClick?: (id: string, isBookmarked: boolean) => void;
 }
 
 export function KindergartenListItem({
@@ -43,7 +43,7 @@ export function KindergartenListItem({
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
-            onBookmarkClick?.(id);
+            onBookmarkClick?.(id, isBookmarked);
           }}
         >
           <Icon

@@ -1,5 +1,6 @@
 import type { KindergartenSearchList, KindergartenListItem } from './search-list';
 import type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './types';
+import type { BookmarkItem } from '@entities/bookmark/model/bookmark';
 import { formatDistance } from '@shared/lib';
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요
@@ -10,11 +11,7 @@ interface KindergartenMemo {
   updatedAt: string;
 }
 
-// FIXME: 향후 실제 API 사용 시 삭제 필요
-interface KindergartenBookmark {
-  id: string;
-  shopId: string;
-}
+type KindergartenBookmark = Pick<BookmarkItem, 'id'> & { shopId?: string };
 
 /**
  * KindergartenListItem을 메모/북마크와 결합하고 거리를 포맷팅한 모델로 변환
@@ -39,13 +36,19 @@ function toKindergartenListItemWithMeta(
 /**
  * KindergartenList 전체를 메모/북마크와 결합하고 거리를 포맷팅한 모델로 변환
  */
-function toKindergartenListWithMeta(
-  listData: KindergartenSearchList,
-  memoData: KindergartenMemo[],
-  bookmarkData: KindergartenBookmark[]
-): KindergartenListWithMeta {
+function toKindergartenListWithMeta({
+  listData,
+  memoData,
+  bookmarkData,
+}: {
+  listData: KindergartenSearchList;
+  memoData: KindergartenMemo[];
+  bookmarkData: KindergartenBookmark[];
+}): KindergartenListWithMeta {
   const memoByShopId = new Map(memoData.map((memo) => [memo.shopId, memo]));
-  const bookmarkedSet = new Set(bookmarkData.map((bookmark) => bookmark.shopId));
+  const bookmarkedSet = new Set(
+    bookmarkData.map((bookmark) => bookmark.shopId ?? bookmark.id).filter(Boolean) as string[]
+  );
 
   const list = listData.schoolResult.list.map((school) =>
     toKindergartenListItemWithMeta(school, memoByShopId, bookmarkedSet)
@@ -67,13 +70,17 @@ function toKindergartenListWithMeta(
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요
 export function createKindergartenListWithMock(data: KindergartenSearchList): KindergartenListWithMeta {
-  return toKindergartenListWithMeta(data, memoMockData, bookmarkMockData);
+  return toKindergartenListWithMeta({
+    listData: data,
+    memoData: memoMockData,
+    bookmarkData: bookmarkMockData,
+  });
 }
 
 // TODO: 향후 실제 (메모, 북마크 조회) API 사용 시 사용될 함수
-export function createKindergartenListWithMeta(memos: KindergartenMemo[], bookmarks: KindergartenBookmark[]) {
+export function createKindergartenListWithMeta(bookmarks: KindergartenBookmark[], memos: KindergartenMemo[] = []) {
   return (listResponse: KindergartenSearchList): KindergartenListWithMeta =>
-    toKindergartenListWithMeta(listResponse, memos, bookmarks);
+    toKindergartenListWithMeta({ listData: listResponse, memoData: memos, bookmarkData: bookmarks });
 }
 
 // FIXME: 향후 실제 API 사용 시 삭제 필요

@@ -1,7 +1,8 @@
 import { infiniteQueryOptions, queryOptions, type InfiniteData } from '@tanstack/react-query';
+import type { BookmarkItem } from '@entities/bookmark/model/bookmark';
 import { getKindergartenAggregation, getKindergartenSearchList, type SortType } from './search-list';
 import type { FilterOption } from '../config/filter-options';
-import { createKindergartenListWithMock } from '../model/mappers';
+import { createKindergartenListWithMeta } from '../model/mappers';
 import { serializeBounds } from '../lib/serialize';
 import { isValidBounds } from '../lib/is';
 import { getFilterResultCount } from './filters';
@@ -30,6 +31,7 @@ export interface KindergartenSearchListQueryParams {
   snapshot: KindergartenSearchSnapshotLike;
   mapSnapshot: KindergartenMapSnapshotLike;
   rank?: SortType;
+  bookmarks?: BookmarkItem[];
 }
 
 export interface KindergartenAggregationQueryParams {
@@ -73,7 +75,7 @@ export const kindergartenMapQueryKeys = {
   ],
 };
 
-const buildSearchListParams = ({ snapshot, mapSnapshot, rank }: KindergartenSearchListQueryParams) => ({
+const buildSearchListParams = ({ snapshot, mapSnapshot, rank, bookmarks = [] }: KindergartenSearchListQueryParams) => ({
   queryKey: kindergartenMapQueryKeys.searchList(snapshot, rank),
   queryFn: ({ pageParam = 1 }) =>
     getKindergartenSearchList({
@@ -100,7 +102,7 @@ const buildSearchListParams = ({ snapshot, mapSnapshot, rank }: KindergartenSear
     return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
   },
   select: (data: InfiniteData<KindergartenSearchList>) => ({
-    pages: data.pages.map(createKindergartenListWithMock),
+    pages: data.pages.map(createKindergartenListWithMeta(bookmarks)),
     pageParams: data.pageParams,
   }),
   staleTime: 5 * 60 * 1000,
