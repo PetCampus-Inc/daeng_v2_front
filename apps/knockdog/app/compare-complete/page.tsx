@@ -88,7 +88,7 @@ function CompareCompletePage() {
   const operatingSlideData = createOperatingScheduleSlide(left, right);
 
   return (
-    <div className='flex h-screen flex-col bg-white'>
+    <div className='flex h-screen flex-col bg-white pb-16'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
