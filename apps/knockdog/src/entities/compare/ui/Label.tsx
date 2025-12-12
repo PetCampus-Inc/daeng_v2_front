@@ -1,16 +1,16 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, ReactNode } from 'react';
 
 export function Label({
   children,
   tooltip,
   className = '',
-}: PropsWithChildren<{ tooltip?: string; className?: string }>) {
+}: PropsWithChildren<{ tooltip?: ReactNode; className?: string }>) {
   return (
     <div className={`text-text-primary body2-semibold mx-auto flex w-fit items-center gap-1 ${className}`}>
       {children}
       {tooltip && (
-        <Tooltip className='flex items-center'>
+        <Tooltip className='flex items-center' placement='top-left'>
           <TooltipTrigger />
           <TooltipContent>{tooltip}</TooltipContent>
         </Tooltip>
