@@ -9,11 +9,11 @@ export function getValetKindergartens(
 
   const valetProviders: SimpleComparisonItem[] = [];
 
-  if (left?.service?.includes('VALET')) {
+  if (left?.service?.includes('PICKDROP')) {
     valetProviders.push(mapToSimpleItem(left));
   }
 
-  if (right?.service?.includes('VALET')) {
+  if (right?.service?.includes('PICKDROP')) {
     valetProviders.push(mapToSimpleItem(right));
   }
 

@@ -5,10 +5,16 @@ import type { KindergartenComparison } from '@entities/compare';
 import { Label, Badge, CircleAvatar, Description, s3ToUrl } from '@entities/compare';
 
 function PricingLabel({ className = '' }: { className?: string }) {
-  const tooltipText =
-    '여기서 보여드리는 금액은 두 곳의 이용료를 ‘1시간 기준’으로 맞춰 비교한 값이에요. 요금제가 달라도 시간을 기준으로 동일하게 환산해 얼마나 차이가 나는지 쉽게 볼 수 있게 정리했어요. 실제 비용은 요일이나 이용 방식에 따라 조금 달라질 수 있으므로, 정확한 비용은 업체로 문의해주세요.';
+  const tooltip = (
+    <div>
+      <p>여기서 보여드리는 금액은 두 곳의 이용료를 ‘1시간 기준’으로 맞춰 비교한 값이에요.</p>
+      <p>요금제가 달라도 시간을 기준으로 동일하게 환산해 얼마나 차이가 나는지 쉽게 볼 수 있게 정리했어요.</p>
+      <p>실제 비용은 요일이나 이용 방식에 따라 조금 달라질 수 있으므로, 정확한 비용은 업체로 문의해주세요.</p>
+    </div>
+  );
+
   return (
-    <Label tooltip={tooltipText} className={className}>
+    <Label tooltip={tooltip} className={className}>
       이용 요금
     </Label>
   );
