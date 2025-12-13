@@ -121,100 +121,102 @@ function PetProfileForm({
     <>
       <div className='px-4'>
         <form id='pet-profile-form' onSubmit={handleFormSubmit} noValidate className='flex flex-col gap-y-5'>
-          <Controller
-            name='profileImage'
-            control={control}
-            render={({ field }) => (
-              <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
-            )}
-          />
-          <div className='py-2'>
+          <div className='scrollbar-hide relative h-[calc(100vh-200px)] overflow-y-auto'>
             <Controller
-              name='name'
+              name='profileImage'
               control={control}
-              rules={{
-                required: '강아지 이름을 입력해 주세요',
-                maxLength: { value: 8, message: '8자 이내로 입력해 주세요' },
-              }}
-              render={({ field, fieldState: { error } }) => (
-                <TextField label='강아지 이름' required errorMessage={error?.message}>
-                  <TextFieldInput {...field} placeholder='8자 이내 한글' />
-                </TextField>
+              render={({ field }) => (
+                <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
               )}
             />
-          </div>
-
-          <div className='py-2'>
-            <div className='body2-semibold mb-2'>
-              강아지와 내 관계 <strong className='body2-bold text-text-accent'>*</strong>
+            <div className='py-2'>
+              <Controller
+                name='name'
+                control={control}
+                rules={{
+                  required: '강아지 이름을 입력해 주세요',
+                  maxLength: { value: 8, message: '8자 이내로 입력해 주세요' },
+                }}
+                render={({ field, fieldState: { error } }) => (
+                  <TextField label='강아지 이름' required errorMessage={error?.message}>
+                    <TextFieldInput {...field} placeholder='8자 이내 한글' />
+                  </TextField>
+                )}
+              />
             </div>
-            <Controller
-              name='relationship'
-              control={control}
-              rules={{ required: '관계를 선택해 주세요' }}
-              render={({ field }) => (
-                <RelationshipSelector
-                  placeholder='관계를 선택해 주세요'
-                  value={field.value || null}
-                  onChange={(value) => field.onChange(value)}
-                />
-              )}
-            />
+
+            <div className='py-2'>
+              <div className='body2-semibold mb-2'>
+                강아지와 내 관계 <strong className='body2-bold text-text-accent'>*</strong>
+              </div>
+              <Controller
+                name='relationship'
+                control={control}
+                rules={{ required: '관계를 선택해 주세요' }}
+                render={({ field }) => (
+                  <RelationshipSelector
+                    placeholder='관계를 선택해 주세요'
+                    value={field.value || null}
+                    onChange={(value) => field.onChange(value)}
+                  />
+                )}
+              />
+            </div>
+
+            <div className='py-2'>
+              <Controller
+                name='breed'
+                control={control}
+                render={({ field }) => (
+                  <BreedSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
+                )}
+              />
+            </div>
+
+            <div className='py-2'>
+              <Controller
+                name='birthYear'
+                control={control}
+                render={({ field }) => (
+                  <YearSelector value={field.value || ''} onChange={(value) => field.onChange(value)} />
+                )}
+              />
+            </div>
+
+            <div className='py-2'>
+              <Controller
+                name='weight'
+                control={control}
+                render={({ field }) => (
+                  <TextField label='몸무게(kg)' indicator='(선택)'>
+                    <TextFieldInput {...field} value={field.value || ''} placeholder='숫자만 입력' type='number' />
+                  </TextField>
+                )}
+              />
+            </div>
+
+            <div className='py-2'>
+              <Controller
+                name='gender'
+                control={control}
+                render={({ field }) => (
+                  <GenderSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
+                )}
+              />
+            </div>
+
+            <div className='py-2'>
+              <Controller
+                name='isNeutered'
+                control={control}
+                render={({ field }) => (
+                  <NeuteredSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
+                )}
+              />
+            </div>
           </div>
 
-          <div className='py-2'>
-            <Controller
-              name='breed'
-              control={control}
-              render={({ field }) => (
-                <BreedSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
-              )}
-            />
-          </div>
-
-          <div className='py-2'>
-            <Controller
-              name='birthYear'
-              control={control}
-              render={({ field }) => (
-                <YearSelector value={field.value || ''} onChange={(value) => field.onChange(value)} />
-              )}
-            />
-          </div>
-
-          <div className='py-2'>
-            <Controller
-              name='weight'
-              control={control}
-              render={({ field }) => (
-                <TextField label='몸무게(kg)' indicator='(선택)'>
-                  <TextFieldInput {...field} value={field.value || ''} placeholder='숫자만 입력' type='number' />
-                </TextField>
-              )}
-            />
-          </div>
-
-          <div className='py-2'>
-            <Controller
-              name='gender'
-              control={control}
-              render={({ field }) => (
-                <GenderSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
-              )}
-            />
-          </div>
-
-          <div className='py-2'>
-            <Controller
-              name='isNeutered'
-              control={control}
-              render={({ field }) => (
-                <NeuteredSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
-              )}
-            />
-          </div>
-
-          <div className='pb-15'>
+          <div className='absolute right-0 bottom-6 left-0 bg-white px-4'>
             <ActionButton type='submit' disabled={isSubmitting}>
               {submitButtonText}
             </ActionButton>
