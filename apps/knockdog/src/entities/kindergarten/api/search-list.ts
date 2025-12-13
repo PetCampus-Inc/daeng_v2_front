@@ -45,7 +45,7 @@ export function getKindergartenSearchList(params: KindergartenSearchListParams) 
 
 export type KindergartenAggregationParams = {
   refPoint: Coord;
-  aggregationLevel: 'SIDO' | 'SIGUN';
+  zoomLevel: number;
   bounds?: Bounds | null;
   distance?: number;
   query?: string;
@@ -59,7 +59,7 @@ export function getKindergartenAggregation(params: KindergartenAggregationParams
 
   const searchParams = new URLSearchParams({
     refPoint: serializedRefPoint,
-    aggregationLevel: params.aggregationLevel,
+    zoomLevel: params.zoomLevel.toString(),
     ...(params.query && { query: params.query.trim() }),
     ...(serializedBounds && { bounds: serializedBounds }),
     ...(params.distance && { distance: params.distance.toString() }),
