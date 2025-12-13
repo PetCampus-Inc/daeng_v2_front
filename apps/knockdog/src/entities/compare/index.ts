@@ -41,3 +41,4 @@ export { StackedCircleAvatars } from './ui/StackedCircleAvatars';
 export { Label } from './ui/Label';
 export { Badge } from './ui/Badge';
 export { SelectedCell } from './ui/SelectedCell';
+export { Dropdown } from './ui/Dropdown';
