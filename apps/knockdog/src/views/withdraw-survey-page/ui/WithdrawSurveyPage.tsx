@@ -7,7 +7,6 @@ import { ActionButton, RadioGroup, RadioGroupItem, Textarea, TextareaInput } fro
 import { useStackNavigation } from '@shared/lib/bridge';
 import { WITHDRAW_REASON_TYPE, type WithdrawReasonType, type WithdrawRequest } from '@entities/user';
 import { withdraw } from '@shared/lib/auth';
-import { route } from '@shared/constants/route';
 
 const REASON_TYPE_PARSER = createParser<WithdrawReasonType>({
   parse: (value: string) => {
