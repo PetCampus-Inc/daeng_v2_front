@@ -129,7 +129,7 @@ function CompareCompletePage() {
 
             <ComparisonPanel>
               <ComparisonSection>
-                <DistanceSection left={left} right={right} referencePoint={'HOME'} />
+                <DistanceSection left={left} right={right} />
               </ComparisonSection>
             </ComparisonPanel>
             <ComparisonPanel>
