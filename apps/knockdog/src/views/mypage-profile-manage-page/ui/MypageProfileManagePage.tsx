@@ -65,7 +65,7 @@ function MypageProfileManagePage() {
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                logout();
+                await logout();
                 reset();
               }}
             >
