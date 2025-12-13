@@ -196,6 +196,15 @@ export function transitionSearchSnapshot(
 
       /**
        * 우선순위 1)
+       * bounds + lock=1 상태는 자동 전이 금지
+       * (L3 → L2 줌아웃 포함)
+       */
+      if (current.scope === 'bounds' && current.searchLock === 1) {
+        return current;
+      }
+
+      /**
+       * 우선순위 2)
        * L2 → L3 줌 진입 시 자동 bounds 확정
        */
       if (from === 2 && to === 3) {
@@ -207,15 +216,6 @@ export function transitionSearchSnapshot(
           searchLock: 1,
           searchBounds: resolvedBounds,
         };
-      }
-
-      /**
-       * 우선순위 2)
-       * bounds + lock=1 상태는 자동 전이 금지
-       * (L3 → L2 줌아웃 포함)
-       */
-      if (current.scope === 'bounds' && current.searchLock === 1) {
-        return current;
       }
 
       /**
