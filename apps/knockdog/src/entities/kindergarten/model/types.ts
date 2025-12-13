@@ -2,7 +2,7 @@
 
 import type { KindergartenListItem as KindergartenListItemDto } from './search-list';
 
-export interface KindergartenListItem extends Omit<KindergartenListItemDto, 'dist'> {
+interface KindergartenListItem extends Omit<KindergartenListItemDto, 'dist'> {
   dist: string;
 }
 

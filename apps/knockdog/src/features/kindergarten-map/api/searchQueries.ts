@@ -1,5 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { DEFAULT_DISTANCE } from '../config/map';
+import { createKindergartenListWithMeta } from '../model/mappers';
 import {
   getKindergartenAggregation,
   getKindergartenSearchList,
@@ -8,7 +9,6 @@ import {
   type FilterOption,
   type SortType,
 } from '@entities/kindergarten';
-import { createKindergartenListWithMeta } from '@entities/kindergarten/model/mappers';
 import type { BookmarkItem } from '@entities/bookmark';
 import { isValidCoord, serializeCoords } from '@shared/lib';
 import type { Bounds, Coord } from '@shared/types';

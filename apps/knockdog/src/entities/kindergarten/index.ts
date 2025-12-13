@@ -21,7 +21,6 @@ export { isValidBounds } from './lib/is';
 export { serializeBounds, serializeFilters } from './lib/serialize';
 
 /** model */
-export { createKindergartenListWithMock } from './model/mappers';
 export type {
   Autocomplete,
   RegionSuggestion,
@@ -30,7 +29,12 @@ export type {
   AutocompletePlace,
 } from './model/autocomplete';
 export type { FilterResultCount } from './model/filters';
-export type { Aggregation, SidoGunguAggregation } from './model/search-list';
+export type {
+  Aggregation,
+  SidoGunguAggregation,
+  KindergartenSearchList,
+  KindergartenListItem,
+} from './model/search-list';
 export type { Kindergarten } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';
@@ -53,7 +57,7 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
-export type { KindergartenListItem, KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
+export type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
 
 /** ui */
 export { DeparturePointSheet } from './ui/DeparturePointSheet';
