@@ -1,26 +1,41 @@
 import { findShortestFromComparisons } from '../lib/findShortestFromComparisons';
-import type { DistanceComparisonsByRef } from '@entities/compare';
-import { Summary, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
+import type { DistanceComparisonsByRef, ReferencePointType } from '@entities/compare';
+import { Dropdown, Summary, TRANSPORTATION_TYPE } from '@entities/compare';
 import { getDirectionParticle, getSubjectParticle } from '@shared/utils';
 
-export function DistanceSummary({ comparisons }: { comparisons: DistanceComparisonsByRef }) {
-  const shortestInfo = findShortestFromComparisons(comparisons);
+interface DistanceSummaryProps {
+  comparisons: DistanceComparisonsByRef;
+  referencePointOptions: { value: ReferencePointType; label: string }[];
+  referencePoint: ReferencePointType;
+  onReferencePointChange: (value: ReferencePointType) => void;
+}
+
+export function DistanceSummary({
+  comparisons,
+  referencePoint,
+  referencePointOptions,
+  onReferencePointChange,
+}: DistanceSummaryProps) {
+  const filteredComparisons: DistanceComparisonsByRef = comparisons[referencePoint]
+    ? { [referencePoint]: comparisons[referencePoint] }
+    : {};
+
+  const shortestInfo = findShortestFromComparisons(filteredComparisons);
 
   if (!shortestInfo) {
     return null;
   }
 
-  const refPointText = REFERENCE_POINT_TYPE[shortestInfo.referencePoint];
   const transportTypeText = TRANSPORTATION_TYPE[shortestInfo.transportType];
   const subjectParticle = getSubjectParticle(shortestInfo.name);
   const directionParticle = getDirectionParticle(transportTypeText);
 
   return (
     <>
-      <Summary
-        highlight={shortestInfo.name}
-        truncate
-      >{`${refPointText}에서 ${shortestInfo.name}${subjectParticle}`}</Summary>
+      <div className='flex items-center justify-center'>
+        <Dropdown options={referencePointOptions} value={referencePoint} onChange={onReferencePointChange} />
+        <Summary highlight={shortestInfo.name} truncate>{`에서 ${shortestInfo.name}${subjectParticle}`}</Summary>
+      </div>
       <Summary highlight={transportTypeText}>{`${transportTypeText}${directionParticle} 가장 가까워요`}</Summary>
     </>
   );
