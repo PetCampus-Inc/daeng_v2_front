@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import { mapQueryOptions } from '../api/mapQueryOption';
 import { CurrentLocationDisplay } from './CurrentLocationDisplay';
 import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { getRegionLevel } from '../lib/markers';
 import { useMapUrlState } from '../model/useMapUrlState';
+import { geoQueries } from '../api/geoQueries';
 
 export function CurrentLocationDisplayFAB() {
   const { center, zoomLevel } = useMapUrlState();
 
   const { data: address } = useQuery(
-    mapQueryOptions.reverseGeocode({
+    geoQueries.reverseGeocode({
       lat: center?.lat ?? 0,
       lng: center?.lng ?? 0,
       zoomLevel,

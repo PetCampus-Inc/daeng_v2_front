@@ -4,7 +4,7 @@ import { useMapUrlState } from '../model/useMapUrlState';
 import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../lib/markers';
 import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { getMapCenter, getMapZoom } from '../lib/map';
-import { useSearchListQuery, useAggregationQuery } from '../model/useMapQuery';
+import { useSearchListQuery, useAggregationQuery } from '../model/useSearchQuery';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
 import { useSyncMapSnapshotWithUrl } from '../model/useSyncMapSnapshotWithUrl';

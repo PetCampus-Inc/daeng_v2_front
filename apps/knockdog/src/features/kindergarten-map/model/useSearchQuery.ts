@@ -2,10 +2,9 @@ import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-q
 import { useMemo } from 'react';
 import { useSearchMachine } from './useSearchMachine';
 import { boundsSnapshotToBounds } from '../lib/bounds';
-import type { MapSnapshot } from '../lib/searchMachine';
-import { bookmarkQueryOptions } from '../api/bookmarkQueryOption';
+import { bookmarkQueries } from '../api/bookmarkQueries';
+import { searchQueries } from '../api/searchQueries';
 import { useUserStore } from '@entities/user';
-import { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
 import type {
   Aggregation,
   KindergartenListItemWithMeta,
@@ -13,10 +12,6 @@ import type {
   SortType,
   SidoGunguAggregation,
 } from '@entities/kindergarten';
-import type {
-  KindergartenSearchSnapshotLike,
-  KindergartenMapSnapshotLike,
-} from '@entities/kindergarten/api/map-search-query';
 import { tokenUtils } from '@shared/utils';
 
 interface UseSearchListQueryParams {
@@ -28,21 +23,14 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
   const user = useUserStore((state) => state.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
-  const bookmarksQuery = useQuery(bookmarkQueryOptions.list(isLoggedIn));
+  const bookmarksQuery = useQuery(bookmarkQueries.list(isLoggedIn));
 
-  const snapshotLike: KindergartenSearchSnapshotLike = {
-    scope: snapshot.scope,
-    searchedLevel: snapshot.searchedLevel,
-    query: snapshot.query,
-    filters: snapshot.filters,
-    refPoint: snapshot.refPoint,
-    searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
-    searchLock: snapshot.searchLock,
-  };
-
-  const searchListOptions = kindergartenQueryOptions.searchList({
-    snapshot: snapshotLike,
-    mapSnapshot: toMapSnapshotLike(mapSnapshot),
+  const searchListOptions = searchQueries.searchList({
+    snapshot: {
+      ...snapshot,
+      searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
+    },
+    mapSnapshot,
     rank,
     bookmarks: isLoggedIn ? (bookmarksQuery.data ?? []) : [],
   });
@@ -84,19 +72,12 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
 export function useAggregationQuery() {
   const { snapshot, mapSnapshot } = useSearchMachine();
 
-  const snapshotLike: KindergartenSearchSnapshotLike = {
-    scope: snapshot.scope,
-    searchedLevel: snapshot.searchedLevel,
-    query: snapshot.query,
-    filters: snapshot.filters,
-    refPoint: snapshot.refPoint,
-    searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
-    searchLock: snapshot.searchLock,
-  };
-
-  const aggregationOptions = kindergartenQueryOptions.aggregation({
-    snapshot: snapshotLike,
-    mapSnapshot: toMapSnapshotLike(mapSnapshot),
+  const aggregationOptions = searchQueries.aggregation({
+    snapshot: {
+      ...snapshot,
+      searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
+    },
+    mapSnapshot,
   });
   const canFetchAgg = aggregationOptions.enabled;
 
@@ -122,12 +103,5 @@ export function useAggregationQuery() {
     geoBounds,
     isLoading: aggregationQuery.isLoading,
     isFetching: aggregationQuery.isFetching,
-  };
-}
-
-function toMapSnapshotLike(mapSnapshot: MapSnapshot): KindergartenMapSnapshotLike {
-  return {
-    center: mapSnapshot.center,
-    zoom: mapSnapshot.zoom,
   };
 }
