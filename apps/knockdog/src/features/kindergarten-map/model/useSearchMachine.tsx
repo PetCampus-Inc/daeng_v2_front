@@ -1,5 +1,4 @@
 import {
-  type BoundsSnapshot,
   type MapSnapshot,
   type SearchEvent,
   type SearchSnapshot,
@@ -10,7 +9,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { normalizeSnapshotForUrl, useSearchUrlState } from './useSearchUrlState';
 import { getRegionLevel } from '../lib/markers';
 import type { FilterOption } from '@entities/kindergarten';
-import { useBasePoint } from '@shared/lib';
+import { isEqualBounds, isEqualCoord, useBasePoint } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 /**
@@ -183,9 +182,9 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
         next.scope !== prev.scope ||
         next.searchedLevel !== prev.searchedLevel ||
         next.query !== prev.query ||
-        !areFilterArraysEqual(next.filters, prev.filters) ||
-        !areCoordsEqual(next.refPoint, prev.refPoint) ||
-        !areBoundsEqual(next.searchBounds, prev.searchBounds) ||
+        !isFiltersEqual(next.filters, prev.filters) ||
+        !isEqualCoord(next.refPoint, prev.refPoint) ||
+        !isEqualBounds(next.searchBounds, prev.searchBounds) ||
         next.searchLock !== prev.searchLock
       ) {
         commitSnapshotRef.current(next);
@@ -221,7 +220,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
 
     // Case 2: baseType 변경 시 refPoint 업데이트
     const baseTypeChanged = prevBaseTypeRef.current !== baseType;
-    if (baseTypeChanged && !areCoordsEqual(snapshot.refPoint, basePoint)) {
+    if (baseTypeChanged && !isEqualCoord(snapshot.refPoint, basePoint)) {
       dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
     }
     prevBaseTypeRef.current = baseType;
@@ -296,40 +295,6 @@ export function useSearchMachine(): SearchMachineContextValue {
   return ctx;
 }
 
-/* =============================================================================
- * 비교 유틸리티 함수
- * ============================================================================= */
-
-/**
- * 좌표 동등성 비교
- *
- * @param a - 첫 번째 좌표 (nullable)
- * @param b - 두 번째 좌표 (nullable)
- * @returns 두 좌표가 같으면 true
- */
-function areCoordsEqual(a: Coord | null, b: Coord | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.lat === b.lat && a.lng === b.lng;
-}
-
-/**
- * Bounds 동등성 비교
- *
- * @description
- * 두 bounds가 완전히 동일한지 확인합니다.
- * - SW/NE 좌표 모두 일치해야 true
- *
- * @param a - 첫 번째 bounds (nullable)
- * @param b - 두 번째 bounds (nullable)
- * @returns 두 bounds가 같으면 true
- */
-export function areBoundsEqual(a: BoundsSnapshot | null, b: BoundsSnapshot | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.swLat === b.swLat && a.swLng === b.swLng && a.neLat === b.neLat && a.neLng === b.neLng;
-}
-
 /**
  * 필터 배열 동등성 비교
  *
@@ -340,7 +305,7 @@ export function areBoundsEqual(a: BoundsSnapshot | null, b: BoundsSnapshot | nul
  * @param b - 두 번째 필터 배열
  * @returns 두 배열이 같으면 true
  */
-function areFilterArraysEqual(a: FilterOption[], b: FilterOption[]): boolean {
+function isFiltersEqual(a: FilterOption[], b: FilterOption[]): boolean {
   if (a === b) return true;
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i += 1) {

@@ -1,5 +1,6 @@
 import type { RegionLevel, SearchScope } from '../config/map';
 import type { FilterOption } from '@entities/kindergarten';
+import { isEqualCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 /**
@@ -186,7 +187,7 @@ export function transitionSearchSnapshot(
     }
 
     case 'REFPOINT_SET': {
-      if (areCoordsEqual(current.refPoint, event.refPoint)) return current;
+      if (isEqualCoord(current.refPoint, event.refPoint)) return current;
       return { ...current, refPoint: event.refPoint };
     }
 
@@ -371,17 +372,4 @@ function applyFilterTransition(current: SearchSnapshot, nextFilters: FilterOptio
     ...scoped,
     filters: nextFilters,
   };
-}
-
-/**
- * 좌표 동등성 비교
- *
- * @param a - 첫 번째 좌표 (nullable)
- * @param b - 두 번째 좌표 (nullable)
- * @returns 두 좌표가 같으면 true
- */
-function areCoordsEqual(a: Coord | null, b: Coord | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.lat === b.lat && a.lng === b.lng;
 }
