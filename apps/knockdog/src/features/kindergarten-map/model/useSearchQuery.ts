@@ -1,25 +1,17 @@
-import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSearchMachine } from './useSearchMachine';
 import { boundsSnapshotToBounds } from '../lib/bounds';
 import { bookmarkQueries } from '../api/bookmarkQueries';
 import { searchQueries } from '../api/searchQueries';
+import { useListOptionsUrlState } from '@features/kindergarten-list';
 import { useUserStore } from '@entities/user';
-import type {
-  Aggregation,
-  KindergartenListItemWithMeta,
-  KindergartenListWithMeta,
-  SortType,
-  SidoGunguAggregation,
-} from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { tokenUtils } from '@shared/utils';
 
-interface UseSearchListQueryParams {
-  rank?: SortType;
-}
-
-export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
+export function useSearchListQuery() {
   const { snapshot, mapSnapshot } = useSearchMachine();
+  const { rank } = useListOptionsUrlState();
   const user = useUserStore((state) => state.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
@@ -34,16 +26,16 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
     rank,
     bookmarks: isLoggedIn ? (bookmarksQuery.data ?? []) : [],
   });
-  const canFetchList = searchListOptions.enabled && (isLoggedIn ? !bookmarksQuery.isLoading : true);
 
   const searchListQuery = useInfiniteQuery({
     ...searchListOptions,
-    enabled: canFetchList,
+    enabled: searchListOptions.enabled && (isLoggedIn ? !bookmarksQuery.isLoading : true),
+    placeholderData: keepPreviousData,
   });
 
-  const listData = searchListQuery.data as InfiniteData<KindergartenListWithMeta> | undefined;
+  const listData = searchListQuery.data;
 
-  const { searchList, exact, listWithoutExact } = useMemo(() => {
+  const { searchList, exact } = useMemo(() => {
     if (!listData) {
       return {
         searchList: [] as KindergartenListItemWithMeta[],
@@ -54,15 +46,13 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
     const allList = listData.pages.flatMap((page) => page.schoolResult.list);
     const pageWithExact = listData.pages.find((page) => page.schoolResult.exact);
     const exactItem = pageWithExact?.schoolResult.exact ?? null;
-    const listExceptExact = exactItem ? allList.filter((item) => item.id !== exactItem.id) : allList;
-    return { searchList: allList, exact: exactItem, listWithoutExact: listExceptExact };
+    return { searchList: allList, exact: exactItem };
   }, [listData]);
 
   return {
     listQuery: searchListQuery,
     searchListQueryKey: searchListOptions.queryKey,
     searchList,
-    listWithoutExact,
     exact,
     isLoading: searchListQuery.isLoading,
     isFetching: searchListQuery.isFetching,
@@ -72,36 +62,30 @@ export function useSearchListQuery({ rank }: UseSearchListQueryParams = {}) {
 export function useAggregationQuery() {
   const { snapshot, mapSnapshot } = useSearchMachine();
 
-  const aggregationOptions = searchQueries.aggregation({
-    snapshot: {
-      ...snapshot,
-      searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
-    },
-    mapSnapshot,
-  });
-  const canFetchAgg = aggregationOptions.enabled;
+  const { data, isLoading, isFetching } = useQuery(
+    searchQueries.aggregation({
+      snapshot: {
+        ...snapshot,
+        searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
+      },
+      mapSnapshot,
+    })
+  );
 
-  const aggregationQuery = useQuery({
-    ...aggregationOptions,
-    enabled: canFetchAgg,
-  });
-
-  const aggData = aggregationQuery.data as Aggregation | undefined;
-
-  const aggregation = useMemo<SidoGunguAggregation[]>(() => {
-    if (!aggData?.aggregations) return [];
-    const { sidoAggregations, sigunAggregations } = aggData.aggregations;
+  const aggregation = useMemo(() => {
+    if (!data?.aggregations) return [];
+    const { sidoAggregations, sigunAggregations } = data.aggregations;
     return sigunAggregations || sidoAggregations || [];
-  }, [aggData]);
+  }, [data]);
 
   const geoBounds = useMemo(() => {
-    return aggData?.bounds || null;
-  }, [aggData]);
+    return data?.bounds || null;
+  }, [data]);
 
   return {
     aggregation,
     geoBounds,
-    isLoading: aggregationQuery.isLoading,
-    isFetching: aggregationQuery.isFetching,
+    isLoading,
+    isFetching,
   };
 }

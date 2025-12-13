@@ -28,7 +28,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { query: searchQuery, filters } = useSearchUrlState();
-  const { rank } = useListOptionsUrlState();
   const { dispatch } = useSearchMachine();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -36,7 +35,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
-  const { listQuery, searchListQueryKey, searchList, listWithoutExact, exact } = useSearchListQuery({ rank });
+  const { listQuery, searchListQueryKey, searchList, exact } = useSearchListQuery();
   const { onBookmarkClick } = useBookmarkToggle(searchListQueryKey);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
@@ -201,7 +200,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               <NearByRecommendBanner title={exact.title} />
             </>
           )}
-          {(listWithoutExact ?? searchList).map((item) => (
+          {searchList.map((item) => (
             <Fragment key={item.id}>
               <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
               <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
