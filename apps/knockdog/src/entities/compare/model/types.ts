@@ -23,7 +23,7 @@ export type {
   SimpleComparisonItem,
   DetailComparisonItem,
   PriceDetailComparison,
-  DistanceComparisonsByRef,
   DistanceComparisonsByTransport,
   DistanceDetailComparison,
+  ShortestInfo,
 } from './compare-result';

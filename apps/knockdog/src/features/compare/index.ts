@@ -3,8 +3,9 @@ export { useComparisonsQuery } from './api/useComparisonsQuery';
 
 /** lib */
 export { createPriceComparison } from './lib/createPriceComparison';
-export { createDistanceComparisonsByRef } from './lib/createDistanceComparisonsByRef';
 export { createDistanceComparison } from './lib/createDistanceComparison';
+export { compareDistancesByTransport } from './lib/compareDistancesByTransport';
+export { findShortestTransport } from './lib/findShortestTransport';
 export { getValetKindergartens } from './lib/getValetKindergartens';
 export { getHolidayKindergartens } from './lib/getHolidayKindergartens';
 

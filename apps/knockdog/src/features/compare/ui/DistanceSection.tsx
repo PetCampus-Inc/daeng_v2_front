@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { DistanceDetailedItem } from './DistanceDetailedItem';
-import { createDistanceComparisonsByRef } from '../lib/createDistanceComparisonsByRef';
 import { DistanceSummary } from './DistanceSummary';
-import type {
-  KindergartenComparison,
-  TransportationType,
-  ReferencePointType,
-  DistanceComparisonsByRef,
-  DistanceComparisonsByTransport,
-} from '@entities/compare';
+import { compareDistancesByTransport } from '../lib/compareDistancesByTransport';
+import { findShortestTransport } from '../lib/findShortestTransport';
+import type { KindergartenComparison, TransportationType, ReferencePointType } from '@entities/compare';
 import { TRANSPORTATION_TYPE, Label, Badge, REFERENCE_POINT_TYPE } from '@entities/compare';
 
 const REFERENCE_POINT_OPTIONS = Object.entries(REFERENCE_POINT_TYPE).map(([value, label]) => ({
@@ -19,10 +14,11 @@ const REFERENCE_POINT_OPTIONS = Object.entries(REFERENCE_POINT_TYPE).map(([value
 export function DistanceSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   const [referencePoint, setReferencePoint] = useState<ReferencePointType>('HOME');
 
-  const allDistanceComparisons: DistanceComparisonsByRef = createDistanceComparisonsByRef(left, right);
-  const selectedDistanceComparison: DistanceComparisonsByTransport = allDistanceComparisons[referencePoint] ?? {};
+  const comparisonsByTransport = compareDistancesByTransport(left, right, referencePoint);
 
-  const comparisonItems = Object.entries(selectedDistanceComparison).map(([transportType, comparison]) => ({
+  const shortestInfo = findShortestTransport(comparisonsByTransport);
+
+  const comparisonItems = Object.entries(comparisonsByTransport).map(([transportType, comparison]) => ({
     transportType: transportType as TransportationType,
     comparison,
   }));
@@ -31,7 +27,7 @@ export function DistanceSection({ left, right }: { left: KindergartenComparison;
     <>
       <Label className='mb-2'>거리</Label>
       <DistanceSummary
-        comparisons={allDistanceComparisons}
+        shortestInfo={shortestInfo}
         referencePoint={referencePoint}
         referencePointOptions={REFERENCE_POINT_OPTIONS}
         onReferencePointChange={setReferencePoint}

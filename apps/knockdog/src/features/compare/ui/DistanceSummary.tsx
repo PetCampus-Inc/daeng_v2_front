@@ -1,31 +1,20 @@
-import { findShortestFromComparisons } from '../lib/findShortestFromComparisons';
-import type { DistanceComparisonsByRef, ReferencePointType } from '@entities/compare';
+import type { ReferencePointType, ShortestInfo } from '@entities/compare';
 import { Dropdown, Summary, TRANSPORTATION_TYPE } from '@entities/compare';
 import { getDirectionParticle, getSubjectParticle } from '@shared/utils';
 
 interface DistanceSummaryProps {
-  comparisons: DistanceComparisonsByRef;
+  shortestInfo: ShortestInfo;
   referencePointOptions: { value: ReferencePointType; label: string }[];
   referencePoint: ReferencePointType;
   onReferencePointChange: (value: ReferencePointType) => void;
 }
 
 export function DistanceSummary({
-  comparisons,
+  shortestInfo,
   referencePoint,
   referencePointOptions,
   onReferencePointChange,
 }: DistanceSummaryProps) {
-  const filteredComparisons: DistanceComparisonsByRef = comparisons[referencePoint]
-    ? { [referencePoint]: comparisons[referencePoint] }
-    : {};
-
-  const shortestInfo = findShortestFromComparisons(filteredComparisons);
-
-  if (!shortestInfo) {
-    return null;
-  }
-
   const transportTypeText = TRANSPORTATION_TYPE[shortestInfo.transportType];
   const subjectParticle = getSubjectParticle(shortestInfo.name);
   const directionParticle = getDirectionParticle(transportTypeText);

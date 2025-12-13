@@ -17,8 +17,8 @@ const PRODUCT_TYPE = {
 
 const TRANSPORTATION_TYPE = {
   WALKING: '도보',
-  TRANSIT: '대중교통',
   DRIVING: '자동차',
+  TRANSIT: '대중교통',
 } as const;
 
 const REFERENCE_POINT_TYPE = {
