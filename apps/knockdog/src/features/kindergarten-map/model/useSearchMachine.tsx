@@ -105,10 +105,26 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   );
 
   /**
+   * 최신 snapshot/commitSnapshot을 항상 참조하기 위한 ref
+   *
+   * @description
+   * useEffectEvent의 제약(Effect 내부에서만 사용 가능)을 우회하기 위해
+   * ref 패턴을 사용하여 dispatch를 안정화합니다.
+   */
+  const snapshotRef = useRef(snapshot);
+  const commitSnapshotRef = useRef(commitSnapshot);
+
+  useEffect(() => {
+    snapshotRef.current = snapshot;
+    commitSnapshotRef.current = commitSnapshot;
+  }, [snapshot, commitSnapshot]);
+
+  /**
    * FSM 전이 컨텍스트 빌더
    *
    * @description
    * 전이 함수에 필요한 외부 컨텍스트를 생성합니다.
+   * - ref를 통해 최신 snapshot/basePoint 참조
    * - overrideMap: 이벤트 핸들러에서 최신 map 상태를 전달할 때 사용
    *
    * @param overrideMap - 강제로 사용할 map 스냅샷 (선택)
@@ -117,30 +133,39 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   const buildTransitionContext = useCallback(
     (overrideMap?: MapSnapshot): SearchTransitionContext => {
       const effectiveMap = overrideMap ?? mapRef.current;
+      const currentSnapshot = snapshotRef.current;
 
       return {
         map: effectiveMap,
         levelFromZoom: getRegionLevel(effectiveMap.zoom),
-        refPointFromBase: snapshot.refPoint ?? basePoint ?? null,
+        refPointFromBase: currentSnapshot.refPoint ?? basePoint ?? null,
       };
     },
-    [basePoint, snapshot.refPoint]
+    [basePoint]
   );
 
   /**
-   * FSM 이벤트 처리 및 URL 커밋
+   * FSM 이벤트 디스패처 (안정적인 참조 보장)
    *
    * @description
-   * 1. 현재 snapshot + 이벤트 + 컨텍스트로 다음 snapshot 계산
-   * 2. URL 정규화 (scope별 파라미터 정리)
-   * 3. 변경 감지 후 URL에 커밋
+   * FSM 이벤트를 발생시켜 상태 전이를 트리거합니다.
    *
-   * @param event - FSM 이벤트
+   * ✅ ref 패턴 적용으로 snapshot 변경에도 동일한 참조 유지
+   * - 하위 컴포넌트 useEffect deps에 안전하게 사용 가능
+   * - 불필요한 effect 재실행 방지
+   *
+   * 동작 흐름:
+   * 1. ref를 통해 최신 snapshot 획득
+   * 2. 현재 snapshot + 이벤트 + 컨텍스트로 다음 snapshot 계산
+   * 3. URL 정규화 (scope별 파라미터 정리)
+   * 4. 변경 감지 후 URL에 커밋
+   *
+   * @param event - 발생시킬 FSM 이벤트
    * @param overrideMap - 강제로 사용할 map 스냅샷 (선택)
    */
-  const commitEvent = useCallback(
+  const dispatch = useCallback(
     (event: SearchEvent, overrideMap?: MapSnapshot) => {
-      const prev = snapshot;
+      const prev = snapshotRef.current;
       const ctx = buildTransitionContext(overrideMap);
 
       // 디버그: 이벤트 입력과 컨텍스트 확인
@@ -164,28 +189,11 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
         !areBoundsEqual(next.searchBounds, prev.searchBounds) ||
         next.searchLock !== prev.searchLock
       ) {
-        commitSnapshot(next);
+        commitSnapshotRef.current(next);
       }
     },
-    [snapshot, buildTransitionContext, commitSnapshot]
+    [buildTransitionContext]
   );
-
-  // TODO: dispatch/commitEvent가 snapshot 변화에 따라 새로 생성되는 구조라 상위 컴포넌트 effect가 반복 실행된다.
-  //       useEvent-stable한 dispatch를 제공하도록 리팩터링하고, URL 커밋은 내부에서만 처리하도록 단일 책임화할 것.
-
-  /**
-   * FSM 이벤트 디스패처
-   *
-   * @description
-   * FSM 이벤트를 발생시켜 상태 전이를 트리거합니다.
-   *
-   * ⚠️ 주의: 현재 snapshot에 의존하여 재생성됨
-   * - ESLint exhaustive-deps 규칙 위반 가능
-   * - TODO: useEvent 패턴으로 안정화 필요
-   *
-   * @param event - 발생시킬 FSM 이벤트
-   */
-  const dispatch = useCallback((event: SearchEvent) => commitEvent(event), [commitEvent]);
 
   /**
    * refPoint 자동 관리 (Effect)

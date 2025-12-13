@@ -14,7 +14,6 @@ import { useBookmarkToggle } from '../model/useBookmarkToggle';
 import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
 import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import type { FilterOption } from '@entities/kindergarten';
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType, useSearchListScroll } from '@shared/store';
@@ -51,18 +50,13 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     [searchQuery, filters, region]
   );
 
-  const prevFiltersRef = useRef(filters);
-
   useEffect(() => {
-    if (areFiltersEqual(filters, prevFiltersRef.current)) return;
-    prevFiltersRef.current = filters;
-
     if (filters.length > 0) {
       dispatch({ type: 'FILTERS_CHANGED', filters });
       return;
     }
     dispatch({ type: 'CLEAR_FILTERS' });
-  }, [filters, dispatch]);
+  }, [filters]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -108,10 +102,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasNextPage, isFetchingNextPage]);
 
-  const isGranted = useMemo(async () => {
-    const status = await getCurrentLocation.getPermission();
-    return status === 'allowed';
-  }, []);
+  // const isGranted = useMemo(async () => {
+  //   const status = await getCurrentLocation.getPermission();
+  //   return status === 'allowed';
+  // }, []);
 
   const handleLocationChange = (value: string) => {
     setBaseType(value as 'current' | 'home' | 'work');
@@ -193,7 +187,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
         </div>
 
         {/* <DogSchoolEmptySection /> */}
-        {!isGranted && <PermissionSection />}
+        {/* {!isGranted && <PermissionSection />} */}
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
           <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
@@ -238,13 +232,4 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       </Float>
     </>
   );
-}
-
-function areFiltersEqual(a: FilterOption[], b: FilterOption[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
 }
