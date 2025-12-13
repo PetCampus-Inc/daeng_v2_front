@@ -204,9 +204,9 @@ export function MapView(props: MapViewProps) {
     });
 
     dispatch({
-      type: 'ZOOM_LEVEL_CHANGE',
-      prevLevel: prevRegionLevel,
-      nextLevel: nextRegionLevel,
+      type: 'ZOOM_LEVEL_CHANGED',
+      from: prevRegionLevel,
+      to: nextRegionLevel,
       viewportBounds,
     });
 

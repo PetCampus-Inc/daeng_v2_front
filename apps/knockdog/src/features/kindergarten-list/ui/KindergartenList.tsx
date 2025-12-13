@@ -58,7 +58,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     prevFiltersRef.current = filters;
 
     if (filters.length > 0) {
-      dispatch({ type: 'SET_FILTERS', filters });
+      dispatch({ type: 'FILTERS_CHANGED', filters });
       return;
     }
     dispatch({ type: 'CLEAR_FILTERS' });

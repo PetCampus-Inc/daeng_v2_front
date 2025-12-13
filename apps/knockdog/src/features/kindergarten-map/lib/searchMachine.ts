@@ -3,8 +3,7 @@ import type { FilterOption } from '@entities/kindergarten';
 import type { Coord } from '@shared/types';
 
 /**
- * 도메인 친화적인 Bounds 모델
- * - SDK 타입을 노출하지 않는다.
+ * Bounds 모델
  */
 export interface BoundsSnapshot {
   swLat: number;
@@ -16,7 +15,6 @@ export interface BoundsSnapshot {
 /**
  * 화면 뷰 상태(로컬)
  * - 드래그/줌 등 고빈도 변경 대상
- * - 검색 트리거 기준이 아니다.
  */
 export interface MapSnapshot {
   center: Coord | null;
@@ -25,36 +23,80 @@ export interface MapSnapshot {
 }
 
 /**
- * 검색 "확정" 상태
- * - API 트리거 기준
- * - URL Source of Truth 대상
+ * 검색 스냅샷
+ * - 검색 트리거 기준
  */
 export interface SearchSnapshot {
+  /**
+   * 검색 상태 (유한한 상태)
+   *
+   * - scope: 검색 범위 모드
+   * - searchedLevel: 행정구역 레벨
+   * - searchLock: bounds 잠금 여부
+   */
   scope: SearchScope;
   searchedLevel: RegionLevel;
+  searchLock: 0 | 1;
+
+  /**
+   * 검색 컨텍스트 (무한한 데이터)
+   *
+   * - query: 검색어 (문자열)
+   * - filters: 필터 조합 (배열)
+   * - refPoint: 기준점 좌표
+   * - searchBounds: 검색 영역 사각형
+   */
   query: string;
   filters: FilterOption[];
   refPoint: Coord | null;
   searchBounds: BoundsSnapshot | null;
-  searchLock: 0 | 1;
 }
 
 /**
- * Search FSM 이벤트
- * - Map 이동/줌 자체는 제외한다.
- * - "레벨 경계 통과" 같은 검색 정책 이벤트만 포함한다.
+ * 검색 FSM 이벤트
+ *
+ * @description
+ * 이벤트는 "무슨 일이 일어났는지"를 나타냅니다.
+ * - 상태 전이를 트리거하는 외부 액션
+ *
+ * 상태 다이어그램:
+ * ```
+ *   ┌─────────┐
+ *   │ NEARBY  │
+ *   └─────────┘
+ *        │
+ *        │ QUERY_CHANGED / FILTERS_CHANGED
+ *        ↓
+ *   ┌─────────┐
+ *   │ GLOBAL  │
+ *   └─────────┘
+ *        │
+ *        │ ZOOM_LEVEL_CHANGED (L2→L3)
+ *        ↓
+ *   ┌─────────┐
+ *   │ BOUNDS  │───┐
+ *   │ lock=1  │   │ ZOOM_LEVEL_CHANGED (blocked)
+ *   └─────────┘←──┘
+ *        │
+ *        │ QUERY_CHANGED
+ *        ↓
+ *   ┌─────────┐
+ *   │ GLOBAL  │
+ *   └─────────┘
+ * ```
+ * // MEMO: 이벤트는 수동형, 과거형 네이밍으로 한다. 그럼 'CLEAR_QUERY' 같은 이름이 적절한가? 리뷰 필요.
  */
 export type SearchEvent =
   | { type: 'ENTER' }
-  | { type: 'SET_QUERY'; query: string }
-  | { type: 'SET_FILTERS'; filters: FilterOption[] }
+  | { type: 'QUERY_CHANGED'; query: string }
+  | { type: 'FILTERS_CHANGED'; filters: FilterOption[] }
   | { type: 'CLEAR_QUERY' }
   | { type: 'CLEAR_FILTERS' }
   | { type: 'REFPOINT_SET'; refPoint: Coord }
   | {
-      type: 'ZOOM_LEVEL_CHANGE';
-      prevLevel: RegionLevel;
-      nextLevel: RegionLevel;
+      type: 'ZOOM_LEVEL_CHANGED';
+      from: RegionLevel;
+      to: RegionLevel;
       viewportBounds: BoundsSnapshot | null;
     }
   | { type: 'AGG_MARKER_CLICK'; bounds: BoundsSnapshot }
@@ -65,8 +107,11 @@ export type SearchEvent =
     };
 
 /**
- * transition 계산에 필요한 "외부 입력"
- * - 머신은 외부 상태를 직접 읽지 않는다.
+ * FSM 전이 계산에 필요한 외부 컨텍스트
+ *
+ * @description
+ * 순수 함수 원칙을 위해 외부 상태를 직접 읽지 않고,
+ * 전이 시점의 필요한 값들을 명시적으로 전달받습니다.
  */
 export interface SearchTransitionContext {
   /** 이벤트 시점의 최신 지도 스냅샷 */
@@ -78,8 +123,29 @@ export interface SearchTransitionContext {
 }
 
 /**
- * SearchSnapshot FSM
- * - URL을 SoT로 두고, 이 함수는 "전이 규칙만" 정의한다.
+ * 검색 FSM 전이 함수 (순수 함수)
+ *
+ * @description
+ * Extended FSM의 핵심 전이 로직을 구현합니다.
+ * - 현재 상태 + 이벤트 + 컨텍스트 → 다음 상태
+ * - 부수 효과(side-effect) 없음
+ * - 테스트 가능, 예측 가능
+ *
+ * @param current - 현재 검색 스냅샷 (상태 + 컨텍스트)
+ * @param event - 발생한 이벤트
+ * @param ctx - 전이 계산에 필요한 외부 컨텍스트
+ * @returns 다음 검색 스냅샷
+ *
+ * @example
+ * ```ts
+ * const next = transitionSearchSnapshot(
+ *   { scope: 'global', searchedLevel: 2, ... },
+ *   { type: 'ZOOM_LEVEL_CHANGED', from: 2, to: 3, ... },
+ *   { map: {...}, levelFromZoom: 3, ... }
+ * );
+ * // next.scope === 'bounds'
+ * // next.searchLock === 1
+ * ```
  */
 export function transitionSearchSnapshot(
   current: SearchSnapshot,
@@ -103,11 +169,11 @@ export function transitionSearchSnapshot(
       };
     }
 
-    case 'SET_QUERY': {
+    case 'QUERY_CHANGED': {
       return applyQueryTransition(current, event.query);
     }
 
-    case 'SET_FILTERS': {
+    case 'FILTERS_CHANGED': {
       return applyFilterTransition(current, event.filters);
     }
 
@@ -124,22 +190,21 @@ export function transitionSearchSnapshot(
       return { ...current, refPoint: event.refPoint };
     }
 
-    case 'ZOOM_LEVEL_CHANGE': {
-      const { prevLevel, nextLevel, viewportBounds } = event;
+    case 'ZOOM_LEVEL_CHANGED': {
+      const { from, to, viewportBounds } = event;
 
       /**
        * 우선순위 1)
        * L2 → L3 줌 진입 시 자동 bounds 확정
        */
-      if (prevLevel === 2 && nextLevel === 3) {
+      if (from === 2 && to === 3) {
         const resolvedBounds = viewportBounds ?? current.searchBounds;
 
         return {
           ...current,
           scope: 'bounds',
-          searchedLevel: 3,
-          searchBounds: resolvedBounds,
           searchLock: 1,
+          searchBounds: resolvedBounds,
         };
       }
 
@@ -157,10 +222,10 @@ export function transitionSearchSnapshot(
        * 나머지 레벨 경계 변화는 searchedLevel만 갱신
        * → agg-only 트리거
        */
-      if (prevLevel !== nextLevel) {
+      if (from !== to) {
         return {
           ...current,
-          searchedLevel: nextLevel,
+          searchedLevel: to,
         };
       }
 
@@ -195,10 +260,24 @@ export function transitionSearchSnapshot(
 }
 
 /* =============================================================================
- * 내부 헬퍼
+ * 내부 헬퍼 함수
  * ============================================================================= */
 
-/** deriveScope 입력 객체 형태로 명확화 */
+/**
+ * 검색 조건으로부터 적절한 scope를 파생
+ *
+ * @description
+ * query/filters 존재 여부와 현재 scope를 기반으로
+ * 다음 scope를 결정합니다.
+ *
+ * 우선순위:
+ * 1. query 또는 filters 존재 → global
+ * 2. 현재 bounds 상태 → bounds 유지
+ * 3. 기본값 → nearby
+ *
+ * @param params - scope 파생에 필요한 파라미터
+ * @returns 파생된 SearchScope
+ */
 function deriveScope(params: { currentScope: SearchScope; query: string; filters: FilterOption[] }): SearchScope {
   const { currentScope, query, filters } = params;
 
@@ -216,8 +295,15 @@ function deriveScope(params: { currentScope: SearchScope; query: string; filters
 }
 
 /**
- * scope 전이 규칙
- * - bounds가 아닌 scope로 이동하면 lock/bounds를 정리한다.
+ * scope 전이 시 관련 상태 정리
+ *
+ * @description
+ * scope가 변경될 때, 관련 상태를 일관성 있게 관리합니다.
+ * - bounds가 아닌 scope로 이동 시 searchBounds/searchLock 초기화
+ *
+ * @param current - 현재 검색 스냅샷
+ * @param targetScope - 목표 scope
+ * @returns 전이된 검색 스냅샷
  */
 function applyScopeTransition(current: SearchSnapshot, targetScope: SearchScope): SearchSnapshot {
   if (targetScope === current.scope) return current;
@@ -237,6 +323,16 @@ function applyScopeTransition(current: SearchSnapshot, targetScope: SearchScope)
   };
 }
 
+/**
+ * 쿼리 변경 전이 처리
+ *
+ * @description
+ * 쿼리 변경 시 scope를 재계산하고 컨텍스트를 업데이트합니다.
+ *
+ * @param current - 현재 검색 스냅샷
+ * @param nextQuery - 새로운 쿼리
+ * @returns 전이된 검색 스냅샷
+ */
 function applyQueryTransition(current: SearchSnapshot, nextQuery: string): SearchSnapshot {
   const targetScope = deriveScope({
     currentScope: current.scope,
@@ -252,6 +348,16 @@ function applyQueryTransition(current: SearchSnapshot, nextQuery: string): Searc
   };
 }
 
+/**
+ * 필터 변경 전이 처리
+ *
+ * @description
+ * 필터 변경 시 scope를 재계산하고 컨텍스트를 업데이트합니다.
+ *
+ * @param current - 현재 검색 스냅샷
+ * @param nextFilters - 새로운 필터 배열
+ * @returns 전이된 검색 스냅샷
+ */
 function applyFilterTransition(current: SearchSnapshot, nextFilters: FilterOption[]): SearchSnapshot {
   const targetScope = deriveScope({
     currentScope: current.scope,
@@ -267,6 +373,13 @@ function applyFilterTransition(current: SearchSnapshot, nextFilters: FilterOptio
   };
 }
 
+/**
+ * 좌표 동등성 비교
+ *
+ * @param a - 첫 번째 좌표 (nullable)
+ * @param b - 두 번째 좌표 (nullable)
+ * @returns 두 좌표가 같으면 true
+ */
 function areCoordsEqual(a: Coord | null, b: Coord | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
