@@ -17,20 +17,15 @@ import {
   KindergartenItemSheet,
   KindergartenListSheet,
   SearchHeader,
-  useListOptionsUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import {
-  areBoundsEqual,
-  SearchStateProvider,
-  useSearchMachine,
-} from '@features/kindergarten-map/model/useSearchMachine';
+import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-map/model/useSearchMachine';
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
+import { isEqualBounds, isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 export default function KindergartenMainPage() {
@@ -47,7 +42,6 @@ function KindergartenMainPageContent() {
   const searchParams = useSearchParams();
   const { center, zoomLevel } = useMapUrlState();
   const { query } = useSearchUrlState();
-  const { rank } = useListOptionsUrlState();
   const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
 
   const { setActiveMarker } = useMarkerState();
@@ -60,7 +54,7 @@ function KindergartenMainPageContent() {
     const zoomChanged = zoomLevel !== mapSnapshot.zoom;
 
     if (snapshot.searchBounds) {
-      return zoomChanged || !areBoundsEqual(snapshot.searchBounds, mapSnapshot.viewportBounds);
+      return zoomChanged || !isEqualBounds(snapshot.searchBounds, mapSnapshot.viewportBounds);
     }
 
     if (snapshot.refPoint && mapSnapshot.center) {
@@ -139,7 +133,7 @@ function KindergartenMainPageContent() {
 
   return (
     <>
-      <MapView ref={mapRef} onOpenCard={handleOpenCard} sortRank={rank} />
+      <MapView ref={mapRef} onOpenCard={handleOpenCard} />
 
       {query.trim().length > 0 ? (
         <SearchHeader query={query} />

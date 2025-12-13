@@ -9,7 +9,7 @@ import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
 import { useSyncMapSnapshotWithUrl } from '../model/useSyncMapSnapshotWithUrl';
 import { toBoundsSnapshot } from '../lib/bounds';
-import type { KindergartenListItemWithMeta, SortType } from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
@@ -18,10 +18,9 @@ import { useMarkerState } from '@shared/store';
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
   onOpenCard?: (item: KindergartenListItemWithMeta) => void;
-  sortRank?: SortType;
 }
 export function MapView(props: MapViewProps) {
-  const { ref, onOpenCard, sortRank } = props;
+  const { ref, onOpenCard } = props;
 
   const map = useRef<naver.maps.Map | null>(null);
   const lastFittedKeyRef = useRef<string | null>(null);
@@ -45,7 +44,7 @@ export function MapView(props: MapViewProps) {
   const showAggregationMarkers = snapshot.searchLock !== 1 && isAggregationZoom(zoomLevel ?? 0);
   const showBusinessMarkers = snapshot.searchLock === 1 || isBusinessZoomLevel;
 
-  const { searchList: overlay, listWithoutExact, exact } = useSearchListQuery({ rank: sortRank });
+  const { searchList: overlay, exact } = useSearchListQuery();
 
   const { aggregation, geoBounds } = useAggregationQuery();
 
@@ -95,6 +94,7 @@ export function MapView(props: MapViewProps) {
 
   /**
    * exact 결과가 있을 때는 자동으로 선택 상태를 만들고 상세 시트를 연다.
+   * // TODO: 시트 제어는 상위 컴포넌트로 위임해야함.
    */
   useEffect(() => {
     if (!exact) {
@@ -102,6 +102,7 @@ export function MapView(props: MapViewProps) {
       return;
     }
     if (!onOpenCard) return;
+
     if (exactHandledRef.current === exact.id) return;
     onOpenCard(exact);
     exactHandledRef.current = exact.id;
@@ -264,7 +265,7 @@ export function MapView(props: MapViewProps) {
 
         {/* 업체 마커 (줌레벨 14~) */}
         {showBusinessMarkers &&
-          (listWithoutExact ?? overlay).map((item) => (
+          overlay.map((item) => (
             <Marker
               key={item.id}
               position={item.coord}
