@@ -13,7 +13,6 @@ const proxyMiddleware = createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/': '/api/v0/' },
   cookieDomainRewrite: { '*': '' }, // 쿠키 도메인 제거 (localhost에서는 Domain 생략 필요)
-  cookieSecure: false,
   logLevel: 'debug', // 로그 활성화 (디버깅용)
   on: {
     proxyRes: (proxyRes, req, res) => {
@@ -34,6 +33,8 @@ const proxyMiddleware = createProxyMiddleware({
     },
     error: (err, req, res) => {
       console.error('[PROXY ERROR]', err);
+      if (!res.headersSent) res.status(502);
+      res.end('Bad Gateway');
     },
   },
 });
