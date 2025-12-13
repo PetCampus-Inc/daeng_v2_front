@@ -92,24 +92,22 @@ export function MypagePetAddPage() {
   };
 
   return (
-    <div className='flex h-screen flex-col'>
-      <SafeArea edges={['bottom']} className='flex-1 overflow-y-auto'>
-        <Header>
-          <Header.LeftSection>
-            <Header.BackButton onClick={handleBack} />
-          </Header.LeftSection>
-          <Header.Title>강아지 프로필 추가하기</Header.Title>
-        </Header>
+    <>
+      <Header>
+        <Header.LeftSection>
+          <Header.BackButton onClick={handleBack} />
+        </Header.LeftSection>
+        <Header.Title>강아지 프로필 추가하기</Header.Title>
+      </Header>
 
-        <PetProfileForm
-          mode='add'
-          onSuccess={handleSuccess}
-          onError={handleError}
-          onDirtyChange={setIsFormDirty}
-          onBeforeSubmit={handleBeforeSubmit}
-          submitButtonText='저장하기'
-        />
-      </SafeArea>
-    </div>
+      <PetProfileForm
+        mode='add'
+        onSuccess={handleSuccess}
+        onError={handleError}
+        onDirtyChange={setIsFormDirty}
+        onBeforeSubmit={handleBeforeSubmit}
+        submitButtonText='저장하기'
+      />
+    </>
   );
 }

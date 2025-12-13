@@ -65,7 +65,7 @@ export function MypagePetEditPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
+    <>
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -73,19 +73,17 @@ export function MypagePetEditPage() {
         <Header.Title>강아지 프로필 수정하기</Header.Title>
       </Header>
 
-      <div className='flex-1 overflow-y-auto'>
-        <PetProfileForm
-          mode='edit'
-          petId={petId}
-          defaultValues={petResponse}
-          onSuccess={handleSuccess}
-          onError={handleError}
-          onDirtyChange={(isDirty) => {
-            isDirtyRef.current = isDirty;
-          }}
-          submitButtonText='수정하기'
-        />
-      </div>
-    </SafeArea>
+      <PetProfileForm
+        mode='edit'
+        petId={petId}
+        defaultValues={petResponse}
+        onSuccess={handleSuccess}
+        onError={handleError}
+        onDirtyChange={(isDirty) => {
+          isDirtyRef.current = isDirty;
+        }}
+        submitButtonText='수정하기'
+      />
+    </>
   );
 }
