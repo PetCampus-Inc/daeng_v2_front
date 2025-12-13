@@ -113,11 +113,13 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
    */
   const snapshotRef = useRef(snapshot);
   const commitSnapshotRef = useRef(commitSnapshot);
+  const basePointRef = useRef<Coord | null>(basePoint);
 
   useEffect(() => {
     snapshotRef.current = snapshot;
     commitSnapshotRef.current = commitSnapshot;
-  }, [snapshot, commitSnapshot]);
+    basePointRef.current = basePoint;
+  }, [snapshot, commitSnapshot, basePoint]);
 
   /**
    * FSM 전이 컨텍스트 빌더
@@ -130,19 +132,16 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
    * @param overrideMap - 강제로 사용할 map 스냅샷 (선택)
    * @returns FSM 전이 컨텍스트
    */
-  const buildTransitionContext = useCallback(
-    (overrideMap?: MapSnapshot): SearchTransitionContext => {
-      const effectiveMap = overrideMap ?? mapRef.current;
-      const currentSnapshot = snapshotRef.current;
+  const buildTransitionContext = useCallback((overrideMap?: MapSnapshot): SearchTransitionContext => {
+    const effectiveMap = overrideMap ?? mapRef.current;
+    const currentSnapshot = snapshotRef.current;
 
-      return {
-        map: effectiveMap,
-        levelFromZoom: getRegionLevel(effectiveMap.zoom),
-        refPointFromBase: currentSnapshot.refPoint ?? basePoint ?? null,
-      };
-    },
-    [basePoint]
-  );
+    return {
+      map: effectiveMap,
+      levelFromZoom: getRegionLevel(effectiveMap.zoom),
+      refPointFromBase: currentSnapshot.refPoint ?? basePointRef.current ?? null,
+    };
+  }, []);
 
   /**
    * FSM 이벤트 디스패처 (안정적인 참조 보장)
@@ -226,7 +225,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
     }
     prevBaseTypeRef.current = baseType;
-  }, [basePoint, baseType, snapshot, dispatch]);
+  }, [basePoint, baseType, snapshot]);
 
   /**
    * 지도 스냅샷 업데이트 함수

@@ -54,8 +54,6 @@ function KindergartenMainPageContent() {
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
 
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-
   const shouldShowRefresh = useMemo(() => {
     if (!mapSnapshot.viewportBounds) return false;
 
@@ -78,11 +76,6 @@ function KindergartenMainPageContent() {
     snapshot.refPoint,
     zoomLevel,
   ]);
-
-  // 최초 진입 시
-  useEffect(() => {
-    dispatch({ type: 'ENTER' });
-  }, []);
 
   // URL query 변경 시
   useEffect(() => {
@@ -146,13 +139,7 @@ function KindergartenMainPageContent() {
 
   return (
     <>
-      <MapView
-        ref={mapRef}
-        isMapLoaded={isMapLoaded}
-        onMapLoadChange={setIsMapLoaded}
-        onOpenCard={handleOpenCard}
-        sortRank={rank}
-      />
+      <MapView ref={mapRef} onOpenCard={handleOpenCard} sortRank={rank} />
 
       {query.trim().length > 0 ? (
         <SearchHeader query={query} />

@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useRef } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { useMapUrlState } from '../model/useMapUrlState';
 import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../lib/markers';
@@ -7,6 +7,7 @@ import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useMapQuery';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
+import { useSyncMapSnapshotWithUrl } from '../model/useSyncMapSnapshotWithUrl';
 import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta, SortType } from '@entities/kindergarten';
 import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
@@ -16,13 +17,11 @@ import { useMarkerState } from '@shared/store';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
-  isMapLoaded: boolean;
-  onMapLoadChange?: (loaded: boolean) => void;
   onOpenCard?: (item: KindergartenListItemWithMeta) => void;
   sortRank?: SortType;
 }
 export function MapView(props: MapViewProps) {
-  const { ref, isMapLoaded, onMapLoadChange, onOpenCard, sortRank } = props;
+  const { ref, onOpenCard, sortRank } = props;
 
   const map = useRef<naver.maps.Map | null>(null);
   const lastFittedKeyRef = useRef<string | null>(null);
@@ -34,6 +33,9 @@ export function MapView(props: MapViewProps) {
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId } = useMarkerState();
   const { snapshot, mapSnapshot, dispatch, updateMapSnapshot } = useSearchMachine();
+  useSyncMapSnapshotWithUrl({ mapRef: map });
+
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   const mapCenter = getMapCenter({ center, basePoint });
   const mapZoom = getMapZoom(zoomLevel);
@@ -56,15 +58,10 @@ export function MapView(props: MapViewProps) {
    * - URL에 zoomLevel이 없으면 DEFAULT_MAP_ZOOM_LEVEL로 설정
    * - 이후에는 Map 인터랙션 → URL 업데이트 방향으로만 동작
    */
-  const isInitializedRef = useRef(false);
-
   useEffect(() => {
     if (!isMapLoaded || !map.current) return;
-    if (isInitializedRef.current) return;
-
     // URL에 유효한 center가 있으면 그대로 사용 (북마크/뒤로가기 케이스)
     if (isValidCoord(center)) {
-      isInitializedRef.current = true;
       return;
     }
 
@@ -73,7 +70,6 @@ export function MapView(props: MapViewProps) {
 
     setCenter(basePoint);
     setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
-    isInitializedRef.current = true;
   }, [isMapLoaded, basePoint, center, setCenter, setZoomLevel]);
 
   /**
@@ -116,7 +112,7 @@ export function MapView(props: MapViewProps) {
    * @description 지도 로드 시 isMapLoaded 플래그 활성화
    */
   const handleMapLoad = (map: naver.maps.Map) => {
-    onMapLoadChange?.(true);
+    setIsMapLoaded(true);
     const center = map.getCenter();
     const bounds = map.getBounds();
     const zoom = map.getZoom();
