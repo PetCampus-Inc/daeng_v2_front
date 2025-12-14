@@ -1,15 +1,15 @@
 import { FloatingActionButton } from '@knockdog/ui';
-import { useMapUrlState } from '../model/useMapUrlState';
 import { useGeolocationQuery } from '@shared/lib';
+import { useSearchMachine } from '../model/useSearchMachine';
 
 export function CurrentLocationFAB() {
-  const { setCenter } = useMapUrlState();
+  const { dispatch } = useSearchMachine();
   const { refetch } = useGeolocationQuery(false);
 
   const handleClick = async () => {
     const { data: coords } = await refetch();
     if (!coords) return;
-    setCenter(coords);
+    dispatch({ type: 'REFPOINT_SET', refPoint: coords });
   };
 
   return (

@@ -1,16 +1,13 @@
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
-import { useMapUrlState } from '../model/useMapUrlState';
-import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '../lib/markers';
-import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
+import { isAggregationZoom, isBusinessZoom } from '../lib/markers';
 import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useSearchQuery';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
-import { useSyncMapSnapshotWithUrl } from '../model/useSyncMapSnapshotWithUrl';
 import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isValidCoord, useBasePoint, useGeolocationQuery } from '@shared/lib';
+import { useBasePoint, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
@@ -27,66 +24,23 @@ export function MapView(props: MapViewProps) {
   const exactHandledRef = useRef<string | null>(null);
   useImperativeHandle(ref, () => map.current!);
 
-  const { center, setCenter, zoomLevel, setZoomLevel, setCenterAndZoom } = useMapUrlState();
   const { coord: basePoint } = useBasePoint();
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId } = useMarkerState();
-  const { snapshot, mapSnapshot, dispatch, updateMapSnapshot } = useSearchMachine();
-  useSyncMapSnapshotWithUrl({ mapRef: map });
+  const { liveState: state, dispatch } = useSearchMachine();
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  const mapCenter = getMapCenter({ center, basePoint });
-  const mapZoom = getMapZoom(zoomLevel);
+  const mapCenter = getMapCenter({ center: state.center, basePoint });
+  const mapZoom = getMapZoom(state.zoom);
 
-  const isBusinessZoomLevel = isBusinessZoom(zoomLevel ?? 0);
-  // 검색 lock이 걸린 상태에서는 업체 마커만 표시.
-  const showAggregationMarkers = snapshot.searchLock !== 1 && isAggregationZoom(zoomLevel ?? 0);
-  const showBusinessMarkers = snapshot.searchLock === 1 || isBusinessZoomLevel;
+  // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
+  const showAggregationMarkers = state.searchLock !== 1 && isAggregationZoom(state.zoom);
+  const showBusinessMarkers = state.searchLock === 1 || isBusinessZoom(state.zoom);
 
   const { searchList: overlay, exact } = useSearchListQuery();
 
   const { aggregation, geoBounds } = useAggregationQuery();
-
-  /**
-   * 지도 초기화
-   *
-   * @description
-   * 초기 마운트 시 mapSnapshot과 map url를 동기화합니다.
-   * - URL에 center가 없으면 basePoint로 설정
-   * - URL에 zoomLevel이 없으면 DEFAULT_MAP_ZOOM_LEVEL로 설정
-   * - 이후에는 Map 인터랙션 → URL 업데이트 방향으로만 동작
-   */
-  useEffect(() => {
-    if (!isMapLoaded || !map.current) return;
-    // URL에 유효한 center가 있으면 그대로 사용
-    if (isValidCoord(center)) {
-      return;
-    }
-
-    // URL에 center가 없으면 basePoint로 초기화
-    if (!isValidCoord(basePoint)) return;
-
-    // 1. 지도 인스턴스에 중심점 설정
-    map.current.setCenter(basePoint);
-    // 2. 로컬 MapSnapshot 동기화
-    updateMapSnapshot({
-      center: getMapCenter({ center, basePoint }),
-      zoom: DEFAULT_MAP_ZOOM_LEVEL,
-      viewportBounds: toBoundsSnapshot(map.current.getBounds()),
-    });
-    // 3. URL 초기화
-    setCenterAndZoom(basePoint, DEFAULT_MAP_ZOOM_LEVEL);
-  }, [
-    isMapLoaded,
-    basePoint,
-    center,
-    setCenter,
-    setZoomLevel,
-    setCenterAndZoom,
-    updateMapSnapshot,
-    mapSnapshot.viewportBounds,
-  ]);
 
   /**
    * GLOBAL 스코프에서 query/filters 변동 후 agg 응답 bounds로 1회 fitBounds.
@@ -95,10 +49,10 @@ export function MapView(props: MapViewProps) {
    */
   useEffect(() => {
     if (!isMapLoaded || !map.current) return;
-    if (snapshot.scope !== 'global') return;
+    if (state.scope !== 'global') return;
     if (!geoBounds) return;
 
-    const fitKey = `global:${snapshot.query}:${snapshot.filters.join(',')}`;
+    const fitKey = `global:${state.query}:${state.filters.join(',')}`;
     if (lastFittedKeyRef.current === fitKey) return;
 
     const bounds = new naver.maps.LatLngBounds(
@@ -107,7 +61,7 @@ export function MapView(props: MapViewProps) {
     );
     map.current.fitBounds(bounds);
     lastFittedKeyRef.current = fitKey;
-  }, [geoBounds, isMapLoaded, snapshot.filters, snapshot.query, snapshot.scope]);
+  }, [geoBounds, isMapLoaded, state.filters, state.query, state.scope]);
 
   /**
    * exact 결과가 있을 때는 자동으로 선택 상태를 만들고 상세 시트를 연다.
@@ -129,25 +83,14 @@ export function MapView(props: MapViewProps) {
    * 지도 로드 핸들러
    * @description 지도 로드 시 isMapLoaded 플래그 활성화
    */
-  const handleMapLoad = (map: naver.maps.Map) => {
+  const handleMapLoad = (_map: naver.maps.Map) => {
     setIsMapLoaded(true);
-    if (isValidCoord(center)) {
-      map.setCenter(center);
-    }
-    if (zoomLevel) {
-      map.setZoom(zoomLevel);
-    }
   };
 
   /**
-   * 지도 드래그 종료 핸들러 (Map → URL 단방향)
-   *
-   * @description
-   * 드래그 종료 시 로컬 MapSnapshot 먼저 업데이트 → URL에 반영
-   * - Map 상태가 Source of Truth
-   * - URL은 Map 상태의 영속성 저장소 역할
+   * 지도 인터랙션(드래그, 줌) 종료 핸들러
    */
-  const handleDragEnd = () => {
+  const handleMapInteractionEnd = () => {
     if (!map.current) return;
     const coord = map.current.getCenter();
     const centerCoord = { lat: coord.y, lng: coord.x };
@@ -155,31 +98,34 @@ export function MapView(props: MapViewProps) {
     const bounds = map.current.getBounds();
     const viewportBounds = toBoundsSnapshot(bounds);
 
-    // 로컬 MapSnapshot 업데이트
-    updateMapSnapshot({
-      center: centerCoord,
-      zoom,
-      viewportBounds,
+    dispatch({
+      type: 'MAP_INTERACTION_END',
+      payload: {
+        center: centerCoord,
+        zoom,
+        viewportBounds,
+      },
     });
-
-    // URL 업데이트 (단방향: Map → URL)
-    setCenter(centerCoord);
   };
 
   /**
    * 집계 마커 클릭 핸들러
-   * @description 집계 마커 클릭 시 지도 중심 이동 및 상세 정보 표시
+   * @description 집계 마커 클릭 시 FSM 이벤트를 발생시킨다.
    */
   const handleAggregationClick = (_: string, coord: Coord, nextZoom: number) => {
     if (map.current) {
       const bounds = map.current.getBounds();
       const viewportBounds = toBoundsSnapshot(bounds);
       if (viewportBounds) {
-        dispatch({ type: 'AGG_MARKER_CLICK', bounds: viewportBounds });
+        dispatch({
+          type: 'AGG_MARKER_CLICK',
+          payload: {
+            bounds: viewportBounds,
+            center: coord,
+            zoom: nextZoom,
+          },
+        });
       }
-
-      map.current.setCenter(coord);
-      map.current.setZoom(nextZoom, true);
     }
   };
 
@@ -188,47 +134,8 @@ export function MapView(props: MapViewProps) {
    * @description 마커 클릭 시 지도 중심 이동, 상세 정보 표시 및 마커 활성화 처리
    */
   const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
-    map.current?.panTo(item.coord);
+    dispatch({ type: 'CENTER_CHANGED', center: item.coord });
     onOpenCard?.(item);
-  };
-
-  /**
-   * 줌 변경 완료 핸들러 (Map → URL 단방향)
-   *
-   * @description
-   * 줌 종료 시 로컬 MapSnapshot + FSM dispatch → URL 반영
-   * - center와 zoom을 배칭하여 URL 업데이트 1회만 발생
-   * - 레벨 변경 시에만 center도 함께 업데이트 (최적화)
-   */
-  const handleZoomEnd = () => {
-    if (!map.current) return;
-
-    const coord = map.current.getCenter();
-    const zoom = map.current.getZoom();
-    const bounds = map.current.getBounds();
-    const centerCoord = { lat: coord.y, lng: coord.x };
-    const viewportBounds = toBoundsSnapshot(bounds);
-
-    const nextRegionLevel = getRegionLevel(zoom);
-    const prevRegionLevel = snapshot.searchedLevel;
-
-    // 로컬 MapSnapshot 업데이트
-    updateMapSnapshot({
-      center: centerCoord,
-      zoom,
-      viewportBounds,
-    });
-
-    // FSM 전이 (검색 레벨 변경 감지)
-    dispatch({
-      type: 'ZOOM_LEVEL_CHANGED',
-      from: prevRegionLevel,
-      to: nextRegionLevel,
-      viewportBounds,
-    });
-
-    // URL 업데이트
-    setCenterAndZoom(centerCoord, zoom);
   };
 
   return (
@@ -243,8 +150,8 @@ export function MapView(props: MapViewProps) {
         baseTileOpacity={0.88}
         className='relative z-0 h-full w-full'
         onLoad={handleMapLoad}
-        onDragEnd={handleDragEnd}
-        onZoomEnd={handleZoomEnd}
+        onDragEnd={handleMapInteractionEnd}
+        onZoomEnd={handleMapInteractionEnd}
       >
         {/* 현재 위치 마커 */}
         {currentLocation && (
@@ -299,7 +206,7 @@ export function MapView(props: MapViewProps) {
 
         {/* 개발용 BBox 디버깅 - 개발 환경에서만 표시 */}
         {process.env.NODE_ENV === 'development' && (
-          <BBoxDebug serverBounds={geoBounds} viewportBounds={mapSnapshot.viewportBounds} map={map.current} />
+          <BBoxDebug serverBounds={geoBounds} viewportBounds={state.viewportBounds} map={map.current} />
         )}
       </NaverMap>
     </>

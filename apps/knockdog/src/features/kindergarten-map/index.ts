@@ -5,7 +5,6 @@ export * from './config/map';
 export * from './lib/markers';
 
 /** model */
-export * from './model/useMapUrlState';
 export * from './model/useSearchQuery';
 export * from './model/useSearchMachine';
 

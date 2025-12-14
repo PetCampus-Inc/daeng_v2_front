@@ -11,7 +11,6 @@ import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
 import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
-import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -26,7 +25,9 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { query: searchQuery, filters } = useSearchUrlState();
+  const { liveState } = useSearchMachine();
+  const { query: searchQuery, filters } = liveState;
+
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
@@ -197,7 +198,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             </Fragment>
           ))}
         </div>
-        <div ref={loadMoreRef} aria-hidden className='h-4' />
+        <div ref={loadMoreRef} aria-hidden='true' className='h-4' />
       </main>
 
       {/* 지도보기 FAB */}

@@ -1,5 +1,6 @@
+import { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import type { FilterOption } from '../config/filter-options';
-import { isValidBounds } from './is';
+import { isValidBounds, isValidBoundsSnapshot } from './is';
 import type { Bounds } from '@shared/types';
 
 /**
@@ -9,6 +10,11 @@ import type { Bounds } from '@shared/types';
 export function serializeBounds(bounds?: Bounds | null): string | undefined {
   if (!isValidBounds(bounds)) return undefined;
   return `${bounds.sw.lng},${bounds.sw.lat},${bounds.ne.lng},${bounds.ne.lat}`;
+}
+
+export function serializeBoundSnapshot(bounds?: BoundsSnapshot | null): string | undefined {
+  if (!isValidBoundsSnapshot(bounds)) return undefined;
+  return `${bounds.swLng},${bounds.swLat},${bounds.neLng},${bounds.neLat}`;
 }
 
 /**

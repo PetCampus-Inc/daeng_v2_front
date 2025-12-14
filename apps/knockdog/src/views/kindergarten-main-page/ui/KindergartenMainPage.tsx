@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -10,7 +10,6 @@ import {
   ListFAB,
   MapView,
   RefreshFAB,
-  useMapUrlState,
 } from '@features/kindergarten-map';
 import {
   FilterBottomSheet,
@@ -23,8 +22,7 @@ import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-ma
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
-import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { isEqualFilters, type KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualBounds, isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
@@ -38,57 +36,58 @@ export default function KindergartenMainPage() {
 
 function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
-
   const searchParams = useSearchParams();
-  const { zoomLevel } = useMapUrlState();
-  const { query, filters } = useSearchUrlState();
-  const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
+  const { liveState, committedState, dispatch } = useSearchMachine();
+  const { query, filters } = committedState;
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
 
+  const prevQueryRef = useRef(query);
+  const prevFiltersRef = useRef(filters);
+
   const shouldShowRefresh = useMemo(() => {
-    if (!mapSnapshot.viewportBounds) return false;
+    if (!liveState.viewportBounds) return false;
 
-    const zoomChanged = zoomLevel !== mapSnapshot.zoom;
+    const zoomChanged = liveState.zoom !== committedState.zoom;
+    if (zoomChanged) return true;
 
-    if (snapshot.searchBounds) {
-      return zoomChanged || !isEqualBounds(snapshot.searchBounds, mapSnapshot.viewportBounds);
+    if (committedState.searchBounds) {
+      return !isEqualBounds(committedState.searchBounds, liveState.viewportBounds);
     }
 
-    if (snapshot.refPoint && mapSnapshot.center) {
-      return zoomChanged || !isEqualCoord(snapshot.refPoint, mapSnapshot.center);
+    if (committedState.refPoint && liveState.center) {
+      return !isEqualCoord(committedState.refPoint, liveState.center);
     }
 
-    return zoomChanged;
-  }, [
-    mapSnapshot.viewportBounds,
-    mapSnapshot.zoom,
-    mapSnapshot.center,
-    snapshot.searchBounds,
-    snapshot.refPoint,
-    zoomLevel,
-  ]);
+    return false;
+  }, [liveState, committedState]);
 
-  // URL query 변경 시
+  // URL의 query 변경을 감지하고 이벤트를 발생
   useEffect(() => {
-    const trimmed = query.trim();
-    if (trimmed.length > 0) {
-      dispatch({ type: 'QUERY_CHANGED', query: trimmed });
-      return;
+    if (query !== prevQueryRef.current) {
+      const trimmed = query.trim();
+      if (trimmed.length > 0) {
+        dispatch({ type: 'QUERY_CHANGED', query: trimmed });
+      } else {
+        dispatch({ type: 'CLEAR_QUERY' });
+      }
+      prevQueryRef.current = query;
     }
-    dispatch({ type: 'CLEAR_QUERY' });
-  }, [query]);
+  }, [query, dispatch]);
 
-  // URL filters 변경 시
+  // URL의 filters 변경을 감지하고 이벤트를 발생
   useEffect(() => {
-    if (filters.length > 0) {
-      dispatch({ type: 'FILTERS_CHANGED', filters });
-      return;
+    if (!isEqualFilters(filters, prevFiltersRef.current)) {
+      if (filters.length > 0) {
+        dispatch({ type: 'FILTERS_CHANGED', filters });
+      } else {
+        dispatch({ type: 'CLEAR_FILTERS' });
+      }
+      prevFiltersRef.current = filters;
     }
-    dispatch({ type: 'CLEAR_FILTERS' });
-  }, [filters]);
+  }, [filters, dispatch]);
 
   /**
    * 재검색 핸들러
@@ -96,22 +95,19 @@ function KindergartenMainPageContent() {
    * - 검색 모드를 boundary로 전환
    */
   const handleRefresh = () => {
-    if (!zoomLevel) return;
-
     const bounds = mapRef.current?.getBounds();
     const viewportBounds: BoundsSnapshot | null = toBoundsSnapshot(bounds);
 
     dispatch({
       type: 'RESEARCH_HERE',
       viewportBounds,
-      levelFromZoom: getRegionLevel(zoomLevel),
+      levelFromZoom: getRegionLevel(liveState.zoom),
     });
   };
 
   const handleOpenCard = (item: KindergartenListItemWithMeta) => {
     const itemId = item.id;
 
-    // 이미 활성화된 마커면 시트를 열지 않음
     if (useMarkerState.getState().activeMarkerId === itemId) {
       return;
     }
@@ -136,7 +132,19 @@ function KindergartenMainPageContent() {
 
   const handleOpenFilter = () => {
     overlay.open(({ isOpen, close }) => (
-      <FilterBottomSheet isOpen={isOpen} close={close} bounds={mapRef.current?.getBounds()} />
+      <FilterBottomSheet
+        isOpen={isOpen}
+        close={close}
+        bounds={mapRef.current?.getBounds()}
+        initialFilters={liveState.filters}
+        onApply={(newFilters) => {
+          if (newFilters.length > 0) {
+            dispatch({ type: 'FILTERS_CHANGED', filters: newFilters });
+          } else {
+            dispatch({ type: 'CLEAR_FILTERS' });
+          }
+        }}
+      />
     ));
   };
 
@@ -144,8 +152,8 @@ function KindergartenMainPageContent() {
     <>
       <MapView ref={mapRef} onOpenCard={handleOpenCard} />
 
-      {query.trim().length > 0 ? (
-        <SearchHeader query={query} />
+      {liveState.query.trim().length > 0 ? (
+        <SearchHeader query={liveState.query} />
       ) : (
         <div
           className={cn(`absolute top-0 right-0 left-0 z-50 ${isFullExtended ? 'bg-fill-secondary-0' : ''}`)}

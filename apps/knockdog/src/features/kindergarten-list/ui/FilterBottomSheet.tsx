@@ -1,25 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
-import { useSearchFilter } from '../model/useSearchFilter';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
 import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
-import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
-
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { filterQueries } from '../api/filterQueries';
+import type { FilterOption } from '@entities/kindergarten';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
   close: () => void;
   bounds?: naver.maps.Bounds;
+  initialFilters: FilterOption[];
+  onApply: (filters: FilterOption[]) => void;
 }
 
-export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetProps) {
-  const { filters } = useSearchUrlState();
-  const { resultCount, onChangeResultCount } = useSearchFilter();
+export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApply }: FilterBottomSheetProps) {
+  const [resultCount, setResultCount] = useState<number | null>(null);
   const {
     localFilters,
     selectedFilters,
@@ -29,14 +28,13 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
     onClearLocalFilters,
     setLocalFilters,
     applyFilters,
-  } = useLocalSearchFilter();
+  } = useLocalSearchFilter({ initialFilters, onApply });
 
   useEffect(() => {
     if (isOpen) {
-      setLocalFilters([...filters]);
+      setLocalFilters(initialFilters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, initialFilters, setLocalFilters]);
 
   const abstractBounds = isValidLatLngBounds(bounds) ? toBounds(bounds) : null;
   const { data: filterResultData } = useQuery({
@@ -49,14 +47,14 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
   /** 로컬 필터 변경 시 필터 결과 수 업데이트 */
   useEffect(() => {
     if (localFilters.length === 0) {
-      onChangeResultCount(null);
+      setResultCount(null);
       return;
     }
 
     if (filterResultData?.totalCount !== undefined) {
-      onChangeResultCount(filterResultData.totalCount);
+      setResultCount(filterResultData.totalCount);
     }
-  }, [filterResultData, localFilters.length, onChangeResultCount]);
+  }, [filterResultData, localFilters.length]);
 
   /** 필터 적용 핸들러 */
   const handleApply = () => {

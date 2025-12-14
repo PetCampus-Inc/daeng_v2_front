@@ -1,7 +1,6 @@
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSearchMachine } from './useSearchMachine';
-import { boundsSnapshotToBounds } from '../lib/bounds';
 import { bookmarkQueries } from '../api/bookmarkQueries';
 import { searchQueries } from '../api/searchQueries';
 import { useListOptionsUrlState } from '@features/kindergarten-list';
@@ -10,19 +9,15 @@ import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { tokenUtils } from '@shared/utils';
 
 export function useSearchListQuery() {
-  const { snapshot, mapSnapshot } = useSearchMachine();
+  const { committedState } = useSearchMachine();
   const { rank } = useListOptionsUrlState();
-  const user = useUserStore((state) => state.user);
+  const user = useUserStore((s) => s.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
   const bookmarksQuery = useQuery(bookmarkQueries.list(isLoggedIn));
 
   const searchListOptions = searchQueries.searchList({
-    snapshot: {
-      ...snapshot,
-      searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
-    },
-    mapSnapshot,
+    state: committedState,
     rank,
     bookmarks: isLoggedIn ? (bookmarksQuery.data ?? []) : [],
   });
@@ -60,17 +55,9 @@ export function useSearchListQuery() {
 }
 
 export function useAggregationQuery() {
-  const { snapshot, mapSnapshot } = useSearchMachine();
+  const { committedState } = useSearchMachine();
 
-  const { data, isLoading, isFetching } = useQuery(
-    searchQueries.aggregation({
-      snapshot: {
-        ...snapshot,
-        searchBounds: boundsSnapshotToBounds(snapshot.searchBounds),
-      },
-      mapSnapshot,
-    })
-  );
+  const { data, isLoading, isFetching } = useQuery(searchQueries.aggregation({ state: committedState }));
 
   const aggregation = useMemo(() => {
     if (!data?.aggregations) return [];
