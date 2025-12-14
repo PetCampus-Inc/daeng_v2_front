@@ -105,20 +105,15 @@ const SEARCH_LOCK_PARSER = createParser<SearchLock>({
  * `normalizeSnapshotForUrl` 유틸로 수행한다.
  */
 export function useSearchUrlState() {
-  const [searchState, setSearchState] = useQueryStates(
-    {
-      scope: SCOPE_PARSER,
-      searchedLevel: SEARCHED_LEVEL_PARSER.withDefault(3),
-      query: parseAsString.withDefault(''),
-      filters: FILTERS_PARSER.withDefault([]),
-      refPoint: REF_POINT_PARSER,
-      bounds: BOUNDS_PARSER,
-      searchLock: SEARCH_LOCK_PARSER.withDefault(0),
-    },
-    {
-      history: 'push',
-    }
-  );
+  const [searchState, setSearchState] = useQueryStates({
+    scope: SCOPE_PARSER,
+    searchedLevel: SEARCHED_LEVEL_PARSER.withDefault(3),
+    query: parseAsString.withDefault(''),
+    filters: FILTERS_PARSER.withDefault([]),
+    refPoint: REF_POINT_PARSER,
+    bounds: BOUNDS_PARSER,
+    searchLock: SEARCH_LOCK_PARSER.withDefault(0),
+  });
 
   const { scope, searchedLevel, query, filters, refPoint, bounds, searchLock } = searchState;
 

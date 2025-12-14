@@ -28,15 +28,10 @@ const CENTER_PARSER = createParser<{ lat: number; lng: number }>({
  * - zoomLevel: 지도 줌레벨
  */
 export function useMapUrlState() {
-  const [mapState, setMapState] = useQueryStates(
-    {
-      center: CENTER_PARSER,
-      zoomLevel: parseAsInteger,
-    },
-    {
-      history: 'push',
-    }
-  );
+  const [mapState, setMapState] = useQueryStates({
+    center: CENTER_PARSER,
+    zoomLevel: parseAsInteger,
+  });
 
   const { center, zoomLevel } = mapState;
 
