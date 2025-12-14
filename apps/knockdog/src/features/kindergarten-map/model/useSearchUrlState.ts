@@ -1,10 +1,10 @@
-import { useCallback } from 'react';
-import { createParser, parseAsString, useQueryStates } from 'nuqs';
-import type { BoundsSnapshot, SearchSnapshot } from '../lib/searchMachine';
+import { useCallback, useMemo } from 'react';
+import { createParser, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import type { BoundsSnapshot, SearchState } from '../lib/searchMachine';
 import type { Coord } from '@shared/types';
 import type { FilterOption } from '@entities/kindergarten';
 import { FILTER_OPTIONS } from '@entities/kindergarten';
-import type { RegionLevel, SearchScope } from '../config/map';
+import { DEFAULT_MAP_ZOOM_LEVEL, type RegionLevel, type SearchScope } from '../config/map';
 
 type SearchLock = 0 | 1;
 
@@ -17,7 +17,12 @@ const SCOPE_PARSER = createParser<SearchScope | null>({
     if (!value || !isSearchScope(value)) return null;
     return value;
   },
-  serialize: (value) => value ?? '',
+  serialize: (value) => {
+    // null이면 빈 문자열 반환 (URL에서 제거)
+    // 빈 문자열이면 URL에서 제거되므로, 실제 값이 있을 때만 반환
+    if (!value) return '';
+    return value;
+  },
 });
 
 const SEARCHED_LEVEL_PARSER = createParser<RegionLevel>({
@@ -41,7 +46,7 @@ const FILTERS_PARSER = createParser<FilterOption[]>({
   serialize: (value) => value.join(','),
 });
 
-const REF_POINT_PARSER = createParser<Coord | null>({
+const COORD_PARSER = createParser<Coord | null>({
   parse: (value: string) => {
     if (!value) return null;
     const [latRaw, lngRaw] = value.split(',');
@@ -85,182 +90,200 @@ const SEARCH_LOCK_PARSER = createParser<SearchLock>({
 });
 
 /**
- * SearchSnapshot(검색상태) URL 상태를 관리하는 훅
+ * SearchState(통합 검색상태) URL 상태를 관리하는 훅
  *
  * @description
- * ✅ useQueryStates를 사용하여 모든 검색 관련 URL 파라미터를 한 번에 관리
+ * ✅ useQueryStates를 사용하여 모든 검색/지도 관련 URL 파라미터를 한 번에 관리
  * - 여러 파라미터 동시 업데이트 시 배칭 처리로 URL 업데이트 1회만 발생
- * - commitSnapshot 호출 시 7개 파라미터가 원자적으로 업데이트
  *
  * 관리하는 URL 파라미터:
- * - scope: 검색 스코프(global/nearby/bounds)
- * - searchedLevel: 검색 레벨(1/2/3)
- * - query: 검색어
- * - filters: 필터 옵션
- * - refPoint: 기준점
- * - bounds: 검색 범위 (bounds 전용, searchBounds)
- * - searchLock: 검색 잠금 상태 (bounds 전용)
- *
- * URL 정규화(스코프별 파라미터 정리)는
- * `normalizeSnapshotForUrl` 유틸로 수행한다.
+ * - scope, searchedLevel, query, filters, refPoint, bounds, searchLock
+ * - center, zoom
  */
 export function useSearchUrlState() {
-  const [searchState, setSearchState] = useQueryStates({
+  const [urlState, setUrlState] = useQueryStates({
+    // 검색 상태
     scope: SCOPE_PARSER,
     searchedLevel: SEARCHED_LEVEL_PARSER.withDefault(3),
     query: parseAsString.withDefault(''),
     filters: FILTERS_PARSER.withDefault([]),
-    refPoint: REF_POINT_PARSER,
+    refPoint: COORD_PARSER,
     bounds: BOUNDS_PARSER,
     searchLock: SEARCH_LOCK_PARSER.withDefault(0),
+    // 지도 상태
+    center: COORD_PARSER,
+    zoom: parseAsInteger.withDefault(DEFAULT_MAP_ZOOM_LEVEL),
   });
 
-  const { scope, searchedLevel, query, filters, refPoint, bounds, searchLock } = searchState;
-
   /**
-   * 개별 scope 업데이트
-   */
-  const setScope = useCallback(
-    (next: SearchScope) => {
-      setSearchState({ scope: next });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * 개별 searchedLevel 업데이트
-   */
-  const setSearchedLevel = useCallback(
-    (next: RegionLevel) => {
-      setSearchState({ searchedLevel: next });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * 쿼리 업데이트 (bounds/searchLock 초기화 포함)
-   */
-  const setQuery = useCallback(
-    (next: string) => {
-      // 쿼리 변경 시 bounds/searchLock 초기화 (배칭)
-      setSearchState({
-        query: next,
-        bounds: null,
-        searchLock: 0,
-      });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * 필터 업데이트 (bounds/searchLock 초기화 포함)
-   */
-  const setFilters = useCallback(
-    (next: FilterOption[] | null) => {
-      // 필터 변경 시 bounds/searchLock 초기화 (배칭)
-      setSearchState({
-        filters: !next || next.length === 0 ? null : next,
-        bounds: null,
-        searchLock: 0,
-      });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * 개별 refPoint 업데이트
-   */
-  const setRefPoint = useCallback(
-    (next: Coord | null) => {
-      setSearchState({ refPoint: next });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * 개별 bounds 업데이트
-   */
-  const setBounds = useCallback(
-    (next: BoundsSnapshot | null) => {
-      setSearchState({ bounds: next });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * 개별 searchLock 업데이트
-   */
-  const setSearchLock = useCallback(
-    (next: SearchLock) => {
-      setSearchState({ searchLock: next });
-    },
-    [setSearchState]
-  );
-
-  /**
-   * SearchSnapshot 전체를 한 번에 커밋 (배칭)
+   * SearchState 전체를 한 번에 커밋 (배칭)
    *
    * @description
    * FSM 전이 결과를 URL에 원자적으로 반영합니다.
-   * useQueryStates의 배칭 기능으로 7개 파라미터가 한 번의 URL 업데이트로 처리됩니다.
    *
-   * @param next - 커밋할 SearchSnapshot
+   * @param nextState - 커밋할 SearchState
    */
-  const commitSnapshot = useCallback(
-    (next: SearchSnapshot) => {
-      setSearchState({
-        scope: next.scope,
-        searchedLevel: next.searchedLevel,
-        query: next.query,
-        filters: next.filters.length > 0 ? next.filters : null,
-        refPoint: next.refPoint,
-        bounds: next.searchBounds,
-        searchLock: next.searchLock,
+  const commitState = useCallback(
+    (nextState: SearchState) => {
+      const updatePayload = {
+        scope: nextState.scope,
+        searchedLevel: nextState.searchedLevel,
+        query: nextState.query,
+        filters: nextState.filters.length > 0 ? nextState.filters : null,
+        refPoint: nextState.refPoint,
+        bounds: nextState.searchBounds,
+        searchLock: nextState.searchLock,
+        center: nextState.center,
+        zoom: nextState.zoom,
+      };
+
+      const promise = setUrlState(updatePayload);
+
+      return promise.then((search) => {
+        // nuqs의 Promise resolve 시점의 search가 빈 경우가 있거나,
+        // 일부 값이 누락될 수 있으므로 updatePayload에서 직접 URLSearchParams를 구성
+        const expectedSearchParams = new URLSearchParams();
+
+        // updatePayload의 각 값을 직접 serialize하여 URLSearchParams 구성
+        if (updatePayload.scope !== null && updatePayload.scope !== undefined) {
+          const serialized = SCOPE_PARSER.serialize(updatePayload.scope);
+          if (serialized) expectedSearchParams.set('scope', serialized);
+        }
+        if (updatePayload.searchedLevel !== null && updatePayload.searchedLevel !== undefined) {
+          expectedSearchParams.set('searchedLevel', String(updatePayload.searchedLevel));
+        }
+        if (updatePayload.query !== null && updatePayload.query !== undefined && updatePayload.query !== '') {
+          expectedSearchParams.set('query', updatePayload.query);
+        }
+        if (
+          updatePayload.filters !== null &&
+          Array.isArray(updatePayload.filters) &&
+          updatePayload.filters.length > 0
+        ) {
+          expectedSearchParams.set('filters', updatePayload.filters.join(','));
+        }
+        if (updatePayload.refPoint !== null && updatePayload.refPoint !== undefined) {
+          const serialized = COORD_PARSER.serialize(updatePayload.refPoint);
+          if (serialized) expectedSearchParams.set('refPoint', serialized);
+        }
+        if (updatePayload.bounds !== null && updatePayload.bounds !== undefined) {
+          const serialized = BOUNDS_PARSER.serialize(updatePayload.bounds);
+          if (serialized) expectedSearchParams.set('bounds', serialized);
+        }
+        if (
+          updatePayload.searchLock !== null &&
+          updatePayload.searchLock !== undefined &&
+          updatePayload.searchLock !== 0
+        ) {
+          expectedSearchParams.set('searchLock', '1');
+        }
+        if (updatePayload.center !== null && updatePayload.center !== undefined) {
+          const serialized = COORD_PARSER.serialize(updatePayload.center);
+          if (serialized) expectedSearchParams.set('center', serialized);
+        }
+        if (
+          updatePayload.zoom !== null &&
+          updatePayload.zoom !== undefined &&
+          updatePayload.zoom !== DEFAULT_MAP_ZOOM_LEVEL
+        ) {
+          expectedSearchParams.set('zoom', String(updatePayload.zoom));
+        }
+
+        // nuqs가 실제 URL을 업데이트하지 않는 경우를 대비하여
+        // requestAnimationFrame으로 지연 후 실제 URL을 확인하고 필요시 직접 업데이트
+        return new Promise<URLSearchParams>((resolve) => {
+          requestAnimationFrame(() => {
+            if (typeof window === 'undefined') {
+              resolve(expectedSearchParams);
+              return;
+            }
+
+            const actualSearchParams = new URLSearchParams(window.location.search);
+
+            // nuqs가 관리하는 파라미터들만 확인 (다른 시스템에서 관리하는 파라미터는 무시)
+            const nuqsParams = [
+              'scope',
+              'searchedLevel',
+              'query',
+              'filters',
+              'refPoint',
+              'bounds',
+              'searchLock',
+              'center',
+              'zoom',
+            ];
+            let needsUpdate = false;
+            const mismatches: string[] = [];
+
+            for (const key of nuqsParams) {
+              const expected = expectedSearchParams.get(key);
+              const actual = actualSearchParams.get(key);
+
+              // null/undefined 처리를 위해 문자열로 비교
+              const expectedStr = expected ?? '';
+              const actualStr = actual ?? '';
+
+              if (expectedStr !== actualStr) {
+                needsUpdate = true;
+                mismatches.push(`${key}: expected "${expectedStr}", actual "${actualStr}"`);
+              }
+            }
+
+            if (needsUpdate) {
+              // 현재 URL의 다른 파라미터들을 보존하면서 nuqs 파라미터만 업데이트
+              const currentUrl = new URL(window.location.href);
+              const newSearchParams = new URLSearchParams(currentUrl.search);
+
+              // nuqs 파라미터들을 expectedSearchParams로 교체
+              for (const key of nuqsParams) {
+                const expectedValue = expectedSearchParams.get(key);
+                if (expectedValue !== null) {
+                  newSearchParams.set(key, expectedValue);
+                } else {
+                  newSearchParams.delete(key);
+                }
+              }
+
+              currentUrl.search = newSearchParams.toString();
+              window.history.replaceState(null, '', currentUrl.toString());
+            }
+
+            resolve(expectedSearchParams);
+          });
+        });
       });
     },
-    [setSearchState]
+    [setUrlState]
+  );
+
+  const state: SearchState = useMemo(
+    () => ({
+      scope: urlState.scope ?? 'nearby',
+      searchedLevel: urlState.searchedLevel,
+      query: urlState.query,
+      filters: urlState.filters,
+      refPoint: urlState.refPoint,
+      searchBounds: urlState.bounds,
+      searchLock: urlState.searchLock,
+      center: urlState.center,
+      zoom: urlState.zoom,
+      viewportBounds: null,
+    }),
+    [
+      urlState.scope,
+      urlState.searchedLevel,
+      urlState.query,
+      urlState.filters,
+      urlState.refPoint,
+      urlState.bounds,
+      urlState.searchLock,
+      urlState.center,
+      urlState.zoom,
+    ]
   );
 
   return {
-    scope: scope ?? 'nearby', // scope가 null이면 기본값 'nearby'
-    searchedLevel,
-    query,
-    filters,
-    refPoint,
-    bounds,
-    searchLock,
-    setScope,
-    setSearchedLevel,
-    setQuery,
-    setFilters,
-    setRefPoint,
-    setBounds,
-    setSearchLock,
-    commitSnapshot,
+    state,
+    commitState,
   };
-}
-
-/**
- * 스코프별 URL 정규화
- *
- * @description
- * FSM 전이 결과를 URL에 커밋하기 전에 정규화합니다.
- * - scope='bounds' 가 아닐 때:
- *   - searchLock=0
- *   - searchBounds=null
- *
- */
-export function normalizeSnapshotForUrl(snapshot: SearchSnapshot): SearchSnapshot {
-  if (snapshot.scope === 'bounds') {
-    // bounds 스코프에서는 bounds/searchLock을 그대로 둔다 (상위 로직에서 세팅)
-    return snapshot;
-  }
-
-  const base: SearchSnapshot = {
-    ...snapshot,
-    searchBounds: null,
-    searchLock: 0,
-  };
-
-  return base;
 }
