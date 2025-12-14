@@ -32,13 +32,13 @@ interface SearchMachineContextValue {
 const SearchMachineContext = createContext<SearchMachineContextValue | null>(null);
 
 /**
- * 검색 상태 Provider (FSM 구동)
+ * 검색 상태 Provider
  *
  * @description
  * Extended FSM을 React Context로 제공합니다.
  * - URL을 Source of Truth로 관리
  * - FSM 전이 규칙에 따라 상태 변경
- * - 순수 함수 기반 전이 로직 (테스트 가능)
+ * - 순수 함수 기반 전이 로직
  *
  * 아키텍처:
  * ```
@@ -61,7 +61,6 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   /**
    * MapSnapshot 로컬 상태
    * - 드래그/줌 등 고빈도 변경
-   * - SearchSnapshot과 독립적으로 관리
    */
   const [mapSnapshot, setMapSnapshot] = useState<MapSnapshot>({
     center: null,
@@ -148,10 +147,6 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
    * @description
    * FSM 이벤트를 발생시켜 상태 전이를 트리거합니다.
    *
-   * ✅ ref 패턴 적용으로 snapshot 변경에도 동일한 참조 유지
-   * - 하위 컴포넌트 useEffect deps에 안전하게 사용 가능
-   * - 불필요한 effect 재실행 방지
-   *
    * 동작 흐름:
    * 1. ref를 통해 최신 snapshot 획득
    * 2. 현재 snapshot + 이벤트 + 컨텍스트로 다음 snapshot 계산
@@ -166,14 +161,13 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const prev = snapshotRef.current;
       const ctx = buildTransitionContext(overrideMap);
 
-      // 디버그: 이벤트 입력과 컨텍스트 확인
+      // 이벤트 입력과 컨텍스트 확인
       // eslint-disable-next-line no-console
       console.log('[searchMachine] event', event, 'ctx.map', ctx.map);
 
-      const rawNext = transitionSearchSnapshot(prev, event, ctx);
-      const next = normalizeSnapshotForUrl(rawNext);
+      const next = transitionSearchSnapshot(prev, event, ctx);
 
-      // 디버그: 전이 결과
+      // 전이 결과
       // eslint-disable-next-line no-console
       console.log('[searchMachine] snapshot prev->next', prev, next);
 
@@ -240,18 +234,11 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     // 디버그: 지도 스냅샷 업데이트
     // eslint-disable-next-line no-console
     console.log('[searchMachine] updateMapSnapshot', next);
+    console.trace('[searchMachine] updateMapSnapshot trace');
     setMapSnapshot(next);
     mapRef.current = next;
   }, []);
 
-  /**
-   * Context value 메모이제이션
-   *
-   * @description
-   * 불필요한 하위 컴포넌트 리렌더 방지
-   *
-   * ⚠️ 주의: snapshot/dispatch 변경 시 모든 Consumer 리렌더됨
-   */
   const value = useMemo<SearchMachineContextValue>(
     () => ({
       snapshot,
@@ -265,28 +252,6 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   return <SearchMachineContext.Provider value={value}>{children}</SearchMachineContext.Provider>;
 }
 
-/**
- * 검색 머신 훅
- *
- * @description
- * SearchStateProvider 하위에서 검색 FSM 상태에 접근합니다.
- *
- * @returns 검색 머신 context 값
- * @throws SearchStateProvider 외부에서 호출 시 에러
- *
- * @example
- * ```tsx
- * function SearchResults() {
- *   const { snapshot, dispatch } = useSearchMachine();
- *
- *   return (
- *     <button onClick={() => dispatch({ type: 'QUERY_CHANGED', query: '강남구' })}>
- *       검색
- *     </button>
- *   );
- * }
- * ```
- */
 export function useSearchMachine(): SearchMachineContextValue {
   const ctx = useContext(SearchMachineContext);
   if (!ctx) {

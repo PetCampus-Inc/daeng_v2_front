@@ -29,9 +29,9 @@ export function SearchHeader({ query }: SearchHeaderProps) {
     params.delete('query');
     params.delete('filters');
     params.delete('region');
-    params.set('scope', 'nearby');
     params.delete('bounds');
     params.delete('searchLock');
+    params.set('scope', 'nearby');
     params.set('bottomSheetSnapIndex', '0');
     router.replace(`/?${params.toString()}`);
   };

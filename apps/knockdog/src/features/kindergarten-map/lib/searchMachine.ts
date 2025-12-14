@@ -59,33 +59,6 @@ export interface SearchSnapshot {
  * @description
  * 이벤트는 "무슨 일이 일어났는지"를 나타냅니다.
  * - 상태 전이를 트리거하는 외부 액션
- *
- * 상태 다이어그램:
- * ```
- *   ┌─────────┐
- *   │ NEARBY  │
- *   └─────────┘
- *        │
- *        │ QUERY_CHANGED / FILTERS_CHANGED
- *        ↓
- *   ┌─────────┐
- *   │ GLOBAL  │
- *   └─────────┘
- *        │
- *        │ ZOOM_LEVEL_CHANGED (L2→L3)
- *        ↓
- *   ┌─────────┐
- *   │ BOUNDS  │───┐
- *   │ lock=1  │   │ ZOOM_LEVEL_CHANGED (blocked)
- *   └─────────┘←──┘
- *        │
- *        │ QUERY_CHANGED
- *        ↓
- *   ┌─────────┐
- *   │ GLOBAL  │
- *   └─────────┘
- * ```
- * // MEMO: 이벤트는 수동형, 과거형 네이밍으로 한다. 그럼 'CLEAR_QUERY' 같은 이름이 적절한가? 리뷰 필요.
  */
 export type SearchEvent =
   | { type: 'ENTER' }
@@ -129,24 +102,12 @@ export interface SearchTransitionContext {
  * @description
  * Extended FSM의 핵심 전이 로직을 구현합니다.
  * - 현재 상태 + 이벤트 + 컨텍스트 → 다음 상태
- * - 부수 효과(side-effect) 없음
- * - 테스트 가능, 예측 가능
  *
  * @param current - 현재 검색 스냅샷 (상태 + 컨텍스트)
  * @param event - 발생한 이벤트
  * @param ctx - 전이 계산에 필요한 외부 컨텍스트
  * @returns 다음 검색 스냅샷
  *
- * @example
- * ```ts
- * const next = transitionSearchSnapshot(
- *   { scope: 'global', searchedLevel: 2, ... },
- *   { type: 'ZOOM_LEVEL_CHANGED', from: 2, to: 3, ... },
- *   { map: {...}, levelFromZoom: 3, ... }
- * );
- * // next.scope === 'bounds'
- * // next.searchLock === 1
- * ```
  */
 export function transitionSearchSnapshot(
   current: SearchSnapshot,
@@ -345,6 +306,7 @@ function applyQueryTransition(current: SearchSnapshot, nextQuery: string): Searc
 
   return {
     ...scoped,
+    searchedLevel: 1,
     query: nextQuery,
   };
 }
@@ -370,6 +332,7 @@ function applyFilterTransition(current: SearchSnapshot, nextFilters: FilterOptio
 
   return {
     ...scoped,
+    searchedLevel: 1,
     filters: nextFilters,
   };
 }

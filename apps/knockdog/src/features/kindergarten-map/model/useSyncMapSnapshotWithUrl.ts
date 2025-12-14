@@ -34,17 +34,16 @@ export function useSyncMapSnapshotWithUrl({ mapRef }: UseSyncMapSnapshotWithUrlO
       viewportBounds: mapSnapshot.viewportBounds,
     });
 
-    // 실제 지도 인스턴스도 보정이 필요할 때만 이동/줌 적용.
-    // if (!mapRef?.current) return;
+    if (!mapRef?.current) return;
 
-    // const nextCenter = new naver.maps.LatLng(center.lat, center.lng);
+    const nextCenter = new naver.maps.LatLng(center.lat, center.lng);
 
-    // if (centerChanged) {
-    //   mapRef.current.setCenter(nextCenter);
-    // }
+    if (centerChanged) {
+      mapRef.current.setCenter(nextCenter);
+    }
 
-    // if (zoomChanged) {
-    //   mapRef.current.setZoom(zoomLevel, true);
-    // }
+    if (zoomChanged) {
+      mapRef.current.setZoom(zoomLevel, true);
+    }
   }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoom, mapSnapshot.viewportBounds, mapRef, updateMapSnapshot]);
 }

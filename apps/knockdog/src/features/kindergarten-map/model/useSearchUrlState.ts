@@ -249,9 +249,6 @@ export function useSearchUrlState() {
  *   - searchLock=0
  *   - searchBounds=null
  *
- * ✅ 자동 scope 파생 로직 제거됨
- * - 이전: resolveScope가 URL 파라미터로부터 scope를 자동 파생 (중복 로직)
- * - 현재: FSM transitionSearchSnapshot에서만 scope 결정 (단일 책임)
  */
 export function normalizeSnapshotForUrl(snapshot: SearchSnapshot): SearchSnapshot {
   if (snapshot.scope === 'bounds') {

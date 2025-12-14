@@ -45,7 +45,6 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     } else {
       // FILTER_ITEM 타입 검색
       const params = new URLSearchParams(searchParams.toString());
-      params.set('query', suggestion.label);
       params.set('zoomLevel', '9');
       params.set('filters', suggestion.code);
       params.set('scope', 'global');
