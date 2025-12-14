@@ -7,7 +7,6 @@ import { inferSearchKindFromUrl, type UrlSearchKind } from '../model/searchKind'
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { useListOptionsUrlState } from '../model/useListOptionsUrlState';
 import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
@@ -28,7 +27,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { query: searchQuery, filters } = useSearchUrlState();
-  const { dispatch } = useSearchMachine();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
@@ -48,14 +46,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     () => inferSearchKindFromUrl({ query: searchQuery, filters, region }),
     [searchQuery, filters, region]
   );
-
-  useEffect(() => {
-    if (filters.length > 0) {
-      dispatch({ type: 'FILTERS_CHANGED', filters });
-      return;
-    }
-    dispatch({ type: 'CLEAR_FILTERS' });
-  }, [filters]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -40,8 +40,8 @@ function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
 
   const searchParams = useSearchParams();
-  const { center, zoomLevel } = useMapUrlState();
-  const { query } = useSearchUrlState();
+  const { zoomLevel } = useMapUrlState();
+  const { query, filters } = useSearchUrlState();
   const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
 
   const { setActiveMarker } = useMarkerState();
@@ -80,6 +80,15 @@ function KindergartenMainPageContent() {
     }
     dispatch({ type: 'CLEAR_QUERY' });
   }, [query]);
+
+  // URL filters 변경 시
+  useEffect(() => {
+    if (filters.length > 0) {
+      dispatch({ type: 'FILTERS_CHANGED', filters });
+      return;
+    }
+    dispatch({ type: 'CLEAR_FILTERS' });
+  }, [filters]);
 
   /**
    * 재검색 핸들러
