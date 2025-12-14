@@ -19,6 +19,21 @@ interface AggregationQueryParams {
   state: SearchState;
 }
 
+/**
+ * 상태가 논리적으로 일관적인지 확인
+ * - 필터나 검색어가 있으면 scope는 반드시 'global' 이어야 한다.
+ */
+const isStateConsistent = (state: SearchState) => {
+  const hasQuery = state.query.trim().length > 0;
+  const hasFilters = state.filters.length > 0;
+
+  if (hasQuery || hasFilters) {
+    return state.scope === 'global';
+  }
+
+  return true;
+};
+
 export const searchQueries = {
   keys: {
     all: () => ['kindergarten'] as const,
@@ -66,7 +81,8 @@ export const searchQueries = {
         isValidCoord(params.state.refPoint) &&
         Number.isFinite(params.state.zoom) &&
         params.state.zoom > 0 &&
-        (params.state.scope === 'bounds' ? isValidBoundsSnapshot(params.state.searchBounds) : true),
+        (params.state.scope === 'bounds' ? isValidBoundsSnapshot(params.state.searchBounds) : true) &&
+        isStateConsistent(params.state),
       initialPageParam: 1,
       getNextPageParam: (lastPage: { paging: { hasNext: boolean; currentPage: number } }) => {
         return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
@@ -97,7 +113,8 @@ export const searchQueries = {
         isValidCoord(params.state.refPoint) &&
         Number.isFinite(params.state.zoom) &&
         params.state.zoom > 0 &&
-        (params.state.scope === 'bounds' ? isValidBoundsSnapshot(params.state.searchBounds) : true),
+        (params.state.scope === 'bounds' ? isValidBoundsSnapshot(params.state.searchBounds) : true) &&
+        isStateConsistent(params.state),
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       retryOnMount: false,
