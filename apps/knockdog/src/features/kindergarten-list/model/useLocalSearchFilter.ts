@@ -1,6 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useSearchFilter } from './useSearchFilter';
 import { type FilterOption, FILTER_OPTIONS } from '@entities/kindergarten';
+
+interface UseLocalSearchFilterProps {
+  initialFilters: FilterOption[];
+  onApply: (filters: FilterOption[]) => void;
+}
 
 interface UseLocalSearchFilterReturn {
   localFilters: FilterOption[];
@@ -16,9 +20,11 @@ interface UseLocalSearchFilterReturn {
   applyFilters: () => void;
 }
 
-export function useLocalSearchFilter(): UseLocalSearchFilterReturn {
-  const { setFilters: setUrlFilters } = useSearchFilter();
-  const [localFilters, setLocalFilters] = useState<FilterOption[]>([]);
+export function useLocalSearchFilter({
+  initialFilters,
+  onApply,
+}: UseLocalSearchFilterProps): UseLocalSearchFilterReturn {
+  const [localFilters, setLocalFilters] = useState<FilterOption[]>(initialFilters);
 
   /** 로컬 필터 토글 */
   const onToggleLocalFilter = useCallback((option: FilterOption) => {
@@ -42,10 +48,10 @@ export function useLocalSearchFilter(): UseLocalSearchFilterReturn {
     setLocalFilters([]);
   }, []);
 
-  /** 필터 적용 - 로컬 필터를 URL에 직접 설정 */
+  /** 필터 적용 - 부모로부터 받은 onApply 콜백 호출 */
   const applyFilters = useCallback(() => {
-    setUrlFilters(localFilters);
-  }, [localFilters, setUrlFilters]);
+    onApply(localFilters);
+  }, [localFilters, onApply]);
 
   /** 선택된 필터옵션 + 라벨 */
   const selectedFilters = localFilters.map((option) => ({

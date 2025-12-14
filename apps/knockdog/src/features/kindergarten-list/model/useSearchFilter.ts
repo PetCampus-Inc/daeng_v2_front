@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-
+import { useSearchMachine } from '@features/kindergarten-map';
 import { type FilterOption, FILTER_OPTIONS } from '@entities/kindergarten';
-import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 
 interface UseSearchFilterReturn {
   /** 결과 개수 */
@@ -33,7 +32,8 @@ interface UseSearchFilterReturn {
  * 검색 필터를 관리하는 훅
  */
 export function useSearchFilter(): UseSearchFilterReturn {
-  const { filters, setFilters: setUrlFilters } = useSearchUrlState();
+  const { liveState, dispatch } = useSearchMachine();
+  const { filters } = liveState;
   const [resultCount, setResultCount] = useState<number | null>(null);
 
   const onChangeResultCount = useCallback((count: number | null) => {
@@ -44,38 +44,52 @@ export function useSearchFilter(): UseSearchFilterReturn {
   const onToggleOption = useCallback(
     (option: FilterOption) => {
       const isSelected = filters.includes(option);
+      let updated: FilterOption[];
 
       if (isSelected) {
-        const updated = filters.filter((filterOption) => filterOption !== option);
-        setUrlFilters(updated.length === 0 ? null : updated);
+        updated = filters.filter((filterOption) => filterOption !== option);
       } else {
-        setUrlFilters([...filters, option]);
+        updated = [...filters, option];
+      }
+
+      if (updated.length > 0) {
+        dispatch({ type: 'FILTERS_CHANGED', filters: updated });
+      } else {
+        dispatch({ type: 'CLEAR_FILTERS' });
       }
     },
-    [filters, setUrlFilters]
+    [filters, dispatch]
   );
 
   /** 필터 옵션 제거 */
   const onRemoveOption = useCallback(
     (option: FilterOption) => {
       const updated = filters.filter((filterOption) => filterOption !== option);
-      setUrlFilters(updated.length === 0 ? null : updated);
+      if (updated.length > 0) {
+        dispatch({ type: 'FILTERS_CHANGED', filters: updated });
+      } else {
+        dispatch({ type: 'CLEAR_FILTERS' });
+      }
     },
-    [filters, setUrlFilters]
+    [filters, dispatch]
   );
 
   /** 전체 필터 제거 */
   const onClearAll = useCallback(() => {
-    setUrlFilters(null);
+    dispatch({ type: 'CLEAR_FILTERS' });
     setResultCount(null);
-  }, [setUrlFilters]);
+  }, [dispatch]);
 
   /** 필터 배열 직접 설정 */
   const setFilters = useCallback(
     (newFilters: FilterOption[]) => {
-      setUrlFilters(newFilters.length === 0 ? null : newFilters);
+      if (newFilters.length > 0) {
+        dispatch({ type: 'FILTERS_CHANGED', filters: newFilters });
+      } else {
+        dispatch({ type: 'CLEAR_FILTERS' });
+      }
     },
-    [setUrlFilters]
+    [dispatch]
   );
 
   /** 필터 옵션 선택 여부 */
