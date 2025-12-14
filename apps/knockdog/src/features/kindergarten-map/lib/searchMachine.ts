@@ -2,6 +2,7 @@ import type { RegionLevel, SearchScope } from '../config/map';
 import type { FilterOption } from '@entities/kindergarten';
 import { isEqualCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
+import { getRegionLevel } from './markers';
 
 /**
  * Bounds 모델
@@ -14,43 +15,23 @@ export interface BoundsSnapshot {
 }
 
 /**
- * 화면 뷰 상태(로컬)
- * - 드래그/줌 등 고빈도 변경 대상
+ * 통합 검색 상태
+ * - 검색 확정 상태와 지도 UI 상태를 포함
  */
-export interface MapSnapshot {
-  center: Coord | null;
-  zoom: number;
-  viewportBounds: BoundsSnapshot | null;
-}
-
-/**
- * 검색 스냅샷
- * - 검색 트리거 기준
- */
-export interface SearchSnapshot {
-  /**
-   * 검색 상태 (유한한 상태)
-   *
-   * - scope: 검색 범위 모드
-   * - searchedLevel: 행정구역 레벨
-   * - searchLock: bounds 잠금 여부
-   */
+export interface SearchState {
+  // --- 검색 확정 상태 (구 SearchSnapshot) ---
   scope: SearchScope;
   searchedLevel: RegionLevel;
   searchLock: 0 | 1;
-
-  /**
-   * 검색 컨텍스트 (무한한 데이터)
-   *
-   * - query: 검색어 (문자열)
-   * - filters: 필터 조합 (배열)
-   * - refPoint: 기준점 좌표
-   * - searchBounds: 검색 영역 사각형
-   */
   query: string;
   filters: FilterOption[];
   refPoint: Coord | null;
   searchBounds: BoundsSnapshot | null;
+
+  // --- 지도 UI 상태 (구 MapSnapshot) ---
+  center: Coord | null;
+  zoom: number;
+  viewportBounds: BoundsSnapshot | null;
 }
 
 /**
@@ -67,13 +48,23 @@ export type SearchEvent =
   | { type: 'CLEAR_QUERY' }
   | { type: 'CLEAR_FILTERS' }
   | { type: 'REFPOINT_SET'; refPoint: Coord }
+  | { type: 'CENTER_CHANGED'; center: Coord }
   | {
-      type: 'ZOOM_LEVEL_CHANGED';
-      from: RegionLevel;
-      to: RegionLevel;
-      viewportBounds: BoundsSnapshot | null;
+      type: 'MAP_INTERACTION_END';
+      payload: {
+        center: Coord;
+        zoom: number;
+        viewportBounds: BoundsSnapshot | null;
+      };
     }
-  | { type: 'AGG_MARKER_CLICK'; bounds: BoundsSnapshot }
+  | {
+      type: 'AGG_MARKER_CLICK';
+      payload: {
+        bounds: BoundsSnapshot;
+        center: Coord;
+        zoom: number;
+      };
+    }
   | {
       type: 'RESEARCH_HERE';
       viewportBounds: BoundsSnapshot | null;
@@ -88,10 +79,6 @@ export type SearchEvent =
  * 전이 시점의 필요한 값들을 명시적으로 전달받습니다.
  */
 export interface SearchTransitionContext {
-  /** 이벤트 시점의 최신 지도 스냅샷 */
-  map: MapSnapshot;
-  /** 현재 줌 기준 레벨 */
-  levelFromZoom: RegionLevel;
   /** basePoint 기반으로 보정된 refPoint */
   refPointFromBase: Coord | null;
 }
@@ -109,11 +96,7 @@ export interface SearchTransitionContext {
  * @returns 다음 검색 스냅샷
  *
  */
-export function transitionSearchSnapshot(
-  current: SearchSnapshot,
-  event: SearchEvent,
-  ctx: SearchTransitionContext
-): SearchSnapshot {
+export function transition(current: SearchState, event: SearchEvent, ctx: SearchTransitionContext): SearchState {
   switch (event.type) {
     case 'ENTER': {
       const targetScope = deriveScope({
@@ -126,7 +109,7 @@ export function transitionSearchSnapshot(
 
       return {
         ...scoped,
-        searchedLevel: ctx.levelFromZoom,
+        searchedLevel: getRegionLevel(current.zoom),
         refPoint: ctx.refPointFromBase ?? current.refPoint,
       };
     }
@@ -149,19 +132,33 @@ export function transitionSearchSnapshot(
 
     case 'REFPOINT_SET': {
       if (isEqualCoord(current.refPoint, event.refPoint)) return current;
-      return { ...current, refPoint: event.refPoint };
+      return { ...current, refPoint: event.refPoint, center: event.refPoint };
     }
 
-    case 'ZOOM_LEVEL_CHANGED': {
-      const { from, to, viewportBounds } = event;
+    case 'CENTER_CHANGED': {
+      if (isEqualCoord(current.center, event.center)) return current;
+      return { ...current, center: event.center };
+    }
+
+    case 'MAP_INTERACTION_END': {
+      const { center, zoom, viewportBounds } = event.payload;
+      const from = current.searchedLevel;
+      const to = getRegionLevel(zoom);
+
+      const nextState: SearchState = {
+        ...current,
+        center,
+        zoom,
+        viewportBounds,
+      };
 
       /**
        * 우선순위 1)
        * bounds + lock=1 상태는 자동 전이 금지
        * (L3 → L2 줌아웃 포함)
        */
-      if (current.scope === 'bounds' && current.searchLock === 1) {
-        return current;
+      if (nextState.scope === 'bounds' && nextState.searchLock === 1) {
+        return nextState;
       }
 
       /**
@@ -169,13 +166,14 @@ export function transitionSearchSnapshot(
        * L2 → L3 줌 진입 시 자동 bounds 확정
        */
       if (from === 2 && to === 3) {
-        const resolvedBounds = viewportBounds ?? current.searchBounds;
+        const resolvedBounds = viewportBounds ?? nextState.searchBounds;
 
         return {
-          ...current,
+          ...nextState,
           scope: 'bounds',
           searchLock: 1,
           searchBounds: resolvedBounds,
+          searchedLevel: to,
         };
       }
 
@@ -186,26 +184,29 @@ export function transitionSearchSnapshot(
        */
       if (from !== to) {
         return {
-          ...current,
+          ...nextState,
           searchedLevel: to,
         };
       }
 
-      return current;
+      return nextState;
     }
 
     case 'AGG_MARKER_CLICK': {
+      const { bounds, center, zoom } = event.payload;
       return {
         ...current,
+        center,
+        zoom,
         scope: 'bounds',
         searchedLevel: 3,
-        searchBounds: event.bounds,
+        searchBounds: bounds,
         searchLock: 0,
       };
     }
 
     case 'RESEARCH_HERE': {
-      const resolvedBounds = event.viewportBounds ?? ctx.map.viewportBounds ?? current.searchBounds;
+      const resolvedBounds = event.viewportBounds ?? current.viewportBounds ?? current.searchBounds;
 
       return {
         ...current,
@@ -267,7 +268,7 @@ function deriveScope(params: { currentScope: SearchScope; query: string; filters
  * @param targetScope - 목표 scope
  * @returns 전이된 검색 스냅샷
  */
-function applyScopeTransition(current: SearchSnapshot, targetScope: SearchScope): SearchSnapshot {
+function applyScopeTransition(current: SearchState, targetScope: SearchScope): SearchState {
   if (targetScope === current.scope) return current;
 
   if (targetScope === 'bounds') {
@@ -295,7 +296,7 @@ function applyScopeTransition(current: SearchSnapshot, targetScope: SearchScope)
  * @param nextQuery - 새로운 쿼리
  * @returns 전이된 검색 스냅샷
  */
-function applyQueryTransition(current: SearchSnapshot, nextQuery: string): SearchSnapshot {
+function applyQueryTransition(current: SearchState, nextQuery: string): SearchState {
   const targetScope = deriveScope({
     currentScope: current.scope,
     query: nextQuery,
@@ -307,6 +308,7 @@ function applyQueryTransition(current: SearchSnapshot, nextQuery: string): Searc
   return {
     ...scoped,
     searchedLevel: 1,
+    zoom: 9,
     query: nextQuery,
   };
 }
@@ -321,7 +323,7 @@ function applyQueryTransition(current: SearchSnapshot, nextQuery: string): Searc
  * @param nextFilters - 새로운 필터 배열
  * @returns 전이된 검색 스냅샷
  */
-function applyFilterTransition(current: SearchSnapshot, nextFilters: FilterOption[]): SearchSnapshot {
+function applyFilterTransition(current: SearchState, nextFilters: FilterOption[]): SearchState {
   const targetScope = deriveScope({
     currentScope: current.scope,
     query: current.query,
@@ -333,6 +335,7 @@ function applyFilterTransition(current: SearchSnapshot, nextFilters: FilterOptio
   return {
     ...scoped,
     searchedLevel: 1,
+    zoom: 9,
     filters: nextFilters,
   };
 }
