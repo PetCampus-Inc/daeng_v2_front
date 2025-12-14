@@ -25,7 +25,13 @@ export function SearchHeader({ query }: SearchHeaderProps) {
    */
   const handleClose = () => {
     const params = new URLSearchParams(searchParams.toString());
+    // FIXME: nuqs 통해 관리
     params.delete('query');
+    params.delete('filters');
+    params.delete('region');
+    params.delete('bounds');
+    params.delete('searchLock');
+    params.set('scope', 'nearby');
     params.set('bottomSheetSnapIndex', '0');
     router.replace(`/?${params.toString()}`);
   };

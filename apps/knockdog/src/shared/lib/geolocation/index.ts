@@ -1,4 +1,4 @@
-export { isValidCoord, isEqualCoord } from './is';
+export { isValidCoord, isEqualCoord, isEqualBounds } from './is';
 export { serializeCoords } from './serialize';
 export { getCurrentLocation } from './getCurrentLocation';
 export { useCurrentLocation } from './useCurrentLocation';

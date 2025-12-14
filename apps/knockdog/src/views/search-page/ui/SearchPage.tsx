@@ -23,10 +23,15 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     if (suggestion.type === 'REGION') {
       const params = new URLSearchParams(searchParams.toString());
       params.set('query', suggestion.label);
+      params.set('scope', 'global');
       params.set('region', suggestion.code);
       params.set('center', `${suggestion.coord.lat},${suggestion.coord.lng}`);
       params.set('zoomLevel', String(suggestion.zoom));
       params.set('bottomSheetSnapIndex', '1');
+      // FIXME: searchedLevel, searchLock, bounds는 nuqs 통해 관리되도록 수정 필요 (현재는 버그가 있어서 직접적으로 삭제함)
+      params.set('searchedLevel', '1');
+      params.delete('searchLock');
+      params.delete('bounds');
 
       addRecentSearchKeyword({
         type: 'REGION',
@@ -40,11 +45,14 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     } else {
       // FILTER_ITEM 타입 검색
       const params = new URLSearchParams(searchParams.toString());
-      params.set('query', suggestion.label);
       params.set('zoomLevel', '9');
       params.set('filters', suggestion.code);
-
+      params.set('scope', 'global');
       params.set('bottomSheetSnapIndex', '1');
+      // FIXME: searchedLevel, searchLock, bounds는 nuqs 통해 관리되도록 수정 필요 (현재는 버그가 있어서 직접적으로 삭제함)
+      params.set('searchedLevel', '1');
+      params.delete('searchLock');
+      params.delete('bounds');
       addRecentSearchKeyword({
         type: 'FILTER_ITEM',
         label: suggestion.label,
@@ -60,7 +68,12 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     params.set('query', place.title);
     params.set('center', `${place.coord.lat},${place.coord.lng}`);
     params.set('zoomLevel', '9');
+    params.set('scope', 'global');
     params.set('bottomSheetSnapIndex', '1');
+    // FIXME: searchedLevel, searchLock, bounds는 nuqs 통해 관리되도록 수정 필요 (현재는 버그가 있어서 직접적으로 삭제함)
+    params.set('searchedLevel', '1');
+    params.delete('searchLock');
+    params.delete('bounds');
 
     addRecentSearchKeyword({
       type: 'USER_QUERY',
@@ -75,7 +88,12 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
       const params = new URLSearchParams(searchParams.toString());
       params.set('query', localQuery.trim());
       params.set('zoomLevel', '9');
+      params.set('scope', 'global');
       params.set('bottomSheetSnapIndex', '1');
+      // FIXME: searchedLevel, searchLock, bounds는 nuqs 통해 관리되도록 수정 필요 (현재는 버그가 있어서 직접적으로 삭제함)
+      params.set('searchedLevel', '1');
+      params.delete('searchLock');
+      params.delete('bounds');
 
       addRecentSearchKeyword({
         type: 'USER_QUERY',

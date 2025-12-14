@@ -17,21 +17,16 @@ import {
   KindergartenItemSheet,
   KindergartenListSheet,
   SearchHeader,
-  useListOptionsUrlState,
 } from '@features/kindergarten-list';
 import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
-import {
-  areBoundsEqual,
-  SearchStateProvider,
-  useSearchMachine,
-} from '@features/kindergarten-map/model/useSearchMachine';
+import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-map/model/useSearchMachine';
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
-import { useMarkerState } from '@shared/store';
 import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { isEqualBounds, isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
+import { useMarkerState } from '@shared/store';
 
 export default function KindergartenMainPage() {
   return (
@@ -45,24 +40,21 @@ function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
 
   const searchParams = useSearchParams();
+  const { zoomLevel } = useMapUrlState();
+  const { query, filters } = useSearchUrlState();
+  const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
 
-  const { center, zoomLevel } = useMapUrlState();
-  const { query } = useSearchUrlState();
-  const { rank } = useListOptionsUrlState();
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
 
-  const { dispatch, mapSnapshot, snapshot } = useSearchMachine();
-
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
   const shouldShowRefresh = useMemo(() => {
     if (!mapSnapshot.viewportBounds) return false;
 
     const zoomChanged = zoomLevel !== mapSnapshot.zoom;
 
     if (snapshot.searchBounds) {
-      return zoomChanged || !areBoundsEqual(snapshot.searchBounds, mapSnapshot.viewportBounds);
+      return zoomChanged || !isEqualBounds(snapshot.searchBounds, mapSnapshot.viewportBounds);
     }
 
     if (snapshot.refPoint && mapSnapshot.center) {
@@ -79,28 +71,24 @@ function KindergartenMainPageContent() {
     zoomLevel,
   ]);
 
-  // ENTER 이벤트: 메인 페이지 진입 시 1회
-  useEffect(() => {
-    dispatch({ type: 'ENTER' });
-    // deps를 비워 재실행을 막는다. (dispatch는 안정되지 않으므로 lint 무시)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // SET_QUERY / CLEAR_QUERY 이벤트: URL query 변경 시
-  const prevQueryRef = useRef<string | null>(null);
+  // URL query 변경 시
   useEffect(() => {
     const trimmed = query.trim();
-    if (prevQueryRef.current === trimmed) return;
-    prevQueryRef.current = trimmed;
-
     if (trimmed.length > 0) {
-      dispatch({ type: 'SET_QUERY', query: trimmed });
+      dispatch({ type: 'QUERY_CHANGED', query: trimmed });
       return;
     }
     dispatch({ type: 'CLEAR_QUERY' });
-    // deps에 dispatch를 넣지 않아 동일 값 반복 실행을 차단한다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  // URL filters 변경 시
+  useEffect(() => {
+    if (filters.length > 0) {
+      dispatch({ type: 'FILTERS_CHANGED', filters });
+      return;
+    }
+    dispatch({ type: 'CLEAR_FILTERS' });
+  }, [filters]);
 
   /**
    * 재검색 핸들러
@@ -154,13 +142,7 @@ function KindergartenMainPageContent() {
 
   return (
     <>
-      <MapView
-        ref={mapRef}
-        isMapLoaded={isMapLoaded}
-        onMapLoadChange={setIsMapLoaded}
-        onOpenCard={handleOpenCard}
-        sortRank={rank}
-      />
+      <MapView ref={mapRef} onOpenCard={handleOpenCard} />
 
       {query.trim().length > 0 ? (
         <SearchHeader query={query} />

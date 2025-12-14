@@ -60,9 +60,9 @@ export function getKindergartenAggregation(params: KindergartenAggregationParams
   const searchParams = new URLSearchParams({
     refPoint: serializedRefPoint,
     zoomLevel: params.zoomLevel.toString(),
+    ...(params.query && { query: params.query.trim() }),
     ...(serializedBounds && { bounds: serializedBounds }),
     ...(params.distance && { distance: params.distance.toString() }),
-    ...(params.query && { query: params.query.trim() }),
     ...(serializedFilters && { filters: serializedFilters }),
   });
   return api.get('kindergarten/map-view/aggregation', { searchParams }).json<Aggregation>();

@@ -1,5 +1,4 @@
 import {
-  type BoundsSnapshot,
   type MapSnapshot,
   type SearchEvent,
   type SearchSnapshot,
@@ -10,23 +9,58 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { normalizeSnapshotForUrl, useSearchUrlState } from './useSearchUrlState';
 import { getRegionLevel } from '../lib/markers';
 import type { FilterOption } from '@entities/kindergarten';
-import { useBasePoint } from '@shared/lib';
+import { isEqualBounds, isEqualCoord, useBasePoint } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
+/**
+ * 검색 머신 Context 값
+ *
+ * @description
+ * SearchStateProvider를 통해 제공되는 검색 FSM 관련 값들
+ */
 interface SearchMachineContextValue {
+  /** 현재 검색 스냅샷 (URL로부터 파생) */
   snapshot: SearchSnapshot;
+  /** 현재 지도 스냅샷 (로컬 상태) */
   mapSnapshot: MapSnapshot;
+  /** FSM 이벤트 디스패처 */
   dispatch: (event: SearchEvent) => void;
+  /** 지도 스냅샷 업데이트 함수 */
   updateMapSnapshot: (next: MapSnapshot) => void;
 }
 
 const SearchMachineContext = createContext<SearchMachineContextValue | null>(null);
 
+/**
+ * 검색 상태 Provider
+ *
+ * @description
+ * Extended FSM을 React Context로 제공합니다.
+ * - URL을 Source of Truth로 관리
+ * - FSM 전이 규칙에 따라 상태 변경
+ * - 순수 함수 기반 전이 로직
+ *
+ * 아키텍처:
+ * ```
+ * URL (SoT)
+ *   ↓
+ * SearchSnapshot (검색 확정 상태)
+ *   ↓
+ * FSM (transitionSearchSnapshot)
+ *   ↓
+ * API Queries (React Query)
+ *   ↓
+ * UI Rendering
+ * ```
+ *
+ * @param props.children - 하위 컴포넌트
+ */
 export function SearchStateProvider({ children }: { children: ReactNode }) {
   const { coord: basePoint, type: baseType } = useBasePoint();
 
   /**
    * MapSnapshot 로컬 상태
+   * - 드래그/줌 등 고빈도 변경
    */
   const [mapSnapshot, setMapSnapshot] = useState<MapSnapshot>({
     center: null,
@@ -36,6 +70,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
 
   /**
    * 이벤트 시점의 최신 값 보장을 위한 ref
+   * - 비동기 이벤트 핸들러에서 stale closure 방지
    */
   const mapRef = useRef<MapSnapshot>(mapSnapshot);
   useEffect(() => {
@@ -43,13 +78,16 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   }, [mapSnapshot]);
 
   /**
-   * URL SoT
+   * URL을 Source of Truth로 사용
+   * - 검색 상태의 영속성 보장
+   * - 공유/북마크/뒤로가기 지원
    */
   const urlState = useSearchUrlState();
   const { scope, searchedLevel, query, filters, refPoint, bounds, searchLock, commitSnapshot } = urlState;
 
   /**
-   * URL → SearchSnapshot view
+   * URL 상태로부터 SearchSnapshot 생성
+   * - URL 파라미터 → 정규화된 검색 스냅샷
    */
   const snapshot: SearchSnapshot = useMemo(
     () => ({
@@ -65,96 +103,138 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * SearchTransitionContext 생성
+   * 최신 snapshot/commitSnapshot을 항상 참조하기 위한 ref
+   *
+   * @description
+   * useEffectEvent의 제약(Effect 내부에서만 사용 가능)을 우회하기 위해
+   * ref 패턴을 사용하여 dispatch를 안정화합니다.
    */
-  const buildTransitionContext = useCallback(
-    (overrideMap?: MapSnapshot): SearchTransitionContext => {
-      const effectiveMap = overrideMap ?? mapRef.current;
+  const snapshotRef = useRef(snapshot);
+  const commitSnapshotRef = useRef(commitSnapshot);
+  const basePointRef = useRef<Coord | null>(basePoint);
 
-      return {
-        map: effectiveMap,
-        levelFromZoom: getRegionLevel(effectiveMap.zoom),
-        refPointFromBase: snapshot.refPoint ?? basePoint ?? null,
-      };
-    },
-    [basePoint, snapshot.refPoint]
-  );
+  useEffect(() => {
+    snapshotRef.current = snapshot;
+    commitSnapshotRef.current = commitSnapshot;
+    basePointRef.current = basePoint;
+  }, [snapshot, commitSnapshot, basePoint]);
 
   /**
-   * FSM 전이 계산 후 URL 커밋
+   * FSM 전이 컨텍스트 빌더
+   *
+   * @description
+   * 전이 함수에 필요한 외부 컨텍스트를 생성합니다.
+   * - ref를 통해 최신 snapshot/basePoint 참조
+   * - overrideMap: 이벤트 핸들러에서 최신 map 상태를 전달할 때 사용
+   *
+   * @param overrideMap - 강제로 사용할 map 스냅샷 (선택)
+   * @returns FSM 전이 컨텍스트
    */
-  const commitEvent = useCallback(
+  const buildTransitionContext = useCallback((overrideMap?: MapSnapshot): SearchTransitionContext => {
+    const effectiveMap = overrideMap ?? mapRef.current;
+    const currentSnapshot = snapshotRef.current;
+
+    return {
+      map: effectiveMap,
+      levelFromZoom: getRegionLevel(effectiveMap.zoom),
+      refPointFromBase: currentSnapshot.refPoint ?? basePointRef.current ?? null,
+    };
+  }, []);
+
+  /**
+   * FSM 이벤트 디스패처 (안정적인 참조 보장)
+   *
+   * @description
+   * FSM 이벤트를 발생시켜 상태 전이를 트리거합니다.
+   *
+   * 동작 흐름:
+   * 1. ref를 통해 최신 snapshot 획득
+   * 2. 현재 snapshot + 이벤트 + 컨텍스트로 다음 snapshot 계산
+   * 3. URL 정규화 (scope별 파라미터 정리)
+   * 4. 변경 감지 후 URL에 커밋
+   *
+   * @param event - 발생시킬 FSM 이벤트
+   * @param overrideMap - 강제로 사용할 map 스냅샷 (선택)
+   */
+  const dispatch = useCallback(
     (event: SearchEvent, overrideMap?: MapSnapshot) => {
-      const prev = snapshot;
+      const prev = snapshotRef.current;
       const ctx = buildTransitionContext(overrideMap);
 
-      // 디버그: 이벤트 입력과 컨텍스트 확인
+      // 이벤트 입력과 컨텍스트 확인
       // eslint-disable-next-line no-console
       console.log('[searchMachine] event', event, 'ctx.map', ctx.map);
 
-      const rawNext = transitionSearchSnapshot(prev, event, ctx);
-      const next = normalizeSnapshotForUrl(rawNext);
+      const next = transitionSearchSnapshot(prev, event, ctx);
 
-      // 디버그: 전이 결과
+      // 전이 결과
       // eslint-disable-next-line no-console
       console.log('[searchMachine] snapshot prev->next', prev, next);
 
+      // 실제 변경이 있을 때만 URL 업데이트
       if (
         next.scope !== prev.scope ||
         next.searchedLevel !== prev.searchedLevel ||
         next.query !== prev.query ||
-        !areFilterArraysEqual(next.filters, prev.filters) ||
-        !areCoordsEqual(next.refPoint, prev.refPoint) ||
-        !areBoundsEqual(next.searchBounds, prev.searchBounds) ||
+        !isFiltersEqual(next.filters, prev.filters) ||
+        !isEqualCoord(next.refPoint, prev.refPoint) ||
+        !isEqualBounds(next.searchBounds, prev.searchBounds) ||
         next.searchLock !== prev.searchLock
       ) {
-        commitSnapshot(next);
+        commitSnapshotRef.current(next);
       }
     },
-    [snapshot, buildTransitionContext, commitSnapshot]
+    [buildTransitionContext]
   );
 
-  // TODO: dispatch/commitEvent가 snapshot 변화에 따라 새로 생성되는 구조라 상위 컴포넌트 effect가 반복 실행된다.
-  //       useEvent-stable한 dispatch를 제공하도록 리팩터링하고, URL 커밋은 내부에서만 처리하도록 단일 책임화할 것.
-
   /**
-   * low-level dispatch
-   */
-  const dispatch = useCallback((event: SearchEvent) => commitEvent(event), [commitEvent]);
-
-  /**
-   * refPoint 자동 채움 / 사용자 의도 기반 갱신
-   * - URL refPoint가 없고 basePoint가 도착하면 즉시 refPoint로 채운다.
-   * - 기준점 타입이 바뀌었고 basePoint가 있으면 refPoint를 새 기준점으로 갱신한다.
-   *   (URL 공유/재진입 시 동일 기준점을 재현하기 위함)
-   * FIXME: baseType 변경 추적은 이벤트 핸들러 기반으로 변경하는게 더 명확할 듯.
+   * refPoint 자동 관리 (Effect)
+   *
+   * @description
+   * basePoint 변경 시 refPoint를 자동으로 동기화합니다.
+   *
+   * 동작 규칙:
+   * 1. URL refPoint 없음 + basePoint 도착 → refPoint 초기 설정
+   * 2. baseType 변경 (현위치→집→직장) → refPoint 업데이트
+   *
+   * ⚠️ FIXME: baseType 변경 추적을 effect 대신 이벤트 핸들러로 변경 권장
+   * - 현재: effect 기반 → 타이밍 이슈 가능
+   * - 개선: SegmentedControl onChange에서 직접 dispatch
    */
   const prevBaseTypeRef = useRef(baseType);
   useEffect(() => {
     if (!basePoint) return;
 
+    // Case 1: 초기 refPoint 설정
     if (!snapshot.refPoint) {
       dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
       prevBaseTypeRef.current = baseType;
       return;
     }
 
+    // Case 2: baseType 변경 시 refPoint 업데이트
     const baseTypeChanged = prevBaseTypeRef.current !== baseType;
-    if (baseTypeChanged && !areCoordsEqual(snapshot.refPoint, basePoint)) {
+    if (baseTypeChanged && !isEqualCoord(snapshot.refPoint, basePoint)) {
       dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
     }
     prevBaseTypeRef.current = baseType;
-  }, [basePoint, baseType, snapshot, dispatch]);
+  }, [basePoint, baseType, snapshot]);
 
   /**
-   * MapSnapshot 업데이트(로컬)
-   * - SearchSnapshot을 건드리지 않는다.
-   * - 단, 후속 FSM 이벤트가 최신 map을 보도록 override 전달 가능 구조 유지
+   * 지도 스냅샷 업데이트 함수
+   *
+   * @description
+   * MapSnapshot(로컬 상태)를 업데이트합니다.
+   * - SearchSnapshot과 독립적으로 동작
+   * - 드래그/줌 등 고빈도 이벤트에 사용
+   *
+   * @param next - 새로운 지도 스냅샷
    */
   const updateMapSnapshot = useCallback((next: MapSnapshot) => {
     // 디버그: 지도 스냅샷 업데이트
     // eslint-disable-next-line no-console
     console.log('[searchMachine] updateMapSnapshot', next);
+    console.trace('[searchMachine] updateMapSnapshot trace');
     setMapSnapshot(next);
     mapRef.current = next;
   }, []);
@@ -180,23 +260,17 @@ export function useSearchMachine(): SearchMachineContextValue {
   return ctx;
 }
 
-/* =============================================================================
- * 비교 유틸
- * ============================================================================= */
-
-function areCoordsEqual(a: Coord | null, b: Coord | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.lat === b.lat && a.lng === b.lng;
-}
-
-export function areBoundsEqual(a: BoundsSnapshot | null, b: BoundsSnapshot | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.swLat === b.swLat && a.swLng === b.swLng && a.neLat === b.neLat && a.neLng === b.neLng;
-}
-
-function areFilterArraysEqual(a: FilterOption[], b: FilterOption[]): boolean {
+/**
+ * 필터 배열 동등성 비교
+ *
+ * @description
+ * 필터 배열의 순서와 요소가 모두 동일한지 확인합니다.
+ *
+ * @param a - 첫 번째 필터 배열
+ * @param b - 두 번째 필터 배열
+ * @returns 두 배열이 같으면 true
+ */
+function isFiltersEqual(a: FilterOption[], b: FilterOption[]): boolean {
   if (a === b) return true;
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i += 1) {

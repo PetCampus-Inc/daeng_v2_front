@@ -7,14 +7,12 @@ import { inferSearchKindFromUrl, type UrlSearchKind } from '../model/searchKind'
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
-import { useListOptionsUrlState } from '../model/useListOptionsUrlState';
 import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
 import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
 import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import type { FilterOption } from '@entities/kindergarten';
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useBasePointType, useSearchListScroll } from '@shared/store';
@@ -29,15 +27,13 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { query: searchQuery, filters } = useSearchUrlState();
-  const { rank } = useListOptionsUrlState();
-  const { dispatch } = useSearchMachine();
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
-  const { listQuery, searchListQueryKey, searchList, listWithoutExact, exact } = useSearchListQuery({ rank });
+  const { listQuery, searchListQueryKey, searchList, exact } = useSearchListQuery();
   const { onBookmarkClick } = useBookmarkToggle(searchListQueryKey);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
@@ -50,19 +46,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     () => inferSearchKindFromUrl({ query: searchQuery, filters, region }),
     [searchQuery, filters, region]
   );
-
-  const prevFiltersRef = useRef(filters);
-
-  useEffect(() => {
-    if (areFiltersEqual(filters, prevFiltersRef.current)) return;
-    prevFiltersRef.current = filters;
-
-    if (filters.length > 0) {
-      dispatch({ type: 'SET_FILTERS', filters });
-      return;
-    }
-    dispatch({ type: 'CLEAR_FILTERS' });
-  }, [filters, dispatch]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -108,10 +91,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasNextPage, isFetchingNextPage]);
 
-  const isGranted = useMemo(async () => {
-    const status = await getCurrentLocation.getPermission();
-    return status === 'allowed';
-  }, []);
+  // const isGranted = useMemo(async () => {
+  //   const status = await getCurrentLocation.getPermission();
+  //   return status === 'allowed';
+  // }, []);
 
   const handleLocationChange = (value: string) => {
     setBaseType(value as 'current' | 'home' | 'work');
@@ -193,7 +176,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
         </div>
 
         {/* <DogSchoolEmptySection /> */}
-        {!isGranted && <PermissionSection />}
+        {/* {!isGranted && <PermissionSection />} */}
         {/* 컨텐츠 영역  */}
         <div className='flex-1'>
           <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
@@ -207,7 +190,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               <NearByRecommendBanner title={exact.title} />
             </>
           )}
-          {(listWithoutExact ?? searchList).map((item) => (
+          {searchList.map((item) => (
             <Fragment key={item.id}>
               <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
               <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
@@ -238,13 +221,4 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       </Float>
     </>
   );
-}
-
-function areFiltersEqual(a: FilterOption[], b: FilterOption[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
 }

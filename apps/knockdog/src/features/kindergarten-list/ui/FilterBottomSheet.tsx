@@ -5,11 +5,11 @@ import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
-
-import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { kindergartenQueryOptions } from '@entities/kindergarten/api/map-search-query';
 import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
 import { useSearchUrlState } from '@features/kindergarten-map/model/useSearchUrlState';
+
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { filterQueries } from '../api/filterQueries';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -40,7 +40,7 @@ export function FilterBottomSheet({ isOpen, close, bounds }: FilterBottomSheetPr
 
   const abstractBounds = isValidLatLngBounds(bounds) ? toBounds(bounds) : null;
   const { data: filterResultData } = useQuery({
-    ...kindergartenQueryOptions.filterResultCount({
+    ...filterQueries.resultCount({
       bounds: abstractBounds,
       filters: localFilters,
     }),

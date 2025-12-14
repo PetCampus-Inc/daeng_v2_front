@@ -1,5 +1,9 @@
-import type { KindergartenSearchList, KindergartenListItem } from './search-list';
-import type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './types';
+import type {
+  KindergartenListItemWithMeta,
+  KindergartenListWithMeta,
+  KindergartenSearchList,
+  KindergartenListItem,
+} from '@entities/kindergarten';
 import type { BookmarkItem } from '@entities/bookmark/model/bookmark';
 import { formatDistance } from '@shared/lib';
 

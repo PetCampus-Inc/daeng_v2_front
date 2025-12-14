@@ -1,5 +1,6 @@
 import { deleteBookmark, postBookmark } from '../api/bookmark';
 
+// TODO: bookmark query key 위치 논의: entities vs shared
 const bookmarkQueryKeys = {
   all: ['bookmark'] as const,
   byId: (id: string) => [...bookmarkQueryKeys.all, id] as const,
