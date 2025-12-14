@@ -40,7 +40,7 @@ export function MapView(props: MapViewProps) {
   const mapZoom = getMapZoom(zoomLevel);
 
   const isBusinessZoomLevel = isBusinessZoom(zoomLevel ?? 0);
-  // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
+  // 검색 lock이 걸린 상태에서는 업체 마커만 표시.
   const showAggregationMarkers = snapshot.searchLock !== 1 && isAggregationZoom(zoomLevel ?? 0);
   const showBusinessMarkers = snapshot.searchLock === 1 || isBusinessZoomLevel;
 
@@ -49,17 +49,17 @@ export function MapView(props: MapViewProps) {
   const { aggregation, geoBounds } = useAggregationQuery();
 
   /**
-   * 지도 초기화 (URL → Map 단방향)
+   * 지도 초기화
    *
    * @description
-   * ✅ 초기 마운트 시에만 URL에서 Map으로 상태를 초기화합니다.
+   * 초기 마운트 시 mapSnapshot과 map url를 동기화합니다.
    * - URL에 center가 없으면 basePoint로 설정
    * - URL에 zoomLevel이 없으면 DEFAULT_MAP_ZOOM_LEVEL로 설정
    * - 이후에는 Map 인터랙션 → URL 업데이트 방향으로만 동작
    */
   useEffect(() => {
     if (!isMapLoaded || !map.current) return;
-    // URL에 유효한 center가 있으면 그대로 사용 (북마크/뒤로가기 케이스)
+    // URL에 유효한 center가 있으면 그대로 사용
     if (isValidCoord(center)) {
       return;
     }
@@ -67,9 +67,26 @@ export function MapView(props: MapViewProps) {
     // URL에 center가 없으면 basePoint로 초기화
     if (!isValidCoord(basePoint)) return;
 
-    setCenter(basePoint);
-    setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
-  }, [isMapLoaded, basePoint, center, setCenter, setZoomLevel]);
+    // 1. 지도 인스턴스에 중심점 설정
+    map.current.setCenter(basePoint);
+    // 2. 로컬 MapSnapshot 동기화
+    updateMapSnapshot({
+      center: getMapCenter({ center, basePoint }),
+      zoom: DEFAULT_MAP_ZOOM_LEVEL,
+      viewportBounds: toBoundsSnapshot(map.current.getBounds()),
+    });
+    // 3. URL 초기화
+    setCenterAndZoom(basePoint, DEFAULT_MAP_ZOOM_LEVEL);
+  }, [
+    isMapLoaded,
+    basePoint,
+    center,
+    setCenter,
+    setZoomLevel,
+    setCenterAndZoom,
+    updateMapSnapshot,
+    mapSnapshot.viewportBounds,
+  ]);
 
   /**
    * GLOBAL 스코프에서 query/filters 변동 후 agg 응답 bounds로 1회 fitBounds.
@@ -114,22 +131,19 @@ export function MapView(props: MapViewProps) {
    */
   const handleMapLoad = (map: naver.maps.Map) => {
     setIsMapLoaded(true);
-    const center = map.getCenter();
-    const bounds = map.getBounds();
-    const zoom = map.getZoom();
-
-    updateMapSnapshot({
-      center: center ? { lat: center.y, lng: center.x } : null,
-      zoom,
-      viewportBounds: toBoundsSnapshot(bounds),
-    });
+    if (isValidCoord(center)) {
+      map.setCenter(center);
+    }
+    if (zoomLevel) {
+      map.setZoom(zoomLevel);
+    }
   };
 
   /**
    * 지도 드래그 종료 핸들러 (Map → URL 단방향)
    *
    * @description
-   * ✅ 드래그 종료 시 로컬 MapSnapshot 먼저 업데이트 → URL에 반영
+   * 드래그 종료 시 로컬 MapSnapshot 먼저 업데이트 → URL에 반영
    * - Map 상태가 Source of Truth
    * - URL은 Map 상태의 영속성 저장소 역할
    */
@@ -141,14 +155,14 @@ export function MapView(props: MapViewProps) {
     const bounds = map.current.getBounds();
     const viewportBounds = toBoundsSnapshot(bounds);
 
-    // 1. 로컬 MapSnapshot 업데이트
+    // 로컬 MapSnapshot 업데이트
     updateMapSnapshot({
       center: centerCoord,
       zoom,
       viewportBounds,
     });
 
-    // 2. URL 업데이트 (단방향: Map → URL)
+    // URL 업데이트 (단방향: Map → URL)
     setCenter(centerCoord);
   };
 
@@ -182,7 +196,7 @@ export function MapView(props: MapViewProps) {
    * 줌 변경 완료 핸들러 (Map → URL 단방향)
    *
    * @description
-   * ✅ 줌 종료 시 로컬 MapSnapshot + FSM dispatch → URL 반영
+   * 줌 종료 시 로컬 MapSnapshot + FSM dispatch → URL 반영
    * - center와 zoom을 배칭하여 URL 업데이트 1회만 발생
    * - 레벨 변경 시에만 center도 함께 업데이트 (최적화)
    */
@@ -198,14 +212,14 @@ export function MapView(props: MapViewProps) {
     const nextRegionLevel = getRegionLevel(zoom);
     const prevRegionLevel = snapshot.searchedLevel;
 
-    // 1. 로컬 MapSnapshot 업데이트
+    // 로컬 MapSnapshot 업데이트
     updateMapSnapshot({
       center: centerCoord,
       zoom,
       viewportBounds,
     });
 
-    // 2. FSM 전이 (검색 레벨 변경 감지)
+    // FSM 전이 (검색 레벨 변경 감지)
     dispatch({
       type: 'ZOOM_LEVEL_CHANGED',
       from: prevRegionLevel,
@@ -213,13 +227,8 @@ export function MapView(props: MapViewProps) {
       viewportBounds,
     });
 
-    // 3. URL 업데이트 (단방향: Map → URL)
-    // 레벨 변경 시에만 center도 함께 업데이트 (배칭)
-    if (nextRegionLevel !== prevRegionLevel) {
-      setCenterAndZoom(centerCoord, zoom);
-    } else {
-      setZoomLevel(zoom);
-    }
+    // URL 업데이트
+    setCenterAndZoom(centerCoord, zoom);
   };
 
   return (
@@ -235,7 +244,6 @@ export function MapView(props: MapViewProps) {
         className='relative z-0 h-full w-full'
         onLoad={handleMapLoad}
         onDragEnd={handleDragEnd}
-        onZoomChanged={(zoom) => setZoomLevel(zoom)}
         onZoomEnd={handleZoomEnd}
       >
         {/* 현재 위치 마커 */}
