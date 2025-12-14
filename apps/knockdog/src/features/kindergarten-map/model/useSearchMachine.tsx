@@ -63,7 +63,6 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
         next.zoom !== prev.zoom;
 
       if (isStateChanged) {
-        console.log('[SearchMachine] State changed:', { prev, event, next });
         commitStateRef.current(next);
       }
     },
