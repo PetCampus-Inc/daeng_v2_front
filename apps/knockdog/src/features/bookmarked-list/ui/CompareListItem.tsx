@@ -8,7 +8,7 @@ interface CompareListItemProps {
   kindergarten: BookmarkItem;
   isSelected: boolean;
   distanceText: string;
-  onToggle: () => void;
+  onToggle: (checked: boolean) => void;
 }
 
 function CompareListItem({ kindergarten, isSelected, onToggle, distanceText }: CompareListItemProps) {
