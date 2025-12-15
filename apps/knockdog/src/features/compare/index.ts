@@ -1,6 +1,5 @@
 /** api */
 export { useComparisonsQuery } from './api/useComparisonsQuery';
-export { useBookmarksQuery } from './api/useBookmarksQuery';
 
 /** lib */
 export { createPriceComparison } from './lib/createPriceComparison';

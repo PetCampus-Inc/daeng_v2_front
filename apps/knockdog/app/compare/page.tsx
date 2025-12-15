@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
 import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
-import { useBookmarksQuery } from '@features/compare';
+import { useBookmarksQuery } from '@features/bookmarked-list';
 import type { CTag, ReferencePointType } from '@entities/compare';
 import { serializeCategories, REFERENCE_POINT_TYPE } from '@entities/compare';
 import type { BookmarkItem, DistanceInfo } from '@entities/bookmark';
