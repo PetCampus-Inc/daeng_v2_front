@@ -66,6 +66,8 @@ jobs:
         run: |
           if [ "${{ matrix.command }}" = "build" ]; then
             COMMAND="pnpm build --filter=knockdog..."
+          elif [ "${{ matrix.command }}" = "type-check" ]; then
+            COMMAND="pnpm --filter=knockdog ${{ matrix.command }}"
           else
             COMMAND="pnpm --filter=knockdog ${{ matrix.command }}"
           fi
