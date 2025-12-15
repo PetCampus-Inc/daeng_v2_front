@@ -1,77 +1,62 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
+import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
+import { useBookmarksQuery } from '@features/compare';
+import { BookmarkItem, DistanceInfo } from '@entities/bookmark';
 import { SafeArea } from '@shared/ui/safe-area';
-import { IconButton, Icon } from '@knockdog/ui';
 type SortAnchor = 'home' | 'work' | 'here';
 
-type DistanceBy = {
-  homeKm: number;
-  workKm: number;
-  hereKm: number;
-};
-
-interface Center {
-  id: string;
-  name: string;
-  type: string;
-  location: string;
-  price: string;
-  reviewCount: number;
-  image?: string;
+interface Center extends BookmarkItem {
   selected: boolean;
   selectedAt?: number;
-  distanceBy: DistanceBy;
 }
 
-/* =========================
- * Mock Data (그대로)
- * ========================= */
-const mockData: Center[] = [
-  {
-    id: '13561634',
-    name: '바우라움 유치원',
-    type: '유치원 · 호텔',
-    location: '서울 강남구',
-    price: '30,000부터 ~',
-    reviewCount: 128,
-    selected: true,
-    selectedAt: Date.now() - 2,
-    distanceBy: { homeKm: 10.9, workKm: 7.2, hereKm: 5.4 },
-  },
-  {
-    id: '18662526',
-    name: '다독강아지 유치원',
-    type: '유치원 · 호텔',
-    location: '서울 강남구',
-    price: '30,000부터 ~',
-    reviewCount: 128,
-    selected: false,
-    distanceBy: { homeKm: 12.3, workKm: 6.8, hereKm: 4.1 },
-  },
-  {
-    id: '3',
-    name: '강아지 유치원',
-    type: '유치원 · 호텔',
-    location: '서울 강남구',
-    price: '30,000부터 ~',
-    reviewCount: 128,
-    selected: false,
-    distanceBy: { homeKm: 9.1, workKm: 11.0, hereKm: 8.7 },
-  },
-];
+// Helper: anchor에 맞는 거리 정보 찾기
+function findDistanceByAnchor(distances: DistanceInfo[], anchor: SortAnchor): DistanceInfo | undefined {
+  const refPoint = anchor === 'home' ? 'HOME' : anchor === 'work' ? 'WORK' : 'OTHER';
+  return distances.find((d) => d.referencePoint === refPoint);
+}
+
+// Helper: 거리를 숫자(km)로 파싱
+function parseDistanceToKm(distance: string): number {
+  const match = distance.match(/[\d.]+/);
+  return match ? parseFloat(match[0]) : 0;
+}
 
 /* =========================
  * 페이지
  * ========================= */
 export default function ComparePage() {
   const router = useRouter();
-  const [centers, setCenters] = useState<Center[]>(mockData);
   const [anchor, setAnchor] = useState<SortAnchor>('home');
   const [loading, setLoading] = useState(false); // 버튼 스피너용
+
+  const { data: bookmarks, isLoading, error } = useBookmarksQuery();
+
+  const [centers, setCenters] = useState<Center[]>([]);
+
+  useEffect(() => {
+    if (!bookmarks) {
+      setCenters([]);
+      return;
+    }
+
+    setCenters((prev) =>
+      bookmarks.map((item) => {
+        const prevCenter = prev.find((c) => c.id === item.id);
+
+        return {
+          ...item,
+          selected: prevCenter?.selected ?? false,
+          selectedAt: prevCenter?.selectedAt,
+        };
+      })
+    );
+  }, [bookmarks]);
 
   const selected = useMemo(
     () => centers.filter((c) => c.selected).sort((a, b) => (a.selectedAt ?? 0) - (b.selectedAt ?? 0)),
@@ -81,11 +66,15 @@ export default function ComparePage() {
   const canCompare = selectedCount === 2;
 
   const sorted = useMemo(() => {
-    const key: keyof DistanceBy = anchor === 'home' ? 'homeKm' : anchor === 'work' ? 'workKm' : 'hereKm';
-    return [...centers].sort((a, b) => a.distanceBy[key] - b.distanceBy[key]);
+    return [...centers].sort((a, b) => {
+      const distA = findDistanceByAnchor(a.distances, anchor);
+      const distB = findDistanceByAnchor(b.distances, anchor);
+      const kmA = distA ? parseDistanceToKm(distA.distance) : Infinity;
+      const kmB = distB ? parseDistanceToKm(distB.distance) : Infinity;
+      return kmA - kmB;
+    });
   }, [centers, anchor]);
 
-  const formatKm = (km: number) => `${km.toFixed(1)}km`;
   const anchorLabel = (label: SortAnchor) => (label === 'home' ? '집' : label === 'work' ? '직장' : '현위치');
 
   /* =========================
@@ -161,6 +150,22 @@ export default function ComparePage() {
       return next;
     });
 
+  if (isLoading) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>데이터를 불러오는 중 오류가 발생했습니다.</p>
+      </div>
+    );
+  }
+
   return (
     <Layout>
       <SafeArea edges={['top']} className='flex h-dvh flex-col'>
@@ -212,17 +217,13 @@ export default function ComparePage() {
             {/* List */}
             <div className='flex-1 overflow-y-auto'>
               {sorted.map((c) => {
-                const km =
-                  anchor === 'home'
-                    ? c.distanceBy.homeKm
-                    : anchor === 'work'
-                      ? c.distanceBy.workKm
-                      : c.distanceBy.hereKm;
+                const distInfo = findDistanceByAnchor(c.distances, anchor);
+                const distanceText = distInfo?.distance || '-';
                 return (
                   <CompareItem
                     key={c.id}
                     center={c}
-                    distanceText={formatKm(km)}
+                    distanceText={distanceText}
                     anchorLabelText={anchorLabel(anchor)}
                     onToggle={() => toggle(c.id)}
                   />
@@ -235,11 +236,11 @@ export default function ComparePage() {
               <div className='relative mb-3 grid grid-cols-2 items-start'>
                 <div className='min-w-0'>
                   <div className='truncate text-sm font-semibold'>{selected[0]?.name ?? '유치원 선택'}</div>
-                  <div className='truncate text-xs text-gray-500'>{selected[0]?.type ?? '유치원 · 호텔'}</div>
+                  <div className='truncate text-xs text-gray-500'>{selected[0]?.categories ?? '유치원 · 호텔'}</div>
                 </div>
                 <div className='min-w-0 text-right'>
                   <div className='truncate text-sm font-semibold'>{selected[1]?.name ?? '유치원 선택'}</div>
-                  <div className='truncate text-xs text-gray-500'>{selected[1]?.type ?? '유치원 · 호텔'}</div>
+                  <div className='truncate text-xs text-gray-500'>{selected[1]?.categories ?? '유치원 · 호텔'}</div>
                 </div>
 
                 <div className='pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
@@ -314,7 +315,7 @@ function CompareItem({
               </svg>
             </button>
           </div>
-          <div className='mt-0.5 text-sm text-gray-500'>{center.type}</div>
+          <div className='mt-0.5 text-sm text-gray-500'>{center.categories}</div>
           <div className='mt-2 flex items-center gap-2'>
             <span className='inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[11px] font-medium text-green-700'>
               <span className='font-bold'>N</span>
