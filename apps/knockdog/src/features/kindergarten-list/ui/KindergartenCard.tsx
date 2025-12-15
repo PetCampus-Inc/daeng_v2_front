@@ -2,12 +2,14 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { PhoneCallSheet } from './PhoneCallSheet';
 import { overlay } from 'overlay-kit';
-import { DeparturePointSheet, ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { DeparturePointSheet, Kindergarten, ServiceBadgesTruncated } from '@entities/kindergarten';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
-interface KindergartenCardProps extends KindergartenListItemWithMeta {}
+interface KindergartenCardProps extends Kindergarten {
+  onBookmarkClick: (id: string, isBookmarked: boolean) => void;
+}
 
-export function KindergartenCard({ ...props }: KindergartenCardProps) {
+export function KindergartenCard(props: KindergartenCardProps) {
   const openPhoneCallActionSheet = () =>
     overlay.open(({ isOpen, close }) => (
       <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={props.phoneNumber} />
@@ -18,7 +20,7 @@ export function KindergartenCard({ ...props }: KindergartenCardProps) {
       <DeparturePointSheet
         isOpen={isOpen}
         close={close}
-        to={{ lat: props.coord.lat, lng: props.coord.lng, name: props.title }}
+        to={{ lat: props.coords.lat, lng: props.coords.lng, name: props.title }}
       />
     ));
 
@@ -116,8 +118,12 @@ export function KindergartenCard({ ...props }: KindergartenCardProps) {
           <ActionButton variant='primaryFill' size='medium'>
             비교하기
           </ActionButton>
-          <button className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'>
-            <Icon icon='BookmarkLine' className='size-x6 text-fill-primary-500' />
+          <button
+            aria-label='보관하기'
+            className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
+            onClick={() => props.onBookmarkClick(props.id, props.bookmarked)}
+          >
+            <Icon icon={props.bookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />
           </button>
         </div>
       </BottomSheet.Footer>
