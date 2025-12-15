@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Breed } from './breed.type';
 import { api } from '@shared/api';
-import { ApiResponse } from '@shared/api/model/response';
 
 export const useBreedQuery = () => {
   return useQuery<Breed[]>({
