@@ -1,16 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BottomSheet, TRANSITION_DURATION_MS } from '@knockdog/ui';
 import { KindergartenCard } from './KindergartenCard';
 import { KindergartenDetail } from './KindergartenDetail';
 import { cn } from '@knockdog/ui/lib';
-import { useQuery } from '@tanstack/react-query';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
-import { kindergartenQueries, type KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isValidCoord, useBasePoint } from '@shared/lib';
+import { useSearchListQuery } from '@features/kindergarten-map';
 
-interface KindergartenItemSheetProps extends KindergartenListItemWithMeta {
+interface KindergartenItemSheetProps {
+  itemId: string;
   isOpen: boolean;
-  close: () => void;
+  onClose: () => void;
 }
 
 const snapPoints = ['328px', 1];
@@ -20,11 +19,19 @@ type SheetView = 'card' | 'detail';
 const VIEW_SWITCH_BUFFER_MS = 100; // 약 6프레임 (60fps 기준)
 const VIEW_SWITCH_DELAY_MS = Math.max(TRANSITION_DURATION_MS - VIEW_SWITCH_BUFFER_MS, 0);
 
-export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenItemSheetProps) {
-  const { coord } = useBasePoint();
-  const kindergartenOptions = kindergartenQueries.main({ id: props.id, ...coord! });
-  const { data } = useQuery({ ...kindergartenOptions, enabled: isValidCoord(coord) });
-  const { onBookmarkClick } = useBookmarkToggle(kindergartenOptions.queryKey);
+export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenItemSheetProps) {
+  const { searchListQueryKey, searchList, exact } = useSearchListQuery();
+  const { onBookmarkClick } = useBookmarkToggle(searchListQueryKey);
+
+  // 상위에서 내려준 아이템 스냅샷을 그대로 쓰면 북마크 토글 후에도 예전 isBookmarked를 참조하는 stale closure가 발생함
+  // 해결) id만 받고 매 렌더마다 최신 쿼리 캐시(searchList/exact)에서 해당 아이템을 다시 조회
+  // TODO: 더 나은 방법이 있을지 고민...
+  const currentItem = useMemo(() => {
+    const list = searchList.find((item) => item.id === itemId);
+    if (list) return list;
+    if (exact?.id === itemId) return exact;
+    return null;
+  }, [exact, itemId, searchList]);
 
   const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint>(snapPoints[0] ?? null);
   const [view, setView] = useState<SheetView>('card');
@@ -102,7 +109,7 @@ export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenI
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          close();
+          onClose();
         }
       }}
       modal={false}
@@ -115,7 +122,7 @@ export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenI
         <BottomSheet.Body
           onPointerDownOutside={(e: Event) => {
             e.preventDefault();
-            close();
+            onClose();
           }}
           className={cn(
             'bottom-[68px] z-50 h-full',
@@ -123,12 +130,13 @@ export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenI
             isTransitioning && 'pointer-events-none'
           )}
         >
-          {data &&
-            (view === 'card' ? (
-              <KindergartenCard {...data} onBookmarkClick={onBookmarkClick} />
+          {currentItem ? (
+            view === 'card' ? (
+              <KindergartenCard {...currentItem} onBookmarkClick={onBookmarkClick} />
             ) : (
-              <KindergartenDetail {...data} />
-            ))}
+              <KindergartenDetail {...currentItem} />
+            )
+          ) : null}
         </BottomSheet.Body>
       </BottomSheet.Portal>
     </BottomSheet.Root>
