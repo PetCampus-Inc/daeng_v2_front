@@ -39,6 +39,7 @@ export function KindergartenListItem({
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
+          aria-label='보관하기'
           className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
