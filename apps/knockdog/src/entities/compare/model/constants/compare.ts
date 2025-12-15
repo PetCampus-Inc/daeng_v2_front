@@ -6,6 +6,10 @@ const CTAG_MAP = {
   GROOMING: '미용',
   TRAINING: '훈련',
   PET_SHOP: '강아지 용품',
+  PLAYGROUND: '놀이터',
+  CAFE: '카페',
+  VETERINARY: '동물병원',
+  FITNESS: '피트니스',
 } as const;
 
 const PRODUCT_TYPE = {
