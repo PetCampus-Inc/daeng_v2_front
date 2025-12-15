@@ -12,6 +12,8 @@ interface DogCardProps {
 }
 
 function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogCardProps) {
+  const details = [breed, age ? `${age}살` : undefined].filter(Boolean);
+
   return (
     <div
       onClick={onClick}
@@ -28,8 +30,12 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
           <span className='text-text-primary-inverse'>{name}</span>
         </div>
         <div className='body2-regular text-text-primary-inverse flex max-w-[118px] items-center gap-x-1'>
-          {breed && <span className='truncate'>{breed} • </span>}
-          {age && <span className='shrink-0'>{age}살</span>}
+          {details.map((detail, index) => (
+            <span className='truncate' key={index}>
+              {detail}
+              {index < details.length - 1 && ' • '}
+            </span>
+          ))}
         </div>
       </div>
     </div>
