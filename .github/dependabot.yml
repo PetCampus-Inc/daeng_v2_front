@@ -28,13 +28,13 @@ updates:
     # Expo 호환성을 위해 mobile 디렉토리의 react/react-native 관련 업데이트는 무시
     ignore:
       - dependency-name: 'react'
-        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
         directories: ['/apps/mobile']
       - dependency-name: 'react-dom'
-        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
         directories: ['/apps/mobile']
       - dependency-name: '@types/react'
-        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
         directories: ['/apps/mobile']
       - dependency-name: 'react-native'
         update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
