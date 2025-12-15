@@ -23,9 +23,6 @@ updates:
       interval: 'weekly'
       time: '02:00'
       timezone: 'Asia/Seoul'
-    labels:
-      - 'dependabot'
-      - 'mobile'
     # Expo 호환성을 위해 이 디렉토리의 핵심 의존성 업데이트를 모두 무시합니다.
     ignore:
       - dependency-name: 'react'
@@ -33,11 +30,9 @@ updates:
       - dependency-name: '@types/react'
       - dependency-name: 'react-native'
     groups:
-      mobile-core:
-        patterns:
-          - 'expo'
-          - 'expo-*'
-      mobile-dev-deps:
+      mobile-production:
+        dependency-type: 'production'
+      mobile-development:
         dependency-type: 'development'
 
   - package-ecosystem: 'npm'
@@ -59,19 +54,10 @@ updates:
           - 'react-dom'
           - '@types/react'
           - '@types/react-dom'
-      dev-toolchain:
-        patterns:
-          - 'typescript'
-          - 'eslint'
-          - '@typescript-eslint/*'
-          - 'prettier'
-          - 'turbo'
-          - 'vitest'
-          - 'vite'
       storybook:
         patterns:
           - '*storybook*'
-      dependencies-prod-patch:
+      npm-production:
         dependency-type: 'production'
         update-types:
           - 'patch'
@@ -81,7 +67,7 @@ updates:
           - 'react-dom'
           - '@types/react'
           - '@types/react-dom'
-      dependencies-dev-minor:
+      npm-development:
         dependency-type: 'development'
         update-types:
           - 'minor'
