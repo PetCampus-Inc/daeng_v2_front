@@ -15,6 +15,7 @@ export type { FilterOption, FilterState } from './config/filter-options';
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
 export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from './config/kindergartenNearQueryKeys';
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';
+export { kindergartenQueries } from './config/kindergartenQueries';
 
 /** lib */
 export { isValidBounds, isEqualFilters } from './lib/is';
