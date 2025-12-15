@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Breed } from './breed.type';
 import { api } from '@shared/api';
-import { ApiResponse } from '@shared/api/model/response';
 
 export const useBreedQuery = () => {
   return useQuery<Breed[]>({
@@ -9,8 +8,8 @@ export const useBreedQuery = () => {
     staleTime: 1000 * 60 * 60 * 24, // 24시간
     gcTime: 1000 * 60 * 60 * 24, // 24시간
     queryFn: async () => {
-      const res = await api.get('breed').json<ApiResponse<Breed[]>>();
-      return res.data;
+      const res = await api.get('breed').json<Breed[]>();
+      return res ?? [];
     },
   });
 };
