@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -43,6 +43,9 @@ function KindergartenMainPageContent() {
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
   const { top } = useSafeAreaInsets();
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   const prevQueryRef = useRef(query);
   const prevFiltersRef = useRef(filters);
@@ -112,22 +115,9 @@ function KindergartenMainPageContent() {
       return;
     }
 
-    setActiveMarker(item.id);
-
-    overlay.open(({ isOpen, unmount }) => {
-      return (
-        <KindergartenItemSheet
-          isOpen={isOpen}
-          close={() => {
-            if (useMarkerState.getState().activeMarkerId === itemId) {
-              setActiveMarker(null);
-            }
-            unmount();
-          }}
-          {...item}
-        />
-      );
-    });
+    setActiveMarker(itemId);
+    setSelectedItemId(itemId);
+    setIsSheetOpen(true);
   };
 
   const handleOpenFilter = () => {
@@ -187,6 +177,20 @@ function KindergartenMainPageContent() {
       >
         <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
       </KindergartenListSheet>
+
+      {isSheetOpen && selectedItemId && (
+        <KindergartenItemSheet
+          isOpen={isSheetOpen}
+          onClose={() => {
+            if (useMarkerState.getState().activeMarkerId === selectedItemId) {
+              setActiveMarker(null);
+            }
+            setIsSheetOpen(false);
+            setSelectedItemId(null);
+          }}
+          itemId={selectedItemId}
+        />
+      )}
     </>
   );
 }
