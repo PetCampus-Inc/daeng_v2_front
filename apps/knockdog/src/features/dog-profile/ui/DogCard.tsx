@@ -12,6 +12,7 @@ interface DogCardProps {
 }
 
 function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogCardProps) {
+  const details = [breed, age ? `${age}살` : undefined].filter(Boolean);
   return (
     <div
       onClick={onClick}
@@ -27,10 +28,11 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
           {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-5' />}
           <span className='text-text-primary-inverse'>{name}</span>
         </div>
-        <div className='body2-regular text-text-primary-inverse flex max-w-[118px] items-center gap-x-1'>
-          {breed && <span className='truncate'>{breed} • </span>}
-          {age && <span className='shrink-0'>{age}살</span>}
-        </div>
+        {details.length > 0 && (
+          <div className='body2-regular text-text-primary-inverse flex max-w-[118px] items-center gap-x-1'>
+            <span className='truncate'>{details.join(' • ')}</span>
+          </div>
+        )}
       </div>
     </div>
   );

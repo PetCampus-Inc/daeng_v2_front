@@ -4,6 +4,7 @@ import { useMoveImageMutation } from '@shared/lib/media';
 import { useUserStore } from '@entities/user';
 import type { Breed } from './breed.type';
 import type { Pet } from '@entities/pet';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface PetFormData {
   name: string;
@@ -121,6 +122,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       }
 
       onSuccess?.();
+      syncWebViewQuery.invalidate(['petList']);
     } catch (error) {
       console.error('펫 프로필 저장 실패:', error);
       onError?.(error);
