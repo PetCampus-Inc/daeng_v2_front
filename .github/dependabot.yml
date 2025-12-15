@@ -41,8 +41,6 @@ updates:
       interval: 'weekly'
       time: '02:00'
       timezone: 'Asia/Seoul'
-    labels:
-      - 'dependabot'
     ignore:
       - dependency-name: 'tailwindcss'
         update-types: ['version-update:semver-major']
