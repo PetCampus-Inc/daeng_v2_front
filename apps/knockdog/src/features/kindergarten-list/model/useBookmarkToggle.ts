@@ -11,14 +11,13 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
   const { mutate: deleteBookmark } = useBookmarkDeleteMutation();
 
   const toggleBookmarkInCache = useCallback(
-    (id: string, bookmarked: boolean) => {
+    (id: string, isBookmarked: boolean) => {
       if (!queryKey) {
         return;
       }
       queryClient.setQueryData<CacheData>(queryKey, (prev) => {
         if (!prev) return prev;
         if ('pages' in prev && Array.isArray(prev.pages)) {
-          // 1. InfiniteQuery 데이터 구조일 경우의 로직 (list View)
           return {
             ...prev,
             pages: prev.pages.map((page) => ({
@@ -27,21 +26,12 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
                 ...page.schoolResult,
                 exact:
                   page.schoolResult.exact?.id === id
-                    ? { ...page.schoolResult.exact, isBookmarked: bookmarked }
+                    ? { ...page.schoolResult.exact, isBookmarked }
                     : page.schoolResult.exact,
-                list: page.schoolResult.list.map((item) =>
-                  item.id === id ? { ...item, isBookmarked: bookmarked } : item
-                ),
+                list: page.schoolResult.list.map((item) => (item.id === id ? { ...item, isBookmarked } : item)),
               },
             })),
           };
-        } else {
-          // 2. 단일 객체 데이터 구조일 경우의 로직 (detail view)
-          const prevKindergarten = prev as Kindergarten;
-          if (prevKindergarten.id === id) {
-            return { ...prevKindergarten, bookmarked };
-          }
-          return prevKindergarten;
         }
       });
     },
@@ -52,11 +42,15 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
     (id: string, isBookmarked = false) => {
       if (isBookmarked) {
         deleteBookmark(id, {
-          onSuccess: () => toggleBookmarkInCache(id, false),
+          onSuccess: () => {
+            toggleBookmarkInCache(id, false);
+          },
         });
       } else {
         postBookmark(id, {
-          onSuccess: () => toggleBookmarkInCache(id, true),
+          onSuccess: () => {
+            toggleBookmarkInCache(id, true);
+          },
         });
       }
     },
