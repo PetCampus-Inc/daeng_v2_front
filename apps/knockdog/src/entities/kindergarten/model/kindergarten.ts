@@ -4,6 +4,10 @@ export interface Kindergarten {
   id: string;
   title: string;
   ctg: keyof typeof CTAG_MAP;
+  operationTimes: {
+    startTime: string;
+    endTime: string;
+  };
   operationDescription: string;
   operationStatus: keyof typeof OPEN_STATUS_MAP;
   price: number;

@@ -1,3 +1,5 @@
+// FIXME: entities로 이동!
+
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { DEFAULT_DISTANCE } from '../config/map';
 import { createKindergartenListWithMeta } from '../model/mappers';

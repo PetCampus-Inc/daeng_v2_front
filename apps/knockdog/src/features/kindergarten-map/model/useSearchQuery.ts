@@ -1,11 +1,12 @@
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSearchMachine } from './useSearchMachine';
-import { bookmarkQueries } from '../api/bookmarkQueries';
+
 import { searchQueries } from '../api/searchQueries';
 import { useListOptionsUrlState } from '@features/kindergarten-list';
 import { useUserStore } from '@entities/user';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { bookmarkQueries } from '@entities/bookmark';
 import { tokenUtils } from '@shared/utils';
 
 export function useSearchListQuery() {
@@ -14,7 +15,10 @@ export function useSearchListQuery() {
   const user = useUserStore((s) => s.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
-  const bookmarksQuery = useQuery(bookmarkQueries.list(isLoggedIn));
+  const bookmarksQuery = useQuery({
+    ...bookmarkQueries.list(),
+    enabled: isLoggedIn,
+  });
 
   const searchListOptions = searchQueries.searchList({
     state: committedState,

@@ -3,46 +3,56 @@ import { useCallback } from 'react';
 import { useBookmarkDeleteMutation, useBookmarkPostMutation } from '@entities/bookmark/api/useBookmarkMutation';
 import { type KindergartenListWithMeta } from '@entities/kindergarten';
 
-export function useBookmarkToggle(listQueryKey?: QueryKey) {
+type CacheData = InfiniteData<KindergartenListWithMeta>;
+
+export function useBookmarkToggle(queryKey?: QueryKey) {
   const queryClient = useQueryClient();
   const { mutate: postBookmark } = useBookmarkPostMutation();
   const { mutate: deleteBookmark } = useBookmarkDeleteMutation();
 
   const toggleBookmarkInCache = useCallback(
-    (id: string, bookmarked: boolean) => {
-      if (!listQueryKey) return;
-      queryClient.setQueryData<InfiniteData<KindergartenListWithMeta>>(listQueryKey, (prev) => {
+    (id: string, isBookmarked: boolean) => {
+      if (!queryKey) {
+        return;
+      }
+      queryClient.setQueryData<CacheData>(queryKey, (prev) => {
         if (!prev) return prev;
-        return {
-          ...prev,
-          pages: prev.pages.map((page) => ({
-            ...page,
-            schoolResult: {
-              ...page.schoolResult,
-              exact:
-                page.schoolResult.exact?.id === id
-                  ? { ...page.schoolResult.exact, isBookmarked: bookmarked }
-                  : page.schoolResult.exact,
-              list: page.schoolResult.list.map((item) =>
-                item.id === id ? { ...item, isBookmarked: bookmarked } : item
-              ),
-            },
-          })),
-        };
+        if ('pages' in prev && Array.isArray(prev.pages)) {
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              schoolResult: {
+                ...page.schoolResult,
+                exact:
+                  page.schoolResult.exact?.id === id
+                    ? { ...page.schoolResult.exact, isBookmarked }
+                    : page.schoolResult.exact,
+                list: page.schoolResult.list.map((item) => (item.id === id ? { ...item, isBookmarked } : item)),
+              },
+            })),
+          };
+        }
       });
     },
-    [listQueryKey, queryClient]
+    [queryKey, queryClient]
   );
 
   const onBookmarkClick = useCallback(
     (id: string, isBookmarked = false) => {
+      toggleBookmarkInCache(id, !isBookmarked);
+
       if (isBookmarked) {
         deleteBookmark(id, {
-          onSuccess: () => toggleBookmarkInCache(id, false),
+          onError: () => {
+            toggleBookmarkInCache(id, true);
+          },
         });
       } else {
         postBookmark(id, {
-          onSuccess: () => toggleBookmarkInCache(id, true),
+          onError: () => {
+            toggleBookmarkInCache(id, false);
+          },
         });
       }
     },

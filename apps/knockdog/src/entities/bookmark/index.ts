@@ -2,6 +2,7 @@
 export { getBookmarks } from './api/bookmark';
 
 /** config */
+export { bookmarkQueries } from './config/bookmarkQueries';
 export {
   bookmarkQueryKeys,
   createBookmarkQueryOptions,

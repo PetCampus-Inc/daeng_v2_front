@@ -6,13 +6,11 @@ export const bookmarkQueries = {
     all: () => ['bookmark'] as const,
   },
 
-  list: (enabled = false) =>
+  list: () =>
     queryOptions({
       queryKey: bookmarkQueries.keys.all(),
       queryFn: () => getBookmarks(),
-      enabled,
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
-      initialData: [],
     }),
 };

@@ -1,4 +1,4 @@
-import { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface DogSchoolDetailProps extends KindergartenListItemWithMeta {}
