@@ -12,10 +12,10 @@ updates:
       time: '02:00'
       timezone: 'Asia/Seoul'
     groups:
-      actions-minor:
+      actions-patch-minor:
         update-types:
-          - minor
-          - patch
+          - 'minor'
+          - 'patch'
 
   - package-ecosystem: 'npm'
     directory: '/'
@@ -23,27 +23,69 @@ updates:
       interval: 'weekly'
       time: '02:00'
       timezone: 'Asia/Seoul'
+    labels:
+      - 'dependabot'
+    # Expo 호환성을 위해 mobile 디렉토리의 react/react-native 관련 업데이트는 무시
     ignore:
-      - dependency-name: '*storybook*'
-      - dependency-name: next
-        update-types: ['version-update:semver-major']
-      - dependency-name: react
-        update-types: ['version-update:semver-major']
-      - dependency-name: react-dom
-        update-types: ['version-update:semver-major']
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        directories: ['/apps/mobile']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        directories: ['/apps/mobile']
       - dependency-name: '@types/react'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@types/react-dom'
-        update-types: ['version-update:semver-major']
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+        directories: ['/apps/mobile']
+      - dependency-name: 'react-native'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+        directories: ['/apps/mobile']
       - dependency-name: 'tailwindcss'
         update-types: ['version-update:semver-major']
+
     groups:
-      npm-development:
-        dependency-type: development
+      # 웹 애플리케이션(Next.js) 핵심 의존성
+      web-core:
+        applies-to: 'version-updates'
+        directories: ['/apps/knockdog']
+        patterns:
+          - 'next'
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      # 모바일 애플리케이션(Expo) 핵심 의존성
+      mobile-core:
+        applies-to: 'version-updates'
+        directories: ['/apps/mobile']
+        patterns:
+          - 'expo'
+          - 'expo-*'
+      # 빌드/개발 도구 체인
+      dev-toolchain:
+        applies-to: 'version-updates'
+        patterns:
+          - 'typescript'
+          - 'eslint'
+          - '@typescript-eslint/*'
+          - 'prettier'
+          - 'turbo'
+          - 'vitest'
+          - 'vite'
+      # Storybook 관련 의존성
+      storybook:
+        applies-to: 'version-updates'
+        patterns:
+          - '*storybook*'
+      # 기타 프로덕션 의존성 (patch 업데이트만 그룹)
+      dependencies-prod-patch:
+        applies-to: 'version-updates'
+        dependency-type: 'production'
         update-types:
-          - minor
-          - patch
-      npm-production:
-        dependency-type: production
+          - 'patch'
+      # 기타 개발 의존성 (minor, patch 업데이트 그룹)
+      dependencies-dev-minor:
+        applies-to: 'version-updates'
+        dependency-type: 'development'
         update-types:
-          - patch
+          - 'minor'
+          - 'patch'
