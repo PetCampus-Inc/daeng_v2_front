@@ -12,10 +12,33 @@ updates:
       time: '02:00'
       timezone: 'Asia/Seoul'
     groups:
-      actions-minor:
+      actions-patch-minor:
         update-types:
-          - minor
-          - patch
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: 'npm'
+    directory: '/apps/mobile'
+    schedule:
+      interval: 'weekly'
+      time: '02:00'
+      timezone: 'Asia/Seoul'
+    labels:
+      - 'dependabot'
+      - 'mobile'
+    # Expo 호환성을 위해 이 디렉토리의 핵심 의존성 업데이트를 모두 무시합니다.
+    ignore:
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: '@types/react'
+      - dependency-name: 'react-native'
+    groups:
+      mobile-core:
+        patterns:
+          - 'expo'
+          - 'expo-*'
+      mobile-dev-deps:
+        dependency-type: 'development'
 
   - package-ecosystem: 'npm'
     directory: '/'
@@ -23,27 +46,43 @@ updates:
       interval: 'weekly'
       time: '02:00'
       timezone: 'Asia/Seoul'
+    labels:
+      - 'dependabot'
     ignore:
-      - dependency-name: '*storybook*'
-      - dependency-name: next
-        update-types: ['version-update:semver-major']
-      - dependency-name: react
-        update-types: ['version-update:semver-major']
-      - dependency-name: react-dom
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@types/react'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@types/react-dom'
-        update-types: ['version-update:semver-major']
       - dependency-name: 'tailwindcss'
         update-types: ['version-update:semver-major']
     groups:
-      npm-development:
-        dependency-type: development
+      web-core:
+        patterns:
+          - 'next'
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      dev-toolchain:
+        patterns:
+          - 'typescript'
+          - 'eslint'
+          - '@typescript-eslint/*'
+          - 'prettier'
+          - 'turbo'
+          - 'vitest'
+          - 'vite'
+      storybook:
+        patterns:
+          - '*storybook*'
+      dependencies-prod-patch:
+        dependency-type: 'production'
         update-types:
-          - minor
-          - patch
-      npm-production:
-        dependency-type: production
+          - 'patch'
+        exclude-patterns:
+          - 'next'
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      dependencies-dev-minor:
+        dependency-type: 'development'
         update-types:
-          - patch
+          - 'minor'
+          - 'patch'
