@@ -13,10 +13,16 @@ import { getShortAddress } from '@shared/lib';
 interface BookmarkedListItemProps {
   kindergarten: BookmarkItem;
   distanceText: string;
+  bookmarkDisabled?: boolean;
   className?: string;
 }
 
-function BookmarkedListItem({ kindergarten, distanceText, className }: BookmarkedListItemProps) {
+function BookmarkedListItem({
+  kindergarten,
+  distanceText,
+  bookmarkDisabled = false,
+  className,
+}: BookmarkedListItemProps) {
   const categoryText = serializeCategories(kindergarten.categories as CTag[]);
 
   return (
@@ -40,7 +46,12 @@ function BookmarkedListItem({ kindergarten, distanceText, className }: Bookmarke
               <p className='label-medium text-text-tertiary truncate'>{categoryText}</p>
             </div>
             <div className='shrink-0'>
-              <BookmarkToggleIcon id={kindergarten.id} bookmarked className='text-fill-secondary-700' />
+              <BookmarkToggleIcon
+                id={kindergarten.id}
+                bookmarked
+                disabled={bookmarkDisabled}
+                className='text-fill-secondary-700'
+              />
             </div>
           </div>
 
