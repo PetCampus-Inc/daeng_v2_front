@@ -32,8 +32,14 @@ updates:
     groups:
       mobile-production:
         dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
       mobile-development:
         dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
 
   - package-ecosystem: 'npm'
     directory: '/'
