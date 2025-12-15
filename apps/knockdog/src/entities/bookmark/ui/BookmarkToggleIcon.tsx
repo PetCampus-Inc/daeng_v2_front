@@ -7,9 +7,11 @@ import { useBookmarkPostMutation, useBookmarkDeleteMutation } from '../api/useBo
 interface BookmarkToggleIconProps {
   id: string;
   bookmarked: boolean;
+  disabled?: boolean;
+  className?: string;
 }
 
-const BookmarkToggleIcon = ({ id, bookmarked }: BookmarkToggleIconProps) => {
+const BookmarkToggleIcon = ({ id, bookmarked, disabled = false, className = '' }: BookmarkToggleIconProps) => {
   const [isBookmarked, setIsBookmarked] = useState(bookmarked);
   const { mutate: postBookmark, isPending: isPosting } = useBookmarkPostMutation();
   const { mutate: deleteBookmark, isPending: isDeleting } = useBookmarkDeleteMutation();
@@ -23,7 +25,8 @@ const BookmarkToggleIcon = ({ id, bookmarked }: BookmarkToggleIconProps) => {
   return (
     <IconButton
       icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
-      disabled={isMutating}
+      className={className}
+      disabled={isMutating || disabled}
       onClick={(event) => {
         event.stopPropagation();
 
