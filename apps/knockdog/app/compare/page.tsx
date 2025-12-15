@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
 import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
-import { useBookmarksQuery, CompareListItem } from '@features/bookmarked-list';
+import { useBookmarksQuery, CompareListItem, FilterBar } from '@features/bookmarked-list';
 import type { CTag, ReferencePointType } from '@entities/compare';
 import { serializeCategories } from '@entities/compare';
 import type { DistanceInfo } from '@entities/bookmark';
@@ -31,6 +31,7 @@ function parseDistanceToKm(distance: string): number {
 export default function ComparePage() {
   const router = useRouter();
   const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
+  const [showMemoOnly, setShowMemoOnly] = useState(false);
 
   const { data: bookmarks = [], isLoading, error } = useBookmarksQuery();
 
@@ -58,6 +59,16 @@ export default function ComparePage() {
     });
   }, [bookmarks, refPoint]);
 
+  // TODO: Bookmark API 수정 후 반영하기
+  const filteredBookmarks = sortedBookmarks;
+  // const filteredBookmarks = useMemo(() => {
+  //   if (!showMemoOnly) return sortedBookmarks;
+  //   return sortedBookmarks.filter((kindergarten) => kindergarten.firstMemoAt != null);
+  // }, [sortedBookmarks, showMemoOnly]);
+
+  const toggleShowMemoOnly = () => {
+    setShowMemoOnly((prev) => !prev);
+  };
   /* =========================
    * DEV 로그인 (토큰 갱신 → localStorage 저장)
    * ========================= */
@@ -158,40 +169,16 @@ export default function ComparePage() {
             </Header>
 
             {/* Filter Bar */}
-            <div className='flex items-center justify-between border-y border-[#EBEBF0] bg-white px-3 py-2 text-sm text-gray-700'>
-              <label className='flex items-center gap-2'>
-                <span className='inline-block h-2.5 w-2.5 rounded-full bg-orange-500' />
-                메모
-              </label>
-
-              <label className='flex items-center gap-2'>
-                <span className='text-gray-700'>거리기준:</span>
-                <div className='relative'>
-                  <select
-                    value={refPoint}
-                    onChange={(e) => setRefPoint(e.target.value as ReferencePointType)}
-                    className='appearance-none rounded-md border border-[#EBEBF0] bg-white px-3 py-1.5 pr-8 text-sm text-gray-800'
-                    aria-label='거리 기준 선택'
-                  >
-                    <option value='HOME'>집</option>
-                    <option value='WORK'>직장</option>
-                    <option value='OTHER'>기타</option>
-                  </select>
-                  <svg
-                    className='pointer-events-none absolute top-1/2 right-2 h-4 w-4 -translate-y-1/2 text-gray-500'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    aria-hidden='true'
-                  >
-                    <path d='M6 9l6 6 6-6' stroke='currentColor' strokeWidth='2' strokeLinecap='round' />
-                  </svg>
-                </div>
-              </label>
-            </div>
+            <FilterBar
+              refPoint={refPoint}
+              onChangeRefPoint={setRefPoint}
+              showMemoOnly={showMemoOnly}
+              onMemoToggle={toggleShowMemoOnly}
+            />
 
             {/* List */}
             <div className='flex-1 overflow-y-auto'>
-              {sortedBookmarks.map((kindergarten) => {
+              {filteredBookmarks.map((kindergarten) => {
                 const distInfo = findDistanceByRefPoint(kindergarten.distances, refPoint);
                 const distanceText = distInfo?.distance || '- km';
                 return (
