@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
 import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
-import { useBookmarksQuery } from '@features/bookmarked-list';
+import { useBookmarksQuery, CompareListItem } from '@features/bookmarked-list';
 import type { CTag, ReferencePointType } from '@entities/compare';
-import { serializeCategories, REFERENCE_POINT_TYPE } from '@entities/compare';
-import type { BookmarkItem, DistanceInfo } from '@entities/bookmark';
+import { serializeCategories } from '@entities/compare';
+import type { DistanceInfo } from '@entities/bookmark';
 import { SafeArea } from '@shared/ui/safe-area';
 
 // Helper: refPoint에 맞는 거리 정보 찾기
@@ -19,7 +19,10 @@ function findDistanceByRefPoint(distances: DistanceInfo[], refPoint: ReferencePo
 // Helper: 거리를 숫자(km)로 파싱
 function parseDistanceToKm(distance: string): number {
   const match = distance.match(/[\d.]+/);
-  return match ? parseFloat(match[0]) : 0;
+  if (!match) {
+    return Infinity;
+  }
+  return Number.parseFloat(match[0]);
 }
 
 /* =========================
@@ -98,7 +101,7 @@ export default function ComparePage() {
   /* =========================
    * 유치원 선택 토글 (최대 2개 유지)
    * ========================= */
-  const toggle = (id: string) => {
+  const toggleCheckbox = (id: string) => {
     setSelectedIds((prev) => {
       // 1. 이미 선택된 유치원일 경우: 해당 슬롯을 비움
       if (prev.left === id) {
@@ -188,17 +191,16 @@ export default function ComparePage() {
 
             {/* List */}
             <div className='flex-1 overflow-y-auto'>
-              {sortedBookmarks.map((c) => {
-                const distInfo = findDistanceByRefPoint(c.distances, refPoint);
-                const distanceText = distInfo?.distance || '-';
+              {sortedBookmarks.map((kindergarten) => {
+                const distInfo = findDistanceByRefPoint(kindergarten.distances, refPoint);
+                const distanceText = distInfo?.distance || '- km';
                 return (
-                  <CompareItem
-                    key={c.id}
-                    center={c}
-                    isSelected={selectedIds.left === c.id || selectedIds.right === c.id}
+                  <CompareListItem
+                    key={kindergarten.id}
+                    kindergarten={kindergarten}
                     distanceText={distanceText}
-                    refPointLabel={REFERENCE_POINT_TYPE[refPoint]}
-                    onToggle={() => toggle(c.id)}
+                    isSelected={selectedIds.left === kindergarten.id || selectedIds.right === kindergarten.id}
+                    onToggle={() => toggleCheckbox(kindergarten.id)}
                   />
                 );
               })}
@@ -263,74 +265,5 @@ export default function ComparePage() {
         </Suspense>
       </SafeArea>
     </Layout>
-  );
-}
-
-/* =========================
- * 유치원 아이템
- * ========================= */
-function CompareItem({
-  center,
-  isSelected,
-  onToggle,
-  distanceText,
-  refPointLabel,
-}: {
-  center: BookmarkItem;
-  isSelected: boolean;
-  onToggle: () => void;
-  distanceText: string;
-  refPointLabel: string;
-}) {
-  const categoryText = serializeCategories(center.categories as CTag[]);
-
-  return (
-    <div className='flex items-start gap-3 border-b border-[#F3F3F7] bg-white px-3 py-3'>
-      <input type='checkbox' checked={isSelected} onChange={onToggle} className='mt-2 accent-yellow-400' />
-      <div className='grid flex-1 grid-cols-[80px_1fr] gap-3'>
-        <div className='h-20 w-20 rounded-lg bg-pink-200' />
-        <div className='min-w-0'>
-          <div className='flex items-start justify-between gap-2'>
-            <h3 className='truncate text-base leading-tight font-bold'>{center.name}</h3>
-            <button aria-label='북마크' className='shrink-0 rounded-md p-1 text-gray-600 hover:bg-gray-100'>
-              <svg className='h-5 w-5' viewBox='0 0 24 24' fill='currentColor'>
-                <path d='M6 2a2 2 0 0 0-2 2v18l8-4 8 4V4a2 2 0 0 0-2-2H6z' />
-              </svg>
-            </button>
-          </div>
-          <div className='mt-0.5 text-sm text-gray-500'>{categoryText}</div>
-          <div className='mt-2 flex items-center gap-2'>
-            <span className='inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[11px] font-medium text-green-700'>
-              <span className='font-bold'>N</span>
-              <span>리뷰 {center.reviewCount}개</span>
-            </span>
-            <span className='inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] text-gray-700'>
-              <svg className='h-3.5 w-3.5' viewBox='0 0 24 24' fill='currentColor'>
-                <path d='M4 3h16v14l-6-3-6 3V3z' />
-              </svg>
-              <span>2025.04.16 메모</span>
-            </span>
-          </div>
-        </div>
-
-        <div className='col-span-2 mt-2 flex items-center gap-3 text-[13px] text-gray-700'>
-          <span className='inline-flex items-center gap-1'>
-            <svg className='h-4 w-4' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>
-              <path d='M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z' />
-            </svg>
-            <span className='font-semibold'>{distanceText}</span>
-            <span className='text-gray-500'>
-              {center.location} · {refPointLabel} 기준
-            </span>
-          </span>
-          <span className='h-3.5 w-px bg-gray-300' aria-hidden='true' />
-          <span className='inline-flex items-center gap-1'>
-            <span className='text-sm'>₩</span>
-            <span className='font-semibold'>이용요금</span>
-            <span>{center.price.toLocaleString()}원부터 ~</span>
-          </span>
-        </div>
-      </div>
-    </div>
   );
 }
