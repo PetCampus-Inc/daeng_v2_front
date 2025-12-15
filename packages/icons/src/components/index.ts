@@ -46,6 +46,7 @@ export { King } from './King';
 export { Largedog } from './Largedog';
 export { List } from './List';
 export { Location } from './Location';
+export { LocationFill } from './LocationFill';
 export { Male } from './Male';
 export { Map } from './Map';
 export { Minus } from './Minus';

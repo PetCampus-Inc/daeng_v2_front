@@ -3,90 +3,57 @@
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
+import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
+import { useBookmarksQuery } from '@features/bookmarked-list';
+import type { CTag, ReferencePointType } from '@entities/compare';
+import { serializeCategories, REFERENCE_POINT_TYPE } from '@entities/compare';
+import type { BookmarkItem, DistanceInfo } from '@entities/bookmark';
 import { SafeArea } from '@shared/ui/safe-area';
-import { IconButton, Icon } from '@knockdog/ui';
-type SortAnchor = 'home' | 'work' | 'here';
 
-type DistanceBy = {
-  homeKm: number;
-  workKm: number;
-  hereKm: number;
-};
-
-interface Center {
-  id: string;
-  name: string;
-  type: string;
-  location: string;
-  price: string;
-  reviewCount: number;
-  image?: string;
-  selected: boolean;
-  selectedAt?: number;
-  distanceBy: DistanceBy;
+// Helper: refPoint에 맞는 거리 정보 찾기
+function findDistanceByRefPoint(distances: DistanceInfo[], refPoint: ReferencePointType): DistanceInfo | undefined {
+  return distances.find((d) => d.referencePoint === refPoint);
 }
 
-/* =========================
- * Mock Data (그대로)
- * ========================= */
-const mockData: Center[] = [
-  {
-    id: '13561634',
-    name: '바우라움 유치원',
-    type: '유치원 · 호텔',
-    location: '서울 강남구',
-    price: '30,000부터 ~',
-    reviewCount: 128,
-    selected: true,
-    selectedAt: Date.now() - 2,
-    distanceBy: { homeKm: 10.9, workKm: 7.2, hereKm: 5.4 },
-  },
-  {
-    id: '18662526',
-    name: '다독강아지 유치원',
-    type: '유치원 · 호텔',
-    location: '서울 강남구',
-    price: '30,000부터 ~',
-    reviewCount: 128,
-    selected: false,
-    distanceBy: { homeKm: 12.3, workKm: 6.8, hereKm: 4.1 },
-  },
-  {
-    id: '3',
-    name: '강아지 유치원',
-    type: '유치원 · 호텔',
-    location: '서울 강남구',
-    price: '30,000부터 ~',
-    reviewCount: 128,
-    selected: false,
-    distanceBy: { homeKm: 9.1, workKm: 11.0, hereKm: 8.7 },
-  },
-];
+// Helper: 거리를 숫자(km)로 파싱
+function parseDistanceToKm(distance: string): number {
+  const match = distance.match(/[\d.]+/);
+  return match ? parseFloat(match[0]) : 0;
+}
 
 /* =========================
  * 페이지
  * ========================= */
 export default function ComparePage() {
   const router = useRouter();
-  const [centers, setCenters] = useState<Center[]>(mockData);
-  const [anchor, setAnchor] = useState<SortAnchor>('home');
-  const [loading, setLoading] = useState(false); // 버튼 스피너용
+  const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
 
-  const selected = useMemo(
-    () => centers.filter((c) => c.selected).sort((a, b) => (a.selectedAt ?? 0) - (b.selectedAt ?? 0)),
-    [centers]
-  );
-  const selectedCount = selected.length;
+  const { data: bookmarks = [], isLoading, error } = useBookmarksQuery();
+
+  const [selectedIds, setSelectedIds] = useState<{
+    left: string | null;
+    right: string | null;
+  }>({ left: null, right: null });
+
+  const selectedKindergartens = useMemo(() => {
+    const left = bookmarks?.find((c) => c.id === selectedIds.left);
+    const right = bookmarks?.find((c) => c.id === selectedIds.right);
+    return { left, right };
+  }, [bookmarks, selectedIds]);
+
+  const selectedCount = Object.values(selectedKindergartens).filter(Boolean).length;
   const canCompare = selectedCount === 2;
 
-  const sorted = useMemo(() => {
-    const key: keyof DistanceBy = anchor === 'home' ? 'homeKm' : anchor === 'work' ? 'workKm' : 'hereKm';
-    return [...centers].sort((a, b) => a.distanceBy[key] - b.distanceBy[key]);
-  }, [centers, anchor]);
-
-  const formatKm = (km: number) => `${km.toFixed(1)}km`;
-  const anchorLabel = (label: SortAnchor) => (label === 'home' ? '집' : label === 'work' ? '직장' : '현위치');
+  const sortedBookmarks = useMemo(() => {
+    return [...bookmarks].sort((a, b) => {
+      const distA = findDistanceByRefPoint(a.distances, refPoint);
+      const distB = findDistanceByRefPoint(b.distances, refPoint);
+      const kmA = distA ? parseDistanceToKm(distA.distance) : Infinity;
+      const kmB = distB ? parseDistanceToKm(distB.distance) : Infinity;
+      return kmA - kmB;
+    });
+  }, [bookmarks, refPoint]);
 
   /* =========================
    * DEV 로그인 (토큰 갱신 → localStorage 저장)
@@ -121,8 +88,9 @@ export default function ComparePage() {
    * ========================= */
   const gotoCompare = () => {
     if (!canCompare) return;
-    setLoading(true);
-    const ids = selected.map((s) => s.id).join(',');
+    const ids = Object.values(selectedKindergartens)
+      .map((kg) => kg!.id)
+      .join(',');
     // 스펙: GET + ids 파라미터 → compare-complete에서 실제 API 호출
     router.push(`/compare-complete?ids=${encodeURIComponent(ids)}`);
   };
@@ -130,36 +98,45 @@ export default function ComparePage() {
   /* =========================
    * 유치원 선택 토글 (최대 2개 유지)
    * ========================= */
-  const toggle = (id: string) =>
-    setCenters((prev) => {
-      const next = prev.map((x) => ({ ...x }));
-      const targetIndex = next.findIndex((x) => x.id === id);
-      if (targetIndex === -1) return prev;
-      const target = next.at(targetIndex);
-      if (!target) return prev;
-
-      if (target.selected) {
-        next[targetIndex] = { ...target, selected: false, selectedAt: undefined };
-        return next;
+  const toggle = (id: string) => {
+    setSelectedIds((prev) => {
+      // 1. 이미 선택된 유치원일 경우: 해당 슬롯을 비움
+      if (prev.left === id) {
+        return { ...prev, left: null };
+      }
+      if (prev.right === id) {
+        return { ...prev, right: null };
       }
 
-      const picked = next.filter((x) => x.selected);
-      if (picked.length >= 2) {
-        let oldest: Center | null = null;
-        for (const item of picked) {
-          if (oldest === null) oldest = item;
-          else if ((item.selectedAt ?? Infinity) < (oldest.selectedAt ?? Infinity)) oldest = item;
-        }
-        if (oldest) {
-          const rmIdx = next.findIndex((x) => x.id === oldest.id);
-          const toClear = next.at(rmIdx);
-          if (toClear && rmIdx >= 0) next[rmIdx] = { ...toClear, selected: false, selectedAt: undefined };
-        }
+      // 2. 새로 선택된 유치원일 경우
+      // 2-1. 양쪽이 모두 차있으면 추가 불가
+      if (prev.left !== null && prev.right !== null) {
+        return { ...prev };
       }
 
-      next[targetIndex] = { ...target, selected: true, selectedAt: Date.now() };
-      return next;
+      // 2-2. 빈 슬롯에 추가
+      if (prev.left === null) {
+        return { ...prev, left: id };
+      }
+      return { ...prev, right: id };
     });
+  };
+
+  if (isLoading) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>비교 데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        <p className='p-6 text-sm text-gray-500'>데이터를 불러오는 중 오류가 발생했습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <Layout>
@@ -188,14 +165,14 @@ export default function ComparePage() {
                 <span className='text-gray-700'>거리기준:</span>
                 <div className='relative'>
                   <select
-                    value={anchor}
-                    onChange={(e) => setAnchor(e.target.value as SortAnchor)}
+                    value={refPoint}
+                    onChange={(e) => setRefPoint(e.target.value as ReferencePointType)}
                     className='appearance-none rounded-md border border-[#EBEBF0] bg-white px-3 py-1.5 pr-8 text-sm text-gray-800'
                     aria-label='거리 기준 선택'
                   >
-                    <option value='home'>집</option>
-                    <option value='work'>직장</option>
-                    <option value='here'>현위치</option>
+                    <option value='HOME'>집</option>
+                    <option value='WORK'>직장</option>
+                    <option value='OTHER'>기타</option>
                   </select>
                   <svg
                     className='pointer-events-none absolute top-1/2 right-2 h-4 w-4 -translate-y-1/2 text-gray-500'
@@ -211,19 +188,16 @@ export default function ComparePage() {
 
             {/* List */}
             <div className='flex-1 overflow-y-auto'>
-              {sorted.map((c) => {
-                const km =
-                  anchor === 'home'
-                    ? c.distanceBy.homeKm
-                    : anchor === 'work'
-                      ? c.distanceBy.workKm
-                      : c.distanceBy.hereKm;
+              {sortedBookmarks.map((c) => {
+                const distInfo = findDistanceByRefPoint(c.distances, refPoint);
+                const distanceText = distInfo?.distance || '-';
                 return (
                   <CompareItem
                     key={c.id}
                     center={c}
-                    distanceText={formatKm(km)}
-                    anchorLabelText={anchorLabel(anchor)}
+                    isSelected={selectedIds.left === c.id || selectedIds.right === c.id}
+                    distanceText={distanceText}
+                    refPointLabel={REFERENCE_POINT_TYPE[refPoint]}
                     onToggle={() => toggle(c.id)}
                   />
                 );
@@ -234,12 +208,20 @@ export default function ComparePage() {
             <div className='sticky bottom-20 border-t border-[#F3F3F7] bg-white px-4 pt-3 pb-[env(safe-area-inset-bottom)]'>
               <div className='relative mb-3 grid grid-cols-2 items-start'>
                 <div className='min-w-0'>
-                  <div className='truncate text-sm font-semibold'>{selected[0]?.name ?? '유치원 선택'}</div>
-                  <div className='truncate text-xs text-gray-500'>{selected[0]?.type ?? '유치원 · 호텔'}</div>
+                  <div className='truncate text-sm font-semibold'>
+                    {selectedKindergartens?.left?.name ?? '유치원 선택'}
+                  </div>
+                  <div className='truncate text-xs text-gray-500'>
+                    {serializeCategories(selectedKindergartens?.left?.categories as CTag[])}
+                  </div>
                 </div>
                 <div className='min-w-0 text-right'>
-                  <div className='truncate text-sm font-semibold'>{selected[1]?.name ?? '유치원 선택'}</div>
-                  <div className='truncate text-xs text-gray-500'>{selected[1]?.type ?? '유치원 · 호텔'}</div>
+                  <div className='truncate text-sm font-semibold'>
+                    {selectedKindergartens?.right?.name ?? '유치원 선택'}
+                  </div>
+                  <div className='truncate text-xs text-gray-500'>
+                    {serializeCategories(selectedKindergartens?.right?.categories as CTag[])}
+                  </div>
                 </div>
 
                 <div className='pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
@@ -252,22 +234,20 @@ export default function ComparePage() {
                 <button
                   type='button'
                   className='h-12 w-[92px] shrink-0 rounded-2xl border border-gray-300 bg-white text-sm font-medium text-gray-700'
-                  onClick={() =>
-                    setCenters((prev) => prev.map((x) => ({ ...x, selected: false, selectedAt: undefined })))
-                  }
+                  onClick={() => setSelectedIds({ left: null, right: null })}
                 >
                   종료
                 </button>
 
                 <button
                   type='button'
-                  disabled={!canCompare || loading}
+                  disabled={!canCompare}
                   onClick={gotoCompare}
                   className={`h-12 flex-1 rounded-2xl text-sm font-semibold transition-colors ${
                     canCompare ? 'bg-[#FF7A00] text-white' : 'cursor-not-allowed bg-gray-100 text-gray-400'
                   } `}
                 >
-                  {loading ? '요청 중...' : `비교하기 ${selectedCount}/2`}
+                  {`비교하기 ${selectedCount}/2`}
                 </button>
               </div>
             </div>
@@ -291,18 +271,22 @@ export default function ComparePage() {
  * ========================= */
 function CompareItem({
   center,
+  isSelected,
   onToggle,
   distanceText,
-  anchorLabelText,
+  refPointLabel,
 }: {
-  center: Center;
+  center: BookmarkItem;
+  isSelected: boolean;
   onToggle: () => void;
   distanceText: string;
-  anchorLabelText: string;
+  refPointLabel: string;
 }) {
+  const categoryText = serializeCategories(center.categories as CTag[]);
+
   return (
     <div className='flex items-start gap-3 border-b border-[#F3F3F7] bg-white px-3 py-3'>
-      <input type='checkbox' checked={center.selected} onChange={onToggle} className='mt-2 accent-yellow-400' />
+      <input type='checkbox' checked={isSelected} onChange={onToggle} className='mt-2 accent-yellow-400' />
       <div className='grid flex-1 grid-cols-[80px_1fr] gap-3'>
         <div className='h-20 w-20 rounded-lg bg-pink-200' />
         <div className='min-w-0'>
@@ -314,7 +298,7 @@ function CompareItem({
               </svg>
             </button>
           </div>
-          <div className='mt-0.5 text-sm text-gray-500'>{center.type}</div>
+          <div className='mt-0.5 text-sm text-gray-500'>{categoryText}</div>
           <div className='mt-2 flex items-center gap-2'>
             <span className='inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[11px] font-medium text-green-700'>
               <span className='font-bold'>N</span>
@@ -336,14 +320,14 @@ function CompareItem({
             </svg>
             <span className='font-semibold'>{distanceText}</span>
             <span className='text-gray-500'>
-              {center.location} · {anchorLabelText} 기준
+              {center.location} · {refPointLabel} 기준
             </span>
           </span>
           <span className='h-3.5 w-px bg-gray-300' aria-hidden='true' />
           <span className='inline-flex items-center gap-1'>
             <span className='text-sm'>₩</span>
             <span className='font-semibold'>이용요금</span>
-            <span>{center.price}</span>
+            <span>{center.price.toLocaleString()}원부터 ~</span>
           </span>
         </div>
       </div>

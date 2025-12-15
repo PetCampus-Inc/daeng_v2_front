@@ -2,10 +2,15 @@
 export { getBookmarks } from './api/bookmark';
 
 /** config */
-export { bookmarkQueryKeys, createBookmarkQueryOptions, deleteBookmarkQueryOptions } from './config/bookmarkQueryKeys';
+export {
+  bookmarkQueryKeys,
+  createBookmarkQueryOptions,
+  deleteBookmarkQueryOptions,
+  getBookmarksQueryOptions,
+} from './config/bookmarkQueryKeys';
 
 /** model */
-export type { BookmarkResponse, BookmarkItem } from './model/bookmark';
+export type { BookmarkResponse, BookmarkItem, DistanceInfo } from './model/bookmark';
 
 /** ui */
 export { BookmarkToggleIcon } from './ui/BookmarkToggleIcon';
