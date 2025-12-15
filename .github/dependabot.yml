@@ -46,7 +46,6 @@ updates:
       # 웹 애플리케이션(Next.js) 핵심 의존성
       web-core:
         applies-to: 'version-updates'
-        directories: ['/apps/knockdog']
         patterns:
           - 'next'
           - 'react'
@@ -56,7 +55,6 @@ updates:
       # 모바일 애플리케이션(Expo) 핵심 의존성
       mobile-core:
         applies-to: 'version-updates'
-        directories: ['/apps/mobile']
         patterns:
           - 'expo'
           - 'expo-*'
