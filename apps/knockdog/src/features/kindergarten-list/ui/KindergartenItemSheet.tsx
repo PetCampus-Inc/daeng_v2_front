@@ -3,7 +3,10 @@ import { BottomSheet, TRANSITION_DURATION_MS } from '@knockdog/ui';
 import { KindergartenCard } from './KindergartenCard';
 import { KindergartenDetail } from './KindergartenDetail';
 import { cn } from '@knockdog/ui/lib';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { useQuery } from '@tanstack/react-query';
+import { useBookmarkToggle } from '../model/useBookmarkToggle';
+import { kindergartenQueries, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { isValidCoord, useBasePoint } from '@shared/lib';
 
 interface KindergartenItemSheetProps extends KindergartenListItemWithMeta {
   isOpen: boolean;
@@ -18,6 +21,11 @@ const VIEW_SWITCH_BUFFER_MS = 100; // 약 6프레임 (60fps 기준)
 const VIEW_SWITCH_DELAY_MS = Math.max(TRANSITION_DURATION_MS - VIEW_SWITCH_BUFFER_MS, 0);
 
 export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenItemSheetProps) {
+  const { coord } = useBasePoint();
+  const kindergartenOptions = kindergartenQueries.main({ id: props.id, ...coord! });
+  const { data } = useQuery({ ...kindergartenOptions, enabled: isValidCoord(coord) });
+  const { onBookmarkClick } = useBookmarkToggle(kindergartenOptions.queryKey);
+
   const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint>(snapPoints[0] ?? null);
   const [view, setView] = useState<SheetView>('card');
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -115,7 +123,12 @@ export function KindergartenItemSheet({ isOpen, close, ...props }: KindergartenI
             isTransitioning && 'pointer-events-none'
           )}
         >
-          {view === 'card' ? <KindergartenCard {...props} /> : <KindergartenDetail {...props} />}
+          {data &&
+            (view === 'card' ? (
+              <KindergartenCard {...data} onBookmarkClick={onBookmarkClick} />
+            ) : (
+              <KindergartenDetail {...data} />
+            ))}
         </BottomSheet.Body>
       </BottomSheet.Portal>
     </BottomSheet.Root>
