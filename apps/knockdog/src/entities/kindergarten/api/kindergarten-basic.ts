@@ -6,7 +6,7 @@ export interface KindergartenBasicParams {
 }
 
 function getKindergartenBasic(params: KindergartenBasicParams): Promise<KindergartenBasic> {
-  return api.get(`kindergarten/basic${params.id}`).json();
+  return api.get(`kindergarten/basic/${params.id}`).json();
 }
 
 export { getKindergartenBasic };
