@@ -5,26 +5,35 @@
  *
  * @example
  * getShortAddress("서울특별시 광진구 능동로 49 2층") // "서울 광진구"
- * getShortAddress("경기도 성남시 분당구 정자동 123") // "경기 성남시 분당구"
+ * getShortAddress("경기도 성남시 분당구 정자동 123") // "경기도 성남시 분당구"
  */
 function getShortAddress(address: string): string {
-  if (!address) return ''; 
+  if (!address) {
+    return '';
+  }
 
   const parts = address.trim().split(' ');
 
-  // 시/도 (특별시, 광역시, 특별자치시, 특별자치도, 도)
-  let firstPart = parts[0];
-  if (!firstPart) return '';
+  let firstPart = parts[0]; // 시/도 (특별시, 광역시, 특별자치시, 특별자치도, 도)
+  if (!firstPart) {
+    return '';
+  }
 
-  firstPart = firstPart.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, '');
+  firstPart = firstPart.replace(/(특별시|광역시|특별자치시|특별자치도)$/, ''); // 예: "서울특별시" → "서울"
 
-  // 시/군/구
-  const secondPart = parts[1];
-  if (!secondPart) return firstPart; // 예: "서울특별시" → "서울"
+  const secondPart = parts[1]; // 시/군/구
+  if (!secondPart) {
+    return firstPart;
+  }
 
-  // 구 (두 번째 부분이 "시" 또는 "군"으로 끝나는 경우에만)
-  const thirdPart = parts[2];
-  if (thirdPart && /[시군]$/.test(secondPart)) {
+  const thirdPart = parts[2]; // 구/동/읍/면
+
+  if (!thirdPart) {
+    return `${firstPart} ${secondPart}`;
+  }
+
+  // 시/군 + 구 조합인 경우 3단계까지 반환
+  if ((secondPart.endsWith('시') || secondPart.endsWith('군')) && thirdPart.endsWith('구')) {
     return `${firstPart} ${secondPart} ${thirdPart}`; // 예: "경기도 성남시 분당구 정자동 123" → "경기도 성남시 분당구"
   }
 
