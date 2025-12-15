@@ -1,9 +1,9 @@
 import { type InfiniteData, type QueryKey, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { useBookmarkDeleteMutation, useBookmarkPostMutation } from '@entities/bookmark/api/useBookmarkMutation';
-import { type KindergartenListWithMeta, type Kindergarten } from '@entities/kindergarten';
+import { type KindergartenListWithMeta } from '@entities/kindergarten';
 
-type CacheData = InfiniteData<KindergartenListWithMeta> | Kindergarten;
+type CacheData = InfiniteData<KindergartenListWithMeta>;
 
 export function useBookmarkToggle(queryKey?: QueryKey) {
   const queryClient = useQueryClient();
@@ -40,16 +40,18 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
 
   const onBookmarkClick = useCallback(
     (id: string, isBookmarked = false) => {
+      toggleBookmarkInCache(id, !isBookmarked);
+
       if (isBookmarked) {
         deleteBookmark(id, {
-          onSuccess: () => {
-            toggleBookmarkInCache(id, false);
+          onError: () => {
+            toggleBookmarkInCache(id, true);
           },
         });
       } else {
         postBookmark(id, {
-          onSuccess: () => {
-            toggleBookmarkInCache(id, true);
+          onError: () => {
+            toggleBookmarkInCache(id, false);
           },
         });
       }
