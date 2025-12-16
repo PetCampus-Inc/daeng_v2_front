@@ -19,25 +19,25 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='ko' className={cn(suit.variable)}>
-      <body className='overflow-hidden'>
-        <NuqsAdapter>
-          <ReactQueryProvider>
-            <BridgeProvider>
-              <OverlayProvider>
-                <HeaderProvider>
+      <HeaderProvider>
+        <body className='overflow-hidden'>
+          <NuqsAdapter>
+            <ReactQueryProvider>
+              <BridgeProvider>
+                <OverlayProvider>
                   <SyncWebViewQueryEffect />
                   <div className='relative mx-auto flex h-dvh w-screen max-w-screen-sm flex-col shadow-lg'>
                     {/* @TODO HeaderWrapper 추후 삭제 필요 */}
                     <HeaderWrapper />
                     {children}
                   </div>
-                </HeaderProvider>
-              </OverlayProvider>
-            </BridgeProvider>
-          </ReactQueryProvider>
-        </NuqsAdapter>
-        <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
-      </body>
+                </OverlayProvider>
+              </BridgeProvider>
+            </ReactQueryProvider>
+          </NuqsAdapter>
+          <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
+        </body>
+      </HeaderProvider>
     </html>
   );
 }
