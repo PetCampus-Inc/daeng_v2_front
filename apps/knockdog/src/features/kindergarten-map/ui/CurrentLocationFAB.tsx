@@ -9,7 +9,7 @@ export function CurrentLocationFAB() {
   const handleClick = async () => {
     const { data: coords } = await refetch();
     if (!coords) return;
-    dispatch({ type: 'REFPOINT_SET', refPoint: coords });
+    dispatch({ type: 'CENTER_CHANGED', center: coords });
   };
 
   return (

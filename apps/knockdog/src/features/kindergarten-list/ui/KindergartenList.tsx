@@ -14,7 +14,7 @@ import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useBasePointType, useSearchListScroll } from '@shared/store';
+import { type BasePointType, useBasePointType } from '@shared/store';
 
 interface KindergartenListProps {
   onOpenFilter: () => void;
@@ -24,9 +24,6 @@ interface KindergartenListProps {
 export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  const { liveState } = useSearchMachine();
-  const { query: searchQuery, filters } = liveState;
 
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -41,33 +38,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const totalCount = listQuery.data?.pages[0]?.schoolResult.totalCount || 0;
 
   const selectedFilters = getSelectedFilterWithLabel();
-  const { scrollTop, setScrollTop } = useSearchListScroll();
-
-  const searchKind: UrlSearchKind = useMemo(
-    () => inferSearchKindFromUrl({ query: searchQuery, filters, region }),
-    [searchQuery, filters, region]
-  );
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      setScrollTop(container.scrollTop);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [setScrollTop]);
-
-  useEffect(() => {
-    if (!isFullExtended) return;
-    const container = containerRef.current;
-    if (!container) return;
-    container.scrollTop = scrollTop;
-  }, [isFullExtended, scrollTop]);
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -97,15 +67,14 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   //   return status === 'allowed';
   // }, []);
 
-  const handleLocationChange = (value: string) => {
-    setBaseType(value as 'current' | 'home' | 'work');
+  const handleBasePointTypeChange = (value: string) => {
+    setBaseType(value as BasePointType);
   };
 
   return (
     <>
       <main
         ref={containerRef}
-        data-search-kind={searchKind}
         className={cn(
           !isNativeWebView() && 'pb-[68px]',
           'scrollbar-hide relative flex h-full w-full flex-col',
@@ -118,10 +87,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
         {/* 헤더 영역  */}
         <div className='bg-bg-0 sticky top-[-.5px] z-20'>
           <div className='px-x4 pb-x4 pt-x2'>
-            <SegmentedControl defaultValue={selectedBaseType} onValueChange={handleLocationChange}>
-              <SegmentedControlItem value='current'>현 위치</SegmentedControlItem>
-              <SegmentedControlItem value='home'>집</SegmentedControlItem>
-              <SegmentedControlItem value='work'>직장</SegmentedControlItem>
+            <SegmentedControl defaultValue={selectedBaseType} onValueChange={handleBasePointTypeChange}>
+              <SegmentedControlItem value='CURRENT'>현 위치</SegmentedControlItem>
+              <SegmentedControlItem value='HOME'>집</SegmentedControlItem>
+              <SegmentedControlItem value='WORK'>직장</SegmentedControlItem>
             </SegmentedControl>
           </div>
 

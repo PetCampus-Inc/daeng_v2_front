@@ -1,8 +1,8 @@
 import type { RegionLevel, SearchScope } from '../config/map';
+import { getRegionLevel } from './markers';
 import type { FilterOption } from '@entities/kindergarten';
 import { isEqualCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
-import { getRegionLevel } from './markers';
 
 /**
  * Bounds 모델
@@ -27,6 +27,9 @@ export interface SearchState {
   filters: FilterOption[];
   refPoint: Coord | null;
   searchBounds: BoundsSnapshot | null;
+
+  // --- 커밋된 상태 ---
+  searchCenter: Coord | null;
 
   // --- 지도 UI 상태 (구 MapSnapshot) ---
   center: Coord | null;
@@ -107,11 +110,17 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
       const scoped = applyScopeTransition(current, targetScope);
 
-      return {
+      const nextState: SearchState = {
         ...scoped,
         searchedLevel: getRegionLevel(current.zoom),
         refPoint: ctx.refPointFromBase ?? current.refPoint,
       };
+
+      if (!nextState.searchCenter) {
+        nextState.searchCenter = nextState.center;
+      }
+
+      return nextState;
     }
 
     case 'QUERY_CHANGED': {
@@ -132,7 +141,16 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
     case 'REFPOINT_SET': {
       if (isEqualCoord(current.refPoint, event.refPoint)) return current;
-      return { ...current, refPoint: event.refPoint, center: event.refPoint };
+      // RefPoint가 변경되면 scope nearby로 전환
+      return {
+        ...current,
+        refPoint: event.refPoint,
+        center: event.refPoint,
+        scope: 'nearby',
+        searchBounds: null,
+        searchLock: 0,
+        searchCenter: event.refPoint,
+      };
     }
 
     case 'CENTER_CHANGED': {
@@ -214,6 +232,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
         searchedLevel: event.levelFromZoom,
         searchBounds: resolvedBounds,
         searchLock: 1,
+        searchCenter: current.center,
       };
     }
 
@@ -310,6 +329,7 @@ function applyQueryTransition(current: SearchState, nextQuery: string): SearchSt
     searchedLevel: 1,
     zoom: 9,
     query: nextQuery,
+    searchCenter: current.center,
   };
 }
 
@@ -337,5 +357,6 @@ function applyFilterTransition(current: SearchState, nextFilters: FilterOption[]
     searchedLevel: 1,
     zoom: 9,
     filters: nextFilters,
+    searchCenter: current.center,
   };
 }

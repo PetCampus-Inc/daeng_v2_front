@@ -2,11 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentLocation } from './getCurrentLocation';
-import { globalQueryKeys } from '@shared/constants';
 
 export function useGeolocationQuery(enabled = true) {
   return useQuery({
-    queryKey: globalQueryKeys.basePoint.current(),
+    queryKey: ['current'],
     queryFn: () => getCurrentLocation({ enableHighAccuracy: true, timeout: 5000, maximumAge: 30_000 }),
     enabled,
     staleTime: 30_000,

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type BasePointType = 'current' | 'home' | 'work';
+export type BasePointType = 'CURRENT' | 'HOME' | 'WORK';
 
 interface BasePointTypeState {
   /** 현재 선택된 기준 타입 */
@@ -16,7 +16,7 @@ interface BasePointTypeState {
  * 기준 타입을 관리합니다.
  */
 export const useBasePointType = create<BasePointTypeState>((set) => ({
-  selectedBaseType: 'current',
+  selectedBaseType: 'CURRENT',
 
   setBaseType: (baseType) => set({ selectedBaseType: baseType }),
 }));

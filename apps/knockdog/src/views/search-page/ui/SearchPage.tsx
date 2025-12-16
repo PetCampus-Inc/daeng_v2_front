@@ -5,7 +5,7 @@ import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import { AutoCompleteList, RecentlyKeywordList, searchQueryOptions } from '@features/search';
 import type { RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
-import { useBasePoint } from '@shared/lib';
+import { useBasePoint } from '@entities/user';
 import { useSearchHistory } from '@shared/store';
 
 export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputElement | null> }) {

@@ -22,6 +22,9 @@ export { USER_ADDRESS_TYPE_KR } from './model/constant/user';
 /** Store */
 export { useUserStore } from './model/store/useUserStore';
 
+/** Hooks */
+export { useBasePoint } from './model/useBasePoint';
+
 /** Model */
 export {
   USER_STATUS,
