@@ -1,28 +1,28 @@
 'use client';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
+import { Tabs, TabsList, TabsTrigger, TabsContent, Divider } from '@knockdog/ui';
 import { useRef, useState, useEffect } from 'react';
 
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
 import { PricingSection } from './PricingSection';
 import { BasicSection } from './BasicSection';
-import { Divider } from '@knockdog/ui';
 import { KindergartenNearSection } from './KindergartenNearSection';
 import { useUserStore } from '@entities/user';
 import { navigateToLogin } from '@shared/lib/bridge';
 
 interface KindergartenTabsProps {
-  scrollableDivRef: React.RefObject<HTMLDivElement | null>;
+  kindergartenId?: string;
+  scrollableDivRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-function KindergartenTabs({ scrollableDivRef }: KindergartenTabsProps) {
+function KindergartenTabs({ kindergartenId, scrollableDivRef }: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState('기본정보');
   const isLoggedIn = useUserStore((state) => !!state.user);
 
   const handleScrollToDivider = () => {
-    if (!tabsRef.current) return;
+    if (!tabsRef.current || !scrollableDivRef?.current) return;
 
     const headerHeight = 66;
 
@@ -61,19 +61,19 @@ function KindergartenTabs({ scrollableDivRef }: KindergartenTabsProps) {
       </TabsList>
       <TabsContent value='기본정보'>
         <>
-          <BasicSection />
+          <BasicSection kindergartenId={kindergartenId} />
           {/* Divider */}
           <Divider size='thick' className='mb-12' />
 
           {/* 이 근처 다른 유치원은 어때요? */}
-          <KindergartenNearSection />
+          <KindergartenNearSection kindergartenId={kindergartenId} />
         </>
       </TabsContent>
       <TabsContent value='요금'>
-        <PricingSection />
+        <PricingSection kindergartenId={kindergartenId} />
       </TabsContent>
       <TabsContent value='후기'>
-        <ReviewSection onScrollTop={handleScrollToDivider} />
+        <ReviewSection kindergartenId={kindergartenId} onScrollTop={handleScrollToDivider} />
       </TabsContent>
       <TabsContent value='메모'>
         <MemoSection />

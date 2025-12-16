@@ -1,17 +1,23 @@
 'use client';
 
-import { ExternalLinksCard } from '@features/kindergarten-basic';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { LocationMap, ServiceTagBadge } from '@features/kindergarten-basic';
-import { OperationHoursCard } from '@features/kindergarten-basic';
-import { useKindergartenBasicQuery } from '@features/kindergarten-basic';
-import { useStackNavigation } from '@shared/lib/bridge';
+import {
+  ExternalLinksCard,
+  LocationMap,
+  ServiceTagBadge,
+  OperationHoursCard,
+  useKindergartenBasicQuery,
+} from '@features/kindergarten-basic';
 import { SERVICE_ICON_MAP } from '@entities/kindergarten';
+import { useStackNavigation } from '@shared/lib/bridge';
 
-function BasicSection() {
+interface BasicSectionProps {
+  kindergartenId?: string;
+}
+
+function BasicSection({ kindergartenId }: BasicSectionProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = kindergartenId ?? params?.id;
   const { push } = useStackNavigation();
 
   if (!id) throw new Error('Company ID is required for basic section');

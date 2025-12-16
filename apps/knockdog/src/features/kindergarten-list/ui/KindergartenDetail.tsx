@@ -1,20 +1,43 @@
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { Divider } from '@knockdog/ui';
+import { KindergartenTabs } from '@widgets/kindergarten-tabs';
+import { KindergartenMainBox, MainBannerSwiper, useKindergartenMainQuery } from '@features/kindergarten-main';
+import { useCurrentLocation } from '@shared/lib';
 
-interface DogSchoolDetailProps extends KindergartenListItemWithMeta {}
+interface KindergartenDetailProps {
+  kindergartenId: string;
+}
 
-export function KindergartenDetail({ ...props }: DogSchoolDetailProps) {
+export function KindergartenDetail({ kindergartenId }: KindergartenDetailProps) {
+  const { position } = useCurrentLocation();
+  const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
+
+  const { data: kindergartenMain } = useKindergartenMainQuery({
+    id: kindergartenId,
+    lng,
+    lat,
+    enabled: Boolean(kindergartenId && lng != null && lat != null),
+  });
+
+  if (lng == null || lat == null || !kindergartenMain) return null;
+  const { banner: images, ...restKindergartenMainData } = kindergartenMain;
+
   return (
     <>
-      <BottomSheet.Title className='sr-only'>{props.title} 상세</BottomSheet.Title>
-      <div className='p-6'>
-        <h1 className='mb-4 text-2xl font-bold'>{props.title}</h1>
-        <p className='mb-2 text-gray-600'>거리: {props.dist}</p>
-        <p className='text-gray-600'>주소: {props.id}</p>
-        <div className='mt-8'>
-          <h2 className='mb-4 text-lg font-semibold'>상세 정보</h2>
-          <p>여기에 상세 정보가 표시됩니다.</p>
-        </div>
+      <div>
+        {/* 업체 메인이미지 슬라이드형 */}
+        <MainBannerSwiper images={images ?? []} />
+      </div>
+
+      {/* 컨텐츠 영역 */}
+      <div className='relative'>
+        <div className='absolute top-[-50px]' />
+        {/* 대표 컨텐츠 영역 */}
+        <KindergartenMainBox {...restKindergartenMainData} />
+        {/* Divider */}
+        <Divider size='thick' />
+        {/* 세부 컨텐츠 영역 */}
+        {/* 탭 */}
+        <KindergartenTabs kindergartenId={kindergartenId} />
       </div>
     </>
   );

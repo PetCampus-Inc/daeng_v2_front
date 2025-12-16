@@ -1,10 +1,18 @@
+'use client';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BottomSheet, TRANSITION_DURATION_MS } from '@knockdog/ui';
 import { KindergartenCard } from './KindergartenCard';
-import { KindergartenDetail } from './KindergartenDetail';
 import { cn } from '@knockdog/ui/lib';
+import { motion, useIsomorphicLayoutEffect, useTransform } from 'framer-motion';
+import { RemoveScroll } from 'react-remove-scroll';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
+import { useSheetDragProgress } from '../model/useViewportProgress';
+import { Header } from '@widgets/Header';
+import { KindergartenDetail } from '@features/kindergarten-list/ui/KindergartenDetail';
 import { useSearchListQuery } from '@features/kindergarten-map';
+import { isNativeWebView, useSafeAreaInsets, useShare } from '@shared/lib';
+import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 
 interface KindergartenItemSheetProps {
   itemId: string;
@@ -12,7 +20,6 @@ interface KindergartenItemSheetProps {
   onClose: () => void;
 }
 
-const snapPoints = ['328px', 1];
 type SnapPoint = number | string | null;
 
 type SheetView = 'card' | 'detail';
@@ -33,10 +40,44 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
     return null;
   }, [exact, itemId, searchList]);
 
+  const { top } = useSafeAreaInsets();
+
+  const MIN_SNAP_POINT = isNativeWebView() ? 328 : BOTTOM_BAR_HEIGHT + 328;
+  const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? 64 + top : 64;
+
+  const snapPoints = [`${MIN_SNAP_POINT}px`, 1];
+
   const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint>(snapPoints[0] ?? null);
   const [view, setView] = useState<SheetView>('card');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const isMaxSnap = activeSnapPoint === snapPoints[1];
+
+  const { viewRef, dragProgress } = useSheetDragProgress({
+    minSnapPoint: MIN_SNAP_POINT,
+    maxSnapPointOffset: MAX_SNAP_POINT_OFFSET,
+  });
+
+  const visibleOpacity = useTransform(dragProgress, [0, 1], [1, 0]);
+  const hiddenOpacity = useTransform(dragProgress, [0, 1], [0, 1]);
+  const cardY = useTransform(dragProgress, [0, 1], [0, 100]);
+  const detailY = useTransform(dragProgress, [0, 1], [100, 0]);
+  const scaleUp = useTransform(dragProgress, [0, 1], [0.8, 1]);
+  const scaleDown = useTransform(dragProgress, [0, 1], [1, 0.8]);
+
+  const share = useShare();
+  const handleShare = () => {
+    const shareData = {
+      message: `${currentItem?.title}\n https://knockdog.com/kindergarten/${currentItem?.id}`,
+      url: `https://knockdog.com/kindergarten/${currentItem?.id}`,
+    };
+
+    share(shareData);
+  };
 
   const clearTransitionTimer = useCallback(() => {
     if (transitionTimerRef.current) {
@@ -91,7 +132,7 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   useEffect(() => {
     if (!isOpen) {
       clearTransitionTimer();
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setActiveSnapPoint(snapPoints[0] ?? null);
       setView('card');
       setIsTransitioning(false);
@@ -99,46 +140,94 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   }, [clearTransitionTimer, isOpen]);
 
   useEffect(() => {
-    return () => {
-      clearTransitionTimer();
-    };
+    return () => clearTransitionTimer();
   }, [clearTransitionTimer]);
 
+  useIsomorphicLayoutEffect(() => {
+    if (containerRef.current) {
+      setContainer(containerRef.current);
+    }
+  }, [containerRef]);
+
+  if (currentItem == null) return null;
   return (
-    <BottomSheet.Root
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
-      modal={false}
-      snapPoints={snapPoints}
-      activeSnapPoint={activeSnapPoint}
-      setActiveSnapPoint={handleSnapChange}
-      snapToSequentialPoint
-    >
-      <BottomSheet.Portal>
-        <BottomSheet.Body
-          onPointerDownOutside={(e: Event) => {
-            e.preventDefault();
-            onClose();
+    <>
+      <motion.div
+        className='fixed top-0 left-0 z-50 w-screen bg-white'
+        style={{ paddingTop: safeAreaTop, opacity: hiddenOpacity }}
+      >
+        <Header className='block'>
+          <Header.LeftSection>
+            <Header.BackButton />
+            <Header.HomeButton />
+          </Header.LeftSection>
+
+          <Header.Title>{currentItem.title}</Header.Title>
+
+          <Header.RightSection>
+            <Header.ShareButton onClick={handleShare} />
+          </Header.RightSection>
+        </Header>
+      </motion.div>
+
+      <div
+        ref={containerRef}
+        className='pointer-events-none absolute bottom-0 w-full'
+        style={{ height: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)` }}
+      >
+        <BottomSheet.Root
+          open={isOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              onClose();
+            }
           }}
-          className={cn(
-            'bottom-[68px] z-50 h-full',
-            activeSnapPoint === snapPoints[1] && 'h-full',
-            isTransitioning && 'pointer-events-none'
-          )}
+          modal={false}
+          snapPoints={snapPoints}
+          activeSnapPoint={activeSnapPoint}
+          setActiveSnapPoint={handleSnapChange}
+          snapToSequentialPoint
+          container={container}
         >
-          {currentItem ? (
-            view === 'card' ? (
-              <KindergartenCard {...currentItem} onBookmarkClick={onBookmarkClick} />
-            ) : (
-              <KindergartenDetail {...currentItem} />
-            )
-          ) : null}
-        </BottomSheet.Body>
-      </BottomSheet.Portal>
-    </BottomSheet.Root>
+          <RemoveScroll forwardProps noIsolation>
+            <BottomSheet.Body
+              onPointerDownOutside={(e) => {
+                e.preventDefault();
+                close();
+              }}
+              className={cn(
+                'pointer-events-auto absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)]',
+                activeSnapPoint === snapPoints[1] && 'h-full',
+                isTransitioning && 'pointer-events-none'
+              )}
+            >
+              <div ref={viewRef} className={cn('h-full', isMaxSnap && 'overflow-y-auto')}>
+                <motion.div
+                  className='absolute inset-0'
+                  style={{
+                    opacity: visibleOpacity,
+                    y: cardY,
+                    scale: scaleDown,
+                  }}
+                >
+                  <KindergartenCard {...currentItem} onBookmarkClick={onBookmarkClick} />
+                </motion.div>
+
+                <motion.div
+                  className={cn('pointer-events-none h-full bg-white', isMaxSnap && 'pointer-events-auto')}
+                  style={{
+                    opacity: hiddenOpacity,
+                    y: detailY,
+                    scale: scaleUp,
+                  }}
+                >
+                  <KindergartenDetail kindergartenId={currentItem.id} />
+                </motion.div>
+              </div>
+            </BottomSheet.Body>
+          </RemoveScroll>
+        </BottomSheet.Root>
+      </div>
+    </>
   );
 }

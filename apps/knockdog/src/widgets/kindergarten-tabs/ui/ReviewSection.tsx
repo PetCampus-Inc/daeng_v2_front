@@ -7,10 +7,6 @@ import { ReviewCard } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import { useInfiniteScroll } from '@shared/lib';
 
-interface ReviewSectionProps {
-  onScrollTop?: () => void;
-}
-
 const Header = () => (
   <div className='mb-3 flex'>
     <Icon icon='NaverFill' className='mr-2 h-[22px] w-[22px]' />
@@ -36,9 +32,14 @@ const EmptyState = () => (
   </div>
 );
 
-export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSectionProps) {
+interface ReviewSectionProps {
+  kindergartenId?: string;
+  onScrollTop?: () => void;
+}
+
+export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTop }: ReviewSectionProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = kindergartenId ?? params?.id;
 
   if (!id) throw new Error('Company ID is required for review section');
 

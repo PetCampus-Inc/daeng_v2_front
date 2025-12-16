@@ -1,15 +1,19 @@
 'use client';
 
 import React from 'react';
-import { KindergartenNearCard, useKindergartenNearQuery } from '@features/kindergarten-near';
 import { useParams } from 'next/navigation';
+import { KindergartenNearCard, useKindergartenNearQuery } from '@features/kindergarten-near';
 import { useCurrentLocation } from '@shared/lib/geolocation';
 
-const KindergartenNearSection = () => {
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
+interface KindergartenNearSectionProps {
+  kindergartenId?: string;
+}
 
-  if (!id) throw new Error('Company ID is required for kindergarten near section');
+const KindergartenNearSection = ({ kindergartenId }: KindergartenNearSectionProps) => {
+  const params = useParams<{ id: string }>();
+  const id = kindergartenId ?? params?.id;
+
+  if (!id) throw new Error('Company ID is required for near section');
 
   const { position } = useCurrentLocation();
   const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
