@@ -178,7 +178,7 @@ export function MapView(props: MapViewProps) {
             />
           ))}
 
-        {/* 업체 마커 (줌레벨 14~) */}
+        {/* 개별 마커 (줌레벨 14~) */}
         {showBusinessMarkers &&
           overlay.map((item) => (
             <Marker
@@ -186,7 +186,15 @@ export function MapView(props: MapViewProps) {
               position={item.coord}
               onClick={() => handleMarkerClick(item)}
               customIcon={{
-                content: <PlaceMarker title={item.title} distance={item.dist} selected={item.id === activeMarkerId} />,
+                content: (
+                  <PlaceMarker
+                    title={item.title}
+                    distance={item.dist}
+                    selected={item.id === activeMarkerId}
+                    isBookmarked={item.isBookmarked}
+                    hasMemo={!!item.memo}
+                  />
+                ),
                 offsetY: 12,
               }}
             />
@@ -198,7 +206,15 @@ export function MapView(props: MapViewProps) {
             position={exact.coord}
             onClick={() => handleMarkerClick(exact)}
             customIcon={{
-              content: <PlaceMarker title={exact.title} distance={exact.dist} selected={exact.id === activeMarkerId} />,
+              content: (
+                <PlaceMarker
+                  title={exact.title}
+                  distance={exact.dist}
+                  selected={exact.id === activeMarkerId}
+                  isBookmarked={exact.isBookmarked}
+                  hasMemo={!!exact.memo}
+                />
+              ),
               offsetY: 12,
             }}
           />
