@@ -1,13 +1,15 @@
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ProductTypeSection, PriceImageSlider } from '@features/pricing';
-import { usePricingQuery } from '@features/pricing';
+import { ProductTypeSection, PriceImageSlider, usePricingQuery } from '@features/pricing';
 import { useCallPhone } from '@shared/lib/device';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-function PricingSection() {
+interface PricingSectionProps {
+  kindergartenId?: string;
+}
+
+function PricingSection({ kindergartenId }: PricingSectionProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = kindergartenId ?? params?.id;
   const { push } = useStackNavigation();
 
   if (!id) throw new Error('Company ID is required for pricing section');
@@ -17,7 +19,7 @@ function PricingSection() {
   const { data: pricing } = usePricingQuery(id);
 
   return (
-    <div className='mb-12 mt-8 flex flex-col gap-12 px-4'>
+    <div className='mt-8 mb-12 flex flex-col gap-12 px-4'>
       {/* 상품유형 */}
       <ProductTypeSection productType={pricing?.productType ?? []} />
 
