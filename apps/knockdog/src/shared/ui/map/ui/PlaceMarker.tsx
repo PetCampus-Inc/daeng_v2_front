@@ -10,9 +10,19 @@ interface PlaceMarkerProps {
   distance?: string | number;
   selected?: boolean;
   className?: string;
+  isBookmarked?: boolean;
+  hasMemo?: boolean;
 }
 
-export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, className }: PlaceMarkerProps) {
+export function PlaceMarker({
+  title,
+  titleMaxLength = 7,
+  distance,
+  selected,
+  className,
+  isBookmarked,
+  hasMemo,
+}: PlaceMarkerProps) {
   return (
     <div className='relative select-none'>
       <div
@@ -29,14 +39,18 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
             {distance}
           </span>
-          <Icon
-            icon='BookmarkFill'
-            className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
-          />
-          <Icon
-            icon='Note'
-            className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
-          />
+          {isBookmarked && (
+            <Icon
+              icon='BookmarkFill'
+              className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
+            />
+          )}
+          {hasMemo && (
+            <Icon
+              icon='Note'
+              className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
+            />
+          )}
         </div>
       </div>
       <svg

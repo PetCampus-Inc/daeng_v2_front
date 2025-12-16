@@ -65,11 +65,14 @@ export function KindergartenCard(props: KindergartenCardProps) {
                 <Icon icon='Naver' className='size-x4' />
                 <span className='caption1-semibold text-text-primary text-center'>리뷰 {props.reviewCount}개</span>
               </div>
-              <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-[2px]'>
-                <Icon icon='Note' className='size-x4' />
-                <span className='caption1-semibold text-text-primary'>2025.04.16</span>
-                <span className='caption1-semibold text-text-primary'>메모</span>
-              </div>
+
+              {props.memo && (
+                <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-[2px]'>
+                  <Icon icon='Note' className='size-x4' />
+                  <span className='caption1-semibold text-text-primary'>{props.memo.memoDate}</span>
+                  <span className='caption1-semibold text-text-primary'>메모</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

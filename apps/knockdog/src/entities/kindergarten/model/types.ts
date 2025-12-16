@@ -9,10 +9,9 @@ interface KindergartenListItem extends Omit<KindergartenListItemDto, 'dist'> {
 export interface KindergartenListItemWithMeta extends KindergartenListItem {
   dist: string; // 포맷된 거리
   memo?: {
-    id: string;
     shopId: string;
     content: string;
-    updatedAt: string;
+    memoDate: string;
   };
   isBookmarked?: boolean;
 }

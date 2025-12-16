@@ -8,3 +8,13 @@ export interface Memo {
   content: string;
   updatedAt: string;
 }
+
+export interface MemoList {
+  memos: MemoItem[];
+}
+
+export interface MemoItem {
+  shopId: string;
+  memoDate: string;
+  content: string;
+}
