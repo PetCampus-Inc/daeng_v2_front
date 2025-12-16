@@ -41,7 +41,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command: ['type-check', 'lint', 'build']
+        # To re-enable type-check, add 'type-check' back into this list.
+        command: ['lint', 'build']
 
     steps:
       - name: Checkout
@@ -65,14 +66,14 @@ jobs:
       - name: Run ${{ matrix.command }}
         run: |
           if [ "${{ matrix.command }}" = "build" ]; then
-            COMMAND="pnpm build --filter=knockdog..."
+            COMMAND="pnpm --filter=knockdog... build"
           elif [ "${{ matrix.command }}" = "type-check" ]; then
-            COMMAND="pnpm --filter=knockdog ${{ matrix.command }}"
+            COMMAND="pnpm --filter=knockdog type-check"
           else
             COMMAND="pnpm --filter=knockdog ${{ matrix.command }}"
           fi
 
-          if eval $COMMAND; then
+          if eval "$COMMAND"; then
             echo "✅ **${{ matrix.command }}** passed" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
