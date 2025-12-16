@@ -15,6 +15,7 @@ interface BookmarkedListItemProps {
   distanceText: string;
   bookmarkDisabled?: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
 function BookmarkedListItem({
@@ -22,11 +23,12 @@ function BookmarkedListItem({
   distanceText,
   bookmarkDisabled = false,
   className,
+  onClick,
 }: BookmarkedListItemProps) {
   const categoryText = serializeCategories(kindergarten.categories as CTag[]);
 
   return (
-    <div className={cn('flex min-w-0 flex-1 flex-col gap-3', className)}>
+    <div className={cn('flex min-w-0 flex-1 flex-col gap-3', className)} onClick={onClick}>
       {/* 썸네일 + 제목 영역 */}
       <div className='flex gap-2'>
         {/* 썸네일 */}
