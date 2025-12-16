@@ -23,7 +23,7 @@ import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import { isEqualFilters, type KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isEqualBounds, isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
+import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 export default function KindergartenMainPage() {
@@ -50,18 +50,32 @@ function KindergartenMainPageContent() {
   const prevQueryRef = useRef(query);
   const prevFiltersRef = useRef(filters);
 
+  // URL 상태(committedState)가 외부 요인(뒤로가기 등)으로 변경되면,
+  // 지도 뷰를 직접 제어하여 동기화합니다.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !committedState.center) return;
+
+    const committedLatLng = new naver.maps.LatLng(committedState.center.lat, committedState.center.lng);
+
+    // 현재 지도 중심과 committed 상태의 중심이 다를 경우에만 이동
+    if (!map.getCenter().equals(committedLatLng)) {
+      map.setCenter(committedLatLng);
+    }
+    // 현재 지도 줌과 committed 상태의 줌이 다를 경우에만 변경
+    if (map.getZoom() !== committedState.zoom) {
+      map.setZoom(committedState.zoom);
+    }
+  }, [committedState.center, committedState.zoom]);
+
   const shouldShowRefresh = useMemo(() => {
     if (!liveState.viewportBounds) return false;
 
     const zoomChanged = liveState.zoom !== committedState.zoom;
     if (zoomChanged) return true;
 
-    if (committedState.searchBounds) {
-      return !isEqualBounds(committedState.searchBounds, liveState.viewportBounds);
-    }
-
-    if (committedState.refPoint && liveState.center) {
-      return !isEqualCoord(committedState.refPoint, liveState.center);
+    if (committedState.searchCenter && liveState.center) {
+      return !isEqualCoord(committedState.searchCenter, liveState.center);
     }
 
     return false;

@@ -20,11 +20,6 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   const { state: committedState, commitState } = useSearchUrlState();
   const [liveState, setLiveState] = useState<SearchState>(committedState);
 
-  // URL이 외부 요인(뒤로가기 등)으로 변경되면 로컬 liveState와 동기화
-  useEffect(() => {
-    setLiveState(committedState);
-  }, [committedState]);
-
   const stateRef = useRef(liveState);
   const commitStateRef = useRef(commitState);
   const basePointRef = useRef<Coord | null>(basePoint);
@@ -60,8 +55,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
         !isEqualCoord(next.refPoint, prev.refPoint) ||
         !isEqualBounds(next.searchBounds, prev.searchBounds) ||
         next.searchLock !== prev.searchLock ||
-        !isEqualCoord(next.center, prev.center) ||
-        next.zoom !== prev.zoom;
+        !isEqualCoord(next.searchCenter, prev.searchCenter);
 
       if (isStateChanged) {
         commitStateRef.current(next);
@@ -69,6 +63,10 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     },
     [buildTransitionContext]
   );
+
+  // useEffect(() => {
+  //   dispatch({ type: 'ENTER' });
+  // }, [dispatch]);
 
   const prevBaseTypeRef = useRef(baseType);
   useEffect(() => {
@@ -85,7 +83,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
     }
     prevBaseTypeRef.current = baseType;
-  }, [basePoint, baseType, liveState.refPoint, dispatch]);
+  }, [basePoint, baseType, liveState.refPoint?.lat, liveState.refPoint?.lng, dispatch]);
 
   const value = useMemo<SearchMachineContextValue>(
     () => ({
