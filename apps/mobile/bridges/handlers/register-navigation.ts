@@ -101,7 +101,14 @@ function toRoute(
 
   // Tabs로 이동할 경로인지 확인 (경로 기준)
   const normalizedPath = pathname === '/' || pathname === '' ? '/' : pathname;
-  if (normalizedPath === '/' || normalizedPath === '/home') {
+  // 탭 경로: /, /save, /compare, /mypage
+  if (
+    normalizedPath === '/' ||
+    normalizedPath === '/home' ||
+    normalizedPath === '/save' ||
+    normalizedPath === '/compare' ||
+    normalizedPath === '/mypage'
+  ) {
     return { screen: 'Tabs', params: undefined };
   }
 
@@ -209,6 +216,23 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     }
 
     return { reset: true };
+  });
+
+  // Switch Tab
+  router.register<{ pathname: string }>('system.navSwitchTab', async (payload) => {
+    if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
+
+    // 경로에서 탭 이름 추출
+    const pathname = payload.pathname;
+    let tabName: 'Explore' | 'Save' | 'Compare' | 'Mypage' = 'Explore';
+    if (pathname === '/save') tabName = 'Save';
+    else if (pathname === '/compare') tabName = 'Compare';
+    else if (pathname === '/mypage') tabName = 'Mypage';
+
+    // 탭 네비게이션으로 이동: navigate를 사용하면 애니메이션 없이 즉시 전환됨
+    navigationRef.navigate('Tabs', { screen: tabName });
+
+    return { switched: true };
   });
 }
 

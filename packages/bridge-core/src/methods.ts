@@ -11,6 +11,7 @@ const METHODS = {
   navBack: 'system.navBack',
   navReset: 'system.navReset',
   navReplace: 'system.navReplace',
+  navSwitchTab: 'system.navSwitchTab',
   naverOpenRoute: 'naver.openRoute',
   toastShow: 'toast.show',
   toastDismiss: 'toast.dismiss',

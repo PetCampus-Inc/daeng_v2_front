@@ -89,6 +89,14 @@ interface RPCSchema {
       reset: boolean;
     };
   };
+  [METHODS.navSwitchTab]: {
+    params: {
+      pathname: string;
+    };
+    result: {
+      switched: boolean;
+    };
+  };
   [METHODS.toastShow]: {
     params: ToastShowParams;
     result: void;

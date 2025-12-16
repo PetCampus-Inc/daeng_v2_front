@@ -5,7 +5,11 @@ interface InitialState {
 }
 
 type RootStackParamList = {
-  Tabs: undefined;
+  Tabs:
+    | undefined
+    | {
+        screen?: 'Explore' | 'Save' | 'Compare' | 'Mypage';
+      };
   Stack: {
     path: string;
     initialState?: InitialState;
