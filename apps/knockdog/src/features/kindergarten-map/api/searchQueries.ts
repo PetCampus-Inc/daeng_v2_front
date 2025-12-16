@@ -7,6 +7,7 @@ import type { SearchState } from '../lib/searchMachine';
 import { boundsSnapshotToBounds } from '../lib/bounds';
 import { getKindergartenAggregation, getKindergartenSearchList, type SortType } from '@entities/kindergarten';
 import type { BookmarkItem } from '@entities/bookmark';
+import type { MemoItem } from '@entities/memo';
 import { isValidCoord, serializeCoords } from '@shared/lib';
 import { serializeBoundSnapshot } from '@entities/kindergarten/lib/serialize';
 import { isValidBoundsSnapshot } from '@entities/kindergarten/lib/is';
@@ -14,7 +15,8 @@ import { isValidBoundsSnapshot } from '@entities/kindergarten/lib/is';
 interface SearchListQueryParams {
   state: SearchState;
   rank?: SortType;
-  bookmarks: BookmarkItem[];
+  bookmarks?: BookmarkItem[];
+  memos?: MemoItem[];
 }
 
 interface AggregationQueryParams {
@@ -90,7 +92,7 @@ export const searchQueries = {
         return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
       },
       select: (data) => ({
-        pages: data.pages.map(createKindergartenListWithMeta(params.bookmarks ?? [])),
+        pages: data.pages.map(createKindergartenListWithMeta(params.bookmarks ?? [], params.memos ?? [])),
         pageParams: data.pageParams,
       }),
       staleTime: 5 * 60 * 1000,

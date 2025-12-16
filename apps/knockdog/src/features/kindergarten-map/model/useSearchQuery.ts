@@ -8,6 +8,7 @@ import { useUserStore } from '@entities/user';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { bookmarkQueries } from '@entities/bookmark';
 import { tokenUtils } from '@shared/utils';
+import { memoQueries } from '@entities/memo';
 
 export function useSearchListQuery() {
   const { committedState } = useSearchMachine();
@@ -20,10 +21,16 @@ export function useSearchListQuery() {
     enabled: isLoggedIn,
   });
 
+  const memoListQuery = useQuery({
+    ...memoQueries.list(),
+    enabled: isLoggedIn,
+  });
+
   const searchListOptions = searchQueries.searchList({
     state: committedState,
     rank,
-    bookmarks: isLoggedIn ? (bookmarksQuery.data ?? []) : [],
+    bookmarks: isLoggedIn ? bookmarksQuery.data : [],
+    memos: isLoggedIn ? memoListQuery.data?.memos : [],
   });
 
   const searchListQuery = useInfiniteQuery({
