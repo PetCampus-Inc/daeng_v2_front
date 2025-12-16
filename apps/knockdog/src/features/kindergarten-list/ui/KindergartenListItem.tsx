@@ -104,7 +104,7 @@ export function KindergartenListItem({
           <div className='bg-fill-secondary-100 px-x3 py-x4 gap-x1 radius-r2 flex w-full flex-col'>
             <div className='gap-x1 flex items-center'>
               <Icon icon='Note' className='size-x4 text-fill-secondary-600' />
-              <span className='caption1-extrabold text-primitive-neutral-700'>{memo.updatedAt} 메모</span>
+              <span className='caption1-extrabold text-primitive-neutral-700'>{memo.memoDate} 메모</span>
             </div>
             <p className='body2-regular text-text-primary line-clamp-2'>{memo.content}</p>
           </div>
