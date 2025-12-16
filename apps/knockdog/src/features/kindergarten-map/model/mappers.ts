@@ -5,17 +5,22 @@ import type {
   KindergartenListItem,
 } from '@entities/kindergarten';
 import type { BookmarkItem } from '@entities/bookmark/model/bookmark';
+import type { MemoItem } from '@entities/memo';
 import { formatDistance } from '@shared/lib';
 
-// FIXME: 향후 실제 API 사용 시 삭제 필요
-interface KindergartenMemo {
-  id: string;
-  shopId: string;
-  content: string;
-  updatedAt: string;
-}
+type KindergartenMemo = MemoItem;
 
 type KindergartenBookmark = Pick<BookmarkItem, 'id'> & { shopId?: string };
+
+/**
+ * YYYY-MM-DD to YYYY.MM.DD
+ */
+function formatMemoDate(memo: KindergartenMemo): KindergartenMemo {
+  return {
+    ...memo,
+    memoDate: memo.memoDate.replace(/-/g, '.'),
+  };
+}
 
 /**
  * KindergartenListItem을 메모/북마크와 결합하고 거리를 포맷팅한 모델로 변환
@@ -32,7 +37,7 @@ function toKindergartenListItemWithMeta(
   return {
     ...rest,
     dist: formatDistance(dist, { unit: 'kilometer' }),
-    memo,
+    memo: memo ? formatMemoDate(memo) : undefined,
     isBookmarked,
   };
 }
@@ -49,7 +54,7 @@ function toKindergartenListWithMeta({
   memoData: KindergartenMemo[];
   bookmarkData: KindergartenBookmark[];
 }): KindergartenListWithMeta {
-  const memoByShopId = new Map(memoData.map((memo) => [memo.shopId, memo]));
+  const memoByShopId = new Map(memoData.map((memo) => [String(memo.shopId), memo]));
   const bookmarkedSet = new Set(
     bookmarkData.map((bookmark) => bookmark.shopId ?? bookmark.id).filter(Boolean) as string[]
   );
@@ -72,40 +77,7 @@ function toKindergartenListWithMeta({
   };
 }
 
-// FIXME: 향후 실제 API 사용 시 삭제 필요
-export function createKindergartenListWithMock(data: KindergartenSearchList): KindergartenListWithMeta {
-  return toKindergartenListWithMeta({
-    listData: data,
-    memoData: memoMockData,
-    bookmarkData: bookmarkMockData,
-  });
-}
-
-// TODO: 향후 실제 (메모, 북마크 조회) API 사용 시 사용될 함수
-export function createKindergartenListWithMeta(bookmarks: KindergartenBookmark[], memos: KindergartenMemo[] = []) {
+export function createKindergartenListWithMeta(bookmarks: KindergartenBookmark[], memos: KindergartenMemo[]) {
   return (listResponse: KindergartenSearchList): KindergartenListWithMeta =>
     toKindergartenListWithMeta({ listData: listResponse, memoData: memos, bookmarkData: bookmarks });
 }
-
-// FIXME: 향후 실제 API 사용 시 삭제 필요
-export const memoMockData: KindergartenMemo[] = [
-  {
-    id: '1',
-    shopId: '12',
-    content:
-      '시설은 진짜 좋은데 너무 비싸서 고민되는데ㅠㅠ 선생님들과 원장님과 얘기해보니 믿고 맡길 수 있을 것 같아서 돈이 아깝지 않을듯..?',
-    updatedAt: '2025-01-01',
-  },
-];
-
-// FIXME: 향후 실제 API 사용 시 삭제 필요
-export const bookmarkMockData: KindergartenBookmark[] = [
-  {
-    id: '1',
-    shopId: '12',
-  },
-  {
-    id: '2',
-    shopId: '36',
-  },
-];
