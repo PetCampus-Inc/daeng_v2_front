@@ -8,4 +8,4 @@ export { memoQueries } from './config/memoQueries';
 export { memoQueryKeys, createMemoQueryOptions } from './config/memoQueryKeys';
 
 // model
-export type { Photo, MemoList } from './model/memo';
+export type { Photo, MemoItem } from './model/memo';

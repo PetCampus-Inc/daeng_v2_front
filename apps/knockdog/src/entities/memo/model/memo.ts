@@ -10,9 +10,11 @@ export interface Memo {
 }
 
 export interface MemoList {
-  memos: {
-    shopId: number;
-    memoDate: string;
-    content: string;
-  }[];
+  memos: MemoItem[];
+}
+
+export interface MemoItem {
+  shopId: string;
+  memoDate: string;
+  content: string;
 }
