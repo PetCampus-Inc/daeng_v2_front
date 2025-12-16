@@ -110,6 +110,7 @@ export function useSearchUrlState() {
     refPoint: COORD_PARSER,
     bounds: BOUNDS_PARSER,
     searchLock: SEARCH_LOCK_PARSER.withDefault(0),
+    searchCenter: COORD_PARSER,
     // 지도 상태
     center: COORD_PARSER,
     zoom: parseAsInteger.withDefault(DEFAULT_MAP_ZOOM_LEVEL),
@@ -133,6 +134,7 @@ export function useSearchUrlState() {
         refPoint: nextState.refPoint,
         bounds: nextState.searchBounds,
         searchLock: nextState.searchLock,
+        searchCenter: nextState.searchCenter,
         center: nextState.center,
         zoom: nextState.zoom,
       };
@@ -177,6 +179,10 @@ export function useSearchUrlState() {
         ) {
           expectedSearchParams.set('searchLock', '1');
         }
+        if (updatePayload.searchCenter !== null && updatePayload.searchCenter !== undefined) {
+          const serialized = COORD_PARSER.serialize(updatePayload.searchCenter);
+          if (serialized) expectedSearchParams.set('searchCenter', serialized);
+        }
         if (updatePayload.center !== null && updatePayload.center !== undefined) {
           const serialized = COORD_PARSER.serialize(updatePayload.center);
           if (serialized) expectedSearchParams.set('center', serialized);
@@ -209,6 +215,7 @@ export function useSearchUrlState() {
               'refPoint',
               'bounds',
               'searchLock',
+              'searchCenter',
               'center',
               'zoom',
             ];
@@ -265,6 +272,7 @@ export function useSearchUrlState() {
       refPoint: urlState.refPoint,
       searchBounds: urlState.bounds,
       searchLock: urlState.searchLock,
+      searchCenter: urlState.searchCenter,
       center: urlState.center,
       zoom: urlState.zoom,
       viewportBounds: null,
@@ -277,6 +285,7 @@ export function useSearchUrlState() {
       urlState.refPoint,
       urlState.bounds,
       urlState.searchLock,
+      urlState.searchCenter,
       urlState.center,
       urlState.zoom,
     ]
