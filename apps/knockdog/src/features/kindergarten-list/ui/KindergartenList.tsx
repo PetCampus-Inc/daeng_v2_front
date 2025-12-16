@@ -25,9 +25,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { liveState } = useSearchMachine();
-  const { query: searchQuery, filters } = liveState;
-
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
 
@@ -41,33 +38,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const totalCount = listQuery.data?.pages[0]?.schoolResult.totalCount || 0;
 
   const selectedFilters = getSelectedFilterWithLabel();
-  const { scrollTop, setScrollTop } = useSearchListScroll();
-
-  const searchKind: UrlSearchKind = useMemo(
-    () => inferSearchKindFromUrl({ query: searchQuery, filters, region }),
-    [searchQuery, filters, region]
-  );
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      setScrollTop(container.scrollTop);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [setScrollTop]);
-
-  useEffect(() => {
-    if (!isFullExtended) return;
-    const container = containerRef.current;
-    if (!container) return;
-    container.scrollTop = scrollTop;
-  }, [isFullExtended, scrollTop]);
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -105,7 +75,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     <>
       <main
         ref={containerRef}
-        data-search-kind={searchKind}
         className={cn(
           !isNativeWebView() && 'pb-[68px]',
           'scrollbar-hide relative flex h-full w-full flex-col',
