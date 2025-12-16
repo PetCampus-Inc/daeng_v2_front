@@ -2,7 +2,8 @@ import { type SearchEvent, type SearchState, type SearchTransitionContext, trans
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchUrlState } from './useSearchUrlState';
 import { isEqualFilters } from '@entities/kindergarten';
-import { isEqualBounds, isEqualCoord, useBasePoint } from '@shared/lib';
+import { useBasePoint } from '@entities/user';
+import { isEqualBounds, isEqualCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 interface SearchMachineContextValue {
