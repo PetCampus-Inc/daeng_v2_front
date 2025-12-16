@@ -6,6 +6,8 @@ import type { BookmarkItem, DistanceInfo } from '@entities/bookmark/';
 import { BookmarkedListItem, FilterBar } from '@features/bookmarked-list';
 import type { ReferencePointType } from '@entities/compare';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { FloatingActionButton } from '@knockdog/ui';
+import { useTabNavigation } from '@shared/lib/bridge';
 
 // Helper: refPoint에 맞는 거리 정보 찾기
 function findDistanceByRefPoint(distances: DistanceInfo[], refPoint: ReferencePointType): DistanceInfo | undefined {
@@ -25,6 +27,7 @@ function FavoriteListSection({ bookmarks }: { bookmarks: BookmarkItem[] }) {
   const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
   const [showMemoOnly, setShowMemoOnly] = useState(false);
   const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
 
   const sortedBookmarks = useMemo(() => {
     return [...bookmarks].sort((a, b) => {
@@ -82,6 +85,20 @@ function FavoriteListSection({ bookmarks }: { bookmarks: BookmarkItem[] }) {
           })}
         </div>
       </div>
+      {filteredBookmarks.length > 0 && (
+        <div className='fixed right-6 bottom-6 z-50'>
+          <FloatingActionButton
+            icon='CompareNav'
+            label='비교하기'
+            variant='neutralSolid'
+            size='medium'
+            extended={true}
+            onClick={() => {
+              navigateToTab('/compare');
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
