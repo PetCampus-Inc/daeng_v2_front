@@ -132,7 +132,15 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
     case 'REFPOINT_SET': {
       if (isEqualCoord(current.refPoint, event.refPoint)) return current;
-      return { ...current, refPoint: event.refPoint, center: event.refPoint };
+      // RefPoint가 변경되면 scope nearby로 전환
+      return {
+        ...current,
+        refPoint: event.refPoint,
+        center: event.refPoint,
+        scope: 'nearby',
+        searchBounds: null,
+        searchLock: 0,
+      };
     }
 
     case 'CENTER_CHANGED': {
