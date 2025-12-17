@@ -3,19 +3,15 @@
 import { useMemo } from 'react';
 import { ComparisonHistoryCard, useComparisonHistoryQuery } from '@features/compare';
 import type { ComparisonHistoryItem } from '@entities/compare';
-import { parseArrayToDate } from '@shared/utils/date';
 
 /**
  * 배열 형식의 날짜를 YYYY.MM.DD 형식으로 변환
  * @param dateArray [year, month, day, hour, minute, second, nanoseconds]
- * @returns YYYY.MM.DD 형식 (예: "2025.12.11")
+ * @returns YYYY.MM.DD 형식 (예: "2025.12.17")
  */
 function formatDate(dateArray: number[]): string {
-  const date = parseArrayToDate(dateArray);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}.${month}.${day}`;
+  const [year, month, day] = dateArray;
+  return `${year}.${String(month).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
 }
 
 function groupByDate(items: ComparisonHistoryItem[]): Map<string, ComparisonHistoryItem[]> {
@@ -77,7 +73,7 @@ function HistoryTab() {
           {sortedDates.map((dateKey) => {
             const items = groupedByDate.get(dateKey) || [];
             return (
-              <div key={dateKey}>
+              <div key={dateKey} className='mt-4'>
                 <div className='h3-extrabold px-4 pb-4'>{dateKey}</div>
                 <div className='flex flex-col gap-4 px-2'>
                   {items.map((item) => {
