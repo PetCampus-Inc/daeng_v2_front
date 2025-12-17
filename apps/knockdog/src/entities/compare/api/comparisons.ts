@@ -7,7 +7,6 @@ export interface ComparisonsParams {
 
 function getComparisons({ ids }: ComparisonsParams): Promise<ApiResponse<KindergartenComparison[]>> {
   const queryString = ids.map((id) => `ids=${encodeURIComponent(id)}`).join('&');
-  console.log('queryString', queryString);
 
   return api.get(`kindergarten/comparisons?${queryString}`).json();
 }
