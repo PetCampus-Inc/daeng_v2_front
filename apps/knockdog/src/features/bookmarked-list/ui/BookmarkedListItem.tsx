@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { cn } from '@knockdog/ui/lib';
 import type { BookmarkItem } from '@entities/bookmark';
-import { BookmarkToggleIcon } from '@entities/bookmark';
+import { BookmarkToggleIcon, formatMemoAt } from '@entities/bookmark';
 import type { CTag } from '@entities/compare';
 import { s3ToUrl, serializeCategories } from '@entities/compare';
 import { getShortAddress } from '@shared/lib';
@@ -26,6 +26,7 @@ function BookmarkedListItem({
   onClick,
 }: BookmarkedListItemProps) {
   const categoryText = serializeCategories(kindergarten.categories as CTag[]);
+  const memoDate = kindergarten.memoAt ? formatMemoAt(kindergarten.memoAt) : '';
 
   return (
     <div className={cn('flex min-w-0 flex-1 flex-col gap-3', className)} onClick={onClick}>
@@ -67,12 +68,13 @@ function BookmarkedListItem({
             </div>
 
             {/* 메모 배지 */}
-            {/* TODO: 북마크 API 응답에 메모 속성(e.g. memoUpdatedAt)이 추가된 후 수정 필요 */}
-            <div className='bg-fill-secondary-50 flex shrink-0 items-center gap-0.5 rounded-lg px-2 py-1'>
-              <Note className='text-fill-secondary-700 h-4 w-4' />
-              <span className='caption1-semibold text-text-primary'>2025.04.16</span>
-              <span className='caption1-semibold text-text-primary'>메모</span>
-            </div>
+            {memoDate && (
+              <div className='bg-fill-secondary-50 flex shrink-0 items-center gap-0.5 rounded-lg px-2 py-1'>
+                <Note className='text-fill-secondary-700 h-4 w-4' />
+                <span className='caption1-semibold text-text-primary'>{memoDate}</span>
+                <span className='caption1-semibold text-text-primary'>메모</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

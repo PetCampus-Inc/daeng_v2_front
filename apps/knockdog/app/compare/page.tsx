@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Layout from '../(main)/layout';
 import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
@@ -10,6 +9,7 @@ import type { CTag, ReferencePointType } from '@entities/compare';
 import { serializeCategories } from '@entities/compare';
 import type { DistanceInfo } from '@entities/bookmark';
 import { SafeArea } from '@shared/ui/safe-area';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 // Helper: refPoint에 맞는 거리 정보 찾기
 function findDistanceByRefPoint(distances: DistanceInfo[], refPoint: ReferencePointType): DistanceInfo | undefined {
@@ -29,9 +29,9 @@ function parseDistanceToKm(distance: string): number {
  * 페이지
  * ========================= */
 export default function ComparePage() {
-  const router = useRouter();
   const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
   const [showMemoOnly, setShowMemoOnly] = useState(false);
+  const { push } = useStackNavigation();
 
   const { data: bookmarks = [], isLoading, error } = useBookmarksQuery();
 
@@ -59,54 +59,26 @@ export default function ComparePage() {
     });
   }, [bookmarks, refPoint]);
 
-  // TODO: Bookmark API 수정 후 반영하기
-  const filteredBookmarks = sortedBookmarks;
-  // const filteredBookmarks = useMemo(() => {
-  //   if (!showMemoOnly) return sortedBookmarks;
-  //   return sortedBookmarks.filter((kindergarten) => kindergarten.firstMemoAt != null);
-  // }, [sortedBookmarks, showMemoOnly]);
+  const filteredBookmarks = useMemo(() => {
+    if (!showMemoOnly) return sortedBookmarks;
+    return sortedBookmarks.filter((kindergarten) => !!kindergarten.memoAt);
+  }, [sortedBookmarks, showMemoOnly]);
 
   const toggleShowMemoOnly = () => {
     setShowMemoOnly((prev) => !prev);
   };
-  /* =========================
-   * DEV 로그인 (토큰 갱신 → localStorage 저장)
-   * ========================= */
-  const handleDevLogin = async () => {
-    try {
-      const res = await fetch('/api/v0/auth/dev/1', {
-        method: 'GET',
-        headers: { accept: 'application/json;charset=UTF-8' },
-        cache: 'no-store',
-        credentials: 'include',
-      });
 
-      if (!res.ok) throw new Error(`로그인 실패: ${res.status}`);
-      const authHeader = res.headers.get('authorization') || res.headers.get('Authorization');
-      if (!authHeader) throw new Error('Authorization 헤더 없음');
-
-      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-      localStorage.setItem('accessToken', token);
-
-      alert('✅ DEV 로그인 성공! 토큰이 저장되었습니다.');
-      // 필요하면 새로고침
-      // window.location.reload();
-    } catch (err) {
-      console.error('DEV 로그인 중 오류:', err);
-      alert('❌ 로그인 실패. 콘솔을 확인하세요.');
-    }
-  };
-
-  /* =========================
-   * 비교 → compare-complete로 이동 (여기선 API 호출 안 함)
-   * ========================= */
-  const gotoCompare = () => {
+  const handleCompareButtonClick = () => {
     if (!canCompare) return;
     const ids = Object.values(selectedKindergartens)
       .map((kg) => kg!.id)
       .join(',');
-    // 스펙: GET + ids 파라미터 → compare-complete에서 실제 API 호출
-    router.push(`/compare-complete?ids=${encodeURIComponent(ids)}`);
+
+    push({ pathname: '/compare-complete', query: { ids } });
+  };
+
+  const handleListItemClick = (kindergartenId: string) => {
+    push({ pathname: `/kindergarten/${kindergartenId}` });
   };
 
   /* =========================
@@ -188,6 +160,7 @@ export default function ComparePage() {
                     distanceText={distanceText}
                     isSelected={selectedIds.left === kindergarten.id || selectedIds.right === kindergarten.id}
                     onToggle={() => toggleCheckbox(kindergarten.id)}
+                    onClick={() => handleListItemClick(kindergarten.id)}
                   />
                 );
               })}
@@ -231,7 +204,7 @@ export default function ComparePage() {
                 <button
                   type='button'
                   disabled={!canCompare}
-                  onClick={gotoCompare}
+                  onClick={handleCompareButtonClick}
                   className={`h-12 flex-1 rounded-2xl text-sm font-semibold transition-colors ${
                     canCompare ? 'bg-[#FF7A00] text-white' : 'cursor-not-allowed bg-gray-100 text-gray-400'
                   } `}
@@ -240,14 +213,6 @@ export default function ComparePage() {
                 </button>
               </div>
             </div>
-
-            {/* ✅ 왼쪽 하단 Dev 로그인 버튼 */}
-            <button
-              onClick={handleDevLogin}
-              className='fixed bottom-20 left-4 flex items-center gap-2 rounded-full bg-[#333] px-4 py-3 text-xs font-semibold text-white shadow-lg'
-            >
-              🔑 DEV 로그인
-            </button>
           </div>
         </Suspense>
       </SafeArea>

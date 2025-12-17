@@ -1,11 +1,7 @@
 import { Dropdown } from './DropDown';
-import { REFERENCE_POINT_TYPE, type ReferencePointType } from '@entities/compare';
-
-const REFERENCE_POINT_OPTIONS = Object.entries(REFERENCE_POINT_TYPE).map(([value, label]) => ({
-  value: value as ReferencePointType,
-  label,
-  displayLabel: `거리기준: ${label}`,
-}));
+import type { UserAddress } from '@entities/user';
+import { useUserStore } from '@entities/user';
+import type { ReferencePointType } from '@entities/compare';
 
 interface FilterBarProps {
   refPoint: ReferencePointType;
@@ -15,6 +11,17 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ refPoint, onChangeRefPoint, showMemoOnly, onMemoToggle }: FilterBarProps) {
+  const user = useUserStore((state) => state.user);
+  const savedAddresses = user?.addresses;
+
+  const refPointOptions = (savedAddresses ?? [])
+    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
+    .map(({ type, alias }) => ({
+      value: type as ReferencePointType,
+      label: alias,
+      displayLabel: `거리기준: ${alias}`,
+    }));
+
   return (
     <div className='border-line-200 flex items-center justify-between border-y bg-white px-4 py-2'>
       <button
@@ -34,7 +41,7 @@ export function FilterBar({ refPoint, onChangeRefPoint, showMemoOnly, onMemoTogg
         <span className='body2-semibold text-text-primary'>메모</span>
       </button>
 
-      <Dropdown options={REFERENCE_POINT_OPTIONS} value={refPoint} onChange={onChangeRefPoint} />
+      <Dropdown options={refPointOptions} value={refPoint} onChange={onChangeRefPoint} />
     </div>
   );
 }
