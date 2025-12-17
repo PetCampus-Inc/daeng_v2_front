@@ -9,7 +9,7 @@ export {
 } from './model/constants/compare';
 
 /** config */
-export { createComparisonsQueryOptions } from './config/comparisonsQueryKeys';
+export { comparisonsQueryKeys, createComparisonsQueryOptions, createComparisonHistoryQueryOptions } from './config/comparisonsQueryKeys';
 
 /** lib */
 export { parseTimeStrToMinutes, parseMinutesToTimeStr, getClosedDaysText } from './lib/formatters';
@@ -30,7 +30,12 @@ export type {
   DistanceComparisonsByTransport,
   DistanceDetailComparison,
   ShortestInfo,
+  KindergartenShortInfo,
 } from './model/types';
+
+/** api */
+export { deleteComparisonHistory } from './api/comparisons';
+export type { ComparisonHistoryItem } from './api/comparisons';
 
 /** ui */
 export { Summary } from './ui/Summary';

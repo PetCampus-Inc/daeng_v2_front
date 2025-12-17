@@ -27,3 +27,11 @@ export type {
   DistanceDetailComparison,
   ShortestInfo,
 } from './compare-result';
+
+interface KindergartenShortInfo {
+  id: string;
+  name: string;
+  thumbnailS3Key: string;
+  categories: string[];
+}
+export type { KindergartenShortInfo };

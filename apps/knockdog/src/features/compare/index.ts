@@ -1,5 +1,7 @@
 /** api */
 export { useComparisonsQuery } from './api/useComparisonsQuery';
+export { useComparisonHistoryQuery } from './api/useComparisonHistoryQuery';
+export { useDeleteComparisonHistoryMutation } from './api/useDeleteComparisonHistoryMutation';
 
 /** lib */
 export { createPriceComparison } from './lib/createPriceComparison';
@@ -31,3 +33,4 @@ export { ComparisonSimpleItem } from './ui/ComparisonSimpleItem';
 export { ComparisonDaysItem } from './ui/ComparisonDaysItem';
 
 export { DogServiceSection } from './ui/DogServiceSection';
+export { ComparisonHistoryCard } from './ui/ComparisonHistoryCard';
