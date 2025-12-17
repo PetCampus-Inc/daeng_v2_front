@@ -5,7 +5,7 @@ require('dotenv').config();
 
 // Next.js가 자동으로 NODE_ENV를 설정하도록 함
 const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
+const app = next({ dev, turbopack: true });
 const handle = app.getRequestHandler();
 
 const proxyMiddleware = createProxyMiddleware({
