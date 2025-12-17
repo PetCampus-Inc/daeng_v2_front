@@ -4,15 +4,21 @@ import { DistanceSummary } from './DistanceSummary';
 import { compareDistancesByTransport } from '../lib/compareDistancesByTransport';
 import { findShortestTransport } from '../lib/findShortestTransport';
 import type { KindergartenComparison, TransportationType, ReferencePointType } from '@entities/compare';
-import { TRANSPORTATION_TYPE, Label, Badge, REFERENCE_POINT_TYPE } from '@entities/compare';
-
-const REFERENCE_POINT_OPTIONS = Object.entries(REFERENCE_POINT_TYPE).map(([value, label]) => ({
-  value: value as ReferencePointType,
-  label,
-}));
+import { TRANSPORTATION_TYPE, Label, Badge } from '@entities/compare';
+import type { UserAddress } from '@entities/user';
+import { useUserStore } from '@entities/user';
 
 export function DistanceSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   const [referencePoint, setReferencePoint] = useState<ReferencePointType>('HOME');
+  const user = useUserStore((state) => state.user);
+  const savedAddresses = user?.addresses;
+
+  const refPointOptions = (savedAddresses ?? [])
+    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
+    .map(({ type, alias }) => ({
+      value: type as ReferencePointType,
+      label: alias,
+    }));
 
   const comparisonsByTransport = compareDistancesByTransport(left, right, referencePoint);
 
@@ -29,7 +35,7 @@ export function DistanceSection({ left, right }: { left: KindergartenComparison;
       <DistanceSummary
         shortestInfo={shortestInfo}
         referencePoint={referencePoint}
-        referencePointOptions={REFERENCE_POINT_OPTIONS}
+        referencePointOptions={refPointOptions}
         onReferencePointChange={setReferencePoint}
       />
       <div className='mt-7 flex flex-col gap-5'>
