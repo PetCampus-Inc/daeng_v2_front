@@ -10,8 +10,11 @@ export {
   getBookmarksQueryOptions,
 } from './config/bookmarkQueryKeys';
 
+/** lib */
+export { formatMemoAt } from './lib/mappers';
+
 /** model */
-export type { BookmarkResponse, BookmarkItem, DistanceInfo } from './model/bookmark';
+export type { BookmarkResponse, BookmarkItem, LocalDateTime, DistanceInfo } from './model/bookmark';
 
 /** ui */
 export { BookmarkToggleIcon } from './ui/BookmarkToggleIcon';

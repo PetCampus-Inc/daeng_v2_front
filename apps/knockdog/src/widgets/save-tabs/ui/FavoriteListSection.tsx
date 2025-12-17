@@ -39,12 +39,10 @@ function FavoriteListSection({ bookmarks }: { bookmarks: BookmarkItem[] }) {
     });
   }, [bookmarks, refPoint]);
 
-  // TODO: Bookmark API 수정 후 반영하기
-  const filteredBookmarks = sortedBookmarks;
-  // const filteredBookmarks = useMemo(() => {
-  //   if (!showMemoOnly) return sortedBookmarks;
-  //   return sortedBookmarks.filter((kindergarten) => kindergarten.firstMemoAt != null);
-  // }, [sortedBookmarks, showMemoOnly]);
+  const filteredBookmarks = useMemo(() => {
+    if (!showMemoOnly) return sortedBookmarks;
+    return sortedBookmarks.filter((kindergarten) => !!kindergarten.memoAt);
+  }, [sortedBookmarks, showMemoOnly]);
 
   const toggleShowMemoOnly = () => {
     setShowMemoOnly((prev) => !prev);

@@ -10,8 +10,19 @@ export interface BookmarkItem {
   location: string;
   price: number;
   reviewCount: number;
+  memoAt?: LocalDateTime;
   distances: DistanceInfo[];
 }
+
+export type LocalDateTime = readonly [
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  nanosecond: number,
+];
 
 export interface DistanceInfo {
   referencePoint: 'HOME' | 'WORK' | 'OTHER';
