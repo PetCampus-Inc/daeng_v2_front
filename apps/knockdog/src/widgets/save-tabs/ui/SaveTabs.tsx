@@ -10,6 +10,7 @@ import { useUserStore } from '@entities/user';
 import { useQuery } from '@tanstack/react-query';
 import { bookmarkQueries } from '@entities/bookmark/api/bookmarkQueries';
 import { tokenUtils } from '@shared/utils';
+import { HistoryTab } from './HistoryTab';
 
 function SaveTabs() {
   const user = useUserStore((state) => state.user);
@@ -38,7 +39,9 @@ function SaveTabs() {
           </div>
         )}
       </TabsContent>
-      <TabsContent value='HISTORY'>{/* <HistoryTab /> */}</TabsContent>
+      <TabsContent value='HISTORY' className='flex min-h-0 flex-1 flex-col'>
+        <HistoryTab />
+      </TabsContent>
     </Tabs>
   );
 }
