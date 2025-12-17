@@ -9,10 +9,10 @@ interface CompareListItemProps {
   isSelected: boolean;
   distanceText: string;
   onToggle: (checked: boolean) => void;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
-function CompareListItem({ kindergarten, isSelected, onToggle, distanceText, onClick }: CompareListItemProps) {
+function CompareListItem({ kindergarten, isSelected, onToggle, onClick, distanceText }: CompareListItemProps) {
   return (
     <div className='flex items-start gap-3 bg-white p-5'>
       <Checkbox size='sm' checked={isSelected} onCheckedChange={onToggle} />
