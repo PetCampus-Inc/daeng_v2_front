@@ -67,33 +67,6 @@ export default function ComparePage() {
   const toggleShowMemoOnly = () => {
     setShowMemoOnly((prev) => !prev);
   };
-  /* =========================
-   * DEV 로그인 (토큰 갱신 → localStorage 저장)
-   * ========================= */
-  const handleDevLogin = async () => {
-    try {
-      const res = await fetch('/api/v0/auth/dev/1', {
-        method: 'GET',
-        headers: { accept: 'application/json;charset=UTF-8' },
-        cache: 'no-store',
-        credentials: 'include',
-      });
-
-      if (!res.ok) throw new Error(`로그인 실패: ${res.status}`);
-      const authHeader = res.headers.get('authorization') || res.headers.get('Authorization');
-      if (!authHeader) throw new Error('Authorization 헤더 없음');
-
-      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-      localStorage.setItem('accessToken', token);
-
-      alert('✅ DEV 로그인 성공! 토큰이 저장되었습니다.');
-      // 필요하면 새로고침
-      // window.location.reload();
-    } catch (err) {
-      console.error('DEV 로그인 중 오류:', err);
-      alert('❌ 로그인 실패. 콘솔을 확인하세요.');
-    }
-  };
 
   const handleCompareButtonClick = () => {
     if (!canCompare) return;
@@ -240,14 +213,6 @@ export default function ComparePage() {
                 </button>
               </div>
             </div>
-
-            {/* ✅ 왼쪽 하단 Dev 로그인 버튼 */}
-            <button
-              onClick={handleDevLogin}
-              className='fixed bottom-20 left-4 flex items-center gap-2 rounded-full bg-[#333] px-4 py-3 text-xs font-semibold text-white shadow-lg'
-            >
-              🔑 DEV 로그인
-            </button>
           </div>
         </Suspense>
       </SafeArea>
