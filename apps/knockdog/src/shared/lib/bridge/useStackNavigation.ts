@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
+import { buildHref, type Query } from './queryUtils';
 
-type QueryValue = string | number | boolean | string[] | number[] | null | undefined;
-type Query = Record<string, QueryValue>;
 type Params = Record<string, unknown>;
 
 type PushOptions = {
@@ -17,28 +16,6 @@ type PushOptions = {
   replace?: boolean;
   scroll?: boolean;
 };
-
-function buildHref(pathname: string, query?: Query) {
-  const params = new URLSearchParams();
-
-  if (query) {
-    for (const [key, value] of Object.entries(query)) {
-      if (value === undefined || value === null) continue;
-
-      if (Array.isArray(value)) {
-        // 배열인 경우 각 값을 append하여 ids=aaa&ids=bbb 형식으로 만듦
-        for (const item of value) {
-          params.append(key, String(item));
-        }
-      } else {
-        params.set(key, String(value));
-      }
-    }
-  }
-
-  const queryString = params.toString();
-  return queryString ? `${pathname}?${queryString}` : pathname;
-}
 
 function useStackNavigation() {
   const router = useRouter();
