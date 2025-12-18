@@ -67,6 +67,7 @@ export function CompareMainPage() {
         <SelectionBar
           selectedKindergartens={selectedKindergartens}
           resetSelection={() => setSelectedIds({ left: null, right: null })}
+          toggleSelection={toggleCheckbox}
         />
       </div>
     </SafeArea>
