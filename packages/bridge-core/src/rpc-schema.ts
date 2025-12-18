@@ -92,6 +92,7 @@ interface RPCSchema {
   [METHODS.navSwitchTab]: {
     params: {
       pathname: string;
+      query?: Record<string, unknown>;
     };
     result: {
       switched: boolean;

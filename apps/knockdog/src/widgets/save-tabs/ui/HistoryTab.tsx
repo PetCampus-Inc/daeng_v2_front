@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { ComparisonHistoryCard, useComparisonHistoryQuery } from '@features/compare';
 import type { ComparisonHistoryItem } from '@entities/compare';
+import { EmptyResultSection } from './EmptyResultSection';
 
 /**
  * 배열 형식의 날짜를 YYYY.MM.DD 형식으로 변환
@@ -26,12 +27,25 @@ function groupByDate(items: ComparisonHistoryItem[]): Map<string, ComparisonHist
   return grouped;
 }
 
-function HistoryTab() {
+function HistoryTab({ searchQuery = '' }: { searchQuery?: string }) {
   const { data: historyItems = [], isLoading, error } = useComparisonHistoryQuery();
 
+  const filteredHistoryItems = useMemo(() => {
+    if (!searchQuery.trim()) return historyItems;
+
+    const query = searchQuery.trim().toLowerCase();
+    return historyItems.filter((item) => {
+      // kindergartens 배열에서 left와 right의 name을 모두 확인
+      if (item.kindergartens.length !== 2) return false;
+      const [left, right] = item.kindergartens;
+      if (!left || !right) return false;
+      return left.name.toLowerCase().includes(query) || right.name.toLowerCase().includes(query);
+    });
+  }, [historyItems, searchQuery]);
+
   const groupedByDate = useMemo(() => {
-    return groupByDate(historyItems);
-  }, [historyItems]);
+    return groupByDate(filteredHistoryItems);
+  }, [filteredHistoryItems]);
 
   const sortedDates = useMemo(() => {
     // 날짜 문자열을 Date 객체로 변환하여 내림차순 정렬 (최신 날짜가 위에)
@@ -58,7 +72,16 @@ function HistoryTab() {
     );
   }
 
-  if (historyItems.length === 0) {
+  if (filteredHistoryItems.length === 0) {
+    // 검색어가 있고 필터링 결과가 없을 때
+    if (searchQuery.trim() && historyItems.length > 0) {
+      return (
+        <div className='bg-fill-secondary-50 flex h-full min-h-0 flex-col'>
+          <EmptyResultSection searchQuery={searchQuery} />
+        </div>
+      );
+    }
+    // 검색어가 없고 비교 내역이 없을 때
     return (
       <div className='bg-fill-secondary-50 flex h-full min-h-0 flex-col items-center justify-center'>
         <div className='body1-regular text-text-tertiary'>비교 내역이 없습니다.</div>

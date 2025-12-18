@@ -10,13 +10,28 @@ import { useUserStore } from '@entities/user';
 import { useQuery } from '@tanstack/react-query';
 import { bookmarkQueries } from '@entities/bookmark/api/bookmarkQueries';
 import { tokenUtils } from '@shared/utils';
+import { useDebounced } from '@shared/lib';
 import { HistoryTab } from './HistoryTab';
 
-function SaveTabs() {
+interface SaveTabsProps {
+  activeTab?: string;
+  onTabChange?: (value: string) => void;
+  searchQuery?: string;
+}
+
+function SaveTabs(
+  { activeTab: controlledActiveTab, onTabChange, searchQuery = '' }: SaveTabsProps = {} as SaveTabsProps
+) {
   const user = useUserStore((state) => state.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
-  const [activeTab, setActiveTab] = useState('KINDERGARTEN');
+  const [internalActiveTab, setInternalActiveTab] = useState('KINDERGARTEN');
+  const activeTab = controlledActiveTab ?? internalActiveTab;
+  const setActiveTab = onTabChange ?? setInternalActiveTab;
+
+  // 검색어 debounce 처리 (300ms 지연)
+  const debouncedSearchQuery = useDebounced(searchQuery, 300);
+
   const bookmarksQuery = useQuery({
     ...bookmarkQueries.list(isLoggedIn),
     enabled: isLoggedIn,
@@ -32,7 +47,7 @@ function SaveTabs() {
       </TabsList>
       <TabsContent value='KINDERGARTEN' className='flex min-h-0 flex-1 flex-col'>
         {/* 관심 유치원 리스트 탭 */}
-        <FavoriteListSection bookmarks={bookmarksQuery.data ?? []} />
+        <FavoriteListSection bookmarks={bookmarksQuery.data ?? []} searchQuery={debouncedSearchQuery} />
         {bookmarksQuery.isLoading && (
           <div className='px-4'>
             <div className='flex min-h-screen items-center justify-center'></div>
@@ -40,7 +55,7 @@ function SaveTabs() {
         )}
       </TabsContent>
       <TabsContent value='HISTORY' className='flex min-h-0 flex-1 flex-col'>
-        <HistoryTab />
+        <HistoryTab searchQuery={debouncedSearchQuery} />
       </TabsContent>
     </Tabs>
   );

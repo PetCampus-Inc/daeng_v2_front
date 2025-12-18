@@ -5,6 +5,7 @@ import { isNavReady, navigationRef } from '../lib/navigationRef';
 import type { RefObject } from 'react';
 import type WebView from 'react-native-webview';
 import { navBridgeHub } from '../model/navBridgeHub';
+import { tabWebViewStore } from '../model/tabWebViewStore';
 
 type WebNavPayload = {
   name: string; // 예: '/detail'
@@ -219,7 +220,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
   });
 
   // Switch Tab
-  router.register<{ pathname: string }>('system.navSwitchTab', async (payload) => {
+  router.register<{ pathname: string; query?: Record<string, unknown> }>('system.navSwitchTab', async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
 
     // 경로에서 탭 이름 추출
@@ -231,6 +232,48 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     // 탭 네비게이션으로 이동: navigate를 사용하면 애니메이션 없이 즉시 전환됨
     navigationRef.navigate('Tabs', { screen: tabName });
+
+    // query가 있으면 탭 전환 후 해당 탭의 WebView에 URL 변경 스크립트 주입
+    if (payload.query && Object.keys(payload.query).length > 0) {
+      // 탭 전환이 완료될 시간을 주기 위해 약간의 딜레이
+      setTimeout(() => {
+        const tabWebRef = tabWebViewStore.get(tabName);
+        if (tabWebRef?.current) {
+          // query를 쿼리스트링으로 변환
+          const searchParams = new URLSearchParams();
+          for (const [key, value] of Object.entries(payload.query!)) {
+            if (value == null) continue;
+            if (Array.isArray(value)) {
+              for (const item of value) {
+                searchParams.append(key, String(item));
+              }
+            } else {
+              searchParams.set(key, String(value));
+            }
+          }
+          const queryString = searchParams.toString();
+
+          // WebView에 JavaScript 주입하여 URL 변경
+          const queryStringEscaped = JSON.stringify(queryString);
+          const script = `
+            (function() {
+              try {
+                var url = new URL(window.location.href);
+                var queryStr = ${queryStringEscaped};
+                var newHref = url.pathname + (queryStr ? ('?' + queryStr) : '') + url.hash;
+                history.pushState(null, '', newHref);
+                // URL 변경 이벤트 발생시키기 (Next.js router가 감지하도록)
+                window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+              } catch (e) {
+                console.error('[navSwitchTab] URL 변경 실패:', e);
+              }
+            })();
+          `;
+
+          tabWebRef.current.injectJavaScript(script);
+        }
+      }, 100);
+    }
 
     return { switched: true };
   });
