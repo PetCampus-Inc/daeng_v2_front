@@ -212,15 +212,50 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
     case 'AGG_MARKER_CLICK': {
       const { bounds, center, zoom } = event.payload;
-      return {
+      const from = current.searchedLevel;
+      const to = getRegionLevel(zoom);
+
+      const nextState: SearchState = {
         ...current,
         center,
         zoom,
-        scope: 'bounds',
-        searchedLevel: 3,
-        searchBounds: bounds,
-        searchLock: 0,
       };
+
+      /**
+       * 우선순위 1)
+       * bounds + lock=1 상태는 자동 전이 금지
+       * (L3 → L2 줌아웃 포함)
+       */
+      // if (nextState.scope === 'bounds' && nextState.searchLock === 1) {
+      //   return nextState;
+      // }
+
+      /**
+       * 우선순위 2)
+       * L2 → L3 줌 진입 시 자동 bounds 확정, searchLock=0 유지
+       */
+      if (from === 2 && to === 3) {
+        return {
+          ...nextState,
+          scope: 'bounds',
+          searchedLevel: 3,
+          searchBounds: bounds,
+          searchLock: 0,
+        };
+      }
+      /**
+       * 우선순위 3)
+       * 나머지 레벨 경계 변화는 searchedLevel만 갱신
+       * → agg-only 트리거
+       */
+      if (from !== to) {
+        return {
+          ...nextState,
+          searchedLevel: to,
+        };
+      }
+
+      return nextState;
     }
 
     case 'RESEARCH_HERE': {
