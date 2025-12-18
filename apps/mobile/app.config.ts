@@ -30,6 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'net.knockdog.petcampus.v2',
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap', 'tel'],
+      ITSAppUsesNonExemptEncryption: false,
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: false,
         NSAllowsArbitraryLoadsInWebContent: true,

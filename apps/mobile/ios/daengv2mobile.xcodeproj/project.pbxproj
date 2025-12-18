@@ -380,7 +380,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = net.knockdog.petcampus.v2;
-				PRODUCT_NAME = daengv2mobile;
+				PRODUCT_NAME = "daengv2mobile";
 				SWIFT_OBJC_BRIDGING_HEADER = "daengv2mobile/daengv2mobile-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -414,7 +414,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = net.knockdog.petcampus.v2;
-				PRODUCT_NAME = daengv2mobile;
+				PRODUCT_NAME = "daengv2mobile";
 				SWIFT_OBJC_BRIDGING_HEADER = "daengv2mobile/daengv2mobile-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -481,7 +481,7 @@
 					"$(inherited)",
 					" ",
 				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.5_@react-native-community+cli@20.0.2_typescript@5._6ff25a6f1f1201f317351272dd6a4b08/node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.5_@react-native-community+cli@20.0.2_typescript@5._89ceb585c5fb3180a5c7ec977116f383/node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				USE_HERMES = true;
@@ -539,7 +539,7 @@
 					"$(inherited)",
 					" ",
 				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.5_@react-native-community+cli@20.0.2_typescript@5._6ff25a6f1f1201f317351272dd6a4b08/node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../../../node_modules/.pnpm/react-native@0.79.5_@babel+core@7.28.5_@react-native-community+cli@20.0.2_typescript@5._89ceb585c5fb3180a5c7ec977116f383/node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
