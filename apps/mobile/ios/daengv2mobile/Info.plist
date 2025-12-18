@@ -43,10 +43,12 @@
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>LSApplicationQueriesSchemes</key>
     <array>
-      <string>tel</string>
       <string>nmap</string>
+      <string>tel</string>
       <string>kakaokompassauth</string>
       <string>kakaolink</string>
       <string>kakaoplus</string>
@@ -91,6 +93,13 @@
           <key>NSIncludesSubdomains</key>
           <false/>
         </dict>
+        <key>blogpfthumb.phinf.naver.net</key>
+        <dict>
+          <key>NSExceptionAllowsInsecureHTTPLoads</key>
+          <true/>
+          <key>NSIncludesSubdomains</key>
+          <false/>
+        </dict>
       </dict>
     </dict>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -99,6 +108,10 @@
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
