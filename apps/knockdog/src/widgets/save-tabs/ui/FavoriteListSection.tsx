@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { EmptySection } from './EmptySection';
+import { EmptyResultSection } from './EmptyResultSection';
 import type { BookmarkItem, DistanceInfo } from '@entities/bookmark/';
 import { BookmarkedListItem, FilterBar } from '@features/bookmarked-list';
 import type { ReferencePointType } from '@entities/compare';
@@ -23,7 +24,7 @@ function parseDistanceToKm(distance: string): number {
   return Number.parseFloat(match[0]);
 }
 
-function FavoriteListSection({ bookmarks }: { bookmarks: BookmarkItem[] }) {
+function FavoriteListSection({ bookmarks, searchQuery = '' }: { bookmarks: BookmarkItem[]; searchQuery?: string }) {
   const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
   const [showMemoOnly, setShowMemoOnly] = useState(false);
   const { push } = useStackNavigation();
@@ -40,9 +41,21 @@ function FavoriteListSection({ bookmarks }: { bookmarks: BookmarkItem[] }) {
   }, [bookmarks, refPoint]);
 
   const filteredBookmarks = useMemo(() => {
-    if (!showMemoOnly) return sortedBookmarks;
-    return sortedBookmarks.filter((kindergarten) => !!kindergarten.memoAt);
-  }, [sortedBookmarks, showMemoOnly]);
+    let filtered = sortedBookmarks;
+
+    // 검색어 필터링
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter((kindergarten) => kindergarten.name.toLowerCase().includes(query));
+    }
+
+    // 메모만 보기 필터링
+    if (showMemoOnly) {
+      filtered = filtered.filter((kindergarten) => !!kindergarten.memoAt);
+    }
+
+    return filtered;
+  }, [sortedBookmarks, showMemoOnly, searchQuery]);
 
   const toggleShowMemoOnly = () => {
     setShowMemoOnly((prev) => !prev);
@@ -52,6 +65,23 @@ function FavoriteListSection({ bookmarks }: { bookmarks: BookmarkItem[] }) {
     return (
       <div className='px-4'>
         <EmptySection />
+      </div>
+    );
+  }
+
+  // 검색어가 있고 필터링 결과가 없을 때
+  if (searchQuery.trim() && filteredBookmarks.length === 0) {
+    return (
+      <div className='flex h-full min-h-0 flex-col'>
+        <FilterBar
+          refPoint={refPoint}
+          onChangeRefPoint={setRefPoint}
+          showMemoOnly={showMemoOnly}
+          onMemoToggle={toggleShowMemoOnly}
+        />
+        <div className='flex flex-1 px-4'>
+          <EmptyResultSection searchQuery={searchQuery} />
+        </div>
       </div>
     );
   }

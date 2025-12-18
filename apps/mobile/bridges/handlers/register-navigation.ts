@@ -5,6 +5,7 @@ import { isNavReady, navigationRef } from '../lib/navigationRef';
 import type { RefObject } from 'react';
 import type WebView from 'react-native-webview';
 import { navBridgeHub } from '../model/navBridgeHub';
+import { tabWebViewStore } from '../model/tabWebViewStore';
 
 type WebNavPayload = {
   name: string; // 예: '/detail'
@@ -218,8 +219,61 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     return { reset: true };
   });
 
+  /**
+   * 탭 전환이 완료되고 WebView가 준비될 때까지 대기
+   * @param targetTabName 목표 탭 이름
+   * @param maxWaitTime 최대 대기 시간 (ms)
+   * @param checkInterval 체크 간격 (ms)
+   * @returns WebView ref 또는 null
+   */
+  async function waitForTabReady(
+    targetTabName: 'Explore' | 'Save' | 'Compare' | 'Mypage',
+    maxWaitTime = 2000,
+    checkInterval = 50
+  ): Promise<RefObject<WebView | null> | null> {
+    const startTime = Date.now();
+
+    return new Promise((resolve) => {
+      const checkTabReady = () => {
+        const elapsed = Date.now() - startTime;
+
+        // 최대 대기 시간 초과
+        if (elapsed >= maxWaitTime) {
+          if (__DEV__) {
+            console.warn(`[waitForTabReady] 타임아웃: ${targetTabName} 탭이 ${maxWaitTime}ms 내에 준비되지 않음`);
+          }
+          resolve(null);
+          return;
+        }
+
+        // Navigation state 확인: 현재 활성화된 탭이 목표 탭인지 확인
+        const state = navigationRef.getState();
+        const isTabActive =
+          state &&
+          state.routes[state.index]?.name === 'Tabs' &&
+          state.routes[state.index]?.state?.routes?.[state.routes[state.index].state?.index ?? 0]?.name ===
+            targetTabName;
+
+        // WebView ref 확인
+        const tabWebRef = tabWebViewStore.get(targetTabName);
+        const isWebViewReady = tabWebRef?.current !== null && tabWebRef?.current !== undefined;
+
+        // 탭이 활성화되고 WebView가 준비되었으면 완료
+        if (isTabActive && isWebViewReady) {
+          resolve(tabWebRef);
+          return;
+        }
+
+        // 아직 준비되지 않았으면 다음 체크까지 대기
+        setTimeout(checkTabReady, checkInterval);
+      };
+
+      checkTabReady();
+    });
+  }
+
   // Switch Tab
-  router.register<{ pathname: string }>('system.navSwitchTab', async (payload) => {
+  router.register<{ pathname: string; query?: Record<string, unknown> }>('system.navSwitchTab', async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
 
     // 경로에서 탭 이름 추출
@@ -231,6 +285,49 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     // 탭 네비게이션으로 이동: navigate를 사용하면 애니메이션 없이 즉시 전환됨
     navigationRef.navigate('Tabs', { screen: tabName });
+
+    // query가 있으면 탭 전환 후 해당 탭의 WebView에 URL 변경 스크립트 주입
+    if (payload.query && Object.keys(payload.query).length > 0) {
+      // 탭 전환이 완료되고 WebView가 준비될 때까지 대기
+      const tabWebRef = await waitForTabReady(tabName);
+
+      if (tabWebRef?.current) {
+        // query를 쿼리스트링으로 변환
+        const searchParams = new URLSearchParams();
+        for (const [key, value] of Object.entries(payload.query)) {
+          if (value == null) continue;
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              searchParams.append(key, String(item));
+            }
+          } else {
+            searchParams.set(key, String(value));
+          }
+        }
+        const queryString = searchParams.toString();
+
+        // WebView에 JavaScript 주입하여 URL 변경
+        const queryStringEscaped = JSON.stringify(queryString);
+        const script = `
+          (function() {
+            try {
+              var url = new URL(window.location.href);
+              var queryStr = ${queryStringEscaped};
+              var newHref = url.pathname + (queryStr ? ('?' + queryStr) : '') + url.hash;
+              history.pushState(null, '', newHref);
+              // URL 변경 이벤트 발생시키기 (Next.js router가 감지하도록)
+              window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+            } catch (e) {
+              console.error('[navSwitchTab] URL 변경 실패:', e);
+            }
+          })();
+        `;
+
+        tabWebRef.current.injectJavaScript(script);
+      } else if (__DEV__) {
+        console.warn(`[navSwitchTab] ${tabName} 탭의 WebView를 찾을 수 없어 URL 변경 스크립트를 주입하지 못했습니다.`);
+      }
+    }
 
     return { switched: true };
   });
