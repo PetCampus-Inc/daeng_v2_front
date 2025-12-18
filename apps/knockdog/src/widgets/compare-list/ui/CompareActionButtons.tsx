@@ -1,7 +1,7 @@
 import { ActionButton } from '@knockdog/ui';
 import React from 'react';
 
-interface ActionButtonsProps {
+interface CompareActionButtonsProps {
   disabled?: boolean;
   selectedCount: number;
   totalCount: number;
@@ -9,7 +9,13 @@ interface ActionButtonsProps {
   onClose: () => void;
 }
 
-export function ActionButtons({ disabled = false, selectedCount, totalCount, onClick, onClose }: ActionButtonsProps) {
+function CompareActionButtons({
+  disabled = false,
+  selectedCount,
+  totalCount,
+  onClick,
+  onClose,
+}: CompareActionButtonsProps) {
   return (
     <div className='flex gap-2 px-4 pt-2 pb-5'>
       <ActionButton variant='secondaryLine' size='large' className='flex-1' onClick={onClose}>
@@ -25,3 +31,5 @@ export function ActionButtons({ disabled = false, selectedCount, totalCount, onC
     </div>
   );
 }
+
+export { CompareActionButtons };

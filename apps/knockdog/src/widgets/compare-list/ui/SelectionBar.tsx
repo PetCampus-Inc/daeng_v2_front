@@ -1,5 +1,5 @@
 import { KindergartenSimpleComparison } from './KindergartenSimpleComparison';
-import { ActionButtons } from './ActionButtons';
+import { CompareActionButtons } from './CompareActionButtons';
 import type { BookmarkItem } from '@entities/bookmark';
 import { useStackNavigation } from '@shared/lib/bridge';
 
@@ -32,7 +32,7 @@ function SelectionBar({ selectedKindergartens, resetSelection, toggleSelection }
   return (
     <div className='bg-fill-secondary-0 relative z-10 mb-[60px] shadow-[0px_-2px_8px_0px_rgba(0,0,0,0.06)]'>
       <KindergartenSimpleComparison selectedKindergartens={selectedKindergartens} onItemClick={toggleSelection} />
-      <ActionButtons
+      <CompareActionButtons
         disabled={!canCompare}
         selectedCount={selectedCount}
         totalCount={TOTAL_COUNT}
