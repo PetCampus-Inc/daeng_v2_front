@@ -30,6 +30,28 @@ interface ShortestInfo extends DetailComparisonItem {
   transportType: TransportationType;
 }
 
+/** 캐러셀/테이블 데이터 타입*/
+interface CellData {
+  value: string;
+  detail?: string;
+}
+
+interface RowData {
+  label: string;
+  left: CellData;
+  right: CellData;
+}
+
+interface SlideProps {
+  type: string;
+  rows: RowData[];
+}
+
+interface TableProps {
+  title?: string;
+  rows: RowData[];
+}
+
 export type {
   SimpleComparisonItem,
   DetailComparisonItem,
@@ -37,4 +59,8 @@ export type {
   DistanceComparisonsByTransport,
   DistanceDetailComparison,
   ShortestInfo,
+  CellData,
+  RowData,
+  SlideProps,
+  TableProps,
 };

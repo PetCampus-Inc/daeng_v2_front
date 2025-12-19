@@ -1,10 +1,5 @@
-import { CellData, Row } from './Row';
-
-export interface RowData {
-  label: string;
-  left: CellData;
-  right: CellData;
-}
+import { Row } from './Row';
+import type { RowData } from '@entities/compare';
 
 function RowList({ rows, className }: { rows: RowData[]; className?: string }) {
   return (

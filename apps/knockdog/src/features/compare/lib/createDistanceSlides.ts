@@ -1,5 +1,4 @@
-import type { SlideProps } from '@widgets/comparisons-tab/ui/Slide';
-import type { KindergartenComparison, TransportationType } from '@entities/compare';
+import type { KindergartenComparison, SlideProps, TransportationType } from '@entities/compare';
 import { getTransitTime, getDistanceString, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
 import { getDirectionParticle } from '@shared/utils';
 

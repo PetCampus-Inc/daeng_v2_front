@@ -1,5 +1,4 @@
-import type { SlideProps } from '@widgets/comparisons-tab/ui/Slide';
-import type { KindergartenComparison, ProductType } from '@entities/compare';
+import type { KindergartenComparison, ProductType, SlideProps } from '@entities/compare';
 import { getProduct, PRODUCT_TYPE } from '@entities/compare';
 
 export function createPricingSlides(

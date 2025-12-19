@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { IconButton } from '@knockdog/ui';
-import { Slide, SlideProps } from './Slide';
+import { Slide } from './Slide';
 import { Title } from './Title';
+import { SlideProps } from '@entities/compare';
 
 interface SwipeCarouselProps {
   title?: string;

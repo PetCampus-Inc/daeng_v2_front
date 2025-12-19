@@ -1,7 +1,4 @@
-export interface CellData {
-  value: string;
-  detail?: string;
-}
+import type { CellData } from '@entities/compare';
 
 function Row({ label, left, right }: { label: string; left: CellData; right: CellData }) {
   return (

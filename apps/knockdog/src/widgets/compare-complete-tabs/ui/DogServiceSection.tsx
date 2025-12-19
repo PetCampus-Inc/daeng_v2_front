@@ -1,7 +1,7 @@
-import { createDogServiceComparison } from '../lib/createDogServiceComparison';
-import { TOTAL_SERVICE_MAP } from '../model/constants/dog-service';
-import { ComparisonTable } from './ComparisonTable';
-import { Title } from '@widgets/comparisons-tab/ui/Title';
+import { Title } from '@widgets/compare-complete-tabs/ui/Title';
+import { createDogServiceComparison } from '@features/compare';
+import { TOTAL_SERVICE_MAP } from '@features/compare/model/constants/dog-service';
+import { ComparisonTable } from '@features/compare/ui/ComparisonTable';
 
 interface DogServiceSectionProps {
   leftService?: string[];

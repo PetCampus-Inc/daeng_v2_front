@@ -1,8 +1,8 @@
-import { ComparisonDaysItem } from './ComparisonDaysItem';
+import { ComparisonDaysItem } from '@features/compare';
 import type { KindergartenComparison } from '@entities/compare';
 import { Label } from '@entities/compare';
 
-export function OperatingDaysSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
+function OperatingDaysSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   return (
     <div>
       <Label>영업일</Label>
@@ -13,3 +13,5 @@ export function OperatingDaysSection({ left, right }: { left: KindergartenCompar
     </div>
   );
 }
+
+export { OperatingDaysSection };

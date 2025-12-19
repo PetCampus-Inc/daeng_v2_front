@@ -1,6 +1,4 @@
-import { PriceDetailedItem } from './PriceDetailedItem';
-import { createPriceComparison } from '../lib/createPriceComparison';
-import { PricingSummary } from './PricingSummary';
+import { createPriceComparison, PricingSummary, PriceDetailedItem } from '@features/compare';
 import type { KindergartenComparison } from '@entities/compare';
 import { Label, Badge, CircleAvatar, Description, s3ToUrl } from '@entities/compare';
 
@@ -20,7 +18,7 @@ function PricingLabel({ className = '' }: { className?: string }) {
   );
 }
 
-export function PricingSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
+function PricingSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   const monthlyPricingComparison = createPriceComparison(left, right, (kg) => kg?.pricing?.monthlyHourlyAvg || 0);
   const countPricingComparison = createPriceComparison(left, right, (kg) => kg?.pricing?.countHourlyAvg || 0);
 
@@ -59,3 +57,5 @@ export function PricingSection({ left, right }: { left: KindergartenComparison; 
     </>
   );
 }
+
+export { PricingSection };

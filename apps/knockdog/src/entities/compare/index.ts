@@ -9,7 +9,11 @@ export {
 } from './model/constants/compare';
 
 /** config */
-export { comparisonsQueryKeys, createComparisonsQueryOptions, createComparisonHistoryQueryOptions } from './config/comparisonsQueryKeys';
+export {
+  comparisonsQueryKeys,
+  createComparisonsQueryOptions,
+  createComparisonHistoryQueryOptions,
+} from './config/comparisonsQueryKeys';
 
 /** lib */
 export { parseTimeStrToMinutes, parseMinutesToTimeStr, getClosedDaysText } from './lib/formatters';
@@ -32,6 +36,10 @@ export type {
   DistanceComparisonsByTransport,
   DistanceDetailComparison,
   ShortestInfo,
+  CellData,
+  RowData,
+  SlideProps,
+  TableProps,
   KindergartenShortInfo,
 } from './model/types';
 
