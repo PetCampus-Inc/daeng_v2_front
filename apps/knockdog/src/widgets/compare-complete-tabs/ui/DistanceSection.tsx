@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { DistanceDetailedItem } from './DistanceDetailedItem';
-import { DistanceSummary } from './DistanceSummary';
-import { compareDistancesByTransport } from '../lib/compareDistancesByTransport';
-import { findShortestTransport } from '../lib/findShortestTransport';
+import {
+  compareDistancesByTransport,
+  findShortestTransport,
+  DistanceSummary,
+  DistanceDetailedItem,
+} from '@features/compare';
 import type { KindergartenComparison, TransportationType, ReferencePointType } from '@entities/compare';
 import { TRANSPORTATION_TYPE, Label, Badge } from '@entities/compare';
 import type { UserAddress } from '@entities/user';
 import { useUserStore } from '@entities/user';
 
-export function DistanceSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
+function DistanceSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   const [referencePoint, setReferencePoint] = useState<ReferencePointType>('HOME');
   const user = useUserStore((state) => state.user);
   const savedAddresses = user?.addresses;
@@ -50,3 +52,5 @@ export function DistanceSection({ left, right }: { left: KindergartenComparison;
     </>
   );
 }
+
+export { DistanceSection };

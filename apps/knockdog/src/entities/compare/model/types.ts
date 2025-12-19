@@ -27,6 +27,10 @@ export type {
   DistanceComparisonsByTransport,
   DistanceDetailComparison,
   ShortestInfo,
+  CellData,
+  RowData,
+  SlideProps,
+  TableProps,
 } from './compare-result';
 
 interface KindergartenShortInfo {

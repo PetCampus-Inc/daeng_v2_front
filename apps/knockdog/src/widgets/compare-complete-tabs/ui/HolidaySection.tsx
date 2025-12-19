@@ -1,9 +1,8 @@
-import { getHolidayKindergartens } from '../lib/getHolidayKindergartens';
-import { ComparisonSimpleItem } from './ComparisonSimpleItem';
+import { ComparisonSimpleItem, getHolidayKindergartens } from '@features/compare';
 import type { KindergartenComparison } from '@entities/compare';
 import { Label, mapToSimpleItem } from '@entities/compare';
 
-export function HolidaySection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
+function HolidaySection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
   const allKindergartens = [left, right].map(mapToSimpleItem);
   const holidayKindergartens = getHolidayKindergartens(left, right);
 
@@ -19,3 +18,5 @@ export function HolidaySection({ left, right }: { left: KindergartenComparison; 
     </div>
   );
 }
+
+export { HolidaySection };

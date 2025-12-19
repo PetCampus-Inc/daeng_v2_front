@@ -1,5 +1,4 @@
-import { RowData } from '@widgets/comparisons-tab/ui/RowList';
-import type { KindergartenComparison } from '@entities/compare';
+import type { KindergartenComparison, RowData } from '@entities/compare';
 import { getClosedDaysText } from '@entities/compare';
 
 export function createOperatingScheduleSlide(

@@ -1,10 +1,6 @@
-import { RowData, RowList } from './RowList';
+import { RowList } from './RowList';
 import { Title } from './Title';
-
-interface TableProps {
-  title?: string;
-  rows: RowData[];
-}
+import type { TableProps } from '@entities/compare';
 
 function Table({ title, rows }: TableProps) {
   return (

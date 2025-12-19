@@ -1,9 +1,5 @@
-import { RowData, RowList } from './RowList';
-
-export interface SlideProps {
-  type: string;
-  rows: RowData[];
-}
+import { RowList } from './RowList';
+import type { SlideProps } from '@entities/compare';
 
 function Slide({ type, rows }: SlideProps) {
   return (
