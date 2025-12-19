@@ -35,9 +35,9 @@ function KindergartenItem({ kindergarten, onClick }: KindergartenItemProps) {
       {!kindergarten ? (
         <div className='body1-extrabold text-text-tertiary truncate py-2.5'>유치원 선택</div>
       ) : (
-        <button type='button' className='flex flex-col gap-0.5' onClick={() => onClick(kindergarten.id)}>
-          <div className='body1-extrabold text-text-primary truncate'>{kindergarten?.name}</div>
-          <div className='label-medium text-text-tertiary truncate'>
+        <button type='button' className='flex w-full flex-col gap-0.5' onClick={() => onClick(kindergarten.id)}>
+          <div className='body1-extrabold text-text-primary w-full truncate'>{kindergarten?.name}</div>
+          <div className='label-medium text-text-tertiary w-full truncate'>
             {formatCategories(kindergarten?.categories as CTag[])}
           </div>
         </button>
