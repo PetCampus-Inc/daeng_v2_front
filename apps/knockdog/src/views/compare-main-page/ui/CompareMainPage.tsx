@@ -2,20 +2,25 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { IconButton } from '@knockdog/ui';
+import { useQuery } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { FavoriteListSection, SelectionBar } from '@widgets/compare-list';
-import { useBookmarksQuery } from '@features/bookmarked-list';
+import { bookmarkQueries } from '@entities/bookmark/api/bookmarkQueries';
 import { isSelectedIds } from '@entities/compare';
+import { useUserStore } from '@entities/user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { useCompareStore } from '@shared/store';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { webViewSyncChannel } from '@shared/lib/sync-webview-query';
 import { useDebounced } from '@shared/lib';
+import { tokenUtils } from '@shared/utils';
 
 export function CompareMainPage() {
+  // ============================================
+  // 검색 관련 상태
+  // ============================================
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [localQuery, setLocalQuery] = useState('');
-  // 검색어 debounce 처리 (300ms 지연)
   const debouncedSearchQuery = useDebounced(localQuery, 300);
 
   const handleSearch = () => {
@@ -27,8 +32,23 @@ export function CompareMainPage() {
     setLocalQuery('');
   };
 
-  const { data: bookmarks = [] } = useBookmarksQuery();
+  // ============================================
+  // 북마크 목록 관련 상태
+  // ============================================
+  const user = useUserStore((state) => state.user);
+  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
+
+  const bookmarksQuery = useQuery({
+    ...bookmarkQueries.list(isLoggedIn),
+    enabled: isLoggedIn,
+  });
+  const bookmarks = bookmarksQuery.data ?? [];
+
   const { push } = useStackNavigation();
+
+  // ============================================
+  // 선택된 유치원 관련 상태
+  // ============================================
 
   const selectedIds = useCompareStore((state) => state.selectedIds);
   const toggle = useCompareStore((state) => state.toggle);

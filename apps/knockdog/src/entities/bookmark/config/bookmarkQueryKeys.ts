@@ -1,4 +1,4 @@
-import { deleteBookmark, getBookmarks, postBookmark } from '../api/bookmark';
+import { deleteBookmark, postBookmark } from '../api/bookmark';
 
 // TODO: bookmark query key 위치 논의: entities vs shared
 const bookmarkQueryKeys = {
@@ -16,9 +16,4 @@ const deleteBookmarkQueryOptions = (id: string) => ({
   queryFn: () => deleteBookmark(id),
 });
 
-const getBookmarksQueryOptions = () => ({
-  queryKey: bookmarkQueryKeys.lists(),
-  queryFn: () => getBookmarks(),
-});
-
-export { bookmarkQueryKeys, createBookmarkQueryOptions, deleteBookmarkQueryOptions, getBookmarksQueryOptions };
+export { bookmarkQueryKeys, createBookmarkQueryOptions, deleteBookmarkQueryOptions };
