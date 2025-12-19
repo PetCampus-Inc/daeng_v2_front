@@ -14,7 +14,7 @@ function HolidaySection({ left, right }: { left: KindergartenComparison; right: 
       <div className='mt-7 flex flex-col gap-5'>
         <Label>공휴일</Label>
         <div className='flex flex-col items-center'>
-          <CircleAvatar src={noDataKg?.avatar} alt={noDataKg?.name} />
+          <CircleAvatar src={noDataKg.avatar} alt={noDataKg.name} />
           <div className='mt-2 max-w-full'>
             <Description highlight={noDataKg.name} truncate>{`${noDataKg.name}의`}</Description>
             <Description>공휴일 정보가 없어 비교가 어려워요</Description>
