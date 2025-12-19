@@ -20,11 +20,18 @@ function parseDistanceToKm(distance: string): number {
 interface FavoriteListSectionProps {
   bookmarks: BookmarkItem[];
   selectedIds: (string | null)[];
+  searchQuery?: string;
   onListItemClick: (id: string) => void;
   onToggleCheckbox: (id: string) => void;
 }
 
-function FavoriteListSection({ bookmarks, selectedIds, onListItemClick, onToggleCheckbox }: FavoriteListSectionProps) {
+function FavoriteListSection({
+  bookmarks,
+  selectedIds,
+  searchQuery = '',
+  onListItemClick,
+  onToggleCheckbox,
+}: FavoriteListSectionProps) {
   const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
   const [showMemoOnly, setShowMemoOnly] = useState(false);
 
@@ -39,9 +46,24 @@ function FavoriteListSection({ bookmarks, selectedIds, onListItemClick, onToggle
   }, [bookmarks, refPoint]);
 
   const filteredBookmarks = useMemo(() => {
-    if (!showMemoOnly) return sortedBookmarks;
-    return sortedBookmarks.filter((kindergarten) => !!kindergarten.memoAt);
-  }, [sortedBookmarks, showMemoOnly]);
+    let filtered = sortedBookmarks;
+
+    // 검색어 필터링
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter(
+        (kindergarten) =>
+          kindergarten.name.toLowerCase().includes(query) || kindergarten.location?.toLowerCase().includes(query)
+      );
+    }
+
+    // 메모만 보기 필터링
+    if (showMemoOnly) {
+      filtered = filtered.filter((kindergarten) => !!kindergarten.memoAt);
+    }
+
+    return filtered;
+  }, [sortedBookmarks, showMemoOnly, searchQuery]);
 
   const toggleShowMemoOnly = () => {
     setShowMemoOnly((prev) => !prev);
