@@ -12,6 +12,7 @@ interface PlaceMarkerProps {
   className?: string;
   isBookmarked?: boolean;
   hasMemo?: boolean;
+  totalCount?: number;
 }
 
 export function PlaceMarker({
@@ -22,6 +23,7 @@ export function PlaceMarker({
   className,
   isBookmarked,
   hasMemo,
+  totalCount,
 }: PlaceMarkerProps) {
   return (
     <div className='relative select-none'>
@@ -32,6 +34,11 @@ export function PlaceMarker({
           className
         )}
       >
+        {totalCount && (
+          <div className='size-x5 bg-fill-secondary-700 border-line-100 radius-full absolute -top-2 -right-2 flex aspect-square items-center justify-center border'>
+            <span className='caption2-extrabold text-white'>{totalCount}</span>
+          </div>
+        )}
         <p className={cn('body2-bold text-text-primary whitespace-nowrap', selected && 'text-text-primary-inverse')}>
           {ellipsisText(title, titleMaxLength)}
         </p>

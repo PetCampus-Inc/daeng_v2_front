@@ -52,3 +52,8 @@ button {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+.scrollbar-style {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+}
