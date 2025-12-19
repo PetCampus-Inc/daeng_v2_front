@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { EmptySection, EmptyResultSection } from '@widgets/save-tabs';
 import { CompareListItem, FilterBar } from '@features/bookmarked-list';
 import type { BookmarkItem, DistanceInfo } from '@entities/bookmark';
 import type { ReferencePointType } from '@entities/compare';
@@ -70,7 +71,28 @@ function FavoriteListSection({
   };
 
   if (bookmarks.length === 0) {
-    return <div className='flex h-full min-h-0 flex-col' />;
+    return (
+      <div className='px-4'>
+        <EmptySection />
+      </div>
+    );
+  }
+
+  // 검색어가 있고 필터링 결과가 없을 때
+  if (searchQuery.trim() && filteredBookmarks.length === 0) {
+    return (
+      <div className='flex h-full min-h-0 flex-col'>
+        <FilterBar
+          refPoint={refPoint}
+          onChangeRefPoint={setRefPoint}
+          showMemoOnly={showMemoOnly}
+          onMemoToggle={toggleShowMemoOnly}
+        />
+        <div className='flex flex-1 px-4'>
+          <EmptyResultSection searchQuery={searchQuery} />
+        </div>
+      </div>
+    );
   }
 
   return (
