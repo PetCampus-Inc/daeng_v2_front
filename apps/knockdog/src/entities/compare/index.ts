@@ -18,6 +18,7 @@ export { serializeCategories } from './lib/serialize';
 
 /** model */
 export type {
+  SelectedIds,
   KindergartenComparison,
   CTag,
   ProductType,
