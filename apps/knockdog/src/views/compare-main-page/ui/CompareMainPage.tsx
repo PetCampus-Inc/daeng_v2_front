@@ -1,47 +1,52 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { IconButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import { FavoriteListSection, SelectionBar } from '@widgets/compare-list';
 import { useBookmarksQuery } from '@features/bookmarked-list';
+import { isSelectedIds } from '@entities/compare';
 import { SafeArea } from '@shared/ui/safe-area';
+import { useCompareStore } from '@shared/store';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { webViewSyncChannel } from '@shared/lib/sync-webview-query';
 
 export function CompareMainPage() {
   const { data: bookmarks = [] } = useBookmarksQuery();
+  const { push } = useStackNavigation();
 
-  const [selectedIds, setSelectedIds] = useState<{
-    left: string | null;
-    right: string | null;
-  }>({ left: null, right: null });
+  const selectedIds = useCompareStore((state) => state.selectedIds);
+  const toggle = useCompareStore((state) => state.toggle);
+  const reset = useCompareStore((state) => state.reset);
 
   const selectedKindergartens = useMemo(() => {
-    const left = bookmarks?.find((kg) => kg.id === selectedIds.left);
-    const right = bookmarks?.find((kg) => kg.id === selectedIds.right);
-    return { left, right };
+    const leftKg = bookmarks?.find((kg) => kg.id === selectedIds.left);
+    const rightKg = bookmarks?.find((kg) => kg.id === selectedIds.right);
+    return { left: leftKg, right: rightKg };
   }, [bookmarks, selectedIds]);
 
-  const toggleCheckbox = (id: string) => {
-    setSelectedIds((prev) => {
-      // 1. 이미 선택된 유치원일 경우: 해당 슬롯을 비움
-      if (prev.left === id) {
-        return { ...prev, left: null };
-      }
-      if (prev.right === id) {
-        return { ...prev, right: null };
-      }
+  // BroadcastChannel을 통한 WebView 간 동기화
+  useEffect(() => {
+    if (!webViewSyncChannel) return;
 
-      // 2. 새로 선택된 유치원일 경우
-      // 2-1. 이미 2개를 선택했다면 추가 불가
-      if (prev.left !== null && prev.right !== null) {
-        return { ...prev };
+    const handleMessage = ({ data }: MessageEvent) => {
+      if (data.type === 'SYNC_COMPARE_STORE' && isSelectedIds(data.payload)) {
+        const selectedIds = data.payload;
+        useCompareStore.setState({ selectedIds });
       }
+    };
 
-      // 2-2. 빈 슬롯에 추가
-      if (prev.left === null) {
-        return { ...prev, left: id };
-      }
-      return { ...prev, right: id };
+    webViewSyncChannel.addEventListener('message', handleMessage);
+
+    return () => {
+      webViewSyncChannel?.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  const handleListItemClick = (id: string) => {
+    push({
+      pathname: `/compare/kindergarten/${id}`,
+      params: { selectedIds },
     });
   };
 
@@ -61,14 +66,11 @@ export function CompareMainPage() {
         <FavoriteListSection
           bookmarks={bookmarks}
           selectedIds={[selectedIds.left, selectedIds.right]}
-          toggleCheckbox={toggleCheckbox}
+          onListItemClick={handleListItemClick}
+          onToggleCheckbox={toggle}
         />
 
-        <SelectionBar
-          selectedKindergartens={selectedKindergartens}
-          resetSelection={() => setSelectedIds({ left: null, right: null })}
-          toggleSelection={toggleCheckbox}
-        />
+        <SelectionBar selectedKindergartens={selectedKindergartens} resetSelection={reset} toggleSelection={toggle} />
       </div>
     </SafeArea>
   );

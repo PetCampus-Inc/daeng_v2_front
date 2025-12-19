@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { CompareListItem, FilterBar } from '@features/bookmarked-list';
 import type { BookmarkItem, DistanceInfo } from '@entities/bookmark';
 import type { ReferencePointType } from '@entities/compare';
-import { useStackNavigation } from '@shared/lib/bridge';
 
 // Helper: refPoint에 맞는 거리 정보 찾기
 function findDistanceByRefPoint(distances: DistanceInfo[], refPoint: ReferencePointType): DistanceInfo | undefined {
@@ -20,14 +19,14 @@ function parseDistanceToKm(distance: string): number {
 
 interface FavoriteListSectionProps {
   bookmarks: BookmarkItem[];
-  selectedIds?: (string | null)[];
-  toggleCheckbox: (id: string) => void;
+  selectedIds: (string | null)[];
+  onListItemClick: (id: string) => void;
+  onToggleCheckbox: (id: string) => void;
 }
 
-function FavoriteListSection({ bookmarks, selectedIds = [], toggleCheckbox }: FavoriteListSectionProps) {
+function FavoriteListSection({ bookmarks, selectedIds, onListItemClick, onToggleCheckbox }: FavoriteListSectionProps) {
   const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
   const [showMemoOnly, setShowMemoOnly] = useState(false);
-  const { push } = useStackNavigation();
 
   const sortedBookmarks = useMemo(() => {
     return [...bookmarks].sort((a, b) => {
@@ -46,10 +45,6 @@ function FavoriteListSection({ bookmarks, selectedIds = [], toggleCheckbox }: Fa
 
   const toggleShowMemoOnly = () => {
     setShowMemoOnly((prev) => !prev);
-  };
-
-  const handleListItemClick = (id: string) => {
-    push({ pathname: `/kindergarten/${id}` });
   };
 
   if (bookmarks.length === 0) {
@@ -75,8 +70,8 @@ function FavoriteListSection({ bookmarks, selectedIds = [], toggleCheckbox }: Fa
               kindergarten={kindergarten}
               distanceText={distanceText}
               isSelected={selectedIds.includes(kindergarten.id)}
-              onToggle={() => toggleCheckbox(kindergarten.id)}
-              onClick={() => handleListItemClick(kindergarten.id)}
+              onToggle={() => onToggleCheckbox(kindergarten.id)}
+              onClick={() => onListItemClick(kindergarten.id)}
             />
           );
         })}
