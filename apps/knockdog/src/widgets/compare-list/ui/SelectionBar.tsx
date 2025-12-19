@@ -1,7 +1,7 @@
 import { KindergartenSimpleComparison } from './KindergartenSimpleComparison';
 import { CompareActionButtons } from './CompareActionButtons';
 import type { BookmarkItem } from '@entities/bookmark';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
 interface SelectionBarProps {
   selectedKindergartens: { left?: BookmarkItem; right?: BookmarkItem };
@@ -10,18 +10,19 @@ interface SelectionBarProps {
 }
 
 function SelectionBar({ selectedKindergartens, resetSelection, toggleSelection }: SelectionBarProps) {
-  const { back, push } = useStackNavigation();
+  const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
 
   const TOTAL_COUNT = 2;
   const selectedCount = Object.values(selectedKindergartens).filter(Boolean).length;
-  const canCompare = selectedCount === TOTAL_COUNT;
+  const isSelectionCompleted = selectedCount === TOTAL_COUNT;
 
   const handleCloseClick = () => {
     resetSelection();
-    back();
+    navigateToTab('/save');
   };
   const handleCompareClick = () => {
-    if (!canCompare) return;
+    if (!isSelectionCompleted) return;
     const ids = Object.values(selectedKindergartens)
       .map((kg) => kg!.id)
       .join(',');
@@ -33,7 +34,7 @@ function SelectionBar({ selectedKindergartens, resetSelection, toggleSelection }
     <div className='bg-fill-secondary-0 relative z-10 mb-[60px] shadow-[0px_-2px_8px_0px_rgba(0,0,0,0.06)]'>
       <KindergartenSimpleComparison selectedKindergartens={selectedKindergartens} onItemClick={toggleSelection} />
       <CompareActionButtons
-        disabled={!canCompare}
+        disabled={!isSelectionCompleted}
         selectedCount={selectedCount}
         totalCount={TOTAL_COUNT}
         onClick={handleCompareClick}
