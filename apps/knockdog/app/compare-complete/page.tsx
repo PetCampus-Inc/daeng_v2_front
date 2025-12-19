@@ -22,6 +22,7 @@ import {
 import type { KindergartenComparison } from '@entities/compare';
 import { SelectedCell, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
 import { SafeArea } from '@shared/ui/safe-area';
+import { useShare } from '@shared/lib/device/useShare';
 
 // FIXME: 페이지 단에서 useSearchParams를 사용하고 있어서 임시로 Suspense로 감싸서 처리 했습니다. 확인 후 수정 필요합니다
 export default function Page() {
@@ -50,6 +51,7 @@ function ComparisonSection({ children }: PropsWithChildren) {
  * ========================= */
 function CompareCompletePage() {
   const params = useSearchParams();
+  const share = useShare();
 
   // 🔒 안정화: params 객체 대신 문자열 키를 메모이즈해서 파싱
   const qsKey = params.toString();
@@ -87,6 +89,16 @@ function CompareCompletePage() {
   const distanceSlidesData = createDistanceSlides(left, right);
   const operatingSlideData = createOperatingScheduleSlide(left, right);
 
+  const handleShare = () => {
+    const url = `https://knockdog.com/compare-complete?ids=${left.id},${right.id}`;
+    const shareData = {
+      message: `${left.name}와 ${right.name}의 비교 결과를 확인해보세요!\n ${url}`,
+      url,
+    };
+
+    share(shareData);
+  };
+
   return (
     <div className='flex h-screen flex-col bg-white pb-16'>
       <Header>
@@ -94,6 +106,16 @@ function CompareCompletePage() {
           <Header.BackButton />
         </Header.LeftSection>
         <Header.Title>비교 결과</Header.Title>
+        <Header.RightSection>
+          <button
+            type='button'
+            className='label-semibold text-text-primary flex items-center justify-center px-2 py-1'
+            aria-label='비교 결과 공유하기'
+            onClick={handleShare}
+          >
+            공유하기
+          </button>
+        </Header.RightSection>
       </Header>
 
       {/* 선택된 두 유치원 */}
