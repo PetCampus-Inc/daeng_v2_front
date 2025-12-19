@@ -15,9 +15,11 @@ export { comparisonsQueryKeys, createComparisonsQueryOptions, createComparisonHi
 export { parseTimeStrToMinutes, parseMinutesToTimeStr, getClosedDaysText } from './lib/formatters';
 export { resolveIds, s3ToUrl, mapToSimpleItem, getProduct, getTransitTime, getDistanceString } from './lib/utils';
 export { serializeCategories } from './lib/serialize';
+export { isSelectedIds } from './lib/is';
 
 /** model */
 export type {
+  SelectedIds,
   KindergartenComparison,
   CTag,
   ProductType,

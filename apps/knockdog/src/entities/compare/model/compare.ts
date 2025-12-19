@@ -6,6 +6,11 @@ import {
   DAY_OF_WEEK_SHORT,
   CLOSED_DAYS,
 } from './constants/compare';
+/** 유치원 선택 상태 */
+interface SelectedIds {
+  left: string | null;
+  right: string | null;
+}
 
 interface KindergartenComparison {
   id: string;
@@ -71,6 +76,7 @@ type ClosedDay = keyof typeof CLOSED_DAYS;
 type DayOfWeekShort = keyof typeof DAY_OF_WEEK_SHORT;
 
 export type {
+  SelectedIds,
   KindergartenComparison,
   CTag,
   Pricing,

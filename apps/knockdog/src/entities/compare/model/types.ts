@@ -10,6 +10,7 @@ export {
 
 /** 모델 */
 export type {
+  SelectedIds,
   KindergartenComparison,
   CTag,
   Product,

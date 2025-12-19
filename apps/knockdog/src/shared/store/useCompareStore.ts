@@ -1,41 +1,44 @@
 'use client';
+
 import { create } from 'zustand';
+import { SelectedIds } from '@entities/compare/model/compare';
 
-export type CompareItem = {
-  id: string;
-  title: string;
-  thumb?: string;
-  /** 서브텍스트(예: "유치원 ・ 호텔") */
-  ctgText?: string;
+const INITIAL_VALUE = {
+  left: null,
+  right: null,
 };
 
-type CompareStore = {
-  items: CompareItem[];
-  add: (item: CompareItem) => void;
-  remove: (id: string) => void;
-  clear: () => void;
-  isSelected: (id: string) => boolean;
-  toggle: (item: CompareItem) => void;
-};
+interface CompareStore {
+  selectedIds: SelectedIds;
+  toggle: (id: string) => void;
+  reset: () => void;
+}
 
-export const useCompareStore = create<CompareStore>((set, get) => ({
-  items: [],
+const useCompareStore = create<CompareStore>((set) => ({
+  selectedIds: INITIAL_VALUE,
 
-  add: (item) => {
-    const list = get().items.filter((x) => x.id !== item.id);
-    // 새 항목을 앞으로, 최대 2개 유지
-    set({ items: [item, ...list].slice(0, 2) });
+  /** 선택 토글 */
+  toggle: (id: string) => {
+    set((state) => {
+      const selectedIds = state.selectedIds;
+
+      // 1. 이미 선택된 경우 -> 제거
+      if (selectedIds.left === id) return { selectedIds: { ...selectedIds, left: null } };
+      if (selectedIds.right === id) return { selectedIds: { ...selectedIds, right: null } };
+
+      // 2. 2개 다 선택된 경우 -> 무시
+      if (selectedIds.left !== null && selectedIds.right !== null) return { selectedIds: { ...selectedIds } };
+
+      // 3. 빈 슬롯에 추가 (왼쪽 우선)
+      if (selectedIds.left === null) return { selectedIds: { ...selectedIds, left: id } };
+      return { selectedIds: { ...selectedIds, right: id } };
+    });
   },
 
-  remove: (id) => set({ items: get().items.filter((x) => x.id !== id) }),
-
-  clear: () => set({ items: [] }),
-
-  isSelected: (id) => get().items.some((x) => x.id === id),
-
-  toggle: (item) => {
-    const { isSelected, remove, add } = get();
-    if (isSelected(item.id)) remove(item.id);
-    else add(item);
+  /** 선택 초기화 */
+  reset: () => {
+    set({ selectedIds: INITIAL_VALUE });
   },
 }));
+
+export { useCompareStore };

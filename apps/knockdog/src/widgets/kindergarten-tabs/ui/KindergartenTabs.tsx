@@ -14,9 +14,10 @@ import { navigateToLogin } from '@shared/lib/bridge';
 interface KindergartenTabsProps {
   kindergartenId?: string;
   scrollableDivRef?: React.RefObject<HTMLDivElement | null>;
+  showNearSection?: boolean;
 }
 
-function KindergartenTabs({ kindergartenId, scrollableDivRef }: KindergartenTabsProps) {
+function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = true }: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState('기본정보');
   const isLoggedIn = useUserStore((state) => !!state.user);
@@ -62,11 +63,15 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef }: KindergartenTabs
       <TabsContent value='기본정보'>
         <>
           <BasicSection kindergartenId={kindergartenId} />
-          {/* Divider */}
-          <Divider size='thick' className='mb-12' />
+          {showNearSection && (
+            <>
+              {/* Divider */}
+              <Divider size='thick' className='mb-12' />
 
-          {/* 이 근처 다른 유치원은 어때요? */}
-          <KindergartenNearSection kindergartenId={kindergartenId} />
+              {/* 이 근처 다른 유치원은 어때요? */}
+              <KindergartenNearSection kindergartenId={kindergartenId} />
+            </>
+          )}
         </>
       </TabsContent>
       <TabsContent value='요금'>
