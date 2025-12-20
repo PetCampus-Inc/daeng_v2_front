@@ -8,7 +8,7 @@ import { useSearchMachine } from '../model/useSearchMachine';
 import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
-import { useGeolocationQuery } from '@shared/lib';
+import { isEqualBounds, useGeolocationQuery } from '@shared/lib';
 import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
@@ -21,6 +21,7 @@ export function MapView(props: MapViewProps) {
   const { ref, onOpenCard } = props;
 
   const map = useRef<naver.maps.Map | null>(null);
+  const lastGeoBoundsRef = useRef<{ swLat: number; swLng: number; neLat: number; neLng: number } | null>(null);
   const lastFittedKeyRef = useRef<string | null>(null);
   const autoFitRef = useRef(false);
   const exactHandledRef = useRef<string | null>(null);
@@ -55,9 +56,11 @@ export function MapView(props: MapViewProps) {
     if (committedState.scope !== 'global') return;
     if (!geoBounds) return;
 
-    const boundsKey = `${geoBounds.swLat},${geoBounds.swLng},${geoBounds.neLat},${geoBounds.neLng}`;
+    // 이전과 동일한 bounds면 fitBounds X
+    if (isEqualBounds(lastGeoBoundsRef.current, geoBounds)) return;
+
     // 동일 검색 조건이어도 refetch 시 fitBounds를 다시 수행한다.
-    const fitKey = `global:${committedState.query}:${committedState.filters.join(',')}:${boundsKey}:${dataUpdatedAt}`;
+    const fitKey = `global:${committedState.query}:${committedState.filters.join(',')}:${dataUpdatedAt}`;
     if (lastFittedKeyRef.current === fitKey) return;
 
     const bounds = new naver.maps.LatLngBounds(
@@ -67,6 +70,7 @@ export function MapView(props: MapViewProps) {
     autoFitRef.current = true;
     map.current.fitBounds(bounds);
     lastFittedKeyRef.current = fitKey;
+    lastGeoBoundsRef.current = geoBounds;
     naver.maps.Event.once(map.current, 'idle', () => {
       if (!map.current) return;
       const coord = map.current.getCenter();
