@@ -1,4 +1,13 @@
-import { type SearchEvent, type SearchState, type SearchTransitionContext, transition } from '../lib/searchMachine';
+import {
+  areComparableStatesEqual,
+  buildUrlSyncState,
+  normalizeUrlState,
+  toComparableState,
+  type SearchEvent,
+  type SearchState,
+  type SearchTransitionContext,
+  transition,
+} from '../lib/searchMachine';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchUrlState } from './useSearchUrlState';
 import { isEqualFilters } from '@entities/kindergarten';
@@ -9,26 +18,38 @@ import type { Coord } from '@shared/types';
 interface SearchMachineContextValue {
   liveState: SearchState;
   committedState: SearchState;
-  dispatch: (event: SearchEvent) => void;
+  dispatch: (event: SearchEvent, options?: DispatchOptions) => void;
 }
 
 const SearchMachineContext = createContext<SearchMachineContextValue | null>(null);
 
+interface DispatchOptions {
+  skipUrlSync?: boolean;
+}
+
 export function SearchStateProvider({ children }: { children: ReactNode }) {
   const { coord: basePoint, type: baseType } = useBasePoint();
 
-  const { state: committedState, commitState } = useSearchUrlState();
-  const [liveState, setLiveState] = useState<SearchState>(committedState);
+  const { urlState, setUrlState } = useSearchUrlState();
+  const createInitialState = () => {
+    const refPointFromBase = basePoint ?? null;
+    const baseState = buildUrlSyncState(urlState, refPointFromBase);
+    return transition(baseState, { type: 'URL_SYNC', payload: baseState }, { refPointFromBase });
+  };
+  const [committedState, setCommittedState] = useState<SearchState>(createInitialState);
+  const [liveState, setLiveState] = useState<SearchState>(createInitialState);
 
   const stateRef = useRef(liveState);
-  const commitStateRef = useRef(commitState);
+  const committedStateRef = useRef(committedState);
   const basePointRef = useRef<Coord | null>(basePoint);
+  const urlStateRef = useRef(urlState);
 
   useEffect(() => {
     stateRef.current = liveState;
-    commitStateRef.current = commitState;
+    committedStateRef.current = committedState;
     basePointRef.current = basePoint;
-  }, [liveState, commitState, basePoint]);
+    urlStateRef.current = urlState;
+  }, [liveState, committedState, basePoint, urlState]);
 
   const buildTransitionContext = useCallback((): SearchTransitionContext => {
     const currentState = stateRef.current;
@@ -38,11 +59,12 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const dispatch = useCallback(
-    (event: SearchEvent) => {
+    (event: SearchEvent, options?: DispatchOptions) => {
       const prev = stateRef.current;
       const ctx = buildTransitionContext();
+      const baseState = event.type === 'URL_SYNC' ? event.payload : prev;
 
-      const next = transition(prev, event, ctx);
+      const next = transition(baseState, event, ctx);
 
       // 로컬 상태 즉시 업데이트
       setLiveState(next);
@@ -58,15 +80,19 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
         !isEqualCoord(next.searchCenter, prev.searchCenter);
 
       if (isStateChanged) {
-        commitStateRef.current(next);
+        console.log('[SearchMachine] State changed:', { event, prev, next });
+        setCommittedState(next);
+        if (!options?.skipUrlSync) {
+          const nextComparable = toComparableState(next);
+          const urlComparable = normalizeUrlState(urlStateRef.current);
+          if (!areComparableStatesEqual(nextComparable, urlComparable)) {
+            setUrlState(next);
+          }
+        }
       }
     },
-    [buildTransitionContext]
+    [buildTransitionContext, setUrlState]
   );
-
-  // useEffect(() => {
-  //   dispatch({ type: 'ENTER' });
-  // }, [dispatch]);
 
   const prevBaseTypeRef = useRef(baseType);
   useEffect(() => {
@@ -84,6 +110,19 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     }
     prevBaseTypeRef.current = baseType;
   }, [basePoint, baseType, liveState.refPoint?.lat, liveState.refPoint?.lng, dispatch]);
+
+  useEffect(() => {
+    const urlComparable = normalizeUrlState(urlState);
+    const committedComparable = toComparableState(committedStateRef.current);
+    if (areComparableStatesEqual(urlComparable, committedComparable)) {
+      return;
+    }
+
+    const refPointFromBase = basePointRef.current ?? null;
+    const baseState = buildUrlSyncState(urlState, refPointFromBase);
+    // URL 입력은 FSM으로 반영하되, URL 재동기화는 건너뜁니다.
+    dispatch({ type: 'URL_SYNC', payload: baseState }, { skipUrlSync: true });
+  }, [dispatch, urlState]);
 
   const value = useMemo<SearchMachineContextValue>(
     () => ({

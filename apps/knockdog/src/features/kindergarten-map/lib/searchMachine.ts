@@ -1,7 +1,7 @@
-import type { RegionLevel, SearchScope } from '../config/map';
+import { DEFAULT_MAP_ZOOM_LEVEL, type RegionLevel, type SearchScope } from '../config/map';
 import { getRegionLevel } from './markers';
-import type { FilterOption } from '@entities/kindergarten';
-import { isEqualCoord } from '@shared/lib';
+import { isEqualFilters, type FilterOption } from '@entities/kindergarten';
+import { isEqualBounds, isEqualCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 /**
@@ -37,6 +37,19 @@ export interface SearchState {
   viewportBounds: BoundsSnapshot | null;
 }
 
+export interface UrlComparableState {
+  scope: SearchScope;
+  searchedLevel: RegionLevel;
+  query: string;
+  filters: FilterOption[];
+  refPoint: Coord | null;
+  searchBounds: BoundsSnapshot | null;
+  searchLock: 0 | 1;
+  searchCenter: Coord | null;
+  center: Coord | null;
+  zoom: number;
+}
+
 /**
  * 검색 FSM 이벤트
  *
@@ -46,6 +59,7 @@ export interface SearchState {
  */
 export type SearchEvent =
   | { type: 'ENTER' }
+  | { type: 'URL_SYNC'; payload: SearchState }
   | { type: 'QUERY_CHANGED'; query: string }
   | { type: 'FILTERS_CHANGED'; filters: FilterOption[] }
   | { type: 'CLEAR_QUERY' }
@@ -86,6 +100,21 @@ export interface SearchTransitionContext {
   refPointFromBase: Coord | null;
 }
 
+const QUERY_DEFAULT_ZOOM_LEVEL = 9;
+
+export interface SearchUrlStateInput {
+  scope: SearchScope | null;
+  searchedLevel: RegionLevel | null;
+  query: string | null;
+  filters: FilterOption[] | null;
+  refPoint: Coord | null;
+  bounds: BoundsSnapshot | null;
+  searchLock: 0 | 1 | null;
+  searchCenter: Coord | null;
+  center: Coord | null;
+  zoom: number | null;
+}
+
 /**
  * 검색 FSM 전이 함수 (순수 함수)
  *
@@ -101,26 +130,21 @@ export interface SearchTransitionContext {
  */
 export function transition(current: SearchState, event: SearchEvent, ctx: SearchTransitionContext): SearchState {
   switch (event.type) {
-    case 'ENTER': {
+    case 'URL_SYNC': {
+      const baseState = event.payload;
       const targetScope = deriveScope({
-        currentScope: current.scope,
-        query: current.query,
-        filters: current.filters,
+        currentScope: baseState.scope,
+        query: baseState.query,
+        filters: baseState.filters,
       });
 
-      const scoped = applyScopeTransition(current, targetScope);
+      const scoped = applyScopeTransition(baseState, targetScope);
 
-      const nextState: SearchState = {
-        ...scoped,
-        searchedLevel: getRegionLevel(current.zoom),
-        refPoint: ctx.refPointFromBase ?? current.refPoint,
-      };
-
-      if (!nextState.searchCenter) {
-        nextState.searchCenter = nextState.center;
+      if (!scoped.searchCenter) {
+        scoped.searchCenter = scoped.center;
       }
 
-      return nextState;
+      return scoped;
     }
 
     case 'QUERY_CHANGED': {
@@ -141,14 +165,18 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
     case 'REFPOINT_SET': {
       if (isEqualCoord(current.refPoint, event.refPoint)) return current;
-      // RefPoint가 변경되면 scope nearby로 전환
+      const targetScope = deriveScope({
+        currentScope: current.scope,
+        query: current.query,
+        filters: current.filters,
+      });
+      const scoped = applyScopeTransition(current, targetScope);
+
+      // RefPoint가 변경되면 scope 조건을 보정
       return {
-        ...current,
+        ...scoped,
         refPoint: event.refPoint,
         center: event.refPoint,
-        scope: 'nearby',
-        searchBounds: null,
-        searchLock: 0,
         searchCenter: event.refPoint,
       };
     }
@@ -274,6 +302,87 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
     default:
       return current;
   }
+}
+
+export function normalizeQuery(query: string | null) {
+  return query?.trim() ?? '';
+}
+
+export function normalizeUrlState(urlState: SearchUrlStateInput): UrlComparableState {
+  const query = normalizeQuery(urlState.query);
+  const filters = urlState.filters ?? [];
+  const hasQueryOrFilters = query.length > 0 || filters.length > 0;
+  const zoom = urlState.zoom ?? (hasQueryOrFilters ? QUERY_DEFAULT_ZOOM_LEVEL : DEFAULT_MAP_ZOOM_LEVEL);
+  const searchedLevel = urlState.searchedLevel ?? getRegionLevel(zoom);
+  const scope = urlState.scope ?? (urlState.bounds ? 'bounds' : 'nearby');
+
+  return {
+    scope,
+    searchedLevel,
+    query,
+    filters,
+    refPoint: urlState.refPoint ?? null,
+    searchBounds: urlState.bounds ?? null,
+    searchLock: urlState.searchLock ?? 0,
+    searchCenter: urlState.searchCenter ?? null,
+    center: urlState.center ?? null,
+    zoom,
+  };
+}
+
+export function toComparableState(state: SearchState): UrlComparableState {
+  return {
+    scope: state.scope,
+    searchedLevel: state.searchedLevel,
+    query: state.query,
+    filters: state.filters,
+    refPoint: state.refPoint,
+    searchBounds: state.searchBounds,
+    searchLock: state.searchLock,
+    searchCenter: state.searchCenter,
+    center: state.center,
+    zoom: state.zoom,
+  };
+}
+
+export function areComparableStatesEqual(left: UrlComparableState, right: UrlComparableState) {
+  if (left.scope !== right.scope) return false;
+  if (left.searchedLevel !== right.searchedLevel) return false;
+  if (left.query !== right.query) return false;
+  if (!isEqualFilters(left.filters, right.filters)) return false;
+  if (!isEqualCoord(left.refPoint, right.refPoint)) return false;
+  if (!isEqualBounds(left.searchBounds, right.searchBounds)) return false;
+  if (left.searchLock !== right.searchLock) return false;
+  if (!isEqualCoord(left.searchCenter, right.searchCenter)) return false;
+  if (!isEqualCoord(left.center, right.center)) return false;
+  if (left.zoom !== right.zoom) return false;
+  return true;
+}
+
+export function buildUrlSyncState(urlState: SearchUrlStateInput, refPointFromBase: Coord | null): SearchState {
+  const query = normalizeQuery(urlState.query);
+  const filters = urlState.filters ?? [];
+  const hasQueryOrFilters = query.length > 0 || filters.length > 0;
+  const zoom = urlState.zoom ?? (hasQueryOrFilters ? QUERY_DEFAULT_ZOOM_LEVEL : DEFAULT_MAP_ZOOM_LEVEL);
+  const searchedLevel = urlState.searchedLevel ?? getRegionLevel(zoom);
+  const scope = urlState.scope ?? (urlState.bounds ? 'bounds' : 'nearby');
+  const refPoint = urlState.refPoint ?? refPointFromBase ?? null;
+  const center = urlState.center ?? refPoint ?? null;
+  const searchCenter = urlState.searchCenter ?? center ?? refPoint ?? null;
+
+  return {
+    scope,
+    searchedLevel,
+    searchLock: urlState.searchLock ?? 0,
+    query,
+    filters,
+    refPoint,
+    searchBounds: urlState.bounds ?? null,
+    searchCenter,
+    center,
+    zoom,
+    viewportBounds: null,
+  };
 }
 
 /* =============================================================================
