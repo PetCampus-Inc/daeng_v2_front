@@ -1,10 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { createParser, useQueryStates } from 'nuqs';
 import type { BoundsSnapshot, SearchState, SearchUrlStateInput } from '../lib/searchMachine';
-import type { Coord } from '@shared/types';
+import type { RegionLevel, SearchScope } from '../config/map';
 import type { FilterOption } from '@entities/kindergarten';
 import { FILTER_OPTIONS } from '@entities/kindergarten';
-import type { RegionLevel, SearchScope } from '../config/map';
+import type { Coord } from '@shared/types';
 
 type SearchLock = 0 | 1;
 
@@ -99,7 +99,7 @@ const SEARCH_LOCK_PARSER = createParser<SearchLock | null>({
     if (value === '0') return 0;
     return null;
   },
-  serialize: (value) => (value === 1 ? '1' : ''),
+  serialize: (value) => (value === 1 ? '1' : '0'),
 });
 
 const ZOOM_PARSER = createParser<number | null>({
@@ -154,8 +154,42 @@ export function useSearchUrlState() {
     [setUrlState]
   );
 
+  const searchUrlState = useMemo(
+    () => ({
+      scope: urlState.scope,
+      searchedLevel: urlState.searchedLevel,
+      query: urlState.query,
+      filters: urlState.filters,
+      refPoint: urlState.refPoint,
+      bounds: urlState.bounds,
+      searchLock: urlState.searchLock,
+      searchCenter: urlState.searchCenter,
+    }),
+    [
+      urlState.scope,
+      urlState.searchedLevel,
+      urlState.query,
+      urlState.filters,
+      urlState.refPoint,
+      urlState.bounds,
+      urlState.searchLock,
+      urlState.searchCenter,
+    ]
+  );
+
+  // 지도 UI 관련 파라미터는 map 전용으로 분리한다.
+  const mapUrlState = useMemo(
+    () => ({
+      center: urlState.center,
+      zoom: urlState.zoom,
+    }),
+    [urlState.center, urlState.zoom]
+  );
+
   return {
-    urlState: urlState as SearchUrlState,
+    urlState,
+    searchUrlState,
+    mapUrlState,
     setUrlState: setState,
   };
 }

@@ -138,17 +138,21 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
         viewportBounds: current.viewportBounds,
       };
 
-      const queryChanged = mergedState.query !== current.query;
-      const filtersChanged = !isEqualFilters(mergedState.filters, current.filters);
+      const incomingSearch = pickSearchSnapshot(mergedState);
+      const incomingMap = pickMapSnapshot(mergedState);
 
-      let nextState = mergedState;
+      const queryChanged = incomingSearch.query !== current.query;
+      const filtersChanged = !isEqualFilters(incomingSearch.filters, current.filters);
+      const boundsChanged = !isEqualBounds(incomingSearch.searchBounds, current.searchBounds);
+
+      let nextState = mergeSnapshots(incomingSearch, incomingMap);
 
       if (queryChanged) {
-        nextState = applyQueryTransition(nextState, mergedState.query);
+        nextState = applyQueryTransition(nextState, incomingSearch.query);
       }
 
       if (filtersChanged) {
-        nextState = applyFilterTransition(nextState, mergedState.filters);
+        nextState = applyFilterTransition(nextState, incomingSearch.filters);
       }
 
       if (!queryChanged && !filtersChanged) {
@@ -158,6 +162,16 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
           filters: nextState.filters,
         });
         nextState = applyScopeTransition(nextState, targetScope);
+      }
+
+      if (!queryChanged && !filtersChanged && boundsChanged && incomingSearch.searchBounds) {
+        nextState = {
+          ...nextState,
+          scope: 'bounds',
+          searchBounds: incomingSearch.searchBounds,
+          searchLock: incomingSearch.searchLock,
+          searchCenter: incomingSearch.searchCenter ?? nextState.center,
+        };
       }
 
       const resolvedState = {

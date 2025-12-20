@@ -36,7 +36,7 @@ interface DispatchOptions {
 export function SearchStateProvider({ children }: { children: ReactNode }) {
   const { coord: basePoint, type: baseType } = useBasePoint();
 
-  const { urlState, setUrlState } = useSearchUrlState();
+  const { urlState, searchUrlState, mapUrlState, setUrlState } = useSearchUrlState();
   const createInitialState = () => {
     const refPointFromBase = basePoint ?? null;
     const baseState = buildUrlSyncState(urlState, refPointFromBase);
@@ -105,6 +105,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const shouldCommitMap = isSearchChanged;
 
       if (isSearchChanged) {
+        console.log('[SearchMachine] State changed:', { event, prev: prevState, next });
         setCommittedState(nextSearch);
         // URL_SYNC 직후 들어오는 이벤트가 최신 검색 상태를 사용하도록 보장한다.
         committedStateRef.current = nextSearch;
@@ -154,7 +155,8 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     }
 
     const refPointFromBase = basePointRef.current ?? null;
-    const baseState = buildUrlSyncState(urlState, refPointFromBase);
+    // URL 파라미터를 search/map으로 분리해 FSM 입력을 구성한다.
+    const baseState = buildUrlSyncState({ ...searchUrlState, ...mapUrlState }, refPointFromBase);
     const payloadState = {
       ...baseState,
       viewportBounds: liveStateRef.current.viewportBounds,
