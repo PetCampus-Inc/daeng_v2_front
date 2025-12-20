@@ -84,6 +84,8 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const nextSearch = pickSearchSnapshot(next);
       const nextMap = pickMapSnapshot(next);
       setLiveState(nextMap);
+      // 연속 이벤트에서도 최신 map 상태를 즉시 참조하도록 업데이트한다.
+      liveStateRef.current = nextMap;
 
       const isSearchChanged =
         nextSearch.scope !== prevSearch.scope ||
@@ -103,8 +105,9 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const shouldCommitMap = isSearchChanged;
 
       if (isSearchChanged) {
-        console.log('[SearchMachine] State changed:', { event, prev: prevState, next });
         setCommittedState(nextSearch);
+        // URL_SYNC 직후 들어오는 이벤트가 최신 검색 상태를 사용하도록 보장한다.
+        committedStateRef.current = nextSearch;
       }
 
       if (shouldCommitMap) {
@@ -145,9 +148,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
      * URL_SYNC는 urlState를 다시 쓰지 않고 liveState를 재정렬한다.
      */
     const urlComparable = normalizeUrlState(urlState);
-    const committedComparable = toComparableState(
-      mergeSnapshots(committedStateRef.current, liveStateRef.current)
-    );
+    const committedComparable = toComparableState(mergeSnapshots(committedStateRef.current, liveStateRef.current));
     if (areComparableStatesEqual(urlComparable, committedComparable)) {
       return;
     }

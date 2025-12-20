@@ -65,12 +65,7 @@ export function MapView(props: MapViewProps) {
       new naver.maps.LatLng(geoBounds.neLat, geoBounds.neLng)
     );
     autoFitRef.current = true;
-    map.current.fitBounds(bounds, {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-    });
+    map.current.fitBounds(bounds);
     lastFittedKeyRef.current = fitKey;
     naver.maps.Event.once(map.current, 'idle', () => {
       if (!map.current) return;
