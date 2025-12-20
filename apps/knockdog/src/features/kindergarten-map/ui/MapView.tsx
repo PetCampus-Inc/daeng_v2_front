@@ -22,47 +22,83 @@ export function MapView(props: MapViewProps) {
 
   const map = useRef<naver.maps.Map | null>(null);
   const lastFittedKeyRef = useRef<string | null>(null);
+  const autoFitRef = useRef(false);
   const exactHandledRef = useRef<string | null>(null);
   useImperativeHandle(ref, () => map.current!);
 
   const { coord: basePoint } = useBasePoint();
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId } = useMarkerState();
-  const { liveState: state, dispatch } = useSearchMachine();
+  const { liveState: mapState, committedState, dispatch } = useSearchMachine();
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  const mapCenter = getMapCenter({ center: state.center, basePoint });
-  const mapZoom = getMapZoom(state.zoom);
+  const mapCenter = getMapCenter({ center: mapState.center, basePoint });
+  const mapZoom = getMapZoom(mapState.zoom);
 
   // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
-  const showAggregationMarkers = state.searchLock !== 1 && isAggregationZoom(state.zoom);
-  const showBusinessMarkers = state.searchLock === 1 || isBusinessZoom(state.zoom);
+  const showAggregationMarkers = committedState.searchLock !== 1 && isAggregationZoom(mapState.zoom);
+  const showBusinessMarkers = committedState.searchLock === 1 || isBusinessZoom(mapState.zoom);
 
   const { searchList: overlay, exact } = useSearchListQuery();
 
-  const { aggregation, geoBounds } = useAggregationQuery();
+  const { aggregation, geoBounds, dataUpdatedAt } = useAggregationQuery();
 
   /**
    * GLOBAL 스코프에서 query/filters 변동 후 agg 응답 bounds로 1회 fitBounds.
    * 동일 SearchSnapshot(스코프/레벨/쿼리/필터)에서는 중복 실행을 막는다.
    * nearby/bounds 스코프에서는 서버 bounds로 자동 이동하지 않는다.
+   * fitBounds 이후 최초 idle 이벤트에서 map 상태를 확정한다.
    */
   useEffect(() => {
     if (!isMapLoaded || !map.current) return;
-    if (state.scope !== 'global') return;
+    if (committedState.scope !== 'global') return;
     if (!geoBounds) return;
 
-    const fitKey = `global:${state.query}:${state.filters.join(',')}`;
+    const boundsKey = `${geoBounds.swLat},${geoBounds.swLng},${geoBounds.neLat},${geoBounds.neLng}`;
+    // 동일 검색 조건이어도 refetch 시 fitBounds를 다시 수행한다.
+    const fitKey = `global:${committedState.query}:${committedState.filters.join(',')}:${boundsKey}:${dataUpdatedAt}`;
     if (lastFittedKeyRef.current === fitKey) return;
 
     const bounds = new naver.maps.LatLngBounds(
       new naver.maps.LatLng(geoBounds.swLat, geoBounds.swLng),
       new naver.maps.LatLng(geoBounds.neLat, geoBounds.neLng)
     );
-    map.current.fitBounds(bounds);
+    autoFitRef.current = true;
+    map.current.fitBounds(bounds, {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    });
     lastFittedKeyRef.current = fitKey;
-  }, [geoBounds, isMapLoaded, state.filters, state.query, state.scope]);
+    naver.maps.Event.once(map.current, 'idle', () => {
+      if (!map.current) return;
+      const coord = map.current.getCenter();
+      const centerCoord = { lat: coord.y, lng: coord.x };
+      const zoom = map.current.getZoom();
+      const viewportBounds = toBoundsSnapshot(map.current.getBounds());
+
+      autoFitRef.current = false;
+      dispatch({
+        type: 'MAP_INTERACTION_END',
+        payload: {
+          center: centerCoord,
+          zoom,
+          viewportBounds,
+          source: 'auto-fit',
+        },
+      });
+    });
+  }, [
+    dataUpdatedAt,
+    dispatch,
+    geoBounds,
+    isMapLoaded,
+    committedState.filters,
+    committedState.query,
+    committedState.scope,
+  ]);
 
   /**
    * exact 결과가 있을 때는 자동으로 선택 상태를 만들고 상세 시트를 연다.
@@ -89,9 +125,11 @@ export function MapView(props: MapViewProps) {
   };
 
   /**
-   * 지도 인터랙션(드래그, 줌) 종료 핸들러
+   * 사용자 지도 인터랙션(드래그/줌) 종료 시 liveState를 업데이트한다.
+   * 검색 레벨 변화로 인한 자동 쿼리를 트리거한다.
    */
   const handleMapInteractionEnd = () => {
+    if (autoFitRef.current) return;
     if (!map.current) return;
     const coord = map.current.getCenter();
     const centerCoord = { lat: coord.y, lng: coord.x };
@@ -105,6 +143,7 @@ export function MapView(props: MapViewProps) {
         center: centerCoord,
         zoom,
         viewportBounds,
+        source: 'user',
       },
     });
   };
@@ -223,7 +262,7 @@ export function MapView(props: MapViewProps) {
 
         {/* 개발용 BBox 디버깅 - 개발 환경에서만 표시 */}
         {process.env.NODE_ENV === 'development' && (
-          <BBoxDebug serverBounds={geoBounds} viewportBounds={state.viewportBounds} map={map.current} />
+          <BBoxDebug serverBounds={geoBounds} viewportBounds={mapState.viewportBounds} map={map.current} />
         )}
       </NaverMap>
     </>
