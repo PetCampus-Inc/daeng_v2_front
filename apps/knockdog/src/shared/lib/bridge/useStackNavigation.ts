@@ -6,6 +6,7 @@ import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
 import { buildHref, type Query } from './queryUtils';
+import { getCurrentTxId } from './useNavigationResult';
 
 type Params = Record<string, unknown>;
 
@@ -244,7 +245,21 @@ function useStackNavigation() {
 
           // 웹 전용 경로: 뒤로 돌아왔을 때 sessionStorage에서 복구
           const onPop = () => {
-            resolveFromStorage();
+            // 현재 URL의 _txId 확인
+            const currentTxId = getCurrentTxId();
+
+            // 현재 페이지가 pushForResult로 열린 페이지가 아니면 무시
+            if (currentTxId !== txId) {
+              return;
+            }
+
+            // 결과가 있으면 resolve/reject, 없으면 에러 던지기
+            const hasResult = resolveFromStorage();
+            if (!hasResult && !settled) {
+              settled = true;
+              cleanup();
+              reject(new Error('Navigation cancelled: User navigated back without providing result'));
+            }
           };
           const onShow = () => {
             resolveFromStorage();

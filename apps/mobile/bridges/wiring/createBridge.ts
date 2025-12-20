@@ -37,6 +37,9 @@ function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: un
 function createBridgeForWebView(webRef: RefObject<RNWebView>) {
   const router = makeRouter(webRef);
 
+  // navBridgeHub에 forwardEvent 함수 등록
+  navBridgeHub.setForwardEventFn(forwardEventTo);
+
   const wire = wireWebView(webRef as any, router, {
     onWebEvent: (event, payload) => {
       // nav.result, nav.cancel 이벤트 라우팅

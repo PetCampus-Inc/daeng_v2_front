@@ -1,17 +1,21 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS } from '@knockdog/bridge-core';
 import { buildHref, type Query } from './queryUtils';
 
-type TabRoute = '/' | '/save' | '/compare' | '/mypage';
+type TabRoute = '/' | '/search' | '/save' | '/compare' | '/mypage';
+
+// Main 탭 경로 목록
+const MAIN_TAB_ROUTES: readonly string[] = ['/', '/search', '/save', '/compare', '/mypage'] as const;
 
 function useTabNavigation() {
   const router = useRouter();
   const bridge = useBridge();
+  const pathname = usePathname();
 
   const isNative = useMemo(() => isNativeWebView(), []);
 
@@ -33,7 +37,16 @@ function useTabNavigation() {
     [router, bridge, isNative]
   );
 
-  return { navigateToTab };
+  /**
+   * 현재 페이지가 Main 탭인지 확인
+   * @returns true면 Main 탭, false면 Stack
+   */
+  const isMainTab = useCallback((): boolean => {
+    const normalizedPath = pathname === '' ? '/' : pathname;
+    return MAIN_TAB_ROUTES.includes(normalizedPath);
+  }, [pathname]);
+
+  return { navigateToTab, isMainTab };
 }
 
 export { useTabNavigation };
