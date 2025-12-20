@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Icon, IconButton, TextField, TextFieldInput } from '@knockdog/ui';
+import { useState, useCallback, useEffect } from 'react';
+import { IconButton } from '@knockdog/ui';
 import { SafeArea } from '@shared/ui/safe-area';
 import { Header } from '@widgets/Header';
 import { SaveTabs } from '@widgets/save-tabs';
@@ -13,7 +13,6 @@ export function SaveMainPage() {
   const [localQuery, setLocalQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const { navigateToTab } = useTabNavigation();
 
   const handleAuthError = useCallback(
