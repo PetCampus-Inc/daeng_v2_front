@@ -17,7 +17,7 @@ import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api'
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
-import { useBridge, useStackNavigation } from '@shared/lib/bridge';
+import { useBridge, useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
 import { METHODS, SocialLoginResult } from '@knockdog/bridge-core';
 
 const SOCIAL_LOGIN_METHOD_MAP = {
@@ -29,6 +29,7 @@ const SOCIAL_LOGIN_METHOD_MAP = {
 export const useLogin = (options?: { redirectTo?: string }) => {
   const { push, back, replace } = useStackNavigation();
   const bridge = useBridge();
+  const navResult = useNavigationResult<boolean>();
 
   const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
   const { mutateAsync: oidcMutateAsync } = useMutation({ mutationFn: postVerifyOidc });
@@ -56,9 +57,18 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     if (data.status === USER_STATUS.ACTIVE) {
       setUser(data);
 
+      // pushForResult로 열린 경우 결과 전송
+      try {
+        navResult.send(true);
+      } catch (error) {
+        // _txId가 없으면 일반 로그인 플로우 (에러 무시)
+        console.log('[useLogin] pushForResult 컨텍스트가 아닙니다, 일반 로그인 플로우 진행');
+      }
+
       if (redirectTo) {
         replace({ pathname: redirectTo });
       } else {
+        console.log('[useLogin] back');
         back();
       }
     }

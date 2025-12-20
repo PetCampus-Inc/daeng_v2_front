@@ -7,12 +7,21 @@ import Image from 'next/image';
 import { LoginButton } from '@features/auth';
 import { SOCIAL_PROVIDER } from '@entities/social-user';
 import { SafeArea } from '@shared/ui/safe-area';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
 
 export default function LoginPage() {
   const { back } = useStackNavigation();
+  const navResult = useNavigationResult<boolean>();
 
-  const handleGuestClick = () => back();
+  const handleGuestClick = () => {
+    // pushForResult로 열린 경우 취소 결과 전송
+    try {
+      navResult.cancel('게스트로 둘러보기');
+    } catch (error) {
+      // _txId가 없으면 일반 플로우 (에러 무시)
+    }
+    back();
+  };
 
   return (
     <SafeArea className='flex h-screen flex-col items-center justify-between'>

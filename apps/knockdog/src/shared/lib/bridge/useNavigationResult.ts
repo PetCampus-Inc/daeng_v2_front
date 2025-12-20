@@ -17,7 +17,7 @@ type NavCancelEvent = {
 const EVENT_RESULT = 'nav.result' as const;
 const EVENT_CANCEL = 'nav.cancel' as const;
 
-function getCurrentTxId(): string | null {
+export function getCurrentTxId(): string | null {
   if (typeof window === 'undefined') return null;
 
   // 1) history.state._txId

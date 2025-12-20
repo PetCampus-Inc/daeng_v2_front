@@ -3,8 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRequireAuth } from '../model/useRequireAuth';
 
-export function PrivateAccess({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useRequireAuth();
+interface PrivateAccessProps {
+  children: React.ReactNode;
+  onAuthError?: (error: Error) => void;
+}
+
+export function PrivateAccess({ children, onAuthError }: PrivateAccessProps) {
+  const isAuthenticated = useRequireAuth(onAuthError);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
