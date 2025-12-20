@@ -46,7 +46,10 @@ function FavoriteListSection({ bookmarks, searchQuery = '' }: { bookmarks: Bookm
     // 검색어 필터링
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
-      filtered = filtered.filter((kindergarten) => kindergarten.name.toLowerCase().includes(query));
+      filtered = filtered.filter(
+        (kindergarten) =>
+          kindergarten.name.toLowerCase().includes(query) || kindergarten.location?.toLowerCase().includes(query)
+      );
     }
 
     // 메모만 보기 필터링
