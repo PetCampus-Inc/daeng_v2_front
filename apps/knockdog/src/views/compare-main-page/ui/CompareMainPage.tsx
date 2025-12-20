@@ -1,21 +1,43 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IconButton } from '@knockdog/ui';
 import { useQuery } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { FavoriteListSection, SelectionBar } from '@widgets/compare-list';
 import { bookmarkQueries } from '@entities/bookmark/api/bookmarkQueries';
 import { isSelectedIds } from '@entities/compare';
-import { useUserStore } from '@entities/user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { useCompareStore } from '@shared/store';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { webViewSyncChannel } from '@shared/lib/sync-webview-query';
 import { useDebounced } from '@shared/lib';
-import { tokenUtils } from '@shared/utils';
+import { useRequireAuth } from '@shared/ui/private-access';
 
 export function CompareMainPage() {
+  const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
+
+  // ============================================
+  // 인증 관련 상태
+  // ============================================
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  const handleAuthError = useCallback(
+    async (error: Error) => {
+      await navigateToTab('/');
+    },
+    [navigateToTab]
+  );
+
+  const hasAuth = useRequireAuth(handleAuthError);
+
+  useEffect(() => {
+    setIsMounted(true);
+    setIsLoggedIn(hasAuth);
+  }, [hasAuth]);
+
   // ============================================
   // 검색 관련 상태
   // ============================================
@@ -35,16 +57,11 @@ export function CompareMainPage() {
   // ============================================
   // 북마크 목록 관련 상태
   // ============================================
-  const user = useUserStore((state) => state.user);
-  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
-
   const bookmarksQuery = useQuery({
     ...bookmarkQueries.list(isLoggedIn),
     enabled: isLoggedIn,
   });
   const bookmarks = bookmarksQuery.data ?? [];
-
-  const { push } = useStackNavigation();
 
   // ============================================
   // 선택된 유치원 관련 상태
@@ -103,9 +120,11 @@ export function CompareMainPage() {
             </Header.LeftSection>
             <Header.Title>보관함</Header.Title>
 
-            <Header.RightSection>
-              <IconButton icon='Search' onClick={handleSearch} />
-            </Header.RightSection>
+            {isMounted && isLoggedIn && (
+              <Header.RightSection>
+                <IconButton icon='Search' onClick={handleSearch} />
+              </Header.RightSection>
+            )}
           </Header>
         )}
 
