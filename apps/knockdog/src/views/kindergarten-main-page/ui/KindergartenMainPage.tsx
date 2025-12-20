@@ -22,7 +22,7 @@ import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-ma
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
-import { isEqualFilters, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
@@ -38,7 +38,6 @@ function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
   const searchParams = useSearchParams();
   const { liveState, committedState, dispatch } = useSearchMachine();
-  const { query, filters } = committedState;
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -46,9 +45,6 @@ function KindergartenMainPageContent() {
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-
-  const prevQueryRef = useRef(query);
-  const prevFiltersRef = useRef(filters);
 
   // URL 상태(committedState)가 외부 요인(뒤로가기 등)으로 변경되면,
   // 지도 뷰를 직접 제어하여 동기화합니다.
@@ -80,31 +76,6 @@ function KindergartenMainPageContent() {
 
     return false;
   }, [liveState, committedState]);
-
-  // URL의 query 변경을 감지하고 이벤트를 발생
-  useEffect(() => {
-    if (query !== prevQueryRef.current) {
-      const trimmed = query.trim();
-      if (trimmed.length > 0) {
-        dispatch({ type: 'QUERY_CHANGED', query: trimmed });
-      } else {
-        dispatch({ type: 'CLEAR_QUERY' });
-      }
-      prevQueryRef.current = query;
-    }
-  }, [query, dispatch]);
-
-  // URL의 filters 변경을 감지하고 이벤트를 발생
-  useEffect(() => {
-    if (!isEqualFilters(filters, prevFiltersRef.current)) {
-      if (filters.length > 0) {
-        dispatch({ type: 'FILTERS_CHANGED', filters });
-      } else {
-        dispatch({ type: 'CLEAR_FILTERS' });
-      }
-      prevFiltersRef.current = filters;
-    }
-  }, [filters, dispatch]);
 
   /**
    * 재검색 핸들러
