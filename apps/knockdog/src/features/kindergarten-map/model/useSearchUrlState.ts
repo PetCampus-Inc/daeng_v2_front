@@ -99,7 +99,7 @@ const SEARCH_LOCK_PARSER = createParser<SearchLock | null>({
     if (value === '0') return 0;
     return null;
   },
-  serialize: (value) => (value === 1 ? '1' : '0'),
+  serialize: (value) => (value === 1 ? '1' : value === 0 ? '0' : ''),
 });
 
 const ZOOM_PARSER = createParser<number | null>({

@@ -141,7 +141,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
     }
     prevBaseTypeRef.current = baseType;
-  }, [basePoint, baseType, committedState.refPoint?.lat, committedState.refPoint?.lng, dispatch]);
+  }, [basePoint, baseType, committedState.refPoint, dispatch]);
 
   useEffect(() => {
     /**
@@ -163,7 +163,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     };
     // URL 입력은 FSM으로 반영하되, URL 재동기화는 건너뜁니다.
     dispatch({ type: 'URL_SYNC', payload: payloadState }, { skipUrlSync: true });
-  }, [dispatch, urlState]);
+  }, [dispatch, urlState, searchUrlState, mapUrlState]);
 
   const searchState = useMemo(
     () => mergeSnapshots(committedState, committedMapState),
