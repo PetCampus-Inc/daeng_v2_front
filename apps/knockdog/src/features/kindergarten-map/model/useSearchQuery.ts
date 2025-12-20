@@ -11,7 +11,7 @@ import { tokenUtils } from '@shared/utils';
 import { memoQueries } from '@entities/memo';
 
 export function useSearchListQuery() {
-  const { committedState } = useSearchMachine();
+  const { searchState } = useSearchMachine();
   const { rank } = useListOptionsUrlState();
   const user = useUserStore((s) => s.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
@@ -27,7 +27,7 @@ export function useSearchListQuery() {
   });
 
   const searchListOptions = searchQueries.searchList({
-    state: committedState,
+    state: searchState,
     rank,
     bookmarks: isLoggedIn ? bookmarksQuery.data : [],
     memos: isLoggedIn ? memoListQuery.data?.memos : [],
@@ -66,9 +66,11 @@ export function useSearchListQuery() {
 }
 
 export function useAggregationQuery() {
-  const { committedState } = useSearchMachine();
+  const { searchState } = useSearchMachine();
 
-  const { data, isLoading, isFetching } = useQuery(searchQueries.aggregation({ state: committedState }));
+  const { data, dataUpdatedAt, isLoading, isFetching } = useQuery(
+    searchQueries.aggregation({ state: searchState })
+  );
 
   const aggregation = useMemo(() => {
     if (!data?.aggregations) return [];
@@ -83,6 +85,7 @@ export function useAggregationQuery() {
   return {
     aggregation,
     geoBounds,
+    dataUpdatedAt,
     isLoading,
     isFetching,
   };

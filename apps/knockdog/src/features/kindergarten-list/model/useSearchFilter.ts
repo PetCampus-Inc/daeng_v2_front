@@ -32,8 +32,8 @@ interface UseSearchFilterReturn {
  * 검색 필터를 관리하는 훅
  */
 export function useSearchFilter(): UseSearchFilterReturn {
-  const { liveState, dispatch } = useSearchMachine();
-  const { filters } = liveState;
+  const { searchState, dispatch } = useSearchMachine();
+  const { filters } = searchState;
   const [resultCount, setResultCount] = useState<number | null>(null);
 
   const onChangeResultCount = useCallback((count: number | null) => {

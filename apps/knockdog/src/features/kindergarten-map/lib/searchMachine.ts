@@ -1,7 +1,7 @@
-import type { RegionLevel, SearchScope } from '../config/map';
+import { DEFAULT_MAP_ZOOM_LEVEL, type RegionLevel, type SearchScope } from '../config/map';
 import { getRegionLevel } from './markers';
-import type { FilterOption } from '@entities/kindergarten';
-import { isEqualCoord } from '@shared/lib';
+import { isEqualFilters, type FilterOption } from '@entities/kindergarten';
+import { isEqualBounds, isEqualCoord } from '@shared/lib';
 import type { Coord } from '@shared/types';
 
 /**
@@ -14,12 +14,7 @@ export interface BoundsSnapshot {
   neLng: number;
 }
 
-/**
- * 통합 검색 상태
- * - 검색 확정 상태와 지도 UI 상태를 포함
- */
-export interface SearchState {
-  // --- 검색 확정 상태 (구 SearchSnapshot) ---
+export interface SearchSnapshot {
   scope: SearchScope;
   searchedLevel: RegionLevel;
   searchLock: 0 | 1;
@@ -27,14 +22,32 @@ export interface SearchState {
   filters: FilterOption[];
   refPoint: Coord | null;
   searchBounds: BoundsSnapshot | null;
-
-  // --- 커밋된 상태 ---
   searchCenter: Coord | null;
+}
 
-  // --- 지도 UI 상태 (구 MapSnapshot) ---
+export interface MapSnapshot {
   center: Coord | null;
   zoom: number;
   viewportBounds: BoundsSnapshot | null;
+}
+
+/**
+ * 통합 검색 상태
+ * - 검색 확정 상태와 지도 UI 상태를 포함
+ */
+export type SearchState = SearchSnapshot & MapSnapshot;
+
+export interface UrlComparableState {
+  scope: SearchScope;
+  searchedLevel: RegionLevel;
+  query: string;
+  filters: FilterOption[];
+  refPoint: Coord | null;
+  searchBounds: BoundsSnapshot | null;
+  searchLock: 0 | 1;
+  searchCenter: Coord | null;
+  center: Coord | null;
+  zoom: number;
 }
 
 /**
@@ -46,6 +59,7 @@ export interface SearchState {
  */
 export type SearchEvent =
   | { type: 'ENTER' }
+  | { type: 'URL_SYNC'; payload: SearchState }
   | { type: 'QUERY_CHANGED'; query: string }
   | { type: 'FILTERS_CHANGED'; filters: FilterOption[] }
   | { type: 'CLEAR_QUERY' }
@@ -58,6 +72,7 @@ export type SearchEvent =
         center: Coord;
         zoom: number;
         viewportBounds: BoundsSnapshot | null;
+        source: 'user' | 'auto-fit';
       };
     }
   | {
@@ -86,6 +101,21 @@ export interface SearchTransitionContext {
   refPointFromBase: Coord | null;
 }
 
+const QUERY_DEFAULT_ZOOM_LEVEL = 9;
+
+export interface SearchUrlStateInput {
+  scope: SearchScope | null;
+  searchedLevel: RegionLevel | null;
+  query: string | null;
+  filters: FilterOption[] | null;
+  refPoint: Coord | null;
+  bounds: BoundsSnapshot | null;
+  searchLock: 0 | 1 | null;
+  searchCenter: Coord | null;
+  center: Coord | null;
+  zoom: number | null;
+}
+
 /**
  * 검색 FSM 전이 함수 (순수 함수)
  *
@@ -101,26 +131,59 @@ export interface SearchTransitionContext {
  */
 export function transition(current: SearchState, event: SearchEvent, ctx: SearchTransitionContext): SearchState {
   switch (event.type) {
-    case 'ENTER': {
-      const targetScope = deriveScope({
-        currentScope: current.scope,
-        query: current.query,
-        filters: current.filters,
-      });
-
-      const scoped = applyScopeTransition(current, targetScope);
-
-      const nextState: SearchState = {
-        ...scoped,
-        searchedLevel: getRegionLevel(current.zoom),
-        refPoint: ctx.refPointFromBase ?? current.refPoint,
+    case 'URL_SYNC': {
+      const mergedState: SearchState = {
+        ...current,
+        ...event.payload,
+        viewportBounds: current.viewportBounds,
       };
 
-      if (!nextState.searchCenter) {
-        nextState.searchCenter = nextState.center;
+      const incomingSearch = pickSearchSnapshot(mergedState);
+      const incomingMap = pickMapSnapshot(mergedState);
+
+      const queryChanged = incomingSearch.query !== current.query;
+      const filtersChanged = !isEqualFilters(incomingSearch.filters, current.filters);
+      const boundsChanged = !isEqualBounds(incomingSearch.searchBounds, current.searchBounds);
+
+      let nextState = mergeSnapshots(incomingSearch, incomingMap);
+
+      if (queryChanged) {
+        nextState = applyQueryTransition(nextState, incomingSearch.query);
       }
 
-      return nextState;
+      if (filtersChanged) {
+        nextState = applyFilterTransition(nextState, incomingSearch.filters);
+      }
+
+      if (!queryChanged && !filtersChanged) {
+        const targetScope = deriveScope({
+          currentScope: nextState.scope,
+          query: nextState.query,
+          filters: nextState.filters,
+        });
+        nextState = applyScopeTransition(nextState, targetScope);
+      }
+
+      if (!queryChanged && !filtersChanged && boundsChanged && incomingSearch.searchBounds) {
+        nextState = {
+          ...nextState,
+          scope: 'bounds',
+          searchBounds: incomingSearch.searchBounds,
+          searchLock: incomingSearch.searchLock,
+          searchCenter: incomingSearch.searchCenter ?? nextState.center,
+        };
+      }
+
+      const resolvedState = {
+        ...nextState,
+        refPoint: ctx.refPointFromBase ?? nextState.refPoint,
+      };
+
+      if (!resolvedState.searchCenter) {
+        resolvedState.searchCenter = resolvedState.center;
+      }
+
+      return resolvedState;
     }
 
     case 'QUERY_CHANGED': {
@@ -141,14 +204,18 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
     case 'REFPOINT_SET': {
       if (isEqualCoord(current.refPoint, event.refPoint)) return current;
-      // RefPoint가 변경되면 scope nearby로 전환
+      const targetScope = deriveScope({
+        currentScope: current.scope,
+        query: current.query,
+        filters: current.filters,
+      });
+      const scoped = applyScopeTransition(current, targetScope);
+
+      // RefPoint가 변경되면 scope 조건을 보정
       return {
-        ...current,
+        ...scoped,
         refPoint: event.refPoint,
         center: event.refPoint,
-        scope: 'nearby',
-        searchBounds: null,
-        searchLock: 0,
         searchCenter: event.refPoint,
       };
     }
@@ -159,7 +226,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
     }
 
     case 'MAP_INTERACTION_END': {
-      const { center, zoom, viewportBounds } = event.payload;
+      const { center, zoom, viewportBounds, source } = event.payload;
       const from = current.searchedLevel;
       const to = getRegionLevel(zoom);
 
@@ -169,6 +236,11 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
         zoom,
         viewportBounds,
       };
+
+      // 자동 fitBounds 결과는 검색 레벨을 변경하지 않는다.
+      if (source === 'auto-fit') {
+        return nextState;
+      }
 
       /**
        * 우선순위 1)
@@ -274,6 +346,115 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
     default:
       return current;
   }
+}
+
+export function normalizeQuery(query: string | null) {
+  return query?.trim() ?? '';
+}
+
+export function normalizeUrlState(urlState: SearchUrlStateInput): UrlComparableState {
+  const query = normalizeQuery(urlState.query);
+  const filters = urlState.filters ?? [];
+  const hasQueryOrFilters = query.length > 0 || filters.length > 0;
+  const zoom = urlState.zoom ?? (hasQueryOrFilters ? QUERY_DEFAULT_ZOOM_LEVEL : DEFAULT_MAP_ZOOM_LEVEL);
+  const searchedLevel = urlState.searchedLevel ?? getRegionLevel(zoom);
+  const scope = urlState.scope ?? (urlState.bounds ? 'bounds' : 'nearby');
+
+  return {
+    scope,
+    searchedLevel,
+    query,
+    filters,
+    refPoint: urlState.refPoint ?? null,
+    searchBounds: urlState.bounds ?? null,
+    searchLock: urlState.searchLock ?? 0,
+    searchCenter: urlState.searchCenter ?? null,
+    center: urlState.center ?? null,
+    zoom,
+  };
+}
+
+export function toComparableState(state: SearchState): UrlComparableState {
+  return {
+    scope: state.scope,
+    searchedLevel: state.searchedLevel,
+    query: state.query,
+    filters: state.filters,
+    refPoint: state.refPoint,
+    searchBounds: state.searchBounds,
+    searchLock: state.searchLock,
+    searchCenter: state.searchCenter,
+    center: state.center,
+    zoom: state.zoom,
+  };
+}
+
+export function areComparableStatesEqual(left: UrlComparableState, right: UrlComparableState) {
+  if (left.scope !== right.scope) return false;
+  if (left.searchedLevel !== right.searchedLevel) return false;
+  if (left.query !== right.query) return false;
+  if (!isEqualFilters(left.filters, right.filters)) return false;
+  if (!isEqualCoord(left.refPoint, right.refPoint)) return false;
+  if (!isEqualBounds(left.searchBounds, right.searchBounds)) return false;
+  if (left.searchLock !== right.searchLock) return false;
+  if (!isEqualCoord(left.searchCenter, right.searchCenter)) return false;
+  if (!isEqualCoord(left.center, right.center)) return false;
+  if (left.zoom !== right.zoom) return false;
+  return true;
+}
+
+export function buildUrlSyncState(urlState: SearchUrlStateInput, refPointFromBase: Coord | null): SearchState {
+  const query = normalizeQuery(urlState.query);
+  const filters = urlState.filters ?? [];
+  const hasQueryOrFilters = query.length > 0 || filters.length > 0;
+  const zoom = urlState.zoom ?? (hasQueryOrFilters ? QUERY_DEFAULT_ZOOM_LEVEL : DEFAULT_MAP_ZOOM_LEVEL);
+  const searchedLevel = urlState.searchedLevel ?? getRegionLevel(zoom);
+  const scope = urlState.scope ?? (urlState.bounds ? 'bounds' : 'nearby');
+  const refPoint = urlState.refPoint ?? refPointFromBase ?? null;
+  const center = urlState.center ?? refPoint ?? null;
+  const searchCenter = urlState.searchCenter ?? center ?? refPoint ?? null;
+
+  return {
+    scope,
+    searchedLevel,
+    searchLock: urlState.searchLock ?? 0,
+    query,
+    filters,
+    refPoint,
+    searchBounds: urlState.bounds ?? null,
+    searchCenter,
+    center,
+    zoom,
+    viewportBounds: null,
+  };
+}
+
+export function pickSearchSnapshot(state: SearchState): SearchSnapshot {
+  return {
+    scope: state.scope,
+    searchedLevel: state.searchedLevel,
+    searchLock: state.searchLock,
+    query: state.query,
+    filters: state.filters,
+    refPoint: state.refPoint,
+    searchBounds: state.searchBounds,
+    searchCenter: state.searchCenter,
+  };
+}
+
+export function pickMapSnapshot(state: SearchState): MapSnapshot {
+  return {
+    center: state.center,
+    zoom: state.zoom,
+    viewportBounds: state.viewportBounds,
+  };
+}
+
+export function mergeSnapshots(search: SearchSnapshot, map: MapSnapshot): SearchState {
+  return {
+    ...search,
+    ...map,
+  };
 }
 
 /* =============================================================================
