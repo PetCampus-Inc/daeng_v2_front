@@ -14,12 +14,7 @@ export interface BoundsSnapshot {
   neLng: number;
 }
 
-/**
- * 통합 검색 상태
- * - 검색 확정 상태와 지도 UI 상태를 포함
- */
-export interface SearchState {
-  // --- 검색 확정 상태 (구 SearchSnapshot) ---
+export interface SearchSnapshot {
   scope: SearchScope;
   searchedLevel: RegionLevel;
   searchLock: 0 | 1;
@@ -27,15 +22,20 @@ export interface SearchState {
   filters: FilterOption[];
   refPoint: Coord | null;
   searchBounds: BoundsSnapshot | null;
-
-  // --- 커밋된 상태 ---
   searchCenter: Coord | null;
+}
 
-  // --- 지도 UI 상태 (구 MapSnapshot) ---
+export interface MapSnapshot {
   center: Coord | null;
   zoom: number;
   viewportBounds: BoundsSnapshot | null;
 }
+
+/**
+ * 통합 검색 상태
+ * - 검색 확정 상태와 지도 UI 상태를 포함
+ */
+export type SearchState = SearchSnapshot & MapSnapshot;
 
 export interface UrlComparableState {
   scope: SearchScope;
@@ -72,6 +72,7 @@ export type SearchEvent =
         center: Coord;
         zoom: number;
         viewportBounds: BoundsSnapshot | null;
+        source: 'user' | 'auto-fit';
       };
     }
   | {
@@ -131,20 +132,44 @@ export interface SearchUrlStateInput {
 export function transition(current: SearchState, event: SearchEvent, ctx: SearchTransitionContext): SearchState {
   switch (event.type) {
     case 'URL_SYNC': {
-      const baseState = event.payload;
-      const targetScope = deriveScope({
-        currentScope: baseState.scope,
-        query: baseState.query,
-        filters: baseState.filters,
-      });
+      const mergedState: SearchState = {
+        ...current,
+        ...event.payload,
+        viewportBounds: current.viewportBounds,
+      };
 
-      const scoped = applyScopeTransition(baseState, targetScope);
+      const queryChanged = mergedState.query !== current.query;
+      const filtersChanged = !isEqualFilters(mergedState.filters, current.filters);
 
-      if (!scoped.searchCenter) {
-        scoped.searchCenter = scoped.center;
+      let nextState = mergedState;
+
+      if (queryChanged) {
+        nextState = applyQueryTransition(nextState, mergedState.query);
       }
 
-      return scoped;
+      if (filtersChanged) {
+        nextState = applyFilterTransition(nextState, mergedState.filters);
+      }
+
+      if (!queryChanged && !filtersChanged) {
+        const targetScope = deriveScope({
+          currentScope: nextState.scope,
+          query: nextState.query,
+          filters: nextState.filters,
+        });
+        nextState = applyScopeTransition(nextState, targetScope);
+      }
+
+      const resolvedState = {
+        ...nextState,
+        refPoint: ctx.refPointFromBase ?? nextState.refPoint,
+      };
+
+      if (!resolvedState.searchCenter) {
+        resolvedState.searchCenter = resolvedState.center;
+      }
+
+      return resolvedState;
     }
 
     case 'QUERY_CHANGED': {
@@ -187,7 +212,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
     }
 
     case 'MAP_INTERACTION_END': {
-      const { center, zoom, viewportBounds } = event.payload;
+      const { center, zoom, viewportBounds, source } = event.payload;
       const from = current.searchedLevel;
       const to = getRegionLevel(zoom);
 
@@ -197,6 +222,11 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
         zoom,
         viewportBounds,
       };
+
+      // 자동 fitBounds 결과는 검색 레벨을 변경하지 않는다.
+      if (source === 'auto-fit') {
+        return nextState;
+      }
 
       /**
        * 우선순위 1)
@@ -382,6 +412,34 @@ export function buildUrlSyncState(urlState: SearchUrlStateInput, refPointFromBas
     center,
     zoom,
     viewportBounds: null,
+  };
+}
+
+export function pickSearchSnapshot(state: SearchState): SearchSnapshot {
+  return {
+    scope: state.scope,
+    searchedLevel: state.searchedLevel,
+    searchLock: state.searchLock,
+    query: state.query,
+    filters: state.filters,
+    refPoint: state.refPoint,
+    searchBounds: state.searchBounds,
+    searchCenter: state.searchCenter,
+  };
+}
+
+export function pickMapSnapshot(state: SearchState): MapSnapshot {
+  return {
+    center: state.center,
+    zoom: state.zoom,
+    viewportBounds: state.viewportBounds,
+  };
+}
+
+export function mergeSnapshots(search: SearchSnapshot, map: MapSnapshot): SearchState {
+  return {
+    ...search,
+    ...map,
   };
 }
 
