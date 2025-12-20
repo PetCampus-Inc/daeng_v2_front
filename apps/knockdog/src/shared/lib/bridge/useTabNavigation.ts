@@ -7,7 +7,7 @@ import { isNativeWebView } from '@shared/lib/device';
 import { METHODS } from '@knockdog/bridge-core';
 import { buildHref, type Query } from './queryUtils';
 
-type TabRoute = '/' | '/save' | '/compare' | '/mypage';
+type TabRoute = '/' | '/search' | '/save' | '/compare' | '/mypage';
 
 // Main 탭 경로 목록
 const MAIN_TAB_ROUTES: readonly string[] = ['/', '/search', '/save', '/compare', '/mypage'] as const;
