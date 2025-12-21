@@ -298,7 +298,6 @@ export function MapView(props: MapViewProps) {
               // 현재 활성화된 마커가 해당 클러스터에 포함되어 있다면 그 마커를 대표로 표시
               const activeLeaf = leaves.find((leaf) => leaf.properties.marker.id === activeMarkerId);
               const representative = activeLeaf ? activeLeaf.properties.marker : firstLeaf.properties.marker;
-              const isSelected = selectedClusterId === cluster_id;
 
               return (
                 <Marker
@@ -318,7 +317,6 @@ export function MapView(props: MapViewProps) {
                         />
                       </div>
                     ),
-                    offsetY: 12,
                   }}
                 />
               );
@@ -336,8 +334,8 @@ export function MapView(props: MapViewProps) {
                 position={marker.coord}
                 onClick={() => handleMarkerClick(marker)}
                 customIcon={{
-                  content: !isPointZoom(mapState.zoom) ? (
-                    // Medium Zoom: 선택 여부 및 부가 정보에 따라 마커 타입 결정
+                  content: !isClusteringZoom(mapState.zoom) ? (
+                    // Low/Medium Zoom (< 15): 일반 마커 노출
                     isSelected ? (
                       <PlaceBubbleMarker
                         title={marker.title}
@@ -352,7 +350,7 @@ export function MapView(props: MapViewProps) {
                       <DotMarker />
                     )
                   ) : (
-                    // High Zoom: 무조건 PlaceBubbleMarker
+                    // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
                     <PlaceBubbleMarker
                       title={marker.title}
                       distance={marker.dist}
@@ -361,7 +359,6 @@ export function MapView(props: MapViewProps) {
                       hasMemo={!!marker.memo}
                     />
                   ),
-                  offsetY: 12,
                 }}
               />
             );
@@ -375,7 +372,7 @@ export function MapView(props: MapViewProps) {
             customIcon={{
               content: (
                 <div className='relative flex flex-col items-center'>
-                  <div className='mb-x3 absolute bottom-full'>
+                  <div className='absolute bottom-full'>
                     <CalloutOverlay
                       items={selectedClusterData.items}
                       totalCount={selectedClusterData.pointCount}
@@ -390,8 +387,7 @@ export function MapView(props: MapViewProps) {
                   <div className='w-x10 h-[62px]' />
                 </div>
               ),
-              align: 'center',
-              offsetY: -12,
+              align: 'bottom-center',
             }}
           />
         )}
@@ -403,7 +399,23 @@ export function MapView(props: MapViewProps) {
             position={exact.coord}
             onClick={() => handleMarkerClick(exact)}
             customIcon={{
-              content: (
+              content: !isClusteringZoom(mapState.zoom) ? (
+                // Low/Medium Zoom (< 15): 일반 마커 노출
+                exact.id === activeMarkerId ? (
+                  <PlaceBubbleMarker
+                    title={exact.title}
+                    distance={exact.dist}
+                    selected={true}
+                    isBookmarked={exact.isBookmarked}
+                    hasMemo={!!exact.memo}
+                  />
+                ) : exact.isBookmarked || !!exact.memo ? (
+                  <BaseBubbleMarker isBookmarked={exact.isBookmarked} hasMemo={!!exact.memo} />
+                ) : (
+                  <DotMarker />
+                )
+              ) : (
+                // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
                 <PlaceBubbleMarker
                   title={exact.title}
                   distance={exact.dist}
@@ -412,7 +424,6 @@ export function MapView(props: MapViewProps) {
                   hasMemo={!!exact.memo}
                 />
               ),
-              offsetY: 12,
             }}
           />
         )}
