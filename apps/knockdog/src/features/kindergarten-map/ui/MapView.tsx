@@ -1,6 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
-import { isAggregationZoom, isBusinessZoom } from '../lib/markers';
+import { isAggregationZoom, isPointZoom, isClusteringZoom } from '../lib/markers';
 import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useSearchQuery';
 import { BBoxDebug } from './BBoxDebug';
@@ -9,9 +9,16 @@ import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
 import { isEqualBounds, useGeolocationQuery } from '@shared/lib';
-import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
+import { CurrentLocationMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
+import { AggregationMarker } from './AggregationMarker';
+import { PlaceBubbleMarker } from './PlaceBubbleMarker';
+import { DotMarker } from './DotMarker';
+import { BaseBubbleMarker } from './BaseBubbleMarker';
+import { ClusterBubbleMarker } from './ClusterBubbleMarker';
+import { CalloutOverlay } from './CalloutOverlay';
+import { useMapClustering, type MapPoint, type MapCluster } from '../model/useMapClustering';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
@@ -39,9 +46,18 @@ export function MapView(props: MapViewProps) {
 
   // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
   const showAggregationMarkers = committedState.searchLock !== 1 && isAggregationZoom(mapState.zoom);
-  const showBusinessMarkers = committedState.searchLock === 1 || isBusinessZoom(mapState.zoom);
+  const showBusinessMarkers = committedState.searchLock === 1 || isPointZoom(mapState.zoom);
 
   const { searchList: overlay, exact } = useSearchListQuery();
+
+  const { clusters, supercluster } = useMapClustering({
+    markers: overlay,
+    zoom: mapState.zoom,
+    bounds: mapState.viewportBounds,
+    disableClustering: !isClusteringZoom(mapState.zoom),
+  });
+
+  const [selectedClusterId, setSelectedClusterId] = useState<number | null>(null);
 
   const { aggregation, geoBounds, dataUpdatedAt } = useAggregationQuery();
 
@@ -173,8 +189,17 @@ export function MapView(props: MapViewProps) {
    * @description 마커 클릭 시 지도 중심 이동, 상세 정보 표시 및 마커 활성화 처리
    */
   const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
+    setSelectedClusterId(null);
     dispatch({ type: 'CENTER_CHANGED', center: item.coord });
     onOpenCard?.(item);
+  };
+
+  /**
+   * 클러스터 클릭 핸들러
+   * @description 클릭된 클러스터의 상세 목록 오버레이 표시
+   */
+  const handleClusterClick = (clusterId: number) => {
+    setSelectedClusterId((prev) => (prev === clusterId ? null : clusterId));
   };
 
   return (
@@ -203,7 +228,7 @@ export function MapView(props: MapViewProps) {
           />
         )}
 
-        {/* 지도 집계 마커 (줌레벨 0~13) */}
+        {/* 지도 집계 마커 (줌레벨 0~12) */}
         {showAggregationMarkers &&
           aggregation.map((item) => (
             <Marker
@@ -217,28 +242,100 @@ export function MapView(props: MapViewProps) {
             />
           ))}
 
-        {/* 개별 마커 (줌레벨 14~) */}
+        {/* 개별/클러스터 마커 (줌레벨 13~) */}
         {showBusinessMarkers &&
-          overlay.map((item) => (
-            <Marker
-              key={item.id}
-              position={item.coord}
-              onClick={() => handleMarkerClick(item)}
-              customIcon={{
-                content: (
-                  <PlaceMarker
-                    title={item.title}
-                    distance={item.dist}
-                    selected={item.id === activeMarkerId}
-                    isBookmarked={item.isBookmarked}
-                    hasMemo={!!item.memo}
-                  />
-                ),
-                offsetY: 12,
-              }}
-            />
-          ))}
+          clusters.map((feature) => {
+            const [lng, lat] = feature.geometry.coordinates as [number, number];
 
+            // 클러스터링 마커
+            if (feature.properties.cluster) {
+              const cluster = feature as MapCluster;
+              const { cluster_id, point_count } = cluster.properties;
+
+              const leaves = supercluster.getLeaves(cluster_id, 1);
+              const leaf = leaves[0];
+              if (!leaf?.properties?.marker) return null;
+
+              const representative = leaf.properties.marker;
+              const isSelected = selectedClusterId === cluster_id;
+
+              return (
+                <Marker
+                  key={`cluster-${cluster_id}`}
+                  position={{ lat, lng }}
+                  onClick={() => handleClusterClick(cluster_id)}
+                  customIcon={{
+                    content: (
+                      <div className='relative flex flex-col items-center'>
+                        {/* 클러스터 클릭 시 드롭다운 노출 */}
+                        {isSelected && (
+                          <div className='mb-x3 absolute bottom-full'>
+                            <CalloutOverlay
+                              items={supercluster.getLeaves(cluster_id, Infinity).map((leaf) => leaf.properties.marker)}
+                              totalCount={point_count}
+                            />
+                          </div>
+                        )}
+                        <ClusterBubbleMarker
+                          title={representative.title}
+                          distance={representative.dist}
+                          isBookmarked={representative.isBookmarked}
+                          hasMemo={!!representative.memo}
+                          totalCount={point_count}
+                          selected={representative.id === activeMarkerId}
+                        />
+                      </div>
+                    ),
+                    offsetY: 12,
+                  }}
+                />
+              );
+            }
+
+            // 개별 마커(Point)
+            const point = feature as MapPoint;
+            const { marker, markerId } = point.properties;
+
+            const isSelected = markerId === activeMarkerId;
+
+            return (
+              <Marker
+                key={markerId}
+                position={marker.coord}
+                onClick={() => handleMarkerClick(marker)}
+                customIcon={{
+                  content: !isPointZoom(mapState.zoom) ? (
+                    // Medium Zoom: 선택 여부 및 부가 정보에 따라 마커 타입 결정
+                    isSelected ? (
+                      <PlaceBubbleMarker
+                        title={marker.title}
+                        distance={marker.dist}
+                        selected={true}
+                        isBookmarked={marker.isBookmarked}
+                        hasMemo={!!marker.memo}
+                      />
+                    ) : marker.isBookmarked || !!marker.memo ? (
+                      <BaseBubbleMarker isBookmarked={marker.isBookmarked} hasMemo={!!marker.memo} />
+                    ) : (
+                      <DotMarker />
+                    )
+                  ) : (
+                    // High Zoom: 무조건 PlaceBubbleMarker
+                    <PlaceBubbleMarker
+                      title={marker.title}
+                      distance={marker.dist}
+                      selected={isSelected}
+                      isBookmarked={marker.isBookmarked}
+                      hasMemo={!!marker.memo}
+                    />
+                  ),
+                  offsetY: 12,
+                }}
+              />
+            );
+          })}
+
+        {/* 정확한 업체가 있을 때 */}
         {showBusinessMarkers && exact && (
           <Marker
             key={exact.id}
@@ -246,7 +343,7 @@ export function MapView(props: MapViewProps) {
             onClick={() => handleMarkerClick(exact)}
             customIcon={{
               content: (
-                <PlaceMarker
+                <PlaceBubbleMarker
                   title={exact.title}
                   distance={exact.dist}
                   selected={exact.id === activeMarkerId}
