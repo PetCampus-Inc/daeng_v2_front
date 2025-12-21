@@ -1,5 +1,3 @@
-import { cn } from '@knockdog/ui/lib';
-
 export function DotMarker({ className }: { className?: string }) {
   return (
     <div className={className}>

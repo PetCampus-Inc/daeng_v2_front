@@ -27,7 +27,7 @@ export function CalloutOverlay({ items, totalCount, onItemClick }: CalloutOverla
     scrollElement.addEventListener('scroll', checkScroll);
 
     return () => scrollElement.removeEventListener('scroll', checkScroll);
-  }, []);
+  }, [items]);
 
   return (
     <aside
