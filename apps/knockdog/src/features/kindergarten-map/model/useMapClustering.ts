@@ -50,18 +50,20 @@ export function useMapClustering({ markers, zoom, bounds, disableClustering = fa
       ...options,
     });
 
-    const points: MapPoint[] = markers.map((marker) => ({
-      type: 'Feature',
-      properties: {
-        cluster: false,
-        markerId: marker.id,
-        marker,
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [marker.coord.lng, marker.coord.lat],
-      },
-    }));
+    const points: MapPoint[] = markers
+      .filter((marker) => marker.coord && typeof marker.coord.lat === 'number' && typeof marker.coord.lng === 'number')
+      .map((marker) => ({
+        type: 'Feature',
+        properties: {
+          cluster: false,
+          markerId: marker.id,
+          marker,
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [marker.coord.lng, marker.coord.lat],
+        },
+      }));
 
     sc.load(points);
     return sc;
@@ -77,6 +79,9 @@ export function useMapClustering({ markers, zoom, bounds, disableClustering = fa
       return markers
         .filter((m) => {
           return (
+            m.coord &&
+            typeof m.coord.lat === 'number' &&
+            typeof m.coord.lng === 'number' &&
             m.coord.lat >= bounds.swLat &&
             m.coord.lat <= bounds.neLat &&
             m.coord.lng >= bounds.swLng &&
