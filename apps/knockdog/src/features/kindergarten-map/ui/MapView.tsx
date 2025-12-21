@@ -229,7 +229,7 @@ export function MapView(props: MapViewProps) {
       // 콜아웃 오버레이를 중앙에 배치하기 위해 지도 중심을 아래로 이동
       const projection = map.current.getProjection();
       const point = projection.fromCoordToOffset(new naver.maps.LatLng(item.coord.lat, item.coord.lng));
-      const offsetPoint = new naver.maps.Point(point.x, point.y - 100);
+      const offsetPoint = new naver.maps.Point(point.x, point.y - 80);
       const offsetCoord = projection.fromOffsetToCoord(offsetPoint);
 
       dispatch({
