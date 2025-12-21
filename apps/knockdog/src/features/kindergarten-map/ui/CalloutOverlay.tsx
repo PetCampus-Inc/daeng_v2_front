@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-interface ListOverlayProps {
+interface CalloutOverlayProps {
   items: ListItem[];
   totalCount?: number;
 }
@@ -13,7 +13,7 @@ interface ListItem {
   hasMemo?: boolean;
 }
 
-export function ListOverlay({ items, totalCount }: ListOverlayProps) {
+export function CalloutOverlay({ items, totalCount }: CalloutOverlayProps) {
   const scrollRef = useRef<HTMLUListElement>(null);
   const [showGradient, setShowGradient] = useState(false);
 
