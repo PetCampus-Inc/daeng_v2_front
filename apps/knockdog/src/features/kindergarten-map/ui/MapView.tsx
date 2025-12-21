@@ -1,6 +1,6 @@
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
-import { isAggregationZoom, isBusinessZoom } from '../lib/markers';
+import { isAggregationZoom, isPointZoom, isClusteringZoom } from '../lib/markers';
 import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useSearchQuery';
 import { BBoxDebug } from './BBoxDebug';
@@ -9,9 +9,16 @@ import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
 import { isEqualBounds, useGeolocationQuery } from '@shared/lib';
-import { AggregationMarker, CurrentLocationMarker, PlaceMarker } from '@shared/ui/map';
+import { CurrentLocationMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
+import { AggregationMarker } from './AggregationMarker';
+import { PlaceBubbleMarker } from './PlaceBubbleMarker';
+import { DotMarker } from './DotMarker';
+import { BaseBubbleMarker } from './BaseBubbleMarker';
+import { ClusterBubbleMarker } from './ClusterBubbleMarker';
+import { CalloutOverlay } from './CalloutOverlay';
+import { useMapClustering, type MapPoint, type MapCluster } from '../model/useMapClustering';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
@@ -39,9 +46,41 @@ export function MapView(props: MapViewProps) {
 
   // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
   const showAggregationMarkers = committedState.searchLock !== 1 && isAggregationZoom(mapState.zoom);
-  const showBusinessMarkers = committedState.searchLock === 1 || isBusinessZoom(mapState.zoom);
+  const showBusinessMarkers = committedState.searchLock === 1 || isPointZoom(mapState.zoom);
 
   const { searchList: overlay, exact } = useSearchListQuery();
+
+  const { clusters, supercluster } = useMapClustering({
+    markers: overlay,
+    zoom: mapState.zoom,
+    bounds: mapState.viewportBounds,
+    disableClustering: !isClusteringZoom(mapState.zoom),
+  });
+
+  const [selectedClusterId, setSelectedClusterId] = useState<number | null>(null);
+
+  /**
+   * 현재 선택된 클러스터의 상세 데이터 추출
+   * @description clusters.map 루프와 분리하여 별도 레이어로 렌더링
+   */
+  const selectedClusterData = useMemo(() => {
+    if (selectedClusterId === null) return null;
+    const cluster = clusters.find(
+      (f) => f.properties.cluster && (f as MapCluster).properties.cluster_id === selectedClusterId
+    ) as MapCluster | undefined;
+
+    if (!cluster) return null;
+
+    const [lng, lat] = cluster.geometry.coordinates as [number, number];
+    const leaves = supercluster.getLeaves(selectedClusterId, Infinity);
+
+    return {
+      id: selectedClusterId,
+      coord: { lat, lng },
+      items: leaves.map((leaf) => leaf.properties.marker),
+      pointCount: cluster.properties.point_count,
+    };
+  }, [selectedClusterId, clusters, supercluster]);
 
   const { aggregation, geoBounds, dataUpdatedAt } = useAggregationQuery();
 
@@ -173,8 +212,33 @@ export function MapView(props: MapViewProps) {
    * @description 마커 클릭 시 지도 중심 이동, 상세 정보 표시 및 마커 활성화 처리
    */
   const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
+    setSelectedClusterId(null);
     dispatch({ type: 'CENTER_CHANGED', center: item.coord });
     onOpenCard?.(item);
+  };
+
+  /**
+   * 클러스터 클릭 핸들러
+   * @description 클릭된 클러스터의 상세 목록 오버레이 표시
+   */
+  const handleClusterClick = (item: { id: number; coord: Coord }) => {
+    const isOpening = selectedClusterId !== item.id;
+    setSelectedClusterId((prev) => (prev === item.id ? null : item.id));
+
+    if (isOpening && map.current) {
+      // 콜아웃 오버레이를 중앙에 배치하기 위해 지도 중심을 아래로 이동
+      const projection = map.current.getProjection();
+      const point = projection.fromCoordToOffset(new naver.maps.LatLng(item.coord.lat, item.coord.lng));
+      const offsetPoint = new naver.maps.Point(point.x, point.y - 100);
+      const offsetCoord = projection.fromOffsetToCoord(offsetPoint);
+
+      dispatch({
+        type: 'CENTER_CHANGED',
+        center: { lat: offsetCoord.y, lng: offsetCoord.x },
+      });
+    } else {
+      dispatch({ type: 'CENTER_CHANGED', center: item.coord });
+    }
   };
 
   return (
@@ -203,7 +267,7 @@ export function MapView(props: MapViewProps) {
           />
         )}
 
-        {/* 지도 집계 마커 (줌레벨 0~13) */}
+        {/* 지도 집계 마커 (줌레벨 0~12) */}
         {showAggregationMarkers &&
           aggregation.map((item) => (
             <Marker
@@ -217,36 +281,142 @@ export function MapView(props: MapViewProps) {
             />
           ))}
 
-        {/* 개별 마커 (줌레벨 14~) */}
+        {/* 개별/클러스터 마커 (줌레벨 13~) */}
         {showBusinessMarkers &&
-          overlay.map((item) => (
-            <Marker
-              key={item.id}
-              position={item.coord}
-              onClick={() => handleMarkerClick(item)}
-              customIcon={{
-                content: (
-                  <PlaceMarker
-                    title={item.title}
-                    distance={item.dist}
-                    selected={item.id === activeMarkerId}
-                    isBookmarked={item.isBookmarked}
-                    hasMemo={!!item.memo}
-                  />
-                ),
-                offsetY: 12,
-              }}
-            />
-          ))}
+          clusters.map((feature) => {
+            const [lng, lat] = feature.geometry.coordinates as [number, number];
 
+            // 클러스터링 마커
+            if (feature.properties.cluster) {
+              const cluster = feature as MapCluster;
+              const { cluster_id, point_count } = cluster.properties;
+
+              const leaves = supercluster.getLeaves(cluster_id, Infinity);
+              const firstLeaf = leaves[0];
+              if (!firstLeaf?.properties?.marker) return null;
+
+              // 현재 활성화된 마커가 해당 클러스터에 포함되어 있다면 그 마커를 대표로 표시
+              const activeLeaf = leaves.find((leaf) => leaf.properties.marker.id === activeMarkerId);
+              const representative = activeLeaf ? activeLeaf.properties.marker : firstLeaf.properties.marker;
+
+              return (
+                <Marker
+                  key={`cluster-${cluster_id}`}
+                  position={{ lat, lng }}
+                  onClick={() => handleClusterClick({ id: cluster_id, coord: { lat, lng } })}
+                  customIcon={{
+                    content: (
+                      <div className='relative flex flex-col items-center'>
+                        <ClusterBubbleMarker
+                          title={representative.title}
+                          distance={representative.dist}
+                          isBookmarked={representative.isBookmarked}
+                          hasMemo={!!representative.memo}
+                          totalCount={point_count}
+                          selected={representative.id === activeMarkerId}
+                        />
+                      </div>
+                    ),
+                  }}
+                />
+              );
+            }
+
+            // 개별 마커(Point)
+            const point = feature as MapPoint;
+            const { marker, markerId } = point.properties;
+
+            const isSelected = markerId === activeMarkerId;
+
+            return (
+              <Marker
+                key={markerId}
+                position={marker.coord}
+                onClick={() => handleMarkerClick(marker)}
+                customIcon={{
+                  content: !isClusteringZoom(mapState.zoom) ? (
+                    // Low/Medium Zoom (< 15): 일반 마커 노출
+                    isSelected ? (
+                      <PlaceBubbleMarker
+                        title={marker.title}
+                        distance={marker.dist}
+                        selected={true}
+                        isBookmarked={marker.isBookmarked}
+                        hasMemo={!!marker.memo}
+                      />
+                    ) : marker.isBookmarked || !!marker.memo ? (
+                      <BaseBubbleMarker isBookmarked={marker.isBookmarked} hasMemo={!!marker.memo} />
+                    ) : (
+                      <DotMarker />
+                    )
+                  ) : (
+                    // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
+                    <PlaceBubbleMarker
+                      title={marker.title}
+                      distance={marker.dist}
+                      selected={isSelected}
+                      isBookmarked={marker.isBookmarked}
+                      hasMemo={!!marker.memo}
+                    />
+                  ),
+                }}
+              />
+            );
+          })}
+
+        {/* 선택된 클러스터의 콜아웃 오버레이 */}
+        {selectedClusterData && (
+          <Marker
+            position={selectedClusterData.coord}
+            clickable={false}
+            customIcon={{
+              content: (
+                <div className='relative flex flex-col items-center'>
+                  <div className='absolute bottom-full'>
+                    <CalloutOverlay
+                      items={selectedClusterData.items}
+                      totalCount={selectedClusterData.pointCount}
+                      onItemClick={(item) => {
+                        setSelectedClusterId(null);
+                        dispatch({ type: 'CENTER_CHANGED', center: selectedClusterData.coord });
+                        onOpenCard?.(item);
+                      }}
+                    />
+                  </div>
+                  {/* 클러스터 마커의 높이 */}
+                  <div className='w-x10 h-[62px]' />
+                </div>
+              ),
+              align: 'bottom-center',
+            }}
+          />
+        )}
+
+        {/* 정확한 업체가 있을 때 */}
         {showBusinessMarkers && exact && (
           <Marker
             key={exact.id}
             position={exact.coord}
             onClick={() => handleMarkerClick(exact)}
             customIcon={{
-              content: (
-                <PlaceMarker
+              content: !isClusteringZoom(mapState.zoom) ? (
+                // Low/Medium Zoom (< 15): 일반 마커 노출
+                exact.id === activeMarkerId ? (
+                  <PlaceBubbleMarker
+                    title={exact.title}
+                    distance={exact.dist}
+                    selected={true}
+                    isBookmarked={exact.isBookmarked}
+                    hasMemo={!!exact.memo}
+                  />
+                ) : exact.isBookmarked || !!exact.memo ? (
+                  <BaseBubbleMarker isBookmarked={exact.isBookmarked} hasMemo={!!exact.memo} />
+                ) : (
+                  <DotMarker />
+                )
+              ) : (
+                // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
+                <PlaceBubbleMarker
                   title={exact.title}
                   distance={exact.dist}
                   selected={exact.id === activeMarkerId}
@@ -254,7 +424,6 @@ export function MapView(props: MapViewProps) {
                   hasMemo={!!exact.memo}
                 />
               ),
-              offsetY: 12,
             }}
           />
         )}
