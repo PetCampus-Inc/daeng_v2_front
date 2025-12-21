@@ -60,9 +60,7 @@ export function SaveMainPage() {
         </Header>
       )}
 
-      <div className='min-h-0 flex-1'>
-        <SaveTabs searchQuery={localQuery} />
-      </div>
+      <div className='min-h-0 flex-1'>{isMounted && isLoggedIn && <SaveTabs searchQuery={localQuery} />}</div>
     </SafeArea>
   );
 }
