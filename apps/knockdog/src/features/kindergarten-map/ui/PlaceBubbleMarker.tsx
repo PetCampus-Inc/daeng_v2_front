@@ -1,17 +1,26 @@
-import React from 'react';
-
 import { cn } from '@knockdog/ui/lib';
+import { Icon } from '@knockdog/ui';
 import { ellipsisText } from '@shared/utils';
 
-interface PlaceMarkerProps {
+interface PlaceBubbleMarkerProps {
   title: string;
   titleMaxLength?: number;
   distance?: string | number;
   selected?: boolean;
   className?: string;
+  isBookmarked?: boolean;
+  hasMemo?: boolean;
 }
 
-export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, className }: PlaceMarkerProps) {
+export function PlaceBubbleMarker({
+  title,
+  titleMaxLength = 7,
+  distance,
+  selected,
+  className,
+  isBookmarked,
+  hasMemo,
+}: PlaceBubbleMarkerProps) {
   return (
     <div className='relative select-none'>
       <div
@@ -28,6 +37,18 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
             {distance}
           </span>
+          {isBookmarked && (
+            <Icon
+              icon='BookmarkFill'
+              className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
+            />
+          )}
+          {hasMemo && (
+            <Icon
+              icon='Note'
+              className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
+            />
+          )}
         </div>
       </div>
       <svg

@@ -1,17 +1,30 @@
 import React from 'react';
 
 import { cn } from '@knockdog/ui/lib';
+import { Icon } from '@knockdog/ui';
 import { ellipsisText } from '@shared/utils';
 
-interface PlaceMarkerProps {
+interface ClusterBubbleMarkerProps {
   title: string;
   titleMaxLength?: number;
   distance?: string | number;
   selected?: boolean;
   className?: string;
+  isBookmarked?: boolean;
+  hasMemo?: boolean;
+  totalCount?: number;
 }
 
-export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, className }: PlaceMarkerProps) {
+export function ClusterBubbleMarker({
+  title,
+  titleMaxLength = 7,
+  distance,
+  selected,
+  className,
+  isBookmarked,
+  hasMemo,
+  totalCount,
+}: ClusterBubbleMarkerProps) {
   return (
     <div className='relative select-none'>
       <div
@@ -21,6 +34,11 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
           className
         )}
       >
+        {totalCount && (
+          <div className='size-x5 bg-fill-secondary-700 border-line-100 radius-full absolute -top-2 -right-2 flex aspect-square items-center justify-center border'>
+            <span className='caption2-extrabold text-white'>{totalCount}</span>
+          </div>
+        )}
         <p className={cn('body2-bold text-text-primary whitespace-nowrap', selected && 'text-text-primary-inverse')}>
           {ellipsisText(title, titleMaxLength)}
         </p>
@@ -28,6 +46,18 @@ export function PlaceMarker({ title, titleMaxLength = 7, distance, selected, cla
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
             {distance}
           </span>
+          {isBookmarked && (
+            <Icon
+              icon='BookmarkFill'
+              className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
+            />
+          )}
+          {hasMemo && (
+            <Icon
+              icon='Note'
+              className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}
+            />
+          )}
         </div>
       </div>
       <svg
