@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { isAggregationZoom, isPointZoom, isClusteringZoom } from '../lib/markers';
 import { getMapCenter, getMapZoom } from '../lib/map';
@@ -58,6 +58,29 @@ export function MapView(props: MapViewProps) {
   });
 
   const [selectedClusterId, setSelectedClusterId] = useState<number | null>(null);
+
+  /**
+   * 현재 선택된 클러스터의 상세 데이터 추출
+   * @description clusters.map 루프와 분리하여 별도 레이어로 렌더링
+   */
+  const selectedClusterData = useMemo(() => {
+    if (selectedClusterId === null) return null;
+    const cluster = clusters.find(
+      (f) => f.properties.cluster && (f as MapCluster).properties.cluster_id === selectedClusterId
+    ) as MapCluster | undefined;
+
+    if (!cluster) return null;
+
+    const [lng, lat] = cluster.geometry.coordinates as [number, number];
+    const leaves = supercluster.getLeaves(selectedClusterId, Infinity);
+
+    return {
+      id: selectedClusterId,
+      coord: { lat, lng },
+      items: leaves.map((leaf) => leaf.properties.marker),
+      pointCount: cluster.properties.point_count,
+    };
+  }, [selectedClusterId, clusters, supercluster]);
 
   const { aggregation, geoBounds, dataUpdatedAt } = useAggregationQuery();
 
@@ -198,8 +221,24 @@ export function MapView(props: MapViewProps) {
    * 클러스터 클릭 핸들러
    * @description 클릭된 클러스터의 상세 목록 오버레이 표시
    */
-  const handleClusterClick = (clusterId: number) => {
-    setSelectedClusterId((prev) => (prev === clusterId ? null : clusterId));
+  const handleClusterClick = (item: { id: number; coord: Coord }) => {
+    const isOpening = selectedClusterId !== item.id;
+    setSelectedClusterId((prev) => (prev === item.id ? null : item.id));
+
+    if (isOpening && map.current) {
+      // 콜아웃 오버레이를 중앙에 배치하기 위해 지도 중심을 아래로 이동
+      const projection = map.current.getProjection();
+      const point = projection.fromCoordToOffset(new naver.maps.LatLng(item.coord.lat, item.coord.lng));
+      const offsetPoint = new naver.maps.Point(point.x, point.y - 100);
+      const offsetCoord = projection.fromOffsetToCoord(offsetPoint);
+
+      dispatch({
+        type: 'CENTER_CHANGED',
+        center: { lat: offsetCoord.y, lng: offsetCoord.x },
+      });
+    } else {
+      dispatch({ type: 'CENTER_CHANGED', center: item.coord });
+    }
   };
 
   return (
@@ -252,30 +291,23 @@ export function MapView(props: MapViewProps) {
               const cluster = feature as MapCluster;
               const { cluster_id, point_count } = cluster.properties;
 
-              const leaves = supercluster.getLeaves(cluster_id, 1);
-              const leaf = leaves[0];
-              if (!leaf?.properties?.marker) return null;
+              const leaves = supercluster.getLeaves(cluster_id, Infinity);
+              const firstLeaf = leaves[0];
+              if (!firstLeaf?.properties?.marker) return null;
 
-              const representative = leaf.properties.marker;
+              // 현재 활성화된 마커가 해당 클러스터에 포함되어 있다면 그 마커를 대표로 표시
+              const activeLeaf = leaves.find((leaf) => leaf.properties.marker.id === activeMarkerId);
+              const representative = activeLeaf ? activeLeaf.properties.marker : firstLeaf.properties.marker;
               const isSelected = selectedClusterId === cluster_id;
 
               return (
                 <Marker
                   key={`cluster-${cluster_id}`}
                   position={{ lat, lng }}
-                  onClick={() => handleClusterClick(cluster_id)}
+                  onClick={() => handleClusterClick({ id: cluster_id, coord: { lat, lng } })}
                   customIcon={{
                     content: (
                       <div className='relative flex flex-col items-center'>
-                        {/* 클러스터 클릭 시 드롭다운 노출 */}
-                        {isSelected && (
-                          <div className='mb-x3 absolute bottom-full'>
-                            <CalloutOverlay
-                              items={supercluster.getLeaves(cluster_id, Infinity).map((leaf) => leaf.properties.marker)}
-                              totalCount={point_count}
-                            />
-                          </div>
-                        )}
                         <ClusterBubbleMarker
                           title={representative.title}
                           distance={representative.dist}
@@ -334,6 +366,35 @@ export function MapView(props: MapViewProps) {
               />
             );
           })}
+
+        {/* 선택된 클러스터의 콜아웃 오버레이 */}
+        {selectedClusterData && (
+          <Marker
+            position={selectedClusterData.coord}
+            clickable={false}
+            customIcon={{
+              content: (
+                <div className='relative flex flex-col items-center'>
+                  <div className='mb-x3 absolute bottom-full'>
+                    <CalloutOverlay
+                      items={selectedClusterData.items}
+                      totalCount={selectedClusterData.pointCount}
+                      onItemClick={(item) => {
+                        setSelectedClusterId(null);
+                        dispatch({ type: 'CENTER_CHANGED', center: selectedClusterData.coord });
+                        onOpenCard?.(item);
+                      }}
+                    />
+                  </div>
+                  {/* 클러스터 마커의 높이 */}
+                  <div className='w-x10 h-[62px]' />
+                </div>
+              ),
+              align: 'center',
+              offsetY: -12,
+            }}
+          />
+        )}
 
         {/* 정확한 업체가 있을 때 */}
         {showBusinessMarkers && exact && (

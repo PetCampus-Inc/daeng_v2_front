@@ -1,19 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
+import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+
 interface CalloutOverlayProps {
-  items: ListItem[];
+  items: KindergartenListItemWithMeta[];
   totalCount?: number;
+  onItemClick?: (item: KindergartenListItemWithMeta) => void;
 }
 
-interface ListItem {
-  id: string;
-  title: string;
-  dist: string | number;
-  isBookmarked?: boolean;
-  hasMemo?: boolean;
-}
-
-export function CalloutOverlay({ items, totalCount }: CalloutOverlayProps) {
+export function CalloutOverlay({ items, totalCount, onItemClick }: CalloutOverlayProps) {
   const scrollRef = useRef<HTMLUListElement>(null);
   const [showGradient, setShowGradient] = useState(false);
 
@@ -47,7 +42,19 @@ export function CalloutOverlay({ items, totalCount }: CalloutOverlayProps) {
         {items.map((item) => (
           <li
             key={item.id}
-            className='px-x2 gap-x0_5 py-x1 shadow-line-200 flex flex-col shadow-[inset_0_-1px_0_0] first:pt-0 last:shadow-none'
+            className='px-x2 gap-x0_5 py-x1 shadow-line-200 hover:bg-bg-50 active:bg-bg-100 flex cursor-pointer flex-col shadow-[inset_0_-1px_0_0] first:pt-0 last:shadow-none'
+            role='button'
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              onItemClick?.(item);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                onItemClick?.(item);
+              }
+            }}
           >
             <p className='body2-bold text-text-primary min-w-0 overflow-hidden text-ellipsis whitespace-nowrap'>
               {item.title}
