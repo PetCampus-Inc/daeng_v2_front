@@ -12,7 +12,7 @@ export function BaseBubbleMarker({ className, isBookmarked, hasMemo }: BaseBubbl
     <div className='relative select-none'>
       <div
         className={cn(
-          'border-line-700 bg-fill-secondary-0 radius-r2 p-x2 flex min-w-[91px] flex-col items-center border',
+          'border-line-700 bg-fill-secondary-0 radius-r2 p-x2 flex min-w-[50px] flex-col items-center border',
           className
         )}
       >
