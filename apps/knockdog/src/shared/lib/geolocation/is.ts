@@ -18,6 +18,7 @@ export const isValidCoord = (coord: unknown): coord is Coord => {
  * @param epsilon
  */
 export function isEqualCoord(first: Coord | null, second: Coord | null, epsilon = 1e-6) {
+  if (!first && !second) return true;
   if (!first || !second) return false;
   if (first.lat == null || second.lat == null) return false;
   if (first.lng == null || second.lng == null) return false;
@@ -36,6 +37,7 @@ export function isEqualBounds(
   second: { swLat: number; swLng: number; neLat: number; neLng: number } | null,
   epsilon = 1e-6
 ) {
+  if (!first && !second) return true;
   if (!first || !second) return false;
 
   return (
