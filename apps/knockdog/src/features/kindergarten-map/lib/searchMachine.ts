@@ -64,6 +64,13 @@ export type SearchEvent =
   | { type: 'FILTERS_CHANGED'; filters: FilterOption[] }
   | { type: 'CLEAR_QUERY' }
   | { type: 'CLEAR_FILTERS' }
+  | {
+      type: 'BASEPOINT_SYNC';
+      payload: {
+        basePoint: Coord;
+        reason: 'passive' | 'explicit';
+      };
+    }
   | { type: 'REFPOINT_SET'; refPoint: Coord }
   | { type: 'CENTER_CHANGED'; center: Coord }
   | {
@@ -176,7 +183,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
       const resolvedState = {
         ...nextState,
-        refPoint: ctx.refPointFromBase ?? nextState.refPoint,
+        refPoint: nextState.refPoint ?? ctx.refPointFromBase,
       };
 
       if (!resolvedState.searchCenter) {
@@ -200,6 +207,39 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
     case 'CLEAR_FILTERS': {
       return applyFilterTransition(current, []);
+    }
+
+    case 'BASEPOINT_SYNC': {
+      const { basePoint, reason } = event.payload;
+
+      if (reason === 'explicit') {
+        const targetScope = deriveScope({
+          currentScope: current.scope,
+          query: current.query,
+          filters: current.filters,
+        });
+        const scoped = applyScopeTransition(current, targetScope);
+
+        return {
+          ...scoped,
+          refPoint: basePoint,
+          center: basePoint,
+          searchCenter: basePoint,
+        };
+      }
+
+      // passive: refPoint만 채우되, center/searchCenter는 최초에 비어있을 때만 보정.
+      if (isEqualCoord(current.refPoint, basePoint)) return current;
+
+      const nextState: SearchState = {
+        ...current,
+        refPoint: basePoint,
+      };
+
+      if (!nextState.center) nextState.center = basePoint;
+      if (!nextState.searchCenter) nextState.searchCenter = nextState.center;
+
+      return nextState;
     }
 
     case 'REFPOINT_SET': {
@@ -291,6 +331,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
         ...current,
         center,
         zoom,
+        viewportBounds: bounds,
       };
 
       /**

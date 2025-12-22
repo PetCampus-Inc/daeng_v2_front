@@ -60,9 +60,8 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   }, [liveState, committedState, committedMapState, basePoint, urlState]);
 
   const buildTransitionContext = useCallback((): SearchTransitionContext => {
-    const currentState = mergeSnapshots(committedStateRef.current, liveStateRef.current);
     return {
-      refPointFromBase: currentState.refPoint ?? basePointRef.current ?? null,
+      refPointFromBase: basePointRef.current ?? null,
     };
   }, []);
 
@@ -105,7 +104,9 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const shouldCommitMap = isSearchChanged;
 
       if (isSearchChanged) {
-        console.log('[SearchMachine] State changed:', { event, prev: prevState, next });
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[SearchMachine] State changed:', { event, prev: prevState, next });
+        }
         setCommittedState(nextSearch);
         // URL_SYNC 직후 들어오는 이벤트가 최신 검색 상태를 사용하도록 보장한다.
         committedStateRef.current = nextSearch;
@@ -130,15 +131,17 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!basePoint) return;
 
-    if (!committedState.refPoint) {
-      dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
+    const hasUrlRefPoint = !!urlStateRef.current.refPoint;
+
+    if (!committedState.refPoint && !hasUrlRefPoint) {
+      dispatch({ type: 'BASEPOINT_SYNC', payload: { basePoint, reason: 'passive' } });
       prevBaseTypeRef.current = baseType;
       return;
     }
 
     const baseTypeChanged = prevBaseTypeRef.current !== baseType;
     if (baseTypeChanged && !isEqualCoord(committedState.refPoint, basePoint)) {
-      dispatch({ type: 'REFPOINT_SET', refPoint: basePoint });
+      dispatch({ type: 'BASEPOINT_SYNC', payload: { basePoint, reason: 'explicit' } });
     }
     prevBaseTypeRef.current = baseType;
   }, [basePoint, baseType, committedState.refPoint, dispatch]);
