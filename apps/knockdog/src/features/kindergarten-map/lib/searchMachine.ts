@@ -228,18 +228,17 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
         };
       }
 
-      // passive: refPoint만 채우되, center/searchCenter는 최초에 비어있을 때만 보정.
       if (isEqualCoord(current.refPoint, basePoint)) return current;
 
-      const nextState: SearchState = {
+      const shouldAlignCenter = !current.refPoint;
+      const nextCenter = shouldAlignCenter ? basePoint : current.center;
+
+      return {
         ...current,
         refPoint: basePoint,
+        center: nextCenter,
+        searchCenter: shouldAlignCenter ? basePoint : (current.searchCenter ?? nextCenter),
       };
-
-      if (!nextState.center) nextState.center = basePoint;
-      if (!nextState.searchCenter) nextState.searchCenter = nextState.center;
-
-      return nextState;
     }
 
     case 'REFPOINT_SET': {
