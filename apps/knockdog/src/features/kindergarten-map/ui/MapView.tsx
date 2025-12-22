@@ -8,7 +8,7 @@ import { useSearchMachine } from '../model/useSearchMachine';
 import { toBoundsSnapshot } from '../lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
-import { isEqualBounds, useGeolocationQuery } from '@shared/lib';
+import { isEqualBounds, isEqualCoord, useGeolocationQuery } from '@shared/lib';
 import { CurrentLocationMarker } from '@shared/ui/map';
 import type { Coord } from '@shared/types';
 import { useMarkerState } from '@shared/store';
@@ -19,6 +19,7 @@ import { BaseBubbleMarker } from './BaseBubbleMarker';
 import { ClusterBubbleMarker } from './ClusterBubbleMarker';
 import { CalloutOverlay } from './CalloutOverlay';
 import { useMapClustering, type MapPoint, type MapCluster } from '../model/useMapClustering';
+import type { BoundsSnapshot } from '../lib/searchMachine';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
@@ -111,24 +112,6 @@ export function MapView(props: MapViewProps) {
     map.current.fitBounds(bounds);
     lastFittedKeyRef.current = fitKey;
     lastGeoBoundsRef.current = geoBounds;
-    naver.maps.Event.once(map.current, 'idle', () => {
-      if (!map.current) return;
-      const coord = map.current.getCenter();
-      const centerCoord = { lat: coord.y, lng: coord.x };
-      const zoom = map.current.getZoom();
-      const viewportBounds = toBoundsSnapshot(map.current.getBounds());
-
-      autoFitRef.current = false;
-      dispatch({
-        type: 'MAP_INTERACTION_END',
-        payload: {
-          center: centerCoord,
-          zoom,
-          viewportBounds,
-          source: 'auto-fit',
-        },
-      });
-    });
   }, [
     dataUpdatedAt,
     dispatch,
@@ -138,6 +121,87 @@ export function MapView(props: MapViewProps) {
     committedState.query,
     committedState.scope,
   ]);
+
+  const liveSnapshotRef = useRef({
+    center: mapState.center,
+    zoom: mapState.zoom,
+    viewportBounds: mapState.viewportBounds,
+  });
+  useEffect(() => {
+    liveSnapshotRef.current = {
+      center: mapState.center,
+      zoom: mapState.zoom,
+      viewportBounds: mapState.viewportBounds,
+    };
+  }, [mapState.center, mapState.viewportBounds, mapState.zoom]);
+
+  const mapLiveRef = useRef<{ center: Coord | null; zoom: number; viewportBounds: BoundsSnapshot | null }>({
+    center: null,
+    zoom: mapZoom,
+    viewportBounds: null,
+  });
+
+  const handleBoundsChanged = (bounds: naver.maps.Bounds) => {
+    mapLiveRef.current.viewportBounds = toBoundsSnapshot(bounds);
+  };
+
+  const handleCenterChanged = (center: naver.maps.Coord) => {
+    mapLiveRef.current.center = { lat: center.y, lng: center.x };
+  };
+
+  const handleZoomChanged = (zoom: number) => {
+    mapLiveRef.current.zoom = zoom;
+  };
+
+  /**
+   * 선언적 이벤트 핸들러 기반 viewportBounds 동기화:
+   * - bounds/center/zoom 변경은 ref에만 저장(고빈도 이벤트 비용 최소화)
+   * - 커밋(dispatch)은 idle에서만 수행(드래그/줌/프로그램 이동 모두 커버)
+   */
+  const handleIdle = () => {
+    if (!isMapLoaded || !map.current) return;
+    if (aggNavigateRef.current) return;
+
+    const viewportBounds = mapLiveRef.current.viewportBounds ?? toBoundsSnapshot(map.current.getBounds());
+    if (!viewportBounds) return;
+
+    const centerCoord =
+      mapLiveRef.current.center ??
+      (() => {
+        const coord = map.current!.getCenter();
+        return { lat: coord.y, lng: coord.x };
+      })();
+    const zoom = mapLiveRef.current.zoom ?? map.current.getZoom();
+
+    const prev = liveSnapshotRef.current;
+    const hasDiff =
+      zoom !== prev.zoom ||
+      !isEqualCoord(centerCoord, prev.center) ||
+      !isEqualBounds(viewportBounds, prev.viewportBounds);
+
+    if (!hasDiff) return;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[MapView][debug] sync viewportBounds (idle)', { center: centerCoord, zoom, viewportBounds });
+    }
+
+    // URL에는 영향 없도록 skipUrlSync
+    dispatch(
+      {
+        type: 'MAP_INTERACTION_END',
+        payload: {
+          center: centerCoord,
+          zoom,
+          viewportBounds,
+          source: autoFitRef.current ? 'auto-fit' : 'user',
+        },
+      },
+      { skipUrlSync: true }
+    );
+
+    // fitBounds(autoFit) 후에는 idle에서 1회만 해제
+    if (autoFitRef.current) autoFitRef.current = false;
+  };
 
   /**
    * exact 결과가 있을 때는 자동으로 선택 상태를 만들고 상세 시트를 연다.
@@ -267,6 +331,11 @@ export function MapView(props: MapViewProps) {
         baseTileOpacity={0.88}
         className='relative z-0 h-full w-full'
         onLoad={handleMapLoad}
+        onBoundsChanged={handleBoundsChanged}
+        onCenterChanged={handleCenterChanged}
+        onZoomChanged={handleZoomChanged}
+        onInit={handleIdle}
+        onIdle={handleIdle}
         onDragEnd={handleMapInteractionEnd}
         onZoomEnd={handleMapInteractionEnd}
       >
