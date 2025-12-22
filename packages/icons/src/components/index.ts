@@ -60,6 +60,7 @@ export { None } from './None';
 export { Note } from './Note';
 export { Noticebook } from './Noticebook';
 export { Parking } from './Parking';
+export { Paw } from './Paw';
 export { Personalitycheck } from './Personalitycheck';
 export { PickdropLine } from './PickdropLine';
 export { PickupFree } from './PickupFree';

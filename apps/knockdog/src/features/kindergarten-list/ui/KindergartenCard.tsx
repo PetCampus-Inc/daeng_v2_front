@@ -118,7 +118,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
           <ActionButton variant='primaryLine' size='medium' onClick={openPhoneCallActionSheet}>
             전화하기
           </ActionButton>
-          <ActionButton variant='primaryFill' size='medium'>
+          <ActionButton variant='primaryFill' size='medium' disabled>
             비교하기
           </ActionButton>
           <button

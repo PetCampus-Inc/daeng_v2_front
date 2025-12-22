@@ -99,7 +99,9 @@ function KindergartenDetailPage() {
           전화 걸기
         </ActionButton>
         {/* @TODO 비교하기 페이지로 Route */}
-        <ActionButton className='flex-1'>비교하기</ActionButton>
+        <ActionButton className='flex-1' disabled>
+          비교하기
+        </ActionButton>
 
         <BookmarkToggleIcon id={id} bookmarked={kindergartenMain?.bookmarked ?? false} />
       </div>

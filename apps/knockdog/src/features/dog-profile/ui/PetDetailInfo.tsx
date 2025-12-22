@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage, Divider, Icon } from '@knockdog/ui';
 import { RELATIONSHIP_LABEL } from '@entities/pet';
 import type { Pet } from '@entities/pet';
-import Image from 'next/image';
 
 export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
   const getGenderDisplay = () => {
@@ -29,8 +28,8 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
       <div className='flex items-center justify-center px-4 py-7'>
         <Avatar className='h-[120px] w-[120px]'>
           {pet?.profileImage && <AvatarImage src={pet.profileImage} className='object-cover' />}
-          <AvatarFallback>
-            <Image src='/images/img_default_image.png' alt='default' width={120} height={120} />
+          <AvatarFallback className='bg-primitive-neutral-100'>
+            <Icon icon='Paw' className='text-fill-secondary-400 h-[52px] w-[52px]' />
           </AvatarFallback>
         </Avatar>
       </div>

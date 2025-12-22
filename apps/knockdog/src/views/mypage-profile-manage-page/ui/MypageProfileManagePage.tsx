@@ -112,7 +112,7 @@ function MypageProfileManagePage() {
         <Header.Title>계정 관리</Header.Title>
       </Header>
 
-      <div className='flex h-full flex-col justify-between'>
+      <div className='mt-[28px] flex h-full flex-col justify-between'>
         <div className='flex flex-col gap-y-[40px] px-4'>
           <div className='flex flex-col gap-y-2'>
             <div className='flex items-center justify-between'>
