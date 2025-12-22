@@ -185,7 +185,10 @@ export function MapView(props: MapViewProps) {
       console.warn('[MapView][debug] sync viewportBounds (idle)', { center: centerCoord, zoom, viewportBounds });
     }
 
-    // URL에는 영향 없도록 skipUrlSync
+    const source = autoFitRef.current ? 'auto-fit' : 'user';
+
+    // - 일반 idle 동기화: viewportBounds만 맞추는 용도이므로 URL은 건드리지 않는다.
+    // - auto-fit(fitBounds) 결과: 기존 동작과 동일하게 URL(center/zoom)도 갱신되도록 skipUrlSync를 끈다.
     dispatch(
       {
         type: 'MAP_INTERACTION_END',
@@ -193,10 +196,10 @@ export function MapView(props: MapViewProps) {
           center: centerCoord,
           zoom,
           viewportBounds,
-          source: autoFitRef.current ? 'auto-fit' : 'user',
+          source,
         },
       },
-      { skipUrlSync: true }
+      { skipUrlSync: source !== 'auto-fit' }
     );
 
     // fitBounds(autoFit) 후에는 idle에서 1회만 해제
