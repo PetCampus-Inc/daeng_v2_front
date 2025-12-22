@@ -1,8 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Divider, ActionButton, Avatar, RadioGroup, RadioGroupItem, AvatarImage, AvatarFallback } from '@knockdog/ui';
+import {
+  Divider,
+  ActionButton,
+  Avatar,
+  RadioGroup,
+  RadioGroupItem,
+  AvatarImage,
+  AvatarFallback,
+  Icon,
+} from '@knockdog/ui';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { usePetUpdateRepresentativeMutation, type Pet } from '@entities/pet';
 
@@ -51,7 +59,7 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
                       <Avatar>
                         <AvatarImage src={dog.profileImage} />
                         <AvatarFallback className='border-line-200 rounded-full border p-0.5'>
-                          <Image src='/images/img_default_image.png' alt={dog.name} width={40} height={40} />
+                          <Icon icon='Paw' className='text-fill-secondary-400 h-6 w-6' />
                         </AvatarFallback>
                       </Avatar>
                       <span

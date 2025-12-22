@@ -19,10 +19,16 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
       onClick={onClick}
       className={cn(
         'relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl',
-        !imageUrl && 'bg-fill-secondary-50 border-line-200 border'
+        !imageUrl && 'border-line-100 border bg-neutral-800'
       )}
     >
-      {imageUrl && <Image src={imageUrl} alt={name} fill className='object-cover' />}
+      {imageUrl ? (
+        <Image src={imageUrl} alt={name} fill className='object-cover' />
+      ) : (
+        <div className='flex h-full w-full items-center justify-center pb-[34px]'>
+          <Icon icon='Paw' className='text-fill-secondary-600 h-[52px] w-[52px]' />
+        </div>
+      )}
 
       <div className='absolute bottom-4 left-4 flex flex-col gap-y-1'>
         <div className='h3-semibold flex items-center gap-x-0.5'>
