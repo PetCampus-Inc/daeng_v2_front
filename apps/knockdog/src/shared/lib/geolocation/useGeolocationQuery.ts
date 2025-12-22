@@ -11,7 +11,9 @@ export function useGeolocationQuery(enabled = true) {
     staleTime: 30_000,
     gcTime: 5 * 60_000,
     retry: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    retryOnMount: true,
     select: (data) => {
       return {
         lat: Number(data.coords.latitude.toFixed(6)),
