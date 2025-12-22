@@ -31,6 +31,7 @@ export function MapView(props: MapViewProps) {
   const lastGeoBoundsRef = useRef<{ swLat: number; swLng: number; neLat: number; neLng: number } | null>(null);
   const lastFittedKeyRef = useRef<string | null>(null);
   const autoFitRef = useRef(false);
+  const aggNavigateRef = useRef(false);
   const exactHandledRef = useRef<string | null>(null);
   useImperativeHandle(ref, () => map.current!);
 
@@ -168,6 +169,7 @@ export function MapView(props: MapViewProps) {
    */
   const handleMapInteractionEnd = () => {
     if (autoFitRef.current) return;
+    if (aggNavigateRef.current) return;
     if (!map.current) return;
     const coord = map.current.getCenter();
     const centerCoord = { lat: coord.y, lng: coord.x };
@@ -188,23 +190,35 @@ export function MapView(props: MapViewProps) {
 
   /**
    * 집계 마커 클릭 핸들러
-   * @description 집계 마커 클릭 시 FSM 이벤트를 발생시킨다.
+   * @description 집계 마커 클릭 후 지도 이동/줌 반영 후 idle에서 bounds를 다시 읽어 커밋한다.
    */
   const handleAggregationClick = (_: string, coord: Coord, nextZoom: number) => {
-    if (map.current) {
-      const bounds = map.current.getBounds();
-      const viewportBounds = toBoundsSnapshot(bounds);
-      if (viewportBounds) {
-        dispatch({
-          type: 'AGG_MARKER_CLICK',
-          payload: {
-            bounds: viewportBounds,
-            center: coord,
-            zoom: nextZoom,
-          },
-        });
-      }
-    }
+    if (!map.current) return;
+
+    aggNavigateRef.current = true;
+
+    const nextLatLng = new naver.maps.LatLng(coord.lat, coord.lng);
+    map.current.setCenter(nextLatLng);
+    map.current.setZoom(nextZoom);
+
+    naver.maps.Event.once(map.current, 'idle', () => {
+      if (!map.current) return;
+      const settledCenter = map.current.getCenter();
+      const settledZoom = map.current.getZoom();
+      const settledBounds = toBoundsSnapshot(map.current.getBounds());
+      aggNavigateRef.current = false;
+
+      if (!settledBounds) return;
+
+      dispatch({
+        type: 'AGG_MARKER_CLICK',
+        payload: {
+          bounds: settledBounds,
+          center: { lat: settledCenter.y, lng: settledCenter.x },
+          zoom: settledZoom,
+        },
+      });
+    });
   };
 
   /**
