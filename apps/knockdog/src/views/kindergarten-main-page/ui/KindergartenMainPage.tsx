@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -45,24 +45,6 @@ function KindergartenMainPageContent() {
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-
-  // URL 상태(liveState)가 외부 요인(뒤로가기 등)으로 변경되면,
-  // 지도 뷰를 직접 제어하여 동기화합니다.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !liveState.center) return;
-
-    const committedLatLng = new naver.maps.LatLng(liveState.center.lat, liveState.center.lng);
-
-    // 현재 지도 중심과 committed 상태의 중심이 다를 경우에만 이동
-    if (!map.getCenter().equals(committedLatLng)) {
-      map.setCenter(committedLatLng);
-    }
-    // 현재 지도 줌과 committed 상태의 줌이 다를 경우에만 변경
-    if (map.getZoom() !== liveState.zoom) {
-      map.setZoom(liveState.zoom);
-    }
-  }, [liveState.center, liveState.zoom]);
 
   const shouldShowRefresh = useMemo(() => {
     if (!liveState.viewportBounds) return false;
