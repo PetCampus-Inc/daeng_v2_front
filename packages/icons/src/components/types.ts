@@ -60,6 +60,7 @@ export type IconName =
   | 'Note'
   | 'Noticebook'
   | 'Parking'
+  | 'Paw'
   | 'Personalitycheck'
   | 'PickdropLine'
   | 'PickupFree'
