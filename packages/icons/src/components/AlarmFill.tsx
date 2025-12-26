@@ -1,13 +1,6 @@
 export function AlarmFill(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...props}
-    >
+    <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
       <path
         d='M15 19C15 19.394 14.9224 19.7841 14.7716 20.1481C14.6209 20.512 14.3999 20.8427 14.1213 21.1213C13.8427 21.3999 13.512 21.6209 13.1481 21.7716C12.7841 21.9224 12.394 22 12 22C11.606 22 11.2159 21.9224 10.8519 21.7716C10.488 21.6209 10.1573 21.3999 9.87868 21.1213C9.6001 20.8427 9.37913 20.512 9.22836 20.1481C9.0776 19.7841 9 19.394 9 19L12 19H15Z'
         fill='currentColor'

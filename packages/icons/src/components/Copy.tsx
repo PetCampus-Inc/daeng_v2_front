@@ -1,13 +1,6 @@
 export function Copy(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...props}
-    >
+    <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
       <path
         d='M5 19H15V9H5V19ZM17 20L16.9951 20.1025C16.9472 20.573 16.573 20.9472 16.1025 20.9951L16 21H4L3.89746 20.9951C3.42703 20.9472 3.05278 20.573 3.00488 20.1025L3 20V8C3 7.48232 3.39333 7.05621 3.89746 7.00488L4 7H16L16.1025 7.00488C16.6067 7.05621 17 7.48232 17 8V20Z'
         fill='currentColor'

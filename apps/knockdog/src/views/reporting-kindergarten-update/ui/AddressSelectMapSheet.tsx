@@ -67,7 +67,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
           <div>
             <div className='px-4' />
             <div className='flex items-center justify-center gap-x-1 px-4 py-3'>
-              <Icon icon='Location' />
+              <Icon icon='LocationFill' />
               <span className='body1-bold'>
                 {isLoading ? '주소 검색 중...' : (primaryText ?? defaultLocation.name)}
               </span>
