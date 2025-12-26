@@ -17,7 +17,7 @@ interface SaveTabsProps {
   filterState: FilterState;
 }
 
-function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState }: SaveTabsProps = {} as SaveTabsProps) {
+function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState }: SaveTabsProps) {
   const reset = useCompareStore((state) => state.reset);
 
   const [isCompareMode, setIsCompareMode] = useState(false);
