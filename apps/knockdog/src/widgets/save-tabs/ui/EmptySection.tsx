@@ -9,10 +9,10 @@ function EmptySection() {
   };
 
   return (
-    <div className='flex min-h-screen flex-col items-center justify-center'>
-      <div className='mb-[112px]'>
+    <div className='flex flex-1 flex-col items-center justify-center'>
+      <div className='mb-[112px] flex flex-col items-center'>
         {/* 이미지 영역 */}
-        <div className='mb-5'></div>
+        <div className='mb-5 h-40 w-40 bg-gray-200' />
         <p className='h3-semibold'>아직 저장한 유치원이 없어요!</p>
       </div>
 

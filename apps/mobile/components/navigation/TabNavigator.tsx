@@ -45,7 +45,7 @@ export default function TabNavigator() {
     >
       <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
       <Tab.Screen name='Save' component={SaveTab} options={{ title: '저장' }} />
-      <Tab.Screen name='Compare' component={CompareTab} options={{ title: '비교' }} />
+      <Tab.Screen name='Compare' component={CompareTab} options={{ title: '유치원' }} />
       <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이' }} />
     </Tab.Navigator>
   );

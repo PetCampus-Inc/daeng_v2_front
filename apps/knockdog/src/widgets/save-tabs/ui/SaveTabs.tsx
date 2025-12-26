@@ -3,41 +3,56 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
 import { useState } from 'react';
 
-import { FavoriteListSection } from './FavoriteListSection';
-
-import { useUserStore } from '@entities/user';
-
-import { useQuery } from '@tanstack/react-query';
-import { bookmarkQueries } from '@entities/bookmark/api/bookmarkQueries';
-import { tokenUtils } from '@shared/utils';
-import { useDebounced } from '@shared/lib';
 import { HistoryTab } from './HistoryTab';
+import { CompareMode } from './CompareMode';
+import { ListMode } from './ListMode';
+import type { FilterState } from '@features/bookmarked-list';
+import type { BookmarkItem } from '@entities/bookmark';
+import { useCompareStore } from '@shared/store';
 
 interface SaveTabsProps {
-  activeTab?: string;
-  onTabChange?: (value: string) => void;
+  bookmarks: BookmarkItem[];
+  isLoading: boolean;
   searchQuery?: string;
+  filterState: FilterState;
 }
 
-function SaveTabs(
-  { activeTab: controlledActiveTab, onTabChange, searchQuery = '' }: SaveTabsProps = {} as SaveTabsProps
-) {
-  const user = useUserStore((state) => state.user);
-  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
+function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState }: SaveTabsProps) {
+  const reset = useCompareStore((state) => state.reset);
 
-  const [internalActiveTab, setInternalActiveTab] = useState('KINDERGARTEN');
-  const activeTab = controlledActiveTab ?? internalActiveTab;
-  const setActiveTab = onTabChange ?? setInternalActiveTab;
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('KINDERGARTEN');
 
-  // 검색어 debounce 처리 (300ms 지연)
-  const debouncedSearchQuery = useDebounced(searchQuery, 300);
+  const handleEnterCompareMode = () => {
+    reset();
+    setIsCompareMode(true);
+  };
 
-  const bookmarksQuery = useQuery({
-    ...bookmarkQueries.list(isLoggedIn),
-    enabled: isLoggedIn,
-  });
+  const handleExitCompareMode = () => {
+    reset();
+    setIsCompareMode(false);
+  };
 
-  const bookmarkCount = bookmarksQuery.data?.length ?? 0;
+  const bookmarkCount = bookmarks.length ?? 0;
+
+  if (isLoading) {
+    return (
+      <div className='flex min-h-screen items-center justify-center px-4'>
+        <div />
+      </div>
+    );
+  }
+
+  if (isCompareMode) {
+    return (
+      <CompareMode
+        bookmarks={bookmarks}
+        filterState={filterState}
+        searchQuery={searchQuery}
+        onCloseClick={handleExitCompareMode}
+      />
+    );
+  }
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className='flex h-full flex-col'>
@@ -45,17 +60,18 @@ function SaveTabs(
         <TabsTrigger value='KINDERGARTEN'>관심 유치원 ({bookmarkCount})</TabsTrigger>
         <TabsTrigger value='HISTORY'>비교 기록</TabsTrigger>
       </TabsList>
+      {/* 관심 유치원 리스트 탭 */}
       <TabsContent value='KINDERGARTEN' className='flex min-h-0 flex-1 flex-col'>
-        {/* 관심 유치원 리스트 탭 */}
-        <FavoriteListSection bookmarks={bookmarksQuery.data ?? []} searchQuery={debouncedSearchQuery} />
-        {bookmarksQuery.isLoading && (
-          <div className='px-4'>
-            <div className='flex min-h-screen items-center justify-center'></div>
-          </div>
-        )}
+        <ListMode
+          bookmarks={bookmarks}
+          filterState={filterState}
+          searchQuery={searchQuery}
+          onCompareClick={handleEnterCompareMode}
+        />
       </TabsContent>
+      {/* 비교 기록 탭 */}
       <TabsContent value='HISTORY' className='flex min-h-0 flex-1 flex-col'>
-        <HistoryTab searchQuery={debouncedSearchQuery} />
+        <HistoryTab searchQuery={searchQuery} />
       </TabsContent>
     </Tabs>
   );
