@@ -1,111 +1,47 @@
-import { useState, useMemo } from 'react';
-import { EmptySection, EmptyResultSection } from '@widgets/save-tabs';
-import { CompareListItem, FilterBar } from '@features/bookmarked-list';
-import type { BookmarkItem, DistanceInfo } from '@entities/bookmark';
-import type { ReferencePointType } from '@entities/compare';
-
-// Helper: refPoint에 맞는 거리 정보 찾기
-function findDistanceByRefPoint(distances: DistanceInfo[], refPoint: ReferencePointType): DistanceInfo | undefined {
-  return distances.find((d) => d.referencePoint === refPoint);
-}
-
-// Helper: 거리를 숫자(km)로 파싱
-function parseDistanceToKm(distance: string): number {
-  const match = distance.match(/[\d.]+/);
-  if (!match) {
-    return Infinity;
-  }
-  return Number.parseFloat(match[0]);
-}
+import { EmptyResultSection, EmptySection } from '@widgets/save-tabs';
+import { CompareListItem, findDistanceByRefPoint } from '@features/bookmarked-list';
+import type { BookmarkItem } from '@entities/bookmark/';
+import { ReferencePointType } from '@entities/compare';
 
 interface FavoriteListSectionProps {
   bookmarks: BookmarkItem[];
-  selectedIds: (string | null)[];
+  refPoint: ReferencePointType;
   searchQuery?: string;
   onListItemClick: (id: string) => void;
+  selectedIds: (string | null)[];
   onToggleCheckbox: (id: string) => void;
 }
 
 function FavoriteListSection({
   bookmarks,
-  selectedIds,
-  searchQuery = '',
+  refPoint,
+  searchQuery,
   onListItemClick,
+  selectedIds,
   onToggleCheckbox,
 }: FavoriteListSectionProps) {
-  const [refPoint, setRefPoint] = useState<ReferencePointType>('HOME');
-  const [showMemoOnly, setShowMemoOnly] = useState(false);
+  // 검색어가 있고 필터링 결과가 없을 때
+  if (searchQuery?.trim() && bookmarks.length === 0) {
+    return (
+      <div className='flex flex-1 px-4'>
+        <EmptyResultSection searchQuery={searchQuery} />
+      </div>
+    );
+  }
 
-  const sortedBookmarks = useMemo(() => {
-    return [...bookmarks].sort((a, b) => {
-      const distA = findDistanceByRefPoint(a.distances, refPoint);
-      const distB = findDistanceByRefPoint(b.distances, refPoint);
-      const kmA = distA ? parseDistanceToKm(distA.distance) : Infinity;
-      const kmB = distB ? parseDistanceToKm(distB.distance) : Infinity;
-      return kmA - kmB;
-    });
-  }, [bookmarks, refPoint]);
-
-  const filteredBookmarks = useMemo(() => {
-    let filtered = sortedBookmarks;
-
-    // 검색어 필터링
-    if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
-      filtered = filtered.filter(
-        (kindergarten) =>
-          kindergarten.name.toLowerCase().includes(query) || kindergarten.location?.toLowerCase().includes(query)
-      );
-    }
-
-    // 메모만 보기 필터링
-    if (showMemoOnly) {
-      filtered = filtered.filter((kindergarten) => !!kindergarten.memoAt);
-    }
-
-    return filtered;
-  }, [sortedBookmarks, showMemoOnly, searchQuery]);
-
-  const toggleShowMemoOnly = () => {
-    setShowMemoOnly((prev) => !prev);
-  };
-
+  // 북마크 목록이 비어있을 때
   if (bookmarks.length === 0) {
     return (
-      <div className='px-4'>
+      <div className='flex flex-1 px-4'>
         <EmptySection />
       </div>
     );
   }
 
-  // 검색어가 있고 필터링 결과가 없을 때
-  if (searchQuery.trim() && filteredBookmarks.length === 0) {
-    return (
-      <div className='flex h-full min-h-0 flex-col'>
-        <FilterBar
-          refPoint={refPoint}
-          onChangeRefPoint={setRefPoint}
-          showMemoOnly={showMemoOnly}
-          onMemoToggle={toggleShowMemoOnly}
-        />
-        <div className='flex flex-1 px-4'>
-          <EmptyResultSection searchQuery={searchQuery} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className='flex h-full min-h-0 flex-col'>
-      <FilterBar
-        refPoint={refPoint}
-        onChangeRefPoint={setRefPoint}
-        showMemoOnly={showMemoOnly}
-        onMemoToggle={toggleShowMemoOnly}
-      />
-
-      <div className='flex-1 overflow-y-auto'>
-        {filteredBookmarks.map((kindergarten) => {
+    <div className='min-h-0 flex-1 overflow-y-auto px-4'>
+      <div>
+        {bookmarks.map((kindergarten) => {
           const distInfo = findDistanceByRefPoint(kindergarten.distances, refPoint);
           const distanceText = distInfo?.distance || '- km';
           return (
