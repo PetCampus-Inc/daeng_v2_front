@@ -1,13 +1,6 @@
 export function Valet(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...props}
-    >
+    <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
       <path
         d='M18 3C18.5523 3 19 3.44772 19 4V7.83301C19 8.38529 18.5523 8.83301 18 8.83301H16.5V15L14.5 14V8.83301H13C12.4477 8.83301 12 8.38529 12 7.83301V4C12 3.44772 12.4477 3 13 3H18ZM13.75 5.33301H17.25V4.16602H13.75V5.33301Z'
         fill='currentColor'

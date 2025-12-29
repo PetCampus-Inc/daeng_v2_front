@@ -518,7 +518,7 @@ function FavRow({ item }: { item: FavoriteItem }) {
           {item.distance && (
             <>
               <span className='mr-1 flex items-center text-[#15161B]'>
-                <Icon icon='Location' className='h-5 w-5' />
+                <Icon icon='LocationFill' className='h-5 w-5' />
               </span>
               <span className='truncate font-extrabold'>{item.distance}</span>
             </>

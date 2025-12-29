@@ -196,7 +196,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
               className='border-line-200 p-x4 active:bg-fill-secondary-50 flex justify-between border-b'
             >
               <div className='gap-x2 flex items-center'>
-                <Icon icon='Location' className='text-fill-secondary-500 size-x6' />
+                <Icon icon='LocationFill' className='text-fill-secondary-500 size-x6' />
                 <div className='gap-x0_5 flex flex-col text-start'>
                   <p className='body1-extrabold text-text-primary'>현재 위치</p>
                   <span className='body2-regular text-text-secondary'>{label}</span>
@@ -217,7 +217,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                     className='border-line-200 p-x4 active:bg-fill-secondary-50 flex justify-between border-b'
                   >
                     <div className='gap-x2 flex items-center'>
-                      <Icon icon='Location' className='text-fill-secondary-500 size-x6' />
+                      <Icon icon='LocationFill' className='text-fill-secondary-500 size-x6' />
                       <div className='gap-x0_5 flex flex-col text-start'>
                         <p className='body1-extrabold text-text-primary'>{addressLabel}</p>
                         <span className='body2-regular text-text-secondary'>{savedAddressText}</span>

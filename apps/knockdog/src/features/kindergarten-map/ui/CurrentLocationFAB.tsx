@@ -33,7 +33,7 @@ export function CurrentLocationFAB() {
 
   return (
     <FloatingActionButton
-      icon='Location'
+      icon='LocationFill'
       label='현재 위치'
       variant='neutralLight'
       size='medium'

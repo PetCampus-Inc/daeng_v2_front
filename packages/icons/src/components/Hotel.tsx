@@ -1,13 +1,6 @@
 export function Hotel(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width='24'
-      height='24'
-      viewBox='0 0 24 24'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      {...props}
-    >
+    <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
       <mask id='path-1-inside-1_1038_11130' fill='white'>
         <rect x='2' y='8.5' width='20' height='12' rx='1' />
       </mask>
@@ -21,14 +14,7 @@ export function Hotel(props: React.SVGProps<SVGSVGElement>) {
         strokeWidth='3.2'
         mask='url(#path-1-inside-1_1038_11130)'
       />
-      <rect
-        x='3'
-        y='3.5'
-        width='18'
-        height='1.6'
-        rx='0.8'
-        fill='currentColor'
-      />
+      <rect x='3' y='3.5' width='18' height='1.6' rx='0.8' fill='currentColor' />
       <rect x='7' y='4.5' width='1.4' height='5' fill='currentColor' />
       <rect x='16' y='4.5' width='1.4' height='5' fill='currentColor' />
       <path
