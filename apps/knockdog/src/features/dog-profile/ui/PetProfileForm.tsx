@@ -120,7 +120,17 @@ function PetProfileForm({
   return (
     <>
       <div className='px-4'>
-        <form id='pet-profile-form' onSubmit={handleFormSubmit} noValidate className='flex flex-col gap-y-5'>
+        <form
+          id='pet-profile-form'
+          onSubmit={handleFormSubmit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
+          noValidate
+          className='flex flex-col gap-y-5'
+        >
           <div className='scrollbar-hide relative h-[calc(100vh-200px)] overflow-y-auto'>
             <Controller
               name='profileImage'
