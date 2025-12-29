@@ -48,14 +48,11 @@ function BookmarkedListItem({
               <h3 className='h2-extrabold text-text-primary truncate'>{kindergarten.name}</h3>
               <p className='label-medium text-text-tertiary truncate'>{categoryText}</p>
             </div>
-            <div className='shrink-0'>
-              <BookmarkToggleIcon
-                id={kindergarten.id}
-                bookmarked
-                disabled={bookmarkDisabled}
-                className='text-fill-secondary-700'
-              />
-            </div>
+            {!bookmarkDisabled && (
+              <div className='shrink-0'>
+                <BookmarkToggleIcon id={kindergarten.id} bookmarked className='text-fill-secondary-700' />
+              </div>
+            )}
           </div>
 
           {/* 배지 */}
