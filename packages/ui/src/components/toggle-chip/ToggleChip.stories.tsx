@@ -3,7 +3,7 @@ import { Chip } from './ToggleChip';
 import { Icon } from '../icon';
 
 const meta: Meta<typeof Chip.Toggle> = {
-  title: 'Components/Chip.Toggle',
+  title: 'Components/ToggleChip',
   component: Chip.Toggle,
   tags: ['autodocs'],
   parameters: {
