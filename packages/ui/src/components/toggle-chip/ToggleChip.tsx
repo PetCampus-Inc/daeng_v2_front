@@ -47,11 +47,9 @@ function useToggleChipContext() {
   return context;
 }
 
-interface ToggleChipProps extends Checkbox.RootProps, VariantProps<typeof toggleChipVariants> {
-  ref?: React.RefObject<HTMLInputElement>;
-}
+interface ToggleChipProps extends Checkbox.RootProps, VariantProps<typeof toggleChipVariants> {}
 
-export function ToggleChip({ children, ref, variant, ...props }: ToggleChipProps) {
+export function ToggleChip({ children, variant, ...props }: ToggleChipProps) {
   return (
     <ToggleChipContext.Provider value={{ variant }}>
       <Checkbox.Root {...props} className={toggleChipVariants({ variant })}>
