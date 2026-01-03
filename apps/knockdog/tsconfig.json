@@ -12,6 +12,7 @@
   "compilerOptions": {
     "skipLibCheck": true, // 라이브러리 체크 건너뛰기
     "strictNullChecks": true,
+    "resolveJsonModule": true, // JSON import 허용
     "baseUrl": "src",
     "paths": {
       "@app/*": ["app/*"],
