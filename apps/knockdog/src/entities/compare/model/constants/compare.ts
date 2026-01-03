@@ -1,3 +1,4 @@
+import { IconType } from '@knockdog/ui';
 import { DAY_OF_WEEK } from '@shared/constants';
 
 const CTAG_MAP = {
@@ -25,11 +26,11 @@ const TRANSPORTATION_TYPE = {
   TRANSIT: '대중교통',
 } as const;
 
-const TRANSPORTATION_ICON_MAP = {
+const TRANSPORTATION_ICON_MAP: Record<string, IconType> = {
   WALKING: 'Walk',
   DRIVING: 'PickdropLine',
   TRANSIT: 'Bus',
-} as const;
+};
 
 const REFERENCE_POINT_TYPE = {
   HOME: '집',
