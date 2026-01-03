@@ -3,6 +3,7 @@ import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { isAggregationZoom, isPointZoom, isClusteringZoom } from '../lib/markers';
 import { getMapCenter, getMapZoom } from '../lib/map';
 import { useSearchListQuery, useAggregationQuery } from '../model/useSearchQuery';
+import { useFilteredSearchList } from '../model/useFilteredSearchList';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
 import { toBoundsSnapshot } from '../lib/bounds';
@@ -40,6 +41,7 @@ export function MapView(props: MapViewProps) {
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId } = useMarkerState();
   const { liveState: mapState, committedState, dispatch } = useSearchMachine();
+  const { isFilterActive } = useFilteredSearchList();
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
@@ -47,10 +49,11 @@ export function MapView(props: MapViewProps) {
   const mapZoom = getMapZoom(mapState.zoom);
 
   // 검색 lock이 걸린 상태(scope=bounds, searchLock=1)에서는 줌과 무관하게 업체 마커만 표시한다.
-  const showAggregationMarkers = committedState.searchLock !== 1 && isAggregationZoom(mapState.zoom);
-  const showBusinessMarkers = committedState.searchLock === 1 || isPointZoom(mapState.zoom);
+  // 필터(북마크/메모)가 활성화된 상태에서도 줌과 무관하게 업체 마커를 표시한다.
+  const showAggregationMarkers = !isFilterActive && committedState.searchLock !== 1 && isAggregationZoom(mapState.zoom);
+  const showBusinessMarkers = isFilterActive || committedState.searchLock === 1 || isPointZoom(mapState.zoom);
 
-  const { searchList: overlay, exact } = useSearchListQuery();
+  const { searchList: overlay, exact } = useFilteredSearchList();
 
   const { clusters, supercluster } = useMapClustering({
     markers: overlay,
