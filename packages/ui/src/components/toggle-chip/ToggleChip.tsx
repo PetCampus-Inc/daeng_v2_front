@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, useContext } from 'react';
 import { Checkbox, useCheckboxContext } from '@daeng-design/react-checkbox';
 import { cva, type VariantProps } from 'class-variance-authority';
