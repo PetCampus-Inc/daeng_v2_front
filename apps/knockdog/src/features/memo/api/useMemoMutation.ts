@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
-import { updateMemo, memoQueryKeys, type MemoResponse, type UpdateMemoRequest } from '@entities/memo';
+import { updateMemo, memoQueryKeys, type MemoResponse, type UpdateMemoRequest, memoQueries } from '@entities/memo';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface MemoMutationContext {
   previous: MemoResponse | undefined;
@@ -62,7 +63,8 @@ export const useMemoMutation = (
       userOnSuccess?.(data, variables, context?.userContext);
     },
     onSettled: async (data, error, variables, context) => {
-      await queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
+      syncWebViewQuery.invalidate(memoQueryKeys.byTargetId(variables.targetId));
+      syncWebViewQuery.invalidate(memoQueries.keys.all());
       userOnSettled?.(data, error, variables, context?.userContext);
     },
   });
