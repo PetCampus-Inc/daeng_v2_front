@@ -24,7 +24,6 @@ if (webViewSyncChannel) {
 
   webViewSyncChannel.onmessage = ({ data }: MessageEvent<BroadcastMessage>) => {
     const { type, queryKey } = data;
-    console.log(`[WebViewSync] 메시지 수신:`, type, queryKey);
     switch (type) {
       case 'INVALIDATE_QUERIES':
         if (queryKey) queryClient.invalidateQueries({ queryKey });
