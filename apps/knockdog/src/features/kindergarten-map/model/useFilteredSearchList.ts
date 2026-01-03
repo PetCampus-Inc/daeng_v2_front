@@ -33,8 +33,6 @@ export function useFilteredSearchList() {
     const filteredList = searchList.filter(filterFn);
     const filteredExactItem = exact && filterFn(exact) ? exact : null;
 
-    // TODO: 페이지네이션을 사용하는 경우 전체 개수 계산에 한계가 있을 수 있음.
-    // 현재는 불러온 데이터 내에서만 필터링하므로, 실제 전체 개수와는 다를 수 있음. (논의 필요)
     const totalCount = filteredList.length + (filteredExactItem ? 1 : 0);
 
     return {
