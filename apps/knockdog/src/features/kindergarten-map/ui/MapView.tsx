@@ -41,7 +41,7 @@ export function MapView(props: MapViewProps) {
   const { data: currentLocation } = useGeolocationQuery();
   const { activeMarkerId } = useMarkerState();
   const { liveState: mapState, committedState, dispatch } = useSearchMachine();
-  const { isFilterActive } = useFilteredSearchList();
+  const { isFilterActive, searchList: overlay, exact } = useFilteredSearchList();
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
@@ -52,8 +52,6 @@ export function MapView(props: MapViewProps) {
   // 필터(북마크/메모)가 활성화된 상태에서도 줌과 무관하게 업체 마커를 표시한다.
   const showAggregationMarkers = !isFilterActive && committedState.searchLock !== 1 && isAggregationZoom(mapState.zoom);
   const showBusinessMarkers = isFilterActive || committedState.searchLock === 1 || isPointZoom(mapState.zoom);
-
-  const { searchList: overlay, exact } = useFilteredSearchList();
 
   const { clusters, supercluster } = useMapClustering({
     markers: overlay,
