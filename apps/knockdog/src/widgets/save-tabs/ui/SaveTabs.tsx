@@ -35,14 +35,6 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState }: SaveT
 
   const bookmarkCount = bookmarks.length ?? 0;
 
-  if (isLoading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center px-4'>
-        <div />
-      </div>
-    );
-  }
-
   if (isCompareMode) {
     return (
       <CompareMode
@@ -66,6 +58,7 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState }: SaveT
           bookmarks={bookmarks}
           filterState={filterState}
           searchQuery={searchQuery}
+          isLoading={isLoading}
           onCompareClick={handleEnterCompareMode}
         />
       </TabsContent>
