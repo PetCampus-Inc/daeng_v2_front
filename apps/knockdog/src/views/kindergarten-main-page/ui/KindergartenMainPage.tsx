@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
-import { Float, Icon } from '@knockdog/ui';
+import { Chip, Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import {
   CurrentLocationDisplayFAB,
@@ -10,6 +10,8 @@ import {
   ListFAB,
   MapView,
   RefreshFAB,
+  DisplayFilterProvider,
+  useDisplayFilterContext,
 } from '@features/kindergarten-map';
 import {
   FilterBottomSheet,
@@ -29,7 +31,9 @@ import { useMarkerState } from '@shared/store';
 export default function KindergartenMainPage() {
   return (
     <SearchStateProvider>
-      <KindergartenMainPageContent />
+      <DisplayFilterProvider>
+        <KindergartenMainPageContent />
+      </DisplayFilterProvider>
     </SearchStateProvider>
   );
 }
@@ -38,6 +42,7 @@ function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
   const searchParams = useSearchParams();
   const { liveState, committedState, searchState, dispatch } = useSearchMachine();
+  const { isOnlyBookmarked, isOnlyMemoed, toggleBookmarked, toggleMemoed } = useDisplayFilterContext();
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -128,6 +133,21 @@ function KindergartenMainPageContent() {
           </div>
         </div>
       )}
+
+      <div className='px-x4 gap-x2 absolute flex w-full items-center' style={{ top: `${64 + top}px` }}>
+        <Chip.Toggle variant='outline' checked={isOnlyMemoed} onChange={toggleMemoed}>
+          <Chip.PrefixIcon>
+            <Icon icon='Note' className='size-x4' />
+          </Chip.PrefixIcon>
+          <Chip.Label>메모</Chip.Label>
+        </Chip.Toggle>
+        <Chip.Toggle variant='outline' checked={isOnlyBookmarked} onChange={toggleBookmarked}>
+          <Chip.PrefixIcon>
+            <Icon icon='BookmarkFill' className='size-x4' />
+          </Chip.PrefixIcon>
+          <Chip.Label>북마크</Chip.Label>
+        </Chip.Toggle>
+      </div>
 
       <KindergartenListSheet
         fabSlot={

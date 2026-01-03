@@ -4,6 +4,7 @@ import { bookmarkQueryKeys } from '../config/bookmarkQueryKeys';
 import { useUserStore } from '@entities/user';
 
 import { deleteBookmark, postBookmark } from '../api/bookmark';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 // post
 const useBookmarkPostMutation = () => {
@@ -23,7 +24,8 @@ const useBookmarkPostMutation = () => {
         if (!Array.isArray(prev)) return prev;
         return prev.map((item) => (item?.id === id ? { ...item, bookmarked: true } : item));
       });
-      queryClient.invalidateQueries({ queryKey: bookmarkQueryKeys.all });
+      // queryClient.invalidateQueries({ queryKey: bookmarkQueryKeys.all });
+      syncWebViewQuery.invalidate(bookmarkQueryKeys.all);
     },
   });
 };
@@ -46,7 +48,8 @@ const useBookmarkDeleteMutation = () => {
         if (!Array.isArray(prev)) return prev;
         return prev.map((item) => (item?.id === id ? { ...item, bookmarked: false } : item));
       });
-      queryClient.invalidateQueries({ queryKey: bookmarkQueryKeys.all });
+      // queryClient.invalidateQueries({ queryKey: bookmarkQueryKeys.all });
+      syncWebViewQuery.invalidate(bookmarkQueryKeys.all);
     },
   });
 };

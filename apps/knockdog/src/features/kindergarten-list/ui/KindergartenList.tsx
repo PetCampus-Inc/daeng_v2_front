@@ -10,7 +10,7 @@ import { FilterChip } from './FilterChip';
 import { PermissionSection } from './PermissionSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
-import { useSearchListQuery, useSearchMachine } from '@features/kindergarten-map';
+import { useFilteredSearchList, useSearchMachine } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -31,11 +31,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
-  const { listQuery, searchListQueryKey, searchList, exact } = useSearchListQuery();
+  const { listQuery, searchListQueryKey, searchList, exact, totalCount } = useFilteredSearchList();
   const { onBookmarkClick } = useBookmarkToggle(searchListQueryKey);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
-  const totalCount = listQuery.data?.pages[0]?.schoolResult.totalCount || 0;
 
   const selectedFilters = getSelectedFilterWithLabel();
 

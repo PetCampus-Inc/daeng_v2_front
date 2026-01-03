@@ -2,7 +2,7 @@ import { SelectedIds } from '@entities/compare/model/compare';
 import { getQueryClient } from '@shared/api';
 
 type BroadcastMessageType = 'INVALIDATE_QUERIES' | 'REFETCH_QUERIES' | 'RELOAD_WEBVIEW' | 'SYNC_COMPARE_STORE';
-type QueryKey = Array<string | number>;
+type QueryKey = readonly (string | number)[];
 
 interface BroadcastMessage {
   type: BroadcastMessageType;
@@ -24,7 +24,6 @@ if (webViewSyncChannel) {
 
   webViewSyncChannel.onmessage = ({ data }: MessageEvent<BroadcastMessage>) => {
     const { type, queryKey } = data;
-
     switch (type) {
       case 'INVALIDATE_QUERIES':
         if (queryKey) queryClient.invalidateQueries({ queryKey });

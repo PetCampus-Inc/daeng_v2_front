@@ -3,7 +3,7 @@ import { getMemoList } from '../api/memo';
 
 export const memoQueries = {
   keys: {
-    all: () => ['memo'] as const,
+    all: () => ['memo-list'] as const,
   },
 
   list: () =>
