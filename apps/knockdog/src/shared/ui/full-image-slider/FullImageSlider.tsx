@@ -41,7 +41,7 @@ export function FullImageSlider({ initialIndex = 0, images, onIndexChange }: Ful
           </SwiperRoot>
         </div>
         {/* 바텀 영역 */}
-        <div className='mb-[84px] flex flex-shrink-0 items-center justify-center px-4 py-3'>
+        <div className='mb-[184px] flex shrink-0 items-center justify-center px-4 py-3'>
           <span className='text-text-accent'>{currentIndex + 1}</span>/{images.length}
         </div>
       </div>

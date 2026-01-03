@@ -76,7 +76,7 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
             <button
               onClick={handlePickImages}
               type='button'
-              className='border-line-400 body2-regular text-text-tertiary flex h-[80px] w-[80px] flex-col items-center justify-center rounded-lg border py-5'
+              className='border-line-400 body2-regular text-text-tertiary flex h-[80px] min-w-[80px] flex-col items-center justify-center rounded-lg border py-5'
             >
               <Icon icon='Plus' className='h-6 w-6' />
               {assets.length} / {maxCount}

@@ -115,7 +115,9 @@ export function FreeMemoSection() {
           <TextareaInput readOnly value={memo?.content ?? ''} />
         </Textarea>
       </div>
-      <PhotoUploader maxCount={MEMO_PHOTO_MAX_COUNT} defaultValue={defaultPhotos} onChange={handlePhotosChange} />
+      <div className='overflow-y-auto'>
+        <PhotoUploader maxCount={MEMO_PHOTO_MAX_COUNT} defaultValue={defaultPhotos} onChange={handlePhotosChange} />
+      </div>
     </div>
   );
 }
