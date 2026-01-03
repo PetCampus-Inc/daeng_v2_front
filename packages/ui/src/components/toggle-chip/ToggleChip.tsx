@@ -3,7 +3,7 @@ import { Checkbox, useCheckboxContext } from '@daeng-design/react-checkbox';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const toggleChipVariants = cva(
-  'off:cursor-not-allowed radius-r2 [--chip-icon-color:theme(colors.text.primary)] px-x3 py-x2 focal:outline-none inline-flex cursor-pointer items-center justify-center transition-colors',
+  'off:cursor-not-allowed radius-r2 px-x3 py-x2 focal:outline-none inline-flex cursor-pointer items-center justify-center transition-colors',
   {
     variants: {
       variant: {
