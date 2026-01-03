@@ -1,3 +1,4 @@
+import { IconType } from '@knockdog/ui';
 import { DAY_OF_WEEK } from '@shared/constants';
 
 const CTAG_MAP = {
@@ -25,6 +26,12 @@ const TRANSPORTATION_TYPE = {
   TRANSIT: '대중교통',
 } as const;
 
+const TRANSPORTATION_ICON_MAP: Record<string, IconType> = {
+  WALKING: 'Walk',
+  DRIVING: 'PickdropLine',
+  TRANSIT: 'Bus',
+};
+
 const REFERENCE_POINT_TYPE = {
   HOME: '집',
   WORK: '직장',
@@ -47,4 +54,12 @@ const CLOSED_DAYS = {
   HOLIDAY: '공휴일',
 } as const;
 
-export { CTAG_MAP, PRODUCT_TYPE, TRANSPORTATION_TYPE, REFERENCE_POINT_TYPE, DAY_OF_WEEK_SHORT, CLOSED_DAYS };
+export {
+  CTAG_MAP,
+  PRODUCT_TYPE,
+  TRANSPORTATION_TYPE,
+  TRANSPORTATION_ICON_MAP,
+  REFERENCE_POINT_TYPE,
+  DAY_OF_WEEK_SHORT,
+  CLOSED_DAYS,
+};

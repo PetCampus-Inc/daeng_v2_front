@@ -39,7 +39,7 @@ function CompareCompletePage() {
       <div className='flex h-screen flex-col bg-white pb-16'>
         <Header>
           <Header.LeftSection>
-            <Header.BackButton />
+            <Header.BackButton className='absolute left-0 ml-4' />
           </Header.LeftSection>
           <Header.Title>비교 결과</Header.Title>
           <Header.RightSection>

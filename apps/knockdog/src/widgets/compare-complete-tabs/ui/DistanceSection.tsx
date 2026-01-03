@@ -6,7 +6,7 @@ import {
   DistanceDetailedItem,
 } from '@features/compare';
 import type { KindergartenComparison, TransportationType, ReferencePointType } from '@entities/compare';
-import { TRANSPORTATION_TYPE, Label, Badge } from '@entities/compare';
+import { TRANSPORTATION_TYPE, TRANSPORTATION_ICON_MAP, Label, Badge } from '@entities/compare';
 import type { UserAddress } from '@entities/user';
 import { useUserStore } from '@entities/user';
 
@@ -45,7 +45,11 @@ function DistanceSection({ left, right }: { left: KindergartenComparison; right:
           <DistanceDetailedItem
             key={transportType}
             comparison={comparison}
-            badge={<Badge icon={'Walk'}>{TRANSPORTATION_TYPE[transportType] ?? transportType}</Badge>}
+            badge={
+              <Badge icon={TRANSPORTATION_ICON_MAP[transportType]}>
+                {TRANSPORTATION_TYPE[transportType] ?? transportType}
+              </Badge>
+            }
           />
         ))}
       </div>

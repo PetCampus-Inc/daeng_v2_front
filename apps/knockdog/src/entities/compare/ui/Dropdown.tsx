@@ -72,7 +72,7 @@ export function Dropdown<T>({ options, value, onChange }: DropdownProps<T>) {
         type='button'
         role='combobox'
         aria-expanded={isOpen}
-        className='relative flex items-center justify-center'
+        className='relative flex shrink-0 items-center justify-center'
       >
         <span className='h2-extrabold text-orange-500'>{selectedOptionLabel}</span>
         <span className={isOpen ? 'rotate-180' : 'mt-1 rotate-0'}>

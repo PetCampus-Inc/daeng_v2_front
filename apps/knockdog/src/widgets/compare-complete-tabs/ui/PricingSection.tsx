@@ -51,8 +51,22 @@ function PricingSection({ left, right }: { left: KindergartenComparison; right: 
       <PricingLabel className='mb-2' />
       <PricingSummary comparison={monthlyPricingComparison} />
       <div className='my-7 flex flex-col gap-5'>
-        <PriceDetailedItem comparison={monthlyPricingComparison} badge={<Badge caption='1시간 평균'>정기권</Badge>} />
-        <PriceDetailedItem comparison={countPricingComparison} badge={<Badge caption='1회 평균'>횟수권</Badge>} />
+        <PriceDetailedItem
+          comparison={monthlyPricingComparison}
+          badge={
+            <Badge caption='1시간 평균' icon='Cycle'>
+              정기권
+            </Badge>
+          }
+        />
+        <PriceDetailedItem
+          comparison={countPricingComparison}
+          badge={
+            <Badge caption='1회 평균' icon='Ticket'>
+              횟수권
+            </Badge>
+          }
+        />
       </div>
     </>
   );
