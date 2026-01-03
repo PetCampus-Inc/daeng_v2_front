@@ -6,7 +6,15 @@ function Title({ children, center = true, className, ...props }: ComponentProps<
   const { textColor } = useHeaderContext();
 
   return (
-    <span className={cn('h3-extrabold text-text-primary', textColor, center && 'mx-auto', className)} {...props}>
+    <span
+      className={cn(
+        'h3-extrabold text-text-primary',
+        textColor,
+        center && 'absolute left-1/2 -translate-x-1/2',
+        className
+      )}
+      {...props}
+    >
       {children}
     </span>
   );
