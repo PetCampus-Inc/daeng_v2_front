@@ -42,7 +42,9 @@ export const useMemoMutation = (
       if (previous) {
         const optimistic: MemoResponse = {
           content: variables.content ?? previous.content,
-          photos: previous.photos,
+          photos: variables.photoKeys
+            ? previous.photos.filter((photo) => variables.photoKeys?.includes(photo.key))
+            : previous.photos,
         };
 
         queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), optimistic);
