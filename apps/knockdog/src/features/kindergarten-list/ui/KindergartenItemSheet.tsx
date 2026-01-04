@@ -158,8 +158,8 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
       >
         <Header className='block'>
           <Header.LeftSection>
-            <Header.BackButton />
-            <Header.HomeButton />
+            <Header.BackButton onClick={() => setActiveSnapPoint(snapPoints[0] ?? null)} />
+            <Header.HomeButton onClick={onClose} />
           </Header.LeftSection>
 
           <Header.Title>{currentItem.title}</Header.Title>

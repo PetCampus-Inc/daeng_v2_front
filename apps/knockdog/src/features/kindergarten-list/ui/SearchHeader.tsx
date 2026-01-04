@@ -37,10 +37,15 @@ export function SearchHeader({ query }: SearchHeaderProps) {
   };
 
   return (
-    <Header className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full' style={{ paddingTop: top }}>
-      <Header.LeftSection className='px-4'>
+    <Header
+      className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full'
+      innerClassName='gap-2'
+      style={{ paddingTop: top }}
+    >
+      <Header.LeftSection>
         <Header.BackButton onClick={handleGoSearch} />
       </Header.LeftSection>
+
       <TextField
         prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
         className='bg-fill-secondary-50 h-x12 border-0'
@@ -55,7 +60,8 @@ export function SearchHeader({ query }: SearchHeaderProps) {
           readOnly
         />
       </TextField>
-      <Header.RightSection className='px-4'>
+
+      <Header.RightSection>
         <Header.CloseButton onClick={handleClose} />
       </Header.RightSection>
     </Header>

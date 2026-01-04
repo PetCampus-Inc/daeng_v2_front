@@ -83,11 +83,11 @@ export function SearchPage({ inputRef }: { inputRef?: React.RefObject<HTMLInputE
     <div className='flex h-full flex-col'>
       {/* 검색창 헤더 */}
       <Header>
-        <Header.LeftSection className='px-4'>
+        <Header.LeftSection>
           <Header.BackButton onClick={() => router.back()} />
         </Header.LeftSection>
 
-        <div className='relative min-w-0 flex-1'>
+        <div className='relative mx-2 min-w-0 flex-1'>
           <TextField
             prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
             className='bg-fill-secondary-50 h-x12 min-w-0 border-0'
