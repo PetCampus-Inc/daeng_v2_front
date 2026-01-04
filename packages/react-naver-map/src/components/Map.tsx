@@ -171,14 +171,13 @@ type MapOptions = naver.maps.MapOptions & {
 };
 
 type MapProps = MapOptions & {
-  ref?: React.RefObject<naver.maps.Map | null>;
+  ref?: React.Ref<naver.maps.Map | null>;
   children?: React.ReactNode;
   id?: string;
   className?: string;
 };
 
 export function Map({
-  ref,
   id,
   children,
   className,
@@ -212,6 +211,7 @@ export function Map({
   onIdle,
   onTileLoaded,
   onMapTypeIdChanged,
+  ref,
   ...mapOptions
 }: MapProps) {
   const [isLoaded, setIsLoaded] = useState(false);

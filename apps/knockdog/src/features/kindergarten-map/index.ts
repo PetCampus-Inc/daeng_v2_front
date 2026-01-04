@@ -9,7 +9,7 @@ export { CalloutOverlay } from './ui/CalloutOverlay';
 export { CurrentLocationDisplayFAB } from './ui/CurrentLocationDisplayFAB';
 export { CurrentLocationFAB } from './ui/CurrentLocationFAB';
 export { ListFAB } from './ui/ListFAB';
-export { RefreshFAB } from './ui/RefreshFAB';
+export { ResearchFAB } from './ui/ResearchFAB';
 
 /** model */
 export { useSearchMachine, SearchStateProvider } from './model/useSearchMachine';

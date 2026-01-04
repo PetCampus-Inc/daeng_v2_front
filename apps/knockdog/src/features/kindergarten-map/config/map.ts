@@ -26,3 +26,10 @@ export const REGION_LEVELS = {
 } as const;
 
 export type RegionLevel = keyof typeof REGION_LEVELS;
+
+/**
+ * 활성화된 마커의 z-index offset
+ */
+export const ACTIVE_Z_INDEX_OFFSET = 2000;
+
+export const CALLOUT_Z_INDEX_OFFSET = 3000;

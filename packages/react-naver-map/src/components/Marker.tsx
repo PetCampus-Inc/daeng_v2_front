@@ -55,10 +55,10 @@ type MarkerOptions = naver.maps.MarkerOptions & {
 };
 
 type MarkerProps = MarkerOptions & {
-  ref?: React.RefObject<naver.maps.Marker>;
+  ref?: React.Ref<naver.maps.Marker | null>;
 };
 
-export function Marker({ ref, customIcon, onLoad, onClick, onMouseDown, onMouseUp, ...markerOptions }: MarkerProps) {
+export function Marker({ customIcon, onLoad, onClick, onMouseDown, onMouseUp, ref, ...markerOptions }: MarkerProps) {
   const map = useMapContext();
 
   const container = useRef<HTMLDivElement | null>(
