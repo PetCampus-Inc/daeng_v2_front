@@ -198,7 +198,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
     }
 
     case 'FILTERS_CHANGED': {
-      return applyFilterTransition(current, event.filters);
+      return applyFilterTransition(current, event.filters, 'bounds');
     }
 
     case 'CLEAR_QUERY': {
@@ -206,7 +206,7 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
     }
 
     case 'CLEAR_FILTERS': {
-      return applyFilterTransition(current, []);
+      return applyFilterTransition(current, [], 'bounds');
     }
 
     case 'BASEPOINT_SYNC': {
@@ -571,14 +571,29 @@ function applyScopeTransition(current: SearchState, targetScope: SearchScope): S
  * @param nextQuery - 새로운 쿼리
  * @returns 전이된 검색 스냅샷
  */
-function applyQueryTransition(current: SearchState, nextQuery: string): SearchState {
-  const targetScope = deriveScope({
-    currentScope: current.scope,
-    query: nextQuery,
-    filters: current.filters,
-  });
+function applyQueryTransition(
+  current: SearchState,
+  nextQuery: string,
+  forcedScope: SearchScope | null = null
+): SearchState {
+  const targetScope =
+    forcedScope ??
+    deriveScope({
+      currentScope: current.scope,
+      query: nextQuery,
+      filters: current.filters,
+    });
 
   const scoped = applyScopeTransition(current, targetScope);
+
+  if (targetScope === 'bounds') {
+    return {
+      ...scoped,
+      query: nextQuery,
+      searchBounds: current.viewportBounds ?? current.searchBounds,
+      searchCenter: current.center,
+    };
+  }
 
   return {
     ...scoped,
@@ -599,14 +614,29 @@ function applyQueryTransition(current: SearchState, nextQuery: string): SearchSt
  * @param nextFilters - 새로운 필터 배열
  * @returns 전이된 검색 스냅샷
  */
-function applyFilterTransition(current: SearchState, nextFilters: FilterOption[]): SearchState {
-  const targetScope = deriveScope({
-    currentScope: current.scope,
-    query: current.query,
-    filters: nextFilters,
-  });
+function applyFilterTransition(
+  current: SearchState,
+  nextFilters: FilterOption[],
+  forcedScope: SearchScope | null = null
+): SearchState {
+  const targetScope =
+    forcedScope ??
+    deriveScope({
+      currentScope: current.scope,
+      query: current.query,
+      filters: nextFilters,
+    });
 
   const scoped = applyScopeTransition(current, targetScope);
+
+  if (targetScope === 'bounds') {
+    return {
+      ...scoped,
+      filters: nextFilters,
+      searchBounds: current.viewportBounds ?? current.searchBounds,
+      searchCenter: current.center,
+    };
+  }
 
   return {
     ...scoped,
