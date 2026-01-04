@@ -9,7 +9,7 @@ import {
   CurrentLocationFAB,
   ListFAB,
   MapView,
-  RefreshFAB,
+  ResearchFAB,
   DisplayFilterProvider,
   useDisplayFilterContext,
 } from '@features/kindergarten-map';
@@ -155,7 +155,7 @@ function KindergartenMainPageContent() {
             <Float placement='top-start' offsetX='x4'>
               <CurrentLocationFAB />
             </Float>
-            {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
+            {shouldShowRefresh ? <ResearchFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
             <Float placement='top-end' offsetX='x4'>
               <ListFAB onClick={() => setSnapIndex(2)} />
             </Float>
