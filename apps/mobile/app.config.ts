@@ -64,6 +64,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       ],
       NSPhotoLibraryUsageDescription: '사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
       NSPhotoLibraryAddUsageDescription: '사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
+      NSCameraUsageDescription: '카메라를 사용하여 사진을 촬영하기 위해 카메라 권한이 필요합니다.',
     },
     splash: {
       image: './assets/images/splash.png',
@@ -95,6 +96,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-router',
     'expo-apple-authentication',
     './plugins/naver-map-queries',
+    [
+      'expo-image-picker',
+      {
+        photoPermission: '사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
+        cameraPermission: '카메라를 사용하여 사진을 촬영하기 위해 카메라 권한이 필요합니다.',
+      },
+    ],
     [
       'expo-splash-screen',
       {

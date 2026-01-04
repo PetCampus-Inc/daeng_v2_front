@@ -26,6 +26,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
   // 이미지 선택 이벤트 핸들러
   const handlePickImage = async (payload: ImagePickerPayload) => {
     const {
+      source = 'library',
       requestId,
       mediaTypes,
       allowsEditing,
@@ -38,16 +39,21 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
 
     try {
       // 권한 요청
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
+      const permissionResult =
+        source === 'library'
+          ? await ImagePicker.requestMediaLibraryPermissionsAsync()
+          : await ImagePicker.requestCameraPermissionsAsync();
+
+      if (permissionResult.status !== 'granted') {
         sendEvent('media.pickImage.cancel', {
           requestId,
-          reason: '사진 라이브러리 권한이 필요합니다.',
+          reason: source === 'library' ? '사진 접근 권한이 필요합니다.' : '카메라 접근 권한이 필요합니다.',
         });
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
+      // 공통 옵션 객체 생성
+      const pickerOptions: ImagePicker.ImagePickerOptions = {
         mediaTypes: mediaTypes === 'videos' ? ['videos'] : mediaTypes === 'all' ? ['images', 'videos'] : ['images'],
         allowsEditing: allowsEditing ?? false,
         quality: quality ?? 0.8,
@@ -55,7 +61,13 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         allowsMultipleSelection: allowsMultipleSelection ?? false,
         orderedSelection: orderedSelection ?? false,
         selectionLimit: selectionLimit ?? 0, // 0 = 무제한
-      });
+      };
+
+      // 소스에 따라 적절한 함수 호출
+      const result =
+        source === 'library'
+          ? await ImagePicker.launchImageLibraryAsync(pickerOptions)
+          : await ImagePicker.launchCameraAsync(pickerOptions);
 
       if (result.canceled) {
         sendEvent('media.pickImage.result', {
