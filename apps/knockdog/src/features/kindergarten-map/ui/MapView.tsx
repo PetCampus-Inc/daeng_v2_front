@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react
 import { Map as NaverMap, Marker } from '@knockdog/react-naver-map';
 import { isAggregationZoom, isPointZoom, isClusteringZoom } from '../lib/markers';
 import { getMapCenter, getMapZoom } from '../lib/map';
-import { useSearchListQuery, useAggregationQuery } from '../model/useSearchQuery';
+import { useAggregationQuery } from '../model/useSearchQuery';
 import { useFilteredSearchList } from '../model/useFilteredSearchList';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
@@ -21,11 +21,14 @@ import { ClusterBubbleMarker } from './ClusterBubbleMarker';
 import { CalloutOverlay } from './CalloutOverlay';
 import { useMapClustering, type MapPoint, type MapCluster } from '../model/useMapClustering';
 import type { BoundsSnapshot } from '../lib/searchMachine';
+import { CALLOUT_Z_INDEX_OFFSET } from '../config/map';
+import { MapMarker } from './MapMarker';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
   onOpenCard?: (item: KindergartenListItemWithMeta) => void;
 }
+
 export function MapView(props: MapViewProps) {
   const { ref, onOpenCard } = props;
 
@@ -326,6 +329,7 @@ export function MapView(props: MapViewProps) {
   return (
     <>
       <NaverMap
+        gl
         ref={map}
         center={mapCenter}
         zoom={mapZoom}
@@ -387,10 +391,11 @@ export function MapView(props: MapViewProps) {
               const representative = activeLeaf ? activeLeaf.properties.marker : firstLeaf.properties.marker;
 
               return (
-                <Marker
+                <MapMarker
                   key={`cluster-${cluster_id}`}
                   position={{ lat, lng }}
                   onClick={() => handleClusterClick({ id: cluster_id, coord: { lat, lng } })}
+                  selected={representative.id === activeMarkerId}
                   customIcon={{
                     content: (
                       <div className='relative flex flex-col items-center'>
@@ -416,10 +421,11 @@ export function MapView(props: MapViewProps) {
             const isSelected = markerId === activeMarkerId;
 
             return (
-              <Marker
+              <MapMarker
                 key={markerId}
                 position={marker.coord}
                 onClick={() => handleMarkerClick(marker)}
+                selected={isSelected}
                 customIcon={{
                   content: !isClusteringZoom(mapState.zoom) ? (
                     // Low/Medium Zoom (< 15): 일반 마커 노출
@@ -453,9 +459,11 @@ export function MapView(props: MapViewProps) {
 
         {/* 선택된 클러스터의 콜아웃 오버레이 */}
         {selectedClusterData && (
-          <Marker
+          <MapMarker
             position={selectedClusterData.coord}
             clickable={false}
+            selected={true}
+            offset={CALLOUT_Z_INDEX_OFFSET}
             customIcon={{
               content: (
                 <div className='relative flex flex-col items-center'>
@@ -481,10 +489,11 @@ export function MapView(props: MapViewProps) {
 
         {/* 정확한 업체가 있을 때 */}
         {showBusinessMarkers && exact && (
-          <Marker
+          <MapMarker
             key={exact.id}
             position={exact.coord}
             onClick={() => handleMarkerClick(exact)}
+            selected={exact.id === activeMarkerId}
             customIcon={{
               content: !isClusteringZoom(mapState.zoom) ? (
                 // Low/Medium Zoom (< 15): 일반 마커 노출
