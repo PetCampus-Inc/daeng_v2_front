@@ -75,7 +75,7 @@ function CompareCompletePage() {
             </div>
 
             <div className='min-h-0 flex-1'>
-              <CompareCompleteTabs left={left} right={right} isLoading={isPending} />
+              <CompareCompleteTabs left={left} right={right} />
             </div>
           </>
         )}
