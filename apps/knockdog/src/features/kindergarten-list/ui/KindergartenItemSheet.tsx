@@ -193,7 +193,7 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
             <BottomSheet.Body
               onPointerDownOutside={(e) => {
                 e.preventDefault();
-                close();
+                onClose();
               }}
               className={cn(
                 'pointer-events-auto absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)]',
