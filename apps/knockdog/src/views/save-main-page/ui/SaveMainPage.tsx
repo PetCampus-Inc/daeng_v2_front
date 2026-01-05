@@ -37,7 +37,7 @@ export function SaveMainPage() {
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
-  const { data: bookmarks = [], isLoading } = useQuery({
+  const { data: bookmarks = [], isPending } = useQuery({
     ...bookmarkQueries.list(hasAuth),
     enabled: hasAuth,
   });
@@ -82,7 +82,7 @@ export function SaveMainPage() {
         {isMounted && isLoggedIn && (
           <SaveTabs
             bookmarks={filteredBookmarks}
-            isLoading={isLoading}
+            isLoading={isPending}
             searchQuery={debouncedSearchQuery}
             filterState={{ refPoint, showMemoOnly, onChangeRefPoint: setRefPoint, onMemoToggle: toggleShowMemoOnly }}
           />

@@ -8,6 +8,7 @@ import { useComparisonsQuery } from '@features/compare';
 import type { KindergartenComparison } from '@entities/compare';
 import { SelectedCell, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
 import { SafeArea } from '@shared/ui/safe-area';
+import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { useShare } from '@shared/lib/device/useShare';
 
 function CompareCompletePage() {
@@ -18,13 +19,13 @@ function CompareCompletePage() {
   const qsKey = params.toString();
   const ids = useMemo(() => resolveIds(new URLSearchParams(qsKey)), [qsKey]);
 
-  const { data } = useComparisonsQuery(ids);
+  const { data, isPending } = useComparisonsQuery(ids);
 
   const [left, right] = useMemo(() => data?.filter((item): item is KindergartenComparison => !!item) ?? [], [data]);
 
-  if (!left || !right) return null;
-
   const handleShare = () => {
+    if (!left || !right) return;
+
     const url = `https://knockdog.com/compare-complete?ids=${left.id},${right.id}`;
     const shareData = {
       message: `${left.name}와 ${right.name}의 비교 결과를 확인해보세요!\n ${url}`,
@@ -54,22 +55,30 @@ function CompareCompletePage() {
           </Header.RightSection>
         </Header>
 
-        {/* 선택된 두 유치원 */}
-        <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
-          {[left, right].map(({ id, name, categories, thumbnailS3Key }, idx) => {
-            return (
-              <SelectedCell
-                key={id}
-                name={name}
-                type={serializeCategories(categories)}
-                avatar={s3ToUrl(thumbnailS3Key)}
-                className={idx === 0 ? 'pr-2' : 'pl-2'}
-              />
-            );
-          })}
-        </div>
+        {isPending || !left || !right ? (
+          <LoadingSpinner fullscreen className='bg-text-primary' />
+        ) : (
+          <>
+            {/* 선택된 두 유치원 */}
+            <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
+              {[left, right].map(({ id, name, categories, thumbnailS3Key }, idx) => {
+                return (
+                  <SelectedCell
+                    key={id}
+                    name={name}
+                    type={serializeCategories(categories)}
+                    avatar={s3ToUrl(thumbnailS3Key)}
+                    className={idx === 0 ? 'pr-2' : 'pl-2'}
+                  />
+                );
+              })}
+            </div>
 
-        <CompareCompleteTabs left={left} right={right} />
+            <div className='min-h-0 flex-1'>
+              <CompareCompleteTabs left={left} right={right} />
+            </div>
+          </>
+        )}
       </div>
     </SafeArea>
   );

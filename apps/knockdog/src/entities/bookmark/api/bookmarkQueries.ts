@@ -13,6 +13,5 @@ export const bookmarkQueries = {
       enabled,
       staleTime: 0,
       gcTime: 10 * 60 * 1000,
-      initialData: [],
     }),
 };

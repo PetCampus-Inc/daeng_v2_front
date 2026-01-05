@@ -25,7 +25,7 @@ function CompareCompleteTabs({ left, right }: CompareCompleteTabsProps) {
   const operatingSlideData = createOperatingScheduleSlide(left, right);
 
   return (
-    <Tabs defaultValue='summary' className='flex flex-col overflow-hidden'>
+    <Tabs defaultValue='summary' className='flex h-full flex-col'>
       <TabsList>
         <TabsTrigger value='summary'>요약</TabsTrigger>
         <TabsTrigger value='details'>자세히</TabsTrigger>
@@ -66,7 +66,7 @@ function CompareCompleteTabs({ left, right }: CompareCompleteTabsProps) {
       </TabsContent>
 
       {/* 자세히 탭 */}
-      <TabsContent value='details' className='overflow-y-auto'>
+      <TabsContent value='details' className='flex-1 overflow-y-auto'>
         <div className='flex flex-col gap-5 px-4 py-7'>
           {/* 요금 비교 */}
           <SwipeCarousel title='요금 비교' slides={pricingSlidesData} />
