@@ -1,3 +1,4 @@
+import { Icon } from '@knockdog/ui';
 import type { BookmarkItem } from '@entities/bookmark';
 import type { CTag } from '@entities/compare';
 import { serializeCategories } from '@entities/compare';
@@ -12,7 +13,10 @@ function KindergartenSimpleComparison({ selectedKindergartens, onItemClick }: Ki
     <div className='flex px-4'>
       <KindergartenItem kindergarten={selectedKindergartens?.left} onClick={onItemClick} />
 
-      <div className='bg-line-200 my-auto h-15 w-px' />
+      <div className='relative py-2'>
+        <div className='bg-line-200 my-auto h-15 w-px' />
+        <Icon icon='VisVs' className='absolute top-1/2 left-0 h-6 w-6 -translate-x-1/2 -translate-y-1/2' />
+      </div>
 
       <KindergartenItem kindergarten={selectedKindergartens?.right} onClick={onItemClick} />
     </div>
