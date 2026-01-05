@@ -90,7 +90,6 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
       onLoadEnd={notifyReady}
       javaScriptEnabled
       originWhitelist={['*']}
-      startInLoadingState
       cacheEnabled={false}
       injectedJavaScriptBeforeContentLoaded={INJECT_BEFORE}
       geolocationEnabled
