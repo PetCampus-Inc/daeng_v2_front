@@ -14,7 +14,7 @@ interface CompareListItemProps {
 
 function CompareListItem({ kindergarten, isSelected, onToggle, onClick, distanceText }: CompareListItemProps) {
   return (
-    <div className='flex items-start gap-3 bg-white p-5'>
+    <div className='flex items-start gap-3 bg-white py-5'>
       <Checkbox size='sm' checked={isSelected} onCheckedChange={onToggle} />
       <BookmarkedListItem
         kindergarten={kindergarten}
