@@ -93,5 +93,6 @@ export type IconName =
   | 'Trash'
   | 'UnderBar'
   | 'Valet'
+  | 'VisVs'
   | 'Walk'
   | 'Won';
