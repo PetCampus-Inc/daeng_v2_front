@@ -1,587 +1,593 @@
 {
-  "lastUpdated": "2025-12-26T15:18:30.136Z",
-  "totalIcons": 97,
+  "lastUpdated": "2026-01-05T03:28:47.325Z",
+  "totalIcons": 98,
   "icons": [
     {
       "name": "filter",
       "componentName": "Filter",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95389911-3fa8-42ef-a8b6-5d327caa3c07",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a88d5156-316b-4705-803f-9bc7e3d2b205",
       "hash": "c44975ee9a32f9d399f003eac9e0a579"
     },
     {
       "name": "close",
       "componentName": "Close",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/26e3bc7e-8d59-4097-8f18-0e03acdc7e89",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9543a2bc-c2e6-4a78-a18b-c5b53fda549b",
       "hash": "8089c8c5e399cb5c79e8cf8944babb4b"
     },
     {
       "name": "location_fill",
       "componentName": "LocationFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/26b9d3b7-e462-4988-a546-2bc455d38df6",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/39a09796-5b52-4f65-9c4e-9713d1c4a988",
       "hash": "e832b5aa1d47da0ef07a6b2b9e7ce348"
     },
     {
       "name": "chevron_left",
       "componentName": "ChevronLeft",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b0b21cb4-f6f3-4375-b6ac-adaea6ec2cc5",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7382f105-4ab6-441d-9a28-e231eb76aafe",
       "hash": "b384f80de6b0a3f63e6d9c95d24c6759"
     },
     {
       "name": "search",
       "componentName": "Search",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d080588a-8d7d-4746-a689-2745fc6b5f1c",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/40e521dc-98db-46f7-a558-cf8780a3628b",
       "hash": "432aa1132503ab15721137914fe98c01"
     },
     {
       "name": "currentlocation",
       "componentName": "Currentlocation",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c21eb3c9-91ae-4ee1-bdd7-1960e05710fd",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d98a6e9a-2360-4fb7-ac8b-fc55964e7127",
       "hash": "7a63d0e9d3383076fefc45c93cb56785"
     },
     {
       "name": "list",
       "componentName": "List",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9554e52c-f73b-4352-bcc4-4a27f221e877",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/95c10999-a51f-4403-b3f7-cc020a56fa19",
       "hash": "ed47bc5f75e9a3b4f37ed3c14bca7686"
     },
     {
       "name": "reset",
       "componentName": "Reset",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ff6c1a3c-b9d8-451c-957e-3ab27a86702b",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/20df243f-21a1-49ae-a2fe-abf62d06577a",
       "hash": "99fc8ae7026287396b24591d597fb605"
     },
     {
       "name": "chevron_bottom",
       "componentName": "ChevronBottom",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3a344aa8-be79-47eb-a2a6-9807573b7afa",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/52d5d8f9-71d9-4175-8e3b-50ac0a3df030",
       "hash": "d285240c2221a5e70bb2f478f613d725"
     },
     {
       "name": "bookmark_fill",
       "componentName": "BookmarkFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7643077a-be56-436b-a774-4c1cfd99c56c",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bcda4402-359d-439d-a864-d7d738d10649",
       "hash": "ea249321ab9b742468d57024f83203d8"
     },
     {
       "name": "naver",
       "componentName": "Naver",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b14734e9-7082-4238-8b8e-e4d5ffc4c3be",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/771d583c-2c13-47c0-acef-61af1de420e5",
       "hash": "f4659d46478e90c3610180cf70bf9758"
     },
     {
       "name": "note",
       "componentName": "Note",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/305f3cfd-e310-43ef-8225-406ef2f403cf",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d7097e92-be6f-4652-94e5-ad8ace4eb0de",
       "hash": "3474ed3c778a7d87d82efd2f7a47a582"
     },
     {
       "name": "won",
       "componentName": "Won",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3310ae23-74ae-437c-a55d-72e90990d4a5",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/e3879bae-0d58-44c5-bc46-32b3c8933f89",
       "hash": "88c6e3baf486a362b3dcce61219d75fb"
     },
     {
       "name": "compare_nav",
       "componentName": "CompareNav",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/72819abb-97d0-4f1b-ab7f-3080919f845d",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/fc0c788f-0e14-4f39-9bba-0d9536cf27c2",
       "hash": "8a033d603c38cc53d5b55cd3e7a9c656"
     },
     {
       "name": "delete_input",
       "componentName": "DeleteInput",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/5f7cbc1d-c522-4dfe-b7c7-cec598f396fb",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4f7849ea-283f-4428-902b-e9ae6b4790e5",
       "hash": "2897f3a11a0c32dc93dfbb4e14d64a18"
     },
     {
       "name": "navigation",
       "componentName": "Navigation",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/58c47e7f-5869-4b68-a81c-fd93c16d608c",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/94705c94-0241-44bb-aff2-84d3e1ee1d16",
       "hash": "68b6e07eba1e25808b5511f1f27cdb79"
     },
     {
       "name": "pickup_free",
       "componentName": "PickupFree",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b654b461-ba3e-4119-98d0-b5b736538d40",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/479d4b43-d8db-47b9-a581-81ddf6e83afb",
       "hash": "de80bfeed08bda1d344d6369c16e42e8"
     },
     {
       "name": "alldogs",
       "componentName": "Alldogs",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17c0214b-f28d-4fab-9b43-f9ea36daecd5",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/86058560-574a-4c47-b69a-31465733716a",
       "hash": "c31f2a460a58852f30292597696fdf7f"
     },
     {
       "name": "smalldog",
       "componentName": "Smalldog",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7fcd518d-82a5-4ce3-a2f9-99a17798e0b0",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/35c08953-f2ce-4077-8cd0-afa91632953d",
       "hash": "140ac0aa5bb297fa35e7cd82471f4deb"
     },
     {
       "name": "largedog",
       "componentName": "Largedog",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/836d8f5d-e5d2-4f6a-88d6-a662370cc7c2",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/dc577f00-e65f-4ff2-a294-e1c4877eedc1",
       "hash": "cae207f7b56421ce9d378152b0c286b2"
     },
     {
       "name": "daycare",
       "componentName": "Daycare",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/0ab9a853-0419-413c-8bd2-f8681890a448",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7d54c2ff-8b96-44ad-b6af-7229e3c8f804",
       "hash": "876138a1734999eac13a690d6aa0e8c5"
     },
     {
       "name": "hotel",
       "componentName": "Hotel",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ed90d111-d611-42f0-abe2-052b6cb9ab2e",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1485f828-1add-4037-9555-e8f7fb7bb962",
       "hash": "8b1802ef2ddff811885494051575530c"
     },
     {
       "name": "time_24",
       "componentName": "Time24",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/04272626-2b31-4c89-ae73-a9afb6e2e1e5",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7a5c653c-79e0-441f-bf98-025103f9bc9a",
       "hash": "db315b9ac4470fc77730f5f0c9b2498c"
     },
     {
       "name": "personalitycheck",
       "componentName": "Personalitycheck",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6727c66e-353b-4cbb-b6fc-d13ff692d951",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b0230341-4eb0-4aef-b175-dff9104e08c0",
       "hash": "c7fbeac14a399a0669956e4dd63ba851"
     },
     {
       "name": "babydelivery",
       "componentName": "Babydelivery",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3085ede7-2dbc-4c13-83f1-c3b464f6a3dd",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/fd9778c6-e0a0-4901-b15d-116d50967d64",
       "hash": "b2a8afb2b8f0c02d981648fd1dccb6c2"
     },
     {
       "name": "bath",
       "componentName": "Bath",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c5610bb8-2b51-4579-ae2c-ce5789e32eff",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6138c7ea-1b49-4507-813a-3378f3b43cef",
       "hash": "fd329b0a9e6719aa9ab2226bc024920f"
     },
     {
       "name": "walk",
       "componentName": "Walk",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/35007faf-3c7a-4409-b087-46f9896a6587",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7ac27991-de3e-4b71-879b-ac951ca36f8b",
       "hash": "8cd6e19882b85876249e0c19725ea02f"
     },
     {
       "name": "training",
       "componentName": "Training",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/aad2e37a-ce4b-48c6-84f2-5ffdb06688b4",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/37e5af0c-b41c-40e0-bdc0-cbe94aafa5dc",
       "hash": "0561174beac7232055f7430bfcbdd046"
     },
     {
       "name": "salon",
       "componentName": "Salon",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/99d998e4-1c1f-4525-aaf0-df91fa708108",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/cf6e10e2-f162-4e7c-8b40-abad6c6344b1",
       "hash": "b9360e6df4d1995c8cad93e1272faa92"
     },
     {
       "name": "rehabilitation",
       "componentName": "Rehabilitation",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/49321e63-bc34-4230-8f3f-af2890865614",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c03b0882-c073-40b5-9f1b-0d0b3ca57901",
       "hash": "28e0d840cc0301de77aa4dbd1b616d71"
     },
     {
       "name": "floor",
       "componentName": "Floor",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/2d5b12e5-9c68-4c4d-8fff-fc6032ff8b55",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/e7804448-1a7c-4443-bcb6-712666d34fe8",
       "hash": "4df506e3d2e204b867e33d6bbb49b53a"
     },
     {
       "name": "cctv",
       "componentName": "Cctv",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/51f2aa56-19f9-44da-8bca-acaa9d5056d7",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/286d493e-622e-4c91-894f-646044cb560e",
       "hash": "6c7eda71353205af9264cc014725fe15"
     },
     {
       "name": "playground",
       "componentName": "Playground",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6ceac5b8-2099-4d2d-97cb-fa315dd54d3f",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1cbe0b94-25bf-41bc-afe1-f2befbd9c33e",
       "hash": "7dca150c4f2ada3ca050ba8f86ba8b8a"
     },
     {
       "name": "rooftop",
       "componentName": "Rooftop",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/cac22b2d-4d5a-4c9f-8ae4-f6de02eec4cb",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b0a4ebee-95d2-4f79-bd0c-d37e0e358083",
       "hash": "4d4ac05cac91fe88a3200e25dab25b24"
     },
     {
       "name": "terrace",
       "componentName": "Terrace",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/65e5c512-d563-4936-a73d-dbf607582727",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ac07d23e-fffe-4e1b-9231-44c7a9489a4a",
       "hash": "924cecd79c3e6f33b7703bd63fa6b40b"
     },
     {
       "name": "field",
       "componentName": "Field",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9b53ef78-3b4a-4885-803d-5c268b4c04f2",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/569a39ef-fe4a-4023-8229-bde290f4be4b",
       "hash": "a887ba8cf97618a515ebaa5392f7336a"
     },
     {
       "name": "frontyard",
       "componentName": "Frontyard",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1ccc56f0-0568-4ac6-8554-9ed516072e38",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1ffafab5-c09e-44aa-8bce-af9532a9ddcd",
       "hash": "4905f676ee214a84cd76f4a14386b148"
     },
     {
       "name": "pickdrop_line",
       "componentName": "PickdropLine",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17e5a324-b5be-4dd8-a9bd-4cdf29eaec63",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/e3dd45ce-e745-4e3d-b4cb-8c2ddb6d3b8f",
       "hash": "cd3d984f3baeaab8dc6c7718d3bdd51b"
     },
     {
       "name": "noticebook",
       "componentName": "Noticebook",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/080ea48f-75d6-496a-95f9-3172d5f96feb",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/98fc86e4-f60c-4335-9009-93e36b3a0fd5",
       "hash": "d050618a0377f746506c4f13b3c8f693"
     },
     {
       "name": "toyshop",
       "componentName": "Toyshop",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ef6a97a2-4c23-49eb-b9ff-ac0e28304183",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8271ac49-595b-4c7d-9489-24bbcd320fc6",
       "hash": "ba8bfd7776d92866f12a734d25a75167"
     },
     {
       "name": "cafe",
       "componentName": "Cafe",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17945346-968b-4481-95aa-4d3d56fadfee",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bd163156-914b-4c59-ba93-5ab2c548754f",
       "hash": "cb79e6caeabd27dfdaf71cf51ef7017f"
     },
     {
       "name": "parking",
       "componentName": "Parking",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7dd0da34-1af7-4193-bf49-5a04e033670e",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/14405a21-44bc-452f-8dea-91b382fc6153",
       "hash": "878d1d96c149a8970956d9f6928e057a"
     },
     {
       "name": "valet",
       "componentName": "Valet",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/699c1d57-2c80-4784-99d6-28f331e40381",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bb99e95a-5d4f-42e4-b3f7-4db97ab90be3",
       "hash": "8b826ca523e6bf5fad26d70c90b04c1c"
     },
     {
       "name": "chevron_right",
       "componentName": "ChevronRight",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/960e0f14-6f54-4087-bee6-3d81c05d7ade",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7caa06dc-ec7c-4ed3-a535-40210d28e330",
       "hash": "d056d827a3586481b20fb98ac17d84b1"
     },
     {
       "name": "copy",
       "componentName": "Copy",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/18d1d03c-dca8-4e1c-9231-d14562d134dc",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/956d0ba0-4ab6-4435-8ad1-bfc2c01adc56",
       "hash": "2f6da13c195b0af86242ad6476aa068c"
     },
     {
       "name": "plus",
       "componentName": "Plus",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/89c29f1b-fd05-4052-b8d5-be3e47cc7043",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9ebfe194-f5b8-4de1-bfb9-9c36f15a9ccd",
       "hash": "0bd6b6a53b7b4a45d5be3f97f6810cb1"
     },
     {
       "name": "bookmark_line",
       "componentName": "BookmarkLine",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bd89ff23-7d42-4911-8d53-8d2a3be57027",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/94dd8054-33d7-45ef-b2d6-89b4a8772838",
       "hash": "940178d0d33644a0cc14979282bf78d2"
     },
     {
       "name": "home",
       "componentName": "Home",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ad845f93-2b91-4558-9e70-5f047816dd0f",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6e8d11c3-7fb5-4bc9-9ec4-79a7f6655cb0",
       "hash": "2b39f2dcda023824ca6a71ac344ab47a"
     },
     {
       "name": "share",
       "componentName": "Share",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/dc9a48cc-5bc0-431b-aabf-faed006e0909",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/87bd841f-5c23-49a0-b2b8-593b77b03b6b",
       "hash": "5b00b703fc8be4e775c4fa8050b41447"
     },
     {
       "name": "map",
       "componentName": "Map",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3459b7af-429c-43b3-9eb8-910d0098f466",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b87ac13d-45c3-47ca-998d-acf5ffac0e8f",
       "hash": "2e798cd31d3d09f84f217b6e5b175a72"
+    },
+    {
+      "name": "vis_vs",
+      "componentName": "VisVs",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7b7ad750-7f46-49f7-a9c4-bb3bee714eb7",
+      "hash": "6e588cff5afc0280e72ba9816f05bd5d"
     },
     {
       "name": "colon",
       "componentName": "Colon",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/18a6082e-b864-43ee-861c-835bccb01ea6",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/510db69f-fcf4-492c-932c-d4780b198e66",
       "hash": "4784a52515c9b178371f3c4703a78dd2"
     },
     {
       "name": "minus",
       "componentName": "Minus",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8250c3cd-18ec-463f-a7b7-9d7fa63922c2",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b79d8340-1265-4787-be14-55e185d7ddd7",
       "hash": "ba68e98e70f881bf52e5734cdd19c18a"
     },
     {
       "name": "tooltip_line",
       "componentName": "TooltipLine",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a478353b-c734-4fdb-9d64-fdae584f3bb0",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d62f5053-def4-4399-86b7-b861b16b27c0",
       "hash": "9f0220a8545400de0d0d08e6ed2ed7b2"
     },
     {
       "name": "google logo",
       "componentName": "GoogleLogo",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8a3ff3b8-d38c-452a-b5d1-b2024752a972",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/f7f30000-f552-49c2-abc6-7cc535cae96e",
       "hash": "cbd0b1a320fe301fb86a7cd72cd59415"
     },
     {
       "name": "camera",
       "componentName": "Camera",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d094c027-fd69-46c6-b5c1-363a3f6822c2",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/17f76c68-34f0-4cef-98b0-90253170a180",
       "hash": "d78b303409325d916a92167f5c630fba"
     },
     {
       "name": "edit",
       "componentName": "Edit",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/44994937-9636-4bd7-b59c-d99ed5b204f0",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d2f98988-9eaa-432c-bf55-76fe90fe079a",
       "hash": "684bb4f34b59c33aef85f4d1c89d0fae"
     },
     {
       "name": "male",
       "componentName": "Male",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4f67d496-3a54-4038-bda4-8c087e22596a",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/e1dcf5ab-f840-4b19-8b6d-359d79f63097",
       "hash": "9cc4a46fc5b81a79a8ec98ac0a86318f"
     },
     {
       "name": "king",
       "componentName": "King",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/6a5b3e96-fc2c-4e4d-b5f7-3209135fbb72",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/93368443-198b-4de4-8593-21c9ff5283ae",
       "hash": "6bbef293363442eb2aa2c950ca7aafa0"
     },
     {
       "name": "alarm_line",
       "componentName": "AlarmLine",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/74da23e6-0124-449d-b8f3-185886586820",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8e039ab9-880f-451a-bf03-5f7562317b8f",
       "hash": "d01c8065b99cd4fb79f2aba2adaa14f7"
     },
     {
       "name": "none",
       "componentName": "None",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a3b478dc-4246-4656-9408-9f21cca14ac0",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/0821d5c5-1d64-4433-8365-216b83dba4bc",
       "hash": "3f6e9ef1e8f9c5c28360afe7ecf0e517"
     },
     {
       "name": "time",
       "componentName": "Time",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a925b3ad-e573-4851-8549-fc70c84b0a6a",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/da54666c-a33a-46c7-a446-0021e616d694",
       "hash": "f9325238552f307ed51882a65a7a0dc2"
     },
     {
       "name": "check",
       "componentName": "Check",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/52b670fa-20b3-4e33-9fa6-d36609c5af7f",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/470a9e6d-c4d4-4005-9a7d-3c97445e6c9e",
       "hash": "051ee781f719d9586ad8c4f6e019ab06"
     },
     {
       "name": "kakao logo",
       "componentName": "KakaoLogo",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b09974f6-62e9-4168-8901-4d3873b4edcb",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c628091c-597a-4fea-918c-b61d29f5f16d",
       "hash": "7aea186a851a5115cd227cd61fe9d363"
     },
     {
       "name": "gallery",
       "componentName": "Gallery",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8f2f601e-1b5a-4da0-a4a1-d769ad446474",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ef200601-87ad-4835-926e-7d8e369d39f5",
       "hash": "91288df5a74d0b63d35557dbca25257a"
     },
     {
       "name": "alarm_fill",
       "componentName": "AlarmFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/15a7c228-f0ea-4901-9903-aad5bf9406f6",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/69e583db-f859-434a-9beb-63be9003dea8",
       "hash": "5c85f6b03c26bf82ce90591c9e26899f"
     },
     {
       "name": "chevron_top",
       "componentName": "ChevronTop",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c48a394f-0bf5-483f-a7db-37d2d91a6259",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/979b7427-3f88-40a0-b3c3-33a64e5e7838",
       "hash": "42e49eaf88d2cf95230e6fba76edcd5f"
     },
     {
       "name": "trash",
       "componentName": "Trash",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/0de707e4-0b0e-4baa-acb9-ad6a02ad4cd8",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ef82b33c-3ee1-4030-8598-077e1f100a04",
       "hash": "a322f6603d7c4104b03be78ea4b21da2"
     },
     {
       "name": "check_fill",
       "componentName": "CheckFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/2fb21f0e-f0c0-4a16-b559-3fed75804471",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/9210d97e-3f03-4aa3-908c-c98096ebb0a4",
       "hash": "d5fdab8f03f0358cfc0f89cf83669901"
     },
     {
       "name": "naver_fill",
       "componentName": "NaverFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/eb35cc4f-c5ed-423f-a643-fe19c002b5c2",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bdc211b9-34e2-4b5b-90ae-f51ed9e2e780",
       "hash": "a61df24ec1aba408f102fa612a4d6fab"
     },
     {
       "name": "size",
       "componentName": "Size",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8ea5ef23-e258-4a56-a393-43fe7ece7189",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7905f304-37b6-43d2-9b1a-b6a6b7ef8df0",
       "hash": "f71183176a896cec0b046491bde083a8"
     },
     {
       "name": "bold",
       "componentName": "Bold",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8a7b2148-77ec-459c-b50b-08697f4c7ec9",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/523f6bfc-78b2-425b-9fbb-b97179d93310",
       "hash": "25d0caf7d5de951ff2a88f9a6548aa22"
     },
     {
       "name": "italic",
       "componentName": "Italic",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/fe40d100-62e4-4a4e-8e9c-6c7d8e55f88d",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4f35d28d-a5b1-45bb-aa9d-aa4acec521fa",
       "hash": "48b85547ad0f13748a9eb4e176158562"
     },
     {
       "name": "under bar",
       "componentName": "UnderBar",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/78186ee6-860f-43f4-a92c-c11bb8a2e34e",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/57b0a540-acc5-458a-903b-93cea094a3f4",
       "hash": "c4c65aab51e2eca11d36a25cd208577a"
     },
     {
       "name": "indentation",
       "componentName": "Indentation",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/cf3121df-157b-4a54-b8b2-9ddd94b92369",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/f920ff6b-d03b-4df3-b2fa-58abcf3a93c9",
       "hash": "06e125b3c4aeae3f1a97be185c103f0a"
     },
     {
       "name": "back",
       "componentName": "Back",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/06ba6850-b518-4713-97c2-fb3cbec4b897",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/be455f9a-ff34-4b36-b2c9-cad6db412afb",
       "hash": "bdd101ca74d7894369f50d057575d211"
     },
     {
       "name": "back inverse",
       "componentName": "BackInverse",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b3aa9d6b-bb30-40aa-b25d-aedbeb667022",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4c1c8b4d-f9b6-41e8-9148-aef145852820",
       "hash": "76574a7154d7b36ea0b1742630d4aa87"
     },
     {
       "name": "checklist",
       "componentName": "Checklist",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1fbf6f50-d2eb-4719-97d4-6efbda01e486",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/cff134a0-da46-4de8-b75e-03d4538b51c0",
       "hash": "9cd1a5d02398c97dcbac4552eb500b00"
     },
     {
       "name": "apple logo",
       "componentName": "AppleLogo",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4d83aa75-3fc0-4997-abbe-c48fafd349ef",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c3fd76cf-d114-4e88-8cba-91fd6d25ff32",
       "hash": "9371b49a570730ec898c4a64ffdf9009"
     },
     {
       "name": "tooltip_fill",
       "componentName": "TooltipFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/5b19fdfd-e2e4-4ed9-8dbb-eeebca0b7834",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/b0b424cf-b01e-4a70-8008-c55645b6219b",
       "hash": "9dab391e445c476993cb766ae86225bf"
     },
     {
       "name": "more",
       "componentName": "More",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7aed10cf-9bd7-41db-bdc1-ed2743736f75",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ed8c6fee-42db-4f7d-9beb-6407643730e1",
       "hash": "014f0330a6781bc9d610ef53f86e196c"
     },
     {
       "name": "info_line",
       "componentName": "InfoLine",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/48e6ad9c-06a8-4f8e-b3ad-5cdae9f749a1",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c9dcbada-09a2-4bad-88f3-e42125ef0b49",
       "hash": "87a38fd864151bcf95bd50e6462ad032"
     },
     {
       "name": "maindog",
       "componentName": "Maindog",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/567d998c-ddfa-4f21-b652-ad6ce951ec3b",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7665461a-8430-49f7-a0da-8a590d096665",
       "hash": "bead3491e61f3fb845f30580b27ec63b"
     },
     {
       "name": "call",
       "componentName": "Call",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/2c07a0ec-98cc-4dca-a6f4-4d8818d7328c",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/e7499f80-9066-4917-8d64-3470ae51ba41",
       "hash": "73731c1736e92a273adde15f0612fd28"
     },
     {
       "name": "female",
       "componentName": "Female",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/851a5c75-6306-4d07-a2b1-e1944dd9e352",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ba779a50-7c9b-436b-a9d8-7571d27e5cf0",
       "hash": "5edfbebd2b493564c4c408b6966e31fa"
     },
     {
       "name": "check_stroke",
       "componentName": "CheckStroke",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/58705fa4-0ebb-4110-a5f4-6dff250b1b4f",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3441984f-b2f3-4a14-8c74-dabc242350a1",
       "hash": "b22c1116a6fa96832394e9cc99e2bb13"
     },
     {
       "name": "search_nav",
       "componentName": "SearchNav",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bf48a5b9-1daf-4186-af8d-07c71a9308b8",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/695af5b5-5dec-4cc5-b7a7-c19a51516c09",
       "hash": "cdc2a4d585d867701cf15bc267f6a49d"
     },
     {
       "name": "save_nav",
       "componentName": "SaveNav",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/bc37879d-2e30-4bec-86b1-b6573d587a3d",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/cb317943-6ae1-403c-aa36-f06abac8404c",
       "hash": "f672b2a5df774daf91d25ceb5764835b"
     },
     {
       "name": "mypage_nav",
       "componentName": "MypageNav",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c0fdd24d-82d0-4b44-9339-2dbe9fa2ebf8",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/8c888429-9872-4a2c-bc73-cda796283eaf",
       "hash": "72a37ac6cde191c73627acd7af9491f0"
     },
     {
       "name": "pickup_paid",
       "componentName": "PickupPaid",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/32400922-1060-4ad9-b83d-3b55bdc48eb3",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/343cd9c8-9ac0-437e-92cf-854e3d495f5e",
       "hash": "d180cac7ef1aa51057db322b02a4133f"
     },
     {
       "name": "minus_fill",
       "componentName": "MinusFill",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4d8d1318-1c69-46ab-88cf-77ab8ce5e256",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/ca1d2fc7-800e-4d92-ac99-09b03b2d483b",
       "hash": "224efe945b2c58153bfb5752f54f554d"
     },
     {
       "name": "filterdot",
       "componentName": "Filterdot",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/4023b4fb-8a41-4e86-87f6-dd0e2ff274f5",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/be466807-0176-48a1-94cb-d746885a9509",
       "hash": "458e2ad5c313cf8589b4b541d15acc5c"
     },
     {
       "name": "alarm_line_active",
       "componentName": "AlarmLineActive",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/a6fce386-25e7-477a-8ca8-16e3b11faffd",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3a732879-4a87-4c3a-afa6-6ab69bb41113",
       "hash": "449f2206ef14792ecd085b450d65b988"
     },
     {
       "name": "location_line",
       "componentName": "LocationLine",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/1a7de4ab-2463-465a-ad47-1887751742a5",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/88830474-bed1-464f-a839-58351d232f96",
       "hash": "d979fee89bdbbd63ea2174c7c1cadf68"
     },
     {
       "name": "bus",
       "componentName": "Bus",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c90f83c2-1911-4453-9dd3-66918250c57b",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/3c18f175-8344-4a5e-94a3-0d6a3a0e0742",
       "hash": "8c3015ca84fc603f7987e8827d9069d4"
     },
     {
       "name": "paw",
       "componentName": "Paw",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/fa7653ab-4bb4-4226-a6b4-8272e7c20c35",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/d86826ed-6732-4274-94ef-47b22177e6b9",
       "hash": "8e19f99683a5437fc95ae876326a7510"
     },
     {
       "name": "cycle",
       "componentName": "Cycle",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/c6759e9d-6596-472f-9c32-d63afdc78c59",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/efe5a682-a46b-434f-be02-2cd3e3d44ad0",
       "hash": "7d4bdeab0577df5bcd79176121a29697"
     },
     {
       "name": "ticket",
       "componentName": "Ticket",
-      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/28ab433c-c383-4110-a482-fa1868151fd7",
+      "iconUrl": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/7764cbf4-b804-46de-8c61-dc769b57a42f",
       "hash": "9f0d344f0e879e0892914eb31e8c0504"
     }
   ]

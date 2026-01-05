@@ -93,6 +93,7 @@ export { Training } from './Training';
 export { Trash } from './Trash';
 export { UnderBar } from './UnderBar';
 export { Valet } from './Valet';
+export { VisVs } from './VisVs';
 export { Walk } from './Walk';
 export { Won } from './Won';
 export type { IconName } from './types';
