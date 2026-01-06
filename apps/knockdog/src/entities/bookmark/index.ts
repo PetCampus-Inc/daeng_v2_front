@@ -3,7 +3,6 @@ export { getBookmarks } from './api/bookmark';
 
 /** config */
 export { bookmarkQueries } from './config/bookmarkQueries';
-export { bookmarkQueryKeys, createBookmarkQueryOptions, deleteBookmarkQueryOptions } from './config/bookmarkQueryKeys';
 
 /** lib */
 export { formatMemoAt } from './lib/mappers';
