@@ -1,62 +1,84 @@
-import { type InfiniteData, type QueryKey, useQueryClient } from '@tanstack/react-query';
+import { type InfiniteData, type QueryKey, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { useBookmarkDeleteMutation, useBookmarkPostMutation } from '@entities/bookmark/api/useBookmarkMutation';
+
+import { bookmarkQueries } from '@entities/bookmark';
+import { deleteBookmark, postBookmark } from '@entities/bookmark/api/bookmark';
 import { type KindergartenListWithMeta } from '@entities/kindergarten';
 
 type CacheData = InfiniteData<KindergartenListWithMeta>;
 
 export function useBookmarkToggle(queryKey?: QueryKey) {
   const queryClient = useQueryClient();
-  const { mutate: postBookmark } = useBookmarkPostMutation();
-  const { mutate: deleteBookmark } = useBookmarkDeleteMutation();
 
-  const toggleBookmarkInCache = useCallback(
-    (id: string, isBookmarked: boolean) => {
-      if (!queryKey) {
-        return;
+  const { mutate } = useMutation({
+    mutationFn: async ({ id, isBookmarked }: { id: string; isBookmarked: boolean }) => {
+      if (isBookmarked) {
+        return deleteBookmark(id);
       }
-      queryClient.setQueryData<CacheData>(queryKey, (prev) => {
-        if (!prev) return prev;
-        if ('pages' in prev && Array.isArray(prev.pages)) {
-          return {
-            ...prev,
-            pages: prev.pages.map((page) => ({
-              ...page,
-              schoolResult: {
-                ...page.schoolResult,
-                exact:
-                  page.schoolResult.exact?.id === id
-                    ? { ...page.schoolResult.exact, isBookmarked }
-                    : page.schoolResult.exact,
-                list: page.schoolResult.list.map((item) => (item.id === id ? { ...item, isBookmarked } : item)),
-              },
-            })),
-          };
-        }
-      });
+      return postBookmark(id);
     },
-    [queryKey, queryClient]
-  );
+    onMutate: async ({ id, isBookmarked }) => {
+      // 1. 검색 리스트 캐시 낙관적 업데이트
+      if (queryKey) {
+        await queryClient.cancelQueries({ queryKey });
+        const previousData = queryClient.getQueryData<CacheData>(queryKey);
+
+        if (previousData) {
+          queryClient.setQueryData<CacheData>(queryKey, (prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              pages: prev.pages.map((page) => ({
+                ...page,
+                schoolResult: {
+                  ...page.schoolResult,
+                  exact:
+                    page.schoolResult.exact?.id === id
+                      ? { ...page.schoolResult.exact, isBookmarked: !isBookmarked }
+                      : page.schoolResult.exact,
+                  list: page.schoolResult.list.map((item) =>
+                    item.id === id ? { ...item, isBookmarked: !isBookmarked } : item
+                  ),
+                },
+              })),
+            };
+          });
+        }
+      }
+
+      // 2. 북마크 리스트 캐시 낙관적 업데이트
+      const bookmarkKey = bookmarkQueries.keys.all();
+      await queryClient.cancelQueries({ queryKey: bookmarkKey });
+      const previousBookmarks = queryClient.getQueryData(bookmarkKey);
+
+      if (previousBookmarks) {
+        queryClient.setQueryData(bookmarkKey, (prev: any) => {
+          if (!Array.isArray(prev)) return prev;
+          if (isBookmarked) {
+            return prev.filter((item) => (item.shopId ?? item.id) !== id);
+          } else {
+            return [...prev, { id, shopId: id }];
+          }
+        });
+      }
+
+      return { previousData: queryKey ? queryClient.getQueryData(queryKey) : undefined, previousBookmarks };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousData && queryKey) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+      if (context?.previousBookmarks) {
+        queryClient.setQueryData(bookmarkQueries.keys.all(), context.previousBookmarks);
+      }
+    },
+  });
 
   const onBookmarkClick = useCallback(
     (id: string, isBookmarked = false) => {
-      toggleBookmarkInCache(id, !isBookmarked);
-
-      if (isBookmarked) {
-        deleteBookmark(id, {
-          onError: () => {
-            toggleBookmarkInCache(id, true);
-          },
-        });
-      } else {
-        postBookmark(id, {
-          onError: () => {
-            toggleBookmarkInCache(id, false);
-          },
-        });
-      }
+      mutate({ id, isBookmarked });
     },
-    [deleteBookmark, postBookmark, toggleBookmarkInCache]
+    [mutate]
   );
 
   return { onBookmarkClick };
