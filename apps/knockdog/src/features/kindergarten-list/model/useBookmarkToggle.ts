@@ -18,10 +18,12 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
       return postBookmark(id);
     },
     onMutate: async ({ id, isBookmarked }) => {
+      let previousData: CacheData | undefined;
+
       // 1. 검색 리스트 캐시 낙관적 업데이트
       if (queryKey) {
         await queryClient.cancelQueries({ queryKey });
-        const previousData = queryClient.getQueryData<CacheData>(queryKey);
+        previousData = queryClient.getQueryData<CacheData>(queryKey);
 
         if (previousData) {
           queryClient.setQueryData<CacheData>(queryKey, (prev) => {
@@ -62,7 +64,7 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
         });
       }
 
-      return { previousData: queryKey ? queryClient.getQueryData(queryKey) : undefined, previousBookmarks };
+      return { previousData, previousBookmarks };
     },
     onError: (_err, _variables, context) => {
       if (context?.previousData && queryKey) {
