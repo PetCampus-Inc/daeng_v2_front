@@ -53,7 +53,7 @@ export function KindergartenListSheet({
   return (
     <div
       ref={containerRef}
-      className='pointer-events-none absolute bottom-0 w-full'
+      className='pointer-events-none absolute bottom-0 w-full overflow-hidden'
       style={{
         height: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
       }}
