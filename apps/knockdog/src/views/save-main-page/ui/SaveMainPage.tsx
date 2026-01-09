@@ -37,7 +37,11 @@ export function SaveMainPage() {
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
-  const { data: bookmarks = [], isPending } = useQuery({
+  const {
+    data: bookmarks = [],
+    isPending,
+    refetch,
+  } = useQuery({
     ...bookmarkQueries.list(hasAuth),
     enabled: hasAuth,
   });
@@ -85,6 +89,9 @@ export function SaveMainPage() {
             isLoading={isPending}
             searchQuery={debouncedSearchQuery}
             filterState={{ refPoint, showMemoOnly, onChangeRefPoint: setRefPoint, onMemoToggle: toggleShowMemoOnly }}
+            onBookmarksRefetch={async () => {
+              await refetch();
+            }}
           />
         )}
       </div>

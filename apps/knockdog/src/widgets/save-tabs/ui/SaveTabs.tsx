@@ -15,17 +15,23 @@ interface SaveTabsProps {
   isLoading: boolean;
   searchQuery?: string;
   filterState: FilterState;
+  onBookmarksRefetch: () => Promise<void>;
 }
 
-function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState }: SaveTabsProps) {
+function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookmarksRefetch }: SaveTabsProps) {
   const reset = useCompareStore((state) => state.reset);
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [activeTab, setActiveTab] = useState('KINDERGARTEN');
 
-  const handleEnterCompareMode = () => {
-    reset();
-    setIsCompareMode(true);
+  const handleEnterCompareMode = async () => {
+    try {
+      await onBookmarksRefetch(); // 비교 모드 진입 시 북마크 목록 갱신
+      reset();
+      setIsCompareMode(true);
+    } catch {
+      // 에러 발생 시 비교 모드 진입 취소
+    }
   };
 
   const handleExitCompareMode = () => {
