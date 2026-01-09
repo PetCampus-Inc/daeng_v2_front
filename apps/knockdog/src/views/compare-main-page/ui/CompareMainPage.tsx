@@ -18,7 +18,14 @@ export function CompareMainPage() {
     <SafeArea className='bg-fill-secondary-0 flex h-dvh flex-col'>
       <h1 className='h1-extrabold text-text-primary mt-[94px] px-4 py-5'>곧 오픈 예정이에요!</h1>
 
-      <Image src='/images/img_comingsoon.png' alt='coming soon' className='mx-auto mt-10' width={200} height={200} />
+      <Image
+        src='/images/img_comingsoon.png'
+        alt='coming soon'
+        className='mx-auto mt-10'
+        width={200}
+        height={200}
+        priority
+      />
 
       <div className='mt-12 flex flex-col gap-7 px-4'>
         <p className='body1-regular text-text-primary whitespace-pre-line'>
