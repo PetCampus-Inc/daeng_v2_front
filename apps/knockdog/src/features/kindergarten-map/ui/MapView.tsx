@@ -263,20 +263,25 @@ export function MapView(props: MapViewProps) {
    * 집계 마커 클릭 핸들러
    * @description 집계 마커 클릭 후 지도 이동/줌 반영 후 idle에서 bounds를 다시 읽어 커밋한다.
    */
+  /**
+   * 집계 마커 클릭 핸들러
+   * @description 집계 마커 클릭 후 지도 이동/줌 반영 후 idle에서 bounds를 다시 읽어 커밋한다.
+   * 이벤트 리스너 등록 순서와 플래그 관리가 중요하다.
+   */
   const handleAggregationClick = (_: string, coord: Coord, nextZoom: number) => {
     if (!map.current) return;
 
+    // handleIdle의 간섭을 막기 위해 플래그 설정
     aggNavigateRef.current = true;
 
-    const nextLatLng = new naver.maps.LatLng(coord.lat, coord.lng);
-    map.current.setCenter(nextLatLng);
-    map.current.setZoom(nextZoom);
-
+    // 동작 수행 *전*에 리스너를 등록해야 놓치지 않음
     naver.maps.Event.once(map.current, 'idle', () => {
       if (!map.current) return;
       const settledCenter = map.current.getCenter();
       const settledZoom = map.current.getZoom();
       const settledBounds = toBoundsSnapshot(map.current.getBounds());
+
+      // 처리 완료 후 플래그 해제
       aggNavigateRef.current = false;
 
       if (!settledBounds) return;
@@ -290,6 +295,10 @@ export function MapView(props: MapViewProps) {
         },
       });
     });
+
+    const nextLatLng = new naver.maps.LatLng(coord.lat, coord.lng);
+    // morph를 사용하여 이동+줌을 원자적으로 처리 (단일 idle 이벤트 보장)
+    map.current.morph(nextLatLng, nextZoom);
   };
 
   /**
