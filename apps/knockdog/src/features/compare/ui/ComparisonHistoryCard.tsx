@@ -9,9 +9,10 @@ import { useStackNavigation } from '@shared/lib/bridge';
 interface ComparisonHistoryCardProps {
   id: number;
   kindergartens: [KindergartenShortInfo, KindergartenShortInfo];
+  className?: string;
 }
 
-function ComparisonHistoryCard({ id, kindergartens }: ComparisonHistoryCardProps) {
+function ComparisonHistoryCard({ id, kindergartens, className = '' }: ComparisonHistoryCardProps) {
   const [left, right] = kindergartens;
   const { push } = useStackNavigation();
   const { mutate: deleteHistory } = useDeleteComparisonHistoryMutation();
@@ -39,7 +40,7 @@ function ComparisonHistoryCard({ id, kindergartens }: ComparisonHistoryCardProps
 
   return (
     <div
-      className='bg-fill-secondary-0 border-line-100 flex cursor-pointer flex-col rounded-lg border px-4 py-4 pb-[10px] shadow-sm transition-opacity hover:opacity-80'
+      className={`bg-fill-secondary-0 border-line-100 flex cursor-pointer flex-col rounded-lg border p-4 shadow-sm transition-opacity hover:opacity-80 ${className}`}
       onClick={handleCardClick}
     >
       <button className='mb-2 ml-auto flex items-center justify-end gap-1' onClick={handleDelete} type='button'>
@@ -47,7 +48,7 @@ function ComparisonHistoryCard({ id, kindergartens }: ComparisonHistoryCardProps
         <Icon className='size-x4 text-fill-secondary-400' icon='Close' />
       </button>
       <div className='flex flex-col gap-3'>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-2'>
           <div className='aspect-[4/3] w-full overflow-hidden rounded-lg'>
             <Image
               className='h-full w-full object-cover'
@@ -71,12 +72,12 @@ function ComparisonHistoryCard({ id, kindergartens }: ComparisonHistoryCardProps
         <div className='flex gap-3'>
           <div className='flex min-w-0 flex-1 flex-col'>
             <h3 className='body1-extrabold truncate'>{left.name}</h3>
-            <span className='label-medium text-text-tertiary line-clamp-2'>{getCategoryLabels(left.categories)}</span>
+            <span className='label-medium text-text-tertiary line-clamp-1'>{getCategoryLabels(left.categories)}</span>
           </div>
           <div className='shrink-0' />
           <div className='flex min-w-0 flex-1 flex-col'>
             <h3 className='body1-extrabold truncate'>{right.name}</h3>
-            <span className='label-medium text-text-tertiary line-clamp-2'>{getCategoryLabels(right.categories)}</span>
+            <span className='label-medium text-text-tertiary line-clamp-1'>{getCategoryLabels(right.categories)}</span>
           </div>
         </div>
       </div>

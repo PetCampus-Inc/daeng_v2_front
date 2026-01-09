@@ -40,13 +40,13 @@ function CompareCompletePage() {
       <div className='flex h-screen flex-col bg-white pb-16'>
         <Header>
           <Header.LeftSection>
-            <Header.BackButton className='absolute left-0 ml-4' />
+            <Header.BackButton />
           </Header.LeftSection>
           <Header.Title>비교 결과</Header.Title>
           <Header.RightSection>
             <button
               type='button'
-              className='label-semibold text-text-primary absolute right-0 mr-4 px-2 py-1'
+              className='label-semibold text-text-primary px-2 py-1'
               aria-label='비교 결과 공유하기'
               onClick={handleShare}
             >
