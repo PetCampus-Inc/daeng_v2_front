@@ -75,7 +75,7 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
   };
 
   return (
-    <div className='flex flex-col overflow-auto py-6'>
+    <div className='py-6'>
       {questions?.sections?.map((section, index) => (
         <div key={section.id}>
           <div className='px-4 pb-6'>
