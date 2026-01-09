@@ -205,7 +205,7 @@ function useImagePicker() {
             }
 
             if (!payload.assets || payload.assets.length === 0) {
-              reject(new Error('이미지가 없습니다.'));
+              reject('이미지가 없습니다.');
               return;
             }
 
@@ -213,7 +213,7 @@ function useImagePicker() {
               const [firstAsset] = payload.assets ?? [];
 
               if (!firstAsset) {
-                reject(new Error('이미지를 찾을 수 없습니다.'));
+                reject('이미지를 찾을 수 없습니다.');
                 return;
               }
 
@@ -225,7 +225,7 @@ function useImagePicker() {
               });
             } catch (error) {
               console.error('이미지 프리뷰 요청 실패', error);
-              reject(new Error('이미지 프리뷰 요청 실패'));
+              reject('이미지 프리뷰 요청 실패');
             }
           }
         });
@@ -234,12 +234,13 @@ function useImagePicker() {
         const unsubCancel = bridge.once('media.pickImage.cancel', (payload) => {
           if (payload.requestId === requestId) {
             unsubResult();
-            reject(new Error(payload.reason || '이미지 선택이 취소되었습니다.'));
+            reject(payload.reason || '이미지 선택이 취소되었습니다.');
           }
         });
 
         // 이미지 선택 요청 이벤트 발생
         bridge.emit('media.pickImage', {
+          source: params?.source,
           requestId,
           mediaTypes: params?.mediaTypes,
           allowsEditing: params?.allowsEditing,

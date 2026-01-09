@@ -130,6 +130,7 @@ interface LocationCoords {
 type PermissionStatus = 'allowed' | 'denied' | 'undetermined';
 
 type PickImageParams = {
+  source?: 'camera' | 'library';
   allowsEditing?: boolean; // 이미지 편집 허용 여부
   quality?: number; // 0~1 사이의 압축 품질
   aspect?: [number, number]; // 종횡비 [가로, 세로]

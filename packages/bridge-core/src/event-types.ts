@@ -13,6 +13,7 @@ interface BridgeEventMap {
     position?: 'top' | 'bottom' | 'bottom-above-nav';
   };
   'media.pickImage': {
+    source?: 'camera' | 'library';
     requestId: string;
     mediaTypes?: 'images' | 'videos' | 'all';
     allowsEditing?: boolean;
