@@ -8,13 +8,16 @@ import { useSearchMachine } from '../model/useSearchMachine';
 export function CurrentLocationDisplayFAB() {
   const { liveState } = useSearchMachine();
 
+  const hasValidCenter = !!liveState.center && liveState.center.lat !== 0 && liveState.center.lng !== 0;
+
   const { data: address } = useQuery({
     ...geoQueries.reverseGeocode({
       lat: liveState.center?.lat ?? 0,
       lng: liveState.center?.lng ?? 0,
       zoomLevel: liveState.zoom,
     }),
-    placeholderData: keepPreviousData,
+    enabled: hasValidCenter,
+    placeholderData: hasValidCenter ? keepPreviousData : undefined,
   });
 
   const resolvedZoomLevel = liveState.zoom ?? DEFAULT_MAP_ZOOM_LEVEL;
