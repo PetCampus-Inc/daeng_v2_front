@@ -74,11 +74,13 @@ export function CompareMode({ bookmarks, onCloseClick, filterState, searchQuery 
       />
 
       {/* 선택된 유치원 상태 바 */}
-      <SelectionBar
-        selectedKindergartens={selectedKindergartens}
-        toggleSelection={toggle}
-        onCloseClick={onCloseClick}
-      />
+      {bookmarks.length > 0 && (
+        <SelectionBar
+          selectedKindergartens={selectedKindergartens}
+          toggleSelection={toggle}
+          onCloseClick={onCloseClick}
+        />
+      )}
     </div>
   );
 }
