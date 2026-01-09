@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		2D4495D0ECE4DD0D863C248F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE53622AF3F6F9AEFCE54B2C /* ExpoModulesProvider.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		61299C8821320CAA2090AB7B /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA5D65B2FFD7908F0518BC3 /* ExpoModulesProvider.swift */; };
-		8E302589DED91E77A64A149D /* libPods-daengv2mobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A5B8D617234AC7FCF0BA83A /* libPods-daengv2mobile.a */; };
+		902DAC479D33B4166F0B0A2D /* libPods-daengv2mobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A233875D5ECACE9C03A01F2E /* libPods-daengv2mobile.a */; };
+		A9B914E387648AFEE5CB9B4E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B675D358A774F73F877D506B /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		D84FACC0FCAA01A988D9F5E3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 99503A559CE1D74BD25AD5E0 /* PrivacyInfo.xcprivacy */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -20,16 +20,16 @@
 		13B07F961A680F5B00A75B9A /* daengv2mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = daengv2mobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = daengv2mobile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = daengv2mobile/Info.plist; sourceTree = "<group>"; };
-		3BA5D65B2FFD7908F0518BC3 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-daengv2mobile/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		4634CCC01EC82BE0908A6C23 /* Pods-daengv2mobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-daengv2mobile.debug.xcconfig"; path = "Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile.debug.xcconfig"; sourceTree = "<group>"; };
-		6A5B8D617234AC7FCF0BA83A /* libPods-daengv2mobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-daengv2mobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		99503A559CE1D74BD25AD5E0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = daengv2mobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3E728FD6999E8E885079B672 /* Pods-daengv2mobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-daengv2mobile.debug.xcconfig"; path = "Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile.debug.xcconfig"; sourceTree = "<group>"; };
+		A233875D5ECACE9C03A01F2E /* libPods-daengv2mobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-daengv2mobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = daengv2mobile/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B675D358A774F73F877D506B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = daengv2mobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B9414D196AD524DBA33D1D6B /* Pods-daengv2mobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-daengv2mobile.release.xcconfig"; path = "Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		DF8FD193283426D197DC1B3B /* Pods-daengv2mobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-daengv2mobile.release.xcconfig"; path = "Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = daengv2mobile/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* daengv2mobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "daengv2mobile-Bridging-Header.h"; path = "daengv2mobile/daengv2mobile-Bridging-Header.h"; sourceTree = "<group>"; };
+		FE53622AF3F6F9AEFCE54B2C /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-daengv2mobile/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,13 +37,23 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8E302589DED91E77A64A149D /* libPods-daengv2mobile.a in Frameworks */,
+				902DAC479D33B4166F0B0A2D /* libPods-daengv2mobile.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04D62306664C9FC9D5CD14F1 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				3E728FD6999E8E885079B672 /* Pods-daengv2mobile.debug.xcconfig */,
+				B9414D196AD524DBA33D1D6B /* Pods-daengv2mobile.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* daengv2mobile */ = {
 			isa = PBXGroup;
 			children = (
@@ -53,15 +63,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				99503A559CE1D74BD25AD5E0 /* PrivacyInfo.xcprivacy */,
-			);
-			name = daengv2mobile;
-			sourceTree = "<group>";
-		};
-		18EEBA9B71351513B3397C6C /* daengv2mobile */ = {
-			isa = PBXGroup;
-			children = (
-				3BA5D65B2FFD7908F0518BC3 /* ExpoModulesProvider.swift */,
+				B675D358A774F73F877D506B /* PrivacyInfo.xcprivacy */,
 			);
 			name = daengv2mobile;
 			sourceTree = "<group>";
@@ -70,19 +72,17 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				6A5B8D617234AC7FCF0BA83A /* libPods-daengv2mobile.a */,
+				A233875D5ECACE9C03A01F2E /* libPods-daengv2mobile.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3706B83B8337B4F54E1D05A0 /* Pods */ = {
+		605DBEEC8D77CA109DBDA673 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				4634CCC01EC82BE0908A6C23 /* Pods-daengv2mobile.debug.xcconfig */,
-				DF8FD193283426D197DC1B3B /* Pods-daengv2mobile.release.xcconfig */,
+				E34B95E553BA72398E26806D /* daengv2mobile */,
 			);
-			name = Pods;
-			path = Pods;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -99,8 +99,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				3706B83B8337B4F54E1D05A0 /* Pods */,
-				F24C3AF2E7937095383F39BE /* ExpoModulesProviders */,
+				04D62306664C9FC9D5CD14F1 /* Pods */,
+				605DBEEC8D77CA109DBDA673 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -124,12 +124,12 @@
 			path = daengv2mobile/Supporting;
 			sourceTree = "<group>";
 		};
-		F24C3AF2E7937095383F39BE /* ExpoModulesProviders */ = {
+		E34B95E553BA72398E26806D /* daengv2mobile */ = {
 			isa = PBXGroup;
 			children = (
-				18EEBA9B71351513B3397C6C /* daengv2mobile */,
+				FE53622AF3F6F9AEFCE54B2C /* ExpoModulesProvider.swift */,
 			);
-			name = ExpoModulesProviders;
+			name = daengv2mobile;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "daengv2mobile" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				377C7C3D7E3188012FCFE937 /* [Expo] Configure project */,
+				6D0B37AF4103A8EDA56F928E /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				189896C82B98C3274AEDD823 /* [CP] Embed Pods Frameworks */,
+				77EAE1E698E30DA0A2633D50 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,9 +166,7 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = W8GZBPX773;
 						LastSwiftMigration = 1250;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -198,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				D84FACC0FCAA01A988D9F5E3 /* PrivacyInfo.xcprivacy in Resources */,
+				A9B914E387648AFEE5CB9B4E /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,25 +240,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		189896C82B98C3274AEDD823 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		377C7C3D7E3188012FCFE937 /* [Expo] Configure project */ = {
+		6D0B37AF4103A8EDA56F928E /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -278,6 +258,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-daengv2mobile/expo-configure-project.sh\"\n";
+		};
+		77EAE1E698E30DA0A2633D50 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-daengv2mobile/Pods-daengv2mobile-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -343,7 +341,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				61299C8821320CAA2090AB7B /* ExpoModulesProvider.swift in Sources */,
+				2D4495D0ECE4DD0D863C248F /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,15 +350,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4634CCC01EC82BE0908A6C23 /* Pods-daengv2mobile.debug.xcconfig */;
+			baseConfigurationReference = 3E728FD6999E8E885079B672 /* Pods-daengv2mobile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = daengv2mobile/daengv2mobile.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = W8GZBPX773;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -380,7 +375,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = net.knockdog.petcampus.v2;
-				PRODUCT_NAME = "daengv2mobile";
+				PRODUCT_NAME = daengv2mobile;
 				SWIFT_OBJC_BRIDGING_HEADER = "daengv2mobile/daengv2mobile-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -391,15 +386,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DF8FD193283426D197DC1B3B /* Pods-daengv2mobile.release.xcconfig */;
+			baseConfigurationReference = B9414D196AD524DBA33D1D6B /* Pods-daengv2mobile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = daengv2mobile/daengv2mobile.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = W8GZBPX773;
 				INFOPLIST_FILE = daengv2mobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -414,7 +406,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = net.knockdog.petcampus.v2;
-				PRODUCT_NAME = "daengv2mobile";
+				PRODUCT_NAME = daengv2mobile;
 				SWIFT_OBJC_BRIDGING_HEADER = "daengv2mobile/daengv2mobile-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
