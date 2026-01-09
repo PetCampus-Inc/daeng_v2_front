@@ -58,7 +58,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         allowsEditing: allowsEditing ?? false,
         quality: quality ?? 0.8,
         aspect,
-        allowsMultipleSelection: allowsMultipleSelection ?? false,
+        allowsMultipleSelection: source === 'camera' ? false : (allowsMultipleSelection ?? false),
         orderedSelection: orderedSelection ?? false,
         selectionLimit: selectionLimit ?? 0, // 0 = 무제한
       };

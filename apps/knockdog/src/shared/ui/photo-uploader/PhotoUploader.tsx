@@ -59,10 +59,16 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
             <BottomSheet.CloseButton />
           </BottomSheet.Header>
           <ul className='body2-semibold mb-4 cursor-pointer px-6'>
-            <li className='border-line-200 border-b py-4' onClick={() => handlePickImages('library')}>
+            <li className='border-line-200 border-b py-4' onClick={() => {
+              handlePickImages('library');
+              close();
+            }}>
               <button>사진 보관함</button>
             </li>
-            <li className='border-line-200 border-b py-4' onClick={() => handlePickImages('camera')}>
+            <li className='border-line-200 border-b py-4' onClick={() => {
+              handlePickImages('camera');
+              close();
+            }}>
               <button>카메라로 촬영하기</button>
             </li>
           </ul>
