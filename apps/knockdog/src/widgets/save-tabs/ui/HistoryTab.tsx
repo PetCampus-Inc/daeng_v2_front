@@ -92,13 +92,13 @@ function HistoryTab({ searchQuery = '' }: { searchQuery?: string }) {
   return (
     <div className='bg-fill-secondary-50 flex h-full min-h-0 flex-col'>
       <div className='min-h-0 flex-1 overflow-y-auto'>
-        <div className='flex flex-col py-7'>
+        <div className='mt-1 flex flex-col'>
           {sortedDates.map((dateKey) => {
             const items = groupedByDate.get(dateKey) || [];
             return (
-              <div key={dateKey} className='mt-4'>
-                <div className='h3-extrabold px-4 pb-4'>{dateKey}</div>
-                <div className='flex flex-col gap-4 px-2'>
+              <div key={dateKey} className='mt-6 flex flex-col'>
+                <div className='h3-extrabold mb-4 px-4'>{dateKey}</div>
+                <div className='flex flex-col px-4'>
                   {items.map((item) => {
                     // kindergartens 배열이 정확히 2개인 경우에만 렌더링
                     if (item.kindergartens.length !== 2) {
@@ -108,7 +108,14 @@ function HistoryTab({ searchQuery = '' }: { searchQuery?: string }) {
                     if (!first || !second) {
                       return null;
                     }
-                    return <ComparisonHistoryCard key={item.id} id={item.id} kindergartens={[first, second]} />;
+                    return (
+                      <ComparisonHistoryCard
+                        key={item.id}
+                        id={item.id}
+                        kindergartens={[first, second]}
+                        className='mb-4'
+                      />
+                    );
                   })}
                 </div>
               </div>
