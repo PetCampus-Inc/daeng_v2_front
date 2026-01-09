@@ -75,7 +75,7 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
   };
 
   return (
-    <div className='flex flex-col overflow-auto py-6'>
+    <div className='py-6'>
       {questions?.sections?.map((section, index) => (
         <div key={section.id}>
           <div className='px-4 pb-6'>
@@ -113,10 +113,16 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
                             <TextFieldInput
                               type='number'
                               placeholder='0'
-                              min={question.validation?.min || 0}
-                              max={question.validation?.max || 999}
+                              inputMode='numeric'
+                              pattern='[0-9]*'
                               value={answer?.value || ''}
-                              onChange={(e) => updateAnswer(question.id, e.target.value)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // 2자리까지만 입력 가능하도록 제한
+                                if (value === '' || (value.length <= 2 && /^\d+$/.test(value))) {
+                                  updateAnswer(question.id, value);
+                                }
+                              }}
                             />
                           </TextField>
                         </div>
