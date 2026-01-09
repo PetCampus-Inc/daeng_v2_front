@@ -18,7 +18,6 @@ function EmptySection() {
           className='mx-auto mb-5'
           width={200}
           height={200}
-          priority
         />
         <p className='h3-semibold'>아직 저장한 유치원이 없어요!</p>
       </div>
