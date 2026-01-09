@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { useMutation } from '@tanstack/react-query';
 
 import { useSocialUserStore, postReconnectSocial } from '@entities/social-user';
 import { useVerificationTimer, useEmailVerification } from '@entities/email-verification';
+import { User, useUserStore } from '@entities/user';
+import { toast } from '@shared/ui/toast';
 import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 const useVerifyEmailProcess = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const { push } = useRouter();
+  const { reset } = useStackNavigation();
   const socialUser = useSocialUserStore((state) => state.socialUser);
+  const setUser = useUserStore((state) => state.setUser);
 
   const { mutate: reconnectSocialMutate } = useMutation({
     mutationFn: postReconnectSocial,
-    onSuccess: () => handleReconnectSocialSuccess(),
+    onSuccess: ({ data }) => handleReconnectSocialSuccess(data),
   });
 
   const { startTimer, clearTimer, timerDisplay, isRunning } = useVerificationTimer();
@@ -25,7 +28,12 @@ const useVerifyEmailProcess = () => {
 
   const sendEmail = () => {
     if (socialUser) {
-      // TODO: 토스트 메시지 추가 ("계정 인증 메일이 발송되었습니다.")
+      toast({
+        title: '계정 인증 메일이 발송되었습니다.',
+        type: 'success',
+        shape: 'square',
+        position: 'top',
+      });
 
       if (isRunning) clearTimer();
       send(socialUser.email, socialUser.name);
@@ -34,11 +42,18 @@ const useVerifyEmailProcess = () => {
   };
 
   /** 소셜 계정 재연동 성공 핸들러 */
-  const handleReconnectSocialSuccess = () => {
-    // TODO: 토스트 메시지 추가 ("계정이 성공적으로 연동되었습니다.")
+  const handleReconnectSocialSuccess = (user: User) => {
+    setUser(user);
+
+    toast({
+      title: '계정이 성공적으로 연동되었습니다.',
+      type: 'success',
+      shape: 'square',
+      position: 'bottom-above-nav',
+    });
 
     // 루트 페이지로 이동
-    push(route.root);
+    reset(route.root);
   };
 
   // isInitialized를 ref로 사용 시, mutate의 처리 상태가 항상 Pending 상태로 유지 됨

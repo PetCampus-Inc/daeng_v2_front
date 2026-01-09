@@ -1,20 +1,28 @@
 'use client';
 
-import { redirect, useRouter } from 'next/navigation';
 import { ActionButton } from '@knockdog/ui';
+import { useSyncExternalStore } from 'react';
 import { Header } from '@widgets/Header';
 import { useSocialUserStore } from '@entities/social-user';
 import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+
+const emptySubscribe = () => () => {};
 
 function ReconnectSocialPage() {
-  const router = useRouter();
+  const { back, push } = useStackNavigation();
   const socialUser = useSocialUserStore((state) => state.socialUser);
+  const isHydrated = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  // 소셜 유저 정보가 없으면 로그인 페이지로 이동
-  if (!socialUser) redirect(route.auth.login.root);
+  if (!isHydrated) return null;
+  if (!socialUser) throw new Error('소셜 유저 정보가 없습니다');
 
-  const handleBackClick = () => router.back();
-  const handleReconnectClick = () => router.push(route.auth.reconnectSocial.verifyEmail.root);
+  const handleBackClick = () => back();
+  const handleReconnectClick = () => push({ pathname: route.auth.reconnectSocial.verifyEmail.root });
 
   return (
     <>
