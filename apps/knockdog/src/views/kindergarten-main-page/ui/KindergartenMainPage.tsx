@@ -155,7 +155,10 @@ function KindergartenMainPageContent() {
             <Float placement='top-start' offsetX='x4'>
               <CurrentLocationFAB />
             </Float>
-            {shouldShowRefresh ? <ResearchFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
+            {shouldShowRefresh && <ResearchFAB onClick={handleRefresh} />}
+            <div className={shouldShowRefresh ? 'hidden' : 'block'}>
+              <CurrentLocationDisplayFAB />
+            </div>
             <Float placement='top-end' offsetX='x4'>
               <ListFAB onClick={() => setSnapIndex(2)} />
             </Float>
