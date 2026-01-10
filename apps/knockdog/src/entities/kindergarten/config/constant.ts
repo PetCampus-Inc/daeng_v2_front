@@ -60,8 +60,8 @@ export const SERVICE_TAGS = {
 
 export const PICKUP_TYPE = {
   NONE: null,
-  FREE: '무료 픽드랍',
-  PAID: '유료 픽드랍',
+  FREE_PICKUP: '무료 픽드랍',
+  PAID_PICKUP: '유료 픽드랍',
 } as const;
 
 export const OPERATION_STATUS = {

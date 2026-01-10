@@ -13,7 +13,7 @@ function ServiceBadgeList({ serviceTags, pickupType }: ServiceBadgeListProps) {
   if (!!pickupType && pickupType !== 'NONE') {
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
-        <Icon icon={pickupType === 'FREE' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
+        <Icon icon={pickupType === 'FREE_PICKUP' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
         {PICKUP_TYPE[pickupType]}
       </ServiceBadge>
     );
