@@ -94,15 +94,30 @@ getCurrentLocation.getPermission = async (): Promise<PermissionStatus> => {
 
 /**
  * 위치 권한 요청 다이얼로그 열기
- * @description 앱 환경에서만 사용 가능
  */
 getCurrentLocation.openPermissionDialog = async (): Promise<PermissionStatus> => {
-  const bridge = getBridgeInstance();
+  /* 앱 환경 */
+  if (isNativeWebView()) {
+    const bridge = getBridgeInstance();
 
-  if (!bridge) {
-    throw new Error('Bridge not initialized');
+    if (!bridge) {
+      throw new Error('Bridge not initialized');
+    }
+
+    const { status } = await bridge.request<{ status: PermissionStatus }>(METHODS.openLocationPermissionDialog, {});
+    return status;
   }
 
-  const { status } = await bridge.request<{ status: PermissionStatus }>(METHODS.openLocationPermissionDialog, {});
-  return status;
+  /* 웹 환경: 브라우저 권한 요청 트리거 (재시도) */
+  try {
+    await getCurrentLocation();
+    return 'allowed';
+  } catch (error) {
+    if (error instanceof GetLocationPermissionError) {
+      return 'denied';
+    }
+    // 그 외 에러도 권한이 없는 것으로 간주하거나 prompt 상태일 수 있으나,
+    // 명시적 거부/전환 실패로 보아 denied 리턴 (혹은 'prompt'가 정확할 수 있으나 web api로 확인 불가)
+    return 'denied';
+  }
 };

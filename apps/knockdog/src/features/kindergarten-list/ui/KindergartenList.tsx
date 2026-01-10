@@ -1,18 +1,19 @@
-import { Fragment, useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
-import { inferSearchKindFromUrl, type UrlSearchKind } from '../model/searchKind';
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
 import { FilterChip } from './FilterChip';
 import { PermissionSection } from './PermissionSection';
+import { NoSearchResultSection } from './NoSearchResultSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
-import { useFilteredSearchList, useSearchMachine } from '@features/kindergarten-map';
+import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { getCurrentLocation, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
+import { GetLocationPermissionError, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
+import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { type BasePointType, useBasePointType } from '@shared/store';
 
@@ -38,6 +39,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
 
   const selectedFilters = getSelectedFilterWithLabel();
 
+  // 위치 권한 에러 체크
+  const { error: locationError } = useGeolocationQuery(selectedBaseType === 'CURRENT');
+  const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof GetLocationPermissionError;
+
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
     const target = loadMoreRef.current;
@@ -60,11 +65,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasNextPage, isFetchingNextPage]);
-
-  // const isGranted = useMemo(async () => {
-  //   const status = await getCurrentLocation.getPermission();
-  //   return status === 'allowed';
-  // }, []);
 
   const handleBasePointTypeChange = (value: string) => {
     setBaseType(value as BasePointType);
@@ -144,28 +144,32 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
           </div>
         </div>
 
-        {/* <DogSchoolEmptySection /> */}
-        {/* {!isGranted && <PermissionSection />} */}
-        {/* 컨텐츠 영역  */}
-        <div className='flex-1'>
-          <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
-            <div className='body2-semibold text-text-tertiary'>총 {totalCount}개</div>
-            <SortSelect />
-          </div>
+        {/* 컨텐츠 영역 */}
+        {isPermissionDenied ? (
+          <PermissionSection />
+        ) : totalCount === 0 && !listQuery.isLoading ? (
+          <NoSearchResultSection />
+        ) : (
+          <div className='flex-1'>
+            <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
+              <div className='body2-semibold text-text-tertiary'>총 {totalCount}개</div>
+              <SortSelect />
+            </div>
 
-          {exact && (
-            <>
-              <KindergartenListItem {...exact} onBookmarkClick={onBookmarkClick} />
-              <NearByRecommendBanner title={exact.title} />
-            </>
-          )}
-          {searchList.map((item) => (
-            <Fragment key={item.id}>
-              <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
-              <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
-            </Fragment>
-          ))}
-        </div>
+            {exact && (
+              <>
+                <KindergartenListItem {...exact} onBookmarkClick={onBookmarkClick} />
+                <NearByRecommendBanner title={exact.title} />
+              </>
+            )}
+            {searchList.map((item) => (
+              <Fragment key={item.id}>
+                <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
+                <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
+              </Fragment>
+            ))}
+          </div>
+        )}
         <div ref={loadMoreRef} aria-hidden='true' className='h-4' />
       </main>
 
