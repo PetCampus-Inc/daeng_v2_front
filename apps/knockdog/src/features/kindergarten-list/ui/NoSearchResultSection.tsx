@@ -12,7 +12,7 @@ export function NoSearchResultSection() {
           </p>
         </div>
 
-        <ActionButton variant='secondaryFill' size='medium'>
+        <ActionButton variant='secondaryFill' size='medium' disabled>
           강아지 유치원 제보하기
         </ActionButton>
       </div>
