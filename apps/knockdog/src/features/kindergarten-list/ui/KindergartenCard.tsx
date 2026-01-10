@@ -2,7 +2,12 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { PhoneCallSheet } from './PhoneCallSheet';
 import { overlay } from 'overlay-kit';
-import { DeparturePointSheet, KindergartenListItemWithMeta, ServiceBadgesTruncated } from '@entities/kindergarten';
+import {
+  DeparturePointSheet,
+  KindergartenListItemWithMeta,
+  SERVICE_TAGS,
+  ServiceBadgesTruncated,
+} from '@entities/kindergarten';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface KindergartenCardProps extends KindergartenListItemWithMeta {
@@ -49,7 +54,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
                 <span className='label-medium text-text-tertiary'>
                   {props.ctg
                     .split(',')
-                    .map((tag) => tag.trim())
+                    .map((tag) => SERVICE_TAGS[tag.trim() as keyof typeof SERVICE_TAGS] || tag.trim())
                     .join(' ・ ')}
                 </span>
               </div>

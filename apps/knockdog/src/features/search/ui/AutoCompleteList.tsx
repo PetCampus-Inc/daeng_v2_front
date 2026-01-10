@@ -3,7 +3,13 @@ import { formatDistance } from '@shared/lib';
 import { FILTER_ICON_MAP } from '../config/icon-map';
 import { isRegionSuggestion } from '../lib/is';
 import { HighlightedText } from './HighlightedText';
-import type { Autocomplete, RegionSuggestion, FilterItemSuggestion, AutocompletePlace } from '@entities/kindergarten';
+import {
+  type Autocomplete,
+  type RegionSuggestion,
+  type FilterItemSuggestion,
+  type AutocompletePlace,
+  SERVICE_TAGS,
+} from '@entities/kindergarten';
 
 interface AutoCompleteListProps {
   data: Autocomplete;
@@ -64,7 +70,12 @@ export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick 
                   </div>
 
                   <div className='gap-x1 flex min-w-0 shrink flex-col overflow-hidden text-right'>
-                    <span className='label-medium text-text-tertiary truncate'>{place.ctg}</span>
+                    <span className='label-medium text-text-tertiary truncate'>
+                      {place.ctg
+                        .split(',')
+                        .map((tag) => SERVICE_TAGS[tag.trim() as keyof typeof SERVICE_TAGS] || tag.trim())
+                        .join(', ')}
+                    </span>
                     <span className='label-medium text-text-tertiary whitespace-nowrap'>
                       {formatDistance(place.dist)}
                     </span>

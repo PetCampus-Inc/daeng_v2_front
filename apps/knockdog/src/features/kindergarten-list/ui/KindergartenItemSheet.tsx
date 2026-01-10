@@ -22,9 +22,8 @@ interface KindergartenItemSheetProps {
 
 type SnapPoint = number | string | null;
 
-type SheetView = 'card' | 'detail';
-const VIEW_SWITCH_BUFFER_MS = 100; // 약 6프레임 (60fps 기준)
-const VIEW_SWITCH_DELAY_MS = Math.max(TRANSITION_DURATION_MS - VIEW_SWITCH_BUFFER_MS, 0);
+const MIN_SNAP_POINT = isNativeWebView() ? 328 : BOTTOM_BAR_HEIGHT + 328;
+const snapPoints = [`${MIN_SNAP_POINT}px`, 1];
 
 export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenItemSheetProps) {
   const { searchListQueryKey, searchList, exact } = useSearchListQuery();
@@ -41,16 +40,9 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   }, [exact, itemId, searchList]);
 
   const { top } = useSafeAreaInsets();
-
-  const MIN_SNAP_POINT = isNativeWebView() ? 328 : BOTTOM_BAR_HEIGHT + 328;
   const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? 64 + top : 64;
 
-  const snapPoints = [`${MIN_SNAP_POINT}px`, 1];
-
   const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint>(snapPoints[0] ?? null);
-  const [view, setView] = useState<SheetView>('card');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -78,70 +70,6 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
 
     share(shareData);
   };
-
-  const clearTransitionTimer = useCallback(() => {
-    if (transitionTimerRef.current) {
-      clearTimeout(transitionTimerRef.current);
-      transitionTimerRef.current = null;
-    }
-  }, []);
-
-  const targetViewForSnap = useCallback((snap: SnapPoint): SheetView => {
-    if (snap === 1) return 'detail';
-    return 'card';
-  }, []);
-
-  const startViewTransition = useCallback(
-    (targetView: SheetView) => {
-      if (targetView === view) {
-        clearTransitionTimer();
-        setIsTransitioning(false);
-        return;
-      }
-
-      setIsTransitioning(true);
-      clearTransitionTimer();
-      transitionTimerRef.current = setTimeout(() => {
-        setView(targetView);
-        setIsTransitioning(false);
-        transitionTimerRef.current = null;
-      }, VIEW_SWITCH_DELAY_MS);
-    },
-    [clearTransitionTimer, view]
-  );
-
-  const queueViewForSnap = useCallback(
-    (snap: SnapPoint) => {
-      if (snap === null) return;
-      startViewTransition(targetViewForSnap(snap));
-    },
-    [startViewTransition, targetViewForSnap]
-  );
-
-  const handleSnapChange = useCallback(
-    (snap: SnapPoint) => {
-      setActiveSnapPoint(snap);
-      queueViewForSnap(snap);
-    },
-    [queueViewForSnap]
-  );
-
-  // 시트가 닫힐 때 상태 초기화
-  // Note: 시트가 이미 닫혀있으므로 이 상태 업데이트는 화면에 영향 X,
-  // 다음에 시트가 열릴 때 올바른 초기 상태로 시작하기 위해 필요함
-  useEffect(() => {
-    if (!isOpen) {
-      clearTransitionTimer();
-
-      setActiveSnapPoint(snapPoints[0] ?? null);
-      setView('card');
-      setIsTransitioning(false);
-    }
-  }, [clearTransitionTimer, isOpen]);
-
-  useEffect(() => {
-    return () => clearTransitionTimer();
-  }, [clearTransitionTimer]);
 
   useIsomorphicLayoutEffect(() => {
     if (containerRef.current) {
@@ -185,7 +113,7 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
           modal={false}
           snapPoints={snapPoints}
           activeSnapPoint={activeSnapPoint}
-          setActiveSnapPoint={handleSnapChange}
+          setActiveSnapPoint={(snapPoint) => setActiveSnapPoint(snapPoint)}
           snapToSequentialPoint
           container={container}
         >
@@ -197,8 +125,7 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
               }}
               className={cn(
                 'pointer-events-auto absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)]',
-                activeSnapPoint === snapPoints[1] && 'h-full',
-                isTransitioning && 'pointer-events-none'
+                activeSnapPoint === snapPoints[1] && 'h-full'
               )}
             >
               <div ref={viewRef} className={cn('h-full', isMaxSnap && 'overflow-y-auto')}>

@@ -1,7 +1,7 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
-import { ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { SERVICE_TAGS, ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenListItemProps extends KindergartenListItemWithMeta {
@@ -64,7 +64,7 @@ export function KindergartenListItem({
             <p className='body2-regular text-text-tertiary w-full truncate'>
               {ctg
                 .split(',')
-                .map((tag) => tag.trim())
+                .map((tag) => SERVICE_TAGS[tag.trim() as keyof typeof SERVICE_TAGS] || tag.trim())
                 .join(' ・ ')}
             </p>
           </div>

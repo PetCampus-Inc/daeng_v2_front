@@ -10,6 +10,7 @@ export const SERVICE_TAGS = {
   CAT: '고양이',
 
   // 강아지 서비스
+  KINDERGARTEN: '유치원',
   DAYCARE: '데이케어',
   HOTEL: '호텔링',
   STAY_24H: '24시간 상주',
@@ -25,6 +26,10 @@ export const SERVICE_TAGS = {
   MASSAGE: '마사지',
   BEHAVIOR_CORRECTION: '행동 교정',
   SWIMMING_POOL: '수영장',
+  PET_SHOP: '강아지 용품',
+  CAFE: '카페',
+  VETERINARY: '동물병원',
+  FITNESS: '피트니스',
 
   // 강아지 안전 ∙ 시설
   NON_SLIP: '미끄럼방지 바닥',
