@@ -22,7 +22,7 @@ const actionButtonVariants = cva(
       },
       size: {
         small: 'radius-r2 h-x7_5 caption1-semibold py-x2 px-x3 gap-x1',
-        medium: 'h-x12 radius-r2 body2-bold py-x3.5 px-x4 gap-x1 w-full',
+        medium: 'h-x12 radius-r2 body2-bold py-x3.5 px-x4 gap-x1',
         large: 'h-x14 radius-r2 body1-bold p-x4 gap-x1 w-full',
       },
     },
@@ -44,11 +44,7 @@ const ActionButton = ({ ref, ...props }: ActionButtonProps) => {
   const { asChild, variant, size, className, children, ...restProps } = props;
   const Comp = asChild ? Slot : 'button';
   return (
-    <Comp
-      ref={ref}
-      className={actionButtonVariants({ variant, size, className })}
-      {...restProps}
-    >
+    <Comp ref={ref} className={actionButtonVariants({ variant, size, className })} {...restProps}>
       {children}
     </Comp>
   );
