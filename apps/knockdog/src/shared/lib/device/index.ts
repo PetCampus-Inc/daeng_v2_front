@@ -7,3 +7,5 @@ export { isNativeWebView } from './isNativeWebView';
 export { getSafeAreaInsets } from './getSafeAreaInsets';
 export { useSafeAreaInsets } from './useSafeAreaInsets';
 export { useAppVersion } from './useAppVersion';
+export { detectPlatform, isIOS, isAndroid } from './platform';
+export type { Platform } from './platform';
