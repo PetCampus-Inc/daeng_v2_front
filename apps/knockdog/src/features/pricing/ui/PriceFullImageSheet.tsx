@@ -17,7 +17,7 @@ export function PriceFullImageSheet({ isOpen, close, images = [], initialIndex =
         <BottomSheet.Header className='justify-between pt-[50px]'>
           <IconButton icon='ChevronLeft' onClick={close} />
 
-          <BottomSheet.Title></BottomSheet.Title>
+          <BottomSheet.Title />
 
           <IconButton icon='Share' />
         </BottomSheet.Header>
