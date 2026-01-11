@@ -7,6 +7,8 @@ import { ActionButton, RadioGroup, RadioGroupItem, Textarea, TextareaInput } fro
 import { useStackNavigation } from '@shared/lib/bridge';
 import { WITHDRAW_REASON_TYPE, type WithdrawReasonType, type WithdrawRequest } from '@entities/user';
 import { withdraw } from '@shared/lib/auth';
+import { useOpenExternalLink } from '@shared/lib/bridge';
+import { EXTERNAL_LINKS } from '@shared/constants';
 
 const REASON_TYPE_PARSER = createParser<WithdrawReasonType>({
   parse: (value: string) => {
@@ -30,6 +32,12 @@ function WithdrawSurveyPage() {
   const [reasonType, setReasonType] = useQueryState('reasonType', REASON_TYPE_PARSER);
   const [isPending, setIsPending] = useState(false);
   const reasonTextRef = useRef<HTMLTextAreaElement>(null);
+  const openExternalLink = useOpenExternalLink();
+
+
+  const handleSuggestionClick = () => {
+    openExternalLink(EXTERNAL_LINKS.SUGGESTION);
+  };
 
   function handleReasonChange(value: string) {
     setSelectedValue(value);
@@ -122,7 +130,7 @@ function WithdrawSurveyPage() {
                   수 있어요! 조금 더 기다려 주실 수 있을까요?
                 </span>
 
-                <ActionButton className='mt-4'>아이디어 • 기능 제안하기</ActionButton>
+                <ActionButton className='mt-4' onClick={handleSuggestionClick}>아이디어 • 기능 제안하기</ActionButton>
               </div>
               <div className='flex gap-x-2'>
                 <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
