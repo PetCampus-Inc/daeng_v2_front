@@ -30,7 +30,15 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
         </div>
       )}
 
-      <div className='absolute bottom-4 left-4 flex flex-col gap-y-1'>
+      {/* Gradient dim overlay */}
+      <div
+        className='absolute inset-x-0 bottom-0 h-[80px]'
+        style={{
+          background: 'linear-gradient(to bottom, #00000000 0%, #000000CC 80%)',
+        }}
+      />
+
+      <div className='absolute bottom-4 left-4 flex flex-col gap-y-1 z-10'>
         <div className='h3-semibold flex items-center gap-x-0.5'>
           {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-5' />}
           <span className='text-text-primary-inverse'>{name}</span>
