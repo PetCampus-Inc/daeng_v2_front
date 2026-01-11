@@ -6,56 +6,45 @@ const kakaoLogin = async () => {
   try {
     const { idToken } = await login();
     const { email, nickname, profileImageUrl } = await me();
-
-    return {
-      idToken,
-      email,
-      name: nickname,
-      picture: profileImageUrl,
-    };
-  } catch (error) {
-    console.error(error);
+    return { idToken, email, name: nickname, picture: profileImageUrl };
+  } catch {
+    // 카카오톡 앱 로그인 실패 시, 웹뷰로 로그인
+    const { idToken } = await login({ useKakaoAccountLogin: true });
+    const { email, nickname, profileImageUrl } = await me();
+    return { idToken, email, name: nickname, picture: profileImageUrl };
   }
 };
 
 const googleLogin = async () => {
-  try {
-    await GoogleSignin.hasPlayServices();
-    const { data } = await GoogleSignin.signIn();
+  await GoogleSignin.hasPlayServices();
+  const { data } = await GoogleSignin.signIn();
 
-    if (!data) throw new Error('Google 로그인 실패');
+  if (!data) throw new Error('Google 로그인 실패');
 
-    const { idToken, user } = data;
+  const { idToken, user } = data;
 
-    return {
-      idToken,
-      name: user.name,
-      email: user.email,
-      picture: user.photo,
-    };
-  } catch (error) {
-    console.error(error);
-  }
+  return {
+    idToken,
+    name: user.name,
+    email: user.email,
+    picture: user.photo,
+  };
 };
 
 const appleLogin = async () => {
-  try {
-    const { identityToken, fullName, email } = await AppleAuthentication.signInAsync({
-      requestedScopes: [
-        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-        AppleAuthentication.AppleAuthenticationScope.EMAIL,
-      ],
-    });
+  const { identityToken, fullName, email } = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+  });
 
-    return {
-      idToken: identityToken,
-      name: fullName?.givenName + ' ' + fullName?.familyName,
-      email,
-      picture: '',
-    };
-  } catch (err) {
-    console.error(err);
-  }
+  return {
+    idToken: identityToken,
+    name: fullName?.givenName + ' ' + fullName?.familyName,
+    email,
+    picture: '',
+  };
 };
 
 export { kakaoLogin, googleLogin, appleLogin };
