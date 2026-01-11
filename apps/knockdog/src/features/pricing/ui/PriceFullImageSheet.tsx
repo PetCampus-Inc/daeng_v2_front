@@ -14,7 +14,7 @@ export function PriceFullImageSheet({ isOpen, close, images = [], initialIndex =
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal h-screen max-h-screen rounded-none' aria-describedby={'유치원 가격 정보'}>
-        <BottomSheet.Header className='justify-between'>
+        <BottomSheet.Header className='justify-between pt-[50px]'>
           <IconButton icon='ChevronLeft' onClick={close} />
 
           <BottomSheet.Title></BottomSheet.Title>
