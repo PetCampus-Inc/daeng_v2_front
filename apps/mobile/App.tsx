@@ -17,15 +17,17 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+
   const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY || '';
   const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '';
+  const webClientId = process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID || '';
 
   useEffect(() => {
     // Kakao SDK 초기화
     initializeKakaoSDK(kakaoNativeAppKey);
 
     // Google SDK 초기화
-    GoogleSignin.configure({ iosClientId });
+    GoogleSignin.configure({ iosClientId, webClientId });
   }, []);
 
   useEffect(() => {
