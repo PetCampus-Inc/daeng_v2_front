@@ -1,17 +1,12 @@
 import { ActionButton } from '@knockdog/ui';
 import { useOpenExternalLink } from '@shared/lib/bridge';
+import { EXTERNAL_LINKS } from '@shared/constants';
 
 interface QuickActionsSectionProps {
   onContactClick?: () => void;
   onSuggestionClick?: () => void;
   onChatRoomClick?: () => void;
 }
-
-const EXTERNAL_LINKS = {
-  CONTACT: 'https://fifth-potato-175.notion.site/1-1-2ba6c15f67fb8080b956f7bea92a15d5?source=copy_link',
-  SUGGESTION: 'https://fifth-potato-175.notion.site/2ba6c15f67fb80088ff1e9d1d0293ca5?source=copy_link',
-  // CHAT_ROOM: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
-};
 
 function QuickActionsSection({ onChatRoomClick }: QuickActionsSectionProps) {
   const openExternalLink = useOpenExternalLink();
