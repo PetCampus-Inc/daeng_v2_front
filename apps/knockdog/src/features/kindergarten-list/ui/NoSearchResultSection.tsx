@@ -1,7 +1,15 @@
 import { ActionButton } from '@knockdog/ui';
+import { EXTERNAL_LINKS } from '@shared/constants';
+import { useOpenExternalLink } from '@shared/lib/bridge';
 import Image from 'next/image';
 
 export function NoSearchResultSection() {
+  const openExternalLink = useOpenExternalLink();
+
+  const handleInformClick = () => {
+    openExternalLink(EXTERNAL_LINKS.INFORM);
+  };
+
   return (
     <div className='flex h-full w-full items-center'>
       <div className='px-x4 py-x8 flex w-full flex-col items-center justify-center'>
@@ -14,7 +22,7 @@ export function NoSearchResultSection() {
           </p>
         </div>
 
-        <ActionButton variant='secondaryFill' size='medium' className='w-auto' disabled>
+        <ActionButton variant='secondaryFill' size='medium' className='w-auto' onClick={handleInformClick}>
           강아지 유치원 제보하기
         </ActionButton>
       </div>
