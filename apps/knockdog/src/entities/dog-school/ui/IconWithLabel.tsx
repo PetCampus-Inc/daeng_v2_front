@@ -53,7 +53,7 @@ export function IconWithLabel({ code }: IconWithLabelProps) {
   return (
     <div className='flex flex-col items-center'>
       <Icon icon={iconMap[code]} className='h-8 w-8' />
-      <span className='text-size-caption1 text-text-secondary'>{labelMap[code]}</span>
+      <span className='text-size-caption1 text-text-primary'>{labelMap[code]}</span>
     </div>
   );
 }
