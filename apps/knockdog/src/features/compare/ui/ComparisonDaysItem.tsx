@@ -20,7 +20,7 @@ export function ComparisonDaysItem({ kindergarten }: { kindergarten: Kindergarte
     ) as DayOfWeekShort[];
 
     DaysContent = (
-      <div className='mt-4 flex gap-1.5'>
+      <div className='mt-4 flex w-full justify-center gap-1.5'>
         {Object.entries(DAY_OF_WEEK_SHORT).map(([day, label]) => {
           const isOpen = openDays.includes(day as DayOfWeekShort);
           return <DayChip key={day} isOn={isOpen} label={label} />;
@@ -45,7 +45,7 @@ export function ComparisonDaysItem({ kindergarten }: { kindergarten: Kindergarte
 function DayChip({ isOn, label }: { isOn: boolean; label: string }) {
   return (
     <span
-      className={`${isOn ? 'bg-fill-secondary-800 text-white' : 'text-text-primary bg-gray-100'} label-extrabold flex h-10 w-10 items-center justify-center rounded-lg text-sm`}
+      className={`${isOn ? 'bg-fill-secondary-800 text-white' : 'text-text-primary bg-gray-100'} label-extrabold flex aspect-square w-10 items-center justify-center rounded-lg text-sm`}
     >
       {label}
     </span>
