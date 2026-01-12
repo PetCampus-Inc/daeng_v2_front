@@ -51,7 +51,7 @@ function SwipeCarousel({ title, slides }: SwipeCarouselProps) {
     <div className='w-full'>
       {title && <Title>{title}</Title>}
       <div
-        className='relative overflow-hidden rounded-lg bg-white select-none'
+        className='relative overflow-hidden bg-white select-none'
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

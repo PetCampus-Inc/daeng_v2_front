@@ -1,8 +1,18 @@
 import type { CellData } from '@entities/compare';
 
-function Row({ label, left, right }: { label: string; left: CellData; right: CellData }) {
+interface RowProps {
+  label: string;
+  left: CellData;
+  right: CellData;
+  index: number;
+  startWithWhite?: boolean;
+}
+
+function Row({ label, left, right, index, startWithWhite = false }: RowProps) {
+  const isGray = startWithWhite ? index % 2 === 1 : index % 2 === 0;
+
   return (
-    <div className='grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] odd:bg-gray-50'>
+    <div className={`grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] ${isGray ? 'bg-gray-50' : ''}`}>
       <div className='flex min-w-0 flex-col items-center justify-center p-4'>
         <div className='font-semibold'>{left.value}</div>
         {left.detail && <div className='mt-0.5 w-full truncate text-center text-sm'>{left.detail}</div>}
