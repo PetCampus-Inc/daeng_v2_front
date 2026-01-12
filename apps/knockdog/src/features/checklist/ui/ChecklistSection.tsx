@@ -4,9 +4,9 @@ import { Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { QUESTION_MAP, getAnswers, type AnswersResponse } from '@entities/checklist';
+import { QUESTION_MAP } from '@entities/checklist';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
-import { useState, useEffect } from 'react';
+import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
 
 function CheckListSection() {
   const params = useParams<{ id: string }>();
@@ -14,32 +14,11 @@ function CheckListSection() {
   const { push } = useStackNavigation();
   const isLoggedIn = useUserStore((state) => !!state.user);
 
-  const [checklist, setChecklist] = useState<AnswersResponse>({ sections: [] });
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
   if (!id) throw new Error('Company ID is required for checklist section');
 
-  useEffect(() => {
-    if (!isLoggedIn || !id) {
-      setChecklist({ sections: [] });
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    getAnswers(id)
-      .then((data) => {
-        setChecklist(data);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err : new Error('체크리스트를 불러올 수 없습니다'));
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [id, isLoggedIn]);
+  const { data: checklist, isLoading, error } = useChecklistAnswersQuery(id ?? '', {
+    enabled: isLoggedIn,
+  });
 
   return (
     <div>
@@ -64,10 +43,10 @@ function CheckListSection() {
           </div>
         ) : error || !checklist?.sections || checklist?.sections.length === 0 ? (
           <div className='text-text-secondary flex justify-center py-8'>
-            <span className='body1-medium'>{error?.message || '등록된 체크리스트가 없습니다'}</span>
+            <span className='body1-medium'>{error instanceof Error ? error.message : '등록된 체크리스트가 없습니다'}</span>
           </div>
         ) : (
-          checklist?.sections
+          checklist.sections
             .filter((section) => section.answers.length > 0)
             .map((section, index, filteredSections) => (
               <div key={section.sectionId}>

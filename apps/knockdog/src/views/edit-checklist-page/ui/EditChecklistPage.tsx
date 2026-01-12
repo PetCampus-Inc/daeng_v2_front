@@ -24,7 +24,7 @@ function EditChecklistPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const [isEditing, setIsEditing] = useState(false);
-  const { data: answers } = useChecklistAnswersQuery(id);
+  const { data: answers } = useChecklistAnswersQuery(id ?? '');
   const { mutate: updateAnswers } = useChecklistMutate();
   const [draftAnswers, setDraftAnswers] = useState<AnswerGroup[]>([]);
 

@@ -4,7 +4,6 @@ import { updateMemo, memoQueryKeys, type MemoResponse, type UpdateMemoRequest, m
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface MemoMutationContext {
-  previous: MemoResponse | undefined;
   userContext?: unknown;
 }
 
@@ -35,33 +34,17 @@ export const useMemoMutation = (
     ...restOptions,
     mutationFn: updateMemo as (variables: UpdateMemoRequest) => Promise<MemoResponse>,
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
-
-      const previous = queryClient.getQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId));
-
-      if (previous) {
-        const optimistic: MemoResponse = {
-          content: variables.content ?? previous.content,
-          photos: variables.photoKeys
-            ? previous.photos.filter((photo) => variables.photoKeys?.includes(photo.key))
-            : previous.photos,
-        };
-
-        queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), optimistic);
-      }
-
       const userContext = await userOnMutate?.(variables);
-      const context: MemoMutationContext = { previous, userContext };
+      const context: MemoMutationContext = { userContext };
 
       return context;
     },
     onError: (error, variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), context.previous);
-      }
       userOnError?.(error, variables, context?.userContext);
     },
     onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
+      queryClient.invalidateQueries({ queryKey: memoQueries.keys.all() });
       userOnSuccess?.(data, variables, context?.userContext);
     },
     onSettled: async (data, error, variables, context) => {
