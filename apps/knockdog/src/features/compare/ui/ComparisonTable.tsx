@@ -13,7 +13,7 @@ function ComparisonTable({ title, cols }: ComparisonTableProps) {
       </div>
 
       <div
-        className={`grid ${cols.length === 1 ? 'grid grid-cols-1' : 'grid grid-cols-2'} items-start border border-t-0 border-neutral-100`}
+        className={`grid ${cols.length === 1 ? 'grid grid-cols-1' : 'grid grid-cols-2'} border border-t-0 border-neutral-100`}
       >
         {cols.map((services, index) => (
           <div

@@ -12,7 +12,9 @@ export function Label({
       {tooltip && (
         <Tooltip className='flex items-center' placement='top-left'>
           <TooltipTrigger />
-          <TooltipContent>{tooltip}</TooltipContent>
+          <TooltipContent className='border-line-200 mr-10 ml-8 rounded-lg border p-3 text-[11px] leading-4'>
+            {tooltip}
+          </TooltipContent>
         </Tooltip>
       )}
     </div>
