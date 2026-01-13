@@ -90,10 +90,11 @@ export function registerLocationHandlers(router: NativeBridgeRouter) {
 
   /** 위치 권한 요청 다이얼로그 열기 */
   router.register(METHODS.openLocationPermissionDialog, async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
+    const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
 
     return {
       status: mapPermissionStatus(status),
+      canAskAgain,
     };
   });
 }
