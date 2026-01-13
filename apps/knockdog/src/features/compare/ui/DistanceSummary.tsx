@@ -1,5 +1,6 @@
 import type { ReferencePointType, ShortestInfo } from '@entities/compare';
-import { Dropdown, Summary, TRANSPORTATION_TYPE } from '@entities/compare';
+import { Summary, TRANSPORTATION_TYPE } from '@entities/compare';
+import { Dropdown } from '@shared/ui/dropdown';
 import { getDirectionParticle, getSubjectParticle } from '@shared/utils';
 
 interface DistanceSummaryProps {
@@ -22,7 +23,15 @@ export function DistanceSummary({
   return (
     <>
       <div className='flex items-center justify-center gap-2'>
-        <Dropdown options={referencePointOptions} value={referencePoint} onChange={onReferencePointChange} />
+        <Dropdown
+          options={referencePointOptions}
+          value={referencePoint}
+          onChange={onReferencePointChange}
+          maxLabelLength={5}
+          triggerClassName='border-b p-0'
+          labelClassName='h2-extrabold'
+          iconClassName='text-text-primary'
+        />
         <Summary highlight={shortestInfo.name} truncate>{`에서 ${shortestInfo.name}${subjectParticle}`}</Summary>
       </div>
       <Summary highlight={transportTypeText}>{`${transportTypeText}${directionParticle} 가장 가까워요`}</Summary>
