@@ -21,7 +21,7 @@ export function DistanceSummary({
 
   return (
     <>
-      <div className='flex items-center justify-center'>
+      <div className='flex items-center justify-center gap-2'>
         <Dropdown options={referencePointOptions} value={referencePoint} onChange={onReferencePointChange} />
         <Summary highlight={shortestInfo.name} truncate>{`에서 ${shortestInfo.name}${subjectParticle}`}</Summary>
       </div>

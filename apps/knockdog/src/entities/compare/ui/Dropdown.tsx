@@ -72,9 +72,9 @@ export function Dropdown<T>({ options, value, onChange }: DropdownProps<T>) {
         type='button'
         role='combobox'
         aria-expanded={isOpen}
-        className='relative flex shrink-0 items-center justify-center'
+        className='relative flex shrink-0 items-center justify-center border-b pb-0.5'
       >
-        <span className='h2-extrabold text-orange-500'>{selectedOptionLabel}</span>
+        <span className='h2-extrabold text-text-primary'>{selectedOptionLabel}</span>
         <span className={isOpen ? 'rotate-180' : 'mt-1 rotate-0'}>
           <Icon icon='ChevronBottom' className='text-text-primary h-5 w-5' />
         </span>
@@ -85,7 +85,7 @@ export function Dropdown<T>({ options, value, onChange }: DropdownProps<T>) {
           <FloatingFocusManager context={context} modal={false}>
             {/* eslint-disable-next-line react-hooks/refs */}
             <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()} className='z-999'>
-              <ul className='py-x1.5 px-x1.5 bg-bg-0 radius-r2 gap-x1.5 flex w-[111px] flex-col shadow-[0px_1px_6px_0px_rgba(16,24,40,0.12)]'>
+              <ul className='bg-bg-0 border-line-200 flex w-[111px] flex-col gap-3 rounded-lg border p-3'>
                 {options.map((option, index) => (
                   <li
                     key={String(option.value)}
@@ -101,11 +101,11 @@ export function Dropdown<T>({ options, value, onChange }: DropdownProps<T>) {
                       role: 'option',
                       'aria-selected': index === selectedIndex,
                     })}
-                    className={`gap-x1 px-x1.5 py-x1 radius-r1 hover:bg-fill-secondary-50 flex cursor-pointer items-center transition-colors ${
+                    className={`flex cursor-pointer items-center gap-1 ${
                       index === selectedIndex ? 'body2-bold text-text-accent' : 'body2-regular text-text-primary'
                     }`}
                   >
-                    <span className='flex-1 truncate'>{option.label}</span>
+                    <span className='truncate'>{option.label}</span>
                     {index === selectedIndex && <Icon icon='Check' className='size-x4 text-fill-primary-500' />}
                   </li>
                 ))}
