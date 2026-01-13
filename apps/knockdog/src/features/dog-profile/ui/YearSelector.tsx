@@ -44,7 +44,7 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
           label='태어난 해'
           value={value}
           indicator='(선택)'
-          suffix={<Icon icon='ChevronBottom' />}
+          suffix={<Icon icon='ChevronBottom' className='text-fill-secondary-400' />}
         >
           <TextFieldInput
             ref={ref}

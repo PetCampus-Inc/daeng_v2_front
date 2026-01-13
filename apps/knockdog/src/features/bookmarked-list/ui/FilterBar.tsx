@@ -1,8 +1,8 @@
-import { Dropdown } from './DropDown';
 import type { FilterState } from '../model/filterState';
 import type { UserAddress } from '@entities/user';
 import { useUserStore } from '@entities/user';
 import type { ReferencePointType } from '@entities/compare';
+import { Dropdown } from '@shared/ui/dropdown';
 
 export function FilterBar({ refPoint, onChangeRefPoint, showMemoOnly, onMemoToggle }: FilterState) {
   const user = useUserStore((state) => state.user);
