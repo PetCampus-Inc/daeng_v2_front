@@ -28,7 +28,14 @@ function PetProfilePage() {
 
         <div className='mt-7'>
           <TextField label='강아지 이름' required>
-            <TextFieldInput placeholder='8자 이내 한글' value={petName} onChange={(e) => setPetName(e.target.value)} />
+            <TextFieldInput
+              placeholder='8자 이내 한글'
+              value={petName}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\s/g, '').slice(0, 8);
+                setPetName(value);
+              }}
+            />
           </TextField>
         </div>
       </div>
