@@ -8,6 +8,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'daeng_v2_mobile',
   slug: 'petcampus',
+  owner: 'petcampus',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
