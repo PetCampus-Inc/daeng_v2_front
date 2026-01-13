@@ -18,11 +18,12 @@ import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { type BasePointType, useBasePointType } from '@shared/store';
 
 interface KindergartenListProps {
-  onOpenFilter: () => void;
   region?: string | null;
+  onOpenFilter: () => void;
+  onMoveHome?: () => void;
 }
 
-export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
+export function KindergartenList({ onOpenFilter, region, onMoveHome }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -164,7 +165,12 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             )}
             {searchList.map((item) => (
               <Fragment key={item.id}>
-                <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
+                <KindergartenListItem
+                  {...item}
+                  banner={item.banner ?? []}
+                  onBookmarkClick={onBookmarkClick}
+                  onMoveHome={onMoveHome}
+                />
                 <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
               </Fragment>
             ))}

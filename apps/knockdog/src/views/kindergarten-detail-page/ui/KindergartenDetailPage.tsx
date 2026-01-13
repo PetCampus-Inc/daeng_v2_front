@@ -2,18 +2,19 @@
 
 import { useRef } from 'react';
 import { Divider, ActionButton } from '@knockdog/ui';
+import { useParams } from 'next/navigation';
+import { overlay } from 'overlay-kit';
+import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
-import { useCurrentLocation } from '@shared/lib/geolocation';
-import { useParams } from 'next/navigation';
-import { BookmarkToggleIcon } from '@entities/bookmark';
 import { PhoneCallSheet } from '@features/kindergarten-list';
-import { overlay } from 'overlay-kit';
+import { BookmarkToggleIcon } from '@entities/bookmark';
+import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useShare } from '@shared/lib/device';
 import { SafeArea } from '@shared/ui/safe-area';
-import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
+import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -23,6 +24,8 @@ function KindergartenDetailPage() {
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
   if (!id) return null;
 
+  const { back } = useStackNavigation();
+  const navResult = useNavigationResult<boolean>();
   const { position } = useCurrentLocation();
   const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
 
@@ -56,12 +59,17 @@ function KindergartenDetailPage() {
     share(shareData);
   };
 
+  const handleHomeClick = () => {
+    navResult.send(true);
+    back();
+  };
+
   return (
     <SafeArea edges={['bottom']}>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
-          <Header.HomeButton />
+          <Header.HomeButton onClick={handleHomeClick} />
         </Header.LeftSection>
 
         <Header.Title>{kindergartenMain?.title}</Header.Title>
