@@ -38,6 +38,9 @@ export function KindergartenDetail({ kindergartenId }: KindergartenDetailProps) 
         {/* 세부 컨텐츠 영역 */}
         {/* 탭 */}
         <KindergartenTabs kindergartenId={kindergartenId} />
+
+        {/* 하단 공간 (액션 바 높이) */}
+        <div className='h-14 w-full' />
       </div>
     </>
   );
