@@ -1,16 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BottomSheet, TRANSITION_DURATION_MS } from '@knockdog/ui';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
 import { KindergartenCard } from './KindergartenCard';
 import { cn } from '@knockdog/ui/lib';
 import { motion, useIsomorphicLayoutEffect, useTransform } from 'framer-motion';
 import { RemoveScroll } from 'react-remove-scroll';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
 import { useSheetDragProgress } from '../model/useViewportProgress';
+import { overlay } from 'overlay-kit';
 import { Header } from '@widgets/Header';
 import { KindergartenDetail } from '@features/kindergarten-list/ui/KindergartenDetail';
 import { useSearchListQuery } from '@features/kindergarten-map';
+import { PhoneCallSheet } from '@features/kindergarten-list/ui/PhoneCallSheet';
 import { isNativeWebView, useSafeAreaInsets, useShare } from '@shared/lib';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 
@@ -45,6 +47,7 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint>(snapPoints[0] ?? null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const { top: safeAreaTop } = useSafeAreaInsets();
   const isMaxSnap = activeSnapPoint === snapPoints[1];
@@ -71,16 +74,31 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
     share(shareData);
   };
 
+  const openPhoneCallActionSheet = () =>
+    overlay.open(({ isOpen, close }) => (
+      <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={currentItem?.phoneNumber ?? ''} />
+    ));
+
   useIsomorphicLayoutEffect(() => {
     if (containerRef.current) {
       setContainer(containerRef.current);
     }
   }, [containerRef]);
 
+  useEffect(() => {
+    console.log('activeSnapPoint changed:', activeSnapPoint);
+    console.log('isOpen:', isOpen);
+  }, [activeSnapPoint, isOpen]);
+
+  useEffect(() => {
+    console.log('container changed:', container);
+  }, [container]);
+
   if (currentItem == null) return null;
   return (
     <>
       <motion.div
+        ref={headerRef}
         className='fixed top-0 left-0 z-50 w-screen bg-white'
         style={{ paddingTop: safeAreaTop, opacity: hiddenOpacity }}
       >
@@ -121,14 +139,17 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
             <BottomSheet.Body
               onPointerDownOutside={(e) => {
                 e.preventDefault();
-                onClose();
+
+                if (!headerRef.current?.contains(e.target as Node)) {
+                  onClose();
+                }
               }}
               className={cn(
                 'pointer-events-auto absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)]',
                 activeSnapPoint === snapPoints[1] && 'h-full'
               )}
             >
-              <div ref={viewRef} className={cn('h-full', isMaxSnap && 'overflow-y-auto')}>
+              <div ref={viewRef} className={cn('relative h-full', isMaxSnap && 'overflow-y-auto')}>
                 <motion.div
                   className='absolute inset-0'
                   style={{
@@ -154,6 +175,25 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
             </BottomSheet.Body>
           </RemoveScroll>
         </BottomSheet.Root>
+
+        <div className='p-x4 gap-x2 fixed right-0 bottom-0 left-0 z-50 flex items-center bg-white'>
+          <ActionButton variant='primaryLine' size='medium' onClick={openPhoneCallActionSheet}>
+            전화하기
+          </ActionButton>
+          <ActionButton variant='primaryFill' size='medium' disabled>
+            비교하기
+          </ActionButton>
+          <button
+            aria-label='보관하기'
+            className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
+            onClick={() => onBookmarkClick(currentItem.id, currentItem.isBookmarked ?? false)}
+          >
+            <Icon
+              icon={currentItem.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
+              className='size-x6 text-fill-primary-500'
+            />
+          </button>
+        </div>
       </div>
     </>
   );

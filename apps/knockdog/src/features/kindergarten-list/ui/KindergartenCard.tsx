@@ -15,11 +15,6 @@ interface KindergartenCardProps extends KindergartenListItemWithMeta {
 }
 
 export function KindergartenCard(props: KindergartenCardProps) {
-  const openPhoneCallActionSheet = () =>
-    overlay.open(({ isOpen, close }) => (
-      <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={props.phoneNumber} />
-    ));
-
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => (
       <DeparturePointSheet
@@ -117,27 +112,6 @@ export function KindergartenCard(props: KindergartenCardProps) {
           </div>
         </div>
       </div>
-
-      <BottomSheet.Footer className='pt-x6 pb-x4'>
-        <div className='gap-x2 flex items-center'>
-          <ActionButton variant='primaryLine' size='medium' onClick={openPhoneCallActionSheet}>
-            전화하기
-          </ActionButton>
-          <ActionButton variant='primaryFill' size='medium' disabled>
-            비교하기
-          </ActionButton>
-          <button
-            aria-label='보관하기'
-            className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
-            onClick={() => props.onBookmarkClick(props.id, props.isBookmarked ?? false)}
-          >
-            <Icon
-              icon={props.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
-              className='size-x6 text-fill-primary-500'
-            />
-          </button>
-        </div>
-      </BottomSheet.Footer>
     </>
   );
 }
