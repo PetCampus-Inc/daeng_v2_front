@@ -7,9 +7,10 @@ const useChecklistQuestionsQuery = () => {
   });
 };
 
-const useChecklistAnswersQuery = (targetId: string) => {
+const useChecklistAnswersQuery = (targetId: string, options?: { enabled?: boolean }) => {
   return useQuery({
     ...createChecklistQueryOptions(targetId),
+    enabled: options?.enabled !== false && !!targetId,
   });
 };
 
