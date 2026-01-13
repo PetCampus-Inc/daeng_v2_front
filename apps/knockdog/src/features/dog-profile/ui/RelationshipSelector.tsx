@@ -57,7 +57,7 @@ function RelationshipSelector({
           )}
         >
           {value ? options.find((option) => option.value === value)?.label : placeholder}
-          <Icon icon='ChevronBottom' className='h-5 w-5' />
+          <Icon icon='ChevronBottom' className='text-fill-secondary-400 h-5 w-5' />
         </button>
       </BottomSheet.Trigger>
 
