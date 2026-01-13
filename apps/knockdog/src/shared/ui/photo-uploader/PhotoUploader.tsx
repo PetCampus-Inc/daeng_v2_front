@@ -54,24 +54,30 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
         <BottomSheet.Body className='z-modal'>
           <BottomSheet.Handle />
 
-          <BottomSheet.Header className='border-line-200 justify-between border-b'>
+          <BottomSheet.Header className='border-line-200 border-b'>
             <BottomSheet.Title>이미지 소스 선택</BottomSheet.Title>
             <BottomSheet.CloseButton />
           </BottomSheet.Header>
-          <ul className='body2-semibold mb-4 cursor-pointer px-6'>
-            <li className='border-line-200 border-b py-4' onClick={() => {
-              handlePickImages('library');
-              close();
-            }}>
-              <button>사진 보관함</button>
-            </li>
-            <li className='border-line-200 border-b py-4' onClick={() => {
-              handlePickImages('camera');
-              close();
-            }}>
-              <button>카메라로 촬영하기</button>
-            </li>
-          </ul>
+          <div className='py-x5 flex flex-col'>
+            <button
+              className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
+              onClick={() => {
+                handlePickImages('library');
+                close();
+              }}
+            >
+              사진 보관함
+            </button>
+            <button
+              className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
+              onClick={() => {
+                handlePickImages('camera');
+                close();
+              }}
+            >
+              카메라로 촬영하기
+            </button>
+          </div>
         </BottomSheet.Body>
       </BottomSheet.Root>
     ));
