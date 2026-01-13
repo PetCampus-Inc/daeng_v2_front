@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 import { cn } from '@knockdog/ui/lib';
+import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { isNativeWebView, useBottomSheetSnapIndex, useIsomorphicLayoutEffect, useSafeAreaInsets } from '@shared/lib';
@@ -10,15 +11,14 @@ import { useMarkerState } from '@shared/store';
 // 최대 스냅포인트: 화면높이 - 64px(검색 헤더바 높이) - 16px (Handle 높이)
 
 // ✅ 구(HEAD)·신(리팩토링) 버전 병합: children을 기본으로 받되, 하위호환으로 bottomSlot도 함께 허용
-export function KindergartenListSheet({
-  fabSlot,
-  children,
-  bottomSlot,
-}: {
+interface KindergartenListSheetProps {
   fabSlot: React.ReactNode;
-  children?: React.ReactNode;
+  region?: string | null;
   bottomSlot?: React.ReactNode;
-}) {
+  onOpenFilter: () => void;
+}
+
+export function KindergartenListSheet({ fabSlot, region, bottomSlot, onOpenFilter }: KindergartenListSheetProps) {
   const { top } = useSafeAreaInsets();
 
   // 리팩토링 분기 반영
@@ -84,7 +84,7 @@ export function KindergartenListSheet({
             <BottomSheet.Title className='sr-only'>강아지 유치원 목록</BottomSheet.Title>
 
             {/* 신버전(children) 우선, 구버전(bottomSlot)도 렌더링해 하위호환 보장 */}
-            {children}
+            <KindergartenList onOpenFilter={onOpenFilter} onMoveHome={() => setSnapIndex(0)} region={region} />
             {bottomSlot}
           </BottomSheet.Body>
         </RemoveScroll>

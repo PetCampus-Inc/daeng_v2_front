@@ -6,6 +6,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 interface KindergartenListItemProps extends KindergartenListItemWithMeta {
   onBookmarkClick?: (id: string, isBookmarked: boolean) => void;
+  onMoveHome?: () => void;
 }
 
 export function KindergartenListItem({
@@ -24,11 +25,13 @@ export function KindergartenListItem({
   memo,
   isBookmarked = false,
   onBookmarkClick,
+  onMoveHome,
 }: KindergartenListItemProps) {
-  const { push } = useStackNavigation();
+  const { pushForResult } = useStackNavigation();
 
-  const handleClick = () => {
-    push({ pathname: `/kindergarten/${id}` });
+  const handleClick = async () => {
+    const isMoveHome = await pushForResult({ pathname: `/kindergarten/${id}` });
+    if (isMoveHome) onMoveHome?.();
   };
 
   return (
