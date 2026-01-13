@@ -143,13 +143,16 @@ function PetProfileForm({
               <Controller
                 name='name'
                 control={control}
-                rules={{
-                  required: '강아지 이름을 입력해 주세요',
-                  maxLength: { value: 8, message: '8자 이내로 입력해 주세요' },
-                }}
                 render={({ field, fieldState: { error } }) => (
                   <TextField label='강아지 이름' required errorMessage={error?.message}>
-                    <TextFieldInput {...field} placeholder='8자 이내 한글' />
+                    <TextFieldInput
+                      {...field}
+                      placeholder='8자 이내 한글'
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\s/g, '').slice(0, 8);
+                        field.onChange(value);
+                      }}
+                    />
                   </TextField>
                 )}
               />
