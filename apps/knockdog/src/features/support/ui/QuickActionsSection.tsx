@@ -19,6 +19,10 @@ function QuickActionsSection({ onChatRoomClick }: QuickActionsSectionProps) {
     openExternalLink(EXTERNAL_LINKS.SUGGESTION);
   };
 
+  const handleChatRoomClick = () => {
+    openExternalLink(EXTERNAL_LINKS.CHAT_ROOM);
+  };
+
   return (
     <div className='flex flex-col gap-y-5 px-4 py-5'>
       <div className='flex items-center justify-between gap-x-2'>
@@ -29,7 +33,7 @@ function QuickActionsSection({ onChatRoomClick }: QuickActionsSectionProps) {
           아이디어 제안하기
         </ActionButton>
       </div>
-      <ActionButton variant='tertiaryFill' onClick={onChatRoomClick}>
+      <ActionButton variant='tertiaryFill' onClick={handleChatRoomClick}>
         똑독 유저 채팅방
       </ActionButton>
     </div>
