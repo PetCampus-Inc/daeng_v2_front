@@ -89,4 +89,15 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
       throw { code: 'EUNAVAILABLE', message: '앱 버전을 가져올 수 없습니다.' };
     }
   });
+
+  /** 설정창 열기 */
+  router.register(METHODS.openSettings, async () => {
+    try {
+      await Linking.openSettings();
+      return { opened: true };
+    } catch (error) {
+      console.error('[APP] openSettings error', error);
+      throw { code: 'EUNAVAILABLE', message: '설정창을 열 수 없습니다.' };
+    }
+  });
 }

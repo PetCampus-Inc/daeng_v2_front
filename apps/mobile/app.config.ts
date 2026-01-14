@@ -115,7 +115,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-location',
       {
-        locationAlwaysAndWhenInUsePermission: '$(PRODUCT_NAME) 앱을 사용하기 위해 위치 권한을 허용해주세요.',
+        locationWhenInUsePermission: '주변 유치원을 추천해드리기 위해 위치 권한이 필요합니다.',
       },
     ],
     // Kakao 로그인

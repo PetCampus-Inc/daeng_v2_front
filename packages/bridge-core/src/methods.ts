@@ -17,6 +17,7 @@ const METHODS = {
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
   openExternalLink: 'system.openExternalLink',
+  openSettings: 'system.openSettings',
   getAppVersion: 'system.getAppVersion',
   kakaoLogin: 'auth.kakaoLogin',
   googleLogin: 'auth.googleLogin',

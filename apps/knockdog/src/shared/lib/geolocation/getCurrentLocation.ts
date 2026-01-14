@@ -94,6 +94,8 @@ getCurrentLocation.getPermission = async (): Promise<PermissionStatus> => {
 
 /**
  * 위치 권한 요청 다이얼로그 열기
+ * - 앱 환경: 권한 요청 팝업을 띄우거나, 명시적 거부 상태일 경우 시스템 설정창으로 이동
+ * - 웹 환경: 브라우저 권한 요청 시도
  */
 getCurrentLocation.openPermissionDialog = async (): Promise<PermissionStatus> => {
   /* 앱 환경 */
@@ -104,12 +106,22 @@ getCurrentLocation.openPermissionDialog = async (): Promise<PermissionStatus> =>
       throw new Error('Bridge not initialized');
     }
 
-    const { status } = await bridge.request<{ status: PermissionStatus }>(METHODS.openLocationPermissionDialog, {});
+    const { status, canAskAgain } = await bridge.request<{ status: PermissionStatus; canAskAgain: boolean }>(
+      METHODS.openLocationPermissionDialog,
+      {}
+    );
+
+    if (status === 'denied' && !canAskAgain) {
+      await bridge.request(METHODS.openSettings, {});
+    }
+
     return status;
   }
 
   /* 웹 환경: 브라우저 권한 요청 트리거 (재시도) */
   try {
+    // 웹에서는 명시적 거부(denied) 상태일 경우, JS API로 권한 창을 다시 띄울 수 없음.
+    // 사용자가 직접 브라우저 설정에서 권한을 재설정해야 함.
     await getCurrentLocation();
     return 'allowed';
   } catch (error) {
