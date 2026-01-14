@@ -32,7 +32,7 @@ function useLocationPermission() {
 
   const address = {
     addressName: addressDocument?.address?.address_name,
-    isLoading: isAddressLoading || (permissionStatus === 'allowed' && !location),
+    isLoading: isAddressLoading || (permissionStatus === 'allowed' && !location && !locationQuery.isError),
     error: addressError ? '주소를 가져오는데 실패했습니다.' : null,
   };
 
@@ -42,7 +42,6 @@ function useLocationPermission() {
   const checkPermission = async () => {
     try {
       const status = await getCurrentLocation.getPermission();
-      console.log('Location Permission Status:', status);
       setPermissionStatus(status);
     } catch (error) {
       console.error('권한 확인 실패:', error);
