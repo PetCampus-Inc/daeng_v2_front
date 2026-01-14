@@ -1,14 +1,22 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { usePetRegisterMutation, usePetUpdateDetailMutation, type Gender, type Relationship } from '@entities/pet';
-import { useMoveImageMutation } from '@shared/lib/media';
-import { useUserStore } from '@entities/user';
 import type { Breed } from './breed.type';
-import type { Pet } from '@entities/pet';
+import {
+  usePetRegisterMutation,
+  usePetUpdateDetailMutation,
+  type Gender,
+  Pet,
+  Relationship,
+  RELATIONSHIP,
+  RELATIONSHIP_LABEL,
+} from '@entities/pet';
+import { useUserStore } from '@entities/user';
+import { useMoveImageMutation } from '@shared/lib/media';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface PetFormData {
   name: string;
-  relationship: Relationship | '';
+  relationship: Relationship;
+  relationshipText: string;
   breed?: Breed | null;
   birthYear?: string;
   weight?: number;
@@ -34,7 +42,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
   const transformDefaultValues = (pet?: Pet): PetFormData => {
     return {
       name: pet?.name || '',
-      relationship: pet?.relationship || '',
+      relationship: pet?.relationship || RELATIONSHIP.MOTHER,
+      relationshipText: pet?.relationshipText || '',
       breed: pet?.breed ? { breedId: 0, breedName: pet.breed } : null,
       birthYear: pet?.birthYear ? String(pet.birthYear) : undefined,
       weight: pet?.weight || undefined,
@@ -58,7 +67,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
   const onSubmit: SubmitHandler<PetFormData> = async (data) => {
     try {
-      if (!data.relationship) {
+      if (!data.relationship || (data.relationship === RELATIONSHIP.ETC && !data.relationshipText)) {
         throw new Error('관계는 필수입니다');
       }
 
@@ -84,14 +93,20 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         }
       }
 
+      const relationshipValue =
+        data.relationship === RELATIONSHIP.ETC ? data.relationshipText : RELATIONSHIP_LABEL[data.relationship];
+
       if (mode === 'add') {
         // 추가 모드: 펫 등록
         const registerResponse = await registerPet({
           name: data.name,
           relationship: data.relationship,
+          relationshipText: relationshipValue,
           profileImage: finalProfileImage,
         });
+
         const newPetId = registerResponse.data.id;
+
         // 사용자가 추가 정보를 입력했다면 상세 정보 업데이트
         const hasAdditionalInfo = data.breed || data.birthYear || data.weight || data.gender || data.isNeutered;
         if (hasAdditionalInfo) {
@@ -112,6 +127,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           petId,
           name: data.name,
           relationship: data.relationship,
+          relationshipText: relationshipValue,
           profileImage: finalProfileImage,
           breed: data.breed?.breedName,
           birthYear: data.birthYear ? Number(data.birthYear) : undefined,

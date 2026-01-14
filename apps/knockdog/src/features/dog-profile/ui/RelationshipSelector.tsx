@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Icon } from '@knockdog/ui';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { ActionButton, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { RELATIONSHIP, Relationship } from '@entities/pet';
+import { RELATIONSHIP, RELATIONSHIP_LABEL, Relationship } from '@entities/pet';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useSafeAreaInsets } from '@shared/lib';
 
 interface RelationshipSelectorProps {
   className?: string;
@@ -22,22 +23,18 @@ function RelationshipSelector({
   placeholder = '관계 선택',
 }: RelationshipSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { bottom } = useSafeAreaInsets();
 
   const options: { label: string; value: Relationship }[] = useMemo(
-    () => [
-      { label: '엄마', value: RELATIONSHIP.MOTHER },
-      { label: '아빠', value: RELATIONSHIP.FATHER },
-      { label: '가족', value: RELATIONSHIP.FAMILY },
-      { label: '보호자', value: RELATIONSHIP.GUARDIAN },
-      { label: '기타', value: RELATIONSHIP.ETC },
-    ],
+    () =>
+      Object.entries(RELATIONSHIP).map(([key, value]) => ({
+        label: RELATIONSHIP_LABEL[key as Relationship],
+        value,
+      })),
     []
   );
 
-  const handleChange = (value: Relationship) => () => {
-    onChange?.(value);
-    setIsOpen(false);
-  };
+  const handleChange = (value: Relationship) => () => onChange?.(value);
 
   useEffect(() => {
     if (autoFocus) setIsOpen(true);
@@ -67,7 +64,8 @@ function RelationshipSelector({
           <BottomSheet.Title>관계 선택</BottomSheet.Title>
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
-        <div className='px-6'>
+
+        <BottomSheet.Content className='px-6'>
           {options.map((option) => (
             <div
               key={option.value}
@@ -81,13 +79,13 @@ function RelationshipSelector({
                 {option.label}
               </label>
               <input
+                id={option.value}
                 type='radio'
                 name='relation'
+                className='sr-only'
                 value={option.value}
                 checked={value === option.value}
                 onChange={handleChange(option.value)}
-                id={option.value}
-                className='sr-only'
               />
               <span
                 className={cn(
@@ -99,7 +97,13 @@ function RelationshipSelector({
               </span>
             </div>
           ))}
-        </div>
+        </BottomSheet.Content>
+
+        <BottomSheet.Footer style={{ paddingBottom: bottom }}>
+          <ActionButton type='button' variant='secondaryFill' size='large' onClick={() => setIsOpen(false)}>
+            확인
+          </ActionButton>
+        </BottomSheet.Footer>
       </BottomSheet.Body>
     </BottomSheet.Root>
   );

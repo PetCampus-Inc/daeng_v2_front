@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 import {
   TextField,
   TextFieldInput,
@@ -21,7 +21,8 @@ import { NeuteredSelector } from './NeuteredSelector';
 import { ProfileImageUploader } from './ProfileImageUploader';
 import { usePetProfileForm } from '../model/usePetProfileForm';
 import { overlay } from 'overlay-kit';
-import { type Pet } from '@entities/pet';
+import { cn } from '@knockdog/ui/lib';
+import { RELATIONSHIP, type Pet } from '@entities/pet';
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
@@ -44,7 +45,7 @@ function PetProfileForm({
   onDirtyChange,
   onBeforeSubmit,
 }: PetProfileFormProps) {
-  const { control, handleSubmit, isValid, isSubmitting, isDirty, getValues, trigger, reset, transformDefaultValues } =
+  const { control, handleSubmit, isSubmitting, isDirty, getValues, trigger, reset, transformDefaultValues } =
     usePetProfileForm({
       mode,
       petId,
@@ -53,6 +54,8 @@ function PetProfileForm({
       onError,
     });
 
+  const relationship = useWatch({ control, name: 'relationship' });
+
   // defaultValues가 변경될 때 폼 리셋
   const defaultValuesKey = React.useMemo(() => {
     if (!defaultValues) return null;
@@ -60,6 +63,7 @@ function PetProfileForm({
       id: defaultValues.id,
       name: defaultValues.name,
       relationship: defaultValues.relationship,
+      relationshipText: defaultValues.relationshipText,
       breed: defaultValues.breed,
       birthYear: defaultValues.birthYear,
       weight: defaultValues.weight,
@@ -87,8 +91,9 @@ function PetProfileForm({
     // 필수 필드 검증
     const isNameValid = await trigger('name');
     const isRelationshipValid = await trigger('relationship');
+    const isRelationshipTextValid = relationship === RELATIONSHIP.ETC ? await trigger('relationshipText') : true;
 
-    if (!isNameValid || !isRelationshipValid) {
+    if (!isNameValid || !isRelationshipValid || !isRelationshipTextValid) {
       overlay.open(({ isOpen, close }) => (
         <AlertDialog open={isOpen} onOpenChange={close}>
           <AlertDialogContent>
@@ -172,6 +177,25 @@ function PetProfileForm({
                     value={field.value || null}
                     onChange={(value) => field.onChange(value)}
                   />
+                )}
+              />
+            </div>
+
+            <div className={cn('py-2', relationship !== RELATIONSHIP.ETC && 'hidden')}>
+              <Controller
+                name='relationshipText'
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <TextField label='관계(직접 입력)' required errorMessage={error?.message}>
+                    <TextFieldInput
+                      {...field}
+                      placeholder='5자이내 한글'
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\s/g, '').slice(0, 8);
+                        field.onChange(value);
+                      }}
+                    />
+                  </TextField>
                 )}
               />
             </div>

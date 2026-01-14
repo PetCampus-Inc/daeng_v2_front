@@ -2,7 +2,6 @@
 
 import { useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Header } from '@widgets/Header';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -13,10 +12,11 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@knockdog/ui';
-import { PetProfileForm } from '@features/dog-profile';
 import { overlay } from 'overlay-kit';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { Header } from '@widgets/Header';
+import { PetProfileForm } from '@features/dog-profile';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 export function MypagePetEditPage() {
