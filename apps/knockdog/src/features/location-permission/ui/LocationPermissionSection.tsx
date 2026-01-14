@@ -5,8 +5,7 @@ import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
 import { useLocationPermission } from '../lib/useLocationPermission';
 
 function LocationPermissionSection() {
-  const { permissionStatus, address } = useLocationPermission();
-  const { primaryText, primaryRoad, primaryParcel } = address;
+  const { permissionStatus, address, requestPermission } = useLocationPermission();
 
   return (
     <div className='mt-6 flex flex-col gap-y-2 px-4'>
@@ -27,12 +26,28 @@ function LocationPermissionSection() {
         <div className='flex flex-col gap-y-[2px]'>
           <span className='h3-extrabold text-text-primary'>현재 위치</span>
           {permissionStatus === 'allowed' ? (
-            <span className='body2-regular text-text-secondary'>{primaryText || primaryRoad || primaryParcel}</span>
+            <span className='body2-regular text-text-secondary'>
+              {address.addressName || '위치 정보를 찾을 수 없음'}
+            </span>
           ) : (
             <span className='body2-regular text-text-secondary'>실시간 GPS가 꺼져 있습니다</span>
           )}
         </div>
-        <Switch pressed={permissionStatus === 'allowed'} onPressedChange={() => openSystemSetting()} />
+        <Switch
+          pressed={permissionStatus === 'allowed'}
+          onPressedChange={() => {
+            if (permissionStatus === 'allowed') {
+              // 1. 이미 허용 상태면 설정을 열어서 끄도록 유도
+              openSystemSetting();
+            } else if (permissionStatus === 'denied') {
+              // 2. 거절 상태면 설정을 열어서 켜도록 유도
+              openSystemSetting();
+            } else {
+              // 3. 미정 상태면 앱 내 팝업으로 권한 요청
+              requestPermission();
+            }
+          }}
+        />
       </div>
     </div>
   );
