@@ -4,7 +4,7 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { FilterList } from './FilterList';
 import { FilterChip } from './FilterChip';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
-import { isValidLatLngBounds, toBounds } from '../lib/map-adapter';
+import { type Bounds } from '@shared/types';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { filterQueries } from '../api/filterQueries';
 import type { FilterOption } from '@entities/kindergarten';
@@ -12,7 +12,7 @@ import type { FilterOption } from '@entities/kindergarten';
 interface FilterBottomSheetProps {
   isOpen: boolean;
   close: () => void;
-  bounds?: naver.maps.Bounds;
+  bounds: Bounds | null;
   initialFilters: FilterOption[];
   onApply: (filters: FilterOption[]) => void;
 }
@@ -36,10 +36,9 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
     }
   }, [isOpen, initialFilters, setLocalFilters]);
 
-  const abstractBounds = isValidLatLngBounds(bounds) ? toBounds(bounds) : null;
   const { data: filterResultData } = useQuery({
     ...filterQueries.resultCount({
-      bounds: abstractBounds,
+      bounds,
       filters: localFilters,
     }),
   });
