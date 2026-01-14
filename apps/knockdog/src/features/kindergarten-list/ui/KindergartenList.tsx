@@ -1,5 +1,19 @@
 import { Fragment, useEffect, useRef } from 'react';
-import { Float, FloatingActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Float,
+  FloatingActionButton,
+  Icon,
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
@@ -16,6 +30,11 @@ import { GetLocationPermissionError, isNativeWebView, useBottomSheetSnapIndex } 
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { type BasePointType, useBasePointType } from '@shared/store';
+import { overlay } from 'overlay-kit';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
+import { useUserStore, USER_ADDRESS_TYPE } from '@entities/user';
+import { tokenUtils } from '@shared/utils';
 
 interface KindergartenListProps {
   region?: string | null;
@@ -29,6 +48,9 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
 
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+  const { push } = useStackNavigation();
+  const user = useUserStore((s) => s.user);
+  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
@@ -43,6 +65,49 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
   // 위치 권한 에러 체크
   const { error: locationError } = useGeolocationQuery(selectedBaseType === 'CURRENT');
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof GetLocationPermissionError;
+
+  const handleBasePointTypeChange = (value: string) => {
+    const newType = value as BasePointType;
+
+    // 비로그인 사용자 체크
+    if (!isLoggedIn) {
+      if (newType !== 'CURRENT') {
+        push({ pathname: route.auth.login.root });
+        return;
+      }
+    }
+
+    // 직장 선택 시 등록된 직장 있는지 체크
+    if (newType === 'WORK') {
+      const hasWorkAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.WORK);
+      if (!hasWorkAddress) {
+        handleOpenAlertDialog();
+        return;
+      }
+    }
+
+    setBaseType(newType);
+  };
+
+  const handleOpenAlertDialog = () =>
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>등록된 직장 위치가 없어요!</AlertDialogTitle>
+            <AlertDialogDescription>
+              새로운 위치 추가는 마이 {'>'} 내 장소 관리에서 가능해요! 지금 직장 위치를 등록하러 갈까요?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={close}>나중에</AlertDialogCancel>
+            <AlertDialogAction onClick={() => push({ pathname: route.mypage.profile.location.root })}>
+              등록하기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -66,10 +131,6 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasNextPage, isFetchingNextPage]);
-
-  const handleBasePointTypeChange = (value: string) => {
-    setBaseType(value as BasePointType);
-  };
 
   return (
     <>
