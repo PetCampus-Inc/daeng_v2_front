@@ -13,6 +13,7 @@ function PetRelationshipPage() {
 
   const searchParams = useSearchParams();
   const petName = searchParams.get('petName') as string;
+  const profileImage = searchParams.get('profileImage') as string;
 
   const [relation, setRelation] = useState<Relationship | null>(null);
   const { mutateAsync: registerPetMutateAsync } = usePetRegisterMutation();
@@ -23,7 +24,7 @@ function PetRelationshipPage() {
     const { data } = await registerPetMutateAsync({
       name: petName,
       relationship: relation,
-      profileImage: '',
+      profileImage: profileImage,
     });
 
     push({ pathname: route.register.pet.detail.root, query: { petName, petId: data.id } });
