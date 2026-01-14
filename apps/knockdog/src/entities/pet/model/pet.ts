@@ -1,7 +1,10 @@
 const RELATIONSHIP = {
   MOTHER: 'MOTHER',
   FATHER: 'FATHER',
-  FAMILY: 'FAMILY',
+  ELDER_SISTER: 'ELDER_SISTER',
+  ELDER_BROTHER: 'ELDER_BROTHER',
+  OLDER_SISTER: 'OLDER_SISTER',
+  OLDER_BROTHER: 'OLDER_BROTHER',
   GUARDIAN: 'GUARDIAN',
   ETC: 'ETC',
 } as const;
@@ -9,9 +12,12 @@ const RELATIONSHIP = {
 const RELATIONSHIP_LABEL = {
   MOTHER: '엄마',
   FATHER: '아빠',
-  FAMILY: '가족',
+  ELDER_SISTER: '언니',
+  ELDER_BROTHER: '오빠',
+  OLDER_SISTER: '누나',
+  OLDER_BROTHER: '형',
   GUARDIAN: '보호자',
-  ETC: '기타',
+  ETC: '기타(직접 입력)',
 } as const;
 
 type Relationship = keyof typeof RELATIONSHIP;
@@ -34,6 +40,7 @@ interface Pet {
   isRepresentative: boolean;
   weight: number;
   relationship: Relationship;
+  relationshipText: string;
 }
 
 export type { Pet, Relationship, Gender };
