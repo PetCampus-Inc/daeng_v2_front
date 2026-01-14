@@ -79,6 +79,7 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
 
     // 직장 선택 시 등록된 직장 있는지 체크
     if (newType === 'WORK') {
+      if (!user) return;
       const hasWorkAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.WORK);
       if (!hasWorkAddress) {
         handleOpenAlertDialog();
