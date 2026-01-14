@@ -14,6 +14,7 @@ export * from './ui/NoDogPrompt';
 export * from './ui/PetAddDialog';
 export * from './ui/PetProfileForm';
 export * from './ui/PetDetailInfo';
+export { ProfileImageUploader } from './ui/ProfileImageUploader';
 
 export type { Breed } from './model/breed.type';
 export { usePetProfileForm } from './model/usePetProfileForm';
