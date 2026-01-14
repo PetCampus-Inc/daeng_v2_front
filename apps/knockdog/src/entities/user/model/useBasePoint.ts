@@ -10,7 +10,7 @@ export function useBasePoint() {
   const { selectedBaseType } = useBasePointType();
   const user = useUserStore((state) => state.user);
 
-  const { data: currentLocation } = useGeolocationQuery(selectedBaseType === 'CURRENT');
+  const { data: currentLocation } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
 
   const homeAddress = useMemo(() => user?.addresses?.find((address) => address.type === 'HOME'), [user?.addresses]);
   const workAddress = useMemo(() => user?.addresses?.find((address) => address.type === 'WORK'), [user?.addresses]);

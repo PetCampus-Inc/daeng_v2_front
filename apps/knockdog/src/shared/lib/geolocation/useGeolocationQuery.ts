@@ -3,10 +3,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentLocation } from './getCurrentLocation';
 
-export function useGeolocationQuery(enabled = true) {
+interface UseGeolocationQueryOptions {
+  enabled?: boolean;
+  options?: {
+    enableHighAccuracy?: boolean;
+    timeout?: number;
+    maximumAge?: number;
+  };
+}
+
+export function useGeolocationQuery({ enabled = true, options }: UseGeolocationQueryOptions = {}) {
   return useQuery({
-    queryKey: ['current'],
-    queryFn: () => getCurrentLocation({ enableHighAccuracy: true, timeout: 5000, maximumAge: 30_000 }),
+    queryKey: ['current', options],
+    queryFn: () =>
+      getCurrentLocation({
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 30_000,
+        ...options,
+      }),
     enabled,
     staleTime: 30_000,
     gcTime: 5 * 60_000,

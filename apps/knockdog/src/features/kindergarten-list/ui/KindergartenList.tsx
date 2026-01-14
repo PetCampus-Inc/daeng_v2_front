@@ -63,7 +63,7 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
   const selectedFilters = getSelectedFilterWithLabel();
 
   // 위치 권한 에러 체크
-  const { error: locationError } = useGeolocationQuery(selectedBaseType === 'CURRENT');
+  const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof GetLocationPermissionError;
 
   const handleBasePointTypeChange = (value: string) => {

@@ -101,7 +101,7 @@ interface DeparturePointSheetProps {
 }
 
 export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetProps) {
-  const { data: coords, isLoading: locationLoading, error: locationError } = useGeolocationQuery(isOpen);
+  const { data: coords, isLoading: locationLoading, error: locationError } = useGeolocationQuery({ enabled: isOpen });
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
   const [addressText, setAddressText] = useState<string | null>(null);
@@ -197,7 +197,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
             >
               <div className='gap-x2 flex items-center'>
                 <Icon icon='LocationFill' className='text-fill-secondary-500 size-x6' />
-                <div className='gap-x0_5 flex flex-col text-start'>
+                <div className='gap-x0.5 flex flex-col text-start'>
                   <p className='body1-extrabold text-text-primary'>현재 위치</p>
                   <span className='body2-regular text-text-secondary'>{label}</span>
                 </div>
@@ -218,7 +218,7 @@ export function DeparturePointSheet({ isOpen, close, to }: DeparturePointSheetPr
                   >
                     <div className='gap-x2 flex items-center'>
                       <Icon icon='LocationFill' className='text-fill-secondary-500 size-x6' />
-                      <div className='gap-x0_5 flex flex-col text-start'>
+                      <div className='gap-x0.5 flex flex-col text-start'>
                         <p className='body1-extrabold text-text-primary'>{addressLabel}</p>
                         <span className='body2-regular text-text-secondary'>{savedAddressText}</span>
                       </div>
