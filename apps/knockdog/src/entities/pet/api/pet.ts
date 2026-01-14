@@ -1,10 +1,10 @@
-import { api, ApiResponse } from '@shared/api';
-
 import { Gender, Pet, Relationship } from '../model/pet';
+import { api, ApiResponse } from '@shared/api';
 
 interface RegisterPetRequest {
   name: string;
   relationship: Relationship;
+  relationshipText: string;
   profileImage: string;
 }
 
@@ -25,6 +25,7 @@ interface UpdatePetDetailRequest {
   petId: string;
   name?: string;
   relationship?: Relationship;
+  relationshipText?: string;
   profileImage?: string;
   breed?: string;
   birthYear?: number;

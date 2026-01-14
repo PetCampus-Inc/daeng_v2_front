@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Header } from '@widgets/Header';
 import {
   Divider,
   Tooltip,
@@ -23,13 +22,12 @@ import {
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import NicknameDialog from './NicknameDialog';
-import { useStackNavigation } from '@shared/lib/bridge';
-import { usePetRepresentativeQuery, RELATIONSHIP_LABEL, usePetListQuery } from '@entities/pet';
-import { useUserInfoQuery, useUserStore } from '@entities/user';
-import { useSocialUserStore } from '@entities/social-user';
-import { SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
+import { Header } from '@widgets/Header';
 import { DogSelectSheet } from '@features/dog-profile';
-import { useUserUpdateUserEmailMutation } from '@entities/user';
+import { usePetRepresentativeQuery, RELATIONSHIP_LABEL, usePetListQuery } from '@entities/pet';
+import { useUserInfoQuery, useUserStore, useUserUpdateUserEmailMutation } from '@entities/user';
+import { useSocialUserStore, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { logout } from '@shared/lib/auth/logout';
 
 function MypageProfileManagePage() {
@@ -47,6 +45,11 @@ function MypageProfileManagePage() {
 
   const isRepresentativePet = !!representativePet;
   const hasPets = (petList?.data?.length ?? 0) > 0;
+
+  const nickname =
+    isRepresentativePet && representativePet
+      ? `${representativePet.name}의 ${representativePet.relationshipText}`
+      : user?.nickname || '';
 
   useEffect(() => {
     if (userInfo?.infoRcvEmail) {
@@ -141,13 +144,7 @@ function MypageProfileManagePage() {
                 )
               }
             >
-              <TextFieldInput
-                value={
-                  isRepresentativePet && representativePet
-                    ? `${representativePet.name}의 ${RELATIONSHIP_LABEL[representativePet.relationship]}`
-                    : user?.nickname || ''
-                }
-              />
+              <TextFieldInput value={nickname} />
             </TextField>
             <TextField disabled>
               <TextFieldInput value={`#${user?.userId}` || ''} />

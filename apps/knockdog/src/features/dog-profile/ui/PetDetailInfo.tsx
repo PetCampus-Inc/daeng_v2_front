@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage, Divider, Icon } from '@knockdog/ui';
-import { RELATIONSHIP_LABEL } from '@entities/pet';
+import { RELATIONSHIP, RELATIONSHIP_LABEL } from '@entities/pet';
 import type { Pet } from '@entities/pet';
 
 export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
@@ -21,6 +21,11 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
   const getNeuteredDisplay = () => {
     if (pet?.isNeutered === null || pet?.isNeutered === undefined) return '선택해주세요';
     return pet?.isNeutered ? '했어요' : '안했어요';
+  };
+
+  const getRelationshipDisplay = () => {
+    if (pet?.relationship === RELATIONSHIP.ETC) return pet?.relationshipText;
+    return RELATIONSHIP_LABEL[pet?.relationship || 'ETC'];
   };
 
   return (
@@ -52,7 +57,7 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
                 강아지와 내 관계
                 <strong className='body2-bold text-text-accent'>*</strong>
               </span>
-              <span className='body1-bold'>{RELATIONSHIP_LABEL[pet?.relationship || 'ETC']}</span>
+              <span className='body1-bold'>{getRelationshipDisplay()}</span>
             </div>
             <Divider />
           </div>
