@@ -148,7 +148,7 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
         {/* 헤더 영역  */}
         <div className='bg-bg-0 sticky top-[-.5px] z-20'>
           <div className='px-x4 pb-x4 pt-x2'>
-            <SegmentedControl defaultValue={selectedBaseType} onValueChange={handleBasePointTypeChange}>
+            <SegmentedControl value={selectedBaseType} onValueChange={handleBasePointTypeChange}>
               <SegmentedControlItem value='CURRENT'>현 위치</SegmentedControlItem>
               <SegmentedControlItem value='HOME'>집</SegmentedControlItem>
               <SegmentedControlItem value='WORK'>직장</SegmentedControlItem>
