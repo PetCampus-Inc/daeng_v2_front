@@ -7,7 +7,7 @@ import { useBasePointType } from '@shared/store';
 
 export function CurrentLocationFAB() {
   const { dispatch } = useSearchMachine();
-  const { refetch } = useGeolocationQuery(false);
+  const { refetch } = useGeolocationQuery({ enabled: false });
   const { setBaseType } = useBasePointType();
 
   const handleClick = async () => {
