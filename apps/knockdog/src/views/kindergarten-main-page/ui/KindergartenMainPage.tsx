@@ -23,7 +23,7 @@ import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenLis
 import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-map/model/useSearchMachine';
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
-import { toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
+import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
@@ -97,7 +97,7 @@ function KindergartenMainPageContent() {
       <FilterBottomSheet
         isOpen={isOpen}
         close={close}
-        bounds={mapRef.current?.getBounds()}
+        bounds={boundsSnapshotToBounds(liveState.viewportBounds)}
         initialFilters={committedState.filters}
         onApply={(newFilters) => {
           if (newFilters.length > 0) {
