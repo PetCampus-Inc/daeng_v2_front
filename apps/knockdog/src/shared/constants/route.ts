@@ -63,6 +63,16 @@ const route = {
       root: '/register/welcome',
     },
   },
+  mypage: {
+    /** 마이 페이지 */
+    root: '/mypage',
+    profile: {
+      location: {
+        /** 내 장소 설정 페이지 */
+        root: '/mypage/profile/location',
+      },
+    },
+  },
 };
 
 export { route };

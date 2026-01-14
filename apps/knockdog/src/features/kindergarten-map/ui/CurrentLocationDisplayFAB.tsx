@@ -2,8 +2,8 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { CurrentLocationDisplay } from './CurrentLocationDisplay';
 import { DEFAULT_MAP_ZOOM_LEVEL } from '../config/map';
 import { getRegionLevel } from '../lib/markers';
-import { geoQueries } from '../api/geoQueries';
 import { useSearchMachine } from '../model/useSearchMachine';
+import { geoQueries } from '@entities/address';
 
 export function CurrentLocationDisplayFAB() {
   const { liveState } = useSearchMachine();

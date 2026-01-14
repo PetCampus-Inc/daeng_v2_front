@@ -5,9 +5,8 @@ type ReverseGeocodeQueryParams = ReverseGeocodeParams & { zoomLevel?: number | n
 
 export const geoQueries = {
   keys: {
-    all: () => ['geo'] as const,
     reverseGeocode: (params: ReverseGeocodeQueryParams) =>
-      [...geoQueries.keys.all(), 'reverseGeocode', params.lat, params.lng, params.zoomLevel] as const,
+      ['reverseGeocode', params.lat, params.lng, params.zoomLevel] as const,
   },
 
   reverseGeocode: ({ lat, lng, zoomLevel }: ReverseGeocodeQueryParams) =>

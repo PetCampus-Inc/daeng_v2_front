@@ -1,90 +1,82 @@
 import { useEffect, useState } from 'react';
 import type { PermissionStatus } from '@knockdog/bridge-core';
-import { getCurrentLocation } from '@shared/lib/geolocation';
-import { getReverseGeocode } from '@features/address-picker/api/searchAddress';
+import { getCurrentLocation, useGeolocationQuery } from '@shared/lib/geolocation';
+import { useQuery } from '@tanstack/react-query';
+import { geoQueries } from '@entities/address';
 
 function useLocationPermission() {
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus>('undetermined');
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [address, setAddress] = useState<{
-    primaryText: string | undefined;
-    primaryRoad: string | undefined;
-    primaryParcel: string | undefined;
-    isLoading: boolean;
-    error: string | null;
-  }>({
-    primaryText: undefined,
-    primaryRoad: undefined,
-    primaryParcel: undefined,
-    isLoading: false,
-    error: null,
+
+  // 위치 정보 가져오기 (권한이 있을 때만 실행)
+  const { data: location, ...locationQuery } = useGeolocationQuery({
+    enabled: permissionStatus === 'allowed',
+    options: {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    },
   });
 
-  async function getLocation() {
-    const location = await getCurrentLocation();
-    setLocation(location.coords);
-  }
+  // 주소 정보 가져오기 (위치가 있을 때만 실행)
+  const {
+    data: addressDocument,
+    isLoading: isAddressLoading,
+    error: addressError,
+  } = useQuery({
+    ...geoQueries.reverseGeocode({
+      lat: location?.lat ?? 0,
+      lng: location?.lng ?? 0,
+    }),
+    enabled: !!location,
+    select: (data) => data.documents?.[0],
+  });
 
-  // permission이 allowed일 때 위치 가져오기
-  useEffect(() => {
-    if (permissionStatus === 'allowed') {
-      (async () => {
-        await getLocation();
-      })();
+  const address = {
+    addressName: addressDocument?.address?.address_name,
+    isLoading: isAddressLoading || (permissionStatus === 'allowed' && !location && !locationQuery.isError),
+    error: addressError ? '주소를 가져오는데 실패했습니다.' : null,
+  };
+
+  /**
+   * 권한 상태 확인
+   */
+  const checkPermission = async () => {
+    try {
+      const status = await getCurrentLocation.getPermission();
+      setPermissionStatus(status);
+    } catch (error) {
+      console.error('권한 확인 실패:', error);
+      setPermissionStatus('denied');
     }
-  }, [permissionStatus]);
+  };
 
-  // 위치가 변경되면 주소 가져오기
-  useEffect(() => {
-    if (location && permissionStatus === 'allowed' && location.latitude !== 0 && location.longitude !== 0) {
-      setAddress((prev) => ({ ...prev, isLoading: true, error: null }));
-      getReverseGeocode(location.latitude, location.longitude)
-        .then((response) => {
-          const firstDoc = response.documents[0];
-          setAddress({
-            primaryText: firstDoc?.road_address?.address_name || firstDoc?.address?.address,
-            primaryRoad: firstDoc?.address?.roadAddress,
-            primaryParcel: firstDoc?.address?.address,
-            isLoading: false,
-            error: null,
-          });
-        })
-        .catch((err) => {
-          setAddress((prev) => ({
-            ...prev,
-            isLoading: false,
-            error: err instanceof Error ? err.message : '주소를 가져오는데 실패했습니다.',
-          }));
-        });
+  /**
+   * 권한 요청 (앱 내 팝업)
+   */
+  const requestPermission = async () => {
+    try {
+      const status = await getCurrentLocation.openPermissionDialog();
+      setPermissionStatus(status);
+      return status;
+    } catch (error) {
+      console.error('권한 요청 실패:', error);
+      return 'denied';
     }
-  }, [location?.latitude, location?.longitude, permissionStatus]);
+  };
 
-  // 초기 permission 체크
+  // 초기 권한 확인
   useEffect(() => {
-    async function checkPermission() {
-      try {
-        const status = await getCurrentLocation.getPermission();
-        setPermissionStatus(status);
-      } catch (error) {
-        console.error('권한 확인 실패:', error);
-        setPermissionStatus('denied');
-      }
-    }
-
     checkPermission();
   }, []);
 
-  // 앱이 다시 foreground로 돌아올 때 permission 재확인
+  // 앱 포커스 시 권한 재확인 (설정 등에서 변경했을 수 있음)
   useEffect(() => {
     async function handleVisibilityChange() {
       if (document.visibilityState === 'visible') {
-        const status = await getCurrentLocation.getPermission();
-        setPermissionStatus(status);
+        await checkPermission();
       }
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -94,6 +86,8 @@ function useLocationPermission() {
     permissionStatus,
     location,
     address,
+    requestPermission,
+    isLoading: locationQuery.isLoading || isAddressLoading,
   };
 }
 
