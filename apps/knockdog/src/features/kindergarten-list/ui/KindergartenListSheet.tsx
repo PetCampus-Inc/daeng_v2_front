@@ -9,19 +9,15 @@ import { useMarkerState } from '@shared/store';
 
 // 최소 스냅포인트: 149px(바텀시트 최소 높이) + 68px(바텀바 높이)
 // 최대 스냅포인트: 화면높이 - 64px(검색 헤더바 높이) - 16px (Handle 높이)
-
-// ✅ 구(HEAD)·신(리팩토링) 버전 병합: children을 기본으로 받되, 하위호환으로 bottomSlot도 함께 허용
 interface KindergartenListSheetProps {
   fabSlot: React.ReactNode;
   region?: string | null;
-  bottomSlot?: React.ReactNode;
   onOpenFilter: () => void;
 }
 
-export function KindergartenListSheet({ fabSlot, region, bottomSlot, onOpenFilter }: KindergartenListSheetProps) {
+export function KindergartenListSheet({ fabSlot, region, onOpenFilter }: KindergartenListSheetProps) {
   const { top } = useSafeAreaInsets();
 
-  // 리팩토링 분기 반영
   const MIN_SNAP_POINT = isNativeWebView() ? 141 : BOTTOM_BAR_HEIGHT + 141;
   const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? 64 + top : 64;
 
@@ -83,9 +79,7 @@ export function KindergartenListSheet({ fabSlot, region, bottomSlot, onOpenFilte
             )}
             <BottomSheet.Title className='sr-only'>강아지 유치원 목록</BottomSheet.Title>
 
-            {/* 신버전(children) 우선, 구버전(bottomSlot)도 렌더링해 하위호환 보장 */}
             <KindergartenList onOpenFilter={onOpenFilter} onMoveHome={() => setSnapIndex(0)} region={region} />
-            {bottomSlot}
           </BottomSheet.Body>
         </RemoveScroll>
       </BottomSheet.Root>

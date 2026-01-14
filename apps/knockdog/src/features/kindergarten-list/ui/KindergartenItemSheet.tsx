@@ -49,7 +49,6 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const { top: safeAreaTop } = useSafeAreaInsets();
   const isMaxSnap = activeSnapPoint === snapPoints[1];
 
   const { viewRef, dragProgress } = useSheetDragProgress({
@@ -85,22 +84,13 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
     }
   }, [containerRef]);
 
-  useEffect(() => {
-    console.log('activeSnapPoint changed:', activeSnapPoint);
-    console.log('isOpen:', isOpen);
-  }, [activeSnapPoint, isOpen]);
-
-  useEffect(() => {
-    console.log('container changed:', container);
-  }, [container]);
-
   if (currentItem == null) return null;
   return (
     <>
       <motion.div
         ref={headerRef}
-        className='fixed top-0 left-0 z-50 w-screen bg-white'
-        style={{ paddingTop: safeAreaTop, opacity: hiddenOpacity }}
+        className='fixed top-0 left-0 z-50 w-screen bg-white pt-(--safe-area-inset-top,0px)'
+        style={{ opacity: hiddenOpacity }}
       >
         <Header className='block'>
           <Header.LeftSection>
