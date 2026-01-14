@@ -102,7 +102,12 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={close}>나중에</AlertDialogCancel>
-            <AlertDialogAction onClick={() => push({ pathname: route.mypage.profile.location.root })}>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                push({ pathname: route.mypage.profile.location.root });
+              }}
+            >
               등록하기
             </AlertDialogAction>
           </AlertDialogFooter>
