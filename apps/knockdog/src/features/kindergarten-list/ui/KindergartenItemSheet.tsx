@@ -108,96 +108,98 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
         ref={containerRef}
         className='pointer-events-none absolute bottom-0 h-[calc(100vh-calc(var(--top-bar-height)+var(--safe-area-inset-top,0px)))] w-full'
       >
-        <BottomSheet.Root
-          open={isOpen}
-          onOpenChange={(open) => {
-            if (!open) {
-              onClose();
-            }
-          }}
-          modal={false}
-          snapPoints={dynamicSnapPoints}
-          activeSnapPoint={activeSnapPoint}
-          setActiveSnapPoint={(snap) => setActiveSnapPoint(snap)}
-          snapToSequentialPoint
-          container={container}
-        >
-          <BottomSheet.Portal>
-            <BottomSheet.Body
-              onPointerDownOutside={(e) => {
-                e.preventDefault();
-                if (!headerRef.current?.contains(e.target as Node)) {
-                  onClose();
-                }
-              }}
-              className={cn(
-                'pointer-events-auto absolute inset-x-0 top-0 z-50',
-                activeSnapPoint === 1
-                  ? 'h-[calc(100vh-calc(var(--top-bar-height)+var(--safe-area-inset-top,0px)))]'
-                  : 'h-fit'
-              )}
-              style={{
-                ['--initial-transform' as never]: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
-              }}
-            >
-              <RemoveScroll noIsolation>
-                {/* Visual Apron: 바텀시트 하단 gap을 가려주는 역할 */}
-                <div aria-hidden='true' className='absolute top-[99%] left-0 h-screen w-full bg-white' />
-                <div ref={viewRef} className={cn('relative h-full', activeSnapPoint === 1 && 'overflow-y-auto')}>
-                  {/* 카드 뷰 */}
-                  <motion.div
-                    className={cn(
-                      'top-0 left-0 h-fit w-full pb-[88px]',
-                      activeSnapPoint === 1 ? 'pointer-events-none absolute opacity-0' : 'relative'
-                    )}
-                    style={{
-                      opacity: visibleOpacity,
-                      y: cardY,
-                      scale: scaleDown,
-                    }}
-                  >
-                    <BottomSheet.Handle />
-                    <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
-                    <KindergartenCard {...currentItem} onBookmarkClick={onBookmarkClick} />
-                  </motion.div>
+        {container && (
+          <BottomSheet.Root
+            open={isOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                onClose();
+              }
+            }}
+            modal={false}
+            snapPoints={dynamicSnapPoints}
+            activeSnapPoint={activeSnapPoint}
+            setActiveSnapPoint={(snap) => setActiveSnapPoint(snap)}
+            snapToSequentialPoint
+            container={container}
+          >
+            <BottomSheet.Portal>
+              <BottomSheet.Body
+                onPointerDownOutside={(e) => {
+                  e.preventDefault();
+                  if (!headerRef.current?.contains(e.target as Node)) {
+                    onClose();
+                  }
+                }}
+                className={cn(
+                  'pointer-events-auto absolute inset-x-0 top-0 z-50',
+                  activeSnapPoint === 1
+                    ? 'h-[calc(100vh-calc(var(--top-bar-height)+var(--safe-area-inset-top,0px)))]'
+                    : 'h-fit'
+                )}
+                style={{
+                  ['--initial-transform' as never]: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
+                }}
+              >
+                <RemoveScroll noIsolation>
+                  {/* Visual Apron: 바텀시트 하단 gap을 가려주는 역할 */}
+                  <div aria-hidden='true' className='absolute top-[99%] left-0 h-screen w-full bg-white' />
+                  <div ref={viewRef} className={cn('relative h-full', activeSnapPoint === 1 && 'overflow-y-auto')}>
+                    {/* 카드 뷰 */}
+                    <motion.div
+                      className={cn(
+                        'top-0 left-0 h-fit w-full pb-[88px]',
+                        activeSnapPoint === 1 ? 'pointer-events-none absolute opacity-0' : 'relative'
+                      )}
+                      style={{
+                        opacity: visibleOpacity,
+                        y: cardY,
+                        scale: scaleDown,
+                      }}
+                    >
+                      <BottomSheet.Handle />
+                      <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
+                      <KindergartenCard {...currentItem} onBookmarkClick={onBookmarkClick} />
+                    </motion.div>
 
-                  {/* 상세 뷰 */}
-                  <motion.div
-                    className={cn(
-                      'pointer-events-none h-full bg-white',
-                      activeSnapPoint === 1 ? 'pointer-events-auto relative w-full pb-[88px]' : 'absolute inset-0'
-                    )}
-                    style={{
-                      opacity: hiddenOpacity,
-                      y: detailY,
-                      scale: scaleUp,
-                    }}
+                    {/* 상세 뷰 */}
+                    <motion.div
+                      className={cn(
+                        'pointer-events-none h-full bg-white',
+                        activeSnapPoint === 1 ? 'pointer-events-auto relative w-full pb-[88px]' : 'absolute inset-0'
+                      )}
+                      style={{
+                        opacity: hiddenOpacity,
+                        y: detailY,
+                        scale: scaleUp,
+                      }}
+                    >
+                      <KindergartenDetail kindergartenId={currentItem.id} />
+                    </motion.div>
+                  </div>
+                </RemoveScroll>
+                <div className='p-x4 gap-x2 fixed right-0 bottom-0 left-0 flex items-center bg-white pb-[calc(env(safe-area-inset-bottom)+16px)]'>
+                  <ActionButton variant='primaryLine' size='medium' onClick={openPhoneCallActionSheet}>
+                    전화하기
+                  </ActionButton>
+                  <ActionButton variant='primaryFill' size='medium' disabled>
+                    비교하기
+                  </ActionButton>
+                  <button
+                    aria-label='보관하기'
+                    className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
+                    onClick={() => onBookmarkClick(currentItem.id, currentItem.isBookmarked ?? false)}
                   >
-                    <KindergartenDetail kindergartenId={currentItem.id} />
-                  </motion.div>
+                    <Icon
+                      icon={currentItem.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
+                      className='size-x6 text-fill-primary-500'
+                    />
+                  </button>
                 </div>
-              </RemoveScroll>
-              <div className='p-x4 gap-x2 fixed right-0 bottom-0 left-0 flex items-center bg-white pb-[calc(env(safe-area-inset-bottom)+16px)]'>
-                <ActionButton variant='primaryLine' size='medium' onClick={openPhoneCallActionSheet}>
-                  전화하기
-                </ActionButton>
-                <ActionButton variant='primaryFill' size='medium' disabled>
-                  비교하기
-                </ActionButton>
-                <button
-                  aria-label='보관하기'
-                  className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
-                  onClick={() => onBookmarkClick(currentItem.id, currentItem.isBookmarked ?? false)}
-                >
-                  <Icon
-                    icon={currentItem.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
-                    className='size-x6 text-fill-primary-500'
-                  />
-                </button>
-              </div>
-            </BottomSheet.Body>
-          </BottomSheet.Portal>
-        </BottomSheet.Root>
+              </BottomSheet.Body>
+            </BottomSheet.Portal>
+          </BottomSheet.Root>
+        )}
       </div>
     </>
   );
