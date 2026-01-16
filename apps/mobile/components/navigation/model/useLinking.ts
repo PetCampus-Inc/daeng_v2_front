@@ -27,8 +27,10 @@ function useLinking(): LinkingOptions<RootStackParamList> {
           };
         }
 
+        const normalizedPath = path.replace(/^\/+/, '');
+
         // 탭 경로인 경우
-        const tabScreen = TAB_PATHS[path];
+        const tabScreen = TAB_PATHS[normalizedPath];
         if (tabScreen) {
           return {
             routes: [{ name: 'Tabs', state: { routes: [{ name: tabScreen }] } }],
@@ -39,7 +41,6 @@ function useLinking(): LinkingOptions<RootStackParamList> {
         // 예) daengv2mobile://kindergarten/123
         //     → path = "kindergarten/123"
         //     → fullUrl = "https://knockdog-v2.vercel.app/kindergarten/123"
-        const normalizedPath = path.replace(/^\/+/, '');
         const fullUrl = path.startsWith('http') ? path : `${WEBVIEW_URL}/${normalizedPath}`;
 
         return {
