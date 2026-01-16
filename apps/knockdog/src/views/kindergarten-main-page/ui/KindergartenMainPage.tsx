@@ -46,7 +46,6 @@ function KindergartenMainPageContent() {
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-  // const { top } = useSafeAreaInsets(); // CSS 변수 사용으로 변경
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -137,7 +136,7 @@ function KindergartenMainPageContent() {
         </div>
       )}
 
-      <div className='px-x4 gap-x2 absolute top-[calc(64px+var(--safe-area-inset-top,0px))] flex w-full items-center'>
+      <div className='px-x4 gap-x2 absolute top-[calc(var(--top-bar-height)+var(--safe-area-inset-top,0px))] flex w-full items-center'>
         <Chip.Toggle variant='outline' checked={isOnlyMemoed} onChange={toggleMemoed}>
           <Chip.PrefixIcon>
             <Icon icon='Note' className='size-x4' />
