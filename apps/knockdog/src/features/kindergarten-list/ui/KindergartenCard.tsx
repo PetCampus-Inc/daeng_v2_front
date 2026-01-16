@@ -1,6 +1,5 @@
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
-import { PhoneCallSheet } from './PhoneCallSheet';
 import { overlay } from 'overlay-kit';
 import {
   DeparturePointSheet,
@@ -8,10 +7,10 @@ import {
   SERVICE_TAGS,
   ServiceBadgesTruncated,
 } from '@entities/kindergarten';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface KindergartenCardProps extends KindergartenListItemWithMeta {
   onBookmarkClick: (id: string, isBookmarked: boolean) => void;
+  onPhoneCall: () => void;
 }
 
 export function KindergartenCard(props: KindergartenCardProps) {
@@ -108,6 +107,22 @@ export function KindergartenCard(props: KindergartenCardProps) {
             <span className='h3-extrabold text-text-primary'>{props.price.toLocaleString()}~</span>
           </div>
         </div>
+      </div>
+
+      <div className='p-x4 gap-x2 flex items-center bg-white pb-[calc(env(safe-area-inset-bottom)+16px)]'>
+        <ActionButton variant='primaryLine' size='medium' onClick={props.onPhoneCall}>
+          전화하기
+        </ActionButton>
+        <ActionButton variant='primaryFill' size='medium' disabled>
+          비교하기
+        </ActionButton>
+        <button
+          aria-label='보관하기'
+          className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
+          onClick={() => props.onBookmarkClick(props.id, props.isBookmarked ?? false)}
+        >
+          <Icon icon={props.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />
+        </button>
       </div>
     </>
   );
