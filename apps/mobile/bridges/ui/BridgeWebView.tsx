@@ -71,6 +71,7 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
 
 export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
   const insets = useSafeAreaInsets();
+  const lastInjectedInsetsRef = useRef<string | null>(null);
 
   const CONSOLE_PATCH = useMemo(
     () => buildConsolePatch({ tag: 'WEBVIEW', levels: ['log', 'warn', 'error'], maxLen: 1_000 }),
@@ -97,6 +98,15 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
     scripts.push(INJECT_STATE);
     return scripts.join('\n');
   }, [CONSOLE_PATCH, INJECT_STATE, INJECT_SAFE_AREA]);
+
+  useEffect(() => {
+    const ref = refToUse.current;
+    if (!ref) return;
+    const key = `${insets.top}-${insets.bottom}-${insets.left}-${insets.right}`;
+    if (lastInjectedInsetsRef.current === key) return;
+    lastInjectedInsetsRef.current = key;
+    ref.injectJavaScript(buildSafeAreaInjector(insets));
+  }, [insets, refToUse]);
 
   // unmount 시 이 WebView가 기다리던 모든 txId 정리
   useEffect(() => {
