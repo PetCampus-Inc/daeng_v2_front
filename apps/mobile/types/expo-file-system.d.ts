@@ -20,5 +20,19 @@ declare module 'expo-file-system' {
     body: string;
   }
 
+  export interface FileInfo {
+    exists: boolean;
+    uri: string;
+    size?: number;
+    modificationTime?: number;
+    isDirectory?: boolean;
+  }
+
+  export interface GetInfoOptions {
+    size?: boolean;
+    md5?: boolean;
+  }
+
   export function uploadAsync(url: string, fileUri: string, options?: UploadOptions): Promise<UploadResult>;
+  export function getInfoAsync(fileUri: string, options?: GetInfoOptions): Promise<FileInfo>;
 }
