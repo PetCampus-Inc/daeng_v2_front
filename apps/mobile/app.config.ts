@@ -3,6 +3,10 @@ import 'dotenv/config';
 
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const iosUrlScheme = process.env.EXPO_PUBLIC_IOS_URL_SCHEME;
+const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL;
+
+// Universal Links / App Links용 호스트
+const WEBVIEW_HOST = WEBVIEW_URL?.replace(/^https?:\/\//, '');
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -29,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     usesAppleSignIn: true,
     bundleIdentifier: 'net.knockdog.petcampus.v2',
+    associatedDomains: [`applinks:${WEBVIEW_HOST}`],
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap', 'tel'],
       ITSAppUsesNonExemptEncryption: false,
@@ -60,6 +65,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
       CFBundleURLTypes: [
         {
+          CFBundleURLSchemes: ['daengv2mobile'],
+        },
+        {
           CFBundleURLSchemes: [iosUrlScheme],
         },
       ],
@@ -86,6 +94,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     package: 'net.knockdog.petcampus.v2',
     permissions: ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [{ scheme: 'https', host: WEBVIEW_HOST }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
   },
   web: {
     bundler: 'metro',

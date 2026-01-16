@@ -6,17 +6,18 @@ import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context'; // ★ SafeAreaProvider 사용
 import { PortalProvider } from '@gorhom/portal'; // ★ 포털
-import RootStackNavigator from './components/navigation/RootStackNavigator';
 import { navigationRef } from './bridges/lib/navigationRef';
 import { ToastProvider } from './components/toast'; // ★ 토스트 프로바이더 (네이티브 구현)
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { RootStackNavigator, useLinking } from './components/navigation';
 
 // 앱 시작 시 스플래시 자동 숨김 방지
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const linking = useLinking();
 
   const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY || '';
   const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '';
@@ -69,7 +70,7 @@ export default function App() {
           <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
             {/* 토스트 프로바이더가 네비게이션 바/스크린 “밖”에 있어야 어디서든 toast() 가능 */}
             <ToastProvider>
-              <NavigationContainer ref={navigationRef}>
+              <NavigationContainer ref={navigationRef} linking={linking}>
                 <RootStackNavigator />
               </NavigationContainer>
             </ToastProvider>

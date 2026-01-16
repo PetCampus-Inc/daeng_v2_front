@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "SN9D62F47F.net.knockdog.petcampus.v2",
+        "paths": [
+          "*"
+        ]
+      }
+    ]
+  }
+}
