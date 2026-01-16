@@ -43,23 +43,56 @@ export function useSnapPoints({
     activeSnapPointRef.current = activeSnapPoint;
   }, [activeSnapPoint]);
 
+  const hasContentSnap = React.useMemo(
+    () => snapPoints?.some((s) => typeof s === 'object' && s !== null && s.type === 'content') ?? false,
+    [snapPoints],
+  );
+  const isActiveContentSnap = React.useMemo(
+    () => typeof activeSnapPoint === 'object' && activeSnapPoint !== null && activeSnapPoint.type === 'content',
+    [activeSnapPoint],
+  );
+
   React.useEffect(() => {
-    const hasContentSnap = snapPoints?.some((s) => typeof s === 'object' && s !== null && s.type === 'content');
-    if (!drawerRef.current || !hasContentSnap) return;
+    if (!hasContentSnap) return;
 
-    // Measure drawer content height so content-based snap points can resolve reliably.
-    // We always keep the latest measurement to avoid stale values when switching snap points.
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const item = entry.borderBoxSize?.[0];
-        const height = item ? item.blockSize : entry.contentRect.height;
-        setMeasuredDrawerHeight(height);
+    let rafId: number | null = null;
+    let observer: ResizeObserver | null = null;
+
+    const startObserving = () => {
+      if (!drawerRef.current) {
+        rafId = window.requestAnimationFrame(startObserving);
+        return;
       }
-    });
 
-    observer.observe(drawerRef.current);
-    return () => observer.disconnect();
-  }, [drawerRef, snapPoints]);
+      // Measure drawer content height so content-based snap points can resolve reliably.
+      // We always keep the latest measurement to avoid stale values when switching snap points.
+      observer = new ResizeObserver((entries) => {
+        if (!isActiveContentSnap) return;
+        for (const entry of entries) {
+          const item = entry.borderBoxSize?.[0];
+          const height = item ? item.blockSize : entry.contentRect.height;
+          setMeasuredDrawerHeight(height);
+        }
+      });
+
+      observer.observe(drawerRef.current);
+    };
+
+    startObserving();
+
+    return () => {
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+      observer?.disconnect();
+    };
+  }, [drawerRef, hasContentSnap, isActiveContentSnap, snapPoints]);
+
+  React.useEffect(() => {
+    if (!isActiveContentSnap || !drawerRef.current) return;
+    const rect = drawerRef.current.getBoundingClientRect();
+    if (rect.height > 0) {
+      setMeasuredDrawerHeight(rect.height);
+    }
+  }, [isActiveContentSnap]);
 
   const [windowDimensions, setWindowDimensions] = React.useState(
     typeof window !== 'undefined'
@@ -183,7 +216,7 @@ export function useSnapPoints({
 
     onSnapPointsResolved?.(offsets);
     return offsets;
-  }, [snapPoints, windowDimensions, container, measuredDrawerHeight, onSnapPointsResolved]);
+  }, [snapPoints, windowDimensions, container, measuredDrawerHeight, onSnapPointsResolved, hasContentSnap]);
 
   const activeSnapPointOffset = React.useMemo(
     () => (activeSnapPointIndex !== null ? snapPointsOffset?.[activeSnapPointIndex] : null),
