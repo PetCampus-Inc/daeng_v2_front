@@ -5,7 +5,6 @@
       "namespace": "android_app",
       "package_name": "net.knockdog.petcampus.v2",
       "sha256_cert_fingerprints": [
-        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C",
         "0A:7D:A0:EF:97:81:A1:BA:BE:77:91:59:10:1B:CF:E5:06:4F:24:63:C6:0D:46:DD:99:70:22:05:CF:CF:9C:F8"
       ]
     }

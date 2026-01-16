@@ -5,8 +5,12 @@ const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const iosUrlScheme = process.env.EXPO_PUBLIC_IOS_URL_SCHEME;
 const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL;
 
+if (!WEBVIEW_URL) {
+  throw new Error('EXPO_PUBLIC_WEBVIEW_URL is not defined');
+}
+
 // Universal Links / App Links용 호스트
-const WEBVIEW_HOST = WEBVIEW_URL?.replace(/^https?:\/\//, '');
+const WEBVIEW_HOST = new URL(WEBVIEW_URL).hostname;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
