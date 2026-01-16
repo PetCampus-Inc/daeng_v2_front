@@ -5,6 +5,9 @@
 
 @theme {
   --breakpoint-sm: 30rem;
+
+  --top-bar-height: 64px;
+  --bottom-bar-height: 68px;
 }
 
 html body[data-scroll-locked] {

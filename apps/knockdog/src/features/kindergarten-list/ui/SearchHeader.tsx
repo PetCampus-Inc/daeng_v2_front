@@ -1,7 +1,6 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
-import { useSafeAreaInsets } from '@shared/lib';
 
 interface SearchHeaderProps {
   query: string;
@@ -10,7 +9,6 @@ interface SearchHeaderProps {
 export function SearchHeader({ query }: SearchHeaderProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { top } = useSafeAreaInsets();
 
   /**
    * 검색창 재활성화 (검색 페이지로 이동)
@@ -38,9 +36,8 @@ export function SearchHeader({ query }: SearchHeaderProps) {
 
   return (
     <Header
-      className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full'
+      className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full pt-(--safe-area-inset-top,0px)'
       innerClassName='gap-2'
-      style={{ paddingTop: top }}
     >
       <Header.LeftSection>
         <Header.BackButton onClick={handleGoSearch} />

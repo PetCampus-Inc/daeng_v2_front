@@ -1,4 +1,5 @@
 import WebView from 'react-native-webview';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type RefObject, useRef, useMemo, useEffect } from 'react';
 import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
@@ -52,7 +53,26 @@ function buildHistoryStateInjector(state?: InitialState) {
   `;
 }
 
+/** Safe Area Insets 주입 스크립트 */
+function buildSafeAreaInjector(insets: { top: number; bottom: number; left: number; right: number }) {
+  const { top, bottom, left, right } = insets;
+  return `
+    (function(){
+      var insets = { top: ${top}, bottom: ${bottom}, left: ${left}, right: ${right} };
+      window.__SAFE_AREA_INSETS__ = insets;
+      var style = document.documentElement.style;
+      style.setProperty('--safe-area-inset-top', '${top}px');
+      style.setProperty('--safe-area-inset-bottom', '${bottom}px');
+      style.setProperty('--safe-area-inset-left', '${left}px');
+      style.setProperty('--safe-area-inset-right', '${right}px');
+    })();
+  `;
+}
+
 export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
+  const insets = useSafeAreaInsets();
+  const lastInjectedInsetsRef = useRef<string | null>(null);
+
   const CONSOLE_PATCH = useMemo(
     () => buildConsolePatch({ tag: 'WEBVIEW', levels: ['log', 'warn', 'error'], maxLen: 1_000 }),
     []
@@ -67,13 +87,26 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
   // 초기 state/history 주입 스크립트
   const INJECT_STATE = useMemo(() => buildHistoryStateInjector(initialState), [initialState]);
 
+  // Safe Area 주입 스크립트
+  const INJECT_SAFE_AREA = useMemo(() => buildSafeAreaInjector(insets), [insets]);
+
   // 개발 모드에서는 콘솔 패치 + state 주입을 함께, 프로덕션에서도 state 주입은 항상 수행
   const INJECT_BEFORE = useMemo(() => {
     const scripts = [];
     if (__DEV__) scripts.push(CONSOLE_PATCH);
+    scripts.push(INJECT_SAFE_AREA);
     scripts.push(INJECT_STATE);
     return scripts.join('\n');
-  }, [CONSOLE_PATCH, INJECT_STATE]);
+  }, [CONSOLE_PATCH, INJECT_STATE, INJECT_SAFE_AREA]);
+
+  useEffect(() => {
+    const ref = refToUse.current;
+    if (!ref) return;
+    const key = `${insets.top}-${insets.bottom}-${insets.left}-${insets.right}`;
+    if (lastInjectedInsetsRef.current === key) return;
+    lastInjectedInsetsRef.current = key;
+    ref.injectJavaScript(buildSafeAreaInjector(insets));
+  }, [insets, refToUse]);
 
   // unmount 시 이 WebView가 기다리던 모든 txId 정리
   useEffect(() => {

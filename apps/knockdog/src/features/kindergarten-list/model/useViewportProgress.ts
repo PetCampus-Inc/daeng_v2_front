@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 interface UseSheetDragProgressProps {
   minSnapPoint: number;
   maxSnapPointOffset: number;
+  enabled?: boolean;
 }
 
 /**
@@ -16,12 +17,13 @@ interface UseSheetDragProgressProps {
  * @param maxSnapPointOffset - 최대 스냅포인트 오프셋
  * @returns
  */
-const useSheetDragProgress = ({ minSnapPoint, maxSnapPointOffset }: UseSheetDragProgressProps) => {
+const useSheetDragProgress = ({ minSnapPoint, maxSnapPointOffset, enabled = true }: UseSheetDragProgressProps) => {
   const viewRef = useRef<HTMLDivElement>(null);
 
   const dragProgress = useMotionValue(0);
 
   useEffect(() => {
+    if (!enabled) return;
     let rafId: number;
     let lastProgress = -1;
     const threshold = 0.005; // 0.5%
@@ -39,7 +41,13 @@ const useSheetDragProgress = ({ minSnapPoint, maxSnapPointOffset }: UseSheetDrag
         const maxHeight = viewportHeight - maxSnapPointOffset;
 
         // 0-1로 정규화
-        const rawProgress = (currentSheetHeight - minHeight) / (maxHeight - minHeight);
+        const range = maxHeight - minHeight;
+        if (range <= 0) {
+          rafId = requestAnimationFrame(calculateProgress);
+          return;
+        }
+
+        const rawProgress = (currentSheetHeight - minHeight) / range;
 
         const clamped = Math.max(0, Math.min(1, rawProgress));
 
@@ -54,7 +62,7 @@ const useSheetDragProgress = ({ minSnapPoint, maxSnapPointOffset }: UseSheetDrag
 
     rafId = requestAnimationFrame(calculateProgress);
     return () => cancelAnimationFrame(rafId);
-  }, [dragProgress, minSnapPoint, maxSnapPointOffset]);
+  }, [dragProgress, minSnapPoint, maxSnapPointOffset, enabled]);
 
   return { viewRef, dragProgress };
 };

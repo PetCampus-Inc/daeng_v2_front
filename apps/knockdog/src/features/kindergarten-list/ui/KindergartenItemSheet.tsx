@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActionButton, BottomSheet, Icon } from '@knockdog/ui';
+import { type ComponentProps, useMemo, useRef, useState } from 'react';
+import { BottomSheet } from '@knockdog/ui';
 import { KindergartenCard } from './KindergartenCard';
 import { cn } from '@knockdog/ui/lib';
 import { motion, useIsomorphicLayoutEffect, useTransform } from 'framer-motion';
@@ -14,18 +14,14 @@ import { KindergartenDetail } from '@features/kindergarten-list/ui/KindergartenD
 import { useSearchListQuery } from '@features/kindergarten-map';
 import { PhoneCallSheet } from '@features/kindergarten-list/ui/PhoneCallSheet';
 import { isNativeWebView, useSafeAreaInsets, useShare } from '@shared/lib';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { TOP_BAR_HEIGHT } from '@shared/constants';
 
+type BottomSheetSnapPoint = ComponentProps<typeof BottomSheet.Root>['activeSnapPoint'];
 interface KindergartenItemSheetProps {
   itemId: string;
   isOpen: boolean;
   onClose: () => void;
 }
-
-type SnapPoint = number | string | null;
-
-const MIN_SNAP_POINT = isNativeWebView() ? 328 : BOTTOM_BAR_HEIGHT + 328;
-const snapPoints = [`${MIN_SNAP_POINT}px`, 1];
 
 export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenItemSheetProps) {
   const { searchListQueryKey, searchList, exact } = useSearchListQuery();
@@ -42,19 +38,19 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   }, [exact, itemId, searchList]);
 
   const { top } = useSafeAreaInsets();
-  const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? 64 + top : 64;
+  const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? TOP_BAR_HEIGHT + top : TOP_BAR_HEIGHT;
 
-  const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint>(snapPoints[0] ?? null);
+  const dynamicSnapPoints = useMemo(() => [{ type: 'content' as const, min: 328 }, 1], []);
+  const [activeSnapPoint, setActiveSnapPoint] = useState<BottomSheetSnapPoint>(dynamicSnapPoints[0] ?? null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const isMaxSnap = activeSnapPoint === snapPoints[1];
 
   const { viewRef, dragProgress } = useSheetDragProgress({
-    minSnapPoint: MIN_SNAP_POINT,
+    minSnapPoint: 328,
     maxSnapPointOffset: MAX_SNAP_POINT_OFFSET,
+    enabled: isOpen,
   });
 
   const visibleOpacity = useTransform(dragProgress, [0, 1], [1, 0]);
@@ -74,7 +70,7 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
     share(shareData);
   };
 
-  const openPhoneCallActionSheet = () =>
+  const openPhoneCallSheet = () =>
     overlay.open(({ isOpen, close }) => (
       <PhoneCallSheet isOpen={isOpen} close={close} phoneNumber={currentItem?.phoneNumber ?? ''} />
     ));
@@ -85,26 +81,18 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
     }
   }, [containerRef]);
 
-  useEffect(() => {
-    console.log('activeSnapPoint changed:', activeSnapPoint);
-    console.log('isOpen:', isOpen);
-  }, [activeSnapPoint, isOpen]);
-
-  useEffect(() => {
-    console.log('container changed:', container);
-  }, [container]);
-
   if (currentItem == null) return null;
+
   return (
     <>
       <motion.div
         ref={headerRef}
-        className='fixed top-0 left-0 z-50 w-screen bg-white'
-        style={{ paddingTop: safeAreaTop, opacity: hiddenOpacity }}
+        className='fixed top-0 left-0 z-50 w-screen bg-white pt-(--safe-area-inset-top,0px)'
+        style={{ opacity: hiddenOpacity }}
       >
         <Header className='block'>
           <Header.LeftSection>
-            <Header.BackButton onClick={() => setActiveSnapPoint(snapPoints[0] ?? null)} />
+            <Header.BackButton onClick={() => setActiveSnapPoint(dynamicSnapPoints[0] ?? null)} />
             <Header.HomeButton onClick={onClose} />
           </Header.LeftSection>
 
@@ -118,82 +106,84 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
 
       <div
         ref={containerRef}
-        className='pointer-events-none absolute bottom-0 w-full'
-        style={{ height: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)` }}
+        className='pointer-events-none absolute bottom-0 h-[calc(100vh-calc(var(--top-bar-height)+var(--safe-area-inset-top,0px)))] w-full'
       >
-        <BottomSheet.Root
-          open={isOpen}
-          onOpenChange={(open) => {
-            if (!open) {
-              onClose();
-            }
-          }}
-          modal={false}
-          snapPoints={snapPoints}
-          activeSnapPoint={activeSnapPoint}
-          setActiveSnapPoint={(snapPoint) => setActiveSnapPoint(snapPoint)}
-          snapToSequentialPoint
-          container={container}
-        >
-          <RemoveScroll forwardProps noIsolation>
-            <BottomSheet.Body
-              onPointerDownOutside={(e) => {
-                e.preventDefault();
-
-                if (!headerRef.current?.contains(e.target as Node)) {
-                  onClose();
-                }
-              }}
-              className={cn(
-                'pointer-events-auto absolute inset-x-0 z-50 h-full max-h-[calc(100vh-64px)]',
-                activeSnapPoint === snapPoints[1] && 'h-full'
-              )}
-            >
-              <div ref={viewRef} className={cn('relative h-full', isMaxSnap && 'overflow-y-auto')}>
-                <motion.div
-                  className='absolute inset-0'
-                  style={{
-                    opacity: visibleOpacity,
-                    y: cardY,
-                    scale: scaleDown,
-                  }}
-                >
-                  <KindergartenCard {...currentItem} onBookmarkClick={onBookmarkClick} />
-                </motion.div>
-
-                <motion.div
-                  className={cn('pointer-events-none h-full bg-white', isMaxSnap && 'pointer-events-auto')}
-                  style={{
-                    opacity: hiddenOpacity,
-                    y: detailY,
-                    scale: scaleUp,
-                  }}
-                >
-                  <KindergartenDetail kindergartenId={currentItem.id} />
-                </motion.div>
-              </div>
-            </BottomSheet.Body>
-          </RemoveScroll>
-        </BottomSheet.Root>
-
-        <div className='p-x4 gap-x2 fixed right-0 bottom-0 left-0 z-50 flex items-center bg-white'>
-          <ActionButton variant='primaryLine' size='medium' onClick={openPhoneCallActionSheet}>
-            전화하기
-          </ActionButton>
-          <ActionButton variant='primaryFill' size='medium' disabled>
-            비교하기
-          </ActionButton>
-          <button
-            aria-label='보관하기'
-            className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
-            onClick={() => onBookmarkClick(currentItem.id, currentItem.isBookmarked ?? false)}
+        {container && (
+          <BottomSheet.Root
+            open={isOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                onClose();
+              }
+            }}
+            modal={false}
+            snapPoints={dynamicSnapPoints}
+            activeSnapPoint={activeSnapPoint}
+            setActiveSnapPoint={(snap) => setActiveSnapPoint(snap)}
+            snapToSequentialPoint
+            container={container}
           >
-            <Icon
-              icon={currentItem.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
-              className='size-x6 text-fill-primary-500'
-            />
-          </button>
-        </div>
+            <RemoveScroll forwardProps noIsolation>
+              <BottomSheet.Body
+                onPointerDownOutside={(e) => {
+                  e.preventDefault();
+                  if (!headerRef.current?.contains(e.target as Node)) {
+                    onClose();
+                  }
+                }}
+                className={cn(
+                  'pointer-events-auto absolute inset-x-0 top-0 z-50',
+                  activeSnapPoint === 1
+                    ? 'h-[calc(100vh-calc(var(--top-bar-height)+var(--safe-area-inset-top,0px)))]'
+                    : 'h-fit'
+                )}
+                style={{
+                  ['--initial-transform' as never]: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
+                }}
+              >
+                {/* Visual Apron: 바텀시트 하단 gap을 가려주는 역할 */}
+                <div aria-hidden='true' className='absolute top-[99%] left-0 h-screen w-full bg-white' />
+                <div ref={viewRef} className={cn('relative', activeSnapPoint === 1 && 'h-full overflow-y-auto')}>
+                  {/* 카드 뷰 */}
+                  <motion.div
+                    className={cn(
+                      'top-0 left-0 h-fit w-full',
+                      activeSnapPoint === 1 ? 'pointer-events-none absolute opacity-0' : 'relative'
+                    )}
+                    style={{
+                      opacity: visibleOpacity,
+                      y: cardY,
+                      scale: scaleDown,
+                    }}
+                  >
+                    <BottomSheet.Handle />
+                    <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
+                    <KindergartenCard
+                      {...currentItem}
+                      onBookmarkClick={onBookmarkClick}
+                      onPhoneCall={openPhoneCallSheet}
+                    />
+                  </motion.div>
+
+                  {/* 상세 뷰 */}
+                  <motion.div
+                    className={cn(
+                      'pointer-events-none h-full bg-white',
+                      activeSnapPoint === 1 ? 'pointer-events-auto relative w-full pb-[88px]' : 'absolute inset-0'
+                    )}
+                    style={{
+                      opacity: hiddenOpacity,
+                      y: detailY,
+                      scale: scaleUp,
+                    }}
+                  >
+                    <KindergartenDetail kindergartenId={currentItem.id} />
+                  </motion.div>
+                </div>
+              </BottomSheet.Body>
+            </RemoveScroll>
+          </BottomSheet.Root>
+        )}
       </div>
     </>
   );

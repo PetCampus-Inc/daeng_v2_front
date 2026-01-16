@@ -25,7 +25,7 @@ import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
-import { isEqualCoord, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
+import { isEqualCoord, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
 export default function KindergartenMainPage() {
@@ -46,7 +46,6 @@ function KindergartenMainPageContent() {
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-  const { top } = useSafeAreaInsets();
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -118,8 +117,11 @@ function KindergartenMainPageContent() {
         <SearchHeader query={committedState.query} />
       ) : (
         <div
-          className={cn(`absolute top-0 right-0 left-0 z-50 ${isFullExtended ? 'bg-fill-secondary-0' : ''}`)}
-          style={{ paddingTop: top }}
+          className={cn(
+            `absolute top-0 right-0 left-0 z-50 pt-(--safe-area-inset-top,0px) ${
+              isFullExtended ? 'bg-fill-secondary-0' : ''
+            }`
+          )}
         >
           <div className='px-x4 flex h-16 w-full items-center transition-colors ease-out'>
             <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`} className='w-full'>
@@ -134,7 +136,7 @@ function KindergartenMainPageContent() {
         </div>
       )}
 
-      <div className='px-x4 gap-x2 absolute flex w-full items-center' style={{ top: `${64 + top}px` }}>
+      <div className='px-x4 gap-x2 absolute top-[calc(var(--top-bar-height)+var(--safe-area-inset-top,0px))] flex w-full items-center'>
         <Chip.Toggle variant='outline' checked={isOnlyMemoed} onChange={toggleMemoed}>
           <Chip.PrefixIcon>
             <Icon icon='Note' className='size-x4' />
@@ -150,8 +152,6 @@ function KindergartenMainPageContent() {
       </div>
 
       <KindergartenListSheet
-        onOpenFilter={handleOpenFilter}
-        region={searchParams?.get('region')}
         fabSlot={
           <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
             <Float placement='top-start' offsetX='x4'>
@@ -166,7 +166,9 @@ function KindergartenMainPageContent() {
             </Float>
           </div>
         }
-      />
+      >
+        <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
+      </KindergartenListSheet>
 
       {isSheetOpen && selectedItemId && (
         <KindergartenItemSheet
