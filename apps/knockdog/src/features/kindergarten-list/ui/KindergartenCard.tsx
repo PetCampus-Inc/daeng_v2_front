@@ -26,9 +26,6 @@ export function KindergartenCard(props: KindergartenCardProps) {
 
   return (
     <>
-      <BottomSheet.Handle />
-      <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
-
       {/* 컨텐츠 영역 */}
       <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
         <div className='gap-x2 flex'>
