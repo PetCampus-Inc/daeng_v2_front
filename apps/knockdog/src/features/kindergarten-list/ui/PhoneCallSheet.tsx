@@ -20,7 +20,7 @@ export function PhoneCallSheet({ phoneNumber = '010-1234-5678', isOpen, close }:
           <BottomSheet.Title>{phoneNumber}</BottomSheet.Title>
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
-        <div className='py-x5 flex flex-col'>
+        <div className='py-x5 flex flex-col pb-[40px]'>
           <button
             onClick={() => callPhone(phoneNumber)}
             className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
