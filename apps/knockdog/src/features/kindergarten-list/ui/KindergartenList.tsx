@@ -39,10 +39,9 @@ import { tokenUtils } from '@shared/utils';
 interface KindergartenListProps {
   region?: string | null;
   onOpenFilter: () => void;
-  onMoveHome?: () => void;
 }
 
-export function KindergartenList({ onOpenFilter, region, onMoveHome }: KindergartenListProps) {
+export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -232,12 +231,7 @@ export function KindergartenList({ onOpenFilter, region, onMoveHome }: Kindergar
             )}
             {searchList.map((item) => (
               <Fragment key={item.id}>
-                <KindergartenListItem
-                  {...item}
-                  banner={item.banner ?? []}
-                  onBookmarkClick={onBookmarkClick}
-                  onMoveHome={onMoveHome}
-                />
+                <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
                 <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
               </Fragment>
             ))}

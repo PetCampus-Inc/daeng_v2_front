@@ -152,8 +152,6 @@ function KindergartenMainPageContent() {
       </div>
 
       <KindergartenListSheet
-        onOpenFilter={handleOpenFilter}
-        region={searchParams?.get('region')}
         fabSlot={
           <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
             <Float placement='top-start' offsetX='x4'>
@@ -168,7 +166,9 @@ function KindergartenMainPageContent() {
             </Float>
           </div>
         }
-      />
+      >
+        <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
+      </KindergartenListSheet>
 
       {isSheetOpen && selectedItemId && (
         <KindergartenItemSheet

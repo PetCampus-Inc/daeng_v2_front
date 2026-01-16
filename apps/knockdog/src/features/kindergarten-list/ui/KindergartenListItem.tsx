@@ -3,10 +3,10 @@ import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
 import { SERVICE_TAGS, ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { useBottomSheetSnapIndex } from '@shared/lib';
 
 interface KindergartenListItemProps extends KindergartenListItemWithMeta {
   onBookmarkClick?: (id: string, isBookmarked: boolean) => void;
-  onMoveHome?: () => void;
 }
 
 export function KindergartenListItem({
@@ -25,13 +25,13 @@ export function KindergartenListItem({
   memo,
   isBookmarked = false,
   onBookmarkClick,
-  onMoveHome,
 }: KindergartenListItemProps) {
   const { pushForResult } = useStackNavigation();
+  const { setSnapIndex } = useBottomSheetSnapIndex();
 
   const handleClick = async () => {
     const isMoveHome = await pushForResult({ pathname: `/kindergarten/${id}` });
-    if (isMoveHome) onMoveHome?.();
+    if (isMoveHome) setSnapIndex(0);
   };
 
   return (
