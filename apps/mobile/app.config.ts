@@ -59,6 +59,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
       CFBundleURLTypes: [
         {
+          CFBundleURLSchemes: ['daengv2mobile'],
+        },
+        {
           CFBundleURLSchemes: [iosUrlScheme],
         },
       ],
