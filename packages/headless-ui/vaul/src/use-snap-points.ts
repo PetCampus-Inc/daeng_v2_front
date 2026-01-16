@@ -180,17 +180,18 @@ export function useSnapPoints({
       }
 
       if (typeof snapPoint === 'object' && snapPoint !== null && snapPoint.type === 'content') {
-        let height = measuredDrawerHeight;
-        if (height <= 0 && snapPoint.min !== undefined) {
-          height = resolve(snapPoint.min as SnapPoint, 'y');
+        const axis: 'x' | 'y' = isVertical(direction) ? 'y' : 'x';
+        let size = isVertical(direction) ? measuredDrawerHeight : containerSize.width;
+        if (size <= 0 && snapPoint.min !== undefined) {
+          size = resolve(snapPoint.min as SnapPoint, axis);
         }
         if (snapPoint.min !== undefined) {
-          height = Math.max(height, resolve(snapPoint.min as SnapPoint, 'y'));
+          size = Math.max(size, resolve(snapPoint.min as SnapPoint, axis));
         }
         if (snapPoint.max !== undefined) {
-          height = Math.min(height, resolve(snapPoint.max as SnapPoint, 'y'));
+          size = Math.min(size, resolve(snapPoint.max as SnapPoint, axis));
         }
-        return height;
+        return size;
       }
 
       return 0;
@@ -214,9 +215,13 @@ export function useSnapPoints({
         return heightOrWidth;
       }) ?? [];
 
-    onSnapPointsResolved?.(offsets);
     return offsets;
-  }, [snapPoints, windowDimensions, container, measuredDrawerHeight, onSnapPointsResolved, hasContentSnap]);
+  }, [snapPoints, windowDimensions, container, measuredDrawerHeight, hasContentSnap, direction]);
+
+  React.useEffect(() => {
+    if (!onSnapPointsResolved) return;
+    onSnapPointsResolved(snapPointsOffset);
+  }, [snapPointsOffset, onSnapPointsResolved]);
 
   const activeSnapPointOffset = React.useMemo(
     () => (activeSnapPointIndex !== null ? snapPointsOffset?.[activeSnapPointIndex] : null),
