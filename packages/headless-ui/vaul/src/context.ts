@@ -1,5 +1,5 @@
 import React from 'react';
-import { DrawerDirection } from './types';
+import { DrawerDirection, SnapPoint } from './types';
 
 interface DrawerContextValue {
   drawerRef: React.RefObject<HTMLDivElement>;
@@ -15,12 +15,12 @@ interface DrawerContextValue {
   isDragging: boolean;
   keyboardIsOpen: React.MutableRefObject<boolean>;
   snapPointsOffset: number[] | null;
-  snapPoints?: (number | string)[] | null;
+  snapPoints?: SnapPoint[] | null;
   activeSnapPointIndex?: number | null;
   modal: boolean;
   shouldFade: boolean;
-  activeSnapPoint?: number | string | null;
-  setActiveSnapPoint: (o: number | string | null) => void;
+  activeSnapPoint?: SnapPoint | null;
+  setActiveSnapPoint: (o: SnapPoint | null) => void;
   closeDrawer: () => void;
   openProp?: boolean;
   onOpenChange?: (o: boolean) => void;

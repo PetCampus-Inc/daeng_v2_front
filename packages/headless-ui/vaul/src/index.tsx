@@ -18,7 +18,7 @@ import {
   WINDOW_TOP_OFFSET,
   DRAG_CLASS,
 } from './constants';
-import { DrawerDirection } from './types';
+import { DrawerDirection, SnapPoint } from './types';
 import { useControllableState } from './use-controllable-state';
 import { useScaleBackground } from './use-scale-background';
 import { usePositionFixed } from './use-position-fixed';
@@ -30,7 +30,7 @@ export interface WithFadeFromProps {
    * Should go from least visible. Example `[0.2, 0.5, 0.8]`.
    * You can also use px values, which doesn't take screen height into account.
    */
-  snapPoints: (number | string)[];
+  snapPoints: SnapPoint[];
   /**
    * Index of a `snapPoint` from which the overlay fade should be applied. Defaults to the last snap point.
    */
@@ -43,13 +43,13 @@ export interface WithoutFadeFromProps {
    * Should go from least visible. Example `[0.2, 0.5, 0.8]`.
    * You can also use px values, which doesn't take screen height into account.
    */
-  snapPoints?: (number | string)[];
+  snapPoints?: SnapPoint[];
   fadeFromIndex?: never;
 }
 
 export type DialogProps = {
-  activeSnapPoint?: number | string | null;
-  setActiveSnapPoint?: (snapPoint: number | string | null) => void;
+  activeSnapPoint?: SnapPoint | null;
+  setActiveSnapPoint?: (snapPoint: SnapPoint | null) => void;
   children?: React.ReactNode;
   open?: boolean;
   /**
@@ -144,6 +144,7 @@ export type DialogProps = {
   shouldAnimate?: boolean;
   preventScrollRestoration?: boolean;
   autoFocus?: boolean;
+  onSnapPointsResolved?: (resolved: number[]) => void;
 } & (WithFadeFromProps | WithoutFadeFromProps);
 
 export function Root({
@@ -178,6 +179,7 @@ export function Root({
   shouldAnimate: shouldAnimateProp,
   container,
   autoFocus = false,
+  onSnapPointsResolved,
 }: DialogProps) {
   const [isOpen = false, setIsOpen] = useControllableState({
     defaultProp: defaultOpen,
@@ -251,6 +253,7 @@ export function Root({
     direction,
     container,
     snapToSequentialPoint,
+    onSnapPointsResolved,
   });
   usePreventScroll({
     isDisabled:
@@ -873,6 +876,8 @@ export const Content = React.forwardRef<HTMLDivElement, ContentProps>(function (
   const lastKnownPointerEventRef = React.useRef<React.PointerEvent<HTMLDivElement> | null>(null);
   const wasBeyondThePointRef = React.useRef(false);
   const hasSnapPoints = snapPoints && snapPoints.length > 0;
+  const snapPointOffset =
+    typeof activeSnapPointIndex === 'number' ? snapPointsOffset?.[activeSnapPointIndex] : undefined;
   useScaleBackground();
 
   const isDeltaInDirection = (delta: { x: number; y: number }, direction: DrawerDirection, threshold = 0) => {
@@ -924,9 +929,9 @@ export const Content = React.forwardRef<HTMLDivElement, ContentProps>(function (
       {...rest}
       ref={composedRef}
       style={
-        snapPointsOffset && snapPointsOffset.length > 0
+        typeof snapPointOffset === 'number' && Number.isFinite(snapPointOffset)
           ? ({
-              '--snap-point-height': `${snapPointsOffset[activeSnapPointIndex ?? 0]!}px`,
+              '--snap-point-height': `${snapPointOffset}px`,
               ...style,
             } as React.CSSProperties)
           : style

@@ -1,7 +1,16 @@
 export type DrawerDirection = 'top' | 'bottom' | 'left' | 'right';
-export interface SnapPoint {
-  fraction: number;
-  height: number;
-}
+
+export type SnapContext = {
+  viewportHeight: number;
+  measuredDrawerHeight: number;
+};
+
+export type ContentSnap = {
+  type: 'content';
+  min: number | string;
+  max?: number | string;
+};
+
+export type SnapPoint = number | `${number}%` | ContentSnap | ((ctx: SnapContext) => number);
 
 export type AnyFunction = (...args: any) => any;

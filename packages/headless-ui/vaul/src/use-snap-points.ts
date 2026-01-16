@@ -2,7 +2,7 @@ import React from 'react';
 import { set, isVertical } from './helpers';
 import { TRANSITIONS, VELOCITY_THRESHOLD } from './constants';
 import { useControllableState } from './use-controllable-state';
-import { DrawerDirection } from './types';
+import { DrawerDirection, SnapPoint, SnapContext } from './types';
 
 export function useSnapPoints({
   activeSnapPointProp,
@@ -15,10 +15,11 @@ export function useSnapPoints({
   direction = 'bottom',
   container,
   snapToSequentialPoint,
+  onSnapPointsResolved,
 }: {
-  activeSnapPointProp?: number | string | null;
-  setActiveSnapPointProp?(snapPoint: number | null | string): void;
-  snapPoints?: (number | string)[];
+  activeSnapPointProp?: SnapPoint | null;
+  setActiveSnapPointProp?(snapPoint: SnapPoint | null): void;
+  snapPoints?: SnapPoint[];
   fadeFromIndex?: number;
   drawerRef: React.RefObject<HTMLDivElement>;
   overlayRef: React.RefObject<HTMLDivElement>;
@@ -26,12 +27,39 @@ export function useSnapPoints({
   direction?: DrawerDirection;
   container?: HTMLElement | null | undefined;
   snapToSequentialPoint?: boolean;
+  onSnapPointsResolved?: (resolved: number[]) => void;
 }) {
-  const [activeSnapPoint, setActiveSnapPoint] = useControllableState<string | number | null>({
+  const [activeSnapPoint, setActiveSnapPoint] = useControllableState<SnapPoint | null>({
     prop: activeSnapPointProp,
     defaultProp: snapPoints?.[0],
     onChange: setActiveSnapPointProp,
   });
+
+  const [measuredDrawerHeight, setMeasuredDrawerHeight] = React.useState(0);
+
+  const activeSnapPointRef = React.useRef(activeSnapPoint);
+
+  React.useEffect(() => {
+    activeSnapPointRef.current = activeSnapPoint;
+  }, [activeSnapPoint]);
+
+  React.useEffect(() => {
+    const hasContentSnap = snapPoints?.some((s) => typeof s === 'object' && s !== null && s.type === 'content');
+    if (!drawerRef.current || !hasContentSnap) return;
+
+    // Measure drawer content height so content-based snap points can resolve reliably.
+    // We always keep the latest measurement to avoid stale values when switching snap points.
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const item = entry.borderBoxSize?.[0];
+        const height = item ? item.blockSize : entry.contentRect.height;
+        setMeasuredDrawerHeight(height);
+      }
+    });
+
+    observer.observe(drawerRef.current);
+    return () => observer.disconnect();
+  }, [drawerRef, snapPoints]);
 
   const [windowDimensions, setWindowDimensions] = React.useState(
     typeof window !== 'undefined'
@@ -59,10 +87,26 @@ export function useSnapPoints({
     [snapPoints, activeSnapPoint],
   );
 
-  const activeSnapPointIndex = React.useMemo(
-    () => snapPoints?.findIndex((snapPoint) => snapPoint === activeSnapPoint) ?? null,
-    [snapPoints, activeSnapPoint],
-  );
+  const activeSnapPointIndex = React.useMemo(() => {
+    if (!snapPoints || snapPoints.length === 0) return null;
+    const index = snapPoints.findIndex((snapPoint) => snapPoint === activeSnapPoint);
+    return index >= 0 ? index : null;
+  }, [snapPoints, activeSnapPoint]);
+
+  React.useEffect(() => {
+    if (!snapPoints || snapPoints.length === 0) return;
+    if (activeSnapPointIndex !== null) return;
+    if (activeSnapPoint == null) return;
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[Vaul:Snap] activeSnapPoint is not in snapPoints. Resetting to first snap point.', {
+        activeSnapPoint,
+        snapPoints,
+      });
+    }
+
+    setActiveSnapPoint(snapPoints[0] ?? null);
+  }, [activeSnapPointIndex, activeSnapPoint, setActiveSnapPoint, snapPoints]);
 
   const shouldFade =
     (snapPoints &&
@@ -79,34 +123,67 @@ export function useSnapPoints({
       ? { width: window.innerWidth, height: window.innerHeight }
       : { width: 0, height: 0 };
 
-    return (
-      snapPoints?.map((snapPoint) => {
-        const isPx = typeof snapPoint === 'string';
-        let snapPointAsNumber = 0;
+    const ctx: SnapContext = {
+      viewportHeight: containerSize.height,
+      measuredDrawerHeight,
+    };
 
-        if (isPx) {
-          snapPointAsNumber = parseInt(snapPoint, 10);
+    const resolve = (snapPoint: SnapPoint, axis: 'x' | 'y'): number => {
+      const size = axis === 'y' ? containerSize.height : containerSize.width;
+      if (typeof snapPoint === 'number') {
+        // 0 to 1 is fraction, > 1 is pixels
+        return snapPoint <= 1 ? snapPoint * size : snapPoint;
+      }
+
+      if (typeof snapPoint === 'string') {
+        if (snapPoint.endsWith('%')) {
+          return (parseFloat(snapPoint) / 100) * size;
         }
+        return parseInt(snapPoint, 10);
+      }
+
+      if (typeof snapPoint === 'function') {
+        return snapPoint(ctx);
+      }
+
+      if (typeof snapPoint === 'object' && snapPoint !== null && snapPoint.type === 'content') {
+        let height = measuredDrawerHeight;
+        if (height <= 0 && snapPoint.min !== undefined) {
+          height = resolve(snapPoint.min as SnapPoint, 'y');
+        }
+        if (snapPoint.min !== undefined) {
+          height = Math.max(height, resolve(snapPoint.min as SnapPoint, 'y'));
+        }
+        if (snapPoint.max !== undefined) {
+          height = Math.min(height, resolve(snapPoint.max as SnapPoint, 'y'));
+        }
+        return height;
+      }
+
+      return 0;
+    };
+
+    const offsets =
+      snapPoints?.map((snapPoint) => {
+        const heightOrWidth = resolve(snapPoint, isVertical(direction) ? 'y' : 'x');
 
         if (isVertical(direction)) {
-          const height = isPx ? snapPointAsNumber : windowDimensions ? snapPoint * containerSize.height : 0;
-
           if (windowDimensions) {
-            return direction === 'bottom' ? containerSize.height - height : -containerSize.height + height;
+            return direction === 'bottom'
+              ? containerSize.height - heightOrWidth
+              : -containerSize.height + heightOrWidth;
           }
-
-          return height;
+          return heightOrWidth;
         }
-        const width = isPx ? snapPointAsNumber : windowDimensions ? snapPoint * containerSize.width : 0;
-
         if (windowDimensions) {
-          return direction === 'right' ? containerSize.width - width : -containerSize.width + width;
+          return direction === 'right' ? containerSize.width - heightOrWidth : -containerSize.width + heightOrWidth;
         }
+        return heightOrWidth;
+      }) ?? [];
 
-        return width;
-      }) ?? []
-    );
-  }, [snapPoints, windowDimensions, container]);
+    onSnapPointsResolved?.(offsets);
+    return offsets;
+  }, [snapPoints, windowDimensions, container, measuredDrawerHeight, onSnapPointsResolved]);
 
   const activeSnapPointOffset = React.useMemo(
     () => (activeSnapPointIndex !== null ? snapPointsOffset?.[activeSnapPointIndex] : null),
@@ -147,14 +224,12 @@ export function useSnapPoints({
   );
 
   React.useEffect(() => {
-    if (activeSnapPoint || activeSnapPointProp) {
-      const newIndex =
-        snapPoints?.findIndex((snapPoint) => snapPoint === activeSnapPointProp || snapPoint === activeSnapPoint) ?? -1;
-      if (snapPointsOffset && newIndex !== -1 && typeof snapPointsOffset[newIndex] === 'number') {
-        snapToPoint(snapPointsOffset[newIndex] as number);
-      }
+    if (activeSnapPointIndex === null) return;
+    const offset = snapPointsOffset?.[activeSnapPointIndex];
+    if (typeof offset === 'number') {
+      snapToPoint(offset);
     }
-  }, [activeSnapPoint, activeSnapPointProp, snapPoints, snapPointsOffset, snapToPoint]);
+  }, [activeSnapPointIndex, snapPointsOffset, snapToPoint]);
 
   function onRelease({
     draggedDistance,
