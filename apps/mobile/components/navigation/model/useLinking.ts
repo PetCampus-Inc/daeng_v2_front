@@ -18,7 +18,7 @@ const TAB_PATHS: Record<string, TabScreen> = {
 function useLinking(): LinkingOptions<RootStackParamList> {
   return useMemo(
     () => ({
-      prefixes: [Linking.createURL('/'), 'daengv2mobile://'],
+      prefixes: [Linking.createURL('/'), 'daengv2mobile://', WEBVIEW_URL],
       getStateFromPath: (path: string): PartialState<NavigationState<RootStackParamList>> => {
         // [Android] Expo Dev Client가 앱 시작 시 전달하는 특수 경로 필터링
         if (__DEV__ && path.startsWith('expo-development-client')) {
