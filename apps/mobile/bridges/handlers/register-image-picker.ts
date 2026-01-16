@@ -2,13 +2,47 @@ import type { ImagePickerOptions, ImagePickerPayload } from '@/types/image-picke
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadImage } from '../api/image';
+import * as ImageManipulator from 'expo-image-manipulator';
+
+function toMB(bytes: number) {
+  return (bytes / 1024 / 1024).toFixed(2);
+}
+
+// 너비 기준으로 줄이기 (세로사진/가로사진 상관 없이 비율 유지)
+async function compressForUpload(asset: ImagePicker.ImagePickerAsset) {
+  // 원본 크기 로그 (선택)
+  const originInfo = await FileSystem.getInfoAsync(asset.uri, { size: true });
+  if (originInfo.exists && typeof originInfo.size === 'number') {
+  }
+
+  // PNG/WEBP도 있을 수 있지만 "사진 업로드"는 JPEG로 통일하면 용량이 크게 줄어드는 경우가 많음
+  const targetWidth = 1600; // 보통 1280~1920 사이 추천
+  const quality = 0.75; // 0.7~0.85 사이에서 타협
+
+  const manipulated = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: { width: targetWidth } }], {
+    compress: quality,
+    format: ImageManipulator.SaveFormat.JPEG,
+  });
+
+  // 압축본 크기 로그 (선택)
+  const compressedInfo = await FileSystem.getInfoAsync(manipulated.uri, { size: true });
+  if (compressedInfo.exists && typeof compressedInfo.size === 'number') {
+  }
+
+  return {
+    uri: manipulated.uri,
+    mimeType: 'image/jpeg',
+  };
+}
 
 async function uploadToS3(preSignedUrl: string, asset: ImagePicker.ImagePickerAsset) {
-  const uploadResult = await FileSystem.uploadAsync(preSignedUrl, asset.uri, {
+  const uploadAsset = await compressForUpload(asset);
+
+  const uploadResult = await FileSystem.uploadAsync(preSignedUrl, uploadAsset.uri, {
     httpMethod: 'PUT',
     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
     headers: {
-      'Content-Type': asset.mimeType ?? 'application/octet-stream',
+      'Content-Type': uploadAsset.mimeType ?? 'application/octet-stream',
     },
   });
 
@@ -86,6 +120,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       for (const pickedAsset of pickedAssets) {
         const { key, preSignedUrl } = await uploadImage();
         await uploadToS3(preSignedUrl, pickedAsset);
+
         uploadedAssets.push({ key, preSignedUrl });
       }
 
