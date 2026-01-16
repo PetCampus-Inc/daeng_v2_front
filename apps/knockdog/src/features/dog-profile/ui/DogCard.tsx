@@ -18,8 +18,8 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
     <div
       onClick={onClick}
       className={cn(
-        'relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl',
-        !imageUrl && 'border-line-100 border bg-neutral-800'
+        'border-line-100 relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl border',
+        !imageUrl && 'bg-neutral-800'
       )}
     >
       {imageUrl ? (
@@ -38,7 +38,7 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
         }}
       />
 
-      <div className='absolute bottom-4 left-4 flex flex-col gap-y-1 z-10'>
+      <div className='absolute bottom-4 left-4 z-10 flex flex-col gap-y-1'>
         <div className='h3-semibold flex items-center gap-x-0.5'>
           {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-5' />}
           <span className='text-text-primary-inverse'>{name}</span>
