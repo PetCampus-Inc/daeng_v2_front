@@ -18,11 +18,11 @@ export function useFilteredSearchList() {
 
     const filterFn = (item: KindergartenListItemWithMeta) => {
       if (isOnlyBookmarked && isOnlyMemoed) {
-        return !!item.isBookmarked || !!item.memo;
+        return !!item.bookmarked || !!item.memo;
       }
 
       if (isOnlyBookmarked) {
-        return !!item.isBookmarked;
+        return !!item.bookmarked;
       }
       if (isOnlyMemoed) {
         return !!item.memo;

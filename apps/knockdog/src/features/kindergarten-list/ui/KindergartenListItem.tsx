@@ -6,7 +6,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 
 interface KindergartenListItemProps extends KindergartenListItemWithMeta {
-  onBookmarkClick?: (id: string, isBookmarked: boolean) => void;
+  onBookmarkClick?: (id: string, bookmarked: boolean) => void;
 }
 
 export function KindergartenListItem({
@@ -23,7 +23,7 @@ export function KindergartenListItem({
   serviceTags,
   pickupType,
   memo,
-  isBookmarked = false,
+  bookmarked = false,
   onBookmarkClick,
 }: KindergartenListItemProps) {
   const { pushForResult } = useStackNavigation();
@@ -47,12 +47,12 @@ export function KindergartenListItem({
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
-            onBookmarkClick?.(id, isBookmarked);
+            onBookmarkClick?.(id, bookmarked);
           }}
         >
           <Icon
-            icon={isBookmarked ? 'BookmarkFill' : 'BookmarkLine'}
-            className={`size-x6 ${isBookmarked ? 'text-fill-secondary-700' : 'text-fill-secondary-500'}`}
+            icon={bookmarked ? 'BookmarkFill' : 'BookmarkLine'}
+            className={`size-x6 ${bookmarked ? 'text-fill-secondary-700' : 'text-fill-secondary-500'}`}
           />
         </button>
       </div>

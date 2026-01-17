@@ -1,5 +1,6 @@
 /** 가공된 모델 인터페이스 */
 
+import type { Kindergarten } from './kindergarten';
 import type { KindergartenListItem as KindergartenListItemDto } from './search-list';
 
 interface KindergartenListItem extends Omit<KindergartenListItemDto, 'dist'> {
@@ -13,7 +14,7 @@ export interface KindergartenListItemWithMeta extends KindergartenListItem {
     content: string;
     memoDate: string;
   };
-  isBookmarked?: boolean;
+  bookmarked?: boolean;
 }
 
 export interface KindergartenListWithMeta {
@@ -29,4 +30,8 @@ export interface KindergartenListWithMeta {
     exact: KindergartenListItemWithMeta | null;
     list: KindergartenListItemWithMeta[];
   };
+}
+
+export interface KindergartenMain extends Omit<Kindergarten, 'dist'> {
+  dist: string;
 }

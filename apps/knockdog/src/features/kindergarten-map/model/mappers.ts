@@ -32,13 +32,13 @@ function toKindergartenListItemWithMeta(
 ): KindergartenListItemWithMeta {
   const { dist, ...rest } = school;
   const memo = memoByShopId.get(school.id);
-  const isBookmarked = bookmarkedSet.has(school.id);
+  const bookmarked = bookmarkedSet.has(school.id);
 
   return {
     ...rest,
     dist: formatDistance(dist, { unit: 'kilometer' }),
     memo: memo ? formatMemoDate(memo) : undefined,
-    isBookmarked,
+    bookmarked,
   };
 }
 

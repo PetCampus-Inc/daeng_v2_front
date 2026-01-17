@@ -10,7 +10,7 @@ interface ClusterBubbleMarkerProps {
   distance?: string | number;
   selected?: boolean;
   className?: string;
-  isBookmarked?: boolean;
+  bookmarked?: boolean;
   hasMemo?: boolean;
   totalCount?: number;
 }
@@ -21,7 +21,7 @@ export function ClusterBubbleMarker({
   distance,
   selected,
   className,
-  isBookmarked,
+  bookmarked,
   hasMemo,
   totalCount,
 }: ClusterBubbleMarkerProps) {
@@ -46,7 +46,7 @@ export function ClusterBubbleMarker({
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
             {distance}
           </span>
-          {isBookmarked && (
+          {bookmarked && (
             <Icon
               icon='BookmarkFill'
               className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}

@@ -1,8 +1,7 @@
 import { type InfiniteData, type QueryKey, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
-import { bookmarkQueries } from '@entities/bookmark';
-import { deleteBookmark, postBookmark } from '@entities/bookmark/api/bookmark';
+import { bookmarkQueries, deleteBookmark, postBookmark } from '@entities/bookmark';
 import { type KindergartenListWithMeta } from '@entities/kindergarten';
 
 type CacheData = InfiniteData<KindergartenListWithMeta>;
@@ -11,13 +10,13 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
   const queryClient = useQueryClient();
 
   const { mutate } = useMutation({
-    mutationFn: async ({ id, isBookmarked }: { id: string; isBookmarked: boolean }) => {
-      if (isBookmarked) {
+    mutationFn: async ({ id, bookmarked }: { id: string; bookmarked: boolean }) => {
+      if (bookmarked) {
         return deleteBookmark(id);
       }
       return postBookmark(id);
     },
-    onMutate: async ({ id, isBookmarked }) => {
+    onMutate: async ({ id, bookmarked }) => {
       let previousData: CacheData | undefined;
 
       // 1. 검색 리스트 캐시 낙관적 업데이트
@@ -36,10 +35,10 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
                   ...page.schoolResult,
                   exact:
                     page.schoolResult.exact?.id === id
-                      ? { ...page.schoolResult.exact, isBookmarked: !isBookmarked }
+                      ? { ...page.schoolResult.exact, bookmarked: !bookmarked }
                       : page.schoolResult.exact,
                   list: page.schoolResult.list.map((item) =>
-                    item.id === id ? { ...item, isBookmarked: !isBookmarked } : item
+                    item.id === id ? { ...item, bookmarked: !bookmarked } : item
                   ),
                 },
               })),
@@ -56,7 +55,7 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
       if (previousBookmarks) {
         queryClient.setQueryData(bookmarkKey, (prev: any) => {
           if (!Array.isArray(prev)) return prev;
-          if (isBookmarked) {
+          if (bookmarked) {
             return prev.filter((item) => (item.shopId ?? item.id) !== id);
           } else {
             return [...prev, { id, shopId: id }];
@@ -77,8 +76,8 @@ export function useBookmarkToggle(queryKey?: QueryKey) {
   });
 
   const onBookmarkClick = useCallback(
-    (id: string, isBookmarked = false) => {
-      mutate({ id, isBookmarked });
+    (id: string, bookmarked = false) => {
+      mutate({ id, bookmarked });
     },
     [mutate]
   );
