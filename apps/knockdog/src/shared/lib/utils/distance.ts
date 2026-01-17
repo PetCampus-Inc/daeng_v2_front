@@ -17,6 +17,7 @@ interface FormatDistanceOptions {
   locale?: string;
 }
 
+// FIXME: 도메인 레벨로 올려도 될 듯.
 /**
  * 주어진 거리를 미터 단위로 판단해 1,000m 이상이면 km로,
  * 그 외는 m로 변환해 문자열을 반환한다.
