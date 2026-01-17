@@ -11,6 +11,6 @@ export type ContentSnap = {
   max?: number | string;
 };
 
-export type SnapPoint = number | `${number}%` | ContentSnap | ((ctx: SnapContext) => number);
+export type SnapPoint = number | string | ContentSnap | ((ctx: SnapContext) => number);
 
 export type AnyFunction = (...args: any) => any;

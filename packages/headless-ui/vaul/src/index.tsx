@@ -254,6 +254,9 @@ export function Root({
     container,
     snapToSequentialPoint,
     onSnapPointsResolved,
+    isOpen,
+    isDragging,
+    shouldAnimate: shouldAnimate.current,
   });
   usePreventScroll({
     isDisabled:
