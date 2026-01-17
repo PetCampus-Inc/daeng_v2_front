@@ -25,7 +25,7 @@ function BottomSheetOverlay({ className, ...props }: React.ComponentProps<typeof
   return (
     <DrawerPrimitive.Overlay
       data-slot='bottom-sheet-overlay'
-      className={cn('z-overlay fixed inset-0 bg-black/40', className)}
+      className={cn('fixed inset-0 z-40 bg-black/40', className)}
       {...props}
     />
   );
@@ -36,7 +36,7 @@ function BottomSheetBody({ className, children, ...props }: React.ComponentProps
     <DrawerPrimitive.Content
       data-slot='bottom-sheet-body'
       className={cn(
-        'bg-primitive-neutral-0 z-modal fixed inset-x-0 bottom-0 max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
+        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-50 max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
         className
       )}
       {...props}
