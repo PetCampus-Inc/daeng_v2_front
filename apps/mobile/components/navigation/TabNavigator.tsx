@@ -17,21 +17,19 @@ export default function TabNavigator() {
         return {
           tabBarIcon: ({ focused }) => {
             const iconProps = {
-              width: 24,
-              height: 24,
               fill: focused ? '#41424A' : '#8C8C94',
               color: focused ? '#41424A' : '#8C8C94',
             };
 
             switch (route.name) {
               case 'Explore':
-                return <ExploreIcon {...iconProps} />;
+                return <ExploreIcon width={22} height={22} {...iconProps} />;
               case 'Save':
-                return <SaveIcon {...iconProps} />;
+                return <SaveIcon width={20} height={20} {...iconProps} />;
               case 'Compare':
-                return <CompareIcon {...iconProps} />;
+                return <CompareIcon width={24} height={24} {...iconProps} />;
               case 'Mypage':
-                return <MypageIcon {...iconProps} />;
+                return <MypageIcon width={22} height={22} {...iconProps} />;
               default:
                 console.warn('❗ tabBarIcon: Unknown route name', route.name);
                 return null;
@@ -39,6 +37,16 @@ export default function TabNavigator() {
           },
           tabBarActiveTintColor: '#41424A',
           tabBarInactiveTintColor: '#8C8C94',
+          tabBarStyle: {
+            height: 96,
+            paddingTop: 6,
+            paddingLeft: 16,
+            paddingRight: 16,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            marginTop: 4
+          },
           headerShown: false,
         };
       }}
