@@ -29,7 +29,7 @@ export function LocationMap({ address = '', coord = { lat: 0, lng: 0 } }: Locati
       </div>
 
       <div className='bg-primitive-neutral-50 h-[166px] overflow-hidden rounded-lg'>
-        <Map ref={map} center={coord} zoom={DEFAULT_MAP_ZOOM_LEVEL} className='h-full w-full'>
+        <Map ref={map} center={coord} zoom={DEFAULT_MAP_ZOOM_LEVEL} baseTileOpacity={0.88} className='h-full w-full'>
           <Marker
             position={coord}
             customIcon={{
