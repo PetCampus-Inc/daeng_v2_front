@@ -58,7 +58,8 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
-export type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
+export type { KindergartenListItemWithMeta, KindergartenListWithMeta, KindergartenMain } from './model/types';
+export { toKindergartenMain } from './model/mappers';
 
 /** ui */
 export { DeparturePointSheet } from './ui/DeparturePointSheet';

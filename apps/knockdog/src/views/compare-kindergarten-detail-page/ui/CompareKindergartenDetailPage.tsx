@@ -34,7 +34,6 @@ function CompareKindergartenDetailPage() {
     id: id ?? '',
     lng,
     lat,
-    enabled: Boolean(id && lng != null && lat != null),
   });
 
   // ============================================
