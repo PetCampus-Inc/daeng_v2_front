@@ -3,9 +3,9 @@ import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
 
-import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
+import { OPEN_STATUS_MAP, CTAG_MAP, type KindergartenMain } from '@entities/kindergarten';
 
-interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}
+interface KindergartenMainBoxProps extends Omit<KindergartenMain, 'banner'> {}
 
 const KindergartenMainBox = ({
   title,
@@ -48,7 +48,7 @@ const KindergartenMainBox = ({
       </div>
       <div className='flex flex-col gap-[4px]'>
         <div>
-          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist.toFixed(2)}km</span>
+          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist}</span>
           <span className='body2-regular'>{roadAddress}</span>
         </div>
         <div>
