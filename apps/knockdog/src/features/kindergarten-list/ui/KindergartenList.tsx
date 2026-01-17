@@ -26,9 +26,8 @@ import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useBookmarkToggle } from '../model/useBookmarkToggle';
 import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { GetLocationPermissionError, isNativeWebView, useBottomSheetSnapIndex } from '@shared/lib';
+import { GetLocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { type BasePointType, useBasePointType } from '@shared/store';
 import { overlay } from 'overlay-kit';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -142,7 +141,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       <main
         ref={containerRef}
         className={cn(
-          !isNativeWebView() && 'pb-[68px]',
           'scrollbar-hide relative flex h-full w-full flex-col',
           isFullExtended ? 'overflow-y-auto' : 'min-h-full overflow-hidden'
         )}
@@ -246,7 +244,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
         offsetX='x4'
         zIndex={50}
         style={{
-          bottom: isNativeWebView() ? '12px' : `calc(${BOTTOM_BAR_HEIGHT}px + 12px`,
+          bottom: '12px',
         }}
       >
         <FloatingActionButton
