@@ -81,7 +81,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       if (permissionResult.status !== 'granted') {
         sendEvent('media.pickImage.cancel', {
           requestId,
-          reason: source === 'library' ? '사진 접근 권한이 필요합니다.' : '카메라 접근 권한이 필요합니다.',
+          reason: source === 'library' ? 'NO_PERMISSION_LIBRARY' : 'NO_PERMISSION_CAMERA',
         });
         return;
       }

@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
-import { ActionButton, Icon } from '@knockdog/ui';
+import {
+  ActionButton,
+  Icon,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@knockdog/ui';
 import { MiniPhotoBox } from './MiniPhotoBox';
 import { FullImageSheet } from './FullImageSheet';
 import { overlay } from 'overlay-kit';
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
 
 interface PhotoUploaderProps {
   maxCount?: number;
@@ -40,16 +52,36 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
         onChange?.(newAssets);
       }
     } catch (error: unknown) {
-      toast({
-        title: error instanceof Error ? error.message : String(error),
-        position: 'bottom-above-nav',
-      });
+      if ((error as string) === 'NO_PERMISSION_LIBRARY' || (error as string) === 'NO_PERMISSION_CAMERA') {
+        overlay.open(({ isOpen, close }) => (
+          <AlertDialog open={isOpen} onOpenChange={close}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>사진 접근 권한이 필요해요</AlertDialogTitle>
+                <AlertDialogDescription>
+                  사용 중인 기기에서 사진 접근 권한을 <br />
+                  '허용'으로 설정해 주세요.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>나중에 하기</AlertDialogCancel>
+                <AlertDialogAction onClick={openSystemSetting}>설정하기</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ));
+      } else {
+        toast({
+          title: error instanceof Error ? error.message : String(error),
+          position: 'bottom-above-nav',
+        });
+      }
     }
   };
 
   const openSourceSelectSheet = () => {
     overlay.open(({ isOpen, close }) => (
-      <BottomSheet.Root open={isOpen} onOpenChange={close}>
+      <BottomSheet.Root open={isOpen} onOpenChange={close} modal={false}>
         <BottomSheet.Overlay className='z-overlay' />
         <BottomSheet.Body className='z-modal'>
           <BottomSheet.Handle />
