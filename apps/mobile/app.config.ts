@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   newArchEnabled: true,
   splash: {
     image: './assets/images/splash.png',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
     backgroundColor: '#FF6600',
   },
   extra: {
@@ -128,7 +128,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-splash-screen',
       {
         image: './assets/images/splash.png',
-        resizeMode: 'cover',
+        resizeMode: 'contain',
         backgroundColor: '#FF6600',
       },
     ],
