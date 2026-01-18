@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 
 interface CalloutOverlayProps {
-  items: KindergartenListItemWithMeta[];
+  items: KindergartenListItem[];
   totalCount?: number;
-  onItemClick?: (item: KindergartenListItemWithMeta) => void;
+  onItemClick?: (item: KindergartenListItem) => void;
 }
 
 export function CalloutOverlay({ items, totalCount, onItemClick }: CalloutOverlayProps) {

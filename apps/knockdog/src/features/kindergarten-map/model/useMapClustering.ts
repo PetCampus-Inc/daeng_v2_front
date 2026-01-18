@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Supercluster from 'supercluster';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 
 /**
  * 개별 마커(Point)의 속성 인터페이스
@@ -8,7 +8,7 @@ import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
 export interface MapPointProperties {
   cluster: false;
   markerId: string;
-  marker: KindergartenListItemWithMeta;
+  marker: KindergartenListItem;
 }
 
 /**
@@ -29,7 +29,7 @@ export type MapCluster = Supercluster.ClusterFeature<MapClusterProperties>;
 export type MapClusterOrPoint = MapPoint | MapCluster;
 
 export interface UseMapClusteringProps {
-  markers: KindergartenListItemWithMeta[];
+  markers: KindergartenListItem[];
   zoom: number;
   bounds?: { swLat: number; swLng: number; neLat: number; neLng: number } | null;
   /** 클러스터링 비활성화 여부 */

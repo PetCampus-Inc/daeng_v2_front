@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSearchListQuery } from './useSearchQuery';
 import { useDisplayFilterContext } from './useDisplayFilterContext';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 
 export function useFilteredSearchList() {
   const { listQuery, searchList, exact, ...rest } = useSearchListQuery();
@@ -16,7 +16,7 @@ export function useFilteredSearchList() {
       };
     }
 
-    const filterFn = (item: KindergartenListItemWithMeta) => {
+    const filterFn = (item: KindergartenListItem) => {
       if (isOnlyBookmarked && isOnlyMemoed) {
         return !!item.bookmarked || !!item.memo;
       }

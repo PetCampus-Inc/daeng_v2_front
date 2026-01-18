@@ -7,7 +7,7 @@ import { useFilteredSearchList } from '../model/useFilteredSearchList';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
 import { toBoundsSnapshot } from '../lib/bounds';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
 import { isEqualBounds, isEqualCoord, useGeolocationQuery } from '@shared/lib';
 import { CurrentLocationMarker } from '@shared/ui/map';
@@ -26,7 +26,7 @@ import { MapMarker } from './MapMarker';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
-  onOpenCard?: (item: KindergartenListItemWithMeta) => void;
+  onOpenCard?: (item: KindergartenListItem) => void;
 }
 
 export function MapView(props: MapViewProps) {
@@ -305,7 +305,7 @@ export function MapView(props: MapViewProps) {
    * 마커 클릭 핸들러
    * @description 마커 클릭 시 지도 중심 이동, 상세 정보 표시 및 마커 활성화 처리
    */
-  const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
+  const handleMarkerClick = (item: KindergartenListItem) => {
     setSelectedClusterId(null);
     dispatch({ type: 'CENTER_CHANGED', center: item.coord });
     onOpenCard?.(item);

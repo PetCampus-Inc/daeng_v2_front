@@ -2,10 +2,14 @@
 
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { DEFAULT_DISTANCE } from '../config/map';
-import { createKindergartenListWithMeta } from '../model/mappers';
 import type { SearchState } from '../lib/searchMachine';
 import { boundsSnapshotToBounds } from '../lib/bounds';
-import { getKindergartenAggregation, getKindergartenSearchList, type SortType } from '@entities/kindergarten';
+import {
+  getKindergartenAggregation,
+  getKindergartenSearchList,
+  toKindergartenList,
+  type SortType,
+} from '@entities/kindergarten';
 import type { BookmarkItem } from '@entities/bookmark';
 import type { MemoItem } from '@entities/memo';
 import { isValidCoord, serializeCoords } from '@shared/lib';
@@ -76,7 +80,9 @@ export const searchQueries = {
         return lastPage.paging.hasNext ? lastPage.paging.currentPage + 1 : undefined;
       },
       select: (data) => ({
-        pages: data.pages.map(createKindergartenListWithMeta(params.bookmarks ?? [], params.memos ?? [])),
+        pages: data.pages.map((page) =>
+          toKindergartenList({ item: page, bookmark: params.bookmarks ?? [], memo: params.memos ?? [] })
+        ),
         pageParams: data.pageParams,
       }),
       staleTime: 5 * 60 * 1000,

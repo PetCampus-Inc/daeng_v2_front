@@ -5,7 +5,7 @@ import { useSearchMachine } from './useSearchMachine';
 import { searchQueries } from '../api/searchQueries';
 import { useListOptionsUrlState } from '@features/kindergarten-list';
 import { useUserStore } from '@entities/user';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 import { bookmarkQueries } from '@entities/bookmark';
 import { tokenUtils } from '@shared/utils';
 import { memoQueries } from '@entities/memo';
@@ -44,9 +44,9 @@ export function useSearchListQuery() {
   const { searchList, exact } = useMemo(() => {
     if (!listData) {
       return {
-        searchList: [] as KindergartenListItemWithMeta[],
+        searchList: [] as KindergartenListItem[],
         exact: null,
-        listWithoutExact: [] as KindergartenListItemWithMeta[],
+        listWithoutExact: [] as KindergartenListItem[],
       };
     }
     const allList = listData.pages.flatMap((page) => page.schoolResult.list);
@@ -68,9 +68,7 @@ export function useSearchListQuery() {
 export function useAggregationQuery() {
   const { searchState } = useSearchMachine();
 
-  const { data, dataUpdatedAt, isLoading, isFetching } = useQuery(
-    searchQueries.aggregation({ state: searchState })
-  );
+  const { data, dataUpdatedAt, isLoading, isFetching } = useQuery(searchQueries.aggregation({ state: searchState }));
 
   const aggregation = useMemo(() => {
     if (!data?.aggregations) return [];
