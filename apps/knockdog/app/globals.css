@@ -3,6 +3,9 @@
 @config '@knockdog/ui/tailwind-config';
 @source '@knockdog/ui';
 
+@variant web (&:where([data-env='web'], [data-env='web'] &));
+@variant webview (&:where([data-env='webview'], [data-env='webview'] &));
+
 @theme {
   /* breakpoint */
   --breakpoint-sm: 30rem;
