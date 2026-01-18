@@ -23,16 +23,16 @@ import { FilterChip } from './FilterChip';
 import { PermissionSection } from './PermissionSection';
 import { NoSearchResultSection } from './NoSearchResultSection';
 import { NearByRecommendBanner } from './NearByRecommendBanner';
-import { useBookmarkToggle } from '../model/useBookmarkToggle';
+import { useListBookmarkToggle } from '../model/useListBookmarkToggle';
+import { overlay } from 'overlay-kit';
 import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
+import { useUserStore, USER_ADDRESS_TYPE } from '@entities/user';
 import { GetLocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
-import { overlay } from 'overlay-kit';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
-import { useUserStore, USER_ADDRESS_TYPE } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
 interface KindergartenListProps {
@@ -54,7 +54,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
   const { listQuery, searchListQueryKey, searchList, exact, totalCount } = useFilteredSearchList();
-  const { onBookmarkClick } = useBookmarkToggle(searchListQueryKey);
+  const { mutate } = useListBookmarkToggle(searchListQueryKey);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
 
@@ -112,6 +112,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
         </AlertDialogContent>
       </AlertDialog>
     ));
+
+  const handleBookmarkClick = (id: string, bookmarked: boolean) => {
+    mutate({ id, bookmarked });
+  };
 
   useEffect(() => {
     const root = isFullExtended ? containerRef.current : null;
@@ -223,13 +227,13 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
 
             {exact && (
               <>
-                <KindergartenListItem {...exact} onBookmarkClick={onBookmarkClick} />
+                <KindergartenListItem {...exact} onBookmarkClick={handleBookmarkClick} />
                 <NearByRecommendBanner title={exact.title} />
               </>
             )}
             {searchList.map((item) => (
               <Fragment key={item.id}>
-                <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={onBookmarkClick} />
+                <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={handleBookmarkClick} />
                 <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
               </Fragment>
             ))}

@@ -1,11 +1,15 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
-import { SERVICE_TAGS, ServiceBadgesTruncated, type KindergartenListItemWithMeta } from '@entities/kindergarten';
+import {
+  SERVICE_TAGS,
+  ServiceBadgesTruncated,
+  type KindergartenListItem as KindergartenListItemType,
+} from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 
-interface KindergartenListItemProps extends KindergartenListItemWithMeta {
+interface KindergartenListItemProps extends KindergartenListItemType {
   onBookmarkClick?: (id: string, bookmarked: boolean) => void;
 }
 
