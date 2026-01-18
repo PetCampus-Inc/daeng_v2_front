@@ -3,7 +3,7 @@ import { LinkingOptions, PartialState, NavigationState } from '@react-navigation
 import * as Linking from 'expo-linking';
 import { RootStackParamList } from '@/types/navigation';
 
-const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL || 'https://knockdog-v2.vercel.app';
+const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL || 'https://app.knockdog.net';
 
 // 탭 경로 매핑
 type TabScreen = NonNullable<RootStackParamList['Tabs']>['screen'];
@@ -40,7 +40,7 @@ function useLinking(): LinkingOptions<RootStackParamList> {
         // 그 외 모든 경로는 Stack 스크린으로 라우팅
         // 예) daengv2mobile://kindergarten/123
         //     → path = "kindergarten/123"
-        //     → fullUrl = "https://knockdog-v2.vercel.app/kindergarten/123"
+        //     → fullUrl = "https://app.knockdog.net/kindergarten/123"
         const fullUrl = path.startsWith('http') ? path : `${WEBVIEW_URL}/${normalizedPath}`;
 
         return {

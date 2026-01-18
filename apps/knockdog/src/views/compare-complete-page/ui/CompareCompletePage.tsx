@@ -26,7 +26,7 @@ function CompareCompletePage() {
   const handleShare = () => {
     if (!left || !right) return;
 
-    const url = `https://knockdog.com/compare-complete?ids=${left.id},${right.id}`;
+    const url = `https://app.knockdog.net/compare-complete?ids=${left.id},${right.id}`;
     const shareData = {
       message: `${left.name}와 ${right.name}의 비교 결과를 확인해보세요!\n ${url}`,
       url,
