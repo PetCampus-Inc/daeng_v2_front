@@ -1,5 +1,5 @@
-import { OPEN_STATUS_MAP, CTAG_MAP } from './constants/kindergarten';
-import { PICKUP_TYPE, SERVICE_TAGS } from '../config/constant';
+import { CTAG_MAP } from './constants/kindergarten';
+import { OPERATION_STATUS, PICKUP_TYPE, SERVICE_TAGS } from '../config/constant';
 export interface Kindergarten {
   id: string;
   title: string;
@@ -9,7 +9,7 @@ export interface Kindergarten {
     endTime: string;
   };
   operationDescription: string;
-  operationStatus: keyof typeof OPEN_STATUS_MAP;
+  operationStatus: keyof typeof OPERATION_STATUS;
   price: number;
   dist: number;
   coords: {

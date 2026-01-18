@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 import { Chip, Float, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CurrentLocationDisplayFAB,
   CurrentLocationFAB,
@@ -24,7 +25,7 @@ import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-ma
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 import { isEqualCoord, useBottomSheetSnapIndex } from '@shared/lib';
 import { useMarkerState } from '@shared/store';
 
@@ -46,9 +47,6 @@ function KindergartenMainPageContent() {
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   const shouldShowRefresh = useMemo(() => {
     if (!liveState.viewportBounds) return false;
@@ -79,7 +77,7 @@ function KindergartenMainPageContent() {
     });
   };
 
-  const handleOpenCard = (item: KindergartenListItemWithMeta) => {
+  const handleOpenCard = (item: KindergartenListItem) => {
     const itemId = item.id;
 
     if (useMarkerState.getState().activeMarkerId === itemId) {
@@ -87,8 +85,20 @@ function KindergartenMainPageContent() {
     }
 
     setActiveMarker(itemId);
-    setSelectedItemId(itemId);
-    setIsSheetOpen(true);
+
+    overlay.open(({ isOpen, unmount }) => (
+      <KindergartenItemSheet
+        isOpen={isOpen}
+        onClose={() => {
+          if (useMarkerState.getState().activeMarkerId === itemId) {
+            setActiveMarker(null);
+          }
+          unmount();
+        }}
+        {...item}
+        coords={{ lng: committedState.refPoint?.lng ?? 0, lat: committedState.refPoint?.lat ?? 0 }}
+      />
+    ));
   };
 
   const handleOpenFilter = () => {
@@ -169,20 +179,6 @@ function KindergartenMainPageContent() {
       >
         <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
       </KindergartenListSheet>
-
-      {isSheetOpen && selectedItemId && (
-        <KindergartenItemSheet
-          isOpen={isSheetOpen}
-          onClose={() => {
-            if (useMarkerState.getState().activeMarkerId === selectedItemId) {
-              setActiveMarker(null);
-            }
-            setIsSheetOpen(false);
-            setSelectedItemId(null);
-          }}
-          itemId={selectedItemId}
-        />
-      )}
     </>
   );
 }

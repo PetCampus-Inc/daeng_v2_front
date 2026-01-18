@@ -1,11 +1,11 @@
-import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { type InfiniteData, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo } from 'react';
 import { useSearchMachine } from './useSearchMachine';
 
 import { searchQueries } from '../api/searchQueries';
 import { useListOptionsUrlState } from '@features/kindergarten-list';
 import { useUserStore } from '@entities/user';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import { type KindergartenListItem, type KindergartenSearchListDto, toKindergartenList } from '@entities/kindergarten';
 import { bookmarkQueries } from '@entities/bookmark';
 import { tokenUtils } from '@shared/utils';
 import { memoQueries } from '@entities/memo';
@@ -33,8 +33,23 @@ export function useSearchListQuery() {
     memos: isLoggedIn ? memoListQuery.data?.memos : [],
   });
 
+  const select = useCallback(
+    (data: InfiniteData<KindergartenSearchListDto>) => ({
+      pages: data.pages.map((page) =>
+        toKindergartenList({
+          item: page,
+          bookmark: isLoggedIn ? (bookmarksQuery.data ?? []) : [],
+          memo: isLoggedIn ? (memoListQuery.data?.memos ?? []) : [],
+        })
+      ),
+      pageParams: data.pageParams,
+    }),
+    [bookmarksQuery.data, memoListQuery.data, isLoggedIn]
+  );
+
   const searchListQuery = useInfiniteQuery({
     ...searchListOptions,
+    select,
     enabled: searchListOptions.enabled && (isLoggedIn ? !bookmarksQuery.isLoading : true),
     placeholderData: keepPreviousData,
   });
@@ -44,9 +59,9 @@ export function useSearchListQuery() {
   const { searchList, exact } = useMemo(() => {
     if (!listData) {
       return {
-        searchList: [] as KindergartenListItemWithMeta[],
+        searchList: [] as KindergartenListItem[],
         exact: null,
-        listWithoutExact: [] as KindergartenListItemWithMeta[],
+        listWithoutExact: [] as KindergartenListItem[],
       };
     }
     const allList = listData.pages.flatMap((page) => page.schoolResult.list);
@@ -68,9 +83,7 @@ export function useSearchListQuery() {
 export function useAggregationQuery() {
   const { searchState } = useSearchMachine();
 
-  const { data, dataUpdatedAt, isLoading, isFetching } = useQuery(
-    searchQueries.aggregation({ state: searchState })
-  );
+  const { data, dataUpdatedAt, isLoading, isFetching } = useQuery(searchQueries.aggregation({ state: searchState }));
 
   const aggregation = useMemo(() => {
     if (!data?.aggregations) return [];

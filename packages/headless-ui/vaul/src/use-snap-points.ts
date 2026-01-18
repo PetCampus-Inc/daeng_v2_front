@@ -2,7 +2,21 @@ import React from 'react';
 import { set, isVertical } from './helpers';
 import { TRANSITIONS, VELOCITY_THRESHOLD } from './constants';
 import { useControllableState } from './use-controllable-state';
-import { DrawerDirection, SnapPoint, SnapContext } from './types';
+import { ContentSnap, DrawerDirection, SnapPoint } from './types';
+
+function isContentSnap(snapPoint: SnapPoint): snapPoint is ContentSnap {
+  return typeof snapPoint === 'object' && snapPoint !== null && 'type' in snapPoint && snapPoint.type === 'content';
+}
+
+// SnapPoint 비교를 위해 content 타입은 값 기반으로 비교한다.
+function isSameSnapPoint(a: SnapPoint | null | undefined, b: SnapPoint | null | undefined) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (isContentSnap(a) && isContentSnap(b)) {
+    return a.min === b.min && a.max === b.max;
+  }
+  return false;
+}
 
 export function useSnapPoints({
   activeSnapPointProp,
@@ -15,6 +29,9 @@ export function useSnapPoints({
   direction = 'bottom',
   container,
   snapToSequentialPoint,
+  isOpen,
+  isDragging,
+  shouldAnimate = true,
   onSnapPointsResolved,
 }: {
   activeSnapPointProp?: SnapPoint | null;
@@ -27,6 +44,9 @@ export function useSnapPoints({
   direction?: DrawerDirection;
   container?: HTMLElement | null | undefined;
   snapToSequentialPoint?: boolean;
+  isOpen: boolean;
+  isDragging: boolean;
+  shouldAnimate?: boolean;
   onSnapPointsResolved?: (resolved: number[]) => void;
 }) {
   const [activeSnapPoint, setActiveSnapPoint] = useControllableState<SnapPoint | null>({
@@ -35,64 +55,20 @@ export function useSnapPoints({
     onChange: setActiveSnapPointProp,
   });
 
-  const [measuredDrawerHeight, setMeasuredDrawerHeight] = React.useState(0);
-
-  const activeSnapPointRef = React.useRef(activeSnapPoint);
-
-  React.useEffect(() => {
-    activeSnapPointRef.current = activeSnapPoint;
-  }, [activeSnapPoint]);
-
-  const hasContentSnap = React.useMemo(
-    () => snapPoints?.some((s) => typeof s === 'object' && s !== null && s.type === 'content') ?? false,
-    [snapPoints],
-  );
-  const isActiveContentSnap = React.useMemo(
-    () => typeof activeSnapPoint === 'object' && activeSnapPoint !== null && activeSnapPoint.type === 'content',
-    [activeSnapPoint],
-  );
-
-  React.useEffect(() => {
-    if (!hasContentSnap) return;
-
-    let rafId: number | null = null;
-    let observer: ResizeObserver | null = null;
-
-    const startObserving = () => {
-      if (!drawerRef.current) {
-        rafId = window.requestAnimationFrame(startObserving);
-        return;
-      }
-
-      // Measure drawer content height so content-based snap points can resolve reliably.
-      // We always keep the latest measurement to avoid stale values when switching snap points.
-      observer = new ResizeObserver((entries) => {
-        if (!isActiveContentSnap) return;
-        for (const entry of entries) {
-          const item = entry.borderBoxSize?.[0];
-          const height = item ? item.blockSize : entry.contentRect.height;
-          setMeasuredDrawerHeight(height);
-        }
-      });
-
-      observer.observe(drawerRef.current);
-    };
-
-    startObserving();
-
-    return () => {
-      if (rafId !== null) window.cancelAnimationFrame(rafId);
-      observer?.disconnect();
-    };
-  }, [drawerRef, hasContentSnap, isActiveContentSnap, snapPoints]);
-
-  React.useEffect(() => {
-    if (!isActiveContentSnap || !drawerRef.current) return;
-    const rect = drawerRef.current.getBoundingClientRect();
-    if (rect.height > 0) {
-      setMeasuredDrawerHeight(rect.height);
-    }
-  }, [isActiveContentSnap]);
+  /** content snap 계산에 사용할 drawer(또는 container) 크기 측정값 */
+  const [measuredDrawerSize, setMeasuredDrawerSize] = React.useState<number>(0);
+  /** 마지막 반영된 측정값(measuredDrawerSize)을 저장하는 ref */
+  const measuredDrawerSizeRef = React.useRef(0);
+  /** open 애니메이션 중 측정된 값(measuredDrawerSize)을 임시 저장하는 ref */
+  const pendingMeasuredSizeRef = React.useRef<number | null>(null);
+  /** ResizeObserver 측정을 rAF로 배치하기 위한 프레임 id */
+  const measurementFrameRef = React.useRef<number | null>(null);
+  /** 활성 content snap에서 사용하는 ResizeObserver 인스턴스 */
+  const observerRef = React.useRef<ResizeObserver | null>(null);
+  /** open 애니메이션 종료 시점 추적을 위한 타이머 */
+  const openAnimationTimeoutRef = React.useRef<number | null>(null);
+  /** open 애니메이션 진행 여부 */
+  const [isOpenAnimating, setIsOpenAnimating] = React.useState(false);
 
   const [windowDimensions, setWindowDimensions] = React.useState(
     typeof window !== 'undefined'
@@ -104,6 +80,7 @@ export function useSnapPoints({
   );
 
   React.useEffect(() => {
+    // window 리사이즈 시 현재 viewport 정보 갱신
     function onResize() {
       setWindowDimensions({
         innerWidth: window.innerWidth,
@@ -115,119 +92,224 @@ export function useSnapPoints({
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  React.useEffect(() => {
+    if (!isOpen || !shouldAnimate) {
+      setIsOpenAnimating(false);
+      if (openAnimationTimeoutRef.current !== null) {
+        window.clearTimeout(openAnimationTimeoutRef.current);
+      }
+      return;
+    }
+
+    // open 애니메이션 중 측정 반영 지연
+    setIsOpenAnimating(true);
+    if (openAnimationTimeoutRef.current !== null) {
+      window.clearTimeout(openAnimationTimeoutRef.current);
+    }
+    openAnimationTimeoutRef.current = window.setTimeout(() => {
+      setIsOpenAnimating(false);
+    }, TRANSITIONS.DURATION * 1000);
+
+    return () => {
+      if (openAnimationTimeoutRef.current !== null) {
+        window.clearTimeout(openAnimationTimeoutRef.current);
+      }
+    };
+  }, [isOpen, shouldAnimate]);
+
+  const hasContentSnap = React.useMemo(
+    () => snapPoints?.some((snapPoint) => isContentSnap(snapPoint)) ?? false,
+    [snapPoints],
+  );
+
   const isLastSnapPoint = React.useMemo(
-    () => activeSnapPoint === snapPoints?.[snapPoints.length - 1] || null,
+    () => (snapPoints ? isSameSnapPoint(activeSnapPoint, snapPoints[snapPoints.length - 1]) : null),
     [snapPoints, activeSnapPoint],
   );
 
-  const activeSnapPointIndex = React.useMemo(() => {
-    if (!snapPoints || snapPoints.length === 0) return null;
-    const index = snapPoints.findIndex((snapPoint) => snapPoint === activeSnapPoint);
-    return index >= 0 ? index : null;
-  }, [snapPoints, activeSnapPoint]);
-
-  React.useEffect(() => {
-    if (!snapPoints || snapPoints.length === 0) return;
-    if (activeSnapPointIndex !== null) return;
-    if (activeSnapPoint == null) return;
-
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[Vaul:Snap] activeSnapPoint is not in snapPoints. Resetting to first snap point.', {
-        activeSnapPoint,
-        snapPoints,
-      });
-    }
-
-    setActiveSnapPoint(snapPoints[0] ?? null);
-  }, [activeSnapPointIndex, activeSnapPoint, setActiveSnapPoint, snapPoints]);
+  const activeSnapPointIndex = React.useMemo(
+    () => snapPoints?.findIndex((snapPoint) => isSameSnapPoint(snapPoint, activeSnapPoint)) ?? null,
+    [snapPoints, activeSnapPoint],
+  );
 
   const shouldFade =
     (snapPoints &&
       snapPoints.length > 0 &&
       (fadeFromIndex || fadeFromIndex === 0) &&
       !Number.isNaN(fadeFromIndex) &&
-      snapPoints[fadeFromIndex] === activeSnapPoint) ||
+      isSameSnapPoint(snapPoints[fadeFromIndex], activeSnapPoint)) ||
     !snapPoints;
 
+  // 오픈 애니메이션이 끝난 뒤 대기 중인 측정값을 반영
+  React.useEffect(() => {
+    if (isOpenAnimating) return;
+    if (pendingMeasuredSizeRef.current === null) return;
+
+    const nextValue = pendingMeasuredSizeRef.current;
+    pendingMeasuredSizeRef.current = null;
+    if (measuredDrawerSizeRef.current === nextValue) return;
+    measuredDrawerSizeRef.current = nextValue;
+    setMeasuredDrawerSize(nextValue);
+  }, [isOpenAnimating]);
+
+  // 활성 content 스냅일 때만 ResizeObserver로 측정값 갱신
+  React.useEffect(() => {
+    const shouldObserve =
+      isOpen &&
+      hasContentSnap &&
+      !!activeSnapPoint &&
+      isContentSnap(activeSnapPoint) &&
+      !isDragging &&
+      drawerRef.current;
+    if (!shouldObserve) {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      if (measurementFrameRef.current !== null) {
+        window.cancelAnimationFrame(measurementFrameRef.current);
+        measurementFrameRef.current = null;
+      }
+      return;
+    }
+
+    const element = drawerRef.current;
+
+    // 현재 drawer 크기를 측정하고 상태에 반영
+    const measure = () => {
+      const nextValue = isVertical(direction)
+        ? element.getBoundingClientRect().height
+        : element.getBoundingClientRect().width;
+
+      if (isOpenAnimating) {
+        pendingMeasuredSizeRef.current = nextValue;
+        return;
+      }
+
+      if (measuredDrawerSizeRef.current === nextValue) return;
+      measuredDrawerSizeRef.current = nextValue;
+      setMeasuredDrawerSize(nextValue);
+    };
+
+    // 활성 content snap에서만 ResizeObserver로 크기를 감지
+    observerRef.current = new ResizeObserver(() => {
+      if (measurementFrameRef.current !== null) return;
+      measurementFrameRef.current = window.requestAnimationFrame(() => {
+        measurementFrameRef.current = null;
+        measure();
+      });
+    });
+    observerRef.current.observe(element);
+    measure();
+
+    return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      if (measurementFrameRef.current !== null) {
+        window.cancelAnimationFrame(measurementFrameRef.current);
+        measurementFrameRef.current = null;
+      }
+    };
+  }, [activeSnapPoint, drawerRef, direction, hasContentSnap, isDragging, isOpen, isOpenAnimating]);
+
+  // SnapPoint를 실제 px 오프셋으로 변환
   const snapPointsOffset = React.useMemo(() => {
     const containerSize = container
       ? { width: container.getBoundingClientRect().width, height: container.getBoundingClientRect().height }
       : typeof window !== 'undefined'
       ? { width: window.innerWidth, height: window.innerHeight }
       : { width: 0, height: 0 };
+    const axisSize = isVertical(direction) ? containerSize.height : containerSize.width;
 
-    const ctx: SnapContext = {
-      viewportHeight: containerSize.height,
-      measuredDrawerHeight,
+    const resolveLength = (length: number | string) => {
+      if (typeof length === 'string') {
+        return Number.parseInt(length, 10);
+      }
+
+      if (length >= 0 && length <= 1) {
+        return axisSize * length;
+      }
+
+      return length;
     };
 
-    const resolve = (snapPoint: SnapPoint, axis: 'x' | 'y'): number => {
-      const size = axis === 'y' ? containerSize.height : containerSize.width;
-      if (typeof snapPoint === 'number') {
-        // 0 to 1 is fraction, > 1 is pixels
-        return snapPoint <= 1 ? snapPoint * size : snapPoint;
-      }
-
-      if (typeof snapPoint === 'string') {
-        if (snapPoint.endsWith('%')) {
-          return (parseFloat(snapPoint) / 100) * size;
-        }
-        return parseInt(snapPoint, 10);
-      }
-
+    // SnapPoint를 실제 drawer 크기(px)로 해석
+    const resolveSnapPointSize = (snapPoint: SnapPoint, index: number) => {
       if (typeof snapPoint === 'function') {
-        return snapPoint(ctx);
+        return resolveLength(
+          snapPoint({
+            viewportHeight: containerSize.height,
+            measuredDrawerHeight: measuredDrawerSize,
+          }),
+        );
       }
 
-      if (typeof snapPoint === 'object' && snapPoint !== null && snapPoint.type === 'content') {
-        const axis: 'x' | 'y' = isVertical(direction) ? 'y' : 'x';
-        let size = isVertical(direction) ? measuredDrawerHeight : containerSize.width;
-        if (size <= 0 && snapPoint.min !== undefined) {
-          size = resolve(snapPoint.min as SnapPoint, axis);
-        }
-        if (snapPoint.min !== undefined) {
-          size = Math.max(size, resolve(snapPoint.min as SnapPoint, axis));
-        }
-        if (snapPoint.max !== undefined) {
-          size = Math.min(size, resolve(snapPoint.max as SnapPoint, axis));
-        }
-        return size;
+      if (!isContentSnap(snapPoint)) {
+        return resolveLength(snapPoint);
       }
 
-      return 0;
+      const minSize = resolveLength(snapPoint.min);
+      const maxSize = snapPoint.max !== undefined ? resolveLength(snapPoint.max) : undefined;
+      const isActiveContentSnap = index === activeSnapPointIndex;
+      const shouldUseMeasured = isOpen && !isDragging && !isOpenAnimating && isActiveContentSnap;
+      const measuredSize = shouldUseMeasured && measuredDrawerSize > 0 ? measuredDrawerSize : 0;
+      let size = measuredSize > 0 ? measuredSize : minSize;
+
+      size = Math.max(size, minSize);
+      if (maxSize !== undefined) {
+        size = Math.min(size, maxSize);
+      }
+
+      return size;
     };
 
-    const offsets =
-      snapPoints?.map((snapPoint) => {
-        const heightOrWidth = resolve(snapPoint, isVertical(direction) ? 'y' : 'x');
+    const resolvedSizes = snapPoints?.map((snapPoint, index) => resolveSnapPointSize(snapPoint, index)) ?? [];
+    const clampedSizes = resolvedSizes.map((size, index) => {
+      const snapPoint = snapPoints?.[index];
+      if (!snapPoint || !isContentSnap(snapPoint)) return size;
 
-        if (isVertical(direction)) {
-          if (windowDimensions) {
-            return direction === 'bottom'
-              ? containerSize.height - heightOrWidth
-              : -containerSize.height + heightOrWidth;
-          }
-          return heightOrWidth;
-        }
-        if (windowDimensions) {
-          return direction === 'right' ? containerSize.width - heightOrWidth : -containerSize.width + heightOrWidth;
-        }
-        return heightOrWidth;
-      }) ?? [];
+      // content snap이 이웃 snap을 넘지 않도록 clamp
+      let clamped = size;
+      const prevSize = resolvedSizes[index - 1];
+      const nextSize = resolvedSizes[index + 1];
+      if (typeof prevSize === 'number') {
+        clamped = Math.max(clamped, prevSize);
+      }
+      if (typeof nextSize === 'number') {
+        clamped = Math.min(clamped, nextSize);
+      }
 
-    return offsets;
-  }, [snapPoints, windowDimensions, container, measuredDrawerHeight, hasContentSnap, direction]);
+      return clamped;
+    });
 
-  React.useEffect(() => {
-    if (!onSnapPointsResolved) return;
-    onSnapPointsResolved(snapPointsOffset);
-  }, [snapPointsOffset, onSnapPointsResolved]);
+    return clampedSizes.map((size) => {
+      if (isVertical(direction)) {
+        return direction === 'bottom' ? axisSize - size : -axisSize + size;
+      }
+
+      return direction === 'right' ? axisSize - size : -axisSize + size;
+    });
+  }, [
+    activeSnapPointIndex,
+    container,
+    direction,
+    isDragging,
+    isOpen,
+    isOpenAnimating,
+    measuredDrawerSize,
+    snapPoints,
+    windowDimensions,
+  ]);
 
   const activeSnapPointOffset = React.useMemo(
     () => (activeSnapPointIndex !== null ? snapPointsOffset?.[activeSnapPointIndex] : null),
     [snapPointsOffset, activeSnapPointIndex],
   );
 
+  React.useEffect(() => {
+    if (!snapPointsOffset || !onSnapPointsResolved) return;
+    onSnapPointsResolved(snapPointsOffset);
+  }, [onSnapPointsResolved, snapPointsOffset]);
+
+  // 지정된 스냅 포인트로 이동하고 오버레이 상태 동기화
   const snapToPoint = React.useCallback(
     (dimension: number) => {
       const newSnapPointIndex = snapPointsOffset?.findIndex((snapPointDim) => snapPointDim === dimension) ?? null;
@@ -258,17 +340,24 @@ export function useSnapPoints({
 
       setActiveSnapPoint(snapPoints?.[Math.max(newSnapPointIndex, 0)]);
     },
-    [drawerRef.current, snapPoints, snapPointsOffset, fadeFromIndex, overlayRef, setActiveSnapPoint],
+    [drawerRef.current, direction, fadeFromIndex, overlayRef, setActiveSnapPoint, snapPoints, snapPointsOffset],
   );
 
+  // activeSnapPoint가 바뀌면 드래그 중이 아닐 때 위치 맞추기
   React.useEffect(() => {
-    if (activeSnapPointIndex === null) return;
-    const offset = snapPointsOffset?.[activeSnapPointIndex];
-    if (typeof offset === 'number') {
-      snapToPoint(offset);
+    if (isDragging) return;
+    if (activeSnapPoint || activeSnapPointProp) {
+      const newIndex =
+        snapPoints?.findIndex(
+          (snapPoint) => isSameSnapPoint(snapPoint, activeSnapPointProp) || isSameSnapPoint(snapPoint, activeSnapPoint),
+        ) ?? -1;
+      if (snapPointsOffset && newIndex !== -1 && typeof snapPointsOffset[newIndex] === 'number') {
+        snapToPoint(snapPointsOffset[newIndex] as number);
+      }
     }
-  }, [activeSnapPointIndex, snapPointsOffset, snapToPoint]);
+  }, [activeSnapPoint, activeSnapPointProp, isDragging, snapPoints, snapPointsOffset, snapToPoint]);
 
+  // 드래그 종료 시 velocity와 이동 거리를 기준으로 스냅 결정
   function onRelease({
     draggedDistance,
     closeDrawer,
@@ -337,6 +426,7 @@ export function useSnapPoints({
     snapToPoint(closestSnapPoint);
   }
 
+  // 드래그 중 이동값에 맞게 transform 적용
   function onDrag({ draggedDistance }: { draggedDistance: number }) {
     if (activeSnapPointOffset === null) return;
     const newValue =

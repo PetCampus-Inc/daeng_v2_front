@@ -29,12 +29,7 @@ function KindergartenDetailPage() {
   const { position } = useCurrentLocation();
   const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
 
-  const { data: kindergartenMain } = useKindergartenMainQuery({
-    id,
-    lng,
-    lat,
-    enabled: Boolean(id && lng != null && lat != null),
-  });
+  const { data: kindergartenMain } = useKindergartenMainQuery({ id, lng, lat });
 
   const share = useShare();
 

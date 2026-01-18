@@ -20,20 +20,20 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='ko' className={cn(suit.variable)}>
+    <html lang='ko' className={cn(suit.variable)} data-env='web' suppressHydrationWarning>
       <HeaderProvider>
         <body className='overflow-hidden'>
           <NuqsAdapter>
             <ReactQueryProvider>
               <BridgeProvider>
-                <OverlayProvider>
-                  <SyncWebViewQueryEffect />
-                  <div className='relative mx-auto flex h-dvh w-screen max-w-screen-sm flex-col shadow-lg'>
+                <SyncWebViewQueryEffect />
+                <div id='root' className='relative mx-auto flex h-dvh w-screen max-w-screen-sm flex-col shadow-lg'>
+                  <OverlayProvider>
                     {/* @TODO HeaderWrapper 추후 삭제 필요 */}
                     <HeaderWrapper />
                     {children}
-                  </div>
-                </OverlayProvider>
+                  </OverlayProvider>
+                </div>
               </BridgeProvider>
             </ReactQueryProvider>
           </NuqsAdapter>

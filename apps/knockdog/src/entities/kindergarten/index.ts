@@ -33,8 +33,8 @@ export type { FilterResultCount } from './model/filters';
 export type {
   Aggregation,
   SidoGunguAggregation,
-  KindergartenSearchList,
-  KindergartenListItem,
+  KindergartenSearchListDto,
+  KindergartenListItemDto,
 } from './model/search-list';
 export type { Kindergarten } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
@@ -58,7 +58,8 @@ export {
   OPEN_STATUS_MAP,
   CTAG_MAP,
 } from './model/constants/kindergarten';
-export type { KindergartenListItemWithMeta, KindergartenListWithMeta } from './model/types';
+export type { KindergartenListItem, KindergartenList, KindergartenMain } from './model/types';
+export { toKindergartenList, toKindergartenMain } from './model/mappers';
 
 /** ui */
 export { DeparturePointSheet } from './ui/DeparturePointSheet';

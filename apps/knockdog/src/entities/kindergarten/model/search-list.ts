@@ -1,7 +1,7 @@
 import type { OPERATION_STATUS, SERVICE_TAGS, PICKUP_TYPE } from '../config/constant';
 import type { Coord } from '@shared/types';
 
-export interface KindergartenSearchList {
+export interface KindergartenSearchListDto {
   paging: {
     currentPage: number;
     hasNext: boolean;
@@ -11,12 +11,12 @@ export interface KindergartenSearchList {
     totalCount: number;
     exactCount: number;
     nearbyCount: number;
-    exact: KindergartenListItem | null;
-    list: KindergartenListItem[];
+    exact: KindergartenListItemDto | null;
+    list: KindergartenListItemDto[];
   };
 }
 
-export interface KindergartenListItem {
+export interface KindergartenListItemDto {
   id: string;
   title: string;
   ctg: string;

@@ -1,5 +1,5 @@
 /** api */
-export { getBookmarks } from './api/bookmark';
+export { getBookmarks, postBookmark, deleteBookmark } from './api/bookmark';
 
 /** config */
 export { bookmarkQueries } from './config/bookmarkQueries';

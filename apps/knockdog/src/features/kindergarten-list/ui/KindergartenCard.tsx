@@ -3,13 +3,13 @@ import Image from 'next/image';
 import { overlay } from 'overlay-kit';
 import {
   DeparturePointSheet,
-  KindergartenListItemWithMeta,
   SERVICE_TAGS,
   ServiceBadgesTruncated,
+  type KindergartenMain,
 } from '@entities/kindergarten';
 
-interface KindergartenCardProps extends KindergartenListItemWithMeta {
-  onBookmarkClick: (id: string, isBookmarked: boolean) => void;
+interface KindergartenCardProps extends KindergartenMain {
+  onBookmarkClick: (id: string, bookmarked: boolean) => void;
   onPhoneCall: () => void;
 }
 
@@ -19,7 +19,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
       <DeparturePointSheet
         isOpen={isOpen}
         close={close}
-        to={{ lat: props.coord.lat, lng: props.coord.lng, name: props.title }}
+        to={{ lat: props.coords.lat, lng: props.coords.lng, name: props.title }}
       />
     ));
 
@@ -62,7 +62,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
                 <span className='caption1-semibold text-text-primary text-center'>리뷰 {props.reviewCount}개</span>
               </div>
 
-              {props.memo && (
+              {props.memo?.memoDate && (
                 <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-[2px]'>
                   <Icon icon='Note' className='size-x4' />
                   <span className='caption1-semibold text-text-primary'>{props.memo.memoDate}</span>
@@ -119,9 +119,9 @@ export function KindergartenCard(props: KindergartenCardProps) {
         <button
           aria-label='보관하기'
           className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
-          onClick={() => props.onBookmarkClick(props.id, props.isBookmarked ?? false)}
+          onClick={() => props.onBookmarkClick(props.id, props.bookmarked ?? false)}
         >
-          <Icon icon={props.isBookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />
+          <Icon icon={props.bookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />
         </button>
       </div>
     </>

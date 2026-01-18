@@ -54,7 +54,7 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className='flex h-full flex-col'>
-      <TabsList scrollable className='sticky top-0 z-999 bg-white'>
+      <TabsList scrollable className='sticky top-0 z-101 bg-white'>
         <TabsTrigger value='KINDERGARTEN'>관심 유치원 ({bookmarkCount})</TabsTrigger>
         <TabsTrigger value='HISTORY'>비교 기록</TabsTrigger>
       </TabsList>

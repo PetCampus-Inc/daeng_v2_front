@@ -3,11 +3,11 @@ import { Icon } from '@knockdog/ui';
 
 interface BaseBubbleMarkerProps {
   className?: string;
-  isBookmarked?: boolean;
+  bookmarked?: boolean;
   hasMemo?: boolean;
 }
 
-export function BaseBubbleMarker({ className, isBookmarked, hasMemo }: BaseBubbleMarkerProps) {
+export function BaseBubbleMarker({ className, bookmarked, hasMemo }: BaseBubbleMarkerProps) {
   return (
     <div className='relative select-none'>
       <div
@@ -17,7 +17,7 @@ export function BaseBubbleMarker({ className, isBookmarked, hasMemo }: BaseBubbl
         )}
       >
         <div className='gap-x0_5 flex items-center'>
-          {isBookmarked && <Icon icon='BookmarkFill' className={cn('text-fill-secondary-700 size-x4')} />}
+          {bookmarked && <Icon icon='BookmarkFill' className={cn('text-fill-secondary-700 size-x4')} />}
           {hasMemo && <Icon icon='Note' className={cn('text-fill-secondary-700 size-x4')} />}
         </div>
       </div>

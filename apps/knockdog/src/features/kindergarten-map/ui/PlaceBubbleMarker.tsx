@@ -8,7 +8,7 @@ interface PlaceBubbleMarkerProps {
   distance?: string | number;
   selected?: boolean;
   className?: string;
-  isBookmarked?: boolean;
+  bookmarked?: boolean;
   hasMemo?: boolean;
 }
 
@@ -18,7 +18,7 @@ export function PlaceBubbleMarker({
   distance,
   selected,
   className,
-  isBookmarked,
+  bookmarked,
   hasMemo,
 }: PlaceBubbleMarkerProps) {
   return (
@@ -37,7 +37,7 @@ export function PlaceBubbleMarker({
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
             {distance}
           </span>
-          {isBookmarked && (
+          {bookmarked && (
             <Icon
               icon='BookmarkFill'
               className={cn('text-fill-secondary-700 size-x4', selected && 'text-text-primary-inverse')}

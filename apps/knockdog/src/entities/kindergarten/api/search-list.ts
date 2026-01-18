@@ -1,6 +1,6 @@
 import type { FilterOption } from '../config/filter-options';
 import { serializeBounds, serializeFilters } from '../lib/serialize';
-import type { Aggregation, KindergartenSearchList } from '../model/search-list';
+import type { Aggregation, KindergartenSearchListDto } from '../model/search-list';
 import { api } from '@shared/api';
 import { serializeCoords } from '@shared/lib';
 import type { Bounds, Coord } from '@shared/types';
@@ -40,7 +40,7 @@ export function getKindergartenSearchList(params: KindergartenSearchListParams) 
     .get('kindergarten/map-view', {
       searchParams,
     })
-    .json<KindergartenSearchList>();
+    .json<KindergartenSearchListDto>();
 }
 
 export type KindergartenAggregationParams = {

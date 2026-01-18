@@ -7,7 +7,7 @@ import { useFilteredSearchList } from '../model/useFilteredSearchList';
 import { BBoxDebug } from './BBoxDebug';
 import { useSearchMachine } from '../model/useSearchMachine';
 import { toBoundsSnapshot } from '../lib/bounds';
-import type { KindergartenListItemWithMeta } from '@entities/kindergarten';
+import type { KindergartenListItem } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
 import { isEqualBounds, isEqualCoord, useGeolocationQuery } from '@shared/lib';
 import { CurrentLocationMarker } from '@shared/ui/map';
@@ -26,7 +26,7 @@ import { MapMarker } from './MapMarker';
 
 interface MapViewProps {
   ref?: React.Ref<naver.maps.Map | null>;
-  onOpenCard?: (item: KindergartenListItemWithMeta) => void;
+  onOpenCard?: (item: KindergartenListItem) => void;
 }
 
 export function MapView(props: MapViewProps) {
@@ -186,7 +186,7 @@ export function MapView(props: MapViewProps) {
     if (!hasDiff) return;
 
     if (process.env.NODE_ENV === 'development') {
-      console.warn('[MapView][debug] sync viewportBounds (idle)', { center: centerCoord, zoom, viewportBounds });
+      // console.warn('[MapView][debug] sync viewportBounds (idle)', { center: centerCoord, zoom, viewportBounds });
     }
 
     const source = autoFitRef.current ? 'auto-fit' : 'user';
@@ -305,7 +305,7 @@ export function MapView(props: MapViewProps) {
    * 마커 클릭 핸들러
    * @description 마커 클릭 시 지도 중심 이동, 상세 정보 표시 및 마커 활성화 처리
    */
-  const handleMarkerClick = (item: KindergartenListItemWithMeta) => {
+  const handleMarkerClick = (item: KindergartenListItem) => {
     setSelectedClusterId(null);
     dispatch({ type: 'CENTER_CHANGED', center: item.coord });
     onOpenCard?.(item);
@@ -411,7 +411,7 @@ export function MapView(props: MapViewProps) {
                         <ClusterBubbleMarker
                           title={representative.title}
                           distance={representative.dist}
-                          isBookmarked={representative.isBookmarked}
+                          bookmarked={representative.bookmarked}
                           hasMemo={!!representative.memo}
                           totalCount={point_count}
                           selected={representative.id === activeMarkerId}
@@ -443,11 +443,11 @@ export function MapView(props: MapViewProps) {
                         title={marker.title}
                         distance={marker.dist}
                         selected={true}
-                        isBookmarked={marker.isBookmarked}
+                        bookmarked={marker.bookmarked}
                         hasMemo={!!marker.memo}
                       />
-                    ) : marker.isBookmarked || !!marker.memo ? (
-                      <BaseBubbleMarker isBookmarked={marker.isBookmarked} hasMemo={!!marker.memo} />
+                    ) : marker.bookmarked || !!marker.memo ? (
+                      <BaseBubbleMarker bookmarked={marker.bookmarked} hasMemo={!!marker.memo} />
                     ) : (
                       <DotMarker />
                     )
@@ -457,7 +457,7 @@ export function MapView(props: MapViewProps) {
                       title={marker.title}
                       distance={marker.dist}
                       selected={isSelected}
-                      isBookmarked={marker.isBookmarked}
+                      bookmarked={marker.bookmarked}
                       hasMemo={!!marker.memo}
                     />
                   ),
@@ -511,11 +511,11 @@ export function MapView(props: MapViewProps) {
                     title={exact.title}
                     distance={exact.dist}
                     selected={true}
-                    isBookmarked={exact.isBookmarked}
+                    bookmarked={exact.bookmarked}
                     hasMemo={!!exact.memo}
                   />
-                ) : exact.isBookmarked || !!exact.memo ? (
-                  <BaseBubbleMarker isBookmarked={exact.isBookmarked} hasMemo={!!exact.memo} />
+                ) : exact.bookmarked || !!exact.memo ? (
+                  <BaseBubbleMarker bookmarked={exact.bookmarked} hasMemo={!!exact.memo} />
                 ) : (
                   <DotMarker />
                 )
@@ -525,7 +525,7 @@ export function MapView(props: MapViewProps) {
                   title={exact.title}
                   distance={exact.dist}
                   selected={exact.id === activeMarkerId}
-                  isBookmarked={exact.isBookmarked}
+                  bookmarked={exact.bookmarked}
                   hasMemo={!!exact.memo}
                 />
               ),

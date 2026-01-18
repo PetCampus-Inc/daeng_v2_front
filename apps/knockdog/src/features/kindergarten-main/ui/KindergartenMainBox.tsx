@@ -3,9 +3,10 @@ import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
 
-import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
+import { OPEN_STATUS_MAP, CTAG_MAP, type KindergartenMain } from '@entities/kindergarten';
+import { Skeleton } from '@shared/ui/skeleton';
 
-interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}
+interface KindergartenMainBoxProps extends Omit<KindergartenMain, 'banner'> {}
 
 const KindergartenMainBox = ({
   title,
@@ -18,7 +19,7 @@ const KindergartenMainBox = ({
   serviceTags,
   reviewCount,
   pickupType,
-  memoDate,
+  memo,
   coords,
 }: KindergartenMainBoxProps) => {
   const openDeparturePointSheet = () =>
@@ -48,14 +49,18 @@ const KindergartenMainBox = ({
       </div>
       <div className='flex flex-col gap-[4px]'>
         <div>
-          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist.toFixed(2)}km</span>
+          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist}</span>
           <span className='body2-regular'>{roadAddress}</span>
         </div>
         <div>
           <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
             {OPEN_STATUS_MAP[operationStatus]}
           </span>
-          <span className='body2-regular'>{operationDescription}</span>
+          {operationDescription ? (
+            <span className='body2-regular'>{operationDescription}</span>
+          ) : (
+            <Skeleton aria-hidden='true' className='radius-r1 inline-block h-[16px] w-[160px] align-middle' />
+          )}
         </div>
       </div>
       {/* 뱃지 및 가격영역 */}
@@ -65,10 +70,10 @@ const KindergartenMainBox = ({
             <Icon icon='Naver' className='h-[16px] w-[16px]' />
             리뷰 {reviewCount}개
           </div>
-          {memoDate && (
+          {memo?.memoDate && (
             <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
               <Icon icon='Note' className='h-[16px] w-[16px]' />
-              {memoDate} 노트
+              {memo?.memoDate} 노트
             </div>
           )}
         </div>
