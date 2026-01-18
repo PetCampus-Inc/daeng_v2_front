@@ -41,3 +41,5 @@ yarn-error.log*
 *storybook.log
 storybook-static
 .pnpm-store
+
+.agent
