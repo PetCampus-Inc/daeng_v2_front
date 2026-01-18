@@ -66,11 +66,11 @@ jobs:
       - name: Run ${{ matrix.command }}
         run: |
           if [ "${{ matrix.command }}" = "build" ]; then
-            COMMAND="pnpm --filter=knockdog... build"
+            COMMAND="pnpm turbo run build --filter=knockdog..."
           elif [ "${{ matrix.command }}" = "type-check" ]; then
-            COMMAND="pnpm --filter=knockdog type-check"
+            COMMAND="pnpm turbo run type-check --filter=knockdog"
           else
-            COMMAND="pnpm --filter=knockdog ${{ matrix.command }}"
+            COMMAND="pnpm turbo run ${{ matrix.command }} --filter=knockdog"
           fi
 
           if eval "$COMMAND"; then
@@ -81,6 +81,7 @@ jobs:
             exit 1
           fi
         env:
+          TURBO_CACHE_DIR: .turbo
           NEXT_TELEMETRY_DISABLED: 1
           # CI 빌드용 환경변수
           NEXT_PUBLIC_API_BASE_URL: 'https://example.com'
