@@ -52,8 +52,8 @@ function KindergartenDetailPage() {
 
   const handleShare = () => {
     const shareData = {
-      message: `${kindergartenMain.title}\n https://knockdog.com/kindergarten/${id}`,
-      url: `https://knockdog.com/kindergarten/${id}`,
+      message: `${kindergartenMain.title}\n https://app.knockdog.net/kindergarten/${id}`,
+      url: `https://app.knockdog.net/kindergarten/${id}`,
     };
 
     share(shareData);

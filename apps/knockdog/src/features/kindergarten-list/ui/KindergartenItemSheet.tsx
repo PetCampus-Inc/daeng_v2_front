@@ -63,8 +63,8 @@ export function KindergartenItemSheet({ itemId, isOpen, onClose }: KindergartenI
   const share = useShare();
   const handleShare = () => {
     const shareData = {
-      message: `${currentItem?.title}\n https://knockdog.com/kindergarten/${currentItem?.id}`,
-      url: `https://knockdog.com/kindergarten/${currentItem?.id}`,
+      message: `${currentItem?.title}\n https://app.knockdog.net/kindergarten/${currentItem?.id}`,
+      url: `https://app.knockdog.net/kindergarten/${currentItem?.id}`,
     };
 
     share(shareData);
