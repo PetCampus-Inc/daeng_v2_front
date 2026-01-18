@@ -81,6 +81,7 @@ const OPEN_STATUS_MAP = {
   OPEN: '영업중',
   CLOSED: '영업종료',
   HOLIDAY: '오늘 휴무',
+  DAY_OFF: '오늘 휴무', // FIXME: 삭제될 수 있음.
 } as const;
 
 const CTAG_MAP = {
