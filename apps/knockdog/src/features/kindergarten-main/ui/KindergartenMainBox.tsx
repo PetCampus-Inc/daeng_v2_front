@@ -4,6 +4,7 @@ import { Icon, Divider } from '@knockdog/ui';
 import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
 
 import { OPEN_STATUS_MAP, CTAG_MAP, type KindergartenMain } from '@entities/kindergarten';
+import { Skeleton } from '@shared/ui/skeleton';
 
 interface KindergartenMainBoxProps extends Omit<KindergartenMain, 'banner'> {}
 
@@ -55,7 +56,11 @@ const KindergartenMainBox = ({
           <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
             {OPEN_STATUS_MAP[operationStatus]}
           </span>
-          <span className='body2-regular'>{operationDescription}</span>
+          {operationDescription ? (
+            <span className='body2-regular'>{operationDescription}</span>
+          ) : (
+            <Skeleton aria-hidden='true' className='radius-r1 inline-block h-[16px] w-[160px] align-middle' />
+          )}
         </div>
       </div>
       {/* 뱃지 및 가격영역 */}
