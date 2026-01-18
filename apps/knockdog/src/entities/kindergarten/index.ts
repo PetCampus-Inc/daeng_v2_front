@@ -30,7 +30,12 @@ export type {
   AutocompletePlace,
 } from './model/autocomplete';
 export type { FilterResultCount } from './model/filters';
-export type { Aggregation, SidoGunguAggregation } from './model/search-list';
+export type {
+  Aggregation,
+  SidoGunguAggregation,
+  KindergartenSearchListDto,
+  KindergartenListItemDto,
+} from './model/search-list';
 export type { Kindergarten } from './model/kindergarten';
 export type { KindergartenNear } from './model/kindergarten-near';
 export type { KindergartenBasic, Coord, OperationTime } from './model/kindergarten-basic';

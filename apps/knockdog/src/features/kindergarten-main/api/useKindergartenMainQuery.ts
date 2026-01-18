@@ -1,5 +1,11 @@
+import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { type KindergartenMainParams, kindergartenQueries, toKindergartenMain } from '@entities/kindergarten';
+import {
+  type Kindergarten,
+  type KindergartenMainParams,
+  kindergartenQueries,
+  toKindergartenMain,
+} from '@entities/kindergarten';
 import { useUserStore } from '@entities/user';
 import { bookmarkQueries } from '@entities/bookmark';
 import { memoQueries } from '@entities/memo';
@@ -20,16 +26,21 @@ export function useKindergartenMainQuery(params: KindergartenMainParams) {
     enabled: isLoggedIn,
   });
 
-  return useQuery({
-    ...kindergartenQueries.main({ id, lng, lat }),
-    staleTime: 5 * 60 * 1000,
-    refetchOnMount: false,
-    select: (data) =>
+  const select = useCallback(
+    (data: Kindergarten) =>
       toKindergartenMain({
         item: data,
         memo: memoListQuery.data?.memos ?? [],
         bookmark: bookmarksQuery.data ?? [],
       }),
+    [bookmarksQuery.data, memoListQuery.data]
+  );
+
+  return useQuery({
+    ...kindergartenQueries.main({ id, lng, lat }),
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    select,
     enabled: Boolean(id && lng != null && lat != null),
   });
 }
