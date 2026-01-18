@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='ko' className={cn(suit.variable)} suppressHydrationWarning>
+    <html lang='ko' className={cn(suit.variable)} data-env='web' suppressHydrationWarning>
       <HeaderProvider>
         <body className='overflow-hidden'>
           <NuqsAdapter>

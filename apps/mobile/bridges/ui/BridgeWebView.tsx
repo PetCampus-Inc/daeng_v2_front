@@ -60,7 +60,9 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
     (function(){
       var insets = { top: ${top}, bottom: ${bottom}, left: ${left}, right: ${right} };
       window.__SAFE_AREA_INSETS__ = insets;
-      var style = document.documentElement.style;
+      var root = document.documentElement;
+      root.setAttribute('data-env', 'webview');
+      var style = root.style;
       style.setProperty('--safe-area-inset-top', '${top}px');
       style.setProperty('--safe-area-inset-bottom', '${bottom}px');
       style.setProperty('--safe-area-inset-left', '${left}px');
