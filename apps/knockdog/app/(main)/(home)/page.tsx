@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <Suspense>
-      <div className={cn('relative h-full w-full', !isWebView && 'mb-(--bottom-bar-height)')}>
+      <div id='main' className={cn('relative h-full w-full', !isWebView && 'mb-(--bottom-bar-height)')}>
         <KindergartenMainPage />
       </div>
     </Suspense>
