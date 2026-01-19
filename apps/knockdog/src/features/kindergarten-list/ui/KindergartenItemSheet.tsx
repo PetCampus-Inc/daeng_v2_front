@@ -28,7 +28,7 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
   const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? TOP_BAR_HEIGHT + top : TOP_BAR_HEIGHT;
 
   const dynamicSnapPoints = useMemo(() => [{ type: 'content' as const, min: MIN_SNAP_POINT_OFFSET }, 1], []);
-  const [activeSnapPoint, setActiveSnapPoint] = useState<BottomSheetSnapPoint>(null);
+  const [activeSnapPoint, setActiveSnapPoint] = useState<BottomSheetSnapPoint>(dynamicSnapPoints[0] ?? null);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +58,7 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
   });
 
   const handleBack = useCallback(() => {
-    setActiveSnapPoint(dynamicSnapPoints[0] as BottomSheetSnapPoint);
+    setActiveSnapPoint(dynamicSnapPoints[0] ?? null);
   }, [dynamicSnapPoints]);
 
   const setContainerRef = useCallback((node: HTMLDivElement | null) => {
@@ -89,16 +89,15 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
           open={isOpen}
           onOpenChange={onClose}
           modal={false}
-          snapPoints={dynamicSnapPoints as ComponentProps<typeof BottomSheet.Root>['snapPoints']}
+          snapPoints={dynamicSnapPoints}
           activeSnapPoint={activeSnapPoint}
           setActiveSnapPoint={setActiveSnapPoint}
           snapToSequentialPoint
           container={container}
-          {...({
-            onSnapPointsResolved: (resolved: number[]) => {
-              snapOffsetsRef.current = resolved;
-            },
-          } as any)}
+          onSnapPointsResolved={(resolved) => {
+            snapOffsetsRef.current = resolved;
+          }}
+
         >
           <BottomSheet.Body
             ref={viewRef}
