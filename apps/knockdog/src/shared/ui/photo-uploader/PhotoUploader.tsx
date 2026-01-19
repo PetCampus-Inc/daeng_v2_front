@@ -55,7 +55,7 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
       if ((error as string) === 'NO_PERMISSION_LIBRARY' || (error as string) === 'NO_PERMISSION_CAMERA') {
         overlay.open(({ isOpen, close }) => (
           <AlertDialog open={isOpen} onOpenChange={close}>
-            <AlertDialogContent>
+            <AlertDialogContent overlayClassName='z-102' className='z-103'>
               <AlertDialogHeader>
                 <AlertDialogTitle>사진 접근 권한이 필요해요</AlertDialogTitle>
                 <AlertDialogDescription>
