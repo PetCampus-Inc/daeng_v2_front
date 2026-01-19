@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
 
 interface ProfileImageUploaderProps {
   profileImage?: string;
@@ -34,6 +35,17 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
       }
     } catch (error) {
       console.error('이미지 선택 실패:', error);
+      if ((error as string) === 'NO_PERMISSION_LIBRARY') {
+        toast({
+          title: '사진 접근 권한이 필요합니다.',
+          position: 'bottom-above-nav',
+        });
+      } else {
+        toast({
+          title: error instanceof Error ? error.message : String(error),
+          position: 'bottom-above-nav',
+        });
+      }
     }
   };
 
