@@ -1,17 +1,13 @@
-import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import neostandard from 'neostandard';
-import tseslint from 'typescript-eslint';
+import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import { config as baseConfig } from './base.js';
 
 export const config = [
   ...baseConfig,
-  js.configs.recommended,
   ...neostandard({ noStyle: true }),
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
   {
     // eslint-plugin-react
     languageOptions: {
@@ -23,6 +19,7 @@ export const config = [
   },
   {
     plugins: {
+      react: pluginReact,
       'react-hooks': pluginReactHooks,
     },
     settings: { react: { version: 'detect' } },
@@ -32,4 +29,5 @@ export const config = [
       'react/react-in-jsx-scope': 'off',
     },
   },
+  eslintConfigPrettier,
 ];
