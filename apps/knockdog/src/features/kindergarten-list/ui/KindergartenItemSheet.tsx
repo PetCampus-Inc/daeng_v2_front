@@ -28,7 +28,7 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
   const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? TOP_BAR_HEIGHT + top : TOP_BAR_HEIGHT;
 
   const dynamicSnapPoints = useMemo(() => [{ type: 'content' as const, min: MIN_SNAP_POINT_OFFSET }, 1], []);
-  const [activeSnapPoint, setActiveSnapPoint] = useState<BottomSheetSnapPoint>(dynamicSnapPoints[0] ?? null);
+  const [activeSnapPoint, setActiveSnapPoint] = useState<BottomSheetSnapPoint>(null);
 
   const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +58,7 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
   });
 
   const handleBack = useCallback(() => {
-    setActiveSnapPoint(dynamicSnapPoints[0] ?? null);
+    setActiveSnapPoint(dynamicSnapPoints[0] as BottomSheetSnapPoint);
   }, [dynamicSnapPoints]);
 
   const setContainerRef = useCallback((node: HTMLDivElement | null) => {
@@ -89,19 +89,21 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
           open={isOpen}
           onOpenChange={onClose}
           modal={false}
-          snapPoints={dynamicSnapPoints}
+          snapPoints={dynamicSnapPoints as ComponentProps<typeof BottomSheet.Root>['snapPoints']}
           activeSnapPoint={activeSnapPoint}
           setActiveSnapPoint={setActiveSnapPoint}
           snapToSequentialPoint
           container={container}
-          onSnapPointsResolved={(resolved) => {
-            snapOffsetsRef.current = resolved;
-          }}
+          {...({
+            onSnapPointsResolved: (resolved: number[]) => {
+              snapOffsetsRef.current = resolved;
+            },
+          } as any)}
         >
           <BottomSheet.Body
             ref={viewRef}
             className={cn(
-              'pointer-events-auto absolute inset-x-0 top-0 z-[50] max-h-full',
+              'pointer-events-auto absolute inset-x-0 top-0 z-50 max-h-full',
               activeSnapPoint === 1 ? 'h-full' : 'h-fit'
             )}
             style={{

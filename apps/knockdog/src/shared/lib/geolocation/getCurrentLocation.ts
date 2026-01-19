@@ -112,7 +112,7 @@ getCurrentLocation.openPermissionDialog = async (): Promise<PermissionStatus> =>
     );
 
     if (status === 'denied' && !canAskAgain) {
-      await bridge.request(METHODS.openSettings, {});
+      await bridge.request('system.openSettings' as const, {});
     }
 
     return status;
