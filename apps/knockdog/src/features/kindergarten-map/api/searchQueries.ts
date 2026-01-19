@@ -62,7 +62,7 @@ export const searchQueries = {
       queryFn: ({ pageParam = 1 }) =>
         getKindergartenSearchList({
           page: pageParam,
-          size: 10,
+          size: 30,
           refPoint: params.state.refPoint!,
           zoomLevel: params.state.zoom,
           filters: params.state.filters.length > 0 ? params.state.filters : undefined,
