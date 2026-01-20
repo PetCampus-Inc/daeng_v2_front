@@ -17,21 +17,19 @@ export default function TabNavigator() {
         return {
           tabBarIcon: ({ focused }) => {
             const iconProps = {
-              width: 24,
-              height: 24,
               fill: focused ? '#41424A' : '#8C8C94',
               color: focused ? '#41424A' : '#8C8C94',
             };
 
             switch (route.name) {
               case 'Explore':
-                return <ExploreIcon {...iconProps} />;
+                return <ExploreIcon width={21} height={21} {...iconProps} />;
               case 'Save':
-                return <SaveIcon {...iconProps} />;
+                return <SaveIcon width={21} height={21} {...iconProps} />;
               case 'Compare':
-                return <CompareIcon {...iconProps} />;
+                return <CompareIcon width={25} height={25} {...iconProps} />;
               case 'Mypage':
-                return <MypageIcon {...iconProps} />;
+                return <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />;
               default:
                 console.warn('❗ tabBarIcon: Unknown route name', route.name);
                 return null;
@@ -39,12 +37,22 @@ export default function TabNavigator() {
           },
           tabBarActiveTintColor: '#41424A',
           tabBarInactiveTintColor: '#8C8C94',
+          tabBarStyle: {
+            height: 96,
+            paddingTop: 6,
+            paddingLeft: 16,
+            paddingRight: 16,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            marginTop: 4
+          },
           headerShown: false,
         };
       }}
     >
       <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
-      <Tab.Screen name='Save' component={SaveTab} options={{ title: '저장' }} />
+      <Tab.Screen name='Save' component={SaveTab} options={{ title: '보관함' }} />
       <Tab.Screen name='Compare' component={CompareTab} options={{ title: '유치원' }} />
       <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이' }} />
     </Tab.Navigator>

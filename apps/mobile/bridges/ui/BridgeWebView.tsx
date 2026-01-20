@@ -6,6 +6,7 @@ import { createBridgeForWebView } from '../wiring/createBridge';
 import { buildConsolePatch } from '../lib/consolePatch';
 import { navBridgeHub } from '../model/navBridgeHub';
 import type { InitialState } from '@/types/navigation';
+import ErrorScreen from './ErrorScreen';
 
 interface Props {
   uri: string;
@@ -130,6 +131,9 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
       geolocationEnabled
       webviewDebuggingEnabled={__DEV__}
       injectedJavaScriptBeforeContentLoaded={INJECT_BEFORE}
+      renderError={() => <ErrorScreen onRefresh={() => {
+        refToUse.current?.reload();
+      }} />}
     />
   );
 }
