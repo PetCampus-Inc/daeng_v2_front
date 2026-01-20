@@ -23,13 +23,13 @@ export default function TabNavigator() {
 
             switch (route.name) {
               case 'Explore':
-                return <ExploreIcon width={22} height={22} {...iconProps} />;
+                return <ExploreIcon width={21} height={21} {...iconProps} />;
               case 'Save':
-                return <SaveIcon width={20} height={20} {...iconProps} />;
+                return <SaveIcon width={21} height={21} {...iconProps} />;
               case 'Compare':
-                return <CompareIcon width={24} height={24} {...iconProps} />;
+                return <CompareIcon width={25} height={25} {...iconProps} />;
               case 'Mypage':
-                return <MypageIcon width={22} height={22} {...iconProps} />;
+                return <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />;
               default:
                 console.warn('❗ tabBarIcon: Unknown route name', route.name);
                 return null;
@@ -52,7 +52,7 @@ export default function TabNavigator() {
       }}
     >
       <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
-      <Tab.Screen name='Save' component={SaveTab} options={{ title: '저장' }} />
+      <Tab.Screen name='Save' component={SaveTab} options={{ title: '보관함' }} />
       <Tab.Screen name='Compare' component={CompareTab} options={{ title: '유치원' }} />
       <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이' }} />
     </Tab.Navigator>
