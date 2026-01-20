@@ -23,11 +23,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'daengv2mobile',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  splash: {
-    image: './assets/images/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#FF6600',
-  },
   extra: {
     eas: {
       projectId: '226d42fd-7ef3-4c94-b193-414946151e41',
@@ -79,21 +74,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSPhotoLibraryAddUsageDescription: '사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
       NSCameraUsageDescription: '카메라를 사용하여 사진을 촬영하기 위해 카메라 권한이 필요합니다.',
     },
-    splash: {
-      image: './assets/images/splash.png',
-      resizeMode: 'cover',
-      backgroundColor: '#FF6600',
-    },
   },
   android: {
-    splash: {
-      image: './assets/images/splash.png',
-      resizeMode: 'cover',
-      backgroundColor: '#FF6600',
-    },
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
-      backgroundColor: '#FF6600',
+      backgroundColor: '#ff6e0c',
     },
     edgeToEdgeEnabled: true,
     package: 'net.knockdog.petcampus.v2',
@@ -127,9 +112,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        image: './assets/images/splash.png',
-        resizeMode: 'contain',
-        backgroundColor: '#FF6600',
+        image: './assets/images/splash-icon.png',
+        backgroundColor: '#ffffff',
       },
     ],
     [
