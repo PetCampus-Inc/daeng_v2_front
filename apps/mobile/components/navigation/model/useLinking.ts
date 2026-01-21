@@ -44,7 +44,11 @@ function useLinking(): LinkingOptions<RootStackParamList> {
         const fullUrl = path.startsWith('http') ? path : `${WEBVIEW_URL}/${normalizedPath}`;
 
         return {
-          routes: [{ name: 'Stack', params: { path: fullUrl } }],
+          routes: [
+            // 홈(Tabs)을 스택에 먼저 추가하여 뒤로가기 시 홈으로 돌아갈 수 있게 함
+            { name: 'Tabs', state: { routes: [{ name: 'Explore' }] } },
+            { name: 'Stack', params: { path: fullUrl } },
+          ],
         };
       },
     }),
