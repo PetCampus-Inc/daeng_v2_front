@@ -36,7 +36,9 @@ function BookmarkedListItem({
         <Avatar style={{ width: 90, height: 90 }} className='shrink-0 rounded-lg'>
           <AvatarImage src={s3ToUrl(kindergarten.thumbnailS3Key)} alt={kindergarten.name} className='object-cover' />
           <AvatarFallback>
-            <Image src='/images/img_default_image.png' alt='default' width={90} height={90} className='object-cover' />
+            <div className='flex h-full w-full items-center justify-center bg-primitive-neutral-100'>
+              <Icon icon='Kindergarten' className='text-fill-neutral-100 w-[45px] h-[45px]' />
+            </div>
           </AvatarFallback>
         </Avatar>
 
