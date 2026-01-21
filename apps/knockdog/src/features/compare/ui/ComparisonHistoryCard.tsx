@@ -1,9 +1,8 @@
 'use client';
 
-import Image from 'next/image';
-import { KindergartenShortInfo, s3ToUrl, CTAG_MAP } from '@entities/compare';
-import { Icon } from '@knockdog/ui';
+import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 import { useDeleteComparisonHistoryMutation } from '../api/useDeleteComparisonHistoryMutation';
+import { KindergartenShortInfo, s3ToUrl, CTAG_MAP } from '@entities/compare';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 interface ComparisonHistoryCardProps {
@@ -49,24 +48,34 @@ function ComparisonHistoryCard({ id, kindergartens, className = '' }: Comparison
       </button>
       <div className='flex flex-col gap-3'>
         <div className='flex items-center gap-2'>
-          <div className='aspect-[4/3] w-full overflow-hidden rounded-lg'>
-            <Image
-              className='h-full w-full object-cover'
-              src={s3ToUrl(left.thumbnailS3Key) || '/images/img_default_image.png'}
-              alt={`${left.name} 이미지`}
-              width={160}
-              height={120}
-            />
+          <div className='aspect-4/3 flex-1'>
+            <Avatar className='h-full w-full rounded-lg'>
+              <AvatarImage
+                className='object-cover'
+                src={s3ToUrl(left.thumbnailS3Key)}
+                alt={`${left.name} 이미지`}
+              />
+              <AvatarFallback>
+                <div className='flex h-full w-full items-center justify-center bg-primitive-neutral-100'>
+                  <Icon icon='Kindergarten' className='text-fill-neutral-100 h-15 w-15' />
+                </div>
+              </AvatarFallback>
+            </Avatar>
           </div>
           <span className='h3-extrabold shrink-0'>:</span>
-          <div className='aspect-[4/3] w-full overflow-hidden rounded-lg'>
-            <Image
-              className='h-full w-full object-cover'
-              src={s3ToUrl(right.thumbnailS3Key) || '/images/img_default_image.png'}
-              alt={`${right.name} 이미지`}
-              width={160}
-              height={120}
-            />
+          <div className='aspect-4/3 flex-1'>
+            <Avatar className='h-full w-full rounded-lg'>
+              <AvatarImage
+                className='object-cover'
+                src={s3ToUrl(right.thumbnailS3Key)}
+                alt={`${right.name} 이미지`}
+              />
+              <AvatarFallback>
+                <div className='flex h-full w-full items-center justify-center bg-primitive-neutral-100'>
+                  <Icon icon='Kindergarten' className='text-fill-neutral-100 h-15 w-15' />
+                </div>
+              </AvatarFallback>
+            </Avatar>
           </div>
         </div>
         <div className='flex gap-3'>
