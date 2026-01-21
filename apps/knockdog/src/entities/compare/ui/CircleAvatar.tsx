@@ -1,5 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@knockdog/ui';
-import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 
 export function CircleAvatar({
   size = 80,
@@ -16,7 +15,9 @@ export function CircleAvatar({
     <Avatar style={{ width: size, height: size }} className={className}>
       <AvatarImage src={src} alt={alt} className='object-cover' />
       <AvatarFallback>
-        <Image src='/images/img_default_image.png' alt='default' width={size} height={size} className='object-cover' />
+        <div className='flex h-full w-full items-center justify-center bg-primitive-neutral-100'>
+          <Icon icon='Kindergarten' className={`text-fill-neutral-100 w-[${size/2}px] h-[${size/2}px]`} />
+        </div>
       </AvatarFallback>
     </Avatar>
   );
