@@ -15,8 +15,10 @@ export function CircleAvatar({
     <Avatar style={{ width: size, height: size }} className={className}>
       <AvatarImage src={src} alt={alt} className='object-cover' />
       <AvatarFallback>
-        <div className='flex h-full w-full items-center justify-center bg-primitive-neutral-100'>
-          <Icon icon='Kindergarten' className={`text-fill-neutral-100 w-[${size/2}px] h-[${size/2}px]`} />
+        <div className='bg-primitive-neutral-100 flex h-full w-full items-center justify-center'>
+          <div style={{ width: size / 2, height: size / 2 }}>
+            <Icon icon='Kindergarten' className='text-fill-neutral-100 h-full w-full' />
+          </div>
         </div>
       </AvatarFallback>
     </Avatar>
