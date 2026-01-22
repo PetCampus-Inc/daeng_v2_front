@@ -189,6 +189,7 @@ function PetProfileForm({
                   <TextField label='관계(직접 입력)' required errorMessage={error?.message}>
                     <TextFieldInput
                       {...field}
+                      maxLength={5}
                       placeholder='5자이내 한글'
                       onChange={(e) => {
                         const value = e.target.value.replace(/\s/g, '').slice(0, 8);
