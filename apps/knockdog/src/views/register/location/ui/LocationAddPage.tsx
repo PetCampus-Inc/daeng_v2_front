@@ -40,11 +40,11 @@ function LocationAddPage() {
               control={control}
               name='alias'
               render={({ field }) => (
-                <Field hidden={[USER_ADDRESS_TYPE.HOME, USER_ADDRESS_TYPE.WORK].includes(type)}>
+                <Field hidden={type !== USER_ADDRESS_TYPE.WORK}>
                   <FieldLabel>장소 이름</FieldLabel>
 
                   <TextField variant='secondary'>
-                    <TextFieldInput placeholder='장소 이름을 등록하세요' {...field} />
+                    <TextFieldInput placeholder={USER_ADDRESS_TYPE_KR[type]} {...field} />
                   </TextField>
                 </Field>
               )}

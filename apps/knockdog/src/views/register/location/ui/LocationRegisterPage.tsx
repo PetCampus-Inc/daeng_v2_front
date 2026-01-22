@@ -38,12 +38,12 @@ function LocationRegisterPage() {
     const addresses = Object.values(data)
       .filter((address): address is Omit<UserAddress, 'id'> => address !== undefined)
       .map((address) => {
-        const alias = address.alias || USER_ADDRESS_TYPE_KR[address.type as UserAddressType];
+        const alias = address.alias || USER_ADDRESS_TYPE_KR[address.type];
 
         return {
           ...address,
           alias,
-          addressType: address.type as UserAddressType,
+          addressType: address.type,
         };
       });
 
