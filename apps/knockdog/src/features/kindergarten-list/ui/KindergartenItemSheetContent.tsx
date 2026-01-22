@@ -2,6 +2,7 @@ import { type ComponentProps } from 'react';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { cn } from '@knockdog/ui/lib';
 import { motion, type MotionValue } from 'framer-motion';
+import { RemoveScroll } from 'react-remove-scroll';
 import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import type { KindergartenMain } from '@entities/kindergarten';
 import { KindergartenCard } from './KindergartenCard';
@@ -64,19 +65,21 @@ export function KindergartenItemSheetContent({
         <KindergartenCard {...displayData} onBookmarkClick={onBookmarkClick} onPhoneCall={onPhoneCall} />
       </motion.div>
 
-      <motion.div
-        className={cn(
-          'pointer-events-none h-full bg-white',
-          activeSnapPoint === 1 ? 'pointer-events-auto relative w-full' : 'absolute inset-0'
-        )}
-        style={{
-          opacity: hiddenOpacity,
-          y: detailY,
-          scale: scaleUp,
-        }}
-      >
-        <KindergartenDetail {...displayData} onBookmarkClick={onBookmarkClick} onPhoneCall={onPhoneCall} />
-      </motion.div>
+      <RemoveScroll forwardProps noIsolation enabled={activeSnapPoint === 1}>
+        <motion.div
+          className={cn(
+            'pointer-events-none h-full bg-white',
+            activeSnapPoint === 1 ? 'pointer-events-auto relative w-full' : 'absolute inset-0'
+          )}
+          style={{
+            opacity: hiddenOpacity,
+            y: detailY,
+            scale: scaleUp,
+          }}
+        >
+          <KindergartenDetail {...displayData} onBookmarkClick={onBookmarkClick} onPhoneCall={onPhoneCall} />
+        </motion.div>
+      </RemoveScroll>
     </>
   );
 }

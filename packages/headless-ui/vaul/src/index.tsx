@@ -212,12 +212,16 @@ export function Root({
   const [hasBeenOpened, setHasBeenOpened] = React.useState<boolean>(false);
   const [isDragging, setIsDragging] = React.useState<boolean>(false);
   const [justReleased, setJustReleased] = React.useState<boolean>(false);
+  // Tracks "real" drag (movement beyond threshold). Keep separate from isDragging,
+  // which is set on pointer down for legacy UX/scroll/lock behaviors.
+  const [isDragActive, setIsDragActive] = React.useState<boolean>(false);
   const overlayRef = React.useRef<HTMLDivElement>(null);
   const openTime = React.useRef<Date | null>(null);
   const dragStartTime = React.useRef<Date | null>(null);
   const dragEndTime = React.useRef<Date | null>(null);
   const lastTimeDragPrevented = React.useRef<Date | null>(null);
   const isAllowedToDrag = React.useRef<boolean>(false);
+  const isPointerDown = React.useRef<boolean>(false);
   const nestedOpenChangeTimer = React.useRef<NodeJS.Timeout | null>(null);
   const pointerStart = React.useRef(0);
   const keyboardIsOpen = React.useRef(false);
@@ -255,7 +259,7 @@ export function Root({
     snapToSequentialPoint,
     onSnapPointsResolved,
     isOpen,
-    isDragging,
+    isDragging: isDragActive,
     shouldAnimate: shouldAnimate.current,
   });
   usePreventScroll({
@@ -282,8 +286,10 @@ export function Root({
 
     drawerHeightRef.current = drawerRef.current?.getBoundingClientRect().height || 0;
     drawerWidthRef.current = drawerRef.current?.getBoundingClientRect().width || 0;
+    isPointerDown.current = true;
     setIsDragging(true);
     dragStartTime.current = new Date();
+    setIsDragActive(false);
 
     // iOS doesn't trigger mouseUp after scrolling so we need to listen to touched in order to disallow dragging
     if (isIOS()) {
@@ -376,111 +382,116 @@ export function Root({
       return;
     }
 
+    if (!isPointerDown.current) return;
+
     // We need to know how much of the drawer has been dragged in percentages so that we can transform background accordingly
-    if (isDragging) {
-      const directionMultiplier = direction === 'bottom' || direction === 'right' ? 1 : -1;
-      const draggedDistance =
-        (pointerStart.current - (isVertical(direction) ? event.pageY : event.pageX)) * directionMultiplier;
-      const isDraggingInDirection = draggedDistance > 0;
+    const directionMultiplier = direction === 'bottom' || direction === 'right' ? 1 : -1;
+    const draggedDistance =
+      (pointerStart.current - (isVertical(direction) ? event.pageY : event.pageX)) * directionMultiplier;
+    const isDraggingInDirection = draggedDistance > 0;
 
-      // Pre condition for disallowing dragging in the close direction.
-      const noCloseSnapPointsPreCondition = snapPoints && !dismissible && !isDraggingInDirection;
+    // Pre condition for disallowing dragging in the close direction.
+    const noCloseSnapPointsPreCondition = snapPoints && !dismissible && !isDraggingInDirection;
 
-      // Disallow dragging down to close when first snap point is the active one and dismissible prop is set to false.
-      if (noCloseSnapPointsPreCondition && activeSnapPointIndex === 0) return;
+    // Disallow dragging down to close when first snap point is the active one and dismissible prop is set to false.
+    if (noCloseSnapPointsPreCondition && activeSnapPointIndex === 0) return;
 
-      // We need to capture last time when drag with scroll was triggered and have a timeout between
-      const absDraggedDistance = Math.abs(draggedDistance);
-      const wrapper = document.querySelector('[data-vaul-drawer-wrapper]');
-      const drawerDimension =
-        direction === 'bottom' || direction === 'top' ? drawerHeightRef.current : drawerWidthRef.current;
+    // We need to capture last time when drag with scroll was triggered and have a timeout between
+    const absDraggedDistance = Math.abs(draggedDistance);
+    const wrapper = document.querySelector('[data-vaul-drawer-wrapper]');
+    const drawerDimension =
+      direction === 'bottom' || direction === 'top' ? drawerHeightRef.current : drawerWidthRef.current;
 
-      // Calculate the percentage dragged, where 1 is the closed position
-      let percentageDragged = absDraggedDistance / drawerDimension;
-      const snapPointPercentageDragged = getSnapPointsPercentageDragged(absDraggedDistance, isDraggingInDirection);
+    // Calculate the percentage dragged, where 1 is the closed position
+    let percentageDragged = absDraggedDistance / drawerDimension;
+    const snapPointPercentageDragged = getSnapPointsPercentageDragged(absDraggedDistance, isDraggingInDirection);
 
-      if (snapPointPercentageDragged !== null) {
-        percentageDragged = snapPointPercentageDragged;
-      }
+    if (snapPointPercentageDragged !== null) {
+      percentageDragged = snapPointPercentageDragged;
+    }
 
-      // Disallow close dragging beyond the smallest snap point.
-      if (noCloseSnapPointsPreCondition && percentageDragged >= 1) {
-        return;
-      }
+    // Disallow close dragging beyond the smallest snap point.
+    if (noCloseSnapPointsPreCondition && percentageDragged >= 1) {
+      return;
+    }
 
-      if (!isAllowedToDrag.current && !shouldDrag(event.target, isDraggingInDirection)) return;
-      drawerRef.current.classList.add(DRAG_CLASS);
-      // If shouldDrag gave true once after pressing down on the drawer, we set isAllowedToDrag to true and it will remain true until we let go, there's no reason to disable dragging mid way, ever, and that's the solution to it
-      isAllowedToDrag.current = true;
+    if (!isAllowedToDrag.current && !shouldDrag(event.target, isDraggingInDirection)) return;
+
+    if (!isDragActive) {
+      setIsDragActive(true);
+    }
+
+    drawerRef.current.classList.add(DRAG_CLASS);
+    // If shouldDrag gave true once after pressing down on the drawer, we set isAllowedToDrag to true and it will remain true until we let go, there's no reason to disable dragging mid way, ever, and that's the solution to it
+    isAllowedToDrag.current = true;
+    set(drawerRef.current, {
+      transition: 'none',
+    });
+
+    set(overlayRef.current, {
+      transition: 'none',
+    });
+
+    if (snapPoints) {
+      onDragSnapPoints({ draggedDistance });
+    }
+
+    // Run this only if snapPoints are not defined or if we are at the last snap point (highest one)
+    if (isDraggingInDirection && !snapPoints) {
+      const dampenedDraggedDistance = dampenValue(draggedDistance);
+
+      const translateValue = Math.min(dampenedDraggedDistance * -1, 0) * directionMultiplier;
       set(drawerRef.current, {
-        transition: 'none',
+        transform: isVertical(direction)
+          ? `translate3d(0, ${translateValue}px, 0)`
+          : `translate3d(${translateValue}px, 0, 0)`,
       });
+      return;
+    }
 
-      set(overlayRef.current, {
-        transition: 'none',
+    const opacityValue = 1 - percentageDragged;
+
+    if (shouldFade || (fadeFromIndex && activeSnapPointIndex === fadeFromIndex - 1)) {
+      onDragProp?.(event, percentageDragged);
+
+      set(
+        overlayRef.current,
+        {
+          opacity: `${opacityValue}`,
+          transition: 'none',
+        },
+        true,
+      );
+    }
+
+    if (wrapper && overlayRef.current && shouldScaleBackground) {
+      // Calculate percentageDragged as a fraction (0 to 1)
+      const scaleValue = Math.min(getScale() + percentageDragged * (1 - getScale()), 1);
+      const borderRadiusValue = 8 - percentageDragged * 8;
+
+      const translateValue = Math.max(0, 14 - percentageDragged * 14);
+
+      set(
+        wrapper,
+        {
+          borderRadius: `${borderRadiusValue}px`,
+          transform: isVertical(direction)
+            ? `scale(${scaleValue}) translate3d(0, ${translateValue}px, 0)`
+            : `scale(${scaleValue}) translate3d(${translateValue}px, 0, 0)`,
+          transition: 'none',
+        },
+        true,
+      );
+    }
+
+    if (!snapPoints) {
+      const translateValue = absDraggedDistance * directionMultiplier;
+
+      set(drawerRef.current, {
+        transform: isVertical(direction)
+          ? `translate3d(0, ${translateValue}px, 0)`
+          : `translate3d(${translateValue}px, 0, 0)`,
       });
-
-      if (snapPoints) {
-        onDragSnapPoints({ draggedDistance });
-      }
-
-      // Run this only if snapPoints are not defined or if we are at the last snap point (highest one)
-      if (isDraggingInDirection && !snapPoints) {
-        const dampenedDraggedDistance = dampenValue(draggedDistance);
-
-        const translateValue = Math.min(dampenedDraggedDistance * -1, 0) * directionMultiplier;
-        set(drawerRef.current, {
-          transform: isVertical(direction)
-            ? `translate3d(0, ${translateValue}px, 0)`
-            : `translate3d(${translateValue}px, 0, 0)`,
-        });
-        return;
-      }
-
-      const opacityValue = 1 - percentageDragged;
-
-      if (shouldFade || (fadeFromIndex && activeSnapPointIndex === fadeFromIndex - 1)) {
-        onDragProp?.(event, percentageDragged);
-
-        set(
-          overlayRef.current,
-          {
-            opacity: `${opacityValue}`,
-            transition: 'none',
-          },
-          true,
-        );
-      }
-
-      if (wrapper && overlayRef.current && shouldScaleBackground) {
-        // Calculate percentageDragged as a fraction (0 to 1)
-        const scaleValue = Math.min(getScale() + percentageDragged * (1 - getScale()), 1);
-        const borderRadiusValue = 8 - percentageDragged * 8;
-
-        const translateValue = Math.max(0, 14 - percentageDragged * 14);
-
-        set(
-          wrapper,
-          {
-            borderRadius: `${borderRadiusValue}px`,
-            transform: isVertical(direction)
-              ? `scale(${scaleValue}) translate3d(0, ${translateValue}px, 0)`
-              : `scale(${scaleValue}) translate3d(${translateValue}px, 0, 0)`,
-            transition: 'none',
-          },
-          true,
-        );
-      }
-
-      if (!snapPoints) {
-        const translateValue = absDraggedDistance * directionMultiplier;
-
-        set(drawerRef.current, {
-          transform: isVertical(direction)
-            ? `translate3d(0, ${translateValue}px, 0)`
-            : `translate3d(${translateValue}px, 0, 0)`,
-        });
-      }
     }
   }
 
@@ -614,16 +625,20 @@ export function Root({
 
     drawerRef.current.classList.remove(DRAG_CLASS);
     isAllowedToDrag.current = false;
+    isPointerDown.current = false;
     setIsDragging(false);
+    setIsDragActive(false);
     dragEndTime.current = new Date();
   }
 
   function onRelease(event: React.PointerEvent<HTMLDivElement> | null) {
+    isPointerDown.current = false;
     if (!isDragging || !drawerRef.current) return;
 
     drawerRef.current.classList.remove(DRAG_CLASS);
     isAllowedToDrag.current = false;
     setIsDragging(false);
+    setIsDragActive(false);
     dragEndTime.current = new Date();
     const swipeAmount = getTranslate(drawerRef.current, direction);
 
