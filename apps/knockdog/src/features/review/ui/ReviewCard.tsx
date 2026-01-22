@@ -1,9 +1,23 @@
 import type { Review } from '@entities/review';
 import { Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
+import { useStackNavigation } from '@shared/lib/bridge';
 
-export function ReviewCard({ username, profileImage, title, content, updatedAt }: Review) {
+export function ReviewCard({ username, profileImage, title, content, updatedAt, reviewUrl }: Review) {
+  const { push } = useStackNavigation();
+
+  const handleClick = () => {
+    if (reviewUrl) {
+      push({ pathname: reviewUrl });
+    }
+  };
+
   return (
-    <div className='bg-primitive-neutral-50 mb-2 flex flex-col gap-1 rounded-lg p-4'>
+    <div
+      className='bg-primitive-neutral-50 mb-2 flex flex-col gap-1 rounded-lg p-4'
+      onClick={handleClick}
+      role={reviewUrl ? 'button' : undefined}
+      style={reviewUrl ? { cursor: 'pointer' } : undefined}
+    >
       <div className='flex items-center gap-1'>
         <Avatar className='mr-1 inline-block size-6'>
           <AvatarImage src={profileImage} alt='프로필 이미지' />

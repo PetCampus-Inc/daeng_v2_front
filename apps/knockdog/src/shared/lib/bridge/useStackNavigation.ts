@@ -36,8 +36,16 @@ function useStackNavigation() {
     ) => {
       const { pathname, query, params, replace, scroll } = options;
 
-      const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
+      // 외부 URL인지 확인 (http:// 또는 https://로 시작)
+      const isExternalUrl = pathname.startsWith('http://') || pathname.startsWith('https://');
+
+      // 외부 URL이면 그대로 사용, 아니면 내부 경로로 변환
+      const fullPath = isExternalUrl
+        ? pathname
+        : (() => {
+            const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+            return `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
+          })();
 
       // forcedTxId가 제공되면 사용, params가 있으면 새로 생성, 아니면 null
       const txId = forcedTxId !== undefined ? forcedTxId : params ? makeId() : null;
@@ -59,6 +67,15 @@ function useStackNavigation() {
             ...(query && { params: { query } }),
           });
         }
+        return;
+      }
+
+      // 웹 환경: 외부 URL은 처리할 수 없음
+      if (isExternalUrl) {
+        console.warn(
+          '[useStackNavigation] 외부 URL은 웹 환경에서 스택 네비게이션으로 처리할 수 없습니다. 새 창으로 열립니다.'
+        );
+        window.open(fullPath, '_blank');
         return;
       }
 
@@ -107,8 +124,16 @@ function useStackNavigation() {
 
   const reset = useCallback(
     async (pathname: string = '/', query?: Query, params?: Params) => {
-      const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
+      // 외부 URL인지 확인 (http:// 또는 https://로 시작)
+      const isExternalUrl = pathname.startsWith('http://') || pathname.startsWith('https://');
+
+      // 외부 URL이면 그대로 사용, 아니면 내부 경로로 변환
+      const fullPath = isExternalUrl
+        ? pathname
+        : (() => {
+            const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+            return `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
+          })();
 
       // params가 있으면 txId 생성
       const txId = params ? makeId() : null;
@@ -129,6 +154,13 @@ function useStackNavigation() {
             ...(query && { params: { query } }),
           });
         }
+        return;
+      }
+
+      // 웹 환경: 외부 URL은 처리할 수 없음
+      if (isExternalUrl) {
+        console.warn('[useStackNavigation] 외부 URL은 웹 환경에서 reset으로 처리할 수 없습니다. 새 창으로 열립니다.');
+        window.open(fullPath, '_blank');
         return;
       }
 

@@ -89,15 +89,33 @@ function toRoute(
 
   // 전체 URL인지 경로인지 확인
   let isFullUrl = false;
+  let isExternalUrl = false;
   let pathname = name;
 
   try {
     const urlObj = new URL(name);
     isFullUrl = true;
+    // 외부 URL인지 확인 (NEXT_PUBLIC_WEB_URL과 다른 도메인)
+    const webUrl = process.env.NEXT_PUBLIC_WEB_URL || '';
+    isExternalUrl = urlObj.origin !== new URL(webUrl || 'http://localhost').origin;
     pathname = urlObj.pathname;
   } catch {
     // URL 파싱 실패 시 경로로 간주
     pathname = extractPathFromUrl(name);
+  }
+
+  // 외부 URL이면 무조건 Stack으로 처리
+  if (isExternalUrl) {
+    const initialState = extractInitialState(params);
+    const finalPath = buildPath(name, params);
+
+    return {
+      screen: 'Stack' as const,
+      params: {
+        path: finalPath,
+        ...(initialState && { initialState }),
+      },
+    };
   }
 
   // Tabs로 이동할 경로인지 확인 (경로 기준)

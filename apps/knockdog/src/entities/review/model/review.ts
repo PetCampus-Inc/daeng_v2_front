@@ -5,6 +5,7 @@ interface Review {
   title: string;
   content: string;
   updatedAt: string;
+  reviewUrl?: string;
 }
 
 export type { Review };
