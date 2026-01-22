@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { ReviewCard } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import { useInfiniteScroll } from '@shared/lib';
+import { LoadingSpinner } from '@shared/ui/loading-spinner';
 
 const Header = () => (
   <div className='mb-3 flex'>
@@ -16,7 +17,7 @@ const Header = () => (
 
 const LoadingState = () => (
   <div className='flex justify-center py-8'>
-    <span className='text-text-tertiary'>로딩 중...</span>
+    <LoadingSpinner />
   </div>
 );
 
