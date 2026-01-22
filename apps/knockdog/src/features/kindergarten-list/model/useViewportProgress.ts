@@ -37,7 +37,6 @@ const useSheetDragProgress = ({
     let lastProgress = -1;
     const threshold = 0.005; // 0.5%
     const snapEpsilon = 0.01; // 스냅 완료 시 0/1로 정렬
-
     const calculateProgress = () => {
       if (viewRef.current) {
         const rect = viewRef.current.getBoundingClientRect();

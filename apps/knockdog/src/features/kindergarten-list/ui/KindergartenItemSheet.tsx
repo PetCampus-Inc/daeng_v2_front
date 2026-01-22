@@ -1,18 +1,18 @@
 'use client';
 
 import { type ComponentProps, useCallback, useMemo, useRef, useState } from 'react';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { cn } from '@knockdog/ui/lib';
 import { useTransform } from 'framer-motion';
 import { useSheetDragProgress } from '../model/useViewportProgress';
-import { isNativeWebView, useSafeAreaInsets } from '@shared/lib';
-import { TOP_BAR_HEIGHT } from '@shared/constants';
-import type { KindergartenListItem } from '@entities/kindergarten';
 import { FloatingPortal } from '@floating-ui/react';
 import { KindergartenItemSheetContent } from './KindergartenItemSheetContent';
 import { KindergartenItemSheetHeader } from './KindergartenItemSheetHeader';
 import { useKindergartenItemSheetActions } from '../model/useKindergartenItemSheetActions';
 import { useKindergartenItemSheetData } from '../model/useKindergartenItemSheetData';
+import type { KindergartenListItem } from '@entities/kindergarten';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { isNativeWebView, useSafeAreaInsets } from '@shared/lib';
+import { TOP_BAR_HEIGHT } from '@shared/constants';
 
 const MIN_SNAP_POINT_OFFSET = 328;
 
