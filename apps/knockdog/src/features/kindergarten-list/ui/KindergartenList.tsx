@@ -27,13 +27,13 @@ import { useListBookmarkToggle } from '../model/useListBookmarkToggle';
 import { overlay } from 'overlay-kit';
 import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { useUserStore, USER_ADDRESS_TYPE } from '@entities/user';
+import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
 import { GetLocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
-import { tokenUtils } from '@shared/utils';
+import { ellipsisText, tokenUtils } from '@shared/utils';
 
 interface KindergartenListProps {
   region?: string | null;
@@ -63,6 +63,8 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   // 위치 권한 에러 체크
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof GetLocationPermissionError;
+
+  const workAlias = user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.WORK)?.alias || USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.WORK];
 
   const handleBasePointTypeChange = (value: string) => {
     const newType = value as BasePointType;
@@ -143,6 +145,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   return (
     <>
       <main
+        id="test-id"
         ref={containerRef}
         className={cn(
           'scrollbar-hide relative flex h-full w-full flex-col',
@@ -158,7 +161,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             <SegmentedControl value={selectedBaseType} onValueChange={handleBasePointTypeChange}>
               <SegmentedControlItem value='CURRENT'>현 위치</SegmentedControlItem>
               <SegmentedControlItem value='HOME'>집</SegmentedControlItem>
-              <SegmentedControlItem value='WORK'>직장</SegmentedControlItem>
+              <SegmentedControlItem value='WORK'>{ellipsisText(workAlias, 8)}</SegmentedControlItem>
             </SegmentedControl>
           </div>
 
@@ -167,11 +170,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               {/* 고정 버튼 영역 */}
               <div className='pl-x4 flex shrink-0 items-center gap-x-2'>
                 <button
-                  className={`gap-x0.5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
-                    isEmptyFilters
-                      ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
-                      : 'outline-line-accent bg-fill-primary-50 text-text-accent'
-                  }`}
+                  className={`gap-x0.5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${isEmptyFilters
+                    ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
+                    : 'outline-line-accent bg-fill-primary-50 text-text-accent'
+                    }`}
                   onClick={onOpenFilter}
                 >
                   <Icon
