@@ -30,6 +30,8 @@ export function useSnapPoints({
   container,
   snapToSequentialPoint,
   isOpen,
+  // "isDragging" here means real drag movement, not pointer-down state.
+  // This keeps dynamic content measurement stable on taps/clicks.
   isDragging,
   shouldAnimate = true,
   onSnapPointsResolved,
