@@ -1,3 +1,5 @@
+'use client';
+
 import type { Review } from '@entities/review';
 import { Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
