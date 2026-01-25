@@ -13,7 +13,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RootStackNavigator, useLinking } from './components/navigation';
 
 // 앱 시작 시 스플래시 자동 숨김 방지
-SplashScreen.preventAutoHideAsync().catch(() => {});
+SplashScreen.preventAutoHideAsync().catch(() => { });
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -48,7 +48,7 @@ export default function App() {
   // 루트 레이아웃이 그려지면 스플래시 숨김
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
-      await SplashScreen.hideAsync().catch(() => {});
+      await SplashScreen.hideAsync().catch(() => { });
     }
   }, [appIsReady]);
 
@@ -65,7 +65,7 @@ export default function App() {
         {/* 포털 루트: 토스트가 네비게이션 위 레이어로 뜨도록 */}
         <PortalProvider>
           {/* 상태바는 취향에 따라 */}
-          <StatusBar style='light' />
+          <StatusBar style='dark' />
           {/* onLayout에서 스플래시 숨김 */}
           <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
             {/* 토스트 프로바이더가 네비게이션 바/스크린 “밖”에 있어야 어디서든 toast() 가능 */}
