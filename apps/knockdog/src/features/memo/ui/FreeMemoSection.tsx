@@ -13,9 +13,13 @@ import { useUserStore } from '@entities/user';
 
 const MEMO_PHOTO_MAX_COUNT = 5;
 
-export function FreeMemoSection() {
+interface FreeMemoSectionProps {
+  kindergartenId?: string;
+}
+
+export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = kindergartenId ?? params?.id;
   const { push } = useStackNavigation();
   const user = useUserStore((state) => state.user);
 

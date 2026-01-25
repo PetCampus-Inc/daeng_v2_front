@@ -8,9 +8,13 @@ import { QUESTION_MAP } from '@entities/checklist';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
 
-function CheckListSection() {
+interface CheckListSectionProps {
+  kindergartenId?: string;
+}
+
+function CheckListSection({ kindergartenId }: CheckListSectionProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = kindergartenId ?? params?.id;
   const { push } = useStackNavigation();
   const isLoggedIn = useUserStore((state) => !!state.user);
 
