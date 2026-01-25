@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -26,8 +26,8 @@ import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
 import type { KindergartenListItem } from '@entities/kindergarten';
-import { isEqualCoord, useBottomSheetSnapIndex } from '@shared/lib';
-import { useMarkerState } from '@shared/store';
+import { getLocationPermission, isEqualCoord, requestLocationPermission, useBottomSheetSnapIndex } from '@shared/lib';
+import { useBasePointType, useMarkerState } from '@shared/store';
 
 export default function KindergartenMainPage() {
   return (
@@ -42,12 +42,47 @@ export default function KindergartenMainPage() {
 function KindergartenMainPageContent() {
   const mapRef = useRef<naver.maps.Map | null>(null);
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { liveState, committedState, searchState, dispatch } = useSearchMachine();
   const { isOnlyBookmarked, isOnlyMemoed, toggleBookmarked, toggleMemoed } = useDisplayFilterContext();
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+  const { selectedBaseType } = useBasePointType();
 
+  /**
+   * 페이지 진입시 위치 권한 확인 및 요청
+   * - 현재 위치 모드일 때만 실행
+   * - 권한이 없으면 자동으로 요청
+   * - 권한 획득시 위치 쿼리 갱신
+   */
+  useEffect(() => {
+    if (selectedBaseType !== 'CURRENT') return;
+
+    const ensureLocationPermission = async () => {
+      try {
+        const status = await getLocationPermission();
+
+        // 권한이 없거나 미결정 상태면 요청
+        if (status !== 'allowed') {
+          const result = await requestLocationPermission();
+
+          // 권한 획득 성공시 위치 쿼리 무효화하여 자동 재실행
+          if (result.status === 'allowed') {
+            queryClient.invalidateQueries({ queryKey: ['geolocation'] });
+          }
+        }
+      } catch (error) {
+        // 권한 요청 실패
+      }
+    };
+
+    ensureLocationPermission();
+  }, [queryClient, selectedBaseType]);
+
+  /**
+   * 재검색 버튼 표시 여부
+   */
   const shouldShowRefresh = useMemo(() => {
     if (!liveState.viewportBounds) return false;
 
@@ -128,7 +163,8 @@ function KindergartenMainPageContent() {
       ) : (
         <div
           className={cn(
-            `absolute top-0 right-0 left-0 z-50 pt-(--safe-area-inset-top,0px) ${isFullExtended ? 'bg-fill-secondary-0' : ''
+            `absolute top-0 right-0 left-0 z-50 pt-(--safe-area-inset-top,0px) ${
+              isFullExtended ? 'bg-fill-secondary-0' : ''
             }`
           )}
         >
