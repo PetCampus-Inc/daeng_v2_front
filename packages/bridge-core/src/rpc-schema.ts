@@ -36,7 +36,7 @@ interface RPCSchema {
     params: {};
     result: { status: PermissionStatus };
   };
-  [METHODS.openLocationPermissionDialog]: {
+  [METHODS.requestLocationPermission]: {
     params: {};
     result: { status: PermissionStatus; canAskAgain: boolean };
   };

@@ -1,12 +1,12 @@
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 
-import { getCurrentLocation } from '@shared/lib';
+import { requestLocationPermission } from '@shared/lib';
 
 export function PermissionSection() {
   const handlePermissionCheck = async () => {
     // 권한 설정 다이얼로그 열기
-    await getCurrentLocation.openPermissionDialog();
+    await requestLocationPermission();
   };
 
   return (

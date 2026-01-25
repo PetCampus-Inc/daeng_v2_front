@@ -28,7 +28,7 @@ import { overlay } from 'overlay-kit';
 import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
 import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
-import { GetLocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
+import { LocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -62,7 +62,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
 
   // 위치 권한 에러 체크
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
-  const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof GetLocationPermissionError;
+  const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof LocationPermissionError;
 
   const workAlias = user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.WORK)?.alias || USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.WORK];
 

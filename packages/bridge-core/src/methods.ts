@@ -3,7 +3,11 @@ const METHODS = {
   getSafeAreaInsets: 'device.getSafeAreaInsets',
   getCurrentLocation: 'device.getCurrentLocation',
   getLocationPermission: 'device.getLocationPermission',
-  openLocationPermissionDialog: 'device.openLocationPermissionDialog',
+  requestLocationPermission: 'device.requestLocationPermission',
+  /** 기기 위치 서비스(GPS) ON/OFF 상태 확인 */
+  isLocationServiceEnabled: 'device.isLocationServiceEnabled',
+  /** 캐시된 마지막 위치 즉시 반환 (GPS 호출 없음) */
+  getLastKnownLocation: 'device.getLastKnownLocation',
   callPhone: 'system.callPhone',
   copyToClipboard: 'system.copyToClipboard',
   share: 'system.share',
@@ -130,6 +134,33 @@ interface LocationCoords {
 
 type PermissionStatus = 'allowed' | 'denied' | 'undetermined';
 
+/**
+ * 위치 에러 코드
+ */
+const LOCATION_ERROR_CODES = {
+  /** 위치 권한 거부 */
+  PERMISSION_DENIED: 'LOCATION_PERMISSION_DENIED',
+  /** 위치 서비스(GPS) OFF */
+  SERVICE_DISABLED: 'LOCATION_SERVICE_DISABLED',
+  /** 위치 획득 불가 (실내, 지하 등) */
+  UNAVAILABLE: 'LOCATION_UNAVAILABLE',
+  /** 위치 획득 타임아웃 */
+  TIMEOUT: 'LOCATION_TIMEOUT',
+} as const;
+
+/** isLocationServiceEnabled 결과 */
+type IsLocationServiceEnabledResult = {
+  enabled: boolean;
+};
+
+/** getLastKnownLocation 파라미터 */
+type GetLastKnownLocationParams = {
+  maxAge?: number;
+};
+
+/** getLastKnownLocation 결과 */
+type GetLastKnownLocationResult = Location | null;
+
 type PickImageParams = {
   source?: 'camera' | 'library';
   allowsEditing?: boolean; // 이미지 편집 허용 여부
@@ -162,7 +193,7 @@ type GetAppVersionResult = {
   version: string;
 };
 
-export { METHODS };
+export { METHODS, LOCATION_ERROR_CODES };
 export type {
   CallPhoneParams,
   CallPhoneResult,
@@ -178,6 +209,9 @@ export type {
   Accuracy,
   Location,
   PermissionStatus,
+  IsLocationServiceEnabledResult,
+  GetLastKnownLocationParams,
+  GetLastKnownLocationResult,
   PickImageParams,
   PickImageResult,
   ImageAsset,
