@@ -81,7 +81,7 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
         <ReviewSection kindergartenId={kindergartenId} onScrollTop={handleScrollToDivider} />
       </TabsContent>
       <TabsContent value='메모'>
-        <MemoSection />
+        <MemoSection kindergartenId={kindergartenId} />
       </TabsContent>
     </Tabs>
   );
