@@ -141,7 +141,7 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
       geolocationEnabled
       webviewDebuggingEnabled={__DEV__}
       injectedJavaScriptBeforeContentLoaded={Platform.OS === 'ios' ? INJECT_BEFORE : undefined}
-      injectedJavaScript={Platform.OS === 'android' ? INJECT_SAFE_AREA : undefined}
+      injectedJavaScript={Platform.OS === 'android' ? INJECT_BEFORE : undefined}
       renderError={() => <ErrorScreen onRefresh={() => {
         refToUse.current?.reload();
       }} />}

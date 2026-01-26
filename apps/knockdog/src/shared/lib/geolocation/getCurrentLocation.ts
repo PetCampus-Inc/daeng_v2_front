@@ -55,7 +55,7 @@ export async function getCurrentLocation(options: GetCurrentLocationOptions = {}
 
   // 웹 환경
   if (!isNativeWebView()) {
-    return getLocationFromBrowser(accuracy);
+    return getLocationFromBrowser(accuracy, maxAge);
   }
 
   const bridge = getBridgeInstance();
@@ -130,7 +130,7 @@ export async function getCurrentLocation(options: GetCurrentLocationOptions = {}
 /**
  * 브라우저 Geolocation API (웹 환경)
  */
-async function getLocationFromBrowser(accuracy: Accuracy): Promise<GetCurrentLocationResult> {
+async function getLocationFromBrowser(accuracy: Accuracy, maxAge: number): Promise<GetCurrentLocationResult> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       reject(new LocationUnavailableError('Geolocation API not available'));
@@ -166,7 +166,7 @@ async function getLocationFromBrowser(accuracy: Accuracy): Promise<GetCurrentLoc
       {
         enableHighAccuracy: accuracy === 'high',
         timeout: 15_000,
-        maximumAge: 300_000,
+        maximumAge: maxAge,
       }
     );
   });

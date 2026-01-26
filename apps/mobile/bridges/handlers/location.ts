@@ -147,17 +147,16 @@ export function registerLocationHandlers(router: NativeBridgeRouter) {
    * @param params.maxAge - 캐시 유효 시간 (ms). 기본값: 300000 (5분)
    */
   router.register(METHODS.getLastKnownLocation, async (params?: { maxAge?: number }) => {
-    const maxAge = params?.maxAge ?? 300_000; // 기본 5분
+    // maxAge 검증 및 sanitize: finite, non-negative 검증
+    const sanitizedMaxAge =
+      typeof params?.maxAge === 'number' && isFinite(params.maxAge) && params.maxAge >= 0
+        ? params.maxAge
+        : 300_000;
 
-    const lastKnown = await Location.getLastKnownPositionAsync();
+    // expo-location의 maxAge 옵션 활용 (수동 계산 불필요)
+    const lastKnown = await Location.getLastKnownPositionAsync({ maxAge: sanitizedMaxAge });
 
     if (!lastKnown) {
-      return null;
-    }
-
-    // maxAge 검증: timestamp가 maxAge보다 오래되었으면 null 반환
-    const age = Date.now() - lastKnown.timestamp;
-    if (age > maxAge) {
       return null;
     }
 

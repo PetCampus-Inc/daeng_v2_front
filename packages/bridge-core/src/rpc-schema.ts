@@ -12,6 +12,9 @@ import {
   type Location,
   type PermissionStatus,
   type GetAppVersionResult,
+  type IsLocationServiceEnabledResult,
+  type GetLastKnownLocationParams,
+  type GetLastKnownLocationResult,
 } from './methods';
 
 interface RPCSchema {
@@ -39,6 +42,14 @@ interface RPCSchema {
   [METHODS.requestLocationPermission]: {
     params: {};
     result: { status: PermissionStatus; canAskAgain: boolean };
+  };
+  [METHODS.isLocationServiceEnabled]: {
+    params: {};
+    result: IsLocationServiceEnabledResult;
+  };
+  [METHODS.getLastKnownLocation]: {
+    params: GetLastKnownLocationParams;
+    result: GetLastKnownLocationResult;
   };
   [METHODS.openSettings]: {
     params: {};

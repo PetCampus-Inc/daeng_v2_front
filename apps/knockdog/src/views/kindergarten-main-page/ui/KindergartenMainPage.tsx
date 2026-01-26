@@ -63,14 +63,15 @@ function KindergartenMainPageContent() {
       try {
         const status = await getLocationPermission();
 
-        // 권한이 없거나 미결정 상태면 요청
-        if (status !== 'allowed') {
-          const result = await requestLocationPermission();
+        // 이미 허용된 경우 요청 스킵
+        if (status === 'allowed') return;
 
-          // 권한 획득 성공시 위치 쿼리 무효화하여 자동 재실행
-          if (result.status === 'allowed') {
-            queryClient.invalidateQueries({ queryKey: ['geolocation'] });
-          }
+        // 권한이 없거나 미결정 상태면 요청
+        const result = await requestLocationPermission();
+
+        // 권한 획득 성공시 위치 쿼리 무효화하여 자동 재실행
+        if (result.status === 'allowed') {
+          queryClient.invalidateQueries({ queryKey: ['geolocation'] });
         }
       } catch (error) {
         // 권한 요청 실패
