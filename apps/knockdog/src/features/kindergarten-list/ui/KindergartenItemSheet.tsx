@@ -16,7 +16,8 @@ import { TOP_BAR_HEIGHT } from '@shared/constants';
 
 const MIN_SNAP_POINT_OFFSET = 328;
 
-type BottomSheetSnapPoint = ComponentProps<typeof BottomSheet.Root>['activeSnapPoint'];
+export type BottomSheetSnapPoint = ComponentProps<typeof BottomSheet.Root>['activeSnapPoint'];
+
 interface KindergartenItemSheetProps extends KindergartenListItem {
   isOpen: boolean;
   onClose: () => void;
@@ -121,6 +122,7 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
             <KindergartenItemSheetContent
               displayData={displayData}
               activeSnapPoint={activeSnapPoint}
+              setActiveSnapPoint={setActiveSnapPoint}
               visibleOpacity={visibleOpacity}
               hiddenOpacity={hiddenOpacity}
               cardY={cardY}

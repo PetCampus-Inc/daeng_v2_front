@@ -13,6 +13,7 @@ type BottomSheetSnapPoint = ComponentProps<typeof BottomSheet.Root>['activeSnapP
 interface KindergartenItemSheetContentProps {
   displayData?: KindergartenMain;
   activeSnapPoint: BottomSheetSnapPoint;
+  setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
   visibleOpacity: MotionValue<number>;
   hiddenOpacity: MotionValue<number>;
   cardY: MotionValue<number>;
@@ -26,6 +27,7 @@ interface KindergartenItemSheetContentProps {
 export function KindergartenItemSheetContent({
   displayData,
   activeSnapPoint,
+  setActiveSnapPoint,
   visibleOpacity,
   hiddenOpacity,
   cardY,
@@ -62,7 +64,12 @@ export function KindergartenItemSheetContent({
       >
         <BottomSheet.Handle />
         <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
-        <KindergartenCard {...displayData} onBookmarkClick={onBookmarkClick} onPhoneCall={onPhoneCall} />
+        <KindergartenCard
+          {...displayData}
+          onBookmarkClick={onBookmarkClick}
+          onPhoneCall={onPhoneCall}
+          setActiveSnapPoint={setActiveSnapPoint}
+        />
       </motion.div>
 
       <RemoveScroll forwardProps noIsolation enabled={activeSnapPoint === 1}>

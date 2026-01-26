@@ -1,19 +1,24 @@
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
+import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import {
   DeparturePointSheet,
   SERVICE_TAGS,
   ServiceBadgesTruncated,
   type KindergartenMain,
 } from '@entities/kindergarten';
+import type { BottomSheetSnapPoint } from './KindergartenItemSheet';
 
 interface KindergartenCardProps extends KindergartenMain {
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
   onPhoneCall: () => void;
+  setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
 }
 
 export function KindergartenCard(props: KindergartenCardProps) {
+  const [, setActiveTab] = useKindergartenTab();
+
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => (
       <DeparturePointSheet
@@ -22,6 +27,11 @@ export function KindergartenCard(props: KindergartenCardProps) {
         to={{ lat: props.coords.lat, lng: props.coords.lng, name: props.title }}
       />
     ));
+
+  const handleReviewClick = () => {
+    props.setActiveSnapPoint(1); // 시트 확대 (snapPoint[1])
+    setActiveTab('후기'); // 후기 탭 활성화
+  };
 
   return (
     <>
@@ -57,13 +67,13 @@ export function KindergartenCard(props: KindergartenCardProps) {
 
             {/* 리뷰 및 메모 영역 */}
             <div className='gap-x1 flex'>
-              <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-[2px]'>
+              <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
                 <Icon icon='Naver' className='size-x4' />
                 <span className='caption1-semibold text-text-primary text-center'>리뷰 {props.reviewCount}개</span>
               </div>
 
               {props.memo?.memoDate && (
-                <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-[2px]'>
+                <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
                   <Icon icon='Note' className='size-x4' />
                   <span className='caption1-semibold text-text-primary'>{props.memo.memoDate}</span>
                   <span className='caption1-semibold text-text-primary'>메모</span>
@@ -113,12 +123,12 @@ export function KindergartenCard(props: KindergartenCardProps) {
         <ActionButton variant='primaryLine' size='medium' onClick={props.onPhoneCall}>
           전화하기
         </ActionButton>
-        <ActionButton variant='primaryFill' size='medium' disabled>
-          비교하기
+        <ActionButton variant='primaryFill' size='medium' onClick={handleReviewClick}>
+          후기보기
         </ActionButton>
         <button
           aria-label='보관하기'
-          className='radius-r3 bg-fill-primary-50 flex size-[44px] shrink-0 items-center justify-center'
+          className='radius-r3 bg-fill-primary-50 flex size-11 shrink-0 items-center justify-center'
           onClick={() => props.onBookmarkClick(props.id, props.bookmarked ?? false)}
         >
           <Icon icon={props.bookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />

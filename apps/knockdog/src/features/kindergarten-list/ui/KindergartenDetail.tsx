@@ -1,4 +1,5 @@
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
+import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
 import type { KindergartenMain } from '@entities/kindergarten';
@@ -9,7 +10,13 @@ interface KindergartenDetailProps extends KindergartenMain {
 }
 
 export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: KindergartenDetailProps) {
+  const [, setActiveTab] = useKindergartenTab();
+
   const { banner: images, ...restKindergartenMainData } = props;
+
+  const handleReviewClick = () => {
+    setActiveTab('후기'); // 후기 탭 활성화
+  };
 
   return (
     <div className='flex h-full flex-col bg-white'>
@@ -37,8 +44,8 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: K
         <ActionButton variant='primaryLine' size='medium' onClick={onPhoneCall}>
           전화하기
         </ActionButton>
-        <ActionButton variant='primaryFill' size='medium' disabled>
-          비교하기
+        <ActionButton variant='primaryFill' size='medium' onClick={handleReviewClick}>
+          후기보기
         </ActionButton>
         <button
           aria-label='보관하기'

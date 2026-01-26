@@ -1,7 +1,8 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent, Divider } from '@knockdog/ui';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
+import { useKindergartenTab } from '../model';
 
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
@@ -19,7 +20,7 @@ interface KindergartenTabsProps {
 
 function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = true }: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState('기본정보');
+  const [activeTab, setActiveTab] = useKindergartenTab();
   const isLoggedIn = useUserStore((state) => !!state.user);
 
   const handleScrollToDivider = () => {
@@ -50,7 +51,7 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
     if (activeTab === '메모' && !isLoggedIn) {
       setActiveTab('기본정보');
     }
-  }, [activeTab, isLoggedIn]);
+  }, [activeTab, isLoggedIn, setActiveTab]);
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>

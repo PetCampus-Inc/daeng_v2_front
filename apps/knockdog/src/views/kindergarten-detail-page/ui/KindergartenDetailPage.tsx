@@ -7,22 +7,21 @@ import { overlay } from 'overlay-kit';
 import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
+import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { BookmarkToggleIcon } from '@entities/bookmark';
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useShare } from '@shared/lib/device';
-import { SafeArea } from '@shared/ui/safe-area';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
+  const [, setActiveTab] = useKindergartenTab();
 
-  const params = useParams();
-  const rawId = (params as Record<string, string | string[] | undefined>)?.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId;
-  if (!id) return null;
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
 
   const { back } = useStackNavigation();
   const navResult = useNavigationResult<boolean>();
@@ -33,6 +32,7 @@ function KindergartenDetailPage() {
 
   const share = useShare();
 
+  /** 최근 본 업체 저장 */
   useRecentKindergartenView(kindergartenMain);
 
   if (lng == null || lat == null || !kindergartenMain) return null;
@@ -47,10 +47,9 @@ function KindergartenDetailPage() {
 
   const handleShare = () => {
     const shareData = {
-      message: `${kindergartenMain.title}\n https://app.knockdog.net/kindergarten/${id}`,
-      url: `https://app.knockdog.net/kindergarten/${id}`,
+      message: `${kindergartenMain.title}\n ${process.env.NEXT_PUBLIC_WEB_URL}/kindergarten/${kindergartenMain.id}`,
+      url: `${process.env.NEXT_PUBLIC_WEB_URL}/kindergarten/${kindergartenMain.id}`,
     };
-
     share(shareData);
   };
 
@@ -59,8 +58,12 @@ function KindergartenDetailPage() {
     back();
   };
 
+  const handleReviewClick = () => {
+    setActiveTab('후기'); // 후기 탭 활성화
+  };
+
   return (
-    <SafeArea edges={['bottom']}>
+    <>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -88,7 +91,7 @@ function KindergartenDetailPage() {
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}
           {/* 탭 */}
-          <KindergartenTabs scrollableDivRef={scrollableDivRef} />
+          <KindergartenTabs kindergartenId={id} scrollableDivRef={scrollableDivRef} />
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
@@ -101,14 +104,13 @@ function KindergartenDetailPage() {
         >
           전화 걸기
         </ActionButton>
-        {/* @TODO 비교하기 페이지로 Route */}
-        <ActionButton className='flex-1' disabled>
-          비교하기
+        <ActionButton className='flex-1' onClick={handleReviewClick}>
+          후기보기
         </ActionButton>
 
         <BookmarkToggleIcon id={id} bookmarked={kindergartenMain?.bookmarked ?? false} />
       </div>
-    </SafeArea>
+    </>
   );
 }
 

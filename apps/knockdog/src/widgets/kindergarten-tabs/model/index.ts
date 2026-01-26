@@ -1,0 +1,1 @@
+export { useKindergartenTab } from './useKindergartenTab';
