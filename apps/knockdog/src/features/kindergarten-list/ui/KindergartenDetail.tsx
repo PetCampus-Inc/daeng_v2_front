@@ -1,4 +1,5 @@
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
+import { useRef } from 'react';
 import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
@@ -10,6 +11,7 @@ interface KindergartenDetailProps extends KindergartenMain {
 }
 
 export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: KindergartenDetailProps) {
+  const scrollableContentRef = useRef<HTMLDivElement>(null);
   const [, setActiveTab] = useKindergartenTab();
 
   const { banner: images, ...restKindergartenMainData } = props;
@@ -20,7 +22,7 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: K
 
   return (
     <div className='flex h-full flex-col bg-white'>
-      <div className='flex-1 overflow-y-auto'>
+      <div ref={scrollableContentRef} className='flex-1 overflow-y-auto'>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
           <MainBannerSwiper images={images ?? []} />
@@ -35,12 +37,12 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: K
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}
           {/* 탭 */}
-          <KindergartenTabs kindergartenId={props.id} />
+          <KindergartenTabs kindergartenId={props.id} scrollableDivRef={scrollableContentRef} />
         </div>
       </div>
 
       {/* 하단 고정 버튼 영역 */}
-      <div className='p-x4 gap-x2 flex shrink-0 items-center border-t border-t-gray-100 bg-white'>
+      <aside className='p-x4 gap-x2 flex shrink-0 items-center border-t border-t-gray-100 bg-white'>
         <ActionButton variant='primaryLine' size='medium' onClick={onPhoneCall}>
           전화하기
         </ActionButton>
@@ -54,7 +56,7 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: K
         >
           <Icon icon={props.bookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />
         </button>
-      </div>
+      </aside>
     </div>
   );
 }

@@ -64,7 +64,9 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof LocationPermissionError;
 
-  const workAlias = user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.WORK)?.alias || USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.WORK];
+  const workAlias =
+    user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.WORK)?.alias ||
+    USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.WORK];
 
   const handleBasePointTypeChange = (value: string) => {
     const newType = value as BasePointType;
@@ -145,10 +147,10 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   return (
     <>
       <main
-        id="test-id"
+        id='test-id'
         ref={containerRef}
         className={cn(
-          'scrollbar-hide relative flex h-full w-full flex-col',
+          'relative flex h-full w-full flex-col',
           isFullExtended ? 'overflow-y-auto' : 'min-h-full overflow-hidden'
         )}
       >
@@ -170,10 +172,11 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               {/* 고정 버튼 영역 */}
               <div className='pl-x4 flex shrink-0 items-center gap-x-2'>
                 <button
-                  className={`gap-x0.5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${isEmptyFilters
-                    ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
-                    : 'outline-line-accent bg-fill-primary-50 text-text-accent'
-                    }`}
+                  className={`gap-x0.5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
+                    isEmptyFilters
+                      ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
+                      : 'outline-line-accent bg-fill-primary-50 text-text-accent'
+                  }`}
                   onClick={onOpenFilter}
                 >
                   <Icon
