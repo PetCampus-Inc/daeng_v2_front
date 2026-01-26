@@ -1,5 +1,5 @@
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
@@ -19,6 +19,13 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: K
   const handleReviewClick = () => {
     setActiveTab('후기'); // 후기 탭 활성화
   };
+
+  // DetailView가 마운트될 때 스크롤 위치를 최상단으로 초기화
+  useEffect(() => {
+    if (scrollableContentRef.current) {
+      scrollableContentRef.current.scrollTop = 0;
+    }
+  }, []);
 
   return (
     <div className='flex h-full flex-col bg-white'>

@@ -73,6 +73,22 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
     scrollToTabs();
   }, [activeTab, scrollableDivRef, scrollToTabs]);
 
+  // 탭 컨텐츠 높이 변화 감지하여 스크롤 재조정
+  useEffect(() => {
+    const tabsElement = tabsRef.current;
+    if (!tabsElement) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // 기본정보 탭이 아니고, 초기 마운트가 아닐 때만 스크롤 재조정
+      if (activeTab !== '기본정보' && !isInitialMount.current) {
+        scrollToTabs();
+      }
+    });
+
+    resizeObserver.observe(tabsElement);
+    return () => resizeObserver.disconnect();
+  }, [activeTab, scrollToTabs]);
+
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>
       <TabsList scrollable className='sticky top-0 z-101 bg-white'>
