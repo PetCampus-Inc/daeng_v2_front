@@ -1,7 +1,8 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent, Divider } from '@knockdog/ui';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
+import { useKindergartenTab } from '../model';
 
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
@@ -19,23 +20,30 @@ interface KindergartenTabsProps {
 
 function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = true }: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState('기본정보');
+  const isInitialMount = useRef(true);
+  const [activeTab, setActiveTab] = useKindergartenTab();
   const isLoggedIn = useUserStore((state) => !!state.user);
 
-  const handleScrollToDivider = () => {
-    if (!tabsRef.current || !scrollableDivRef?.current) return;
+  const scrollToTabs = useCallback(() => {
+    const scrollContainer = scrollableDivRef?.current;
+    const tabsElement = tabsRef.current;
 
-    const headerHeight = 66;
+    if (!scrollContainer || !tabsElement) return;
 
-    const rect = tabsRef.current.getBoundingClientRect();
-    const scrollTop = scrollableDivRef.current?.scrollTop ?? 0;
-    const targetY = rect.top - headerHeight + scrollTop;
+    requestAnimationFrame(() => {
+      const tabsRect = tabsElement.getBoundingClientRect();
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const scrollTop = scrollContainer.scrollTop;
 
-    scrollableDivRef.current?.scrollTo({
-      top: targetY,
-      behavior: 'smooth',
+      // 스크롤 컨테이너 내부에서 탭의 절대 위치
+      const tabOffsetInContainer = tabsRect.top - containerRect.top + scrollTop;
+
+      scrollContainer.scrollTo({
+        top: tabOffsetInContainer,
+        behavior: 'smooth',
+      });
     });
-  };
+  }, [scrollableDivRef]);
 
   const handleTabChange = async (value: string) => {
     if (value === '메모' && !isLoggedIn) {
@@ -50,7 +58,36 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
     if (activeTab === '메모' && !isLoggedIn) {
       setActiveTab('기본정보');
     }
-  }, [activeTab, isLoggedIn]);
+  }, [activeTab, isLoggedIn, setActiveTab]);
+
+  // 탭 변경 시 스크롤
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (activeTab === '기본정보') return;
+    if (!scrollableDivRef?.current) return;
+
+    scrollToTabs();
+  }, [activeTab, scrollableDivRef, scrollToTabs]);
+
+  // 탭 컨텐츠 높이 변화 감지하여 스크롤 재조정
+  useEffect(() => {
+    const tabsElement = tabsRef.current;
+    if (!tabsElement) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // 기본정보 탭이 아니고, 초기 마운트가 아닐 때만 스크롤 재조정
+      if (activeTab !== '기본정보' && !isInitialMount.current) {
+        scrollToTabs();
+      }
+    });
+
+    resizeObserver.observe(tabsElement);
+    return () => resizeObserver.disconnect();
+  }, [activeTab, scrollToTabs]);
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>
@@ -78,7 +115,7 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
         <PricingSection kindergartenId={kindergartenId} />
       </TabsContent>
       <TabsContent value='후기'>
-        <ReviewSection kindergartenId={kindergartenId} onScrollTop={handleScrollToDivider} />
+        <ReviewSection kindergartenId={kindergartenId} onScrollTop={scrollToTabs} />
       </TabsContent>
       <TabsContent value='메모'>
         <MemoSection kindergartenId={kindergartenId} />

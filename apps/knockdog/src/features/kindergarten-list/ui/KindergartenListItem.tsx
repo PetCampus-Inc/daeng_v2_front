@@ -41,13 +41,13 @@ export function KindergartenListItem({
   return (
     <div onClick={handleClick} className='gap-x4 px-x4 py-x6 flex w-full flex-col items-center'>
       {/* 이미지 컨테이너 */}
-      <div className='relative aspect-[16/9] w-full overflow-hidden'>
+      <div className='relative aspect-video w-full overflow-hidden'>
         <BannerImageSlider id={id} name={title} slides={banner} />
         <CardBtnClipDefs id={id} />
         {/* 북마크 버튼 */}
         <button
           aria-label='보관하기'
-          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-[32px] w-[11.17%] min-w-[32px] items-center justify-center border-0 p-0'
+          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-8 w-[11.17%] min-w-8 items-center justify-center border-0 p-0'
           style={{ clipPath: `url(#card-btn-${id})` }}
           onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
@@ -66,7 +66,7 @@ export function KindergartenListItem({
         {/* 컨텐츠 상단 영역 */}
         <div className='gap-x2 flex min-w-0 items-start justify-between self-stretch'>
           {/* 타이틀 */}
-          <div className='flex min-w-0 flex-col items-start justify-center gap-[2px]'>
+          <div className='flex min-w-0 flex-col items-start justify-center gap-0.5'>
             <h1 className='h2-extrabold text-text-primary w-full truncate'>{title}</h1>
             <p className='body2-regular text-text-tertiary w-full truncate'>
               {ctg
@@ -77,7 +77,7 @@ export function KindergartenListItem({
           </div>
 
           {/* 네이버 리뷰 badge */}
-          <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-[2px]'>
+          <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
             <Icon icon='Naver' className='size-x4' />
             <span className='caption1-semibold text-text-primary text-center'>리뷰 {reviewCount}개</span>
           </div>
