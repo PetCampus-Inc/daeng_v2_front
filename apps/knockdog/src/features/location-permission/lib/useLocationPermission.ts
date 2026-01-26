@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PermissionStatus } from '@knockdog/bridge-core';
-import { getCurrentLocation, useGeolocationQuery } from '@shared/lib/geolocation';
+import { getLocationPermission, requestLocationPermission, useGeolocationQuery } from '@shared/lib/geolocation';
 import { useQuery } from '@tanstack/react-query';
 import { geoQueries } from '@entities/address';
 
@@ -41,7 +41,7 @@ function useLocationPermission() {
    */
   const checkPermission = async () => {
     try {
-      const status = await getCurrentLocation.getPermission();
+      const status = await getLocationPermission();
       setPermissionStatus(status);
     } catch (error) {
       console.error('권한 확인 실패:', error);
@@ -52,14 +52,14 @@ function useLocationPermission() {
   /**
    * 권한 요청 (앱 내 팝업)
    */
-  const requestPermission = async () => {
+  const handleRequestPermission = async () => {
     try {
-      const status = await getCurrentLocation.openPermissionDialog();
+      const { status } = await requestLocationPermission();
       setPermissionStatus(status);
       return status;
     } catch (error) {
       console.error('권한 요청 실패:', error);
-      return 'denied';
+      return 'denied' as const;
     }
   };
 
@@ -86,7 +86,7 @@ function useLocationPermission() {
     permissionStatus,
     location,
     address,
-    requestPermission,
+    requestPermission: handleRequestPermission,
     isLoading: locationQuery.isLoading || isAddressLoading,
   };
 }

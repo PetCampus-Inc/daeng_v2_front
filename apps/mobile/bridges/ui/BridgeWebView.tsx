@@ -1,6 +1,7 @@
 import WebView from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type RefObject, useRef, useMemo, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
 import { buildConsolePatch } from '../lib/consolePatch';
@@ -69,6 +70,7 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
       style.setProperty('--safe-area-inset-left', '${left}px');
       style.setProperty('--safe-area-inset-right', '${right}px');
     })();
+    true;
   `;
 }
 
@@ -123,14 +125,23 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
       ref={refToUse}
       source={{ uri }}
       onMessage={handleOnMessage}
-      onLoadEnd={notifyReady}
+      onLoadEnd={() => {
+        if (Platform.OS === 'android') {
+          const ref = refToUse.current;
+          if (ref) {
+            ref.injectJavaScript(buildSafeAreaInjector(insets));
+          }
+        }
+        notifyReady();
+      }}
       javaScriptEnabled
       domStorageEnabled
       originWhitelist={['*']}
       cacheEnabled
       geolocationEnabled
       webviewDebuggingEnabled={__DEV__}
-      injectedJavaScriptBeforeContentLoaded={INJECT_BEFORE}
+      injectedJavaScriptBeforeContentLoaded={Platform.OS === 'ios' ? INJECT_BEFORE : undefined}
+      injectedJavaScript={Platform.OS === 'android' ? INJECT_BEFORE : undefined}
       renderError={() => <ErrorScreen onRefresh={() => {
         refToUse.current?.reload();
       }} />}

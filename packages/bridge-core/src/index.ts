@@ -1,4 +1,4 @@
-export { METHODS } from './methods';
+export { METHODS, LOCATION_ERROR_CODES } from './methods';
 export type { BridgeEventMap } from './event-types';
 export { BRIDGE_VERSION, safeParse, makeId } from './utils';
 export type {
