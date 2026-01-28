@@ -1,12 +1,13 @@
-import type { KindergartenComparison, SlideProps, TransportationType } from '@entities/compare';
-import { getTransitTime, getDistanceString, REFERENCE_POINT_TYPE, TRANSPORTATION_TYPE } from '@entities/compare';
+import type { KindergartenComparison, ReferencePointType, SlideProps, TransportationType } from '@entities/compare';
+import { getTransitTime, getDistanceString, TRANSPORTATION_TYPE } from '@entities/compare';
 import { getDirectionParticle } from '@shared/utils';
 
 export function createDistanceSlides(
   left: KindergartenComparison | null,
-  right: KindergartenComparison | null
+  right: KindergartenComparison | null,
+  referencePointOptions: { value: ReferencePointType; label: string }[]
 ): SlideProps[] {
-  return Object.entries(REFERENCE_POINT_TYPE).map(([refPoint, refPointLabel]) => {
+  return referencePointOptions.map(({ value: refPoint, label: refPointLabel }) => {
     const directionParticle = getDirectionParticle(refPointLabel);
 
     const transportRows = Object.entries(TRANSPORTATION_TYPE).map(([transportType, transportTypeLabel]) => ({

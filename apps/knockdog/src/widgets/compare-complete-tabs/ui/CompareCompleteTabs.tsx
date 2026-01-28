@@ -12,16 +12,25 @@ import { PricingSection } from './PricingSection';
 import { SwipeCarousel } from './SwipeCarousel';
 import { Table } from './Table';
 import { createPricingSlides, createDistanceSlides, createOperatingScheduleSlide } from '@features/compare';
-import type { KindergartenComparison } from '@entities/compare';
+import type { KindergartenComparison, ReferencePointType } from '@entities/compare';
 
 interface CompareCompleteTabsProps {
   left: KindergartenComparison;
   right: KindergartenComparison;
+  referencePoint: ReferencePointType;
+  referencePointOptions: { value: ReferencePointType; label: string }[];
+  onReferencePointChange: (value: ReferencePointType) => void;
 }
 
-function CompareCompleteTabs({ left, right }: CompareCompleteTabsProps) {
+function CompareCompleteTabs({
+  left,
+  right,
+  referencePoint,
+  referencePointOptions,
+  onReferencePointChange,
+}: CompareCompleteTabsProps) {
   const pricingSlidesData = createPricingSlides(left, right);
-  const distanceSlidesData = createDistanceSlides(left, right);
+  const distanceSlidesData = createDistanceSlides(left, right, referencePointOptions);
   const operatingSlideData = createOperatingScheduleSlide(left, right);
 
   return (
@@ -48,7 +57,13 @@ function CompareCompleteTabs({ left, right }: CompareCompleteTabsProps) {
           <ComparisonPanel>
             {/* 거리 */}
             <ComparisonSection>
-              <DistanceSection left={left} right={right} />
+              <DistanceSection
+                left={left}
+                right={right}
+                referencePoint={referencePoint}
+                referencePointOptions={referencePointOptions}
+                onReferencePointChange={onReferencePointChange}
+              />
             </ComparisonSection>
           </ComparisonPanel>
 

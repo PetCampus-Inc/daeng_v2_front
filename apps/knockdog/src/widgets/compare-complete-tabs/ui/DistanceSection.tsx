@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   compareDistancesByTransport,
   findShortestTransport,
@@ -7,20 +6,16 @@ import {
 } from '@features/compare';
 import type { KindergartenComparison, TransportationType, ReferencePointType } from '@entities/compare';
 import { TRANSPORTATION_TYPE, TRANSPORTATION_ICON_MAP, Label, Badge } from '@entities/compare';
-import type { UserAddress } from '@entities/user';
-import { useUserStore } from '@entities/user';
 
-function DistanceSection({ left, right }: { left: KindergartenComparison; right: KindergartenComparison }) {
-  const [referencePoint, setReferencePoint] = useState<ReferencePointType>('HOME');
-  const user = useUserStore((state) => state.user);
-  const savedAddresses = user?.addresses;
+interface DistanceSectionProps {
+  left: KindergartenComparison;
+  right: KindergartenComparison;
+  referencePoint: ReferencePointType;
+  referencePointOptions: { value: ReferencePointType; label: string }[];
+  onReferencePointChange: (value: ReferencePointType) => void;
+}
 
-  const refPointOptions = (savedAddresses ?? [])
-    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
-    .map(({ type, alias }) => ({
-      value: type as ReferencePointType,
-      label: alias,
-    }));
+function DistanceSection({ left, right, referencePoint, referencePointOptions, onReferencePointChange }: DistanceSectionProps) {
 
   const comparisonsByTransport = compareDistancesByTransport(left, right, referencePoint);
 
@@ -36,9 +31,10 @@ function DistanceSection({ left, right }: { left: KindergartenComparison; right:
       <Label className='mb-2'>거리</Label>
       <DistanceSummary
         shortestInfo={shortestInfo}
+        maxLabelLength={referencePoint === 'OTHER' ? 6 : 5} // OTHER='공유된 위치' 길이 고려
         referencePoint={referencePoint}
-        referencePointOptions={refPointOptions}
-        onReferencePointChange={setReferencePoint}
+        referencePointOptions={referencePointOptions}
+        onReferencePointChange={onReferencePointChange}
       />
       <div className='mt-7 flex flex-col gap-5'>
         {comparisonItems.map(({ transportType, comparison }) => (
