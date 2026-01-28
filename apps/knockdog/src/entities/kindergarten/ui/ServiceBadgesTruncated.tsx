@@ -2,11 +2,11 @@ import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { ServiceBadge } from './ServiceBadge';
-import { PICKUP_TYPE, SERVICE_TAGS } from '../config/constant';
+import { PICKUP, SERVICE_TAGS } from '../config/enum';
 
 interface ServiceBadgesTruncatedProps {
   serviceTags: (keyof typeof SERVICE_TAGS)[];
-  pickupType: keyof typeof PICKUP_TYPE;
+  pickupType: keyof typeof PICKUP;
 }
 
 function ServiceBadgesTruncated({ serviceTags, pickupType }: ServiceBadgesTruncatedProps) {
@@ -16,7 +16,7 @@ function ServiceBadgesTruncated({ serviceTags, pickupType }: ServiceBadgesTrunca
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
         <Icon icon={pickupType === 'FREE_PICKUP' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
-        {PICKUP_TYPE[pickupType]}
+        {PICKUP[pickupType]}
       </ServiceBadge>
     );
   }

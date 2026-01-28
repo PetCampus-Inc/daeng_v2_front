@@ -1,10 +1,10 @@
 import { Icon } from '@knockdog/ui';
 import { ServiceBadge } from './ServiceBadge';
-import { SERVICE_TAGS, PICKUP_TYPE } from '../config/constant';
+import { SERVICE_TAGS, PICKUP } from '../config/enum';
 
 interface ServiceBadgeListProps {
   serviceTags: (keyof typeof SERVICE_TAGS)[];
-  pickupType: keyof typeof PICKUP_TYPE;
+  pickupType: keyof typeof PICKUP;
 }
 
 function ServiceBadgeList({ serviceTags, pickupType }: ServiceBadgeListProps) {
@@ -14,7 +14,7 @@ function ServiceBadgeList({ serviceTags, pickupType }: ServiceBadgeListProps) {
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
         <Icon icon={pickupType === 'FREE_PICKUP' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
-        {PICKUP_TYPE[pickupType]}
+        {PICKUP[pickupType]}
       </ServiceBadge>
     );
   }
