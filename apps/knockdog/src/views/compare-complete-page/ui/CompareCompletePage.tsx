@@ -34,7 +34,9 @@ function CompareCompletePage() {
   const [referencePoint, setReferencePoint] = useState<ReferencePointType>(coords ? 'OTHER' : 'HOME'); // URL로 공유된 위치라면 OTHER
   const addressOptions = useMemo(
     () =>
-      (savedAddresses ?? []).map(({ type, alias }) => ({
+      (savedAddresses ?? [])
+    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
+    .map(({ type, alias }) => ({
         value: type as ReferencePointType,
         label: alias,
       })),
