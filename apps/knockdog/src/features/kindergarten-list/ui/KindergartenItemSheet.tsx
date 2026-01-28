@@ -21,10 +21,10 @@ export type BottomSheetSnapPoint = ComponentProps<typeof BottomSheet.Root>['acti
 interface KindergartenItemSheetProps extends KindergartenListItem {
   isOpen: boolean;
   onClose: () => void;
-  coords: { lat: number; lng: number };
+  position: { lat: number; lng: number };
 }
 
-export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: KindergartenItemSheetProps) {
+export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: KindergartenItemSheetProps) {
   const { top } = useSafeAreaInsets();
   const MAX_SNAP_POINT_OFFSET = isNativeWebView() ? TOP_BAR_HEIGHT + top : TOP_BAR_HEIGHT;
 
@@ -51,11 +51,11 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
   const scaleUp = useTransform(dragProgress, [0, 1], [0.8, 1]);
   const scaleDown = useTransform(dragProgress, [0, 1], [1, 0.8]);
 
-  const { displayData } = useKindergartenItemSheetData({ item, coords });
+  const { displayData } = useKindergartenItemSheetData({ item, position });
   const { onBookmarkClick, onShare, onPhoneCall } = useKindergartenItemSheetActions({
     displayData,
     id: item.id,
-    coords,
+    coords: position,
   });
 
   const handleBack = useCallback(() => {
@@ -98,7 +98,6 @@ export function KindergartenItemSheet({ coords, isOpen, onClose, ...item }: Kind
           onSnapPointsResolved={(resolved) => {
             snapOffsetsRef.current = resolved;
           }}
-
         >
           <BottomSheet.Body
             ref={viewRef}

@@ -51,7 +51,9 @@ export function useMapClustering({ markers, zoom, bounds, disableClustering = fa
     });
 
     const points: MapPoint[] = markers
-      .filter((marker) => marker.coord && typeof marker.coord.lat === 'number' && typeof marker.coord.lng === 'number')
+      .filter(
+        (marker) => marker.coords && typeof marker.coords.lat === 'number' && typeof marker.coords.lng === 'number'
+      )
       .map((marker) => ({
         type: 'Feature',
         properties: {
@@ -61,7 +63,7 @@ export function useMapClustering({ markers, zoom, bounds, disableClustering = fa
         },
         geometry: {
           type: 'Point',
-          coordinates: [marker.coord.lng, marker.coord.lat],
+          coordinates: [marker.coords.lng, marker.coords.lat],
         },
       }));
 
@@ -79,13 +81,13 @@ export function useMapClustering({ markers, zoom, bounds, disableClustering = fa
       return markers
         .filter((m) => {
           return (
-            m.coord &&
-            typeof m.coord.lat === 'number' &&
-            typeof m.coord.lng === 'number' &&
-            m.coord.lat >= bounds.swLat &&
-            m.coord.lat <= bounds.neLat &&
-            m.coord.lng >= bounds.swLng &&
-            m.coord.lng <= bounds.neLng
+            m.coords &&
+            typeof m.coords.lat === 'number' &&
+            typeof m.coords.lng === 'number' &&
+            m.coords.lat >= bounds.swLat &&
+            m.coords.lat <= bounds.neLat &&
+            m.coords.lng >= bounds.swLng &&
+            m.coords.lng <= bounds.neLng
           );
         })
         .map(
@@ -99,7 +101,7 @@ export function useMapClustering({ markers, zoom, bounds, disableClustering = fa
             },
             geometry: {
               type: 'Point',
-              coordinates: [m.coord.lng, m.coord.lat],
+              coordinates: [m.coords.lng, m.coords.lat],
             },
           })
         );
