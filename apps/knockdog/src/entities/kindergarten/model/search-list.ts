@@ -1,4 +1,4 @@
-import type { OPERATION_STATUS, SERVICE_TAGS, PICKUP_TYPE } from '../config/constant';
+import type { OPERATION_STATUS, SERVICE_TAGS, PICKUP } from '../config/enum';
 import type { Coord } from '@shared/types';
 
 export interface KindergartenSearchListDto {
@@ -26,13 +26,14 @@ export interface KindergartenListItemDto {
     endTime: string;
   };
   operationStatus: keyof typeof OPERATION_STATUS;
+  operationDescription: string;
   price: number;
   dist: number;
   roadAddress: string;
-  coord: Coord;
+  coords: Coord;
   reviewCount: number;
   serviceTags: (keyof typeof SERVICE_TAGS)[];
-  pickupType: keyof typeof PICKUP_TYPE;
+  pickupType: keyof typeof PICKUP;
   phoneNumber: string;
 }
 
