@@ -1,5 +1,6 @@
 import type { KindergartenComparison, ProductType, TransportationType } from '../model/compare';
 import type { SimpleComparisonItem } from '../model/compare-result';
+import { Coord } from '@shared/types';
 
 /**
  * URLSearchParams에서 유치원 ID 목록을 추출합니다.
@@ -20,6 +21,22 @@ function resolveIds(searchParams: URLSearchParams): string[] {
       .filter(Boolean);
   }
   return [];
+}
+
+function resolveCoords(searchParams: URLSearchParams): Coord | undefined {
+  const lat = searchParams.get('lat');
+  const lng = searchParams.get('lng');
+
+  if (lat && lng) {
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    
+    if (!Number.isNaN(latNum) && !Number.isNaN(lngNum)) {
+      return { lat: latNum, lng: lngNum };
+    }
+  }
+
+  return undefined;
 }
 
 function s3ToUrl(s3Key?: string) {
@@ -55,4 +72,4 @@ function getDistanceString(kg?: KindergartenComparison | null, refPoint: string 
   return kg?.distance?.find((distance) => distance?.referencePoint === refPoint)?.distance ?? '-';
 }
 
-export { resolveIds, s3ToUrl, mapToSimpleItem, getProduct, getTransitTime, getDistanceString };
+export { resolveIds, resolveCoords, s3ToUrl, mapToSimpleItem, getProduct, getTransitTime, getDistanceString };

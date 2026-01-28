@@ -1,12 +1,21 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 import { CompareCompleteTabs } from '@widgets/compare-complete-tabs';
 import { useComparisonsQuery } from '@features/compare';
-import type { KindergartenComparison } from '@entities/compare';
-import { SelectedCell, serializeCategories, resolveIds, s3ToUrl } from '@entities/compare';
+import type { KindergartenComparison, ReferencePointType } from '@entities/compare';
+import {
+  SelectedCell,
+  serializeCategories,
+  resolveIds,
+  s3ToUrl,
+  resolveCoords,
+  REFERENCE_POINT_TYPE,
+} from '@entities/compare';
+import type { UserAddress } from '@entities/user';
+import { useUserStore } from '@entities/user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { useShare } from '@shared/lib/device/useShare';
@@ -14,19 +23,42 @@ import { useShare } from '@shared/lib/device/useShare';
 function CompareCompletePage() {
   const params = useSearchParams();
   const share = useShare();
+  const user = useUserStore((state) => state.user);
+  const savedAddresses = user?.addresses;
 
   // 🔒 안정화: params 객체 대신 문자열 키를 메모이즈해서 파싱
   const qsKey = params.toString();
   const ids = useMemo(() => resolveIds(new URLSearchParams(qsKey)), [qsKey]);
+  const coords = useMemo(() => resolveCoords(new URLSearchParams(qsKey)), [qsKey]);
 
-  const { data, isPending } = useComparisonsQuery(ids);
+  const [referencePoint, setReferencePoint] = useState<ReferencePointType>(coords ? 'OTHER' : 'HOME'); // URL로 공유된 위치라면 OTHER
+  const addressOptions = useMemo(
+    () =>
+      (savedAddresses ?? [])
+    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
+    .map(({ type, alias }) => ({
+        value: type as ReferencePointType,
+        label: alias,
+      })),
+    [savedAddresses]
+  );
+  const referencePointOptions = coords // URL로 공유된 위치인 경우 기준점 옵션
+    ? [{ value: 'OTHER' as ReferencePointType, label: REFERENCE_POINT_TYPE.OTHER }]
+    : addressOptions;
+
+  const { data, isPending } = useComparisonsQuery(ids, coords);
 
   const [left, right] = useMemo(() => data?.filter((item): item is KindergartenComparison => !!item) ?? [], [data]);
 
   const handleShare = () => {
-    if (!left || !right) return;
+    // 현재 기준점의 좌표를 추출
+    const selectedAddress: UserAddress | undefined =
+      user?.addresses?.find((addr) => addr.type === referencePoint) ?? user?.addresses?.[0];
 
-    const url = `https://app.knockdog.net/compare-complete?ids=${left.id},${right.id}`;
+    if (!left || !right || !selectedAddress) return;
+
+    const url = `https://app.knockdog.net/compare-complete?ids=${left.id},${right.id}&lat=${selectedAddress.lat}&lng=${selectedAddress.lng}`;
+
     const shareData = {
       message: `${left.name}와 ${right.name}의 비교 결과를 확인해보세요!\n ${url}`,
       url,
@@ -44,14 +76,16 @@ function CompareCompletePage() {
           </Header.LeftSection>
           <Header.Title>비교 결과</Header.Title>
           <Header.RightSection>
-            <button
-              type='button'
-              className='label-semibold text-text-primary px-2 py-1'
-              aria-label='비교 결과 공유하기'
-              onClick={handleShare}
-            >
-              공유하기
-            </button>
+            {!coords && (
+              <button
+                type='button'
+                className='label-semibold text-text-primary px-2 py-1'
+                aria-label='비교 결과 공유하기'
+                onClick={handleShare}
+              >
+                공유하기
+              </button>
+            )}
           </Header.RightSection>
         </Header>
 
@@ -75,7 +109,13 @@ function CompareCompletePage() {
             </div>
 
             <div className='min-h-0 flex-1'>
-              <CompareCompleteTabs left={left} right={right} />
+              <CompareCompleteTabs
+                left={left}
+                right={right}
+                referencePoint={referencePoint}
+                referencePointOptions={referencePointOptions}
+                onReferencePointChange={setReferencePoint}
+              />
             </div>
           </>
         )}

@@ -7,6 +7,7 @@ interface DistanceSummaryProps {
   shortestInfo: ShortestInfo;
   referencePointOptions: { value: ReferencePointType; label: string }[];
   referencePoint: ReferencePointType;
+  maxLabelLength?: number;
   onReferencePointChange: (value: ReferencePointType) => void;
 }
 
@@ -14,6 +15,7 @@ export function DistanceSummary({
   shortestInfo,
   referencePoint,
   referencePointOptions,
+  maxLabelLength = 5,
   onReferencePointChange,
 }: DistanceSummaryProps) {
   const transportTypeText = TRANSPORTATION_TYPE[shortestInfo.transportType];
@@ -27,7 +29,7 @@ export function DistanceSummary({
           options={referencePointOptions}
           value={referencePoint}
           onChange={onReferencePointChange}
-          maxLabelLength={5}
+          maxLabelLength={maxLabelLength}
           triggerClassName='border-b p-0'
           labelClassName='h2-extrabold'
           iconClassName='text-text-primary'
