@@ -28,9 +28,14 @@ function resolveCoords(searchParams: URLSearchParams): Coord | undefined {
   const lng = searchParams.get('lng');
 
   if (lat && lng) {
-    return { lat: Number(lat), lng: Number(lng) };
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    
+    if (!Number.isNaN(latNum) && !Number.isNaN(lngNum)) {
+      return { lat: latNum, lng: lngNum };
+    }
   }
-  
+
   return undefined;
 }
 
