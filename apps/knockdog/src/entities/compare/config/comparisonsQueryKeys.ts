@@ -3,7 +3,8 @@ import type { Coord } from '@shared/types';
 
 const comparisonsQueryKeys = {
   all: ['comparisons'] as const,
-  byIds: (ids: string[], basePoint?: Coord) => [...comparisonsQueryKeys.all, ...[...ids].sort(), ...(basePoint ? [basePoint.lat, basePoint.lng] : [])] as const,
+  byIds: (ids: string[], basePoint?: Coord) =>
+    [...comparisonsQueryKeys.all, ...[...ids].sort(), ...(basePoint ? [basePoint.lat, basePoint.lng] : [])] as const,
   history: () => [...comparisonsQueryKeys.all, 'history'] as const,
 } as const;
 
