@@ -35,7 +35,7 @@ const TRANSPORTATION_ICON_MAP: Record<string, IconType> = {
 const REFERENCE_POINT_TYPE = {
   HOME: '집',
   WORK: '직장',
-  // OTHER: '기타',
+  OTHER: '공유된 위치',
 } as const;
 
 const DAY_OF_WEEK_SHORT = {

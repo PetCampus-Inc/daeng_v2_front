@@ -1,14 +1,15 @@
-import { getComparisons, getComparisonHistory, deleteComparisonHistory } from '../api/comparisons';
+import { getComparisons, getComparisonHistory } from '../api/comparisons';
+import type { Coord } from '@shared/types';
 
 const comparisonsQueryKeys = {
   all: ['comparisons'] as const,
-  byIds: (ids: string[]) => [...comparisonsQueryKeys.all, ...[...ids].sort()] as const,
+  byIds: (ids: string[], basePoint?: Coord) => [...comparisonsQueryKeys.all, ...[...ids].sort(), ...(basePoint ? [basePoint.lat, basePoint.lng] : [])] as const,
   history: () => [...comparisonsQueryKeys.all, 'history'] as const,
 } as const;
 
-const createComparisonsQueryOptions = (ids: string[]) => ({
-  queryKey: comparisonsQueryKeys.byIds(ids),
-  queryFn: () => getComparisons({ ids }),
+const createComparisonsQueryOptions = (ids: string[], basePoint?: Coord) => ({
+  queryKey: comparisonsQueryKeys.byIds(ids, basePoint),
+  queryFn: () => getComparisons({ ids, basePoint }),
   enabled: ids.length > 0,
 });
 

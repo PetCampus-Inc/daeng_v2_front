@@ -1,14 +1,23 @@
-import { KindergartenComparison, KindergartenShortInfo } from '../model/types';
+import type { KindergartenComparison, KindergartenShortInfo } from '../model/types';
+import type { Coord } from '@shared/types';
 import { api, ApiResponse } from '@shared/api';
 
 export interface ComparisonsParams {
   ids: string[];
+  basePoint?: Coord;
 }
 
-function getComparisons({ ids }: ComparisonsParams): Promise<ApiResponse<KindergartenComparison[]>> {
-  const queryString = ids.map((id) => `ids=${encodeURIComponent(id)}`).join('&');
+function getComparisons({ ids, basePoint }: ComparisonsParams): Promise<ApiResponse<KindergartenComparison[]>> {
+  const params = new URLSearchParams();
 
-  return api.get(`kindergarten/comparisons?${queryString}`).json();
+  ids.forEach((id) => params.append('ids', id));
+
+  if (basePoint) {
+    params.append('lat', basePoint.lat.toString());
+    params.append('lng', basePoint.lng.toString());
+  }
+
+  return api.get(`kindergarten/comparisons?${params.toString()}`).json();
 }
 
 interface ComparisonHistoryItem {
