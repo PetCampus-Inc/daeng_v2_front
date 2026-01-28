@@ -1,9 +1,8 @@
-import { CTAG_MAP } from './constants/kindergarten';
-import { OPERATION_STATUS, PICKUP_TYPE, SERVICE_TAGS } from '../config/constant';
+import { OPERATION_STATUS, PICKUP, SERVICE_TAGS } from '../config/enum';
 export interface Kindergarten {
   id: string;
   title: string;
-  ctg: keyof typeof CTAG_MAP;
+  ctg: string;
   operationTimes: {
     startTime: string;
     endTime: string;
@@ -19,7 +18,7 @@ export interface Kindergarten {
   roadAddress: string;
   reviewCount: number;
   serviceTags: (keyof typeof SERVICE_TAGS)[];
-  pickupType: keyof typeof PICKUP_TYPE;
+  pickupType: keyof typeof PICKUP;
   banner: string[];
   bookmarked: boolean;
   memoDate: string;

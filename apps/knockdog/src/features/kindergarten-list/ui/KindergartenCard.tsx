@@ -52,12 +52,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
             <div className='flex items-start justify-between'>
               <div className='gap-x0_5 flex flex-col'>
                 <p className='h2-extrabold text-text-primary'>{props.title}</p>
-                <span className='label-medium text-text-tertiary'>
-                  {props.ctg
-                    .split(',')
-                    .map((tag) => SERVICE_TAGS[tag.trim() as keyof typeof SERVICE_TAGS] || tag.trim())
-                    .join(' ・ ')}
-                </span>
+                <span className='label-medium text-text-tertiary'>{props.ctg}</span>
               </div>
               {/* 길찾기 버튼 */}
               <button onClick={openDeparturePointSheet}>

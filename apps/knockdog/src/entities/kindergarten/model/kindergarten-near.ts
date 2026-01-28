@@ -1,4 +1,4 @@
-import { SERVICE_TAGS, OPERATION_STATUS, PICKUP_TYPE } from '../config/constant';
+import { SERVICE_TAGS, OPERATION_STATUS, PICKUP } from '../config/enum';
 
 interface KindergartenNear {
   id: string;
@@ -8,7 +8,7 @@ interface KindergartenNear {
   dist: number;
   operationStatus: keyof typeof OPERATION_STATUS;
   serviceTags: (keyof typeof SERVICE_TAGS)[];
-  pickupType: keyof typeof PICKUP_TYPE;
+  pickupType: keyof typeof PICKUP;
   price: number;
   reviewCount: number;
   memoDate: string;

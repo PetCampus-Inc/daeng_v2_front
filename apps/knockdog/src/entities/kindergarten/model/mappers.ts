@@ -4,6 +4,7 @@ import type { BookmarkItem } from '@entities/bookmark';
 import { formatDistance } from '@shared/lib';
 import type { KindergartenListItemDto, KindergartenSearchListDto } from './search-list';
 import type { KindergartenListItem, KindergartenMain } from './types';
+import { CTG } from '../config/enum';
 
 type KindergartenBookmark = Pick<BookmarkItem, 'id'> & { shopId?: string };
 
@@ -12,12 +13,15 @@ function toKindergartenListItem(
   memoByShopId: Map<string, MemoItem>,
   bookmarkedSet: Set<string>
 ): KindergartenListItem {
-  const { dist, ...rest } = item;
+  const { dist, ctg, ...rest } = item;
   const memo = memoByShopId.get(item.id);
   const bookmarked = bookmarkedSet.has(item.id);
-
   return {
     ...rest,
+    ctg: ctg
+      .split(',')
+      .map((tag) => CTG[tag.trim() as keyof typeof CTG] || tag.trim())
+      .join(' ・ '),
     dist: formatDistance(dist, { unit: 'kilometer' }),
     memo: memo ? formatMemoDate(memo) : undefined,
     bookmarked,
@@ -77,6 +81,10 @@ export function toKindergartenMain({
 
   return {
     ...item,
+    ctg: item.ctg
+      .split(',')
+      .map((tag) => CTG[tag.trim() as keyof typeof CTG] || tag.trim())
+      .join(' ・ '),
     dist: formatDistance(item.dist, { unit: 'kilometer' }),
     memo: memoByShopId.get(item.id) ? formatMemoDate(memoByShopId.get(item.id)!) : undefined,
     bookmarked: bookmarkedSet.has(item.id),

@@ -3,23 +3,23 @@ import type { KindergartenListItem, KindergartenMain } from '@entities/kindergar
 
 interface UseKindergartenItemSheetDataParams {
   item: KindergartenListItem;
-  coords: { lat: number; lng: number };
+  position: { lat: number; lng: number };
 }
 
 function toFallbackMain(item: KindergartenListItem, fallbackCoords: { lat: number; lng: number }): KindergartenMain {
-  const coord = item.coord ?? fallbackCoords;
+  const coords = item.coords ?? fallbackCoords;
   return {
     id: item.id,
     title: item.title,
     ctg: item.ctg as KindergartenMain['ctg'],
     operationTimes: item.operationTimes,
     operationStatus: item.operationStatus,
-    operationDescription: '',
+    operationDescription: item.operationDescription,
     price: item.price,
     dist: item.dist,
     coords: {
-      lat: coord.lat,
-      lng: coord.lng,
+      lat: coords.lat,
+      lng: coords.lng,
     },
     roadAddress: item.roadAddress,
     reviewCount: item.reviewCount,
@@ -32,9 +32,9 @@ function toFallbackMain(item: KindergartenListItem, fallbackCoords: { lat: numbe
   };
 }
 
-export function useKindergartenItemSheetData({ item, coords }: UseKindergartenItemSheetDataParams) {
-  const { data: mainData } = useKindergartenMainQuery({ id: item.id, lng: coords.lng, lat: coords.lat });
-  const fallbackMainData = toFallbackMain(item, coords);
+export function useKindergartenItemSheetData({ item, position }: UseKindergartenItemSheetDataParams) {
+  const { data: mainData } = useKindergartenMainQuery({ id: item.id, lng: position.lng, lat: position.lat });
+  const fallbackMainData = toFallbackMain(item, position);
 
   return {
     displayData: mainData ?? fallbackMainData,

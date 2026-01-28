@@ -307,7 +307,7 @@ export function MapView(props: MapViewProps) {
    */
   const handleMarkerClick = (item: KindergartenListItem) => {
     setSelectedClusterId(null);
-    dispatch({ type: 'CENTER_CHANGED', center: item.coord });
+    dispatch({ type: 'CENTER_CHANGED', center: item.coords });
     onOpenCard?.(item);
   };
 
@@ -432,7 +432,7 @@ export function MapView(props: MapViewProps) {
             return (
               <MapMarker
                 key={markerId}
-                position={marker.coord}
+                position={marker.coords}
                 onClick={() => handleMarkerClick(marker)}
                 selected={isSelected}
                 customIcon={{
@@ -500,7 +500,7 @@ export function MapView(props: MapViewProps) {
         {showBusinessMarkers && exact && (
           <MapMarker
             key={exact.id}
-            position={exact.coord}
+            position={exact.coords}
             onClick={() => handleMarkerClick(exact)}
             selected={exact.id === activeMarkerId}
             customIcon={{

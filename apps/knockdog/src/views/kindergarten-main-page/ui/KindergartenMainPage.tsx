@@ -132,7 +132,7 @@ function KindergartenMainPageContent() {
           unmount();
         }}
         {...item}
-        coords={{ lng: committedState.refPoint?.lng ?? 0, lat: committedState.refPoint?.lat ?? 0 }}
+        position={{ lng: committedState.refPoint?.lng ?? 0, lat: committedState.refPoint?.lat ?? 0 }}
       />
     ));
   };
