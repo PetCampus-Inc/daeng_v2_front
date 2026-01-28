@@ -3,7 +3,7 @@ import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
 
-import { OPEN_STATUS_MAP, CTAG_MAP, type KindergartenMain } from '@entities/kindergarten';
+import { OPEN_STATUS_MAP, type KindergartenMain } from '@entities/kindergarten';
 import { Skeleton } from '@shared/ui/skeleton';
 
 interface KindergartenMainBoxProps extends Omit<KindergartenMain, 'banner'> {}
@@ -32,13 +32,7 @@ const KindergartenMainBox = ({
       <div className='flex justify-between'>
         <div className='flex flex-col'>
           <span className='h2-extrabold'>{title}</span>
-          <span className='body2-semibold text-text-tertiary'>
-            {ctg
-              .split(',')
-              .map((tag) => CTAG_MAP[tag.trim() as keyof typeof CTAG_MAP])
-              .filter(Boolean)
-              .join(' ・ ')}
-          </span>
+          <span className='body2-semibold text-text-tertiary'>{ctg}</span>
         </div>
         <div className='flex'>
           {/* 길찾기 버튼 */}

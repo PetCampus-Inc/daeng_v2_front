@@ -1,5 +1,4 @@
 import { Icon } from '@knockdog/ui';
-import { formatDistance } from '@shared/lib';
 import { FILTER_ICON_MAP } from '../config/icon-map';
 import { isRegionSuggestion } from '../lib/is';
 import { HighlightedText } from './HighlightedText';
@@ -8,8 +7,9 @@ import {
   type RegionSuggestion,
   type FilterItemSuggestion,
   type AutocompletePlace,
-  SERVICE_TAGS,
 } from '@entities/kindergarten';
+import { CTG } from '@entities/kindergarten/config/enum';
+import { formatDistance } from '@shared/lib';
 
 interface AutoCompleteListProps {
   data: Autocomplete;
@@ -73,7 +73,7 @@ export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick 
                     <span className='label-medium text-text-tertiary truncate'>
                       {place.ctg
                         .split(',')
-                        .map((tag) => SERVICE_TAGS[tag.trim() as keyof typeof SERVICE_TAGS] || tag.trim())
+                        .map((tag) => CTG[tag.trim() as keyof typeof CTG] || tag.trim())
                         .join(', ')}
                     </span>
                     <span className='label-medium text-text-tertiary whitespace-nowrap'>
