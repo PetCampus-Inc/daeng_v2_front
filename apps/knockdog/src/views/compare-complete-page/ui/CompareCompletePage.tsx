@@ -19,12 +19,14 @@ import { useUserStore } from '@entities/user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { useShare } from '@shared/lib/device/useShare';
+import { isNativeWebView } from '@shared/lib/device';
 
 function CompareCompletePage() {
   const params = useSearchParams();
   const share = useShare();
   const user = useUserStore((state) => state.user);
   const savedAddresses = user?.addresses;
+  const isNative = useMemo(() => isNativeWebView(), []);
 
   // 🔒 안정화: params 객체 대신 문자열 키를 메모이즈해서 파싱
   const qsKey = params.toString();
@@ -72,7 +74,7 @@ function CompareCompletePage() {
       <div className='flex h-screen flex-col bg-white pb-16'>
         <Header>
           <Header.LeftSection>
-            <Header.BackButton />
+            {isNative && <Header.BackButton />}
           </Header.LeftSection>
           <Header.Title>비교 결과</Header.Title>
           <Header.RightSection>
