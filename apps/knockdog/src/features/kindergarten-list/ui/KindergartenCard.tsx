@@ -1,14 +1,9 @@
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
-import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
-import {
-  DeparturePointSheet,
-  SERVICE_TAGS,
-  ServiceBadgesTruncated,
-  type KindergartenMain,
-} from '@entities/kindergarten';
 import type { BottomSheetSnapPoint } from './KindergartenItemSheet';
+import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
+import { DeparturePointSheet, ServiceBadgesTruncated, type KindergartenMain } from '@entities/kindergarten';
 
 interface KindergartenCardProps extends KindergartenMain {
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
@@ -81,19 +76,17 @@ export function KindergartenCard(props: KindergartenCardProps) {
         {/* 영업 정보 및 주소 영역 */}
         <div className='flex flex-col gap-y-1 self-stretch'>
           <div className='grid grid-cols-[minmax(52px,max-content)_1fr] grid-rows-2 gap-x-2 gap-y-2 self-stretch'>
-            <span className='body2-extrabold text-text-accent col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
-              {props.operationStatus === 'OPEN' ? '영업중' : '영업종료'}
-            </span>
-            <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
-              {props.operationStatus === 'OPEN'
-                ? `${props.operationTimes.endTime}에 영업종료`
-                : `${props.operationTimes.startTime}에 영업시작`}
-            </span>
-            <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
+            <span className='body2-extrabold text-text-primary col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
               {props.dist}
             </span>
-            <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
+            <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
               {props.roadAddress}
+            </span>
+            <span className='body2-extrabold text-text-accent col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
+              {props.businessStatus.title}
+            </span>
+            <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
+              {props.businessStatus.description}
             </span>
           </div>
         </div>

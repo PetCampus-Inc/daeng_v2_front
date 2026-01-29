@@ -26,7 +26,10 @@ export interface KindergartenListItemDto {
     endTime: string;
   };
   operationStatus: keyof typeof OPERATION_STATUS;
-  operationDescription: string;
+  businessStatus: {
+    title: string;
+    description: string;
+  };
   price: number;
   dist: number;
   roadAddress: string;

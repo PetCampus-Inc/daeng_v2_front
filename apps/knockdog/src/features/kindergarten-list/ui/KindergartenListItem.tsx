@@ -1,11 +1,7 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
-import {
-  SERVICE_TAGS,
-  ServiceBadgesTruncated,
-  type KindergartenListItem as KindergartenListItemType,
-} from '@entities/kindergarten';
+import { ServiceBadgesTruncated, type KindergartenListItem as KindergartenListItemType } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 
@@ -21,8 +17,7 @@ export function KindergartenListItem({
   dist,
   roadAddress,
   reviewCount,
-  operationStatus,
-  operationTimes,
+  businessStatus,
   price,
   serviceTags,
   pickupType,
@@ -68,12 +63,7 @@ export function KindergartenListItem({
           {/* 타이틀 */}
           <div className='flex min-w-0 flex-col items-start justify-center gap-0.5'>
             <h1 className='h2-extrabold text-text-primary w-full truncate'>{title}</h1>
-            <p className='body2-regular text-text-tertiary w-full truncate'>
-              {ctg
-                .split(',')
-                .map((tag) => SERVICE_TAGS[tag.trim() as keyof typeof SERVICE_TAGS] || tag.trim())
-                .join(' ・ ')}
-            </p>
+            <p className='body2-regular text-text-tertiary w-full truncate'>{ctg}</p>
           </div>
 
           {/* 네이버 리뷰 badge */}
@@ -87,12 +77,10 @@ export function KindergartenListItem({
         <div className='flex flex-col gap-y-1 self-stretch'>
           <div className='grid grid-cols-[minmax(52px,max-content)_1fr] grid-rows-2 gap-x-2 gap-y-2 self-stretch'>
             <span className='body2-extrabold text-text-accent col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
-              {operationStatus === 'OPEN' ? '영업중' : '영업종료'}
+              {businessStatus.title}
             </span>
             <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
-              {operationStatus === 'OPEN'
-                ? `${operationTimes.endTime}에 영업종료`
-                : `${operationTimes.startTime}에 영업시작`}
+              {businessStatus.description}
             </span>
             <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
               {dist}
