@@ -66,11 +66,6 @@ export async function requestLocationPermission(): Promise<{ status: PermissionS
     {}
   );
 
-  // denied + canAskAgain=false면 설정 앱으로 유도
-  if (status === 'denied' && !canAskAgain) {
-    await bridge.request('system.openSettings' as const, {});
-  }
-
   return { status, canAskAgain };
 }
 
