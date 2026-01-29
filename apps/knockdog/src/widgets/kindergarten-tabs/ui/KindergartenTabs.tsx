@@ -20,7 +20,6 @@ interface KindergartenTabsProps {
 
 function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = true }: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
   const [activeTab, setActiveTab] = useKindergartenTab();
   const isLoggedIn = useUserStore((state) => !!state.user);
 
@@ -51,6 +50,9 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
       return;
     }
     setActiveTab(value);
+
+    // 탭 변경 시점에 즉시 스크롤 (데이터 로딩 전에도 실행)
+    requestAnimationFrame(() => scrollToTabs());
   };
 
   // 로그인하지 않은 상태에서 메모 탭이 활성화되어 있으면 기본정보 탭으로 변경
@@ -60,35 +62,6 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
     }
   }, [activeTab, isLoggedIn, setActiveTab]);
 
-  // 탭 변경 시 스크롤
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    if (activeTab === '기본정보') return;
-    if (!scrollableDivRef?.current) return;
-
-    scrollToTabs();
-  }, [activeTab, scrollableDivRef, scrollToTabs]);
-
-  // 탭 컨텐츠 높이 변화 감지하여 스크롤 재조정
-  useEffect(() => {
-    const tabsElement = tabsRef.current;
-    if (!tabsElement) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      // 기본정보 탭이 아니고, 초기 마운트가 아닐 때만 스크롤 재조정
-      if (activeTab !== '기본정보' && !isInitialMount.current) {
-        scrollToTabs();
-      }
-    });
-
-    resizeObserver.observe(tabsElement);
-    return () => resizeObserver.disconnect();
-  }, [activeTab, scrollToTabs]);
-
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>
       <TabsList scrollable className='sticky top-0 z-101 bg-white'>
@@ -97,7 +70,7 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
         <TabsTrigger value='후기'>후기</TabsTrigger>
         <TabsTrigger value='메모'>메모</TabsTrigger>
       </TabsList>
-      <TabsContent value='기본정보'>
+      <TabsContent value='기본정보' className='min-h-screen'>
         <>
           <BasicSection kindergartenId={kindergartenId} />
           {showNearSection && (
@@ -111,13 +84,13 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
           )}
         </>
       </TabsContent>
-      <TabsContent value='요금'>
+      <TabsContent value='요금' className='min-h-screen'>
         <PricingSection kindergartenId={kindergartenId} />
       </TabsContent>
-      <TabsContent value='후기'>
+      <TabsContent value='후기' className='min-h-screen'>
         <ReviewSection kindergartenId={kindergartenId} onScrollTop={scrollToTabs} />
       </TabsContent>
-      <TabsContent value='메모'>
+      <TabsContent value='메모' className='min-h-screen'>
         <MemoSection kindergartenId={kindergartenId} />
       </TabsContent>
     </Tabs>
