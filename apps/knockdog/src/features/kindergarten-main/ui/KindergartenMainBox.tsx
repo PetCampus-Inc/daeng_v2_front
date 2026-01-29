@@ -3,8 +3,7 @@ import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
 
-import { OPEN_STATUS_MAP, type KindergartenMain } from '@entities/kindergarten';
-import { Skeleton } from '@shared/ui/skeleton';
+import { type KindergartenMain } from '@entities/kindergarten';
 
 interface KindergartenMainBoxProps extends Omit<KindergartenMain, 'banner'> {}
 
@@ -13,8 +12,7 @@ const KindergartenMainBox = ({
   ctg,
   dist,
   roadAddress,
-  operationStatus,
-  operationDescription,
+  businessStatus,
   price,
   serviceTags,
   reviewCount,
@@ -48,13 +46,9 @@ const KindergartenMainBox = ({
         </div>
         <div>
           <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
-            {OPEN_STATUS_MAP[operationStatus]}
+            {businessStatus.title}
           </span>
-          {operationDescription ? (
-            <span className='body2-regular'>{operationDescription}</span>
-          ) : (
-            <Skeleton aria-hidden='true' className='radius-r1 inline-block h-[16px] w-[160px] align-middle' />
-          )}
+          <span className='body2-regular'>{businessStatus.description}</span>
         </div>
       </div>
       {/* 뱃지 및 가격영역 */}

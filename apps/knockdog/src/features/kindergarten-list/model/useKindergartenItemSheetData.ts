@@ -14,7 +14,7 @@ function toFallbackMain(item: KindergartenListItem, fallbackCoords: { lat: numbe
     ctg: item.ctg as KindergartenMain['ctg'],
     operationTimes: item.operationTimes,
     operationStatus: item.operationStatus,
-    operationDescription: item.operationDescription,
+    businessStatus: item.businessStatus,
     price: item.price,
     dist: item.dist,
     coords: {

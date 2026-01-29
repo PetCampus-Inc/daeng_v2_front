@@ -7,7 +7,10 @@ export interface Kindergarten {
     startTime: string;
     endTime: string;
   };
-  operationDescription: string;
+  businessStatus: {
+    title: string;
+    description: string;
+  };
   operationStatus: keyof typeof OPERATION_STATUS;
   price: number;
   dist: number;
