@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Divider, ActionButton, Icon } from '@knockdog/ui';
 import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
@@ -13,7 +13,7 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
 import { useCurrentLocation } from '@shared/lib/geolocation';
-import { useShare } from '@shared/lib/device';
+import { isNativeWebView, useShare } from '@shared/lib/device';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
 function KindergartenDetailPage() {
@@ -32,6 +32,7 @@ function KindergartenDetailPage() {
   const { mutate: toggleBookmark } = useDetailBookmarkToggle({ id, lng, lat });
 
   const share = useShare();
+  const isNative = useMemo(() => isNativeWebView(), []);
 
   /** 최근 본 업체 저장 */
   useRecentKindergartenView(kindergartenMain);
@@ -69,8 +70,12 @@ function KindergartenDetailPage() {
     <>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
-          <Header.HomeButton onClick={handleHomeClick} />
+          {isNative && (
+            <>
+              <Header.BackButton />
+              <Header.HomeButton onClick={handleHomeClick} />
+            </>
+          )}
         </Header.LeftSection>
 
         <Header.Title>{kindergartenMain?.title}</Header.Title>
