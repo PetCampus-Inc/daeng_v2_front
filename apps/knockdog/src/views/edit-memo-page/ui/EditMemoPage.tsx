@@ -46,7 +46,8 @@ export function EditMemoPage() {
   }, [memoData?.content]);
 
   const handleSave = () => {
-    updateMemo({ targetId: id, content: memo });
+    const photoKeys = memoData?.photos?.map((photo) => photo.key) ?? [];
+    updateMemo({ targetId: id, content: memo, photoKeys });
   };
 
   const originalContent = memoData?.content ?? '';
