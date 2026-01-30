@@ -11,8 +11,8 @@ import { bookmarkQueries } from '@entities/bookmark';
 import { memoQueries } from '@entities/memo';
 import { tokenUtils } from '@shared/utils';
 
-export function useKindergartenMainQuery(params: KindergartenMainParams) {
-  const { id, lng, lat } = params;
+export function useKindergartenMainQuery(params: KindergartenMainParams & { enabled?: boolean }) {
+  const { id, lng, lat, enabled = true } = params;
   const user = useUserStore((state) => state.user);
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
@@ -41,6 +41,6 @@ export function useKindergartenMainQuery(params: KindergartenMainParams) {
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     select,
-    enabled: Boolean(id && lng != null && lat != null),
+    enabled: enabled && Boolean(id && lng != null && lat != null),
   });
 }

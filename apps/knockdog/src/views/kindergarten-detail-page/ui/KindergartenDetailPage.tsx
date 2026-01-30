@@ -12,9 +12,9 @@ import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
-import { useCurrentLocation } from '@shared/lib/geolocation';
 import { isNativeWebView, useShare } from '@shared/lib/device';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { useBasePoint } from '@entities/user';
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -25,11 +25,22 @@ function KindergartenDetailPage() {
 
   const { back } = useStackNavigation();
   const navResult = useNavigationResult<boolean>();
-  const { position } = useCurrentLocation();
-  const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
+  const { coord } = useBasePoint();
+  const lng = coord?.lng ?? 0;
+  const lat = coord?.lat ?? 0;
+  const isCoordReady = Boolean(coord && coord.lng != null && coord.lat != null);
 
-  const { data: kindergartenMain } = useKindergartenMainQuery({ id, lng, lat });
-  const { mutate: toggleBookmark } = useDetailBookmarkToggle({ id, lng, lat });
+  const { data: kindergartenMain } = useKindergartenMainQuery({
+    id,
+    lng,
+    lat,
+    enabled: isCoordReady,
+  });
+  const { mutate: toggleBookmark } = useDetailBookmarkToggle({
+    id,
+    lng,
+    lat,
+  });
 
   const share = useShare();
   const isNative = useMemo(() => isNativeWebView(), []);
