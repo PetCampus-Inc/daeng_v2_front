@@ -14,6 +14,7 @@ export function useTabScrollAlignment(
   const tabsRef = useRef<HTMLDivElement>(null);
   const spacerRef = useRef<HTMLDivElement>(null);
   const pendingScrollRef = useRef(false);
+  const prevTabRef = useRef(activeTab);
 
   const recalculateSpacer = useCallback(() => {
     const scrollContainer = scrollContainerRef?.current;
@@ -79,6 +80,14 @@ export function useTabScrollAlignment(
     return () => observer.disconnect();
   }, [applyAlignment, scrollContainerRef]);
 
+  // activeTab 변경 감지 → pendingScroll 자동 설정 (controlled 모드에서 외부 탭 전환 대응)
+  useEffect(() => {
+    if (prevTabRef.current !== activeTab) {
+      prevTabRef.current = activeTab;
+      pendingScrollRef.current = true;
+    }
+  }, [activeTab]);
+
   // Fallback: ResizeObserver가 미발생하는 경우 (동일 높이 컨텐츠 전환 등)
   useEffect(() => {
     if (!pendingScrollRef.current) return;
@@ -96,9 +105,5 @@ export function useTabScrollAlignment(
     };
   }, [activeTab, applyAlignment]);
 
-  const requestScroll = useCallback(() => {
-    pendingScrollRef.current = true;
-  }, []);
-
-  return { tabsRef, spacerRef, scrollToTabs, requestScroll };
+  return { tabsRef, spacerRef, scrollToTabs };
 }

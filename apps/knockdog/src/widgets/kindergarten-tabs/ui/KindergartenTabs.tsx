@@ -43,7 +43,7 @@ function KindergartenTabs({
     [isControlled, onValueChange]
   );
 
-  const { tabsRef, spacerRef, scrollToTabs, requestScroll } = useTabScrollAlignment(
+  const { tabsRef, spacerRef, scrollToTabs } = useTabScrollAlignment(
     scrollableDivRef,
     activeTab,
   );
@@ -54,7 +54,6 @@ function KindergartenTabs({
       return;
     }
     setActiveTab(value);
-    requestScroll();
   };
 
   // 로그인하지 않은 상태에서 메모 탭이 활성화되어 있으면 기본정보 탭으로 변경
