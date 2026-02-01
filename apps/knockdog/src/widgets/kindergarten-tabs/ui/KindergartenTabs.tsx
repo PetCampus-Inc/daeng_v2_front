@@ -1,8 +1,7 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent, Divider } from '@knockdog/ui';
-import { useRef, useEffect, useCallback } from 'react';
-import { useKindergartenTab } from '../model';
+import { useRef, useEffect, useCallback, useState } from 'react';
 
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
@@ -16,12 +15,33 @@ interface KindergartenTabsProps {
   kindergartenId?: string;
   scrollableDivRef?: React.RefObject<HTMLDivElement | null>;
   showNearSection?: boolean;
+  value?: string;
+  onValueChange?: (value: string) => void;
 }
 
-function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = true }: KindergartenTabsProps) {
+function KindergartenTabs({
+  kindergartenId,
+  scrollableDivRef,
+  showNearSection = true,
+  value,
+  onValueChange,
+}: KindergartenTabsProps) {
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useKindergartenTab();
+  const [uncontrolledValue, setUncontrolledValue] = useState('기본정보');
+  const isControlled = value !== undefined;
+  const activeTab = isControlled ? value : uncontrolledValue;
   const isLoggedIn = useUserStore((state) => !!state.user);
+  const lastAutoResetRef = useRef<string | null>(null);
+
+  const setActiveTab = useCallback(
+    (nextValue: string) => {
+      if (!isControlled) {
+        setUncontrolledValue(nextValue);
+      }
+      onValueChange?.(nextValue);
+    },
+    [isControlled, onValueChange]
+  );
 
   const scrollToTabs = useCallback(() => {
     const scrollContainer = scrollableDivRef?.current;
@@ -58,8 +78,13 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
   // 로그인하지 않은 상태에서 메모 탭이 활성화되어 있으면 기본정보 탭으로 변경
   useEffect(() => {
     if (activeTab === '메모' && !isLoggedIn) {
-      setActiveTab('기본정보');
+      if (lastAutoResetRef.current !== '메모') {
+        lastAutoResetRef.current = '메모';
+        setActiveTab('기본정보');
+      }
+      return;
     }
+    lastAutoResetRef.current = null;
   }, [activeTab, isLoggedIn, setActiveTab]);
 
   return (

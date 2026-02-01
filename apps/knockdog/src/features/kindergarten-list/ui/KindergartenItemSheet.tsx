@@ -30,6 +30,7 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
 
   const dynamicSnapPoints = useMemo(() => [{ type: 'content' as const, min: MIN_SNAP_POINT_OFFSET }, 1], []);
   const [activeSnapPoint, setActiveSnapPoint] = useState<BottomSheetSnapPoint>(dynamicSnapPoints[0] ?? null);
+  const [activeTab, setActiveTab] = useState('기본정보');
 
   const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -122,6 +123,8 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
               displayData={displayData}
               activeSnapPoint={activeSnapPoint}
               setActiveSnapPoint={setActiveSnapPoint}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
               visibleOpacity={visibleOpacity}
               hiddenOpacity={hiddenOpacity}
               cardY={cardY}
