@@ -84,7 +84,7 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
       {/* 바텀시트 컨테이너 */}
       <div
         ref={setContainerRef}
-        className='pointer-events-none absolute bottom-0 h-[calc(100%-var(--top-bar-height)-var(--safe-area-inset-top,0px))] w-full'
+        className='pointer-events-none absolute bottom-0 h-[calc(100%-var(--top-bar-height)-var(--safe-area-inset-top,0px))] w-full overflow-hidden'
       >
         <BottomSheet.Root
           open={isOpen}
