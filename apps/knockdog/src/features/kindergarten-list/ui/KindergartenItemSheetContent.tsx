@@ -14,6 +14,8 @@ interface KindergartenItemSheetContentProps {
   displayData?: KindergartenMain;
   activeSnapPoint: BottomSheetSnapPoint;
   setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
   visibleOpacity: MotionValue<number>;
   hiddenOpacity: MotionValue<number>;
   cardY: MotionValue<number>;
@@ -28,6 +30,8 @@ export function KindergartenItemSheetContent({
   displayData,
   activeSnapPoint,
   setActiveSnapPoint,
+  activeTab,
+  setActiveTab,
   visibleOpacity,
   hiddenOpacity,
   cardY,
@@ -69,6 +73,7 @@ export function KindergartenItemSheetContent({
           onBookmarkClick={onBookmarkClick}
           onPhoneCall={onPhoneCall}
           setActiveSnapPoint={setActiveSnapPoint}
+          setActiveTab={setActiveTab}
         />
       </motion.div>
 
@@ -84,7 +89,13 @@ export function KindergartenItemSheetContent({
             scale: scaleUp,
           }}
         >
-          <KindergartenDetail {...displayData} onBookmarkClick={onBookmarkClick} onPhoneCall={onPhoneCall} />
+          <KindergartenDetail
+            {...displayData}
+            onBookmarkClick={onBookmarkClick}
+            onPhoneCall={onPhoneCall}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
         </motion.div>
       </RemoveScroll>
     </>

@@ -124,6 +124,7 @@ function KindergartenMainPageContent() {
 
     overlay.open(({ isOpen, unmount }) => (
       <KindergartenItemSheet
+        key={itemId}
         isOpen={isOpen}
         onClose={() => {
           if (useMarkerState.getState().activeMarkerId === itemId) {

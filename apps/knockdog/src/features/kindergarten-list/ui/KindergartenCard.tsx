@@ -2,17 +2,16 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
 import type { BottomSheetSnapPoint } from './KindergartenItemSheet';
-import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { DeparturePointSheet, ServiceBadgesTruncated, type KindergartenMain } from '@entities/kindergarten';
 
 interface KindergartenCardProps extends KindergartenMain {
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
   onPhoneCall: () => void;
   setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
+  setActiveTab: (tab: string) => void;
 }
 
 export function KindergartenCard(props: KindergartenCardProps) {
-  const [, setActiveTab] = useKindergartenTab();
 
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => (
@@ -25,7 +24,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
 
   const handleReviewClick = () => {
     props.setActiveSnapPoint(1); // 시트 확대 (snapPoint[1])
-    setActiveTab('후기'); // 후기 탭 활성화
+    props.setActiveTab('후기'); // 후기 탭 활성화
   };
 
   return (

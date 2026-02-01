@@ -1,6 +1,5 @@
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
-import { useRef, useEffect } from 'react';
-import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
+import { useRef } from 'react';
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
 import type { KindergartenMain } from '@entities/kindergarten';
@@ -8,24 +7,18 @@ import type { KindergartenMain } from '@entities/kindergarten';
 interface KindergartenDetailProps extends KindergartenMain {
   onPhoneCall: () => void;
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
-export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: KindergartenDetailProps) {
+export function KindergartenDetail({ onPhoneCall, onBookmarkClick, activeTab, setActiveTab, ...props }: KindergartenDetailProps) {
   const scrollableContentRef = useRef<HTMLDivElement>(null);
-  const [, setActiveTab] = useKindergartenTab();
 
   const { banner: images, ...restKindergartenMainData } = props;
 
   const handleReviewClick = () => {
     setActiveTab('후기'); // 후기 탭 활성화
   };
-
-  // DetailView가 마운트될 때 스크롤 위치를 최상단으로 초기화
-  useEffect(() => {
-    if (scrollableContentRef.current) {
-      scrollableContentRef.current.scrollTop = 0;
-    }
-  }, []);
 
   return (
     <div className='flex h-full flex-col bg-white'>
@@ -44,7 +37,12 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, ...props }: K
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}
           {/* 탭 */}
-          <KindergartenTabs kindergartenId={props.id} scrollableDivRef={scrollableContentRef} />
+          <KindergartenTabs
+            kindergartenId={props.id}
+            scrollableDivRef={scrollableContentRef}
+            value={activeTab}
+            onValueChange={setActiveTab}
+          />
         </div>
       </div>
 

@@ -1,8 +1,7 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent, Divider } from '@knockdog/ui';
-import { useRef, useEffect, useCallback } from 'react';
-import { useKindergartenTab } from '../model';
+import { useEffect, useCallback, useState, useRef } from 'react';
 
 import { MemoSection } from './MemoSection';
 import { ReviewSection } from './ReviewSection';
@@ -11,39 +10,43 @@ import { BasicSection } from './BasicSection';
 import { KindergartenNearSection } from './KindergartenNearSection';
 import { useUserStore } from '@entities/user';
 import { navigateToLogin } from '@shared/lib/bridge';
+import { useTabScrollAlignment } from '../model/useTabScrollAlignment';
 
 interface KindergartenTabsProps {
   kindergartenId?: string;
   scrollableDivRef?: React.RefObject<HTMLDivElement | null>;
   showNearSection?: boolean;
+  value?: string;
+  onValueChange?: (value: string) => void;
 }
 
-function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = true }: KindergartenTabsProps) {
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
-  const [activeTab, setActiveTab] = useKindergartenTab();
+function KindergartenTabs({
+  kindergartenId,
+  scrollableDivRef,
+  showNearSection = true,
+  value,
+  onValueChange,
+}: KindergartenTabsProps) {
+  const [uncontrolledValue, setUncontrolledValue] = useState('기본정보');
+  const isControlled = value !== undefined;
+  const activeTab = isControlled ? value : uncontrolledValue;
   const isLoggedIn = useUserStore((state) => !!state.user);
+  const lastAutoResetRef = useRef<string | null>(null);
 
-  const scrollToTabs = useCallback(() => {
-    const scrollContainer = scrollableDivRef?.current;
-    const tabsElement = tabsRef.current;
+  const setActiveTab = useCallback(
+    (nextValue: string) => {
+      if (!isControlled) {
+        setUncontrolledValue(nextValue);
+      }
+      onValueChange?.(nextValue);
+    },
+    [isControlled, onValueChange]
+  );
 
-    if (!scrollContainer || !tabsElement) return;
-
-    requestAnimationFrame(() => {
-      const tabsRect = tabsElement.getBoundingClientRect();
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const scrollTop = scrollContainer.scrollTop;
-
-      // 스크롤 컨테이너 내부에서 탭의 절대 위치
-      const tabOffsetInContainer = tabsRect.top - containerRect.top + scrollTop;
-
-      scrollContainer.scrollTo({
-        top: tabOffsetInContainer,
-        behavior: 'smooth',
-      });
-    });
-  }, [scrollableDivRef]);
+  const { tabsRef, spacerRef, scrollToTabs } = useTabScrollAlignment(
+    scrollableDivRef,
+    activeTab,
+  );
 
   const handleTabChange = async (value: string) => {
     if (value === '메모' && !isLoggedIn) {
@@ -54,73 +57,49 @@ function KindergartenTabs({ kindergartenId, scrollableDivRef, showNearSection = 
   };
 
   // 로그인하지 않은 상태에서 메모 탭이 활성화되어 있으면 기본정보 탭으로 변경
+  // lastAutoResetRef: 동일 탭에 대한 무한 리셋 루프 방지 가드
   useEffect(() => {
     if (activeTab === '메모' && !isLoggedIn) {
-      setActiveTab('기본정보');
-    }
-  }, [activeTab, isLoggedIn, setActiveTab]);
-
-  // 탭 변경 시 스크롤
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
+      if (lastAutoResetRef.current !== '메모') {
+        lastAutoResetRef.current = '메모';
+        setActiveTab('기본정보');
+      }
       return;
     }
-
-    if (activeTab === '기본정보') return;
-    if (!scrollableDivRef?.current) return;
-
-    scrollToTabs();
-  }, [activeTab, scrollableDivRef, scrollToTabs]);
-
-  // 탭 컨텐츠 높이 변화 감지하여 스크롤 재조정
-  useEffect(() => {
-    const tabsElement = tabsRef.current;
-    if (!tabsElement) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      // 기본정보 탭이 아니고, 초기 마운트가 아닐 때만 스크롤 재조정
-      if (activeTab !== '기본정보' && !isInitialMount.current) {
-        scrollToTabs();
-      }
-    });
-
-    resizeObserver.observe(tabsElement);
-    return () => resizeObserver.disconnect();
-  }, [activeTab, scrollToTabs]);
+    lastAutoResetRef.current = null;
+  }, [activeTab, isLoggedIn, setActiveTab]);
 
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>
-      <TabsList scrollable className='sticky top-0 z-101 bg-white'>
-        <TabsTrigger value='기본정보'>기본정보</TabsTrigger>
-        <TabsTrigger value='요금'>요금</TabsTrigger>
-        <TabsTrigger value='후기'>후기</TabsTrigger>
-        <TabsTrigger value='메모'>메모</TabsTrigger>
-      </TabsList>
-      <TabsContent value='기본정보'>
-        <>
+    <>
+      <Tabs value={activeTab} onValueChange={handleTabChange} ref={tabsRef}>
+        <TabsList scrollable className='sticky top-0 z-101 bg-white'>
+          <TabsTrigger value='기본정보'>기본정보</TabsTrigger>
+          <TabsTrigger value='요금'>요금</TabsTrigger>
+          <TabsTrigger value='후기'>후기</TabsTrigger>
+          <TabsTrigger value='메모'>메모</TabsTrigger>
+        </TabsList>
+        <TabsContent value='기본정보'>
           <BasicSection kindergartenId={kindergartenId} />
           {showNearSection && (
             <>
-              {/* Divider */}
               <Divider size='thick' className='mb-12' />
-
-              {/* 이 근처 다른 유치원은 어때요? */}
               <KindergartenNearSection kindergartenId={kindergartenId} />
             </>
           )}
-        </>
-      </TabsContent>
-      <TabsContent value='요금'>
-        <PricingSection kindergartenId={kindergartenId} />
-      </TabsContent>
-      <TabsContent value='후기'>
-        <ReviewSection kindergartenId={kindergartenId} onScrollTop={scrollToTabs} />
-      </TabsContent>
-      <TabsContent value='메모'>
-        <MemoSection kindergartenId={kindergartenId} />
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+        <TabsContent value='요금'>
+          <PricingSection kindergartenId={kindergartenId} />
+        </TabsContent>
+        <TabsContent value='후기'>
+          <ReviewSection kindergartenId={kindergartenId} onScrollTop={scrollToTabs} />
+        </TabsContent>
+        <TabsContent value='메모'>
+          <MemoSection kindergartenId={kindergartenId} />
+        </TabsContent>
+      </Tabs>
+      {/* 동적 여백: 스크롤 가능 범위가 부족할 때 필요한 최소 여백만 추가 */}
+      <div ref={spacerRef} />
+    </>
   );
 }
 
