@@ -510,7 +510,13 @@ export function Root({
       if (!drawerRef.current || !repositionInputs) return;
 
       const focusedElement = document.activeElement as HTMLElement;
-      if (isInput(focusedElement) || keyboardIsOpen.current) {
+      // Only react to keyboard/viewport changes when the focused input is inside the drawer.
+      // This prevents unrelated page inputs from collapsing the drawer height.
+      const isFocusedInput = isInput(focusedElement);
+      const isFocusedInsideDrawer = !!(drawerRef.current && focusedElement && drawerRef.current.contains(focusedElement));
+      const shouldHandleViewportChange = (isFocusedInput && isFocusedInsideDrawer) || keyboardIsOpen.current;
+
+      if (shouldHandleViewportChange) {
         const visualViewportHeight = window.visualViewport?.height || 0;
         const totalHeight = window.innerHeight;
         // This is the height of the keyboard
@@ -558,6 +564,14 @@ export function Root({
           // Negative bottom value would never make sense
           drawerRef.current.style.bottom = `${Math.max(diffFromInitial, 0)}px`;
         }
+      } else if (!isMobileFirefox()) {
+        // Restore height/bottom when focus leaves inputs or keyboard closes.
+        if (initialDrawerHeight.current) {
+          drawerRef.current.style.height = `${initialDrawerHeight.current}px`;
+        } else {
+          drawerRef.current.style.removeProperty('height');
+        }
+        drawerRef.current.style.bottom = `0px`;
       }
     }
 
