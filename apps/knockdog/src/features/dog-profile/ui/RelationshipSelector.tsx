@@ -58,7 +58,7 @@ function RelationshipSelector({
         </button>
       </BottomSheet.Trigger>
 
-      <BottomSheet.Body>
+      <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
         <BottomSheet.Header className='border-line-200 justify-between border-b'>
           <BottomSheet.Title>관계 선택</BottomSheet.Title>
