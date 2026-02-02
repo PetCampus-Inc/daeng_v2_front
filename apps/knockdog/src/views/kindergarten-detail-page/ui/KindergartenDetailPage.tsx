@@ -115,7 +115,7 @@ function KindergartenDetailPage() {
           </div>
         </main>
         {/* 하단 고정 버튼 영역 */}
-        <aside className='gap-x2 p-x4 flex w-full max-w-screen-sm shrink-0 items-center border-t border-t-gray-100 bg-white'>
+        <aside className='gap-x2 p-x4 flex w-full shrink-0 items-center border-t border-t-gray-100 bg-white'>
           <ActionButton disabled={!kindergartenMain.phoneNumber} variant='primaryLine' onClick={openPhoneCallSheet}>
             전화하기
           </ActionButton>

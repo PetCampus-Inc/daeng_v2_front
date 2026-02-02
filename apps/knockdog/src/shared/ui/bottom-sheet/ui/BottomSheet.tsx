@@ -19,7 +19,7 @@ function BottomSheetPortal({ ...props }: React.ComponentProps<typeof BottomSheet
 }
 
 function BottomSheetOverlay({ className, ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Overlay>) {
-  return <BottomSheetPrimitive.Overlay className={cn('mx-auto max-w-screen-sm', className)} {...props} />;
+  return <BottomSheetPrimitive.Overlay className={cn('webview:max-w-full mx-auto max-w-120', className)} {...props} />;
 }
 
 function BottomSheetBody({ className, ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Body>) {
@@ -34,7 +34,7 @@ function BottomSheetBody({ className, ...props }: React.ComponentProps<typeof Bo
   }
   return (
     <BottomSheetPrimitive.Body
-      className={cn('mx-auto max-h-[calc(100vh-64px)] max-w-screen-sm', className)}
+      className={cn('webview:max-w-full mx-auto max-h-[calc(100vh-64px)] max-w-120', className)}
       {...props}
     />
   );

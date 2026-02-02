@@ -16,7 +16,7 @@ function BottomNavBarContent() {
     <div className='fixed inset-x-0 bottom-0 z-99'>
       <nav
         style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
-        className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-screen-sm border-t px-4 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
+        className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-120 border-t px-4 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
       >
         {NAV_ITEMS.map((item) => (
           <Link key={item.href} href={item.href} className='flex flex-1 flex-col items-center justify-center gap-y-1'>
