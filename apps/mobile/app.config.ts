@@ -14,7 +14,7 @@ const WEBVIEW_HOST = new URL(WEBVIEW_URL).hostname;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'daeng_v2_mobile',
+  name: '똑독',
   slug: 'petcampus',
   owner: 'petcampus',
   version: '1.0.0',
@@ -38,12 +38,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       ITSAppUsesNonExemptEncryption: false,
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: false,
-        NSAllowsArbitraryLoadsInWebContent: true,
+        NSAllowsArbitraryLoadsInWebContent: false,
         NSExceptionDomains: {
-          'openapi.map.naver.com': {
-            NSExceptionAllowsInsecureHTTPLoads: true,
-            NSIncludesSubdomains: false,
-          },
           'oapi.map.naver.com': {
             NSExceptionAllowsInsecureHTTPLoads: true,
             NSIncludesSubdomains: false,
@@ -53,10 +49,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             NSIncludesSubdomains: true,
           },
           'static.naver.net': {
-            NSExceptionAllowsInsecureHTTPLoads: true,
-            NSIncludesSubdomains: false,
-          },
-          'blogpfthumb.phinf.naver.net': {
             NSExceptionAllowsInsecureHTTPLoads: true,
             NSIncludesSubdomains: false,
           },
@@ -92,11 +84,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
   },
-  web: {
-    bundler: 'metro',
-    output: 'static',
-    favicon: './assets/images/favicon.png',
-  },
   plugins: [
     'expo-font',
     'expo-router',
@@ -107,6 +94,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         photoPermission: '사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
         cameraPermission: '카메라를 사용하여 사진을 촬영하기 위해 카메라 권한이 필요합니다.',
+        microphonePermission: false,
       },
     ],
     [
@@ -120,6 +108,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-location',
       {
         locationWhenInUsePermission: '주변 유치원을 추천해드리기 위해 위치 권한이 필요합니다.',
+        locationAlwaysAndWhenInUsePermission: false,
+        locationAlwaysPermission: false,
       },
     ],
     // Kakao 로그인
