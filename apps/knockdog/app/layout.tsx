@@ -37,7 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </BridgeProvider>
             </ReactQueryProvider>
           </NuqsAdapter>
-          <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
+          <Script
+            src='https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz'
+            strategy='beforeInteractive'
+          />
         </body>
       </HeaderProvider>
     </html>
