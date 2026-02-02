@@ -26,7 +26,7 @@ export default function Page() {
   }
   return (
     <Suspense>
-      <FloatingPortal>
+      <FloatingPortal root={document.getElementById('main')}>
         <FloatingFocusManager
           context={context}
           initialFocus={searchInputRef}
@@ -37,7 +37,7 @@ export default function Page() {
           outsideElementsInert
         >
           <RemoveScroll ref={refs.setFloating} className='z-float absolute inset-0'>
-            <SafeArea edges={['top']} className='bg-fill-secondary-0 mx-auto h-full max-w-screen-sm'>
+            <SafeArea edges={['top']} className='bg-fill-secondary-0 mx-auto h-full'>
               <SearchPage inputRef={searchInputRef} />
             </SafeArea>
           </RemoveScroll>
