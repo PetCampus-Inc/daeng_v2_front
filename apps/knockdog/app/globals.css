@@ -9,6 +9,7 @@
 @theme {
   /* breakpoint */
   --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
 
   /* z-index */
   --z-index-float: 100;
