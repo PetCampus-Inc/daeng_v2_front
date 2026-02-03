@@ -19,8 +19,8 @@ const OPERATION_STATUS_TYPE = {
 
 const DOG_BREED_TYPE = {
   ALL_BREEDS: '견종무관',
-  SMALL_DOGS_ONLY: '소형견 전용',
-  MEDIUM_LARGE_DOGS_ONLY: '중대형견 전용',
+  SMALL_DOG_ONLY: '소형견 전용',
+  MEDIUM_LARGE_DOG_ONLY: '중대형견 전용',
   CAT: '고양이',
 } as const;
 
