@@ -1,7 +1,7 @@
 const DOG_BREED_MAP = {
   ALL_BREEDS: '견종무관',
-  SMALL_DOGS_ONLY: '소형견 전용',
-  MEDIUM_LARGE_DOGS_ONLY: '중대형견 전용',
+  SMALL_DOG_ONLY: '소형견 전용',
+  MEDIUM_LARGE_DOG_ONLY: '중대형견 전용',
 } as const;
 
 const DOG_SERVICE_MAP = {
@@ -50,8 +50,8 @@ const ALL_SERVICE_MAP = {
 
 const SERVICE_ICON_MAP = {
   ALL_BREEDS: 'Alldogs',
-  SMALL_DOGS_ONLY: 'Smalldog',
-  MEDIUM_LARGE_DOGS_ONLY: 'Largedog',
+  SMALL_DOG_ONLY: 'Smalldog',
+  MEDIUM_LARGE_DOG_ONLY: 'Largedog',
 
   DAYCARE: 'Daycare',
   HOTEL: 'Hotel',
