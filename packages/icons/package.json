@@ -10,12 +10,11 @@
     "type-check": "tsc --noEmit",
     "extract-icons": "node scripts/extract-figma-icon/index.js && pnpm fix-all"
   },
-  "dependencies": {
-    "react": "^19.2.3"
-  },
   "devDependencies": {
     "@knockdog/eslint-config": "workspace:*",
     "@knockdog/typescript-config": "workspace:*",
+    "@types/react": "^19.2.3",
+    "react": "^19.2.3",
     "dotenv": "^17.2.1"
   },
   "exports": {
