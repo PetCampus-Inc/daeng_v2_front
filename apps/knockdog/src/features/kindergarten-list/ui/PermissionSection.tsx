@@ -1,12 +1,16 @@
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 
-import { requestLocationPermission } from '@shared/lib';
+import { openSystemSetting, requestLocationPermission } from '@shared/lib';
 
 export function PermissionSection() {
   const handlePermissionCheck = async () => {
     // 권한 설정 다이얼로그 열기
-    await requestLocationPermission();
+    const permissionResult = await requestLocationPermission();
+    // 권한 거부시 처리
+    if (permissionResult.status === 'denied' && !permissionResult.canAskAgain) {
+      openSystemSetting();
+    }
   };
 
   return (
@@ -28,7 +32,7 @@ export function PermissionSection() {
           <p className='text-text-primary h3-semibold leading-relaxed'>근처 유치원을 추천해드릴 수 있어요</p>
         </div>
 
-        <ActionButton variant='secondaryFill' size='large' onClick={handlePermissionCheck}>
+        <ActionButton variant='secondaryFill' size='large' onClick={handlePermissionCheck} className='select-none'>
           <Icon icon='Plus' className='size-x5' />
           위치 권한설정 변경하기
         </ActionButton>
