@@ -45,6 +45,7 @@
     "url": "https://github.com/emilkowalski/vaul/issues"
   },
   "devDependencies": {
+    "@knockdog/typescript-config": "workspace:*",
     "@playwright/test": "^1.57.0",
     "@types/node": "20.5.7",
     "@types/react": "18.2.55",
