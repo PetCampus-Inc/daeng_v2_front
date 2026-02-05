@@ -3,7 +3,6 @@ import type { BridgeErrorCode, BridgeErrorShape } from './types';
 class BridgeException extends Error implements BridgeErrorShape {
   code: BridgeErrorCode;
   data?: unknown;
-  declare cause?: unknown;
 
   constructor(shape: BridgeErrorShape) {
     super(shape.message, shape.cause !== undefined ? { cause: shape.cause } : undefined);
