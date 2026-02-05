@@ -1,4 +1,4 @@
-import { METHODS } from '@/rpc';
+import { METHODS } from '../../rpc';
 import type { ShareParams, ShareResult, CallPhoneParams, CallPhoneResult } from './types';
 
 interface SystemRPCSchema {

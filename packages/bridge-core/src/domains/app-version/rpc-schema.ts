@@ -1,4 +1,4 @@
-import { METHODS } from '@/rpc';
+import { METHODS } from '../../rpc';
 import { type GetAppVersionResult } from './types';
 
 interface AppVersionRPCSchema {

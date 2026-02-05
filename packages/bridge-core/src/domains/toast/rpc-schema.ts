@@ -1,4 +1,4 @@
-import { METHODS } from '@/rpc';
+import { METHODS } from '../../rpc';
 import type { ToastShowParams, ToastDismissParams, ToastClearParams } from './types';
 
 interface ToastRPCSchema {

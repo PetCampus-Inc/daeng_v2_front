@@ -12,4 +12,4 @@ const LOCATION_ERROR_CODES = {
   TIMEOUT: 'LOCATION_TIMEOUT',
 } as const;
 
-export type { LOCATION_ERROR_CODES };
+export { LOCATION_ERROR_CODES };

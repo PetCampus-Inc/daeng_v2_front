@@ -3,15 +3,6 @@
   "compilerOptions": {
     "outDir": "./dist",
     "baseUrl": ".",
-    "paths": {
-      "@/rpc": ["./src/rpc"],
-      "@/domains/*": ["./src/domains/*"],
-      "@/error": ["./src/error"],
-      "@/message": ["./src/message"],
-      "@/utils": ["./src/utils"],
-      "@/constants": ["./src/constants"],
-      "@/events": ["./src/events"]
-    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -1,4 +1,4 @@
-import { METHODS } from '@/rpc';
+import { METHODS } from '../../rpc';
 import type { SafeAreaInsets } from './types';
 
 interface SafeAreaRPCSchema {

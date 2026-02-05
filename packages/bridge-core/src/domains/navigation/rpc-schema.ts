@@ -1,4 +1,4 @@
-import { METHODS } from '@/rpc';
+import { METHODS } from '../../rpc';
 
 interface NavigationRPCSchema {
   [METHODS.navPush]: {

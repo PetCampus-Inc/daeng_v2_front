@@ -3,23 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "description": "Core types and utilities for bridge communication",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "files": [
-    "dist"
+    "src"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "pnpm exec bunchee src/index.ts --format cjs,esm --out-dir dist && pnpm exec tsc --emitDeclarationOnly --outDir dist"
+    "build": "tsc -p . --noEmit",
+    "dev": "tsc -p . --noEmit"
   },
   "devDependencies": {
     "@knockdog/typescript-config": "workspace:*"
