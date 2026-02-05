@@ -5,7 +5,6 @@ import type { ToastRPCSchema } from '../domains/toast';
 import type { AppVersionRPCSchema } from '../domains/app-version';
 import type { SystemRPCSchema } from '../domains/system';
 
-
 type RPCSchema = LocationRPCSchema & NavigationRPCSchema & SafeAreaRPCSchema & SystemRPCSchema & ToastRPCSchema & AppVersionRPCSchema ;
 
 type ParamsOf<K extends RPCMethod> = RPCSchema[K]['params'];
