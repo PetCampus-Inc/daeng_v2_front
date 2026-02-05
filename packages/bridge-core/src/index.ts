@@ -15,11 +15,3 @@ export type { Accuracy, Location, PermissionStatus } from './domains/location';
 export type { PickImageParams, ImageAsset, PickImageResult } from './domains/media';
 export type { GetAppVersionResult } from './domains/app-version';
 export type { SocialLoginResult } from './domains/auth';
-
-
-export type { Test };
-
-interface Test {
-  key: string;
-  preSignedUrl: string;
-}
