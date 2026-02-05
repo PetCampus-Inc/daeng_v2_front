@@ -1,5 +1,5 @@
 import { METHODS } from '../../rpc';
-import type { Accuracy, Location, IsLocationServiceEnabledResult, GetLastKnownLocationParams, GetLastKnownLocationResult } from './types';
+import type { Accuracy, Location, IsLocationServiceEnabledResult, GetLastKnownLocationParams, GetLastKnownLocationResult, PermissionStatus } from './types';
 
 interface LocationRPCSchema {
   [METHODS.getCurrentLocation]: {

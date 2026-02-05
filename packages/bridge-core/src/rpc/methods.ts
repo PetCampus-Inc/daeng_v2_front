@@ -37,7 +37,7 @@ const METHODS = {
   kakaoLogin: 'auth.kakaoLogin',
   googleLogin: 'auth.googleLogin',
   appleLogin: 'auth.appleLogin',
-}
+} as const;
 
 type MethodName = (typeof METHODS)[keyof typeof METHODS];
 

@@ -23,4 +23,4 @@ const makeBridgeError = (code: BridgeErrorCode, message: string, extra?: Extra) 
   new BridgeException({ code, message, ...extra });
 
 
-export { BridgeException, makeBridgeError };
+export { BridgeException };

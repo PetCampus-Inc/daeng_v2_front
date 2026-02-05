@@ -7,8 +7,8 @@ import type { SystemRPCSchema } from '../domains/system';
 
 type RPCSchema = LocationRPCSchema & NavigationRPCSchema & SafeAreaRPCSchema & SystemRPCSchema & ToastRPCSchema & AppVersionRPCSchema ;
 
-type ParamsOf<K extends RPCMethod> = RPCSchema[K]['params'];
-type ResultOf<K extends RPCMethod> = RPCSchema[K]['result'];
 type RPCMethod = keyof RPCSchema;
+type ParamsOf<K extends RPCMethod> = RPCSchema[K] extends { params: infer P } ? P : never;
+type ResultOf<K extends RPCMethod> = RPCSchema[K] extends { result: infer R } ? R : never;
 
 export type { RPCMethod, ParamsOf, ResultOf };
