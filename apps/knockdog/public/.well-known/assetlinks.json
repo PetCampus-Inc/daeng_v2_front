@@ -1,11 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": ["delegate_permission/common.handle_all_urls", "delegate_permission/common.get_login_creds"],
+
     "target": {
       "namespace": "android_app",
       "package_name": "net.knockdog.petcampus.v2",
       "sha256_cert_fingerprints": [
-        "0A:7D:A0:EF:97:81:A1:BA:BE:77:91:59:10:1B:CF:E5:06:4F:24:63:C6:0D:46:DD:99:70:22:05:CF:CF:9C:F8"
+        "0A:7D:A0:EF:97:81:A1:BA:BE:77:91:59:10:1B:CF:E5:06:4F:24:63:C6:0D:46:DD:99:70:22:05:CF:CF:9C:F8",
+        "FB:F0:AE:34:44:11:1F:2C:A7:7F:04:DC:9A:8B:07:A8:3D:7F:6B:08:9C:06:3F:84:1D:78:6B:D9:5F:CA:0A:CA"
       ]
     }
   }
