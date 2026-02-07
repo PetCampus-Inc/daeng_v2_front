@@ -26,7 +26,7 @@
     "bunchee": "^5.6.2",
     "commitizen": "^4.3.1",
     "cz-git": "^1.12.0",
-    "eslint": "^9.39.1",
+    "eslint": "^9.26.0",
     "husky": "^9.1.6",
     "jsdom": "^27.3.0",
     "lint-staged": "^16.2.6",
