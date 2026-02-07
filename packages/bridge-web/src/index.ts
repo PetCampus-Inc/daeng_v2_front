@@ -10,6 +10,15 @@ import {
   ResultOf,
 } from '@knockdog/bridge-core';
 
+declare global {
+  interface Window {
+    __bridge?: {
+      receive: (msg: BridgeMessage) => void;
+    };
+    __bridgeDebug?: boolean;
+  }
+}
+
 type Unsubscribes = () => void;
 type Listener<K extends keyof BridgeEventMap = keyof BridgeEventMap> = (payload: BridgeEventMap[K]) => void;
 
@@ -70,7 +79,8 @@ class WebBridge {
   emit<K extends keyof BridgeEventMap>(event: K, payload?: BridgeEventMap[K] | undefined): void {
     const id = makeId();
 
-    if (typeof window === 'undefined' || !window.ReactNativeWebView) {
+    const webView = (window as any).ReactNativeWebView;
+    if (typeof window === 'undefined' || !webView) {
       // RN WebView가 없으면 이벤트를 보낼 상대가 없음 (웹 단독 환경)
       // 여기서는 조용히 무시하거나 warn만 남김
       if (process.env.NODE_ENV !== 'production') {
@@ -80,7 +90,7 @@ class WebBridge {
       return;
     }
 
-    window.ReactNativeWebView.postMessage(
+    webView.postMessage(
       JSON.stringify({
         id,
         type: 'event',
@@ -97,7 +107,8 @@ class WebBridge {
   async request(method: string, params?: unknown, options?: { timeoutMs?: number }) {
     const id = makeId();
 
-    if (typeof window === 'undefined' || !window.ReactNativeWebView) {
+    const webView = (window as any).ReactNativeWebView;
+    if (typeof window === 'undefined' || !webView) {
       throw new BridgeException({
         code: 'ENOTFOUND',
         message: 'ReactNativeWebView not available',
@@ -118,7 +129,7 @@ class WebBridge {
       });
 
       // Web -> Native
-      window.ReactNativeWebView?.postMessage(
+      webView.postMessage(
         JSON.stringify({
           id,
           type: 'request',

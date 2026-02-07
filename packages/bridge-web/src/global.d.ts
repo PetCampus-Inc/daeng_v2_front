@@ -1,13 +1,10 @@
-import type { BridgeMessage } from '../../bridge-core/src/types';
+import type { BridgeMessage } from '@knockdog/bridge-core';
 
 declare global {
   interface Window {
-    __bridge: {
+    __bridge?: {
       receive: (msg: BridgeMessage) => void;
     };
-    ReactNativeWebView?: {
-      postMessage: (message: string) => void;
-    };
-    __bridgeDebug: boolean;
+    __bridgeDebug?: boolean;
   }
 }

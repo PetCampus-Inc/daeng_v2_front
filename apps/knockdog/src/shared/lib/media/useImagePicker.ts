@@ -115,13 +115,8 @@ async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> 
     input.type = 'file';
 
     // mediaTypes에 따라 accept 설정
-    if (params?.mediaTypes === 'videos') {
-      input.accept = 'video/*';
-    } else if (params?.mediaTypes === 'all') {
-      input.accept = 'image/*,video/*';
-    } else {
       input.accept = 'image/*';
-    }
+
 
     // 다중 선택 여부
     input.multiple = params?.allowsMultipleSelection ?? false;
@@ -200,7 +195,7 @@ function useImagePicker() {
           if (payload.requestId === requestId) {
             unsubCancel();
             if (payload.cancelled) {
-              resolve({ cancelled: true, assets: [] });
+              resolve({ cancelled: true });
               return;
             }
 

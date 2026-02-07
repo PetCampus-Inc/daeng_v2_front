@@ -1,4 +1,5 @@
 const nextConfig = {
+  transpilePackages: ["@knockdog/bridge-core", "@knockdog/bridge-web"],
   async headers() {
     return [
       {
