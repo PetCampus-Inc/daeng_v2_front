@@ -8,9 +8,11 @@ import MypageTab from '@/screens/mypage';
 import SaveTab from '@/screens/save';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
+  const { bottom } = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => {
@@ -38,14 +40,13 @@ export default function TabNavigator() {
           tabBarActiveTintColor: '#41424A',
           tabBarInactiveTintColor: '#8C8C94',
           tabBarStyle: {
-            height: 96,
-            paddingTop: 6,
-            paddingLeft: 16,
-            paddingRight: 16,
+            paddingBottom: bottom,
+            paddingLeft: 12,
+            paddingRight: 12,
           },
           tabBarLabelStyle: {
             fontSize: 12,
-            marginTop: 4
+            marginTop: 2,
           },
           headerShown: false,
         };
