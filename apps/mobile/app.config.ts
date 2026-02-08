@@ -29,7 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   ios: {
-    supportsTablet: true,
+    supportsTablet: false,
     usesAppleSignIn: true,
     bundleIdentifier: 'net.knockdog.petcampus.v2',
     associatedDomains: [`applinks:${WEBVIEW_HOST}`],
