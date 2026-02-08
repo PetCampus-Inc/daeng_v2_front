@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { CompareCompletePage } from '@views/compare-complete-page';
 import { getComparisons } from '@entities/compare/api/comparisons';
-import { s3ToUrl } from '@entities/compare';
+import { resolveIds, s3ToUrl } from '@entities/compare';
 import { generatePageMetadata } from '@shared/lib/metadata/generatePageMetadata';
 
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? '';
@@ -13,16 +13,7 @@ interface PageProps {
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const resolvedParams = await searchParams;
-  const idsParam = resolvedParams.ids;
-
-  if (!idsParam) {
-    return generatePageMetadata({ url: `${WEB_URL}/compare-complete` });
-  }
-
-  const ids = idsParam
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const ids = resolveIds(new URLSearchParams(resolvedParams as Record<string, string>));
 
   if (ids.length < 2) {
     return generatePageMetadata({ url: `${WEB_URL}/compare-complete` });
