@@ -14,3 +14,9 @@ export const postLogout = async () => {
 export const postTokenReissue = async () => {
   return await api.post('auth/refresh');
 };
+
+/** `GET` - DEV 로그인 API */
+export const fetchDevLogin = async <T>(): Promise<ApiResponse<T>> => {
+  const DEV_LOGIN_ID = 46;
+  return await api.get(`auth/dev/${DEV_LOGIN_ID}`).json<ApiResponse<T>>();
+};

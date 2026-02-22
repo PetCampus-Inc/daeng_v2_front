@@ -10,4 +10,4 @@ export { type ApiResponse } from './model/response';
 export { LOGIN_ERROR_CODE, TOKEN_ERROR_CODE } from './model/constant/authErrorCode';
 
 /** Endpoint */
-export { postLogin, postLogout } from './endpoint/auth';
+export { postLogin, postLogout, fetchDevLogin } from './endpoint/auth';
