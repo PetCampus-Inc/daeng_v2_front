@@ -17,6 +17,6 @@ export const postTokenReissue = async () => {
 
 /** `GET` - DEV 로그인 API */
 export const fetchDevLogin = async <T>(): Promise<ApiResponse<T>> => {
-  const DEV_LOGIN_ID = 0;
+  const DEV_LOGIN_ID = 46;
   return await api.get(`auth/dev/${DEV_LOGIN_ID}`).json<ApiResponse<T>>();
 };
