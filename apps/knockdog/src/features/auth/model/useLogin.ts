@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
+import { METHODS, SocialLoginResult } from '@knockdog/bridge-core';
 
 import {
   SOCIAL_PROVIDER,
@@ -12,13 +12,12 @@ import {
   postVerifyOidc,
   useSocialUserStore,
 } from '@entities/social-user';
-import { USER_STATUS, useUserStore, User, UserAddress } from '@entities/user';
-import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin } from '@shared/api';
+import { USER_STATUS, useUserStore, User } from '@entities/user';
+import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin } from '@shared/api';
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
 import { useBridge, useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
-import { METHODS, SocialLoginResult } from '@knockdog/bridge-core';
 
 const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.KAKAO]: METHODS.kakaoLogin,
@@ -117,5 +116,11 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     // TODO: VERIFY_OIDC_RESULT_CODE 예외 처리 필요
   };
 
-  return { login };
+  /** 게스트 로그인 (DEV) */
+  const guestLogin = async () => {
+    const response = await fetchDevLogin<User>();
+    handleLoginSuccess(response.data);
+  };
+
+  return { login, guestLogin };
 };
