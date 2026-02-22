@@ -2,18 +2,14 @@
 
 import React, { useMemo } from 'react';
 
-import { Icon, Divider } from '@knockdog/ui';
+import { Divider } from '@knockdog/ui';
 import Image from 'next/image';
-import { LoginButton } from '@features/auth';
+import { GuestLoginButton, LoginButton } from '@features/auth';
 import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 import { SafeArea } from '@shared/ui/safe-area';
-import { useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
 import { isAndroid } from '@shared/lib/device';
 
 export default function LoginPage() {
-  const { back } = useStackNavigation();
-  const navResult = useNavigationResult<boolean>();
-
   const providers = useMemo(() => {
     const allProviders = Object.values(SOCIAL_PROVIDER) as SocialProvider[];
     if (isAndroid()) {
@@ -21,16 +17,6 @@ export default function LoginPage() {
     }
     return allProviders;
   }, []);
-
-  const handleGuestClick = () => {
-    // pushForResult로 열린 경우 취소 결과 전송
-    try {
-      navResult.cancel('게스트로 둘러보기');
-    } catch (error) {
-      // _txId가 없으면 일반 플로우 (에러 무시)
-    }
-    back();
-  };
 
   return (
     <SafeArea className='flex h-screen flex-col items-center justify-between'>
@@ -74,13 +60,7 @@ export default function LoginPage() {
           <Divider className='flex-1' />
         </div>
 
-        <button
-          className='label-semibold flex items-center justify-center gap-x-1 text-center'
-          onClick={handleGuestClick}
-        >
-          게스트로 둘러보기
-          <Icon icon='ChevronRight' className='h-4 w-4' />
-        </button>
+        <GuestLoginButton />
       </div>
     </SafeArea>
   );
