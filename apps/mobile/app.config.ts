@@ -62,9 +62,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           CFBundleURLSchemes: [iosUrlScheme],
         },
       ],
-      NSPhotoLibraryUsageDescription: '사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
-      NSPhotoLibraryAddUsageDescription: '사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
-      NSCameraUsageDescription: '카메라를 사용하여 사진을 촬영하기 위해 카메라 권한이 필요합니다.',
+      NSPhotoLibraryUsageDescription: '프로필이나 메모에 사진을 올릴 때 사진첩을 사용해요.',
+      NSPhotoLibraryAddUsageDescription: '간직하고 싶은 사진을 앨범에 바로 저장할 때 사용해요.',
+      NSCameraUsageDescription:'똑독에서 내 사진을 공유할 수 있도록 카메라 접근 권한을 허용해주세요.'
     },
   },
   android: {
@@ -92,8 +92,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-image-picker',
       {
-        photoPermission: '사진을 선택하여 업로드하기 위해 사진 라이브러리 접근 권한이 필요합니다.',
-        cameraPermission: '카메라를 사용하여 사진을 촬영하기 위해 카메라 권한이 필요합니다.',
+        photoPermission: '프로필이나 메모에 사진을 올릴 때 사진첩을 사용해요.',
+        cameraPermission: '똑독에서 내 사진을 공유할 수 있도록 카메라 접근 권한을 허용해주세요.',
         microphonePermission: false,
       },
     ],
@@ -107,7 +107,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-location',
       {
-        locationWhenInUsePermission: '주변 유치원을 추천해드리기 위해 위치 권한이 필요합니다.',
+        locationWhenInUsePermission: '내 주변에 있는 반려견 유치원을 빠르게 찾기 위해 현재 위치를 확인해요.',
         locationAlwaysAndWhenInUsePermission: false,
         locationAlwaysPermission: false,
       },
