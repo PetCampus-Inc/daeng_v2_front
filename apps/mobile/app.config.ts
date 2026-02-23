@@ -92,7 +92,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-image-picker',
       {
-        photoPermission: '프로필이나 메모에 사진을 올릴 때 사진첩을 사용해요.',
+        photosPermission: '프로필이나 메모에 사진을 올릴 때 사진첩을 사용해요.',
         cameraPermission: '똑독에서 내 사진을 공유할 수 있도록 카메라 접근 권한을 허용해주세요.',
         microphonePermission: false,
       },
