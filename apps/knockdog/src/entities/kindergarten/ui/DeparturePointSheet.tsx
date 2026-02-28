@@ -3,12 +3,13 @@
 import { Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { useState, useEffect, useCallback } from 'react';
 import { METHODS } from '@knockdog/bridge-core';
+import { getReverseGeocode } from '@features/address-picker';
+import { useUserStore, USER_ADDRESS_TYPE_KR } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useGeolocationQuery } from '@shared/lib/geolocation';
-import { getReverseGeocode } from '@features/address-picker';
 import { useBridge } from '@shared/lib/bridge';
-import { useUserStore, USER_ADDRESS_TYPE_KR } from '@entities/user';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
+import { detectPlatform } from '@shared/lib/device';
 
 type NaverRouteMode = 'car' | 'public' | 'walk' | 'bicycle';
 
@@ -16,6 +17,19 @@ interface OpenNaverRouteParams {
   mode: NaverRouteMode;
   to: { lat: number; lng: number; name?: string };
   from: { lat: number; lng: number; name?: string }; // 없으면 현재 위치
+}
+
+type OpenNaverRouteResult = {
+  opened?: boolean;
+};
+
+const NAVER_MAP_STORE_URLS = {
+  ios: 'https://apps.apple.com/kr/app/naver-map-navigation/id311867728',
+  android: 'https://play.google.com/store/apps/details?id=com.nhn.android.nmap',
+};
+
+function getNaverMapStoreUrl() {
+  return detectPlatform() === 'ios' ? NAVER_MAP_STORE_URLS.ios : NAVER_MAP_STORE_URLS.android;
 }
 
 function assertParamsValid(params: OpenNaverRouteParams) {
@@ -74,6 +88,17 @@ function buildNaverMapWebUrl(params: OpenNaverRouteParams): string {
 function useNaverOpenRoute() {
   const bridge = useBridge();
 
+  const openNaverMapStore = useCallback(() => {
+    const storeUrl = getNaverMapStoreUrl();
+
+    if (isNativeWebView()) {
+      bridge.emit(METHODS.openExternalLink, { url: storeUrl });
+      return;
+    }
+
+    window.open(storeUrl, '_blank');
+  }, [bridge]);
+
   const openNaverRoute = useCallback(
     async (params: OpenNaverRouteParams) => {
       assertParamsValid(params);
@@ -86,9 +111,18 @@ function useNaverOpenRoute() {
       }
 
       // 네이티브 WebView 환경에서는 브리지를 통해 네이버 맵 앱 열기
-      await bridge.request(METHODS.naverOpenRoute, params);
+      try {
+        const result = await bridge.request<OpenNaverRouteResult>(METHODS.naverOpenRoute, params);
+
+        if (result?.opened === false) {
+          openNaverMapStore();
+        }
+      } catch (error) {
+        console.error('네이버 지도 열기 실패, 스토어로 이동합니다:', error);
+        openNaverMapStore();
+      }
     },
-    [bridge]
+    [bridge, openNaverMapStore]
   );
 
   return openNaverRoute;
