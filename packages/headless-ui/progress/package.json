@@ -29,10 +29,10 @@
     "@knockdog/typescript-config": "workspace:*",
     "@radix-ui/react-compose-refs": "^1.1.2",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
-    "@types/react": "^19.2.3",
+    "@types/react": "^19.2.14",
     "bunchee": "^5.6.2",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
