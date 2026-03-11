@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
@@ -32,12 +34,13 @@ const KindergartenMainBox = ({
           <span className='h2-extrabold'>{title}</span>
           <span className='body2-semibold text-text-tertiary'>{ctg}</span>
         </div>
+        {/* 심사 대응용 임시 비노출
         <div className='flex'>
-          {/* 길찾기 버튼 */}
           <button onClick={openDeparturePointSheet}>
             <Icon icon='Navigation' className='text-fill-secondary-500 size-x8' />
           </button>
         </div>
+        */}
       </div>
       <div className='flex flex-col gap-[4px]'>
         <div>

@@ -1,3 +1,5 @@
+'use client';
+
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
@@ -12,7 +14,6 @@ interface KindergartenCardProps extends KindergartenMain {
 }
 
 export function KindergartenCard(props: KindergartenCardProps) {
-
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => (
       <DeparturePointSheet
@@ -48,10 +49,11 @@ export function KindergartenCard(props: KindergartenCardProps) {
                 <p className='h2-extrabold text-text-primary'>{props.title}</p>
                 <span className='label-medium text-text-tertiary'>{props.ctg}</span>
               </div>
-              {/* 길찾기 버튼 */}
+              {/* 심사 대응용 임시 비노출
               <button onClick={openDeparturePointSheet}>
                 <Icon icon='Navigation' className='text-fill-secondary-500 size-x8' />
               </button>
+              */}
             </div>
 
             {/* 리뷰 및 메모 영역 */}
