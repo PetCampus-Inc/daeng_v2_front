@@ -4,12 +4,14 @@ import { useUserStore } from '@entities/user';
 import { ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { trackSignUpNicknameCompleted } from '@shared/lib/analytics';
 
 function UserNicknamePage() {
   const user = useUserStore((state) => state.user);
   const { push } = useStackNavigation();
 
   const handleNext = () => {
+    trackSignUpNicknameCompleted();
     // TODO: 닉네임 변경 API 호출
     push({ pathname: route.register.welcome.root });
   };

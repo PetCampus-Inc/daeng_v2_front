@@ -6,6 +6,7 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { trackSignUpCompleted } from '@shared/lib/analytics';
 import { route } from '@shared/constants/route';
 
 function MarketingConsentPage() {
@@ -16,10 +17,14 @@ function MarketingConsentPage() {
   const handleOpenBottomSheet = () => setIsOpen(true);
 
   /** [아니오] 버튼 클릭 */
-  const handleSkip = () => reset(route.root);
+  const handleSkip = () => {
+    trackSignUpCompleted(false);
+    reset(route.root);
+  };
 
   /** [예] 버튼 클릭 */
   const handleAgree = () => {
+    trackSignUpCompleted(true);
     // TODO: 수신 동의 로직 추가
     reset(route.root);
   };

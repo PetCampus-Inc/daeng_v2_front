@@ -10,6 +10,8 @@ import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
 
+const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -23,6 +25,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='ko' className={cn(suit.variable)} data-env='web' suppressHydrationWarning>
       <HeaderProvider>
         <body className='overflow-hidden'>
+          {/* Google Analytics */}
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            strategy='afterInteractive'
+          />
+          <Script id='google-analytics' strategy='afterInteractive'>
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}');
+            `}
+          </Script>
           <NuqsAdapter>
             <ReactQueryProvider>
               <BridgeProvider>
