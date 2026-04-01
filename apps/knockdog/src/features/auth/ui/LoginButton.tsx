@@ -3,6 +3,7 @@
 import { Icon, IconType } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { trackSignUpStart } from '@shared/lib/analytics';
 import { useLogin } from '../model/useLogin';
 
 import { SocialProvider, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
@@ -35,11 +36,16 @@ export function LoginButton({ className, provider, ...props }: LoginButtonProps)
 
   const { text, icon, styles } = BUTTON_STYLE_MAP[provider];
 
+  const handleLogin = () => {
+    trackSignUpStart(provider);
+    login(provider);
+  };
+
   return (
     <button
       type='button'
       className={cn('flex items-center justify-center gap-1 rounded-lg py-4', styles, className)}
-      onClick={() => login(provider)}
+      onClick={handleLogin}
       {...props}
     >
       <Icon icon={icon as IconType} />
