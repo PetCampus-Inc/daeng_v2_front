@@ -95,8 +95,8 @@ function toRoute(
   try {
     const urlObj = new URL(name);
     isFullUrl = true;
-    // 외부 URL인지 확인 (NEXT_PUBLIC_WEB_URL과 다른 도메인)
-    const webUrl = process.env.NEXT_PUBLIC_WEB_URL || '';
+    // 외부 URL인지 확인 (EXPO_PUBLIC_WEBVIEW_URL과 다른 도메인)
+    const webUrl = process.env.EXPO_PUBLIC_WEBVIEW_URL || '';
     isExternalUrl = urlObj.origin !== new URL(webUrl || 'http://localhost').origin;
     pathname = urlObj.pathname;
   } catch {
