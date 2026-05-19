@@ -27,11 +27,12 @@ import { DogSelectSheet } from '@features/dog-profile';
 import { usePetRepresentativeQuery, RELATIONSHIP_LABEL, usePetListQuery } from '@entities/pet';
 import { useUserInfoQuery, useUserStore, useUserUpdateUserEmailMutation } from '@entities/user';
 import { useSocialUserStore, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { logout } from '@shared/lib/auth/logout';
 
 function MypageProfileManagePage() {
-  const { push, reset } = useStackNavigation();
+  const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const queryClient = useQueryClient();
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [email, setEmail] = useState('');
@@ -71,7 +72,7 @@ function MypageProfileManagePage() {
                 try {
                   await logout();
                 } finally {
-                  reset();
+                  await navigateToTab('/');
                 }
               }}
             >
