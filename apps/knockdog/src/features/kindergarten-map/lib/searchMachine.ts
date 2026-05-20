@@ -283,10 +283,19 @@ export function transition(current: SearchState, event: SearchEvent, ctx: Search
 
       /**
        * 우선순위 1)
-       * bounds + lock=1 상태는 자동 전이 금지
-       * (L3 → L2 줌아웃 포함)
+       * bounds + lock=1 상태는 자동 전이 금지.
+       * 단, L3 영역 밖(L1/L2)으로 줌아웃하면 lock을 해제하고
+       * 현재 viewport로 검색 영역을 갱신해 집계 마커가 정상 노출되도록 한다.
        */
       if (nextState.scope === 'bounds' && nextState.searchLock === 1) {
+        if (to < 3) {
+          return {
+            ...nextState,
+            searchLock: 0,
+            searchedLevel: to,
+            searchBounds: viewportBounds ?? nextState.searchBounds,
+          };
+        }
         return nextState;
       }
 
