@@ -39,10 +39,15 @@ const appleLogin = async () => {
     ],
   });
 
+  // Apple은 최초 로그인에만 fullName/email을 반환함 (documented behavior).
+  // 두 번째 이후 로그인에서는 null이 들어오므로 가능한 값으로 폴백.
+  const composedName = [fullName?.givenName, fullName?.familyName].filter(Boolean).join(' ').trim();
+  const emailPrefix = email?.split('@')[0] ?? '';
+
   return {
     idToken: identityToken,
-    name: fullName?.givenName + ' ' + fullName?.familyName,
-    email,
+    name: composedName || emailPrefix || '',
+    email: email ?? '',
     picture: '',
   };
 };

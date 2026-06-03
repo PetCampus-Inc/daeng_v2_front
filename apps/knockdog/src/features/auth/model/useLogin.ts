@@ -18,6 +18,7 @@ import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
 import { useBridge, useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
 const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.KAKAO]: METHODS.kakaoLogin,
@@ -42,14 +43,27 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
   /** OIDC 인증 */
   const oidcAuth = async (provider: SocialProvider) => {
-    const response = await bridge.request<SocialLoginResult>(SOCIAL_LOGIN_METHOD_MAP[provider], undefined, {
-      timeoutMs: 120_000,
-    });
+    try {
+      const response = await bridge.request<SocialLoginResult>(SOCIAL_LOGIN_METHOD_MAP[provider], undefined, {
+        timeoutMs: 120_000,
+      });
 
-    // OIDC 검증 요청 (IDToken)
-    const { code } = await oidcMutateAsync({ provider, ...response }, { onSuccess: ({ data }) => setSocialUser(data) });
+      // OIDC 검증 요청 (IDToken)
+      const { code } = await oidcMutateAsync(
+        { provider, ...response },
+        { onSuccess: ({ data }) => setSocialUser(data) }
+      );
 
-    return code;
+      return code;
+    } catch (error) {
+      console.error('[useLogin] OIDC 인증 실패:', error);
+      toast({
+        title: '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        shape: 'square',
+        position: 'top',
+      });
+      throw error;
+    }
   };
 
   const handleLoginSuccess = (data: User) => {
@@ -85,7 +99,13 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
   /** 로그인 */
   const login = async (provider: SocialProvider) => {
-    const code = await oidcAuth(provider);
+    let code: Awaited<ReturnType<typeof oidcAuth>> | undefined;
+    try {
+      code = await oidcAuth(provider);
+    } catch {
+      // oidcAuth 내부에서 사용자 안내 toast를 이미 노출함
+      return;
+    }
 
     // OIDC 인증 성공
     if (code === VERIFY_OIDC_RESULT_CODE.SUCCESS) {
