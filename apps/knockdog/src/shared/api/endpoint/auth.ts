@@ -15,8 +15,10 @@ export const postTokenReissue = async () => {
   return await api.post('auth/refresh');
 };
 
-/** `GET` - DEV 로그인 API */
+/** `GET` - DEV 로그인 API (게스트 둘러보기 진입에 사용) */
 export const fetchDevLogin = async <T>(): Promise<ApiResponse<T>> => {
-  const DEV_LOGIN_ID = 46;
+  // 게스트 전용 ACTIVE 계정. 기존 id=46이 2026-05-28 WITHDRAWN 처리되어 교체.
+  // BE 별도 트랙으로 /auth/dev/* 차단 + /auth/guest 신설 예정 → 그때 엔드포인트 교체.
+  const DEV_LOGIN_ID = 69;
   return await api.get(`auth/dev/${DEV_LOGIN_ID}`).json<ApiResponse<T>>();
 };
