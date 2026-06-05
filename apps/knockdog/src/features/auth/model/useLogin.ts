@@ -19,6 +19,7 @@ import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
 import { useBridge, useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { HTTPError } from 'ky';
 
 const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.KAKAO]: METHODS.kakaoLogin,
@@ -138,8 +139,26 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
   /** 게스트 로그인 (DEV) */
   const guestLogin = async () => {
-    const response = await fetchDevLogin<User>();
-    handleLoginSuccess(response.data);
+    try {
+      const response = await fetchDevLogin<User>();
+      handleLoginSuccess(response.data);
+    } catch (error) {
+      // 원인 분기: HTTPError(status 포함) vs 네트워크/기타
+      if (error instanceof HTTPError) {
+        console.error('[useLogin] 게스트 로그인 HTTP 실패', {
+          status: error.response.status,
+          url: error.response.url,
+          name: error.name,
+        });
+      } else {
+        console.error('[useLogin] 게스트 로그인 실패(비 HTTP)', error);
+      }
+      toast({
+        title: '게스트 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        shape: 'square',
+        position: 'top',
+      });
+    }
   };
 
   return { login, guestLogin };
