@@ -68,23 +68,34 @@ export const useLogin = (options?: { redirectTo?: string }) => {
   };
 
   const handleLoginSuccess = (data: User) => {
-    if (data.status === USER_STATUS.ACTIVE) {
-      setUser(data);
+    // BE가 200을 주더라도 status가 ACTIVE가 아니면 silent 진행 금지.
+    // 정식 흐름에선 handleLoginError에서 잡히지만, dev/guest 라우트처럼
+    // status 체크 없이 user를 그대로 반환하는 엔드포인트 대비 안전망.
+    if (data.status !== USER_STATUS.ACTIVE) {
+      console.error('[useLogin] 비-ACTIVE 유저 응답', { status: data.status });
+      toast({
+        title: '로그인할 수 없는 계정입니다. 잠시 후 다시 시도해주세요.',
+        shape: 'square',
+        position: 'top',
+      });
+      return;
+    }
 
-      // pushForResult로 열린 경우 결과 전송
-      try {
-        navResult.send(true);
-      } catch (error) {
-        // _txId가 없으면 일반 로그인 플로우 (에러 무시)
-        console.log('[useLogin] pushForResult 컨텍스트가 아닙니다, 일반 로그인 플로우 진행');
-      }
+    setUser(data);
 
-      if (redirectTo) {
-        replace({ pathname: redirectTo });
-      } else {
-        console.log('[useLogin] back');
-        back();
-      }
+    // pushForResult로 열린 경우 결과 전송
+    try {
+      navResult.send(true);
+    } catch (error) {
+      // _txId가 없으면 일반 로그인 플로우 (에러 무시)
+      console.log('[useLogin] pushForResult 컨텍스트가 아닙니다, 일반 로그인 플로우 진행');
+    }
+
+    if (redirectTo) {
+      replace({ pathname: redirectTo });
+    } else {
+      console.log('[useLogin] back');
+      back();
     }
   };
 

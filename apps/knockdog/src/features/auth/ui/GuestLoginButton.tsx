@@ -1,3 +1,5 @@
+'use client';
+
 import { Icon } from '@knockdog/ui';
 import { useLogin } from '../model/useLogin';
 import { useStackNavigation } from '@shared/lib';
