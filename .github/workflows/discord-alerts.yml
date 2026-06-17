@@ -52,14 +52,28 @@ jobs:
               const pr = payload.pull_request;
               const action = payload.action;
               const status = action === 'closed' && pr.merged ? 'merged' : action;
-              title = `PR ${status}: #${pr.number} ${pr.title}`;
-              description = pr.body ? pr.body.slice(0, 700) : 'No PR description';
+              const statusLabels = {
+                opened: 'Review requested',
+                reopened: 'Back in review',
+                synchronize: 'Updated',
+                ready_for_review: 'Ready for review',
+                converted_to_draft: 'Moved to draft',
+                closed: 'Closed',
+                merged: 'Merged',
+              };
+              const statusLabel = statusLabels[status] || status;
+              const bodyPreview = pr.body
+                ? pr.body.replace(/\s+/g, ' ').trim().slice(0, 500)
+                : '본문 없이 올라온 PR입니다.';
+              title = `[FE PR] ${statusLabel} · #${pr.number}`;
+              description = `**${pr.title}**\n${bodyPreview}`;
               url = pr.html_url;
               color = pr.merged ? 0x57f287 : action === 'closed' ? 0xed4245 : 0x5865f2;
               fields.push(
-                { name: 'Repository', value: repo, inline: true },
-                { name: 'Author', value: pr.user.login, inline: true },
-                { name: 'Branch', value: `${pr.head.ref} -> ${pr.base.ref}`, inline: false },
+                { name: '작성자', value: pr.user.login, inline: true },
+                { name: '상태', value: statusLabel, inline: true },
+                { name: '변경', value: `+${pr.additions} / -${pr.deletions}`, inline: true },
+                { name: '브랜치', value: `${pr.head.ref} -> ${pr.base.ref}`, inline: false },
               );
             } else if (eventName === 'push') {
               const branch = payload.ref.replace('refs/heads/', '');
