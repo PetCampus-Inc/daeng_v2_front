@@ -10,12 +10,6 @@ on:
 
 jobs:
   notify:
-    if: |
-      github.event_name != 'workflow_run' ||
-      (
-        github.event.workflow_run.name != 'Discord Alerts' &&
-        github.event.workflow_run.conclusion != 'success'
-      )
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord alert
@@ -38,6 +32,14 @@ jobs:
             const eventName = process.env.GITHUB_EVENT_NAME;
             const payload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
             const repo = process.env.GITHUB_REPOSITORY;
+
+            if (
+              eventName === 'workflow_run' &&
+              (payload.workflow_run.name === 'Discord Alerts' || payload.workflow_run.conclusion === 'success')
+            ) {
+              return;
+            }
+
             const fields = [];
             let title = '';
             let description = '';
