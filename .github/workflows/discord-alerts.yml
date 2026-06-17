@@ -1,0 +1,114 @@
+name: Discord Alerts
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+  push:
+    branches: [develop, main]
+  workflow_run:
+    types: [completed]
+
+jobs:
+  notify:
+    if: |
+      github.event_name != 'workflow_run' ||
+      (
+        github.event.workflow_run.name != 'Discord Alerts' &&
+        github.event.workflow_run.conclusion != 'success'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord alert
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          async function main() {
+            const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+
+            if (!webhookUrl) {
+              console.warn('DISCORD_WEBHOOK_URL secret is not configured.');
+              return;
+            }
+
+            const eventName = process.env.GITHUB_EVENT_NAME;
+            const payload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+            const repo = process.env.GITHUB_REPOSITORY;
+            const fields = [];
+            let title = '';
+            let description = '';
+            let url = `https://github.com/${repo}`;
+            let color = 0x5865f2;
+
+            if (eventName === 'pull_request_target') {
+              const pr = payload.pull_request;
+              const action = payload.action;
+              const status = action === 'closed' && pr.merged ? 'merged' : action;
+              title = `PR ${status}: #${pr.number} ${pr.title}`;
+              description = pr.body ? pr.body.slice(0, 700) : 'No PR description';
+              url = pr.html_url;
+              color = pr.merged ? 0x57f287 : action === 'closed' ? 0xed4245 : 0x5865f2;
+              fields.push(
+                { name: 'Repository', value: repo, inline: true },
+                { name: 'Author', value: pr.user.login, inline: true },
+                { name: 'Branch', value: `${pr.head.ref} -> ${pr.base.ref}`, inline: false },
+              );
+            } else if (eventName === 'push') {
+              const branch = payload.ref.replace('refs/heads/', '');
+              const commits = payload.commits || [];
+              title = `Push: ${repo}@${branch}`;
+              description =
+                commits
+                  .slice(0, 5)
+                  .map((commit) => `- ${commit.id.slice(0, 7)} ${commit.message.split('\n')[0]}`)
+                  .join('\n') || 'No commit message';
+              url = payload.compare || url;
+              fields.push(
+                { name: 'Pusher', value: payload.pusher?.name || 'unknown', inline: true },
+                { name: 'Commits', value: String(commits.length), inline: true },
+              );
+            } else if (eventName === 'workflow_run') {
+              const run = payload.workflow_run;
+              title = `Workflow ${run.conclusion}: ${run.name}`;
+              description = `${run.head_branch} / ${run.display_title}`;
+              url = run.html_url;
+              color = run.conclusion === 'success' ? 0x57f287 : 0xed4245;
+              fields.push(
+                { name: 'Repository', value: repo, inline: true },
+                { name: 'Branch', value: run.head_branch || 'unknown', inline: true },
+                { name: 'Run', value: String(run.run_number), inline: true },
+              );
+            }
+
+            const response = await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: 'Knockdog Git Alert',
+                embeds: [
+                  {
+                    title,
+                    description,
+                    url,
+                    color,
+                    fields,
+                    timestamp: new Date().toISOString(),
+                  },
+                ],
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Discord webhook failed: ${response.status} ${await response.text()}`);
+            }
+          }
+
+          main().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE

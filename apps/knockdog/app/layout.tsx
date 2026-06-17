@@ -6,6 +6,7 @@ import './globals.css';
 import type { Viewport } from 'next';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
+import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               gtag('config', '${GA_MEASUREMENT_ID}');
             `}
           </Script>
+          <ClientErrorReporter />
           <NuqsAdapter>
             <ReactQueryProvider>
               <BridgeProvider>
