@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { ApiError } from '@shared/api';
 
 import {
@@ -5,21 +7,37 @@ import {
   businessVerificationError,
 } from '../config/businessVerificationError';
 
-function getBusinessVerificationErrorMessage(error: unknown) {
+function getTemporaryErrorMessage() {
+  return (
+    <>
+      {businessVerificationError.temporaryLine1}
+      <br />
+      {businessVerificationError.temporaryLine2}
+    </>
+  );
+}
+
+function getBusinessVerificationErrorMessage(error: unknown): ReactNode {
   if (error instanceof ApiError) {
     switch (error.code) {
       case BUSINESS_VERIFICATION_ERROR_CODE.DUPLICATE:
-        return businessVerificationError.duplicate;
+        return (
+          <>
+            {businessVerificationError.duplicateLine1}
+            <br />
+            {businessVerificationError.duplicateLine2}
+          </>
+        );
       case BUSINESS_VERIFICATION_ERROR_CODE.INVALID_FORMAT:
         return businessVerificationError.invalidFormat;
       case BUSINESS_VERIFICATION_ERROR_CODE.CLOSED_OR_SUSPENDED:
         return businessVerificationError.closedOrSuspended;
       default:
-        return businessVerificationError.temporary;
+        return getTemporaryErrorMessage();
     }
   }
 
-  return businessVerificationError.temporary;
+  return getTemporaryErrorMessage();
 }
 
 export { getBusinessVerificationErrorMessage };
