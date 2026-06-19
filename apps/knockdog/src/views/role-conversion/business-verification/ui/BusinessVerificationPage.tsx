@@ -17,8 +17,16 @@ import { roleConversionProgress } from '../config/roleConversionProgress';
 import { useBusinessVerificationPage } from '../model/useBusinessVerificationPage';
 
 function BusinessVerificationPage() {
-  const { bizNo, isVerifyEnabled, isNextEnabled, handleInputChange, handleVerifyClick, handleNextClick } =
-    useBusinessVerificationPage();
+  const {
+    bizNo,
+    error,
+    isVerified,
+    isVerifyEnabled,
+    isNextEnabled,
+    handleInputChange,
+    handleVerifyClick,
+    handleNextClick,
+  } = useBusinessVerificationPage();
 
   return (
     <div className='flex h-full flex-col'>
@@ -50,7 +58,12 @@ function BusinessVerificationPage() {
 
             <div className='flex items-start gap-2'>
               <div className='min-w-0 flex-1'>
-                <TextField>
+                <TextField
+                  invalid={!!error}
+                  valid={isVerified}
+                  errorMessage={error ?? undefined}
+                  successMessage={isVerified ? businessVerificationContent.successMessage : undefined}
+                >
                   <TextFieldInput
                     inputMode='numeric'
                     maxLength={10}

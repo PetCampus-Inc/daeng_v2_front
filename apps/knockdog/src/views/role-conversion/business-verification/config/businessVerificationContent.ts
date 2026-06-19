@@ -6,4 +6,5 @@ export const businessVerificationContent = Object.freeze({
   inputPlaceholder: '사업자 등록번호를 입력해 주세요',
   verifyButtonLabel: '인증',
   nextButtonLabel: '다음',
+  successMessage: '인증이 완료됐어요',
 });

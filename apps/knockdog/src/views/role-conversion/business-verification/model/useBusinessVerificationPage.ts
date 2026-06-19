@@ -2,10 +2,13 @@ import { useState } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
 
+import { getBusinessVerificationErrorMessage } from './getBusinessVerificationErrorMessage';
+
 const BIZ_NO_LEN = 10;
 
 function useBusinessVerificationPage() {
   const [bizNo, setBizNo] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
 
   const { mutate: verifyBizNo, isPending } = useMutation({
@@ -13,12 +16,20 @@ function useBusinessVerificationPage() {
     mutationFn: async (_bizNo: string) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
     },
-    onSuccess: () => setIsVerified(true),
+    onSuccess: () => {
+      setError(null);
+      setIsVerified(true);
+    },
+    onError: (err) => {
+      setIsVerified(false);
+      setError(getBusinessVerificationErrorMessage(err));
+    },
   });
 
   const handleInputChange = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, BIZ_NO_LEN);
     setBizNo(digits);
+    setError(null);
     setIsVerified(false);
   };
 
@@ -34,6 +45,8 @@ function useBusinessVerificationPage() {
 
   return {
     bizNo,
+    error,
+    isVerified,
     isVerifyEnabled,
     isNextEnabled: isVerified,
     handleInputChange,
