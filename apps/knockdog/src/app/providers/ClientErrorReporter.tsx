@@ -18,7 +18,12 @@ const ERROR_ENDPOINT = '/api/monitoring/client-error';
 const DEDUPE_WINDOW_MS = 60_000;
 const recentReports = new Map<string, number>();
 
-function normalizeError(value: unknown) {
+interface NormalizedError {
+  message: string;
+  stack?: string;
+}
+
+function normalizeError(value: unknown): NormalizedError {
   if (value instanceof Error) {
     return {
       message: value.message,
@@ -56,7 +61,7 @@ function normalizeError(value: unknown) {
 
 function createReport(
   kind: ErrorReport['kind'],
-  error: { message: string; stack?: string },
+  error: NormalizedError,
   extra?: Partial<ErrorReport>
 ): ErrorReport {
   return {
