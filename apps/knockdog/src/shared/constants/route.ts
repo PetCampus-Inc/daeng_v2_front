@@ -73,6 +73,12 @@ const route = {
       },
     },
   },
+  roleConversion: {
+    businessVerification: {
+      /** 관리자 전환 - 사업자번호 인증 */
+      root: '/role-conversion/business-verification',
+    },
+  },
 };
 
 export { route };
