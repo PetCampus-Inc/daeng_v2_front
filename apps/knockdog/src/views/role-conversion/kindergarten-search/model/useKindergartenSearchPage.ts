@@ -12,11 +12,12 @@ function useKindergartenSearchPage() {
   const { coord } = useBasePoint();
   const trimmedQuery = query.trim();
 
-  const { data } = useQuery({
+  const { data, isFetching, isFetched } = useQuery({
     ...searchQueryOptions.autocomplete({ query: trimmedQuery, coord }),
   });
 
   const places = data?.place ?? [];
+  const isSearchEmpty = trimmedQuery.length > 0 && isFetched && !isFetching && places.length === 0;
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
@@ -32,8 +33,10 @@ function useKindergartenSearchPage() {
     query,
     places,
     selectedPlaceId: selectedPlace?.id ?? null,
+    isSearchEmpty,
     handleQueryChange,
     handlePlaceSelect,
-  };}
+  };
+}
 
 export { useKindergartenSearchPage };

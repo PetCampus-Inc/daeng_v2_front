@@ -6,11 +6,13 @@ import { Header } from '@widgets/Header';
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 import { kindergartenSearchContent } from '../config/kindergartenSearchContent';
 import { useKindergartenSearchPage } from '../model/useKindergartenSearchPage';
+import { KindergartenSearchEmptyResult } from './KindergartenSearchEmptyResult';
 import { KindergartenSearchHint } from './KindergartenSearchHint';
 import { KindergartenSearchPlaceList } from './KindergartenSearchPlaceList';
 
 function KindergartenSearchPage() {
-  const { query, places, selectedPlaceId, handleQueryChange, handlePlaceSelect } = useKindergartenSearchPage();
+  const { query, places, selectedPlaceId, isSearchEmpty, handleQueryChange, handlePlaceSelect } =
+    useKindergartenSearchPage();
   const hasQuery = query.trim().length > 0;
 
   return (
@@ -66,10 +68,11 @@ function KindergartenSearchPage() {
           </div>
 
           {!hasQuery && <KindergartenSearchHint />}
+          {isSearchEmpty && <KindergartenSearchEmptyResult />}
         </div>
 
-        <div className='min-h-0 flex-1 overflow-y-auto pt-4'>
-          {hasQuery && (
+        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto pt-4'>
+          {hasQuery && places.length > 0 && (
             <KindergartenSearchPlaceList
               places={places}
               query={query}
@@ -79,7 +82,8 @@ function KindergartenSearchPage() {
           )}
         </div>
       </div>
-    </div>  );
+    </div>
+  );
 }
 
 export { KindergartenSearchPage };
