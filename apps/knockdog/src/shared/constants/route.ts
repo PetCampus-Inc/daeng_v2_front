@@ -82,6 +82,10 @@ const route = {
       /** 관리자 전환 - 유치원 검색 */
       root: '/role-conversion/kindergarten-search',
     },
+    kindergartenRegister: {
+      /** 관리자 전환 - 유치원 직접 등록 */
+      root: '/role-conversion/kindergarten-register',
+    },
   },
 };
 

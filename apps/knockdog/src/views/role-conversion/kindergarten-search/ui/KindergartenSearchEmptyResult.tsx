@@ -1,12 +1,16 @@
-import { ActionButton, Icon } from '@knockdog/ui';
-
+import { ActionButton } from '@knockdog/ui';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { kindergartenSearchContent } from '../config/kindergartenSearchContent';
 
 function KindergartenSearchEmptyResult() {
-  const handleRegisterClick = () => {
-    // @todo 유치원 직접 등록 라우팅
-  };
 
+  const { push } = useStackNavigation();
+  const handleRegisterClick = () => {
+
+    push({ pathname: route.roleConversion.kindergartenRegister.root });
+
+  };
   return (
     <div className='flex flex-col gap-5 py-5'>
       <div className='flex flex-col gap-1 text-center'>
