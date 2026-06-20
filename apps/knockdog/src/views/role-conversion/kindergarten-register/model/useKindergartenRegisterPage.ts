@@ -1,11 +1,19 @@
 import { useState } from 'react';
 
+import { formatAddress, formatName, formatPhone } from '../lib/formatKindergartenRegisterField';
 interface KindergartenRegisterForm {
   name: string;
   address: string;
   kindergartenNumber: string;
   phoneNumber: string;
 }
+
+const fieldFormatters = {
+  name: formatName,
+  address: formatAddress,
+  kindergartenNumber: formatPhone,
+  phoneNumber: formatPhone,
+} as const;
 
 function useKindergartenRegisterPage() {
   const [form, setForm] = useState<KindergartenRegisterForm>({
@@ -16,7 +24,7 @@ function useKindergartenRegisterPage() {
   });
 
   const handleFieldChange = (field: keyof KindergartenRegisterForm, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: fieldFormatters[field](value) }));
   };
 
   const isNextEnabled = Object.values(form).every((value) => value.trim().length > 0);

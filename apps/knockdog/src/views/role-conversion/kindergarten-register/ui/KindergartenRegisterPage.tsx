@@ -78,7 +78,7 @@ function KindergartenRegisterPage() {
               </FieldLabel>
               <TextField>
                 <TextFieldInput
-                  inputMode='numeric'
+                  inputMode='tel'
                   placeholder={kindergartenRegisterContent.numberPlaceholder}
                   value={form.kindergartenNumber}
                   onChange={(e) => handleFieldChange('kindergartenNumber', e.target.value)}
