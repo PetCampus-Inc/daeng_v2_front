@@ -13,7 +13,7 @@ import {
 import { Header } from '@widgets/Header';
 
 import { businessVerificationContent } from '../config/businessVerificationContent';
-import { roleConversionProgress } from '../config/roleConversionProgress';
+import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 import { useBusinessVerificationPage } from '../model/useBusinessVerificationPage';
 
 function BusinessVerificationPage() {
@@ -39,6 +39,7 @@ function BusinessVerificationPage() {
         <ProgressBar
           totalSteps={roleConversionProgress.totalSteps}
           value={roleConversionProgress.businessVerificationStep}
+          className='h-1.5'
         />
       </div>
 
