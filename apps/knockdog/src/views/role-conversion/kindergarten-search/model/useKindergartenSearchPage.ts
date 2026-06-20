@@ -25,9 +25,6 @@ function useKindergartenSearchPage() {
 
   const handlePlaceSelect = (place: AutocompletePlace) => {
     setSelectedPlace(place);
-  };
-
-  const handleNextClick = () => {
     // @todo 3단계 개인정보 수집 및 이용 동의 라우팅 (26-06-20)
   };
 
@@ -35,11 +32,8 @@ function useKindergartenSearchPage() {
     query,
     places,
     selectedPlaceId: selectedPlace?.id ?? null,
-    isNextEnabled: !!selectedPlace,
     handleQueryChange,
     handlePlaceSelect,
-    handleNextClick,
-  };
-}
+  };}
 
 export { useKindergartenSearchPage };

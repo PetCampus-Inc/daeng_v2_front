@@ -1,25 +1,16 @@
 'use client';
 
-import { ActionButton, Icon, ProgressBar, TextField, TextFieldInput } from '@knockdog/ui';
-
+import { Icon, ProgressBar, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 import { kindergartenSearchContent } from '../config/kindergartenSearchContent';
 import { useKindergartenSearchPage } from '../model/useKindergartenSearchPage';
+import { KindergartenSearchHint } from './KindergartenSearchHint';
 import { KindergartenSearchPlaceList } from './KindergartenSearchPlaceList';
 
 function KindergartenSearchPage() {
-  const {
-    query,
-    places,
-    selectedPlaceId,
-    isNextEnabled,
-    handleQueryChange,
-    handlePlaceSelect,
-    handleNextClick,
-  } = useKindergartenSearchPage();
-
+  const { query, places, selectedPlaceId, handleQueryChange, handlePlaceSelect } = useKindergartenSearchPage();
   const hasQuery = query.trim().length > 0;
 
   return (
@@ -33,6 +24,7 @@ function KindergartenSearchPage() {
         <ProgressBar
           totalSteps={roleConversionProgress.totalSteps}
           value={roleConversionProgress.kindergartenSearchStep}
+          className='h-1.5'
         />
       </div>
 
@@ -72,6 +64,8 @@ function KindergartenSearchPage() {
               )}
             </TextField>
           </div>
+
+          {!hasQuery && <KindergartenSearchHint />}
         </div>
 
         <div className='min-h-0 flex-1 overflow-y-auto pt-4'>
@@ -84,22 +78,8 @@ function KindergartenSearchPage() {
             />
           )}
         </div>
-
-        <div className='shrink-0 py-5'>
-          <ActionButton
-            type='button'
-            variant='secondaryFill'
-            size='large'
-            className='w-full'
-            disabled={!isNextEnabled}
-            onClick={handleNextClick}
-          >
-            {kindergartenSearchContent.nextButtonLabel}
-          </ActionButton>
-        </div>
       </div>
-    </div>
-  );
+    </div>  );
 }
 
 export { KindergartenSearchPage };

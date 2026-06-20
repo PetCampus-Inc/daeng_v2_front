@@ -39,7 +39,6 @@ function BusinessVerificationPage() {
         <ProgressBar
           totalSteps={roleConversionProgress.totalSteps}
           value={roleConversionProgress.businessVerificationStep}
-          className='h-1.5'
         />
       </div>
 

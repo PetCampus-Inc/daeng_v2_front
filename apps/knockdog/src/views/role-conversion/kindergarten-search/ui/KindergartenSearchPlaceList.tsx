@@ -2,6 +2,8 @@ import type { AutocompletePlace } from '@entities/kindergarten';
 import { HighlightedText } from '@features/search/ui/HighlightedText';
 import { cn } from '@knockdog/ui/lib';
 
+import { kindergartenSearchContentInset } from '../config/kindergartenSearchContentInset';
+
 interface KindergartenSearchPlaceListProps {
   places: AutocompletePlace[];
   query: string;
@@ -18,7 +20,7 @@ function KindergartenSearchPlaceList({
   if (places.length === 0) return null;
 
   return (
-    <ul className='flex flex-col'>
+    <ul className={cn('flex flex-col', kindergartenSearchContentInset)}>
       {places.map((place) => (
         <li key={place.id}>
           <button
@@ -33,10 +35,12 @@ function KindergartenSearchPlaceList({
               <div className='gap-x1 flex min-w-0 shrink-0 grow flex-col overflow-hidden'>
                 <p className='body2-semibold text-text-primary truncate'>
                   <HighlightedText text={place.title} query={query} />
-                </p>                <span className='label-medium text-text-tertiary truncate'>{place.roadAddress}</span>
+                </p>
+                <span className='label-medium text-text-tertiary truncate'>{place.roadAddress}</span>
               </div>
             </div>
-          </button>        </li>
+          </button>
+        </li>
       ))}
     </ul>
   );
