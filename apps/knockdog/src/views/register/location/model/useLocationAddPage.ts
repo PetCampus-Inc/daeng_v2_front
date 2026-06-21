@@ -22,7 +22,6 @@ const useLocationAddPage = () => {
 
   const {
     control,
-    formState: { isValid },
     handleSubmit: submit,
     setValue,
   } = useForm<LocationAddFormState>({
@@ -33,6 +32,13 @@ const useLocationAddPage = () => {
       address: undefined,
     },
   });
+
+  const address = useWatch({ control, name: 'address' });
+  const canSubmit = !!address;
+
+  const handleAddressSelect = (address: Address) => {
+    setValue('address', address, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  };
 
   const handleSubmit = ({ alias, address }: LocationAddFormState) => {
     const userAddress: Omit<UserAddress, 'id'> = { ...address, alias, type };
@@ -48,7 +54,7 @@ const useLocationAddPage = () => {
     }
   }, [params]);
 
-  return { type, control, isValid, submit, handleSubmit };
+  return { type, control, canSubmit, submit, handleSubmit, handleAddressSelect };
 };
 
 export { useLocationAddPage };

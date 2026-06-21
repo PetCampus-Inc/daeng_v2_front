@@ -12,7 +12,7 @@ import { AddressPicker } from '@features/address-picker';
 import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
 
 function LocationAddPage() {
-  const { type, control, isValid, submit, handleSubmit } = useLocationAddPage();
+  const { type, control, canSubmit, submit, handleSubmit, handleAddressSelect } = useLocationAddPage();
 
   return (
     <div className='flex h-full flex-col pb-5'>
@@ -55,7 +55,7 @@ function LocationAddPage() {
               <Controller
                 control={control}
                 name='address'
-                render={({ field }) => <AddressPicker value={field.value?.address} onSelect={field.onChange} />}
+                render={({ field }) => <AddressPicker value={field.value?.address} onSelect={handleAddressSelect} />}
               />
             </div>
           </form>
@@ -65,7 +65,7 @@ function LocationAddPage() {
             form='address-search-form'
             type='submit'
             size='large'
-            disabled={!isValid}
+            disabled={!canSubmit}
           >
             등록하기
           </ActionButton>
