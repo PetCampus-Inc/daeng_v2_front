@@ -26,6 +26,7 @@ const useLocationAddPage = () => {
     handleSubmit: submit,
     setValue,
   } = useForm<LocationAddFormState>({
+    mode: 'onChange',
     resolver: zodResolver(locationAddSchema),
     defaultValues: {
       alias: '',
@@ -42,8 +43,8 @@ const useLocationAddPage = () => {
 
   useEffect(() => {
     if (params) {
-      setValue('address', params.address);
-      setValue('alias', params.alias);
+      setValue('address', params.address, { shouldValidate: true });
+      setValue('alias', params.alias, { shouldValidate: true });
     }
   }, [params]);
 
