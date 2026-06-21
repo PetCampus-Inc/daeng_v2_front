@@ -46,7 +46,10 @@ export function AddressPicker({ className, value, onSelect, showLabel = true, ..
                   address={address.address}
                   roadAddress={address.roadAddress}
                   keyword={inputValue}
-                  onClick={handleSelect(address)}
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    void handleSelect(address)();
+                  }}
                 />
               ))}
             </AddressList>
