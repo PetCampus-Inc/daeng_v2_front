@@ -62,6 +62,7 @@ function useBusinessVerificationPage() {
     isVerified,
     isVerifyEnabled,
     isNextEnabled: isVerified,
+    isVerifyPending: isPending,
     handleInputChange,
     handleVerifyClick,
     handleNextClick,
