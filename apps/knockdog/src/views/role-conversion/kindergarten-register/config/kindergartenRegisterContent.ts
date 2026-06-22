@@ -1,5 +1,5 @@
 export const kindergartenRegisterContent = Object.freeze({
-  headerTitle: '유치원 검색',
+  headerTitle: '유치원 정보 입력',
   titleLine1: '유치원 정보를',
   titleLine2: '입력해 주세요',
   nameLabel: '유치원명',
