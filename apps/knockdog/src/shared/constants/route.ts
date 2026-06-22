@@ -78,6 +78,14 @@ const route = {
       /** 관리자 전환 - 사업자번호 인증 */
       root: '/role-conversion/business-verification',
     },
+    kindergartenSearch: {
+      /** 관리자 전환 - 유치원 검색 */
+      root: '/role-conversion/kindergarten-search',
+    },
+    kindergartenRegister: {
+      /** 관리자 전환 - 유치원 직접 등록 */
+      root: '/role-conversion/kindergarten-register',
+    },
   },
 };
 

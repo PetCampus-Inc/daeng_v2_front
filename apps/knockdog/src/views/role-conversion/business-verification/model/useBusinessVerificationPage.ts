@@ -3,6 +3,8 @@ import { useState, type ReactNode } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
 import { ApiError } from '@shared/api';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 import { devStubErrorByBizNo } from '../config/businessVerificationDevStub';
 import { getBusinessVerificationErrorMessage } from './getBusinessVerificationErrorMessage';
@@ -10,6 +12,7 @@ import { getBusinessVerificationErrorMessage } from './getBusinessVerificationEr
 const BIZ_NO_LEN = 10;
 
 function useBusinessVerificationPage() {
+  const { push } = useStackNavigation();
   const [bizNo, setBizNo] = useState('');
   const [error, setError] = useState<ReactNode | null>(null);
   const [isVerified, setIsVerified] = useState(false);
@@ -48,7 +51,7 @@ function useBusinessVerificationPage() {
   };
 
   const handleNextClick = () => {
-    // @todo 다음 단계 라우팅
+    push({ pathname: route.roleConversion.kindergartenSearch.root });
   };
 
   const isVerifyEnabled = bizNo.length === BIZ_NO_LEN && !isVerified && !isPending;
@@ -59,6 +62,7 @@ function useBusinessVerificationPage() {
     isVerified,
     isVerifyEnabled,
     isNextEnabled: isVerified,
+    isVerifyPending: isPending,
     handleInputChange,
     handleVerifyClick,
     handleNextClick,
