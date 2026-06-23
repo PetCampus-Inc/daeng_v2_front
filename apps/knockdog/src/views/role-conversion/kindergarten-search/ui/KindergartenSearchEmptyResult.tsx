@@ -1,15 +1,17 @@
 import { ActionButton } from '@knockdog/ui';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+
+import { clearSearchPrefill } from '@views/role-conversion/model/kindergartenConfirmParams';
+
 import { kindergartenSearchContent } from '../config/kindergartenSearchContent';
 
 function KindergartenSearchEmptyResult() {
-
   const { push } = useStackNavigation();
+
   const handleRegisterClick = () => {
-
+    clearSearchPrefill();
     push({ pathname: route.roleConversion.kindergartenRegister.root });
-
   };
   return (
     <div className='flex flex-col gap-5 py-5'>

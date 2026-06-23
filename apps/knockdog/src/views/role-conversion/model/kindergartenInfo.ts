@@ -1,6 +1,10 @@
 import { kindergartenRegisterContent } from '../kindergarten-register/config/kindergartenRegisterContent';
 
+type KindergartenRegisterSource = 'manual' | 'search';
+
 interface KindergartenRegisterForm {
+  source: KindergartenRegisterSource;
+  placeId?: string;
   name: string;
   address: string;
   kindergartenNumber: string;
@@ -8,7 +12,16 @@ interface KindergartenRegisterForm {
   phoneNumber: string;
 }
 
+interface SearchPrefill {
+  placeId: string;
+  name: string;
+  address: string;
+  kindergartenNumber: string;
+}
+
 interface RoleConversionKindergartenInfo {
+  source: KindergartenRegisterSource;
+  placeId?: string;
   name: string;
   address: string;
   kindergartenNumber: string;
@@ -22,6 +35,7 @@ interface KindergartenInfoDisplayItem {
 }
 
 const emptyRegisterForm: KindergartenRegisterForm = {
+  source: 'manual',
   name: '',
   address: '',
   kindergartenNumber: '',
@@ -29,8 +43,22 @@ const emptyRegisterForm: KindergartenRegisterForm = {
   phoneNumber: '',
 };
 
+function fromSearchPrefill(prefill: SearchPrefill): KindergartenRegisterForm {
+  return {
+    source: 'search',
+    placeId: prefill.placeId,
+    name: prefill.name,
+    address: prefill.address,
+    kindergartenNumber: prefill.kindergartenNumber,
+    ownerName: '',
+    phoneNumber: '',
+  };
+}
+
 function toKindergartenInfo(form: KindergartenRegisterForm): RoleConversionKindergartenInfo {
   return {
+    source: form.source,
+    placeId: form.placeId,
     name: form.name,
     address: form.address,
     kindergartenNumber: form.kindergartenNumber,
@@ -52,6 +80,8 @@ function toDisplayItems(info: RoleConversionKindergartenInfo): KindergartenInfoD
 export type {
   KindergartenInfoDisplayItem,
   KindergartenRegisterForm,
+  KindergartenRegisterSource,
   RoleConversionKindergartenInfo,
+  SearchPrefill,
 };
-export { emptyRegisterForm, toDisplayItems, toKindergartenInfo };
+export { emptyRegisterForm, fromSearchPrefill, toDisplayItems, toKindergartenInfo };

@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-import { clearDraft, readParams } from '../../model/kindergartenConfirmParams';
+import {
+  clearDraft,
+  clearSearchPrefill,
+  readParams,
+  saveSearchPrefill,
+} from '../../model/kindergartenConfirmParams';
 import {
   toDisplayItems,
   type KindergartenInfoDisplayItem,
@@ -29,6 +34,25 @@ function useKindergartenConfirmPage() {
 
   const handleNo = () => {
     clearDraft();
+
+    if (kindergartenInfo?.source === 'search' && kindergartenInfo.placeId) {
+      const searchPrefill = {
+        placeId: kindergartenInfo.placeId,
+        name: kindergartenInfo.name,
+        address: kindergartenInfo.address,
+        kindergartenNumber: kindergartenInfo.kindergartenNumber,
+      };
+
+      saveSearchPrefill(searchPrefill);
+      replace({
+        pathname: route.roleConversion.kindergartenRegister.root,
+        query: { mode: 'search', reset: Date.now().toString() },
+        params: { searchPrefill },
+      });
+      return;
+    }
+
+    clearSearchPrefill();
     replace({
       pathname: route.roleConversion.kindergartenRegister.root,
       query: { reset: Date.now().toString() },

@@ -13,11 +13,17 @@ import {
 import { Header } from '@widgets/Header';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
+import type { KindergartenRegisterSource } from '@views/role-conversion/model/kindergartenInfo';
+
 import { kindergartenRegisterContent } from '../config/kindergartenRegisterContent';
 import { useKindergartenRegisterPage } from '../model/useKindergartenRegisterPage';
 
-function KindergartenRegisterPage() {
-  const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage();
+interface KindergartenRegisterPageProps {
+  mode: KindergartenRegisterSource;
+}
+
+function KindergartenRegisterPage({ mode }: KindergartenRegisterPageProps) {
+  const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage(mode);
 
   return (
     <div className='flex h-full flex-col'>
@@ -85,7 +91,7 @@ function KindergartenRegisterPage() {
                 />
               </TextField>
             </Field>
-            
+
             <Field className='flex-col gap-2 py-4'>
               <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
                 {kindergartenRegisterContent.ownerNameLabel}
