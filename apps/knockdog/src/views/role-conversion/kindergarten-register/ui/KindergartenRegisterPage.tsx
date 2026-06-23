@@ -85,6 +85,21 @@ function KindergartenRegisterPage() {
                 />
               </TextField>
             </Field>
+            
+            <Field className='flex-col gap-2 py-4'>
+              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                {kindergartenRegisterContent.ownerNameLabel}
+                <FieldLabelIndicator type='required' className='ml-0' />
+              </FieldLabel>
+              <TextField>
+                <TextFieldInput
+                  type='text'
+                  placeholder={kindergartenRegisterContent.ownerNamePlaceholder}
+                  value={form.ownerName}
+                  onChange={(e) => handleFieldChange('ownerName', e.target.value)}
+                />
+              </TextField>
+            </Field>
 
             <Field className='flex-col gap-2 py-4'>
               <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>

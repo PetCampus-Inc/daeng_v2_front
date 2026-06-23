@@ -5,6 +5,7 @@ interface KindergartenRegisterForm {
   name: string;
   address: string;
   kindergartenNumber: string;
+  ownerName: string;
   phoneNumber: string;
 }
 
@@ -12,6 +13,7 @@ const fieldFormatters = {
   name: formatName,
   address: formatAddress,
   kindergartenNumber: formatPhone,
+  ownerName: formatName,
   phoneNumber: formatPhone,
 } as const;
 
@@ -20,6 +22,7 @@ function useKindergartenRegisterPage() {
     name: '',
     address: '',
     kindergartenNumber: '',
+    ownerName: '',
     phoneNumber: '',
   });
 
