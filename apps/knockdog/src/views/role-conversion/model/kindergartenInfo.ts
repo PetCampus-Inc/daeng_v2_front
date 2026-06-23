@@ -21,6 +21,14 @@ interface KindergartenInfoDisplayItem {
   value: string;
 }
 
+const emptyRegisterForm: KindergartenRegisterForm = {
+  name: '',
+  address: '',
+  kindergartenNumber: '',
+  ownerName: '',
+  phoneNumber: '',
+};
+
 function toKindergartenInfo(form: KindergartenRegisterForm): RoleConversionKindergartenInfo {
   return {
     name: form.name,
@@ -46,4 +54,4 @@ export type {
   KindergartenRegisterForm,
   RoleConversionKindergartenInfo,
 };
-export { toDisplayItems, toKindergartenInfo };
+export { emptyRegisterForm, toDisplayItems, toKindergartenInfo };

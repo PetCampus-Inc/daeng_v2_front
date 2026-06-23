@@ -4,6 +4,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import {
+  emptyRegisterForm,
   toKindergartenInfo,
   type KindergartenRegisterForm,
 } from '@views/role-conversion/model/kindergartenInfo';
@@ -21,13 +22,7 @@ const fieldFormatters = {
 
 function useKindergartenRegisterPage() {
   const { push } = useStackNavigation();
-  const [form, setForm] = useState<KindergartenRegisterForm>({
-    name: '',
-    address: '',
-    kindergartenNumber: '',
-    ownerName: '',
-    phoneNumber: '',
-  });
+  const [form, setForm] = useState<KindergartenRegisterForm>(emptyRegisterForm);
 
   const handleFieldChange = (field: keyof KindergartenRegisterForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: fieldFormatters[field](value) }));

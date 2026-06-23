@@ -11,7 +11,7 @@ import {
 } from '../../model/kindergartenInfo';
 
 function useKindergartenConfirmPage() {
-  const { back, getParams, push } = useStackNavigation();
+  const { back, getParams, push, replace } = useStackNavigation();
   const [kindergartenInfo, setKindergartenInfo] = useState<RoleConversionKindergartenInfo | null>(null);
   const [displayItems, setDisplayItems] = useState<KindergartenInfoDisplayItem[]>([]);
 
@@ -29,7 +29,10 @@ function useKindergartenConfirmPage() {
 
   const handleNo = () => {
     clearDraft();
-    back();
+    replace({
+      pathname: route.roleConversion.kindergartenRegister.root,
+      query: { reset: Date.now().toString() },
+    });
   };
 
   const handleYes = () => {
