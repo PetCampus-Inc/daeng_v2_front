@@ -1,13 +1,15 @@
 import { useState } from 'react';
 
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+
+import {
+  toKindergartenInfo,
+  type KindergartenRegisterForm,
+} from '@views/role-conversion/model/kindergartenInfo';
+import { saveDraft } from '@views/role-conversion/model/kindergartenConfirmParams';
+
 import { formatAddress, formatName, formatPhone } from '../lib/formatKindergartenRegisterField';
-interface KindergartenRegisterForm {
-  name: string;
-  address: string;
-  kindergartenNumber: string;
-  ownerName: string;
-  phoneNumber: string;
-}
 
 const fieldFormatters = {
   name: formatName,
@@ -18,6 +20,7 @@ const fieldFormatters = {
 } as const;
 
 function useKindergartenRegisterPage() {
+  const { push } = useStackNavigation();
   const [form, setForm] = useState<KindergartenRegisterForm>({
     name: '',
     address: '',
@@ -33,7 +36,13 @@ function useKindergartenRegisterPage() {
   const isNextEnabled = Object.values(form).every((value) => value.trim().length > 0);
 
   const handleNextClick = () => {
-    // @todo 3단계 개인정보 수집 및 이용 동의 라우팅(26/06/20)
+    const kindergarten = toKindergartenInfo(form);
+
+    saveDraft(kindergarten);
+    push({
+      pathname: route.roleConversion.kindergartenConfirm.root,
+      params: { kindergarten },
+    });
   };
 
   return {
