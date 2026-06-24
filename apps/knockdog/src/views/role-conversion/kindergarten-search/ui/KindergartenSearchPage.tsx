@@ -4,8 +4,8 @@ import { Icon, ProgressBar, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
-import { kindergartenSearchContent } from '../config/kindergartenSearchContent';
-import { useKindergartenSearchPage } from '../model/useKindergartenSearchPage';
+import { kindergartenSearchContent } from '@views/role-conversion/kindergarten-search/config/kindergartenSearchContent';
+import { useKindergartenSearchPage } from '@views/role-conversion/kindergarten-search/model/useKindergartenSearchPage';
 import { KindergartenSearchEmptyResult } from './KindergartenSearchEmptyResult';
 import { KindergartenSearchHint } from './KindergartenSearchHint';
 import { KindergartenSearchPlaceList } from './KindergartenSearchPlaceList';

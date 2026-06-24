@@ -1,6 +1,6 @@
 import { Field, FieldContent } from '@knockdog/ui';
 
-import type { KindergartenInfoDisplayItem } from '../model/kindergartenInfo';
+import type { KindergartenInfoDisplayItem } from '@views/role-conversion/model/kindergartenInfo';
 
 interface KindergartenInfoSummaryProps {
   items: KindergartenInfoDisplayItem[];

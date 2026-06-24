@@ -1,5 +1,7 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
+
 import {
   ActionButton,
   Field,
@@ -15,14 +17,10 @@ import { Header } from '@widgets/Header';
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 import type { KindergartenRegisterSource } from '@views/role-conversion/model/kindergartenInfo';
 
-import { kindergartenRegisterContent } from '../config/kindergartenRegisterContent';
-import { useKindergartenRegisterPage } from '../model/useKindergartenRegisterPage';
+import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
+import { useKindergartenRegisterPage } from '@views/role-conversion/kindergarten-register/model/useKindergartenRegisterPage';
 
-interface KindergartenRegisterPageProps {
-  mode: KindergartenRegisterSource;
-}
-
-function KindergartenRegisterPage({ mode }: KindergartenRegisterPageProps) {
+function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
   const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage(mode);
 
   return (
@@ -139,6 +137,15 @@ function KindergartenRegisterPage({ mode }: KindergartenRegisterPageProps) {
       </div>
     </div>
   );
+}
+
+function KindergartenRegisterPage() {
+  const searchParams = useSearchParams();
+  const rawMode = searchParams.get('mode');
+  const mode: KindergartenRegisterSource = rawMode === 'search' ? 'search' : 'manual';
+  const resetKey = searchParams.get('reset') ?? 'default';
+
+  return <RegisterPageContent key={`${mode}-${resetKey}`} mode={mode} />;
 }
 
 export { KindergartenRegisterPage };

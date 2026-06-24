@@ -1,6 +1,6 @@
 import { getCurrentTxId } from '@shared/lib/bridge/useNavigationResult';
 
-import type { RoleConversionKindergartenInfo, SearchPrefill } from './kindergartenInfo';
+import type { RoleConversionKindergartenInfo, SearchPrefill } from '@views/role-conversion/model/kindergartenInfo';
 
 const KINDERGARTEN_DRAFT_KEY = 'role_conversion_kindergarten_draft';
 const SEARCH_PREFILL_KEY = 'role_conversion_search_prefill';

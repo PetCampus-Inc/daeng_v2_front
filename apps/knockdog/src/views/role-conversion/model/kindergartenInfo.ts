@@ -1,4 +1,4 @@
-import { kindergartenRegisterContent } from '../kindergarten-register/config/kindergartenRegisterContent';
+import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
 
 type KindergartenRegisterSource = 'manual' | 'search';
 

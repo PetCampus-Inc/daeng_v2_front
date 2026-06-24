@@ -4,7 +4,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 import { clearSearchPrefill } from '@views/role-conversion/model/kindergartenConfirmParams';
 
-import { kindergartenSearchContent } from '../config/kindergartenSearchContent';
+import { kindergartenSearchContent } from '@views/role-conversion/kindergarten-search/config/kindergartenSearchContent';
 
 function KindergartenSearchEmptyResult() {
   const { push } = useStackNavigation();

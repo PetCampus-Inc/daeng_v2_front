@@ -12,9 +12,9 @@ import {
 
 import { Header } from '@widgets/Header';
 
-import { businessVerificationContent } from '../config/businessVerificationContent';
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
-import { useBusinessVerificationPage } from '../model/useBusinessVerificationPage';
+import { businessVerificationContent } from '@views/role-conversion/business-verification/config/businessVerificationContent';
+import { useBusinessVerificationPage } from '@views/role-conversion/business-verification/model/useBusinessVerificationPage';
 
 function BusinessVerificationPage() {
   const {

@@ -5,7 +5,7 @@ import { ApiError } from '@shared/api';
 import {
   BUSINESS_VERIFICATION_ERROR_CODE,
   businessVerificationError,
-} from '../config/businessVerificationError';
+} from '@views/role-conversion/business-verification/config/businessVerificationError';
 
 function getTemporaryErrorMessage() {
   return (

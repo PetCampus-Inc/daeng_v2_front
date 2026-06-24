@@ -1,4 +1,4 @@
-import { kindergartenSearchContentInset } from '../config/kindergartenSearchContentInset';
+import { kindergartenSearchContentInset } from '@views/role-conversion/kindergarten-search/config/kindergartenSearchContentInset';
 import { cn } from '@knockdog/ui/lib';
 
 function KindergartenSearchHint() {

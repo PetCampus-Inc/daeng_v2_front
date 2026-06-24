@@ -7,8 +7,8 @@ import { Header } from '@widgets/Header';
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 import { KindergartenInfoSummary } from '@views/role-conversion/ui/KindergartenInfoSummary';
 
-import { kindergartenConfirmContent } from '../config/kindergartenConfirmContent';
-import { useKindergartenConfirmPage } from '../model/useKindergartenConfirmPage';
+import { kindergartenConfirmContent } from '@views/role-conversion/kindergarten-confirm/config/kindergartenConfirmContent';
+import { useKindergartenConfirmPage } from '@views/role-conversion/kindergarten-confirm/model/useKindergartenConfirmPage';
 
 function KindergartenConfirmPage() {
   const { displayItems, isReady, handleNo, handleYes } = useKindergartenConfirmPage();

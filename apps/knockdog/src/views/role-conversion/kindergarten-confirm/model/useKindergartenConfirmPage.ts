@@ -8,8 +8,8 @@ import {
   clearSearchPrefill,
   readParams,
   saveSearchPrefill,
-} from '../../model/kindergartenConfirmParams';
-import { toDisplayItems } from '../../model/kindergartenInfo';
+} from '@views/role-conversion/model/kindergartenConfirmParams';
+import { toDisplayItems } from '@views/role-conversion/model/kindergartenInfo';
 
 function useKindergartenConfirmPage() {
   const { back, getParams, push, replace } = useStackNavigation();

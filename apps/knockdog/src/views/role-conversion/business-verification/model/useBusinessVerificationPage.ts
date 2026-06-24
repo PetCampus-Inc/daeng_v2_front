@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { ApiError } from '@shared/api';
 
-import { devStubErrorByBizNo } from '../config/businessVerificationDevStub';
+import { devStubErrorByBizNo } from '@views/role-conversion/business-verification/config/businessVerificationDevStub';
 import { getBusinessVerificationErrorMessage } from './getBusinessVerificationErrorMessage';
 
 const BIZ_NO_LEN = 10;
