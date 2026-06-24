@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -9,28 +9,22 @@ import {
   readParams,
   saveSearchPrefill,
 } from '../../model/kindergartenConfirmParams';
-import {
-  toDisplayItems,
-  type KindergartenInfoDisplayItem,
-  type RoleConversionKindergartenInfo,
-} from '../../model/kindergartenInfo';
+import { toDisplayItems } from '../../model/kindergartenInfo';
 
 function useKindergartenConfirmPage() {
   const { back, getParams, push, replace } = useStackNavigation();
-  const [kindergartenInfo, setKindergartenInfo] = useState<RoleConversionKindergartenInfo | null>(null);
-  const [displayItems, setDisplayItems] = useState<KindergartenInfoDisplayItem[]>([]);
+
+  const kindergartenInfo = useMemo(() => readParams(getParams), [getParams]);
+  const displayItems = useMemo(
+    () => (kindergartenInfo ? toDisplayItems(kindergartenInfo) : []),
+    [kindergartenInfo]
+  );
 
   useEffect(() => {
-    const kindergarten = readParams(getParams);
-
-    if (!kindergarten) {
+    if (!kindergartenInfo) {
       back();
-      return;
     }
-
-    setKindergartenInfo(kindergarten);
-    setDisplayItems(toDisplayItems(kindergarten));
-  }, [back, getParams]);
+  }, [back, kindergartenInfo]);
 
   const handleNo = () => {
     clearDraft();
