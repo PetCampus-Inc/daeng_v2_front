@@ -25,7 +25,6 @@ function BusinessVerificationPage() {
     isNextEnabled,
     handleInputChange,
     handleVerifyClick,
-    handleNextClick,
   } = useBusinessVerificationPage();
 
   return (
@@ -94,7 +93,6 @@ function BusinessVerificationPage() {
             size='large'
             className='w-full'
             disabled={!isNextEnabled}
-            onClick={handleNextClick}
           >
             {businessVerificationContent.nextButtonLabel}
           </ActionButton>

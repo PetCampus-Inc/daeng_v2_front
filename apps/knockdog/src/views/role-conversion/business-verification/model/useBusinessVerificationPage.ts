@@ -47,21 +47,19 @@ function useBusinessVerificationPage() {
     verifyBizNo(bizNo);
   };
 
-  // @todo 개인정보 수집(3단계) 페이지 연결
-  const handleNextClick = () => {};
-
   const isVerifyEnabled = bizNo.length === BIZ_NO_LEN && !isVerified && !isPending;
+  // @todo 개인정보 수집(3단계) 페이지 연결 후 isVerified로 활성화
+  const isNextEnabled = false;
 
   return {
     bizNo,
     error,
     isVerified,
     isVerifyEnabled,
-    isNextEnabled: isVerified,
+    isNextEnabled,
     isVerifyPending: isPending,
     handleInputChange,
     handleVerifyClick,
-    handleNextClick,
   };
 }
 
