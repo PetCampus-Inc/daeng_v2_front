@@ -14,6 +14,7 @@ export * from './switch';
 export * from './text-field';
 export * from './textarea';
 export * from './progress-bar';
+export * from './scroll-bar';
 export * from './toggle-button';
 export * from './radio-group';
 export * from './checkbox';

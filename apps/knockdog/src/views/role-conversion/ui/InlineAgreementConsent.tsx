@@ -1,6 +1,6 @@
 'use client';
 
-import { Checkbox } from '@knockdog/ui';
+import { Checkbox, ScrollBar } from '@knockdog/ui';
 
 interface InlineAgreementConsentProps {
   label: string;
@@ -16,16 +16,16 @@ function InlineAgreementConsent({
   onCheckedChange,
 }: InlineAgreementConsentProps) {
   return (
-    <div className='flex flex-col gap-3'>
-      <div className='border-line-200 rounded-2xl border bg-white px-4 py-3'>
+    <div className='flex flex-col gap-2'>
+      <div className='border-line-200 radius-r2 border bg-white px-x4 py-x4'>
         <Checkbox size='sm' checked={checked} onCheckedChange={onCheckedChange}>
           <span className='body1-bold text-text-primary'>{label}</span>
         </Checkbox>
       </div>
 
-      <div className='bg-fill-secondary-50 max-h-[280px] overflow-y-auto rounded-2xl px-4 py-4'>
+      <ScrollBar className='bg-fill-secondary-50 radius-r2 h-[346px]'>
         <p className='body1-regular text-text-primary whitespace-pre-wrap'>{policyBody}</p>
-      </div>
+      </ScrollBar>
     </div>
   );
 }
