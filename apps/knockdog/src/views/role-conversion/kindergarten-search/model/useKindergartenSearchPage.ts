@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
+import { getKindergartenMain, type AutocompletePlace } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
-import type { AutocompletePlace } from '@entities/kindergarten';
 import { searchQueryOptions } from '@features/search';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+
+import { saveSearchPrefill } from '@views/role-conversion/model/kindergartenConfirmParams';
 
 function useKindergartenSearchPage() {
+  const { push } = useStackNavigation();
   const [query, setQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<AutocompletePlace | null>(null);
 
@@ -14,6 +19,34 @@ function useKindergartenSearchPage() {
 
   const { data, isFetching, isFetched } = useQuery({
     ...searchQueryOptions.autocomplete({ query: trimmedQuery, coord }),
+  });
+
+  const { mutate: selectPlace, isPending: isPlaceSelectPending } = useMutation({
+    mutationFn: async (place: AutocompletePlace) => {
+      const main = await getKindergartenMain({
+        id: place.id,
+        lng: place.coord.lng,
+        lat: place.coord.lat,
+      });
+
+      return { place, phoneNumber: main.phoneNumber };
+    },
+    onSuccess: ({ place, phoneNumber }) => {
+      const searchPrefill = {
+        placeId: place.id,
+        name: place.title,
+        address: place.roadAddress,
+        kindergartenNumber: phoneNumber,
+      };
+
+      saveSearchPrefill(searchPrefill);
+
+      push({
+        pathname: route.roleConversion.kindergartenRegister.root,
+        query: { mode: 'search', reset: place.id },
+        params: { searchPrefill },
+      });
+    },
   });
 
   const places = data?.place ?? [];
@@ -26,7 +59,7 @@ function useKindergartenSearchPage() {
 
   const handlePlaceSelect = (place: AutocompletePlace) => {
     setSelectedPlace(place);
-    // @todo 3단계 개인정보 수집 및 이용 동의 라우팅 (26-06-20)
+    selectPlace(place);
   };
 
   return {
@@ -34,6 +67,7 @@ function useKindergartenSearchPage() {
     places,
     selectedPlaceId: selectedPlace?.id ?? null,
     isSearchEmpty,
+    isPlaceSelectPending,
     handleQueryChange,
     handlePlaceSelect,
   };

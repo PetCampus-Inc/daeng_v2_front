@@ -12,9 +12,9 @@ import {
 
 import { Header } from '@widgets/Header';
 
-import { businessVerificationContent } from '../config/businessVerificationContent';
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
-import { useBusinessVerificationPage } from '../model/useBusinessVerificationPage';
+import { businessVerificationContent } from '@views/role-conversion/business-verification/config/businessVerificationContent';
+import { useBusinessVerificationPage } from '@views/role-conversion/business-verification/model/useBusinessVerificationPage';
 
 function BusinessVerificationPage() {
   const {
@@ -23,13 +23,9 @@ function BusinessVerificationPage() {
     isVerified,
     isVerifyEnabled,
     isNextEnabled,
-    isVerifyPending,
     handleInputChange,
     handleVerifyClick,
-    handleNextClick,
   } = useBusinessVerificationPage();
-
-  const showHintLabel = !isVerifyPending && !isVerified && !error;
 
   return (
     <div className='flex h-full flex-col'>
@@ -75,11 +71,6 @@ function BusinessVerificationPage() {
                     onChange={(e) => handleInputChange(e.target.value)}
                   />
                 </TextField>
-                {showHintLabel && (
-                  <span className='body2-regular text-text-tertiary mt-2 block'>
-                    {businessVerificationContent.hintLabel}
-                  </span>
-                )}
               </div>
 
               <ActionButton
@@ -102,7 +93,6 @@ function BusinessVerificationPage() {
             size='large'
             className='w-full'
             disabled={!isNextEnabled}
-            onClick={handleNextClick}
           >
             {businessVerificationContent.nextButtonLabel}
           </ActionButton>

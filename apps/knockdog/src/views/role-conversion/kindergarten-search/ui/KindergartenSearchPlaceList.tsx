@@ -2,7 +2,7 @@ import type { AutocompletePlace } from '@entities/kindergarten';
 import { HighlightedText } from '@features/search/ui/HighlightedText';
 import { cn } from '@knockdog/ui/lib';
 
-import { kindergartenSearchContentInset } from '../config/kindergartenSearchContentInset';
+import { kindergartenSearchContentInset } from '@views/role-conversion/kindergarten-search/config/kindergartenSearchContentInset';
 
 interface KindergartenSearchPlaceListProps {
   places: AutocompletePlace[];

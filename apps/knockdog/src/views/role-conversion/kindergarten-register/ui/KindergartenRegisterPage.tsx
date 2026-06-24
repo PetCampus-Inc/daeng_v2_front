@@ -1,5 +1,7 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
+
 import {
   ActionButton,
   Field,
@@ -13,11 +15,13 @@ import {
 import { Header } from '@widgets/Header';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
-import { kindergartenRegisterContent } from '../config/kindergartenRegisterContent';
-import { useKindergartenRegisterPage } from '../model/useKindergartenRegisterPage';
+import type { KindergartenRegisterSource } from '@views/role-conversion/model/kindergartenInfo';
 
-function KindergartenRegisterPage() {
-  const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage();
+import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
+import { useKindergartenRegisterPage } from '@views/role-conversion/kindergarten-register/model/useKindergartenRegisterPage';
+
+function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
+  const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage(mode);
 
   return (
     <div className='flex h-full flex-col'>
@@ -88,6 +92,21 @@ function KindergartenRegisterPage() {
 
             <Field className='flex-col gap-2 py-4'>
               <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                {kindergartenRegisterContent.ownerNameLabel}
+                <FieldLabelIndicator type='required' className='ml-0' />
+              </FieldLabel>
+              <TextField>
+                <TextFieldInput
+                  type='text'
+                  placeholder={kindergartenRegisterContent.ownerNamePlaceholder}
+                  value={form.ownerName}
+                  onChange={(e) => handleFieldChange('ownerName', e.target.value)}
+                />
+              </TextField>
+            </Field>
+
+            <Field className='flex-col gap-2 py-4'>
+              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
                 {kindergartenRegisterContent.phoneLabel}
                 <FieldLabelIndicator type='required' className='ml-0' />
               </FieldLabel>
@@ -118,6 +137,15 @@ function KindergartenRegisterPage() {
       </div>
     </div>
   );
+}
+
+function KindergartenRegisterPage() {
+  const searchParams = useSearchParams();
+  const rawMode = searchParams.get('mode');
+  const mode: KindergartenRegisterSource = rawMode === 'search' ? 'search' : 'manual';
+  const resetKey = searchParams.get('reset') ?? 'default';
+
+  return <RegisterPageContent key={`${mode}-${resetKey}`} mode={mode} />;
 }
 
 export { KindergartenRegisterPage };
