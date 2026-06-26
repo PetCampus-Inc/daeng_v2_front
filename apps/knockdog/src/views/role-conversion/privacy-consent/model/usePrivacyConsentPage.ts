@@ -13,12 +13,14 @@ function usePrivacyConsentPage() {
   });
 
   const handleSubmit = () => {
+    if (isPending) return;
+
     submitConsent();
   };
 
   return {
     isAgreed,
-    isSubmitEnabled: isAgreed,
+    isSubmitEnabled: isAgreed && !isPending,
     isSubmitPending: isPending,
     handleAgreedChange: setIsAgreed,
     handleSubmit,
