@@ -8,6 +8,7 @@ interface KindergartenSearchPlaceListProps {
   places: AutocompletePlace[];
   query: string;
   selectedPlaceId: string | null;
+  isPlaceSelectPending: boolean;
   onPlaceSelect: (place: AutocompletePlace) => void;
 }
 
@@ -15,6 +16,7 @@ function KindergartenSearchPlaceList({
   places,
   query,
   selectedPlaceId,
+  isPlaceSelectPending,
   onPlaceSelect,
 }: KindergartenSearchPlaceListProps) {
   if (places.length === 0) return null;
@@ -25,9 +27,10 @@ function KindergartenSearchPlaceList({
         <li key={place.id}>
           <button
             type='button'
+            disabled={isPlaceSelectPending}
             onClick={() => onPlaceSelect(place)}
             className={cn(
-              'hover:rounded-r2 hover:bg-fill-secondary-50 w-full text-left',
+              'hover:rounded-r2 hover:bg-fill-secondary-50 w-full text-left disabled:opacity-50',
               selectedPlaceId === place.id && 'bg-fill-secondary-50 rounded-r2'
             )}
           >

@@ -11,8 +11,15 @@ import { KindergartenSearchHint } from './KindergartenSearchHint';
 import { KindergartenSearchPlaceList } from './KindergartenSearchPlaceList';
 
 function KindergartenSearchPage() {
-  const { query, places, selectedPlaceId, isSearchEmpty, handleQueryChange, handlePlaceSelect } =
-    useKindergartenSearchPage();
+  const {
+    query,
+    places,
+    selectedPlaceId,
+    isSearchEmpty,
+    isPlaceSelectPending,
+    handleQueryChange,
+    handlePlaceSelect,
+  } = useKindergartenSearchPage();
   const hasQuery = query.trim().length > 0;
 
   return (
@@ -77,6 +84,7 @@ function KindergartenSearchPage() {
               places={places}
               query={query}
               selectedPlaceId={selectedPlaceId}
+              isPlaceSelectPending={isPlaceSelectPending}
               onPlaceSelect={handlePlaceSelect}
             />
           )}

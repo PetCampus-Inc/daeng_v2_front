@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { getKindergartenMain, type AutocompletePlace } from '@entities/kindergarten';
@@ -13,6 +13,7 @@ function useKindergartenSearchPage() {
   const { push } = useStackNavigation();
   const [query, setQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<AutocompletePlace | null>(null);
+  const isSelectingPlaceRef = useRef(false);
 
   const { coord } = useBasePoint();
   const trimmedQuery = query.trim();
@@ -58,8 +59,15 @@ function useKindergartenSearchPage() {
   };
 
   const handlePlaceSelect = (place: AutocompletePlace) => {
+    if (isPlaceSelectPending || isSelectingPlaceRef.current) return;
+
+    isSelectingPlaceRef.current = true;
     setSelectedPlace(place);
-    selectPlace(place);
+    selectPlace(place, {
+      onSettled: () => {
+        isSelectingPlaceRef.current = false;
+      },
+    });
   };
 
   return {
