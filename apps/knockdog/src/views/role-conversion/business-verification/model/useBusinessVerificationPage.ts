@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
 
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { ApiError } from '@shared/api';
 
 import { devStubErrorByBizNo } from '@views/role-conversion/business-verification/config/businessVerificationDevStub';
@@ -10,6 +12,7 @@ import { getBusinessVerificationErrorMessage } from './getBusinessVerificationEr
 const BIZ_NO_LEN = 10;
 
 function useBusinessVerificationPage() {
+  const { push } = useStackNavigation();
   const [bizNo, setBizNo] = useState('');
   const [error, setError] = useState<ReactNode | null>(null);
   const [isVerified, setIsVerified] = useState(false);
@@ -48,8 +51,11 @@ function useBusinessVerificationPage() {
   };
 
   const isVerifyEnabled = bizNo.length === BIZ_NO_LEN && !isVerified && !isPending;
-  // @todo 개인정보 수집(3단계) 페이지 연결 후 isVerified로 활성화
-  const isNextEnabled = false;
+  const isNextEnabled = isVerified;
+
+  const handleNextClick = () => {
+    push({ pathname: route.roleConversion.privacyConsent.root });
+  };
 
   return {
     bizNo,
@@ -60,6 +66,7 @@ function useBusinessVerificationPage() {
     isVerifyPending: isPending,
     handleInputChange,
     handleVerifyClick,
+    handleNextClick,
   };
 }
 

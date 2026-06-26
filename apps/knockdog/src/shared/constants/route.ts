@@ -90,6 +90,10 @@ const route = {
       /** 관리자 전환 - 유치원 정보 확인 */
       root: '/role-conversion/kindergarten-confirm',
     },
+    privacyConsent: {
+      /** 관리자 전환 - 개인정보 수집·이용 동의 */
+      root: '/role-conversion/privacy-consent',
+    },
   },
 };
 
