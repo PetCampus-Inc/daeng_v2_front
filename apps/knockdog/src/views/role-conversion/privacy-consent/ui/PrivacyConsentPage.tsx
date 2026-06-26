@@ -4,7 +4,7 @@ import { ActionButton } from '@knockdog/ui';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 import { InlineAgreementConsent } from '@views/role-conversion/ui/InlineAgreementConsent';
-import { RoleConversionPrivacy } from '@views/role-conversion/ui/RoleConversionPrivacy';
+import { RoleConversionStepLayout } from '@views/role-conversion/ui/RoleConversionStepLayout';
 
 import { privacyConsentContent } from '@views/role-conversion/privacy-consent/config/privacyConsentContent';
 import { privacyConsentPolicyBody } from '@views/role-conversion/privacy-consent/config/privacyConsentPolicy';
@@ -14,7 +14,7 @@ function PrivacyConsentPage() {
   const { isAgreed, isSubmitEnabled, handleAgreedChange, handleSubmit } = usePrivacyConsentPage();
 
   return (
-    <RoleConversionPrivacy
+    <RoleConversionStepLayout
       headerTitle={privacyConsentContent.headerTitle}
       step={roleConversionProgress.privacyConsentStep}
       titleLine1={privacyConsentContent.titleLine1}
@@ -38,7 +38,7 @@ function PrivacyConsentPage() {
         checked={isAgreed}
         onCheckedChange={handleAgreedChange}
       />
-    </RoleConversionPrivacy>
+    </RoleConversionStepLayout>
   );
 }
 

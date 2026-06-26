@@ -8,7 +8,7 @@ import { Header } from '@widgets/Header';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
 
-interface RoleConversionPrivacyProps {
+interface RoleConversionStepLayoutProps {
   headerTitle: string;
   step: number;
   titleLine1: string;
@@ -17,14 +17,14 @@ interface RoleConversionPrivacyProps {
   footer?: ReactNode;
 }
 
-function RoleConversionPrivacy({
+function RoleConversionStepLayout({
   headerTitle,
   step,
   titleLine1,
   titleLine2,
   children,
   footer,
-}: RoleConversionPrivacyProps) {
+}: RoleConversionStepLayoutProps) {
   return (
     <div className='flex h-full flex-col'>
       <Header>
@@ -57,4 +57,4 @@ function RoleConversionPrivacy({
   );
 }
 
-export { RoleConversionPrivacy };
+export { RoleConversionStepLayout };

@@ -122,6 +122,10 @@ function ScrollBar({
     };
   }, [handleScroll, updateScrollbar]);
 
+  const hasAccessibleName = Boolean(
+    viewportProps?.['aria-label'] ?? viewportProps?.['aria-labelledby']
+  );
+
   return (
     <div className={cn('flex min-h-0 overflow-hidden', className)} {...props}>
       {/*
@@ -131,13 +135,14 @@ function ScrollBar({
       <div className='gap-x1 px-x4 py-x3 flex min-h-0 min-w-0 flex-1 overflow-hidden'>
         <div
           ref={viewportRef}
-          tabIndex={viewportProps?.tabIndex ?? 0}
-          role={viewportProps?.role ?? 'region'}
-          aria-label={viewportProps?.['aria-label']}
+          tabIndex={0}
+          {...(hasAccessibleName ? { role: 'region' as const } : {})}
+          {...viewportProps}
           className={cn(
             /* basis-0 + min-h-0: flex 자식이 부모 높이를 넘지 않고 스크롤 가능하게 */
             'min-h-0 flex-1 basis-0 overflow-x-hidden overflow-y-auto',
-            '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+            '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+            viewportProps?.className
           )}
         >
           <div ref={contentRef} className={contentClassName}>
