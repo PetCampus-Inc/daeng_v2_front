@@ -14,6 +14,7 @@ import { cn } from '@knockdog/ui/lib';
 interface ScrollBarProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   contentClassName?: string;
+  viewportProps?: HTMLAttributes<HTMLDivElement>;
 }
 
 /* 커스텀 스크롤바 트랙 너비 */
@@ -28,6 +29,7 @@ function ScrollBar({
   children,
   className,
   contentClassName,
+  viewportProps,
   ...props
 }: ScrollBarProps) {
   /* 실제 scrollTop이 변하는 overflow 컨테이너 */
@@ -59,13 +61,16 @@ function ScrollBar({
       return;
     }
 
-    const trackHeight = clientHeight - SCROLLBAR_TRACK_PADDING;
+    const trackHeight = Math.max(0, clientHeight - SCROLLBAR_TRACK_PADDING);
     /* 비율 = (보이는 영역 / 전체 콘텐츠) × 트랙 높이, 최소 높이 보장 */
-    const nextThumbHeight = Math.max(
-      (clientHeight / scrollHeight) * trackHeight,
-      SCROLLBAR_MIN_THUMB_HEIGHT
+    const nextThumbHeight = Math.min(
+      trackHeight,
+      Math.max(
+        (clientHeight / scrollHeight) * trackHeight,
+        SCROLLBAR_MIN_THUMB_HEIGHT
+      )
     );
-    const maxThumbTop = trackHeight - nextThumbHeight;
+    const maxThumbTop = Math.max(0, trackHeight - nextThumbHeight);
     const nextThumbTop = Math.round((scrollTop / maxScrollTop) * maxThumbTop);
 
     dimensionsRef.current = { maxThumbTop, maxScrollTop };
@@ -126,6 +131,9 @@ function ScrollBar({
       <div className='gap-x1 px-x4 py-x3 flex min-h-0 min-w-0 flex-1 overflow-hidden'>
         <div
           ref={viewportRef}
+          tabIndex={viewportProps?.tabIndex ?? 0}
+          role={viewportProps?.role ?? 'region'}
+          aria-label={viewportProps?.['aria-label']}
           className={cn(
             /* basis-0 + min-h-0: flex 자식이 부모 높이를 넘지 않고 스크롤 가능하게 */
             'min-h-0 flex-1 basis-0 overflow-x-hidden overflow-y-auto',

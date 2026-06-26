@@ -23,7 +23,10 @@ function InlineAgreementConsent({
         </Checkbox>
       </div>
 
-      <ScrollBar className='bg-fill-secondary-50 radius-r2 h-[346px]'>
+      <ScrollBar
+        className='bg-fill-secondary-50 radius-r2 h-[346px]'
+        viewportProps={{ 'aria-label': `${label} 내용` }}
+      >
         <p className='body1-regular text-text-primary whitespace-pre-wrap'>{policyBody}</p>
       </ScrollBar>
     </div>
