@@ -94,6 +94,10 @@ const route = {
       /** 관리자 전환 - 개인정보 수집·이용 동의 */
       root: '/role-conversion/privacy-consent',
     },
+    complete: {
+      /** 관리자 전환 - 원장 권한 인증 완료 */
+      root: '/role-conversion/complete',
+    },
   },
 };
 
