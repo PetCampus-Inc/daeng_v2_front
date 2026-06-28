@@ -29,5 +29,9 @@ export function mapSubmitErrorToStatus(error: unknown): ResultStatus {
     return RESULT_STATUS.DUPLICATE;
   }
 
+  if (error.code === SUBMIT_ERROR_CODE.BIZ_INVALID) {
+    return RESULT_STATUS.CLOSED_OR_SUSPENDED;
+  }
+
   return RESULT_STATUS.TEMPORARY;
 }
