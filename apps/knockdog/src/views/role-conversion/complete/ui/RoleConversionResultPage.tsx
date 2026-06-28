@@ -7,7 +7,7 @@ import { ActionButton } from '@knockdog/ui';
 import { useResultPage } from '@views/role-conversion/complete/model/useRoleConversionResultPage';
 
 function RoleConversionResultPage() {
-  const { content, isInviteActive, handlePrimaryClick, handleSecondaryClick } = useResultPage();
+  const { content, isPrimaryDisabled, handlePrimaryClick, handleSecondaryClick } = useResultPage();
 
   return (
     <div className='flex h-full flex-col items-center justify-center px-4'>
@@ -38,8 +38,7 @@ function RoleConversionResultPage() {
             variant='primaryFill'
             size='large'
             className='w-full'
-            data-active={isInviteActive ? true : undefined}
-            aria-pressed={isInviteActive}
+            disabled={isPrimaryDisabled}
             onClick={handlePrimaryClick}
           >
             {content.primaryButtonLabel}

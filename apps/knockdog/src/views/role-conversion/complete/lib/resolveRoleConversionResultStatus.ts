@@ -9,7 +9,7 @@ function resolveResultStatus(status: string | null): ResultStatus {
     return status as ResultStatus;
   }
 
-  return RESULT_STATUS.SUCCESS;
+  return RESULT_STATUS.TEMPORARY;
 }
 
 export { resolveResultStatus };

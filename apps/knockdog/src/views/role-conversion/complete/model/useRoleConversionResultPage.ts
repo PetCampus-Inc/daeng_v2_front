@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { route } from '@shared/constants/route';
@@ -13,17 +12,12 @@ function useResultPage() {
   const searchParams = useSearchParams();
   const { push, reset } = useStackNavigation();
   const openExternalLink = useOpenExternalLink();
-  const [isInviteActive, setIsInviteActive] = useState(false);
 
   const status = resolveResultStatus(searchParams.get('status'));
   const content = getResultContent(status);
 
   const handlePrimaryClick = () => {
     switch (status) {
-      case RESULT_STATUS.SUCCESS:
-        // @todo 보호자 초대 플로우 연결
-        setIsInviteActive(true);
-        return;
       case RESULT_STATUS.DUPLICATE:
       case RESULT_STATUS.CLOSED_OR_SUSPENDED:
         openExternalLink(EXTERNAL_LINKS.OWNER_VERIFICATION_CONTACT);
@@ -54,7 +48,8 @@ function useResultPage() {
   return {
     status,
     content,
-    isInviteActive: status === RESULT_STATUS.SUCCESS && isInviteActive,
+    // @todo 보호자 초대 플로우 연결 전까지 비활성화
+    isPrimaryDisabled: status === RESULT_STATUS.SUCCESS,
     handlePrimaryClick,
     handleSecondaryClick,
   };
