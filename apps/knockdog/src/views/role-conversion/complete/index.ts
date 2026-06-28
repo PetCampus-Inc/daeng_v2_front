@@ -1,1 +1,1 @@
-export { RoleConversionCompletePage } from './ui/RoleConversionCompletePage';
+export { RoleConversionResultPage } from './ui/RoleConversionResultPage';

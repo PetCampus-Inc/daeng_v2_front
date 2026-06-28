@@ -1,3 +1,11 @@
-import { RoleConversionCompletePage } from '@views/role-conversion/complete';
+import { Suspense } from 'react';
 
-export default RoleConversionCompletePage;
+import { RoleConversionResultPage } from '@views/role-conversion/complete';
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <RoleConversionResultPage />
+    </Suspense>
+  );
+}

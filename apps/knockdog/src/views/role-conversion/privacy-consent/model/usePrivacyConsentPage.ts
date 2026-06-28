@@ -5,6 +5,9 @@ import { useMutation } from '@tanstack/react-query';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
+import { RESULT_STATUS } from '@views/role-conversion/complete/config/roleConversionResultStatus';
+import { mapSubmitErrorToStatus } from '@views/role-conversion/complete/config/ownerVerificationError';
+
 function usePrivacyConsentPage() {
   const { push } = useStackNavigation();
   const [isAgreed, setIsAgreed] = useState(false);
@@ -15,7 +18,16 @@ function usePrivacyConsentPage() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     },
     onSuccess: () => {
-      push({ pathname: route.roleConversion.complete.root });
+      push({
+        pathname: route.roleConversion.complete.root,
+        query: { status: RESULT_STATUS.SUCCESS },
+      });
+    },
+    onError: (error) => {
+      push({
+        pathname: route.roleConversion.complete.root,
+        query: { status: mapSubmitErrorToStatus(error) },
+      });
     },
   });
 
