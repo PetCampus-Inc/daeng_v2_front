@@ -11,7 +11,7 @@ import { kindergartenConfirmContent } from '@views/role-conversion/kindergarten-
 import { useKindergartenConfirmPage } from '@views/role-conversion/kindergarten-confirm/model/useKindergartenConfirmPage';
 
 function KindergartenConfirmPage() {
-  const { displayItems, isReady, handleNo, handleYes } = useKindergartenConfirmPage();
+  const { displayItems, isReady, isPending, handleNo, handleYes } = useKindergartenConfirmPage();
 
   if (!isReady) return null;
 
@@ -47,6 +47,7 @@ function KindergartenConfirmPage() {
             variant='secondaryLine'
             size='large'
             className='flex-1'
+            disabled={isPending}
             onClick={handleNo}
           >
             {kindergartenConfirmContent.noButtonLabel}
@@ -56,6 +57,7 @@ function KindergartenConfirmPage() {
             variant='secondaryFill'
             size='large'
             className='flex-1'
+            disabled={isPending}
             onClick={handleYes}
           >
             {kindergartenConfirmContent.yesButtonLabel}
