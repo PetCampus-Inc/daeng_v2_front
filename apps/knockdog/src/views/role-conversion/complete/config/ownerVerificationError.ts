@@ -1,0 +1,37 @@
+import { ApiError } from '@shared/api';
+
+import { RESULT_STATUS, type ResultStatus } from './roleConversionResultStatus';
+
+/** POST /api/v0/admin/owner-verification/submit 에서 발생하는 ErrorCode */
+export const SUBMIT_ERROR_CODE = Object.freeze({
+  UNAUTHORIZED: 'OWNER_VERIFICATION_UNAUTHORIZED',
+  ALREADY_OWNER: 'OWNER_VERIFICATION_ALREADY_OWNER',
+  NOT_FOUND: 'OWNER_VERIFICATION_NOT_FOUND',
+  PRIVACY_CONSENT_REQUIRED: 'OWNER_VERIFICATION_PRIVACY_CONSENT_REQUIRED',
+  IN_PROGRESS: 'OWNER_VERIFICATION_IN_PROGRESS',
+  INVALID_STATUS: 'OWNER_VERIFICATION_INVALID_STATUS',
+  SCHOOL_HAS_OWNER: 'OWNER_VERIFICATION_SCHOOL_ALREADY_HAS_OWNER',
+  BIZ_INVALID: 'OWNER_VERIFICATION_BUSINESS_REGISTRATION_INVALID',
+  BIZ_DUPLICATED: 'OWNER_VERIFICATION_BUSINESS_REGISTRATION_DUPLICATED',
+} as const);
+
+const duplicateErrorCodes = new Set<string>([
+  SUBMIT_ERROR_CODE.BIZ_DUPLICATED,
+  SUBMIT_ERROR_CODE.SCHOOL_HAS_OWNER,
+]);
+
+export function mapSubmitErrorToStatus(error: unknown): ResultStatus {
+  if (!(error instanceof ApiError)) {
+    return RESULT_STATUS.TEMPORARY;
+  }
+
+  if (duplicateErrorCodes.has(error.code)) {
+    return RESULT_STATUS.DUPLICATE;
+  }
+
+  if (error.code === SUBMIT_ERROR_CODE.BIZ_INVALID) {
+    return RESULT_STATUS.CLOSED_OR_SUSPENDED;
+  }
+
+  return RESULT_STATUS.TEMPORARY;
+}
