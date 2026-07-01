@@ -89,6 +89,7 @@ function Mypage() {
           <div className='pt-4'>
             <AccountSection
               accountInfo={accountInfo}
+              headerAddon={<OwnerVerificationEntry requiresLogin={false} />}
               onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
               onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
             />

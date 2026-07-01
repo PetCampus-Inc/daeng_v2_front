@@ -8,14 +8,23 @@ import { useStackNavigation } from '@shared/lib/bridge';
 const OWNER_VERIFICATION_TOOLTIP =
   '유치원 원장님은 사업자 인증 후 직접 운영할 수 있어요';
 
-function OwnerVerificationEntry() {
+interface OwnerVerificationEntryProps {
+  requiresLogin?: boolean;
+}
+
+function OwnerVerificationEntry({ requiresLogin = true }: OwnerVerificationEntryProps) {
   const { push } = useStackNavigation();
 
   const handleClick = () => {
-    push({
-      pathname: route.auth.login.root,
-      params: { redirectTo: route.roleConversion.kindergartenSearch.root },
-    });
+    if (requiresLogin) {
+      push({
+        pathname: route.auth.login.root,
+        params: { redirectTo: route.roleConversion.kindergartenSearch.root },
+      });
+      return;
+    }
+
+    push({ pathname: route.roleConversion.kindergartenSearch.root });
   };
 
   return (
@@ -51,3 +60,4 @@ function OwnerVerificationEntry() {
 }
 
 export { OwnerVerificationEntry };
+export type { OwnerVerificationEntryProps };
