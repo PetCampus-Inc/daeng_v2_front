@@ -1,14 +1,16 @@
 import { ActionButton } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import { useOpenExternalLink } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
 
 interface QuickActionsSectionProps {
+  className?: string;
   onContactClick?: () => void;
   onSuggestionClick?: () => void;
   onChatRoomClick?: () => void;
 }
 
-function QuickActionsSection({ onChatRoomClick }: QuickActionsSectionProps) {
+function QuickActionsSection({ className, onChatRoomClick }: QuickActionsSectionProps) {
   const openExternalLink = useOpenExternalLink();
 
   const handleContactClick = () => {
@@ -24,7 +26,7 @@ function QuickActionsSection({ onChatRoomClick }: QuickActionsSectionProps) {
   };
 
   return (
-    <div className='flex flex-col gap-y-5 px-4 py-5'>
+    <div className={cn('flex flex-col gap-y-5 px-4 py-5', className)}>
       <div className='flex items-center justify-between gap-x-2'>
         <ActionButton variant='secondaryLine' onClick={handleContactClick}>
           1:1 문의하기

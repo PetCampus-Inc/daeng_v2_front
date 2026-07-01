@@ -1,11 +1,11 @@
 'use client';
 
 import { Header } from '@widgets/Header';
-import { Divider, IconButton } from '@knockdog/ui';
+import { Divider } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
-import { LoginPrompt } from '@features/auth';
+import { LoginPrompt, OwnerVerificationEntry } from '@features/auth';
 import { AccountSection, type AccountInfo } from '@features/user-account';
 import { QuickActionsSection } from '@features/support';
 import { SettingsSection } from '@features/app-settings';
@@ -60,6 +60,16 @@ function Mypage() {
       <div className='flex-1 overflow-y-auto pb-16'>
         {!isLoggedIn && <LoginPrompt />}
 
+        {!isLoggedIn && (
+          <>
+            <Divider size='thick' />
+            <div className='flex flex-col gap-5 px-4 pt-7 pb-7'>
+              <OwnerVerificationEntry />
+              <QuickActionsSection className='gap-y-7 px-0 py-0' />
+            </div>
+          </>
+        )}
+
         {isLoggedIn && !hasDogs && (
           <NoDogPrompt nickname={user?.nickname || '사용자'} onAddDog={() => push({ pathname: '/mypage/pet-add' })} />
         )}
@@ -73,7 +83,7 @@ function Mypage() {
           />
         )}
 
-        <Divider size='thick' />
+        {isLoggedIn && <Divider size='thick' />}
 
         {isLoggedIn && (
           <div className='pt-4'>
@@ -85,7 +95,7 @@ function Mypage() {
           </div>
         )}
 
-        <QuickActionsSection />
+        {isLoggedIn && <QuickActionsSection />}
 
         <SettingsSection
           version={displayVersion}
