@@ -8,6 +8,11 @@ import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-prof
 import { LoginPrompt, OwnerVerificationEntry } from '@features/auth';
 import { AccountSection, type AccountInfo } from '@features/user-account';
 import { QuickActionsSection } from '@features/support';
+import {
+  RoleConversionButton,
+  roleConversionButtonContent,
+  useIsOwnerVerified,
+} from '@features/role-conversion';
 import { SettingsSection } from '@features/app-settings';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { usePetListQuery } from '@entities/pet';
@@ -23,6 +28,7 @@ function Mypage() {
   const user = useUserStore((state) => state.user);
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
+  const isOwnerVerified = useIsOwnerVerified();
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
@@ -58,6 +64,10 @@ function Mypage() {
       </Header>
 
       <div className='flex-1 overflow-y-auto pb-16'>
+        {isLoggedIn && isOwnerVerified && (
+          <RoleConversionButton className='mb-4'>{roleConversionButtonContent.convertToOwner}</RoleConversionButton>
+        )}
+
         {!isLoggedIn && <LoginPrompt />}
 
         {!isLoggedIn && (
@@ -89,7 +99,9 @@ function Mypage() {
           <div className='pt-4'>
             <AccountSection
               accountInfo={accountInfo}
-              headerAddon={<OwnerVerificationEntry requiresLogin={false} />}
+              headerAddon={
+                !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
+              }
               onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
               onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
             />

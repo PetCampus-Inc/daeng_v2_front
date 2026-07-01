@@ -15,6 +15,7 @@ export { Cafe } from './Cafe';
 export { Call } from './Call';
 export { Camera } from './Camera';
 export { Cctv } from './Cctv';
+export { Change } from './Change';
 export { Check } from './Check';
 export { CheckFill } from './CheckFill';
 export { CheckStroke } from './CheckStroke';
