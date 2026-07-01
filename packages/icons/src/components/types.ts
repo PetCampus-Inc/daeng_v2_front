@@ -16,6 +16,7 @@ export type IconName =
   | 'Call'
   | 'Camera'
   | 'Cctv'
+  | 'Change'
   | 'Check'
   | 'CheckFill'
   | 'CheckStroke'

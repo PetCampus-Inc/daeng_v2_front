@@ -1,0 +1,56 @@
+'use client';
+
+import { Icon, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
+
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+
+const OWNER_VERIFICATION_TOOLTIP =
+  '유치원 원장님은 사업자 인증 후 직접 운영할 수 있어요';
+
+interface OwnerVerificationEntryProps {
+  requiresLogin?: boolean;
+}
+
+function OwnerVerificationEntry({ requiresLogin = true }: OwnerVerificationEntryProps) {
+  const { push } = useStackNavigation();
+
+  const handleClick = () => {
+    if (requiresLogin) {
+      push({
+        pathname: route.auth.login.root,
+        params: { redirectTo: route.roleConversion.kindergartenSearch.root },
+      });
+      return;
+    }
+
+    push({ pathname: route.roleConversion.kindergartenSearch.root });
+  };
+
+  return (
+    <div className='flex items-center justify-between gap-x-7 py-2'>
+      <div className='flex items-center opacity-80'>
+        <button type='button' className='h3-semibold text-text-primary' onClick={handleClick}>
+          원장 인증하기
+        </button>
+        <Tooltip placement='bottom-right' className='flex items-center'>
+          <TooltipTrigger className='size-6' />
+          <TooltipContent className='body2-regular max-w-[195px] px-3 py-3'>
+            {OWNER_VERIFICATION_TOOLTIP}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      <button
+        type='button'
+        className='text-text-tertiary flex shrink-0 items-center'
+        onClick={handleClick}
+        aria-label='원장 인증하기'
+      >
+        <Icon icon='ChevronRight' className='size-6' aria-hidden />
+      </button>
+    </div>
+  );
+}
+
+export { OwnerVerificationEntry };
+export type { OwnerVerificationEntryProps };

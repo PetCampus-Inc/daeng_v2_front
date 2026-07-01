@@ -2,11 +2,13 @@
 
 import { Icon } from '@knockdog/ui';
 import { useLogin } from '../model/useLogin';
-import { useStackNavigation } from '@shared/lib';
 
-function GuestLoginButton() {
-  const { getParams } = useStackNavigation();
-  const { guestLogin } = useLogin({ redirectTo: getParams()?.redirectTo as string });
+interface GuestLoginButtonProps {
+  redirectTo?: string;
+}
+
+function GuestLoginButton({ redirectTo }: GuestLoginButtonProps) {
+  const { guestLogin } = useLogin({ redirectTo });
 
   return (
     <button className='label-semibold flex items-center justify-center gap-x-1 text-center' onClick={guestLogin}>
@@ -17,3 +19,4 @@ function GuestLoginButton() {
 }
 
 export { GuestLoginButton };
+export type { GuestLoginButtonProps };
