@@ -65,7 +65,13 @@ function Mypage() {
 
       <div className='flex-1 overflow-y-auto pb-16'>
         {isLoggedIn && isOwnerVerified && (
-          <RoleConversionButton className='mb-4'>{roleConversionButtonContent.convertToOwner}</RoleConversionButton>
+          <RoleConversionButton
+            className='mb-4'
+            disabled
+            title={roleConversionButtonContent.convertToOwnerPendingNotice}
+          >
+            {roleConversionButtonContent.convertToOwner}
+          </RoleConversionButton>
         )}
 
         {!isLoggedIn && <LoginPrompt />}

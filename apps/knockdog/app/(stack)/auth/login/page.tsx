@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Divider } from '@knockdog/ui';
 import Image from 'next/image';
@@ -8,8 +8,12 @@ import { GuestLoginButton, LoginButton } from '@features/auth';
 import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { isAndroid } from '@shared/lib/device';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function LoginPage() {
+  const { getParams } = useStackNavigation();
+  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
+
   const providers = useMemo(() => {
     const allProviders = Object.values(SOCIAL_PROVIDER) as SocialProvider[];
     if (isAndroid()) {
@@ -50,7 +54,7 @@ export default function LoginPage() {
       <div className='absolute right-0 bottom-[10%] left-0 flex flex-col gap-y-7 px-4'>
         <div className='flex flex-col gap-y-3'>
           {providers.map((provider) => (
-            <LoginButton key={provider} provider={provider} />
+            <LoginButton key={provider} provider={provider} redirectTo={redirectTo} />
           ))}
         </div>
 
@@ -60,7 +64,7 @@ export default function LoginPage() {
           <Divider className='flex-1' />
         </div>
 
-        <GuestLoginButton />
+        <GuestLoginButton redirectTo={redirectTo} />
       </div>
     </SafeArea>
   );
