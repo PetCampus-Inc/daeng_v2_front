@@ -5,6 +5,7 @@ import {
   Field,
   FieldLabel,
   FieldLabelIndicator,
+  IconButton,
   ProgressBar,
   TextField,
   TextFieldInput,
@@ -17,16 +18,12 @@ import { businessVerificationContent } from '@views/role-conversion/business-ver
 import { useBusinessVerificationPage } from '@views/role-conversion/business-verification/model/useBusinessVerificationPage';
 
 function BusinessVerificationPage() {
-  const {
-    bizNo,
-    error,
-    isVerified,
-    isVerifyEnabled,
-    isNextEnabled,
-    handleInputChange,
-    handleVerifyClick,
-    handleNextClick,
-  } = useBusinessVerificationPage();
+  const { bizNo, isNextEnabled, handleInputChange, handleClear, handleNextClick } = useBusinessVerificationPage();
+
+  const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    handleClear();
+  };
 
   return (
     <div className='flex h-full flex-col'>
@@ -56,34 +53,17 @@ function BusinessVerificationPage() {
               <FieldLabelIndicator type='required' className='ml-0' />
             </FieldLabel>
 
-            <div className='flex items-start gap-2'>
-              <div className='min-w-0 flex-1'>
-                <TextField
-                  invalid={!!error}
-                  valid={isVerified}
-                  errorMessage={error ?? undefined}
-                  successMessage={isVerified ? businessVerificationContent.successMessage : undefined}
-                >
-                  <TextFieldInput
-                    inputMode='numeric'
-                    maxLength={10}
-                    placeholder={businessVerificationContent.inputPlaceholder}
-                    value={bizNo}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                  />
-                </TextField>
-              </div>
-
-              <ActionButton
-                type='button'
-                className='max-w-20 shrink-0'
-                variant='secondaryFill'
-                disabled={!isVerifyEnabled}
-                onClick={handleVerifyClick}
-              >
-                {businessVerificationContent.verifyButtonLabel}
-              </ActionButton>
-            </div>
+            <TextField
+              suffix={bizNo ? <IconButton icon='DeleteInput' onClick={handleClearClick} /> : undefined}
+            >
+              <TextFieldInput
+                inputMode='numeric'
+                maxLength={10}
+                placeholder={businessVerificationContent.inputPlaceholder}
+                value={bizNo}
+                onChange={(e) => handleInputChange(e.target.value)}
+              />
+            </TextField>
           </Field>
         </div>
 

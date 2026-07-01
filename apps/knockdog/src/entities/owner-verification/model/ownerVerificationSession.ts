@@ -5,6 +5,7 @@ const SESSION_KEY = 'role_conversion_owner_verification';
 interface VerificationSession {
   ownerVerificationId: number;
   nextStep: string;
+  businessRegistrationNumber?: string;
 }
 
 function saveSession(data: KindergartenVerificationData) {
@@ -37,10 +38,27 @@ function loadSession(): VerificationSession | null {
     return {
       ownerVerificationId: record.ownerVerificationId,
       nextStep: record.nextStep,
+      ...(typeof record.businessRegistrationNumber === 'string'
+        ? { businessRegistrationNumber: record.businessRegistrationNumber }
+        : {}),
     };
   } catch {
     return null;
   }
+}
+
+function saveBusinessRegistrationNumber(registrationNumber: string) {
+  if (typeof window === 'undefined') return;
+
+  const session = loadSession();
+  if (!session) return;
+
+  const updated: VerificationSession = {
+    ...session,
+    businessRegistrationNumber: registrationNumber,
+  };
+
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(updated));
 }
 
 function clearSession() {
@@ -49,4 +67,10 @@ function clearSession() {
   sessionStorage.removeItem(SESSION_KEY);
 }
 
-export { clearSession, loadSession, saveSession, type VerificationSession };
+export {
+  clearSession,
+  loadSession,
+  saveBusinessRegistrationNumber,
+  saveSession,
+  type VerificationSession,
+};

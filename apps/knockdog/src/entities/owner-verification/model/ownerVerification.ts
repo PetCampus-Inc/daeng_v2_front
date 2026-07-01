@@ -27,4 +27,10 @@ interface KindergartenVerificationData {
   nextStep: string;
 }
 
-export type { KindergartenVerificationData, ManualRequest, SelectRequest };
+interface SubmitRequest {
+  ownerVerificationId: number;
+  businessRegistrationNumber: string;
+  privacyConsentAgreed: boolean;
+}
+
+export type { KindergartenVerificationData, ManualRequest, SelectRequest, SubmitRequest };

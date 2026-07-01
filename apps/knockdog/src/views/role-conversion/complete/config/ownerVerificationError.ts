@@ -1,6 +1,7 @@
-import { ApiError } from '@shared/api';
+import { BUSINESS_VERIFICATION_ERROR_CODE } from '@views/role-conversion/business-verification/config/businessVerificationError';
+import { RESULT_STATUS, type ResultStatus } from '@views/role-conversion/complete/config/roleConversionResultStatus';
 
-import { RESULT_STATUS, type ResultStatus } from './roleConversionResultStatus';
+import { ApiError } from '@shared/api';
 
 /** POST /api/v0/admin/owner-verification/submit 에서 발생하는 ErrorCode */
 export const SUBMIT_ERROR_CODE = Object.freeze({
@@ -16,11 +17,15 @@ export const SUBMIT_ERROR_CODE = Object.freeze({
 } as const);
 
 const duplicateErrorCodes = new Set<string>([
+  BUSINESS_VERIFICATION_ERROR_CODE.DUPLICATE,
   SUBMIT_ERROR_CODE.BIZ_DUPLICATED,
   SUBMIT_ERROR_CODE.SCHOOL_HAS_OWNER,
 ]);
 
-export function mapSubmitErrorToStatus(error: unknown): ResultStatus {
+const closedOrSuspendedErrorCodes = new Set<string>([BUSINESS_VERIFICATION_ERROR_CODE.CLOSED_OR_SUSPENDED]);
+
+/** 사업자등록번호 verify + submit API 공통 에러 → 결과 화면 status */
+export function mapRoleConversionErrorToStatus(error: unknown): ResultStatus {
   if (!(error instanceof ApiError)) {
     return RESULT_STATUS.TEMPORARY;
   }
@@ -29,9 +34,12 @@ export function mapSubmitErrorToStatus(error: unknown): ResultStatus {
     return RESULT_STATUS.DUPLICATE;
   }
 
-  if (error.code === SUBMIT_ERROR_CODE.BIZ_INVALID) {
+  if (closedOrSuspendedErrorCodes.has(error.code)) {
     return RESULT_STATUS.CLOSED_OR_SUSPENDED;
   }
 
   return RESULT_STATUS.TEMPORARY;
 }
+
+/** @deprecated mapRoleConversionErrorToStatus 사용 */
+export const mapSubmitErrorToStatus = mapRoleConversionErrorToStatus;
