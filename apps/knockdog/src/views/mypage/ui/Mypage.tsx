@@ -22,6 +22,7 @@ import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
 import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
+import { logout } from '@shared/lib/auth/logout';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { useAppVersion } from '@shared/lib/device';
 
@@ -70,6 +71,11 @@ function Mypage() {
     if (!kindergartenId) return;
 
     push({ pathname: `/kindergarten/${kindergartenId}` });
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    push({ pathname: '/' });
   };
 
   return (
@@ -167,13 +173,19 @@ function Mypage() {
         {isLoggedIn && <QuickActionsSection />}
 
         <SettingsSection
+          variant={isLoggedIn && isOwnerVerified ? 'owner' : 'guardian'}
           version={displayVersion}
           hasUpdate={hasUpdate}
+          otherInfoTitle={ownerMypageContent.otherInfoTitle}
+          logoutLabel={ownerMypageContent.logoutLabel}
+          withdrawLabel={ownerMypageContent.withdrawLabel}
           onNoticeClick={() => handleOpenLink('NOTICE')}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
           onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
           onUpdateClick={openStore}
+          onLogoutClick={handleLogout}
+          onWithdrawClick={() => push({ pathname: '/withdraw/confirm' })}
         />
       </div>
     </div>
