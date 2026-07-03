@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider } from '@knockdog/ui';
+import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
@@ -73,9 +73,30 @@ function Mypage() {
     push({ pathname: `/kindergarten/${kindergartenId}` });
   };
 
-  const handleLogout = async () => {
-    await logout();
-    push({ pathname: '/' });
+  const handleLogout = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>아니오</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                try {
+                  await logout();
+                } finally {
+                  push({ pathname: '/mypage' });
+                }
+              }}
+            >
+              예
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
   };
 
   return (
