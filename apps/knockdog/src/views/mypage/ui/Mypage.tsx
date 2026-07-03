@@ -11,10 +11,12 @@ import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-prof
 import {
   OWNER_MYPAGE_KINDERGARTEN_STUB,
   ownerMypageContent,
+  OwnerKindergartenCard,
   OwnerProfileRow,
   RoleConversionButton,
   roleConversionButtonContent,
   useIsOwnerVerified,
+  useOwnerKindergarten,
 } from '@features/role-conversion';
 import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
@@ -34,6 +36,8 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
+    useOwnerKindergarten({ enabled: isOwnerVerified });
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
@@ -60,6 +64,12 @@ function Mypage() {
 
   const handleOpenLink = (key: keyof typeof EXTERNAL_LINKS) => {
     openExternalLink(EXTERNAL_LINKS[key]);
+  };
+
+  const handleKindergartenClick = () => {
+    if (!kindergartenId) return;
+
+    push({ pathname: `/kindergarten/${kindergartenId}` });
   };
 
   return (
@@ -96,6 +106,16 @@ function Mypage() {
               name={OWNER_MYPAGE_KINDERGARTEN_STUB.ownerName ?? ''}
               profileImageUrl={user.profileImageUrl}
             />
+
+            {name ? (
+              <OwnerKindergartenCard
+                name={name}
+                address={address}
+                imageUrl={imageUrl}
+                usesDefaultImage={usesDefaultImage}
+                onClick={canOpenKindergartenDetail ? handleKindergartenClick : undefined}
+              />
+            ) : null}
 
             <Divider size='thick' />
           </div>
