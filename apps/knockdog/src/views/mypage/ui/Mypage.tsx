@@ -1,21 +1,26 @@
 'use client';
 
-import { Header } from '@widgets/Header';
 import { Divider } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
-import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
-import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
+
+import { Header } from '@widgets/Header';
+
+import { SettingsSection } from '@features/app-settings';
 import { LoginPrompt, OwnerVerificationEntry } from '@features/auth';
-import { AccountSection, type AccountInfo } from '@features/user-account';
-import { QuickActionsSection } from '@features/support';
+import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
 import {
+  OWNER_MYPAGE_KINDERGARTEN_STUB,
+  ownerMypageContent,
+  OwnerProfileRow,
   RoleConversionButton,
   roleConversionButtonContent,
   useIsOwnerVerified,
 } from '@features/role-conversion';
-import { SettingsSection } from '@features/app-settings';
-import { useUserStore } from '@entities/user/model/store/useUserStore';
+import { QuickActionsSection } from '@features/support';
+import { AccountSection, type AccountInfo } from '@features/user-account';
 import { usePetListQuery } from '@entities/pet';
+import { useUserStore } from '@entities/user';
+import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { useAppVersion } from '@shared/lib/device';
 
 const EXTERNAL_LINKS = {
@@ -29,7 +34,7 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
-  const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn });
+  const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
   const openDogSelectSheet = () => {
@@ -64,16 +69,6 @@ function Mypage() {
       </Header>
 
       <div className='flex-1 overflow-y-auto pb-16'>
-        {isLoggedIn && isOwnerVerified && (
-          <RoleConversionButton
-            className='mb-4'
-            disabled
-            title={roleConversionButtonContent.convertToOwnerPendingNotice}
-          >
-            {roleConversionButtonContent.convertToOwner}
-          </RoleConversionButton>
-        )}
-
         {!isLoggedIn && <LoginPrompt />}
 
         {!isLoggedIn && (
@@ -86,32 +81,63 @@ function Mypage() {
           </>
         )}
 
-        {isLoggedIn && !hasDogs && (
-          <NoDogPrompt nickname={user?.nickname || '사용자'} onAddDog={() => push({ pathname: '/mypage/pet-add' })} />
+        {isLoggedIn && isOwnerVerified && (
+          <RoleConversionButton
+            disabled
+            title={roleConversionButtonContent.convertToGuardianPendingNotice}
+          >
+            {roleConversionButtonContent.convertoGuardian}
+          </RoleConversionButton>
         )}
 
-        {isLoggedIn && hasDogs && (
-          <DogHouseSection
-            dogs={petListResponse?.data || []}
-            onChangeRepresentative={openDogSelectSheet}
-            onDogClick={handleDogClick}
-            onAddDog={handleAddDog}
-          />
-        )}
+        {isLoggedIn && isOwnerVerified ? (
+          <div className='bg-background-0'>
+            <OwnerProfileRow
+              name={OWNER_MYPAGE_KINDERGARTEN_STUB.ownerName ?? ''}
+              profileImageUrl={user.profileImageUrl}
+            />
 
-        {isLoggedIn && <Divider size='thick' />}
+            <Divider size='thick' />
+          </div>
+        ) : (
+          <>
+            {isLoggedIn && !hasDogs && (
+              <NoDogPrompt
+                nickname={user?.nickname || '사용자'}
+                onAddDog={() => push({ pathname: '/mypage/pet-add' })}
+              />
+            )}
+
+            {isLoggedIn && hasDogs && (
+              <DogHouseSection
+                dogs={petListResponse?.data || []}
+                onChangeRepresentative={openDogSelectSheet}
+                onDogClick={handleDogClick}
+                onAddDog={handleAddDog}
+              />
+            )}
+
+            {isLoggedIn && <Divider size='thick' />}
+          </>
+        )}
 
         {isLoggedIn && (
-          <div className='pt-4'>
-            <AccountSection
-              accountInfo={accountInfo}
-              headerAddon={
-                !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
-              }
-              onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
-              onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
-            />
-          </div>
+          <>
+            <div className={isOwnerVerified ? undefined : 'pt-4'}>
+              <AccountSection
+                variant={isOwnerVerified ? 'owner' : 'guardian'}
+                accountInfo={isOwnerVerified ? undefined : accountInfo}
+                accountSectionTitle={ownerMypageContent.accountSectionTitle}
+                headerAddon={
+                  !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
+                }
+                onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
+                onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+              />
+            </div>
+
+            {isOwnerVerified && <Divider size='thick' />}
+          </>
         )}
 
         {isLoggedIn && <QuickActionsSection />}
