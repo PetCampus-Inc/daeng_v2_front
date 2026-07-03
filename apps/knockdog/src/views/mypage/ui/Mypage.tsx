@@ -128,6 +128,10 @@ function Mypage() {
                 variant={isOwnerVerified ? 'owner' : 'guardian'}
                 accountInfo={isOwnerVerified ? undefined : accountInfo}
                 accountSectionTitle={ownerMypageContent.accountSectionTitle}
+                releasePermissionLabel={
+                  isOwnerVerified ? ownerMypageContent.releasePermissionLabel : undefined
+                }
+                releasePermissionPendingNotice={ownerMypageContent.releasePermissionPendingNotice}
                 headerAddon={
                   !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
                 }

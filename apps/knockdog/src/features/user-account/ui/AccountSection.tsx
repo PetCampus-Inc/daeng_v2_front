@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { Divider, Icon, IconButton } from '@knockdog/ui';
+import { ActionButton, Divider, Icon, IconButton } from '@knockdog/ui';
 import { useSocialUserStore } from '@entities/social-user/model/store/useSocialUserStore';
 import { SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
 
@@ -13,6 +13,8 @@ interface AccountSectionProps {
   variant?: 'guardian' | 'owner';
   accountInfo?: AccountInfo;
   accountSectionTitle?: string;
+  releasePermissionLabel?: string;
+  releasePermissionPendingNotice?: string;
   headerAddon?: ReactNode;
   onAccountClick?: () => void;
   onLocationClick?: () => void;
@@ -22,6 +24,8 @@ function AccountSection({
   variant = 'guardian',
   accountInfo,
   accountSectionTitle = '내 계정',
+  releasePermissionLabel,
+  releasePermissionPendingNotice,
   headerAddon,
   onAccountClick,
   onLocationClick,
@@ -38,6 +42,18 @@ function AccountSection({
             <Icon icon={SOCIAL_PROVIDER_ICONS[socialUser.provider]} className='size-4' />
             <span className='body1-regular text-text-primary truncate'>{socialUser.email}</span>
           </div>
+        ) : null}
+
+        {releasePermissionLabel ? (
+          <ActionButton
+            type='button'
+            variant='secondaryLine'
+            className='w-full'
+            disabled
+            title={releasePermissionPendingNotice}
+          >
+            {releasePermissionLabel}
+          </ActionButton>
         ) : null}
       </div>
     );
