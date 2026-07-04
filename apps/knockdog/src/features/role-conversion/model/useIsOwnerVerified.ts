@@ -16,7 +16,7 @@ function useIsOwnerVerified() {
 
   if (!user) return false;
 
-  // @todo BE 원장 인증 상태 반영
+  // 원장 인증 API 미연동 — UI 확인용 stub (roleConversionVisibility.ts)
   if (OWNER_VERIFIED_STUB) return true;
 
   return Boolean(ownerKindergarten);

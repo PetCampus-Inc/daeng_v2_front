@@ -17,6 +17,7 @@ import {
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
 
 function getOwnerKindergartenSnapshot(): OwnerKindergarten | null {
+  // 원장 인증 API 미연동 — UI 확인용 stub (roleConversionVisibility.ts)
   if (OWNER_VERIFIED_STUB) return OWNER_MYPAGE_KINDERGARTEN_STUB;
 
   return loadOwnerKindergarten();

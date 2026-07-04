@@ -9,7 +9,6 @@ import { SettingsSection } from '@features/app-settings';
 import { LoginPrompt, OwnerVerificationEntry } from '@features/auth';
 import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
 import {
-  OWNER_MYPAGE_KINDERGARTEN_STUB,
   ownerMypageContent,
   OwnerKindergartenCard,
   OwnerProfileRow,
@@ -37,7 +36,7 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
-  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId, ownerName } =
     useOwnerKindergarten({ enabled: isOwnerVerified });
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
@@ -129,10 +128,7 @@ function Mypage() {
 
         {isLoggedIn && isOwnerVerified ? (
           <div className='bg-background-0'>
-            <OwnerProfileRow
-              name={OWNER_MYPAGE_KINDERGARTEN_STUB.ownerName ?? ''}
-              profileImageUrl={user.profileImageUrl}
-            />
+            <OwnerProfileRow name={ownerName} profileImageUrl={user.profileImageUrl} />
 
             {name ? (
               <OwnerKindergartenCard

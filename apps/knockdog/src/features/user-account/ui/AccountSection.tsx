@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { ActionButton, Divider, Icon, IconButton } from '@knockdog/ui';
-import { useSocialUserStore } from '@entities/social-user/model/store/useSocialUserStore';
-import { SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
+import { SOCIAL_PROVIDER_ICONS, useSocialUserStore } from '@entities/social-user';
 
 interface AccountInfo {
   nickname: string;
