@@ -16,6 +16,7 @@ import {
   roleConversionButtonContent,
   useIsOwnerVerified,
   useOwnerKindergarten,
+  useOwnerProfile,
 } from '@features/role-conversion';
 import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
@@ -37,8 +38,9 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
-  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId, ownerName } =
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
     useOwnerKindergarten({ enabled: isOwnerVerified });
+  const { profile } = useOwnerProfile({ enabled: isOwnerVerified });
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
@@ -130,8 +132,8 @@ function Mypage() {
         {isLoggedIn && isOwnerVerified ? (
           <div className='bg-background-0'>
             <OwnerProfileRow
-              name={ownerName}
-              profileImageUrl={user.profileImageUrl}
+              name={profile.name}
+              profileImageUrl={profile.profileImageUrl ?? user.profileImageUrl}
               onClick={() => push({ pathname: route.mypage.profile.root })}
             />
 
