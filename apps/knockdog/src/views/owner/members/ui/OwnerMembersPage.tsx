@@ -7,7 +7,8 @@ import { OwnerMembersList } from '@views/owner/members/ui/OwnerMembersList';
 import { OwnerMembersSummaryBar } from '@views/owner/members/ui/OwnerMembersSummaryBar';
 
 function OwnerMembersPage() {
-  const { ownerMembers, totalMemberCount, sortType, setSortType } = useOwnerMembersPage();
+  const { ownerMembers, totalMemberCount, searchQuery, handleSearchQueryChange, sortType, setSortType } =
+    useOwnerMembersPage();
 
   return (
     <div
@@ -17,7 +18,7 @@ function OwnerMembersPage() {
           'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
       }}
     >
-      <OwnerMembersHero />
+      <OwnerMembersHero searchQuery={searchQuery} onSearchQueryChange={handleSearchQueryChange} />
 
       <div className='bg-bg-0 pt-x5 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px]'>
         <div className='flex min-h-0 w-full flex-1 flex-col'>

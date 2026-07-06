@@ -1,7 +1,7 @@
-import { Icon } from '@knockdog/ui';
 import { OwnerMemberCard } from '@features/owner-members';
 
 import type { OwnerMember } from '@views/owner/members/config/ownerMembersContent';
+import { OwnerMemberMoreMenu } from '@views/owner/members/ui/OwnerMemberMoreMenu';
 
 interface OwnerMembersListProps {
   members: OwnerMember[];
@@ -14,15 +14,7 @@ function OwnerMembersList({ members }: OwnerMembersListProps) {
         <OwnerMemberCard
           key={member.id}
           member={member}
-          rightAddon={
-            <button
-              type='button'
-              aria-label={`${member.dogName} 더보기`}
-              className='flex size-10 shrink-0 items-center justify-center'
-            >
-              <Icon icon='More' className='size-6 rotate-90 text-fill-secondary-700' />
-            </button>
-          }
+          rightAddon={<OwnerMemberMoreMenu dogName={member.dogName} />}
         />
       ))}
     </div>

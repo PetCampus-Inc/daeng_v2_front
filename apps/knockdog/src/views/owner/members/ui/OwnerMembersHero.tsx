@@ -1,7 +1,17 @@
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 
-function OwnerMembersHero() {
+import {
+  OWNER_MEMBER_SEARCH_MAX_LENGTH,
+  ownerMembersContent,
+} from '@views/owner/members/config/ownerMembersContent';
+
+interface OwnerMembersHeroProps {
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+}
+
+function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
   return (
     <div className='relative overflow-hidden pt-(--safe-area-inset-top,0px) pb-6'>
       <Icon
@@ -24,7 +34,15 @@ function OwnerMembersHero() {
           prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
           className='bg-bg-0 h-x12 border-0'
         >
-          <TextFieldInput type='search' placeholder='강아지 이름을 검색해요' aria-label='구성원 검색어 입력' />
+          <TextFieldInput
+            type='search'
+            inputMode='search'
+            value={searchQuery}
+            maxLength={OWNER_MEMBER_SEARCH_MAX_LENGTH}
+            placeholder={ownerMembersContent.searchPlaceholder}
+            aria-label='구성원 검색어 입력'
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+          />
         </TextField>
       </div>
     </div>
