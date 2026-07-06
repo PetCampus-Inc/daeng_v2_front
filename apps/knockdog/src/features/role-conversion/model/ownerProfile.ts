@@ -1,3 +1,4 @@
+import { updateOwnerKindergartenName } from './ownerKindergarten';
 import type { OwnerProfile } from './ownerProfile.types';
 
 import { STORAGE_KEYS } from '@shared/constants/storage';
@@ -18,6 +19,10 @@ function isOwnerProfile(value: unknown): value is OwnerProfile {
     typeof record.email === 'string' &&
     (record.profileImageUrl === undefined || typeof record.profileImageUrl === 'string')
   );
+}
+
+function notifyOwnerProfileChange() {
+  ownerProfileListeners.forEach((listener) => listener());
 }
 
 function subscribeOwnerProfile(listener: () => void) {
@@ -69,5 +74,16 @@ function getOwnerProfileSnapshot(): OwnerProfile | null {
   return cachedOwnerProfileSnapshot;
 }
 
+function saveOwnerProfile(profile: OwnerProfile) {
+  if (typeof window === 'undefined') return;
+
+  const raw = JSON.stringify(profile);
+  localStorage.setItem(STORAGE_KEYS.OWNER_PROFILE, raw);
+  cachedOwnerProfileRaw = raw;
+  cachedOwnerProfileSnapshot = profile;
+  updateOwnerKindergartenName(profile.name);
+  notifyOwnerProfileChange();
+}
+
 export type { OwnerProfile } from './ownerProfile.types';
-export { getOwnerProfileSnapshot, subscribeOwnerProfile };
+export { getOwnerProfileSnapshot, saveOwnerProfile, subscribeOwnerProfile };

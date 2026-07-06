@@ -69,6 +69,10 @@ const route = {
     profile: {
       /** 원장 프로필 페이지 */
       root: '/mypage/profile',
+      edit: {
+        /** 원장 프로필 수정 페이지 */
+        root: '/mypage/profile/edit',
+      },
       location: {
         /** 내 장소 설정 페이지 */
         root: '/mypage/profile/location',

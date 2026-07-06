@@ -10,8 +10,9 @@ export {
   saveOwnerKindergartenFromVerification,
   type OwnerKindergarten,
 } from './model/ownerKindergarten';
-export { type OwnerProfile } from './model/ownerProfile';
+export { saveOwnerProfile, type OwnerProfile } from './model/ownerProfile';
 export { OwnerKindergartenCard, type OwnerKindergartenCardProps } from './ui/OwnerKindergartenCard';
 export { OwnerProfileDetailInfo, type OwnerProfileDetailInfoProps } from './ui/OwnerProfileDetailInfo';
+export { OwnerProfileForm, type OwnerProfileFormProps } from './ui/OwnerProfileForm';
 export { OwnerProfileRow, type OwnerProfileRowProps } from './ui/OwnerProfileRow';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
