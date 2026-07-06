@@ -7,10 +7,11 @@ import { toast } from '@shared/ui/toast';
 
 interface OwnerProfileImageUploaderProps {
   profileImage?: string;
+  imageAlt?: string;
   onImageSelect?: (imageUri: string) => void;
 }
 
-function OwnerProfileImageUploader({ profileImage, onImageSelect }: OwnerProfileImageUploaderProps) {
+function OwnerProfileImageUploader({ profileImage, imageAlt = '', onImageSelect }: OwnerProfileImageUploaderProps) {
   const { pickImage } = useImagePicker();
   const [selectedImage, setSelectedImage] = useState<string | undefined>(profileImage);
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -56,8 +57,13 @@ function OwnerProfileImageUploader({ profileImage, onImageSelect }: OwnerProfile
           <AvatarImage
             key={selectedImage}
             src={selectedImage}
+            alt={imageAlt}
             className='object-cover transition-opacity duration-300'
             onLoad={() => setIsImageLoading(false)}
+            onError={() => {
+              setIsImageLoading(false);
+              setSelectedImage(undefined);
+            }}
             style={{ opacity: isImageLoading ? 0 : 1 }}
           />
         ) : null}

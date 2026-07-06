@@ -71,7 +71,7 @@ function MypageOwnerProfileEditPage() {
           isDirtyRef.current = isDirty;
         }}
         renderProfileImage={({ value, onChange }) => (
-          <OwnerProfileImageUploader profileImage={value} onImageSelect={onChange} />
+          <OwnerProfileImageUploader profileImage={value} imageAlt={profile.name} onImageSelect={onChange} />
         )}
       />
     </>
