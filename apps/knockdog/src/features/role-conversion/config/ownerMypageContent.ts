@@ -6,5 +6,9 @@ export const ownerMypageContent = Object.freeze({
   otherInfoTitle: '기타 정보',
   logoutLabel: '로그아웃',
   withdrawLabel: '탈퇴하기',
+  profilePageTitle: '프로필',
+  ownerNameLabel: '이름',
+  ownerPhoneLabel: '연락처',
+  ownerEmailLabel: '이메일',
 });
 
