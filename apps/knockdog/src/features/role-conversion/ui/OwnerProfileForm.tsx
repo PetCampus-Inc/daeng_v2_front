@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 import { ActionButton, Avatar, AvatarFallback, AvatarImage, TextField, TextFieldInput } from '@knockdog/ui';
 
@@ -11,17 +12,23 @@ interface OwnerProfileFormProps {
   defaultValues: OwnerProfile;
   submitButtonText?: string;
   onSuccess?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 function OwnerProfileForm({
   defaultValues,
   submitButtonText = ownerMypageContent.profileSaveButtonLabel,
   onSuccess,
+  onDirtyChange,
 }: OwnerProfileFormProps) {
-  const { control, handleSubmit, isSubmitting, isValid, formatName, formatPhone } = useOwnerProfileForm({
+  const { control, handleSubmit, isSubmitting, isValid, isDirty, formatName, formatPhone } = useOwnerProfileForm({
     defaultValues,
     onSuccess,
   });
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <div className='px-4'>

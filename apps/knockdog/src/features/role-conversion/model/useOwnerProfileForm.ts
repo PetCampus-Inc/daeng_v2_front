@@ -25,7 +25,7 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
     control,
     handleSubmit,
     reset,
-    formState: { isSubmitting, isValid },
+    formState: { isSubmitting, isValid, isDirty },
   } = useForm<OwnerProfileFormData>({
     mode: 'onChange',
     defaultValues: { name, phoneNumber, email },
@@ -50,6 +50,7 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
     handleSubmit: handleSubmit(onSubmit),
     isSubmitting,
     isValid,
+    isDirty,
     formatName,
     formatPhone,
   };
