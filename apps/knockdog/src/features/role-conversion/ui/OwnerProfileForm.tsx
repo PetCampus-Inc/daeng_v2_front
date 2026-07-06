@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { Controller } from 'react-hook-form';
-import { ActionButton, Avatar, AvatarFallback, AvatarImage, TextField, TextFieldInput } from '@knockdog/ui';
+import { ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 
 import { ownerMypageContent } from '../config/ownerMypageContent';
 import { useOwnerProfileForm } from '../model/useOwnerProfileForm';
@@ -13,13 +13,14 @@ interface OwnerProfileFormProps {
   submitButtonText?: string;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
+  renderProfileImage: (props: { value: string; onChange: (value: string) => void }) => ReactElement;
 }
-
 function OwnerProfileForm({
   defaultValues,
   submitButtonText = ownerMypageContent.profileSaveButtonLabel,
   onSuccess,
   onDirtyChange,
+  renderProfileImage,
 }: OwnerProfileFormProps) {
   const { control, handleSubmit, isSubmitting, isValid, isDirty, formatName, formatPhone } = useOwnerProfileForm({
     defaultValues,
@@ -44,18 +45,11 @@ function OwnerProfileForm({
         className='flex flex-col gap-y-5'
       >
         <div className='scrollbar-hide relative h-[calc(100vh-200px)] overflow-y-auto'>
-          <div className='flex justify-center px-4 py-7'>
-            <Avatar className='size-[120px]'>
-              {defaultValues.profileImageUrl ? (
-                <AvatarImage
-                  src={defaultValues.profileImageUrl}
-                  alt={defaultValues.name}
-                  className='object-cover'
-                />
-              ) : null}
-              <AvatarFallback className='bg-fill-secondary-50' />
-            </Avatar>
-          </div>
+          <Controller
+            name='profileImageUrl'
+            control={control}
+            render={({ field }) => renderProfileImage({ value: field.value, onChange: field.onChange })}
+          />
 
           <div className='py-2'>
             <Controller

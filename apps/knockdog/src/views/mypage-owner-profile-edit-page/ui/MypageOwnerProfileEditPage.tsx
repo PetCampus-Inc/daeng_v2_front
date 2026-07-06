@@ -15,7 +15,12 @@ import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
 
-import { ownerMypageContent, OwnerProfileForm, useOwnerProfile } from '@features/role-conversion';
+import {
+  ownerMypageContent,
+  OwnerProfileForm,
+  OwnerProfileImageUploader,
+  useOwnerProfile,
+} from '@features/role-conversion';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 function MypageOwnerProfileEditPage() {
@@ -65,6 +70,9 @@ function MypageOwnerProfileEditPage() {
         onDirtyChange={(isDirty) => {
           isDirtyRef.current = isDirty;
         }}
+        renderProfileImage={({ value, onChange }) => (
+          <OwnerProfileImageUploader profileImage={value} onImageSelect={onChange} />
+        )}
       />
     </>
   );

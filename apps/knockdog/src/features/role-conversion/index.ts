@@ -14,5 +14,6 @@ export { saveOwnerProfile, type OwnerProfile } from './model/ownerProfile';
 export { OwnerKindergartenCard, type OwnerKindergartenCardProps } from './ui/OwnerKindergartenCard';
 export { OwnerProfileDetailInfo, type OwnerProfileDetailInfoProps } from './ui/OwnerProfileDetailInfo';
 export { OwnerProfileForm, type OwnerProfileFormProps } from './ui/OwnerProfileForm';
+export { OwnerProfileImageUploader, type OwnerProfileImageUploaderProps } from './ui/OwnerProfileImageUploader';
 export { OwnerProfileRow, type OwnerProfileRowProps } from './ui/OwnerProfileRow';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
