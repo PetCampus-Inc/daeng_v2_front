@@ -57,6 +57,13 @@ function saveOwnerKindergarten(info: OwnerKindergarten) {
   notifyOwnerKindergartenChange();
 }
 
+function updateOwnerKindergartenName(name: string) {
+  const kindergarten = loadOwnerKindergarten();
+  if (!kindergarten) return;
+
+  saveOwnerKindergarten({ ...kindergarten, ownerName: name });
+}
+
 function loadOwnerKindergarten(): OwnerKindergarten | null {
   if (typeof window === 'undefined') return null;
 
@@ -92,4 +99,5 @@ export {
   loadOwnerKindergarten,
   saveOwnerKindergartenFromVerification,
   subscribeOwnerKindergarten,
+  updateOwnerKindergartenName,
 };

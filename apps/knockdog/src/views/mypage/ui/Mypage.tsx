@@ -16,6 +16,7 @@ import {
   roleConversionButtonContent,
   useIsOwnerVerified,
   useOwnerKindergarten,
+  useOwnerProfile,
 } from '@features/role-conversion';
 import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
@@ -24,6 +25,7 @@ import { useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { useAppVersion } from '@shared/lib/device';
+import { route } from '@shared/constants/route';
 
 const EXTERNAL_LINKS = {
   NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
@@ -36,8 +38,9 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
-  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId, ownerName } =
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
     useOwnerKindergarten({ enabled: isOwnerVerified });
+  const { profile } = useOwnerProfile({ enabled: isOwnerVerified });
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
@@ -128,7 +131,11 @@ function Mypage() {
 
         {isLoggedIn && isOwnerVerified ? (
           <div className='bg-background-0'>
-            <OwnerProfileRow name={ownerName} profileImageUrl={user.profileImageUrl} />
+            <OwnerProfileRow
+              name={profile.name}
+              profileImageUrl={profile.profileImageUrl ?? user.profileImageUrl}
+              onClick={() => push({ pathname: route.mypage.profile.root })}
+            />
 
             {name ? (
               <OwnerKindergartenCard

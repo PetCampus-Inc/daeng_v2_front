@@ -17,7 +17,7 @@ import {
   saveDraft,
 } from '@views/role-conversion/model/kindergartenConfirmParams';
 
-import { formatAddress, formatName, formatPhone } from '@views/role-conversion/kindergarten-register/lib/formatKindergartenRegisterField';
+import { formatAddress, formatName, formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 
 const fieldFormatters = {
   name: formatName,

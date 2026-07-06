@@ -1,4 +1,5 @@
 import type { OwnerKindergarten } from './ownerKindergarten';
+import type { OwnerProfile } from './ownerProfile.types';
 
 /**
  * OWNER_VERIFIED_STUB === true 일 때만 사용.
@@ -13,4 +14,10 @@ const OWNER_MYPAGE_KINDERGARTEN_STUB = Object.freeze<OwnerKindergarten>({
   ownerName: '김지연',
 });
 
-export { OWNER_MYPAGE_KINDERGARTEN_STUB };
+const OWNER_MYPAGE_PROFILE_STUB = Object.freeze<OwnerProfile>({
+  name: '김지연',
+  phoneNumber: '010-1234-5678',
+  email: 'kim@example.com',
+});
+
+export { OWNER_MYPAGE_KINDERGARTEN_STUB, OWNER_MYPAGE_PROFILE_STUB };

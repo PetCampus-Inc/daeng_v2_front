@@ -1,6 +1,7 @@
 const NAME_MAX_LENGTH = 30;
 const ADDRESS_MAX_LENGTH = 50;
 const ALLOWED_TEXT_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z0-9!-/:-@\[-`{-~\s]/g;
+
 function extractAllowedText(value: string, maxLength: number) {
   return (value.match(ALLOWED_TEXT_PATTERN) ?? []).join('').slice(0, maxLength);
 }
