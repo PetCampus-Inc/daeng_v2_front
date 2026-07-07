@@ -1,0 +1,160 @@
+'use client';
+
+import { useRef } from 'react';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useClipboardCopy, useShare } from '@shared/lib/device';
+
+interface OwnerMembersInviteSheetProps {
+  isOpen: boolean;
+  close: () => void;
+}
+
+const INVITE_ACTIONS = [
+  {
+    label: 'QR 저장',
+    className: 'bg-fill-primary-500',
+    icon: 'Download',
+    action: 'downloadQr',
+  },
+  {
+    label: '링크 복사',
+    className: 'bg-success-bold',
+    icon: 'Copy',
+    action: 'copyLink',
+  },
+  {
+    label: '공유하기',
+    className: 'bg-info-bold',
+    icon: 'Share',
+    action: 'shareLink',
+  },
+] as const;
+
+function getOwnerInviteUrl() {
+  const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+
+  // TODO: BE 초대 링크 발급 API 연동 시 API 응답 링크로 교체
+  return `${baseUrl}/owner/invite`;
+}
+
+function downloadImage(url: string, filename: string) {
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps) {
+  const qrCodeContainerRef = useRef<HTMLDivElement>(null);
+  const copy = useClipboardCopy();
+  const share = useShare();
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) close();
+  };
+
+  const handleDownloadQr = () => {
+    const qrCodeElement = qrCodeContainerRef.current?.querySelector('canvas, img, svg');
+
+    if (!qrCodeElement) {
+      // TODO: QR 코드 표시 구현 후 QR DOM 저장 처리
+      return;
+    }
+
+    if (qrCodeElement instanceof HTMLCanvasElement) {
+      downloadImage(qrCodeElement.toDataURL('image/png'), 'owner-invite-qr.png');
+      return;
+    }
+
+    if (qrCodeElement instanceof HTMLImageElement) {
+      downloadImage(qrCodeElement.src, 'owner-invite-qr.png');
+      return;
+    }
+
+    if (qrCodeElement instanceof SVGElement) {
+      const svg = new XMLSerializer().serializeToString(qrCodeElement);
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      downloadImage(url, 'owner-invite-qr.svg');
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+  };
+
+  const handleCopyInviteLink = async () => {
+    await copy(getOwnerInviteUrl());
+  };
+
+  const handleShareInviteLink = async () => {
+    const inviteUrl = getOwnerInviteUrl();
+    const shared = await share({
+      title: '보호자 초대',
+      message: `보호자 초대장을 확인해 주세요.\n${inviteUrl}`,
+      url: inviteUrl,
+    });
+
+    if (!shared) {
+      await copy(inviteUrl);
+    }
+  };
+
+  const handleActionClick = (action: (typeof INVITE_ACTIONS)[number]['action']) => {
+    if (action === 'downloadQr') {
+      handleDownloadQr();
+      return;
+    }
+
+    if (action === 'copyLink') {
+      void handleCopyInviteLink();
+      return;
+    }
+
+    void handleShareInviteLink();
+  };
+
+  return (
+    <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
+      <BottomSheet.Overlay className='z-overlay' />
+      <BottomSheet.Body className='z-modal'>
+        <BottomSheet.Handle />
+        <BottomSheet.Title className='sr-only'>보호자 초대</BottomSheet.Title>
+        <div className='h-[468px] w-full'>
+          <div className='px-x4 py-x2 grid h-[92px] grid-cols-3'>
+            {INVITE_ACTIONS.map((action) => (
+              <button
+                key={action.label}
+                type='button'
+                className='gap-x1 flex h-[76px] min-w-0 flex-col items-center justify-center px-x1'
+                onClick={() => handleActionClick(action.action)}
+              >
+                <span
+                  className={`${action.className} gap-x2_5 flex size-x12 items-center justify-center rounded-full p-x2`}
+                >
+                  {'icon' in action && <Icon icon={action.icon} className='text-text-primary-inverse size-x8' />}
+                </span>
+                <span className='body1-regular text-text-primary whitespace-nowrap'>{action.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div
+            ref={qrCodeContainerRef}
+            className='py-x10 gap-x2_5 flex h-[280px] w-full items-center justify-center'
+          />
+
+          <div className='px-x4 py-x5 gap-x2 flex h-[96px] w-full'>
+            <ActionButton type='button' variant='primaryFill' size='large' onClick={close}>
+              닫기
+            </ActionButton>
+          </div>
+        </div>
+      </BottomSheet.Body>
+    </BottomSheet.Root>
+  );
+}
+
+export { OwnerMembersInviteSheet };

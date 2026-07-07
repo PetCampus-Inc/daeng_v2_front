@@ -27,6 +27,8 @@ import { overlay } from 'overlay-kit';
 import { useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 
+import { toast } from '@shared/ui/toast';
+
 interface OwnerMemberMoreMenuProps {
   memberId: string;
   dogName: string;
@@ -74,7 +76,9 @@ function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMor
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
+                // TODO: API 연동 시 연결 해제 mutation 성공 후 토스트 노출 및 전체 원생 목록 갱신
                 onDisconnect(memberId);
+                toast({ title: `${dogName}의 유치원 연결을 해제했어요` });
                 close();
               }}
             >
