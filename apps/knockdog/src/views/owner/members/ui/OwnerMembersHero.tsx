@@ -1,10 +1,12 @@
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { Header } from '@widgets/Header';
-
 import {
   OWNER_MEMBER_SEARCH_MAX_LENGTH,
   ownerMembersContent,
 } from '@views/owner/members/config/ownerMembersContent';
+import { Header } from '@widgets/Header';
+
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface OwnerMembersHeroProps {
   searchQuery: string;
@@ -12,6 +14,8 @@ interface OwnerMembersHeroProps {
 }
 
 function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
+  const { push } = useStackNavigation();
+
   return (
     <div className='relative overflow-hidden pt-(--safe-area-inset-top,0px) pb-6'>
       <Icon
@@ -23,7 +27,11 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
       <Header variant='transparent'>
         <Header.Title className='text-text-primary-inverse'>구성원</Header.Title>
         <Header.RightSection>
-          <button type='button' className='body2-semibold text-text-primary-inverse h-x7 radius-r1'>
+          <button
+            type='button'
+            className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
+            onClick={() => push({ pathname: route.owner.members.approval.root })}
+          >
             연결 승인
           </button>
         </Header.RightSection>
