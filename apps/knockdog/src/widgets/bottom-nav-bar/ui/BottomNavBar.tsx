@@ -8,13 +8,9 @@ import { isNativeWebView } from '@shared/lib';
 import { useIsOwnerVerified } from '@features/role-conversion';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 
-function BottomNavBarContent() {
+function BottomNavBarLinks() {
   const isOwnerVerified = useIsOwnerVerified();
   const navItems = isOwnerVerified ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
-
-  if (isNativeWebView()) {
-    return null;
-  }
 
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>
@@ -33,6 +29,14 @@ function BottomNavBarContent() {
       </nav>
     </div>
   );
+}
+
+function BottomNavBarContent() {
+  if (isNativeWebView()) {
+    return null;
+  }
+
+  return <BottomNavBarLinks />;
 }
 
 export const BottomNavBar = dynamic(() => Promise.resolve(BottomNavBarContent), {

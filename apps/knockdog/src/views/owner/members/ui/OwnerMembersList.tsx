@@ -5,16 +5,23 @@ import { OwnerMemberMoreMenu } from '@views/owner/members/ui/OwnerMemberMoreMenu
 
 interface OwnerMembersListProps {
   members: OwnerMember[];
+  onDisconnectMember: (memberId: string) => void;
 }
 
-function OwnerMembersList({ members }: OwnerMembersListProps) {
+function OwnerMembersList({ members, onDisconnectMember }: OwnerMembersListProps) {
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
       {members.map((member) => (
         <OwnerMemberCard
           key={member.id}
           member={member}
-          rightAddon={<OwnerMemberMoreMenu dogName={member.dogName} />}
+          rightAddon={
+            <OwnerMemberMoreMenu
+              memberId={member.id}
+              dogName={member.dogName}
+              onDisconnect={onDisconnectMember}
+            />
+          }
         />
       ))}
     </div>

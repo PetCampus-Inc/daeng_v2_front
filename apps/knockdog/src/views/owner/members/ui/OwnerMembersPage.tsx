@@ -7,8 +7,15 @@ import { OwnerMembersList } from '@views/owner/members/ui/OwnerMembersList';
 import { OwnerMembersSummaryBar } from '@views/owner/members/ui/OwnerMembersSummaryBar';
 
 function OwnerMembersPage() {
-  const { ownerMembers, totalMemberCount, searchQuery, handleSearchQueryChange, sortType, setSortType } =
-    useOwnerMembersPage();
+  const {
+    ownerMembers,
+    totalMemberCount,
+    searchQuery,
+    handleSearchQueryChange,
+    handleDisconnectMember,
+    sortType,
+    setSortType,
+  } = useOwnerMembersPage();
 
   return (
     <div
@@ -28,7 +35,7 @@ function OwnerMembersPage() {
             onSortTypeChange={setSortType}
           />
 
-          <OwnerMembersList members={ownerMembers} />
+          <OwnerMembersList members={ownerMembers} onDisconnectMember={handleDisconnectMember} />
         </div>
 
         <OwnerMembersInviteButton />

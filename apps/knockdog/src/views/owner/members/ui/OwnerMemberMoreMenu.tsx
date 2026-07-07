@@ -28,10 +28,12 @@ import { useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 
 interface OwnerMemberMoreMenuProps {
+  memberId: string;
   dogName: string;
+  onDisconnect: (memberId: string) => void;
 }
 
-function OwnerMemberMoreMenu({ dogName }: OwnerMemberMoreMenuProps) {
+function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -70,7 +72,14 @@ function OwnerMemberMoreMenu({ dogName }: OwnerMemberMoreMenuProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={close}>연결 해제</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                onDisconnect(memberId);
+                close();
+              }}
+            >
+              연결 해제
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -87,7 +96,7 @@ function OwnerMemberMoreMenu({ dogName }: OwnerMemberMoreMenuProps) {
         aria-expanded={isOpen}
         className='flex size-10 shrink-0 items-center justify-center'
       >
-        <Icon icon='More' className='size-6 rotate-90 text-fill-secondary-700' />
+        <Icon icon='More' className='text-fill-secondary-700 size-6 rotate-90' />
       </button>
 
       {isOpen && (
@@ -97,7 +106,7 @@ function OwnerMemberMoreMenu({ dogName }: OwnerMemberMoreMenuProps) {
               <button
                 type='button'
                 role='menuitem'
-                className='body2-regular text-text-primary border-line-200 bg-bg-0 radius-r2 flex h-x11 w-[76px] items-center justify-center border p-x3 text-center'
+                className='body2-regular text-text-primary border-line-200 bg-bg-0 radius-r2 h-x11 p-x3 flex w-[76px] items-center justify-center border text-center'
                 onClick={handleDisconnectClick}
               >
                 연결해제
