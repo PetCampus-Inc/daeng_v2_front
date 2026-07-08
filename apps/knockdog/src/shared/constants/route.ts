@@ -79,6 +79,16 @@ const route = {
       },
     },
   },
+  owner: {
+    members: {
+      /** 원장 구성원 페이지 */
+      root: '/owner/members',
+      approval: {
+        /** 원장 구성원 연결 승인 대기 목록 페이지 */
+        root: '/owner/members/approval',
+      },
+    },
+  },
   roleConversion: {
     businessVerification: {
       /** 관리자 전환 - 사업자번호 인증 */

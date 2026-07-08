@@ -10,6 +10,9 @@ interface OwnerKindergarten {
 
 const ownerKindergartenListeners = new Set<() => void>();
 
+let cachedOwnerKindergartenSnapshot: OwnerKindergarten | null = null;
+let cachedOwnerKindergartenRaw: string | null | undefined;
+
 function isOwnerKindergarten(value: unknown): value is OwnerKindergarten {
   if (!value || typeof value !== 'object') return false;
 
@@ -33,6 +36,7 @@ function subscribeOwnerKindergarten(listener: () => void) {
 
   const handleStorage = (event: StorageEvent) => {
     if (event.key === STORAGE_KEYS.OWNER_KINDERGARTEN) {
+      cachedOwnerKindergartenRaw = undefined;
       listener();
     }
   };
@@ -53,7 +57,10 @@ function subscribeOwnerKindergarten(listener: () => void) {
 function saveOwnerKindergarten(info: OwnerKindergarten) {
   if (typeof window === 'undefined') return;
 
-  localStorage.setItem(STORAGE_KEYS.OWNER_KINDERGARTEN, JSON.stringify(info));
+  const raw = JSON.stringify(info);
+  localStorage.setItem(STORAGE_KEYS.OWNER_KINDERGARTEN, raw);
+  cachedOwnerKindergartenRaw = raw;
+  cachedOwnerKindergartenSnapshot = info;
   notifyOwnerKindergartenChange();
 }
 
@@ -67,15 +74,27 @@ function updateOwnerKindergartenName(name: string) {
 function loadOwnerKindergarten(): OwnerKindergarten | null {
   if (typeof window === 'undefined') return null;
 
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.OWNER_KINDERGARTEN);
-    if (!raw) return null;
+  const raw = localStorage.getItem(STORAGE_KEYS.OWNER_KINDERGARTEN);
 
-    const parsed: unknown = JSON.parse(raw);
-    return isOwnerKindergarten(parsed) ? parsed : null;
-  } catch {
+  if (raw === cachedOwnerKindergartenRaw) {
+    return cachedOwnerKindergartenSnapshot;
+  }
+
+  cachedOwnerKindergartenRaw = raw;
+
+  if (!raw) {
+    cachedOwnerKindergartenSnapshot = null;
     return null;
   }
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    cachedOwnerKindergartenSnapshot = isOwnerKindergarten(parsed) ? parsed : null;
+  } catch {
+    cachedOwnerKindergartenSnapshot = null;
+  }
+
+  return cachedOwnerKindergartenSnapshot;
 }
 
 function saveOwnerKindergartenFromVerification(info: {
