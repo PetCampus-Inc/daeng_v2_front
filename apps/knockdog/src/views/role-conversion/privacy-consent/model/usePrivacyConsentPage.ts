@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
 import { postBusinessRegistrationVerify } from '@entities/business-registration';
-import { loadSession, postOwnerVerificationSubmit } from '@entities/owner-verification';
+import { clearSession, loadSession, postOwnerVerificationSubmit } from '@entities/owner-verification';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { RESULT_STATUS } from '@views/role-conversion/complete/config/roleConversionResultStatus';
-import { mapRoleConversionErrorToStatus } from '@views/role-conversion/complete/config/ownerVerificationError';
+import { navigateToRoleConversionResult } from '@views/role-conversion/complete/lib/navigateToRoleConversionResult';
 
 function usePrivacyConsentPage() {
   const { push } = useStackNavigation();
@@ -34,16 +34,14 @@ function usePrivacyConsentPage() {
       });
     },
     onSuccess: () => {
+      clearSession();
       push({
         pathname: route.roleConversion.complete.root,
         query: { status: RESULT_STATUS.SUCCESS },
       });
     },
     onError: (error) => {
-      push({
-        pathname: route.roleConversion.complete.root,
-        query: { status: mapRoleConversionErrorToStatus(error) },
-      });
+      navigateToRoleConversionResult(error, push);
     },
   });
 

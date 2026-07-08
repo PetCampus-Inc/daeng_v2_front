@@ -1,9 +1,3 @@
-export const BUSINESS_VERIFICATION_ERROR_CODE = Object.freeze({
-  DUPLICATE: 'DUPLICATE_BUSINESS_NUMBER',
-  INVALID_FORMAT: 'INVALID_BUSINESS_NUMBER_FORMAT',
-  CLOSED_OR_SUSPENDED: 'CLOSED_OR_SUSPENDED_BUSINESS',
-} as const);
-
 export const businessVerificationError = Object.freeze({
   duplicateLine1: '이미 등록된 사업자등록번호입니다.',
   duplicateLine2: '고객센터로 문의해 주세요',

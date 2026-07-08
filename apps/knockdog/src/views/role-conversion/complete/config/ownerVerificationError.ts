@@ -1,30 +1,39 @@
-import { BUSINESS_VERIFICATION_ERROR_CODE } from '@views/role-conversion/business-verification/config/businessVerificationError';
-import { RESULT_STATUS, type ResultStatus } from '@views/role-conversion/complete/config/roleConversionResultStatus';
-
+import { BUSINESS_REGISTRATION_VERIFY_CODE } from '@entities/business-registration';
 import { ApiError } from '@shared/api';
 
-/** POST /api/v0/admin/owner-verification/submit 에서 발생하는 ErrorCode */
-export const SUBMIT_ERROR_CODE = Object.freeze({
-  UNAUTHORIZED: 'OWNER_VERIFICATION_UNAUTHORIZED',
-  ALREADY_OWNER: 'OWNER_VERIFICATION_ALREADY_OWNER',
-  NOT_FOUND: 'OWNER_VERIFICATION_NOT_FOUND',
-  PRIVACY_CONSENT_REQUIRED: 'OWNER_VERIFICATION_PRIVACY_CONSENT_REQUIRED',
-  IN_PROGRESS: 'OWNER_VERIFICATION_IN_PROGRESS',
-  INVALID_STATUS: 'OWNER_VERIFICATION_INVALID_STATUS',
-  SCHOOL_HAS_OWNER: 'OWNER_VERIFICATION_SCHOOL_ALREADY_HAS_OWNER',
-  BIZ_INVALID: 'OWNER_VERIFICATION_BUSINESS_REGISTRATION_INVALID',
-  BIZ_DUPLICATED: 'OWNER_VERIFICATION_BUSINESS_REGISTRATION_DUPLICATED',
+import {
+  RESULT_STATUS,
+  type ResultStatus,
+} from '@views/role-conversion/complete/config/roleConversionResultStatus';
+
+/** 원장 인증 API — response.code (message key) */
+export const OWNER_VERIFICATION_MESSAGE_KEY = Object.freeze({
+  UNAUTHORIZED: 'OWNER_VERIFICATION-401-1',
+  KINDERGARTEN_NOT_FOUND: 'OWNER_VERIFICATION-404-1',
+  VERIFICATION_NOT_FOUND: 'OWNER_VERIFICATION-404-2',
+  PRIVACY_CONSENT_REQUIRED: 'OWNER_VERIFICATION-400-1',
+  BIZ_INVALID: 'OWNER_VERIFICATION-400-2',
+  SCHOOL_ALREADY_HAS_OWNER: 'OWNER_VERIFICATION-409-2',
+  SCHOOL_DUPLICATED: 'OWNER_VERIFICATION-409-3',
+  INVALID_STATUS: 'OWNER_VERIFICATION-409-4',
+  IN_PROGRESS: 'OWNER_VERIFICATION-409-5',
+  BIZ_DUPLICATED: 'OWNER_VERIFICATION-409-6',
 } as const);
 
 const duplicateErrorCodes = new Set<string>([
-  BUSINESS_VERIFICATION_ERROR_CODE.DUPLICATE,
-  SUBMIT_ERROR_CODE.BIZ_DUPLICATED,
-  SUBMIT_ERROR_CODE.SCHOOL_HAS_OWNER,
+  OWNER_VERIFICATION_MESSAGE_KEY.SCHOOL_ALREADY_HAS_OWNER,
+  OWNER_VERIFICATION_MESSAGE_KEY.SCHOOL_DUPLICATED,
+  OWNER_VERIFICATION_MESSAGE_KEY.BIZ_DUPLICATED,
+  BUSINESS_REGISTRATION_VERIFY_CODE.DUPLICATE,
 ]);
 
-const closedOrSuspendedErrorCodes = new Set<string>([BUSINESS_VERIFICATION_ERROR_CODE.CLOSED_OR_SUSPENDED]);
+const closedOrSuspendedErrorCodes = new Set<string>([BUSINESS_REGISTRATION_VERIFY_CODE.CLOSED_OR_SUSPENDED]);
 
-/** 사업자등록번호 verify + submit API 공통 에러 → 결과 화면 status */
+const sessionClearErrorCodes = new Set<string>([
+  OWNER_VERIFICATION_MESSAGE_KEY.IN_PROGRESS,
+  OWNER_VERIFICATION_MESSAGE_KEY.INVALID_STATUS,
+]);
+
 export function mapRoleConversionErrorToStatus(error: unknown): ResultStatus {
   if (!(error instanceof ApiError)) {
     return RESULT_STATUS.TEMPORARY;
@@ -41,5 +50,7 @@ export function mapRoleConversionErrorToStatus(error: unknown): ResultStatus {
   return RESULT_STATUS.TEMPORARY;
 }
 
-/** @deprecated mapRoleConversionErrorToStatus 사용 */
-export const mapSubmitErrorToStatus = mapRoleConversionErrorToStatus;
+export function shouldClearOwnerVerificationSession(error: unknown): boolean {
+  return error instanceof ApiError && sessionClearErrorCodes.has(error.code);
+}
+
