@@ -2,18 +2,45 @@ import type { KindergartenVerificationData } from './ownerVerification';
 
 const SESSION_KEY = 'role_conversion_owner_verification';
 
+interface VerificationKindergartenSnapshot {
+  source: 'manual' | 'search';
+  placeId?: string;
+  name: string;
+  address: string;
+  ownerName: string;
+}
+
 interface VerificationSession {
   ownerVerificationId: number;
   nextStep: string;
   businessRegistrationNumber?: string;
+  kindergarten?: VerificationKindergartenSnapshot;
 }
 
-function saveSession(data: KindergartenVerificationData) {
+function isKindergartenSnapshot(value: unknown): value is VerificationKindergartenSnapshot {
+  if (!value || typeof value !== 'object') return false;
+
+  const record = value as Record<string, unknown>;
+
+  return (
+    (record.source === 'manual' || record.source === 'search') &&
+    (record.placeId === undefined || typeof record.placeId === 'string') &&
+    typeof record.name === 'string' &&
+    typeof record.address === 'string' &&
+    typeof record.ownerName === 'string'
+  );
+}
+
+function saveSession(
+  data: KindergartenVerificationData,
+  kindergarten?: VerificationKindergartenSnapshot
+) {
   if (typeof window === 'undefined') return;
 
   const session: VerificationSession = {
     ownerVerificationId: data.ownerVerificationId,
     nextStep: data.nextStep,
+    ...(kindergarten ? { kindergarten } : {}),
   };
 
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -41,6 +68,7 @@ function loadSession(): VerificationSession | null {
       ...(typeof record.businessRegistrationNumber === 'string'
         ? { businessRegistrationNumber: record.businessRegistrationNumber }
         : {}),
+      ...(isKindergartenSnapshot(record.kindergarten) ? { kindergarten: record.kindergarten } : {}),
     };
   } catch {
     return null;
@@ -73,5 +101,6 @@ export {
   loadSession,
   saveBusinessRegistrationNumber,
   saveSession,
+  type VerificationKindergartenSnapshot,
   type VerificationSession,
 };

@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { postBusinessRegistrationVerify } from '@entities/business-registration';
 import { clearSession, loadSession, postOwnerVerificationSubmit } from '@entities/owner-verification';
+import { saveOwnerKindergartenFromVerification } from '@features/role-conversion';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -23,17 +24,23 @@ function usePrivacyConsentPage() {
         throw new ApiError(400, 'UNKNOWN_ERROR', '원장 인증 정보가 없습니다.');
       }
 
-      const { ownerVerificationId, businessRegistrationNumber } = session;
+      const { ownerVerificationId, businessRegistrationNumber, kindergarten } = session;
 
       await postBusinessRegistrationVerify({ registrationNumber: businessRegistrationNumber });
 
-      return postOwnerVerificationSubmit({
+      await postOwnerVerificationSubmit({
         ownerVerificationId,
         businessRegistrationNumber,
         privacyConsentAgreed: true,
       });
+
+      return kindergarten ?? null;
     },
-    onSuccess: () => {
+    onSuccess: (kindergarten) => {
+      if (kindergarten) {
+        saveOwnerKindergartenFromVerification(kindergarten);
+      }
+
       clearSession();
       push({
         pathname: route.roleConversion.complete.root,
