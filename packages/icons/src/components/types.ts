@@ -33,6 +33,7 @@ export type IconName =
   | 'Cycle'
   | 'Daycare'
   | 'DeleteInput'
+  | 'Download'
   | 'Edit'
   | 'Female'
   | 'Field'

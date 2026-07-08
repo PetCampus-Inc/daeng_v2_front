@@ -32,6 +32,7 @@ export { Currentlocation } from './Currentlocation';
 export { Cycle } from './Cycle';
 export { Daycare } from './Daycare';
 export { DeleteInput } from './DeleteInput';
+export { Download } from './Download';
 export { Edit } from './Edit';
 export { Female } from './Female';
 export { Field } from './Field';
