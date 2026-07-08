@@ -47,11 +47,11 @@ function loadSession(): VerificationSession | null {
   }
 }
 
-function saveBusinessRegistrationNumber(registrationNumber: string) {
-  if (typeof window === 'undefined') return;
+function saveBusinessRegistrationNumber(registrationNumber: string): boolean {
+  if (typeof window === 'undefined') return false;
 
   const session = loadSession();
-  if (!session) return;
+  if (!session) return false;
 
   const updated: VerificationSession = {
     ...session,
@@ -59,6 +59,7 @@ function saveBusinessRegistrationNumber(registrationNumber: string) {
   };
 
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+  return true;
 }
 
 function clearSession() {
