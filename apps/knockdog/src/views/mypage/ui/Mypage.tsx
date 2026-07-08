@@ -1,17 +1,31 @@
 'use client';
 
-import { Header } from '@widgets/Header';
-import { Divider, IconButton } from '@knockdog/ui';
+import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
-import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
-import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
-import { LoginPrompt } from '@features/auth';
-import { AccountSection, type AccountInfo } from '@features/user-account';
-import { QuickActionsSection } from '@features/support';
+
+import { Header } from '@widgets/Header';
+
 import { SettingsSection } from '@features/app-settings';
-import { useUserStore } from '@entities/user/model/store/useUserStore';
+import { LoginPrompt, OwnerVerificationEntry } from '@features/auth';
+import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
+import {
+  ownerMypageContent,
+  OwnerKindergartenCard,
+  OwnerProfileRow,
+  RoleConversionButton,
+  roleConversionButtonContent,
+  useIsOwnerVerified,
+  useOwnerKindergarten,
+  useOwnerProfile,
+} from '@features/role-conversion';
+import { QuickActionsSection } from '@features/support';
+import { AccountSection, type AccountInfo } from '@features/user-account';
 import { usePetListQuery } from '@entities/pet';
+import { useUserStore } from '@entities/user';
+import { logout } from '@shared/lib/auth/logout';
+import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { useAppVersion } from '@shared/lib/device';
+import { route } from '@shared/constants/route';
 
 const EXTERNAL_LINKS = {
   NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
@@ -23,7 +37,11 @@ function Mypage() {
   const user = useUserStore((state) => state.user);
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
-  const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn });
+  const isOwnerVerified = useIsOwnerVerified();
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
+    useOwnerKindergarten({ enabled: isOwnerVerified });
+  const { profile } = useOwnerProfile({ enabled: isOwnerVerified });
+  const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
   const openDogSelectSheet = () => {
@@ -51,6 +69,38 @@ function Mypage() {
     openExternalLink(EXTERNAL_LINKS[key]);
   };
 
+  const handleKindergartenClick = () => {
+    if (!kindergartenId) return;
+
+    push({ pathname: `/kindergarten/${kindergartenId}` });
+  };
+
+  const handleLogout = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>아니오</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                try {
+                  await logout();
+                } finally {
+                  push({ pathname: '/mypage' });
+                }
+              }}
+            >
+              예
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header>
@@ -60,41 +110,106 @@ function Mypage() {
       <div className='flex-1 overflow-y-auto pb-16'>
         {!isLoggedIn && <LoginPrompt />}
 
-        {isLoggedIn && !hasDogs && (
-          <NoDogPrompt nickname={user?.nickname || '사용자'} onAddDog={() => push({ pathname: '/mypage/pet-add' })} />
+        {!isLoggedIn && (
+          <>
+            <Divider size='thick' />
+            <div className='flex flex-col gap-5 px-4 pt-7 pb-7'>
+              <OwnerVerificationEntry />
+              <QuickActionsSection className='gap-y-7 px-0 py-0' />
+            </div>
+          </>
         )}
 
-        {isLoggedIn && hasDogs && (
-          <DogHouseSection
-            dogs={petListResponse?.data || []}
-            onChangeRepresentative={openDogSelectSheet}
-            onDogClick={handleDogClick}
-            onAddDog={handleAddDog}
-          />
+        {isLoggedIn && isOwnerVerified && (
+          <RoleConversionButton
+            disabled
+            title={roleConversionButtonContent.convertToGuardianPendingNotice}
+          >
+            {roleConversionButtonContent.convertoGuardian}
+          </RoleConversionButton>
         )}
 
-        <Divider size='thick' />
+        {isLoggedIn && isOwnerVerified ? (
+          <div className='bg-background-0'>
+            <OwnerProfileRow
+              name={profile.name}
+              profileImageUrl={profile.profileImageUrl ?? user.profileImageUrl}
+              onClick={() => push({ pathname: route.mypage.profile.root })}
+            />
+
+            {name ? (
+              <OwnerKindergartenCard
+                name={name}
+                address={address}
+                imageUrl={imageUrl}
+                usesDefaultImage={usesDefaultImage}
+                onClick={canOpenKindergartenDetail ? handleKindergartenClick : undefined}
+              />
+            ) : null}
+
+            <Divider size='thick' />
+          </div>
+        ) : (
+          <>
+            {isLoggedIn && !hasDogs && (
+              <NoDogPrompt
+                nickname={user?.nickname || '사용자'}
+                onAddDog={() => push({ pathname: '/mypage/pet-add' })}
+              />
+            )}
+
+            {isLoggedIn && hasDogs && (
+              <DogHouseSection
+                dogs={petListResponse?.data || []}
+                onChangeRepresentative={openDogSelectSheet}
+                onDogClick={handleDogClick}
+                onAddDog={handleAddDog}
+              />
+            )}
+
+            {isLoggedIn && <Divider size='thick' />}
+          </>
+        )}
 
         {isLoggedIn && (
-          <div className='pt-4'>
-            <AccountSection
-              accountInfo={accountInfo}
-              onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
-              onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
-            />
-          </div>
+          <>
+            <div className={isOwnerVerified ? undefined : 'pt-4'}>
+              <AccountSection
+                variant={isOwnerVerified ? 'owner' : 'guardian'}
+                accountInfo={isOwnerVerified ? undefined : accountInfo}
+                accountSectionTitle={ownerMypageContent.accountSectionTitle}
+                releasePermissionLabel={
+                  isOwnerVerified ? ownerMypageContent.releasePermissionLabel : undefined
+                }
+                releasePermissionPendingNotice={ownerMypageContent.releasePermissionPendingNotice}
+                headerAddon={
+                  !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
+                }
+                onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
+                onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+              />
+            </div>
+
+            {isOwnerVerified && <Divider size='thick' />}
+          </>
         )}
 
-        <QuickActionsSection />
+        {isLoggedIn && <QuickActionsSection />}
 
         <SettingsSection
+          variant={isLoggedIn && isOwnerVerified ? 'owner' : 'guardian'}
           version={displayVersion}
           hasUpdate={hasUpdate}
+          otherInfoTitle={ownerMypageContent.otherInfoTitle}
+          logoutLabel={ownerMypageContent.logoutLabel}
+          withdrawLabel={ownerMypageContent.withdrawLabel}
           onNoticeClick={() => handleOpenLink('NOTICE')}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
           onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
           onUpdateClick={openStore}
+          onLogoutClick={handleLogout}
+          onWithdrawClick={() => push({ pathname: '/withdraw/confirm' })}
         />
       </div>
     </div>

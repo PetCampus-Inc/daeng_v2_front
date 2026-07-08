@@ -67,9 +67,25 @@ const route = {
     /** 마이 페이지 */
     root: '/mypage',
     profile: {
+      /** 원장 프로필 페이지 */
+      root: '/mypage/profile',
+      edit: {
+        /** 원장 프로필 수정 페이지 */
+        root: '/mypage/profile/edit',
+      },
       location: {
         /** 내 장소 설정 페이지 */
         root: '/mypage/profile/location',
+      },
+    },
+  },
+  owner: {
+    members: {
+      /** 원장 구성원 페이지 */
+      root: '/owner/members',
+      approval: {
+        /** 원장 구성원 연결 승인 대기 목록 페이지 */
+        root: '/owner/members/approval',
       },
     },
   },

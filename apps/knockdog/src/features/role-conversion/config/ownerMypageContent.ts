@@ -1,0 +1,20 @@
+export const ownerMypageContent = Object.freeze({
+  ownerBadgeLabel: '원장',
+  accountSectionTitle: '내 계정',
+  releasePermissionLabel: '운영 권한 해제하기',
+  releasePermissionPendingNotice: '운영 권한 해제 기능은 준비 중이에요',
+  otherInfoTitle: '기타 정보',
+  logoutLabel: '로그아웃',
+  withdrawLabel: '탈퇴하기',
+  profilePageTitle: '프로필',
+  profileEditPageTitle: '프로필 수정하기',
+  editInfoButtonLabel: '정보 수정하기',
+  ownerNameLabel: '이름',
+  ownerPhoneLabel: '연락처',
+  ownerEmailLabel: '이메일',
+  ownerNamePlaceholder: '이름을 입력해주세요',
+  ownerPhonePlaceholder: '연락처를 입력해주세요',
+  ownerEmailPlaceholder: '이메일을 입력해주세요',
+  profileSaveButtonLabel: '저장하기',
+});
+
