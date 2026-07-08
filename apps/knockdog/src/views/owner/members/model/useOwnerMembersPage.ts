@@ -9,6 +9,10 @@ import {
 
 const SEARCH_ALLOWED_PATTERN = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z ]/g;
 
+function normalizeSearchText(value: string) {
+  return value.replace(/\s/g, '').toLowerCase();
+}
+
 function sortOwnerMembers(members: OwnerMember[], sortType: OwnerMemberSortType) {
   return [...members].sort((currentMember, nextMember) => {
     if (sortType === 'recentAttendance') {
@@ -28,14 +32,14 @@ function useOwnerMembersPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const ownerMembers = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+    const query = normalizeSearchText(searchQuery);
 
     const filteredMembers = !query
       ? mockOwnerMembers
       : mockOwnerMembers.filter(
           (member) =>
-            member.dogName.toLowerCase().includes(query) ||
-            member.guardianName.toLowerCase().includes(query)
+            normalizeSearchText(member.dogName).includes(query) ||
+            normalizeSearchText(member.guardianName).includes(query)
         );
 
     return sortOwnerMembers(filteredMembers, sortType);

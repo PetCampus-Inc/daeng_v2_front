@@ -23,7 +23,8 @@ function OwnerMembersSummaryBar({ totalMemberCount, sortType, onSortTypeChange }
         options={SORT_OPTIONS}
         value={sortType}
         onChange={onSortTypeChange}
-        triggerClassName='h-x9 w-[116px] rounded-full'
+        triggerClassName='h-x9 w-[116px] justify-end rounded-full pr-x3'
+        labelClassName='whitespace-nowrap'
         iconClassName='size-x4 text-fill-secondary-500'
       />
     </div>

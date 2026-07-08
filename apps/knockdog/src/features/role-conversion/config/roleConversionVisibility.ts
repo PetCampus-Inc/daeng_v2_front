@@ -4,6 +4,6 @@
  *
  * @todo BE 원장 인증 상태 API 반영 후 OWNER_VERIFIED_STUB 및 ownerMypageStub 제거
  */
-const OWNER_VERIFIED_STUB = true;
+const OWNER_VERIFIED_STUB = false;
 
 export { OWNER_VERIFIED_STUB };

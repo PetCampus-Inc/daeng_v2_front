@@ -16,6 +16,7 @@ function OwnerMembersPage() {
     sortType,
     setSortType,
   } = useOwnerMembersPage();
+  const hasMembers = totalMemberCount > 0;
 
   return (
     <div
@@ -29,11 +30,13 @@ function OwnerMembersPage() {
 
       <div className='bg-bg-0 pt-x5 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px]'>
         <div className='flex min-h-0 w-full flex-1 flex-col'>
-          <OwnerMembersSummaryBar
-            totalMemberCount={totalMemberCount}
-            sortType={sortType}
-            onSortTypeChange={setSortType}
-          />
+          {hasMembers && (
+            <OwnerMembersSummaryBar
+              totalMemberCount={totalMemberCount}
+              sortType={sortType}
+              onSortTypeChange={setSortType}
+            />
+          )}
 
           <OwnerMembersList members={ownerMembers} onDisconnectMember={handleDisconnectMember} />
         </div>
