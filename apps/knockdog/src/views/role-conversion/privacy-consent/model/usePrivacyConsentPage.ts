@@ -9,6 +9,7 @@ import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
+import { OWNER_VERIFICATION_CLIENT_ERROR } from '@views/role-conversion/complete/config/ownerVerificationError';
 import { RESULT_STATUS } from '@views/role-conversion/complete/config/roleConversionResultStatus';
 import { navigateToRoleConversionResult } from '@views/role-conversion/complete/lib/navigateToRoleConversionResult';
 
@@ -21,7 +22,11 @@ function usePrivacyConsentPage() {
       const session = loadSession();
 
       if (!session?.ownerVerificationId || !session.businessRegistrationNumber) {
-        throw new ApiError(400, 'UNKNOWN_ERROR', '원장 인증 정보가 없습니다.');
+        throw new ApiError(
+          400,
+          OWNER_VERIFICATION_CLIENT_ERROR.SESSION_MISSING,
+          '원장 인증 정보가 없습니다.'
+        );
       }
 
       const { ownerVerificationId, businessRegistrationNumber, kindergarten } = session;

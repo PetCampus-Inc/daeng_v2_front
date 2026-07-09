@@ -20,6 +20,11 @@ export const OWNER_VERIFICATION_MESSAGE_KEY = Object.freeze({
   BIZ_DUPLICATED: 'OWNER_VERIFICATION-409-6',
 } as const);
 
+/** FE 클라이언트 검증 오류 — API response.code와 분리 */
+export const OWNER_VERIFICATION_CLIENT_ERROR = Object.freeze({
+  SESSION_MISSING: 'OWNER_VERIFICATION-CLIENT-1',
+} as const);
+
 const duplicateErrorCodes = new Set<string>([
   OWNER_VERIFICATION_MESSAGE_KEY.SCHOOL_ALREADY_HAS_OWNER,
   OWNER_VERIFICATION_MESSAGE_KEY.SCHOOL_DUPLICATED,
@@ -27,11 +32,15 @@ const duplicateErrorCodes = new Set<string>([
   BUSINESS_REGISTRATION_VERIFY_CODE.DUPLICATE,
 ]);
 
-const closedOrSuspendedErrorCodes = new Set<string>([BUSINESS_REGISTRATION_VERIFY_CODE.CLOSED_OR_SUSPENDED]);
+const closedOrSuspendedErrorCodes = new Set<string>([
+  BUSINESS_REGISTRATION_VERIFY_CODE.CLOSED_OR_SUSPENDED,
+  OWNER_VERIFICATION_MESSAGE_KEY.BIZ_INVALID,
+]);
 
 const sessionClearErrorCodes = new Set<string>([
   OWNER_VERIFICATION_MESSAGE_KEY.IN_PROGRESS,
   OWNER_VERIFICATION_MESSAGE_KEY.INVALID_STATUS,
+  OWNER_VERIFICATION_CLIENT_ERROR.SESSION_MISSING,
 ]);
 
 export function mapRoleConversionErrorToStatus(error: unknown): ResultStatus {
