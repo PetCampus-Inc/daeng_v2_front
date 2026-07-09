@@ -1,71 +1,44 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 
-import { useMutation } from '@tanstack/react-query';
-
+import { saveBusinessRegistrationNumber } from '@entities/owner-verification';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { ApiError } from '@shared/api';
-
-import { devStubErrorByBizNo } from '@views/role-conversion/business-verification/config/businessVerificationDevStub';
-import { getBusinessVerificationErrorMessage } from './getBusinessVerificationErrorMessage';
+import { toast } from '@shared/ui/toast';
 
 const BIZ_NO_LEN = 10;
 
 function useBusinessVerificationPage() {
-  const { push } = useStackNavigation();
+  const { push, replace } = useStackNavigation();
   const [bizNo, setBizNo] = useState('');
-  const [error, setError] = useState<ReactNode | null>(null);
-  const [isVerified, setIsVerified] = useState(false);
-
-  const { mutate: verifyBizNo, isPending } = useMutation({
-    // @todo BE API 연동 시 stub 제거 (26.06.19 작성)
-    // stub는 로컬 테스트 시 발생하는 에러 처리 확인을 위해 작성됨
-    mutationFn: async (bizNoValue: string) => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const stubErrorCode = devStubErrorByBizNo[bizNoValue as keyof typeof devStubErrorByBizNo];
-
-      if (stubErrorCode) {
-        throw new ApiError(400, stubErrorCode, '');
-      }
-    },
-    onSuccess: () => {
-      setError(null);
-      setIsVerified(true);
-    },
-    onError: (err) => {
-      setIsVerified(false);
-      setError(getBusinessVerificationErrorMessage(err));
-    },
-  });
 
   const handleInputChange = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, BIZ_NO_LEN);
-    setBizNo(digits);
-    setError(null);
-    setIsVerified(false);
+    setBizNo(value.replace(/\D/g, '').slice(0, BIZ_NO_LEN));
   };
 
-  const handleVerifyClick = () => {
-    verifyBizNo(bizNo);
+  const handleClear = () => {
+    setBizNo('');
   };
-
-  const isVerifyEnabled = bizNo.length === BIZ_NO_LEN && !isVerified && !isPending;
-  const isNextEnabled = isVerified;
 
   const handleNextClick = () => {
+    const saved = saveBusinessRegistrationNumber(bizNo);
+    if (!saved) {
+      toast({
+        title: '진행 정보가 저장되지 않았습니다. 처음부터 다시 시작해 주세요.',
+        shape: 'square',
+        position: 'top',
+      });
+      replace({ pathname: route.roleConversion.kindergartenSearch.root });
+      return;
+    }
+
     push({ pathname: route.roleConversion.privacyConsent.root });
   };
 
   return {
     bizNo,
-    error,
-    isVerified,
-    isVerifyEnabled,
-    isNextEnabled,
-    isVerifyPending: isPending,
+    isNextEnabled: bizNo.length === BIZ_NO_LEN,
     handleInputChange,
-    handleVerifyClick,
+    handleClear,
     handleNextClick,
   };
 }
