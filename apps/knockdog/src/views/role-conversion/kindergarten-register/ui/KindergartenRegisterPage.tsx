@@ -7,6 +7,8 @@ import {
   Field,
   FieldLabel,
   FieldLabelIndicator,
+  Icon,
+  IconButton,
   ProgressBar,
   TextField,
   TextFieldInput,
@@ -21,7 +23,15 @@ import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten
 import { useKindergartenRegisterPage } from '@views/role-conversion/kindergarten-register/model/useKindergartenRegisterPage';
 
 function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
-  const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage(mode);
+  const {
+    form,
+    isNextEnabled,
+    isManualMode,
+    handleFieldChange,
+    handleAddressSearch,
+    handleClearAddress,
+    handleNextClick,
+  } = useKindergartenRegisterPage(mode);
 
   return (
     <div className='flex h-full flex-col'>
@@ -66,13 +76,48 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 {kindergartenRegisterContent.addressLabel}
                 <FieldLabelIndicator type='required' className='ml-0' />
               </FieldLabel>
-              <TextField>
-                <TextFieldInput
-                  placeholder={kindergartenRegisterContent.addressPlaceholder}
-                  value={form.address}
-                  onChange={(e) => handleFieldChange('address', e.target.value)}
-                />
-              </TextField>
+              {isManualMode ? (
+                <button
+                  type='button'
+                  className='w-full text-left'
+                  onClick={handleAddressSearch}
+                  aria-label='주소 검색'
+                >
+                  <TextField
+                    variant='secondary'
+                    prefix={<Icon icon='Search' className='text-text-tertiary' />}
+                    suffix={
+                      form.address ? (
+                        <IconButton
+                          type='button'
+                          icon='DeleteInput'
+                          className='text-text-tertiary'
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleClearAddress();
+                          }}
+                          aria-label='선택한 주소 삭제'
+                        />
+                      ) : undefined
+                    }
+                  >
+                    <TextFieldInput
+                      readOnly
+                      tabIndex={-1}
+                      placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
+                      value={form.address}
+                    />
+                  </TextField>
+                </button>
+              ) : (
+                <TextField>
+                  <TextFieldInput
+                    placeholder={kindergartenRegisterContent.addressPlaceholder}
+                    value={form.address}
+                    onChange={(e) => handleFieldChange('address', e.target.value)}
+                  />
+                </TextField>
+              )}
             </Field>
 
             <Field className='flex-col gap-2 py-4'>

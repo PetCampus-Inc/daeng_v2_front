@@ -101,6 +101,10 @@ const route = {
     kindergartenRegister: {
       /** 관리자 전환 - 유치원 직접 등록 */
       root: '/role-conversion/kindergarten-register',
+      address: {
+        /** 관리자 전환 - 유치원 주소 검색 */
+        root: '/role-conversion/kindergarten-register/address',
+      },
     },
     kindergartenConfirm: {
       /** 관리자 전환 - 유치원 정보 확인 */
