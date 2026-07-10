@@ -4,13 +4,21 @@ import Image from 'next/image';
 
 import { ActionButton } from '@knockdog/ui';
 
+import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { useResultPage } from '@views/role-conversion/complete/model/useRoleConversionResultPage';
 
 function RoleConversionResultPage() {
-  const { content, isPrimaryDisabled, handlePrimaryClick, handleSecondaryClick } = useResultPage();
+  const { content, isPrimaryDisabled, isRetryPending, handlePrimaryClick, handleSecondaryClick } =
+    useResultPage();
 
   return (
-    <div className='flex h-full flex-col items-center justify-center px-4'>
+    <div className='relative flex h-full flex-col items-center justify-center px-4'>
+      {isRetryPending ? (
+        <div className='absolute inset-0 z-10 flex items-center justify-center bg-white/80'>
+          <LoadingSpinner />
+        </div>
+      ) : null}
+
       <div className='flex w-full flex-col items-center'>
         <div className='flex justify-center py-2'>
           <Image src={content.imageSrc} alt={content.imageAlt} width={200} height={200} />
@@ -47,7 +55,8 @@ function RoleConversionResultPage() {
           <button
             type='button'
             onClick={handleSecondaryClick}
-            className='label-semibold text-text-secondary px-2 py-1 underline'
+            disabled={isRetryPending}
+            className='label-semibold text-text-secondary px-2 py-1 underline disabled:cursor-not-allowed disabled:opacity-50'
           >
             {content.secondaryButtonLabel}
           </button>
