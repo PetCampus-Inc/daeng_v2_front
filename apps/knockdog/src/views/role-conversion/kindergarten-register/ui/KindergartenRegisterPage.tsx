@@ -7,6 +7,8 @@ import {
   Field,
   FieldLabel,
   FieldLabelIndicator,
+  Icon,
+  IconButton,
   ProgressBar,
   TextField,
   TextFieldInput,
@@ -21,7 +23,15 @@ import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten
 import { useKindergartenRegisterPage } from '@views/role-conversion/kindergarten-register/model/useKindergartenRegisterPage';
 
 function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
-  const { form, isNextEnabled, handleFieldChange, handleNextClick } = useKindergartenRegisterPage(mode);
+  const {
+    form,
+    isNextEnabled,
+    isManualMode,
+    handleFieldChange,
+    handleAddressSearch,
+    handleClearAddress,
+    handleNextClick,
+  } = useKindergartenRegisterPage(mode);
 
   return (
     <div className='flex h-full flex-col'>
@@ -39,90 +49,128 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
       </div>
 
       <div className='flex min-h-0 flex-1 flex-col px-4 pt-3 pb-5'>
-        <div className='flex flex-col gap-5'>
-          <h1 className='h1-extrabold'>
-            {kindergartenRegisterContent.titleLine1}
-            <br />
-            {kindergartenRegisterContent.titleLine2}
-          </h1>
+        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
+          <div className='flex flex-col gap-5'>
+            <h1 className='h1-extrabold'>
+              {kindergartenRegisterContent.titleLine1}
+              <br />
+              {kindergartenRegisterContent.titleLine2}
+            </h1>
 
-          <div className='flex flex-col'>
-            <Field className='flex-col gap-2 py-4'>
-              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
-                {kindergartenRegisterContent.nameLabel}
-                <FieldLabelIndicator type='required' className='ml-0' />
-              </FieldLabel>
-              <TextField>
-                <TextFieldInput
-                  placeholder={kindergartenRegisterContent.namePlaceholder}
-                  value={form.name}
-                  onChange={(e) => handleFieldChange('name', e.target.value)}
-                />
-              </TextField>
-            </Field>
+            <div className='flex flex-col'>
+              <Field className='flex-col gap-2 py-4'>
+                <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                  {kindergartenRegisterContent.nameLabel}
+                  <FieldLabelIndicator type='required' className='ml-0' />
+                </FieldLabel>
+                <TextField className='h-x13'>
+                  <TextFieldInput
+                    placeholder={kindergartenRegisterContent.namePlaceholder}
+                    value={form.name}
+                    onChange={(e) => handleFieldChange('name', e.target.value)}
+                  />
+                </TextField>
+              </Field>
 
-            <Field className='flex-col gap-2 py-4'>
-              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
-                {kindergartenRegisterContent.addressLabel}
-                <FieldLabelIndicator type='required' className='ml-0' />
-              </FieldLabel>
-              <TextField>
-                <TextFieldInput
-                  placeholder={kindergartenRegisterContent.addressPlaceholder}
-                  value={form.address}
-                  onChange={(e) => handleFieldChange('address', e.target.value)}
-                />
-              </TextField>
-            </Field>
+              <Field className='flex-col gap-2 py-4'>
+                <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                  {kindergartenRegisterContent.addressLabel}
+                  <FieldLabelIndicator type='required' className='ml-0' />
+                </FieldLabel>
+                {isManualMode ? (
+                  <button
+                    type='button'
+                    className='w-full text-left'
+                    onClick={handleAddressSearch}
+                    aria-label='주소 검색'
+                  >
+                    <TextField
+                      variant='secondary'
+                      className='h-x13'
+                      prefix={<Icon icon='Search' className='text-text-tertiary' />}
+                      suffix={
+                        form.address ? (
+                          <IconButton
+                            type='button'
+                            icon='DeleteInput'
+                            className='text-text-tertiary'
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleClearAddress();
+                            }}
+                            aria-label='선택한 주소 삭제'
+                          />
+                        ) : undefined
+                      }
+                    >
+                      <TextFieldInput
+                        readOnly
+                        tabIndex={-1}
+                        placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
+                        value={form.address}
+                      />
+                    </TextField>
+                  </button>
+                ) : (
+                  <TextField className='h-x13'>
+                    <TextFieldInput
+                      placeholder={kindergartenRegisterContent.addressPlaceholder}
+                      value={form.address}
+                      onChange={(e) => handleFieldChange('address', e.target.value)}
+                    />
+                  </TextField>
+                )}
+              </Field>
 
-            <Field className='flex-col gap-2 py-4'>
-              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
-                {kindergartenRegisterContent.numberLabel}
-                <FieldLabelIndicator type='required' className='ml-0' />
-              </FieldLabel>
-              <TextField>
-                <TextFieldInput
-                  inputMode='tel'
-                  placeholder={kindergartenRegisterContent.numberPlaceholder}
-                  value={form.kindergartenNumber}
-                  onChange={(e) => handleFieldChange('kindergartenNumber', e.target.value)}
-                />
-              </TextField>
-            </Field>
+              <Field className='flex-col gap-2 py-4'>
+                <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                  {kindergartenRegisterContent.numberLabel}
+                  <FieldLabelIndicator type='required' className='ml-0' />
+                </FieldLabel>
+                <TextField className='h-x13'>
+                  <TextFieldInput
+                    inputMode='tel'
+                    placeholder={kindergartenRegisterContent.numberPlaceholder}
+                    value={form.kindergartenNumber}
+                    onChange={(e) => handleFieldChange('kindergartenNumber', e.target.value)}
+                  />
+                </TextField>
+              </Field>
 
-            <Field className='flex-col gap-2 py-4'>
-              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
-                {kindergartenRegisterContent.ownerNameLabel}
-                <FieldLabelIndicator type='required' className='ml-0' />
-              </FieldLabel>
-              <TextField>
-                <TextFieldInput
-                  type='text'
-                  placeholder={kindergartenRegisterContent.ownerNamePlaceholder}
-                  value={form.ownerName}
-                  onChange={(e) => handleFieldChange('ownerName', e.target.value)}
-                />
-              </TextField>
-            </Field>
+              <Field className='flex-col gap-2 py-4'>
+                <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                  {kindergartenRegisterContent.ownerNameLabel}
+                  <FieldLabelIndicator type='required' className='ml-0' />
+                </FieldLabel>
+                <TextField className='h-x13'>
+                  <TextFieldInput
+                    type='text'
+                    placeholder={kindergartenRegisterContent.ownerNamePlaceholder}
+                    value={form.ownerName}
+                    onChange={(e) => handleFieldChange('ownerName', e.target.value)}
+                  />
+                </TextField>
+              </Field>
 
-            <Field className='flex-col gap-2 py-4'>
-              <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
-                {kindergartenRegisterContent.phoneLabel}
-                <FieldLabelIndicator type='required' className='ml-0' />
-              </FieldLabel>
-              <TextField>
-                <TextFieldInput
-                  inputMode='tel'
-                  placeholder={kindergartenRegisterContent.phonePlaceholder}
-                  value={form.phoneNumber}
-                  onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
-                />
-              </TextField>
-            </Field>
+              <Field className='flex-col gap-2 py-4'>
+                <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
+                  {kindergartenRegisterContent.phoneLabel}
+                  <FieldLabelIndicator type='required' className='ml-0' />
+                </FieldLabel>
+                <TextField className='h-x13'>
+                  <TextFieldInput
+                    inputMode='tel'
+                    placeholder={kindergartenRegisterContent.phonePlaceholder}
+                    value={form.phoneNumber}
+                    onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                  />
+                </TextField>
+              </Field>
+            </div>
           </div>
         </div>
 
-        <div className='mt-auto py-5'>
+        <div className='shrink-0 py-5'>
           <ActionButton
             type='button'
             variant='secondaryFill'

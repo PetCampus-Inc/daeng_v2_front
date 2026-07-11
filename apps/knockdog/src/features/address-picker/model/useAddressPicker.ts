@@ -24,16 +24,30 @@ const useAddressPicker = ({ value, onSelect }: UseAddressPickerOptions) => {
   // 주소 선택 핸들러
   const handleSelect = (address: AddressSearchResult) => async () => {
     setIsSelected(true);
-    setInputValue(address.address);
+    setInputValue(address.roadAddress || address.address);
 
-    // 주소 좌표 가져오기
-    const { lat, lng } = await getGeocode(address.address);
+    let lat = 0;
+    let lng = 0;
+
+    try {
+      const coordinates = await getGeocode(address.address);
+      lat = coordinates.lat;
+      lng = coordinates.lng;
+    } catch (error) {
+      console.error('[useAddressPicker] geocode failed:', error);
+    }
+
     onSelect?.({ ...address, lat, lng });
   };
 
   // 검색어 변경 핸들러
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
+    setIsSelected(false);
+  };
+
+  const handleClear = () => {
+    setInputValue('');
     setIsSelected(false);
   };
 
@@ -50,6 +64,7 @@ const useAddressPicker = ({ value, onSelect }: UseAddressPickerOptions) => {
     isSelected,
     handleSelect,
     handleChange,
+    handleClear,
   };
 };
 
