@@ -121,6 +121,10 @@ const route = {
     releasePermission: {
       /** 관리자 전환 - 원장 권한 해제 */
       root: '/role-conversion/release-permission',
+      reason: {
+        /** 관리자 전환 - 원장 권한 해제 사유 선택 */
+        root: '/role-conversion/release-permission/reason',
+      },
     },
   },
 };

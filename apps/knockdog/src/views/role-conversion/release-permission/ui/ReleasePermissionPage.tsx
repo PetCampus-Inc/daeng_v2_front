@@ -6,19 +6,19 @@ import { ActionButton } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 
 import { releasePermissionContent } from '@views/role-conversion/release-permission/config/releasePermissionContent';
 
 function ReleasePermissionPage() {
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
 
   const handleCancel = () => {
     back();
   };
 
   const handleConfirm = () => {
-    // @todo 원장 권한 해제 API 연동
-    back();
+    push({ pathname: route.roleConversion.releasePermission.reason.root });
   };
 
   return (
