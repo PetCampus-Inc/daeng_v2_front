@@ -9,8 +9,11 @@ import { useOwnerKindergarten } from '@features/role-conversion';
 import { releasePermissionContent } from '@views/role-conversion/release-permission/config/releasePermissionContent';
 
 import { Header } from '@widgets/Header';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 
 function ReleasePermissionVerifyPage() {
+  const { push } = useStackNavigation();
   const { name } = useOwnerKindergarten();
   const [inputName, setInputName] = useState('');
 
@@ -19,6 +22,7 @@ function ReleasePermissionVerifyPage() {
   const handleRelease = () => {
     if (!isMatched) return;
     // @todo 원장 권한 해제 API 연동
+    push({ pathname: route.roleConversion.releasePermission.complete.root });
   };
 
   return (

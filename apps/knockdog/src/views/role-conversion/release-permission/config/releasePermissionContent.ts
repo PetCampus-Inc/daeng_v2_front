@@ -20,6 +20,11 @@ export const releasePermissionContent = Object.freeze({
   verifyTitleLine2: '정확히 입력해 주세요',
   verifyInputPlaceholder: '이름을 입력해 주세요',
   releaseButtonLabel: '권한 해제하기',
+  completeTitleLine1: '유치원 운영 권한이',
+  completeTitleLine2: '해제됐어요',
+  completeImageSrc: '/images/img_comingsoon.png',
+  completeImageAlt: '운영 권한 해제 완료',
+  completeHomeButtonLabel: '홈으로 이동하기',
 });
 
 export const RELEASE_PERMISSION_REASON = {
