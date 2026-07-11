@@ -12,6 +12,10 @@ export const releasePermissionContent = Object.freeze({
   reasonEtcPlaceholder: '500자 이내로 입력해 주세요',
   reasonEtcMaxLength: 500,
   nextButtonLabel: '다음',
+  exitModalTitle: '저장하지 않고 나갈까요?',
+  exitModalDescription: '변경한 내용이 저장되지 않아요.',
+  exitModalCancelLabel: '닫기',
+  exitModalConfirmLabel: '나가기',
 });
 
 export const RELEASE_PERMISSION_REASON = {

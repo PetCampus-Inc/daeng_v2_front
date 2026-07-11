@@ -2,10 +2,22 @@
 
 import { useState } from 'react';
 
-import { ActionButton, RadioGroup, RadioGroupItem, Textarea, TextareaInput } from '@knockdog/ui';
-
-import { Header } from '@widgets/Header';
-import { useStackNavigation } from '@shared/lib/bridge';
+import {
+  ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  RadioGroup,
+  RadioGroupItem,
+  Textarea,
+  TextareaInput,
+} from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
 
 import {
   RELEASE_PERMISSION_REASON,
@@ -14,8 +26,12 @@ import {
   type ReleasePermissionReason,
 } from '@views/role-conversion/release-permission/config/releasePermissionContent';
 
+import { Header } from '@widgets/Header';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
+
 function ReleasePermissionReasonPage() {
-  const { back } = useStackNavigation();
+  const { replace } = useStackNavigation();
   const [selectedReason, setSelectedReason] = useState<ReleasePermissionReason | ''>('');
   const [etcReason, setEtcReason] = useState('');
 
@@ -23,14 +39,39 @@ function ReleasePermissionReasonPage() {
   const isNextEnabled = selectedReason !== '' && (!isEtc || etcReason.trim().length > 0);
 
   const handleNext = () => {
-    if (!isNextEnabled) return;
     // @todo 원장 권한 해제 API 연동 (선택 사유 전송)
+  };
+
+  const handleBackPress = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{releasePermissionContent.exitModalTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {releasePermissionContent.exitModalDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{releasePermissionContent.exitModalCancelLabel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                replace({ pathname: route.mypage.root });
+              }}
+            >
+              {releasePermissionContent.exitModalConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
   };
 
   return (
     <div className='flex h-full flex-col'>
       <Header>
-        <Header.BackButton />
+        <Header.BackButton onClick={handleBackPress} />
         <Header.Title>{releasePermissionContent.headerTitle}</Header.Title>
       </Header>
 
