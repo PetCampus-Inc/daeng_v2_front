@@ -13,11 +13,11 @@ function KindergartenRegisterAddressPage() {
     <div className='flex h-full flex-col pb-5'>
       <Header>
         <Header.BackButton />
-        <Header.Title>{kindergartenRegisterContent.addressLabel}</Header.Title>
+        <Header.Title>{kindergartenRegisterContent.addressRegisterHeaderTitle}</Header.Title>
       </Header>
 
       <div className='flex flex-1 flex-col overflow-hidden px-4 pt-4'>
-        <AddressPicker showLabel={false} onSelect={handleSelect} />
+        <AddressPicker showLabel onSelect={handleSelect} />
       </div>
     </div>
   );

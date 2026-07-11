@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Field, FieldLabel, Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { Field, FieldLabel, Icon, IconButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { highlightSpanText } from '../lib/renderHighlightText';
@@ -14,12 +14,17 @@ interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect
 }
 
 export function AddressPicker({ className, value, onSelect, showLabel = true, ...props }: AddressPickerProps) {
-  const { addressList, inputValue, isSelected, handleSelect, handleChange } = useAddressPicker({
+  const { addressList, inputValue, isSelected, handleSelect, handleChange, handleClear } = useAddressPicker({
     value,
     onSelect,
   });
 
   const isEmpty = inputValue === '' || isSelected;
+
+  const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    handleClear();
+  };
 
   return (
     <div className={cn('flex h-full flex-col gap-4', className)} {...props}>
@@ -27,7 +32,21 @@ export function AddressPicker({ className, value, onSelect, showLabel = true, ..
       <Field>
         {showLabel && <FieldLabel>주소</FieldLabel>}
 
-        <TextField prefix={<Icon icon='Search' />} variant='secondary'>
+        <TextField
+          prefix={<Icon icon='Search' className='size-x6' />}
+          variant='secondary'
+          suffix={
+            inputValue ? (
+              <IconButton
+                type='button'
+                icon='DeleteInput'
+                iconClassName='size-x5 text-primitive-neutral-700'
+                onClick={handleClearClick}
+                aria-label='검색어 삭제'
+              />
+            ) : undefined
+          }
+        >
           <TextFieldInput value={inputValue} onChange={handleChange} placeholder='시/군/구 혹은 도로명 검색' />
         </TextField>
       </Field>

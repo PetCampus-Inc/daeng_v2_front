@@ -46,6 +46,11 @@ const useAddressPicker = ({ value, onSelect }: UseAddressPickerOptions) => {
     setIsSelected(false);
   };
 
+  const handleClear = () => {
+    setInputValue('');
+    setIsSelected(false);
+  };
+
   useEffect(() => {
     if (value) {
       setIsSelected(true);
@@ -59,6 +64,7 @@ const useAddressPicker = ({ value, onSelect }: UseAddressPickerOptions) => {
     isSelected,
     handleSelect,
     handleChange,
+    handleClear,
   };
 };
 

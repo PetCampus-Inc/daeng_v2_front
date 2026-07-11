@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, ProgressBar, TextField, TextFieldInput } from '@knockdog/ui';
+import { Field, FieldLabel, Icon, ProgressBar, TextField, TextFieldInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 
 import { roleConversionProgress } from '@views/role-conversion/config/roleConversionProgress';
@@ -45,19 +45,25 @@ function KindergartenSearchPage() {
             {kindergartenSearchContent.titleLine2}
           </h1>
 
-          <div className='relative min-w-0'>
-            <TextField
-              prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-              className='bg-fill-secondary-50 h-x12 min-w-0 border-0'
-            >
-              <TextFieldInput
-                type='search'
-                placeholder={kindergartenSearchContent.searchPlaceholder}
-                aria-label='유치원 검색어 입력'
-                autoFocus
-                value={query}
-                onChange={(e) => handleQueryChange(e.target.value)}
-              />
+          <Field className='flex-col gap-2'>
+            <FieldLabel className='body2-bold text-text-primary w-fit'>
+              {kindergartenSearchContent.addressLabel}
+            </FieldLabel>
+
+            <div className='relative min-w-0'>
+              <TextField
+                prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
+                className='bg-fill-secondary-50 h-x12 min-w-0 border-0'
+              >
+                <TextFieldInput
+                  type='search'
+                  placeholder={kindergartenSearchContent.searchPlaceholder}
+                  aria-label='유치원 검색어 입력'
+                  autoFocus
+                  value={query}
+                  onChange={(e) => handleQueryChange(e.target.value)}
+                />
+              </TextField>
               {query && (
                 <button
                   type='button'
@@ -71,8 +77,8 @@ function KindergartenSearchPage() {
                   <Icon icon='DeleteInput' className='size-x5 text-primitive-neutral-700' />
                 </button>
               )}
-            </TextField>
-          </div>
+            </div>
+          </Field>
 
           {!hasQuery && <KindergartenSearchHint />}
           {isSearchEmpty && <KindergartenSearchEmptyResult />}

@@ -62,7 +62,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 {kindergartenRegisterContent.nameLabel}
                 <FieldLabelIndicator type='required' className='ml-0' />
               </FieldLabel>
-              <TextField>
+              <TextField className='h-x13'>
                 <TextFieldInput
                   placeholder={kindergartenRegisterContent.namePlaceholder}
                   value={form.name}
@@ -85,6 +85,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 >
                   <TextField
                     variant='secondary'
+                    className='h-x13'
                     prefix={<Icon icon='Search' className='text-text-tertiary' />}
                     suffix={
                       form.address ? (
@@ -110,7 +111,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                   </TextField>
                 </button>
               ) : (
-                <TextField>
+                <TextField className='h-x13'>
                   <TextFieldInput
                     placeholder={kindergartenRegisterContent.addressPlaceholder}
                     value={form.address}
@@ -125,7 +126,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 {kindergartenRegisterContent.numberLabel}
                 <FieldLabelIndicator type='required' className='ml-0' />
               </FieldLabel>
-              <TextField>
+              <TextField className='h-x13'>
                 <TextFieldInput
                   inputMode='tel'
                   placeholder={kindergartenRegisterContent.numberPlaceholder}
@@ -140,7 +141,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 {kindergartenRegisterContent.ownerNameLabel}
                 <FieldLabelIndicator type='required' className='ml-0' />
               </FieldLabel>
-              <TextField>
+              <TextField className='h-x13'>
                 <TextFieldInput
                   type='text'
                   placeholder={kindergartenRegisterContent.ownerNamePlaceholder}
@@ -155,7 +156,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 {kindergartenRegisterContent.phoneLabel}
                 <FieldLabelIndicator type='required' className='ml-0' />
               </FieldLabel>
-              <TextField>
+              <TextField className='h-x13'>
                 <TextFieldInput
                   inputMode='tel'
                   placeholder={kindergartenRegisterContent.phonePlaceholder}
