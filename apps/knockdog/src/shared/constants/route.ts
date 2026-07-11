@@ -118,6 +118,10 @@ const route = {
       /** 관리자 전환 - 원장 권한 인증 완료 */
       root: '/role-conversion/complete',
     },
+    releasePermission: {
+      /** 관리자 전환 - 원장 권한 해제 */
+      root: '/role-conversion/release-permission',
+    },
   },
 };
 

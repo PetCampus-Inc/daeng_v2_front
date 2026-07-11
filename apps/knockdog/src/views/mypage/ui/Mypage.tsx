@@ -181,12 +181,14 @@ function Mypage() {
                 releasePermissionLabel={
                   isOwnerVerified ? ownerMypageContent.releasePermissionLabel : undefined
                 }
-                releasePermissionPendingNotice={ownerMypageContent.releasePermissionPendingNotice}
                 headerAddon={
                   !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
                 }
                 onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
                 onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+                onReleasePermissionClick={() =>
+                  push({ pathname: route.roleConversion.releasePermission.root })
+                }
               />
             </div>
 
