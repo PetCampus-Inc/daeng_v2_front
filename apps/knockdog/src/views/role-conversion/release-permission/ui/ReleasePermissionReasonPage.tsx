@@ -18,9 +18,11 @@ import {
   TextareaInput,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { useSearchParams } from 'next/navigation';
 
 import {
   RELEASE_PERMISSION_REASON,
+  RELEASE_PERMISSION_SOURCE_QUERY_KEY,
   releasePermissionContent,
   releasePermissionReasonOptions,
   type ReleasePermissionReason,
@@ -32,6 +34,8 @@ import { route } from '@shared/constants/route';
 
 function ReleasePermissionReasonPage() {
   const { push, replace } = useStackNavigation();
+  const searchParams = useSearchParams();
+  const source = searchParams.get(RELEASE_PERMISSION_SOURCE_QUERY_KEY);
   const [selectedReason, setSelectedReason] = useState<ReleasePermissionReason | ''>('');
   const [etcReason, setEtcReason] = useState('');
 
@@ -41,7 +45,10 @@ function ReleasePermissionReasonPage() {
   const handleNext = () => {
     if (!isNextEnabled) return;
     // @todo 선택 사유(selectedReason, etcReason) 전달/저장
-    push({ pathname: route.roleConversion.releasePermission.verify.root });
+    push({
+      pathname: route.roleConversion.releasePermission.verify.root,
+      ...(source && { query: { [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: source } }),
+    });
   };
 
   const handleBackPress = () => {

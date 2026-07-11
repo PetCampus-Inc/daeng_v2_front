@@ -3,10 +3,15 @@
 import { useState } from 'react';
 
 import { ActionButton, IconButton, TextField, TextFieldInput } from '@knockdog/ui';
+import { useSearchParams } from 'next/navigation';
 
 import { useOwnerKindergarten } from '@features/role-conversion';
 
-import { releasePermissionContent } from '@views/role-conversion/release-permission/config/releasePermissionContent';
+import {
+  RELEASE_PERMISSION_SOURCE,
+  RELEASE_PERMISSION_SOURCE_QUERY_KEY,
+  releasePermissionContent,
+} from '@views/role-conversion/release-permission/config/releasePermissionContent';
 
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -14,6 +19,8 @@ import { route } from '@shared/constants/route';
 
 function ReleasePermissionVerifyPage() {
   const { push } = useStackNavigation();
+  const searchParams = useSearchParams();
+  const source = searchParams.get(RELEASE_PERMISSION_SOURCE_QUERY_KEY);
   const { name } = useOwnerKindergarten();
   const [inputName, setInputName] = useState('');
 
@@ -22,6 +29,13 @@ function ReleasePermissionVerifyPage() {
   const handleRelease = () => {
     if (!isMatched) return;
     // @todo 원장 권한 해제 API 연동
+
+    // 탈퇴 플로우에서 진입한 경우 회원 탈퇴 분기 페이지로 이동
+    if (source === RELEASE_PERMISSION_SOURCE.WITHDRAW) {
+      push({ pathname: route.roleConversion.releasePermission.withdraw.root });
+      return;
+    }
+
     push({ pathname: route.roleConversion.releasePermission.complete.root });
   };
 

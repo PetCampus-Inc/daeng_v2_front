@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 import { ActionButton } from '@knockdog/ui';
 
@@ -8,17 +9,25 @@ import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 
-import { releasePermissionContent } from '@views/role-conversion/release-permission/config/releasePermissionContent';
+import {
+  RELEASE_PERMISSION_SOURCE_QUERY_KEY,
+  releasePermissionContent,
+} from '@views/role-conversion/release-permission/config/releasePermissionContent';
 
 function ReleasePermissionPage() {
   const { back, push } = useStackNavigation();
+  const searchParams = useSearchParams();
+  const source = searchParams.get(RELEASE_PERMISSION_SOURCE_QUERY_KEY);
 
   const handleCancel = () => {
     back();
   };
 
   const handleConfirm = () => {
-    push({ pathname: route.roleConversion.releasePermission.reason.root });
+    push({
+      pathname: route.roleConversion.releasePermission.reason.root,
+      ...(source && { query: { [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: source } }),
+    });
   };
 
   return (
