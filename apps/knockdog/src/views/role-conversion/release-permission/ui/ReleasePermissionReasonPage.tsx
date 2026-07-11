@@ -31,7 +31,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 
 function ReleasePermissionReasonPage() {
-  const { replace } = useStackNavigation();
+  const { push, replace } = useStackNavigation();
   const [selectedReason, setSelectedReason] = useState<ReleasePermissionReason | ''>('');
   const [etcReason, setEtcReason] = useState('');
 
@@ -39,7 +39,9 @@ function ReleasePermissionReasonPage() {
   const isNextEnabled = selectedReason !== '' && (!isEtc || etcReason.trim().length > 0);
 
   const handleNext = () => {
-    // @todo 원장 권한 해제 API 연동 (선택 사유 전송)
+    if (!isNextEnabled) return;
+    // @todo 선택 사유(selectedReason, etcReason) 전달/저장
+    push({ pathname: route.roleConversion.releasePermission.verify.root });
   };
 
   const handleBackPress = () => {

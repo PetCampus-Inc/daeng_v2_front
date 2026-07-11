@@ -125,6 +125,10 @@ const route = {
         /** 관리자 전환 - 원장 권한 해제 사유 선택 */
         root: '/role-conversion/release-permission/reason',
       },
+      verify: {
+        /** 관리자 전환 - 원장 권한 해제 유치원명 확인 */
+        root: '/role-conversion/release-permission/verify',
+      },
     },
   },
 };

@@ -16,6 +16,10 @@ export const releasePermissionContent = Object.freeze({
   exitModalDescription: '변경한 내용이 저장되지 않아요.',
   exitModalCancelLabel: '닫기',
   exitModalConfirmLabel: '나가기',
+  verifyTitleLine1: '아래 유치원명을',
+  verifyTitleLine2: '정확히 입력해 주세요',
+  verifyInputPlaceholder: '이름을 입력해 주세요',
+  releaseButtonLabel: '권한 해제하기',
 });
 
 export const RELEASE_PERMISSION_REASON = {
