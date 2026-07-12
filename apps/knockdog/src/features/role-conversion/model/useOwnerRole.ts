@@ -48,7 +48,7 @@ function useOwnerRole(): OwnerRoleState {
   const user = useUserStore((state) => state.user);
   const isLoggedIn = !!user;
 
-  const { data, isFetched } = useOwnerRoleQuery({
+  const { data, isSuccess } = useOwnerRoleQuery({
     userId: user?.userId,
     enabled: isLoggedIn,
   });
@@ -60,7 +60,8 @@ function useOwnerRole(): OwnerRoleState {
     schoolId: data?.schoolId ?? null,
     kindergarten: isOwner && data ? toKindergarten(data) : null,
     owner: isOwner && data ? toOwner(data) : null,
-    isResolved: !isLoggedIn || isFetched,
+    // 조회 성공 시에만 resolved 처리 — 실패(에러) 상태에서는 가드가 조기 리다이렉트하지 않도록 false 유지
+    isResolved: !isLoggedIn || isSuccess,
   };
 }
 
