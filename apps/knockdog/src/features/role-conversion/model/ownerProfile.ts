@@ -1,4 +1,3 @@
-import { updateOwnerKindergartenName } from './ownerKindergarten';
 import type { OwnerProfile } from './ownerProfile.types';
 
 import { STORAGE_KEYS } from '@shared/constants/storage';
@@ -81,7 +80,6 @@ function saveOwnerProfile(profile: OwnerProfile) {
   localStorage.setItem(STORAGE_KEYS.OWNER_PROFILE, raw);
   cachedOwnerProfileRaw = raw;
   cachedOwnerProfileSnapshot = profile;
-  updateOwnerKindergartenName(profile.name);
   notifyOwnerProfileChange();
 }
 

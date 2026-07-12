@@ -1,5 +1,11 @@
 /** API */
-export { postWithdraw, getOwnerRole, type WithdrawRequest, type OwnerRole } from './api/user';
+export {
+  postWithdraw,
+  getOwnerRole,
+  type WithdrawRequest,
+  type OwnerRole,
+  type OwnerKindergartenType,
+} from './api/user';
 export {
   useUserRegisterMutation,
   useUserUpdateNicknameMutation,

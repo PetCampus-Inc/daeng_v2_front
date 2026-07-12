@@ -4,7 +4,6 @@ import { useMutation } from '@tanstack/react-query';
 
 import { clearSession } from '@entities/owner-verification';
 import { OWNER_ROLE_QUERY_KEY } from '@entities/user';
-import { saveOwnerKindergartenFromVerification } from '@features/role-conversion';
 import { getQueryClient } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { EXTERNAL_LINKS } from '@shared/constants';
@@ -26,13 +25,9 @@ function useResultPage() {
 
   const { mutate: retrySubmit, isPending: isRetryPending } = useMutation({
     mutationFn: submitOwnerVerification,
-    onSuccess: (kindergarten) => {
-      if (kindergarten) {
-        saveOwnerKindergartenFromVerification(kindergarten);
-      }
-
+    onSuccess: () => {
       clearSession();
-      // 원장 권한 확인 API 재조회 → 마이페이지가 즉시 원장 상태로 전환
+      // 원장 권한 확인 API 재조회 → 마이페이지가 즉시 원장 상태/유치원 정보로 전환
       getQueryClient().invalidateQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] });
       replace({
         pathname: route.roleConversion.complete.root,

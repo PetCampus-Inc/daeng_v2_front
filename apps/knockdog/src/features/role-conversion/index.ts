@@ -4,11 +4,6 @@ export { useOwnerRole, type OwnerRoleState } from './model/useOwnerRole';
 export { useIsOwnerVerified } from './model/useIsOwnerVerified';
 export { useOwnerKindergarten } from './model/useOwnerKindergarten';
 export { useOwnerProfile } from './model/useOwnerProfile';
-export {
-  loadOwnerKindergarten,
-  saveOwnerKindergartenFromVerification,
-  type OwnerKindergarten,
-} from './model/ownerKindergarten';
 export { saveOwnerProfile, type OwnerProfile } from './model/ownerProfile';
 export { OwnerKindergartenCard, type OwnerKindergartenCardProps } from './ui/OwnerKindergartenCard';
 export { OwnerProfileDetailInfo, type OwnerProfileDetailInfoProps } from './ui/OwnerProfileDetailInfo';
