@@ -1,6 +1,7 @@
 import type { OwnerProfile } from './ownerProfile.types';
 
 import { STORAGE_KEYS } from '@shared/constants/storage';
+import { eventBus } from '@shared/utils';
 
 const ownerProfileListeners = new Set<() => void>();
 
@@ -83,5 +84,18 @@ function saveOwnerProfile(profile: OwnerProfile) {
   notifyOwnerProfileChange();
 }
 
+function clearOwnerProfile() {
+  if (typeof window === 'undefined') return;
+
+  localStorage.removeItem(STORAGE_KEYS.OWNER_PROFILE);
+  cachedOwnerProfileRaw = null;
+  cachedOwnerProfileSnapshot = null;
+  notifyOwnerProfileChange();
+}
+
+// 로그아웃 시 로컬 수정값 제거 
+// (원장 본인 이름/전화번호는 재로그인 시 owner-role 응답으로 복원됨)
+eventBus.subscribe('auth:logout', clearOwnerProfile);
+
 export type { OwnerProfile } from './ownerProfile.types';
-export { getOwnerProfileSnapshot, saveOwnerProfile, subscribeOwnerProfile };
+export { clearOwnerProfile, getOwnerProfileSnapshot, saveOwnerProfile, subscribeOwnerProfile };
