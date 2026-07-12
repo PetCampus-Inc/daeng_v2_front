@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
+import { IconButton, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -40,14 +40,13 @@ function OwnerVerificationEntry({ requiresLogin = true }: OwnerVerificationEntry
           </TooltipContent>
         </Tooltip>
       </div>
-      <button
+      <IconButton
         type='button'
-        className='text-text-tertiary flex shrink-0 items-center'
+        icon='ChevronRight'
+        className='text-text-tertiary shrink-0'
         onClick={handleClick}
         aria-label='원장 인증하기'
-      >
-        <Icon icon='ChevronRight' className='size-6' aria-hidden />
-      </button>
+      />
     </div>
   );
 }

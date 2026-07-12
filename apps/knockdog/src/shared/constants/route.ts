@@ -118,7 +118,34 @@ const route = {
       /** 관리자 전환 - 원장 권한 인증 완료 */
       root: '/role-conversion/complete',
     },
+    releasePermission: {
+      /** 관리자 전환 - 원장 권한 해제 */
+      root: '/role-conversion/release-permission',
+      reason: {
+        /** 관리자 전환 - 원장 권한 해제 사유 선택 */
+        root: '/role-conversion/release-permission/reason',
+      },
+      verify: {
+        /** 관리자 전환 - 원장 권한 해제 유치원명 확인 */
+        root: '/role-conversion/release-permission/verify',
+      },
+      complete: {
+        /** 관리자 전환 - 원장 권한 해제 완료 */
+        root: '/role-conversion/release-permission/complete',
+      },
+      withdraw: {
+        /** 관리자 전환 - 권한 해제 후 회원 탈퇴 분기 */
+        root: '/role-conversion/release-permission/withdraw',
+      },
+    },
   },
 };
 
-export { route };
+/** 원장 권한 해제 플로우 진입 출처 (탈퇴 플로우 분기 판별용) */
+const RELEASE_PERMISSION_SOURCE = {
+  WITHDRAW: 'withdraw',
+} as const;
+
+const RELEASE_PERMISSION_SOURCE_QUERY_KEY = 'source';
+
+export { RELEASE_PERMISSION_SOURCE, RELEASE_PERMISSION_SOURCE_QUERY_KEY, route };

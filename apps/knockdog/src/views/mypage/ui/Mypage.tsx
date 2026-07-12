@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
+import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
@@ -25,7 +25,11 @@ import { useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { useAppVersion } from '@shared/lib/device';
-import { route } from '@shared/constants/route';
+import {
+  route,
+  RELEASE_PERMISSION_SOURCE,
+  RELEASE_PERMISSION_SOURCE_QUERY_KEY,
+} from '@shared/constants/route';
 
 const EXTERNAL_LINKS = {
   NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
@@ -94,6 +98,48 @@ function Mypage() {
               }}
             >
               예
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
+  const handleWithdrawClick = () => {
+    if (!isOwnerVerified) {
+      push({ pathname: '/withdraw/confirm' });
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {ownerMypageContent.withdrawBlockedModalTitleLine1}
+              <br />
+              {ownerMypageContent.withdrawBlockedModalTitleLine2}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerMypageContent.withdrawBlockedModalDescriptionLine1}
+              <br />
+              {ownerMypageContent.withdrawBlockedModalDescriptionLine2}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              className='bg-fill-secondary-700 active:bg-fill-secondary-400'
+              onClick={() => {
+                close();
+                push({
+                  pathname: route.roleConversion.releasePermission.root,
+                  query: {
+                    [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: RELEASE_PERMISSION_SOURCE.WITHDRAW,
+                  },
+                });
+              }}
+            >
+              {ownerMypageContent.withdrawBlockedModalConfirmLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -181,12 +227,14 @@ function Mypage() {
                 releasePermissionLabel={
                   isOwnerVerified ? ownerMypageContent.releasePermissionLabel : undefined
                 }
-                releasePermissionPendingNotice={ownerMypageContent.releasePermissionPendingNotice}
                 headerAddon={
                   !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
                 }
                 onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
                 onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+                onReleasePermissionClick={() =>
+                  push({ pathname: route.roleConversion.releasePermission.root })
+                }
               />
             </div>
 
@@ -209,7 +257,7 @@ function Mypage() {
           onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
           onUpdateClick={openStore}
           onLogoutClick={handleLogout}
-          onWithdrawClick={() => push({ pathname: '/withdraw/confirm' })}
+          onWithdrawClick={handleWithdrawClick}
         />
       </div>
     </div>

@@ -13,10 +13,10 @@ interface AccountSectionProps {
   accountInfo?: AccountInfo;
   accountSectionTitle?: string;
   releasePermissionLabel?: string;
-  releasePermissionPendingNotice?: string;
   headerAddon?: ReactNode;
   onAccountClick?: () => void;
   onLocationClick?: () => void;
+  onReleasePermissionClick?: () => void;
 }
 
 function AccountSection({
@@ -24,10 +24,10 @@ function AccountSection({
   accountInfo,
   accountSectionTitle = '내 계정',
   releasePermissionLabel,
-  releasePermissionPendingNotice,
   headerAddon,
   onAccountClick,
   onLocationClick,
+  onReleasePermissionClick,
 }: AccountSectionProps) {
   const socialUser = useSocialUserStore((state) => state.socialUser);
 
@@ -48,8 +48,7 @@ function AccountSection({
             type='button'
             variant='secondaryLine'
             className='w-full'
-            disabled
-            title={releasePermissionPendingNotice}
+            onClick={onReleasePermissionClick}
           >
             {releasePermissionLabel}
           </ActionButton>
