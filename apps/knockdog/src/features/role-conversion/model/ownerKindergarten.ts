@@ -6,6 +6,7 @@ interface OwnerKindergarten {
   name: string;
   address: string;
   ownerName?: string;
+  phoneNumber?: string;
 }
 
 const ownerKindergartenListeners = new Set<() => void>();
@@ -23,7 +24,8 @@ function isOwnerKindergarten(value: unknown): value is OwnerKindergarten {
     (record.placeId === undefined || typeof record.placeId === 'string') &&
     typeof record.name === 'string' &&
     typeof record.address === 'string' &&
-    (record.ownerName === undefined || typeof record.ownerName === 'string')
+    (record.ownerName === undefined || typeof record.ownerName === 'string') &&
+    (record.phoneNumber === undefined || typeof record.phoneNumber === 'string')
   );
 }
 
@@ -103,6 +105,7 @@ function saveOwnerKindergartenFromVerification(info: {
   name: string;
   address: string;
   ownerName: string;
+  phoneNumber: string;
 }) {
   saveOwnerKindergarten({
     source: info.source,
@@ -110,6 +113,7 @@ function saveOwnerKindergartenFromVerification(info: {
     name: info.name,
     address: info.address,
     ownerName: info.ownerName,
+    phoneNumber: info.phoneNumber,
   });
 }
 

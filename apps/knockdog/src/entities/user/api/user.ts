@@ -45,13 +45,25 @@ const postUpdateUserEmail = async (userEmail: string) => {
   return await api.post(`mypage/updateInfoRcvEmail`, { json: { userEmail } }).json<ApiResponse<void>>();
 };
 
+interface OwnerRole {
+  isOwner: boolean;
+  schoolId: number | null;
+}
+
+/** `GET` - 원장 권한 확인 API (로그인 세션 기준으로 원장 여부/유치원 조회) */
+const getOwnerRole = async () => {
+  return await api.get(`user/owner-role`).json<ApiResponse<OwnerRole>>();
+};
+
 export {
   type RegisterUserRequest,
   type WithdrawRequest,
   type UserInfo,
+  type OwnerRole,
   postRegisterUser,
   postWithdraw,
   getUserInfo,
   postUpdateUserNickname,
   postUpdateUserEmail,
+  getOwnerRole,
 };

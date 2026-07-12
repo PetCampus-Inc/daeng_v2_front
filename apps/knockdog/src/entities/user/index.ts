@@ -1,5 +1,5 @@
 /** API */
-export { postWithdraw, type WithdrawRequest } from './api/user';
+export { postWithdraw, getOwnerRole, type WithdrawRequest, type OwnerRole } from './api/user';
 export {
   useUserRegisterMutation,
   useUserUpdateNicknameMutation,
@@ -11,7 +11,12 @@ export {
   useDeleteUserAddressMutation,
   useUpdateUserAddressesMutation,
 } from './api/useAddressMutation';
-export { useUserInfoQuery } from './api/useUserQuery';
+export {
+  useUserInfoQuery,
+  useOwnerRoleQuery,
+  OWNER_ROLE_QUERY_KEY,
+  ownerRoleQueryKey,
+} from './api/useUserQuery';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';
 export { type PushSetting } from './api/pushSetting';

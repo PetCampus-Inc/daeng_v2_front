@@ -6,22 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import { getKindergartenMain } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
 
-import { OWNER_MYPAGE_KINDERGARTEN_STUB } from './ownerMypageStub';
-import { OWNER_VERIFIED_STUB } from '../config/roleConversionVisibility';
-import {
-  loadOwnerKindergarten,
-  subscribeOwnerKindergarten,
-  type OwnerKindergarten,
-} from './ownerKindergarten';
+import { loadOwnerKindergarten, subscribeOwnerKindergarten } from './ownerKindergarten';
 
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
-
-function getOwnerKindergartenSnapshot(): OwnerKindergarten | null {
-  // 원장 인증 API 미연동 — UI 확인용 stub (roleConversionVisibility.ts)
-  if (OWNER_VERIFIED_STUB) return OWNER_MYPAGE_KINDERGARTEN_STUB;
-
-  return loadOwnerKindergarten();
-}
 
 interface UseOwnerKindergartenOptions {
   enabled?: boolean;
@@ -30,8 +17,8 @@ interface UseOwnerKindergartenOptions {
 function useOwnerKindergarten({ enabled = true }: UseOwnerKindergartenOptions = {}) {
   const ownerKindergarten = useSyncExternalStore(
     subscribeOwnerKindergarten,
-    getOwnerKindergartenSnapshot,
-    () => (OWNER_VERIFIED_STUB ? OWNER_MYPAGE_KINDERGARTEN_STUB : null)
+    loadOwnerKindergarten,
+    () => null
   );
 
   const { coord } = useBasePoint();
@@ -40,10 +27,7 @@ function useOwnerKindergarten({ enabled = true }: UseOwnerKindergartenOptions = 
   const isCoordReady = Boolean(coord && coord.lng != null && coord.lat != null);
   const placeId = ownerKindergarten?.placeId ?? '';
   const shouldFetchMainImage =
-    enabled &&
-    !OWNER_VERIFIED_STUB &&
-    ownerKindergarten?.source === 'search' &&
-    Boolean(placeId);
+    enabled && ownerKindergarten?.source === 'search' && Boolean(placeId);
 
   const { data: bannerPath } = useQuery({
     queryKey: ['owner-kindergarten-banner', placeId, { lat, lng }],
@@ -78,6 +62,7 @@ function useOwnerKindergarten({ enabled = true }: UseOwnerKindergartenOptions = 
     name: ownerKindergarten?.name ?? '',
     address: ownerKindergarten?.address ?? '',
     ownerName: ownerKindergarten?.ownerName ?? '',
+    ownerPhoneNumber: ownerKindergarten?.phoneNumber ?? '',
   };
 }
 
