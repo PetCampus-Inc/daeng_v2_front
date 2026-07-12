@@ -45,13 +45,33 @@ const postUpdateUserEmail = async (userEmail: string) => {
   return await api.post(`mypage/updateInfoRcvEmail`, { json: { userEmail } }).json<ApiResponse<void>>();
 };
 
+type OwnerKindergartenType = 'MANUAL' | 'SELECTED';
+
+interface OwnerRole {
+  isOwner: boolean;
+  kindergartenType: OwnerKindergartenType | null;
+  schoolId: number | null;
+  kindergartenName: string | null;
+  kindergartenAddress: string | null;
+  representativeName: string | null;
+  representativePhoneNumber: string | null;
+}
+
+/** `GET` - 원장 권한 확인 API (로그인 세션 기준으로 원장 여부 + 유치원/대표자 상세 조회) */
+const getOwnerRole = async () => {
+  return await api.get(`user/owner-role`).json<ApiResponse<OwnerRole>>();
+};
+
 export {
   type RegisterUserRequest,
   type WithdrawRequest,
   type UserInfo,
+  type OwnerRole,
+  type OwnerKindergartenType,
   postRegisterUser,
   postWithdraw,
   getUserInfo,
   postUpdateUserNickname,
   postUpdateUserEmail,
+  getOwnerRole,
 };

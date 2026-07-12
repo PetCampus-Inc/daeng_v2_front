@@ -54,6 +54,7 @@ function useKindergartenConfirmPage() {
         name: kindergartenInfo.name,
         address: kindergartenInfo.address,
         ownerName: kindergartenInfo.ownerName,
+        phoneNumber: kindergartenInfo.phoneNumber,
       });
       proceedToBusinessVerification();
     },
@@ -72,6 +73,7 @@ function useKindergartenConfirmPage() {
         name: kindergartenInfo.name,
         address: kindergartenInfo.address,
         ownerName: kindergartenInfo.ownerName,
+        phoneNumber: kindergartenInfo.phoneNumber,
       });
       proceedToBusinessVerification();
     },

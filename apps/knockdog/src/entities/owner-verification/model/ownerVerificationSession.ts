@@ -8,6 +8,7 @@ interface VerificationKindergartenSnapshot {
   name: string;
   address: string;
   ownerName: string;
+  phoneNumber: string;
 }
 
 interface VerificationSession {
@@ -27,7 +28,8 @@ function isKindergartenSnapshot(value: unknown): value is VerificationKindergart
     (record.placeId === undefined || typeof record.placeId === 'string') &&
     typeof record.name === 'string' &&
     typeof record.address === 'string' &&
-    typeof record.ownerName === 'string'
+    typeof record.ownerName === 'string' &&
+    typeof record.phoneNumber === 'string'
   );
 }
 

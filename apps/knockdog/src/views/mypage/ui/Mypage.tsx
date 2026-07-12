@@ -43,8 +43,8 @@ function Mypage() {
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
   const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
-    useOwnerKindergarten({ enabled: isOwnerVerified });
-  const { profile } = useOwnerProfile({ enabled: isOwnerVerified });
+    useOwnerKindergarten();
+  const { profile } = useOwnerProfile();
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
