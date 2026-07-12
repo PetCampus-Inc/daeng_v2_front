@@ -15,6 +15,7 @@ function ReleasePermissionCompletePage() {
 
   const handleGoHome = () => {
     // @todo 보호자 홈 화면 구현 후 해당 경로로 이동 (현재 미구현으로 임시 마이페이지 이동)
+    //보호자 홈은 기존 일반 유저 마이페이지 경로와 동일하게 처리
     reset(route.mypage.root);
   };
 
