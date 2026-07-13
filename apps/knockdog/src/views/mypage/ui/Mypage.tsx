@@ -42,7 +42,7 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
-  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
@@ -74,9 +74,7 @@ function Mypage() {
   };
 
   const handleKindergartenClick = () => {
-    if (!kindergartenId) return;
-
-    push({ pathname: `/kindergarten/${kindergartenId}` });
+    push({ pathname: route.mypage.kindergarten.root });
   };
 
   const handleLogout = () => {

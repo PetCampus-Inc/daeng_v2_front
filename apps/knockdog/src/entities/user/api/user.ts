@@ -51,6 +51,8 @@ interface OwnerRole {
   isOwner: boolean;
   kindergartenType: OwnerKindergartenType | null;
   schoolId: number | null;
+  /** 유치원 place id. SELECTED 유치원 basic API(`kindergarten/basic/{id}`) 조회 키. schoolId와 별개 */
+  kindergartenId: number | null;
   kindergartenName: string | null;
   kindergartenAddress: string | null;
   representativeName: string | null;
