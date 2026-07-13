@@ -43,7 +43,7 @@ function toOwner(data: OwnerRole): OwnerProfileInfo {
 }
 
 /**
- * BE `GET /user/owner-role` 기준으로 원장 권한 상태 + 유치원/대표자 상세를 조회.
+ * BE `GET /owner/role` 기준으로 원장 권한 상태 + 유치원/대표자 상세를 조회.
  * 로그인 세션에 종속되며, 유저별로 캐시가 분리되어 계정 전환 시 이전 원장 상태가 남지 않음.
  */
 function useOwnerRole(): OwnerRoleState {

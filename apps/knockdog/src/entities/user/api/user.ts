@@ -61,7 +61,7 @@ interface OwnerRole {
 
 /** `GET` - 원장 권한 확인 API (로그인 세션 기준으로 원장 여부 + 유치원/대표자 상세 조회) */
 const getOwnerRole = async () => {
-  return await api.get(`user/owner-role`).json<ApiResponse<OwnerRole>>();
+  return await api.get(`owner/role`).json<ApiResponse<OwnerRole>>();
 };
 
 export {
