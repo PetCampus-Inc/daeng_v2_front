@@ -1,20 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Divider, Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
 import Image from 'next/image';
+import { MANUAL_STUB_BASIC, MANUAL_STUB_PHONE } from '@views/mypage-owner-kindergarten-page/model/manualKindergartenStub';
 
 import { Header } from '@widgets/Header';
 import { PricingSection } from '@widgets/kindergarten-tabs';
 import {
-  ExternalLinksCard,
-  LocationMap,
   OperationHoursCard,
   ServiceTagBadge,
   useKindergartenBasicQuery,
 } from '@features/kindergarten-basic';
 import { ownerMypageContent, useOwnerKindergarten } from '@features/role-conversion';
-import { SERVICE_ICON_MAP } from '@entities/kindergarten';
+import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten';
 import { SafeArea } from '@shared/ui/safe-area';
 
 const TAB = {
@@ -45,14 +44,15 @@ function InfoRow({ label, value }: InfoRowProps) {
 interface BasicInfoCardProps {
   name: string;
   address: string;
+  // 전화번호는 basic 응답에 없어 기본 미확인. (stub 확인용으로만 주입)
+  phone?: string;
 }
 
-function BasicInfoCard({ name, address }: BasicInfoCardProps) {
+function BasicInfoCard({ name, address, phone = '' }: BasicInfoCardProps) {
   const rows: InfoRowProps[] = [
     { label: ownerMypageContent.kindergartenNameLabel, value: name },
     { label: ownerMypageContent.kindergartenAddressLabel, value: address },
-    // 전화번호는 basic 응답에 없어 미확인 처리.
-    { label: ownerMypageContent.kindergartenPhoneLabel, value: '' },
+    { label: ownerMypageContent.kindergartenPhoneLabel, value: phone },
   ];
 
   return (
@@ -72,6 +72,28 @@ function BasicInfoCard({ name, address }: BasicInfoCardProps) {
   );
 }
 
+interface SectionBlockProps {
+  title: string;
+  children: ReactNode;
+}
+
+function SectionBlock({ title, children }: SectionBlockProps) {
+  return (
+    <div>
+      <div className='mb-3'>
+        <span className='body1-bold'>{title}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SectionNoData() {
+  return (
+    <span className='body1-regular text-text-tertiary'>{ownerMypageContent.noConfirmedInfoText}</span>
+  );
+}
+
 interface ServiceGroupProps {
   title: string;
   codes?: Parameters<typeof ServiceTagBadge>[0]['code'][];
@@ -79,17 +101,90 @@ interface ServiceGroupProps {
 
 function ServiceGroup({ title, codes }: ServiceGroupProps) {
   const visibleCodes = codes?.filter((code) => SERVICE_ICON_MAP[code]) ?? [];
-  if (visibleCodes.length === 0) return null;
 
   return (
-    <div>
-      <div className='mb-3'>
-        <span className='body1-bold'>{title}</span>
-      </div>
-      <div className='grid grid-cols-4 gap-3'>
-        {visibleCodes.map((code) => (
-          <ServiceTagBadge key={code} code={code} />
-        ))}
+    <SectionBlock title={title}>
+      {visibleCodes.length > 0 ? (
+        <div className='grid grid-cols-4 gap-3'>
+          {visibleCodes.map((code) => (
+            <ServiceTagBadge key={code} code={code} />
+          ))}
+        </div>
+      ) : (
+        <SectionNoData />
+      )}
+    </SectionBlock>
+  );
+}
+
+interface LinkRowProps {
+  label: string;
+  value?: string;
+}
+
+function LinkRow({ label, value }: LinkRowProps) {
+  return (
+    <div className='flex'>
+      <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px] flex-shrink-0'>{label}</dt>
+      <dd className='body2-regular overflow-wrap-anywhere flex-1 break-all'>
+        {value ? (
+          <span className='underline'>{value}</span>
+        ) : (
+          <span className='text-text-tertiary'>{ownerMypageContent.noConfirmedInfoText}</span>
+        )}
+      </dd>
+    </div>
+  );
+}
+
+interface OperationSectionsProps {
+  data?: KindergartenBasic;
+}
+
+/** basic 데이터(운영시간·서비스·시설·웹사이트)를 이 페이지 UI로 매핑. 값 없으면 '확인된 정보가 없습니다.'로 통일 */
+function OperationSections({ data }: OperationSectionsProps) {
+  const {
+    operationTimes,
+    dogBreeds,
+    dogServices,
+    dogSafetyFacilities,
+    visitorAmenities,
+    homepageUrl,
+    instagramUrl,
+    youtubeUrl,
+    lastUpdatedAt,
+  } = data ?? {};
+
+  return (
+    <div className='mt-7 mb-12 flex flex-col gap-12 px-4'>
+      <SectionBlock title='운영시간'>
+        {operationTimes && operationTimes.length > 0 ? (
+          operationTimes.map((operationTime) => (
+            <OperationHoursCard key={operationTime.serviceTags} operationTime={operationTime} />
+          ))
+        ) : (
+          <SectionNoData />
+        )}
+      </SectionBlock>
+
+      <ServiceGroup title='견종' codes={dogBreeds} />
+      <ServiceGroup title='강아지 서비스' codes={dogServices} />
+      <ServiceGroup title='강아지 안전·시설' codes={dogSafetyFacilities} />
+      <ServiceGroup title='방문객 편의·시설' codes={visitorAmenities} />
+
+      <SectionBlock title='웹사이트·SNS'>
+        <dl className='bg-primitive-neutral-50 flex flex-col gap-4 rounded-lg p-4'>
+          <LinkRow label='홈페이지' value={homepageUrl} />
+          <LinkRow label='인스타그램' value={instagramUrl} />
+          <LinkRow label='유튜브' value={youtubeUrl} />
+        </dl>
+      </SectionBlock>
+
+      <div className='flex flex-col py-4'>
+        <span className='body1-bold'>최종 정보 업데이트</span>
+        <span className='body2-regular text-text-tertiary'>
+          {lastUpdatedAt || ownerMypageContent.noConfirmedInfoText}
+        </span>
       </div>
     </div>
   );
@@ -105,52 +200,10 @@ interface SelectedOperationContentProps {
 function SelectedOperationContent({ kindergartenId, name, fallbackAddress }: SelectedOperationContentProps) {
   const { data } = useKindergartenBasicQuery(kindergartenId);
 
-  const {
-    roadAddress,
-    coord,
-    operationTimes,
-    dogBreeds,
-    dogServices,
-    dogSafetyFacilities,
-    visitorAmenities,
-    homepageUrl,
-    instagramUrl,
-    youtubeUrl,
-    lastUpdatedAt,
-  } = data ?? {};
-
   return (
     <>
-      <BasicInfoCard name={name} address={roadAddress ?? fallbackAddress} />
-
-      <div className='mt-7 mb-12 flex flex-col gap-12 px-4'>
-        {operationTimes && operationTimes.length > 0 && (
-          <div>
-            <div className='mb-3'>
-              <span className='body1-bold'>운영시간</span>
-            </div>
-            {operationTimes.map((operationTime) => (
-              <OperationHoursCard key={operationTime.serviceTags} operationTime={operationTime} />
-            ))}
-          </div>
-        )}
-
-        <ServiceGroup title='견종' codes={dogBreeds} />
-        <ServiceGroup title='강아지 서비스' codes={dogServices} />
-        <ServiceGroup title='강아지 안전·시설' codes={dogSafetyFacilities} />
-        <ServiceGroup title='방문객 편의·시설' codes={visitorAmenities} />
-
-        <ExternalLinksCard website={homepageUrl} instagram={instagramUrl} youtube={youtubeUrl} />
-
-        {roadAddress && coord && <LocationMap address={roadAddress} coord={coord} />}
-
-        {lastUpdatedAt && (
-          <div className='flex flex-col py-4'>
-            <span className='body1-bold'>최종 정보 업데이트</span>
-            <span className='body2-regular text-text-tertiary'>{lastUpdatedAt}</span>
-          </div>
-        )}
-      </div>
+      <BasicInfoCard name={name} address={data?.roadAddress ?? fallbackAddress} />
+      <OperationSections data={data} />
     </>
   );
 }
@@ -196,9 +249,10 @@ function MypageOwnerKindergartenPage() {
             {isSelected && kindergartenId ? (
               <SelectedOperationContent kindergartenId={kindergartenId} name={name} fallbackAddress={address} />
             ) : (
+              // TODO(임시): MANUAL은 실데이터가 없어 stub으로 UI 전체 노출. BE 연동 시 제거.
               <>
-                <BasicInfoCard name={name} address={address} />
-                <NoConfirmedSections />
+                <BasicInfoCard name={name} address={address} phone={MANUAL_STUB_PHONE} />
+                <OperationSections data={MANUAL_STUB_BASIC} />
               </>
             )}
           </TabsContent>

@@ -18,7 +18,7 @@ export const ownerMypageContent = Object.freeze({
   kindergartenNameLabel: '유치원명',
   kindergartenAddressLabel: '주소',
   kindergartenPhoneLabel: '전화번호',
-  noConfirmedInfoText: '확인된 정보가 없습니다.',
+  noConfirmedInfoText: '확인된 정보가 없어요.',
   profileEditPageTitle: '프로필 수정하기',
   editInfoButtonLabel: '정보 수정하기',
   ownerNameLabel: '이름',
