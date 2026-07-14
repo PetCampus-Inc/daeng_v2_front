@@ -25,15 +25,24 @@ import { CLOSED_DAYS } from '@entities/compare';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import type { WebImageAsset } from '@shared/lib/media';
 import { OptionSelectSheet, type OptionItem } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { SafeArea } from '@shared/ui/safe-area';
+import { toast } from '@shared/ui/toast';
 
 import {
   SELECTED_ADDRESS_EVENT,
   consumeSelectedAddress,
 } from '../lib/selectedAddressDraft';
+
+function formatDateYYYYMMDD(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
 
@@ -256,6 +265,7 @@ function MypageOwnerKindergartenEditPage() {
   const [dogServices, setDogServices] = useState<FilterOption[]>([]);
   const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
   const [amenities, setAmenities] = useState<FilterOption[]>([]);
+  const [lastUpdatedDate, setLastUpdatedDate] = useState<string | null>(null);
 
   useEffect(() => {
     function syncSelectedAddress() {
@@ -355,6 +365,7 @@ function MypageOwnerKindergartenEditPage() {
   const handleClearAddress = () => {
     setAddress('');
   };
+
   const activeTimeValue = useMemo(() => {
     if (!activeTimeField) return null;
     const timeMap: Record<TimeFieldKey, string | null> = {
@@ -383,6 +394,30 @@ function MypageOwnerKindergartenEditPage() {
     Boolean(weekdayEnd) &&
     Boolean(weekendStart) &&
     Boolean(weekendEnd);
+
+  const handleSave = () => {
+    if (!isSaveEnabled) return;
+
+    // TODO: 유치원 운영 정보 저장 API 연동
+    setLastUpdatedDate(formatDateYYYYMMDD());
+    toast({
+      type: 'success',
+      shape: 'rounded',
+      position: 'bottom',
+      title: isNativeWebView()
+        ? ownerMypageContent.kindergartenEditSaveSuccessToastFallback
+        : (
+            <>
+              <span className='body1-bold text-text-accent'>
+                {ownerMypageContent.kindergartenEditSaveSuccessToastPrefix}
+              </span>
+              <span className='body1-medium text-text-primary-inverse'>
+                {ownerMypageContent.kindergartenEditSaveSuccessToastSuffix}
+              </span>
+            </>
+          ),
+    });
+  };
 
   const handleTimeSelect = (value: string) => {
     if (!activeTimeField) return;
@@ -668,7 +703,7 @@ function MypageOwnerKindergartenEditPage() {
               {ownerMypageContent.kindergartenEditLastUpdatedTitle}
             </span>
             <span className='body2-regular text-text-tertiary'>
-              {ownerMypageContent.noConfirmedInfoText}
+              {lastUpdatedDate ?? ownerMypageContent.noConfirmedInfoText}
             </span>
           </div>
         </section>
@@ -681,6 +716,7 @@ function MypageOwnerKindergartenEditPage() {
             variant='primaryFill'
             className='w-full'
             disabled={!isSaveEnabled}
+            onClick={handleSave}
           >
             {ownerMypageContent.profileSaveButtonLabel}
           </ActionButton>
