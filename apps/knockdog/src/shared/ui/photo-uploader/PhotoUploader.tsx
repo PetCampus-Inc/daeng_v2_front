@@ -24,9 +24,21 @@ interface PhotoUploaderProps {
   quality?: number;
   defaultValue?: WebImageAsset[];
   onChange?: (assets: WebImageAsset[]) => void;
+  /**
+   * empty 상태 업로드 트리거 UI.
+   * - button: 가로형 [+] 사진등록 (기본, memo/제보)
+   * - tile: 정사각 [+] + n/max. full이면 disabled로 유지 (유치원 편집)
+   */
+  emptyVariant?: 'button' | 'tile';
 }
 
-function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: PhotoUploaderProps) {
+function PhotoUploader({
+  maxCount = 3,
+  quality = 0.8,
+  defaultValue,
+  onChange,
+  emptyVariant = 'button',
+}: PhotoUploaderProps) {
   const { pickImage } = useImagePicker();
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
 
@@ -37,8 +49,13 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
   }, [defaultValue]);
 
   const state = assets.length === 0 ? 'empty' : assets.length < maxCount ? 'partial' : 'full';
+  const isTileLayout = emptyVariant === 'tile';
+  const isFull = state === 'full';
+  const showUploadTile = isTileLayout || state === 'partial';
 
   const handlePickImages = async (source: 'library' | 'camera') => {
+    if (isFull) return;
+
     try {
       const result = await pickImage({
         source,
@@ -47,7 +64,7 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
         quality,
       });
       if (!result.cancelled && result.assets) {
-        const newAssets = [...assets, ...(result.assets as WebImageAsset[])];
+        const newAssets = [...assets, ...(result.assets as WebImageAsset[])].slice(0, maxCount);
         setAssets(newAssets);
         onChange?.(newAssets);
       }
@@ -80,6 +97,8 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
   };
 
   const openSourceSelectSheet = () => {
+    if (isFull) return;
+
     overlay.open(({ isOpen, close }) => (
       <BottomSheet.Root open={isOpen} onOpenChange={close} modal={false}>
         <BottomSheet.Overlay className='z-overlay' />
@@ -135,34 +154,39 @@ function PhotoUploader({ maxCount = 3, quality = 0.8, defaultValue, onChange }: 
     ));
   };
 
-  return (
-    <div>
-      {/* 상태별 UI */}
-      {state === 'empty' ? (
-        <ActionButton variant='secondaryLine' size='medium' onClick={openSourceSelectSheet}>
-          <Icon icon='Plus' className='size-x6' />
-          사진등록
-        </ActionButton>
-      ) : (
-        <div className='flex gap-2'>
-          {state === 'partial' && (
-            <button
-              onClick={openSourceSelectSheet}
-              type='button'
-              className='border-line-400 body2-regular text-text-tertiary flex h-[80px] min-w-[80px] flex-col items-center justify-center rounded-lg border py-5'
-            >
-              <Icon icon='Plus' className='h-6 w-6' />
-              {assets.length} / {maxCount}
-            </button>
-          )}
+  if (state === 'empty' && !isTileLayout) {
+    return (
+      <ActionButton variant='secondaryLine' size='medium' onClick={openSourceSelectSheet}>
+        <Icon icon='Plus' className='size-x6' />
+        사진등록
+      </ActionButton>
+    );
+  }
 
-          {assets.map((asset, index) => (
-            <div key={`${asset.uri}-${index}`} onClick={() => handleImageClick(index)}>
-              <MiniPhotoBox imageUrl={asset.uri} className='h-[80px] w-[80px]' onRemove={() => removeImage(index)} />
-            </div>
-          ))}
+  return (
+    <div className='scrollbar-hide flex gap-2 overflow-x-auto'>
+      {showUploadTile ? (
+        <button
+          type='button'
+          onClick={openSourceSelectSheet}
+          disabled={isFull}
+          aria-label='사진 업로드'
+          className={`body2-regular flex h-[80px] min-w-[80px] flex-col items-center justify-center rounded-lg border py-5 ${
+            isFull
+              ? 'border-line-200 text-text-tertiary cursor-not-allowed opacity-40'
+              : 'border-line-400 text-text-tertiary'
+          }`}
+        >
+          <Icon icon='Plus' className='h-6 w-6' />
+          {assets.length} / {maxCount}
+        </button>
+      ) : null}
+
+      {assets.map((asset, index) => (
+        <div key={`${asset.uri}-${index}`} onClick={() => handleImageClick(index)}>
+          <MiniPhotoBox imageUrl={asset.uri} className='h-[80px] w-[80px]' onRemove={() => removeImage(index)} />
         </div>
-      )}
+      ))}
     </div>
   );
 }

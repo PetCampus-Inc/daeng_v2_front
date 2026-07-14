@@ -13,9 +13,9 @@ import { Header } from '@widgets/Header';
 import { ownerMypageContent } from '@features/role-conversion';
 import { CLOSED_DAYS } from '@entities/compare';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
-import { PhotoUploader } from '@shared/ui/photo-uploader';
 import type { WebImageAsset } from '@shared/lib/media';
 import { OptionSelectSheet, type OptionItem } from '@shared/ui/option-select-sheet';
+import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { SafeArea } from '@shared/ui/safe-area';
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
@@ -277,7 +277,7 @@ function MypageOwnerKindergartenEditPage() {
 
           <div className='flex flex-col gap-2 px-4 pb-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditImageLabel} required />
-            <PhotoUploader maxCount={5} onChange={setImages} />
+            <PhotoUploader maxCount={5} emptyVariant='tile' onChange={setImages} />
           </div>
 
           <div className='px-4 py-2'>
