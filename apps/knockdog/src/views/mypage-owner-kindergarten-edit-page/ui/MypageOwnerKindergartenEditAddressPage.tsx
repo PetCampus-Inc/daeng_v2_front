@@ -7,7 +7,7 @@ import { AddressPicker } from '@features/address-picker';
 import type { Address } from '@entities/address';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-import { saveSelectedAddress } from '../lib/selectedAddressDraft';
+import { updateEditFormDraftAddress } from '@views/mypage-owner-kindergarten-edit-page/lib/editFormDraft';
 
 function MypageOwnerKindergartenEditAddressPage() {
   const { back } = useStackNavigation();
@@ -16,7 +16,7 @@ function MypageOwnerKindergartenEditAddressPage() {
     const nextAddress = selected.roadAddress || selected.address;
     if (!nextAddress) return;
 
-    saveSelectedAddress(nextAddress);
+    updateEditFormDraftAddress(nextAddress);
     await back();
   };
 

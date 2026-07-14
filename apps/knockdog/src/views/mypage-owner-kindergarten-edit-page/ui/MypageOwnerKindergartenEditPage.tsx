@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActionButton,
   AlertDialog,
@@ -21,72 +21,24 @@ import { overlay } from 'overlay-kit';
 import { Header } from '@widgets/Header';
 
 import { ownerMypageContent } from '@features/role-conversion';
-import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
-import { CLOSED_DAYS } from '@entities/compare';
-import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
-import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { isNativeWebView } from '@shared/lib/device';
-import type { WebImageAsset } from '@shared/lib/media';
-import { OptionSelectSheet, type OptionItem } from '@shared/ui/option-select-sheet';
+import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
-
 import {
-  SELECTED_ADDRESS_EVENT,
-  consumeSelectedAddress,
-} from '../lib/selectedAddressDraft';
-
-function formatDateYYYYMMDD(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
-
-function createTimeOptions(stepMinutes = 30): OptionItem[] {
-  const options: OptionItem[] = [];
-
-  for (let minutes = 0; minutes < 24 * 60; minutes += stepMinutes) {
-    const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
-    const mins = String(minutes % 60).padStart(2, '0');
-    const label = `${hours}:${mins}`;
-    options.push({ value: label, label });
-  }
-
-  return options;
-}
-
-const TIME_OPTIONS = createTimeOptions();
-
-const CLOSED_DAY_OPTIONS: OptionItem[] = Object.entries(CLOSED_DAYS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-const SECTION = {
-  BASIC: 'basic',
-  HOURS: 'hours',
-  SNS: 'sns',
-  DETAILS: 'details',
-} as const;
-
-type SectionId = (typeof SECTION)[keyof typeof SECTION];
-
-const SECTION_TABS: { id: SectionId; label: string }[] = [
-  { id: SECTION.BASIC, label: ownerMypageContent.kindergartenEditBasicSectionTitle },
-  { id: SECTION.HOURS, label: ownerMypageContent.kindergartenEditHoursSectionTitle },
-  { id: SECTION.SNS, label: ownerMypageContent.kindergartenEditSnsSectionTitle },
-  { id: SECTION.DETAILS, label: ownerMypageContent.kindergartenEditDetailsSectionTitle },
-];
-
-const BREED_OPTIONS = FILTER_CONFIG['견종 조건'];
-const DOG_SERVICE_OPTIONS = FILTER_CONFIG['강아지 서비스'];
-const SAFETY_OPTIONS = FILTER_CONFIG['강아지 안전 ∙ 시설'];
-const AMENITY_OPTIONS = FILTER_CONFIG['방문객 편의 ∙ 시설'];
+  AMENITY_OPTIONS,
+  BREED_OPTIONS,
+  CLOSED_DAY_OPTIONS,
+  DOG_SERVICE_OPTIONS,
+  SAFETY_OPTIONS,
+  SECTION,
+  SECTION_TABS,
+  TIME_OPTIONS,
+  type SectionId,
+} from '@views/mypage-owner-kindergarten-edit-page/config/editFormOptions';
+import { useKindergartenEditForm } from '@views/mypage-owner-kindergarten-edit-page/model/useKindergartenEditForm';
 
 /** 섹션 탭·복수선택 칩 공통 톤. size만 다름 (탭=38, 옵션=48) */
 function selectionChipClassName(isSelected: boolean, size: 'tab' | 'option') {
@@ -242,100 +194,13 @@ function OptionChipGroup({
 }
 
 function MypageOwnerKindergartenEditPage() {
-  const { back, push } = useStackNavigation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
-
-  const [images, setImages] = useState<WebImageAsset[]>([]);
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [addressDetail, setAddressDetail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [weekdayStart, setWeekdayStart] = useState<string | null>(null);
-  const [weekdayEnd, setWeekdayEnd] = useState<string | null>(null);
-  const [weekendStart, setWeekendStart] = useState<string | null>(null);
-  const [weekendEnd, setWeekendEnd] = useState<string | null>(null);
-  const [closedDays, setClosedDays] = useState<string[]>([]);
-  const [activeTimeField, setActiveTimeField] = useState<TimeFieldKey | null>(null);
-  const [isClosedDaysSheetOpen, setIsClosedDaysSheetOpen] = useState(false);
-  const [homepage, setHomepage] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [youtube, setYoutube] = useState('');
-  const [breeds, setBreeds] = useState<FilterOption[]>([]);
-  const [dogServices, setDogServices] = useState<FilterOption[]>([]);
-  const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
-  const [amenities, setAmenities] = useState<FilterOption[]>([]);
-  const [lastUpdatedDate, setLastUpdatedDate] = useState<string | null>(null);
-
-  useEffect(() => {
-    function syncSelectedAddress() {
-      if (document.visibilityState === 'hidden') return;
-
-      const selectedAddress = consumeSelectedAddress();
-      if (selectedAddress) {
-        setAddress(selectedAddress);
-      }
-    }
-
-    syncSelectedAddress();
-
-    window.addEventListener('pageshow', syncSelectedAddress);
-    window.addEventListener(SELECTED_ADDRESS_EVENT, syncSelectedAddress);
-    document.addEventListener('visibilitychange', syncSelectedAddress);
-
-    return () => {
-      window.removeEventListener('pageshow', syncSelectedAddress);
-      window.removeEventListener(SELECTED_ADDRESS_EVENT, syncSelectedAddress);
-      document.removeEventListener('visibilitychange', syncSelectedAddress);
-    };
-  }, []);
-
-  const isDirty = useMemo(
-    () =>
-      images.length > 0 ||
-      name.trim().length > 0 ||
-      address.trim().length > 0 ||
-      addressDetail.trim().length > 0 ||
-      phone.trim().length > 0 ||
-      Boolean(weekdayStart) ||
-      Boolean(weekdayEnd) ||
-      Boolean(weekendStart) ||
-      Boolean(weekendEnd) ||
-      closedDays.length > 0 ||
-      homepage.trim().length > 0 ||
-      instagram.trim().length > 0 ||
-      youtube.trim().length > 0 ||
-      breeds.length > 0 ||
-      dogServices.length > 0 ||
-      safetyFacilities.length > 0 ||
-      amenities.length > 0,
-    [
-      images.length,
-      name,
-      address,
-      addressDetail,
-      phone,
-      weekdayStart,
-      weekdayEnd,
-      weekendStart,
-      weekendEnd,
-      closedDays.length,
-      homepage,
-      instagram,
-      youtube,
-      breeds.length,
-      dogServices.length,
-      safetyFacilities.length,
-      amenities.length,
-    ]
-  );
+  const formData = useKindergartenEditForm();
 
   const handleBack = () => {
-    if (!isDirty) {
-      back?.();
-      return;
-    }
+    if (formData.leaveIfClean()) return;
 
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
@@ -348,7 +213,7 @@ function MypageOwnerKindergartenEditPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{ownerMypageContent.unsavedExitModalCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back?.()}>
+            <AlertDialogAction onClick={formData.handleLeaveWithoutSaving}>
               {ownerMypageContent.unsavedExitModalConfirmLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -357,50 +222,9 @@ function MypageOwnerKindergartenEditPage() {
     ));
   };
 
-  const handleAddressSearch = async () => {
-    await push({
-      pathname: route.mypage.kindergarten.edit.address.root,
-    });
-  };
-
-  const handleClearAddress = () => {
-    setAddress('');
-  };
-
-  const activeTimeValue = useMemo(() => {
-    if (!activeTimeField) return null;
-    const timeMap: Record<TimeFieldKey, string | null> = {
-      weekdayStart,
-      weekdayEnd,
-      weekendStart,
-      weekendEnd,
-    };
-    return timeMap[activeTimeField];
-  }, [activeTimeField, weekdayStart, weekdayEnd, weekendStart, weekendEnd]);
-
-  const closedDaysLabel = useMemo(
-    () =>
-      closedDays
-        .map((day) => CLOSED_DAYS[day as keyof typeof CLOSED_DAYS] ?? day)
-        .join(', '),
-    [closedDays]
-  );
-
-  const isSaveEnabled =
-    images.length > 0 &&
-    name.trim().length > 0 &&
-    address.trim().length > 0 &&
-    phone.trim().length > 0 &&
-    Boolean(weekdayStart) &&
-    Boolean(weekdayEnd) &&
-    Boolean(weekendStart) &&
-    Boolean(weekendEnd);
-
   const handleSave = () => {
-    if (!isSaveEnabled) return;
+    if (!formData.handleSave()) return;
 
-    // TODO: 유치원 운영 정보 저장 API 연동
-    setLastUpdatedDate(formatDateYYYYMMDD());
     toast({
       type: 'success',
       shape: 'rounded',
@@ -418,18 +242,6 @@ function MypageOwnerKindergartenEditPage() {
             </>
           ),
     });
-  };
-
-  const handleTimeSelect = (value: string) => {
-    if (!activeTimeField) return;
-
-    const setters: Record<TimeFieldKey, (next: string | null) => void> = {
-      weekdayStart: setWeekdayStart,
-      weekdayEnd: setWeekdayEnd,
-      weekendStart: setWeekendStart,
-      weekendEnd: setWeekendEnd,
-    };
-    setters[activeTimeField](value);
   };
 
   const handleScrollToSection = (sectionId: SectionId) => {
@@ -484,7 +296,8 @@ function MypageOwnerKindergartenEditPage() {
               emptyVariant='tile'
               showRepresentativeBadge
               representativeBadgeLabel={ownerMypageContent.kindergartenEditRepresentativeBadge}
-              onChange={setImages}
+              defaultValue={formData.images}
+              onChange={formData.handleImagesChange}
             />
           </div>
 
@@ -492,8 +305,8 @@ function MypageOwnerKindergartenEditPage() {
             <ClearableTextField
               label={ownerMypageContent.kindergartenEditNameLabel}
               required
-              value={name}
-              onChange={setName}
+              value={formData.name}
+              onChange={formData.handleNameChange}
               placeholder='유치원을 입력해주세요'
             />
           </div>
@@ -503,21 +316,21 @@ function MypageOwnerKindergartenEditPage() {
             <button
               type='button'
               className='w-full text-left'
-              onClick={handleAddressSearch}
+              onClick={formData.handleAddressSearch}
               aria-label='주소 검색'
             >
               <TextField
                 className='h-x13'
                 prefix={<Icon icon='Search' className='text-text-tertiary' />}
                 suffix={
-                  address ? (
+                  formData.address ? (
                     <IconButton
                       type='button'
                       icon='DeleteInput'
                       className='text-text-tertiary'
                       onClick={(event) => {
                         event.stopPropagation();
-                        handleClearAddress();
+                        formData.handleClearAddress();
                       }}
                       aria-label='선택한 주소 삭제'
                     />
@@ -528,13 +341,13 @@ function MypageOwnerKindergartenEditPage() {
                   readOnly
                   tabIndex={-1}
                   placeholder={ownerMypageContent.kindergartenEditAddressSearchPlaceholder}
-                  value={address}
+                  value={formData.address}
                 />
               </TextField>
             </button>
             <ClearableTextField
-              value={addressDetail}
-              onChange={setAddressDetail}
+              value={formData.addressDetail}
+              onChange={formData.handleAddressDetailChange}
               placeholder={ownerMypageContent.kindergartenEditAddressDetailPlaceholder}
             />
           </div>
@@ -543,8 +356,8 @@ function MypageOwnerKindergartenEditPage() {
             <ClearableTextField
               label={ownerMypageContent.kindergartenEditPhoneLabel}
               required
-              value={phone}
-              onChange={(value) => setPhone(formatPhone(value))}
+              value={formData.phone}
+              onChange={formData.handlePhoneChange}
               inputMode='tel'
               placeholder='전화번호를 입력해주세요'
             />
@@ -558,17 +371,17 @@ function MypageOwnerKindergartenEditPage() {
             <FieldLabel label={ownerMypageContent.kindergartenEditWeekdayLabel} required />
             <div className='flex items-center gap-1'>
               <DropdownField
-                value={weekdayStart ?? undefined}
+                value={formData.weekdayStart ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
-                onClick={() => setActiveTimeField('weekdayStart')}
+                onClick={() => formData.setActiveTimeField('weekdayStart')}
               />
               <span className='body1-regular px-1'>~</span>
               <DropdownField
-                value={weekdayEnd ?? undefined}
+                value={formData.weekdayEnd ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
-                onClick={() => setActiveTimeField('weekdayEnd')}
+                onClick={() => formData.setActiveTimeField('weekdayEnd')}
               />
             </div>
           </div>
@@ -577,17 +390,17 @@ function MypageOwnerKindergartenEditPage() {
             <FieldLabel label={ownerMypageContent.kindergartenEditWeekendLabel} required />
             <div className='flex items-center gap-1'>
               <DropdownField
-                value={weekendStart ?? undefined}
+                value={formData.weekendStart ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
-                onClick={() => setActiveTimeField('weekendStart')}
+                onClick={() => formData.setActiveTimeField('weekendStart')}
               />
               <span className='body1-regular px-1'>~</span>
               <DropdownField
-                value={weekendEnd ?? undefined}
+                value={formData.weekendEnd ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
-                onClick={() => setActiveTimeField('weekendEnd')}
+                onClick={() => formData.setActiveTimeField('weekendEnd')}
               />
             </div>
           </div>
@@ -595,9 +408,9 @@ function MypageOwnerKindergartenEditPage() {
           <div className='flex flex-col gap-2 px-4 py-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditClosedDaysLabel} optional />
             <DropdownField
-              value={closedDaysLabel || undefined}
+              value={formData.closedDaysLabel || undefined}
               placeholder={ownerMypageContent.kindergartenEditClosedDaysPlaceholder}
-              onClick={() => setIsClosedDaysSheetOpen(true)}
+              onClick={() => formData.setIsClosedDaysSheetOpen(true)}
             />
           </div>
         </section>
@@ -609,8 +422,8 @@ function MypageOwnerKindergartenEditPage() {
             <ClearableTextField
               label={ownerMypageContent.kindergartenEditHomepageLabel}
               indicator='(선택)'
-              value={homepage}
-              onChange={setHomepage}
+              value={formData.homepage}
+              onChange={formData.handleHomepageChange}
               placeholder='www.example.com'
             />
           </div>
@@ -619,8 +432,8 @@ function MypageOwnerKindergartenEditPage() {
             <ClearableTextField
               label={ownerMypageContent.kindergartenEditInstagramLabel}
               indicator='(선택)'
-              value={instagram}
-              onChange={setInstagram}
+              value={formData.instagram}
+              onChange={formData.handleInstagramChange}
               placeholder='@instagram'
             />
           </div>
@@ -629,8 +442,8 @@ function MypageOwnerKindergartenEditPage() {
             <ClearableTextField
               label={ownerMypageContent.kindergartenEditYoutubeLabel}
               indicator='(선택)'
-              value={youtube}
-              onChange={setYoutube}
+              value={formData.youtube}
+              onChange={formData.handleYoutubeChange}
               placeholder='www.youtube.com/...'
             />
           </div>
@@ -645,8 +458,8 @@ function MypageOwnerKindergartenEditPage() {
           <div className='px-4 pb-8'>
             <OptionChipGroup
               options={BREED_OPTIONS}
-              selected={breeds}
-              onChange={setBreeds}
+              selected={formData.breeds}
+              onChange={formData.handleBreedsChange}
               multiple={false}
             />
           </div>
@@ -662,8 +475,8 @@ function MypageOwnerKindergartenEditPage() {
           <div className='px-4 pb-8'>
             <OptionChipGroup
               options={DOG_SERVICE_OPTIONS}
-              selected={dogServices}
-              onChange={setDogServices}
+              selected={formData.dogServices}
+              onChange={formData.handleDogServicesChange}
             />
           </div>
 
@@ -678,8 +491,8 @@ function MypageOwnerKindergartenEditPage() {
           <div className='px-4 pb-8'>
             <OptionChipGroup
               options={SAFETY_OPTIONS}
-              selected={safetyFacilities}
-              onChange={setSafetyFacilities}
+              selected={formData.safetyFacilities}
+              onChange={formData.handleSafetyFacilitiesChange}
             />
           </div>
 
@@ -694,8 +507,8 @@ function MypageOwnerKindergartenEditPage() {
           <div className='px-4 pb-8'>
             <OptionChipGroup
               options={AMENITY_OPTIONS}
-              selected={amenities}
-              onChange={setAmenities}
+              selected={formData.amenities}
+              onChange={formData.handleAmenitiesChange}
             />
           </div>
 
@@ -704,7 +517,7 @@ function MypageOwnerKindergartenEditPage() {
               {ownerMypageContent.kindergartenEditLastUpdatedTitle}
             </span>
             <span className='body2-regular text-text-tertiary'>
-              {lastUpdatedDate ?? ownerMypageContent.noConfirmedInfoText}
+              {formData.lastUpdatedDate ?? ownerMypageContent.noConfirmedInfoText}
             </span>
           </div>
         </section>
@@ -716,7 +529,7 @@ function MypageOwnerKindergartenEditPage() {
             size='large'
             variant='primaryFill'
             className='w-full'
-            disabled={!isSaveEnabled}
+            disabled={!formData.isSaveEnabled}
             onClick={handleSave}
           >
             {ownerMypageContent.profileSaveButtonLabel}
@@ -725,23 +538,23 @@ function MypageOwnerKindergartenEditPage() {
       </div>
 
       <OptionSelectSheet
-        isOpen={activeTimeField !== null}
-        close={() => setActiveTimeField(null)}
+        isOpen={formData.activeTimeField !== null}
+        close={formData.closeTimeSheet}
         title={ownerMypageContent.kindergartenEditTimeSheetTitle}
         options={TIME_OPTIONS}
-        value={activeTimeValue}
-        onSelect={handleTimeSelect}
+        value={formData.activeTimeValue}
+        onSelect={formData.handleTimeSelect}
       />
 
       <OptionSelectSheet
         multiple
-        isOpen={isClosedDaysSheetOpen}
-        close={() => setIsClosedDaysSheetOpen(false)}
+        isOpen={formData.isClosedDaysSheetOpen}
+        close={formData.closeClosedDaysSheet}
         title={ownerMypageContent.kindergartenEditClosedDaysSheetTitle}
         description={ownerMypageContent.kindergartenEditMultiSelectHint}
         options={CLOSED_DAY_OPTIONS}
-        values={closedDays}
-        onChange={setClosedDays}
+        values={formData.closedDays}
+        onChange={formData.handleClosedDaysChange}
       />
     </SafeArea>
   );
