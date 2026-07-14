@@ -18,10 +18,12 @@ function createTimeOptions(stepMinutes = 30): OptionItem[] {
 
 const TIME_OPTIONS = createTimeOptions();
 
-const CLOSED_DAY_OPTIONS: OptionItem[] = Object.entries(CLOSED_DAYS).map(([value, label]) => ({
-  value,
-  label,
-}));
+const CLOSED_DAY_OPTIONS: OptionItem[] = Object.entries(CLOSED_DAYS)
+  .filter(([value]) => value !== 'WEEKEND')
+  .map(([value, label]) => ({
+    value,
+    label,
+  }));
 
 const SECTION = {
   BASIC: 'basic',
