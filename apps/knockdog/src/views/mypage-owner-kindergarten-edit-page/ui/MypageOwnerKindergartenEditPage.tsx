@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ActionButton,
   Icon,
@@ -11,9 +11,34 @@ import {
 import { Header } from '@widgets/Header';
 
 import { ownerMypageContent } from '@features/role-conversion';
+import { CLOSED_DAYS } from '@entities/compare';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
+import type { WebImageAsset } from '@shared/lib/media';
+import { OptionSelectSheet, type OptionItem } from '@shared/ui/option-select-sheet';
 import { SafeArea } from '@shared/ui/safe-area';
+
+type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
+
+function createTimeOptions(stepMinutes = 30): OptionItem[] {
+  const options: OptionItem[] = [];
+
+  for (let minutes = 0; minutes < 24 * 60; minutes += stepMinutes) {
+    const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
+    const mins = String(minutes % 60).padStart(2, '0');
+    const label = `${hours}:${mins}`;
+    options.push({ value: label, label });
+  }
+
+  return options;
+}
+
+const TIME_OPTIONS = createTimeOptions();
+
+const CLOSED_DAY_OPTIONS: OptionItem[] = Object.entries(CLOSED_DAYS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const SECTION = {
   BASIC: 'basic',
@@ -74,13 +99,14 @@ interface DropdownFieldProps {
   value?: string;
   placeholder: string;
   className?: string;
+  onClick?: () => void;
 }
 
-/** 드롭다운 퍼블리싱 UI. 실제 선택 동작은 추후 연동 */
-function DropdownField({ value, placeholder, className }: DropdownFieldProps) {
+function DropdownField({ value, placeholder, className, onClick }: DropdownFieldProps) {
   return (
     <button
       type='button'
+      onClick={onClick}
       className={`radius-r2 border-line-200 bg-fill-secondary-0 flex h-[52px] items-center gap-2 border px-4 py-3 text-left ${className ?? 'w-full'}`}
     >
       <span
@@ -143,10 +169,18 @@ function MypageOwnerKindergartenEditPage() {
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
 
+  const [images, setImages] = useState<WebImageAsset[]>([]);
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [addressDetail, setAddressDetail] = useState('');
   const [phone, setPhone] = useState('');
+  const [weekdayStart, setWeekdayStart] = useState<string | null>(null);
+  const [weekdayEnd, setWeekdayEnd] = useState<string | null>(null);
+  const [weekendStart, setWeekendStart] = useState<string | null>(null);
+  const [weekendEnd, setWeekendEnd] = useState<string | null>(null);
+  const [closedDays, setClosedDays] = useState<string[]>([]);
+  const [activeTimeField, setActiveTimeField] = useState<TimeFieldKey | null>(null);
+  const [isClosedDaysSheetOpen, setIsClosedDaysSheetOpen] = useState(false);
   const [homepage, setHomepage] = useState('');
   const [instagram, setInstagram] = useState('');
   const [youtube, setYoutube] = useState('');
@@ -154,6 +188,47 @@ function MypageOwnerKindergartenEditPage() {
   const [dogServices, setDogServices] = useState<FilterOption[]>([]);
   const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
   const [amenities, setAmenities] = useState<FilterOption[]>([]);
+
+  const activeTimeValue = useMemo(() => {
+    if (!activeTimeField) return null;
+    const timeMap: Record<TimeFieldKey, string | null> = {
+      weekdayStart,
+      weekdayEnd,
+      weekendStart,
+      weekendEnd,
+    };
+    return timeMap[activeTimeField];
+  }, [activeTimeField, weekdayStart, weekdayEnd, weekendStart, weekendEnd]);
+
+  const closedDaysLabel = useMemo(
+    () =>
+      closedDays
+        .map((day) => CLOSED_DAYS[day as keyof typeof CLOSED_DAYS] ?? day)
+        .join(', '),
+    [closedDays]
+  );
+
+  const isSaveEnabled =
+    images.length > 0 &&
+    name.trim().length > 0 &&
+    address.trim().length > 0 &&
+    phone.trim().length > 0 &&
+    Boolean(weekdayStart) &&
+    Boolean(weekdayEnd) &&
+    Boolean(weekendStart) &&
+    Boolean(weekendEnd);
+
+  const handleTimeSelect = (value: string) => {
+    if (!activeTimeField) return;
+
+    const setters: Record<TimeFieldKey, (next: string | null) => void> = {
+      weekdayStart: setWeekdayStart,
+      weekdayEnd: setWeekdayEnd,
+      weekendStart: setWeekendStart,
+      weekendEnd: setWeekendEnd,
+    };
+    setters[activeTimeField](value);
+  };
 
   const handleScrollToSection = (sectionId: SectionId) => {
     setActiveSection(sectionId);
@@ -202,7 +277,7 @@ function MypageOwnerKindergartenEditPage() {
 
           <div className='flex flex-col gap-2 px-4 pb-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditImageLabel} required />
-            <PhotoUploader maxCount={5} />
+            <PhotoUploader maxCount={5} onChange={setImages} />
           </div>
 
           <div className='px-4 py-2'>
@@ -253,13 +328,17 @@ function MypageOwnerKindergartenEditPage() {
             <FieldLabel label={ownerMypageContent.kindergartenEditWeekdayLabel} required />
             <div className='flex items-center gap-1'>
               <DropdownField
+                value={weekdayStart ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                onClick={() => setActiveTimeField('weekdayStart')}
               />
               <span className='body1-regular px-1'>~</span>
               <DropdownField
+                value={weekdayEnd ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                onClick={() => setActiveTimeField('weekdayEnd')}
               />
             </div>
           </div>
@@ -268,20 +347,28 @@ function MypageOwnerKindergartenEditPage() {
             <FieldLabel label={ownerMypageContent.kindergartenEditWeekendLabel} required />
             <div className='flex items-center gap-1'>
               <DropdownField
+                value={weekendStart ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                onClick={() => setActiveTimeField('weekendStart')}
               />
               <span className='body1-regular px-1'>~</span>
               <DropdownField
+                value={weekendEnd ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                onClick={() => setActiveTimeField('weekendEnd')}
               />
             </div>
           </div>
 
           <div className='flex flex-col gap-2 px-4 py-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditClosedDaysLabel} optional />
-            <DropdownField placeholder={ownerMypageContent.kindergartenEditClosedDaysPlaceholder} />
+            <DropdownField
+              value={closedDaysLabel || undefined}
+              placeholder={ownerMypageContent.kindergartenEditClosedDaysPlaceholder}
+              onClick={() => setIsClosedDaysSheetOpen(true)}
+            />
           </div>
         </section>
 
@@ -394,11 +481,37 @@ function MypageOwnerKindergartenEditPage() {
 
         <div className='px-4 pt-5 pb-10'>
           {/* TODO: 유치원 운영 정보 저장 API 연동 */}
-          <ActionButton type='button' size='large' variant='primaryFill' className='w-full'>
+          <ActionButton
+            type='button'
+            size='large'
+            variant='primaryFill'
+            className='w-full'
+            disabled={!isSaveEnabled}
+          >
             {ownerMypageContent.profileSaveButtonLabel}
           </ActionButton>
         </div>
       </div>
+
+      <OptionSelectSheet
+        isOpen={activeTimeField !== null}
+        close={() => setActiveTimeField(null)}
+        title={ownerMypageContent.kindergartenEditTimeSheetTitle}
+        options={TIME_OPTIONS}
+        value={activeTimeValue}
+        onSelect={handleTimeSelect}
+      />
+
+      <OptionSelectSheet
+        multiple
+        isOpen={isClosedDaysSheetOpen}
+        close={() => setIsClosedDaysSheetOpen(false)}
+        title={ownerMypageContent.kindergartenEditClosedDaysSheetTitle}
+        description={ownerMypageContent.kindergartenEditMultiSelectHint}
+        options={CLOSED_DAY_OPTIONS}
+        values={closedDays}
+        onChange={setClosedDays}
+      />
     </SafeArea>
   );
 }
