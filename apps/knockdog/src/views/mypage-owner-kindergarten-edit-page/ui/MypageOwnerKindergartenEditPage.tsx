@@ -21,6 +21,7 @@ import { overlay } from 'overlay-kit';
 import { Header } from '@widgets/Header';
 
 import { ownerMypageContent } from '@features/role-conversion';
+import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { CLOSED_DAYS } from '@entities/compare';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { route } from '@shared/constants/route';
@@ -543,7 +544,7 @@ function MypageOwnerKindergartenEditPage() {
               label={ownerMypageContent.kindergartenEditPhoneLabel}
               required
               value={phone}
-              onChange={setPhone}
+              onChange={(value) => setPhone(formatPhone(value))}
               inputMode='tel'
               placeholder='전화번호를 입력해주세요'
             />
