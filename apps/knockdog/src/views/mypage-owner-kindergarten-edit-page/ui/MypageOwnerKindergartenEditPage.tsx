@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActionButton,
   Icon,
+  IconButton,
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
@@ -116,6 +117,56 @@ function DropdownField({ value, placeholder, className, onClick }: DropdownField
       </span>
       <Icon icon='ChevronBottom' className='text-text-tertiary size-5 shrink-0' />
     </button>
+  );
+}
+
+interface ClearableTextFieldProps {
+  label?: string;
+  required?: boolean;
+  indicator?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  inputMode?: ComponentProps<'input'>['inputMode'];
+  readOnly?: boolean;
+}
+
+/** 등록 플로우와 동일: h-x13 TextField + 값 있을 때 DeleteInput */
+function ClearableTextField({
+  label,
+  required = false,
+  indicator,
+  value,
+  onChange,
+  placeholder,
+  inputMode,
+  readOnly = false,
+}: ClearableTextFieldProps) {
+  return (
+    <TextField
+      label={label}
+      required={required}
+      indicator={indicator}
+      className='h-x13'
+      suffix={
+        value ? (
+          <IconButton
+            type='button'
+            icon='DeleteInput'
+            onClick={() => onChange('')}
+            aria-label='입력값 삭제'
+          />
+        ) : undefined
+      }
+    >
+      <TextFieldInput
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        inputMode={inputMode}
+        readOnly={readOnly}
+      />
+    </TextField>
   );
 }
 
@@ -281,43 +332,39 @@ function MypageOwnerKindergartenEditPage() {
           </div>
 
           <div className='px-4 py-2'>
-            <TextField label={ownerMypageContent.kindergartenEditNameLabel} required>
-              <TextFieldInput
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder='유치원을 입력해주세요'
-              />
-            </TextField>
+            <ClearableTextField
+              label={ownerMypageContent.kindergartenEditNameLabel}
+              required
+              value={name}
+              onChange={setName}
+              placeholder='유치원을 입력해주세요'
+            />
           </div>
 
           <div className='flex flex-col gap-2 px-4 py-2'>
             <FieldLabel label={ownerMypageContent.kindergartenEditAddressLabel} required />
-            <TextField>
-              <TextFieldInput
-                value={address}
-                onChange={(event) => setAddress(event.target.value)}
-                placeholder='주소를 검색해주세요'
-                // TODO: 주소 검색 시트 연동
-              />
-            </TextField>
-            <TextField>
-              <TextFieldInput
-                value={addressDetail}
-                onChange={(event) => setAddressDetail(event.target.value)}
-                placeholder={ownerMypageContent.kindergartenEditAddressDetailPlaceholder}
-              />
-            </TextField>
+            <ClearableTextField
+              value={address}
+              onChange={setAddress}
+              placeholder='주소를 검색해주세요'
+              // TODO: 주소 검색 시트 연동
+            />
+            <ClearableTextField
+              value={addressDetail}
+              onChange={setAddressDetail}
+              placeholder={ownerMypageContent.kindergartenEditAddressDetailPlaceholder}
+            />
           </div>
 
           <div className='px-4 py-2'>
-            <TextField label={ownerMypageContent.kindergartenEditPhoneLabel} required>
-              <TextFieldInput
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                inputMode='tel'
-                placeholder='전화번호를 입력해주세요'
-              />
-            </TextField>
+            <ClearableTextField
+              label={ownerMypageContent.kindergartenEditPhoneLabel}
+              required
+              value={phone}
+              onChange={setPhone}
+              inputMode='tel'
+              placeholder='전화번호를 입력해주세요'
+            />
           </div>
         </section>
 
@@ -376,33 +423,33 @@ function MypageOwnerKindergartenEditPage() {
           <SectionTitle>{ownerMypageContent.kindergartenEditSnsSectionTitle}</SectionTitle>
 
           <div className='px-4 py-2'>
-            <TextField label={ownerMypageContent.kindergartenEditHomepageLabel} indicator='(선택)'>
-              <TextFieldInput
-                value={homepage}
-                onChange={(event) => setHomepage(event.target.value)}
-                placeholder='www.example.com'
-              />
-            </TextField>
+            <ClearableTextField
+              label={ownerMypageContent.kindergartenEditHomepageLabel}
+              indicator='(선택)'
+              value={homepage}
+              onChange={setHomepage}
+              placeholder='www.example.com'
+            />
           </div>
 
           <div className='px-4 py-2'>
-            <TextField label={ownerMypageContent.kindergartenEditInstagramLabel} indicator='(선택)'>
-              <TextFieldInput
-                value={instagram}
-                onChange={(event) => setInstagram(event.target.value)}
-                placeholder='@instagram'
-              />
-            </TextField>
+            <ClearableTextField
+              label={ownerMypageContent.kindergartenEditInstagramLabel}
+              indicator='(선택)'
+              value={instagram}
+              onChange={setInstagram}
+              placeholder='@instagram'
+            />
           </div>
 
           <div className='px-4 py-2'>
-            <TextField label={ownerMypageContent.kindergartenEditYoutubeLabel} indicator='(선택)'>
-              <TextFieldInput
-                value={youtube}
-                onChange={(event) => setYoutube(event.target.value)}
-                placeholder='www.youtube.com/...'
-              />
-            </TextField>
+            <ClearableTextField
+              label={ownerMypageContent.kindergartenEditYoutubeLabel}
+              indicator='(선택)'
+              value={youtube}
+              onChange={setYoutube}
+              placeholder='www.youtube.com/...'
+            />
           </div>
         </section>
 
