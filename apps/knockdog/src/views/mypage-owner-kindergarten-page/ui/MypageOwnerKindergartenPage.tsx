@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Divider, Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
+import {
+  ActionButton,
+  Divider,
+  Icon,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@knockdog/ui';
 import Image from 'next/image';
 import { MANUAL_STUB_BASIC, MANUAL_STUB_PHONE } from '@views/mypage-owner-kindergarten-page/model/manualKindergartenStub';
 
@@ -156,7 +164,7 @@ function OperationSections({ data }: OperationSectionsProps) {
   } = data ?? {};
 
   return (
-    <div className='mt-7 mb-12 flex flex-col gap-12 px-4'>
+    <div className='mt-7 flex flex-col gap-12 px-4'>
       <SectionBlock title='운영시간'>
         {operationTimes && operationTimes.length > 0 ? (
           operationTimes.map((operationTime) => (
@@ -264,6 +272,14 @@ function MypageOwnerKindergartenPage() {
               <NoConfirmedSections />
             )}
           </TabsContent>
+
+          {/* TODO: 유치원 정보 수정 플로우 연동 */}
+          <div className='flex items-center justify-center px-4 pt-4 pb-10'>
+            <ActionButton type='button' size='medium' variant='tertiaryFill' className='w-[136px]'>
+              <Icon icon='Edit' className='size-5' />
+              {ownerMypageContent.editInfoButtonLabel}
+            </ActionButton>
+          </div>
         </div>
       </Tabs>
     </SafeArea>
