@@ -51,8 +51,12 @@ interface OwnerRole {
   isOwner: boolean;
   kindergartenType: OwnerKindergartenType | null;
   schoolId: number | null;
-  /** 유치원 place id. SELECTED 유치원 basic API(`kindergarten/basic/{id}`) 조회 키. schoolId와 별개 */
+  /** BE 내부 유치원 PK. basic/main API 조회 키(place id)가 아님 */
   kindergartenId: number | null;
+  /**
+   * SELECTED 유치원 place id. `kindergarten/basic·main/{id}` 조회 키.
+   */
+  placeId: number | null;
   kindergartenName: string | null;
   kindergartenAddress: string | null;
   representativeName: string | null;
@@ -64,16 +68,43 @@ const getOwnerRole = async () => {
   return await api.get(`owner/role`).json<ApiResponse<OwnerRole>>();
 };
 
+type SocialLoginProvider = 'GOOGLE' | 'KAKAO' | 'APPLE';
+
+interface OwnerMypageSummary {
+  ownerId: string;
+  ownerName: string;
+  ownerProfileImageUrl: string | null;
+  /** 현재 구현상 항상 true (비원장은 403) */
+  isOwner: boolean;
+  loginProvider: SocialLoginProvider;
+  loginEmail: string;
+  kindergartenId: number | null;
+  kindergartenName: string | null;
+  kindergartenAddress: string | null;
+  /** 현재 구현상 항상 null */
+  kindergartenRepresentativeImageUrl: string | null;
+  canSwitchToGuardian: boolean;
+  canReleaseOperationPermission: boolean;
+}
+
+/** `GET` - 원장 마이페이지 요약 조회 API (원장 전용, 비원장 403) */
+const getOwnerMypageSummary = async () => {
+  return await api.get(`owner/mypage/summary`).json<ApiResponse<OwnerMypageSummary>>();
+};
+
 export {
   type RegisterUserRequest,
   type WithdrawRequest,
   type UserInfo,
   type OwnerRole,
   type OwnerKindergartenType,
+  type OwnerMypageSummary,
+  type SocialLoginProvider,
   postRegisterUser,
   postWithdraw,
   getUserInfo,
   postUpdateUserNickname,
   postUpdateUserEmail,
   getOwnerRole,
+  getOwnerMypageSummary,
 };

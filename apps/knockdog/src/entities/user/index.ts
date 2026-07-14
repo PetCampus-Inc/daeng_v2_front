@@ -2,9 +2,12 @@
 export {
   postWithdraw,
   getOwnerRole,
+  getOwnerMypageSummary,
   type WithdrawRequest,
   type OwnerRole,
   type OwnerKindergartenType,
+  type OwnerMypageSummary,
+  type SocialLoginProvider,
 } from './api/user';
 export {
   useUserRegisterMutation,
@@ -22,6 +25,9 @@ export {
   useOwnerRoleQuery,
   OWNER_ROLE_QUERY_KEY,
   ownerRoleQueryKey,
+  useOwnerMypageSummaryQuery,
+  OWNER_MYPAGE_SUMMARY_QUERY_KEY,
+  ownerMypageSummaryQueryKey,
 } from './api/useUserQuery';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';

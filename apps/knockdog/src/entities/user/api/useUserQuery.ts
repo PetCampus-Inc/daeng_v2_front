@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getUserInfo, getOwnerRole } from './user';
+import { getUserInfo, getOwnerRole, getOwnerMypageSummary } from './user';
 
 const useUserInfoQuery = () => {
   return useQuery({
@@ -29,4 +29,36 @@ const useOwnerRoleQuery = ({ userId, enabled = true }: UseOwnerRoleQueryOptions 
   });
 };
 
-export { useUserInfoQuery, useOwnerRoleQuery, OWNER_ROLE_QUERY_KEY, ownerRoleQueryKey };
+const OWNER_MYPAGE_SUMMARY_QUERY_KEY = 'ownerMypageSummary';
+
+/** 유저별로 캐시를 분리해 계정 전환 시 이전 원장 요약이 남지 않도록 함 */
+const ownerMypageSummaryQueryKey = (userId?: string) =>
+  [OWNER_MYPAGE_SUMMARY_QUERY_KEY, userId] as const;
+
+interface UseOwnerMypageSummaryQueryOptions {
+  userId?: string;
+  enabled?: boolean;
+}
+
+const useOwnerMypageSummaryQuery = ({
+  userId,
+  enabled = true,
+}: UseOwnerMypageSummaryQueryOptions = {}) => {
+  return useQuery({
+    queryKey: ownerMypageSummaryQueryKey(userId),
+    queryFn: getOwnerMypageSummary,
+    select: (data) => data.data,
+    enabled,
+    staleTime: 0,
+  });
+};
+
+export {
+  useUserInfoQuery,
+  useOwnerRoleQuery,
+  OWNER_ROLE_QUERY_KEY,
+  ownerRoleQueryKey,
+  useOwnerMypageSummaryQuery,
+  OWNER_MYPAGE_SUMMARY_QUERY_KEY,
+  ownerMypageSummaryQueryKey,
+};

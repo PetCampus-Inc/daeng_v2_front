@@ -17,8 +17,10 @@ interface OwnerRoleState {
   /** 로그인 + BE 원장 권한 확인 완료 여부 */
   isOwner: boolean;
   schoolId: number | null;
-  /** SELECTED 유치원 basic API 조회용 place id (schoolId와 별개) */
+  /** BE 내부 유치원 PK (basic/main 조회 키 아님) */
   kindergartenId: number | null;
+  /** SELECTED 유치원 basic/main API 조회용 place id */
+  placeId: number | null;
   /** 원장 소속 유치원 정보 (isOwner=false면 null) */
   kindergarten: OwnerKindergartenInfo | null;
   /** 원장(대표자) 정보 (isOwner=false면 null) */
@@ -61,6 +63,7 @@ function useOwnerRole(): OwnerRoleState {
     isOwner,
     schoolId: data?.schoolId ?? null,
     kindergartenId: data?.kindergartenId ?? null,
+    placeId: data?.placeId ?? null,
     kindergarten: isOwner && data ? toKindergarten(data) : null,
     owner: isOwner && data ? toOwner(data) : null,
     // 조회 성공 시에만 resolved 처리 — 실패(에러) 상태에서는 가드가 조기 리다이렉트하지 않도록 false 유지
