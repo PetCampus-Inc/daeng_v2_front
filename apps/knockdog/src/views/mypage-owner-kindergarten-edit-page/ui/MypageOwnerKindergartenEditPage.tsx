@@ -3,17 +3,27 @@
 import { useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Icon,
   IconButton,
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
 
 import { ownerMypageContent } from '@features/role-conversion';
 import { CLOSED_DAYS } from '@entities/compare';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
+import { useStackNavigation } from '@shared/lib/bridge';
 import type { WebImageAsset } from '@shared/lib/media';
 import { OptionSelectSheet, type OptionItem } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
@@ -216,6 +226,7 @@ function OptionChipGroup({
 }
 
 function MypageOwnerKindergartenEditPage() {
+  const { back } = useStackNavigation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
@@ -240,6 +251,71 @@ function MypageOwnerKindergartenEditPage() {
   const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
   const [amenities, setAmenities] = useState<FilterOption[]>([]);
 
+  const isDirty = useMemo(
+    () =>
+      images.length > 0 ||
+      name.trim().length > 0 ||
+      address.trim().length > 0 ||
+      addressDetail.trim().length > 0 ||
+      phone.trim().length > 0 ||
+      Boolean(weekdayStart) ||
+      Boolean(weekdayEnd) ||
+      Boolean(weekendStart) ||
+      Boolean(weekendEnd) ||
+      closedDays.length > 0 ||
+      homepage.trim().length > 0 ||
+      instagram.trim().length > 0 ||
+      youtube.trim().length > 0 ||
+      breeds.length > 0 ||
+      dogServices.length > 0 ||
+      safetyFacilities.length > 0 ||
+      amenities.length > 0,
+    [
+      images.length,
+      name,
+      address,
+      addressDetail,
+      phone,
+      weekdayStart,
+      weekdayEnd,
+      weekendStart,
+      weekendEnd,
+      closedDays.length,
+      homepage,
+      instagram,
+      youtube,
+      breeds.length,
+      dogServices.length,
+      safetyFacilities.length,
+      amenities.length,
+    ]
+  );
+
+  const handleBack = () => {
+    if (!isDirty) {
+      back?.();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerMypageContent.unsavedExitModalTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerMypageContent.unsavedExitModalDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{ownerMypageContent.unsavedExitModalCancelLabel}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => back?.()}>
+              {ownerMypageContent.unsavedExitModalConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
   const activeTimeValue = useMemo(() => {
     if (!activeTimeField) return null;
     const timeMap: Record<TimeFieldKey, string | null> = {
@@ -298,7 +374,7 @@ function MypageOwnerKindergartenEditPage() {
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
+          <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
       </Header>

@@ -55,5 +55,9 @@ export const ownerMypageContent = Object.freeze({
   ownerPhonePlaceholder: '연락처를 입력해주세요',
   ownerEmailPlaceholder: '이메일을 입력해주세요',
   profileSaveButtonLabel: '저장하기',
+  unsavedExitModalTitle: '저장하지 않고 나갈까요?',
+  unsavedExitModalDescription: '변경한 내용이 저장되지 않아요.',
+  unsavedExitModalCancelLabel: '닫기',
+  unsavedExitModalConfirmLabel: '나가기',
 });
 
