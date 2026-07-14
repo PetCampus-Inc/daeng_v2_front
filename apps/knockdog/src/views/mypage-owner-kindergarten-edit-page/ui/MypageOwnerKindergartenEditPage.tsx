@@ -6,7 +6,6 @@ import {
   Icon,
   TextField,
   TextFieldInput,
-  Chip,
 } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
@@ -36,6 +35,16 @@ const BREED_OPTIONS = FILTER_CONFIG['견종 조건'];
 const DOG_SERVICE_OPTIONS = FILTER_CONFIG['강아지 서비스'];
 const SAFETY_OPTIONS = FILTER_CONFIG['강아지 안전 ∙ 시설'];
 const AMENITY_OPTIONS = FILTER_CONFIG['방문객 편의 ∙ 시설'];
+
+/** 섹션 탭·복수선택 칩 공통 톤. size만 다름 (탭=38, 옵션=48) */
+function selectionChipClassName(isSelected: boolean, size: 'tab' | 'option') {
+  const sizeClass = size === 'tab' ? 'px-3.5 py-2.5' : 'h-12 px-4';
+  const toneClass = isSelected
+    ? 'bg-fill-secondary-700 text-text-primary-inverse'
+    : 'bg-fill-secondary-50 text-text-secondary-inverse';
+
+  return `radius-r2 body2-semibold shrink-0 whitespace-nowrap ${sizeClass} ${toneClass}`;
+}
 
 interface FieldLabelProps {
   label: string;
@@ -87,21 +96,44 @@ function DropdownField({ value, placeholder, className }: DropdownFieldProps) {
 interface OptionChipGroupProps {
   options: readonly FilterOption[];
   selected: FilterOption[];
-  onToggle: (option: FilterOption) => void;
+  onChange: (next: FilterOption[]) => void;
+  /** 복수 선택 가능 여부. false면 단일 선택 */
+  multiple?: boolean;
 }
 
-function OptionChipGroup({ options, selected, onToggle }: OptionChipGroupProps) {
+function OptionChipGroup({
+  options,
+  selected,
+  onChange,
+  multiple = true,
+}: OptionChipGroupProps) {
+  const handleToggle = (option: FilterOption) => {
+    if (multiple) {
+      onChange(
+        selected.includes(option) ? selected.filter((item) => item !== option) : [...selected, option]
+      );
+      return;
+    }
+
+    onChange(selected.includes(option) ? [] : [option]);
+  };
+
   return (
     <div className='flex flex-wrap gap-2'>
-      {options.map((option) => (
-        <Chip.Toggle
-          key={option}
-          checked={selected.includes(option)}
-          onCheckedChange={() => onToggle(option)}
-        >
-          <Chip.Label>{FILTER_OPTIONS[option]}</Chip.Label>
-        </Chip.Toggle>
-      ))}
+      {options.map((option) => {
+        const isSelected = selected.includes(option);
+        return (
+          <button
+            key={option}
+            type='button'
+            aria-pressed={isSelected}
+            onClick={() => handleToggle(option)}
+            className={selectionChipClassName(isSelected, 'option')}
+          >
+            {FILTER_OPTIONS[option]}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -136,18 +168,6 @@ function MypageOwnerKindergartenEditPage() {
     container.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
   };
 
-  const toggleMulti = (
-    current: FilterOption[],
-    option: FilterOption,
-    setter: (next: FilterOption[]) => void
-  ) => {
-    setter(current.includes(option) ? current.filter((item) => item !== option) : [...current, option]);
-  };
-
-  const toggleBreed = (option: FilterOption) => {
-    setBreeds((prev) => (prev.includes(option) ? [] : [option]));
-  };
-
   return (
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
       <Header>
@@ -169,11 +189,7 @@ function MypageOwnerKindergartenEditPage() {
                 key={tab.id}
                 type='button'
                 onClick={() => handleScrollToSection(tab.id)}
-                className={`radius-r2 body2-semibold shrink-0 px-3.5 py-2.5 whitespace-nowrap ${
-                  isActive
-                    ? 'bg-fill-secondary-700 text-text-primary-inverse'
-                    : 'bg-fill-secondary-50 text-text-secondary-inverse'
-                }`}
+                className={selectionChipClassName(isActive, 'tab')}
               >
                 {tab.label}
               </button>
@@ -310,7 +326,12 @@ function MypageOwnerKindergartenEditPage() {
             </h3>
           </div>
           <div className='px-4 pb-8'>
-            <OptionChipGroup options={BREED_OPTIONS} selected={breeds} onToggle={toggleBreed} />
+            <OptionChipGroup
+              options={BREED_OPTIONS}
+              selected={breeds}
+              onChange={setBreeds}
+              multiple={false}
+            />
           </div>
 
           <div className='px-4 pt-5 pb-4'>
@@ -325,7 +346,7 @@ function MypageOwnerKindergartenEditPage() {
             <OptionChipGroup
               options={DOG_SERVICE_OPTIONS}
               selected={dogServices}
-              onToggle={(option) => toggleMulti(dogServices, option, setDogServices)}
+              onChange={setDogServices}
             />
           </div>
 
@@ -341,7 +362,7 @@ function MypageOwnerKindergartenEditPage() {
             <OptionChipGroup
               options={SAFETY_OPTIONS}
               selected={safetyFacilities}
-              onToggle={(option) => toggleMulti(safetyFacilities, option, setSafetyFacilities)}
+              onChange={setSafetyFacilities}
             />
           </div>
 
@@ -357,7 +378,7 @@ function MypageOwnerKindergartenEditPage() {
             <OptionChipGroup
               options={AMENITY_OPTIONS}
               selected={amenities}
-              onToggle={(option) => toggleMulti(amenities, option, setAmenities)}
+              onChange={setAmenities}
             />
           </div>
 
