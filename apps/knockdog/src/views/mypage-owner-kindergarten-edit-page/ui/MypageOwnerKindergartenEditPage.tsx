@@ -306,7 +306,7 @@ function MypageOwnerKindergartenEditPage() {
       <div ref={scrollRef} className='flex-1 overflow-y-auto'>
         <div
           ref={tabsRef}
-          className='bg-background-0 scrollbar-hide sticky top-0 z-10 flex gap-2 overflow-x-auto px-4 py-4'
+          className='scrollbar-hide sticky top-0 z-10 flex gap-2 overflow-x-auto bg-white px-4 py-4'
         >
           {SECTION_TABS.map((tab) => {
             const isActive = activeSection === tab.id;
@@ -328,7 +328,13 @@ function MypageOwnerKindergartenEditPage() {
 
           <div className='flex flex-col gap-2 px-4 pb-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditImageLabel} required />
-            <PhotoUploader maxCount={5} emptyVariant='tile' onChange={setImages} />
+            <PhotoUploader
+              maxCount={5}
+              emptyVariant='tile'
+              showRepresentativeBadge
+              representativeBadgeLabel={ownerMypageContent.kindergartenEditRepresentativeBadge}
+              onChange={setImages}
+            />
           </div>
 
           <div className='px-4 py-2'>

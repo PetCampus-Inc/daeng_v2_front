@@ -30,6 +30,9 @@ interface PhotoUploaderProps {
    * - tile: 정사각 [+] + n/max. full이면 disabled로 유지 (유치원 편집)
    */
   emptyVariant?: 'button' | 'tile';
+  /** 2장 이상일 때 첫 번째 이미지에 대표 사진 뱃지 표시 */
+  showRepresentativeBadge?: boolean;
+  representativeBadgeLabel?: string;
 }
 
 function PhotoUploader({
@@ -38,6 +41,8 @@ function PhotoUploader({
   defaultValue,
   onChange,
   emptyVariant = 'button',
+  showRepresentativeBadge = false,
+  representativeBadgeLabel = '대표 사진',
 }: PhotoUploaderProps) {
   const { pickImage } = useImagePicker();
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
@@ -184,7 +189,16 @@ function PhotoUploader({
 
       {assets.map((asset, index) => (
         <div key={`${asset.uri}-${index}`} onClick={() => handleImageClick(index)}>
-          <MiniPhotoBox imageUrl={asset.uri} className='h-[80px] w-[80px]' onRemove={() => removeImage(index)} />
+          <MiniPhotoBox
+            imageUrl={asset.uri}
+            className='h-[80px] w-[80px]'
+            onRemove={() => removeImage(index)}
+            badgeLabel={
+              showRepresentativeBadge && assets.length >= 2 && index === 0
+                ? representativeBadgeLabel
+                : undefined
+            }
+          />
         </div>
       ))}
     </div>

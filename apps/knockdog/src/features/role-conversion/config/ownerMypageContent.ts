@@ -25,6 +25,7 @@ export const ownerMypageContent = Object.freeze({
   kindergartenEditSnsSectionTitle: '웹사이트·SNS',
   kindergartenEditDetailsSectionTitle: '세부 정보',
   kindergartenEditImageLabel: '대표 이미지',
+  kindergartenEditRepresentativeBadge: '대표 사진',
   kindergartenEditNameLabel: '유치원 명',
   kindergartenEditAddressLabel: '주소',
   kindergartenEditAddressDetailPlaceholder: '상세 주소를 입력해주세요',
