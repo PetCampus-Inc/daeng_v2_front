@@ -18,7 +18,7 @@ interface AccountSectionProps {
   accountSectionTitle?: string;
   releasePermissionLabel?: string;
   headerAddon?: ReactNode;
-  /** owner variant 계정 표시용. 미지정 시 socialUser store로 폴백 */
+  /** owner variant 계정 표시용. undefined일 때만 socialUser store로 폴백 (null/'' 유지) */
   socialProvider?: SocialProvider | null;
   socialEmail?: string;
   onAccountClick?: () => void;
@@ -41,8 +41,9 @@ function AccountSection({
   const socialUser = useSocialUserStore((state) => state.socialUser);
 
   if (variant === 'owner') {
-    const provider = socialProvider ?? socialUser?.provider ?? null;
-    const email = socialEmail || socialUser?.email || '';
+    // undefined(미지정)만 store 폴백. null / '' 는 명시값으로 유지
+    const provider = socialProvider !== undefined ? socialProvider : (socialUser?.provider ?? null);
+    const email = socialEmail !== undefined ? socialEmail : (socialUser?.email ?? '');
 
     return (
       <div className='flex flex-col gap-4 px-4 py-5'>
