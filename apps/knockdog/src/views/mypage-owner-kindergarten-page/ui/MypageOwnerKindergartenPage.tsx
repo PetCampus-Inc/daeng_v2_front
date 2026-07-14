@@ -22,6 +22,8 @@ import {
 } from '@features/kindergarten-basic';
 import { ownerMypageContent, useOwnerKindergarten } from '@features/role-conversion';
 import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 const TAB = {
@@ -219,11 +221,16 @@ function SelectedOperationContent({ kindergartenId, name, fallbackAddress }: Sel
 }
 
 function MypageOwnerKindergartenPage() {
+  const { push } = useStackNavigation();
   const { name, address, source, kindergartenId, imageUrl, usesDefaultImage } =
     useOwnerKindergarten();
   const [activeTab, setActiveTab] = useState<string>(TAB.OPERATION);
 
   const isSelected = source === 'search';
+
+  const handleEditClick = () => {
+    push({ pathname: route.mypage.kindergarten.edit.root });
+  };
 
   return (
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
@@ -275,9 +282,15 @@ function MypageOwnerKindergartenPage() {
             )}
           </TabsContent>
 
-          {/* TODO: 유치원 정보 수정 플로우 연동 */}
+          {/* TODO: 유치원 정보 수정 플로우 추가 연동 */}
           <div className='flex items-center justify-center px-4 pt-4 pb-10'>
-            <ActionButton type='button' size='medium' variant='tertiaryFill' className='w-[136px]'>
+            <ActionButton
+              type='button'
+              size='medium'
+              variant='tertiaryFill'
+              className='w-[136px]'
+              onClick={handleEditClick}
+            >
               <Icon icon='Edit' className='size-5' />
               {ownerMypageContent.editInfoButtonLabel}
             </ActionButton>

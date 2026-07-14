@@ -1,0 +1,385 @@
+'use client';
+
+import { useRef, useState, type ReactNode } from 'react';
+import {
+  ActionButton,
+  Icon,
+  TextField,
+  TextFieldInput,
+  Chip,
+} from '@knockdog/ui';
+
+import { Header } from '@widgets/Header';
+
+import { ownerMypageContent } from '@features/role-conversion';
+import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
+import { PhotoUploader } from '@shared/ui/photo-uploader';
+import { SafeArea } from '@shared/ui/safe-area';
+
+const SECTION = {
+  BASIC: 'basic',
+  HOURS: 'hours',
+  SNS: 'sns',
+  DETAILS: 'details',
+} as const;
+
+type SectionId = (typeof SECTION)[keyof typeof SECTION];
+
+const SECTION_TABS: { id: SectionId; label: string }[] = [
+  { id: SECTION.BASIC, label: ownerMypageContent.kindergartenEditBasicSectionTitle },
+  { id: SECTION.HOURS, label: ownerMypageContent.kindergartenEditHoursSectionTitle },
+  { id: SECTION.SNS, label: ownerMypageContent.kindergartenEditSnsSectionTitle },
+  { id: SECTION.DETAILS, label: ownerMypageContent.kindergartenEditDetailsSectionTitle },
+];
+
+const BREED_OPTIONS = FILTER_CONFIG['견종 조건'];
+const DOG_SERVICE_OPTIONS = FILTER_CONFIG['강아지 서비스'];
+const SAFETY_OPTIONS = FILTER_CONFIG['강아지 안전 ∙ 시설'];
+const AMENITY_OPTIONS = FILTER_CONFIG['방문객 편의 ∙ 시설'];
+
+interface FieldLabelProps {
+  label: string;
+  required?: boolean;
+  optional?: boolean;
+}
+
+function FieldLabel({ label, required = false, optional = false }: FieldLabelProps) {
+  return (
+    <div className='body2-bold flex items-center gap-px'>
+      <span className='text-text-primary'>{label}</span>
+      {required ? <span className='text-text-accent'>*</span> : null}
+      {optional ? <span className='caption1-semibold text-text-tertiary'>(선택)</span> : null}
+    </div>
+  );
+}
+
+interface SectionTitleProps {
+  children: ReactNode;
+}
+
+function SectionTitle({ children }: SectionTitleProps) {
+  return <h2 className='h3-extrabold text-text-primary px-4 py-5'>{children}</h2>;
+}
+
+interface DropdownFieldProps {
+  value?: string;
+  placeholder: string;
+  className?: string;
+}
+
+/** 드롭다운 퍼블리싱 UI. 실제 선택 동작은 추후 연동 */
+function DropdownField({ value, placeholder, className }: DropdownFieldProps) {
+  return (
+    <button
+      type='button'
+      className={`radius-r2 border-line-200 bg-fill-secondary-0 flex h-[52px] items-center gap-2 border px-4 py-3 text-left ${className ?? 'w-full'}`}
+    >
+      <span
+        className={`body1-regular flex-1 truncate ${value ? 'text-text-primary' : 'text-text-tertiary'}`}
+      >
+        {value || placeholder}
+      </span>
+      <Icon icon='ChevronBottom' className='text-text-tertiary size-5 shrink-0' />
+    </button>
+  );
+}
+
+interface OptionChipGroupProps {
+  options: readonly FilterOption[];
+  selected: FilterOption[];
+  onToggle: (option: FilterOption) => void;
+}
+
+function OptionChipGroup({ options, selected, onToggle }: OptionChipGroupProps) {
+  return (
+    <div className='flex flex-wrap gap-2'>
+      {options.map((option) => (
+        <Chip.Toggle
+          key={option}
+          checked={selected.includes(option)}
+          onCheckedChange={() => onToggle(option)}
+        >
+          <Chip.Label>{FILTER_OPTIONS[option]}</Chip.Label>
+        </Chip.Toggle>
+      ))}
+    </div>
+  );
+}
+
+function MypageOwnerKindergartenEditPage() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
+
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [homepage, setHomepage] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [youtube, setYoutube] = useState('');
+  const [breeds, setBreeds] = useState<FilterOption[]>([]);
+  const [dogServices, setDogServices] = useState<FilterOption[]>([]);
+  const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
+  const [amenities, setAmenities] = useState<FilterOption[]>([]);
+
+  const handleScrollToSection = (sectionId: SectionId) => {
+    setActiveSection(sectionId);
+
+    const container = scrollRef.current;
+    const target = document.getElementById(`kindergarten-edit-${sectionId}`);
+    if (!container || !target) return;
+
+    const tabsHeight = tabsRef.current?.offsetHeight ?? 0;
+    const top = target.offsetTop - tabsHeight;
+
+    container.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+  };
+
+  const toggleMulti = (
+    current: FilterOption[],
+    option: FilterOption,
+    setter: (next: FilterOption[]) => void
+  ) => {
+    setter(current.includes(option) ? current.filter((item) => item !== option) : [...current, option]);
+  };
+
+  const toggleBreed = (option: FilterOption) => {
+    setBreeds((prev) => (prev.includes(option) ? [] : [option]));
+  };
+
+  return (
+    <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
+      <Header>
+        <Header.LeftSection>
+          <Header.BackButton />
+        </Header.LeftSection>
+        <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
+      </Header>
+
+      <div ref={scrollRef} className='flex-1 overflow-y-auto'>
+        <div
+          ref={tabsRef}
+          className='bg-background-0 scrollbar-hide sticky top-0 z-10 flex gap-2 overflow-x-auto px-4 py-4'
+        >
+          {SECTION_TABS.map((tab) => {
+            const isActive = activeSection === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type='button'
+                onClick={() => handleScrollToSection(tab.id)}
+                className={`radius-r2 body2-semibold shrink-0 px-3.5 py-2.5 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-fill-secondary-700 text-text-primary-inverse'
+                    : 'bg-fill-secondary-50 text-text-secondary-inverse'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <section id={`kindergarten-edit-${SECTION.BASIC}`}>
+          <SectionTitle>{ownerMypageContent.kindergartenEditBasicSectionTitle}</SectionTitle>
+
+          <div className='flex flex-col gap-2 px-4 pb-4'>
+            <FieldLabel label={ownerMypageContent.kindergartenEditImageLabel} required />
+            <PhotoUploader maxCount={5} />
+          </div>
+
+          <div className='px-4 py-2'>
+            <TextField label={ownerMypageContent.kindergartenEditNameLabel} required>
+              <TextFieldInput
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder='유치원을 입력해주세요'
+              />
+            </TextField>
+          </div>
+
+          <div className='flex flex-col gap-2 px-4 py-2'>
+            <FieldLabel label={ownerMypageContent.kindergartenEditAddressLabel} required />
+            <TextField>
+              <TextFieldInput
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                placeholder='주소를 검색해주세요'
+                // TODO: 주소 검색 시트 연동
+              />
+            </TextField>
+            <TextField>
+              <TextFieldInput
+                value={addressDetail}
+                onChange={(event) => setAddressDetail(event.target.value)}
+                placeholder={ownerMypageContent.kindergartenEditAddressDetailPlaceholder}
+              />
+            </TextField>
+          </div>
+
+          <div className='px-4 py-2'>
+            <TextField label={ownerMypageContent.kindergartenEditPhoneLabel} required>
+              <TextFieldInput
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                inputMode='tel'
+                placeholder='전화번호를 입력해주세요'
+              />
+            </TextField>
+          </div>
+        </section>
+
+        <section id={`kindergarten-edit-${SECTION.HOURS}`}>
+          <SectionTitle>{ownerMypageContent.kindergartenEditHoursSectionTitle}</SectionTitle>
+
+          <div className='flex flex-col gap-2 px-4 py-4'>
+            <FieldLabel label={ownerMypageContent.kindergartenEditWeekdayLabel} required />
+            <div className='flex items-center gap-1'>
+              <DropdownField
+                placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
+                className='flex-1'
+              />
+              <span className='body1-regular px-1'>~</span>
+              <DropdownField
+                placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
+                className='flex-1'
+              />
+            </div>
+          </div>
+
+          <div className='flex flex-col gap-2 px-4 py-4'>
+            <FieldLabel label={ownerMypageContent.kindergartenEditWeekendLabel} required />
+            <div className='flex items-center gap-1'>
+              <DropdownField
+                placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
+                className='flex-1'
+              />
+              <span className='body1-regular px-1'>~</span>
+              <DropdownField
+                placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
+                className='flex-1'
+              />
+            </div>
+          </div>
+
+          <div className='flex flex-col gap-2 px-4 py-4'>
+            <FieldLabel label={ownerMypageContent.kindergartenEditClosedDaysLabel} optional />
+            <DropdownField placeholder={ownerMypageContent.kindergartenEditClosedDaysPlaceholder} />
+          </div>
+        </section>
+
+        <section id={`kindergarten-edit-${SECTION.SNS}`}>
+          <SectionTitle>{ownerMypageContent.kindergartenEditSnsSectionTitle}</SectionTitle>
+
+          <div className='px-4 py-2'>
+            <TextField label={ownerMypageContent.kindergartenEditHomepageLabel} indicator='(선택)'>
+              <TextFieldInput
+                value={homepage}
+                onChange={(event) => setHomepage(event.target.value)}
+                placeholder='www.example.com'
+              />
+            </TextField>
+          </div>
+
+          <div className='px-4 py-2'>
+            <TextField label={ownerMypageContent.kindergartenEditInstagramLabel} indicator='(선택)'>
+              <TextFieldInput
+                value={instagram}
+                onChange={(event) => setInstagram(event.target.value)}
+                placeholder='@instagram'
+              />
+            </TextField>
+          </div>
+
+          <div className='px-4 py-2'>
+            <TextField label={ownerMypageContent.kindergartenEditYoutubeLabel} indicator='(선택)'>
+              <TextFieldInput
+                value={youtube}
+                onChange={(event) => setYoutube(event.target.value)}
+                placeholder='www.youtube.com/...'
+              />
+            </TextField>
+          </div>
+        </section>
+
+        <section id={`kindergarten-edit-${SECTION.DETAILS}`}>
+          <div className='px-4 pt-5 pb-4'>
+            <h3 className='h3-extrabold text-text-primary'>
+              {ownerMypageContent.kindergartenEditBreedTitle}
+            </h3>
+          </div>
+          <div className='px-4 pb-8'>
+            <OptionChipGroup options={BREED_OPTIONS} selected={breeds} onToggle={toggleBreed} />
+          </div>
+
+          <div className='px-4 pt-5 pb-4'>
+            <h3 className='h3-extrabold text-text-primary'>
+              {ownerMypageContent.kindergartenEditDogServiceTitle}
+            </h3>
+            <p className='body2-regular text-text-tertiary mt-1'>
+              {ownerMypageContent.kindergartenEditMultiSelectHint}
+            </p>
+          </div>
+          <div className='px-4 pb-8'>
+            <OptionChipGroup
+              options={DOG_SERVICE_OPTIONS}
+              selected={dogServices}
+              onToggle={(option) => toggleMulti(dogServices, option, setDogServices)}
+            />
+          </div>
+
+          <div className='px-4 pt-5 pb-4'>
+            <h3 className='h3-extrabold text-text-primary'>
+              {ownerMypageContent.kindergartenEditSafetyTitle}
+            </h3>
+            <p className='body2-regular text-text-tertiary mt-1'>
+              {ownerMypageContent.kindergartenEditMultiSelectHint}
+            </p>
+          </div>
+          <div className='px-4 pb-8'>
+            <OptionChipGroup
+              options={SAFETY_OPTIONS}
+              selected={safetyFacilities}
+              onToggle={(option) => toggleMulti(safetyFacilities, option, setSafetyFacilities)}
+            />
+          </div>
+
+          <div className='px-4 pt-5 pb-4'>
+            <h3 className='h3-extrabold text-text-primary'>
+              {ownerMypageContent.kindergartenEditAmenityTitle}
+            </h3>
+            <p className='body2-regular text-text-tertiary mt-1'>
+              {ownerMypageContent.kindergartenEditMultiSelectHint}
+            </p>
+          </div>
+          <div className='px-4 pb-8'>
+            <OptionChipGroup
+              options={AMENITY_OPTIONS}
+              selected={amenities}
+              onToggle={(option) => toggleMulti(amenities, option, setAmenities)}
+            />
+          </div>
+
+          <div className='flex flex-col px-4 py-4'>
+            <span className='body1-bold text-text-primary'>
+              {ownerMypageContent.kindergartenEditLastUpdatedTitle}
+            </span>
+            <span className='body2-regular text-text-tertiary'>
+              {ownerMypageContent.noConfirmedInfoText}
+            </span>
+          </div>
+        </section>
+
+        <div className='px-4 pt-5 pb-10'>
+          {/* TODO: 유치원 운영 정보 저장 API 연동 */}
+          <ActionButton type='button' size='large' variant='primaryFill' className='w-full'>
+            {ownerMypageContent.profileSaveButtonLabel}
+          </ActionButton>
+        </div>
+      </div>
+    </SafeArea>
+  );
+}
+
+export { MypageOwnerKindergartenEditPage };
