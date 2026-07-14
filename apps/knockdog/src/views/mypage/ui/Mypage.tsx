@@ -17,6 +17,7 @@ import {
   useIsOwnerVerified,
   useOwnerKindergarten,
   useOwnerProfile,
+  useOwnerMypageSummary,
 } from '@features/role-conversion';
 import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
@@ -42,9 +43,16 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
-  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, kindergartenId } =
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
+  const {
+    profileImageUrl: ownerProfileImageUrl,
+    loginProvider,
+    loginEmail,
+    canSwitchToGuardian,
+    canReleaseOperationPermission,
+  } = useOwnerMypageSummary();
   const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
@@ -74,9 +82,7 @@ function Mypage() {
   };
 
   const handleKindergartenClick = () => {
-    if (!kindergartenId) return;
-
-    push({ pathname: `/kindergarten/${kindergartenId}` });
+    push({ pathname: route.mypage.kindergarten.root });
   };
 
   const handleLogout = () => {
@@ -166,7 +172,7 @@ function Mypage() {
           </>
         )}
 
-        {isLoggedIn && isOwnerVerified && (
+        {isLoggedIn && isOwnerVerified && canSwitchToGuardian && (
           <RoleConversionButton
             disabled
             title={roleConversionButtonContent.convertToGuardianPendingNotice}
@@ -179,7 +185,9 @@ function Mypage() {
           <div className='bg-background-0'>
             <OwnerProfileRow
               name={profile.name}
-              profileImageUrl={profile.profileImageUrl ?? user.profileImageUrl}
+              profileImageUrl={
+                profile.profileImageUrl ?? ownerProfileImageUrl ?? user.profileImageUrl
+              }
               onClick={() => push({ pathname: route.mypage.profile.root })}
             />
 
@@ -224,8 +232,12 @@ function Mypage() {
                 variant={isOwnerVerified ? 'owner' : 'guardian'}
                 accountInfo={isOwnerVerified ? undefined : accountInfo}
                 accountSectionTitle={ownerMypageContent.accountSectionTitle}
+                socialProvider={isOwnerVerified ? loginProvider : undefined}
+                socialEmail={isOwnerVerified ? loginEmail : undefined}
                 releasePermissionLabel={
-                  isOwnerVerified ? ownerMypageContent.releasePermissionLabel : undefined
+                  isOwnerVerified && canReleaseOperationPermission
+                    ? ownerMypageContent.releasePermissionLabel
+                    : undefined
                 }
                 headerAddon={
                   !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined

@@ -66,6 +66,10 @@ const route = {
   mypage: {
     /** 마이 페이지 */
     root: '/mypage',
+    kindergarten: {
+      /** 원장 유치원 정보 페이지 */
+      root: '/mypage/kindergarten',
+    },
     profile: {
       /** 원장 프로필 페이지 */
       root: '/mypage/profile',

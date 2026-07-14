@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react';
 
 import { ActionButton, Divider, Icon, IconButton } from '@knockdog/ui';
-import { SOCIAL_PROVIDER_ICONS, useSocialUserStore } from '@entities/social-user';
+import {
+  SOCIAL_PROVIDER_ICONS,
+  useSocialUserStore,
+  type SocialProvider,
+} from '@entities/social-user';
 
 interface AccountInfo {
   nickname: string;
@@ -14,6 +18,9 @@ interface AccountSectionProps {
   accountSectionTitle?: string;
   releasePermissionLabel?: string;
   headerAddon?: ReactNode;
+  /** owner variant 계정 표시용. undefined일 때만 socialUser store로 폴백 (null/'' 유지) */
+  socialProvider?: SocialProvider | null;
+  socialEmail?: string;
   onAccountClick?: () => void;
   onLocationClick?: () => void;
   onReleasePermissionClick?: () => void;
@@ -25,6 +32,8 @@ function AccountSection({
   accountSectionTitle = '내 계정',
   releasePermissionLabel,
   headerAddon,
+  socialProvider,
+  socialEmail,
   onAccountClick,
   onLocationClick,
   onReleasePermissionClick,
@@ -32,14 +41,18 @@ function AccountSection({
   const socialUser = useSocialUserStore((state) => state.socialUser);
 
   if (variant === 'owner') {
+    // undefined(미지정)만 store 폴백. null / '' 는 명시값으로 유지
+    const provider = socialProvider !== undefined ? socialProvider : (socialUser?.provider ?? null);
+    const email = socialEmail !== undefined ? socialEmail : (socialUser?.email ?? '');
+
     return (
       <div className='flex flex-col gap-4 px-4 py-5'>
         <h2 className='h3-semibold text-text-primary'>{accountSectionTitle}</h2>
 
-        {socialUser ? (
+        {provider && email ? (
           <div className='bg-fill-secondary-50 flex items-center gap-x-1 rounded-lg px-4 py-3'>
-            <Icon icon={SOCIAL_PROVIDER_ICONS[socialUser.provider]} className='size-4' />
-            <span className='body1-regular text-text-primary truncate'>{socialUser.email}</span>
+            <Icon icon={SOCIAL_PROVIDER_ICONS[provider]} className='size-4' />
+            <span className='body1-regular text-text-primary truncate'>{email}</span>
           </div>
         ) : null}
 
