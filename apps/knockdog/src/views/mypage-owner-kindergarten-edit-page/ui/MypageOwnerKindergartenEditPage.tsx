@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActionButton,
   AlertDialog,
@@ -23,11 +23,17 @@ import { Header } from '@widgets/Header';
 import { ownerMypageContent } from '@features/role-conversion';
 import { CLOSED_DAYS } from '@entities/compare';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import type { WebImageAsset } from '@shared/lib/media';
 import { OptionSelectSheet, type OptionItem } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { SafeArea } from '@shared/ui/safe-area';
+
+import {
+  SELECTED_ADDRESS_EVENT,
+  consumeSelectedAddress,
+} from '../lib/selectedAddressDraft';
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
 
@@ -226,7 +232,7 @@ function OptionChipGroup({
 }
 
 function MypageOwnerKindergartenEditPage() {
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
@@ -250,6 +256,29 @@ function MypageOwnerKindergartenEditPage() {
   const [dogServices, setDogServices] = useState<FilterOption[]>([]);
   const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
   const [amenities, setAmenities] = useState<FilterOption[]>([]);
+
+  useEffect(() => {
+    function syncSelectedAddress() {
+      if (document.visibilityState === 'hidden') return;
+
+      const selectedAddress = consumeSelectedAddress();
+      if (selectedAddress) {
+        setAddress(selectedAddress);
+      }
+    }
+
+    syncSelectedAddress();
+
+    window.addEventListener('pageshow', syncSelectedAddress);
+    window.addEventListener(SELECTED_ADDRESS_EVENT, syncSelectedAddress);
+    document.addEventListener('visibilitychange', syncSelectedAddress);
+
+    return () => {
+      window.removeEventListener('pageshow', syncSelectedAddress);
+      window.removeEventListener(SELECTED_ADDRESS_EVENT, syncSelectedAddress);
+      document.removeEventListener('visibilitychange', syncSelectedAddress);
+    };
+  }, []);
 
   const isDirty = useMemo(
     () =>
@@ -315,6 +344,16 @@ function MypageOwnerKindergartenEditPage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
+  };
+
+  const handleAddressSearch = async () => {
+    await push({
+      pathname: route.mypage.kindergarten.edit.address.root,
+    });
+  };
+
+  const handleClearAddress = () => {
+    setAddress('');
   };
   const activeTimeValue = useMemo(() => {
     if (!activeTimeField) return null;
@@ -425,12 +464,38 @@ function MypageOwnerKindergartenEditPage() {
 
           <div className='flex flex-col gap-2 px-4 py-2'>
             <FieldLabel label={ownerMypageContent.kindergartenEditAddressLabel} required />
-            <ClearableTextField
-              value={address}
-              onChange={setAddress}
-              placeholder='주소를 검색해주세요'
-              // TODO: 주소 검색 시트 연동
-            />
+            <button
+              type='button'
+              className='w-full text-left'
+              onClick={handleAddressSearch}
+              aria-label='주소 검색'
+            >
+              <TextField
+                className='h-x13'
+                prefix={<Icon icon='Search' className='text-text-tertiary' />}
+                suffix={
+                  address ? (
+                    <IconButton
+                      type='button'
+                      icon='DeleteInput'
+                      className='text-text-tertiary'
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleClearAddress();
+                      }}
+                      aria-label='선택한 주소 삭제'
+                    />
+                  ) : undefined
+                }
+              >
+                <TextFieldInput
+                  readOnly
+                  tabIndex={-1}
+                  placeholder={ownerMypageContent.kindergartenEditAddressSearchPlaceholder}
+                  value={address}
+                />
+              </TextField>
+            </button>
             <ClearableTextField
               value={addressDetail}
               onChange={setAddressDetail}

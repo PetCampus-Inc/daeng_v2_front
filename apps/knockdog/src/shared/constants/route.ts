@@ -72,6 +72,10 @@ const route = {
       edit: {
         /** 원장 유치원 운영 정보 수정 페이지 */
         root: '/mypage/kindergarten/edit',
+        address: {
+          /** 원장 유치원 운영 정보 수정 - 주소 검색 */
+          root: '/mypage/kindergarten/edit/address',
+        },
       },
     },
     profile: {

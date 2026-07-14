@@ -28,6 +28,8 @@ export const ownerMypageContent = Object.freeze({
   kindergartenEditRepresentativeBadge: '대표 사진',
   kindergartenEditNameLabel: '유치원 명',
   kindergartenEditAddressLabel: '주소',
+  kindergartenEditAddressSearchTitle: '주소 수정하기',
+  kindergartenEditAddressSearchPlaceholder: '주소를 검색해주세요',
   kindergartenEditAddressDetailPlaceholder: '상세 주소를 입력해주세요',
   kindergartenEditPhoneLabel: '유치원 전화번호',
   kindergartenEditWeekdayLabel: '평일',
