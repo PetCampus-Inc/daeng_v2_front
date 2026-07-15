@@ -1,0 +1,348 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+import { CLOSED_DAYS } from '@entities/compare';
+import type { FilterOption } from '@entities/kindergarten';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+import type { WebImageAsset } from '@shared/lib/media';
+import {
+  clearEditFormDraft,
+  EDIT_FORM_DRAFT_UPDATED_EVENT,
+  loadEditFormDraft,
+  saveEditFormDraft,
+  type EditFormDraft,
+} from '@views/mypage-owner-kindergarten-edit-page/lib/editFormDraft';
+
+type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
+
+function formatDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function applyDraftToState(
+  draft: EditFormDraft,
+  setters: {
+    setImages: (value: WebImageAsset[]) => void;
+    setName: (value: string) => void;
+    setAddress: (value: string) => void;
+    setAddressDetail: (value: string) => void;
+    setPhone: (value: string) => void;
+    setWeekdayStart: (value: string | null) => void;
+    setWeekdayEnd: (value: string | null) => void;
+    setWeekendStart: (value: string | null) => void;
+    setWeekendEnd: (value: string | null) => void;
+    setClosedDays: (value: string[]) => void;
+    setHomepage: (value: string) => void;
+    setInstagram: (value: string) => void;
+    setYoutube: (value: string) => void;
+    setBreeds: (value: FilterOption[]) => void;
+    setDogServices: (value: FilterOption[]) => void;
+    setSafetyFacilities: (value: FilterOption[]) => void;
+    setAmenities: (value: FilterOption[]) => void;
+    setLastUpdatedDate: (value: string | null) => void;
+    setIsDirty: (value: boolean) => void;
+  }
+) {
+  setters.setImages(draft.images as WebImageAsset[]);
+  setters.setName(draft.name);
+  setters.setAddress(draft.address);
+  setters.setAddressDetail(draft.addressDetail);
+  setters.setPhone(draft.phone);
+  setters.setWeekdayStart(draft.weekdayStart);
+  setters.setWeekdayEnd(draft.weekdayEnd);
+  setters.setWeekendStart(draft.weekendStart);
+  setters.setWeekendEnd(draft.weekendEnd);
+  setters.setClosedDays(draft.closedDays);
+  setters.setHomepage(draft.homepage);
+  setters.setInstagram(draft.instagram);
+  setters.setYoutube(draft.youtube);
+  setters.setBreeds(draft.breeds);
+  setters.setDogServices(draft.dogServices);
+  setters.setSafetyFacilities(draft.safetyFacilities);
+  setters.setAmenities(draft.amenities);
+  setters.setLastUpdatedDate(draft.lastUpdatedDate);
+  setters.setIsDirty(draft.isDirty);
+}
+
+function useKindergartenEditForm() {
+  const { back, push } = useStackNavigation();
+
+  // SSR/CSR 첫 paint는 empty, draft는 mount 후 sessionStorage에서 복원
+  const [images, setImages] = useState<WebImageAsset[]>([]);
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [weekdayStart, setWeekdayStart] = useState<string | null>(null);
+  const [weekdayEnd, setWeekdayEnd] = useState<string | null>(null);
+  const [weekendStart, setWeekendStart] = useState<string | null>(null);
+  const [weekendEnd, setWeekendEnd] = useState<string | null>(null);
+  const [closedDays, setClosedDays] = useState<string[]>([]);
+  const [activeTimeField, setActiveTimeField] = useState<TimeFieldKey | null>(null);
+  const [isClosedDaysSheetOpen, setIsClosedDaysSheetOpen] = useState(false);
+  const [homepage, setHomepage] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [youtube, setYoutube] = useState('');
+  const [breeds, setBreeds] = useState<FilterOption[]>([]);
+  const [dogServices, setDogServices] = useState<FilterOption[]>([]);
+  const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
+  const [amenities, setAmenities] = useState<FilterOption[]>([]);
+  const [lastUpdatedDate, setLastUpdatedDate] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const skipNextPersistRef = useRef(false);
+  const hasHydratedDraftRef = useRef(false);
+
+  const buildDraft = (
+    nextIsDirty: boolean,
+    overrides: Partial<EditFormDraft> = {}
+  ): EditFormDraft => ({
+    images: images as EditFormDraft['images'],
+    name,
+    address,
+    addressDetail,
+    phone,
+    weekdayStart,
+    weekdayEnd,
+    weekendStart,
+    weekendEnd,
+    closedDays,
+    homepage,
+    instagram,
+    youtube,
+    breeds,
+    dogServices,
+    safetyFacilities,
+    amenities,
+    lastUpdatedDate,
+    isDirty: nextIsDirty,
+    ...overrides,
+  });
+
+  const persistDraft = (nextIsDirty: boolean, overrides: Partial<EditFormDraft> = {}) => {
+    saveEditFormDraft(buildDraft(nextIsDirty, overrides));
+  };
+
+  useEffect(() => {
+    function syncDraftFromStorage() {
+      if (document.visibilityState === 'hidden') return;
+
+      const draft = loadEditFormDraft();
+      if (!draft) {
+        hasHydratedDraftRef.current = true;
+        return;
+      }
+
+      skipNextPersistRef.current = true;
+      applyDraftToState(draft, {
+        setImages,
+        setName,
+        setAddress,
+        setAddressDetail,
+        setPhone,
+        setWeekdayStart,
+        setWeekdayEnd,
+        setWeekendStart,
+        setWeekendEnd,
+        setClosedDays,
+        setHomepage,
+        setInstagram,
+        setYoutube,
+        setBreeds,
+        setDogServices,
+        setSafetyFacilities,
+        setAmenities,
+        setLastUpdatedDate,
+        setIsDirty,
+      });
+      hasHydratedDraftRef.current = true;
+    }
+
+    syncDraftFromStorage();
+
+    window.addEventListener('pageshow', syncDraftFromStorage);
+    window.addEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
+    document.addEventListener('visibilitychange', syncDraftFromStorage);
+
+    return () => {
+      window.removeEventListener('pageshow', syncDraftFromStorage);
+      window.removeEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
+      document.removeEventListener('visibilitychange', syncDraftFromStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedDraftRef.current) return;
+
+    if (skipNextPersistRef.current) {
+      skipNextPersistRef.current = false;
+      return;
+    }
+
+    persistDraft(isDirty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 폼 필드 변경 시에만 draft 저장
+  }, [
+    images,
+    name,
+    address,
+    addressDetail,
+    phone,
+    weekdayStart,
+    weekdayEnd,
+    weekendStart,
+    weekendEnd,
+    closedDays,
+    homepage,
+    instagram,
+    youtube,
+    breeds,
+    dogServices,
+    safetyFacilities,
+    amenities,
+    lastUpdatedDate,
+    isDirty,
+  ]);
+
+  const markDirty = () => {
+    if (!isDirty) setIsDirty(true);
+  };
+
+  const updateField = <T,>(setter: (value: T) => void, value: T) => {
+    markDirty();
+    setter(value);
+  };
+
+  const activeTimeValue = useMemo(() => {
+    if (!activeTimeField) return null;
+    const timeMap: Record<TimeFieldKey, string | null> = {
+      weekdayStart,
+      weekdayEnd,
+      weekendStart,
+      weekendEnd,
+    };
+    return timeMap[activeTimeField];
+  }, [activeTimeField, weekdayStart, weekdayEnd, weekendStart, weekendEnd]);
+
+  const closedDaysLabel = useMemo(
+    () =>
+      closedDays
+        .map((day) => CLOSED_DAYS[day as keyof typeof CLOSED_DAYS] ?? day)
+        .join(', '),
+    [closedDays]
+  );
+
+  const isSaveEnabled =
+    images.length > 0 &&
+    name.trim().length > 0 &&
+    address.trim().length > 0 &&
+    phone.trim().length > 0 &&
+    Boolean(weekdayStart) &&
+    Boolean(weekdayEnd) &&
+    Boolean(weekendStart) &&
+    Boolean(weekendEnd);
+
+  const handleLeaveWithoutSaving = () => {
+    clearEditFormDraft();
+    back?.();
+  };
+
+  const leaveIfClean = () => {
+    if (isDirty) return false;
+    back?.();
+    return true;
+  };
+
+  const handleAddressSearch = async () => {
+    persistDraft(true);
+    setIsDirty(true);
+
+    await push({
+      pathname: route.mypage.kindergarten.edit.address.root,
+    });
+  };
+
+  const handleSave = () => {
+    if (!isSaveEnabled) return false;
+
+    // TODO: 유치원 운영 정보 저장 API 연동
+    const nextLastUpdatedDate = formatDate();
+    skipNextPersistRef.current = true;
+    setLastUpdatedDate(nextLastUpdatedDate);
+    setIsDirty(false);
+    persistDraft(false, { lastUpdatedDate: nextLastUpdatedDate });
+    return true;
+  };
+
+  const handleTimeSelect = (value: string) => {
+    if (!activeTimeField) return;
+
+    const setters: Record<TimeFieldKey, (next: string | null) => void> = {
+      weekdayStart: setWeekdayStart,
+      weekdayEnd: setWeekdayEnd,
+      weekendStart: setWeekendStart,
+      weekendEnd: setWeekendEnd,
+    };
+    updateField(setters[activeTimeField], value);
+  };
+
+  return {
+    images,
+    name,
+    address,
+    addressDetail,
+    phone,
+    weekdayStart,
+    weekdayEnd,
+    weekendStart,
+    weekendEnd,
+    closedDays,
+    closedDaysLabel,
+    activeTimeField,
+    activeTimeValue,
+    isClosedDaysSheetOpen,
+    homepage,
+    instagram,
+    youtube,
+    breeds,
+    dogServices,
+    safetyFacilities,
+    amenities,
+    lastUpdatedDate,
+    isDirty,
+    isSaveEnabled,
+    setActiveTimeField,
+    setIsClosedDaysSheetOpen,
+    closeTimeSheet: () => setActiveTimeField(null),
+    closeClosedDaysSheet: () => setIsClosedDaysSheetOpen(false),
+    handleImagesChange: (next: WebImageAsset[]) => updateField(setImages, next),
+    handleNameChange: (value: string) => updateField(setName, value),
+    handleAddressDetailChange: (value: string) => updateField(setAddressDetail, value),
+    handlePhoneChange: (value: string) => updateField(setPhone, formatPhone(value)),
+    handleHomepageChange: (value: string) => updateField(setHomepage, value),
+    handleInstagramChange: (value: string) => updateField(setInstagram, value),
+    handleYoutubeChange: (value: string) => updateField(setYoutube, value),
+    handleBreedsChange: (next: FilterOption[]) => updateField(setBreeds, next),
+    handleDogServicesChange: (next: FilterOption[]) => updateField(setDogServices, next),
+    handleSafetyFacilitiesChange: (next: FilterOption[]) =>
+      updateField(setSafetyFacilities, next),
+    handleAmenitiesChange: (next: FilterOption[]) => updateField(setAmenities, next),
+    handleClosedDaysChange: (next: string[]) => updateField(setClosedDays, next),
+    leaveIfClean,
+    handleLeaveWithoutSaving,
+    handleAddressSearch,
+    handleClearAddress: () => {
+      markDirty();
+      setAddress('');
+      setAddressDetail('');
+    },
+    handleSave,
+    handleTimeSelect,
+  };
+}
+
+export { useKindergartenEditForm, type TimeFieldKey };

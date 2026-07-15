@@ -45,7 +45,10 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
     if (bridge) {
       const params: ToastShowParams = {
         id,
-        title: resolvedOptions.title,
+        title:
+          typeof resolvedOptions.title === 'string'
+            ? resolvedOptions.title
+            : (resolvedOptions.nativeTitle ?? ''),
         description: resolvedOptions.description,
         duration: resolvedOptions.duration,
         position: resolvedOptions.position,

@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { Toast, ToastProvider } from '@knockdog/ui';
 import type { Store } from '../model/types';
@@ -27,7 +28,7 @@ function ToastItem({
   onRemove,
 }: {
   id: string;
-  title?: string;
+  title?: ReactNode;
   description?: string;
   duration: number;
   className?: string;

@@ -1,12 +1,13 @@
 import type { ToastShape, ToastPosition, ToastType } from '@knockdog/bridge-core';
+import type { ReactNode } from 'react';
 import type { ToastStore } from './store';
 
 /**
- * 웹 로컬 Toast Item - string만 지원 (앱과 동일)
+ * 웹 로컬 Toast Item
  */
 export type ToastItem = {
   id: string;
-  title?: string;
+  title?: ReactNode;
   description?: string;
   duration: number;
   className?: string;
@@ -22,10 +23,13 @@ export type Store = ToastStore;
 /**
  * Toast 옵션 - 웹과 앱 모두에서 사용
  * toast() 함수로 호출할 때 사용
+ * title은 웹에서 ReactNode 하이라이트 가능, 네이티브는 string만 전송
  */
 export type ToastOptions = {
   id?: string;
-  title?: string;
+  title?: ReactNode;
+  /** 네이티브 bridge 전송용. title이 ReactNode일 때 사용 */
+  nativeTitle?: string;
   description?: string;
   duration?: number;
   className?: string;
