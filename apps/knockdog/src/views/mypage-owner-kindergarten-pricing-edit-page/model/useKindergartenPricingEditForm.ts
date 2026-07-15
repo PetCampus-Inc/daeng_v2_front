@@ -64,6 +64,8 @@ function useKindergartenPricingEditForm() {
   const skipNextPersistRef = useRef(false);
   const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
+  /** dirty draft를 setState보다 먼저 잠궈 source hydration 덮어쓰기 방지 */
+  const hasRestoredDirtyDraftRef = useRef(false);
 
   const draftSetters = {
     setProductTypes,
@@ -93,6 +95,7 @@ function useKindergartenPricingEditForm() {
 
       const draft = loadPricingEditFormDraft();
       if (draft?.isDirty) {
+        hasRestoredDirtyDraftRef.current = true;
         skipNextPersistRef.current = true;
         applyDraftToState(draft, draftSetters);
       }
@@ -117,6 +120,12 @@ function useKindergartenPricingEditForm() {
   useEffect(() => {
     if (!hasHydratedDraftRef.current) return;
     if (hasHydratedFromSourceRef.current) return;
+
+    if (hasRestoredDirtyDraftRef.current) {
+      hasHydratedFromSourceRef.current = true;
+      return;
+    }
+
     if (isDirty) {
       hasHydratedFromSourceRef.current = true;
       return;
@@ -198,10 +207,37 @@ function useKindergartenPricingEditForm() {
     if (!isSaveEnabled || isSaving) return false;
 
     try {
-      const nextPriceImages = await buildOwnerSchoolPriceImages({
-        assets: priceImages,
-        moveImage: moveImageAsync,
-      });
+      const nextAssets = [...priceImages];
+      const nextPriceImages: { s3Key: string; displayOrder: number }[] = [];
+
+      for (let index = 0; index < nextAssets.length; index += 1) {
+        const asset = nextAssets[index];
+        if (!asset) continue;
+
+        const moved = await buildOwnerSchoolPriceImages({
+          assets: [asset],
+          moveImage: moveImageAsync,
+        });
+        const payload = moved[0];
+        if (!payload?.s3Key) {
+          throw new Error('가격표 이미지 이동에 실패했어요');
+        }
+
+        nextPriceImages.push({ s3Key: payload.s3Key, displayOrder: index });
+        nextAssets[index] = {
+          ...asset,
+          key: payload.s3Key,
+        } as WebImageAsset;
+
+        // PUT 전/부분 실패 후에도 이동된 영구 키 재사용
+        skipNextPersistRef.current = true;
+        setPriceImages([...nextAssets]);
+        savePricingEditFormDraft(
+          buildDraft(true, {
+            priceImages: nextAssets as PricingEditFormDraft['priceImages'],
+          })
+        );
+      }
 
       await putPriceAsync({
         pricingTypes: productTypes as OwnerSchoolPricingType[],

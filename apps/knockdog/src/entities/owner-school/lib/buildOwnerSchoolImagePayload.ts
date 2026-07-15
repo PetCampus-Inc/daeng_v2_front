@@ -27,7 +27,8 @@ function resolveAssetKey(asset: WebImageAsset) {
 }
 
 function isTempKey(key: string) {
-  return key.includes('temp');
+  // temp 디렉터리만 (templates/, attempt.webp 등은 제외)
+  return key === 'temp' || /(^|\/)temp\//.test(key);
 }
 
 interface BuildOwnerSchoolImagePayloadParams {

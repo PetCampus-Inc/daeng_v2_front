@@ -20,9 +20,27 @@ function toProfileCodes(codes: string[]) {
 
 function requireTime(value: string | null, label: string) {
   const trimmed = value?.trim().slice(0, 5);
-  if (!trimmed) {
-    throw new Error(`${label}을(를) 선택해 주세요`);
+  const selectionError = new Error(`${label}을(를) 선택해 주세요`);
+
+  if (!trimmed || !/^\d{2}:\d{2}$/.test(trimmed)) {
+    throw selectionError;
   }
+
+  const [hourText, minuteText] = trimmed.split(':');
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (
+    !Number.isInteger(hour) ||
+    !Number.isInteger(minute) ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59
+  ) {
+    throw selectionError;
+  }
+
   return trimmed;
 }
 

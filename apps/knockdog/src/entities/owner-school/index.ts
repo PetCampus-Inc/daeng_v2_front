@@ -2,6 +2,7 @@ export { getOwnerSchoolProfile } from './api/ownerSchoolProfile';
 export { putOwnerSchoolPrice } from './api/putOwnerSchoolPrice';
 export type {
   OwnerSchoolPriceImagePayload,
+  OwnerSchoolPriceSaveData,
   PutOwnerSchoolPriceRequest,
 } from './api/putOwnerSchoolPrice';
 export { putOwnerSchoolProfile } from './api/putOwnerSchoolProfile';

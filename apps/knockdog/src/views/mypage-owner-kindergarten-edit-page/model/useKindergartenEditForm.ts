@@ -114,6 +114,8 @@ function useKindergartenEditForm() {
   const skipNextPersistRef = useRef(false);
   const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
+  const isSaveLockedRef = useRef(false);
+  const [isPreparingSave, setIsPreparingSave] = useState(false);
   const prefillSourceRef = useRef({
     canUseAutofill,
     isAutofillPrefillReady,
@@ -310,7 +312,10 @@ function useKindergartenEditForm() {
   };
 
   const handleSave = async () => {
-    if (!isSaveEnabled || isSaving) return false;
+    if (!isSaveEnabled || isSaving || isPreparingSave || isSaveLockedRef.current) return false;
+
+    isSaveLockedRef.current = true;
+    setIsPreparingSave(true);
 
     try {
       const payload = await buildOwnerSchoolProfilePayload({
@@ -335,6 +340,9 @@ function useKindergartenEditForm() {
         description: error instanceof Error ? error.message : undefined,
       });
       return false;
+    } finally {
+      isSaveLockedRef.current = false;
+      setIsPreparingSave(false);
     }
   };
 
@@ -406,7 +414,7 @@ function useKindergartenEditForm() {
     lastUpdatedDate,
     isDirty,
     isSaveEnabled,
-    isSaving,
+    isSaving: isSaving || isPreparingSave,
     setActiveTimeField,
     setIsClosedDaysSheetOpen,
     closeTimeSheet: () => setActiveTimeField(null),
