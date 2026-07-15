@@ -3,11 +3,17 @@ import { cn } from '@knockdog/ui/lib';
 import type { ProductType } from '@entities/pricing';
 import { PRODUCT_TYPE_MAP_LIST } from '@entities/pricing';
 
-function ProductTypeSection({ productType }: { productType: ProductType[] }) {
+function ProductTypeSection({
+  productType,
+  title = '상품유형',
+}: {
+  productType: ProductType[];
+  title?: string;
+}) {
   return (
     <div>
       <div className='mb-3'>
-        <span className='body1-bold'>상품유형</span>
+        <span className='body1-bold'>{title}</span>
       </div>
       <div className='flex gap-3'>
         {PRODUCT_TYPE_MAP_LIST.map(({ code, name }) => (

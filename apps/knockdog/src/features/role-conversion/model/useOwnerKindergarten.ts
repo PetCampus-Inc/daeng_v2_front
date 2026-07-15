@@ -8,54 +8,119 @@ import {
   createKindergartenBasicQueryOptions,
   kindergartenQueries,
 } from '@entities/kindergarten';
+import {
+  buildFullAddress,
+  mapOwnerSchoolProfilePricing,
+  mapOwnerSchoolProfileToBasic,
+  resolveThumbnailUrl,
+  useOwnerSchoolProfileQuery,
+} from '@entities/owner-school';
+import { useUserStore } from '@entities/user';
 
 /**
- * 원장 마이페이지 유치원 정보. BE owner-role 응답 기반.
+ * 원장 마이페이지 유치원 정보.
  *
- * MANUAL(수동) 유치원은 조회 대상이 없어 기본 이미지를 사용한다.
+ * - SELECTED: `placeId` → kindergarten/basic·main (운영·배너). 요금은 place pricing.
+ * - MANUAL: `GET owner/school/profile` (운영·요금).
+ * - placeId 우선순위: owner/role.placeId → profile.kindergartenPlaceId
  */
 function useOwnerKindergarten() {
-  const { kindergarten, owner, placeId } = useOwnerRole();
+  const user = useUserStore((state) => state.user);
+  const { kindergarten, owner, isOwner, placeId } = useOwnerRole();
 
   const source = kindergarten?.source ?? null;
   const isSelected = source === 'search';
-  // basic/main 조회 키는 place id (BE 내부 PK인 kindergartenId 아님)
-  const idStr = placeId != null ? String(placeId) : undefined;
 
-  // main API(배너)는 좌표가 필요 → basic에서 coord 확보
-  const { data: basic } = useQuery({
-    ...createKindergartenBasicQueryOptions(idStr ?? ''),
-    enabled: isSelected && !!idStr,
+  const { data: profile, isLoading, isError } = useOwnerSchoolProfileQuery({
+    userId: user?.userId,
+    enabled: isOwner,
   });
 
-  const coord = basic?.coord;
+  const resolvedPlaceId =
+    placeId != null
+      ? String(placeId)
+      : (profile?.kindergartenPlaceId?.trim() || undefined);
 
-  const { data: main } = useQuery({
+  const placeBasicQuery = useQuery({
+    ...createKindergartenBasicQueryOptions(resolvedPlaceId ?? ''),
+    enabled: isSelected && Boolean(resolvedPlaceId),
+  });
+
+  const placeBasic = placeBasicQuery.data;
+  const coord = placeBasic?.coord;
+
+  const mainQuery = useQuery({
     ...kindergartenQueries.main({
-      id: idStr ?? '',
+      id: resolvedPlaceId ?? '',
       lng: coord?.lng ?? 0,
       lat: coord?.lat ?? 0,
     }),
-    enabled: isSelected && !!idStr && coord != null,
+    enabled: isSelected && Boolean(resolvedPlaceId) && coord != null,
   });
 
-  const bannerKey = main?.banner?.[0];
+  const main = mainQuery.data;
+  const bannerKeys = main?.banner ?? [];
+  const bannerKey = bannerKeys[0];
   const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
   const bannerUrl = bannerKey ? `${imageBaseUrl}${encodeURI(bannerKey)}` : null;
+  const profileImageUrl = profile ? resolveThumbnailUrl(profile) : null;
+  const imageUrl = isSelected ? (bannerUrl ?? profileImageUrl) : profileImageUrl;
+
+  const profileBasic = profile ? mapOwnerSchoolProfileToBasic(profile) : undefined;
+  const profilePricing = profile ? mapOwnerSchoolProfilePricing(profile) : undefined;
+
+  const basic = isSelected && placeBasic ? placeBasic : profileBasic;
+  const pricing = isSelected ? undefined : profilePricing;
+
+  const name = (
+    (isSelected ? main?.title : null) ??
+    profile?.name ??
+    kindergarten?.name ??
+    ''
+  ).trim();
+
+  const address = (
+    (isSelected ? placeBasic?.roadAddress : null) ??
+    (profile ? buildFullAddress(profile.address, profile.addressDetail) : null) ??
+    kindergarten?.address ??
+    ''
+  ).trim();
+
+  const addressDetail = (profile?.addressDetail ?? '').trim();
+
+  const phoneNumber = (
+    (isSelected ? main?.phoneNumber : null) ??
+    profile?.phoneNumber ??
+    ''
+  ).trim();
+
+  /** SELECTED 수정 폼 프리필: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
+  const isSelectedPrefillReady =
+    isSelected &&
+    (!resolvedPlaceId ||
+      (placeBasicQuery.isFetched && (coord == null || mainQuery.isFetched)));
 
   return {
     ownerKindergarten: kindergarten,
     source,
-    imageUrl: bannerUrl,
-    usesDefaultImage: !bannerUrl,
-    // 원장이 소속 유치원을 가지면(수동/검색 무관) 상세 정보 페이지 진입 허용
+    imageUrl,
+    usesDefaultImage: !imageUrl,
     canOpenKindergartenDetail: !!kindergarten,
-    // basic/main API 조회 키 (place id)
-    kindergartenId: idStr,
-    name: kindergarten?.name ?? '',
-    address: kindergarten?.address ?? '',
+    /** SELECTED basic/main/pricing 조회 키 (place id) */
+    kindergartenId: resolvedPlaceId,
+    name,
+    address,
+    addressDetail,
+    phoneNumber,
+    bannerKeys,
     ownerName: owner?.name ?? '',
     ownerPhoneNumber: owner?.phoneNumber ?? '',
+    profile,
+    basic,
+    pricing,
+    isSelectedPrefillReady,
+    isProfileLoading: isOwner && isLoading,
+    isProfileError: isOwner && isError,
   };
 }
 
