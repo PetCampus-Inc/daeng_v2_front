@@ -14,7 +14,6 @@ import Image from 'next/image';
 import { MANUAL_STUB_BASIC, MANUAL_STUB_PHONE } from '@views/mypage-owner-kindergarten-page/model/manualKindergartenStub';
 
 import { Header } from '@widgets/Header';
-import { PricingSection } from '@widgets/kindergarten-tabs';
 import {
   OperationHoursCard,
   ServiceTagBadge,
@@ -25,6 +24,7 @@ import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { OwnerPricingContent } from '@views/mypage-owner-kindergarten-page/ui/OwnerPricingContent';
 
 const TAB = {
   OPERATION: 'operation',
@@ -275,13 +275,12 @@ function MypageOwnerKindergartenPage() {
           </TabsContent>
 
           <TabsContent value={TAB.PRICING}>
-            {isSelected && kindergartenId ? (
-              <PricingSection kindergartenId={kindergartenId} />
-            ) : (
-              <NoConfirmedSections />
-            )}
+            <OwnerPricingContent
+              kindergartenId={
+                isSelected && kindergartenId ? String(kindergartenId) : undefined
+              }
+            />
           </TabsContent>
-
           {/* TODO: 유치원 정보 수정 플로우 추가 연동 */}
           <div className='flex items-center justify-center px-4 pt-4 pb-10'>
             <ActionButton
@@ -298,16 +297,6 @@ function MypageOwnerKindergartenPage() {
         </div>
       </Tabs>
     </SafeArea>
-  );
-}
-
-function NoConfirmedSections() {
-  return (
-    <div className='flex items-center justify-center px-4 py-16'>
-      <span className='body1-regular text-text-tertiary'>
-        {ownerMypageContent.noConfirmedInfoText}
-      </span>
-    </div>
   );
 }
 
