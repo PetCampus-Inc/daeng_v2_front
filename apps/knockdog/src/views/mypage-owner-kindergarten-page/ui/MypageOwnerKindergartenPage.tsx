@@ -11,14 +11,9 @@ import {
   TabsContent,
 } from '@knockdog/ui';
 import Image from 'next/image';
-import { MANUAL_STUB_BASIC, MANUAL_STUB_PHONE } from '@views/mypage-owner-kindergarten-page/model/manualKindergartenStub';
 
 import { Header } from '@widgets/Header';
-import {
-  OperationHoursCard,
-  ServiceTagBadge,
-  useKindergartenBasicQuery,
-} from '@features/kindergarten-basic';
+import { OperationHoursCard, ServiceTagBadge } from '@features/kindergarten-basic';
 import { ownerMypageContent, useOwnerKindergarten } from '@features/role-conversion';
 import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten';
 import { route } from '@shared/constants/route';
@@ -54,7 +49,6 @@ function InfoRow({ label, value }: InfoRowProps) {
 interface BasicInfoCardProps {
   name: string;
   address: string;
-  // 전화번호는 basic 응답에 없어 기본 미확인. (stub 확인용으로만 주입)
   phone?: string;
 }
 
@@ -153,7 +147,7 @@ interface OperationSectionsProps {
   data?: KindergartenBasic;
 }
 
-/** basic 데이터(운영시간·서비스·시설·웹사이트)를 이 페이지 UI로 매핑. 값 없으면 '확인된 정보가 없습니다.'로 통일 */
+/** school profile → 운영시간·서비스·시설·웹사이트. 값 없으면 '확인된 정보가 없어요.' */
 function OperationSections({ data }: OperationSectionsProps) {
   const {
     operationTimes,
@@ -202,28 +196,19 @@ function OperationSections({ data }: OperationSectionsProps) {
   );
 }
 
-interface SelectedOperationContentProps {
-  kindergartenId: string;
-  name: string;
-  fallbackAddress: string;
-}
-
-/** SELECTED 유치원: basic API 데이터를 이 페이지 UI로 매핑 */
-function SelectedOperationContent({ kindergartenId, name, fallbackAddress }: SelectedOperationContentProps) {
-  const { data } = useKindergartenBasicQuery(kindergartenId);
-
-  return (
-    <>
-      <BasicInfoCard name={name} address={data?.roadAddress ?? fallbackAddress} />
-      <OperationSections data={data} />
-    </>
-  );
-}
-
 function MypageOwnerKindergartenPage() {
   const { push } = useStackNavigation();
-  const { name, address, source, kindergartenId, imageUrl, usesDefaultImage } =
-    useOwnerKindergarten();
+  const {
+    name,
+    address,
+    phoneNumber,
+    source,
+    kindergartenId,
+    imageUrl,
+    usesDefaultImage,
+    basic,
+    pricing,
+  } = useOwnerKindergarten();
   const [activeTab, setActiveTab] = useState<string>(TAB.OPERATION);
 
   const isSelected = source === 'search';
@@ -263,25 +248,17 @@ function MypageOwnerKindergartenPage() {
               </div>
             </div>
 
-            {isSelected && kindergartenId ? (
-              <SelectedOperationContent kindergartenId={kindergartenId} name={name} fallbackAddress={address} />
-            ) : (
-              // TODO(임시): MANUAL은 실데이터가 없어 stub으로 UI 전체 노출. BE 연동 시 제거.
-              <>
-                <BasicInfoCard name={name} address={address} phone={MANUAL_STUB_PHONE} />
-                <OperationSections data={MANUAL_STUB_BASIC} />
-              </>
-            )}
+            <BasicInfoCard name={name} address={address} phone={phoneNumber} />
+            <OperationSections data={basic} />
           </TabsContent>
 
           <TabsContent value={TAB.PRICING}>
             <OwnerPricingContent
-              kindergartenId={
-                isSelected && kindergartenId ? String(kindergartenId) : undefined
-              }
+              kindergartenId={isSelected ? kindergartenId : undefined}
+              pricing={isSelected ? undefined : pricing}
             />
           </TabsContent>
-          {/* TODO: 유치원 정보 수정 플로우 추가 연동 */}
+
           <div className='flex items-center justify-center px-4 pt-4 pb-10'>
             <ActionButton
               type='button'

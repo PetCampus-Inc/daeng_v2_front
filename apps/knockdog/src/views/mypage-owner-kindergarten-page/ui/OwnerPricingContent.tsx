@@ -4,20 +4,28 @@ import { ProductTypeSection, PriceImageSlider, usePricingQuery } from '@features
 import { ownerMypageContent } from '@features/role-conversion';
 import type { ProductType } from '@entities/pricing';
 
-interface OwnerPricingContentProps {
-  /** placeId. 없으면 MANUAL/미확인 empty UI */
-  kindergartenId?: string;
+interface OwnerPricingView {
+  productType: ProductType[];
+  priceImages: string[];
+  lastUpdatedAt: string;
 }
 
-function OwnerPricingContent({ kindergartenId }: OwnerPricingContentProps) {
-  const { data: pricing } = usePricingQuery(kindergartenId ?? '', {
+interface OwnerPricingContentProps {
+  /** SELECTED placeId. 있으면 place pricing API 조회 */
+  kindergartenId?: string;
+  /** MANUAL 등 placeId 없을 때 school profile 매핑 결과 */
+  pricing?: OwnerPricingView | null;
+}
+
+function OwnerPricingContent({ kindergartenId, pricing }: OwnerPricingContentProps) {
+  const { data: placePricing } = usePricingQuery(kindergartenId ?? '', {
     enabled: Boolean(kindergartenId),
   });
 
-  const productType: ProductType[] = pricing?.productType ?? [];
-  const productCategories = pricing?.productCategories ?? [];
-  const priceImages = pricing?.priceImages ?? [];
-  const lastUpdatedAt = pricing?.lastUpdatedAt;
+  const productType = placePricing?.productType ?? pricing?.productType ?? [];
+  const productCategories = placePricing?.productCategories ?? [];
+  const priceImages = placePricing?.priceImages ?? pricing?.priceImages ?? [];
+  const lastUpdatedAt = placePricing?.lastUpdatedAt ?? pricing?.lastUpdatedAt;
   const hasPriceImages = priceImages.length > 0;
   const hasProductCategories = productCategories.length > 0;
 
