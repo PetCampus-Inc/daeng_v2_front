@@ -15,6 +15,9 @@ import {
   IconButton,
   TextField,
   TextFieldInput,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
@@ -38,6 +41,7 @@ import {
   type SectionId,
 } from '@views/mypage-owner-kindergarten-edit-page/config/editFormOptions';
 import { useKindergartenEditForm } from '@views/mypage-owner-kindergarten-edit-page/model/useKindergartenEditForm';
+import { AutofillLoadingDialog } from '@views/mypage-owner-kindergarten-edit-page/ui/AutofillLoadingDialog';
 
 /** 섹션 탭·복수선택 칩 공통 톤. size만 다름 (탭=38, 옵션=48) */
 function selectionChipClassName(isSelected: boolean, size: 'tab' | 'option') {
@@ -242,6 +246,19 @@ function MypageOwnerKindergartenEditPage() {
     });
   };
 
+  const handleAutofillClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AutofillLoadingDialog
+        isOpen={isOpen}
+        onCancel={close}
+        onComplete={() => {
+          formData.applySelectedPrefill();
+          close();
+        }}
+      />
+    ));
+  };
+
   const handleScrollToSection = (sectionId: SectionId) => {
     setActiveSection(sectionId);
 
@@ -258,10 +275,32 @@ function MypageOwnerKindergartenEditPage() {
   return (
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
       <Header>
-        <Header.LeftSection>
+        <Header.LeftSection className='relative z-10'>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
+
         <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
+
+        {formData.isSelected ? (
+          <div className='relative z-10 ml-auto flex shrink-0 items-center gap-1 rounded px-2 py-1'>
+            <Tooltip placement='bottom-left' offset={4} className='flex items-center'>
+              <TooltipTrigger
+                className='text-text-primary flex size-[18px] items-center justify-center [&_svg]:size-[18px]'
+                aria-label='자동 채우기 안내'
+              />
+              <TooltipContent className='body2-regular max-w-[220px] px-3 py-3 text-left'>
+                {ownerMypageContent.kindergartenEditAutofillTooltip}
+              </TooltipContent>
+            </Tooltip>
+            <button
+              type='button'
+              onClick={handleAutofillClick}
+              className='body2-semibold text-text-primary whitespace-nowrap'
+            >
+              {ownerMypageContent.kindergartenEditAutofillLabel}
+            </button>
+          </div>
+        ) : null}
       </Header>
 
       <div ref={scrollRef} className='flex-1 overflow-y-auto'>

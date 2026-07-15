@@ -41,14 +41,15 @@ function useOwnerKindergarten() {
       ? String(placeId)
       : (profile?.kindergartenPlaceId?.trim() || undefined);
 
-  const { data: placeBasic } = useQuery({
+  const placeBasicQuery = useQuery({
     ...createKindergartenBasicQueryOptions(resolvedPlaceId ?? ''),
     enabled: isSelected && Boolean(resolvedPlaceId),
   });
 
+  const placeBasic = placeBasicQuery.data;
   const coord = placeBasic?.coord;
 
-  const { data: main } = useQuery({
+  const mainQuery = useQuery({
     ...kindergartenQueries.main({
       id: resolvedPlaceId ?? '',
       lng: coord?.lng ?? 0,
@@ -57,7 +58,9 @@ function useOwnerKindergarten() {
     enabled: isSelected && Boolean(resolvedPlaceId) && coord != null,
   });
 
-  const bannerKey = main?.banner?.[0];
+  const main = mainQuery.data;
+  const bannerKeys = main?.banner ?? [];
+  const bannerKey = bannerKeys[0];
   const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
   const bannerUrl = bannerKey ? `${imageBaseUrl}${encodeURI(bannerKey)}` : null;
   const profileImageUrl = profile ? resolveThumbnailUrl(profile) : null;
@@ -83,11 +86,19 @@ function useOwnerKindergarten() {
     ''
   ).trim();
 
+  const addressDetail = (profile?.addressDetail ?? '').trim();
+
   const phoneNumber = (
     (isSelected ? main?.phoneNumber : null) ??
     profile?.phoneNumber ??
     ''
   ).trim();
+
+  /** SELECTED 수정 폼 프리필: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
+  const isSelectedPrefillReady =
+    isSelected &&
+    (!resolvedPlaceId ||
+      (placeBasicQuery.isFetched && (coord == null || mainQuery.isFetched)));
 
   return {
     ownerKindergarten: kindergarten,
@@ -99,12 +110,15 @@ function useOwnerKindergarten() {
     kindergartenId: resolvedPlaceId,
     name,
     address,
+    addressDetail,
     phoneNumber,
+    bannerKeys,
     ownerName: owner?.name ?? '',
     ownerPhoneNumber: owner?.phoneNumber ?? '',
     profile,
     basic,
     pricing,
+    isSelectedPrefillReady,
     isProfileLoading: isOwner && isLoading,
     isProfileError: isOwner && isError,
   };

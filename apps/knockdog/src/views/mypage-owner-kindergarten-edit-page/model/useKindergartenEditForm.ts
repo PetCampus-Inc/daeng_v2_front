@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { useOwnerKindergarten } from '@features/role-conversion';
 import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { CLOSED_DAYS } from '@entities/compare';
 import type { FilterOption } from '@entities/kindergarten';
@@ -15,6 +16,7 @@ import {
   saveEditFormDraft,
   type EditFormDraft,
 } from '@views/mypage-owner-kindergarten-edit-page/lib/editFormDraft';
+import { mapToEditFormDraft } from '@views/mypage-owner-kindergarten-edit-page/lib/mapToEditFormDraft';
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
 
@@ -72,8 +74,20 @@ function applyDraftToState(
 
 function useKindergartenEditForm() {
   const { back, push } = useStackNavigation();
+  const {
+    source,
+    name: kindergartenName,
+    address: kindergartenAddress,
+    addressDetail: kindergartenAddressDetail,
+    phoneNumber,
+    bannerKeys,
+    basic,
+    isSelectedPrefillReady,
+  } = useOwnerKindergarten();
 
-  // SSR/CSR 첫 paint는 empty, draft는 mount 후 sessionStorage에서 복원
+  const isSelected = source === 'search';
+
+  // SSR/CSR 첫 paint는 empty, draft/API는 mount 후 복원
   const [images, setImages] = useState<WebImageAsset[]>([]);
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -97,6 +111,50 @@ function useKindergartenEditForm() {
   const [isDirty, setIsDirty] = useState(false);
   const skipNextPersistRef = useRef(false);
   const hasHydratedDraftRef = useRef(false);
+  const hasHydratedFromSourceRef = useRef(false);
+  const prefillSourceRef = useRef({
+    isSelected,
+    isSelectedPrefillReady,
+    kindergartenName,
+    kindergartenAddress,
+    kindergartenAddressDetail,
+    phoneNumber,
+    basic,
+    bannerKeys,
+  });
+
+  prefillSourceRef.current = {
+    isSelected,
+    isSelectedPrefillReady,
+    kindergartenName,
+    kindergartenAddress,
+    kindergartenAddressDetail,
+    phoneNumber,
+    basic,
+    bannerKeys,
+  };
+
+  const draftSetters = {
+    setImages,
+    setName,
+    setAddress,
+    setAddressDetail,
+    setPhone,
+    setWeekdayStart,
+    setWeekdayEnd,
+    setWeekendStart,
+    setWeekendEnd,
+    setClosedDays,
+    setHomepage,
+    setInstagram,
+    setYoutube,
+    setBreeds,
+    setDogServices,
+    setSafetyFacilities,
+    setAmenities,
+    setLastUpdatedDate,
+    setIsDirty,
+  };
 
   const buildDraft = (
     nextIsDirty: boolean,
@@ -133,34 +191,15 @@ function useKindergartenEditForm() {
       if (document.visibilityState === 'hidden') return;
 
       const draft = loadEditFormDraft();
-      if (!draft) {
-        hasHydratedDraftRef.current = true;
-        return;
+
+      // 미저장 편집 draft만 복원. SELECTED 실데이터는 '자동 채우기'로 프리필
+      if (draft?.isDirty) {
+        skipNextPersistRef.current = true;
+        applyDraftToState(draft, draftSetters);
       }
 
-      skipNextPersistRef.current = true;
-      applyDraftToState(draft, {
-        setImages,
-        setName,
-        setAddress,
-        setAddressDetail,
-        setPhone,
-        setWeekdayStart,
-        setWeekdayEnd,
-        setWeekendStart,
-        setWeekendEnd,
-        setClosedDays,
-        setHomepage,
-        setInstagram,
-        setYoutube,
-        setBreeds,
-        setDogServices,
-        setSafetyFacilities,
-        setAmenities,
-        setLastUpdatedDate,
-        setIsDirty,
-      });
       hasHydratedDraftRef.current = true;
+      hasHydratedFromSourceRef.current = true;
     }
 
     syncDraftFromStorage();
@@ -174,10 +213,12 @@ function useKindergartenEditForm() {
       window.removeEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
       document.removeEventListener('visibilitychange', syncDraftFromStorage);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount 시 draft 동기화만
   }, []);
 
   useEffect(() => {
     if (!hasHydratedDraftRef.current) return;
+    if (!hasHydratedFromSourceRef.current) return;
 
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
@@ -281,16 +322,42 @@ function useKindergartenEditForm() {
   const handleTimeSelect = (value: string) => {
     if (!activeTimeField) return;
 
-    const setters: Record<TimeFieldKey, (next: string | null) => void> = {
+    const settersByField: Record<TimeFieldKey, (next: string | null) => void> = {
       weekdayStart: setWeekdayStart,
       weekdayEnd: setWeekdayEnd,
       weekendStart: setWeekendStart,
       weekendEnd: setWeekendEnd,
     };
-    updateField(setters[activeTimeField], value);
+    updateField(settersByField[activeTimeField], value);
+  };
+
+  /** AI 자동 채우기 완료 시 place/basic·main 소스로 폼 채움 */
+  const applySelectedPrefill = () => {
+    const source = prefillSourceRef.current;
+    if (!source.isSelected) return false;
+
+    const next = {
+      ...mapToEditFormDraft({
+        name: source.kindergartenName,
+        address: source.kindergartenAddress,
+        addressDetail: source.kindergartenAddressDetail,
+        phone: formatPhone(source.phoneNumber),
+        basic: source.basic,
+        bannerKeys: source.bannerKeys,
+        lastUpdatedDate: source.basic?.lastUpdatedAt?.trim() || null,
+      }),
+      isDirty: true,
+    };
+
+    skipNextPersistRef.current = true;
+    applyDraftToState(next, draftSetters);
+    saveEditFormDraft(next);
+    hasHydratedFromSourceRef.current = true;
+    return true;
   };
 
   return {
+    isSelected,
     images,
     name,
     address,
@@ -342,6 +409,7 @@ function useKindergartenEditForm() {
     },
     handleSave,
     handleTimeSelect,
+    applySelectedPrefill,
   };
 }
 
