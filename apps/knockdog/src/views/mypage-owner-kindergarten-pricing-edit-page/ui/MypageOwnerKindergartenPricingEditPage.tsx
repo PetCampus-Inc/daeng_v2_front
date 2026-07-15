@@ -97,8 +97,8 @@ function MypageOwnerKindergartenPricingEditPage() {
     ));
   };
 
-  const handleSave = () => {
-    if (!formData.handleSave()) return;
+  const handleSave = async () => {
+    if (!(await formData.handleSave())) return;
 
     toast({
       type: 'success',
@@ -168,13 +168,12 @@ function MypageOwnerKindergartenPricingEditPage() {
 
         <div className='relative shrink-0 px-4 pt-5 pb-5'>
           <div className='pointer-events-none absolute inset-x-0 -top-28 h-28 bg-gradient-to-b from-transparent to-white' />
-          {/* TODO: 유치원 요금 정보 저장 API 연동 */}
           <ActionButton
             type='button'
             size='large'
             variant='primaryFill'
             className='relative w-full'
-            disabled={!formData.isSaveEnabled}
+            disabled={!formData.isSaveEnabled || formData.isSaving}
             onClick={handleSave}
           >
             {ownerMypageContent.profileSaveButtonLabel}

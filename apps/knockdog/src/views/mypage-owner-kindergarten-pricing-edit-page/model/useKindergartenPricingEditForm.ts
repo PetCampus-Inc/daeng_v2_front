@@ -4,9 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 
 import { usePricingQuery } from '@features/pricing';
 import { useOwnerKindergarten } from '@features/role-conversion';
+import {
+  usePutOwnerSchoolPriceMutation,
+  type OwnerSchoolPricingType,
+} from '@entities/owner-school';
 import type { ProductType } from '@entities/pricing';
 import { useStackNavigation } from '@shared/lib/bridge';
-import type { WebImageAsset } from '@shared/lib/media';
+import { useMoveImageMutation, type WebImageAsset } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
+import { buildOwnerSchoolPriceImages } from '@views/mypage-owner-kindergarten-pricing-edit-page/lib/buildOwnerSchoolPriceImages';
 import { mapPricingToEditDraft } from '@views/mypage-owner-kindergarten-pricing-edit-page/lib/mapPricingToEditDraft';
 import {
   clearPricingEditFormDraft,
@@ -15,13 +21,6 @@ import {
   savePricingEditFormDraft,
   type PricingEditFormDraft,
 } from '@views/mypage-owner-kindergarten-pricing-edit-page/lib/pricingEditFormDraft';
-
-function formatDate(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 function applyDraftToState(
   draft: PricingEditFormDraft,
@@ -46,6 +45,10 @@ function useKindergartenPricingEditForm() {
 
   const placePricingQuery = usePricingQuery(kindergartenId ?? '', {
     enabled: isSelected && Boolean(kindergartenId),
+  });
+  const { mutateAsync: moveImageAsync } = useMoveImageMutation();
+  const { mutateAsync: putPriceAsync, isPending: isSaving } = usePutOwnerSchoolPriceMutation({
+    kindergartenId: isSelected ? kindergartenId : undefined,
   });
 
   const placePricing = placePricingQuery.data;
@@ -185,16 +188,36 @@ function useKindergartenPricingEditForm() {
     return true;
   };
 
-  const handleSave = () => {
-    if (!isSaveEnabled) return false;
+  const handleSave = async () => {
+    if (!isSaveEnabled || isSaving) return false;
 
-    // TODO: 유치원 요금 정보 저장 API 연동
-    const nextLastUpdatedDate = formatDate();
-    skipNextPersistRef.current = true;
-    setLastUpdatedDate(nextLastUpdatedDate);
-    setIsDirty(false);
-    persistDraft(false, { lastUpdatedDate: nextLastUpdatedDate });
-    return true;
+    try {
+      const nextPriceImages = await buildOwnerSchoolPriceImages({
+        assets: priceImages,
+        moveImage: moveImageAsync,
+      });
+
+      await putPriceAsync({
+        pricingTypes: productTypes as OwnerSchoolPricingType[],
+        priceImages: nextPriceImages,
+      });
+
+      skipNextPersistRef.current = true;
+      clearPricingEditFormDraft();
+      setIsDirty(false);
+      back?.();
+      return true;
+    } catch (error) {
+      console.error('[pricing edit save]', error);
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        title: '요금 정보 저장에 실패했어요',
+        description: error instanceof Error ? error.message : undefined,
+      });
+      return false;
+    }
   };
 
   return {
@@ -203,6 +226,7 @@ function useKindergartenPricingEditForm() {
     lastUpdatedDate,
     isDirty,
     isSaveEnabled,
+    isSaving,
     toggleProductType,
     handlePriceImagesChange,
     handleLeaveWithoutSaving,
