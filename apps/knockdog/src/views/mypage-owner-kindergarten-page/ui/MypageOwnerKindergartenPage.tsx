@@ -208,6 +208,7 @@ function MypageOwnerKindergartenPage() {
     usesDefaultImage,
     basic,
     pricing,
+    hasOwnerSavedPricing,
   } = useOwnerKindergarten();
   const [activeTab, setActiveTab] = useState<string>(TAB.OPERATION);
 
@@ -259,8 +260,8 @@ function MypageOwnerKindergartenPage() {
 
           <TabsContent value={TAB.PRICING}>
             <OwnerPricingContent
-              kindergartenId={isSelected ? kindergartenId : undefined}
-              pricing={isSelected ? undefined : pricing}
+              kindergartenId={isSelected && !hasOwnerSavedPricing ? kindergartenId : undefined}
+              pricing={pricing}
             />
           </TabsContent>
 

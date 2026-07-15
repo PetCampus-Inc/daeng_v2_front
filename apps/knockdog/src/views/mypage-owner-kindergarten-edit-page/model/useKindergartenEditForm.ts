@@ -76,7 +76,7 @@ function useKindergartenEditForm() {
     name: kindergartenName,
     streetAddress: kindergartenAddress,
     addressDetail: kindergartenAddressDetail,
-    phoneNumber,
+    autofillPhoneNumber: phoneNumber,
     bannerKeys,
     basic,
     canUseAutofill,
