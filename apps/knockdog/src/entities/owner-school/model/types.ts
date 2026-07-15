@@ -29,10 +29,10 @@ interface OwnerSchoolProfile {
   address: string | null;
   addressDetail: string | null;
   phoneNumber: string | null;
-  weekdayOpenTime: LocalTimeParts | string | null;
-  weekdayCloseTime: LocalTimeParts | string | null;
-  weekendOpenTime: LocalTimeParts | string | null;
-  weekendCloseTime: LocalTimeParts | string | null;
+  weekdayOpenTime: LocalTimeParts | string | number[] | null;
+  weekdayCloseTime: LocalTimeParts | string | number[] | null;
+  weekendOpenTime: LocalTimeParts | string | number[] | null;
+  weekendCloseTime: LocalTimeParts | string | number[] | null;
   closedDays: string[];
   homepageUrl: string | null;
   instagramUrl: string | null;

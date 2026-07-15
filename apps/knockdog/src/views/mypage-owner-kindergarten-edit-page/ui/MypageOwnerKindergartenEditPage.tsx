@@ -225,8 +225,8 @@ function MypageOwnerKindergartenEditPage() {
     ));
   };
 
-  const handleSave = () => {
-    if (!formData.handleSave()) return;
+  const handleSave = async () => {
+    if (!(await formData.handleSave())) return;
 
     toast({
       type: 'success',
@@ -552,13 +552,12 @@ function MypageOwnerKindergartenEditPage() {
         </section>
 
         <div className='px-4 pt-5 pb-10'>
-          {/* TODO: 유치원 운영 정보 저장 API 연동 */}
           <ActionButton
             type='button'
             size='large'
             variant='primaryFill'
             className='w-full'
-            disabled={!formData.isSaveEnabled}
+            disabled={!formData.isSaveEnabled || formData.isSaving}
             onClick={handleSave}
           >
             {ownerMypageContent.profileSaveButtonLabel}
