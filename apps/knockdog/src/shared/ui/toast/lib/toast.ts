@@ -48,7 +48,7 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
         title:
           typeof resolvedOptions.title === 'string'
             ? resolvedOptions.title
-            : '변경사항이 저장됐어요',
+            : (resolvedOptions.nativeTitle ?? ''),
         description: resolvedOptions.description,
         duration: resolvedOptions.duration,
         position: resolvedOptions.position,

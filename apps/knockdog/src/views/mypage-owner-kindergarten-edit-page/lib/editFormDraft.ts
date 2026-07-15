@@ -175,6 +175,7 @@ function updateEditFormDraftAddress(address: string) {
     {
       ...draft,
       address,
+      addressDetail: '',
       isDirty: true,
     },
     { notify: true }

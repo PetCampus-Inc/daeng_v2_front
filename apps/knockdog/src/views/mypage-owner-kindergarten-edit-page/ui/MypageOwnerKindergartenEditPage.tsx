@@ -22,7 +22,6 @@ import { Header } from '@widgets/Header';
 
 import { ownerMypageContent } from '@features/role-conversion';
 import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
-import { isNativeWebView } from '@shared/lib/device';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -229,18 +228,17 @@ function MypageOwnerKindergartenEditPage() {
       type: 'success',
       shape: 'rounded',
       position: 'bottom',
-      title: isNativeWebView()
-        ? ownerMypageContent.kindergartenEditSaveSuccessToastFallback
-        : (
-            <>
-              <span className='body1-bold text-text-accent'>
-                {ownerMypageContent.kindergartenEditSaveSuccessToastPrefix}
-              </span>
-              <span className='body1-medium text-text-primary-inverse'>
-                {ownerMypageContent.kindergartenEditSaveSuccessToastSuffix}
-              </span>
-            </>
-          ),
+      nativeTitle: ownerMypageContent.kindergartenEditSaveSuccessToastFallback,
+      title: (
+        <>
+          <span className='body1-bold text-text-accent'>
+            {ownerMypageContent.kindergartenEditSaveSuccessToastPrefix}
+          </span>
+          <span className='body1-medium text-text-primary-inverse'>
+            {ownerMypageContent.kindergartenEditSaveSuccessToastSuffix}
+          </span>
+        </>
+      ),
     });
   };
 

@@ -28,6 +28,8 @@ export type Store = ToastStore;
 export type ToastOptions = {
   id?: string;
   title?: ReactNode;
+  /** 네이티브 bridge 전송용. title이 ReactNode일 때 사용 */
+  nativeTitle?: string;
   description?: string;
   duration?: number;
   className?: string;

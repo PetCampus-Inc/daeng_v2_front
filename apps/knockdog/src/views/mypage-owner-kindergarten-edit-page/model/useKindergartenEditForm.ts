@@ -335,7 +335,11 @@ function useKindergartenEditForm() {
     leaveIfClean,
     handleLeaveWithoutSaving,
     handleAddressSearch,
-    handleClearAddress: () => updateField(setAddress, ''),
+    handleClearAddress: () => {
+      markDirty();
+      setAddress('');
+      setAddressDetail('');
+    },
     handleSave,
     handleTimeSelect,
   };
