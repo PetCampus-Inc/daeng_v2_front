@@ -13,7 +13,9 @@ const UI_CODE_TO_PROFILE: Record<string, string> = {
 };
 
 function toProfileCodes(codes: string[]) {
-  return codes.map((code) => UI_CODE_TO_PROFILE[code] ?? code);
+  return codes
+    .map((code) => UI_CODE_TO_PROFILE[code] ?? code)
+    .filter((code) => code !== 'SPLIT_CLASS');
 }
 
 function requireTime(value: string | null, label: string) {

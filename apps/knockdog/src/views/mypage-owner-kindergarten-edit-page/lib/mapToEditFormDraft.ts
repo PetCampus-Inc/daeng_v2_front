@@ -31,6 +31,7 @@ function toFilterOptions(codes: string[] | undefined): FilterOption[] {
   for (const code of codes ?? []) {
     const mapped = BASIC_CODE_TO_FILTER[code] ?? code;
     if (!isFilterOption(mapped)) continue;
+    if (mapped === 'SPLIT_CLASS') continue;
     if (selected.includes(mapped)) continue;
     selected.push(mapped);
   }
