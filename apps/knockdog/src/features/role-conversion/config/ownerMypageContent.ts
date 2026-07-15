@@ -24,6 +24,12 @@ export const ownerMypageContent = Object.freeze({
   kindergartenPricingPriceListEmptyText: '등록된 가격표 사진이 없어요',
   kindergartenPricingServiceTitle: '서비스 및 이용요금',
   kindergartenPricingServiceEmptyText: '등록된 요금 정보가 없어요',
+  kindergartenPricingEditPageTitle: '요금 정보 수정',
+  kindergartenPricingEditProductTypeLabel: '상품 유형',
+  kindergartenPricingEditPriceListLabel: '가격표',
+  kindergartenPricingEditServiceNoticeTitle: '요금 변경은 고객센터에 문의해 주세요',
+  kindergartenPricingEditServiceNoticeDescription: '확인 후 빠르게 수정해 드릴게요.',
+  kindergartenPricingEditCustomerCenterLabel: '고객센터',
   kindergartenEditPageTitle: '운영 정보 수정',
   kindergartenEditAutofillLabel: '자동 채우기',
   kindergartenEditAutofillTooltip:

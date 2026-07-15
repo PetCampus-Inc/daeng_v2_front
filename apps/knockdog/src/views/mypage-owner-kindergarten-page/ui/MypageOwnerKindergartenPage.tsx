@@ -214,6 +214,11 @@ function MypageOwnerKindergartenPage() {
   const isSelected = source === 'search';
 
   const handleEditClick = () => {
+    if (activeTab === TAB.PRICING) {
+      push({ pathname: route.mypage.kindergarten.edit.pricing.root });
+      return;
+    }
+
     push({ pathname: route.mypage.kindergarten.edit.root });
   };
 
