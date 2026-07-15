@@ -334,7 +334,7 @@ function useKindergartenEditForm() {
   /** AI 자동 채우기 완료 시 place/basic·main 소스로 폼 채움 */
   const applySelectedPrefill = () => {
     const source = prefillSourceRef.current;
-    if (!source.isSelected) return false;
+    if (!source.isSelected || !source.isSelectedPrefillReady) return false;
 
     const next = {
       ...mapToEditFormDraft({
@@ -410,6 +410,7 @@ function useKindergartenEditForm() {
     handleSave,
     handleTimeSelect,
     applySelectedPrefill,
+    getIsSelectedPrefillReady: () => prefillSourceRef.current.isSelectedPrefillReady,
   };
 }
 

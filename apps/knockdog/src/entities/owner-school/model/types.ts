@@ -43,7 +43,7 @@ interface OwnerSchoolProfile {
   visitorAmenities: string[];
   pricingTypes: OwnerSchoolPricingType[];
   priceImages: OwnerSchoolPriceImage[];
-  lastUpdatedAt: string | null;
+  lastUpdatedAt: string | number[] | null;
 }
 
 export type {

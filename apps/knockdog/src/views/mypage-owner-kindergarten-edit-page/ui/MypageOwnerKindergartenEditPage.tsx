@@ -250,9 +250,10 @@ function MypageOwnerKindergartenEditPage() {
     overlay.open(({ isOpen, close }) => (
       <AutofillLoadingDialog
         isOpen={isOpen}
+        getIsPrefillReady={formData.getIsSelectedPrefillReady}
         onCancel={close}
         onComplete={() => {
-          formData.applySelectedPrefill();
+          if (!formData.applySelectedPrefill()) return;
           close();
         }}
       />

@@ -33,16 +33,35 @@ function formatLocalTime(value: LocalTimeParts | string | null | undefined): str
   return `${hour}:${minute}`;
 }
 
-function formatLastUpdatedAt(value: string | null | undefined) {
-  if (!value) return '';
+function formatDateParts(year: number, month: number, day: number) {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return `${year}.${String(month).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
+}
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+/** date-only 파싱 */
+function formatLastUpdatedAt(value: string | number[] | null | undefined) {
+  if (value == null) return '';
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  if (Array.isArray(value)) {
+    const [year, month, day] = value;
+    if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') {
+      return '';
+    }
+    return formatDateParts(year, month, day) ?? '';
+  }
+
+  if (typeof value !== 'string') return String(value);
+
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
+  if (!match) return value;
+
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const formatted = formatDateParts(Number(match[1]), month, day);
+  return formatted ?? value;
 }
 
 function mapProfileCodes(codes: string[] | null | undefined) {
