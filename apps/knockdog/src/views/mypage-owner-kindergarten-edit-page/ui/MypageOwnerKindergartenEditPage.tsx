@@ -549,15 +549,6 @@ function MypageOwnerKindergartenEditPage() {
               onChange={formData.handleAmenitiesChange}
             />
           </div>
-
-          <div className='flex flex-col px-4 py-4'>
-            <span className='body1-bold text-text-primary'>
-              {ownerMypageContent.kindergartenEditLastUpdatedTitle}
-            </span>
-            <span className='body2-regular text-text-tertiary'>
-              {formData.lastUpdatedDate ?? ownerMypageContent.noConfirmedInfoText}
-            </span>
-          </div>
         </section>
 
         <div className='px-4 pt-5 pb-10'>

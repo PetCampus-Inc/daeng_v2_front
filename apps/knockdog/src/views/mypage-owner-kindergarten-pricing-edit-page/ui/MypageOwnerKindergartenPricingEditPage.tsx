@@ -164,15 +164,6 @@ function MypageOwnerKindergartenPricingEditPage() {
               {ownerMypageContent.kindergartenPricingEditServiceNoticeDescription}
             </p>
           </div>
-
-          <div className='flex flex-col px-4 py-4'>
-            <span className='body1-bold text-text-primary'>
-              {ownerMypageContent.kindergartenEditLastUpdatedTitle}
-            </span>
-            <span className='body2-regular text-text-tertiary'>
-              {formData.lastUpdatedDate ?? ownerMypageContent.noConfirmedInfoText}
-            </span>
-          </div>
         </div>
 
         <div className='relative shrink-0 px-4 pt-5 pb-5'>
