@@ -55,11 +55,12 @@ function extractOperationHours(basic?: KindergartenBasic) {
     };
   }
 
+  // BE: weekday/weekend[{ time: 시작, breakTime: 종료 }]
   return {
     weekdayStart: normalizeTime(operation.weekday?.[0]?.time),
-    weekdayEnd: normalizeTime(operation.weekday?.[1]?.time),
-    weekendStart: normalizeTime(operation.weekend?.[0]?.breakTime),
-    weekendEnd: normalizeTime(operation.weekend?.[1]?.breakTime),
+    weekdayEnd: normalizeTime(operation.weekday?.[0]?.breakTime),
+    weekendStart: normalizeTime(operation.weekend?.[0]?.time),
+    weekendEnd: normalizeTime(operation.weekend?.[0]?.breakTime),
     closedDays: (operation.closedDays ?? []).filter((day) => day !== 'WEEKEND'),
   };
 }

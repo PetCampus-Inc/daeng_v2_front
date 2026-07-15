@@ -80,19 +80,14 @@ function buildOperationTimes(profile: OwnerSchoolProfile): OperationTime[] {
 
   if (!weekdayOpen || !weekdayClose) return [];
 
+  // place/basic과 동일: { time: 시작, breakTime: 종료 }
   return [
     {
       serviceTags: 'DEFAULT',
-      weekday: [
-        { time: weekdayOpen, breakTime: '' },
-        { time: weekdayClose, breakTime: '' },
-      ],
+      weekday: [{ time: weekdayOpen, breakTime: weekdayClose }],
       weekend:
         weekendOpen && weekendClose
-          ? [
-              { time: '', breakTime: weekendOpen },
-              { time: '', breakTime: weekendClose },
-            ]
+          ? [{ time: weekendOpen, breakTime: weekendClose }]
           : [],
       closedDays: profile.closedDays ?? [],
     },
