@@ -22,6 +22,7 @@ import { useUserStore } from '@entities/user';
  *
  * - SELECTED: `placeId` → kindergarten/basic·main (운영·배너). 요금은 place pricing.
  * - MANUAL: `GET owner/school/profile` (운영·요금).
+ * - 자동 채우기: SELECTED 항상 / MANUAL은 schoolProfileId 있으면 (운영 정보 저장 1회+)
  * - placeId 우선순위: owner/role.placeId → profile.kindergartenPlaceId
  */
 function useOwnerKindergarten() {
@@ -59,7 +60,11 @@ function useOwnerKindergarten() {
   });
 
   const main = mainQuery.data;
-  const bannerKeys = main?.banner ?? [];
+  const profileBannerKeys = [...(profile?.profileImages ?? [])]
+    .sort((left, right) => left.displayOrder - right.displayOrder)
+    .map((image) => image.s3Key)
+    .filter(Boolean);
+  const bannerKeys = isSelected ? (main?.banner ?? []) : profileBannerKeys;
   const bannerKey = bannerKeys[0];
   const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
   const bannerUrl = bannerKey ? `${imageBaseUrl}${encodeURI(bannerKey)}` : null;
@@ -79,11 +84,19 @@ function useOwnerKindergarten() {
     ''
   ).trim();
 
-  const address = (
+  /** 수정 폼 프리필용 (상세주소 분리) */
+  const streetAddress = (
     (isSelected ? placeBasic?.roadAddress : null) ??
-    (profile ? buildFullAddress(profile.address, profile.addressDetail) : null) ??
+    profile?.address ??
     kindergarten?.address ??
     ''
+  ).trim();
+
+  /** 탭/카드 표시용 */
+  const address = (
+    (isSelected ? streetAddress : null) ??
+    (profile ? buildFullAddress(profile.address, profile.addressDetail) : null) ??
+    streetAddress
   ).trim();
 
   const addressDetail = (profile?.addressDetail ?? '').trim();
@@ -94,11 +107,21 @@ function useOwnerKindergarten() {
     ''
   ).trim();
 
-  /** SELECTED 수정 폼 프리필: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
+  /** SELECTED: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
   const isSelectedPrefillReady =
     isSelected &&
     (!resolvedPlaceId ||
       (placeBasicQuery.isFetched && (coord == null || mainQuery.isFetched)));
+
+  /** MANUAL: 운영 정보 저장 1회 이상(= schoolProfileId) */
+  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
+
+  /** SELECTED 항상, MANUAL은 저장 이후 — 자동 채우기 동일 UX */
+  const canUseAutofill = isSelected || hasSavedSchoolProfile;
+
+  const isAutofillPrefillReady = isSelected
+    ? isSelectedPrefillReady
+    : hasSavedSchoolProfile;
 
   return {
     ownerKindergarten: kindergarten,
@@ -110,6 +133,7 @@ function useOwnerKindergarten() {
     kindergartenId: resolvedPlaceId,
     name,
     address,
+    streetAddress,
     addressDetail,
     phoneNumber,
     bannerKeys,
@@ -118,6 +142,8 @@ function useOwnerKindergarten() {
     profile,
     basic,
     pricing,
+    canUseAutofill,
+    isAutofillPrefillReady,
     isSelectedPrefillReady,
     isProfileLoading: isOwner && isLoading,
     isProfileError: isOwner && isError,

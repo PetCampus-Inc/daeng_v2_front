@@ -74,12 +74,13 @@ function useKindergartenEditForm() {
     source,
     kindergartenId,
     name: kindergartenName,
-    address: kindergartenAddress,
+    streetAddress: kindergartenAddress,
     addressDetail: kindergartenAddressDetail,
     phoneNumber,
     bannerKeys,
     basic,
-    isSelectedPrefillReady,
+    canUseAutofill,
+    isAutofillPrefillReady,
   } = useOwnerKindergarten();
 
   const isSelected = source === 'search';
@@ -114,8 +115,8 @@ function useKindergartenEditForm() {
   const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
   const prefillSourceRef = useRef({
-    isSelected,
-    isSelectedPrefillReady,
+    canUseAutofill,
+    isAutofillPrefillReady,
     kindergartenName,
     kindergartenAddress,
     kindergartenAddressDetail,
@@ -125,8 +126,8 @@ function useKindergartenEditForm() {
   });
 
   prefillSourceRef.current = {
-    isSelected,
-    isSelectedPrefillReady,
+    canUseAutofill,
+    isAutofillPrefillReady,
     kindergartenName,
     kindergartenAddress,
     kindergartenAddressDetail,
@@ -349,10 +350,14 @@ function useKindergartenEditForm() {
     updateField(settersByField[activeTimeField], value);
   };
 
-  /** AI 자동 채우기 완료 시 place/basic·main 소스로 폼 채움 */
+  /**
+   * 자동 채우기 완료 시 폼 채움
+   * - SELECTED: place basic/main
+   * - MANUAL (저장 1회+): school profile
+   */
   const applySelectedPrefill = () => {
     const source = prefillSourceRef.current;
-    if (!source.isSelected || !source.isSelectedPrefillReady) return false;
+    if (!source.canUseAutofill || !source.isAutofillPrefillReady) return false;
 
     const next = {
       ...mapToEditFormDraft({
@@ -376,6 +381,7 @@ function useKindergartenEditForm() {
 
   return {
     isSelected,
+    canUseAutofill,
     images,
     name,
     address,
@@ -429,7 +435,7 @@ function useKindergartenEditForm() {
     handleSave,
     handleTimeSelect,
     applySelectedPrefill,
-    getIsSelectedPrefillReady: () => prefillSourceRef.current.isSelectedPrefillReady,
+    getIsSelectedPrefillReady: () => prefillSourceRef.current.isAutofillPrefillReady,
   };
 }
 

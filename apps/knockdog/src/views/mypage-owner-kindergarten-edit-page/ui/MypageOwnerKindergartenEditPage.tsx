@@ -282,7 +282,7 @@ function MypageOwnerKindergartenEditPage() {
 
         <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
 
-        {formData.isSelected ? (
+        {formData.canUseAutofill ? (
           <div className='relative z-10 ml-auto flex shrink-0 items-center gap-1 rounded px-2 py-1'>
             <Tooltip placement='bottom-left' offset={4} className='flex items-center'>
               <TooltipTrigger
