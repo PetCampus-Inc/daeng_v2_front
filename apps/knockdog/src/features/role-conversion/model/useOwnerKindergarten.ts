@@ -9,7 +9,6 @@ import {
   kindergartenQueries,
 } from '@entities/kindergarten';
 import {
-  buildFullAddress,
   mapOwnerSchoolProfilePricing,
   mapOwnerSchoolProfileToBasic,
   resolveThumbnailUrl,
@@ -91,22 +90,18 @@ function useOwnerKindergarten() {
     ''
   ).trim();
 
-  /** 수정 폼 프리필용 (상세주소 분리) */
+  /** 수정 폼 프리필·표시용 기본 주소 (상세 제외) */
   const streetAddress = (
-    (isSelected ? placeBasic?.roadAddress : null) ??
-    profile?.address ??
-    kindergarten?.address ??
+    profile?.address?.trim() ||
+    (isSelected ? placeBasic?.roadAddress : null) ||
+    kindergarten?.address ||
     ''
   ).trim();
 
-  /** 탭/카드 표시용 */
-  const address = (
-    (isSelected ? streetAddress : null) ??
-    (profile ? buildFullAddress(profile.address, profile.addressDetail) : null) ??
-    streetAddress
-  ).trim();
-
   const addressDetail = (profile?.addressDetail ?? '').trim();
+
+  /** 탭/카드 표시용 기본 주소 (상세는 별도 줄) */
+  const address = streetAddress;
 
   const placePhoneNumber = ((isSelected ? main?.phoneNumber : null) ?? '').trim();
   const schoolPhoneNumber = (profile?.phoneNumber ?? '').trim();
