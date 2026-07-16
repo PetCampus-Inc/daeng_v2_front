@@ -28,15 +28,25 @@ const TAB = {
 
 interface InfoRowProps {
   label: string;
-  value: string;
+  value?: string;
+  lines?: string[];
 }
 
-function InfoRow({ label, value }: InfoRowProps) {
+function InfoRow({ label, value, lines }: InfoRowProps) {
+  const displayLines = (lines ?? (value ? [value] : [])).filter(Boolean);
+  const isMultiline = displayLines.length > 1;
+
   return (
-    <div className='flex items-center justify-between gap-x-4 p-4'>
+    <div className={`flex justify-between gap-x-4 p-4 ${isMultiline ? 'items-start' : 'items-center'}`}>
       <span className='body1-medium text-text-tertiary shrink-0'>{label}</span>
-      {value ? (
-        <span className='body1-bold text-text-primary truncate text-right'>{value}</span>
+      {displayLines.length > 0 ? (
+        <div className='flex min-w-0 flex-1 flex-col items-end'>
+          {displayLines.map((line) => (
+            <span key={line} className='body1-bold text-text-primary w-full truncate text-right'>
+              {line}
+            </span>
+          ))}
+        </div>
       ) : (
         <span className='body1-regular text-text-primary text-right'>
           {ownerMypageContent.noConfirmedInfoText}
@@ -49,28 +59,25 @@ function InfoRow({ label, value }: InfoRowProps) {
 interface BasicInfoCardProps {
   name: string;
   address: string;
+  addressDetail?: string;
   phone?: string;
 }
 
-function BasicInfoCard({ name, address, phone = '' }: BasicInfoCardProps) {
-  const rows: InfoRowProps[] = [
-    { label: ownerMypageContent.kindergartenNameLabel, value: name },
-    { label: ownerMypageContent.kindergartenAddressLabel, value: address },
-    { label: ownerMypageContent.kindergartenPhoneLabel, value: phone },
-  ];
-
+function BasicInfoCard({ name, address, addressDetail = '', phone = '' }: BasicInfoCardProps) {
   return (
     <div className='px-4 pt-6'>
       <span className='body1-bold text-text-primary'>
         {ownerMypageContent.kindergartenBasicInfoTitle}
       </span>
       <div className='mt-2 flex flex-col'>
-        {rows.map((row, index) => (
-          <div key={row.label}>
-            <InfoRow label={row.label} value={row.value} />
-            {index < rows.length - 1 ? <Divider /> : null}
-          </div>
-        ))}
+        <InfoRow label={ownerMypageContent.kindergartenNameLabel} value={name} />
+        <Divider />
+        <InfoRow
+          label={ownerMypageContent.kindergartenAddressLabel}
+          lines={[address, addressDetail]}
+        />
+        <Divider />
+        <InfoRow label={ownerMypageContent.kindergartenPhoneLabel} value={phone} />
       </div>
     </div>
   );
@@ -200,7 +207,8 @@ function MypageOwnerKindergartenPage() {
   const { push } = useStackNavigation();
   const {
     name,
-    address,
+    streetAddress,
+    addressDetail,
     phoneNumber,
     source,
     kindergartenId,
@@ -254,7 +262,12 @@ function MypageOwnerKindergartenPage() {
               </div>
             </div>
 
-            <BasicInfoCard name={name} address={address} phone={phoneNumber} />
+            <BasicInfoCard
+              name={name}
+              address={streetAddress}
+              addressDetail={addressDetail}
+              phone={phoneNumber}
+            />
             <OperationSections data={basic} />
           </TabsContent>
 
