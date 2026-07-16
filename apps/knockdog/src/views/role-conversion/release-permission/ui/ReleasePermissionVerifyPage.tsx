@@ -6,37 +6,72 @@ import { ActionButton, IconButton, TextField, TextFieldInput } from '@knockdog/u
 import { useSearchParams } from 'next/navigation';
 
 import { useOwnerKindergarten } from '@features/role-conversion';
+import { useOwnerRoleRevokeMutation } from '@entities/user';
+import { toast } from '@shared/ui/toast';
 
 import {
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
   releasePermissionContent,
 } from '@views/role-conversion/release-permission/config/releasePermissionContent';
+import {
+  clearReleasePermissionReasonDraft,
+  loadReleasePermissionReasonDraft,
+  toRevokeOwnerRoleRequest,
+} from '@views/role-conversion/release-permission/lib/releasePermissionReasonDraft';
 
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 
 function ReleasePermissionVerifyPage() {
-  const { push } = useStackNavigation();
+  const { push, replace } = useStackNavigation();
   const searchParams = useSearchParams();
   const source = searchParams.get(RELEASE_PERMISSION_SOURCE_QUERY_KEY);
   const { name } = useOwnerKindergarten();
   const [inputName, setInputName] = useState('');
+  const { mutateAsync: revokeOwnerRoleAsync, isPending } = useOwnerRoleRevokeMutation();
 
   const isMatched = inputName.trim() === name.trim() && name.trim().length > 0;
 
-  const handleRelease = () => {
-    if (!isMatched) return;
-    // @todo 원장 권한 해제 API 연동
+  const handleRelease = async () => {
+    if (!isMatched || isPending) return;
 
-    // 탈퇴 플로우에서 진입한 경우 회원 탈퇴 분기 페이지로 이동
-    if (source === RELEASE_PERMISSION_SOURCE.WITHDRAW) {
-      push({ pathname: route.roleConversion.releasePermission.withdraw.root });
+    const draft = loadReleasePermissionReasonDraft();
+    if (!draft) {
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        title: '해제 사유를 다시 선택해 주세요',
+      });
+      replace({
+        pathname: route.roleConversion.releasePermission.reason.root,
+        ...(source && { query: { [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: source } }),
+      });
       return;
     }
 
-    push({ pathname: route.roleConversion.releasePermission.complete.root });
+    try {
+      await revokeOwnerRoleAsync(toRevokeOwnerRoleRequest(draft));
+      clearReleasePermissionReasonDraft();
+
+      if (source === RELEASE_PERMISSION_SOURCE.WITHDRAW) {
+        push({ pathname: route.roleConversion.releasePermission.withdraw.root });
+        return;
+      }
+
+      push({ pathname: route.roleConversion.releasePermission.complete.root });
+    } catch (error) {
+      console.error('[owner role revoke]', error);
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        title: '권한 해제에 실패했어요',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   };
 
   return (
@@ -84,7 +119,7 @@ function ReleasePermissionVerifyPage() {
           variant='secondaryFill'
           size='large'
           className='w-full'
-          disabled={!isMatched}
+          disabled={!isMatched || isPending}
           onClick={handleRelease}
         >
           {releasePermissionContent.releaseButtonLabel}

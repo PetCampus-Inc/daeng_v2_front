@@ -27,6 +27,7 @@ import {
   releasePermissionReasonOptions,
   type ReleasePermissionReason,
 } from '@views/role-conversion/release-permission/config/releasePermissionContent';
+import { saveReleasePermissionReasonDraft } from '@views/role-conversion/release-permission/lib/releasePermissionReasonDraft';
 
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -40,11 +41,17 @@ function ReleasePermissionReasonPage() {
   const [etcReason, setEtcReason] = useState('');
 
   const isEtc = selectedReason === RELEASE_PERMISSION_REASON.ETC;
-  const isNextEnabled = selectedReason !== '' && (!isEtc || etcReason.trim().length > 0);
+  const isNextEnabled =
+    Boolean(selectedReason) && (!isEtc || etcReason.trim().length > 0);
 
   const handleNext = () => {
     if (!isNextEnabled) return;
-    // @todo 선택 사유(selectedReason, etcReason) 전달/저장
+
+    saveReleasePermissionReasonDraft({
+      reason: selectedReason as ReleasePermissionReason,
+      reasonDetail: isEtc ? etcReason.trim() : '',
+    });
+
     push({
       pathname: route.roleConversion.releasePermission.verify.root,
       ...(source && { query: { [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: source } }),

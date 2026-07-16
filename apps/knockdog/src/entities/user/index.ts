@@ -10,10 +10,16 @@ export {
   type SocialLoginProvider,
 } from './api/user';
 export {
+  postRevokeOwnerRole,
+  type OwnerRoleRevokeReason,
+  type RevokeOwnerRoleRequest,
+} from './api/revokeOwnerRole';
+export {
   useUserRegisterMutation,
   useUserUpdateNicknameMutation,
   useUserUpdateUserEmailMutation,
 } from './api/useUserMutation';
+export { useOwnerRoleRevokeMutation } from './api/useOwnerRoleRevokeMutation';
 export {
   useAddUserAddressMutation,
   useUpdateUserAddressMutation,
