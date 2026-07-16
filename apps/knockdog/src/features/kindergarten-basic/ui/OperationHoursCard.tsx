@@ -10,8 +10,23 @@ const OPERATION_HOURS_SERVICE_TAG_MAP = {
   KINDERGARTEN: '유치원 운영 시간',
 };
 
+/** BE: `{ time: 시작, breakTime: 종료 }[]` */
+function formatDayHours(slots: { time: string; breakTime: string }[]) {
+  return slots
+    .map((slot) => {
+      const start = slot.time?.trim();
+      const end = slot.breakTime?.trim();
+      if (start && end) return `${start} - ${end}`;
+      return start || end || '';
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
 function OperationHoursCard({ operationTime }: OperationHoursCardProps) {
   const { serviceTags, weekday, weekend, closedDays } = operationTime;
+  const weekdayHours = formatDayHours(weekday);
+  const weekendHours = formatDayHours(weekend);
 
   return (
     <dl className='bg-primitive-neutral-50 flex flex-col gap-4 rounded-lg p-4'>
@@ -22,12 +37,12 @@ function OperationHoursCard({ operationTime }: OperationHoursCardProps) {
 
         <div className='mb-[4px] flex'>
           <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>평일</dt>
-          <dd className='body2-regular text-text-primary'>{weekday.map((time) => time.time).join(' - ')}</dd>
+          <dd className='body2-regular text-text-primary'>{weekdayHours || '-'}</dd>
         </div>
 
         <div className='mb-[4px] flex'>
           <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>주말</dt>
-          <dd className='body2-regular text-text-primary'>{weekend.map((time) => time.breakTime).join(' - ')}</dd>
+          <dd className='body2-regular text-text-primary'>{weekendHours || '-'}</dd>
         </div>
 
         {closedDays.length > 0 && (

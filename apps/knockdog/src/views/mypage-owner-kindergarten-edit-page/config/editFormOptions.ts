@@ -42,7 +42,9 @@ const SECTION_TABS: { id: SectionId; label: string }[] = [
 ];
 
 const BREED_OPTIONS = FILTER_CONFIG['견종 조건'];
-const DOG_SERVICE_OPTIONS = FILTER_CONFIG['강아지 서비스'];
+const DOG_SERVICE_OPTIONS = FILTER_CONFIG['강아지 서비스'].filter(
+  (code) => code !== 'SPLIT_CLASS'
+);
 const SAFETY_OPTIONS = FILTER_CONFIG['강아지 안전 ∙ 시설'];
 const AMENITY_OPTIONS = FILTER_CONFIG['방문객 편의 ∙ 시설'];
 

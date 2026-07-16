@@ -225,8 +225,8 @@ function MypageOwnerKindergartenEditPage() {
     ));
   };
 
-  const handleSave = () => {
-    if (!formData.handleSave()) return;
+  const handleSave = async () => {
+    if (!(await formData.handleSave())) return;
 
     toast({
       type: 'success',
@@ -282,7 +282,7 @@ function MypageOwnerKindergartenEditPage() {
 
         <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
 
-        {formData.isSelected ? (
+        {formData.canUseAutofill ? (
           <div className='relative z-10 ml-auto flex shrink-0 items-center gap-1 rounded px-2 py-1'>
             <Tooltip placement='bottom-left' offset={4} className='flex items-center'>
               <TooltipTrigger
@@ -549,25 +549,15 @@ function MypageOwnerKindergartenEditPage() {
               onChange={formData.handleAmenitiesChange}
             />
           </div>
-
-          <div className='flex flex-col px-4 py-4'>
-            <span className='body1-bold text-text-primary'>
-              {ownerMypageContent.kindergartenEditLastUpdatedTitle}
-            </span>
-            <span className='body2-regular text-text-tertiary'>
-              {formData.lastUpdatedDate ?? ownerMypageContent.noConfirmedInfoText}
-            </span>
-          </div>
         </section>
 
         <div className='px-4 pt-5 pb-10'>
-          {/* TODO: 유치원 운영 정보 저장 API 연동 */}
           <ActionButton
             type='button'
             size='large'
             variant='primaryFill'
             className='w-full'
-            disabled={!formData.isSaveEnabled}
+            disabled={!formData.isSaveEnabled || formData.isSaving}
             onClick={handleSave}
           >
             {ownerMypageContent.profileSaveButtonLabel}

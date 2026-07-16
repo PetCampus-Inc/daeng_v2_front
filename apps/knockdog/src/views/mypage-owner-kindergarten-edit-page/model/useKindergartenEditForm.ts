@@ -6,9 +6,12 @@ import { useOwnerKindergarten } from '@features/role-conversion';
 import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { CLOSED_DAYS } from '@entities/compare';
 import type { FilterOption } from '@entities/kindergarten';
+import { usePutOwnerSchoolProfileMutation } from '@entities/owner-school';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import type { WebImageAsset } from '@shared/lib/media';
+import { useMoveImageMutation, type WebImageAsset } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
+import { buildOwnerSchoolProfilePayload } from '@views/mypage-owner-kindergarten-edit-page/lib/buildOwnerSchoolProfilePayload';
 import {
   clearEditFormDraft,
   EDIT_FORM_DRAFT_UPDATED_EVENT,
@@ -19,13 +22,6 @@ import {
 import { mapToEditFormDraft } from '@views/mypage-owner-kindergarten-edit-page/lib/mapToEditFormDraft';
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
-
-function formatDate(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 function applyDraftToState(
   draft: EditFormDraft,
@@ -76,16 +72,22 @@ function useKindergartenEditForm() {
   const { back, push } = useStackNavigation();
   const {
     source,
+    kindergartenId,
     name: kindergartenName,
-    address: kindergartenAddress,
+    streetAddress: kindergartenAddress,
     addressDetail: kindergartenAddressDetail,
-    phoneNumber,
+    autofillPhoneNumber: phoneNumber,
     bannerKeys,
     basic,
-    isSelectedPrefillReady,
+    canUseAutofill,
+    isAutofillPrefillReady,
   } = useOwnerKindergarten();
 
   const isSelected = source === 'search';
+  const { mutateAsync: moveImageAsync } = useMoveImageMutation();
+  const { mutateAsync: putProfileAsync, isPending: isSaving } = usePutOwnerSchoolProfileMutation({
+    kindergartenId: isSelected ? kindergartenId : undefined,
+  });
 
   // SSR/CSR 첫 paint는 empty, draft/API는 mount 후 복원
   const [images, setImages] = useState<WebImageAsset[]>([]);
@@ -112,9 +114,11 @@ function useKindergartenEditForm() {
   const skipNextPersistRef = useRef(false);
   const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
+  const isSaveLockedRef = useRef(false);
+  const [isPreparingSave, setIsPreparingSave] = useState(false);
   const prefillSourceRef = useRef({
-    isSelected,
-    isSelectedPrefillReady,
+    canUseAutofill,
+    isAutofillPrefillReady,
     kindergartenName,
     kindergartenAddress,
     kindergartenAddressDetail,
@@ -124,8 +128,8 @@ function useKindergartenEditForm() {
   });
 
   prefillSourceRef.current = {
-    isSelected,
-    isSelectedPrefillReady,
+    canUseAutofill,
+    isAutofillPrefillReady,
     kindergartenName,
     kindergartenAddress,
     kindergartenAddressDetail,
@@ -307,16 +311,39 @@ function useKindergartenEditForm() {
     });
   };
 
-  const handleSave = () => {
-    if (!isSaveEnabled) return false;
+  const handleSave = async () => {
+    if (!isSaveEnabled || isSaving || isPreparingSave || isSaveLockedRef.current) return false;
 
-    // TODO: 유치원 운영 정보 저장 API 연동
-    const nextLastUpdatedDate = formatDate();
-    skipNextPersistRef.current = true;
-    setLastUpdatedDate(nextLastUpdatedDate);
-    setIsDirty(false);
-    persistDraft(false, { lastUpdatedDate: nextLastUpdatedDate });
-    return true;
+    isSaveLockedRef.current = true;
+    setIsPreparingSave(true);
+
+    try {
+      const payload = await buildOwnerSchoolProfilePayload({
+        draft: buildDraft(false),
+        moveImage: moveImageAsync,
+      });
+
+      await putProfileAsync(payload);
+
+      skipNextPersistRef.current = true;
+      clearEditFormDraft();
+      setIsDirty(false);
+      back?.();
+      return true;
+    } catch (error) {
+      console.error('[operation edit save]', error);
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        title: '운영 정보 저장에 실패했어요',
+        description: error instanceof Error ? error.message : undefined,
+      });
+      return false;
+    } finally {
+      isSaveLockedRef.current = false;
+      setIsPreparingSave(false);
+    }
   };
 
   const handleTimeSelect = (value: string) => {
@@ -331,10 +358,14 @@ function useKindergartenEditForm() {
     updateField(settersByField[activeTimeField], value);
   };
 
-  /** AI 자동 채우기 완료 시 place/basic·main 소스로 폼 채움 */
+  /**
+   * 자동 채우기 완료 시 폼 채움
+   * - SELECTED: place basic/main
+   * - MANUAL (저장 1회+): school profile
+   */
   const applySelectedPrefill = () => {
     const source = prefillSourceRef.current;
-    if (!source.isSelected || !source.isSelectedPrefillReady) return false;
+    if (!source.canUseAutofill || !source.isAutofillPrefillReady) return false;
 
     const next = {
       ...mapToEditFormDraft({
@@ -358,6 +389,7 @@ function useKindergartenEditForm() {
 
   return {
     isSelected,
+    canUseAutofill,
     images,
     name,
     address,
@@ -382,6 +414,7 @@ function useKindergartenEditForm() {
     lastUpdatedDate,
     isDirty,
     isSaveEnabled,
+    isSaving: isSaving || isPreparingSave,
     setActiveTimeField,
     setIsClosedDaysSheetOpen,
     closeTimeSheet: () => setActiveTimeField(null),
@@ -410,7 +443,7 @@ function useKindergartenEditForm() {
     handleSave,
     handleTimeSelect,
     applySelectedPrefill,
-    getIsSelectedPrefillReady: () => prefillSourceRef.current.isSelectedPrefillReady,
+    getIsSelectedPrefillReady: () => prefillSourceRef.current.isAutofillPrefillReady,
   };
 }
 

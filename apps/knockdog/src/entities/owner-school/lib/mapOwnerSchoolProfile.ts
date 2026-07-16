@@ -18,7 +18,9 @@ function toS3Url(s3Key?: string | null) {
   return `${base}${encodeURI(s3Key)}`;
 }
 
-function formatLocalTime(value: LocalTimeParts | string | null | undefined): string | null {
+function formatLocalTime(
+  value: LocalTimeParts | string | number[] | null | undefined
+): string | null {
   if (value == null) return null;
 
   if (typeof value === 'string') {
@@ -27,6 +29,16 @@ function formatLocalTime(value: LocalTimeParts | string | null | undefined): str
     // "09:00" | "09:00:00"
     return trimmed.slice(0, 5);
   }
+
+  // Jackson LocalTime 기본 직렬화: [hour, minute] | [hour, minute, second, nano]
+  if (Array.isArray(value)) {
+    const hour = value[0];
+    const minute = value[1];
+    if (typeof hour !== 'number' || typeof minute !== 'number') return null;
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  }
+
+  if (typeof value.hour !== 'number' || typeof value.minute !== 'number') return null;
 
   const hour = String(value.hour).padStart(2, '0');
   const minute = String(value.minute).padStart(2, '0');
@@ -80,19 +92,14 @@ function buildOperationTimes(profile: OwnerSchoolProfile): OperationTime[] {
 
   if (!weekdayOpen || !weekdayClose) return [];
 
+  // place/basic과 동일: { time: 시작, breakTime: 종료 }
   return [
     {
       serviceTags: 'DEFAULT',
-      weekday: [
-        { time: weekdayOpen, breakTime: '' },
-        { time: weekdayClose, breakTime: '' },
-      ],
+      weekday: [{ time: weekdayOpen, breakTime: weekdayClose }],
       weekend:
         weekendOpen && weekendClose
-          ? [
-              { time: '', breakTime: weekendOpen },
-              { time: '', breakTime: weekendClose },
-            ]
+          ? [{ time: weekendOpen, breakTime: weekendClose }]
           : [],
       closedDays: profile.closedDays ?? [],
     },
