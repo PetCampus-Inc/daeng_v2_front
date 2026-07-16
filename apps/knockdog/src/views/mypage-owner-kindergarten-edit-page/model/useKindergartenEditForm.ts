@@ -73,12 +73,12 @@ function useKindergartenEditForm() {
   const {
     source,
     kindergartenId,
-    name: kindergartenName,
-    streetAddress: kindergartenAddress,
-    addressDetail: kindergartenAddressDetail,
+    autofillName: kindergartenName,
+    autofillStreetAddress: kindergartenAddress,
+    autofillAddressDetail: kindergartenAddressDetail,
     autofillPhoneNumber: phoneNumber,
-    bannerKeys,
-    basic,
+    autofillBannerKeys: bannerKeys,
+    autofillBasic: basic,
     canUseAutofill,
     isAutofillPrefillReady,
   } = useOwnerKindergarten();
@@ -360,8 +360,8 @@ function useKindergartenEditForm() {
 
   /**
    * 자동 채우기 완료 시 폼 채움
-   * - SELECTED: place basic/main
-   * - MANUAL (저장 1회+): school profile
+   * - 저장본(schoolProfileId) 있으면: school profile 최신값
+   * - 없으면 SELECTED: place basic/main
    */
   const applySelectedPrefill = () => {
     const source = prefillSourceRef.current;

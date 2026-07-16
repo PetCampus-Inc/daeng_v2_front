@@ -22,7 +22,8 @@ import { useUserStore } from '@entities/user';
  * - SELECTED: `placeId` → kindergarten/basic·main (운영·배너).
  *   요금은 place pricing, 단 원장이 PUT price로 저장한 적 있으면 school profile 우선.
  * - MANUAL: `GET owner/school/profile` (운영·요금).
- * - 자동 채우기: SELECTED 항상 / MANUAL은 schoolProfileId 있으면 (운영 정보 저장 1회+)
+ * - 자동 채우기: 저장본(schoolProfileId) 있으면 profile 최신값,
+ *   없으면 SELECTED place. MANUAL은 저장 1회+부터 노출.
  * - placeId 우선순위: owner/role.placeId → profile.kindergartenPlaceId
  */
 function useOwnerKindergarten() {
@@ -112,10 +113,44 @@ function useOwnerKindergarten() {
    */
   const phoneNumber = schoolPhoneNumber || placePhoneNumber;
 
-  /** 자동 채우기용: SELECTED는 place, MANUAL/저장본은 school */
-  const autofillPhoneNumber = isSelected
-    ? placePhoneNumber || schoolPhoneNumber
-    : schoolPhoneNumber;
+  /** MANUAL: 운영 정보 저장 1회 이상(= schoolProfileId) */
+  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
+
+  /**
+   * 자동 채우기 소스: 저장본 있으면 school profile 최신값,
+   * 없으면 SELECTED place basic/main.
+   */
+  const autofillName = (
+    hasSavedSchoolProfile
+      ? profile?.name
+      : ((isSelected ? main?.title : null) ?? profile?.name ?? kindergarten?.name)
+  )?.trim() ?? '';
+
+  const autofillStreetAddress = (
+    hasSavedSchoolProfile
+      ? profile?.address
+      : ((isSelected ? placeBasic?.roadAddress : null) ??
+        profile?.address ??
+        kindergarten?.address)
+  )?.trim() ?? '';
+
+  const autofillAddressDetail = hasSavedSchoolProfile
+    ? (profile?.addressDetail ?? '').trim()
+    : '';
+
+  const autofillPhoneNumber = hasSavedSchoolProfile
+    ? schoolPhoneNumber
+    : isSelected
+      ? placePhoneNumber || schoolPhoneNumber
+      : schoolPhoneNumber;
+
+  const autofillBasic = hasSavedSchoolProfile
+    ? profileBasic
+    : isSelected
+      ? placeBasic
+      : profileBasic;
+
+  const autofillBannerKeys = hasSavedSchoolProfile ? profileBannerKeys : bannerKeys;
 
   /** SELECTED: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
   const isSelectedPrefillReady =
@@ -123,15 +158,12 @@ function useOwnerKindergarten() {
     (!resolvedPlaceId ||
       (placeBasicQuery.isFetched && (coord == null || mainQuery.isFetched)));
 
-  /** MANUAL: 운영 정보 저장 1회 이상(= schoolProfileId) */
-  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
-
   /** SELECTED 항상, MANUAL은 저장 이후 — 자동 채우기 동일 UX */
   const canUseAutofill = isSelected || hasSavedSchoolProfile;
 
-  const isAutofillPrefillReady = isSelected
-    ? isSelectedPrefillReady
-    : hasSavedSchoolProfile;
+  const isAutofillPrefillReady = hasSavedSchoolProfile
+    ? profile != null
+    : isSelectedPrefillReady;
 
   return {
     ownerKindergarten: kindergarten,
@@ -146,7 +178,12 @@ function useOwnerKindergarten() {
     streetAddress,
     addressDetail,
     phoneNumber,
+    autofillName,
+    autofillStreetAddress,
+    autofillAddressDetail,
     autofillPhoneNumber,
+    autofillBasic,
+    autofillBannerKeys,
     bannerKeys,
     ownerName: owner?.name ?? '',
     ownerPhoneNumber: owner?.phoneNumber ?? '',
