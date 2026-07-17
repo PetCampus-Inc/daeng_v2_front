@@ -3,10 +3,12 @@ export {
   postWithdraw,
   getOwnerRole,
   getOwnerMypageSummary,
+  getOwnerProfile,
   type WithdrawRequest,
   type OwnerRole,
   type OwnerKindergartenType,
   type OwnerMypageSummary,
+  type OwnerProfile,
   type SocialLoginProvider,
 } from './api/user';
 export {
@@ -34,6 +36,9 @@ export {
   useOwnerMypageSummaryQuery,
   OWNER_MYPAGE_SUMMARY_QUERY_KEY,
   ownerMypageSummaryQueryKey,
+  useOwnerProfileQuery,
+  OWNER_PROFILE_QUERY_KEY,
+  ownerProfileQueryKey,
 } from './api/useUserQuery';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';

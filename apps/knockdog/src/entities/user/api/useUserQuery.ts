@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getUserInfo, getOwnerRole, getOwnerMypageSummary } from './user';
+import { getUserInfo, getOwnerRole, getOwnerMypageSummary, getOwnerProfile } from './user';
 
 const useUserInfoQuery = () => {
   return useQuery({
@@ -53,6 +53,26 @@ const useOwnerMypageSummaryQuery = ({
   });
 };
 
+const OWNER_PROFILE_QUERY_KEY = 'ownerProfile';
+
+/** 유저별로 캐시를 분리해 계정 전환 시 이전 원장 프로필이 남지 않도록 함 */
+const ownerProfileQueryKey = (userId?: string) => [OWNER_PROFILE_QUERY_KEY, userId] as const;
+
+interface UseOwnerProfileQueryOptions {
+  userId?: string;
+  enabled?: boolean;
+}
+
+const useOwnerProfileQuery = ({ userId, enabled = true }: UseOwnerProfileQueryOptions = {}) => {
+  return useQuery({
+    queryKey: ownerProfileQueryKey(userId),
+    queryFn: getOwnerProfile,
+    select: (data) => data.data,
+    enabled,
+    staleTime: 0,
+  });
+};
+
 export {
   useUserInfoQuery,
   useOwnerRoleQuery,
@@ -61,4 +81,7 @@ export {
   useOwnerMypageSummaryQuery,
   OWNER_MYPAGE_SUMMARY_QUERY_KEY,
   ownerMypageSummaryQueryKey,
+  useOwnerProfileQuery,
+  OWNER_PROFILE_QUERY_KEY,
+  ownerProfileQueryKey,
 };
