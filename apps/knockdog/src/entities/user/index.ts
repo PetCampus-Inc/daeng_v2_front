@@ -3,10 +3,14 @@ export {
   postWithdraw,
   getOwnerRole,
   getOwnerMypageSummary,
+  getOwnerProfile,
+  putOwnerProfile,
   type WithdrawRequest,
   type OwnerRole,
   type OwnerKindergartenType,
   type OwnerMypageSummary,
+  type OwnerProfile,
+  type PutOwnerProfileRequest,
   type SocialLoginProvider,
 } from './api/user';
 export {
@@ -20,6 +24,7 @@ export {
   useUserUpdateUserEmailMutation,
 } from './api/useUserMutation';
 export { useOwnerRoleRevokeMutation } from './api/useOwnerRoleRevokeMutation';
+export { usePutOwnerProfileMutation } from './api/usePutOwnerProfileMutation';
 export {
   useAddUserAddressMutation,
   useUpdateUserAddressMutation,
@@ -34,6 +39,9 @@ export {
   useOwnerMypageSummaryQuery,
   OWNER_MYPAGE_SUMMARY_QUERY_KEY,
   ownerMypageSummaryQueryKey,
+  useOwnerProfileQuery,
+  OWNER_PROFILE_QUERY_KEY,
+  ownerProfileQueryKey,
 } from './api/useUserQuery';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';

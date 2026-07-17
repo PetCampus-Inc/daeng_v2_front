@@ -1,35 +1,39 @@
 'use client';
 
-import { useMemo, useSyncExternalStore } from 'react';
+import { useMemo } from 'react';
 
-import { getOwnerProfileSnapshot, subscribeOwnerProfile, type OwnerProfile } from '../model/ownerProfile';
+import type { OwnerProfile } from '../model/ownerProfile';
 import { useOwnerRole } from './useOwnerRole';
 
-import { useSocialUserStore } from '@entities/social-user';
-import { useUserStore } from '@entities/user';
+import { useOwnerProfileQuery, useUserStore } from '@entities/user';
 
+/**
+ * BE `GET /owner/mypage/profile` 기반 원장 프로필.
+ * owner-role로 원장 확정(isOwner=true)된 뒤에만 호출한다(비원장 403).
+ */
 function useOwnerProfile() {
-  // @todo 프로필 수정 API 연동 후 로컬 편집값 없애기
-  const storedProfile = useSyncExternalStore(
-    subscribeOwnerProfile,
-    getOwnerProfileSnapshot,
-    () => null
-  );
-
   const user = useUserStore((state) => state.user);
-  const socialUser = useSocialUserStore((state) => state.socialUser);
-  const { owner } = useOwnerRole();
+  const { isOwner } = useOwnerRole();
+
+  const { data, isPending } = useOwnerProfileQuery({
+    userId: user?.userId,
+    enabled: isOwner,
+  });
 
   const profile = useMemo((): OwnerProfile => {
     return {
-      name: storedProfile?.name || owner?.name || '',
-      phoneNumber: storedProfile?.phoneNumber || owner?.phoneNumber || '',
-      email: storedProfile?.email || socialUser?.email || '',
-      profileImageUrl: storedProfile?.profileImageUrl ?? user?.profileImageUrl,
+      name: (data?.representativeName ?? '').trim(),
+      phoneNumber: (data?.representativePhoneNumber ?? '').trim(),
+      email: data?.loginEmail || '',
+      profileImageUrl: data?.profileImageUrl ?? undefined,
     };
-  }, [owner?.name, owner?.phoneNumber, socialUser?.email, storedProfile, user?.profileImageUrl]);
+  }, [data]);
 
-  return { profile };
+  return {
+    profile,
+    /** 원장이 아니면 즉시 true. 원장이면 프로필 첫 조회가 끝날 때까지 false */
+    isReady: !isOwner || !isPending,
+  };
 }
 
 export { useOwnerProfile };

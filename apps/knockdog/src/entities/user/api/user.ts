@@ -92,6 +92,32 @@ const getOwnerMypageSummary = async () => {
   return await api.get(`owner/mypage/summary`).json<ApiResponse<OwnerMypageSummary>>();
 };
 
+/** BE `GET /owner/mypage/profile` 응답 data */
+interface OwnerProfile {
+  representativeName: string;
+  representativePhoneNumber: string;
+  loginEmail: string;
+  profileImageUrl: string | null;
+}
+
+/** `GET` - 원장 프로필 조회 API (원장 전용, 비원장 403) */
+const getOwnerProfile = async () => {
+  return await api.get(`owner/mypage/profile`).json<ApiResponse<OwnerProfile>>();
+};
+
+interface PutOwnerProfileRequest {
+  representativeName: string;
+  representativePhoneNumber: string;
+  profileImageUrl: string;
+}
+
+/** `PUT` - 원장 프로필 수정 API (원장 전용, 비원장 403) */
+const putOwnerProfile = async (request: PutOwnerProfileRequest) => {
+  return await api
+    .put(`owner/mypage/profile`, { json: request })
+    .json<ApiResponse<null>>();
+};
+
 export {
   type RegisterUserRequest,
   type WithdrawRequest,
@@ -99,6 +125,8 @@ export {
   type OwnerRole,
   type OwnerKindergartenType,
   type OwnerMypageSummary,
+  type OwnerProfile,
+  type PutOwnerProfileRequest,
   type SocialLoginProvider,
   postRegisterUser,
   postWithdraw,
@@ -107,4 +135,6 @@ export {
   postUpdateUserEmail,
   getOwnerRole,
   getOwnerMypageSummary,
+  getOwnerProfile,
+  putOwnerProfile,
 };
