@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
-import { buildHref, type Query } from './queryUtils';
+import { buildHref, buildNativeFullPath, type Query } from './queryUtils';
 import { getCurrentTxId } from './useNavigationResult';
 
 type Params = Record<string, unknown>;
@@ -36,16 +36,8 @@ function useStackNavigation() {
     ) => {
       const { pathname, query, params, replace, scroll } = options;
 
-      // 외부 URL인지 확인 (http:// 또는 https://로 시작)
       const isExternalUrl = pathname.startsWith('http://') || pathname.startsWith('https://');
-
-      // 외부 URL이면 그대로 사용, 아니면 내부 경로로 변환
-      const fullPath = isExternalUrl
-        ? pathname
-        : (() => {
-            const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-            return `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
-          })();
+      const fullPath = isExternalUrl ? pathname : buildNativeFullPath(pathname);
 
       // forcedTxId가 제공되면 사용, params가 있으면 새로 생성, 아니면 null
       const txId = forcedTxId !== undefined ? forcedTxId : params ? makeId() : null;
@@ -124,16 +116,8 @@ function useStackNavigation() {
 
   const reset = useCallback(
     async (pathname: string = '/', query?: Query, params?: Params) => {
-      // 외부 URL인지 확인 (http:// 또는 https://로 시작)
       const isExternalUrl = pathname.startsWith('http://') || pathname.startsWith('https://');
-
-      // 외부 URL이면 그대로 사용, 아니면 내부 경로로 변환
-      const fullPath = isExternalUrl
-        ? pathname
-        : (() => {
-            const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-            return `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
-          })();
+      const fullPath = isExternalUrl ? pathname : buildNativeFullPath(pathname);
 
       // params가 있으면 txId 생성
       const txId = params ? makeId() : null;
@@ -277,17 +261,18 @@ function useStackNavigation() {
 
           // 웹 전용 경로: 뒤로 돌아왔을 때 sessionStorage에서 복구
           const onPop = () => {
-            // 현재 URL의 _txId 확인
+            // 부모 화면으로 돌아온 경우 URL에는 _txId가 없을 수 있어 먼저 결과를 확인한다.
+            if (resolveFromStorage()) {
+              return;
+            }
+
             const currentTxId = getCurrentTxId();
 
-            // 현재 페이지가 pushForResult로 열린 페이지가 아니면 무시
             if (currentTxId !== txId) {
               return;
             }
 
-            // 결과가 있으면 resolve/reject, 없으면 에러 던지기
-            const hasResult = resolveFromStorage();
-            if (!hasResult && !settled) {
+            if (!settled) {
               settled = true;
               cleanup();
               reject(new Error('Navigation cancelled: User navigated back without providing result'));

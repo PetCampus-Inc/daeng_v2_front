@@ -49,6 +49,7 @@ function loadRegisterFormDraft(): KindergartenRegisterForm | null {
   }
 }
 
+/** 웹: 주소 페이지(동일 탭 sessionStorage) → 등록 폼 remount 복원용 */
 function updateRegisterFormDraftAddress(address: string) {
   const draft = loadRegisterFormDraft();
 

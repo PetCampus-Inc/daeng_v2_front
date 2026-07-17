@@ -6,3 +6,4 @@ export { useOpenExternalLink } from './useOpenExternalLink';
 export { StackLink } from './StackLink';
 export { navigateToLogin } from './navigateToLogin';
 export { openSystemSetting } from './openSystemSetting';
+export { waitForNavParams } from './waitForNavParams';

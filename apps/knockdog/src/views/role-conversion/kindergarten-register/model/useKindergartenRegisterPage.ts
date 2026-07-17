@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
 
 import {
   emptyRegisterForm,
@@ -19,7 +19,6 @@ import {
 import {
   clearRegisterFormDraft,
   loadRegisterFormDraft,
-  REGISTER_FORM_DRAFT_UPDATED_EVENT,
   saveRegisterFormDraft,
 } from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
 
@@ -58,33 +57,23 @@ function resolveInitialForm(
 }
 
 function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
-  const { getParams, push } = useStackNavigation();
+  const { getParams, push, pushForResult } = useStackNavigation();
   const [form, setForm] = useState<KindergartenRegisterForm>(() => resolveInitialForm(mode, getParams));
+  const hasSearchPrefillRef = useRef(form.source === 'search' && form.name.trim().length > 0);
 
+  // 네이티브(특히 Android): history.state._params 주입이 첫 렌더보다 늦을 수 있음
   useEffect(() => {
-    if (mode !== 'manual') return;
+    if (mode !== 'search' || hasSearchPrefillRef.current) return;
 
-    function syncDraftFromStorage() {
-      if (document.visibilityState === 'hidden') return;
-
-      const draft = loadRegisterFormDraft();
-      if (draft?.source === 'manual') {
-        setForm(draft);
+    return waitForNavParams(
+      () => consumeSearchPrefillInit(getParams),
+      (prefill) => {
+        if (!prefill) return;
+        hasSearchPrefillRef.current = true;
+        setForm(fromSearchPrefill(prefill));
       }
-    }
-
-    syncDraftFromStorage();
-
-    window.addEventListener('pageshow', syncDraftFromStorage);
-    window.addEventListener(REGISTER_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
-    document.addEventListener('visibilitychange', syncDraftFromStorage);
-
-    return () => {
-      window.removeEventListener('pageshow', syncDraftFromStorage);
-      window.removeEventListener(REGISTER_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
-      document.removeEventListener('visibilitychange', syncDraftFromStorage);
-    };
-  }, [mode]);
+    );
+  }, [getParams, mode]);
 
   const isNextEnabled = useMemo(
     () => requiredFields.every((field) => form[field].trim().length > 0),
@@ -107,11 +96,25 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
   };
 
   const handleAddressSearch = async () => {
+    // 웹 remount 복원용. 네이티브 주소 반환은 pushForResult (WebView 간 sessionStorage 미공유).
     saveRegisterFormDraft(form);
 
-    await push({
-      pathname: route.roleConversion.kindergartenRegister.address.root,
-    });
+    try {
+      const selectedAddress = await pushForResult<string>(
+        {
+          pathname: route.roleConversion.kindergartenRegister.address.root,
+        },
+        600_000
+      );
+
+      setForm((prev) => {
+        const next = { ...prev, address: selectedAddress };
+        saveRegisterFormDraft(next);
+        return next;
+      });
+    } catch {
+      // 결과 없이 back — no-op
+    }
   };
 
   const handleClearAddress = () => {
