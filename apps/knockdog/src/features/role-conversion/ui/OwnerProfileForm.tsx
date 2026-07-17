@@ -90,19 +90,13 @@ function OwnerProfileForm({
             <Controller
               name='email'
               control={control}
-              rules={{
-                validate: (value) => {
-                  const trimmed = value.trim();
-                  return trimmed.length === 0 || /\S+@\S+\.\S+/.test(trimmed);
-                },
-              }}
-              render={({ field, fieldState: { error } }) => (
-                <TextField label={ownerMypageContent.ownerEmailLabel} indicator='(선택)' errorMessage={error?.message}>
+              render={({ field }) => (
+                <TextField label={ownerMypageContent.ownerEmailLabel}>
                   <TextFieldInput
                     {...field}
                     type='email'
+                    readOnly
                     placeholder={ownerMypageContent.ownerEmailPlaceholder}
-                    onChange={(event) => field.onChange(event.target.value.trim())}
                   />
                 </TextField>
               )}

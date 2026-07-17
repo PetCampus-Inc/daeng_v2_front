@@ -4,11 +4,13 @@ export {
   getOwnerRole,
   getOwnerMypageSummary,
   getOwnerProfile,
+  putOwnerProfile,
   type WithdrawRequest,
   type OwnerRole,
   type OwnerKindergartenType,
   type OwnerMypageSummary,
   type OwnerProfile,
+  type PutOwnerProfileRequest,
   type SocialLoginProvider,
 } from './api/user';
 export {
@@ -22,6 +24,7 @@ export {
   useUserUpdateUserEmailMutation,
 } from './api/useUserMutation';
 export { useOwnerRoleRevokeMutation } from './api/useOwnerRoleRevokeMutation';
+export { usePutOwnerProfileMutation } from './api/usePutOwnerProfileMutation';
 export {
   useAddUserAddressMutation,
   useUpdateUserAddressMutation,

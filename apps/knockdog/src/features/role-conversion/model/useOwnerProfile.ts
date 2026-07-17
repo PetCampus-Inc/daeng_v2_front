@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useSyncExternalStore } from 'react';
+import { useMemo } from 'react';
 
-import { getOwnerProfileSnapshot, subscribeOwnerProfile, type OwnerProfile } from '../model/ownerProfile';
+import type { OwnerProfile } from '../model/ownerProfile';
 import { useOwnerRole } from './useOwnerRole';
 
 import { useOwnerProfileQuery, useUserStore } from '@entities/user';
@@ -12,12 +12,6 @@ import { useOwnerProfileQuery, useUserStore } from '@entities/user';
  * owner-role로 원장 확정(isOwner=true)된 뒤에만 호출한다(비원장 403).
  */
 function useOwnerProfile() {
-  const storedProfile = useSyncExternalStore(
-    subscribeOwnerProfile,
-    getOwnerProfileSnapshot,
-    () => null
-  );
-
   const user = useUserStore((state) => state.user);
   const { isOwner } = useOwnerRole();
 
@@ -28,12 +22,12 @@ function useOwnerProfile() {
 
   const profile = useMemo((): OwnerProfile => {
     return {
-      name: storedProfile?.name || (data?.representativeName ?? '').trim(),
-      phoneNumber: storedProfile?.phoneNumber || (data?.representativePhoneNumber ?? '').trim(),
-      email: storedProfile?.email || data?.loginEmail || '',
-      profileImageUrl: storedProfile?.profileImageUrl ?? data?.profileImageUrl ?? undefined,
+      name: (data?.representativeName ?? '').trim(),
+      phoneNumber: (data?.representativePhoneNumber ?? '').trim(),
+      email: data?.loginEmail || '',
+      profileImageUrl: data?.profileImageUrl ?? undefined,
     };
-  }, [data, storedProfile]);
+  }, [data]);
 
   return { profile };
 }

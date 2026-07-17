@@ -3,12 +3,16 @@
 import { useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 
-import { useUserStore } from '@entities/user';
+import {
+  usePutOwnerProfileMutation,
+  useUserStore,
+} from '@entities/user';
 import { useMoveImageMutation } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
 
 import { formatName, formatPhone } from '../lib/formatKindergartenRegisterField';
 
-import { saveOwnerProfile, type OwnerProfile } from './ownerProfile';
+import { clearOwnerProfile, type OwnerProfile } from './ownerProfile';
 
 interface OwnerProfileFormData {
   name: string;
@@ -26,6 +30,7 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
   const { name, phoneNumber, email, profileImageUrl } = defaultValues;
   const user = useUserStore((state) => state.user);
   const { mutateAsync: moveImage } = useMoveImageMutation();
+  const { mutateAsync: putOwnerProfile } = usePutOwnerProfileMutation();
 
   const {
     control,
@@ -67,16 +72,37 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
         finalProfileImageUrl = moveResponse.data;
       } catch (error) {
         console.error('이미지 이동 실패:', error);
+        toast({
+          type: 'default',
+          shape: 'rounded',
+          position: 'bottom',
+          title: '프로필 이미지 저장에 실패했어요',
+          description: error instanceof Error ? error.message : undefined,
+        });
+        return;
       }
     }
 
-    saveOwnerProfile({
-      name: data.name.trim(),
-      phoneNumber: data.phoneNumber.trim(),
-      email: data.email.trim(),
-      profileImageUrl: finalProfileImageUrl || undefined,
-    });
-    onSuccess?.();
+    try {
+      await putOwnerProfile({
+        representativeName: data.name.trim(),
+        representativePhoneNumber: data.phoneNumber.trim(),
+        profileImageUrl: finalProfileImageUrl,
+      });
+
+      // 수정 API 연동 전 로컬 편집값 잔존 시 제거
+      clearOwnerProfile();
+      onSuccess?.();
+    } catch (error) {
+      console.error('[owner profile save]', error);
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        title: '프로필 저장에 실패했어요',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   };
 
   return {
