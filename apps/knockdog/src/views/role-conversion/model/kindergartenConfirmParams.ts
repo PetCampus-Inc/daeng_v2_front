@@ -120,6 +120,14 @@ function consumeSearchPrefillInit(
   return null;
 }
 
+/** 네이티브 history.state._params의 searchPrefill만 읽음 (sessionStorage fallback 없음) */
+function readNavSearchPrefill(
+  getParams: () => { searchPrefill?: SearchPrefill } | null
+): SearchPrefill | null {
+  const navPrefill = getParams()?.searchPrefill;
+  return navPrefill && isSearchPrefill(navPrefill) ? navPrefill : null;
+}
+
 function clearSearchPrefill() {
   if (typeof window === 'undefined') return;
 
@@ -161,6 +169,7 @@ export {
   clearSearchPrefill,
   consumeSearchPrefillInit,
   loadSearchPrefill,
+  readNavSearchPrefill,
   readParams,
   saveDraft,
   saveSearchPrefill,

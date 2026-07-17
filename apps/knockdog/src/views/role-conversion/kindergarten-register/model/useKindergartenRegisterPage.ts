@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 
 import {
   emptyRegisterForm,
@@ -14,7 +15,9 @@ import {
 import {
   clearSearchPrefill,
   consumeSearchPrefillInit,
+  readNavSearchPrefill,
   saveDraft,
+  saveSearchPrefill,
 } from '@views/role-conversion/model/kindergartenConfirmParams';
 import {
   clearRegisterFormDraft,
@@ -58,20 +61,40 @@ function resolveInitialForm(
 }
 
 function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
-  const { getParams, push, pushForResult } = useStackNavigation();
+  const { getParams, push, pushForResult, back } = useStackNavigation();
   const [form, setForm] = useState<KindergartenRegisterForm>(() => resolveInitialForm(mode, getParams));
-  const hasSearchPrefillRef = useRef(form.source === 'search' && form.name.trim().length > 0);
+  // stored prefill만으로 resolved 처리하지 않음 — native params 도착 전 stale 값에 고정되는 것 방지
+  const hasSearchPrefillRef = useRef(mode === 'search' && !!readNavSearchPrefill(getParams));
 
   // 네이티브(특히 Android): history.state._params 주입이 첫 렌더보다 늦을 수 있음
   useEffect(() => {
     if (mode !== 'search' || hasSearchPrefillRef.current) return;
 
-    return waitForNavParams(
-      () => consumeSearchPrefillInit(getParams),
-      (prefill) => {
-        if (!prefill) return;
+    if (!isNativeWebView()) {
+      const prefill = consumeSearchPrefillInit(getParams);
+      if (prefill) {
         hasSearchPrefillRef.current = true;
         setForm(fromSearchPrefill(prefill));
+      }
+      return;
+    }
+
+    return waitForNavParams(
+      () => readNavSearchPrefill(getParams),
+      (navPrefill) => {
+        if (navPrefill) {
+          saveSearchPrefill(navPrefill);
+          hasSearchPrefillRef.current = true;
+          setForm(fromSearchPrefill(navPrefill));
+          return;
+        }
+
+        // timeout: stored/cache prefill fallback
+        const fallback = consumeSearchPrefillInit(() => null);
+        if (fallback) {
+          hasSearchPrefillRef.current = true;
+          setForm(fromSearchPrefill(fallback));
+        }
       }
     );
   }, [getParams, mode]);
@@ -130,6 +153,14 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     });
   };
 
+  const handleBack = () => {
+    // 등록 페이지를 완전히 나가면 draft 제거 (주소 검색 왕복은 pushForResult라 unmount/back 아님)
+    if (mode === 'manual') {
+      clearRegisterFormDraft();
+    }
+    back?.();
+  };
+
   const handleNextClick = () => {
     const kindergarten = toKindergartenInfo(form);
 
@@ -152,6 +183,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     handleFieldChange,
     handleAddressSearch,
     handleClearAddress,
+    handleBack,
     handleNextClick,
   };
 }

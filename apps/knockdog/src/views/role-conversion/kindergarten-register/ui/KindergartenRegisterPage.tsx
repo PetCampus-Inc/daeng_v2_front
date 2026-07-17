@@ -30,13 +30,14 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
     handleFieldChange,
     handleAddressSearch,
     handleClearAddress,
+    handleBack,
     handleNextClick,
   } = useKindergartenRegisterPage(mode);
 
   return (
     <div className='flex h-full flex-col'>
       <Header>
-        <Header.BackButton />
+        <Header.BackButton onClick={handleBack} />
         <Header.Title>{kindergartenRegisterContent.headerTitle}</Header.Title>
       </Header>
 

@@ -6,7 +6,6 @@ import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
 import { buildHref, buildNativeFullPath, type Query } from './queryUtils';
-import { getCurrentTxId } from './useNavigationResult';
 
 type Params = Record<string, unknown>;
 
@@ -266,12 +265,7 @@ function useStackNavigation() {
               return;
             }
 
-            const currentTxId = getCurrentTxId();
-
-            if (currentTxId !== txId) {
-              return;
-            }
-
+            // 결과 없이 back → 즉시 cancel로 settle 
             if (!settled) {
               settled = true;
               cleanup();

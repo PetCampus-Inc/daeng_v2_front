@@ -3,6 +3,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { clearSearchPrefill } from '@views/role-conversion/model/kindergartenConfirmParams';
+import { clearRegisterFormDraft } from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
 
 import { kindergartenSearchContent } from '@views/role-conversion/kindergarten-search/config/kindergartenSearchContent';
 
@@ -11,6 +12,7 @@ function KindergartenSearchEmptyResult() {
 
   const handleRegisterClick = () => {
     clearSearchPrefill();
+    clearRegisterFormDraft();
     push({ pathname: route.roleConversion.kindergartenRegister.root });
   };
   return (
