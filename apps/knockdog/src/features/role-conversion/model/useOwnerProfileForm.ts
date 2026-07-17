@@ -48,13 +48,16 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
   });
 
   useEffect(() => {
+    // API 응답이 늦게 도착해도 작성 중(dirty) 값은 덮어쓰지 않음
+    if (isDirty) return;
+
     reset({
       name,
       phoneNumber,
       email,
       profileImageUrl: profileImageUrl ?? '',
     });
-  }, [name, phoneNumber, email, profileImageUrl, reset]);
+  }, [name, phoneNumber, email, profileImageUrl, reset, isDirty]);
 
   const onSubmit: SubmitHandler<OwnerProfileFormData> = async (data) => {
     let finalProfileImageUrl = data.profileImageUrl || '';

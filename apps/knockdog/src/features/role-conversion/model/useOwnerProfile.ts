@@ -15,7 +15,7 @@ function useOwnerProfile() {
   const user = useUserStore((state) => state.user);
   const { isOwner } = useOwnerRole();
 
-  const { data } = useOwnerProfileQuery({
+  const { data, isPending } = useOwnerProfileQuery({
     userId: user?.userId,
     enabled: isOwner,
   });
@@ -29,7 +29,11 @@ function useOwnerProfile() {
     };
   }, [data]);
 
-  return { profile };
+  return {
+    profile,
+    /** 원장이 아니면 즉시 true. 원장이면 프로필 첫 조회가 끝날 때까지 false */
+    isReady: !isOwner || !isPending,
+  };
 }
 
 export { useOwnerProfile };

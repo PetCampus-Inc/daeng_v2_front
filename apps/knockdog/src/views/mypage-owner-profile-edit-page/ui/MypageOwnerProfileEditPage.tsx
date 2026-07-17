@@ -25,7 +25,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 function MypageOwnerProfileEditPage() {
   const { back } = useStackNavigation();
-  const { profile } = useOwnerProfile();
+  const { profile, isReady } = useOwnerProfile();
   const isDirtyRef = useRef(false);
 
   const handleBack = () => {
@@ -63,17 +63,19 @@ function MypageOwnerProfileEditPage() {
         <Header.Title>{ownerMypageContent.profileEditPageTitle}</Header.Title>
       </Header>
 
-      <OwnerProfileForm
-        defaultValues={profile}
-        onSuccess={() => back?.()}
-        submitButtonText={ownerMypageContent.profileSaveButtonLabel}
-        onDirtyChange={(isDirty) => {
-          isDirtyRef.current = isDirty;
-        }}
-        renderProfileImage={({ value, onChange }) => (
-          <OwnerProfileImageUploader profileImage={value} imageAlt={profile.name} onImageSelect={onChange} />
-        )}
-      />
+      {isReady ? (
+        <OwnerProfileForm
+          defaultValues={profile}
+          onSuccess={() => back?.()}
+          submitButtonText={ownerMypageContent.profileSaveButtonLabel}
+          onDirtyChange={(isDirty) => {
+            isDirtyRef.current = isDirty;
+          }}
+          renderProfileImage={({ value, onChange }) => (
+            <OwnerProfileImageUploader profileImage={value} imageAlt={profile.name} onImageSelect={onChange} />
+          )}
+        />
+      ) : null}
     </>
   );
 }
