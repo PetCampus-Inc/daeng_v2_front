@@ -14,7 +14,7 @@ function KindergartenInfoSummary({ items }: KindergartenInfoSummaryProps) {
           <Field key={item.label} className='flex-col gap-0'>
             <FieldContent className='gap-0'>
               <span className='body1-regular text-text-secondary'>{item.label}</span>
-              <span className='h3-semibold text-text-primary'>{item.value}</span>
+              <span className='h3-semibold text-text-primary whitespace-pre-line'>{item.value}</span>
             </FieldContent>
           </Field>
         ))}

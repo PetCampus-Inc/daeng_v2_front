@@ -7,7 +7,7 @@ function toManualRequest(info: RoleConversionKindergartenInfo): ManualRequest | 
   return {
     kindergartenName: info.name,
     kindergartenAddress: info.address,
-    kindergartenAddressDetail: null,
+    kindergartenAddressDetail: (info.addressDetail ?? '').trim() || null,
     kindergartenPhoneNumber: info.kindergartenNumber,
     representativeName: info.ownerName,
     representativePhoneNumber: info.phoneNumber,

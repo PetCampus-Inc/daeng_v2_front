@@ -30,10 +30,20 @@ function isKindergartenInfo(value: unknown): value is RoleConversionKindergarten
     (record.placeId === undefined || typeof record.placeId === 'string') &&
     typeof record.name === 'string' &&
     typeof record.address === 'string' &&
+    (record.addressDetail === undefined || typeof record.addressDetail === 'string') &&
     typeof record.kindergartenNumber === 'string' &&
     typeof record.ownerName === 'string' &&
     typeof record.phoneNumber === 'string'
   );
+}
+
+function normalizeKindergartenInfo(
+  info: RoleConversionKindergartenInfo
+): RoleConversionKindergartenInfo {
+  return {
+    ...info,
+    addressDetail: info.addressDetail ?? '',
+  };
 }
 
 function saveDraft(info: RoleConversionKindergartenInfo) {
@@ -56,7 +66,7 @@ function loadDraft(): RoleConversionKindergartenInfo | null {
     if (!raw) return null;
 
     const parsed: unknown = JSON.parse(raw);
-    return isKindergartenInfo(parsed) ? parsed : null;
+    return isKindergartenInfo(parsed) ? normalizeKindergartenInfo(parsed) : null;
   } catch {
     return null;
   }
@@ -127,7 +137,7 @@ function readParams(
   if (txId && paramsCache.has(txId)) {
     const cached = paramsCache.get(txId);
     if (cached && isKindergartenInfo(cached)) {
-      return cached;
+      return normalizeKindergartenInfo(cached);
     }
   }
 
@@ -135,11 +145,12 @@ function readParams(
   const kindergarten = navParams?.kindergarten;
 
   if (kindergarten && isKindergartenInfo(kindergarten)) {
+    const normalized = normalizeKindergartenInfo(kindergarten);
     if (txId) {
-      paramsCache.set(txId, kindergarten);
+      paramsCache.set(txId, normalized);
     }
 
-    return kindergarten;
+    return normalized;
   }
 
   return loadDraft();

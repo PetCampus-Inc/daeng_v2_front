@@ -11,6 +11,7 @@ function toSelectRequest(info: RoleConversionKindergartenInfo): SelectRequest | 
     kindergartenId,
     representativeName: info.ownerName,
     representativePhoneNumber: info.phoneNumber,
+    kindergartenAddressDetail: (info.addressDetail ?? '').trim() || null,
   };
 }
 

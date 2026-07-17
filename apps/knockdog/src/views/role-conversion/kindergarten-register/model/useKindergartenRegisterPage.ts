@@ -27,6 +27,7 @@ import { formatAddress, formatName, formatPhone } from '@features/role-conversio
 const fieldFormatters = {
   name: formatName,
   address: formatAddress,
+  addressDetail: formatAddress,
   kindergartenNumber: formatPhone,
   ownerName: formatName,
   phoneNumber: formatPhone,
@@ -119,7 +120,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
 
   const handleClearAddress = () => {
     setForm((prev) => {
-      const next = { ...prev, address: '' };
+      const next = { ...prev, address: '', addressDetail: '' };
 
       if (mode === 'manual') {
         saveRegisterFormDraft(next);

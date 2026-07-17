@@ -8,6 +8,7 @@ export const kindergartenRegisterContent = Object.freeze({
   addressRegisterHeaderTitle: '주소 검색하기',
   addressPlaceholder: '유치원 주소를 입력해 주세요',
   addressSearchPlaceholder: '유치원 주소를 검색해 주세요',
+  addressDetailPlaceholder: '상세 주소를 입력해 주세요',
   numberLabel: '유치원 전화번호',
   numberPlaceholder: '유치원 전화번호를 입력해 주세요',
   ownerNameLabel: '대표자명',
