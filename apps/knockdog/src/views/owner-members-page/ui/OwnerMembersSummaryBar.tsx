@@ -3,7 +3,7 @@ import { Dropdown } from '@shared/ui/dropdown';
 import {
   SORT_OPTIONS,
   type OwnerMemberSortType,
-} from '@views/owner/members/config/ownerMembersContent';
+} from '@views/owner-members-page/config/ownerMembersContent';
 
 interface OwnerMembersSummaryBarProps {
   totalMemberCount: number;

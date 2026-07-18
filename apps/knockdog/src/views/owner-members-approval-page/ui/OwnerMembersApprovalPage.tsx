@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { ActionButton } from '@knockdog/ui';
-import { mockApprovalRequests } from '@views/owner/members-approval/config/ownerMembersApprovalContent';
+import { mockApprovalRequests } from '@views/owner-members-approval-page/config/ownerMembersApprovalContent';
 import { Header } from '@widgets/Header';
 
 import { OwnerMemberCard } from '@features/owner-members';

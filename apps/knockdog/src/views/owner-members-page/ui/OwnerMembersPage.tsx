@@ -1,10 +1,10 @@
 'use client';
 
-import { useOwnerMembersPage } from '@views/owner/members/model/useOwnerMembersPage';
-import { OwnerMembersHero } from '@views/owner/members/ui/OwnerMembersHero';
-import { OwnerMembersInviteButton } from '@views/owner/members/ui/OwnerMembersInviteButton';
-import { OwnerMembersList } from '@views/owner/members/ui/OwnerMembersList';
-import { OwnerMembersSummaryBar } from '@views/owner/members/ui/OwnerMembersSummaryBar';
+import { useOwnerMembersPage } from '@views/owner-members-page/model/useOwnerMembersPage';
+import { OwnerMembersHero } from '@views/owner-members-page/ui/OwnerMembersHero';
+import { OwnerMembersInviteButton } from '@views/owner-members-page/ui/OwnerMembersInviteButton';
+import { OwnerMembersList } from '@views/owner-members-page/ui/OwnerMembersList';
+import { OwnerMembersSummaryBar } from '@views/owner-members-page/ui/OwnerMembersSummaryBar';
 
 function OwnerMembersPage() {
   const {
@@ -15,8 +15,10 @@ function OwnerMembersPage() {
     handleDisconnectMember,
     sortType,
     setSortType,
+    isLoading,
+    isError,
   } = useOwnerMembersPage();
-  const hasMembers = totalMemberCount > 0;
+  const hasMembers = !isLoading && !isError && totalMemberCount > 0;
 
   return (
     <div
@@ -38,7 +40,12 @@ function OwnerMembersPage() {
             />
           )}
 
-          <OwnerMembersList members={ownerMembers} onDisconnectMember={handleDisconnectMember} />
+          <OwnerMembersList
+            members={ownerMembers}
+            isLoading={isLoading}
+            isError={isError}
+            onDisconnectMember={handleDisconnectMember}
+          />
         </div>
 
         <OwnerMembersInviteButton />

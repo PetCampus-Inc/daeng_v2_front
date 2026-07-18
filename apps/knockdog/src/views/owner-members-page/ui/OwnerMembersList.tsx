@@ -1,14 +1,36 @@
 import { OwnerMemberCard } from '@features/owner-members';
+import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 
-import type { OwnerMember } from '@views/owner/members/config/ownerMembersContent';
-import { OwnerMemberMoreMenu } from '@views/owner/members/ui/OwnerMemberMoreMenu';
+import type { OwnerMember } from '@entities/owner-member';
+import { OwnerMemberMoreMenu } from '@views/owner-members-page/ui/OwnerMemberMoreMenu';
 
 interface OwnerMembersListProps {
   members: OwnerMember[];
+  isLoading: boolean;
+  isError: boolean;
   onDisconnectMember: (memberId: string) => void;
 }
 
-function OwnerMembersList({ members, onDisconnectMember }: OwnerMembersListProps) {
+function OwnerMembersList({ members, isLoading, isError, onDisconnectMember }: OwnerMembersListProps) {
+  if (isLoading) {
+    return (
+      <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-(--bottom-bar-height)'>
+        <RingLoadingSpinner />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-(--bottom-bar-height)'>
+        <div className='px-x4 flex h-x14 w-full flex-col items-center justify-center gap-y-1 text-center'>
+          <p className='h2-extrabold text-text-primary'>구성원 목록을 불러오지 못했어요</p>
+          <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (members.length === 0) {
     return (
       <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-(--bottom-bar-height)'>
