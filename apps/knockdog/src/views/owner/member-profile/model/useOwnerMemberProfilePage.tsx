@@ -17,7 +17,7 @@ function useOwnerMemberProfilePage() {
   const params = useParams<{ id: string }>();
   const memberId = params?.id ?? '';
   const copy = useClipboardCopy();
-  const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.GUARDIAN);
+  const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.DOG);
 
   // TODO: API 연동 시 useOwnerMemberQuery(memberId)로 교체
   const profile = getMockOwnerMemberProfile(memberId);

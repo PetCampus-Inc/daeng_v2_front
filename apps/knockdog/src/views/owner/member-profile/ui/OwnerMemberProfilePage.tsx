@@ -11,6 +11,7 @@ import {
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
 import { useOwnerMemberProfilePage } from '../model/useOwnerMemberProfilePage';
+import { DogBasicInfoSection } from './DogBasicInfoSection';
 import { GuardianBasicInfoSection } from './GuardianBasicInfoSection';
 import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
 
@@ -45,7 +46,9 @@ function OwnerMemberProfilePage() {
         </div>
 
         <div className='min-h-0 flex-1 overflow-y-auto'>
-          <TabsContent value={TAB.DOG} />
+          <TabsContent value={TAB.DOG}>
+            <DogBasicInfoSection dog={profile.dog} />
+          </TabsContent>
           <TabsContent value={TAB.GUARDIAN}>
             <GuardianBasicInfoSection guardian={profile.guardian} onCopy={handleCopy} />
           </TabsContent>
