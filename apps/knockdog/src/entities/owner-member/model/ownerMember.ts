@@ -26,6 +26,10 @@ interface OwnerMembersDto {
   totalStudentCount: number;
 }
 
+interface OwnerInviteDto {
+  inviteUrl: string;
+}
+
 type OwnerPendingMembersDto =
   | OwnerMembersDto
   | OwnerMemberDto[]
@@ -97,5 +101,6 @@ export type {
   OwnerMemberDto,
   OwnerMembersResponse,
   OwnerMembersDto,
+  OwnerInviteDto,
   OwnerPendingMembersDto,
 };

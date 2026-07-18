@@ -1,4 +1,4 @@
-import type { OwnerMembersDto, OwnerPendingMembersDto } from '../model/ownerMember';
+import type { OwnerInviteDto, OwnerMembersDto, OwnerPendingMembersDto } from '../model/ownerMember';
 
 import { api, type ApiResponse } from '@shared/api';
 
@@ -27,10 +27,16 @@ async function postDisconnectOwnerMember(memberId: string) {
   return await api.post(`owner/members/${memberId}/disconnect`).json<ApiResponse<Record<string, never>>>();
 }
 
+/** `POST` - 보호자 초대 링크 조회 */
+async function postOwnerInvite() {
+  return await api.post('owner/invites').json<ApiResponse<OwnerInviteDto>>();
+}
+
 export {
   getOwnerMembers,
   getOwnerPendingMembers,
   postApproveOwnerMember,
   postDisconnectOwnerMember,
+  postOwnerInvite,
   postRejectOwnerMember,
 };
