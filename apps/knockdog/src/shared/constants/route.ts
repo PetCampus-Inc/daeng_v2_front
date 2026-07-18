@@ -99,6 +99,10 @@ const route = {
     members: {
       /** 원장 구성원 페이지 */
       root: '/owner/members',
+      detail: {
+        /** 원장 원생 프로필 페이지 */
+        root: '/owner/members/[id]',
+      },
       approval: {
         /** 원장 구성원 연결 승인 대기 목록 페이지 */
         root: '/owner/members/approval',

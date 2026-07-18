@@ -1,4 +1,7 @@
+'use client';
+
 import { OwnerMemberCard } from '@features/owner-members';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 import type { OwnerMember } from '@views/owner/members/config/ownerMembersContent';
 import { OwnerMemberMoreMenu } from '@views/owner/members/ui/OwnerMemberMoreMenu';
@@ -9,6 +12,8 @@ interface OwnerMembersListProps {
 }
 
 function OwnerMembersList({ members, onDisconnectMember }: OwnerMembersListProps) {
+  const { push } = useStackNavigation();
+
   if (members.length === 0) {
     return (
       <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-(--bottom-bar-height)'>
@@ -26,6 +31,7 @@ function OwnerMembersList({ members, onDisconnectMember }: OwnerMembersListProps
         <OwnerMemberCard
           key={member.id}
           member={member}
+          onClick={() => push({ pathname: `/owner/members/${member.id}` })}
           rightAddon={
             <OwnerMemberMoreMenu
               memberId={member.id}
