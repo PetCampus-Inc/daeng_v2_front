@@ -22,6 +22,7 @@ function isKindergartenRegisterForm(value: unknown): value is KindergartenRegist
     (record.placeId === undefined || typeof record.placeId === 'string') &&
     typeof record.name === 'string' &&
     typeof record.address === 'string' &&
+    (record.addressDetail === undefined || typeof record.addressDetail === 'string') &&
     typeof record.kindergartenNumber === 'string' &&
     typeof record.ownerName === 'string' &&
     typeof record.phoneNumber === 'string'
@@ -43,12 +44,18 @@ function loadRegisterFormDraft(): KindergartenRegisterForm | null {
     if (!raw) return null;
 
     const parsed: unknown = JSON.parse(raw);
-    return isKindergartenRegisterForm(parsed) ? parsed : null;
+    if (!isKindergartenRegisterForm(parsed)) return null;
+
+    return {
+      ...parsed,
+      addressDetail: parsed.addressDetail ?? '',
+    };
   } catch {
     return null;
   }
 }
 
+/** 웹: 주소 페이지(동일 탭 sessionStorage) → 등록 폼 remount 복원용 */
 function updateRegisterFormDraftAddress(address: string) {
   const draft = loadRegisterFormDraft();
 

@@ -2,6 +2,7 @@ interface SelectRequest {
   kindergartenId: number;
   representativeName: string;
   representativePhoneNumber: string;
+  kindergartenAddressDetail: string | null;
 }
 
 interface ManualRequest {

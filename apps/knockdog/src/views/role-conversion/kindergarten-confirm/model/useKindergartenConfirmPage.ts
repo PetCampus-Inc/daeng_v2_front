@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { postKindergartenManual, postKindergartenSelect, saveSession } from '@entities/owner-verification';
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 import {
   clearDraft,
@@ -10,14 +11,37 @@ import {
   readParams,
   saveSearchPrefill,
 } from '@views/role-conversion/model/kindergartenConfirmParams';
-import { toDisplayItems } from '@views/role-conversion/model/kindergartenInfo';
+import {
+  toDisplayItems,
+  type RoleConversionKindergartenInfo,
+} from '@views/role-conversion/model/kindergartenInfo';
 import { handleOwnerVerificationAuthError } from '@views/role-conversion/complete/lib/handleOwnerVerificationAuthError';
 import { toManualRequest } from '../lib/toManualRequest';
 import { toSelectRequest } from '../lib/toSelectRequest';
 
 function useKindergartenConfirmPage() {
   const { back, getParams, push, replace } = useStackNavigation();
-  const kindergartenInfo = useMemo(() => readParams(getParams), [getParams]);
+  const [kindergartenInfo, setKindergartenInfo] = useState<RoleConversionKindergartenInfo | null>(() =>
+    readParams(getParams)
+  );
+  const [isParamsResolved, setIsParamsResolved] = useState(() => {
+    if (!isNativeWebView()) return true;
+    return !!readParams(getParams);
+  });
+
+  // 네이티브: confirm으로 push된 params가 첫 렌더에 없으면 잠깐 대기 (즉시 back 방지)
+  useEffect(() => {
+    if (isParamsResolved) return;
+
+    return waitForNavParams(
+      () => readParams(getParams),
+      (info) => {
+        if (info) setKindergartenInfo(info);
+        setIsParamsResolved(true);
+      }
+    );
+  }, [getParams, isParamsResolved]);
+
   const displayItems = useMemo(
     () => (kindergartenInfo ? toDisplayItems(kindergartenInfo) : []),
     [kindergartenInfo]
@@ -85,10 +109,11 @@ function useKindergartenConfirmPage() {
   const isPending = isSelectPending || isManualPending;
 
   useEffect(() => {
+    if (!isParamsResolved) return;
     if (!kindergartenInfo) {
       back();
     }
-  }, [back, kindergartenInfo]);
+  }, [back, isParamsResolved, kindergartenInfo]);
 
   const handleNo = () => {
     clearDraft();

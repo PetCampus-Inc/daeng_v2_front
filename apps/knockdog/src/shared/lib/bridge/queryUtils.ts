@@ -45,3 +45,16 @@ export function buildHref(pathname: string, query?: Query): string {
   const queryString = params.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
+
+/** 네이티브 WebView: 현재 origin 기준 (Tab/Stack origin 불일치 방지) */
+export function buildNativeFullPath(pathname: string): string {
+  if (pathname.startsWith('http://') || pathname.startsWith('https://')) {
+    return pathname;
+  }
+
+  const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+  const baseUrl =
+    typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_WEB_URL ?? '');
+
+  return `${baseUrl}/${normalizedPath}`;
+}
