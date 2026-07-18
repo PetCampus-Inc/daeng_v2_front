@@ -32,10 +32,16 @@ import { toast } from '@shared/ui/toast';
 interface OwnerMemberMoreMenuProps {
   memberId: string;
   dogName: string;
-  onDisconnect: (memberId: string) => void;
+  isDisconnectPending: boolean;
+  onDisconnect: (memberId: string) => Promise<void>;
 }
 
-function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMoreMenuProps) {
+function OwnerMemberMoreMenu({
+  memberId,
+  dogName,
+  isDisconnectPending,
+  onDisconnect,
+}: OwnerMemberMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -75,9 +81,11 @@ function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMor
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                // TODO: API 연동 시 연결 해제 mutation 성공 후 토스트 노출 및 전체 원생 목록 갱신
-                onDisconnect(memberId);
+              disabled={isDisconnectPending}
+              onClick={async () => {
+                if (isDisconnectPending) return;
+
+                await onDisconnect(memberId);
                 toast({ title: `${dogName}의 유치원 연결을 해제했어요` });
                 close();
               }}

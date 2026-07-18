@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react';
-
-import { useOwnerMembersQuery, type OwnerMember } from '@entities/owner-member';
-import { useUserStore } from '@entities/user';
-import { useOwnerRole } from '@features/role-conversion';
 import {
   OWNER_MEMBER_SEARCH_MAX_LENGTH,
   type OwnerMemberSortType,
 } from '@views/owner-members-page/config/ownerMembersContent';
+import type { OwnerMembersEmptyStateType } from '@views/owner-members-page/config/ownerMembersEmptyContent';
+import { useOwnerRole } from '@features/role-conversion';
+
+import {
+  useOwnerMemberDisconnectMutation,
+  useOwnerMembersQuery,
+  type OwnerMember,
+} from '@entities/owner-member';
+import { useUserStore } from '@entities/user';
 
 const SEARCH_ALLOWED_PATTERN = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z ]/g;
 
@@ -37,6 +42,7 @@ function useOwnerMembersPage() {
     userId,
     enabled: isResolved && isOwner,
   });
+  const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
 
   const ownerMembers = useMemo(() => {
     const query = normalizeSearchText(searchQuery);
@@ -52,6 +58,17 @@ function useOwnerMembersPage() {
 
     return sortOwnerMembers(filteredMembers, sortType);
   }, [ownerMembersQuery.data?.members, searchQuery, sortType]);
+  const isInitialPending =
+    !isResolved || ownerMembersQuery.isLoading || !ownerMembersQuery.isFetchedAfterMount;
+  const totalMemberCount = ownerMembersQuery.data?.totalMemberCount ?? 0;
+  const hasSearchQuery = normalizeSearchText(searchQuery).length > 0;
+  const emptyStateType: OwnerMembersEmptyStateType | null = (() => {
+    if (isInitialPending) return null;
+    if (totalMemberCount === 0) return 'emptyStudents';
+    if (hasSearchQuery && ownerMembers.length === 0) return 'emptySearchResult';
+
+    return null;
+  })();
 
   const handleSearchQueryChange = (value: string) => {
     setSearchQuery(
@@ -59,21 +76,22 @@ function useOwnerMembersPage() {
     );
   };
 
-  const handleDisconnectMember = (memberId: string) => {
-    // TODO: API 연동 시 memberId로 유치원 연결 해제 mutation 호출
-    void memberId;
+  const handleDisconnectMember = async (memberId: string) => {
+    await disconnectMutation.mutateAsync(memberId);
   };
 
   return {
     ownerMembers,
-    totalMemberCount: ownerMembersQuery.data?.totalMemberCount ?? 0,
+    totalMemberCount,
+    emptyStateType,
     searchQuery,
     handleSearchQueryChange,
     handleDisconnectMember,
     sortType,
     setSortType,
-    isLoading: ownerMembersQuery.isLoading,
+    isLoading: isInitialPending,
     isError: ownerMembersQuery.isError,
+    isDisconnectPending: disconnectMutation.isPending,
   };
 }
 

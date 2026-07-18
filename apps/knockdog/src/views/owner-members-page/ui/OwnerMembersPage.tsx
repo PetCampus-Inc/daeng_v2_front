@@ -10,6 +10,7 @@ function OwnerMembersPage() {
   const {
     ownerMembers,
     totalMemberCount,
+    emptyStateType,
     searchQuery,
     handleSearchQueryChange,
     handleDisconnectMember,
@@ -17,8 +18,10 @@ function OwnerMembersPage() {
     setSortType,
     isLoading,
     isError,
+    isDisconnectPending,
   } = useOwnerMembersPage();
   const hasMembers = !isLoading && !isError && totalMemberCount > 0;
+  const isSearchResult = searchQuery.trim().length > 0;
 
   return (
     <div
@@ -34,7 +37,8 @@ function OwnerMembersPage() {
         <div className='flex min-h-0 w-full flex-1 flex-col'>
           {hasMembers && (
             <OwnerMembersSummaryBar
-              totalMemberCount={totalMemberCount}
+              memberCount={isSearchResult ? ownerMembers.length : totalMemberCount}
+              isSearchResult={isSearchResult}
               sortType={sortType}
               onSortTypeChange={setSortType}
             />
@@ -42,8 +46,10 @@ function OwnerMembersPage() {
 
           <OwnerMembersList
             members={ownerMembers}
+            emptyStateType={emptyStateType}
             isLoading={isLoading}
             isError={isError}
+            isDisconnectPending={isDisconnectPending}
             onDisconnectMember={handleDisconnectMember}
           />
         </div>
