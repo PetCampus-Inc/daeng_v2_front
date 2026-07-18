@@ -41,30 +41,50 @@ const requiredFields = ['name', 'address', 'kindergartenNumber', 'ownerName', 'p
 function resolveInitialForm(
   mode: KindergartenRegisterSource,
   getParams: () => { searchPrefill?: SearchPrefill } | null
-): KindergartenRegisterForm {
+): { form: KindergartenRegisterForm; fromNavPrefill: boolean } {
   if (mode === 'manual') {
     const draft = loadRegisterFormDraft();
     if (draft?.source === 'manual') {
-      return draft;
+      return { form: draft, fromNavPrefill: false };
     }
 
-    return emptyRegisterForm;
+    return { form: emptyRegisterForm, fromNavPrefill: false };
+  }
+
+  // 네이티브: 첫 렌더에서 storage/cache fallback으로 stale prefill을 확정하지 않음
+  // (params 주입이 늦을 수 있어 waitForNavParams 이후 fallback)
+  if (isNativeWebView()) {
+    const navPrefill = readNavSearchPrefill(getParams);
+
+    if (navPrefill) {
+      saveSearchPrefill(navPrefill);
+      return { form: fromSearchPrefill(navPrefill), fromNavPrefill: true };
+    }
+
+    return { form: emptyRegisterForm, fromNavPrefill: false };
   }
 
   const prefill = consumeSearchPrefillInit(getParams);
 
   if (prefill) {
-    return fromSearchPrefill(prefill);
+    return { form: fromSearchPrefill(prefill), fromNavPrefill: !!readNavSearchPrefill(getParams) };
   }
 
-  return emptyRegisterForm;
+  return { form: emptyRegisterForm, fromNavPrefill: false };
 }
 
 function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
   const { getParams, push, pushForResult, back } = useStackNavigation();
-  const [form, setForm] = useState<KindergartenRegisterForm>(() => resolveInitialForm(mode, getParams));
-  // stored prefill만으로 resolved 처리하지 않음 — native params 도착 전 stale 값에 고정되는 것 방지
-  const hasSearchPrefillRef = useRef(mode === 'search' && !!readNavSearchPrefill(getParams));
+  const initialResolvedRef = useRef<ReturnType<typeof resolveInitialForm> | null>(null);
+  const [form, setForm] = useState<KindergartenRegisterForm>(() => {
+    const resolved = resolveInitialForm(mode, getParams);
+    initialResolvedRef.current = resolved;
+    return resolved.form;
+  });
+  // nav params로 확정된 경우만 resolved — storage/cache만으로는 wait 스킵하지 않음
+  const hasSearchPrefillRef = useRef(
+    mode === 'search' && (initialResolvedRef.current?.fromNavPrefill ?? false)
+  );
 
   // 네이티브(특히 Android): history.state._params 주입이 첫 렌더보다 늦을 수 있음
   useEffect(() => {
