@@ -1,22 +1,26 @@
 'use client';
 
-import { useOwnerMembersPage } from '@views/owner/members/model/useOwnerMembersPage';
-import { OwnerMembersHero } from '@views/owner/members/ui/OwnerMembersHero';
-import { OwnerMembersInviteButton } from '@views/owner/members/ui/OwnerMembersInviteButton';
-import { OwnerMembersList } from '@views/owner/members/ui/OwnerMembersList';
-import { OwnerMembersSummaryBar } from '@views/owner/members/ui/OwnerMembersSummaryBar';
+import { useOwnerMembersPage } from '@views/owner-members-page/model/useOwnerMembersPage';
+import { OwnerMembersHero } from '@views/owner-members-page/ui/OwnerMembersHero';
+import { OwnerMembersInviteButton } from '@views/owner-members-page/ui/OwnerMembersInviteButton';
+import { OwnerMembersList } from '@views/owner-members-page/ui/OwnerMembersList';
+import { OwnerMembersSummaryBar } from '@views/owner-members-page/ui/OwnerMembersSummaryBar';
 
 function OwnerMembersPage() {
   const {
     ownerMembers,
     totalMemberCount,
+    emptyStateType,
     searchQuery,
     handleSearchQueryChange,
     handleDisconnectMember,
     sortType,
     setSortType,
+    isLoading,
+    isError,
   } = useOwnerMembersPage();
-  const hasMembers = totalMemberCount > 0;
+  const hasMembers = !isLoading && !isError && totalMemberCount > 0;
+  const isSearchResult = searchQuery.trim().length > 0;
 
   return (
     <div
@@ -32,13 +36,20 @@ function OwnerMembersPage() {
         <div className='flex min-h-0 w-full flex-1 flex-col'>
           {hasMembers && (
             <OwnerMembersSummaryBar
-              totalMemberCount={totalMemberCount}
+              memberCount={isSearchResult ? ownerMembers.length : totalMemberCount}
+              isSearchResult={isSearchResult}
               sortType={sortType}
               onSortTypeChange={setSortType}
             />
           )}
 
-          <OwnerMembersList members={ownerMembers} onDisconnectMember={handleDisconnectMember} />
+          <OwnerMembersList
+            members={ownerMembers}
+            emptyStateType={emptyStateType}
+            isLoading={isLoading}
+            isError={isError}
+            onDisconnectMember={handleDisconnectMember}
+          />
         </div>
 
         <OwnerMembersInviteButton />

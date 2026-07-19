@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@knockdog/ui';
 interface OwnerMemberCardMember {
   dogName: string;
   guardianName: string;
-  profileImageUrl?: string;
+  profileImageUrl?: string | null;
 }
 
 interface OwnerMemberCardProps {
