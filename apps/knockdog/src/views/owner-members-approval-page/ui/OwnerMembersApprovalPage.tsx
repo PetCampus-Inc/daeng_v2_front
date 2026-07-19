@@ -83,14 +83,26 @@ function OwnerMembersApprovalPage() {
   const isInitialPending =
     !isResolved || pendingMembersQuery.isLoading || !pendingMembersQuery.isFetchedAfterMount;
 
-  const handleReject = async (_requestId: string, dogName: string) => {
-    await rejectMutation.mutateAsync(_requestId);
-    toast({ title: `${dogName}의 연결 신청을 거절했어요` });
+  const handleReject = (_requestId: string, dogName: string) => {
+    rejectMutation.mutate(_requestId, {
+      onSuccess: () => {
+        toast({ title: `${dogName}의 연결 신청을 거절했어요` });
+      },
+      onError: () => {
+        toast({ title: '연결 신청 거절에 실패했어요' });
+      },
+    });
   };
 
-  const handleApprove = async (_requestId: string, dogName: string) => {
-    await approveMutation.mutateAsync(_requestId);
-    toast({ title: `${dogName}의 연결 신청을 승인했어요` });
+  const handleApprove = (_requestId: string, dogName: string) => {
+    approveMutation.mutate(_requestId, {
+      onSuccess: () => {
+        toast({ title: `${dogName}의 연결 신청을 승인했어요` });
+      },
+      onError: () => {
+        toast({ title: '연결 신청 승인에 실패했어요' });
+      },
+    });
   };
 
   return (
