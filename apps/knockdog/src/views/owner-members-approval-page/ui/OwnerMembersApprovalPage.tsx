@@ -69,6 +69,17 @@ function ApprovalEmptyState() {
   );
 }
 
+function ApprovalErrorState() {
+  return (
+    <div className='flex min-h-full w-full items-center justify-center'>
+      <div className='flex h-x14 w-full flex-col items-center justify-center gap-y-1 text-center'>
+        <p className='h2-extrabold text-text-primary'>승인 대기 목록을 불러오지 못했어요</p>
+        <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
+      </div>
+    </div>
+  );
+}
+
 function OwnerMembersApprovalPage() {
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved } = useOwnerRole();
@@ -126,7 +137,9 @@ function OwnerMembersApprovalPage() {
       <div className='min-h-0 flex-1 overflow-y-auto'>
         {isInitialPending ? (
           <div className='min-h-full w-full' />
-        ) : pendingMembersQuery.isError || approvalRequests.length === 0 ? (
+        ) : pendingMembersQuery.isError ? (
+          <ApprovalErrorState />
+        ) : approvalRequests.length === 0 ? (
           <ApprovalEmptyState />
         ) : (
           approvalRequests.map((member) => (

@@ -42,9 +42,7 @@ function OwnerMembersList({
   isError,
   onDisconnectMember,
 }: OwnerMembersListProps) {
-  if (isLoading) {
-    return <div className='min-h-0 w-full flex-1 pb-(--bottom-bar-height)' />;
-  }
+  if (isLoading) return <div className='min-h-0 w-full flex-1 pb-(--bottom-bar-height)' />;
 
   if (isError) {
     return (
@@ -57,9 +55,7 @@ function OwnerMembersList({
     );
   }
 
-  if (emptyStateType) {
-    return <OwnerMembersEmptyState emptyStateType={emptyStateType} />;
-  }
+  if (emptyStateType) return <OwnerMembersEmptyState emptyStateType={emptyStateType} />;
 
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
