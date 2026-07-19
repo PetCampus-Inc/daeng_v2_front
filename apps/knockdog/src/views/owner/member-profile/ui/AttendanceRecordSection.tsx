@@ -210,7 +210,8 @@ function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
         {selectedRecord ? (
           <AttendanceDayCard date={selectedDate} record={selectedRecord} />
         ) : (
-          <div className='bg-bg-0 radius-r3 flex w-full items-center justify-center px-4 py-10'>
+          <div className='bg-bg-0 radius-r3 flex w-full flex-col gap-4 px-4 py-5'>
+            <h3 className='body1-extrabold text-text-primary'>{formatDayTitle(selectedDate)}</h3>
             <p className='body1-medium text-text-tertiary'>
               {ownerMemberProfileContent.attendanceEmptyText}
             </p>

@@ -35,7 +35,7 @@ const ownerMemberProfileContent = {
   conditionLabel: '컨디션',
   snackLabel: '간식',
   stoolStatusLabel: '배변 상태',
-  attendanceEmptyText: '등하원 기록이 없어요',
+  attendanceEmptyText: '선택한 날짜에 등하원 기록이 없어요.',
   copyToastSuffix: '를 복사했어요',
 };
 
@@ -97,8 +97,7 @@ const mockOwnerMemberProfiles: OwnerMemberProfile[] = [
       gender: '남',
       phone: '010-1234-5678',
       emergencyPhone: '010-1234-5678',
-      address: '서울특별시 강남구 테헤란로 123, 행복아파트 101동',
-      addressDetail: '202호',
+      address: '서울특별시 강남구 테헤란로 123, 행복아파트 101동 202호',
     },
     attendanceRecords: [
       {
