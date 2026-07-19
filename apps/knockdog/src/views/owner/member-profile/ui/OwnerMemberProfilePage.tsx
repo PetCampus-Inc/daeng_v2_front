@@ -13,6 +13,7 @@ import {
 import { useOwnerMemberProfilePage } from '../model/useOwnerMemberProfilePage';
 import { DogBasicInfoSection } from './DogBasicInfoSection';
 import { GuardianBasicInfoSection } from './GuardianBasicInfoSection';
+import { AttendanceRecordSection } from './AttendanceRecordSection';
 import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
 
 function OwnerMemberProfilePage() {
@@ -52,7 +53,9 @@ function OwnerMemberProfilePage() {
           <TabsContent value={TAB.GUARDIAN}>
             <GuardianBasicInfoSection guardian={profile.guardian} onCopy={handleCopy} />
           </TabsContent>
-          <TabsContent value={TAB.ATTENDANCE} />
+          <TabsContent value={TAB.ATTENDANCE}>
+            <AttendanceRecordSection records={profile.attendanceRecords} />
+          </TabsContent>
         </div>
       </Tabs>
     </SafeArea>
