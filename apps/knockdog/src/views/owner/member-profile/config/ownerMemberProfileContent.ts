@@ -1,3 +1,9 @@
+import {
+  STOOL_STATUS,
+  STOOL_STATUS_LABEL,
+  type StoolStatus,
+} from '@shared/ui/stool-status';
+
 const TAB = {
   DOG: 'dog',
   GUARDIAN: 'guardian',
@@ -34,16 +40,6 @@ const ownerMemberProfileContent = {
 };
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
-
-const STOOL_STATUS = {
-  HARD: 'HARD',
-} as const;
-
-type StoolStatus = (typeof STOOL_STATUS)[keyof typeof STOOL_STATUS];
-
-const STOOL_STATUS_LABEL: Record<StoolStatus, string> = {
-  HARD: '딱딱함',
-};
 
 interface OwnerMemberProfileDog {
   name: string;

@@ -13,6 +13,7 @@ export { BookmarkLine } from './BookmarkLine';
 export { Bus } from './Bus';
 export { Cafe } from './Cafe';
 export { Call } from './Call';
+export { Calendar } from './Calendar';
 export { Camera } from './Camera';
 export { Cctv } from './Cctv';
 export { Change } from './Change';

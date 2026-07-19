@@ -14,6 +14,7 @@ export type IconName =
   | 'Bus'
   | 'Cafe'
   | 'Call'
+  | 'Calendar'
   | 'Camera'
   | 'Cctv'
   | 'Change'

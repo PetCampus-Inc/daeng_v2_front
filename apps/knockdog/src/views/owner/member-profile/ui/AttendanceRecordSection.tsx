@@ -3,8 +3,9 @@
 import { useMemo, useState } from 'react';
 import { Divider, Icon } from '@knockdog/ui';
 
+import { StoolStatusBadge } from '@shared/ui/stool-status';
+
 import {
-  STOOL_STATUS_LABEL,
   WEEKDAY_LABELS,
   ownerMemberProfileContent,
   type OwnerMemberAttendanceRecord,
@@ -50,44 +51,6 @@ function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(date.getDate() + days);
   return next;
-}
-
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width='20'
-      height='20'
-      viewBox='0 0 20 20'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      aria-hidden
-    >
-      <path
-        d='M6.5 2.5V4.5M13.5 2.5V4.5M3.5 7.5H16.5M4.5 3.5H15.5C16.0523 3.5 16.5 3.94772 16.5 4.5V15.5C16.5 16.0523 16.0523 16.5 15.5 16.5H4.5C3.94772 16.5 3.5 16.0523 3.5 15.5V4.5C3.5 3.94772 3.94772 3.5 4.5 3.5Z'
-        stroke='currentColor'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-      <path
-        d='M6.5 10H7.5M9.5 10H10.5M12.5 10H13.5M6.5 13H7.5M9.5 13H10.5M12.5 13H13.5'
-        stroke='currentColor'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-      />
-    </svg>
-  );
-}
-
-function StoolHardIcon() {
-  return (
-    <div className='bg-fill-primary-50 text-fill-primary-500 flex h-[62px] w-16 items-center justify-center rounded-lg'>
-      <svg width='40' height='40' viewBox='0 0 40 40' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden>
-        <path d='M20 3.5L33.5 11.25V26.75L20 34.5L6.5 26.75V11.25L20 3.5Z' fill='currentColor' />
-      </svg>
-    </div>
-  );
 }
 
 interface AttendanceDayCardProps {
@@ -144,12 +107,7 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
           <span className='body2-regular text-text-secondary'>
             {ownerMemberProfileContent.stoolStatusLabel}
           </span>
-          <div className='flex w-16 flex-col items-center gap-1'>
-            <StoolHardIcon />
-            <span className='label-medium text-text-accent'>
-              {STOOL_STATUS_LABEL[record.stoolStatus]}
-            </span>
-          </div>
+          <StoolStatusBadge status={record.stoolStatus} />
         </div>
 
         <Divider />
@@ -184,9 +142,9 @@ function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
           <button
             type='button'
             aria-label='월 선택'
-            className='inline-flex size-6 items-center justify-center p-0.5'
+            className='inline-flex size-6 items-center justify-center'
           >
-            <CalendarIcon className='text-text-primary size-5' />
+            <Icon icon='Calendar' className='text-text-primary size-6' />
           </button>
         </div>
 
