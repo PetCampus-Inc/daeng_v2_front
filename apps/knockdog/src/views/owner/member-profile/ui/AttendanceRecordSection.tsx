@@ -1,56 +1,29 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
 import { Divider, Icon } from '@knockdog/ui';
 
 import { StoolStatusBadge } from '@shared/ui/stool-status';
 
 import {
-  WEEKDAY_LABELS,
   ownerMemberProfileContent,
   type OwnerMemberAttendanceRecord,
-} from '../config/ownerMemberProfileContent';
+} from '@views/owner/member-profile/config/ownerMemberProfileContent';
+import {
+  clampDate,
+  formatDateKey,
+  formatDayTitle,
+  getEarliestDateKey,
+  parseDateKey,
+  startOfDay,
+} from '@views/owner/member-profile/lib/attendanceCalendar';
+
+import { AttendanceMonthlyCalendar } from './AttendanceMonthlyCalendar';
+import { AttendanceWeeklyPicker } from './AttendanceWeeklyPicker';
 
 interface AttendanceRecordSectionProps {
   records: OwnerMemberAttendanceRecord[];
-}
-
-function formatDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function parseDateKey(dateKey: string) {
-  const [year, month, day] = dateKey.split('-').map(Number);
-  return new Date(year!, month! - 1, day);
-}
-
-function getWeekDates(anchorDate: Date) {
-  const start = new Date(anchorDate);
-  start.setDate(anchorDate.getDate() - anchorDate.getDay());
-  start.setHours(0, 0, 0, 0);
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return date;
-  });
-}
-
-function formatMonthTitle(date: Date) {
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
-}
-
-function formatDayTitle(date: Date) {
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAY_LABELS[date.getDay()]})`;
-}
-
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(date.getDate() + days);
-  return next;
 }
 
 interface AttendanceDayCardProps {
@@ -119,92 +92,69 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
 }
 
 function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
+  const today = useMemo(() => startOfDay(new Date()), []);
   const recordDateSet = useMemo(() => new Set(records.map((record) => record.date)), [records]);
-  const [selectedDate, setSelectedDate] = useState(() => parseDateKey('2026-06-08'));
+  const earliestDateKey = useMemo(
+    () => getEarliestDateKey(records.map((record) => record.date)),
+    [records],
+  );
+  const minDate = useMemo(
+    () => (earliestDateKey ? parseDateKey(earliestDateKey) : today),
+    [earliestDateKey, today],
+  );
+  const maxDate = today;
 
-  const weekDates = getWeekDates(selectedDate);
+  const [isMonthlyExpanded, setIsMonthlyExpanded] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    clampDate(parseDateKey('2026-06-08'), minDate, maxDate),
+  );
+  const [viewMonth, setViewMonth] = useState(() =>
+    startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)),
+  );
+
   const selectedDateKey = formatDateKey(selectedDate);
   const selectedRecord = records.find((record) => record.date === selectedDateKey);
 
-  const handlePrevWeek = () => {
-    setSelectedDate((prev) => addDays(prev, -7));
+  const handleSelectDate = (date: Date) => {
+    const nextDate = clampDate(date, minDate, maxDate);
+    setSelectedDate(nextDate);
+    setViewMonth(startOfDay(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1)));
   };
 
-  const handleNextWeek = () => {
-    setSelectedDate((prev) => addDays(prev, 7));
+  const handleGoToday = () => {
+    handleSelectDate(today);
+  };
+
+  const handleExpandMonthly = () => {
+    setViewMonth(startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)));
+    setIsMonthlyExpanded(true);
   };
 
   return (
     <div className='flex flex-col items-center pb-5'>
-      <div className='flex w-full flex-col items-center gap-4 px-4 py-5'>
-        <div className='flex items-center justify-center gap-1'>
-          <h2 className='h3-extrabold text-text-primary'>{formatMonthTitle(selectedDate)}</h2>
-          <button
-            type='button'
-            aria-label='월 선택'
-            className='inline-flex size-6 items-center justify-center'
-          >
-            <Icon icon='Calendar' className='text-text-primary size-6' />
-          </button>
-        </div>
-
-        <div className='flex w-full items-center justify-between'>
-          <button
-            type='button'
-            aria-label='이전 주'
-            className='inline-flex size-6 shrink-0 items-center justify-center'
-            onClick={handlePrevWeek}
-          >
-            <Icon icon='ChevronLeft' className='text-text-primary size-6' />
-          </button>
-
-          <div className='flex items-center'>
-            {weekDates.map((date) => {
-              const dateKey = formatDateKey(date);
-              const isSelected = dateKey === selectedDateKey;
-              const hasRecord = recordDateSet.has(dateKey);
-
-              return (
-                <button
-                  key={dateKey}
-                  type='button'
-                  onClick={() => setSelectedDate(date)}
-                  className={`flex w-[41px] flex-col items-center px-3 py-1.5 ${
-                    isSelected ? 'bg-fill-secondary-700 radius-r2' : ''
-                  }`}
-                >
-                  <span
-                    className={`caption1-semibold ${
-                      isSelected ? 'text-text-primary-inverse' : 'text-text-secondary'
-                    }`}
-                  >
-                    {WEEKDAY_LABELS[date.getDay()]}
-                  </span>
-                  <span
-                    className={`body1-bold ${
-                      isSelected ? 'text-text-primary-inverse' : 'text-text-secondary'
-                    }`}
-                  >
-                    {date.getDate()}
-                  </span>
-                  <span
-                    className={`size-1 rounded-full ${hasRecord ? 'bg-text-accent' : 'bg-transparent'}`}
-                  />
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            type='button'
-            aria-label='다음 주'
-            className='inline-flex size-6 shrink-0 items-center justify-center'
-            onClick={handleNextWeek}
-          >
-            <Icon icon='ChevronRight' className='text-text-primary size-6' />
-          </button>
-        </div>
-      </div>
+      {isMonthlyExpanded ? (
+        <AttendanceMonthlyCalendar
+          selectedDate={selectedDate}
+          viewMonth={viewMonth}
+          today={today}
+          recordDateSet={recordDateSet}
+          minDate={minDate}
+          maxDate={maxDate}
+          onChangeViewMonth={setViewMonth}
+          onSelectDate={handleSelectDate}
+          onGoToday={handleGoToday}
+          onCollapse={() => setIsMonthlyExpanded(false)}
+        />
+      ) : (
+        <AttendanceWeeklyPicker
+          selectedDate={selectedDate}
+          recordDateSet={recordDateSet}
+          minDate={minDate}
+          maxDate={maxDate}
+          onSelectDate={handleSelectDate}
+          onExpandMonthly={handleExpandMonthly}
+        />
+      )}
 
       <div className='w-full px-4'>
         {selectedRecord ? (

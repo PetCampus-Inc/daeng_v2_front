@@ -36,6 +36,7 @@ const ownerMemberProfileContent = {
   snackLabel: '간식',
   stoolStatusLabel: '배변 상태',
   attendanceEmptyText: '선택한 날짜에 등하원 기록이 없어요.',
+  todayButtonLabel: '오늘',
   copyToastSuffix: '를 복사했어요',
 };
 
@@ -101,6 +102,24 @@ const mockOwnerMemberProfiles: OwnerMemberProfile[] = [
     },
     attendanceRecords: [
       {
+        date: '2026-06-02',
+        checkIn: '오전 9:15',
+        checkOut: '오후 6:10',
+        condition: '평소와 비슷했어요',
+        snack: '간식을 잘 먹었어요.',
+        stoolStatus: STOOL_STATUS.NORMAL,
+        note: '첫 등원 날이에요.',
+      },
+      {
+        date: '2026-06-04',
+        checkIn: '오전 9:10',
+        checkOut: '오후 6:00',
+        condition: '평소와 비슷했어요',
+        snack: '북어트릿을 먹었어요.',
+        stoolStatus: STOOL_STATUS.HARD,
+        note: '오늘도 잘 지냈어요.',
+      },
+      {
         date: '2026-06-05',
         checkIn: '오전 9:10',
         checkOut: '오후 6:00',
@@ -126,6 +145,24 @@ const mockOwnerMemberProfiles: OwnerMemberProfile[] = [
         snack: '단호박 큐브와 북어트릿 한 조각을 먹었어요.',
         stoolStatus: STOOL_STATUS.HARD,
         note: '안녕하세요 뭉치 어머니! 뭉치가 오늘 친구들과 운동장에서 아주 활발하게 뛰어놀았어요. 특히 보더콜리 친구와 공놀이하는 걸 무척 좋아하더라고요! 점심도 남김없이 다 먹었고, 오후 낮잠 시간에는 아주 깊게 잠들었습니다. 집에 가서 푹 쉴 수 있게 해주세요!!',
+      },
+      {
+        date: '2026-06-15',
+        checkIn: '오전 9:00',
+        checkOut: '오후 6:15',
+        condition: '평소와 비슷했어요',
+        snack: '간식을 잘 먹었어요.',
+        stoolStatus: STOOL_STATUS.SOFT,
+        note: '산책 시간이 즐거웠어요.',
+      },
+      {
+        date: '2026-06-16',
+        checkIn: '오전 9:20',
+        checkOut: '오후 6:05',
+        condition: '평소와 비슷했어요',
+        snack: '단호박 큐브를 먹었어요.',
+        stoolStatus: STOOL_STATUS.NORMAL,
+        note: '낮잠도 잘 잤어요.',
       },
     ],
   },
