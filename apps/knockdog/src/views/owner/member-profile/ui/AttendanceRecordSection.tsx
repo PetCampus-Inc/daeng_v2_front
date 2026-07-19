@@ -106,7 +106,7 @@ function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
 
   const [isMonthlyExpanded, setIsMonthlyExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() =>
-    clampDate(parseDateKey('2026-06-08'), minDate, maxDate),
+    clampDate(today, minDate, maxDate),
   );
   const [viewMonth, setViewMonth] = useState(() =>
     startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)),
