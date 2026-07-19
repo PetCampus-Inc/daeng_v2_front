@@ -2,6 +2,10 @@
 
 import { useRef } from 'react';
 import { ActionButton, Icon } from '@knockdog/ui';
+import { QRCodeSVG } from 'qrcode.react';
+
+import { useOwnerInviteQuery } from '@entities/owner-member';
+import { useUserStore } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useClipboardCopy, useShare } from '@shared/lib/device';
 
@@ -31,13 +35,6 @@ const INVITE_ACTIONS = [
   },
 ] as const;
 
-function getOwnerInviteUrl() {
-  const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || (typeof window !== 'undefined' ? window.location.origin : '');
-
-  // TODO: BE 초대 링크 발급 API 연동 시 API 응답 링크로 교체
-  return `${baseUrl}/owner/invite`;
-}
-
 function downloadImage(url: string, filename: string) {
   const link = document.createElement('a');
 
@@ -48,8 +45,41 @@ function downloadImage(url: string, filename: string) {
   document.body.removeChild(link);
 }
 
+async function downloadSvgAsPng(svgElement: SVGElement, filename: string) {
+  const svg = new XMLSerializer().serializeToString(svgElement);
+  const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+  const image = new Image();
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('QR 이미지 변환에 실패했습니다.'));
+      image.src = svgUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    const size = 200;
+    canvas.width = size;
+    canvas.height = size;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, size, size);
+    context.drawImage(image, 0, 0, size, size);
+    downloadImage(canvas.toDataURL('image/png'), filename);
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
+}
+
 function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps) {
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
+  const userId = useUserStore((state) => state.user?.userId);
+  const inviteQuery = useOwnerInviteQuery({ userId, enabled: isOpen && !!userId });
+  const inviteUrl = inviteQuery.data?.inviteUrl;
   const copy = useClipboardCopy();
   const share = useShare();
 
@@ -76,21 +106,19 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     }
 
     if (qrCodeElement instanceof SVGElement) {
-      const svg = new XMLSerializer().serializeToString(qrCodeElement);
-      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-
-      downloadImage(url, 'owner-invite-qr.svg');
-      setTimeout(() => URL.revokeObjectURL(url), 0);
+      void downloadSvgAsPng(qrCodeElement, 'owner-invite-qr.png');
     }
   };
 
   const handleCopyInviteLink = async () => {
-    await copy(getOwnerInviteUrl());
+    if (!inviteUrl) return;
+
+    await copy(inviteUrl);
   };
 
   const handleShareInviteLink = async () => {
-    const inviteUrl = getOwnerInviteUrl();
+    if (!inviteUrl) return;
+
     const shared = await share({
       title: '보호자 초대',
       message: `보호자 초대장을 확인해 주세요.\n${inviteUrl}`,
@@ -116,6 +144,8 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     void handleShareInviteLink();
   };
 
+  const isInviteActionDisabled = !inviteUrl;
+
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
       <BottomSheet.Overlay className='z-overlay' />
@@ -128,7 +158,8 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
               <button
                 key={action.label}
                 type='button'
-                className='gap-x1 flex h-[76px] min-w-0 flex-col items-center justify-center px-x1'
+                className='gap-x1 flex h-[76px] min-w-0 flex-col items-center justify-center px-x1 disabled:opacity-40'
+                disabled={isInviteActionDisabled}
                 onClick={() => handleActionClick(action.action)}
               >
                 <span
@@ -144,7 +175,24 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
           <div
             ref={qrCodeContainerRef}
             className='py-x10 gap-x2_5 flex h-[280px] w-full items-center justify-center'
-          />
+          >
+            {inviteUrl ? (
+              <QRCodeSVG
+                value={inviteUrl}
+                size={200}
+                className='size-[200px]'
+                level='M'
+                marginSize={0}
+                title='보호자 초대 QR 코드'
+              />
+            ) : inviteQuery.isError ? (
+              <div className='body1-regular text-text-secondary text-center'>
+                초대 링크를 불러오지 못했어요.
+              </div>
+            ) : (
+              <div className='bg-fill-secondary-100 h-[200px] w-[200px]' />
+            )}
+          </div>
 
           <div className='px-x4 py-x5 gap-x2 flex h-[96px] w-full'>
             <ActionButton type='button' variant='primaryFill' size='large' onClick={close}>

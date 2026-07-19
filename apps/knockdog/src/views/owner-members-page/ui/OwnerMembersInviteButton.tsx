@@ -1,7 +1,7 @@
 import { FloatingActionButton } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
-import { OwnerMembersInviteSheet } from '@views/owner/members/ui/OwnerMembersInviteSheet';
+import { OwnerMembersInviteSheet } from '@views/owner-members-page/ui/OwnerMembersInviteSheet';
 
 function OwnerMembersInviteButton() {
   const handleInviteClick = () => {

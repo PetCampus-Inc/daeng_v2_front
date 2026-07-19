@@ -2,7 +2,7 @@ import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import {
   OWNER_MEMBER_SEARCH_MAX_LENGTH,
   ownerMembersContent,
-} from '@views/owner/members/config/ownerMembersContent';
+} from '@views/owner-members-page/config/ownerMembersContent';
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
