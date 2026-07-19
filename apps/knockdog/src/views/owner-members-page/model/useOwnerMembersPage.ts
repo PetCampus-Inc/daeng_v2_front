@@ -91,7 +91,6 @@ function useOwnerMembersPage() {
     setSortType,
     isLoading: isInitialPending,
     isError: ownerMembersQuery.isError,
-    isDisconnectPending: disconnectMutation.isPending,
   };
 }
 

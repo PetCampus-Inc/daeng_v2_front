@@ -14,7 +14,6 @@ interface OwnerMembersListProps {
   emptyStateType: OwnerMembersEmptyStateType | null;
   isLoading: boolean;
   isError: boolean;
-  isDisconnectPending: boolean;
   onDisconnectMember: (memberId: string) => Promise<void>;
 }
 
@@ -41,7 +40,6 @@ function OwnerMembersList({
   emptyStateType,
   isLoading,
   isError,
-  isDisconnectPending,
   onDisconnectMember,
 }: OwnerMembersListProps) {
   if (isLoading) {
@@ -73,7 +71,6 @@ function OwnerMembersList({
             <OwnerMemberMoreMenu
               memberId={member.id}
               dogName={member.dogName}
-              isDisconnectPending={isDisconnectPending}
               onDisconnect={onDisconnectMember}
             />
           }

@@ -18,7 +18,6 @@ function OwnerMembersPage() {
     setSortType,
     isLoading,
     isError,
-    isDisconnectPending,
   } = useOwnerMembersPage();
   const hasMembers = !isLoading && !isError && totalMemberCount > 0;
   const isSearchResult = searchQuery.trim().length > 0;
@@ -49,7 +48,6 @@ function OwnerMembersPage() {
             emptyStateType={emptyStateType}
             isLoading={isLoading}
             isError={isError}
-            isDisconnectPending={isDisconnectPending}
             onDisconnectMember={handleDisconnectMember}
           />
         </div>

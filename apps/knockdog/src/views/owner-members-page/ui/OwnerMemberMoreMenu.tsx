@@ -32,16 +32,69 @@ import { toast } from '@shared/ui/toast';
 interface OwnerMemberMoreMenuProps {
   memberId: string;
   dogName: string;
-  isDisconnectPending: boolean;
   onDisconnect: (memberId: string) => Promise<void>;
 }
 
-function OwnerMemberMoreMenu({
+interface OwnerMemberDisconnectDialogProps {
+  isOpen: boolean;
+  memberId: string;
+  dogName: string;
+  close: () => void;
+  onDisconnect: (memberId: string) => Promise<void>;
+}
+
+function OwnerMemberDisconnectDialog({
+  isOpen,
   memberId,
   dogName,
-  isDisconnectPending,
+  close,
   onDisconnect,
-}: OwnerMemberMoreMenuProps) {
+}: OwnerMemberDisconnectDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleDisconnect = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      await onDisconnect(memberId);
+      toast({ title: `${dogName}의 유치원 연결을 해제했어요` });
+      close();
+    } catch {
+      toast({ title: '유치원 연결 해제에 실패했어요' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={close}>
+      <AlertDialogContent className='max-w-[358px]'>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            <span className='text-text-accent'>{dogName}</span>의
+            <br />
+            유치원 연결을 해제할까요?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            연결을 해제하면 더 이상 해당 원생의 일과를
+            <br />
+            수행할 수 없어요.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isSubmitting}>취소</AlertDialogCancel>
+          <AlertDialogAction disabled={isSubmitting} onClick={handleDisconnect}>
+            연결 해제
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -64,37 +117,13 @@ function OwnerMemberMoreMenu({
   const handleDisconnectClick = () => {
     setIsOpen(false);
     overlay.open(({ isOpen: isDialogOpen, close }) => (
-      <AlertDialog open={isDialogOpen} onOpenChange={close}>
-        <AlertDialogContent className='max-w-[358px]'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <span className='text-text-accent'>{dogName}</span>의
-              <br />
-              유치원 연결을 해제할까요?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              연결을 해제하면 더 이상 해당 원생의 일과를
-              <br />
-              수행할 수 없어요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isDisconnectPending}
-              onClick={async () => {
-                if (isDisconnectPending) return;
-
-                await onDisconnect(memberId);
-                toast({ title: `${dogName}의 유치원 연결을 해제했어요` });
-                close();
-              }}
-            >
-              연결 해제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <OwnerMemberDisconnectDialog
+        isOpen={isDialogOpen}
+        memberId={memberId}
+        dogName={dogName}
+        close={close}
+        onDisconnect={onDisconnect}
+      />
     ));
   };
 

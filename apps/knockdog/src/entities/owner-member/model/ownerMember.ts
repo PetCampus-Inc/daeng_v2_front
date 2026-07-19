@@ -30,15 +30,10 @@ interface OwnerInviteDto {
   inviteUrl: string;
 }
 
-type OwnerPendingMembersDto =
-  | OwnerMembersDto
-  | OwnerMemberDto[]
-  | {
-      pendingMembers?: OwnerMemberDto[];
-      totalPendingMemberCount?: number;
-      pendingCount?: number;
-      requests?: OwnerMemberDto[];
-    };
+interface OwnerPendingMembersDto {
+  pendingCount: number;
+  requests: OwnerMemberDto[];
+}
 
 function toOwnerMember(member: OwnerMemberDto): OwnerMember {
   const fallbackId = `${member.dogName}-${member.guardianName}`;
@@ -60,38 +55,9 @@ function toOwnerMembersResponse(response: OwnerMembersDto): OwnerMembersResponse
 }
 
 function toOwnerPendingMembersResponse(response: OwnerPendingMembersDto): OwnerMembersResponse {
-  if (Array.isArray(response)) {
-    return {
-      members: response.map(toOwnerMember),
-      totalMemberCount: response.length,
-    };
-  }
-
-  if ('pendingMembers' in response) {
-    const pendingMembers = response.pendingMembers ?? [];
-
-    return {
-      members: pendingMembers.map(toOwnerMember),
-      totalMemberCount: response.totalPendingMemberCount ?? pendingMembers.length,
-    };
-  }
-
-  if ('requests' in response) {
-    const requests = response.requests ?? [];
-
-    return {
-      members: requests.map(toOwnerMember),
-      totalMemberCount: response.pendingCount ?? requests.length,
-    };
-  }
-
-  if ('members' in response) {
-    return toOwnerMembersResponse(response);
-  }
-
   return {
-    members: [],
-    totalMemberCount: 0,
+    members: response.requests.map(toOwnerMember),
+    totalMemberCount: response.pendingCount,
   };
 }
 
