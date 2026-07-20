@@ -11,11 +11,24 @@ interface OwnerMemberCardMember {
 interface OwnerMemberCardProps {
   member: OwnerMemberCardMember;
   rightAddon?: ReactNode;
+  onClick?: () => void;
 }
 
-function OwnerMemberCard({ member, rightAddon }: OwnerMemberCardProps) {
+function OwnerMemberCard({ member, rightAddon, onClick }: OwnerMemberCardProps) {
   return (
-    <div className='border-line-100 p-x4 gap-x2 flex h-[84px] w-full items-center border-b'>
+    <div
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className='border-line-100 p-x4 gap-x2 flex h-[84px] w-full items-center border-b'
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <Avatar className='border-fill-secondary-100 size-x11 shrink-0 border-2'>
         {member.profileImageUrl && (
           <AvatarImage src={member.profileImageUrl} alt={`${member.dogName} 프로필 이미지`} className='object-cover' />
@@ -31,7 +44,14 @@ function OwnerMemberCard({ member, rightAddon }: OwnerMemberCardProps) {
         </div>
       </div>
 
-      {rightAddon}
+      {rightAddon ? (
+        <div
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          {rightAddon}
+        </div>
+      ) : null}
     </div>
   );
 }
