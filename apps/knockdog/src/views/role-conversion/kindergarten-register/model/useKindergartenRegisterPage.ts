@@ -4,6 +4,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
+import type { Address } from '@entities/address';
 import { formatAddress, formatName, formatPhone, isValidKindergartenPhone, isValidRepresentativePhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 
 import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
@@ -87,7 +88,7 @@ function resolveInitialForm(
 }
 
 function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
-  const { getParams, push, pushForResult, back } = useStackNavigation();
+  const { getParams, push, back } = useStackNavigation();
   const initialResolvedRef = useRef<ReturnType<typeof resolveInitialForm> | null>(null);
   const [form, setForm] = useState<KindergartenRegisterForm>(() => {
     const resolved = resolveInitialForm(mode, getParams);
@@ -176,26 +177,18 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     }));
   };
 
-  const handleAddressSearch = async () => {
-    // 웹 remount 복원용. 네이티브 주소 반환은 pushForResult (WebView 간 sessionStorage 미공유).
-    saveRegisterFormDraft(form);
+  const handleAddressSelect = (address: Address) => {
+    const selectedAddress = formatAddress(address.roadAddress || address.address);
 
-    try {
-      const selectedAddress = await pushForResult<string>(
-        {
-          pathname: route.roleConversion.kindergartenRegister.address.root,
-        },
-        600_000
-      );
+    setForm((prev) => {
+      const next = { ...prev, address: selectedAddress };
 
-      setForm((prev) => {
-        const next = { ...prev, address: selectedAddress };
+      if (mode === 'manual') {
         saveRegisterFormDraft(next);
-        return next;
-      });
-    } catch {
-      // 결과 없이 back — no-op
-    }
+      }
+
+      return next;
+    });
   };
 
   const handleClearAddress = () => {
@@ -240,7 +233,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     isManualMode: mode === 'manual',
     handleFieldChange,
     handlePhoneFieldBlur,
-    handleAddressSearch,
+    handleAddressSelect,
     handleClearAddress,
     handleBack,
     handleNextClick,

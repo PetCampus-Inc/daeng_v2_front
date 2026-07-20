@@ -8,12 +8,12 @@ import {
   FieldError,
   FieldLabel,
   FieldLabelIndicator,
-  Icon,
-  IconButton,
   ProgressBar,
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
+
+import { AddressPicker } from '@features/address-picker';
 
 import { Header } from '@widgets/Header';
 
@@ -31,7 +31,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
     isManualMode,
     handleFieldChange,
     handlePhoneFieldBlur,
-    handleAddressSearch,
+    handleAddressSelect,
     handleClearAddress,
     handleBack,
     handleNextClick,
@@ -81,41 +81,16 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                   {kindergartenRegisterContent.addressLabel}
                   <FieldLabelIndicator type='required' className='ml-0' />
                 </FieldLabel>
-                <div className='flex flex-col gap-2'>
+                <div className='relative flex flex-col gap-2'>
                   {isManualMode ? (
-                    <button
-                      type='button'
-                      className='w-full text-left'
-                      onClick={handleAddressSearch}
-                      aria-label='주소 검색'
-                    >
-                      <TextField
-                        variant='secondary'
-                        className='h-x13'
-                        prefix={<Icon icon='Search' className='text-text-tertiary' />}
-                        suffix={
-                          form.address ? (
-                            <IconButton
-                              type='button'
-                              icon='DeleteInput'
-                              className='text-text-tertiary'
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleClearAddress();
-                              }}
-                              aria-label='선택한 주소 삭제'
-                            />
-                          ) : undefined
-                        }
-                      >
-                        <TextFieldInput
-                          readOnly
-                          tabIndex={-1}
-                          placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
-                          value={form.address}
-                        />
-                      </TextField>
-                    </button>
+                    <AddressPicker
+                      variant='embedded'
+                      showLabel={false}
+                      value={form.address}
+                      placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
+                      onSelect={handleAddressSelect}
+                      onClear={handleClearAddress}
+                    />
                   ) : (
                     <TextField className='h-x13'>
                       <TextFieldInput
