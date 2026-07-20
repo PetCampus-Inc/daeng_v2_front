@@ -15,6 +15,7 @@ import {
   RoleConversionButton,
   roleConversionButtonContent,
   useIsOwnerVerified,
+  useMypageRoleView,
   useOwnerKindergarten,
   useOwnerProfile,
   useOwnerMypageSummary,
@@ -43,6 +44,7 @@ function Mypage() {
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
   const isOwnerVerified = useIsOwnerVerified();
+  const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
   const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
@@ -50,10 +52,12 @@ function Mypage() {
     profileImageUrl: ownerProfileImageUrl,
     loginProvider,
     loginEmail,
-    canSwitchToGuardian,
     canReleaseOperationPermission,
   } = useOwnerMypageSummary();
-  const { data: petListResponse } = usePetListQuery({ enabled: isLoggedIn && !isOwnerVerified });
+
+  const { data: petListResponse } = usePetListQuery({
+    enabled: isLoggedIn && (!isOwnerVerified || isGuardianView),
+  });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
   const openDogSelectSheet = () => {
@@ -83,6 +87,10 @@ function Mypage() {
 
   const handleKindergartenClick = () => {
     push({ pathname: route.mypage.kindergarten.root });
+  };
+
+  const handleRoleViewToggle = () => {
+    toggleRoleView();
   };
 
   const handleLogout = () => {
@@ -172,16 +180,15 @@ function Mypage() {
           </>
         )}
 
-        {isLoggedIn && isOwnerVerified && canSwitchToGuardian && (
-          <RoleConversionButton
-            disabled
-            title={roleConversionButtonContent.convertToGuardianPendingNotice}
-          >
-            {roleConversionButtonContent.convertoGuardian}
+        {isLoggedIn && canToggleRoleView && (
+          <RoleConversionButton onClick={handleRoleViewToggle}>
+            {isOwnerView
+              ? roleConversionButtonContent.convertoGuardian
+              : roleConversionButtonContent.convertToOwner}
           </RoleConversionButton>
         )}
 
-        {isLoggedIn && isOwnerVerified ? (
+        {isLoggedIn && isOwnerView ? (
           <div className='bg-background-0'>
             <OwnerProfileRow
               name={profile.name}
@@ -227,15 +234,15 @@ function Mypage() {
 
         {isLoggedIn && (
           <>
-            <div className={isOwnerVerified ? undefined : 'pt-4'}>
+            <div className={isOwnerView ? undefined : 'pt-4'}>
               <AccountSection
-                variant={isOwnerVerified ? 'owner' : 'guardian'}
-                accountInfo={isOwnerVerified ? undefined : accountInfo}
+                variant={isOwnerView ? 'owner' : 'guardian'}
+                accountInfo={isOwnerView ? undefined : accountInfo}
                 accountSectionTitle={ownerMypageContent.accountSectionTitle}
-                socialProvider={isOwnerVerified ? loginProvider : undefined}
-                socialEmail={isOwnerVerified ? loginEmail : undefined}
+                socialProvider={isOwnerView ? loginProvider : undefined}
+                socialEmail={isOwnerView ? loginEmail : undefined}
                 releasePermissionLabel={
-                  isOwnerVerified && canReleaseOperationPermission
+                  isOwnerView && canReleaseOperationPermission
                     ? ownerMypageContent.releasePermissionLabel
                     : undefined
                 }
@@ -250,14 +257,14 @@ function Mypage() {
               />
             </div>
 
-            {isOwnerVerified && <Divider size='thick' />}
+            {isOwnerView && <Divider size='thick' />}
           </>
         )}
 
         {isLoggedIn && <QuickActionsSection />}
 
         <SettingsSection
-          variant={isLoggedIn && isOwnerVerified ? 'owner' : 'guardian'}
+          variant={isLoggedIn && isOwnerView ? 'owner' : 'guardian'}
           version={displayVersion}
           hasUpdate={hasUpdate}
           otherInfoTitle={ownerMypageContent.otherInfoTitle}

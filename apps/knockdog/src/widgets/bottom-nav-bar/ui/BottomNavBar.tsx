@@ -5,12 +5,12 @@ import dynamic from 'next/dynamic';
 import { Icon } from '@knockdog/ui';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
-import { useIsOwnerVerified } from '@features/role-conversion';
+import { useShowOwnerBottomNav } from '@features/role-conversion';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 
 function BottomNavBarLinks() {
-  const isOwnerVerified = useIsOwnerVerified();
-  const navItems = isOwnerVerified ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
+  const showOwnerBottomNav = useShowOwnerBottomNav();
+  const navItems = showOwnerBottomNav ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
 
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>

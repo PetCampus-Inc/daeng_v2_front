@@ -2,6 +2,7 @@ export { ownerMypageContent } from './config/ownerMypageContent';
 export { roleConversionButtonContent } from './config/roleConversionButtonContent';
 export { useOwnerRole, type OwnerRoleState } from './model/useOwnerRole';
 export { useIsOwnerVerified } from './model/useIsOwnerVerified';
+export { useMypageRoleView, useShowOwnerBottomNav } from './model/useMypageRoleView';
 export { useOwnerKindergarten } from './model/useOwnerKindergarten';
 export { useOwnerProfile } from './model/useOwnerProfile';
 export {
