@@ -21,7 +21,7 @@ function RoleConversionResultPage() {
 
       <div className='flex w-full flex-col items-center'>
         <div className='flex justify-center py-2'>
-          <Image src={content.imageSrc} alt={content.imageAlt} width={200} height={200} />
+          <Image src={content.imageSrc} alt={content.imageAlt} width={180} height={180} />
         </div>
 
         <div className='flex flex-col items-center gap-1 px-4 py-2 text-center'>
