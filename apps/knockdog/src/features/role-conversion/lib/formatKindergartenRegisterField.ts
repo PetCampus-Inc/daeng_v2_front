@@ -54,4 +54,44 @@ function formatPhone(value: string) {
   return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7, 11)}`;
 }
 
-export { formatAddress, formatName, formatPhone };
+function getPhoneDigits(value: string) {
+  return value.replace(/\D/g, '');
+}
+
+function isValidKindergartenPhone(value: string) {
+  const digits = getPhoneDigits(value);
+
+  if (!digits) return false;
+
+  if (digits.startsWith('050')) {
+    return digits.length === 11 || digits.length === 12;
+  }
+
+  if (digits.startsWith('02')) {
+    return digits.length === 9 || digits.length === 10;
+  }
+
+  if (digits.startsWith('15') || digits.startsWith('16') || digits.startsWith('18')) {
+    return digits.length === 8;
+  }
+
+  if (digits.startsWith('01')) {
+    return digits.length === 10 || digits.length === 11;
+  }
+
+  if (digits.startsWith('0')) {
+    return digits.length === 10 || digits.length === 11;
+  }
+
+  return false;
+}
+
+function isValidRepresentativePhone(value: string) {
+  const digits = getPhoneDigits(value);
+
+  if (!digits) return false;
+
+  return /^01\d{8,9}$/.test(digits);
+}
+
+export { formatAddress, formatName, formatPhone, isValidKindergartenPhone, isValidRepresentativePhone };

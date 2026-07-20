@@ -4,6 +4,14 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
+import { formatAddress, formatName, formatPhone, isValidKindergartenPhone, isValidRepresentativePhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+
+import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
+import {
+  clearRegisterFormDraft,
+  loadRegisterFormDraft,
+  saveRegisterFormDraft,
+} from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
 import {
   emptyRegisterForm,
   fromSearchPrefill,
@@ -19,13 +27,6 @@ import {
   saveDraft,
   saveSearchPrefill,
 } from '@views/role-conversion/model/kindergartenConfirmParams';
-import {
-  clearRegisterFormDraft,
-  loadRegisterFormDraft,
-  saveRegisterFormDraft,
-} from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
-
-import { formatAddress, formatName, formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 
 const fieldFormatters = {
   name: formatName,
@@ -37,6 +38,18 @@ const fieldFormatters = {
 } as const;
 
 const requiredFields = ['name', 'address', 'kindergartenNumber', 'ownerName', 'phoneNumber'] as const;
+
+type PhoneField = 'kindergartenNumber' | 'phoneNumber';
+
+const phoneFieldValidators = {
+  kindergartenNumber: isValidKindergartenPhone,
+  phoneNumber: isValidRepresentativePhone,
+} as const;
+
+const phoneFieldErrorMessages = {
+  kindergartenNumber: kindergartenRegisterContent.numberFormatError,
+  phoneNumber: kindergartenRegisterContent.phoneFormatError,
+} as const;
 
 function resolveInitialForm(
   mode: KindergartenRegisterSource,
@@ -81,6 +94,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     initialResolvedRef.current = resolved;
     return resolved.form;
   });
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<PhoneField, string>>>({});
   // nav params로 확정된 경우만 resolved — storage/cache만으로는 wait 스킵하지 않음
   const hasSearchPrefillRef = useRef(
     mode === 'search' && (initialResolvedRef.current?.fromNavPrefill ?? false)
@@ -120,13 +134,20 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
   }, [getParams, mode]);
 
   const isNextEnabled = useMemo(
-    () => requiredFields.every((field) => form[field].trim().length > 0),
+    () =>
+      requiredFields.every((field) => form[field].trim().length > 0) &&
+      isValidKindergartenPhone(form.kindergartenNumber) &&
+      isValidRepresentativePhone(form.phoneNumber),
     [form]
   );
 
   const handleFieldChange = (field: keyof KindergartenRegisterForm, value: string) => {
     if (field === 'source' || field === 'placeId') return;
     if (field === 'address' && mode === 'manual') return;
+
+    if (field === 'kindergartenNumber' || field === 'phoneNumber') {
+      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
 
     setForm((prev) => {
       const next = { ...prev, [field]: fieldFormatters[field](value) };
@@ -137,6 +158,22 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
 
       return next;
     });
+  };
+
+  const handlePhoneFieldBlur = (field: PhoneField) => {
+    const value = form[field].trim();
+
+    if (!value) {
+      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+      return;
+    }
+
+    const isValid = phoneFieldValidators[field](value);
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [field]: isValid ? undefined : phoneFieldErrorMessages[field],
+    }));
   };
 
   const handleAddressSearch = async () => {
@@ -198,9 +235,11 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
 
   return {
     form,
+    fieldErrors,
     isNextEnabled,
     isManualMode: mode === 'manual',
     handleFieldChange,
+    handlePhoneFieldBlur,
     handleAddressSearch,
     handleClearAddress,
     handleBack,

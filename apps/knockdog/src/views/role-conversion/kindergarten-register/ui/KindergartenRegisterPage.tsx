@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import {
   ActionButton,
   Field,
+  FieldError,
   FieldLabel,
   FieldLabelIndicator,
   Icon,
@@ -25,9 +26,11 @@ import { useKindergartenRegisterPage } from '@views/role-conversion/kindergarten
 function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
   const {
     form,
+    fieldErrors,
     isNextEnabled,
     isManualMode,
     handleFieldChange,
+    handlePhoneFieldBlur,
     handleAddressSearch,
     handleClearAddress,
     handleBack,
@@ -132,19 +135,21 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 </div>
               </Field>
 
-              <Field className='flex-col gap-2 py-4'>
+              <Field className='flex-col gap-2 py-4' data-invalid={!!fieldErrors.kindergartenNumber || undefined}>
                 <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
                   {kindergartenRegisterContent.numberLabel}
                   <FieldLabelIndicator type='required' className='ml-0' />
                 </FieldLabel>
-                <TextField className='h-x13'>
+                <TextField className='h-x13' invalid={!!fieldErrors.kindergartenNumber}>
                   <TextFieldInput
                     inputMode='tel'
                     placeholder={kindergartenRegisterContent.numberPlaceholder}
                     value={form.kindergartenNumber}
                     onChange={(e) => handleFieldChange('kindergartenNumber', e.target.value)}
+                    onBlur={() => handlePhoneFieldBlur('kindergartenNumber')}
                   />
                 </TextField>
+                <FieldError className='text-error body2-regular'>{fieldErrors.kindergartenNumber}</FieldError>
               </Field>
 
               <Field className='flex-col gap-2 py-4'>
@@ -162,19 +167,21 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                 </TextField>
               </Field>
 
-              <Field className='flex-col gap-2 py-4'>
+              <Field className='flex-col gap-2 py-4' data-invalid={!!fieldErrors.phoneNumber || undefined}>
                 <FieldLabel className='body2-bold text-text-primary w-fit gap-px'>
                   {kindergartenRegisterContent.phoneLabel}
                   <FieldLabelIndicator type='required' className='ml-0' />
                 </FieldLabel>
-                <TextField className='h-x13'>
+                <TextField className='h-x13' invalid={!!fieldErrors.phoneNumber}>
                   <TextFieldInput
                     inputMode='tel'
                     placeholder={kindergartenRegisterContent.phonePlaceholder}
                     value={form.phoneNumber}
                     onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                    onBlur={() => handlePhoneFieldBlur('phoneNumber')}
                   />
                 </TextField>
+                <FieldError className='text-error body2-regular'>{fieldErrors.phoneNumber}</FieldError>
               </Field>
             </div>
           </div>
