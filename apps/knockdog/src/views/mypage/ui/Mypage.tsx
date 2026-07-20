@@ -55,7 +55,7 @@ function Mypage() {
     canReleaseOperationPermission,
   } = useOwnerMypageSummary();
 
-  const { data: petListResponse } = usePetListQuery({
+  const { data: petListResponse, isLoading: isPetListLoading } = usePetListQuery({
     enabled: isLoggedIn && (!isOwnerVerified || isGuardianView),
   });
   const { displayVersion, hasUpdate, openStore } = useAppVersion();
@@ -212,7 +212,7 @@ function Mypage() {
           </div>
         ) : (
           <>
-            {isLoggedIn && !hasDogs && (
+            {isLoggedIn && !isPetListLoading && !hasDogs && (
               <NoDogPrompt
                 nickname={user?.nickname || '사용자'}
                 onAddDog={() => push({ pathname: '/mypage/pet-add' })}
