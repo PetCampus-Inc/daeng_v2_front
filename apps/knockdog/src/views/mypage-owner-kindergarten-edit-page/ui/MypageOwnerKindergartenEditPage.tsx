@@ -110,6 +110,8 @@ interface ClearableTextFieldProps {
   placeholder?: string;
   inputMode?: ComponentProps<'input'>['inputMode'];
   readOnly?: boolean;
+  underlineValue?: boolean;
+  spellCheck?: boolean;
 }
 
 /** 등록 플로우와 동일: h-x13 TextField + 값 있을 때 DeleteInput */
@@ -122,13 +124,19 @@ function ClearableTextField({
   placeholder,
   inputMode,
   readOnly = false,
+  underlineValue = false,
+  spellCheck,
 }: ClearableTextFieldProps) {
   return (
     <TextField
       label={label}
       required={required}
       indicator={indicator}
-      className='h-x13'
+      className={`h-x13 ${
+        underlineValue && value
+          ? '[&>input]:underline [&>input]:decoration-[1px] [&>input]:underline-offset-2'
+          : ''
+      }`}
       suffix={
         value ? (
           <IconButton
@@ -146,6 +154,7 @@ function ClearableTextField({
         placeholder={placeholder}
         inputMode={inputMode}
         readOnly={readOnly}
+        spellCheck={spellCheck}
       />
     </TextField>
   );
@@ -463,6 +472,8 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.homepage}
               onChange={formData.handleHomepageChange}
               placeholder='www.example.com'
+              underlineValue
+              spellCheck={false}
             />
           </div>
 
@@ -473,6 +484,8 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.instagram}
               onChange={formData.handleInstagramChange}
               placeholder='@instagram'
+              underlineValue
+              spellCheck={false}
             />
           </div>
 
@@ -483,6 +496,8 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.youtube}
               onChange={formData.handleYoutubeChange}
               placeholder='www.youtube.com/...'
+              underlineValue
+              spellCheck={false}
             />
           </div>
         </section>
