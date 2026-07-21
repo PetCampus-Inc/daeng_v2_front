@@ -12,6 +12,7 @@ import {
   mapOwnerSchoolProfilePricing,
   mapOwnerSchoolProfileToBasic,
   resolveThumbnailUrl,
+  toS3Url,
   useOwnerSchoolProfileQuery,
 } from '@entities/owner-school';
 import { useUserStore } from '@entities/user';
@@ -66,11 +67,12 @@ function useOwnerKindergarten() {
     .map((image) => image.s3Key)
     .filter(Boolean);
   const bannerKeys = isSelected ? (main?.banner ?? []) : profileBannerKeys;
-  const bannerKey = bannerKeys[0];
-  const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
-  const bannerUrl = bannerKey ? `${imageBaseUrl}${encodeURI(bannerKey)}` : null;
   const profileImageUrl = profile ? resolveThumbnailUrl(profile) : null;
-  const imageUrl = isSelected ? (bannerUrl ?? profileImageUrl) : profileImageUrl;
+  const displayBannerKeys = profileBannerKeys.length > 0 ? profileBannerKeys : bannerKeys;
+  const imageUrls = displayBannerKeys
+    .map((bannerKey) => toS3Url(bannerKey))
+    .filter((imageUrl): imageUrl is string => Boolean(imageUrl));
+  const imageUrl = imageUrls[0] ?? profileImageUrl;
 
   const profileBasic = profile ? mapOwnerSchoolProfileToBasic(profile) : undefined;
   const profilePricing = profile ? mapOwnerSchoolProfilePricing(profile) : undefined;
@@ -169,6 +171,7 @@ function useOwnerKindergarten() {
     ownerKindergarten: kindergarten,
     source,
     imageUrl,
+    imageUrls: imageUrls.length > 0 ? imageUrls : profileImageUrl ? [profileImageUrl] : [],
     usesDefaultImage: !imageUrl,
     canOpenKindergartenDetail: !!kindergarten,
     /** SELECTED basic/main/pricing 조회 키 (place id) */
