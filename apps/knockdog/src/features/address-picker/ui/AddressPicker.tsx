@@ -10,55 +10,93 @@ import { Address } from '@entities/address';
 interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect'> {
   value?: string;
   onSelect?: (address: Address) => void;
+  onClear?: () => void;
   showLabel?: boolean;
+  placeholder?: string;
+  variant?: 'page' | 'embedded';
+  inputClassName?: string;
 }
 
-export function AddressPicker({ className, value, onSelect, showLabel = true, ...props }: AddressPickerProps) {
+export function AddressPicker({
+  className,
+  value,
+  onSelect,
+  onClear,
+  showLabel = true,
+  placeholder = '시/군/구 혹은 도로명 검색',
+  variant = 'page',
+  inputClassName,
+  ...props
+}: AddressPickerProps) {
   const { addressList, inputValue, isSelected, handleSelect, handleChange, handleClear } = useAddressPicker({
     value,
     onSelect,
   });
 
+  const isEmbedded = variant === 'embedded';
   const isEmpty = inputValue === '' || isSelected;
+  const showHint = !isEmbedded && isEmpty && !isSelected;
+  const showResults = !isEmpty;
+  const hasResults = (addressList?.length ?? 0) > 0;
 
   const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     handleClear();
+    onClear?.();
   };
 
-  return (
-    <div className={cn('flex h-full flex-col gap-4', className)} {...props}>
-      {/* 주소 검색 필드 */}
-      <Field>
-        {showLabel && <FieldLabel>주소</FieldLabel>}
+  const searchField = (
+    <TextField
+      className={cn(isEmbedded && 'h-x13', inputClassName)}
+      prefix={<Icon icon='Search' className={cn(isEmbedded ? 'text-text-tertiary' : 'size-x6')} />}
+      variant='secondary'
+      suffix={
+        inputValue ? (
+          <IconButton
+            type='button'
+            icon='DeleteInput'
+            className={isEmbedded ? 'text-text-tertiary' : undefined}
+            iconClassName={cn(!isEmbedded && 'size-x5 text-primitive-neutral-700')}
+            onClick={handleClearClick}
+            aria-label='검색어 삭제'
+          />
+        ) : undefined
+      }
+    >
+      <TextFieldInput value={inputValue} onChange={handleChange} placeholder={placeholder} />
+    </TextField>
+  );
 
-        <TextField
-          prefix={<Icon icon='Search' className='size-x6' />}
-          variant='secondary'
-          suffix={
-            inputValue ? (
-              <IconButton
-                type='button'
-                icon='DeleteInput'
-                iconClassName='size-x5 text-primitive-neutral-700'
-                onClick={handleClearClick}
-                aria-label='검색어 삭제'
-              />
-            ) : undefined
-          }
-        >
-          <TextFieldInput value={inputValue} onChange={handleChange} placeholder='시/군/구 혹은 도로명 검색' />
-        </TextField>
-      </Field>
+  const resultsSection = (
+    <>
+      {showHint && <AddressPickerHint className={isEmbedded ? 'px-0 pt-1' : 'px-6'} />}
 
-      <div className='flex-1 overflow-hidden'>
-        {/* 주소 검색 힌트 (초기 상태) */}
-        {isEmpty && <AddressPickerHint className='px-6' />}
+      {showResults && (
+        <AddressList className={isEmbedded ? undefined : 'px-4'} showEmptyFallback={!isEmbedded}>
+          {addressList?.map((address, index) => (
+            <AddressListItem
+              key={index}
+              address={address.address}
+              roadAddress={address.roadAddress}
+              keyword={inputValue}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                void handleSelect(address)();
+              }}
+            />
+          ))}
+        </AddressList>
+      )}
+    </>
+  );
 
-        {/* 주소 리스트 (검색 결과가 있을 때) */}
-        <div className='h-full overflow-y-auto'>
-          {!isEmpty && (
-            <AddressList className='px-4'>
+  if (isEmbedded) {
+    return (
+      <div className={cn('relative', className)} {...props}>
+        {searchField}
+        {showResults && hasResults && (
+          <div className='border-line-200 bg-fill-secondary-0 radius-r2 absolute inset-x-0 top-full z-10 mt-1 max-h-[280px] overflow-y-auto border shadow-[0px_4px_12px_rgba(0,0,0,0.08)]'>
+            <AddressList className='px-4' showEmptyFallback={false}>
               {addressList?.map((address, index) => (
                 <AddressListItem
                   key={index}
@@ -72,8 +110,21 @@ export function AddressPicker({ className, value, onSelect, showLabel = true, ..
                 />
               ))}
             </AddressList>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('flex h-full flex-col gap-4', className)} {...props}>
+      <Field>
+        {showLabel && <FieldLabel>주소</FieldLabel>}
+        {searchField}
+      </Field>
+
+      <div className='flex-1 overflow-hidden'>
+        <div className='h-full overflow-y-auto'>{resultsSection}</div>
       </div>
     </div>
   );
@@ -82,11 +133,18 @@ export function AddressPicker({ className, value, onSelect, showLabel = true, ..
 /**
  * 검색 결과 리스트 컴포넌트
  */
-function AddressList({ children, ...props }: React.ComponentProps<'ul'>) {
-  const hasChildren = Array.isArray(children) && children.length > 0;
+function AddressList({
+  children,
+  showEmptyFallback = true,
+  ...props
+}: React.ComponentProps<'ul'> & { showEmptyFallback?: boolean }) {
+  const hasChildren = React.Children.count(children) > 0;
 
-  // children이 없다면 AddressListFallback을 보여줌
-  if (!hasChildren) return <AddressListFallback className='mt-10' />;
+  if (!hasChildren) {
+    if (!showEmptyFallback) return null;
+
+    return <AddressListFallback className='mt-10' />;
+  }
 
   return <ul {...props}>{children}</ul>;
 }

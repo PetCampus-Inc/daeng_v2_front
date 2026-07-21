@@ -11,9 +11,11 @@ export const kindergartenRegisterContent = Object.freeze({
   addressDetailPlaceholder: '상세 주소를 입력해 주세요',
   numberLabel: '유치원 전화번호',
   numberPlaceholder: '유치원 전화번호를 입력해 주세요',
+  numberFormatError: '전화번호 형식을 확인해 주세요.',
   ownerNameLabel: '대표자명',
   ownerNamePlaceholder: '대표자명을 입력해 주세요',
   phoneLabel: '대표 전화번호',
   phonePlaceholder: '대표 전화번호를 입력해 주세요',
+  phoneFormatError: '전화번호 형식을 확인해 주세요. ex) 010-1234-5678',
   nextButtonLabel: '다음',
 });
