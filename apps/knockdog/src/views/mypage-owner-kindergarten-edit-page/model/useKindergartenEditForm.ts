@@ -1,16 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-
-import { useOwnerKindergarten } from '@features/role-conversion';
-import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
-import { CLOSED_DAYS } from '@entities/compare';
-import type { FilterOption } from '@entities/kindergarten';
-import { usePutOwnerSchoolProfileMutation } from '@entities/owner-school';
-import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
-import { useMoveImageMutation, type WebImageAsset } from '@shared/lib/media';
-import { toast } from '@shared/ui/toast';
 import { buildOwnerSchoolProfilePayload } from '@views/mypage-owner-kindergarten-edit-page/lib/buildOwnerSchoolProfilePayload';
 import {
   clearEditFormDraft,
@@ -20,6 +10,15 @@ import {
   type EditFormDraft,
 } from '@views/mypage-owner-kindergarten-edit-page/lib/editFormDraft';
 import { mapToEditFormDraft } from '@views/mypage-owner-kindergarten-edit-page/lib/mapToEditFormDraft';
+
+import { useOwnerKindergarten } from '@features/role-conversion';
+import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+import { CLOSED_DAYS } from '@entities/compare';
+import type { FilterOption } from '@entities/kindergarten';
+import { usePutOwnerSchoolProfileMutation } from '@entities/owner-school';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { useMoveImageMutation, type WebImageAsset } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
 
@@ -69,7 +68,7 @@ function applyDraftToState(
 }
 
 function useKindergartenEditForm() {
-  const { back, push } = useStackNavigation();
+  const { back } = useStackNavigation();
   const {
     source,
     kindergartenId,
@@ -302,15 +301,6 @@ function useKindergartenEditForm() {
     return true;
   };
 
-  const handleAddressSearch = async () => {
-    persistDraft(true);
-    setIsDirty(true);
-
-    await push({
-      pathname: route.mypage.kindergarten.edit.address.root,
-    });
-  };
-
   const handleSave = async () => {
     if (!isSaveEnabled || isSaving || isPreparingSave || isSaveLockedRef.current) return false;
 
@@ -434,7 +424,11 @@ function useKindergartenEditForm() {
     handleClosedDaysChange: (next: string[]) => updateField(setClosedDays, next),
     leaveIfClean,
     handleLeaveWithoutSaving,
-    handleAddressSearch,
+    handleAddressSelect: (value: string) => {
+      markDirty();
+      setAddress(value);
+      setAddressDetail('');
+    },
     handleClearAddress: () => {
       markDirty();
       setAddress('');

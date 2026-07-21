@@ -81,7 +81,9 @@ export function AddressPicker({
               keyword={inputValue}
               onPointerDown={(event) => {
                 event.preventDefault();
-                void handleSelect(address)();
+                handleSelect(address)().catch((error) => {
+                  console.error('주소 선택에 실패했습니다:', error);
+                });
               }}
             />
           ))}
@@ -95,7 +97,7 @@ export function AddressPicker({
       <div className={cn('relative', className)} {...props}>
         {searchField}
         {showResults && hasResults && (
-          <div className='border-line-200 bg-fill-secondary-0 radius-r2 absolute inset-x-0 top-full z-10 mt-1 max-h-[280px] overflow-y-auto border shadow-[0px_4px_12px_rgba(0,0,0,0.08)]'>
+          <div className='bg-fill-secondary-0 absolute inset-x-0 top-full z-10 max-h-[280px] overflow-y-auto'>
             <AddressList className='px-4' showEmptyFallback={false}>
               {addressList?.map((address, index) => (
                 <AddressListItem
@@ -105,7 +107,9 @@ export function AddressPicker({
                   keyword={inputValue}
                   onPointerDown={(event) => {
                     event.preventDefault();
-                    void handleSelect(address)();
+                    handleSelect(address)().catch((error) => {
+                      console.error('[AddressPicker] address selection failed:', error);
+                    });
                   }}
                 />
               ))}
