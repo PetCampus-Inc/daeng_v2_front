@@ -1,11 +1,22 @@
 import { Icon } from '@knockdog/ui';
 
 interface OwnerNoticebookStatusProps {
+  isError?: boolean;
   pendingCount: number;
   sentCount: number;
 }
 
-function OwnerNoticebookStatus({ pendingCount, sentCount }: OwnerNoticebookStatusProps) {
+const ERROR_MESSAGE = '정보를 불러오지 못했어요';
+
+function OwnerNoticebookStatus({ isError = false, pendingCount, sentCount }: OwnerNoticebookStatusProps) {
+  if (isError) {
+    return (
+      <div className='radius-r3 bg-bg-100 mx-4 flex h-[52px] items-center justify-start p-4 text-left'>
+        <span className='body2-semibold text-text-secondary'>{ERROR_MESSAGE}</span>
+      </div>
+    );
+  }
+
   if (pendingCount > 0) {
     return (
       <div className='radius-r3 border-line-accent bg-bg-0 mx-4 flex h-[52px] items-center justify-between border px-4 py-[10px]'>

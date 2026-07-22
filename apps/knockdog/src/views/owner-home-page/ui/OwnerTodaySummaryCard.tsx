@@ -1,32 +1,38 @@
 import { Avatar, AvatarFallback, AvatarImage, Divider, Icon } from '@knockdog/ui';
 
+import type { OwnerHomeFriend } from '@views/owner-home-page/model/ownerHome';
+
 interface OwnerTodaySummaryCardProps {
   dateLabel: string;
   dayLabel: string;
   currentTimeLabel: string;
+  isError?: boolean;
   enrolledCount: number;
   arrivalCount: number;
   departureCount: number;
-  friends: Array<{
-    id: string;
-    name: string;
-    profileImageUrl?: string;
-  }>;
+  friends: OwnerHomeFriend[];
   extraFriendCount: number;
+  onFriendPreviewClick: () => void;
 }
+
+const ERROR_MESSAGE = '정보를 불러오지 못했어요';
 
 function OwnerTodaySummaryCard({
   dateLabel,
   dayLabel,
   currentTimeLabel,
+  isError = false,
   enrolledCount,
   arrivalCount,
   departureCount,
   friends,
   extraFriendCount,
+  onFriendPreviewClick,
 }: OwnerTodaySummaryCardProps) {
+  const shouldShowFriendPreview = !isError && enrolledCount > 0;
+
   return (
-    <div className={`${enrolledCount > 0 ? 'h-[249px]' : 'h-[209px]'} w-full px-4`}>
+    <div className={`${shouldShowFriendPreview ? 'h-[249px]' : 'h-[209px]'} w-full px-4`}>
       <div className='radius-r3 h-full w-full overflow-hidden'>
         <div className='bg-fill-primary-500 h-14 px-4'>
           <div className='radius-r3 flex h-14 w-full items-center justify-between py-4'>
@@ -41,15 +47,26 @@ function OwnerTodaySummaryCard({
             </div>
           </div>
         </div>
-        <div className={`bg-bg-0 flex ${enrolledCount > 0 ? 'h-[193px]' : 'h-[153px]'} flex-col gap-4 p-4`}>
-          <OwnerAttendanceStats
-            enrolledCount={enrolledCount}
-            arrivalCount={arrivalCount}
-            departureCount={departureCount}
-          />
-          <Divider />
-          <OwnerFriendPreview enrolledCount={enrolledCount} friends={friends} extraCount={extraFriendCount} />
-        </div>
+        {isError ? (
+          <div className='bg-bg-0 flex h-[153px] items-center justify-center p-4'>
+            <span className='body2-regular text-text-secondary'>{ERROR_MESSAGE}</span>
+          </div>
+        ) : (
+          <div className={`bg-bg-0 flex ${enrolledCount > 0 ? 'h-[193px]' : 'h-[153px]'} flex-col gap-4 p-4`}>
+            <OwnerAttendanceStats
+              enrolledCount={enrolledCount}
+              arrivalCount={arrivalCount}
+              departureCount={departureCount}
+            />
+            <Divider />
+            <OwnerFriendPreview
+              enrolledCount={enrolledCount}
+              friends={friends}
+              extraCount={extraFriendCount}
+              onClick={onFriendPreviewClick}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -82,7 +99,7 @@ function OwnerAttendanceStats({ enrolledCount, arrivalCount, departureCount }: {
 
 function AttendanceCount({ label, count }: { label: string; count: number }) {
   return (
-    <div className='flex h-[50px] min-w-0 flex-col gap-2'>
+    <div className='flex h-[50px] min-w-0 flex-col items-end gap-2 text-right'>
       <span className='text-text-secondary text-size-caption1 leading-[18px] font-semibold tracking-normal'>
         {label}
       </span>
@@ -95,14 +112,12 @@ function OwnerFriendPreview({
   enrolledCount,
   friends,
   extraCount,
+  onClick,
 }: {
   enrolledCount: number;
-  friends: Array<{
-    id: string;
-    name: string;
-    profileImageUrl?: string;
-  }>;
+  friends: OwnerHomeFriend[];
   extraCount: number;
+  onClick: () => void;
 }) {
   if (enrolledCount <= 0) {
     return (
@@ -138,7 +153,7 @@ function OwnerFriendPreview({
           ) : null}
         </div>
       </div>
-      <button type='button' className='flex h-[26px] items-center gap-x-1 rounded px-2 py-1'>
+      <button type='button' className='flex h-[26px] items-center gap-x-1 rounded px-2 py-1' onClick={onClick}>
         <span className='text-size-caption1 text-text-tertiary leading-[18px] font-semibold tracking-normal'>
           전체보기
         </span>

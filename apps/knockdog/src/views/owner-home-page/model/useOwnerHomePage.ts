@@ -1,0 +1,114 @@
+import { useCallback, useEffect, useState } from 'react';
+import { ownerHomeMock } from '@views/owner-home-page/model/ownerHomeMock';
+import {
+  formatKstDateLabel,
+  formatKstDayLabel,
+  formatKstTimeLabel,
+  getKstDateKey,
+  getNextKstMidnightDelay,
+} from '@views/owner-home-page/model/ownerHomeDate';
+
+import { useOwnerRole } from '@features/role-conversion';
+import { useOwnerPendingMembersQuery } from '@entities/owner-member';
+import { useUserStore } from '@entities/user';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+
+const SCHOOL_NAME_MAX_LENGTH = 15;
+
+function formatSchoolName(name: string) {
+  const characters = Array.from(name);
+
+  if (characters.length <= SCHOOL_NAME_MAX_LENGTH) return name;
+
+  return `${characters.slice(0, SCHOOL_NAME_MAX_LENGTH).join('')}···`;
+}
+
+function useOwnerHomePage() {
+  const { push } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { isOwner, isResolved, kindergarten } = useOwnerRole();
+  const schoolName = kindergarten?.name ?? '';
+  const { today, noticebook } = ownerHomeMock;
+  const [dismissedApprovalKey, setDismissedApprovalKey] = useState<string | null>(null);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date());
+  const {
+    data: pendingMembers,
+    refetch: refetchPendingMembers,
+  } = useOwnerPendingMembersQuery({
+    userId,
+    enabled: isResolved && isOwner,
+  });
+
+  const approval = {
+    pendingCount: pendingMembers?.totalMemberCount ?? 0,
+  };
+
+  const pendingMemberIds = pendingMembers?.members.map((member) => member.id).sort() ?? [];
+  const approvalBannerKey = pendingMemberIds.length > 0 ? pendingMemberIds.join('|') : String(approval.pendingCount);
+  const shouldShowApprovalBanner = approval.pendingCount > 0 && dismissedApprovalKey !== approvalBannerKey;
+
+  const handleApprovalBannerClick = () => {
+    push({ pathname: route.owner.members.approval.root });
+  };
+
+  const handleFriendPreviewClick = () => {
+    push({ pathname: route.owner.members.root });
+  };
+
+  const handleApprovalBannerClose = () => {
+    setDismissedApprovalKey(approvalBannerKey);
+  };
+
+  const handleRefresh = useCallback(() => {
+    if (!isResolved || !isOwner) {
+      setLastRefreshedAt(new Date());
+      return;
+    }
+
+    // TODO: 오늘 요약/알림장 API가 추가되면 여기에서 함께 refetch
+    refetchPendingMembers().finally(() => {
+      setLastRefreshedAt(new Date());
+    });
+  }, [isOwner, isResolved, refetchPendingMembers]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      handleRefresh();
+    }, getNextKstMidnightDelay(lastRefreshedAt));
+
+    return () => window.clearTimeout(timeout);
+  }, [handleRefresh, lastRefreshedAt]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (getKstDateKey(lastRefreshedAt) === getKstDateKey(new Date())) return;
+
+      handleRefresh();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [handleRefresh, lastRefreshedAt]);
+
+  return {
+    approval,
+    displaySchoolName: formatSchoolName(schoolName),
+    handleApprovalBannerClick,
+    handleApprovalBannerClose,
+    handleFriendPreviewClick,
+    handleRefresh,
+    noticebook,
+    shouldShowApprovalBanner,
+    today: {
+      ...today,
+      currentTimeLabel: formatKstTimeLabel(lastRefreshedAt),
+      dateLabel: formatKstDateLabel(lastRefreshedAt),
+      dayLabel: formatKstDayLabel(lastRefreshedAt),
+    },
+  };
+}
+
+export { useOwnerHomePage };
