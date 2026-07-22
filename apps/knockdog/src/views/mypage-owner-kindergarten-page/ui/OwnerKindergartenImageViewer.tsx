@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { RemoveScroll } from 'react-remove-scroll';
@@ -12,6 +12,9 @@ interface OwnerKindergartenImageViewerProps {
   initialIndex?: number;
 }
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 function OwnerKindergartenImageViewer({
   isOpen,
   close,
@@ -19,17 +22,65 @@ function OwnerKindergartenImageViewer({
   initialIndex = 0,
 }: OwnerKindergartenImageViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (!isOpen || images.length === 0) return;
+
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, [images.length, isOpen]);
 
   useEffect(() => {
     if (!isOpen || images.length === 0) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
+      if (event.key === 'Escape') {
+        close();
+        return;
+      }
+
       if (event.key === 'ArrowLeft') {
         setCurrentIndex((index) => (index - 1 + images.length) % images.length);
+        return;
       }
+
       if (event.key === 'ArrowRight') {
         setCurrentIndex((index) => (index + 1) % images.length);
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const container = dialogRef.current;
+      if (!container) return;
+
+      const focusable = Array.from(
+        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      );
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
@@ -53,6 +104,7 @@ function OwnerKindergartenImageViewer({
   return (
     <RemoveScroll forwardProps>
       <div
+        ref={dialogRef}
         role='dialog'
         aria-modal='true'
         aria-label='유치원 사진 보기'
@@ -66,6 +118,7 @@ function OwnerKindergartenImageViewer({
         />
 
         <button
+          ref={closeButtonRef}
           type='button'
           onClick={close}
           aria-label='사진 보기 닫기'

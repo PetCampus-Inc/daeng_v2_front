@@ -135,7 +135,7 @@ function ClearableTextField({
       indicator={indicator}
       className={`h-x13 ${
         underlineValue && value
-          ? '[&>input]:underline [&>input]:decoration-[1px] [&>input]:underline-offset-2'
+          ? '[&_input]:underline [&_input]:decoration-[1px] [&_input]:underline-offset-2'
           : ''
       }`}
       suffix={
