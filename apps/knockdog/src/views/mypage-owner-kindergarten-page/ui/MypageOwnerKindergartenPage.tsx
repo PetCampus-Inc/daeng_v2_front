@@ -11,6 +11,9 @@ import {
   TabsContent,
 } from '@knockdog/ui';
 import Image from 'next/image';
+import { overlay } from 'overlay-kit';
+import { OwnerKindergartenImageViewer } from '@views/mypage-owner-kindergarten-page/ui/OwnerKindergartenImageViewer';
+import { OwnerPricingContent } from '@views/mypage-owner-kindergarten-page/ui/OwnerPricingContent';
 
 import { Header } from '@widgets/Header';
 import { OperationHoursCard, ServiceTagBadge } from '@features/kindergarten-basic';
@@ -19,7 +22,6 @@ import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
-import { OwnerPricingContent } from '@views/mypage-owner-kindergarten-page/ui/OwnerPricingContent';
 
 const TAB = {
   OPERATION: 'operation',
@@ -213,6 +215,7 @@ function MypageOwnerKindergartenPage() {
     source,
     kindergartenId,
     imageUrl,
+    imageUrls,
     usesDefaultImage,
     basic,
     pricing,
@@ -229,6 +232,18 @@ function MypageOwnerKindergartenPage() {
     }
 
     push({ pathname: route.mypage.kindergarten.edit.root });
+  };
+
+  const handleImageClick = () => {
+    if (imageUrls.length === 0) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <OwnerKindergartenImageViewer
+        isOpen={isOpen}
+        close={close}
+        images={imageUrls}
+      />
+    ));
   };
 
   return (
@@ -252,14 +267,26 @@ function MypageOwnerKindergartenPage() {
 
         <div className='flex-1 overflow-y-auto'>
           <TabsContent value={TAB.OPERATION}>
-            <div className='px-4 pt-4'>
-              <div className='radius-r3 relative h-[206px] w-full overflow-hidden'>
+            <div className='px-4 pt-5'>
+              <button
+                type='button'
+                onClick={handleImageClick}
+                disabled={imageUrls.length === 0}
+                aria-label={imageUrls.length > 0 ? `유치원 사진 ${imageUrls.length}장 보기` : undefined}
+                className='radius-r3 relative block h-[200px] w-full overflow-hidden'
+              >
                 {usesDefaultImage || !imageUrl ? (
                   <div className='bg-fill-secondary-50 size-full' />
                 ) : (
                   <Image src={imageUrl} alt={name} fill sizes='100vw' className='object-cover' priority />
                 )}
-              </div>
+
+                {imageUrls.length > 0 ? (
+                  <span className='caption1-semibold text-text-primary-inverse absolute right-4 bottom-4 rounded-full bg-[rgba(15,20,26,0.7)] px-2 py-1'>
+                    1/{imageUrls.length}
+                  </span>
+                ) : null}
+              </button>
             </div>
 
             <BasicInfoCard

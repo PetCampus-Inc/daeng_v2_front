@@ -20,15 +20,6 @@ import {
   TooltipTrigger,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
-
-import { Header } from '@widgets/Header';
-
-import { ownerMypageContent } from '@features/role-conversion';
-import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
-import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
-import { PhotoUploader } from '@shared/ui/photo-uploader';
-import { SafeArea } from '@shared/ui/safe-area';
-import { toast } from '@shared/ui/toast';
 import {
   AMENITY_OPTIONS,
   BREED_OPTIONS,
@@ -42,6 +33,16 @@ import {
 } from '@views/mypage-owner-kindergarten-edit-page/config/editFormOptions';
 import { useKindergartenEditForm } from '@views/mypage-owner-kindergarten-edit-page/model/useKindergartenEditForm';
 import { AutofillLoadingDialog } from '@views/mypage-owner-kindergarten-edit-page/ui/AutofillLoadingDialog';
+
+import { Header } from '@widgets/Header';
+
+import { AddressPicker } from '@features/address-picker';
+import { ownerMypageContent } from '@features/role-conversion';
+import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
+import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
+import { PhotoUploader } from '@shared/ui/photo-uploader';
+import { SafeArea } from '@shared/ui/safe-area';
+import { toast } from '@shared/ui/toast';
 
 /** 섹션 탭·복수선택 칩 공통 톤. size만 다름 (탭=38, 옵션=48) */
 function selectionChipClassName(isSelected: boolean, size: 'tab' | 'option') {
@@ -110,6 +111,8 @@ interface ClearableTextFieldProps {
   placeholder?: string;
   inputMode?: ComponentProps<'input'>['inputMode'];
   readOnly?: boolean;
+  underlineValue?: boolean;
+  spellCheck?: boolean;
 }
 
 /** 등록 플로우와 동일: h-x13 TextField + 값 있을 때 DeleteInput */
@@ -122,13 +125,19 @@ function ClearableTextField({
   placeholder,
   inputMode,
   readOnly = false,
+  underlineValue = false,
+  spellCheck,
 }: ClearableTextFieldProps) {
   return (
     <TextField
       label={label}
       required={required}
       indicator={indicator}
-      className='h-x13'
+      className={`h-x13 ${
+        underlineValue && value
+          ? '[&_input]:underline [&_input]:decoration-[1px] [&_input]:underline-offset-2'
+          : ''
+      }`}
       suffix={
         value ? (
           <IconButton
@@ -146,6 +155,7 @@ function ClearableTextField({
         placeholder={placeholder}
         inputMode={inputMode}
         readOnly={readOnly}
+        spellCheck={spellCheck}
       />
     </TextField>
   );
@@ -351,38 +361,17 @@ function MypageOwnerKindergartenEditPage() {
 
           <div className='flex flex-col gap-2 px-4 py-2'>
             <FieldLabel label={ownerMypageContent.kindergartenEditAddressLabel} required />
-            <button
-              type='button'
-              className='w-full text-left'
-              onClick={formData.handleAddressSearch}
-              aria-label='주소 검색'
-            >
-              <TextField
-                className='h-x13'
-                prefix={<Icon icon='Search' className='text-text-tertiary' />}
-                suffix={
-                  formData.address ? (
-                    <IconButton
-                      type='button'
-                      icon='DeleteInput'
-                      className='text-text-tertiary'
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        formData.handleClearAddress();
-                      }}
-                      aria-label='선택한 주소 삭제'
-                    />
-                  ) : undefined
-                }
-              >
-                <TextFieldInput
-                  readOnly
-                  tabIndex={-1}
-                  placeholder={ownerMypageContent.kindergartenEditAddressSearchPlaceholder}
-                  value={formData.address}
-                />
-              </TextField>
-            </button>
+            <AddressPicker
+              variant='embedded'
+              showLabel={false}
+              value={formData.address}
+              placeholder={ownerMypageContent.kindergartenEditAddressSearchPlaceholder}
+              onSelect={(selected) => {
+                const nextAddress = selected.roadAddress || selected.address;
+                if (nextAddress) formData.handleAddressSelect(nextAddress);
+              }}
+              onClear={formData.handleClearAddress}
+            />
             <ClearableTextField
               value={formData.addressDetail}
               onChange={formData.handleAddressDetailChange}
@@ -463,6 +452,8 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.homepage}
               onChange={formData.handleHomepageChange}
               placeholder='www.example.com'
+              underlineValue
+              spellCheck={false}
             />
           </div>
 
@@ -473,6 +464,8 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.instagram}
               onChange={formData.handleInstagramChange}
               placeholder='@instagram'
+              underlineValue
+              spellCheck={false}
             />
           </div>
 
@@ -483,6 +476,8 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.youtube}
               onChange={formData.handleYoutubeChange}
               placeholder='www.youtube.com/...'
+              underlineValue
+              spellCheck={false}
             />
           </div>
         </section>

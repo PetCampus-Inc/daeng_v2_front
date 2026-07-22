@@ -47,7 +47,7 @@ function formatLocalTime(
 
 function formatDateParts(year: number, month: number, day: number) {
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  return `${year}.${String(month).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
+  return `${year}년 ${month}월 ${day}일`;
 }
 
 /** date-only 파싱 */
@@ -67,7 +67,7 @@ function formatLastUpdatedAt(value: string | number[] | null | undefined) {
   const trimmed = value.trim();
   if (!trimmed) return '';
 
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(trimmed);
+  const match = /^(\d{4})[-.](\d{1,2})[-.](\d{1,2})/.exec(trimmed);
   if (!match) return value;
 
   const month = Number(match[2]);

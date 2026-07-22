@@ -17,9 +17,7 @@ function OwnerProfileRow({ name, profileImageUrl, onClick }: OwnerProfileRowProp
         {profileImageUrl ? (
           <AvatarImage src={profileImageUrl} alt={name} className='object-cover' />
         ) : null}
-        <AvatarFallback className='bg-fill-secondary-50'>
-          <Icon icon='MypageNav' className='text-text-tertiary size-5' />
-        </AvatarFallback>
+        <AvatarFallback className='bg-fill-secondary-50' />
       </Avatar>
 
       <div className='flex min-w-0 flex-1 items-center gap-x-1 py-2'>
