@@ -34,6 +34,7 @@ function useOwnerHomePage() {
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date());
   const {
     data: pendingMembers,
+    isError: isPendingMembersError,
     refetch: refetchPendingMembers,
   } = useOwnerPendingMembersQuery({
     userId,
@@ -41,14 +42,22 @@ function useOwnerHomePage() {
   });
 
   const approval = {
+    isError: isPendingMembersError,
     pendingCount: pendingMembers?.totalMemberCount ?? 0,
   };
 
   const pendingMemberIds = pendingMembers?.members.map((member) => member.id).sort() ?? [];
-  const approvalBannerKey = pendingMemberIds.length > 0 ? pendingMemberIds.join('|') : String(approval.pendingCount);
-  const shouldShowApprovalBanner = approval.pendingCount > 0 && dismissedApprovalKey !== approvalBannerKey;
+  const approvalBannerKey = approval.isError
+    ? 'error'
+    : pendingMemberIds.length > 0
+      ? pendingMemberIds.join('|')
+      : String(approval.pendingCount);
+  const shouldShowApprovalBanner =
+    (approval.isError || approval.pendingCount > 0) && dismissedApprovalKey !== approvalBannerKey;
 
   const handleApprovalBannerClick = () => {
+    if (approval.isError) return;
+
     push({ pathname: route.owner.members.approval.root });
   };
 

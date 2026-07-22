@@ -35,6 +35,7 @@ function OwnerHomePage() {
       </div>
       {shouldShowApprovalBanner ? (
         <OwnerApprovalBanner
+          isError={approval.isError}
           pendingCount={approval.pendingCount}
           onClick={handleApprovalBannerClick}
           onClose={handleApprovalBannerClose}
