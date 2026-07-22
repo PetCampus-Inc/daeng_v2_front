@@ -1,6 +1,7 @@
 export { AlarmFill } from './AlarmFill';
 export { AlarmLine } from './AlarmLine';
 export { AlarmLineActive } from './AlarmLineActive';
+export { AlertFill } from './AlertFill';
 export { Alldogs } from './Alldogs';
 export { AppleLogo } from './AppleLogo';
 export { Babydelivery } from './Babydelivery';

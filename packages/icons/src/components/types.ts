@@ -3,6 +3,7 @@ export type IconName =
   | 'AlarmFill'
   | 'AlarmLine'
   | 'AlarmLineActive'
+  | 'AlertFill'
   | 'AppleLogo'
   | 'Babydelivery'
   | 'Back'
