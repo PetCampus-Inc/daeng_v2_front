@@ -16,6 +16,12 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 const SCHOOL_NAME_MAX_LENGTH = 15;
 
+interface ApprovalBannerDismissal {
+  count: number;
+  isError: boolean;
+  memberKey: string | null;
+}
+
 function formatSchoolName(name: string) {
   const characters = Array.from(name);
 
@@ -30,7 +36,7 @@ function useOwnerHomePage() {
   const { isOwner, isResolved, kindergarten } = useOwnerRole();
   const schoolName = kindergarten?.name ?? '';
   const { today, noticebook } = ownerHomeMock;
-  const [dismissedApprovalKey, setDismissedApprovalKey] = useState<string | null>(null);
+  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState<ApprovalBannerDismissal | null>(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date());
   const {
     data: pendingMembers,
@@ -47,13 +53,15 @@ function useOwnerHomePage() {
   };
 
   const pendingMemberIds = pendingMembers?.members.map((member) => member.id).sort() ?? [];
-  const approvalBannerKey = approval.isError
-    ? 'error'
-    : pendingMemberIds.length > 0
-      ? pendingMemberIds.join('|')
-      : String(approval.pendingCount);
+  const approvalMemberKey = pendingMemberIds.length > 0 ? pendingMemberIds.join('|') : null;
+  const isSameDismissedApprovalBanner =
+    dismissedApprovalBanner?.isError === approval.isError &&
+    dismissedApprovalBanner.count === approval.pendingCount &&
+    (dismissedApprovalBanner.memberKey == null ||
+      approvalMemberKey == null ||
+      dismissedApprovalBanner.memberKey === approvalMemberKey);
   const shouldShowApprovalBanner =
-    (approval.isError || approval.pendingCount > 0) && dismissedApprovalKey !== approvalBannerKey;
+    (approval.isError || approval.pendingCount > 0) && !isSameDismissedApprovalBanner;
 
   const handleApprovalBannerClick = () => {
     if (approval.isError) return;
@@ -66,7 +74,11 @@ function useOwnerHomePage() {
   };
 
   const handleApprovalBannerClose = () => {
-    setDismissedApprovalKey(approvalBannerKey);
+    setDismissedApprovalBanner({
+      count: approval.pendingCount,
+      isError: approval.isError,
+      memberKey: approvalMemberKey,
+    });
   };
 
   const handleRefresh = useCallback(() => {
