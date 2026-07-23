@@ -51,6 +51,7 @@ export type IconName =
   | 'InfoLine'
   | 'Italic'
   | 'KakaoLogo'
+  | 'KindergartenNav'
   | 'King'
   | 'Largedog'
   | 'List'

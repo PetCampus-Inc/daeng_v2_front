@@ -51,6 +51,7 @@ export { InfoLine } from './InfoLine';
 export { Italic } from './Italic';
 export { KakaoLogo } from './KakaoLogo';
 export { Kindergarten } from './Kindergarten';
+export { KindergartenNav } from './KindergartenNav';
 export { King } from './King';
 export { Largedog } from './Largedog';
 export { List } from './List';

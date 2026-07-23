@@ -11,6 +11,10 @@ const KST_WEEKDAY_FORMATTER = new Intl.DateTimeFormat('ko-KR', {
   weekday: 'short',
 });
 
+function getNumberPart(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes) {
+  return Number(parts.find((part) => part.type === type)?.value);
+}
+
 function getKstDateParts(date: Date) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: KST_TIME_ZONE,
@@ -19,13 +23,10 @@ function getKstDateParts(date: Date) {
     day: '2-digit',
   }).formatToParts(date);
 
-  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((part) => part.type === type)?.value);
-
   return {
-    year: getPart('year'),
-    month: getPart('month'),
-    day: getPart('day'),
+    year: getNumberPart(parts, 'year'),
+    month: getNumberPart(parts, 'month'),
+    day: getNumberPart(parts, 'day'),
   };
 }
 
@@ -37,12 +38,9 @@ function getKstTimeParts(date: Date) {
     hourCycle: 'h23',
   }).formatToParts(date);
 
-  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((part) => part.type === type)?.value);
-
   return {
-    hour: getPart('hour'),
-    minute: getPart('minute'),
+    hour: getNumberPart(parts, 'hour'),
+    minute: getNumberPart(parts, 'minute'),
   };
 }
 
