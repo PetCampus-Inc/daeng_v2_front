@@ -1,0 +1,10 @@
+export function AlertFill(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
+      <path
+        d='M12 2.5C17.2467 2.5 21.5 6.75329 21.5 12C21.5 17.2467 17.2467 21.5 12 21.5C6.75329 21.5 2.5 17.2467 2.5 12C2.5 6.75329 6.75329 2.5 12 2.5ZM11.0508 14.8506V16.75H12.959V14.8506H11.0508ZM11.0508 7.25V12.9502H12.9512V7.25H11.0508Z'
+        fill='currentColor'
+      />
+    </svg>
+  );
+}
