@@ -12,7 +12,6 @@ import {
 } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
-import { OwnerKindergartenImageViewer } from '@views/mypage-owner-kindergarten-page/ui/OwnerKindergartenImageViewer';
 import { OwnerPricingContent } from '@views/mypage-owner-kindergarten-page/ui/OwnerPricingContent';
 
 import { Header } from '@widgets/Header';
@@ -21,6 +20,7 @@ import { ownerMypageContent, useOwnerKindergarten } from '@features/role-convers
 import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
 import { SafeArea } from '@shared/ui/safe-area';
 
 const TAB = {
@@ -238,10 +238,11 @@ function MypageOwnerKindergartenPage() {
     if (imageUrls.length === 0) return;
 
     overlay.open(({ isOpen, close }) => (
-      <OwnerKindergartenImageViewer
+      <ImageGalleryViewer
         isOpen={isOpen}
         close={close}
         images={imageUrls}
+        ariaLabel='유치원 사진 보기'
       />
     ));
   };

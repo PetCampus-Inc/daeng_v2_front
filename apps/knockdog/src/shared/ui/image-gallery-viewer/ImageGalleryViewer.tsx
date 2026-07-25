@@ -5,22 +5,24 @@ import { Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { RemoveScroll } from 'react-remove-scroll';
 
-interface OwnerKindergartenImageViewerProps {
+interface ImageGalleryViewerProps {
   isOpen: boolean;
   close: () => void;
   images: string[];
   initialIndex?: number;
+  ariaLabel?: string;
 }
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-function OwnerKindergartenImageViewer({
+function ImageGalleryViewer({
   isOpen,
   close,
   images,
   initialIndex = 0,
-}: OwnerKindergartenImageViewerProps) {
+  ariaLabel = '사진 보기',
+}: ImageGalleryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -107,7 +109,7 @@ function OwnerKindergartenImageViewer({
         ref={dialogRef}
         role='dialog'
         aria-modal='true'
-        aria-label='유치원 사진 보기'
+        aria-label={ariaLabel}
         className='z-modal fixed inset-y-0 left-1/2 w-full max-w-120 -translate-x-1/2 bg-[rgba(15,20,26,0.7)]'
       >
         <button
@@ -130,7 +132,7 @@ function OwnerKindergartenImageViewer({
         <div className='absolute top-[183px] left-4 h-[390px] w-[calc(100%-32px)] overflow-hidden'>
           <Image
             src={currentImage}
-            alt={`유치원 사진 ${currentIndex + 1}`}
+            alt={`사진 ${currentIndex + 1}`}
             fill
             sizes='358px'
             className='object-cover'
@@ -182,5 +184,5 @@ function OwnerKindergartenImageViewer({
   );
 }
 
-export { OwnerKindergartenImageViewer };
-export type { OwnerKindergartenImageViewerProps };
+export { ImageGalleryViewer };
+export type { ImageGalleryViewerProps };

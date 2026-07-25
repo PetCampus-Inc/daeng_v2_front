@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
-import { PriceFullImageSheet } from './PriceFullImageSheet';
+
+import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
 
 interface PriceImageSliderProps {
   images: string[];
@@ -10,10 +11,23 @@ interface PriceImageSliderProps {
   thumbnailSize?: 80 | 120;
 }
 
+function toImageUrl(image: string) {
+  if (image.startsWith('http://') || image.startsWith('https://')) return image;
+  return `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${image}`;
+}
+
 function PriceImageSlider({ images, thumbnailSize = 120 }: PriceImageSliderProps) {
+  const imageUrls = images.map(toImageUrl);
+
   const handleImageClick = (index: number) => {
     overlay.open(({ isOpen, close }) => (
-      <PriceFullImageSheet isOpen={isOpen} close={close} images={images} initialIndex={index} />
+      <ImageGalleryViewer
+        isOpen={isOpen}
+        close={close}
+        images={imageUrls}
+        initialIndex={index}
+        ariaLabel='가격표 사진 보기'
+      />
     ));
   };
 
@@ -27,10 +41,15 @@ function PriceImageSlider({ images, thumbnailSize = 120 }: PriceImageSliderProps
         <span className='text-text-accent body1-bold'>{images.length}</span>
       </div>
       <div className={`scrollbar-hide flex overflow-x-auto ${gapClass}`}>
-        {images.map((image, index) => (
-          <button key={index} onClick={() => handleImageClick(index)} className='shrink-0'>
+        {imageUrls.map((image, index) => (
+          <button
+            key={`${image}-${index}`}
+            type='button'
+            onClick={() => handleImageClick(index)}
+            className='shrink-0'
+          >
             <Image
-              src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
+              src={image}
               alt=''
               className={`${sizeClass} radius-r2 object-cover`}
               width={thumbnailSize}
