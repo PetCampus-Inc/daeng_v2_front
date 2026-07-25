@@ -105,6 +105,7 @@ function useKindergartenEditForm() {
     isAutofillPrefillReady,
     isResolved,
     isProfileLoading,
+    isProfileError,
   } = useOwnerKindergarten();
 
   const isSelected = source === 'search';
@@ -141,6 +142,8 @@ function useKindergartenEditForm() {
   const hasRestoredDirtyDraftRef = useRef(false);
   /** ref가 아니라 state — draft sync 완료 후 source hydration effect가 다시 돌도록 */
   const [isDraftSyncDone, setIsDraftSyncDone] = useState(false);
+  /** draft restore 시 persist effect가 반드시 돌도록 해 skip 플래그를 소비 */
+  const [draftRestoreTick, setDraftRestoreTick] = useState(0);
   const isSaveLockedRef = useRef(false);
   const [isPreparingSave, setIsPreparingSave] = useState(false);
 
@@ -208,6 +211,8 @@ function useKindergartenEditForm() {
         hasRestoredDirtyDraftRef.current = true;
         skipNextPersistRef.current = true;
         applyDraftToState(draft, draftSetters);
+        // 동일 state면 persist effect가 스킵되어 skip 플래그가 남는 것 방지
+        setDraftRestoreTick((tick) => tick + 1);
       } else if (draft?.isDirty) {
         // 빈 dirty draft(이전 레이스 잔재)는 source 프리필을 막지 않도록 제거
         clearEditFormDraft();
@@ -251,6 +256,9 @@ function useKindergartenEditForm() {
     // 빈 폼을 확정하면 이후 데이터가 와도 프리필이 영구 스킵됨
     if (!isResolved || isProfileLoading) return;
 
+    // profile 조회 실패 시 빈 소스로 hydration 확정하지 않음 (재시도 여지 유지)
+    if (isProfileError) return;
+
     // MANUAL + 미저장: 프리필 소스 없음
     if (!canUseAutofill) {
       hasHydratedFromSourceRef.current = true;
@@ -278,6 +286,7 @@ function useKindergartenEditForm() {
     isDirty,
     isResolved,
     isProfileLoading,
+    isProfileError,
     canUseAutofill,
     isAutofillPrefillReady,
     kindergartenName,
@@ -290,16 +299,19 @@ function useKindergartenEditForm() {
 
   useEffect(() => {
     if (!isDraftSyncDone) return;
-    if (!hasHydratedFromSourceRef.current) return;
 
+    // restore tick으로 effect가 돌 때 hydration 전이어도 skip은 소비해야 함
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
       return;
     }
 
+    if (!hasHydratedFromSourceRef.current) return;
+
     persistDraft(isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 폼 필드 변경 시에만 draft 저장
   }, [
+    draftRestoreTick,
     images,
     name,
     address,

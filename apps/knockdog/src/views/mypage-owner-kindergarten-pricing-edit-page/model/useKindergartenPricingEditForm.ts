@@ -83,6 +83,8 @@ function useKindergartenPricingEditForm() {
   const hasRestoredDirtyDraftRef = useRef(false);
   /** ref가 아니라 state — draft sync 완료 후 source hydration effect가 다시 돌도록 */
   const [isDraftSyncDone, setIsDraftSyncDone] = useState(false);
+  /** draft restore 시 persist effect가 반드시 돌도록 해 skip 플래그를 소비 */
+  const [draftRestoreTick, setDraftRestoreTick] = useState(0);
 
   const draftSetters = {
     setProductTypes,
@@ -116,6 +118,8 @@ function useKindergartenPricingEditForm() {
         hasRestoredDirtyDraftRef.current = true;
         skipNextPersistRef.current = true;
         applyDraftToState(draft, draftSetters);
+        // 동일 state면 persist effect가 스킵되어 skip 플래그가 남는 것 방지
+        setDraftRestoreTick((tick) => tick + 1);
       } else if (draft?.isDirty) {
         clearPricingEditFormDraft();
       }
@@ -184,16 +188,18 @@ function useKindergartenPricingEditForm() {
 
   useEffect(() => {
     if (!isDraftSyncDone) return;
-    if (!hasHydratedFromSourceRef.current) return;
 
+    // restore tick으로 effect가 돌 때 hydration 전이어도 skip은 소비해야 함
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
       return;
     }
 
+    if (!hasHydratedFromSourceRef.current) return;
+
     persistDraft(isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 폼 필드 변경 시에만 draft 저장
-  }, [productTypes, priceImages, lastUpdatedDate, isDirty]);
+  }, [draftRestoreTick, productTypes, priceImages, lastUpdatedDate, isDirty]);
 
   const markDirty = () => {
     if (!isDirty) setIsDirty(true);
