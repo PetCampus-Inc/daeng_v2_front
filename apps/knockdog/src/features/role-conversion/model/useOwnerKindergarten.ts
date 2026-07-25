@@ -29,7 +29,7 @@ import { useUserStore } from '@entities/user';
  */
 function useOwnerKindergarten() {
   const user = useUserStore((state) => state.user);
-  const { kindergarten, owner, isOwner, placeId } = useOwnerRole();
+  const { kindergarten, owner, isOwner, placeId, isResolved } = useOwnerRole();
 
   const source = kindergarten?.source ?? null;
   const isSelected = source === 'search';
@@ -207,6 +207,8 @@ function useOwnerKindergarten() {
     canUseAutofill,
     isAutofillPrefillReady,
     isSelectedPrefillReady,
+    /** owner/role 조회 완료 여부 — 수정 폼 프리필 레이스 가드용 */
+    isResolved,
     isProfileLoading: isOwner && isLoading,
     isProfileError: isOwner && isError,
   };

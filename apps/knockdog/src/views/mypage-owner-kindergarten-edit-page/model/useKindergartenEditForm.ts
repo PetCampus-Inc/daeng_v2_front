@@ -67,6 +67,29 @@ function applyDraftToState(
   setters.setIsDirty(draft.isDirty);
 }
 
+/** 빈 dirty draft는 이전 레이스 잔재 — source 프리필을 막지 않음 */
+function isMeaningfulEditDraft(draft: EditFormDraft) {
+  return (
+    draft.images.length > 0 ||
+    draft.name.trim().length > 0 ||
+    draft.address.trim().length > 0 ||
+    draft.addressDetail.trim().length > 0 ||
+    draft.phone.trim().length > 0 ||
+    Boolean(draft.weekdayStart) ||
+    Boolean(draft.weekdayEnd) ||
+    Boolean(draft.weekendStart) ||
+    Boolean(draft.weekendEnd) ||
+    draft.closedDays.length > 0 ||
+    draft.homepage.trim().length > 0 ||
+    draft.instagram.trim().length > 0 ||
+    draft.youtube.trim().length > 0 ||
+    draft.breeds.length > 0 ||
+    draft.dogServices.length > 0 ||
+    draft.safetyFacilities.length > 0 ||
+    draft.amenities.length > 0
+  );
+}
+
 function useKindergartenEditForm() {
   const { back } = useStackNavigation();
   const {
@@ -80,6 +103,8 @@ function useKindergartenEditForm() {
     autofillBasic: basic,
     canUseAutofill,
     isAutofillPrefillReady,
+    isResolved,
+    isProfileLoading,
   } = useOwnerKindergarten();
 
   const isSelected = source === 'search';
@@ -111,10 +136,11 @@ function useKindergartenEditForm() {
   const [lastUpdatedDate, setLastUpdatedDate] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const skipNextPersistRef = useRef(false);
-  const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
   /** dirty draft를 setState보다 먼저 잠궈 source hydration 덮어쓰기 방지 */
   const hasRestoredDirtyDraftRef = useRef(false);
+  /** ref가 아니라 state — draft sync 완료 후 source hydration effect가 다시 돌도록 */
+  const [isDraftSyncDone, setIsDraftSyncDone] = useState(false);
   const isSaveLockedRef = useRef(false);
   const [isPreparingSave, setIsPreparingSave] = useState(false);
 
@@ -171,37 +197,44 @@ function useKindergartenEditForm() {
   };
 
   useEffect(() => {
-    function syncDraftFromStorage() {
-      if (document.visibilityState === 'hidden') return;
+    function syncDraftFromStorage(options?: { ignoreVisibility?: boolean }) {
+      // WebView는 최초 mount 시 visibilityState=hidden 인 경우가 있음.
+      // 이때 early return 하면 draft sync 플래그가 영원히 false로 남아 프리필이 스킵됨.
+      if (!options?.ignoreVisibility && document.visibilityState === 'hidden') return;
 
       const draft = loadEditFormDraft();
 
-      // 미저장 편집 draft만 복원. 실데이터는 source hydration으로 프리필
-      if (draft?.isDirty) {
+      if (draft?.isDirty && isMeaningfulEditDraft(draft)) {
         hasRestoredDirtyDraftRef.current = true;
         skipNextPersistRef.current = true;
         applyDraftToState(draft, draftSetters);
+      } else if (draft?.isDirty) {
+        // 빈 dirty draft(이전 레이스 잔재)는 source 프리필을 막지 않도록 제거
+        clearEditFormDraft();
       }
 
-      hasHydratedDraftRef.current = true;
+      setIsDraftSyncDone(true);
     }
 
-    syncDraftFromStorage();
+    syncDraftFromStorage({ ignoreVisibility: true });
 
-    window.addEventListener('pageshow', syncDraftFromStorage);
-    window.addEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
-    document.addEventListener('visibilitychange', syncDraftFromStorage);
+    const handlePageShow = () => syncDraftFromStorage({ ignoreVisibility: true });
+    const handleVisibilityChange = () => syncDraftFromStorage();
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('pageshow', syncDraftFromStorage);
-      window.removeEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
-      document.removeEventListener('visibilitychange', syncDraftFromStorage);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener(EDIT_FORM_DRAFT_UPDATED_EVENT, handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount 시 draft 동기화만
   }, []);
 
   useEffect(() => {
-    if (!hasHydratedDraftRef.current) return;
+    if (!isDraftSyncDone) return;
     if (hasHydratedFromSourceRef.current) return;
 
     if (hasRestoredDirtyDraftRef.current) {
@@ -213,6 +246,10 @@ function useKindergartenEditForm() {
       hasHydratedFromSourceRef.current = true;
       return;
     }
+
+    // Stack WebView는 매 진입마다 캐시가 비어 role/profile 로드 전 canUseAutofill=false로
+    // 빈 폼을 확정하면 이후 데이터가 와도 프리필이 영구 스킵됨
+    if (!isResolved || isProfileLoading) return;
 
     // MANUAL + 미저장: 프리필 소스 없음
     if (!canUseAutofill) {
@@ -237,7 +274,10 @@ function useKindergartenEditForm() {
     hasHydratedFromSourceRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 소스 데이터 1회 하이드레이션
   }, [
+    isDraftSyncDone,
     isDirty,
+    isResolved,
+    isProfileLoading,
     canUseAutofill,
     isAutofillPrefillReady,
     kindergartenName,
@@ -249,7 +289,7 @@ function useKindergartenEditForm() {
   ]);
 
   useEffect(() => {
-    if (!hasHydratedDraftRef.current) return;
+    if (!isDraftSyncDone) return;
     if (!hasHydratedFromSourceRef.current) return;
 
     if (skipNextPersistRef.current) {
