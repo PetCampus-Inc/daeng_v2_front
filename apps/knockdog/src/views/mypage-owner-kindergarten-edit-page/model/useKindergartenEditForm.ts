@@ -113,29 +113,10 @@ function useKindergartenEditForm() {
   const skipNextPersistRef = useRef(false);
   const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
+  /** dirty draft를 setState보다 먼저 잠궈 source hydration 덮어쓰기 방지 */
+  const hasRestoredDirtyDraftRef = useRef(false);
   const isSaveLockedRef = useRef(false);
   const [isPreparingSave, setIsPreparingSave] = useState(false);
-  const prefillSourceRef = useRef({
-    canUseAutofill,
-    isAutofillPrefillReady,
-    kindergartenName,
-    kindergartenAddress,
-    kindergartenAddressDetail,
-    phoneNumber,
-    basic,
-    bannerKeys,
-  });
-
-  prefillSourceRef.current = {
-    canUseAutofill,
-    isAutofillPrefillReady,
-    kindergartenName,
-    kindergartenAddress,
-    kindergartenAddressDetail,
-    phoneNumber,
-    basic,
-    bannerKeys,
-  };
 
   const draftSetters = {
     setImages,
@@ -195,14 +176,14 @@ function useKindergartenEditForm() {
 
       const draft = loadEditFormDraft();
 
-      // 미저장 편집 draft만 복원. SELECTED 실데이터는 '자동 채우기'로 프리필
+      // 미저장 편집 draft만 복원. 실데이터는 source hydration으로 프리필
       if (draft?.isDirty) {
+        hasRestoredDirtyDraftRef.current = true;
         skipNextPersistRef.current = true;
         applyDraftToState(draft, draftSetters);
       }
 
       hasHydratedDraftRef.current = true;
-      hasHydratedFromSourceRef.current = true;
     }
 
     syncDraftFromStorage();
@@ -218,6 +199,54 @@ function useKindergartenEditForm() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount 시 draft 동기화만
   }, []);
+
+  useEffect(() => {
+    if (!hasHydratedDraftRef.current) return;
+    if (hasHydratedFromSourceRef.current) return;
+
+    if (hasRestoredDirtyDraftRef.current) {
+      hasHydratedFromSourceRef.current = true;
+      return;
+    }
+
+    if (isDirty) {
+      hasHydratedFromSourceRef.current = true;
+      return;
+    }
+
+    // MANUAL + 미저장: 프리필 소스 없음
+    if (!canUseAutofill) {
+      hasHydratedFromSourceRef.current = true;
+      return;
+    }
+
+    if (!isAutofillPrefillReady) return;
+
+    const next = mapToEditFormDraft({
+      name: kindergartenName,
+      address: kindergartenAddress,
+      addressDetail: kindergartenAddressDetail,
+      phone: formatPhone(phoneNumber),
+      basic,
+      bannerKeys,
+      lastUpdatedDate: basic?.lastUpdatedAt?.trim() || null,
+    });
+
+    skipNextPersistRef.current = true;
+    applyDraftToState(next, draftSetters);
+    hasHydratedFromSourceRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 소스 데이터 1회 하이드레이션
+  }, [
+    isDirty,
+    canUseAutofill,
+    isAutofillPrefillReady,
+    kindergartenName,
+    kindergartenAddress,
+    kindergartenAddressDetail,
+    phoneNumber,
+    basic,
+    bannerKeys,
+  ]);
 
   useEffect(() => {
     if (!hasHydratedDraftRef.current) return;
@@ -348,38 +377,8 @@ function useKindergartenEditForm() {
     updateField(settersByField[activeTimeField], value);
   };
 
-  /**
-   * 자동 채우기 완료 시 폼 채움
-   * - 저장본(schoolProfileId) 있으면: school profile 최신값
-   * - 없으면 SELECTED: place basic/main
-   */
-  const applySelectedPrefill = () => {
-    const source = prefillSourceRef.current;
-    if (!source.canUseAutofill || !source.isAutofillPrefillReady) return false;
-
-    const next = {
-      ...mapToEditFormDraft({
-        name: source.kindergartenName,
-        address: source.kindergartenAddress,
-        addressDetail: source.kindergartenAddressDetail,
-        phone: formatPhone(source.phoneNumber),
-        basic: source.basic,
-        bannerKeys: source.bannerKeys,
-        lastUpdatedDate: source.basic?.lastUpdatedAt?.trim() || null,
-      }),
-      isDirty: true,
-    };
-
-    skipNextPersistRef.current = true;
-    applyDraftToState(next, draftSetters);
-    saveEditFormDraft(next);
-    hasHydratedFromSourceRef.current = true;
-    return true;
-  };
-
   return {
     isSelected,
-    canUseAutofill,
     images,
     name,
     address,
@@ -436,8 +435,6 @@ function useKindergartenEditForm() {
     },
     handleSave,
     handleTimeSelect,
-    applySelectedPrefill,
-    getIsSelectedPrefillReady: () => prefillSourceRef.current.isAutofillPrefillReady,
   };
 }
 

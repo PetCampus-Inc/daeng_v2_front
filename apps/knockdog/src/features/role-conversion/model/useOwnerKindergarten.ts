@@ -23,8 +23,8 @@ import { useUserStore } from '@entities/user';
  * - SELECTED: `placeId` → kindergarten/basic·main (운영·배너).
  *   요금은 place pricing, 단 원장이 PUT price로 저장한 적 있으면 school profile 우선.
  * - MANUAL: `GET owner/school/profile` (운영·요금).
- * - 자동 채우기: 저장본(schoolProfileId) 있으면 profile 최신값,
- *   없으면 SELECTED place. MANUAL은 저장 1회+부터 노출.
+ * - 수정 폼 프리필: 저장본(schoolProfileId) 있으면 profile 최신값,
+ *   없으면 SELECTED place. MANUAL은 저장 1회+부터 프리필.
  * - placeId 우선순위: owner/role.placeId → profile.kindergartenPlaceId
  */
 function useOwnerKindergarten() {
@@ -119,7 +119,7 @@ function useOwnerKindergarten() {
   const hasSavedSchoolProfile = profile?.schoolProfileId != null;
 
   /**
-   * 자동 채우기 소스: 저장본 있으면 school profile 최신값,
+   * 수정 폼 프리필 소스: 저장본 있으면 school profile 최신값,
    * 없으면 SELECTED place basic/main.
    */
   const autofillName = (
@@ -169,7 +169,7 @@ function useOwnerKindergarten() {
     (!resolvedPlaceId ||
       (placeBasicQuery.isFetched && (coord == null || mainQuery.isFetched)));
 
-  /** SELECTED 항상, MANUAL은 저장 이후 — 자동 채우기 동일 UX */
+  /** SELECTED 항상, MANUAL은 저장 이후 — 수정 폼 프리필 가능 여부 */
   const canUseAutofill = isSelected || hasSavedSchoolProfile;
 
   /** 배너 폴백이 필요하면 main 준비될 때까지 대기 */

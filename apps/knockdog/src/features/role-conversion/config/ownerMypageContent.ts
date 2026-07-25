@@ -31,12 +31,6 @@ export const ownerMypageContent = Object.freeze({
   kindergartenPricingEditServiceNoticeDescription: '확인 후 빠르게 수정해 드릴게요.',
   kindergartenPricingEditCustomerCenterLabel: '고객센터',
   kindergartenEditPageTitle: '운영 정보 수정',
-  kindergartenEditAutofillLabel: '자동 채우기',
-  kindergartenEditAutofillTooltip:
-    '인터넷에 공개된 유치원 정보를 AI가 자동으로 불러와요. 실제 정보와 다를 수 있으니 확인 후 수정해 주세요.',
-  kindergartenEditAutofillLoadingTitle: '유치원 정보를 채우는 중이에요',
-  kindergartenEditAutofillLoadingDescription: '곧 완료됩니다',
-  kindergartenEditAutofillCancelLabel: '취소하기',
   kindergartenEditBasicSectionTitle: '기본 정보',
   kindergartenEditHoursSectionTitle: '운영시간',
   kindergartenEditSnsSectionTitle: '웹사이트·SNS',
