@@ -21,6 +21,7 @@ import { useUserStore } from '@entities/user';
  * 원장 마이페이지 유치원 정보.
  *
  * - SELECTED: `placeId` → kindergarten/basic·main (운영·배너).
+ *   단 원장이 운영 정보를 저장한 적 있으면 school profile 우선.
  *   요금은 place pricing, 단 원장이 PUT price로 저장한 적 있으면 school profile 우선.
  * - MANUAL: `GET owner/school/profile` (운영·요금).
  * - 수정 폼 프리필: 저장본(schoolProfileId) 있으면 profile 최신값,
@@ -77,12 +78,21 @@ function useOwnerKindergarten() {
   const profileBasic = profile ? mapOwnerSchoolProfileToBasic(profile) : undefined;
   const profilePricing = profile ? mapOwnerSchoolProfilePricing(profile) : undefined;
 
+  /** MANUAL/SELECTED 공통: 운영 정보 저장 1회 이상(= schoolProfileId) */
+  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
+
   /** 원장이 PUT /owner/school/price 로 저장한 요금 */
   const hasOwnerSavedPricing =
     (profilePricing?.productType.length ?? 0) > 0 ||
     (profilePricing?.priceImages.length ?? 0) > 0;
 
-  const basic = isSelected && placeBasic ? placeBasic : profileBasic;
+  /** 저장본 있으면 profile(최신 lastUpdatedAt 포함), 없으면 SELECTED place */
+  const basic =
+    hasSavedSchoolProfile && profileBasic
+      ? profileBasic
+      : isSelected && placeBasic
+        ? placeBasic
+        : profileBasic;
   // SELECTED: 저장 전에는 place(탭에서 kindergartenId), 저장 후엔 profile
   const pricing = !isSelected || hasOwnerSavedPricing ? profilePricing : undefined;
 
@@ -114,9 +124,6 @@ function useOwnerKindergarten() {
    * 없으면 SELECTED는 place, MANUAL은 school(빈값 가능).
    */
   const phoneNumber = schoolPhoneNumber || placePhoneNumber;
-
-  /** MANUAL: 운영 정보 저장 1회 이상(= schoolProfileId) */
-  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
 
   /**
    * 수정 폼 프리필 소스: 저장본 있으면 school profile 최신값,

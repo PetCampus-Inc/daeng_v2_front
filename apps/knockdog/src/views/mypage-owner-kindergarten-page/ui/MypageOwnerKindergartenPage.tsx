@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   ActionButton,
   Divider,
@@ -10,6 +10,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@knockdog/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
 import { OwnerPricingContent } from '@views/mypage-owner-kindergarten-page/ui/OwnerPricingContent';
@@ -18,6 +19,12 @@ import { Header } from '@widgets/Header';
 import { OperationHoursCard, ServiceTagBadge } from '@features/kindergarten-basic';
 import { ownerMypageContent, useOwnerKindergarten } from '@features/role-conversion';
 import { SERVICE_ICON_MAP, type KindergartenBasic } from '@entities/kindergarten';
+import {
+  formatLastUpdatedAt,
+  ownerSchoolProfileQueryKey,
+} from '@entities/owner-school';
+import { pricingQueryKeys } from '@entities/pricing/config/pricingQueryKeys';
+import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
@@ -198,7 +205,7 @@ function OperationSections({ data }: OperationSectionsProps) {
       <div className='flex flex-col py-4'>
         <span className='body1-bold'>최종 정보 업데이트</span>
         <span className='body2-regular text-text-tertiary'>
-          {lastUpdatedAt || ownerMypageContent.noConfirmedInfoText}
+          {formatLastUpdatedAt(lastUpdatedAt) || ownerMypageContent.noConfirmedInfoText}
         </span>
       </div>
     </div>
@@ -207,6 +214,8 @@ function OperationSections({ data }: OperationSectionsProps) {
 
 function MypageOwnerKindergartenPage() {
   const { push } = useStackNavigation();
+  const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
   const {
     name,
     streetAddress,
@@ -224,6 +233,35 @@ function MypageOwnerKindergartenPage() {
   const [activeTab, setActiveTab] = useState<string>(TAB.OPERATION);
 
   const isSelected = source === 'search';
+
+  // Stack WebView는 수정 화면 invalidate가 이 화면 캐시에 전달되지 않음 → 복귀 시 재조회
+  useEffect(() => {
+    async function refetchOwnerKindergarten() {
+      if (document.visibilityState === 'hidden') return;
+
+      await queryClient.invalidateQueries({
+        queryKey: ownerSchoolProfileQueryKey(userId),
+      });
+
+      if (kindergartenId) {
+        await queryClient.invalidateQueries({
+          queryKey: pricingQueryKeys.byId(kindergartenId),
+        });
+      }
+    }
+
+    const handleRefresh = () => {
+      refetchOwnerKindergarten().catch(() => undefined);
+    };
+
+    window.addEventListener('pageshow', handleRefresh);
+    document.addEventListener('visibilitychange', handleRefresh);
+
+    return () => {
+      window.removeEventListener('pageshow', handleRefresh);
+      document.removeEventListener('visibilitychange', handleRefresh);
+    };
+  }, [kindergartenId, queryClient, userId]);
 
   const handleEditClick = () => {
     if (activeTab === TAB.PRICING) {

@@ -2,6 +2,7 @@
 
 import { ProductTypeSection, PriceImageSlider, usePricingQuery } from '@features/pricing';
 import { ownerMypageContent } from '@features/role-conversion';
+import { formatLastUpdatedAt } from '@entities/owner-school';
 import type { ProductType } from '@entities/pricing';
 
 interface OwnerPricingView {
@@ -87,7 +88,7 @@ function OwnerPricingContent({ kindergartenId, pricing }: OwnerPricingContentPro
           {ownerMypageContent.kindergartenEditLastUpdatedTitle}
         </span>
         <span className='body2-regular text-text-tertiary'>
-          {lastUpdatedAt || ownerMypageContent.noConfirmedInfoText}
+          {formatLastUpdatedAt(lastUpdatedAt) || ownerMypageContent.noConfirmedInfoText}
         </span>
       </div>
     </div>
