@@ -29,25 +29,29 @@ function buildHistoryStateInjector(state?: InitialState) {
           return;
         }
 
-        // URL 동기화 (query가 있으면 searchParams를 대체)
         var url = new URL(window.location.href);
-        if (__BRIDGE_INITIAL_STATE__.query && 
-            typeof __BRIDGE_INITIAL_STATE__.query === 'object' && 
+        var sp = new URLSearchParams(url.search);
+
+        // query가 있으면 searchParams를 대체
+        if (__BRIDGE_INITIAL_STATE__.query &&
+            typeof __BRIDGE_INITIAL_STATE__.query === 'object' &&
             !Array.isArray(__BRIDGE_INITIAL_STATE__.query)) {
-          var sp = new URLSearchParams();
+          sp = new URLSearchParams();
           Object.keys(__BRIDGE_INITIAL_STATE__.query).forEach(function(k){
             var v = __BRIDGE_INITIAL_STATE__.query[k];
-            if (v === null || v === undefined) return; // undefined/null은 쿼리 제외
+            if (v === null || v === undefined) return;
             sp.set(k, String(v));
           });
-          var qs = sp.toString();
-          var newHref = url.pathname + (qs ? ('?' + qs) : '') + url.hash;
-          // state 주입 + URL 변경
-          history.replaceState(__BRIDGE_INITIAL_STATE__, '', newHref);
-        } else {
-          // 쿼리 변경 없으면 URL은 그대로, state만 주입
-          history.replaceState(__BRIDGE_INITIAL_STATE__, '', window.location.href);
         }
+
+        // Next가 history.state를 덮어도 getCurrentTxId가 동작하도록 URL에도 유지
+        if (__BRIDGE_INITIAL_STATE__._txId) {
+          sp.set('_txId', String(__BRIDGE_INITIAL_STATE__._txId));
+        }
+
+        var qs = sp.toString();
+        var newHref = url.pathname + (qs ? ('?' + qs) : '') + url.hash;
+        history.replaceState(__BRIDGE_INITIAL_STATE__, '', newHref);
       } catch (e) {
         console.error('[BridgeWebView] state 주입 실패:', e);
       }

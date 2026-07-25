@@ -152,7 +152,16 @@ function useOwnerKindergarten() {
       ? placeBasic
       : profileBasic;
 
-  const autofillBannerKeys = hasSavedSchoolProfile ? profileBannerKeys : bannerKeys;
+  /** profile 배너가 비면 place main.banner 폴백 (저장본만 보고 [] 되는 문제 방지) */
+  const autofillBannerKeys =
+    profileBannerKeys.length > 0
+      ? profileBannerKeys
+      : isSelected
+        ? (main?.banner ?? [])
+        : profileBannerKeys;
+
+  const needsPlaceBannerFallback =
+    isSelected && profileBannerKeys.length === 0 && Boolean(resolvedPlaceId);
 
   /** SELECTED: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
   const isSelectedPrefillReady =
@@ -163,8 +172,9 @@ function useOwnerKindergarten() {
   /** SELECTED 항상, MANUAL은 저장 이후 — 자동 채우기 동일 UX */
   const canUseAutofill = isSelected || hasSavedSchoolProfile;
 
+  /** 배너 폴백이 필요하면 main 준비될 때까지 대기 */
   const isAutofillPrefillReady = hasSavedSchoolProfile
-    ? profile != null
+    ? profile != null && (!needsPlaceBannerFallback || isSelectedPrefillReady)
     : isSelectedPrefillReady;
 
   return {

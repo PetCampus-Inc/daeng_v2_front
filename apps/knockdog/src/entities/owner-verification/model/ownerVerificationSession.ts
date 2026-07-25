@@ -33,28 +33,10 @@ function isKindergartenSnapshot(value: unknown): value is VerificationKindergart
   );
 }
 
-function saveSession(
-  data: KindergartenVerificationData,
-  kindergarten?: VerificationKindergartenSnapshot
-) {
-  if (typeof window === 'undefined') return;
-
-  const session: VerificationSession = {
-    ownerVerificationId: data.ownerVerificationId,
-    nextStep: data.nextStep,
-    ...(kindergarten ? { kindergarten } : {}),
-  };
-
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-}
-
-function loadSession(): VerificationSession | null {
-  if (typeof window === 'undefined') return null;
+function parseSession(raw: string | null): VerificationSession | null {
+  if (!raw) return null;
 
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
 
@@ -77,6 +59,53 @@ function loadSession(): VerificationSession | null {
   }
 }
 
+/**
+ * Stack WebView 간 공유를 위해 localStorage 사용.
+ * 기존 sessionStorage 값이 있으면 마이그레이션.
+ */
+function readRawSession(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const fromLocal = localStorage.getItem(SESSION_KEY);
+  if (fromLocal) return fromLocal;
+
+  const fromSession = sessionStorage.getItem(SESSION_KEY);
+  if (fromSession) {
+    localStorage.setItem(SESSION_KEY, fromSession);
+    sessionStorage.removeItem(SESSION_KEY);
+    return fromSession;
+  }
+
+  return null;
+}
+
+function writeSession(session: VerificationSession) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  // legacy 잔존값 제거
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+function saveSession(
+  data: KindergartenVerificationData,
+  kindergarten?: VerificationKindergartenSnapshot
+) {
+  if (typeof window === 'undefined') return;
+
+  const session: VerificationSession = {
+    ownerVerificationId: data.ownerVerificationId,
+    nextStep: data.nextStep,
+    ...(kindergarten ? { kindergarten } : {}),
+  };
+
+  writeSession(session);
+}
+
+function loadSession(): VerificationSession | null {
+  if (typeof window === 'undefined') return null;
+
+  return parseSession(readRawSession());
+}
+
 function saveBusinessRegistrationNumber(registrationNumber: string): boolean {
   if (typeof window === 'undefined') return false;
 
@@ -88,13 +117,14 @@ function saveBusinessRegistrationNumber(registrationNumber: string): boolean {
     businessRegistrationNumber: registrationNumber,
   };
 
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+  writeSession(updated);
   return true;
 }
 
 function clearSession() {
   if (typeof window === 'undefined') return;
 
+  localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY);
 }
 

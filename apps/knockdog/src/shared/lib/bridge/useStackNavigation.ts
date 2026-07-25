@@ -42,12 +42,12 @@ function useStackNavigation() {
       const txId = forcedTxId !== undefined ? forcedTxId : params ? makeId() : null;
 
       if (isNative) {
-        // 네이티브 환경
+        // 네이티브: _txId를 URL 쿼리에도 넣어 Next가 history.state를 덮어도 getCurrentTxId가 동작
         if (txId) {
           await bridge.request(method, {
             name: fullPath,
             params: {
-              ...(query && { query }),
+              query: { ...query, _txId: txId },
               _txId: txId,
               ...(params && { _params: params }),
             },
@@ -126,7 +126,7 @@ function useStackNavigation() {
           await bridge.request(METHODS.navReset, {
             name: fullPath,
             params: {
-              ...(query && { query }),
+              query: { ...query, _txId: txId },
               _txId: txId,
               ...(params && { _params: params }),
             },
@@ -184,13 +184,9 @@ function useStackNavigation() {
     }
 
     // 웹 환경 — sessionStorage에서 params 읽기
-    // history.state에서 txId를 못 가져오면 URL query에서 가져오기
-    let txId = state?._txId;
-
-    if (!txId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      txId = urlParams.get('_txId');
-    }
+    // URL query를 우선 (Next가 history.state를 덮을 수 있음)
+    const urlParams = new URLSearchParams(window.location.search);
+    const txId = urlParams.get('_txId') ?? state?._txId;
 
     if (!txId) return null;
 

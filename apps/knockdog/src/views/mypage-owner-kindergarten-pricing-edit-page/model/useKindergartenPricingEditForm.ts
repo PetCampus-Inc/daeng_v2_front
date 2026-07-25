@@ -39,12 +39,13 @@ function applyDraftToState(
 
 function useKindergartenPricingEditForm() {
   const { back } = useStackNavigation();
-  const { source, kindergartenId, pricing: profilePricing, hasOwnerSavedPricing, isProfileLoading } =
+  const { source, kindergartenId, pricing: profilePricing, isProfileLoading } =
     useOwnerKindergarten();
   const isSelected = source === 'search';
 
+  /** SELECTED면 place pricing 항상 조회 — profile 비었을 때 폴백용 */
   const placePricingQuery = usePricingQuery(kindergartenId ?? '', {
-    enabled: isSelected && !hasOwnerSavedPricing && Boolean(kindergartenId),
+    enabled: isSelected && Boolean(kindergartenId),
   });
   const { mutateAsync: moveImageAsync } = useMoveImageMutation();
   const { mutateAsync: putPriceAsync, isPending: isSaving } = usePutOwnerSchoolPriceMutation({
@@ -53,7 +54,7 @@ function useKindergartenPricingEditForm() {
 
   const placePricing = placePricingQuery.data;
   const isPricingDataReady = isSelected
-    ? hasOwnerSavedPricing || !kindergartenId || placePricingQuery.isFetched
+    ? !kindergartenId || placePricingQuery.isFetched
     : !isProfileLoading;
 
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
@@ -132,29 +133,31 @@ function useKindergartenPricingEditForm() {
     }
     if (!isPricingDataReady) return;
 
-    const sourcePricing = hasOwnerSavedPricing
+    const profileProductTypes = profilePricing?.productType ?? [];
+    const profilePriceImages = profilePricing?.priceImages ?? [];
+    const placeProductTypes = placePricing?.productType ?? [];
+    const placePriceImages = placePricing?.priceImages ?? [];
+
+    /** profile 상품유형/가격표 비면 place 폴백 */
+    const sourcePricing = isSelected
       ? {
-          productType: profilePricing?.productType ?? [],
-          priceImages: profilePricing?.priceImages ?? [],
-          lastUpdatedDate: profilePricing?.lastUpdatedAt ?? null,
+          productType:
+            profileProductTypes.length > 0 ? profileProductTypes : placeProductTypes,
+          priceImages: profilePriceImages.length > 0 ? profilePriceImages : placePriceImages,
+          lastUpdatedDate:
+            profilePricing?.lastUpdatedAt ?? placePricing?.lastUpdatedAt ?? null,
         }
-      : isSelected
-        ? {
-            productType: placePricing?.productType ?? [],
-            priceImages: placePricing?.priceImages ?? [],
-            lastUpdatedDate: placePricing?.lastUpdatedAt ?? null,
-          }
-        : {
-            productType: profilePricing?.productType ?? [],
-            priceImages: profilePricing?.priceImages ?? [],
-            lastUpdatedDate: profilePricing?.lastUpdatedAt ?? null,
-          };
+      : {
+          productType: profileProductTypes,
+          priceImages: profilePriceImages,
+          lastUpdatedDate: profilePricing?.lastUpdatedAt ?? null,
+        };
 
     skipNextPersistRef.current = true;
     applyDraftToState(mapPricingToEditDraft(sourcePricing), draftSetters);
     hasHydratedFromSourceRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 소스 데이터 1회 하이드레이션
-  }, [isDirty, isPricingDataReady, isSelected, hasOwnerSavedPricing, placePricing, profilePricing]);
+  }, [isDirty, isPricingDataReady, isSelected, placePricing, profilePricing]);
 
   useEffect(() => {
     if (!hasHydratedDraftRef.current) return;

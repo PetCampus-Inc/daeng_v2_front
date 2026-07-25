@@ -27,18 +27,10 @@ function isReleasePermissionReason(value: unknown): value is ReleasePermissionRe
   );
 }
 
-function saveReleasePermissionReasonDraft(draft: ReleasePermissionReasonDraft) {
-  if (typeof window === 'undefined') return;
-  sessionStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, JSON.stringify(draft));
-}
-
-function loadReleasePermissionReasonDraft(): ReleasePermissionReasonDraft | null {
-  if (typeof window === 'undefined') return null;
+function parseDraft(raw: string | null): ReleasePermissionReasonDraft | null {
+  if (!raw) return null;
 
   try {
-    const raw = sessionStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
-    if (!raw) return null;
-
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
 
@@ -55,8 +47,45 @@ function loadReleasePermissionReasonDraft(): ReleasePermissionReasonDraft | null
   }
 }
 
+/**
+ * Stack WebView 간 공유를 위해 localStorage 사용.
+ * 기존 sessionStorage 값이 있으면 마이그레이션.
+ */
+function readRawDraft(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const fromLocal = localStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  if (fromLocal) return fromLocal;
+
+  const fromSession = sessionStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  if (fromSession) {
+    localStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, fromSession);
+    sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+    return fromSession;
+  }
+
+  return null;
+}
+
+function writeDraft(draft: ReleasePermissionReasonDraft) {
+  localStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, JSON.stringify(draft));
+  sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+}
+
+function saveReleasePermissionReasonDraft(draft: ReleasePermissionReasonDraft) {
+  if (typeof window === 'undefined') return;
+  writeDraft(draft);
+}
+
+function loadReleasePermissionReasonDraft(): ReleasePermissionReasonDraft | null {
+  if (typeof window === 'undefined') return null;
+  return parseDraft(readRawDraft());
+}
+
 function clearReleasePermissionReasonDraft() {
   if (typeof window === 'undefined') return;
+
+  localStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
   sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
 }
 

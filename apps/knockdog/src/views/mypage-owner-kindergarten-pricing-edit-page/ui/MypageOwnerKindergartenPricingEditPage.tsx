@@ -143,6 +143,11 @@ function MypageOwnerKindergartenPricingEditPage() {
           <div className='flex flex-col gap-2 px-4 py-4'>
             <FieldLabel label={ownerMypageContent.kindergartenPricingEditPriceListLabel} required />
             <PhotoUploader
+              key={
+                formData.priceImages
+                  .map((image) => image.key ?? image.uri)
+                  .join('|') || 'price-images-empty'
+              }
               maxCount={5}
               emptyVariant='tile'
               defaultValue={formData.priceImages}

@@ -340,6 +340,9 @@ function MypageOwnerKindergartenEditPage() {
           <div className='flex flex-col gap-2 px-4 pb-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditImageLabel} required />
             <PhotoUploader
+              key={
+                formData.images.map((image) => image.key ?? image.uri).join('|') || 'images-empty'
+              }
               maxCount={5}
               emptyVariant='tile'
               showRepresentativeBadge
