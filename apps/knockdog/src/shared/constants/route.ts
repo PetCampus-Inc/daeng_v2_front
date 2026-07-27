@@ -96,6 +96,16 @@ const route = {
     },
   },
   owner: {
+    /** 원장 일과 탭 */
+    daily: {
+      root: '/owner/daily',
+      notice: {
+        write: {
+          /** 원생별 알림장 작성 페이지 (임시) */
+          root: '/owner/daily/notice/[id]',
+        },
+      },
+    },
     members: {
       /** 원장 구성원 페이지 */
       root: '/owner/members',
