@@ -3,9 +3,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { getKindergartenMain, type AutocompletePlace } from '@entities/kindergarten';
 import { useBasePoint } from '@entities/user';
+import { DEFAULT_MAP_CENTER } from '@features/kindergarten-map/config/map';
 import { searchQueryOptions } from '@features/search';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { isValidCoord } from '@shared/lib';
 
 import { saveSearchPrefill } from '@views/role-conversion/model/kindergartenConfirmParams';
 
@@ -16,10 +18,12 @@ function useKindergartenSearchPage() {
   const isSelectingPlaceRef = useRef(false);
 
   const { coord } = useBasePoint();
+  /** 위치 권한/GPS 없어도 검색 가능하도록 기본 좌표 폴백 */
+  const searchCoord = isValidCoord(coord) ? coord : DEFAULT_MAP_CENTER;
   const trimmedQuery = query.trim();
 
   const { data, isFetching, isFetched } = useQuery({
-    ...searchQueryOptions.autocomplete({ query: trimmedQuery, coord }),
+    ...searchQueryOptions.autocomplete({ query: trimmedQuery, coord: searchCoord }),
   });
 
   const { mutate: selectPlace, isPending: isPlaceSelectPending } = useMutation({

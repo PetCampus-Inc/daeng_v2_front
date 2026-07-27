@@ -20,17 +20,17 @@ const EVENT_CANCEL = 'nav.cancel' as const;
 export function getCurrentTxId(): string | null {
   if (typeof window === 'undefined') return null;
 
-  // 1) history.state._txId
-  const st = window.history?.state as { _txId?: string } | null;
-  if (st && typeof st._txId === 'string' && st._txId.length > 0) {
-    return st._txId;
-  }
-
-  // 2) URL ?_txId=...
+  // 1) URL ?_txId=... — Next가 history.state를 덮어도 유지됨 (네이티브·웹 공통)
   const sp = new URLSearchParams(window.location.search);
   const fromQuery = sp.get('_txId');
   if (fromQuery) {
     return fromQuery;
+  }
+
+  // 2) history.state._txId (레거시 / 주입 직후)
+  const st = window.history?.state as { _txId?: string } | null;
+  if (st && typeof st._txId === 'string' && st._txId.length > 0) {
+    return st._txId;
   }
 
   return null;

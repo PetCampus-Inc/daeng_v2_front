@@ -15,9 +15,6 @@ import {
   IconButton,
   TextField,
   TextFieldInput,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import {
@@ -32,7 +29,6 @@ import {
   type SectionId,
 } from '@views/mypage-owner-kindergarten-edit-page/config/editFormOptions';
 import { useKindergartenEditForm } from '@views/mypage-owner-kindergarten-edit-page/model/useKindergartenEditForm';
-import { AutofillLoadingDialog } from '@views/mypage-owner-kindergarten-edit-page/ui/AutofillLoadingDialog';
 
 import { Header } from '@widgets/Header';
 
@@ -256,20 +252,6 @@ function MypageOwnerKindergartenEditPage() {
     });
   };
 
-  const handleAutofillClick = () => {
-    overlay.open(({ isOpen, close }) => (
-      <AutofillLoadingDialog
-        isOpen={isOpen}
-        getIsPrefillReady={formData.getIsSelectedPrefillReady}
-        onCancel={close}
-        onComplete={() => {
-          if (!formData.applySelectedPrefill()) return;
-          close();
-        }}
-      />
-    ));
-  };
-
   const handleScrollToSection = (sectionId: SectionId) => {
     setActiveSection(sectionId);
 
@@ -291,27 +273,6 @@ function MypageOwnerKindergartenEditPage() {
         </Header.LeftSection>
 
         <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
-
-        {formData.canUseAutofill ? (
-          <div className='relative z-10 ml-auto flex shrink-0 items-center gap-1 rounded px-2 py-1'>
-            <Tooltip placement='bottom-left' offset={4} className='flex items-center'>
-              <TooltipTrigger
-                className='text-text-primary flex size-[18px] items-center justify-center [&_svg]:size-[18px]'
-                aria-label='자동 채우기 안내'
-              />
-              <TooltipContent className='body2-regular max-w-[220px] px-3 py-3 text-left'>
-                {ownerMypageContent.kindergartenEditAutofillTooltip}
-              </TooltipContent>
-            </Tooltip>
-            <button
-              type='button'
-              onClick={handleAutofillClick}
-              className='body2-semibold text-text-primary whitespace-nowrap'
-            >
-              {ownerMypageContent.kindergartenEditAutofillLabel}
-            </button>
-          </div>
-        ) : null}
       </Header>
 
       <div ref={scrollRef} className='flex-1 overflow-y-auto'>
@@ -340,6 +301,9 @@ function MypageOwnerKindergartenEditPage() {
           <div className='flex flex-col gap-2 px-4 pb-4'>
             <FieldLabel label={ownerMypageContent.kindergartenEditImageLabel} required />
             <PhotoUploader
+              key={
+                formData.images.map((image) => image.key ?? image.uri).join('|') || 'images-empty'
+              }
               maxCount={5}
               emptyVariant='tile'
               showRepresentativeBadge

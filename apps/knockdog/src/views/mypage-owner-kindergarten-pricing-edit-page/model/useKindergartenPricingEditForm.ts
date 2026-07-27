@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePricingQuery } from '@features/pricing';
 import { useOwnerKindergarten } from '@features/role-conversion';
 import {
+  mapOwnerSchoolProfilePricing,
   usePutOwnerSchoolPriceMutation,
   type OwnerSchoolPricingType,
 } from '@entities/owner-school';
@@ -37,14 +38,25 @@ function applyDraftToState(
   setters.setIsDirty(draft.isDirty);
 }
 
+function isMeaningfulPricingDraft(draft: PricingEditFormDraft) {
+  return draft.productTypes.length > 0 || draft.priceImages.length > 0;
+}
+
 function useKindergartenPricingEditForm() {
   const { back } = useStackNavigation();
-  const { source, kindergartenId, pricing: profilePricing, hasOwnerSavedPricing, isProfileLoading } =
-    useOwnerKindergarten();
+  const {
+    source,
+    kindergartenId,
+    profile,
+    pricing: savedPricing,
+    isProfileLoading,
+    isResolved,
+  } = useOwnerKindergarten();
   const isSelected = source === 'search';
 
+  /** SELECTED면 place pricing 항상 조회 — profile 비었을 때 폴백용 */
   const placePricingQuery = usePricingQuery(kindergartenId ?? '', {
-    enabled: isSelected && !hasOwnerSavedPricing && Boolean(kindergartenId),
+    enabled: isSelected && Boolean(kindergartenId),
   });
   const { mutateAsync: moveImageAsync } = useMoveImageMutation();
   const { mutateAsync: putPriceAsync, isPending: isSaving } = usePutOwnerSchoolPriceMutation({
@@ -52,9 +64,13 @@ function useKindergartenPricingEditForm() {
   });
 
   const placePricing = placePricingQuery.data;
-  const isPricingDataReady = isSelected
-    ? hasOwnerSavedPricing || !kindergartenId || placePricingQuery.isFetched
-    : !isProfileLoading;
+  /** 저장된 school profile 요금(필터링되지 않은 raw). SELECTED 미저장이어도 profile 값 활용 */
+  const profilePricing = profile ? mapOwnerSchoolProfilePricing(profile) : savedPricing;
+  /** role/profile 준비 후에만 ready. placeId 없는 SELECTED는 profile만으로 진행 */
+  const isPricingDataReady =
+    isResolved &&
+    !isProfileLoading &&
+    (!isSelected || !kindergartenId || placePricingQuery.isFetched);
 
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [priceImages, setPriceImages] = useState<WebImageAsset[]>([]);
@@ -62,10 +78,13 @@ function useKindergartenPricingEditForm() {
   const [isDirty, setIsDirty] = useState(false);
 
   const skipNextPersistRef = useRef(false);
-  const hasHydratedDraftRef = useRef(false);
   const hasHydratedFromSourceRef = useRef(false);
   /** dirty draft를 setState보다 먼저 잠궈 source hydration 덮어쓰기 방지 */
   const hasRestoredDirtyDraftRef = useRef(false);
+  /** ref가 아니라 state — draft sync 완료 후 source hydration effect가 다시 돌도록 */
+  const [isDraftSyncDone, setIsDraftSyncDone] = useState(false);
+  /** draft restore 시 persist effect가 반드시 돌도록 해 skip 플래그를 소비 */
+  const [draftRestoreTick, setDraftRestoreTick] = useState(0);
 
   const draftSetters = {
     setProductTypes,
@@ -90,35 +109,43 @@ function useKindergartenPricingEditForm() {
   };
 
   useEffect(() => {
-    function syncDraftFromStorage() {
-      if (document.visibilityState === 'hidden') return;
+    function syncDraftFromStorage(options?: { ignoreVisibility?: boolean }) {
+      // WebView는 최초 mount 시 visibilityState=hidden 인 경우가 있음.
+      if (!options?.ignoreVisibility && document.visibilityState === 'hidden') return;
 
       const draft = loadPricingEditFormDraft();
-      if (draft?.isDirty) {
+      if (draft?.isDirty && isMeaningfulPricingDraft(draft)) {
         hasRestoredDirtyDraftRef.current = true;
         skipNextPersistRef.current = true;
         applyDraftToState(draft, draftSetters);
+        // 동일 state면 persist effect가 스킵되어 skip 플래그가 남는 것 방지
+        setDraftRestoreTick((tick) => tick + 1);
+      } else if (draft?.isDirty) {
+        clearPricingEditFormDraft();
       }
 
-      hasHydratedDraftRef.current = true;
+      setIsDraftSyncDone(true);
     }
 
-    syncDraftFromStorage();
+    syncDraftFromStorage({ ignoreVisibility: true });
 
-    window.addEventListener('pageshow', syncDraftFromStorage);
-    window.addEventListener(PRICING_EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
-    document.addEventListener('visibilitychange', syncDraftFromStorage);
+    const handlePageShow = () => syncDraftFromStorage({ ignoreVisibility: true });
+    const handleVisibilityChange = () => syncDraftFromStorage();
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener(PRICING_EDIT_FORM_DRAFT_UPDATED_EVENT, handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('pageshow', syncDraftFromStorage);
-      window.removeEventListener(PRICING_EDIT_FORM_DRAFT_UPDATED_EVENT, syncDraftFromStorage);
-      document.removeEventListener('visibilitychange', syncDraftFromStorage);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener(PRICING_EDIT_FORM_DRAFT_UPDATED_EVENT, handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount 시 draft 동기화만
   }, []);
 
   useEffect(() => {
-    if (!hasHydratedDraftRef.current) return;
+    if (!isDraftSyncDone) return;
     if (hasHydratedFromSourceRef.current) return;
 
     if (hasRestoredDirtyDraftRef.current) {
@@ -130,44 +157,49 @@ function useKindergartenPricingEditForm() {
       hasHydratedFromSourceRef.current = true;
       return;
     }
+
     if (!isPricingDataReady) return;
 
-    const sourcePricing = hasOwnerSavedPricing
+    const profileProductTypes = profilePricing?.productType ?? [];
+    const profilePriceImages = profilePricing?.priceImages ?? [];
+    const placeProductTypes = placePricing?.productType ?? [];
+    const placePriceImages = placePricing?.priceImages ?? [];
+
+    /** profile 상품유형/가격표 비면 place 폴백 */
+    const sourcePricing = isSelected
       ? {
-          productType: profilePricing?.productType ?? [],
-          priceImages: profilePricing?.priceImages ?? [],
-          lastUpdatedDate: profilePricing?.lastUpdatedAt ?? null,
+          productType:
+            profileProductTypes.length > 0 ? profileProductTypes : placeProductTypes,
+          priceImages: profilePriceImages.length > 0 ? profilePriceImages : placePriceImages,
+          lastUpdatedDate:
+            profilePricing?.lastUpdatedAt ?? placePricing?.lastUpdatedAt ?? null,
         }
-      : isSelected
-        ? {
-            productType: placePricing?.productType ?? [],
-            priceImages: placePricing?.priceImages ?? [],
-            lastUpdatedDate: placePricing?.lastUpdatedAt ?? null,
-          }
-        : {
-            productType: profilePricing?.productType ?? [],
-            priceImages: profilePricing?.priceImages ?? [],
-            lastUpdatedDate: profilePricing?.lastUpdatedAt ?? null,
-          };
+      : {
+          productType: profileProductTypes,
+          priceImages: profilePriceImages,
+          lastUpdatedDate: profilePricing?.lastUpdatedAt ?? null,
+        };
 
     skipNextPersistRef.current = true;
     applyDraftToState(mapPricingToEditDraft(sourcePricing), draftSetters);
     hasHydratedFromSourceRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 소스 데이터 1회 하이드레이션
-  }, [isDirty, isPricingDataReady, isSelected, hasOwnerSavedPricing, placePricing, profilePricing]);
+  }, [isDraftSyncDone, isDirty, isPricingDataReady, isSelected, placePricing, profilePricing]);
 
   useEffect(() => {
-    if (!hasHydratedDraftRef.current) return;
-    if (!hasHydratedFromSourceRef.current) return;
+    if (!isDraftSyncDone) return;
 
+    // restore tick으로 effect가 돌 때 hydration 전이어도 skip은 소비해야 함
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
       return;
     }
 
+    if (!hasHydratedFromSourceRef.current) return;
+
     persistDraft(isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 폼 필드 변경 시에만 draft 저장
-  }, [productTypes, priceImages, lastUpdatedDate, isDirty]);
+  }, [draftRestoreTick, productTypes, priceImages, lastUpdatedDate, isDirty]);
 
   const markDirty = () => {
     if (!isDirty) setIsDirty(true);

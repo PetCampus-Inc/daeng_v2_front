@@ -48,7 +48,8 @@ function PhotoUploader({
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
 
   useEffect(() => {
-    if (defaultValue) {
+    // undefined만 skip — 빈 배열([])도 autofill/초기화 반영
+    if (defaultValue !== undefined) {
       setAssets(defaultValue);
     }
   }, [defaultValue]);

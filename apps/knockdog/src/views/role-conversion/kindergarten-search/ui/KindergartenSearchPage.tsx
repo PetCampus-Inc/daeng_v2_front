@@ -37,8 +37,9 @@ function KindergartenSearchPage() {
         />
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col px-4 pt-3 pb-5'>
-        <div className='flex shrink-0 flex-col gap-5'>
+      {/* 키보드 올라와도 리스트가 보이도록 타이틀·인풋·리스트를 한 스크롤로 합침 */}
+      <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-3 pb-5'>
+        <div className='flex flex-col gap-5'>
           <h1 className='h1-extrabold'>
             {kindergartenSearchContent.titleLine1}
             <br />
@@ -84,8 +85,8 @@ function KindergartenSearchPage() {
           {isSearchEmpty && <KindergartenSearchEmptyResult />}
         </div>
 
-        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto pt-4'>
-          {hasQuery && places.length > 0 && (
+        {hasQuery && places.length > 0 && (
+          <div className='pt-4'>
             <KindergartenSearchPlaceList
               places={places}
               query={query}
@@ -93,8 +94,8 @@ function KindergartenSearchPage() {
               isPlaceSelectPending={isPlaceSelectPending}
               onPlaceSelect={handlePlaceSelect}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

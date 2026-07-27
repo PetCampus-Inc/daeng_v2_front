@@ -21,15 +21,16 @@ import { useUserStore } from '@entities/user';
  * 원장 마이페이지 유치원 정보.
  *
  * - SELECTED: `placeId` → kindergarten/basic·main (운영·배너).
+ *   단 원장이 운영 정보를 저장한 적 있으면 school profile 우선.
  *   요금은 place pricing, 단 원장이 PUT price로 저장한 적 있으면 school profile 우선.
  * - MANUAL: `GET owner/school/profile` (운영·요금).
- * - 자동 채우기: 저장본(schoolProfileId) 있으면 profile 최신값,
- *   없으면 SELECTED place. MANUAL은 저장 1회+부터 노출.
+ * - 수정 폼 프리필: 저장본(schoolProfileId) 있으면 profile 최신값,
+ *   없으면 SELECTED place. MANUAL은 저장 1회+부터 프리필.
  * - placeId 우선순위: owner/role.placeId → profile.kindergartenPlaceId
  */
 function useOwnerKindergarten() {
   const user = useUserStore((state) => state.user);
-  const { kindergarten, owner, isOwner, placeId } = useOwnerRole();
+  const { kindergarten, owner, isOwner, placeId, isResolved } = useOwnerRole();
 
   const source = kindergarten?.source ?? null;
   const isSelected = source === 'search';
@@ -77,12 +78,21 @@ function useOwnerKindergarten() {
   const profileBasic = profile ? mapOwnerSchoolProfileToBasic(profile) : undefined;
   const profilePricing = profile ? mapOwnerSchoolProfilePricing(profile) : undefined;
 
+  /** MANUAL/SELECTED 공통: 운영 정보 저장 1회 이상(= schoolProfileId) */
+  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
+
   /** 원장이 PUT /owner/school/price 로 저장한 요금 */
   const hasOwnerSavedPricing =
     (profilePricing?.productType.length ?? 0) > 0 ||
     (profilePricing?.priceImages.length ?? 0) > 0;
 
-  const basic = isSelected && placeBasic ? placeBasic : profileBasic;
+  /** 저장본 있으면 profile(최신 lastUpdatedAt 포함), 없으면 SELECTED place */
+  const basic =
+    hasSavedSchoolProfile && profileBasic
+      ? profileBasic
+      : isSelected && placeBasic
+        ? placeBasic
+        : profileBasic;
   // SELECTED: 저장 전에는 place(탭에서 kindergartenId), 저장 후엔 profile
   const pricing = !isSelected || hasOwnerSavedPricing ? profilePricing : undefined;
 
@@ -115,11 +125,8 @@ function useOwnerKindergarten() {
    */
   const phoneNumber = schoolPhoneNumber || placePhoneNumber;
 
-  /** MANUAL: 운영 정보 저장 1회 이상(= schoolProfileId) */
-  const hasSavedSchoolProfile = profile?.schoolProfileId != null;
-
   /**
-   * 자동 채우기 소스: 저장본 있으면 school profile 최신값,
+   * 수정 폼 프리필 소스: 저장본 있으면 school profile 최신값,
    * 없으면 SELECTED place basic/main.
    */
   const autofillName = (
@@ -152,7 +159,16 @@ function useOwnerKindergarten() {
       ? placeBasic
       : profileBasic;
 
-  const autofillBannerKeys = hasSavedSchoolProfile ? profileBannerKeys : bannerKeys;
+  /** profile 배너가 비면 place main.banner 폴백 (저장본만 보고 [] 되는 문제 방지) */
+  const autofillBannerKeys =
+    profileBannerKeys.length > 0
+      ? profileBannerKeys
+      : isSelected
+        ? (main?.banner ?? [])
+        : profileBannerKeys;
+
+  const needsPlaceBannerFallback =
+    isSelected && profileBannerKeys.length === 0 && Boolean(resolvedPlaceId);
 
   /** SELECTED: placeId 없으면 즉시, 있으면 basic(+main) 조회 완료 후 */
   const isSelectedPrefillReady =
@@ -160,11 +176,12 @@ function useOwnerKindergarten() {
     (!resolvedPlaceId ||
       (placeBasicQuery.isFetched && (coord == null || mainQuery.isFetched)));
 
-  /** SELECTED 항상, MANUAL은 저장 이후 — 자동 채우기 동일 UX */
+  /** SELECTED 항상, MANUAL은 저장 이후 — 수정 폼 프리필 가능 여부 */
   const canUseAutofill = isSelected || hasSavedSchoolProfile;
 
+  /** 배너 폴백이 필요하면 main 준비될 때까지 대기 */
   const isAutofillPrefillReady = hasSavedSchoolProfile
-    ? profile != null
+    ? profile != null && (!needsPlaceBannerFallback || isSelectedPrefillReady)
     : isSelectedPrefillReady;
 
   return {
@@ -197,6 +214,8 @@ function useOwnerKindergarten() {
     canUseAutofill,
     isAutofillPrefillReady,
     isSelectedPrefillReady,
+    /** owner/role 조회 완료 여부 — 수정 폼 프리필 레이스 가드용 */
+    isResolved,
     isProfileLoading: isOwner && isLoading,
     isProfileError: isOwner && isError,
   };
