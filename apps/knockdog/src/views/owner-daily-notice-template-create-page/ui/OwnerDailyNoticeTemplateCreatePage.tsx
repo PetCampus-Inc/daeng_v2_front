@@ -4,10 +4,12 @@ import { useState } from 'react';
 
 import { ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 
+import { addOwnerNoticeTemplate } from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateCreateContent } from '@views/owner-daily-notice-template-create-page/config/ownerDailyNoticeTemplateCreateContent';
 
 import { Header } from '@widgets/Header';
 
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 import { TemplateContentTextarea } from './TemplateContentTextarea';
@@ -29,6 +31,7 @@ function FieldLabel({ label }: FieldLabelProps) {
  * 원장 일과 탭 — 알림장 템플릿 생성
  */
 function OwnerDailyNoticeTemplateCreatePage() {
+  const { back } = useStackNavigation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
@@ -37,7 +40,11 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const handleCreateClick = () => {
     if (!isCreateEnabled) return;
 
-    // @todo 템플릿 생성 API 연동
+    addOwnerNoticeTemplate({
+      title: title.trim(),
+      content: content.trim(),
+    });
+    back();
   };
 
   return (

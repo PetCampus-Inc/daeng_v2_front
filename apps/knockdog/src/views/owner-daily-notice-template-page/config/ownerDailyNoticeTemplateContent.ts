@@ -5,8 +5,3 @@ export const ownerDailyNoticeTemplateContent = Object.freeze({
   createTemplateLabel: '템플릿 생성하기',
   loadTemplateLabel: '템플릿 불러오기',
 });
-
-/** 퍼블리싱용 목 템플릿 개수 (API 연동 전) */
-const NOTICE_TEMPLATE_MOCK_COUNT = 0;
-
-export { NOTICE_TEMPLATE_MOCK_COUNT };
