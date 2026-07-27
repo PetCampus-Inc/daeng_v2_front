@@ -1,25 +1,45 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  ActionButton,
+  Icon,
+  TextField,
+  TextFieldInput,
+  Textarea,
+  TextareaInput,
+} from '@knockdog/ui';
+import Image from 'next/image';
 
-import { Icon } from '@knockdog/ui';
+import {
+  CONDITION_OPTIONS,
+  NOTICE_WRITE_STOOL_OPTIONS,
+  ownerDailyNoticeWriteContent,
+  type ConditionOptionId,
+  type NoticeWriteStoolStatus,
+} from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
+import { formatNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
 
 import { Header } from '@widgets/Header';
 
 import {
-  CONDITION_OPTIONS,
-  NOTICE_WRITE_SECTIONS,
-  ownerDailyNoticeWriteContent,
-  type ConditionOptionId,
-} from '../config/ownerDailyNoticeWriteContent';
-import { formatNoticeWriteDate } from '../lib/formatNoticeWriteDate';
+  STOOL_STATUS_DEFAULT_IMAGE,
+  STOOL_STATUS_IMAGE,
+  STOOL_STATUS_LABEL,
+} from '@shared/ui/stool-status';
 
 /**
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
- * 날짜·컨디션까지 퍼블리싱, 나머지 섹션은 라벨만
+ * 날짜·컨디션·간식·배변·알림장 섹션 퍼블리싱
  */
 function OwnerDailyNoticeWritePage() {
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
+  const [snack, setSnack] = useState('');
+  const [selectedStoolStatus, setSelectedStoolStatus] = useState<NoticeWriteStoolStatus | null>(
+    null
+  );
+  const [stoolMemo, setStoolMemo] = useState('');
+  const [notice, setNotice] = useState('');
   const noticeDateLabel = formatNoticeWriteDate(new Date());
 
   return (
@@ -57,7 +77,7 @@ function OwnerDailyNoticeWritePage() {
 
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px]'>
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
-          <div className='flex items-center px-4 py-4'>
+          <div className='flex items-center px-4 py-8'>
             <p className='h2-semibold text-text-primary'>{noticeDateLabel}</p>
           </div>
 
@@ -81,7 +101,7 @@ function OwnerDailyNoticeWritePage() {
                     }
                     className={`body2-semibold rounded-full border-[1.4px] px-3 py-2 ${
                       isSelected
-                        ? 'border-fill-secondary-700 bg-fill-secondary-700 text-text-primary-inverse'
+                        ? 'border-fill-line-accent bg-fill-primary-50 text-text-accent'
                         : 'border-line-200 bg-fill-secondary-0 text-text-primary'
                     }`}
                   >
@@ -92,11 +112,101 @@ function OwnerDailyNoticeWritePage() {
             </div>
           </section>
 
-          {NOTICE_WRITE_SECTIONS.map((section) => (
-            <section key={section.id} className='flex flex-col gap-2 px-4 py-4'>
-              <h2 className='body2-bold text-text-primary'>{section.label}</h2>
-            </section>
-          ))}
+          <section className='flex flex-col gap-2 px-4 py-4'>
+            <h2 className='body2-bold text-text-primary'>
+              {ownerDailyNoticeWriteContent.snackSectionLabel}
+            </h2>
+            <TextField variant='secondary'>
+              <TextFieldInput
+                value={snack}
+                maxLength={ownerDailyNoticeWriteContent.snackMaxLength}
+                placeholder={ownerDailyNoticeWriteContent.snackPlaceholder}
+                onChange={(event) => setSnack(event.target.value)}
+              />
+            </TextField>
+          </section>
+
+          <section className='flex flex-col gap-4 px-4 py-4'>
+            <div className='flex flex-col gap-2'>
+              <h2 className='body2-bold text-text-primary'>
+                {ownerDailyNoticeWriteContent.stoolSectionLabel}
+              </h2>
+              <div className='flex items-center justify-between'>
+                {NOTICE_WRITE_STOOL_OPTIONS.map((status) => {
+                  const isSelected = selectedStoolStatus === status;
+                  const label = STOOL_STATUS_LABEL[status];
+
+                  return (
+                    <button
+                      key={status}
+                      type='button'
+                      aria-pressed={isSelected}
+                      aria-label={label}
+                      onClick={() =>
+                        setSelectedStoolStatus((current) =>
+                          current === status ? null : status
+                        )
+                      }
+                      className='flex w-16 flex-col items-center gap-1'
+                    >
+                      <div className='relative h-[62px] w-16 shrink-0 overflow-hidden rounded-lg'>
+                        <Image
+                          src={
+                            isSelected
+                              ? STOOL_STATUS_IMAGE[status]
+                              : STOOL_STATUS_DEFAULT_IMAGE[status]
+                          }                          alt=''
+                          fill
+                          className='object-contain'
+                          sizes='64px'
+                        />
+                      </div>
+                      <span
+                        className={`label-medium ${
+                          isSelected ? 'text-text-accent' : 'text-text-tertiary'
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <TextField variant='secondary'>
+              <TextFieldInput
+                value={stoolMemo}
+                maxLength={ownerDailyNoticeWriteContent.stoolMemoMaxLength}
+                placeholder={ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
+                onChange={(event) => setStoolMemo(event.target.value)}
+              />
+            </TextField>
+          </section>
+
+          <section className='flex flex-col gap-2 px-4 py-4'>
+            <div className='flex items-center justify-between gap-2'>
+              <h2 className='body2-bold text-text-primary'>
+                {ownerDailyNoticeWriteContent.noticeSectionLabel}
+              </h2>
+              <ActionButton
+                type='button'
+                variant='secondaryLine'
+                size='small'
+                className='caption2-semibold h-auto w-auto shrink-0 px-3 py-2'
+              >
+                {ownerDailyNoticeWriteContent.loadTemplateLabel}
+              </ActionButton>
+            </div>
+            <Textarea variant='default' className='h-[100px]'>
+              <TextareaInput
+                value={notice}
+                maxLength={ownerDailyNoticeWriteContent.noticeMaxLength}
+                placeholder={ownerDailyNoticeWriteContent.noticePlaceholder}
+                onChange={(event) => setNotice(event.target.value)}
+              />
+            </Textarea>
+          </section>
         </div>
       </div>
     </div>
