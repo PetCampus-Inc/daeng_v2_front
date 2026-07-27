@@ -54,22 +54,40 @@ function parseDraft(raw: string | null): ReleasePermissionReasonDraft | null {
 function readRawDraft(): string | null {
   if (typeof window === 'undefined') return null;
 
-  const fromLocal = localStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
-  if (fromLocal) return fromLocal;
+  try {
+    const fromLocal = localStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+    if (fromLocal) return fromLocal;
 
-  const fromSession = sessionStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
-  if (fromSession) {
-    localStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, fromSession);
-    sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
-    return fromSession;
+    const fromSession = sessionStorage.getItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+    if (fromSession) {
+      try {
+        localStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, fromSession);
+        sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+      } catch {
+      }
+      return fromSession;
+    }
+  } catch {
+    return null;
   }
 
   return null;
 }
 
 function writeDraft(draft: ReleasePermissionReasonDraft) {
-  localStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, JSON.stringify(draft));
-  sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  if (typeof window === 'undefined') return;
+
+  try {
+    localStorage.setItem(RELEASE_PERMISSION_REASON_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // quota/private mode — 호출부(saveDraft 등)로 예외 전파하지 않음
+  }
+
+  try {
+    sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 function saveReleasePermissionReasonDraft(draft: ReleasePermissionReasonDraft) {
@@ -85,8 +103,17 @@ function loadReleasePermissionReasonDraft(): ReleasePermissionReasonDraft | null
 function clearReleasePermissionReasonDraft() {
   if (typeof window === 'undefined') return;
 
-  localStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
-  sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  try {
+    localStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+
+  try {
+    sessionStorage.removeItem(RELEASE_PERMISSION_REASON_DRAFT_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 function toRevokeOwnerRoleRequest(draft: ReleasePermissionReasonDraft) {
