@@ -104,6 +104,10 @@ const route = {
           /** 원생별 알림장 작성 페이지 (임시) */
           root: '/owner/daily/notice/[id]',
         },
+        template: {
+          /** 알림장 템플릿 목록 페이지 */
+          root: '/owner/daily/notice/[id]/template',
+        },
       },
     },
     members: {

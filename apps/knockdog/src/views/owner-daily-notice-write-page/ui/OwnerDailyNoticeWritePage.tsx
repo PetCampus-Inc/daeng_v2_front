@@ -1,5 +1,6 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import {
   ActionButton,
@@ -19,6 +20,9 @@ import { createNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/
 
 import { Header } from '@widgets/Header';
 
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
+
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import {
@@ -34,6 +38,9 @@ import { ShortMemoTextarea } from './ShortMemoTextarea';
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
  */
 function OwnerDailyNoticeWritePage() {
+  const params = useParams<{ id: string }>();
+  const noticeId = params?.id;
+  const { push } = useStackNavigation();
   const student = NOTICE_WRITE_MOCK_STUDENT;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
@@ -52,6 +59,14 @@ function OwnerDailyNoticeWritePage() {
     selectedStoolStatus !== null ||
     stoolMemo.trim().length > 0 ||
     notice.trim().length > 0;
+
+  const handleLoadTemplateClick = () => {
+    if (!noticeId) return;
+
+    push({
+      pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
+    });
+  };
 
   return (
     <div
@@ -215,6 +230,7 @@ function OwnerDailyNoticeWritePage() {
                 variant='secondaryLine'
                 size='small'
                 className='caption2-semibold h-auto w-auto shrink-0 px-3 py-2'
+                onClick={handleLoadTemplateClick}
               >
                 {ownerDailyNoticeWriteContent.loadTemplateLabel}
               </ActionButton>
