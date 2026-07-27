@@ -1,17 +1,33 @@
 'use client';
 
+import type { MouseEvent } from 'react';
+
 import { RadioGroupItem } from '@knockdog/ui';
 
 import type { OwnerNoticeTemplate } from '@entities/owner-notice-template';
 
 interface OwnerNoticeTemplateRadioCardProps {
   template: OwnerNoticeTemplate;
+  isSelected: boolean;
+  onPreview: (template: OwnerNoticeTemplate) => void;
 }
 
-function OwnerNoticeTemplateRadioCard({ template }: OwnerNoticeTemplateRadioCardProps) {
+function OwnerNoticeTemplateRadioCard({
+  template,
+  isSelected,
+  onPreview,
+}: OwnerNoticeTemplateRadioCardProps) {
+  const handleClick = (event: MouseEvent<HTMLLabelElement>) => {
+    if (!isSelected) return;
+
+    event.preventDefault();
+    onPreview(template);
+  };
+
   return (
     <label
       htmlFor={template.id}
+      onClick={handleClick}
       className='bg-bg-0 border-line-200 radius-r3 flex w-full cursor-pointer flex-col border p-4'
     >
       <div className='flex items-start gap-2 opacity-80'>

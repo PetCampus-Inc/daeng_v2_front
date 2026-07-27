@@ -1,18 +1,22 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
 import { ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 
-import { addOwnerNoticeTemplate } from '@entities/owner-notice-template';
+import {
+  addOwnerNoticeTemplate,
+  getOwnerNoticeTemplatesSnapshot,
+  updateOwnerNoticeTemplate,
+} from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateCreateContent } from '@views/owner-daily-notice-template-create-page/config/ownerDailyNoticeTemplateCreateContent';
+import { TemplateContentTextarea } from '@views/owner-daily-notice-template-create-page/ui/TemplateContentTextarea';
 
 import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
-
-import { TemplateContentTextarea } from './TemplateContentTextarea';
 
 interface FieldLabelProps {
   label: string;
@@ -27,23 +31,41 @@ function FieldLabel({ label }: FieldLabelProps) {
   );
 }
 
+function getEditingTemplate(editingTemplateId: string | null) {
+  if (!editingTemplateId) return null;
+
+  return (
+    getOwnerNoticeTemplatesSnapshot().find((item) => item.id === editingTemplateId) ?? null
+  );
+}
+
 /**
- * 원장 일과 탭 — 알림장 템플릿 생성
+ * 원장 일과 탭 — 알림장 템플릿 생성/수정
  */
 function OwnerDailyNoticeTemplateCreatePage() {
+  const searchParams = useSearchParams();
+  const editingTemplateId = searchParams.get('templateId');
+  const editingTemplate = getEditingTemplate(editingTemplateId);
   const { back } = useStackNavigation();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState(() => editingTemplate?.title ?? '');
+  const [content, setContent] = useState(() => editingTemplate?.content ?? '');
 
-  const isCreateEnabled = title.trim().length > 0 && content.trim().length > 0;
+  const isSaveEnabled = title.trim().length > 0 && content.trim().length > 0;
 
-  const handleCreateClick = () => {
-    if (!isCreateEnabled) return;
+  const handleSaveClick = () => {
+    if (!isSaveEnabled) return;
 
-    addOwnerNoticeTemplate({
+    const input = {
       title: title.trim(),
       content: content.trim(),
-    });
+    };
+
+    if (editingTemplateId) {
+      updateOwnerNoticeTemplate(editingTemplateId, input);
+    } else {
+      addOwnerNoticeTemplate(input);
+    }
+
     back();
   };
 
@@ -87,8 +109,8 @@ function OwnerDailyNoticeTemplateCreatePage() {
               variant='secondaryFill'
               size='large'
               className='w-full'
-              disabled={!isCreateEnabled}
-              onClick={handleCreateClick}
+              disabled={!isSaveEnabled}
+              onClick={handleSaveClick}
             >
               {ownerDailyNoticeTemplateCreateContent.createButtonLabel}
             </ActionButton>

@@ -93,10 +93,70 @@ function addOwnerNoticeTemplate(input: CreateOwnerNoticeTemplateInput): OwnerNot
   return template;
 }
 
+function updateOwnerNoticeTemplate(
+  id: string,
+  input: CreateOwnerNoticeTemplateInput
+): OwnerNoticeTemplate | null {
+  const templates = getOwnerNoticeTemplatesSnapshot();
+  const index = templates.findIndex((template) => template.id === id);
+
+  if (index === -1) return null;
+
+  const existingTemplate = templates[index];
+
+  if (!existingTemplate) return null;
+
+  const updatedTemplate: OwnerNoticeTemplate = {
+    id: existingTemplate.id,
+    title: input.title,
+    content: input.content,
+    createdAt: existingTemplate.createdAt,
+  };
+
+  const nextTemplates = [...templates];
+  nextTemplates[index] = updatedTemplate;
+  saveOwnerNoticeTemplates(nextTemplates);
+
+  return updatedTemplate;
+}
+
+function deleteOwnerNoticeTemplate(id: string): boolean {
+  const templates = getOwnerNoticeTemplatesSnapshot();
+  const nextTemplates = templates.filter((template) => template.id !== id);
+
+  if (nextTemplates.length === templates.length) return false;
+
+  saveOwnerNoticeTemplates(nextTemplates);
+
+  return true;
+}
+
+function saveLoadedNoticeTemplateContent(content: string) {
+  if (typeof window === 'undefined') return;
+
+  sessionStorage.setItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD, content);
+}
+
+function consumeLoadedNoticeTemplateContent(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const content = sessionStorage.getItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
+
+  if (!content) return null;
+
+  sessionStorage.removeItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
+
+  return content;
+}
+
 export {
   addOwnerNoticeTemplate,
+  consumeLoadedNoticeTemplateContent,
+  deleteOwnerNoticeTemplate,
   getOwnerNoticeTemplatesSnapshot,
+  saveLoadedNoticeTemplateContent,
   subscribeOwnerNoticeTemplates,
+  updateOwnerNoticeTemplate,
   type CreateOwnerNoticeTemplateInput,
   type OwnerNoticeTemplate,
 };

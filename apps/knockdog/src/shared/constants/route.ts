@@ -111,6 +111,10 @@ const route = {
             /** 알림장 템플릿 생성 페이지 */
             root: '/owner/daily/notice/[id]/template/create',
           },
+          detail: {
+            /** 알림장 템플릿 상세 페이지 */
+            root: '/owner/daily/notice/[id]/template/[templateId]',
+          },
         },
       },
     },

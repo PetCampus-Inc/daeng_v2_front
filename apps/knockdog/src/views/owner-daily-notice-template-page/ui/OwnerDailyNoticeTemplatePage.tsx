@@ -5,13 +5,17 @@ import { useParams } from 'next/navigation';
 import { ActionButton, Icon, RadioGroup } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
-import { useOwnerNoticeTemplates } from '@entities/owner-notice-template';
+import {
+  saveLoadedNoticeTemplateContent,
+  type OwnerNoticeTemplate,
+  useOwnerNoticeTemplates,
+} from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateContent } from '@views/owner-daily-notice-template-page/config/ownerDailyNoticeTemplateContent';
 
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 import { OwnerNoticeTemplateRadioCard } from './OwnerNoticeTemplateRadioCard';
@@ -22,7 +26,8 @@ import { OwnerNoticeTemplateRadioCard } from './OwnerNoticeTemplateRadioCard';
 function OwnerDailyNoticeTemplatePage() {
   const params = useParams<{ id: string }>();
   const noticeId = params?.id;
-  const { push } = useStackNavigation();
+  const { back, push } = useStackNavigation();
+  const navResult = useNavigationResult<{ content: string }>();
   const {
     templates,
     selectedTemplateId,
@@ -39,6 +44,30 @@ function OwnerDailyNoticeTemplatePage() {
     push({
       pathname: route.owner.daily.notice.template.create.root.replace('[id]', noticeId),
     });
+  };
+
+  const handlePreviewTemplate = (template: OwnerNoticeTemplate) => {
+    if (!noticeId) return;
+
+    push({
+      pathname: route.owner.daily.notice.template.detail.root
+        .replace('[id]', noticeId)
+        .replace('[templateId]', template.id),
+    });
+  };
+
+  const handleLoadTemplateClick = () => {
+    const template = templates.find((item) => item.id === selectedTemplateId);
+
+    if (!template) return;
+
+    try {
+      navResult.send({ content: template.content });
+    } catch {
+      saveLoadedNoticeTemplateContent(template.content);
+    }
+
+    back();
   };
 
   return (
@@ -60,7 +89,12 @@ function OwnerDailyNoticeTemplatePage() {
             className='gap-4'
           >
             {templates.map((template) => (
-              <OwnerNoticeTemplateRadioCard key={template.id} template={template} />
+              <OwnerNoticeTemplateRadioCard
+                key={template.id}
+                template={template}
+                isSelected={selectedTemplateId === template.id}
+                onPreview={handlePreviewTemplate}
+              />
             ))}
           </RadioGroup>
         </div>
@@ -100,6 +134,7 @@ function OwnerDailyNoticeTemplatePage() {
                 'disabled:!text-text-secondary-inverse data-[disabled]:!text-text-secondary-inverse'
             )}
             disabled={!isLoadTemplateEnabled}
+            onClick={handleLoadTemplateClick}
           >
             {ownerDailyNoticeTemplateContent.loadTemplateLabel}
           </ActionButton>

@@ -18,6 +18,8 @@ import {
 } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 import { createNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
 
+import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
+
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
@@ -40,7 +42,7 @@ import { ShortMemoTextarea } from './ShortMemoTextarea';
 function OwnerDailyNoticeWritePage() {
   const params = useParams<{ id: string }>();
   const noticeId = params?.id;
-  const { push } = useStackNavigation();
+  const { pushForResult } = useStackNavigation();
   const student = NOTICE_WRITE_MOCK_STUDENT;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
@@ -50,7 +52,6 @@ function OwnerDailyNoticeWritePage() {
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
   const [noticeWriteDate] = useState(() => createNoticeWriteDate());
-
   const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
   const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
   const isSendEnabled =
@@ -60,14 +61,22 @@ function OwnerDailyNoticeWritePage() {
     stoolMemo.trim().length > 0 ||
     notice.trim().length > 0;
 
-  const handleLoadTemplateClick = () => {
+  const handleLoadTemplateClick = async () => {
     if (!noticeId) return;
 
-    push({
-      pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
-    });
-  };
+    try {
+      const result = await pushForResult<{ content: string }>({
+        pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
+      });
+      setNotice(result.content);
+    } catch {
+      const loadedContent = consumeLoadedNoticeTemplateContent();
 
+      if (loadedContent) {
+        setNotice(loadedContent);
+      }
+    }
+  };
   return (
     <div
       className='flex h-dvh flex-col'
