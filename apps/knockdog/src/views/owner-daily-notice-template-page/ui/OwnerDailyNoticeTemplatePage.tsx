@@ -26,11 +26,6 @@ function OwnerDailyNoticeTemplatePage() {
             <Header.BackButton />
           </Header.LeftSection>
           <Header.Title>{ownerDailyNoticeTemplateContent.pageTitle}</Header.Title>
-          <Header.RightSection>
-            <button type='button' className='body2-semibold text-text-primary h-x7 radius-r1'>
-              {ownerDailyNoticeTemplateContent.manageLabel}
-            </button>
-          </Header.RightSection>
         </Header>
       </div>
 
