@@ -1,5 +1,7 @@
 'use client';
 
+import { useParams } from 'next/navigation';
+
 import { ActionButton, Icon } from '@knockdog/ui';
 
 import {
@@ -9,14 +11,27 @@ import {
 
 import { Header } from '@widgets/Header';
 
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 /**
  * 원장 일과 탭 — 알림장 템플릿 목록 (빈 상태)
  */
 function OwnerDailyNoticeTemplatePage() {
+  const params = useParams<{ id: string }>();
+  const noticeId = params?.id;
+  const { push } = useStackNavigation();
   const templateCount = NOTICE_TEMPLATE_MOCK_COUNT;
   const hasTemplates = templateCount > 0;
+
+  const handleCreateTemplateClick = () => {
+    if (!noticeId) return;
+
+    push({
+      pathname: route.owner.daily.notice.template.create.root.replace('[id]', noticeId),
+    });
+  };
 
   return (
     <div className='bg-bg-50 flex h-dvh flex-col'>
@@ -40,7 +55,13 @@ function OwnerDailyNoticeTemplatePage() {
 
       <SafeArea edges={['bottom']} className='bg-bg-50 shrink-0'>
         <div className='flex gap-2 px-4 py-5'>
-          <ActionButton type='button' variant='secondaryLine' size='large' className='flex-1'>
+          <ActionButton
+            type='button'
+            variant='secondaryLine'
+            size='large'
+            className='flex-1'
+            onClick={handleCreateTemplateClick}
+          >
             <Icon icon='Plus' className='size-5' />
             {ownerDailyNoticeTemplateContent.createTemplateLabel}
           </ActionButton>
