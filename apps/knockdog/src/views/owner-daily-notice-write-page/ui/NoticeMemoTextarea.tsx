@@ -36,6 +36,7 @@ function NoticeMemoTextarea({ value, maxLength, placeholder, onChange }: NoticeM
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={handleChange}
+        spellCheck={false}
         className='h-auto overflow-hidden'
       />
       <p className='body2-regular text-text-caption shrink-0'>

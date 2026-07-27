@@ -40,6 +40,7 @@ function ShortMemoTextarea({ value, maxLength, placeholder, onChange }: ShortMem
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={handleChange}
+        spellCheck={false}
         className='h-auto max-h-[48px] overflow-hidden'
       />
     </Textarea>
