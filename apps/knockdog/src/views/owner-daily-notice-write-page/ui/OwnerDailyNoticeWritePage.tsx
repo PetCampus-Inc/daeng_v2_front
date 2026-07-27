@@ -15,7 +15,7 @@ import {
   type ConditionOptionId,
   type NoticeWriteStoolStatus,
 } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
-import { formatNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
+import { createNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
 
 import { Header } from '@widgets/Header';
 
@@ -42,7 +42,7 @@ function OwnerDailyNoticeWritePage() {
   );
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
-  const noticeDateLabel = formatNoticeWriteDate(new Date());
+  const [noticeWriteDate] = useState(() => createNoticeWriteDate());
 
   const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
   const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
@@ -102,7 +102,7 @@ function OwnerDailyNoticeWritePage() {
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px]'>
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
           <div className='bg-bg-0 sticky top-0 z-10 flex items-center px-4 py-8'>
-            <p className='h2-semibold text-text-primary'>{noticeDateLabel}</p>
+            <p className='h2-semibold text-text-primary'>{noticeWriteDate.label}</p>
           </div>
 
           <section className='flex flex-col gap-2 px-4 py-4'>
