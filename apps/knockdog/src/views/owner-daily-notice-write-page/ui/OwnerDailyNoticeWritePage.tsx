@@ -4,15 +4,12 @@ import { useState } from 'react';
 import {
   ActionButton,
   Icon,
-  TextField,
-  TextFieldInput,
-  Textarea,
-  TextareaInput,
 } from '@knockdog/ui';
 import Image from 'next/image';
 
 import {
   CONDITION_OPTIONS,
+  NOTICE_WRITE_MOCK_STUDENT,
   NOTICE_WRITE_STOOL_OPTIONS,
   ownerDailyNoticeWriteContent,
   type ConditionOptionId,
@@ -22,17 +19,22 @@ import { formatNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/
 
 import { Header } from '@widgets/Header';
 
+import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
+import { SafeArea } from '@shared/ui/safe-area';
 import {
   STOOL_STATUS_DEFAULT_IMAGE,
   STOOL_STATUS_IMAGE,
   STOOL_STATUS_LABEL,
 } from '@shared/ui/stool-status';
 
+import { NoticeMemoTextarea } from './NoticeMemoTextarea';
+import { ShortMemoTextarea } from './ShortMemoTextarea';
+
 /**
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
- * 날짜·컨디션·간식·배변·알림장 섹션 퍼블리싱
  */
 function OwnerDailyNoticeWritePage() {
+  const student = NOTICE_WRITE_MOCK_STUDENT;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
   const [selectedStoolStatus, setSelectedStoolStatus] = useState<NoticeWriteStoolStatus | null>(
@@ -41,6 +43,15 @@ function OwnerDailyNoticeWritePage() {
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
   const noticeDateLabel = formatNoticeWriteDate(new Date());
+
+  const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
+  const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
+  const isSendEnabled =
+    selectedConditionId !== null ||
+    snack.trim().length > 0 ||
+    selectedStoolStatus !== null ||
+    stoolMemo.trim().length > 0 ||
+    notice.trim().length > 0;
 
   return (
     <div
@@ -71,13 +82,26 @@ function OwnerDailyNoticeWritePage() {
           </Header.RightSection>
         </Header>
 
-        {/* 프로필 헤더 영역 placeholder (아바타·이름 등 이후 배치) */}
-        <div className='h-[140px]' aria-hidden />
+        <div className='flex items-start gap-2 px-4 py-4'>
+          <DogProfileAvatar name={student.name} imageUrl={student.profileImageUrl} />
+
+          <div className='flex min-w-0 flex-1 flex-col gap-1'>
+            <div className='flex items-center gap-1'>
+              <p className='body1-extrabold text-text-primary-inverse'>{student.name}</p>
+              <Icon icon={genderIcon} className='text-text-primary-inverse size-4' />
+            </div>
+            <p className='body1-medium text-text-primary-inverse'>{studentSummary}</p>
+            <div className='body1-medium text-text-primary-inverse flex items-center gap-1'>
+              <span>{student.guardianName}</span>
+              <span>{ownerDailyNoticeWriteContent.guardianLabel}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px]'>
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
-          <div className='flex items-center px-4 py-8'>
+          <div className='bg-bg-0 sticky top-0 z-10 flex items-center px-4 py-8'>
             <p className='h2-semibold text-text-primary'>{noticeDateLabel}</p>
           </div>
 
@@ -101,7 +125,7 @@ function OwnerDailyNoticeWritePage() {
                     }
                     className={`body2-semibold rounded-full border-[1.4px] px-3 py-2 ${
                       isSelected
-                        ? 'border-fill-line-accent bg-fill-primary-50 text-text-accent'
+                        ? 'border-line-accent bg-fill-primary-50 text-text-accent'
                         : 'border-line-200 bg-fill-secondary-0 text-text-primary'
                     }`}
                   >
@@ -116,14 +140,12 @@ function OwnerDailyNoticeWritePage() {
             <h2 className='body2-bold text-text-primary'>
               {ownerDailyNoticeWriteContent.snackSectionLabel}
             </h2>
-            <TextField variant='secondary'>
-              <TextFieldInput
-                value={snack}
-                maxLength={ownerDailyNoticeWriteContent.snackMaxLength}
-                placeholder={ownerDailyNoticeWriteContent.snackPlaceholder}
-                onChange={(event) => setSnack(event.target.value)}
-              />
-            </TextField>
+            <ShortMemoTextarea
+              value={snack}
+              maxLength={ownerDailyNoticeWriteContent.snackMaxLength}
+              placeholder={ownerDailyNoticeWriteContent.snackPlaceholder}
+              onChange={setSnack}
+            />
           </section>
 
           <section className='flex flex-col gap-4 px-4 py-4'>
@@ -155,7 +177,8 @@ function OwnerDailyNoticeWritePage() {
                             isSelected
                               ? STOOL_STATUS_IMAGE[status]
                               : STOOL_STATUS_DEFAULT_IMAGE[status]
-                          }                          alt=''
+                          }
+                          alt=''
                           fill
                           className='object-contain'
                           sizes='64px'
@@ -174,17 +197,15 @@ function OwnerDailyNoticeWritePage() {
               </div>
             </div>
 
-            <TextField variant='secondary'>
-              <TextFieldInput
-                value={stoolMemo}
-                maxLength={ownerDailyNoticeWriteContent.stoolMemoMaxLength}
-                placeholder={ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
-                onChange={(event) => setStoolMemo(event.target.value)}
-              />
-            </TextField>
+            <ShortMemoTextarea
+              value={stoolMemo}
+              maxLength={ownerDailyNoticeWriteContent.stoolMemoMaxLength}
+              placeholder={ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
+              onChange={setStoolMemo}
+            />
           </section>
 
-          <section className='flex flex-col gap-2 px-4 py-4'>
+          <section className='flex flex-col gap-2 px-4 py-4 pb-6'>
             <div className='flex items-center justify-between gap-2'>
               <h2 className='body2-bold text-text-primary'>
                 {ownerDailyNoticeWriteContent.noticeSectionLabel}
@@ -198,16 +219,28 @@ function OwnerDailyNoticeWritePage() {
                 {ownerDailyNoticeWriteContent.loadTemplateLabel}
               </ActionButton>
             </div>
-            <Textarea variant='default' className='h-[100px]'>
-              <TextareaInput
-                value={notice}
-                maxLength={ownerDailyNoticeWriteContent.noticeMaxLength}
-                placeholder={ownerDailyNoticeWriteContent.noticePlaceholder}
-                onChange={(event) => setNotice(event.target.value)}
-              />
-            </Textarea>
+            <NoticeMemoTextarea
+              value={notice}
+              maxLength={ownerDailyNoticeWriteContent.noticeMaxLength}
+              placeholder={ownerDailyNoticeWriteContent.noticePlaceholder}
+              onChange={setNotice}
+            />
           </section>
         </div>
+
+        <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
+          <div className='px-4 py-5'>
+            <ActionButton
+              type='button'
+              variant='primaryFill'
+              size='large'
+              className='w-full'
+              disabled={!isSendEnabled}
+            >
+              {ownerDailyNoticeWriteContent.sendButtonLabel}
+            </ActionButton>
+          </div>
+        </SafeArea>
       </div>
     </div>
   );
