@@ -5,6 +5,7 @@ export {
   STOOL_STATUS_DEFAULT_IMAGE,
   STOOL_STATUS_IMAGE,
   STOOL_STATUS_LABEL,
+  STOOL_STATUS_OPTIONS,
   getStoolStatusImage,
   type StoolStatus,
 } from './config/stoolStatus';

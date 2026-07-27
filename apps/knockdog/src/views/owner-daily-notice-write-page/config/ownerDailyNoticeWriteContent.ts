@@ -1,4 +1,4 @@
-import { STOOL_STATUS, type StoolStatus } from '@shared/ui/stool-status';
+import { STOOL_STATUS_OPTIONS, type StoolStatus } from '@shared/ui/stool-status';
 
 export const ownerDailyNoticeWriteContent = Object.freeze({
   pageTitle: '알림장 작성',
@@ -48,16 +48,10 @@ const CONDITION_OPTIONS = [
 
 type ConditionOptionId = (typeof CONDITION_OPTIONS)[number]['id'];
 
-/** 알림장 작성용 배변 옵션 (Figma 순서, ABNORMAL 제외) */
-const NOTICE_WRITE_STOOL_OPTIONS = [
-  STOOL_STATUS.NORMAL,
-  STOOL_STATUS.HARD,
-  STOOL_STATUS.SOFT,
-  STOOL_STATUS.NONE,
-  STOOL_STATUS.CAUTION,
-] as const satisfies readonly StoolStatus[];
+/** 알림장 작성용 배변 옵션 순서 */
+const NOTICE_WRITE_STOOL_OPTIONS = STOOL_STATUS_OPTIONS;
 
-type NoticeWriteStoolStatus = (typeof NOTICE_WRITE_STOOL_OPTIONS)[number];
+type NoticeWriteStoolStatus = StoolStatus;
 
 export {
   CONDITION_OPTIONS,

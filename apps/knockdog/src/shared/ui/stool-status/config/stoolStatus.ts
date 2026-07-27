@@ -18,6 +18,16 @@ const STOOL_STATUS_LABEL: Record<StoolStatus, string> = {
   ABNORMAL: '갈색이 아닌',
 };
 
+/** 선택 UI 표시 순서 (왼쪽 → 오른쪽 정렬) */
+const STOOL_STATUS_OPTIONS = [
+  STOOL_STATUS.NORMAL,
+  STOOL_STATUS.HARD,
+  STOOL_STATUS.SOFT,
+  STOOL_STATUS.ABNORMAL,
+  STOOL_STATUS.CAUTION,
+  STOOL_STATUS.NONE,
+] as const satisfies readonly StoolStatus[];
+
 /** 선택/활성 상태 이미지 */
 const STOOL_STATUS_IMAGE: Record<StoolStatus, string> = {
   NONE: '/images/stoolstatus_none.png',
@@ -47,6 +57,7 @@ export {
   STOOL_STATUS_DEFAULT_IMAGE,
   STOOL_STATUS_IMAGE,
   STOOL_STATUS_LABEL,
+  STOOL_STATUS_OPTIONS,
   getStoolStatusImage,
   type StoolStatus,
 };

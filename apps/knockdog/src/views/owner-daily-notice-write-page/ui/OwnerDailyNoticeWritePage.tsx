@@ -169,9 +169,9 @@ function OwnerDailyNoticeWritePage() {
                           current === status ? null : status
                         )
                       }
-                      className='flex w-16 flex-col items-center gap-1'
+                      className='flex flex-col items-center gap-2'
                     >
-                      <div className='relative h-[62px] w-16 shrink-0 overflow-hidden rounded-lg'>
+                      <div className='relative size-[52px] shrink-0 overflow-hidden rounded-lg'>
                         <Image
                           src={
                             isSelected
@@ -181,11 +181,11 @@ function OwnerDailyNoticeWritePage() {
                           alt=''
                           fill
                           className='object-contain'
-                          sizes='64px'
+                          sizes='52px'
                         />
                       </div>
                       <span
-                        className={`label-medium ${
+                        className={`caption1-semibold whitespace-nowrap text-center ${
                           isSelected ? 'text-text-accent' : 'text-text-tertiary'
                         }`}
                       >
