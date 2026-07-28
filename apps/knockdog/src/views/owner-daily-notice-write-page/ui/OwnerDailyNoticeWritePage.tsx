@@ -30,6 +30,10 @@ import { NoticeMemoTextarea } from '@views/owner-daily-notice-write-page/ui/Noti
 import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/ShortMemoTextarea';
 
 import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
+import {
+  buildAttendanceRecordPayload,
+  useAttendanceRecordMutation,
+} from '@entities/owner-attendance-record';
 
 import { Header } from '@widgets/Header';
 
@@ -92,6 +96,7 @@ function OwnerDailyNoticeWritePage() {
   const isEditMode = searchParams.get('mode') === 'edit';
   const isExpired = searchParams.get('expired') === 'true';
   const { back, pushForResult } = useStackNavigation();
+  const { draftMutation, sendMutation } = useAttendanceRecordMutation();
   const student = NOTICE_WRITE_MOCK_STUDENT;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
@@ -100,7 +105,6 @@ function OwnerDailyNoticeWritePage() {
   );
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const [noticeWriteDate] = useState(() => createNoticeWriteDate());
   const hasOpenedEntryDialogRef = useRef(false);
   const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
@@ -112,6 +116,21 @@ function OwnerDailyNoticeWritePage() {
     stoolMemo.trim().length > 0 ||
     notice.trim().length > 0;
   const isSendEnabled = hasAnyContent;
+  const isSubmitting = draftMutation.isPending || sendMutation.isPending;
+
+  const buildPayload = () => {
+    if (!noticeId) throw new Error('petId가 없습니다.');
+
+    return buildAttendanceRecordPayload({
+      petId: noticeId,
+      date: noticeWriteDate.dateKey,
+      condition: selectedConditionId,
+      snack,
+      poop: selectedStoolStatus,
+      poopMemo: stoolMemo,
+      note: notice,
+    });
+  };
 
   const currentDraft: NoticeDraft = {
     selectedConditionId,
@@ -212,8 +231,8 @@ function OwnerDailyNoticeWritePage() {
     ));
   };
 
-  const handleDraftSaveClick = () => {
-    if (!noticeId) return;
+  const handleDraftSaveClick = async () => {
+    if (!noticeId || isSubmitting) return;
     if (isExpired) {
       openExpiredDialog();
       return;
@@ -239,6 +258,7 @@ function OwnerDailyNoticeWritePage() {
     }
 
     try {
+      await draftMutation.mutateAsync(buildPayload());
       saveNoticeDraft(noticeId, currentDraft);
       toast({
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
@@ -263,15 +283,14 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const submitNotice = async () => {
-    if (!noticeId || isSending) return;
+    if (!noticeId || isSubmitting) return;
     if (isExpired) {
       openExpiredDialog();
       return;
     }
 
-    setIsSending(true);
     try {
-      // TODO: API 연동 시 실제 발송 로직으로 교체
+      await sendMutation.mutateAsync(buildPayload());
       clearNoticeDraft(noticeId);
       toast({
         nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
@@ -284,7 +303,13 @@ function OwnerDailyNoticeWritePage() {
       });
       back();
     } catch {
-      saveNoticeDraft(noticeId, currentDraft);
+      try {
+        await draftMutation.mutateAsync(buildPayload());
+        saveNoticeDraft(noticeId, currentDraft);
+      } catch {
+        saveNoticeDraft(noticeId, currentDraft);
+      }
+
       overlay.open(({ isOpen, close }) => (
         <AlertDialog open={isOpen} onOpenChange={close}>
           <AlertDialogContent>
@@ -308,8 +333,6 @@ function OwnerDailyNoticeWritePage() {
           </AlertDialogContent>
         </AlertDialog>
       ));
-    } finally {
-      setIsSending(false);
     }
   };
 
@@ -426,7 +449,8 @@ function OwnerDailyNoticeWritePage() {
           <Header.RightSection>
             <button
               type='button'
-              className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
+              className='body2-semibold text-text-primary-inverse h-x7 radius-r1 disabled:opacity-50'
+              disabled={isSubmitting}
               onClick={handleDraftSaveClick}
             >
               {ownerDailyNoticeWriteContent.draftSaveLabel}
@@ -588,7 +612,7 @@ function OwnerDailyNoticeWritePage() {
               variant='primaryFill'
               size='large'
               className='w-full'
-              disabled={!isSendEnabled}
+              disabled={!isSendEnabled || isSubmitting}
               onClick={handleSendClick}
             >
               {ownerDailyNoticeWriteContent.sendButtonLabel}
