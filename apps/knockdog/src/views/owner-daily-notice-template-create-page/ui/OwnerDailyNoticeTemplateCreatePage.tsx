@@ -26,6 +26,7 @@ import {
 } from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateCreateContent } from '@views/owner-daily-notice-template-create-page/config/ownerDailyNoticeTemplateCreateContent';
 import { TemplateContentTextarea } from '@views/owner-daily-notice-template-create-page/ui/TemplateContentTextarea';
+import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 
 import { Header } from '@widgets/Header';
 
@@ -59,6 +60,7 @@ function FieldLabel({ label }: FieldLabelProps) {
 function OwnerDailyNoticeTemplateCreatePage() {
   const searchParams = useSearchParams();
   const editingTemplateId = searchParams.get('templateId');
+  const isExpired = searchParams.get('expired') === 'true';
   const { back } = useStackNavigation();
   const [formState, setFormState] = useState<TemplateCreateFormState>({
     title: '',
@@ -70,6 +72,35 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const { title, content, initialTitle, initialContent } = formState;
 
   useEffect(() => {
+    if (!isExpired) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>
+            <AlertDialogDescription className='whitespace-pre-line'>
+              {ownerDailyNoticeWriteContent.expiredDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                back();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.expiredConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  }, [back, isExpired]);
+
+  useEffect(() => {
+    if (isExpired) return;
+
     const editingTemplate =
       editingTemplateId
         ? getOwnerNoticeTemplatesSnapshot().find((item) => item.id === editingTemplateId) ?? null
@@ -89,7 +120,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [editingTemplateId]);
+  }, [editingTemplateId, isExpired]);
 
   const hasTitle = title.trim().length > 0;
   const hasContent = content.trim().length > 0;
@@ -97,6 +128,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const hasDraft = title !== initialTitle || content !== initialContent;
 
   const handleBackClick = () => {
+    if (isExpired) return;
     if (!hasDraft) {
       back();
       return;
@@ -121,6 +153,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
   };
 
   const handleSaveClick = () => {
+    if (isExpired) return;
     if (!isSaveEnabled) return;
     if (!hasContent) {
       toast({

@@ -1,9 +1,18 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { overlay } from 'overlay-kit';
 import {
   ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 import Image from 'next/image';
@@ -17,6 +26,8 @@ import {
   type NoticeWriteStoolStatus,
 } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 import { createNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
+import { NoticeMemoTextarea } from '@views/owner-daily-notice-write-page/ui/NoticeMemoTextarea';
+import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/ShortMemoTextarea';
 
 import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
 
@@ -25,8 +36,6 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { toast } from '@shared/ui/toast';
-
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import {
@@ -34,9 +43,7 @@ import {
   STOOL_STATUS_IMAGE,
   STOOL_STATUS_LABEL,
 } from '@shared/ui/stool-status';
-
-import { NoticeMemoTextarea } from './NoticeMemoTextarea';
-import { ShortMemoTextarea } from './ShortMemoTextarea';
+import { toast } from '@shared/ui/toast';
 
 interface NoticeDraft {
   selectedConditionId: ConditionOptionId | null;
@@ -46,13 +53,45 @@ interface NoticeDraft {
   notice: string;
 }
 
+function getDraftStorageKey(noticeId: string) {
+  return `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId}`;
+}
+
+function loadNoticeDraft(noticeId: string): NoticeDraft | null {
+  if (typeof window === 'undefined') return null;
+
+  const raw = localStorage.getItem(getDraftStorageKey(noticeId));
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as NoticeDraft;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveNoticeDraft(noticeId: string, draft: NoticeDraft) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(getDraftStorageKey(noticeId), JSON.stringify(draft));
+}
+
+function clearNoticeDraft(noticeId: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(getDraftStorageKey(noticeId));
+}
+
 /**
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
  */
 function OwnerDailyNoticeWritePage() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const noticeId = params?.id;
-  const { pushForResult } = useStackNavigation();
+  const isEditMode = searchParams.get('mode') === 'edit';
+  const isExpired = searchParams.get('expired') === 'true';
+  const { back, pushForResult } = useStackNavigation();
   const student = NOTICE_WRITE_MOCK_STUDENT;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
@@ -61,53 +100,146 @@ function OwnerDailyNoticeWritePage() {
   );
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const [noticeWriteDate] = useState(() => createNoticeWriteDate());
+  const hasOpenedEntryDialogRef = useRef(false);
   const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
   const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
-  const isSendEnabled =
+  const hasAnyContent =
     selectedConditionId !== null ||
     snack.trim().length > 0 ||
     selectedStoolStatus !== null ||
     stoolMemo.trim().length > 0 ||
     notice.trim().length > 0;
-  const draftStorageKey = `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId ?? ''}`;
+  const isSendEnabled = hasAnyContent;
 
-  useEffect(() => {
+  const currentDraft: NoticeDraft = {
+    selectedConditionId,
+    snack,
+    selectedStoolStatus,
+    stoolMemo,
+    notice,
+  };
+
+  const openExpiredDialog = useCallback(() => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>
+            <AlertDialogDescription className='whitespace-pre-line'>
+              {ownerDailyNoticeWriteContent.expiredDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                back();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.expiredConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  }, [back]);
+
+  const applyDraft = (draft: NoticeDraft) => {
+    setSelectedConditionId(draft.selectedConditionId);
+    setSnack(draft.snack);
+    setSelectedStoolStatus(draft.selectedStoolStatus);
+    setStoolMemo(draft.stoolMemo);
+    setNotice(draft.notice);
+  };
+
+  const openTemplatePage = async () => {
     if (!noticeId) return;
 
-    const rawDraft = localStorage.getItem(draftStorageKey);
-    if (!rawDraft) return;
-
     try {
-      const parsedDraft = JSON.parse(rawDraft) as NoticeDraft;
-      const timerId = window.setTimeout(() => {
-        setSelectedConditionId(parsedDraft.selectedConditionId ?? null);
-        setSnack(parsedDraft.snack ?? '');
-        setSelectedStoolStatus(parsedDraft.selectedStoolStatus ?? null);
-        setStoolMemo(parsedDraft.stoolMemo ?? '');
-        setNotice(parsedDraft.notice ?? '');
-      }, 0);
+      const result = await pushForResult<{ content: string }>({
+        pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
+      });
+      const bridgedContent = result?.content;
+      if (typeof bridgedContent === 'string') {
+        setNotice(bridgedContent);
+        return;
+      }
 
-      return () => {
-        window.clearTimeout(timerId);
-      };
+      const loadedContent = consumeLoadedNoticeTemplateContent();
+      if (loadedContent !== null) setNotice(loadedContent);
     } catch {
-      // draft 파싱 실패 시 무시
+      const loadedContent = consumeLoadedNoticeTemplateContent();
+      if (loadedContent !== null) setNotice(loadedContent);
     }
-  }, [draftStorageKey, noticeId]);
+  };
+
+  const handleLoadTemplateClick = async () => {
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+    if (!noticeId) return;
+
+    if (notice.trim().length === 0) {
+      await openTemplatePage();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.loadTemplateConfirmTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerDailyNoticeWriteContent.loadTemplateConfirmDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{ownerDailyNoticeWriteContent.loadTemplateConfirmNoLabel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                openTemplatePage();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.loadTemplateConfirmYesLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
 
   const handleDraftSaveClick = () => {
     if (!noticeId) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+
+    if (!hasAnyContent) {
+      overlay.open(({ isOpen, close }) => (
+        <AlertDialog open={isOpen} onOpenChange={close}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{ownerDailyNoticeWriteContent.emptyDraftTitle}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {ownerDailyNoticeWriteContent.emptyDraftDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>{ownerDailyNoticeWriteContent.emptyDraftConfirmLabel}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ));
+      return;
+    }
 
     try {
-      const draft = JSON.stringify({
-        selectedConditionId,
-        snack,
-        selectedStoolStatus,
-        stoolMemo,
-        notice,
-      });
-      localStorage.setItem(draftStorageKey, draft);
+      saveNoticeDraft(noticeId, currentDraft);
       toast({
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
         title: (
@@ -130,36 +262,145 @@ function OwnerDailyNoticeWritePage() {
     }
   };
 
-  const handleSendClick = () => {
-    if (!isSendEnabled) return;
+  const submitNotice = async () => {
+    if (!noticeId || isSending) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
 
-    toast({
-      nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
-      title: (
-        <>
-          <span className='text-text-accent'>알림장</span>
-          <span className='text-text-primary-inverse'>을 보냈어요.오늘까지 수정할 수 있어요</span>
-        </>
-      ),
-    });
-  };
-
-  const handleLoadTemplateClick = async () => {
-    if (!noticeId) return;
-
+    setIsSending(true);
     try {
-      const result = await pushForResult<{ content: string }>({
-        pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
+      // TODO: API 연동 시 실제 발송 로직으로 교체
+      clearNoticeDraft(noticeId);
+      toast({
+        nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
+        title: (
+          <>
+            <span className='text-text-accent'>알림장</span>
+            <span className='text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
+          </>
+        ),
       });
-      setNotice(result.content);
+      back();
     } catch {
-      const loadedContent = consumeLoadedNoticeTemplateContent();
-
-      if (loadedContent !== null) {
-        setNotice(loadedContent);
-      }
+      saveNoticeDraft(noticeId, currentDraft);
+      overlay.open(({ isOpen, close }) => (
+        <AlertDialog open={isOpen} onOpenChange={close}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{ownerDailyNoticeWriteContent.sendFailedTitle}</AlertDialogTitle>
+              <AlertDialogDescription className='whitespace-pre-line'>
+                {ownerDailyNoticeWriteContent.sendFailedDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendFailedCloseLabel}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  close();
+                  submitNotice();
+                }}
+              >
+                {ownerDailyNoticeWriteContent.sendFailedRetryLabel}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ));
+    } finally {
+      setIsSending(false);
     }
   };
+
+  const handleSendClick = () => {
+    if (!isSendEnabled) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isEditMode
+                ? ownerDailyNoticeWriteContent.editSendConfirmTitle
+                : ownerDailyNoticeWriteContent.sendConfirmTitle}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isEditMode
+                ? ownerDailyNoticeWriteContent.editSendConfirmDescription
+                : ownerDailyNoticeWriteContent.sendConfirmDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendConfirmCloseLabel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                submitNotice();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.sendConfirmActionLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
+  useEffect(() => {
+    if (!noticeId || hasOpenedEntryDialogRef.current) return;
+    hasOpenedEntryDialogRef.current = true;
+
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+
+    const loadedTemplateContent = consumeLoadedNoticeTemplateContent();
+    if (loadedTemplateContent !== null) {
+      setNotice(loadedTemplateContent);
+      return;
+    }
+
+    const draft = loadNoticeDraft(noticeId);
+    if (!draft) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.resumeDraftTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerDailyNoticeWriteContent.resumeDraftDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                clearNoticeDraft(noticeId);
+                close();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.resumeDraftNewLabel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                applyDraft(draft);
+                close();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.resumeDraftContinueLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  }, [isExpired, noticeId, openExpiredDialog]);
+
   return (
     <div
       className='flex h-dvh flex-col'

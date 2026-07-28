@@ -1,8 +1,21 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { overlay } from 'overlay-kit';
 
-import { ActionButton, Icon, RadioGroup } from '@knockdog/ui';
+import {
+  ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Icon,
+  RadioGroup,
+} from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import {
@@ -11,6 +24,8 @@ import {
   useOwnerNoticeTemplates,
 } from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateContent } from '@views/owner-daily-notice-template-page/config/ownerDailyNoticeTemplateContent';
+import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
+import { OwnerNoticeTemplateRadioCard } from '@views/owner-daily-notice-template-page/ui/OwnerNoticeTemplateRadioCard';
 
 import { Header } from '@widgets/Header';
 
@@ -19,15 +34,15 @@ import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
-import { OwnerNoticeTemplateRadioCard } from './OwnerNoticeTemplateRadioCard';
-
 /**
  * 원장 일과 탭 — 알림장 템플릿 목록
  */
 function OwnerDailyNoticeTemplatePage() {
   const MAX_TEMPLATE_COUNT = 10;
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const noticeId = params?.id;
+  const isExpired = searchParams.get('expired') === 'true';
   const { back, push } = useStackNavigation();
   const navResult = useNavigationResult<{ content: string }>();
   const {
@@ -40,7 +55,35 @@ function OwnerDailyNoticeTemplatePage() {
   const hasSelection = Boolean(selectedTemplateId);
   const isLoadTemplateEnabled = hasTemplates && hasSelection;
 
+  useEffect(() => {
+    if (!isExpired) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>
+            <AlertDialogDescription className='whitespace-pre-line'>
+              {ownerDailyNoticeWriteContent.expiredDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                back();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.expiredConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  }, [back, isExpired]);
+
   const handleCreateTemplateClick = () => {
+    if (isExpired) return;
     if (!noticeId) return;
     if (templates.length >= MAX_TEMPLATE_COUNT) {
       toast({
@@ -61,6 +104,7 @@ function OwnerDailyNoticeTemplatePage() {
   };
 
   const handlePreviewTemplate = (template: OwnerNoticeTemplate) => {
+    if (isExpired) return;
     if (!noticeId) return;
 
     push({
@@ -71,6 +115,7 @@ function OwnerDailyNoticeTemplatePage() {
   };
 
   const handleLoadTemplateClick = () => {
+    if (isExpired) return;
     const template = templates.find((item) => item.id === selectedTemplateId);
 
     if (!template) return;
