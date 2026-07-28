@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActionButton,
   Icon,
@@ -23,7 +23,9 @@ import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-templ
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
+import { STORAGE_KEYS } from '@shared/constants/storage';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -35,6 +37,14 @@ import {
 
 import { NoticeMemoTextarea } from './NoticeMemoTextarea';
 import { ShortMemoTextarea } from './ShortMemoTextarea';
+
+interface NoticeDraft {
+  selectedConditionId: ConditionOptionId | null;
+  snack: string;
+  selectedStoolStatus: NoticeWriteStoolStatus | null;
+  stoolMemo: string;
+  notice: string;
+}
 
 /**
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
@@ -60,6 +70,79 @@ function OwnerDailyNoticeWritePage() {
     selectedStoolStatus !== null ||
     stoolMemo.trim().length > 0 ||
     notice.trim().length > 0;
+  const draftStorageKey = `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId ?? ''}`;
+
+  useEffect(() => {
+    if (!noticeId) return;
+
+    const rawDraft = localStorage.getItem(draftStorageKey);
+    if (!rawDraft) return;
+
+    try {
+      const parsedDraft = JSON.parse(rawDraft) as NoticeDraft;
+      const timerId = window.setTimeout(() => {
+        setSelectedConditionId(parsedDraft.selectedConditionId ?? null);
+        setSnack(parsedDraft.snack ?? '');
+        setSelectedStoolStatus(parsedDraft.selectedStoolStatus ?? null);
+        setStoolMemo(parsedDraft.stoolMemo ?? '');
+        setNotice(parsedDraft.notice ?? '');
+      }, 0);
+
+      return () => {
+        window.clearTimeout(timerId);
+      };
+    } catch {
+      // draft 파싱 실패 시 무시
+    }
+  }, [draftStorageKey, noticeId]);
+
+  const handleDraftSaveClick = () => {
+    if (!noticeId) return;
+
+    try {
+      const draft = JSON.stringify({
+        selectedConditionId,
+        snack,
+        selectedStoolStatus,
+        stoolMemo,
+        notice,
+      });
+      localStorage.setItem(draftStorageKey, draft);
+      toast({
+        nativeTitle: '작성 중인 알림장을 임시저장했어요',
+        title: (
+          <>
+            <span className='text-text-accent'>작성 중인 알림장</span>
+            <span className='text-text-primary-inverse'>을 임시저장했어요</span>
+          </>
+        ),
+      });
+    } catch {
+      toast({
+        nativeTitle: '임시저장하지 못했어요. 다시 시도해 주세요',
+        title: (
+          <>
+            <span className='text-text-accent'>임시저장</span>
+            <span className='text-text-primary-inverse'>하지 못했어요. 다시 시도해 주세요</span>
+          </>
+        ),
+      });
+    }
+  };
+
+  const handleSendClick = () => {
+    if (!isSendEnabled) return;
+
+    toast({
+      nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
+      title: (
+        <>
+          <span className='text-text-accent'>알림장</span>
+          <span className='text-text-primary-inverse'>을 보냈어요.오늘까지 수정할 수 있어요</span>
+        </>
+      ),
+    });
+  };
 
   const handleLoadTemplateClick = async () => {
     if (!noticeId) return;
@@ -100,7 +183,11 @@ function OwnerDailyNoticeWritePage() {
             {ownerDailyNoticeWriteContent.pageTitle}
           </Header.Title>
           <Header.RightSection>
-            <button type='button' className='body2-semibold text-text-primary-inverse h-x7 radius-r1'>
+            <button
+              type='button'
+              className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
+              onClick={handleDraftSaveClick}
+            >
               {ownerDailyNoticeWriteContent.draftSaveLabel}
             </button>
           </Header.RightSection>
@@ -261,6 +348,7 @@ function OwnerDailyNoticeWritePage() {
               size='large'
               className='w-full'
               disabled={!isSendEnabled}
+              onClick={handleSendClick}
             >
               {ownerDailyNoticeWriteContent.sendButtonLabel}
             </ActionButton>

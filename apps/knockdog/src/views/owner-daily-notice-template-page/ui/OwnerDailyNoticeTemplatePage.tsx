@@ -17,6 +17,7 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { toast } from '@shared/ui/toast';
 
 import { OwnerNoticeTemplateRadioCard } from './OwnerNoticeTemplateRadioCard';
 
@@ -24,6 +25,7 @@ import { OwnerNoticeTemplateRadioCard } from './OwnerNoticeTemplateRadioCard';
  * 원장 일과 탭 — 알림장 템플릿 목록
  */
 function OwnerDailyNoticeTemplatePage() {
+  const MAX_TEMPLATE_COUNT = 10;
   const params = useParams<{ id: string }>();
   const noticeId = params?.id;
   const { back, push } = useStackNavigation();
@@ -40,6 +42,18 @@ function OwnerDailyNoticeTemplatePage() {
 
   const handleCreateTemplateClick = () => {
     if (!noticeId) return;
+    if (templates.length >= MAX_TEMPLATE_COUNT) {
+      toast({
+        nativeTitle: '템플릿은 최대 10개까지 저장할 수 있어요',
+        title: (
+          <div className='flex items-center gap-1'>
+            <Icon icon='InfoLine' className='text-text-accent size-5 shrink-0' />
+            <span className='text-text-primary-inverse'>템플릿은 최대 10개까지 저장할 수 있어요</span>
+          </div>
+        ),
+      });
+      return;
+    }
 
     push({
       pathname: route.owner.daily.notice.template.create.root.replace('[id]', noticeId),

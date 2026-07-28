@@ -14,6 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  Icon,
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
@@ -30,6 +31,7 @@ import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
   label: string;
@@ -89,7 +91,9 @@ function OwnerDailyNoticeTemplateCreatePage() {
     };
   }, [editingTemplateId]);
 
-  const isSaveEnabled = title.trim().length > 0 && content.trim().length > 0;
+  const hasTitle = title.trim().length > 0;
+  const hasContent = content.trim().length > 0;
+  const isSaveEnabled = hasTitle;
   const hasDraft = title !== initialTitle || content !== initialContent;
 
   const handleBackClick = () => {
@@ -118,6 +122,18 @@ function OwnerDailyNoticeTemplateCreatePage() {
 
   const handleSaveClick = () => {
     if (!isSaveEnabled) return;
+    if (!hasContent) {
+      toast({
+        nativeTitle: '본문을 작성해 주세요',
+        title: (
+          <div className='flex items-center gap-1'>
+            <Icon icon='InfoLine' className='text-text-accent size-5 shrink-0' />
+            <span className='text-text-primary-inverse'>본문을 작성해 주세요</span>
+          </div>
+        ),
+      });
+      return;
+    }
 
     const input = {
       title: title.trim(),
