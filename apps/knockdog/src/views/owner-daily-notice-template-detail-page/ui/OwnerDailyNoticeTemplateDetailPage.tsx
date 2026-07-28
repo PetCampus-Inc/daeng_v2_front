@@ -2,8 +2,19 @@
 
 import { useParams } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
+import { overlay } from 'overlay-kit';
 
-import { ActionButton } from '@knockdog/ui';
+import {
+  ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@knockdog/ui';
 
 import {
   deleteOwnerNoticeTemplate,
@@ -56,8 +67,31 @@ function OwnerDailyNoticeTemplateDetailPage() {
   const handleDeleteClick = () => {
     if (!templateId) return;
 
-    deleteOwnerNoticeTemplate(templateId);
-    back();
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeTemplateDetailContent.deleteDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerDailyNoticeTemplateDetailContent.deleteDialogDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {ownerDailyNoticeTemplateDetailContent.deleteDialogCloseLabel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                deleteOwnerNoticeTemplate(templateId);
+                back();
+              }}
+            >
+              {ownerDailyNoticeTemplateDetailContent.deleteDialogConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
   };
 
   const handleEditClick = () => {

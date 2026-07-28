@@ -2,8 +2,21 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { overlay } from 'overlay-kit';
 
-import { ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
+import {
+  ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  TextField,
+  TextFieldInput,
+} from '@knockdog/ui';
 
 import {
   addOwnerNoticeTemplate,
@@ -51,6 +64,31 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const [content, setContent] = useState(() => editingTemplate?.content ?? '');
 
   const isSaveEnabled = title.trim().length > 0 && content.trim().length > 0;
+  const hasDraft = title.trim().length > 0 || content.trim().length > 0;
+
+  const handleBackClick = () => {
+    if (!hasDraft) {
+      back();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              지금 나가면 현재까지 쓴 내용이 사라져요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={() => back()}>나가기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
 
   const handleSaveClick = () => {
     if (!isSaveEnabled) return;
@@ -74,7 +112,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
       <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
         <Header className='bg-bg-50'>
           <Header.LeftSection>
-            <Header.BackButton />
+            <Header.BackButton onClick={handleBackClick} />
           </Header.LeftSection>
           <Header.Title>{ownerDailyNoticeTemplateCreateContent.pageTitle}</Header.Title>
         </Header>
