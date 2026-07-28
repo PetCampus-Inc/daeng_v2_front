@@ -3,6 +3,7 @@ import { STOOL_STATUS_OPTIONS, type StoolStatus } from '@shared/ui/stool-status'
 export const ownerDailyNoticeWriteContent = Object.freeze({
   pageTitle: '알림장 작성',
   draftSaveLabel: '임시저장',
+  editButtonLabel: '수정하기',
   conditionSectionLabel: '컨디션',
   snackSectionLabel: '간식',
   snackPlaceholder: '최대 50자까지 작성 가능해요',

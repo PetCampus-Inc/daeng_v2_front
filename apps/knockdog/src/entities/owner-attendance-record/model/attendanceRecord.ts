@@ -15,6 +15,8 @@ type AttendanceRecordCondition =
   | 'CALM'
   | 'CHECK_AFTER_RETURN';
 
+type AttendanceRecordStatus = 'DRAFT' | 'SENT';
+
 interface AttendanceRecordPayload {
   petId: number;
   date: string;
@@ -23,6 +25,28 @@ interface AttendanceRecordPayload {
   poop: AttendanceRecordPoop | null;
   poopMemo: string;
   note: string;
+}
+
+interface AttendanceRecordDto {
+  petId: number | string;
+  date: string;
+  condition: AttendanceRecordCondition | null;
+  snack: string | null;
+  poop: AttendanceRecordPoop | null;
+  poopMemo: string | null;
+  note: string | null;
+  status?: AttendanceRecordStatus | string | null;
+}
+
+interface AttendanceRecord {
+  petId: number;
+  date: string;
+  condition: AttendanceRecordCondition | null;
+  snack: string;
+  poop: StoolStatus | null;
+  poopMemo: string;
+  note: string;
+  status: AttendanceRecordStatus;
 }
 
 interface BuildAttendanceRecordPayloadInput {
@@ -44,6 +68,86 @@ const STOOL_STATUS_TO_POOP: Record<StoolStatus, AttendanceRecordPoop> = {
   NONE: 'NONE',
 };
 
+const POOP_TO_STOOL_STATUS: Record<AttendanceRecordPoop, StoolStatus> = {
+  HEALTHY: 'NORMAL',
+  HARD: 'HARD',
+  SOFT: 'SOFT',
+  ABNORMAL: 'ABNORMAL',
+  CAUTION: 'CAUTION',
+  NONE: 'NONE',
+};
+
+const ATTENDANCE_RECORD_CONDITIONS = new Set<AttendanceRecordCondition>([
+  'ENERGETIC',
+  'NORMAL',
+  'CALM',
+  'CHECK_AFTER_RETURN',
+]);
+
+const ATTENDANCE_RECORD_POOPS = new Set<AttendanceRecordPoop>([
+  'HEALTHY',
+  'HARD',
+  'SOFT',
+  'ABNORMAL',
+  'CAUTION',
+  'NONE',
+]);
+
+function isAttendanceRecordCondition(value: unknown): value is AttendanceRecordCondition {
+  return typeof value === 'string' && ATTENDANCE_RECORD_CONDITIONS.has(value as AttendanceRecordCondition);
+}
+
+function isAttendanceRecordPoop(value: unknown): value is AttendanceRecordPoop {
+  return typeof value === 'string' && ATTENDANCE_RECORD_POOPS.has(value as AttendanceRecordPoop);
+}
+
+function normalizeAttendanceRecordStatus(value: unknown): AttendanceRecordStatus {
+  if (typeof value !== 'string') return 'SENT';
+
+  const normalized = value.toUpperCase();
+  if (normalized === 'DRAFT') return 'DRAFT';
+  if (normalized === 'SENT') return 'SENT';
+
+  return 'SENT';
+}
+
+function getRecordCandidate(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const record = value as Record<string, unknown>;
+  const nestedRecord = record.attendanceRecord ?? record.record ?? record.result;
+
+  if (nestedRecord && typeof nestedRecord === 'object') {
+    return nestedRecord as Record<string, unknown>;
+  }
+
+  return record;
+}
+
+function getStringValue(record: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.length > 0) return value;
+  }
+
+  return null;
+}
+
+function getNumberLikeValue(record: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    const value = record[key];
+
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+
+  return null;
+}
+
 function buildAttendanceRecordPayload(
   input: BuildAttendanceRecordPayloadInput
 ): AttendanceRecordPayload {
@@ -64,10 +168,59 @@ function buildAttendanceRecordPayload(
   };
 }
 
+function toAttendanceRecord(dto: unknown): AttendanceRecord | null {
+  const record = getRecordCandidate(dto);
+  if (!record) return null;
+
+  const petId = getNumberLikeValue(record, ['petId', 'petID', 'pet_id']);
+  const date =
+    getStringValue(record, ['date', 'recordDate', 'attendanceDate']) ??
+    new Date().toISOString().slice(0, 10);
+
+  if (petId === null) return null;
+
+  const condition = isAttendanceRecordCondition(record.condition) ? record.condition : null;
+  const poop = isAttendanceRecordPoop(record.poop) ? POOP_TO_STOOL_STATUS[record.poop] : null;
+
+  return {
+    petId,
+    date,
+    condition,
+    snack: typeof record.snack === 'string' ? record.snack : '',
+    poop,
+    poopMemo: typeof record.poopMemo === 'string' ? record.poopMemo : '',
+    note: typeof record.note === 'string' ? record.note : '',
+    status: normalizeAttendanceRecordStatus(
+      record.status ?? record.recordStatus ?? record.sendStatus
+    ),
+  };
+}
+
+function toAttendanceRecordDtoFromPayload(
+  payload: AttendanceRecordPayload,
+  status: AttendanceRecordStatus
+): AttendanceRecordDto {
+  return {
+    petId: payload.petId,
+    date: payload.date,
+    condition: payload.condition,
+    snack: payload.snack,
+    poop: payload.poop,
+    poopMemo: payload.poopMemo,
+    note: payload.note,
+    status,
+  };
+}
+
 export {
   buildAttendanceRecordPayload,
+  toAttendanceRecord,
+  toAttendanceRecordDtoFromPayload,
+  type AttendanceRecord,
   type AttendanceRecordCondition,
+  type AttendanceRecordDto,
   type AttendanceRecordPayload,
   type AttendanceRecordPoop,
+  type AttendanceRecordStatus,
   type BuildAttendanceRecordPayloadInput,
 };

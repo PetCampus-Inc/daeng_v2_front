@@ -2,6 +2,7 @@
 
 import { useParams, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
   ActionButton,
@@ -32,7 +33,10 @@ import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/Short
 import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
 import {
   buildAttendanceRecordPayload,
+  ownerAttendanceRecordQueryKey,
+  toAttendanceRecordDtoFromPayload,
   useAttendanceRecordMutation,
+  useAttendanceRecordQuery,
 } from '@entities/owner-attendance-record';
 
 import { Header } from '@widgets/Header';
@@ -93,10 +97,16 @@ function OwnerDailyNoticeWritePage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const noticeId = params?.id;
-  const isEditMode = searchParams.get('mode') === 'edit';
+  const isEditQuery = searchParams.get('mode') === 'edit';
   const isExpired = searchParams.get('expired') === 'true';
   const { back, pushForResult } = useStackNavigation();
+  const queryClient = useQueryClient();
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
+  const [noticeWriteDate] = useState(() => createNoticeWriteDate());
+  const { data: attendanceRecord } = useAttendanceRecordQuery({
+    petId: noticeId,
+    date: noticeWriteDate.dateKey,
+  });
   const student = NOTICE_WRITE_MOCK_STUDENT;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
@@ -105,8 +115,27 @@ function OwnerDailyNoticeWritePage() {
   );
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
-  const [noticeWriteDate] = useState(() => createNoticeWriteDate());
+  const [isEditingSent, setIsEditingSent] = useState(isEditQuery);
+  const [hydratedRecordKey, setHydratedRecordKey] = useState<string | null>(null);
   const hasOpenedEntryDialogRef = useRef(false);
+
+  const hasSentRecord = attendanceRecord?.status === 'SENT';
+  const isReadOnly = hasSentRecord && !isEditingSent;
+  const canDraftSave = !hasSentRecord;
+  const isEditMode = hasSentRecord && isEditingSent;
+  const recordHydrateKey = attendanceRecord
+    ? `${attendanceRecord.petId}:${attendanceRecord.date}:${attendanceRecord.status}:${attendanceRecord.note}:${attendanceRecord.snack}:${attendanceRecord.condition}:${attendanceRecord.poop}:${attendanceRecord.poopMemo}`
+    : null;
+
+  if (attendanceRecord && recordHydrateKey && recordHydrateKey !== hydratedRecordKey) {
+    setHydratedRecordKey(recordHydrateKey);
+    setSelectedConditionId(attendanceRecord.condition);
+    setSnack(attendanceRecord.snack);
+    setSelectedStoolStatus(attendanceRecord.poop);
+    setStoolMemo(attendanceRecord.poopMemo);
+    setNotice(attendanceRecord.note);
+  }
+
   const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
   const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
   const hasAnyContent =
@@ -195,6 +224,7 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const handleLoadTemplateClick = async () => {
+    if (isReadOnly) return;
     if (isExpired) {
       openExpiredDialog();
       return;
@@ -232,7 +262,7 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const handleDraftSaveClick = async () => {
-    if (!noticeId || isSubmitting) return;
+    if (!noticeId || isSubmitting || !canDraftSave) return;
     if (isExpired) {
       openExpiredDialog();
       return;
@@ -282,6 +312,14 @@ function OwnerDailyNoticeWritePage() {
     }
   };
 
+  const handleEditClick = () => {
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+    setIsEditingSent(true);
+  };
+
   const submitNotice = async () => {
     if (!noticeId || isSubmitting) return;
     if (isExpired) {
@@ -290,8 +328,18 @@ function OwnerDailyNoticeWritePage() {
     }
 
     try {
-      await sendMutation.mutateAsync(buildPayload());
+      const payload = buildPayload();
+      await sendMutation.mutateAsync(payload);
       clearNoticeDraft(noticeId);
+
+      queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
+        status: 200,
+        code: 'OK',
+        message: '',
+        data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
+      });
+      setIsEditingSent(false);
+
       toast({
         nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
         title: (
@@ -301,7 +349,6 @@ function OwnerDailyNoticeWritePage() {
           </>
         ),
       });
-      back();
     } catch {
       try {
         await draftMutation.mutateAsync(buildPayload());
@@ -337,7 +384,7 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const handleSendClick = () => {
-    if (!isSendEnabled) return;
+    if (!isSendEnabled || isReadOnly) return;
     if (isExpired) {
       openExpiredDialog();
       return;
@@ -376,6 +423,8 @@ function OwnerDailyNoticeWritePage() {
 
   useEffect(() => {
     if (!noticeId || hasOpenedEntryDialogRef.current) return;
+    if (attendanceRecord === undefined) return;
+
     hasOpenedEntryDialogRef.current = true;
 
     if (isExpired) {
@@ -388,6 +437,8 @@ function OwnerDailyNoticeWritePage() {
       setNotice(loadedTemplateContent);
       return;
     }
+
+    if (attendanceRecord) return;
 
     const draft = loadNoticeDraft(noticeId);
     if (!draft) return;
@@ -422,7 +473,7 @@ function OwnerDailyNoticeWritePage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  }, [isExpired, noticeId, openExpiredDialog]);
+  }, [attendanceRecord, isExpired, noticeId, openExpiredDialog]);
 
   return (
     <div
@@ -447,14 +498,24 @@ function OwnerDailyNoticeWritePage() {
             {ownerDailyNoticeWriteContent.pageTitle}
           </Header.Title>
           <Header.RightSection>
-            <button
-              type='button'
-              className='body2-semibold text-text-primary-inverse h-x7 radius-r1 disabled:opacity-50'
-              disabled={isSubmitting}
-              onClick={handleDraftSaveClick}
-            >
-              {ownerDailyNoticeWriteContent.draftSaveLabel}
-            </button>
+            {isReadOnly ? (
+              <button
+                type='button'
+                className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
+                onClick={handleEditClick}
+              >
+                {ownerDailyNoticeWriteContent.editButtonLabel}
+              </button>
+            ) : canDraftSave ? (
+              <button
+                type='button'
+                className='body2-semibold text-text-primary-inverse h-x7 radius-r1 disabled:opacity-50'
+                disabled={isSubmitting}
+                onClick={handleDraftSaveClick}
+              >
+                {ownerDailyNoticeWriteContent.draftSaveLabel}
+              </button>
+            ) : null}
           </Header.RightSection>
         </Header>
 
@@ -494,6 +555,7 @@ function OwnerDailyNoticeWritePage() {
                     key={option.id}
                     type='button'
                     aria-pressed={isSelected}
+                    disabled={isReadOnly}
                     onClick={() =>
                       setSelectedConditionId((current) =>
                         current === option.id ? null : option.id
@@ -503,7 +565,7 @@ function OwnerDailyNoticeWritePage() {
                       isSelected
                         ? 'border-line-accent bg-fill-primary-50 text-text-accent'
                         : 'border-line-200 bg-fill-secondary-0 text-text-primary'
-                    }`}
+                    } ${isReadOnly ? 'pointer-events-none' : ''}`}
                   >
                     {option.label}
                   </button>
@@ -521,6 +583,7 @@ function OwnerDailyNoticeWritePage() {
               maxLength={ownerDailyNoticeWriteContent.snackMaxLength}
               placeholder={ownerDailyNoticeWriteContent.snackPlaceholder}
               onChange={setSnack}
+              readOnly={isReadOnly}
             />
           </section>
 
@@ -540,12 +603,13 @@ function OwnerDailyNoticeWritePage() {
                       type='button'
                       aria-pressed={isSelected}
                       aria-label={label}
+                      disabled={isReadOnly}
                       onClick={() =>
                         setSelectedStoolStatus((current) =>
                           current === status ? null : status
                         )
                       }
-                      className='flex flex-col items-center gap-2'
+                      className={`flex flex-col items-center gap-2 ${isReadOnly ? 'pointer-events-none' : ''}`}
                     >
                       <div className='relative size-[52px] shrink-0 overflow-hidden rounded-lg'>
                         <Image
@@ -578,6 +642,7 @@ function OwnerDailyNoticeWritePage() {
               maxLength={ownerDailyNoticeWriteContent.stoolMemoMaxLength}
               placeholder={ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
               onChange={setStoolMemo}
+              readOnly={isReadOnly}
             />
           </section>
 
@@ -586,39 +651,46 @@ function OwnerDailyNoticeWritePage() {
               <h2 className='body2-bold text-text-primary'>
                 {ownerDailyNoticeWriteContent.noticeSectionLabel}
               </h2>
-              <ActionButton
-                type='button'
-                variant='secondaryLine'
-                size='small'
-                className='caption2-semibold h-auto w-auto shrink-0 px-3 py-2'
-                onClick={handleLoadTemplateClick}
-              >
-                {ownerDailyNoticeWriteContent.loadTemplateLabel}
-              </ActionButton>
+              {!isReadOnly ? (
+                <ActionButton
+                  type='button'
+                  variant='secondaryLine'
+                  size='small'
+                  className='caption2-semibold h-auto w-auto shrink-0 px-3 py-2'
+                  onClick={handleLoadTemplateClick}
+                >
+                  {ownerDailyNoticeWriteContent.loadTemplateLabel}
+                </ActionButton>
+              ) : null}
             </div>
             <NoticeMemoTextarea
               value={notice}
               maxLength={ownerDailyNoticeWriteContent.noticeMaxLength}
               placeholder={ownerDailyNoticeWriteContent.noticePlaceholder}
               onChange={setNotice}
+              readOnly={isReadOnly}
             />
           </section>
         </div>
 
-        <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
-          <div className='px-4 py-5'>
-            <ActionButton
-              type='button'
-              variant='primaryFill'
-              size='large'
-              className='w-full'
-              disabled={!isSendEnabled || isSubmitting}
-              onClick={handleSendClick}
-            >
-              {ownerDailyNoticeWriteContent.sendButtonLabel}
-            </ActionButton>
-          </div>
-        </SafeArea>
+        {!isReadOnly ? (
+          <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
+            <div className='px-4 py-5'>
+              <ActionButton
+                type='button'
+                variant='primaryFill'
+                size='large'
+                className='w-full'
+                disabled={!isSendEnabled || isSubmitting}
+                onClick={handleSendClick}
+              >
+                {ownerDailyNoticeWriteContent.sendButtonLabel}
+              </ActionButton>
+            </div>
+          </SafeArea>
+        ) : (
+          <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0' />
+        )}
       </div>
     </div>
   );
