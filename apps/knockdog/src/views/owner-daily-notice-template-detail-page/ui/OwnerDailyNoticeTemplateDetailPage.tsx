@@ -20,6 +20,7 @@ import {
   deleteOwnerNoticeTemplate,
   getOwnerNoticeTemplatesSnapshot,
   subscribeOwnerNoticeTemplates,
+  type OwnerNoticeTemplate,
 } from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateDetailContent } from '@views/owner-daily-notice-template-detail-page/config/ownerDailyNoticeTemplateDetailContent';
 
@@ -31,6 +32,12 @@ import { SafeArea } from '@shared/ui/safe-area';
 
 interface FieldLabelProps {
   label: string;
+}
+
+const EMPTY_OWNER_NOTICE_TEMPLATES: OwnerNoticeTemplate[] = [];
+
+function getServerSnapshot() {
+  return EMPTY_OWNER_NOTICE_TEMPLATES;
 }
 
 function FieldLabel({ label }: FieldLabelProps) {
@@ -46,7 +53,7 @@ function useOwnerNoticeTemplate(templateId: string | undefined) {
   const templates = useSyncExternalStore(
     subscribeOwnerNoticeTemplates,
     getOwnerNoticeTemplatesSnapshot,
-    () => []
+    getServerSnapshot
   );
 
   if (!templateId) return null;

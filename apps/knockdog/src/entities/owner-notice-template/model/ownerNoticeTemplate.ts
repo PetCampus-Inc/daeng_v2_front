@@ -141,8 +141,7 @@ function consumeLoadedNoticeTemplateContent(): string | null {
   if (typeof window === 'undefined') return null;
 
   const content = sessionStorage.getItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
-
-  if (!content) return null;
+  if (content === null) return null;
 
   sessionStorage.removeItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
 

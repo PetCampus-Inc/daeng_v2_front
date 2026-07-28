@@ -72,7 +72,7 @@ function OwnerDailyNoticeWritePage() {
     } catch {
       const loadedContent = consumeLoadedNoticeTemplateContent();
 
-      if (loadedContent) {
+      if (loadedContent !== null) {
         setNotice(loadedContent);
       }
     }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { overlay } from 'overlay-kit';
 
 import {
@@ -35,6 +35,13 @@ interface FieldLabelProps {
   label: string;
 }
 
+interface TemplateCreateFormState {
+  title: string;
+  content: string;
+  initialTitle: string;
+  initialContent: string;
+}
+
 function FieldLabel({ label }: FieldLabelProps) {
   return (
     <div className='body2-bold flex items-center gap-px'>
@@ -44,27 +51,46 @@ function FieldLabel({ label }: FieldLabelProps) {
   );
 }
 
-function getEditingTemplate(editingTemplateId: string | null) {
-  if (!editingTemplateId) return null;
-
-  return (
-    getOwnerNoticeTemplatesSnapshot().find((item) => item.id === editingTemplateId) ?? null
-  );
-}
-
 /**
  * 원장 일과 탭 — 알림장 템플릿 생성/수정
  */
 function OwnerDailyNoticeTemplateCreatePage() {
   const searchParams = useSearchParams();
   const editingTemplateId = searchParams.get('templateId');
-  const editingTemplate = getEditingTemplate(editingTemplateId);
   const { back } = useStackNavigation();
-  const [title, setTitle] = useState(() => editingTemplate?.title ?? '');
-  const [content, setContent] = useState(() => editingTemplate?.content ?? '');
+  const [formState, setFormState] = useState<TemplateCreateFormState>({
+    title: '',
+    content: '',
+    initialTitle: '',
+    initialContent: '',
+  });
+
+  const { title, content, initialTitle, initialContent } = formState;
+
+  useEffect(() => {
+    const editingTemplate =
+      editingTemplateId
+        ? getOwnerNoticeTemplatesSnapshot().find((item) => item.id === editingTemplateId) ?? null
+        : null;
+    const nextTitle = editingTemplate?.title ?? '';
+    const nextContent = editingTemplate?.content ?? '';
+
+    const timerId = window.setTimeout(() => {
+      setFormState({
+        title: nextTitle,
+        content: nextContent,
+        initialTitle: nextTitle,
+        initialContent: nextContent,
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [editingTemplateId]);
 
   const isSaveEnabled = title.trim().length > 0 && content.trim().length > 0;
-  const hasDraft = title.trim().length > 0 || content.trim().length > 0;
+  const hasDraft = title !== initialTitle || content !== initialContent;
 
   const handleBackClick = () => {
     if (!hasDraft) {
@@ -126,7 +152,12 @@ function OwnerDailyNoticeTemplateCreatePage() {
               value={title}
               maxLength={ownerDailyNoticeTemplateCreateContent.titleMaxLength}
               placeholder={ownerDailyNoticeTemplateCreateContent.titlePlaceholder}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  title: event.target.value,
+                }))
+              }
             />
           </TextField>
         </section>
@@ -136,7 +167,12 @@ function OwnerDailyNoticeTemplateCreatePage() {
             value={content}
             maxLength={ownerDailyNoticeTemplateCreateContent.contentMaxLength}
             placeholder={ownerDailyNoticeTemplateCreateContent.contentPlaceholder}
-            onChange={setContent}
+            onChange={(value) =>
+              setFormState((prev) => ({
+                ...prev,
+                content: value,
+              }))
+            }
           />
         </section>
 
