@@ -20,10 +20,10 @@ import {
 } from '@knockdog/ui';
 
 import {
-  addOwnerNoticeTemplate,
-  getOwnerNoticeTemplatesSnapshot,
-  updateOwnerNoticeTemplate,
+  useOwnerNoticeTemplateDetailQuery,
+  useOwnerNoticeTemplateMutation,
 } from '@entities/owner-notice-template';
+import { useUserStore } from '@entities/user';
 import { ownerDailyNoticeTemplateCreateContent } from '@views/owner-daily-notice-template-create-page/config/ownerDailyNoticeTemplateCreateContent';
 import { TemplateContentTextarea } from '@views/owner-daily-notice-template-create-page/ui/TemplateContentTextarea';
 import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
@@ -62,6 +62,13 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const editingTemplateId = searchParams.get('templateId');
   const isExpired = searchParams.get('expired') === 'true';
   const { back } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { createMutation, updateMutation } = useOwnerNoticeTemplateMutation();
+  const { data: editingTemplate } = useOwnerNoticeTemplateDetailQuery({
+    templateId: editingTemplateId ?? undefined,
+    userId,
+    enabled: Boolean(editingTemplateId) && !isExpired,
+  });
   const [formState, setFormState] = useState<TemplateCreateFormState>({
     title: '',
     content: '',
@@ -70,6 +77,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
   });
 
   const { title, content, initialTitle, initialContent } = formState;
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (!isExpired) return;
@@ -99,14 +107,10 @@ function OwnerDailyNoticeTemplateCreatePage() {
   }, [back, isExpired]);
 
   useEffect(() => {
-    if (isExpired) return;
+    if (isExpired || !editingTemplateId || !editingTemplate) return;
 
-    const editingTemplate =
-      editingTemplateId
-        ? getOwnerNoticeTemplatesSnapshot().find((item) => item.id === editingTemplateId) ?? null
-        : null;
-    const nextTitle = editingTemplate?.title ?? '';
-    const nextContent = editingTemplate?.content ?? '';
+    const nextTitle = editingTemplate.title;
+    const nextContent = editingTemplate.content;
 
     const timerId = window.setTimeout(() => {
       setFormState({
@@ -120,11 +124,11 @@ function OwnerDailyNoticeTemplateCreatePage() {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [editingTemplateId, isExpired]);
+  }, [editingTemplate, editingTemplateId, isExpired]);
 
   const hasTitle = title.trim().length > 0;
   const hasContent = content.trim().length > 0;
-  const isSaveEnabled = hasTitle;
+  const isSaveEnabled = hasTitle && !isSaving;
   const hasDraft = title !== initialTitle || content !== initialContent;
 
   const handleBackClick = () => {
@@ -152,7 +156,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
     ));
   };
 
-  const handleSaveClick = () => {
+  const handleSaveClick = async () => {
     if (isExpired) return;
     if (!isSaveEnabled) return;
     if (!hasContent) {
@@ -173,13 +177,24 @@ function OwnerDailyNoticeTemplateCreatePage() {
       content: content.trim(),
     };
 
-    if (editingTemplateId) {
-      updateOwnerNoticeTemplate(editingTemplateId, input);
-    } else {
-      addOwnerNoticeTemplate(input);
+    try {
+      if (editingTemplateId) {
+        await updateMutation.mutateAsync({ templateId: editingTemplateId, input });
+      } else {
+        await createMutation.mutateAsync(input);
+      }
+      back();
+    } catch {
+      toast({
+        nativeTitle: '템플릿을 저장하지 못했어요',
+        title: (
+          <>
+            <span className='text-text-accent'>템플릿</span>
+            <span className='text-text-primary-inverse'>을 저장하지 못했어요. 다시 시도해 주세요</span>
+          </>
+        ),
+      });
     }
-
-    back();
   };
 
   return (

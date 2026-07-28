@@ -24,8 +24,8 @@ import {
   useOwnerNoticeTemplates,
 } from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateContent } from '@views/owner-daily-notice-template-page/config/ownerDailyNoticeTemplateContent';
-import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 import { OwnerNoticeTemplateRadioCard } from '@views/owner-daily-notice-template-page/ui/OwnerNoticeTemplateRadioCard';
+import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 
 import { Header } from '@widgets/Header';
 
@@ -50,6 +50,7 @@ function OwnerDailyNoticeTemplatePage() {
     selectedTemplateId,
     setSelectedTemplateId,
     hasTemplates,
+    isLoading,
   } = useOwnerNoticeTemplates();
 
   const hasSelection = Boolean(selectedTemplateId);
@@ -120,10 +121,12 @@ function OwnerDailyNoticeTemplatePage() {
 
     if (!template) return;
 
+    saveLoadedNoticeTemplateContent(template.content);
+
     try {
       navResult.send({ content: template.content });
     } catch {
-      saveLoadedNoticeTemplateContent(template.content);
+      // sessionStorage fallback
     }
 
     back();
@@ -140,7 +143,11 @@ function OwnerDailyNoticeTemplatePage() {
         </Header>
       </div>
 
-      {hasTemplates ? (
+      {isLoading ? (
+        <div className='flex min-h-0 flex-1 items-center justify-center px-4 py-4'>
+          <p className='body1-regular text-text-secondary'>템플릿을 불러오는 중이에요</p>
+        </div>
+      ) : hasTemplates ? (
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4'>
           <RadioGroup
             value={selectedTemplateId}
