@@ -43,27 +43,6 @@ export const ownerDailyNoticeWriteContent = Object.freeze({
   expiredConfirmLabel: '확인',
 });
 
-/** 퍼블리싱용 목 원생 정보 (API 연동 전) */
-interface NoticeWriteMockStudent {
-  name: string;
-  gender: 'MALE' | 'FEMALE';
-  breed: string;
-  weightKg: number;
-  age: number;
-  profileImageUrl: string;
-  guardianName: string;
-}
-
-const NOTICE_WRITE_MOCK_STUDENT: NoticeWriteMockStudent = {
-  name: '뽀삐',
-  gender: 'FEMALE',
-  breed: '시베리안 허스키',
-  weightKg: 8,
-  age: 3,
-  profileImageUrl: '',
-  guardianName: '김민지',
-};
-
 const CONDITION_OPTIONS = [
   { id: 'ENERGETIC', label: '활력 넘치게 지냈어요' },
   { id: 'NORMAL', label: '평소와 비슷했어요' },
@@ -80,7 +59,6 @@ type NoticeWriteStoolStatus = StoolStatus;
 
 export {
   CONDITION_OPTIONS,
-  NOTICE_WRITE_MOCK_STUDENT,
   NOTICE_WRITE_STOOL_OPTIONS,
   type ConditionOptionId,
   type NoticeWriteStoolStatus,

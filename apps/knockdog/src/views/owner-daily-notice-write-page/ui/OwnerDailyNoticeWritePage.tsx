@@ -20,7 +20,6 @@ import Image from 'next/image';
 
 import {
   CONDITION_OPTIONS,
-  NOTICE_WRITE_MOCK_STUDENT,
   NOTICE_WRITE_STOOL_OPTIONS,
   ownerDailyNoticeWriteContent,
   type ConditionOptionId,
@@ -38,6 +37,13 @@ import {
   useAttendanceRecordMutation,
   useAttendanceRecordQuery,
 } from '@entities/owner-attendance-record';
+import {
+  findOwnerMemberByDogName,
+  findOwnerMemberByPetId,
+  useOwnerMembersQuery,
+} from '@entities/owner-member';
+import { formatAge, usePetByIdQuery } from '@entities/pet';
+import { useUserStore } from '@entities/user';
 
 import { Header } from '@widgets/Header';
 
@@ -101,13 +107,20 @@ function OwnerDailyNoticeWritePage() {
   const isExpired = searchParams.get('expired') === 'true';
   const { back, pushForResult } = useStackNavigation();
   const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
   const [noticeWriteDate] = useState(() => createNoticeWriteDate());
   const { data: attendanceRecord } = useAttendanceRecordQuery({
     petId: noticeId,
     date: noticeWriteDate.dateKey,
   });
-  const student = NOTICE_WRITE_MOCK_STUDENT;
+  const { data: membersData } = useOwnerMembersQuery({ userId });
+  const resolvedPetId = attendanceRecord ? String(attendanceRecord.petId) : noticeId;
+  const { data: pet } = usePetByIdQuery(resolvedPetId ?? '');
+  const members = membersData?.members ?? [];
+  const studentByPetId = findOwnerMemberByPetId(members, resolvedPetId);
+  const studentByDogName = findOwnerMemberByDogName(members, pet?.name);
+  const student = studentByPetId ?? studentByDogName;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
   const [selectedStoolStatus, setSelectedStoolStatus] = useState<NoticeWriteStoolStatus | null>(
@@ -136,8 +149,15 @@ function OwnerDailyNoticeWritePage() {
     setNotice(attendanceRecord.note);
   }
 
-  const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
-  const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
+  const dogName = pet?.name ?? student?.dogName ?? '';
+  const guardianName = student?.guardianName ?? '';
+  const profileImageUrl = pet?.profileImage ?? student?.profileImageUrl ?? undefined;
+  const genderIcon = pet?.gender === 'MALE' ? 'Male' : 'Female';
+  const hasPetSummary =
+    Boolean(pet?.breed) && typeof pet?.weight === 'number' && typeof pet?.birthYear === 'number';
+  const petSummary = hasPetSummary
+    ? `${pet?.breed} ∙ ${pet?.weight}kg ∙ ${formatAge(pet!.birthYear)}`
+    : '';
   const hasAnyContent =
     selectedConditionId !== null ||
     snack.trim().length > 0 ||
@@ -520,18 +540,24 @@ function OwnerDailyNoticeWritePage() {
         </Header>
 
         <div className='flex items-start gap-2 px-4 py-4'>
-          <DogProfileAvatar name={student.name} imageUrl={student.profileImageUrl} />
+          <DogProfileAvatar name={dogName || '강아지'} imageUrl={profileImageUrl} />
 
           <div className='flex min-w-0 flex-1 flex-col gap-1'>
             <div className='flex items-center gap-1'>
-              <p className='body1-extrabold text-text-primary-inverse'>{student.name}</p>
-              <Icon icon={genderIcon} className='text-text-primary-inverse size-4' />
+              <p className='body1-extrabold text-text-primary-inverse'>{dogName}</p>
+              {pet?.gender ? (
+                <Icon icon={genderIcon} className='text-text-primary-inverse size-4' />
+              ) : null}
             </div>
-            <p className='body1-medium text-text-primary-inverse'>{studentSummary}</p>
-            <div className='body1-medium text-text-primary-inverse flex items-center gap-1'>
-              <span>{student.guardianName}</span>
-              <span>{ownerDailyNoticeWriteContent.guardianLabel}</span>
-            </div>
+            {petSummary ? (
+              <p className='body1-medium text-text-primary-inverse'>{petSummary}</p>
+            ) : null}
+            {guardianName ? (
+              <div className='body1-medium text-text-primary-inverse flex items-center gap-1'>
+                <span>{guardianName}</span>
+                <span>{ownerDailyNoticeWriteContent.guardianLabel}</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
