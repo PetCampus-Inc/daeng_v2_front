@@ -83,7 +83,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
   },
   {
     id: '4',
-    name: '라떼',
+    name: '두   두부부',
     gender: 'FEMALE',
     breed: '말티즈',
     weightKg: 4,
@@ -145,8 +145,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
 ];
 
 const INITIAL_CHECKED_IN_COUNT = INITIAL_MEMBERS.filter((member) => member.checkedIn).length;
-const TAB_CONTENT_CLASS =
-  'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+20px)]';
+const TAB_CONTENT_CLASS = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)';
 function normalizeSearchText(value: string) {
   return value.replace(/\s+/g, '').toLowerCase();
 }
@@ -165,12 +164,10 @@ function OwnerDailyPage() {
     { label: '알림장 발송 전', count: BASE_PENDING_NOTICEBOOK_COUNT },
   ];
   const sortedMembers = useMemo(
-    () =>
-      [...members].sort((currentMember, nextMember) =>
-        currentMember.name.localeCompare(nextMember.name, 'ko-KR')
-      ),
+    () => [...members].sort((currentMember, nextMember) => currentMember.name.localeCompare(nextMember.name, 'ko-KR')),
     [members]
   );
+  const hasConnectedMembers = sortedMembers.length > 0;
   const searchedMembers = useMemo(() => {
     if (!normalizedSearchKeyword) return sortedMembers;
 
@@ -202,6 +199,7 @@ function OwnerDailyPage() {
 
   const handleSearchKeywordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKeyword(event.target.value);
+    setShowUncheckedOnly(false);
   };
 
   const handleClearSearchKeyword = () => {
@@ -212,13 +210,15 @@ function OwnerDailyPage() {
     setShowUncheckedOnly((prevShowUncheckedOnly) => !prevShowUncheckedOnly);
   };
 
+  const handleInviteGuardianClick = () => {
+    push({ pathname: '/owner/members' }).catch(showRequestFailureToast);
+  };
+
   const handleCheckIn = async (member: AttendanceMember) => {
     try {
       await sendAttendancePush(member, 'check-in');
       setMembers((prevMembers) =>
-        prevMembers.map((prevMember) =>
-          prevMember.id === member.id ? { ...prevMember, checkedIn: true } : prevMember
-        )
+        prevMembers.map((prevMember) => (prevMember.id === member.id ? { ...prevMember, checkedIn: true } : prevMember))
       );
       toast({
         title: `✓ ${member.name}를 등원 처리했어요`,
@@ -321,13 +321,13 @@ function OwnerDailyPage() {
         }}
       >
         <div className='flex h-11 min-w-0 flex-1 gap-2 text-left'>
-          <Avatar className='border-fill-secondary-100 size-x11 shrink-0 border-2'>
+          <Avatar
+            className={`size-x11 shrink-0 border-2 ${
+              member.checkedIn ? 'border-fill-primary-500' : 'border-fill-secondary-100'
+            }`}
+          >
             {member.profileImageUrl && (
-              <AvatarImage
-                src={member.profileImageUrl}
-                alt={`${member.name} 프로필 이미지`}
-                className='object-cover'
-              />
+              <AvatarImage src={member.profileImageUrl} alt={`${member.name} 프로필 이미지`} className='object-cover' />
             )}
             <AvatarFallback className='bg-fill-secondary-50' />
           </Avatar>
@@ -344,14 +344,14 @@ function OwnerDailyPage() {
           </div>
         </div>
         <div
-          className='flex h-12 shrink-0 gap-2'
+          className='flex h-12 shrink-0 items-center gap-2'
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
           {member.checkedIn ? (
             <button
               type='button'
-              className='label-semibold text-text-tertiary flex h-12 w-[82px] items-center justify-center px-0'
+              className='label-semibold text-text-tertiary radius-r1 flex items-center justify-center px-2 py-1'
               onClick={() => {
                 handleAttendanceButtonClick(member);
               }}
@@ -375,16 +375,50 @@ function OwnerDailyPage() {
       </div>
     ));
 
+  const renderEmptyState = () => (
+    <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
+      <div className='flex h-[180px] w-full max-w-[390px] flex-col gap-5 p-4'>
+        <div className='flex h-20 w-full flex-col items-center justify-center gap-1 text-center'>
+          <p className='h2-extrabold text-text-primary'>아직 연결된 원생이 없어요</p>
+          <p className='body1-regular text-text-secondary'>
+            보호자를 초대하고 유치원 일과를
+            <br />
+            간편하게 관리해 보세요.
+          </p>
+        </div>
+        <ActionButton type='button' variant='primaryFill' size='medium' onClick={handleInviteGuardianClick}>
+          보호자 초대하기
+        </ActionButton>
+      </div>
+    </div>
+  );
+
+  const renderUncheckedEmptyState = () => (
+    <div className='flex min-h-[180px] w-full flex-col items-center justify-center px-4 text-center'>
+      <p className='h2-extrabold text-text-primary'>등원 전 원생이 없어요</p>
+      <p className='body1-regular text-text-secondary mt-1'>오늘 등원할 원생을 모두 처리했어요.</p>
+    </div>
+  );
+
+  const renderSearchEmptyState = () => (
+    <div className='flex min-h-0 flex-1 items-center justify-center text-center'>
+      <div className='flex h-14 w-full flex-col items-center gap-1'>
+        <p className='h2-extrabold text-text-primary w-full'>검색 결과가 없어요</p>
+        <p className='body1-regular text-text-primary w-full'>검색어를 다시 확인해 주세요.</p>
+      </div>
+    </div>
+  );
+
   const renderAttendanceTabContent = (
     items: AttendanceMember[],
     showBeforeFilter?: boolean,
     handleBeforeFilterClick?: () => void
   ) => (
-    <div className='flex w-full flex-col gap-5 pt-5'>
+    <div className='flex min-h-full w-full flex-col gap-5 pt-5'>
       <div className='px-4'>
         <TextField
           prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-          className='border-line-600 bg-fill-secondary-0 shadow-[0px_1px_6px_0px_rgba(16,24,40,0.12)] h-x12'
+          className='border-line-600 bg-fill-secondary-0 h-x12 shadow-[0px_1px_6px_0px_rgba(16,24,40,0.12)]'
         >
           <TextFieldInput
             type='search'
@@ -408,15 +442,25 @@ function OwnerDailyPage() {
           )}
         </TextField>
       </div>
-      <div className='flex h-9 w-full items-center justify-between px-4'>
-        <p className='body1-bold text-text-primary'>{items.length}마리</p>
-        {handleBeforeFilterClick ? (
-          <FilterChip type='button' variant='status' activated={showBeforeFilter} onClick={handleBeforeFilterClick}>
-            등원 전
-          </FilterChip>
-        ) : null}
-      </div>
-      <div className='flex w-full flex-col gap-4 px-4'>{renderMemberCards(items)}</div>
+      {(!normalizedSearchKeyword || !hasConnectedMembers) && (
+        <div className='flex h-9 w-full items-center justify-between px-4'>
+          <p className='body1-bold text-text-primary'>{hasConnectedMembers ? `${items.length}마리` : '원생 없음'}</p>
+          {handleBeforeFilterClick ? (
+            <FilterChip type='button' variant='status' activated={showBeforeFilter} onClick={handleBeforeFilterClick}>
+              등원 전
+            </FilterChip>
+          ) : null}
+        </div>
+      )}
+      {!hasConnectedMembers ? (
+        renderEmptyState()
+      ) : normalizedSearchKeyword && items.length === 0 ? (
+        renderSearchEmptyState()
+      ) : showBeforeFilter && items.length === 0 ? (
+        renderUncheckedEmptyState()
+      ) : (
+        <div className='flex w-full flex-col gap-4 px-4 pb-5'>{renderMemberCards(items)}</div>
+      )}
     </div>
   );
 
@@ -449,11 +493,7 @@ function OwnerDailyPage() {
             <TabsTrigger value='today-attendance'>오늘 등원</TabsTrigger>
           </TabsList>
           <TabsContent value='attendance-check' className={TAB_CONTENT_CLASS}>
-            {renderAttendanceTabContent(
-              attendanceCheckMembers,
-              showUncheckedOnly,
-              handleCheckFilterClick
-            )}
+            {renderAttendanceTabContent(attendanceCheckMembers, showUncheckedOnly, handleCheckFilterClick)}
           </TabsContent>
           <TabsContent value='today-attendance' className={TAB_CONTENT_CLASS}>
             {renderAttendanceTabContent(todayAttendanceMembers)}
