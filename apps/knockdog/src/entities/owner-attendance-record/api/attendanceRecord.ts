@@ -48,4 +48,24 @@ function postAttendanceRecordSend(payload: AttendanceRecordPayload) {
     .json<ApiResponse<Record<string, never> | null>>();
 }
 
-export { getAttendanceRecord, postAttendanceRecordDraft, postAttendanceRecordSend };
+interface GetAttendanceRecordDatesParams {
+  petId: string;
+  from: string;
+  to: string;
+}
+
+/** `GET` - 기간 내 발송된 등하원기록이 존재하는 날짜 조회 */
+async function getAttendanceRecordDates({ petId, from, to }: GetAttendanceRecordDatesParams) {
+  return api
+    .get(`${ATTENDANCE_RECORDS_PATH}/${petId}/dates`, {
+      searchParams: { from, to },
+    })
+    .json<ApiResponse<{ dates: number[][] }>>();
+}
+
+export {
+  getAttendanceRecord,
+  getAttendanceRecordDates,
+  postAttendanceRecordDraft,
+  postAttendanceRecordSend,
+};

@@ -41,6 +41,9 @@ interface AttendanceRecordDto {
 interface AttendanceRecord {
   petId: number;
   date: string;
+  //@todo 등하원 시간도 API 스펙에 반영 필요
+  checkIn: string | null;
+  checkOut: string | null;
   condition: AttendanceRecordCondition | null;
   snack: string;
   poop: StoolStatus | null;
@@ -190,6 +193,8 @@ function toAttendanceRecord(dto: unknown): AttendanceRecord | null {
   return {
     petId,
     date,
+    checkIn: getStringValue(record, ['checkIn', 'check_in', 'checkInTime']),
+    checkOut: getStringValue(record, ['checkOut', 'check_out', 'checkOutTime']),
     condition,
     snack: typeof record.snack === 'string' ? record.snack : '',
     poop,

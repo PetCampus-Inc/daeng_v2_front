@@ -18,9 +18,9 @@ import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
 
 function OwnerMemberProfilePage() {
   const {
+    petId,
     dog,
     guardian,
-    attendanceRecords,
     activeTab,
     setActiveTab,
     handleCopy,
@@ -92,7 +92,7 @@ function OwnerMemberProfilePage() {
               )}
             </TabsContent>
             <TabsContent value={TAB.ATTENDANCE}>
-              <AttendanceRecordSection records={attendanceRecords} />
+              <AttendanceRecordSection petId={petId} />
             </TabsContent>
           </div>
         </Tabs>

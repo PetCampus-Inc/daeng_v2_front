@@ -10,7 +10,6 @@ import { toast } from '@shared/ui/toast';
 
 import {
   TAB,
-  getMockOwnerMemberProfile,
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
@@ -35,9 +34,6 @@ function useOwnerMemberProfilePage() {
     petId,
     enabled: Boolean(petId) && (activeTab === TAB.GUARDIAN || Boolean(dog)),
   });
-
-  // 등하원 탭은 추후 API 연동 — 당분간 mock 유지
-  const mockProfile = getMockOwnerMemberProfile(petId);
 
   const handleCopy = async (label: string, value: string) => {
     if (!value) return;
@@ -65,7 +61,6 @@ function useOwnerMemberProfilePage() {
     petId,
     dog,
     guardian,
-    attendanceRecords: mockProfile.attendanceRecords,
     activeTab,
     setActiveTab,
     handleCopy,
