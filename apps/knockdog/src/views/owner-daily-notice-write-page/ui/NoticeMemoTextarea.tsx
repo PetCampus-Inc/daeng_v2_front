@@ -3,16 +3,24 @@
 import { useLayoutEffect, useRef, type ChangeEvent } from 'react';
 
 import { Textarea, TextareaInput } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 interface NoticeMemoTextareaProps {
   value: string;
   maxLength: number;
   placeholder: string;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }
 
 /** 알림장 본문: 내용에 맞춰 늘어나고 내부 스크롤 없음 */
-function NoticeMemoTextarea({ value, maxLength, placeholder, onChange }: NoticeMemoTextareaProps) {
+function NoticeMemoTextarea({
+  value,
+  maxLength,
+  placeholder,
+  onChange,
+  readOnly = false,
+}: NoticeMemoTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
@@ -36,8 +44,9 @@ function NoticeMemoTextarea({ value, maxLength, placeholder, onChange }: NoticeM
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={handleChange}
+        readOnly={readOnly}
         spellCheck={false}
-        className='h-auto overflow-hidden'
+        className={cn('h-auto overflow-hidden', readOnly && 'text-text-secondary')}
       />
       <p className='body2-regular text-text-caption shrink-0'>
         {value.length}/{maxLength}

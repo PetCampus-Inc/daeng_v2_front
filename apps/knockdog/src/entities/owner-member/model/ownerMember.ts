@@ -1,5 +1,6 @@
 interface OwnerMember {
   id: string;
+  petId: string | null;
   dogName: string;
   guardianName: string;
   profileImageUrl: string | null;
@@ -10,6 +11,7 @@ interface OwnerMemberDto {
   id?: number | string;
   memberId?: number | string;
   requestId?: number | string;
+  petId?: number | string | null;
   dogName: string;
   guardianName: string;
   profileImageUrl: string | null;
@@ -37,14 +39,36 @@ interface OwnerPendingMembersDto {
 
 function toOwnerMember(member: OwnerMemberDto): OwnerMember {
   const fallbackId = `${member.dogName}-${member.guardianName}`;
+  const petId =
+    member.petId === null || member.petId === undefined ? null : String(member.petId);
 
   return {
-    id: String(member.memberId ?? member.requestId ?? member.id ?? fallbackId),
+    id: String(member.memberId ?? member.requestId ?? member.id ?? petId ?? fallbackId),
+    petId,
     dogName: member.dogName,
     guardianName: member.guardianName,
     profileImageUrl: member.profileImageUrl,
     recentAttendanceDate: member.recentAttendanceDate,
   };
+}
+
+function findOwnerMemberByPetId(members: OwnerMember[], petId: string | undefined) {
+  if (!petId) return null;
+
+  return (
+    members.find((member) =>
+      member.petId != null ? member.petId === petId : member.id === petId
+    ) ?? null
+  );
+}
+
+function findOwnerMemberByDogName(
+  members: OwnerMember[],
+  dogName: string | undefined
+) {
+  if (!dogName) return null;
+
+  return members.find((member) => member.dogName === dogName) ?? null;
 }
 
 function toOwnerMembersResponse(response: OwnerMembersDto): OwnerMembersResponse {
@@ -61,7 +85,13 @@ function toOwnerPendingMembersResponse(response: OwnerPendingMembersDto): OwnerM
   };
 }
 
-export { toOwnerMember, toOwnerMembersResponse, toOwnerPendingMembersResponse };
+export {
+  findOwnerMemberByDogName,
+  findOwnerMemberByPetId,
+  toOwnerMember,
+  toOwnerMembersResponse,
+  toOwnerPendingMembersResponse,
+};
 export type {
   OwnerMember,
   OwnerMemberDto,

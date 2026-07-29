@@ -1,7 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useSyncExternalStore } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
 import {
@@ -17,27 +16,22 @@ import {
 } from '@knockdog/ui';
 
 import {
-  deleteOwnerNoticeTemplate,
-  getOwnerNoticeTemplatesSnapshot,
-  subscribeOwnerNoticeTemplates,
-  type OwnerNoticeTemplate,
+  useOwnerNoticeTemplateDetailQuery,
+  useOwnerNoticeTemplateMutation,
 } from '@entities/owner-notice-template';
+import { useUserStore } from '@entities/user';
 import { ownerDailyNoticeTemplateDetailContent } from '@views/owner-daily-notice-template-detail-page/config/ownerDailyNoticeTemplateDetailContent';
+import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
   label: string;
-}
-
-const EMPTY_OWNER_NOTICE_TEMPLATES: OwnerNoticeTemplate[] = [];
-
-function getServerSnapshot() {
-  return EMPTY_OWNER_NOTICE_TEMPLATES;
 }
 
 function FieldLabel({ label }: FieldLabelProps) {
@@ -49,29 +43,28 @@ function FieldLabel({ label }: FieldLabelProps) {
   );
 }
 
-function useOwnerNoticeTemplate(templateId: string | undefined) {
-  const templates = useSyncExternalStore(
-    subscribeOwnerNoticeTemplates,
-    getOwnerNoticeTemplatesSnapshot,
-    getServerSnapshot
-  );
-
-  if (!templateId) return null;
-
-  return templates.find((item) => item.id === templateId) ?? null;
-}
-
 /**
  * 원장 일과 탭 — 알림장 템플릿 상세
  */
 function OwnerDailyNoticeTemplateDetailPage() {
   const params = useParams<{ id: string; templateId: string }>();
+  const searchParams = useSearchParams();
   const noticeId = params?.id;
   const templateId = params?.templateId;
-  const template = useOwnerNoticeTemplate(templateId);
+  const isExpired = searchParams.get('expired') === 'true';
+  const userId = useUserStore((state) => state.user?.userId);
   const { back, push } = useStackNavigation();
+  const { deleteMutation } = useOwnerNoticeTemplateMutation();
+  const { data: template, isLoading } = useOwnerNoticeTemplateDetailQuery({
+    templateId,
+    userId,
+    enabled: Boolean(templateId) && !isExpired,
+  });
+
+  useExpiredNoticeDialog(isExpired, back);
 
   const handleDeleteClick = () => {
+    if (isExpired) return;
     if (!templateId) return;
 
     overlay.open(({ isOpen, close }) => (
@@ -88,9 +81,24 @@ function OwnerDailyNoticeTemplateDetailPage() {
               {ownerDailyNoticeTemplateDetailContent.deleteDialogCloseLabel}
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                deleteOwnerNoticeTemplate(templateId);
-                back();
+              onClick={async () => {
+                try {
+                  await deleteMutation.mutateAsync(templateId);
+                  close();
+                  back();
+                } catch {
+                  toast({
+                    nativeTitle: '템플릿을 삭제하지 못했어요',
+                    title: (
+                      <>
+                        <span className='text-text-accent'>템플릿</span>
+                        <span className='text-text-primary-inverse'>
+                          을 삭제하지 못했어요. 다시 시도해 주세요
+                        </span>
+                      </>
+                    ),
+                  });
+                }
               }}
             >
               {ownerDailyNoticeTemplateDetailContent.deleteDialogConfirmLabel}
@@ -102,6 +110,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
   };
 
   const handleEditClick = () => {
+    if (isExpired) return;
     if (!noticeId || !templateId) return;
 
     push({
@@ -110,7 +119,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
     });
   };
 
-  if (!template) {
+  if (isLoading || !template) {
     return (
       <div className='bg-bg-50 flex h-dvh flex-col'>
         <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
@@ -120,6 +129,11 @@ function OwnerDailyNoticeTemplateDetailPage() {
             </Header.LeftSection>
             <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
           </Header>
+        </div>
+        <div className='flex flex-1 items-center justify-center px-4'>
+          <p className='body1-regular text-text-secondary'>
+            {isLoading ? '템플릿을 불러오는 중이에요' : '템플릿을 찾을 수 없어요'}
+          </p>
         </div>
       </div>
     );
@@ -158,6 +172,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
               size='large'
               className='flex-1'
               onClick={handleDeleteClick}
+              disabled={deleteMutation.isPending}
             >
               {ownerDailyNoticeTemplateDetailContent.deleteButtonLabel}
             </ActionButton>

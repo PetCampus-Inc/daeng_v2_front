@@ -1,32 +1,58 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { overlay } from 'overlay-kit';
 import {
   ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 import Image from 'next/image';
 
 import {
   CONDITION_OPTIONS,
-  NOTICE_WRITE_MOCK_STUDENT,
   NOTICE_WRITE_STOOL_OPTIONS,
   ownerDailyNoticeWriteContent,
   type ConditionOptionId,
   type NoticeWriteStoolStatus,
 } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 import { createNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
+import {
+  openExpiredNoticeDialog,
+} from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
+import { NoticeMemoTextarea } from '@views/owner-daily-notice-write-page/ui/NoticeMemoTextarea';
+import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/ShortMemoTextarea';
 
 import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
+import {
+  buildAttendanceRecordPayload,
+  ownerAttendanceRecordQueryKey,
+  toAttendanceRecordDtoFromPayload,
+  useAttendanceRecordMutation,
+  useAttendanceRecordQuery,
+} from '@entities/owner-attendance-record';
+import {
+  findOwnerMemberByDogName,
+  findOwnerMemberByPetId,
+  useOwnerMembersQuery,
+} from '@entities/owner-member';
+import { formatAge, usePetByIdQuery } from '@entities/pet';
+import { useUserStore } from '@entities/user';
 
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { toast } from '@shared/ui/toast';
-
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import {
@@ -34,9 +60,7 @@ import {
   STOOL_STATUS_IMAGE,
   STOOL_STATUS_LABEL,
 } from '@shared/ui/stool-status';
-
-import { NoticeMemoTextarea } from './NoticeMemoTextarea';
-import { ShortMemoTextarea } from './ShortMemoTextarea';
+import { toast } from '@shared/ui/toast';
 
 interface NoticeDraft {
   selectedConditionId: ConditionOptionId | null;
@@ -46,14 +70,84 @@ interface NoticeDraft {
   notice: string;
 }
 
+function getDraftStorageKey(noticeId: string, dateKey: string) {
+  return `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId}:${dateKey}`;
+}
+
+function isConditionOptionId(value: unknown): value is ConditionOptionId {
+  return CONDITION_OPTIONS.some((option) => option.id === value);
+}
+
+function isNoticeWriteStoolStatus(value: unknown): value is NoticeWriteStoolStatus {
+  return (NOTICE_WRITE_STOOL_OPTIONS as readonly string[]).includes(value as string);
+}
+
+function normalizeNoticeDraft(value: unknown): NoticeDraft | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const draft = value as Record<string, unknown>;
+
+  return {
+    selectedConditionId: isConditionOptionId(draft.selectedConditionId)
+      ? draft.selectedConditionId
+      : null,
+    snack: typeof draft.snack === 'string' ? draft.snack : '',
+    selectedStoolStatus: isNoticeWriteStoolStatus(draft.selectedStoolStatus)
+      ? draft.selectedStoolStatus
+      : null,
+    stoolMemo: typeof draft.stoolMemo === 'string' ? draft.stoolMemo : '',
+    notice: typeof draft.notice === 'string' ? draft.notice : '',
+  };
+}
+
+function loadNoticeDraft(noticeId: string, dateKey: string): NoticeDraft | null {
+  if (typeof window === 'undefined') return null;
+
+  const raw = localStorage.getItem(getDraftStorageKey(noticeId, dateKey));
+  if (!raw) return null;
+
+  try {
+    return normalizeNoticeDraft(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+function saveNoticeDraft(noticeId: string, dateKey: string, draft: NoticeDraft) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(getDraftStorageKey(noticeId, dateKey), JSON.stringify(draft));
+}
+
+function clearNoticeDraft(noticeId: string, dateKey: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(getDraftStorageKey(noticeId, dateKey));
+}
+
 /**
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
  */
 function OwnerDailyNoticeWritePage() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const noticeId = params?.id;
-  const { pushForResult } = useStackNavigation();
-  const student = NOTICE_WRITE_MOCK_STUDENT;
+  const isEditQuery = searchParams.get('mode') === 'edit';
+  const isExpired = searchParams.get('expired') === 'true';
+  const { back, pushForResult, replace } = useStackNavigation();
+  const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { draftMutation, sendMutation } = useAttendanceRecordMutation();
+  const [noticeWriteDate] = useState(() => createNoticeWriteDate());
+  const { data: attendanceRecord } = useAttendanceRecordQuery({
+    petId: noticeId,
+    date: noticeWriteDate.dateKey,
+  });
+  const { data: membersData } = useOwnerMembersQuery({ userId });
+  const resolvedPetId = attendanceRecord ? String(attendanceRecord.petId) : noticeId;
+  const { data: pet } = usePetByIdQuery(resolvedPetId ?? '');
+  const members = membersData?.members ?? [];
+  const studentByPetId = findOwnerMemberByPetId(members, resolvedPetId);
+  const studentByDogName = findOwnerMemberByDogName(members, pet?.name);
+  const student = studentByPetId ?? studentByDogName;
   const [selectedConditionId, setSelectedConditionId] = useState<ConditionOptionId | null>(null);
   const [snack, setSnack] = useState('');
   const [selectedStoolStatus, setSelectedStoolStatus] = useState<NoticeWriteStoolStatus | null>(
@@ -61,53 +155,172 @@ function OwnerDailyNoticeWritePage() {
   );
   const [stoolMemo, setStoolMemo] = useState('');
   const [notice, setNotice] = useState('');
-  const [noticeWriteDate] = useState(() => createNoticeWriteDate());
-  const genderIcon = student.gender === 'MALE' ? 'Male' : 'Female';
-  const studentSummary = `${student.breed} ∙ ${student.weightKg}kg ∙ ${student.age}살`;
-  const isSendEnabled =
+  const [isEditingSent, setIsEditingSent] = useState(isEditQuery);
+  const [hydratedRecordKey, setHydratedRecordKey] = useState<string | null>(null);
+  const hasOpenedEntryDialogRef = useRef(false);
+
+  const hasSentRecord = attendanceRecord?.status === 'SENT';
+  const isReadOnly = hasSentRecord && !isEditingSent;
+  const canDraftSave = !hasSentRecord;
+  const isEditMode = hasSentRecord && isEditingSent;
+  const recordHydrateKey = attendanceRecord
+    ? `${attendanceRecord.petId}:${attendanceRecord.date}:${attendanceRecord.status}`
+    : null;
+
+  if (attendanceRecord && recordHydrateKey && recordHydrateKey !== hydratedRecordKey) {
+    setHydratedRecordKey(recordHydrateKey);
+    setSelectedConditionId(attendanceRecord.condition);
+    setSnack(attendanceRecord.snack);
+    setSelectedStoolStatus(attendanceRecord.poop);
+    setStoolMemo(attendanceRecord.poopMemo);
+    setNotice(attendanceRecord.note);
+  }
+
+  const dogName = pet?.name ?? student?.dogName ?? '';
+  const guardianName = student?.guardianName ?? '';
+  const profileImageUrl = pet?.profileImage ?? student?.profileImageUrl ?? undefined;
+  const genderIcon = pet?.gender === 'MALE' ? 'Male' : 'Female';
+  const hasPetSummary =
+    Boolean(pet?.breed) && typeof pet?.weight === 'number' && typeof pet?.birthYear === 'number';
+  const petSummary = hasPetSummary
+    ? `${pet?.breed} ∙ ${pet?.weight}kg ∙ ${formatAge(pet!.birthYear)}`
+    : '';
+  const hasAnyContent =
     selectedConditionId !== null ||
     snack.trim().length > 0 ||
     selectedStoolStatus !== null ||
     stoolMemo.trim().length > 0 ||
     notice.trim().length > 0;
-  const draftStorageKey = `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId ?? ''}`;
+  const isSendEnabled = hasAnyContent;
+  const isSubmitting = draftMutation.isPending || sendMutation.isPending;
 
-  useEffect(() => {
+  const buildPayload = () => {
+    if (!noticeId) throw new Error('petId가 없습니다.');
+
+    return buildAttendanceRecordPayload({
+      petId: noticeId,
+      date: noticeWriteDate.dateKey,
+      condition: selectedConditionId,
+      snack,
+      poop: selectedStoolStatus,
+      poopMemo: stoolMemo,
+      note: notice,
+    });
+  };
+
+  const currentDraft: NoticeDraft = {
+    selectedConditionId,
+    snack,
+    selectedStoolStatus,
+    stoolMemo,
+    notice,
+  };
+
+  const openExpiredDialog = useCallback(() => {
+    openExpiredNoticeDialog(back);
+  }, [back]);
+
+  const applyDraft = (draft: NoticeDraft) => {
+    setSelectedConditionId(draft.selectedConditionId);
+    setSnack(draft.snack);
+    setSelectedStoolStatus(draft.selectedStoolStatus);
+    setStoolMemo(draft.stoolMemo);
+    setNotice(draft.notice);
+  };
+
+  const openTemplatePage = async () => {
     if (!noticeId) return;
 
-    const rawDraft = localStorage.getItem(draftStorageKey);
-    if (!rawDraft) return;
-
     try {
-      const parsedDraft = JSON.parse(rawDraft) as NoticeDraft;
-      const timerId = window.setTimeout(() => {
-        setSelectedConditionId(parsedDraft.selectedConditionId ?? null);
-        setSnack(parsedDraft.snack ?? '');
-        setSelectedStoolStatus(parsedDraft.selectedStoolStatus ?? null);
-        setStoolMemo(parsedDraft.stoolMemo ?? '');
-        setNotice(parsedDraft.notice ?? '');
-      }, 0);
-
-      return () => {
-        window.clearTimeout(timerId);
-      };
-    } catch {
-      // draft 파싱 실패 시 무시
-    }
-  }, [draftStorageKey, noticeId]);
-
-  const handleDraftSaveClick = () => {
-    if (!noticeId) return;
-
-    try {
-      const draft = JSON.stringify({
-        selectedConditionId,
-        snack,
-        selectedStoolStatus,
-        stoolMemo,
-        notice,
+      const result = await pushForResult<{ content: string }>({
+        pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
+        query: {
+          ...(isExpired ? { expired: 'true' } : {}),
+        },
       });
-      localStorage.setItem(draftStorageKey, draft);
+      const bridgedContent = result?.content;
+      if (typeof bridgedContent === 'string') {
+        setNotice(bridgedContent);
+        // remount 경로(entry effect)가 쓸 수 있도록 여기서는 제거하지 않음.
+        // noticeId 스코프라 다른 알림장으로 새지 않음.
+        return;
+      }
+
+      const loadedContent = consumeLoadedNoticeTemplateContent(noticeId);
+      if (loadedContent !== null) setNotice(loadedContent);
+    } catch {
+      const loadedContent = consumeLoadedNoticeTemplateContent(noticeId);
+      if (loadedContent !== null) setNotice(loadedContent);
+    }
+  };
+
+  const handleLoadTemplateClick = async () => {
+    if (isReadOnly) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+    if (!noticeId) return;
+
+    if (notice.trim().length === 0) {
+      await openTemplatePage();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.loadTemplateConfirmTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerDailyNoticeWriteContent.loadTemplateConfirmDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{ownerDailyNoticeWriteContent.loadTemplateConfirmNoLabel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                openTemplatePage();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.loadTemplateConfirmYesLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
+  const handleDraftSaveClick = async () => {
+    if (!noticeId || isSubmitting || !canDraftSave) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+
+    if (!hasAnyContent) {
+      overlay.open(({ isOpen, close }) => (
+        <AlertDialog open={isOpen} onOpenChange={close}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{ownerDailyNoticeWriteContent.emptyDraftTitle}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {ownerDailyNoticeWriteContent.emptyDraftDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>{ownerDailyNoticeWriteContent.emptyDraftConfirmLabel}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ));
+      return;
+    }
+
+    try {
+      await draftMutation.mutateAsync(buildPayload());
+      saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
       toast({
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
         title: (
@@ -130,36 +343,193 @@ function OwnerDailyNoticeWritePage() {
     }
   };
 
-  const handleSendClick = () => {
-    if (!isSendEnabled) return;
-
-    toast({
-      nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
-      title: (
-        <>
-          <span className='text-text-accent'>알림장</span>
-          <span className='text-text-primary-inverse'>을 보냈어요.오늘까지 수정할 수 있어요</span>
-        </>
-      ),
+  const handleEditClick = () => {
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+    setIsEditingSent(true);
+    // 템플릿 왕복 remount 시에도 수정 모드 유지
+    if (!noticeId) return;
+    replace({
+      pathname: route.owner.daily.notice.write.root.replace('[id]', noticeId),
+      query: {
+        mode: 'edit',
+        ...(isExpired ? { expired: 'true' } : {}),
+      },
     });
   };
 
-  const handleLoadTemplateClick = async () => {
-    if (!noticeId) return;
+  const submitNotice = async () => {
+    if (!noticeId || isSubmitting) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
 
     try {
-      const result = await pushForResult<{ content: string }>({
-        pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
-      });
-      setNotice(result.content);
-    } catch {
-      const loadedContent = consumeLoadedNoticeTemplateContent();
+      const payload = buildPayload();
+      await sendMutation.mutateAsync(payload);
+      clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
 
-      if (loadedContent !== null) {
-        setNotice(loadedContent);
+      queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
+        status: 200,
+        code: 'OK',
+        message: '',
+        data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
+      });
+      setIsEditingSent(false);
+      replace({
+        pathname: route.owner.daily.notice.write.root.replace('[id]', noticeId),
+        query: {
+          ...(isExpired ? { expired: 'true' } : {}),
+        },
+      });
+
+      toast({
+        nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
+        title: (
+          <>
+            <span className='text-text-accent'>알림장</span>
+            <span className='text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
+          </>
+        ),
+      });
+    } catch {
+      // SENT 수정 실패 시 draft를 저장해도 재진입 시 attendanceRecord(SENT) hydrate가
+      // draft 복원을 막고, 임시저장 안내가 실제 복원과 불일치함 → 현재 화면에서 재시도만 유도
+      if (!isEditMode) {
+        try {
+          await draftMutation.mutateAsync(buildPayload());
+          saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
+        } catch {
+          saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
+        }
       }
+
+      overlay.open(({ isOpen, close }) => (
+        <AlertDialog open={isOpen} onOpenChange={close}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{ownerDailyNoticeWriteContent.sendFailedTitle}</AlertDialogTitle>
+              <AlertDialogDescription className='whitespace-pre-line'>
+                {isEditMode
+                  ? ownerDailyNoticeWriteContent.editSendFailedDescription
+                  : ownerDailyNoticeWriteContent.sendFailedDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendFailedCloseLabel}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  close();
+                  submitNotice();
+                }}
+              >
+                {ownerDailyNoticeWriteContent.sendFailedRetryLabel}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ));
     }
   };
+
+  const handleSendClick = () => {
+    if (!isSendEnabled || isReadOnly) return;
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isEditMode
+                ? ownerDailyNoticeWriteContent.editSendConfirmTitle
+                : ownerDailyNoticeWriteContent.sendConfirmTitle}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isEditMode
+                ? ownerDailyNoticeWriteContent.editSendConfirmDescription
+                : ownerDailyNoticeWriteContent.sendConfirmDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendConfirmCloseLabel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                submitNotice();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.sendConfirmActionLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
+  useEffect(() => {
+    if (!noticeId || hasOpenedEntryDialogRef.current) return;
+    if (attendanceRecord === undefined) return;
+
+    hasOpenedEntryDialogRef.current = true;
+
+    if (isExpired) {
+      openExpiredDialog();
+      return;
+    }
+
+    const loadedTemplateContent = consumeLoadedNoticeTemplateContent(noticeId);
+    if (loadedTemplateContent !== null) {
+      setNotice(loadedTemplateContent);
+      if (attendanceRecord?.status === 'SENT') {
+        setIsEditingSent(true);
+      }
+      return;
+    }
+
+    if (attendanceRecord) return;
+
+    const draft = loadNoticeDraft(noticeId, noticeWriteDate.dateKey);
+    if (!draft) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.resumeDraftTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerDailyNoticeWriteContent.resumeDraftDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
+                close();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.resumeDraftNewLabel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                applyDraft(draft);
+                close();
+              }}
+            >
+              {ownerDailyNoticeWriteContent.resumeDraftContinueLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  }, [attendanceRecord, isExpired, noticeId, noticeWriteDate.dateKey, openExpiredDialog]);
+
   return (
     <div
       className='flex h-dvh flex-col'
@@ -183,29 +553,46 @@ function OwnerDailyNoticeWritePage() {
             {ownerDailyNoticeWriteContent.pageTitle}
           </Header.Title>
           <Header.RightSection>
-            <button
-              type='button'
-              className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
-              onClick={handleDraftSaveClick}
-            >
-              {ownerDailyNoticeWriteContent.draftSaveLabel}
-            </button>
+            {isReadOnly ? (
+              <button
+                type='button'
+                className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
+                onClick={handleEditClick}
+              >
+                {ownerDailyNoticeWriteContent.editButtonLabel}
+              </button>
+            ) : canDraftSave ? (
+              <button
+                type='button'
+                className='body2-semibold text-text-primary-inverse h-x7 radius-r1 disabled:opacity-50'
+                disabled={isSubmitting}
+                onClick={handleDraftSaveClick}
+              >
+                {ownerDailyNoticeWriteContent.draftSaveLabel}
+              </button>
+            ) : null}
           </Header.RightSection>
         </Header>
 
         <div className='flex items-start gap-2 px-4 py-4'>
-          <DogProfileAvatar name={student.name} imageUrl={student.profileImageUrl} />
+          <DogProfileAvatar name={dogName || '강아지'} imageUrl={profileImageUrl} />
 
           <div className='flex min-w-0 flex-1 flex-col gap-1'>
             <div className='flex items-center gap-1'>
-              <p className='body1-extrabold text-text-primary-inverse'>{student.name}</p>
-              <Icon icon={genderIcon} className='text-text-primary-inverse size-4' />
+              <p className='body1-extrabold text-text-primary-inverse'>{dogName}</p>
+              {pet?.gender ? (
+                <Icon icon={genderIcon} className='text-text-primary-inverse size-4' />
+              ) : null}
             </div>
-            <p className='body1-medium text-text-primary-inverse'>{studentSummary}</p>
-            <div className='body1-medium text-text-primary-inverse flex items-center gap-1'>
-              <span>{student.guardianName}</span>
-              <span>{ownerDailyNoticeWriteContent.guardianLabel}</span>
-            </div>
+            {petSummary ? (
+              <p className='body1-medium text-text-primary-inverse'>{petSummary}</p>
+            ) : null}
+            {guardianName ? (
+              <div className='body1-medium text-text-primary-inverse flex items-center gap-1'>
+                <span>{guardianName}</span>
+                <span>{ownerDailyNoticeWriteContent.guardianLabel}</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -229,6 +616,7 @@ function OwnerDailyNoticeWritePage() {
                     key={option.id}
                     type='button'
                     aria-pressed={isSelected}
+                    disabled={isReadOnly}
                     onClick={() =>
                       setSelectedConditionId((current) =>
                         current === option.id ? null : option.id
@@ -238,7 +626,7 @@ function OwnerDailyNoticeWritePage() {
                       isSelected
                         ? 'border-line-accent bg-fill-primary-50 text-text-accent'
                         : 'border-line-200 bg-fill-secondary-0 text-text-primary'
-                    }`}
+                    } ${isReadOnly ? 'pointer-events-none' : ''}`}
                   >
                     {option.label}
                   </button>
@@ -256,6 +644,7 @@ function OwnerDailyNoticeWritePage() {
               maxLength={ownerDailyNoticeWriteContent.snackMaxLength}
               placeholder={ownerDailyNoticeWriteContent.snackPlaceholder}
               onChange={setSnack}
+              readOnly={isReadOnly}
             />
           </section>
 
@@ -275,12 +664,13 @@ function OwnerDailyNoticeWritePage() {
                       type='button'
                       aria-pressed={isSelected}
                       aria-label={label}
+                      disabled={isReadOnly}
                       onClick={() =>
                         setSelectedStoolStatus((current) =>
                           current === status ? null : status
                         )
                       }
-                      className='flex flex-col items-center gap-2'
+                      className={`flex flex-col items-center gap-2 ${isReadOnly ? 'pointer-events-none' : ''}`}
                     >
                       <div className='relative size-[52px] shrink-0 overflow-hidden rounded-lg'>
                         <Image
@@ -313,6 +703,7 @@ function OwnerDailyNoticeWritePage() {
               maxLength={ownerDailyNoticeWriteContent.stoolMemoMaxLength}
               placeholder={ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
               onChange={setStoolMemo}
+              readOnly={isReadOnly}
             />
           </section>
 
@@ -321,39 +712,46 @@ function OwnerDailyNoticeWritePage() {
               <h2 className='body2-bold text-text-primary'>
                 {ownerDailyNoticeWriteContent.noticeSectionLabel}
               </h2>
-              <ActionButton
-                type='button'
-                variant='secondaryLine'
-                size='small'
-                className='caption2-semibold h-auto w-auto shrink-0 px-3 py-2'
-                onClick={handleLoadTemplateClick}
-              >
-                {ownerDailyNoticeWriteContent.loadTemplateLabel}
-              </ActionButton>
+              {!isReadOnly ? (
+                <ActionButton
+                  type='button'
+                  variant='secondaryLine'
+                  size='small'
+                  className='caption2-semibold h-auto w-auto shrink-0 px-3 py-2'
+                  onClick={handleLoadTemplateClick}
+                >
+                  {ownerDailyNoticeWriteContent.loadTemplateLabel}
+                </ActionButton>
+              ) : null}
             </div>
             <NoticeMemoTextarea
               value={notice}
               maxLength={ownerDailyNoticeWriteContent.noticeMaxLength}
               placeholder={ownerDailyNoticeWriteContent.noticePlaceholder}
               onChange={setNotice}
+              readOnly={isReadOnly}
             />
           </section>
         </div>
 
-        <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
-          <div className='px-4 py-5'>
-            <ActionButton
-              type='button'
-              variant='primaryFill'
-              size='large'
-              className='w-full'
-              disabled={!isSendEnabled}
-              onClick={handleSendClick}
-            >
-              {ownerDailyNoticeWriteContent.sendButtonLabel}
-            </ActionButton>
-          </div>
-        </SafeArea>
+        {!isReadOnly ? (
+          <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
+            <div className='px-4 py-5'>
+              <ActionButton
+                type='button'
+                variant='primaryFill'
+                size='large'
+                className='w-full'
+                disabled={!isSendEnabled || isSubmitting}
+                onClick={handleSendClick}
+              >
+                {ownerDailyNoticeWriteContent.sendButtonLabel}
+              </ActionButton>
+            </div>
+          </SafeArea>
+        ) : (
+          <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0' />
+        )}
       </div>
     </div>
   );
