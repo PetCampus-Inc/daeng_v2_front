@@ -1,12 +1,11 @@
 import { Divider } from '@knockdog/ui';
 
-import {
-  ownerMemberProfileContent,
-  type OwnerMemberProfile,
-} from '../config/ownerMemberProfileContent';
+import type { OwnerPet } from '@entities/owner-pet';
+
+import { ownerMemberProfileContent } from '../config/ownerMemberProfileContent';
 
 interface DogBasicInfoSectionProps {
-  dog: OwnerMemberProfile['dog'];
+  dog: OwnerPet;
 }
 
 interface InfoRowProps {
@@ -23,37 +22,60 @@ function InfoRow({ label, value }: InfoRowProps) {
   );
 }
 
-function getGenderDisplay(dog: OwnerMemberProfile['dog']) {
+function displayValue(value: string | null | undefined) {
+  if (value == null || value.trim().length === 0) {
+    return ownerMemberProfileContent.emptyValue;
+  }
+
+  return value;
+}
+
+function getGenderDisplay(dog: OwnerPet) {
+  if (!dog.gender) return ownerMemberProfileContent.emptyValue;
+
   const genderLabel =
     dog.gender === 'MALE'
       ? ownerMemberProfileContent.maleDogLabel
       : ownerMemberProfileContent.femaleDogLabel;
-  const neuteredLabel = dog.isNeutered
-    ? ownerMemberProfileContent.neuteredDoneLabel
-    : ownerMemberProfileContent.neuteredNotDoneLabel;
 
-  return `${genderLabel} (${neuteredLabel})`;
+  if (dog.isNeutered === true) {
+    return `${genderLabel} (${ownerMemberProfileContent.neuteredDoneLabel})`;
+  }
+
+  if (dog.isNeutered === false) {
+    return `${genderLabel} (${ownerMemberProfileContent.neuteredNotDoneLabel})`;
+  }
+
+  return genderLabel;
 }
 
 function DogBasicInfoSection({ dog }: DogBasicInfoSectionProps) {
+  const weightValue =
+    dog.weightKg != null ? `${dog.weightKg}kg` : ownerMemberProfileContent.emptyValue;
+  const ageValue =
+    dog.age != null && dog.birthYear != null
+      ? `${dog.age}살 (${dog.birthYear}년생)`
+      : dog.age != null
+        ? `${dog.age}살`
+        : dog.birthYear != null
+          ? `${dog.birthYear}년생`
+          : ownerMemberProfileContent.emptyValue;
+
   return (
     <div className='flex flex-col gap-4 px-4 py-5'>
       <h2 className='h3-extrabold text-text-primary'>{ownerMemberProfileContent.basicInfoTitle}</h2>
 
       <div className='bg-bg-0 radius-r3 flex flex-col overflow-hidden px-4'>
-        <InfoRow label={ownerMemberProfileContent.breedLabel} value={dog.breed} />
+        <InfoRow
+          label={ownerMemberProfileContent.breedLabel}
+          value={displayValue(dog.breed)}
+        />
         <Divider />
         <InfoRow label={ownerMemberProfileContent.genderLabel} value={getGenderDisplay(dog)} />
         <Divider />
-        <InfoRow
-          label={ownerMemberProfileContent.weightLabel}
-          value={`${dog.weightKg}kg`}
-        />
+        <InfoRow label={ownerMemberProfileContent.weightLabel} value={weightValue} />
         <Divider />
-        <InfoRow
-          label={ownerMemberProfileContent.ageLabel}
-          value={`${dog.age}살 (${dog.birthYear}년생)`}
-        />
+        <InfoRow label={ownerMemberProfileContent.ageLabel} value={ageValue} />
       </div>
     </div>
   );

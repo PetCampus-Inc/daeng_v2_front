@@ -97,7 +97,7 @@ function AttendanceWeeklyPicker({
                   {date.getDate()}
                 </span>
                 <span
-                  className={`size-1 rounded-full ${hasRecord ? 'bg-text-accent' : 'bg-transparent'}`}
+                  className={`size-1.5 rounded-full ${hasRecord ? 'bg-[#FF8A00]' : 'bg-transparent'}`}
                 />
               </button>
             );

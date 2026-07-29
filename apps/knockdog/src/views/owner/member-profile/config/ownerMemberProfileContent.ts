@@ -28,6 +28,8 @@ const ownerMemberProfileContent = {
   addressLabel: '주소',
   maleDogLabel: '남자아이',
   femaleDogLabel: '여자아이',
+  maleGuardianLabel: '남',
+  femaleGuardianLabel: '여',
   neuteredDoneLabel: '중성화 완료',
   neuteredNotDoneLabel: '중성화 안함',
   checkInLabel: '등원',
@@ -38,6 +40,9 @@ const ownerMemberProfileContent = {
   attendanceEmptyText: '선택한 날짜에 등하원 기록이 없어요.',
   todayButtonLabel: '오늘',
   copyToastSuffix: '를 복사했어요',
+  profileLoadingText: '원생 프로필을 불러오는 중이에요',
+  profileErrorText: '원생 프로필을 불러오지 못했어요',
+  emptyValue: '-',
 };
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -175,15 +180,24 @@ function getMockOwnerMemberProfile(id: string): OwnerMemberProfile {
   return { ...mockOwnerMemberProfiles[0]!, id };
 }
 
+function getGuardianGenderLabel(gender: string) {
+  if (gender === 'FEMALE') return ownerMemberProfileContent.femaleGuardianLabel;
+  if (gender === 'MALE') return ownerMemberProfileContent.maleGuardianLabel;
+  return gender || ownerMemberProfileContent.emptyValue;
+}
+
 export {
   TAB,
   WEEKDAY_LABELS,
   STOOL_STATUS,
   STOOL_STATUS_LABEL,
+  getGuardianGenderLabel,
   getMockOwnerMemberProfile,
   ownerMemberProfileContent,
   type OwnerMemberAttendanceRecord,
   type OwnerMemberProfile,
+  type OwnerMemberProfileDog,
+  type OwnerMemberProfileGuardian,
   type OwnerMemberProfileTab,
   type StoolStatus,
 };

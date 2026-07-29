@@ -156,7 +156,7 @@ function AttendanceMonthlyCalendar({
                   </span>
                   <span
                     className={`size-1.5 rounded-full ${
-                      hasRecord && inCurrentMonth ? 'bg-text-accent' : 'bg-transparent'
+                      hasRecord && inCurrentMonth ? 'bg-[#FF8A00]' : 'bg-transparent'
                     }`}
                   />
                 </button>

@@ -3,24 +3,37 @@
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
+import { useOwnerPetGuardianQuery, useOwnerPetQuery } from '@entities/owner-pet';
+
 import { useClipboardCopy } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 
 import {
   TAB,
-  getMockOwnerMemberProfile,
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
 
 function useOwnerMemberProfilePage() {
   const params = useParams<{ id: string }>();
-  const memberId = params?.id ?? '';
+  const petId = params?.id ?? '';
   const copy = useClipboardCopy();
   const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.DOG);
 
-  // TODO: API 연동 시 useOwnerMemberQuery(memberId)로 교체
-  const profile = getMockOwnerMemberProfile(memberId);
+  const {
+    data: dog,
+    isLoading: isDogLoading,
+    isError: isDogError,
+  } = useOwnerPetQuery({ petId, enabled: Boolean(petId) });
+
+  const {
+    data: guardian,
+    isLoading: isGuardianLoading,
+    isError: isGuardianError,
+  } = useOwnerPetGuardianQuery({
+    petId,
+    enabled: Boolean(petId) && (activeTab === TAB.GUARDIAN || Boolean(dog)),
+  });
 
   const handleCopy = async (label: string, value: string) => {
     if (!value) return;
@@ -45,10 +58,16 @@ function useOwnerMemberProfilePage() {
   };
 
   return {
-    profile,
+    petId,
+    dog,
+    guardian,
     activeTab,
     setActiveTab,
     handleCopy,
+    isDogLoading,
+    isDogError,
+    isGuardianLoading,
+    isGuardianError,
   };
 }
 

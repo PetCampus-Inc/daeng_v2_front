@@ -4,32 +4,43 @@ import { useMemo, useState } from 'react';
 
 import { Divider, Icon } from '@knockdog/ui';
 
+import {
+  type AttendanceRecord,
+  type AttendanceRecordCondition,
+  useAttendanceRecordDatesQuery,
+  useAttendanceRecordQuery,
+} from '@entities/owner-attendance-record';
+
 import { StoolStatusBadge } from '@shared/ui/stool-status';
 
+import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
 import {
-  ownerMemberProfileContent,
-  type OwnerMemberAttendanceRecord,
-} from '@views/owner/member-profile/config/ownerMemberProfileContent';
-import {
-  clampDate,
   formatDateKey,
   formatDayTitle,
-  getEarliestDateKey,
-  parseDateKey,
+  isAfterDay,
   startOfDay,
 } from '@views/owner/member-profile/lib/attendanceCalendar';
 
 import { AttendanceMonthlyCalendar } from './AttendanceMonthlyCalendar';
 import { AttendanceWeeklyPicker } from './AttendanceWeeklyPicker';
 
+const CONDITION_LABELS: Record<AttendanceRecordCondition, string> = {
+  ENERGETIC: '활력 넘치게 지냈어요',
+  NORMAL: '평소와 비슷했어요',
+  CALM: '차분히 휴식했어요',
+  CHECK_AFTER_RETURN: '귀가 후 확인이 필요해요',
+};
+
 interface AttendanceRecordSectionProps {
-  records: OwnerMemberAttendanceRecord[];
+  petId: string;
 }
 
 interface AttendanceDayCardProps {
   date: Date;
-  record: OwnerMemberAttendanceRecord;
+  record: AttendanceRecord;
 }
+
+const EMPTY_VALUE = '없음';
 
 function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
   return (
@@ -44,7 +55,7 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
               {ownerMemberProfileContent.checkInLabel}
             </span>
           </div>
-          <span className='body2-bold text-text-secondary'>{record.checkIn}</span>
+          <span className='body2-bold text-text-secondary'>{record.checkIn || EMPTY_VALUE}</span>
         </div>
         <div className='bg-bg-50 radius-r2 flex flex-1 flex-col justify-center gap-1 px-4 py-2'>
           <div className='flex items-center gap-0.5'>
@@ -53,7 +64,7 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
               {ownerMemberProfileContent.checkOutLabel}
             </span>
           </div>
-          <span className='body2-bold text-text-secondary'>{record.checkOut}</span>
+          <span className='body2-bold text-text-secondary'>{record.checkOut || EMPTY_VALUE}</span>
         </div>
       </div>
 
@@ -62,7 +73,9 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
           <span className='body2-regular text-text-secondary'>
             {ownerMemberProfileContent.conditionLabel}
           </span>
-          <p className='body1-medium text-text-primary'>{record.condition}</p>
+          <p className='body1-medium text-text-primary'>
+            {record.condition ? (CONDITION_LABELS[record.condition] ?? record.condition) : EMPTY_VALUE}
+          </p>
         </div>
 
         <Divider />
@@ -71,7 +84,7 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
           <span className='body2-regular text-text-secondary'>
             {ownerMemberProfileContent.snackLabel}
           </span>
-          <p className='body1-medium text-text-primary'>{record.snack}</p>
+          <p className='body1-medium text-text-primary'>{record.snack || EMPTY_VALUE}</p>
         </div>
 
         <Divider />
@@ -80,45 +93,67 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
           <span className='body2-regular text-text-secondary'>
             {ownerMemberProfileContent.stoolStatusLabel}
           </span>
-          <StoolStatusBadge status={record.stoolStatus} />
+          {record.poop ? <StoolStatusBadge status={record.poop} /> : (
+            <p className='body1-medium text-text-primary'>{EMPTY_VALUE}</p>
+          )}
         </div>
 
-        <Divider />
-
-        <p className='body1-medium text-text-primary'>{record.note}</p>
+        {record.note && (
+          <>
+            <Divider />
+            <p className='body1-medium text-text-primary'>{record.note}</p>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
-  const today = useMemo(() => startOfDay(new Date()), []);
-  const recordDateSet = useMemo(() => new Set(records.map((record) => record.date)), [records]);
-  const earliestDateKey = useMemo(
-    () => getEarliestDateKey(records.map((record) => record.date)),
-    [records],
-  );
-  const minDate = useMemo(
-    () => (earliestDateKey ? parseDateKey(earliestDateKey) : today),
-    [earliestDateKey, today],
-  );
-  const maxDate = today;
+function getMonthRange(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const from = formatDateKey(new Date(year, month, 1));
+  const lastDay = new Date(year, month + 1, 0);
+  const to = formatDateKey(lastDay);
+  return { from, to };
+}
 
+function AttendanceRecordSection({ petId }: AttendanceRecordSectionProps) {
+  const today = useMemo(() => startOfDay(new Date()), []);
   const [isMonthlyExpanded, setIsMonthlyExpanded] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(() =>
-    clampDate(today, minDate, maxDate),
-  );
+  const [selectedDate, setSelectedDate] = useState(() => today);
   const [viewMonth, setViewMonth] = useState(() =>
-    startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)),
+    startOfDay(new Date(today.getFullYear(), today.getMonth(), 1)),
   );
 
   const selectedDateKey = formatDateKey(selectedDate);
-  const selectedRecord = records.find((record) => record.date === selectedDateKey);
+  const { from, to } = useMemo(() => getMonthRange(viewMonth), [viewMonth]);
+
+  const { data: recordDateSet } = useAttendanceRecordDatesQuery({
+    petId,
+    from,
+    to,
+    enabled: Boolean(petId),
+  });
+
+  const { data: selectedRecord } = useAttendanceRecordQuery({
+    petId,
+    date: selectedDateKey,
+    enabled: Boolean(petId),
+  });
+
+  const safeDateSet = useMemo(() => {
+    const base = new Set(recordDateSet ?? []);
+    if (selectedRecord) base.add(selectedRecord.date);
+    return base;
+  }, [recordDateSet, selectedRecord]);
+  const minDate = useMemo(() => startOfDay(new Date(2020, 0, 1)), []);
+  const maxDate = today;
 
   const handleSelectDate = (date: Date) => {
-    const nextDate = clampDate(date, minDate, maxDate);
-    setSelectedDate(nextDate);
-    setViewMonth(startOfDay(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1)));
+    const clamped = isAfterDay(date, maxDate) ? maxDate : startOfDay(date);
+    setSelectedDate(clamped);
+    setViewMonth(startOfDay(new Date(clamped.getFullYear(), clamped.getMonth(), 1)));
   };
 
   const handleGoToday = () => {
@@ -137,7 +172,7 @@ function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
           selectedDate={selectedDate}
           viewMonth={viewMonth}
           today={today}
-          recordDateSet={recordDateSet}
+          recordDateSet={safeDateSet}
           minDate={minDate}
           maxDate={maxDate}
           onChangeViewMonth={setViewMonth}
@@ -148,7 +183,7 @@ function AttendanceRecordSection({ records }: AttendanceRecordSectionProps) {
       ) : (
         <AttendanceWeeklyPicker
           selectedDate={selectedDate}
-          recordDateSet={recordDateSet}
+          recordDateSet={safeDateSet}
           minDate={minDate}
           maxDate={maxDate}
           onSelectDate={handleSelectDate}
