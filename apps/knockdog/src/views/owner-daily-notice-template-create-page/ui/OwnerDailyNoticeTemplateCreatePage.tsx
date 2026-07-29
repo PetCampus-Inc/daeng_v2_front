@@ -26,7 +26,7 @@ import {
 import { useUserStore } from '@entities/user';
 import { ownerDailyNoticeTemplateCreateContent } from '@views/owner-daily-notice-template-create-page/config/ownerDailyNoticeTemplateCreateContent';
 import { TemplateContentTextarea } from '@views/owner-daily-notice-template-create-page/ui/TemplateContentTextarea';
-import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
+import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 
 import { Header } from '@widgets/Header';
 
@@ -79,32 +79,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const { title, content, initialTitle, initialContent } = formState;
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
-  useEffect(() => {
-    if (!isExpired) return;
-
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>
-            <AlertDialogDescription className='whitespace-pre-line'>
-              {ownerDailyNoticeWriteContent.expiredDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                back();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.expiredConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
-  }, [back, isExpired]);
+  useExpiredNoticeDialog(isExpired, back);
 
   useEffect(() => {
     if (isExpired || !editingTemplateId || !editingTemplate) return;

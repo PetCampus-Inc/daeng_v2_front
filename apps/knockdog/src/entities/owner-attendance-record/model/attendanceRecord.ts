@@ -1,10 +1,10 @@
 import type { StoolStatus } from '@shared/ui/stool-status';
 
-/** 알림장 배변 상태*/
+/** API 배변 상태 — swagger `HEALTHY` 기준, 묽음은 `LOOSE` (SOFT 아님) */
 type AttendanceRecordPoop =
   | 'HEALTHY'
   | 'HARD'
-  | 'SOFT'
+  | 'LOOSE'
   | 'ABNORMAL'
   | 'CAUTION'
   | 'NONE';
@@ -32,7 +32,7 @@ interface AttendanceRecordDto {
   date: string;
   condition: AttendanceRecordCondition | null;
   snack: string | null;
-  poop: AttendanceRecordPoop | null;
+  poop: AttendanceRecordPoop | string | null;
   poopMemo: string | null;
   note: string | null;
   status?: AttendanceRecordStatus | string | null;
@@ -62,16 +62,17 @@ interface BuildAttendanceRecordPayloadInput {
 const STOOL_STATUS_TO_POOP: Record<StoolStatus, AttendanceRecordPoop> = {
   NORMAL: 'HEALTHY',
   HARD: 'HARD',
-  SOFT: 'SOFT',
+  SOFT: 'LOOSE',
   ABNORMAL: 'ABNORMAL',
   CAUTION: 'CAUTION',
   NONE: 'NONE',
 };
 
-const POOP_TO_STOOL_STATUS: Record<AttendanceRecordPoop, StoolStatus> = {
+const POOP_TO_STOOL_STATUS: Record<string, StoolStatus> = {
   HEALTHY: 'NORMAL',
   HARD: 'HARD',
-  SOFT: 'SOFT',
+  LOOSE: 'SOFT',
+  SOFT: 'SOFT', // legacy 응답 호환
   ABNORMAL: 'ABNORMAL',
   CAUTION: 'CAUTION',
   NONE: 'NONE',
@@ -84,9 +85,10 @@ const ATTENDANCE_RECORD_CONDITIONS = new Set<AttendanceRecordCondition>([
   'CHECK_AFTER_RETURN',
 ]);
 
-const ATTENDANCE_RECORD_POOPS = new Set<AttendanceRecordPoop>([
+const ATTENDANCE_RECORD_POOPS = new Set<string>([
   'HEALTHY',
   'HARD',
+  'LOOSE',
   'SOFT',
   'ABNORMAL',
   'CAUTION',
@@ -97,18 +99,18 @@ function isAttendanceRecordCondition(value: unknown): value is AttendanceRecordC
   return typeof value === 'string' && ATTENDANCE_RECORD_CONDITIONS.has(value as AttendanceRecordCondition);
 }
 
-function isAttendanceRecordPoop(value: unknown): value is AttendanceRecordPoop {
-  return typeof value === 'string' && ATTENDANCE_RECORD_POOPS.has(value as AttendanceRecordPoop);
+function isAttendanceRecordPoop(value: unknown): value is string {
+  return typeof value === 'string' && ATTENDANCE_RECORD_POOPS.has(value);
 }
 
 function normalizeAttendanceRecordStatus(value: unknown): AttendanceRecordStatus {
-  if (typeof value !== 'string') return 'SENT';
+  if (typeof value !== 'string') return 'DRAFT';
 
   const normalized = value.toUpperCase();
   if (normalized === 'DRAFT') return 'DRAFT';
   if (normalized === 'SENT') return 'SENT';
 
-  return 'SENT';
+  return 'DRAFT';
 }
 
 function getRecordCandidate(value: unknown): Record<string, unknown> | null {
@@ -151,9 +153,10 @@ function getNumberLikeValue(record: Record<string, unknown>, keys: string[]): nu
 function buildAttendanceRecordPayload(
   input: BuildAttendanceRecordPayloadInput
 ): AttendanceRecordPayload {
-  const petId = Number(input.petId);
+  const trimmedPetId = input.petId.trim();
+  const petId = Number(trimmedPetId);
 
-  if (!Number.isFinite(petId)) {
+  if (!trimmedPetId || !Number.isFinite(petId)) {
     throw new Error('유효하지 않은 petId 입니다.');
   }
 
@@ -180,7 +183,9 @@ function toAttendanceRecord(dto: unknown): AttendanceRecord | null {
   if (petId === null) return null;
 
   const condition = isAttendanceRecordCondition(record.condition) ? record.condition : null;
-  const poop = isAttendanceRecordPoop(record.poop) ? POOP_TO_STOOL_STATUS[record.poop] : null;
+  const poop = isAttendanceRecordPoop(record.poop)
+    ? (POOP_TO_STOOL_STATUS[record.poop] ?? null)
+    : null;
 
   return {
     petId,

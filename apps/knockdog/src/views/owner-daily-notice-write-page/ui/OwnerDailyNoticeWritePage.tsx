@@ -26,6 +26,9 @@ import {
   type NoticeWriteStoolStatus,
 } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
 import { createNoticeWriteDate } from '@views/owner-daily-notice-write-page/lib/formatNoticeWriteDate';
+import {
+  openExpiredNoticeDialog,
+} from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 import { NoticeMemoTextarea } from '@views/owner-daily-notice-write-page/ui/NoticeMemoTextarea';
 import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/ShortMemoTextarea';
 
@@ -67,33 +70,57 @@ interface NoticeDraft {
   notice: string;
 }
 
-function getDraftStorageKey(noticeId: string) {
-  return `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId}`;
+function getDraftStorageKey(noticeId: string, dateKey: string) {
+  return `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId}:${dateKey}`;
 }
 
-function loadNoticeDraft(noticeId: string): NoticeDraft | null {
+function isConditionOptionId(value: unknown): value is ConditionOptionId {
+  return CONDITION_OPTIONS.some((option) => option.id === value);
+}
+
+function isNoticeWriteStoolStatus(value: unknown): value is NoticeWriteStoolStatus {
+  return (NOTICE_WRITE_STOOL_OPTIONS as readonly string[]).includes(value as string);
+}
+
+function normalizeNoticeDraft(value: unknown): NoticeDraft | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const draft = value as Record<string, unknown>;
+
+  return {
+    selectedConditionId: isConditionOptionId(draft.selectedConditionId)
+      ? draft.selectedConditionId
+      : null,
+    snack: typeof draft.snack === 'string' ? draft.snack : '',
+    selectedStoolStatus: isNoticeWriteStoolStatus(draft.selectedStoolStatus)
+      ? draft.selectedStoolStatus
+      : null,
+    stoolMemo: typeof draft.stoolMemo === 'string' ? draft.stoolMemo : '',
+    notice: typeof draft.notice === 'string' ? draft.notice : '',
+  };
+}
+
+function loadNoticeDraft(noticeId: string, dateKey: string): NoticeDraft | null {
   if (typeof window === 'undefined') return null;
 
-  const raw = localStorage.getItem(getDraftStorageKey(noticeId));
+  const raw = localStorage.getItem(getDraftStorageKey(noticeId, dateKey));
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as NoticeDraft;
-    if (!parsed || typeof parsed !== 'object') return null;
-    return parsed;
+    return normalizeNoticeDraft(JSON.parse(raw));
   } catch {
     return null;
   }
 }
 
-function saveNoticeDraft(noticeId: string, draft: NoticeDraft) {
+function saveNoticeDraft(noticeId: string, dateKey: string, draft: NoticeDraft) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(getDraftStorageKey(noticeId), JSON.stringify(draft));
+  localStorage.setItem(getDraftStorageKey(noticeId, dateKey), JSON.stringify(draft));
 }
 
-function clearNoticeDraft(noticeId: string) {
+function clearNoticeDraft(noticeId: string, dateKey: string) {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(getDraftStorageKey(noticeId));
+  localStorage.removeItem(getDraftStorageKey(noticeId, dateKey));
 }
 
 /**
@@ -137,7 +164,7 @@ function OwnerDailyNoticeWritePage() {
   const canDraftSave = !hasSentRecord;
   const isEditMode = hasSentRecord && isEditingSent;
   const recordHydrateKey = attendanceRecord
-    ? `${attendanceRecord.petId}:${attendanceRecord.date}:${attendanceRecord.status}:${attendanceRecord.note}:${attendanceRecord.snack}:${attendanceRecord.condition}:${attendanceRecord.poop}:${attendanceRecord.poopMemo}`
+    ? `${attendanceRecord.petId}:${attendanceRecord.date}:${attendanceRecord.status}`
     : null;
 
   if (attendanceRecord && recordHydrateKey && recordHydrateKey !== hydratedRecordKey) {
@@ -190,28 +217,7 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const openExpiredDialog = useCallback(() => {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>
-            <AlertDialogDescription className='whitespace-pre-line'>
-              {ownerDailyNoticeWriteContent.expiredDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                back();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.expiredConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openExpiredNoticeDialog(back);
   }, [back]);
 
   const applyDraft = (draft: NoticeDraft) => {
@@ -309,7 +315,7 @@ function OwnerDailyNoticeWritePage() {
 
     try {
       await draftMutation.mutateAsync(buildPayload());
-      saveNoticeDraft(noticeId, currentDraft);
+      saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
       toast({
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
         title: (
@@ -350,7 +356,7 @@ function OwnerDailyNoticeWritePage() {
     try {
       const payload = buildPayload();
       await sendMutation.mutateAsync(payload);
-      clearNoticeDraft(noticeId);
+      clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
 
       queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
         status: 200,
@@ -372,9 +378,9 @@ function OwnerDailyNoticeWritePage() {
     } catch {
       try {
         await draftMutation.mutateAsync(buildPayload());
-        saveNoticeDraft(noticeId, currentDraft);
+        saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
       } catch {
-        saveNoticeDraft(noticeId, currentDraft);
+        saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
       }
 
       overlay.open(({ isOpen, close }) => (
@@ -460,7 +466,7 @@ function OwnerDailyNoticeWritePage() {
 
     if (attendanceRecord) return;
 
-    const draft = loadNoticeDraft(noticeId);
+    const draft = loadNoticeDraft(noticeId, noticeWriteDate.dateKey);
     if (!draft) return;
 
     overlay.open(({ isOpen, close }) => (
@@ -475,7 +481,7 @@ function OwnerDailyNoticeWritePage() {
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => {
-                clearNoticeDraft(noticeId);
+                clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
                 close();
               }}
             >
@@ -493,7 +499,7 @@ function OwnerDailyNoticeWritePage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  }, [attendanceRecord, isExpired, noticeId, openExpiredDialog]);
+  }, [attendanceRecord, isExpired, noticeId, noticeWriteDate.dateKey, openExpiredDialog]);
 
   return (
     <div

@@ -15,20 +15,11 @@ interface GetAttendanceRecordParams {
 /** `GET` - 등하원기록 단건 조회 (date 생략 시 오늘) */
 async function getAttendanceRecord({ petId, date }: GetAttendanceRecordParams) {
   try {
-    const response = await api
+    return await api
       .get(`${ATTENDANCE_RECORDS_PATH}/${petId}`, {
         searchParams: date ? { date } : undefined,
       })
       .json<ApiResponse<AttendanceRecordDto | null>>();
-
-    // date 지정 조회가 비어 있으면, 서버 기본(오늘) 기준으로 한 번 더 조회
-    if (date && response.data === null) {
-      return await api
-        .get(`${ATTENDANCE_RECORDS_PATH}/${petId}`)
-        .json<ApiResponse<AttendanceRecordDto | null>>();
-    }
-
-    return response;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return {

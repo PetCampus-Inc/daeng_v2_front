@@ -56,7 +56,9 @@ function findOwnerMemberByPetId(members: OwnerMember[], petId: string | undefine
   if (!petId) return null;
 
   return (
-    members.find((member) => member.petId === petId || member.id === petId) ?? null
+    members.find((member) =>
+      member.petId != null ? member.petId === petId : member.id === petId
+    ) ?? null
   );
 }
 

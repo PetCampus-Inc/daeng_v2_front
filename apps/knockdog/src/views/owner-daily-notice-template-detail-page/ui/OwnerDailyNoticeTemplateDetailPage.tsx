@@ -1,7 +1,6 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
 import { overlay } from 'overlay-kit';
 
 import {
@@ -22,7 +21,7 @@ import {
 } from '@entities/owner-notice-template';
 import { useUserStore } from '@entities/user';
 import { ownerDailyNoticeTemplateDetailContent } from '@views/owner-daily-notice-template-detail-page/config/ownerDailyNoticeTemplateDetailContent';
-import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-page/config/ownerDailyNoticeWriteContent';
+import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 
 import { Header } from '@widgets/Header';
 
@@ -62,32 +61,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
     enabled: Boolean(templateId) && !isExpired,
   });
 
-  useEffect(() => {
-    if (!isExpired) return;
-
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>
-            <AlertDialogDescription className='whitespace-pre-line'>
-              {ownerDailyNoticeWriteContent.expiredDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                back();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.expiredConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
-  }, [back, isExpired]);
+  useExpiredNoticeDialog(isExpired, back);
 
   const handleDeleteClick = () => {
     if (isExpired) return;
