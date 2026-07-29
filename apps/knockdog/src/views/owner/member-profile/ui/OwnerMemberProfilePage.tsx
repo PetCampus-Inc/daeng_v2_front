@@ -26,6 +26,8 @@ function OwnerMemberProfilePage() {
     handleCopy,
     isDogLoading,
     isDogError,
+    isGuardianLoading,
+    isGuardianError,
   } = useOwnerMemberProfilePage();
 
   return (
@@ -73,7 +75,21 @@ function OwnerMemberProfilePage() {
               <DogBasicInfoSection dog={dog} />
             </TabsContent>
             <TabsContent value={TAB.GUARDIAN}>
-              <GuardianBasicInfoSection guardian={guardian} onCopy={handleCopy} />
+              {isGuardianLoading && !guardian ? (
+                <div className='flex items-center justify-center px-4 py-10'>
+                  <p className='body1-regular text-text-secondary'>
+                    {ownerMemberProfileContent.profileLoadingText}
+                  </p>
+                </div>
+              ) : isGuardianError || !guardian ? (
+                <div className='flex items-center justify-center px-4 py-10'>
+                  <p className='body1-regular text-text-secondary'>
+                    {ownerMemberProfileContent.profileErrorText}
+                  </p>
+                </div>
+              ) : (
+                <GuardianBasicInfoSection guardian={guardian} onCopy={handleCopy} />
+              )}
             </TabsContent>
             <TabsContent value={TAB.ATTENDANCE}>
               <AttendanceRecordSection records={attendanceRecords} />

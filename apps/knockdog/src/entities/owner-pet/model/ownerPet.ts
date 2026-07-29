@@ -10,6 +10,15 @@ interface OwnerPetDto {
   age?: number | null;
 }
 
+interface OwnerPetGuardianDto {
+  name?: string | null;
+  gender?: 'MALE' | 'FEMALE' | string | null;
+  phoneNumber?: string | null;
+  emergencyPhoneNumber?: string | null;
+  roadAddress?: string | null;
+  address?: string | null;
+}
+
 interface OwnerPet {
   petId: string;
   name: string;
@@ -20,6 +29,15 @@ interface OwnerPet {
   weightKg: number | null;
   birthYear: number | null;
   age: number | null;
+}
+
+interface OwnerPetGuardian {
+  name: string;
+  gender: 'MALE' | 'FEMALE' | string;
+  phone: string;
+  emergencyPhone: string;
+  address: string;
+  addressDetail?: string;
 }
 
 function normalizeGender(value: unknown): 'MALE' | 'FEMALE' {
@@ -42,5 +60,26 @@ function toOwnerPet(dto: OwnerPetDto | null | undefined): OwnerPet | null {
   };
 }
 
-export { toOwnerPet };
-export type { OwnerPet, OwnerPetDto };
+function toOwnerPetGuardian(dto: OwnerPetGuardianDto | null | undefined): OwnerPetGuardian | null {
+  if (!dto) return null;
+
+  const roadAddress = dto.roadAddress?.trim() ?? '';
+  const address = dto.address?.trim() ?? '';
+
+  return {
+    name: dto.name?.trim() ?? '',
+    gender: dto.gender ?? '',
+    phone: dto.phoneNumber?.trim() ?? '',
+    emergencyPhone: dto.emergencyPhoneNumber?.trim() ?? '',
+    address: roadAddress || address,
+    addressDetail: roadAddress && address && roadAddress !== address ? address : undefined,
+  };
+}
+
+export { toOwnerPet, toOwnerPetGuardian };
+export type {
+  OwnerPet,
+  OwnerPetDto,
+  OwnerPetGuardian,
+  OwnerPetGuardianDto,
+};

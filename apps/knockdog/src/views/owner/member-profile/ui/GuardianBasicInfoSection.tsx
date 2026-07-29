@@ -2,13 +2,15 @@
 
 import { Divider, Icon } from '@knockdog/ui';
 
+import type { OwnerPetGuardian } from '@entities/owner-pet';
+
 import {
+  getGuardianGenderLabel,
   ownerMemberProfileContent,
-  type OwnerMemberProfile,
 } from '../config/ownerMemberProfileContent';
 
 interface GuardianBasicInfoSectionProps {
-  guardian: OwnerMemberProfile['guardian'];
+  guardian: OwnerPetGuardian;
   onCopy: (label: string, value: string) => void;
 }
 
@@ -19,12 +21,22 @@ interface InfoRowProps {
   onCopy?: () => void;
 }
 
+function displayValue(value: string | null | undefined) {
+  if (value == null || value.trim().length === 0) {
+    return ownerMemberProfileContent.emptyValue;
+  }
+
+  return value;
+}
+
 function InfoRow({ label, value, copyable = false, onCopy }: InfoRowProps) {
+  const canCopy = copyable && value !== ownerMemberProfileContent.emptyValue;
+
   return (
     <div className='flex items-center justify-between py-4'>
       <div className='flex items-center gap-1'>
         <span className='body2-regular text-text-secondary'>{label}</span>
-        {copyable ? (
+        {canCopy ? (
           <button
             type='button'
             aria-label={`${label} 복사`}
@@ -48,21 +60,26 @@ interface AddressRowProps {
 }
 
 function AddressRow({ label, address, addressDetail, onCopy }: AddressRowProps) {
+  const hasAddress = Boolean(address) || Boolean(addressDetail);
+  const displayAddress = displayValue(address);
+
   return (
     <div className='flex flex-col gap-2.5 py-4'>
       <div className='flex items-center gap-1'>
         <span className='body2-regular text-text-secondary'>{label}</span>
-        <button
-          type='button'
-          aria-label={`${label} 복사`}
-          className='inline-flex size-4 shrink-0 items-center justify-center'
-          onClick={onCopy}
-        >
-          <Icon icon='Copy' className='text-text-secondary size-4' />
-        </button>
+        {hasAddress ? (
+          <button
+            type='button'
+            aria-label={`${label} 복사`}
+            className='inline-flex size-4 shrink-0 items-center justify-center'
+            onClick={onCopy}
+          >
+            <Icon icon='Copy' className='text-text-secondary size-4' />
+          </button>
+        ) : null}
       </div>
       <div className='body1-bold text-text-primary'>
-        <p>{address}</p>
+        <p>{displayAddress}</p>
         {addressDetail ? <p>{addressDetail}</p> : null}
       </div>
     </div>
@@ -77,20 +94,26 @@ function GuardianBasicInfoSection({ guardian, onCopy }: GuardianBasicInfoSection
       <h2 className='h3-extrabold text-text-primary'>{ownerMemberProfileContent.basicInfoTitle}</h2>
 
       <div className='bg-bg-0 radius-r3 flex flex-col overflow-hidden px-4'>
-        <InfoRow label={ownerMemberProfileContent.nameLabel} value={guardian.name} />
+        <InfoRow
+          label={ownerMemberProfileContent.nameLabel}
+          value={displayValue(guardian.name)}
+        />
         <Divider />
-        <InfoRow label={ownerMemberProfileContent.genderLabel} value={guardian.gender} />
+        <InfoRow
+          label={ownerMemberProfileContent.genderLabel}
+          value={getGuardianGenderLabel(guardian.gender)}
+        />
         <Divider />
         <InfoRow
           label={ownerMemberProfileContent.phoneLabel}
-          value={guardian.phone}
+          value={displayValue(guardian.phone)}
           copyable
           onCopy={() => onCopy(ownerMemberProfileContent.phoneLabel, guardian.phone)}
         />
         <Divider />
         <InfoRow
           label={ownerMemberProfileContent.emergencyPhoneLabel}
-          value={guardian.emergencyPhone}
+          value={displayValue(guardian.emergencyPhone)}
           copyable
           onCopy={() =>
             onCopy(ownerMemberProfileContent.emergencyPhoneLabel, guardian.emergencyPhone)

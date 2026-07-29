@@ -28,6 +28,8 @@ const ownerMemberProfileContent = {
   addressLabel: '주소',
   maleDogLabel: '남자아이',
   femaleDogLabel: '여자아이',
+  maleGuardianLabel: '남',
+  femaleGuardianLabel: '여',
   neuteredDoneLabel: '중성화 완료',
   neuteredNotDoneLabel: '중성화 안함',
   checkInLabel: '등원',
@@ -178,11 +180,18 @@ function getMockOwnerMemberProfile(id: string): OwnerMemberProfile {
   return { ...mockOwnerMemberProfiles[0]!, id };
 }
 
+function getGuardianGenderLabel(gender: string) {
+  if (gender === 'FEMALE') return ownerMemberProfileContent.femaleGuardianLabel;
+  if (gender === 'MALE') return ownerMemberProfileContent.maleGuardianLabel;
+  return gender || ownerMemberProfileContent.emptyValue;
+}
+
 export {
   TAB,
   WEEKDAY_LABELS,
   STOOL_STATUS,
   STOOL_STATUS_LABEL,
+  getGuardianGenderLabel,
   getMockOwnerMemberProfile,
   ownerMemberProfileContent,
   type OwnerMemberAttendanceRecord,

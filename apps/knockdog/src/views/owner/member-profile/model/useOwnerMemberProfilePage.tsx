@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
-import { useOwnerPetQuery } from '@entities/owner-pet';
+import { useOwnerPetGuardianQuery, useOwnerPetQuery } from '@entities/owner-pet';
 
 import { useClipboardCopy } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -27,7 +27,16 @@ function useOwnerMemberProfilePage() {
     isError: isDogError,
   } = useOwnerPetQuery({ petId, enabled: Boolean(petId) });
 
-  // 보호자/등하원 탭은 추후 API 연동 — 당분간 mock 유지
+  const {
+    data: guardian,
+    isLoading: isGuardianLoading,
+    isError: isGuardianError,
+  } = useOwnerPetGuardianQuery({
+    petId,
+    enabled: Boolean(petId) && (activeTab === TAB.GUARDIAN || Boolean(dog)),
+  });
+
+  // 등하원 탭은 추후 API 연동 — 당분간 mock 유지
   const mockProfile = getMockOwnerMemberProfile(petId);
 
   const handleCopy = async (label: string, value: string) => {
@@ -55,13 +64,15 @@ function useOwnerMemberProfilePage() {
   return {
     petId,
     dog,
-    guardian: mockProfile.guardian,
+    guardian,
     attendanceRecords: mockProfile.attendanceRecords,
     activeTab,
     setActiveTab,
     handleCopy,
     isDogLoading,
     isDogError,
+    isGuardianLoading,
+    isGuardianError,
   };
 }
 
