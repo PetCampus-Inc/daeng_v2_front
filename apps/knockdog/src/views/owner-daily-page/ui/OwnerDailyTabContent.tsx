@@ -4,7 +4,7 @@ import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import {
   OwnerDailyNoMembersState,
-  OwnerDailyNoUncheckedState,
+  // OwnerDailyNoUncheckedState,
   OwnerDailySearchEmptyState,
 } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
 import { OwnerDailyMemberCard } from '@views/owner-daily-page/ui/OwnerDailyMemberCard';
@@ -81,8 +81,8 @@ function OwnerDailyTabContent({
         <OwnerDailyNoMembersState onInviteGuardianClick={onInviteGuardianClick} />
       ) : normalizedSearchKeyword && items.length === 0 ? (
         <OwnerDailySearchEmptyState />
-      ) : showBeforeFilter && items.length === 0 ? (
-        <OwnerDailyNoUncheckedState />
+      // ) : showBeforeFilter && items.length === 0 ? (
+      //   <OwnerDailyNoUncheckedState />
       ) : (
         <div className='flex w-full flex-col gap-4 px-4 pb-5'>
           {items.map((member) => (
