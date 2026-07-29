@@ -28,6 +28,7 @@ export const ownerDailyNoticeWriteContent = Object.freeze({
   sendConfirmActionLabel: '보내기',
   sendFailedTitle: '알림장을 보내지 못했어요',
   sendFailedDescription: '작성한 내용은 임시저장했어요.\n잠시 후 다시 시도해 주세요.',
+  editSendFailedDescription: '잠시 후 다시 시도해 주세요.',
   sendFailedCloseLabel: '닫기',
   sendFailedRetryLabel: '다시 시도',
   loadTemplateConfirmTitle: '템플릿을 불러올까요?',

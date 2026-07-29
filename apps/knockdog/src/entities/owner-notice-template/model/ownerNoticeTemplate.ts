@@ -62,19 +62,25 @@ function toCreateAttendanceRecordNoteTemplateRequest(
   };
 }
 
-function saveLoadedNoticeTemplateContent(content: string) {
-  if (typeof window === 'undefined') return;
-
-  sessionStorage.setItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD, content);
+function getLoadedNoticeTemplateStorageKey(noticeId: string) {
+  return `${STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD}:${noticeId}`;
 }
 
-function consumeLoadedNoticeTemplateContent(): string | null {
+/** bridge 성공 + remount 대비 fallback. noticeId로 스코프해 다른 알림장에 잘못 적용되지 않게 함 */
+function saveLoadedNoticeTemplateContent(noticeId: string, content: string) {
+  if (typeof window === 'undefined') return;
+
+  sessionStorage.setItem(getLoadedNoticeTemplateStorageKey(noticeId), content);
+}
+
+function consumeLoadedNoticeTemplateContent(noticeId: string): string | null {
   if (typeof window === 'undefined') return null;
 
-  const content = sessionStorage.getItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
+  const key = getLoadedNoticeTemplateStorageKey(noticeId);
+  const content = sessionStorage.getItem(key);
   if (content === null) return null;
 
-  sessionStorage.removeItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
+  sessionStorage.removeItem(key);
 
   return content;
 }

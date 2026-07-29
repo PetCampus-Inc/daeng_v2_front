@@ -132,7 +132,7 @@ function OwnerDailyNoticeWritePage() {
   const noticeId = params?.id;
   const isEditQuery = searchParams.get('mode') === 'edit';
   const isExpired = searchParams.get('expired') === 'true';
-  const { back, pushForResult } = useStackNavigation();
+  const { back, pushForResult, replace } = useStackNavigation();
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
@@ -234,17 +234,22 @@ function OwnerDailyNoticeWritePage() {
     try {
       const result = await pushForResult<{ content: string }>({
         pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
+        query: {
+          ...(isExpired ? { expired: 'true' } : {}),
+        },
       });
       const bridgedContent = result?.content;
       if (typeof bridgedContent === 'string') {
         setNotice(bridgedContent);
+        // remount 경로(entry effect)가 쓸 수 있도록 여기서는 제거하지 않음.
+        // noticeId 스코프라 다른 알림장으로 새지 않음.
         return;
       }
 
-      const loadedContent = consumeLoadedNoticeTemplateContent();
+      const loadedContent = consumeLoadedNoticeTemplateContent(noticeId);
       if (loadedContent !== null) setNotice(loadedContent);
     } catch {
-      const loadedContent = consumeLoadedNoticeTemplateContent();
+      const loadedContent = consumeLoadedNoticeTemplateContent(noticeId);
       if (loadedContent !== null) setNotice(loadedContent);
     }
   };
@@ -344,6 +349,15 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
     setIsEditingSent(true);
+    // 템플릿 왕복 remount 시에도 수정 모드 유지
+    if (!noticeId) return;
+    replace({
+      pathname: route.owner.daily.notice.write.root.replace('[id]', noticeId),
+      query: {
+        mode: 'edit',
+        ...(isExpired ? { expired: 'true' } : {}),
+      },
+    });
   };
 
   const submitNotice = async () => {
@@ -365,6 +379,12 @@ function OwnerDailyNoticeWritePage() {
         data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
       });
       setIsEditingSent(false);
+      replace({
+        pathname: route.owner.daily.notice.write.root.replace('[id]', noticeId),
+        query: {
+          ...(isExpired ? { expired: 'true' } : {}),
+        },
+      });
 
       toast({
         nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
@@ -376,11 +396,15 @@ function OwnerDailyNoticeWritePage() {
         ),
       });
     } catch {
-      try {
-        await draftMutation.mutateAsync(buildPayload());
-        saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
-      } catch {
-        saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
+      // SENT 수정 실패 시 draft를 저장해도 재진입 시 attendanceRecord(SENT) hydrate가
+      // draft 복원을 막고, 임시저장 안내가 실제 복원과 불일치함 → 현재 화면에서 재시도만 유도
+      if (!isEditMode) {
+        try {
+          await draftMutation.mutateAsync(buildPayload());
+          saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
+        } catch {
+          saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
+        }
       }
 
       overlay.open(({ isOpen, close }) => (
@@ -389,7 +413,9 @@ function OwnerDailyNoticeWritePage() {
             <AlertDialogHeader>
               <AlertDialogTitle>{ownerDailyNoticeWriteContent.sendFailedTitle}</AlertDialogTitle>
               <AlertDialogDescription className='whitespace-pre-line'>
-                {ownerDailyNoticeWriteContent.sendFailedDescription}
+                {isEditMode
+                  ? ownerDailyNoticeWriteContent.editSendFailedDescription
+                  : ownerDailyNoticeWriteContent.sendFailedDescription}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -458,9 +484,12 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
 
-    const loadedTemplateContent = consumeLoadedNoticeTemplateContent();
+    const loadedTemplateContent = consumeLoadedNoticeTemplateContent(noticeId);
     if (loadedTemplateContent !== null) {
       setNotice(loadedTemplateContent);
+      if (attendanceRecord?.status === 'SENT') {
+        setIsEditingSent(true);
+      }
       return;
     }
 

@@ -85,14 +85,15 @@ function OwnerDailyNoticeTemplatePage() {
     if (isExpired) return;
     const template = templates.find((item) => item.id === selectedTemplateId);
 
-    if (!template) return;
+    if (!template || !noticeId) return;
 
-    saveLoadedNoticeTemplateContent(template.content);
+    // remount 시 bridge 결과가 유실될 수 있어 noticeId 스코프 fallback을 항상 남김
+    saveLoadedNoticeTemplateContent(noticeId, template.content);
 
     try {
       navResult.send({ content: template.content });
     } catch {
-      // sessionStorage fallback
+      // sessionStorage fallback already saved
     }
 
     back();
