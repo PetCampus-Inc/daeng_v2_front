@@ -10,7 +10,9 @@ import { OwnerMemberMoreMenu } from '@views/owner-members-page/ui/OwnerMemberMor
 import { OwnerMemberCard } from '@features/owner-members';
 
 import type { OwnerMember } from '@entities/owner-member';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
 interface OwnerMembersListProps {
   members: OwnerMember[];
@@ -68,7 +70,19 @@ function OwnerMembersList({
         <OwnerMemberCard
           key={member.id}
           member={member}
-          onClick={() => push({ pathname: `/owner/members/${member.id}` })}
+          onClick={() => {
+            if (!member.petId) {
+              toast({
+                nativeTitle: '원생 프로필을 열 수 없어요',
+                title: '원생 프로필을 열 수 없어요',
+              });
+              return;
+            }
+
+            push({
+              pathname: route.owner.members.detail.root.replace('[id]', member.petId),
+            });
+          }}
           rightAddon={
             <OwnerMemberMoreMenu
               memberId={member.id}

@@ -1,14 +1,24 @@
 import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 
-import type { OwnerMemberProfile } from '../config/ownerMemberProfileContent';
+import type { OwnerPet } from '@entities/owner-pet';
 
 interface OwnerMemberProfileHeaderProps {
-  dog: OwnerMemberProfile['dog'];
+  dog: OwnerPet;
+}
+
+function buildDogSummary(dog: OwnerPet) {
+  const parts: string[] = [];
+
+  if (dog.breed) parts.push(dog.breed);
+  if (dog.weightKg != null) parts.push(`${dog.weightKg}kg`);
+  if (dog.age != null) parts.push(`${dog.age}살`);
+
+  return parts.join(' · ');
 }
 
 function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
   const genderIcon = dog.gender === 'MALE' ? 'Male' : 'Female';
-  const summary = `${dog.breed} · ${dog.weightKg}kg · ${dog.age}살`;
+  const summary = buildDogSummary(dog);
 
   return (
     <div className='bg-bg-0 flex flex-col items-center gap-2 pt-5'>
@@ -26,7 +36,7 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
           <h1 className='h1-extrabold text-text-primary'>{dog.name}</h1>
           <Icon icon={genderIcon} className='text-text-accent size-6' />
         </div>
-        <p className='body1-medium text-text-secondary'>{summary}</p>
+        {summary ? <p className='body1-medium text-text-secondary'>{summary}</p> : null}
       </div>
     </div>
   );

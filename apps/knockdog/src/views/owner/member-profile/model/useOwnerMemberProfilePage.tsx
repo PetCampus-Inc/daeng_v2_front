@@ -3,6 +3,8 @@
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
+import { useOwnerPetQuery } from '@entities/owner-pet';
+
 import { useClipboardCopy } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 
@@ -15,12 +17,18 @@ import {
 
 function useOwnerMemberProfilePage() {
   const params = useParams<{ id: string }>();
-  const memberId = params?.id ?? '';
+  const petId = params?.id ?? '';
   const copy = useClipboardCopy();
   const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.DOG);
 
-  // TODO: API 연동 시 useOwnerMemberQuery(memberId)로 교체
-  const profile = getMockOwnerMemberProfile(memberId);
+  const {
+    data: dog,
+    isLoading: isDogLoading,
+    isError: isDogError,
+  } = useOwnerPetQuery({ petId, enabled: Boolean(petId) });
+
+  // 보호자/등하원 탭은 추후 API 연동 — 당분간 mock 유지
+  const mockProfile = getMockOwnerMemberProfile(petId);
 
   const handleCopy = async (label: string, value: string) => {
     if (!value) return;
@@ -45,10 +53,15 @@ function useOwnerMemberProfilePage() {
   };
 
   return {
-    profile,
+    petId,
+    dog,
+    guardian: mockProfile.guardian,
+    attendanceRecords: mockProfile.attendanceRecords,
     activeTab,
     setActiveTab,
     handleCopy,
+    isDogLoading,
+    isDogError,
   };
 }
 
