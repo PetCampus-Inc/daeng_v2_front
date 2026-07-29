@@ -18,21 +18,14 @@ function OwnerDailyMemberCard({
   onAttendanceButtonClick,
 }: OwnerDailyMemberCardProps) {
   return (
-    <div
-      role='button'
-      tabIndex={0}
-      className='bg-bg-0 radius-r3 flex h-20 w-full cursor-pointer items-center justify-between gap-3 p-4'
-      onClick={() => {
-        onMemberClick(member.id);
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
+    <div className='bg-bg-0 radius-r3 flex h-20 w-full items-center justify-between'>
+      <button
+        type='button'
+        className='flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2 p-4 pr-0 text-left'
+        onClick={() => {
           onMemberClick(member.id);
-        }
-      }}
-    >
-      <div className='flex h-11 min-w-0 flex-1 gap-2 text-left'>
+        }}
+      >
         <Avatar
           className={`size-x11 shrink-0 border-2 ${
             member.checkedIn ? 'border-fill-primary-500' : 'border-fill-secondary-100'
@@ -54,12 +47,8 @@ function OwnerDailyMemberCard({
             {member.breed} · {member.weightKg}kg{member.age ? ` · ${member.age}살` : ''}
           </span>
         </div>
-      </div>
-      <div
-        className='flex h-12 shrink-0 items-center gap-2'
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => event.stopPropagation()}
-      >
+      </button>
+      <div className='flex h-full shrink-0 items-center gap-2 px-4'>
         {member.checkedIn ? (
           <button
             type='button'
