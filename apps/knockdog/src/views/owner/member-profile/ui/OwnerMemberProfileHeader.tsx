@@ -17,7 +17,7 @@ function buildDogSummary(dog: OwnerPet) {
 }
 
 function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
-  const genderIcon = dog.gender === 'MALE' ? 'Male' : 'Female';
+  const genderIcon = dog.gender === 'MALE' ? 'Male' : dog.gender === 'FEMALE' ? 'Female' : null;
   const summary = buildDogSummary(dog);
 
   return (
@@ -34,7 +34,7 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
       <div className='flex flex-col items-center gap-1'>
         <div className='flex items-center gap-1'>
           <h1 className='h1-extrabold text-text-primary'>{dog.name}</h1>
-          <Icon icon={genderIcon} className='text-text-accent size-6' />
+          {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-6' /> : null}
         </div>
         {summary ? <p className='body1-medium text-text-secondary'>{summary}</p> : null}
       </div>

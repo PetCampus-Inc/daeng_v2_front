@@ -34,10 +34,16 @@ function getGenderDisplay(dog: OwnerPet) {
   const genderLabel =
     dog.gender === 'MALE'
       ? ownerMemberProfileContent.maleDogLabel
-      : ownerMemberProfileContent.femaleDogLabel;
-  const neuteredLabel = dog.isNeutered
-    ? ownerMemberProfileContent.neuteredDoneLabel
-    : ownerMemberProfileContent.neuteredNotDoneLabel;
+      : dog.gender === 'FEMALE'
+        ? ownerMemberProfileContent.femaleDogLabel
+        : ownerMemberProfileContent.emptyValue;
+
+  const neuteredLabel =
+    dog.isNeutered === true
+      ? ownerMemberProfileContent.neuteredDoneLabel
+      : dog.isNeutered === false
+        ? ownerMemberProfileContent.neuteredNotDoneLabel
+        : ownerMemberProfileContent.emptyValue;
 
   return `${genderLabel} (${neuteredLabel})`;
 }

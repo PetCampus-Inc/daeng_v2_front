@@ -2,7 +2,7 @@ interface OwnerPetDto {
   petId: number | string;
   name: string;
   profileImage?: string | null;
-  gender: 'MALE' | 'FEMALE' | string;
+  gender?: 'MALE' | 'FEMALE' | string | null;
   isNeutered?: boolean | null;
   breed?: string | null;
   weight?: number | null;
@@ -23,8 +23,8 @@ interface OwnerPet {
   petId: string;
   name: string;
   profileImageUrl: string | null;
-  gender: 'MALE' | 'FEMALE';
-  isNeutered: boolean;
+  gender: 'MALE' | 'FEMALE' | null;
+  isNeutered: boolean | null;
   breed: string;
   weightKg: number | null;
   birthYear: number | null;
@@ -40,8 +40,16 @@ interface OwnerPetGuardian {
   addressDetail?: string;
 }
 
-function normalizeGender(value: unknown): 'MALE' | 'FEMALE' {
-  return value === 'FEMALE' ? 'FEMALE' : 'MALE';
+function normalizeGender(value: unknown): 'MALE' | 'FEMALE' | null {
+  if (value === 'MALE') return 'MALE';
+  if (value === 'FEMALE') return 'FEMALE';
+  return null;
+}
+
+function normalizeIsNeutered(value: unknown): boolean | null {
+  if (value === true) return true;
+  if (value === false) return false;
+  return null;
 }
 
 function toOwnerPet(dto: OwnerPetDto | null | undefined): OwnerPet | null {
@@ -52,7 +60,7 @@ function toOwnerPet(dto: OwnerPetDto | null | undefined): OwnerPet | null {
     name: dto.name ?? '',
     profileImageUrl: dto.profileImage ?? null,
     gender: normalizeGender(dto.gender),
-    isNeutered: Boolean(dto.isNeutered),
+    isNeutered: normalizeIsNeutered(dto.isNeutered),
     breed: dto.breed ?? '',
     weightKg: typeof dto.weight === 'number' ? dto.weight : null,
     birthYear: typeof dto.birthYear === 'number' ? dto.birthYear : null,
