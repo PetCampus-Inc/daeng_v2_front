@@ -31,21 +31,22 @@ function displayValue(value: string | null | undefined) {
 }
 
 function getGenderDisplay(dog: OwnerPet) {
+  if (!dog.gender) return ownerMemberProfileContent.emptyValue;
+
   const genderLabel =
     dog.gender === 'MALE'
       ? ownerMemberProfileContent.maleDogLabel
-      : dog.gender === 'FEMALE'
-        ? ownerMemberProfileContent.femaleDogLabel
-        : ownerMemberProfileContent.emptyValue;
+      : ownerMemberProfileContent.femaleDogLabel;
 
-  const neuteredLabel =
-    dog.isNeutered === true
-      ? ownerMemberProfileContent.neuteredDoneLabel
-      : dog.isNeutered === false
-        ? ownerMemberProfileContent.neuteredNotDoneLabel
-        : ownerMemberProfileContent.emptyValue;
+  if (dog.isNeutered === true) {
+    return `${genderLabel} (${ownerMemberProfileContent.neuteredDoneLabel})`;
+  }
 
-  return `${genderLabel} (${neuteredLabel})`;
+  if (dog.isNeutered === false) {
+    return `${genderLabel} (${ownerMemberProfileContent.neuteredNotDoneLabel})`;
+  }
+
+  return genderLabel;
 }
 
 function DogBasicInfoSection({ dog }: DogBasicInfoSectionProps) {
