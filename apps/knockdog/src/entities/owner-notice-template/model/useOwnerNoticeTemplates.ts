@@ -1,22 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  addOwnerNoticeTemplate,
-  getOwnerNoticeTemplatesSnapshot,
-  subscribeOwnerNoticeTemplates,
-  type CreateOwnerNoticeTemplateInput,
-  type OwnerNoticeTemplate,
-} from './ownerNoticeTemplate';
+import { useUserStore } from '@entities/user';
+
+import { useOwnerNoticeTemplatesQuery } from '../api/useOwnerNoticeTemplateQuery';
 
 function useOwnerNoticeTemplates() {
-  const templates = useSyncExternalStore(
-    subscribeOwnerNoticeTemplates,
-    getOwnerNoticeTemplatesSnapshot,
-    () => [] as OwnerNoticeTemplate[]
-  );
-
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: templates = [], isLoading, isError, refetch } = useOwnerNoticeTemplatesQuery({
+    userId,
+  });
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
 
   const templateIds = templates.map((template) => template.id).join(',');
@@ -34,17 +28,15 @@ function useOwnerNoticeTemplates() {
     });
   }, [templateIds]);
 
-  const createTemplate = useCallback((input: CreateOwnerNoticeTemplateInput) => {
-    return addOwnerNoticeTemplate(input);
-  }, []);
-
   return {
     templates,
     selectedTemplateId,
     setSelectedTemplateId,
-    createTemplate,
     hasTemplates: templates.length > 0,
     templateCount: templates.length,
+    isLoading,
+    isError,
+    refetch,
   };
 }
 

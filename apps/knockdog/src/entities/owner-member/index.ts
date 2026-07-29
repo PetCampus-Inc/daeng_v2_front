@@ -15,6 +15,8 @@ export {
   useOwnerPendingMembersQuery,
 } from './api/useOwnerMemberQuery';
 export {
+  findOwnerMemberByDogName,
+  findOwnerMemberByPetId,
   toOwnerMember,
   toOwnerMembersResponse,
   toOwnerPendingMembersResponse,

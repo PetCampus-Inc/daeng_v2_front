@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, type ChangeEvent } from 'react';
 
 import { Textarea, TextareaInput } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 const LINE_HEIGHT_PX = 24;
 const MAX_LINES = 2;
@@ -13,10 +14,17 @@ interface ShortMemoTextareaProps {
   maxLength: number;
   placeholder: string;
   onChange: (value: string) => void;
+  readOnly?: boolean;
 }
 
 /** 50자 내외 짧은 메모: 최대 2줄까지 늘어나고 내부 스크롤 없음 */
-function ShortMemoTextarea({ value, maxLength, placeholder, onChange }: ShortMemoTextareaProps) {
+function ShortMemoTextarea({
+  value,
+  maxLength,
+  placeholder,
+  onChange,
+  readOnly = false,
+}: ShortMemoTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
@@ -40,8 +48,12 @@ function ShortMemoTextarea({ value, maxLength, placeholder, onChange }: ShortMem
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={handleChange}
+        readOnly={readOnly}
         spellCheck={false}
-        className='h-auto max-h-[48px] overflow-hidden'
+        className={cn(
+          'h-auto max-h-[48px] overflow-hidden',
+          readOnly && 'text-text-secondary'
+        )}
       />
     </Textarea>
   );

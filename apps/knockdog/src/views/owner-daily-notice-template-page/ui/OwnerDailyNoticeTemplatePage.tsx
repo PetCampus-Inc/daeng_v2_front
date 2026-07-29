@@ -1,8 +1,12 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
-import { ActionButton, Icon, RadioGroup } from '@knockdog/ui';
+import {
+  ActionButton,
+  Icon,
+  RadioGroup,
+} from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import {
@@ -11,6 +15,8 @@ import {
   useOwnerNoticeTemplates,
 } from '@entities/owner-notice-template';
 import { ownerDailyNoticeTemplateContent } from '@views/owner-daily-notice-template-page/config/ownerDailyNoticeTemplateContent';
+import { OwnerNoticeTemplateRadioCard } from '@views/owner-daily-notice-template-page/ui/OwnerNoticeTemplateRadioCard';
+import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 
 import { Header } from '@widgets/Header';
 
@@ -19,15 +25,15 @@ import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
-import { OwnerNoticeTemplateRadioCard } from './OwnerNoticeTemplateRadioCard';
-
 /**
  * 원장 일과 탭 — 알림장 템플릿 목록
  */
 function OwnerDailyNoticeTemplatePage() {
   const MAX_TEMPLATE_COUNT = 10;
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const noticeId = params?.id;
+  const isExpired = searchParams.get('expired') === 'true';
   const { back, push } = useStackNavigation();
   const navResult = useNavigationResult<{ content: string }>();
   const {
@@ -35,12 +41,16 @@ function OwnerDailyNoticeTemplatePage() {
     selectedTemplateId,
     setSelectedTemplateId,
     hasTemplates,
+    isLoading,
   } = useOwnerNoticeTemplates();
 
   const hasSelection = Boolean(selectedTemplateId);
   const isLoadTemplateEnabled = hasTemplates && hasSelection;
 
+  useExpiredNoticeDialog(isExpired, back);
+
   const handleCreateTemplateClick = () => {
+    if (isExpired) return;
     if (!noticeId) return;
     if (templates.length >= MAX_TEMPLATE_COUNT) {
       toast({
@@ -61,6 +71,7 @@ function OwnerDailyNoticeTemplatePage() {
   };
 
   const handlePreviewTemplate = (template: OwnerNoticeTemplate) => {
+    if (isExpired) return;
     if (!noticeId) return;
 
     push({
@@ -71,14 +82,18 @@ function OwnerDailyNoticeTemplatePage() {
   };
 
   const handleLoadTemplateClick = () => {
+    if (isExpired) return;
     const template = templates.find((item) => item.id === selectedTemplateId);
 
-    if (!template) return;
+    if (!template || !noticeId) return;
+
+    // remount 시 bridge 결과가 유실될 수 있어 noticeId 스코프 fallback을 항상 남김
+    saveLoadedNoticeTemplateContent(noticeId, template.content);
 
     try {
       navResult.send({ content: template.content });
     } catch {
-      saveLoadedNoticeTemplateContent(template.content);
+      // sessionStorage fallback already saved
     }
 
     back();
@@ -95,7 +110,11 @@ function OwnerDailyNoticeTemplatePage() {
         </Header>
       </div>
 
-      {hasTemplates ? (
+      {isLoading ? (
+        <div className='flex min-h-0 flex-1 items-center justify-center px-4 py-4'>
+          <p className='body1-regular text-text-secondary'>템플릿을 불러오는 중이에요</p>
+        </div>
+      ) : hasTemplates ? (
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4'>
           <RadioGroup
             value={selectedTemplateId}

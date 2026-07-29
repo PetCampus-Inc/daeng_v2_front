@@ -1,10 +1,25 @@
 import { STORAGE_KEYS } from '@shared/constants/storage';
 
+/** 서버 DTO — attendance-record-note-templates */
+interface AttendanceRecordNoteTemplateDto {
+  id: number | string;
+  title: string;
+  note: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+interface CreateAttendanceRecordNoteTemplateRequest {
+  title: string;
+  note: string;
+}
+
 interface OwnerNoticeTemplate {
   id: string;
   title: string;
   content: string;
-  createdAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface CreateOwnerNoticeTemplateInput {
@@ -12,150 +27,72 @@ interface CreateOwnerNoticeTemplateInput {
   content: string;
 }
 
-const templateListeners = new Set<() => void>();
-
-let cachedTemplatesRaw: string | null | undefined;
-let cachedTemplatesSnapshot: OwnerNoticeTemplate[] = [];
-
-function notifyTemplateChange() {
-  templateListeners.forEach((listener) => listener());
-}
-
-function subscribeOwnerNoticeTemplates(listener: () => void) {
-  templateListeners.add(listener);
-
-  return () => {
-    templateListeners.delete(listener);
+function toOwnerNoticeTemplate(dto: AttendanceRecordNoteTemplateDto): OwnerNoticeTemplate {
+  return {
+    id: String(dto.id),
+    title: dto.title,
+    content: dto.note,
+    createdAt: dto.createdAt ?? undefined,
+    updatedAt: dto.updatedAt ?? undefined,
   };
 }
 
-function isOwnerNoticeTemplate(value: unknown): value is OwnerNoticeTemplate {
-  if (!value || typeof value !== 'object') return false;
+function toOwnerNoticeTemplates(
+  data: AttendanceRecordNoteTemplateDto[] | { templates?: AttendanceRecordNoteTemplateDto[] } | null
+): OwnerNoticeTemplate[] {
+  if (!data) return [];
 
-  const record = value as Record<string, unknown>;
-
-  return (
-    typeof record.id === 'string' &&
-    typeof record.title === 'string' &&
-    typeof record.content === 'string' &&
-    typeof record.createdAt === 'string'
-  );
-}
-
-function getOwnerNoticeTemplatesSnapshot(): OwnerNoticeTemplate[] {
-  if (typeof window === 'undefined') return [];
-
-  const raw = localStorage.getItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATES);
-
-  if (raw === cachedTemplatesRaw) {
-    return cachedTemplatesSnapshot;
+  if (Array.isArray(data)) {
+    return data.map(toOwnerNoticeTemplate);
   }
 
-  cachedTemplatesRaw = raw;
-
-  if (!raw) {
-    cachedTemplatesSnapshot = [];
-    return cachedTemplatesSnapshot;
+  if (Array.isArray(data.templates)) {
+    return data.templates.map(toOwnerNoticeTemplate);
   }
 
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    cachedTemplatesSnapshot = Array.isArray(parsed)
-      ? parsed.filter(isOwnerNoticeTemplate)
-      : [];
-  } catch {
-    cachedTemplatesSnapshot = [];
-  }
-
-  return cachedTemplatesSnapshot;
+  return [];
 }
 
-function saveOwnerNoticeTemplates(templates: OwnerNoticeTemplate[]) {
-  if (typeof window === 'undefined') return;
-
-  const raw = JSON.stringify(templates);
-  localStorage.setItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATES, raw);
-  cachedTemplatesRaw = raw;
-  cachedTemplatesSnapshot = templates;
-  notifyTemplateChange();
-}
-
-function addOwnerNoticeTemplate(input: CreateOwnerNoticeTemplateInput): OwnerNoticeTemplate {
-  const template: OwnerNoticeTemplate = {
-    id: crypto.randomUUID(),
-    title: input.title,
-    content: input.content,
-    createdAt: new Date().toISOString(),
-  };
-
-  saveOwnerNoticeTemplates([template, ...getOwnerNoticeTemplatesSnapshot()]);
-
-  return template;
-}
-
-function updateOwnerNoticeTemplate(
-  id: string,
+function toCreateAttendanceRecordNoteTemplateRequest(
   input: CreateOwnerNoticeTemplateInput
-): OwnerNoticeTemplate | null {
-  const templates = getOwnerNoticeTemplatesSnapshot();
-  const index = templates.findIndex((template) => template.id === id);
-
-  if (index === -1) return null;
-
-  const existingTemplate = templates[index];
-
-  if (!existingTemplate) return null;
-
-  const updatedTemplate: OwnerNoticeTemplate = {
-    id: existingTemplate.id,
+): CreateAttendanceRecordNoteTemplateRequest {
+  return {
     title: input.title,
-    content: input.content,
-    createdAt: existingTemplate.createdAt,
+    note: input.content,
   };
-
-  const nextTemplates = [...templates];
-  nextTemplates[index] = updatedTemplate;
-  saveOwnerNoticeTemplates(nextTemplates);
-
-  return updatedTemplate;
 }
 
-function deleteOwnerNoticeTemplate(id: string): boolean {
-  const templates = getOwnerNoticeTemplatesSnapshot();
-  const nextTemplates = templates.filter((template) => template.id !== id);
-
-  if (nextTemplates.length === templates.length) return false;
-
-  saveOwnerNoticeTemplates(nextTemplates);
-
-  return true;
+function getLoadedNoticeTemplateStorageKey(noticeId: string) {
+  return `${STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD}:${noticeId}`;
 }
 
-function saveLoadedNoticeTemplateContent(content: string) {
+/** bridge 성공 + remount 대비 fallback. noticeId로 스코프해 다른 알림장에 잘못 적용되지 않게 함 */
+function saveLoadedNoticeTemplateContent(noticeId: string, content: string) {
   if (typeof window === 'undefined') return;
 
-  sessionStorage.setItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD, content);
+  sessionStorage.setItem(getLoadedNoticeTemplateStorageKey(noticeId), content);
 }
 
-function consumeLoadedNoticeTemplateContent(): string | null {
+function consumeLoadedNoticeTemplateContent(noticeId: string): string | null {
   if (typeof window === 'undefined') return null;
 
-  const content = sessionStorage.getItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
+  const key = getLoadedNoticeTemplateStorageKey(noticeId);
+  const content = sessionStorage.getItem(key);
   if (content === null) return null;
 
-  sessionStorage.removeItem(STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_LOAD);
+  sessionStorage.removeItem(key);
 
   return content;
 }
 
 export {
-  addOwnerNoticeTemplate,
   consumeLoadedNoticeTemplateContent,
-  deleteOwnerNoticeTemplate,
-  getOwnerNoticeTemplatesSnapshot,
   saveLoadedNoticeTemplateContent,
-  subscribeOwnerNoticeTemplates,
-  updateOwnerNoticeTemplate,
+  toCreateAttendanceRecordNoteTemplateRequest,
+  toOwnerNoticeTemplate,
+  toOwnerNoticeTemplates,
+  type AttendanceRecordNoteTemplateDto,
+  type CreateAttendanceRecordNoteTemplateRequest,
   type CreateOwnerNoticeTemplateInput,
   type OwnerNoticeTemplate,
 };
