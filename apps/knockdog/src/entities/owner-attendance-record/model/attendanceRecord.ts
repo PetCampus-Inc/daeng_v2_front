@@ -1,19 +1,17 @@
-import type { StoolStatus } from '@shared/ui/stool-status';
 
-/** API 배변 상태 — swagger `HEALTHY` 기준, 묽음은 `LOOSE` (SOFT 아님) */
 type AttendanceRecordPoop =
   | 'HEALTHY'
   | 'HARD'
   | 'LOOSE'
   | 'ABNORMAL'
-  | 'CAUTION'
-  | 'NONE';
+  | 'NONE'
+  | 'NEEDS_ATTENTION';
 
 type AttendanceRecordCondition =
   | 'ENERGETIC'
-  | 'NORMAL'
-  | 'CALM'
-  | 'CHECK_AFTER_RETURN';
+  | 'USUAL'
+  | 'RESTED'
+  | 'WATCH_AFTER_RETURN';
 
 type AttendanceRecordStatus = 'DRAFT' | 'SENT';
 
@@ -30,7 +28,7 @@ interface AttendanceRecordPayload {
 interface AttendanceRecordDto {
   petId: number | string;
   date: string;
-  condition: AttendanceRecordCondition | null;
+  condition: AttendanceRecordCondition | string | null;
   snack: string | null;
   poop: AttendanceRecordPoop | string | null;
   poopMemo: string | null;
@@ -46,7 +44,7 @@ interface AttendanceRecord {
   checkOut: string | null;
   condition: AttendanceRecordCondition | null;
   snack: string;
-  poop: StoolStatus | null;
+  poop: AttendanceRecordPoop | null;
   poopMemo: string;
   note: string;
   status: AttendanceRecordStatus;
@@ -57,53 +55,37 @@ interface BuildAttendanceRecordPayloadInput {
   date: string;
   condition: AttendanceRecordCondition | null;
   snack: string;
-  poop: StoolStatus | null;
+  poop: AttendanceRecordPoop | null;
   poopMemo: string;
   note: string;
 }
 
-const STOOL_STATUS_TO_POOP: Record<StoolStatus, AttendanceRecordPoop> = {
-  NORMAL: 'HEALTHY',
-  HARD: 'HARD',
-  SOFT: 'LOOSE',
-  ABNORMAL: 'ABNORMAL',
-  CAUTION: 'CAUTION',
-  NONE: 'NONE',
-};
-
-const POOP_TO_STOOL_STATUS: Record<string, StoolStatus> = {
-  HEALTHY: 'NORMAL',
-  HARD: 'HARD',
-  LOOSE: 'SOFT',
-  SOFT: 'SOFT', // legacy 응답 호환
-  ABNORMAL: 'ABNORMAL',
-  CAUTION: 'CAUTION',
-  NONE: 'NONE',
-};
-
-const ATTENDANCE_RECORD_CONDITIONS = new Set<AttendanceRecordCondition>([
+const ATTENDANCE_RECORD_CONDITIONS = new Set<string>([
   'ENERGETIC',
-  'NORMAL',
-  'CALM',
-  'CHECK_AFTER_RETURN',
+  'USUAL',
+  'RESTED',
+  'WATCH_AFTER_RETURN',
 ]);
 
 const ATTENDANCE_RECORD_POOPS = new Set<string>([
   'HEALTHY',
   'HARD',
   'LOOSE',
-  'SOFT',
   'ABNORMAL',
-  'CAUTION',
   'NONE',
+  'NEEDS_ATTENTION',
 ]);
 
-function isAttendanceRecordCondition(value: unknown): value is AttendanceRecordCondition {
-  return typeof value === 'string' && ATTENDANCE_RECORD_CONDITIONS.has(value as AttendanceRecordCondition);
+function normalizeAttendanceRecordCondition(value: unknown): AttendanceRecordCondition | null {
+  if (typeof value !== 'string') return null;
+  if (!ATTENDANCE_RECORD_CONDITIONS.has(value)) return null;
+  return value as AttendanceRecordCondition;
 }
 
-function isAttendanceRecordPoop(value: unknown): value is string {
-  return typeof value === 'string' && ATTENDANCE_RECORD_POOPS.has(value);
+function normalizeAttendanceRecordPoop(value: unknown): AttendanceRecordPoop | null {
+  if (typeof value !== 'string') return null;
+  if (!ATTENDANCE_RECORD_POOPS.has(value)) return null;
+  return value as AttendanceRecordPoop;
 }
 
 function normalizeAttendanceRecordStatus(value: unknown): AttendanceRecordStatus {
@@ -138,7 +120,7 @@ function getStringValue(record: Record<string, unknown>, keys: string[]): string
   return null;
 }
 
-/** LocalDate `[y, m, d]` / `YYYY-MM-DD`  */
+/** LocalDate `[y, m, d]` / `YYYY-MM-DD` */
 function normalizeDateKey(value: unknown): string | null {
   if (typeof value === 'string' && value.length > 0) {
     const datePart = value.slice(0, 10);
@@ -191,9 +173,9 @@ function buildAttendanceRecordPayload(
   return {
     petId,
     date: input.date,
-    condition: input.condition,
+    condition: normalizeAttendanceRecordCondition(input.condition),
     snack: input.snack.trim(),
-    poop: input.poop ? STOOL_STATUS_TO_POOP[input.poop] : null,
+    poop: normalizeAttendanceRecordPoop(input.poop),
     poopMemo: input.poopMemo.trim(),
     note: input.note.trim(),
   };
@@ -211,19 +193,14 @@ function toAttendanceRecord(dto: unknown): AttendanceRecord | null {
 
   if (petId === null || date === null) return null;
 
-  const condition = isAttendanceRecordCondition(record.condition) ? record.condition : null;
-  const poop = isAttendanceRecordPoop(record.poop)
-    ? (POOP_TO_STOOL_STATUS[record.poop] ?? null)
-    : null;
-
   return {
     petId,
     date,
     checkIn: getStringValue(record, ['checkIn', 'check_in', 'checkInTime']),
     checkOut: getStringValue(record, ['checkOut', 'check_out', 'checkOutTime']),
-    condition,
+    condition: normalizeAttendanceRecordCondition(record.condition),
     snack: typeof record.snack === 'string' ? record.snack : '',
-    poop,
+    poop: normalizeAttendanceRecordPoop(record.poop),
     poopMemo: typeof record.poopMemo === 'string' ? record.poopMemo : '',
     note: typeof record.note === 'string' ? record.note : '',
     status: normalizeAttendanceRecordStatus(
@@ -252,6 +229,8 @@ export {
   buildAttendanceRecordPayload,
   toAttendanceRecord,
   toAttendanceRecordDtoFromPayload,
+  normalizeAttendanceRecordCondition,
+  normalizeAttendanceRecordPoop,
   type AttendanceRecord,
   type AttendanceRecordCondition,
   type AttendanceRecordDto,

@@ -35,6 +35,8 @@ import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/Short
 import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
 import {
   buildAttendanceRecordPayload,
+  normalizeAttendanceRecordCondition,
+  normalizeAttendanceRecordPoop,
   ownerAttendanceRecordQueryKey,
   toAttendanceRecordDtoFromPayload,
   useAttendanceRecordMutation,
@@ -55,11 +57,6 @@ import { STORAGE_KEYS } from '@shared/constants/storage';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
-import {
-  STOOL_STATUS_DEFAULT_IMAGE,
-  STOOL_STATUS_IMAGE,
-  STOOL_STATUS_LABEL,
-} from '@shared/ui/stool-status';
 import { toast } from '@shared/ui/toast';
 
 interface NoticeDraft {
@@ -78,8 +75,18 @@ function isConditionOptionId(value: unknown): value is ConditionOptionId {
   return CONDITION_OPTIONS.some((option) => option.id === value);
 }
 
+function normalizeConditionOptionId(value: unknown): ConditionOptionId | null {
+  const normalized = normalizeAttendanceRecordCondition(value);
+  return isConditionOptionId(normalized) ? normalized : null;
+}
+
 function isNoticeWriteStoolStatus(value: unknown): value is NoticeWriteStoolStatus {
-  return (NOTICE_WRITE_STOOL_OPTIONS as readonly string[]).includes(value as string);
+  return NOTICE_WRITE_STOOL_OPTIONS.some((option) => option.id === value);
+}
+
+function normalizeNoticeWriteStoolStatus(value: unknown): NoticeWriteStoolStatus | null {
+  const normalized = normalizeAttendanceRecordPoop(value);
+  return isNoticeWriteStoolStatus(normalized) ? normalized : null;
 }
 
 function normalizeNoticeDraft(value: unknown): NoticeDraft | null {
@@ -88,13 +95,9 @@ function normalizeNoticeDraft(value: unknown): NoticeDraft | null {
   const draft = value as Record<string, unknown>;
 
   return {
-    selectedConditionId: isConditionOptionId(draft.selectedConditionId)
-      ? draft.selectedConditionId
-      : null,
+    selectedConditionId: normalizeConditionOptionId(draft.selectedConditionId),
     snack: typeof draft.snack === 'string' ? draft.snack : '',
-    selectedStoolStatus: isNoticeWriteStoolStatus(draft.selectedStoolStatus)
-      ? draft.selectedStoolStatus
-      : null,
+    selectedStoolStatus: normalizeNoticeWriteStoolStatus(draft.selectedStoolStatus),
     stoolMemo: typeof draft.stoolMemo === 'string' ? draft.stoolMemo : '',
     notice: typeof draft.notice === 'string' ? draft.notice : '',
   };
@@ -169,9 +172,9 @@ function OwnerDailyNoticeWritePage() {
 
   if (attendanceRecord && recordHydrateKey && recordHydrateKey !== hydratedRecordKey) {
     setHydratedRecordKey(recordHydrateKey);
-    setSelectedConditionId(attendanceRecord.condition);
+    setSelectedConditionId(normalizeConditionOptionId(attendanceRecord.condition));
     setSnack(attendanceRecord.snack);
-    setSelectedStoolStatus(attendanceRecord.poop);
+    setSelectedStoolStatus(normalizeNoticeWriteStoolStatus(attendanceRecord.poop));
     setStoolMemo(attendanceRecord.poopMemo);
     setNotice(attendanceRecord.note);
   }
@@ -654,31 +657,26 @@ function OwnerDailyNoticeWritePage() {
                 {ownerDailyNoticeWriteContent.stoolSectionLabel}
               </h2>
               <div className='flex items-center justify-between'>
-                {NOTICE_WRITE_STOOL_OPTIONS.map((status) => {
-                  const isSelected = selectedStoolStatus === status;
-                  const label = STOOL_STATUS_LABEL[status];
+                {NOTICE_WRITE_STOOL_OPTIONS.map((option) => {
+                  const isSelected = selectedStoolStatus === option.id;
 
                   return (
                     <button
-                      key={status}
+                      key={option.id}
                       type='button'
                       aria-pressed={isSelected}
-                      aria-label={label}
+                      aria-label={option.label}
                       disabled={isReadOnly}
                       onClick={() =>
                         setSelectedStoolStatus((current) =>
-                          current === status ? null : status
+                          current === option.id ? null : option.id
                         )
                       }
                       className={`flex flex-col items-center gap-2 ${isReadOnly ? 'pointer-events-none' : ''}`}
                     >
                       <div className='relative size-[52px] shrink-0 overflow-hidden rounded-lg'>
                         <Image
-                          src={
-                            isSelected
-                              ? STOOL_STATUS_IMAGE[status]
-                              : STOOL_STATUS_DEFAULT_IMAGE[status]
-                          }
+                          src={isSelected ? option.image : option.defaultImage}
                           alt=''
                           fill
                           className='object-contain'
@@ -690,7 +688,7 @@ function OwnerDailyNoticeWritePage() {
                           isSelected ? 'text-text-accent' : 'text-text-tertiary'
                         }`}
                       >
-                        {label}
+                        {option.label}
                       </span>
                     </button>
                   );

@@ -2,10 +2,13 @@ export {
   buildAttendanceRecordPayload,
   toAttendanceRecord,
   toAttendanceRecordDtoFromPayload,
+  normalizeAttendanceRecordCondition,
+  normalizeAttendanceRecordPoop,
   type AttendanceRecord,
   type AttendanceRecordCondition,
   type AttendanceRecordDto,
   type AttendanceRecordPayload,
+  type AttendanceRecordPoop,
   type AttendanceRecordStatus,
 } from './model/attendanceRecord';
 export {

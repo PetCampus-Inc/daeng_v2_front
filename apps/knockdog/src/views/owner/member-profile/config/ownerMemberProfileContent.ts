@@ -1,9 +1,3 @@
-import {
-  STOOL_STATUS,
-  STOOL_STATUS_LABEL,
-  type StoolStatus,
-} from '@shared/ui/stool-status';
-
 const TAB = {
   DOG: 'dog',
   GUARDIAN: 'guardian',
@@ -45,139 +39,6 @@ const ownerMemberProfileContent = {
   emptyValue: '-',
 };
 
-interface OwnerMemberProfileDog {
-  name: string;
-  gender: 'MALE' | 'FEMALE';
-  breed: string;
-  weightKg: number;
-  age: number;
-  birthYear: number;
-  isNeutered: boolean;
-  profileImageUrl?: string;
-}
-
-interface OwnerMemberProfileGuardian {
-  name: string;
-  gender: string;
-  phone: string;
-  emergencyPhone: string;
-  address: string;
-  addressDetail?: string;
-}
-
-interface OwnerMemberAttendanceRecord {
-  date: string;
-  checkIn: string;
-  checkOut: string;
-  condition: string;
-  snack: string;
-  stoolStatus: StoolStatus;
-  note: string;
-}
-
-interface OwnerMemberProfile {
-  id: string;
-  dog: OwnerMemberProfileDog;
-  guardian: OwnerMemberProfileGuardian;
-  attendanceRecords: OwnerMemberAttendanceRecord[];
-}
-
-/** TODO: API 연동 시 제거 */
-const mockOwnerMemberProfiles: OwnerMemberProfile[] = [
-  {
-    id: '1',
-    dog: {
-      name: '뭉치',
-      gender: 'MALE',
-      breed: '비글',
-      weightKg: 8,
-      age: 3,
-      birthYear: 2020,
-      isNeutered: true,
-      profileImageUrl: '',
-    },
-    guardian: {
-      name: '김영진',
-      gender: '남',
-      phone: '010-1234-5678',
-      emergencyPhone: '010-1234-5678',
-      address: '서울특별시 강남구 테헤란로 123, 행복아파트 101동 202호',
-    },
-    attendanceRecords: [
-      {
-        date: '2026-06-02',
-        checkIn: '오전 9:15',
-        checkOut: '오후 6:10',
-        condition: '평소와 비슷했어요',
-        snack: '간식을 잘 먹었어요.',
-        stoolStatus: STOOL_STATUS.NORMAL,
-        note: '첫 등원 날이에요.',
-      },
-      {
-        date: '2026-06-04',
-        checkIn: '오전 9:10',
-        checkOut: '오후 6:00',
-        condition: '평소와 비슷했어요',
-        snack: '북어트릿을 먹었어요.',
-        stoolStatus: STOOL_STATUS.HARD,
-        note: '오늘도 잘 지냈어요.',
-      },
-      {
-        date: '2026-06-05',
-        checkIn: '오전 9:10',
-        checkOut: '오후 6:00',
-        condition: '평소와 비슷했어요',
-        snack: '간식을 잘 먹었어요.',
-        stoolStatus: STOOL_STATUS.HARD,
-        note: '오늘도 잘 지냈어요.',
-      },
-      {
-        date: '2026-06-06',
-        checkIn: '오전 9:05',
-        checkOut: '오후 6:20',
-        condition: '평소와 비슷했어요',
-        snack: '북어트릿을 먹었어요.',
-        stoolStatus: STOOL_STATUS.HARD,
-        note: '친구들과 잘 놀았어요.',
-      },
-      {
-        date: '2026-06-08',
-        checkIn: '오전 9:00',
-        checkOut: '오후 6:30',
-        condition: '평소와 비슷했어요',
-        snack: '단호박 큐브와 북어트릿 한 조각을 먹었어요.',
-        stoolStatus: STOOL_STATUS.HARD,
-        note: '안녕하세요 뭉치 어머니! 뭉치가 오늘 친구들과 운동장에서 아주 활발하게 뛰어놀았어요. 특히 보더콜리 친구와 공놀이하는 걸 무척 좋아하더라고요! 점심도 남김없이 다 먹었고, 오후 낮잠 시간에는 아주 깊게 잠들었습니다. 집에 가서 푹 쉴 수 있게 해주세요!!',
-      },
-      {
-        date: '2026-06-15',
-        checkIn: '오전 9:00',
-        checkOut: '오후 6:15',
-        condition: '평소와 비슷했어요',
-        snack: '간식을 잘 먹었어요.',
-        stoolStatus: STOOL_STATUS.SOFT,
-        note: '산책 시간이 즐거웠어요.',
-      },
-      {
-        date: '2026-06-16',
-        checkIn: '오전 9:20',
-        checkOut: '오후 6:05',
-        condition: '평소와 비슷했어요',
-        snack: '단호박 큐브를 먹었어요.',
-        stoolStatus: STOOL_STATUS.NORMAL,
-        note: '낮잠도 잘 잤어요.',
-      },
-    ],
-  },
-];
-
-function getMockOwnerMemberProfile(id: string): OwnerMemberProfile {
-  const matched = mockOwnerMemberProfiles.find((profile) => profile.id === id);
-  if (matched) return matched;
-
-  return { ...mockOwnerMemberProfiles[0]!, id };
-}
-
 function getGuardianGenderLabel(gender: string) {
   if (gender === 'FEMALE') return ownerMemberProfileContent.femaleGuardianLabel;
   if (gender === 'MALE') return ownerMemberProfileContent.maleGuardianLabel;
@@ -186,15 +47,7 @@ function getGuardianGenderLabel(gender: string) {
 
 export {
   TAB,
-  STOOL_STATUS,
-  STOOL_STATUS_LABEL,
   getGuardianGenderLabel,
-  getMockOwnerMemberProfile,
   ownerMemberProfileContent,
-  type OwnerMemberAttendanceRecord,
-  type OwnerMemberProfile,
-  type OwnerMemberProfileDog,
-  type OwnerMemberProfileGuardian,
   type OwnerMemberProfileTab,
-  type StoolStatus,
 };
