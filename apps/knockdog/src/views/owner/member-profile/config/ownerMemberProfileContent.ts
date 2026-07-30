@@ -45,8 +45,6 @@ const ownerMemberProfileContent = {
   emptyValue: '-',
 };
 
-const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
-
 interface OwnerMemberProfileDog {
   name: string;
   gender: 'MALE' | 'FEMALE';
@@ -188,7 +186,6 @@ function getGuardianGenderLabel(gender: string) {
 
 export {
   TAB,
-  WEEKDAY_LABELS,
   STOOL_STATUS,
   STOOL_STATUS_LABEL,
   getGuardianGenderLabel,

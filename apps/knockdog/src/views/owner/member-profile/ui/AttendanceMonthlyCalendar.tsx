@@ -4,10 +4,9 @@ import { useRef, type PointerEvent } from 'react';
 
 import { Icon } from '@knockdog/ui';
 
-import {
-  WEEKDAY_LABELS,
-  ownerMemberProfileContent,
-} from '@views/owner/member-profile/config/ownerMemberProfileContent';
+import { WEEKDAY_LABELS } from '@shared/ui/weekly-date-picker';
+
+import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
 import {
   addMonths,
   formatDateKey,
