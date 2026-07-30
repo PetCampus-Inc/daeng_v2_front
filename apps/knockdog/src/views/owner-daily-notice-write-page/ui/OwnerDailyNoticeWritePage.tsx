@@ -32,7 +32,10 @@ import {
 import { NoticeMemoTextarea } from '@views/owner-daily-notice-write-page/ui/NoticeMemoTextarea';
 import { ShortMemoTextarea } from '@views/owner-daily-notice-write-page/ui/ShortMemoTextarea';
 
-import { consumeLoadedNoticeTemplateContent } from '@entities/owner-notice-template';
+import {
+  consumeLoadedNoticeTemplateContent,
+  peekLoadedNoticeTemplateContent,
+} from '@entities/owner-notice-template';
 import {
   buildAttendanceRecordPayload,
   normalizeAttendanceRecordCondition,
@@ -69,6 +72,28 @@ interface NoticeDraft {
 
 function getDraftStorageKey(noticeId: string, dateKey: string) {
   return `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId}:${dateKey}`;
+}
+
+function getTemplateRoundTripStorageKey(noticeId: string) {
+  return `${STORAGE_KEYS.OWNER_NOTICE_TEMPLATE_ROUNDTRIP}:${noticeId}`;
+}
+
+function markTemplateRoundTrip(noticeId: string) {
+  if (typeof window === 'undefined') return;
+  sessionStorage.setItem(getTemplateRoundTripStorageKey(noticeId), '1');
+}
+
+function consumeTemplateRoundTrip(noticeId: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const key = getTemplateRoundTripStorageKey(noticeId);
+  const exists = sessionStorage.getItem(key) !== null;
+  if (exists) sessionStorage.removeItem(key);
+  return exists;
+}
+
+function peekTemplateRoundTrip(noticeId: string): boolean {
+  if (typeof window === 'undefined') return false;
+  return sessionStorage.getItem(getTemplateRoundTripStorageKey(noticeId)) !== null;
 }
 
 function isConditionOptionId(value: unknown): value is ConditionOptionId {
@@ -161,6 +186,13 @@ function OwnerDailyNoticeWritePage() {
   const [isEditingSent, setIsEditingSent] = useState(isEditQuery);
   const [hydratedRecordKey, setHydratedRecordKey] = useState<string | null>(null);
   const hasOpenedEntryDialogRef = useRef(false);
+  const draftRef = useRef<NoticeDraft>({
+    selectedConditionId: null,
+    snack: '',
+    selectedStoolStatus: null,
+    stoolMemo: '',
+    notice: '',
+  });
 
   const hasSentRecord = attendanceRecord?.status === 'SENT';
   const isReadOnly = hasSentRecord && !isEditingSent;
@@ -172,11 +204,33 @@ function OwnerDailyNoticeWritePage() {
 
   if (attendanceRecord && recordHydrateKey && recordHydrateKey !== hydratedRecordKey) {
     setHydratedRecordKey(recordHydrateKey);
-    setSelectedConditionId(normalizeConditionOptionId(attendanceRecord.condition));
-    setSnack(attendanceRecord.snack);
-    setSelectedStoolStatus(normalizeNoticeWriteStoolStatus(attendanceRecord.poop));
-    setStoolMemo(attendanceRecord.poopMemo);
-    setNotice(attendanceRecord.note);
+
+    // 템플릿 왕복 remount: API hydrate로 로컬 작성값을 덮지 않고 draft(+템플릿 본문) 복원
+    const isTemplateRoundTrip = noticeId != null && peekTemplateRoundTrip(noticeId);
+    const pendingTemplate =
+      noticeId != null ? peekLoadedNoticeTemplateContent(noticeId) : null;
+    const draft =
+      noticeId != null ? loadNoticeDraft(noticeId, noticeWriteDate.dateKey) : null;
+
+    if ((isTemplateRoundTrip || pendingTemplate !== null) && draft) {
+      setSelectedConditionId(draft.selectedConditionId);
+      setSnack(draft.snack);
+      setSelectedStoolStatus(draft.selectedStoolStatus);
+      setStoolMemo(draft.stoolMemo);
+      setNotice(pendingTemplate ?? draft.notice);
+    } else if (pendingTemplate !== null) {
+      setSelectedConditionId(normalizeConditionOptionId(attendanceRecord.condition));
+      setSnack(attendanceRecord.snack);
+      setSelectedStoolStatus(normalizeNoticeWriteStoolStatus(attendanceRecord.poop));
+      setStoolMemo(attendanceRecord.poopMemo);
+      setNotice(pendingTemplate);
+    } else {
+      setSelectedConditionId(normalizeConditionOptionId(attendanceRecord.condition));
+      setSnack(attendanceRecord.snack);
+      setSelectedStoolStatus(normalizeNoticeWriteStoolStatus(attendanceRecord.poop));
+      setStoolMemo(attendanceRecord.poopMemo);
+      setNotice(attendanceRecord.note);
+    }
   }
 
   const dogName = pet?.name ?? student?.dogName ?? '';
@@ -218,6 +272,7 @@ function OwnerDailyNoticeWritePage() {
     stoolMemo,
     notice,
   };
+  draftRef.current = currentDraft;
 
   const openExpiredDialog = useCallback(() => {
     openExpiredNoticeDialog(back);
@@ -234,6 +289,10 @@ function OwnerDailyNoticeWritePage() {
   const openTemplatePage = async () => {
     if (!noticeId) return;
 
+    // remount 시 다른 필드 유지를 위해 로컬 draft 저장 (본문만 템플릿으로 교체)
+    saveNoticeDraft(noticeId, noticeWriteDate.dateKey, draftRef.current);
+    markTemplateRoundTrip(noticeId);
+
     try {
       const result = await pushForResult<{ content: string }>({
         pathname: route.owner.daily.notice.template.root.replace('[id]', noticeId),
@@ -244,16 +303,19 @@ function OwnerDailyNoticeWritePage() {
       const bridgedContent = result?.content;
       if (typeof bridgedContent === 'string') {
         setNotice(bridgedContent);
-        // remount 경로(entry effect)가 쓸 수 있도록 여기서는 제거하지 않음.
-        // noticeId 스코프라 다른 알림장으로 새지 않음.
+        // remount 없이 돌아온 경우 왕복(round-trip) 플래그만 정리.
+        // 템플릿 본문은 remount 대비 sessionStorage에 남겨둠.
+        consumeTemplateRoundTrip(noticeId);
         return;
       }
 
       const loadedContent = consumeLoadedNoticeTemplateContent(noticeId);
       if (loadedContent !== null) setNotice(loadedContent);
+      consumeTemplateRoundTrip(noticeId);
     } catch {
       const loadedContent = consumeLoadedNoticeTemplateContent(noticeId);
       if (loadedContent !== null) setNotice(loadedContent);
+      consumeTemplateRoundTrip(noticeId);
     }
   };
 
@@ -487,9 +549,19 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
 
+    const isTemplateRoundTrip = consumeTemplateRoundTrip(noticeId);
     const loadedTemplateContent = consumeLoadedNoticeTemplateContent(noticeId);
-    if (loadedTemplateContent !== null) {
-      setNotice(loadedTemplateContent);
+
+    if (isTemplateRoundTrip || loadedTemplateContent !== null) {
+      const draft = loadNoticeDraft(noticeId, noticeWriteDate.dateKey);
+      if (draft) {
+        applyDraft({
+          ...draft,
+          notice: loadedTemplateContent ?? draft.notice,
+        });
+      } else if (loadedTemplateContent !== null) {
+        setNotice(loadedTemplateContent);
+      }
       if (attendanceRecord?.status === 'SENT') {
         setIsEditingSent(true);
       }
