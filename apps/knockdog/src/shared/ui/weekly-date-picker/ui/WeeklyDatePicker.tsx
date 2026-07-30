@@ -3,8 +3,8 @@
 import { Calendar } from '@knockdog/icons';
 import { Icon } from '@knockdog/ui';
 
-import { WEEKDAY_LABELS } from '../config/weekdayLabels';
 import {
+  WEEKDAY_LABELS,
   addDays,
   formatDateKey,
   formatMonthTitle,
@@ -13,7 +13,7 @@ import {
   isAfterDay,
   isBeforeDay,
   isSameDay,
-} from '../lib/calendarDate';
+} from '@shared/lib/calendar-date';
 
 interface WeeklyDatePickerProps {
   selectedDate: Date;

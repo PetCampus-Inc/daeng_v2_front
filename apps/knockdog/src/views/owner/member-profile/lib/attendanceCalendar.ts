@@ -1,38 +1,21 @@
 import {
   WEEKDAY_LABELS,
   addDays,
+  addMonths,
   formatDateKey,
   formatMonthTitle,
+  getMonthGridDates,
   getWeekDates,
   isAfterDay,
   isBeforeDay,
   isSameDay,
+  isSameMonth,
   startOfDay,
-} from '@shared/ui/weekly-date-picker';
+} from '@shared/lib/calendar-date';
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split('-').map(Number);
   return startOfDay(new Date(year!, month! - 1, day));
-}
-
-function addMonths(date: Date, months: number) {
-  const next = new Date(date.getFullYear(), date.getMonth() + months, 1);
-  return startOfDay(next);
-}
-
-function isSameMonth(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-}
-
-function getMonthGridDates(viewMonth: Date) {
-  const firstOfMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
-  const lastOfMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0);
-  const gridStart = addDays(firstOfMonth, -firstOfMonth.getDay());
-  const gridEnd = addDays(lastOfMonth, 6 - lastOfMonth.getDay());
-  const dayCount =
-    Math.round((gridEnd.getTime() - gridStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-
-  return Array.from({ length: dayCount }, (_, index) => addDays(gridStart, index));
 }
 
 function formatDayTitle(date: Date) {

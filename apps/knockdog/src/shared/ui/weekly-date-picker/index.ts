@@ -1,7 +1,7 @@
 export { WeeklyDatePicker } from './ui/WeeklyDatePicker';
 export type { WeeklyDatePickerProps } from './ui/WeeklyDatePicker';
-export { WEEKDAY_LABELS } from './config/weekdayLabels';
 export {
+  WEEKDAY_LABELS,
   addDays,
   formatDateKey,
   formatMonthTitle,
@@ -11,4 +11,4 @@ export {
   isBeforeDay,
   isSameDay,
   startOfDay,
-} from './lib/calendarDate';
+} from '@shared/lib/calendar-date';
