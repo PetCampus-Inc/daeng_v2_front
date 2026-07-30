@@ -166,18 +166,18 @@ function AttendanceMonthlyCalendar({
         </div>
       </div>
 
-      <div className='flex w-full justify-center pb-4'>
+      <div className='flex w-full justify-center pt-4 pb-4'>
         <button
           type='button'
           aria-label='주간 캘린더로 접기'
-          className='flex w-full items-center justify-center py-1'
+          className='caption1-semibold text-text-tertiary underline underline-offset-2'
           onClick={onCollapse}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <span className='bg-fill-secondary-200 h-1 w-9 rounded-full' />
+          접기
         </button>
       </div>
     </div>
