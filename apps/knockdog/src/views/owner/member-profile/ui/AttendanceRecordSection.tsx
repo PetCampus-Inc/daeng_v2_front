@@ -144,9 +144,10 @@ function AttendanceRecordSection({ petId }: AttendanceRecordSectionProps) {
 
   const safeDateSet = useMemo(() => {
     const base = new Set(recordDateSet ?? []);
-    if (selectedRecord) base.add(selectedRecord.date);
+    // record.date LocalDate/오늘 fallback 방지
+    if (selectedRecord) base.add(selectedDateKey);
     return base;
-  }, [recordDateSet, selectedRecord]);
+  }, [recordDateSet, selectedRecord, selectedDateKey]);
   const minDate = useMemo(() => startOfDay(new Date(2020, 0, 1)), []);
   const maxDate = today;
 

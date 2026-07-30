@@ -138,6 +138,31 @@ function getStringValue(record: Record<string, unknown>, keys: string[]): string
   return null;
 }
 
+/** LocalDate `[y, m, d]` / `YYYY-MM-DD`  */
+function normalizeDateKey(value: unknown): string | null {
+  if (typeof value === 'string' && value.length > 0) {
+    const datePart = value.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
+    return null;
+  }
+
+  if (Array.isArray(value) && value.length >= 3) {
+    const [year, month, day] = value;
+    if (
+      typeof year === 'number' &&
+      typeof month === 'number' &&
+      typeof day === 'number' &&
+      Number.isFinite(year) &&
+      Number.isFinite(month) &&
+      Number.isFinite(day)
+    ) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+  }
+
+  return null;
+}
+
 function getNumberLikeValue(record: Record<string, unknown>, keys: string[]): number | null {
   for (const key of keys) {
     const value = record[key];
@@ -180,10 +205,11 @@ function toAttendanceRecord(dto: unknown): AttendanceRecord | null {
 
   const petId = getNumberLikeValue(record, ['petId', 'petID', 'pet_id']);
   const date =
-    getStringValue(record, ['date', 'recordDate', 'attendanceDate']) ??
-    new Date().toISOString().slice(0, 10);
+    normalizeDateKey(record.date) ??
+    normalizeDateKey(record.recordDate) ??
+    normalizeDateKey(record.attendanceDate);
 
-  if (petId === null) return null;
+  if (petId === null || date === null) return null;
 
   const condition = isAttendanceRecordCondition(record.condition) ? record.condition : null;
   const poop = isAttendanceRecordPoop(record.poop)

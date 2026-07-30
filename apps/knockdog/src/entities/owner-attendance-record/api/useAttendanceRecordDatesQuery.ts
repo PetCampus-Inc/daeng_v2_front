@@ -28,12 +28,27 @@ function useAttendanceRecordDatesQuery({
       if (!raw) return new Set<string>();
 
       const dates = raw.dates ?? [];
-      return new Set(
-        dates.map((d) => {
-          const [y, m, day] = d;
-          return `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        }),
-      );
+      const dateKeys: string[] = [];
+
+      for (const dateParts of dates) {
+        if (!Array.isArray(dateParts) || dateParts.length < 3) continue;
+        const [year, month, day] = dateParts;
+        if (
+          typeof year !== 'number' ||
+          typeof month !== 'number' ||
+          typeof day !== 'number' ||
+          !Number.isFinite(year) ||
+          !Number.isFinite(month) ||
+          !Number.isFinite(day)
+        ) {
+          continue;
+        }
+        dateKeys.push(
+          `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+        );
+      }
+
+      return new Set(dateKeys);
     },
     enabled: enabled && Boolean(petId) && Boolean(from) && Boolean(to),
     staleTime: 0,
