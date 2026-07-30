@@ -181,15 +181,21 @@ function buildAttendanceRecordPayload(
   };
 }
 
-function toAttendanceRecord(dto: unknown): AttendanceRecord | null {
+function toAttendanceRecord(
+  dto: unknown,
+  lookup?: { petId?: string; date?: string }
+): AttendanceRecord | null {
   const record = getRecordCandidate(dto);
   if (!record) return null;
 
-  const petId = getNumberLikeValue(record, ['petId', 'petID', 'pet_id']);
+  const petId =
+    getNumberLikeValue(record, ['petId', 'petID', 'pet_id']) ??
+    (lookup?.petId != null ? getNumberLikeValue({ petId: lookup.petId }, ['petId']) : null);
   const date =
     normalizeDateKey(record.date) ??
     normalizeDateKey(record.recordDate) ??
-    normalizeDateKey(record.attendanceDate);
+    normalizeDateKey(record.attendanceDate) ??
+    normalizeDateKey(lookup?.date);
 
   if (petId === null || date === null) return null;
 

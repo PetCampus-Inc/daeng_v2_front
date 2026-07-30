@@ -303,8 +303,9 @@ function OwnerDailyNoticeWritePage() {
       const bridgedContent = result?.content;
       if (typeof bridgedContent === 'string') {
         setNotice(bridgedContent);
-        // remount 없이 돌아온 경우 왕복(round-trip) 플래그만 정리.
-        // 템플릿 본문은 remount 대비 sessionStorage에 남겨둠.
+        // remount 없이 돌아온 경우 왕복 플래그 + 템플릿 본문 모두 정리해
+        // 이후 재진입 시 sessionStorage stale 템플릿이 다시 적용되지 않게 함.
+        consumeLoadedNoticeTemplateContent(noticeId);
         consumeTemplateRoundTrip(noticeId);
         return;
       }

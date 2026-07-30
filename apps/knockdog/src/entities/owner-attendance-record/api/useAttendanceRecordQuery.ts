@@ -22,7 +22,7 @@ function useAttendanceRecordQuery({
   return useQuery({
     queryKey: ownerAttendanceRecordQueryKey(petId, date),
     queryFn: () => getAttendanceRecord({ petId: petId!, date }),
-    select: (response) => toAttendanceRecord(response.data),
+    select: (response) => toAttendanceRecord(response.data, { petId, date }),
     enabled: enabled && Boolean(petId),
     staleTime: 0,
   });
