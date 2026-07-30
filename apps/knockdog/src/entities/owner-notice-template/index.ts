@@ -1,5 +1,6 @@
 export {
   consumeLoadedNoticeTemplateContent,
+  peekLoadedNoticeTemplateContent,
   saveLoadedNoticeTemplateContent,
   type CreateOwnerNoticeTemplateInput,
   type OwnerNoticeTemplate,

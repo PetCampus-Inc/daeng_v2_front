@@ -26,9 +26,9 @@ import { AttendanceWeeklyPicker } from './AttendanceWeeklyPicker';
 
 const CONDITION_LABELS: Record<AttendanceRecordCondition, string> = {
   ENERGETIC: '활력 넘치게 지냈어요',
-  NORMAL: '평소와 비슷했어요',
-  CALM: '차분히 휴식했어요',
-  CHECK_AFTER_RETURN: '귀가 후 확인이 필요해요',
+  USUAL: '평소와 비슷했어요',
+  RESTED: '차분히 휴식했어요',
+  WATCH_AFTER_RETURN: '귀가 후 확인이 필요해요',
 };
 
 interface AttendanceRecordSectionProps {
@@ -144,9 +144,10 @@ function AttendanceRecordSection({ petId }: AttendanceRecordSectionProps) {
 
   const safeDateSet = useMemo(() => {
     const base = new Set(recordDateSet ?? []);
-    if (selectedRecord) base.add(selectedRecord.date);
+    // record.date LocalDate/오늘 fallback 방지
+    if (selectedRecord) base.add(selectedDateKey);
     return base;
-  }, [recordDateSet, selectedRecord]);
+  }, [recordDateSet, selectedRecord, selectedDateKey]);
   const minDate = useMemo(() => startOfDay(new Date(2020, 0, 1)), []);
   const maxDate = today;
 

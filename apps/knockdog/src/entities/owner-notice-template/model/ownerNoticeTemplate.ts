@@ -73,6 +73,12 @@ function saveLoadedNoticeTemplateContent(noticeId: string, content: string) {
   sessionStorage.setItem(getLoadedNoticeTemplateStorageKey(noticeId), content);
 }
 
+function peekLoadedNoticeTemplateContent(noticeId: string): string | null {
+  if (typeof window === 'undefined') return null;
+
+  return sessionStorage.getItem(getLoadedNoticeTemplateStorageKey(noticeId));
+}
+
 function consumeLoadedNoticeTemplateContent(noticeId: string): string | null {
   if (typeof window === 'undefined') return null;
 
@@ -87,6 +93,7 @@ function consumeLoadedNoticeTemplateContent(noticeId: string): string | null {
 
 export {
   consumeLoadedNoticeTemplateContent,
+  peekLoadedNoticeTemplateContent,
   saveLoadedNoticeTemplateContent,
   toCreateAttendanceRecordNoteTemplateRequest,
   toOwnerNoticeTemplate,

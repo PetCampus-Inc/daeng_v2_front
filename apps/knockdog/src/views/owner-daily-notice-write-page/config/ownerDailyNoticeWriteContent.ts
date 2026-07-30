@@ -1,4 +1,12 @@
-import { STOOL_STATUS_OPTIONS, type StoolStatus } from '@shared/ui/stool-status';
+import type { AttendanceRecordPoop } from '@entities/owner-attendance-record';
+
+import {
+  STOOL_STATUS,
+  STOOL_STATUS_DEFAULT_IMAGE,
+  STOOL_STATUS_IMAGE,
+  STOOL_STATUS_LABEL,
+  STOOL_STATUS_OPTIONS,
+} from '@shared/ui/stool-status';
 
 export const ownerDailyNoticeWriteContent = Object.freeze({
   pageTitle: '알림장 작성',
@@ -46,21 +54,31 @@ export const ownerDailyNoticeWriteContent = Object.freeze({
 
 const CONDITION_OPTIONS = [
   { id: 'ENERGETIC', label: '활력 넘치게 지냈어요' },
-  { id: 'NORMAL', label: '평소와 비슷했어요' },
-  { id: 'CALM', label: '차분히 휴식했어요' },
-  { id: 'CHECK_AFTER_RETURN', label: '귀가 후 살펴봐 주세요' },
+  { id: 'USUAL', label: '평소와 비슷했어요' },
+  { id: 'RESTED', label: '차분히 휴식했어요' },
+  { id: 'WATCH_AFTER_RETURN', label: '귀가 후 살펴봐 주세요' },
 ] as const;
 
 type ConditionOptionId = (typeof CONDITION_OPTIONS)[number]['id'];
 
-/** 알림장 작성용 배변 옵션 순서 */
-const NOTICE_WRITE_STOOL_OPTIONS = STOOL_STATUS_OPTIONS;
+const NOTICE_WRITE_STOOL_OPTIONS = STOOL_STATUS_OPTIONS.map((id) => ({
+  id,
+  label: STOOL_STATUS_LABEL[id],
+  image: STOOL_STATUS_IMAGE[id],
+  defaultImage: STOOL_STATUS_DEFAULT_IMAGE[id],
+})) as ReadonlyArray<{
+  id: AttendanceRecordPoop;
+  label: string;
+  image: string;
+  defaultImage: string;
+}>;
 
-type NoticeWriteStoolStatus = StoolStatus;
+type NoticeWriteStoolStatus = AttendanceRecordPoop;
 
 export {
   CONDITION_OPTIONS,
   NOTICE_WRITE_STOOL_OPTIONS,
+  STOOL_STATUS,
   type ConditionOptionId,
   type NoticeWriteStoolStatus,
 };
