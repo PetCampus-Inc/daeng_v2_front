@@ -77,7 +77,7 @@ function OwnerPricingContent({ kindergartenId, pricing }: OwnerPricingContentPro
             </div>
           ))
         ) : (
-          <p className='body2-semibold text-text-secondary'>
+          <p className='body2-semibold text-text-secondary pb-4'>
             {ownerMypageContent.kindergartenPricingServiceEmptyText}
           </p>
         )}
