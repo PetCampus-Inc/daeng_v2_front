@@ -41,6 +41,9 @@ function useResultPage() {
 
   const handlePrimaryClick = () => {
     switch (status) {
+      case RESULT_STATUS.SUCCESS:
+        reset(route.owner.members.root);
+        return;
       case RESULT_STATUS.DUPLICATE:
       case RESULT_STATUS.CLOSED_OR_SUSPENDED:
         openExternalLink(EXTERNAL_LINKS.OWNER_VERIFICATION_CONTACT);
@@ -76,8 +79,7 @@ function useResultPage() {
     status,
     content,
     isRetryPending,
-    // @todo 보호자 초대 플로우 연결 전까지 비활성화
-    isPrimaryDisabled: status === RESULT_STATUS.SUCCESS || isRetryPending,
+    isPrimaryDisabled: isRetryPending,
     handlePrimaryClick,
     handleSecondaryClick,
   };
