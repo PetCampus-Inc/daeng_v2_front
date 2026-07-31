@@ -70,6 +70,8 @@ export const ownerMypageContent = Object.freeze({
   ownerNamePlaceholder: '이름을 입력해주세요',
   ownerPhonePlaceholder: '연락처를 입력해주세요',
   ownerEmailPlaceholder: '이메일을 입력해주세요',
+  ownerPhoneFormatError: '전화번호 형식을 확인해 주세요. ex) 010-1234-5678',
+  ownerEmailFormatError: '이메일 형식을 확인해 주세요. ex) knock@dog.com',
   profileSaveButtonLabel: '저장하기',
   unsavedExitModalTitle: '저장하지 않고 나갈까요?',
   unsavedExitModalDescription: '변경한 내용이 저장되지 않아요.',

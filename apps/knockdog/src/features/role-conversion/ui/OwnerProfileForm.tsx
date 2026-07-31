@@ -5,6 +5,10 @@ import { Controller } from 'react-hook-form';
 import { ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 
 import { ownerMypageContent } from '../config/ownerMypageContent';
+import {
+  isValidEmail,
+  isValidRepresentativePhone,
+} from '../lib/formatKindergartenRegisterField';
 import { useOwnerProfileForm } from '../model/useOwnerProfileForm';
 import type { OwnerProfile } from '../model/ownerProfile';
 
@@ -57,7 +61,12 @@ function OwnerProfileForm({
               control={control}
               rules={{ required: true, validate: (value) => value.trim().length > 0 }}
               render={({ field, fieldState: { error } }) => (
-                <TextField label={ownerMypageContent.ownerNameLabel} required errorMessage={error?.message}>
+                <TextField
+                  label={ownerMypageContent.ownerNameLabel}
+                  required
+                  invalid={!!error}
+                  errorMessage={error?.message}
+                >
                   <TextFieldInput
                     {...field}
                     placeholder={ownerMypageContent.ownerNamePlaceholder}
@@ -72,9 +81,23 @@ function OwnerProfileForm({
             <Controller
               name='phoneNumber'
               control={control}
-              rules={{ required: true, validate: (value) => value.trim().length > 0 }}
+              rules={{
+                required: true,
+                validate: (value) => {
+                  const trimmed = value.trim();
+                  if (!trimmed) return true;
+                  return (
+                    isValidRepresentativePhone(trimmed) || ownerMypageContent.ownerPhoneFormatError
+                  );
+                },
+              }}
               render={({ field, fieldState: { error } }) => (
-                <TextField label={ownerMypageContent.ownerPhoneLabel} required errorMessage={error?.message}>
+                <TextField
+                  label={ownerMypageContent.ownerPhoneLabel}
+                  required
+                  invalid={!!error}
+                  errorMessage={error?.message}
+                >
                   <TextFieldInput
                     {...field}
                     inputMode='tel'
@@ -90,12 +113,23 @@ function OwnerProfileForm({
             <Controller
               name='email'
               control={control}
-              render={({ field }) => (
-                <TextField label={ownerMypageContent.ownerEmailLabel}>
+              rules={{
+                validate: (value) => {
+                  const trimmed = value.trim();
+                  if (!trimmed) return true;
+                  return isValidEmail(trimmed) || ownerMypageContent.ownerEmailFormatError;
+                },
+              }}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  label={ownerMypageContent.ownerEmailLabel}
+                  indicator='(선택)'
+                  invalid={!!error}
+                  errorMessage={error?.message}
+                >
                   <TextFieldInput
                     {...field}
                     type='email'
-                    readOnly
                     placeholder={ownerMypageContent.ownerEmailPlaceholder}
                   />
                 </TextField>
