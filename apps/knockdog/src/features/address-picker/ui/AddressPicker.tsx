@@ -14,6 +14,7 @@ interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect
   showLabel?: boolean;
   placeholder?: string;
   variant?: 'page' | 'embedded';
+  fieldVariant?: 'default' | 'secondary';
   inputClassName?: string;
 }
 
@@ -25,6 +26,7 @@ export function AddressPicker({
   showLabel = true,
   placeholder = '시/군/구 혹은 도로명 검색',
   variant = 'page',
+  fieldVariant = 'secondary',
   inputClassName,
   ...props
 }: AddressPickerProps) {
@@ -49,7 +51,7 @@ export function AddressPicker({
     <TextField
       className={cn(isEmbedded && 'h-x13', inputClassName)}
       prefix={<Icon icon='Search' className={cn(isEmbedded ? 'text-text-tertiary' : 'size-x6')} />}
-      variant='secondary'
+      variant={fieldVariant}
       suffix={
         inputValue ? (
           <IconButton
