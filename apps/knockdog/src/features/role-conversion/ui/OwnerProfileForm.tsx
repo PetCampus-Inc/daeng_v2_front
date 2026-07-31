@@ -55,7 +55,7 @@ function OwnerProfileForm({
             render={({ field }) => renderProfileImage({ value: field.value, onChange: field.onChange })}
           />
 
-          <div className='py-2'>
+          <div className='py-4'>
             <Controller
               name='name'
               control={control}
@@ -77,7 +77,7 @@ function OwnerProfileForm({
             />
           </div>
 
-          <div className='py-2'>
+          <div className='py-4'>
             <Controller
               name='phoneNumber'
               control={control}
@@ -92,24 +92,28 @@ function OwnerProfileForm({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <TextField
-                  label={ownerMypageContent.ownerPhoneLabel}
-                  required
-                  invalid={!!error}
-                  errorMessage={error?.message}
-                >
-                  <TextFieldInput
-                    {...field}
-                    inputMode='tel'
-                    placeholder={ownerMypageContent.ownerPhonePlaceholder}
-                    onChange={(event) => field.onChange(formatPhone(event.target.value))}
-                  />
-                </TextField>
+                <div>
+                  <TextField
+                    label={ownerMypageContent.ownerPhoneLabel}
+                    required
+                    invalid={!!error}
+                  >
+                    <TextFieldInput
+                      {...field}
+                      inputMode='tel'
+                      placeholder={ownerMypageContent.ownerPhonePlaceholder}
+                      onChange={(event) => field.onChange(formatPhone(event.target.value))}
+                    />
+                  </TextField>
+                  {error?.message ? (
+                    <p className='text-error body2-regular pt-2'>{error.message}</p>
+                  ) : null}
+                </div>
               )}
             />
           </div>
 
-          <div className='py-2'>
+          <div className='py-4'>
             <Controller
               name='email'
               control={control}
@@ -121,18 +125,22 @@ function OwnerProfileForm({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <TextField
-                  label={ownerMypageContent.ownerEmailLabel}
-                  indicator='(선택)'
-                  invalid={!!error}
-                  errorMessage={error?.message}
-                >
-                  <TextFieldInput
-                    {...field}
-                    type='email'
-                    placeholder={ownerMypageContent.ownerEmailPlaceholder}
-                  />
-                </TextField>
+                <div>
+                  <TextField
+                    label={ownerMypageContent.ownerEmailLabel}
+                    indicator='(선택)'
+                    invalid={!!error}
+                  >
+                    <TextFieldInput
+                      {...field}
+                      type='email'
+                      placeholder={ownerMypageContent.ownerEmailPlaceholder}
+                    />
+                  </TextField>
+                  {error?.message ? (
+                    <p className='text-error body2-regular pt-2'>{error.message}</p>
+                  ) : null}
+                </div>
               )}
             />
           </div>
