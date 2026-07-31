@@ -3,6 +3,7 @@ interface SelectRequest {
   representativeName: string;
   representativePhoneNumber: string;
   kindergartenAddressDetail: string | null;
+  kindergartenPhoneNumber: string;
 }
 
 interface ManualRequest {
