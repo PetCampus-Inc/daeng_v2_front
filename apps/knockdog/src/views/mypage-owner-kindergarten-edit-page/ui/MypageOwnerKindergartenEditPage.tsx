@@ -328,6 +328,8 @@ function MypageOwnerKindergartenEditPage() {
             <AddressPicker
               variant='embedded'
               showLabel={false}
+              fieldVariant='default'
+              clearOnReselect
               value={formData.address}
               placeholder={ownerMypageContent.kindergartenEditAddressSearchPlaceholder}
               onSelect={(selected) => {

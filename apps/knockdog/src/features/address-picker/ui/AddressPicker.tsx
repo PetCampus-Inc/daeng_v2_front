@@ -15,6 +15,8 @@ interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect
   placeholder?: string;
   variant?: 'page' | 'embedded';
   fieldVariant?: 'default' | 'secondary';
+  /** 선택 후 재포커스 시 입력 삭제 + 목록 재표시, 목록 선택만 반영 */
+  clearOnReselect?: boolean;
   inputClassName?: string;
 }
 
@@ -27,19 +29,32 @@ export function AddressPicker({
   placeholder = '시/군/구 혹은 도로명 검색',
   variant = 'page',
   fieldVariant = 'secondary',
+  clearOnReselect = false,
   inputClassName,
   ...props
 }: AddressPickerProps) {
-  const { addressList, inputValue, isSelected, handleSelect, handleChange, handleClear } = useAddressPicker({
+  const {
+    addressList,
+    inputValue,
+    searchQuery,
+    isSelected,
+    handleSelect,
+    handleChange,
+    handleFocus,
+    handleBlur,
+    handleClear,
+  } = useAddressPicker({
     value,
     onSelect,
+    onClear,
+    clearOnReselect,
   });
 
   const isEmbedded = variant === 'embedded';
-  const isEmpty = inputValue === '' || isSelected;
-  const showHint = !isEmbedded && isEmpty && !isSelected;
-  const showResults = !isEmpty;
+  const showHint = !isEmbedded && !isSelected && inputValue === '' && searchQuery === '';
+  const showResults = !isSelected && searchQuery.length > 0;
   const hasResults = (addressList?.length ?? 0) > 0;
+  const listKeyword = inputValue || searchQuery;
 
   const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -50,7 +65,7 @@ export function AddressPicker({
   const searchField = (
     <TextField
       className={cn(isEmbedded && 'h-x13', inputClassName)}
-      prefix={<Icon icon='Search' className={cn(isEmbedded ? 'text-text-tertiary' : 'size-x6')} />}
+      prefix={<Icon icon='Search' className={cn(isEmbedded ? 'text-text-secondary' : 'size-x6')} />}
       variant={fieldVariant}
       suffix={
         inputValue ? (
@@ -65,7 +80,13 @@ export function AddressPicker({
         ) : undefined
       }
     >
-      <TextFieldInput value={inputValue} onChange={handleChange} placeholder={placeholder} />
+      <TextFieldInput
+        value={inputValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+      />
     </TextField>
   );
 
@@ -80,7 +101,7 @@ export function AddressPicker({
               key={index}
               address={address.address}
               roadAddress={address.roadAddress}
-              keyword={inputValue}
+              keyword={listKeyword}
               onPointerDown={(event) => {
                 event.preventDefault();
                 handleSelect(address)().catch((error) => {
@@ -106,7 +127,7 @@ export function AddressPicker({
                   key={index}
                   address={address.address}
                   roadAddress={address.roadAddress}
-                  keyword={inputValue}
+                  keyword={listKeyword}
                   onPointerDown={(event) => {
                     event.preventDefault();
                     handleSelect(address)().catch((error) => {

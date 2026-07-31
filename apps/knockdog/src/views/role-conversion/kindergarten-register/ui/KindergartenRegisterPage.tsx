@@ -88,6 +88,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                       variant='embedded'
                       showLabel={false}
                       fieldVariant='default'
+                      clearOnReselect
                       value={form.address}
                       placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
                       onSelect={handleAddressSelect}
@@ -96,7 +97,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                   ) : (
                     <TextField
                       className='h-x13'
-                      prefix={<Icon icon='Search' className='text-text-tertiary' />}
+                      prefix={<Icon icon='Search' className='text-text-secondary' />}
                     >
                       <TextFieldInput
                         readOnly
