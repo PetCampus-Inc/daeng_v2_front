@@ -37,9 +37,9 @@ function pathToBaseTab(pathname: string): TabName | null {
   const exact = pathToTab(pathname);
   if (exact) return exact;
 
-  if (pathname.startsWith('/owner/daily')) return 'OwnerDaily';
-  if (pathname.startsWith('/owner/album')) return 'OwnerAlbum';
-  if (pathname.startsWith('/owner/members')) return 'OwnerMembers';
+  if (pathname === '/owner/daily' || pathname.startsWith('/owner/daily/')) return 'OwnerDaily';
+  if (pathname === '/owner/album' || pathname.startsWith('/owner/album/')) return 'OwnerAlbum';
+  if (pathname === '/owner/members' || pathname.startsWith('/owner/members/')) return 'OwnerMembers';
   if (pathname === '/owner' || pathname.startsWith('/owner/')) return 'OwnerHome';
 
   return null;

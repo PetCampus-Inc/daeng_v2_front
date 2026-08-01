@@ -22,9 +22,10 @@ function resolveBaseTab(normalizedPath: string): TabScreen {
   const exact = TAB_PATHS[normalizedPath];
   if (exact) return exact;
 
-  if (normalizedPath.startsWith('owner/daily')) return 'OwnerDaily';
-  if (normalizedPath.startsWith('owner/album')) return 'OwnerAlbum';
-  if (normalizedPath.startsWith('owner/members')) return 'OwnerMembers';
+  if (normalizedPath === 'owner/daily' || normalizedPath.startsWith('owner/daily/')) return 'OwnerDaily';
+  if (normalizedPath === 'owner/album' || normalizedPath.startsWith('owner/album/')) return 'OwnerAlbum';
+  if (normalizedPath === 'owner/members' || normalizedPath.startsWith('owner/members/'))
+    return 'OwnerMembers';
   if (normalizedPath === 'owner' || normalizedPath.startsWith('owner/')) return 'OwnerHome';
 
   return 'Explore';
