@@ -17,6 +17,8 @@ import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ow
 import {
   formatDateKey,
   formatDayTitle,
+  getMonthGridDates,
+  getWeekDates,
   isAfterDay,
   startOfDay,
 } from '@views/owner/member-profile/lib/attendanceCalendar';
@@ -109,13 +111,25 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
   );
 }
 
-function getMonthRange(date: Date) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const from = formatDateKey(new Date(year, month, 1));
-  const lastDay = new Date(year, month + 1, 0);
-  const to = formatDateKey(lastDay);
-  return { from, to };
+/** 화면에 실제로 보이는 날짜 범위 — 월 경계 주/그리드의 인접 달 날짜 포함 */
+function getVisibleRecordDateRange(options: {
+  isMonthlyExpanded: boolean;
+  selectedDate: Date;
+  viewMonth: Date;
+}) {
+  if (options.isMonthlyExpanded) {
+    const grid = getMonthGridDates(options.viewMonth);
+    return {
+      from: formatDateKey(grid[0]!),
+      to: formatDateKey(grid[grid.length - 1]!),
+    };
+  }
+
+  const week = getWeekDates(options.selectedDate);
+  return {
+    from: formatDateKey(week[0]!),
+    to: formatDateKey(week[week.length - 1]!),
+  };
 }
 
 function AttendanceRecordSection({ petId }: AttendanceRecordSectionProps) {
@@ -127,7 +141,15 @@ function AttendanceRecordSection({ petId }: AttendanceRecordSectionProps) {
   );
 
   const selectedDateKey = formatDateKey(selectedDate);
-  const { from, to } = useMemo(() => getMonthRange(viewMonth), [viewMonth]);
+  const { from, to } = useMemo(
+    () =>
+      getVisibleRecordDateRange({
+        isMonthlyExpanded,
+        selectedDate,
+        viewMonth,
+      }),
+    [isMonthlyExpanded, selectedDate, viewMonth],
+  );
 
   const { data: recordDateSet } = useAttendanceRecordDatesQuery({
     petId,
