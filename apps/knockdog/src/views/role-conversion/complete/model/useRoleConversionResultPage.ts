@@ -41,9 +41,15 @@ function useResultPage() {
 
   const handlePrimaryClick = () => {
     switch (status) {
-      case RESULT_STATUS.SUCCESS:
-        reset(route.owner.members.root);
+      case RESULT_STATUS.SUCCESS: {
+        // 원장 권한 쿼리 갱신 후 이동 — SyncNativeMainTabModeEffect가 owner 상태를 관측하도록
+        void getQueryClient()
+          .refetchQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] })
+          .finally(() => {
+            reset(route.owner.members.root);
+          });
         return;
+      }
       case RESULT_STATUS.DUPLICATE:
       case RESULT_STATUS.CLOSED_OR_SUSPENDED:
         openExternalLink(EXTERNAL_LINKS.OWNER_VERIFICATION_CONTACT);

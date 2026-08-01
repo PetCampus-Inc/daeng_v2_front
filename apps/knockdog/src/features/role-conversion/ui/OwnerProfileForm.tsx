@@ -92,23 +92,19 @@ function OwnerProfileForm({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div>
-                  <TextField
-                    label={ownerMypageContent.ownerPhoneLabel}
-                    required
-                    invalid={!!error}
-                  >
-                    <TextFieldInput
-                      {...field}
-                      inputMode='tel'
-                      placeholder={ownerMypageContent.ownerPhonePlaceholder}
-                      onChange={(event) => field.onChange(formatPhone(event.target.value))}
-                    />
-                  </TextField>
-                  {error?.message ? (
-                    <p className='text-error body2-regular pt-2'>{error.message}</p>
-                  ) : null}
-                </div>
+                <TextField
+                  label={ownerMypageContent.ownerPhoneLabel}
+                  required
+                  invalid={!!error}
+                  errorMessage={error?.message}
+                >
+                  <TextFieldInput
+                    {...field}
+                    inputMode='tel'
+                    placeholder={ownerMypageContent.ownerPhonePlaceholder}
+                    onChange={(event) => field.onChange(formatPhone(event.target.value))}
+                  />
+                </TextField>
               )}
             />
           </div>
@@ -125,22 +121,18 @@ function OwnerProfileForm({
                 },
               }}
               render={({ field, fieldState: { error } }) => (
-                <div>
-                  <TextField
-                    label={ownerMypageContent.ownerEmailLabel}
-                    indicator='(선택)'
-                    invalid={!!error}
-                  >
-                    <TextFieldInput
-                      {...field}
-                      type='email'
-                      placeholder={ownerMypageContent.ownerEmailPlaceholder}
-                    />
-                  </TextField>
-                  {error?.message ? (
-                    <p className='text-error body2-regular pt-2'>{error.message}</p>
-                  ) : null}
-                </div>
+                <TextField
+                  label={ownerMypageContent.ownerEmailLabel}
+                  indicator='(선택)'
+                  invalid={!!error}
+                  errorMessage={error?.message}
+                >
+                  <TextFieldInput
+                    {...field}
+                    type='email'
+                    placeholder={ownerMypageContent.ownerEmailPlaceholder}
+                  />
+                </TextField>
               )}
             />
           </div>

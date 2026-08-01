@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 
 import { useDebounced } from '@shared/lib';
 import { Address } from '@entities/address';
@@ -26,6 +26,9 @@ const useAddressPicker = ({
   const [inputValue, setInputValue] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSelected, setIsSelected] = useState(false);
+  const isSelectedRef = useRef(isSelected);
+
+  isSelectedRef.current = isSelected;
 
   const debouncedValue = useDebounced(searchQuery, 200);
   const { data } = useSearchAddressQuery(debouncedValue);
@@ -60,7 +63,7 @@ const useAddressPicker = ({
     setIsSelected(false);
   };
 
-  /** 선택 후 다시 누르면 입력 삭제 + 이전 주소로 목록 유지 */
+  /** 선택 후 다시 누르면 입력 삭제 + 이전 주소로 목록 유지 (부모 value는 유지) */
   const handleFocus = () => {
     if (!clearOnReselect || !isSelected) return;
 
@@ -68,20 +71,19 @@ const useAddressPicker = ({
     setIsSelected(false);
     setInputValue('');
     setSearchQuery(previous);
-    onClear?.();
   };
 
-  /** 목록 바깥 클릭 시 미선택이면 검색 상태 정리 */
+  /** 목록 바깥 클릭 시 미선택이면 기존 value로 복원 */
   const handleBlur = () => {
     if (!clearOnReselect) return;
 
     window.setTimeout(() => {
-      setIsSelected((selected) => {
-        if (selected) return selected;
-        setSearchQuery('');
-        setInputValue('');
-        return selected;
-      });
+      if (isSelectedRef.current) return;
+
+      const restored = value ?? '';
+      setInputValue(restored);
+      setSearchQuery(restored);
+      setIsSelected(!!restored);
     }, 100);
   };
 

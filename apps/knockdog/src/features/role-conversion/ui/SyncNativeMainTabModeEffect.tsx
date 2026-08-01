@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { METHODS } from '@knockdog/bridge-core';
 
 import { useOwnerRole } from '../model/useOwnerRole';
@@ -18,6 +18,7 @@ function SyncNativeMainTabModeEffect() {
   const { isOwner, isResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
   const lastSyncedModeRef = useRef<'owner' | 'guardian' | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   const mode = isOwner && !prefersGuardianView ? 'owner' : 'guardian';
 
@@ -29,13 +30,26 @@ function SyncNativeMainTabModeEffect() {
 
     lastSyncedModeRef.current = mode;
 
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
     bridge.request(METHODS.navSetMainTabMode, { mode }).catch((error) => {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
       }
       lastSyncedModeRef.current = null;
+      if (cancelled) return;
+      // mode가 그대로여도 effect가 다시 돌도록 retry state bump
+      retryTimer = setTimeout(() => {
+        setRetryNonce((nonce) => nonce + 1);
+      }, 300);
     });
-  }, [bridge, isFetching, isNative, isResolved, mode]);
+
+    return () => {
+      cancelled = true;
+      if (retryTimer !== undefined) clearTimeout(retryTimer);
+    };
+  }, [bridge, isFetching, isNative, isResolved, mode, retryNonce]);
 
   return null;
 }

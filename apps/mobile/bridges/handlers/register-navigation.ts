@@ -99,15 +99,9 @@ function extractPathFromUrl(url: string): string {
   }
 }
 
-function applyTabModeForScreen(tabName: TabName) {
-  // 원장 탭 진입 시에만 모드를 올린다. 보호자 탭 경로는 SyncNativeMainTabModeEffect가 권한 기준으로 결정.
-  if (isOwnerOnlyTab(tabName)) {
-    useMainTabModeStore.getState().setMode('owner');
-  }
-}
-
 function resolveTabScreen(tabName: TabName): TabName {
-  applyTabModeForScreen(tabName);
+  // 원장 모드 승격은 SyncNativeMainTabModeEffect(권한 확인 후 navSetMainTabMode)만 담당.
+  // 탭 이름만으로 setMode('owner') 하면 비원장도 원장 탭바로 전환됨.
   const mode = useMainTabModeStore.getState().mode;
 
   if (mode === 'owner' && isGuardianOnlyTab(tabName)) return 'OwnerHome';
@@ -287,7 +281,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     } else {
       navigationRef.dispatch(
         CommonActions.reset({
-          index: 0,
+          index: 1,
           routes: [
             { name: 'Tabs' },
             { name: 'Stack', params: route.params },
