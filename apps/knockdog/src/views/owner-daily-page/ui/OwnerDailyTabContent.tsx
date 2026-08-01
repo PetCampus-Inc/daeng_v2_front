@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import {
@@ -8,11 +9,6 @@ import {
   OwnerDailySearchEmptyState,
 } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
 import { OwnerDailyMemberCard } from '@views/owner-daily-page/ui/OwnerDailyMemberCard';
-
-const beforeFilterClassName =
-  'body2-semibold text-text-primary py-x2 px-x2 gap-x0_5 flex items-center whitespace-nowrap transition-colors [&>svg]:text-fill-secondary-400';
-const activatedBeforeFilterClassName =
-  'body2-semibold text-text-primary py-x2 px-x2 gap-x0_5 flex items-center whitespace-nowrap transition-colors [&>svg]:text-fill-primary-500';
 
 interface OwnerDailyTabContentProps {
   items: AttendanceMember[];
@@ -76,7 +72,10 @@ function OwnerDailyTabContent({
           {onBeforeFilterClick ? (
             <button
               type='button'
-              className={showBeforeFilter ? activatedBeforeFilterClassName : beforeFilterClassName}
+              className={cn(
+                'body2-semibold text-text-primary py-x2 px-x2 gap-x0_5 flex items-center whitespace-nowrap transition-colors',
+                showBeforeFilter ? '[&>svg]:text-fill-primary-500' : '[&>svg]:text-fill-secondary-400'
+              )}
               onClick={onBeforeFilterClick}
             >
               <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
