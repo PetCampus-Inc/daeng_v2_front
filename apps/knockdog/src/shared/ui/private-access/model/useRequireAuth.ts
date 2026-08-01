@@ -8,6 +8,10 @@ import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { tokenUtils } from '@shared/utils';
 import { route } from '@shared/constants/route';
 
+async function rehydrateUserStore() {
+  await useUserStore.persist?.rehydrate?.();
+}
+
 export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
   const user = useUserStore((state) => state.user);
   const { replace, pushForResult } = useStackNavigation();
@@ -15,11 +19,11 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
   const isNavigatingRef = useRef(false);
   const pathname = usePathname(); // 현재 페이지 경로
 
-  const checkAuth = () => {
-    return !!user || tokenUtils.hasAccessToken();
-  };
+  const checkAuth = useCallback(() => {
+    return !!useUserStore.getState().user || tokenUtils.hasAccessToken();
+  }, []);
 
-  const hasAuth = checkAuth();
+  const hasAuth = !!user || tokenUtils.hasAccessToken();
 
   const handleLogin = useCallback(async () => {
     if (isNavigatingRef.current) return;
@@ -37,6 +41,10 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
           },
           600_000
         );
+
+        if (isLoggedIn) {
+          await rehydrateUserStore();
+        }
       } else {
         // Stack일 때: replace 사용
         await replace({
@@ -48,9 +56,6 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
       }
     } catch (error) {
       const errorInstance = error instanceof Error ? error : new Error(String(error));
-      // console.error('로그인 페이지 이동 중 오류:', error);
-
-      // 에러 핸들러가 제공되면 호출
 
       if (onAuthError) {
         onAuthError(errorInstance);
@@ -65,15 +70,18 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
     handleLogin();
   }, [hasAuth, handleLogin]);
 
-  // visibilitychange 이벤트로 탭이 다시 보일 때마다 인증 상태 체크
+  // 탭/스택 복귀 시 다른 WebView에서 저장한 USER·token 반영 후 재검사
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState !== 'visible') return;
+
+      void (async () => {
+        await rehydrateUserStore();
         const currentAuth = checkAuth();
         if (!currentAuth && !isNavigatingRef.current) {
           handleLogin();
         }
-      }
+      })();
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -81,7 +89,7 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [handleLogin]);
+  }, [checkAuth, handleLogin]);
 
   return hasAuth;
 }

@@ -1,11 +1,19 @@
+'use client';
+
 import { ActionButton } from '@knockdog/ui';
+
+import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 function LoginPrompt() {
-  const { push } = useStackNavigation();
+  const { pushForResult } = useStackNavigation();
 
-  const handleLogin = () => {
-    push({ pathname: '/auth/login' });
+  const handleLogin = async () => {
+    const loggedIn = await pushForResult<boolean>({ pathname: '/auth/login' }, 600_000);
+    if (!loggedIn) return;
+
+    // Stack WebView에서 저장된 USER를 마이페이지 탭 인메모리 store에 반영
+    await useUserStore.persist.rehydrate();
   };
 
   return (

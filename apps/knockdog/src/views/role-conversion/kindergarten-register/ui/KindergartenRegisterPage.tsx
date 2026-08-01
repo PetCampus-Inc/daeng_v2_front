@@ -8,6 +8,7 @@ import {
   FieldError,
   FieldLabel,
   FieldLabelIndicator,
+  Icon,
   ProgressBar,
   TextField,
   TextFieldInput,
@@ -86,17 +87,23 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                     <AddressPicker
                       variant='embedded'
                       showLabel={false}
+                      fieldVariant='default'
+                      clearOnReselect
                       value={form.address}
                       placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
                       onSelect={handleAddressSelect}
                       onClear={handleClearAddress}
                     />
                   ) : (
-                    <TextField className='h-x13'>
+                    <TextField
+                      className='h-x13'
+                      prefix={<Icon icon='Search' className='text-text-secondary' />}
+                    >
                       <TextFieldInput
+                        readOnly
+                        tabIndex={-1}
                         placeholder={kindergartenRegisterContent.addressPlaceholder}
                         value={form.address}
-                        onChange={(e) => handleFieldChange('address', e.target.value)}
                       />
                     </TextField>
                   )}

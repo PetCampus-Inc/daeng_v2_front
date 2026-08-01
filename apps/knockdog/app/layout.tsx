@@ -10,6 +10,7 @@ import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
+import { SyncNativeMainTabModeEffect } from '@features/role-conversion';
 
 const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
 
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ReactQueryProvider>
               <BridgeProvider>
                 <SyncWebViewQueryEffect />
+                <SyncNativeMainTabModeEffect />
                 <div
                   id='root'
                   className='webview:max-w-full relative mx-auto flex h-dvh w-screen max-w-120 flex-col shadow-lg'

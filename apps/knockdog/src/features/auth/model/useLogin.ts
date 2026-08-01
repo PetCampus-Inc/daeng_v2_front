@@ -17,7 +17,7 @@ import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin } fro
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
-import { useBridge, useStackNavigation, useNavigationResult } from '@shared/lib/bridge';
+import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
 
@@ -83,18 +83,14 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
     setUser(data);
 
-    // pushForResult로 열린 경우 결과 전송
-    try {
+    // pushForResult로 열린 경우에만 결과 전송 (plain push면 _txId 없음)
+    if (getCurrentTxId()) {
       navResult.send(true);
-    } catch (error) {
-      // _txId가 없으면 일반 로그인 플로우 (에러 무시)
-      console.log('[useLogin] pushForResult 컨텍스트가 아닙니다, 일반 로그인 플로우 진행');
     }
 
     if (redirectTo) {
       replace({ pathname: redirectTo });
     } else {
-      console.log('[useLogin] back');
       back();
     }
   };

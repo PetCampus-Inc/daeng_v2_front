@@ -1,16 +1,35 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS } from '@knockdog/bridge-core';
 import { buildHref, type Query } from './queryUtils';
 
-type TabRoute = '/' | '/search' | '/save' | '/compare' | '/mypage';
+type TabRoute =
+  | '/'
+  | '/search'
+  | '/save'
+  | '/compare'
+  | '/mypage'
+  | '/owner'
+  | '/owner/daily'
+  | '/owner/album'
+  | '/owner/members';
 
 // Main 탭 경로 목록
-const MAIN_TAB_ROUTES: readonly string[] = ['/', '/search', '/save', '/compare', '/mypage'] as const;
+const MAIN_TAB_ROUTES: readonly string[] = [
+  '/',
+  '/search',
+  '/save',
+  '/compare',
+  '/mypage',
+  '/owner',
+  '/owner/daily',
+  '/owner/album',
+  '/owner/members',
+] as const;
 
 function useTabNavigation() {
   const router = useRouter();

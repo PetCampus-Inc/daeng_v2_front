@@ -1,18 +1,19 @@
 import type { RefObject } from 'react';
 import type WebView from 'react-native-webview';
+import type { TabName } from '../lib/tabRoutes';
 
 class TabWebViewStore {
-  private tabRefs = new Map<'Explore' | 'Save' | 'Compare' | 'Mypage', RefObject<WebView | null>>();
+  private tabRefs = new Map<TabName, RefObject<WebView | null>>();
 
-  register(tabName: 'Explore' | 'Save' | 'Compare' | 'Mypage', webRef: RefObject<WebView | null>) {
+  register(tabName: TabName, webRef: RefObject<WebView | null>) {
     this.tabRefs.set(tabName, webRef);
   }
 
-  get(tabName: 'Explore' | 'Save' | 'Compare' | 'Mypage'): RefObject<WebView | null> | undefined {
+  get(tabName: TabName): RefObject<WebView | null> | undefined {
     return this.tabRefs.get(tabName);
   }
 
-  cleanup(tabName: 'Explore' | 'Save' | 'Compare' | 'Mypage') {
+  cleanup(tabName: TabName) {
     this.tabRefs.delete(tabName);
   }
 

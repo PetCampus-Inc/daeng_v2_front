@@ -6,6 +6,13 @@ import type { RefObject } from 'react';
 import type WebView from 'react-native-webview';
 import { navBridgeHub } from '../model/navBridgeHub';
 import { tabWebViewStore } from '../model/tabWebViewStore';
+import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
+import {
+  pathToTab,
+  isGuardianOnlyTab,
+  isOwnerOnlyTab,
+  type TabName,
+} from '../lib/tabRoutes';
 
 type WebNavPayload = {
   name: string; // 예: '/detail'
@@ -17,6 +24,18 @@ type ParamsWithQuery = {
 };
 
 type ParamsWithoutQuery = Record<string, unknown>;
+
+type TabsRoute = {
+  screen: 'Tabs';
+  params: { screen: TabName } | undefined;
+};
+
+type StackRoute = {
+  screen: 'Stack';
+  params: { path: string; initialState?: any };
+};
+
+type NativeRoute = TabsRoute | StackRoute;
 
 // params에서 query를 추출해서 쿼리스트링으로 변환
 // name은 전체 URL 또는 경로일 수 있음
@@ -80,10 +99,48 @@ function extractPathFromUrl(url: string): string {
   }
 }
 
+function resolveTabScreen(tabName: TabName): TabName {
+  // 원장 모드 승격은 SyncNativeMainTabModeEffect(권한 확인 후 navSetMainTabMode)만 담당.
+  // 탭 이름만으로 setMode('owner') 하면 비원장도 원장 탭바로 전환됨.
+  const mode = useMainTabModeStore.getState().mode;
+
+  if (mode === 'owner' && isGuardianOnlyTab(tabName)) return 'OwnerHome';
+  if (mode === 'guardian' && isOwnerOnlyTab(tabName)) return 'Explore';
+  return tabName;
+}
+
+function getActiveTabName(): TabName | null {
+  const state = navigationRef.getState();
+  if (!state) return null;
+
+  const tabsRoute = state.routes.find((route) => route.name === 'Tabs');
+  const tabState = tabsRoute?.state;
+  if (!tabState) return null;
+
+  const activeRoute = tabState.routes[tabState.index ?? 0];
+  return (activeRoute?.name as TabName | undefined) ?? null;
+}
+
+function applyMainTabMode(mode: MainTabMode) {
+  useMainTabModeStore.getState().setMode(mode);
+
+  if (!isNavReady()) return;
+
+  const activeTab = getActiveTabName();
+  if (!activeTab || activeTab === 'Mypage') return;
+
+  if (mode === 'owner' && isGuardianOnlyTab(activeTab)) {
+    navigationRef.navigate('Tabs', { screen: 'OwnerHome' });
+    return;
+  }
+
+  if (mode === 'guardian' && isOwnerOnlyTab(activeTab)) {
+    navigationRef.navigate('Tabs', { screen: 'Explore' });
+  }
+}
+
 /** 웹 경로 → 네이티브 라우트 변환 (Tabs / Stack(path)) */
-function toRoute(
-  payload?: WebNavPayload
-): { screen: 'Tabs'; params: undefined } | { screen: 'Stack'; params: { path: string; initialState?: any } } {
+function toRoute(payload?: WebNavPayload): NativeRoute {
   const name = payload?.name ?? '/';
   const params = payload?.params;
 
@@ -120,15 +177,12 @@ function toRoute(
 
   // Tabs로 이동할 경로인지 확인 (경로 기준)
   const normalizedPath = pathname === '/' || pathname === '' ? '/' : pathname;
-  // 탭 경로: /, /save, /compare, /mypage
-  if (
-    normalizedPath === '/' ||
-    normalizedPath === '/home' ||
-    normalizedPath === '/save' ||
-    normalizedPath === '/compare' ||
-    normalizedPath === '/mypage'
-  ) {
-    return { screen: 'Tabs', params: undefined };
+  const tabName = pathToTab(normalizedPath);
+  if (tabName) {
+    return {
+      screen: 'Tabs' as const,
+      params: { screen: tabName },
+    };
   }
 
   const initialState = extractInitialState(params);
@@ -136,21 +190,17 @@ function toRoute(
   // 전체 URL이면 전체 URL에 쿼리 추가, 경로면 경로에 쿼리 추가
   const finalPath = isFullUrl ? buildPath(name, params) : buildPath(normalizedPath, params);
 
-  const route = {
+  return {
     screen: 'Stack' as const,
     params: {
       path: finalPath,
       ...(initialState && { initialState }),
     },
   };
-
-  return route;
 }
 
 function registerNavigationHandlers(router: NativeBridgeRouter, options?: { currentWebRef: RefObject<WebView> }) {
-  const registerIfTx = (
-    route: { screen: 'Tabs'; params: undefined } | { screen: 'Stack'; params: { path: string; initialState?: any } }
-  ) => {
+  const registerIfTx = (route: NativeRoute) => {
     if (route.screen === 'Stack') {
       const txId = route.params?.initialState?._txId as string | undefined;
 
@@ -175,7 +225,8 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     registerIfTx(route);
 
     if (route.screen === 'Tabs') {
-      navigationRef.navigate('Tabs');
+      const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
+      navigationRef.navigate('Tabs', { screen: tabName });
     } else {
       navigationRef.dispatch(StackActions.push('Stack', route.params));
     }
@@ -203,7 +254,8 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     registerIfTx(route);
 
     if (route.screen === 'Tabs') {
-      navigationRef.dispatch(StackActions.replace('Tabs'));
+      const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
+      navigationRef.dispatch(StackActions.replace('Tabs', { screen: tabName }));
     } else {
       navigationRef.dispatch(StackActions.replace('Stack', route.params));
     }
@@ -219,17 +271,21 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     registerIfTx(route);
 
     if (route.screen === 'Tabs') {
+      const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
       navigationRef.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{ name: 'Tabs' }],
+          routes: [{ name: 'Tabs', params: { screen: tabName } }],
         })
       );
     } else {
       navigationRef.dispatch(
         CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'Stack', params: route.params }],
+          index: 1,
+          routes: [
+            { name: 'Tabs' },
+            { name: 'Stack', params: route.params },
+          ],
         })
       );
     }
@@ -245,7 +301,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
    * @returns WebView ref 또는 null
    */
   async function waitForTabReady(
-    targetTabName: 'Explore' | 'Save' | 'Compare' | 'Mypage',
+    targetTabName: TabName,
     maxWaitTime = 2000,
     checkInterval = 50
   ): Promise<RefObject<WebView | null> | null> {
@@ -291,15 +347,10 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
   }
 
   // Switch Tab
-  router.register<{ pathname: string; query?: Record<string, unknown> }>('system.navSwitchTab', async (payload) => {
+  router.register<{ pathname: string; query?: Record<string, unknown> }>(METHODS.navSwitchTab, async (payload) => {
     if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
 
-    // 경로에서 탭 이름 추출
-    const pathname = payload.pathname;
-    let tabName: 'Explore' | 'Save' | 'Compare' | 'Mypage' = 'Explore';
-    if (pathname === '/save') tabName = 'Save';
-    else if (pathname === '/compare') tabName = 'Compare';
-    else if (pathname === '/mypage') tabName = 'Mypage';
+    const tabName = resolveTabScreen(pathToTab(payload.pathname) ?? 'Explore');
 
     // 탭 네비게이션으로 이동: navigate를 사용하면 애니메이션 없이 즉시 전환됨
     navigationRef.navigate('Tabs', { screen: tabName });
@@ -348,6 +399,12 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     }
 
     return { switched: true };
+  });
+
+  router.register<{ mode: MainTabMode }>(METHODS.navSetMainTabMode, async (payload) => {
+    const mode = payload?.mode === 'owner' ? 'owner' : 'guardian';
+    applyMainTabMode(mode);
+    return { mode };
   });
 }
 

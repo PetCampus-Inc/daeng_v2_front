@@ -104,11 +104,14 @@ interface ClearableTextFieldProps {
   indicator?: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   inputMode?: ComponentProps<'input'>['inputMode'];
   readOnly?: boolean;
   underlineValue?: boolean;
   spellCheck?: boolean;
+  invalid?: boolean;
+  errorMessage?: string;
 }
 
 /** 등록 플로우와 동일: h-x13 TextField + 값 있을 때 DeleteInput */
@@ -118,42 +121,50 @@ function ClearableTextField({
   indicator,
   value,
   onChange,
+  onBlur,
   placeholder,
   inputMode,
   readOnly = false,
   underlineValue = false,
   spellCheck,
+  invalid = false,
+  errorMessage,
 }: ClearableTextFieldProps) {
   return (
-    <TextField
-      label={label}
-      required={required}
-      indicator={indicator}
-      className={`h-x13 ${
-        underlineValue && value
-          ? '[&_input]:underline [&_input]:decoration-[1px] [&_input]:underline-offset-2'
-          : ''
-      }`}
-      suffix={
-        value ? (
-          <IconButton
-            type='button'
-            icon='DeleteInput'
-            onClick={() => onChange('')}
-            aria-label='입력값 삭제'
-          />
-        ) : undefined
-      }
-    >
-      <TextFieldInput
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        inputMode={inputMode}
-        readOnly={readOnly}
-        spellCheck={spellCheck}
-      />
-    </TextField>
+    <div className={errorMessage ? 'pb-4' : undefined}>
+      <TextField
+        label={label}
+        required={required}
+        indicator={indicator}
+        invalid={invalid}
+        className={`h-x13 ${
+          underlineValue && value
+            ? '[&_input]:underline [&_input]:decoration-[1px] [&_input]:underline-offset-2'
+            : ''
+        }`}
+        suffix={
+          value ? (
+            <IconButton
+              type='button'
+              icon='DeleteInput'
+              onClick={() => onChange('')}
+              aria-label='입력값 삭제'
+            />
+          ) : undefined
+        }
+      >
+        <TextFieldInput
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          inputMode={inputMode}
+          readOnly={readOnly}
+          spellCheck={spellCheck}
+        />
+      </TextField>
+      {errorMessage ? <p className='text-error body2-regular pt-2'>{errorMessage}</p> : null}
+    </div>
   );
 }
 
@@ -328,6 +339,8 @@ function MypageOwnerKindergartenEditPage() {
             <AddressPicker
               variant='embedded'
               showLabel={false}
+              fieldVariant='default'
+              clearOnReselect
               value={formData.address}
               placeholder={ownerMypageContent.kindergartenEditAddressSearchPlaceholder}
               onSelect={(selected) => {
@@ -349,8 +362,11 @@ function MypageOwnerKindergartenEditPage() {
               required
               value={formData.phone}
               onChange={formData.handlePhoneChange}
+              onBlur={formData.handlePhoneBlur}
               inputMode='tel'
               placeholder='전화번호를 입력해주세요'
+              invalid={!!formData.phoneError}
+              errorMessage={formData.phoneError}
             />
           </div>
         </section>
@@ -415,9 +431,12 @@ function MypageOwnerKindergartenEditPage() {
               indicator='(선택)'
               value={formData.homepage}
               onChange={formData.handleHomepageChange}
-              placeholder='www.example.com'
+              onBlur={formData.handleHomepageBlur}
+              placeholder='URL 주소를 입력해 주세요'
               underlineValue
               spellCheck={false}
+              invalid={!!formData.webAddressErrors.homepage}
+              errorMessage={formData.webAddressErrors.homepage}
             />
           </div>
 
@@ -427,9 +446,12 @@ function MypageOwnerKindergartenEditPage() {
               indicator='(선택)'
               value={formData.instagram}
               onChange={formData.handleInstagramChange}
-              placeholder='@instagram'
+              onBlur={formData.handleInstagramBlur}
+              placeholder='URL 주소를 입력해 주세요'
               underlineValue
               spellCheck={false}
+              invalid={!!formData.webAddressErrors.instagram}
+              errorMessage={formData.webAddressErrors.instagram}
             />
           </div>
 
@@ -439,9 +461,12 @@ function MypageOwnerKindergartenEditPage() {
               indicator='(선택)'
               value={formData.youtube}
               onChange={formData.handleYoutubeChange}
-              placeholder='www.youtube.com/...'
+              onBlur={formData.handleYoutubeBlur}
+              placeholder='URL 주소를 입력해 주세요'
               underlineValue
               spellCheck={false}
+              invalid={!!formData.webAddressErrors.youtube}
+              errorMessage={formData.webAddressErrors.youtube}
             />
           </div>
         </section>

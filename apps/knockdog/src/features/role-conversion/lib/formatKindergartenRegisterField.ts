@@ -94,4 +94,19 @@ function isValidRepresentativePhone(value: string) {
   return /^01\d{8,9}$/.test(digits);
 }
 
-export { formatAddress, formatName, formatPhone, isValidKindergartenPhone, isValidRepresentativePhone };
+function isValidEmail(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) return false;
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+export {
+  formatAddress,
+  formatName,
+  formatPhone,
+  isValidEmail,
+  isValidKindergartenPhone,
+  isValidRepresentativePhone,
+};

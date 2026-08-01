@@ -40,6 +40,14 @@ interface NavigationRPCSchema {
       switched: boolean;
     };
   };
+  [METHODS.navSetMainTabMode]: {
+    params: {
+      mode: 'owner' | 'guardian';
+    };
+    result: {
+      mode: 'owner' | 'guardian';
+    };
+  };
 }
 
 export type { NavigationRPCSchema };

@@ -10,9 +10,13 @@ import {
   type EditFormDraft,
 } from '@views/mypage-owner-kindergarten-edit-page/lib/editFormDraft';
 import { mapToEditFormDraft } from '@views/mypage-owner-kindergarten-edit-page/lib/mapToEditFormDraft';
+import { isValidWebAddressFormat } from '@views/mypage-owner-kindergarten-edit-page/lib/isValidWebAddressFormat';
 
-import { useOwnerKindergarten } from '@features/role-conversion';
-import { formatPhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+import { ownerMypageContent, useOwnerKindergarten } from '@features/role-conversion';
+import {
+  formatPhone,
+  isValidKindergartenPhone,
+} from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { CLOSED_DAYS } from '@entities/compare';
 import type { FilterOption } from '@entities/kindergarten';
 import { usePutOwnerSchoolProfileMutation } from '@entities/owner-school';
@@ -21,6 +25,10 @@ import { useMoveImageMutation, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
 type TimeFieldKey = 'weekdayStart' | 'weekdayEnd' | 'weekendStart' | 'weekendEnd';
+type WebAddressField = 'homepage' | 'instagram' | 'youtube';
+
+const WEB_ADDRESS_FORMAT_ERROR = ownerMypageContent.kindergartenEditWebAddressFormatError;
+const PHONE_FORMAT_ERROR = ownerMypageContent.kindergartenEditPhoneFormatError;
 
 function applyDraftToState(
   draft: EditFormDraft,
@@ -120,6 +128,7 @@ function useKindergartenEditForm() {
   const [address, setAddress] = useState('');
   const [addressDetail, setAddressDetail] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState<string | undefined>();
   const [weekdayStart, setWeekdayStart] = useState<string | null>(null);
   const [weekdayEnd, setWeekdayEnd] = useState<string | null>(null);
   const [weekendStart, setWeekendStart] = useState<string | null>(null);
@@ -130,6 +139,9 @@ function useKindergartenEditForm() {
   const [homepage, setHomepage] = useState('');
   const [instagram, setInstagram] = useState('');
   const [youtube, setYoutube] = useState('');
+  const [webAddressErrors, setWebAddressErrors] = useState<
+    Partial<Record<WebAddressField, string>>
+  >({});
   const [breeds, setBreeds] = useState<FilterOption[]>([]);
   const [dogServices, setDogServices] = useState<FilterOption[]>([]);
   const [safetyFacilities, setSafetyFacilities] = useState<FilterOption[]>([]);
@@ -366,10 +378,57 @@ function useKindergartenEditForm() {
     name.trim().length > 0 &&
     address.trim().length > 0 &&
     phone.trim().length > 0 &&
+    isValidKindergartenPhone(phone) &&
     Boolean(weekdayStart) &&
     Boolean(weekdayEnd) &&
     Boolean(weekendStart) &&
-    Boolean(weekendEnd);
+    Boolean(weekendEnd) &&
+    isValidWebAddressFormat(homepage) &&
+    isValidWebAddressFormat(instagram) &&
+    isValidWebAddressFormat(youtube);
+
+  const handlePhoneBlur = () => {
+    const trimmed = phone.trim();
+
+    if (!trimmed) {
+      setPhoneError(undefined);
+      return;
+    }
+
+    setPhoneError(isValidKindergartenPhone(trimmed) ? undefined : PHONE_FORMAT_ERROR);
+  };
+
+  const clearWebAddressError = (field: WebAddressField) => {
+    setWebAddressErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  /** 필드 이탈 시 http(s)·호스트 형식 검사. 오류 시 테두리+캡션 */
+  const handleWebAddressBlur = (field: WebAddressField, value: string) => {
+    const trimmed = value.trim();
+
+    if (!trimmed || isValidWebAddressFormat(trimmed)) {
+      clearWebAddressError(field);
+      return;
+    }
+
+    setWebAddressErrors((prev) => ({
+      ...prev,
+      [field]: WEB_ADDRESS_FORMAT_ERROR,
+    }));
+  };
+
+  /** 값이 유효해지면 즉시 인라인 오류 해제 */
+  const handleWebAddressChange = (
+    field: WebAddressField,
+    setter: (value: string) => void,
+    value: string
+  ) => {
+    updateField(setter, value);
+
+    if (isValidWebAddressFormat(value)) {
+      clearWebAddressError(field);
+    }
+  };
 
   const handleLeaveWithoutSaving = () => {
     clearEditFormDraft();
@@ -436,6 +495,7 @@ function useKindergartenEditForm() {
     address,
     addressDetail,
     phone,
+    phoneError,
     weekdayStart,
     weekdayEnd,
     weekendStart,
@@ -448,6 +508,7 @@ function useKindergartenEditForm() {
     homepage,
     instagram,
     youtube,
+    webAddressErrors,
     breeds,
     dogServices,
     safetyFacilities,
@@ -463,10 +524,23 @@ function useKindergartenEditForm() {
     handleImagesChange: (next: WebImageAsset[]) => updateField(setImages, next),
     handleNameChange: (value: string) => updateField(setName, value),
     handleAddressDetailChange: (value: string) => updateField(setAddressDetail, value),
-    handlePhoneChange: (value: string) => updateField(setPhone, formatPhone(value)),
-    handleHomepageChange: (value: string) => updateField(setHomepage, value),
-    handleInstagramChange: (value: string) => updateField(setInstagram, value),
-    handleYoutubeChange: (value: string) => updateField(setYoutube, value),
+    handlePhoneChange: (value: string) => {
+      setPhoneError(undefined);
+      updateField(setPhone, formatPhone(value));
+    },
+    handlePhoneBlur,
+    handleHomepageChange: (value: string) => {
+      handleWebAddressChange('homepage', setHomepage, value);
+    },
+    handleInstagramChange: (value: string) => {
+      handleWebAddressChange('instagram', setInstagram, value);
+    },
+    handleYoutubeChange: (value: string) => {
+      handleWebAddressChange('youtube', setYoutube, value);
+    },
+    handleHomepageBlur: () => handleWebAddressBlur('homepage', homepage),
+    handleInstagramBlur: () => handleWebAddressBlur('instagram', instagram),
+    handleYoutubeBlur: () => handleWebAddressBlur('youtube', youtube),
     handleBreedsChange: (next: FilterOption[]) => updateField(setBreeds, next),
     handleDogServicesChange: (next: FilterOption[]) => updateField(setDogServices, next),
     handleSafetyFacilitiesChange: (next: FilterOption[]) =>
