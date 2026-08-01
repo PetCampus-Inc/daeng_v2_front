@@ -8,6 +8,7 @@ import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerD
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
+import { TodayAttendanceTab } from '@views/owner-daily-page/ui/TodayAttendanceTab';
 import { Header } from '@widgets/Header';
 
 import { toast } from '@shared/ui/toast';
@@ -94,7 +95,9 @@ function OwnerDailyPage() {
           <TabsContent
             value='today-attendance'
             className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
-          />
+          >
+            <TodayAttendanceTab />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
