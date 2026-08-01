@@ -1,7 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
+import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { OWNER_DAILY_DATE_LABEL, type AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
@@ -86,6 +86,11 @@ function OwnerDailyPage() {
     setSelectedTab(value as OwnerDailyTab);
   };
 
+  const handleScrollToTop = () => {
+    const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
+    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useLayoutEffect(() => {
     const animationFrameId = requestAnimationFrame(() => {
       const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
@@ -96,7 +101,7 @@ function OwnerDailyPage() {
   }, [selectedTab]);
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
+    <div className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
         <Header>
           <Header.Title>일과</Header.Title>
@@ -146,6 +151,22 @@ function OwnerDailyPage() {
           </TabsContent>
         </Tabs>
       </main>
+      <Float
+        placement='bottom-end'
+        offsetX='x4'
+        offsetY='calc(var(--bottom-bar-height) + 20px)'
+        zIndex={50}
+      >
+        <FloatingActionButton
+          className='text-black'
+          icon='ChevronTop'
+          label='맨 위로'
+          variant='neutralLight'
+          size='medium'
+          extended={false}
+          onClick={handleScrollToTop}
+        />
+      </Float>
     </div>
   );
 }
