@@ -13,6 +13,10 @@ const TAB_PATHS: Record<string, TabScreen> = {
   save: 'Save',
   compare: 'Compare',
   mypage: 'Mypage',
+  owner: 'OwnerHome',
+  'owner/daily': 'OwnerDaily',
+  'owner/album': 'OwnerAlbum',
+  'owner/members': 'OwnerMembers',
 };
 
 function useLinking(): LinkingOptions<RootStackParamList> {

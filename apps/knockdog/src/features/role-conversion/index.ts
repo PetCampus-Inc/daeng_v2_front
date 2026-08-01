@@ -16,3 +16,4 @@ export { OwnerProfileForm, type OwnerProfileFormProps } from './ui/OwnerProfileF
 export { OwnerProfileImageUploader, type OwnerProfileImageUploaderProps } from './ui/OwnerProfileImageUploader';
 export { OwnerProfileRow, type OwnerProfileRowProps } from './ui/OwnerProfileRow';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
+export { SyncNativeMainTabModeEffect } from './ui/SyncNativeMainTabModeEffect';

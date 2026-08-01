@@ -24,6 +24,7 @@ const METHODS = {
   navReset: 'system.navReset',
   navReplace: 'system.navReplace',
   navSwitchTab: 'system.navSwitchTab',
+  navSetMainTabMode: 'system.navSetMainTabMode',
 
   // external
   naverOpenRoute: 'naver.openRoute',

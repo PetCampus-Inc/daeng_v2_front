@@ -29,6 +29,8 @@ interface OwnerRoleState {
   owner: OwnerProfileInfo | null;
   /** 원장 여부 판별이 끝났는지 (비로그인이거나 조회 완료) — 가드 조기 리다이렉트 방지용 */
   isResolved: boolean;
+  /** invalidate 직후 stale false → true 사이 가드/탭 다운그레이드 방지 */
+  isFetching: boolean;
 }
 
 function toKindergarten(data: OwnerRole): OwnerKindergartenInfo {
@@ -71,7 +73,7 @@ function useOwnerRole(): OwnerRoleState {
     return unsubscribe;
   }, []);
 
-  const { data, isSuccess } = useOwnerRoleQuery({
+  const { data, isSuccess, isFetching } = useOwnerRoleQuery({
     userId: user?.userId,
     enabled: isUserStoreHydrated && isLoggedIn,
   });
@@ -87,6 +89,7 @@ function useOwnerRole(): OwnerRoleState {
     owner: isOwner && data ? toOwner(data) : null,
     // 조회 성공 시에만 resolved 처리 — 실패(에러) 상태에서는 가드가 조기 리다이렉트하지 않도록 false 유지
     isResolved: isUserStoreHydrated && (!isLoggedIn || isSuccess),
+    isFetching: isLoggedIn && isFetching,
   };
 }
 
