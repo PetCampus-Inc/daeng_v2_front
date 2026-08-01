@@ -160,7 +160,7 @@ function OwnerDailyNoticeWritePage() {
   const noticeId = params?.id;
   const isEditQuery = searchParams.get('mode') === 'edit';
   const isExpired = searchParams.get('expired') === 'true';
-  const { back, pushForResult, replace } = useStackNavigation();
+  const { back, pushForResult, replace, reset } = useStackNavigation();
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
@@ -445,11 +445,10 @@ function OwnerDailyNoticeWritePage() {
         data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
       });
       setIsEditingSent(false);
-      replace({
-        pathname: route.owner.daily.notice.write.root.replace('[id]', noticeId),
-        query: {
-          ...(isExpired ? { expired: 'true' } : {}),
-        },
+      // replace만 하면 템플릿 push로 쌓인 중간 Stack이 남아 뒤로가기 시 템플릿으로 돌아감.
+      // reset으로 [OwnerDaily, 작성]만 남겨 뒤로가기가 /owner/daily로 가게 함.
+      await reset(route.owner.daily.notice.write.root.replace('[id]', noticeId), {
+        ...(isExpired ? { expired: 'true' } : {}),
       });
 
       toast({
