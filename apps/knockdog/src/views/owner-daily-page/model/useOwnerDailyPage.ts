@@ -1,7 +1,9 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
 
-import { INITIAL_MEMBERS, type AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
+import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
+import { useOwnerDailyAttendanceStore } from '@views/owner-daily-page/model/useOwnerDailyAttendanceStore';
 
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
@@ -18,7 +20,11 @@ function getCancelCheckInBlockMessage(member: AttendanceMember) {
 
 function useOwnerDailyPage() {
   const { push } = useStackNavigation();
-  const [members, setMembers] = useState(INITIAL_MEMBERS);
+  const members = useOwnerDailyAttendanceStore((state) => state.members);
+  const checkIn = useOwnerDailyAttendanceStore((state) => state.checkIn);
+  const cancelStoredCheckIn = useOwnerDailyAttendanceStore((state) => state.cancelCheckIn);
+  const checkOut = useOwnerDailyAttendanceStore((state) => state.checkOut);
+  const cancelStoredCheckOut = useOwnerDailyAttendanceStore((state) => state.cancelCheckOut);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
 
@@ -48,6 +54,7 @@ function useOwnerDailyPage() {
   const attendanceCheckMembers = showUncheckedOnly
     ? searchedMembers.filter((member) => !member.checkedIn)
     : searchedMembers;
+  const todayAttendanceMembers = sortedMembers.filter((member) => member.checkedIn);
 
   const showRequestFailureToast = () => {
     toast({
@@ -56,8 +63,23 @@ function useOwnerDailyPage() {
     });
   };
 
-  const sendAttendancePush = async (_member: AttendanceMember, _type: 'check-in' | 'cancel-check-in') => {
+  const sendAttendancePush = async (
+    _member: AttendanceMember,
+    _type: 'check-in' | 'cancel-check-in' | 'check-out' | 'cancel-check-out'
+  ) => {
     // TODO: 실제 API 계약 연결 시 보호자 푸시 발송 mutation을 여기에서 호출합니다.
+  };
+
+  const canOpenCancelCheckInDialog = (member: AttendanceMember) => {
+    const blockMessage = getCancelCheckInBlockMessage(member);
+    if (!blockMessage) return true;
+
+    toast({
+      title: blockMessage,
+      nativeTitle: blockMessage,
+    });
+
+    return false;
   };
 
   const handleMemberClick = (memberId: string) => {
@@ -84,9 +106,7 @@ function useOwnerDailyPage() {
   const handleCheckIn = async (member: AttendanceMember) => {
     try {
       await sendAttendancePush(member, 'check-in');
-      setMembers((prevMembers) =>
-        prevMembers.map((prevMember) => (prevMember.id === member.id ? { ...prevMember, checkedIn: true } : prevMember))
-      );
+      checkIn(member.id);
       toast({
         title: `✓ ${member.name}를 등원 처리했어요`,
         nativeTitle: `✓ ${member.name}를 등원 처리했어요`,
@@ -99,11 +119,7 @@ function useOwnerDailyPage() {
   const cancelCheckIn = async (member: AttendanceMember, close: () => void) => {
     try {
       await sendAttendancePush(member, 'cancel-check-in');
-      setMembers((prevMembers) =>
-        prevMembers.map((prevMember) =>
-          prevMember.id === member.id ? { ...prevMember, checkedIn: false } : prevMember
-        )
-      );
+      cancelStoredCheckIn(member.id);
       close();
       toast({
         title: `✓ ${member.name}의 등원을 취소했어요`,
@@ -114,21 +130,60 @@ function useOwnerDailyPage() {
     }
   };
 
+  const handleCheckOut = async (member: AttendanceMember) => {
+    if (member.checkedOut) return;
+
+    try {
+      await sendAttendancePush(member, 'check-out');
+      checkOut(member.id);
+      toast({
+        title: `✓ ${member.name}를 하원 처리했어요`,
+        nativeTitle: `✓ ${member.name}를 하원 처리했어요`,
+      });
+    } catch {
+      showRequestFailureToast();
+    }
+  };
+
+  const cancelCheckOut = async (member: AttendanceMember, close: () => void) => {
+    if (!member.checkedOut) return;
+
+    try {
+      await sendAttendancePush(member, 'cancel-check-out');
+      cancelStoredCheckOut(member.id);
+      close();
+      toast({
+        title: `✓ ${member.name}의 하원을 취소했어요`,
+        nativeTitle: `✓ ${member.name}의 하원을 취소했어요`,
+      });
+    } catch {
+      showRequestFailureToast();
+    }
+  };
+
+  const handleNoticebookButtonClick = (member: AttendanceMember) => {
+    push({ pathname: route.owner.daily.notice.write.root.replace('[id]', member.id) }).catch(showRequestFailureToast);
+  };
+
   return {
     attendanceCheckMembers,
+    cancelCheckOut,
     cancelCheckIn,
-    getCancelCheckInBlockMessage,
+    canOpenCancelCheckInDialog,
     handleCheckFilterClick,
     handleCheckIn,
+    handleCheckOut,
     handleClearSearchKeyword,
     handleInviteGuardianClick,
     handleMemberClick,
+    handleNoticebookButtonClick,
     handleSearchKeywordChange,
     hasConnectedMembers,
     normalizedSearchKeyword,
     searchKeyword,
     showUncheckedOnly,
     summaryItems,
+    todayAttendanceMembers,
   };
 }
 

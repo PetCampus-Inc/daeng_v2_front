@@ -8,7 +8,9 @@ interface AttendanceMember {
   age?: number;
   profileImageUrl?: string;
   checkedIn: boolean;
+  checkedInTime?: string;
   checkedOut: boolean;
+  checkedOutTime?: string;
   noticebookSent: boolean;
 }
 
@@ -49,6 +51,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     weightKg: 6,
     age: 4,
     checkedIn: true,
+    checkedInTime: '오전 9:00',
     checkedOut: false,
     noticebookSent: false,
   },
@@ -60,7 +63,9 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     weightKg: 4,
     age: 2,
     checkedIn: true,
+    checkedInTime: '오전 9:00',
     checkedOut: true,
+    checkedOutTime: '오후 6:00',
     noticebookSent: false,
   },
   {
@@ -70,7 +75,9 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     breed: '시바견',
     weightKg: 9,
     checkedIn: true,
-    checkedOut: false,
+    checkedInTime: '오전 9:00',
+    checkedOut: true,
+    checkedOutTime: '오후 6:00',
     noticebookSent: true,
   },
   {
@@ -80,6 +87,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     breed: '시바견',
     weightKg: 9,
     checkedIn: true,
+    checkedInTime: '오전 9:00',
     checkedOut: false,
     noticebookSent: true,
   },
@@ -90,6 +98,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     breed: '시바견',
     weightKg: 9,
     checkedIn: true,
+    checkedInTime: '오전 9:00',
     checkedOut: false,
     noticebookSent: true,
   },
@@ -100,6 +109,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     breed: '시바견',
     weightKg: 9,
     checkedIn: true,
+    checkedInTime: '오전 9:00',
     checkedOut: false,
     noticebookSent: true,
   },
@@ -110,6 +120,7 @@ const INITIAL_MEMBERS: AttendanceMember[] = [
     breed: '시바견',
     weightKg: 10,
     checkedIn: true,
+    checkedInTime: '오전 9:00',
     checkedOut: false,
     noticebookSent: true,
   },
