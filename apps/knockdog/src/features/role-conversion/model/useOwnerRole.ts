@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useOwnerRoleQuery, useUserStore, type OwnerRole } from '@entities/user';
+import { tokenUtils } from '@shared/utils';
 
 interface OwnerKindergartenInfo {
   source: 'manual' | 'search';
@@ -29,6 +30,8 @@ interface OwnerRoleState {
   owner: OwnerProfileInfo | null;
   /** 원장 여부 판별이 끝났는지 (비로그인이거나 조회 완료) — 가드 조기 리다이렉트 방지용 */
   isResolved: boolean;
+  /** invalidate 직후 stale false → true 사이 가드/탭 다운그레이드 방지 */
+  isFetching: boolean;
 }
 
 function toKindergarten(data: OwnerRole): OwnerKindergartenInfo {
@@ -58,6 +61,8 @@ function useOwnerRole(): OwnerRoleState {
   const user = useUserStore((state) => state.user);
   const [isUserStoreHydrated, setIsUserStoreHydrated] = useState(hasUserStoreHydrated);
   const isLoggedIn = !!user;
+  // token만 있고 user 미동기화 — 다른 WebView 로그인 직후 탭 store 반영 전. 비원장 오판 방지
+  const isAuthSyncing = !user && tokenUtils.hasAccessToken();
 
   useEffect(() => {
     const unsubscribe = useUserStore.persist?.onFinishHydration?.(() => {
@@ -71,7 +76,7 @@ function useOwnerRole(): OwnerRoleState {
     return unsubscribe;
   }, []);
 
-  const { data, isSuccess } = useOwnerRoleQuery({
+  const { data, isSuccess, isFetching } = useOwnerRoleQuery({
     userId: user?.userId,
     enabled: isUserStoreHydrated && isLoggedIn,
   });
@@ -86,7 +91,8 @@ function useOwnerRole(): OwnerRoleState {
     kindergarten: isOwner && data ? toKindergarten(data) : null,
     owner: isOwner && data ? toOwner(data) : null,
     // 조회 성공 시에만 resolved 처리 — 실패(에러) 상태에서는 가드가 조기 리다이렉트하지 않도록 false 유지
-    isResolved: isUserStoreHydrated && (!isLoggedIn || isSuccess),
+    isResolved: isUserStoreHydrated && !isAuthSyncing && (!isLoggedIn || isSuccess),
+    isFetching: isAuthSyncing || (isLoggedIn && isFetching),
   };
 }
 

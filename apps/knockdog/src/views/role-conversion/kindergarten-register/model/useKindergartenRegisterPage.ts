@@ -144,7 +144,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
 
   const handleFieldChange = (field: keyof KindergartenRegisterForm, value: string) => {
     if (field === 'source' || field === 'placeId') return;
-    if (field === 'address' && mode === 'manual') return;
+    if (field === 'address') return;
 
     if (field === 'kindergartenNumber' || field === 'phoneNumber') {
       setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
