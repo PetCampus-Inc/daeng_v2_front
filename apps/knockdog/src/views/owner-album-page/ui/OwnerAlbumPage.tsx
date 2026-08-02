@@ -1,9 +1,11 @@
 'use client';
 
 import { Icon } from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
 import { OwnerAlbumEmptyState } from '@views/owner-album-page/ui/OwnerAlbumEmptyState';
+import { OwnerAlbumInfoSheet } from '@views/owner-album-page/ui/OwnerAlbumInfoSheet';
 import { OwnerAlbumUploadButton } from '@views/owner-album-page/ui/OwnerAlbumUploadButton';
 
 import { Header } from '@widgets/Header';
@@ -11,6 +13,10 @@ import { Header } from '@widgets/Header';
 function OwnerAlbumPage() {
   // TODO: 앨범 목록 API 연동 후 유무에 따라 empty / grid 분기
   const hasPhotos = false;
+
+  const handleInfoClick = () => {
+    overlay.open(({ isOpen, close }) => <OwnerAlbumInfoSheet isOpen={isOpen} close={close} />);
+  };
 
   return (
     <div className='bg-bg-50 flex h-dvh flex-col'>
@@ -22,6 +28,7 @@ function OwnerAlbumPage() {
               type='button'
               className='inline-flex size-6 items-center justify-center'
               aria-label={ownerAlbumContent.infoAriaLabel}
+              onClick={handleInfoClick}
             >
               <Icon icon='InfoLine' className='text-text-secondary-700 size-6' />
             </button>
