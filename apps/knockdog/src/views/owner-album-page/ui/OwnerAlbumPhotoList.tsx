@@ -7,9 +7,10 @@ const PREVIEW_LIMIT = 6;
 
 interface OwnerAlbumPhotoListProps {
   photos: OwnerAlbumPhoto[];
+  onPhotoClick: (photoId: string) => void;
 }
 
-function OwnerAlbumPhotoList({ photos }: OwnerAlbumPhotoListProps) {
+function OwnerAlbumPhotoList({ photos, onPhotoClick }: OwnerAlbumPhotoListProps) {
   const groups = groupAlbumPhotosByDate(photos);
 
   return (
@@ -27,7 +28,12 @@ function OwnerAlbumPhotoList({ photos }: OwnerAlbumPhotoListProps) {
                   const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
 
                   return (
-                    <div key={photo.id} className='bg-fill-secondary-100 relative aspect-square overflow-hidden'>
+                    <button
+                      key={photo.id}
+                      type='button'
+                      onClick={() => onPhotoClick(photo.id)}
+                      className='bg-fill-secondary-100 relative aspect-square overflow-hidden'
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed URL 임시 미리보기 */}
                       <img src={photo.url} alt='' className='h-full w-full object-cover' />
                       {isOverflowTile ? (
@@ -35,7 +41,7 @@ function OwnerAlbumPhotoList({ photos }: OwnerAlbumPhotoListProps) {
                           <span className='body2-regular text-text-primary-inverse'>{`+ ${remainingCount}`}</span>
                         </div>
                       ) : null}
-                    </div>
+                    </button>
                   );
                 })}
               </div>

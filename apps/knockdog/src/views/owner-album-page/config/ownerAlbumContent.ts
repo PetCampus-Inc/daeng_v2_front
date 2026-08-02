@@ -16,6 +16,10 @@ const ownerAlbumContent = {
     nativeTitle: '사진을 올리지 못했어요',
   },
   maxSelectionCount: 50,
+  detail: {
+    deleteAriaLabel: '사진 삭제',
+    saveLabel: '저장하기',
+  },
   infoSheet: {
     title: '사진 업로드 유의사항',
     confirmLabel: '확인',
