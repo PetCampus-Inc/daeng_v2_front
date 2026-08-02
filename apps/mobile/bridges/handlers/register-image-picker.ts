@@ -116,6 +116,11 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         throw new Error('선택된 이미지가 없습니다.');
       }
 
+      sendEvent('media.pickImage.uploading', {
+        requestId,
+        count: pickedAssets.length,
+      });
+
       const uploadedAssets: Array<{ key: string; preSignedUrl: string }> = [];
       for (const pickedAsset of pickedAssets) {
         const { key, preSignedUrl } = await uploadImage();

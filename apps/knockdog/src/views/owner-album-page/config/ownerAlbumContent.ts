@@ -8,6 +8,14 @@ const ownerAlbumContent = {
     description: '사진을 올려 보호자에게 보여주세요',
   },
   uploadButtonLabel: '사진 올리기',
+  uploadModalMessage: '사진을 모두 올릴 때까지\n앱을 닫지 말아 주세요',
+  uploadSuccessToast: {
+    nativeTitle: '사진을 올렸어요',
+  },
+  uploadFailedToast: {
+    nativeTitle: '사진을 올리지 못했어요',
+  },
+  maxSelectionCount: 50,
   infoSheet: {
     title: '사진 업로드 유의사항',
     confirmLabel: '확인',

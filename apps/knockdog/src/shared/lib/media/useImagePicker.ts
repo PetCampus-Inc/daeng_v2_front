@@ -104,7 +104,10 @@ async function getPreviewImageAsset(asset: ImageAsset): Promise<WebImageAsset> {
 /**
  * 웹 환경에서 이미지 선택
  */
-async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> {
+async function pickImageWeb(
+  params?: PickImageParams,
+  options?: { onUploading?: (count: number) => void }
+): Promise<PickImageResult> {
   return new Promise((resolve) => {
     if (typeof document === 'undefined') {
       resolve({ cancelled: true });
@@ -115,8 +118,7 @@ async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> 
     input.type = 'file';
 
     // mediaTypes에 따라 accept 설정
-      input.accept = 'image/*';
-
+    input.accept = 'image/*';
 
     // 다중 선택 여부
     input.multiple = params?.allowsMultipleSelection ?? false;
@@ -138,6 +140,7 @@ async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> 
             resolve({ cancelled: true });
             return;
           }
+          options?.onUploading?.(1);
           const asset = await createWebImageAsset(file);
           resolve({
             cancelled: false,
@@ -150,6 +153,7 @@ async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> 
         const limit = params?.selectionLimit ?? 0;
         const filesToProcess = limit > 0 ? Array.from(files).slice(0, limit) : Array.from(files);
 
+        options?.onUploading?.(filesToProcess.length);
         const assets = await Promise.all(filesToProcess.map((file) => createWebImageAsset(file)));
 
         resolve({
@@ -177,23 +181,35 @@ async function pickImageWeb(params?: PickImageParams): Promise<PickImageResult> 
   });
 }
 
+interface PickImageOptions {
+  /** 피커 확정 후 S3 업로드 시작 시 호출 (업로드 모달용) */
+  onUploading?: (count: number) => void;
+}
+
 function useImagePicker() {
   const bridge = useBridge();
 
   const pickImage = useCallback(
-    async (params?: PickImageParams): Promise<PickImageResult> => {
+    async (params?: PickImageParams, options?: PickImageOptions): Promise<PickImageResult> => {
       // 웹 환경인 경우 fallback 사용
       if (!isNativeWebView()) {
-        return pickImageWeb(params);
+        return pickImageWeb(params, options);
       }
 
       const requestId = makeRequestId();
 
       return new Promise<PickImageResult>((resolve, reject) => {
+        const unsubUploading = bridge.on('media.pickImage.uploading', (payload) => {
+          if (payload.requestId === requestId) {
+            options?.onUploading?.(payload.count);
+          }
+        });
+
         // 결과 이벤트 리스너 (1회성)
         const unsubResult = bridge.once('media.pickImage.result', async (payload) => {
           if (payload.requestId === requestId) {
             unsubCancel();
+            unsubUploading();
             if (payload.cancelled) {
               resolve({ cancelled: true });
               return;
@@ -229,6 +245,7 @@ function useImagePicker() {
         const unsubCancel = bridge.once('media.pickImage.cancel', (payload) => {
           if (payload.requestId === requestId) {
             unsubResult();
+            unsubUploading();
             reject(payload.reason || '이미지 선택이 취소되었습니다.');
           }
         });
@@ -254,4 +271,4 @@ function useImagePicker() {
 }
 
 export { useImagePicker };
-export type { WebImageAsset };
+export type { WebImageAsset, PickImageOptions };

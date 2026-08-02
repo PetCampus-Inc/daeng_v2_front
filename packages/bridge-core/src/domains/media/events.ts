@@ -13,6 +13,11 @@ interface MediaEventMap {
     requestId: string;
     reason?: string;
   };
+
+  'media.pickImage.uploading': {
+    requestId: string;
+    count: number;
+  };
 }
 
 export type { MediaEventMap };

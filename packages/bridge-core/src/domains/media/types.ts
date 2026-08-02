@@ -21,7 +21,7 @@ type PickImageParams = {
   /**
    * 이미지 미디어 타입 default: 'images'
    */
-  mediaTypes?: 'images';
+  mediaTypes?: 'images' | 'videos' | 'all';
   /**
    * 다중 선택 여부 (기본: false)
    */
