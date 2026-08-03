@@ -747,13 +747,13 @@ function OwnerDailyNoticeWritePage() {
                       }
                       className={`flex flex-col items-center gap-2 ${isReadOnly ? 'pointer-events-none' : ''}`}
                     >
-                      <div className='relative size-[52px] shrink-0 overflow-hidden rounded-lg'>
+                      <div className='relative size-[58px] shrink-0 overflow-hidden rounded-lg'>
                         <Image
                           src={isSelected ? option.image : option.defaultImage}
                           alt=''
                           fill
                           className='object-contain'
-                          sizes='52px'
+                          sizes='58px'
                         />
                       </div>
                       <span
