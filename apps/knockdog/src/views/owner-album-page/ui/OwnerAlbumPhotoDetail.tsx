@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon, SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
@@ -90,15 +90,15 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  const handleSlideChange = useCallback((index: number) => {
+    setActiveIndex((prev) => (prev === index ? prev : index));
+  }, []);
+
+  const handleThumbnailClick = useCallback((index: number) => {
+    setActiveIndex((prev) => (prev === index ? prev : index));
+  }, []);
+
   if (!currentPhoto || photos.length === 0) return null;
-
-  const handleSlideChange = (index: number) => {
-    setActiveIndex(index);
-  };
-
-  const handleThumbnailClick = (index: number) => {
-    setActiveIndex(index);
-  };
 
   return (
     <RemoveScroll forwardProps>
