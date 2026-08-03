@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import {
@@ -8,8 +9,6 @@ import {
   OwnerDailySearchEmptyState,
 } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
 import { OwnerDailyMemberCard } from '@views/owner-daily-page/ui/OwnerDailyMemberCard';
-
-import { FilterChip } from '@features/kindergarten-list';
 
 interface OwnerDailyTabContentProps {
   items: AttendanceMember[];
@@ -71,9 +70,19 @@ function OwnerDailyTabContent({
         <div className='flex h-9 w-full items-center justify-between px-4'>
           <p className='body1-bold text-text-primary'>{hasConnectedMembers ? `${items.length}마리` : '원생 없음'}</p>
           {onBeforeFilterClick ? (
-            <FilterChip type='button' variant='status' activated={showBeforeFilter} onClick={onBeforeFilterClick}>
+            <button
+              type='button'
+              className={cn(
+                'body2-semibold text-text-primary py-x2 px-x2 gap-x0_5 flex items-center whitespace-nowrap transition-colors',
+                showBeforeFilter ? '[&>svg]:text-fill-primary-500' : '[&>svg]:text-fill-secondary-400'
+              )}
+              onClick={onBeforeFilterClick}
+            >
+              <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
+                <rect x='3' y='3' width='10' height='10' rx='5' fill='currentColor' />
+              </svg>
               등원 전
-            </FilterChip>
+            </button>
           ) : null}
         </div>
       )}

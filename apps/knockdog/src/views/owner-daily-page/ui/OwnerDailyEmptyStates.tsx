@@ -52,4 +52,27 @@ function OwnerDailySearchEmptyState() {
   );
 }
 
-export { OwnerDailyNoMembersState, OwnerDailyNoUncheckedState, OwnerDailySearchEmptyState };
+function OwnerDailyNoAttendanceState() {
+  return (
+    <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
+      <p className='h2-extrabold text-text-primary text-center'>아직 등원한 원생이 없어요</p>
+    </div>
+  );
+}
+
+function OwnerDailyFilterEmptyState() {
+  return (
+    <div className='flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-4 text-center'>
+      <p className='h2-extrabold text-text-primary'>선택한 조건에 맞는 원생이 없어요</p>
+      <p className='body1-regular text-text-primary'>다른 조건을 선택해 보세요.</p>
+    </div>
+  );
+}
+
+export {
+  OwnerDailyNoMembersState,
+  OwnerDailyNoAttendanceState,
+  OwnerDailyNoUncheckedState,
+  OwnerDailyFilterEmptyState,
+  OwnerDailySearchEmptyState,
+};
