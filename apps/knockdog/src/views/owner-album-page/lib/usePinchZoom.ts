@@ -10,6 +10,8 @@ const TAP_MOVE_TOLERANCE_PX = 24;
 const PAN_SLOP_PX = 12;
 /** 핀치 종료 시 이 비율 미만이면 1x(기본), 이상이면 cover(확장)로 스냅 */
 const SNAP_RATIO = 0.5;
+/** cover 스냅 시 서브픽셀 틈 메우기용 오버슈트(px) */
+const COVER_OVERSHOOT_PX = 2;
 
 interface Transform {
   scale: number;
@@ -56,11 +58,13 @@ function getMidpoint(touchA: Touch, touchB: Touch) {
 
 /**
  * 1x 콘텐츠가 뷰포트(회색 배경)를 cover 할 때의 scale.
- * 확대 최대치 = 회색 영역 크기.
+ * 확대 최대치 = 회색 영역 크기 (+ 서브픽셀 틈 방지 오버슈트).
  */
 function getCoverMaxScale(viewportW: number, viewportH: number, contentW: number, contentH: number) {
   if (contentW <= 0 || contentH <= 0 || viewportW <= 0 || viewportH <= 0) return MIN_SCALE;
-  return Math.max(viewportW / contentW, viewportH / contentH, MIN_SCALE);
+  const cover = Math.max(viewportW / contentW, viewportH / contentH, MIN_SCALE);
+  const minSide = Math.min(contentW, contentH);
+  return cover + COVER_OVERSHOOT_PX / minSide;
 }
 
 function clampTranslate(
@@ -88,7 +92,8 @@ function clampTranslate(
 
 function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   const transformRef = useRef<Transform>({ scale: 1, x: 0, y: 0 });
   const maxScaleRef = useRef(MIN_SCALE);
   const contentSizeRef = useRef({ width: 0, height: 0 });
@@ -101,13 +106,13 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
 
   const measure = useCallback(() => {
     const container = containerRef.current;
-    const content = contentRef.current;
-    if (!container || !content) return { viewportW: 0, viewportH: 0, contentW: 0, contentH: 0, maxScale: MIN_SCALE };
+    const frame = frameRef.current;
+    if (!container || !frame) return { viewportW: 0, viewportH: 0, contentW: 0, contentH: 0, maxScale: MIN_SCALE };
 
     const viewport = container.getBoundingClientRect();
-    // scale 영향 없는 레이아웃 크기
-    const contentW = content.offsetWidth;
-    const contentH = content.offsetHeight;
+    // 레이아웃 프레임 크기 (이미지는 width/height로 확대하므로 프레임은 항상 1x)
+    const contentW = frame.offsetWidth;
+    const contentH = frame.offsetHeight;
     const maxScale = getCoverMaxScale(viewport.width, viewport.height, contentW, contentH);
 
     contentSizeRef.current = { width: contentW, height: contentH };
@@ -122,13 +127,33 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
     };
   }, []);
 
+  /**
+   * CSS scale() 대신 width/height로 확대 — GPU 서브픽셀 흰 실선 회피.
+   * translate만 transform으로 처리.
+   */
   const applyTransform = useCallback((next: Transform, withTransition = false) => {
-    const node = contentRef.current;
-    if (!node) return;
+    const image = imageRef.current;
+    if (!image) return;
 
+    const { width: contentW, height: contentH } = contentSizeRef.current;
     transformRef.current = next;
-    node.style.transition = withTransition ? 'transform 200ms ease-out' : 'none';
-    node.style.transform = `translate3d(${next.x}px, ${next.y}px, 0) scale(${next.scale})`;
+
+    const transition = withTransition
+      ? 'width 200ms ease-out, height 200ms ease-out, transform 200ms ease-out'
+      : 'none';
+
+    image.style.transition = transition;
+
+    if (contentW <= 0 || contentH <= 0) {
+      image.style.width = '100%';
+      image.style.height = '100%';
+      image.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
+
+    image.style.width = `${contentW * next.scale}px`;
+    image.style.height = `${contentH * next.scale}px`;
+    image.style.transform = `translate(-50%, -50%) translate3d(${next.x}px, ${next.y}px, 0)`;
   }, []);
 
   const snapToNearest = useCallback(() => {
@@ -154,8 +179,9 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
     didPanRef.current = false;
     lastTapRef.current = null;
     pointerDownRef.current = null;
+    measure();
     applyTransform({ scale: 1, x: 0, y: 0 });
-  }, [applyTransform]);
+  }, [applyTransform, measure]);
 
   const setScaleAtPoint = useCallback(
     (nextScale: number, clientX: number, clientY: number) => {
@@ -245,12 +271,21 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
     const resizeObserver = new ResizeObserver(() => {
       measure();
       const { scale, x, y } = transformRef.current;
-      if (scale <= MIN_SCALE) return;
+      if (scale <= MIN_SCALE) {
+        applyTransform({ scale: MIN_SCALE, x: 0, y: 0 });
+        return;
+      }
 
       const { viewportW, viewportH, contentW, contentH, maxScale } = measure();
       applyTransform(clampTranslate(Math.min(scale, maxScale), x, y, viewportW, viewportH, contentW, contentH));
     });
     resizeObserver.observe(container);
+    if (frameRef.current) resizeObserver.observe(frameRef.current);
+
+    const clearImageTransition = () => {
+      const image = imageRef.current;
+      if (image) image.style.transition = 'none';
+    };
 
     const handleTouchStart = (event: TouchEvent) => {
       measure();
@@ -265,9 +300,7 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
         lastTapRef.current = null;
         pointerDownRef.current = null;
         didPanRef.current = false;
-
-        const content = contentRef.current;
-        if (content) content.style.transition = 'none';
+        clearImageTransition();
 
         const rect = container.getBoundingClientRect();
         const mid = getMidpoint(touchA, touchB);
@@ -340,6 +373,7 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
           panRef.current.isDragging = true;
           didPanRef.current = true;
           lastTapRef.current = null;
+          clearImageTransition();
         }
 
         event.preventDefault();
@@ -397,6 +431,7 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
     container.addEventListener('touchcancel', handleTouchEnd);
 
     measure();
+    applyTransform(transformRef.current);
 
     return () => {
       resizeObserver.disconnect();
@@ -459,16 +494,26 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
       onPointerCancelCapture: handlePointerUpCapture,
       onPointerUp: handlePointerUp,
     }),
-    getContentProps: () =>
+    getFrameProps: () => ({
+      ref: frameRef,
+    }),
+    getImageProps: () =>
       ({
-        ref: contentRef,
+        ref: imageRef,
         style: {
-          transform: `translate3d(${transformRef.current.x}px, ${transformRef.current.y}px, 0) scale(${transformRef.current.scale})`,
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          width: '100%',
+          height: '100%',
+          maxWidth: 'none',
+          transform: 'translate(-50%, -50%)',
           transformOrigin: 'center center',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
+          objectFit: 'cover',
+          userSelect: 'none',
+          pointerEvents: 'none',
         } satisfies CSSProperties,
+        draggable: false,
       }) as const,
   };
 }
