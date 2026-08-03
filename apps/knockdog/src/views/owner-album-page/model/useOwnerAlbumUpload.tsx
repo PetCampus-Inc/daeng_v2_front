@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
 import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPhoto';
@@ -12,9 +12,12 @@ function useOwnerAlbumUpload() {
   const { pickImage } = useImagePicker();
   const [photos, setPhotos] = useState<OwnerAlbumPhoto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const isUploadInFlightRef = useRef(false);
 
   const handleUploadClick = useCallback(async () => {
-    if (isUploading) return;
+    if (isUploadInFlightRef.current || isUploading) return;
+
+    isUploadInFlightRef.current = true;
 
     try {
       const result = await pickImage(
@@ -68,6 +71,7 @@ function useOwnerAlbumUpload() {
         ),
       });
     } finally {
+      isUploadInFlightRef.current = false;
       setIsUploading(false);
     }
   }, [isUploading, pickImage]);

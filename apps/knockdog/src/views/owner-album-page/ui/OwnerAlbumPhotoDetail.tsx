@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon, SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
@@ -16,6 +16,9 @@ import { Header } from '@widgets/Header';
 
 const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 interface OwnerAlbumPhotoDetailProps {
   photos: OwnerAlbumPhoto[];
   initialIndex: number;
@@ -24,11 +27,24 @@ interface OwnerAlbumPhotoDetailProps {
 
 function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhotoDetailProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
-  const [swiperIndex, setSwiperIndex] = useState(initialIndex);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const currentPhoto = photos[activeIndex];
   const dayPosition = getAlbumDayPosition(photos, activeIndex);
+
+  useLayoutEffect(() => {
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    firstFocusable?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
 
   useEffect(() => {
     thumbnailRefs.current[activeIndex]?.scrollIntoView({
@@ -38,6 +54,41 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     });
   }, [activeIndex]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const container = dialogRef.current;
+      if (!container) return;
+
+      const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!currentPhoto || photos.length === 0) return null;
 
   const handleSlideChange = (index: number) => {
@@ -46,12 +97,12 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
 
   const handleThumbnailClick = (index: number) => {
     setActiveIndex(index);
-    setSwiperIndex(index);
   };
 
   return (
     <RemoveScroll forwardProps>
       <div
+        ref={dialogRef}
         role='dialog'
         aria-modal='true'
         aria-label={formatAlbumDetailTitle(new Date(currentPhoto.uploadedAt))}
@@ -96,7 +147,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
             <SwiperRoot
               className='w-full'
               loop={false}
-              initialIndex={swiperIndex}
+              initialIndex={activeIndex}
               onSlideChange={handleSlideChange}
             >
               {photos.map((photo) => (
