@@ -15,6 +15,9 @@ import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhot
 
 import { Header } from '@widgets/Header';
 
+import { useSaveImage } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
+
 const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
 
 const FOCUSABLE_SELECTOR =
@@ -28,9 +31,12 @@ interface OwnerAlbumPhotoDetailProps {
 
 function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhotoDetailProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [isSaving, setIsSaving] = useState(false);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const isSaveInFlightRef = useRef(false);
+  const saveImage = useSaveImage();
 
   const currentPhoto = photos[activeIndex];
   const dayPosition = getAlbumDayPosition(photos, activeIndex);
@@ -109,6 +115,48 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     [photos.length]
   );
 
+  const handleSaveClick = useCallback(async () => {
+    if (!currentPhoto || isSaveInFlightRef.current || isSaving) return;
+
+    isSaveInFlightRef.current = true;
+    setIsSaving(true);
+
+    try {
+      const saved = await saveImage({
+        url: currentPhoto.url,
+        fileName: `album-${currentPhoto.id}.jpg`,
+      });
+
+      if (saved) {
+        toast({
+          type: 'success',
+          nativeTitle: ownerAlbumContent.detail.saveSuccessToast.nativeTitle,
+          title: (
+            <>
+              <span className='text-text-accent'>사진</span>
+              <span className='text-text-primary-inverse'>을 저장했어요</span>
+            </>
+          ),
+          duration: 3000,
+        });
+        return;
+      }
+
+      toast({
+        nativeTitle: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+        title: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+      });
+    } catch {
+      toast({
+        nativeTitle: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+        title: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+      });
+    } finally {
+      isSaveInFlightRef.current = false;
+      setIsSaving(false);
+    }
+  }, [currentPhoto, isSaving, saveImage]);
+
   if (!currentPhoto || photos.length === 0) return null;
 
   return (
@@ -146,7 +194,9 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
             </div>
             <button
               type='button'
-              className='radius-r2 border-line-400 caption2-semibold text-text-secondary inline-flex min-w-[97px] items-center justify-center gap-1 border bg-white px-4 py-2'
+              onClick={handleSaveClick}
+              disabled={isSaving}
+              className='radius-r2 border-line-400 caption2-semibold text-text-secondary inline-flex min-w-[97px] items-center justify-center gap-1 border bg-white px-4 py-2 disabled:opacity-50'
             >
               {ownerAlbumContent.detail.saveLabel}
               <Icon icon='Download' className='size-3.5' />

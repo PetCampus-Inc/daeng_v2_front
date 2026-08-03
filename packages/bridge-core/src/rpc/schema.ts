@@ -4,8 +4,15 @@ import type { SafeAreaRPCSchema } from '../domains/safe-area';
 import type { ToastRPCSchema } from '../domains/toast';
 import type { AppVersionRPCSchema } from '../domains/app-version';
 import type { SystemRPCSchema } from '../domains/system';
+import type { MediaRPCSchema } from '../domains/media';
 
-type RPCSchema = LocationRPCSchema & NavigationRPCSchema & SafeAreaRPCSchema & SystemRPCSchema & ToastRPCSchema & AppVersionRPCSchema ;
+type RPCSchema = LocationRPCSchema &
+  NavigationRPCSchema &
+  SafeAreaRPCSchema &
+  SystemRPCSchema &
+  ToastRPCSchema &
+  AppVersionRPCSchema &
+  MediaRPCSchema;
 
 type RPCMethod = keyof RPCSchema;
 type ParamsOf<K extends RPCMethod> = RPCSchema[K] extends { params: infer P } ? P : never;

@@ -15,7 +15,7 @@ function ToastProvider(props: ToastProviderProps) {
 
   return (
     <ToastPrimitive.Provider swipeDirection={swipeDirection} {...restProps}>
-      <ToastPrimitive.Viewport className={cn('fixed z-[100] flex flex-col', className)} hotkey={['F8']} />
+      <ToastPrimitive.Viewport className={cn('fixed z-toast flex flex-col', className)} hotkey={['F8']} />
       {props.children}
     </ToastPrimitive.Provider>
   );

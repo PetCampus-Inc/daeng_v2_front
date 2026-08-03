@@ -52,4 +52,19 @@ type PickImageResult =
 | { cancelled: true; assets?: never; }  
 | { cancelled: false; assets: ImageAsset[]; } 
 
-export type { PickImageParams, ImageAsset, PickImageResult };
+interface SaveImageToGalleryParams {
+  /**
+   * 저장할 이미지 URL (pre-signed URL 등)
+   */
+  url: string;
+  /**
+   * 저장 파일명 (확장자 포함 권장)
+   */
+  fileName?: string;
+}
+
+interface SaveImageToGalleryResult {
+  saved: boolean;
+}
+
+export type { PickImageParams, ImageAsset, PickImageResult, SaveImageToGalleryParams, SaveImageToGalleryResult };

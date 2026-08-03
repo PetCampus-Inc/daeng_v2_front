@@ -19,6 +19,12 @@ const ownerAlbumContent = {
   detail: {
     deleteAriaLabel: '사진 삭제',
     saveLabel: '저장하기',
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
   },
   infoSheet: {
     title: '사진 업로드 유의사항',

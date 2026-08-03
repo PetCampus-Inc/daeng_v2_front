@@ -34,6 +34,9 @@ const METHODS = {
   toastDismiss: 'toast.dismiss',
   toastClear: 'toast.clear',
 
+  // media
+  saveImageToGallery: 'media.saveImageToGallery',
+
   // auth
   kakaoLogin: 'auth.kakaoLogin',
   googleLogin: 'auth.googleLogin',
