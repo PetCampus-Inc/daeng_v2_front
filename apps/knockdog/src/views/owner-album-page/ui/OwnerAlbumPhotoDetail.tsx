@@ -11,6 +11,7 @@ import {
   getAlbumDayPosition,
 } from '@views/owner-album-page/lib/groupAlbumPhotosByDate';
 import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPhoto';
+import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhoto';
 
 import { Header } from '@widgets/Header';
 
@@ -108,7 +109,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
         aria-label={formatAlbumDetailTitle(new Date(currentPhoto.uploadedAt))}
         className='bg-bg-50 z-modal fixed inset-0 flex flex-col'
       >
-        <div className='bg-bg-0 shrink-0 pt-(--safe-area-inset-top,0px)'>
+        <div className='bg-bg-0 z-20 shrink-0 pt-(--safe-area-inset-top,0px)'>
           <Header>
             <Header.LeftSection>
               <Header.BackButton onClick={onClose} />
@@ -142,33 +143,32 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
           </div>
         </div>
 
-        <div className='bg-bg-50 relative flex min-h-0 flex-1 flex-col items-center justify-center px-4 pb-10'>
-          <div className='relative w-full'>
-            <SwiperRoot
-              className='w-full'
-              loop={false}
-              initialIndex={activeIndex}
-              onSlideChange={handleSlideChange}
-            >
-              {photos.map((photo) => (
-                <SwiperSlideItem key={photo.id}>
-                  <div className={`bg-bg-50 relative w-full overflow-hidden ${PHOTO_ASPECT_CLASS}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed URL 임시 미리보기 */}
-                    <img src={photo.url} alt='' className='absolute inset-0 h-full w-full object-cover' />
-                  </div>
-                </SwiperSlideItem>
-              ))}
-            </SwiperRoot>
-          </div>
+        <div className='bg-bg-50 relative min-h-0 flex-1 overflow-hidden'>
+          <SwiperRoot
+            className='absolute inset-0 h-full w-full [&>div]:h-full'
+            loop={false}
+            initialIndex={activeIndex}
+            onSlideChange={handleSlideChange}
+          >
+            {photos.map((photo, index) => (
+              <SwiperSlideItem key={photo.id} className='h-full'>
+                <ZoomableAlbumPhoto
+                  src={photo.url}
+                  isActive={index === activeIndex}
+                  photoAspectClassName={PHOTO_ASPECT_CLASS}
+                />
+              </SwiperSlideItem>
+            ))}
+          </SwiperRoot>
 
           {dayPosition.total > 0 ? (
-            <span className='caption1-semibold text-text-primary-inverse bg-dim-70 absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full px-2 py-1'>
+            <span className='caption1-semibold text-text-primary-inverse bg-dim-70 absolute bottom-5 left-1/2 z-10 -translate-x-1/2 rounded-full px-2 py-1'>
               {dayPosition.current}/{dayPosition.total}
             </span>
           ) : null}
         </div>
 
-        <div className='bg-bg-0 shrink-0 pb-(--safe-area-inset-bottom,0px)'>
+        <div className='bg-bg-0 z-20 shrink-0 pb-(--safe-area-inset-bottom,0px)'>
           <div className='scrollbar-hide flex gap-2 overflow-x-auto px-4 py-5'>
             {photos.map((photo, index) => {
               const isSelected = index === activeIndex;
