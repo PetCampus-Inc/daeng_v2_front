@@ -9,6 +9,7 @@ import { tabWebViewStore } from '../model/tabWebViewStore';
 import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
 import {
   pathToTab,
+  pathToBaseTab,
   isGuardianOnlyTab,
   isOwnerOnlyTab,
   type TabName,
@@ -121,10 +122,20 @@ function getActiveTabName(): TabName | null {
   return (activeRoute?.name as TabName | undefined) ?? null;
 }
 
+function isStackFocused(): boolean {
+  const state = navigationRef.getState();
+  if (!state) return false;
+  return state.routes[state.index ?? 0]?.name === 'Stack';
+}
+
 function applyMainTabMode(mode: MainTabMode) {
   useMainTabModeStore.getState().setMode(mode);
 
   if (!isNavReady()) return;
+
+  // Stack이 떠 있는 동안 Tabs로 navigate하면 열린 Stack이 전부 pop되어 홈으로 튕김
+  // (템플릿 불러오기 등 pushForResult로 연 Stack WebView의 SyncNativeMainTabModeEffect)
+  if (isStackFocused()) return;
 
   const activeTab = getActiveTabName();
   if (!activeTab || activeTab === 'Mypage') return;
@@ -279,11 +290,23 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
         })
       );
     } else {
+      // Stack 아래 Tabs는 경로의 부모 탭으로 깔아 뒤로가기가 올바른 탭으로 가게 함
+      // (예: /owner/daily/notice/... → OwnerDaily)
+      let stackPathname = '/';
+      try {
+        stackPathname = new URL(route.params.path, 'https://placeholder.local').pathname;
+      } catch {
+        stackPathname = extractPathFromUrl(route.params.path);
+      }
+      const baseTab = resolveTabScreen(
+        pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore'
+      );
+
       navigationRef.dispatch(
         CommonActions.reset({
           index: 1,
           routes: [
-            { name: 'Tabs' },
+            { name: 'Tabs', params: { screen: baseTab } },
             { name: 'Stack', params: route.params },
           ],
         })

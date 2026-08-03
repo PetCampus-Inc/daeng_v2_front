@@ -32,6 +32,19 @@ function pathToTab(pathname: string): TabName | null {
   }
 }
 
+/** Stack 경로의 부모 탭 */
+function pathToBaseTab(pathname: string): TabName | null {
+  const exact = pathToTab(pathname);
+  if (exact) return exact;
+
+  if (pathname === '/owner/daily' || pathname.startsWith('/owner/daily/')) return 'OwnerDaily';
+  if (pathname === '/owner/album' || pathname.startsWith('/owner/album/')) return 'OwnerAlbum';
+  if (pathname === '/owner/members' || pathname.startsWith('/owner/members/')) return 'OwnerMembers';
+  if (pathname === '/owner' || pathname.startsWith('/owner/')) return 'OwnerHome';
+
+  return null;
+}
+
 function isOwnerOnlyTab(tabName: TabName) {
   return OWNER_ONLY_TABS.has(tabName);
 }
@@ -46,5 +59,5 @@ function modeForTab(tabName: TabName): 'owner' | 'guardian' | null {
   return null;
 }
 
-export { pathToTab, isOwnerOnlyTab, isGuardianOnlyTab, modeForTab };
+export { pathToTab, pathToBaseTab, isOwnerOnlyTab, isGuardianOnlyTab, modeForTab };
 export type { TabName, GuardianTabName, OwnerTabName };
