@@ -434,9 +434,30 @@ function usePinchZoom({
       const changedTouch = event.changedTouches[0];
       const pendingEdgeSwipe = edgeSwipeRef.current;
 
+      // 핀치 중 손가락이 2→1로 줄면: 스냅 후 남은 터치로 pan 이어가기
       if (event.touches.length < 2 && isPinchingRef.current) {
         isPinchingRef.current = false;
         pinchRef.current = null;
+
+        if (event.touches.length === 1) {
+          snapToNearest();
+
+          const remainingTouch = event.touches[0];
+          if (remainingTouch && transformRef.current.scale > MIN_SCALE) {
+            didPanRef.current = false;
+            edgeSwipeRef.current = null;
+            panRef.current = {
+              pointerId: remainingTouch.identifier,
+              startClientX: remainingTouch.clientX,
+              startClientY: remainingTouch.clientY,
+              originX: transformRef.current.x,
+              originY: transformRef.current.y,
+              isDragging: false,
+            };
+          } else {
+            panRef.current = null;
+          }
+        }
       }
 
       if (event.touches.length === 0) {
