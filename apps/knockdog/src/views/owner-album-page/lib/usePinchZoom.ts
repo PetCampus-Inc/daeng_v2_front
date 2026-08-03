@@ -12,6 +12,12 @@ const PAN_SLOP_PX = 12;
 const SNAP_RATIO = 0.5;
 /** cover 스냅 시 서브픽셀 틈 메우기용 오버슈트(px) */
 const COVER_OVERSHOOT_PX = 2;
+/** 확대 상태 좌/우 끝단에서 이 이상 오버스크롤하면 이전/다음 이미지로 전환 */
+const EDGE_SWIPE_THRESHOLD_PX = 56;
+/** 끝단 판정 여유 (서브픽셀) */
+const EDGE_EPSILON_PX = 1;
+
+type SwipeEdgeDirection = 'prev' | 'next';
 
 interface Transform {
   scale: number;
@@ -21,6 +27,10 @@ interface Transform {
 
 interface UsePinchZoomOptions {
   enabled?: boolean;
+  /** 확대 중 좌/우 끝단 스와이프 시 호출. 호출 측에서 인덱스 변경 + 줌은 유지하지 않음 */
+  onSwipeEdge?: (direction: SwipeEdgeDirection) => void;
+  canSwipePrev?: boolean;
+  canSwipeNext?: boolean;
 }
 
 interface PinchSession {
@@ -90,7 +100,12 @@ function clampTranslate(
   };
 }
 
-function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
+function usePinchZoom({
+  enabled = true,
+  onSwipeEdge,
+  canSwipePrev = false,
+  canSwipeNext = false,
+}: UsePinchZoomOptions = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -103,6 +118,19 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
   const didPanRef = useRef(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
+  const edgeSwipeRef = useRef<{ direction: SwipeEdgeDirection; overflow: number } | null>(null);
+  const onSwipeEdgeRef = useRef(onSwipeEdge);
+  const canSwipePrevRef = useRef(canSwipePrev);
+  const canSwipeNextRef = useRef(canSwipeNext);
+
+  useEffect(() => {
+    onSwipeEdgeRef.current = onSwipeEdge;
+  }, [onSwipeEdge]);
+
+  useEffect(() => {
+    canSwipePrevRef.current = canSwipePrev;
+    canSwipeNextRef.current = canSwipeNext;
+  }, [canSwipePrev, canSwipeNext]);
 
   const measure = useCallback(() => {
     const container = containerRef.current;
@@ -179,6 +207,7 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
     didPanRef.current = false;
     lastTapRef.current = null;
     pointerDownRef.current = null;
+    edgeSwipeRef.current = null;
     measure();
     applyTransform({ scale: 1, x: 0, y: 0 });
   }, [applyTransform, measure]);
@@ -297,6 +326,7 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
         event.preventDefault();
         isPinchingRef.current = true;
         panRef.current = null;
+        edgeSwipeRef.current = null;
         lastTapRef.current = null;
         pointerDownRef.current = null;
         didPanRef.current = false;
@@ -322,6 +352,7 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
         if (!touch) return;
 
         didPanRef.current = false;
+        edgeSwipeRef.current = null;
         panRef.current = {
           pointerId: touch.identifier,
           startClientX: touch.clientX,
@@ -379,24 +410,29 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
         event.preventDefault();
 
         const { viewportW, viewportH, contentW, contentH } = measure();
+        const scale = transformRef.current.scale;
+        const proposedX = panRef.current.originX + dx;
+        const proposedY = panRef.current.originY + dy;
+        const maxX = Math.max(0, (contentW * scale - viewportW) / 2);
+        const isHorizontal = Math.abs(dx) > Math.abs(dy);
 
-        applyTransform(
-          clampTranslate(
-            transformRef.current.scale,
-            panRef.current.originX + dx,
-            panRef.current.originY + dy,
-            viewportW,
-            viewportH,
-            contentW,
-            contentH
-          )
-        );
+        // 좌/우 끝단에서 바깥으로 더 당기면 이전·다음 전환 후보
+        if (isHorizontal && proposedX > maxX + EDGE_EPSILON_PX && dx > 0) {
+          edgeSwipeRef.current = { direction: 'prev', overflow: proposedX - maxX };
+        } else if (isHorizontal && proposedX < -maxX - EDGE_EPSILON_PX && dx < 0) {
+          edgeSwipeRef.current = { direction: 'next', overflow: -proposedX - maxX };
+        } else {
+          edgeSwipeRef.current = null;
+        }
+
+        applyTransform(clampTranslate(scale, proposedX, proposedY, viewportW, viewportH, contentW, contentH));
       }
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
       const wasPinching = isPinchingRef.current;
       const changedTouch = event.changedTouches[0];
+      const pendingEdgeSwipe = edgeSwipeRef.current;
 
       if (event.touches.length < 2 && isPinchingRef.current) {
         isPinchingRef.current = false;
@@ -406,11 +442,27 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
       if (event.touches.length === 0) {
         const hadPan = didPanRef.current || Boolean(panRef.current?.isDragging);
         panRef.current = null;
+        edgeSwipeRef.current = null;
 
         if (wasPinching) {
           snapToNearest();
           didPanRef.current = false;
           return;
+        }
+
+        // 확대 중 좌/우 끝단 오버스크롤 → 이전/다음 (줌은 유지하지 않음)
+        if (hadPan && pendingEdgeSwipe && pendingEdgeSwipe.overflow >= EDGE_SWIPE_THRESHOLD_PX) {
+          const { direction } = pendingEdgeSwipe;
+          const canNavigate =
+            (direction === 'prev' && canSwipePrevRef.current) ||
+            (direction === 'next' && canSwipeNextRef.current);
+
+          if (canNavigate && onSwipeEdgeRef.current) {
+            reset();
+            onSwipeEdgeRef.current(direction);
+            didPanRef.current = false;
+            return;
+          }
         }
 
         if (!hadPan && changedTouch) {
@@ -519,3 +571,4 @@ function usePinchZoom({ enabled = true }: UsePinchZoomOptions = {}) {
 }
 
 export { usePinchZoom };
+export type { SwipeEdgeDirection };

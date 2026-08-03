@@ -98,6 +98,17 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     setActiveIndex((prev) => (prev === index ? prev : index));
   }, []);
 
+  /** 확대 중 좌/우 끝단 스와이프 → 이전·다음 (줌 리셋은 ZoomableAlbumPhoto isActive 변경으로 처리) */
+  const handleSwipeEdge = useCallback(
+    (direction: 'prev' | 'next') => {
+      setActiveIndex((prev) => {
+        if (direction === 'prev') return prev > 0 ? prev - 1 : prev;
+        return prev < photos.length - 1 ? prev + 1 : prev;
+      });
+    },
+    [photos.length]
+  );
+
   if (!currentPhoto || photos.length === 0) return null;
 
   return (
@@ -156,6 +167,9 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
                   src={photo.url}
                   isActive={index === activeIndex}
                   photoAspectClassName={PHOTO_ASPECT_CLASS}
+                  onSwipeEdge={handleSwipeEdge}
+                  canSwipePrev={activeIndex > 0}
+                  canSwipeNext={activeIndex < photos.length - 1}
                 />
               </SwiperSlideItem>
             ))}

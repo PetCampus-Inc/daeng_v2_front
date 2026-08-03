@@ -2,16 +2,34 @@
 
 import { useEffect } from 'react';
 
-import { usePinchZoom } from '@views/owner-album-page/lib/usePinchZoom';
+import {
+  usePinchZoom,
+  type SwipeEdgeDirection,
+} from '@views/owner-album-page/lib/usePinchZoom';
 
 interface ZoomableAlbumPhotoProps {
   src: string;
   isActive: boolean;
   photoAspectClassName: string;
+  onSwipeEdge?: (direction: SwipeEdgeDirection) => void;
+  canSwipePrev?: boolean;
+  canSwipeNext?: boolean;
 }
 
-function ZoomableAlbumPhoto({ src, isActive, photoAspectClassName }: ZoomableAlbumPhotoProps) {
-  const { getContainerProps, getFrameProps, getImageProps, reset } = usePinchZoom({ enabled: isActive });
+function ZoomableAlbumPhoto({
+  src,
+  isActive,
+  photoAspectClassName,
+  onSwipeEdge,
+  canSwipePrev = false,
+  canSwipeNext = false,
+}: ZoomableAlbumPhotoProps) {
+  const { getContainerProps, getFrameProps, getImageProps, reset } = usePinchZoom({
+    enabled: isActive,
+    onSwipeEdge,
+    canSwipePrev,
+    canSwipeNext,
+  });
 
   useEffect(() => {
     if (!isActive) reset();
