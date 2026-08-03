@@ -3,7 +3,6 @@ type AttendanceRecordPoop =
   | 'HEALTHY'
   | 'HARD'
   | 'LOOSE'
-  | 'ABNORMAL'
   | 'NONE'
   | 'NEEDS_ATTENTION';
 
@@ -71,7 +70,6 @@ const ATTENDANCE_RECORD_POOPS = new Set<string>([
   'HEALTHY',
   'HARD',
   'LOOSE',
-  'ABNORMAL',
   'NONE',
   'NEEDS_ATTENTION',
 ]);

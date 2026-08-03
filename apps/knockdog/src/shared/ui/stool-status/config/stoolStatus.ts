@@ -2,7 +2,6 @@ const STOOL_STATUS = {
   HEALTHY: 'HEALTHY',
   HARD: 'HARD',
   LOOSE: 'LOOSE',
-  ABNORMAL: 'ABNORMAL',
   NEEDS_ATTENTION: 'NEEDS_ATTENTION',
   NONE: 'NONE',
 } as const;
@@ -13,7 +12,6 @@ const STOOL_STATUS_LABEL: Record<StoolStatus, string> = {
   HEALTHY: '건강함',
   HARD: '딱딱함',
   LOOSE: '묽음',
-  ABNORMAL: '갈색이 아닌',
   NEEDS_ATTENTION: '주의 필요',
   NONE: '배변 없음',
 };
@@ -23,7 +21,6 @@ const STOOL_STATUS_OPTIONS = [
   STOOL_STATUS.HEALTHY,
   STOOL_STATUS.HARD,
   STOOL_STATUS.LOOSE,
-  STOOL_STATUS.ABNORMAL,
   STOOL_STATUS.NEEDS_ATTENTION,
   STOOL_STATUS.NONE,
 ] as const satisfies readonly StoolStatus[];
@@ -33,7 +30,6 @@ const STOOL_STATUS_IMAGE: Record<StoolStatus, string> = {
   HEALTHY: '/images/stoolstatus_normal.png',
   HARD: '/images/stoolstatus_hard.png',
   LOOSE: '/images/stoolstatus_soft.png',
-  ABNORMAL: '/images/stoolstatus_abnormal.png',
   NEEDS_ATTENTION: '/images/stoolstatus_caution.png',
   NONE: '/images/stoolstatus_none.png',
 };
@@ -43,7 +39,6 @@ const STOOL_STATUS_DEFAULT_IMAGE: Record<StoolStatus, string> = {
   HEALTHY: '/images/stoolstatus_normal_default.png',
   HARD: '/images/stoolstatus_hard_default.png',
   LOOSE: '/images/stoolstatus_soft_default.png',
-  ABNORMAL: '/images/stoolstatus_abnormal_default.png',
   NEEDS_ATTENTION: '/images/stoolstatus_caution_default.png',
   NONE: '/images/stoolstatus_none_default.png',
 };
