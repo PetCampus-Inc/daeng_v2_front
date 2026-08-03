@@ -62,7 +62,6 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
     const {
       source = 'library',
       requestId,
-      mediaTypes,
       allowsEditing,
       quality,
       aspect,
@@ -86,9 +85,9 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         return;
       }
 
-      // 공통 옵션 객체 생성
+      // 이미지 전용 — compressForUpload가 JPEG 변환만 지원
       const pickerOptions: ImagePicker.ImagePickerOptions = {
-        mediaTypes: mediaTypes === 'videos' ? ['videos'] : mediaTypes === 'all' ? ['images', 'videos'] : ['images'],
+        mediaTypes: ['images'],
         allowsEditing: allowsEditing ?? false,
         quality: quality ?? 0.8,
         aspect,
