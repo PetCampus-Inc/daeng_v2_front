@@ -117,7 +117,7 @@ async function pickImageWeb(
     const input = document.createElement('input');
     input.type = 'file';
 
-    // mediaTypes에 따라 accept 설정
+    // pickImage 계약은 이미지 전용
     input.accept = 'image/*';
 
     // 다중 선택 여부

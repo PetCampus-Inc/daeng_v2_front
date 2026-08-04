@@ -19,9 +19,10 @@ type PickImageParams = {
    */
   aspect?: [number, number];
   /**
-   * 이미지 미디어 타입 default: 'images'
+   * 미디어 타입. 업로드 파이프라인이 이미지(JPEG 변환) 전용이라 images만 허용.
+   * @default 'images'
    */
-  mediaTypes?: 'images' | 'videos' | 'all';
+  mediaTypes?: 'images';
   /**
    * 다중 선택 여부 (기본: false)
    */

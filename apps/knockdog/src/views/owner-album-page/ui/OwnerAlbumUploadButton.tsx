@@ -16,7 +16,7 @@ function OwnerAlbumUploadButton({ onClick }: OwnerAlbumUploadButtonProps) {
       label={ownerAlbumContent.uploadButtonLabel}
       extended={false}
       aria-label={ownerAlbumContent.uploadButtonLabel}
-      className='absolute right-4 bottom-[calc(var(--bottom-bar-height)+20px)] z-10'
+      className='absolute right-4 z-10 web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5'
       onClick={onClick}
     />
   );
