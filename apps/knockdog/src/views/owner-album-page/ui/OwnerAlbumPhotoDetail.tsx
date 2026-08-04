@@ -124,7 +124,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     try {
       const saved = await saveImage({
         url: currentPhoto.url,
-        fileName: `album-${currentPhoto.id}.jpg`,
+        fileName: `album-${Date.now()}.jpg`,
       });
 
       if (saved) {

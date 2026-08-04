@@ -13,8 +13,14 @@ function getExtensionFromUrl(url: string) {
   }
 }
 
+function sanitizeFileName(fileName: string) {
+  const baseName = fileName.replace(/\\/g, '/').split('/').pop()?.trim() || '';
+  const safeName = baseName.replace(/[^a-zA-Z0-9._-]/g, '_');
+  return safeName.length > 0 ? safeName : `knockdog-${Date.now()}.jpg`;
+}
+
 function resolveFileName(url: string, fileName?: string) {
-  if (fileName && fileName.trim().length > 0) return fileName.trim();
+  if (fileName && fileName.trim().length > 0) return sanitizeFileName(fileName);
   return `knockdog-${Date.now()}.${getExtensionFromUrl(url)}`;
 }
 
@@ -39,10 +45,13 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
       throw { code: 'EUNAVAILABLE', message: '임시 저장 공간을 사용할 수 없습니다.' };
     }
 
+    const tempDir = `${cacheDir}album-save/`;
     const targetFileName = resolveFileName(url, fileName);
-    const localUri = `${cacheDir}${targetFileName}`;
+    const localUri = `${tempDir}${targetFileName}`;
 
     try {
+      await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
+
       const download = await FileSystem.downloadAsync(url, localUri);
       if (download.status < 200 || download.status >= 300) {
         throw { code: 'EUNAVAILABLE', message: '이미지를 다운로드하지 못했습니다.' };
