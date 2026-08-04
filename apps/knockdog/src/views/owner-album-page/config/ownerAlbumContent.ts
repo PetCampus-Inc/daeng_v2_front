@@ -25,6 +25,12 @@ const ownerAlbumContent = {
     saveFailedToast: {
       nativeTitle: '사진을 저장하지 못했어요',
     },
+    deleteDialogTitle: '사진을 삭제할까요?',
+    deleteDialogCloseLabel: '닫기',
+    deleteDialogConfirmLabel: '삭제',
+    deleteSuccessToast: {
+      nativeTitle: '사진을 삭제했어요',
+    },
   },
   infoSheet: {
     title: '사진 업로드 유의사항',

@@ -76,11 +76,16 @@ function useOwnerAlbumUpload() {
     }
   }, [isUploading, pickImage]);
 
+  const removePhoto = useCallback((photoId: string) => {
+    setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
+  }, []);
+
   return {
     photos,
     hasPhotos: photos.length > 0,
     isUploading,
     handleUploadClick,
+    removePhoto,
   };
 }
 
