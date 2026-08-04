@@ -35,7 +35,9 @@ async function saveImageWeb(url: string, fileName?: string): Promise<boolean> {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(objectUrl);
+    setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+    }, 0);
 
     return true;
   } catch (error) {

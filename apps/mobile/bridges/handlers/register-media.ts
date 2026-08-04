@@ -16,12 +16,34 @@ function getExtensionFromUrl(url: string) {
 function sanitizeFileName(fileName: string) {
   const baseName = fileName.replace(/\\/g, '/').split('/').pop()?.trim() || '';
   const safeName = baseName.replace(/[^a-zA-Z0-9._-]/g, '_');
-  return safeName.length > 0 ? safeName : `knockdog-${Date.now()}.jpg`;
+
+  if (!safeName || safeName === '.' || safeName === '..' || /^\.+$/.test(safeName)) {
+    return `knockdog-${Date.now()}.jpg`;
+  }
+
+  return safeName;
 }
 
 function resolveFileName(url: string, fileName?: string) {
   if (fileName && fileName.trim().length > 0) return sanitizeFileName(fileName);
   return `knockdog-${Date.now()}.${getExtensionFromUrl(url)}`;
+}
+
+function assertDownloadableImageUrl(url: string) {
+  if (!url || typeof url !== 'string') {
+    throw { code: 'EINVALID', message: '저장할 이미지 URL이 유효하지 않습니다.' };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw { code: 'EINVALID', message: '저장할 이미지 URL이 유효하지 않습니다.' };
+  }
+
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw { code: 'EINVALID', message: '저장할 이미지 URL이 유효하지 않습니다.' };
+  }
 }
 
 /**
@@ -31,9 +53,7 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.saveImageToGallery, async (params: SaveImageToGalleryParams) => {
     const { url, fileName } = params;
 
-    if (!url || typeof url !== 'string') {
-      throw { code: 'EINVALID', message: '저장할 이미지 URL이 유효하지 않습니다.' };
-    }
+    assertDownloadableImageUrl(url);
 
     const permission = await MediaLibrary.requestPermissionsAsync(true);
     if (!permission.granted) {

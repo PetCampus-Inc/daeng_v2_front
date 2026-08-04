@@ -36,12 +36,21 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const isSaveInFlightRef = useRef(false);
   const saveImage = useSaveImage();
 
   const currentPhoto = photos[activeIndex];
   const dayPosition = getAlbumDayPosition(photos, activeIndex);
+
+  const closeDeleteDialog = useCallback(() => {
+    setIsDeleteDialogOpen(false);
+    requestAnimationFrame(() => {
+      deleteButtonRef.current?.focus();
+    });
+  }, []);
 
   useLayoutEffect(() => {
     previousFocusRef.current =
@@ -54,6 +63,13 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
       previousFocusRef.current?.focus();
     };
   }, []);
+
+  useLayoutEffect(() => {
+    if (!isDeleteDialogOpen) return;
+
+    const firstFocusable = deleteDialogRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    firstFocusable?.focus();
+  }, [isDeleteDialogOpen]);
 
   useEffect(() => {
     if (photos.length === 0) {
@@ -76,7 +92,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         if (isDeleteDialogOpen) {
-          setIsDeleteDialogOpen(false);
+          closeDeleteDialog();
           return;
         }
         onClose();
@@ -85,7 +101,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
 
       if (event.key !== 'Tab') return;
 
-      const container = dialogRef.current;
+      const container = isDeleteDialogOpen ? deleteDialogRef.current : dialogRef.current;
       if (!container) return;
 
       const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
@@ -109,7 +125,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDeleteDialogOpen, onClose]);
+  }, [closeDeleteDialog, isDeleteDialogOpen, onClose]);
 
   const handleSlideChange = useCallback((index: number) => {
     setActiveIndex((prev) => (prev === index ? prev : index));
@@ -183,6 +199,9 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
     const photoId = currentPhoto.id;
     setIsDeleteDialogOpen(false);
     onDelete(photoId);
+    requestAnimationFrame(() => {
+      deleteButtonRef.current?.focus();
+    });
     toast({
       type: 'success',
       nativeTitle: ownerAlbumContent.detail.deleteSuccessToast.nativeTitle,
@@ -215,6 +234,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
             <Header.Title>{formatAlbumDetailTitle(new Date(currentPhoto.uploadedAt))}</Header.Title>
             <Header.RightSection>
               <button
+                ref={deleteButtonRef}
                 type='button'
                 onClick={handleDeleteClick}
                 className='inline-flex size-6 items-center justify-center'
@@ -304,9 +324,10 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
             <div
               className='bg-dim-70 absolute inset-0'
               aria-hidden='true'
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={closeDeleteDialog}
             />
             <div
+              ref={deleteDialogRef}
               role='alertdialog'
               aria-modal='true'
               aria-labelledby='owner-album-delete-dialog-title'
@@ -323,7 +344,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
                   variant='secondaryLine'
                   size='large'
                   className='flex-1'
-                  onClick={() => setIsDeleteDialogOpen(false)}
+                  onClick={closeDeleteDialog}
                 >
                   {ownerAlbumContent.detail.deleteDialogCloseLabel}
                 </ActionButton>

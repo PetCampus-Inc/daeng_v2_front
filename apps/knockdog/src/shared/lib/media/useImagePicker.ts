@@ -190,9 +190,19 @@ async function uploadFilesWithValidation(
     };
   }
 
+  const [firstAsset, ...restAssets] = uploadedAssets;
+  if (!firstAsset) {
+    return {
+      cancelled: false,
+      assets: [],
+      skipped,
+      failure: hasNetworkError ? 'network' : 'none_valid',
+    };
+  }
+
   return {
     cancelled: false,
-    assets: uploadedAssets,
+    assets: [firstAsset, ...restAssets],
     skipped,
   };
 }
@@ -247,10 +257,7 @@ async function pickImageWeb(
         const result = await uploadFilesWithValidation(filesToProcess, options);
 
         resolve({
-          cancelled: false,
-          assets: result.assets,
-          skipped: result.skipped,
-          failure: result.failure,
+          ...result,
           exceededLimit,
         });
       } catch (error) {
@@ -328,10 +335,23 @@ function useImagePicker() {
           }
 
           try {
-            const assets = await Promise.all(payload.assets.map((asset) => getPreviewImageAsset(asset)));
+            const previewAssets = await Promise.all(payload.assets.map((asset) => getPreviewImageAsset(asset)));
+            const [firstAsset, ...restAssets] = previewAssets;
+
+            if (!firstAsset) {
+              resolve({
+                cancelled: false,
+                assets: [],
+                skipped,
+                failure: 'none_valid',
+                exceededLimit,
+              });
+              return;
+            }
+
             resolve({
               cancelled: false,
-              assets,
+              assets: [firstAsset, ...restAssets],
               skipped,
               exceededLimit,
             });

@@ -70,15 +70,15 @@ function useOwnerAlbumUpload() {
         showMaxCountToast();
       }
 
-      if (result.failure === 'network') {
-        openOwnerAlbumAlert(
-          ownerAlbumContent.upload.networkFailedTitle,
-          ownerAlbumContent.upload.networkFailedDescription
-        );
-        return;
-      }
+      if (result.assets.length === 0) {
+        if (result.failure === 'network') {
+          openOwnerAlbumAlert(
+            ownerAlbumContent.upload.networkFailedTitle,
+            ownerAlbumContent.upload.networkFailedDescription
+          );
+          return;
+        }
 
-      if (result.failure === 'none_valid' || !result.assets?.length) {
         openOwnerAlbumAlert(
           ownerAlbumContent.upload.noneValidTitle,
           ownerAlbumContent.upload.noneValidDescription

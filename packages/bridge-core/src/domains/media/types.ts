@@ -62,12 +62,16 @@ type PickImageResult =
   | { cancelled: true; assets?: never; skipped?: never; failure?: never; exceededLimit?: never }
   | {
       cancelled: false;
-      assets: ImageAsset[];
-      /** 일부 제외된 경우 */
+      assets: [ImageAsset, ...ImageAsset[]];
       skipped?: PickImageSkipSummary;
-      /** assets가 비었을 때의 실패 사유 */
-      failure?: PickImageFailureReason;
-      /** 선택 장수가 최대치를 초과해 잘린 경우 */
+      failure?: never;
+      exceededLimit?: boolean;
+    }
+  | {
+      cancelled: false;
+      assets: [];
+      skipped?: PickImageSkipSummary;
+      failure: PickImageFailureReason;
       exceededLimit?: boolean;
     };
 

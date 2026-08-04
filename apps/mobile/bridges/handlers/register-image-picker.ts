@@ -215,10 +215,23 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         return;
       }
 
+      const [firstAsset, ...restAssets] = uploadedAssets;
+      if (!firstAsset) {
+        sendEvent('media.pickImage.result', {
+          requestId,
+          cancelled: false,
+          assets: [],
+          skipped: { invalidSpecCount, unreadableCount },
+          failure: hasNetworkError ? 'network' : 'none_valid',
+          exceededLimit,
+        });
+        return;
+      }
+
       sendEvent('media.pickImage.result', {
         requestId,
         cancelled: false,
-        assets: uploadedAssets,
+        assets: [firstAsset, ...restAssets],
         skipped:
           invalidSpecCount > 0 || unreadableCount > 0
             ? { invalidSpecCount, unreadableCount }
