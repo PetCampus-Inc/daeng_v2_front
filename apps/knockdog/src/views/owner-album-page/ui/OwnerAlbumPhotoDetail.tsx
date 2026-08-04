@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Icon, SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
+import { ActionButton, Icon, SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
@@ -15,6 +15,9 @@ import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhot
 
 import { Header } from '@widgets/Header';
 
+import { useSaveImage } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
+
 const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
 
 const FOCUSABLE_SELECTOR =
@@ -24,16 +27,30 @@ interface OwnerAlbumPhotoDetailProps {
   photos: OwnerAlbumPhoto[];
   initialIndex: number;
   onClose: () => void;
+  onDelete: (photoId: string) => void;
 }
 
-function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhotoDetailProps) {
+function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: OwnerAlbumPhotoDetailProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const isSaveInFlightRef = useRef(false);
+  const saveImage = useSaveImage();
 
   const currentPhoto = photos[activeIndex];
   const dayPosition = getAlbumDayPosition(photos, activeIndex);
+
+  const closeDeleteDialog = useCallback(() => {
+    setIsDeleteDialogOpen(false);
+    requestAnimationFrame(() => {
+      deleteButtonRef.current?.focus();
+    });
+  }, []);
 
   useLayoutEffect(() => {
     previousFocusRef.current =
@@ -47,6 +64,22 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (!isDeleteDialogOpen) return;
+
+    const firstFocusable = deleteDialogRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    firstFocusable?.focus();
+  }, [isDeleteDialogOpen]);
+
+  useEffect(() => {
+    if (photos.length === 0) {
+      onClose();
+      return;
+    }
+
+    setActiveIndex((prev) => Math.min(prev, photos.length - 1));
+  }, [onClose, photos.length]);
+
   useEffect(() => {
     thumbnailRefs.current[activeIndex]?.scrollIntoView({
       behavior: 'smooth',
@@ -58,13 +91,17 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (isDeleteDialogOpen) {
+          closeDeleteDialog();
+          return;
+        }
         onClose();
         return;
       }
 
       if (event.key !== 'Tab') return;
 
-      const container = dialogRef.current;
+      const container = isDeleteDialogOpen ? deleteDialogRef.current : dialogRef.current;
       if (!container) return;
 
       const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
@@ -88,7 +125,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [closeDeleteDialog, isDeleteDialogOpen, onClose]);
 
   const handleSlideChange = useCallback((index: number) => {
     setActiveIndex((prev) => (prev === index ? prev : index));
@@ -109,6 +146,75 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
     [photos.length]
   );
 
+  const handleSaveClick = useCallback(async () => {
+    if (!currentPhoto || isSaveInFlightRef.current || isSaving) return;
+
+    isSaveInFlightRef.current = true;
+    setIsSaving(true);
+
+    try {
+      const saved = await saveImage({
+        url: currentPhoto.url,
+        fileName: `album-${Date.now()}.jpg`,
+      });
+
+      if (saved) {
+        toast({
+          type: 'success',
+          nativeTitle: ownerAlbumContent.detail.saveSuccessToast.nativeTitle,
+          title: (
+            <>
+              <span className='text-text-accent'>사진</span>
+              <span className='text-text-primary-inverse'>을 저장했어요</span>
+            </>
+          ),
+          duration: 3000,
+        });
+        return;
+      }
+
+      toast({
+        nativeTitle: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+        title: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+      });
+    } catch {
+      toast({
+        nativeTitle: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+        title: ownerAlbumContent.detail.saveFailedToast.nativeTitle,
+      });
+    } finally {
+      isSaveInFlightRef.current = false;
+      setIsSaving(false);
+    }
+  }, [currentPhoto, isSaving, saveImage]);
+
+  const handleDeleteClick = useCallback(() => {
+    if (!currentPhoto) return;
+    setIsDeleteDialogOpen(true);
+  }, [currentPhoto]);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (!currentPhoto) return;
+
+    const photoId = currentPhoto.id;
+    setIsDeleteDialogOpen(false);
+    onDelete(photoId);
+    requestAnimationFrame(() => {
+      deleteButtonRef.current?.focus();
+    });
+    toast({
+      type: 'success',
+      nativeTitle: ownerAlbumContent.detail.deleteSuccessToast.nativeTitle,
+      title: (
+        <>
+          <span className='text-text-accent'>사진</span>
+          <span className='text-text-primary-inverse'>을 삭제했어요</span>
+        </>
+      ),
+      duration: 3000,
+    });
+  }, [currentPhoto, onDelete]);
+
   if (!currentPhoto || photos.length === 0) return null;
 
   return (
@@ -128,7 +234,9 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
             <Header.Title>{formatAlbumDetailTitle(new Date(currentPhoto.uploadedAt))}</Header.Title>
             <Header.RightSection>
               <button
+                ref={deleteButtonRef}
                 type='button'
+                onClick={handleDeleteClick}
                 className='inline-flex size-6 items-center justify-center'
                 aria-label={ownerAlbumContent.detail.deleteAriaLabel}
               >
@@ -146,7 +254,9 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
             </div>
             <button
               type='button'
-              className='radius-r2 border-line-400 caption2-semibold text-text-secondary inline-flex min-w-[97px] items-center justify-center gap-1 border bg-white px-4 py-2'
+              onClick={handleSaveClick}
+              disabled={isSaving}
+              className='radius-r2 border-line-400 caption2-semibold text-text-secondary inline-flex min-w-[97px] items-center justify-center gap-1 border bg-white px-4 py-2 disabled:opacity-50'
             >
               {ownerAlbumContent.detail.saveLabel}
               <Icon icon='Download' className='size-3.5' />
@@ -208,6 +318,49 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose }: OwnerAlbumPhot
             })}
           </div>
         </div>
+
+        {isDeleteDialogOpen ? (
+          <div className='absolute inset-0 z-50 flex items-center justify-center'>
+            <div
+              className='bg-dim-70 absolute inset-0'
+              aria-hidden='true'
+              onClick={closeDeleteDialog}
+            />
+            <div
+              ref={deleteDialogRef}
+              role='alertdialog'
+              aria-modal='true'
+              aria-labelledby='owner-album-delete-dialog-title'
+              className='bg-bg-0 radius-r3 relative z-10 grid w-full max-w-[334px] shadow-lg'
+            >
+              <div className='pt-x7 px-x5 gap-x2 flex flex-col text-center'>
+                <h2 id='owner-album-delete-dialog-title' className='h2-extrabold text-text-primary'>
+                  {ownerAlbumContent.detail.deleteDialogTitle}
+                </h2>
+              </div>
+              <div className='px-x5 pb-x7 pt-x6 gap-x2 flex flex-row items-center'>
+                <ActionButton
+                  type='button'
+                  variant='secondaryLine'
+                  size='large'
+                  className='flex-1'
+                  onClick={closeDeleteDialog}
+                >
+                  {ownerAlbumContent.detail.deleteDialogCloseLabel}
+                </ActionButton>
+                <ActionButton
+                  type='button'
+                  variant='primaryFill'
+                  size='large'
+                  className='flex-1'
+                  onClick={handleDeleteConfirm}
+                >
+                  {ownerAlbumContent.detail.deleteDialogConfirmLabel}
+                </ActionButton>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </RemoveScroll>
   );

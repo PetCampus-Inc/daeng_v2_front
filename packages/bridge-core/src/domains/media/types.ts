@@ -48,8 +48,55 @@ interface ImageAsset  {
   key: string;
 };
 
-type PickImageResult = 
-| { cancelled: true; assets?: never; }  
-| { cancelled: false; assets: ImageAsset[]; } 
+/** 업로드에서 제외된 사유별 개수 */
+interface PickImageSkipSummary {
+  /** 확장자/용량 미충족 */
+  invalidSpecCount: number;
+  /** 원본 로드 실패·읽을 수 없음 */
+  unreadableCount: number;
+}
 
-export type { PickImageParams, ImageAsset, PickImageResult };
+type PickImageFailureReason = 'network' | 'none_valid';
+
+type PickImageResult =
+  | { cancelled: true; assets?: never; skipped?: never; failure?: never; exceededLimit?: never }
+  | {
+      cancelled: false;
+      assets: [ImageAsset, ...ImageAsset[]];
+      skipped?: PickImageSkipSummary;
+      failure?: never;
+      exceededLimit?: boolean;
+    }
+  | {
+      cancelled: false;
+      assets: [];
+      skipped?: PickImageSkipSummary;
+      failure: PickImageFailureReason;
+      exceededLimit?: boolean;
+    };
+
+interface SaveImageToGalleryParams {
+  /**
+   * 저장할 이미지 URL (pre-signed URL 등)
+   */
+  url: string;
+  /**
+   * 저장 파일명 (확장자 포함 권장)
+   */
+  fileName?: string;
+}
+
+interface SaveImageToGalleryResult {
+  saved: boolean;
+}
+
+export type {
+  PickImageParams,
+  ImageAsset,
+  PickImageResult,
+  PickImageSkipSummary,
+  PickImageFailureReason,
+  SaveImageToGalleryParams,
+  SaveImageToGalleryResult,
+};
+

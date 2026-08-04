@@ -17,7 +17,7 @@ import { OwnerAlbumUploadModal } from '@views/owner-album-page/ui/OwnerAlbumUplo
 import { Header } from '@widgets/Header';
 
 function OwnerAlbumPage() {
-  const { photos, hasPhotos, isUploading, handleUploadClick } = useOwnerAlbumUpload();
+  const { photos, hasPhotos, isUploading, handleUploadClick, removePhoto } = useOwnerAlbumUpload();
   const [detailIndex, setDetailIndex] = useState<number | null>(null);
   const sortedPhotos = useMemo(() => sortAlbumPhotos(photos), [photos]);
 
@@ -61,6 +61,7 @@ function OwnerAlbumPage() {
           photos={sortedPhotos}
           initialIndex={detailIndex}
           onClose={() => setDetailIndex(null)}
+          onDelete={removePhoto}
         />
       ) : null}
     </div>

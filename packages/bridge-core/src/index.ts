@@ -12,6 +12,14 @@ export type { ShareParams } from './domains/system';
 export type { ToastShowParams, ToastDismissParams, ToastClearParams, ToastShape, ToastPosition, ToastType } from './domains/toast';
 export type { SafeAreaInsets } from './domains/safe-area';
 export type { Accuracy, Location, PermissionStatus } from './domains/location';
-export type { PickImageParams, ImageAsset, PickImageResult } from './domains/media';
+export type {
+  PickImageParams,
+  ImageAsset,
+  PickImageResult,
+  PickImageSkipSummary,
+  PickImageFailureReason,
+  SaveImageToGalleryParams,
+  SaveImageToGalleryResult,
+} from './domains/media';
 export type { GetAppVersionResult } from './domains/app-version';
 export type { SocialLoginResult } from './domains/auth';

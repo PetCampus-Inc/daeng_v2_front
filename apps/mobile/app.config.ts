@@ -98,6 +98,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      'expo-media-library',
+      {
+        photosPermission: '프로필이나 메모에 사진을 올릴 때 사진첩을 사용해요.',
+        savePhotosPermission: '간직하고 싶은 사진을 앨범에 바로 저장할 때 사용해요.',
+        isAccessMediaLocationEnabled: false,
+      },
+    ],
+    [
       'expo-splash-screen',
       {
         image: './assets/images/splash-icon.png',
