@@ -4,30 +4,74 @@ import * as ImagePicker from 'expo-image-picker';
 import { uploadImage } from '../api/image';
 import * as ImageManipulator from 'expo-image-manipulator';
 
-function toMB(bytes: number) {
-  return (bytes / 1024 / 1024).toFixed(2);
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const DEFAULT_MAX_SELECTION = 50;
+
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif']);
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif']);
+
+type SkipReason = 'invalid_spec' | 'unreadable';
+
+function getExtension(fileName?: string | null) {
+  if (!fileName) return null;
+  const match = fileName.toLowerCase().match(/\.([a-z0-9]+)$/);
+  return match?.[1] ?? null;
 }
 
-// 너비 기준으로 줄이기 (세로사진/가로사진 상관 없이 비율 유지)
-async function compressForUpload(asset: ImagePicker.ImagePickerAsset) {
-  // 원본 크기 로그 (선택)
-  const originInfo = await FileSystem.getInfoAsync(asset.uri, { size: true });
-  if (originInfo.exists && typeof originInfo.size === 'number') {
+function isAllowedFormat(asset: ImagePicker.ImagePickerAsset) {
+  const mimeType = asset.mimeType?.toLowerCase();
+  if (mimeType && ALLOWED_MIME_TYPES.has(mimeType)) return true;
+
+  const extension = getExtension(asset.fileName);
+  if (extension && ALLOWED_EXTENSIONS.has(extension)) return true;
+
+  // mime/파일명이 없으면 이미지 피커 결과라도 스펙 미충족으로 처리
+  return false;
+}
+
+async function getAssetSizeBytes(asset: ImagePicker.ImagePickerAsset) {
+  if (typeof asset.fileSize === 'number' && asset.fileSize > 0) return asset.fileSize;
+
+  try {
+    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+    if (info.exists && typeof info.size === 'number') return info.size;
+  } catch {
+    return null;
   }
 
-  // PNG/WEBP도 있을 수 있지만 "사진 업로드"는 JPEG로 통일하면 용량이 크게 줄어드는 경우가 많음
-  const targetWidth = 1600; // 보통 1280~1920 사이 추천
-  const quality = 0.75; // 0.7~0.85 사이에서 타협
+  return null;
+}
+
+async function validateAsset(asset: ImagePicker.ImagePickerAsset): Promise<SkipReason | null> {
+  if (!isAllowedFormat(asset)) return 'invalid_spec';
+
+  const size = await getAssetSizeBytes(asset);
+  if (size == null) return 'unreadable';
+  if (size > MAX_FILE_SIZE_BYTES) return 'invalid_spec';
+
+  return null;
+}
+
+function isNetworkError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('failed to fetch') ||
+    message.includes('s3 업로드') ||
+    message.includes('status:')
+  );
+}
+
+async function compressForUpload(asset: ImagePicker.ImagePickerAsset) {
+  const targetWidth = 1600;
+  const quality = 0.75;
 
   const manipulated = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: { width: targetWidth } }], {
     compress: quality,
     format: ImageManipulator.SaveFormat.JPEG,
   });
-
-  // 압축본 크기 로그 (선택)
-  const compressedInfo = await FileSystem.getInfoAsync(manipulated.uri, { size: true });
-  if (compressedInfo.exists && typeof compressedInfo.size === 'number') {
-  }
 
   return {
     uri: manipulated.uri,
@@ -57,7 +101,6 @@ async function uploadToS3(preSignedUrl: string, asset: ImagePicker.ImagePickerAs
 export function registerImagePickerHandlers(options: ImagePickerOptions) {
   const { sendEvent } = options;
 
-  // 이미지 선택 이벤트 핸들러
   const handlePickImage = async (payload: ImagePickerPayload) => {
     const {
       source = 'library',
@@ -71,7 +114,6 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
     } = payload;
 
     try {
-      // 권한 요청
       const permissionResult =
         source === 'library'
           ? await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -85,7 +127,10 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         return;
       }
 
-      // 이미지 전용 — compressForUpload가 JPEG 변환만 지원
+      const maxSelection =
+        typeof selectionLimit === 'number' && selectionLimit > 0 ? selectionLimit : DEFAULT_MAX_SELECTION;
+
+      // 최대 초과 토스트를 위해 피커에서는 제한하지 않고, 이후 잘라냄
       const pickerOptions: ImagePicker.ImagePickerOptions = {
         mediaTypes: ['images'],
         allowsEditing: allowsEditing ?? false,
@@ -93,10 +138,9 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         aspect,
         allowsMultipleSelection: source === 'camera' ? false : (allowsMultipleSelection ?? false),
         orderedSelection: orderedSelection ?? false,
-        selectionLimit: selectionLimit ?? 0, // 0 = 무제한
+        selectionLimit: 0,
       };
 
-      // 소스에 따라 적절한 함수 호출
       const result =
         source === 'library'
           ? await ImagePicker.launchImageLibraryAsync(pickerOptions)
@@ -112,32 +156,82 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
 
       const pickedAssets = result.assets ?? [];
       if (pickedAssets.length === 0) {
-        throw new Error('선택된 이미지가 없습니다.');
+        sendEvent('media.pickImage.result', {
+          requestId,
+          cancelled: false,
+          assets: [],
+          failure: 'none_valid',
+        });
+        return;
       }
+
+      const exceededLimit = allowsMultipleSelection === true && pickedAssets.length > maxSelection;
+      const assetsToUpload = exceededLimit ? pickedAssets.slice(0, maxSelection) : pickedAssets;
 
       sendEvent('media.pickImage.uploading', {
         requestId,
-        count: pickedAssets.length,
+        count: assetsToUpload.length,
       });
 
       const uploadedAssets: Array<{ key: string; preSignedUrl: string }> = [];
-      for (const pickedAsset of pickedAssets) {
-        const { key, preSignedUrl } = await uploadImage();
-        await uploadToS3(preSignedUrl, pickedAsset);
+      let invalidSpecCount = 0;
+      let unreadableCount = 0;
+      let hasNetworkError = false;
 
-        uploadedAssets.push({ key, preSignedUrl });
+      for (const pickedAsset of assetsToUpload) {
+        const skipReason = await validateAsset(pickedAsset);
+        if (skipReason === 'invalid_spec') {
+          invalidSpecCount += 1;
+          continue;
+        }
+        if (skipReason === 'unreadable') {
+          unreadableCount += 1;
+          continue;
+        }
+
+        try {
+          const { key, preSignedUrl } = await uploadImage();
+          await uploadToS3(preSignedUrl, pickedAsset);
+          uploadedAssets.push({ key, preSignedUrl });
+        } catch (error) {
+          console.error('[APP] pickImage upload item error', error);
+          if (isNetworkError(error)) {
+            hasNetworkError = true;
+          } else {
+            unreadableCount += 1;
+          }
+        }
+      }
+
+      if (uploadedAssets.length === 0) {
+        sendEvent('media.pickImage.result', {
+          requestId,
+          cancelled: false,
+          assets: [],
+          skipped: { invalidSpecCount, unreadableCount },
+          failure: hasNetworkError ? 'network' : 'none_valid',
+          exceededLimit,
+        });
+        return;
       }
 
       sendEvent('media.pickImage.result', {
         requestId,
         cancelled: false,
         assets: uploadedAssets,
+        skipped:
+          invalidSpecCount > 0 || unreadableCount > 0
+            ? { invalidSpecCount, unreadableCount }
+            : undefined,
+        exceededLimit,
       });
     } catch (error) {
       console.error('[APP] pickImage error', error);
-      sendEvent('media.pickImage.cancel', {
+      sendEvent('media.pickImage.result', {
         requestId,
-        reason: '이미지를 선택할 수 없습니다.',
+        cancelled: false,
+        assets: [],
+        failure: 'network',
       });
     }
   };

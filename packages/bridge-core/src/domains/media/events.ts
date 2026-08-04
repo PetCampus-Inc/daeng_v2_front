@@ -1,4 +1,4 @@
-import type { ImageAsset, PickImageParams } from './types';
+import type { ImageAsset, PickImageParams, PickImageSkipSummary, PickImageFailureReason } from './types';
 
 interface MediaEventMap {
   'media.pickImage': PickImageParams & { requestId: string };
@@ -7,6 +7,9 @@ interface MediaEventMap {
     requestId: string;
     cancelled: boolean;
     assets?: ImageAsset[];
+    skipped?: PickImageSkipSummary;
+    failure?: PickImageFailureReason;
+    exceededLimit?: boolean;
   };
 
   'media.pickImage.cancel': {

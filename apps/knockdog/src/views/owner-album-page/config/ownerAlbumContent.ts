@@ -16,6 +16,22 @@ const ownerAlbumContent = {
     nativeTitle: '사진을 올리지 못했어요',
   },
   maxSelectionCount: 50,
+  maxFileSizeMB: 20,
+  allowedExtensions: ['JPG', 'JPEG', 'PNG', 'HEIC', 'HEIF'] as const,
+  upload: {
+    confirmLabel: '확인',
+    maxCountToast: {
+      nativeTitle: '사진은 한 번에 최대 50장까지 올릴 수 있어요',
+    },
+    partialExcludedTitle: (count: number) => `사진 ${count}장을 제외하고 올렸어요`,
+    partialInvalidSpecDescription:
+      '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진만 올릴 수 있어요.',
+    partialUnreadableDescription: '원본을 불러오지 못했거나 읽을 수 없는 사진은 제외됐어요.',
+    noneValidTitle: '올릴 수 있는 사진이 없어요',
+    noneValidDescription: '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진을 선택해 주세요.',
+    networkFailedTitle: '사진을 올리지 못했어요',
+    networkFailedDescription: '네트워크 상태를 확인하고 다시 시도해 주세요.',
+  },
   detail: {
     deleteAriaLabel: '사진 삭제',
     saveLabel: '저장하기',

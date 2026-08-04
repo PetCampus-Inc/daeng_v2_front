@@ -48,9 +48,28 @@ interface ImageAsset  {
   key: string;
 };
 
-type PickImageResult = 
-| { cancelled: true; assets?: never; }  
-| { cancelled: false; assets: ImageAsset[]; } 
+/** 업로드에서 제외된 사유별 개수 */
+interface PickImageSkipSummary {
+  /** 확장자/용량 미충족 */
+  invalidSpecCount: number;
+  /** 원본 로드 실패·읽을 수 없음 */
+  unreadableCount: number;
+}
+
+type PickImageFailureReason = 'network' | 'none_valid';
+
+type PickImageResult =
+  | { cancelled: true; assets?: never; skipped?: never; failure?: never; exceededLimit?: never }
+  | {
+      cancelled: false;
+      assets: ImageAsset[];
+      /** 일부 제외된 경우 */
+      skipped?: PickImageSkipSummary;
+      /** assets가 비었을 때의 실패 사유 */
+      failure?: PickImageFailureReason;
+      /** 선택 장수가 최대치를 초과해 잘린 경우 */
+      exceededLimit?: boolean;
+    };
 
 interface SaveImageToGalleryParams {
   /**
@@ -67,4 +86,13 @@ interface SaveImageToGalleryResult {
   saved: boolean;
 }
 
-export type { PickImageParams, ImageAsset, PickImageResult, SaveImageToGalleryParams, SaveImageToGalleryResult };
+export type {
+  PickImageParams,
+  ImageAsset,
+  PickImageResult,
+  PickImageSkipSummary,
+  PickImageFailureReason,
+  SaveImageToGalleryParams,
+  SaveImageToGalleryResult,
+};
+

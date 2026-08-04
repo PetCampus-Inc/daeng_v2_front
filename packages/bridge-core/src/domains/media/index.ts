@@ -2,6 +2,8 @@ export type {
   PickImageParams,
   ImageAsset,
   PickImageResult,
+  PickImageSkipSummary,
+  PickImageFailureReason,
   SaveImageToGalleryParams,
   SaveImageToGalleryResult,
 } from './types';
