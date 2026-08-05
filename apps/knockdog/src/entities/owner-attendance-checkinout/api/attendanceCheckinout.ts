@@ -2,7 +2,9 @@ import type {
   AttendanceCheckinoutActionDto,
   AttendanceCheckinoutCandidatesDto,
   AttendanceCheckinoutSummaryDto,
+  AttendanceCheckinoutTodayDto,
   CheckinoutStatus,
+  TodayAttendanceFilter,
 } from '../model/attendanceCheckinout';
 
 import { api, type ApiResponse } from '@shared/api';
@@ -13,6 +15,11 @@ interface GetAttendanceCheckinoutCandidatesParams {
   date?: string;
   q?: string;
   checkinoutStatus?: CheckinoutStatus;
+}
+
+interface GetAttendanceCheckinoutTodayParams {
+  date?: string;
+  filter?: TodayAttendanceFilter;
 }
 
 interface GetAttendanceCheckinoutSummaryParams {
@@ -46,6 +53,18 @@ function getAttendanceCheckinoutCandidates(params: GetAttendanceCheckinoutCandid
       }),
     })
     .json<ApiResponse<AttendanceCheckinoutCandidatesDto>>();
+}
+
+/** `GET` - 오늘 등원 목록 조회 */
+function getAttendanceCheckinoutToday(params: GetAttendanceCheckinoutTodayParams = {}) {
+  return api
+    .get(`${ATTENDANCE_CHECKINOUTS_PATH}/today`, {
+      searchParams: toSearchParams({
+        date: params.date,
+        filter: params.filter,
+      }),
+    })
+    .json<ApiResponse<AttendanceCheckinoutTodayDto>>();
 }
 
 /** `GET` - 등하원 운영 현황 조회 */
@@ -96,6 +115,7 @@ function postAttendanceCancelCheckOut({ petId, date }: AttendanceCheckinoutActio
 export {
   getAttendanceCheckinoutCandidates,
   getAttendanceCheckinoutSummary,
+  getAttendanceCheckinoutToday,
   postAttendanceCancelCheckIn,
   postAttendanceCancelCheckOut,
   postAttendanceCheckIn,
@@ -105,4 +125,5 @@ export type {
   AttendanceCheckinoutActionParams,
   GetAttendanceCheckinoutCandidatesParams,
   GetAttendanceCheckinoutSummaryParams,
+  GetAttendanceCheckinoutTodayParams,
 };

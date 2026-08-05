@@ -1,4 +1,5 @@
 type CheckinoutStatus = 'NOT_CHECKED_IN' | 'CHECKED_IN' | 'CHECKED_OUT';
+type TodayAttendanceFilter = 'CURRENTLY_IN' | 'UNSENT_RECORD';
 
 interface AttendanceCheckinoutCandidateDto {
   petId: number;
@@ -14,6 +15,20 @@ interface AttendanceCheckinoutCandidateDto {
 interface AttendanceCheckinoutCandidatesDto {
   totalCount?: number;
   items?: AttendanceCheckinoutCandidateDto[] | null;
+}
+
+/** candidates 필드 + 등/하원 시각·알림장 발송 여부 */
+interface AttendanceCheckinoutTodayItemDto extends AttendanceCheckinoutCandidateDto {
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
+  attendanceRecordSent?: boolean | null;
+  hasSentAttendanceRecord?: boolean | null;
+  noticeSent?: boolean | null;
+}
+
+interface AttendanceCheckinoutTodayDto {
+  totalCount?: number;
+  items?: AttendanceCheckinoutTodayItemDto[] | null;
 }
 
 interface AttendanceCheckinoutSummaryDto {
@@ -41,9 +56,20 @@ interface AttendanceCheckinoutCandidate {
   checkinoutStatus: CheckinoutStatus;
 }
 
+interface AttendanceCheckinoutTodayItem extends AttendanceCheckinoutCandidate {
+  checkInAt: string | null;
+  checkOutAt: string | null;
+  attendanceRecordSent: boolean;
+}
+
 interface AttendanceCheckinoutCandidates {
   totalCount: number;
   items: AttendanceCheckinoutCandidate[];
+}
+
+interface AttendanceCheckinoutToday {
+  totalCount: number;
+  items: AttendanceCheckinoutTodayItem[];
 }
 
 interface AttendanceCheckinoutSummary {
@@ -96,6 +122,18 @@ function normalizeDateKey(value: unknown): string | null {
   return null;
 }
 
+function resolveAttendanceRecordSent(
+  dto: Pick<
+    AttendanceCheckinoutTodayItemDto,
+    'attendanceRecordSent' | 'hasSentAttendanceRecord' | 'noticeSent'
+  >
+) {
+  if (typeof dto.attendanceRecordSent === 'boolean') return dto.attendanceRecordSent;
+  if (typeof dto.hasSentAttendanceRecord === 'boolean') return dto.hasSentAttendanceRecord;
+  if (typeof dto.noticeSent === 'boolean') return dto.noticeSent;
+  return false;
+}
+
 function toAttendanceCheckinoutCandidate(
   dto: AttendanceCheckinoutCandidateDto | null | undefined
 ): AttendanceCheckinoutCandidate | null {
@@ -113,12 +151,41 @@ function toAttendanceCheckinoutCandidate(
   };
 }
 
+function toAttendanceCheckinoutTodayItem(
+  dto: AttendanceCheckinoutTodayItemDto | null | undefined
+): AttendanceCheckinoutTodayItem | null {
+  if (!dto) return null;
+
+  const base = toAttendanceCheckinoutCandidate(dto);
+  if (!base) return null;
+
+  return {
+    ...base,
+    checkInAt: typeof dto.checkInAt === 'string' ? dto.checkInAt : null,
+    checkOutAt: typeof dto.checkOutAt === 'string' ? dto.checkOutAt : null,
+    attendanceRecordSent: resolveAttendanceRecordSent(dto),
+  };
+}
+
 function toAttendanceCheckinoutCandidates(
   dto: AttendanceCheckinoutCandidatesDto | null | undefined
 ): AttendanceCheckinoutCandidates {
   const items = (dto?.items ?? [])
     .map(toAttendanceCheckinoutCandidate)
     .filter((item): item is AttendanceCheckinoutCandidate => item != null);
+
+  return {
+    totalCount: typeof dto?.totalCount === 'number' ? dto.totalCount : items.length,
+    items,
+  };
+}
+
+function toAttendanceCheckinoutToday(
+  dto: AttendanceCheckinoutTodayDto | null | undefined
+): AttendanceCheckinoutToday {
+  const items = (dto?.items ?? [])
+    .map(toAttendanceCheckinoutTodayItem)
+    .filter((item): item is AttendanceCheckinoutTodayItem => item != null);
 
   return {
     totalCount: typeof dto?.totalCount === 'number' ? dto.totalCount : items.length,
@@ -160,6 +227,8 @@ export {
   toAttendanceCheckinoutCandidate,
   toAttendanceCheckinoutCandidates,
   toAttendanceCheckinoutSummary,
+  toAttendanceCheckinoutToday,
+  toAttendanceCheckinoutTodayItem,
 };
 export type {
   AttendanceCheckinoutAction,
@@ -170,5 +239,10 @@ export type {
   AttendanceCheckinoutCandidatesDto,
   AttendanceCheckinoutSummary,
   AttendanceCheckinoutSummaryDto,
+  AttendanceCheckinoutToday,
+  AttendanceCheckinoutTodayDto,
+  AttendanceCheckinoutTodayItem,
+  AttendanceCheckinoutTodayItemDto,
   CheckinoutStatus,
+  TodayAttendanceFilter,
 };

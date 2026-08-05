@@ -36,6 +36,8 @@ function OwnerDailyPage() {
     hasConnectedMembers,
     isError,
     isLoading,
+    isTodayError,
+    isTodayLoading,
     normalizedSearchKeyword,
     searchKeyword,
     showUncheckedOnly,
@@ -157,6 +159,8 @@ function OwnerDailyPage() {
             >
               <TodayAttendanceTab
                 items={todayAttendanceMembers}
+                isLoading={isTodayLoading}
+                isError={isTodayError}
                 onCheckOutButtonClick={handleCheckOutButtonClick}
                 onMemberClick={handleMemberClick}
                 onNoticebookButtonClick={handleNoticebookButtonClick}

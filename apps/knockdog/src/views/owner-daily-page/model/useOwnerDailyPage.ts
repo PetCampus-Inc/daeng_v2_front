@@ -1,29 +1,43 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
+import {
+  formatKstDateLabel,
+  formatKstDayLabel,
+  formatKstTimeLabel,
+  getKstDateKey,
+} from '@views/owner-daily-page/lib/ownerDailyDate';
 
 import {
   useAttendanceCheckinoutCandidatesQuery,
   useAttendanceCheckinoutMutation,
   useAttendanceCheckinoutSummaryQuery,
+  useAttendanceCheckinoutTodayQuery,
   type AttendanceCheckinoutCandidate,
+  type AttendanceCheckinoutTodayItem,
 } from '@entities/owner-attendance-checkinout';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
-import {
-  formatKstDateLabel,
-  formatKstDayLabel,
-  getKstDateKey,
-} from '@views/owner-daily-page/lib/ownerDailyDate';
 
 function normalizeSearchText(value: string) {
   return value.replace(/\s+/g, '').toLowerCase();
 }
 
-function toAttendanceMember(candidate: AttendanceCheckinoutCandidate): AttendanceMember {
+function formatAttendanceTime(value: string | null | undefined) {
+  if (!value) return undefined;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  return formatKstTimeLabel(date);
+}
+
+function toAttendanceMemberFromCandidate(
+  candidate: AttendanceCheckinoutCandidate
+): AttendanceMember {
   const checkedIn = candidate.checkinoutStatus !== 'NOT_CHECKED_IN';
   const checkedOut = candidate.checkinoutStatus === 'CHECKED_OUT';
 
@@ -37,8 +51,26 @@ function toAttendanceMember(candidate: AttendanceCheckinoutCandidate): Attendanc
     profileImageUrl: candidate.profileImageUrl ?? undefined,
     checkedIn,
     checkedOut,
-    // candidates API에 등/하원 시각·알림장 발송 여부 없음 → today API 연동 전까지 false/undefined
     noticebookSent: false,
+  };
+}
+
+function toAttendanceMemberFromTodayItem(item: AttendanceCheckinoutTodayItem): AttendanceMember {
+  const checkedOut = item.checkinoutStatus === 'CHECKED_OUT';
+
+  return {
+    id: item.petId,
+    name: item.name,
+    gender: item.gender,
+    breed: item.breed,
+    weightKg: item.weightKg,
+    age: item.age ?? undefined,
+    profileImageUrl: item.profileImageUrl ?? undefined,
+    checkedIn: true,
+    checkedInTime: formatAttendanceTime(item.checkInAt),
+    checkedOut,
+    checkedOutTime: formatAttendanceTime(item.checkOutAt),
+    noticebookSent: item.attendanceRecordSent,
   };
 }
 
@@ -60,6 +92,11 @@ function useOwnerDailyPage() {
     userId,
     enabled: Boolean(userId),
   });
+  const todayQuery = useAttendanceCheckinoutTodayQuery({
+    date: todayDateKey,
+    userId,
+    enabled: Boolean(userId),
+  });
   const summaryQuery = useAttendanceCheckinoutSummaryQuery({
     date: todayDateKey,
     userId,
@@ -76,8 +113,15 @@ function useOwnerDailyPage() {
   const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
 
   const members = useMemo(
-    () => (candidatesQuery.data?.items ?? []).map(toAttendanceMember),
+    () => (candidatesQuery.data?.items ?? []).map(toAttendanceMemberFromCandidate),
     [candidatesQuery.data?.items]
+  );
+  const todayAttendanceMembers = useMemo(
+    () =>
+      [...(todayQuery.data?.items ?? []).map(toAttendanceMemberFromTodayItem)].sort(
+        (currentMember, nextMember) => currentMember.name.localeCompare(nextMember.name, 'ko-KR')
+      ),
+    [todayQuery.data?.items]
   );
   const normalizedSearchKeyword = normalizeSearchText(searchKeyword);
   const summaryItems = [
@@ -86,7 +130,10 @@ function useOwnerDailyPage() {
     { label: '알림장 발송 전', count: summaryQuery.data?.unsentAttendanceRecordCount ?? 0 },
   ];
   const sortedMembers = useMemo(
-    () => [...members].sort((currentMember, nextMember) => currentMember.name.localeCompare(nextMember.name, 'ko-KR')),
+    () =>
+      [...members].sort((currentMember, nextMember) =>
+        currentMember.name.localeCompare(nextMember.name, 'ko-KR')
+      ),
     [members]
   );
   const hasConnectedMembers = sortedMembers.length > 0;
@@ -102,11 +149,11 @@ function useOwnerDailyPage() {
   const attendanceCheckMembers = showUncheckedOnly
     ? searchedMembers.filter((member) => !member.checkedIn)
     : searchedMembers;
-  const todayAttendanceMembers = sortedMembers.filter((member) => member.checkedIn);
 
-  const isLoading =
-    !userId || candidatesQuery.isPending || summaryQuery.isPending;
+  const isLoading = !userId || candidatesQuery.isPending || summaryQuery.isPending;
   const isError = candidatesQuery.isError || summaryQuery.isError;
+  const isTodayLoading = todayQuery.isPending;
+  const isTodayError = todayQuery.isError;
 
   const showRequestFailureToast = () => {
     toast({
@@ -227,6 +274,8 @@ function useOwnerDailyPage() {
     hasConnectedMembers,
     isError,
     isLoading,
+    isTodayError,
+    isTodayLoading,
     normalizedSearchKeyword,
     searchKeyword,
     showUncheckedOnly,

@@ -10,6 +10,7 @@ import {
 import {
   OWNER_ATTENDANCE_CHECKINOUT_CANDIDATES_QUERY_KEY,
   OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY,
+  OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY,
 } from './useAttendanceCheckinoutQuery';
 
 interface UseAttendanceCheckinoutMutationOptions {
@@ -23,6 +24,9 @@ function useAttendanceCheckinoutMutation({ userId }: UseAttendanceCheckinoutMuta
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: [OWNER_ATTENDANCE_CHECKINOUT_CANDIDATES_QUERY_KEY, userId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY, userId],
       }),
       queryClient.invalidateQueries({
         queryKey: [OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY, userId],
