@@ -2,6 +2,8 @@ import type {
   AlbumCommitRequest,
   AlbumCommitResponse,
   AlbumPhotoDto,
+  AlbumPhotosListParams,
+  AlbumPhotosListResponse,
   AlbumUploadUrlItem,
   AlbumUploadUrlsRequest,
   AlbumUploadUrlsResponse,
@@ -14,7 +16,6 @@ function normalizeUploadUrlsData(data: unknown): AlbumUploadUrlsResponse {
     return { files: [] };
   }
 
-  // data가 배열인 경우
   if (Array.isArray(data)) {
     return { files: normalizeUploadUrlItems(data) };
   }
@@ -100,6 +101,67 @@ function normalizeCommitData(data: unknown): AlbumCommitResponse {
   };
 }
 
+function normalizeNextCursor(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
+    return Number(value);
+  }
+  return null;
+}
+
+function normalizePhotosListData(data: unknown): AlbumPhotosListResponse {
+  if (!data) {
+    return { photos: [], nextCursor: null };
+  }
+
+  if (Array.isArray(data)) {
+    return {
+      photos: data.map(normalizeAlbumPhoto).filter((item): item is AlbumPhotoDto => item != null),
+      nextCursor: null,
+    };
+  }
+
+  if (typeof data !== 'object') {
+    return { photos: [], nextCursor: null };
+  }
+
+  const record = data as Record<string, unknown>;
+  const rawPhotos = record.photos ?? record.items ?? record.content ?? record.list;
+  const photos = Array.isArray(rawPhotos)
+    ? rawPhotos.map(normalizeAlbumPhoto).filter((item): item is AlbumPhotoDto => item != null)
+    : [];
+
+  if (record.hasNext === false) {
+    return { photos, nextCursor: null };
+  }
+
+  const nextCursor =
+    normalizeNextCursor(record.nextCursor) ??
+    normalizeNextCursor(record.cursor) ??
+    (record.hasNext === true && photos.length > 0
+      ? normalizeNextCursor(photos[photos.length - 1]?.id)
+      : null);
+
+  return { photos, nextCursor };
+}
+
+/** `GET` - 앨범 사진 목록 조회 (커서 기반) */
+async function getAlbumPhotos({ schoolId, cursor, size = 30 }: AlbumPhotosListParams) {
+  const searchParams: Record<string, number> = { size };
+  if (typeof cursor === 'number') {
+    searchParams.cursor = cursor;
+  }
+
+  const response = await api
+    .get(`albums/${schoolId}/photos`, { searchParams })
+    .json<ApiResponse<unknown>>();
+
+  return {
+    ...response,
+    data: normalizePhotosListData(response.data),
+  } satisfies ApiResponse<AlbumPhotosListResponse>;
+}
+
 /** `POST` - 업로드 Pre-Signed URL 배치 발급 */
 async function postAlbumUploadUrls(schoolId: number, body: AlbumUploadUrlsRequest) {
   const response = await api
@@ -124,4 +186,4 @@ async function postAlbumPhotosCommit(schoolId: number, body: AlbumCommitRequest)
   } satisfies ApiResponse<AlbumCommitResponse>;
 }
 
-export { postAlbumUploadUrls, postAlbumPhotosCommit };
+export { getAlbumPhotos, postAlbumUploadUrls, postAlbumPhotosCommit };

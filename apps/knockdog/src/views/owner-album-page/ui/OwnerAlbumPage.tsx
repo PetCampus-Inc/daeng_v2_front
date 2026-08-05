@@ -17,7 +17,16 @@ import { OwnerAlbumUploadModal } from '@views/owner-album-page/ui/OwnerAlbumUplo
 import { Header } from '@widgets/Header';
 
 function OwnerAlbumPage() {
-  const { photos, hasPhotos, isUploading, handleUploadClick, removePhoto } = useOwnerAlbumUpload();
+  const {
+    photos,
+    hasPhotos,
+    isUploading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    handleUploadClick,
+    removePhoto,
+  } = useOwnerAlbumUpload();
   const [detailIndex, setDetailIndex] = useState<number | null>(null);
   const sortedPhotos = useMemo(() => sortAlbumPhotos(photos), [photos]);
 
@@ -50,7 +59,17 @@ function OwnerAlbumPage() {
       </div>
 
       <main className={`${hasPhotos ? 'bg-bg-50' : 'bg-bg-0'} relative flex min-h-0 flex-1 flex-col`}>
-        {hasPhotos ? <OwnerAlbumPhotoList photos={photos} onPhotoClick={handlePhotoClick} /> : <OwnerAlbumEmptyState />}
+        {hasPhotos ? (
+          <OwnerAlbumPhotoList
+            photos={photos}
+            onPhotoClick={handlePhotoClick}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={fetchNextPage}
+          />
+        ) : (
+          <OwnerAlbumEmptyState />
+        )}
         <OwnerAlbumUploadButton onClick={handleUploadClick} />
       </main>
 

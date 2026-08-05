@@ -1,7 +1,13 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
+import {
+  ownerAlbumPhotosQueryKey,
+  useOwnerAlbumPhotosInfiniteQuery,
+} from '@entities/owner-album';
+import { useUserStore } from '@entities/user';
 import { useOwnerRole } from '@features/role-conversion';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
@@ -41,11 +47,38 @@ function showUploadSuccessToast() {
 }
 
 function useOwnerAlbumUpload() {
+  const queryClient = useQueryClient();
   const { schoolId } = useOwnerRole();
+  const userId = useUserStore((state) => state.user?.userId);
   const { pickImage } = useImagePicker();
-  const [photos, setPhotos] = useState<OwnerAlbumPhoto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const isUploadInFlightRef = useRef(false);
+
+  const photosQuery = useOwnerAlbumPhotosInfiniteQuery({
+    schoolId,
+    userId,
+    enabled: schoolId != null,
+  });
+
+  const photos = useMemo<OwnerAlbumPhoto[]>(() => {
+    const pages = photosQuery.data?.pages ?? [];
+    const flattened = pages.flatMap((page) => page.photos);
+    const uniqueById = new Map<string, OwnerAlbumPhoto>();
+
+    for (const photo of flattened) {
+      if (!uniqueById.has(photo.id)) {
+        uniqueById.set(photo.id, photo);
+      }
+    }
+
+    return Array.from(uniqueById.values());
+  }, [photosQuery.data?.pages]);
+
+  const invalidatePhotos = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ownerAlbumPhotosQueryKey(schoolId, userId),
+    });
+  }, [queryClient, schoolId, userId]);
 
   const handleUploadClick = useCallback(async () => {
     if (isUploadInFlightRef.current || isUploading) return;
@@ -100,7 +133,7 @@ function useOwnerAlbumUpload() {
       });
 
       if (uploadResult.uploaded.length > 0) {
-        setPhotos((prev) => [...uploadResult.uploaded, ...prev]);
+        await invalidatePhotos();
       }
 
       const pickSkippedCount =
@@ -152,16 +185,36 @@ function useOwnerAlbumUpload() {
       isUploadInFlightRef.current = false;
       setIsUploading(false);
     }
-  }, [isUploading, pickImage, schoolId]);
+  }, [invalidatePhotos, isUploading, pickImage, schoolId]);
 
-  const removePhoto = useCallback((photoId: string) => {
-    setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
-  }, []);
+  const removePhoto = useCallback(
+    (photoId: string) => {
+      queryClient.setQueryData<{
+        pages: Array<{ photos: OwnerAlbumPhoto[]; nextCursor: number | null }>;
+        pageParams: Array<number | undefined>;
+      }>(ownerAlbumPhotosQueryKey(schoolId, userId), (prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          pages: prev.pages.map((page) => ({
+            ...page,
+            photos: page.photos.filter((photo) => photo.id !== photoId),
+          })),
+        };
+      });
+    },
+    [queryClient, schoolId, userId]
+  );
 
   return {
     photos,
     hasPhotos: photos.length > 0,
     isUploading,
+    isPhotosLoading: photosQuery.isLoading,
+    hasNextPage: photosQuery.hasNextPage,
+    isFetchingNextPage: photosQuery.isFetchingNextPage,
+    fetchNextPage: photosQuery.fetchNextPage,
     handleUploadClick,
     removePhoto,
   };
