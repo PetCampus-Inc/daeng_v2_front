@@ -15,15 +15,23 @@ interface OwnerMemberCardProps {
 }
 
 function OwnerMemberCard({ member, rightAddon, onClick }: OwnerMemberCardProps) {
-  const content = (
-    <>
+  return (
+    <div
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`border-line-100 p-x4 gap-x2 flex h-[84px] w-full items-center border-b ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <Avatar className='border-fill-secondary-100 size-x11 shrink-0 border-2'>
         {member.profileImageUrl && (
-          <AvatarImage
-            src={member.profileImageUrl}
-            alt={`${member.dogName} 프로필 이미지`}
-            className='object-cover'
-          />
+          <AvatarImage src={member.profileImageUrl} alt={`${member.dogName} 프로필 이미지`} className='object-cover' />
         )}
         <AvatarFallback className='bg-fill-secondary-50' />
       </Avatar>
@@ -35,24 +43,15 @@ function OwnerMemberCard({ member, rightAddon, onClick }: OwnerMemberCardProps) 
           <span className='shrink-0'>보호자</span>
         </div>
       </div>
-    </>
-  );
 
-  return (
-    <div className='border-line-100 flex h-[84px] w-full items-center border-b'>
-      {onClick ? (
-        <button
-          type='button'
-          className='p-x4 gap-x2 flex h-full min-w-0 flex-1 items-center text-left'
-          onClick={onClick}
+      {rightAddon ? (
+        <div
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
         >
-          {content}
-        </button>
-      ) : (
-        <div className='p-x4 gap-x2 flex h-full min-w-0 flex-1 items-center'>{content}</div>
-      )}
-
-      {rightAddon ? <div className='pr-x4 shrink-0'>{rightAddon}</div> : null}
+          {rightAddon}
+        </div>
+      ) : null}
     </div>
   );
 }
