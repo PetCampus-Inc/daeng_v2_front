@@ -186,4 +186,11 @@ async function postAlbumPhotosCommit(schoolId: number, body: AlbumCommitRequest)
   } satisfies ApiResponse<AlbumCommitResponse>;
 }
 
-export { getAlbumPhotos, postAlbumUploadUrls, postAlbumPhotosCommit };
+/** `DELETE` - 앨범 사진 하드 삭제 */
+async function deleteAlbumPhoto(schoolId: number, photoId: number | string) {
+  return api
+    .delete(`albums/${schoolId}/photos/${photoId}`)
+    .json<ApiResponse<Record<string, never> | null>>();
+}
+
+export { getAlbumPhotos, postAlbumUploadUrls, postAlbumPhotosCommit, deleteAlbumPhoto };

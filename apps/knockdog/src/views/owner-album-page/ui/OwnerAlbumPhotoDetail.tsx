@@ -27,7 +27,7 @@ interface OwnerAlbumPhotoDetailProps {
   photos: OwnerAlbumPhoto[];
   initialIndex: number;
   onClose: () => void;
-  onDelete: (photoId: string) => void;
+  onDelete: (photoId: string) => void | Promise<void>;
 }
 
 function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: OwnerAlbumPhotoDetailProps) {
@@ -193,27 +193,40 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
     setIsDeleteDialogOpen(true);
   }, [currentPhoto]);
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!currentPhoto) return;
 
     const photoId = currentPhoto.id;
     setIsDeleteDialogOpen(false);
-    onDelete(photoId);
-    requestAnimationFrame(() => {
-      deleteButtonRef.current?.focus();
-    });
-    toast({
-      type: 'success',
-      nativeTitle: ownerAlbumContent.detail.deleteSuccessToast.nativeTitle,
-      title: (
-        <>
-          <span className='text-text-accent'>사진</span>
-          <span className='text-text-primary-inverse'>을 삭제했어요</span>
-        </>
-      ),
-      duration: 3000,
-    });
-  }, [currentPhoto, onDelete]);
+
+    try {
+      await onDelete(photoId);
+      requestAnimationFrame(() => {
+        deleteButtonRef.current?.focus();
+      });
+      toast({
+        type: 'success',
+        nativeTitle: ownerAlbumContent.detail.deleteSuccessToast.nativeTitle,
+        title: (
+          <>
+            <span className='text-text-accent'>사진</span>
+            <span className='text-text-primary-inverse'>을 삭제했어요</span>
+          </>
+        ),
+        duration: 3000,
+      });
+
+      // 목록이 비면 상세 닫기
+      if (photos.length <= 1) {
+        onClose();
+      }
+    } catch {
+      toast({
+        nativeTitle: ownerAlbumContent.detail.deleteFailedToast.nativeTitle,
+        title: ownerAlbumContent.detail.deleteFailedToast.nativeTitle,
+      });
+    }
+  }, [currentPhoto, onClose, onDelete, photos.length]);
 
   if (!currentPhoto || photos.length === 0) return null;
 

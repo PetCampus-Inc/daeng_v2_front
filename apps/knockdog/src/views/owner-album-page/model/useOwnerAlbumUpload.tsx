@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import {
   ownerAlbumPhotosQueryKey,
+  useAlbumPhotoDeleteMutation,
   useOwnerAlbumPhotosInfiniteQuery,
 } from '@entities/owner-album';
 import { useUserStore } from '@entities/user';
@@ -59,6 +60,8 @@ function useOwnerAlbumUpload() {
     userId,
     enabled: schoolId != null,
   });
+
+  const deletePhotoMutation = useAlbumPhotoDeleteMutation({ schoolId, userId });
 
   const photos = useMemo<OwnerAlbumPhoto[]>(() => {
     const pages = photosQuery.data?.pages ?? [];
@@ -188,7 +191,11 @@ function useOwnerAlbumUpload() {
   }, [invalidatePhotos, isUploading, pickImage, schoolId]);
 
   const removePhoto = useCallback(
-    (photoId: string) => {
+    async (photoId: string) => {
+      if (schoolId == null) {
+        throw new Error('schoolId is required');
+      }
+
       queryClient.setQueryData<{
         pages: Array<{ photos: OwnerAlbumPhoto[]; nextCursor: number | null }>;
         pageParams: Array<number | undefined>;
@@ -203,8 +210,15 @@ function useOwnerAlbumUpload() {
           })),
         };
       });
+
+      try {
+        await deletePhotoMutation.mutateAsync(photoId);
+      } catch (error) {
+        await invalidatePhotos();
+        throw error;
+      }
     },
-    [queryClient, schoolId, userId]
+    [deletePhotoMutation, invalidatePhotos, queryClient, schoolId, userId]
   );
 
   return {

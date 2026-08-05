@@ -1,7 +1,8 @@
-export { getAlbumPhotos, postAlbumUploadUrls, postAlbumPhotosCommit } from './api/ownerAlbum';
+export { getAlbumPhotos, postAlbumUploadUrls, postAlbumPhotosCommit, deleteAlbumPhoto } from './api/ownerAlbum';
 export {
   useAlbumUploadUrlsMutation,
   useAlbumPhotosCommitMutation,
+  useAlbumPhotoDeleteMutation,
 } from './api/useOwnerAlbumMutation';
 export {
   OWNER_ALBUM_PHOTOS_QUERY_KEY,

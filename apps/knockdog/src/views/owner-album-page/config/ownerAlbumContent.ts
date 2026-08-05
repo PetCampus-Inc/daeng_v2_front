@@ -47,6 +47,9 @@ const ownerAlbumContent = {
     deleteSuccessToast: {
       nativeTitle: '사진을 삭제했어요',
     },
+    deleteFailedToast: {
+      nativeTitle: '사진을 삭제하지 못했어요',
+    },
   },
   infoSheet: {
     title: '사진 업로드 유의사항',
