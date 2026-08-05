@@ -1,12 +1,19 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
-import { mapAlbumPhotoDto } from '../lib/mapAlbumPhoto';
+import { mapAlbumPhotoDto, type MappedAlbumPhoto } from '../lib/mapAlbumPhoto';
 import { getAlbumPhotos } from './ownerAlbum';
 
 const OWNER_ALBUM_PHOTOS_QUERY_KEY = 'ownerAlbumPhotos';
 
 const ownerAlbumPhotosQueryKey = (schoolId?: number | null, userId?: string) =>
   [OWNER_ALBUM_PHOTOS_QUERY_KEY, schoolId, userId] as const;
+
+interface OwnerAlbumPhotosPage {
+  photos: MappedAlbumPhoto[];
+  nextCursor: number | null;
+}
+
+type OwnerAlbumPhotosCache = InfiniteData<OwnerAlbumPhotosPage, number | undefined>;
 
 interface UseOwnerAlbumPhotosInfiniteQueryOptions {
   schoolId?: number | null;
@@ -51,3 +58,4 @@ export {
   ownerAlbumPhotosQueryKey,
   useOwnerAlbumPhotosInfiniteQuery,
 };
+export type { OwnerAlbumPhotosCache, OwnerAlbumPhotosPage };

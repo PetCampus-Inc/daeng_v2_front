@@ -7,6 +7,7 @@ import {
   ownerAlbumPhotosQueryKey,
   useAlbumPhotoDeleteMutation,
   useOwnerAlbumPhotosInfiniteQuery,
+  type OwnerAlbumPhotosCache,
 } from '@entities/owner-album';
 import { useUserStore } from '@entities/user';
 import { useOwnerRole } from '@features/role-conversion';
@@ -202,10 +203,10 @@ function useOwnerAlbumUpload() {
         throw new Error('schoolId is required');
       }
 
-      queryClient.setQueryData<{
-        pages: Array<{ photos: OwnerAlbumPhoto[]; nextCursor: number | null }>;
-        pageParams: Array<number | undefined>;
-      }>(ownerAlbumPhotosQueryKey(schoolId, userId), (prev) => {
+      const queryKey = ownerAlbumPhotosQueryKey(schoolId, userId);
+      const previous = queryClient.getQueryData<OwnerAlbumPhotosCache>(queryKey);
+
+      queryClient.setQueryData<OwnerAlbumPhotosCache>(queryKey, (prev) => {
         if (!prev) return prev;
 
         return {
@@ -220,6 +221,9 @@ function useOwnerAlbumUpload() {
       try {
         await deletePhotoMutation.mutateAsync(photoId);
       } catch (error) {
+        if (previous !== undefined) {
+          queryClient.setQueryData(queryKey, previous);
+        }
         await invalidatePhotos();
         throw error;
       }

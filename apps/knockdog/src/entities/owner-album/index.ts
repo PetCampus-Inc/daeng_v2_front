@@ -9,6 +9,10 @@ export {
   ownerAlbumPhotosQueryKey,
   useOwnerAlbumPhotosInfiniteQuery,
 } from './api/useOwnerAlbumPhotosQuery';
+export type {
+  OwnerAlbumPhotosCache,
+  OwnerAlbumPhotosPage,
+} from './api/useOwnerAlbumPhotosQuery';
 export { mapAlbumPhotoDto } from './lib/mapAlbumPhoto';
 export type { MappedAlbumPhoto } from './lib/mapAlbumPhoto';
 export type {
