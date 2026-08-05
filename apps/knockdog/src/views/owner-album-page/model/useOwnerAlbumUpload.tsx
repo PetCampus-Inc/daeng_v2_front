@@ -2,11 +2,14 @@
 
 import { useCallback, useRef, useState } from 'react';
 
+import { useOwnerRole } from '@features/role-conversion';
+
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
+import { uploadOwnerAlbumPhotos } from '@views/owner-album-page/lib/uploadOwnerAlbumPhotos';
 import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPhoto';
 import { openOwnerAlbumAlert } from '@views/owner-album-page/ui/OwnerAlbumAlertDialog';
 
-import { useImagePicker } from '@shared/lib/media';
+import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
 function showMaxCountToast() {
@@ -38,6 +41,7 @@ function showUploadSuccessToast() {
 }
 
 function useOwnerAlbumUpload() {
+  const { schoolId } = useOwnerRole();
   const { pickImage } = useImagePicker();
   const [photos, setPhotos] = useState<OwnerAlbumPhoto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -46,23 +50,25 @@ function useOwnerAlbumUpload() {
   const handleUploadClick = useCallback(async () => {
     if (isUploadInFlightRef.current || isUploading) return;
 
+    if (schoolId == null) {
+      openOwnerAlbumAlert(
+        ownerAlbumContent.upload.networkFailedTitle,
+        ownerAlbumContent.upload.networkFailedDescription
+      );
+      return;
+    }
+
     isUploadInFlightRef.current = true;
 
     try {
-      const result = await pickImage(
-        {
-          source: 'library',
-          mediaTypes: 'images',
-          allowsMultipleSelection: true,
-          orderedSelection: true,
-          selectionLimit: ownerAlbumContent.maxSelectionCount,
-        },
-        {
-          onUploading: () => {
-            setIsUploading(true);
-          },
-        }
-      );
+      const result = await pickImage({
+        source: 'library',
+        mediaTypes: 'images',
+        allowsMultipleSelection: true,
+        orderedSelection: true,
+        selectionLimit: ownerAlbumContent.maxSelectionCount,
+        skipUpload: true,
+      });
 
       if (result.cancelled) return;
 
@@ -86,29 +92,40 @@ function useOwnerAlbumUpload() {
         return;
       }
 
-      const uploadedAt = Date.now();
-      // TODO: POST owner/album 배치 등록 API 연동 후 서버 목록으로 교체
-      setPhotos((prev) => [
-        ...result.assets.map((asset, index) => ({
-          id: `${asset.key}-${uploadedAt}-${index}`,
-          key: asset.key,
-          url: asset.preSignedUrl,
-          uploadedAt: uploadedAt - index,
-        })),
-        ...prev,
-      ]);
+      setIsUploading(true);
 
-      const skippedCount =
+      const uploadResult = await uploadOwnerAlbumPhotos({
+        schoolId,
+        assets: result.assets as WebImageAsset[],
+      });
+
+      if (uploadResult.uploaded.length > 0) {
+        setPhotos((prev) => [...uploadResult.uploaded, ...prev]);
+      }
+
+      const pickSkippedCount =
         (result.skipped?.invalidSpecCount ?? 0) + (result.skipped?.unreadableCount ?? 0);
+      const commitExcludedCount = uploadResult.excludedCount + uploadResult.s3FailedCount;
+      const totalExcluded = pickSkippedCount + commitExcludedCount;
 
-      if (skippedCount > 0) {
+      if (uploadResult.uploaded.length === 0) {
+        openOwnerAlbumAlert(
+          ownerAlbumContent.upload.noneValidTitle,
+          ownerAlbumContent.upload.noneValidDescription
+        );
+        return;
+      }
+
+      if (totalExcluded > 0) {
         const description =
           (result.skipped?.invalidSpecCount ?? 0) > 0
             ? ownerAlbumContent.upload.partialInvalidSpecDescription
-            : ownerAlbumContent.upload.partialUnreadableDescription;
+            : commitExcludedCount > 0 && uploadResult.excludeReason
+              ? uploadResult.excludeReason
+              : ownerAlbumContent.upload.partialUnreadableDescription;
 
         openOwnerAlbumAlert(
-          ownerAlbumContent.upload.partialExcludedTitle(skippedCount),
+          ownerAlbumContent.upload.partialExcludedTitle(totalExcluded),
           description
         );
         return;
@@ -118,6 +135,15 @@ function useOwnerAlbumUpload() {
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
 
+      console.error('[owner-album] upload failed', error);
+      if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
+        console.error('[owner-album] api error detail', {
+          code: (error as { code: unknown }).code,
+          message: (error as { message: unknown }).message,
+          status: (error as { status?: unknown }).status,
+        });
+      }
+
       openOwnerAlbumAlert(
         ownerAlbumContent.upload.networkFailedTitle,
         ownerAlbumContent.upload.networkFailedDescription
@@ -126,7 +152,7 @@ function useOwnerAlbumUpload() {
       isUploadInFlightRef.current = false;
       setIsUploading(false);
     }
-  }, [isUploading, pickImage]);
+  }, [isUploading, pickImage, schoolId]);
 
   const removePhoto = useCallback((photoId: string) => {
     setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));

@@ -1,7 +1,11 @@
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
-import { METHODS, type SaveImageToGalleryParams } from '@knockdog/bridge-core';
+import {
+  METHODS,
+  type PutFileToPresignedUrlParams,
+  type SaveImageToGalleryParams,
+} from '@knockdog/bridge-core';
 
 function getExtensionFromUrl(url: string) {
   try {
@@ -47,7 +51,7 @@ function assertDownloadableImageUrl(url: string) {
 }
 
 /**
- * 갤러리 저장 핸들러
+ * 갤러리 저장 + presigned PUT 핸들러
  */
 export function registerMediaHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.saveImageToGallery, async (params: SaveImageToGalleryParams) => {
@@ -88,6 +92,40 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
       throw { code: 'EUNAVAILABLE', message: '사진을 갤러리에 저장하지 못했습니다.' };
     } finally {
       await FileSystem.deleteAsync(localUri, { idempotent: true }).catch(() => undefined);
+    }
+  });
+
+  router.register(METHODS.putFileToPresignedUrl, async (params: PutFileToPresignedUrlParams) => {
+    const { uri, uploadUrl, contentType } = params;
+
+    if (!uri || !uploadUrl) {
+      throw { code: 'EINVALID', message: '업로드 대상이 유효하지 않습니다.' };
+    }
+
+    try {
+      const headers: Record<string, string> = {};
+      if (contentType) {
+        headers['Content-Type'] = contentType;
+      }
+
+      const uploadResult = await FileSystem.uploadAsync(uploadUrl, uri, {
+        httpMethod: 'PUT',
+        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+        headers,
+      });
+
+      if (uploadResult.status < 200 || uploadResult.status >= 300) {
+        throw { code: 'EUNAVAILABLE', message: `S3 업로드 실패 (status: ${uploadResult.status})` };
+      }
+
+      return { ok: true };
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        throw error;
+      }
+
+      console.error('[APP] putFileToPresignedUrl error', error);
+      throw { code: 'EUNAVAILABLE', message: 'S3 업로드에 실패했습니다.' };
     }
   });
 }

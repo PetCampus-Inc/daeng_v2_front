@@ -111,6 +111,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       allowsMultipleSelection,
       orderedSelection,
       selectionLimit,
+      skipUpload = false,
     } = payload;
 
     try {
@@ -168,12 +169,21 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       const exceededLimit = allowsMultipleSelection === true && pickedAssets.length > maxSelection;
       const assetsToUpload = exceededLimit ? pickedAssets.slice(0, maxSelection) : pickedAssets;
 
-      sendEvent('media.pickImage.uploading', {
-        requestId,
-        count: assetsToUpload.length,
-      });
+      if (!skipUpload) {
+        sendEvent('media.pickImage.uploading', {
+          requestId,
+          count: assetsToUpload.length,
+        });
+      }
 
-      const uploadedAssets: Array<{ key: string; preSignedUrl: string }> = [];
+      const uploadedAssets: Array<{
+        key: string;
+        preSignedUrl: string;
+        uri?: string;
+        fileName?: string;
+        mimeType?: string;
+        fileSize?: number;
+      }> = [];
       let invalidSpecCount = 0;
       let unreadableCount = 0;
       let hasNetworkError = false;
@@ -190,6 +200,19 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         }
 
         try {
+          if (skipUpload) {
+            const fileSize = await getAssetSizeBytes(pickedAsset);
+            uploadedAssets.push({
+              key: '',
+              preSignedUrl: pickedAsset.uri,
+              uri: pickedAsset.uri,
+              fileName: pickedAsset.fileName ?? `album-${Date.now()}.jpg`,
+              mimeType: pickedAsset.mimeType ?? 'image/jpeg',
+              fileSize: fileSize ?? undefined,
+            });
+            continue;
+          }
+
           const { key, preSignedUrl } = await uploadImage();
           await uploadToS3(preSignedUrl, pickedAsset);
           uploadedAssets.push({ key, preSignedUrl });
