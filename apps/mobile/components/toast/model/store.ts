@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import type { ToastOptions } from '@/types/toast';
+import type { ToastTitlePart } from '@knockdog/bridge-core';
 
 export type ToastItem = Required<Pick<ToastOptions, 'title' | 'description' | 'duration' | 'shape'>> & {
   id: string;
+  titleParts?: ToastTitlePart[];
   type?: 'default' | 'success';
   open: boolean;
   onOpen?: () => void;

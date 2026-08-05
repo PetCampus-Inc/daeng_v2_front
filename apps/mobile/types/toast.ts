@@ -1,8 +1,9 @@
-import { ToastShape, ToastPosition, ToastType } from '@knockdog/bridge-core';
+import type { ToastShape, ToastPosition, ToastType, ToastTitlePart } from '@knockdog/bridge-core';
 
 export type ToastOptions = {
   id?: string;
   title?: string;
+  titleParts?: ToastTitlePart[];
   description?: string;
   duration?: number; // ms
   className?: string | undefined; // 웹 호환용 (RN에서는 무시)

@@ -201,8 +201,18 @@ function useOwnerDailyPage() {
     try {
       await checkInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       toast({
-        title: `✓ ${member.name}를 등원 처리했어요`,
-        nativeTitle: `✓ ${member.name}를 등원 처리했어요`,
+        type: 'success',
+        nativeTitle: `${member.name}를 등원 처리했어요`,
+        titleParts: [
+          { text: member.name, accent: true },
+          { text: '를 등원 처리했어요' },
+        ],
+        title: (
+          <>
+            <span className='text-text-accent'>{member.name}</span>
+            <span className='text-text-primary-inverse'>를 등원 처리했어요</span>
+          </>
+        ),
       });
     } catch {
       showRequestFailureToast();
@@ -214,8 +224,18 @@ function useOwnerDailyPage() {
       await cancelCheckInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       close();
       toast({
-        title: `✓ ${member.name}의 등원을 취소했어요`,
-        nativeTitle: `✓ ${member.name}의 등원을 취소했어요`,
+        type: 'success',
+        nativeTitle: `${member.name}의 등원을 취소했어요`,
+        titleParts: [
+          { text: member.name, accent: true },
+          { text: '의 등원을 취소했어요' },
+        ],
+        title: (
+          <>
+            <span className='text-text-accent'>{member.name}</span>
+            <span className='text-text-primary-inverse'>의 등원을 취소했어요</span>
+          </>
+        ),
       });
     } catch {
       showRequestFailureToast();
@@ -228,8 +248,18 @@ function useOwnerDailyPage() {
     try {
       await checkOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       toast({
-        title: `✓ ${member.name}를 하원 처리했어요`,
-        nativeTitle: `✓ ${member.name}를 하원 처리했어요`,
+        type: 'success',
+        nativeTitle: `${member.name}를 하원 처리했어요`,
+        titleParts: [
+          { text: member.name, accent: true },
+          { text: '를 하원 처리했어요' },
+        ],
+        title: (
+          <>
+            <span className='text-text-accent'>{member.name}</span>
+            <span className='text-text-primary-inverse'>를 하원 처리했어요</span>
+          </>
+        ),
       });
     } catch {
       showRequestFailureToast();
@@ -243,8 +273,18 @@ function useOwnerDailyPage() {
       await cancelCheckOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       close();
       toast({
-        title: `✓ ${member.name}의 하원을 취소했어요`,
-        nativeTitle: `✓ ${member.name}의 하원을 취소했어요`,
+        type: 'success',
+        nativeTitle: `${member.name}의 하원을 취소했어요`,
+        titleParts: [
+          { text: member.name, accent: true },
+          { text: '의 하원을 취소했어요' },
+        ],
+        title: (
+          <>
+            <span className='text-text-accent'>{member.name}</span>
+            <span className='text-text-primary-inverse'>의 하원을 취소했어요</span>
+          </>
+        ),
       });
     } catch {
       showRequestFailureToast();

@@ -27,7 +27,7 @@ const tokens = {
   radius: { rounded: 14, square: 0 } as const,
   padding: 12,
   gap: { rounded: 8, square: 0 },
-  colors: { bg: '#41424a', fg: '#ffffff' },
+  colors: { bg: '#41424a', fg: '#ffffff', accent: '#ff6e0c' },
   viewportOffset: {
     bottom: 0, // 화면 하단 여백
     bottomAboveNav: 55, // 네비게이션 바 위 (네비게이션 바 높이 + 여백)
@@ -138,8 +138,19 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
               {item.type === 'success' && <Ionicons name='checkmark-sharp' size={25} color={tokens.colors.fg} />}
               <View style={{ flex: 1 }}>
-                {!!item.title && (
-                  <Text style={{ color: tokens.colors.fg, fontWeight: '500', marginBottom: 4 }}>{item.title}</Text>
+                {(!!item.titleParts?.length || !!item.title) && (
+                  <Text style={{ color: tokens.colors.fg, fontWeight: '500', marginBottom: item.description ? 4 : 0 }}>
+                    {item.titleParts?.length
+                      ? item.titleParts.map((part, index) => (
+                          <Text
+                            key={`${part.text}-${index}`}
+                            style={{ color: part.accent ? tokens.colors.accent : tokens.colors.fg, fontWeight: '500' }}
+                          >
+                            {part.text}
+                          </Text>
+                        ))
+                      : item.title}
+                  </Text>
                 )}
                 {!!item.description && <Text style={{ color: tokens.colors.fg }}>{item.description}</Text>}
               </View>

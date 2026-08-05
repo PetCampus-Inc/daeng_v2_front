@@ -17,6 +17,8 @@ function isToastOptions(value: unknown): value is ToastOptions {
     typeof value === 'object' &&
     value != null &&
     ('title' in value ||
+      'nativeTitle' in value ||
+      'titleParts' in value ||
       'description' in value ||
       'duration' in value ||
       'position' in value ||
@@ -43,12 +45,14 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   if (isNativeWebView()) {
     const bridge = getBridgeInstance();
     if (bridge) {
+      const titleFromParts = resolvedOptions.titleParts?.map((part) => part.text).join('');
       const params: ToastShowParams = {
         id,
         title:
           typeof resolvedOptions.title === 'string'
             ? resolvedOptions.title
-            : (resolvedOptions.nativeTitle ?? ''),
+            : (resolvedOptions.nativeTitle ?? titleFromParts ?? ''),
+        titleParts: resolvedOptions.titleParts,
         description: resolvedOptions.description,
         duration: resolvedOptions.duration,
         position: resolvedOptions.position,
