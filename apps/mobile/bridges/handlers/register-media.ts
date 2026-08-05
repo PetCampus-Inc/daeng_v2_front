@@ -102,19 +102,47 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
       throw { code: 'EINVALID', message: '업로드 대상이 유효하지 않습니다.' };
     }
 
+    let localUri = uri;
+    let shouldCleanup = false;
+
     try {
-      const headers: Record<string, string> = {};
-      if (contentType) {
-        headers['Content-Type'] = contentType;
+      // Android content:// 직접 uploadAsync → 프로세스 크래시 가능. file://로 복사 후 PUT
+      if (!uri.startsWith('file://')) {
+        const cacheDir = FileSystem.cacheDirectory;
+        if (!cacheDir) {
+          throw { code: 'EUNAVAILABLE', message: '임시 저장 공간을 사용할 수 없습니다.' };
+        }
+
+        const tempDir = `${cacheDir}album-put/`;
+        await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
+        localUri = `${tempDir}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.bin`;
+        await FileSystem.copyAsync({ from: uri, to: localUri });
+        shouldCleanup = true;
       }
 
-      const uploadResult = await FileSystem.uploadAsync(uploadUrl, uri, {
+      const info = await FileSystem.getInfoAsync(localUri);
+      if (!info.exists) {
+        throw { code: 'EINVALID', message: '업로드할 파일을 찾을 수 없습니다.' };
+      }
+
+      // Content-Type 누락 시 S3가 application/octet-stream으로 저장 → commit 검증 실패
+      const resolvedContentType =
+        contentType && contentType.trim().length > 0 ? contentType.trim() : 'image/jpeg';
+
+      const uploadResult = await FileSystem.uploadAsync(uploadUrl, localUri, {
         httpMethod: 'PUT',
         uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-        headers,
+        headers: {
+          'Content-Type': resolvedContentType,
+        },
       });
 
       if (uploadResult.status < 200 || uploadResult.status >= 300) {
+        console.error('[APP] putFileToPresignedUrl status', {
+          status: uploadResult.status,
+          body: uploadResult.body?.slice?.(0, 200),
+          contentType: resolvedContentType,
+        });
         throw { code: 'EUNAVAILABLE', message: `S3 업로드 실패 (status: ${uploadResult.status})` };
       }
 
@@ -126,6 +154,10 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
 
       console.error('[APP] putFileToPresignedUrl error', error);
       throw { code: 'EUNAVAILABLE', message: 'S3 업로드에 실패했습니다.' };
+    } finally {
+      if (shouldCleanup) {
+        await FileSystem.deleteAsync(localUri, { idempotent: true }).catch(() => undefined);
+      }
     }
   });
 }

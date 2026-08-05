@@ -79,6 +79,25 @@ async function compressForUpload(asset: ImagePicker.ImagePickerAsset) {
   };
 }
 
+/** skipUpload용 — content:// 원본 직접 PUT 시 Android 네이티브 크래시 방지 */
+async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset) {
+  const compressed = await compressForUpload(asset);
+  const info = await FileSystem.getInfoAsync(compressed.uri, { size: true });
+  const fileSize = info.exists && typeof info.size === 'number' ? info.size : undefined;
+
+  const originalName = asset.fileName ?? `album-${Date.now()}.jpg`;
+  const baseName = originalName.replace(/\.[^.]+$/, '') || `album-${Date.now()}`;
+
+  return {
+    key: '',
+    preSignedUrl: compressed.uri,
+    uri: compressed.uri,
+    fileName: `${baseName}.jpg`,
+    mimeType: 'image/jpeg' as const,
+    fileSize,
+  };
+}
+
 async function uploadToS3(preSignedUrl: string, asset: ImagePicker.ImagePickerAsset) {
   const uploadAsset = await compressForUpload(asset);
 
@@ -169,12 +188,11 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       const exceededLimit = allowsMultipleSelection === true && pickedAssets.length > maxSelection;
       const assetsToUpload = exceededLimit ? pickedAssets.slice(0, maxSelection) : pickedAssets;
 
-      if (!skipUpload) {
-        sendEvent('media.pickImage.uploading', {
-          requestId,
-          count: assetsToUpload.length,
-        });
-      }
+      // skipUpload도 JPEG 캐시 변환이 있어 uploading 이벤트로 로딩 UX 노출
+      sendEvent('media.pickImage.uploading', {
+        requestId,
+        count: assetsToUpload.length,
+      });
 
       const uploadedAssets: Array<{
         key: string;
@@ -201,15 +219,12 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
 
         try {
           if (skipUpload) {
-            const fileSize = await getAssetSizeBytes(pickedAsset);
-            uploadedAssets.push({
-              key: '',
-              preSignedUrl: pickedAsset.uri,
-              uri: pickedAsset.uri,
-              fileName: pickedAsset.fileName ?? `album-${Date.now()}.jpg`,
-              mimeType: pickedAsset.mimeType ?? 'image/jpeg',
-              fileSize: fileSize ?? undefined,
-            });
+            const prepared = await prepareSkipUploadAsset(pickedAsset);
+            if (!prepared.fileSize || prepared.fileSize <= 0) {
+              unreadableCount += 1;
+              continue;
+            }
+            uploadedAssets.push(prepared);
             continue;
           }
 

@@ -97,14 +97,20 @@ function useOwnerAlbumUpload() {
     isUploadInFlightRef.current = true;
 
     try {
-      const result = await pickImage({
-        source: 'library',
-        mediaTypes: 'images',
-        allowsMultipleSelection: true,
-        orderedSelection: true,
-        selectionLimit: ownerAlbumContent.maxSelectionCount,
-        skipUpload: true,
-      });
+      const result = await pickImage(
+        {
+          source: 'library',
+          mediaTypes: 'images',
+          allowsMultipleSelection: true,
+          orderedSelection: true,
+          selectionLimit: ownerAlbumContent.maxSelectionCount,
+          skipUpload: true,
+        },
+        {
+          // 네이티브 JPEG 캐시 변환 시작 시점에 업로드 모달 노출
+          onUploading: () => setIsUploading(true),
+        }
+      );
 
       if (result.cancelled) return;
 

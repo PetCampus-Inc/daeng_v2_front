@@ -60,29 +60,11 @@ function resolveFileSize(asset: AlbumPickAsset) {
   return 0;
 }
 
-/** signed headers에 content-type이 있을 때만 PUT에 Content-Type 포함 */
-function isContentTypeSigned(uploadUrl: string) {
-  try {
-    const signedHeaders = new URL(uploadUrl).searchParams.get('X-Amz-SignedHeaders') ?? '';
-    return signedHeaders
-      .toLowerCase()
-      .split(';')
-      .map((header) => header.trim())
-      .includes('content-type');
-  } catch {
-    return false;
-  }
-}
-
 async function putFileToS3Web(uploadUrl: string, file: File, contentType: string) {
-  const headers: HeadersInit = {};
-  if (isContentTypeSigned(uploadUrl)) {
-    headers['Content-Type'] = contentType;
-  }
-
+  // upload-urls에 선언한 contentType과 동일하게 넣어야 commit HeadObject 검증 통과
   const response = await fetch(uploadUrl, {
     method: 'PUT',
-    headers,
+    headers: { 'Content-Type': contentType },
     body: file,
   });
 
@@ -100,8 +82,8 @@ async function putFileToS3Native(uri: string, uploadUrl: string, contentType: st
   await bridge.request(METHODS.putFileToPresignedUrl, {
     uri,
     uploadUrl,
-    // host만 서명된 URL이면 contentType 생략
-    contentType: isContentTypeSigned(uploadUrl) ? contentType : undefined,
+    // 네이티브 uploadAsync는 Content-Type
+    contentType,
   });
 }
 
