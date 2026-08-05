@@ -46,6 +46,26 @@ function sanitizeFileName(fileName: string) {
   return safeName;
 }
 
+/** Node Headers는 filename= 에 non-ASCII(한글 등)를 넣으면 ByteString 오류로 500이 난다. */
+function toAsciiFileName(fileName: string) {
+  const asciiName = fileName.replace(/[^\w.-]+/g, '_');
+
+  if (!asciiName || asciiName === '.' || asciiName === '..' || !/[a-zA-Z0-9]/.test(asciiName)) {
+    const extMatch = fileName.match(/(\.[a-zA-Z0-9]+)$/);
+    return `knockdog-${Date.now()}${extMatch?.[1] ?? '.jpg'}`;
+  }
+
+  return asciiName;
+}
+
+/** RFC 6266 / RFC 5987: filename= ASCII fallback, filename*= UTF-8 percent-encoding */
+function buildContentDisposition(fileName: string) {
+  const asciiFileName = toAsciiFileName(fileName);
+  const encodedFileName = encodeURIComponent(fileName);
+
+  return `attachment; filename="${asciiFileName}"; filename*=UTF-8''${encodedFileName}`;
+}
+
 /**
  * 웹 이미지 다운로드 프록시
  * - 브라우저→S3 CORS 우회
@@ -81,13 +101,12 @@ export async function GET(request: NextRequest) {
 
     const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
     const fileName = sanitizeFileName(rawFileName || `knockdog-${Date.now()}.jpg`);
-    const encodedFileName = encodeURIComponent(fileName);
 
     return new NextResponse(upstream.body, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${fileName}"; filename*=UTF-8''${encodedFileName}`,
+        'Content-Disposition': buildContentDisposition(fileName),
         'Cache-Control': 'no-store',
       },
     });
