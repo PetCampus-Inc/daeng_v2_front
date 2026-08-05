@@ -41,10 +41,21 @@ function OwnerDailyMemberCard({
             <span className='body1-extrabold text-text-primary truncate'>
               {TextHighlights(member.name, normalizedSearchKeyword)}
             </span>
-            <Icon icon={member.gender === 'MALE' ? 'Male' : 'Female'} className='text-text-accent size-4 shrink-0' />
+            {member.gender ? (
+              <Icon
+                icon={member.gender === 'MALE' ? 'Male' : 'Female'}
+                className='text-text-accent size-4 shrink-0'
+              />
+            ) : null}
           </div>
           <span className='body2-regular text-text-secondary truncate'>
-            {member.breed} · {member.weightKg}kg{member.age ? ` · ${member.age}살` : ''}
+            {[
+              member.breed,
+              member.weightKg != null ? `${member.weightKg}kg` : null,
+              member.age ? `${member.age}살` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </span>
         </div>
       </button>

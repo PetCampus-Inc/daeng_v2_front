@@ -1,14 +1,45 @@
 import { useMemo, useState, type ChangeEvent } from 'react';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
-import { useOwnerDailyAttendanceStore } from '@views/owner-daily-page/model/useOwnerDailyAttendanceStore';
+
+import {
+  useAttendanceCheckinoutCandidatesQuery,
+  useAttendanceCheckinoutMutation,
+  useAttendanceCheckinoutSummaryQuery,
+  type AttendanceCheckinoutCandidate,
+} from '@entities/owner-attendance-checkinout';
+import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import {
+  formatKstDateLabel,
+  formatKstDayLabel,
+  getKstDateKey,
+} from '@views/owner-daily-page/lib/ownerDailyDate';
 
 function normalizeSearchText(value: string) {
   return value.replace(/\s+/g, '').toLowerCase();
+}
+
+function toAttendanceMember(candidate: AttendanceCheckinoutCandidate): AttendanceMember {
+  const checkedIn = candidate.checkinoutStatus !== 'NOT_CHECKED_IN';
+  const checkedOut = candidate.checkinoutStatus === 'CHECKED_OUT';
+
+  return {
+    id: candidate.petId,
+    name: candidate.name,
+    gender: candidate.gender,
+    breed: candidate.breed,
+    weightKg: candidate.weightKg,
+    age: candidate.age ?? undefined,
+    profileImageUrl: candidate.profileImageUrl ?? undefined,
+    checkedIn,
+    checkedOut,
+    // candidates API에 등/하원 시각·알림장 발송 여부 없음 → today API 연동 전까지 false/undefined
+    noticebookSent: false,
+  };
 }
 
 function getCancelCheckInBlockMessage(member: AttendanceMember) {
@@ -20,22 +51,39 @@ function getCancelCheckInBlockMessage(member: AttendanceMember) {
 
 function useOwnerDailyPage() {
   const { push } = useStackNavigation();
-  const members = useOwnerDailyAttendanceStore((state) => state.members);
-  const checkIn = useOwnerDailyAttendanceStore((state) => state.checkIn);
-  const cancelStoredCheckIn = useOwnerDailyAttendanceStore((state) => state.cancelCheckIn);
-  const checkOut = useOwnerDailyAttendanceStore((state) => state.checkOut);
-  const cancelStoredCheckOut = useOwnerDailyAttendanceStore((state) => state.cancelCheckOut);
+  const userId = useUserStore((state) => state.user?.userId);
+  const todayDateKey = getKstDateKey(new Date());
+  const dateLabel = `${formatKstDateLabel(new Date())} ${formatKstDayLabel(new Date())}`;
+
+  const candidatesQuery = useAttendanceCheckinoutCandidatesQuery({
+    date: todayDateKey,
+    userId,
+    enabled: Boolean(userId),
+  });
+  const summaryQuery = useAttendanceCheckinoutSummaryQuery({
+    date: todayDateKey,
+    userId,
+    enabled: Boolean(userId),
+  });
+  const {
+    checkInMutation,
+    checkOutMutation,
+    cancelCheckInMutation,
+    cancelCheckOutMutation,
+  } = useAttendanceCheckinoutMutation({ userId });
+
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
 
+  const members = useMemo(
+    () => (candidatesQuery.data?.items ?? []).map(toAttendanceMember),
+    [candidatesQuery.data?.items]
+  );
   const normalizedSearchKeyword = normalizeSearchText(searchKeyword);
-  const checkedInMembers = members.filter((member) => member.checkedIn);
-  const checkedOutMembers = checkedInMembers.filter((member) => member.checkedOut);
-  const pendingNoticebookMembers = checkedInMembers.filter((member) => !member.noticebookSent);
   const summaryItems = [
-    { label: '오늘 등원', count: checkedInMembers.length },
-    { label: '재원 중', count: checkedInMembers.length - checkedOutMembers.length },
-    { label: '알림장 발송 전', count: pendingNoticebookMembers.length },
+    { label: '오늘 등원', count: summaryQuery.data?.checkedInCount ?? 0 },
+    { label: '재원 중', count: summaryQuery.data?.currentlyInCount ?? 0 },
+    { label: '알림장 발송 전', count: summaryQuery.data?.unsentAttendanceRecordCount ?? 0 },
   ];
   const sortedMembers = useMemo(
     () => [...members].sort((currentMember, nextMember) => currentMember.name.localeCompare(nextMember.name, 'ko-KR')),
@@ -56,18 +104,15 @@ function useOwnerDailyPage() {
     : searchedMembers;
   const todayAttendanceMembers = sortedMembers.filter((member) => member.checkedIn);
 
+  const isLoading =
+    !userId || candidatesQuery.isPending || summaryQuery.isPending;
+  const isError = candidatesQuery.isError || summaryQuery.isError;
+
   const showRequestFailureToast = () => {
     toast({
       title: '일시적 오류로 요청을 완료하지 못했어요',
       nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
     });
-  };
-
-  const sendAttendancePush = async (
-    _member: AttendanceMember,
-    _type: 'check-in' | 'cancel-check-in' | 'check-out' | 'cancel-check-out'
-  ) => {
-    // TODO: 실제 API 계약 연결 시 보호자 푸시 발송 mutation을 여기에서 호출합니다.
   };
 
   const canOpenCancelCheckInDialog = (member: AttendanceMember) => {
@@ -83,7 +128,9 @@ function useOwnerDailyPage() {
   };
 
   const handleMemberClick = (memberId: string) => {
-    push({ pathname: `/owner/members/${memberId}` }).catch(showRequestFailureToast);
+    push({ pathname: route.owner.members.detail.root.replace('[id]', memberId) }).catch(
+      showRequestFailureToast
+    );
   };
 
   const handleSearchKeywordChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -100,13 +147,12 @@ function useOwnerDailyPage() {
   };
 
   const handleInviteGuardianClick = () => {
-    push({ pathname: '/owner/members' }).catch(showRequestFailureToast);
+    push({ pathname: route.owner.members.root }).catch(showRequestFailureToast);
   };
 
   const handleCheckIn = async (member: AttendanceMember) => {
     try {
-      await sendAttendancePush(member, 'check-in');
-      checkIn(member.id);
+      await checkInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       toast({
         title: `✓ ${member.name}를 등원 처리했어요`,
         nativeTitle: `✓ ${member.name}를 등원 처리했어요`,
@@ -118,8 +164,7 @@ function useOwnerDailyPage() {
 
   const cancelCheckIn = async (member: AttendanceMember, close: () => void) => {
     try {
-      await sendAttendancePush(member, 'cancel-check-in');
-      cancelStoredCheckIn(member.id);
+      await cancelCheckInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       close();
       toast({
         title: `✓ ${member.name}의 등원을 취소했어요`,
@@ -134,8 +179,7 @@ function useOwnerDailyPage() {
     if (member.checkedOut) return;
 
     try {
-      await sendAttendancePush(member, 'check-out');
-      checkOut(member.id);
+      await checkOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       toast({
         title: `✓ ${member.name}를 하원 처리했어요`,
         nativeTitle: `✓ ${member.name}를 하원 처리했어요`,
@@ -149,8 +193,7 @@ function useOwnerDailyPage() {
     if (!member.checkedOut) return;
 
     try {
-      await sendAttendancePush(member, 'cancel-check-out');
-      cancelStoredCheckOut(member.id);
+      await cancelCheckOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       close();
       toast({
         title: `✓ ${member.name}의 하원을 취소했어요`,
@@ -162,7 +205,9 @@ function useOwnerDailyPage() {
   };
 
   const handleNoticebookButtonClick = (member: AttendanceMember) => {
-    push({ pathname: route.owner.daily.notice.write.root.replace('[id]', member.id) }).catch(showRequestFailureToast);
+    push({ pathname: route.owner.daily.notice.write.root.replace('[id]', member.id) }).catch(
+      showRequestFailureToast
+    );
   };
 
   return {
@@ -170,6 +215,7 @@ function useOwnerDailyPage() {
     cancelCheckOut,
     cancelCheckIn,
     canOpenCancelCheckInDialog,
+    dateLabel,
     handleCheckFilterClick,
     handleCheckIn,
     handleCheckOut,
@@ -179,6 +225,8 @@ function useOwnerDailyPage() {
     handleNoticebookButtonClick,
     handleSearchKeywordChange,
     hasConnectedMembers,
+    isError,
+    isLoading,
     normalizedSearchKeyword,
     searchKeyword,
     showUncheckedOnly,
