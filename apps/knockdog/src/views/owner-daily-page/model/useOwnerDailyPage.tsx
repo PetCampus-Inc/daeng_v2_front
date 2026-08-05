@@ -20,7 +20,10 @@ import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { useDebounced } from '@shared/lib';
 import { toast } from '@shared/ui/toast';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 function normalizeSearchText(value: string) {
   return value.replace(/\s+/g, '').toLowerCase();
@@ -87,8 +90,15 @@ function useOwnerDailyPage() {
   const todayDateKey = getKstDateKey(new Date());
   const dateLabel = `${formatKstDateLabel(new Date())} ${formatKstDayLabel(new Date())}`;
 
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
+  const debouncedSearchKeyword = useDebounced(searchKeyword, SEARCH_DEBOUNCE_MS);
+  const normalizedSearchKeyword = normalizeSearchText(searchKeyword);
+  const candidatesSearchQuery = debouncedSearchKeyword.trim() || undefined;
+
   const candidatesQuery = useAttendanceCheckinoutCandidatesQuery({
     date: todayDateKey,
+    q: candidatesSearchQuery,
     userId,
     enabled: Boolean(userId),
   });
@@ -109,9 +119,6 @@ function useOwnerDailyPage() {
     cancelCheckOutMutation,
   } = useAttendanceCheckinoutMutation({ userId });
 
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
-
   const members = useMemo(
     () => (candidatesQuery.data?.items ?? []).map(toAttendanceMemberFromCandidate),
     [candidatesQuery.data?.items]
@@ -123,7 +130,6 @@ function useOwnerDailyPage() {
       ),
     [todayQuery.data?.items]
   );
-  const normalizedSearchKeyword = normalizeSearchText(searchKeyword);
   const summaryItems = [
     { label: '오늘 등원', count: summaryQuery.data?.checkedInCount ?? 0 },
     { label: '재원 중', count: summaryQuery.data?.currentlyInCount ?? 0 },
@@ -136,21 +142,17 @@ function useOwnerDailyPage() {
       ),
     [members]
   );
-  const hasConnectedMembers = sortedMembers.length > 0;
-  const searchedMembers = useMemo(() => {
-    if (!normalizedSearchKeyword) return sortedMembers;
-
-    return sortedMembers.filter((member) =>
-      [member.name, member.guardianName ?? '']
-        .map(normalizeSearchText)
-        .some((searchTarget) => searchTarget.includes(normalizedSearchKeyword))
-    );
-  }, [normalizedSearchKeyword, sortedMembers]);
+  // 검색 중 빈 결과는 서버 필터 결과이므로 NoMembers가 아닌 SearchEmpty로 분기
+  const hasConnectedMembers = sortedMembers.length > 0 || Boolean(normalizedSearchKeyword);
   const attendanceCheckMembers = showUncheckedOnly
-    ? searchedMembers.filter((member) => !member.checkedIn)
-    : searchedMembers;
+    ? sortedMembers.filter((member) => !member.checkedIn)
+    : sortedMembers;
 
-  const isLoading = !userId || candidatesQuery.isPending || summaryQuery.isPending;
+  const isLoading =
+    !userId ||
+    ((candidatesQuery.isPending || summaryQuery.isPending) &&
+      !candidatesQuery.data &&
+      !summaryQuery.data);
   const isError = candidatesQuery.isError || summaryQuery.isError;
   const isTodayLoading = todayQuery.isPending;
   const isTodayError = todayQuery.isError;

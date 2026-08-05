@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 
 import {
   toAttendanceCheckinoutCandidates,
@@ -87,6 +87,7 @@ function useAttendanceCheckinoutCandidatesQuery({
     select: (response) => toAttendanceCheckinoutCandidates(response.data),
     enabled,
     staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 }
 
