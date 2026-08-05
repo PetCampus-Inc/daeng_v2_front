@@ -105,7 +105,28 @@ async function uploadFileToS3(uploadUrl: string, file: File) {
   }
 }
 
-async function createWebImageAsset(file: File): Promise<WebImageAsset> {
+async function createLocalWebImageAsset(file: File): Promise<WebImageAsset> {
+  const { width, height } = await getImageDimensions(file);
+  const objectUrl = URL.createObjectURL(file);
+
+  return {
+    key: '',
+    preSignedUrl: objectUrl,
+    uri: objectUrl,
+    width,
+    height,
+    type: 'image',
+    fileName: file.name,
+    mimeType: file.type,
+    file,
+    formValue: file,
+    fileSize: file.size,
+  };
+}
+
+async function createWebImageAsset(file: File, skipUpload = false): Promise<WebImageAsset> {
+  if (skipUpload) return createLocalWebImageAsset(file);
+
   const { width, height } = await getImageDimensions(file);
   const uploadInfo = await getUploadImage();
 
@@ -143,9 +164,11 @@ async function getPreviewImageAsset(asset: ImageAsset): Promise<WebImageAsset> {
 
 async function uploadFilesWithValidation(
   files: File[],
-  options?: { onUploading?: (count: number) => void }
+  options?: { onUploading?: (count: number) => void; skipUpload?: boolean }
 ): Promise<Extract<PickImageResult, { cancelled: false }>> {
-  options?.onUploading?.(files.length);
+  if (!options?.skipUpload) {
+    options?.onUploading?.(files.length);
+  }
 
   const uploadedAssets: WebImageAsset[] = [];
   let invalidSpecCount = 0;
@@ -164,7 +187,7 @@ async function uploadFilesWithValidation(
     }
 
     try {
-      const asset = await createWebImageAsset(file);
+      const asset = await createWebImageAsset(file, options?.skipUpload);
       uploadedAssets.push(asset);
     } catch (error) {
       console.error('웹 이미지 업로드 실패:', error);
@@ -240,13 +263,15 @@ async function pickImageWeb(
             ? params.selectionLimit
             : DEFAULT_MAX_SELECTION;
 
+        const uploadOptions = { ...options, skipUpload: params?.skipUpload };
+
         if (!params?.allowsMultipleSelection) {
           const file = files[0];
           if (!file) {
             resolve({ cancelled: true });
             return;
           }
-          const result = await uploadFilesWithValidation([file], options);
+          const result = await uploadFilesWithValidation([file], uploadOptions);
           resolve(result);
           return;
         }
@@ -254,7 +279,7 @@ async function pickImageWeb(
         const selectedFiles = Array.from(files);
         const exceededLimit = selectedFiles.length > limit;
         const filesToProcess = exceededLimit ? selectedFiles.slice(0, limit) : selectedFiles;
-        const result = await uploadFilesWithValidation(filesToProcess, options);
+        const result = await uploadFilesWithValidation(filesToProcess, uploadOptions);
 
         resolve({
           ...result,
@@ -334,6 +359,28 @@ function useImagePicker() {
             return;
           }
 
+          if (params?.skipUpload) {
+            const [firstAsset, ...restAssets] = payload.assets;
+            if (!firstAsset) {
+              resolve({
+                cancelled: false,
+                assets: [],
+                skipped,
+                failure: 'none_valid',
+                exceededLimit,
+              });
+              return;
+            }
+
+            resolve({
+              cancelled: false,
+              assets: [firstAsset, ...restAssets],
+              skipped,
+              exceededLimit,
+            });
+            return;
+          }
+
           try {
             const previewAssets = await Promise.all(payload.assets.map((asset) => getPreviewImageAsset(asset)));
             const [firstAsset, ...restAssets] = previewAssets;
@@ -385,6 +432,7 @@ function useImagePicker() {
           allowsMultipleSelection: params?.allowsMultipleSelection,
           orderedSelection: params?.orderedSelection,
           selectionLimit: params?.selectionLimit,
+          skipUpload: params?.skipUpload,
         });
       });
     },

@@ -35,17 +35,26 @@ type PickImageParams = {
    * 선택 가능한 최대 개수 (0 = 무제한, 다중 선택 시)
    */
   selectionLimit?: number;
+  /**
+   * true면 S3 업로드 없이 로컬 메타만 반환 (도메인별 presigned 업로드용)
+   */
+  skipUpload?: boolean;
 }
 
 interface ImageAsset  {
   /**
-   * 업로드된 이미지 pre-signed URL
+   * 업로드된 이미지 pre-signed URL (skipUpload면 local uri/objectURL)
    */
   preSignedUrl: string; 
   /**
-   * 업로드된 이미지 키
+   * 업로드된 이미지 키 (skipUpload면 빈 문자열)
    */
   key: string;
+  /** skipUpload 시 로컬 파일 URI (네이티브) */
+  uri?: string;
+  fileName?: string;
+  mimeType?: string;
+  fileSize?: number;
 };
 
 /** 업로드에서 제외된 사유별 개수 */
@@ -90,6 +99,18 @@ interface SaveImageToGalleryResult {
   saved: boolean;
 }
 
+interface PutFileToPresignedUrlParams {
+  /** 로컬 파일 URI */
+  uri: string;
+  /** S3 PUT presigned URL */
+  uploadUrl: string;
+  contentType?: string;
+}
+
+interface PutFileToPresignedUrlResult {
+  ok: boolean;
+}
+
 export type {
   PickImageParams,
   ImageAsset,
@@ -98,5 +119,7 @@ export type {
   PickImageFailureReason,
   SaveImageToGalleryParams,
   SaveImageToGalleryResult,
+  PutFileToPresignedUrlParams,
+  PutFileToPresignedUrlResult,
 };
 

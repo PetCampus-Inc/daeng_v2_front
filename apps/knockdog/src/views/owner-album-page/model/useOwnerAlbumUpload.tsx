@@ -1,12 +1,23 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+
+import {
+  ownerAlbumPhotosQueryKey,
+  useAlbumPhotoDeleteMutation,
+  useOwnerAlbumPhotosInfiniteQuery,
+  type OwnerAlbumPhotosCache,
+} from '@entities/owner-album';
+import { useUserStore } from '@entities/user';
+import { useOwnerRole } from '@features/role-conversion';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
+import { uploadOwnerAlbumPhotos } from '@views/owner-album-page/lib/uploadOwnerAlbumPhotos';
 import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPhoto';
 import { openOwnerAlbumAlert } from '@views/owner-album-page/ui/OwnerAlbumAlertDialog';
 
-import { useImagePicker } from '@shared/lib/media';
+import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
 function showMaxCountToast() {
@@ -38,13 +49,51 @@ function showUploadSuccessToast() {
 }
 
 function useOwnerAlbumUpload() {
+  const queryClient = useQueryClient();
+  const { schoolId } = useOwnerRole();
+  const userId = useUserStore((state) => state.user?.userId);
   const { pickImage } = useImagePicker();
-  const [photos, setPhotos] = useState<OwnerAlbumPhoto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const isUploadInFlightRef = useRef(false);
 
+  const photosQuery = useOwnerAlbumPhotosInfiniteQuery({
+    schoolId,
+    userId,
+    enabled: schoolId != null,
+  });
+
+  const deletePhotoMutation = useAlbumPhotoDeleteMutation({ schoolId, userId });
+
+  const photos = useMemo<OwnerAlbumPhoto[]>(() => {
+    const pages = photosQuery.data?.pages ?? [];
+    const flattened = pages.flatMap((page) => page.photos);
+    const uniqueById = new Map<string, OwnerAlbumPhoto>();
+
+    for (const photo of flattened) {
+      if (!uniqueById.has(photo.id)) {
+        uniqueById.set(photo.id, photo);
+      }
+    }
+
+    return Array.from(uniqueById.values());
+  }, [photosQuery.data?.pages]);
+
+  const invalidatePhotos = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ownerAlbumPhotosQueryKey(schoolId, userId),
+    });
+  }, [queryClient, schoolId, userId]);
+
   const handleUploadClick = useCallback(async () => {
     if (isUploadInFlightRef.current || isUploading) return;
+
+    if (schoolId == null) {
+      openOwnerAlbumAlert(
+        ownerAlbumContent.upload.networkFailedTitle,
+        ownerAlbumContent.upload.networkFailedDescription
+      );
+      return;
+    }
 
     isUploadInFlightRef.current = true;
 
@@ -56,11 +105,11 @@ function useOwnerAlbumUpload() {
           allowsMultipleSelection: true,
           orderedSelection: true,
           selectionLimit: ownerAlbumContent.maxSelectionCount,
+          skipUpload: true,
         },
         {
-          onUploading: () => {
-            setIsUploading(true);
-          },
+          // 네이티브 JPEG 캐시 변환 시작 시점에 업로드 모달 노출
+          onUploading: () => setIsUploading(true),
         }
       );
 
@@ -86,29 +135,40 @@ function useOwnerAlbumUpload() {
         return;
       }
 
-      const uploadedAt = Date.now();
-      // TODO: POST owner/album 배치 등록 API 연동 후 서버 목록으로 교체
-      setPhotos((prev) => [
-        ...result.assets.map((asset, index) => ({
-          id: `${asset.key}-${uploadedAt}-${index}`,
-          key: asset.key,
-          url: asset.preSignedUrl,
-          uploadedAt: uploadedAt - index,
-        })),
-        ...prev,
-      ]);
+      setIsUploading(true);
 
-      const skippedCount =
+      const uploadResult = await uploadOwnerAlbumPhotos({
+        schoolId,
+        assets: result.assets as WebImageAsset[],
+      });
+
+      if (uploadResult.uploaded.length > 0) {
+        await invalidatePhotos();
+      }
+
+      const pickSkippedCount =
         (result.skipped?.invalidSpecCount ?? 0) + (result.skipped?.unreadableCount ?? 0);
+      const commitExcludedCount = uploadResult.excludedCount + uploadResult.s3FailedCount;
+      const totalExcluded = pickSkippedCount + commitExcludedCount;
 
-      if (skippedCount > 0) {
+      if (uploadResult.uploaded.length === 0) {
+        openOwnerAlbumAlert(
+          ownerAlbumContent.upload.noneValidTitle,
+          ownerAlbumContent.upload.noneValidDescription
+        );
+        return;
+      }
+
+      if (totalExcluded > 0) {
         const description =
           (result.skipped?.invalidSpecCount ?? 0) > 0
             ? ownerAlbumContent.upload.partialInvalidSpecDescription
-            : ownerAlbumContent.upload.partialUnreadableDescription;
+            : commitExcludedCount > 0 && uploadResult.excludeReason
+              ? uploadResult.excludeReason
+              : ownerAlbumContent.upload.partialUnreadableDescription;
 
         openOwnerAlbumAlert(
-          ownerAlbumContent.upload.partialExcludedTitle(skippedCount),
+          ownerAlbumContent.upload.partialExcludedTitle(totalExcluded),
           description
         );
         return;
@@ -118,6 +178,15 @@ function useOwnerAlbumUpload() {
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
 
+      console.error('[owner-album] upload failed', error);
+      if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
+        console.error('[owner-album] api error detail', {
+          code: (error as { code: unknown }).code,
+          message: (error as { message: unknown }).message,
+          status: (error as { status?: unknown }).status,
+        });
+      }
+
       openOwnerAlbumAlert(
         ownerAlbumContent.upload.networkFailedTitle,
         ownerAlbumContent.upload.networkFailedDescription
@@ -126,16 +195,50 @@ function useOwnerAlbumUpload() {
       isUploadInFlightRef.current = false;
       setIsUploading(false);
     }
-  }, [isUploading, pickImage]);
+  }, [invalidatePhotos, isUploading, pickImage, schoolId]);
 
-  const removePhoto = useCallback((photoId: string) => {
-    setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
-  }, []);
+  const removePhoto = useCallback(
+    async (photoId: string) => {
+      if (schoolId == null) {
+        throw new Error('schoolId is required');
+      }
+
+      const queryKey = ownerAlbumPhotosQueryKey(schoolId, userId);
+      const previous = queryClient.getQueryData<OwnerAlbumPhotosCache>(queryKey);
+
+      queryClient.setQueryData<OwnerAlbumPhotosCache>(queryKey, (prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          pages: prev.pages.map((page) => ({
+            ...page,
+            photos: page.photos.filter((photo) => photo.id !== photoId),
+          })),
+        };
+      });
+
+      try {
+        await deletePhotoMutation.mutateAsync(photoId);
+      } catch (error) {
+        if (previous !== undefined) {
+          queryClient.setQueryData(queryKey, previous);
+        }
+        await invalidatePhotos();
+        throw error;
+      }
+    },
+    [deletePhotoMutation, invalidatePhotos, queryClient, schoolId, userId]
+  );
 
   return {
     photos,
     hasPhotos: photos.length > 0,
     isUploading,
+    isPhotosLoading: photosQuery.isLoading,
+    hasNextPage: photosQuery.hasNextPage,
+    isFetchingNextPage: photosQuery.isFetchingNextPage,
+    fetchNextPage: photosQuery.fetchNextPage,
     handleUploadClick,
     removePhoto,
   };

@@ -1,7 +1,11 @@
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
-import { METHODS, type SaveImageToGalleryParams } from '@knockdog/bridge-core';
+import {
+  METHODS,
+  type PutFileToPresignedUrlParams,
+  type SaveImageToGalleryParams,
+} from '@knockdog/bridge-core';
 
 function getExtensionFromUrl(url: string) {
   try {
@@ -47,7 +51,7 @@ function assertDownloadableImageUrl(url: string) {
 }
 
 /**
- * 갤러리 저장 핸들러
+ * 갤러리 저장 + presigned PUT 핸들러
  */
 export function registerMediaHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.saveImageToGallery, async (params: SaveImageToGalleryParams) => {
@@ -88,6 +92,72 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
       throw { code: 'EUNAVAILABLE', message: '사진을 갤러리에 저장하지 못했습니다.' };
     } finally {
       await FileSystem.deleteAsync(localUri, { idempotent: true }).catch(() => undefined);
+    }
+  });
+
+  router.register(METHODS.putFileToPresignedUrl, async (params: PutFileToPresignedUrlParams) => {
+    const { uri, uploadUrl, contentType } = params;
+
+    if (!uri || !uploadUrl) {
+      throw { code: 'EINVALID', message: '업로드 대상이 유효하지 않습니다.' };
+    }
+
+    let localUri = uri;
+    let shouldCleanup = false;
+
+    try {
+      // Android content:// 직접 uploadAsync → 프로세스 크래시 가능. file://로 복사 후 PUT
+      if (!uri.startsWith('file://')) {
+        const cacheDir = FileSystem.cacheDirectory;
+        if (!cacheDir) {
+          throw { code: 'EUNAVAILABLE', message: '임시 저장 공간을 사용할 수 없습니다.' };
+        }
+
+        const tempDir = `${cacheDir}album-put/`;
+        await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
+        localUri = `${tempDir}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.bin`;
+        await FileSystem.copyAsync({ from: uri, to: localUri });
+        shouldCleanup = true;
+      }
+
+      const info = await FileSystem.getInfoAsync(localUri);
+      if (!info.exists) {
+        throw { code: 'EINVALID', message: '업로드할 파일을 찾을 수 없습니다.' };
+      }
+
+      // Content-Type 누락 시 S3가 application/octet-stream으로 저장 → commit 검증 실패
+      const resolvedContentType =
+        contentType && contentType.trim().length > 0 ? contentType.trim() : 'image/jpeg';
+
+      const uploadResult = await FileSystem.uploadAsync(uploadUrl, localUri, {
+        httpMethod: 'PUT',
+        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+        headers: {
+          'Content-Type': resolvedContentType,
+        },
+      });
+
+      if (uploadResult.status < 200 || uploadResult.status >= 300) {
+        console.error('[APP] putFileToPresignedUrl status', {
+          status: uploadResult.status,
+          body: uploadResult.body?.slice?.(0, 200),
+          contentType: resolvedContentType,
+        });
+        throw { code: 'EUNAVAILABLE', message: `S3 업로드 실패 (status: ${uploadResult.status})` };
+      }
+
+      return { ok: true };
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        throw error;
+      }
+
+      console.error('[APP] putFileToPresignedUrl error', error);
+      throw { code: 'EUNAVAILABLE', message: 'S3 업로드에 실패했습니다.' };
+    } finally {
+      if (shouldCleanup) {
+        await FileSystem.deleteAsync(localUri, { idempotent: true }).catch(() => undefined);
+      }
     }
   });
 }

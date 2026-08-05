@@ -36,6 +36,7 @@ const METHODS = {
 
   // media
   saveImageToGallery: 'media.saveImageToGallery',
+  putFileToPresignedUrl: 'media.putFileToPresignedUrl',
 
   // auth
   kakaoLogin: 'auth.kakaoLogin',

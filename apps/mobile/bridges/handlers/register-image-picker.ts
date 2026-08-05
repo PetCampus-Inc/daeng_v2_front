@@ -79,6 +79,25 @@ async function compressForUpload(asset: ImagePicker.ImagePickerAsset) {
   };
 }
 
+/** skipUpload용 — content:// 원본 직접 PUT 시 Android 네이티브 크래시 방지 */
+async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset) {
+  const compressed = await compressForUpload(asset);
+  const info = await FileSystem.getInfoAsync(compressed.uri, { size: true });
+  const fileSize = info.exists && typeof info.size === 'number' ? info.size : undefined;
+
+  const originalName = asset.fileName ?? `album-${Date.now()}.jpg`;
+  const baseName = originalName.replace(/\.[^.]+$/, '') || `album-${Date.now()}`;
+
+  return {
+    key: '',
+    preSignedUrl: compressed.uri,
+    uri: compressed.uri,
+    fileName: `${baseName}.jpg`,
+    mimeType: 'image/jpeg' as const,
+    fileSize,
+  };
+}
+
 async function uploadToS3(preSignedUrl: string, asset: ImagePicker.ImagePickerAsset) {
   const uploadAsset = await compressForUpload(asset);
 
@@ -111,6 +130,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       allowsMultipleSelection,
       orderedSelection,
       selectionLimit,
+      skipUpload = false,
     } = payload;
 
     try {
@@ -168,12 +188,20 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       const exceededLimit = allowsMultipleSelection === true && pickedAssets.length > maxSelection;
       const assetsToUpload = exceededLimit ? pickedAssets.slice(0, maxSelection) : pickedAssets;
 
+      // skipUpload도 JPEG 캐시 변환이 있어 uploading 이벤트로 로딩 UX 노출
       sendEvent('media.pickImage.uploading', {
         requestId,
         count: assetsToUpload.length,
       });
 
-      const uploadedAssets: Array<{ key: string; preSignedUrl: string }> = [];
+      const uploadedAssets: Array<{
+        key: string;
+        preSignedUrl: string;
+        uri?: string;
+        fileName?: string;
+        mimeType?: string;
+        fileSize?: number;
+      }> = [];
       let invalidSpecCount = 0;
       let unreadableCount = 0;
       let hasNetworkError = false;
@@ -190,6 +218,16 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         }
 
         try {
+          if (skipUpload) {
+            const prepared = await prepareSkipUploadAsset(pickedAsset);
+            if (!prepared.fileSize || prepared.fileSize <= 0) {
+              unreadableCount += 1;
+              continue;
+            }
+            uploadedAssets.push(prepared);
+            continue;
+          }
+
           const { key, preSignedUrl } = await uploadImage();
           await uploadToS3(preSignedUrl, pickedAsset);
           uploadedAssets.push({ key, preSignedUrl });

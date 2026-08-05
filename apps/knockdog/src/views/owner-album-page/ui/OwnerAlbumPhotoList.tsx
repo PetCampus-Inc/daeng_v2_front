@@ -3,15 +3,31 @@
 import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPhoto';
 import { groupAlbumPhotosByDate } from '@views/owner-album-page/lib/groupAlbumPhotosByDate';
 
+import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
+
 const PREVIEW_LIMIT = 6;
 
 interface OwnerAlbumPhotoListProps {
   photos: OwnerAlbumPhoto[];
   onPhotoClick: (photoId: string) => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  fetchNextPage?: () => void;
 }
 
-function OwnerAlbumPhotoList({ photos, onPhotoClick }: OwnerAlbumPhotoListProps) {
+function OwnerAlbumPhotoList({
+  photos,
+  onPhotoClick,
+  hasNextPage = false,
+  isFetchingNextPage = false,
+  fetchNextPage = () => undefined,
+}: OwnerAlbumPhotoListProps) {
   const groups = groupAlbumPhotosByDate(photos);
+  const { lastElementCallback } = useInfiniteScroll({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
   return (
     <div className='bg-bg-50 min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
@@ -48,6 +64,7 @@ function OwnerAlbumPhotoList({ photos, onPhotoClick }: OwnerAlbumPhotoListProps)
             </section>
           );
         })}
+        <div ref={lastElementCallback} aria-hidden='true' className='h-4' />
       </div>
     </div>
   );
