@@ -70,7 +70,7 @@ function OwnerMembersList({
         <OwnerMemberCard
           key={member.id}
           member={member}
-          onClick={() => {
+          onClick={async () => {
             if (!member.petId) {
               toast({
                 nativeTitle: '원생 프로필을 열 수 없어요',
@@ -79,9 +79,23 @@ function OwnerMembersList({
               return;
             }
 
-            push({
-              pathname: route.owner.members.detail.root.replace('[id]', member.petId),
-            });
+            try {
+              await push({
+                pathname: route.owner.members.detail.root.replace('[id]', member.petId),
+              });
+            } catch (error) {
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[OwnerMembersList] failed to open member profile', {
+                  memberId: member.id,
+                  petId: member.petId,
+                  error,
+                });
+              }
+              toast({
+                nativeTitle: '원생 프로필을 열 수 없어요',
+                title: '원생 프로필을 열 수 없어요',
+              });
+            }
           }}
           rightAddon={
             <OwnerMemberMoreMenu

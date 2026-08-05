@@ -19,7 +19,7 @@ function OwnerMemberCard({ member, rightAddon, onClick }: OwnerMemberCardProps) 
     <div
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className='border-line-100 p-x4 gap-x2 flex h-[84px] w-full items-center border-b'
+      className={`border-line-100 p-x4 gap-x2 flex h-[84px] w-full items-center border-b ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
       onKeyDown={(event) => {
         if (!onClick) return;

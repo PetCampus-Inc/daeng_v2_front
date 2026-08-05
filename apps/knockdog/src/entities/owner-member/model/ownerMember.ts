@@ -12,7 +12,6 @@ interface OwnerMemberDto {
   memberId?: number | string;
   requestId?: number | string;
   petId?: number | string | null;
-  dogId?: number | string | null;
   dogName: string;
   guardianName: string;
   profileImageUrl: string | null;
@@ -40,8 +39,7 @@ interface OwnerPendingMembersDto {
 
 function toOwnerMember(member: OwnerMemberDto): OwnerMember {
   const fallbackId = `${member.dogName}-${member.guardianName}`;
-  const rawPetId = member.petId ?? member.dogId;
-  const petId = rawPetId === null || rawPetId === undefined ? null : String(rawPetId);
+  const petId = member.petId == null ? null : String(member.petId);
 
   return {
     id: String(member.memberId ?? member.requestId ?? member.id ?? petId ?? fallbackId),
