@@ -12,4 +12,10 @@ export {
   usePetUpdateRepresentativeMutation,
   usePetRemoveMutation,
 } from './api/usePetMutation';
-export { usePetListQuery, usePetByIdQuery, usePetRepresentativeQuery } from './api/usePetQuery';
+export {
+  PET_LIST_QUERY_KEY,
+  petListQueryKey,
+  usePetListQuery,
+  usePetByIdQuery,
+  usePetRepresentativeQuery,
+} from './api/usePetQuery';

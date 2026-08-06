@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { postRegisterPet, postUpdatePetDetail, postUpdatePetRepresentative, postRemovePet } from './pet';
+import { PET_LIST_QUERY_KEY } from './usePetQuery';
 
 const usePetRegisterMutation = () => {
   const queryClient = useQueryClient();
@@ -7,7 +9,7 @@ const usePetRegisterMutation = () => {
   return useMutation({
     mutationFn: postRegisterPet,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petList'] });
+      queryClient.invalidateQueries({ queryKey: [PET_LIST_QUERY_KEY] });
     },
   });
 };
@@ -18,7 +20,7 @@ const usePetUpdateDetailMutation = () => {
   return useMutation({
     mutationFn: postUpdatePetDetail,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petList'] });
+      queryClient.invalidateQueries({ queryKey: [PET_LIST_QUERY_KEY] });
     },
   });
 };
@@ -29,7 +31,7 @@ const usePetUpdateRepresentativeMutation = () => {
   return useMutation({
     mutationFn: postUpdatePetRepresentative,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petList'] });
+      queryClient.invalidateQueries({ queryKey: [PET_LIST_QUERY_KEY] });
     },
   });
 };
@@ -40,7 +42,7 @@ const usePetRemoveMutation = () => {
   return useMutation({
     mutationFn: postRemovePet,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petList'] });
+      queryClient.invalidateQueries({ queryKey: [PET_LIST_QUERY_KEY] });
     },
   });
 };
