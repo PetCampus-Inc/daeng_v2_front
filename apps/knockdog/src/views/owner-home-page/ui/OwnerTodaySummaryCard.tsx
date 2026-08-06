@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage, Divider, Icon } from '@knockdog/ui';
 
-import type { OwnerHomeFriend } from '@views/owner-home-page/model/ownerHome';
+import type { OwnerHomePetPreview } from '@views/owner-home-page/model/ownerHome';
 
 interface OwnerTodaySummaryCardProps {
   dateLabel: string;
@@ -10,7 +10,7 @@ interface OwnerTodaySummaryCardProps {
   enrolledCount: number;
   arrivalCount: number;
   departureCount: number;
-  friends: OwnerHomeFriend[];
+  friends: OwnerHomePetPreview[];
   extraFriendCount: number;
   onFriendPreviewClick: () => void;
 }
@@ -115,7 +115,7 @@ function OwnerFriendPreview({
   onClick,
 }: {
   enrolledCount: number;
-  friends: OwnerHomeFriend[];
+  friends: OwnerHomePetPreview[];
   extraCount: number;
   onClick: () => void;
 }) {

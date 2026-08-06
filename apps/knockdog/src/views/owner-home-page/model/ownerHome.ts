@@ -1,4 +1,4 @@
-interface OwnerHomeFriend {
+interface OwnerHomePetPreview {
   id: string;
   name: string;
   profileImageUrl?: string;
@@ -10,7 +10,7 @@ interface OwnerHomeData {
     enrolledCount: number;
     arrivalCount: number;
     departureCount: number;
-    friends: OwnerHomeFriend[];
+    friends: OwnerHomePetPreview[];
     extraFriendCount: number;
   };
   noticebook: {
@@ -20,4 +20,4 @@ interface OwnerHomeData {
   };
 }
 
-export type { OwnerHomeData, OwnerHomeFriend };
+export type { OwnerHomeData, OwnerHomePetPreview };

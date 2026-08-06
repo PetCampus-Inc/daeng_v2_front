@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ownerHomeMock } from '@views/owner-home-page/model/ownerHomeMock';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import {
   formatKstDateLabel,
   formatKstDayLabel,
@@ -9,8 +9,10 @@ import {
 } from '@views/owner-home-page/model/ownerHomeDate';
 
 import { useOwnerRole } from '@features/role-conversion';
-import { useOwnerPendingMembersQuery } from '@entities/owner-member';
+
+import { PET_PREVIEW_LIMIT, useOwnerHomeQuery } from '@entities/owner-home';
 import { useUserStore } from '@entities/user';
+
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
@@ -19,7 +21,6 @@ const SCHOOL_NAME_MAX_LENGTH = 15;
 interface ApprovalBannerDismissal {
   count: number;
   isError: boolean;
-  memberKey: string | null;
 }
 
 function formatSchoolName(name: string) {
@@ -34,34 +35,58 @@ function useOwnerHomePage() {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved, kindergarten } = useOwnerRole();
-  const schoolName = kindergarten?.name ?? '';
-  const { today, noticebook } = ownerHomeMock;
-  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState<ApprovalBannerDismissal | null>(null);
+  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState<ApprovalBannerDismissal | null>(
+    null
+  );
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date());
+
   const {
-    data: pendingMembers,
-    isError: isPendingMembersError,
-    refetch: refetchPendingMembers,
-  } = useOwnerPendingMembersQuery({
+    data: ownerHome,
+    isError: isOwnerHomeError,
+    refetch: refetchOwnerHome,
+  } = useOwnerHomeQuery({
     userId,
     enabled: isResolved && isOwner,
   });
 
+  const schoolName = ownerHome?.school.name || kindergarten?.name || '';
+
   const approval = {
-    isError: isPendingMembersError,
-    pendingCount: pendingMembers?.totalMemberCount ?? 0,
+    isError: isOwnerHomeError,
+    pendingCount: ownerHome?.pendingApprovalsCount ?? 0,
   };
 
-  const pendingMemberIds = pendingMembers?.members.map((member) => member.id).sort() ?? [];
-  const approvalMemberKey = pendingMemberIds.length > 0 ? pendingMemberIds.join('|') : null;
   const isSameDismissedApprovalBanner =
     dismissedApprovalBanner?.isError === approval.isError &&
-    dismissedApprovalBanner.count === approval.pendingCount &&
-    (dismissedApprovalBanner.memberKey == null ||
-      approvalMemberKey == null ||
-      dismissedApprovalBanner.memberKey === approvalMemberKey);
+    dismissedApprovalBanner.count === approval.pendingCount;
   const shouldShowApprovalBanner =
     (approval.isError || approval.pendingCount > 0) && !isSameDismissedApprovalBanner;
+
+  const today = useMemo(() => {
+    const friends = ownerHome?.currentlyInPetsPreview.items ?? [];
+    const totalCount =
+      ownerHome?.currentlyInPetsPreview.totalCount ??
+      ownerHome?.operationStatus.currentlyInCount ??
+      0;
+
+    return {
+      isError: isOwnerHomeError,
+      enrolledCount: ownerHome?.operationStatus.currentlyInCount ?? 0,
+      arrivalCount: ownerHome?.operationStatus.checkedInCount ?? 0,
+      departureCount: ownerHome?.operationStatus.checkedOutCount ?? 0,
+      friends,
+      extraFriendCount: Math.max(0, totalCount - Math.min(friends.length, PET_PREVIEW_LIMIT)),
+      currentTimeLabel: formatKstTimeLabel(lastRefreshedAt),
+      dateLabel: formatKstDateLabel(lastRefreshedAt),
+      dayLabel: formatKstDayLabel(lastRefreshedAt),
+    };
+  }, [isOwnerHomeError, lastRefreshedAt, ownerHome]);
+
+  const noticebook = {
+    isError: isOwnerHomeError,
+    pendingCount: ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0,
+    sentCount: ownerHome?.operationStatus.sentAttendanceRecordCount ?? 0,
+  };
 
   const handleApprovalBannerClick = () => {
     if (approval.isError) return;
@@ -77,7 +102,6 @@ function useOwnerHomePage() {
     setDismissedApprovalBanner({
       count: approval.pendingCount,
       isError: approval.isError,
-      memberKey: approvalMemberKey,
     });
   };
 
@@ -87,11 +111,10 @@ function useOwnerHomePage() {
       return;
     }
 
-    // TODO: 오늘 요약/알림장 API가 추가되면 여기에서 함께 refetch
-    refetchPendingMembers().finally(() => {
+    refetchOwnerHome().finally(() => {
       setLastRefreshedAt(new Date());
     });
-  }, [isOwner, isResolved, refetchPendingMembers]);
+  }, [isOwner, isResolved, refetchOwnerHome]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -123,12 +146,7 @@ function useOwnerHomePage() {
     handleRefresh,
     noticebook,
     shouldShowApprovalBanner,
-    today: {
-      ...today,
-      currentTimeLabel: formatKstTimeLabel(lastRefreshedAt),
-      dateLabel: formatKstDateLabel(lastRefreshedAt),
-      dayLabel: formatKstDayLabel(lastRefreshedAt),
-    },
+    today,
   };
 }
 
