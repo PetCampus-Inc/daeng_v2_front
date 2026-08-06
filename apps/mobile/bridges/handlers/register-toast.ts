@@ -9,6 +9,7 @@ function registerToastHandlers(router: NativeBridgeRouter) {
       toast({
         id: p.id,
         title: p.title,
+        titleParts: p.titleParts,
         description: p.description,
         duration: p.duration,
         position: p.position,

@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
-import { OWNER_DAILY_DATE_LABEL, type AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
+import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
@@ -24,6 +24,7 @@ function OwnerDailyPage() {
     canOpenCancelCheckInDialog,
     cancelCheckOut,
     cancelCheckIn,
+    dateLabel,
     handleCheckFilterClick,
     handleCheckIn,
     handleCheckOut,
@@ -33,6 +34,10 @@ function OwnerDailyPage() {
     handleNoticebookButtonClick,
     handleSearchKeywordChange,
     hasConnectedMembers,
+    isError,
+    isLoading,
+    isTodayError,
+    isTodayLoading,
     normalizedSearchKeyword,
     searchKeyword,
     showUncheckedOnly,
@@ -108,48 +113,61 @@ function OwnerDailyPage() {
         </Header>
       </div>
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
-        <OwnerDailySummarySection dateLabel={OWNER_DAILY_DATE_LABEL} summaryItems={summaryItems} />
-        <Tabs
-          value={selectedTab}
-          className='flex min-h-0 flex-1 flex-col'
-          onValueChange={handleTabValueChange}
-        >
-          <TabsList>
-            <TabsTrigger value='attendance-check'>등원 처리</TabsTrigger>
-            <TabsTrigger value='today-attendance'>오늘 등원</TabsTrigger>
-          </TabsList>
-          <TabsContent
-            ref={attendanceCheckContentRef}
-            value='attendance-check'
-            className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+        <OwnerDailySummarySection dateLabel={dateLabel} summaryItems={summaryItems} />
+        {isLoading ? (
+          <div className='bg-bg-50 min-h-0 flex-1' />
+        ) : isError ? (
+          <div className='bg-bg-50 flex min-h-0 flex-1 items-center justify-center px-4 pb-(--bottom-bar-height)'>
+            <div className='flex flex-col items-center gap-1 text-center'>
+              <p className='h2-extrabold text-text-primary'>일과 정보를 불러오지 못했어요</p>
+              <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
+            </div>
+          </div>
+        ) : (
+          <Tabs
+            value={selectedTab}
+            className='flex min-h-0 flex-1 flex-col'
+            onValueChange={handleTabValueChange}
           >
-            <OwnerDailyTabContent
-              items={attendanceCheckMembers}
-              hasConnectedMembers={hasConnectedMembers}
-              normalizedSearchKeyword={normalizedSearchKeyword}
-              searchKeyword={searchKeyword}
-              showBeforeFilter={showUncheckedOnly}
-              onBeforeFilterClick={handleCheckFilterClick}
-              onSearchKeywordChange={handleSearchKeywordChange}
-              onClearSearchKeyword={handleClearSearchKeyword}
-              onInviteGuardianClick={handleInviteGuardianClick}
-              onMemberClick={handleMemberClick}
-              onAttendanceButtonClick={handleAttendanceButtonClick}
-            />
-          </TabsContent>
-          <TabsContent
-            ref={todayAttendanceContentRef}
-            value='today-attendance'
-            className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
-          >
-            <TodayAttendanceTab
-              items={todayAttendanceMembers}
-              onCheckOutButtonClick={handleCheckOutButtonClick}
-              onMemberClick={handleMemberClick}
-              onNoticebookButtonClick={handleNoticebookButtonClick}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsList>
+              <TabsTrigger value='attendance-check'>등원 처리</TabsTrigger>
+              <TabsTrigger value='today-attendance'>오늘 등원</TabsTrigger>
+            </TabsList>
+            <TabsContent
+              ref={attendanceCheckContentRef}
+              value='attendance-check'
+              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+            >
+              <OwnerDailyTabContent
+                items={attendanceCheckMembers}
+                hasConnectedMembers={hasConnectedMembers}
+                normalizedSearchKeyword={normalizedSearchKeyword}
+                searchKeyword={searchKeyword}
+                showBeforeFilter={showUncheckedOnly}
+                onBeforeFilterClick={handleCheckFilterClick}
+                onSearchKeywordChange={handleSearchKeywordChange}
+                onClearSearchKeyword={handleClearSearchKeyword}
+                onInviteGuardianClick={handleInviteGuardianClick}
+                onMemberClick={handleMemberClick}
+                onAttendanceButtonClick={handleAttendanceButtonClick}
+              />
+            </TabsContent>
+            <TabsContent
+              ref={todayAttendanceContentRef}
+              value='today-attendance'
+              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+            >
+              <TodayAttendanceTab
+                items={todayAttendanceMembers}
+                isLoading={isTodayLoading}
+                isError={isTodayError}
+                onCheckOutButtonClick={handleCheckOutButtonClick}
+                onMemberClick={handleMemberClick}
+                onNoticebookButtonClick={handleNoticebookButtonClick}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </main>
       <Float
         placement='bottom-end'

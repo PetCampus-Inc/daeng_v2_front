@@ -44,10 +44,21 @@ function TodayAttendanceCard({
             <div className='flex h-11 flex-col items-start'>
               <div className='flex h-6 min-w-0 items-center gap-1'>
                 <span className='body1-extrabold text-text-primary flex h-6 items-center truncate'>{member.name}</span>
-                <Icon icon={member.gender === 'MALE' ? 'Male' : 'Female'} className='text-text-accent size-4 shrink-0' />
+                {member.gender ? (
+                  <Icon
+                    icon={member.gender === 'MALE' ? 'Male' : 'Female'}
+                    className='text-text-accent size-4 shrink-0'
+                  />
+                ) : null}
               </div>
               <span className='body2-regular text-text-secondary flex h-5 items-center truncate'>
-                {member.breed} · {member.weightKg}kg{member.age ? ` · ${member.age}살` : ''}
+                {[
+                  member.breed,
+                  member.weightKg != null ? `${member.weightKg}kg` : null,
+                  member.age ? `${member.age}살` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </span>
             </div>
           </div>

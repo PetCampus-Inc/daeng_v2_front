@@ -9,7 +9,15 @@ export type { BridgeEventMap } from './events';
 export { LOCATION_ERROR_CODES } from './domains/location';
 export type { CallPhoneResult } from './domains/system';
 export type { ShareParams } from './domains/system';
-export type { ToastShowParams, ToastDismissParams, ToastClearParams, ToastShape, ToastPosition, ToastType } from './domains/toast';
+export type {
+  ToastShowParams,
+  ToastDismissParams,
+  ToastClearParams,
+  ToastShape,
+  ToastPosition,
+  ToastType,
+  ToastTitlePart,
+} from './domains/toast';
 export type { SafeAreaInsets } from './domains/safe-area';
 export type { Accuracy, Location, PermissionStatus } from './domains/location';
 export type {
