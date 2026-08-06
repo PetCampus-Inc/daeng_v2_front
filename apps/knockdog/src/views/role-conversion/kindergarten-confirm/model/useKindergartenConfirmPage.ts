@@ -155,8 +155,7 @@ function useKindergartenConfirmPage() {
       return;
     }
 
-    // placeId Number 변환 실패 등으로 request를 만들 수 없으면
-    // saveSession 없이 다음 단계로 보내지 않음
+    // select/manual request를 만들 수 없으면 saveSession 없이 다음 단계로 보내지 않음
     toast({
       title: '유치원 정보가 올바르지 않습니다. 다시 선택해 주세요.',
       shape: 'square',
