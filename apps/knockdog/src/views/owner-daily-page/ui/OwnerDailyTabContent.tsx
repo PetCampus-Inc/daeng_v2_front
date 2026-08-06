@@ -48,7 +48,7 @@ function OwnerDailyTabContent({
             type='search'
             value={searchKeyword}
             onChange={onSearchKeywordChange}
-            placeholder='강아지명, 보호자명을 검색해 보세요'
+            placeholder='이름 혹은 견종을 입력해 주세요'
             aria-label='검색어 입력'
           />
           {searchKeyword && (
