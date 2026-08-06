@@ -15,6 +15,8 @@ function registerToastHandlers(router: NativeBridgeRouter) {
         position: p.position,
         shape: p.shape,
         type: p.type,
+        icon: p.icon,
+        iconAccent: p.iconAccent,
       });
     });
   } catch (error) {

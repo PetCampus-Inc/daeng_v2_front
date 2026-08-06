@@ -55,6 +55,8 @@ function OwnerDailyNoticeTemplatePage() {
     if (templates.length >= MAX_TEMPLATE_COUNT) {
       toast({
         nativeTitle: '템플릿은 최대 10개까지 저장할 수 있어요',
+        icon: 'info',
+        iconAccent: true,
         title: (
           <div className='flex items-center gap-1'>
             <Icon icon='InfoLine' className='text-text-accent size-5 shrink-0' />

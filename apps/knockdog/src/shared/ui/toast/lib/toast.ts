@@ -19,6 +19,8 @@ function isToastOptions(value: unknown): value is ToastOptions {
     ('title' in value ||
       'nativeTitle' in value ||
       'titleParts' in value ||
+      'icon' in value ||
+      'iconAccent' in value ||
       'description' in value ||
       'duration' in value ||
       'position' in value ||
@@ -58,6 +60,8 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
         position: resolvedOptions.position,
         shape: resolvedOptions.shape,
         type: resolvedOptions.type,
+        icon: resolvedOptions.icon,
+        iconAccent: resolvedOptions.iconAccent,
       };
       bridge.request(METHODS.toastShow, params).catch((error) => {
         console.error('[toast] Bridge request failed:', error);

@@ -1,4 +1,10 @@
-import type { ToastShape, ToastPosition, ToastType, ToastTitlePart } from '@knockdog/bridge-core';
+import type {
+  ToastShape,
+  ToastPosition,
+  ToastType,
+  ToastTitlePart,
+  ToastIcon,
+} from '@knockdog/bridge-core';
 import type { ReactNode } from 'react';
 import type { ToastStore } from './store';
 
@@ -37,6 +43,10 @@ export type ToastOptions = {
   className?: string;
   shape?: ToastShape;
   type?: ToastType;
+  /** 네이티브 선행 아이콘 (웹 InfoLine 대응) */
+  icon?: ToastIcon;
+  /** true면 네이티브 아이콘을 text-accent로 렌더 */
+  iconAccent?: boolean;
   position?: ToastPosition;
   viewportClassName?: string;
   onOpen?: () => void;

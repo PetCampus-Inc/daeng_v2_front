@@ -4,6 +4,7 @@ export type {
   ToastPosition,
   ToastType,
   ToastTitlePart,
+  ToastIcon,
   ToastShowParams,
   ToastDismissParams,
   ToastClearParams,

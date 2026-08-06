@@ -137,6 +137,13 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
           <Pressable onPress={() => onDismiss(itemId)} accessibilityRole='alert'>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
               {item.type === 'success' && <Ionicons name='checkmark-sharp' size={25} color={tokens.colors.fg} />}
+              {item.icon === 'info' && (
+                <Ionicons
+                  name='information-circle-outline'
+                  size={20}
+                  color={item.iconAccent ? tokens.colors.accent : tokens.colors.fg}
+                />
+              )}
               <View style={{ flex: 1 }}>
                 {(!!item.titleParts?.length || !!item.title) && (
                   <Text style={{ color: tokens.colors.fg, fontWeight: '500', marginBottom: item.description ? 4 : 0 }}>

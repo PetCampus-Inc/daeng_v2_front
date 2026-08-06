@@ -23,6 +23,11 @@ import { toast } from '@shared/ui/toast';
 function showMaxCountToast() {
   toast({
     nativeTitle: ownerAlbumContent.upload.maxCountToast.nativeTitle,
+    titleParts: [
+      { text: '사진은 한 번에 최대 ' },
+      { text: `${ownerAlbumContent.maxSelectionCount}장`, accent: true },
+      { text: '까지 올릴 수 있어요' },
+    ],
     title: (
       <>
         <span className='text-text-primary-inverse'>사진은 한 번에 최대 </span>
@@ -38,6 +43,10 @@ function showUploadSuccessToast() {
   toast({
     type: 'success',
     nativeTitle: ownerAlbumContent.uploadSuccessToast.nativeTitle,
+    titleParts: [
+      { text: '사진', accent: true },
+      { text: '을 올렸어요' },
+    ],
     title: (
       <>
         <span className='text-text-accent'>사진</span>

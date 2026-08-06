@@ -1,6 +1,7 @@
 type ToastShape = 'rounded' | 'square';
 type ToastPosition = 'top' | 'bottom' | 'bottom-above-nav';
 type ToastType = 'default' | 'success';
+type ToastIcon = 'info';
 
 type ToastTitlePart = {
   text: string;
@@ -18,6 +19,10 @@ type ToastShowParams = {
   position?: ToastPosition;
   shape?: ToastShape;
   type?: ToastType;
+  /** 네이티브 선행 아이콘 (웹 InfoLine 대응) */
+  icon?: ToastIcon;
+  /** true면 아이콘을 text-accent(#ff6e0c)로 렌더 */
+  iconAccent?: boolean;
 };
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};
@@ -30,4 +35,5 @@ export type {
   ToastPosition,
   ToastType,
   ToastTitlePart,
+  ToastIcon,
 };

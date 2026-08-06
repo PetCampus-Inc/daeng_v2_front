@@ -389,6 +389,10 @@ function OwnerDailyNoticeWritePage() {
       saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
       toast({
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
+        titleParts: [
+          { text: '작성 중인 알림장', accent: true },
+          { text: '을 임시저장했어요' },
+        ],
         title: (
           <>
             <span className='text-text-accent'>작성 중인 알림장</span>
@@ -399,6 +403,10 @@ function OwnerDailyNoticeWritePage() {
     } catch {
       toast({
         nativeTitle: '임시저장하지 못했어요. 다시 시도해 주세요',
+        titleParts: [
+          { text: '임시저장', accent: true },
+          { text: '하지 못했어요. 다시 시도해 주세요' },
+        ],
         title: (
           <>
             <span className='text-text-accent'>임시저장</span>
@@ -453,6 +461,10 @@ function OwnerDailyNoticeWritePage() {
 
       toast({
         nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
+        titleParts: [
+          { text: '알림장', accent: true },
+          { text: '을 보냈어요. 오늘까지 수정할 수 있어요' },
+        ],
         title: (
           <>
             <span className='text-text-accent'>알림장</span>

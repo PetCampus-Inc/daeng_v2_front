@@ -46,6 +46,10 @@ function useOwnerMemberProfilePage() {
       shape: 'rounded',
       position: 'bottom',
       nativeTitle: `${label}${ownerMemberProfileContent.copyToastSuffix}`,
+      titleParts: [
+        { text: label, accent: true },
+        { text: ownerMemberProfileContent.copyToastSuffix },
+      ],
       title: (
         <>
           <span className='body1-bold text-text-accent'>{label}</span>
