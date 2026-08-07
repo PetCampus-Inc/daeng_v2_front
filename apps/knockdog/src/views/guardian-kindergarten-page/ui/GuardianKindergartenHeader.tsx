@@ -1,14 +1,17 @@
 'use client';
 
 import { Icon } from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
 
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { guardianKindergartenEmptyContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenEmptyContent';
 import { guardianKindergartenPendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenPendingContent';
 import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 
-import { usePetRepresentativeQuery } from '@entities/pet';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
+
+import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
 
 interface GuardianKindergartenHeaderProps {
   status: GuardianKindergartenConnectionStatus;
@@ -21,15 +24,29 @@ function getHeaderStatus(status: GuardianKindergartenConnectionStatus) {
 }
 
 function GuardianKindergartenHeader({ status }: GuardianKindergartenHeaderProps) {
-  const { data: representativePet } = usePetRepresentativeQuery();
+  const { pets, selectedPet, selectedPetId, setSelectedPetId, getPetConnectionStatus } =
+    useGuardianSelectedPet();
 
-  const petName = representativePet?.name ?? '';
-  const petImageUrl = representativePet?.profileImage;
+  const petName = selectedPet?.name ?? '';
+  const petImageUrl = selectedPet?.profileImage;
+
+  const handlePetSelectClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <GuardianDogSelectSheet
+        isOpen={isOpen}
+        close={close}
+        dogs={pets}
+        currentPetId={selectedPetId}
+        getPetConnectionStatus={getPetConnectionStatus}
+        onConfirm={setSelectedPetId}
+      />
+    ));
+  };
 
   return (
     <div className='relative pt-(--safe-area-inset-top,0px)'>
       <div className='px-x4 flex items-start justify-between py-5'>
-        <div className='gap-x4 flex items-center'>
+        <button type='button' className='gap-x4 flex items-center text-left' onClick={handlePetSelectClick}>
           <DogProfileAvatar name={petName || '강아지'} imageUrl={petImageUrl} className='size-[52px]' />
 
           <div className='gap-x1 flex flex-col items-start justify-center'>
@@ -39,7 +56,7 @@ function GuardianKindergartenHeader({ status }: GuardianKindergartenHeaderProps)
             </div>
             <p className='body2-bold text-text-primary-inverse'>{getHeaderStatus(status)}</p>
           </div>
-        </div>
+        </button>
 
         <div className='bg-bg-0 shrink-0 rounded-full p-1.5' aria-hidden='true'>
           <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' />

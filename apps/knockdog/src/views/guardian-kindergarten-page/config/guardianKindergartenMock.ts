@@ -13,11 +13,24 @@ const MOCK_LINKED_KINDERGARTEN: GuardianLinkedKindergarten = {
 
 /**
  * API 연동 전 화면 상태: 'none' | 'pending' | 'approved'
- * 이 값만 바꿔서 테스트하면 됨
+ * 대표견(또는 선택견 미지정) 기본값. 이 값만 바꿔서 테스트하면 됨
  */
 const MOCK_CONNECTION_STATUS: GuardianKindergartenConnectionStatus = 'approved';
+
+/**
+ * 강아지별 연결 상태 mock (이름 키).
+ * 미지정 시: 대표견 → MOCK_CONNECTION_STATUS, 그 외 → 'none'
+ */
+const MOCK_PET_CONNECTION_BY_NAME: Record<string, GuardianKindergartenConnectionStatus> = {
+  // 예: 흑미: 'pending', 파트라슈: 'none'
+};
 
 /** true면 화면 위 mock 스위치 UI 표시 */
 const SHOW_CONNECTION_MOCK_SWITCHER = false;
 
-export { MOCK_LINKED_KINDERGARTEN, MOCK_CONNECTION_STATUS, SHOW_CONNECTION_MOCK_SWITCHER };
+export {
+  MOCK_LINKED_KINDERGARTEN,
+  MOCK_CONNECTION_STATUS,
+  MOCK_PET_CONNECTION_BY_NAME,
+  SHOW_CONNECTION_MOCK_SWITCHER,
+};
