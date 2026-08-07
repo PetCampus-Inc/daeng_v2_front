@@ -38,7 +38,7 @@ function GuardianKindergartenHeader({ status }: GuardianKindergartenHeaderProps)
         dogs={pets}
         currentPetId={selectedPetId}
         getPetConnectionStatus={getPetConnectionStatus}
-        onConfirm={setSelectedPetId}
+        onSelect={setSelectedPetId}
       />
     ));
   };
