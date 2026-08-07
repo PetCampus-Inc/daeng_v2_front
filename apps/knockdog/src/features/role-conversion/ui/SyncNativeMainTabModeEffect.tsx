@@ -35,7 +35,7 @@ function useHasMypageRoleViewHydrated() {
  *
  * prefersGuardianView는 localStorage persist — 탭별 WebView가 기본값 false로
  * 원장 모드를 다시 밀어 올리는 것을 막는다.
- * /compare 는 보호자 전용이라 stale store로 owner sync 하지 않는다.
+ * /compare 는 보호자 전용이라 항상 guardian 모드로 네이티브 탭을 동기화한다.
  */
 function SyncNativeMainTabModeEffect() {
   const bridge = useBridge();
@@ -55,16 +55,17 @@ function SyncNativeMainTabModeEffect() {
     if (!isMainTab()) return;
     // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
     if (mode === 'guardian' && isFetching) return;
-    // 보호자 유치원 탭 WebView가 prefersGuardianView 미동기화 상태로 원장 모드를 덮어쓰지 않게
-    if (pathname === '/compare' && mode === 'owner') return;
-    if (lastSyncedModeRef.current === mode) return;
 
-    lastSyncedModeRef.current = mode;
+    // 보호자 유치원 탭은 stale owner store여도 네이티브 탭을 guardian으로 맞춤
+    const syncMode = pathname === '/compare' ? 'guardian' : mode;
+    if (lastSyncedModeRef.current === syncMode) return;
+
+    lastSyncedModeRef.current = syncMode;
 
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    bridge.request(METHODS.navSetMainTabMode, { mode }).catch((error) => {
+    bridge.request(METHODS.navSetMainTabMode, { mode: syncMode }).catch((error) => {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
       }
