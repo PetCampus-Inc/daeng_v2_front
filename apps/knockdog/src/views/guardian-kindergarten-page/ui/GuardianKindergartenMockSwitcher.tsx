@@ -5,9 +5,10 @@ import { useGuardianKindergartenMockStore } from '@views/guardian-kindergarten-p
 import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 
 const STATUS_OPTIONS: { value: GuardianKindergartenConnectionStatus | null; label: string }[] = [
-  { value: null, label: 'default(none)' },
+  { value: null, label: 'default' },
   { value: 'none', label: 'none' },
   { value: 'pending', label: 'pending' },
+  { value: 'approved', label: 'approved' },
 ];
 
 /** API 연동 전 연결 상태 강제 전환용 */
@@ -20,7 +21,7 @@ function GuardianKindergartenMockSwitcher() {
   return (
     <div className='fixed bottom-[calc(var(--bottom-bar-height)+12px)] left-3 z-50 flex flex-col gap-1 rounded-lg bg-black/70 p-2 text-[11px] text-white'>
       <span className='font-semibold opacity-80'>connection mock</span>
-      <div className='flex gap-1'>
+      <div className='flex flex-wrap gap-1'>
         {STATUS_OPTIONS.map((option) => {
           const isActive = statusOverride === option.value;
           return (

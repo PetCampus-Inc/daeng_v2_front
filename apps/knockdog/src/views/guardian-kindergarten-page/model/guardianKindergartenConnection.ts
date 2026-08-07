@@ -1,10 +1,10 @@
-type GuardianKindergartenConnectionStatus = 'none' | 'pending';
+type GuardianKindergartenConnectionStatus = 'none' | 'pending' | 'approved';
 
-interface GuardianPendingKindergarten {
+interface GuardianLinkedKindergarten {
   id: string;
   name: string;
   address: string;
   imageUrl: string;
 }
 
-export type { GuardianKindergartenConnectionStatus, GuardianPendingKindergarten };
+export type { GuardianKindergartenConnectionStatus, GuardianLinkedKindergarten };

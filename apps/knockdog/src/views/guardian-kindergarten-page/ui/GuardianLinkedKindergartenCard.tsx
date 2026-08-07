@@ -2,14 +2,14 @@
 
 import { Icon } from '@knockdog/ui';
 
-import type { GuardianPendingKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
+import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useStackNavigation } from '@shared/lib/bridge';
 
-interface GuardianPendingKindergartenCardProps {
-  kindergarten: GuardianPendingKindergarten;
+interface GuardianLinkedKindergartenCardProps {
+  kindergarten: GuardianLinkedKindergarten;
 }
 
-function GuardianPendingKindergartenCard({ kindergarten }: GuardianPendingKindergartenCardProps) {
+function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKindergartenCardProps) {
   const { push } = useStackNavigation();
   const imageSrc = `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${kindergarten.imageUrl}`;
 
@@ -45,4 +45,4 @@ function GuardianPendingKindergartenCard({ kindergarten }: GuardianPendingKinder
   );
 }
 
-export { GuardianPendingKindergartenCard };
+export { GuardianLinkedKindergartenCard };

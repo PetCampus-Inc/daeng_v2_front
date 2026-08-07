@@ -3,12 +3,12 @@
 import Image from 'next/image';
 
 import { guardianKindergartenPendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenPendingContent';
-import type { GuardianPendingKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
+import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 
-import { GuardianPendingKindergartenCard } from './GuardianPendingKindergartenCard';
+import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
 interface GuardianKindergartenPendingStateProps {
-  kindergarten: GuardianPendingKindergarten;
+  kindergarten: GuardianLinkedKindergarten;
 }
 
 function GuardianKindergartenPendingState({ kindergarten }: GuardianKindergartenPendingStateProps) {
@@ -38,7 +38,7 @@ function GuardianKindergartenPendingState({ kindergarten }: GuardianKindergarten
             </p>
           </div>
 
-          <GuardianPendingKindergartenCard kindergarten={kindergarten} />
+          <GuardianLinkedKindergartenCard kindergarten={kindergarten} />
         </div>
       </div>
     </div>

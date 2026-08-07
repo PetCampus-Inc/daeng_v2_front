@@ -8,13 +8,14 @@ import type { GuardianKindergartenConnectionStatus } from './guardianKindergarte
  */
 function useGuardianKindergartenConnection() {
   const statusOverride = useGuardianKindergartenMockStore((state) => state.statusOverride);
-  const pendingKindergarten = useGuardianKindergartenMockStore((state) => state.pendingKindergarten);
+  const linkedKindergarten = useGuardianKindergartenMockStore((state) => state.linkedKindergarten);
 
   const status: GuardianKindergartenConnectionStatus = statusOverride ?? MOCK_CONNECTION_STATUS;
+  const hasLinkedKindergarten = status === 'pending' || status === 'approved';
 
   return {
     status,
-    pendingKindergarten: status === 'pending' ? pendingKindergarten : null,
+    linkedKindergarten: hasLinkedKindergarten ? linkedKindergarten : null,
   };
 }
 

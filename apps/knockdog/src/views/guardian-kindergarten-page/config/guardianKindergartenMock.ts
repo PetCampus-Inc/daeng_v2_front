@@ -1,10 +1,10 @@
 import type {
   GuardianKindergartenConnectionStatus,
-  GuardianPendingKindergarten,
+  GuardianLinkedKindergarten,
 } from '../model/guardianKindergartenConnection';
 
 /** API 연동 전 임시 테스트용 mock 유치원 (지도 검색: 도그포레 강아지유치원) */
-const MOCK_PENDING_KINDERGARTEN: GuardianPendingKindergarten = {
+const MOCK_LINKED_KINDERGARTEN: GuardianLinkedKindergarten = {
   id: '1201415581',
   name: '도그포레 강아지유치원',
   address: '서울특별시 도봉구 창동 582-19 도그포레',
@@ -12,12 +12,12 @@ const MOCK_PENDING_KINDERGARTEN: GuardianPendingKindergarten = {
 };
 
 /**
- * API 연동 전 화면 상태: 'none' | 'pending'
- * 이 값만 바꿔서 테스트허면 됨
+ * API 연동 전 화면 상태: 'none' | 'pending' | 'approved'
+ * 이 값만 바꿔서 테스트하면 됨
  */
-const MOCK_CONNECTION_STATUS: GuardianKindergartenConnectionStatus = 'pending';
+const MOCK_CONNECTION_STATUS: GuardianKindergartenConnectionStatus = 'approved';
 
 /** true면 화면 위 mock 스위치 UI 표시 */
 const SHOW_CONNECTION_MOCK_SWITCHER = false;
 
-export { MOCK_PENDING_KINDERGARTEN, MOCK_CONNECTION_STATUS, SHOW_CONNECTION_MOCK_SWITCHER };
+export { MOCK_LINKED_KINDERGARTEN, MOCK_CONNECTION_STATUS, SHOW_CONNECTION_MOCK_SWITCHER };

@@ -2,13 +2,14 @@
 
 import { useGuardianKindergartenConnection } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenConnection';
 
+import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
 import { GuardianKindergartenEmptyState } from './GuardianKindergartenEmptyState';
 import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
 import { GuardianKindergartenMockSwitcher } from './GuardianKindergartenMockSwitcher';
 import { GuardianKindergartenPendingState } from './GuardianKindergartenPendingState';
 
 export function GuardianKindergartenPage() {
-  const { status, pendingKindergarten } = useGuardianKindergartenConnection();
+  const { status, linkedKindergarten } = useGuardianKindergartenConnection();
 
   return (
     <div
@@ -22,8 +23,10 @@ export function GuardianKindergartenPage() {
       <GuardianKindergartenHeader status={status} />
 
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
-        {status === 'pending' && pendingKindergarten ? (
-          <GuardianKindergartenPendingState kindergarten={pendingKindergarten} />
+        {status === 'approved' && linkedKindergarten ? (
+          <GuardianKindergartenApprovedState kindergarten={linkedKindergarten} />
+        ) : status === 'pending' && linkedKindergarten ? (
+          <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
         ) : (
           <GuardianKindergartenEmptyState />
         )}
