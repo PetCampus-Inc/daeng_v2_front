@@ -1,5 +1,5 @@
-import { CompareMainPage } from '@views/compare-main-page';
+import { GuardianKindergartenPage } from '@views/guardian-kindergarten-page';
 
 export default function Page() {
-  return <CompareMainPage />;
+  return <GuardianKindergartenPage />;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { useIsOwnerVerified } from './useIsOwnerVerified';
 import { useMypageRoleViewStore } from './mypageRoleViewStore';
@@ -37,9 +38,27 @@ function useMypageRoleView() {
   };
 }
 
+function isGuardianMainPath(pathname: string) {
+  return (
+    pathname === '/' ||
+    pathname === '/search' ||
+    pathname === '/save' ||
+    pathname === '/compare' ||
+    pathname.startsWith('/save/')
+  );
+}
+
+function isOwnerMainPath(pathname: string) {
+  return pathname === '/owner' || pathname.startsWith('/owner/');
+}
+
 function useShowOwnerBottomNav() {
+  const pathname = usePathname();
   const isOwnerVerified = useIsOwnerVerified();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
+
+  if (isGuardianMainPath(pathname)) return false;
+  if (isOwnerMainPath(pathname)) return isOwnerVerified;
 
   return isOwnerVerified && !prefersGuardianView;
 }
