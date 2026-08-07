@@ -69,6 +69,7 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
 
 function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string; onDismiss: (id: string) => void }) {
   const isDismissingRef = useRef(false);
+  const isDismissing = useSharedValue(false);
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(-8);
@@ -76,6 +77,7 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
   const dismissWithAnimation = useCallback(() => {
     if (isDismissingRef.current) return;
     isDismissingRef.current = true;
+    isDismissing.value = true;
 
     opacity.value = withTiming(0, { duration: 150 }, (finished) => {
       if (finished) {
@@ -83,7 +85,7 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
       }
     });
     translateY.value = withTiming(-8, { duration: 150 });
-  }, [itemId, onDismiss, opacity, translateY]);
+  }, [isDismissing, itemId, onDismiss, opacity, translateY]);
 
   // haptics (한 번만)
   const firedRef = useRef(false);
@@ -107,10 +109,12 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
 
   const pan = Gesture.Pan()
     .onUpdate((e) => {
+      if (isDismissing.value) return;
       translateX.value = e.translationX;
       opacity.value = withTiming(Math.max(0.4, 1 - Math.abs(e.translationX) / 180));
     })
     .onEnd((e) => {
+      if (isDismissing.value) return;
       if (Math.abs(e.translationX) > 80) {
         runOnJS(dismissWithAnimation)();
       } else {
