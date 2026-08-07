@@ -3,15 +3,25 @@
 import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenEmptyContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenEmptyContent';
+import { guardianKindergartenPendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenPendingContent';
+import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 
 import { usePetRepresentativeQuery } from '@entities/pet';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 
-function GuardianKindergartenHeader() {
+interface GuardianKindergartenHeaderProps {
+  status: GuardianKindergartenConnectionStatus;
+}
+
+function GuardianKindergartenHeader({ status }: GuardianKindergartenHeaderProps) {
   const { data: representativePet } = usePetRepresentativeQuery();
 
   const petName = representativePet?.name ?? '';
   const petImageUrl = representativePet?.profileImage;
+  const headerStatus =
+    status === 'pending'
+      ? guardianKindergartenPendingContent.headerStatus
+      : guardianKindergartenEmptyContent.headerStatus;
 
   return (
     <div className='relative pt-(--safe-area-inset-top,0px)'>
@@ -24,7 +34,7 @@ function GuardianKindergartenHeader() {
               <span className='h3-extrabold text-text-primary-inverse'>{petName}</span>
               <Icon icon='ChevronBottom' className='text-text-primary-inverse size-6' aria-hidden='true' />
             </div>
-            <p className='body2-bold text-text-primary-inverse'>{guardianKindergartenEmptyContent.headerStatus}</p>
+            <p className='body2-bold text-text-primary-inverse'>{headerStatus}</p>
           </div>
         </div>
 
