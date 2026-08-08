@@ -4,8 +4,10 @@ import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
+import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { guardianKindergartenEmptyContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenEmptyContent';
 import { guardianKindergartenPendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenPendingContent';
+import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 
@@ -15,15 +17,37 @@ import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
 
 interface GuardianKindergartenHeaderProps {
   status: GuardianKindergartenConnectionStatus;
+  isAttending?: boolean;
+  checkInAt?: Date | null;
+  hasUnreadAlarm?: boolean;
 }
 
-function getHeaderStatus(status: GuardianKindergartenConnectionStatus) {
+function getHeaderStatus(
+  status: GuardianKindergartenConnectionStatus,
+  isAttending: boolean,
+  checkInAt: Date | null
+) {
+  if (isAttending && checkInAt) {
+    return (
+      <span className='gap-x2 flex items-center'>
+        <span className='caption1-regular text-text-primary-inverse'>
+          {guardianKindergartenAttendingContent.checkInLabel}
+        </span>
+        <span className='body2-bold text-text-primary-inverse'>{formatKoreanAmPmTime(checkInAt)}</span>
+      </span>
+    );
+  }
   if (status === 'approved') return guardianKindergartenApprovedContent.headerStatus;
   if (status === 'pending') return guardianKindergartenPendingContent.headerStatus;
   return guardianKindergartenEmptyContent.headerStatus;
 }
 
-function GuardianKindergartenHeader({ status }: GuardianKindergartenHeaderProps) {
+function GuardianKindergartenHeader({
+  status,
+  isAttending = false,
+  checkInAt = null,
+  hasUnreadAlarm = false,
+}: GuardianKindergartenHeaderProps) {
   const { pets, selectedPet, selectedPetId, setSelectedPetId, getPetConnectionStatus } =
     useGuardianSelectedPet();
 
@@ -54,12 +78,18 @@ function GuardianKindergartenHeader({ status }: GuardianKindergartenHeaderProps)
               <span className='h3-extrabold text-text-primary-inverse'>{petName}</span>
               <Icon icon='ChevronBottom' className='text-text-primary-inverse size-6' aria-hidden='true' />
             </div>
-            <p className='body2-bold text-text-primary-inverse'>{getHeaderStatus(status)}</p>
+            <div className={isAttending ? undefined : 'body2-bold text-text-primary-inverse'}>
+              {getHeaderStatus(status, isAttending, checkInAt)}
+            </div>
           </div>
         </button>
 
         <div className='bg-bg-0 shrink-0 rounded-full p-1.5' aria-hidden='true'>
-          <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' />
+          {hasUnreadAlarm ? (
+            <Icon icon='AlarmLineActive' className='text-fill-primary-500 size-6' />
+          ) : (
+            <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' />
+          )}
         </div>
       </div>
     </div>
