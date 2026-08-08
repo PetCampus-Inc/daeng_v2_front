@@ -24,8 +24,8 @@ interface GuardianKindergartenMockStore {
 }
 
 /**
- * 스위치로 고른 mock override는 localStorage에 유지.
- * SHOW_CONNECTION_MOCK_SWITCHER=false여도 마지막 선택 상태가 적용됨.
+ * 등원 mock override만 localStorage 유지.
+ * 연결 statusOverride는 선택견 전환 시 초기화(견별 mock이 우선).
  */
 const useGuardianKindergartenMockStore = create<GuardianKindergartenMockStore>()(
   persist(
@@ -36,13 +36,21 @@ const useGuardianKindergartenMockStore = create<GuardianKindergartenMockStore>()
       setAttendanceOverride: (attendanceOverride) => set({ attendanceOverride }),
       linkedKindergarten: MOCK_LINKED_KINDERGARTEN,
       selectedPetId: null,
-      setSelectedPetId: (selectedPetId) => set({ selectedPetId }),
+      setSelectedPetId: (selectedPetId) =>
+        set({ selectedPetId, statusOverride: null }),
     }),
     {
       name: STORAGE_KEYS.GUARDIAN_KINDERGARTEN_MOCK,
       storage: createJSONStorage(() => localStorage),
+      version: 1,
+      migrate: (persisted) => {
+        if (!persisted || typeof persisted !== 'object') return persisted as never;
+        const state = persisted as { attendanceOverride?: GuardianAttendanceDayMock | null };
+        return {
+          attendanceOverride: state.attendanceOverride ?? null,
+        };
+      },
       partialize: (state) => ({
-        statusOverride: state.statusOverride,
         attendanceOverride: state.attendanceOverride,
       }),
     }
