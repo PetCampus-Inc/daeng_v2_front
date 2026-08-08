@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { useGuardianAttendanceDay } from '@views/guardian-kindergarten-page/model/useGuardianAttendanceDay';
 import { useGuardianKindergartenConnection } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenConnection';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
+import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
 import { GuardianKindergartenEmptyState } from './GuardianKindergartenEmptyState';
 import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
 import { GuardianKindergartenMockSwitcher } from './GuardianKindergartenMockSwitcher';
@@ -26,6 +28,8 @@ export function GuardianKindergartenPage() {
 
   const hasAuth = useRequireAuth(handleAuthError);
   const { status, linkedKindergarten } = useGuardianKindergartenConnection();
+  const { isAttending, checkInAt, hasUnreadAlarm, hasDailyNotice, dailyNotice, albumPhotos, attendanceRecordDateKeys } =
+    useGuardianAttendanceDay();
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,6 +37,8 @@ export function GuardianKindergartenPage() {
   }, [hasAuth]);
 
   if (!isMounted || !isLoggedIn) return null;
+
+  const showAttending = status === 'approved' && isAttending && checkInAt && linkedKindergarten;
 
   return (
     <div
@@ -43,11 +49,28 @@ export function GuardianKindergartenPage() {
       }}
     >
       <GuardianKindergartenMockSwitcher />
-      <GuardianKindergartenHeader status={status} />
+      <GuardianKindergartenHeader
+        status={status}
+        isAttending={Boolean(showAttending)}
+        checkInAt={checkInAt}
+        hasUnreadAlarm={Boolean(showAttending && hasUnreadAlarm)}
+      />
 
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
-        {status === 'approved' && linkedKindergarten ? (
-          <GuardianKindergartenApprovedState kindergarten={linkedKindergarten} />
+        {showAttending ? (
+          <GuardianKindergartenAttendingState
+            kindergarten={linkedKindergarten}
+            checkInAt={checkInAt}
+            hasDailyNotice={hasDailyNotice}
+            dailyNotice={dailyNotice}
+            albumPhotos={albumPhotos}
+            attendanceRecordDateKeys={attendanceRecordDateKeys}
+          />
+        ) : status === 'approved' && linkedKindergarten ? (
+          <GuardianKindergartenApprovedState
+            kindergarten={linkedKindergarten}
+            attendanceRecordDateKeys={attendanceRecordDateKeys}
+          />
         ) : status === 'pending' && linkedKindergarten ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
         ) : (

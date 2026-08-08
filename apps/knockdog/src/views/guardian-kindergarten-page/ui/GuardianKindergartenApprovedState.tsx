@@ -8,14 +8,18 @@ import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarte
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 
-import { GuardianKindergartenWeekCalendar } from './GuardianKindergartenWeekCalendar';
+import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
 interface GuardianKindergartenApprovedStateProps {
   kindergarten: GuardianLinkedKindergarten;
+  attendanceRecordDateKeys?: Set<string>;
 }
 
-function GuardianKindergartenApprovedState({ kindergarten }: GuardianKindergartenApprovedStateProps) {
+function GuardianKindergartenApprovedState({
+  kindergarten,
+  attendanceRecordDateKeys,
+}: GuardianKindergartenApprovedStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const content = guardianKindergartenApprovedContent;
 
@@ -60,7 +64,11 @@ function GuardianKindergartenApprovedState({ kindergarten }: GuardianKindergarte
 
       {/* 주간 캘린더 */}
       <section className='flex w-full flex-col items-center'>
-        <GuardianKindergartenWeekCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+        <GuardianKindergartenDateCalendar
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          markedDateKeys={attendanceRecordDateKeys}
+        />
         <div className='flex w-full flex-col items-center p-4'>
           <p className='body1-medium text-text-tertiary text-center'>{content.calendarEmptyMessage}</p>
         </div>
