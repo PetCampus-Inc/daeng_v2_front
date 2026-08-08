@@ -119,10 +119,20 @@ function useOwnerDailyPage() {
     cancelCheckOutMutation,
   } = useAttendanceCheckinoutMutation({ userId });
 
-  const members = useMemo(
-    () => (candidatesQuery.data?.items ?? []).map(toAttendanceMemberFromCandidate),
-    [candidatesQuery.data?.items]
-  );
+  const members = useMemo(() => {
+    const noticebookSentByPetId = new Map(
+      (todayQuery.data?.items ?? []).map((item) => [item.petId, item.attendanceRecordSent])
+    );
+
+    return (candidatesQuery.data?.items ?? []).map((candidate) => {
+      const member = toAttendanceMemberFromCandidate(candidate);
+
+      return {
+        ...member,
+        noticebookSent: noticebookSentByPetId.get(candidate.petId) ?? false,
+      };
+    });
+  }, [candidatesQuery.data?.items, todayQuery.data?.items]);
   const todayAttendanceMembers = useMemo(
     () =>
       [...(todayQuery.data?.items ?? []).map(toAttendanceMemberFromTodayItem)].sort(

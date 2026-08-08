@@ -1,4 +1,4 @@
-import type { ToastShape, ToastPosition, ToastType, ToastTitlePart } from '@knockdog/bridge-core';
+import type { ToastShape, ToastPosition, ToastType, ToastTitlePart, ToastIcon } from '@knockdog/bridge-core';
 
 export type ToastOptions = {
   id?: string;
@@ -12,6 +12,8 @@ export type ToastOptions = {
   viewportClassName?: string | undefined; // 웹 호환용 (RN에서는 무시)
   shape?: ToastShape; // 모양만 분기
   type?: ToastType; // 'default' | 'success' (아이콘 표시)
+  icon?: ToastIcon;
+  iconAccent?: boolean;
   iconName?: string | undefined; // 선택: 아이콘 시스템 연동 시 사용
   onOpen?: () => void;
   onClose?: () => void;

@@ -59,7 +59,10 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
 
     assertDownloadableImageUrl(url);
 
-    const permission = await MediaLibrary.requestPermissionsAsync(true);
+    const currentPermission = await MediaLibrary.getPermissionsAsync(true);
+    const permission = currentPermission.granted
+      ? currentPermission
+      : await MediaLibrary.requestPermissionsAsync(true);
     if (!permission.granted) {
       throw { code: 'EUNAVAILABLE', message: '사진첩 저장 권한이 없습니다.' };
     }

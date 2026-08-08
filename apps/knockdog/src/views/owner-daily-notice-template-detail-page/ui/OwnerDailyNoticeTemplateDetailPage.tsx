@@ -89,6 +89,10 @@ function OwnerDailyNoticeTemplateDetailPage() {
                 } catch {
                   toast({
                     nativeTitle: '템플릿을 삭제하지 못했어요',
+                    titleParts: [
+                      { text: '템플릿', accent: true },
+                      { text: '을 삭제하지 못했어요. 다시 시도해 주세요' },
+                    ],
                     title: (
                       <>
                         <span className='text-text-accent'>템플릿</span>

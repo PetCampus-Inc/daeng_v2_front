@@ -17,6 +17,7 @@ export type {
   ToastPosition,
   ToastType,
   ToastTitlePart,
+  ToastIcon,
 } from './domains/toast';
 export type { SafeAreaInsets } from './domains/safe-area';
 export type { Accuracy, Location, PermissionStatus } from './domains/location';
