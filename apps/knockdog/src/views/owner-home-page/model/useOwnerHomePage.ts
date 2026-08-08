@@ -80,7 +80,10 @@ function useOwnerHomePage() {
   }, [isOwnerHomeError, lastRefreshedAt, ownerHome]);
 
   const noticebook = {
-    shouldShow: !isOwnerHomeError && (ownerHome?.operationStatus.checkedInCount ?? 0) > 0,
+    shouldShow:
+      !isOwnerHomeError &&
+      ((ownerHome?.operationStatus.checkedInCount ?? 0) > 0 ||
+        (ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0) > 0),
     pendingCount: ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0,
     sentCount: ownerHome?.operationStatus.sentAttendanceRecordCount ?? 0,
   };
