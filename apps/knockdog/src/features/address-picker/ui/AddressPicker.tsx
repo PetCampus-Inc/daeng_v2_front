@@ -18,6 +18,7 @@ interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect
   /** 선택 후 재포커스 시 입력 삭제 + 목록 재표시, 목록 선택만 반영 */
   clearOnReselect?: boolean;
   inputClassName?: string;
+  embeddedResultsClassName?: string;
 }
 
 export function AddressPicker({
@@ -31,6 +32,7 @@ export function AddressPicker({
   fieldVariant = 'secondary',
   clearOnReselect = false,
   inputClassName,
+  embeddedResultsClassName,
   ...props
 }: AddressPickerProps) {
   const {
@@ -120,7 +122,12 @@ export function AddressPicker({
       <div className={cn('relative', className)} {...props}>
         {searchField}
         {showResults && hasResults && (
-          <div className='bg-fill-secondary-0 absolute inset-x-0 top-full z-10 max-h-[280px] overflow-y-auto'>
+          <div
+            className={cn(
+              'bg-fill-secondary-0 absolute inset-x-0 top-full z-10 max-h-[280px] overflow-y-auto',
+              embeddedResultsClassName
+            )}
+          >
             <AddressList className='px-4' showEmptyFallback={false}>
               {addressList?.map((address, index) => (
                 <AddressListItem
