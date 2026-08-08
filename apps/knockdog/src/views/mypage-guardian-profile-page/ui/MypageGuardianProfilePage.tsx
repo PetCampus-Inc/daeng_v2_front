@@ -23,35 +23,16 @@ import { USER_ADDRESS_TYPE, useUserStore } from '@entities/user';
 import { Header } from '@widgets/Header';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
-
-const NAME_MAX_LENGTH = 20;
-const ADDRESS_DETAIL_MAX_LENGTH = 100;
-const PHONE_FORMAT_ERROR = '전화번호 형식을 확인해 주세요. ex) 010-1234-5678';
-const ADDRESS_DETAIL_FORBIDDEN_CHARACTER_PATTERN =
-  /[\p{Extended_Pictographic}\p{Emoji_Modifier}\u200D\uFE0F\u0000-\u001F\u007F-\u009F\u2028\u2029]/gu;
-
-function formatGuardianName(value: string) {
-  return (value.match(/[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g) ?? []).join('').slice(0, NAME_MAX_LENGTH);
-}
-
-function formatMobilePhone(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 11);
-
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-}
-
-function isValidMobilePhone(value: string) {
-  return /^010\d{8}$/.test(value.replace(/\D/g, ''));
-}
-
-function formatAddressDetail(value: string) {
-  return Array.from(value.replace(ADDRESS_DETAIL_FORBIDDEN_CHARACTER_PATTERN, ''))
-    .slice(0, ADDRESS_DETAIL_MAX_LENGTH)
-    .join('');
-}
+import {
+  formatAddressDetail,
+  formatGuardianName,
+  formatMobilePhone,
+  isGuardianProfileDirty,
+  isGuardianProfileFormValid,
+  isValidMobilePhone,
+  PHONE_FORMAT_ERROR,
+  type GuardianGender,
+} from '../model/guardianProfileForm';
 
 function ClearInputButton({ ariaLabel, onClick }: { ariaLabel: string; onClick: () => void }) {
   return (
@@ -67,7 +48,7 @@ function ClearInputButton({ ariaLabel, onClick }: { ariaLabel: string; onClick: 
 function MypageGuardianProfilePage() {
   const user = useUserStore((state) => state.user);
   const [name, setName] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | null>(null);
+  const [gender, setGender] = useState<GuardianGender>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
   const [addressDetail, setAddressDetail] = useState('');
@@ -85,20 +66,9 @@ function MypageGuardianProfilePage() {
     !isValidMobilePhone(emergencyPhoneNumber)
       ? PHONE_FORMAT_ERROR
       : undefined;
-  const isSaveEnabled =
-    name.trim().length > 0 &&
-    gender != null &&
-    isValidMobilePhone(phoneNumber) &&
-    address.length > 0 &&
-    (emergencyPhoneNumber.length === 0 || isValidMobilePhone(emergencyPhoneNumber));
-  const isDirty = Boolean(
-    name ||
-      gender != null ||
-      phoneNumber ||
-      address !== homeAddressValue ||
-      addressDetail ||
-      emergencyPhoneNumber
-  );
+  const formValues = { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber };
+  const isSaveEnabled = isGuardianProfileFormValid(formValues);
+  const isDirty = isGuardianProfileDirty(formValues, homeAddressValue);
 
   useEffect(() => {
     setAddress(homeAddressValue);
