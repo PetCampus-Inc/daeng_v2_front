@@ -17,6 +17,7 @@ function OwnerHomePage() {
     handleApprovalBannerClick,
     handleApprovalBannerClose,
     handleFriendPreviewClick,
+    handleNoticebookStatusClick,
     handleRefresh,
     noticebook,
     shouldShowApprovalBanner,
@@ -35,14 +36,13 @@ function OwnerHomePage() {
       </div>
       {shouldShowApprovalBanner ? (
         <OwnerApprovalBanner
-          isError={approval.isError}
           pendingCount={approval.pendingCount}
           onClick={handleApprovalBannerClick}
           onClose={handleApprovalBannerClose}
         />
       ) : null}
 
-      <section className={`flex ${shouldShowFriendPreview ? 'h-[433px]' : 'h-[393px]'} w-full flex-col gap-5 py-5`}>
+      <section className='flex w-full flex-col gap-5 py-5'>
         <div className='flex h-[52px] w-full items-center justify-between gap-5 px-4'>
           <div className='flex min-w-0 flex-1 gap-1'>
             <p className='h3-extrabold text-text-primary min-w-0 w-fit'>
@@ -75,11 +75,13 @@ function OwnerHomePage() {
           extraFriendCount={today.extraFriendCount}
           onFriendPreviewClick={handleFriendPreviewClick}
         />
-        <OwnerNoticebookStatus
-          isError={noticebook.isError}
-          pendingCount={noticebook.pendingCount}
-          sentCount={noticebook.sentCount}
-        />
+        {noticebook.shouldShow ? (
+          <OwnerNoticebookStatus
+            pendingCount={noticebook.pendingCount}
+            sentCount={noticebook.sentCount}
+            onClick={handleNoticebookStatusClick}
+          />
+        ) : null}
       </section>
     </div>
   );

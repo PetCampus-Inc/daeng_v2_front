@@ -1,6 +1,7 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
@@ -10,13 +11,30 @@ import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerD
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
-import { TodayAttendanceTab } from '@views/owner-daily-page/ui/TodayAttendanceTab';
+import {
+  TodayAttendanceTab,
+  type TodayAttendanceFilter,
+} from '@views/owner-daily-page/ui/TodayAttendanceTab';
 import { Header } from '@widgets/Header';
 
 type OwnerDailyTab = 'attendance-check' | 'today-attendance';
 
+function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
+  return value === 'today-attendance' ? 'today-attendance' : 'attendance-check';
+}
+
+function resolveTodayAttendanceFilter(value: string | null): TodayAttendanceFilter {
+  if (value === 'checked-in' || value === 'noticebook-pending') return value;
+
+  return 'all';
+}
+
 function OwnerDailyPage() {
-  const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>('attendance-check');
+  const searchParams = useSearchParams();
+  const rawTab = searchParams.get('tab');
+  const rawTodayFilter = searchParams.get('todayFilter');
+  const initialTodayAttendanceFilter = resolveTodayAttendanceFilter(rawTodayFilter);
+  const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveOwnerDailyTab(rawTab));
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
   const {
@@ -96,6 +114,10 @@ function OwnerDailyPage() {
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    setSelectedTab(resolveOwnerDailyTab(rawTab));
+  }, [rawTab]);
+
   useLayoutEffect(() => {
     const animationFrameId = requestAnimationFrame(() => {
       const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
@@ -159,6 +181,7 @@ function OwnerDailyPage() {
             >
               <TodayAttendanceTab
                 items={todayAttendanceMembers}
+                initialSelectedFilter={initialTodayAttendanceFilter}
                 isLoading={isTodayLoading}
                 isError={isTodayError}
                 onCheckOutButtonClick={handleCheckOutButtonClick}

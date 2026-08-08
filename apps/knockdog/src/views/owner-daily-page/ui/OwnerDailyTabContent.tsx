@@ -98,7 +98,7 @@ function OwnerDailyTabContent({
             <OwnerDailyMemberCard
               key={member.id}
               member={member}
-              normalizedSearchKeyword={normalizedSearchKeyword}
+              searchKeyword={searchKeyword}
               onMemberClick={onMemberClick}
               onAttendanceButtonClick={onAttendanceButtonClick}
             />

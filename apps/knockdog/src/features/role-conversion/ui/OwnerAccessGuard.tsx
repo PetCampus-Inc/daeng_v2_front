@@ -6,6 +6,7 @@ import { useUserStore } from '@entities/user';
 import { useOwnerRole } from '@features/role-conversion/model/useOwnerRole';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access';
 
 interface OwnerAccessGuardProps {
@@ -18,7 +19,13 @@ function hasUserStoreHydrated() {
 
 function OwnerAccessGuard({ children }: OwnerAccessGuardProps) {
   const hasAuth = useRequireAuth();
-  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
+  const {
+    isOwner: isOwnerVerified,
+    isResolved: isOwnerRoleResolved,
+    isError: isOwnerRoleError,
+    isFetching: isOwnerRoleFetching,
+    refetch: refetchOwnerRole,
+  } = useOwnerRole();
   const { replace } = useStackNavigation();
   const isRedirectingRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -45,6 +52,7 @@ function OwnerAccessGuard({ children }: OwnerAccessGuardProps) {
       !isMounted ||
       !isUserStoreHydrated ||
       !hasAuth ||
+      isOwnerRoleError ||
       !isOwnerRoleResolved ||
       isOwnerVerified ||
       isRedirectingRef.current
@@ -55,11 +63,25 @@ function OwnerAccessGuard({ children }: OwnerAccessGuardProps) {
     replace({ pathname: route.mypage.root }).finally(() => {
       isRedirectingRef.current = false;
     });
-  }, [hasAuth, isMounted, isOwnerRoleResolved, isOwnerVerified, isUserStoreHydrated, replace]);
+  }, [
+    hasAuth,
+    isMounted,
+    isOwnerRoleError,
+    isOwnerRoleResolved,
+    isOwnerVerified,
+    isUserStoreHydrated,
+    replace,
+  ]);
 
-  if (!isMounted || !isUserStoreHydrated || !hasAuth || !isOwnerRoleResolved || !isOwnerVerified) {
+  if (!isMounted || !isUserStoreHydrated || !hasAuth) {
     return null;
   }
+
+  if (isOwnerRoleError) {
+    return <PageError isRetrying={isOwnerRoleFetching} onRetry={() => void refetchOwnerRole()} />;
+  }
+
+  if (!isOwnerRoleResolved || !isOwnerVerified) return null;
 
   return children;
 }

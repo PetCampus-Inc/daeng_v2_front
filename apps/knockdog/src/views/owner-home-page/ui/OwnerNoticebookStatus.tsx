@@ -1,25 +1,24 @@
 import { Icon } from '@knockdog/ui';
 
 interface OwnerNoticebookStatusProps {
-  isError?: boolean;
   pendingCount: number;
   sentCount: number;
+  onClick: () => void;
 }
 
-const ERROR_MESSAGE = '정보를 불러오지 못했어요';
-
-function OwnerNoticebookStatus({ isError = false, pendingCount, sentCount }: OwnerNoticebookStatusProps) {
-  if (isError) {
-    return (
-      <div className='radius-r3 bg-bg-100 mx-4 flex h-[52px] items-center justify-start p-4 text-left'>
-        <span className='body2-semibold text-text-secondary'>{ERROR_MESSAGE}</span>
-      </div>
-    );
-  }
-
+function OwnerNoticebookStatus({
+  pendingCount,
+  sentCount,
+  onClick,
+}: OwnerNoticebookStatusProps) {
   if (pendingCount > 0) {
     return (
-      <div className='radius-r3 border-line-accent bg-bg-0 mx-4 flex h-[52px] items-center justify-between border px-4 py-[10px]'>
+      <button
+        type='button'
+        className='radius-r3 border-line-accent bg-bg-0 mx-4 flex h-[52px] items-center justify-between border px-4 py-[10px] text-left'
+        aria-label='발송 전 알림장 보기'
+        onClick={onClick}
+      >
         <div className='flex h-8 w-fit min-w-0 items-center gap-2'>
           <span className='radius-full bg-fill-primary-50 flex size-8 shrink-0 items-center justify-center p-2'>
             <Icon icon='Checklist' className='text-fill-primary-500 size-4' />
@@ -33,7 +32,7 @@ function OwnerNoticebookStatus({ isError = false, pendingCount, sentCount }: Own
           </div>
         </div>
         <Icon icon='ChevronRight' className='text-fill-primary-500 size-6 shrink-0' />
-      </div>
+      </button>
     );
   }
 

@@ -14,13 +14,12 @@ import { PET_PREVIEW_LIMIT, useOwnerHomeQuery } from '@entities/owner-home';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
 const SCHOOL_NAME_MAX_LENGTH = 15;
 
 interface ApprovalBannerDismissal {
   count: number;
-  isError: boolean;
 }
 
 function formatSchoolName(name: string) {
@@ -33,6 +32,7 @@ function formatSchoolName(name: string) {
 
 function useOwnerHomePage() {
   const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved, kindergarten } = useOwnerRole();
   const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState<ApprovalBannerDismissal | null>(
@@ -52,15 +52,12 @@ function useOwnerHomePage() {
   const schoolName = ownerHome?.school.name || kindergarten?.name || '';
 
   const approval = {
-    isError: isOwnerHomeError,
     pendingCount: ownerHome?.pendingApprovalsCount ?? 0,
   };
 
-  const isSameDismissedApprovalBanner =
-    dismissedApprovalBanner?.isError === approval.isError &&
-    dismissedApprovalBanner.count === approval.pendingCount;
+  const isSameDismissedApprovalBanner = dismissedApprovalBanner?.count === approval.pendingCount;
   const shouldShowApprovalBanner =
-    (approval.isError || approval.pendingCount > 0) && !isSameDismissedApprovalBanner;
+    !isOwnerHomeError && approval.pendingCount > 0 && !isSameDismissedApprovalBanner;
 
   const today = useMemo(() => {
     const friends = ownerHome?.currentlyInPetsPreview.items ?? [];
@@ -83,25 +80,44 @@ function useOwnerHomePage() {
   }, [isOwnerHomeError, lastRefreshedAt, ownerHome]);
 
   const noticebook = {
-    isError: isOwnerHomeError,
+    shouldShow:
+      !isOwnerHomeError &&
+      ((ownerHome?.operationStatus.checkedInCount ?? 0) > 0 ||
+        (ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0) > 0),
     pendingCount: ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0,
     sentCount: ownerHome?.operationStatus.sentAttendanceRecordCount ?? 0,
   };
 
   const handleApprovalBannerClick = () => {
-    if (approval.isError) return;
-
     push({ pathname: route.owner.members.approval.root });
   };
 
+  const navigateToTodayAttendance = (todayFilter: 'checked-in' | 'noticebook-pending') => {
+    navigateToTab('/owner/daily', {
+      tab: 'today-attendance',
+      todayFilter,
+    }).catch(() => {
+      push({
+        pathname: route.owner.daily.root,
+        query: {
+          tab: 'today-attendance',
+          todayFilter,
+        },
+      });
+    });
+  };
+
   const handleFriendPreviewClick = () => {
-    push({ pathname: route.owner.members.root });
+    navigateToTodayAttendance('checked-in');
+  };
+
+  const handleNoticebookStatusClick = () => {
+    navigateToTodayAttendance('noticebook-pending');
   };
 
   const handleApprovalBannerClose = () => {
     setDismissedApprovalBanner({
       count: approval.pendingCount,
-      isError: approval.isError,
     });
   };
 
@@ -143,6 +159,7 @@ function useOwnerHomePage() {
     handleApprovalBannerClick,
     handleApprovalBannerClose,
     handleFriendPreviewClick,
+    handleNoticebookStatusClick,
     handleRefresh,
     noticebook,
     shouldShowApprovalBanner,

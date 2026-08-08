@@ -32,6 +32,10 @@ interface OwnerRoleState {
   isResolved: boolean;
   /** invalidate 직후 stale false → true 사이 가드/탭 다운그레이드 방지 */
   isFetching: boolean;
+  /** 원장 권한·소속 유치원 필수 정보 조회 실패 여부 */
+  isError: boolean;
+  /** 원장 권한·소속 유치원 필수 정보 재조회 */
+  refetch: () => Promise<unknown>;
 }
 
 function toKindergarten(data: OwnerRole): OwnerKindergartenInfo {
@@ -76,7 +80,7 @@ function useOwnerRole(): OwnerRoleState {
     return unsubscribe;
   }, []);
 
-  const { data, isSuccess, isFetching } = useOwnerRoleQuery({
+  const { data, isSuccess, isError, isFetching, refetch } = useOwnerRoleQuery({
     userId: user?.userId,
     enabled: isUserStoreHydrated && isLoggedIn,
   });
@@ -90,9 +94,13 @@ function useOwnerRole(): OwnerRoleState {
     placeId: data?.placeId ?? null,
     kindergarten: isOwner && data ? toKindergarten(data) : null,
     owner: isOwner && data ? toOwner(data) : null,
-    // 조회 성공 시에만 resolved 처리 — 실패(에러) 상태에서는 가드가 조기 리다이렉트하지 않도록 false 유지
-    isResolved: isUserStoreHydrated && !isAuthSyncing && (!isLoggedIn || isSuccess),
+    // 최초 조회 실패는 가드가 조기 리다이렉트하지 않도록 false 유지.
+    // 이미 확인한 권한 정보가 캐시에 있으면 일시적 재조회 실패에도 화면을 계속 사용할 수 있음.
+    isResolved: isUserStoreHydrated && !isAuthSyncing && (!isLoggedIn || isSuccess || data != null),
     isFetching: isAuthSyncing || (isLoggedIn && isFetching),
+    // 마지막 성공 데이터가 없을 때만 원장 홈 식별 불가로 처리
+    isError: isLoggedIn && isError && data == null,
+    refetch,
   };
 }
 
