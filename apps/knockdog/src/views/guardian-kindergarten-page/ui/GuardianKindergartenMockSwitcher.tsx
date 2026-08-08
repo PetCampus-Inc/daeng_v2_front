@@ -15,6 +15,7 @@ const STATUS_OPTIONS: { value: GuardianKindergartenConnectionStatus | null; labe
   { value: 'none', label: 'none' },
   { value: 'pending', label: 'pending' },
   { value: 'approved', label: 'approved' },
+  { value: 'disconnected', label: 'disconnected' },
 ];
 
 const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | null }[] = [

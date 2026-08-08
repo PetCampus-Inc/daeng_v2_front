@@ -12,8 +12,8 @@ const MOCK_LINKED_KINDERGARTEN: GuardianLinkedKindergarten = {
 };
 
 /**
- * API 연동 전 화면 상태: 'none' | 'pending' | 'approved'
- * 대표견(또는 선택견 미지정) 기본값. 이 값만 바꿔서 테스트하면 됨
+ * API 연동 전 화면 상태: 'none' | 'pending' | 'approved' | 'disconnected'
+ * 대표견 기본값. 스위치 ON이면 화면 위 connection 버튼이 우선
  */
 const MOCK_CONNECTION_STATUS: GuardianKindergartenConnectionStatus = 'approved';
 
@@ -25,7 +25,7 @@ const MOCK_PET_CONNECTION_BY_NAME: Record<string, GuardianKindergartenConnection
   // 예: 흑미: 'pending', 파트라슈: 'none'
 };
 
-/** true면 화면 위 mock 스위치 UI 표시 */
+/** true면 화면 위 mock 스위치 UI 표시. false여도 저장된 override는 계속 적용 */
 const SHOW_CONNECTION_MOCK_SWITCHER = false;
 
 export {

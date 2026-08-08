@@ -60,6 +60,7 @@ function getHeaderStatus(
 
   if (status === 'approved') return guardianKindergartenApprovedContent.headerStatus;
   if (status === 'pending') return guardianKindergartenPendingContent.headerStatus;
+  // none / disconnected
   return guardianKindergartenEmptyContent.headerStatus;
 }
 

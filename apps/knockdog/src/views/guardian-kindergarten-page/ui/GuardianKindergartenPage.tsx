@@ -9,6 +9,7 @@ import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
+import { GuardianKindergartenDisconnectedState } from './GuardianKindergartenDisconnectedState';
 import { GuardianKindergartenEmptyState } from './GuardianKindergartenEmptyState';
 import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
 import { GuardianKindergartenMockSwitcher } from './GuardianKindergartenMockSwitcher';
@@ -52,6 +53,7 @@ export function GuardianKindergartenPage() {
     linkedKindergarten &&
     checkInAt &&
     (isAttending || isDismissed);
+  const showDisconnected = status === 'disconnected' && linkedKindergarten;
 
   return (
     <div
@@ -82,6 +84,8 @@ export function GuardianKindergartenPage() {
             albumPhotos={albumPhotos}
             attendanceRecordDateKeys={attendanceRecordDateKeys}
           />
+        ) : showDisconnected ? (
+          <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} />
         ) : status === 'approved' && linkedKindergarten ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}

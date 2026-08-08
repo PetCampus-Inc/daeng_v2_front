@@ -171,6 +171,8 @@ function GuardianKindergartenAttendingState({
 
           {showNoticeCard && dailyNotice && noticeTimeLabel ? (
             <GuardianDailyNoticeTimelineCard notice={dailyNotice} timeLabel={noticeTimeLabel} />
+          ) : isDismissed ? (
+            <p className='body1-medium text-text-tertiary pt-2'>{content.noNoticeMessage}</p>
           ) : null}
         </div>
       </section>

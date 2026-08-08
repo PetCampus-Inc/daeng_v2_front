@@ -6,7 +6,7 @@ function compareKoreanName(a: string, b: string) {
   return a.localeCompare(b, 'ko');
 }
 
-/** 대표 → 연결됨(가나다) → 미연결(가나다). pending은 미연결 그룹 */
+/** 대표 → 연결됨(가나다) → 미연결(가나다). pending/disconnected/none은 미연결 그룹 */
 function sortGuardianDogs(
   dogs: Pet[],
   getStatus: (pet: Pet) => GuardianKindergartenConnectionStatus

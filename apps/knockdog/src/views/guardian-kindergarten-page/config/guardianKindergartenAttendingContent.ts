@@ -19,6 +19,7 @@ const guardianKindergartenAttendingContent = {
   albumArrivedAccent: '새로운 사진',
   albumArrivedSuffix: '이 도착했어요',
   historyLabel: '유치원 연결 이력 보기',
+  noNoticeMessage: '이 날은 도착한 알림장이 없어요',
 } as const;
 
 export { guardianKindergartenAttendingContent };
