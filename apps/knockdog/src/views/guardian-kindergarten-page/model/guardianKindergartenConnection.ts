@@ -1,4 +1,4 @@
-type GuardianKindergartenConnectionStatus = 'none' | 'pending' | 'approved';
+type GuardianKindergartenConnectionStatus = 'none' | 'pending' | 'approved' | 'disconnected';
 
 interface GuardianLinkedKindergarten {
   id: string;

@@ -18,15 +18,35 @@ import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
 interface GuardianKindergartenHeaderProps {
   status: GuardianKindergartenConnectionStatus;
   isAttending?: boolean;
+  isDismissed?: boolean;
   checkInAt?: Date | null;
+  checkOutAt?: Date | null;
   hasUnreadAlarm?: boolean;
 }
 
 function getHeaderStatus(
   status: GuardianKindergartenConnectionStatus,
   isAttending: boolean,
-  checkInAt: Date | null
+  isDismissed: boolean,
+  checkInAt: Date | null,
+  checkOutAt: Date | null
 ) {
+  if (isDismissed && checkInAt && checkOutAt) {
+    return (
+      <span className='gap-x2 flex items-center'>
+        <span className='caption1-regular text-text-primary-inverse'>
+          {guardianKindergartenAttendingContent.checkInLabel}
+        </span>
+        <span className='body2-bold text-text-primary-inverse'>{formatKoreanAmPmTime(checkInAt)}</span>
+        <span className='caption1-regular text-text-primary-inverse'>|</span>
+        <span className='caption1-regular text-text-primary-inverse'>
+          {guardianKindergartenAttendingContent.checkOutLabel}
+        </span>
+        <span className='body2-bold text-text-primary-inverse'>{formatKoreanAmPmTime(checkOutAt)}</span>
+      </span>
+    );
+  }
+
   if (isAttending && checkInAt) {
     return (
       <span className='gap-x2 flex items-center'>
@@ -37,15 +57,19 @@ function getHeaderStatus(
       </span>
     );
   }
+
   if (status === 'approved') return guardianKindergartenApprovedContent.headerStatus;
   if (status === 'pending') return guardianKindergartenPendingContent.headerStatus;
+  // none / disconnected
   return guardianKindergartenEmptyContent.headerStatus;
 }
 
 function GuardianKindergartenHeader({
   status,
   isAttending = false,
+  isDismissed = false,
   checkInAt = null,
+  checkOutAt = null,
   hasUnreadAlarm = false,
 }: GuardianKindergartenHeaderProps) {
   const { pets, selectedPet, selectedPetId, setSelectedPetId, getPetConnectionStatus } =
@@ -53,6 +77,7 @@ function GuardianKindergartenHeader({
 
   const petName = selectedPet?.name ?? '';
   const petImageUrl = selectedPet?.profileImage;
+  const useCompactStatus = isAttending || isDismissed;
 
   const handlePetSelectClick = () => {
     overlay.open(({ isOpen, close }) => (
@@ -78,8 +103,8 @@ function GuardianKindergartenHeader({
               <span className='h3-extrabold text-text-primary-inverse'>{petName}</span>
               <Icon icon='ChevronBottom' className='text-text-primary-inverse size-6' aria-hidden='true' />
             </div>
-            <div className={isAttending ? undefined : 'body2-bold text-text-primary-inverse'}>
-              {getHeaderStatus(status, isAttending, checkInAt)}
+            <div className={useCompactStatus ? undefined : 'body2-bold text-text-primary-inverse'}>
+              {getHeaderStatus(status, isAttending, isDismissed, checkInAt, checkOutAt)}
             </div>
           </div>
         </button>

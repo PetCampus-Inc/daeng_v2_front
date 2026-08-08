@@ -10,15 +10,18 @@ import { useGuardianSelectedPet } from './useGuardianSelectedPet';
 
 /**
  * 등원일 mock 데이터.
- * 등원 중 = 원장 등원처리 + checkInAt 존재
+ * - 등원 중: checkInAt만 존재
+ * - 하원 완료: checkInAt + checkOutAt
  */
 function useGuardianAttendanceDay() {
   const attendanceOverride = useGuardianKindergartenMockStore((state) => state.attendanceOverride);
   const { selectedPet } = useGuardianSelectedPet();
 
   const attendance = attendanceOverride ?? MOCK_ATTENDANCE_DAY;
-  const isAttending = Boolean(attendance.checkInAt);
   const checkInAt = attendance.checkInAt ? new Date(attendance.checkInAt) : null;
+  const checkOutAt = attendance.checkOutAt ? new Date(attendance.checkOutAt) : null;
+  const isDismissed = Boolean(checkInAt && checkOutAt);
+  const isAttending = Boolean(checkInAt && !checkOutAt);
   const dailyNotice =
     attendance.hasDailyNotice && attendance.dailyNotice ? attendance.dailyNotice : null;
 
@@ -37,7 +40,9 @@ function useGuardianAttendanceDay() {
 
   return {
     isAttending,
+    isDismissed,
     checkInAt,
+    checkOutAt,
     hasUnreadAlarm: attendance.hasUnreadAlarm,
     hasDailyNotice: Boolean(dailyNotice),
     dailyNotice,

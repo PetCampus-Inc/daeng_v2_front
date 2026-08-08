@@ -181,6 +181,14 @@ const route = {
       },
     },
   },
+  compare: {
+    /** 보호자 유치원 탭 */
+    root: '/compare',
+    connectionHistory: {
+      /** 보호자 유치원 연결 이력 */
+      root: '/compare/connection-history',
+    },
+  },
 };
 
 /** 원장 권한 해제 플로우 진입 출처 (탈퇴 플로우 분기 판별용) */

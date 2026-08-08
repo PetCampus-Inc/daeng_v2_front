@@ -11,16 +11,22 @@ interface GuardianKindergartenDateCalendarProps {
   onSelectDate: (date: Date) => void;
   /** `YYYY-MM-DD` — 해당 날짜에 마커 표시 */
   markedDateKeys?: Set<string>;
+  /** 선택 가능 최대일. 미지정 시 오늘. 연결 해제일 등 */
+  maxDate?: Date;
 }
 
 function GuardianKindergartenDateCalendar({
   selectedDate,
   onSelectDate,
   markedDateKeys,
+  maxDate: maxDateProp,
 }: GuardianKindergartenDateCalendarProps) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const minDate = useMemo(() => startOfDay(new Date(2020, 0, 1)), []);
-  const maxDate = today;
+  const maxDate = useMemo(
+    () => startOfDay(maxDateProp ?? today),
+    [maxDateProp, today]
+  );
 
   const [isMonthlyExpanded, setIsMonthlyExpanded] = useState(false);
   const [viewMonth, setViewMonth] = useState(() =>
@@ -39,7 +45,7 @@ function GuardianKindergartenDateCalendar({
   };
 
   const handleGoToday = () => {
-    handleSelectDate(today);
+    handleSelectDate(isAfterDay(today, maxDate) ? maxDate : today);
   };
 
   if (isMonthlyExpanded) {

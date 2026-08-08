@@ -1,5 +1,7 @@
 const guardianKindergartenAttendingContent = {
   checkInLabel: '등원',
+  checkOutLabel: '하원',
+  dayFinishedLabel: '오늘 하루를 마쳤어요',
   noticePreparingMessage: '선생님이 알림장을 준비하고 있어요',
   noticePreparingIconSrc: '/images/ico_note_writing_none.png',
   noticePreparingIconAlt: '알림장 준비 중',
@@ -17,6 +19,7 @@ const guardianKindergartenAttendingContent = {
   albumArrivedAccent: '새로운 사진',
   albumArrivedSuffix: '이 도착했어요',
   historyLabel: '유치원 연결 이력 보기',
+  noNoticeMessage: '이 날은 도착한 알림장이 없어요',
 } as const;
 
 export { guardianKindergartenAttendingContent };
