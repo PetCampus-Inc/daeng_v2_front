@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Chip } from '@knockdog/ui';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
@@ -18,6 +18,7 @@ const FILTER_OPTIONS: { value: TodayAttendanceFilter; label: string }[] = [
 
 interface TodayAttendanceTabProps {
   items: AttendanceMember[];
+  initialSelectedFilter?: TodayAttendanceFilter;
   isLoading?: boolean;
   isError?: boolean;
   onCheckOutButtonClick: (member: AttendanceMember) => void;
@@ -27,17 +28,22 @@ interface TodayAttendanceTabProps {
 
 function TodayAttendanceTab({
   items,
+  initialSelectedFilter = 'all',
   isLoading = false,
   isError = false,
   onCheckOutButtonClick,
   onMemberClick,
   onNoticebookButtonClick,
 }: TodayAttendanceTabProps) {
-  const [selectedFilter, setSelectedFilter] = useState<TodayAttendanceFilter>('all');
+  const [selectedFilter, setSelectedFilter] = useState<TodayAttendanceFilter>(initialSelectedFilter);
   const filteredItems = useMemo(
     () => items.filter((member) => matchesTodayAttendanceFilter(member, selectedFilter)),
     [items, selectedFilter]
   );
+
+  useEffect(() => {
+    setSelectedFilter(initialSelectedFilter);
+  }, [initialSelectedFilter]);
 
   return (
     <div className='flex min-h-full w-full flex-col gap-4 pt-5'>
@@ -91,3 +97,4 @@ function matchesTodayAttendanceFilter(member: AttendanceMember, filter: TodayAtt
 }
 
 export { TodayAttendanceTab };
+export type { TodayAttendanceFilter };

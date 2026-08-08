@@ -21,6 +21,7 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useDebounced } from '@shared/lib';
+import { ApiError } from '@shared/api';
 import { toast } from '@shared/ui/toast';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -78,7 +79,7 @@ function toAttendanceMemberFromTodayItem(item: AttendanceCheckinoutTodayItem): A
 }
 
 function getCancelCheckInBlockMessage(member: AttendanceMember) {
-  if (member.checkedOut) return '이미 하원 처리되어 등원을 취소할 수 없어요';
+  if (member.checkedOut) return '이미 하원 처리 되어 등원을 취소할 수 없어요';
   if (member.noticebookSent) return '이미 알림장이 발송되어 등원을 취소할 수 없어요';
 
   return null;
@@ -164,6 +165,27 @@ function useOwnerDailyPage() {
     });
   };
 
+  const showCancelCheckInFailureToast = (error: unknown) => {
+    if (error instanceof ApiError) {
+      switch (String(error.code)) {
+        case 'ATTENDANCE_CHECKINOUT-409-2':
+          toast({
+            title: '이미 하원 처리 되어 등원을 취소할 수 없어요',
+            nativeTitle: '이미 하원 처리 되어 등원을 취소할 수 없어요',
+          });
+          return;
+        case 'ATTENDANCE_CHECKINOUT-409-3':
+          toast({
+            title: '이미 알림장이 발송되어 등원을 취소할 수 없어요',
+            nativeTitle: '이미 알림장이 발송되어 등원을 취소할 수 없어요',
+          });
+          return;
+      }
+    }
+
+    showRequestFailureToast();
+  };
+
   const canOpenCancelCheckInDialog = (member: AttendanceMember) => {
     const blockMessage = getCancelCheckInBlockMessage(member);
     if (!blockMessage) return true;
@@ -239,8 +261,8 @@ function useOwnerDailyPage() {
           </>
         ),
       });
-    } catch {
-      showRequestFailureToast();
+    } catch (error) {
+      showCancelCheckInFailureToast(error);
     }
   };
 

@@ -6,14 +6,14 @@ import { TextHighlights } from '@shared/ui/text-highlights';
 
 interface OwnerDailyMemberCardProps {
   member: AttendanceMember;
-  normalizedSearchKeyword: string;
+  searchKeyword: string;
   onMemberClick: (memberId: string) => void;
   onAttendanceButtonClick: (member: AttendanceMember) => void;
 }
 
 function OwnerDailyMemberCard({
   member,
-  normalizedSearchKeyword,
+  searchKeyword,
   onMemberClick,
   onAttendanceButtonClick,
 }: OwnerDailyMemberCardProps) {
@@ -39,7 +39,7 @@ function OwnerDailyMemberCard({
         <div className='flex h-11 min-w-0 flex-1 flex-col justify-center'>
           <div className='flex h-6 min-w-0 items-center gap-1'>
             <span className='body1-extrabold text-text-primary truncate'>
-              {TextHighlights(member.name, normalizedSearchKeyword)}
+              {TextHighlights(member.name, searchKeyword)}
             </span>
             {member.gender ? (
               <Icon
@@ -49,13 +49,9 @@ function OwnerDailyMemberCard({
             ) : null}
           </div>
           <span className='body2-regular text-text-secondary truncate'>
-            {[
-              member.breed,
-              member.weightKg != null ? `${member.weightKg}kg` : null,
-              member.age ? `${member.age}살` : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
+            {member.breed ? TextHighlights(member.breed, searchKeyword) : null}
+            {member.weightKg != null ? `${member.breed ? ' · ' : ''}${member.weightKg}kg` : null}
+            {member.age ? `${member.breed || member.weightKg != null ? ' · ' : ''}${member.age}살` : null}
           </span>
         </div>
       </button>

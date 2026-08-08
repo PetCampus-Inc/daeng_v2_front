@@ -65,8 +65,10 @@ function TodayAttendanceCard({
           {status ? <TodayAttendanceStatusBadge status={status} /> : null}
         </div>
         <div className='bg-bg-50 radius-r2 flex h-9 w-full items-center gap-4 px-4 py-2'>
-          <AttendanceTime label='등원' time={member.checkedInTime ?? '오전 9:00'} />
-          {member.checkedOut ? <AttendanceTime label='하원' time={member.checkedOutTime ?? '오후 6:00'} /> : null}
+          {member.checkedInTime ? <AttendanceTime label='등원' time={member.checkedInTime} /> : null}
+          {member.checkedOut && member.checkedOutTime ? (
+            <AttendanceTime label='하원' time={member.checkedOutTime} />
+          ) : null}
         </div>
       </div>
       <div className='flex h-12 w-full items-start gap-2'>

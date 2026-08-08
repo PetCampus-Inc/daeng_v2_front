@@ -1,5 +1,6 @@
 type CheckinoutStatus = 'NOT_CHECKED_IN' | 'CHECKED_IN' | 'CHECKED_OUT';
 type TodayAttendanceFilter = 'CURRENTLY_IN' | 'UNSENT_RECORD';
+type ApiDateTime = string | number[];
 
 interface AttendanceCheckinoutCandidateDto {
   petId: number;
@@ -19,8 +20,8 @@ interface AttendanceCheckinoutCandidatesDto {
 
 /** candidates 필드 + 등/하원 시각·알림장 발송 여부 */
 interface AttendanceCheckinoutTodayItemDto extends AttendanceCheckinoutCandidateDto {
-  checkInAt?: string | null;
-  checkOutAt?: string | null;
+  checkInAt?: ApiDateTime | null;
+  checkOutAt?: ApiDateTime | null;
   attendanceRecordSent?: boolean | null;
   hasSentAttendanceRecord?: boolean | null;
   noticeSent?: boolean | null;
@@ -41,8 +42,8 @@ interface AttendanceCheckinoutSummaryDto {
 interface AttendanceCheckinoutActionDto {
   petId?: number | string;
   checkinoutStatus?: CheckinoutStatus | string | null;
-  checkInAt?: string | null;
-  checkOutAt?: string | null;
+  checkInAt?: ApiDateTime | null;
+  checkOutAt?: ApiDateTime | null;
 }
 
 interface AttendanceCheckinoutCandidate {
@@ -122,6 +123,30 @@ function normalizeDateKey(value: unknown): string | null {
   return null;
 }
 
+function normalizeDateTime(value: unknown): string | null {
+  if (typeof value === 'string' && value.length > 0) return value;
+
+  if (Array.isArray(value) && value.length >= 5) {
+    const [year, month, day, hour, minute, second = 0, nanosecond = 0] = value;
+    const parts = [year, month, day, hour, minute, second, nanosecond];
+    if (!parts.every((part) => typeof part === 'number' && Number.isFinite(part))) return null;
+
+    return new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        hour - 9,
+        minute,
+        second,
+        Math.floor(nanosecond / 1_000_000)
+      )
+    ).toISOString();
+  }
+
+  return null;
+}
+
 function resolveAttendanceRecordSent(
   dto: Pick<
     AttendanceCheckinoutTodayItemDto,
@@ -161,8 +186,8 @@ function toAttendanceCheckinoutTodayItem(
 
   return {
     ...base,
-    checkInAt: typeof dto.checkInAt === 'string' ? dto.checkInAt : null,
-    checkOutAt: typeof dto.checkOutAt === 'string' ? dto.checkOutAt : null,
+    checkInAt: normalizeDateTime(dto.checkInAt),
+    checkOutAt: normalizeDateTime(dto.checkOutAt),
     attendanceRecordSent: resolveAttendanceRecordSent(dto),
   };
 }
@@ -217,8 +242,8 @@ function toAttendanceCheckinoutAction(
   return {
     petId,
     checkinoutStatus: normalizeCheckinoutStatus(dto.checkinoutStatus),
-    checkInAt: typeof dto.checkInAt === 'string' ? dto.checkInAt : null,
-    checkOutAt: typeof dto.checkOutAt === 'string' ? dto.checkOutAt : null,
+    checkInAt: normalizeDateTime(dto.checkInAt),
+    checkOutAt: normalizeDateTime(dto.checkOutAt),
   };
 }
 
