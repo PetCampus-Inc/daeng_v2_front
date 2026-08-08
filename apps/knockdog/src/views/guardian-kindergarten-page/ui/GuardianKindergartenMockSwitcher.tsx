@@ -23,6 +23,7 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
     label: 'pre',
     value: {
       checkInAt: null,
+      checkOutAt: null,
       hasUnreadAlarm: false,
       hasDailyNotice: false,
       dailyNotice: null,
@@ -31,9 +32,10 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
     },
   },
   {
-    label: 'noNote',
+    label: 'in',
     value: {
       checkInAt: createTodayAt(9, 0),
+      checkOutAt: null,
       hasUnreadAlarm: true,
       hasDailyNotice: false,
       dailyNotice: null,
@@ -42,9 +44,34 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
     },
   },
   {
-    label: 'note',
+    label: 'inNote',
     value: {
       checkInAt: createTodayAt(9, 0),
+      checkOutAt: null,
+      hasUnreadAlarm: true,
+      hasDailyNotice: true,
+      dailyNotice: MOCK_DAILY_NOTICE,
+      albumPhotoCount: 3,
+      recordDateKeys: MOCK_RECORD_DATE_KEYS,
+    },
+  },
+  {
+    label: 'out',
+    value: {
+      checkInAt: createTodayAt(9, 0),
+      checkOutAt: createTodayAt(17, 5),
+      hasUnreadAlarm: true,
+      hasDailyNotice: false,
+      dailyNotice: null,
+      albumPhotoCount: 1,
+      recordDateKeys: MOCK_RECORD_DATE_KEYS,
+    },
+  },
+  {
+    label: 'outNote',
+    value: {
+      checkInAt: createTodayAt(9, 0),
+      checkOutAt: createTodayAt(17, 5),
       hasUnreadAlarm: true,
       hasDailyNotice: true,
       dailyNotice: MOCK_DAILY_NOTICE,
@@ -64,6 +91,7 @@ function isSameAttendancePreset(
     current.hasDailyNotice === preset.hasDailyNotice &&
     current.albumPhotoCount === preset.albumPhotoCount &&
     Boolean(current.checkInAt) === Boolean(preset.checkInAt) &&
+    Boolean(current.checkOutAt) === Boolean(preset.checkOutAt) &&
     current.hasUnreadAlarm === preset.hasUnreadAlarm
   );
 }
@@ -78,7 +106,7 @@ function GuardianKindergartenMockSwitcher() {
   if (process.env.NODE_ENV !== 'development' || !SHOW_CONNECTION_MOCK_SWITCHER) return null;
 
   return (
-    <div className='fixed bottom-[calc(var(--bottom-bar-height)+12px)] left-3 z-50 flex max-w-[220px] flex-col gap-2 rounded-lg bg-black/70 p-2 text-[11px] text-white'>
+    <div className='fixed bottom-[calc(var(--bottom-bar-height)+12px)] left-3 z-50 flex max-w-[240px] flex-col gap-2 rounded-lg bg-black/70 p-2 text-[11px] text-white'>
       <div className='flex flex-col gap-1'>
         <span className='font-semibold opacity-80'>connection</span>
         <div className='flex flex-wrap gap-1'>

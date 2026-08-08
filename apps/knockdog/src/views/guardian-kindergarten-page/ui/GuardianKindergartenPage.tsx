@@ -28,8 +28,17 @@ export function GuardianKindergartenPage() {
 
   const hasAuth = useRequireAuth(handleAuthError);
   const { status, linkedKindergarten } = useGuardianKindergartenConnection();
-  const { isAttending, checkInAt, hasUnreadAlarm, hasDailyNotice, dailyNotice, albumPhotos, attendanceRecordDateKeys } =
-    useGuardianAttendanceDay();
+  const {
+    isAttending,
+    isDismissed,
+    checkInAt,
+    checkOutAt,
+    hasUnreadAlarm,
+    hasDailyNotice,
+    dailyNotice,
+    albumPhotos,
+    attendanceRecordDateKeys,
+  } = useGuardianAttendanceDay();
 
   useEffect(() => {
     setIsMounted(true);
@@ -38,7 +47,11 @@ export function GuardianKindergartenPage() {
 
   if (!isMounted || !isLoggedIn) return null;
 
-  const showAttending = status === 'approved' && isAttending && checkInAt && linkedKindergarten;
+  const showDayState =
+    status === 'approved' &&
+    linkedKindergarten &&
+    checkInAt &&
+    (isAttending || isDismissed);
 
   return (
     <div
@@ -51,16 +64,19 @@ export function GuardianKindergartenPage() {
       <GuardianKindergartenMockSwitcher />
       <GuardianKindergartenHeader
         status={status}
-        isAttending={Boolean(showAttending)}
+        isAttending={Boolean(showDayState && isAttending)}
+        isDismissed={Boolean(showDayState && isDismissed)}
         checkInAt={checkInAt}
-        hasUnreadAlarm={Boolean(showAttending && hasUnreadAlarm)}
+        checkOutAt={checkOutAt}
+        hasUnreadAlarm={Boolean(showDayState && hasUnreadAlarm)}
       />
 
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
-        {showAttending ? (
+        {showDayState ? (
           <GuardianKindergartenAttendingState
             kindergarten={linkedKindergarten}
             checkInAt={checkInAt}
+            checkOutAt={checkOutAt}
             hasDailyNotice={hasDailyNotice}
             dailyNotice={dailyNotice}
             albumPhotos={albumPhotos}
