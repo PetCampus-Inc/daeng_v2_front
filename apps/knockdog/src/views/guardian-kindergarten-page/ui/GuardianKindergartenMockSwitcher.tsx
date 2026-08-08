@@ -1,6 +1,10 @@
 'use client';
 
-import type { GuardianAttendanceDayMock } from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
+import {
+  createTodayAt,
+  MOCK_DAILY_NOTICE,
+  type GuardianAttendanceDayMock,
+} from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
 import { SHOW_CONNECTION_MOCK_SWITCHER } from '@views/guardian-kindergarten-page/config/guardianKindergartenMock';
 import { useGuardianKindergartenMockStore } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenMockStore';
 import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
@@ -12,46 +16,53 @@ const STATUS_OPTIONS: { value: GuardianKindergartenConnectionStatus | null; labe
   { value: 'approved', label: 'approved' },
 ];
 
-function createTodayCheckInAt(hours = 9, minutes = 0) {
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toISOString();
-}
-
 const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | null }[] = [
   { label: 'default', value: null },
   {
-    label: 'album0',
-    value: { checkInAt: null, hasUnreadAlarm: false, hasDailyNotice: false, albumPhotoCount: 0 },
+    label: 'pre',
+    value: {
+      checkInAt: null,
+      hasUnreadAlarm: false,
+      hasDailyNotice: false,
+      dailyNotice: null,
+      albumPhotoCount: 0,
+    },
   },
   {
-    label: 'album1',
+    label: 'noNote',
     value: {
-      checkInAt: createTodayCheckInAt(9, 0),
+      checkInAt: createTodayAt(9, 0),
       hasUnreadAlarm: true,
       hasDailyNotice: false,
+      dailyNotice: null,
       albumPhotoCount: 1,
     },
   },
   {
-    label: 'album2',
+    label: 'note',
     value: {
-      checkInAt: createTodayCheckInAt(9, 0),
-      hasUnreadAlarm: false,
-      hasDailyNotice: false,
-      albumPhotoCount: 2,
-    },
-  },
-  {
-    label: 'album3',
-    value: {
-      checkInAt: createTodayCheckInAt(9, 0),
+      checkInAt: createTodayAt(9, 0),
       hasUnreadAlarm: true,
-      hasDailyNotice: false,
+      hasDailyNotice: true,
+      dailyNotice: MOCK_DAILY_NOTICE,
       albumPhotoCount: 3,
     },
   },
 ];
+
+function isSameAttendancePreset(
+  current: GuardianAttendanceDayMock | null,
+  preset: GuardianAttendanceDayMock | null
+) {
+  if (current === preset) return true;
+  if (current == null || preset == null) return current === preset;
+  return (
+    current.hasDailyNotice === preset.hasDailyNotice &&
+    current.albumPhotoCount === preset.albumPhotoCount &&
+    Boolean(current.checkInAt) === Boolean(preset.checkInAt) &&
+    current.hasUnreadAlarm === preset.hasUnreadAlarm
+  );
+}
 
 /** API 연동 전 연결/등원 mock 강제 전환용 */
 function GuardianKindergartenMockSwitcher() {
@@ -87,14 +98,7 @@ function GuardianKindergartenMockSwitcher() {
         <span className='font-semibold opacity-80'>attendance</span>
         <div className='flex flex-wrap gap-1'>
           {ATTENDANCE_PRESETS.map((preset) => {
-            const isActive =
-              attendanceOverride === preset.value ||
-              (preset.value === null && attendanceOverride === null) ||
-              (preset.value != null &&
-                attendanceOverride != null &&
-                attendanceOverride.checkInAt === preset.value.checkInAt &&
-                attendanceOverride.albumPhotoCount === preset.value.albumPhotoCount &&
-                attendanceOverride.hasUnreadAlarm === preset.value.hasUnreadAlarm);
+            const isActive = isSameAttendancePreset(attendanceOverride, preset.value);
             return (
               <button
                 key={preset.label}

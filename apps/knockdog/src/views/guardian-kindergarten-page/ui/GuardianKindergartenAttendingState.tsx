@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 
+import type { GuardianDailyNoticeMock } from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import {
   formatAttendingDuration,
@@ -13,6 +14,10 @@ import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/l
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 
 import { GuardianAlbumPhotoStack } from './GuardianAlbumPhotoStack';
+import {
+  GuardianDailyNoticeArrivedBanner,
+  GuardianDailyNoticeTimelineCard,
+} from './GuardianDailyNoticeCard';
 import { GuardianKindergartenWeekCalendar } from './GuardianKindergartenWeekCalendar';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
@@ -20,6 +25,7 @@ interface GuardianKindergartenAttendingStateProps {
   kindergarten: GuardianLinkedKindergarten;
   checkInAt: Date;
   hasDailyNotice: boolean;
+  dailyNotice: GuardianDailyNoticeMock | null;
   albumPhotos: string[];
 }
 
@@ -27,6 +33,7 @@ function GuardianKindergartenAttendingState({
   kindergarten,
   checkInAt,
   hasDailyNotice,
+  dailyNotice,
   albumPhotos,
 }: GuardianKindergartenAttendingStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -34,6 +41,7 @@ function GuardianKindergartenAttendingState({
   const content = guardianKindergartenAttendingContent;
   const checkInTimeLabel = formatKoreanAmPmTime(checkInAt);
   const durationLabel = formatAttendingDuration(checkInAt, now);
+  const noticeTimeLabel = dailyNotice ? formatKoreanAmPmTime(new Date(dailyNotice.writtenAt)) : null;
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000);
@@ -55,7 +63,9 @@ function GuardianKindergartenAttendingState({
         </div>
 
         {/* 알림장 */}
-        {!hasDailyNotice ? (
+        {hasDailyNotice && dailyNotice ? (
+          <GuardianDailyNoticeArrivedBanner />
+        ) : (
           <div className='bg-bg-50 radius-r3 flex w-full items-center justify-center gap-2 overflow-hidden p-4'>
             <Image
               src={content.noticePreparingIconSrc}
@@ -66,9 +76,9 @@ function GuardianKindergartenAttendingState({
             />
             <p className='body2-bold text-text-secondary'>{content.noticePreparingMessage}</p>
           </div>
-        ) : null}
+        )}
 
-        {/* 오늘의 앨범 (<3장) */}
+        {/* 오늘의 앨범 */}
         <section className='flex w-full flex-col items-center gap-5'>
           <div className='flex w-full items-center justify-between'>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
@@ -90,14 +100,25 @@ function GuardianKindergartenAttendingState({
         </section>
       </div>
 
-      {/* 주간 캘린더 + 등원 타임라인 */}
+      {/* 주간 캘린더 + 타임라인 */}
       <section className='flex w-full flex-col items-center'>
         <GuardianKindergartenWeekCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-        <div className='flex w-full items-start gap-4 p-4'>
-          <p className='caption1-regular text-text-secondary shrink-0 pt-2'>{checkInTimeLabel}</p>
-          <div className='bg-bg-50 radius-r2 flex h-9 flex-1 items-center justify-center px-4 py-2'>
-            <p className='body2-regular text-text-primary'>{content.checkInLabel}</p>
+        <div className='flex w-full flex-col gap-2 p-4'>
+          <div className='flex w-full items-start gap-4'>
+            <div className='flex w-12 shrink-0 flex-col items-center gap-2 self-stretch'>
+              <p className='caption1-regular text-text-secondary'>{checkInTimeLabel}</p>
+              {hasDailyNotice && dailyNotice ? <div className='bg-line-200 w-px flex-1' /> : null}
+            </div>
+            <div className='pb-2'>
+              <div className='bg-bg-50 radius-r2 flex h-9 w-[295px] max-w-full items-center justify-center px-4 py-2'>
+                <p className='body2-regular text-text-primary'>{content.checkInLabel}</p>
+              </div>
+            </div>
           </div>
+
+          {hasDailyNotice && dailyNotice && noticeTimeLabel ? (
+            <GuardianDailyNoticeTimelineCard notice={dailyNotice} timeLabel={noticeTimeLabel} />
+          ) : null}
         </div>
       </section>
 

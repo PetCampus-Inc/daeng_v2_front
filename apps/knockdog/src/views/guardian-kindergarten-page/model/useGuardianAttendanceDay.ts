@@ -17,6 +17,8 @@ function useGuardianAttendanceDay() {
   const attendance = attendanceOverride ?? MOCK_ATTENDANCE_DAY;
   const isAttending = Boolean(attendance.checkInAt);
   const checkInAt = attendance.checkInAt ? new Date(attendance.checkInAt) : null;
+  const dailyNotice =
+    attendance.hasDailyNotice && attendance.dailyNotice ? attendance.dailyNotice : null;
 
   const albumPhotos = useMemo(() => {
     const count = Math.min(3, Math.max(0, attendance.albumPhotoCount));
@@ -29,7 +31,8 @@ function useGuardianAttendanceDay() {
     isAttending,
     checkInAt,
     hasUnreadAlarm: attendance.hasUnreadAlarm,
-    hasDailyNotice: attendance.hasDailyNotice,
+    hasDailyNotice: Boolean(dailyNotice),
+    dailyNotice,
     albumPhotos,
   };
 }
