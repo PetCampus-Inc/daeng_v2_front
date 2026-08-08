@@ -1,3 +1,5 @@
+import { formatDateKey, addDays, startOfDay } from '@shared/lib/calendar-date';
+
 interface GuardianDailyNoticeMock {
   /** 알림장 작성/도착 시각 */
   writtenAt: string;
@@ -20,6 +22,8 @@ interface GuardianAttendanceDayMock {
    * 실제 이미지는 선택견 profileImage로 mock 채움
    */
   albumPhotoCount: 0 | 1 | 2 | 3;
+  /** 등원 기록이 있는 날짜 `YYYY-MM-DD` — 캘린더 주황 점 */
+  recordDateKeys: string[];
 }
 
 function createTodayAt(hours: number, minutes = 0) {
@@ -27,6 +31,17 @@ function createTodayAt(hours: number, minutes = 0) {
   date.setHours(hours, minutes, 0, 0);
   return date.toISOString();
 }
+
+function createDateKeyDaysAgo(daysAgo: number) {
+  return formatDateKey(addDays(startOfDay(new Date()), -daysAgo));
+}
+
+/** mock용 최근 등원 기록 날짜 (오늘·그제·3일 전) */
+const MOCK_RECORD_DATE_KEYS = [
+  createDateKeyDaysAgo(0),
+  createDateKeyDaysAgo(2),
+  createDateKeyDaysAgo(3),
+];
 
 const MOCK_DAILY_NOTICE: GuardianDailyNoticeMock = {
   writtenAt: createTodayAt(16, 30),
@@ -45,7 +60,14 @@ const MOCK_ATTENDANCE_DAY: GuardianAttendanceDayMock = {
   hasDailyNotice: true,
   dailyNotice: MOCK_DAILY_NOTICE,
   albumPhotoCount: 1,
+  recordDateKeys: MOCK_RECORD_DATE_KEYS,
 };
 
 export type { GuardianAttendanceDayMock, GuardianDailyNoticeMock };
-export { MOCK_ATTENDANCE_DAY, MOCK_DAILY_NOTICE, createTodayAt };
+export {
+  MOCK_ATTENDANCE_DAY,
+  MOCK_DAILY_NOTICE,
+  MOCK_RECORD_DATE_KEYS,
+  createTodayAt,
+  createDateKeyDaysAgo,
+};

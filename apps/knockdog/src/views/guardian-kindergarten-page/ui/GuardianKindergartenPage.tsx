@@ -28,7 +28,7 @@ export function GuardianKindergartenPage() {
 
   const hasAuth = useRequireAuth(handleAuthError);
   const { status, linkedKindergarten } = useGuardianKindergartenConnection();
-  const { isAttending, checkInAt, hasUnreadAlarm, hasDailyNotice, dailyNotice, albumPhotos } =
+  const { isAttending, checkInAt, hasUnreadAlarm, hasDailyNotice, dailyNotice, albumPhotos, attendanceRecordDateKeys } =
     useGuardianAttendanceDay();
 
   useEffect(() => {
@@ -64,9 +64,13 @@ export function GuardianKindergartenPage() {
             hasDailyNotice={hasDailyNotice}
             dailyNotice={dailyNotice}
             albumPhotos={albumPhotos}
+            attendanceRecordDateKeys={attendanceRecordDateKeys}
           />
         ) : status === 'approved' && linkedKindergarten ? (
-          <GuardianKindergartenApprovedState kindergarten={linkedKindergarten} />
+          <GuardianKindergartenApprovedState
+            kindergarten={linkedKindergarten}
+            attendanceRecordDateKeys={attendanceRecordDateKeys}
+          />
         ) : status === 'pending' && linkedKindergarten ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
         ) : (

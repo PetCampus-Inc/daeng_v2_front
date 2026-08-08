@@ -3,6 +3,7 @@
 import {
   createTodayAt,
   MOCK_DAILY_NOTICE,
+  MOCK_RECORD_DATE_KEYS,
   type GuardianAttendanceDayMock,
 } from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
 import { SHOW_CONNECTION_MOCK_SWITCHER } from '@views/guardian-kindergarten-page/config/guardianKindergartenMock';
@@ -26,6 +27,7 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
       hasDailyNotice: false,
       dailyNotice: null,
       albumPhotoCount: 0,
+      recordDateKeys: MOCK_RECORD_DATE_KEYS.filter((_, index) => index > 0),
     },
   },
   {
@@ -36,6 +38,7 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
       hasDailyNotice: false,
       dailyNotice: null,
       albumPhotoCount: 1,
+      recordDateKeys: MOCK_RECORD_DATE_KEYS,
     },
   },
   {
@@ -46,6 +49,7 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
       hasDailyNotice: true,
       dailyNotice: MOCK_DAILY_NOTICE,
       albumPhotoCount: 3,
+      recordDateKeys: MOCK_RECORD_DATE_KEYS,
     },
   },
 ];

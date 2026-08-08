@@ -18,7 +18,7 @@ import {
   GuardianDailyNoticeArrivedBanner,
   GuardianDailyNoticeTimelineCard,
 } from './GuardianDailyNoticeCard';
-import { GuardianKindergartenWeekCalendar } from './GuardianKindergartenWeekCalendar';
+import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
 interface GuardianKindergartenAttendingStateProps {
@@ -27,6 +27,7 @@ interface GuardianKindergartenAttendingStateProps {
   hasDailyNotice: boolean;
   dailyNotice: GuardianDailyNoticeMock | null;
   albumPhotos: string[];
+  attendanceRecordDateKeys: Set<string>;
 }
 
 function GuardianKindergartenAttendingState({
@@ -35,6 +36,7 @@ function GuardianKindergartenAttendingState({
   hasDailyNotice,
   dailyNotice,
   albumPhotos,
+  attendanceRecordDateKeys,
 }: GuardianKindergartenAttendingStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [now, setNow] = useState(() => new Date());
@@ -102,7 +104,11 @@ function GuardianKindergartenAttendingState({
 
       {/* 주간 캘린더 + 타임라인 */}
       <section className='flex w-full flex-col items-center'>
-        <GuardianKindergartenWeekCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+        <GuardianKindergartenDateCalendar
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          markedDateKeys={attendanceRecordDateKeys}
+        />
         <div className='flex w-full flex-col gap-2 p-4'>
           <div className='flex w-full items-start gap-4'>
             <div className='flex w-12 shrink-0 flex-col items-center gap-2 self-stretch'>

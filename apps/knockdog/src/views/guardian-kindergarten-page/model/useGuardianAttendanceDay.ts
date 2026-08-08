@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 
+import { formatDateKey } from '@shared/lib/calendar-date';
+
 import { MOCK_ATTENDANCE_DAY } from '../config/guardianAttendanceMock';
 import { useGuardianKindergartenMockStore } from './useGuardianKindergartenMockStore';
 import { useGuardianSelectedPet } from './useGuardianSelectedPet';
@@ -27,6 +29,12 @@ function useGuardianAttendanceDay() {
     return Array.from({ length: count }, () => petImage);
   }, [attendance.albumPhotoCount, selectedPet?.profileImage]);
 
+  const attendanceRecordDateKeys = useMemo(() => {
+    const keys = new Set(attendance.recordDateKeys ?? []);
+    if (checkInAt) keys.add(formatDateKey(checkInAt));
+    return keys;
+  }, [attendance.recordDateKeys, checkInAt]);
+
   return {
     isAttending,
     checkInAt,
@@ -34,6 +42,7 @@ function useGuardianAttendanceDay() {
     hasDailyNotice: Boolean(dailyNotice),
     dailyNotice,
     albumPhotos,
+    attendanceRecordDateKeys,
   };
 }
 
