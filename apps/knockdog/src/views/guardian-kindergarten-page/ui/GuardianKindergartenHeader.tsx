@@ -6,6 +6,7 @@ import { overlay } from 'overlay-kit';
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { guardianKindergartenEmptyContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenEmptyContent';
+import { guardianKindergartenNoPetContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenNoPetContent';
 import { guardianKindergartenPendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenPendingContent';
 import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
@@ -22,6 +23,8 @@ interface GuardianKindergartenHeaderProps {
   checkInAt?: Date | null;
   checkOutAt?: Date | null;
   hasUnreadAlarm?: boolean;
+  /** 등록된 강아지가 없을 때(로그인 직후 미등록) */
+  hasNoPet?: boolean;
 }
 
 function getHeaderStatus(
@@ -71,6 +74,7 @@ function GuardianKindergartenHeader({
   checkInAt = null,
   checkOutAt = null,
   hasUnreadAlarm = false,
+  hasNoPet = false,
 }: GuardianKindergartenHeaderProps) {
   const { pets, selectedPet, selectedPetId, setSelectedPetId, getPetConnectionStatus } =
     useGuardianSelectedPet();
@@ -80,6 +84,8 @@ function GuardianKindergartenHeader({
   const useCompactStatus = isAttending || isDismissed;
 
   const handlePetSelectClick = () => {
+    if (hasNoPet) return;
+
     overlay.open(({ isOpen, close }) => (
       <GuardianDogSelectSheet
         isOpen={isOpen}
@@ -95,19 +101,28 @@ function GuardianKindergartenHeader({
   return (
     <div className='relative pt-(--safe-area-inset-top,0px)'>
       <div className='px-x4 flex items-start justify-between py-5'>
-        <button type='button' className='gap-x4 flex items-center text-left' onClick={handlePetSelectClick}>
-          <DogProfileAvatar name={petName || '강아지'} imageUrl={petImageUrl} className='size-[52px]' />
-
-          <div className='gap-x1 flex flex-col items-start justify-center'>
-            <div className='gap-x1 flex items-center'>
-              <span className='h3-extrabold text-text-primary-inverse'>{petName}</span>
-              <Icon icon='ChevronBottom' className='text-text-primary-inverse size-6' aria-hidden='true' />
-            </div>
-            <div className={useCompactStatus ? undefined : 'body2-bold text-text-primary-inverse'}>
-              {getHeaderStatus(status, isAttending, isDismissed, checkInAt, checkOutAt)}
-            </div>
+        {hasNoPet ? (
+          <div className='gap-x4 flex items-center'>
+            <DogProfileAvatar name={guardianKindergartenNoPetContent.headerTitle} className='size-[52px]' />
+            <span className='h3-extrabold text-text-primary-inverse'>
+              {guardianKindergartenNoPetContent.headerTitle}
+            </span>
           </div>
-        </button>
+        ) : (
+          <button type='button' className='gap-x4 flex items-center text-left' onClick={handlePetSelectClick}>
+            <DogProfileAvatar name={petName || '강아지'} imageUrl={petImageUrl} className='size-[52px]' />
+
+            <div className='gap-x1 flex flex-col items-start justify-center'>
+              <div className='gap-x1 flex items-center'>
+                <span className='h3-extrabold text-text-primary-inverse'>{petName}</span>
+                <Icon icon='ChevronBottom' className='text-text-primary-inverse size-6' aria-hidden='true' />
+              </div>
+              <div className={useCompactStatus ? undefined : 'body2-bold text-text-primary-inverse'}>
+                {getHeaderStatus(status, isAttending, isDismissed, checkInAt, checkOutAt)}
+              </div>
+            </div>
+          </button>
+        )}
 
         <div className='bg-bg-0 shrink-0 rounded-full p-1.5' aria-hidden='true'>
           {hasUnreadAlarm ? (

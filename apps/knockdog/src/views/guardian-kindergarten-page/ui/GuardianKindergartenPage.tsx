@@ -7,12 +7,15 @@ import { useGuardianKindergartenConnection } from '@views/guardian-kindergarten-
 import { useTabNavigation } from '@shared/lib/bridge';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
 import { GuardianKindergartenDisconnectedState } from './GuardianKindergartenDisconnectedState';
 import { GuardianKindergartenEmptyState } from './GuardianKindergartenEmptyState';
 import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
 import { GuardianKindergartenMockSwitcher } from './GuardianKindergartenMockSwitcher';
+import { GuardianKindergartenNoPetState } from './GuardianKindergartenNoPetState';
 import { GuardianKindergartenPendingState } from './GuardianKindergartenPendingState';
 
 export function GuardianKindergartenPage() {
@@ -28,6 +31,7 @@ export function GuardianKindergartenPage() {
   );
 
   const hasAuth = useRequireAuth(handleAuthError);
+  const { pets, isPetsReady } = useGuardianSelectedPet();
   const { status, linkedKindergarten } = useGuardianKindergartenConnection();
   const {
     isAttending,
@@ -46,14 +50,16 @@ export function GuardianKindergartenPage() {
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
-  if (!isMounted || !isLoggedIn) return null;
+  if (!isMounted || !isLoggedIn || !isPetsReady) return null;
 
+  const hasNoPet = pets.length === 0;
   const showDayState =
+    !hasNoPet &&
     status === 'approved' &&
     linkedKindergarten &&
     checkInAt &&
     (isAttending || isDismissed);
-  const showDisconnected = status === 'disconnected' && linkedKindergarten;
+  const showDisconnected = !hasNoPet && status === 'disconnected' && linkedKindergarten;
 
   return (
     <div
@@ -71,10 +77,13 @@ export function GuardianKindergartenPage() {
         checkInAt={checkInAt}
         checkOutAt={checkOutAt}
         hasUnreadAlarm={Boolean(showDayState && hasUnreadAlarm)}
+        hasNoPet={hasNoPet}
       />
 
       <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
-        {showDayState ? (
+        {hasNoPet ? (
+          <GuardianKindergartenNoPetState />
+        ) : showDayState ? (
           <GuardianKindergartenAttendingState
             kindergarten={linkedKindergarten}
             checkInAt={checkInAt}
