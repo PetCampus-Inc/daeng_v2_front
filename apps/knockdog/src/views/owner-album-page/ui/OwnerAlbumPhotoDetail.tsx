@@ -162,6 +162,10 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
         toast({
           type: 'success',
           nativeTitle: ownerAlbumContent.detail.saveSuccessToast.nativeTitle,
+          titleParts: [
+            { text: '사진', accent: true },
+            { text: '을 저장했어요' },
+          ],
           title: (
             <>
               <span className='text-text-accent'>사진</span>
@@ -207,6 +211,10 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
       toast({
         type: 'success',
         nativeTitle: ownerAlbumContent.detail.deleteSuccessToast.nativeTitle,
+        titleParts: [
+          { text: '사진', accent: true },
+          { text: '을 삭제했어요' },
+        ],
         title: (
           <>
             <span className='text-text-accent'>사진</span>

@@ -237,8 +237,10 @@ function Mypage() {
             <div className={isOwnerView ? undefined : 'pt-4'}>
               <AccountSection
                 variant={isOwnerView ? 'owner' : 'guardian'}
-                accountInfo={isOwnerView ? undefined : accountInfo}
+                accountInfo={accountInfo}
                 accountSectionTitle={ownerMypageContent.accountSectionTitle}
+                ttokIdLabel={ownerMypageContent.ttokIdLabel}
+                ttokIdDescription={ownerMypageContent.ttokIdDescription}
                 socialProvider={isOwnerView ? loginProvider : undefined}
                 socialEmail={isOwnerView ? loginEmail : undefined}
                 releasePermissionLabel={

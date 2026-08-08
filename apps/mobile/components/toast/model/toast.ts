@@ -13,6 +13,8 @@ function isToastOptions(value: unknown): value is ToastOptions {
     ('id' in value ||
       'title' in value ||
       'titleParts' in value ||
+      'icon' in value ||
+      'iconAccent' in value ||
       'duration' in value ||
       'className' in value ||
       'variant' in value || // 존재 체크만 (RN에서 사용 안 함)
@@ -47,6 +49,8 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
     duration: resolvedOptions.duration ?? defaults.duration ?? 2000,
     shape: resolvedOptions.shape ?? (defaults as any).shape ?? 'rounded',
     type: resolvedOptions.type ?? (defaults as any).type ?? 'default',
+    icon: resolvedOptions.icon,
+    iconAccent: resolvedOptions.iconAccent,
     open: true,
     onOpen: resolvedOptions.onOpen,
     onClose: resolvedOptions.onClose,

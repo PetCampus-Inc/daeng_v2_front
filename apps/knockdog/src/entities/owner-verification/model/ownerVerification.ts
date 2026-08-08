@@ -1,9 +1,11 @@
 interface SelectRequest {
-  kindergartenId: number;
-  representativeName: string;
-  representativePhoneNumber: string;
+  kindergartenId: string;
+  kindergartenName: string;
+  kindergartenAddress: string;
   kindergartenAddressDetail: string | null;
   kindergartenPhoneNumber: string;
+  representativeName: string;
+  representativePhoneNumber: string;
 }
 
 interface ManualRequest {

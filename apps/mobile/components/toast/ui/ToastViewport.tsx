@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { InteractionManager, View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  FadeInDown,
-  FadeOutUp,
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-  runOnJS,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, withTiming, useAnimatedStyle, runOnJS } from 'react-native-reanimated';
 import { useStore } from 'zustand';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,6 +68,25 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
 }
 
 function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string; onDismiss: (id: string) => void }) {
+  const isDismissingRef = useRef(false);
+  const isDismissing = useSharedValue(false);
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(-8);
+
+  const dismissWithAnimation = useCallback(() => {
+    if (isDismissingRef.current) return;
+    isDismissingRef.current = true;
+    isDismissing.value = true;
+
+    opacity.value = withTiming(0, { duration: 150 }, (finished) => {
+      if (finished) {
+        runOnJS(onDismiss)(itemId);
+      }
+    });
+    translateY.value = withTiming(-8, { duration: 150 });
+  }, [isDismissing, itemId, onDismiss, opacity, translateY]);
+
   // haptics (한 번만)
   const firedRef = useRef(false);
   useEffect(() => {
@@ -84,22 +96,27 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
     }
   }, []);
 
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 200 });
+    translateY.value = withTiming(0, { duration: 200 });
+  }, [opacity, translateY]);
+
   // auto close
   useEffect(() => {
-    const t = setTimeout(() => onDismiss(itemId), item.duration);
+    const t = setTimeout(() => dismissWithAnimation(), item.duration);
     return () => clearTimeout(t);
-  }, [item.duration, itemId, onDismiss]);
+  }, [dismissWithAnimation, item.duration]);
 
-  const translateX = useSharedValue(0);
-  const opacity = useSharedValue(1);
   const pan = Gesture.Pan()
     .onUpdate((e) => {
+      if (isDismissing.value) return;
       translateX.value = e.translationX;
       opacity.value = withTiming(Math.max(0.4, 1 - Math.abs(e.translationX) / 180));
     })
     .onEnd((e) => {
+      if (isDismissing.value) return;
       if (Math.abs(e.translationX) > 80) {
-        runOnJS(onDismiss)(itemId);
+        runOnJS(dismissWithAnimation)();
       } else {
         translateX.value = withTiming(0);
         opacity.value = withTiming(1);
@@ -107,14 +124,12 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
     });
 
   const animated = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
     opacity: opacity.value,
   }));
 
   return (
     <Animated.View
-      entering={FadeInDown.springify().damping(16)}
-      exiting={FadeOutUp.springify().damping(16)}
       style={{
         width: '100%',
         shadowColor: '#000',
@@ -134,9 +149,16 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
             },
           ]}
         >
-          <Pressable onPress={() => onDismiss(itemId)} accessibilityRole='alert'>
+          <Pressable onPress={dismissWithAnimation} accessibilityRole='alert'>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
               {item.type === 'success' && <Ionicons name='checkmark-sharp' size={25} color={tokens.colors.fg} />}
+              {item.icon === 'info' && (
+                <Ionicons
+                  name='information-circle-outline'
+                  size={20}
+                  color={item.iconAccent ? tokens.colors.accent : tokens.colors.fg}
+                />
+              )}
               <View style={{ flex: 1 }}>
                 {(!!item.titleParts?.length || !!item.title) && (
                   <Text style={{ color: tokens.colors.fg, fontWeight: '500', marginBottom: item.description ? 4 : 0 }}>
