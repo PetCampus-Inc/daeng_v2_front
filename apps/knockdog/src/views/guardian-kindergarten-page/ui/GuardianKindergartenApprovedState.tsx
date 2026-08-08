@@ -7,6 +7,8 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
@@ -22,6 +24,11 @@ function GuardianKindergartenApprovedState({
 }: GuardianKindergartenApprovedStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const content = guardianKindergartenApprovedContent;
+  const { push } = useStackNavigation();
+
+  const handleHistoryClick = () => {
+    push({ pathname: route.compare.connectionHistory.root });
+  };
 
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
@@ -80,7 +87,7 @@ function GuardianKindergartenApprovedState({
         <button
           type='button'
           className='gap-x1 flex items-center justify-center rounded px-2 py-1'
-          // TODO: 유치원 연결 이력 라우팅 연결
+          onClick={handleHistoryClick}
         >
           <span className='label-semibold text-text-tertiary'>{content.historyLabel}</span>
           <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
