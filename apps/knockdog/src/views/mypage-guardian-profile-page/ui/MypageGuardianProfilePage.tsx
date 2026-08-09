@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActionButton,
   AlertDialog,
@@ -51,10 +51,12 @@ function MypageGuardianProfilePage() {
   const [gender, setGender] = useState<GuardianGender>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
+  const [initialAddress, setInitialAddress] = useState('');
   const [addressDetail, setAddressDetail] = useState('');
   const [emergencyPhoneNumber, setEmergencyPhoneNumber] = useState('');
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
+  const initializedAddressUserIdRef = useRef<string | null>(null);
   const { navigateToTab } = useTabNavigation();
   const homeAddress = user?.addresses.find((item) => item.type === USER_ADDRESS_TYPE.HOME);
   const homeAddressValue = homeAddress?.roadAddress || homeAddress?.address || '';
@@ -68,11 +70,21 @@ function MypageGuardianProfilePage() {
       : undefined;
   const formValues = { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber };
   const isSaveEnabled = isGuardianProfileFormValid(formValues);
-  const isDirty = isGuardianProfileDirty(formValues, homeAddressValue);
+  const isDirty = isGuardianProfileDirty(formValues, initialAddress);
 
   useEffect(() => {
+    if (!user) {
+      initializedAddressUserIdRef.current = null;
+      setInitialAddress('');
+      return;
+    }
+
+    if (initializedAddressUserIdRef.current === user.userId) return;
+
     setAddress(homeAddressValue);
-  }, [homeAddressValue]);
+    setInitialAddress(homeAddressValue);
+    initializedAddressUserIdRef.current = user.userId;
+  }, [homeAddressValue, user]);
 
   const navigateToMypage = () => navigateToTab('/mypage');
 
@@ -196,7 +208,15 @@ function MypageGuardianProfilePage() {
                 embeddedResultsClassName='top-[80%]'
                 value={address}
                 placeholder='주소를 검색하세요'
-                onSelect={(selectedAddress) => setAddress(selectedAddress.roadAddress || selectedAddress.address)}
+                onSelect={(selectedAddress) => {
+                  const nextAddress = selectedAddress.roadAddress || selectedAddress.address;
+
+                  if (nextAddress !== address) {
+                    setAddressDetail('');
+                  }
+
+                  setAddress(nextAddress);
+                }}
                 onClear={() => {
                   setAddress('');
                   setAddressDetail('');
