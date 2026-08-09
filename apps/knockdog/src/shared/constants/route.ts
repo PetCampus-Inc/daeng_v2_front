@@ -94,6 +94,12 @@ const route = {
         root: '/mypage/profile/location',
       },
     },
+    guardian: {
+      profile: {
+        /** 보호자 프로필 페이지 */
+        root: '/mypage/guardian/profile',
+      },
+    },
   },
   owner: {
     /** 원장 일과 탭 */
