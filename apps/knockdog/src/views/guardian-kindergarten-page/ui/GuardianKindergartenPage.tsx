@@ -4,10 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useGuardianAttendanceDay } from '@views/guardian-kindergarten-page/model/useGuardianAttendanceDay';
 import { useGuardianKindergartenConnection } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenConnection';
-import { useTabNavigation } from '@shared/lib/bridge';
-import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
-
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { useTabNavigation } from '@shared/lib/bridge';
+import { PageError } from '@shared/ui/page-error';
+import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
@@ -31,7 +31,13 @@ export function GuardianKindergartenPage() {
   );
 
   const hasAuth = useRequireAuth(handleAuthError);
-  const { pets, isPetsReady } = useGuardianSelectedPet();
+  const {
+    hasNoPet,
+    isPetsReady,
+    isPetsError,
+    isPetsFetching,
+    refetchPets,
+  } = useGuardianSelectedPet();
   const { status, linkedKindergarten } = useGuardianKindergartenConnection();
   const {
     isAttending,
@@ -52,7 +58,10 @@ export function GuardianKindergartenPage() {
 
   if (!isMounted || !isLoggedIn || !isPetsReady) return null;
 
-  const hasNoPet = pets.length === 0;
+  if (isPetsError) {
+    return <PageError isRetrying={isPetsFetching} onRetry={() => void refetchPets()} />;
+  }
+
   const showDayState =
     !hasNoPet &&
     status === 'approved' &&

@@ -18,7 +18,14 @@ function resolvePetConnectionStatus(pet: Pet): GuardianKindergartenConnectionSta
 }
 
 function useGuardianSelectedPet() {
-  const { data: petListResponse, isFetched } = usePetListQuery();
+  const {
+    data: petListResponse,
+    isFetched,
+    isSuccess,
+    isError,
+    isFetching,
+    refetch,
+  } = usePetListQuery();
   const { data: representativePet } = usePetRepresentativeQuery();
   const selectedPetId = useGuardianKindergartenMockStore((state) => state.selectedPetId);
   const setSelectedPetId = useGuardianKindergartenMockStore((state) => state.setSelectedPetId);
@@ -31,6 +38,11 @@ function useGuardianSelectedPet() {
     pets,
     /** 펫 목록 최초 조회 완료 여부 — 미등록 empty 플래시 방지 */
     isPetsReady: isFetched,
+    /** 성공 응답이면서 목록이 비어 있을 때만 미등록으로 취급 */
+    hasNoPet: isSuccess && pets.length === 0,
+    isPetsError: isError,
+    isPetsFetching: isFetching,
+    refetchPets: refetch,
     selectedPet,
     selectedPetId: selectedPet?.id ?? null,
     setSelectedPetId,
