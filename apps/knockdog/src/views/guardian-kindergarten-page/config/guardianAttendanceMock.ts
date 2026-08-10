@@ -63,7 +63,7 @@ const MOCK_ATTENDANCE_DAY: GuardianAttendanceDayMock = {
   hasUnreadAlarm: true,
   hasDailyNotice: true,
   dailyNotice: MOCK_DAILY_NOTICE,
-  albumPhotoCount: 1,
+  albumPhotoCount: 0,
   recordDateKeys: MOCK_RECORD_DATE_KEYS,
 };
 
