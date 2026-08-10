@@ -85,6 +85,7 @@ function GuardianAlbumTodaySection({
       {showPhotoPreview ? (
         <GuardianAlbumTodayPhotoStrip
           photos={previewPhotos}
+          totalPhotoCount={todayPhotoCount}
           lastViewedAt={lastViewedAt}
           bookmarkedIds={bookmarkedIds}
           onToggleBookmark={handleToggleBookmark}

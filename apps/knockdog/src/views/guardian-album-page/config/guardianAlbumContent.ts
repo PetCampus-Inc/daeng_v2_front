@@ -31,6 +31,7 @@ const guardianAlbumContent = {
     bookmarkAriaLabel: '즐겨찾기',
     bookmarkIconDefaultSrc: '/images/ico_photo_like_default.png',
     bookmarkIconActiveSrc: '/images/ico_photo_like_active.png',
+    overflowLabel: (remaining: number) => `+ ${remaining}`,
   },
   monthNav: {
     prevAriaLabel: '이전 달',
