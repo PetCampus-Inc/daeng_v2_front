@@ -84,7 +84,7 @@ function GuardianKindergartenAttendingState({
     push({ pathname: route.compare.connectionHistory.root });
   };
 
-  const handleAlbumPreviousClick = () => {
+  const handleAlbumViewAllClick = () => {
     push({ pathname: route.compare.album.root });
   };
 
@@ -135,7 +135,11 @@ function GuardianKindergartenAttendingState({
           <div className={`flex w-full items-center ${hasAlbumPhotos ? 'justify-between' : ''}`}>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
             {hasAlbumPhotos ? (
-              <button type='button' className='gap-x1 flex items-center justify-center rounded px-2 py-1'>
+              <button
+                type='button'
+                className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+                onClick={handleAlbumViewAllClick}
+              >
                 <span className='label-semibold text-text-tertiary'>{content.albumViewAllLabel}</span>
                 <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
               </button>
@@ -171,7 +175,7 @@ function GuardianKindergartenAttendingState({
                   variant='primaryLine'
                   size='medium'
                   className='w-auto'
-                  onClick={handleAlbumPreviousClick}
+                  onClick={handleAlbumViewAllClick}
                 >
                   {content.albumPreviousLabel}
                   <Icon icon='ChevronRight' className='text-text-accent size-5' />
