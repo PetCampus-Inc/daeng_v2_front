@@ -38,6 +38,10 @@ const guardianAlbumContent = {
     searchAriaLabel: '날짜 검색',
     searchIconSrc: '/images/ico_album_calendar_search.png',
   },
+  dayCard: {
+    attendedBadgeLabel: '등원했어요',
+    overflowLabel: (remaining: number) => `+ ${remaining}`,
+  },
   history: {
     firstAttendanceMessage: '유치원을 다니기 시작했어요',
   },

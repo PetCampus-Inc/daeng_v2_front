@@ -7,11 +7,19 @@ import { formatKoreanYearMonth } from '@views/guardian-kindergarten-page/lib/for
 
 interface GuardianAlbumMonthNavProps {
   month: Date;
+  canGoPrevMonth: boolean;
+  canGoNextMonth: boolean;
   onPrevMonth: () => void;
   onNextMonth: () => void;
 }
 
-function GuardianAlbumMonthNav({ month, onPrevMonth, onNextMonth }: GuardianAlbumMonthNavProps) {
+function GuardianAlbumMonthNav({
+  month,
+  canGoPrevMonth,
+  canGoNextMonth,
+  onPrevMonth,
+  onNextMonth,
+}: GuardianAlbumMonthNavProps) {
   const { monthNav } = guardianAlbumContent;
 
   return (
@@ -19,8 +27,9 @@ function GuardianAlbumMonthNav({ month, onPrevMonth, onNextMonth }: GuardianAlbu
       <div className='gap-x2 flex flex-1 items-center justify-center'>
         <button
           type='button'
-          className='inline-flex size-6 items-center justify-center'
+          className='inline-flex size-6 items-center justify-center disabled:opacity-30'
           aria-label={monthNav.prevAriaLabel}
+          disabled={!canGoPrevMonth}
           onClick={onPrevMonth}
         >
           <Icon icon='ChevronLeft' className='text-fill-secondary-500 size-6' />
@@ -28,8 +37,9 @@ function GuardianAlbumMonthNav({ month, onPrevMonth, onNextMonth }: GuardianAlbu
         <p className='h3-extrabold text-text-primary'>{formatKoreanYearMonth(month)}</p>
         <button
           type='button'
-          className='inline-flex size-6 items-center justify-center'
+          className='inline-flex size-6 items-center justify-center disabled:opacity-30'
           aria-label={monthNav.nextAriaLabel}
+          disabled={!canGoNextMonth}
           onClick={onNextMonth}
         >
           <Icon icon='ChevronRight' className='text-fill-secondary-500 size-6' />
