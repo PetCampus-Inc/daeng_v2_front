@@ -7,6 +7,7 @@ import { overlay } from 'overlay-kit';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { MOCK_ALBUM_KINDERGARTENS } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
+import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { Header } from '@widgets/Header';
 
@@ -37,6 +38,10 @@ function GuardianAlbumPage() {
         onSelect={setSelectedKindergartenId}
       />
     ));
+  };
+
+  const handleInfoClick = () => {
+    overlay.open(({ isOpen, close }) => <GuardianAlbumInfoSheet isOpen={isOpen} close={close} />);
   };
 
   return (
@@ -70,6 +75,7 @@ function GuardianAlbumPage() {
             type='button'
             className='inline-flex size-6 items-center justify-center'
             aria-label={content.infoAriaLabel}
+            onClick={handleInfoClick}
           >
             <Icon icon='InfoLine' className='text-fill-secondary-700 size-6' />
           </button>

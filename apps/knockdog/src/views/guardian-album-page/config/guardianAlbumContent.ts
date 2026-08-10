@@ -7,6 +7,13 @@ const guardianAlbumContent = {
   pastStatusLabel: (attendedUntil: string) => `${attendedUntil}까지 다녔어요`,
   toastAccentLabel: '유치원',
   toastSuffix: '을 전환했어요',
+  infoSheet: {
+    title: '앨범 이용 안내',
+    notices: [
+      '유치원 앨범은 유치원 보호자님들과 함께 보는 공간이에요.',
+      '즐겨찾기하면 원하는 사진만 모아 볼 수 있어요.',
+    ],
+  },
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
     imageAlt: '등록된 앨범 없음',
