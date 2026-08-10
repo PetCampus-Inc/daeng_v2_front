@@ -147,6 +147,14 @@ const route = {
     guardian: {
       /** 보호자 유치원 초대 */
       root: '/invite/guardian/[token]',
+      pet: {
+        /** 보호자 유치원 초대 - 강아지 선택 */
+        root: '/invite/guardian/[token]/pet',
+      },
+      consent: {
+        /** 보호자 유치원 초대 - 개인정보 수집 및 이용 동의 */
+        root: '/invite/guardian/[token]/consent',
+      },
       complete: {
         /** 보호자 유치원 연결 신청 결과 */
         root: '/invite/guardian/[token]/complete',

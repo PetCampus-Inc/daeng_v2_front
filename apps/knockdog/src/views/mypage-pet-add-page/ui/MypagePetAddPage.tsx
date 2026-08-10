@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -17,10 +18,13 @@ import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
 import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetAddPage() {
-  const { back } = useStackNavigation();
+  const { back, replace } = useStackNavigation();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get('inviteToken');
   const [isFormDirty, setIsFormDirty] = useState(false);
   const { data: petListResponse } = usePetListQuery();
   const user = useUserStore((state) => state.user);
@@ -82,6 +86,10 @@ export function MypagePetAddPage() {
 
   const handleSuccess = () => {
     syncWebViewQuery.invalidate(['petList']);
+    if (inviteToken) {
+      void replace({ pathname: route.invite.guardian.consent.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      return;
+    }
     back?.();
   };
 

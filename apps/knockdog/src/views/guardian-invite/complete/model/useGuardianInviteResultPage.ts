@@ -20,6 +20,7 @@ function useGuardianInviteResultPage() {
   const { getParams, reset } = useStackNavigation();
   const status = resolveGuardianInviteResultStatus(searchParams.get('status'));
   const content = guardianInviteResultContent[status];
+  const isPrimaryActionAvailable = status === GUARDIAN_INVITE_RESULT_STATUS.INVALID_INVITE;
   // getParams는 전달 데이터를 소비하므로 초기 마운트 시 한 번만 읽는다.
   const [failedPets] = useState(() => getParams<GuardianInviteResultParams>()?.failedPets ?? guardianInviteFailedPetsPreview);
 
@@ -42,7 +43,7 @@ function useGuardianInviteResultPage() {
     void reset(route.root);
   };
 
-  return { content, failedPets, handlePrimaryClick, handleSecondaryClick, status };
+  return { content, failedPets, handlePrimaryClick, handleSecondaryClick, isPrimaryActionAvailable, status };
 }
 
 export { useGuardianInviteResultPage, type GuardianInviteResultParams };

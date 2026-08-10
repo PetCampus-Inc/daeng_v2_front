@@ -10,6 +10,11 @@ import {
   type GuardianProfileFormValues,
 } from '../model/guardianProfileForm';
 
+const GENDER_OPTIONS = [
+  { value: 'male', label: '남' },
+  { value: 'female', label: '여' },
+] as const satisfies ReadonlyArray<{ value: Exclude<GuardianProfileFormValues['gender'], null>; label: string }>;
+
 interface GuardianProfileFieldsProps {
   values: GuardianProfileFormValues;
   phoneNumberError?: string;
@@ -66,28 +71,21 @@ function GuardianProfileFields({
           성별<span className='text-text-accent'>*</span>
         </div>
         <div className='flex h-x12 gap-x2'>
-          <button
-            type='button'
-            className={`body2-semibold radius-r2 flex flex-1 items-center justify-center px-x3_5 py-x3_5 ${
-              values.gender === 'male'
-                ? 'bg-fill-secondary-700 text-text-primary-inverse'
-                : 'bg-bg-100 text-text-primary'
-            }`}
-            onClick={() => updateValue({ gender: 'male' })}
-          >
-            남
-          </button>
-          <button
-            type='button'
-            className={`body2-semibold radius-r2 flex flex-1 items-center justify-center px-x3_5 py-x3_5 ${
-              values.gender === 'female'
-                ? 'bg-fill-secondary-700 text-text-primary-inverse'
-                : 'bg-bg-100 text-text-primary'
-            }`}
-            onClick={() => updateValue({ gender: 'female' })}
-          >
-            여
-          </button>
+          {GENDER_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              type='button'
+              aria-pressed={values.gender === value}
+              className={`body2-semibold radius-r2 flex flex-1 items-center justify-center px-x3_5 py-x3_5 ${
+                values.gender === value
+                  ? 'bg-fill-secondary-700 text-text-primary-inverse'
+                  : 'bg-bg-100 text-text-primary'
+              }`}
+              onClick={() => updateValue({ gender: value })}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
