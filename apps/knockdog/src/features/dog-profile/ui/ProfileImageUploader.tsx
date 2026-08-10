@@ -1,9 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  Icon,
+} from '@knockdog/ui';
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
+
+const PROFILE_IMAGE_RESIZE_THRESHOLD_BYTES = 10 * 1024 * 1024;
 
 interface ProfileImageUploaderProps {
   profileImage?: string;
@@ -25,6 +32,7 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
         allowsMultipleSelection: false,
         selectionLimit: 1,
         quality: 0.8,
+        resizeThresholdBytes: PROFILE_IMAGE_RESIZE_THRESHOLD_BYTES,
       });
 
       if (!result.cancelled && result.assets && result.assets.length > 0) {
@@ -32,6 +40,25 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
         setIsImageLoading(true);
         setSelectedImage(asset.uri);
         onImageSelect?.(asset.uri);
+      } else if (!result.cancelled && result.skipped?.oversizedCount) {
+        toast({
+          title: (
+            <>
+              <span className='text-text-accent'>20MB 이하의 사진만</span> 등록할 수 있어요.
+            </>
+          ),
+          nativeTitle: '20MB 이하의 사진만 등록할 수 있어요.',
+          titleParts: [
+            { text: '20MB 이하의 사진만', accent: true },
+            { text: ' 등록할 수 있어요.' },
+          ],
+          position: 'bottom-above-nav',
+        });
+      } else if (!result.cancelled && result.skipped?.invalidSpecCount) {
+        toast({
+          title: 'JPG, JPEG, PNG, HEIC, HEIF 형식의 20MB 이하 사진만 올릴 수 있어요.',
+          position: 'bottom-above-nav',
+        });
       }
     } catch (error) {
       console.error('이미지 선택 실패:', error);

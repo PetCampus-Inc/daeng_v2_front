@@ -10,7 +10,7 @@ const DEFAULT_MAX_SELECTION = 50;
 const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif']);
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif']);
 
-type SkipReason = 'invalid_spec' | 'unreadable';
+type SkipReason = 'invalid_spec' | 'oversized' | 'unreadable';
 
 function getExtension(fileName?: string | null) {
   if (!fileName) return null;
@@ -47,7 +47,7 @@ async function validateAsset(asset: ImagePicker.ImagePickerAsset): Promise<SkipR
 
   const size = await getAssetSizeBytes(asset);
   if (size == null) return 'unreadable';
-  if (size > MAX_FILE_SIZE_BYTES) return 'invalid_spec';
+  if (size > MAX_FILE_SIZE_BYTES) return 'oversized';
 
   return null;
 }
@@ -64,14 +64,40 @@ function isNetworkError(error: unknown) {
   );
 }
 
-async function compressForUpload(asset: ImagePicker.ImagePickerAsset) {
-  const targetWidth = 1600;
-  const quality = 0.75;
+async function compressForUpload(asset: ImagePicker.ImagePickerAsset, targetSizeBytes?: number) {
+  if (!targetSizeBytes) {
+    const manipulated = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: { width: 1600 } }], {
+      compress: 0.75,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
 
-  const manipulated = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: { width: targetWidth } }], {
-    compress: quality,
+    return {
+      uri: manipulated.uri,
+      mimeType: 'image/jpeg',
+    };
+  }
+
+  const original = await ImageManipulator.manipulateAsync(asset.uri, [], {
+    compress: 1,
     format: ImageManipulator.SaveFormat.JPEG,
   });
+  let targetWidth = original.width;
+  let quality = 0.8;
+  let manipulated = original;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    manipulated = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: { width: targetWidth } }], {
+      compress: quality,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+    const info = await FileSystem.getInfoAsync(manipulated.uri, { size: true });
+    const fileSize = info.exists && typeof info.size === 'number' ? info.size : null;
+    if (fileSize !== null && fileSize <= targetSizeBytes) break;
+
+    const scale = fileSize ? Math.min(0.95, Math.sqrt(targetSizeBytes / fileSize) * 0.95) : 0.8;
+    targetWidth = Math.max(1, Math.floor(targetWidth * scale));
+    quality = Math.max(0.5, quality - 0.1);
+  }
 
   return {
     uri: manipulated.uri,
@@ -98,8 +124,16 @@ async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset) {
   };
 }
 
-async function uploadToS3(preSignedUrl: string, asset: ImagePicker.ImagePickerAsset) {
-  const uploadAsset = await compressForUpload(asset);
+async function uploadToS3(
+  preSignedUrl: string,
+  asset: ImagePicker.ImagePickerAsset,
+  resizeThresholdBytes?: number
+) {
+  const fileSize = await getAssetSizeBytes(asset);
+  const shouldResize = resizeThresholdBytes === undefined || (fileSize !== null && fileSize >= resizeThresholdBytes);
+  const uploadAsset = shouldResize
+    ? await compressForUpload(asset, resizeThresholdBytes)
+    : { uri: asset.uri, mimeType: asset.mimeType ?? 'application/octet-stream' };
 
   const uploadResult = await FileSystem.uploadAsync(preSignedUrl, uploadAsset.uri, {
     httpMethod: 'PUT',
@@ -126,6 +160,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       requestId,
       allowsEditing,
       quality,
+      resizeThresholdBytes,
       aspect,
       allowsMultipleSelection,
       orderedSelection,
@@ -203,6 +238,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         fileSize?: number;
       }> = [];
       let invalidSpecCount = 0;
+      let oversizedCount = 0;
       let unreadableCount = 0;
       let hasNetworkError = false;
 
@@ -210,6 +246,10 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         const skipReason = await validateAsset(pickedAsset);
         if (skipReason === 'invalid_spec') {
           invalidSpecCount += 1;
+          continue;
+        }
+        if (skipReason === 'oversized') {
+          oversizedCount += 1;
           continue;
         }
         if (skipReason === 'unreadable') {
@@ -229,7 +269,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
           }
 
           const { key, preSignedUrl } = await uploadImage();
-          await uploadToS3(preSignedUrl, pickedAsset);
+          await uploadToS3(preSignedUrl, pickedAsset, resizeThresholdBytes);
           uploadedAssets.push({ key, preSignedUrl });
         } catch (error) {
           console.error('[APP] pickImage upload item error', error);
@@ -246,7 +286,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
           requestId,
           cancelled: false,
           assets: [],
-          skipped: { invalidSpecCount, unreadableCount },
+          skipped: { invalidSpecCount, oversizedCount, unreadableCount },
           failure: hasNetworkError ? 'network' : 'none_valid',
           exceededLimit,
         });
@@ -271,8 +311,8 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         cancelled: false,
         assets: [firstAsset, ...restAssets],
         skipped:
-          invalidSpecCount > 0 || unreadableCount > 0
-            ? { invalidSpecCount, unreadableCount }
+          invalidSpecCount > 0 || oversizedCount > 0 || unreadableCount > 0
+            ? { invalidSpecCount, oversizedCount, unreadableCount }
             : undefined,
         exceededLimit,
       });

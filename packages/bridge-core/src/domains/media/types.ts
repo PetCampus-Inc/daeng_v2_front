@@ -14,6 +14,8 @@ type PickImageParams = {
    * 이미지 품질 0~1 사이의 압축 품질 default: 0.8
    */
   quality?: number;
+  /** 이 크기 이상인 이미지만 업로드 전 리사이징한다. */
+  resizeThresholdBytes?: number;
   /**
    * 이미지 종횡비 default: [1, 1]
    */
@@ -61,6 +63,8 @@ interface ImageAsset  {
 interface PickImageSkipSummary {
   /** 확장자/용량 미충족 */
   invalidSpecCount: number;
+  /** 파일당 최대 용량 초과 */
+  oversizedCount?: number;
   /** 원본 로드 실패·읽을 수 없음 */
   unreadableCount: number;
 }
@@ -122,4 +126,3 @@ export type {
   PutFileToPresignedUrlParams,
   PutFileToPresignedUrlResult,
 };
-

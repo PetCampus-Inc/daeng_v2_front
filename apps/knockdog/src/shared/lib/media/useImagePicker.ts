@@ -29,7 +29,7 @@ const DEFAULT_MAX_SELECTION = 50;
 const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif']);
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif']);
 
-type SkipReason = 'invalid_spec' | 'unreadable';
+type SkipReason = 'invalid_spec' | 'oversized' | 'unreadable';
 
 function makeRequestId() {
   return `img-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -53,7 +53,7 @@ function isAllowedFormat(file: File) {
 
 function validateFile(file: File): SkipReason | null {
   if (!isAllowedFormat(file)) return 'invalid_spec';
-  if (file.size > MAX_FILE_SIZE_BYTES) return 'invalid_spec';
+  if (file.size > MAX_FILE_SIZE_BYTES) return 'oversized';
   if (file.size <= 0) return 'unreadable';
   return null;
 }
@@ -89,6 +89,51 @@ async function getImageDimensions(file: File): Promise<{ width: number; height: 
 
     img.src = url;
   });
+}
+
+async function resizeWebImageIfNeeded(file: File, resizeThresholdBytes?: number, quality = 0.8): Promise<File> {
+  if (!resizeThresholdBytes || file.size < resizeThresholdBytes) return file;
+
+  const { width, height } = await getImageDimensions(file);
+  const sourceUrl = URL.createObjectURL(file);
+  const image = new Image();
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('이미지를 리사이징할 수 없습니다.'));
+      image.src = sourceUrl;
+    });
+
+    let targetWidth = width;
+    let targetHeight = height;
+    let compressionQuality = quality;
+    let resizedBlob: Blob | null = null;
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('이미지를 리사이징할 수 없습니다.');
+
+      context.drawImage(image, 0, 0, targetWidth, targetHeight);
+      resizedBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', compressionQuality));
+      if (!resizedBlob) throw new Error('이미지를 리사이징할 수 없습니다.');
+      if (resizedBlob.size <= resizeThresholdBytes) break;
+
+      const scale = Math.min(0.95, Math.sqrt(resizeThresholdBytes / resizedBlob.size) * 0.95);
+      targetWidth = Math.max(1, Math.floor(targetWidth * scale));
+      targetHeight = Math.max(1, Math.floor(targetHeight * scale));
+      compressionQuality = Math.max(0.5, compressionQuality - 0.1);
+    }
+
+    if (!resizedBlob) throw new Error('이미지를 리사이징할 수 없습니다.');
+    const fileName = `${file.name.replace(/\.[^.]+$/, '') || 'profile'}.jpg`;
+    return new File([resizedBlob], fileName, { type: 'image/jpeg' });
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
 }
 
 async function uploadFileToS3(uploadUrl: string, file: File) {
@@ -164,7 +209,7 @@ async function getPreviewImageAsset(asset: ImageAsset): Promise<WebImageAsset> {
 
 async function uploadFilesWithValidation(
   files: File[],
-  options?: { onUploading?: (count: number) => void; skipUpload?: boolean }
+  options?: { onUploading?: (count: number) => void; skipUpload?: boolean; resizeThresholdBytes?: number; quality?: number }
 ): Promise<Extract<PickImageResult, { cancelled: false }>> {
   if (!options?.skipUpload) {
     options?.onUploading?.(files.length);
@@ -172,6 +217,7 @@ async function uploadFilesWithValidation(
 
   const uploadedAssets: WebImageAsset[] = [];
   let invalidSpecCount = 0;
+  let oversizedCount = 0;
   let unreadableCount = 0;
   let hasNetworkError = false;
 
@@ -181,13 +227,18 @@ async function uploadFilesWithValidation(
       invalidSpecCount += 1;
       continue;
     }
+    if (skipReason === 'oversized') {
+      oversizedCount += 1;
+      continue;
+    }
     if (skipReason === 'unreadable') {
       unreadableCount += 1;
       continue;
     }
 
     try {
-      const asset = await createWebImageAsset(file, options?.skipUpload);
+      const uploadFile = await resizeWebImageIfNeeded(file, options?.resizeThresholdBytes, options?.quality);
+      const asset = await createWebImageAsset(uploadFile, options?.skipUpload);
       uploadedAssets.push(asset);
     } catch (error) {
       console.error('웹 이미지 업로드 실패:', error);
@@ -200,8 +251,8 @@ async function uploadFilesWithValidation(
   }
 
   const skipped: PickImageSkipSummary | undefined =
-    invalidSpecCount > 0 || unreadableCount > 0
-      ? { invalidSpecCount, unreadableCount }
+    invalidSpecCount > 0 || oversizedCount > 0 || unreadableCount > 0
+      ? { invalidSpecCount, oversizedCount, unreadableCount }
       : undefined;
 
   if (uploadedAssets.length === 0) {
@@ -263,7 +314,12 @@ async function pickImageWeb(
             ? params.selectionLimit
             : DEFAULT_MAX_SELECTION;
 
-        const uploadOptions = { ...options, skipUpload: params?.skipUpload };
+        const uploadOptions = {
+          ...options,
+          skipUpload: params?.skipUpload,
+          resizeThresholdBytes: params?.resizeThresholdBytes,
+          quality: params?.quality,
+        };
 
         if (!params?.allowsMultipleSelection) {
           const file = files[0];
@@ -428,6 +484,7 @@ function useImagePicker() {
           mediaTypes: params?.mediaTypes,
           allowsEditing: params?.allowsEditing,
           quality: params?.quality,
+          resizeThresholdBytes: params?.resizeThresholdBytes,
           aspect: params?.aspect,
           allowsMultipleSelection: params?.allowsMultipleSelection,
           orderedSelection: params?.orderedSelection,
