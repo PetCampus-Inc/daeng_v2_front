@@ -67,8 +67,11 @@ function GuardianAlbumPage() {
   );
 
   const monthAlbum = useMemo(
-    () => createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage),
-    [selectedMonth, selectedPet?.profileImage]
+    () =>
+      createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage, new Date(), {
+        includeTodayAsDayCard: !albumToday.isAttendedToday,
+      }),
+    [selectedMonth, selectedPet?.profileImage, albumToday.isAttendedToday]
   );
 
   const visibleDays = useMemo(() => {
@@ -218,12 +221,14 @@ function GuardianAlbumPage() {
             className='min-h-0 flex-1 overflow-y-auto pb-5'
             onScroll={handleScroll}
           >
-            <GuardianAlbumTodaySection
-              petName={petName}
-              isAttendedToday={albumToday.isAttendedToday}
-              todayPhotoCount={albumToday.todayPhotoCount}
-              todayPhotos={todayPhotos}
-            />
+            {albumToday.isAttendedToday ? (
+              <GuardianAlbumTodaySection
+                petName={petName}
+                isAttendedToday={albumToday.isAttendedToday}
+                todayPhotoCount={albumToday.todayPhotoCount}
+                todayPhotos={todayPhotos}
+              />
+            ) : null}
             <GuardianAlbumMonthNav
               month={selectedMonth}
               canGoPrevMonth={canGoPrevMonth}
