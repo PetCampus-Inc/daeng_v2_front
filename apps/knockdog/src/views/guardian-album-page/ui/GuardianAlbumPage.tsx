@@ -1,20 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { MOCK_ALBUM_KINDERGARTENS } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
-import { MOCK_GUARDIAN_ALBUM_TODAY, createGuardianAlbumTodayPhotos } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
+import {
+  MOCK_GUARDIAN_ALBUM_TODAY,
+  createGuardianAlbumTodayPhotos,
+} from '@views/guardian-album-page/config/guardianAlbumTodayMock';
+import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
+import { GuardianAlbumHistoryEmpty } from '@views/guardian-album-page/ui/GuardianAlbumHistoryEmpty';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
+import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
+import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
-import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, months: number) {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
@@ -25,10 +39,13 @@ function GuardianAlbumPage() {
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(
     defaultKindergartenId
   );
   const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
+  const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
+  const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
   const selectedKindergarten =
     kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
@@ -68,8 +85,26 @@ function GuardianAlbumPage() {
     overlay.open(({ isOpen, close }) => <GuardianAlbumInfoSheet isOpen={isOpen} close={close} />);
   };
 
+  const handlePrevMonth = () => {
+    setSelectedMonth((prev) => addMonths(prev, -1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth((prev) => addMonths(prev, 1));
+  };
+
+  const handleScroll = useCallback(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    setIsScrollTopVisible(node.scrollTop > 120);
+  }, []);
+
+  const handleScrollTop = () => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
+    <div className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0'>
         <Header>
           <Header.BackButton />
@@ -110,14 +145,27 @@ function GuardianAlbumPage() {
       </div>
 
       {albumToday.hasAlbumHistory ? (
-        <div className='min-h-0 flex-1 overflow-y-auto'>
-          <GuardianAlbumTodaySection
-            petName={petName}
-            isAttendedToday={albumToday.isAttendedToday}
-            todayPhotoCount={albumToday.todayPhotoCount}
-            todayPhotos={todayPhotos}
-          />
-        </div>
+        <>
+          <div
+            ref={scrollRef}
+            className='min-h-0 flex-1 overflow-y-auto pb-5'
+            onScroll={handleScroll}
+          >
+            <GuardianAlbumTodaySection
+              petName={petName}
+              isAttendedToday={albumToday.isAttendedToday}
+              todayPhotoCount={albumToday.todayPhotoCount}
+              todayPhotos={todayPhotos}
+            />
+            <GuardianAlbumMonthNav
+              month={selectedMonth}
+              onPrevMonth={handlePrevMonth}
+              onNextMonth={handleNextMonth}
+            />
+            <GuardianAlbumHistoryEmpty />
+          </div>
+          <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
+        </>
       ) : (
         <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
           <GuardianAlbumEmptyState />

@@ -32,6 +32,16 @@ const guardianAlbumContent = {
     bookmarkIconDefaultSrc: '/images/ico_photo_like_default.png',
     bookmarkIconActiveSrc: '/images/ico_photo_like_active.png',
   },
+  monthNav: {
+    prevAriaLabel: '이전 달',
+    nextAriaLabel: '다음 달',
+    searchAriaLabel: '날짜 검색',
+    searchIconSrc: '/images/ico_album_calendar_search.png',
+  },
+  history: {
+    firstAttendanceMessage: '유치원을 다니기 시작했어요',
+  },
+  scrollTopAriaLabel: '맨 위로',
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
     imageAlt: '등록된 앨범 없음',
