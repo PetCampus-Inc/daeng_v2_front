@@ -19,7 +19,11 @@ function GenderSelector({ value, required = false, onChange, onComplete }: Gende
     <div>
       <h5 className='text-text-primary body2-bold pb-2'>
         성별
-        {!required && <span className='caption1-semibold text-text-tertiary'>(선택)</span>}
+        {required ? (
+          <strong className='body2-bold text-text-accent'>*</strong>
+        ) : (
+          <span className='caption1-semibold text-text-tertiary'>(선택)</span>
+        )}
       </h5>
 
       <div className='flex gap-x-2'>

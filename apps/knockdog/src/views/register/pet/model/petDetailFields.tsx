@@ -1,4 +1,11 @@
-import { BreedSelector, YearSelector, GenderSelector, NeuteredSelector, WeightTextField } from '@features/dog-profile';
+import {
+  BreedSelector,
+  YearSelector,
+  GenderSelector,
+  NeuteredSelector,
+  WeightTextField,
+  isValidDogWeight,
+} from '@features/dog-profile';
 
 const petDetailFields = [
   {
@@ -38,7 +45,10 @@ const petDetailFields = [
     name: 'weight',
     label: '몸무게',
     prefix: '를',
-    rules: { required: true },
+    rules: {
+      required: true,
+      validate: (value: string) => isValidDogWeight(value),
+    },
     component: <WeightTextField />,
   },
 ];

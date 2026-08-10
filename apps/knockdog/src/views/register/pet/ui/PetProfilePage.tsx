@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Icon, TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
-import { ProfileImageUploader } from '@features/dog-profile';
+import { MAX_DOG_NAME_LENGTH, normalizeDogName, ProfileImageUploader } from '@features/dog-profile';
 
 function PetProfilePage() {
   const { push } = useStackNavigation();
@@ -25,12 +25,17 @@ function PetProfilePage() {
         <div className='mt-7'>
           <TextField label='강아지 이름' required>
             <TextFieldInput
-              placeholder='8자 이내 한글'
+              placeholder='8글자 이내 한글로 입력해 주세요'
+              maxLength={MAX_DOG_NAME_LENGTH}
               value={petName}
               onChange={(e) => {
-                const value = e.target.value.replace(/\s/g, '').slice(0, 8);
-                setPetName(value);
+                if ((e.nativeEvent as InputEvent).isComposing) {
+                  setPetName(e.target.value);
+                  return;
+                }
+                setPetName(normalizeDogName(e.target.value));
               }}
+              onCompositionEnd={(e) => setPetName(normalizeDogName(e.currentTarget.value))}
             />
           </TextField>
         </div>

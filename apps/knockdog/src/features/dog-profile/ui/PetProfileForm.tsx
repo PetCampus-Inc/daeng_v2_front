@@ -2,25 +2,21 @@
 
 import React from 'react';
 import { Controller, useWatch } from 'react-hook-form';
-import {
-  TextField,
-  TextFieldInput,
-  ActionButton,
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from '@knockdog/ui';
+import { TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
 import { RelationshipSelector } from './RelationshipSelector';
 import { BreedSelector } from './BreedSelector';
 import { YearSelector } from './YearSelector';
 import { GenderSelector } from './GenderSelector';
 import { NeuteredSelector } from './NeuteredSelector';
 import { ProfileImageUploader } from './ProfileImageUploader';
+import {
+  MAX_DOG_NAME_LENGTH,
+  MAX_RELATIONSHIP_TEXT_LENGTH,
+  normalizeDogName,
+  normalizeRelationshipText,
+} from '../lib/normalizeKoreanText';
+import { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from '../lib/weight';
 import { usePetProfileForm } from '../model/usePetProfileForm';
-import { overlay } from 'overlay-kit';
 import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, type Pet } from '@entities/pet';
 
@@ -45,7 +41,7 @@ function PetProfileForm({
   onDirtyChange,
   onBeforeSubmit,
 }: PetProfileFormProps) {
-  const { control, handleSubmit, isSubmitting, isDirty, getValues, trigger, reset, transformDefaultValues } =
+  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, reset, transformDefaultValues } =
     usePetProfileForm({
       mode,
       petId,
@@ -55,6 +51,7 @@ function PetProfileForm({
     });
 
   const relationship = useWatch({ control, name: 'relationship' });
+  const isAdditionalInfoRequired = mode === 'add';
 
   // defaultValues가 변경될 때 폼 리셋
   const defaultValuesKey = React.useMemo(() => {
@@ -88,30 +85,7 @@ function PetProfileForm({
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // 필수 필드 검증
-    const isNameValid = await trigger('name');
-    const isRelationshipValid = await trigger('relationship');
-    const isRelationshipTextValid = relationship === RELATIONSHIP.ETC ? await trigger('relationshipText') : true;
-
-    if (!isNameValid || !isRelationshipValid || !isRelationshipTextValid) {
-      overlay.open(({ isOpen, close }) => (
-        <AlertDialog open={isOpen} onOpenChange={close}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>필수 정보를 입력해주세요!</AlertDialogTitle>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel asChild onClick={() => close()}>
-                <ActionButton variant='secondaryFill' className='text-white' onClick={() => close()}>
-                  확인
-                </ActionButton>
-              </AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ));
-      return;
-    }
+    if (!isValid || isSubmitting) return;
 
     // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
     if (onBeforeSubmit) {
@@ -124,7 +98,7 @@ function PetProfileForm({
 
   return (
     <>
-      <div className='px-4'>
+      <div className='h-[calc(100dvh-64px)] px-4'>
         <form
           id='pet-profile-form'
           onSubmit={handleFormSubmit}
@@ -134,9 +108,9 @@ function PetProfileForm({
             }
           }}
           noValidate
-          className='flex flex-col gap-y-5'
+          className='flex h-full min-h-0 flex-col'
         >
-          <div className='scrollbar-hide relative h-[calc(100vh-200px)] overflow-y-auto'>
+          <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
             <Controller
               name='profileImage'
               control={control}
@@ -144,26 +118,32 @@ function PetProfileForm({
                 <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
               )}
             />
-            <div className='py-2'>
+            <div className='py-4'>
               <Controller
-                name='name'
-                control={control}
+              name='name'
+              control={control}
+              rules={{ required: '강아지 이름을 입력해 주세요' }}
                 render={({ field, fieldState: { error } }) => (
-                  <TextField label='강아지 이름' required errorMessage={error?.message}>
+                  <TextField label='강아지 이름' required invalid={!!error} errorMessage={error?.message}>
                     <TextFieldInput
                       {...field}
-                      placeholder='8자 이내 한글'
+                      maxLength={MAX_DOG_NAME_LENGTH}
+                      placeholder='8글자 이내 한글로 입력해 주세요'
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\s/g, '').slice(0, 8);
-                        field.onChange(value);
+                        if ((e.nativeEvent as InputEvent).isComposing) {
+                          field.onChange(e.target.value);
+                          return;
+                        }
+                        field.onChange(normalizeDogName(e.target.value));
                       }}
+                      onCompositionEnd={(e) => field.onChange(normalizeDogName(e.currentTarget.value))}
                     />
                   </TextField>
                 )}
               />
             </div>
 
-            <div className='py-2'>
+            <div className='py-4'>
               <div className='body2-semibold mb-2'>
                 강아지와 내 관계 <strong className='body2-bold text-text-accent'>*</strong>
               </div>
@@ -181,37 +161,48 @@ function PetProfileForm({
               />
             </div>
 
-            <div className={cn('py-2', relationship !== RELATIONSHIP.ETC && 'hidden')}>
+            <div className={cn('py-4', relationship !== RELATIONSHIP.ETC && 'hidden')}>
               <Controller
                 name='relationshipText'
                 control={control}
+                rules={relationship === RELATIONSHIP.ETC ? { required: '관계를 입력해 주세요' } : undefined}
                 render={({ field, fieldState: { error } }) => (
-                  <TextField label='관계(직접 입력)' required errorMessage={error?.message}>
+                  <TextField label='관계(직접 입력)' required invalid={!!error} errorMessage={error?.message}>
                     <TextFieldInput
                       {...field}
-                      maxLength={5}
-                      placeholder='5자이내 한글'
+                      maxLength={MAX_RELATIONSHIP_TEXT_LENGTH}
+                      placeholder='5자 이내 한글로 입력해 주세요'
                       onChange={(e) => {
-                        const value = e.target.value.replace(/\s/g, '').slice(0, 8);
-                        field.onChange(value);
+                        if ((e.nativeEvent as InputEvent).isComposing) {
+                          field.onChange(e.target.value);
+                          return;
+                        }
+                        field.onChange(normalizeRelationshipText(e.target.value));
                       }}
+                      onCompositionEnd={(e) => field.onChange(normalizeRelationshipText(e.currentTarget.value))}
                     />
                   </TextField>
                 )}
               />
             </div>
 
-            <div className='py-2'>
+            <div className='py-4'>
               <Controller
                 name='breed'
                 control={control}
-                render={({ field }) => (
-                  <BreedSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
+                rules={isAdditionalInfoRequired ? { required: '견종을 선택해 주세요' } : undefined}
+                render={({ field, fieldState: { error } }) => (
+                  <BreedSelector
+                    value={field.value || null}
+                    required={isAdditionalInfoRequired}
+                    errorMessage={error?.message}
+                    onChange={(value) => field.onChange(value)}
+                  />
                 )}
               />
             </div>
 
-            <div className='py-2'>
+            <div className='py-4'>
               <Controller
                 name='birthYear'
                 control={control}
@@ -221,29 +212,63 @@ function PetProfileForm({
               />
             </div>
 
-            <div className='py-2'>
+            <div className='py-4'>
               <Controller
                 name='weight'
                 control={control}
-                render={({ field }) => (
-                  <TextField label='몸무게(kg)' indicator='(선택)'>
-                    <TextFieldInput {...field} value={field.value || ''} placeholder='숫자만 입력' type='number' />
+                rules={
+                  isAdditionalInfoRequired
+                    ? {
+                        required: '몸무게를 입력해 주세요',
+                        validate: (value) => isValidDogWeight(value) || '몸무게는 1~99kg의 정수만 입력할 수 있어요',
+                      }
+                    : {
+                        validate: (value) =>
+                          value === undefined ||
+                          isValidDogWeight(value) ||
+                          '몸무게는 1~99kg의 정수만 입력할 수 있어요',
+                      }
+                }
+                render={({ field, fieldState: { error } }) => (
+                  <TextField
+                    label='몸무게(kg)'
+                    required={isAdditionalInfoRequired}
+                    indicator={isAdditionalInfoRequired ? undefined : '(선택)'}
+                    invalid={!!error}
+                    errorMessage={error?.message}
+                  >
+                    <TextFieldInput
+                      {...field}
+                      value={field.value ?? ''}
+                      maxLength={String(MAX_DOG_WEIGHT).length}
+                      inputMode='numeric'
+                      pattern='[0-9]*'
+                      onChange={(event) => {
+                        const value = normalizeDogWeight(event.target.value);
+                        field.onChange(value === '' ? undefined : Number(value));
+                      }}
+                    />
                   </TextField>
                 )}
               />
             </div>
 
-            <div className='py-2'>
+            <div className='py-4'>
               <Controller
                 name='gender'
                 control={control}
+                rules={isAdditionalInfoRequired ? { required: '성별을 선택해 주세요' } : undefined}
                 render={({ field }) => (
-                  <GenderSelector value={field.value || null} onChange={(value) => field.onChange(value)} />
+                  <GenderSelector
+                    value={field.value || null}
+                    required={isAdditionalInfoRequired}
+                    onChange={(value) => field.onChange(value)}
+                  />
                 )}
               />
             </div>
 
-            <div className='py-2'>
+            <div className='py-4'>
               <Controller
                 name='isNeutered'
                 control={control}
@@ -254,8 +279,8 @@ function PetProfileForm({
             </div>
           </div>
 
-          <div className='absolute right-0 bottom-6 left-0 bg-white px-4'>
-            <ActionButton type='submit' disabled={isSubmitting}>
+          <div className='shrink-0 bg-bg-0 py-x5'>
+            <ActionButton type='submit' size='large' disabled={!isValid || isSubmitting}>
               {submitButtonText}
             </ActionButton>
           </div>
