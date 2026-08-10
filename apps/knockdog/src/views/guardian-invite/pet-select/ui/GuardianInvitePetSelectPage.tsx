@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { ActionButton, Avatar, AvatarFallback, Checkbox, Icon, ProgressBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
@@ -28,6 +29,10 @@ function GuardianInvitePetSelectPage() {
     if (selectedPetIds.length === 0) return;
 
     void push({ pathname: `/invite/guardian/${encodeURIComponent(token)}/consent` });
+  };
+
+  const handleAddPet = () => {
+    void push({ pathname: route.mypage.pet.add.root });
   };
 
   return (
@@ -185,6 +190,7 @@ function GuardianInvitePetSelectPage() {
           {canAddPet ? (
             <button
               type='button'
+              onClick={handleAddPet}
               className='body2-bold radius-r2 border-line-400 text-text-secondary flex h-x12 cursor-pointer items-center justify-center gap-x2 border px-x4 py-x3_5'
             >
               <Icon icon='Plus' className='size-5' />

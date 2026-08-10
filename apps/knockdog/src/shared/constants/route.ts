@@ -100,6 +100,12 @@ const route = {
         root: '/mypage/guardian/profile',
       },
     },
+    pet: {
+      add: {
+        /** 강아지 프로필 추가 페이지 */
+        root: '/mypage/pet-add',
+      },
+    },
   },
   owner: {
     /** 원장 일과 탭 */
@@ -134,6 +140,16 @@ const route = {
       approval: {
         /** 원장 구성원 연결 승인 대기 목록 페이지 */
         root: '/owner/members/approval',
+      },
+    },
+  },
+  invite: {
+    guardian: {
+      /** 보호자 유치원 초대 */
+      root: '/invite/guardian/[token]',
+      complete: {
+        /** 보호자 유치원 연결 신청 결과 */
+        root: '/invite/guardian/[token]/complete',
       },
     },
   },

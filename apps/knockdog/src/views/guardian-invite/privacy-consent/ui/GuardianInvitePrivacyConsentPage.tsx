@@ -6,39 +6,30 @@ import { useParams } from 'next/navigation';
 import { ActionButton, Checkbox, ProgressBar, ScrollBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
-const privacyConsentPolicyBody = `회사는 보호자와 반려견의 유치원 연결 신청, 연결 승인 처리 및 유치원 생활 정보 제공을 위해 아래와 같이 개인정보를 수집·이용하며, 서비스 제공에 필요한 범위에서 해당 유치원의 원장 및 같은 유치원에 연결된 보호자에게 공개할 수 있습니다.
-
-수집·이용 항목:
-필수 : 보호자 정보(이름, 성별, 연락처, 주소), 반려견 정보(이름, 보호자와의 관계, 견종, 몸무게, 성별)
-선택 : 보호자 비상연락처, 반려견 정보(나이, 중성화 여부, 사진)
-연결 신청 정보: 신청 유치원, 신청 일시, 신청 상태, 승인/거절 처리 결과, 연결 상태
-연결 후 생성 정보: 등하원 기록, 알림장, 사진 등 유치원 운영 기록
-
-수집·이용 목적:
-유치원 연결 신청 접수 및 승인 처리
-연결 후 등하원, 알림장, 사진 공유 등 유치원 생활 정보 제공
-보호자 응대, 비상 연락, 중복 신청 방지
-문의 및 분쟁 대응
-
-공개 대상:
-연결 신청한 해당 유치원의 원장
-같은 유치원에 연결된 보호자
-단, 재원 기간 중 공용 앨범에 게시된 운영 기록에 한함
-
-보유·이용 기간:
-유치원 연결 종료 후 3년
-단, 관련 법령 또는 내부 보관 기준에 따라 보관이 필요한 정보는 해당 기간 동안 보관
-
-연결이 해제되면 해당 유치원은 신규 등하원 처리, 신규 알림장 작성, 신규 사진 등록을 할 수 없습니다. 다만 연결 해제 전 생성된 기존 운영 기록은 읽기 전용으로 보존될 수 있습니다.
-
-동의를 거부할 권리가 있으나, 동의하지 않을 경우 유치원 연결 신청을 진행할 수 없어요.`;
+import {
+  privacyConsentPolicyClosing,
+  privacyConsentPolicyIntro,
+  privacyConsentPolicySections,
+} from '../config/privacyConsentPolicyBody';
 
 /** 보호자 초대 3단계: 개인정보 수집 및 이용 동의 */
 function GuardianInvitePrivacyConsentPage() {
   const { token } = useParams<{ token: string }>();
+  const { replace } = useStackNavigation();
   const [isAgreed, setIsAgreed] = useState(false);
+
+  const handleSubmit = () => {
+    if (!isAgreed) return;
+
+    // 보호자 초대 신청 API가 추가되면 성공 응답에서만 이 화면으로 이동한다.
+    void replace({
+      pathname: `/invite/guardian/${encodeURIComponent(token)}/complete`,
+      query: { status: 'success' },
+    });
+  };
 
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col' data-invite-token={token}>
@@ -77,14 +68,43 @@ function GuardianInvitePrivacyConsentPage() {
               className='radius-r2 h-[346px] bg-fill-secondary-50'
               viewportProps={{ 'aria-label': '개인정보 수집 및 이용 동의 내용' }}
             >
-              <p className='body1-regular text-text-primary whitespace-pre-wrap'>{privacyConsentPolicyBody}</p>
+              <div className='body1-regular text-text-primary'>
+                <p>{privacyConsentPolicyIntro}</p>
+
+                <div className='mt-[24px]'>
+                  {privacyConsentPolicySections.map((section) => (
+                    <section key={section.title} className='mb-[24px]'>
+                      <h2>{section.title}</h2>
+                      <ul className='list-disc pl-x5'>
+                        {section.items.map((item, index) => (
+                          <li key={item}>
+                            {item}
+                            {section.note && index === 1 ? <p>{section.note}</p> : null}
+                            {section.nestedItem?.parentIndex === index ? (
+                              <ul className='list-[circle] pl-x5'>
+                                <li>{section.nestedItem.text}</li>
+                              </ul>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+
+                  {privacyConsentPolicyClosing.map((paragraph, index) => (
+                    <p key={paragraph} className={index < privacyConsentPolicyClosing.length - 1 ? 'mb-[24px]' : undefined}>
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </div>
             </ScrollBar>
           </div>
         </section>
       </main>
 
       <div className='bg-bg-0 px-x4 py-x5'>
-        <ActionButton type='button' size='large' disabled={!isAgreed}>
+        <ActionButton type='button' size='large' disabled={!isAgreed} onClick={handleSubmit}>
           유치원 등록
         </ActionButton>
       </div>
