@@ -1,4 +1,4 @@
-import { GuardianInvitePetSelectPage } from '@views/guardian-invite-pet-select-page';
+import { GuardianInvitePetSelectPage } from '@views/guardian-invite/pet-select';
 
 export default function Page() {
   return <GuardianInvitePetSelectPage />;

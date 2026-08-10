@@ -64,8 +64,8 @@ function GuardianInvitePetSelectPage() {
               <span className='body2-bold text-text-accent'>{profileCount}/5</span>
             </div>
           <div
-            className={`relative flex h-[84px] items-center gap-x2 rounded-xl border p-x4 ${
-              isPpoppi1Selected ? 'border-[#FF6E0C] bg-[#FFF7EC]' : 'border-line-200 bg-white'
+            className={`radius-r3 relative flex h-[84px] items-center gap-x2 border p-x4 ${
+              isPpoppi1Selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0'
             }`}
           >
             <button
@@ -73,11 +73,11 @@ function GuardianInvitePetSelectPage() {
               aria-label={`뽀삐 ${isPpoppi1Selected ? '선택 해제' : '선택'}`}
               aria-pressed={isPpoppi1Selected}
               onClick={() => togglePet('ppoppi-1', !isPpoppi1Selected)}
-              className='absolute inset-0 cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF6E0C]'
+              className='radius-r3 absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-accent'
             />
             <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
-              <Avatar className='size-x13 border-2 border-[#F3F3F7] bg-[#F9F9FA]'>
-                <AvatarFallback className='bg-[#F9F9FA]'>
+              <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
+                <AvatarFallback className='bg-fill-secondary-50'>
                   <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
                 </AvatarFallback>
               </Avatar>
@@ -89,7 +89,7 @@ function GuardianInvitePetSelectPage() {
                 <span className={`label-medium ${isPpoppi1Selected ? 'text-text-accent' : 'text-text-primary'}`}>시베리안 허스키</span>
               </span>
             </div>
-            <button data-profile-view type='button' className={`pointer-events-auto relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer rounded-lg px-x3 ${isPpoppi1Selected ? 'bg-white text-text-primary' : 'bg-[#F3F3F7] text-[#70727C]'}`}>
+            <button data-profile-view type='button' className={`pointer-events-auto radius-r2 relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer px-x3 ${isPpoppi1Selected ? 'bg-bg-0 text-text-primary' : 'bg-fill-secondary-100 text-text-secondary'}`}>
               프로필 보기
             </button>
             <Checkbox
@@ -100,8 +100,8 @@ function GuardianInvitePetSelectPage() {
             />
           </div>
           <div
-            className={`relative flex h-[84px] items-center gap-x2 rounded-xl border p-x4 ${
-              isPpoppi2Selected ? 'border-[#FF6E0C] bg-[#FFF7EC]' : 'border-line-200 bg-white'
+            className={`radius-r3 relative flex h-[84px] items-center gap-x2 border p-x4 ${
+              isPpoppi2Selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0'
             }`}
           >
             <button
@@ -109,11 +109,11 @@ function GuardianInvitePetSelectPage() {
               aria-label={`뽀삐 ${isPpoppi2Selected ? '선택 해제' : '선택'}`}
               aria-pressed={isPpoppi2Selected}
               onClick={() => togglePet('ppoppi-2', !isPpoppi2Selected)}
-              className='absolute inset-0 cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF6E0C]'
+              className='radius-r3 absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-accent'
             />
             <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
-              <Avatar className='size-x13 border-2 border-[#F3F3F7] bg-[#F9F9FA]'>
-                <AvatarFallback className='bg-[#F9F9FA]'>
+              <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
+                <AvatarFallback className='bg-fill-secondary-50'>
                   <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
                 </AvatarFallback>
               </Avatar>
@@ -125,7 +125,7 @@ function GuardianInvitePetSelectPage() {
                 <span className={`label-medium ${isPpoppi2Selected ? 'text-text-accent' : 'text-text-primary'}`}>시베리안 허스키</span>
               </span>
             </div>
-            <button data-profile-view type='button' className={`pointer-events-auto relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer rounded-lg px-x3 ${isPpoppi2Selected ? 'bg-white text-text-primary' : 'bg-[#F3F3F7] text-[#70727C]'}`}>
+            <button data-profile-view type='button' className={`pointer-events-auto radius-r2 relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer px-x3 ${isPpoppi2Selected ? 'bg-bg-0 text-text-primary' : 'bg-fill-secondary-100 text-text-secondary'}`}>
               프로필 보기
             </button>
             <Checkbox
@@ -137,10 +137,10 @@ function GuardianInvitePetSelectPage() {
           </div>
           <div
             aria-disabled='true'
-            className='border-line-200 flex h-[84px] items-center gap-x2 rounded-xl border bg-[#F3F3F7] p-x4'
+            className='border-line-200 radius-r3 flex h-[84px] items-center gap-x2 border bg-fill-secondary-100 p-x4'
           >
-            <Avatar className='size-x13 border-2 border-[#F3F3F7] bg-[#F9F9FA]'>
-              <AvatarFallback className='bg-[#F9F9FA]'>
+            <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
+              <AvatarFallback className='bg-fill-secondary-50'>
                 <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
               </AvatarFallback>
             </Avatar>
@@ -150,7 +150,7 @@ function GuardianInvitePetSelectPage() {
                   뽀삐
                   <Icon icon='Male' className='size-4' />
                 </span>
-                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-[#EBEBF0] px-x2 text-fill-secondary-400'>
+                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>
                   승인 대기
                 </span>
               </span>
@@ -160,10 +160,10 @@ function GuardianInvitePetSelectPage() {
           </div>
           <div
             aria-disabled='true'
-            className='border-line-200 flex h-[84px] items-center gap-x2 rounded-xl border bg-[#F3F3F7] p-x4'
+            className='border-line-200 radius-r3 flex h-[84px] items-center gap-x2 border bg-fill-secondary-100 p-x4'
           >
-            <Avatar className='size-x13 border-2 border-[#F3F3F7] bg-[#F9F9FA]'>
-              <AvatarFallback className='bg-[#F9F9FA]'>
+            <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
+              <AvatarFallback className='bg-fill-secondary-50'>
                 <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
               </AvatarFallback>
             </Avatar>
@@ -173,7 +173,7 @@ function GuardianInvitePetSelectPage() {
                   뽀삐
                   <Icon icon='Female' className='size-4' />
                 </span>
-                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-[#EBEBF0] px-x2 text-fill-secondary-400'>
+                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>
                   연결 완료
                 </span>
               </span>
@@ -185,7 +185,7 @@ function GuardianInvitePetSelectPage() {
           {canAddPet ? (
             <button
               type='button'
-              className='body2-bold flex h-x12 cursor-pointer items-center justify-center gap-x2 rounded-lg border border-[#B4B4BB] px-x4 py-x3_5 text-[#70727C]'
+              className='body2-bold radius-r2 border-line-400 text-text-secondary flex h-x12 cursor-pointer items-center justify-center gap-x2 border px-x4 py-x3_5'
             >
               <Icon icon='Plus' className='size-5' />
               강아지 추가

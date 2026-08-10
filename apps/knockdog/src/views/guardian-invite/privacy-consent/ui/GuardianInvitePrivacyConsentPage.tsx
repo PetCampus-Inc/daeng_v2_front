@@ -66,15 +66,15 @@ function GuardianInvitePrivacyConsentPage() {
               size='sm'
               checked={isAgreed}
               onCheckedChange={setIsAgreed}
-              className='border-line-200 flex h-x14 w-full cursor-pointer rounded-lg border bg-white px-x4 py-x4'
+              className='border-line-200 radius-r2 flex h-x14 w-full cursor-pointer border bg-bg-0 px-x4 py-x4'
             >
-              <span className={`body1-bold ${isAgreed ? 'text-text-primary' : 'text-[#70727C]'}`}>
+              <span className={`body1-bold ${isAgreed ? 'text-text-primary' : 'text-text-secondary'}`}>
                 개인정보 수집·이용 및 제3자 제공 동의
               </span>
             </Checkbox>
 
             <ScrollBar
-              className='h-[346px] rounded-lg bg-[#F9F9FA] px-x4 py-x3'
+              className='radius-r2 h-[346px] bg-fill-secondary-50'
               viewportProps={{ 'aria-label': '개인정보 수집 및 이용 동의 내용' }}
             >
               <p className='body1-regular text-text-primary whitespace-pre-wrap'>{privacyConsentPolicyBody}</p>

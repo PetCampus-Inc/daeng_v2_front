@@ -9,9 +9,9 @@ import {
   isGuardianProfileFormValid,
   isValidMobilePhone,
   PHONE_FORMAT_ERROR,
+  type GuardianGender,
   type GuardianProfileFormValues,
 } from '@features/guardian-profile-form';
-import { useGuardianInviteFlow } from '@features/guardian-invite-flow';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -19,10 +19,16 @@ import { SafeArea } from '@shared/ui/safe-area';
 /** 보호자 유치원 초대 및 가입 신청 화면의 퍼블리싱 진입점 */
 function GuardianInvitePage() {
   const { token } = useParams<{ token: string }>();
-  const { guardianProfileValues: values, setGuardianProfileValues } = useGuardianInviteFlow();
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState<GuardianGender>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
+  const [emergencyPhoneNumber, setEmergencyPhoneNumber] = useState('');
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
   const { push } = useStackNavigation();
+  const values = { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber };
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
@@ -31,7 +37,12 @@ function GuardianInvitePage() {
       : undefined;
 
   const handleFormChange = (nextValues: GuardianProfileFormValues) => {
-    setGuardianProfileValues(nextValues);
+    setName(nextValues.name);
+    setGender(nextValues.gender);
+    setPhoneNumber(nextValues.phoneNumber);
+    setAddress(nextValues.address);
+    setAddressDetail(nextValues.addressDetail);
+    setEmergencyPhoneNumber(nextValues.emergencyPhoneNumber);
   };
 
   const handleNext = () => {
