@@ -13,6 +13,8 @@ interface GuardianAlbumDayAlbum {
   /** YYYY-MM-DD */
   dateKey: string;
   isAttended: boolean;
+  /** 해당일 사진 로드 실패 */
+  hasLoadError?: boolean;
   /** 해당일 전체 사진 수 (+N 계산용) */
   photoCount: number;
   photos: GuardianAlbumPhoto[];

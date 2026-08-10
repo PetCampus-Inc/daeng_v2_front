@@ -54,6 +54,7 @@ const guardianAlbumContent = {
   dayCard: {
     attendedBadgeLabel: '등원했어요',
     overflowLabel: (remaining: number) => `+ ${remaining}`,
+    loadErrorMessage: '사진을 불러오지 못했어요',
   },
   history: {
     firstAttendanceMessage: '유치원을 다니기 시작했어요',
