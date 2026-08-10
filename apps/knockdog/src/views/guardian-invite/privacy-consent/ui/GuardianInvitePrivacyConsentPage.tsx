@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 
 import { ActionButton, Checkbox, ProgressBar, ScrollBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
-import { toast } from '@shared/ui/toast';
 
 import {
   privacyConsentPolicyClosing,
@@ -16,15 +18,16 @@ import {
 
 /** 보호자 초대 3단계: 개인정보 수집 및 이용 동의 */
 function GuardianInvitePrivacyConsentPage() {
+  const { token } = useParams<{ token: string }>();
+  const { replace } = useStackNavigation();
   const [isAgreed, setIsAgreed] = useState(false);
 
   const handleSubmit = () => {
     if (!isAgreed) return;
 
-    // 신청 API 계약이 추가되면 성공 응답에서만 완료 화면으로 이동한다.
-    toast({
-      title: '유치원 연결 신청 기능을 준비 중이에요.',
-      position: 'bottom-above-nav',
+    void replace({
+      pathname: route.invite.guardian.complete.root.replace('[token]', encodeURIComponent(token)),
+      query: { status: 'success' },
     });
   };
 

@@ -51,7 +51,15 @@ function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
         isSelectable ? cardClassName : 'border-line-200 bg-fill-secondary-100'
       }`}
     >
-      {isSelectable ? <label htmlFor={checkboxId} aria-hidden='true' className='radius-r3 absolute inset-0 cursor-pointer' /> : null}
+      {isSelectable ? (
+        <button
+          type='button'
+          aria-label={`${pet.name} ${selected ? '선택 해제' : '선택'}`}
+          aria-pressed={selected}
+          onClick={() => onCheckedChange(!selected)}
+          className='radius-r3 absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-accent'
+        />
+      ) : null}
       <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
         <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
           <AvatarFallback className='bg-fill-secondary-50'>

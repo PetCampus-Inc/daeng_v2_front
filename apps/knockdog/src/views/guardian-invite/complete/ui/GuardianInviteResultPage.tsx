@@ -10,8 +10,7 @@ import { GUARDIAN_INVITE_RESULT_STATUS } from '../config/guardianInviteResultSta
 import { useGuardianInviteResultPage } from '../model/useGuardianInviteResultPage';
 
 function GuardianInviteResultPage() {
-  const { content, failedPets, handlePrimaryClick, handleSecondaryClick, isPrimaryActionAvailable, status } =
-    useGuardianInviteResultPage();
+  const { content, failedPets, handlePrimaryClick, handleSecondaryClick, status } = useGuardianInviteResultPage();
   const isApplicationFailed = status === GUARDIAN_INVITE_RESULT_STATUS.APPLICATION_FAILED;
   const actionButtons = (
     <div className='flex gap-2'>
@@ -20,13 +19,7 @@ function GuardianInviteResultPage() {
           {content.secondaryButtonLabel}
         </ActionButton>
       ) : null}
-      <ActionButton
-        type='button'
-        size='large'
-        className='flex-1'
-        disabled={!isPrimaryActionAvailable}
-        onClick={handlePrimaryClick}
-      >
+      <ActionButton type='button' size='large' className='flex-1' onClick={handlePrimaryClick}>
         {content.primaryButtonLabel}
       </ActionButton>
     </div>
