@@ -39,6 +39,7 @@ const guardianAlbumContent = {
     yearMonthAriaLabel: '연월 선택',
     searchAriaLabel: '날짜 검색',
     searchIconSrc: '/images/ico_album_calendar_search.png',
+    noMoreAlbumToast: '더 이상 볼 수 있는 앨범이 없어요',
   },
   monthPickerSheet: {
     confirmLabel: '확인',

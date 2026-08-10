@@ -31,6 +31,7 @@ import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/Guardia
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
 import { startOfDay } from '@shared/lib/calendar-date';
+import { toast } from '@shared/ui/toast';
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -126,7 +127,10 @@ function GuardianAlbumPage() {
   };
 
   const handlePrevMonth = () => {
-    if (!canGoPrevMonth) return;
+    if (!canGoPrevMonth) {
+      toast({ title: content.monthNav.noMoreAlbumToast });
+      return;
+    }
     setSelectedMonth((prev) => addMonths(prev, -1));
   };
 

@@ -31,9 +31,8 @@ function GuardianAlbumMonthNav({
       <div className='gap-x2 flex flex-1 items-center justify-center'>
         <button
           type='button'
-          className='inline-flex size-6 items-center justify-center disabled:opacity-30'
+          className={`inline-flex size-6 items-center justify-center ${canGoPrevMonth ? '' : 'opacity-30'}`}
           aria-label={monthNav.prevAriaLabel}
-          disabled={!canGoPrevMonth}
           onClick={onPrevMonth}
         >
           <Icon icon='ChevronLeft' className='text-fill-secondary-500 size-6' />
