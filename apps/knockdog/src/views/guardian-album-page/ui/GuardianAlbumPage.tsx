@@ -19,15 +19,18 @@ import {
 } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
+import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
+import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
+import { startOfDay } from '@shared/lib/calendar-date';
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -85,6 +88,8 @@ function GuardianAlbumPage() {
 
   const minMonth = startOfMonth(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
   const maxMonth = startOfMonth(new Date());
+  const minDate = startOfDay(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
+  const maxDate = startOfDay(new Date());
   const canGoPrevMonth = compareYearMonth(selectedMonth, minMonth) > 0;
   const canGoNextMonth = compareYearMonth(selectedMonth, maxMonth) < 0;
 
@@ -125,6 +130,34 @@ function GuardianAlbumPage() {
   const handleNextMonth = () => {
     if (!canGoNextMonth) return;
     setSelectedMonth((prev) => addMonths(prev, 1));
+  };
+
+  const handleYearMonthClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <GuardianAlbumMonthPickerSheet
+        isOpen={isOpen}
+        close={close}
+        currentMonth={selectedMonth}
+        minMonth={minMonth}
+        maxMonth={maxMonth}
+        onConfirm={setSelectedMonth}
+      />
+    ));
+  };
+
+  const handleSearchClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <GuardianAlbumDateSelectSheet
+        isOpen={isOpen}
+        close={close}
+        minDate={minDate}
+        maxDate={maxDate}
+        initialDate={selectedMonth}
+        onConfirm={(date) => {
+          setSelectedMonth(startOfMonth(date));
+        }}
+      />
+    ));
   };
 
   const handleScroll = useCallback(() => {
@@ -197,6 +230,8 @@ function GuardianAlbumPage() {
               canGoNextMonth={canGoNextMonth}
               onPrevMonth={handlePrevMonth}
               onNextMonth={handleNextMonth}
+              onYearMonthClick={handleYearMonthClick}
+              onSearchClick={handleSearchClick}
             />
             <GuardianAlbumDayList
               days={visibleDays}

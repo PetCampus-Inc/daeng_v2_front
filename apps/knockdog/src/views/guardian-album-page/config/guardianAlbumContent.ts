@@ -35,8 +35,20 @@ const guardianAlbumContent = {
   monthNav: {
     prevAriaLabel: '이전 달',
     nextAriaLabel: '다음 달',
+    yearMonthAriaLabel: '연월 선택',
     searchAriaLabel: '날짜 검색',
     searchIconSrc: '/images/ico_album_calendar_search.png',
+  },
+  monthPickerSheet: {
+    confirmLabel: '확인',
+    yearLabel: (year: number) => `${year}년`,
+    monthLabel: (month: number) => `${month}월`,
+  },
+  dateSelectSheet: {
+    title: '날짜를 선택해 주세요',
+    todayButtonLabel: '오늘',
+    confirmLabel: (date: Date) =>
+      `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 선택`,
   },
   dayCard: {
     attendedBadgeLabel: '등원했어요',
