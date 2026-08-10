@@ -14,6 +14,14 @@ const guardianAlbumContent = {
       '즐겨찾기하면 원하는 사진만 모아 볼 수 있어요.',
     ],
   },
+  filterSheet: {
+    title: '보기 방식을 선택해 주세요',
+    options: [
+      { value: 'all', label: '전체 보기' },
+      { value: 'favorite', label: '즐겨찾기만 보기' },
+      { value: 'attendance', label: '등원일만 보기' },
+    ],
+  },
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
     imageAlt: '등록된 앨범 없음',

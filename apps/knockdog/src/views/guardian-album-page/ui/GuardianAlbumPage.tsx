@@ -7,8 +7,10 @@ import { overlay } from 'overlay-kit';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { MOCK_ALBUM_KINDERGARTENS } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
+import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
+import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { Header } from '@widgets/Header';
 
 function GuardianAlbumPage() {
@@ -21,6 +23,7 @@ function GuardianAlbumPage() {
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(
     defaultKindergartenId
   );
+  const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
 
   const selectedKindergarten =
     kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
@@ -36,6 +39,17 @@ function GuardianAlbumPage() {
         kindergartens={kindergartens}
         currentKindergartenId={selectedKindergartenId}
         onSelect={setSelectedKindergartenId}
+      />
+    ));
+  };
+
+  const handleFilterClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <GuardianAlbumFilterSheet
+        isOpen={isOpen}
+        close={close}
+        currentViewMode={viewMode}
+        onSelect={setViewMode}
       />
     ));
   };
@@ -68,6 +82,7 @@ function GuardianAlbumPage() {
             type='button'
             className='inline-flex size-6 items-center justify-center'
             aria-label={content.filterAriaLabel}
+            onClick={handleFilterClick}
           >
             <Icon icon='Filter' className='text-fill-secondary-700 size-6' />
           </button>
