@@ -61,7 +61,7 @@ function GuardianProfileFields({
         </TextField>
       </div>
 
-      <div className='flex flex-col gap-x2 p-x4'>
+      <div className='flex flex-col gap-y-2 p-x4'>
         <div className='body2-bold text-text-primary flex h-5 items-center gap-0.5'>
           성별<span className='text-text-accent'>*</span>
         </div>
@@ -113,8 +113,8 @@ function GuardianProfileFields({
         {phoneNumberError ? <p className='text-error body2-regular pt-2'>{phoneNumberError}</p> : null}
       </div>
 
-      <div className='relative z-10 flex h-[184px] flex-col gap-x2 py-x4'>
-        <div className='flex h-[76px] flex-col gap-x2 px-x4'>
+      <div className='relative z-10 flex h-[184px] flex-col gap-y-2 py-x4'>
+        <div className='flex h-[76px] flex-col gap-y-2 px-x4'>
           <div className='body2-bold text-text-primary flex h-5 items-center gap-0.5'>
             주소<span className='text-text-accent'>*</span>
           </div>

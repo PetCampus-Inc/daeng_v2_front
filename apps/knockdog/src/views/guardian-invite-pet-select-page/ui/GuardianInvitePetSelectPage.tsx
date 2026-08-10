@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { ActionButton, Avatar, AvatarFallback, Checkbox, Icon, ProgressBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
-interface GuardianInvitePetSelectPageProps {
-  token: string;
-}
-
 /** 보호자 초대 2단계: 가입 신청할 강아지 선택 */
-function GuardianInvitePetSelectPage({ token }: GuardianInvitePetSelectPageProps) {
-  const profileCount = 3;
+function GuardianInvitePetSelectPage() {
+  const { token } = useParams<{ token: string }>();
+  const { push } = useStackNavigation();
+  const profileCount = 4;
   const canAddPet = profileCount < 5;
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>(['ppoppi-2']);
 
@@ -23,6 +23,12 @@ function GuardianInvitePetSelectPage({ token }: GuardianInvitePetSelectPageProps
   };
   const isPpoppi1Selected = selectedPetIds.includes('ppoppi-1');
   const isPpoppi2Selected = selectedPetIds.includes('ppoppi-2');
+
+  const handleNext = () => {
+    if (selectedPetIds.length === 0) return;
+
+    void push({ pathname: `/invite/guardian/${encodeURIComponent(token)}/consent` });
+  };
 
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col' data-invite-token={token}>
@@ -51,11 +57,12 @@ function GuardianInvitePetSelectPage({ token }: GuardianInvitePetSelectPageProps
           </p>
         </section>
 
-        <section className='flex flex-col gap-x4 px-x4 py-x4'>
-          <div className='flex h-5 items-center gap-x1'>
-            <span className='body2-bold text-text-primary'>현재 프로필 개수</span>
-            <span className='body2-bold text-text-accent'>{profileCount}/5</span>
-          </div>
+        <section className='flex flex-col gap-y-4 px-x4 py-x4'>
+          <div className='flex flex-col gap-y-3'>
+            <div className='flex h-5 items-center gap-x1'>
+              <span className='body2-bold text-text-primary'>현재 프로필 개수</span>
+              <span className='body2-bold text-text-accent'>{profileCount}/5</span>
+            </div>
           <div
             className={`relative flex h-[84px] items-center gap-x2 rounded-xl border p-x4 ${
               isPpoppi1Selected ? 'border-[#FF6E0C] bg-[#FFF7EC]' : 'border-line-200 bg-white'
@@ -143,13 +150,37 @@ function GuardianInvitePetSelectPage({ token }: GuardianInvitePetSelectPageProps
                   뽀삐
                   <Icon icon='Male' className='size-4' />
                 </span>
-                <button type='button' disabled className='caption1-semibold h-[26px] rounded-full bg-[#EBEBF0] px-x2 text-fill-secondary-400'>
+                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-[#EBEBF0] px-x2 text-fill-secondary-400'>
                   승인 대기
-                </button>
+                </span>
               </span>
               <span className='label-medium text-fill-secondary-400'>시베리안 허스키</span>
             </div>
             <Checkbox size='sm' disabled />
+          </div>
+          <div
+            aria-disabled='true'
+            className='border-line-200 flex h-[84px] items-center gap-x2 rounded-xl border bg-[#F3F3F7] p-x4'
+          >
+            <Avatar className='size-x13 border-2 border-[#F3F3F7] bg-[#F9F9FA]'>
+              <AvatarFallback className='bg-[#F9F9FA]'>
+                <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
+              </AvatarFallback>
+            </Avatar>
+            <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
+              <span className='flex items-center gap-x1'>
+                <span className='body1-bold text-fill-secondary-400 flex items-center gap-x1'>
+                  뽀삐
+                  <Icon icon='Female' className='size-4' />
+                </span>
+                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-[#EBEBF0] px-x2 text-fill-secondary-400'>
+                  연결 완료
+                </span>
+              </span>
+              <span className='label-medium text-fill-secondary-400'>시베리안 허스키</span>
+            </div>
+            <Checkbox size='sm' disabled />
+          </div>
           </div>
           {canAddPet ? (
             <button
@@ -164,7 +195,7 @@ function GuardianInvitePetSelectPage({ token }: GuardianInvitePetSelectPageProps
       </main>
 
       <div className='bg-bg-0 px-x4 py-x5'>
-        <ActionButton type='button' size='large' disabled={selectedPetIds.length === 0}>
+        <ActionButton type='button' size='large' disabled={selectedPetIds.length === 0} onClick={handleNext}>
           다음
         </ActionButton>
       </div>

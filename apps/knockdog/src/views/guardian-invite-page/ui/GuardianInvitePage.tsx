@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { ActionButton, ProgressBar } from '@knockdog/ui';
 
 import {
@@ -8,44 +9,29 @@ import {
   isGuardianProfileFormValid,
   isValidMobilePhone,
   PHONE_FORMAT_ERROR,
-  type GuardianGender,
   type GuardianProfileFormValues,
 } from '@features/guardian-profile-form';
+import { useGuardianInviteFlow } from '@features/guardian-invite-flow';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
-interface GuardianInvitePageProps {
-  /** URL 경로에서 받은 초대 토큰. API 연동 단계에서 초대 정보 조회에 사용한다. */
-  token: string;
-}
-
 /** 보호자 유치원 초대 및 가입 신청 화면의 퍼블리싱 진입점 */
-function GuardianInvitePage({ token }: GuardianInvitePageProps) {
-  const [name, setName] = useState('');
-  const [gender, setGender] = useState<GuardianGender>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [addressDetail, setAddressDetail] = useState('');
-  const [emergencyPhoneNumber, setEmergencyPhoneNumber] = useState('');
+function GuardianInvitePage() {
+  const { token } = useParams<{ token: string }>();
+  const { guardianProfileValues: values, setGuardianProfileValues } = useGuardianInviteFlow();
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
   const { push } = useStackNavigation();
-  const values = { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber };
   const phoneNumberError =
-    isPhoneNumberBlurred && !isValidMobilePhone(phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
+    isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
-    isEmergencyPhoneNumberBlurred && emergencyPhoneNumber.length > 0 && !isValidMobilePhone(emergencyPhoneNumber)
+    isEmergencyPhoneNumberBlurred && values.emergencyPhoneNumber.length > 0 && !isValidMobilePhone(values.emergencyPhoneNumber)
       ? PHONE_FORMAT_ERROR
       : undefined;
 
   const handleFormChange = (nextValues: GuardianProfileFormValues) => {
-    setName(nextValues.name);
-    setGender(nextValues.gender);
-    setPhoneNumber(nextValues.phoneNumber);
-    setAddress(nextValues.address);
-    setAddressDetail(nextValues.addressDetail);
-    setEmergencyPhoneNumber(nextValues.emergencyPhoneNumber);
+    setGuardianProfileValues(nextValues);
   };
 
   const handleNext = () => {
