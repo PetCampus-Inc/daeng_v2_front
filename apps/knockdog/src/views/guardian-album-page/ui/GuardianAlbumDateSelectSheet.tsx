@@ -5,6 +5,7 @@ import { ActionButton } from '@knockdog/ui';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import {
+  formatDateKey,
   isAfterDay,
   isBeforeDay,
   startOfDay,
@@ -18,6 +19,8 @@ interface GuardianAlbumDateSelectSheetProps {
   minDate: Date;
   maxDate: Date;
   initialDate: Date;
+  /** 사진이 있는 날짜만 선택 가능. 없으면 min/max만 적용 */
+  enabledDateKeys?: Set<string>;
   markedDateKeys?: Set<string>;
   onConfirm: (date: Date) => void;
 }
@@ -28,19 +31,41 @@ function clampDate(date: Date, minDate: Date, maxDate: Date) {
   return startOfDay(date);
 }
 
+function resolveSelectableDate(
+  date: Date,
+  minDate: Date,
+  maxDate: Date,
+  enabledDateKeys?: Set<string>
+) {
+  const clamped = clampDate(date, minDate, maxDate);
+  if (!enabledDateKeys || enabledDateKeys.size === 0) return clamped;
+  if (enabledDateKeys.has(formatDateKey(clamped))) return clamped;
+
+  const enabledDates = [...enabledDateKeys]
+    .map((key) => {
+      const [yearPart, monthPart, dayPart] = key.split('-');
+      return startOfDay(new Date(Number(yearPart), Number(monthPart) - 1, Number(dayPart)));
+    })
+    .filter((item) => !isBeforeDay(item, minDate) && !isAfterDay(item, maxDate))
+    .sort((a, b) => b.getTime() - a.getTime());
+
+  return enabledDates[0] ?? clamped;
+}
+
 function GuardianAlbumDateSelectSheet({
   isOpen,
   close,
   minDate,
   maxDate,
   initialDate,
+  enabledDateKeys,
   markedDateKeys,
   onConfirm,
 }: GuardianAlbumDateSelectSheetProps) {
   const { dateSelectSheet } = guardianAlbumContent;
   const today = useMemo(() => startOfDay(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(() =>
-    clampDate(initialDate, minDate, maxDate)
+    resolveSelectableDate(initialDate, minDate, maxDate, enabledDateKeys)
   );
   const [viewMonth, setViewMonth] = useState(() =>
     startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1))
@@ -48,26 +73,35 @@ function GuardianAlbumDateSelectSheet({
 
   useEffect(() => {
     if (!isOpen) return;
-    const next = clampDate(initialDate, minDate, maxDate);
+    const next = resolveSelectableDate(initialDate, minDate, maxDate, enabledDateKeys);
     setSelectedDate(next);
     setViewMonth(startOfDay(new Date(next.getFullYear(), next.getMonth(), 1)));
-  }, [isOpen, initialDate, minDate, maxDate]);
+  }, [isOpen, initialDate, minDate, maxDate, enabledDateKeys]);
+
+  const canConfirm =
+    enabledDateKeys == null || enabledDateKeys.has(formatDateKey(selectedDate));
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) close();
   };
 
   const handleSelectDate = (date: Date) => {
+    if (enabledDateKeys && !enabledDateKeys.has(formatDateKey(date))) return;
     const next = clampDate(date, minDate, maxDate);
     setSelectedDate(next);
     setViewMonth(startOfDay(new Date(next.getFullYear(), next.getMonth(), 1)));
   };
 
   const handleGoToday = () => {
+    if (enabledDateKeys && !enabledDateKeys.has(formatDateKey(today))) {
+      setViewMonth(startOfDay(new Date(today.getFullYear(), today.getMonth(), 1)));
+      return;
+    }
     handleSelectDate(today);
   };
 
   const handleConfirm = () => {
+    if (!canConfirm) return;
     onConfirm(selectedDate);
     close();
   };
@@ -88,6 +122,7 @@ function GuardianAlbumDateSelectSheet({
           today={today}
           minDate={minDate}
           maxDate={maxDate}
+          enabledDateKeys={enabledDateKeys}
           markedDateKeys={markedDateKeys}
           todayButtonLabel={dateSelectSheet.todayButtonLabel}
           showCollapse={false}
@@ -102,7 +137,13 @@ function GuardianAlbumDateSelectSheet({
         />
 
         <div className='px-4 pt-8 pb-5'>
-          <ActionButton type='button' variant='primaryFill' size='large' onClick={handleConfirm}>
+          <ActionButton
+            type='button'
+            variant='primaryFill'
+            size='large'
+            disabled={!canConfirm}
+            onClick={handleConfirm}
+          >
             {dateSelectSheet.confirmLabel(selectedDate)}
           </ActionButton>
         </div>

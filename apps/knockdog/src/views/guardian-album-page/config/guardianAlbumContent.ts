@@ -60,6 +60,10 @@ const guardianAlbumContent = {
   history: {
     firstAttendanceMessage: '유치원을 다니기 시작했어요',
   },
+  monthEmpty: {
+    title: '이 달에는 등록된 앨범이 없어요',
+    description: '달력에서 다른 날짜를 확인해 보세요.',
+  },
   scrollTopAriaLabel: '맨 위로',
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',

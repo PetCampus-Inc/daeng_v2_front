@@ -10,8 +10,10 @@ import {
   MOCK_ALBUM_CONNECTION_STARTED_AT,
   compareYearMonth,
   createGuardianAlbumMonthMock,
+  createGuardianAlbumPhotoDateKeys,
   isSameYearMonth,
   parseDateKey,
+  toDateKey,
 } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import {
   MOCK_GUARDIAN_ALBUM_TODAY,
@@ -25,6 +27,7 @@ import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/Guardian
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
+import { GuardianAlbumMonthEmpty } from '@views/guardian-album-page/ui/GuardianAlbumMonthEmpty';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
@@ -96,6 +99,15 @@ function GuardianAlbumPage() {
   const maxDate = startOfDay(new Date());
   const canGoPrevMonth = compareYearMonth(selectedMonth, minMonth) > 0;
   const canGoNextMonth = compareYearMonth(selectedMonth, maxMonth) < 0;
+  const albumPhotoDateKeys = useMemo(() => {
+    const keys = createGuardianAlbumPhotoDateKeys(new Date(), {
+      includeTodayAsDayCard: !albumToday.isAttendedToday,
+    });
+    if (albumToday.isAttendedToday && albumToday.todayPhotoCount > 0) {
+      keys.add(toDateKey(new Date()));
+    }
+    return keys;
+  }, [albumToday.isAttendedToday, albumToday.todayPhotoCount]);
 
   const handleKindergartenSelectClick = () => {
     if (!canSelectKindergarten) return;
@@ -160,6 +172,7 @@ function GuardianAlbumPage() {
         minDate={minDate}
         maxDate={maxDate}
         initialDate={selectedMonth}
+        enabledDateKeys={albumPhotoDateKeys}
         onConfirm={(date) => {
           setSelectedMonth(startOfMonth(date));
         }}
@@ -222,7 +235,7 @@ function GuardianAlbumPage() {
         <>
           <div
             ref={scrollRef}
-            className='min-h-0 flex-1 overflow-y-auto pb-5'
+            className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
             onScroll={handleScroll}
           >
             {albumToday.isAttendedToday ? (
@@ -242,10 +255,14 @@ function GuardianAlbumPage() {
               onYearMonthClick={handleYearMonthClick}
               onSearchClick={handleSearchClick}
             />
-            <GuardianAlbumDayList
-              days={visibleDays}
-              showConnectionStartMessage={showConnectionStartMessage}
-            />
+            {monthAlbum.days.length === 0 ? (
+              <GuardianAlbumMonthEmpty />
+            ) : (
+              <GuardianAlbumDayList
+                days={visibleDays}
+                showConnectionStartMessage={showConnectionStartMessage}
+              />
+            )}
           </div>
           <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
         </>

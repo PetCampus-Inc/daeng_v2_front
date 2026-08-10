@@ -25,6 +25,11 @@ interface MonthlyDatePickerProps {
   maxDate: Date;
   /** `YYYY-MM-DD` 키. 해당 날짜에 마커(점) 표시 */
   markedDateKeys?: Set<string>;
+  /**
+   * 선택 가능한 날짜 키. 전달 시 포함되지 않은 날짜는 비활성(min/max와 함께 적용).
+   * 미전달 시 min/max만으로 활성 여부 판단.
+   */
+  enabledDateKeys?: Set<string>;
   markerClassName?: string;
   todayButtonLabel?: string;
   collapseLabel?: string;
@@ -47,6 +52,7 @@ function MonthlyDatePicker({
   minDate,
   maxDate,
   markedDateKeys,
+  enabledDateKeys,
   markerClassName = DEFAULT_MARKER_CLASS_NAME,
   todayButtonLabel = DEFAULT_TODAY_BUTTON_LABEL,
   collapseLabel = DEFAULT_COLLAPSE_LABEL,
@@ -144,8 +150,11 @@ function MonthlyDatePicker({
               const isSelected = isSameDay(date, selectedDate);
               const isToday = isSameDay(date, today);
               const hasMarker = markedDateKeys?.has(dateKey) ?? false;
-              const isDisabled =
-                !inCurrentMonth || isBeforeDay(date, minDate) || isAfterDay(date, maxDate);
+              const isOutOfRange =
+                isBeforeDay(date, minDate) || isAfterDay(date, maxDate);
+              const isNotEnabled =
+                enabledDateKeys != null && !enabledDateKeys.has(dateKey);
+              const isDisabled = !inCurrentMonth || isOutOfRange || isNotEnabled;
 
               return (
                 <button

@@ -58,13 +58,23 @@ function createDayPhotos(
  * - 오늘 하루 섹션 = 당일만 (등원 시)
  * - 카드 리스트 = 연결일 이후 ~ 어제(등원 시) / 오늘(미등원 시)
  * - 월 네비 min = 연결 시작 달 / max = 이번 달
+ * - 3개월 전으로 두어 사진 없는 월(직전 달)을 캘린더에서 확인 가능
  */
 const MOCK_ALBUM_CONNECTION_STARTED_AT = (() => {
   const now = new Date();
-  return toDateKey(new Date(now.getFullYear(), now.getMonth(), 1));
+  return toDateKey(new Date(now.getFullYear(), now.getMonth() - 3, 1));
 })();
 
 const DAY_ATTENDANCE_PATTERN = [true, false, true, false] as const;
+
+/** 직전 달 = 사진 0장 mock (캘린더에서 전체 비활성) */
+function isAlbumPhotoEmptyMonth(month: Date, today: Date = new Date()) {
+  const emptyMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  return (
+    month.getFullYear() === emptyMonth.getFullYear() &&
+    month.getMonth() === emptyMonth.getMonth()
+  );
+}
 
 /**
  * 선택 월에서 카드로 보여줄 앨범일.
@@ -77,6 +87,8 @@ function getAlbumDatesInMonth(
   today: Date,
   includeToday: boolean
 ) {
+  if (isAlbumPhotoEmptyMonth(month, today)) return [];
+
   const monthStart = startOfDay(new Date(month.getFullYear(), month.getMonth(), 1));
   const monthEnd = startOfDay(new Date(month.getFullYear(), month.getMonth() + 1, 0));
   const rangeStart = isBeforeDay(monthStart, connectionStartedAt)
@@ -96,6 +108,44 @@ function getAlbumDatesInMonth(
     if (dates.length >= (includeToday ? 5 : 4)) break;
   }
   return dates;
+}
+
+function addMonths(date: Date, months: number) {
+  return startOfDay(new Date(date.getFullYear(), date.getMonth() + months, 1));
+}
+
+/**
+ * 사진이 있는 날짜 키 집합 (캘린더 선택 가능일).
+ * 사진 없는 월은 키가 비어 해당 월 전체가 비활성.
+ */
+function createGuardianAlbumPhotoDateKeys(
+  today: Date = new Date(),
+  options: { includeTodayAsDayCard?: boolean } = {}
+): Set<string> {
+  const { includeTodayAsDayCard = false } = options;
+  const connectionStartedAt = parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT);
+  const keys = new Set<string>();
+  const startMonth = startOfDay(
+    new Date(connectionStartedAt.getFullYear(), connectionStartedAt.getMonth(), 1)
+  );
+  const endMonth = startOfDay(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  for (
+    let cursor = startMonth;
+    !isBeforeDay(endMonth, cursor);
+    cursor = addMonths(cursor, 1)
+  ) {
+    for (const date of getAlbumDatesInMonth(
+      cursor,
+      connectionStartedAt,
+      today,
+      includeTodayAsDayCard
+    )) {
+      keys.add(toDateKey(date));
+    }
+  }
+
+  return keys;
 }
 
 /**
@@ -158,6 +208,7 @@ export {
   MOCK_ALBUM_CONNECTION_STARTED_AT,
   compareYearMonth,
   createGuardianAlbumMonthMock,
+  createGuardianAlbumPhotoDateKeys,
   isSameYearMonth,
   parseDateKey,
   toDateKey,
