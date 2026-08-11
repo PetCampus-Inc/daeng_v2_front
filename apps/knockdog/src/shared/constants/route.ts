@@ -194,6 +194,10 @@ const route = {
       /** 보호자 유치원 연결 이력 */
       root: '/compare/connection-history',
     },
+    album: {
+      /** 보호자 유치원 앨범 전체 보기 */
+      root: '/compare/album',
+    },
   },
 };
 
