@@ -13,22 +13,24 @@ import {
   type GuardianProfileFormValues,
 } from '@features/guardian-profile-form';
 import { Header } from '@widgets/Header';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 /** 보호자 유치원 초대 및 가입 신청 화면의 퍼블리싱 진입점 */
 function GuardianInvitePage() {
   const { token } = useParams<{ token: string }>();
-  const [name, setName] = useState('');
-  const [gender, setGender] = useState<GuardianGender>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [addressDetail, setAddressDetail] = useState('');
-  const [emergencyPhoneNumber, setEmergencyPhoneNumber] = useState('');
+  const [values, setValues] = useState<GuardianProfileFormValues>({
+    name: '',
+    gender: null,
+    phoneNumber: '',
+    address: '',
+    addressDetail: '',
+    emergencyPhoneNumber: '',
+  });
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
   const { push } = useStackNavigation();
-  const values = { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber };
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
@@ -36,25 +38,16 @@ function GuardianInvitePage() {
       ? PHONE_FORMAT_ERROR
       : undefined;
 
-  const handleFormChange = (nextValues: GuardianProfileFormValues) => {
-    setName(nextValues.name);
-    setGender(nextValues.gender);
-    setPhoneNumber(nextValues.phoneNumber);
-    setAddress(nextValues.address);
-    setAddressDetail(nextValues.addressDetail);
-    setEmergencyPhoneNumber(nextValues.emergencyPhoneNumber);
-  };
-
   const handleNext = () => {
     if (!isGuardianProfileFormValid(values)) return;
 
     void push({
-      pathname: `/invite/guardian/${encodeURIComponent(token)}/pet`,
+      pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(token)),
     });
   };
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col' data-invite-token={token}>
+    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -79,7 +72,7 @@ function GuardianInvitePage() {
           values={values}
           phoneNumberError={phoneNumberError}
           emergencyPhoneNumberError={emergencyPhoneNumberError}
-          onChange={handleFormChange}
+          onChange={setValues}
           onPhoneNumberBlur={() => setIsPhoneNumberBlurred(true)}
           onEmergencyPhoneNumberBlur={() => setIsEmergencyPhoneNumberBlurred(true)}
         />

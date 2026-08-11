@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { ActionButton, Checkbox, ProgressBar, ScrollBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
@@ -24,15 +25,14 @@ function GuardianInvitePrivacyConsentPage() {
   const handleSubmit = () => {
     if (!isAgreed) return;
 
-    // 보호자 초대 신청 API가 추가되면 성공 응답에서만 이 화면으로 이동한다.
     void replace({
-      pathname: `/invite/guardian/${encodeURIComponent(token)}/complete`,
+      pathname: route.invite.guardian.complete.root.replace('[token]', encodeURIComponent(token)),
       query: { status: 'success' },
     });
   };
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col' data-invite-token={token}>
+    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -76,13 +76,13 @@ function GuardianInvitePrivacyConsentPage() {
                     <section key={section.title} className='mb-[24px]'>
                       <h2>{section.title}</h2>
                       <ul className='list-disc pl-x5'>
-                        {section.items.map((item, index) => (
-                          <li key={item}>
-                            {item}
-                            {section.note && index === 1 ? <p>{section.note}</p> : null}
-                            {section.nestedItem?.parentIndex === index ? (
+                        {section.items.map((item) => (
+                          <li key={item.text}>
+                            {item.text}
+                            {item.note ? <p>{item.note}</p> : null}
+                            {item.nestedItem ? (
                               <ul className='list-[circle] pl-x5'>
-                                <li>{section.nestedItem.text}</li>
+                                <li>{item.nestedItem}</li>
                               </ul>
                             ) : null}
                           </li>

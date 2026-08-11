@@ -9,11 +9,117 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
+type PetConnectionStatus = 'selectable' | 'pending' | 'connected';
+
+interface InvitePet {
+  id: string;
+  name: string;
+  breed: string;
+  gender: 'male' | 'female';
+  status: PetConnectionStatus;
+}
+
+const INVITE_PETS: readonly InvitePet[] = [
+  { id: 'ppoppi-1', name: '뽀삐', breed: '시베리안 허스키', gender: 'female', status: 'selectable' },
+  { id: 'ppoppi-2', name: '뽀삐', breed: '시베리안 허스키', gender: 'female', status: 'selectable' },
+  { id: 'ppoppi-3', name: '뽀삐', breed: '시베리안 허스키', gender: 'male', status: 'pending' },
+  { id: 'ppoppi-4', name: '뽀삐', breed: '시베리안 허스키', gender: 'female', status: 'connected' },
+];
+
+const STATUS_LABEL: Partial<Record<PetConnectionStatus, string>> = {
+  pending: '승인 대기',
+  connected: '연결 완료',
+};
+
+interface PetSelectCardProps {
+  pet: InvitePet;
+  selected: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
+  const isSelectable = pet.status === 'selectable';
+  const statusLabel = STATUS_LABEL[pet.status];
+  const checkboxId = `guardian-invite-pet-${pet.id}`;
+  const GenderIcon = pet.gender === 'male' ? 'Male' : 'Female';
+  const cardClassName = isSelectable && selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0';
+
+  return (
+    <div
+      aria-disabled={!isSelectable || undefined}
+      className={`radius-r3 relative flex h-[84px] items-center gap-x2 border p-x4 ${
+        isSelectable ? cardClassName : 'border-line-200 bg-fill-secondary-100'
+      }`}
+    >
+      {isSelectable ? (
+        <button
+          type='button'
+          aria-label={`${pet.name} ${selected ? '선택 해제' : '선택'}`}
+          aria-pressed={selected}
+          onClick={() => onCheckedChange(!selected)}
+          className='radius-r3 absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-accent'
+        />
+      ) : null}
+      <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
+        <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
+          <AvatarFallback className='bg-fill-secondary-50'>
+            <Icon icon='Paw' className={`size-6 ${isSelectable ? 'text-primitive-neutral-300' : 'text-fill-secondary-400'}`} />
+          </AvatarFallback>
+        </Avatar>
+        <span className='flex min-w-0 flex-1 flex-col gap-0.5'>
+          <span className='flex items-center gap-x1'>
+            <span
+              className={`body1-bold flex items-center gap-x1 ${
+                isSelectable ? (selected ? 'text-text-accent' : 'text-text-primary') : 'text-fill-secondary-400'
+              }`}
+            >
+              {pet.name}
+              <Icon icon={GenderIcon} className='size-4' />
+            </span>
+            {statusLabel ? (
+              <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>
+                {statusLabel}
+              </span>
+            ) : null}
+          </span>
+          <span
+            className={`label-medium ${
+              isSelectable ? (selected ? 'text-text-accent' : 'text-text-primary') : 'text-fill-secondary-400'
+            }`}
+          >
+            {pet.breed}
+          </span>
+        </span>
+      </div>
+      {isSelectable ? (
+        <button
+          data-profile-view
+          type='button'
+          className={`pointer-events-auto radius-r2 relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer px-x3 ${
+            selected ? 'bg-bg-0 text-text-primary' : 'bg-fill-secondary-100 text-text-secondary'
+          }`}
+        >
+          프로필 보기
+        </button>
+      ) : null}
+      <Checkbox
+        id={checkboxId}
+        size='sm'
+        aria-label={`${pet.name} 선택`}
+        className='pointer-events-auto relative z-10 cursor-pointer'
+        disabled={!isSelectable}
+        checked={isSelectable ? selected : undefined}
+        onCheckedChange={isSelectable ? (checked) => onCheckedChange(Boolean(checked)) : undefined}
+      />
+    </div>
+  );
+}
+
 /** 보호자 초대 2단계: 가입 신청할 강아지 선택 */
 function GuardianInvitePetSelectPage() {
   const { token } = useParams<{ token: string }>();
   const { push } = useStackNavigation();
-  const profileCount = 4;
+  const profileCount = INVITE_PETS.length;
   const canAddPet = profileCount < 5;
   const [selectedPetIds, setSelectedPetIds] = useState<string[]>(['ppoppi-2']);
 
@@ -22,21 +128,19 @@ function GuardianInvitePetSelectPage() {
       checked ? [...currentIds, petId] : currentIds.filter((selectedPetId) => selectedPetId !== petId)
     );
   };
-  const isPpoppi1Selected = selectedPetIds.includes('ppoppi-1');
-  const isPpoppi2Selected = selectedPetIds.includes('ppoppi-2');
 
   const handleNext = () => {
     if (selectedPetIds.length === 0) return;
 
-    void push({ pathname: `/invite/guardian/${encodeURIComponent(token)}/consent` });
+    void push({ pathname: route.invite.guardian.consent.root.replace('[token]', encodeURIComponent(token)) });
   };
 
   const handleAddPet = () => {
-    void push({ pathname: route.mypage.pet.add.root });
+    void push({ pathname: route.mypage.pet.add.root, query: { inviteToken: token } });
   };
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col' data-invite-token={token}>
+    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -68,124 +172,14 @@ function GuardianInvitePetSelectPage() {
               <span className='body2-bold text-text-primary'>현재 프로필 개수</span>
               <span className='body2-bold text-text-accent'>{profileCount}/5</span>
             </div>
-          <div
-            className={`radius-r3 relative flex h-[84px] items-center gap-x2 border p-x4 ${
-              isPpoppi1Selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0'
-            }`}
-          >
-            <button
-              type='button'
-              aria-label={`뽀삐 ${isPpoppi1Selected ? '선택 해제' : '선택'}`}
-              aria-pressed={isPpoppi1Selected}
-              onClick={() => togglePet('ppoppi-1', !isPpoppi1Selected)}
-              className='radius-r3 absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-accent'
-            />
-            <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
-              <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
-                <AvatarFallback className='bg-fill-secondary-50'>
-                  <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
-                </AvatarFallback>
-              </Avatar>
-              <span className='flex min-w-0 flex-1 flex-col gap-0.5'>
-                <span className={`body1-bold flex items-center gap-x1 ${isPpoppi1Selected ? 'text-text-accent' : 'text-text-primary'}`}>
-                  뽀삐
-                  <Icon icon='Female' className='size-4' />
-                </span>
-                <span className={`label-medium ${isPpoppi1Selected ? 'text-text-accent' : 'text-text-primary'}`}>시베리안 허스키</span>
-              </span>
-            </div>
-            <button data-profile-view type='button' className={`pointer-events-auto radius-r2 relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer px-x3 ${isPpoppi1Selected ? 'bg-bg-0 text-text-primary' : 'bg-fill-secondary-100 text-text-secondary'}`}>
-              프로필 보기
-            </button>
-            <Checkbox
-              size='sm'
-              className='pointer-events-auto relative z-10 cursor-pointer'
-              checked={isPpoppi1Selected}
-              onCheckedChange={(checked) => togglePet('ppoppi-1', Boolean(checked))}
-            />
-          </div>
-          <div
-            className={`radius-r3 relative flex h-[84px] items-center gap-x2 border p-x4 ${
-              isPpoppi2Selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0'
-            }`}
-          >
-            <button
-              type='button'
-              aria-label={`뽀삐 ${isPpoppi2Selected ? '선택 해제' : '선택'}`}
-              aria-pressed={isPpoppi2Selected}
-              onClick={() => togglePet('ppoppi-2', !isPpoppi2Selected)}
-              className='radius-r3 absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-accent'
-            />
-            <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
-              <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
-                <AvatarFallback className='bg-fill-secondary-50'>
-                  <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
-                </AvatarFallback>
-              </Avatar>
-              <span className='flex min-w-0 flex-1 flex-col gap-0.5'>
-                <span className={`body1-bold flex items-center gap-x1 ${isPpoppi2Selected ? 'text-text-accent' : 'text-text-primary'}`}>
-                  뽀삐
-                  <Icon icon='Female' className='size-4' />
-                </span>
-                <span className={`label-medium ${isPpoppi2Selected ? 'text-text-accent' : 'text-text-primary'}`}>시베리안 허스키</span>
-              </span>
-            </div>
-            <button data-profile-view type='button' className={`pointer-events-auto radius-r2 relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer px-x3 ${isPpoppi2Selected ? 'bg-bg-0 text-text-primary' : 'bg-fill-secondary-100 text-text-secondary'}`}>
-              프로필 보기
-            </button>
-            <Checkbox
-              size='sm'
-              className='pointer-events-auto relative z-10 cursor-pointer'
-              checked={isPpoppi2Selected}
-              onCheckedChange={(checked) => togglePet('ppoppi-2', Boolean(checked))}
-            />
-          </div>
-          <div
-            aria-disabled='true'
-            className='border-line-200 radius-r3 flex h-[84px] items-center gap-x2 border bg-fill-secondary-100 p-x4'
-          >
-            <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
-              <AvatarFallback className='bg-fill-secondary-50'>
-                <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
-              </AvatarFallback>
-            </Avatar>
-            <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
-              <span className='flex items-center gap-x1'>
-                <span className='body1-bold text-fill-secondary-400 flex items-center gap-x1'>
-                  뽀삐
-                  <Icon icon='Male' className='size-4' />
-                </span>
-                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>
-                  승인 대기
-                </span>
-              </span>
-              <span className='label-medium text-fill-secondary-400'>시베리안 허스키</span>
-            </div>
-            <Checkbox size='sm' disabled />
-          </div>
-          <div
-            aria-disabled='true'
-            className='border-line-200 radius-r3 flex h-[84px] items-center gap-x2 border bg-fill-secondary-100 p-x4'
-          >
-            <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
-              <AvatarFallback className='bg-fill-secondary-50'>
-                <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
-              </AvatarFallback>
-            </Avatar>
-            <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
-              <span className='flex items-center gap-x1'>
-                <span className='body1-bold text-fill-secondary-400 flex items-center gap-x1'>
-                  뽀삐
-                  <Icon icon='Female' className='size-4' />
-                </span>
-                <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>
-                  연결 완료
-                </span>
-              </span>
-              <span className='label-medium text-fill-secondary-400'>시베리안 허스키</span>
-            </div>
-            <Checkbox size='sm' disabled />
-          </div>
+            {INVITE_PETS.map((pet) => (
+              <PetSelectCard
+                key={pet.id}
+                pet={pet}
+                selected={selectedPetIds.includes(pet.id)}
+                onCheckedChange={(checked) => togglePet(pet.id, checked)}
+              />
+            ))}
           </div>
           {canAddPet ? (
             <button

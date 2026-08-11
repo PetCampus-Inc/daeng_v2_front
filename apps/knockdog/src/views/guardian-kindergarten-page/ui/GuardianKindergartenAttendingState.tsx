@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Icon } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
 
 import type { GuardianDailyNoticeMock } from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
@@ -71,16 +71,21 @@ function GuardianKindergartenAttendingState({
   const content = guardianKindergartenAttendingContent;
   const { push } = useStackNavigation();
   const isDismissed = Boolean(checkOutAt);
+  const hasAlbumPhotos = albumPhotos.length > 0;
   const checkInTimeLabel = formatKoreanAmPmTime(checkInAt);
   const checkOutTimeLabel = checkOutAt ? formatKoreanAmPmTime(checkOutAt) : null;
   const durationLabel = formatAttendingDuration(checkInAt, now);
   const statusBadgeLabel = isDismissed ? content.dayFinishedLabel : durationLabel;
   const noticeTimeLabel = dailyNotice ? formatKoreanAmPmTime(new Date(dailyNotice.writtenAt)) : null;
   const showNoticeCard = Boolean(hasDailyNotice && dailyNotice && noticeTimeLabel);
-  const showAlbumArrived = albumPhotos.length > 0 && (isDismissed ? hasDailyNotice : true);
+  const showAlbumArrived = hasAlbumPhotos && (isDismissed ? hasDailyNotice : true);
 
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });
+  };
+
+  const handleAlbumViewAllClick = () => {
+    push({ pathname: route.compare.album.root });
   };
 
   useEffect(() => {
@@ -127,23 +132,57 @@ function GuardianKindergartenAttendingState({
 
         {/* 오늘의 앨범 */}
         <section className='flex w-full flex-col items-center gap-5'>
-          <div className='flex w-full items-center justify-between'>
+          <div className={`flex w-full items-center ${hasAlbumPhotos ? 'justify-between' : ''}`}>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
-            <button type='button' className='gap-x1 flex items-center justify-center rounded px-2 py-1'>
-              <span className='label-semibold text-text-tertiary'>{content.albumViewAllLabel}</span>
-              <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
-            </button>
-          </div>
-
-          <div className='flex flex-col items-center gap-2'>
-            <GuardianAlbumPhotoStack photos={albumPhotos} />
-            {showAlbumArrived ? (
-              <p className='body2-bold text-center'>
-                <span className='text-text-accent'>{content.albumArrivedAccent}</span>
-                <span className='text-text-secondary'>{content.albumArrivedSuffix}</span>
-              </p>
+            {hasAlbumPhotos ? (
+              <button
+                type='button'
+                className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+                onClick={handleAlbumViewAllClick}
+              >
+                <span className='label-semibold text-text-tertiary'>{content.albumViewAllLabel}</span>
+                <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
+              </button>
             ) : null}
           </div>
+
+          {hasAlbumPhotos ? (
+            <div className='flex flex-col items-center gap-2'>
+              <GuardianAlbumPhotoStack photos={albumPhotos} />
+              {showAlbumArrived ? (
+                <p className='body2-bold text-center'>
+                  <span className='text-text-accent'>{content.albumArrivedAccent}</span>
+                  <span className='text-text-secondary'>{content.albumArrivedSuffix}</span>
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <div className='relative size-[200px] shrink-0'>
+                <Image
+                  src={content.albumEmptyImageSrc}
+                  alt={content.albumEmptyImageAlt}
+                  fill
+                  className='object-contain'
+                  sizes='200px'
+                  priority
+                />
+              </div>
+              <div className='flex w-[174px] flex-col items-center gap-4'>
+                <p className='body1-bold text-text-primary text-center'>{content.albumEmptyTitle}</p>
+                <ActionButton
+                  type='button'
+                  variant='primaryLine'
+                  size='medium'
+                  className='w-auto'
+                  onClick={handleAlbumViewAllClick}
+                >
+                  {content.albumPreviousLabel}
+                  <Icon icon='ChevronRight' className='text-text-accent size-5' />
+                </ActionButton>
+              </div>
+            </>
+          )}
         </section>
       </div>
 

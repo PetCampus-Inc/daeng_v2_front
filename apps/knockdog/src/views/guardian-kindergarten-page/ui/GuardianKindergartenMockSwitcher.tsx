@@ -45,6 +45,18 @@ const ATTENDANCE_PRESETS: { label: string; value: GuardianAttendanceDayMock | nu
     },
   },
   {
+    label: 'inEmpty',
+    value: {
+      checkInAt: createTodayAt(9, 0),
+      checkOutAt: null,
+      hasUnreadAlarm: true,
+      hasDailyNotice: false,
+      dailyNotice: null,
+      albumPhotoCount: 0,
+      recordDateKeys: MOCK_RECORD_DATE_KEYS,
+    },
+  },
+  {
     label: 'inNote',
     value: {
       checkInAt: createTodayAt(9, 0),

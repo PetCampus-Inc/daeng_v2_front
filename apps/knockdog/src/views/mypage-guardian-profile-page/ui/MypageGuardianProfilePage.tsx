@@ -21,7 +21,6 @@ import {
   isGuardianProfileFormValid,
   isValidMobilePhone,
   PHONE_FORMAT_ERROR,
-  type GuardianGender,
   type GuardianProfileFormValues,
 } from '@features/guardian-profile-form';
 import { USER_ADDRESS_TYPE, useUserStore } from '@entities/user';
@@ -31,13 +30,15 @@ import { SafeArea } from '@shared/ui/safe-area';
 
 function MypageGuardianProfilePage() {
   const user = useUserStore((state) => state.user);
-  const [name, setName] = useState('');
-  const [gender, setGender] = useState<GuardianGender>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
+  const [formValues, setFormValues] = useState<GuardianProfileFormValues>({
+    name: '',
+    gender: null,
+    phoneNumber: '',
+    address: '',
+    addressDetail: '',
+    emergencyPhoneNumber: '',
+  });
   const [initialAddress, setInitialAddress] = useState('');
-  const [addressDetail, setAddressDetail] = useState('');
-  const [emergencyPhoneNumber, setEmergencyPhoneNumber] = useState('');
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
   const initializedAddressUserIdRef = useRef<string | null>(null);
@@ -45,14 +46,13 @@ function MypageGuardianProfilePage() {
   const homeAddress = user?.addresses.find((item) => item.type === USER_ADDRESS_TYPE.HOME);
   const homeAddressValue = homeAddress?.roadAddress || homeAddress?.address || '';
   const phoneNumberError =
-    isPhoneNumberBlurred && !isValidMobilePhone(phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
+    isPhoneNumberBlurred && !isValidMobilePhone(formValues.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
     isEmergencyPhoneNumberBlurred &&
-    emergencyPhoneNumber.length > 0 &&
-    !isValidMobilePhone(emergencyPhoneNumber)
+    formValues.emergencyPhoneNumber.length > 0 &&
+    !isValidMobilePhone(formValues.emergencyPhoneNumber)
       ? PHONE_FORMAT_ERROR
       : undefined;
-  const formValues = { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber };
   const isSaveEnabled = isGuardianProfileFormValid(formValues);
   const isDirty = isGuardianProfileDirty(formValues, initialAddress);
 
@@ -65,7 +65,7 @@ function MypageGuardianProfilePage() {
 
     if (initializedAddressUserIdRef.current === user.userId) return;
 
-    setAddress(homeAddressValue);
+    setFormValues((currentValues) => ({ ...currentValues, address: homeAddressValue }));
     setInitialAddress(homeAddressValue);
     initializedAddressUserIdRef.current = user.userId;
   }, [homeAddressValue, user]);
@@ -94,15 +94,6 @@ function MypageGuardianProfilePage() {
     ));
   };
 
-  const handleFormChange = (nextValues: GuardianProfileFormValues) => {
-    setName(nextValues.name);
-    setGender(nextValues.gender);
-    setPhoneNumber(nextValues.phoneNumber);
-    setAddress(nextValues.address);
-    setAddressDetail(nextValues.addressDetail);
-    setEmergencyPhoneNumber(nextValues.emergencyPhoneNumber);
-  };
-
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
@@ -125,7 +116,7 @@ function MypageGuardianProfilePage() {
             values={formValues}
             phoneNumberError={phoneNumberError}
             emergencyPhoneNumberError={emergencyPhoneNumberError}
-            onChange={handleFormChange}
+            onChange={setFormValues}
             onPhoneNumberBlur={() => setIsPhoneNumberBlurred(true)}
             onEmergencyPhoneNumberBlur={() => setIsEmergencyPhoneNumberBlurred(true)}
           />
