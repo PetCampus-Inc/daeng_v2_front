@@ -28,10 +28,15 @@ interface GuardianAlbumMonthMock {
 
 interface CreateGuardianAlbumMonthMockOptions {
   /**
-   * true면 오늘을 카드 리스트에 포함 (미등원 시 Today 섹션 대신 카드로 노출).
-   * 등원 시에는 Today 섹션 전용이므로 false.
+   * true면 range end(today)를 카드 리스트에 포함.
+   * 재원 중 미등원: Today 섹션 대신 카드 / 연결 해제: 마지막 재원일 카드.
    */
   includeTodayAsDayCard?: boolean;
+  /**
+   * true면 range end 카드를 미등원으로 고정 (재원 중 · 오늘 미등원).
+   * 연결 해제 시에는 false — 마지막 재원일도 등원 패턴 적용.
+   */
+  unattendedRangeEnd?: boolean;
 }
 
 function toDateKey(date: Date) {
@@ -67,9 +72,10 @@ const MOCK_ALBUM_CONNECTION_STARTED_AT = (() => {
 
 const DAY_ATTENDANCE_PATTERN = [true, false, true, false] as const;
 
-/** 직전 달 = 사진 0장 mock (캘린더에서 전체 비활성) */
-function isAlbumPhotoEmptyMonth(month: Date, today: Date = new Date()) {
-  const emptyMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+/** 직전 달(실제 오늘 기준) = 사진 0장 mock. range end(attendedUntil)와 무관 */
+function isAlbumPhotoEmptyMonth(month: Date) {
+  const now = new Date();
+  const emptyMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   return (
     month.getFullYear() === emptyMonth.getFullYear() &&
     month.getMonth() === emptyMonth.getMonth()
@@ -87,7 +93,7 @@ function getAlbumDatesInMonth(
   today: Date,
   includeToday: boolean
 ) {
-  if (isAlbumPhotoEmptyMonth(month, today)) return [];
+  if (isAlbumPhotoEmptyMonth(month)) return [];
 
   const monthStart = startOfDay(new Date(month.getFullYear(), month.getMonth(), 1));
   const monthEnd = startOfDay(new Date(month.getFullYear(), month.getMonth() + 1, 0));
@@ -157,7 +163,7 @@ function createGuardianAlbumMonthMock(
   today: Date = new Date(),
   options: CreateGuardianAlbumMonthMockOptions = {}
 ): GuardianAlbumMonthMock {
-  const { includeTodayAsDayCard = false } = options;
+  const { includeTodayAsDayCard = false, unattendedRangeEnd = false } = options;
   const connectionStartedAt = parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT);
   const todayStart = startOfDay(today);
 
@@ -172,13 +178,17 @@ function createGuardianAlbumMonthMock(
     includeTodayAsDayCard
   ).map((date, index) => {
     const dateKey = toDateKey(date);
-    const isToday = isSameDay(date, todayStart);
-    const pastIndex = includeTodayAsDayCard ? index - 1 : index;
+    const isRangeEnd = isSameDay(date, todayStart);
+    const patternIndex =
+      includeTodayAsDayCard && unattendedRangeEnd ? index - 1 : index;
     return {
       dateKey,
-      isAttended: isToday
-        ? false
-        : (DAY_ATTENDANCE_PATTERN[pastIndex % DAY_ATTENDANCE_PATTERN.length] ?? false),
+      isAttended:
+        isRangeEnd && unattendedRangeEnd
+          ? false
+          : (DAY_ATTENDANCE_PATTERN[
+              Math.max(patternIndex, 0) % DAY_ATTENDANCE_PATTERN.length
+            ] ?? false),
       photoCount: 74,
       photos: createDayPhotos(dateKey, 4, profileImage, index === 1 ? [0] : []),
     };

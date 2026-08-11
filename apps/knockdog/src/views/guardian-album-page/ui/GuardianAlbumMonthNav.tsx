@@ -47,9 +47,8 @@ function GuardianAlbumMonthNav({
         </button>
         <button
           type='button'
-          className='inline-flex size-6 items-center justify-center disabled:opacity-30'
+          className={`inline-flex size-6 items-center justify-center ${canGoNextMonth ? '' : 'opacity-30'}`}
           aria-label={monthNav.nextAriaLabel}
-          disabled={!canGoNextMonth}
           onClick={onNextMonth}
         >
           <Icon icon='ChevronRight' className='text-fill-secondary-500 size-6' />

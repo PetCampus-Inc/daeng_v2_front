@@ -29,6 +29,7 @@ import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/Guard
 import { GuardianAlbumFavoriteList } from '@views/guardian-album-page/ui/GuardianAlbumFavoriteList';
 import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
+import { GuardianAlbumHistoryEmpty } from '@views/guardian-album-page/ui/GuardianAlbumHistoryEmpty';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
@@ -72,6 +73,12 @@ function GuardianAlbumPage() {
     kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
   const kindergartenName = selectedKindergarten?.name ?? '유치원';
   const petName = selectedPet?.name ?? '강아지';
+  const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
+  const isDisconnected = attendedUntil != null;
+  const albumRangeEnd = useMemo(
+    () => (attendedUntil != null ? parseDateKey(attendedUntil) : new Date()),
+    [attendedUntil]
+  );
   const todayPhotos = createGuardianAlbumTodayPhotos(
     albumToday.todayPhotoSeeds,
     selectedPet?.profileImage
@@ -79,10 +86,17 @@ function GuardianAlbumPage() {
 
   const monthAlbum = useMemo(
     () =>
-      createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage, new Date(), {
-        includeTodayAsDayCard: !albumToday.isAttendedToday,
+      createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage, albumRangeEnd, {
+        includeTodayAsDayCard: isDisconnected || !albumToday.isAttendedToday,
+        unattendedRangeEnd: !isDisconnected && !albumToday.isAttendedToday,
       }),
-    [selectedMonth, selectedPet?.profileImage, albumToday.isAttendedToday]
+    [
+      selectedMonth,
+      selectedPet?.profileImage,
+      albumRangeEnd,
+      isDisconnected,
+      albumToday.isAttendedToday,
+    ]
   );
 
   const visibleDays = monthAlbum.days;
@@ -131,22 +145,44 @@ function GuardianAlbumPage() {
     selectedMonth,
     parseDateKey(monthAlbum.connectionStartedAt)
   );
+  const showAttendedUntilMessage =
+    isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
 
   const minMonth = startOfMonth(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
-  const maxMonth = startOfMonth(new Date());
+  const maxMonth = startOfMonth(albumRangeEnd);
   const minDate = startOfDay(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
-  const maxDate = startOfDay(new Date());
+  const maxDate = startOfDay(albumRangeEnd);
   const canGoPrevMonth = compareYearMonth(selectedMonth, minMonth) > 0;
   const canGoNextMonth = compareYearMonth(selectedMonth, maxMonth) < 0;
   const albumPhotoDateKeys = useMemo(() => {
-    const keys = createGuardianAlbumPhotoDateKeys(new Date(), {
-      includeTodayAsDayCard: !albumToday.isAttendedToday,
+    const keys = createGuardianAlbumPhotoDateKeys(albumRangeEnd, {
+      includeTodayAsDayCard: isDisconnected || !albumToday.isAttendedToday,
     });
-    if (albumToday.isAttendedToday && albumToday.todayPhotoCount > 0) {
+    if (!isDisconnected && albumToday.isAttendedToday && albumToday.todayPhotoCount > 0) {
       keys.add(toDateKey(new Date()));
     }
     return keys;
-  }, [albumToday.isAttendedToday, albumToday.todayPhotoCount]);
+  }, [
+    albumRangeEnd,
+    isDisconnected,
+    albumToday.isAttendedToday,
+    albumToday.todayPhotoCount,
+  ]);
+
+  const handleKindergartenSelect = useCallback(
+    (kindergartenId: string) => {
+      const next = kindergartens.find((item) => item.id === kindergartenId) ?? null;
+      setSelectedKindergartenId(kindergartenId);
+      setViewMode('all');
+      setIsScrollTopVisible(false);
+      if (next?.attendedUntil != null) {
+        setSelectedMonth(startOfMonth(parseDateKey(next.attendedUntil)));
+        return;
+      }
+      setSelectedMonth(startOfMonth(new Date()));
+    },
+    [kindergartens]
+  );
 
   const handleKindergartenSelectClick = () => {
     if (!canSelectKindergarten) return;
@@ -157,7 +193,7 @@ function GuardianAlbumPage() {
         close={close}
         kindergartens={kindergartens}
         currentKindergartenId={selectedKindergartenId}
-        onSelect={setSelectedKindergartenId}
+        onSelect={handleKindergartenSelect}
       />
     ));
   };
@@ -186,7 +222,12 @@ function GuardianAlbumPage() {
   };
 
   const handleNextMonth = () => {
-    if (!canGoNextMonth) return;
+    if (!canGoNextMonth) {
+      if (isDisconnected) {
+        toast({ title: content.monthNav.attendedUntilToast });
+      }
+      return;
+    }
     setSelectedMonth((prev) => addMonths(prev, 1));
   };
 
@@ -301,7 +342,7 @@ function GuardianAlbumPage() {
               className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
               onScroll={handleScroll}
             >
-              {albumToday.isAttendedToday ? (
+              {!isDisconnected && albumToday.isAttendedToday ? (
                 <GuardianAlbumTodaySection
                   petName={petName}
                   isAttendedToday={albumToday.isAttendedToday}
@@ -319,11 +360,24 @@ function GuardianAlbumPage() {
                 onSearchClick={handleSearchClick}
               />
               {monthAlbum.days.length === 0 ? (
-                <GuardianAlbumMonthEmpty />
+                <>
+                  {showAttendedUntilMessage ? (
+                    <p className='body1-medium text-text-secondary mt-5 px-4 py-4 text-center'>
+                      {content.history.attendedUntilMessage}
+                    </p>
+                  ) : null}
+                  <GuardianAlbumMonthEmpty />
+                  {showConnectionStartMessage ? (
+                    <div className='px-4'>
+                      <GuardianAlbumHistoryEmpty />
+                    </div>
+                  ) : null}
+                </>
               ) : (
                 <GuardianAlbumDayList
                   days={visibleDays}
                   showConnectionStartMessage={showConnectionStartMessage}
+                  showAttendedUntilMessage={showAttendedUntilMessage}
                 />
               )}
             </div>

@@ -40,6 +40,7 @@ const guardianAlbumContent = {
     searchAriaLabel: '날짜 검색',
     searchIconSrc: '/images/ico_album_calendar_search.png',
     noMoreAlbumToast: '더 이상 볼 수 있는 앨범이 없어요',
+    attendedUntilToast: '여기까지 볼 수 있어요',
   },
   monthPickerSheet: {
     confirmLabel: '확인',
@@ -63,6 +64,7 @@ const guardianAlbumContent = {
   },
   history: {
     firstAttendanceMessage: '유치원을 다니기 시작했어요',
+    attendedUntilMessage: '여기까지 다녔어요',
   },
   monthEmpty: {
     title: '이 달에는 등록된 앨범이 없어요',
