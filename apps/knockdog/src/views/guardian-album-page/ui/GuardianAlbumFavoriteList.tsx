@@ -12,12 +12,14 @@ import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
 
 interface GuardianAlbumFavoriteListProps {
   profileImage?: string | null;
+  rangeEnd?: Date;
   onScrollVisibilityChange?: (isVisible: boolean) => void;
   scrollRef?: RefObject<HTMLDivElement | null>;
 }
 
 function GuardianAlbumFavoriteList({
   profileImage,
+  rangeEnd,
   onScrollVisibilityChange,
   scrollRef: externalScrollRef,
 }: GuardianAlbumFavoriteListProps) {
@@ -39,13 +41,17 @@ function GuardianAlbumFavoriteList({
       }
 
       setIsFetchingNextPage(true);
-      const page = createGuardianAlbumFavoritePage({ cursor, profileImage });
+      const page = createGuardianAlbumFavoritePage({
+        cursor,
+        profileImage,
+        today: rangeEnd,
+      });
       setDays((prev) => (cursor == null ? page.days : [...prev, ...page.days]));
       setNextCursor(page.nextCursor);
       setHasNextPage(page.nextCursor != null);
       setIsFetchingNextPage(false);
     },
-    [profileImage]
+    [profileImage, rangeEnd]
   );
 
   useEffect(() => {

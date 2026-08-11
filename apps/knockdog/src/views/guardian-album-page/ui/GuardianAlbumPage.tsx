@@ -102,12 +102,12 @@ function GuardianAlbumPage() {
   const visibleDays = monthAlbum.days;
 
   const hasFavoritePhotos = useMemo(
-    () => hasGuardianAlbumFavoritePhotos(selectedPet?.profileImage),
-    [selectedPet?.profileImage]
+    () => hasGuardianAlbumFavoritePhotos(selectedPet?.profileImage, albumRangeEnd),
+    [selectedPet?.profileImage, albumRangeEnd]
   );
   const hasAttendancePhotos = useMemo(
-    () => hasGuardianAlbumAttendancePhotos(selectedPet?.profileImage),
-    [selectedPet?.profileImage]
+    () => hasGuardianAlbumAttendancePhotos(selectedPet?.profileImage, albumRangeEnd),
+    [selectedPet?.profileImage, albumRangeEnd]
   );
 
   const isFilterEmpty =
@@ -321,6 +321,7 @@ function GuardianAlbumPage() {
           <>
             <GuardianAlbumFavoriteList
               profileImage={selectedPet?.profileImage}
+              rangeEnd={albumRangeEnd}
               scrollRef={scrollRef}
               onScrollVisibilityChange={setIsScrollTopVisible}
             />
@@ -330,6 +331,7 @@ function GuardianAlbumPage() {
           <>
             <GuardianAlbumAttendanceList
               profileImage={selectedPet?.profileImage}
+              rangeEnd={albumRangeEnd}
               scrollRef={scrollRef}
               onScrollVisibilityChange={setIsScrollTopVisible}
             />

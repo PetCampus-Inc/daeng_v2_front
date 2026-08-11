@@ -12,12 +12,14 @@ import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
 
 interface GuardianAlbumAttendanceListProps {
   profileImage?: string | null;
+  rangeEnd?: Date;
   onScrollVisibilityChange?: (isVisible: boolean) => void;
   scrollRef?: RefObject<HTMLDivElement | null>;
 }
 
 function GuardianAlbumAttendanceList({
   profileImage,
+  rangeEnd,
   onScrollVisibilityChange,
   scrollRef: externalScrollRef,
 }: GuardianAlbumAttendanceListProps) {
@@ -39,13 +41,17 @@ function GuardianAlbumAttendanceList({
       }
 
       setIsFetchingNextPage(true);
-      const page = createGuardianAlbumAttendancePage({ cursor, profileImage });
+      const page = createGuardianAlbumAttendancePage({
+        cursor,
+        profileImage,
+        today: rangeEnd,
+      });
       setDays((prev) => (cursor == null ? page.days : [...prev, ...page.days]));
       setNextCursor(page.nextCursor);
       setHasNextPage(page.nextCursor != null);
       setIsFetchingNextPage(false);
     },
-    [profileImage]
+    [profileImage, rangeEnd]
   );
 
   useEffect(() => {
