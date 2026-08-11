@@ -57,6 +57,10 @@ const guardianAlbumContent = {
     overflowLabel: (remaining: number) => `+ ${remaining}`,
     loadErrorMessage: '사진을 불러오지 못했어요',
   },
+  favoriteList: {
+    overflowLabel: (remaining: number) => `+ ${remaining}장`,
+    endMessage: '더 이상 볼 수 있는 사진이 없어요',
+  },
   history: {
     firstAttendanceMessage: '유치원을 다니기 시작했어요',
   },

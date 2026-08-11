@@ -23,6 +23,8 @@ import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/gua
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
+import { hasGuardianAlbumFavoritePhotos } from '@views/guardian-album-page/config/guardianAlbumFavoriteMock';
+import { GuardianAlbumFavoriteList } from '@views/guardian-album-page/ui/GuardianAlbumFavoriteList';
 import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
@@ -84,14 +86,17 @@ function GuardianAlbumPage() {
     if (viewMode === 'attendance') {
       return [];
     }
-    if (viewMode === 'favorite') {
-      return monthAlbum.days.filter((day) => day.photos.some((photo) => photo.isBookmarked));
-    }
     return monthAlbum.days;
   }, [monthAlbum.days, viewMode]);
 
+  const hasFavoritePhotos = useMemo(
+    () => hasGuardianAlbumFavoritePhotos(selectedPet?.profileImage),
+    [selectedPet?.profileImage]
+  );
+
   const isFilterEmpty =
-    (viewMode === 'favorite' || viewMode === 'attendance') && visibleDays.length === 0;
+    (viewMode === 'attendance' && visibleDays.length === 0) ||
+    (viewMode === 'favorite' && !hasFavoritePhotos);
 
   const showConnectionStartMessage = isSameYearMonth(
     selectedMonth,
@@ -245,6 +250,15 @@ function GuardianAlbumPage() {
             viewMode={viewMode}
             onResetToAll={() => setViewMode('all')}
           />
+        ) : viewMode === 'favorite' ? (
+          <>
+            <GuardianAlbumFavoriteList
+              profileImage={selectedPet?.profileImage}
+              scrollRef={scrollRef}
+              onScrollVisibilityChange={setIsScrollTopVisible}
+            />
+            <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
+          </>
         ) : (
           <>
             <div
