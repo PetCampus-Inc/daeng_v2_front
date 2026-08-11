@@ -76,6 +76,10 @@ function GuardianKindergartenDisconnectedState({
     push({ pathname: route.compare.connectionHistory.root });
   };
 
+  const handleAlbumViewAllClick = () => {
+    push({ pathname: route.compare.album.root });
+  };
+
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
       <div className='px-x4 flex w-full flex-col gap-5 py-6'>
@@ -97,7 +101,11 @@ function GuardianKindergartenDisconnectedState({
         <section className='flex w-full flex-col items-center gap-5'>
           <div className='flex w-full items-center justify-between'>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
-            <button type='button' className='gap-x1 flex items-center justify-center rounded px-2 py-1'>
+            <button
+              type='button'
+              className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+              onClick={handleAlbumViewAllClick}
+            >
               <span className='label-semibold text-text-tertiary'>{content.albumViewAllLabel}</span>
               <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
             </button>

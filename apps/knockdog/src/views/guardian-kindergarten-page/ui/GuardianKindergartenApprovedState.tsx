@@ -30,6 +30,10 @@ function GuardianKindergartenApprovedState({
     push({ pathname: route.compare.connectionHistory.root });
   };
 
+  const handleAlbumPreviousClick = () => {
+    push({ pathname: route.compare.album.root });
+  };
+
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
       <div className='px-x4 flex w-full flex-col gap-10 py-5'>
@@ -61,7 +65,13 @@ function GuardianKindergartenApprovedState({
           </div>
           <div className='flex w-[174px] flex-col items-center gap-4'>
             <p className='body1-bold text-text-primary text-center'>{content.albumEmptyTitle}</p>
-            <ActionButton type='button' variant='primaryLine' size='medium' className='w-auto'>
+            <ActionButton
+              type='button'
+              variant='primaryLine'
+              size='medium'
+              className='w-auto'
+              onClick={handleAlbumPreviousClick}
+            >
               {content.albumPreviousLabel}
               <Icon icon='ChevronRight' className='text-text-accent size-5' />
             </ActionButton>

@@ -25,13 +25,20 @@ interface MonthlyDatePickerProps {
   maxDate: Date;
   /** `YYYY-MM-DD` 키. 해당 날짜에 마커(점) 표시 */
   markedDateKeys?: Set<string>;
+  /**
+   * 선택 가능한 날짜 키. 전달 시 포함되지 않은 날짜는 비활성(min/max와 함께 적용).
+   * 미전달 시 min/max만으로 활성 여부 판단.
+   */
+  enabledDateKeys?: Set<string>;
   markerClassName?: string;
   todayButtonLabel?: string;
   collapseLabel?: string;
+  /** false면 접기 영역 숨김. 기본 true */
+  showCollapse?: boolean;
   onChangeViewMonth: (date: Date) => void;
   onSelectDate: (date: Date) => void;
   onGoToday: () => void;
-  onCollapse: () => void;
+  onCollapse?: () => void;
 }
 
 const DEFAULT_MARKER_CLASS_NAME = 'bg-[#FF8A00]';
@@ -45,9 +52,11 @@ function MonthlyDatePicker({
   minDate,
   maxDate,
   markedDateKeys,
+  enabledDateKeys,
   markerClassName = DEFAULT_MARKER_CLASS_NAME,
   todayButtonLabel = DEFAULT_TODAY_BUTTON_LABEL,
   collapseLabel = DEFAULT_COLLAPSE_LABEL,
+  showCollapse = true,
   onChangeViewMonth,
   onSelectDate,
   onGoToday,
@@ -61,12 +70,13 @@ function MonthlyDatePicker({
   const canGoNextMonth = !isAfterDay(addMonths(viewMonth, 1), maxMonth);
 
   const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (!onCollapse) return;
     dragStartYRef.current = event.clientY;
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
-    if (dragStartYRef.current == null) return;
+    if (!onCollapse || dragStartYRef.current == null) return;
     if (dragStartYRef.current - event.clientY >= 40) {
       dragStartYRef.current = null;
       onCollapse();
@@ -140,8 +150,11 @@ function MonthlyDatePicker({
               const isSelected = isSameDay(date, selectedDate);
               const isToday = isSameDay(date, today);
               const hasMarker = markedDateKeys?.has(dateKey) ?? false;
-              const isDisabled =
-                !inCurrentMonth || isBeforeDay(date, minDate) || isAfterDay(date, maxDate);
+              const isOutOfRange =
+                isBeforeDay(date, minDate) || isAfterDay(date, maxDate);
+              const isNotEnabled =
+                enabledDateKeys != null && !enabledDateKeys.has(dateKey);
+              const isDisabled = !inCurrentMonth || isOutOfRange || isNotEnabled;
 
               return (
                 <button
@@ -174,20 +187,22 @@ function MonthlyDatePicker({
         </div>
       </div>
 
-      <div className='flex w-full justify-center pt-4 pb-4'>
-        <button
-          type='button'
-          aria-label='주간 캘린더로 접기'
-          className='caption1-semibold text-text-tertiary underline underline-offset-2'
-          onClick={onCollapse}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-        >
-          {collapseLabel}
-        </button>
-      </div>
+      {showCollapse && onCollapse ? (
+        <div className='flex w-full justify-center pt-4 pb-4'>
+          <button
+            type='button'
+            aria-label='주간 캘린더로 접기'
+            className='caption1-semibold text-text-tertiary underline underline-offset-2'
+            onClick={onCollapse}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+          >
+            {collapseLabel}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
