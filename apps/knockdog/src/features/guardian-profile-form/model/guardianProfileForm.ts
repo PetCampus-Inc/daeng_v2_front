@@ -18,7 +18,7 @@ export interface GuardianProfileFormValues {
 }
 
 export function formatGuardianName(value: string) {
-  return (value.match(/[가-힣ㄱ-ㅎㅏ-ㅣ\u1100-\u11FFa-zA-Z ]/g) ?? []).join('').slice(0, NAME_MAX_LENGTH);
+  return (value.match(/[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z ]/g) ?? []).join('').slice(0, NAME_MAX_LENGTH);
 }
 
 export function formatMobilePhone(value: string) {
