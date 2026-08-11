@@ -27,6 +27,7 @@ import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expand
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
+import { GuardianAlbumEntryError } from '@views/guardian-album-page/ui/GuardianAlbumEntryError';
 import { hasGuardianAlbumAttendancePhotos } from '@views/guardian-album-page/config/guardianAlbumAttendanceMock';
 import { hasGuardianAlbumFavoritePhotos } from '@views/guardian-album-page/config/guardianAlbumFavoriteMock';
 import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/GuardianAlbumAttendanceList';
@@ -82,6 +83,10 @@ function GuardianAlbumPage() {
   const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
   const [detailState, setDetailState] = useState<GuardianAlbumDetailState | null>(null);
+  const [isEntryLoadError, setIsEntryLoadError] = useState(
+    () => albumToday.hasEntryLoadError || searchParams.get('entryError') === '1'
+  );
+  const [isEntryRetrying, setIsEntryRetrying] = useState(false);
 
   const selectedKindergarten =
     kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
@@ -325,8 +330,18 @@ function GuardianAlbumPage() {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleEntryRetry = useCallback(() => {
+    if (isEntryRetrying) return;
+    setIsEntryRetrying(true);
+    // API 연동 전: 재시도 시 mock 성공 복구. 연동 후 refetch로 교체.
+    window.setTimeout(() => {
+      setIsEntryLoadError(false);
+      setIsEntryRetrying(false);
+    }, 400);
+  }, [isEntryRetrying]);
+
   return (
-    <div className='bg-bg-50 relative flex h-dvh flex-col'>
+    <div className={`${isEntryLoadError ? 'bg-bg-0' : 'bg-bg-50'} relative flex h-dvh flex-col`}>
       <div className='bg-bg-0'>
         <Header>
           <Header.BackButton onClick={handleHeaderBack} />
@@ -369,7 +384,9 @@ function GuardianAlbumPage() {
         </Header>
       </div>
 
-      {albumToday.hasAlbumHistory ? (
+      {isEntryLoadError ? (
+        <GuardianAlbumEntryError isRetrying={isEntryRetrying} onRetry={handleEntryRetry} />
+      ) : albumToday.hasAlbumHistory ? (
         isFilterMode && isFilterEmpty ? (
           <GuardianAlbumFilterEmpty viewMode={viewMode} onResetToAll={handleResetFilter} />
         ) : viewMode === 'favorite' ? (

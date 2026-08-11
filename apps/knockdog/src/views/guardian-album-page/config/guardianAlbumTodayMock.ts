@@ -17,6 +17,11 @@ interface GuardianAlbumPhotoMockSeed {
 interface GuardianAlbumTodayMock {
   /** false면 앨범 이력 없음 → 기존 empty 페이지 */
   hasAlbumHistory: boolean;
+  /**
+   * 화면 진입 기준 데이터(유치원 연결 이력, 조회 대상 앨범 존재 여부 등) 조회 실패.
+   * true면 전면 PageError(404) 노출. 확인 후 false로 되돌릴 것.
+   */
+  hasEntryLoadError: boolean;
   /** 오늘 등원 여부. false면 Today 섹션 숨기고 오늘을 뱃지 없는 카드로 리스트 노출 */
   isAttendedToday: boolean;
   /** 오늘 전체 사진 수 (N장 버튼) */
@@ -39,6 +44,8 @@ function daysAgo(days: number) {
  */
 const MOCK_GUARDIAN_ALBUM_TODAY: GuardianAlbumTodayMock = {
   hasAlbumHistory: true,
+  /** 전면 오류 UI 확인: true / 평소: false. 또는 ?entryError=1 */
+  hasEntryLoadError: false,
   isAttendedToday: true,
   todayPhotoCount: 65,
   todayPhotoSeeds: [
