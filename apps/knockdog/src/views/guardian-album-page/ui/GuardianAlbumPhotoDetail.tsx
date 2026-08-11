@@ -186,18 +186,18 @@ function GuardianAlbumPhotoDetail({
   const handleShareClick = useCallback(async () => {
     if (!currentPhoto) return;
 
-    const shared = await share({
-      url: currentPhoto.url,
-      title: '앨범 사진',
-    });
+    // 상대경로 mock/이미지 URL도 OS 공유 시트에 절대경로로 전달
+    const shareUrl =
+      typeof window !== 'undefined'
+        ? new URL(currentPhoto.url, window.location.origin).href
+        : currentPhoto.url;
 
-    if (!shared) {
-      toast({
-        nativeTitle: detail.shareFailedToast.nativeTitle,
-        title: detail.shareFailedToast.nativeTitle,
-      });
-    }
-  }, [currentPhoto, detail.shareFailedToast.nativeTitle, share]);
+    await share({
+      title: '앨범 사진',
+      message: shareUrl,
+      url: shareUrl,
+    });
+  }, [currentPhoto, share]);
 
   const handleFavoriteClick = useCallback(() => {
     if (!currentPhoto) return;
