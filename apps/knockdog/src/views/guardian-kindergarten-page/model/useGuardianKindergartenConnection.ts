@@ -14,7 +14,7 @@ function useGuardianKindergartenConnection() {
   const { selectedPet, getPetConnectionStatus } = useGuardianSelectedPet();
 
   const petStatus: GuardianKindergartenConnectionStatus = selectedPet
-    ? getPetConnectionStatus(selectedPet)
+    ? (getPetConnectionStatus(selectedPet) ?? 'none')
     : 'none';
 
   const status: GuardianKindergartenConnectionStatus = statusOverride ?? petStatus;

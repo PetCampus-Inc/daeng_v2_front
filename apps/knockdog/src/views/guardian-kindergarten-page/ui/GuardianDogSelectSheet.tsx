@@ -19,7 +19,7 @@ interface GuardianDogSelectSheetProps {
   close: () => void;
   dogs: Pet[];
   currentPetId: string | null;
-  getPetConnectionStatus: (pet: Pet) => GuardianKindergartenConnectionStatus;
+  getPetConnectionStatus: (pet: Pet) => GuardianKindergartenConnectionStatus | null;
   onSelect: (petId: string) => void;
 }
 
