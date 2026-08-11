@@ -85,12 +85,12 @@ function TextField({ ref, ...props }: TextFieldProps) {
             </TextFieldPrimitive.Description>
           )}
           {renderErrorMessage && (
-            <TextFieldPrimitive.Message className='text-error body2-regular absolute'>
+            <TextFieldPrimitive.Message className='text-error body2-regular'>
               {errorMessage}
             </TextFieldPrimitive.Message>
           )}
           {renderSuccessMessage && (
-            <TextFieldPrimitive.Message className='text-success body2-regular absolute'>
+            <TextFieldPrimitive.Message className='text-success body2-regular'>
               {successMessage}
             </TextFieldPrimitive.Message>
           )}

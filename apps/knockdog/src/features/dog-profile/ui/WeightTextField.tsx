@@ -1,4 +1,5 @@
 import { TextField, TextFieldInput, IconButton } from '@knockdog/ui';
+import { MAX_DOG_WEIGHT, normalizeDogWeight } from '../lib/weight';
 
 interface WeightTextFieldProps {
   ref?: React.Ref<HTMLInputElement>;
@@ -7,7 +8,7 @@ interface WeightTextFieldProps {
 }
 
 function WeightTextField({ ref, value, onChange }: WeightTextFieldProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange?.(e.target.value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange?.(normalizeDogWeight(e.target.value));
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -15,8 +16,16 @@ function WeightTextField({ ref, value, onChange }: WeightTextFieldProps) {
   };
 
   return (
-    <TextField label='몸무게 (kg)' suffix={value && <IconButton icon='DeleteInput' onClick={handleDelete} />}>
-      <TextFieldInput ref={ref} placeholder='소수점 한자리까지 입력 가능' value={value ?? ''} onChange={handleChange} />
+    <TextField label='몸무게 (kg)' required suffix={value && <IconButton icon='DeleteInput' onClick={handleDelete} />}>
+      <TextFieldInput
+        ref={ref}
+        placeholder='숫자만 입력'
+        value={value ?? ''}
+        maxLength={String(MAX_DOG_WEIGHT).length}
+        inputMode='numeric'
+        pattern='[0-9]*'
+        onChange={handleChange}
+      />
     </TextField>
   );
 }

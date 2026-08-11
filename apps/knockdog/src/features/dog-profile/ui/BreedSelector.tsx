@@ -11,12 +11,14 @@ interface BreedSelectorProps {
   ref?: React.Ref<HTMLInputElement>;
   className?: string;
   value?: Breed | null;
+  required?: boolean;
+  errorMessage?: string;
   onBlur?: () => void;
   onChange?: (breed: Breed | null) => void;
   onComplete?: () => void;
 }
 
-const BreedSelector = ({ ref, className, value, onChange, onBlur, onComplete }: BreedSelectorProps) => {
+const BreedSelector = ({ ref, className, value, required, errorMessage, onChange, onBlur, onComplete }: BreedSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { breeds, searchTerm, setSearchTerm } = useBreedSearch();
 
@@ -35,6 +37,9 @@ const BreedSelector = ({ ref, className, value, onChange, onBlur, onComplete }: 
         <TextField
           variant='secondary'
           label='견종'
+          required={required}
+          invalid={Boolean(errorMessage)}
+          errorMessage={errorMessage}
           readOnly
           onBlur={onBlur}
           className={className}
@@ -50,7 +55,7 @@ const BreedSelector = ({ ref, className, value, onChange, onBlur, onComplete }: 
               />
             )
           }
-          indicator='(선택)'
+          indicator={required ? undefined : '(선택)'}
         >
           <TextFieldInput
             ref={ref}

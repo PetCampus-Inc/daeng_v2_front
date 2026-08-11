@@ -4,7 +4,11 @@ import { TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RelationshipSelector } from '@features/dog-profile';
+import {
+  MAX_RELATIONSHIP_TEXT_LENGTH,
+  normalizeRelationshipText,
+  RelationshipSelector,
+} from '@features/dog-profile';
 import { RELATIONSHIP, type Relationship, RELATIONSHIP_LABEL, usePetRegisterMutation } from '@entities/pet';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -65,15 +69,28 @@ function PetRelationshipPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               transition={{ duration: 0.3 }}
-            >
-              <TextField>
-                <TextFieldInput
-                  placeholder='5자이내 한글'
-                  value={customRelationship}
-                  onChange={(e) => setCustomRelationship(e.target.value)}
-                  maxLength={5}
-                />
-              </TextField>
+              >
+                <div className='flex flex-col gap-2 p-4'>
+                  <div className='gap-x0_5 flex items-center'>
+                    <span className='body2-bold text-text-primary'>관계(직접 입력)</span>
+                    <span className='body2-bold text-text-accent'>*</span>
+                  </div>
+                  <TextField>
+                    <TextFieldInput
+                      placeholder='5자 이내 한글로 입력해 주세요'
+                      value={customRelationship}
+                      maxLength={MAX_RELATIONSHIP_TEXT_LENGTH}
+                      onChange={(e) => {
+                        if ((e.nativeEvent as InputEvent).isComposing) {
+                          setCustomRelationship(e.target.value);
+                          return;
+                        }
+                        setCustomRelationship(normalizeRelationshipText(e.target.value));
+                      }}
+                      onCompositionEnd={(e) => setCustomRelationship(normalizeRelationshipText(e.currentTarget.value))}
+                    />
+                  </TextField>
+                </div>
             </motion.div>
           )}
         </AnimatePresence>

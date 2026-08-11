@@ -15,6 +15,13 @@ export * from './ui/PetAddDialog';
 export * from './ui/PetProfileForm';
 export * from './ui/PetDetailInfo';
 export { ProfileImageUploader } from './ui/ProfileImageUploader';
+export {
+  MAX_DOG_NAME_LENGTH,
+  MAX_RELATIONSHIP_TEXT_LENGTH,
+  normalizeDogName,
+  normalizeRelationshipText,
+} from './lib/normalizeKoreanText';
+export { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from './lib/weight';
 
 export type { Breed } from './model/breed.type';
 export { usePetProfileForm } from './model/usePetProfileForm';

@@ -15,7 +15,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface PetFormData {
   name: string;
-  relationship: Relationship;
+  relationship: Relationship | '';
   relationshipText: string;
   breed?: Breed | null;
   birthYear?: string;
@@ -42,7 +42,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
   const transformDefaultValues = (pet?: Pet): PetFormData => {
     return {
       name: pet?.name || '',
-      relationship: pet?.relationship || RELATIONSHIP.MOTHER,
+      relationship: pet?.relationship ?? '',
       relationshipText: pet?.relationshipText || '',
       breed: pet?.breed ? { breedId: 0, breedName: pet.breed } : null,
       birthYear: pet?.birthYear ? String(pet.birthYear) : undefined,

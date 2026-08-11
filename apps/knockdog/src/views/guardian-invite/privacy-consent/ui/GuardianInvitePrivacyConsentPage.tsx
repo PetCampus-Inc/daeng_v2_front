@@ -31,11 +31,15 @@ function GuardianInvitePrivacyConsentPage() {
     });
   };
 
+  const handleBack = () => {
+    void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(token)) });
+  };
+
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
+          <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>개인정보 수집 및 이용 동의</Header.Title>
       </Header>
