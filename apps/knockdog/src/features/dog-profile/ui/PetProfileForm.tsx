@@ -41,7 +41,7 @@ function PetProfileForm({
   onDirtyChange,
   onBeforeSubmit,
 }: PetProfileFormProps) {
-  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, reset, transformDefaultValues } =
+  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, trigger, reset, transformDefaultValues } =
     usePetProfileForm({
       mode,
       petId,
@@ -81,6 +81,10 @@ function PetProfileForm({
   React.useEffect(() => {
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
+
+  React.useEffect(() => {
+    void trigger('relationshipText');
+  }, [relationship, trigger]);
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -165,7 +169,12 @@ function PetProfileForm({
               <Controller
                 name='relationshipText'
                 control={control}
-                rules={relationship === RELATIONSHIP.ETC ? { required: '관계를 입력해 주세요' } : undefined}
+                rules={{
+                  validate: (value) =>
+                    getValues('relationship') !== RELATIONSHIP.ETC ||
+                    Boolean(value.trim()) ||
+                    '관계를 입력해 주세요',
+                }}
                 render={({ field, fieldState: { error } }) => (
                   <TextField label='관계(직접 입력)' required invalid={!!error} errorMessage={error?.message}>
                     <TextFieldInput
