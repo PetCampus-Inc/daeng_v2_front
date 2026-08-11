@@ -23,6 +23,7 @@ import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/gua
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
+import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
@@ -79,14 +80,18 @@ function GuardianAlbumPage() {
   );
 
   const visibleDays = useMemo(() => {
+    // TODO: 등원일 필터 빈 상태 확인용 임시 — API 연동 시 실제 등원일 필터로 교체
     if (viewMode === 'attendance') {
-      return monthAlbum.days.filter((day) => day.isAttended);
+      return [];
     }
     if (viewMode === 'favorite') {
       return monthAlbum.days.filter((day) => day.photos.some((photo) => photo.isBookmarked));
     }
     return monthAlbum.days;
   }, [monthAlbum.days, viewMode]);
+
+  const isFilterEmpty =
+    (viewMode === 'favorite' || viewMode === 'attendance') && visibleDays.length === 0;
 
   const showConnectionStartMessage = isSameYearMonth(
     selectedMonth,
@@ -217,7 +222,10 @@ function GuardianAlbumPage() {
               aria-label={content.filterAriaLabel}
               onClick={handleFilterClick}
             >
-              <Icon icon='Filter' className='text-fill-secondary-700 size-6' />
+              <Icon
+                icon='Filter'
+                className={`size-6 ${viewMode === 'all' ? 'text-fill-secondary-700' : 'text-text-accent'}`}
+              />
             </button>
             <button
               type='button'
@@ -232,40 +240,47 @@ function GuardianAlbumPage() {
       </div>
 
       {albumToday.hasAlbumHistory ? (
-        <>
-          <div
-            ref={scrollRef}
-            className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
-            onScroll={handleScroll}
-          >
-            {albumToday.isAttendedToday ? (
-              <GuardianAlbumTodaySection
-                petName={petName}
-                isAttendedToday={albumToday.isAttendedToday}
-                todayPhotoCount={albumToday.todayPhotoCount}
-                todayPhotos={todayPhotos}
+        (viewMode === 'favorite' || viewMode === 'attendance') && isFilterEmpty ? (
+          <GuardianAlbumFilterEmpty
+            viewMode={viewMode}
+            onResetToAll={() => setViewMode('all')}
+          />
+        ) : (
+          <>
+            <div
+              ref={scrollRef}
+              className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
+              onScroll={handleScroll}
+            >
+              {albumToday.isAttendedToday ? (
+                <GuardianAlbumTodaySection
+                  petName={petName}
+                  isAttendedToday={albumToday.isAttendedToday}
+                  todayPhotoCount={albumToday.todayPhotoCount}
+                  todayPhotos={todayPhotos}
+                />
+              ) : null}
+              <GuardianAlbumMonthNav
+                month={selectedMonth}
+                canGoPrevMonth={canGoPrevMonth}
+                canGoNextMonth={canGoNextMonth}
+                onPrevMonth={handlePrevMonth}
+                onNextMonth={handleNextMonth}
+                onYearMonthClick={handleYearMonthClick}
+                onSearchClick={handleSearchClick}
               />
-            ) : null}
-            <GuardianAlbumMonthNav
-              month={selectedMonth}
-              canGoPrevMonth={canGoPrevMonth}
-              canGoNextMonth={canGoNextMonth}
-              onPrevMonth={handlePrevMonth}
-              onNextMonth={handleNextMonth}
-              onYearMonthClick={handleYearMonthClick}
-              onSearchClick={handleSearchClick}
-            />
-            {monthAlbum.days.length === 0 ? (
-              <GuardianAlbumMonthEmpty />
-            ) : (
-              <GuardianAlbumDayList
-                days={visibleDays}
-                showConnectionStartMessage={showConnectionStartMessage}
-              />
-            )}
-          </div>
-          <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
-        </>
+              {monthAlbum.days.length === 0 ? (
+                <GuardianAlbumMonthEmpty />
+              ) : (
+                <GuardianAlbumDayList
+                  days={visibleDays}
+                  showConnectionStartMessage={showConnectionStartMessage}
+                />
+              )}
+            </div>
+            <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
+          </>
+        )
       ) : (
         <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
           <GuardianAlbumEmptyState />

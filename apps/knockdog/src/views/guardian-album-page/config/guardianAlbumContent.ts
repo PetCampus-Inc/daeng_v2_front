@@ -64,6 +64,19 @@ const guardianAlbumContent = {
     title: '이 달에는 등록된 앨범이 없어요',
     description: '달력에서 다른 날짜를 확인해 보세요.',
   },
+  filterEmpty: {
+    imageSrc: '/images/img_waiting_kindergarten.png',
+    imageAlt: '앨범 필터 결과 없음',
+    ctaLabel: '전체 보기로 돌아가기',
+    favorite: {
+      title: '즐겨찾기한 사진이 없어요',
+      description: '모아 보고 싶은 사진을 즐겨찾기 해 보세요.',
+    },
+    attendance: {
+      title: '등원한 날의 사진이 없어요',
+      description: '등원 기록이 쌓이면 여기서\n확인할 수 있어요.',
+    },
+  },
   scrollTopAriaLabel: '맨 위로',
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
