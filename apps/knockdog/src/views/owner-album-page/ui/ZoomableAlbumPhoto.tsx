@@ -14,6 +14,7 @@ interface ZoomableAlbumPhotoProps {
   onSwipeEdge?: (direction: SwipeEdgeDirection) => void;
   canSwipePrev?: boolean;
   canSwipeNext?: boolean;
+  onLoadError?: () => void;
 }
 
 function ZoomableAlbumPhoto({
@@ -23,6 +24,7 @@ function ZoomableAlbumPhoto({
   onSwipeEdge,
   canSwipePrev = false,
   canSwipeNext = false,
+  onLoadError,
 }: ZoomableAlbumPhotoProps) {
   const { getContainerProps, getFrameProps, getImageProps, reset } = usePinchZoom({
     enabled: isActive,
@@ -42,7 +44,7 @@ function ZoomableAlbumPhoto({
       <div className='flex h-full w-full items-center justify-center px-4'>
         <div {...getFrameProps()} className={`relative w-full shrink-0 ${photoAspectClassName}`}>
           {/* eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed URL 임시 미리보기 */}
-          <img {...getImageProps()} src={src} alt='' />
+          <img {...getImageProps()} src={src} alt='' onError={onLoadError} />
         </div>
       </div>
     </div>

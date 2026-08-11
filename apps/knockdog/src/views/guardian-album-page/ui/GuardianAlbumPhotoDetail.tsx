@@ -42,6 +42,9 @@ function GuardianAlbumPhotoDetail({
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isGridOpen, setIsGridOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [failedPhotoIds, setFailedPhotoIds] = useState<Set<string>>(() => {
+    return new Set(photos.filter((photo) => photo.hasLoadError).map((photo) => photo.id));
+  });
   const [bookmarkedIds, setBookmarkedIds] = useState(() => {
     return new Set(photos.filter((photo) => photo.isBookmarked).map((photo) => photo.id));
   });
@@ -56,6 +59,23 @@ function GuardianAlbumPhotoDetail({
   const current = activeIndex + 1;
   const total = photos.length;
   const isBookmarked = currentPhoto ? bookmarkedIds.has(currentPhoto.id) : false;
+  const isCurrentLoadError = currentPhoto
+    ? currentPhoto.hasLoadError === true || failedPhotoIds.has(currentPhoto.id)
+    : false;
+
+  const handlePhotoLoadError = useCallback((photoId: string) => {
+    setFailedPhotoIds((prev) => {
+      if (prev.has(photoId)) return prev;
+      const next = new Set(prev);
+      next.add(photoId);
+      return next;
+    });
+  }, []);
+
+  const isPhotoLoadError = useCallback(
+    (photo: GuardianAlbumPhoto) => photo.hasLoadError === true || failedPhotoIds.has(photo.id),
+    [failedPhotoIds]
+  );
 
   useLayoutEffect(() => {
     previousFocusRef.current =
@@ -155,7 +175,7 @@ function GuardianAlbumPhotoDetail({
   );
 
   const handleSaveClick = useCallback(async () => {
-    if (!currentPhoto || isSaveInFlightRef.current || isSaving) return;
+    if (!currentPhoto || isCurrentLoadError || isSaveInFlightRef.current || isSaving) return;
 
     isSaveInFlightRef.current = true;
     setIsSaving(true);
@@ -198,10 +218,10 @@ function GuardianAlbumPhotoDetail({
       isSaveInFlightRef.current = false;
       setIsSaving(false);
     }
-  }, [currentPhoto, detail.saveFailedToast.nativeTitle, detail.saveSuccessToast.nativeTitle, isSaving, saveImage]);
+  }, [currentPhoto, detail.saveFailedToast.nativeTitle, detail.saveSuccessToast.nativeTitle, isCurrentLoadError, isSaving, saveImage]);
 
   const handleShareClick = useCallback(async () => {
-    if (!currentPhoto) return;
+    if (!currentPhoto || isCurrentLoadError) return;
 
     // 상대경로 mock/이미지 URL도 OS 공유 시트에 절대경로로 전달
     const shareUrl =
@@ -214,7 +234,7 @@ function GuardianAlbumPhotoDetail({
       message: shareUrl,
       url: shareUrl,
     });
-  }, [currentPhoto, share]);
+  }, [currentPhoto, isCurrentLoadError, share]);
 
   const handleFavoriteClick = useCallback(() => {
     if (!currentPhoto) return;
@@ -281,18 +301,31 @@ function GuardianAlbumPhotoDetail({
             initialIndex={activeIndex}
             onSlideChange={handleSlideChange}
           >
-            {photos.map((photo, index) => (
-              <SwiperSlideItem key={photo.id} className='h-full'>
-                <ZoomableAlbumPhoto
-                  src={photo.url}
-                  isActive={index === activeIndex}
-                  photoAspectClassName={PHOTO_ASPECT_CLASS}
-                  onSwipeEdge={handleSwipeEdge}
-                  canSwipePrev={activeIndex > 0}
-                  canSwipeNext={activeIndex < photos.length - 1}
-                />
-              </SwiperSlideItem>
-            ))}
+            {photos.map((photo, index) => {
+              const hasError = isPhotoLoadError(photo);
+
+              return (
+                <SwiperSlideItem key={photo.id} className='h-full'>
+                  {hasError ? (
+                    <div className='bg-bg-50 flex h-full w-full items-center justify-center px-4'>
+                      <p className='body1-medium text-text-tertiary text-center'>
+                        {detail.loadErrorMessage}
+                      </p>
+                    </div>
+                  ) : (
+                    <ZoomableAlbumPhoto
+                      src={photo.url}
+                      isActive={index === activeIndex}
+                      photoAspectClassName={PHOTO_ASPECT_CLASS}
+                      onSwipeEdge={handleSwipeEdge}
+                      canSwipePrev={activeIndex > 0}
+                      canSwipeNext={activeIndex < photos.length - 1}
+                      onLoadError={() => handlePhotoLoadError(photo.id)}
+                    />
+                  )}
+                </SwiperSlideItem>
+              );
+            })}
           </SwiperRoot>
 
           <div className='pointer-events-none absolute inset-x-0 bottom-5 z-10 flex justify-center'>
@@ -318,7 +351,7 @@ function GuardianAlbumPhotoDetail({
                 type='button'
                 className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.saveAriaLabel}
-                disabled={isSaving}
+                disabled={isSaving || isCurrentLoadError}
                 onClick={handleSaveClick}
               >
                 <Icon icon='Download' className='text-fill-secondary-700 size-6' />
@@ -326,8 +359,9 @@ function GuardianAlbumPhotoDetail({
               <span className='bg-line-200 h-3.5 w-px shrink-0' aria-hidden='true' />
               <button
                 type='button'
-                className='inline-flex size-6 items-center justify-center'
+                className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.shareAriaLabel}
+                disabled={isCurrentLoadError}
                 onClick={handleShareClick}
               >
                 <Icon icon='Share' className='text-fill-secondary-700 size-6' />
@@ -358,6 +392,7 @@ function GuardianAlbumPhotoDetail({
           <div className='scrollbar-hide flex gap-2 overflow-x-auto px-4 py-5'>
             {photos.map((photo, index) => {
               const isSelected = index === activeIndex;
+              const hasError = isPhotoLoadError(photo);
 
               return (
                 <button
@@ -373,8 +408,12 @@ function GuardianAlbumPhotoDetail({
                     isSelected ? 'border-line-accent border-2' : ''
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-                  <img src={photo.url} alt='' className='radius-r2 h-full w-full object-cover' />
+                  {hasError ? (
+                    <div className='bg-fill-secondary-200 radius-r2 absolute inset-0' />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일
+                    <img src={photo.url} alt='' className='radius-r2 h-full w-full object-cover' />
+                  )}
                 </button>
               );
             })}
@@ -387,6 +426,7 @@ function GuardianAlbumPhotoDetail({
         <GuardianAlbumPhotoGrid
           photos={photos}
           title={formatAlbumDetailTitle(uploadedAt)}
+          failedPhotoIds={failedPhotoIds}
           onClose={handleCloseGrid}
           onPhotoClick={handleGridPhotoClick}
         />

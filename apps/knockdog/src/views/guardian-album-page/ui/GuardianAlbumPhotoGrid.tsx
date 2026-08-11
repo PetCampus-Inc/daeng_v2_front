@@ -7,6 +7,7 @@ import { Header } from '@widgets/Header';
 interface GuardianAlbumPhotoGridProps {
   photos: GuardianAlbumPhoto[];
   title: string;
+  failedPhotoIds?: Set<string>;
   onClose: () => void;
   onPhotoClick: (index: number) => void;
 }
@@ -14,6 +15,7 @@ interface GuardianAlbumPhotoGridProps {
 function GuardianAlbumPhotoGrid({
   photos,
   title,
+  failedPhotoIds,
   onClose,
   onPhotoClick,
 }: GuardianAlbumPhotoGridProps) {
@@ -37,24 +39,32 @@ function GuardianAlbumPhotoGrid({
 
       <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
         <div className='grid grid-cols-4 gap-1 px-4 pt-5'>
-          {photos.map((photo, index) => (
-            <button
-              key={photo.id}
-              type='button'
-              onClick={() => onPhotoClick(index)}
-              aria-label={detail.thumbnailAriaLabel(index)}
-              className='bg-fill-secondary-100 radius-r2 relative aspect-square overflow-hidden'
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-              <img
-                src={photo.url}
-                alt=''
-                className='radius-r2 size-full object-cover'
-                loading='lazy'
-                decoding='async'
-              />
-            </button>
-          ))}
+          {photos.map((photo, index) => {
+            const hasError = photo.hasLoadError === true || failedPhotoIds?.has(photo.id) === true;
+
+            return (
+              <button
+                key={photo.id}
+                type='button'
+                onClick={() => onPhotoClick(index)}
+                aria-label={detail.thumbnailAriaLabel(index)}
+                className='bg-fill-secondary-100 radius-r2 relative aspect-square overflow-hidden'
+              >
+                {hasError ? (
+                  <div className='bg-fill-secondary-200 radius-r2 absolute inset-0' />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일
+                  <img
+                    src={photo.url}
+                    alt=''
+                    className='radius-r2 size-full object-cover'
+                    loading='lazy'
+                    decoding='async'
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

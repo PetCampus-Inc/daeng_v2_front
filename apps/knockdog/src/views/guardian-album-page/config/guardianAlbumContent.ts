@@ -94,6 +94,7 @@ const guardianAlbumContent = {
     favoriteIconDefaultSrc: '/images/ico_photo_like_default.png',
     favoriteIconActiveSrc: '/images/ico_photo_like_active.png',
     thumbnailAriaLabel: (index: number) => `${index + 1}번째 사진 보기`,
+    loadErrorMessage: '사진을 불러오지 못했어요',
     saveSuccessToast: {
       nativeTitle: '사진을 저장했어요',
     },

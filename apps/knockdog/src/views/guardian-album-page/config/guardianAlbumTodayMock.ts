@@ -4,6 +4,8 @@ interface GuardianAlbumPhoto {
   /** ISO datetime — lastViewedAt 이후면 NEW */
   uploadedAt: string;
   isBookmarked: boolean;
+  /** 해당 사진 로드 실패 */
+  hasLoadError?: boolean;
 }
 
 interface GuardianAlbumPhotoMockSeed {
