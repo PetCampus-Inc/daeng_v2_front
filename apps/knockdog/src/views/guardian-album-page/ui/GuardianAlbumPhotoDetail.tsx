@@ -6,6 +6,7 @@ import { RemoveScroll } from 'react-remove-scroll';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
+import { GuardianAlbumPhotoGrid } from '@views/guardian-album-page/ui/GuardianAlbumPhotoGrid';
 import {
   formatAlbumDetailTitle,
   formatAlbumUploadTime,
@@ -28,7 +29,6 @@ interface GuardianAlbumPhotoDetailProps {
   /** 유치원 메인 바로가기 진입 시에만 true — 리스트 이동 아이콘 노출 */
   showListButton?: boolean;
   onListClick?: () => void;
-  onGridClick?: () => void;
 }
 
 function GuardianAlbumPhotoDetail({
@@ -37,10 +37,10 @@ function GuardianAlbumPhotoDetail({
   onClose,
   showListButton = false,
   onListClick,
-  onGridClick,
 }: GuardianAlbumPhotoDetailProps) {
   const { detail } = guardianAlbumContent;
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [isGridOpen, setIsGridOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState(() => {
     return new Set(photos.filter((photo) => photo.isBookmarked).map((photo) => photo.id));
@@ -88,10 +88,14 @@ function GuardianAlbumPhotoDetail({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (isGridOpen) {
+          setIsGridOpen(false);
+          return;
+        }
         onClose();
         return;
       }
-      if (event.key !== 'Tab') return;
+      if (event.key !== 'Tab' || isGridOpen) return;
 
       const container = dialogRef.current;
       if (!container) return;
@@ -117,7 +121,7 @@ function GuardianAlbumPhotoDetail({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [isGridOpen, onClose]);
 
   const handleSlideChange = useCallback((index: number) => {
     setActiveIndex((prev) => (prev === index ? prev : index));
@@ -125,6 +129,19 @@ function GuardianAlbumPhotoDetail({
 
   const handleThumbnailClick = useCallback((index: number) => {
     setActiveIndex((prev) => (prev === index ? prev : index));
+  }, []);
+
+  const handleOpenGrid = useCallback(() => {
+    setIsGridOpen(true);
+  }, []);
+
+  const handleCloseGrid = useCallback(() => {
+    setIsGridOpen(false);
+  }, []);
+
+  const handleGridPhotoClick = useCallback((index: number) => {
+    setActiveIndex(index);
+    setIsGridOpen(false);
   }, []);
 
   const handleSwipeEdge = useCallback(
@@ -214,14 +231,15 @@ function GuardianAlbumPhotoDetail({
   const uploadedAt = new Date(currentPhoto.uploadedAt);
 
   return (
-    <RemoveScroll forwardProps>
-      <div
-        ref={dialogRef}
-        role='dialog'
-        aria-modal='true'
-        aria-label={formatAlbumDetailTitle(uploadedAt)}
-        className='bg-bg-50 z-modal fixed inset-0 flex flex-col'
-      >
+    <>
+      <RemoveScroll forwardProps>
+        <div
+          ref={dialogRef}
+          role='dialog'
+          aria-modal='true'
+          aria-label={formatAlbumDetailTitle(uploadedAt)}
+          className='bg-bg-50 z-modal fixed inset-0 flex flex-col'
+        >
         <div className='bg-bg-0 z-20 shrink-0 pt-(--safe-area-inset-top,0px)'>
           <Header>
             <Header.LeftSection>
@@ -283,7 +301,7 @@ function GuardianAlbumPhotoDetail({
                 type='button'
                 className='inline-flex size-6 items-center justify-center'
                 aria-label={detail.gridAriaLabel}
-                onClick={onGridClick}
+                onClick={handleOpenGrid}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 디자인 제공 PNG 아이콘 */}
                 <img
@@ -363,7 +381,17 @@ function GuardianAlbumPhotoDetail({
           </div>
         </div>
       </div>
-    </RemoveScroll>
+      </RemoveScroll>
+
+      {isGridOpen ? (
+        <GuardianAlbumPhotoGrid
+          photos={photos}
+          title={formatAlbumDetailTitle(uploadedAt)}
+          onClose={handleCloseGrid}
+          onPhotoClick={handleGridPhotoClick}
+        />
+      ) : null}
+    </>
   );
 }
 
