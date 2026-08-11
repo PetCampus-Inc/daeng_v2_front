@@ -27,7 +27,7 @@ function NeuteredSelector({ value, required = false, onChange, onComplete }: Neu
           했어요
         </ToggleButton>
         <ToggleButton className='body2-semibold flex-1' pressed={value === 'N'} onPressedChange={handleChange('N')}>
-          안했어요
+          안 했어요
         </ToggleButton>
       </div>
     </div>

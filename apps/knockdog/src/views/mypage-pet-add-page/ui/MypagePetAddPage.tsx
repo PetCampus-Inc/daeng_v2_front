@@ -31,10 +31,19 @@ export function MypagePetAddPage() {
 
   const isFirstPet = (petListResponse?.data?.length ?? 0) === 0;
 
+  const navigateBack = () => {
+    if (inviteToken) {
+      void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      return;
+    }
+
+    back?.();
+  };
+
   const handleBack = () => {
     // 폼에 변경사항이 없으면 바로 뒤로가기
     if (!isFormDirty) {
-      back?.();
+      navigateBack();
       return;
     }
 
@@ -52,7 +61,7 @@ export function MypagePetAddPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back?.()}>확인</AlertDialogAction>
+            <AlertDialogAction onClick={navigateBack}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -20,7 +20,7 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
 
   const getNeuteredDisplay = () => {
     if (pet?.isNeutered === null || pet?.isNeutered === undefined) return '선택해주세요';
-    return pet?.isNeutered ? '했어요' : '안했어요';
+    return pet?.isNeutered ? '했어요' : '안 했어요';
   };
 
   const getRelationshipDisplay = () => {
