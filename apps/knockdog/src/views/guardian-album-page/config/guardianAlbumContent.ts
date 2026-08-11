@@ -40,6 +40,7 @@ const guardianAlbumContent = {
     searchAriaLabel: '날짜 검색',
     searchIconSrc: '/images/ico_album_calendar_search.png',
     noMoreAlbumToast: '더 이상 볼 수 있는 앨범이 없어요',
+    attendedUntilToast: '여기까지 볼 수 있어요',
   },
   monthPickerSheet: {
     confirmLabel: '확인',
@@ -57,12 +58,30 @@ const guardianAlbumContent = {
     overflowLabel: (remaining: number) => `+ ${remaining}`,
     loadErrorMessage: '사진을 불러오지 못했어요',
   },
+  favoriteList: {
+    overflowLabel: (remaining: number) => `+ ${remaining}장`,
+    endMessage: '더 이상 볼 수 있는 사진이 없어요',
+  },
   history: {
     firstAttendanceMessage: '유치원을 다니기 시작했어요',
+    attendedUntilMessage: '여기까지 다녔어요',
   },
   monthEmpty: {
     title: '이 달에는 등록된 앨범이 없어요',
     description: '달력에서 다른 날짜를 확인해 보세요.',
+  },
+  filterEmpty: {
+    imageSrc: '/images/img_waiting_kindergarten.png',
+    imageAlt: '앨범 필터 결과 없음',
+    ctaLabel: '전체 보기로 돌아가기',
+    favorite: {
+      title: '즐겨찾기한 사진이 없어요',
+      description: '모아 보고 싶은 사진을 즐겨찾기 해 보세요.',
+    },
+    attendance: {
+      title: '등원한 날의 사진이 없어요',
+      description: '등원 기록이 쌓이면 여기서\n확인할 수 있어요.',
+    },
   },
   scrollTopAriaLabel: '맨 위로',
   empty: {
