@@ -11,6 +11,8 @@ interface GuardianAlbumMonthNavProps {
   canGoNextMonth: boolean;
   onPrevMonth: () => void;
   onNextMonth: () => void;
+  onYearMonthClick: () => void;
+  onSearchClick: () => void;
 }
 
 function GuardianAlbumMonthNav({
@@ -19,6 +21,8 @@ function GuardianAlbumMonthNav({
   canGoNextMonth,
   onPrevMonth,
   onNextMonth,
+  onYearMonthClick,
+  onSearchClick,
 }: GuardianAlbumMonthNavProps) {
   const { monthNav } = guardianAlbumContent;
 
@@ -27,14 +31,20 @@ function GuardianAlbumMonthNav({
       <div className='gap-x2 flex flex-1 items-center justify-center'>
         <button
           type='button'
-          className='inline-flex size-6 items-center justify-center disabled:opacity-30'
+          className={`inline-flex size-6 items-center justify-center ${canGoPrevMonth ? '' : 'opacity-30'}`}
           aria-label={monthNav.prevAriaLabel}
-          disabled={!canGoPrevMonth}
           onClick={onPrevMonth}
         >
           <Icon icon='ChevronLeft' className='text-fill-secondary-500 size-6' />
         </button>
-        <p className='h3-extrabold text-text-primary'>{formatKoreanYearMonth(month)}</p>
+        <button
+          type='button'
+          className='h3-extrabold text-text-primary'
+          aria-label={monthNav.yearMonthAriaLabel}
+          onClick={onYearMonthClick}
+        >
+          {formatKoreanYearMonth(month)}
+        </button>
         <button
           type='button'
           className='inline-flex size-6 items-center justify-center disabled:opacity-30'
@@ -50,6 +60,7 @@ function GuardianAlbumMonthNav({
         type='button'
         className='absolute top-1/2 right-4 inline-flex size-6 -translate-y-1/2 items-center justify-center'
         aria-label={monthNav.searchAriaLabel}
+        onClick={onSearchClick}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- 디자인 제공 PNG 아이콘 */}
         <img

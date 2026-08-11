@@ -15,7 +15,7 @@ interface GuardianAlbumPhotoMockSeed {
 interface GuardianAlbumTodayMock {
   /** false면 앨범 이력 없음 → 기존 empty 페이지 */
   hasAlbumHistory: boolean;
-  /** 오늘 등원 여부. false면 미리보기 숨김 */
+  /** 오늘 등원 여부. false면 Today 섹션 숨기고 오늘을 뱃지 없는 카드로 리스트 노출 */
   isAttendedToday: boolean;
   /** 오늘 전체 사진 수 (N장 버튼) */
   todayPhotoCount: number;
@@ -33,7 +33,7 @@ function daysAgo(days: number) {
 
 /**
  * 첫 등원 이후·오늘 사진 있는 상태 mock.
- * isAttendedToday를 false로 바꾸면 미등원 UI 확인 가능.
+ * isAttendedToday=false → Today 섹션 숨김, 오늘을 뱃지 없는 카드로 리스트에 노출.
  */
 const MOCK_GUARDIAN_ALBUM_TODAY: GuardianAlbumTodayMock = {
   hasAlbumHistory: true,

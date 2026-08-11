@@ -2,25 +2,52 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 
 import { GuardianAlbumTodayPhotoCard } from './GuardianAlbumTodayPhotoCard';
 
 interface GuardianAlbumTodayPhotoStripProps {
   photos: GuardianAlbumPhoto[];
+  totalPhotoCount: number;
   lastViewedAt: number;
   bookmarkedIds: Set<string>;
   onToggleBookmark: (photoId: string) => void;
 }
 
+function GuardianAlbumTodayOverflowCard({
+  url,
+  remainingCount,
+}: {
+  url: string;
+  remainingCount: number;
+}) {
+  const { today } = guardianAlbumContent;
+
+  return (
+    <div className='relative size-[150px] shrink-0 overflow-hidden rounded-lg'>
+      {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
+      <img src={url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+      <div className='bg-dim-70 absolute inset-0 flex items-center justify-center rounded-lg'>
+        <span className='text-text-primary-inverse text-[18px] leading-[26px] font-medium tracking-[-0.36px]'>
+          {today.overflowLabel(remainingCount)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function GuardianAlbumTodayPhotoStrip({
   photos,
+  totalPhotoCount,
   lastViewedAt,
   bookmarkedIds,
   onToggleBookmark,
 }: GuardianAlbumTodayPhotoStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState({ widthRatio: 1, leftRatio: 0 });
+  const remainingCount = totalPhotoCount - photos.length;
+  const overflowPhoto = remainingCount > 0 ? photos[photos.length - 1] : null;
 
   const updateThumb = useCallback(() => {
     const node = scrollRef.current;
@@ -51,7 +78,7 @@ function GuardianAlbumTodayPhotoStrip({
       node.removeEventListener('scroll', updateThumb);
       window.removeEventListener('resize', handleResize);
     };
-  }, [photos.length, updateThumb]);
+  }, [photos.length, remainingCount, updateThumb]);
 
   return (
     <div className='flex w-full flex-col gap-2'>
@@ -70,6 +97,9 @@ function GuardianAlbumTodayPhotoStrip({
             />
           );
         })}
+        {overflowPhoto ? (
+          <GuardianAlbumTodayOverflowCard url={overflowPhoto.url} remainingCount={remainingCount} />
+        ) : null}
         <div className='w-4 shrink-0' aria-hidden />
       </div>
 

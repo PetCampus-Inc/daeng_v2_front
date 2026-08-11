@@ -10,8 +10,10 @@ import {
   MOCK_ALBUM_CONNECTION_STARTED_AT,
   compareYearMonth,
   createGuardianAlbumMonthMock,
+  createGuardianAlbumPhotoDateKeys,
   isSameYearMonth,
   parseDateKey,
+  toDateKey,
 } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import {
   MOCK_GUARDIAN_ALBUM_TODAY,
@@ -19,15 +21,20 @@ import {
 } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
+import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
 import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
+import { GuardianAlbumMonthEmpty } from '@views/guardian-album-page/ui/GuardianAlbumMonthEmpty';
+import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
+import { startOfDay } from '@shared/lib/calendar-date';
+import { toast } from '@shared/ui/toast';
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -64,8 +71,11 @@ function GuardianAlbumPage() {
   );
 
   const monthAlbum = useMemo(
-    () => createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage),
-    [selectedMonth, selectedPet?.profileImage]
+    () =>
+      createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage, new Date(), {
+        includeTodayAsDayCard: !albumToday.isAttendedToday,
+      }),
+    [selectedMonth, selectedPet?.profileImage, albumToday.isAttendedToday]
   );
 
   const visibleDays = useMemo(() => {
@@ -85,8 +95,19 @@ function GuardianAlbumPage() {
 
   const minMonth = startOfMonth(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
   const maxMonth = startOfMonth(new Date());
+  const minDate = startOfDay(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
+  const maxDate = startOfDay(new Date());
   const canGoPrevMonth = compareYearMonth(selectedMonth, minMonth) > 0;
   const canGoNextMonth = compareYearMonth(selectedMonth, maxMonth) < 0;
+  const albumPhotoDateKeys = useMemo(() => {
+    const keys = createGuardianAlbumPhotoDateKeys(new Date(), {
+      includeTodayAsDayCard: !albumToday.isAttendedToday,
+    });
+    if (albumToday.isAttendedToday && albumToday.todayPhotoCount > 0) {
+      keys.add(toDateKey(new Date()));
+    }
+    return keys;
+  }, [albumToday.isAttendedToday, albumToday.todayPhotoCount]);
 
   const handleKindergartenSelectClick = () => {
     if (!canSelectKindergarten) return;
@@ -118,13 +139,45 @@ function GuardianAlbumPage() {
   };
 
   const handlePrevMonth = () => {
-    if (!canGoPrevMonth) return;
+    if (!canGoPrevMonth) {
+      toast({ title: content.monthNav.noMoreAlbumToast });
+      return;
+    }
     setSelectedMonth((prev) => addMonths(prev, -1));
   };
 
   const handleNextMonth = () => {
     if (!canGoNextMonth) return;
     setSelectedMonth((prev) => addMonths(prev, 1));
+  };
+
+  const handleYearMonthClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <GuardianAlbumMonthPickerSheet
+        isOpen={isOpen}
+        close={close}
+        currentMonth={selectedMonth}
+        minMonth={minMonth}
+        maxMonth={maxMonth}
+        onConfirm={setSelectedMonth}
+      />
+    ));
+  };
+
+  const handleSearchClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <GuardianAlbumDateSelectSheet
+        isOpen={isOpen}
+        close={close}
+        minDate={minDate}
+        maxDate={maxDate}
+        initialDate={selectedMonth}
+        enabledDateKeys={albumPhotoDateKeys}
+        onConfirm={(date) => {
+          setSelectedMonth(startOfMonth(date));
+        }}
+      />
+    ));
   };
 
   const handleScroll = useCallback(() => {
@@ -182,26 +235,34 @@ function GuardianAlbumPage() {
         <>
           <div
             ref={scrollRef}
-            className='min-h-0 flex-1 overflow-y-auto pb-5'
+            className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
             onScroll={handleScroll}
           >
-            <GuardianAlbumTodaySection
-              petName={petName}
-              isAttendedToday={albumToday.isAttendedToday}
-              todayPhotoCount={albumToday.todayPhotoCount}
-              todayPhotos={todayPhotos}
-            />
+            {albumToday.isAttendedToday ? (
+              <GuardianAlbumTodaySection
+                petName={petName}
+                isAttendedToday={albumToday.isAttendedToday}
+                todayPhotoCount={albumToday.todayPhotoCount}
+                todayPhotos={todayPhotos}
+              />
+            ) : null}
             <GuardianAlbumMonthNav
               month={selectedMonth}
               canGoPrevMonth={canGoPrevMonth}
               canGoNextMonth={canGoNextMonth}
               onPrevMonth={handlePrevMonth}
               onNextMonth={handleNextMonth}
+              onYearMonthClick={handleYearMonthClick}
+              onSearchClick={handleSearchClick}
             />
-            <GuardianAlbumDayList
-              days={visibleDays}
-              showConnectionStartMessage={showConnectionStartMessage}
-            />
+            {monthAlbum.days.length === 0 ? (
+              <GuardianAlbumMonthEmpty />
+            ) : (
+              <GuardianAlbumDayList
+                days={visibleDays}
+                showConnectionStartMessage={showConnectionStartMessage}
+              />
+            )}
           </div>
           <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
         </>
