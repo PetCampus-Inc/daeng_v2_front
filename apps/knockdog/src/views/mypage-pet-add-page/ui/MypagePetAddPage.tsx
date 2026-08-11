@@ -87,7 +87,7 @@ export function MypagePetAddPage() {
   const handleSuccess = () => {
     syncWebViewQuery.invalidate(['petList']);
     if (inviteToken) {
-      void replace({ pathname: route.invite.guardian.consent.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
       return;
     }
     back?.();

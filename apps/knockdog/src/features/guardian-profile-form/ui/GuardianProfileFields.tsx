@@ -7,13 +7,14 @@ import {
   formatAddressDetail,
   formatGuardianName,
   formatMobilePhone,
+  type GuardianGender,
   type GuardianProfileFormValues,
 } from '../model/guardianProfileForm';
 
 const GENDER_OPTIONS = [
   { value: 'male', label: '남' },
   { value: 'female', label: '여' },
-] as const satisfies ReadonlyArray<{ value: Exclude<GuardianProfileFormValues['gender'], null>; label: string }>;
+] as const satisfies readonly { value: Exclude<GuardianGender, null>; label: string }[];
 
 interface GuardianProfileFieldsProps {
   values: GuardianProfileFormValues;
