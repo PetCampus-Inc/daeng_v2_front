@@ -65,7 +65,9 @@ const STATUS_BY_API: Record<string, GuardianHomeConnectionStatus> = {
   CONNECTED: 'approved',
   APPROVED: 'approved',
   ACTIVE: 'approved',
-  /** 오늘 등원 중 — 연결됨 + 등원 상태 */
+  /** 연결됨 · 오늘 등원 전 */
+  BEFORE_ATTENDANCE: 'approved',
+  /** 오늘 등원 중 */
   ATTENDING: 'approved',
   CHECKED_IN: 'approved',
   CHECKED_OUT: 'approved',
