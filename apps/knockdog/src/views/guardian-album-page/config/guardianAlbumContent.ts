@@ -22,6 +22,30 @@ const guardianAlbumContent = {
       { value: 'attendance', label: '등원일만 보기' },
     ],
   },
+  today: {
+    titleSuffix: '의 오늘 하루',
+    notAttendedTitle: '오늘은 등원하지 않았어요',
+    photoCountLabel: (count: number) => `${count}장`,
+    photoCountAriaLabel: '오늘 앨범 상세 보기',
+    newBadgeLabel: 'NEW',
+    bookmarkAriaLabel: '즐겨찾기',
+    bookmarkIconDefaultSrc: '/images/ico_photo_like_default.png',
+    bookmarkIconActiveSrc: '/images/ico_photo_like_active.png',
+  },
+  monthNav: {
+    prevAriaLabel: '이전 달',
+    nextAriaLabel: '다음 달',
+    searchAriaLabel: '날짜 검색',
+    searchIconSrc: '/images/ico_album_calendar_search.png',
+  },
+  dayCard: {
+    attendedBadgeLabel: '등원했어요',
+    overflowLabel: (remaining: number) => `+ ${remaining}`,
+  },
+  history: {
+    firstAttendanceMessage: '유치원을 다니기 시작했어요',
+  },
+  scrollTopAriaLabel: '맨 위로',
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
     imageAlt: '등록된 앨범 없음',
