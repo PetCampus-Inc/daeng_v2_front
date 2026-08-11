@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { useGuardianAttendanceDay } from '@views/guardian-kindergarten-page/model/useGuardianAttendanceDay';
-import { useGuardianKindergartenConnection } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenConnection';
-import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
@@ -14,7 +12,6 @@ import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttend
 import { GuardianKindergartenDisconnectedState } from './GuardianKindergartenDisconnectedState';
 import { GuardianKindergartenEmptyState } from './GuardianKindergartenEmptyState';
 import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
-import { GuardianKindergartenMockSwitcher } from './GuardianKindergartenMockSwitcher';
 import { GuardianKindergartenNoPetState } from './GuardianKindergartenNoPetState';
 import { GuardianKindergartenPendingState } from './GuardianKindergartenPendingState';
 
@@ -37,9 +34,12 @@ export function GuardianKindergartenPage() {
     isPetsError,
     isPetsFetching,
     refetchPets,
-  } = useGuardianSelectedPet();
-  const { status, linkedKindergarten } = useGuardianKindergartenConnection();
-  const {
+    isHomeError,
+    isHomeFetching,
+    isHomeReady,
+    refetchHome,
+    status,
+    linkedKindergarten,
     isAttending,
     isDismissed,
     checkInAt,
@@ -49,18 +49,33 @@ export function GuardianKindergartenPage() {
     dailyNotice,
     albumPhotos,
     attendanceRecordDateKeys,
-  } = useGuardianAttendanceDay();
+  } = useGuardianKindergartenHome();
 
   useEffect(() => {
     setIsMounted(true);
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
+  const handleRetry = useCallback(() => {
+    if (isPetsError) {
+      void refetchPets();
+      return;
+    }
+    void refetchHome();
+  }, [isPetsError, refetchHome, refetchPets]);
+
   if (!isMounted || !isLoggedIn || !isPetsReady) return null;
 
-  if (isPetsError) {
-    return <PageError isRetrying={isPetsFetching} onRetry={() => void refetchPets()} />;
+  if (isPetsError || (!hasNoPet && isHomeError)) {
+    return (
+      <PageError
+        isRetrying={isPetsError ? isPetsFetching : isHomeFetching}
+        onRetry={handleRetry}
+      />
+    );
   }
+
+  if (!hasNoPet && !isHomeReady) return null;
 
   const showDayState =
     !hasNoPet &&
@@ -78,7 +93,6 @@ export function GuardianKindergartenPage() {
           'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
       }}
     >
-      <GuardianKindergartenMockSwitcher />
       <GuardianKindergartenHeader
         status={status}
         isAttending={Boolean(showDayState && isAttending)}

@@ -2,10 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-  MOCK_CONNECTION_STATUS,
-  MOCK_PET_CONNECTION_BY_NAME,
-} from '../config/guardianKindergartenMock';
 import type { Pet } from '@entities/pet';
 import { usePetListQuery, usePetRepresentativeQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
@@ -18,10 +14,8 @@ function hasUserStoreHydrated() {
   return useUserStore.persist?.hasHydrated?.() ?? true;
 }
 
-function resolvePetConnectionStatus(pet: Pet): GuardianKindergartenConnectionStatus {
-  const byName = MOCK_PET_CONNECTION_BY_NAME[pet.name];
-  if (byName) return byName;
-  if (pet.isRepresentative) return MOCK_CONNECTION_STATUS;
+function resolvePetConnectionStatus(_pet: Pet): GuardianKindergartenConnectionStatus {
+  // 홈 API는 선택견 단건 조회만 지원 — 강아지 목록 배지는 별도 API 연동 전까지 none
   return 'none';
 }
 

@@ -119,7 +119,7 @@ function GuardianKindergartenAttendingState({
         </div>
 
         {/* 알림장 */}
-        {hasDailyNotice && dailyNotice ? (
+        {hasDailyNotice ? (
           <GuardianDailyNoticeArrivedBanner />
         ) : (
           <div className='bg-bg-50 radius-r3 flex w-full items-center justify-center gap-2 overflow-hidden p-4'>
