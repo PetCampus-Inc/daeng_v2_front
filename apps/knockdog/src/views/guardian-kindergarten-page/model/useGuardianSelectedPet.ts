@@ -2,14 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
+import type { Pet } from '@entities/pet';
 import { usePetListQuery, usePetRepresentativeQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
+import type { GuardianKindergartenConnectionStatus } from './guardianKindergartenConnection';
 import { useGuardianKindergartenMockStore } from './useGuardianKindergartenMockStore';
 
 function hasUserStoreHydrated() {
   return useUserStore.persist?.hasHydrated?.() ?? true;
+}
+
+function resolvePetConnectionStatus(_pet: Pet): GuardianKindergartenConnectionStatus {
+  // 홈 API는 선택견 단건 조회만 지원 — 강아지 목록 배지는 별도 API 연동 전까지 none
+  return 'none';
 }
 
 function useGuardianSelectedPet() {
@@ -52,12 +59,10 @@ function useGuardianSelectedPet() {
   const selectedPet =
     pets.find((pet) => pet.id === selectedPetId) ?? representativePet ?? pets[0] ?? null;
 
-  const isPetsReady = isUserStoreHydrated && Boolean(userId) && isFetched;
-
   return {
     pets,
     /** 펫 목록 최초 조회 완료 — userId 확보 전(isFetched false)을 ready로 취급하지 않음 */
-    isPetsReady,
+    isPetsReady: isUserStoreHydrated && Boolean(userId) && isFetched,
     /** 성공 응답이면서 목록이 비어 있을 때만 미등록으로 취급 */
     hasNoPet: isSuccess && pets.length === 0,
     isPetsError: isError,
@@ -66,7 +71,8 @@ function useGuardianSelectedPet() {
     selectedPet,
     selectedPetId: selectedPet?.id ?? null,
     setSelectedPetId,
+    getPetConnectionStatus: resolvePetConnectionStatus,
   };
 }
 
-export { useGuardianSelectedPet };
+export { useGuardianSelectedPet, resolvePetConnectionStatus };

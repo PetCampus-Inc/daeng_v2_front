@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import { useGuardianHomeQuery } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
-import { startOfDay } from '@shared/lib/calendar-date';
+import { formatDateKey } from '@shared/lib/calendar-date';
 
 import type { GuardianLinkedKindergarten } from './guardianKindergartenConnection';
 import { useGuardianSelectedPet } from './useGuardianSelectedPet';
@@ -56,11 +56,11 @@ function useGuardianKindergartenHome() {
     [home?.todayAlbumPreview]
   );
 
-  /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
-  const firstAttendedAt = useMemo(() => {
-    if (!home?.firstAttendedAt) return null;
-    return startOfDay(home.firstAttendedAt);
-  }, [home?.firstAttendedAt]);
+  const attendanceRecordDateKeys = useMemo(() => {
+    const keys = new Set<string>();
+    if (checkInAt) keys.add(formatDateKey(checkInAt));
+    return keys;
+  }, [checkInAt]);
 
   const isHomeReady = hasNoPet || (!isHomePending && home !== undefined) || isHomeError;
 
@@ -81,11 +81,12 @@ function useGuardianKindergartenHome() {
     isDismissed,
     checkInAt,
     checkOutAt,
-    firstAttendedAt,
     hasUnreadAlarm: false,
-    /** 홈 API는 알림장 본문을 주지 않음 — 배너만 todayNoteArrived로 노출 */
     hasDailyNotice,
+    /** 홈 API는 알림장 본문을 주지 않음 — 배너만 노출 */
+    dailyNotice: null,
     albumPhotos,
+    attendanceRecordDateKeys,
   };
 }
 
