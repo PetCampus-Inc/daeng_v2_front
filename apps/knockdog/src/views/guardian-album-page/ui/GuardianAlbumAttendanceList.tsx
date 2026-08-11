@@ -3,27 +3,27 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
 import {
-  createGuardianAlbumFavoritePage,
-  type GuardianAlbumFavoriteDay,
-} from '@views/guardian-album-page/config/guardianAlbumFavoriteMock';
+  createGuardianAlbumAttendancePage,
+  type GuardianAlbumAttendanceDay,
+} from '@views/guardian-album-page/config/guardianAlbumAttendanceMock';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { GuardianAlbumFilterDaySection } from '@views/guardian-album-page/ui/GuardianAlbumFilterDaySection';
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
 
-interface GuardianAlbumFavoriteListProps {
+interface GuardianAlbumAttendanceListProps {
   profileImage?: string | null;
   onScrollVisibilityChange?: (isVisible: boolean) => void;
   scrollRef?: RefObject<HTMLDivElement | null>;
 }
 
-function GuardianAlbumFavoriteList({
+function GuardianAlbumAttendanceList({
   profileImage,
   onScrollVisibilityChange,
   scrollRef: externalScrollRef,
-}: GuardianAlbumFavoriteListProps) {
+}: GuardianAlbumAttendanceListProps) {
   const internalScrollRef = useRef<HTMLDivElement>(null);
   const scrollRef = externalScrollRef ?? internalScrollRef;
-  const [days, setDays] = useState<GuardianAlbumFavoriteDay[]>([]);
+  const [days, setDays] = useState<GuardianAlbumAttendanceDay[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
@@ -39,7 +39,7 @@ function GuardianAlbumFavoriteList({
       }
 
       setIsFetchingNextPage(true);
-      const page = createGuardianAlbumFavoritePage({ cursor, profileImage });
+      const page = createGuardianAlbumAttendancePage({ cursor, profileImage });
       setDays((prev) => (cursor == null ? page.days : [...prev, ...page.days]));
       setNextCursor(page.nextCursor);
       setHasNextPage(page.nextCursor != null);
@@ -82,11 +82,7 @@ function GuardianAlbumFavoriteList({
     >
       <div className='flex w-full flex-col gap-5 px-4 py-5'>
         {days.map((day) => (
-          <GuardianAlbumFilterDaySection
-            key={day.dateKey}
-            day={day}
-            overflowLabel={guardianAlbumContent.favoriteList.overflowLabel}
-          />
+          <GuardianAlbumFilterDaySection key={day.dateKey} day={day} />
         ))}
         {hasNextPage ? (
           <div ref={lastElementCallback} aria-hidden='true' className='h-4' />
@@ -100,4 +96,4 @@ function GuardianAlbumFavoriteList({
   );
 }
 
-export { GuardianAlbumFavoriteList };
+export { GuardianAlbumAttendanceList };

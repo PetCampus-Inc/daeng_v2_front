@@ -3,20 +3,33 @@
 import { Icon } from '@knockdog/ui';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
-import type { GuardianAlbumFavoriteDay } from '@views/guardian-album-page/config/guardianAlbumFavoriteMock';
-import { FAVORITE_PREVIEW_LIMIT } from '@views/guardian-album-page/config/guardianAlbumFavoriteMock';
 import { parseDateKey } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
+import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 
-interface GuardianAlbumFavoriteDaySectionProps {
-  day: GuardianAlbumFavoriteDay;
+const PREVIEW_LIMIT = 6;
+
+interface GuardianAlbumFilterDay {
+  dateKey: string;
+  isAttended: boolean;
+  photoCount: number;
+  photos: GuardianAlbumPhoto[];
 }
 
-function GuardianAlbumFavoriteDaySection({ day }: GuardianAlbumFavoriteDaySectionProps) {
-  const { dayCard, favoriteList } = guardianAlbumContent;
+interface GuardianAlbumFilterDaySectionProps {
+  day: GuardianAlbumFilterDay;
+  /** 초과분 라벨. 기본 `+ N` */
+  overflowLabel?: (remaining: number) => string;
+}
+
+function GuardianAlbumFilterDaySection({
+  day,
+  overflowLabel = guardianAlbumContent.dayCard.overflowLabel,
+}: GuardianAlbumFilterDaySectionProps) {
+  const { dayCard } = guardianAlbumContent;
   const dateLabel = formatKoreanDateWithWeekday(parseDateKey(day.dateKey));
-  const previewPhotos = day.photos.slice(0, FAVORITE_PREVIEW_LIMIT);
-  const remainingCount = day.photoCount - FAVORITE_PREVIEW_LIMIT;
+  const previewPhotos = day.photos.slice(0, PREVIEW_LIMIT);
+  const remainingCount = day.photoCount - PREVIEW_LIMIT;
 
   return (
     <section className='flex w-full flex-col gap-4'>
@@ -32,7 +45,7 @@ function GuardianAlbumFavoriteDaySection({ day }: GuardianAlbumFavoriteDaySectio
 
       <div className='grid w-full grid-cols-3 gap-1'>
         {previewPhotos.map((photo, index) => {
-          const isOverflowTile = remainingCount > 0 && index === FAVORITE_PREVIEW_LIMIT - 1;
+          const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
 
           return (
             <div
@@ -43,8 +56,8 @@ function GuardianAlbumFavoriteDaySection({ day }: GuardianAlbumFavoriteDaySectio
               <img src={photo.url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
               {isOverflowTile ? (
                 <div className='bg-dim-70 absolute inset-0 flex items-center justify-center rounded-lg'>
-                  <span className='caption2-medium text-text-primary-inverse'>
-                    {favoriteList.overflowLabel(remainingCount)}
+                  <span className='body2-semibold text-text-primary-inverse'>
+                    {overflowLabel(remainingCount)}
                   </span>
                 </div>
               ) : null}
@@ -56,4 +69,5 @@ function GuardianAlbumFavoriteDaySection({ day }: GuardianAlbumFavoriteDaySectio
   );
 }
 
-export { GuardianAlbumFavoriteDaySection };
+export { GuardianAlbumFilterDaySection };
+export type { GuardianAlbumFilterDay };
