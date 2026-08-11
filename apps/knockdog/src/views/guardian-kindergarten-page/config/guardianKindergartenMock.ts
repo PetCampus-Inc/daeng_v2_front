@@ -26,7 +26,7 @@ const MOCK_PET_CONNECTION_BY_NAME: Record<string, GuardianKindergartenConnection
 };
 
 /** true면 화면 위 mock 스위치 UI 표시. false여도 저장된 override는 계속 적용 */
-const SHOW_CONNECTION_MOCK_SWITCHER = false;
+const SHOW_CONNECTION_MOCK_SWITCHER = true;
 
 export {
   MOCK_LINKED_KINDERGARTEN,

@@ -84,11 +84,39 @@ const guardianAlbumContent = {
     },
   },
   scrollTopAriaLabel: '맨 위로',
+  detail: {
+    listAriaLabel: '앨범 리스트로 이동',
+    gridAriaLabel: '모아보기',
+    saveAriaLabel: '저장',
+    shareAriaLabel: '공유',
+    favoriteAriaLabel: '즐겨찾기',
+    gridIconSrc: '/images/ico_album_view_grid.png',
+    favoriteIconDefaultSrc: '/images/ico_photo_like_default.png',
+    favoriteIconActiveSrc: '/images/ico_photo_like_active.png',
+    thumbnailAriaLabel: (index: number) => `${index + 1}번째 사진 보기`,
+    loadErrorMessage: '사진을 불러오지 못했어요',
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
+    shareFailedToast: {
+      nativeTitle: '사진을 공유하지 못했어요',
+    },
+  },
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
     imageAlt: '등록된 앨범 없음',
     title: '아직 등록된 앨범이 없어요',
     description: '유치원에서 앨범이 등록되면\n이곳에서 볼 수 있어요.',
+  },
+  entryError: {
+    imageSrc: '/images/img_404.png',
+    imageAlt: '정보 로드 실패',
+    title: '정보를 불러오지 못했어요',
+    description: '잠시 후 다시 시도해 주세요.',
+    retryLabel: '다시 시도하기',
   },
 } as const;
 

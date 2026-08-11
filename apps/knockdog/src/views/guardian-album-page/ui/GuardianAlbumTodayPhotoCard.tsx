@@ -7,6 +7,7 @@ interface GuardianAlbumTodayPhotoCardProps {
   isNew: boolean;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
+  onClick?: () => void;
 }
 
 function GuardianAlbumTodayPhotoCard({
@@ -14,23 +15,26 @@ function GuardianAlbumTodayPhotoCard({
   isNew,
   isBookmarked,
   onToggleBookmark,
+  onClick,
 }: GuardianAlbumTodayPhotoCardProps) {
   const { today } = guardianAlbumContent;
 
   return (
     <div className='relative size-[150px] shrink-0 overflow-hidden rounded-lg'>
-      {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-      <img src={url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+      <button type='button' className='absolute inset-0' onClick={onClick} aria-label='사진 상세 보기'>
+        {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
+        <img src={url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+      </button>
 
       {isNew ? (
-        <span className='bg-fill-primary-500 caption1-semibold text-text-primary-inverse absolute top-2 left-2 rounded-full px-2 py-1'>
+        <span className='bg-fill-primary-500 caption1-semibold text-text-primary-inverse pointer-events-none absolute top-2 left-2 rounded-full px-2 py-1'>
           {today.newBadgeLabel}
         </span>
       ) : null}
 
       <button
         type='button'
-        className='absolute right-2 bottom-2 rounded-full bg-white p-1.5'
+        className='absolute right-2 bottom-2 z-10 rounded-full bg-white p-1.5'
         aria-label={today.bookmarkAriaLabel}
         aria-pressed={isBookmarked}
         onClick={(event) => {

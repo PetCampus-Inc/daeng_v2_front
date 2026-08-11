@@ -11,9 +11,10 @@ const PREVIEW_LIMIT = 4;
 
 interface GuardianAlbumDayCardProps {
   dayAlbum: GuardianAlbumDayAlbum;
+  onClick?: () => void;
 }
 
-function GuardianAlbumDayCard({ dayAlbum }: GuardianAlbumDayCardProps) {
+function GuardianAlbumDayCard({ dayAlbum, onClick }: GuardianAlbumDayCardProps) {
   const { dayCard } = guardianAlbumContent;
   const dateLabel = formatKoreanDateWithWeekday(parseDateKey(dayAlbum.dateKey));
   const hasLoadError = dayAlbum.hasLoadError === true;
@@ -21,7 +22,22 @@ function GuardianAlbumDayCard({ dayAlbum }: GuardianAlbumDayCardProps) {
   const remainingCount = dayAlbum.photoCount - PREVIEW_LIMIT;
 
   return (
-    <article className='bg-bg-0 radius-r3 flex w-full flex-col gap-4 p-4'>
+    <article
+      className={`bg-bg-0 radius-r3 flex w-full flex-col gap-4 p-4 ${hasLoadError ? '' : 'cursor-pointer'}`}
+      onClick={hasLoadError ? undefined : onClick}
+      onKeyDown={
+        hasLoadError || !onClick
+          ? undefined
+          : (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onClick();
+              }
+            }
+      }
+      role={hasLoadError ? undefined : 'button'}
+      tabIndex={hasLoadError ? undefined : 0}
+    >
       <div
         className={
           hasLoadError ? 'flex h-[26px] items-center' : 'flex h-[26px] items-center justify-between'
