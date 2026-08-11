@@ -1,9 +1,11 @@
 /**
- * 보호자 유치원 홈 API DTO
+ * 보호자 유치원 홈 API DTO 
  * `GET /api/v0/guardian/school/home`
  */
 
 type GuardianHomeConnectionStatus = 'none' | 'pending' | 'approved' | 'disconnected';
+
+type GuardianHomeDateTime = string | number[];
 
 interface GuardianHomeSchoolDto {
   schoolId?: number | string | null;
@@ -17,15 +19,15 @@ interface GuardianHomeAlbumPreviewDto {
   id?: number | string | null;
   imageUrl?: string | null;
   authorId?: number | string | null;
-  createdAt?: string | null;
+  createdAt?: GuardianHomeDateTime | null;
   isFavorite?: boolean | null;
 }
 
 interface GuardianHomeDto {
   status?: string | null;
   school?: GuardianHomeSchoolDto | null;
-  checkInAt?: string | null;
-  checkOutAt?: string | null;
+  checkInAt?: GuardianHomeDateTime | null;
+  checkOutAt?: GuardianHomeDateTime | null;
   todayNoteArrived?: boolean | null;
   todayAlbumPreview?: GuardianHomeAlbumPreviewDto[] | null;
 }
@@ -63,6 +65,12 @@ const STATUS_BY_API: Record<string, GuardianHomeConnectionStatus> = {
   CONNECTED: 'approved',
   APPROVED: 'approved',
   ACTIVE: 'approved',
+  /** 오늘 등원 중 — 연결됨 + 등원 상태 */
+  ATTENDING: 'approved',
+  CHECKED_IN: 'approved',
+  CHECKED_OUT: 'approved',
+  DISMISSED: 'approved',
+  FINISHED: 'approved',
   DISCONNECTED: 'disconnected',
 };
 
@@ -78,10 +86,47 @@ function toAbsoluteImageUrl(url: string | null | undefined): string {
   return `${base}${url}`;
 }
 
-function parseDate(value: string | null | undefined): Date | null {
-  if (!value) return null;
-  const date = new Date(value);
+function parseApiDateTime(value: GuardianHomeDateTime | null | undefined): Date | null {
+  if (value == null) return null;
+
+  if (typeof value === 'string') {
+    if (value.length === 0) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (!Array.isArray(value) || value.length < 3) return null;
+
+  const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = value;
+  if (
+    typeof year !== 'number' ||
+    typeof month !== 'number' ||
+    typeof day !== 'number' ||
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day)
+  ) {
+    return null;
+  }
+
+  const millisecond =
+    typeof nano === 'number' && Number.isFinite(nano) ? Math.floor(nano / 1_000_000) : 0;
+  const date = new Date(
+    year,
+    month - 1,
+    day,
+    typeof hour === 'number' ? hour : 0,
+    typeof minute === 'number' ? minute : 0,
+    typeof second === 'number' ? second : 0,
+    millisecond
+  );
+
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toIsoStringOrNull(value: GuardianHomeDateTime | null | undefined): string | null {
+  const date = parseApiDateTime(value);
+  return date ? date.toISOString() : null;
 }
 
 function toAlbumPreview(
@@ -97,7 +142,7 @@ function toAlbumPreview(
     id: String(id),
     imageUrl,
     authorId: dto.authorId == null || dto.authorId === '' ? null : String(dto.authorId),
-    createdAt: dto.createdAt ?? null,
+    createdAt: toIsoStringOrNull(dto.createdAt),
     isFavorite: Boolean(dto.isFavorite),
   };
 }
@@ -125,19 +170,20 @@ function toGuardianHome(dto: GuardianHomeDto | null | undefined): GuardianHome {
   return {
     status,
     school: status === 'none' ? null : school,
-    checkInAt: parseDate(dto?.checkInAt),
-    checkOutAt: parseDate(dto?.checkOutAt),
+    checkInAt: parseApiDateTime(dto?.checkInAt),
+    checkOutAt: parseApiDateTime(dto?.checkOutAt),
     todayNoteArrived: Boolean(dto?.todayNoteArrived),
     todayAlbumPreview,
   };
 }
 
-export { toGuardianHome };
+export { parseApiDateTime, toGuardianHome };
 export type {
   GuardianHome,
   GuardianHomeAlbumPreview,
   GuardianHomeAlbumPreviewDto,
   GuardianHomeConnectionStatus,
+  GuardianHomeDateTime,
   GuardianHomeDto,
   GuardianHomeSchool,
   GuardianHomeSchoolDto,
