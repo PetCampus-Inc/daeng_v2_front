@@ -84,6 +84,26 @@ const guardianAlbumContent = {
     },
   },
   scrollTopAriaLabel: '맨 위로',
+  detail: {
+    listAriaLabel: '앨범 리스트로 이동',
+    gridAriaLabel: '모아보기',
+    saveAriaLabel: '저장',
+    shareAriaLabel: '공유',
+    favoriteAriaLabel: '즐겨찾기',
+    gridIconSrc: '/images/ico_album_view_grid.png',
+    favoriteIconDefaultSrc: '/images/ico_photo_like_default.png',
+    favoriteIconActiveSrc: '/images/ico_photo_like_active.png',
+    thumbnailAriaLabel: (index: number) => `${index + 1}번째 사진 보기`,
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
+    shareFailedToast: {
+      nativeTitle: '사진을 공유하지 못했어요',
+    },
+  },
   empty: {
     imageSrc: '/images/img_empty_album_pre_attend.png',
     imageAlt: '등록된 앨범 없음',

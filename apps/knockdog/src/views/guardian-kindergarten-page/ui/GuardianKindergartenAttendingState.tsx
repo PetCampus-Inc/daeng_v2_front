@@ -88,6 +88,10 @@ function GuardianKindergartenAttendingState({
     push({ pathname: route.compare.album.root });
   };
 
+  const handleAlbumShortcutClick = () => {
+    push({ pathname: route.compare.album.root, query: { from: 'home' } });
+  };
+
   useEffect(() => {
     if (isDismissed) return;
     const timer = window.setInterval(() => setNow(new Date()), 60_000);
@@ -148,7 +152,14 @@ function GuardianKindergartenAttendingState({
 
           {hasAlbumPhotos ? (
             <div className='flex flex-col items-center gap-2'>
-              <GuardianAlbumPhotoStack photos={albumPhotos} />
+              <button
+                type='button'
+                className='relative'
+                onClick={handleAlbumShortcutClick}
+                aria-label={content.albumTitle}
+              >
+                <GuardianAlbumPhotoStack photos={albumPhotos} />
+              </button>
               {showAlbumArrived ? (
                 <p className='body2-bold text-center'>
                   <span className='text-text-accent'>{content.albumArrivedAccent}</span>

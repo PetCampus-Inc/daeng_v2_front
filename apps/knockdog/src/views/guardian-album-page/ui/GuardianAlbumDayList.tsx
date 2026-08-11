@@ -10,12 +10,14 @@ interface GuardianAlbumDayListProps {
   showConnectionStartMessage: boolean;
   /** 연결 해제 유치원 · 마지막 재원 월 상단 문구 */
   showAttendedUntilMessage?: boolean;
+  onDayClick?: (dayAlbum: GuardianAlbumDayAlbum) => void;
 }
 
 function GuardianAlbumDayList({
   days,
   showConnectionStartMessage,
   showAttendedUntilMessage = false,
+  onDayClick,
 }: GuardianAlbumDayListProps) {
   const { history } = guardianAlbumContent;
 
@@ -27,7 +29,11 @@ function GuardianAlbumDayList({
         </p>
       ) : null}
       {days.map((dayAlbum) => (
-        <GuardianAlbumDayCard key={dayAlbum.dateKey} dayAlbum={dayAlbum} />
+        <GuardianAlbumDayCard
+          key={dayAlbum.dateKey}
+          dayAlbum={dayAlbum}
+          onClick={() => onDayClick?.(dayAlbum)}
+        />
       ))}
       {showConnectionStartMessage ? <GuardianAlbumHistoryEmpty /> : null}
     </div>

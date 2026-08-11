@@ -15,6 +15,7 @@ interface GuardianAlbumTodaySectionProps {
   isAttendedToday: boolean;
   todayPhotoCount: number;
   todayPhotos: GuardianAlbumPhoto[];
+  onOpenDetail?: (photoId?: string) => void;
 }
 
 const PREVIEW_LIMIT = 10;
@@ -24,6 +25,7 @@ function GuardianAlbumTodaySection({
   isAttendedToday,
   todayPhotoCount,
   todayPhotos,
+  onOpenDetail,
 }: GuardianAlbumTodaySectionProps) {
   const { today } = guardianAlbumContent;
   const { lastViewedAt } = useGuardianAlbumLastViewed();
@@ -72,6 +74,7 @@ function GuardianAlbumTodaySection({
             type='button'
             className='bg-fill-primary-50 gap-x1 flex shrink-0 items-center rounded-full px-2 py-1'
             aria-label={today.photoCountAriaLabel}
+            onClick={() => onOpenDetail?.()}
           >
             <Icon icon='Camera' className='text-text-accent size-4' aria-hidden='true' />
             <span className='caption1-extrabold text-text-accent'>
@@ -89,6 +92,8 @@ function GuardianAlbumTodaySection({
           lastViewedAt={lastViewedAt}
           bookmarkedIds={bookmarkedIds}
           onToggleBookmark={handleToggleBookmark}
+          onPhotoClick={(photoId) => onOpenDetail?.(photoId)}
+          onOverflowClick={() => onOpenDetail?.()}
         />
       ) : null}
     </section>

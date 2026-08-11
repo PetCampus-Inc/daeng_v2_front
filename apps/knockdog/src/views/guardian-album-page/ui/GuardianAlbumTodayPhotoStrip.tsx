@@ -13,6 +13,8 @@ interface GuardianAlbumTodayPhotoStripProps {
   lastViewedAt: number;
   bookmarkedIds: Set<string>;
   onToggleBookmark: (photoId: string) => void;
+  onPhotoClick?: (photoId: string) => void;
+  onOverflowClick?: () => void;
 }
 
 function GuardianAlbumTodayOverflowCard({
@@ -43,6 +45,8 @@ function GuardianAlbumTodayPhotoStrip({
   lastViewedAt,
   bookmarkedIds,
   onToggleBookmark,
+  onPhotoClick,
+  onOverflowClick,
 }: GuardianAlbumTodayPhotoStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState({ widthRatio: 1, leftRatio: 0 });
@@ -94,11 +98,14 @@ function GuardianAlbumTodayPhotoStrip({
               isNew={isNew}
               isBookmarked={bookmarkedIds.has(photo.id)}
               onToggleBookmark={() => onToggleBookmark(photo.id)}
+              onClick={() => onPhotoClick?.(photo.id)}
             />
           );
         })}
         {overflowPhoto ? (
-          <GuardianAlbumTodayOverflowCard url={overflowPhoto.url} remainingCount={remainingCount} />
+          <button type='button' className='shrink-0' onClick={onOverflowClick}>
+            <GuardianAlbumTodayOverflowCard url={overflowPhoto.url} remainingCount={remainingCount} />
+          </button>
         ) : null}
         <div className='w-4 shrink-0' aria-hidden />
       </div>
