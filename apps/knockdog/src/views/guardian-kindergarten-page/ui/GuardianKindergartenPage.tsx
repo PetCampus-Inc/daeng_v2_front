@@ -46,7 +46,6 @@ export function GuardianKindergartenPage() {
     checkOutAt,
     hasUnreadAlarm,
     hasDailyNotice,
-    dailyNotice,
     albumPhotos,
     attendanceRecordDateKeys,
   } = useGuardianKindergartenHome();
@@ -112,7 +111,6 @@ export function GuardianKindergartenPage() {
             checkInAt={checkInAt}
             checkOutAt={checkOutAt}
             hasDailyNotice={hasDailyNotice}
-            dailyNotice={dailyNotice}
             albumPhotos={albumPhotos}
             attendanceRecordDateKeys={attendanceRecordDateKeys}
           />

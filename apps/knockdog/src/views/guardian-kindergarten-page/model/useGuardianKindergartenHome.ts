@@ -82,9 +82,8 @@ function useGuardianKindergartenHome() {
     checkInAt,
     checkOutAt,
     hasUnreadAlarm: false,
+    /** 홈 API는 알림장 본문을 주지 않음 — 배너만 todayNoteArrived로 노출 */
     hasDailyNotice,
-    /** 홈 API는 알림장 본문을 주지 않음 — 배너만 노출 */
-    dailyNotice: null,
     albumPhotos,
     attendanceRecordDateKeys,
   };

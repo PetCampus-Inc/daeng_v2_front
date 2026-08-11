@@ -25,8 +25,7 @@ interface GuardianKindergartenAttendingStateProps {
   checkOutAt?: Date | null;
   hasDailyNotice: boolean;
   albumPhotos: string[];
-  /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
-  firstAttendedAt?: Date | null;
+  attendanceRecordDateKeys: Set<string>;
 }
 
 function GuardianKindergartenAttendingState({
@@ -35,7 +34,7 @@ function GuardianKindergartenAttendingState({
   checkOutAt = null,
   hasDailyNotice,
   albumPhotos,
-  firstAttendedAt = null,
+  attendanceRecordDateKeys,
 }: GuardianKindergartenAttendingStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [now, setNow] = useState(() => new Date());
@@ -176,7 +175,7 @@ function GuardianKindergartenAttendingState({
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          firstAttendedAt={firstAttendedAt ?? undefined}
+          markedDateKeys={attendanceRecordDateKeys}
         />
         <GuardianKindergartenDayTimeline
           checkInAt={selectedCheckInAt}

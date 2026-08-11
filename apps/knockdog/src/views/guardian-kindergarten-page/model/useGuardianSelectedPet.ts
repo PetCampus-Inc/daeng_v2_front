@@ -1,7 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
 
+import {
+  getGuardianSchoolHome,
+  guardianHomeQueryKey,
+  toGuardianHome,
+} from '@entities/guardian-home';
 import type { Pet } from '@entities/pet';
 import { usePetListQuery, usePetRepresentativeQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
@@ -12,11 +18,6 @@ import { useGuardianKindergartenMockStore } from './useGuardianKindergartenMockS
 
 function hasUserStoreHydrated() {
   return useUserStore.persist?.hasHydrated?.() ?? true;
-}
-
-function resolvePetConnectionStatus(_pet: Pet): GuardianKindergartenConnectionStatus {
-  // 홈 API는 선택견 단건 조회만 지원 — 강아지 목록 배지는 별도 API 연동 전까지 none
-  return 'none';
 }
 
 function useGuardianSelectedPet() {
@@ -59,10 +60,33 @@ function useGuardianSelectedPet() {
   const selectedPet =
     pets.find((pet) => pet.id === selectedPetId) ?? representativePet ?? pets[0] ?? null;
 
+  const isPetsReady = isUserStoreHydrated && Boolean(userId) && isFetched;
+  const canFetchHomeStatuses = isPetsReady && pets.length > 0;
+
+  const connectionQueries = useQueries({
+    queries: pets.map((pet) => ({
+      queryKey: guardianHomeQueryKey(userId, pet.id),
+      queryFn: () => getGuardianSchoolHome({ petId: pet.id }),
+      select: (response: Awaited<ReturnType<typeof getGuardianSchoolHome>>) =>
+        toGuardianHome(response.data).status,
+      enabled: canFetchHomeStatuses,
+      staleTime: 0,
+    })),
+  });
+
+  const getPetConnectionStatus = useCallback(
+    (pet: Pet): GuardianKindergartenConnectionStatus | null => {
+      const index = pets.findIndex((item) => item.id === pet.id);
+      if (index < 0) return null;
+      return connectionQueries[index]?.data ?? null;
+    },
+    [connectionQueries, pets]
+  );
+
   return {
     pets,
     /** 펫 목록 최초 조회 완료 — userId 확보 전(isFetched false)을 ready로 취급하지 않음 */
-    isPetsReady: isUserStoreHydrated && Boolean(userId) && isFetched,
+    isPetsReady,
     /** 성공 응답이면서 목록이 비어 있을 때만 미등록으로 취급 */
     hasNoPet: isSuccess && pets.length === 0,
     isPetsError: isError,
@@ -71,8 +95,8 @@ function useGuardianSelectedPet() {
     selectedPet,
     selectedPetId: selectedPet?.id ?? null,
     setSelectedPetId,
-    getPetConnectionStatus: resolvePetConnectionStatus,
+    getPetConnectionStatus,
   };
 }
 
-export { useGuardianSelectedPet, resolvePetConnectionStatus };
+export { useGuardianSelectedPet };
