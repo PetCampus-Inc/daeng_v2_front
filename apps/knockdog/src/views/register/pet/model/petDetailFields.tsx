@@ -5,6 +5,7 @@ import {
   NeuteredSelector,
   WeightTextField,
   isValidDogWeight,
+  type Breed,
 } from '@features/dog-profile';
 
 const petDetailFields = [
@@ -47,7 +48,7 @@ const petDetailFields = [
     prefix: '를',
     rules: {
       required: true,
-      validate: (value: string) => isValidDogWeight(value),
+      validate: (value: string | Breed) => typeof value === 'string' && isValidDogWeight(value),
     },
     component: <WeightTextField />,
   },
