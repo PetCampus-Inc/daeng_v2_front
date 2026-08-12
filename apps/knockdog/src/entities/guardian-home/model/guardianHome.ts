@@ -68,22 +68,15 @@ interface GuardianHome {
 
 const STATUS_BY_API: Record<string, GuardianHomeConnectionStatus> = {
   NOT_CONNECTED: 'none',
-  NONE: 'none',
-  PENDING: 'pending',
-  REQUESTED: 'pending',
-  WAITING: 'pending',
-  CONNECTED: 'approved',
-  APPROVED: 'approved',
-  ACTIVE: 'approved',
   /** 연결됨 · 오늘 등원 전 */
   BEFORE_ATTENDANCE: 'approved',
   /** 오늘 등원 중 */
   ATTENDING: 'approved',
-  CHECKED_IN: 'approved',
-  CHECKED_OUT: 'approved',
-  DISMISSED: 'approved',
-  FINISHED: 'approved',
+  /** 오늘 하원 완료 */
+  LEFT: 'approved',
+  /** 연결 해제 */
   DISCONNECTED: 'disconnected',
+  /** todo - 연결 승인 대기 추가 */
 };
 
 function toConnectionStatus(value: string | null | undefined): GuardianHomeConnectionStatus {
