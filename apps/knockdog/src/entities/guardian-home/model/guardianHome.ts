@@ -13,10 +13,9 @@ interface GuardianHomeSchoolDto {
   address?: string | null;
   imageUrl?: string | null;
   thumbnailUrl?: string | null;
-  /** 해당 유치원 첫 등원일 (LocalDate / LocalDateTime) */
+  /** 해당 유치원 첫 등원일 — 주황점 하한 */
   firstAttendedAt?: GuardianHomeDateTime | null;
   firstAttendanceDate?: string | null;
-  connectedAt?: GuardianHomeDateTime | null;
 }
 
 interface GuardianHomeAlbumPreviewDto {
@@ -34,10 +33,9 @@ interface GuardianHomeDto {
   checkOutAt?: GuardianHomeDateTime | null;
   todayNoteArrived?: boolean | null;
   todayAlbumPreview?: GuardianHomeAlbumPreviewDto[] | null;
-  /** 해당 유치원 첫 등원일 — 캘린더 min/주황점 기준 */
+  /** 해당 유치원 첫 등원일 — 캘린더 주황점 기준 */
   firstAttendedAt?: GuardianHomeDateTime | null;
   firstAttendanceDate?: string | null;
-  connectedAt?: GuardianHomeDateTime | null;
 }
 
 interface GuardianHomeAlbumPreview {
@@ -96,13 +94,22 @@ function parseApiDateTime(value: GuardianHomeDateTime | null | undefined): Date 
 
   if (typeof value === 'string') {
     if (value.length === 0) return null;
+
+    // LocalDate `YYYY-MM-DD` — 캘린더 일자(KST 자정)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-').map(Number);
+      if (!year || !month || !day) return null;
+      const date = new Date(Date.UTC(year, month - 1, day, -9));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
   }
 
   if (!Array.isArray(value) || value.length < 3) return null;
 
-  const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = value;
+  const [year, month, day, hour, minute, second = 0, nano = 0] = value;
   if (
     typeof year !== 'number' ||
     typeof month !== 'number' ||
@@ -116,14 +123,33 @@ function parseApiDateTime(value: GuardianHomeDateTime | null | undefined): Date 
 
   const millisecond =
     typeof nano === 'number' && Number.isFinite(nano) ? Math.floor(nano / 1_000_000) : 0;
+
+  // LocalDate `[y,m,d]` — 캘린더 일자만 보존 (KST 자정)
+  if (value.length === 3) {
+    const date = new Date(Date.UTC(year, month - 1, day, -9));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  // LocalDateTime — API 계약 타임존(KST) wall time → UTC instant
+  if (
+    typeof hour !== 'number' ||
+    typeof minute !== 'number' ||
+    !Number.isFinite(hour) ||
+    !Number.isFinite(minute)
+  ) {
+    return null;
+  }
+
   const date = new Date(
-    year,
-    month - 1,
-    day,
-    typeof hour === 'number' ? hour : 0,
-    typeof minute === 'number' ? minute : 0,
-    typeof second === 'number' ? second : 0,
-    millisecond
+    Date.UTC(
+      year,
+      month - 1,
+      day,
+      hour - 9,
+      minute,
+      typeof second === 'number' ? second : 0,
+      millisecond
+    )
   );
 
   return Number.isNaN(date.getTime()) ? null : date;
@@ -170,10 +196,8 @@ function parseFirstAttendedAt(dto: GuardianHomeDto | null | undefined): Date | n
   const candidates: Array<GuardianHomeDateTime | string | null | undefined> = [
     dto?.firstAttendedAt,
     dto?.firstAttendanceDate,
-    dto?.connectedAt,
     school?.firstAttendedAt,
     school?.firstAttendanceDate,
-    school?.connectedAt,
   ];
 
   for (const candidate of candidates) {

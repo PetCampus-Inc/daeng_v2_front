@@ -1,19 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useQueries } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
-import {
-  getGuardianSchoolHome,
-  guardianHomeQueryKey,
-  toGuardianHome,
-} from '@entities/guardian-home';
-import type { Pet } from '@entities/pet';
 import { usePetListQuery, usePetRepresentativeQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
-import type { GuardianKindergartenConnectionStatus } from './guardianKindergartenConnection';
 import { useGuardianKindergartenMockStore } from './useGuardianKindergartenMockStore';
 
 function hasUserStoreHydrated() {
@@ -61,27 +53,6 @@ function useGuardianSelectedPet() {
     pets.find((pet) => pet.id === selectedPetId) ?? representativePet ?? pets[0] ?? null;
 
   const isPetsReady = isUserStoreHydrated && Boolean(userId) && isFetched;
-  const canFetchHomeStatuses = isPetsReady && pets.length > 0;
-
-  const connectionQueries = useQueries({
-    queries: pets.map((pet) => ({
-      queryKey: guardianHomeQueryKey(userId, pet.id),
-      queryFn: () => getGuardianSchoolHome({ petId: pet.id }),
-      select: (response: Awaited<ReturnType<typeof getGuardianSchoolHome>>) =>
-        toGuardianHome(response.data).status,
-      enabled: canFetchHomeStatuses,
-      staleTime: 0,
-    })),
-  });
-
-  const getPetConnectionStatus = useCallback(
-    (pet: Pet): GuardianKindergartenConnectionStatus | null => {
-      const index = pets.findIndex((item) => item.id === pet.id);
-      if (index < 0) return null;
-      return connectionQueries[index]?.data ?? null;
-    },
-    [connectionQueries, pets]
-  );
 
   return {
     pets,
@@ -95,7 +66,6 @@ function useGuardianSelectedPet() {
     selectedPet,
     selectedPetId: selectedPet?.id ?? null,
     setSelectedPetId,
-    getPetConnectionStatus,
   };
 }
 

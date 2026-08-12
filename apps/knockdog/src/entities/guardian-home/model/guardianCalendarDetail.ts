@@ -78,8 +78,8 @@ function toDailyNotice(
   if (!dto) return null;
 
   const status = typeof dto.status === 'string' ? dto.status.toUpperCase() : '';
-  // 보호자에게는 발송된 알림장만 노출
-  if (status !== 'SENT' && !dto.sentAt) return null;
+  // 보호자에게는 발송(SENT)된 알림장만 노출
+  if (status !== 'SENT') return null;
 
   const writtenAtDate = parseApiDateTime(dto.sentAt) ?? parseApiDateTime(dto.updatedAt);
   if (!writtenAtDate) return null;

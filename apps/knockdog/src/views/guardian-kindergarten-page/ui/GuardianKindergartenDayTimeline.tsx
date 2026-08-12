@@ -87,16 +87,23 @@ function buildTimelineEvents(options: {
     });
   }
 
-  if (options.dailyNotice?.writtenAt) {
-    const noticeAt = new Date(options.dailyNotice.writtenAt);
-    if (!Number.isNaN(noticeAt.getTime())) {
-      events.push({
-        kind: 'notice',
-        at: noticeAt.getTime(),
-        timeLabel: formatKoreanAmPmTime(noticeAt),
-        notice: options.dailyNotice,
-      });
-    }
+  if (options.dailyNotice) {
+    const noticeAt = options.dailyNotice.writtenAt
+      ? new Date(options.dailyNotice.writtenAt)
+      : null;
+    const hasValidWrittenAt = noticeAt != null && !Number.isNaN(noticeAt.getTime());
+
+    events.push({
+      kind: 'notice',
+      // writtenAt 없으면 하원 직후(또는 맨 끝)
+      at: hasValidWrittenAt
+        ? noticeAt.getTime()
+        : options.checkOutAt
+          ? options.checkOutAt.getTime() + 1
+          : Number.MAX_SAFE_INTEGER,
+      timeLabel: hasValidWrittenAt ? formatKoreanAmPmTime(noticeAt) : '',
+      notice: options.dailyNotice,
+    });
   }
 
   return events.sort((a, b) => {
