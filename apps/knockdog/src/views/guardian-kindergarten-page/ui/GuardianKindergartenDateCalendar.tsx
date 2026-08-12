@@ -13,6 +13,7 @@ import {
 } from '@shared/lib/calendar-date';
 import { MonthlyDatePicker } from '@shared/ui/monthly-date-picker';
 import { WeeklyDatePicker } from '@shared/ui/weekly-date-picker';
+import { formatKstDateKey } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 
 interface GuardianKindergartenDateCalendarProps {
@@ -84,7 +85,7 @@ function GuardianKindergartenDateCalendar({
     [maxDateProp, today]
   );
   const firstAttendKey = useMemo(
-    () => (firstAttendedAt ? formatDateKey(startOfDay(firstAttendedAt)) : null),
+    () => (firstAttendedAt ? formatKstDateKey(firstAttendedAt) : null),
     [firstAttendedAt]
   );
 
