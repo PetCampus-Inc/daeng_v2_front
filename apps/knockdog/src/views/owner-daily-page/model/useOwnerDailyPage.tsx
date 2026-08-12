@@ -53,11 +53,10 @@ function toAttendanceMemberFromCandidate(
   dateKey: string
 ): AttendanceMember {
   const hasTodayCheckIn = isCheckInOnDate(candidate.checkInAt, dateKey);
-  // 전날 CHECKED_IN이 남아 있어도 당일 checkInAt이 없으면 등원 전으로 취급
+  // 전날 CHECKED_IN이 남아 있어도 당일 등원 시각이 없으면 등원 전으로 취급
   const checkedIn =
     candidate.checkinoutStatus !== 'NOT_CHECKED_IN' &&
-    candidate.checkInAt != null &&
-    hasTodayCheckIn;
+    (candidate.checkInAt == null || hasTodayCheckIn);
   const checkedOut = checkedIn && candidate.checkinoutStatus === 'CHECKED_OUT';
 
   return {
