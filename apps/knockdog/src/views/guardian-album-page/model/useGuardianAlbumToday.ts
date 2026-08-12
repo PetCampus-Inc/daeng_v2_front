@@ -1,0 +1,77 @@
+'use client';
+
+import { useMemo } from 'react';
+
+import { useGuardianAlbumTodayQuery } from '@entities/guardian-album';
+import { useGuardianHomeQuery } from '@entities/guardian-home';
+import { useUserStore } from '@entities/user';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+
+/**
+ * 보호자 앨범 오늘 섹션 — home에서 schoolId 확보 후 `GET albums/{schoolId}/today` 조회.
+ */
+function useGuardianAlbumToday() {
+  const userId = useUserStore((state) => state.user?.userId);
+  const { selectedPet, selectedPetId, isPetsReady, hasNoPet } = useGuardianSelectedPet();
+
+  const {
+    data: home,
+    isError: isHomeError,
+    isFetching: isHomeFetching,
+    isPending: isHomePending,
+    refetch: refetchHome,
+  } = useGuardianHomeQuery({
+    userId,
+    petId: selectedPetId,
+    enabled: isPetsReady && !hasNoPet && Boolean(selectedPetId),
+  });
+
+  const schoolId = home?.school?.id ?? null;
+  const schoolName = home?.school?.name ?? null;
+  const hasLinkedSchool = Boolean(schoolId) && home?.status !== 'none';
+
+  const {
+    data: todayAlbum,
+    isError: isTodayError,
+    isFetching: isTodayFetching,
+    isPending: isTodayPending,
+    refetch: refetchToday,
+  } = useGuardianAlbumTodayQuery({
+    userId,
+    schoolId,
+    petId: selectedPetId,
+    enabled: isPetsReady && !hasNoPet && hasLinkedSchool,
+  });
+
+  const todayPhotos = useMemo(() => todayAlbum?.photos ?? [], [todayAlbum?.photos]);
+
+  const isReady =
+    hasNoPet ||
+    (isPetsReady &&
+      !isHomePending &&
+      home !== undefined &&
+      (!hasLinkedSchool || !isTodayPending || todayAlbum !== undefined || isTodayError));
+
+  return {
+    selectedPet,
+    selectedPetId,
+    schoolId,
+    schoolName,
+    hasLinkedSchool,
+    /** 연결 유치원이 있으면 앨범 탭 본문(월 리스트 등) 노출 */
+    hasAlbumHistory: hasLinkedSchool,
+    isAttendedToday: todayAlbum?.isAttendedToday ?? false,
+    todayPhotoCount: todayAlbum?.todayPhotoCount ?? 0,
+    todayPhotos,
+    todayDate: todayAlbum?.date ?? null,
+    isReady,
+    isError: isHomeError || (hasLinkedSchool && isTodayError),
+    isFetching: isHomeFetching || isTodayFetching,
+    refetch: async () => {
+      await refetchHome();
+      if (hasLinkedSchool) await refetchToday();
+    },
+  };
+}
+
+export { useGuardianAlbumToday };
