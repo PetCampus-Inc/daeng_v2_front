@@ -8,10 +8,7 @@ import { overlay } from 'overlay-kit';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { MOCK_ALBUM_KINDERGARTENS } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
 import {
-  MOCK_ALBUM_CONNECTION_STARTED_AT,
   compareYearMonth,
-  createGuardianAlbumMonthMock,
-  createGuardianAlbumPhotoDateKeys,
   isSameYearMonth,
   parseDateKey,
   toDateKey,
@@ -19,6 +16,7 @@ import {
 } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
+import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuardianAlbumMonth';
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
@@ -64,11 +62,15 @@ function GuardianAlbumPage() {
   const kindergartens = MOCK_ALBUM_KINDERGARTENS;
   const {
     selectedPet,
+    selectedPetId,
+    schoolId,
     schoolName,
     hasAlbumHistory,
+    hasLinkedSchool,
     isAttendedToday,
     todayPhotoCount,
     todayPhotos,
+    todayDate,
     isReady,
     isError: isAlbumTodayError,
     isFetching: isAlbumTodayFetching,
@@ -91,6 +93,22 @@ function GuardianAlbumPage() {
   const [detailState, setDetailState] = useState<GuardianAlbumDetailState | null>(null);
   const [isEntryRetrying, setIsEntryRetrying] = useState(false);
 
+  const {
+    days: monthDays,
+    firstAvailableMonth,
+    lastAvailableMonth,
+    connectionStartedAt,
+    isError: isAlbumMonthError,
+    isFetching: isAlbumMonthFetching,
+    isPending: isAlbumMonthPending,
+    refetch: refetchAlbumMonth,
+  } = useGuardianAlbumMonth({
+    schoolId,
+    petId: selectedPetId,
+    selectedMonth,
+    enabled: hasLinkedSchool,
+  });
+
   const selectedKindergarten =
     kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
   const kindergartenName = schoolName ?? selectedKindergarten?.name ?? '유치원';
@@ -106,16 +124,11 @@ function GuardianAlbumPage() {
     [todayPhotos, todayPhotoCount]
   );
 
-  const monthAlbum = useMemo(
-    () =>
-      createGuardianAlbumMonthMock(selectedMonth, selectedPet?.profileImage, albumRangeEnd, {
-        includeTodayAsDayCard: isDisconnected || !isAttendedToday,
-        unattendedRangeEnd: !isDisconnected && !isAttendedToday,
-      }),
-    [selectedMonth, selectedPet?.profileImage, albumRangeEnd, isDisconnected, isAttendedToday]
-  );
-
-  const visibleDays = monthAlbum.days;
+  const todayDateKey = todayDate ?? toDateKey(new Date());
+  const visibleDays = useMemo<GuardianAlbumDayAlbum[]>(() => {
+    const hideTodayInList = !isDisconnected && isAttendedToday;
+    return monthDays.filter((day) => !(hideTodayInList && day.dateKey === todayDateKey));
+  }, [monthDays, isDisconnected, isAttendedToday, todayDateKey]);
 
   const hasFavoritePhotos = useMemo(
     () => hasGuardianAlbumFavoritePhotos(selectedPet?.profileImage, albumRangeEnd),
@@ -199,28 +212,38 @@ function GuardianAlbumPage() {
     [handleResetFilter]
   );
 
-  const showConnectionStartMessage = isSameYearMonth(
-    selectedMonth,
-    parseDateKey(monthAlbum.connectionStartedAt)
-  );
+  const showConnectionStartMessage =
+    connectionStartedAt != null &&
+    isSameYearMonth(selectedMonth, parseDateKey(connectionStartedAt));
   const showAttendedUntilMessage =
     isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
 
-  const minMonth = startOfMonth(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
-  const maxMonth = startOfMonth(albumRangeEnd);
-  const minDate = startOfDay(parseDateKey(MOCK_ALBUM_CONNECTION_STARTED_AT));
-  const maxDate = startOfDay(albumRangeEnd);
+  const minMonth = startOfMonth(firstAvailableMonth ?? selectedMonth);
+  const maxMonth = startOfMonth(lastAvailableMonth ?? selectedMonth);
+  const minDate = startOfDay(
+    firstAvailableMonth ??
+      (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : selectedMonth)
+  );
+  const maxDate = startOfDay(
+    lastAvailableMonth
+      ? new Date(lastAvailableMonth.getFullYear(), lastAvailableMonth.getMonth() + 1, 0)
+      : albumRangeEnd
+  );
   const canGoPrevMonth = compareYearMonth(selectedMonth, minMonth) > 0;
   const canGoNextMonth = compareYearMonth(selectedMonth, maxMonth) < 0;
   const albumPhotoDateKeys = useMemo(() => {
-    const keys = createGuardianAlbumPhotoDateKeys(albumRangeEnd, {
-      includeTodayAsDayCard: isDisconnected || !isAttendedToday,
-    });
+    const keys = new Set<string>();
+    for (const day of monthDays) {
+      if (day.photoCount > 0) keys.add(day.dateKey);
+    }
     if (!isDisconnected && isAttendedToday && todayPhotoCount > 0) {
-      keys.add(toDateKey(new Date()));
+      keys.add(todayDateKey);
     }
     return keys;
-  }, [albumRangeEnd, isDisconnected, isAttendedToday, todayPhotoCount]);
+  }, [monthDays, isDisconnected, isAttendedToday, todayPhotoCount, todayDateKey]);
+
+  const isMonthListLoading =
+    hasLinkedSchool && isAlbumMonthPending && monthDays.length === 0 && !isAlbumMonthError;
 
   const handleKindergartenSelect = useCallback(
     (kindergartenId: string) => {
@@ -326,10 +349,10 @@ function GuardianAlbumPage() {
   const handleEntryRetry = useCallback(() => {
     if (isEntryRetrying) return;
     setIsEntryRetrying(true);
-    void refetchAlbumToday().finally(() => {
+    Promise.all([refetchAlbumToday(), refetchAlbumMonth()]).finally(() => {
       setIsEntryRetrying(false);
     });
-  }, [isEntryRetrying, refetchAlbumToday]);
+  }, [isEntryRetrying, refetchAlbumMonth, refetchAlbumToday]);
 
   if (!isReady) return null;
 
@@ -381,7 +404,7 @@ function GuardianAlbumPage() {
 
       {isEntryLoadError ? (
         <GuardianAlbumEntryError
-          isRetrying={isEntryRetrying || isAlbumTodayFetching}
+          isRetrying={isEntryRetrying || isAlbumTodayFetching || isAlbumMonthFetching}
           onRetry={handleEntryRetry}
         />
       ) : hasAlbumHistory ? (
@@ -432,7 +455,7 @@ function GuardianAlbumPage() {
                 onYearMonthClick={handleYearMonthClick}
                 onSearchClick={handleSearchClick}
               />
-              {monthAlbum.days.length === 0 ? (
+              {isMonthListLoading ? null : visibleDays.length === 0 ? (
                 <>
                   {showAttendedUntilMessage ? (
                     <p className='body1-medium text-text-secondary mt-5 px-4 py-4 text-center'>
