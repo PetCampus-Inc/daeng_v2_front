@@ -44,10 +44,10 @@ export function GuardianKindergartenPage() {
     isDismissed,
     checkInAt,
     checkOutAt,
+    firstAttendedAt,
     hasUnreadAlarm,
     hasDailyNotice,
     albumPhotos,
-    attendanceRecordDateKeys,
   } = useGuardianKindergartenHome();
 
   useEffect(() => {
@@ -112,14 +112,14 @@ export function GuardianKindergartenPage() {
             checkOutAt={checkOutAt}
             hasDailyNotice={hasDailyNotice}
             albumPhotos={albumPhotos}
-            attendanceRecordDateKeys={attendanceRecordDateKeys}
+            firstAttendedAt={firstAttendedAt}
           />
         ) : showDisconnected ? (
           <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} />
         ) : status === 'approved' && linkedKindergarten ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}
-            attendanceRecordDateKeys={attendanceRecordDateKeys}
+            firstAttendedAt={firstAttendedAt}
           />
         ) : status === 'pending' && linkedKindergarten ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />

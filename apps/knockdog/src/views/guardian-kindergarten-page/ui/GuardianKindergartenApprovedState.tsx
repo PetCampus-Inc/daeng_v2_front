@@ -17,12 +17,13 @@ import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard
 
 interface GuardianKindergartenApprovedStateProps {
   kindergarten: GuardianLinkedKindergarten;
-  attendanceRecordDateKeys?: Set<string>;
+  /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
+  firstAttendedAt?: Date | null;
 }
 
 function GuardianKindergartenApprovedState({
   kindergarten,
-  attendanceRecordDateKeys,
+  firstAttendedAt = null,
 }: GuardianKindergartenApprovedStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const content = guardianKindergartenApprovedContent;
@@ -92,7 +93,7 @@ function GuardianKindergartenApprovedState({
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          markedDateKeys={attendanceRecordDateKeys}
+          firstAttendedAt={firstAttendedAt ?? undefined}
         />
         <GuardianKindergartenDayTimeline
           checkInAt={checkInAt}
