@@ -6,6 +6,7 @@ import { RemoveScroll } from 'react-remove-scroll';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
+import { isGuardianAlbumExpandPhotoId } from '@views/guardian-album-page/lib/guardianAlbumPhotoId';
 import { GuardianAlbumPhotoGrid } from '@views/guardian-album-page/ui/GuardianAlbumPhotoGrid';
 import {
   formatAlbumDetailTitle,
@@ -22,6 +23,11 @@ const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+function resolveBookmarkPhotoId(photoId: string) {
+  const expandIndex = photoId.indexOf('-expand-');
+  return expandIndex >= 0 ? photoId.slice(0, expandIndex) : photoId;
+}
+
 interface GuardianAlbumPhotoDetailProps {
   photos: GuardianAlbumPhoto[];
   initialIndex: number;
@@ -29,6 +35,7 @@ interface GuardianAlbumPhotoDetailProps {
   /** 유치원 메인 바로가기 진입 시에만 true — 리스트 이동 아이콘 노출 */
   showListButton?: boolean;
   onListClick?: () => void;
+  onToggleFavorite?: (photoId: string, isFavorite: boolean) => Promise<void>;
 }
 
 function GuardianAlbumPhotoDetail({
@@ -37,6 +44,7 @@ function GuardianAlbumPhotoDetail({
   onClose,
   showListButton = false,
   onListClick,
+  onToggleFavorite,
 }: GuardianAlbumPhotoDetailProps) {
   const { detail } = guardianAlbumContent;
   const [activeIndex, setActiveIndex] = useState(initialIndex);
@@ -58,7 +66,11 @@ function GuardianAlbumPhotoDetail({
   const currentPhoto = photos[activeIndex];
   const current = activeIndex + 1;
   const total = photos.length;
-  const isBookmarked = currentPhoto ? bookmarkedIds.has(currentPhoto.id) : false;
+  const isBookmarked = currentPhoto
+    ? bookmarkedIds.has(resolveBookmarkPhotoId(currentPhoto.id))
+    : false;
+  const canToggleFavorite =
+    currentPhoto != null && !isGuardianAlbumExpandPhotoId(currentPhoto.id);
   const isCurrentLoadError = currentPhoto
     ? currentPhoto.hasLoadError === true || failedPhotoIds.has(currentPhoto.id)
     : false;
@@ -88,6 +100,12 @@ function GuardianAlbumPhotoDetail({
       previousFocusRef.current?.focus();
     };
   }, []);
+
+  useEffect(() => {
+    setBookmarkedIds(
+      new Set(photos.filter((photo) => photo.isBookmarked).map((photo) => photo.id))
+    );
+  }, [photos]);
 
   useEffect(() => {
     if (photos.length === 0) {
@@ -237,14 +255,26 @@ function GuardianAlbumPhotoDetail({
   }, [currentPhoto, isCurrentLoadError, share]);
 
   const handleFavoriteClick = useCallback(() => {
-    if (!currentPhoto) return;
+    if (!currentPhoto || !canToggleFavorite) return;
+
+    const photoId = resolveBookmarkPhotoId(currentPhoto.id);
+    const nextIsFavorite = !bookmarkedIds.has(photoId);
     setBookmarkedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(currentPhoto.id)) next.delete(currentPhoto.id);
-      else next.add(currentPhoto.id);
+      if (nextIsFavorite) next.add(photoId);
+      else next.delete(photoId);
       return next;
     });
-  }, [currentPhoto]);
+
+    void onToggleFavorite?.(photoId, nextIsFavorite).catch(() => {
+      setBookmarkedIds((prev) => {
+        const next = new Set(prev);
+        if (nextIsFavorite) next.delete(photoId);
+        else next.add(photoId);
+        return next;
+      });
+    });
+  }, [bookmarkedIds, canToggleFavorite, currentPhoto, onToggleFavorite]);
 
   if (!currentPhoto || photos.length === 0) return null;
 
@@ -369,9 +399,10 @@ function GuardianAlbumPhotoDetail({
               <span className='bg-line-200 h-3.5 w-px shrink-0' aria-hidden='true' />
               <button
                 type='button'
-                className='inline-flex size-6 items-center justify-center'
+                className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.favoriteAriaLabel}
                 aria-pressed={isBookmarked}
+                disabled={!canToggleFavorite}
                 onClick={handleFavoriteClick}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 디자인 제공 PNG 아이콘 */}

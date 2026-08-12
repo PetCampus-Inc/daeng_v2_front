@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
@@ -16,6 +16,7 @@ interface GuardianAlbumTodaySectionProps {
   todayPhotoCount: number;
   todayPhotos: GuardianAlbumPhoto[];
   onOpenDetail?: (photoId?: string) => void;
+  onToggleFavorite?: (photoId: string, isFavorite: boolean) => Promise<void>;
 }
 
 const PREVIEW_LIMIT = 10;
@@ -26,6 +27,7 @@ function GuardianAlbumTodaySection({
   todayPhotoCount,
   todayPhotos,
   onOpenDetail,
+  onToggleFavorite,
 }: GuardianAlbumTodaySectionProps) {
   const { today } = guardianAlbumContent;
   const { lastViewedAt } = useGuardianAlbumLastViewed();
@@ -43,14 +45,33 @@ function GuardianAlbumTodaySection({
     return new Set(todayPhotos.filter((photo) => photo.isBookmarked).map((photo) => photo.id));
   });
 
-  const handleToggleBookmark = (photoId: string) => {
-    setBookmarkedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(photoId)) next.delete(photoId);
-      else next.add(photoId);
-      return next;
-    });
-  };
+  useEffect(() => {
+    setBookmarkedIds(
+      new Set(todayPhotos.filter((photo) => photo.isBookmarked).map((photo) => photo.id))
+    );
+  }, [todayPhotos]);
+
+  const handleToggleBookmark = useCallback(
+    (photoId: string) => {
+      const nextIsFavorite = !bookmarkedIds.has(photoId);
+      setBookmarkedIds((prev) => {
+        const next = new Set(prev);
+        if (nextIsFavorite) next.add(photoId);
+        else next.delete(photoId);
+        return next;
+      });
+
+      void onToggleFavorite?.(photoId, nextIsFavorite).catch(() => {
+        setBookmarkedIds((prev) => {
+          const next = new Set(prev);
+          if (nextIsFavorite) next.delete(photoId);
+          else next.add(photoId);
+          return next;
+        });
+      });
+    },
+    [bookmarkedIds, onToggleFavorite]
+  );
 
   const showPhotoPreview = isAttendedToday && previewPhotos.length > 0;
 

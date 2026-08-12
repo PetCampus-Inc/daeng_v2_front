@@ -21,7 +21,7 @@ function expandGuardianAlbumPhotos(
     expanded.push({
       ...source,
       id: `${source.id}-expand-${index + 1}`,
-      isBookmarked: false,
+      isBookmarked: source.isBookmarked,
     });
   }
 
