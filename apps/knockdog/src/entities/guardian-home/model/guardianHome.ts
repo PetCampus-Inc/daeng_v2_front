@@ -13,6 +13,10 @@ interface GuardianHomeSchoolDto {
   address?: string | null;
   imageUrl?: string | null;
   thumbnailUrl?: string | null;
+  /** 해당 유치원 첫 등원일 (LocalDate / LocalDateTime) */
+  firstAttendedAt?: GuardianHomeDateTime | null;
+  firstAttendanceDate?: string | null;
+  connectedAt?: GuardianHomeDateTime | null;
 }
 
 interface GuardianHomeAlbumPreviewDto {
@@ -30,6 +34,10 @@ interface GuardianHomeDto {
   checkOutAt?: GuardianHomeDateTime | null;
   todayNoteArrived?: boolean | null;
   todayAlbumPreview?: GuardianHomeAlbumPreviewDto[] | null;
+  /** 해당 유치원 첫 등원일 — 캘린더 min/주황점 기준 */
+  firstAttendedAt?: GuardianHomeDateTime | null;
+  firstAttendanceDate?: string | null;
+  connectedAt?: GuardianHomeDateTime | null;
 }
 
 interface GuardianHomeAlbumPreview {
@@ -52,6 +60,8 @@ interface GuardianHome {
   school: GuardianHomeSchool | null;
   checkInAt: Date | null;
   checkOutAt: Date | null;
+  /** 해당 유치원 첫 등원일 (없으면 null) */
+  firstAttendedAt: Date | null;
   todayNoteArrived: boolean;
   todayAlbumPreview: GuardianHomeAlbumPreview[];
 }
@@ -162,6 +172,25 @@ function toGuardianHomeSchool(dto: GuardianHomeSchoolDto | null | undefined): Gu
   };
 }
 
+function parseFirstAttendedAt(dto: GuardianHomeDto | null | undefined): Date | null {
+  const school = dto?.school;
+  const candidates: Array<GuardianHomeDateTime | string | null | undefined> = [
+    dto?.firstAttendedAt,
+    dto?.firstAttendanceDate,
+    dto?.connectedAt,
+    school?.firstAttendedAt,
+    school?.firstAttendanceDate,
+    school?.connectedAt,
+  ];
+
+  for (const candidate of candidates) {
+    const date = parseApiDateTime(candidate);
+    if (date) return date;
+  }
+
+  return null;
+}
+
 function toGuardianHome(dto: GuardianHomeDto | null | undefined): GuardianHome {
   const status = toConnectionStatus(dto?.status);
   const school = toGuardianHomeSchool(dto?.school);
@@ -174,6 +203,7 @@ function toGuardianHome(dto: GuardianHomeDto | null | undefined): GuardianHome {
     school: status === 'none' ? null : school,
     checkInAt: parseApiDateTime(dto?.checkInAt),
     checkOutAt: parseApiDateTime(dto?.checkOutAt),
+    firstAttendedAt: parseFirstAttendedAt(dto),
     todayNoteArrived: Boolean(dto?.todayNoteArrived),
     todayAlbumPreview,
   };
