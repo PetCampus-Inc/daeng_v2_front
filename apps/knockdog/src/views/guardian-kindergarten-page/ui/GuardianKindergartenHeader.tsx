@@ -76,8 +76,7 @@ function GuardianKindergartenHeader({
   hasUnreadAlarm = false,
   hasNoPet = false,
 }: GuardianKindergartenHeaderProps) {
-  const { pets, selectedPet, selectedPetId, setSelectedPetId, getPetConnectionStatus } =
-    useGuardianSelectedPet();
+  const { pets, selectedPet, selectedPetId, setSelectedPetId } = useGuardianSelectedPet();
 
   const petName = selectedPet?.name ?? '';
   const petImageUrl = selectedPet?.profileImage;
@@ -92,7 +91,6 @@ function GuardianKindergartenHeader({
         close={close}
         dogs={pets}
         currentPetId={selectedPetId}
-        getPetConnectionStatus={getPetConnectionStatus}
         onSelect={setSelectedPetId}
       />
     ));
