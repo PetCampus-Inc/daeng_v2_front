@@ -23,7 +23,7 @@ import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbu
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
 import { GuardianAlbumEntryError } from '@views/guardian-album-page/ui/GuardianAlbumEntryError';
-import { hasGuardianAlbumAttendancePhotos } from '@views/guardian-album-page/config/guardianAlbumAttendanceMock';
+import { useGuardianAlbumAttendedDays } from '@views/guardian-album-page/model/useGuardianAlbumAttendedDays';
 import { useGuardianAlbumFavorites } from '@views/guardian-album-page/model/useGuardianAlbumFavorites';
 import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model/useGuardianAlbumFavoriteToggle';
 import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/GuardianAlbumAttendanceList';
@@ -120,7 +120,20 @@ function GuardianAlbumPage() {
   } = useGuardianAlbumFavorites({
     schoolId,
     petId: selectedPetId,
-    enabled: hasLinkedSchool,
+    enabled: hasLinkedSchool && viewMode === 'favorite',
+  });
+
+  const {
+    days: attendanceDays,
+    hasAttendancePhotos,
+    hasNextPage: hasAttendanceNextPage,
+    isFetchingNextPage: isAttendanceFetchingNextPage,
+    fetchNextPage: fetchAttendanceNextPage,
+    isPending: isAttendancePending,
+  } = useGuardianAlbumAttendedDays({
+    schoolId,
+    petId: selectedPetId,
+    enabled: hasLinkedSchool && viewMode === 'attendance',
   });
 
   const { toggleFavorite } = useGuardianAlbumFavoriteToggle({
@@ -149,14 +162,11 @@ function GuardianAlbumPage() {
     return monthDays.filter((day) => !(hideTodayInList && day.dateKey === todayDateKey));
   }, [monthDays, isDisconnected, isAttendedToday, todayDateKey]);
 
-  const hasAttendancePhotos = useMemo(
-    () => hasGuardianAlbumAttendancePhotos(selectedPet?.profileImage, albumRangeEnd),
-    [selectedPet?.profileImage, albumRangeEnd]
-  );
+  const hasAttendancePhotosReady = !isAttendancePending || attendanceDays.length > 0;
   const hasFavoritePhotosReady = !isFavoritePending || favoriteDays.length > 0;
 
   const isFilterEmpty =
-    (viewMode === 'attendance' && !hasAttendancePhotos) ||
+    (viewMode === 'attendance' && hasAttendancePhotosReady && !hasAttendancePhotos) ||
     (viewMode === 'favorite' && hasFavoritePhotosReady && !hasFavoritePhotos);
 
   const isFilterMode = viewMode === 'favorite' || viewMode === 'attendance';
@@ -441,8 +451,10 @@ function GuardianAlbumPage() {
         ) : viewMode === 'attendance' ? (
           <>
             <GuardianAlbumAttendanceList
-              profileImage={selectedPet?.profileImage}
-              rangeEnd={albumRangeEnd}
+              days={attendanceDays}
+              hasNextPage={hasAttendanceNextPage}
+              isFetchingNextPage={isAttendanceFetchingNextPage}
+              fetchNextPage={fetchAttendanceNextPage}
               scrollRef={scrollRef}
               onScrollVisibilityChange={setIsScrollTopVisible}
             />

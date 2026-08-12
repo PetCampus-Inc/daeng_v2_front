@@ -27,6 +27,14 @@ export {
   useGuardianAlbumFavoritesInfiniteQuery,
 } from './api/useGuardianAlbumFavoritesInfiniteQuery';
 export type { GuardianAlbumFavoritesCache } from './api/useGuardianAlbumFavoritesInfiniteQuery';
+export { getGuardianAlbumAttendedDays } from './api/guardianAlbumAttendedDays';
+export type { GetGuardianAlbumAttendedDaysParams } from './api/guardianAlbumAttendedDays';
+export {
+  GUARDIAN_ALBUM_ATTENDED_DAYS_QUERY_KEY,
+  guardianAlbumAttendedDaysQueryKey,
+  useGuardianAlbumAttendedDaysInfiniteQuery,
+} from './api/useGuardianAlbumAttendedDaysInfiniteQuery';
+export type { GuardianAlbumAttendedDaysCache } from './api/useGuardianAlbumAttendedDaysInfiniteQuery';
 export { toGuardianAlbumToday } from './model/guardianAlbumToday';
 export type {
   GuardianAlbumToday,
@@ -50,6 +58,11 @@ export type {
   GuardianAlbumFavoritesDto,
   GuardianAlbumFavoritesPage,
 } from './model/guardianAlbumFavorites';
+export { toGuardianAlbumAttendedDaysPage } from './model/guardianAlbumAttendedDays';
+export type {
+  GuardianAlbumAttendedDaysDto,
+  GuardianAlbumAttendedDaysPage,
+} from './model/guardianAlbumAttendedDays';
 export { toDateKey, toGuardianAlbumDay } from './model/guardianAlbumDay';
 export type {
   GuardianAlbumDay,
