@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenDisconnectedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenDisconnectedContent';
-import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useGuardianDisconnectedDay } from '@views/guardian-kindergarten-page/model/useGuardianDisconnectedDay';
@@ -13,36 +12,12 @@ import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianAlbumPhotoStack } from './GuardianAlbumPhotoStack';
-import { GuardianDailyNoticeTimelineCard } from './GuardianDailyNoticeCard';
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
+import { GuardianKindergartenDayTimeline } from './GuardianKindergartenDayTimeline';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
 interface GuardianKindergartenDisconnectedStateProps {
   kindergarten: GuardianLinkedKindergarten;
-}
-
-function TimelineEventRow({
-  timeLabel,
-  label,
-  showConnector,
-}: {
-  timeLabel: string;
-  label: string;
-  showConnector: boolean;
-}) {
-  return (
-    <div className='flex w-full items-start gap-4'>
-      <div className='flex w-12 shrink-0 flex-col items-center gap-2 self-stretch'>
-        <p className='caption1-regular text-text-secondary'>{timeLabel}</p>
-        {showConnector ? <div className='bg-line-200 w-px flex-1' /> : null}
-      </div>
-      <div className='pb-2'>
-        <div className='bg-bg-50 radius-r2 flex h-9 w-[295px] max-w-full items-center justify-center px-4 py-2'>
-          <p className='body2-regular text-text-primary'>{label}</p>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function GuardianKindergartenDisconnectedState({
@@ -65,12 +40,6 @@ function GuardianKindergartenDisconnectedState({
   const checkInAt = dayRecord ? new Date(dayRecord.checkInAt) : null;
   const checkOutAt = dayRecord ? new Date(dayRecord.checkOutAt) : null;
   const dailyNotice = dayRecord?.dailyNotice ?? null;
-  const checkInTimeLabel = checkInAt ? formatKoreanAmPmTime(checkInAt) : null;
-  const checkOutTimeLabel = checkOutAt ? formatKoreanAmPmTime(checkOutAt) : null;
-  const noticeTimeLabel = dailyNotice
-    ? formatKoreanAmPmTime(new Date(dailyNotice.writtenAt))
-    : null;
-  const showNoticeCard = Boolean(dailyNotice && noticeTimeLabel);
 
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });
@@ -122,35 +91,13 @@ function GuardianKindergartenDisconnectedState({
           markedDateKeys={attendanceRecordDateKeys}
           maxDate={disconnectedAt}
         />
-        {checkInAt && checkInTimeLabel ? (
-          <div className='flex w-full flex-col gap-2 p-4'>
-            <TimelineEventRow
-              timeLabel={checkInTimeLabel}
-              label={content.checkInLabel}
-              showConnector={showNoticeCard || Boolean(checkOutAt)}
-            />
-
-            {showNoticeCard && dailyNotice && noticeTimeLabel ? (
-              <GuardianDailyNoticeTimelineCard notice={dailyNotice} timeLabel={noticeTimeLabel} />
-            ) : null}
-
-            {checkOutAt && checkOutTimeLabel ? (
-              <TimelineEventRow
-                timeLabel={checkOutTimeLabel}
-                label={content.checkOutLabel}
-                showConnector={false}
-              />
-            ) : null}
-
-            {!showNoticeCard ? (
-              <p className='body1-medium text-text-tertiary pt-2'>{content.noNoticeMessage}</p>
-            ) : null}
-          </div>
-        ) : (
-          <div className='flex w-full flex-col p-4'>
-            <p className='body1-medium text-text-tertiary'>{content.noAttendanceMessage}</p>
-          </div>
-        )}
+        <GuardianKindergartenDayTimeline
+          checkInAt={checkInAt}
+          checkOutAt={checkOutAt}
+          dailyNotice={dailyNotice}
+          emptyMessage={content.noAttendanceMessage}
+          noNoticeMessage={content.noNoticeMessage}
+        />
       </section>
 
       {/* 유치원 카드 + 이력 */}

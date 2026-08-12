@@ -11,6 +11,8 @@ interface AttendanceCheckinoutCandidateDto {
   age: number | null;
   profileImage: string | null;
   checkinoutStatus: CheckinoutStatus | string;
+  checkInAt?: ApiDateTime | null;
+  checkOutAt?: ApiDateTime | null;
 }
 
 interface AttendanceCheckinoutCandidatesDto {
@@ -55,6 +57,8 @@ interface AttendanceCheckinoutCandidate {
   age: number | null;
   profileImageUrl: string | null;
   checkinoutStatus: CheckinoutStatus;
+  checkInAt: string | null;
+  checkOutAt: string | null;
 }
 
 interface AttendanceCheckinoutTodayItem extends AttendanceCheckinoutCandidate {
@@ -173,6 +177,8 @@ function toAttendanceCheckinoutCandidate(
     age: typeof dto.age === 'number' ? dto.age : null,
     profileImageUrl: dto.profileImage ?? null,
     checkinoutStatus: normalizeCheckinoutStatus(dto.checkinoutStatus),
+    checkInAt: normalizeDateTime(dto.checkInAt),
+    checkOutAt: normalizeDateTime(dto.checkOutAt),
   };
 }
 

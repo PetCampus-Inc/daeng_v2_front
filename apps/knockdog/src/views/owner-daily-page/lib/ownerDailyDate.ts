@@ -67,4 +67,18 @@ function formatKstTimeLabel(date: Date) {
   return `${period} ${displayHour}:${displayMinute}`;
 }
 
-export { formatKstDateLabel, formatKstDayLabel, formatKstTimeLabel, getKstDateKey };
+/** 다음 KST 자정까지 남은 ms — 일과 날짜 롤오버용 */
+function getNextKstMidnightDelay(now = new Date()) {
+  const { year, month, day } = getKstDateParts(now);
+  const nextKstMidnight = Date.UTC(year, month - 1, day + 1, -9);
+
+  return Math.max(nextKstMidnight - now.getTime(), 0);
+}
+
+export {
+  formatKstDateLabel,
+  formatKstDayLabel,
+  formatKstTimeLabel,
+  getKstDateKey,
+  getNextKstMidnightDelay,
+};

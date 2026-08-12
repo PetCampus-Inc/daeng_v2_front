@@ -1,4 +1,4 @@
-import { useMemo, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import {
@@ -6,6 +6,7 @@ import {
   formatKstDayLabel,
   formatKstTimeLabel,
   getKstDateKey,
+  getNextKstMidnightDelay,
 } from '@views/owner-daily-page/lib/ownerDailyDate';
 
 import {
@@ -39,11 +40,25 @@ function formatAttendanceTime(value: string | null | undefined) {
   return formatKstTimeLabel(date);
 }
 
+/** 등원 시각이 조회일(KST)과 같으면 당일 등원으로 인정 */
+function isCheckInOnDate(checkInAt: string | null | undefined, dateKey: string) {
+  if (!checkInAt) return false;
+  const date = new Date(checkInAt);
+  if (Number.isNaN(date.getTime())) return false;
+  return getKstDateKey(date) === dateKey;
+}
+
 function toAttendanceMemberFromCandidate(
-  candidate: AttendanceCheckinoutCandidate
+  candidate: AttendanceCheckinoutCandidate,
+  dateKey: string
 ): AttendanceMember {
-  const checkedIn = candidate.checkinoutStatus !== 'NOT_CHECKED_IN';
-  const checkedOut = candidate.checkinoutStatus === 'CHECKED_OUT';
+  const hasTodayCheckIn = isCheckInOnDate(candidate.checkInAt, dateKey);
+  // 전날 CHECKED_IN이 남아 있어도 당일 checkInAt이 없으면 등원 전으로 취급
+  const checkedIn =
+    candidate.checkinoutStatus !== 'NOT_CHECKED_IN' &&
+    candidate.checkInAt != null &&
+    hasTodayCheckIn;
+  const checkedOut = checkedIn && candidate.checkinoutStatus === 'CHECKED_OUT';
 
   return {
     id: candidate.petId,
@@ -88,14 +103,38 @@ function getCancelCheckInBlockMessage(member: AttendanceMember) {
 function useOwnerDailyPage() {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const todayDateKey = getKstDateKey(new Date());
-  const dateLabel = `${formatKstDateLabel(new Date())} ${formatKstDayLabel(new Date())}`;
+  const [activeDate, setActiveDate] = useState(() => new Date());
+  const todayDateKey = getKstDateKey(activeDate);
+  const dateLabel = `${formatKstDateLabel(activeDate)} ${formatKstDayLabel(activeDate)}`;
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
   const debouncedSearchKeyword = useDebounced(searchKeyword, SEARCH_DEBOUNCE_MS);
   const normalizedSearchKeyword = normalizeSearchText(searchKeyword);
   const candidatesSearchQuery = debouncedSearchKeyword.trim() || undefined;
+
+  const refreshActiveDate = useCallback(() => {
+    setActiveDate(new Date());
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      refreshActiveDate();
+    }, getNextKstMidnightDelay(activeDate));
+
+    return () => window.clearTimeout(timeout);
+  }, [activeDate, refreshActiveDate]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (getKstDateKey(activeDate) === getKstDateKey(new Date())) return;
+      refreshActiveDate();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [activeDate, refreshActiveDate]);
 
   const candidatesQuery = useAttendanceCheckinoutCandidatesQuery({
     date: todayDateKey,
@@ -126,20 +165,24 @@ function useOwnerDailyPage() {
     );
 
     return (candidatesQuery.data?.items ?? []).map((candidate) => {
-      const member = toAttendanceMemberFromCandidate(candidate);
+      const member = toAttendanceMemberFromCandidate(candidate, todayDateKey);
 
       return {
         ...member,
         noticebookSent: noticebookSentByPetId.get(candidate.petId) ?? false,
       };
     });
-  }, [candidatesQuery.data?.items, todayQuery.data?.items]);
+  }, [candidatesQuery.data?.items, todayDateKey, todayQuery.data?.items]);
   const todayAttendanceMembers = useMemo(
     () =>
-      [...(todayQuery.data?.items ?? []).map(toAttendanceMemberFromTodayItem)].sort(
-        (currentMember, nextMember) => currentMember.name.localeCompare(nextMember.name, 'ko-KR')
-      ),
-    [todayQuery.data?.items]
+      [...(todayQuery.data?.items ?? [])]
+        // 전날 등원 시각이 남아 있으면 오늘 목록에서 제외
+        .filter((item) => !item.checkInAt || isCheckInOnDate(item.checkInAt, todayDateKey))
+        .map(toAttendanceMemberFromTodayItem)
+        .sort((currentMember, nextMember) =>
+          currentMember.name.localeCompare(nextMember.name, 'ko-KR')
+        ),
+    [todayDateKey, todayQuery.data?.items]
   );
   const summaryItems = [
     { label: '오늘 등원', count: summaryQuery.data?.checkedInCount ?? 0 },

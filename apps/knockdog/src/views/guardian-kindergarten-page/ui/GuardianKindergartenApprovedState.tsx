@@ -7,24 +7,33 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
+import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
+import { GuardianKindergartenDayTimeline } from './GuardianKindergartenDayTimeline';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
 interface GuardianKindergartenApprovedStateProps {
   kindergarten: GuardianLinkedKindergarten;
-  attendanceRecordDateKeys?: Set<string>;
+  /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
+  firstAttendedAt?: Date | null;
 }
 
 function GuardianKindergartenApprovedState({
   kindergarten,
-  attendanceRecordDateKeys,
+  firstAttendedAt = null,
 }: GuardianKindergartenApprovedStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const content = guardianKindergartenApprovedContent;
   const { push } = useStackNavigation();
+  const {
+    checkInAt,
+    checkOutAt,
+    dailyNotice,
+    isPending: isCalendarDayPending,
+  } = useGuardianCalendarDay({ selectedDate });
 
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });
@@ -79,16 +88,20 @@ function GuardianKindergartenApprovedState({
         </section>
       </div>
 
-      {/* 주간 캘린더 */}
+      {/* 주간 캘린더 + 선택일 타임라인 */}
       <section className='flex w-full flex-col items-center'>
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          markedDateKeys={attendanceRecordDateKeys}
+          firstAttendedAt={firstAttendedAt ?? undefined}
         />
-        <div className='flex w-full flex-col items-center p-4'>
-          <p className='body1-medium text-text-tertiary text-center'>{content.calendarEmptyMessage}</p>
-        </div>
+        <GuardianKindergartenDayTimeline
+          checkInAt={checkInAt}
+          checkOutAt={checkOutAt}
+          dailyNotice={dailyNotice}
+          emptyMessage={content.calendarEmptyMessage}
+          isLoading={isCalendarDayPending}
+        />
       </section>
 
       {/* 유치원 카드 + 이력 */}
