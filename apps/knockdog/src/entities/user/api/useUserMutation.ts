@@ -27,7 +27,7 @@ const useUpdateGuardianProfileMutation = () => {
   return useMutation({
     mutationFn: postUpdateGuardianProfile,
     onSuccess: (result) => {
-      if (useUserStore.getState().user?.userId !== userId) return;
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
 
       queryClient.setQueryData(['userInfo'], result);
     },

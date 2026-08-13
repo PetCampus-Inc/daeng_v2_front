@@ -30,6 +30,8 @@ const useAddUserAddressMutation = () => {
 
       // store 업데이트
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
         setUser(toUser(result.data));
       }
@@ -62,6 +64,8 @@ const useUpdateUserAddressMutation = () => {
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
         setUser(toUser(result.data));
       }
@@ -82,6 +86,8 @@ const useDeleteUserAddressMutation = () => {
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
         setUser(toUser(result.data));
       }
@@ -140,6 +146,8 @@ const useUpdateUserAddressesMutation = () => {
 
       // store 업데이트
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
         setUser(toUser(result.data));
       }

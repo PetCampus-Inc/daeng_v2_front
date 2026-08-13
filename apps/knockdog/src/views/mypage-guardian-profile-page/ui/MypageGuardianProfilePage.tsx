@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ActionButton,
   AlertDialog,
@@ -92,7 +93,8 @@ function hasCompletedGuardianProfile({
 
 function MypageGuardianProfilePage() {
   const user = useUserStore((state) => state.user);
-  const { data: userInfo } = useUserInfoQuery();
+  const queryClient = useQueryClient();
+  const { data: userInfoResponse, refetch: refetchUserInfo } = useUserInfoQuery();
   const { mutateAsync: updateGuardianProfile, isPending: isSaving } = useUpdateGuardianProfileMutation();
   const [formValues, setFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
   const [initialFormValues, setInitialFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
@@ -101,6 +103,7 @@ function MypageGuardianProfilePage() {
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
   const initializedProfileRef = useRef<{ userId: string; source: 'store' | 'remote' } | null>(null);
   const { navigateToTab } = useTabNavigation();
+  const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const profileUser = userInfo ?? user;
   const homeAddress = profileUser?.addresses.find((item) => item.type === USER_ADDRESS_TYPE.HOME);
   const homeAddressValue = homeAddress?.roadAddress || homeAddress?.address || '';
@@ -115,6 +118,13 @@ function MypageGuardianProfilePage() {
   const isSaveEnabled = isGuardianProfileFormValid(formValues) && selectedAddress !== null;
   const isDirty = isGuardianProfileDirty(formValues, initialFormValues);
   const showProfileCompletionBanner = !hasCompletedGuardianProfile(profileUser ?? {});
+
+  useEffect(() => {
+    if (!user || !userInfoResponse || userInfoResponse.userId === user.userId) return;
+
+    queryClient.removeQueries({ queryKey: ['userInfo'], exact: true });
+    void refetchUserInfo();
+  }, [queryClient, refetchUserInfo, user, userInfoResponse]);
 
   useEffect(() => {
     if (!profileUser) {
