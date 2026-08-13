@@ -12,6 +12,7 @@ interface GuardianAlbumAttendanceListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
+  onDayClick?: (day: GuardianAlbumFilterDay) => void;
   onScrollVisibilityChange?: (isVisible: boolean) => void;
   scrollRef?: RefObject<HTMLDivElement | null>;
 }
@@ -21,6 +22,7 @@ function GuardianAlbumAttendanceList({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  onDayClick,
   onScrollVisibilityChange,
   scrollRef,
 }: GuardianAlbumAttendanceListProps) {
@@ -48,7 +50,7 @@ function GuardianAlbumAttendanceList({
     >
       <div className='flex w-full flex-col gap-5 px-4 py-5'>
         {days.map((day) => (
-          <GuardianAlbumFilterDaySection key={day.dateKey} day={day} />
+          <GuardianAlbumFilterDaySection key={day.dateKey} day={day} onClick={onDayClick} />
         ))}
         {hasNextPage ? (
           <div ref={lastElementCallback} aria-hidden='true' className='h-4' />

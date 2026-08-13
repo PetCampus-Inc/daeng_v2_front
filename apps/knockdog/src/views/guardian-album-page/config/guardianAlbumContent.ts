@@ -57,6 +57,7 @@ const guardianAlbumContent = {
     attendedBadgeLabel: '등원했어요',
     overflowLabel: (remaining: number) => `+ ${remaining}`,
     loadErrorMessage: '사진을 불러오지 못했어요',
+    detailAriaLabel: '앨범 상세 보기',
   },
   favoriteList: {
     overflowLabel: (remaining: number) => `+ ${remaining}장`,

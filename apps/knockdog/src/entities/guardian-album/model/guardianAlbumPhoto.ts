@@ -7,6 +7,8 @@ type GuardianAlbumDateTime = string | number[];
 interface GuardianAlbumPhotoDto {
   id?: number | string | null;
   imageUrl?: string | null;
+  url?: string | null;
+  photoUrl?: string | null;
   authorId?: number | string | null;
   createdAt?: GuardianAlbumDateTime | null;
   isFavorite?: boolean | null;
@@ -24,6 +26,10 @@ function toAbsoluteImageUrl(url: string | null | undefined): string {
   if (/^(https?:|blob:|data:)/i.test(url)) return url;
   const base = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
   return `${base}${url}`;
+}
+
+function resolvePhotoUrl(dto: GuardianAlbumPhotoDto): string {
+  return toAbsoluteImageUrl(dto.imageUrl ?? dto.url ?? dto.photoUrl);
 }
 
 function parseCreatedAt(value: GuardianAlbumDateTime | null | undefined): string | null {
@@ -89,7 +95,7 @@ function toGuardianAlbumPhoto(
   const id = dto.id;
   if (id == null || id === '') return null;
 
-  const url = toAbsoluteImageUrl(dto.imageUrl);
+  const url = resolvePhotoUrl(dto);
   if (!url) return null;
 
   return {

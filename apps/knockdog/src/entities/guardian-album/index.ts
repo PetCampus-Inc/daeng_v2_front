@@ -35,6 +35,17 @@ export {
   useGuardianAlbumAttendedDaysInfiniteQuery,
 } from './api/useGuardianAlbumAttendedDaysInfiniteQuery';
 export type { GuardianAlbumAttendedDaysCache } from './api/useGuardianAlbumAttendedDaysInfiniteQuery';
+export { getGuardianAlbumDayPhotos } from './api/guardianAlbumDayPhotos';
+export type {
+  GetGuardianAlbumDayPhotosParams,
+  GuardianAlbumDayPhotosDto,
+} from './api/guardianAlbumDayPhotos';
+export {
+  ATTENDANCE_PREVIEW_LIMIT,
+  GUARDIAN_ALBUM_DAY_PHOTOS_QUERY_KEY,
+  guardianAlbumDayPhotosQueryKey,
+  useGuardianAlbumAttendedPreviewEnrichment,
+} from './api/useGuardianAlbumAttendedPreviewEnrichment';
 export { toGuardianAlbumToday } from './model/guardianAlbumToday';
 export type {
   GuardianAlbumToday,

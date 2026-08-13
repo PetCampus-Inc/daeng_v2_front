@@ -78,9 +78,18 @@ function normalizeAlbumPhoto(item: unknown): AlbumPhotoDto | null {
     url,
     key: typeof row.key === 'string' ? row.key : undefined,
     s3Key: typeof row.s3Key === 'string' ? row.s3Key : undefined,
-    createdAt: typeof row.createdAt === 'string' ? row.createdAt : undefined,
-    uploadedAt: typeof row.uploadedAt === 'string' ? row.uploadedAt : undefined,
+    createdAt: normalizeAlbumDateTime(row.createdAt),
+    uploadedAt: normalizeAlbumDateTime(row.uploadedAt),
   };
+}
+
+/** ISO 문자열 또는 LocalDateTime 배열 유지 (보호자 앨범과 동일 계약) */
+function normalizeAlbumDateTime(value: unknown): string | number[] | undefined {
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (Array.isArray(value) && value.length >= 3 && value.every((part) => typeof part === 'number')) {
+    return value as number[];
+  }
+  return undefined;
 }
 
 function normalizeCommitData(data: unknown): AlbumCommitResponse {

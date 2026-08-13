@@ -20,19 +20,38 @@ interface GuardianAlbumFilterDaySectionProps {
   day: GuardianAlbumFilterDay;
   /** 초과분 라벨. 기본 `+ N` */
   overflowLabel?: (remaining: number) => string;
+  onClick?: (day: GuardianAlbumFilterDay) => void;
 }
 
 function GuardianAlbumFilterDaySection({
   day,
   overflowLabel = guardianAlbumContent.dayCard.overflowLabel,
+  onClick,
 }: GuardianAlbumFilterDaySectionProps) {
   const { dayCard } = guardianAlbumContent;
   const dateLabel = formatKoreanDateWithWeekday(parseDateKey(day.dateKey));
   const previewPhotos = day.photos.slice(0, PREVIEW_LIMIT);
   const remainingCount = day.photoCount - PREVIEW_LIMIT;
+  const isClickable = Boolean(onClick) && day.photos.length > 0;
 
   return (
-    <section className='flex w-full flex-col gap-4'>
+    <section
+      className={`flex w-full flex-col gap-4 ${isClickable ? 'cursor-pointer' : ''}`}
+      onClick={isClickable ? () => onClick?.(day) : undefined}
+      onKeyDown={
+        isClickable
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onClick?.(day);
+              }
+            }
+          : undefined
+      }
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={isClickable ? dayCard.detailAriaLabel : undefined}
+    >
       <div className='flex h-[26px] w-full items-center justify-between'>
         <p className='body1-extrabold text-text-primary min-w-0 flex-1'>{dateLabel}</p>
         {day.isAttended ? (

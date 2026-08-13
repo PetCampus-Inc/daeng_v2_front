@@ -19,6 +19,7 @@ import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/gua
 import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuardianAlbumMonth';
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
+import { mergeGuardianAlbumDayPhotos } from '@views/guardian-album-page/lib/mergeGuardianAlbumDayPhotos';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
@@ -29,6 +30,7 @@ import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model
 import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/GuardianAlbumAttendanceList';
 import { GuardianAlbumFavoriteList } from '@views/guardian-album-page/ui/GuardianAlbumFavoriteList';
 import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
+import type { GuardianAlbumFilterDay } from '@views/guardian-album-page/ui/GuardianAlbumFilterDaySection';
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumHistoryEmpty } from '@views/guardian-album-page/ui/GuardianAlbumHistoryEmpty';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
@@ -162,6 +164,13 @@ function GuardianAlbumPage() {
     return monthDays.filter((day) => !(hideTodayInList && day.dateKey === todayDateKey));
   }, [monthDays, isDisconnected, isAttendedToday, todayDateKey]);
 
+  const enrichedAttendanceDays = useMemo(() => {
+    const monthByDate = new Map(monthDays.map((day) => [day.dateKey, day] as const));
+    return attendanceDays.map((day) =>
+      mergeGuardianAlbumDayPhotos(day, monthByDate.get(day.dateKey) ?? null)
+    );
+  }, [attendanceDays, monthDays]);
+
   const hasAttendancePhotosReady = !isAttendancePending || attendanceDays.length > 0;
   const hasFavoritePhotosReady = !isFavoritePending || favoriteDays.length > 0;
 
@@ -202,6 +211,15 @@ function GuardianAlbumPage() {
       openDetail(photos, undefined, false);
     },
     [openDetail]
+  );
+
+  const handleOpenFilterDayDetail = useCallback(
+    (day: GuardianAlbumFilterDay) => {
+      const monthDay = monthDays.find((item) => item.dateKey === day.dateKey);
+      const merged = mergeGuardianAlbumDayPhotos(day, monthDay ?? null);
+      openDetail(merged.photos, undefined, false);
+    },
+    [monthDays, openDetail]
   );
 
   useEffect(() => {
@@ -443,6 +461,7 @@ function GuardianAlbumPage() {
               hasNextPage={hasFavoriteNextPage}
               isFetchingNextPage={isFavoriteFetchingNextPage}
               fetchNextPage={fetchFavoriteNextPage}
+              onDayClick={handleOpenFilterDayDetail}
               scrollRef={scrollRef}
               onScrollVisibilityChange={setIsScrollTopVisible}
             />
@@ -451,10 +470,11 @@ function GuardianAlbumPage() {
         ) : viewMode === 'attendance' ? (
           <>
             <GuardianAlbumAttendanceList
-              days={attendanceDays}
+              days={enrichedAttendanceDays}
               hasNextPage={hasAttendanceNextPage}
               isFetchingNextPage={isAttendanceFetchingNextPage}
               fetchNextPage={fetchAttendanceNextPage}
+              onDayClick={handleOpenFilterDayDetail}
               scrollRef={scrollRef}
               onScrollVisibilityChange={setIsScrollTopVisible}
             />
