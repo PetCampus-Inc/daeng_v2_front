@@ -2,6 +2,7 @@
 
 import { Icon } from '@knockdog/ui';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumDayAlbum } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import { parseDateKey } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
@@ -60,16 +61,15 @@ function GuardianAlbumDayCard({ dayAlbum, onClick }: GuardianAlbumDayCardProps) 
       {hasLoadError ? (
         <p className='body2-regular text-text-secondary'>{dayCard.loadErrorMessage}</p>
       ) : (
-        <div className='flex w-full items-center gap-1'>
+        <div className='flex w-full min-w-0 items-center gap-1 overflow-hidden'>
           {previewPhotos.map((photo, index) => {
             const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
 
             return (
-              <div key={photo.id} className='bg-fill-secondary-100 relative size-[78px] shrink-0 overflow-hidden rounded-lg'>
-                {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-                <img src={photo.url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+              <div key={photo.id} className='relative size-[78px] shrink-0 overflow-hidden rounded-lg'>
+                <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
                 {isOverflowTile ? (
-                  <div className='bg-dim-70 absolute inset-0 flex items-center justify-center rounded-lg'>
+                  <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
                     <span className='caption2-medium text-text-primary-inverse'>
                       {dayCard.overflowLabel(remainingCount)}
                     </span>

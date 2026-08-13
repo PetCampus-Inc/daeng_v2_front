@@ -4,6 +4,7 @@ import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPh
 import { groupAlbumPhotosByDate } from '@views/owner-album-page/lib/groupAlbumPhotosByDate';
 
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
+import { AlbumImage } from '@shared/ui/album-image';
 
 const PREVIEW_LIMIT = 6;
 
@@ -50,10 +51,9 @@ function OwnerAlbumPhotoList({
                       onClick={() => onPhotoClick(photo.id)}
                       className='bg-fill-secondary-100 relative aspect-square overflow-hidden'
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed URL 임시 미리보기 */}
-                      <img src={photo.url} alt='' className='h-full w-full object-cover' />
+                      <AlbumImage src={photo.url} className='absolute inset-0' />
                       {isOverflowTile ? (
-                        <div className='bg-dim-70 absolute inset-0 flex items-center justify-center'>
+                        <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center'>
                           <span className='body2-regular text-text-primary-inverse'>{`+ ${remainingCount}`}</span>
                         </div>
                       ) : null}

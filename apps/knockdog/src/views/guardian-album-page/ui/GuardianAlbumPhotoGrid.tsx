@@ -1,5 +1,6 @@
 'use client';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 import { Header } from '@widgets/Header';
@@ -53,14 +54,7 @@ function GuardianAlbumPhotoGrid({
                 {hasError ? (
                   <div className='bg-fill-secondary-200 radius-r2 absolute inset-0' />
                 ) : (
-                  // eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일
-                  <img
-                    src={photo.url}
-                    alt=''
-                    className='radius-r2 size-full object-cover'
-                    loading='lazy'
-                    decoding='async'
-                  />
+                  <AlbumImage src={photo.url} className='absolute inset-0 radius-r2' />
                 )}
               </button>
             );

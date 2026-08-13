@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 
 interface GuardianAlbumPhotoStackProps {
@@ -48,8 +49,7 @@ function GuardianAlbumPhotoStack({ photos }: GuardianAlbumPhotoStackProps) {
           <div key={frame.key} className={frame.className}>
             <div className={frame.innerClassName}>
               {photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- pet/S3 이미지는 img로 로드
-                <img src={photoUrl} alt='' className='absolute inset-0 size-full object-cover' />
+                <AlbumImage src={photoUrl} className='absolute inset-0' />
               ) : (
                 <Image
                   src={content.albumPlaceholderSrc}

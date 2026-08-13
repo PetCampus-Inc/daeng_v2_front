@@ -2,6 +2,7 @@
 
 import { Icon } from '@knockdog/ui';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { parseDateKey } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
@@ -36,7 +37,7 @@ function GuardianAlbumFilterDaySection({
 
   return (
     <section
-      className={`flex w-full flex-col gap-4 ${isClickable ? 'cursor-pointer' : ''}`}
+      className={`flex w-full min-w-0 flex-col gap-4 ${isClickable ? 'cursor-pointer' : ''}`}
       onClick={isClickable ? () => onClick?.(day) : undefined}
       onKeyDown={
         isClickable
@@ -62,19 +63,18 @@ function GuardianAlbumFilterDaySection({
         ) : null}
       </div>
 
-      <div className='grid w-full grid-cols-3 gap-1'>
+      <div className='grid w-full min-w-0 grid-cols-3 gap-1'>
         {previewPhotos.map((photo, index) => {
           const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
 
           return (
             <div
               key={photo.id}
-              className='bg-fill-secondary-100 relative aspect-square overflow-hidden rounded-lg'
+              className='relative aspect-square min-h-0 min-w-0 overflow-hidden rounded-lg'
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-              <img src={photo.url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+              <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
               {isOverflowTile ? (
-                <div className='bg-dim-70 absolute inset-0 flex items-center justify-center rounded-lg'>
+                <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
                   <span className='body2-semibold text-text-primary-inverse'>
                     {overflowLabel(remainingCount)}
                   </span>
