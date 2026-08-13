@@ -37,8 +37,8 @@ function MypageProfileManagePage() {
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [email, setEmail] = useState('');
 
-  const { data: userInfo } = useUserInfoQuery();
   const user = useUserStore((state) => state.user);
+  const { data: userInfoResponse } = useUserInfoQuery();
   const socialUser = useSocialUserStore((state) => state.socialUser);
   const { data: representativePet } = usePetRepresentativeQuery();
   const { data: petList } = usePetListQuery();
@@ -46,6 +46,7 @@ function MypageProfileManagePage() {
 
   const isRepresentativePet = !!representativePet;
   const hasPets = (petList?.data?.length ?? 0) > 0;
+  const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
 
   const nickname =
     isRepresentativePet && representativePet
@@ -53,10 +54,9 @@ function MypageProfileManagePage() {
       : user?.nickname || '';
 
   useEffect(() => {
-    if (userInfo?.infoRcvEmail) {
-      setEmail(userInfo.infoRcvEmail);
-    }
-  }, [userInfo?.infoRcvEmail]);
+    setEmail(userInfo?.infoRcvEmail ?? '');
+    setIsEditingEmail(false);
+  }, [user?.userId, userInfo?.infoRcvEmail]);
 
   const handleLogout = () => {
     overlay.open(({ isOpen, close }) => (

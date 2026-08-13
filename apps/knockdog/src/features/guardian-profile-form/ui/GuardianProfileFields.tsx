@@ -3,6 +3,7 @@
 import { IconButton, TextField, TextFieldInput } from '@knockdog/ui';
 
 import { AddressPicker } from '@features/address-picker';
+import type { Address } from '@entities/address';
 import {
   formatAddressDetail,
   formatGuardianName,
@@ -21,6 +22,8 @@ interface GuardianProfileFieldsProps {
   phoneNumberError?: string;
   emergencyPhoneNumberError?: string;
   onChange: (nextValues: GuardianProfileFormValues) => void;
+  onAddressSelect?: (address: Address) => void;
+  onAddressClear?: () => void;
   onPhoneNumberBlur: () => void;
   onEmergencyPhoneNumberBlur: () => void;
 }
@@ -42,6 +45,8 @@ function GuardianProfileFields({
   phoneNumberError,
   emergencyPhoneNumberError,
   onChange,
+  onAddressSelect,
+  onAddressClear,
   onPhoneNumberBlur,
   onEmergencyPhoneNumberBlur,
 }: GuardianProfileFieldsProps) {
@@ -128,9 +133,13 @@ function GuardianProfileFields({
             onSelect={(selectedAddress) => {
               const address = selectedAddress.roadAddress || selectedAddress.address;
 
+              onAddressSelect?.(selectedAddress);
               updateValue({ address, addressDetail: address === values.address ? values.addressDetail : '' });
             }}
-            onClear={() => updateValue({ address: '', addressDetail: '' })}
+            onClear={() => {
+              onAddressClear?.();
+              updateValue({ address: '', addressDetail: '' });
+            }}
           />
         </div>
 

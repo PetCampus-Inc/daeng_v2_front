@@ -1,5 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
-import { postRegisterUser, postUpdateUserNickname, postUpdateUserEmail } from './user';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useUserStore } from '../model/store/useUserStore';
+import { postRegisterUser, postUpdateGuardianProfile, postUpdateUserNickname, postUpdateUserEmail } from './user';
 
 const useUserRegisterMutation = () => {
   return useMutation({
@@ -19,4 +20,23 @@ const useUserUpdateUserEmailMutation = () => {
   });
 };
 
-export { useUserRegisterMutation, useUserUpdateNicknameMutation, useUserUpdateUserEmailMutation };
+const useUpdateGuardianProfileMutation = () => {
+  const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
+
+  return useMutation({
+    mutationFn: postUpdateGuardianProfile,
+    onSuccess: (result) => {
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
+      queryClient.setQueryData(['userInfo'], result);
+    },
+  });
+};
+
+export {
+  useUserRegisterMutation,
+  useUserUpdateNicknameMutation,
+  useUserUpdateUserEmailMutation,
+  useUpdateGuardianProfileMutation,
+};

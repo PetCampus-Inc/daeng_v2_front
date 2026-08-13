@@ -5,6 +5,8 @@ export {
   getOwnerMypageSummary,
   getOwnerProfile,
   putOwnerProfile,
+  postUpdateGuardianProfile,
+  toUser,
   type WithdrawRequest,
   type OwnerRole,
   type OwnerKindergartenType,
@@ -12,6 +14,10 @@ export {
   type OwnerProfile,
   type PutOwnerProfileRequest,
   type SocialLoginProvider,
+  type GuardianProfile,
+  type GuardianProfileGender,
+  type GuardianProfileAddress,
+  type UpdateGuardianProfileRequest,
 } from './api/user';
 export {
   postRevokeOwnerRole,
@@ -22,6 +28,7 @@ export {
   useUserRegisterMutation,
   useUserUpdateNicknameMutation,
   useUserUpdateUserEmailMutation,
+  useUpdateGuardianProfileMutation,
 } from './api/useUserMutation';
 export { useOwnerRoleRevokeMutation } from './api/useOwnerRoleRevokeMutation';
 export { usePutOwnerProfileMutation } from './api/usePutOwnerProfileMutation';

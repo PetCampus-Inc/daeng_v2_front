@@ -2,10 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postAddUserAddress, postUpdateUserAddress, postDeleteUserAddress, type AddressRequest } from './address';
 import { UserAddress } from '../model/user';
 import { useUserStore } from '../model/store/useUserStore';
-import { getUserInfo } from './user';
+import { getUserInfo, toUser } from './user';
 
 const useAddUserAddressMutation = () => {
   const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
   const setUser = useUserStore((state) => state.setUser);
 
   return useMutation({
@@ -22,13 +23,17 @@ const useAddUserAddressMutation = () => {
       return postAddUserAddress(addressRequest);
     },
     onSuccess: async () => {
+      if (useUserStore.getState().user?.userId !== userId) return;
+
       // userInfo 쿼리 무효화하여 최신 데이터 가져오기
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
       // store 업데이트
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
-        setUser(result.data);
+        setUser(toUser(result.data));
       }
     },
   });
@@ -36,6 +41,7 @@ const useAddUserAddressMutation = () => {
 
 const useUpdateUserAddressMutation = () => {
   const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
   const setUser = useUserStore((state) => state.setUser);
 
   return useMutation({
@@ -53,11 +59,15 @@ const useUpdateUserAddressMutation = () => {
       return postUpdateUserAddress(addressRequest);
     },
     onSuccess: async () => {
+      if (useUserStore.getState().user?.userId !== userId) return;
+
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
-        setUser(result.data);
+        setUser(toUser(result.data));
       }
     },
   });
@@ -65,16 +75,21 @@ const useUpdateUserAddressMutation = () => {
 
 const useDeleteUserAddressMutation = () => {
   const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
   const setUser = useUserStore((state) => state.setUser);
 
   return useMutation({
     mutationFn: postDeleteUserAddress,
     onSuccess: async () => {
+      if (useUserStore.getState().user?.userId !== userId) return;
+
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
-        setUser(result.data);
+        setUser(toUser(result.data));
       }
     },
   });
@@ -82,6 +97,7 @@ const useDeleteUserAddressMutation = () => {
 
 const useUpdateUserAddressesMutation = () => {
   const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
   const setUser = useUserStore((state) => state.setUser);
 
   return useMutation({
@@ -123,13 +139,17 @@ const useUpdateUserAddressesMutation = () => {
       await Promise.all(promises);
     },
     onSuccess: async () => {
+      if (useUserStore.getState().user?.userId !== userId) return;
+
       // 모든 작업 완료 후 userInfo 쿼리 무효화
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
       // store 업데이트
       const result = await getUserInfo();
+      if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
+
       if (result.data) {
-        setUser(result.data);
+        setUser(toUser(result.data));
       }
     },
   });

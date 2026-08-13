@@ -26,13 +26,50 @@ const postWithdraw = async (request: WithdrawRequest) => {
   return await api.post(`user/withdraw`, { json: request });
 };
 
-interface UserInfo extends User {
+type GuardianProfileGender = 'MALE' | 'FEMALE';
+
+interface GuardianProfile {
+  guardianName?: string | null;
+  gender?: GuardianProfileGender | null;
+  phoneNumber?: string | null;
+  guardianAddressDetail?: string | null;
+  emergencyPhoneNumber?: string | null;
+}
+
+interface UserInfo extends Omit<User, 'profileImageUrl'>, GuardianProfile {
+  profileImage: string;
   infoRcvEmail: string;
 }
+
+/** API 사용자 정보 응답을 앱 전역 사용자 모델로 변환한다. */
+const toUser = ({ profileImage, ...userInfo }: UserInfo): User => ({
+  ...userInfo,
+  profileImageUrl: profileImage,
+});
 
 /** `GET` - 유저 정보 조회 API */
 const getUserInfo = async () => {
   return await api.get(`mypage/getUserInfo`).json<ApiResponse<UserInfo>>();
+};
+
+interface UpdateGuardianProfileRequest {
+  name: string;
+  gender: GuardianProfileGender;
+  phoneNumber: string;
+  emergencyPhoneNumber: string;
+  address: GuardianProfileAddress;
+  addressDetail: string;
+}
+
+interface GuardianProfileAddress {
+  pnu?: string;
+  address: string;
+  roadAddress: string;
+}
+
+/** `POST` - 보호자 프로필 등록 및 수정 API */
+const postUpdateGuardianProfile = async (request: UpdateGuardianProfileRequest) => {
+  return await api.post(`mypage/updateGuardianProfile`, { json: request }).json<ApiResponse<UserInfo>>();
 };
 
 /** `POST` - 유저 정보 수정 API */
@@ -122,6 +159,10 @@ export {
   type RegisterUserRequest,
   type WithdrawRequest,
   type UserInfo,
+  type GuardianProfile,
+  type GuardianProfileGender,
+  type GuardianProfileAddress,
+  type UpdateGuardianProfileRequest,
   type OwnerRole,
   type OwnerKindergartenType,
   type OwnerMypageSummary,
@@ -131,6 +172,8 @@ export {
   postRegisterUser,
   postWithdraw,
   getUserInfo,
+  toUser,
+  postUpdateGuardianProfile,
   postUpdateUserNickname,
   postUpdateUserEmail,
   getOwnerRole,
