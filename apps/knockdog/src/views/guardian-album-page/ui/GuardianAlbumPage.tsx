@@ -16,6 +16,7 @@ import {
 } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
+import { fetchGuardianAlbumDayPhotos } from '@views/guardian-album-page/model/fetchGuardianAlbumDayPhotos';
 import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuardianAlbumMonth';
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
@@ -214,12 +215,20 @@ function GuardianAlbumPage() {
   );
 
   const handleOpenFilterDayDetail = useCallback(
-    (day: GuardianAlbumFilterDay) => {
-      const monthDay = monthDays.find((item) => item.dateKey === day.dateKey);
-      const merged = mergeGuardianAlbumDayPhotos(day, monthDay ?? null);
-      openDetail(merged.photos, undefined, false);
+    async (day: GuardianAlbumFilterDay) => {
+      if (!schoolId) {
+        openDetail(day.photos, undefined, false);
+        return;
+      }
+
+      try {
+        const photos = await fetchGuardianAlbumDayPhotos(schoolId, day.dateKey);
+        openDetail(photos.length > 0 ? photos : day.photos, undefined, false);
+      } catch {
+        openDetail(day.photos, undefined, false);
+      }
     },
-    [monthDays, openDetail]
+    [openDetail, schoolId]
   );
 
   useEffect(() => {

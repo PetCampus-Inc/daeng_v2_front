@@ -23,7 +23,11 @@ const REVEAL_TRANSITION_MS = 500;
  * 앨범 이미지 — 로드 전 회색 스켈레톤, 완료 후 크로스페이드.
  * 부모(relative + 크기 지정) 안에서는 `absolute inset-0`으로 채운다.
  */
-function AlbumImage({
+function AlbumImage(props: AlbumImageProps) {
+  return <AlbumImageInner key={props.src} {...props} />;
+}
+
+function AlbumImageInner({
   src,
   alt = '',
   className,
@@ -39,16 +43,12 @@ function AlbumImage({
   const [skipTransition, setSkipTransition] = useState(false);
 
   useEffect(() => {
-    setIsLoaded(false);
-    setHasError(false);
-    setSkipTransition(false);
-
     const img = imgRef.current;
     if (img?.complete && img.naturalWidth > 0) {
       setSkipTransition(true);
       setIsLoaded(true);
     }
-  }, [src]);
+  }, []);
 
   const handleLoad = () => {
     setIsLoaded(true);

@@ -32,7 +32,7 @@ function GuardianAlbumFilterDaySection({
   const { dayCard } = guardianAlbumContent;
   const dateLabel = formatKoreanDateWithWeekday(parseDateKey(day.dateKey));
   const previewPhotos = day.photos.slice(0, PREVIEW_LIMIT);
-  const remainingCount = day.photoCount - PREVIEW_LIMIT;
+  const remainingCount = Math.max(day.photoCount - previewPhotos.length, 0);
   const isClickable = Boolean(onClick) && day.photos.length > 0;
 
   return (
@@ -51,7 +51,7 @@ function GuardianAlbumFilterDaySection({
       }
       role={isClickable ? 'button' : undefined}
       tabIndex={isClickable ? 0 : undefined}
-      aria-label={isClickable ? dayCard.detailAriaLabel : undefined}
+      aria-label={isClickable ? `${dateLabel} ${dayCard.detailAriaLabel}` : undefined}
     >
       <div className='flex h-[26px] w-full items-center justify-between'>
         <p className='body1-extrabold text-text-primary min-w-0 flex-1'>{dateLabel}</p>
@@ -65,7 +65,7 @@ function GuardianAlbumFilterDaySection({
 
       <div className='grid w-full min-w-0 grid-cols-3 gap-1'>
         {previewPhotos.map((photo, index) => {
-          const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
+          const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
 
           return (
             <div
