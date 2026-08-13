@@ -2,6 +2,7 @@
 
 import { Icon } from '@knockdog/ui';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { parseDateKey } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
@@ -20,19 +21,38 @@ interface GuardianAlbumFilterDaySectionProps {
   day: GuardianAlbumFilterDay;
   /** 초과분 라벨. 기본 `+ N` */
   overflowLabel?: (remaining: number) => string;
+  onClick?: (day: GuardianAlbumFilterDay) => void;
 }
 
 function GuardianAlbumFilterDaySection({
   day,
   overflowLabel = guardianAlbumContent.dayCard.overflowLabel,
+  onClick,
 }: GuardianAlbumFilterDaySectionProps) {
   const { dayCard } = guardianAlbumContent;
   const dateLabel = formatKoreanDateWithWeekday(parseDateKey(day.dateKey));
   const previewPhotos = day.photos.slice(0, PREVIEW_LIMIT);
-  const remainingCount = day.photoCount - PREVIEW_LIMIT;
+  const remainingCount = Math.max(day.photoCount - previewPhotos.length, 0);
+  const isClickable = Boolean(onClick) && day.photos.length > 0;
 
   return (
-    <section className='flex w-full flex-col gap-4'>
+    <section
+      className={`flex w-full min-w-0 flex-col gap-4 ${isClickable ? 'cursor-pointer' : ''}`}
+      onClick={isClickable ? () => onClick?.(day) : undefined}
+      onKeyDown={
+        isClickable
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onClick?.(day);
+              }
+            }
+          : undefined
+      }
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={isClickable ? `${dateLabel} ${dayCard.detailAriaLabel}` : undefined}
+    >
       <div className='flex h-[26px] w-full items-center justify-between'>
         <p className='body1-extrabold text-text-primary min-w-0 flex-1'>{dateLabel}</p>
         {day.isAttended ? (
@@ -43,19 +63,18 @@ function GuardianAlbumFilterDaySection({
         ) : null}
       </div>
 
-      <div className='grid w-full grid-cols-3 gap-1'>
+      <div className='grid w-full min-w-0 grid-cols-3 gap-1'>
         {previewPhotos.map((photo, index) => {
-          const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
+          const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
 
           return (
             <div
               key={photo.id}
-              className='bg-fill-secondary-100 relative aspect-square overflow-hidden rounded-lg'
+              className='relative aspect-square min-h-0 min-w-0 overflow-hidden rounded-lg'
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-              <img src={photo.url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+              <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
               {isOverflowTile ? (
-                <div className='bg-dim-70 absolute inset-0 flex items-center justify-center rounded-lg'>
+                <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
                   <span className='body2-semibold text-text-primary-inverse'>
                     {overflowLabel(remainingCount)}
                   </span>

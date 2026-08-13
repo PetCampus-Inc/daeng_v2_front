@@ -12,6 +12,7 @@ interface GuardianAlbumFavoriteListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
+  onDayClick?: (day: GuardianAlbumFilterDay) => void;
   onScrollVisibilityChange?: (isVisible: boolean) => void;
   scrollRef?: RefObject<HTMLDivElement | null>;
 }
@@ -21,6 +22,7 @@ function GuardianAlbumFavoriteList({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  onDayClick,
   onScrollVisibilityChange,
   scrollRef,
 }: GuardianAlbumFavoriteListProps) {
@@ -52,6 +54,7 @@ function GuardianAlbumFavoriteList({
             key={day.dateKey}
             day={day}
             overflowLabel={guardianAlbumContent.favoriteList.overflowLabel}
+            onClick={onDayClick}
           />
         ))}
         {hasNextPage ? (

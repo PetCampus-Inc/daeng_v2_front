@@ -13,7 +13,7 @@ export type {
   OwnerAlbumPhotosCache,
   OwnerAlbumPhotosPage,
 } from './api/useOwnerAlbumPhotosQuery';
-export { mapAlbumPhotoDto } from './lib/mapAlbumPhoto';
+export { mapAlbumPhotoDto, parseAlbumDateTime } from './lib/mapAlbumPhoto';
 export type { MappedAlbumPhoto } from './lib/mapAlbumPhoto';
 export type {
   AlbumUploadFileRequest,
@@ -22,6 +22,7 @@ export type {
   AlbumUploadUrlsResponse,
   AlbumCommitItemRequest,
   AlbumCommitRequest,
+  AlbumPhotoDateTime,
   AlbumPhotoDto,
   AlbumCommitResponse,
   AlbumPhotosListParams,

@@ -1,4 +1,4 @@
-/** `POST albums/{schoolId}/photos/upload-urls` request file */
+/** `POST albums/{schoolId}/photos/upload-urls`*/
 interface AlbumUploadFileRequest {
   filename: string;
   contentType: string;
@@ -9,7 +9,7 @@ interface AlbumUploadUrlsRequest {
   files: AlbumUploadFileRequest[];
 }
 
-/** upload-urls 응답 항목 — 요청 files 순서와 1:1 */
+/** `POST albums/{schoolId}/photos/upload-urls` */
 interface AlbumUploadUrlItem {
   tempKey: string;
   uploadUrl: string;
@@ -28,14 +28,17 @@ interface AlbumCommitRequest {
   items: AlbumCommitItemRequest[];
 }
 
+/** LocalDateTime — ISO 문자열 또는 `[y,m,d,h,mi,s,nano]` */
+type AlbumPhotoDateTime = string | number[];
+
 /** 앨범 사진 DTO (목록·commit 공통) */
 interface AlbumPhotoDto {
   id: number | string;
   url: string;
   key?: string;
   s3Key?: string;
-  createdAt?: string;
-  uploadedAt?: string;
+  createdAt?: AlbumPhotoDateTime;
+  uploadedAt?: AlbumPhotoDateTime;
 }
 
 interface AlbumCommitResponse {
@@ -63,6 +66,7 @@ export type {
   AlbumUploadUrlsResponse,
   AlbumCommitItemRequest,
   AlbumCommitRequest,
+  AlbumPhotoDateTime,
   AlbumPhotoDto,
   AlbumCommitResponse,
   AlbumPhotosListParams,

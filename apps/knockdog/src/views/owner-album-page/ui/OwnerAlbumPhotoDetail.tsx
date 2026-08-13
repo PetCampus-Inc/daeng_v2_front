@@ -16,6 +16,7 @@ import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhot
 import { Header } from '@widgets/Header';
 
 import { useSaveImage } from '@shared/lib/media';
+import { AlbumImage } from '@shared/ui/album-image';
 import { toast } from '@shared/ui/toast';
 
 const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
@@ -332,8 +333,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
                     isSelected ? 'border-line-accent border-2' : ''
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed URL 임시 미리보기 */}
-                  <img src={photo.url} alt='' className='radius-r2 h-full w-full object-cover' />
+                  <AlbumImage src={photo.url} className='absolute inset-0 radius-r2' />
                 </button>
               );
             })}

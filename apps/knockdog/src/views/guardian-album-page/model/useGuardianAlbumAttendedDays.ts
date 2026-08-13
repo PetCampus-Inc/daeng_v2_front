@@ -13,6 +13,7 @@ interface UseGuardianAlbumAttendedDaysParams {
 
 /**
  * 보호자 앨범 등원일 — `GET albums/{schoolId}/attended-days?petId=&cursor=&size=`
+ * 프리뷰 6장 보강은 리스트에서 화면에 들어온 카드만 수행한다.
  */
 function useGuardianAlbumAttendedDays({
   schoolId,

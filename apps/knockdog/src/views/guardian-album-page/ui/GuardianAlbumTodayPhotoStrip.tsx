@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 
@@ -28,9 +29,8 @@ function GuardianAlbumTodayOverflowCard({
 
   return (
     <div className='relative size-[150px] shrink-0 overflow-hidden rounded-lg'>
-      {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-      <img src={url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
-      <div className='bg-dim-70 absolute inset-0 flex items-center justify-center rounded-lg'>
+      <AlbumImage src={url} className='absolute inset-0' />
+      <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
         <span className='text-text-primary-inverse text-[18px] leading-[26px] font-medium tracking-[-0.36px]'>
           {today.overflowLabel(remainingCount)}
         </span>

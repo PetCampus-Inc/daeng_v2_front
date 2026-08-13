@@ -15,6 +15,8 @@ interface GuardianAlbumDayDto {
   date?: GuardianAlbumLocalDate | null;
   photoCount?: number | null;
   previewPhotos?: GuardianAlbumPhotoDto[] | null;
+  /** 일부 응답에서 previewPhotos 대신 photos 사용 */
+  photos?: GuardianAlbumPhotoDto[] | null;
   attended?: boolean | null;
 }
 
@@ -50,29 +52,38 @@ function toDateKey(value: GuardianAlbumLocalDate | null | undefined): string | n
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+function pickDayPhotoDtos(dto: GuardianAlbumDayDto): GuardianAlbumPhotoDto[] {
+  const previewPhotos = dto.previewPhotos ?? [];
+  const photos = dto.photos ?? [];
+  // 더 많이 내려준 쪽을 우선 (프리뷰 truncate 대응)
+  return photos.length > previewPhotos.length ? photos : previewPhotos;
+}
+
 function toGuardianAlbumDay(dto: GuardianAlbumDayDto | null | undefined): GuardianAlbumDay | null {
   const dateKey = toDateKey(dto?.date);
-  if (!dateKey) return null;
+  if (!dateKey || !dto) return null;
 
-  const photos = (dto?.previewPhotos ?? [])
+  const photos = pickDayPhotoDtos(dto)
     .map(toGuardianAlbumPhoto)
     .filter((photo): photo is GuardianAlbumPhoto => photo != null);
 
   const photoCount =
-    typeof dto?.photoCount === 'number' && Number.isFinite(dto.photoCount)
+    typeof dto.photoCount === 'number' && Number.isFinite(dto.photoCount)
       ? Math.max(dto.photoCount, photos.length)
       : photos.length;
 
   return {
     dateKey,
-    isAttended: Boolean(dto?.attended),
+    isAttended: Boolean(dto.attended),
     photoCount,
     photos,
   };
 }
 
 function sortGuardianAlbumDaysDesc(days: GuardianAlbumDay[]): GuardianAlbumDay[] {
-  return [...days].sort((a, b) => (a.dateKey < b.dateKey ? 1 : a.dateKey > b.dateKey ? -1 : 0));
+  return [...days].sort((left, right) =>
+    left.dateKey < right.dateKey ? 1 : left.dateKey > right.dateKey ? -1 : 0
+  );
 }
 
 export { sortGuardianAlbumDaysDesc, toDateKey, toGuardianAlbumDay };

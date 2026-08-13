@@ -53,8 +53,8 @@ function TimelineEventRow({
         <p className='caption1-regular text-text-secondary'>{timeLabel}</p>
         {showConnector ? <div className='bg-line-200 w-px flex-1' /> : null}
       </div>
-      <div className='pb-2'>
-        <div className='bg-bg-50 radius-r2 flex h-9 w-[295px] max-w-full items-center justify-center px-4 py-2'>
+      <div className='min-w-0 flex-1 pb-2'>
+        <div className='bg-bg-50 radius-r2 flex h-9 w-full items-center justify-center px-4 py-2'>
           <p className='body2-regular text-text-primary'>{label}</p>
         </div>
       </div>

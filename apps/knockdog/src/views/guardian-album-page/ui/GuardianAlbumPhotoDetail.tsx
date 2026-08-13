@@ -16,6 +16,7 @@ import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhot
 import { Header } from '@widgets/Header';
 import { useShare } from '@shared/lib/device/useShare';
 import { useSaveImage } from '@shared/lib/media';
+import { AlbumImage } from '@shared/ui/album-image';
 import { toast } from '@shared/ui/toast';
 
 const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
@@ -442,8 +443,7 @@ function GuardianAlbumPhotoDetail({
                   {hasError ? (
                     <div className='bg-fill-secondary-200 radius-r2 absolute inset-0' />
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일
-                    <img src={photo.url} alt='' className='radius-r2 h-full w-full object-cover' />
+                    <AlbumImage src={photo.url} className='absolute inset-0 radius-r2' />
                   )}
                 </button>
               );

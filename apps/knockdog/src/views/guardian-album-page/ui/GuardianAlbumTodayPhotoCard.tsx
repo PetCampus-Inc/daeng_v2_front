@@ -1,5 +1,6 @@
 'use client';
 
+import { AlbumImage } from '@shared/ui/album-image';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 
 interface GuardianAlbumTodayPhotoCardProps {
@@ -22,8 +23,7 @@ function GuardianAlbumTodayPhotoCard({
   return (
     <div className='relative size-[150px] shrink-0 overflow-hidden rounded-lg'>
       <button type='button' className='absolute inset-0' onClick={onClick} aria-label='사진 상세 보기'>
-        {/* eslint-disable-next-line @next/next/no-img-element -- mock/S3 앨범 썸네일 */}
-        <img src={url} alt='' className='size-full object-cover' loading='lazy' decoding='async' />
+        <AlbumImage src={url} className='absolute inset-0' />
       </button>
 
       {isNew ? (
