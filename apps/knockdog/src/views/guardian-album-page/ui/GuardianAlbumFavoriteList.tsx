@@ -1,81 +1,41 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, type RefObject } from 'react';
 
-import {
-  createGuardianAlbumFavoritePage,
-  type GuardianAlbumFavoriteDay,
-} from '@views/guardian-album-page/config/guardianAlbumFavoriteMock';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
+import type { GuardianAlbumFilterDay } from '@views/guardian-album-page/ui/GuardianAlbumFilterDaySection';
 import { GuardianAlbumFilterDaySection } from '@views/guardian-album-page/ui/GuardianAlbumFilterDaySection';
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
 
 interface GuardianAlbumFavoriteListProps {
-  profileImage?: string | null;
-  rangeEnd?: Date;
+  days: GuardianAlbumFilterDay[];
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
   onScrollVisibilityChange?: (isVisible: boolean) => void;
   scrollRef?: RefObject<HTMLDivElement | null>;
 }
 
 function GuardianAlbumFavoriteList({
-  profileImage,
-  rangeEnd,
+  days,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
   onScrollVisibilityChange,
-  scrollRef: externalScrollRef,
+  scrollRef,
 }: GuardianAlbumFavoriteListProps) {
-  const internalScrollRef = useRef<HTMLDivElement>(null);
-  const scrollRef = externalScrollRef ?? internalScrollRef;
-  const [days, setDays] = useState<GuardianAlbumFavoriteDay[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
-  const isInitializedRef = useRef(false);
-
-  const loadPage = useCallback(
-    (cursor: string | null) => {
-      if (!profileImage) {
-        setDays([]);
-        setNextCursor(null);
-        setHasNextPage(false);
-        return;
-      }
-
-      setIsFetchingNextPage(true);
-      const page = createGuardianAlbumFavoritePage({
-        cursor,
-        profileImage,
-        today: rangeEnd,
-      });
-      setDays((prev) => (cursor == null ? page.days : [...prev, ...page.days]));
-      setNextCursor(page.nextCursor);
-      setHasNextPage(page.nextCursor != null);
-      setIsFetchingNextPage(false);
-    },
-    [profileImage, rangeEnd]
-  );
-
-  useEffect(() => {
-    isInitializedRef.current = false;
-    setDays([]);
-    setNextCursor(null);
-    setHasNextPage(true);
-    loadPage(null);
-    isInitializedRef.current = true;
-  }, [loadPage]);
-
-  const fetchNextPage = useCallback(() => {
-    if (!isInitializedRef.current || isFetchingNextPage || !hasNextPage) return;
-    loadPage(nextCursor);
-  }, [hasNextPage, isFetchingNextPage, loadPage, nextCursor]);
+  const handleFetchNextPage = useCallback(() => {
+    fetchNextPage();
+  }, [fetchNextPage]);
 
   const { lastElementCallback } = useInfiniteScroll({
     hasNextPage,
     isFetchingNextPage,
-    fetchNextPage,
+    fetchNextPage: handleFetchNextPage,
   });
 
   const handleScroll = () => {
-    const node = scrollRef.current;
+    const node = scrollRef?.current;
     if (!node || !onScrollVisibilityChange) return;
     onScrollVisibilityChange(node.scrollTop > 120);
   };
