@@ -52,7 +52,21 @@ export function isGuardianProfileFormValid({ name, gender, phoneNumber, address,
 
 export function isGuardianProfileDirty(
   { name, gender, phoneNumber, address, addressDetail, emergencyPhoneNumber }: GuardianProfileFormValues,
-  initialAddress: string
+  {
+    name: initialName,
+    gender: initialGender,
+    phoneNumber: initialPhoneNumber,
+    address: initialAddress,
+    addressDetail: initialAddressDetail,
+    emergencyPhoneNumber: initialEmergencyPhoneNumber,
+  }: GuardianProfileFormValues
 ) {
-  return Boolean(name || gender != null || phoneNumber || address !== initialAddress || addressDetail || emergencyPhoneNumber);
+  return (
+    name !== initialName ||
+    gender !== initialGender ||
+    phoneNumber !== initialPhoneNumber ||
+    address !== initialAddress ||
+    addressDetail !== initialAddressDetail ||
+    emergencyPhoneNumber !== initialEmergencyPhoneNumber
+  );
 }
