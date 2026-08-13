@@ -480,6 +480,7 @@ function GuardianAlbumPage() {
           <>
             <GuardianAlbumAttendanceList
               days={enrichedAttendanceDays}
+              schoolId={schoolId}
               hasNextPage={hasAttendanceNextPage}
               isFetchingNextPage={isAttendanceFetchingNextPage}
               fetchNextPage={fetchAttendanceNextPage}

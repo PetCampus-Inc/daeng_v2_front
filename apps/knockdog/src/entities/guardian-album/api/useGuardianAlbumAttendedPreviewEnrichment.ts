@@ -1,4 +1,4 @@
-import { useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import type { GuardianAlbumDay } from '../model/guardianAlbumDay';
@@ -13,10 +13,10 @@ const ATTENDANCE_PREVIEW_LIMIT = 6;
 const guardianAlbumDayPhotosQueryKey = (userId?: string, schoolId?: string, date?: string) =>
   [GUARDIAN_ALBUM_DAY_PHOTOS_QUERY_KEY, userId, schoolId, date] as const;
 
-interface UseGuardianAlbumAttendedPreviewEnrichmentOptions {
+interface UseGuardianAlbumDayPreviewEnrichmentOptions {
   userId?: string;
   schoolId?: string | null;
-  days: GuardianAlbumDay[];
+  day: GuardianAlbumDay;
   enabled?: boolean;
   previewLimit?: number;
 }
@@ -43,62 +43,46 @@ function mergeDayPhotos(
 /**
  * attended-days previewPhotos(BE 4장 고정)를
  * `GET albums/{schoolId}/photos?date=`로 최대 previewLimit장까지 보완.
+ * 호출부에서 화면에 들어온 카드에만 `enabled`를 켠다.
  */
-function useGuardianAlbumAttendedPreviewEnrichment({
+function useGuardianAlbumDayPreviewEnrichment({
   userId,
   schoolId,
-  days,
+  day,
   enabled = true,
   previewLimit = ATTENDANCE_PREVIEW_LIMIT,
-}: UseGuardianAlbumAttendedPreviewEnrichmentOptions) {
-  const daysNeedingEnrichment = useMemo(
-    () => days.filter((day) => needsPreviewEnrichment(day, previewLimit)),
-    [days, previewLimit]
-  );
+}: UseGuardianAlbumDayPreviewEnrichmentOptions) {
+  const shouldFetch = enabled && needsPreviewEnrichment(day, previewLimit);
 
-  const queries = useQueries({
-    queries: daysNeedingEnrichment.map((day) => ({
-      queryKey: guardianAlbumDayPhotosQueryKey(userId, schoolId ?? undefined, day.dateKey),
-      queryFn: async () => {
-        const response = await getGuardianAlbumDayPhotos({
-          schoolId: schoolId!,
-          date: day.dateKey,
-          size: Math.min(Math.max(day.photoCount, previewLimit), 30),
-        });
-        return (response.data?.photos ?? [])
-          .map(toGuardianAlbumPhoto)
-          .filter((photo): photo is GuardianAlbumPhoto => photo != null);
-      },
-      enabled: enabled && Boolean(userId) && Boolean(schoolId),
-      staleTime: 60_000,
-    })),
+  const query = useQuery({
+    queryKey: guardianAlbumDayPhotosQueryKey(userId, schoolId ?? undefined, day.dateKey),
+    queryFn: async () => {
+      const response = await getGuardianAlbumDayPhotos({
+        schoolId: schoolId!,
+        date: day.dateKey,
+        size: previewLimit,
+      });
+      return (response.data?.photos ?? [])
+        .map(toGuardianAlbumPhoto)
+        .filter((photo): photo is GuardianAlbumPhoto => photo != null);
+    },
+    enabled: shouldFetch && Boolean(userId) && Boolean(schoolId),
+    staleTime: 60_000,
   });
 
-  const photosByDate = useMemo(() => {
-    const map = new Map<string, GuardianAlbumPhoto[]>();
-    daysNeedingEnrichment.forEach((day, index) => {
-      const photos = queries[index]?.data;
-      if (photos && photos.length > 0) map.set(day.dateKey, photos);
-    });
-    return map;
-  }, [daysNeedingEnrichment, queries]);
-
-  const enrichedDays = useMemo(() => {
-    return days.map((day) => {
-      const fetched = photosByDate.get(day.dateKey);
-      if (!fetched) return day;
-      const photos = mergeDayPhotos(day.photos, fetched);
-      return {
-        ...day,
-        photos,
-        photoCount: Math.max(day.photoCount, photos.length),
-      };
-    });
-  }, [days, photosByDate]);
+  const enrichedDay = useMemo(() => {
+    if (!query.data || query.data.length === 0) return day;
+    const photos = mergeDayPhotos(day.photos, query.data).slice(0, previewLimit);
+    return {
+      ...day,
+      photos,
+      photoCount: Math.max(day.photoCount, photos.length),
+    };
+  }, [day, previewLimit, query.data]);
 
   return {
-    days: enrichedDays,
-    isEnriching: queries.some((query) => query.isFetching),
+    day: enrichedDay,
+    isEnriching: query.isFetching,
   };
 }
 
@@ -106,5 +90,6 @@ export {
   ATTENDANCE_PREVIEW_LIMIT,
   GUARDIAN_ALBUM_DAY_PHOTOS_QUERY_KEY,
   guardianAlbumDayPhotosQueryKey,
-  useGuardianAlbumAttendedPreviewEnrichment,
+  useGuardianAlbumDayPreviewEnrichment,
 };
+export type { UseGuardianAlbumDayPreviewEnrichmentOptions };

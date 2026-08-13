@@ -44,8 +44,9 @@ export {
   ATTENDANCE_PREVIEW_LIMIT,
   GUARDIAN_ALBUM_DAY_PHOTOS_QUERY_KEY,
   guardianAlbumDayPhotosQueryKey,
-  useGuardianAlbumAttendedPreviewEnrichment,
+  useGuardianAlbumDayPreviewEnrichment,
 } from './api/useGuardianAlbumAttendedPreviewEnrichment';
+export type { UseGuardianAlbumDayPreviewEnrichmentOptions } from './api/useGuardianAlbumAttendedPreviewEnrichment';
 export { toGuardianAlbumToday } from './model/guardianAlbumToday';
 export type {
   GuardianAlbumToday,
