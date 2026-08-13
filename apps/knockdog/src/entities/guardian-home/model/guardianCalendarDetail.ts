@@ -44,8 +44,12 @@ interface GuardianCalendarDetailDto {
 
 interface GuardianCalendarDailyNotice {
   writtenAt: string;
+  updatedAt: string | null;
   conditionLabel: string;
   stoolLabel: string;
+  poop: string | null;
+  snack: string;
+  poopMemo: string;
   body: string;
 }
 
@@ -86,11 +90,16 @@ function toDailyNotice(
 
   const conditionKey = typeof dto.condition === 'string' ? dto.condition.toUpperCase() : '';
   const poopKey = typeof dto.poop === 'string' ? dto.poop.toUpperCase() : '';
+  const updatedAtDate = parseApiDateTime(dto.updatedAt);
 
   return {
     writtenAt: writtenAtDate.toISOString(),
+    updatedAt: updatedAtDate ? updatedAtDate.toISOString() : null,
     conditionLabel: CONDITION_LABELS[conditionKey] ?? dto.condition ?? '',
     stoolLabel: POOP_LABELS[poopKey] ?? dto.poop ?? '',
+    poop: poopKey || null,
+    snack: dto.snack ?? '',
+    poopMemo: dto.poopMemo ?? '',
     body: dto.note ?? '',
   };
 }

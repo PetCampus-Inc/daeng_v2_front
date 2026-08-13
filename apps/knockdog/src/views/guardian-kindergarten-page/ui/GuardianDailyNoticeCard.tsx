@@ -39,9 +39,14 @@ function GuardianDailyNoticeArrivedBanner({ onViewClick }: GuardianDailyNoticeAr
 interface GuardianDailyNoticeTimelineCardProps {
   notice: GuardianDailyNoticeMock;
   timeLabel: string;
+  onViewAllClick?: () => void;
 }
 
-function GuardianDailyNoticeTimelineCard({ notice, timeLabel }: GuardianDailyNoticeTimelineCardProps) {
+function GuardianDailyNoticeTimelineCard({
+  notice,
+  timeLabel,
+  onViewAllClick,
+}: GuardianDailyNoticeTimelineCardProps) {
   const content = guardianKindergartenAttendingContent;
 
   return (
@@ -61,7 +66,11 @@ function GuardianDailyNoticeTimelineCard({ notice, timeLabel }: GuardianDailyNot
           </div>
           <p className='body2-regular text-text-primary line-clamp-2 w-full'>{notice.body}</p>
         </div>
-        <button type='button' className='gap-x1 flex items-center justify-center rounded px-2 py-1'>
+        <button
+          type='button'
+          className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+          onClick={onViewAllClick}
+        >
           <span className='caption1-semibold text-text-tertiary'>{content.noticeViewAllLabel}</span>
           <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
         </button>
