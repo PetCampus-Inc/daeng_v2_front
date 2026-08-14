@@ -51,7 +51,7 @@ function GuardianDailyNoticeDetailPage() {
   });
 
   const checkInLabel = checkInAt ? formatNoticeClockTime(checkInAt) : content.emptyTimeLabel;
-  const checkOutLabel = checkOutAt ? formatNoticeClockTime(checkOutAt) : content.emptyTimeLabel;
+  const checkOutLabel = checkOutAt ? formatNoticeClockTime(checkOutAt) : null;
   const updatedAtDate = dailyNotice?.updatedAt ? new Date(dailyNotice.updatedAt) : null;
   const updatedAtLabel =
     updatedAtDate && !Number.isNaN(updatedAtDate.getTime())
@@ -113,10 +113,12 @@ function GuardianDailyNoticeDetailPage() {
                 <p className='label-medium text-text-secondary'>{content.checkInLabel}</p>
                 <p className='h3-semibold text-text-primary'>{checkInLabel}</p>
               </div>
-              <div className='flex w-11 flex-col gap-0.5'>
-                <p className='label-medium text-text-secondary'>{content.checkOutLabel}</p>
-                <p className='h3-semibold text-text-primary'>{checkOutLabel}</p>
-              </div>
+              {checkOutLabel ? (
+                <div className='flex w-11 flex-col gap-0.5'>
+                  <p className='label-medium text-text-secondary'>{content.checkOutLabel}</p>
+                  <p className='h3-semibold text-text-primary'>{checkOutLabel}</p>
+                </div>
+              ) : null}
             </div>
             {updatedAtLabel ? (
               <p className='caption1-regular text-text-secondary text-right'>{updatedAtLabel}</p>
