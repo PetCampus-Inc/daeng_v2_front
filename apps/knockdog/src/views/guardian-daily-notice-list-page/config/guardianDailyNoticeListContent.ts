@@ -11,6 +11,18 @@ const guardianDailyNoticeListContent = {
     title: '이 달에는 알림장이 없어요',
     description: '달력에서 다른 날짜를 확인해 보세요.',
   },
+  card: {
+    checkInLabel: '등원',
+    checkOutLabel: '하원',
+    timeSeparator: '-',
+    emptyNoticeMessage: '작성된 알림장이 없어요',
+    conditionBadgeLabel: '컨디션',
+    stoolBadgeLabel: '배변',
+    detailAriaLabel: (dateLabel: string) => `${dateLabel} 알림장 보기`,
+  },
+  firstAttendance: {
+    message: '유치원을 다니기 시작했어요',
+  },
 } as const;
 
 export { guardianDailyNoticeListContent };

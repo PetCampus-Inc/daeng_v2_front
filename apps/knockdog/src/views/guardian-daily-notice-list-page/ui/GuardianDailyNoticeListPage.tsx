@@ -8,12 +8,16 @@ import { overlay } from 'overlay-kit';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
+import { useGuardianDailyNoticeMonthList } from '@views/guardian-daily-notice-list-page/model/useGuardianDailyNoticeMonthList';
 import { GuardianDailyNoticeListMonthEmpty } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthEmpty';
+import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthList';
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
-import { useTabNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
 
 function startOfMonth(date: Date) {
@@ -33,6 +37,8 @@ function GuardianDailyNoticeListPage() {
   const content = guardianDailyNoticeListContent;
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
+  const { selectedPetId } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -50,6 +56,15 @@ function GuardianDailyNoticeListPage() {
   const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
 
   const title = linkedKindergarten?.name ?? '';
+
+  const { items, firstAttendanceDate, isPending } = useGuardianDailyNoticeMonthList({
+    schoolId: linkedKindergarten?.id,
+    petId: selectedPetId,
+    selectedMonth,
+    firstAttendedAt,
+  });
+
+  const hasRows = items.length > 0 || firstAttendanceDate != null;
 
   const handleBack = () => {
     navigateToTab('/compare');
@@ -99,7 +114,7 @@ function GuardianDailyNoticeListPage() {
       style={{ paddingBottom: BOTTOM_BAR_HEIGHT }}
     >
       <div className='sticky top-0 z-10 shrink-0'>
-        <div className='bg-bg-0'>
+        <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
           <Header className='border-b-0'>
             <Header.LeftSection>
               <Header.BackButton onClick={handleBack} />
@@ -134,7 +149,15 @@ function GuardianDailyNoticeListPage() {
           onScroll={handleScroll}
           aria-label={content.listAriaLabel}
         >
-          <GuardianDailyNoticeListMonthEmpty />
+          {isPending && !hasRows ? null : hasRows ? (
+            <GuardianDailyNoticeListMonthList
+              items={items}
+              firstAttendanceDate={firstAttendanceDate}
+              onItemClick={(item) => pushGuardianDailyNoticeDetail(push, item.date)}
+            />
+          ) : (
+            <GuardianDailyNoticeListMonthEmpty />
+          )}
         </div>
         <GuardianAlbumScrollTopButton
           visible={isScrollTopVisible}
