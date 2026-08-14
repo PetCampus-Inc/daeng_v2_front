@@ -112,59 +112,58 @@ function GuardianDailyNoticeDetailPage() {
         <GuardianDailyNoticeSpring />
       </div>
 
-      <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden pt-5'>
-        <div className='shrink-0'>
+      <div className='bg-bg-0 relative min-h-0 flex-1 overflow-y-auto pt-5'>
+        <div className='flex min-h-full flex-col'>
           <GuardianKindergartenDateCalendar
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             firstAttendedAt={firstAttendedAt ?? undefined}
           />
-        </div>
 
-        <div className='flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-16'>
-          <div className='flex w-full shrink-0 items-start justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='flex flex-col gap-0.5'>
-                <p className='label-medium text-text-secondary'>{content.checkInLabel}</p>
-                <p className='h3-semibold text-text-primary'>{checkInLabel}</p>
-              </div>
-              {checkOutLabel ? (
-                <div className='flex w-11 flex-col gap-0.5'>
-                  <p className='label-medium text-text-secondary'>{content.checkOutLabel}</p>
-                  <p className='h3-semibold text-text-primary'>{checkOutLabel}</p>
+          <div className='flex min-h-0 flex-1 flex-col gap-5 px-4 pb-16'>
+            <div className='flex w-full shrink-0 items-start justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='flex flex-col gap-0.5'>
+                  <p className='label-medium text-text-secondary'>{content.checkInLabel}</p>
+                  <p className='h3-semibold text-text-primary'>{checkInLabel}</p>
                 </div>
+                {checkOutLabel ? (
+                  <div className='flex w-11 flex-col gap-0.5'>
+                    <p className='label-medium text-text-secondary'>{content.checkOutLabel}</p>
+                    <p className='h3-semibold text-text-primary'>{checkOutLabel}</p>
+                  </div>
+                ) : null}
+              </div>
+              {updatedAtLabel ? (
+                <p className='caption1-regular text-text-secondary text-right'>{updatedAtLabel}</p>
               ) : null}
             </div>
-            {updatedAtLabel ? (
-              <p className='caption1-regular text-text-secondary text-right'>{updatedAtLabel}</p>
-            ) : null}
-          </div>
 
-          {showWritingInProgress ? (
-            <div className='flex min-h-0 flex-1 flex-col gap-5'>
-              <div className='bg-bg-50 radius-r5 flex min-h-0 flex-1 items-center justify-center'>
-                <div className='flex w-full flex-col items-center gap-1'>
-                  <p className='body1-medium text-text-secondary text-center'>
-                    {content.writingInProgressTitle}
-                  </p>
-                  <p className='body2-regular text-text-tertiary text-center'>
-                    {content.writingInProgressDescription}
-                  </p>
+            {showWritingInProgress ? (
+              <div className='flex min-h-0 flex-1 flex-col gap-5'>
+                <div className='bg-bg-50 radius-r5 flex min-h-[282px] flex-1 items-center justify-center'>
+                  <div className='flex w-full flex-col items-center gap-1'>
+                    <p className='body1-medium text-text-secondary text-center'>
+                      {content.writingInProgressTitle}
+                    </p>
+                    <p className='body2-regular text-text-tertiary text-center'>
+                      {content.writingInProgressDescription}
+                    </p>
+                  </div>
                 </div>
+
+                {hasAlbumSection ? (
+                  <div className='shrink-0'>
+                    <GuardianDailyNoticeAlbumSection
+                      photos={albumPhotos}
+                      photoCount={albumPhotoCount}
+                      hasError={isAlbumError}
+                      onAlbumClick={handleAlbumViewClick}
+                    />
+                  </div>
+                ) : null}
               </div>
-
-              {hasAlbumSection ? (
-                <div className='shrink-0'>
-                  <GuardianDailyNoticeAlbumSection
-                    photos={albumPhotos}
-                    photoCount={albumPhotoCount}
-                    hasError={isAlbumError}
-                    onAlbumClick={handleAlbumViewClick}
-                  />
-                </div>
-              ) : null}
-            </div>
-          ) : (
+            ) : (
             <>
               {isPending ? null : dailyNotice ? (
                 <>
@@ -237,6 +236,7 @@ function GuardianDailyNoticeDetailPage() {
               ) : null}
             </>
           )}
+          </div>
         </div>
       </div>
     </div>
