@@ -8,6 +8,7 @@ import { overlay } from 'overlay-kit';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
+import { isDisconnectedListMock } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListMock';
 import { useGuardianDailyNoticeMonthList } from '@views/guardian-daily-notice-list-page/model/useGuardianDailyNoticeMonthList';
 import { GuardianDailyNoticeListMonthEmpty } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthEmpty';
 import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthList';
@@ -39,7 +40,7 @@ function GuardianDailyNoticeListPage() {
   const { navigateToTab } = useTabNavigation();
   const { push } = useStackNavigation();
   const { selectedPetId } = useGuardianSelectedPet();
-  const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
+  const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedMonth, setSelectedMonth] = useState(
@@ -47,6 +48,8 @@ function GuardianDailyNoticeListPage() {
   );
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
+  const isDisconnected =
+    status === 'disconnected' || isDisconnectedListMock(searchParams.get('mock'));
   const minMonth = useMemo(
     () => startOfMonth(firstAttendedAt ?? new Date(2020, 0, 1)),
     [firstAttendedAt]
@@ -57,14 +60,17 @@ function GuardianDailyNoticeListPage() {
 
   const title = linkedKindergarten?.name ?? '';
 
-  const { items, firstAttendanceDate, isPending } = useGuardianDailyNoticeMonthList({
-    schoolId: linkedKindergarten?.id,
-    petId: selectedPetId,
-    selectedMonth,
-    firstAttendedAt,
-  });
+  const { items, firstAttendanceDate, attendedUntilDate, isPending } =
+    useGuardianDailyNoticeMonthList({
+      schoolId: linkedKindergarten?.id,
+      petId: selectedPetId,
+      selectedMonth,
+      firstAttendedAt,
+      isDisconnected,
+    });
 
-  const hasRows = items.length > 0 || firstAttendanceDate != null;
+  const hasRows =
+    items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;
 
   const handleBack = () => {
     navigateToTab('/compare');
@@ -152,6 +158,7 @@ function GuardianDailyNoticeListPage() {
           {isPending && !hasRows ? null : hasRows ? (
             <GuardianDailyNoticeListMonthList
               items={items}
+              attendedUntilDate={attendedUntilDate}
               firstAttendanceDate={firstAttendanceDate}
               onItemClick={(item) => pushGuardianDailyNoticeDetail(push, item.date)}
             />

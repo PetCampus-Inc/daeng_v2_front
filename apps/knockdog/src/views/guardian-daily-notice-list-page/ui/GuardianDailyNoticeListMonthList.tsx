@@ -9,6 +9,8 @@ import { WEEKDAY_LABELS, isSameDay } from '@shared/lib/calendar-date';
 
 interface GuardianDailyNoticeListMonthListProps {
   items: GuardianDailyNoticeMonthItem[];
+  /** 연결 해제 월이면 리스트 상단 종료 문구 날짜 */
+  attendedUntilDate?: Date | null;
   /** 첫 등원 월이면 리스트 하단 시작 문구 날짜 */
   firstAttendanceDate?: Date | null;
   onItemClick?: (item: GuardianDailyNoticeMonthItem) => void;
@@ -35,14 +37,25 @@ function NoticeListDate({ date, isToday }: NoticeListDateProps) {
 
 function GuardianDailyNoticeListMonthList({
   items,
+  attendedUntilDate = null,
   firstAttendanceDate = null,
   onItemClick,
 }: GuardianDailyNoticeListMonthListProps) {
-  const { firstAttendance } = guardianDailyNoticeListContent;
+  const { attendedUntil, firstAttendance } = guardianDailyNoticeListContent;
   const today = new Date();
 
   return (
     <div className='flex w-full flex-col gap-5 p-4'>
+      {attendedUntilDate ? (
+        <div className='flex w-full items-start gap-2'>
+          <NoticeListDate date={attendedUntilDate} isToday={false} />
+          <div className='bg-bg-100 radius-r3 flex min-w-0 flex-1 items-center justify-center gap-1 p-4'>
+            <Icon icon='CheckFill' className='text-text-tertiary size-5 shrink-0' aria-hidden='true' />
+            <span className='label-semibold text-text-tertiary'>{attendedUntil.message}</span>
+          </div>
+        </div>
+      ) : null}
+
       {items.map((item) => (
         <div key={item.dateKey} className='flex w-full items-start gap-2'>
           <NoticeListDate date={item.date} isToday={isSameDay(item.date, today)} />

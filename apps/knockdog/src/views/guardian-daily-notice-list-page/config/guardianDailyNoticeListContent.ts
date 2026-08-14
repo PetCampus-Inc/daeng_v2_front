@@ -23,6 +23,9 @@ const guardianDailyNoticeListContent = {
   firstAttendance: {
     message: '유치원을 다니기 시작했어요',
   },
+  attendedUntil: {
+    message: '여기까지 다녔어요',
+  },
 } as const;
 
 export { guardianDailyNoticeListContent };

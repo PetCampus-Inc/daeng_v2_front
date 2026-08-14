@@ -29,7 +29,14 @@ interface UseGuardianDailyNoticeMonthListParams {
   petId?: string | null;
   selectedMonth: Date;
   firstAttendedAt?: Date | null;
+  /** 연결 해제일. 없으면 퍼블리싱 폴백 */
+  attendedUntil?: Date | null;
+  isDisconnected?: boolean;
   enabled?: boolean;
+}
+
+function isSameYearMonth(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth();
 }
 
 function hasCheckIn(detail: GuardianCalendarDetail | undefined) {
@@ -72,6 +79,8 @@ function useGuardianDailyNoticeMonthList({
   petId,
   selectedMonth,
   firstAttendedAt = null,
+  attendedUntil = null,
+  isDisconnected = false,
   enabled = true,
 }: UseGuardianDailyNoticeMonthListParams) {
   const userId = useUserStore((state) => state.user?.userId);
@@ -144,15 +153,31 @@ function useGuardianDailyNoticeMonthList({
       return oldestAttendedDate ? addDays(oldestAttendedDate, -1) : null;
     }
 
-    const isSameMonth =
-      firstAttendedAt.getFullYear() === selectedMonth.getFullYear() &&
-      firstAttendedAt.getMonth() === selectedMonth.getMonth();
-    return isSameMonth ? startOfDay(firstAttendedAt) : null;
+    return isSameYearMonth(firstAttendedAt, selectedMonth)
+      ? startOfDay(firstAttendedAt)
+      : null;
   }, [firstAttendedAt, items, selectedMonth]);
+
+  /**
+   * 연결 해제 월이면 리스트 상단에 종료 문구 노출.
+   */
+  const attendedUntilDate = useMemo(() => {
+    if (!isDisconnected) return null;
+
+    if (!attendedUntil) {
+      const newestAttendedDate = items[0]?.date;
+      return newestAttendedDate ? addDays(newestAttendedDate, 1) : null;
+    }
+
+    return isSameYearMonth(attendedUntil, selectedMonth)
+      ? startOfDay(attendedUntil)
+      : null;
+  }, [attendedUntil, isDisconnected, items, selectedMonth]);
 
   return {
     items,
     firstAttendanceDate,
+    attendedUntilDate,
     isPending,
     hasError,
   };
