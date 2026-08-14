@@ -24,6 +24,7 @@ import {
   KindergartenSelectSheet,
   MOCK_KINDERGARTEN_SELECT_OPTIONS,
 } from '@shared/ui/kindergarten-select-sheet';
+import { toast } from '@shared/ui/toast';
 
 function startOfMonth(date: Date) {
   return startOfDay(new Date(date.getFullYear(), date.getMonth(), 1));
@@ -94,23 +95,7 @@ function GuardianDailyNoticeListPage() {
     isDisconnectedListMock(searchParams.get('mock')) ||
     selectedAttendedUntil != null;
 
-  const minMonth = useMemo(
-    () => startOfMonth(firstAttendedAt ?? new Date(2020, 0, 1)),
-    [firstAttendedAt]
-  );
-  const maxMonth = useMemo(
-    () => startOfMonth(selectedAttendedUntil ?? new Date()),
-    [selectedAttendedUntil]
-  );
-  const canGoPrevMonth = selectedMonth.getTime() > minMonth.getTime();
-  const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
-
-  const title =
-    selectedAttendedUntil != null
-      ? (selectedKindergarten?.name ?? '')
-      : (linkedKindergarten?.name ?? selectedKindergarten?.name ?? '');
-
-  const { items, firstAttendanceDate, attendedUntilDate, isPending } =
+  const { items, firstAttendanceDate, attendedUntilDate, effectiveFirstAttendedAt, isPending } =
     useGuardianDailyNoticeMonthList({
       schoolId: linkedKindergarten?.id,
       petId: selectedPetId,
@@ -119,6 +104,25 @@ function GuardianDailyNoticeListPage() {
       attendedUntil: selectedAttendedUntil,
       isDisconnected,
     });
+
+  const minMonth = useMemo(
+    () => startOfMonth(effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)),
+    [effectiveFirstAttendedAt, firstAttendedAt]
+  );
+  const maxMonth = useMemo(
+    () => startOfMonth(selectedAttendedUntil ?? new Date()),
+    [selectedAttendedUntil]
+  );
+  /** 첫 등원 블록이 뜬 달이면 더 이전은 볼 게 없음 (firstAttendedAt 미제공 시 하한 역할) */
+  const isFirstAttendanceMonth = firstAttendanceDate != null;
+  const canGoPrevMonth =
+    selectedMonth.getTime() > minMonth.getTime() && !isFirstAttendanceMonth;
+  const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
+
+  const title =
+    selectedAttendedUntil != null
+      ? (selectedKindergarten?.name ?? '')
+      : (linkedKindergarten?.name ?? selectedKindergarten?.name ?? '');
 
   const hasRows =
     items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;
@@ -166,13 +170,39 @@ function GuardianDailyNoticeListPage() {
   };
 
   const handlePrevMonth = () => {
-    if (!canGoPrevMonth) return;
+    if (!canGoPrevMonth) {
+      const { noMoreNoticeToastPrefix, noMoreNoticeToastAccent, noMoreNoticeToastSuffix } =
+        content.monthNav;
+      toast({
+        nativeTitle: `${noMoreNoticeToastPrefix}${noMoreNoticeToastAccent}${noMoreNoticeToastSuffix}`,
+        titleParts: [
+          { text: noMoreNoticeToastPrefix },
+          { text: noMoreNoticeToastAccent, accent: true },
+          { text: noMoreNoticeToastSuffix },
+        ],
+        title: (
+          <>
+            <span className='body1-medium text-text-primary-inverse'>
+              {noMoreNoticeToastPrefix}
+            </span>
+            <span className='body1-bold text-text-accent'>{noMoreNoticeToastAccent}</span>
+            <span className='body1-medium text-text-primary-inverse'>
+              {noMoreNoticeToastSuffix}
+            </span>
+          </>
+        ),
+      });
+      return;
+    }
     setSelectedMonth((prev) => startOfMonth(addMonths(prev, -1)));
     setIsScrollTopVisible(false);
   };
 
   const handleNextMonth = () => {
-    if (!canGoNextMonth) return;
+    if (!canGoNextMonth) {
+      toast({ title: content.monthNav.maxMonthToast });
+      return;
+    }
     setSelectedMonth((prev) => startOfMonth(addMonths(prev, 1)));
     setIsScrollTopVisible(false);
   };

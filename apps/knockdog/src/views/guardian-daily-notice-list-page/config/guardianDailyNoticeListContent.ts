@@ -5,6 +5,10 @@ const guardianDailyNoticeListContent = {
     prevAriaLabel: '이전 달',
     nextAriaLabel: '다음 달',
     yearMonthAriaLabel: '연월 선택',
+    noMoreNoticeToastPrefix: '더 이상 볼 수 있는 ',
+    noMoreNoticeToastAccent: '알림장',
+    noMoreNoticeToastSuffix: '이 없어요',
+    maxMonthToast: '여기까지 볼 수 있어요',
   },
   monthEmpty: {
     imageSrc: '/images/image_guardian_notice_none.png',

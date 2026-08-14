@@ -85,19 +85,39 @@ function useGuardianDailyNoticeMonthList({
 }: UseGuardianDailyNoticeMonthListParams) {
   const userId = useUserStore((state) => state.user?.userId);
 
-  const dateKeys = useMemo(
-    () => buildMonthDateKeys(selectedMonth, firstAttendedAt, new Date()),
-    [selectedMonth, firstAttendedAt]
-  );
-
-  const canQuery = enabled && Boolean(userId) && Boolean(petId) && dateKeys.length > 0;
-
-  const { days: albumDays } = useGuardianAlbumMonth({
+  const {
+    days: albumDays,
+    firstAvailableMonth,
+    connectionStartedAt,
+  } = useGuardianAlbumMonth({
     schoolId,
     petId,
     selectedMonth,
     enabled: enabled && Boolean(schoolId) && Boolean(petId),
   });
+
+  /**
+   * 월 네비/조회 하한.
+   * home `firstAttendedAt` → 앨범 `firstAvailableMonth`/`connectionStartedAt` 순.
+   */
+  const effectiveFirstAttendedAt = useMemo(() => {
+    if (firstAttendedAt) return startOfDay(firstAttendedAt);
+    if (firstAvailableMonth) return startOfDay(firstAvailableMonth);
+    if (connectionStartedAt) return parseDateKey(connectionStartedAt);
+    return null;
+  }, [connectionStartedAt, firstAttendedAt, firstAvailableMonth]);
+
+  const rangeEndDate = useMemo(
+    () => startOfDay(attendedUntil ?? new Date()),
+    [attendedUntil]
+  );
+
+  const dateKeys = useMemo(
+    () => buildMonthDateKeys(selectedMonth, effectiveFirstAttendedAt, rangeEndDate),
+    [selectedMonth, effectiveFirstAttendedAt, rangeEndDate]
+  );
+
+  const canQuery = enabled && Boolean(userId) && Boolean(petId) && dateKeys.length > 0;
 
   const thumbnailByDateKey = useMemo(() => {
     const map = new Map<string, string>();
@@ -145,18 +165,18 @@ function useGuardianDailyNoticeMonthList({
 
   /**
    * 첫 등원 월이면 리스트 하단에 시작 문구 노출.
-   * 추후 API에 `firstAttendedAt`이 추가되면 아래 정상 분기를 그대로 탄다.
+   * 유효 첫 등원일이 없으면 퍼블리싱용으로 이 달 최신 등원일 하루 전을 쓴다.
    */
   const firstAttendanceDate = useMemo(() => {
-    if (!firstAttendedAt) {
+    if (!effectiveFirstAttendedAt) {
       const oldestAttendedDate = items[items.length - 1]?.date;
       return oldestAttendedDate ? addDays(oldestAttendedDate, -1) : null;
     }
 
-    return isSameYearMonth(firstAttendedAt, selectedMonth)
-      ? startOfDay(firstAttendedAt)
+    return isSameYearMonth(effectiveFirstAttendedAt, selectedMonth)
+      ? startOfDay(effectiveFirstAttendedAt)
       : null;
-  }, [firstAttendedAt, items, selectedMonth]);
+  }, [effectiveFirstAttendedAt, items, selectedMonth]);
 
   /**
    * 연결 해제 월이면 리스트 상단에 종료 문구 노출.
@@ -178,6 +198,8 @@ function useGuardianDailyNoticeMonthList({
     items,
     firstAttendanceDate,
     attendedUntilDate,
+    /** 월 네비 하한 — 첫 등원(또는 앨범 첫 이용 월) */
+    effectiveFirstAttendedAt,
     isPending,
     hasError,
   };
