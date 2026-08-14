@@ -144,10 +144,65 @@ function formatMonthTitle(date: Date) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
 }
 
-function hasSelectableDayInWeek(anchorDate: Date, minDate: Date, maxDate: Date) {
-  return getWeekDates(anchorDate).some(
-    (date) => !isBeforeDay(date, minDate) && !isAfterDay(date, maxDate)
+function hasSelectableDayInWeek(
+  anchorDate: Date,
+  minDate: Date,
+  maxDate: Date,
+  enabledDateKeys?: Set<string>
+) {
+  return getWeekDates(anchorDate).some((date) => {
+    if (isBeforeDay(date, minDate) || isAfterDay(date, maxDate)) return false;
+    if (enabledDateKeys != null && !enabledDateKeys.has(formatDateKey(date))) return false;
+    return true;
+  });
+}
+
+/** min/max(+enabled) 안에서 선택 가능한 날짜로 보정. enabled null이면 min/max만 적용 */
+function resolveSelectableDate(
+  date: Date,
+  minDate: Date,
+  maxDate: Date,
+  enabledDateKeys?: Set<string>
+) {
+  let next = startOfDay(date);
+  if (isBeforeDay(next, minDate)) next = startOfDay(minDate);
+  if (isAfterDay(next, maxDate)) next = startOfDay(maxDate);
+
+  if (enabledDateKeys == null || enabledDateKeys.size === 0) return next;
+  if (enabledDateKeys.has(formatDateKey(next))) return next;
+
+  const enabledDates = [...enabledDateKeys]
+    .map((key) => {
+      const [yearPart, monthPart, dayPart] = key.split('-');
+      return startOfDay(new Date(Number(yearPart), Number(monthPart) - 1, Number(dayPart)));
+    })
+    .filter((item) => !isBeforeDay(item, minDate) && !isAfterDay(item, maxDate))
+    .sort((a, b) => b.getTime() - a.getTime());
+
+  return enabledDates[0] ?? next;
+}
+
+function pickSelectableDateInWeek(
+  anchorDate: Date,
+  preferredDate: Date,
+  minDate: Date,
+  maxDate: Date,
+  enabledDateKeys?: Set<string>
+) {
+  const weekDates = getWeekDates(anchorDate);
+  const isSelectable = (date: Date) => {
+    if (isBeforeDay(date, minDate) || isAfterDay(date, maxDate)) return false;
+    if (enabledDateKeys != null && !enabledDateKeys.has(formatDateKey(date))) return false;
+    return true;
+  };
+
+  const sameWeekday = weekDates.find(
+    (date) => date.getDay() === preferredDate.getDay() && isSelectable(date)
   );
+  if (sameWeekday) return sameWeekday;
+
+  const selectable = weekDates.filter(isSelectable);
+  return selectable[selectable.length - 1] ?? selectable[0] ?? preferredDate;
 }
 
 export {
@@ -169,5 +224,7 @@ export {
   isBeforeDay,
   isSameDay,
   isSameMonth,
+  pickSelectableDateInWeek,
+  resolveSelectableDate,
   startOfDay,
 };

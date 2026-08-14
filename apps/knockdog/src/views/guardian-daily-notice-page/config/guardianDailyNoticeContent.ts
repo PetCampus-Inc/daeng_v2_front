@@ -13,6 +13,8 @@ const guardianDailyNoticeContent = {
   albumLoadErrorMessage: '사진을 불러오지 못했어요',
   albumOverflowLabel: (remaining: number) => `+ ${remaining}`,
   emptyNoticeMessage: '이 날은 도착한 알림장이 없어요',
+  emptyWeekNoCheckInTitle: '이번 주는 알림장이 없어요',
+  emptyWeekNoCheckInDescription: '다른 날짜를 확인해 보세요.',
   writingInProgressTitle: '아직 알림장을 작성 중이에요',
   writingInProgressDescription: '작성이 완료되면 알려드릴게요.',
   noticeIconSrc: '/images/ico_note.png',
