@@ -51,9 +51,22 @@ function GuardianDailyNoticeListPage() {
   const { push } = useStackNavigation();
   const { selectedPetId } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
+  const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
 
-  /** API 연동 전 헤더 전환/해제 UI 확인용 — 재원 중 항목은 현재 연결 유치원으로 치환 */
+  /** mock 모드에서만 선택 mock 목록 사용. 프로덕션은 연결 유치원 1개만. */
   const kindergartens = useMemo(() => {
+    if (!isMockMode) {
+      if (!linkedKindergarten) return [];
+      return [
+        {
+          id: linkedKindergarten.id,
+          name: linkedKindergarten.name,
+          imageUrl: linkedKindergarten.imageUrl,
+          attendedUntil: null,
+        },
+      ];
+    }
+
     if (!linkedKindergarten) return MOCK_KINDERGARTEN_SELECT_OPTIONS;
     return MOCK_KINDERGARTEN_SELECT_OPTIONS.map((item) =>
       item.attendedUntil == null
@@ -65,7 +78,7 @@ function GuardianDailyNoticeListPage() {
           }
         : item
     );
-  }, [linkedKindergarten]);
+  }, [isMockMode, linkedKindergarten]);
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
@@ -92,18 +105,24 @@ function GuardianDailyNoticeListPage() {
 
   const isDisconnected =
     status === 'disconnected' ||
-    isDisconnectedListMock(searchParams.get('mock')) ||
+    isMockMode ||
     selectedAttendedUntil != null;
 
-  const { items, firstAttendanceDate, attendedUntilDate, effectiveFirstAttendedAt, isPending } =
-    useGuardianDailyNoticeMonthList({
-      schoolId: linkedKindergarten?.id,
-      petId: selectedPetId,
-      selectedMonth,
-      firstAttendedAt,
-      attendedUntil: selectedAttendedUntil,
-      isDisconnected,
-    });
+  const {
+    items,
+    firstAttendanceDate,
+    attendedUntilDate,
+    effectiveFirstAttendedAt,
+    isFirstAttendanceDateFallback,
+    isPending,
+  } = useGuardianDailyNoticeMonthList({
+    schoolId: selectedKindergarten?.id ?? linkedKindergarten?.id,
+    petId: selectedPetId,
+    selectedMonth,
+    firstAttendedAt,
+    attendedUntil: selectedAttendedUntil,
+    isDisconnected,
+  });
 
   const minMonth = useMemo(
     () => startOfMonth(effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)),
@@ -113,8 +132,9 @@ function GuardianDailyNoticeListPage() {
     () => startOfMonth(selectedAttendedUntil ?? new Date()),
     [selectedAttendedUntil]
   );
-  /** 첫 등원 블록이 뜬 달이면 더 이전은 볼 게 없음 (firstAttendedAt 미제공 시 하한 역할) */
-  const isFirstAttendanceMonth = firstAttendanceDate != null;
+  /** 실제 첫 등원일이 있는 달만 이전 이동 차단 (퍼블리싱 폴백 날짜는 하한에 쓰지 않음) */
+  const isFirstAttendanceMonth =
+    firstAttendanceDate != null && !isFirstAttendanceDateFallback;
   const canGoPrevMonth =
     selectedMonth.getTime() > minMonth.getTime() && !isFirstAttendanceMonth;
   const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();

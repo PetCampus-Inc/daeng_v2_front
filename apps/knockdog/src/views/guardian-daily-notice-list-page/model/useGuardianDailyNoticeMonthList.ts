@@ -178,6 +178,9 @@ function useGuardianDailyNoticeMonthList({
       : null;
   }, [effectiveFirstAttendedAt, items, selectedMonth]);
 
+  /** 폴백으로 만든 날짜인지 구분 — 월 이동 하한 계산에는 사용하지 않는다 */
+  const isFirstAttendanceDateFallback = effectiveFirstAttendedAt == null;
+
   /**
    * 연결 해제 월이면 리스트 상단에 종료 문구 노출.
    */
@@ -200,6 +203,7 @@ function useGuardianDailyNoticeMonthList({
     attendedUntilDate,
     /** 월 네비 하한 — 첫 등원(또는 앨범 첫 이용 월) */
     effectiveFirstAttendedAt,
+    isFirstAttendanceDateFallback,
     isPending,
     hasError,
   };

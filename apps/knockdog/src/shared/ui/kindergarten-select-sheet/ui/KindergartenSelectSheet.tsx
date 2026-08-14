@@ -18,13 +18,21 @@ interface KindergartenSelectSheetProps {
 }
 
 function formatAttendedUntilLabel(attendedUntil: string) {
-  const [year, month, day] = attendedUntil.split('-');
-  if (!year || !month || !day) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(attendedUntil);
+  if (!match) return kindergartenSelectSheetContent.pastStatusLabel(attendedUntil);
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  const isValidCalendarDate =
+    date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+  if (!isValidCalendarDate) {
     return kindergartenSelectSheetContent.pastStatusLabel(attendedUntil);
   }
-  return kindergartenSelectSheetContent.pastStatusLabel(
-    `${year}년 ${Number(month)}월 ${Number(day)}일`
-  );
+
+  return kindergartenSelectSheetContent.pastStatusLabel(`${year}년 ${month}월 ${day}일`);
 }
 
 function KindergartenSelectSheet({

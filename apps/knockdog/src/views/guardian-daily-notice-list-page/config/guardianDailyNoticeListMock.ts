@@ -1,9 +1,10 @@
 /**
  * 연결 해제 리스트(`여기까지 다녔어요`) 확인용 mock.
  *
- * home API `status`가 `disconnected`로 내려오기 전까지 화면만 확인할 때 사용한다.
  * - 상수를 true로 바꾸거나
  * - 주소에 `?mock=disconnected`를 붙이면 (배포 앱에서도 확인 가능)
+ *
+ * mock 모드에서만 유치원 선택 mock 목록·연결 해제 블록 폴백을 켠다.
  */
 const MOCK_DISCONNECTED_LIST = false;
 
