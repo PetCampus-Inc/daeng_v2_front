@@ -44,6 +44,7 @@ function GuardianDailyNoticeDetailPage() {
     photos: albumPhotos,
     photoCount: albumPhotoCount,
     hasPhotos: hasAlbumPhotos,
+    isPending: isAlbumPending,
     isError: isAlbumError,
   } = useGuardianDailyNoticeDayAlbum({
     schoolId: linkedKindergarten?.id,
@@ -61,6 +62,11 @@ function GuardianDailyNoticeDetailPage() {
   const stoolBody = dailyNotice?.poopMemo || null;
   const snackBody = dailyNotice?.snack || null;
   const noticeBody = dailyNotice?.body || null;
+
+  const hasAttendanceTime = Boolean(checkInAt || checkOutAt);
+  const showWritingInProgress =
+    !isPending && !isAlbumPending && hasAttendanceTime && !dailyNotice;
+  const hasAlbumSection = hasAlbumPhotos || isAlbumError;
 
   const handleAlbumListClick = () => {
     push({ pathname: route.compare.album.root });
@@ -99,15 +105,17 @@ function GuardianDailyNoticeDetailPage() {
         <GuardianDailyNoticeSpring />
       </div>
 
-      <div className='bg-bg-0 relative min-h-0 flex-1 overflow-y-auto pt-5'>
-        <GuardianKindergartenDateCalendar
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          firstAttendedAt={firstAttendedAt ?? undefined}
-        />
+      <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden pt-5'>
+        <div className='shrink-0'>
+          <GuardianKindergartenDateCalendar
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            firstAttendedAt={firstAttendedAt ?? undefined}
+          />
+        </div>
 
-        <div className='flex w-full flex-col gap-5 px-4 pb-16'>
-          <div className='flex w-full items-start justify-between'>
+        <div className='flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-16'>
+          <div className='flex w-full shrink-0 items-start justify-between'>
             <div className='flex items-center gap-3'>
               <div className='flex flex-col gap-0.5'>
                 <p className='label-medium text-text-secondary'>{content.checkInLabel}</p>
@@ -125,67 +133,95 @@ function GuardianDailyNoticeDetailPage() {
             ) : null}
           </div>
 
-          {isPending ? null : dailyNotice ? (
-            <>
-              {dailyNotice.conditionLabel ? (
-                <div className='bg-fill-primary-50 inline-flex w-fit items-center rounded-full px-3.5 py-2'>
-                  <span className='label-semibold text-text-accent'>
-                    {dailyNotice.conditionLabel}
-                  </span>
+          {showWritingInProgress ? (
+            <div className='flex min-h-0 flex-1 flex-col gap-5'>
+              <div className='bg-bg-50 radius-r5 flex min-h-0 flex-1 items-center justify-center'>
+                <div className='flex w-full flex-col items-center gap-1'>
+                  <p className='body1-medium text-text-secondary text-center'>
+                    {content.writingInProgressTitle}
+                  </p>
+                  <p className='body2-regular text-text-tertiary text-center'>
+                    {content.writingInProgressDescription}
+                  </p>
+                </div>
+              </div>
+
+              {hasAlbumSection ? (
+                <div className='shrink-0'>
+                  <GuardianDailyNoticeAlbumSection
+                    photos={albumPhotos}
+                    photoCount={albumPhotoCount}
+                    hasError={isAlbumError}
+                    onAlbumClick={handleAlbumViewClick}
+                  />
                 </div>
               ) : null}
-
-              <div className='flex w-full flex-col gap-5'>
-                <GuardianDailyNoticeSection
-                  iconSrc={content.noticeIconSrc}
-                  title={content.noticeSectionTitle}
-                >
-                  {noticeBody ? (
-                    <p className='body1-regular text-text-primary'>{noticeBody}</p>
-                  ) : null}
-                </GuardianDailyNoticeSection>
-
-                <div className='bg-line-200 h-px w-full' />
-
-                <GuardianDailyNoticeSection
-                  iconSrc={content.snackIconSrc}
-                  title={content.snackSectionTitle}
-                >
-                  {snackBody ? (
-                    <p className='body1-regular text-text-primary'>{snackBody}</p>
-                  ) : null}
-                </GuardianDailyNoticeSection>
-
-                <div className='bg-line-200 h-px w-full' />
-
-                <GuardianDailyNoticeSection
-                  iconSrc={content.stoolIconSrc}
-                  title={content.stoolSectionTitle}
-                >
-                  {dailyNotice.stoolLabel && isStoolStatus(dailyNotice.poop) ? (
-                    <GuardianDailyNoticeStoolBadge
-                      status={dailyNotice.poop}
-                      label={dailyNotice.stoolLabel}
-                    />
-                  ) : null}
-                  {stoolBody ? (
-                    <p className='body1-regular text-text-primary'>{stoolBody}</p>
-                  ) : null}
-                </GuardianDailyNoticeSection>
-              </div>
-            </>
+            </div>
           ) : (
-            <p className='body1-medium text-text-tertiary'>{content.emptyNoticeMessage}</p>
-          )}
+            <>
+              {isPending ? null : dailyNotice ? (
+                <>
+                  {dailyNotice.conditionLabel ? (
+                    <div className='bg-fill-primary-50 inline-flex w-fit items-center rounded-full px-3.5 py-2'>
+                      <span className='label-semibold text-text-accent'>
+                        {dailyNotice.conditionLabel}
+                      </span>
+                    </div>
+                  ) : null}
 
-          {hasAlbumPhotos || isAlbumError ? (
-            <GuardianDailyNoticeAlbumSection
-              photos={albumPhotos}
-              photoCount={albumPhotoCount}
-              hasError={isAlbumError}
-              onAlbumClick={handleAlbumViewClick}
-            />
-          ) : null}
+                  <div className='flex w-full flex-col gap-5'>
+                    <GuardianDailyNoticeSection
+                      iconSrc={content.noticeIconSrc}
+                      title={content.noticeSectionTitle}
+                    >
+                      {noticeBody ? (
+                        <p className='body1-regular text-text-primary'>{noticeBody}</p>
+                      ) : null}
+                    </GuardianDailyNoticeSection>
+
+                    <div className='bg-line-200 h-px w-full' />
+
+                    <GuardianDailyNoticeSection
+                      iconSrc={content.snackIconSrc}
+                      title={content.snackSectionTitle}
+                    >
+                      {snackBody ? (
+                        <p className='body1-regular text-text-primary'>{snackBody}</p>
+                      ) : null}
+                    </GuardianDailyNoticeSection>
+
+                    <div className='bg-line-200 h-px w-full' />
+
+                    <GuardianDailyNoticeSection
+                      iconSrc={content.stoolIconSrc}
+                      title={content.stoolSectionTitle}
+                    >
+                      {dailyNotice.stoolLabel && isStoolStatus(dailyNotice.poop) ? (
+                        <GuardianDailyNoticeStoolBadge
+                          status={dailyNotice.poop}
+                          label={dailyNotice.stoolLabel}
+                        />
+                      ) : null}
+                      {stoolBody ? (
+                        <p className='body1-regular text-text-primary'>{stoolBody}</p>
+                      ) : null}
+                    </GuardianDailyNoticeSection>
+                  </div>
+                </>
+              ) : (
+                <p className='body1-medium text-text-tertiary'>{content.emptyNoticeMessage}</p>
+              )}
+
+              {hasAlbumSection ? (
+                <GuardianDailyNoticeAlbumSection
+                  photos={albumPhotos}
+                  photoCount={albumPhotoCount}
+                  hasError={isAlbumError}
+                  onAlbumClick={handleAlbumViewClick}
+                />
+              ) : null}
+            </>
+          )}
         </div>
       </div>
     </div>
