@@ -64,7 +64,8 @@ function useGuardianDailyNoticeDayAlbum({
     photos,
     photoCount,
     hasPhotos: photos.length > 0,
-    isPending: query.isPending,
+    // disabled + no data면 isPending=true라 empty를 가림 → active fetch만 loading
+    isLoading: query.isLoading,
     isError: query.isError,
   };
 }

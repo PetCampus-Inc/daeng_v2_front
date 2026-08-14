@@ -40,6 +40,10 @@ function parseDateQuery(value: string | null) {
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
   const date = new Date(year, month - 1, day);
   if (Number.isNaN(date.getTime())) return null;
+  // JS Date는 범위 밖 day/month를 정규화하므로 원본 구성요소와 일치할 때만 유효
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
   return date;
 }
 

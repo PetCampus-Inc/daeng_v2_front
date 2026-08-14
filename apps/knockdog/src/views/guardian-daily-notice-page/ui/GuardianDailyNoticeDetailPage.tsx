@@ -44,7 +44,7 @@ function GuardianDailyNoticeDetailPage() {
     photos: albumPhotos,
     photoCount: albumPhotoCount,
     hasPhotos: hasAlbumPhotos,
-    isPending: isAlbumPending,
+    isLoading: isAlbumLoading,
     isError: isAlbumError,
   } = useGuardianDailyNoticeDayAlbum({
     schoolId: linkedKindergarten?.id,
@@ -72,7 +72,7 @@ function GuardianDailyNoticeDetailPage() {
 
   const hasAttendanceTime = Boolean(checkInAt || checkOutAt);
   const showWritingInProgress =
-    !isPending && !isAlbumPending && hasAttendanceTime && !dailyNotice;
+    !isPending && !isAlbumLoading && hasAttendanceTime && !dailyNotice;
   const hasAlbumSection = hasAlbumPhotos || isAlbumError;
 
   const handleAlbumListClick = () => {
