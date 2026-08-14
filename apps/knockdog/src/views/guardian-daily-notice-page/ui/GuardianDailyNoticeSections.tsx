@@ -57,16 +57,18 @@ function GuardianDailyNoticeStoolBadge({ status, label }: GuardianDailyNoticeSto
 interface GuardianDailyNoticeAlbumSectionProps {
   photos: GuardianAlbumPhoto[];
   photoCount: number;
+  hasError?: boolean;
   onAlbumClick: () => void;
 }
 
 function GuardianDailyNoticeAlbumSection({
   photos,
   photoCount,
+  hasError = false,
   onAlbumClick,
 }: GuardianDailyNoticeAlbumSectionProps) {
   const content = guardianDailyNoticeContent;
-  if (photos.length === 0) return null;
+  if (!hasError && photos.length === 0) return null;
 
   const previewPhotos = photos.slice(0, NOTICE_ALBUM_PREVIEW_LIMIT);
   const remainingCount = Math.max(photoCount - previewPhotos.length, 0);
@@ -83,27 +85,36 @@ function GuardianDailyNoticeAlbumSection({
         <Icon icon='ChevronRight' className='text-text-primary size-5' aria-hidden='true' />
       </button>
 
-      <div className='grid w-full grid-cols-4 gap-2.5'>
-        {previewPhotos.map((photo, index) => {
-          const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
+      {hasError ? (
+        <div className='bg-bg-50 radius-r1 flex h-[82px] w-full items-center justify-center'>
+          <div className='flex items-center gap-1'>
+            <Icon icon='InfoLine' className='text-text-caption size-6 shrink-0' aria-hidden='true' />
+            <p className='label-semibold text-text-caption'>{content.albumLoadErrorMessage}</p>
+          </div>
+        </div>
+      ) : (
+        <div className='grid w-full grid-cols-4 gap-2.5'>
+          {previewPhotos.map((photo, index) => {
+            const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
 
-          return (
-            <div
-              key={photo.id}
-              className='relative aspect-square min-w-0 overflow-hidden rounded'
-            >
-              <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
-              {isOverflowTile ? (
-                <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded'>
-                  <span className='body2-regular text-text-primary-inverse'>
-                    {content.albumOverflowLabel(remainingCount)}
-                  </span>
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
+            return (
+              <div
+                key={photo.id}
+                className='relative aspect-square min-w-0 overflow-hidden rounded'
+              >
+                <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
+                {isOverflowTile ? (
+                  <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded'>
+                    <span className='body2-regular text-text-primary-inverse'>
+                      {content.albumOverflowLabel(remainingCount)}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

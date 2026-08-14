@@ -44,6 +44,7 @@ function GuardianDailyNoticeDetailPage() {
     photos: albumPhotos,
     photoCount: albumPhotoCount,
     hasPhotos: hasAlbumPhotos,
+    isError: isAlbumError,
   } = useGuardianDailyNoticeDayAlbum({
     schoolId: linkedKindergarten?.id,
     date: selectedDateKey,
@@ -175,10 +176,11 @@ function GuardianDailyNoticeDetailPage() {
             <p className='body1-medium text-text-tertiary'>{content.emptyNoticeMessage}</p>
           )}
 
-          {hasAlbumPhotos ? (
+          {hasAlbumPhotos || isAlbumError ? (
             <GuardianDailyNoticeAlbumSection
               photos={albumPhotos}
               photoCount={albumPhotoCount}
+              hasError={isAlbumError}
               onAlbumClick={handleAlbumViewClick}
             />
           ) : null}

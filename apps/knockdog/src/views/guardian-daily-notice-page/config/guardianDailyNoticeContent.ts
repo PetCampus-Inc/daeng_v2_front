@@ -10,6 +10,7 @@ const guardianDailyNoticeContent = {
   stoolSectionTitle: '배변',
   albumViewLabel: '앨범보기',
   albumViewAriaLabel: '앨범 보기',
+  albumLoadErrorMessage: '사진을 불러오지 못했어요',
   albumOverflowLabel: (remaining: number) => `+ ${remaining}`,
   emptyNoticeMessage: '이 날은 도착한 알림장이 없어요',
   noticeIconSrc: '/images/ico_note.png',
