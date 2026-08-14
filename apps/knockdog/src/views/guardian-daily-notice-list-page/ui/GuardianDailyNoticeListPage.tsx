@@ -8,6 +8,7 @@ import { overlay } from 'overlay-kit';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
+import { GuardianDailyNoticeListMonthEmpty } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthEmpty';
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { Header } from '@widgets/Header';
@@ -129,10 +130,12 @@ function GuardianDailyNoticeListPage() {
       <div className='relative min-h-0 flex-1'>
         <div
           ref={scrollRef}
-          className='bg-bg-50 h-full overflow-y-auto'
+          className='bg-bg-50 flex h-full flex-col overflow-y-auto'
           onScroll={handleScroll}
           aria-label={content.listAriaLabel}
-        />
+        >
+          <GuardianDailyNoticeListMonthEmpty />
+        </div>
         <GuardianAlbumScrollTopButton
           visible={isScrollTopVisible}
           onClick={handleScrollTop}
