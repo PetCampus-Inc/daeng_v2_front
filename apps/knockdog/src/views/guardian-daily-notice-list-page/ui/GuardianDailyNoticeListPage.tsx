@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
+import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
@@ -33,9 +34,11 @@ function GuardianDailyNoticeListPage() {
   const { navigateToTab } = useTabNavigation();
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
 
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedMonth, setSelectedMonth] = useState(
     () => parseMonthQuery(searchParams.get('month')) ?? startOfMonth(new Date())
   );
+  const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
   const minMonth = useMemo(
     () => startOfMonth(firstAttendedAt ?? new Date(2020, 0, 1)),
@@ -51,14 +54,26 @@ function GuardianDailyNoticeListPage() {
     navigateToTab('/compare');
   };
 
+  const handleScroll = () => {
+    const node = scrollRef.current;
+    if (!node) return;
+    setIsScrollTopVisible(node.scrollTop > 120);
+  };
+
+  const handleScrollTop = () => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handlePrevMonth = () => {
     if (!canGoPrevMonth) return;
     setSelectedMonth((prev) => startOfMonth(addMonths(prev, -1)));
+    setIsScrollTopVisible(false);
   };
 
   const handleNextMonth = () => {
     if (!canGoNextMonth) return;
     setSelectedMonth((prev) => startOfMonth(addMonths(prev, 1)));
+    setIsScrollTopVisible(false);
   };
 
   const handleYearMonthClick = () => {
@@ -69,14 +84,17 @@ function GuardianDailyNoticeListPage() {
         currentMonth={selectedMonth}
         minMonth={minMonth}
         maxMonth={maxMonth}
-        onConfirm={(month) => setSelectedMonth(startOfMonth(month))}
+        onConfirm={(month) => {
+          setSelectedMonth(startOfMonth(month));
+          setIsScrollTopVisible(false);
+        }}
       />
     ));
   };
 
   return (
     <div
-      className='bg-bg-50 relative flex min-h-dvh flex-col'
+      className='bg-bg-50 relative flex h-dvh flex-col'
       style={{ paddingBottom: BOTTOM_BAR_HEIGHT }}
     >
       <div className='sticky top-0 z-10 shrink-0'>
@@ -108,7 +126,18 @@ function GuardianDailyNoticeListPage() {
         />
       </div>
 
-      <div className='bg-bg-50 min-h-0 flex-1' aria-label={content.listAriaLabel} />
+      <div className='relative min-h-0 flex-1'>
+        <div
+          ref={scrollRef}
+          className='bg-bg-50 h-full overflow-y-auto'
+          onScroll={handleScroll}
+          aria-label={content.listAriaLabel}
+        />
+        <GuardianAlbumScrollTopButton
+          visible={isScrollTopVisible}
+          onClick={handleScrollTop}
+        />
+      </div>
     </div>
   );
 }
