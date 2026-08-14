@@ -77,7 +77,7 @@ function GuardianDailyNoticeDetailPage() {
           'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
       }}
     >
-      <div className='relative z-20 pb-5'>
+      <div className='relative z-20 shrink-0 pb-5'>
         <Header variant='transparent' className='border-none'>
           <Header.LeftSection>
             <Header.BackButton className='text-text-primary-inverse' />
@@ -98,14 +98,14 @@ function GuardianDailyNoticeDetailPage() {
         <GuardianDailyNoticeSpring />
       </div>
 
-      <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-y-auto pt-5'>
+      <div className='bg-bg-0 relative min-h-0 flex-1 overflow-y-auto pt-5'>
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
           firstAttendedAt={firstAttendedAt ?? undefined}
         />
 
-        <div className='flex w-full flex-col gap-5 px-4 pb-8'>
+        <div className='flex w-full flex-col gap-5 px-4 pb-16'>
           <div className='flex w-full items-start justify-between'>
             <div className='flex items-center gap-3'>
               <div className='flex flex-col gap-0.5'>
@@ -126,7 +126,9 @@ function GuardianDailyNoticeDetailPage() {
             <>
               {dailyNotice.conditionLabel ? (
                 <div className='bg-fill-primary-50 inline-flex w-fit items-center rounded-full px-3.5 py-2'>
-                  <span className='label-semibold text-text-accent'>{dailyNotice.conditionLabel}</span>
+                  <span className='label-semibold text-text-accent'>
+                    {dailyNotice.conditionLabel}
+                  </span>
                 </div>
               ) : null}
 
