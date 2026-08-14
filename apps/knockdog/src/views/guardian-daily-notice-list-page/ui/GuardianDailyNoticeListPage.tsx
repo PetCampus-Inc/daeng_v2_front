@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
@@ -20,6 +20,10 @@ import { Header } from '@widgets/Header';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
+import {
+  KindergartenSelectSheet,
+  MOCK_KINDERGARTEN_SELECT_OPTIONS,
+} from '@shared/ui/kindergarten-select-sheet';
 
 function startOfMonth(date: Date) {
   return startOfDay(new Date(date.getFullYear(), date.getMonth(), 1));
@@ -34,6 +38,11 @@ function parseMonthQuery(value: string | null) {
   return startOfMonth(new Date(year, month - 1, 1));
 }
 
+function parseDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split('-');
+  return startOfDay(new Date(Number(year), Number(month) - 1, Number(day)));
+}
+
 function GuardianDailyNoticeListPage() {
   const content = guardianDailyNoticeListContent;
   const searchParams = useSearchParams();
@@ -42,23 +51,64 @@ function GuardianDailyNoticeListPage() {
   const { selectedPetId } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
 
+  /** API 연동 전 헤더 전환/해제 UI 확인용 — 재원 중 항목은 현재 연결 유치원으로 치환 */
+  const kindergartens = useMemo(() => {
+    if (!linkedKindergarten) return MOCK_KINDERGARTEN_SELECT_OPTIONS;
+    return MOCK_KINDERGARTEN_SELECT_OPTIONS.map((item) =>
+      item.attendedUntil == null
+        ? {
+            ...item,
+            id: linkedKindergarten.id,
+            name: linkedKindergarten.name,
+            imageUrl: linkedKindergarten.imageUrl || item.imageUrl,
+          }
+        : item
+    );
+  }, [linkedKindergarten]);
+  const canSelectKindergarten = kindergartens.length > 1;
+  const defaultKindergartenId =
+    kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(
     () => parseMonthQuery(searchParams.get('month')) ?? startOfMonth(new Date())
   );
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
+  const resolvedKindergartenId =
+    selectedKindergartenId ??
+    defaultKindergartenId;
+  const selectedKindergarten =
+    kindergartens.find((item) => item.id === resolvedKindergartenId) ??
+    kindergartens[0] ??
+    null;
+  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? null;
+  const selectedAttendedUntil = useMemo(
+    () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
+    [selectedAttendedUntilKey]
+  );
+
   const isDisconnected =
-    status === 'disconnected' || isDisconnectedListMock(searchParams.get('mock'));
+    status === 'disconnected' ||
+    isDisconnectedListMock(searchParams.get('mock')) ||
+    selectedAttendedUntil != null;
+
   const minMonth = useMemo(
     () => startOfMonth(firstAttendedAt ?? new Date(2020, 0, 1)),
     [firstAttendedAt]
   );
-  const maxMonth = useMemo(() => startOfMonth(new Date()), []);
+  const maxMonth = useMemo(
+    () => startOfMonth(selectedAttendedUntil ?? new Date()),
+    [selectedAttendedUntil]
+  );
   const canGoPrevMonth = selectedMonth.getTime() > minMonth.getTime();
   const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
 
-  const title = linkedKindergarten?.name ?? '';
+  const title =
+    selectedAttendedUntil != null
+      ? (selectedKindergarten?.name ?? '')
+      : (linkedKindergarten?.name ?? selectedKindergarten?.name ?? '');
 
   const { items, firstAttendanceDate, attendedUntilDate, isPending } =
     useGuardianDailyNoticeMonthList({
@@ -66,6 +116,7 @@ function GuardianDailyNoticeListPage() {
       petId: selectedPetId,
       selectedMonth,
       firstAttendedAt,
+      attendedUntil: selectedAttendedUntil,
       isDisconnected,
     });
 
@@ -74,6 +125,34 @@ function GuardianDailyNoticeListPage() {
 
   const handleBack = () => {
     navigateToTab('/compare');
+  };
+
+  const handleKindergartenSelect = useCallback(
+    (kindergartenId: string) => {
+      const next = kindergartens.find((item) => item.id === kindergartenId) ?? null;
+      setSelectedKindergartenId(kindergartenId);
+      setIsScrollTopVisible(false);
+      if (next?.attendedUntil != null) {
+        setSelectedMonth(startOfMonth(parseDateKey(next.attendedUntil)));
+        return;
+      }
+      setSelectedMonth(startOfMonth(new Date()));
+    },
+    [kindergartens]
+  );
+
+  const handleKindergartenSelectClick = () => {
+    if (!canSelectKindergarten) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <KindergartenSelectSheet
+        isOpen={isOpen}
+        close={close}
+        kindergartens={kindergartens}
+        currentKindergartenId={resolvedKindergartenId}
+        onSelect={handleKindergartenSelect}
+      />
+    ));
   };
 
   const handleScroll = () => {
@@ -125,16 +204,25 @@ function GuardianDailyNoticeListPage() {
             <Header.LeftSection>
               <Header.BackButton onClick={handleBack} />
             </Header.LeftSection>
-            <Header.CenterSection>
-              <div className='h3-extrabold text-text-primary gap-x1 flex max-w-[200px] items-center'>
-                <span className='truncate'>{title}</span>
-                <Icon
-                  icon='ChevronBottom'
-                  className='text-text-primary size-5 shrink-0'
-                  aria-hidden='true'
-                />
-              </div>
-            </Header.CenterSection>
+            {canSelectKindergarten ? (
+              <Header.CenterSection>
+                <button
+                  type='button'
+                  className='h3-extrabold text-text-primary gap-x1 flex max-w-[200px] items-center'
+                  aria-label={content.kindergartenSelectAriaLabel}
+                  onClick={handleKindergartenSelectClick}
+                >
+                  <span className='truncate'>{title}</span>
+                  <Icon
+                    icon='ChevronBottom'
+                    className='text-text-primary size-5 shrink-0'
+                    aria-hidden='true'
+                  />
+                </button>
+              </Header.CenterSection>
+            ) : (
+              <Header.Title className='max-w-[200px] truncate'>{title}</Header.Title>
+            )}
           </Header>
         </div>
 

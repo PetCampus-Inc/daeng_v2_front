@@ -1,5 +1,6 @@
 const guardianDailyNoticeListContent = {
   listAriaLabel: '알림장 리스트',
+  kindergartenSelectAriaLabel: '유치원 선택',
   monthNav: {
     prevAriaLabel: '이전 달',
     nextAriaLabel: '다음 달',
