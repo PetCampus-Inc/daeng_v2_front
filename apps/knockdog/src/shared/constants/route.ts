@@ -225,6 +225,10 @@ const route = {
     notice: {
       /** 보호자 알림장 상세 */
       root: '/compare/notice',
+      /** 보호자 알림장 월별 리스트 */
+      list: {
+        root: '/compare/notice/list',
+      },
     },
   },
 };
