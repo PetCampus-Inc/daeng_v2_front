@@ -25,6 +25,10 @@ const STOOL_STATUS_OPTIONS = [
   STOOL_STATUS.NONE,
 ] as const satisfies readonly StoolStatus[];
 
+function isStoolStatus(value: unknown): value is StoolStatus {
+  return typeof value === 'string' && value in STOOL_STATUS_LABEL;
+}
+
 /** 선택/활성 상태 이미지 */
 const STOOL_STATUS_IMAGE: Record<StoolStatus, string> = {
   HEALTHY: '/images/stoolstatus_normal.png',
@@ -43,16 +47,32 @@ const STOOL_STATUS_DEFAULT_IMAGE: Record<StoolStatus, string> = {
   NONE: '/images/stoolstatus_none_default.png',
 };
 
+/** 알림장 뱃지용 주황 아이콘 (SVG) */
+const STOOL_STATUS_ACCENT_ICON: Record<StoolStatus, string> = {
+  HEALTHY: '/images/stool_icon_healthy.svg',
+  HARD: '/images/stool_icon_hard.svg',
+  LOOSE: '/images/stool_icon_loose.svg',
+  NEEDS_ATTENTION: '/images/stool_icon_needs_attention.svg',
+  NONE: '/images/stool_icon_none.svg',
+};
+
 function getStoolStatusImage(status: StoolStatus, isSelected = true) {
   return isSelected ? STOOL_STATUS_IMAGE[status] : STOOL_STATUS_DEFAULT_IMAGE[status];
 }
 
+function getStoolStatusAccentIcon(status: StoolStatus) {
+  return STOOL_STATUS_ACCENT_ICON[status];
+}
+
 export {
   STOOL_STATUS,
+  STOOL_STATUS_ACCENT_ICON,
   STOOL_STATUS_DEFAULT_IMAGE,
   STOOL_STATUS_IMAGE,
   STOOL_STATUS_LABEL,
   STOOL_STATUS_OPTIONS,
+  getStoolStatusAccentIcon,
   getStoolStatusImage,
+  isStoolStatus,
   type StoolStatus,
 };

@@ -24,6 +24,7 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
+import { isStoolStatus } from '@shared/ui/stool-status';
 
 function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
@@ -156,8 +157,11 @@ function GuardianDailyNoticeDetailPage() {
                   iconSrc={content.stoolIconSrc}
                   title={content.stoolSectionTitle}
                 >
-                  {dailyNotice.stoolLabel ? (
-                    <GuardianDailyNoticeStoolBadge label={dailyNotice.stoolLabel} />
+                  {dailyNotice.stoolLabel && isStoolStatus(dailyNotice.poop) ? (
+                    <GuardianDailyNoticeStoolBadge
+                      status={dailyNotice.poop}
+                      label={dailyNotice.stoolLabel}
+                    />
                   ) : null}
                   {stoolBody ? (
                     <p className='body1-regular text-text-primary'>{stoolBody}</p>
