@@ -50,6 +50,7 @@ export {
   OWNER_PROFILE_QUERY_KEY,
   ownerProfileQueryKey,
 } from './api/useUserQuery';
+export { putPushDevice, deletePushDevice } from './api/pushDevice';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';
 export { type PushSetting } from './api/pushSetting';

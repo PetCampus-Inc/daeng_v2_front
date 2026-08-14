@@ -32,6 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     usesAppleSignIn: true,
     bundleIdentifier: 'net.knockdog.petcampus.v2',
+    googleServicesFile: './GoogleService-Info.plist',
     associatedDomains: [`applinks:${WEBVIEW_HOST}`],
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap', 'tel'],
@@ -88,6 +89,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-font',
     'expo-router',
     'expo-apple-authentication',
+    'expo-notifications',
+    '@react-native-firebase/app',
+    '@react-native-firebase/messaging',
     './plugins/naver-map-queries',
     [
       'expo-image-picker',
