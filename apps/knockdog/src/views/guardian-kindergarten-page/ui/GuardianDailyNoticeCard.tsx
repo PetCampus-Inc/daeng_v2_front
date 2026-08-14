@@ -39,9 +39,14 @@ function GuardianDailyNoticeArrivedBanner({ onViewClick }: GuardianDailyNoticeAr
 interface GuardianDailyNoticeTimelineCardProps {
   notice: GuardianDailyNoticeMock;
   timeLabel: string;
+  onViewAllClick?: () => void;
 }
 
-function GuardianDailyNoticeTimelineCard({ notice, timeLabel }: GuardianDailyNoticeTimelineCardProps) {
+function GuardianDailyNoticeTimelineCard({
+  notice,
+  timeLabel,
+  onViewAllClick,
+}: GuardianDailyNoticeTimelineCardProps) {
   const content = guardianKindergartenAttendingContent;
 
   return (
@@ -49,19 +54,31 @@ function GuardianDailyNoticeTimelineCard({ notice, timeLabel }: GuardianDailyNot
       <p className='caption1-regular text-text-secondary w-12 shrink-0'>{timeLabel}</p>
       <div className='bg-bg-50 radius-r2 flex min-w-0 flex-1 flex-col items-end gap-4 p-4'>
         <div className='gap-x2 flex w-full flex-col items-start gap-2'>
-          <div className='gap-x2 flex flex-wrap items-center'>
-            <span className='border-line-200 gap-x1 bg-bg-0 caption1-semibold flex items-center rounded-full border px-2 py-1.5'>
-              <span className='text-text-secondary'>{content.noticeConditionLabel}</span>
-              <span className='caption1-extrabold text-text-accent'>{notice.conditionLabel}</span>
-            </span>
-            <span className='border-line-200 gap-x1 bg-bg-0 caption1-semibold flex items-center rounded-full border px-2 py-1.5'>
-              <span className='text-text-secondary'>{content.noticeStoolLabel}</span>
-              <span className='caption1-extrabold text-text-accent'>{notice.stoolLabel}</span>
-            </span>
-          </div>
-          <p className='body2-regular text-text-primary line-clamp-2 w-full'>{notice.body}</p>
+          {notice.conditionLabel || notice.stoolLabel ? (
+            <div className='gap-x2 flex flex-wrap items-center'>
+              {notice.conditionLabel ? (
+                <span className='border-line-200 gap-x1 bg-bg-0 caption1-semibold flex items-center rounded-full border px-2 py-1.5'>
+                  <span className='text-text-secondary'>{content.noticeConditionLabel}</span>
+                  <span className='caption1-extrabold text-text-accent'>{notice.conditionLabel}</span>
+                </span>
+              ) : null}
+              {notice.stoolLabel ? (
+                <span className='border-line-200 gap-x1 bg-bg-0 caption1-semibold flex items-center rounded-full border px-2 py-1.5'>
+                  <span className='text-text-secondary'>{content.noticeStoolLabel}</span>
+                  <span className='caption1-extrabold text-text-accent'>{notice.stoolLabel}</span>
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+          {notice.body ? (
+            <p className='body2-regular text-text-primary line-clamp-2 w-full'>{notice.body}</p>
+          ) : null}
         </div>
-        <button type='button' className='gap-x1 flex items-center justify-center rounded px-2 py-1'>
+        <button
+          type='button'
+          className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+          onClick={onViewAllClick}
+        >
           <span className='caption1-semibold text-text-tertiary'>{content.noticeViewAllLabel}</span>
           <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
         </button>

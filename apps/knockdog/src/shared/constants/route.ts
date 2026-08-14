@@ -222,6 +222,10 @@ const route = {
       /** 보호자 유치원 앨범 전체 보기 */
       root: '/compare/album',
     },
+    notice: {
+      /** 보호자 알림장 상세 */
+      root: '/compare/notice',
+    },
   },
 };
 

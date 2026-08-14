@@ -44,7 +44,13 @@ function postAttendanceRecordDraft(payload: AttendanceRecordPayload) {
 /** `POST` - 등하원기록 발송 (초안 없으면 생성 발송, 발송된 기록은 재발송) */
 function postAttendanceRecordSend(payload: AttendanceRecordPayload) {
   return api
-    .post(`${ATTENDANCE_RECORDS_PATH}/send`, { json: payload })
+    .post(`${ATTENDANCE_RECORDS_PATH}/send`, {
+      json: payload,
+      //Idempotency-Key required=true — 미전송 시 400
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+    })
     .json<ApiResponse<Record<string, never> | null>>();
 }
 
