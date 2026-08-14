@@ -62,6 +62,13 @@ function GuardianDailyNoticeDetailPage() {
   const stoolBody = dailyNotice?.poopMemo || null;
   const snackBody = dailyNotice?.snack || null;
   const noticeBody = dailyNotice?.body || null;
+  const showCondition = Boolean(dailyNotice?.conditionLabel);
+  const showNoticeSection = Boolean(noticeBody);
+  const showSnackSection = Boolean(snackBody);
+  const showStoolSection =
+    Boolean(stoolBody) ||
+    (Boolean(dailyNotice?.stoolLabel) && isStoolStatus(dailyNotice?.poop));
+  const hasNoticeContentSections = showNoticeSection || showSnackSection || showStoolSection;
 
   const hasAttendanceTime = Boolean(checkInAt || checkOutAt);
   const showWritingInProgress =
@@ -161,7 +168,7 @@ function GuardianDailyNoticeDetailPage() {
             <>
               {isPending ? null : dailyNotice ? (
                 <>
-                  {dailyNotice.conditionLabel ? (
+                  {showCondition ? (
                     <div className='bg-fill-primary-50 inline-flex w-fit items-center rounded-full px-3.5 py-2'>
                       <span className='label-semibold text-text-accent'>
                         {dailyNotice.conditionLabel}
@@ -169,44 +176,52 @@ function GuardianDailyNoticeDetailPage() {
                     </div>
                   ) : null}
 
-                  <div className='flex w-full flex-col gap-5'>
-                    <GuardianDailyNoticeSection
-                      iconSrc={content.noticeIconSrc}
-                      title={content.noticeSectionTitle}
-                    >
-                      {noticeBody ? (
-                        <p className='body1-regular text-text-primary'>{noticeBody}</p>
+                  {hasNoticeContentSections ? (
+                    <div className='flex w-full flex-col gap-5'>
+                      {showNoticeSection ? (
+                        <GuardianDailyNoticeSection
+                          iconSrc={content.noticeIconSrc}
+                          title={content.noticeSectionTitle}
+                        >
+                          <p className='body1-regular text-text-primary'>{noticeBody}</p>
+                        </GuardianDailyNoticeSection>
                       ) : null}
-                    </GuardianDailyNoticeSection>
 
-                    <div className='bg-line-200 h-px w-full' />
-
-                    <GuardianDailyNoticeSection
-                      iconSrc={content.snackIconSrc}
-                      title={content.snackSectionTitle}
-                    >
-                      {snackBody ? (
-                        <p className='body1-regular text-text-primary'>{snackBody}</p>
+                      {showNoticeSection && (showSnackSection || showStoolSection) ? (
+                        <div className='bg-line-200 h-px w-full' />
                       ) : null}
-                    </GuardianDailyNoticeSection>
 
-                    <div className='bg-line-200 h-px w-full' />
+                      {showSnackSection ? (
+                        <GuardianDailyNoticeSection
+                          iconSrc={content.snackIconSrc}
+                          title={content.snackSectionTitle}
+                        >
+                          <p className='body1-regular text-text-primary'>{snackBody}</p>
+                        </GuardianDailyNoticeSection>
+                      ) : null}
 
-                    <GuardianDailyNoticeSection
-                      iconSrc={content.stoolIconSrc}
-                      title={content.stoolSectionTitle}
-                    >
-                      {dailyNotice.stoolLabel && isStoolStatus(dailyNotice.poop) ? (
-                        <GuardianDailyNoticeStoolBadge
-                          status={dailyNotice.poop}
-                          label={dailyNotice.stoolLabel}
-                        />
+                      {showSnackSection && showStoolSection ? (
+                        <div className='bg-line-200 h-px w-full' />
                       ) : null}
-                      {stoolBody ? (
-                        <p className='body1-regular text-text-primary'>{stoolBody}</p>
+
+                      {showStoolSection ? (
+                        <GuardianDailyNoticeSection
+                          iconSrc={content.stoolIconSrc}
+                          title={content.stoolSectionTitle}
+                        >
+                          {dailyNotice.stoolLabel && isStoolStatus(dailyNotice.poop) ? (
+                            <GuardianDailyNoticeStoolBadge
+                              status={dailyNotice.poop}
+                              label={dailyNotice.stoolLabel}
+                            />
+                          ) : null}
+                          {stoolBody ? (
+                            <p className='body1-regular text-text-primary'>{stoolBody}</p>
+                          ) : null}
+                        </GuardianDailyNoticeSection>
                       ) : null}
-                    </GuardianDailyNoticeSection>
-                  </div>
+                    </div>
+                  ) : null}
                 </>
               ) : (
                 <p className='body1-medium text-text-tertiary'>{content.emptyNoticeMessage}</p>
