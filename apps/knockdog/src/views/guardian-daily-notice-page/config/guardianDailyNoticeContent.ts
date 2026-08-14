@@ -10,6 +10,7 @@ const guardianDailyNoticeContent = {
   stoolSectionTitle: '배변',
   albumViewLabel: '앨범보기',
   albumViewAriaLabel: '앨범 보기',
+  albumOverflowLabel: (remaining: number) => `+ ${remaining}`,
   emptyNoticeMessage: '이 날은 도착한 알림장이 없어요',
   noticeIconSrc: '/images/ico_note.png',
   snackIconSrc: '/images/ico_snack.png',

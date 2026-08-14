@@ -10,8 +10,9 @@ import {
   formatNoticeUpdatedAt,
   parseDateQuery,
 } from '@views/guardian-daily-notice-page/lib/formatGuardianDailyNotice';
+import { useGuardianDailyNoticeDayAlbum } from '@views/guardian-daily-notice-page/model/useGuardianDailyNoticeDayAlbum';
 import {
-  GuardianDailyNoticeAlbumRow,
+  GuardianDailyNoticeAlbumSection,
   GuardianDailyNoticeSection,
   GuardianDailyNoticeSpring,
   GuardianDailyNoticeStoolBadge,
@@ -28,14 +29,23 @@ function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
   const { push } = useStackNavigation();
-  const { firstAttendedAt } = useGuardianKindergartenHome();
+  const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
 
   const [selectedDate, setSelectedDate] = useState(() => {
     return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
   });
 
+  const selectedDateKey = formatDateKey(selectedDate);
   const { checkInAt, checkOutAt, dailyNotice, isPending } = useGuardianCalendarDay({
     selectedDate,
+  });
+  const {
+    photos: albumPhotos,
+    photoCount: albumPhotoCount,
+    hasPhotos: hasAlbumPhotos,
+  } = useGuardianDailyNoticeDayAlbum({
+    schoolId: linkedKindergarten?.id,
+    date: selectedDateKey,
   });
 
   const checkInLabel = checkInAt ? formatNoticeClockTime(checkInAt) : content.emptyTimeLabel;
@@ -55,10 +65,7 @@ function GuardianDailyNoticeDetailPage() {
   };
 
   const handleAlbumViewClick = () => {
-    push({
-      pathname: route.compare.album.root,
-      query: { date: formatDateKey(selectedDate) },
-    });
+    push({ pathname: route.compare.album.root });
   };
 
   return (
@@ -162,7 +169,13 @@ function GuardianDailyNoticeDetailPage() {
             <p className='body1-medium text-text-tertiary'>{content.emptyNoticeMessage}</p>
           )}
 
-          <GuardianDailyNoticeAlbumRow onClick={handleAlbumViewClick} />
+          {hasAlbumPhotos ? (
+            <GuardianDailyNoticeAlbumSection
+              photos={albumPhotos}
+              photoCount={albumPhotoCount}
+              onAlbumClick={handleAlbumViewClick}
+            />
+          ) : null}
         </div>
       </div>
     </div>
