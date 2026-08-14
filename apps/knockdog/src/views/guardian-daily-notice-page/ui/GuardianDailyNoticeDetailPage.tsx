@@ -35,7 +35,7 @@ interface VisibleCheckInState {
 function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
-  const { push } = useStackNavigation();
+  const { push, reset } = useStackNavigation();
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
 
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -98,7 +98,8 @@ function GuardianDailyNoticeDetailPage() {
   const hasAlbumSection = !showEmptyWeekNoCheckIn && (hasAlbumPhotos || isAlbumError);
 
   const handleAlbumListClick = () => {
-    push({ pathname: route.compare.album.root });
+    // 스택 상세 → 메인 탭 리스트 (하단 탭 유지)
+    reset(route.compare.notice.list.root, { month: selectedDateKey.slice(0, 7) });
   };
 
   const handleAlbumViewClick = () => {
