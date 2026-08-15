@@ -6,8 +6,9 @@ import {
 /**
  * - `?mock=empty` → empty
  * - 기본 / `?mock=list` → 리스트
- * - `?mock=mark-all-fail` → 모두읽음 API 실패 (상태 유지 + 실패 토스트)
- * - `?mock=page-not-found` → M-05 (대상 페이지 없음/권한 없음 토스트)
+ * - `?mock=mark-all-fail` → 모두읽음 API 실패
+ * - `?mock=page-not-found` → M-05
+ * - `?mock=error` → 최초 조회 실패 (공통 PageError)
  */
 const MOCK_NOTIFICATION_INBOX_LIST = true;
 
@@ -19,6 +20,7 @@ const MOCK_NOTIFICATION_INBOX_QUERY = {
   empty: 'empty',
   markAllFail: 'mark-all-fail',
   pageNotFound: 'page-not-found',
+  error: 'error',
 } as const;
 
 function minutesAgo(minutes: number) {
@@ -29,6 +31,7 @@ function daysAgo(days: number) {
   return minutesAgo(days * 24 * 60);
 }
 
+/** 샘플 mock */
 const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-1',
@@ -89,6 +92,10 @@ function isNotificationInboxEmptyMock(mockQuery: string | null) {
   return mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.empty;
 }
 
+function isNotificationInboxErrorMock(mockQuery: string | null) {
+  return mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.error;
+}
+
 function isNotificationMarkAllReadFailMock(mockQuery: string | null) {
   return (
     MOCK_NOTIFICATION_MARK_ALL_READ_FAIL ||
@@ -101,7 +108,9 @@ function isNotificationPageNotFoundMock(mockQuery: string | null) {
 }
 
 function isNotificationInboxListMock(mockQuery: string | null) {
-  if (isNotificationInboxEmptyMock(mockQuery)) return false;
+  if (isNotificationInboxEmptyMock(mockQuery) || isNotificationInboxErrorMock(mockQuery)) {
+    return false;
+  }
   return (
     MOCK_NOTIFICATION_INBOX_LIST ||
     mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.list ||
@@ -123,6 +132,7 @@ export {
   MOCK_NOTIFICATION_INBOX_PAGE_NOT_FOUND_ITEMS,
   getMockNotificationInboxItems,
   isNotificationInboxEmptyMock,
+  isNotificationInboxErrorMock,
   isNotificationInboxListMock,
   isNotificationMarkAllReadFailMock,
   isNotificationPageNotFoundMock,
