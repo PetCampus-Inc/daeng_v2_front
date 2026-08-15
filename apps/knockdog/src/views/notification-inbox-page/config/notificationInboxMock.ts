@@ -6,12 +6,17 @@ import {
 /**
  * - `?mock=empty` → empty
  * - 기본 / `?mock=list` → 리스트
+ * - `?mock=mark-all-fail` → 모두읽음 API 실패 (상태 유지 + 실패 토스트)
  */
 const MOCK_NOTIFICATION_INBOX_LIST = true;
+
+/** true면 모두읽음 API가 항상 실패하는 것으로 처리 */
+const MOCK_NOTIFICATION_MARK_ALL_READ_FAIL = false;
 
 const MOCK_NOTIFICATION_INBOX_QUERY = {
   list: 'list',
   empty: 'empty',
+  markAllFail: 'mark-all-fail',
 } as const;
 
 function minutesAgo(minutes: number) {
@@ -69,9 +74,20 @@ function isNotificationInboxEmptyMock(mockQuery: string | null) {
   return mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.empty;
 }
 
+function isNotificationMarkAllReadFailMock(mockQuery: string | null) {
+  return (
+    MOCK_NOTIFICATION_MARK_ALL_READ_FAIL ||
+    mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.markAllFail
+  );
+}
+
 function isNotificationInboxListMock(mockQuery: string | null) {
   if (isNotificationInboxEmptyMock(mockQuery)) return false;
-  return MOCK_NOTIFICATION_INBOX_LIST || mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.list;
+  return (
+    MOCK_NOTIFICATION_INBOX_LIST ||
+    mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.list ||
+    mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.markAllFail
+  );
 }
 
 export {
@@ -79,4 +95,5 @@ export {
   MOCK_NOTIFICATION_INBOX_LIST,
   isNotificationInboxEmptyMock,
   isNotificationInboxListMock,
+  isNotificationMarkAllReadFailMock,
 };

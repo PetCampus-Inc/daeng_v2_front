@@ -1,17 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { overlay } from 'overlay-kit';
 
+import { toast } from '@shared/ui/toast';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import {
   isNotificationInboxEmptyMock,
   isNotificationInboxListMock,
+  isNotificationMarkAllReadFailMock,
   MOCK_NOTIFICATION_INBOX_ITEMS,
 } from '@views/notification-inbox-page/config/notificationInboxMock';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
 import { NotificationInboxList } from '@views/notification-inbox-page/ui/NotificationInboxList';
+import { NotificationInboxMarkAllReadDialog } from '@views/notification-inbox-page/ui/NotificationInboxMarkAllReadDialog';
 import { Header } from '@widgets/Header';
 
 function sortBySentAtDesc(items: NotificationInboxItem[]) {
@@ -25,15 +29,40 @@ function NotificationInboxPage() {
 
   const isEmpty = isNotificationInboxEmptyMock(mockQuery);
   const isList = isNotificationInboxListMock(mockQuery);
+  const shouldFailMarkAllRead = isNotificationMarkAllReadFailMock(mockQuery);
 
   const [items, setItems] = useState(() => sortBySentAtDesc(MOCK_NOTIFICATION_INBOX_ITEMS));
 
   const visibleItems = useMemo(() => (isList && !isEmpty ? items : []), [isEmpty, isList, items]);
   const hasUnread = visibleItems.some((item) => !item.isRead);
 
-  const handleMarkAllRead = () => {
-    // TODO: 모두읽음 API + 확인 모달(M-03)
+  const markAllAsRead = useCallback(async () => {
+    // TODO: 모두읽음 API
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    if (shouldFailMarkAllRead) {
+      throw new Error('MARK_ALL_READ_FAIL');
+    }
+
     setItems((prev) => prev.map((item) => (item.isRead ? item : { ...item, isRead: true })));
+  }, [shouldFailMarkAllRead]);
+
+  const handleMarkAllReadClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <NotificationInboxMarkAllReadDialog
+        isOpen={isOpen}
+        close={close}
+        onConfirm={async () => {
+          try {
+            await markAllAsRead();
+            toast(content.markAllReadSuccessToast);
+          } catch {
+            toast(content.markAllReadFailToast);
+            throw new Error('MARK_ALL_READ_FAIL');
+          }
+        }}
+      />
+    ));
   };
 
   const handleItemClick = (item: NotificationInboxItem) => {
@@ -52,7 +81,7 @@ function NotificationInboxPage() {
             <Header.RightSection>
               <button
                 type='button'
-                onClick={handleMarkAllRead}
+                onClick={handleMarkAllReadClick}
                 className='label-semibold text-text-primary px-2 py-1'
               >
                 {content.markAllReadLabel}
