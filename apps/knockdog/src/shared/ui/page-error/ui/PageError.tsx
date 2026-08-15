@@ -56,10 +56,10 @@ function PageError({
   return (
     <div className={cn(style.root, className)}>
       <main className={style.main}>
-        <div className='flex w-full flex-col items-center gap-10'>
+        <div className='flex w-full flex-col items-center gap-0'>
           <div className='relative size-[200px] shrink-0'>
             <Image
-              src='/images/img_404.png'
+              src='/images/img_404.webp'
               alt=''
               aria-hidden='true'
               fill

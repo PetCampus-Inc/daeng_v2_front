@@ -25,7 +25,7 @@ interface GuardianConnectionApplyItem {
   pet: {
     id: string;
     name: string;
-    gender: GuardianConnectionApplyGender;
+    gender?: GuardianConnectionApplyGender;
     breed: string;
     imageUrl?: string;
   };
