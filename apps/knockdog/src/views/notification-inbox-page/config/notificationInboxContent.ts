@@ -1,5 +1,7 @@
 const notificationInboxContent = {
   pageTitle: '알림함',
+  markAllReadLabel: '모두읽음',
+  listFooterCaption: '알림은 14일 이후 순차적으로 지워져요',
   empty: {
     imageSrc: '/images/image_notification_none.webp',
     imageAlt: '도착한 알림 없음',
