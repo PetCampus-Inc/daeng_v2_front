@@ -14,6 +14,12 @@ const guardianConnectionApplyStatusContent = {
   },
   cancelButtonLabel: '신청 취소',
   appliedAtSuffix: '신청',
+  cancelSheet: {
+    title: '신청을 취소할까요?',
+    closeLabel: '닫기',
+    confirmLabel: '신청 취소',
+  },
+  cancelFailToast: '일시적 오류로 요청을 완료하지 못했어요',
   /** 원장 알림(퍼블리싱: 실제 전송은 API 연동 시) */
   directorCancelNotification: {
     title: '보호자가 등록 신청을 취소했어요',

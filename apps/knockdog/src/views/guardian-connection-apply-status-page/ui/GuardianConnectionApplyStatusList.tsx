@@ -5,15 +5,15 @@ import { GuardianConnectionApplyStatusCard } from '@views/guardian-connection-ap
 
 interface GuardianConnectionApplyStatusListProps {
   items: GuardianConnectionApplyItem[];
-  onCancel?: (id: string) => void;
+  onCancelClick?: (item: GuardianConnectionApplyItem) => void;
 }
 
-function GuardianConnectionApplyStatusList({ items, onCancel }: GuardianConnectionApplyStatusListProps) {
+function GuardianConnectionApplyStatusList({ items, onCancelClick }: GuardianConnectionApplyStatusListProps) {
   return (
     <ul className='flex w-full flex-col gap-4 px-4 py-5'>
       {items.map((item) => (
         <li key={item.id}>
-          <GuardianConnectionApplyStatusCard item={item} onCancel={onCancel} />
+          <GuardianConnectionApplyStatusCard item={item} onCancelClick={onCancelClick} />
         </li>
       ))}
     </ul>

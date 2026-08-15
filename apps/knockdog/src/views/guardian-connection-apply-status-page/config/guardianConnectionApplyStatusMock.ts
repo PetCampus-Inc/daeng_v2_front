@@ -9,13 +9,18 @@ import {
  * - 기본: 리스트 (`?mock=list` 또는 mock 플래그)
  * - 빈 목록: `?mock=empty`
  * - 조회 실패: `?mock=error`
+ * - 신청 취소 실패: `?mock=cancel-fail` (목록 유지 + 토스트)
  */
 const MOCK_APPLY_STATUS_LIST = true;
+
+/** true면 신청 취소 API가 항상 실패하는 것으로 처리 */
+const MOCK_APPLY_CANCEL_FAIL = false;
 
 const MOCK_APPLY_STATUS_QUERY = {
   list: 'list',
   empty: 'empty',
   error: 'error',
+  cancelFail: 'cancel-fail',
 } as const;
 
 function isApplyStatusErrorMock(mockQuery: string | null) {
@@ -26,9 +31,17 @@ function isApplyStatusEmptyMock(mockQuery: string | null) {
   return mockQuery === MOCK_APPLY_STATUS_QUERY.empty;
 }
 
+function isApplyCancelFailMock(mockQuery: string | null) {
+  return MOCK_APPLY_CANCEL_FAIL || mockQuery === MOCK_APPLY_STATUS_QUERY.cancelFail;
+}
+
 function isApplyStatusListMock(mockQuery: string | null) {
   if (isApplyStatusErrorMock(mockQuery) || isApplyStatusEmptyMock(mockQuery)) return false;
-  return MOCK_APPLY_STATUS_LIST || mockQuery === MOCK_APPLY_STATUS_QUERY.list;
+  return (
+    MOCK_APPLY_STATUS_LIST ||
+    mockQuery === MOCK_APPLY_STATUS_QUERY.list ||
+    mockQuery === MOCK_APPLY_STATUS_QUERY.cancelFail
+  );
 }
 
 /**
@@ -88,7 +101,9 @@ const MOCK_CONNECTION_APPLY_ITEMS: GuardianConnectionApplyItem[] = [
 
 export {
   MOCK_APPLY_STATUS_LIST,
+  MOCK_APPLY_CANCEL_FAIL,
   MOCK_CONNECTION_APPLY_ITEMS,
+  isApplyCancelFailMock,
   isApplyStatusEmptyMock,
   isApplyStatusErrorMock,
   isApplyStatusListMock,
