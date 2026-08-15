@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 import {
@@ -30,7 +32,9 @@ function sortByAppliedAtDesc(items: GuardianConnectionApplyItem[]) {
 function GuardianConnectionApplyStatusPage() {
   const content = guardianConnectionApplyStatusContent;
   const searchParams = useSearchParams();
+  const { back, reset } = useStackNavigation();
   const mockQuery = searchParams.get('mock');
+  const isFromInviteComplete = searchParams.get('from') === content.entryFromInviteComplete;
 
   const isLoadError = isApplyStatusErrorMock(mockQuery);
   const isEmpty = isApplyStatusEmptyMock(mockQuery);
@@ -40,6 +44,14 @@ function GuardianConnectionApplyStatusPage() {
   const [items, setItems] = useState(() => sortByAppliedAtDesc(MOCK_CONNECTION_APPLY_ITEMS));
 
   const visibleItems = useMemo(() => (isList ? items : []), [isList, items]);
+
+  const handleBack = () => {
+    if (isFromInviteComplete) {
+      void reset(route.mypage.root);
+      return;
+    }
+    back();
+  };
 
   const cancelApplication = useCallback(
     async (id: string) => {
@@ -90,7 +102,7 @@ function GuardianConnectionApplyStatusPage() {
     <div className='bg-bg-50 flex h-dvh flex-col'>
       <div className='bg-bg-0 shrink-0'>
         <Header>
-          <Header.BackButton />
+          <Header.BackButton onClick={handleBack} />
           <Header.Title>{content.pageTitle}</Header.Title>
         </Header>
       </div>

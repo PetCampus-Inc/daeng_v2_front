@@ -1,5 +1,7 @@
 const guardianConnectionApplyStatusContent = {
   pageTitle: '연결 신청 현황',
+  /** 초대 신청 완료 CTA로 진입한 경우 뒤로가기 분기용 */
+  entryFromInviteComplete: 'invite-complete',
   empty: {
     imageSrc: '/images/image_guardian_kindergarten_apply_none.png',
     imageAlt: '연결 신청 내역 없음',

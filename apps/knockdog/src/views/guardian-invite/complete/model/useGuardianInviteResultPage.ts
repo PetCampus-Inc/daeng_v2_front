@@ -25,7 +25,8 @@ function useGuardianInviteResultPage() {
 
   const handlePrimaryClick = () => {
     if (status === GUARDIAN_INVITE_RESULT_STATUS.SUCCESS) {
-      void reset(route.guardian.connectionApply.status.root);
+      // 신청 현황에서 from=invite-complete 이면 뒤로가기 → 마이페이지
+      void reset(route.guardian.connectionApply.status.root, { from: 'invite-complete' });
       return;
     }
 
