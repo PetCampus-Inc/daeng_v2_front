@@ -6,7 +6,6 @@ import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
-import { MOCK_ALBUM_KINDERGARTENS } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
 import {
   compareYearMonth,
   isSameYearMonth,
@@ -34,7 +33,6 @@ import type { GuardianAlbumFilterDay } from '@views/guardian-album-page/ui/Guard
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumHistoryEmpty } from '@views/guardian-album-page/ui/GuardianAlbumHistoryEmpty';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
-import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
 import { GuardianAlbumMonthEmpty } from '@views/guardian-album-page/ui/GuardianAlbumMonthEmpty';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
@@ -44,6 +42,10 @@ import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/Guardia
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { startOfDay } from '@shared/lib/calendar-date';
+import {
+  KindergartenSelectSheet,
+  MOCK_KINDERGARTEN_SELECT_OPTIONS,
+} from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
@@ -63,7 +65,7 @@ function addMonths(date: Date, months: number) {
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
-  const kindergartens = MOCK_ALBUM_KINDERGARTENS;
+  const kindergartens = MOCK_KINDERGARTEN_SELECT_OPTIONS;
   const {
     selectedPet,
     selectedPetId,
@@ -317,7 +319,7 @@ function GuardianAlbumPage() {
     if (!canSelectKindergarten) return;
 
     overlay.open(({ isOpen, close }) => (
-      <GuardianAlbumKindergartenSelectSheet
+      <KindergartenSelectSheet
         isOpen={isOpen}
         close={close}
         kindergartens={kindergartens}

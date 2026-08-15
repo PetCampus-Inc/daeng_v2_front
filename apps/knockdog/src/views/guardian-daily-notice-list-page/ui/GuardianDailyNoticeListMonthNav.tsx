@@ -31,7 +31,6 @@ function GuardianDailyNoticeListMonthNav({
           type='button'
           className={`inline-flex size-6 items-center justify-center ${canGoPrevMonth ? '' : 'opacity-30'}`}
           aria-label={monthNav.prevAriaLabel}
-          disabled={!canGoPrevMonth}
           onClick={onPrevMonth}
         >
           <Icon icon='ChevronLeft' className='text-fill-secondary-500 size-6' />
@@ -48,7 +47,6 @@ function GuardianDailyNoticeListMonthNav({
           type='button'
           className={`inline-flex size-6 items-center justify-center ${canGoNextMonth ? '' : 'opacity-30'}`}
           aria-label={monthNav.nextAriaLabel}
-          disabled={!canGoNextMonth}
           onClick={onNextMonth}
         >
           <Icon icon='ChevronRight' className='text-fill-secondary-500 size-6' />
