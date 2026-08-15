@@ -12,7 +12,6 @@ import {
   getMockNotificationInboxItems,
   isNotificationInboxEmptyMock,
   isNotificationInboxErrorMock,
-  isNotificationInboxListMock,
   isNotificationMarkAllReadFailMock,
 } from '@views/notification-inbox-page/config/notificationInboxMock';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
@@ -35,7 +34,6 @@ function NotificationInboxPage() {
   const mockQuery = searchParams.get('mock');
 
   const isEmpty = isNotificationInboxEmptyMock(mockQuery);
-  const isList = isNotificationInboxListMock(mockQuery);
   const shouldFailMarkAllRead = isNotificationMarkAllReadFailMock(mockQuery);
 
   const [hasLoadError, setHasLoadError] = useState(() => isNotificationInboxErrorMock(mockQuery));
@@ -46,7 +44,10 @@ function NotificationInboxPage() {
   const [loadedCount, setLoadedCount] = useState(NOTIFICATION_INBOX_PAGE_SIZE);
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
 
-  const preparedItems = useMemo(() => (isList && !isEmpty ? sourceItems : []), [isEmpty, isList, sourceItems]);
+  const preparedItems = useMemo(() => {
+    if (hasLoadError || isEmpty) return [];
+    return sourceItems;
+  }, [hasLoadError, isEmpty, sourceItems]);
   const visibleItems = useMemo(
     () => preparedItems.slice(0, loadedCount),
     [loadedCount, preparedItems]
