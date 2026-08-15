@@ -10,6 +10,8 @@ const notificationInboxContent = {
   },
   markAllReadSuccessToast: '모든 알림을 읽음 처리했어요',
   markAllReadFailToast: '모두 읽음 처리에 실패했어요',
+  /** M-05: 대상 페이지 접근 권한 없음 / 데이터 삭제 */
+  pageNotFoundToast: '페이지를 찾을 수 없어요',
   empty: {
     imageSrc: '/images/image_notification_none.webp',
     imageAlt: '도착한 알림 없음',

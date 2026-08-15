@@ -7,6 +7,7 @@ import {
  * - `?mock=empty` → empty
  * - 기본 / `?mock=list` → 리스트
  * - `?mock=mark-all-fail` → 모두읽음 API 실패 (상태 유지 + 실패 토스트)
+ * - `?mock=page-not-found` → M-05 (대상 페이지 없음/권한 없음 토스트)
  */
 const MOCK_NOTIFICATION_INBOX_LIST = true;
 
@@ -17,6 +18,7 @@ const MOCK_NOTIFICATION_INBOX_QUERY = {
   list: 'list',
   empty: 'empty',
   markAllFail: 'mark-all-fail',
+  pageNotFound: 'page-not-found',
 } as const;
 
 function minutesAgo(minutes: number) {
@@ -70,6 +72,19 @@ const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   },
 ];
 
+/** Figma M-05 샘플 — 대상 페이지 접근 불가 */
+const MOCK_NOTIFICATION_INBOX_PAGE_NOT_FOUND_ITEMS: NotificationInboxItem[] = [
+  {
+    id: 'noti-m05',
+    type: NOTIFICATION_INBOX_TYPE.CONNECTION_COMPLETED,
+    kindergartenName: '코코스퀘어 강아지유치원&애견미용 플래그십 스토어',
+    petName: '몽이',
+    sentAt: minutesAgo(5),
+    isRead: true,
+    isTargetUnavailable: true,
+  },
+];
+
 function isNotificationInboxEmptyMock(mockQuery: string | null) {
   return mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.empty;
 }
@@ -81,19 +96,34 @@ function isNotificationMarkAllReadFailMock(mockQuery: string | null) {
   );
 }
 
+function isNotificationPageNotFoundMock(mockQuery: string | null) {
+  return mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.pageNotFound;
+}
+
 function isNotificationInboxListMock(mockQuery: string | null) {
   if (isNotificationInboxEmptyMock(mockQuery)) return false;
   return (
     MOCK_NOTIFICATION_INBOX_LIST ||
     mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.list ||
-    mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.markAllFail
+    mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.markAllFail ||
+    mockQuery === MOCK_NOTIFICATION_INBOX_QUERY.pageNotFound
   );
+}
+
+function getMockNotificationInboxItems(mockQuery: string | null) {
+  if (isNotificationPageNotFoundMock(mockQuery)) {
+    return MOCK_NOTIFICATION_INBOX_PAGE_NOT_FOUND_ITEMS;
+  }
+  return MOCK_NOTIFICATION_INBOX_ITEMS;
 }
 
 export {
   MOCK_NOTIFICATION_INBOX_ITEMS,
   MOCK_NOTIFICATION_INBOX_LIST,
+  MOCK_NOTIFICATION_INBOX_PAGE_NOT_FOUND_ITEMS,
+  getMockNotificationInboxItems,
   isNotificationInboxEmptyMock,
   isNotificationInboxListMock,
   isNotificationMarkAllReadFailMock,
+  isNotificationPageNotFoundMock,
 };

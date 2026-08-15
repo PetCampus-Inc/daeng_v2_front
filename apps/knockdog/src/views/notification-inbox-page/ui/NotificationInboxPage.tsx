@@ -7,10 +7,10 @@ import { overlay } from 'overlay-kit';
 import { toast } from '@shared/ui/toast';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import {
+  getMockNotificationInboxItems,
   isNotificationInboxEmptyMock,
   isNotificationInboxListMock,
   isNotificationMarkAllReadFailMock,
-  MOCK_NOTIFICATION_INBOX_ITEMS,
 } from '@views/notification-inbox-page/config/notificationInboxMock';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
@@ -31,7 +31,9 @@ function NotificationInboxPage() {
   const isList = isNotificationInboxListMock(mockQuery);
   const shouldFailMarkAllRead = isNotificationMarkAllReadFailMock(mockQuery);
 
-  const [items, setItems] = useState(() => sortBySentAtDesc(MOCK_NOTIFICATION_INBOX_ITEMS));
+  const [items, setItems] = useState(() =>
+    sortBySentAtDesc(getMockNotificationInboxItems(mockQuery))
+  );
 
   const visibleItems = useMemo(() => (isList && !isEmpty ? items : []), [isEmpty, isList, items]);
   const hasUnread = visibleItems.some((item) => !item.isRead);
@@ -67,8 +69,15 @@ function NotificationInboxPage() {
 
   const handleItemClick = (item: NotificationInboxItem) => {
     // TODO: 타입별 딥링크 + 단건 읽음 처리 API
-    if (item.isRead) return;
-    setItems((prev) => prev.map((row) => (row.id === item.id ? { ...row, isRead: true } : row)));
+    if (!item.isRead) {
+      setItems((prev) => prev.map((row) => (row.id === item.id ? { ...row, isRead: true } : row)));
+    }
+
+    // M-05: 대상 페이지 접근 권한 없음 / 데이터 삭제
+    if (item.isTargetUnavailable) {
+      toast(content.pageNotFoundToast);
+      return;
+    }
   };
 
   return (
