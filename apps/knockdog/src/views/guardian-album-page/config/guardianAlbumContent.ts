@@ -112,13 +112,6 @@ const guardianAlbumContent = {
     title: '아직 등록된 앨범이 없어요',
     description: '유치원에서 앨범이 등록되면\n이곳에서 볼 수 있어요.',
   },
-  entryError: {
-    imageSrc: '/images/img_404.png',
-    imageAlt: '정보 로드 실패',
-    title: '정보를 불러오지 못했어요',
-    description: '잠시 후 다시 시도해 주세요.',
-    retryLabel: '다시 시도하기',
-  },
 } as const;
 
 export { guardianAlbumContent };
