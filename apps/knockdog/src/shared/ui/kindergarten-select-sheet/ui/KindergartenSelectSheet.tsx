@@ -4,41 +4,51 @@ import React from 'react';
 import { Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
-import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
-import type { GuardianAlbumKindergartenOption } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
+import { kindergartenSelectSheetContent } from '@shared/ui/kindergarten-select-sheet/config/kindergartenSelectSheetContent';
+import type { KindergartenSelectOption } from '@shared/ui/kindergarten-select-sheet/model/types';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { toast } from '@shared/ui/toast';
 
-interface GuardianAlbumKindergartenSelectSheetProps {
+interface KindergartenSelectSheetProps {
   isOpen: boolean;
   close: () => void;
-  kindergartens: GuardianAlbumKindergartenOption[];
+  kindergartens: KindergartenSelectOption[];
   currentKindergartenId: string | null;
   onSelect: (kindergartenId: string) => void;
 }
 
 function formatAttendedUntilLabel(attendedUntil: string) {
-  const [year, month, day] = attendedUntil.split('-');
-  if (!year || !month || !day) return guardianAlbumContent.pastStatusLabel(attendedUntil);
-  return guardianAlbumContent.pastStatusLabel(
-    `${year}년 ${Number(month)}월 ${Number(day)}일`
-  );
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(attendedUntil);
+  if (!match) return kindergartenSelectSheetContent.pastStatusLabel(attendedUntil);
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  const isValidCalendarDate =
+    date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+  if (!isValidCalendarDate) {
+    return kindergartenSelectSheetContent.pastStatusLabel(attendedUntil);
+  }
+
+  return kindergartenSelectSheetContent.pastStatusLabel(`${year}년 ${month}월 ${day}일`);
 }
 
-function GuardianAlbumKindergartenSelectSheet({
+function KindergartenSelectSheet({
   isOpen,
   close,
   kindergartens,
   currentKindergartenId,
   onSelect,
-}: GuardianAlbumKindergartenSelectSheetProps) {
-  const content = guardianAlbumContent;
+}: KindergartenSelectSheetProps) {
+  const content = kindergartenSelectSheetContent;
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) close();
   };
 
-  const handleSelect = (kindergarten: GuardianAlbumKindergartenOption) => {
+  const handleSelect = (kindergarten: KindergartenSelectOption) => {
     if (kindergarten.id === currentKindergartenId) {
       close();
       return;
@@ -69,7 +79,7 @@ function GuardianAlbumKindergartenSelectSheet({
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
         <BottomSheet.Header className='border-line-100 border-b'>
-          <BottomSheet.Title>{content.kindergartenSelectTitle}</BottomSheet.Title>
+          <BottomSheet.Title>{content.title}</BottomSheet.Title>
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
 
@@ -143,4 +153,5 @@ function GuardianAlbumKindergartenSelectSheet({
   );
 }
 
-export { GuardianAlbumKindergartenSelectSheet };
+export { KindergartenSelectSheet };
+export type { KindergartenSelectSheetProps };
