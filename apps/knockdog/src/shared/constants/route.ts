@@ -219,6 +219,10 @@ const route = {
       },
     },
   },
+  notification: {
+    /** 알림함 */
+    root: '/notification',
+  },
   compare: {
     /** 보호자 유치원 탭 */
     root: '/compare',
