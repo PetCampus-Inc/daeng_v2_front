@@ -25,7 +25,7 @@ function useGuardianInviteResultPage() {
 
   const handlePrimaryClick = () => {
     if (status === GUARDIAN_INVITE_RESULT_STATUS.SUCCESS) {
-      // 신청 내역 화면의 경로가 확정되면 이곳에서 이동을 연결한다.
+      void reset(route.guardian.connectionApply.status.root);
       return;
     }
 
