@@ -15,13 +15,6 @@ import {
   type GuardianConnectionApplyItem,
 } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
 import { guardianConnectionApplyStatusContent } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatusContent';
-import {
-  isApplyCancelFailMock,
-  isApplyStatusEmptyMock,
-  isApplyStatusErrorMock,
-  isApplyStatusListMock,
-  MOCK_CONNECTION_APPLY_ITEMS,
-} from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatusMock';
 import { GuardianConnectionApplyCancelSheet } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyCancelSheet';
 import { GuardianConnectionApplyStatusEmpty } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyStatusEmpty';
 import { GuardianConnectionApplyStatusList } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyStatusList';
@@ -36,13 +29,7 @@ function GuardianConnectionApplyStatusPage() {
   const searchParams = useSearchParams();
   const { back, reset } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const mockQuery = searchParams.get('mock');
   const isFromInviteComplete = searchParams.get('from') === content.entryFromInviteComplete;
-
-  const forceError = isApplyStatusErrorMock(mockQuery);
-  const forceEmpty = isApplyStatusEmptyMock(mockQuery);
-  const forceListMock = isApplyStatusListMock(mockQuery);
-  const shouldFailCancel = isApplyCancelFailMock(mockQuery);
 
   const {
     data: remoteItems,
@@ -50,22 +37,14 @@ function GuardianConnectionApplyStatusPage() {
     isPending,
     isFetching,
     refetch,
-  } = useGuardianApplicationsQuery({
-    userId,
-    enabled: !forceError && !forceEmpty && !forceListMock,
-  });
+  } = useGuardianApplicationsQuery({ userId });
 
   const [localItems, setLocalItems] = useState<GuardianConnectionApplyItem[] | null>(null);
 
-  const sourceItems = useMemo(() => {
-    if (forceEmpty) return [];
-    if (forceListMock) return localItems ?? MOCK_CONNECTION_APPLY_ITEMS;
-    return localItems ?? remoteItems ?? [];
-  }, [forceEmpty, forceListMock, localItems, remoteItems]);
-
-  const visibleItems = useMemo(() => sortByAppliedAtDesc(sourceItems), [sourceItems]);
-
-  const isLoadError = forceError || (!forceEmpty && !forceListMock && isError);
+  const visibleItems = useMemo(
+    () => sortByAppliedAtDesc(localItems ?? remoteItems ?? []),
+    [localItems, remoteItems]
+  );
 
   const handleBack = () => {
     if (isFromInviteComplete) {
@@ -76,6 +55,7 @@ function GuardianConnectionApplyStatusPage() {
   };
 
   const handleRetry = () => {
+    setLocalItems(null);
     void refetch();
   };
 
@@ -87,12 +67,8 @@ function GuardianConnectionApplyStatusPage() {
       // 알림 탭 → 구성원 탭 이동
       await new Promise((resolve) => setTimeout(resolve, 300));
 
-      if (shouldFailCancel) {
-        throw new Error('CANCEL_FAIL');
-      }
-
       setLocalItems((prev) => {
-        const base = prev ?? remoteItems ?? (forceListMock ? MOCK_CONNECTION_APPLY_ITEMS : []);
+        const base = prev ?? remoteItems ?? [];
         const target = base.find((item) => item.id === id);
         if (!target || !target.cancellable) return prev ?? base;
 
@@ -107,7 +83,7 @@ function GuardianConnectionApplyStatusPage() {
         );
       });
     },
-    [forceListMock, remoteItems, shouldFailCancel]
+    [remoteItems]
   );
 
   const handleCancelClick = useCallback(
@@ -131,7 +107,7 @@ function GuardianConnectionApplyStatusPage() {
     [cancelApplication, content.cancelFailToast]
   );
 
-  if (!forceError && !forceEmpty && !forceListMock && isPending) return null;
+  if (isPending) return null;
 
   return (
     <div className='bg-bg-50 flex h-dvh flex-col'>
@@ -142,7 +118,7 @@ function GuardianConnectionApplyStatusPage() {
         </Header>
       </div>
 
-      {isLoadError ? (
+      {isError ? (
         <PageError
           layout='inline'
           className='bg-bg-50'
