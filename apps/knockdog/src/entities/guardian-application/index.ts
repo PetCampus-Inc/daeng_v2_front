@@ -1,4 +1,5 @@
-export { getGuardianApplications } from './api/guardianApplications';
+export { getGuardianApplications, postCancelGuardianApplication } from './api/guardianApplications';
+export { useCancelGuardianApplicationMutation } from './api/useCancelGuardianApplicationMutation';
 export {
   GUARDIAN_APPLICATIONS_QUERY_KEY,
   guardianApplicationsQueryKey,

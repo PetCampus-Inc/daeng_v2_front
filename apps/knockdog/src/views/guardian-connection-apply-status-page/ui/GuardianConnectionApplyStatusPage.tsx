@@ -1,19 +1,19 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
-import { useGuardianApplicationsQuery } from '@entities/guardian-application';
+import {
+  useCancelGuardianApplicationMutation,
+  useGuardianApplicationsQuery,
+} from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
-import {
-  GUARDIAN_CONNECTION_APPLY_STATUS,
-  type GuardianConnectionApplyItem,
-} from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
+import type { GuardianConnectionApplyItem } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
 import { guardianConnectionApplyStatusContent } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatusContent';
 import { GuardianConnectionApplyCancelSheet } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyCancelSheet';
 import { GuardianConnectionApplyStatusEmpty } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyStatusEmpty';
@@ -31,20 +31,12 @@ function GuardianConnectionApplyStatusPage() {
   const userId = useUserStore((state) => state.user?.userId);
   const isFromInviteComplete = searchParams.get('from') === content.entryFromInviteComplete;
 
-  const {
-    data: remoteItems,
-    isError,
-    isPending,
-    isFetching,
-    refetch,
-  } = useGuardianApplicationsQuery({ userId });
+  const { data, isError, isPending, isFetching, refetch } = useGuardianApplicationsQuery({
+    userId,
+  });
+  const cancelMutation = useCancelGuardianApplicationMutation({ userId });
 
-  const [localItems, setLocalItems] = useState<GuardianConnectionApplyItem[] | null>(null);
-
-  const visibleItems = useMemo(
-    () => sortByAppliedAtDesc(localItems ?? remoteItems ?? []),
-    [localItems, remoteItems]
-  );
+  const visibleItems = useMemo(() => sortByAppliedAtDesc(data ?? []), [data]);
 
   const handleBack = () => {
     if (isFromInviteComplete) {
@@ -55,36 +47,8 @@ function GuardianConnectionApplyStatusPage() {
   };
 
   const handleRetry = () => {
-    setLocalItems(null);
     void refetch();
   };
-
-  const cancelApplication = useCallback(
-    async (id: string) => {
-      // TODO: 신청 취소 API + 원장 알림 전송
-      // title: 보호자가 등록 신청을 취소했어요
-      // body: `${petName}가 승인 대기 목록에서 제외됐어요.`
-      // 알림 탭 → 구성원 탭 이동
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      setLocalItems((prev) => {
-        const base = prev ?? remoteItems ?? [];
-        const target = base.find((item) => item.id === id);
-        if (!target || !target.cancellable) return prev ?? base;
-
-        return base.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                status: GUARDIAN_CONNECTION_APPLY_STATUS.CANCELLED,
-                cancellable: false,
-              }
-            : item
-        );
-      });
-    },
-    [remoteItems]
-  );
 
   const handleCancelClick = useCallback(
     (item: GuardianConnectionApplyItem) => {
@@ -95,7 +59,10 @@ function GuardianConnectionApplyStatusPage() {
           item={item}
           onConfirm={async () => {
             try {
-              await cancelApplication(item.id);
+              // TODO: 원장 알림 전송 연동
+              // title: 보호자가 등록 신청을 취소했어요
+              // body: `${petName}가 승인 대기 목록에서 제외됐어요.`
+              await cancelMutation.mutateAsync(item.id);
             } catch {
               toast(content.cancelFailToast);
               throw new Error('CANCEL_FAIL');
@@ -104,7 +71,7 @@ function GuardianConnectionApplyStatusPage() {
         />
       ));
     },
-    [cancelApplication, content.cancelFailToast]
+    [cancelMutation, content.cancelFailToast]
   );
 
   if (isPending) return null;
