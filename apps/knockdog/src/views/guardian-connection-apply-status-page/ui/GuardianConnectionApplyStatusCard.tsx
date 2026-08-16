@@ -2,10 +2,7 @@
 
 import { ActionButton } from '@knockdog/ui';
 
-import {
-  GUARDIAN_CONNECTION_APPLY_STATUS,
-  type GuardianConnectionApplyItem,
-} from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
+import type { GuardianConnectionApplyItem } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
 import { guardianConnectionApplyStatusContent } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatusContent';
 import {
   formatApplyRequestedAt,
@@ -20,7 +17,7 @@ interface GuardianConnectionApplyStatusCardProps {
 
 function GuardianConnectionApplyStatusCard({ item, onCancelClick }: GuardianConnectionApplyStatusCardProps) {
   const content = guardianConnectionApplyStatusContent;
-  const isPending = item.status === GUARDIAN_CONNECTION_APPLY_STATUS.PENDING;
+  const canCancel = item.cancellable;
 
   return (
     <article className='bg-bg-0 border-line-100 radius-r4 flex w-full flex-col border border-solid p-4'>
@@ -36,7 +33,7 @@ function GuardianConnectionApplyStatusCard({ item, onCancelClick }: GuardianConn
           <GuardianConnectionApplyPetSummary item={item} />
         </div>
 
-        {isPending ? (
+        {canCancel ? (
           <ActionButton
             type='button'
             variant='secondaryLine'
