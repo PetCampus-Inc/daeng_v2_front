@@ -39,13 +39,11 @@ import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/Gua
 import { GuardianAlbumPhotoDetail } from '@views/guardian-album-page/ui/GuardianAlbumPhotoDetail';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
+import { toKindergartenSelectOptions } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { startOfDay } from '@shared/lib/calendar-date';
-import {
-  KindergartenSelectSheet,
-  MOCK_KINDERGARTEN_SELECT_OPTIONS,
-} from '@shared/ui/kindergarten-select-sheet';
+import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
@@ -65,12 +63,13 @@ function addMonths(date: Date, months: number) {
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
-  const kindergartens = MOCK_KINDERGARTEN_SELECT_OPTIONS;
   const {
     selectedPet,
     selectedPetId,
+    status,
     schoolId,
     schoolName,
+    schoolImageUrl,
     hasAlbumHistory,
     hasLinkedSchool,
     isAttendedToday,
@@ -84,15 +83,28 @@ function GuardianAlbumPage() {
   } = useGuardianAlbumToday();
   const { back } = useStackNavigation();
   const searchParams = useSearchParams();
+
+  const kindergartens = useMemo(
+    () =>
+      toKindergartenSelectOptions(
+        schoolId && hasLinkedSchool
+          ? {
+              id: schoolId,
+              name: schoolName ?? '',
+              address: '',
+              imageUrl: schoolImageUrl ?? '',
+            }
+          : null
+      ),
+    [hasLinkedSchool, schoolId, schoolImageUrl, schoolName]
+  );
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const didOpenHomeDetailRef = useRef(false);
-  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(
-    defaultKindergartenId
-  );
+  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
   const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
@@ -147,11 +159,13 @@ function GuardianAlbumPage() {
   });
 
   const selectedKindergarten =
-    kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
+    kindergartens.find((item) => item.id === (selectedKindergartenId ?? defaultKindergartenId)) ??
+    kindergartens[0] ??
+    null;
   const kindergartenName = schoolName ?? selectedKindergarten?.name ?? '유치원';
   const petName = selectedPet?.name ?? '강아지';
   const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
-  const isDisconnected = attendedUntil != null;
+  const isDisconnected = status === 'disconnected' || attendedUntil != null;
   const albumRangeEnd = useMemo(
     () => (attendedUntil != null ? parseDateKey(attendedUntil) : new Date()),
     [attendedUntil]
@@ -323,7 +337,7 @@ function GuardianAlbumPage() {
         isOpen={isOpen}
         close={close}
         kindergartens={kindergartens}
-        currentKindergartenId={selectedKindergartenId}
+        currentKindergartenId={selectedKindergartenId ?? defaultKindergartenId}
         onSelect={handleKindergartenSelect}
       />
     ));

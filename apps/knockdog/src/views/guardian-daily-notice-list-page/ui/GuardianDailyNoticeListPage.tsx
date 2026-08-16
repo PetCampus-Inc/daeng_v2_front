@@ -15,15 +15,13 @@ import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-l
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+import { toKindergartenSelectOptions } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
-import {
-  KindergartenSelectSheet,
-  MOCK_KINDERGARTEN_SELECT_OPTIONS,
-} from '@shared/ui/kindergarten-select-sheet';
+import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { toast } from '@shared/ui/toast';
 
 function startOfMonth(date: Date) {
@@ -53,32 +51,11 @@ function GuardianDailyNoticeListPage() {
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
 
-  /** mock 모드에서만 선택 mock 목록 사용. 프로덕션은 연결 유치원 1개만. */
-  const kindergartens = useMemo(() => {
-    if (!isMockMode) {
-      if (!linkedKindergarten) return [];
-      return [
-        {
-          id: linkedKindergarten.id,
-          name: linkedKindergarten.name,
-          imageUrl: linkedKindergarten.imageUrl,
-          attendedUntil: null,
-        },
-      ];
-    }
-
-    if (!linkedKindergarten) return MOCK_KINDERGARTEN_SELECT_OPTIONS;
-    return MOCK_KINDERGARTEN_SELECT_OPTIONS.map((item) =>
-      item.attendedUntil == null
-        ? {
-            ...item,
-            id: linkedKindergarten.id,
-            name: linkedKindergarten.name,
-            imageUrl: linkedKindergarten.imageUrl || item.imageUrl,
-          }
-        : item
-    );
-  }, [isMockMode, linkedKindergarten]);
+  /** home 현재 연결 1건. 연결 이력 API 연동 시 다건으로 확장 */
+  const kindergartens = useMemo(
+    () => toKindergartenSelectOptions(linkedKindergarten),
+    [linkedKindergarten]
+  );
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;

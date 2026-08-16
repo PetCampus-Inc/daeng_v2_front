@@ -26,9 +26,11 @@ function useGuardianAlbumToday() {
     enabled: isPetsReady && !hasNoPet && Boolean(selectedPetId),
   });
 
+  const status = home?.status ?? 'none';
   const schoolId = home?.school?.id ?? null;
   const schoolName = home?.school?.name ?? null;
-  const hasLinkedSchool = Boolean(schoolId) && home?.status !== 'none';
+  const schoolImageUrl = home?.school?.imageUrl ?? null;
+  const hasLinkedSchool = Boolean(schoolId) && status !== 'none';
 
   const {
     data: todayAlbum,
@@ -55,8 +57,10 @@ function useGuardianAlbumToday() {
   return {
     selectedPet,
     selectedPetId,
+    status,
     schoolId,
     schoolName,
+    schoolImageUrl,
     hasLinkedSchool,
     /** 연결 유치원이 있으면 앨범 탭 본문(월 리스트 등) 노출 */
     hasAlbumHistory: hasLinkedSchool,
