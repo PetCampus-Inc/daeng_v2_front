@@ -87,16 +87,18 @@ function toAbsoluteImageUrl(url: string | null | undefined): string {
   return `${base}${url}`;
 }
 
-function toApplicationStatus(value: string | null | undefined): GuardianApplicationStatus {
-  if (!value) return GUARDIAN_APPLICATION_STATUS.PENDING;
-  return STATUS_BY_API[value.toUpperCase()] ?? GUARDIAN_APPLICATION_STATUS.PENDING;
+function toApplicationStatus(value: string | null | undefined): GuardianApplicationStatus | null {
+  if (!value) return null;
+  return STATUS_BY_API[value.toUpperCase()] ?? null;
 }
 
 function toGuardianApplication(dto: GuardianApplicationDto): GuardianApplication | null {
   if (dto.membershipId === null || dto.membershipId === undefined) return null;
 
-  const appliedAt = dto.appliedAt ?? '';
   const status = toApplicationStatus(dto.status);
+  if (!status) return null;
+
+  const appliedAt = dto.appliedAt ?? '';
   const imageUrl = toAbsoluteImageUrl(dto.pet?.profileImage);
   const gender = normalizeGender(dto.pet?.gender);
 

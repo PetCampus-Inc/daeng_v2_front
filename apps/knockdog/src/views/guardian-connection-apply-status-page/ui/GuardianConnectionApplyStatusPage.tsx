@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
@@ -11,8 +11,11 @@ import {
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
+import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 import { toast } from '@shared/ui/toast';
+import { tokenUtils } from '@shared/utils';
 import type { GuardianConnectionApplyItem } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
 import { guardianConnectionApplyStatusContent } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatusContent';
 import { GuardianConnectionApplyCancelSheet } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyCancelSheet';
@@ -24,14 +27,38 @@ function sortByAppliedAtDesc(items: GuardianConnectionApplyItem[]) {
   return [...items].sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }
 
+function hasUserStoreHydrated() {
+  return useUserStore.persist?.hasHydrated?.() ?? true;
+}
+
 function GuardianConnectionApplyStatusPage() {
   const content = guardianConnectionApplyStatusContent;
   const searchParams = useSearchParams();
   const { back, reset } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
+  const [isUserStoreHydrated, setIsUserStoreHydrated] = useState(hasUserStoreHydrated);
+  const hasAuth = useRequireAuth();
   const isFromInviteComplete = searchParams.get('from') === content.entryFromInviteComplete;
+  const isAuthSyncing = isUserStoreHydrated && !userId && tokenUtils.hasAccessToken();
 
-  const { data, isError, isPending, isFetching, refetch } = useGuardianApplicationsQuery({
+  useEffect(() => {
+    const unsubscribe = useUserStore.persist?.onFinishHydration?.(() => {
+      setIsUserStoreHydrated(true);
+    });
+
+    if (hasUserStoreHydrated()) {
+      setIsUserStoreHydrated(true);
+    }
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthSyncing) return;
+    void useUserStore.persist?.rehydrate?.();
+  }, [isAuthSyncing]);
+
+  const { data, isError, isLoading, isFetching, refetch } = useGuardianApplicationsQuery({
     userId,
   });
   const cancelMutation = useCancelGuardianApplicationMutation({ userId });
@@ -74,7 +101,8 @@ function GuardianConnectionApplyStatusPage() {
     [cancelMutation, content.cancelFailToast]
   );
 
-  if (isPending) return null;
+  const isAuthResolving = !isUserStoreHydrated || !hasAuth || isAuthSyncing || !userId;
+  const isPageLoading = isAuthResolving || isLoading;
 
   return (
     <div className='bg-bg-50 flex h-dvh flex-col'>
@@ -85,7 +113,11 @@ function GuardianConnectionApplyStatusPage() {
         </Header>
       </div>
 
-      {isError ? (
+      {isPageLoading ? (
+        <div className='flex min-h-0 flex-1 items-center justify-center'>
+          <RingLoadingSpinner />
+        </div>
+      ) : isError ? (
         <PageError
           layout='inline'
           className='bg-bg-50'
