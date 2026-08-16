@@ -3,7 +3,7 @@ import { guardianConnectionApplyStatusContent } from '@views/guardian-connection
 function GuardianConnectionApplyApprovedBadge() {
   return (
     <span className='caption1-semibold bg-success-light text-success-bold inline-flex items-center justify-center rounded-full px-2 py-1 whitespace-nowrap'>
-      {guardianConnectionApplyStatusContent.statusLabel.approved}
+      {guardianConnectionApplyStatusContent.statusLabel.active}
     </span>
   );
 }

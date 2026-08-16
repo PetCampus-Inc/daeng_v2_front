@@ -5,13 +5,13 @@ import {
 } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
 
 /**
- * 신청 현황 mock 모드.
- * - 기본: 리스트 (`?mock=list` 또는 mock 플래그)
- * - 빈 목록: `?mock=empty`
- * - 조회 실패: `?mock=error`
- * - 신청 취소 실패: `?mock=cancel-fail` (목록 유지 + 토스트)
+ * 신청 현황 mock 모드 (실 API 기본).
+ * - `?mock=empty` → empty
+ * - `?mock=error` → PageError
+ * - `?mock=list` → MOCK_CONNECTION_APPLY_ITEMS
+ * - `?mock=cancel-fail` → 신청 취소 실패 (목록 유지 + 토스트)
  */
-const MOCK_APPLY_STATUS_LIST = true;
+const MOCK_APPLY_STATUS_LIST = false;
 
 /** true면 신청 취소 API가 항상 실패하는 것으로 처리 */
 const MOCK_APPLY_CANCEL_FAIL = false;
@@ -36,12 +36,7 @@ function isApplyCancelFailMock(mockQuery: string | null) {
 }
 
 function isApplyStatusListMock(mockQuery: string | null) {
-  if (isApplyStatusErrorMock(mockQuery) || isApplyStatusEmptyMock(mockQuery)) return false;
-  return (
-    MOCK_APPLY_STATUS_LIST ||
-    mockQuery === MOCK_APPLY_STATUS_QUERY.list ||
-    mockQuery === MOCK_APPLY_STATUS_QUERY.cancelFail
-  );
+  return mockQuery === MOCK_APPLY_STATUS_QUERY.list || MOCK_APPLY_STATUS_LIST;
 }
 
 /**
@@ -60,6 +55,7 @@ const MOCK_CONNECTION_APPLY_ITEMS: GuardianConnectionApplyItem[] = [
       breed: '비숑',
     },
     kindergartenName: '고고곡 유치원',
+    cancellable: true,
   },
   {
     id: 'apply-2',
@@ -72,10 +68,11 @@ const MOCK_CONNECTION_APPLY_ITEMS: GuardianConnectionApplyItem[] = [
       breed: '비숑',
     },
     kindergartenName: '고고곡 유치원',
+    cancellable: false,
   },
   {
     id: 'apply-3',
-    status: GUARDIAN_CONNECTION_APPLY_STATUS.APPROVED,
+    status: GUARDIAN_CONNECTION_APPLY_STATUS.ACTIVE,
     appliedAt: '2026-07-28T15:58:00',
     pet: {
       id: 'pet-1',
@@ -84,6 +81,7 @@ const MOCK_CONNECTION_APPLY_ITEMS: GuardianConnectionApplyItem[] = [
       breed: '비숑',
     },
     kindergartenName: '코코스퀘어 강아지유치원&애견미용 플래그십 스토어',
+    cancellable: false,
   },
   {
     id: 'apply-4',
@@ -96,6 +94,20 @@ const MOCK_CONNECTION_APPLY_ITEMS: GuardianConnectionApplyItem[] = [
       breed: '닥스훈트',
     },
     kindergartenName: '도도도독 유치원',
+    cancellable: false,
+  },
+  {
+    id: 'apply-5',
+    status: GUARDIAN_CONNECTION_APPLY_STATUS.DISCONNECTED,
+    appliedAt: '2025-11-01T10:00:00',
+    pet: {
+      id: 'pet-2',
+      name: '뽀삐',
+      gender: GUARDIAN_CONNECTION_APPLY_GENDER.MALE,
+      breed: '닥스훈트',
+    },
+    kindergartenName: '도도도독 유치원',
+    cancellable: false,
   },
 ];
 

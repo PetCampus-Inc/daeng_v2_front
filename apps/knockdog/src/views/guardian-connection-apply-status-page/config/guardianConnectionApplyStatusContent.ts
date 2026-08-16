@@ -10,8 +10,9 @@ const guardianConnectionApplyStatusContent = {
   },
   statusLabel: {
     pending: '승인 대기',
+    active: '승인 완료',
     rejected: '승인 거절',
-    approved: '승인 완료',
+    disconnected: '연결 해제',
     cancelled: '신청 취소',
   },
   cancelButtonLabel: '신청 취소',

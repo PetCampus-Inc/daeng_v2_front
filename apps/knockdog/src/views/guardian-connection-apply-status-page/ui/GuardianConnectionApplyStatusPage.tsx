@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
+import { useGuardianApplicationsQuery } from '@entities/guardian-application';
+import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
@@ -33,17 +35,37 @@ function GuardianConnectionApplyStatusPage() {
   const content = guardianConnectionApplyStatusContent;
   const searchParams = useSearchParams();
   const { back, reset } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
   const mockQuery = searchParams.get('mock');
   const isFromInviteComplete = searchParams.get('from') === content.entryFromInviteComplete;
 
-  const isLoadError = isApplyStatusErrorMock(mockQuery);
-  const isEmpty = isApplyStatusEmptyMock(mockQuery);
-  const isList = isApplyStatusListMock(mockQuery);
+  const forceError = isApplyStatusErrorMock(mockQuery);
+  const forceEmpty = isApplyStatusEmptyMock(mockQuery);
+  const forceListMock = isApplyStatusListMock(mockQuery);
   const shouldFailCancel = isApplyCancelFailMock(mockQuery);
 
-  const [items, setItems] = useState(() => sortByAppliedAtDesc(MOCK_CONNECTION_APPLY_ITEMS));
+  const {
+    data: remoteItems,
+    isError,
+    isPending,
+    isFetching,
+    refetch,
+  } = useGuardianApplicationsQuery({
+    userId,
+    enabled: !forceError && !forceEmpty && !forceListMock,
+  });
 
-  const visibleItems = useMemo(() => (isList ? items : []), [isList, items]);
+  const [localItems, setLocalItems] = useState<GuardianConnectionApplyItem[] | null>(null);
+
+  const sourceItems = useMemo(() => {
+    if (forceEmpty) return [];
+    if (forceListMock) return localItems ?? MOCK_CONNECTION_APPLY_ITEMS;
+    return localItems ?? remoteItems ?? [];
+  }, [forceEmpty, forceListMock, localItems, remoteItems]);
+
+  const visibleItems = useMemo(() => sortByAppliedAtDesc(sourceItems), [sourceItems]);
+
+  const isLoadError = forceError || (!forceEmpty && !forceListMock && isError);
 
   const handleBack = () => {
     if (isFromInviteComplete) {
@@ -51,6 +73,10 @@ function GuardianConnectionApplyStatusPage() {
       return;
     }
     back();
+  };
+
+  const handleRetry = () => {
+    void refetch();
   };
 
   const cancelApplication = useCallback(
@@ -65,16 +91,23 @@ function GuardianConnectionApplyStatusPage() {
         throw new Error('CANCEL_FAIL');
       }
 
-      setItems((prev) => {
-        const target = prev.find((item) => item.id === id);
-        if (!target || target.status !== GUARDIAN_CONNECTION_APPLY_STATUS.PENDING) return prev;
+      setLocalItems((prev) => {
+        const base = prev ?? remoteItems ?? (forceListMock ? MOCK_CONNECTION_APPLY_ITEMS : []);
+        const target = base.find((item) => item.id === id);
+        if (!target || !target.cancellable) return prev ?? base;
 
-        return prev.map((item) =>
-          item.id === id ? { ...item, status: GUARDIAN_CONNECTION_APPLY_STATUS.CANCELLED } : item
+        return base.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                status: GUARDIAN_CONNECTION_APPLY_STATUS.CANCELLED,
+                cancellable: false,
+              }
+            : item
         );
       });
     },
-    [shouldFailCancel]
+    [forceListMock, remoteItems, shouldFailCancel]
   );
 
   const handleCancelClick = useCallback(
@@ -98,6 +131,8 @@ function GuardianConnectionApplyStatusPage() {
     [cancelApplication, content.cancelFailToast]
   );
 
+  if (!forceError && !forceEmpty && !forceListMock && isPending) return null;
+
   return (
     <div className='bg-bg-50 flex h-dvh flex-col'>
       <div className='bg-bg-0 shrink-0'>
@@ -108,8 +143,13 @@ function GuardianConnectionApplyStatusPage() {
       </div>
 
       {isLoadError ? (
-        <PageError layout='inline' className='bg-bg-50' />
-      ) : isEmpty || visibleItems.length === 0 ? (
+        <PageError
+          layout='inline'
+          className='bg-bg-50'
+          isRetrying={isFetching}
+          onRetry={handleRetry}
+        />
+      ) : visibleItems.length === 0 ? (
         <div className='min-h-0 flex-1 overflow-y-auto'>
           <GuardianConnectionApplyStatusEmpty />
         </div>
