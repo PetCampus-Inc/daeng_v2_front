@@ -1,6 +1,7 @@
 import { initialWindowMetrics } from 'react-native-safe-area-context';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS, type SafeAreaInsets } from '@knockdog/bridge-core';
+import { registerForPushNotificationsAsync } from '@/lib/notification';
 
 /**
  * 디바이스 정보 핸들러
@@ -21,5 +22,10 @@ export function registerDeviceHandlers(router: NativeBridgeRouter) {
       left: insets.left,
       right: insets.right,
     };
+  });
+
+  /** 푸시 device token (BE PUT /push-devices body) */
+  router.register(METHODS.getPushToken, async () => {
+    return registerForPushNotificationsAsync();
   });
 }

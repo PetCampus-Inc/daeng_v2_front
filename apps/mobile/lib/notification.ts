@@ -1,100 +1,116 @@
-// import { Platform } from 'react-native';
-// import * as Device from 'expo-device';
-// import * as Notifications from 'expo-notifications';
-// import Constants from 'expo-constants';
-// import type { Notification, NotificationResponse } from 'expo-notifications';
+import { Platform } from 'react-native';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 
-// // Android 알림 채널 설정
-// const NOTIFICATION_CHANNEL_ID = 'push_notifications';
-// const NOTIFICATION_CHANNEL_NAME = '푸시 알림';
+/** `app.config.ts` expo-notifications defaultChannel 과 동일 */
+const NOTIFICATION_CHANNEL_ID = 'push_notifications';
+const NOTIFICATION_CHANNEL_NAME = '푸시 알림';
 
-// // 채널 정보 확인 함수 (디버깅용)
-// export async function getNotificationChannelInfo() {
-//   if (Platform.OS === 'android') {
-//     return {
-//       channelId: NOTIFICATION_CHANNEL_ID,
-//       name: NOTIFICATION_CHANNEL_NAME,
-//       importance: 'MAX',
-//     };
-//   }
-//   return null;
-// }
+interface PushDeviceRegistration {
+  provider: 'FCM';
+  platform: 'ANDROID' | 'IOS';
+  token: string;
+  supportedProvider: true;
+}
 
-// function handleRegistrationError(errorMessage: string) {
-//   alert(errorMessage);
-//   throw new Error(errorMessage);
-// }
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
-// export async function registerForPushNotificationsAsync() {
-//   if (Platform.OS === 'android') {
-//     Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
-//       name: NOTIFICATION_CHANNEL_NAME,
-//       importance: Notifications.AndroidImportance.MAX,
-//       vibrationPattern: [0, 250, 250, 250],
-//       lightColor: '#FF231F7C',
-//     });
-//   }
+async function ensureAndroidNotificationChannel() {
+  if (Platform.OS !== 'android') return;
 
-//   if (Device.isDevice) {
-//     const { status: existingStatus } = await Notifications.getPermissionsAsync();
-//     let finalStatus = existingStatus;
-//     if (existingStatus !== 'granted') {
-//       const { status } = await Notifications.requestPermissionsAsync();
-//       finalStatus = status;
-//     }
-//     if (finalStatus !== 'granted') {
-//       handleRegistrationError('푸시 알림 권한을 허용해주세요.');
-//       return;
-//     }
-//     const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
-//     if (!projectId) {
-//       handleRegistrationError('푸시 알림 프로젝트 ID를 찾을 수 없습니다.');
-//     }
-//     try {
-//       const pushTokenString = (
-//         await Notifications.getExpoPushTokenAsync({
-//           projectId,
-//           ...(Platform.OS === 'ios' ? { type: 'apns' } : { type: 'fcm' }),
-//         })
-//       ).data;
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+    name: NOTIFICATION_CHANNEL_NAME,
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#FF6E0C',
+  });
+}
 
-//       console.log(pushTokenString);
-//       return pushTokenString;
-//     } catch (e: unknown) {
-//       handleRegistrationError(`푸시 알림 등록 오류: ${e}`);
-//     }
-//   } else {
-//     handleRegistrationError('시뮬레이터에서는 푸시 알림을 사용할 수 없습니다.');
-//   }
-// }
+/**
+ * 알림 권한 + FCM/APNs device token 발급 후 BE `PUT /push-devices` body 형태로 반환.
+ * 실패/거부면 null.
+ */
+async function registerForPushNotificationsAsync(): Promise<PushDeviceRegistration | null> {
+  await ensureAndroidNotificationChannel();
 
-// /**
-//  * 알림 리스너 설정
-//  * @returns cleanup 함수
-//  */
-// export function setupNotificationListeners() {
-//   // 알림 수신 리스너 (디버깅용)
-//   const receivedSubscription = Notifications.addNotificationReceivedListener((notification: Notification) => {
-//     console.log('📬 알림 수신:', notification);
-//     if (Platform.OS === 'android') {
-//       const androidData = notification.request.content.data?.android;
-//       console.log('📱 알림 전체 데이터:', JSON.stringify(notification.request, null, 2));
-//       if (androidData) {
-//         console.log('📱 Android 데이터:', androidData);
-//       }
-//     }
-//   });
+  // iOS 시뮬레이터는 APNs 불가. Android 애뮬(Play 이미지)은 FCM 가능.
+  if (Platform.OS === 'ios' && !Device.isDevice) {
+    console.warn('[push] iOS 시뮬레이터에서는 푸시 토큰을 발급할 수 없어요.');
+    return null;
+  }
 
-//   // 알림 클릭 리스너
-//   const responseSubscription = Notifications.addNotificationResponseReceivedListener(
-//     (response: NotificationResponse) => {
-//       console.log('👆 알림 클릭:', response);
-//     }
-//   );
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
 
-//   // cleanup 함수 반환
-//   return () => {
-//     receivedSubscription.remove();
-//     responseSubscription.remove();
-//   };
-// }
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    console.warn('[push] 알림 권한이 거부됐어요.');
+    return null;
+  }
+
+  try {
+    // BE provider=FCM 계약 → native device token (Android=FCM)
+    const devicePushToken = await Notifications.getDevicePushTokenAsync();
+    const token = devicePushToken.data;
+
+    if (!token || typeof token !== 'string') {
+      console.warn('[push] device token이 비어 있어요.', devicePushToken);
+      return null;
+    }
+
+    const registration: PushDeviceRegistration = {
+      provider: 'FCM',
+      platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+      token,
+      supportedProvider: true,
+    };
+
+    console.log('[push] device registration', {
+      provider: registration.provider,
+      platform: registration.platform,
+      token: __DEV__ ? token : `${token.slice(0, 12)}...`,
+    });
+
+    return registration;
+  } catch (error) {
+    console.warn('[push] 토큰 발급 실패', error);
+    return null;
+  }
+}
+
+/**
+ * 포그라운드 수신 / 탭 리스너.
+ * @returns cleanup
+ */
+function setupNotificationListeners() {
+  const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+    console.log('[push] received', notification.request.content);
+  });
+
+  const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+    console.log('[push] clicked', response.notification.request.content);
+  });
+
+  return () => {
+    receivedSubscription.remove();
+    responseSubscription.remove();
+  };
+}
+
+export {
+  NOTIFICATION_CHANNEL_ID,
+  registerForPushNotificationsAsync,
+  setupNotificationListeners,
+};
+export type { PushDeviceRegistration };

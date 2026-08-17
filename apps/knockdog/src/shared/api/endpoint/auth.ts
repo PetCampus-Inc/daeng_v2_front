@@ -21,6 +21,6 @@ export const fetchDevLogin = async <T>(): Promise<ApiResponse<T>> => {
   // BE 별도 트랙으로 /auth/dev/* 차단 + /auth/guest 신설 예정 → 그때 엔드포인트 교체.
   // DEV_LOGIN_ID = 70 은 2026-06-19 추가됨, 기존 69는 WITHDRAWN 처리되어 임시로 로컬 테스트를 위해 교체.
   // 79번은 isOwner = true, schoolId = 83 으로 원장 마이페이지 테스트하면 됨. => 탈퇴 상태 26.07.16
-  const DEV_LOGIN_ID = 95;
+  const DEV_LOGIN_ID = 96;
   return await api.get(`auth/dev/${DEV_LOGIN_ID}`).json<ApiResponse<T>>();
 };

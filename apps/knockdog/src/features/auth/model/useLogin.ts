@@ -21,6 +21,7 @@ import { clearPostSignUpRedirect, getInternalRedirect, savePostSignUpRedirect } 
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
+import { registerPushDevice } from '@entities/user/lib/registerPushDevice';
 
 const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.KAKAO]: METHODS.kakaoLogin,
@@ -84,6 +85,9 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
     setUser(data);
     clearPostSignUpRedirect();
+
+    // 네이티브 앱이면 FCM 토큰을 BE에 등록 (실패해도 로그인 흐름은 유지)
+    void registerPushDevice();
 
     // pushForResult로 열린 경우에만 결과 전송 (plain push면 _txId 없음)
     if (getCurrentTxId()) {

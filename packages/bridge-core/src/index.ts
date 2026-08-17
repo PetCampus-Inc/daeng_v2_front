@@ -34,3 +34,4 @@ export type {
 } from './domains/media';
 export type { GetAppVersionResult } from './domains/app-version';
 export type { SocialLoginResult } from './domains/auth';
+export type { PushDeviceRegistration } from './domains/push';

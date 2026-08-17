@@ -67,6 +67,8 @@ export {
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';
 export { type PushSetting } from './api/pushSetting';
+export { putPushDevice, type PushDeviceRegistrationRequest } from './api/pushDevice';
+export { registerPushDevice } from './lib/registerPushDevice';
 
 /** Constant */
 export { USER_ADDRESS_TYPE_KR } from './model/constant/user';

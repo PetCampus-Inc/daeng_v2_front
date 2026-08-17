@@ -9,6 +9,8 @@ const METHODS = {
   requestLocationPermission: 'device.requestLocationPermission',
   isLocationServiceEnabled: 'device.isLocationServiceEnabled',
   getLastKnownLocation: 'device.getLastKnownLocation',
+  /** FCM device token + BE push-devices 등록용 메타 */
+  getPushToken: 'device.getPushToken',
 
   // system
   callPhone: 'system.callPhone',

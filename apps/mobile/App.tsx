@@ -11,6 +11,7 @@ import { ToastProvider } from './components/toast'; // ★ 토스트 프로바�
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RootStackNavigator, useLinking } from './components/navigation';
+import { setupNotificationListeners } from './lib/notification';
 
 // 앱 시작 시 스플래시 자동 숨김 방지
 SplashScreen.preventAutoHideAsync().catch(() => { });
@@ -29,6 +30,10 @@ export default function App() {
 
     // Google SDK 초기화
     GoogleSignin.configure({ iosClientId, webClientId });
+  }, []);
+
+  useEffect(() => {
+    return setupNotificationListeners();
   }, []);
 
   useEffect(() => {

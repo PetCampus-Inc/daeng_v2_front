@@ -74,7 +74,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: 'net.knockdog.petcampus.v2',
-    permissions: ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
+    googleServicesFile: './google-services.json',
+    permissions: [
+      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.POST_NOTIFICATIONS',
+    ],
     intentFilters: [
       {
         action: 'VIEW',
@@ -88,6 +93,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-font',
     'expo-router',
     'expo-apple-authentication',
+    [
+      'expo-notifications',
+      {
+        color: '#ff6e0c',
+        defaultChannel: 'push_notifications',
+      },
+    ],
     './plugins/naver-map-queries',
     [
       'expo-image-picker',
