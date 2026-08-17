@@ -17,7 +17,7 @@ import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin } fro
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
-import { clearPostSignUpRedirect, savePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { clearPostSignUpRedirect, getInternalRedirect, savePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
@@ -41,7 +41,7 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
   const linkedSocialUser = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, { initialValue: null });
 
-  const redirectTo = options?.redirectTo;
+  const redirectTo = getInternalRedirect(options?.redirectTo);
 
   /** OIDC 인증 */
   const oidcAuth = async (provider: SocialProvider) => {

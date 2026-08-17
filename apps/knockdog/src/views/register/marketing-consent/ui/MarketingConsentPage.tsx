@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
@@ -9,16 +9,27 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { trackSignUpCompleted } from '@shared/lib/analytics';
 import { consumePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { route } from '@shared/constants/route';
+import { toast } from '@shared/ui/toast';
 
 function MarketingConsentPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const isCompletingRef = useRef(false);
+  const completionPathRef = useRef<string | undefined>(undefined);
   const { reset } = useStackNavigation();
 
   /** [마켓팅 정보 수신 동의] 버튼 클릭 */
   const handleOpenBottomSheet = () => setIsOpen(true);
 
   const handleComplete = () => {
-    reset(consumePostSignUpRedirect() ?? route.root);
+    if (isCompletingRef.current) return;
+
+    isCompletingRef.current = true;
+    const pathname = completionPathRef.current ?? consumePostSignUpRedirect() ?? route.root;
+    completionPathRef.current = pathname;
+    reset(pathname).catch(() => {
+      isCompletingRef.current = false;
+      toast('완료 화면으로 이동하지 못했어요. 다시 시도해 주세요.');
+    });
   };
 
   /** [아니오] 버튼 클릭 */

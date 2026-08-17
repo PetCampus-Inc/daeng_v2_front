@@ -9,11 +9,12 @@ import { SOCIAL_PROVIDER_KO, SocialUser } from '@entities/social-user';
 import { route } from '@shared/constants/route';
 import { TypedStorage } from '@shared/lib';
 import { STORAGE_KEYS } from '@shared/constants';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function RedirectLoginPage() {
   const { push, getParams } = useStackNavigation();
-  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
+  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
   const [linkedSocialUser, setLinkedSocialUser] = useState<SocialUser | null>(null);
 
   useEffect(() => {

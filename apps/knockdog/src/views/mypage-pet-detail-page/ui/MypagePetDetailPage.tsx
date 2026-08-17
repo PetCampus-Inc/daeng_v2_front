@@ -66,7 +66,7 @@ export function MypagePetDetailPage() {
                       refetchType: 'all',
                     });
                     syncWebViewQuery.refetch(['petList']);
-                    back();
+                    handleBack();
                   },
                 });
               }}

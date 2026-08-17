@@ -22,6 +22,7 @@ import {
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
 type SelectedGuardianPet = Pick<GuardianPetConnection, 'petId' | 'name'>;
 
@@ -117,12 +118,16 @@ function useGuardianInvitePrivacyConsentPage() {
       });
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        await replace({
-          pathname: route.auth.login.root,
-          params: {
-            redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
-          },
-        });
+        try {
+          await replace({
+            pathname: route.auth.login.root,
+            params: {
+              redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+            },
+          });
+        } catch {
+          toast('로그인 화면으로 이동하지 못했어요. 다시 시도해 주세요.');
+        }
         return;
       }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useParams } from 'next/navigation';
 import { ActionButton, ProgressBar } from '@knockdog/ui';
 
@@ -25,6 +25,7 @@ import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
+import { PageError } from '@shared/ui/page-error';
 import { tokenUtils } from '@shared/utils';
 import { ApiError } from '@shared/api';
 import { GuardianInviteAppInstallPage } from '@views/guardian-invite/guardian-info/ui/GuardianInviteAppInstallPage';
@@ -54,6 +55,12 @@ function GuardianInvitePage() {
     () => isIOS() || isAndroid(),
     () => false
   );
+  // hydration 전에는 서버 스냅샷(false)을 사용하므로, 실제 플랫폼이 확정될 때까지 진입 화면을 렌더하지 않는다.
+  const isPlatformResolved = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
   const hasUserStoreHydrated = useSyncExternalStore(
     (onStoreChange) => useUserStore.persist.onFinishHydration(onStoreChange),
     () => useUserStore.persist.hasHydrated(),
@@ -78,6 +85,8 @@ function GuardianInvitePage() {
   }, [hasAuth, hasUserStoreHydrated, isNative, replace, token]);
 
   // 모바일 브라우저 폴백은 스토어로, 그 외 웹은 기존 초대 페이지로 유지한다.
+  if (!isPlatformResolved) return null;
+
   if (!isNative && isMobileBrowser) return <GuardianInviteAppInstallPage />;
 
   if (!isNative) return <GuardianInviteProfilePage token={token} />;
@@ -100,23 +109,34 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
   const userInfoQuery = useUserInfoQuery(userId);
   const initializedUserIdRef = useRef<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoginNavigationFailed, setIsLoginNavigationFailed] = useState(false);
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
     isEmergencyPhoneNumberBlurred && values.emergencyPhoneNumber.length > 0 && !isValidMobilePhone(values.emergencyPhoneNumber)
       ? PHONE_FORMAT_ERROR
       : undefined;
+  const redirectToLogin = useCallback(async () => {
+    setIsLoginNavigationFailed(false);
 
-  useEffect(() => {
-    if (!inviteQuery.isError) return;
-
-    if (inviteQuery.error instanceof ApiError && inviteQuery.error.status === 401) {
-      void replace({
+    try {
+      await replace({
         pathname: route.auth.login.root,
         params: {
           redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
         },
       });
+    } catch {
+      setIsLoginNavigationFailed(true);
+      toast('로그인 화면으로 이동하지 못했어요. 다시 시도해 주세요.');
+    }
+  }, [replace, token]);
+
+  useEffect(() => {
+    if (!inviteQuery.isError) return;
+
+    if (inviteQuery.error instanceof ApiError && inviteQuery.error.status === 401) {
+      void redirectToLogin();
       return;
     }
 
@@ -124,7 +144,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
       pathname: route.invite.guardian.complete.root.replace('[token]', encodeURIComponent(token)),
       query: { status: 'invalid-invite' },
     });
-  }, [inviteQuery.error, inviteQuery.isError, push, replace, token]);
+  }, [inviteQuery.error, inviteQuery.isError, push, redirectToLogin, token]);
 
   useEffect(() => {
     const userInfo = userInfoQuery.data;
@@ -175,6 +195,16 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
   const handleBack = () => {
     void navigateToTab('/');
   };
+
+  if (isLoginNavigationFailed) {
+    return (
+      <PageError
+        title='로그인 화면으로 이동하지 못했어요'
+        description='잠시 후 다시 시도해 주세요.'
+        onRetry={() => void redirectToLogin()}
+      />
+    );
+  }
 
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>

@@ -7,13 +7,14 @@ import { useVerificationTimer, useEmailVerification } from '@entities/email-veri
 import { User, useUserStore } from '@entities/user';
 import { toast } from '@shared/ui/toast';
 import { route } from '@shared/constants/route';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 const useVerifyEmailProcess = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   const { reset, getParams } = useStackNavigation();
-  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
+  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
   const socialUser = useSocialUserStore((state) => state.socialUser);
   const setUser = useUserStore((state) => state.setUser);
 

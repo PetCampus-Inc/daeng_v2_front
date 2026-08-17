@@ -7,12 +7,13 @@ import Image from 'next/image';
 import { GuestLoginButton, LoginButton } from '@features/auth';
 import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 import { SafeArea } from '@shared/ui/safe-area';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { isAndroid } from '@shared/lib/device';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function LoginPage() {
   const { getParams } = useStackNavigation();
-  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
+  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
 
   const providers = useMemo(() => {
     const allProviders = Object.values(SOCIAL_PROVIDER) as SocialProvider[];

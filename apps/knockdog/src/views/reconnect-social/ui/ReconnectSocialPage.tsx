@@ -5,13 +5,14 @@ import { useState, useSyncExternalStore } from 'react';
 import { Header } from '@widgets/Header';
 import { useSocialUserStore } from '@entities/social-user';
 import { route } from '@shared/constants/route';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 const emptySubscribe = () => () => {};
 
 function ReconnectSocialPage() {
   const { back, push, getParams } = useStackNavigation();
-  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
+  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
   const socialUser = useSocialUserStore((state) => state.socialUser);
   const isHydrated = useSyncExternalStore(
     emptySubscribe,
