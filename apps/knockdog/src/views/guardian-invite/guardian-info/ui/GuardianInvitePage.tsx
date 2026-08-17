@@ -25,6 +25,8 @@ import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
+import { tokenUtils } from '@shared/utils';
+import { ApiError } from '@shared/api';
 import { GuardianInviteAppInstallPage } from '@views/guardian-invite/guardian-info/ui/GuardianInviteAppInstallPage';
 
 const EMPTY_PROFILE_VALUES: GuardianProfileFormValues = {
@@ -52,7 +54,7 @@ function GuardianInvitePage() {
     () => useUserStore.persist.hasHydrated(),
     () => false
   );
-  const hasAuth = Boolean(user);
+  const hasAuth = Boolean(user) && tokenUtils.hasAccessToken();
   const isLoginRedirectingRef = useRef(false);
 
   useEffect(() => {
@@ -84,7 +86,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
   const [selectedAddress, setSelectedAddress] = useState<GuardianProfileAddress | null>(null);
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
-  const { push } = useStackNavigation();
+  const { push, replace } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const inviteQuery = useGuardianInviteQuery(token);
   const userId = useUserStore((state) => state.user?.userId);
@@ -101,11 +103,21 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
   useEffect(() => {
     if (!inviteQuery.isError) return;
 
+    if (inviteQuery.error instanceof ApiError && inviteQuery.error.status === 401) {
+      void replace({
+        pathname: route.auth.login.root,
+        params: {
+          redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+        },
+      });
+      return;
+    }
+
     void push({
       pathname: route.invite.guardian.complete.root.replace('[token]', encodeURIComponent(token)),
       query: { status: 'invalid-invite' },
     });
-  }, [inviteQuery.isError, push, token]);
+  }, [inviteQuery.error, inviteQuery.isError, push, replace, token]);
 
   useEffect(() => {
     const userInfo = userInfoQuery.data;

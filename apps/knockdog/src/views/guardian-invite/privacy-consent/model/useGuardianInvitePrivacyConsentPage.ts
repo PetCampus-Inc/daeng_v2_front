@@ -116,6 +116,16 @@ function useGuardianInvitePrivacyConsentPage() {
         params: failedPets.length > 0 ? { failedPets } : undefined,
       });
     } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        await replace({
+          pathname: route.auth.login.root,
+          params: {
+            redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+          },
+        });
+        return;
+      }
+
       const isInvalidInvite = error instanceof ApiError && error.code.startsWith('GUARDIAN_INVITE-');
       await replace({
         pathname: route.invite.guardian.complete.root.replace('[token]', encodeURIComponent(token)),
