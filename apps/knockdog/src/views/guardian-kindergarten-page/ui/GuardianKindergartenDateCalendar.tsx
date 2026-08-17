@@ -49,6 +49,8 @@ interface GuardianKindergartenDateCalendarProps {
     isReady: boolean;
     hasCheckIn: boolean;
     isWeeklyView: boolean;
+    /** false면 선택일이 등원일로 스냅되기 전 — 호출부는 로딩을 유지해야 한다 */
+    isSelectedDateEnabled: boolean;
   }) => void;
 }
 
@@ -214,13 +216,19 @@ function GuardianKindergartenDateCalendar({
       isReady: isCheckInKeysReady,
       hasCheckIn: checkInDateKeys.size > 0,
       isWeeklyView: !isMonthlyExpanded,
+      isSelectedDateEnabled:
+        enabledDateKeys == null ||
+        enabledDateKeys.size === 0 ||
+        enabledDateKeys.has(formatDateKey(selectedDate)),
     });
   }, [
     checkInDateKeys,
+    enabledDateKeys,
     isCheckInKeysReady,
     isMonthlyExpanded,
     onVisibleCheckInStateChange,
     onlyCheckInDatesSelectable,
+    selectedDate,
   ]);
 
   useEffect(() => {

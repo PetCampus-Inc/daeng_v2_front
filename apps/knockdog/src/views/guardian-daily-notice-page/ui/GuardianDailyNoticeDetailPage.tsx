@@ -19,17 +19,20 @@ import {
 } from '@views/guardian-daily-notice-page/ui/GuardianDailyNoticeSections';
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
+import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
 interface VisibleCheckInState {
   isReady: boolean;
   hasCheckIn: boolean;
   isWeeklyView: boolean;
+  isSelectedDateEnabled: boolean;
 }
 
 function GuardianDailyNoticeDetailPage() {
@@ -37,6 +40,7 @@ function GuardianDailyNoticeDetailPage() {
   const searchParams = useSearchParams();
   const { push, reset } = useStackNavigation();
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
+  const { isPetsReady } = useGuardianSelectedPet();
 
   const [selectedDate, setSelectedDate] = useState(() => {
     return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
@@ -45,10 +49,12 @@ function GuardianDailyNoticeDetailPage() {
     isReady: false,
     hasCheckIn: true,
     isWeeklyView: true,
+    isSelectedDateEnabled: true,
   });
 
   const selectedDateKey = formatDateKey(selectedDate);
   const showEmptyWeekNoCheckIn =
+    isPetsReady &&
     visibleCheckInState.isReady &&
     visibleCheckInState.isWeeklyView &&
     !visibleCheckInState.hasCheckIn;
@@ -89,12 +95,16 @@ function GuardianDailyNoticeDetailPage() {
   const hasNoticeContentSections = showNoticeSection || showSnackSection || showStoolSection;
 
   const hasAttendanceTime = Boolean(checkInAt || checkOutAt);
-  const showWritingInProgress =
-    !showEmptyWeekNoCheckIn &&
-    !isPending &&
-    !isAlbumLoading &&
-    hasAttendanceTime &&
-    !dailyNotice;
+  /**
+   * 등원일 스냅 전까지는 조회 날짜가 확정되지 않는다.
+   * 확정 전에 렌더하면 알림장 미작성 블록이 스쳐 지나간다.
+   */
+  const isContentLoading =
+    !isPetsReady ||
+    !visibleCheckInState.isReady ||
+    !visibleCheckInState.isSelectedDateEnabled ||
+    isPending;
+  const showWritingInProgress = !isAlbumLoading && hasAttendanceTime && !dailyNotice;
   const hasAlbumSection = !showEmptyWeekNoCheckIn && (hasAlbumPhotos || isAlbumError);
 
   const handleAlbumListClick = () => {
@@ -157,6 +167,11 @@ function GuardianDailyNoticeDetailPage() {
                   </p>
                 </div>
               </div>
+            ) : isContentLoading ? (
+              /* --:--·미작성 블록이 먼저 스치지 않도록 날짜·응답 확정까지 로딩 */
+              <div className='flex min-h-[282px] flex-1 items-center justify-center'>
+                <RingLoadingSpinner />
+              </div>
             ) : (
               <>
                 <div className='flex w-full shrink-0 items-start justify-between'>
@@ -205,7 +220,7 @@ function GuardianDailyNoticeDetailPage() {
                   </div>
                 ) : (
                   <>
-                    {isPending ? null : dailyNotice ? (
+                    {dailyNotice ? (
                       <>
                         {showCondition ? (
                           <div className='bg-fill-primary-50 inline-flex w-fit items-center rounded-full px-3.5 py-2'>

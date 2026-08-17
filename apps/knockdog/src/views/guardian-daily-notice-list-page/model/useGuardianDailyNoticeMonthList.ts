@@ -33,6 +33,8 @@ interface UseGuardianDailyNoticeMonthListParams {
   attendedUntil?: Date | null;
   isDisconnected?: boolean;
   enabled?: boolean;
+  /** 펫 목록 조회 완료 여부 — 미완료일 때만 로딩으로 취급 */
+  isPetsReady?: boolean;
 }
 
 function isSameYearMonth(left: Date, right: Date) {
@@ -82,12 +84,14 @@ function useGuardianDailyNoticeMonthList({
   attendedUntil = null,
   isDisconnected = false,
   enabled = true,
+  isPetsReady = false,
 }: UseGuardianDailyNoticeMonthListParams) {
   const userId = useUserStore((state) => state.user?.userId);
 
   const {
     days: albumDays,
     firstAvailableMonth,
+    lastAvailableMonth,
     connectionStartedAt,
   } = useGuardianAlbumMonth({
     schoolId,
@@ -107,17 +111,47 @@ function useGuardianDailyNoticeMonthList({
     return null;
   }, [connectionStartedAt, firstAttendedAt, firstAvailableMonth]);
 
-  const rangeEndDate = useMemo(
-    () => startOfDay(attendedUntil ?? new Date()),
-    [attendedUntil]
-  );
+  /**
+   * 연결 해제이면 해제일(없으면 앨범 마지막 이용 월 말일)까지만 조회.
+   * attendedUntil이 없으면 오늘까지 잡혀 해제 이후 월을 빈 화면으로 훑게 된다.
+   */
+  const rangeEndDate = useMemo(() => {
+    if (attendedUntil) return startOfDay(attendedUntil);
+    if (isDisconnected && lastAvailableMonth) {
+      return startOfDay(
+        new Date(lastAvailableMonth.getFullYear(), lastAvailableMonth.getMonth() + 1, 0)
+      );
+    }
+    return startOfDay(new Date());
+  }, [attendedUntil, isDisconnected, lastAvailableMonth]);
 
-  const dateKeys = useMemo(
-    () => buildMonthDateKeys(selectedMonth, effectiveFirstAttendedAt, rangeEndDate),
-    [selectedMonth, effectiveFirstAttendedAt, rangeEndDate]
-  );
+  const dateKeys = useMemo(() => {
+    const month =
+      isDisconnected && lastAvailableMonth
+        ? startOfDay(
+            new Date(
+              Math.min(
+                selectedMonth.getTime(),
+                new Date(lastAvailableMonth.getFullYear(), lastAvailableMonth.getMonth(), 1).getTime()
+              )
+            )
+          )
+        : selectedMonth;
+    return buildMonthDateKeys(month, effectiveFirstAttendedAt, rangeEndDate);
+  }, [
+    effectiveFirstAttendedAt,
+    isDisconnected,
+    lastAvailableMonth,
+    rangeEndDate,
+    selectedMonth,
+  ]);
 
-  const canQuery = enabled && Boolean(userId) && Boolean(petId) && dateKeys.length > 0;
+  const canQuery =
+    enabled &&
+    Boolean(userId) &&
+    Boolean(petId) &&
+    dateKeys.length > 0 &&
+    (!isDisconnected || attendedUntil != null || lastAvailableMonth != null);
 
   const thumbnailByDateKey = useMemo(() => {
     const map = new Map<string, string>();
@@ -140,7 +174,19 @@ function useGuardianDailyNoticeMonthList({
   });
 
   const details = queries.map((query) => query.data);
-  const isPending = canQuery && queries.some((query) => query.isPending);
+  /**
+   * 인증·펫 목록 조회 전만 로딩.
+   * 펫 조회가 끝난 뒤 petId가 없어도(미등록 등) 무한 로딩하지 않는다.
+   */
+  const isAuthPending = enabled && !userId;
+  const isPetLookupPending = enabled && !isPetsReady;
+  const isDisconnectRangePending =
+    enabled && isDisconnected && !attendedUntil && lastAvailableMonth == null;
+  const isPending =
+    isAuthPending ||
+    isPetLookupPending ||
+    isDisconnectRangePending ||
+    (canQuery && queries.some((query) => query.isPending));
   const hasError = canQuery && queries.some((query) => query.isError);
   /** 개별 쿼리가 순차적으로 도착해도 items가 갱신되도록 */
   const detailsRevision = queries.map((query) => query.dataUpdatedAt).join(',');
@@ -159,8 +205,8 @@ function useGuardianDailyNoticeMonthList({
         thumbnailUrl: thumbnailByDateKey.get(dateKey) ?? null,
       });
       return acc;
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- details는 매 렌더 새 배열이라 detailsRevision으로 추적
     }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- details는 매 렌더 새 배열이라 detailsRevision으로 추적
   }, [dateKeys, detailsRevision, thumbnailByDateKey]);
 
   /**
@@ -187,15 +233,21 @@ function useGuardianDailyNoticeMonthList({
   const attendedUntilDate = useMemo(() => {
     if (!isDisconnected) return null;
 
-    if (!attendedUntil) {
+    const until =
+      attendedUntil ??
+      (lastAvailableMonth
+        ? startOfDay(
+            new Date(lastAvailableMonth.getFullYear(), lastAvailableMonth.getMonth() + 1, 0)
+          )
+        : null);
+
+    if (!until) {
       const newestAttendedDate = items[0]?.date;
       return newestAttendedDate ? addDays(newestAttendedDate, 1) : null;
     }
 
-    return isSameYearMonth(attendedUntil, selectedMonth)
-      ? startOfDay(attendedUntil)
-      : null;
-  }, [attendedUntil, isDisconnected, items, selectedMonth]);
+    return isSameYearMonth(until, selectedMonth) ? startOfDay(until) : null;
+  }, [attendedUntil, isDisconnected, items, lastAvailableMonth, selectedMonth]);
 
   return {
     items,
@@ -203,6 +255,7 @@ function useGuardianDailyNoticeMonthList({
     attendedUntilDate,
     /** 월 네비 하한 — 첫 등원(또는 앨범 첫 이용 월) */
     effectiveFirstAttendedAt,
+    lastAvailableMonth,
     isFirstAttendanceDateFallback,
     isPending,
     hasError,
