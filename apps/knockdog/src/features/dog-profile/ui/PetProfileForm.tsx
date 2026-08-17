@@ -21,6 +21,15 @@ import { usePetProfileForm } from '../model/usePetProfileForm';
 import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
 import { ApiError } from '@shared/api';
+import { TypedStorage } from '@shared/lib';
+import type { PetFormData } from '../model/usePetProfileForm';
+
+const PET_PROFILE_VIEW_DRAFT_TTL_MS = 10 * 60 * 1000;
+
+interface PetProfileViewDraft {
+  values: PetFormData;
+  expiresAt: number;
+}
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
@@ -39,6 +48,10 @@ function findDuplicatePets(pets: Pet[] | undefined, petId: string | undefined, n
   return pets?.filter((pet) => String(pet.id) !== petId && pet.name === name) ?? [];
 }
 
+function getPetProfileViewDraftStorageKey(mode: PetProfileFormProps['mode'], petId: string | undefined) {
+  return `PET_PROFILE_VIEW_DRAFT:${mode}:${petId ?? 'new'}`;
+}
+
 function PetProfileForm({
   mode,
   petId,
@@ -55,6 +68,11 @@ function PetProfileForm({
   const [duplicatePets, setDuplicatePets] = React.useState<Pet[]>([]);
   const [isResolvingDuplicateName, setIsResolvingDuplicateName] = React.useState(false);
   const submittedPetNameRef = React.useRef('');
+  const hasRestoredViewDraftRef = React.useRef(false);
+  const viewDraftStorage = React.useMemo(
+    () => new TypedStorage<PetProfileViewDraft>(getPetProfileViewDraftStorageKey(mode, petId)),
+    [mode, petId]
+  );
   const { data: petListResponse, refetch: refetchPetList } = usePetListQuery();
   const handleSaveError = React.useCallback(
     async (error: unknown) => {
@@ -93,7 +111,10 @@ function PetProfileForm({
       mode,
       petId,
       defaultValues,
-      onSuccess,
+      onSuccess: () => {
+        viewDraftStorage.clear();
+        onSuccess?.();
+      },
       onError: handleSaveError,
     });
 
@@ -117,11 +138,22 @@ function PetProfileForm({
   }, [defaultValues]);
 
   React.useEffect(() => {
+    if (hasRestoredViewDraftRef.current) return;
+
+    const viewDraft = viewDraftStorage.get();
+    viewDraftStorage.clear();
+
+    if (viewDraft && viewDraft.expiresAt >= Date.now()) {
+      hasRestoredViewDraftRef.current = true;
+      reset(viewDraft.values);
+      return;
+    }
+
     if (defaultValues && defaultValuesKey) {
       reset(transformDefaultValues(defaultValues));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultValuesKey, reset]);
+  }, [defaultValuesKey, reset, viewDraftStorage]);
 
   // isDirty 상태 변경을 부모에게 알림
   React.useEffect(() => {
@@ -163,6 +195,21 @@ function PetProfileForm({
     const formData = getValues();
     submittedPetNameRef.current = formData.name;
     submitForm({ name: formData.name });
+  };
+
+  const handleViewPetProfile = (duplicatePetId: string) => {
+    if (!onViewPetProfile) return;
+
+    viewDraftStorage.set({
+      values: getValues(),
+      expiresAt: Date.now() + PET_PROFILE_VIEW_DRAFT_TTL_MS,
+    });
+    onViewPetProfile(duplicatePetId);
+  };
+
+  const handleGoToPetList = () => {
+    viewDraftStorage.clear();
+    onGoToPetList?.();
   };
 
   return (
@@ -370,9 +417,9 @@ function PetProfileForm({
         pets={duplicatePets}
         isOpen={isDuplicateNameSheetOpen}
         onOpenChange={setIsDuplicateNameSheetOpen}
-        onGoToPetList={() => onGoToPetList?.()}
+        onGoToPetList={handleGoToPetList}
         onSaveAsIs={handleSaveAsIs}
-        onViewPetProfile={(duplicatePetId) => onViewPetProfile?.(duplicatePetId)}
+        onViewPetProfile={handleViewPetProfile}
       />
     </>
   );
