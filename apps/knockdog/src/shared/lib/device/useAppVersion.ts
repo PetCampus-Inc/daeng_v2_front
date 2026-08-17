@@ -15,7 +15,7 @@ const CURRENT_WEB_VERSION = 'v1.0.000';
 // 플레이스토어/앱스토어 URL
 const STORE_URLS = {
   android: 'https://play.google.com/store/apps/details?id=net.knockdog.petcampus.v2',
-  ios: 'https://apps.apple.com/app/id6739782013', // iOS App ID는 실제 값으로 교체 필요
+  ios: 'https://apps.apple.com/kr/app/knockdog/id6754978978',
 };
 
 /**
