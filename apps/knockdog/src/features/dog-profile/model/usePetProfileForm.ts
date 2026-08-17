@@ -115,16 +115,16 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       const relationshipValue =
         data.relationship === RELATIONSHIP.ETC ? data.relationshipText : RELATIONSHIP_LABEL[data.relationship];
 
-      if (mode === 'add') {
-        if (
-          !data.breed?.breedName ||
-          !data.gender ||
-          typeof data.weight !== 'number' ||
-          !isValidDogWeight(data.weight)
-        ) {
-          throw new Error('견종, 몸무게, 성별은 필수 입력값입니다');
-        }
+      if (
+        !data.breed?.breedName ||
+        !data.gender ||
+        typeof data.weight !== 'number' ||
+        !isValidDogWeight(data.weight)
+      ) {
+        throw new Error('견종, 몸무게, 성별은 필수 입력값입니다');
+      }
 
+      if (mode === 'add') {
         const registerRequest = {
           name: data.name,
           relationship: data.relationship,

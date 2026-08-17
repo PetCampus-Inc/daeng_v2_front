@@ -24,7 +24,7 @@ import { route } from '@shared/constants/route';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetAddPage() {
-  const { back, replace } = useStackNavigation();
+  const { back, push, replace, reset } = useStackNavigation();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
@@ -116,6 +116,19 @@ export function MypagePetAddPage() {
     // TODO: 에러 토스트 메시지 표시
   };
 
+  const handleGoToPetList = () => {
+    if (inviteToken) {
+      void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      return;
+    }
+
+    void reset(route.mypage.root);
+  };
+
+  const handleViewPetProfile = (petId: string) => {
+    void push({ pathname: route.mypage.pet.detail.root, query: { petId } });
+  };
+
   return (
     <>
       <Header>
@@ -131,6 +144,8 @@ export function MypagePetAddPage() {
         onError={handleError}
         onDirtyChange={setIsFormDirty}
         onBeforeSubmit={handleBeforeSubmit}
+        onGoToPetList={handleGoToPetList}
+        onViewPetProfile={handleViewPetProfile}
         submitButtonText='저장하기'
       />
     </>

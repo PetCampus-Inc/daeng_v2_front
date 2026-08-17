@@ -8,6 +8,7 @@ import { BreedSelector } from './BreedSelector';
 import { YearSelector } from './YearSelector';
 import { GenderSelector } from './GenderSelector';
 import { NeuteredSelector } from './NeuteredSelector';
+import { PetNameDuplicateSheet } from './PetNameDuplicateSheet';
 import { ProfileImageUploader } from './ProfileImageUploader';
 import {
   MAX_DOG_NAME_LENGTH,
@@ -18,7 +19,8 @@ import {
 import { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from '../lib/weight';
 import { usePetProfileForm } from '../model/usePetProfileForm';
 import { cn } from '@knockdog/ui/lib';
-import { RELATIONSHIP, type Pet } from '@entities/pet';
+import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
+import { ApiError } from '@shared/api';
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
@@ -29,6 +31,8 @@ interface PetProfileFormProps {
   onError?: (error: unknown) => void;
   onDirtyChange?: (isDirty: boolean) => void;
   onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
+  onGoToPetList?: () => void;
+  onViewPetProfile?: (petId: string) => void;
 }
 
 function PetProfileForm({
@@ -40,18 +44,38 @@ function PetProfileForm({
   onError,
   onDirtyChange,
   onBeforeSubmit,
+  onGoToPetList,
+  onViewPetProfile,
 }: PetProfileFormProps) {
+  const [isDuplicateNameSheetOpen, setIsDuplicateNameSheetOpen] = React.useState(false);
+  const [duplicatePets, setDuplicatePets] = React.useState<Pet[]>([]);
+  const { data: petListResponse } = usePetListQuery();
+  const handleSaveError = React.useCallback(
+    (error: unknown) => {
+      if (error instanceof ApiError && error.status === 409) {
+        setIsDuplicateNameSheetOpen(true);
+        return;
+      }
+
+      onError?.(error);
+    },
+    [onError]
+  );
   const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, setValue, trigger, reset, transformDefaultValues } =
     usePetProfileForm({
       mode,
       petId,
       defaultValues,
       onSuccess,
-      onError,
+      onError: handleSaveError,
     });
 
   const relationship = useWatch({ control, name: 'relationship' });
-  const isAdditionalInfoRequired = mode === 'add';
+  const isAdditionalInfoRequired = true;
+  const findDuplicatePets = React.useCallback(
+    (name: string) => petListResponse?.data?.filter((pet) => String(pet.id) !== petId && pet.name === name) ?? [],
+    [petId, petListResponse]
+  );
 
   // defaultValues가 변경될 때 폼 리셋
   const defaultValuesKey = React.useMemo(() => {
@@ -86,18 +110,35 @@ function PetProfileForm({
     void trigger('relationshipText');
   }, [relationship, trigger]);
 
-  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const submitForm = (formData: { name: string }, event?: React.BaseSyntheticEvent) => {
+    // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
+    if (onBeforeSubmit) {
+      onBeforeSubmit(() => handleSubmit(event), formData);
+    } else {
+      handleSubmit(event);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!isValid || isSubmitting) return;
 
-    // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
-    if (onBeforeSubmit) {
-      const formData = getValues();
-      onBeforeSubmit(() => handleSubmit(e), { name: formData.name });
-    } else {
-      handleSubmit(e);
+    const formData = getValues();
+    const matchedPets = findDuplicatePets(formData.name);
+    if (matchedPets.length > 0) {
+      setDuplicatePets(matchedPets);
+      setIsDuplicateNameSheetOpen(true);
+      return;
     }
+
+    submitForm({ name: formData.name }, e);
+  };
+
+  const handleSaveAsIs = () => {
+    setIsDuplicateNameSheetOpen(false);
+    const formData = getValues();
+    submitForm({ name: formData.name });
   };
 
   return (
@@ -301,6 +342,14 @@ function PetProfileForm({
           </div>
         </form>
       </div>
+      <PetNameDuplicateSheet
+        pets={duplicatePets}
+        isOpen={isDuplicateNameSheetOpen}
+        onOpenChange={setIsDuplicateNameSheetOpen}
+        onGoToPetList={() => onGoToPetList?.()}
+        onSaveAsIs={handleSaveAsIs}
+        onViewPetProfile={(duplicatePetId) => onViewPetProfile?.(duplicatePetId)}
+      />
     </>
   );
 }

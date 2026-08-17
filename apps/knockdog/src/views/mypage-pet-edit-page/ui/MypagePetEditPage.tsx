@@ -20,9 +20,10 @@ import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-i
 import { usePetByIdQuery, type Pet } from '@entities/pet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { route } from '@shared/constants/route';
 
 export function MypagePetEditPage() {
-  const { back } = useStackNavigation();
+  const { back, push, reset } = useStackNavigation();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
@@ -73,6 +74,14 @@ export function MypagePetEditPage() {
     // TODO: 에러 토스트 메시지 표시
   };
 
+  const handleGoToPetList = () => {
+    void reset(route.mypage.root);
+  };
+
+  const handleViewPetProfile = (duplicatePetId: string) => {
+    void push({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } });
+  };
+
   return (
     <>
       <Header>
@@ -91,6 +100,8 @@ export function MypagePetEditPage() {
         onDirtyChange={(isDirty) => {
           isDirtyRef.current = isDirty;
         }}
+        onGoToPetList={handleGoToPetList}
+        onViewPetProfile={handleViewPetProfile}
         submitButtonText='수정하기'
       />
     </>
