@@ -22,7 +22,7 @@ import {
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
-import { isNativeWebView } from '@shared/lib/device';
+import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 import { tokenUtils } from '@shared/utils';
@@ -49,6 +49,11 @@ function GuardianInvitePage() {
     isNativeWebView,
     () => false
   );
+  const isMobileBrowser = useSyncExternalStore(
+    () => () => undefined,
+    () => isIOS() || isAndroid(),
+    () => false
+  );
   const hasUserStoreHydrated = useSyncExternalStore(
     (onStoreChange) => useUserStore.persist.onFinishHydration(onStoreChange),
     () => useUserStore.persist.hasHydrated(),
@@ -72,8 +77,10 @@ function GuardianInvitePage() {
     });
   }, [hasAuth, hasUserStoreHydrated, isNative, replace, token]);
 
-  // 앱이 설치되지 않아 브라우저로 열린 경우에는 인증·초대 API를 호출하지 않는다.
-  if (!isNative) return <GuardianInviteAppInstallPage />;
+  // 모바일 브라우저 폴백은 스토어로, 그 외 웹은 기존 초대 페이지로 유지한다.
+  if (!isNative && isMobileBrowser) return <GuardianInviteAppInstallPage />;
+
+  if (!isNative) return <GuardianInviteProfilePage token={token} />;
 
   if (!hasUserStoreHydrated || !hasAuth) return null;
 
