@@ -22,6 +22,7 @@ import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
+import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 function startOfMonth(date: Date) {
@@ -270,7 +271,11 @@ function GuardianDailyNoticeListPage() {
           onScroll={handleScroll}
           aria-label={content.listAriaLabel}
         >
-          {isPending && !hasRows ? null : hasRows ? (
+          {isPending && !hasRows ? (
+            <div className='flex min-h-0 flex-1 items-center justify-center'>
+              <RingLoadingSpinner />
+            </div>
+          ) : hasRows ? (
             <GuardianDailyNoticeListMonthList
               items={items}
               attendedUntilDate={attendedUntilDate}
