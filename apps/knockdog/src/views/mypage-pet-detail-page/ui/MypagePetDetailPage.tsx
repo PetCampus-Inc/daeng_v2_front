@@ -17,7 +17,7 @@ import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetDetailInfo } from '@features/dog-profile';
-import { guardianPetConnectionStatusesQueryKey } from '@entities/guardian-invite';
+import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -52,7 +52,7 @@ export function MypagePetDetailPage() {
                     // 초대 신청의 강아지 선택 화면은 pet/list가 아닌 별도 연결 상태 query를 사용한다.
                     // stack 화면이 유지된 채 돌아와도 최신 목록을 보여주도록 먼저 갱신한다.
                     await queryClient.invalidateQueries({
-                      queryKey: guardianPetConnectionStatusesQueryKey,
+                      queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
                       refetchType: 'all',
                     });
                     syncWebViewQuery.refetch(['petList']);

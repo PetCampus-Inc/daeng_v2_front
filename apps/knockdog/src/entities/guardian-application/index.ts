@@ -1,4 +1,4 @@
-export { getGuardianApplications, postCancelGuardianApplication } from './api/guardianApplications';
+export { getGuardianApplications, postCreateGuardianApplication, postCancelGuardianApplication } from './api/guardianApplications';
 export { useCancelGuardianApplicationMutation } from './api/useCancelGuardianApplicationMutation';
 export {
   GUARDIAN_APPLICATIONS_QUERY_KEY,
@@ -20,4 +20,7 @@ export type {
   GuardianApplicationSchoolDto,
   GuardianApplicationStatus,
   GuardianApplicationsDataDto,
+  CreateGuardianApplicationRequest,
+  CreateGuardianApplicationResult,
+  CreateGuardianApplicationResponse,
 } from './model/guardianApplication';

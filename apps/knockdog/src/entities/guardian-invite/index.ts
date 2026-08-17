@@ -1,16 +1,14 @@
 export {
   getGuardianInvite,
   getGuardianPetConnectionStatuses,
-  postGuardianApplication,
   type GuardianInvite,
   type GuardianPetConnection,
   type GuardianPetConnectionList,
-  type GuardianApplicationCreateResponse,
-  type GuardianApplicationCreateResult,
   type SchoolPetMembershipStatus,
 } from './api/guardianInvite';
 export {
   guardianInviteQueryKey,
+  GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY,
   guardianPetConnectionStatusesQueryKey,
   useGuardianInviteQuery,
   useGuardianPetConnectionStatusesQuery,

@@ -6,6 +6,7 @@ import { ActionButton, Avatar, AvatarFallback, AvatarImage, Checkbox, Icon, Prog
 
 import { Header } from '@widgets/Header';
 import { type GuardianPetConnection, useGuardianPetConnectionStatusesQuery } from '@entities/guardian-invite';
+import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -106,7 +107,8 @@ function PetSelectCard({ pet, selected, onCheckedChange, onProfileView }: PetSel
 function GuardianInvitePetSelectPage() {
   const { token } = useParams<{ token: string }>();
   const { push, replace } = useStackNavigation();
-  const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery();
+  const userId = useUserStore((state) => state.user?.userId);
+  const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
   const pets = petConnectionStatusesQuery.data?.data?.pets;
   const displayedPets = pets ?? [];
   const profileCount = petConnectionStatusesQuery.data?.data?.totalProfileCount ?? 0;

@@ -78,12 +78,22 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
       // DB에는 만료되는 presigned URL이 아닌 영구 S3 URL을 저장한다.
       let finalProfileImage = data.profileImage || '';
-      if (data.profileImageKey && user?.userId) {
+      if (data.profileImageKey && !user?.userId) {
+        const error = new Error('이미지 저장을 위한 사용자 정보가 없습니다');
+        onError?.(error);
+        return;
+      }
+
+      if (data.profileImageKey) {
         try {
           const moveResponse = await moveImage({
             key: data.profileImageKey,
-            path: `user/${user.userId}`,
+            path: `user/${user!.userId}`,
           });
+
+          if (!moveResponse.data) {
+            throw new Error('이미지 이동 결과를 받지 못했습니다');
+          }
 
           // 이동 API는 영구 이미지 URL을 반환한다. 다음 저장 재시도에서 이미 삭제된 temp key를
           // 다시 이동하지 않도록 성공 결과를 폼에도 반영한다.
@@ -93,7 +103,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         } catch (error) {
           console.error('[pet/image/move] failed', {
             key: data.profileImageKey,
-            path: `user/${user.userId}`,
+            path: `user/${user!.userId}`,
             error,
           });
           // 임시 이미지 URL로 펫을 등록하면 재시도할 때 원인을 더 흐리므로 중단한다.
