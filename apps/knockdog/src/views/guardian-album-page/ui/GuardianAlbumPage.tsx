@@ -247,6 +247,47 @@ function GuardianAlbumPage() {
     [openDetail, schoolId]
   );
 
+  /** 날짜 검색 시트 — 선택일 상세 슬라이드 진입 */
+  const handleOpenDateDetail = useCallback(
+    async (date: Date) => {
+      const dateKey = toDateKey(date);
+      setSelectedMonth(startOfMonth(date));
+      setIsScrollTopVisible(false);
+
+      if (dateKey === todayDateKey && todayDetailPhotos.length > 0) {
+        openDetail(todayDetailPhotos, undefined, false);
+        return;
+      }
+
+      const monthDay = monthDays.find((day) => day.dateKey === dateKey) ?? null;
+
+      if (!schoolId) {
+        if (monthDay) handleOpenDayDetail(monthDay);
+        return;
+      }
+
+      try {
+        const photos = await fetchGuardianAlbumDayPhotos(schoolId, dateKey);
+        if (photos.length > 0) {
+          openDetail(photos, undefined, false);
+          return;
+        }
+      } catch {
+        // 월 카드 프리뷰로 폴백
+      }
+
+      if (monthDay) handleOpenDayDetail(monthDay);
+    },
+    [
+      handleOpenDayDetail,
+      monthDays,
+      openDetail,
+      schoolId,
+      todayDateKey,
+      todayDetailPhotos,
+    ]
+  );
+
   useEffect(() => {
     if (didOpenHomeDetailRef.current) return;
     if (searchParams.get('from') !== 'home') return;
@@ -398,9 +439,7 @@ function GuardianAlbumPage() {
         maxDate={maxDate}
         initialDate={selectedMonth}
         enabledDateKeys={albumPhotoDateKeys}
-        onConfirm={(date) => {
-          setSelectedMonth(startOfMonth(date));
-        }}
+        onConfirm={handleOpenDateDetail}
       />
     ));
   };
