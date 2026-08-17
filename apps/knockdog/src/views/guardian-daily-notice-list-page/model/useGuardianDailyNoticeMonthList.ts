@@ -33,6 +33,8 @@ interface UseGuardianDailyNoticeMonthListParams {
   attendedUntil?: Date | null;
   isDisconnected?: boolean;
   enabled?: boolean;
+  /** 펫 목록 조회 완료 여부 — 미완료일 때만 로딩으로 취급 */
+  isPetsReady?: boolean;
 }
 
 function isSameYearMonth(left: Date, right: Date) {
@@ -82,6 +84,7 @@ function useGuardianDailyNoticeMonthList({
   attendedUntil = null,
   isDisconnected = false,
   enabled = true,
+  isPetsReady = false,
 }: UseGuardianDailyNoticeMonthListParams) {
   const userId = useUserStore((state) => state.user?.userId);
 
@@ -140,10 +143,16 @@ function useGuardianDailyNoticeMonthList({
   });
 
   const details = queries.map((query) => query.data);
-  /** 인증·펫 확보 전엔 쿼리가 비활성 — empty 대신 로딩으로 취급 */
-  const isAuthPending = enabled && (!userId || !petId);
+  /**
+   * 인증·펫 목록 조회 전만 로딩.
+   * 펫 조회가 끝난 뒤 petId가 없어도(미등록 등) 무한 로딩하지 않는다.
+   */
+  const isAuthPending = enabled && !userId;
+  const isPetLookupPending = enabled && !isPetsReady;
   const isPending =
-    isAuthPending || (canQuery && queries.some((query) => query.isPending));
+    isAuthPending ||
+    isPetLookupPending ||
+    (canQuery && queries.some((query) => query.isPending));
   const hasError = canQuery && queries.some((query) => query.isError);
   /** 개별 쿼리가 순차적으로 도착해도 items가 갱신되도록 */
   const detailsRevision = queries.map((query) => query.dataUpdatedAt).join(',');

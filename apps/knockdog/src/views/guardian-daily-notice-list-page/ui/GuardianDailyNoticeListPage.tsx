@@ -100,6 +100,7 @@ function GuardianDailyNoticeListPage() {
     firstAttendedAt,
     attendedUntil: selectedAttendedUntil,
     isDisconnected,
+    isPetsReady,
   });
 
   const minMonth = useMemo(
@@ -125,7 +126,7 @@ function GuardianDailyNoticeListPage() {
   const hasRows =
     items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;
   /** 펫/상세 조회 끝나기 전 empty 일러스트가 스치지 않게 */
-  const isListLoading = !isPetsReady || isPending;
+  const isListLoading = isPending;
 
   const handleBack = () => {
     navigateToTab('/compare');
