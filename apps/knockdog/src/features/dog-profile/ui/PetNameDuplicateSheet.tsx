@@ -33,14 +33,14 @@ function PetNameDuplicateSheet({
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={onOpenChange}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal flex h-[616px] max-h-[calc(100dvh-64px)] min-h-0 flex-col'>
-        <BottomSheet.Handle />
-        <BottomSheet.Header className='items-center justify-between px-4 py-3'>
+      <BottomSheet.Body className='z-modal flex max-h-[min(571px,calc(100dvh-64px))] min-h-0 flex-col'>
+        <BottomSheet.Handle className='shrink-0' />
+        <BottomSheet.Header className='shrink-0 items-center justify-between px-4 py-3'>
           <BottomSheet.Title>같은 이름의 강아지가 있어요</BottomSheet.Title>
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
 
-        <BottomSheet.Content padded={false} className='min-h-0 flex-1 overflow-y-auto p-4'>
+        <BottomSheet.Content padded={false} className='min-h-0 overflow-y-auto p-4'>
           <ul className='flex flex-col gap-3' aria-label='같은 이름의 강아지 목록'>
             {pets.map((pet) => (
               <li key={pet.id} className='border-line-200 flex h-[84px] items-center gap-2 rounded-xl border p-4'>
@@ -74,7 +74,7 @@ function PetNameDuplicateSheet({
           </ul>
         </BottomSheet.Content>
 
-        <BottomSheet.Footer className='flex flex-row gap-2 bg-bg-0 p-4 pb-5'>
+        <BottomSheet.Footer className='flex shrink-0 flex-row gap-2 bg-bg-0 p-4 pb-5'>
           <ActionButton type='button' variant='secondaryLine' size='large' className='flex-1' onClick={handleGoToPetList}>
             목록으로 이동
           </ActionButton>

@@ -32,7 +32,7 @@ interface PetProfileFormProps {
   onDirtyChange?: (isDirty: boolean) => void;
   onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
   onGoToPetList?: () => void;
-  onViewPetProfile?: (petId: string) => void;
+  onViewPetProfile?: (petId: string) => Promise<unknown>;
 }
 
 function findDuplicatePets(pets: Pet[] | undefined, petId: string | undefined, name: string) {
@@ -163,6 +163,20 @@ function PetProfileForm({
     const formData = getValues();
     submittedPetNameRef.current = formData.name;
     submitForm({ name: formData.name });
+  };
+
+  const handleViewPetProfile = async (duplicatePetId: string) => {
+    if (!onViewPetProfile) return;
+
+    const formValues = getValues();
+    try {
+      await onViewPetProfile(duplicatePetId);
+    } catch {
+      // 시스템 뒤로가기처럼 결과 없이 돌아온 경우도 기존 입력값을 복원한다.
+    } finally {
+      reset(formValues, { keepDefaultValues: true });
+      void trigger();
+    }
   };
 
   return (
@@ -372,7 +386,7 @@ function PetProfileForm({
         onOpenChange={setIsDuplicateNameSheetOpen}
         onGoToPetList={() => onGoToPetList?.()}
         onSaveAsIs={handleSaveAsIs}
-        onViewPetProfile={(duplicatePetId) => onViewPetProfile?.(duplicatePetId)}
+        onViewPetProfile={(duplicatePetId) => void handleViewPetProfile(duplicatePetId)}
       />
     </>
   );

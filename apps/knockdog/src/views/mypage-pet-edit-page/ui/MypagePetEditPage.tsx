@@ -24,7 +24,7 @@ import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
 export function MypagePetEditPage() {
-  const { back, push, reset } = useStackNavigation();
+  const { back, pushForResult, reset } = useStackNavigation();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
@@ -82,9 +82,8 @@ export function MypagePetEditPage() {
     void reset(route.mypage.root);
   };
 
-  const handleViewPetProfile = (duplicatePetId: string) => {
-    void push({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } });
-  };
+  const handleViewPetProfile = (duplicatePetId: string) =>
+    pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } }, 600_000);
 
   return (
     <>

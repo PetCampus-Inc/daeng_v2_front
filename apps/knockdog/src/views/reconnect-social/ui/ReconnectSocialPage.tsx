@@ -1,16 +1,18 @@
 'use client';
 
 import { ActionButton } from '@knockdog/ui';
-import { useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Header } from '@widgets/Header';
 import { useSocialUserStore } from '@entities/social-user';
 import { route } from '@shared/constants/route';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 const emptySubscribe = () => () => {};
 
 function ReconnectSocialPage() {
-  const { back, push } = useStackNavigation();
+  const { back, push, getParams } = useStackNavigation();
+  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
   const socialUser = useSocialUserStore((state) => state.socialUser);
   const isHydrated = useSyncExternalStore(
     emptySubscribe,
@@ -22,7 +24,8 @@ function ReconnectSocialPage() {
   if (!socialUser) throw new Error('소셜 유저 정보가 없습니다');
 
   const handleBackClick = () => back();
-  const handleReconnectClick = () => push({ pathname: route.auth.reconnectSocial.verifyEmail.root });
+  const handleReconnectClick = () =>
+    push({ pathname: route.auth.reconnectSocial.verifyEmail.root, params: { redirectTo } });
 
   return (
     <>
