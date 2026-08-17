@@ -12,7 +12,7 @@ interface GuardianPetConnection {
   name: string;
   profileImage: string | null;
   birthYear: number | null;
-  gender: 'MALE' | 'FEMALE' | null;
+  gender?: 'MALE' | 'FEMALE' | null;
   breed: string;
   connectionStatus: SchoolPetMembershipStatus | null;
 }

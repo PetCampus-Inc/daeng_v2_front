@@ -32,7 +32,7 @@ function useGuardianInvitePrivacyConsentPage() {
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
-  const userAgreementsStatusQuery = useUserAgreementsStatusQuery();
+  const userAgreementsStatusQuery = useUserAgreementsStatusQuery(userId);
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPets] = useState<SelectedGuardianPet[]>(

@@ -22,6 +22,7 @@ import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { toast } from '@shared/ui/toast';
 
 export function MypagePetAddPage() {
   const { back, push, replace, reset } = useStackNavigation();
@@ -113,7 +114,10 @@ export function MypagePetAddPage() {
 
   const handleError = (error: unknown) => {
     console.error('펫 등록 실패:', error);
-    // TODO: 에러 토스트 메시지 표시
+    toast({
+      title: '일시적 오류로 요청을 완료하지 못했어요',
+      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+    });
   };
 
   const handleGoToPetList = () => {

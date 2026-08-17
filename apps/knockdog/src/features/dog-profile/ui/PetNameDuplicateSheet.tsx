@@ -53,7 +53,12 @@ function PetNameDuplicateSheet({
                 <div className='flex min-w-0 flex-1 flex-col justify-center'>
                   <div className='flex items-center gap-0.5'>
                     <span className='h3-extrabold text-text-accent truncate'>{pet.name}</span>
-                    <Icon icon={pet.gender === 'MALE' ? 'Male' : 'Female'} className='size-4 shrink-0 text-text-primary' />
+                    {pet.gender === 'MALE' || pet.gender === 'FEMALE' ? (
+                      <Icon
+                        icon={pet.gender === 'MALE' ? 'Male' : 'Female'}
+                        className='size-4 shrink-0 text-text-primary'
+                      />
+                    ) : null}
                   </div>
                   <span className='label-medium text-text-primary truncate'>{pet.breed}</span>
                 </div>

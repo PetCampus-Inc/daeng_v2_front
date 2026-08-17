@@ -27,7 +27,7 @@ function PetSelectCard({ pet, selected, onCheckedChange, onProfileView }: PetSel
   const isSelectable = pet.connectionStatus == null;
   const statusLabel = pet.connectionStatus ? STATUS_LABEL[pet.connectionStatus] : undefined;
   const checkboxId = `guardian-invite-pet-${pet.petId}`;
-  const GenderIcon = pet.gender === 'MALE' ? 'Male' : 'Female';
+  const genderIcon = pet.gender === 'MALE' ? 'Male' : pet.gender === 'FEMALE' ? 'Female' : null;
   const cardClassName = isSelectable && selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0';
 
   return (
@@ -61,7 +61,7 @@ function PetSelectCard({ pet, selected, onCheckedChange, onProfileView }: PetSel
               }`}
             >
               {pet.name}
-              <Icon icon={GenderIcon} className='size-4' />
+              {genderIcon ? <Icon icon={genderIcon} className='size-4' /> : null}
             </span>
             {statusLabel ? (
               <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>

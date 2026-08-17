@@ -17,6 +17,7 @@ import {
   type GuardianProfileAddress,
   postUpdateGuardianProfile,
   useUserInfoQuery,
+  useUserStore,
 } from '@entities/user';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
@@ -43,7 +44,8 @@ function GuardianInvitePage() {
   const { push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const inviteQuery = useGuardianInviteQuery(token);
-  const userInfoQuery = useUserInfoQuery();
+  const userId = useUserStore((state) => state.user?.userId);
+  const userInfoQuery = useUserInfoQuery(userId);
   const initializedUserIdRef = useRef<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const phoneNumberError =

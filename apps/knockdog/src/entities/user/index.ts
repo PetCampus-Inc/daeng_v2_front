@@ -40,6 +40,8 @@ export {
 } from './api/useAddressMutation';
 export {
   useUserInfoQuery,
+  USER_INFO_QUERY_KEY,
+  userInfoQueryKey,
   useOwnerRoleQuery,
   OWNER_ROLE_QUERY_KEY,
   ownerRoleQueryKey,
