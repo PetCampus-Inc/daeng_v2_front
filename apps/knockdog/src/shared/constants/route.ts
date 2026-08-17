@@ -215,6 +215,18 @@ const route = {
       },
     },
   },
+  guardian: {
+    connectionApply: {
+      status: {
+        /** 보호자 유치원 연결 신청 현황 */
+        root: '/guardian/connection-apply/status',
+      },
+    },
+  },
+  notification: {
+    /** 알림함 */
+    root: '/notification',
+  },
   compare: {
     /** 보호자 유치원 탭 */
     root: '/compare',

@@ -23,7 +23,6 @@ import { mergeGuardianAlbumDayPhotos } from '@views/guardian-album-page/lib/merg
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
-import { GuardianAlbumEntryError } from '@views/guardian-album-page/ui/GuardianAlbumEntryError';
 import { useGuardianAlbumAttendedDays } from '@views/guardian-album-page/model/useGuardianAlbumAttendedDays';
 import { useGuardianAlbumFavorites } from '@views/guardian-album-page/model/useGuardianAlbumFavorites';
 import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model/useGuardianAlbumFavoriteToggle';
@@ -47,6 +46,7 @@ import {
   KindergartenSelectSheet,
   MOCK_KINDERGARTEN_SELECT_OPTIONS,
 } from '@shared/ui/kindergarten-select-sheet';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 interface GuardianAlbumDetailState {
@@ -458,7 +458,8 @@ function GuardianAlbumPage() {
       </div>
 
       {isEntryLoadError ? (
-        <GuardianAlbumEntryError
+        <PageError
+          layout='inline'
           isRetrying={isEntryRetrying || isAlbumTodayFetching || isAlbumMonthFetching}
           onRetry={handleEntryRetry}
         />

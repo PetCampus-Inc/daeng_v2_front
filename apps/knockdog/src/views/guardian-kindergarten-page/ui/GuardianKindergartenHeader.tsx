@@ -1,7 +1,7 @@
 'use client';
 
-import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
@@ -12,6 +12,8 @@ import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/form
 import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 
 import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
@@ -76,6 +78,7 @@ function GuardianKindergartenHeader({
   hasUnreadAlarm = false,
   hasNoPet = false,
 }: GuardianKindergartenHeaderProps) {
+  const { push } = useStackNavigation();
   const { pets, selectedPet, selectedPetId, setSelectedPetId } = useGuardianSelectedPet();
 
   const petName = selectedPet?.name ?? '';
@@ -94,6 +97,10 @@ function GuardianKindergartenHeader({
         onSelect={setSelectedPetId}
       />
     ));
+  };
+
+  const handleNotificationClick = () => {
+    push({ pathname: route.notification.root });
   };
 
   return (
@@ -122,13 +129,18 @@ function GuardianKindergartenHeader({
           </button>
         )}
 
-        <div className='bg-bg-0 shrink-0 rounded-full p-1.5' aria-hidden='true'>
+        <button
+          type='button'
+          onClick={handleNotificationClick}
+          aria-label='알림함'
+          className='bg-bg-0 shrink-0 rounded-full p-1.5'
+        >
           {hasUnreadAlarm ? (
-            <Icon icon='AlarmLineActive' className='text-fill-primary-500 size-6' />
+            <Icon icon='AlarmLineActive' className='text-fill-primary-500 size-6' aria-hidden='true' />
           ) : (
-            <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' />
+            <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' aria-hidden='true' />
           )}
-        </div>
+        </button>
       </div>
     </div>
   );

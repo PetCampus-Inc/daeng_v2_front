@@ -1,1 +1,1 @@
-export { PageError, type PageErrorProps } from './ui/PageError';
+export { PageError, type PageErrorProps, type PageErrorLayout } from './ui/PageError';
