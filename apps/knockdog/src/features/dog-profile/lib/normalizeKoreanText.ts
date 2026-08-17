@@ -1,9 +1,9 @@
 const MAX_DOG_NAME_LENGTH = 8;
 const MAX_RELATIONSHIP_TEXT_LENGTH = 5;
-const KOREAN_SYLLABLES_ONLY = /[^가-힣]/g;
+const KOREAN_TEXT_ONLY = /[^가-힣ㄱ-ㅎㅏ-ㅣ]/g;
 
 function normalizeKoreanText(value: string, maxLength: number) {
-  return value.replace(KOREAN_SYLLABLES_ONLY, '').slice(0, maxLength);
+  return value.replace(KOREAN_TEXT_ONLY, '').slice(0, maxLength);
 }
 
 function normalizeDogName(value: string) {

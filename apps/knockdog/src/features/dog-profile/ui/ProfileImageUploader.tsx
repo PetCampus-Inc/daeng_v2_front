@@ -14,7 +14,8 @@ const PROFILE_IMAGE_RESIZE_THRESHOLD_BYTES = 10 * 1024 * 1024;
 
 interface ProfileImageUploaderProps {
   profileImage?: string;
-  onImageSelect?: (imageUri: string) => void;
+  /** 표시용 URL과 업로드된 S3 key를 함께 전달한다. */
+  onImageSelect?: (imageUri: string, imageKey?: string) => void;
 }
 
 function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploaderProps) {
@@ -39,7 +40,7 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
         const asset = result.assets[0] as WebImageAsset;
         setIsImageLoading(true);
         setSelectedImage(asset.uri);
-        onImageSelect?.(asset.uri);
+        onImageSelect?.(asset.uri, asset.key);
       } else if (!result.cancelled && result.skipped?.oversizedCount) {
         toast({
           title: (

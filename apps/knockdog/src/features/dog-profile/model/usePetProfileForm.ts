@@ -12,6 +12,7 @@ import {
 import { useUserStore } from '@entities/user';
 import { useMoveImageMutation } from '@shared/lib/media';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { isValidDogWeight } from '../lib/weight';
 
 interface PetFormData {
   name: string;
@@ -23,6 +24,8 @@ interface PetFormData {
   gender: Gender | '';
   isNeutered: 'Y' | 'N' | '';
   profileImage?: string;
+  /** 공통 이미지 피커가 반환한 원본 S3 key. 표시용 URL과 분리해 유지한다. */
+  profileImageKey?: string;
 }
 
 interface UsePetProfileFormProps {
@@ -50,6 +53,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       gender: pet?.gender || '',
       isNeutered: pet?.isNeutered !== undefined ? (pet.isNeutered ? 'Y' : 'N') : '',
       profileImage: pet?.profileImage || '',
+      profileImageKey: undefined,
     };
   };
 
@@ -57,6 +61,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
     control,
     handleSubmit,
     getValues,
+    setValue,
     trigger,
     reset,
     formState: { isValid, isDirty, isSubmitting },
@@ -71,54 +76,69 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         throw new Error('관계는 필수입니다');
       }
 
-      // 이미지가 temp 경로인 경우 user 경로로 이동
+      // DB에는 만료되는 presigned URL이 아닌 영구 S3 URL을 저장한다.
       let finalProfileImage = data.profileImage || '';
-      if (finalProfileImage && finalProfileImage.includes('temp') && user?.userId) {
-        try {
-          // URL에서 key 추출 (pathname 부분)
-          const imageUrl = new URL(finalProfileImage);
-          const key = imageUrl.pathname.substring(1); // 맨 앞 '/' 제거
+      if (data.profileImageKey && !user?.userId) {
+        const error = new Error('이미지 저장을 위한 사용자 정보가 없습니다');
+        onError?.(error);
+        return;
+      }
 
-          // 이미지를 user 경로로 이동
+      if (data.profileImageKey) {
+        try {
           const moveResponse = await moveImage({
-            key,
-            path: `user/${user.userId}`,
+            key: data.profileImageKey,
+            path: `user/${user!.userId}`,
           });
 
-          // 이동된 이미지 URL 사용
+          if (!moveResponse.data) {
+            throw new Error('이미지 이동 결과를 받지 못했습니다');
+          }
+
+          // 이동 API는 영구 이미지 URL을 반환한다. 다음 저장 재시도에서 이미 삭제된 temp key를
+          // 다시 이동하지 않도록 성공 결과를 폼에도 반영한다.
           finalProfileImage = moveResponse.data;
+          setValue('profileImage', finalProfileImage, { shouldDirty: true });
+          setValue('profileImageKey', undefined, { shouldDirty: true });
         } catch (error) {
-          console.error('이미지 이동 실패:', error);
-          // 이미지 이동 실패해도 원본 URL로 진행
+          console.error('[pet/image/move] failed', {
+            key: data.profileImageKey,
+            path: `user/${user!.userId}`,
+            error,
+          });
+          // 임시 이미지 URL로 펫을 등록하면 재시도할 때 원인을 더 흐리므로 중단한다.
+          onError?.(error);
+          return;
         }
       }
 
       const relationshipValue =
         data.relationship === RELATIONSHIP.ETC ? data.relationshipText : RELATIONSHIP_LABEL[data.relationship];
 
+      if (
+        !data.breed?.breedName ||
+        !data.gender ||
+        typeof data.weight !== 'number' ||
+        !isValidDogWeight(data.weight)
+      ) {
+        throw new Error('견종, 몸무게, 성별은 필수 입력값입니다');
+      }
+
       if (mode === 'add') {
-        // 추가 모드: 펫 등록
-        const registerResponse = await registerPet({
+        const registerRequest = {
           name: data.name,
           relationship: data.relationship,
           relationshipText: relationshipValue,
           profileImage: finalProfileImage,
-        });
+          breed: data.breed.breedName,
+          gender: data.gender,
+          weight: data.weight,
+          birthYear: data.birthYear ? Number(data.birthYear) : undefined,
+          isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
+        };
 
-        const newPetId = registerResponse.data.id;
-
-        // 사용자가 추가 정보를 입력했다면 상세 정보 업데이트
-        const hasAdditionalInfo = data.breed || data.birthYear || data.weight || data.gender || data.isNeutered;
-        if (hasAdditionalInfo) {
-          await updatePetDetail({
-            petId: newPetId,
-            breed: data.breed?.breedName,
-            birthYear: data.birthYear ? Number(data.birthYear) : undefined,
-            gender: data.gender || undefined,
-            isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
-            weight: data.weight,
-          });
-        }
+        // 추가 모드: 펫 등록
+        await registerPet(registerRequest);
       } else {
         // 수정 모드: 상세 정보만 업데이트
         if (!petId) throw new Error('petId is required in edit mode');
@@ -152,6 +172,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
     control,
     handleSubmit: submit,
     getValues,
+    setValue,
     trigger,
     reset,
     transformDefaultValues,

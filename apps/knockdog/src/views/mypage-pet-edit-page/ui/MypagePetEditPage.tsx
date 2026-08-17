@@ -13,14 +13,19 @@ import {
   AlertDialogCancel,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm } from '@features/dog-profile';
+import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
+import { route } from '@shared/constants/route';
+import { toast } from '@shared/ui/toast';
 
 export function MypagePetEditPage() {
-  const { back } = useStackNavigation();
+  const { back, push, reset } = useStackNavigation();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
   const isDirtyRef = useRef(false);
@@ -55,13 +60,30 @@ export function MypagePetEditPage() {
     ));
   };
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
+    // 초대 강아지 선택 화면은 pet/list와 별도의 연결 상태 query를 사용한다.
+    // 뒤로 돌아가는 시점에 최신 프로필을 표시하도록 갱신한다.
+    await queryClient.invalidateQueries({
+      queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
+      refetchType: 'all',
+    });
     back?.();
   };
 
   const handleError = (error: unknown) => {
     console.error('펫 수정 실패:', error);
-    // TODO: 에러 토스트 메시지 표시
+    toast({
+      title: '일시적 오류로 요청을 완료하지 못했어요',
+      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+    });
+  };
+
+  const handleGoToPetList = () => {
+    void reset(route.mypage.root);
+  };
+
+  const handleViewPetProfile = (duplicatePetId: string) => {
+    void push({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } });
   };
 
   return (
@@ -82,6 +104,8 @@ export function MypagePetEditPage() {
         onDirtyChange={(isDirty) => {
           isDirtyRef.current = isDirty;
         }}
+        onGoToPetList={handleGoToPetList}
+        onViewPetProfile={handleViewPetProfile}
         submitButtonText='수정하기'
       />
     </>
