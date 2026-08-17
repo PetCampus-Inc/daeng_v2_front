@@ -74,7 +74,8 @@ const STATUS_BY_API: Record<string, GuardianHomeConnectionStatus> = {
   LEFT: 'approved',
   /** 연결 해제 */
   DISCONNECTED: 'disconnected',
-  /** todo - 연결 승인 대기 추가 */
+  /** 유치원 연결 승인 대기 */
+  PENDING: 'pending',
 };
 
 function toConnectionStatus(value: string | null | undefined): GuardianHomeConnectionStatus {

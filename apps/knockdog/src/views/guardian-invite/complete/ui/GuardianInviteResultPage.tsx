@@ -12,6 +12,7 @@ import { useGuardianInviteResultPage } from '../model/useGuardianInviteResultPag
 function GuardianInviteResultPage() {
   const { content, failedPets, handlePrimaryClick, handleSecondaryClick, status } = useGuardianInviteResultPage();
   const isApplicationFailed = status === GUARDIAN_INVITE_RESULT_STATUS.APPLICATION_FAILED;
+  const hasFailedPets = failedPets.length > 0;
   const actionButtons = (
     <div className='flex gap-2'>
       {content.secondaryButtonLabel ? (
@@ -41,18 +42,24 @@ function GuardianInviteResultPage() {
 
           {isApplicationFailed ? (
             <div className='w-full px-x4'>
-              <div className='radius-r3 border-line-200 flex min-h-[124px] w-full items-center border p-x4'>
-                <div className='flex w-full flex-col gap-3'>
+              <div
+                className={`radius-r3 border-line-200 flex w-full items-center border p-x4 ${
+                  hasFailedPets ? 'min-h-[124px]' : ''
+                }`}
+              >
+                <div className={`flex w-full flex-col ${hasFailedPets ? 'gap-3' : ''}`}>
                   <p className='body2-regular flex h-5 items-center gap-1 text-text-secondary'>
                     다시 연결할 강아지 <span className='body2-semibold text-text-accent'>{failedPets.length}마리</span>
                   </p>
-                  <ul className='flex flex-wrap content-start items-start gap-2' aria-label='재신청할 강아지 목록'>
-                    {failedPets.map((pet) => (
-                      <li key={pet.id} className='caption1-semibold rounded-full bg-fill-secondary-50 px-2 py-1 text-text-primary'>
-                        {pet.name}
-                      </li>
-                    ))}
-                  </ul>
+                  {hasFailedPets ? (
+                    <ul className='flex flex-wrap content-start items-start gap-2' aria-label='재신청할 강아지 목록'>
+                      {failedPets.map((pet) => (
+                        <li key={pet.id} className='caption1-semibold rounded-full bg-fill-secondary-50 px-2 py-1 text-text-primary'>
+                          {pet.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               </div>
             </div>

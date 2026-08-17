@@ -1,11 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUserInfo, getOwnerRole, getOwnerMypageSummary, getOwnerProfile } from './user';
 
-const useUserInfoQuery = () => {
+const USER_INFO_QUERY_KEY = 'userInfo';
+
+/** 계정 전환 시 이전 사용자의 개인정보 캐시가 재사용되지 않도록 분리한다. */
+const userInfoQueryKey = (userId?: string) => [USER_INFO_QUERY_KEY, userId] as const;
+
+const useUserInfoQuery = (userId?: string) => {
   return useQuery({
-    queryKey: ['userInfo'],
+    queryKey: userInfoQueryKey(userId),
     queryFn: getUserInfo,
     select: (data) => data.data,
+    enabled: Boolean(userId),
   });
 };
 
@@ -75,6 +81,8 @@ const useOwnerProfileQuery = ({ userId, enabled = true }: UseOwnerProfileQueryOp
 
 export {
   useUserInfoQuery,
+  USER_INFO_QUERY_KEY,
+  userInfoQueryKey,
   useOwnerRoleQuery,
   OWNER_ROLE_QUERY_KEY,
   ownerRoleQueryKey,

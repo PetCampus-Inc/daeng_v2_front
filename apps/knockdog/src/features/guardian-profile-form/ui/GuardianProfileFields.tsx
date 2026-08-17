@@ -67,7 +67,14 @@ function GuardianProfileFields({
           <TextFieldInput
             value={values.name}
             placeholder='이름을 입력해 주세요'
-            onChange={(event) => updateValue({ name: formatGuardianName(event.target.value) })}
+            onChange={(event) => {
+              // 조합 중인 자모를 즉시 필터링하면 한글 IME 입력이 깨진다.
+              // 조합 완료 뒤에만 완성형 한글·영문·공백으로 정규화한다.
+              const isComposing = (event.nativeEvent as InputEvent).isComposing;
+              const name = isComposing ? event.target.value : formatGuardianName(event.target.value);
+              updateValue({ name });
+            }}
+            onCompositionEnd={(event) => updateValue({ name: formatGuardianName(event.currentTarget.value) })}
           />
         </TextField>
       </div>

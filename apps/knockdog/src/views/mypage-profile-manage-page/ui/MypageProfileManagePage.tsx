@@ -38,7 +38,7 @@ function MypageProfileManagePage() {
   const [email, setEmail] = useState('');
 
   const user = useUserStore((state) => state.user);
-  const { data: userInfoResponse } = useUserInfoQuery();
+  const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const socialUser = useSocialUserStore((state) => state.socialUser);
   const { data: representativePet } = usePetRepresentativeQuery();
   const { data: petList } = usePetListQuery();

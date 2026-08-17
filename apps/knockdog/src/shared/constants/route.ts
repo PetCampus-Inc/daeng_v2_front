@@ -109,6 +109,10 @@ const route = {
         /** 강아지 프로필 추가 페이지 */
         root: '/mypage/pet-add',
       },
+      detail: {
+        /** 강아지 프로필 상세 페이지 */
+        root: '/mypage/pet-detail',
+      },
     },
   },
   owner: {

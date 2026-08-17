@@ -48,6 +48,24 @@ interface GuardianApplicationsDataDto {
   applications?: GuardianApplicationDto[] | null;
 }
 
+/** `POST /api/v0/guardian/applications` 요청 본문 */
+interface CreateGuardianApplicationRequest {
+  token: string;
+  petIds: number[];
+}
+
+/** 펫별 유치원 연결 신청 결과 */
+interface CreateGuardianApplicationResult {
+  petId: number;
+  success: boolean;
+  membershipId: number | null;
+  reason: string | null;
+}
+
+interface CreateGuardianApplicationResponse {
+  results: CreateGuardianApplicationResult[];
+}
+
 interface GuardianApplicationPet {
   id: string;
   name: string;
@@ -140,4 +158,7 @@ export type {
   GuardianApplicationSchoolDto,
   GuardianApplicationStatus,
   GuardianApplicationsDataDto,
+  CreateGuardianApplicationRequest,
+  CreateGuardianApplicationResult,
+  CreateGuardianApplicationResponse,
 };

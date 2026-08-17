@@ -13,16 +13,20 @@ import {
   AlertDialogCancel,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
+import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { toast } from '@shared/ui/toast';
 
 export function MypagePetAddPage() {
-  const { back, replace } = useStackNavigation();
+  const { back, push, replace, reset } = useStackNavigation();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
   const [isFormDirty, setIsFormDirty] = useState(false);
@@ -93,9 +97,15 @@ export function MypagePetAddPage() {
     ));
   };
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
     syncWebViewQuery.invalidate(['petList']);
     if (inviteToken) {
+      // 초대 강아지 선택 화면은 pet/list와 별도의 연결 상태 query를 사용한다.
+      // stack 전환 전에 갱신해 새 프로필이 즉시 목록에 보이게 한다.
+      await queryClient.invalidateQueries({
+        queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
+        refetchType: 'all',
+      });
       void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
       return;
     }
@@ -104,7 +114,23 @@ export function MypagePetAddPage() {
 
   const handleError = (error: unknown) => {
     console.error('펫 등록 실패:', error);
-    // TODO: 에러 토스트 메시지 표시
+    toast({
+      title: '일시적 오류로 요청을 완료하지 못했어요',
+      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+    });
+  };
+
+  const handleGoToPetList = () => {
+    if (inviteToken) {
+      void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      return;
+    }
+
+    void reset(route.mypage.root);
+  };
+
+  const handleViewPetProfile = (petId: string) => {
+    void push({ pathname: route.mypage.pet.detail.root, query: { petId } });
   };
 
   return (
@@ -122,6 +148,8 @@ export function MypagePetAddPage() {
         onError={handleError}
         onDirtyChange={setIsFormDirty}
         onBeforeSubmit={handleBeforeSubmit}
+        onGoToPetList={handleGoToPetList}
+        onViewPetProfile={handleViewPetProfile}
         submitButtonText='저장하기'
       />
     </>
