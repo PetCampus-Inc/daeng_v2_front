@@ -140,7 +140,10 @@ function useGuardianDailyNoticeMonthList({
   });
 
   const details = queries.map((query) => query.data);
-  const isPending = canQuery && queries.some((query) => query.isPending);
+  /** 인증·펫 확보 전엔 쿼리가 비활성 — empty 대신 로딩으로 취급 */
+  const isAuthPending = enabled && (!userId || !petId);
+  const isPending =
+    isAuthPending || (canQuery && queries.some((query) => query.isPending));
   const hasError = canQuery && queries.some((query) => query.isError);
   /** 개별 쿼리가 순차적으로 도착해도 items가 갱신되도록 */
   const detailsRevision = queries.map((query) => query.dataUpdatedAt).join(',');
@@ -159,8 +162,8 @@ function useGuardianDailyNoticeMonthList({
         thumbnailUrl: thumbnailByDateKey.get(dateKey) ?? null,
       });
       return acc;
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- details는 매 렌더 새 배열이라 detailsRevision으로 추적
     }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- details는 매 렌더 새 배열이라 detailsRevision으로 추적
   }, [dateKeys, detailsRevision, thumbnailByDateKey]);
 
   /**

@@ -48,7 +48,7 @@ function GuardianDailyNoticeListPage() {
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
   const { push } = useStackNavigation();
-  const { selectedPetId } = useGuardianSelectedPet();
+  const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
 
@@ -124,6 +124,8 @@ function GuardianDailyNoticeListPage() {
 
   const hasRows =
     items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;
+  /** 펫/상세 조회 끝나기 전 empty 일러스트가 스치지 않게 */
+  const isListLoading = !isPetsReady || isPending;
 
   const handleBack = () => {
     navigateToTab('/compare');
@@ -271,7 +273,7 @@ function GuardianDailyNoticeListPage() {
           onScroll={handleScroll}
           aria-label={content.listAriaLabel}
         >
-          {isPending && !hasRows ? (
+          {isListLoading && !hasRows ? (
             <div className='flex min-h-0 flex-1 items-center justify-center'>
               <RingLoadingSpinner />
             </div>
