@@ -15,7 +15,7 @@ import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-l
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
-import { toKindergartenSelectOptions } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
+import { toKindergartenSelectOptions, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -52,21 +52,50 @@ function GuardianDailyNoticeListPage() {
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
 
+  const isDisconnected = status === 'disconnected' || isMockMode;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
+  const [requestedMonth, setRequestedMonth] = useState(
+    () => parseMonthQuery(searchParams.get('month')) ?? startOfMonth(new Date())
+  );
+  const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
+
+  const {
+    items,
+    firstAttendanceDate,
+    attendedUntilDate,
+    effectiveFirstAttendedAt,
+    lastAvailableMonth,
+    isFirstAttendanceDateFallback,
+    isPending,
+  } = useGuardianDailyNoticeMonthList({
+    schoolId: linkedKindergarten?.id,
+    petId: selectedPetId,
+    selectedMonth: requestedMonth,
+    firstAttendedAt,
+    attendedUntil: null,
+    isDisconnected,
+    isPetsReady,
+  });
+
+  const selectedMonth = useMemo(() => {
+    if (!isDisconnected || !lastAvailableMonth) return requestedMonth;
+    const cap = startOfMonth(lastAvailableMonth);
+    return requestedMonth.getTime() > cap.getTime() ? cap : requestedMonth;
+  }, [isDisconnected, lastAvailableMonth, requestedMonth]);
+
+  const disconnectedUntilKey =
+    isDisconnected && lastAvailableMonth ? toMonthEndDateKey(lastAvailableMonth) : null;
+
   /** home 현재 연결 1건. 연결 이력 API 연동 시 다건으로 확장 */
   const kindergartens = useMemo(
-    () => toKindergartenSelectOptions(linkedKindergarten),
-    [linkedKindergarten]
+    () => toKindergartenSelectOptions(linkedKindergarten, disconnectedUntilKey),
+    [disconnectedUntilKey, linkedKindergarten]
   );
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(
-    () => parseMonthQuery(searchParams.get('month')) ?? startOfMonth(new Date())
-  );
-  const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
   const resolvedKindergartenId =
     selectedKindergartenId ??
@@ -75,41 +104,19 @@ function GuardianDailyNoticeListPage() {
     kindergartens.find((item) => item.id === resolvedKindergartenId) ??
     kindergartens[0] ??
     null;
-  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? null;
+  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? disconnectedUntilKey;
   const selectedAttendedUntil = useMemo(
     () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
     [selectedAttendedUntilKey]
   );
-
-  const isDisconnected =
-    status === 'disconnected' ||
-    isMockMode ||
-    selectedAttendedUntil != null;
-
-  const {
-    items,
-    firstAttendanceDate,
-    attendedUntilDate,
-    effectiveFirstAttendedAt,
-    isFirstAttendanceDateFallback,
-    isPending,
-  } = useGuardianDailyNoticeMonthList({
-    schoolId: selectedKindergarten?.id ?? linkedKindergarten?.id,
-    petId: selectedPetId,
-    selectedMonth,
-    firstAttendedAt,
-    attendedUntil: selectedAttendedUntil,
-    isDisconnected,
-    isPetsReady,
-  });
 
   const minMonth = useMemo(
     () => startOfMonth(effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)),
     [effectiveFirstAttendedAt, firstAttendedAt]
   );
   const maxMonth = useMemo(
-    () => startOfMonth(selectedAttendedUntil ?? new Date()),
-    [selectedAttendedUntil]
+    () => startOfMonth(selectedAttendedUntil ?? lastAvailableMonth ?? new Date()),
+    [lastAvailableMonth, selectedAttendedUntil]
   );
   /** 실제 첫 등원일이 있는 달만 이전 이동 차단 (퍼블리싱 폴백 날짜는 하한에 쓰지 않음) */
   const isFirstAttendanceMonth =
@@ -138,10 +145,10 @@ function GuardianDailyNoticeListPage() {
       setSelectedKindergartenId(kindergartenId);
       setIsScrollTopVisible(false);
       if (next?.attendedUntil != null) {
-        setSelectedMonth(startOfMonth(parseDateKey(next.attendedUntil)));
+        setRequestedMonth(startOfMonth(parseDateKey(next.attendedUntil)));
         return;
       }
-      setSelectedMonth(startOfMonth(new Date()));
+      setRequestedMonth(startOfMonth(new Date()));
     },
     [kindergartens]
   );
@@ -195,7 +202,7 @@ function GuardianDailyNoticeListPage() {
       });
       return;
     }
-    setSelectedMonth((prev) => startOfMonth(addMonths(prev, -1)));
+    setRequestedMonth((prev) => startOfMonth(addMonths(prev, -1)));
     setIsScrollTopVisible(false);
   };
 
@@ -204,7 +211,7 @@ function GuardianDailyNoticeListPage() {
       toast({ title: content.monthNav.maxMonthToast });
       return;
     }
-    setSelectedMonth((prev) => startOfMonth(addMonths(prev, 1)));
+    setRequestedMonth((prev) => startOfMonth(addMonths(prev, 1)));
     setIsScrollTopVisible(false);
   };
 
@@ -217,7 +224,7 @@ function GuardianDailyNoticeListPage() {
         minMonth={minMonth}
         maxMonth={maxMonth}
         onConfirm={(month) => {
-          setSelectedMonth(startOfMonth(month));
+          setRequestedMonth(startOfMonth(month));
           setIsScrollTopVisible(false);
         }}
       />
