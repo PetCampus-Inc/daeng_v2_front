@@ -13,14 +13,17 @@ import {
   AlertDialogCancel,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm } from '@features/dog-profile';
+import { guardianPetConnectionStatusesQueryKey } from '@entities/guardian-invite';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
 export function MypagePetEditPage() {
   const { back } = useStackNavigation();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
   const isDirtyRef = useRef(false);
@@ -55,7 +58,13 @@ export function MypagePetEditPage() {
     ));
   };
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
+    // 초대 강아지 선택 화면은 pet/list와 별도의 연결 상태 query를 사용한다.
+    // 뒤로 돌아가는 시점에 최신 프로필을 표시하도록 갱신한다.
+    await queryClient.invalidateQueries({
+      queryKey: guardianPetConnectionStatusesQueryKey,
+      refetchType: 'all',
+    });
     back?.();
   };
 

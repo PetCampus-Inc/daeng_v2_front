@@ -41,7 +41,7 @@ function PetProfileForm({
   onDirtyChange,
   onBeforeSubmit,
 }: PetProfileFormProps) {
-  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, trigger, reset, transformDefaultValues } =
+  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, setValue, trigger, reset, transformDefaultValues } =
     usePetProfileForm({
       mode,
       petId,
@@ -119,7 +119,13 @@ function PetProfileForm({
               name='profileImage'
               control={control}
               render={({ field }) => (
-                <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
+                <ProfileImageUploader
+                  profileImage={field.value}
+                  onImageSelect={(uri, key) => {
+                    field.onChange(uri);
+                    setValue('profileImageKey', key, { shouldDirty: true });
+                  }}
+                />
               )}
             />
             <div className='py-4'>

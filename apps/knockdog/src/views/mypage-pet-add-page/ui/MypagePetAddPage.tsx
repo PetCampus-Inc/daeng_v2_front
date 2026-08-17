@@ -13,8 +13,10 @@ import {
   AlertDialogCancel,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
+import { guardianPetConnectionStatusesQueryKey } from '@entities/guardian-invite';
 import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -23,6 +25,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetAddPage() {
   const { back, replace } = useStackNavigation();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
   const [isFormDirty, setIsFormDirty] = useState(false);
@@ -93,9 +96,15 @@ export function MypagePetAddPage() {
     ));
   };
 
-  const handleSuccess = () => {
+  const handleSuccess = async () => {
     syncWebViewQuery.invalidate(['petList']);
     if (inviteToken) {
+      // 초대 강아지 선택 화면은 pet/list와 별도의 연결 상태 query를 사용한다.
+      // stack 전환 전에 갱신해 새 프로필이 즉시 목록에 보이게 한다.
+      await queryClient.invalidateQueries({
+        queryKey: guardianPetConnectionStatusesQueryKey,
+        refetchType: 'all',
+      });
       void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
       return;
     }
