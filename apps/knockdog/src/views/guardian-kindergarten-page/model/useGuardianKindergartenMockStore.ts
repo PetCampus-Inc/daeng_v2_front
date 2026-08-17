@@ -18,14 +18,12 @@ interface GuardianKindergartenMockStore {
   attendanceOverride: GuardianAttendanceDayMock | null;
   setAttendanceOverride: (attendance: GuardianAttendanceDayMock | null) => void;
   linkedKindergarten: GuardianLinkedKindergarten;
-  /** 유치원 탭에서 보고 있는 강아지. null이면 대표견 */
-  selectedPetId: string | null;
-  setSelectedPetId: (petId: string | null) => void;
 }
 
 /**
  * 스위치로 고른 connection/attendance override는 localStorage에 유지.
  * SHOW_CONNECTION_MOCK_SWITCHER=false여도 마지막 선택 상태가 적용됨.
+ * 선택 강아지(selectedPetId)는 useGuardianSelectedPetStore 로 분리.
  */
 const useGuardianKindergartenMockStore = create<GuardianKindergartenMockStore>()(
   persist(
@@ -35,13 +33,11 @@ const useGuardianKindergartenMockStore = create<GuardianKindergartenMockStore>()
       attendanceOverride: null,
       setAttendanceOverride: (attendanceOverride) => set({ attendanceOverride }),
       linkedKindergarten: MOCK_LINKED_KINDERGARTEN,
-      selectedPetId: null,
-      setSelectedPetId: (selectedPetId) => set({ selectedPetId }),
     }),
     {
       name: STORAGE_KEYS.GUARDIAN_KINDERGARTEN_MOCK,
       storage: createJSONStorage(() => localStorage),
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         if (!persisted || typeof persisted !== 'object') return persisted as never;
         const state = persisted as {

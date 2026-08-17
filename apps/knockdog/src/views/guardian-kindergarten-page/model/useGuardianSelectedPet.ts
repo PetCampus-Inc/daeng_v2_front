@@ -6,7 +6,7 @@ import { usePetListQuery, usePetRepresentativeQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
-import { useGuardianKindergartenMockStore } from './useGuardianKindergartenMockStore';
+import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 
 function hasUserStoreHydrated() {
   return useUserStore.persist?.hasHydrated?.() ?? true;
@@ -33,8 +33,13 @@ function useGuardianSelectedPet() {
   // 다른 WebView 로그인 직후 이 탭 store에 user가 없을 때 persist 재동기화
   useEffect(() => {
     if (!isUserStoreHydrated || !isAuthSyncing) return;
-    void useUserStore.persist?.rehydrate?.();
+    useUserStore.persist?.rehydrate?.();
   }, [isAuthSyncing, isUserStoreHydrated]);
+
+  // 미리 떠 있는 WebView — 다른 WebView에서 쓴 선택 강아지를 다시 읽는다
+  useEffect(() => {
+    useGuardianSelectedPetStore.persist?.rehydrate?.();
+  }, []);
 
   const {
     data: petListResponse,
@@ -45,8 +50,8 @@ function useGuardianSelectedPet() {
     refetch,
   } = usePetListQuery();
   const { data: representativePet } = usePetRepresentativeQuery();
-  const selectedPetId = useGuardianKindergartenMockStore((state) => state.selectedPetId);
-  const setSelectedPetId = useGuardianKindergartenMockStore((state) => state.setSelectedPetId);
+  const selectedPetId = useGuardianSelectedPetStore((state) => state.selectedPetId);
+  const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
 
   const pets = petListResponse?.data ?? [];
   const selectedPet =
