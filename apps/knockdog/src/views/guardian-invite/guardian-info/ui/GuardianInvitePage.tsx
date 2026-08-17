@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useParams } from 'next/navigation';
 import { ActionButton, ProgressBar } from '@knockdog/ui';
 
@@ -22,8 +22,10 @@ import {
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
+import { GuardianInviteAppInstallPage } from '@views/guardian-invite/guardian-info/ui/GuardianInviteAppInstallPage';
 
 const EMPTY_PROFILE_VALUES: GuardianProfileFormValues = {
   name: '',
@@ -37,6 +39,47 @@ const EMPTY_PROFILE_VALUES: GuardianProfileFormValues = {
 /** 보호자 유치원 초대 및 가입 신청 화면의 퍼블리싱 진입점 */
 function GuardianInvitePage() {
   const { token } = useParams<{ token: string }>();
+  const user = useUserStore((state) => state.user);
+  const { replace } = useStackNavigation();
+  // SSR은 false를 사용하고, hydration 완료 후에만 실제 WebView 여부를 반영한다.
+  const isNative = useSyncExternalStore(
+    () => () => undefined,
+    isNativeWebView,
+    () => false
+  );
+  const hasUserStoreHydrated = useSyncExternalStore(
+    (onStoreChange) => useUserStore.persist.onFinishHydration(onStoreChange),
+    () => useUserStore.persist.hasHydrated(),
+    () => false
+  );
+  const hasAuth = Boolean(user);
+  const isLoginRedirectingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isNative || !hasUserStoreHydrated || hasAuth || isLoginRedirectingRef.current) return;
+
+    isLoginRedirectingRef.current = true;
+    void replace({
+      pathname: route.auth.login.root,
+      params: {
+        redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+      },
+    }).catch(() => {
+      isLoginRedirectingRef.current = false;
+      toast('로그인 화면으로 이동하지 못했어요. 다시 시도해 주세요.');
+    });
+  }, [hasAuth, hasUserStoreHydrated, isNative, replace, token]);
+
+  // 앱이 설치되지 않아 브라우저로 열린 경우에는 인증·초대 API를 호출하지 않는다.
+  if (!isNative) return <GuardianInviteAppInstallPage />;
+
+  if (!hasUserStoreHydrated || !hasAuth) return null;
+
+  return <GuardianInviteProfilePage token={token} />;
+}
+
+/** 로그인된 앱 사용자에게 노출하는 보호자 정보 입력 화면 */
+function GuardianInviteProfilePage({ token }: { token: string }) {
   const [values, setValues] = useState<GuardianProfileFormValues>(EMPTY_PROFILE_VALUES);
   const [selectedAddress, setSelectedAddress] = useState<GuardianProfileAddress | null>(null);
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);

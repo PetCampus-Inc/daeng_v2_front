@@ -12,7 +12,8 @@ import { useStackNavigation } from '@shared/lib/bridge';
 const useVerifyEmailProcess = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const { reset } = useStackNavigation();
+  const { reset, getParams } = useStackNavigation();
+  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
   const socialUser = useSocialUserStore((state) => state.socialUser);
   const setUser = useUserStore((state) => state.setUser);
 
@@ -52,8 +53,7 @@ const useVerifyEmailProcess = () => {
       position: 'bottom-above-nav',
     });
 
-    // 루트 페이지로 이동
-    reset(route.root);
+    reset(redirectTo ?? route.root);
   };
 
   // isInitialized를 ref로 사용 시, mutate의 처리 상태가 항상 Pending 상태로 유지 됨

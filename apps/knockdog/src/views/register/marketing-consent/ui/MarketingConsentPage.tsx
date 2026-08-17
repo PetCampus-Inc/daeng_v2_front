@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { trackSignUpCompleted } from '@shared/lib/analytics';
+import { consumePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { route } from '@shared/constants/route';
 
 function MarketingConsentPage() {
@@ -16,17 +17,21 @@ function MarketingConsentPage() {
   /** [마켓팅 정보 수신 동의] 버튼 클릭 */
   const handleOpenBottomSheet = () => setIsOpen(true);
 
+  const handleComplete = () => {
+    reset(consumePostSignUpRedirect() ?? route.root);
+  };
+
   /** [아니오] 버튼 클릭 */
   const handleSkip = () => {
     trackSignUpCompleted(false);
-    reset(route.root);
+    handleComplete();
   };
 
   /** [예] 버튼 클릭 */
   const handleAgree = () => {
     trackSignUpCompleted(true);
     // TODO: 수신 동의 로직 추가
-    reset(route.root);
+    handleComplete();
   };
 
   return (

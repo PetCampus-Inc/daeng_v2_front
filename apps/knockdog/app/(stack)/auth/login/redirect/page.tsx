@@ -12,7 +12,8 @@ import { STORAGE_KEYS } from '@shared/constants';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function RedirectLoginPage() {
-  const { push } = useStackNavigation();
+  const { push, getParams } = useStackNavigation();
+  const [redirectTo] = useState(() => getParams()?.redirectTo as string | undefined);
   const [linkedSocialUser, setLinkedSocialUser] = useState<SocialUser | null>(null);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function RedirectLoginPage() {
     setLinkedSocialUser(linkedSocialUserStorage.get());
   }, []);
 
-  const handleReconnectClick = () => push({ pathname: route.auth.reconnectSocial.root });
+  const handleReconnectClick = () => push({ pathname: route.auth.reconnectSocial.root, params: { redirectTo } });
 
   if (!linkedSocialUser) return null;
   return (
@@ -46,7 +47,7 @@ export default function RedirectLoginPage() {
         </div>
 
         <div className='mb-5 flex flex-col gap-3 px-4'>
-          <LoginButton provider={linkedSocialUser.provider} />
+          <LoginButton provider={linkedSocialUser.provider} redirectTo={redirectTo} />
           <button className='label-semibold text-text-secondary py-3 underline' onClick={handleReconnectClick}>
             기존 계정으로 로그인 할 수 없나요?
           </button>
