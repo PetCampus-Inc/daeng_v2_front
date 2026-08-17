@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -12,7 +12,13 @@ import {
   useGuardianPetConnectionStatusesQuery,
 } from '@entities/guardian-invite';
 import { PET_LIST_QUERY_KEY } from '@entities/pet';
-import { useUserStore } from '@entities/user';
+import {
+  USER_AGREEMENTS_STATUS_QUERY_KEY,
+  USER_AGREEMENT_TERM,
+  postUserAgreements,
+  useUserAgreementsStatusQuery,
+  useUserStore,
+} from '@entities/user';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -26,6 +32,7 @@ function useGuardianInvitePrivacyConsentPage() {
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
+  const userAgreementsStatusQuery = useUserAgreementsStatusQuery();
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPets] = useState<SelectedGuardianPet[]>(
@@ -44,13 +51,36 @@ function useGuardianInvitePrivacyConsentPage() {
       ),
     [searchParams]
   );
-  const isSubmitEnabled = isAgreed && selectedPetIds.length > 0 && !isSubmitting;
+  const hasAgreedRequiredTerms = userAgreementsStatusQuery.data?.data?.hasAgreedRequiredTerms === true;
+
+  useEffect(() => {
+    if (hasAgreedRequiredTerms) setIsAgreed(true);
+  }, [hasAgreedRequiredTerms]);
+
+  const isSubmitEnabled =
+    isAgreed &&
+    selectedPetIds.length > 0 &&
+    !isSubmitting &&
+    !userAgreementsStatusQuery.isLoading &&
+    !userAgreementsStatusQuery.isError;
 
   const handleSubmit = async () => {
     if (!isAgreed || isSubmitting || selectedPetIds.length === 0) return;
 
     setIsSubmitting(true);
     try {
+      // 서버는 필수 약관 전체를 한 요청에서 검증한다. 이미 저장된 동의는 upsert로 유지한다.
+      if (!hasAgreedRequiredTerms) {
+        await postUserAgreements({
+          agreedTerms: [
+            USER_AGREEMENT_TERM.TERMS_OF_SERVICE,
+            USER_AGREEMENT_TERM.PRIVACY_POLICY,
+            USER_AGREEMENT_TERM.AGE_OVER_14,
+          ],
+        });
+        await queryClient.invalidateQueries({ queryKey: [USER_AGREEMENTS_STATUS_QUERY_KEY] });
+      }
+
       // URL은 사용자가 수정할 수 있으므로, 제출 직전에 최신 선택 가능 상태를 다시 확인한다.
       const latestConnections = await petConnectionStatusesQuery.refetch();
       const selectablePetIds = new Set(
