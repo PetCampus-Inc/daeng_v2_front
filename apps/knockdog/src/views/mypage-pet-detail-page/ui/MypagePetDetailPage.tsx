@@ -19,12 +19,13 @@ import { Header } from '@widgets/Header';
 import { PetDetailInfo } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetDetailPage() {
   const { push, back } = useStackNavigation();
+  const navigationResult = useNavigationResult<void>();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
@@ -33,6 +34,15 @@ export function MypagePetDetailPage() {
 
   const handlePetEdit = () => {
     push({ pathname: '/mypage/pet-edit', query: { petId } });
+  };
+
+  const handleBack = () => {
+    try {
+      navigationResult.send();
+    } catch {
+      // pushForResult로 열리지 않은 일반 상세 화면에서는 결과를 보낼 대상이 없다.
+    }
+    void back();
   };
 
   const handleDeleteClick = () => {
@@ -73,7 +83,7 @@ export function MypagePetDetailPage() {
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
+          <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>강아지 프로필</Header.Title>
 

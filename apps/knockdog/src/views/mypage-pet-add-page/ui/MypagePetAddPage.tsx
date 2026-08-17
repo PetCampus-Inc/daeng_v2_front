@@ -25,7 +25,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 
 export function MypagePetAddPage() {
-  const { back, push, replace, reset } = useStackNavigation();
+  const { back, pushForResult, replace, reset } = useStackNavigation();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
@@ -129,9 +129,8 @@ export function MypagePetAddPage() {
     void reset(route.mypage.root);
   };
 
-  const handleViewPetProfile = (petId: string) => {
-    void push({ pathname: route.mypage.pet.detail.root, query: { petId } });
-  };
+  const handleViewPetProfile = (petId: string) =>
+    pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId } }, 600_000);
 
   return (
     <>

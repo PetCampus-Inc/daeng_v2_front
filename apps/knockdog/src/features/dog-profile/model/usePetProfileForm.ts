@@ -14,7 +14,7 @@ import { useMoveImageMutation } from '@shared/lib/media';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { isValidDogWeight } from '../lib/weight';
 
-export interface PetFormData {
+interface PetFormData {
   name: string;
   relationship: Relationship | '';
   relationshipText: string;
