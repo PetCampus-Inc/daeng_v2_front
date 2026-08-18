@@ -36,6 +36,8 @@ const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-1',
     type: NOTIFICATION_INBOX_TYPE.CONNECTION_COMPLETED,
+    title: '유치원 연결이 완료됐어요',
+    body: '이제 똑독에서 유치원 생활을 모아볼 수 있어요',
     kindergartenName: '코코스퀘어 강아지유치원&애견미용 플래그십 스토어',
     petName: '몽이',
     sentAt: minutesAgo(5),
@@ -44,6 +46,8 @@ const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-2',
     type: NOTIFICATION_INBOX_TYPE.DAILY_NOTICE_ARRIVED,
+    title: '니콜라스의 알림장이 도착했어요',
+    body: '우리 아이의 하루를 똑독에서 확인해 보세요.',
     kindergartenName: '디그닥 유치원',
     petName: '니콜라스',
     sentAt: minutesAgo(19),
@@ -52,6 +56,8 @@ const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-3',
     type: NOTIFICATION_INBOX_TYPE.DAILY_NOTICE_ARRIVED,
+    title: '세바스찬의 알림장이 도착했어요',
+    body: '우리 아이의 하루를 똑독에서 확인해 보세요.',
     kindergartenName: '디그닥 유치원',
     petName: '세바스찬',
     sentAt: minutesAgo(30),
@@ -60,6 +66,8 @@ const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-4',
     type: NOTIFICATION_INBOX_TYPE.CONNECTION_APPLY_SENT,
+    title: '유치원에 몽이의 연결 신청을 보냈어요',
+    body: '원장님이 확인 중이에요. 연결이 완료 되면 알려드릴게요.',
     kindergartenName: '코코스퀘어 강아지유치원&애견미용 플래그십 스토어',
     petName: '몽이',
     sentAt: minutesAgo(60),
@@ -68,6 +76,8 @@ const MOCK_NOTIFICATION_INBOX_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-5',
     type: NOTIFICATION_INBOX_TYPE.ALBUM_PHOTO_UPLOADED,
+    title: '다닥의 사진이 올라왔어요',
+    body: '우리 아이의 모습을 똑독에서 확인해 보세요.',
     kindergartenName: '가나다라마바사 유치원',
     petName: '다닥',
     sentAt: daysAgo(3),
@@ -80,6 +90,8 @@ const MOCK_NOTIFICATION_INBOX_PAGE_NOT_FOUND_ITEMS: NotificationInboxItem[] = [
   {
     id: 'noti-m05',
     type: NOTIFICATION_INBOX_TYPE.CONNECTION_COMPLETED,
+    title: '유치원 연결이 완료됐어요',
+    body: '이제 똑독에서 유치원 생활을 모아볼 수 있어요',
     kindergartenName: '코코스퀘어 강아지유치원&애견미용 플래그십 스토어',
     petName: '몽이',
     sentAt: minutesAgo(5),
