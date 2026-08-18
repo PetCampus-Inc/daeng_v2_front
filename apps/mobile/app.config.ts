@@ -4,6 +4,7 @@ import 'dotenv/config';
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const iosUrlScheme = process.env.EXPO_PUBLIC_IOS_URL_SCHEME;
 const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL;
+const androidGoogleServicesFile = process.env.GOOGLE_SERVICES_JSON_PATH ?? './google-services.json';
 
 if (!WEBVIEW_URL) {
   throw new Error('EXPO_PUBLIC_WEBVIEW_URL is not defined');
@@ -75,6 +76,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: 'net.knockdog.petcampus.v2',
+    googleServicesFile: androidGoogleServicesFile,
     permissions: ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
     intentFilters: [
       {

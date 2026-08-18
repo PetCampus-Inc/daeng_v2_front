@@ -7,6 +7,10 @@ import { tokenUtils } from '@shared/utils';
 import { isNativeWebView } from '@shared/lib/device';
 import { putPushDevice } from '@entities/user/api/pushDevice';
 import { savePushDeviceRegistration } from '../model/pushDeviceStorage';
+import {
+  isPushDeviceLogoutInProgress,
+  trackPendingPushDeviceRegistration,
+} from '../model/pendingPushDeviceRegistration';
 
 type FcmTokenPayload = { token: string; platform: 'IOS' | 'ANDROID' };
 
@@ -40,13 +44,23 @@ function PushDeviceSyncEffect() {
 
   useEffect(() => {
     if (!isNative || !isHydrated() || !isAuthenticated || !user?.userId || !fcmToken) return;
+    if (isPushDeviceLogoutInProgress()) return;
 
-    void putPushDevice({ provider: 'FCM', platform: fcmToken.platform, token: fcmToken.token })
+    const registeredUserId = user.userId;
+
+    const registration = putPushDevice({ provider: 'FCM', platform: fcmToken.platform, token: fcmToken.token })
       .then((pushDeviceId) => {
-        if (pushDeviceId) savePushDeviceRegistration({ pushDeviceId });
-        else console.warn('[Push] push device upsert response has no id; logout cleanup will be skipped');
+        // 요청 중 로그아웃하거나 다른 계정으로 전환됐다면 이전 세션의 ID를 저장하지 않는다.
+        const currentUserId = useUserStore.getState().user?.userId;
+        if (pushDeviceId && currentUserId === registeredUserId && tokenUtils.hasAccessToken()) {
+          savePushDeviceRegistration({ userId: registeredUserId, pushDeviceId });
+        } else if (!pushDeviceId) {
+          console.warn('[Push] push device upsert response has no id; logout cleanup will be skipped');
+        }
       })
       .catch((error) => console.warn('[Push] device registration failed', error));
+
+    void trackPendingPushDeviceRegistration(registration);
   }, [fcmToken, isAuthenticated, isNative, user?.userId]);
 
   return null;

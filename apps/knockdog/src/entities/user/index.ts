@@ -64,7 +64,7 @@ export {
   type UserAgreementsStatus,
   type UserAgreementTerm,
 } from './api/userAgreement';
-export { putPushDevice, deletePushDevice } from './api/pushDevice';
+export { putPushDevice } from './api/pushDevice';
 export { usePushSettingQuery } from './api/usePushSettingQuery';
 export { usePushSettingMutation } from './api/usePushSettingMutation';
 export { type PushSetting } from './api/pushSetting';

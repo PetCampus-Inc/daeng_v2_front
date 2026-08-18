@@ -25,10 +25,5 @@ async function putPushDevice(params: UpsertPushDeviceParams): Promise<string | n
   return toPushDeviceId(response.data?.pushDeviceId) ?? toPushDeviceId(response.data?.id);
 }
 
-/** `DELETE` - 현재 로그인 사용자에서 이 기기 등록을 해제한다. */
-async function deletePushDevice(pushDeviceId: string) {
-  await api.delete(`push-devices/${encodeURIComponent(pushDeviceId)}`);
-}
-
-export { putPushDevice, deletePushDevice };
+export { putPushDevice };
 export type { PushPlatform };

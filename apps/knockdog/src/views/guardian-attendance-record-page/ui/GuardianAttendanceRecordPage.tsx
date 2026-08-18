@@ -7,7 +7,16 @@ import { PageError } from '@shared/ui/page-error';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 function validDate(value: string | null) {
-  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 /** 푸시 payload의 petId/date를 기준으로 보호자용 발송 알림장을 조회한다. */

@@ -5,9 +5,13 @@ export const postLogin = async <T>(): Promise<ApiResponse<T>> => {
   return await api.post('auth/login').json<ApiResponse<T>>();
 };
 
-/** `POST` - 로그아웃 API */
-export const postLogout = async () => {
-  return await api.post('auth/logout');
+interface LogoutRequest {
+  pushDeviceId?: string;
+}
+
+/** `POST` - 현재 세션을 종료하고 해당 세션의 푸시 기기 등록을 해제한다. */
+export const postLogout = async (body?: LogoutRequest) => {
+  return body ? await api.post('auth/logout', { json: body }) : await api.post('auth/logout');
 };
 
 /** `POST` - 엑세스 토큰 재발급 API */

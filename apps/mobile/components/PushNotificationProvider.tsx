@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import {
-  AuthorizationStatus,
   getInitialNotification,
   getMessaging,
   getToken,
@@ -9,7 +8,6 @@ import {
   onNotificationOpenedApp,
   onTokenRefresh,
   registerDeviceForRemoteMessages,
-  requestPermission,
   type RemoteMessage,
 } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
@@ -20,7 +18,34 @@ Notifications.setNotificationHandler({
 });
 
 const firebaseMessaging = getMessaging();
-const pushPlatform = 'IOS' as const;
+const NOTIFICATION_CHANNEL_ID = 'push_notifications';
+const pushPlatform = Platform.OS === 'android' ? 'ANDROID' : 'IOS';
+
+function hasNotificationPermission(permission: Notifications.NotificationPermissionsStatus) {
+  // Expo 53의 공개 타입은 PermissionResponse 필드를 노출하지 않지만, 네이티브 응답에는 포함된다.
+  const response = permission as typeof permission & { granted?: boolean; status?: string };
+
+  return (
+    response.granted ||
+    response.status === 'granted' ||
+    permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+  );
+}
+
+async function requestNotificationPermission() {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+      name: '일반 알림',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    });
+  }
+
+  const existingPermission = await Notifications.getPermissionsAsync();
+  if (hasNotificationPermission(existingPermission)) return true;
+
+  const requestedPermission = await Notifications.requestPermissionsAsync();
+  return hasNotificationPermission(requestedPermission);
+}
 
 function notificationData(message: RemoteMessage): Record<string, unknown> {
   return message.data ?? {};
@@ -32,7 +57,12 @@ async function showForegroundNotification(message: RemoteMessage) {
   if (!title && !body) return;
 
   await Notifications.scheduleNotificationAsync({
-    content: { title: title ?? '', body: body ?? '', data: notificationData(message) },
+    content: {
+      title: title ?? '',
+      body: body ?? '',
+      data: notificationData(message),
+      ...(Platform.OS === 'android' ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
+    },
     trigger: null,
   });
 }
@@ -40,19 +70,14 @@ async function showForegroundNotification(message: RemoteMessage) {
 /** FCM 수신·탭 처리를 앱 생명주기와 무관하게 한 곳에 모은다. */
 export function PushNotificationProvider() {
   useEffect(() => {
-    // 이번 릴리스의 기기 등록 계약은 iOS FCM만 지원한다.
-    if (Platform.OS !== 'ios') return;
-
     let mounted = true;
 
     const initialize = async () => {
       try {
-        const permission = await requestPermission(firebaseMessaging);
-        const authorized =
-          permission === AuthorizationStatus.AUTHORIZED || permission === AuthorizationStatus.PROVISIONAL;
+        const authorized = await requestNotificationPermission();
         if (!authorized) return;
 
-        await registerDeviceForRemoteMessages(firebaseMessaging);
+        if (Platform.OS === 'ios') await registerDeviceForRemoteMessages(firebaseMessaging);
         const token = await getToken(firebaseMessaging);
         if (mounted) pushCoordinator.setToken(token, pushPlatform);
 
