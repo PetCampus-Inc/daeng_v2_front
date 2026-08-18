@@ -23,6 +23,7 @@ interface NotificationInboxItem {
   /** ISO datetime — 발송 시각 */
   sentAt: string;
   isRead: boolean;
+  payload?: Record<string, unknown>;
   /** 대상 페이지 접근 권한 없음 / 데이터 삭제 — M-05 */
   isTargetUnavailable?: boolean;
 }

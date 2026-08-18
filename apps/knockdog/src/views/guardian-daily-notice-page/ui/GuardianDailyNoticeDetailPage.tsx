@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 
@@ -20,6 +20,7 @@ import {
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
@@ -35,12 +36,24 @@ interface VisibleCheckInState {
   isSelectedDateEnabled: boolean;
 }
 
+function parsePetIdQuery(value: string | null) {
+  return value && /^\d+$/.test(value) ? value : null;
+}
+
 function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
   const { push, reset } = useStackNavigation();
-  const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome();
+  const petIdFromQuery = parsePetIdQuery(searchParams.get('petId'));
+  const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
+  const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome({
+    petId: petIdFromQuery,
+  });
   const { isPetsReady } = useGuardianSelectedPet();
+
+  useEffect(() => {
+    if (petIdFromQuery) setSelectedPetId(petIdFromQuery);
+  }, [petIdFromQuery, setSelectedPetId]);
 
   const [selectedDate, setSelectedDate] = useState(() => {
     return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
@@ -61,6 +74,7 @@ function GuardianDailyNoticeDetailPage() {
 
   const { checkInAt, checkOutAt, dailyNotice, isPending } = useGuardianCalendarDay({
     selectedDate,
+    petId: petIdFromQuery,
     enabled: !showEmptyWeekNoCheckIn,
   });
   const {
@@ -150,6 +164,7 @@ function GuardianDailyNoticeDetailPage() {
           <GuardianKindergartenDateCalendar
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
+            petId={petIdFromQuery}
             firstAttendedAt={firstAttendedAt ?? undefined}
             onlyCheckInDatesSelectable
             onVisibleCheckInStateChange={setVisibleCheckInState}

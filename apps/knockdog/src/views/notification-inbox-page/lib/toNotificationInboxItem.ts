@@ -15,6 +15,7 @@ function toNotificationInboxItem(notification: Notification): NotificationInboxI
     petName: notification.pet?.name ?? '',
     sentAt: notification.createdAt,
     isRead: notification.isRead,
+    payload: notification.payload,
   };
 }
 

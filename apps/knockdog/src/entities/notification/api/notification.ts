@@ -19,5 +19,15 @@ function getNotifications({ cursor, size = 30 }: GetNotificationsParams = {}) {
     .json<ApiResponse<NotificationInboxDto>>();
 }
 
-export { getNotifications };
+/** `PATCH` - 알림 단건 읽음 처리 */
+function patchNotificationRead(notificationId: string) {
+  return api.patch(`notifications/${notificationId}`).json<ApiResponse<null>>();
+}
+
+/** `PATCH` - 최근 알림 전체 읽음 처리 */
+function patchNotificationsReadAll() {
+  return api.patch('notifications').json<ApiResponse<null>>();
+}
+
+export { getNotifications, patchNotificationRead, patchNotificationsReadAll };
 export type { GetNotificationsParams };

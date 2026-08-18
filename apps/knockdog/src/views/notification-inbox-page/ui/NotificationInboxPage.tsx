@@ -6,6 +6,7 @@ import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
+import { useNotificationInboxDeepLink } from '@views/notification-inbox-page/model/useNotificationInboxDeepLink';
 import { useNotificationInboxPage } from '@views/notification-inbox-page/model/useNotificationInboxPage';
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
 import { NotificationInboxList } from '@views/notification-inbox-page/ui/NotificationInboxList';
@@ -27,6 +28,7 @@ function NotificationInboxPage() {
     markItemAsRead,
     markAllAsRead,
   } = useNotificationInboxPage();
+  const { openNotification } = useNotificationInboxDeepLink();
 
   const handleRetry = () => {
     void refetch();
@@ -51,8 +53,8 @@ function NotificationInboxPage() {
   };
 
   const handleItemClick = (item: NotificationInboxItem) => {
-    // TODO: 타입별 딥링크 + 단건 읽음 처리 API
     if (!item.isRead) markItemAsRead(item.id);
+    openNotification(item);
   };
 
   return (
