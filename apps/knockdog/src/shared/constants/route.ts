@@ -1,6 +1,10 @@
 const route = {
   /** 루트(메인) 페이지 */
   root: '/',
+  /** 인스타 등 외부 유입 — 앱 오픈 / 스토어 / 웹 홈 분기 */
+  open: {
+    root: '/open',
+  },
   auth: {
     login: {
       /** 로그인 페이지 */
@@ -104,6 +108,10 @@ const route = {
       add: {
         /** 강아지 프로필 추가 페이지 */
         root: '/mypage/pet-add',
+      },
+      detail: {
+        /** 강아지 프로필 상세 페이지 */
+        root: '/mypage/pet-detail',
       },
     },
   },
@@ -211,6 +219,18 @@ const route = {
       },
     },
   },
+  guardian: {
+    connectionApply: {
+      status: {
+        /** 보호자 유치원 연결 신청 현황 */
+        root: '/guardian/connection-apply/status',
+      },
+    },
+  },
+  notification: {
+    /** 알림함 */
+    root: '/notification',
+  },
   compare: {
     /** 보호자 유치원 탭 */
     root: '/compare',
@@ -221,6 +241,14 @@ const route = {
     album: {
       /** 보호자 유치원 앨범 전체 보기 */
       root: '/compare/album',
+    },
+    notice: {
+      /** 보호자 알림장 상세 */
+      root: '/compare/notice',
+      /** 보호자 알림장 월별 리스트 */
+      list: {
+        root: '/compare/notice/list',
+      },
     },
   },
 };

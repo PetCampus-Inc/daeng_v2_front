@@ -8,6 +8,7 @@ import { BreedSelector } from './BreedSelector';
 import { YearSelector } from './YearSelector';
 import { GenderSelector } from './GenderSelector';
 import { NeuteredSelector } from './NeuteredSelector';
+import { PetNameDuplicateSheet } from './PetNameDuplicateSheet';
 import { ProfileImageUploader } from './ProfileImageUploader';
 import {
   MAX_DOG_NAME_LENGTH,
@@ -18,7 +19,8 @@ import {
 import { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from '../lib/weight';
 import { usePetProfileForm } from '../model/usePetProfileForm';
 import { cn } from '@knockdog/ui/lib';
-import { RELATIONSHIP, type Pet } from '@entities/pet';
+import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
+import { ApiError } from '@shared/api';
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
@@ -29,6 +31,12 @@ interface PetProfileFormProps {
   onError?: (error: unknown) => void;
   onDirtyChange?: (isDirty: boolean) => void;
   onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
+  onGoToPetList?: () => void;
+  onViewPetProfile?: (petId: string) => Promise<unknown>;
+}
+
+function findDuplicatePets(pets: Pet[] | undefined, petId: string | undefined, name: string) {
+  return pets?.filter((pet) => String(pet.id) !== petId && pet.name === name) ?? [];
 }
 
 function PetProfileForm({
@@ -40,19 +48,57 @@ function PetProfileForm({
   onError,
   onDirtyChange,
   onBeforeSubmit,
+  onGoToPetList,
+  onViewPetProfile,
 }: PetProfileFormProps) {
-  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, trigger, reset, transformDefaultValues } =
+  const [isDuplicateNameSheetOpen, setIsDuplicateNameSheetOpen] = React.useState(false);
+  const [duplicatePets, setDuplicatePets] = React.useState<Pet[]>([]);
+  const [isResolvingDuplicateName, setIsResolvingDuplicateName] = React.useState(false);
+  const submittedPetNameRef = React.useRef('');
+  const { data: petListResponse, refetch: refetchPetList } = usePetListQuery();
+  const handleSaveError = React.useCallback(
+    async (error: unknown) => {
+      if (error instanceof ApiError && error.status === 409) {
+        setIsResolvingDuplicateName(true);
+
+        try {
+          const { data: refreshedPetListResponse } = await refetchPetList();
+          const matchedPets = findDuplicatePets(
+            refreshedPetListResponse?.data,
+            petId,
+            submittedPetNameRef.current
+          );
+
+          if (matchedPets.length > 0) {
+            setDuplicatePets(matchedPets);
+            setIsDuplicateNameSheetOpen(true);
+            return;
+          }
+        } catch {
+          // 최신 목록을 가져오지 못해도 원래 저장 오류를 호출부에 전달한다.
+        } finally {
+          setIsResolvingDuplicateName(false);
+        }
+
+        onError?.(error);
+        return;
+      }
+
+      onError?.(error);
+    },
+    [onError, petId, refetchPetList]
+  );
+  const { control, handleSubmit, isSubmitting, isValid, isDirty, getValues, setValue, trigger, reset, transformDefaultValues } =
     usePetProfileForm({
       mode,
       petId,
       defaultValues,
       onSuccess,
-      onError,
+      onError: handleSaveError,
     });
 
   const relationship = useWatch({ control, name: 'relationship' });
-  const isAdditionalInfoRequired = mode === 'add';
-
+  const isAdditionalInfoRequired = true;
   // defaultValues가 변경될 때 폼 리셋
   const defaultValuesKey = React.useMemo(() => {
     if (!defaultValues) return null;
@@ -86,17 +132,50 @@ function PetProfileForm({
     void trigger('relationshipText');
   }, [relationship, trigger]);
 
-  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!isValid || isSubmitting) return;
-
+  const submitForm = (formData: { name: string }, event?: React.BaseSyntheticEvent) => {
     // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
     if (onBeforeSubmit) {
-      const formData = getValues();
-      onBeforeSubmit(() => handleSubmit(e), { name: formData.name });
+      onBeforeSubmit(() => handleSubmit(event), formData);
     } else {
-      handleSubmit(e);
+      handleSubmit(event);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!isValid || isSubmitting || isResolvingDuplicateName) return;
+
+    const formData = getValues();
+    submittedPetNameRef.current = formData.name;
+    const matchedPets = findDuplicatePets(petListResponse?.data, petId, formData.name);
+    if (matchedPets.length > 0) {
+      setDuplicatePets(matchedPets);
+      setIsDuplicateNameSheetOpen(true);
+      return;
+    }
+
+    submitForm({ name: formData.name }, e);
+  };
+
+  const handleSaveAsIs = () => {
+    setIsDuplicateNameSheetOpen(false);
+    const formData = getValues();
+    submittedPetNameRef.current = formData.name;
+    submitForm({ name: formData.name });
+  };
+
+  const handleViewPetProfile = async (duplicatePetId: string) => {
+    if (!onViewPetProfile) return;
+
+    const formValues = getValues();
+    try {
+      await onViewPetProfile(duplicatePetId);
+    } catch {
+      // 시스템 뒤로가기처럼 결과 없이 돌아온 경우도 기존 입력값을 복원한다.
+    } finally {
+      reset(formValues, { keepDefaultValues: true });
+      void trigger();
     }
   };
 
@@ -119,7 +198,13 @@ function PetProfileForm({
               name='profileImage'
               control={control}
               render={({ field }) => (
-                <ProfileImageUploader profileImage={field.value} onImageSelect={(uri) => field.onChange(uri)} />
+                <ProfileImageUploader
+                  profileImage={field.value}
+                  onImageSelect={(uri, key) => {
+                    field.onChange(uri);
+                    setValue('profileImageKey', key, { shouldDirty: true });
+                  }}
+                />
               )}
             />
             <div className='py-4'>
@@ -289,12 +374,20 @@ function PetProfileForm({
           </div>
 
           <div className='shrink-0 bg-bg-0 py-x5'>
-            <ActionButton type='submit' size='large' disabled={!isValid || isSubmitting}>
+            <ActionButton type='submit' size='large' disabled={!isValid || isSubmitting || isResolvingDuplicateName}>
               {submitButtonText}
             </ActionButton>
           </div>
         </form>
       </div>
+      <PetNameDuplicateSheet
+        pets={duplicatePets}
+        isOpen={isDuplicateNameSheetOpen}
+        onOpenChange={setIsDuplicateNameSheetOpen}
+        onGoToPetList={() => onGoToPetList?.()}
+        onSaveAsIs={handleSaveAsIs}
+        onViewPetProfile={(duplicatePetId) => void handleViewPetProfile(duplicatePetId)}
+      />
     </>
   );
 }

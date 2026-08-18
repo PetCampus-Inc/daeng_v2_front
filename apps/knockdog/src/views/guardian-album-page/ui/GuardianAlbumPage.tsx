@@ -6,7 +6,6 @@ import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
-import { MOCK_ALBUM_KINDERGARTENS } from '@views/guardian-album-page/config/guardianAlbumKindergartenMock';
 import {
   compareYearMonth,
   isSameYearMonth,
@@ -24,7 +23,6 @@ import { mergeGuardianAlbumDayPhotos } from '@views/guardian-album-page/lib/merg
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
-import { GuardianAlbumEntryError } from '@views/guardian-album-page/ui/GuardianAlbumEntryError';
 import { useGuardianAlbumAttendedDays } from '@views/guardian-album-page/model/useGuardianAlbumAttendedDays';
 import { useGuardianAlbumFavorites } from '@views/guardian-album-page/model/useGuardianAlbumFavorites';
 import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model/useGuardianAlbumFavoriteToggle';
@@ -35,16 +33,18 @@ import type { GuardianAlbumFilterDay } from '@views/guardian-album-page/ui/Guard
 import { GuardianAlbumFilterSheet } from '@views/guardian-album-page/ui/GuardianAlbumFilterSheet';
 import { GuardianAlbumHistoryEmpty } from '@views/guardian-album-page/ui/GuardianAlbumHistoryEmpty';
 import { GuardianAlbumInfoSheet } from '@views/guardian-album-page/ui/GuardianAlbumInfoSheet';
-import { GuardianAlbumKindergartenSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumKindergartenSelectSheet';
 import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlbumMonthNav';
 import { GuardianAlbumMonthEmpty } from '@views/guardian-album-page/ui/GuardianAlbumMonthEmpty';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumPhotoDetail } from '@views/guardian-album-page/ui/GuardianAlbumPhotoDetail';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
+import { toKindergartenSelectOptions, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { startOfDay } from '@shared/lib/calendar-date';
+import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 interface GuardianAlbumDetailState {
@@ -63,12 +63,13 @@ function addMonths(date: Date, months: number) {
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
-  const kindergartens = MOCK_ALBUM_KINDERGARTENS;
   const {
     selectedPet,
     selectedPetId,
+    status,
     schoolId,
     schoolName,
+    schoolImageUrl,
     hasAlbumHistory,
     hasLinkedSchool,
     isAttendedToday,
@@ -82,15 +83,10 @@ function GuardianAlbumPage() {
   } = useGuardianAlbumToday();
   const { back } = useStackNavigation();
   const searchParams = useSearchParams();
-  const canSelectKindergarten = kindergartens.length > 1;
-  const defaultKindergartenId =
-    kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const didOpenHomeDetailRef = useRef(false);
-  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(
-    defaultKindergartenId
-  );
+  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
   const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
@@ -112,6 +108,30 @@ function GuardianAlbumPage() {
     selectedMonth,
     enabled: hasLinkedSchool,
   });
+
+  const disconnectedUntilKey =
+    status === 'disconnected' && lastAvailableMonth
+      ? toMonthEndDateKey(lastAvailableMonth)
+      : null;
+
+  const kindergartens = useMemo(
+    () =>
+      toKindergartenSelectOptions(
+        schoolId && hasLinkedSchool
+          ? {
+              id: schoolId,
+              name: schoolName ?? '',
+              address: '',
+              imageUrl: schoolImageUrl ?? '',
+            }
+          : null,
+        disconnectedUntilKey
+      ),
+    [disconnectedUntilKey, hasLinkedSchool, schoolId, schoolImageUrl, schoolName]
+  );
+  const canSelectKindergarten = kindergartens.length > 1;
+  const defaultKindergartenId =
+    kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
 
   const {
     days: favoriteDays,
@@ -145,11 +165,13 @@ function GuardianAlbumPage() {
   });
 
   const selectedKindergarten =
-    kindergartens.find((item) => item.id === selectedKindergartenId) ?? kindergartens[0] ?? null;
+    kindergartens.find((item) => item.id === (selectedKindergartenId ?? defaultKindergartenId)) ??
+    kindergartens[0] ??
+    null;
   const kindergartenName = schoolName ?? selectedKindergarten?.name ?? '유치원';
   const petName = selectedPet?.name ?? '강아지';
   const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
-  const isDisconnected = attendedUntil != null;
+  const isDisconnected = status === 'disconnected' || attendedUntil != null;
   const albumRangeEnd = useMemo(
     () => (attendedUntil != null ? parseDateKey(attendedUntil) : new Date()),
     [attendedUntil]
@@ -229,6 +251,47 @@ function GuardianAlbumPage() {
       }
     },
     [openDetail, schoolId]
+  );
+
+  /** 날짜 검색 시트 — 선택일 상세 슬라이드 진입 */
+  const handleOpenDateDetail = useCallback(
+    async (date: Date) => {
+      const dateKey = toDateKey(date);
+      setSelectedMonth(startOfMonth(date));
+      setIsScrollTopVisible(false);
+
+      if (dateKey === todayDateKey && todayDetailPhotos.length > 0) {
+        openDetail(todayDetailPhotos, undefined, false);
+        return;
+      }
+
+      const monthDay = monthDays.find((day) => day.dateKey === dateKey) ?? null;
+
+      if (!schoolId) {
+        if (monthDay) handleOpenDayDetail(monthDay);
+        return;
+      }
+
+      try {
+        const photos = await fetchGuardianAlbumDayPhotos(schoolId, dateKey);
+        if (photos.length > 0) {
+          openDetail(photos, undefined, false);
+          return;
+        }
+      } catch {
+        // 월 카드 프리뷰로 폴백
+      }
+
+      if (monthDay) handleOpenDayDetail(monthDay);
+    },
+    [
+      handleOpenDayDetail,
+      monthDays,
+      openDetail,
+      schoolId,
+      todayDateKey,
+      todayDetailPhotos,
+    ]
   );
 
   useEffect(() => {
@@ -317,11 +380,11 @@ function GuardianAlbumPage() {
     if (!canSelectKindergarten) return;
 
     overlay.open(({ isOpen, close }) => (
-      <GuardianAlbumKindergartenSelectSheet
+      <KindergartenSelectSheet
         isOpen={isOpen}
         close={close}
         kindergartens={kindergartens}
-        currentKindergartenId={selectedKindergartenId}
+        currentKindergartenId={selectedKindergartenId ?? defaultKindergartenId}
         onSelect={handleKindergartenSelect}
       />
     ));
@@ -382,9 +445,7 @@ function GuardianAlbumPage() {
         maxDate={maxDate}
         initialDate={selectedMonth}
         enabledDateKeys={albumPhotoDateKeys}
-        onConfirm={(date) => {
-          setSelectedMonth(startOfMonth(date));
-        }}
+        onConfirm={handleOpenDateDetail}
       />
     ));
   };
@@ -456,7 +517,8 @@ function GuardianAlbumPage() {
       </div>
 
       {isEntryLoadError ? (
-        <GuardianAlbumEntryError
+        <PageError
+          layout='inline'
           isRetrying={isEntryRetrying || isAlbumTodayFetching || isAlbumMonthFetching}
           onRetry={handleEntryRetry}
         />

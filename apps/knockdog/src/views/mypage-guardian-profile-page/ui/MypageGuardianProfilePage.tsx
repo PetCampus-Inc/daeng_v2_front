@@ -94,7 +94,7 @@ function hasCompletedGuardianProfile({
 function MypageGuardianProfilePage() {
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
-  const { data: userInfoResponse, refetch: refetchUserInfo } = useUserInfoQuery();
+  const { data: userInfoResponse, refetch: refetchUserInfo } = useUserInfoQuery(user?.userId);
   const { mutateAsync: updateGuardianProfile, isPending: isSaving } = useUpdateGuardianProfileMutation();
   const [formValues, setFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
   const [initialFormValues, setInitialFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);

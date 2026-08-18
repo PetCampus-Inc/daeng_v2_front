@@ -17,6 +17,7 @@ import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin } fro
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
+import { clearPostSignUpRedirect, getInternalRedirect, savePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
@@ -40,7 +41,7 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
   const linkedSocialUser = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, { initialValue: null });
 
-  const redirectTo = options?.redirectTo;
+  const redirectTo = getInternalRedirect(options?.redirectTo);
 
   /** OIDC 인증 */
   const oidcAuth = async (provider: SocialProvider) => {
@@ -82,6 +83,7 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     }
 
     setUser(data);
+    clearPostSignUpRedirect();
 
     // pushForResult로 열린 경우에만 결과 전송 (plain push면 _txId 없음)
     if (getCurrentTxId()) {
@@ -124,7 +126,10 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     }
 
     // 연동되지 않은 계정 (회원가입 페이지로 이동)
-    else if (code === VERIFY_OIDC_RESULT_CODE.UNLINKED) push({ pathname: route.auth.register.location.root });
+    else if (code === VERIFY_OIDC_RESULT_CODE.UNLINKED) {
+      savePostSignUpRedirect(redirectTo);
+      push({ pathname: route.auth.register.location.root });
+    }
     // 동일한 이메일의 계정이 존재 (연동된 소셜 계정 정보 저장 후 로그인 페이지로 이동)
     else if (code === VERIFY_OIDC_RESULT_CODE.EMAIL_ALREADY_EXISTS) {
       try {
@@ -132,7 +137,10 @@ export const useLogin = (options?: { redirectTo?: string }) => {
         const response = await fetchLinkedSocialUser();
         linkedSocialUser.set(response.data);
 
-        push({ pathname: route.auth.login.redirect.root });
+        push({
+          pathname: route.auth.login.redirect.root,
+          params: { redirectTo },
+        });
       } catch (error) {
         // 연동된 소셜 계정 정보 조회 실패 시 로그인 페이지로 이동
         console.error('알 수 없는 오류가 발생했습니다.', error);

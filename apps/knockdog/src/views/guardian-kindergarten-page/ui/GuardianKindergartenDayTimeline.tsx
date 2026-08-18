@@ -16,6 +16,7 @@ interface GuardianKindergartenDayTimelineProps {
   isLoading?: boolean;
   /** 알림장 없을 때 문구. 미지정 시 attending content 기본값 */
   noNoticeMessage?: string;
+  onNoticeViewAllClick?: () => void;
 }
 
 type TimelineEvent =
@@ -119,6 +120,7 @@ function GuardianKindergartenDayTimeline({
   emptyMessage,
   isLoading = false,
   noNoticeMessage = guardianKindergartenAttendingContent.noNoticeMessage,
+  onNoticeViewAllClick,
 }: GuardianKindergartenDayTimelineProps) {
   const content = guardianKindergartenAttendingContent;
 
@@ -163,6 +165,7 @@ function GuardianKindergartenDayTimeline({
               key={`${event.kind}-${event.at}`}
               notice={event.notice}
               timeLabel={event.timeLabel}
+              onViewAllClick={onNoticeViewAllClick}
             />
           );
         }

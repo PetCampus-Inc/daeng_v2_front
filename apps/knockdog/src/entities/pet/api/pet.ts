@@ -6,6 +6,11 @@ interface RegisterPetRequest {
   relationship: Relationship;
   relationshipText: string;
   profileImage: string;
+  breed?: string;
+  gender?: Gender;
+  weight?: number;
+  birthYear?: number;
+  isNeutered?: boolean;
 }
 
 interface PetResponse extends Pet {

@@ -5,6 +5,7 @@ import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenDisconnectedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenDisconnectedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
+import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useGuardianDisconnectedDay } from '@views/guardian-kindergarten-page/model/useGuardianDisconnectedDay';
 import { route } from '@shared/constants/route';
@@ -97,6 +98,7 @@ function GuardianKindergartenDisconnectedState({
           dailyNotice={dailyNotice}
           emptyMessage={content.noAttendanceMessage}
           noNoticeMessage={content.noNoticeMessage}
+          onNoticeViewAllClick={() => pushGuardianDailyNoticeDetail(push, selectedDate)}
         />
       </section>
 

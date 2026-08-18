@@ -44,8 +44,12 @@ interface GuardianCalendarDetailDto {
 
 interface GuardianCalendarDailyNotice {
   writtenAt: string;
+  updatedAt: string | null;
   conditionLabel: string;
   stoolLabel: string;
+  poop: string | null;
+  snack: string;
+  poopMemo: string;
   body: string;
 }
 
@@ -86,12 +90,20 @@ function toDailyNotice(
 
   const conditionKey = typeof dto.condition === 'string' ? dto.condition.toUpperCase() : '';
   const poopKey = typeof dto.poop === 'string' ? dto.poop.toUpperCase() : '';
+  const updatedAtDate = parseApiDateTime(dto.updatedAt);
+  const conditionLabel = CONDITION_LABELS[conditionKey] ?? '';
+  const stoolLabel = POOP_LABELS[poopKey] ?? '';
 
   return {
     writtenAt: writtenAtDate.toISOString(),
-    conditionLabel: CONDITION_LABELS[conditionKey] ?? dto.condition ?? '',
-    stoolLabel: POOP_LABELS[poopKey] ?? dto.poop ?? '',
-    body: dto.note ?? '',
+    updatedAt: updatedAtDate ? updatedAtDate.toISOString() : null,
+    // 미선택 컨디션/배변은 라벨을 비워 보호자 UI에서 숨김
+    conditionLabel,
+    stoolLabel,
+    poop: stoolLabel ? poopKey : null,
+    snack: dto.snack?.trim() ?? '',
+    poopMemo: dto.poopMemo?.trim() ?? '',
+    body: dto.note?.trim() ?? '',
   };
 }
 

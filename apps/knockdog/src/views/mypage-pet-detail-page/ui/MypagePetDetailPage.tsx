@@ -14,15 +14,19 @@ import {
   AlertDialogAction,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetDetailInfo } from '@features/dog-profile';
+import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 export function MypagePetDetailPage() {
   const { push, back } = useStackNavigation();
+  const navigationResult = useNavigationResult<void>();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
   const { mutate: removePetMutate } = usePetRemoveMutation();
@@ -30,6 +34,15 @@ export function MypagePetDetailPage() {
 
   const handlePetEdit = () => {
     push({ pathname: '/mypage/pet-edit', query: { petId } });
+  };
+
+  const handleBack = () => {
+    try {
+      navigationResult.send();
+    } catch {
+      // pushForResult로 열리지 않은 일반 상세 화면에서는 결과를 보낼 대상이 없다.
+    }
+    void back();
   };
 
   const handleDeleteClick = () => {
@@ -45,9 +58,15 @@ export function MypagePetDetailPage() {
             <AlertDialogAction
               onClick={() => {
                 removePetMutate(petId, {
-                  onSuccess: () => {
+                  onSuccess: async () => {
+                    // 초대 신청의 강아지 선택 화면은 pet/list가 아닌 별도 연결 상태 query를 사용한다.
+                    // stack 화면이 유지된 채 돌아와도 최신 목록을 보여주도록 먼저 갱신한다.
+                    await queryClient.invalidateQueries({
+                      queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
+                      refetchType: 'all',
+                    });
                     syncWebViewQuery.refetch(['petList']);
-                    back();
+                    handleBack();
                   },
                 });
               }}
@@ -64,7 +83,7 @@ export function MypagePetDetailPage() {
     <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
+          <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>강아지 프로필</Header.Title>
 

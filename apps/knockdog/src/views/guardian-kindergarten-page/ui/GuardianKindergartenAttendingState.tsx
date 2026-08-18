@@ -7,6 +7,7 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { formatAttendingDuration } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
+import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { route } from '@shared/constants/route';
@@ -54,6 +55,10 @@ function GuardianKindergartenAttendingState({
   const statusBadgeLabel = isDismissed ? content.dayFinishedLabel : durationLabel;
   const showAlbumArrived = hasAlbumPhotos && (isDismissed ? hasDailyNotice : true);
 
+  const handleNoticeViewClick = () => {
+    pushGuardianDailyNoticeDetail(push, new Date());
+  };
+
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });
   };
@@ -94,7 +99,7 @@ function GuardianKindergartenAttendingState({
 
         {/* 알림장 */}
         {hasDailyNotice ? (
-          <GuardianDailyNoticeArrivedBanner />
+          <GuardianDailyNoticeArrivedBanner onViewClick={handleNoticeViewClick} />
         ) : (
           <div className='bg-bg-50 radius-r3 flex w-full items-center justify-center gap-2 overflow-hidden p-4'>
             <Image
@@ -184,6 +189,7 @@ function GuardianKindergartenAttendingState({
           dailyNotice={selectedDailyNotice}
           emptyMessage={content.calendarEmptyMessage}
           isLoading={isCalendarDayPending}
+          onNoticeViewAllClick={() => pushGuardianDailyNoticeDetail(push, selectedDate)}
         />
       </section>
 

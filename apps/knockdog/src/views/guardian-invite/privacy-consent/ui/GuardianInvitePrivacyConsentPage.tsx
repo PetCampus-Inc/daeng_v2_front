@@ -1,45 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-
 import { ActionButton, Checkbox, ProgressBar, ScrollBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
-import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
-import {
-  privacyConsentPolicyClosing,
-  privacyConsentPolicyIntro,
-  privacyConsentPolicySections,
-} from '../config/privacyConsentPolicyBody';
+import { useGuardianInvitePrivacyConsentPage } from '../model/useGuardianInvitePrivacyConsentPage';
+import { privacyConsentPolicyClosing, privacyConsentPolicyIntro, privacyConsentPolicySections } from '../config/privacyConsentPolicyBody';
 
 /** 보호자 초대 3단계: 개인정보 수집 및 이용 동의 */
 function GuardianInvitePrivacyConsentPage() {
-  const { token } = useParams<{ token: string }>();
-  const { replace } = useStackNavigation();
-  const [isAgreed, setIsAgreed] = useState(false);
-
-  const handleSubmit = () => {
-    if (!isAgreed) return;
-
-    void replace({
-      pathname: route.invite.guardian.complete.root.replace('[token]', encodeURIComponent(token)),
-      query: { status: 'success' },
-    });
-  };
-
-  const handleBack = () => {
-    void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(token)) });
-  };
+  const { handleAgreedChange, handleBack, handleSubmit, isAgreed, isSubmitEnabled } = useGuardianInvitePrivacyConsentPage();
 
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton onClick={handleBack} />
+          <Header.BackButton onClick={() => void handleBack()} />
         </Header.LeftSection>
         <Header.Title>개인정보 수집 및 이용 동의</Header.Title>
       </Header>
@@ -60,7 +37,7 @@ function GuardianInvitePrivacyConsentPage() {
             <Checkbox
               size='sm'
               checked={isAgreed}
-              onCheckedChange={setIsAgreed}
+              onCheckedChange={handleAgreedChange}
               className='border-line-200 radius-r2 flex h-x14 w-full cursor-pointer border bg-bg-0 px-x4 py-x4'
             >
               <span className={`body1-bold ${isAgreed ? 'text-text-primary' : 'text-text-secondary'}`}>
@@ -108,7 +85,12 @@ function GuardianInvitePrivacyConsentPage() {
       </main>
 
       <div className='bg-bg-0 px-x4 py-x5'>
-        <ActionButton type='button' size='large' disabled={!isAgreed} onClick={handleSubmit}>
+        <ActionButton
+          type='button'
+          size='large'
+          disabled={!isSubmitEnabled}
+          onClick={() => void handleSubmit()}
+        >
           유치원 등록
         </ActionButton>
       </div>

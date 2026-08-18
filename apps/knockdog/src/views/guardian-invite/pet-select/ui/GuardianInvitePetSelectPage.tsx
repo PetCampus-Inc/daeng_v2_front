@@ -2,46 +2,32 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { ActionButton, Avatar, AvatarFallback, Checkbox, Icon, ProgressBar } from '@knockdog/ui';
+import { ActionButton, Avatar, AvatarFallback, AvatarImage, Checkbox, Icon, ProgressBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { type GuardianPetConnection, useGuardianPetConnectionStatusesQuery } from '@entities/guardian-invite';
+import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 
-type PetConnectionStatus = 'selectable' | 'pending' | 'connected';
-
-interface InvitePet {
-  id: string;
-  name: string;
-  breed: string;
-  gender: 'male' | 'female';
-  status: PetConnectionStatus;
-}
-
-const INVITE_PETS: readonly InvitePet[] = [
-  { id: 'ppoppi-1', name: '뽀삐', breed: '시베리안 허스키', gender: 'female', status: 'selectable' },
-  { id: 'ppoppi-2', name: '뽀삐', breed: '시베리안 허스키', gender: 'female', status: 'selectable' },
-  { id: 'ppoppi-3', name: '뽀삐', breed: '시베리안 허스키', gender: 'male', status: 'pending' },
-  { id: 'ppoppi-4', name: '뽀삐', breed: '시베리안 허스키', gender: 'female', status: 'connected' },
-];
-
-const STATUS_LABEL: Partial<Record<PetConnectionStatus, string>> = {
-  pending: '승인 대기',
-  connected: '연결 완료',
+const STATUS_LABEL = {
+  PENDING: '승인 대기',
+  ACTIVE: '연결 완료',
 };
 
 interface PetSelectCardProps {
-  pet: InvitePet;
+  pet: GuardianPetConnection;
   selected: boolean;
   onCheckedChange: (checked: boolean) => void;
+  onProfileView: () => void;
 }
 
-function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
-  const isSelectable = pet.status === 'selectable';
-  const statusLabel = STATUS_LABEL[pet.status];
-  const checkboxId = `guardian-invite-pet-${pet.id}`;
-  const GenderIcon = pet.gender === 'male' ? 'Male' : 'Female';
+function PetSelectCard({ pet, selected, onCheckedChange, onProfileView }: PetSelectCardProps) {
+  const isSelectable = pet.connectionStatus == null;
+  const statusLabel = pet.connectionStatus ? STATUS_LABEL[pet.connectionStatus] : undefined;
+  const checkboxId = `guardian-invite-pet-${pet.petId}`;
+  const genderIcon = pet.gender === 'MALE' ? 'Male' : pet.gender === 'FEMALE' ? 'Female' : null;
   const cardClassName = isSelectable && selected ? 'border-line-accent bg-fill-primary-50' : 'border-line-200 bg-bg-0';
 
   return (
@@ -62,6 +48,7 @@ function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
       ) : null}
       <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-x2'>
         <Avatar className='size-x13 border-line-100 bg-fill-secondary-50 border-2'>
+          {pet.profileImage ? <AvatarImage src={pet.profileImage} alt={`${pet.name} 프로필 이미지`} className='object-cover' /> : null}
           <AvatarFallback className='bg-fill-secondary-50'>
             <Icon icon='Paw' className={`size-6 ${isSelectable ? 'text-primitive-neutral-300' : 'text-fill-secondary-400'}`} />
           </AvatarFallback>
@@ -74,7 +61,7 @@ function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
               }`}
             >
               {pet.name}
-              <Icon icon={GenderIcon} className='size-4' />
+              {genderIcon ? <Icon icon={genderIcon} className='size-4' /> : null}
             </span>
             {statusLabel ? (
               <span className='caption1-semibold inline-flex h-[26px] items-center justify-center rounded-full bg-fill-secondary-200 px-x2 text-fill-secondary-400'>
@@ -95,6 +82,7 @@ function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
         <button
           data-profile-view
           type='button'
+          onClick={onProfileView}
           className={`pointer-events-auto radius-r2 relative z-10 caption2-semibold h-[30px] shrink-0 cursor-pointer px-x3 ${
             selected ? 'bg-bg-0 text-text-primary' : 'bg-fill-secondary-100 text-text-secondary'
           }`}
@@ -106,7 +94,7 @@ function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
         id={checkboxId}
         size='sm'
         aria-label={`${pet.name} 선택`}
-        className='pointer-events-auto relative z-10 cursor-pointer'
+        className={`pointer-events-auto relative z-10 ${isSelectable ? 'cursor-pointer' : 'cursor-default'}`}
         disabled={!isSelectable}
         checked={isSelectable ? selected : undefined}
         onCheckedChange={isSelectable ? (checked) => onCheckedChange(Boolean(checked)) : undefined}
@@ -118,32 +106,56 @@ function PetSelectCard({ pet, selected, onCheckedChange }: PetSelectCardProps) {
 /** 보호자 초대 2단계: 가입 신청할 강아지 선택 */
 function GuardianInvitePetSelectPage() {
   const { token } = useParams<{ token: string }>();
-  const { push } = useStackNavigation();
-  const profileCount = INVITE_PETS.length;
+  const { push, replace } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
+  const pets = petConnectionStatusesQuery.data?.data?.pets;
+  const displayedPets = pets ?? [];
+  const profileCount = petConnectionStatusesQuery.data?.data?.totalProfileCount ?? 0;
   const canAddPet = profileCount < 5;
-  const [selectedPetIds, setSelectedPetIds] = useState<string[]>(['ppoppi-2']);
+  const [selectedPetIds, setSelectedPetIds] = useState<number[]>([]);
 
-  const togglePet = (petId: string, checked: boolean) => {
+  const selectablePetIds = new Set(
+    displayedPets.filter((pet) => pet.connectionStatus == null).map((pet) => pet.petId)
+  );
+  const selectableSelectedPetIds = selectedPetIds.filter((petId) => selectablePetIds.has(petId));
+
+  const togglePet = (petId: number, checked: boolean) => {
     setSelectedPetIds((currentIds) =>
       checked ? [...currentIds, petId] : currentIds.filter((selectedPetId) => selectedPetId !== petId)
     );
   };
 
   const handleNext = () => {
-    if (selectedPetIds.length === 0) return;
+    if (selectableSelectedPetIds.length === 0) return;
 
-    void push({ pathname: route.invite.guardian.consent.root.replace('[token]', encodeURIComponent(token)) });
+    const selectedPets = displayedPets.filter((pet) => selectableSelectedPetIds.includes(pet.petId));
+    void push({
+      pathname: route.invite.guardian.consent.root.replace('[token]', encodeURIComponent(token)),
+      query: { petIds: selectedPets.map((pet) => pet.petId).join(',') },
+      params: {
+        selectedPets: selectedPets.map(({ petId, name }) => ({ petId, name })),
+      },
+    });
   };
 
   const handleAddPet = () => {
     void push({ pathname: route.mypage.pet.add.root, query: { inviteToken: token } });
   };
 
+  const handleBack = () => {
+    void replace({ pathname: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)) });
+  };
+
+  const handleProfileView = (petId: number) => {
+    void push({ pathname: route.mypage.pet.detail.root, query: { petId: String(petId) } });
+  };
+
   return (
     <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
-          <Header.BackButton />
+          <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>강아지 선택</Header.Title>
       </Header>
@@ -172,12 +184,13 @@ function GuardianInvitePetSelectPage() {
               <span className='body2-bold text-text-primary'>현재 프로필 개수</span>
               <span className='body2-bold text-text-accent'>{profileCount}/5</span>
             </div>
-            {INVITE_PETS.map((pet) => (
+            {displayedPets.map((pet) => (
               <PetSelectCard
-                key={pet.id}
+                key={pet.petId}
                 pet={pet}
-                selected={selectedPetIds.includes(pet.id)}
-                onCheckedChange={(checked) => togglePet(pet.id, checked)}
+                selected={selectableSelectedPetIds.includes(pet.petId)}
+                onCheckedChange={(checked) => togglePet(pet.petId, checked)}
+                onProfileView={() => handleProfileView(pet.petId)}
               />
             ))}
           </div>
@@ -195,7 +208,12 @@ function GuardianInvitePetSelectPage() {
       </main>
 
       <div className='bg-bg-0 px-x4 py-x5'>
-        <ActionButton type='button' size='large' disabled={selectedPetIds.length === 0} onClick={handleNext}>
+        <ActionButton
+          type='button'
+          size='large'
+          disabled={selectableSelectedPetIds.length === 0 || petConnectionStatusesQuery.isLoading || petConnectionStatusesQuery.isError}
+          onClick={handleNext}
+        >
           다음
         </ActionButton>
       </div>
