@@ -37,7 +37,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
-apps/mobile/GoogleService-Info.plist
 
 *storybook.log
 storybook-static
