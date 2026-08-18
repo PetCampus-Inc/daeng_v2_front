@@ -1,16 +1,35 @@
 export type PushDestination =
-  | { kind: 'attendanceRecord'; attendanceRecordId: number; petId: number; date: string; schoolId: number }
+  | { kind: 'guardianKindergarten'; petId: string; date?: string; dedupeKey: string }
+  | { kind: 'attendanceRecord'; petId: string; date: string; dedupeKey: string }
+  | { kind: 'ownerMemberApprovals'; dedupeKey: string }
   | { kind: 'fallback' };
 
 type UnknownRecord = Record<string, unknown>;
+
+const ATTENDANCE_STATUS_TYPES = new Set([
+  'ATTENDANCE_CHECK_IN',
+  'ATTENDANCE_CANCEL_CHECK_IN',
+  'ATTENDANCE_CHECK_OUT',
+  'ATTENDANCE_CANCEL_CHECK_OUT',
+]);
+
+const ATTENDANCE_RECORD_TYPES = new Set(['ATTENDANCE_RECORD_CREATED', 'ATTENDANCE_RECORD_UPDATED']);
+
+const OWNER_MEMBER_APPROVAL_TYPES = new Set(['GUARDIAN_APPLICATION_REQUESTED', 'GUARDIAN_APPLICATION_CANCELLED']);
+
+const GUARDIAN_KINDERGARTEN_TYPES = new Set([
+  'SCHOOL_MEMBERSHIP_APPROVED',
+  'SCHOOL_MEMBERSHIP_REJECTED',
+  'SCHOOL_MEMBERSHIP_DISCONNECTED',
+]);
 
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function toPositiveInteger(value: unknown): number | null {
+function toPositiveId(value: unknown): string | null {
   const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+  return Number.isSafeInteger(parsed) && parsed > 0 ? String(parsed) : null;
 }
 
 function toDateKey(value: unknown): string | null {
@@ -19,22 +38,47 @@ function toDateKey(value: unknown): string | null {
   return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : value;
 }
 
-/**
- * Push data는 FCM을 거치며 모두 string일 수 있으므로 runtime에서 엄격히 검증한다.
- * 검증 실패는 예외가 아니라 fallback 목적지로 귀결되어야 한다.
- */
+function toNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value : null;
+}
+
+function isSupportedPayloadVersion(value: unknown) {
+  return (typeof value === 'string' ? Number(value) : value) === 1;
+}
+
+/** FCM data는 문자열로 전달되므로 type별 최소 라우팅 식별자만 검증한다. */
 export function resolvePushDestination(value: unknown): PushDestination {
-  if (!isRecord(value)) return { kind: 'fallback' };
+  if (!isRecord(value) || !isSupportedPayloadVersion(value.payloadVersion) || typeof value.type !== 'string') {
+    return { kind: 'fallback' };
+  }
 
-  const payloadVersion = toPositiveInteger(value.payloadVersion);
-  if (payloadVersion !== 1 || value.type !== 'ATTENDANCE_RECORD') return { kind: 'fallback' };
+  if (ATTENDANCE_STATUS_TYPES.has(value.type)) {
+    const petId = toPositiveId(value.petId);
+    const date = toDateKey(value.date);
+    const eventId = toNonEmptyString(value.eventId);
+    return petId && date && eventId
+      ? { kind: 'guardianKindergarten', petId, date, dedupeKey: eventId }
+      : { kind: 'fallback' };
+  }
 
-  const attendanceRecordId = toPositiveInteger(value.attendanceRecordId);
-  const petId = toPositiveInteger(value.petId);
-  const schoolId = toPositiveInteger(value.schoolId);
-  const date = toDateKey(value.date);
+  if (ATTENDANCE_RECORD_TYPES.has(value.type)) {
+    const petId = toPositiveId(value.petId);
+    const date = toDateKey(value.date);
+    return petId && date
+      ? { kind: 'attendanceRecord', petId, date, dedupeKey: `${value.type}:${petId}:${date}` }
+      : { kind: 'fallback' };
+  }
 
-  if (!attendanceRecordId || !petId || !schoolId || !date) return { kind: 'fallback' };
+  if (OWNER_MEMBER_APPROVAL_TYPES.has(value.type)) {
+    return { kind: 'ownerMemberApprovals', dedupeKey: value.type };
+  }
 
-  return { kind: 'attendanceRecord', attendanceRecordId, petId, schoolId, date };
+  if (GUARDIAN_KINDERGARTEN_TYPES.has(value.type)) {
+    const petId = toPositiveId(value.petId);
+    return petId
+      ? { kind: 'guardianKindergarten', petId, dedupeKey: `${value.type}:${petId}` }
+      : { kind: 'fallback' };
+  }
+
+  return { kind: 'fallback' };
 }

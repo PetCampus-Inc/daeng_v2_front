@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenDisconnectedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenDisconnectedContent';
@@ -19,10 +19,12 @@ import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard
 
 interface GuardianKindergartenDisconnectedStateProps {
   kindergarten: GuardianLinkedKindergarten;
+  initialSelectedDate?: Date | null;
 }
 
 function GuardianKindergartenDisconnectedState({
   kindergarten,
+  initialSelectedDate = null,
 }: GuardianKindergartenDisconnectedStateProps) {
   const content = guardianKindergartenDisconnectedContent;
   const { push } = useStackNavigation();
@@ -33,7 +35,11 @@ function GuardianKindergartenDisconnectedState({
     getDayRecord,
   } = useGuardianDisconnectedDay();
 
-  const [selectedDate, setSelectedDate] = useState(() => startOfDay(disconnectedAt));
+  const [selectedDate, setSelectedDate] = useState(() => initialSelectedDate ?? startOfDay(disconnectedAt));
+
+  useEffect(() => {
+    if (initialSelectedDate) setSelectedDate(initialSelectedDate);
+  }, [initialSelectedDate]);
 
   const selectedDateKey = formatDateKey(selectedDate);
   const dayRecord = useMemo(() => getDayRecord(selectedDateKey), [getDayRecord, selectedDateKey]);

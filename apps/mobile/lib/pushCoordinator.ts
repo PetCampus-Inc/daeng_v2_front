@@ -4,6 +4,7 @@ import type WebView from 'react-native-webview';
 import { serializeForJS } from '@knockdog/bridge-native';
 import { BRIDGE_VERSION } from '@knockdog/bridge-core';
 import { navigationRef } from '@/bridges/lib/navigationRef';
+import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
 import { resolvePushDestination, type PushDestination } from './pushPayload';
 
 type WebRef = RefObject<WebView>;
@@ -84,22 +85,52 @@ class PushCoordinator {
 
     if (destination.kind === 'attendanceRecord') {
       const params = new URLSearchParams({
-        attendanceRecordId: String(destination.attendanceRecordId),
-        petId: String(destination.petId),
+        petId: destination.petId,
         date: destination.date,
-        schoolId: String(destination.schoolId),
       });
       navigationRef.dispatch(StackActions.push('Stack', { path: `/compare/attendance-record?${params}` }));
+      return;
+    }
+
+    if (destination.kind === 'guardianKindergarten') {
+      navigationRef.navigate('Tabs', { screen: 'Compare' });
+      this.setCompareTabPet(destination.petId, destination.date);
+      return;
+    }
+
+    if (destination.kind === 'ownerMemberApprovals') {
+      navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
+      navigationRef.dispatch(StackActions.push('Stack', { path: '/owner/members/approval' }));
       return;
     }
 
     navigationRef.navigate('Tabs', { screen: 'Explore' });
   }
 
-  private toDestinationKey(destination: PushDestination) {
-    if (destination.kind === 'attendanceRecord') {
-      return `${destination.kind}:${destination.attendanceRecordId}:${destination.petId}:${destination.date}`;
+  private setCompareTabPet(petId: string, date?: string, attempt = 0) {
+    const compareWebView = tabWebViewStore.get('Compare')?.current;
+    if (!compareWebView) {
+      if (attempt < 20) setTimeout(() => this.setCompareTabPet(petId, date, attempt + 1), 50);
+      return;
     }
+
+    const serializedPetId = serializeForJS(petId);
+    const serializedDate = serializeForJS(date ?? '');
+    compareWebView.injectJavaScript(`
+      (function() {
+        var url = new URL(window.location.href);
+        url.searchParams.set('pushPetId', ${serializedPetId});
+        var pushDate = ${serializedDate};
+        if (pushDate) url.searchParams.set('pushDate', pushDate);
+        else url.searchParams.delete('pushDate');
+        history.replaceState(null, '', url.pathname + url.search + url.hash);
+        window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+      })(); true;
+    `);
+  }
+
+  private toDestinationKey(destination: PushDestination) {
+    if (destination.kind !== 'fallback') return destination.dedupeKey;
     return 'fallback';
   }
 }

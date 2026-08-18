@@ -28,6 +28,7 @@ interface GuardianKindergartenAttendingStateProps {
   albumPhotos: string[];
   /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
   firstAttendedAt?: Date | null;
+  initialSelectedDate?: Date | null;
 }
 
 function GuardianKindergartenAttendingState({
@@ -37,8 +38,9 @@ function GuardianKindergartenAttendingState({
   hasDailyNotice,
   albumPhotos,
   firstAttendedAt = null,
+  initialSelectedDate = null,
 }: GuardianKindergartenAttendingStateProps) {
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState(() => initialSelectedDate ?? new Date());
   const [now, setNow] = useState(() => new Date());
   const content = guardianKindergartenAttendingContent;
   const { push } = useStackNavigation();
@@ -70,6 +72,10 @@ function GuardianKindergartenAttendingState({
   const handleAlbumShortcutClick = () => {
     push({ pathname: route.compare.album.root, query: { from: 'home' } });
   };
+
+  useEffect(() => {
+    if (initialSelectedDate) setSelectedDate(initialSelectedDate);
+  }, [initialSelectedDate]);
 
   useEffect(() => {
     if (isDismissed) return;
