@@ -58,11 +58,7 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
 
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
-
-        <BottomSheet.Header className='border-line-200 border-b'>
-          <BottomSheet.Title>년도 선택</BottomSheet.Title>
-          <BottomSheet.CloseButton />
-        </BottomSheet.Header>
+        <BottomSheet.Title className='sr-only'>태어난 해 선택</BottomSheet.Title>
 
         <div className='px-4'>
           <ul className='scrollbar-hide flex h-[50vh] flex-col overflow-y-auto'>
@@ -70,7 +66,7 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
               <button
                 key={year}
                 type='button'
-                className='gap-x2 border-line-200 active:text-text-accent flex items-center border-b py-4'
+                className='gap-x2 border-line-100 active:text-text-accent flex items-center border-b p-4'
                 onClick={handleSelect(year)}
               >
                 <li className='body1-medium text-text-primary text-start'>

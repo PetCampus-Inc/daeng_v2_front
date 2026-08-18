@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Controller, useWatch } from 'react-hook-form';
-import { TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
+import { TextField, TextFieldInput, ActionButton, IconButton } from '@knockdog/ui';
 import { RelationshipSelector } from './RelationshipSelector';
 import { BreedSelector } from './BreedSelector';
 import { YearSelector } from './YearSelector';
@@ -225,7 +225,21 @@ function PetProfileForm({
               control={control}
               rules={{ required: '강아지 이름을 입력해 주세요' }}
                 render={({ field, fieldState: { error } }) => (
-                  <TextField label='강아지 이름' required invalid={!!error} errorMessage={error?.message}>
+                  <TextField
+                    label='강아지 이름'
+                    required
+                    invalid={!!error}
+                    errorMessage={error?.message}
+                    suffix={
+                      field.value && (
+                        <IconButton
+                          icon='DeleteInput'
+                          iconClassName='text-fill-secondary-700'
+                          onClick={() => field.onChange('')}
+                        />
+                      )
+                    }
+                  >
                     <TextFieldInput
                       {...field}
                       maxLength={MAX_DOG_NAME_LENGTH}
@@ -342,6 +356,15 @@ function PetProfileForm({
                     indicator={isAdditionalInfoRequired ? undefined : '(선택)'}
                     invalid={!!error}
                     errorMessage={error?.message}
+                    suffix={
+                      field.value != null && (
+                        <IconButton
+                          icon='DeleteInput'
+                          iconClassName='text-fill-secondary-700'
+                          onClick={() => field.onChange(undefined)}
+                        />
+                      )
+                    }
                   >
                     <TextFieldInput
                       {...field}

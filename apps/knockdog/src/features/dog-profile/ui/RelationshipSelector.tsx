@@ -65,17 +65,23 @@ function RelationshipSelector({
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
 
-        <BottomSheet.Content className='px-6'>
-          {options.map((option) => (
+        <BottomSheet.Content padded={false} className='px-4'>
+          {options.map((option, index) => (
             <div
               key={option.value}
               className={cn(
-                'body2-semibold flex cursor-pointer items-center justify-between py-4',
-                value === option.value && 'text-text-accent'
+                'flex w-full cursor-pointer items-center gap-2 bg-white py-4',
+                index !== options.length - 1 && 'border-line-200 border-b'
               )}
               onClick={handleChange(option.value)}
             >
-              <label className='flex cursor-pointer items-center gap-x-2' htmlFor={option.value}>
+              <label
+                className={cn(
+                  'body1-medium text-text-primary flex-1 cursor-pointer',
+                  value === option.value && 'text-text-accent'
+                )}
+                htmlFor={option.value}
+              >
                 {option.label}
               </label>
               <input

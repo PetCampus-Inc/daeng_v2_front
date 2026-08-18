@@ -1,6 +1,7 @@
 'use client';
 
 import { ActionButton, TextField, TextFieldInput, Icon, IconButton } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import type { Breed } from '../model/breed.type';
 import { useState } from 'react';
 import { useBreedSearch } from '@features/dog-profile/model/useBreedSearch';
@@ -48,6 +49,7 @@ const BreedSelector = ({ ref, className, value, required, errorMessage, onChange
             value && (
               <IconButton
                 icon='DeleteInput'
+                iconClassName='text-fill-secondary-700'
                 onClick={(e) => {
                   e.stopPropagation();
                   handleChange?.(null);
@@ -70,7 +72,7 @@ const BreedSelector = ({ ref, className, value, required, errorMessage, onChange
         <BottomSheet.Handle />
 
         {/* 시트 헤더 */}
-        <BottomSheet.Header className=''>
+        <BottomSheet.Header className='border-b border-line-200'>
           <BottomSheet.Title>견종 선택</BottomSheet.Title>
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
@@ -80,6 +82,7 @@ const BreedSelector = ({ ref, className, value, required, errorMessage, onChange
           className='px-4'
           query={searchTerm}
           breeds={breeds}
+          value={value}
           isLoading={isLoading}
           onSearch={setSearchTerm}
           onSelect={handleChange}
@@ -93,6 +96,7 @@ interface BreedSelectListProps {
   className?: string;
   query?: string;
   breeds?: Breed[];
+  value?: Breed | null;
   isLoading?: boolean;
   onSearch?: (value: string) => void;
   onSelect?: (breed: Breed) => void;
@@ -100,17 +104,26 @@ interface BreedSelectListProps {
 
 const OTHER_BREED: Breed = { breedId: 0, breedName: '기타' };
 
-function BreedSelectList({ className, query, breeds = [], isLoading, onSearch, onSelect }: BreedSelectListProps) {
+function BreedSelectList({ className, query, breeds = [], value, isLoading, onSearch, onSelect }: BreedSelectListProps) {
   const hasNoResults = Boolean(query?.trim()) && !isLoading && breeds.length === 0;
 
   return (
     <div className={className}>
-      <div className='border-line-200 border-b py-4'>
+      <div className='py-4'>
         <TextField
           value={query}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearch?.(e.target.value)}
           variant='secondary'
           prefix={<Icon icon='Search' />}
+          suffix={
+            query && (
+              <IconButton
+                icon='DeleteInput'
+                iconClassName='text-fill-secondary-700'
+                onClick={() => onSearch?.('')}
+              />
+            )
+          }
         >
           <TextFieldInput placeholder='견종을 검색해 보세요' />
         </TextField>
@@ -128,14 +141,22 @@ function BreedSelectList({ className, query, breeds = [], isLoading, onSearch, o
         </div>
       ) : (
         <ul className='scrollbar-hide flex h-[calc(100vh-250px)] flex-col overflow-y-auto'>
-          {breeds.map((breed) => (
+          {breeds.map((breed, index) => (
             <button
               key={breed.breedId}
               type='button'
-              className='gap-x2 border-line-200 active:bg-fill-secondary-50 flex items-center border-b py-4'
+              className={cn(
+                'gap-x2 border-line-200 active:bg-fill-secondary-50 flex items-center py-4',
+                index !== breeds.length - 1 && 'border-b'
+              )}
               onClick={() => onSelect?.(breed)}
             >
-              <li className='body1-medium text-text-primary text-start'>
+              <li
+                className={cn(
+                  'body1-medium text-text-primary text-start',
+                  breed.breedId === value?.breedId && 'text-text-accent'
+                )}
+              >
                 {TextHighlights(breed.breedName, query ?? '')}
               </li>
             </button>

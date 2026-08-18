@@ -116,6 +116,8 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
               }
             }}
           >
+            <BottomSheet.Title className='sr-only'>{displayData?.title}</BottomSheet.Title>
+
             {/* Visual Apron: 바텀시트 하단 gap을 가려주는 역할 */}
             <div aria-hidden='true' className='absolute top-[99%] left-0 h-screen w-full bg-white' />
 

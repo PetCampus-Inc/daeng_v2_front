@@ -22,6 +22,7 @@ import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
 import { getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { toast } from '@shared/ui/toast';
 
 export function MypagePetDetailPage() {
   const { push, back } = useStackNavigation();
@@ -48,11 +49,11 @@ export function MypagePetDetailPage() {
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>정말로 삭제하시겠어요?</AlertDialogTitle>
-            <AlertDialogDescription>삭제한 강아지 데이터는 복구할 수 없습니다.</AlertDialogDescription>
+            <AlertDialogTitle>강아지 프로필을 삭제할까요?</AlertDialogTitle>
+            <AlertDialogDescription>삭제한 강아지 데이터는 복구할 수 없어요.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 removePetMutate(petId, {
@@ -66,10 +67,17 @@ export function MypagePetDetailPage() {
                     syncWebViewQuery.refetch(['petList']);
                     handleBack();
                   },
+                  onError: (error) => {
+                    console.error('펫 삭제 실패:', error);
+                    toast({
+                      title: '일시적 오류로 요청을 완료하지 못했어요',
+                      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+                    });
+                  },
                 });
               }}
             >
-              예
+              삭제하기
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
