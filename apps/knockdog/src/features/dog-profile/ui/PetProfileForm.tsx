@@ -17,7 +17,7 @@ import {
   normalizeRelationshipText,
 } from '../lib/normalizeKoreanText';
 import { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from '../lib/weight';
-import { usePetProfileForm } from '../model/usePetProfileForm';
+import { usePetProfileForm, type PetFormData } from '../model/usePetProfileForm';
 import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
 import { ApiError } from '@shared/api';
@@ -32,7 +32,9 @@ interface PetProfileFormProps {
   onDirtyChange?: (isDirty: boolean) => void;
   onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
   onGoToPetList?: () => void;
-  onViewPetProfile?: (petId: string) => Promise<unknown>;
+  onViewPetProfile?: (petId: string, formValues: PetFormData) => Promise<unknown>;
+  restoreValues?: PetFormData | null;
+  onRestoreValuesApplied?: () => void;
 }
 
 function findDuplicatePets(pets: Pet[] | undefined, petId: string | undefined, name: string) {
@@ -50,6 +52,8 @@ function PetProfileForm({
   onBeforeSubmit,
   onGoToPetList,
   onViewPetProfile,
+  restoreValues,
+  onRestoreValuesApplied,
 }: PetProfileFormProps) {
   const [isDuplicateNameSheetOpen, setIsDuplicateNameSheetOpen] = React.useState(false);
   const [duplicatePets, setDuplicatePets] = React.useState<Pet[]>([]);
@@ -123,6 +127,14 @@ function PetProfileForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValuesKey, reset]);
 
+  // 중복 강아지 상세를 확인하고 수정 화면으로 돌아온 경우에만 페이지가 보관한 작성값을 적용한다.
+  React.useEffect(() => {
+    if (!restoreValues) return;
+
+    reset(restoreValues, { keepDefaultValues: true });
+    onRestoreValuesApplied?.();
+  }, [onRestoreValuesApplied, reset, restoreValues]);
+
   // isDirty 상태 변경을 부모에게 알림
   React.useEffect(() => {
     onDirtyChange?.(isDirty);
@@ -170,7 +182,7 @@ function PetProfileForm({
 
     const formValues = getValues();
     try {
-      await onViewPetProfile(duplicatePetId);
+      await onViewPetProfile(duplicatePetId, formValues);
     } catch {
       // 시스템 뒤로가기처럼 결과 없이 돌아온 경우도 기존 입력값을 복원한다.
     } finally {
@@ -193,7 +205,7 @@ function PetProfileForm({
           noValidate
           className='flex h-full min-h-0 flex-col'
         >
-          <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
+          <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto pt-5'>
             <Controller
               name='profileImage'
               control={control}

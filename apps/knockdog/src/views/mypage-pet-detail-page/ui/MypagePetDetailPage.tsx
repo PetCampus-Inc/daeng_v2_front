@@ -19,7 +19,7 @@ import { Header } from '@widgets/Header';
 import { PetDetailInfo } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
-import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
@@ -37,12 +37,10 @@ export function MypagePetDetailPage() {
   };
 
   const handleBack = () => {
-    try {
+    if (getCurrentTxId()) {
       navigationResult.send();
-    } catch {
-      // pushForResult로 열리지 않은 일반 상세 화면에서는 결과를 보낼 대상이 없다.
     }
-    void back();
+    back().catch(() => undefined);
   };
 
   const handleDeleteClick = () => {
@@ -94,14 +92,14 @@ export function MypagePetDetailPage() {
         </Header.RightSection>
       </Header>
 
-      <PetDetailInfo pet={petResponse} />
-
-      <div className='mb-10 flex items-center justify-center px-4 py-4'>
-        <ActionButton size='small' variant='tertiaryFill' className='w-[128px]' onClick={handlePetEdit}>
-          <Icon icon='Edit' className='size-5' />
-          정보 수정하기
-        </ActionButton>
-      </div>
+      <PetDetailInfo pet={petResponse}>
+        <div className='flex items-center justify-center pt-5'>
+          <ActionButton size='medium' variant='tertiaryFill' className='w-[132px]' onClick={handlePetEdit}>
+            <Icon icon='Edit' className='size-5' />
+            정보 수정하기
+          </ActionButton>
+        </div>
+      </PetDetailInfo>
     </SafeArea>
   );
 }

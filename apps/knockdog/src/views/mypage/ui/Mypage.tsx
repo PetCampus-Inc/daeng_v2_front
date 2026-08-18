@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
+import { Divider, Icon, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
@@ -14,11 +14,11 @@ import {
   OwnerProfileRow,
   RoleConversionButton,
   roleConversionButtonContent,
-  useIsOwnerVerified,
   useMypageRoleView,
   useOwnerKindergarten,
   useOwnerProfile,
   useOwnerMypageSummary,
+  useOwnerRole,
 } from '@features/role-conversion';
 import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
@@ -26,7 +26,6 @@ import { usePetListQuery } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
-import { useAppVersion } from '@shared/lib/device';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
@@ -43,7 +42,7 @@ function Mypage() {
   const user = useUserStore((state) => state.user);
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
-  const isOwnerVerified = useIsOwnerVerified();
+  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
   const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail } =
     useOwnerKindergarten();
@@ -58,7 +57,6 @@ function Mypage() {
   const { data: petListResponse, isLoading: isPetListLoading } = usePetListQuery({
     enabled: isLoggedIn && (!isOwnerVerified || isGuardianView),
   });
-  const { displayVersion, hasUpdate, openStore } = useAppVersion();
 
   const openDogSelectSheet = () => {
     overlay.open(({ isOpen, close }) => (
@@ -67,6 +65,9 @@ function Mypage() {
   };
 
   const hasDogs = (petListResponse?.data?.length ?? 0) > 0;
+  const shouldShowOwnerVerification = isLoggedIn && isOwnerRoleResolved && !isOwnerVerified;
+  const showDogRegistrationEmptyState =
+    shouldShowOwnerVerification && !isPetListLoading && !hasDogs;
 
   const accountInfo: AccountInfo = {
     nickname: user?.nickname || '살구형',
@@ -165,6 +166,15 @@ function Mypage() {
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header>
         <Header.Title>마이페이지</Header.Title>
+        <Header.RightSection>
+          <button
+            type='button'
+            aria-label='알림함'
+            onClick={() => push({ pathname: route.notification.root })}
+          >
+            <Icon icon='AlarmNone' className='size-6 text-text-primary' aria-hidden='true' />
+          </button>
+        </Header.RightSection>
       </Header>
 
       <div className='flex-1 overflow-y-auto pb-16'>
@@ -174,7 +184,6 @@ function Mypage() {
           <>
             <Divider size='thick' />
             <div className='flex flex-col gap-5 px-4 pt-7 pb-7'>
-              <OwnerVerificationEntry />
               <QuickActionsSection className='gap-y-7 px-0 py-0' />
             </div>
           </>
@@ -213,19 +222,31 @@ function Mypage() {
         ) : (
           <>
             {isLoggedIn && !isPetListLoading && !hasDogs && (
+              <div className={showDogRegistrationEmptyState ? 'bg-bg-0 flex flex-col items-center px-4 py-5' : undefined}>
               <NoDogPrompt
                 nickname={user?.nickname || '사용자'}
+                showRegistrationEmptyState={showDogRegistrationEmptyState}
                 onAddDog={() => push({ pathname: '/mypage/pet-add' })}
               />
+                {showDogRegistrationEmptyState ? <OwnerVerificationEntry requiresLogin={false} variant='banner' /> : null}
+              </div>
             )}
 
             {isLoggedIn && hasDogs && (
-              <DogHouseSection
-                dogs={petListResponse?.data || []}
-                onChangeRepresentative={openDogSelectSheet}
-                onDogClick={handleDogClick}
-                onAddDog={handleAddDog}
-              />
+              <>
+                <DogHouseSection
+                  dogs={petListResponse?.data || []}
+                  withBottomPadding={!shouldShowOwnerVerification}
+                  onChangeRepresentative={openDogSelectSheet}
+                  onDogClick={handleDogClick}
+                  onAddDog={handleAddDog}
+                />
+                {shouldShowOwnerVerification ? (
+                  <div className='bg-bg-0 flex flex-col items-center px-4 py-5'>
+                    <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+                  </div>
+                ) : null}
+              </>
             )}
 
             {isLoggedIn && <Divider size='thick' />}
@@ -234,32 +255,26 @@ function Mypage() {
 
         {isLoggedIn && (
           <>
-            <div className={isOwnerView ? undefined : 'pt-4'}>
-              <AccountSection
-                variant={isOwnerView ? 'owner' : 'guardian'}
-                accountInfo={accountInfo}
-                accountSectionTitle={ownerMypageContent.accountSectionTitle}
-                ttokIdLabel={ownerMypageContent.ttokIdLabel}
-                ttokIdDescription={ownerMypageContent.ttokIdDescription}
-                socialProvider={isOwnerView ? loginProvider : undefined}
-                socialEmail={isOwnerView ? loginEmail : undefined}
-                releasePermissionLabel={
-                  isOwnerView && canReleaseOperationPermission
-                    ? ownerMypageContent.releasePermissionLabel
-                    : undefined
-                }
-                headerAddon={
-                  !isOwnerVerified ? <OwnerVerificationEntry requiresLogin={false} /> : undefined
-                }
-                onAccountClick={() => push({ pathname: '/mypage/profile/manage' })}
-                onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
-                onReleasePermissionClick={() =>
-                  push({ pathname: route.roleConversion.releasePermission.root })
-                }
-              />
-            </div>
+            <AccountSection
+              variant={isOwnerView ? 'owner' : 'guardian'}
+              accountInfo={accountInfo}
+              accountSectionTitle={ownerMypageContent.accountSectionTitle}
+              ttokIdLabel={ownerMypageContent.ttokIdLabel}
+              ttokIdDescription={ownerMypageContent.ttokIdDescription}
+              socialProvider={isOwnerView ? loginProvider : undefined}
+              socialEmail={isOwnerView ? loginEmail : undefined}
+              releasePermissionLabel={
+                isOwnerView && canReleaseOperationPermission
+                  ? ownerMypageContent.releasePermissionLabel
+                  : undefined
+              }
+              onProfileClick={() => push({ pathname: route.mypage.guardian.profile.root })}
+              onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+              onConnectionApplicationsClick={() => push({ pathname: route.guardian.connectionApply.status.root })}
+              onReleasePermissionClick={() => push({ pathname: route.roleConversion.releasePermission.root })}
+            />
 
-            {isOwnerView && <Divider size='thick' />}
+            <Divider size='thick' />
           </>
         )}
 
@@ -267,8 +282,6 @@ function Mypage() {
 
         <SettingsSection
           variant={isLoggedIn && isOwnerView ? 'owner' : 'guardian'}
-          version={displayVersion}
-          hasUpdate={hasUpdate}
           otherInfoTitle={ownerMypageContent.otherInfoTitle}
           logoutLabel={ownerMypageContent.logoutLabel}
           withdrawLabel={ownerMypageContent.withdrawLabel}
@@ -276,7 +289,6 @@ function Mypage() {
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
           onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
-          onUpdateClick={openStore}
           onLogoutClick={handleLogout}
           onWithdrawClick={handleWithdrawClick}
         />

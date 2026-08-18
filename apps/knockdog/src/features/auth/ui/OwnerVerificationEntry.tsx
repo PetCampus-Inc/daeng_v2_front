@@ -1,6 +1,6 @@
 'use client';
 
-import { IconButton, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
+import { Icon, IconButton, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -10,9 +10,10 @@ const OWNER_VERIFICATION_TOOLTIP =
 
 interface OwnerVerificationEntryProps {
   requiresLogin?: boolean;
+  variant?: 'row' | 'banner';
 }
 
-function OwnerVerificationEntry({ requiresLogin = true }: OwnerVerificationEntryProps) {
+function OwnerVerificationEntry({ requiresLogin = true, variant = 'row' }: OwnerVerificationEntryProps) {
   const { push } = useStackNavigation();
 
   const handleClick = () => {
@@ -26,6 +27,25 @@ function OwnerVerificationEntry({ requiresLogin = true }: OwnerVerificationEntry
 
     push({ pathname: route.roleConversion.kindergartenSearch.root });
   };
+
+  if (variant === 'banner') {
+    return (
+      <button
+        type='button'
+        className='flex w-full items-center justify-between gap-2 rounded-xl bg-[#FFF7EC] p-4 text-left'
+        onClick={handleClick}
+      >
+        <span className='flex flex-col gap-1'>
+          <span className='body1-bold flex items-center gap-1 text-text-accent'>
+            <Icon icon='KindergartenFill' className='size-5' />
+            유치원 원장님이세요?
+          </span>
+          <span className='body2-regular text-text-primary'>원장님은 사업자 인증 후 직접 운영할 수 있어요</span>
+        </span>
+        <Icon icon='ChevronRight' className='size-6 shrink-0 text-text-accent' />
+      </button>
+    );
+  }
 
   return (
     <div className='flex items-center justify-between gap-x-7 py-2'>

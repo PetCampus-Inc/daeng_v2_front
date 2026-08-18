@@ -11,8 +11,8 @@ import {
   AvatarFallback,
   Icon,
 } from '@knockdog/ui';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { usePetUpdateRepresentativeMutation, type Pet } from '@entities/pet';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface DogSelectSheetProps {
   isOpen: boolean;
@@ -45,7 +45,7 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
-        <BottomSheet.Header className=''>
+        <BottomSheet.Header className='border-line-100 border-b'>
           <BottomSheet.Title>대표 강아지를 선택해 주세요</BottomSheet.Title>
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
@@ -70,7 +70,7 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
                     </div>
                     <RadioGroupItem value={dog.id} id={`dog-${dog.id}`} />
                   </label>
-                  {index < dogs.length - 1 && <Divider />}
+                  {index < dogs.length - 1 && <Divider className='border-line-100' />}
                 </React.Fragment>
               ))}
             </RadioGroup>

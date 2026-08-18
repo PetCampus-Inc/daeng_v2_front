@@ -25,4 +25,4 @@ export {
 export { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from './lib/weight';
 
 export type { Breed } from './model/breed.type';
-export { usePetProfileForm } from './model/usePetProfileForm';
+export { usePetProfileForm, type PetFormData } from './model/usePetProfileForm';

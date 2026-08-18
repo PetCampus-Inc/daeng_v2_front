@@ -1,11 +1,11 @@
 'use client';
 
-import { TextField, TextFieldInput, Icon, IconButton } from '@knockdog/ui';
-import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { ActionButton, TextField, TextFieldInput, Icon, IconButton } from '@knockdog/ui';
 import type { Breed } from '../model/breed.type';
-import { useBreedSearch } from '@features/dog-profile/model/useBreedSearch';
-import { TextHighlights } from '@shared/ui/text-highlights';
 import { useState } from 'react';
+import { useBreedSearch } from '@features/dog-profile/model/useBreedSearch';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { TextHighlights } from '@shared/ui/text-highlights';
 
 interface BreedSelectorProps {
   ref?: React.Ref<HTMLInputElement>;
@@ -20,7 +20,7 @@ interface BreedSelectorProps {
 
 const BreedSelector = ({ ref, className, value, required, errorMessage, onChange, onBlur, onComplete }: BreedSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { breeds, searchTerm, setSearchTerm } = useBreedSearch();
+  const { breeds, searchTerm, setSearchTerm, isLoading } = useBreedSearch();
 
   const handleChange = (breed: Breed | null) => {
     onChange?.(breed);
@@ -80,6 +80,7 @@ const BreedSelector = ({ ref, className, value, required, errorMessage, onChange
           className='px-4'
           query={searchTerm}
           breeds={breeds}
+          isLoading={isLoading}
           onSearch={setSearchTerm}
           onSelect={handleChange}
         />
@@ -92,14 +93,19 @@ interface BreedSelectListProps {
   className?: string;
   query?: string;
   breeds?: Breed[];
+  isLoading?: boolean;
   onSearch?: (value: string) => void;
   onSelect?: (breed: Breed) => void;
 }
 
-function BreedSelectList({ className, query, breeds = [], onSearch, onSelect }: BreedSelectListProps) {
+const OTHER_BREED: Breed = { breedId: 0, breedName: '기타' };
+
+function BreedSelectList({ className, query, breeds = [], isLoading, onSearch, onSelect }: BreedSelectListProps) {
+  const hasNoResults = Boolean(query?.trim()) && !isLoading && breeds.length === 0;
+
   return (
     <div className={className}>
-      <div className='border-line-200 border-b py-3'>
+      <div className='border-line-200 border-b py-4'>
         <TextField
           value={query}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearch?.(e.target.value)}
@@ -110,20 +116,32 @@ function BreedSelectList({ className, query, breeds = [], onSearch, onSelect }: 
         </TextField>
       </div>
 
-      <ul className='scrollbar-hide flex h-[calc(100vh-250px)] flex-col overflow-y-auto'>
-        {breeds.map((breed) => (
-          <button
-            key={breed.breedId}
-            type='button'
-            className='gap-x2 border-line-200 active:bg-fill-secondary-50 flex items-center border-b py-4'
-            onClick={() => onSelect?.(breed)}
-          >
-            <li className='body1-medium text-text-primary text-start'>
-              {TextHighlights(breed.breedName, query ?? '')}
-            </li>
-          </button>
-        ))}
-      </ul>
+      {hasNoResults ? (
+        <div className='flex flex-col items-center gap-4 py-5'>
+          <div className='flex flex-col items-center gap-1'>
+            <p className='h2-extrabold text-text-primary text-center'>일치하는 견종이 없어요</p>
+            <p className='body1-regular text-text-secondary text-center'>검색어를 확인하거나 ‘기타’로 등록해 주세요.</p>
+          </div>
+          <ActionButton size='large' variant='secondaryLine' onClick={() => onSelect?.(OTHER_BREED)}>
+            기타로 등록하기
+          </ActionButton>
+        </div>
+      ) : (
+        <ul className='scrollbar-hide flex h-[calc(100vh-250px)] flex-col overflow-y-auto'>
+          {breeds.map((breed) => (
+            <button
+              key={breed.breedId}
+              type='button'
+              className='gap-x2 border-line-200 active:bg-fill-secondary-50 flex items-center border-b py-4'
+              onClick={() => onSelect?.(breed)}
+            >
+              <li className='body1-medium text-text-primary text-start'>
+                {TextHighlights(breed.breedName, query ?? '')}
+              </li>
+            </button>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
