@@ -18,8 +18,13 @@ interface NotificationReadMutationContext {
   previous: NotificationsCache | undefined;
 }
 
-function withUnreadFlag(pages: NotificationListPage[]): NotificationListPage[] {
-  const hasUnread = pages.some((page) => page.notifications.some((notification) => !notification.isRead));
+function withUnreadFlag(pages: NotificationListPage[], hasUnreadOverride?: boolean) {
+  const loadedHasUnread = pages.some((page) =>
+    page.notifications.some((notification) => !notification.isRead)
+  );
+  const canLowerUnread = pages.at(-1)?.hasNext === false;
+  const previousHasUnread = pages.some((page) => page.hasUnread);
+  const hasUnread = hasUnreadOverride ?? (loadedHasUnread || (!canLowerUnread && previousHasUnread));
 
   return pages.map((page) => ({ ...page, hasUnread }));
 }
@@ -40,7 +45,8 @@ function markAllNotificationsRead(notification: Notification, readAt: string): N
 
 function updateNotificationsCache(
   cache: NotificationsCache | undefined,
-  mapNotification: (notification: Notification) => Notification
+  mapNotification: (notification: Notification) => Notification,
+  hasUnreadOverride?: boolean
 ): NotificationsCache | undefined {
   if (!cache) return cache;
 
@@ -50,7 +56,8 @@ function updateNotificationsCache(
       cache.pages.map((page) => ({
         ...page,
         notifications: page.notifications.map(mapNotification),
-      }))
+      })),
+      hasUnreadOverride
     ),
   };
 }
@@ -85,7 +92,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
       const readAt = new Date().toISOString();
       queryClient.setQueryData(queryKey, (cache: NotificationsCache | undefined) =>
-        updateNotificationsCache(cache, (notification) => markAllNotificationsRead(notification, readAt))
+        updateNotificationsCache(cache, (notification) => markAllNotificationsRead(notification, readAt), false)
       );
       return { queryKey, previous };
     },
