@@ -11,6 +11,8 @@ import { ToastProvider } from './components/toast'; // ★ 토스트 프로바�
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RootStackNavigator, useLinking } from './components/navigation';
+import { PushNotificationProvider } from './components/PushNotificationProvider';
+import { pushCoordinator } from './lib/pushCoordinator';
 
 // 앱 시작 시 스플래시 자동 숨김 방지
 SplashScreen.preventAutoHideAsync().catch(() => { });
@@ -70,7 +72,8 @@ export default function App() {
           <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
             {/* 토스트 프로바이더가 네비게이션 바/스크린 “밖”에 있어야 어디서든 toast() 가능 */}
             <ToastProvider>
-              <NavigationContainer ref={navigationRef} linking={linking}>
+              <NavigationContainer ref={navigationRef} linking={linking} onReady={() => pushCoordinator.markNavigationReady()}>
+                <PushNotificationProvider />
                 <RootStackNavigator />
               </NavigationContainer>
             </ToastProvider>

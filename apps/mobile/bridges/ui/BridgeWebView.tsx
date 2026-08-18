@@ -6,6 +6,7 @@ import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
 import { buildConsolePatch } from '../lib/consolePatch';
 import { navBridgeHub } from '../model/navBridgeHub';
+import { pushCoordinator } from '@/lib/pushCoordinator';
 import type { InitialState } from '@/types/navigation';
 import ErrorScreen from './ErrorScreen';
 
@@ -121,6 +122,7 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
   useEffect(() => {
     return () => {
       navBridgeHub.cleanup(refToUse);
+      pushCoordinator.removeSessionWebView(refToUse);
     };
   }, [refToUse]);
 

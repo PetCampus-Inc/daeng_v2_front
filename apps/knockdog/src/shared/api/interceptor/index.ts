@@ -9,8 +9,8 @@ import { tokenUtils } from '@shared/utils';
 import { logout } from '@shared/lib/auth';
 import { navigateToLogin } from '@shared/lib/bridge';
 
-// 제외 경로 패턴 (/^\/auth(?:\/|$)/ = /auth 또는 /auth/ 로 시작하는 경로)
-const EXCLUDE_PATHS = [/^\/auth(?:\/|$)/];
+const AUTH_PATH_PATTERN = /\/auth(?:\/|$)/;
+const LOGOUT_PATH_PATTERN = /\/auth\/logout$/;
 
 /**
  * `beforeRequest` - `Authorization` 헤더에 액세스 토큰 삽입 인터셉터
@@ -20,7 +20,11 @@ const EXCLUDE_PATHS = [/^\/auth(?:\/|$)/];
 const insertAuthHeaderInterceptor = (request: Request) => {
   if (!isSameOrigin(request)) return;
 
-  if (!EXCLUDE_PATHS.some((excludePath) => excludePath.test(request.url))) {
+  const pathname = new URL(request.url).pathname;
+  const isAuthPath = AUTH_PATH_PATTERN.test(pathname);
+  const requiresAuthorization = !isAuthPath || LOGOUT_PATH_PATTERN.test(pathname);
+
+  if (requiresAuthorization) {
     // 제외 경로가 아니라면 Authorization 헤더 추가
     const token = tokenUtils.getAccessToken();
 

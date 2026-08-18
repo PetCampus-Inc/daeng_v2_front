@@ -70,6 +70,11 @@ interface NoticeDraft {
   notice: string;
 }
 
+interface NoticeSendAttempt {
+  idempotencyKey: string;
+  payloadSignature: string;
+}
+
 function getDraftStorageKey(noticeId: string, dateKey: string) {
   return `${STORAGE_KEYS.OWNER_DAILY_NOTICE_DRAFT_PREFIX}${noticeId}:${dateKey}`;
 }
@@ -193,6 +198,7 @@ function OwnerDailyNoticeWritePage() {
     stoolMemo: '',
     notice: '',
   });
+  const sendAttemptRef = useRef<NoticeSendAttempt | null>(null);
 
   const hasSentRecord = attendanceRecord?.status === 'SENT';
   const isReadOnly = hasSentRecord && !isEditingSent;
@@ -443,7 +449,16 @@ function OwnerDailyNoticeWritePage() {
 
     try {
       const payload = buildPayload();
-      await sendMutation.mutateAsync(payload);
+      const payloadSignature = JSON.stringify(payload);
+      const previousAttempt = sendAttemptRef.current;
+      const idempotencyKey =
+        previousAttempt?.payloadSignature === payloadSignature
+          ? previousAttempt.idempotencyKey
+          : crypto.randomUUID();
+
+      sendAttemptRef.current = { idempotencyKey, payloadSignature };
+      await sendMutation.mutateAsync({ payload, idempotencyKey });
+      sendAttemptRef.current = null;
       clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
 
       queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
