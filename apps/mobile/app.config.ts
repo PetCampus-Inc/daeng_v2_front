@@ -77,7 +77,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     package: 'net.knockdog.petcampus.v2',
     googleServicesFile: androidGoogleServicesFile,
-    permissions: ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
+    permissions: [
+      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.POST_NOTIFICATIONS',
+    ],
     intentFilters: [
       {
         action: 'VIEW',
