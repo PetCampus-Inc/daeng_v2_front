@@ -27,15 +27,52 @@ function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+function parseJsonRecord(value: unknown): UnknownRecord | null {
+  if (isRecord(value)) return value;
+  if (typeof value !== 'string') return null;
+
+  const trimmed = value.trim();
+  if (!trimmed.startsWith('{')) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePushPayload(value: unknown): UnknownRecord | null {
+  const root = parseJsonRecord(value);
+  if (!root) return null;
+
+  const flattened: UnknownRecord = { ...root };
+  for (const [key, raw] of Object.entries(root)) {
+    const parsed = parseJsonRecord(raw);
+    if (parsed) flattened[key] = parsed;
+  }
+
+  const nested = [flattened.payload, flattened.data, flattened.body]
+    .map(parseJsonRecord)
+    .filter((item): item is UnknownRecord => item !== null);
+
+  return nested.reduce((merged, item) => ({ ...item, ...merged }), flattened);
+}
+
 function toPositiveId(value: unknown): string | null {
   const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
   return Number.isSafeInteger(parsed) && parsed > 0 ? String(parsed) : null;
 }
 
 function toDateKey(value: unknown): string | null {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : value;
+  if (typeof value !== 'string') return null;
+  const day = value.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  const [yearText, monthText, dayText] = day.split('-');
+  const date = new Date(Number(yearText), Number(monthText) - 1, Number(dayText));
+  return date.getFullYear() === Number(yearText) && date.getMonth() === Number(monthText) - 1 && date.getDate() === Number(dayText)
+    ? day
+    : null;
 }
 
 function toNonEmptyString(value: unknown): string | null {
@@ -48,35 +85,36 @@ function isSupportedPayloadVersion(value: unknown) {
 
 /** FCM data는 문자열로 전달되므로 type별 최소 라우팅 식별자만 검증한다. */
 export function resolvePushDestination(value: unknown): PushDestination {
-  if (!isRecord(value) || !isSupportedPayloadVersion(value.payloadVersion) || typeof value.type !== 'string') {
+  const payload = normalizePushPayload(value);
+  if (!payload || !isSupportedPayloadVersion(payload.payloadVersion) || typeof payload.type !== 'string') {
     return { kind: 'fallback' };
   }
 
-  if (ATTENDANCE_STATUS_TYPES.has(value.type)) {
-    const petId = toPositiveId(value.petId);
-    const date = toDateKey(value.date);
-    const eventId = toNonEmptyString(value.eventId);
+  if (ATTENDANCE_STATUS_TYPES.has(payload.type)) {
+    const petId = toPositiveId(payload.petId);
+    const date = toDateKey(payload.date);
+    const eventId = toNonEmptyString(payload.eventId);
     return petId && date && eventId
       ? { kind: 'guardianKindergarten', petId, date, dedupeKey: eventId }
       : { kind: 'fallback' };
   }
 
-  if (ATTENDANCE_RECORD_TYPES.has(value.type)) {
-    const petId = toPositiveId(value.petId);
-    const date = toDateKey(value.date);
+  if (ATTENDANCE_RECORD_TYPES.has(payload.type)) {
+    const petId = toPositiveId(payload.petId);
+    const date = toDateKey(payload.date);
     return petId && date
-      ? { kind: 'attendanceRecord', petId, date, dedupeKey: `${value.type}:${petId}:${date}` }
+      ? { kind: 'attendanceRecord', petId, date, dedupeKey: `${payload.type}:${petId}:${date}` }
       : { kind: 'fallback' };
   }
 
-  if (OWNER_MEMBER_APPROVAL_TYPES.has(value.type)) {
-    return { kind: 'ownerMemberApprovals', dedupeKey: value.type };
+  if (OWNER_MEMBER_APPROVAL_TYPES.has(payload.type)) {
+    return { kind: 'ownerMemberApprovals', dedupeKey: payload.type };
   }
 
-  if (GUARDIAN_KINDERGARTEN_TYPES.has(value.type)) {
-    const petId = toPositiveId(value.petId);
+  if (GUARDIAN_KINDERGARTEN_TYPES.has(payload.type)) {
+    const petId = toPositiveId(payload.petId);
     return petId
-      ? { kind: 'guardianKindergarten', petId, dedupeKey: `${value.type}:${petId}` }
+      ? { kind: 'guardianKindergarten', petId, dedupeKey: `${payload.type}:${petId}` }
       : { kind: 'fallback' };
   }
 
