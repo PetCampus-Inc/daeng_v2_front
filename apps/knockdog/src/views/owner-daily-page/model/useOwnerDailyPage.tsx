@@ -52,12 +52,11 @@ function toAttendanceMemberFromCandidate(
   candidate: AttendanceCheckinoutCandidate,
   dateKey: string
 ): AttendanceMember {
-  const hasTodayCheckIn = isCheckInOnDate(candidate.checkInAt, dateKey);
-  // 전날 CHECKED_IN이 남아 있어도 당일 checkInAt이 없으면 등원 전으로 취급
-  const checkedIn =
-    candidate.checkinoutStatus !== 'NOT_CHECKED_IN' &&
-    candidate.checkInAt != null &&
-    hasTodayCheckIn;
+  // checkInAt이 있는데 당일이 아니면(전날 값이 남은 경우) 등원 전으로 취급.
+  // checkInAt이 없는 경우는 상태 리셋 이슈가 아니라 필드 미기재일 뿐이므로 checkinoutStatus를 그대로 신뢰한다.
+  const isStaleCheckIn =
+    candidate.checkInAt != null && !isCheckInOnDate(candidate.checkInAt, dateKey);
+  const checkedIn = candidate.checkinoutStatus !== 'NOT_CHECKED_IN' && !isStaleCheckIn;
   const checkedOut = checkedIn && candidate.checkinoutStatus === 'CHECKED_OUT';
 
   return {
