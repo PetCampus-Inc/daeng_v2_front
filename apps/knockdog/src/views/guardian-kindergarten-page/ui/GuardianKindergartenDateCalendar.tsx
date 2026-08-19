@@ -27,6 +27,8 @@ interface GuardianKindergartenDateCalendarProps {
    * 미지정 시 원장과 동일하게 `attendance-records/{petId}/dates` 사용.
    */
   markedDateKeys?: Set<string>;
+  /** 지정 시 선택 강아지 store 대신 이 petId로 등원일 조회 */
+  petId?: string | null;
   /**
    * true면 등원 시각(checkInAt) 있는 날짜만 선택 가능.
    * 알림장 상세에서 미등원일 비활성 처리용.
@@ -94,6 +96,7 @@ function GuardianKindergartenDateCalendar({
   selectedDate,
   onSelectDate,
   markedDateKeys: markedDateKeysProp,
+  petId: petIdOverride,
   onlyCheckInDatesSelectable = false,
   firstAttendedAt,
   maxDate: maxDateProp,
@@ -111,7 +114,8 @@ function GuardianKindergartenDateCalendar({
     [firstAttendedAt]
   );
 
-  const { selectedPetId } = useGuardianSelectedPet();
+  const { selectedPetId: storePetId } = useGuardianSelectedPet();
+  const selectedPetId = petIdOverride || storePetId;
   const [isMonthlyExpanded, setIsMonthlyExpanded] = useState(false);
   const [viewMonth, setViewMonth] = useState(() =>
     startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1))

@@ -5,7 +5,14 @@ import { serializeForJS } from '@knockdog/bridge-native';
 import { BRIDGE_VERSION } from '@knockdog/bridge-core';
 import { navigationRef } from '@/bridges/lib/navigationRef';
 import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
+import { API_URL } from '@/constants/apiUrl';
 import { resolvePushDestination, type PushDestination } from './pushPayload';
+
+function toStackWebUrl(path: string) {
+  const base = (API_URL ?? '').replace(/\/$/, '');
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${normalized}`;
+}
 
 type WebRef = RefObject<WebView>;
 
@@ -88,7 +95,7 @@ class PushCoordinator {
         petId: destination.petId,
         date: destination.date,
       });
-      navigationRef.dispatch(StackActions.push('Stack', { path: `/compare/attendance-record?${params}` }));
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/notice?${params}`) }));
       return;
     }
 
@@ -100,7 +107,7 @@ class PushCoordinator {
 
     if (destination.kind === 'ownerMemberApprovals') {
       navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
-      navigationRef.dispatch(StackActions.push('Stack', { path: '/owner/members/approval' }));
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl('/owner/members/approval') }));
       return;
     }
 
