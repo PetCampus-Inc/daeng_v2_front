@@ -15,7 +15,7 @@ function GuardianKindergartenHistoryPage() {
   const { selectedPet } = useGuardianSelectedPet();
   const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
 
-  const petName = selectedPet?.name ?? '강아지';
+  const petName = selectedPet?.name?.trim() || '강아지';
   const subjectParticle = getSubjectParticle(petName);
 
   return (
@@ -30,8 +30,7 @@ function GuardianKindergartenHistoryPage() {
           <p className='h2-extrabold text-text-primary'>
             <span className='text-text-accent'>{petName}</span>
             <span>
-              {subjectParticle}
-              {content.titleSuffix}
+              {subjectParticle} {content.titleSuffix}
             </span>
           </p>
           <p className='body1-medium text-text-primary'>{content.subtitle}</p>
