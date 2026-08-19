@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
+import { useUserStore } from '@entities/user';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import {
   compareYearMonth,
@@ -39,7 +41,7 @@ import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/Gua
 import { GuardianAlbumPhotoDetail } from '@views/guardian-album-page/ui/GuardianAlbumPhotoDetail';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
-import { toKindergartenSelectOptions, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
+import { toKindergartenSelectOptions, toKindergartenSelectOptionsFromConnections, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { startOfDay } from '@shared/lib/calendar-date';
@@ -81,6 +83,12 @@ function GuardianAlbumPage() {
     isFetching: isAlbumTodayFetching,
     refetch: refetchAlbumToday,
   } = useGuardianAlbumToday();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: connections } = useGuardianSchoolConnectionsQuery({
+    userId,
+    petId: selectedPetId,
+    enabled: Boolean(userId) && Boolean(selectedPetId),
+  });
   const { back } = useStackNavigation();
   const searchParams = useSearchParams();
 
@@ -114,21 +122,21 @@ function GuardianAlbumPage() {
       ? toMonthEndDateKey(lastAvailableMonth)
       : null;
 
-  const kindergartens = useMemo(
-    () =>
-      toKindergartenSelectOptions(
-        schoolId && hasLinkedSchool
-          ? {
-              id: schoolId,
-              name: schoolName ?? '',
-              address: '',
-              imageUrl: schoolImageUrl ?? '',
-            }
-          : null,
-        disconnectedUntilKey
-      ),
-    [disconnectedUntilKey, hasLinkedSchool, schoolId, schoolImageUrl, schoolName]
-  );
+  const kindergartens = useMemo(() => {
+    const fromConnections = toKindergartenSelectOptionsFromConnections(connections ?? []);
+    if (fromConnections.length > 0) return fromConnections;
+    return toKindergartenSelectOptions(
+      schoolId && hasLinkedSchool
+        ? {
+            id: schoolId,
+            name: schoolName ?? '',
+            address: '',
+            imageUrl: schoolImageUrl ?? '',
+          }
+        : null,
+      disconnectedUntilKey
+    );
+  }, [connections, disconnectedUntilKey, hasLinkedSchool, schoolId, schoolImageUrl, schoolName]);
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;

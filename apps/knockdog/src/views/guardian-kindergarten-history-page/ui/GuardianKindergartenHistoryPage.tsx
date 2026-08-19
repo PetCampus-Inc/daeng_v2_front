@@ -4,6 +4,8 @@ import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-h
 import { useGuardianConnectionHistory } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionHistory';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
+import { PageError } from '@shared/ui/page-error';
+import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { getSubjectParticle } from '@shared/utils';
 
 import { GuardianConnectionHistoryCard } from './GuardianConnectionHistoryCard';
@@ -11,7 +13,7 @@ import { GuardianConnectionHistoryCard } from './GuardianConnectionHistoryCard';
 function GuardianKindergartenHistoryPage() {
   const content = guardianConnectionHistoryContent;
   const { selectedPet } = useGuardianSelectedPet();
-  const { items } = useGuardianConnectionHistory();
+  const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
 
   const petName = selectedPet?.name ?? '강아지';
   const subjectParticle = getSubjectParticle(petName);
@@ -36,9 +38,15 @@ function GuardianKindergartenHistoryPage() {
         </div>
 
         <div className='px-x4 flex flex-col gap-3 pb-8'>
-          {items.map((item) => (
-            <GuardianConnectionHistoryCard key={item.id} item={item} />
-          ))}
+          {isError ? (
+            <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
+          ) : isPending ? (
+            <div className='flex justify-center py-16'>
+              <RingLoadingSpinner />
+            </div>
+          ) : (
+            items.map((item) => <GuardianConnectionHistoryCard key={item.id} item={item} />)
+          )}
         </div>
       </div>
     </div>

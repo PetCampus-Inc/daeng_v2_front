@@ -88,7 +88,9 @@ function KindergartenSelectSheet({
             const isSelected = currentKindergartenId === kindergarten.id;
             const attendedUntil = kindergarten.attendedUntil;
             const isAttending = attendedUntil == null;
-            const imageSrc = `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${kindergarten.imageUrl}`;
+            const imageSrc = /^(https?:|blob:|data:)/i.test(kindergarten.imageUrl)
+              ? kindergarten.imageUrl
+              : `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${kindergarten.imageUrl}`;
             const statusLabel = isAttending
               ? content.attendingStatusLabel
               : formatAttendedUntilLabel(attendedUntil);

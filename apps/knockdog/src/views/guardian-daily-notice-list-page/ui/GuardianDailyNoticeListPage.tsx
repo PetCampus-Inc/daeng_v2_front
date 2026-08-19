@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
+import { useUserStore } from '@entities/user';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
@@ -15,7 +17,11 @@ import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-l
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
-import { toKindergartenSelectOptions, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
+import {
+  toKindergartenSelectOptions,
+  toKindergartenSelectOptionsFromConnections,
+  toMonthEndDateKey,
+} from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -50,6 +56,12 @@ function GuardianDailyNoticeListPage() {
   const { push } = useStackNavigation();
   const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: connections } = useGuardianSchoolConnectionsQuery({
+    userId,
+    petId: selectedPetId,
+    enabled: Boolean(userId) && Boolean(selectedPetId),
+  });
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
 
   const isDisconnected = status === 'disconnected' || isMockMode;
@@ -88,11 +100,12 @@ function GuardianDailyNoticeListPage() {
   const disconnectedUntilKey =
     isDisconnected && lastAvailableMonth ? toMonthEndDateKey(lastAvailableMonth) : null;
 
-  /** home 현재 연결 1건. 연결 이력 API 연동 시 다건으로 확장 */
-  const kindergartens = useMemo(
-    () => toKindergartenSelectOptions(linkedKindergarten, disconnectedUntilKey),
-    [disconnectedUntilKey, linkedKindergarten]
-  );
+  /** 연결 이력 다건. 없으면 home 현재 연결 1건 */
+  const kindergartens = useMemo(() => {
+    const fromConnections = toKindergartenSelectOptionsFromConnections(connections ?? []);
+    if (fromConnections.length > 0) return fromConnections;
+    return toKindergartenSelectOptions(linkedKindergarten, disconnectedUntilKey);
+  }, [connections, disconnectedUntilKey, linkedKindergarten]);
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;

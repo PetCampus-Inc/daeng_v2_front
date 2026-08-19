@@ -9,9 +9,15 @@ interface GuardianLinkedKindergartenCardProps {
   kindergarten: GuardianLinkedKindergarten;
 }
 
+function resolvePublicImageSrc(imageUrl: string) {
+  if (!imageUrl) return '';
+  if (/^(https?:|blob:|data:)/i.test(imageUrl)) return imageUrl;
+  return `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${imageUrl}`;
+}
+
 function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKindergartenCardProps) {
   const { push } = useStackNavigation();
-  const imageSrc = `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${kindergarten.imageUrl}`;
+  const imageSrc = resolvePublicImageSrc(kindergarten.imageUrl);
 
   const handleClick = () => {
     push({ pathname: `/kindergarten/${kindergarten.id}` });
