@@ -82,7 +82,7 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
   };
 
   return (
-    <div className='relative flex items-center justify-center px-4 py-7'>
+    <div className='relative flex items-center justify-center py-5'>
       <Avatar className='h-[120px] w-[120px] overflow-hidden'>
         {selectedImage && (
           <AvatarImage

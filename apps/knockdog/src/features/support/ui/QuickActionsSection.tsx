@@ -26,16 +26,16 @@ function QuickActionsSection({ className, onChatRoomClick }: QuickActionsSection
   };
 
   return (
-    <div className={cn('flex flex-col gap-y-5 px-4 py-5', className)}>
+    <div className={cn('flex flex-col gap-y-4 px-4 py-5', className)}>
       <div className='flex items-center justify-between gap-x-2'>
-        <ActionButton variant='secondaryLine' onClick={handleContactClick}>
+        <ActionButton size='large' variant='secondaryLine' onClick={handleContactClick}>
           1:1 문의하기
         </ActionButton>
-        <ActionButton variant='secondaryLine' onClick={handleSuggestionClick}>
+        <ActionButton size='large' variant='secondaryLine' onClick={handleSuggestionClick}>
           아이디어 제안하기
         </ActionButton>
       </div>
-      <ActionButton variant='tertiaryFill' onClick={handleChatRoomClick}>
+      <ActionButton size='large' variant='tertiaryFill' onClick={handleChatRoomClick}>
         똑독 유저 채팅방
       </ActionButton>
     </div>

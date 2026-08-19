@@ -20,6 +20,7 @@ interface UserAddress {
   alias?: string;
   roadAddress: string;
   address: string;
+  detail?: string;
   lat: number;
   lng: number;
 }

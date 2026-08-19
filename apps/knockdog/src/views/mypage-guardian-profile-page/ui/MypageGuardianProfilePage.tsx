@@ -31,6 +31,7 @@ import {
   useUserInfoQuery,
   useUserStore,
 } from '@entities/user';
+import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -96,6 +97,9 @@ function MypageGuardianProfilePage() {
   const queryClient = useQueryClient();
   const { data: userInfoResponse, refetch: refetchUserInfo } = useUserInfoQuery(user?.userId);
   const { mutateAsync: updateGuardianProfile, isPending: isSaving } = useUpdateGuardianProfileMutation();
+  const { data: guardianApplications, isSuccess: isGuardianApplicationsLoaded } = useGuardianApplicationsQuery({
+    userId: user?.userId,
+  });
   const [formValues, setFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
   const [initialFormValues, setInitialFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
   const [selectedAddress, setSelectedAddress] = useState<GuardianProfileAddress | null>(null);
@@ -117,7 +121,9 @@ function MypageGuardianProfilePage() {
       : undefined;
   const isSaveEnabled = isGuardianProfileFormValid(formValues) && selectedAddress !== null;
   const isDirty = isGuardianProfileDirty(formValues, initialFormValues);
-  const showProfileCompletionBanner = !hasCompletedGuardianProfile(profileUser ?? {});
+  const hasApplicationHistory = (guardianApplications?.length ?? 0) > 0;
+  const showProfileCompletionBanner =
+    !hasCompletedGuardianProfile(profileUser ?? {}) && isGuardianApplicationsLoaded && !hasApplicationHistory;
 
   useEffect(() => {
     if (!user || !userInfoResponse || userInfoResponse.userId === user.userId) return;

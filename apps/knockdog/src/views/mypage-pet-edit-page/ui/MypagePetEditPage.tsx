@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   AlertDialog,
@@ -15,7 +15,7 @@ import {
 import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
-import { PetProfileForm } from '@features/dog-profile';
+import { PetProfileForm, type PetFormData } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -23,14 +23,32 @@ import { SafeArea } from '@shared/ui/safe-area';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
+/** 중복 프로필 상세를 확인한 뒤 수정 화면으로 돌아올 때만 사용하는 일회성 작성값. */
+const petEditViewDrafts = new Map<string, PetFormData>();
+
 export function MypagePetEditPage() {
   const { back, pushForResult, reset } = useStackNavigation();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
   const isDirtyRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const [restoreValues, setRestoreValues] = useState<PetFormData | null>(
+    () => petEditViewDrafts.get(petId) ?? null
+  );
 
   const { data: petResponse } = usePetByIdQuery(petId);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setRestoreValues(petEditViewDrafts.get(petId) ?? null);
+  }, [petId]);
 
   const handleBack = () => {
     // 변경사항이 없으면 바로 뒤로가기
@@ -44,16 +62,14 @@ export function MypagePetEditPage() {
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>앗, 아직 저장하지 않았어요!</AlertDialogTitle>
+            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
             <AlertDialogDescription>
-              지금 나가면 현재까지 쓴 내용이 사라져요.
-              <br />
-              저장 없이 나갈까요?
+              변경한 내용이 저장되지 않아요.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back?.()}>확인</AlertDialogAction>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={() => back?.()}>나가기</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -82,8 +98,24 @@ export function MypagePetEditPage() {
     void reset(route.mypage.root);
   };
 
-  const handleViewPetProfile = (duplicatePetId: string) =>
-    pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } }, 600_000);
+  const handleViewPetProfile = async (duplicatePetId: string, formValues: PetFormData) => {
+    petEditViewDrafts.set(petId, formValues);
+
+    try {
+      await pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } }, 600_000);
+    } finally {
+      // 수정 화면이 그대로 남아 있는 환경에서는 돌아온 시점에 draft를 전달한다.
+      // 화면이 재생성된 환경에서는 다음 마운트의 초기 state가 동일한 draft를 읽는다.
+      if (isMountedRef.current) {
+        setRestoreValues(petEditViewDrafts.get(petId) ?? formValues);
+      }
+    }
+  };
+
+  const handleRestoreValuesApplied = () => {
+    petEditViewDrafts.delete(petId);
+    setRestoreValues(null);
+  };
 
   return (
     <>
@@ -105,6 +137,8 @@ export function MypagePetEditPage() {
         }}
         onGoToPetList={handleGoToPetList}
         onViewPetProfile={handleViewPetProfile}
+        restoreValues={restoreValues}
+        onRestoreValuesApplied={handleRestoreValuesApplied}
         submitButtonText='수정하기'
       />
     </>

@@ -18,7 +18,7 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
     <div
       onClick={onClick}
       className={cn(
-        'border-line-100 relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl border',
+        'relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl',
         !imageUrl && 'bg-neutral-800'
       )}
     >

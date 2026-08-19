@@ -45,6 +45,10 @@ function MypageProfileLocationPage() {
 
   const { control, handleSubmit: submit } = useForm<LocationFormState>({
     defaultValues,
+    values: defaultValues as LocationFormState,
+    // 다른 주소를 저장하는 동안 caches가 갱신돼 values가 바뀌어도, 지금 막 선택해
+    // 아직 자신의 저장 요청이 끝나지 않은(dirty) 필드는 덮어쓰지 않는다.
+    resetOptions: { keepDirtyValues: true },
   });
 
   const handleAdd = async (type: UserAddressType, address: Omit<UserAddress, 'id'>) => {
@@ -86,7 +90,7 @@ function MypageProfileLocationPage() {
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
-        <Header.Title>주소 변경</Header.Title>
+        <Header.Title>장소 관리</Header.Title>
       </Header>
 
       <LocationPermissionSection />

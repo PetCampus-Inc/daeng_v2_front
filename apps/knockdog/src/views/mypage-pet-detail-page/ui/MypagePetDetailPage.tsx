@@ -17,11 +17,16 @@ import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetDetailInfo } from '@features/dog-profile';
-import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
+import {
+  GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY,
+  useGuardianPetConnectionStatusesQuery,
+} from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
-import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { useUserStore } from '@entities/user';
+import { getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { toast } from '@shared/ui/toast';
 
 export function MypagePetDetailPage() {
   const { push, back } = useStackNavigation();
@@ -29,20 +34,23 @@ export function MypagePetDetailPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
+  const userId = useUserStore((state) => state.user?.userId);
   const { mutate: removePetMutate } = usePetRemoveMutation();
   const { data: petResponse } = usePetByIdQuery(petId);
+  const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
+  const petConnection = petConnectionStatusesQuery.data?.data?.pets?.find((pet) => pet.petId === Number(petId));
+  const isPetConnected = petConnection?.connectionStatus != null;
+  const canDeletePet = petConnectionStatusesQuery.isSuccess && !isPetConnected;
 
   const handlePetEdit = () => {
     push({ pathname: '/mypage/pet-edit', query: { petId } });
   };
 
   const handleBack = () => {
-    try {
+    if (getCurrentTxId()) {
       navigationResult.send();
-    } catch {
-      // pushForResult로 열리지 않은 일반 상세 화면에서는 결과를 보낼 대상이 없다.
     }
-    void back();
+    back().catch(() => undefined);
   };
 
   const handleDeleteClick = () => {
@@ -50,11 +58,11 @@ export function MypagePetDetailPage() {
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>정말로 삭제하시겠어요?</AlertDialogTitle>
-            <AlertDialogDescription>삭제한 강아지 데이터는 복구할 수 없습니다.</AlertDialogDescription>
+            <AlertDialogTitle>강아지 프로필을 삭제할까요?</AlertDialogTitle>
+            <AlertDialogDescription>삭제한 강아지 데이터는 복구할 수 없어요.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 removePetMutate(petId, {
@@ -68,10 +76,17 @@ export function MypagePetDetailPage() {
                     syncWebViewQuery.refetch(['petList']);
                     handleBack();
                   },
+                  onError: (error) => {
+                    console.error('펫 삭제 실패:', error);
+                    toast({
+                      title: '일시적 오류로 요청을 완료하지 못했어요',
+                      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+                    });
+                  },
                 });
               }}
             >
-              예
+              삭제하기
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -87,21 +102,23 @@ export function MypagePetDetailPage() {
         </Header.LeftSection>
         <Header.Title>강아지 프로필</Header.Title>
 
-        <Header.RightSection>
-          <button className='label-semibold text-text-secondary px-2 py-1' onClick={handleDeleteClick}>
-            삭제
-          </button>
-        </Header.RightSection>
+        {canDeletePet && (
+          <Header.RightSection>
+            <button className='label-semibold text-text-secondary px-2 py-1' onClick={handleDeleteClick}>
+              삭제
+            </button>
+          </Header.RightSection>
+        )}
       </Header>
 
-      <PetDetailInfo pet={petResponse} />
-
-      <div className='mb-10 flex items-center justify-center px-4 py-4'>
-        <ActionButton size='small' variant='tertiaryFill' className='w-[128px]' onClick={handlePetEdit}>
-          <Icon icon='Edit' className='size-5' />
-          정보 수정하기
-        </ActionButton>
-      </div>
+      <PetDetailInfo pet={petResponse}>
+        <div className='flex items-center justify-center pt-5'>
+          <ActionButton size='medium' variant='tertiaryFill' className='w-[132px]' onClick={handlePetEdit}>
+            <Icon icon='Edit' className='size-5' />
+            정보 수정하기
+          </ActionButton>
+        </div>
+      </PetDetailInfo>
     </SafeArea>
   );
 }

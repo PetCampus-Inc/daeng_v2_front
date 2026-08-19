@@ -11,7 +11,6 @@ export * from './ui/DogHouseHeader';
 export * from './ui/DogHouseSection';
 export * from './ui/DogSelectSheet';
 export * from './ui/NoDogPrompt';
-export * from './ui/PetAddDialog';
 export * from './ui/PetNameDuplicateSheet';
 export * from './ui/PetProfileForm';
 export * from './ui/PetDetailInfo';
@@ -25,4 +24,4 @@ export {
 export { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from './lib/weight';
 
 export type { Breed } from './model/breed.type';
-export { usePetProfileForm } from './model/usePetProfileForm';
+export { usePetProfileForm, type PetFormData } from './model/usePetProfileForm';

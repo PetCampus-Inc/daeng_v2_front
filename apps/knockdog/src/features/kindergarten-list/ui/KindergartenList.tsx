@@ -27,12 +27,20 @@ import { useListBookmarkToggle } from '../model/useListBookmarkToggle';
 import { overlay } from 'overlay-kit';
 import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
+import {
+  useUserStore,
+  useAddUserAddressMutation,
+  USER_ADDRESS_TYPE,
+  USER_ADDRESS_TYPE_KR,
+  type UserAddress,
+  type UserAddressType,
+} from '@entities/user';
 import { LocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { toast } from '@shared/ui/toast';
 import { ellipsisText, tokenUtils } from '@shared/utils';
 
 interface KindergartenListProps {
@@ -46,8 +54,9 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
 
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-  const { push } = useStackNavigation();
+  const { push, pushForResult } = useStackNavigation();
   const user = useUserStore((s) => s.user);
+  const addAddressMutation = useAddUserAddressMutation();
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
   const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
@@ -79,12 +88,22 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       }
     }
 
+    // 집 선택 시 등록된 집 있는지 체크
+    // user 스토어가 아직 hydrate되지 않아 확인 불가한 경우도 미등록으로 간주해 안내한다.
+    // (조용히 무시하면 로그인 직후 탭이 응답 없는 것처럼 보인다)
+    if (newType === 'HOME') {
+      const hasHomeAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.HOME);
+      if (!hasHomeAddress) {
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.HOME);
+        return;
+      }
+    }
+
     // 직장 선택 시 등록된 직장 있는지 체크
     if (newType === 'WORK') {
-      if (!user) return;
       const hasWorkAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.WORK);
       if (!hasWorkAddress) {
-        handleOpenAlertDialog();
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.WORK);
         return;
       }
     }
@@ -92,22 +111,44 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     setBaseType(newType);
   };
 
-  const handleOpenAlertDialog = () =>
+  const handleOpenAlertDialog = (type: UserAddressType) =>
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>등록된 직장 위치가 없어요!</AlertDialogTitle>
+            <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
             <AlertDialogDescription>
-              새로운 위치 추가는 마이 {'>'} 내 장소 관리에서 가능해요! 지금 직장 위치를 등록하러 갈까요?
+              장소를 등록하면 <br/> 가까운 유치원을 찾을 수 있어요.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={close}>나중에</AlertDialogCancel>
+            <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              onClick={async () => {
                 close();
-                push({ pathname: route.mypage.profile.location.root });
+
+                let result: Omit<UserAddress, 'id'> | undefined;
+                try {
+                  result = await pushForResult<Omit<UserAddress, 'id'>>(
+                    { pathname: route.register.location.add.root, query: { type } },
+                    600_000
+                  );
+                } catch {
+                  // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+                  return;
+                }
+                if (!result) return;
+
+                try {
+                  await addAddressMutation.mutateAsync({ ...result, id: '0', type });
+                  setBaseType(type as BasePointType);
+                } catch (error) {
+                  console.error('장소 등록 실패:', error);
+                  toast({
+                    title: '일시적 오류로 요청을 완료하지 못했어요',
+                    nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+                  });
+                }
               }}
             >
               등록하기

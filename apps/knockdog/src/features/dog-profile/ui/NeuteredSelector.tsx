@@ -10,8 +10,8 @@ interface NeuteredSelectorProps {
 }
 
 function NeuteredSelector({ value, required = false, onChange, onComplete }: NeuteredSelectorProps) {
-  const handleChange = (isNeutered: 'Y' | 'N') => () => {
-    onChange?.(isNeutered);
+  const handleChange = (isNeutered: 'Y' | 'N') => (pressed: boolean) => {
+    onChange?.(pressed ? isNeutered : null);
     onComplete?.();
   };
 

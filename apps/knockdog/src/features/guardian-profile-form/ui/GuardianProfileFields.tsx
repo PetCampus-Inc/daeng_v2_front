@@ -153,7 +153,6 @@ function GuardianProfileFields({
         <div className='h-[68px] px-x4 py-x2'>
           <TextField
             className='h-x13'
-            disabled={!values.address}
             suffix={
               values.addressDetail ? (
                 <ClearInputButton ariaLabel='상세 주소 지우기' onClick={() => updateValue({ addressDetail: '' })} />
@@ -163,7 +162,6 @@ function GuardianProfileFields({
             <TextFieldInput
               value={values.addressDetail}
               placeholder='상세 주소를 입력해 주세요'
-              disabled={!values.address}
               onChange={(event) => updateValue({ addressDetail: formatAddressDetail(event.target.value) })}
             />
           </TextField>

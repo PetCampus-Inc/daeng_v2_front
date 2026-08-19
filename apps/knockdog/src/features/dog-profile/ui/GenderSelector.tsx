@@ -10,8 +10,8 @@ interface GenderSelectorProps {
 }
 
 function GenderSelector({ value, required = false, onChange, onComplete }: GenderSelectorProps) {
-  const handleChange = (gender: 'MALE' | 'FEMALE' | null) => () => {
-    onChange?.(gender);
+  const handleChange = (gender: 'MALE' | 'FEMALE') => (pressed: boolean) => {
+    onChange?.(pressed ? gender : null);
     onComplete?.();
   };
 

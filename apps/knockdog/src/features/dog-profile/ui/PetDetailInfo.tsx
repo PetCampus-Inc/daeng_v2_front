@@ -1,8 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage, Divider, Icon } from '@knockdog/ui';
+import type { ReactNode } from 'react';
 import { RELATIONSHIP, RELATIONSHIP_LABEL } from '@entities/pet';
 import type { Pet } from '@entities/pet';
 
-export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
+export function PetDetailInfo({ pet, children }: { pet: Pet | undefined; children?: ReactNode }) {
   const getGenderDisplay = () => {
     if (!pet?.gender) return null;
     return pet.gender === 'MALE' ? (
@@ -29,8 +30,8 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
   };
 
   return (
-    <div className='h-full overflow-y-auto'>
-      <div className='flex items-center justify-center px-4 py-7'>
+    <div className='h-full overflow-y-auto pt-5'>
+      <div className='flex items-center justify-center px-4 py-5'>
         <Avatar className='h-[120px] w-[120px]'>
           {pet?.profileImage && <AvatarImage src={pet.profileImage} className='object-cover' />}
           <AvatarFallback className='bg-primitive-neutral-100'>
@@ -41,33 +42,24 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
       <div className='px-4'>
         <div className='flex flex-col'>
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                강아지 이름
-                <strong className='body2-bold text-text-accent'>*</strong>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>강아지 이름</span>
               <span className='body1-bold'>{pet?.name}</span>
             </div>
             <Divider />
           </div>
 
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                강아지와 내 관계
-                <strong className='body2-bold text-text-accent'>*</strong>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>강아지와 내 관계</span>
               <span className='body1-bold'>{getRelationshipDisplay()}</span>
             </div>
             <Divider />
           </div>
 
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                견종
-                <span className='label-medium text-text-tertiary'>(선택)</span>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>견종</span>
               <span className={`body1-${pet?.breed ? 'bold' : 'medium text-text-tertiary'}`}>
                 {pet?.breed || '선택해주세요'}
               </span>
@@ -76,10 +68,8 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
           </div>
 
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                태어난 해<span className='label-medium text-text-tertiary'>(선택)</span>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>태어난 해</span>
               <span className={`body1-${pet?.birthYear ? 'bold' : 'medium text-text-tertiary'}`}>
                 {pet?.birthYear || '선택해주세요'}
               </span>
@@ -88,11 +78,8 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
           </div>
 
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                몸무게(kg)
-                <span className='label-medium text-text-tertiary'>(선택)</span>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>몸무게(kg)</span>
               <span className={`body1-${pet?.weight ? 'bold' : 'medium text-text-tertiary'}`}>
                 {pet?.weight || '선택해주세요'}
               </span>
@@ -101,11 +88,8 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
           </div>
 
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                성별
-                <span className='label-medium text-text-tertiary'>(선택)</span>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>성별</span>
               {pet?.gender ? (
                 <span className='body1-bold flex items-center gap-x-1'>{getGenderDisplay()}</span>
               ) : (
@@ -116,11 +100,8 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
           </div>
 
           <div>
-            <div className='flex items-center justify-between py-4'>
-              <span className='body1-medium'>
-                중성화 여부
-                <span className='label-medium text-text-tertiary'>(선택)</span>
-              </span>
+            <div className='flex items-center justify-between p-4'>
+              <span className='body1-medium'>중성화 여부</span>
               <span
                 className={`body1-${pet?.isNeutered === null || pet?.isNeutered === undefined ? 'medium text-text-tertiary' : 'bold'}`}
               >
@@ -130,6 +111,7 @@ export function PetDetailInfo({ pet }: { pet: Pet | undefined }) {
           </div>
         </div>
       </div>
+      {children}
     </div>
   );
 }

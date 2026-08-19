@@ -54,7 +54,7 @@ export function TooltipContent({
     <TooltipContentPrimitive
       data-slot='tooltip-content'
       className={cn(
-        'bg-fill-secondary-700 text-text-primary-inverse body1-regular z-[1000] rounded-md px-3 py-1.5 shadow-lg',
+        'bg-fill-secondary-700 text-text-primary-inverse body1-regular z-[1000] rounded-lg p-3 shadow-lg border border-neutral-300',
         placementRadiusClasses[placement as Placement],
         'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',

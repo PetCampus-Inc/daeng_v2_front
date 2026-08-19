@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+import { OwnerVerificationEntry } from '@features/auth';
+import { useOwnerRole } from '@features/role-conversion';
+import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
@@ -53,6 +56,7 @@ export function GuardianKindergartenPage() {
   );
 
   const hasAuth = useRequireAuth(handleAuthError);
+  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const {
     hasNoPet,
     isPetsReady,
@@ -108,6 +112,12 @@ export function GuardianKindergartenPage() {
     checkInAt &&
     (isAttending || isDismissed);
   const showDisconnected = !hasNoPet && status === 'disconnected' && linkedKindergarten;
+  const showApproved = !hasNoPet && !showDayState && status === 'approved' && linkedKindergarten;
+  const showPending = !hasNoPet && status === 'pending' && linkedKindergarten;
+  const showEmpty = !hasNoPet && !showDayState && !showDisconnected && !showApproved && !showPending;
+  // 강아지 미등록 또는 연결된 유치원이 아예 없는 경우에만 노출한다.
+  const shouldShowOwnerVerification =
+    isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
 
   return (
     <div
@@ -142,18 +152,27 @@ export function GuardianKindergartenPage() {
           />
         ) : showDisconnected ? (
           <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} initialSelectedDate={pushDate} />
-        ) : status === 'approved' && linkedKindergarten ? (
+        ) : showApproved ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}
             firstAttendedAt={firstAttendedAt}
             initialSelectedDate={pushDate}
           />
-        ) : status === 'pending' && linkedKindergarten ? (
+        ) : showPending ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
         ) : (
           <GuardianKindergartenEmptyState />
         )}
       </div>
+
+      {shouldShowOwnerVerification && (
+        <div
+          className='fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'
+          style={{ bottom: `calc(${BOTTOM_BAR_HEIGHT + 20}px + var(--safe-area-inset-bottom, 0px))` }}
+        >
+          <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+        </div>
+      )}
     </div>
   );
 }

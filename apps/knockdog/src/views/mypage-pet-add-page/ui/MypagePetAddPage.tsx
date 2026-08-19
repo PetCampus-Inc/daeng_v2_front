@@ -15,10 +15,8 @@ import {
 import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
-import { PetProfileForm, PetAddDialog } from '@features/dog-profile';
+import { PetProfileForm } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
-import { usePetListQuery } from '@entities/pet';
-import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
@@ -30,10 +28,6 @@ export function MypagePetAddPage() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
   const [isFormDirty, setIsFormDirty] = useState(false);
-  const { data: petListResponse } = usePetListQuery();
-  const user = useUserStore((state) => state.user);
-
-  const isFirstPet = (petListResponse?.data?.length ?? 0) === 0;
 
   const navigateBack = () => {
     if (inviteToken) {
@@ -56,48 +50,21 @@ export function MypagePetAddPage() {
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>앗, 아직 저장하지 않았어요!</AlertDialogTitle>
+            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
             <AlertDialogDescription>
-              지금 나가면 현재까지 쓴 내용이 사라져요.
-              <br />
-              저장 없이 나갈까요?
+              변경한 내용이 저장되지 않아요.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={navigateBack}>확인</AlertDialogAction>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={navigateBack}>나가기</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     ));
   };
 
-  const handleBeforeSubmit = (submitFn: () => void, formData: { name: string }) => {
-    // 첫 번째 강아지가 아니면 바로 제출
-    if (!isFirstPet) {
-      submitFn();
-      return;
-    }
-
-    // 첫 번째 강아지면 다이얼로그 먼저 표시
-    overlay.open(({ isOpen, close }) => (
-      <PetAddDialog
-        isOpen={isOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            close();
-          }
-        }}
-        onConfirm={() => {
-          submitFn(); // 확인 누르면 실제 제출
-        }}
-        userNickName={user?.nickname}
-        petNickName={formData.name}
-      />
-    ));
-  };
-
-  const handleSuccess = async () => {
+  const handleSuccess = async (petId?: string) => {
     syncWebViewQuery.invalidate(['petList']);
     if (inviteToken) {
       // 초대 강아지 선택 화면은 pet/list와 별도의 연결 상태 query를 사용한다.
@@ -109,6 +76,12 @@ export function MypagePetAddPage() {
       void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
       return;
     }
+
+    if (petId) {
+      void replace({ pathname: route.mypage.pet.detail.root, query: { petId } });
+      return;
+    }
+
     back?.();
   };
 
@@ -146,7 +119,6 @@ export function MypagePetAddPage() {
         onSuccess={handleSuccess}
         onError={handleError}
         onDirtyChange={setIsFormDirty}
-        onBeforeSubmit={handleBeforeSubmit}
         onGoToPetList={handleGoToPetList}
         onViewPetProfile={handleViewPetProfile}
         submitButtonText='저장하기'

@@ -3,6 +3,8 @@ import type { Breed } from './breed.type';
 import {
   usePetRegisterMutation,
   usePetUpdateDetailMutation,
+  usePetUpdateRepresentativeMutation,
+  usePetListQuery,
   type Gender,
   Pet,
   Relationship,
@@ -12,9 +14,10 @@ import {
 import { useUserStore } from '@entities/user';
 import { useMoveImageMutation } from '@shared/lib/media';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { toast } from '@shared/ui/toast';
 import { isValidDogWeight } from '../lib/weight';
 
-interface PetFormData {
+export interface PetFormData {
   name: string;
   relationship: Relationship | '';
   relationshipText: string;
@@ -32,14 +35,16 @@ interface UsePetProfileFormProps {
   mode: 'add' | 'edit';
   petId?: string;
   defaultValues?: Pet;
-  onSuccess?: () => void;
+  onSuccess?: (petId?: string) => void;
   onError?: (error: unknown) => void;
 }
 
 export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onError }: UsePetProfileFormProps) {
   const { mutateAsync: registerPet } = usePetRegisterMutation();
   const { mutateAsync: updatePetDetail } = usePetUpdateDetailMutation();
+  const { mutateAsync: updateRepresentative } = usePetUpdateRepresentativeMutation();
   const { mutateAsync: moveImage } = useMoveImageMutation();
+  const { data: petListResponse, refetch: refetchPetList } = usePetListQuery();
   const user = useUserStore((state) => state.user);
 
   const transformDefaultValues = (pet?: Pet): PetFormData => {
@@ -124,6 +129,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         throw new Error('견종, 몸무게, 성별은 필수 입력값입니다');
       }
 
+      let newPetId: string | undefined;
+
       if (mode === 'add') {
         const registerRequest = {
           name: data.name,
@@ -137,11 +144,31 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
         };
 
-        // 추가 모드: 펫 등록
-        await registerPet(registerRequest);
+        // petListResponse는 이 화면 진입 시점의 캐시라 로딩 중이면 0마리로 잘못 판단할 수 있으므로,
+        // 대표견 여부를 결정하기 직전에 최신 목록을 다시 조회한다.
+        const { data: freshPetListResponse } = await refetchPetList();
+        const isFirstPet = ((freshPetListResponse ?? petListResponse)?.data?.length ?? 0) === 0;
+        const registerResponse = await registerPet(registerRequest);
+        newPetId = registerResponse.data?.id;
+
+        // 첫 번째 강아지면 자동으로 대표 강아지로 지정한다.
+        if (isFirstPet && newPetId) {
+          try {
+            await updateRepresentative(Number(newPetId));
+          } catch (error) {
+            console.error('대표 강아지 자동 지정 실패:', error);
+            // 강아지 등록 자체는 성공했으므로 onError로 전체 실패 처리하지 않고 별도로 안내한다.
+            toast({
+              title: '대표 강아지 지정에 실패했어요. 마이페이지에서 다시 설정해 주세요',
+              nativeTitle: '대표 강아지 지정에 실패했어요. 마이페이지에서 다시 설정해 주세요',
+            });
+          }
+        }
       } else {
         // 수정 모드: 상세 정보만 업데이트
         if (!petId) throw new Error('petId is required in edit mode');
+
+        newPetId = petId;
 
         await updatePetDetail({
           petId,
@@ -159,7 +186,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
       syncWebViewQuery.refetch(['petList']);
 
-      onSuccess?.();
+      onSuccess?.(newPetId);
     } catch (error) {
       console.error('펫 프로필 저장 실패:', error);
       onError?.(error);

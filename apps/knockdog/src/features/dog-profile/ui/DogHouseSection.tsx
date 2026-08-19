@@ -6,24 +6,29 @@ import { calculateAge } from '@entities/pet';
 interface DogHouseSectionProps {
   dogs: Pet[];
   maxDogs?: number;
+  withBottomPadding?: boolean;
   onChangeRepresentative: () => void;
   onDogClick: (dogId: string) => void;
   onAddDog: () => void;
 }
 
-function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick, onAddDog }: DogHouseSectionProps) {
-  const representativeDog = dogs.find((dog) => dog.isRepresentative) || dogs[0];
-
+function DogHouseSection({
+  dogs,
+  maxDogs = 5,
+  withBottomPadding = true,
+  onChangeRepresentative,
+  onDogClick,
+  onAddDog,
+}: DogHouseSectionProps) {
   return (
-    <>
+    <div className={withBottomPadding ? 'py-5' : 'pt-5'}>
       <DogHouseHeader
-        representativeDogName={representativeDog?.name || ''}
         currentCount={dogs.length}
         maxCount={maxDogs}
         onChangeRepresentative={onChangeRepresentative}
       />
 
-      <div className='scrollbar-hide mb-[48px] flex gap-x-2 overflow-x-auto px-4'>
+      <div className='scrollbar-hide flex gap-x-2 overflow-x-auto px-4'>
         {dogs.map((dog) => (
           <DogCard
             key={dog.id}
@@ -38,7 +43,7 @@ function DogHouseSection({ dogs, maxDogs = 5, onChangeRepresentative, onDogClick
 
         {dogs.length < maxDogs && <AddDogCard dogNumber={dogs.length + 1} onClick={onAddDog} />}
       </div>
-    </>
+    </div>
   );
 }
 

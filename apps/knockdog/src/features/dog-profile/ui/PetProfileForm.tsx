@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Controller, useWatch } from 'react-hook-form';
-import { TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
+import { TextField, TextFieldInput, ActionButton, IconButton } from '@knockdog/ui';
 import { RelationshipSelector } from './RelationshipSelector';
 import { BreedSelector } from './BreedSelector';
 import { YearSelector } from './YearSelector';
@@ -17,7 +17,7 @@ import {
   normalizeRelationshipText,
 } from '../lib/normalizeKoreanText';
 import { MAX_DOG_WEIGHT, isValidDogWeight, normalizeDogWeight } from '../lib/weight';
-import { usePetProfileForm } from '../model/usePetProfileForm';
+import { usePetProfileForm, type PetFormData } from '../model/usePetProfileForm';
 import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
 import { ApiError } from '@shared/api';
@@ -27,12 +27,13 @@ interface PetProfileFormProps {
   petId?: string;
   defaultValues?: Pet;
   submitButtonText?: string;
-  onSuccess?: () => void;
+  onSuccess?: (petId?: string) => void;
   onError?: (error: unknown) => void;
   onDirtyChange?: (isDirty: boolean) => void;
-  onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
   onGoToPetList?: () => void;
-  onViewPetProfile?: (petId: string) => Promise<unknown>;
+  onViewPetProfile?: (petId: string, formValues: PetFormData) => Promise<unknown>;
+  restoreValues?: PetFormData | null;
+  onRestoreValuesApplied?: () => void;
 }
 
 function findDuplicatePets(pets: Pet[] | undefined, petId: string | undefined, name: string) {
@@ -47,9 +48,10 @@ function PetProfileForm({
   onSuccess,
   onError,
   onDirtyChange,
-  onBeforeSubmit,
   onGoToPetList,
   onViewPetProfile,
+  restoreValues,
+  onRestoreValuesApplied,
 }: PetProfileFormProps) {
   const [isDuplicateNameSheetOpen, setIsDuplicateNameSheetOpen] = React.useState(false);
   const [duplicatePets, setDuplicatePets] = React.useState<Pet[]>([]);
@@ -116,12 +118,25 @@ function PetProfileForm({
     });
   }, [defaultValues]);
 
+  // 화면이 재생성돼 defaultValues가 비동기로 나중에 도착하는 경우, 이미 복원된 draft를
+  // 서버 기본값으로 덮어쓰지 않도록 추적한다.
+  const hasRestoredDraftRef = React.useRef(false);
+
   React.useEffect(() => {
-    if (defaultValues && defaultValuesKey) {
+    if (defaultValues && defaultValuesKey && !hasRestoredDraftRef.current) {
       reset(transformDefaultValues(defaultValues));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValuesKey, reset]);
+
+  // 중복 강아지 상세를 확인하고 수정 화면으로 돌아온 경우에만 페이지가 보관한 작성값을 적용한다.
+  React.useEffect(() => {
+    if (!restoreValues) return;
+
+    hasRestoredDraftRef.current = true;
+    reset(restoreValues, { keepDefaultValues: true });
+    onRestoreValuesApplied?.();
+  }, [onRestoreValuesApplied, reset, restoreValues]);
 
   // isDirty 상태 변경을 부모에게 알림
   React.useEffect(() => {
@@ -132,19 +147,13 @@ function PetProfileForm({
     void trigger('relationshipText');
   }, [relationship, trigger]);
 
-  const submitForm = (formData: { name: string }, event?: React.BaseSyntheticEvent) => {
-    // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
-    if (onBeforeSubmit) {
-      onBeforeSubmit(() => handleSubmit(event), formData);
-    } else {
-      handleSubmit(event);
-    }
-  };
+  const isSaveDisabled =
+    !isValid || isSubmitting || isResolvingDuplicateName || (mode === 'edit' && !isDirty);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!isValid || isSubmitting || isResolvingDuplicateName) return;
+    if (isSaveDisabled) return;
 
     const formData = getValues();
     submittedPetNameRef.current = formData.name;
@@ -155,14 +164,14 @@ function PetProfileForm({
       return;
     }
 
-    submitForm({ name: formData.name }, e);
+    handleSubmit(e);
   };
 
   const handleSaveAsIs = () => {
     setIsDuplicateNameSheetOpen(false);
     const formData = getValues();
     submittedPetNameRef.current = formData.name;
-    submitForm({ name: formData.name });
+    handleSubmit();
   };
 
   const handleViewPetProfile = async (duplicatePetId: string) => {
@@ -170,7 +179,7 @@ function PetProfileForm({
 
     const formValues = getValues();
     try {
-      await onViewPetProfile(duplicatePetId);
+      await onViewPetProfile(duplicatePetId, formValues);
     } catch {
       // 시스템 뒤로가기처럼 결과 없이 돌아온 경우도 기존 입력값을 복원한다.
     } finally {
@@ -193,7 +202,7 @@ function PetProfileForm({
           noValidate
           className='flex h-full min-h-0 flex-col'
         >
-          <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
+          <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto pt-5'>
             <Controller
               name='profileImage'
               control={control}
@@ -213,7 +222,21 @@ function PetProfileForm({
               control={control}
               rules={{ required: '강아지 이름을 입력해 주세요' }}
                 render={({ field, fieldState: { error } }) => (
-                  <TextField label='강아지 이름' required invalid={!!error} errorMessage={error?.message}>
+                  <TextField
+                    label='강아지 이름'
+                    required
+                    invalid={!!error}
+                    errorMessage={error?.message}
+                    suffix={
+                      field.value && (
+                        <IconButton
+                          icon='DeleteInput'
+                          iconClassName='text-fill-secondary-700'
+                          onClick={() => field.onChange('')}
+                        />
+                      )
+                    }
+                  >
                     <TextFieldInput
                       {...field}
                       maxLength={MAX_DOG_NAME_LENGTH}
@@ -330,6 +353,15 @@ function PetProfileForm({
                     indicator={isAdditionalInfoRequired ? undefined : '(선택)'}
                     invalid={!!error}
                     errorMessage={error?.message}
+                    suffix={
+                      field.value != null && (
+                        <IconButton
+                          icon='DeleteInput'
+                          iconClassName='text-fill-secondary-700'
+                          onClick={() => field.onChange(undefined)}
+                        />
+                      )
+                    }
                   >
                     <TextFieldInput
                       {...field}
@@ -374,7 +406,7 @@ function PetProfileForm({
           </div>
 
           <div className='shrink-0 bg-bg-0 py-x5'>
-            <ActionButton type='submit' size='large' disabled={!isValid || isSubmitting || isResolvingDuplicateName}>
+            <ActionButton type='submit' size='large' disabled={isSaveDisabled}>
               {submitButtonText}
             </ActionButton>
           </div>

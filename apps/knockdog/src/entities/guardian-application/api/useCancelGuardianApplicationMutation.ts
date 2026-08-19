@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { guardianPetConnectionStatusesQueryKey } from '@entities/guardian-invite';
+
 import { postCancelGuardianApplication } from './guardianApplications';
 import { guardianApplicationsQueryKey } from './useGuardianApplicationsQuery';
 
@@ -15,7 +17,10 @@ function useCancelGuardianApplicationMutation({
   return useMutation({
     mutationFn: postCancelGuardianApplication,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: guardianApplicationsQueryKey(userId) });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: guardianApplicationsQueryKey(userId) }),
+        queryClient.invalidateQueries({ queryKey: guardianPetConnectionStatusesQueryKey(userId) }),
+      ]);
     },
   });
 }

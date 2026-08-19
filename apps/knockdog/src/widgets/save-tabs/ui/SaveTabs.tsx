@@ -1,7 +1,21 @@
 'use client';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@knockdog/ui';
 import { useState } from 'react';
+import { overlay } from 'overlay-kit';
 
 import { HistoryTab } from './HistoryTab';
 import { CompareMode } from './CompareMode';
@@ -9,6 +23,10 @@ import { ListMode } from './ListMode';
 import type { FilterState } from '@features/bookmarked-list';
 import type { BookmarkItem } from '@entities/bookmark';
 import { useCompareStore } from '@shared/store';
+import { useUserStore, useAddUserAddressMutation, USER_ADDRESS_TYPE, type UserAddress } from '@entities/user';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
+import { toast } from '@shared/ui/toast';
 
 interface SaveTabsProps {
   bookmarks: BookmarkItem[];
@@ -20,11 +38,14 @@ interface SaveTabsProps {
 
 function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookmarksRefetch }: SaveTabsProps) {
   const reset = useCompareStore((state) => state.reset);
+  const user = useUserStore((state) => state.user);
+  const { pushForResult } = useStackNavigation();
+  const addAddressMutation = useAddUserAddressMutation();
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [activeTab, setActiveTab] = useState('KINDERGARTEN');
 
-  const handleEnterCompareMode = async () => {
+  const proceedToCompareMode = async () => {
     try {
       await onBookmarksRefetch(); // 비교 모드 진입 시 북마크 목록 갱신
       reset();
@@ -32,6 +53,63 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
     } catch {
       // 에러 발생 시 비교 모드 진입 취소
     }
+  };
+
+  const handleOpenNoHomeAddressDialog = () =>
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
+            <AlertDialogDescription>
+              장소를 등록하면 <br /> 유치원과의 거리를 비교할 수 있어요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                close();
+
+                let result: Omit<UserAddress, 'id'> | undefined;
+                try {
+                  result = await pushForResult<Omit<UserAddress, 'id'>>(
+                    { pathname: route.register.location.add.root, query: { type: USER_ADDRESS_TYPE.HOME } },
+                    600_000
+                  );
+                } catch {
+                  // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+                  return;
+                }
+                if (!result) return;
+
+                try {
+                  await addAddressMutation.mutateAsync({ ...result, id: '0', type: USER_ADDRESS_TYPE.HOME });
+                  await proceedToCompareMode();
+                } catch (error) {
+                  console.error('장소 등록 실패:', error);
+                  toast({
+                    title: '일시적 오류로 요청을 완료하지 못했어요',
+                    nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+                  });
+                }
+              }}
+            >
+              등록하기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+
+  const handleEnterCompareMode = async () => {
+    const hasHomeAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.HOME);
+    if (!hasHomeAddress) {
+      handleOpenNoHomeAddressDialog();
+      return;
+    }
+
+    await proceedToCompareMode();
   };
 
   const handleExitCompareMode = () => {

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { ActionButton, Divider, Icon, IconButton } from '@knockdog/ui';
+import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import {
   SOCIAL_PROVIDER_ICONS,
   useSocialUserStore,
@@ -22,12 +22,28 @@ interface AccountSectionProps {
   ttokIdDescription?: string;
   releasePermissionLabel?: string;
   headerAddon?: ReactNode;
-  /** owner variant 계정 표시용. undefined일 때만 socialUser store로 폴백 (null/'' 유지) */
+  /** owner variant 계정 표시용. 값이 없으면 socialUser store를 사용한다. */
   socialProvider?: SocialProvider | null;
   socialEmail?: string;
-  onAccountClick?: () => void;
+  onProfileClick?: () => void;
   onLocationClick?: () => void;
+  onConnectionApplicationsClick?: () => void;
   onReleasePermissionClick?: () => void;
+}
+
+function SocialAccountEmailField({
+  provider,
+  email,
+}: {
+  provider?: SocialProvider | null;
+  email: string;
+}) {
+  return (
+    <div className='border-line-200 bg-fill-secondary-50 flex h-12 items-center rounded-lg border px-4'>
+      {provider ? <Icon icon={SOCIAL_PROVIDER_ICONS[provider]} className='mr-1 size-5' /> : null}
+      <span className='body1-regular text-text-secondary truncate'>{email}</span>
+    </div>
+  );
 }
 
 function AccountSection({
@@ -40,8 +56,9 @@ function AccountSection({
   headerAddon,
   socialProvider,
   socialEmail,
-  onAccountClick,
+  onProfileClick,
   onLocationClick,
+  onConnectionApplicationsClick,
   onReleasePermissionClick,
 }: AccountSectionProps) {
   const socialUser = useSocialUserStore((state) => state.socialUser);
@@ -73,9 +90,9 @@ function AccountSection({
   };
 
   if (variant === 'owner') {
-    // undefined(미지정)만 store 폴백. null / '' 는 명시값으로 유지
-    const provider = socialProvider !== undefined ? socialProvider : (socialUser?.provider ?? null);
-    const email = socialEmail !== undefined ? socialEmail : (socialUser?.email ?? '');
+    const provider = socialProvider ?? socialUser?.provider ?? null;
+    const email =
+      socialEmail || socialUser?.email || '';
 
     return (
       <div className='px-4 py-5'>
@@ -103,10 +120,7 @@ function AccountSection({
           ) : null}
 
           {provider && email ? (
-            <div className='bg-fill-secondary-50 flex items-center gap-x-1 rounded-lg px-4 py-3'>
-              <Icon icon={SOCIAL_PROVIDER_ICONS[provider]} className='size-4' />
-              <span className='body1-regular text-text-primary truncate'>{email}</span>
-            </div>
+            <SocialAccountEmailField provider={provider} email={email} />
           ) : null}
 
           {releasePermissionLabel ? (
@@ -126,38 +140,69 @@ function AccountSection({
 
   if (!accountInfo) return null;
 
+  const guardianSocialProvider = socialProvider ?? socialUser?.provider;
+  const guardianSocialEmail = socialEmail || socialUser?.email || '';
+
   return (
     <div className='px-4 py-5'>
-      <div className='body2-semibold text-text-tertiary mb-2'>사용자 계정 관리</div>
-      {headerAddon}
-      {headerAddon ? <Divider className='my-2' /> : null}
-      <div className='flex items-center justify-between gap-x-7 py-4' onClick={onAccountClick}>
-        <div className=''>
-          <div className='h3-semibold text-text-primary mb-2 flex items-center gap-x-1'>
-            {accountInfo.nickname}
-            <span className='body2-regular text-text-secondary'>#{accountInfo.userId}</span>
+      <div className='flex flex-col'>
+        <section className='flex flex-col gap-4 pb-4'>
+          <h2 className='body2-semibold text-text-tertiary'>내 정보</h2>
+          {headerAddon}
+          <div>
+            <button
+              type='button'
+              className='flex h-14 w-full items-center gap-2 py-4 text-left'
+              onClick={onProfileClick}
+            >
+              <span className='body1-medium flex-1 text-text-primary'>보호자 프로필</span>
+              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
+            </button>
+            <button
+              type='button'
+              className='flex h-14 w-full items-center gap-2 py-4 text-left'
+              onClick={onLocationClick}
+            >
+              <span className='body1-medium flex-1 text-text-primary'>내 장소 관리</span>
+              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
+            </button>
+            <button
+              type='button'
+              className='flex h-14 w-full items-center gap-2 py-4 text-left'
+              onClick={onConnectionApplicationsClick}
+            >
+              <span className='body1-medium flex-1 text-text-primary'>연결 신청 내역</span>
+              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
+            </button>
           </div>
+        </section>
 
-          {socialUser && (
-            <div className='bg-fill-secondary-50 flex items-center rounded-lg px-4 py-3'>
-              <Icon icon={SOCIAL_PROVIDER_ICONS[socialUser.provider]} className='mr-1' />
-              <span className='body2-regular text-text-secondary'>{socialUser.email}</span>
+        <Divider />
+
+        <section className='mt-5 flex flex-col gap-4'>
+          <h2 className='body2-semibold text-text-tertiary'>계정 정보</h2>
+          <div>
+            <div className='flex h-[76px] items-end justify-between gap-4 py-4'>
+              <div className='flex flex-col'>
+                <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
+                <span className='body2-regular text-text-tertiary'>{ttokIdDescription}</span>
+              </div>
+              <button
+                type='button'
+                className='flex items-center gap-2'
+                aria-label={`${ttokIdLabel} 복사`}
+                onClick={handleCopyUserId}
+              >
+                <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
+                <Icon icon='Copy' className='size-5 text-text-secondary' />
+              </button>
             </div>
-          )}
-        </div>
-        <div>
-          <IconButton icon='ChevronRight' className='text-text-tertiary' />
-        </div>
-      </div>
-      <Divider className='my-2' />
-      <div className='flex items-center justify-between gap-x-7 py-4' onClick={onLocationClick}>
-        <div className=''>
-          <div className='h3-semibold text-text-primary mb-1'>내 장소 관리</div>
-          <div className='body1-regular text-text-secondary'>강아지가 주로 머무르는 장소를 등록해요</div>
-        </div>
-        <div>
-          <IconButton icon='ChevronRight' className='text-text-tertiary' />
-        </div>
+
+            {guardianSocialProvider && guardianSocialEmail ? (
+              <SocialAccountEmailField provider={guardianSocialProvider} email={guardianSocialEmail} />
+            ) : null}
+          </div>
+        </section>
       </div>
     </div>
   );
