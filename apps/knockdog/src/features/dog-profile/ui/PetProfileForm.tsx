@@ -27,10 +27,9 @@ interface PetProfileFormProps {
   petId?: string;
   defaultValues?: Pet;
   submitButtonText?: string;
-  onSuccess?: () => void;
+  onSuccess?: (petId?: string) => void;
   onError?: (error: unknown) => void;
   onDirtyChange?: (isDirty: boolean) => void;
-  onBeforeSubmit?: (submitFn: () => void, formData: { name: string }) => void;
   onGoToPetList?: () => void;
   onViewPetProfile?: (petId: string, formValues: PetFormData) => Promise<unknown>;
   restoreValues?: PetFormData | null;
@@ -49,7 +48,6 @@ function PetProfileForm({
   onSuccess,
   onError,
   onDirtyChange,
-  onBeforeSubmit,
   onGoToPetList,
   onViewPetProfile,
   restoreValues,
@@ -144,19 +142,13 @@ function PetProfileForm({
     void trigger('relationshipText');
   }, [relationship, trigger]);
 
-  const submitForm = (formData: { name: string }, event?: React.BaseSyntheticEvent) => {
-    // onBeforeSubmit이 있으면 먼저 실행 (다이얼로그 등)
-    if (onBeforeSubmit) {
-      onBeforeSubmit(() => handleSubmit(event), formData);
-    } else {
-      handleSubmit(event);
-    }
-  };
+  const isSaveDisabled =
+    !isValid || isSubmitting || isResolvingDuplicateName || (mode === 'edit' && !isDirty);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!isValid || isSubmitting || isResolvingDuplicateName) return;
+    if (isSaveDisabled) return;
 
     const formData = getValues();
     submittedPetNameRef.current = formData.name;
@@ -167,14 +159,14 @@ function PetProfileForm({
       return;
     }
 
-    submitForm({ name: formData.name }, e);
+    handleSubmit(e);
   };
 
   const handleSaveAsIs = () => {
     setIsDuplicateNameSheetOpen(false);
     const formData = getValues();
     submittedPetNameRef.current = formData.name;
-    submitForm({ name: formData.name });
+    handleSubmit();
   };
 
   const handleViewPetProfile = async (duplicatePetId: string) => {
@@ -409,7 +401,7 @@ function PetProfileForm({
           </div>
 
           <div className='shrink-0 bg-bg-0 py-x5'>
-            <ActionButton type='submit' size='large' disabled={!isValid || isSubmitting || isResolvingDuplicateName}>
+            <ActionButton type='submit' size='large' disabled={isSaveDisabled}>
               {submitButtonText}
             </ActionButton>
           </div>

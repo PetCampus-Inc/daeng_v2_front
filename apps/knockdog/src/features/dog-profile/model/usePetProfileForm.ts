@@ -3,6 +3,8 @@ import type { Breed } from './breed.type';
 import {
   usePetRegisterMutation,
   usePetUpdateDetailMutation,
+  usePetUpdateRepresentativeMutation,
+  usePetListQuery,
   type Gender,
   Pet,
   Relationship,
@@ -32,14 +34,16 @@ interface UsePetProfileFormProps {
   mode: 'add' | 'edit';
   petId?: string;
   defaultValues?: Pet;
-  onSuccess?: () => void;
+  onSuccess?: (petId?: string) => void;
   onError?: (error: unknown) => void;
 }
 
 export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onError }: UsePetProfileFormProps) {
   const { mutateAsync: registerPet } = usePetRegisterMutation();
   const { mutateAsync: updatePetDetail } = usePetUpdateDetailMutation();
+  const { mutateAsync: updateRepresentative } = usePetUpdateRepresentativeMutation();
   const { mutateAsync: moveImage } = useMoveImageMutation();
+  const { data: petListResponse } = usePetListQuery();
   const user = useUserStore((state) => state.user);
 
   const transformDefaultValues = (pet?: Pet): PetFormData => {
@@ -124,6 +128,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         throw new Error('견종, 몸무게, 성별은 필수 입력값입니다');
       }
 
+      let newPetId: string | undefined;
+
       if (mode === 'add') {
         const registerRequest = {
           name: data.name,
@@ -138,10 +144,23 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
         };
 
         // 추가 모드: 펫 등록
-        await registerPet(registerRequest);
+        const isFirstPet = (petListResponse?.data?.length ?? 0) === 0;
+        const registerResponse = await registerPet(registerRequest);
+        newPetId = registerResponse.data?.id;
+
+        // 첫 번째 강아지면 자동으로 대표 강아지로 지정한다.
+        if (isFirstPet && newPetId) {
+          try {
+            await updateRepresentative(Number(newPetId));
+          } catch (error) {
+            console.error('대표 강아지 자동 지정 실패:', error);
+          }
+        }
       } else {
         // 수정 모드: 상세 정보만 업데이트
         if (!petId) throw new Error('petId is required in edit mode');
+
+        newPetId = petId;
 
         await updatePetDetail({
           petId,
@@ -159,7 +178,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
       syncWebViewQuery.refetch(['petList']);
 
-      onSuccess?.();
+      onSuccess?.(newPetId);
     } catch (error) {
       console.error('펫 프로필 저장 실패:', error);
       onError?.(error);

@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, Icon, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
+import { Divider, Icon, AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
@@ -31,6 +31,7 @@ import {
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
+import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 
 const EXTERNAL_LINKS = {
   NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
@@ -66,8 +67,6 @@ function Mypage() {
 
   const hasDogs = (petListResponse?.data?.length ?? 0) > 0;
   const shouldShowOwnerVerification = isLoggedIn && isOwnerRoleResolved && !isOwnerVerified;
-  const showDogRegistrationEmptyState =
-    shouldShowOwnerVerification && !isPetListLoading && !hasDogs;
 
   const accountInfo: AccountInfo = {
     nickname: user?.nickname || '살구형',
@@ -94,30 +93,12 @@ function Mypage() {
     toggleRoleView();
   };
 
-  const handleLogout = () => {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                try {
-                  await logout();
-                } finally {
-                  push({ pathname: '/mypage' });
-                }
-              }}
-            >
-              예
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      push({ pathname: route.auth.login.root });
+    }
   };
 
   const handleWithdrawClick = () => {
@@ -166,18 +147,20 @@ function Mypage() {
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header>
         <Header.Title>마이페이지</Header.Title>
-        <Header.RightSection>
-          <button
-            type='button'
-            aria-label='알림함'
-            onClick={() => push({ pathname: route.notification.root })}
-          >
-            <Icon icon='AlarmNone' className='size-6 text-text-primary' aria-hidden='true' />
-          </button>
-        </Header.RightSection>
+        {!isOwnerView && (
+          <Header.RightSection>
+            <button
+              type='button'
+              aria-label='알림함'
+              onClick={() => push({ pathname: route.notification.root })}
+            >
+              <Icon icon='AlarmNone' className='size-6 text-text-primary' aria-hidden='true' />
+            </button>
+          </Header.RightSection>
+        )}
       </Header>
 
-      <div className='flex-1 overflow-y-auto pb-16'>
+      <div className='flex-1 overflow-y-auto' style={{ paddingBottom: BOTTOM_BAR_HEIGHT }}>
         {!isLoggedIn && <LoginPrompt />}
 
         {!isLoggedIn && (
@@ -222,13 +205,13 @@ function Mypage() {
         ) : (
           <>
             {isLoggedIn && !isPetListLoading && !hasDogs && (
-              <div className={showDogRegistrationEmptyState ? 'bg-bg-0 flex flex-col items-center px-4 py-5' : undefined}>
-              <NoDogPrompt
-                nickname={user?.nickname || '사용자'}
-                showRegistrationEmptyState={showDogRegistrationEmptyState}
-                onAddDog={() => push({ pathname: '/mypage/pet-add' })}
-              />
-                {showDogRegistrationEmptyState ? <OwnerVerificationEntry requiresLogin={false} variant='banner' /> : null}
+              <div className='bg-bg-0 flex flex-col items-center px-4 py-5'>
+                <NoDogPrompt
+                  nickname={user?.nickname || '사용자'}
+                  showRegistrationEmptyState
+                  onAddDog={() => push({ pathname: '/mypage/pet-add' })}
+                />
+                {shouldShowOwnerVerification ? <OwnerVerificationEntry requiresLogin={false} variant='banner' /> : null}
               </div>
             )}
 

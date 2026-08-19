@@ -69,7 +69,7 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
                 className='gap-x2 border-line-100 active:text-text-accent flex items-center border-b p-4'
                 onClick={handleSelect(year)}
               >
-                <li className='body1-medium text-text-primary text-start'>
+                <li className='body1-medium text-text-secondary text-start'>
                   {value === year ? <span className='text-text-accent'>{year}</span> : year}
                 </li>
               </button>

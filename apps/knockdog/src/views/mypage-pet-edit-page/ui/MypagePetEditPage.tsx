@@ -62,16 +62,14 @@ export function MypagePetEditPage() {
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>앗, 아직 저장하지 않았어요!</AlertDialogTitle>
+            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
             <AlertDialogDescription>
-              지금 나가면 현재까지 쓴 내용이 사라져요.
-              <br />
-              저장 없이 나갈까요?
+              변경한 내용이 저장되지 않아요.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back?.()}>확인</AlertDialogAction>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={() => back?.()}>나가기</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

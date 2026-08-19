@@ -5,7 +5,7 @@ function normalizeDogWeight(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 2);
   const numericValue = Number(digits);
 
-  if (!digits || numericValue < MIN_DOG_WEIGHT || numericValue > MAX_DOG_WEIGHT) return '';
+  if (!digits || numericValue > MAX_DOG_WEIGHT) return '';
 
   return String(numericValue);
 }
