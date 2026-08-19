@@ -2,9 +2,26 @@
 
 import { Controller } from 'react-hook-form';
 
-import { Field, FieldLabel, TextField, TextFieldInput, Divider, ActionButton, IconButton } from '@knockdog/ui';
+import {
+  Field,
+  FieldLabel,
+  TextField,
+  TextFieldInput,
+  Divider,
+  ActionButton,
+  IconButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { Suspense } from 'react';
+import { overlay } from 'overlay-kit';
 
 import { useLocationAddPage } from '../model/useLocationAddPage';
 import { formatAddressDetail } from '../model/formatAddressDetail';
@@ -16,13 +33,37 @@ import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
 const MAX_LOCATION_NAME_LENGTH = 5;
 
 function LocationAddPage() {
-  const { type, control, canSubmit, hasAddress, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
+  const { type, control, canSubmit, isDirty, back, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
     useLocationAddPage();
+
+  const handleBack = () => {
+    // 작성한 내용이 없으면 바로 뒤로가기
+    if (!isDirty) {
+      back();
+      return;
+    }
+
+    // 변경사항이 있으면 확인 다이얼로그 표시
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
+            <AlertDialogDescription>변경한 내용이 저장되지 않아요.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={() => back()}>나가기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
 
   return (
     <div className='flex h-full flex-col pb-5'>
       <Header>
-        <Header.BackButton />
+        <Header.BackButton onClick={handleBack} />
         <Header.Title>주소 등록하기</Header.Title>
       </Header>
 
@@ -117,7 +158,6 @@ function LocationAddPage() {
                   render={({ field }) => (
                     <TextField
                       className='h-x13'
-                      disabled={!hasAddress}
                       suffix={
                         field.value ? (
                           <IconButton
@@ -133,7 +173,6 @@ function LocationAddPage() {
                       <TextFieldInput
                         value={field.value ?? ''}
                         placeholder='상세 주소를 입력해 주세요'
-                        disabled={!hasAddress}
                         onChange={(event) => field.onChange(formatAddressDetail(event.target.value))}
                       />
                     </TextField>

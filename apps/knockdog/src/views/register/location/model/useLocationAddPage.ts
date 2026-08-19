@@ -19,23 +19,33 @@ const useLocationAddPage = () => {
 
   if (!type) back();
 
+  const INITIAL_VALUES = {
+    alias: '',
+    address: undefined as unknown as LocationAddFormState['address'],
+  } satisfies LocationAddFormState;
+
   const {
     control,
     handleSubmit: submit,
     setValue,
+    reset,
   } = useForm<LocationAddFormState>({
     mode: 'onChange',
     resolver: zodResolver(locationAddSchema),
-    defaultValues: {
-      alias: '',
-      address: undefined,
-    },
+    defaultValues: INITIAL_VALUES,
   });
+
+  // 폼이 실제로 시작 시점과 달라졌는지는 RHF의 formState.isDirty 대신 직접 값을 비교해 판단한다.
+  // isDirty는 setValue(shouldDirty 없이 호출)로는 갱신되지 않고, 반대로 브라우저 자동완성 등으로
+  // 실제 input 이벤트가 발생하면 사용자가 아무것도 바꾸지 않았어도 true가 될 수 있어 신뢰할 수 없다.
+  const baselineRef = useRef<LocationAddFormState>(INITIAL_VALUES);
+  const watchedValues = useWatch({ control });
 
   const address = useWatch({ control, name: 'address' });
   const alias = useWatch({ control, name: 'alias' });
   const hasAddress = !!address;
   const canSubmit = hasAddress && (type !== USER_ADDRESS_TYPE.WORK || !!alias?.trim());
+  const isDirty = JSON.stringify(watchedValues) !== JSON.stringify(baselineRef.current);
 
   const handleAddressSelect = (address: Address) => {
     setValue('address', address, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
@@ -65,14 +75,28 @@ const useLocationAddPage = () => {
     if (!txId || consumedTxIdRef.current === txId) return;
     consumedTxIdRef.current = txId;
 
-    const params = getParams<{ address: Address; alias: string }>();
-    if (params) {
-      setValue('address', params.address, { shouldValidate: true });
-      setValue('alias', params.alias, { shouldValidate: true });
+    const params = getParams<{ address?: Address; alias?: string }>();
+    // 네이티브 환경의 getParams()는 실제 전달값이 없으면 라우팅용 query({ type, _txId })를
+    // 그대로 반환하는 fallback을 갖고 있다. address 키가 있을 때만 진짜 복원 데이터로 취급한다.
+    if (params && params.address) {
+      const restoredValues: LocationAddFormState = { address: params.address, alias: params.alias ?? '' };
+      baselineRef.current = restoredValues;
+      reset(restoredValues, { keepDefaultValues: true });
     }
-  }, [txId, getParams, setValue]);
+  }, [txId, getParams, reset]);
 
-  return { type, control, canSubmit, hasAddress, submit, handleSubmit, handleAddressSelect, handleAddressClear };
+  return {
+    type,
+    control,
+    canSubmit,
+    hasAddress,
+    isDirty,
+    back,
+    submit,
+    handleSubmit,
+    handleAddressSelect,
+    handleAddressClear,
+  };
 };
 
 export { useLocationAddPage };

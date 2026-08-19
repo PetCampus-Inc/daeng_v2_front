@@ -51,14 +51,20 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
   }, [value]);
 
   const navigateToAddressForm = async (params?: Record<string, unknown>) => {
-    const result = await pushForResult<Omit<UserAddress, 'id'>>(
-      {
-        pathname: route.register.location.add.root,
-        query: { type },
-        params,
-      },
-      600_000
-    );
+    let result: Omit<UserAddress, 'id'> | undefined;
+    try {
+      result = await pushForResult<Omit<UserAddress, 'id'>>(
+        {
+          pathname: route.register.location.add.root,
+          query: { type },
+          params,
+        },
+        600_000
+      );
+    } catch {
+      // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 사용자의 의도된 취소이므로 에러로 취급하지 않는다.
+      return undefined;
+    }
     // 뒤로가기 등으로 결과 없이 돌아오면 result가 falsy일 수 있다. 이때 그대로
     // setAddress/onChange를 호출하면 수정 중이던 기존 주소가 로컬에서 지워지므로 무시한다.
     if (!result) return result;

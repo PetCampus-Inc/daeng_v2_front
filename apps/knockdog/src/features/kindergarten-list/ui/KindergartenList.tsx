@@ -127,13 +127,19 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               onClick={async () => {
                 close();
 
+                let result: Omit<UserAddress, 'id'> | undefined;
                 try {
-                  const result = await pushForResult<Omit<UserAddress, 'id'>>(
+                  result = await pushForResult<Omit<UserAddress, 'id'>>(
                     { pathname: route.register.location.add.root, query: { type } },
                     600_000
                   );
-                  if (!result) return;
+                } catch {
+                  // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+                  return;
+                }
+                if (!result) return;
 
+                try {
                   await addAddressMutation.mutateAsync({ ...result, id: '0', type });
                   setBaseType(type as BasePointType);
                 } catch (error) {
