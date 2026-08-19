@@ -7,6 +7,7 @@ import { navBridgeHub } from '../model/navBridgeHub';
 import { BRIDGE_VERSION, type BridgeEventMap } from '@knockdog/bridge-core';
 import { handleOpenSystemSetting } from '../handlers/open-system-setting';
 import { handleShare } from '../handlers/handle-share';
+import { pushCoordinator } from '@/lib/pushCoordinator';
 
 // A의 WebView로 이벤트 재주입
 function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: unknown) {
@@ -42,6 +43,11 @@ function createBridgeForWebView(webRef: RefObject<RNWebView>) {
 
   const wire = wireWebView(webRef as any, router, {
     onWebEvent: (event, payload) => {
+      if (event === 'push.sessionReady') {
+        pushCoordinator.markSessionReady(webRef);
+        return;
+      }
+
       // nav.result, nav.cancel 이벤트 라우팅
       if (event === 'nav.result' || event === 'nav.cancel') {
         // 타입 안전한 txId 추출

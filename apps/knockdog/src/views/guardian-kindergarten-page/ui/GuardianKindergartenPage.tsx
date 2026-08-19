@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { OwnerVerificationEntry } from '@features/auth';
@@ -9,6 +10,7 @@ import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
+import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
@@ -18,10 +20,33 @@ import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
 import { GuardianKindergartenNoPetState } from './GuardianKindergartenNoPetState';
 import { GuardianKindergartenPendingState } from './GuardianKindergartenPendingState';
 
+function parsePushDate(value: string | null) {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+}
+
 export function GuardianKindergartenPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
+  const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
+  const pushPetId = searchParams.get('pushPetId');
+  const pushDateKey = searchParams.get('pushDate');
+  const pushDate = useMemo(() => parsePushDate(pushDateKey), [pushDateKey]);
+
+  useEffect(() => {
+    if (!pushPetId || !/^\d+$/.test(pushPetId)) return;
+    setSelectedPetId(pushPetId);
+  }, [pushPetId, setSelectedPetId]);
 
   const handleAuthError = useCallback(
     async (_error: Error) => {
@@ -123,13 +148,15 @@ export function GuardianKindergartenPage() {
             hasDailyNotice={hasDailyNotice}
             albumPhotos={albumPhotos}
             firstAttendedAt={firstAttendedAt}
+            initialSelectedDate={pushDate}
           />
         ) : showDisconnected ? (
-          <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} />
+          <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} initialSelectedDate={pushDate} />
         ) : showApproved ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}
             firstAttendedAt={firstAttendedAt}
+            initialSelectedDate={pushDate}
           />
         ) : showPending ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ActionButton, Icon } from '@knockdog/ui';
 
@@ -20,13 +20,15 @@ interface GuardianKindergartenApprovedStateProps {
   kindergarten: GuardianLinkedKindergarten;
   /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
   firstAttendedAt?: Date | null;
+  initialSelectedDate?: Date | null;
 }
 
 function GuardianKindergartenApprovedState({
   kindergarten,
   firstAttendedAt = null,
+  initialSelectedDate = null,
 }: GuardianKindergartenApprovedStateProps) {
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState(() => initialSelectedDate ?? new Date());
   const content = guardianKindergartenApprovedContent;
   const { push } = useStackNavigation();
   const {
@@ -35,6 +37,10 @@ function GuardianKindergartenApprovedState({
     dailyNotice,
     isPending: isCalendarDayPending,
   } = useGuardianCalendarDay({ selectedDate });
+
+  useEffect(() => {
+    if (initialSelectedDate) setSelectedDate(initialSelectedDate);
+  }, [initialSelectedDate]);
 
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });

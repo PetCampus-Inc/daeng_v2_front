@@ -3,7 +3,6 @@
 import { cn } from '@knockdog/ui/lib';
 
 import type { NotificationInboxItem as NotificationInboxItemModel } from '@views/notification-inbox-page/config/notificationInboxTypes';
-import { buildNotificationInboxMessage } from '@views/notification-inbox-page/lib/buildNotificationInboxMessage';
 import { formatNotificationRelativeTime } from '@views/notification-inbox-page/lib/formatNotificationRelativeTime';
 
 interface NotificationInboxItemProps {
@@ -12,11 +11,8 @@ interface NotificationInboxItemProps {
 }
 
 function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
-  const message = buildNotificationInboxMessage(item.type, item.petName);
   const relativeTime = formatNotificationRelativeTime(item.sentAt);
-  const imageSrc = item.kindergartenImageUrl
-    ? `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${item.kindergartenImageUrl}`
-    : undefined;
+  const imageSrc = item.kindergartenImageUrl;
 
   const handleClick = () => {
     onClick?.(item);
@@ -47,12 +43,18 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
         </div>
 
         <div className='gap-x1 flex min-w-0 flex-1 flex-col items-start justify-center'>
-          <p className='label-medium text-text-tertiary w-full truncate'>{item.kindergartenName}</p>
-          <p className='body1-bold text-text-primary w-full'>{message.title}</p>
-          <p className='body2-regular text-text-secondary w-full'>{message.body}</p>
+          {item.kindergartenName ? (
+            <p className='label-medium text-text-tertiary w-full truncate'>{item.kindergartenName}</p>
+          ) : null}
+          <p className='body1-bold text-text-primary w-full'>{item.title}</p>
+          <p className='body2-regular text-text-secondary w-full'>{item.body}</p>
           <p className='body2-regular text-text-secondary'>
-            {item.petName}
-            <span aria-hidden>∙</span>
+            {item.petName ? (
+              <>
+                {item.petName}
+                <span aria-hidden>∙</span>
+              </>
+            ) : null}
             {relativeTime}
           </p>
         </div>

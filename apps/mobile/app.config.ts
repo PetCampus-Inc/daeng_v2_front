@@ -4,6 +4,7 @@ import 'dotenv/config';
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
 const iosUrlScheme = process.env.EXPO_PUBLIC_IOS_URL_SCHEME;
 const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL;
+const androidGoogleServicesFile = process.env.GOOGLE_SERVICES_JSON_PATH ?? './google-services.json';
 
 if (!WEBVIEW_URL) {
   throw new Error('EXPO_PUBLIC_WEBVIEW_URL is not defined');
@@ -32,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     usesAppleSignIn: true,
     bundleIdentifier: 'net.knockdog.petcampus.v2',
+    googleServicesFile: './GoogleService-Info.plist',
     associatedDomains: [`applinks:${WEBVIEW_HOST}`],
     infoPlist: {
       LSApplicationQueriesSchemes: ['nmap', 'tel'],
@@ -74,7 +76,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: 'net.knockdog.petcampus.v2',
-    permissions: ['android.permission.ACCESS_COARSE_LOCATION', 'android.permission.ACCESS_FINE_LOCATION'],
+    googleServicesFile: androidGoogleServicesFile,
+    permissions: [
+      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.POST_NOTIFICATIONS',
+    ],
     intentFilters: [
       {
         action: 'VIEW',
@@ -88,6 +95,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-font',
     'expo-router',
     'expo-apple-authentication',
+    'expo-notifications',
+    '@react-native-firebase/app',
+    '@react-native-firebase/messaging',
     './plugins/naver-map-queries',
     [
       'expo-image-picker',
