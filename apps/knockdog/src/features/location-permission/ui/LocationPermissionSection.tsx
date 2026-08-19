@@ -15,7 +15,7 @@ function LocationPermissionSection() {
           추가 등록 가능
         </span>
         <Tooltip placement='bottom-left'>
-          <TooltipTrigger>
+          <TooltipTrigger aria-label='유치원 거리 기준 안내'>
             <Icon className='group-data-[state=closed]:hidden text-text-tertiary' icon='TooltipFill' />
             <Icon className='group-data-[state=open]:hidden text-text-tertiary' icon='TooltipLine' />
           </TooltipTrigger>

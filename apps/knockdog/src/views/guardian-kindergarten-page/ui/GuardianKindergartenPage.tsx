@@ -87,7 +87,12 @@ export function GuardianKindergartenPage() {
     checkInAt &&
     (isAttending || isDismissed);
   const showDisconnected = !hasNoPet && status === 'disconnected' && linkedKindergarten;
-  const shouldShowOwnerVerification = isLoggedIn && isOwnerRoleResolved && !isOwnerVerified;
+  const showApproved = !hasNoPet && !showDayState && status === 'approved' && linkedKindergarten;
+  const showPending = !hasNoPet && status === 'pending' && linkedKindergarten;
+  const showEmpty = !hasNoPet && !showDayState && !showDisconnected && !showApproved && !showPending;
+  // 강아지 미등록 또는 연결된 유치원이 아예 없는 경우에만 노출한다.
+  const shouldShowOwnerVerification =
+    isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
 
   return (
     <div
@@ -121,12 +126,12 @@ export function GuardianKindergartenPage() {
           />
         ) : showDisconnected ? (
           <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} />
-        ) : status === 'approved' && linkedKindergarten ? (
+        ) : showApproved ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}
             firstAttendedAt={firstAttendedAt}
           />
-        ) : status === 'pending' && linkedKindergarten ? (
+        ) : showPending ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
         ) : (
           <GuardianKindergartenEmptyState />
@@ -136,7 +141,7 @@ export function GuardianKindergartenPage() {
       {shouldShowOwnerVerification && (
         <div
           className='fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'
-          style={{ bottom: BOTTOM_BAR_HEIGHT + 20 }}
+          style={{ bottom: `calc(${BOTTOM_BAR_HEIGHT + 20}px + var(--safe-area-inset-bottom, 0px))` }}
         >
           <OwnerVerificationEntry requiresLogin={false} variant='banner' />
         </div>

@@ -61,6 +61,7 @@ function LocationAddPage() {
                     suffix={
                       field.value ? (
                         <IconButton
+                          type='button'
                           icon='DeleteInput'
                           iconClassName='text-fill-secondary-700'
                           aria-label='장소 이름 지우기'
@@ -120,6 +121,7 @@ function LocationAddPage() {
                       suffix={
                         field.value ? (
                           <IconButton
+                            type='button'
                             icon='DeleteInput'
                             iconClassName='text-fill-secondary-700'
                             aria-label='상세 주소 지우기'

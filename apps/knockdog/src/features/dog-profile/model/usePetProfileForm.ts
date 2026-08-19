@@ -14,6 +14,7 @@ import {
 import { useUserStore } from '@entities/user';
 import { useMoveImageMutation } from '@shared/lib/media';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { toast } from '@shared/ui/toast';
 import { isValidDogWeight } from '../lib/weight';
 
 export interface PetFormData {
@@ -43,7 +44,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
   const { mutateAsync: updatePetDetail } = usePetUpdateDetailMutation();
   const { mutateAsync: updateRepresentative } = usePetUpdateRepresentativeMutation();
   const { mutateAsync: moveImage } = useMoveImageMutation();
-  const { data: petListResponse } = usePetListQuery();
+  const { data: petListResponse, refetch: refetchPetList } = usePetListQuery();
   const user = useUserStore((state) => state.user);
 
   const transformDefaultValues = (pet?: Pet): PetFormData => {
@@ -143,8 +144,10 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
         };
 
-        // 추가 모드: 펫 등록
-        const isFirstPet = (petListResponse?.data?.length ?? 0) === 0;
+        // petListResponse는 이 화면 진입 시점의 캐시라 로딩 중이면 0마리로 잘못 판단할 수 있으므로,
+        // 대표견 여부를 결정하기 직전에 최신 목록을 다시 조회한다.
+        const { data: freshPetListResponse } = await refetchPetList();
+        const isFirstPet = ((freshPetListResponse ?? petListResponse)?.data?.length ?? 0) === 0;
         const registerResponse = await registerPet(registerRequest);
         newPetId = registerResponse.data?.id;
 
@@ -154,6 +157,11 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
             await updateRepresentative(Number(newPetId));
           } catch (error) {
             console.error('대표 강아지 자동 지정 실패:', error);
+            // 강아지 등록 자체는 성공했으므로 onError로 전체 실패 처리하지 않고 별도로 안내한다.
+            toast({
+              title: '대표 강아지 지정에 실패했어요. 마이페이지에서 다시 설정해 주세요',
+              nativeTitle: '대표 강아지 지정에 실패했어요. 마이페이지에서 다시 설정해 주세요',
+            });
           }
         }
       } else {

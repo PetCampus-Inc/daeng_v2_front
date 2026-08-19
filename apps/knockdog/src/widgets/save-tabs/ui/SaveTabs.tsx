@@ -23,9 +23,10 @@ import { ListMode } from './ListMode';
 import type { FilterState } from '@features/bookmarked-list';
 import type { BookmarkItem } from '@entities/bookmark';
 import { useCompareStore } from '@shared/store';
-import { useUserStore, USER_ADDRESS_TYPE } from '@entities/user';
+import { useUserStore, useAddUserAddressMutation, USER_ADDRESS_TYPE, type UserAddress } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { toast } from '@shared/ui/toast';
 
 interface SaveTabsProps {
   bookmarks: BookmarkItem[];
@@ -38,10 +39,21 @@ interface SaveTabsProps {
 function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookmarksRefetch }: SaveTabsProps) {
   const reset = useCompareStore((state) => state.reset);
   const user = useUserStore((state) => state.user);
-  const { push } = useStackNavigation();
+  const { pushForResult } = useStackNavigation();
+  const addAddressMutation = useAddUserAddressMutation();
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [activeTab, setActiveTab] = useState('KINDERGARTEN');
+
+  const proceedToCompareMode = async () => {
+    try {
+      await onBookmarksRefetch(); // 비교 모드 진입 시 북마크 목록 갱신
+      reset();
+      setIsCompareMode(true);
+    } catch {
+      // 에러 발생 시 비교 모드 진입 취소
+    }
+  };
 
   const handleOpenNoHomeAddressDialog = () =>
     overlay.open(({ isOpen, close }) => (
@@ -56,9 +68,25 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
           <AlertDialogFooter>
             <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              onClick={async () => {
                 close();
-                push({ pathname: route.register.location.add.root, query: { type: USER_ADDRESS_TYPE.HOME } });
+
+                try {
+                  const result = await pushForResult<Omit<UserAddress, 'id'>>(
+                    { pathname: route.register.location.add.root, query: { type: USER_ADDRESS_TYPE.HOME } },
+                    600_000
+                  );
+                  if (!result) return;
+
+                  await addAddressMutation.mutateAsync({ ...result, id: '0', type: USER_ADDRESS_TYPE.HOME });
+                  await proceedToCompareMode();
+                } catch (error) {
+                  console.error('장소 등록 실패:', error);
+                  toast({
+                    title: '일시적 오류로 요청을 완료하지 못했어요',
+                    nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+                  });
+                }
               }}
             >
               등록하기
@@ -75,13 +103,7 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
       return;
     }
 
-    try {
-      await onBookmarksRefetch(); // 비교 모드 진입 시 북마크 목록 갱신
-      reset();
-      setIsCompareMode(true);
-    } catch {
-      // 에러 발생 시 비교 모드 진입 취소
-    }
+    await proceedToCompareMode();
   };
 
   const handleExitCompareMode = () => {

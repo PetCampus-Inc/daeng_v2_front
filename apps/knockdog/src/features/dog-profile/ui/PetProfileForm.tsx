@@ -118,8 +118,12 @@ function PetProfileForm({
     });
   }, [defaultValues]);
 
+  // 화면이 재생성돼 defaultValues가 비동기로 나중에 도착하는 경우, 이미 복원된 draft를
+  // 서버 기본값으로 덮어쓰지 않도록 추적한다.
+  const hasRestoredDraftRef = React.useRef(false);
+
   React.useEffect(() => {
-    if (defaultValues && defaultValuesKey) {
+    if (defaultValues && defaultValuesKey && !hasRestoredDraftRef.current) {
       reset(transformDefaultValues(defaultValues));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,6 +133,7 @@ function PetProfileForm({
   React.useEffect(() => {
     if (!restoreValues) return;
 
+    hasRestoredDraftRef.current = true;
     reset(restoreValues, { keepDefaultValues: true });
     onRestoreValuesApplied?.();
   }, [onRestoreValuesApplied, reset, restoreValues]);

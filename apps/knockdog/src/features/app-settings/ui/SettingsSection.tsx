@@ -56,7 +56,7 @@ function SettingsSection({
   return (
     <div className='bg-primitive-neutral-50'>
       <div className='px-4 py-5'>
-        <div className='body2-semibold text-text-tertiary mb-2'>기타 정보</div>
+        <div className='body2-semibold text-text-tertiary mb-2'>{otherInfoTitle}</div>
         <div>
           <button type='button' className='body1-medium flex h-14 w-full items-center text-left' onClick={onNoticeClick}>
             공지사항

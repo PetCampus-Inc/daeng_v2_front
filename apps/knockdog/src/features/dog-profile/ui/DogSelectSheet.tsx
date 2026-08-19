@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Divider, Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
 import { usePetUpdateRepresentativeMutation, type Pet } from '@entities/pet';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
@@ -14,6 +15,7 @@ interface DogSelectSheetProps {
 
 export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => {
   const { mutateAsync: updatePetRepresentative } = usePetUpdateRepresentativeMutation();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) {
@@ -26,7 +28,10 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
       close();
       return;
     }
+    // 연속 탭으로 여러 강아지에 대한 변경 요청이 동시에 나가는 것을 막는다.
+    if (isUpdating) return;
 
+    setIsUpdating(true);
     try {
       await updatePetRepresentative(Number(dog.id));
 
@@ -54,6 +59,8 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
         title: '일시적 오류로 요청을 완료하지 못했어요',
         nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
       });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -70,7 +77,12 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
         <div className='py-5'>
           {dogs.map((dog, index) => (
             <div key={dog.id}>
-              <button type='button' className='flex w-full items-center gap-4 p-4' onClick={() => handleSelect(dog)}>
+              <button
+                type='button'
+                className='flex w-full items-center gap-4 p-4 disabled:opacity-50'
+                disabled={isUpdating}
+                onClick={() => handleSelect(dog)}
+              >
                 <span className='relative size-11 shrink-0'>
                   <Avatar className='size-11'>
                     <AvatarImage src={dog.profileImage} />

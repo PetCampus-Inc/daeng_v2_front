@@ -96,6 +96,8 @@ function Mypage() {
   const handleLogout = async () => {
     try {
       await logout();
+    } catch {
+      // 로그아웃 API 실패 시에도 로컬 세션은 이미 정리됨(logout() 내부 finally)
     } finally {
       push({ pathname: route.auth.login.root });
     }
@@ -154,7 +156,7 @@ function Mypage() {
               aria-label='알림함'
               onClick={() => push({ pathname: route.notification.root })}
             >
-              <Icon icon='AlarmNone' className='size-6 text-text-primary' aria-hidden='true' />
+              <Icon icon='AlarmNone' className='size-6 text-text-primary' />
             </button>
           </Header.RightSection>
         )}

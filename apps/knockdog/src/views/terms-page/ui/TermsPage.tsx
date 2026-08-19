@@ -39,7 +39,7 @@ function TermsPage() {
                 className='flex w-full items-center justify-between rounded-lg px-2 py-4 text-left transition-colors hover:bg-gray-50 active:bg-gray-100'
                 onClick={() => openExternalLink(term.url)}
               >
-                <span className='text-text-primary text-md font-medium'>{term.title}</span>
+                <span className='body1-medium text-text-primary'>{term.title}</span>
                 <Icon icon='ChevronRight' />
               </button>
               {index !== TERMS_URLS.length - 1 && <Divider className='' />}

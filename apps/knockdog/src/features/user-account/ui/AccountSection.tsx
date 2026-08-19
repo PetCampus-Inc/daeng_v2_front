@@ -140,6 +140,9 @@ function AccountSection({
 
   if (!accountInfo) return null;
 
+  const guardianSocialProvider = socialProvider ?? socialUser?.provider;
+  const guardianSocialEmail = socialEmail || socialUser?.email || '';
+
   return (
     <div className='px-4 py-5'>
       <div className='flex flex-col'>
@@ -195,10 +198,9 @@ function AccountSection({
               </button>
             </div>
 
-            <SocialAccountEmailField
-              provider={socialProvider ?? socialUser?.provider}
-              email={socialEmail || socialUser?.email || ''}
-            />
+            {guardianSocialProvider && guardianSocialEmail ? (
+              <SocialAccountEmailField provider={guardianSocialProvider} email={guardianSocialEmail} />
+            ) : null}
           </div>
         </section>
       </div>

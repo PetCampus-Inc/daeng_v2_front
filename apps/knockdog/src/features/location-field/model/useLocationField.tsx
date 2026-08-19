@@ -59,6 +59,9 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
       },
       600_000
     );
+    // 뒤로가기 등으로 결과 없이 돌아오면 result가 falsy일 수 있다. 이때 그대로
+    // setAddress/onChange를 호출하면 수정 중이던 기존 주소가 로컬에서 지워지므로 무시한다.
+    if (!result) return result;
 
     setAddress(result);
     onChange?.(result);
