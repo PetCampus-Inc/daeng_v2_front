@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+import { OwnerVerificationEntry } from '@features/auth';
+import { useOwnerRole } from '@features/role-conversion';
+import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
@@ -28,6 +31,7 @@ export function GuardianKindergartenPage() {
   );
 
   const hasAuth = useRequireAuth(handleAuthError);
+  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const {
     hasNoPet,
     isPetsReady,
@@ -83,6 +87,7 @@ export function GuardianKindergartenPage() {
     checkInAt &&
     (isAttending || isDismissed);
   const showDisconnected = !hasNoPet && status === 'disconnected' && linkedKindergarten;
+  const shouldShowOwnerVerification = isLoggedIn && isOwnerRoleResolved && !isOwnerVerified;
 
   return (
     <div
@@ -127,6 +132,15 @@ export function GuardianKindergartenPage() {
           <GuardianKindergartenEmptyState />
         )}
       </div>
+
+      {shouldShowOwnerVerification && (
+        <div
+          className='fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'
+          style={{ bottom: BOTTOM_BAR_HEIGHT + 20 }}
+        >
+          <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+        </div>
+      )}
     </div>
   );
 }
