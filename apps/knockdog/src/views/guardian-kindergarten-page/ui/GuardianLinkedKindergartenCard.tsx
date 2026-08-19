@@ -4,15 +4,10 @@ import { Icon } from '@knockdog/ui';
 
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface GuardianLinkedKindergartenCardProps {
   kindergarten: GuardianLinkedKindergarten;
-}
-
-function resolvePublicImageSrc(imageUrl: string) {
-  if (!imageUrl) return '';
-  if (/^(https?:|blob:|data:)/i.test(imageUrl)) return imageUrl;
-  return `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${imageUrl}`;
 }
 
 function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKindergartenCardProps) {

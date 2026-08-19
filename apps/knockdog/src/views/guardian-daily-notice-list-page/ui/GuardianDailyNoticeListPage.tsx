@@ -73,32 +73,7 @@ function GuardianDailyNoticeListPage() {
   );
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
-  const {
-    items,
-    firstAttendanceDate,
-    attendedUntilDate,
-    effectiveFirstAttendedAt,
-    lastAvailableMonth,
-    isFirstAttendanceDateFallback,
-    isPending,
-  } = useGuardianDailyNoticeMonthList({
-    schoolId: linkedKindergarten?.id,
-    petId: selectedPetId,
-    selectedMonth: requestedMonth,
-    firstAttendedAt,
-    attendedUntil: null,
-    isDisconnected,
-    isPetsReady,
-  });
-
-  const selectedMonth = useMemo(() => {
-    if (!isDisconnected || !lastAvailableMonth) return requestedMonth;
-    const cap = startOfMonth(lastAvailableMonth);
-    return requestedMonth.getTime() > cap.getTime() ? cap : requestedMonth;
-  }, [isDisconnected, lastAvailableMonth, requestedMonth]);
-
-  const disconnectedUntilKey =
-    isDisconnected && lastAvailableMonth ? toMonthEndDateKey(lastAvailableMonth) : null;
+  const disconnectedUntilKey = isDisconnected ? toMonthEndDateKey(new Date()) : null;
 
   /** 연결 이력 다건. 없으면 home 현재 연결 1건 */
   const kindergartens = useMemo(() => {
@@ -110,18 +85,41 @@ function GuardianDailyNoticeListPage() {
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
 
-  const resolvedKindergartenId =
-    selectedKindergartenId ??
-    defaultKindergartenId;
+  const resolvedKindergartenId = selectedKindergartenId ?? defaultKindergartenId;
   const selectedKindergarten =
     kindergartens.find((item) => item.id === resolvedKindergartenId) ??
     kindergartens[0] ??
     null;
-  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? disconnectedUntilKey;
+  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? null;
   const selectedAttendedUntil = useMemo(
     () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
     [selectedAttendedUntilKey]
   );
+  const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
+
+  const {
+    items,
+    firstAttendanceDate,
+    attendedUntilDate,
+    effectiveFirstAttendedAt,
+    lastAvailableMonth,
+    isFirstAttendanceDateFallback,
+    isPending,
+  } = useGuardianDailyNoticeMonthList({
+    schoolId: selectedKindergarten?.id ?? linkedKindergarten?.id,
+    petId: selectedPetId,
+    selectedMonth: requestedMonth,
+    firstAttendedAt,
+    attendedUntil: selectedAttendedUntil,
+    isDisconnected: isSelectedDisconnected,
+    isPetsReady,
+  });
+
+  const selectedMonth = useMemo(() => {
+    if (!isSelectedDisconnected || !lastAvailableMonth) return requestedMonth;
+    const cap = startOfMonth(lastAvailableMonth);
+    return requestedMonth.getTime() > cap.getTime() ? cap : requestedMonth;
+  }, [isSelectedDisconnected, lastAvailableMonth, requestedMonth]);
 
   const minMonth = useMemo(
     () => startOfMonth(effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)),
@@ -138,10 +136,7 @@ function GuardianDailyNoticeListPage() {
     selectedMonth.getTime() > minMonth.getTime() && !isFirstAttendanceMonth;
   const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
 
-  const title =
-    selectedAttendedUntil != null
-      ? (selectedKindergarten?.name ?? '')
-      : (linkedKindergarten?.name ?? selectedKindergarten?.name ?? '');
+  const title = selectedKindergarten?.name ?? linkedKindergarten?.name ?? '';
 
   const hasRows =
     items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;

@@ -65,6 +65,7 @@ function addMonths(date: Date, months: number) {
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
+  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const {
     selectedPet,
     selectedPetId,
@@ -82,7 +83,7 @@ function GuardianAlbumPage() {
     isError: isAlbumTodayError,
     isFetching: isAlbumTodayFetching,
     refetch: refetchAlbumToday,
-  } = useGuardianAlbumToday();
+  } = useGuardianAlbumToday({ schoolId: selectedKindergartenId });
   const userId = useUserStore((state) => state.user?.userId);
   const { data: connections } = useGuardianSchoolConnectionsQuery({
     userId,
@@ -94,33 +95,11 @@ function GuardianAlbumPage() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const didOpenHomeDetailRef = useRef(false);
-  const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
   const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
   const [detailState, setDetailState] = useState<GuardianAlbumDetailState | null>(null);
   const [isEntryRetrying, setIsEntryRetrying] = useState(false);
-
-  const {
-    days: monthDays,
-    firstAvailableMonth,
-    lastAvailableMonth,
-    connectionStartedAt,
-    isError: isAlbumMonthError,
-    isFetching: isAlbumMonthFetching,
-    isPending: isAlbumMonthPending,
-    refetch: refetchAlbumMonth,
-  } = useGuardianAlbumMonth({
-    schoolId,
-    petId: selectedPetId,
-    selectedMonth,
-    enabled: hasLinkedSchool,
-  });
-
-  const disconnectedUntilKey =
-    status === 'disconnected' && lastAvailableMonth
-      ? toMonthEndDateKey(lastAvailableMonth)
-      : null;
 
   const kindergartens = useMemo(() => {
     const fromConnections = toKindergartenSelectOptionsFromConnections(connections ?? []);
@@ -134,12 +113,38 @@ function GuardianAlbumPage() {
             imageUrl: schoolImageUrl ?? '',
           }
         : null,
-      disconnectedUntilKey
+      status === 'disconnected' ? toMonthEndDateKey(new Date()) : null
     );
-  }, [connections, disconnectedUntilKey, hasLinkedSchool, schoolId, schoolImageUrl, schoolName]);
+  }, [connections, hasLinkedSchool, schoolId, schoolImageUrl, schoolName, status]);
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
+  const selectedKindergarten =
+    kindergartens.find((item) => item.id === (selectedKindergartenId ?? defaultKindergartenId)) ??
+    kindergartens[0] ??
+    null;
+  const activeSchoolId = selectedKindergarten?.id ?? schoolId;
+  const kindergartenName = selectedKindergarten?.name ?? schoolName ?? '유치원';
+  const petName = selectedPet?.name ?? '강아지';
+  const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
+  const isDisconnected = attendedUntil != null || status === 'disconnected';
+  const hasSelectedSchool = Boolean(activeSchoolId);
+
+  const {
+    days: monthDays,
+    firstAvailableMonth,
+    lastAvailableMonth,
+    connectionStartedAt,
+    isError: isAlbumMonthError,
+    isFetching: isAlbumMonthFetching,
+    isPending: isAlbumMonthPending,
+    refetch: refetchAlbumMonth,
+  } = useGuardianAlbumMonth({
+    schoolId: activeSchoolId,
+    petId: selectedPetId,
+    selectedMonth,
+    enabled: hasSelectedSchool,
+  });
 
   const {
     days: favoriteDays,
@@ -149,9 +154,9 @@ function GuardianAlbumPage() {
     fetchNextPage: fetchFavoriteNextPage,
     isPending: isFavoritePending,
   } = useGuardianAlbumFavorites({
-    schoolId,
+    schoolId: activeSchoolId,
     petId: selectedPetId,
-    enabled: hasLinkedSchool && viewMode === 'favorite',
+    enabled: hasSelectedSchool && viewMode === 'favorite',
   });
 
   const {
@@ -162,24 +167,15 @@ function GuardianAlbumPage() {
     fetchNextPage: fetchAttendanceNextPage,
     isPending: isAttendancePending,
   } = useGuardianAlbumAttendedDays({
-    schoolId,
+    schoolId: activeSchoolId,
     petId: selectedPetId,
-    enabled: hasLinkedSchool && viewMode === 'attendance',
+    enabled: hasSelectedSchool && viewMode === 'attendance',
   });
 
   const { toggleFavorite } = useGuardianAlbumFavoriteToggle({
-    schoolId,
+    schoolId: activeSchoolId,
     petId: selectedPetId,
   });
-
-  const selectedKindergarten =
-    kindergartens.find((item) => item.id === (selectedKindergartenId ?? defaultKindergartenId)) ??
-    kindergartens[0] ??
-    null;
-  const kindergartenName = schoolName ?? selectedKindergarten?.name ?? '유치원';
-  const petName = selectedPet?.name ?? '강아지';
-  const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
-  const isDisconnected = status === 'disconnected' || attendedUntil != null;
   const albumRangeEnd = useMemo(
     () => (attendedUntil != null ? parseDateKey(attendedUntil) : new Date()),
     [attendedUntil]
@@ -246,19 +242,19 @@ function GuardianAlbumPage() {
 
   const handleOpenFilterDayDetail = useCallback(
     async (day: GuardianAlbumFilterDay) => {
-      if (!schoolId) {
+      if (!activeSchoolId) {
         openDetail(day.photos, undefined, false);
         return;
       }
 
       try {
-        const photos = await fetchGuardianAlbumDayPhotos(schoolId, day.dateKey);
+        const photos = await fetchGuardianAlbumDayPhotos(activeSchoolId, day.dateKey);
         openDetail(photos.length > 0 ? photos : day.photos, undefined, false);
       } catch {
         openDetail(day.photos, undefined, false);
       }
     },
-    [openDetail, schoolId]
+    [openDetail, activeSchoolId]
   );
 
   /** 날짜 검색 시트 — 선택일 상세 슬라이드 진입 */
@@ -275,13 +271,13 @@ function GuardianAlbumPage() {
 
       const monthDay = monthDays.find((day) => day.dateKey === dateKey) ?? null;
 
-      if (!schoolId) {
+      if (!activeSchoolId) {
         if (monthDay) handleOpenDayDetail(monthDay);
         return;
       }
 
       try {
-        const photos = await fetchGuardianAlbumDayPhotos(schoolId, dateKey);
+        const photos = await fetchGuardianAlbumDayPhotos(activeSchoolId, dateKey);
         if (photos.length > 0) {
           openDetail(photos, undefined, false);
           return;
@@ -296,7 +292,7 @@ function GuardianAlbumPage() {
       handleOpenDayDetail,
       monthDays,
       openDetail,
-      schoolId,
+      activeSchoolId,
       todayDateKey,
       todayDetailPhotos,
     ]
@@ -367,7 +363,7 @@ function GuardianAlbumPage() {
   }, [monthDays, isDisconnected, isAttendedToday, todayPhotoCount, todayDateKey]);
 
   const isMonthListLoading =
-    hasLinkedSchool && isAlbumMonthPending && monthDays.length === 0 && !isAlbumMonthError;
+    hasSelectedSchool && isAlbumMonthPending && monthDays.length === 0 && !isAlbumMonthError;
 
   const handleKindergartenSelect = useCallback(
     (kindergartenId: string) => {
@@ -530,7 +526,7 @@ function GuardianAlbumPage() {
           isRetrying={isEntryRetrying || isAlbumTodayFetching || isAlbumMonthFetching}
           onRetry={handleEntryRetry}
         />
-      ) : hasAlbumHistory ? (
+      ) : hasSelectedSchool || hasAlbumHistory ? (
         isFilterMode && isFilterEmpty ? (
           <GuardianAlbumFilterEmpty viewMode={viewMode} onResetToAll={handleResetFilter} />
         ) : viewMode === 'favorite' ? (
@@ -550,7 +546,7 @@ function GuardianAlbumPage() {
           <>
             <GuardianAlbumAttendanceList
               days={enrichedAttendanceDays}
-              schoolId={schoolId}
+              schoolId={activeSchoolId}
               hasNextPage={hasAttendanceNextPage}
               isFetchingNextPage={isAttendanceFetchingNextPage}
               fetchNextPage={fetchAttendanceNextPage}
@@ -567,7 +563,7 @@ function GuardianAlbumPage() {
               className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
               onScroll={handleScroll}
             >
-              {!isDisconnected && isAttendedToday ? (
+              {!isDisconnected && isAttendedToday && activeSchoolId === schoolId ? (
                 <GuardianAlbumTodaySection
                   petName={petName}
                   isAttendedToday={isAttendedToday}

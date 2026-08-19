@@ -2,34 +2,21 @@ export const ellipsisText = (text: string, maxLength: number = 7, suffix = '…'
   return text.length > maxLength ? text.slice(0, maxLength) + suffix : text;
 };
 
-function getLastHangulSyllable(word: string) {
+export const getSubjectParticle = (word: string): '이' | '가' => {
   const chars = [...word.trim().normalize('NFC')];
-  for (let index = chars.length - 1; index >= 0; index -= 1) {
-    const code = chars[index]?.charCodeAt(0);
-    if (code == null) continue;
-    if (code >= 0xac00 && code <= 0xd7a3) return chars[index];
-  }
-  return null;
-}
 
-function getLastLatinLetter(word: string) {
-  const chars = [...word.trim()];
   for (let index = chars.length - 1; index >= 0; index -= 1) {
     const char = chars[index];
-    if (char && /[a-z]/i.test(char)) return char;
-  }
-  return null;
-}
+    if (!char) continue;
 
-export const getSubjectParticle = (word: string): '이' | '가' => {
-  const hangul = getLastHangulSyllable(word);
-  if (hangul) {
-    const jongseong = (hangul.charCodeAt(0) - 0xac00) % 28;
-    return jongseong === 0 ? '가' : '이';
-  }
+    const code = char.charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const jongseong = (code - 0xac00) % 28;
+      return jongseong === 0 ? '가' : '이';
+    }
 
-  const latin = getLastLatinLetter(word);
-  if (latin) return /[aeiouy]/i.test(latin) ? '가' : '이';
+    if (/[a-z]/i.test(char)) return /[aeiouy]/i.test(char) ? '가' : '이';
+  }
 
   return '이';
 };
