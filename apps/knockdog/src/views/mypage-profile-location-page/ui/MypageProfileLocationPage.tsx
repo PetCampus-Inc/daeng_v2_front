@@ -45,6 +45,7 @@ function MypageProfileLocationPage() {
 
   const { control, handleSubmit: submit } = useForm<LocationFormState>({
     defaultValues,
+    values: defaultValues as LocationFormState,
   });
 
   const handleAdd = async (type: UserAddressType, address: Omit<UserAddress, 'id'>) => {
@@ -86,7 +87,7 @@ function MypageProfileLocationPage() {
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
-        <Header.Title>주소 변경</Header.Title>
+        <Header.Title>장소 관리</Header.Title>
       </Header>
 
       <LocationPermissionSection />

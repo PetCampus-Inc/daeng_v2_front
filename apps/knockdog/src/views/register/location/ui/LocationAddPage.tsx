@@ -2,66 +2,131 @@
 
 import { Controller } from 'react-hook-form';
 
-import { Field, FieldLabel, TextField, TextFieldInput, Divider, ActionButton } from '@knockdog/ui';
+import { Field, FieldLabel, TextField, TextFieldInput, Divider, ActionButton, IconButton } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import { Suspense } from 'react';
 
 import { useLocationAddPage } from '../model/useLocationAddPage';
+import { formatAddressDetail } from '../model/formatAddressDetail';
 
 import { Header } from '@widgets/Header';
 import { AddressPicker } from '@features/address-picker';
 import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
 
 function LocationAddPage() {
-  const { type, control, canSubmit, submit, handleSubmit, handleAddressSelect } = useLocationAddPage();
+  const { type, control, canSubmit, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
+    useLocationAddPage();
 
   return (
     <div className='flex h-full flex-col pb-5'>
       <Header>
         <Header.BackButton />
-        <Header.Title>장소 추가하기</Header.Title>
+        <Header.Title>주소 등록하기</Header.Title>
       </Header>
 
       <Suspense>
-        <div className='flex flex-1 flex-col overflow-hidden px-4 pt-10'>
-          <p className='h3-extrabold'>
-            {type && USER_ADDRESS_TYPE_KR[type]}
-            <span className='body1-extrabold text-text-accent'>*</span>
-          </p>
+        <div className='flex flex-1 flex-col px-4 pt-5'>
+          {type !== USER_ADDRESS_TYPE.WORK && (
+            <>
+              <p className='h3-extrabold'>{type && USER_ADDRESS_TYPE_KR[type]}</p>
+              <Divider className='my-4' />
+            </>
+          )}
 
-          <Divider className='my-4' />
-
-          <form
-            id='address-search-form'
-            className='flex flex-1 flex-col overflow-hidden pb-5'
-            onSubmit={submit(handleSubmit)}
-          >
+          <form id='address-search-form' className='flex flex-1 flex-col pb-5' onSubmit={submit(handleSubmit)}>
             {/* 장소 이름 필드 */}
             <Controller
               control={control}
               name='alias'
               render={({ field }) => (
                 <Field hidden={type !== USER_ADDRESS_TYPE.WORK}>
-                  <FieldLabel>장소 이름</FieldLabel>
+                  <FieldLabel>
+                    장소 이름<span className='text-text-accent'>*</span>
+                  </FieldLabel>
 
-                  <TextField variant='secondary'>
+                  <TextField
+                    className='h-x13'
+                    suffix={
+                      field.value ? (
+                        <IconButton
+                          icon='DeleteInput'
+                          iconClassName='text-fill-secondary-700'
+                          aria-label='장소 이름 지우기'
+                          onClick={() => field.onChange('')}
+                        />
+                      ) : undefined
+                    }
+                  >
                     <TextFieldInput placeholder={USER_ADDRESS_TYPE_KR[type]} {...field} />
                   </TextField>
                 </Field>
               )}
             />
 
-            {/* 주소 검색 */}
-            <div className='mt-4 flex-1 overflow-hidden'>
-              <Controller
-                control={control}
-                name='address'
-                render={({ field }) => <AddressPicker value={field.value?.address} onSelect={handleAddressSelect} />}
-              />
+            {/* 주소 섹션 */}
+            <div
+              className={cn(
+                'relative z-10 flex flex-col gap-y-2',
+                type === USER_ADDRESS_TYPE.WORK && 'mt-8'
+              )}
+            >
+              <div className='flex flex-col'>
+                <div className='body2-bold text-text-primary flex h-5 items-center gap-0.5 mb-2'>
+                  주소<span className='text-text-accent'>*</span>
+                </div>
+
+                <Controller
+                  control={control}
+                  name='address'
+                  render={({ field }) => (
+                    <AddressPicker
+                      variant='embedded'
+                      showLabel={false}
+                      fieldVariant='default'
+                      clearOnReselect
+                      inputClassName='h-x12'
+                      value={field.value?.roadAddress || field.value?.address}
+                      onSelect={handleAddressSelect}
+                      onClear={handleAddressClear}
+                    />
+                  )}
+                />
+              </div>
+
+              <div className=''>
+                <Controller
+                  control={control}
+                  name='address.detail'
+                  render={({ field }) => (
+                    <TextField
+                      className='h-x13'
+                      disabled={!canSubmit}
+                      suffix={
+                        field.value ? (
+                          <IconButton
+                            icon='DeleteInput'
+                            iconClassName='text-fill-secondary-700'
+                            aria-label='상세 주소 지우기'
+                            onClick={() => field.onChange('')}
+                          />
+                        ) : undefined
+                      }
+                    >
+                      <TextFieldInput
+                        value={field.value ?? ''}
+                        placeholder='상세 주소를 입력해 주세요'
+                        disabled={!canSubmit}
+                        onChange={(event) => field.onChange(formatAddressDetail(event.target.value))}
+                      />
+                    </TextField>
+                  )}
+                />
+              </div>
             </div>
           </form>
 
           <ActionButton
-            variant='secondaryFill'
+            variant='primaryFill'
             form='address-search-form'
             type='submit'
             size='large'

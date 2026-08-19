@@ -29,9 +29,9 @@ function TermsPage() {
         <Header.Title>이용약관</Header.Title>
       </Header>
 
-      <div className='px-4 py-7'>
-        <h3 className='text-text-tertiary text-sm font-medium'>약관 내용</h3>
-        <div className='py-2'>
+      <div className='px-4 py-5'>
+        <h3 className='text-text-tertiary text-sm font-medium'>약관</h3>
+        <div className='pt-2'>
           {TERMS_URLS.map((term, index) => (
             <div key={term.title}>
               <button
@@ -39,10 +39,10 @@ function TermsPage() {
                 className='flex w-full items-center justify-between rounded-lg px-2 py-4 text-left transition-colors hover:bg-gray-50 active:bg-gray-100'
                 onClick={() => openExternalLink(term.url)}
               >
-                <span className='h3-semibold'>{term.title}</span>
+                <span className='text-text-primary text-md font-medium'>{term.title}</span>
                 <Icon icon='ChevronRight' />
               </button>
-              {index !== TERMS_URLS.length - 1 && <Divider className='my-2' />}
+              {index !== TERMS_URLS.length - 1 && <Divider className='' />}
             </div>
           ))}
         </div>
