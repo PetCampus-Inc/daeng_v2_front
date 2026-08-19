@@ -17,8 +17,12 @@ import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetDetailInfo } from '@features/dog-profile';
-import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
+import {
+  GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY,
+  useGuardianPetConnectionStatusesQuery,
+} from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
+import { useUserStore } from '@entities/user';
 import { getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
@@ -30,8 +34,13 @@ export function MypagePetDetailPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
+  const userId = useUserStore((state) => state.user?.userId);
   const { mutate: removePetMutate } = usePetRemoveMutation();
   const { data: petResponse } = usePetByIdQuery(petId);
+  const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
+  const petConnection = petConnectionStatusesQuery.data?.data?.pets?.find((pet) => pet.petId === Number(petId));
+  const isPetConnected = petConnection?.connectionStatus != null;
+  const canDeletePet = petConnectionStatusesQuery.isSuccess && !isPetConnected;
 
   const handlePetEdit = () => {
     push({ pathname: '/mypage/pet-edit', query: { petId } });
@@ -93,11 +102,13 @@ export function MypagePetDetailPage() {
         </Header.LeftSection>
         <Header.Title>강아지 프로필</Header.Title>
 
-        <Header.RightSection>
-          <button className='label-semibold text-text-secondary px-2 py-1' onClick={handleDeleteClick}>
-            삭제
-          </button>
-        </Header.RightSection>
+        {canDeletePet && (
+          <Header.RightSection>
+            <button className='label-semibold text-text-secondary px-2 py-1' onClick={handleDeleteClick}>
+              삭제
+            </button>
+          </Header.RightSection>
+        )}
       </Header>
 
       <PetDetailInfo pet={petResponse}>

@@ -106,9 +106,10 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
     try {
       await onDelete?.();
 
-      setAddress(null);
-      onChange?.(undefined);
-
+      // 로컬 state를 직접 지우지 않는다. 삭제 뮤테이션 성공 시 상위(store)의 주소 목록이
+      // 갱신되고, 그 값이 value prop → 위 useEffect를 통해 자연스럽게 반영된다.
+      // 여기서 setAddress/onChange를 같이 호출하면 상위 값 반영과 경합해
+      // 간헐적으로 삭제한 주소가 다시 나타나는 문제가 있었다.
       showLocationResultToast(alias, `${pickJosa(alias, '을', '를')} 삭제했어요`);
     } catch (error) {
       console.error('장소 삭제 실패:', error);

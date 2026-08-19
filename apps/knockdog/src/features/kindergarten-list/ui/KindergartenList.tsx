@@ -27,7 +27,7 @@ import { useListBookmarkToggle } from '../model/useListBookmarkToggle';
 import { overlay } from 'overlay-kit';
 import { useFilteredSearchList } from '@features/kindergarten-map';
 import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
-import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
+import { useUserStore, USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR, type UserAddressType } from '@entities/user';
 import { LocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
@@ -79,12 +79,22 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       }
     }
 
+    // 집 선택 시 등록된 집 있는지 체크
+    if (newType === 'HOME') {
+      if (!user) return;
+      const hasHomeAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.HOME);
+      if (!hasHomeAddress) {
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.HOME);
+        return;
+      }
+    }
+
     // 직장 선택 시 등록된 직장 있는지 체크
     if (newType === 'WORK') {
       if (!user) return;
       const hasWorkAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.WORK);
       if (!hasWorkAddress) {
-        handleOpenAlertDialog();
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.WORK);
         return;
       }
     }
@@ -92,22 +102,22 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     setBaseType(newType);
   };
 
-  const handleOpenAlertDialog = () =>
+  const handleOpenAlertDialog = (type: UserAddressType) =>
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>등록된 직장 위치가 없어요!</AlertDialogTitle>
+            <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
             <AlertDialogDescription>
-              새로운 위치 추가는 마이 {'>'} 내 장소 관리에서 가능해요! 지금 직장 위치를 등록하러 갈까요?
+              장소를 등록하면 <br/> 가까운 유치원을 찾을 수 있어요.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={close}>나중에</AlertDialogCancel>
+            <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 close();
-                push({ pathname: route.mypage.profile.location.root });
+                push({ pathname: route.register.location.add.root, query: { type } });
               }}
             >
               등록하기

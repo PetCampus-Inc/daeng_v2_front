@@ -13,8 +13,10 @@ import { Header } from '@widgets/Header';
 import { AddressPicker } from '@features/address-picker';
 import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
 
+const MAX_LOCATION_NAME_LENGTH = 5;
+
 function LocationAddPage() {
-  const { type, control, canSubmit, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
+  const { type, control, canSubmit, hasAddress, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
     useLocationAddPage();
 
   return (
@@ -33,7 +35,17 @@ function LocationAddPage() {
             </>
           )}
 
-          <form id='address-search-form' className='flex flex-1 flex-col pb-5' onSubmit={submit(handleSubmit)}>
+          <form
+            id='address-search-form'
+            className='flex flex-1 flex-col pb-5'
+            onSubmit={submit(handleSubmit)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
+            }}
+            noValidate
+          >
             {/* 장소 이름 필드 */}
             <Controller
               control={control}
@@ -57,7 +69,11 @@ function LocationAddPage() {
                       ) : undefined
                     }
                   >
-                    <TextFieldInput placeholder={USER_ADDRESS_TYPE_KR[type]} {...field} />
+                    <TextFieldInput
+                      placeholder='등록할 장소의 이름을 입력해 주세요'
+                      maxLength={MAX_LOCATION_NAME_LENGTH}
+                      {...field}
+                    />
                   </TextField>
                 </Field>
               )}
@@ -100,7 +116,7 @@ function LocationAddPage() {
                   render={({ field }) => (
                     <TextField
                       className='h-x13'
-                      disabled={!canSubmit}
+                      disabled={!hasAddress}
                       suffix={
                         field.value ? (
                           <IconButton
@@ -115,7 +131,7 @@ function LocationAddPage() {
                       <TextFieldInput
                         value={field.value ?? ''}
                         placeholder='상세 주소를 입력해 주세요'
-                        disabled={!canSubmit}
+                        disabled={!hasAddress}
                         onChange={(event) => field.onChange(formatAddressDetail(event.target.value))}
                       />
                     </TextField>

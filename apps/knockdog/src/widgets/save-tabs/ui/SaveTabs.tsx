@@ -1,7 +1,21 @@
 'use client';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@knockdog/ui';
 import { useState } from 'react';
+import { overlay } from 'overlay-kit';
 
 import { HistoryTab } from './HistoryTab';
 import { CompareMode } from './CompareMode';
@@ -9,6 +23,9 @@ import { ListMode } from './ListMode';
 import type { FilterState } from '@features/bookmarked-list';
 import type { BookmarkItem } from '@entities/bookmark';
 import { useCompareStore } from '@shared/store';
+import { useUserStore, USER_ADDRESS_TYPE } from '@entities/user';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 
 interface SaveTabsProps {
   bookmarks: BookmarkItem[];
@@ -20,11 +37,44 @@ interface SaveTabsProps {
 
 function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookmarksRefetch }: SaveTabsProps) {
   const reset = useCompareStore((state) => state.reset);
+  const user = useUserStore((state) => state.user);
+  const { push } = useStackNavigation();
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [activeTab, setActiveTab] = useState('KINDERGARTEN');
 
+  const handleOpenNoHomeAddressDialog = () =>
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
+            <AlertDialogDescription>
+              장소를 등록하면 <br /> 유치원과의 거리를 비교할 수 있어요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                push({ pathname: route.register.location.add.root, query: { type: USER_ADDRESS_TYPE.HOME } });
+              }}
+            >
+              등록하기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+
   const handleEnterCompareMode = async () => {
+    const hasHomeAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.HOME);
+    if (!hasHomeAddress) {
+      handleOpenNoHomeAddressDialog();
+      return;
+    }
+
     try {
       await onBookmarksRefetch(); // 비교 모드 진입 시 북마크 목록 갱신
       reset();

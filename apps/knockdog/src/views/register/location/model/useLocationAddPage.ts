@@ -34,7 +34,8 @@ const useLocationAddPage = () => {
 
   const address = useWatch({ control, name: 'address' });
   const alias = useWatch({ control, name: 'alias' });
-  const canSubmit = !!address && (type !== USER_ADDRESS_TYPE.WORK || !!alias?.trim());
+  const hasAddress = !!address;
+  const canSubmit = hasAddress && (type !== USER_ADDRESS_TYPE.WORK || !!alias?.trim());
 
   const handleAddressSelect = (address: Address) => {
     setValue('address', address, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
@@ -71,7 +72,7 @@ const useLocationAddPage = () => {
     }
   }, [txId, getParams, setValue]);
 
-  return { type, control, canSubmit, submit, handleSubmit, handleAddressSelect, handleAddressClear };
+  return { type, control, canSubmit, hasAddress, submit, handleSubmit, handleAddressSelect, handleAddressClear };
 };
 
 export { useLocationAddPage };
