@@ -114,22 +114,24 @@ class PushCoordinator {
     navigationRef.navigate('Tabs', { screen: 'Explore' });
   }
 
-  private setCompareTabPet(petId: string, date?: string, attempt = 0) {
+  private setCompareTabPet(petId: string, _date?: string, attempt = 0) {
     const compareWebView = tabWebViewStore.get('Compare')?.current;
     if (!compareWebView) {
-      if (attempt < 20) setTimeout(() => this.setCompareTabPet(petId, date, attempt + 1), 50);
+      if (attempt < 20) setTimeout(() => this.setCompareTabPet(petId, _date, attempt + 1), 50);
       return;
     }
 
     const serializedPetId = serializeForJS(petId);
-    const serializedDate = serializeForJS(date ?? '');
     compareWebView.injectJavaScript(`
       (function() {
+        var petId = ${serializedPetId};
+        try {
+          localStorage.setItem('GUARDIAN_SELECTED_PET', JSON.stringify({ state: { selectedPetId: String(petId) }, version: 0 }));
+        } catch (e) {}
+        window.dispatchEvent(new CustomEvent('knockdog:guardian-selected-pet', { detail: { petId: String(petId) } }));
         var url = new URL(window.location.href);
-        url.searchParams.set('pushPetId', ${serializedPetId});
-        var pushDate = ${serializedDate};
-        if (pushDate) url.searchParams.set('pushDate', pushDate);
-        else url.searchParams.delete('pushDate');
+        url.searchParams.set('pushPetId', petId);
+        url.searchParams.delete('pushDate');
         history.replaceState(null, '', url.pathname + url.search + url.hash);
         window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
       })(); true;
