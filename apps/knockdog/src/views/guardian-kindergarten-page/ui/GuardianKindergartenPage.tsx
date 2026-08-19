@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
-import { OwnerVerificationEntry } from '@features/auth';
-import { useOwnerRole } from '@features/role-conversion';
+import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';

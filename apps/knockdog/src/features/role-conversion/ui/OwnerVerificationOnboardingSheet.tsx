@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 import { ActionButton } from '@knockdog/ui';
 
-import { ownerVerificationOnboardingSteps } from '@features/auth/config/ownerVerificationOnboardingContent';
+import { ownerVerificationOnboardingSteps } from '@features/role-conversion/config/ownerVerificationOnboardingContent';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
