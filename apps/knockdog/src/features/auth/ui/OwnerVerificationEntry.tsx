@@ -1,6 +1,10 @@
 'use client';
 
+import { overlay } from 'overlay-kit';
+
 import { Icon, IconButton, Tooltip, TooltipContent, TooltipTrigger } from '@knockdog/ui';
+
+import { OwnerVerificationOnboardingSheet } from './OwnerVerificationOnboardingSheet';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -28,12 +32,18 @@ function OwnerVerificationEntry({ requiresLogin = true, variant = 'row' }: Owner
     push({ pathname: route.roleConversion.kindergartenSearch.root });
   };
 
+  const handleOpenOnboarding = () => {
+    overlay.open(({ isOpen, close }) => (
+      <OwnerVerificationOnboardingSheet isOpen={isOpen} close={close} requiresLogin={requiresLogin} />
+    ));
+  };
+
   if (variant === 'banner') {
     return (
       <button
         type='button'
         className='flex w-full items-center justify-between gap-2 rounded-xl bg-[#FFF7EC] p-4 text-left'
-        onClick={handleClick}
+        onClick={handleOpenOnboarding}
       >
         <span className='flex flex-col gap-1'>
           <span className='body1-bold flex items-center gap-1 text-text-accent'>
