@@ -14,6 +14,7 @@ import {
   DisplayFilterProvider,
   useDisplayFilterContext,
 } from '@features/kindergarten-map';
+import { RequiredTermsConsentSheetHost } from '@features/required-terms-consent';
 import {
   FilterBottomSheet,
   KindergartenItemSheet,
@@ -216,6 +217,8 @@ function KindergartenMainPageContent() {
       >
         <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
       </KindergartenListSheet>
+
+      <RequiredTermsConsentSheetHost />
     </>
   );
 }

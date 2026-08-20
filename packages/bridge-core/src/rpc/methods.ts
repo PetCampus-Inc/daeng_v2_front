@@ -28,6 +28,7 @@ const METHODS = {
   navReplace: 'system.navReplace',
   navSwitchTab: 'system.navSwitchTab',
   navSetMainTabMode: 'system.navSetMainTabMode',
+  navSetBottomTabBarVisible: 'system.navSetBottomTabBarVisible',
 
   // external
   naverOpenRoute: 'naver.openRoute',

@@ -1,6 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getUserAgreementsStatus } from './userAgreement';
+import type { ApiResponse } from '@shared/api';
+
+import { useUserStore } from '../model/store/useUserStore';
+import {
+  getUserAgreementsStatus,
+  postUserAgreements,
+  type CreateUserAgreementsRequest,
+  type UserAgreementsStatus,
+} from './userAgreement';
 
 const USER_AGREEMENTS_STATUS_QUERY_KEY = 'userAgreementsStatus';
 
@@ -13,6 +21,25 @@ function useUserAgreementsStatusQuery(userId?: string) {
     queryKey: userAgreementsStatusQueryKey(userId),
     queryFn: getUserAgreementsStatus,
     enabled: Boolean(userId),
+    staleTime: 0,
+  });
+}
+
+function usePostUserAgreementsMutation() {
+  const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
+
+  return useMutation({
+    mutationFn: (request: CreateUserAgreementsRequest) => postUserAgreements(request),
+    onSuccess: () => {
+      queryClient.setQueryData<ApiResponse<UserAgreementsStatus>>(
+        userAgreementsStatusQueryKey(userId),
+        (previous) =>
+          previous
+            ? { ...previous, data: { hasAgreedRequiredTerms: true } }
+            : { status: 0, code: 'SUCCESS', message: '', data: { hasAgreedRequiredTerms: true } }
+      );
+    },
   });
 }
 
@@ -20,4 +47,5 @@ export {
   USER_AGREEMENTS_STATUS_QUERY_KEY,
   userAgreementsStatusQueryKey,
   useUserAgreementsStatusQuery,
+  usePostUserAgreementsMutation,
 };

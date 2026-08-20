@@ -7,6 +7,7 @@ import type WebView from 'react-native-webview';
 import { navBridgeHub } from '../model/navBridgeHub';
 import { tabWebViewStore } from '../model/tabWebViewStore';
 import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
+import { useBottomTabBarVisibilityStore } from '../model/bottomTabBarVisibilityStore';
 import {
   pathToTab,
   pathToBaseTab,
@@ -428,6 +429,12 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     const mode = payload?.mode === 'owner' ? 'owner' : 'guardian';
     applyMainTabMode(mode);
     return { mode };
+  });
+
+  router.register<{ visible: boolean }>(METHODS.navSetBottomTabBarVisible, async (payload) => {
+    const visible = payload?.visible !== false;
+    useBottomTabBarVisibilityStore.getState().setVisible(visible);
+    return { visible };
   });
 }
 

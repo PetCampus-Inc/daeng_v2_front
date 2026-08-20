@@ -7,6 +7,7 @@ import MembersIcon from '@/assets/icons/members_basic.svg';
 import MypageIcon from '@/assets/icons/mypage_basic.svg';
 import SaveIcon from '@/assets/icons/save_basic.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
+import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
 import CompareTab from '@/screens/compare';
 import ExploreTab from '@/screens/explore';
 import MypageTab from '@/screens/mypage';
@@ -41,6 +42,7 @@ export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
   const mode = useMainTabModeStore((state) => state.mode);
   const isOwnerMode = mode === 'owner';
+  const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
 
   return (
     <Tab.Navigator
@@ -78,11 +80,13 @@ export default function TabNavigator() {
           },
           tabBarActiveTintColor: '#41424A',
           tabBarInactiveTintColor: '#8C8C94',
-          tabBarStyle: {
-            paddingBottom: bottom,
-            paddingLeft: 12,
-            paddingRight: 12,
-          },
+          tabBarStyle: isTabBarVisible
+            ? {
+                paddingBottom: bottom,
+                paddingLeft: 12,
+                paddingRight: 12,
+              }
+            : { display: 'none' },
           tabBarLabelStyle: {
             fontSize: 12,
             marginTop: 2,
