@@ -17,6 +17,22 @@ function getExtensionFromUrl(url: string) {
   }
 }
 
+const MIME_EXTENSION_MAP: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+};
+
+/** data:<mime>;base64,<payload> 형태의 URL을 파싱. 클라이언트에서 canvas로 즉석 생성한 이미지(QR 등) 저장용 */
+function parseDataUrl(url: string): { mime: string; base64: string } | null {
+  const match = /^data:([^;,]+)?;base64,(.*)$/s.exec(url);
+  if (!match) return null;
+  return { mime: match[1] || 'image/png', base64: match[2] };
+}
+
 function sanitizeFileName(fileName: string) {
   const baseName = fileName.replace(/\\/g, '/').split('/').pop()?.trim() || '';
   const safeName = baseName.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -28,15 +44,19 @@ function sanitizeFileName(fileName: string) {
   return safeName;
 }
 
-function resolveFileName(url: string, fileName?: string) {
+function resolveFileName(url: string, fileName?: string, dataUrl?: { mime: string } | null) {
   if (fileName && fileName.trim().length > 0) return sanitizeFileName(fileName);
-  return `knockdog-${Date.now()}.${getExtensionFromUrl(url)}`;
+  const extension = dataUrl ? (MIME_EXTENSION_MAP[dataUrl.mime] ?? 'png') : getExtensionFromUrl(url);
+  return `knockdog-${Date.now()}.${extension}`;
 }
 
-function assertDownloadableImageUrl(url: string) {
+function assertSupportedImageUrl(url: string, dataUrl: { mime: string; base64: string } | null) {
   if (!url || typeof url !== 'string') {
     throw { code: 'EINVALID', message: '저장할 이미지 URL이 유효하지 않습니다.' };
   }
+
+  // data: URL(클라이언트에서 생성한 이미지)은 base64 페이로드만 있으면 통과
+  if (dataUrl) return;
 
   let parsed: URL;
   try {
@@ -56,8 +76,9 @@ function assertDownloadableImageUrl(url: string) {
 export function registerMediaHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.saveImageToGallery, async (params: SaveImageToGalleryParams) => {
     const { url, fileName } = params;
+    const dataUrl = typeof url === 'string' ? parseDataUrl(url) : null;
 
-    assertDownloadableImageUrl(url);
+    assertSupportedImageUrl(url, dataUrl);
 
     const currentPermission = await MediaLibrary.getPermissionsAsync(true);
     const permission = currentPermission.granted
@@ -73,18 +94,24 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
     }
 
     const tempDir = `${cacheDir}album-save/`;
-    const targetFileName = resolveFileName(url, fileName);
+    const targetFileName = resolveFileName(url, fileName, dataUrl);
     const localUri = `${tempDir}${targetFileName}`;
 
     try {
       await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
 
-      const download = await FileSystem.downloadAsync(url, localUri);
-      if (download.status < 200 || download.status >= 300) {
-        throw { code: 'EUNAVAILABLE', message: '이미지를 다운로드하지 못했습니다.' };
+      if (dataUrl) {
+        await FileSystem.writeAsStringAsync(localUri, dataUrl.base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      } else {
+        const download = await FileSystem.downloadAsync(url, localUri);
+        if (download.status < 200 || download.status >= 300) {
+          throw { code: 'EUNAVAILABLE', message: '이미지를 다운로드하지 못했습니다.' };
+        }
       }
 
-      await MediaLibrary.saveToLibraryAsync(download.uri);
+      await MediaLibrary.saveToLibraryAsync(localUri);
       return { saved: true };
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error) {

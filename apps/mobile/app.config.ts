@@ -98,6 +98,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-notifications',
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
+    './plugins/rnfirebase-disable-spm',
     './plugins/naver-map-queries',
     [
       'expo-image-picker',
