@@ -113,6 +113,7 @@ function OwnerVerificationOnboardingSheet({
                   src={item.image}
                   alt=''
                   fill
+                  sizes='(max-width: 480px) 100vw, 480px'
                   draggable={false}
                   className='pointer-events-none object-cover'
                   priority={index === 0}
