@@ -26,35 +26,30 @@ function toKindergartenSelectOptions(
   ];
 }
 
-/** 연결 이력 — 학교별 최신 1건. 해제일이 있으면 과거 재원 */
+/** 연결 이력 — 학교별 다건(활성/해제 이력 모두) */
 function toKindergartenSelectOptionsFromConnections(
   connections: GuardianSchoolConnection[]
 ): KindergartenSelectOption[] {
-  const seenSchoolIds = new Set<string>();
-  const options: KindergartenSelectOption[] = [];
-
-  for (const connection of connections) {
-    if (seenSchoolIds.has(connection.schoolId)) continue;
-    seenSchoolIds.add(connection.schoolId);
-    options.push({
-      id: connection.schoolId,
-      name: connection.name,
-      imageUrl: connection.imageUrl,
-      attendedUntil: connection.disconnectedAt ? formatDateKey(connection.disconnectedAt) : null,
-    });
-  }
-
-  return options;
+  return connections.map((connection) => ({
+    // membershipId를 옵션 id로 유지해 동일 학교의 이력 다건을 구분한다.
+    id: connection.id,
+    name: connection.name,
+    imageUrl: connection.imageUrl,
+    attendedUntil: connection.disconnectedAt ? formatDateKey(connection.disconnectedAt) : null,
+  }));
 }
 
 function toMembershipIdBySchoolId(
   connections: GuardianSchoolConnection[],
-  schoolId: string | null,
+  optionId: string | null,
   attendedUntil: string | null
 ) {
-  if (!schoolId) return null;
+  if (!optionId) return null;
 
-  const candidates = connections.filter((connection) => connection.schoolId === schoolId);
+  const selectedByMembershipId = connections.find((connection) => connection.id === optionId);
+  if (selectedByMembershipId) return selectedByMembershipId.id;
+
+  const candidates = connections.filter((connection) => connection.schoolId === optionId);
   if (candidates.length === 0) return null;
 
   if (attendedUntil) {

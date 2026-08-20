@@ -58,7 +58,7 @@ function GuardianDailyNoticeListPage() {
   const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: connections } = useGuardianSchoolConnectionsQuery({
+  const { data: connections, isPending: isMembershipPending } = useGuardianSchoolConnectionsQuery({
     userId,
     petId: selectedPetId,
     enabled: Boolean(userId) && Boolean(selectedPetId),
@@ -118,6 +118,7 @@ function GuardianDailyNoticeListPage() {
     attendedUntil: selectedAttendedUntil,
     isDisconnected: isSelectedDisconnected,
     isPetsReady,
+    isMembershipPending,
   });
 
   const selectedMonth = useMemo(() => {

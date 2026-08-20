@@ -30,6 +30,8 @@ interface UseGuardianDailyNoticeMonthListParams {
   enabled?: boolean;
   /** 펫 목록 조회 완료 여부 — 미완료일 때만 로딩으로 취급 */
   isPetsReady?: boolean;
+  /** 연결 이력 조회 로딩 상태 */
+  isMembershipPending?: boolean;
 }
 
 function isSameYearMonth(left: Date, right: Date) {
@@ -60,6 +62,7 @@ function useGuardianDailyNoticeMonthList({
   isDisconnected = false,
   enabled = true,
   isPetsReady = false,
+  isMembershipPending = false,
 }: UseGuardianDailyNoticeMonthListParams) {
   const userId = useUserStore((state) => state.user?.userId);
   const yearMonth = useMemo(() => formatYearMonth(selectedMonth), [selectedMonth]);
@@ -89,7 +92,13 @@ function useGuardianDailyNoticeMonthList({
   const isPetLookupPending = enabled && !isPetsReady;
   const isDisconnectRangePending =
     enabled && isDisconnected && !attendedUntil && lastAvailableMonth == null;
-  const isPending = isAuthPending || isPetLookupPending || isDisconnectRangePending || schoolRecordsQuery.isPending;
+  const isRecordsPending = Boolean(membershipId) && schoolRecordsQuery.isPending;
+  const isPending =
+    isAuthPending ||
+    isPetLookupPending ||
+    isDisconnectRangePending ||
+    isMembershipPending ||
+    isRecordsPending;
   const hasError = Boolean(membershipId) && schoolRecordsQuery.isError;
 
   const items = useMemo(() => {
