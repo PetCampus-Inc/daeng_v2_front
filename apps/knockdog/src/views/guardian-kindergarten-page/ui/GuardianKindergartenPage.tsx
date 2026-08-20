@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
-import { OwnerVerificationEntry } from '@features/auth';
-import { useOwnerRole } from '@features/role-conversion';
+import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
@@ -20,33 +19,27 @@ import { GuardianKindergartenHeader } from './GuardianKindergartenHeader';
 import { GuardianKindergartenNoPetState } from './GuardianKindergartenNoPetState';
 import { GuardianKindergartenPendingState } from './GuardianKindergartenPendingState';
 
-function parsePushDate(value: string | null) {
-  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return null;
-
-  const [, yearText, monthText, dayText] = match;
-  const year = Number(yearText);
-  const month = Number(monthText);
-  const day = Number(dayText);
-  const date = new Date(year, month - 1, day);
-
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
-}
-
 export function GuardianKindergartenPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
-  const pushPetId = searchParams.get('pushPetId');
-  const pushDateKey = searchParams.get('pushDate');
-  const pushDate = useMemo(() => parsePushDate(pushDateKey), [pushDateKey]);
+  const pushPetIdFromRouter = searchParams.get('pushPetId');
 
+  /** Native는 history.replaceState라 Next useSearchParams가 안 바뀐다. location을 직접 읽는다. */
   useEffect(() => {
-    if (!pushPetId || !/^\d+$/.test(pushPetId)) return;
-    setSelectedPetId(pushPetId);
-  }, [pushPetId, setSelectedPetId]);
+    function applyPushPetFromLocation() {
+      const petId =
+        new URLSearchParams(window.location.search).get('pushPetId') ?? pushPetIdFromRouter;
+      if (!petId || !/^\d+$/.test(petId)) return;
+      setSelectedPetId(petId);
+    }
+
+    applyPushPetFromLocation();
+    window.addEventListener('popstate', applyPushPetFromLocation);
+    return () => window.removeEventListener('popstate', applyPushPetFromLocation);
+  }, [pushPetIdFromRouter, setSelectedPetId]);
 
   const handleAuthError = useCallback(
     async (_error: Error) => {
@@ -148,15 +141,13 @@ export function GuardianKindergartenPage() {
             hasDailyNotice={hasDailyNotice}
             albumPhotos={albumPhotos}
             firstAttendedAt={firstAttendedAt}
-            initialSelectedDate={pushDate}
           />
         ) : showDisconnected ? (
-          <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} initialSelectedDate={pushDate} />
+          <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} />
         ) : showApproved ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}
             firstAttendedAt={firstAttendedAt}
-            initialSelectedDate={pushDate}
           />
         ) : showPending ? (
           <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />

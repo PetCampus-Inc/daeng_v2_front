@@ -4,6 +4,7 @@ import { Icon } from '@knockdog/ui';
 
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface GuardianLinkedKindergartenCardProps {
   kindergarten: GuardianLinkedKindergarten;
@@ -11,7 +12,7 @@ interface GuardianLinkedKindergartenCardProps {
 
 function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKindergartenCardProps) {
   const { push } = useStackNavigation();
-  const imageSrc = `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${kindergarten.imageUrl}`;
+  const imageSrc = resolvePublicImageSrc(kindergarten.imageUrl);
 
   const handleClick = () => {
     push({ pathname: `/kindergarten/${kindergarten.id}` });

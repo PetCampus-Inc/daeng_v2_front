@@ -26,13 +26,17 @@ const useGuardianSelectedPetStore = create<GuardianSelectedPetStore>()(
   )
 );
 
+function applySelectedPetId(petId: string | null) {
+  useGuardianSelectedPetStore.getState().setSelectedPetId(petId);
+}
+
 /** 탭·스택 WebView 간 selectedPetId 동기화 */
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e: StorageEvent) => {
     if (e.key !== STORAGE_KEYS.GUARDIAN_SELECTED_PET) return;
 
     if (e.newValue === null) {
-      useGuardianSelectedPetStore.getState().setSelectedPetId(null);
+      applySelectedPetId(null);
       return;
     }
 
@@ -40,10 +44,16 @@ if (typeof window !== 'undefined') {
       const parsed = JSON.parse(e.newValue) as { state?: { selectedPetId?: string | null } };
       const nextId = parsed?.state?.selectedPetId;
       if (nextId === undefined) return;
-      useGuardianSelectedPetStore.getState().setSelectedPetId(nextId ?? null);
+      applySelectedPetId(nextId ?? null);
     } catch (error) {
       console.error('Failed to sync guardian selected pet from storage:', error);
     }
+  });
+
+  window.addEventListener('knockdog:guardian-selected-pet', (event: Event) => {
+    const petId = (event as CustomEvent<{ petId?: string }>).detail?.petId;
+    if (!petId || !/^\d+$/.test(petId)) return;
+    applySelectedPetId(petId);
   });
 }
 

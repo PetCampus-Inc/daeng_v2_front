@@ -13,7 +13,6 @@ interface GuardianConnectionHistoryCardProps {
 function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
   const content = guardianConnectionHistoryContent;
   const isCurrent = item.disconnectedAt == null;
-  const imageSrc = `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${item.imageUrl}`;
   const connectedLabel = formatKoreanHistoryDate(item.connectedAt);
   const disconnectedLabel = item.disconnectedAt
     ? formatKoreanHistoryDate(item.disconnectedAt)
@@ -30,9 +29,9 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
       <div className='flex w-full items-start gap-2'>
         <div className='gap-x2 flex min-w-0 flex-1 items-start'>
           <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
-            {/* eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 지도 카드와 동일하게 img로 로드 */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- 썸네일은 절대 URL 또는 S3 키 */}
             <img
-              src={imageSrc}
+              src={item.imageUrl}
               alt={item.name}
               className='size-full object-cover'
               loading='lazy'

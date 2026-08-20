@@ -20,7 +20,7 @@ jobs:
       app: ${{ steps.filter.outputs.app }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Check changed paths
         uses: dorny/paths-filter@v3
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -55,7 +55,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Turbo Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .turbo
           key: ${{ runner.os }}-turbo-${{ matrix.command }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -65,7 +65,7 @@ jobs:
 
       - name: Next.js Cache
         if: matrix.command == 'build'
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: apps/knockdog/.next/cache
           key: ${{ runner.os }}-nextjs-build-${{ hashFiles('pnpm-lock.yaml') }}

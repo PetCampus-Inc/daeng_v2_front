@@ -33,9 +33,9 @@ function useNotificationInboxDeepLink() {
         pushGuardianDailyNoticeDetail(push, parseLocalDateKey(destination.date), destination.petId);
         return;
       case 'guardianKindergarten':
+        setSelectedPetId(destination.petId);
         void navigateToTab('/compare', {
           pushPetId: destination.petId,
-          ...(destination.date ? { pushDate: destination.date } : {}),
         });
         return;
       case 'ownerMemberApprovals':

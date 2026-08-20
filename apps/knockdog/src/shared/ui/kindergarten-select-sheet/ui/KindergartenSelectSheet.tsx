@@ -6,6 +6,7 @@ import { cn } from '@knockdog/ui/lib';
 
 import { kindergartenSelectSheetContent } from '@shared/ui/kindergarten-select-sheet/config/kindergartenSelectSheetContent';
 import type { KindergartenSelectOption } from '@shared/ui/kindergarten-select-sheet/model/types';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { toast } from '@shared/ui/toast';
 
@@ -88,7 +89,7 @@ function KindergartenSelectSheet({
             const isSelected = currentKindergartenId === kindergarten.id;
             const attendedUntil = kindergarten.attendedUntil;
             const isAttending = attendedUntil == null;
-            const imageSrc = `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${kindergarten.imageUrl}`;
+            const imageSrc = resolvePublicImageSrc(kindergarten.imageUrl);
             const statusLabel = isAttending
               ? content.attendingStatusLabel
               : formatAttendedUntilLabel(attendedUntil);
