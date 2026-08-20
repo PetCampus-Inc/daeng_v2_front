@@ -20,6 +20,7 @@ import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/m
 import {
   toKindergartenSelectOptions,
   toKindergartenSelectOptionsFromConnections,
+  toMembershipIdBySchoolId,
   toMonthEndDateKey,
 } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
@@ -95,6 +96,10 @@ function GuardianDailyNoticeListPage() {
     () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
     [selectedAttendedUntilKey]
   );
+  const selectedMembershipId = useMemo(
+    () => toMembershipIdBySchoolId(connections ?? [], selectedKindergarten?.id ?? null, selectedAttendedUntilKey),
+    [connections, selectedAttendedUntilKey, selectedKindergarten?.id]
+  );
   const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
 
   const {
@@ -106,7 +111,7 @@ function GuardianDailyNoticeListPage() {
     isFirstAttendanceDateFallback,
     isPending,
   } = useGuardianDailyNoticeMonthList({
-    schoolId: selectedKindergarten?.id ?? linkedKindergarten?.id,
+    membershipId: selectedMembershipId,
     petId: selectedPetId,
     selectedMonth: requestedMonth,
     firstAttendedAt,

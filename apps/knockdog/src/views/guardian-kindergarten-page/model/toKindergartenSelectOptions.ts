@@ -47,4 +47,31 @@ function toKindergartenSelectOptionsFromConnections(
   return options;
 }
 
-export { toKindergartenSelectOptions, toKindergartenSelectOptionsFromConnections, toMonthEndDateKey };
+function toMembershipIdBySchoolId(
+  connections: GuardianSchoolConnection[],
+  schoolId: string | null,
+  attendedUntil: string | null
+) {
+  if (!schoolId) return null;
+
+  const candidates = connections.filter((connection) => connection.schoolId === schoolId);
+  if (candidates.length === 0) return null;
+
+  if (attendedUntil) {
+    const matchedDisconnected = candidates.find(
+      (connection) =>
+        connection.disconnectedAt != null && formatDateKey(connection.disconnectedAt) === attendedUntil
+    );
+    if (matchedDisconnected) return matchedDisconnected.id;
+  }
+
+  const connected = candidates.find((connection) => connection.disconnectedAt == null);
+  return connected?.id ?? candidates[0]?.id ?? null;
+}
+
+export {
+  toKindergartenSelectOptions,
+  toKindergartenSelectOptionsFromConnections,
+  toMembershipIdBySchoolId,
+  toMonthEndDateKey,
+};
