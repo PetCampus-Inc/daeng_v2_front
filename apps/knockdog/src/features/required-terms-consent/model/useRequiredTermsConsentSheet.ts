@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   usePostUserAgreementsMutation,
@@ -27,6 +27,7 @@ function useRequiredTermsConsentSheet() {
   const { mutateAsync: submitAgreements, isPending: isSubmitting } = usePostUserAgreementsMutation();
   const [isOpen, setIsOpen] = useState(false);
   const [checkedTerms, setCheckedTerms] = useState<CheckedTermsState>(initialCheckedTermsState);
+  const previousUserIdRef = useRef(userId);
 
   const hasAgreedRequiredTerms = agreementsStatusQuery.data?.data?.hasAgreedRequiredTerms === true;
   const shouldOpen =
@@ -36,9 +37,15 @@ function useRequiredTermsConsentSheet() {
     !hasAgreedRequiredTerms;
 
   useEffect(() => {
+    if (previousUserIdRef.current !== userId) {
+      previousUserIdRef.current = userId;
+      setIsOpen(false);
+      setCheckedTerms(initialCheckedTermsState());
+    }
+
     if (!shouldOpen) return;
     setIsOpen(true);
-  }, [shouldOpen]);
+  }, [shouldOpen, userId]);
 
   const isAllChecked = useMemo(
     () => requiredTermsConsentContent.items.every((item) => checkedTerms[item.id]),

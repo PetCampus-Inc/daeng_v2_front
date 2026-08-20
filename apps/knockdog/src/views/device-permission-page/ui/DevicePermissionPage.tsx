@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
 
 import { devicePermissionContent } from '../config/devicePermissionContent';
@@ -14,22 +14,38 @@ const PERMISSION_PROMPT_DELAY_MS = 1_000;
 function DevicePermissionPage() {
   const content = devicePermissionContent;
   const { reset } = useStackNavigation();
-  const didRequestRef = useRef(false);
+  const requestPromiseRef = useRef<Promise<void> | null>(null);
+  const [hasRequestStarted, setHasRequestStarted] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
-    if (didRequestRef.current) return;
-    didRequestRef.current = true;
+    let cancelled = false;
 
     const timer = window.setTimeout(() => {
-      requestDevicePermissions();
+      if (cancelled) return;
+
+      requestPromiseRef.current = requestDevicePermissions().catch(() => undefined);
+      setHasRequestStarted(true);
     }, PERMISSION_PROMPT_DELAY_MS);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
-  const handleConfirm = () => {
-    markDevicePermissionIntroSeen();
-    reset(route.root);
+  const handleConfirm = async () => {
+    if (!hasRequestStarted || isConfirming) return;
+
+    setIsConfirming(true);
+
+    try {
+      await requestPromiseRef.current;
+      markDevicePermissionIntroSeen();
+      await reset(route.root);
+    } catch {
+      setIsConfirming(false);
+    }
   };
 
   return (
@@ -52,7 +68,14 @@ function DevicePermissionPage() {
         </div>
       </div>
       <div className='shrink-0 px-4 py-5'>
-        <ActionButton type='button' variant='primaryFill' size='large' className='w-full' onClick={handleConfirm}>
+        <ActionButton
+          type='button'
+          variant='primaryFill'
+          size='large'
+          className='w-full'
+          disabled={!hasRequestStarted || isConfirming}
+          onClick={() => void handleConfirm()}
+        >
           {content.confirmLabel}
         </ActionButton>
       </div>
