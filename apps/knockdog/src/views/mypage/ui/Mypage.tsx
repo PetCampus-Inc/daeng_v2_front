@@ -6,12 +6,13 @@ import { overlay } from 'overlay-kit';
 import { Header } from '@widgets/Header';
 
 import { SettingsSection } from '@features/app-settings';
-import { LoginPrompt, OwnerVerificationEntry } from '@features/auth';
+import { LoginPrompt } from '@features/auth';
 import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
 import {
   ownerMypageContent,
   OwnerKindergartenCard,
   OwnerProfileRow,
+  OwnerVerificationEntry,
   RoleConversionButton,
   roleConversionButtonContent,
   useMypageRoleView,
