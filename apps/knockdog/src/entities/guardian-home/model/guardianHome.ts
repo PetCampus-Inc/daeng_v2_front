@@ -13,6 +13,7 @@ interface GuardianHomeSchoolDto {
   address?: string | null;
   imageUrl?: string | null;
   thumbnailUrl?: string | null;
+  thumbnailImageUrl?: string | null;
   /** 해당 유치원 첫 등원일 — 주황점 하한 */
   firstAttendedAt?: GuardianHomeDateTime | null;
   firstAttendanceDate?: string | null;
@@ -188,7 +189,7 @@ function toGuardianHomeSchool(dto: GuardianHomeSchoolDto | null | undefined): Gu
     id: String(schoolId),
     name: dto.name ?? '',
     address: dto.address ?? '',
-    imageUrl: dto.imageUrl ?? dto.thumbnailUrl ?? '',
+    imageUrl: toAbsoluteImageUrl(dto.thumbnailImageUrl ?? dto.imageUrl ?? dto.thumbnailUrl),
   };
 }
 

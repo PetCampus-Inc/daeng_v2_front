@@ -9,8 +9,9 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 
 /**
  * 보호자 앨범 오늘 섹션 — home에서 schoolId 확보 후 `GET albums/{schoolId}/today` 조회.
+ * `schoolId`가 있으면 선택 유치원 기준으로 today를 조회한다.
  */
-function useGuardianAlbumToday() {
+function useGuardianAlbumToday(options?: { schoolId?: string | null }) {
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPet, selectedPetId, isPetsReady, hasNoPet } = useGuardianSelectedPet();
 
@@ -28,9 +29,10 @@ function useGuardianAlbumToday() {
 
   const status = home?.status ?? 'none';
   const schoolId = home?.school?.id ?? null;
+  const todaySchoolId = options?.schoolId || schoolId;
   const schoolName = home?.school?.name ?? null;
   const schoolImageUrl = home?.school?.imageUrl ?? null;
-  const hasLinkedSchool = Boolean(schoolId) && status !== 'none';
+  const hasLinkedSchool = Boolean(todaySchoolId) && (options?.schoolId != null || status !== 'none');
 
   const {
     data: todayAlbum,
@@ -40,9 +42,9 @@ function useGuardianAlbumToday() {
     refetch: refetchToday,
   } = useGuardianAlbumTodayQuery({
     userId,
-    schoolId,
+    schoolId: todaySchoolId,
     petId: selectedPetId,
-    enabled: isPetsReady && !hasNoPet && hasLinkedSchool,
+    enabled: isPetsReady && !hasNoPet && Boolean(todaySchoolId) && (options?.schoolId != null || status !== 'none'),
   });
 
   const todayPhotos = useMemo(() => todayAlbum?.photos ?? [], [todayAlbum?.photos]);
@@ -73,7 +75,7 @@ function useGuardianAlbumToday() {
     isFetching: isHomeFetching || isTodayFetching,
     refetch: async () => {
       await refetchHome();
-      if (hasLinkedSchool) await refetchToday();
+      if (todaySchoolId) await refetchToday();
     },
   };
 }

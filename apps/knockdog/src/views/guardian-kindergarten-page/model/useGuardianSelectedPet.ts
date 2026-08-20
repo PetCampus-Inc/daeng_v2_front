@@ -55,7 +55,10 @@ function useGuardianSelectedPet() {
 
   const pets = petListResponse?.data ?? [];
   const selectedPet =
-    pets.find((pet) => pet.id === selectedPetId) ?? representativePet ?? pets[0] ?? null;
+    pets.find((pet) => selectedPetId != null && String(pet.id) === String(selectedPetId)) ??
+    representativePet ??
+    pets[0] ??
+    null;
 
   const isPetsReady = isUserStoreHydrated && Boolean(userId) && isFetched;
 

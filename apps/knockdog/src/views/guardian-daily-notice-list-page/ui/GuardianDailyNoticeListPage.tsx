@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
+import { useUserStore } from '@entities/user';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
@@ -15,7 +17,11 @@ import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-l
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
-import { toKindergartenSelectOptions, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
+import {
+  toKindergartenSelectOptions,
+  toKindergartenSelectOptionsFromConnections,
+  toMonthEndDateKey,
+} from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
@@ -50,6 +56,12 @@ function GuardianDailyNoticeListPage() {
   const { push } = useStackNavigation();
   const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: connections } = useGuardianSchoolConnectionsQuery({
+    userId,
+    petId: selectedPetId,
+    enabled: Boolean(userId) && Boolean(selectedPetId),
+  });
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
 
   const isDisconnected = status === 'disconnected' || isMockMode;
@@ -61,6 +73,30 @@ function GuardianDailyNoticeListPage() {
   );
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
 
+  const disconnectedUntilKey = isDisconnected ? toMonthEndDateKey(new Date()) : null;
+
+  /** 연결 이력 다건. 없으면 home 현재 연결 1건 */
+  const kindergartens = useMemo(() => {
+    const fromConnections = toKindergartenSelectOptionsFromConnections(connections ?? []);
+    if (fromConnections.length > 0) return fromConnections;
+    return toKindergartenSelectOptions(linkedKindergarten, disconnectedUntilKey);
+  }, [connections, disconnectedUntilKey, linkedKindergarten]);
+  const canSelectKindergarten = kindergartens.length > 1;
+  const defaultKindergartenId =
+    kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
+
+  const resolvedKindergartenId = selectedKindergartenId ?? defaultKindergartenId;
+  const selectedKindergarten =
+    kindergartens.find((item) => item.id === resolvedKindergartenId) ??
+    kindergartens[0] ??
+    null;
+  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? null;
+  const selectedAttendedUntil = useMemo(
+    () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
+    [selectedAttendedUntilKey]
+  );
+  const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
+
   const {
     items,
     firstAttendanceDate,
@@ -70,45 +106,20 @@ function GuardianDailyNoticeListPage() {
     isFirstAttendanceDateFallback,
     isPending,
   } = useGuardianDailyNoticeMonthList({
-    schoolId: linkedKindergarten?.id,
+    schoolId: selectedKindergarten?.id ?? linkedKindergarten?.id,
     petId: selectedPetId,
     selectedMonth: requestedMonth,
     firstAttendedAt,
-    attendedUntil: null,
-    isDisconnected,
+    attendedUntil: selectedAttendedUntil,
+    isDisconnected: isSelectedDisconnected,
     isPetsReady,
   });
 
   const selectedMonth = useMemo(() => {
-    if (!isDisconnected || !lastAvailableMonth) return requestedMonth;
+    if (!isSelectedDisconnected || !lastAvailableMonth) return requestedMonth;
     const cap = startOfMonth(lastAvailableMonth);
     return requestedMonth.getTime() > cap.getTime() ? cap : requestedMonth;
-  }, [isDisconnected, lastAvailableMonth, requestedMonth]);
-
-  const disconnectedUntilKey =
-    isDisconnected && lastAvailableMonth ? toMonthEndDateKey(lastAvailableMonth) : null;
-
-  /** home 현재 연결 1건. 연결 이력 API 연동 시 다건으로 확장 */
-  const kindergartens = useMemo(
-    () => toKindergartenSelectOptions(linkedKindergarten, disconnectedUntilKey),
-    [disconnectedUntilKey, linkedKindergarten]
-  );
-  const canSelectKindergarten = kindergartens.length > 1;
-  const defaultKindergartenId =
-    kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
-
-  const resolvedKindergartenId =
-    selectedKindergartenId ??
-    defaultKindergartenId;
-  const selectedKindergarten =
-    kindergartens.find((item) => item.id === resolvedKindergartenId) ??
-    kindergartens[0] ??
-    null;
-  const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? disconnectedUntilKey;
-  const selectedAttendedUntil = useMemo(
-    () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
-    [selectedAttendedUntilKey]
-  );
+  }, [isSelectedDisconnected, lastAvailableMonth, requestedMonth]);
 
   const minMonth = useMemo(
     () => startOfMonth(effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)),
@@ -125,10 +136,7 @@ function GuardianDailyNoticeListPage() {
     selectedMonth.getTime() > minMonth.getTime() && !isFirstAttendanceMonth;
   const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
 
-  const title =
-    selectedAttendedUntil != null
-      ? (selectedKindergarten?.name ?? '')
-      : (linkedKindergarten?.name ?? selectedKindergarten?.name ?? '');
+  const title = selectedKindergarten?.name ?? linkedKindergarten?.name ?? '';
 
   const hasRows =
     items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;
