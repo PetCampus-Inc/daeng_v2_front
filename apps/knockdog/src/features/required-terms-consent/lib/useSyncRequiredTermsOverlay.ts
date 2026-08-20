@@ -69,13 +69,18 @@ async function setNativeTabBarVisible({
   }
 }
 
+/** 네이티브 탭바 요청은 최신 effect만 유효하다. cleanup restore가 다음 hide를 덮지 않게 공유 abort를 쓴다. */
+let latestTabBarRequestAbort: AbortController | null = null;
+
 /** 약관 오버레이 노출 중 하단 탭(웹/네이티브)을 숨긴다. */
 function useSyncRequiredTermsOverlay(isOpen: boolean) {
   const bridge = useBridge();
   const setBlockingOverlayOpen = useRequiredTermsConsentOverlayStore((state) => state.setBlockingOverlayOpen);
 
   useEffect(() => {
+    latestTabBarRequestAbort?.abort();
     const abortController = new AbortController();
+    latestTabBarRequestAbort = abortController;
     setBlockingOverlayOpen(isOpen);
 
     if (isNativeWebView()) {
@@ -89,18 +94,30 @@ function useSyncRequiredTermsOverlay(isOpen: boolean) {
 
     return () => {
       abortController.abort();
-      setBlockingOverlayOpen(false);
-
-      if (isNativeWebView()) {
-        void setNativeTabBarVisible({
-          bridge,
-          visible: true,
-          retries: 1,
-          signal: new AbortController().signal,
-        });
+      if (latestTabBarRequestAbort === abortController) {
+        latestTabBarRequestAbort = null;
       }
+      setBlockingOverlayOpen(false);
     };
   }, [bridge, isOpen, setBlockingOverlayOpen]);
+
+  useEffect(() => {
+    return () => {
+      setBlockingOverlayOpen(false);
+
+      if (!isNativeWebView()) return;
+
+      latestTabBarRequestAbort?.abort();
+      const restoreAbortController = new AbortController();
+      latestTabBarRequestAbort = restoreAbortController;
+      void setNativeTabBarVisible({
+        bridge,
+        visible: true,
+        retries: 1,
+        signal: restoreAbortController.signal,
+      });
+    };
+  }, [bridge, setBlockingOverlayOpen]);
 }
 
 export { useSyncRequiredTermsOverlay };

@@ -18,7 +18,11 @@ import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
 import { hasSeenDevicePermissionIntro } from '@shared/lib/auth/devicePermissionIntro';
-import { clearPostSignUpRedirect, getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import {
+  clearPostSignUpRedirect,
+  getInternalRedirect,
+  savePostSignUpRedirect,
+} from '@shared/lib/auth/postSignUpRedirect';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
@@ -84,16 +88,37 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     }
 
     setUser(data);
-    clearPostSignUpRedirect();
 
-    // pushForResult로 열린 경우에만 결과 전송 (plain push면 _txId 없음)
-    if (getCurrentTxId()) {
-      navResult.send(true);
+    if (redirectTo) {
+      savePostSignUpRedirect(redirectTo);
+    } else {
+      clearPostSignUpRedirect();
     }
 
+    const resultTxId = getCurrentTxId();
+
     if (!hasSeenDevicePermissionIntro()) {
-      reset(route.auth.devicePermission.root);
+      const query = {
+        ...(redirectTo ? { redirectTo } : {}),
+        ...(resultTxId ? { resume: 'stack', _txId: resultTxId } : {}),
+      };
+      const hasQuery = Object.keys(query).length > 0;
+
+      // pushForResult 로그인: 탭 스택을 유지한 채 로그인 화면만 권한 안내로 교체
+      if (resultTxId) {
+        replace({
+          pathname: route.auth.devicePermission.root,
+          query,
+        }).catch(() => undefined);
+        return;
+      }
+
+      reset(route.auth.devicePermission.root, hasQuery ? query : undefined).catch(() => undefined);
       return;
+    }
+
+    if (resultTxId) {
+      navResult.send(true);
     }
 
     if (redirectTo) {

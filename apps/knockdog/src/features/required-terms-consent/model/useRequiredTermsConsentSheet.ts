@@ -43,7 +43,10 @@ function useRequiredTermsConsentSheet() {
       setCheckedTerms(initialCheckedTermsState());
     }
 
-    if (!shouldOpen) return;
+    if (!shouldOpen) {
+      setIsOpen(false);
+      return;
+    }
     setIsOpen(true);
   }, [shouldOpen, userId]);
 

@@ -6,14 +6,16 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { devicePermissionContent } from '../config/devicePermissionContent';
 import { requestDevicePermissions } from '../model/requestDevicePermissions';
 import { markDevicePermissionIntroSeen } from '@shared/lib/auth/devicePermissionIntro';
+import { consumePostSignUpRedirect, getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
 const PERMISSION_PROMPT_DELAY_MS = 1_000;
 
 function DevicePermissionPage() {
   const content = devicePermissionContent;
-  const { reset } = useStackNavigation();
+  const { reset, back } = useStackNavigation();
+  const navResult = useNavigationResult<boolean>();
   const requestPromiseRef = useRef<Promise<void> | null>(null);
   const [hasRequestStarted, setHasRequestStarted] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -42,6 +44,22 @@ function DevicePermissionPage() {
     try {
       await requestPromiseRef.current;
       markDevicePermissionIntroSeen();
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectTo =
+        getInternalRedirect(searchParams.get('redirectTo')) ?? consumePostSignUpRedirect();
+
+      if (redirectTo) {
+        await reset(redirectTo);
+        return;
+      }
+
+      if (searchParams.get('resume') === 'stack') {
+        navResult.send(true);
+        await back();
+        return;
+      }
+
       await reset(route.root);
     } catch {
       setIsConfirming(false);
