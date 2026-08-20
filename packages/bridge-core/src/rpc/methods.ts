@@ -9,6 +9,9 @@ const METHODS = {
   requestLocationPermission: 'device.requestLocationPermission',
   isLocationServiceEnabled: 'device.isLocationServiceEnabled',
   getLastKnownLocation: 'device.getLastKnownLocation',
+  requestCameraPermission: 'device.requestCameraPermission',
+  requestPhotosPermission: 'device.requestPhotosPermission',
+  requestNotificationPermission: 'device.requestNotificationPermission',
 
   // system
   callPhone: 'system.callPhone',
@@ -25,6 +28,7 @@ const METHODS = {
   navReplace: 'system.navReplace',
   navSwitchTab: 'system.navSwitchTab',
   navSetMainTabMode: 'system.navSetMainTabMode',
+  navSetBottomTabBarVisible: 'system.navSetBottomTabBarVisible',
 
   // external
   naverOpenRoute: 'naver.openRoute',

@@ -48,6 +48,14 @@ interface NavigationRPCSchema {
       mode: 'owner' | 'guardian';
     };
   };
+  [METHODS.navSetBottomTabBarVisible]: {
+    params: {
+      visible: boolean;
+    };
+    result: {
+      visible: boolean;
+    };
+  };
 }
 
 export type { NavigationRPCSchema };

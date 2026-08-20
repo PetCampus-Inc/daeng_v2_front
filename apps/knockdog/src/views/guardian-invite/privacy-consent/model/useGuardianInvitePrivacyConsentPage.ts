@@ -13,10 +13,10 @@ import {
 } from '@entities/guardian-invite';
 import { PET_LIST_QUERY_KEY } from '@entities/pet';
 import {
-  USER_AGREEMENTS_STATUS_QUERY_KEY,
   USER_AGREEMENT_TERM,
   postUserAgreements,
   useUserAgreementsStatusQuery,
+  userAgreementsStatusQueryKey,
   useUserStore,
 } from '@entities/user';
 import { ApiError } from '@shared/api';
@@ -79,7 +79,7 @@ function useGuardianInvitePrivacyConsentPage() {
             USER_AGREEMENT_TERM.AGE_OVER_14,
           ],
         });
-        await queryClient.invalidateQueries({ queryKey: [USER_AGREEMENTS_STATUS_QUERY_KEY] });
+        await queryClient.invalidateQueries({ queryKey: userAgreementsStatusQueryKey(userId) });
       }
 
       // URL은 사용자가 수정할 수 있으므로, 제출 직전에 최신 선택 가능 상태를 다시 확인한다.

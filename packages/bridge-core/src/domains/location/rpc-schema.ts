@@ -31,6 +31,18 @@ interface LocationRPCSchema {
     params: GetLastKnownLocationParams;
     result: GetLastKnownLocationResult;
   };
+  [METHODS.requestCameraPermission]: {
+    params: {};
+    result: { status: PermissionStatus; canAskAgain: boolean };
+  };
+  [METHODS.requestPhotosPermission]: {
+    params: {};
+    result: { status: PermissionStatus; canAskAgain: boolean };
+  };
+  [METHODS.requestNotificationPermission]: {
+    params: {};
+    result: { status: PermissionStatus; canAskAgain: boolean };
+  };
 }
 
 export type { LocationRPCSchema };

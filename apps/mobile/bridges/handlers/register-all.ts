@@ -5,6 +5,7 @@ import { registerNavigationHandlers } from './register-navigation';
 import { registerRouteMapHandlers } from './register-route-map';
 import { registerToastHandlers } from './register-toast';
 import { registerMediaHandlers } from './register-media';
+import { registerPermissionHandlers } from './register-permissions';
 
 import { registerImagePickerHandlers } from './register-image-picker';
 import { registerAuthHandlers } from './register-auth';
@@ -24,6 +25,7 @@ export function registerAllHandlers(
   registerRouteMapHandlers(router);
   registerToastHandlers(router);
   registerMediaHandlers(router);
+  registerPermissionHandlers(router);
 
   // 이미지 피커 핸들러는 이벤트 방식으로 동작하므로 나중에 설정
   router.getImagePickerHandlers = () => router.imagePickerHandlers;

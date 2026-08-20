@@ -12,12 +12,17 @@ import {
   postVerifyOidc,
   useSocialUserStore,
 } from '@entities/social-user';
-import { USER_STATUS, useUserStore, User } from '@entities/user';
+import { postRegisterUser, USER_STATUS, useUserStore, User } from '@entities/user';
 import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin } from '@shared/api';
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
-import { clearPostSignUpRedirect, getInternalRedirect, savePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { hasSeenDevicePermissionIntro } from '@shared/lib/auth/devicePermissionIntro';
+import {
+  clearPostSignUpRedirect,
+  getInternalRedirect,
+  savePostSignUpRedirect,
+} from '@shared/lib/auth/postSignUpRedirect';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
@@ -29,7 +34,7 @@ const SOCIAL_LOGIN_METHOD_MAP = {
 } as const;
 
 export const useLogin = (options?: { redirectTo?: string }) => {
-  const { push, back, replace } = useStackNavigation();
+  const { push, back, replace, reset } = useStackNavigation();
   const bridge = useBridge();
   const navResult = useNavigationResult<boolean>();
 
@@ -83,10 +88,36 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     }
 
     setUser(data);
-    clearPostSignUpRedirect();
 
-    // pushForResult로 열린 경우에만 결과 전송 (plain push면 _txId 없음)
-    if (getCurrentTxId()) {
+    if (redirectTo) {
+      savePostSignUpRedirect(redirectTo);
+    } else {
+      clearPostSignUpRedirect();
+    }
+
+    const resultTxId = getCurrentTxId();
+
+    if (!hasSeenDevicePermissionIntro()) {
+      const query = {
+        ...(redirectTo ? { redirectTo } : {}),
+        ...(resultTxId ? { resume: 'stack', _txId: resultTxId } : {}),
+      };
+      const hasQuery = Object.keys(query).length > 0;
+
+      // pushForResult 로그인: 탭 스택을 유지한 채 로그인 화면만 권한 안내로 교체
+      if (resultTxId) {
+        replace({
+          pathname: route.auth.devicePermission.root,
+          query,
+        }).catch(() => undefined);
+        return;
+      }
+
+      reset(route.auth.devicePermission.root, hasQuery ? query : undefined).catch(() => undefined);
+      return;
+    }
+
+    if (resultTxId) {
       navResult.send(true);
     }
 
@@ -97,14 +128,48 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     }
   };
 
+  const registerCurrentSocialUser = async () => {
+    const socialUser = useSocialUserStore.getState().socialUser;
+    if (!socialUser) {
+      throw new Error('NO_SOCIAL_USER');
+    }
+
+    const { data } = await postRegisterUser({
+      nickname: socialUser.name || socialUser.email.split('@')[0] || '보호자',
+      profileImage: socialUser.picture || '',
+      addresses: [],
+    });
+
+    return data;
+  };
+
+  const completeSignUp = async () => {
+    try {
+      const user = await registerCurrentSocialUser();
+      handleLoginSuccess(user);
+    } catch (error) {
+      console.error('[useLogin] 회원가입 실패:', error);
+      toast({
+        title: '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        shape: 'square',
+        position: 'top',
+      });
+    }
+  };
+
   const handleLoginError = (error: Error) => {
     const apiError = error as ApiError;
 
-    // 탈퇴한 유저 (재가입 제한 기간 이후)
-    if (apiError.code === LOGIN_ERROR_CODE.WITHDRAWN_USER) push({ pathname: route.auth.register.location.root });
+    // 탈퇴한 유저 (재가입 제한 기간 이후) — 온보딩 없이 재가입만 진행
+    if (apiError.code === LOGIN_ERROR_CODE.WITHDRAWN_USER) {
+      completeSignUp();
+      return;
+    }
+
     // 재가입 제한 기간 이내
-    else if (apiError.code === LOGIN_ERROR_CODE.REJOINING_RESTRICTION_PERIOD)
+    if (apiError.code === LOGIN_ERROR_CODE.REJOINING_RESTRICTION_PERIOD) {
       push({ pathname: route.auth.rejoinBlocked.root });
+    }
   };
 
   /** 로그인 */
@@ -125,10 +190,9 @@ export const useLogin = (options?: { redirectTo?: string }) => {
       });
     }
 
-    // 연동되지 않은 계정 (회원가입 페이지로 이동)
+    // 연동되지 않은 계정 — 온보딩 없이 회원가입만 진행
     else if (code === VERIFY_OIDC_RESULT_CODE.UNLINKED) {
-      savePostSignUpRedirect(redirectTo);
-      push({ pathname: route.auth.register.location.root });
+      completeSignUp();
     }
     // 동일한 이메일의 계정이 존재 (연동된 소셜 계정 정보 저장 후 로그인 페이지로 이동)
     else if (code === VERIFY_OIDC_RESULT_CODE.EMAIL_ALREADY_EXISTS) {

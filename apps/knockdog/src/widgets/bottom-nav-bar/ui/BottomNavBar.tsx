@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 import { useShowOwnerBottomNav } from '@features/role-conversion';
+import { useRequiredTermsConsentOverlayStore } from '@features/required-terms-consent';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 
@@ -20,7 +21,12 @@ function isActiveNavItem(pathname: string, href: string) {
 function BottomNavBarLinks() {
   const pathname = usePathname();
   const showOwnerBottomNav = useShowOwnerBottomNav();
+  const isTermsOverlayOpen = useRequiredTermsConsentOverlayStore((state) => state.isBlockingOverlayOpen);
   const navItems = showOwnerBottomNav ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
+
+  if (isTermsOverlayOpen) {
+    return null;
+  }
 
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>

@@ -1,5 +1,6 @@
 /** API */
 export {
+  postRegisterUser,
   postWithdraw,
   getOwnerRole,
   getOwnerMypageSummary,
@@ -54,7 +55,9 @@ export {
 } from './api/useUserQuery';
 export {
   USER_AGREEMENTS_STATUS_QUERY_KEY,
+  userAgreementsStatusQueryKey,
   useUserAgreementsStatusQuery,
+  usePostUserAgreementsMutation,
 } from './api/useUserAgreementQuery';
 export {
   USER_AGREEMENT_TERM,
