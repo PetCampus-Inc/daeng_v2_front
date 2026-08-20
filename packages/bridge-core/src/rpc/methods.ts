@@ -9,6 +9,9 @@ const METHODS = {
   requestLocationPermission: 'device.requestLocationPermission',
   isLocationServiceEnabled: 'device.isLocationServiceEnabled',
   getLastKnownLocation: 'device.getLastKnownLocation',
+  requestCameraPermission: 'device.requestCameraPermission',
+  requestPhotosPermission: 'device.requestPhotosPermission',
+  requestNotificationPermission: 'device.requestNotificationPermission',
 
   // system
   callPhone: 'system.callPhone',

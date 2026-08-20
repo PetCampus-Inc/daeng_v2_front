@@ -32,6 +32,10 @@ const route = {
       /** 재가입 제한 기간 페이지 */
       root: '/auth/rejoin-blocked',
     },
+    devicePermission: {
+      /** 기기 권한 안내 */
+      root: '/auth/device-permission',
+    },
   },
   register: {
     location: {

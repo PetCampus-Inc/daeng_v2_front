@@ -1,5 +1,6 @@
 /** API */
 export {
+  postRegisterUser,
   postWithdraw,
   getOwnerRole,
   getOwnerMypageSummary,
