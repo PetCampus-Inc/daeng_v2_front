@@ -19,6 +19,8 @@ function toKindergartenSelectOptions(
   return [
     {
       id: linkedKindergarten.id,
+      schoolId: linkedKindergarten.id,
+      membershipId: null,
       name: linkedKindergarten.name,
       imageUrl: linkedKindergarten.imageUrl,
       attendedUntil,
@@ -33,6 +35,8 @@ function toKindergartenSelectOptionsFromConnections(
   return connections.map((connection) => ({
     // membershipId를 옵션 id로 유지해 동일 학교의 이력 다건을 구분한다.
     id: connection.id,
+    schoolId: connection.schoolId,
+    membershipId: connection.id,
     name: connection.name,
     imageUrl: connection.imageUrl,
     attendedUntil: connection.disconnectedAt ? formatDateKey(connection.disconnectedAt) : null,

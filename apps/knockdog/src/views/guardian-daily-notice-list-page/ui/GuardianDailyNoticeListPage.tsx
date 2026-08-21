@@ -97,8 +97,10 @@ function GuardianDailyNoticeListPage() {
     [selectedAttendedUntilKey]
   );
   const selectedMembershipId = useMemo(
-    () => toMembershipIdBySchoolId(connections ?? [], selectedKindergarten?.id ?? null, selectedAttendedUntilKey),
-    [connections, selectedAttendedUntilKey, selectedKindergarten?.id]
+    () =>
+      selectedKindergarten?.membershipId ??
+      toMembershipIdBySchoolId(connections ?? [], selectedKindergarten?.id ?? null, selectedAttendedUntilKey),
+    [connections, selectedAttendedUntilKey, selectedKindergarten?.id, selectedKindergarten?.membershipId]
   );
   const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
 

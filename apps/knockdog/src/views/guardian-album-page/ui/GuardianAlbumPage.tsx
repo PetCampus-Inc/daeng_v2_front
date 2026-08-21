@@ -42,6 +42,7 @@ import { GuardianAlbumPhotoDetail } from '@views/guardian-album-page/ui/Guardian
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
 import { toKindergartenSelectOptions, toKindergartenSelectOptionsFromConnections, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { startOfDay } from '@shared/lib/calendar-date';
@@ -66,6 +67,21 @@ function addMonths(date: Date, months: number) {
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
+  const userId = useUserStore((state) => state.user?.userId);
+  const { selectedPetId: earlySelectedPetId } = useGuardianSelectedPet();
+  const { data: connections } = useGuardianSchoolConnectionsQuery({
+    userId,
+    petId: earlySelectedPetId,
+    enabled: Boolean(userId) && Boolean(earlySelectedPetId),
+  });
+  const selectedOptionSchoolId = useMemo(() => {
+    if (!selectedKindergartenId) return null;
+    const matched = (connections ?? []).find(
+      (connection) =>
+        connection.id === selectedKindergartenId || connection.schoolId === selectedKindergartenId
+    );
+    return matched?.schoolId ?? selectedKindergartenId;
+  }, [connections, selectedKindergartenId]);
   const {
     selectedPet,
     selectedPetId,
@@ -83,13 +99,7 @@ function GuardianAlbumPage() {
     isError: isAlbumTodayError,
     isFetching: isAlbumTodayFetching,
     refetch: refetchAlbumToday,
-  } = useGuardianAlbumToday({ schoolId: selectedKindergartenId });
-  const userId = useUserStore((state) => state.user?.userId);
-  const { data: connections } = useGuardianSchoolConnectionsQuery({
-    userId,
-    petId: selectedPetId,
-    enabled: Boolean(userId) && Boolean(selectedPetId),
-  });
+  } = useGuardianAlbumToday({ schoolId: selectedOptionSchoolId });
   const { back } = useStackNavigation();
   const searchParams = useSearchParams();
 
@@ -123,7 +133,7 @@ function GuardianAlbumPage() {
     kindergartens.find((item) => item.id === (selectedKindergartenId ?? defaultKindergartenId)) ??
     kindergartens[0] ??
     null;
-  const activeSchoolId = selectedKindergarten?.id ?? schoolId;
+  const activeSchoolId = selectedKindergarten?.schoolId ?? schoolId;
   const kindergartenName = selectedKindergarten?.name ?? schoolName ?? '유치원';
   const petName = selectedPet?.name ?? '강아지';
   const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
