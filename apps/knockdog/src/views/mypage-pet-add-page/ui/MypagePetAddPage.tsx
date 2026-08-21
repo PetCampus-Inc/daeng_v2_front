@@ -106,8 +106,8 @@ export function MypagePetAddPage() {
     pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId } }, 600_000);
 
   return (
-    <>
-      <Header>
+    <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+      <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
@@ -123,6 +123,6 @@ export function MypagePetAddPage() {
         onViewPetProfile={handleViewPetProfile}
         submitButtonText='저장하기'
       />
-    </>
+    </div>
   );
 }
