@@ -32,7 +32,6 @@ import {
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 
 const EXTERNAL_LINKS = {
   NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
@@ -163,7 +162,7 @@ function Mypage() {
         )}
       </Header>
 
-      <div className='flex-1 overflow-y-auto' style={{ paddingBottom: BOTTOM_BAR_HEIGHT }}>
+      <div className='web:pb-(--bottom-bar-height) webview:pb-0 flex-1 overflow-y-auto'>
         {!isLoggedIn && <LoginPrompt />}
 
         {!isLoggedIn && (

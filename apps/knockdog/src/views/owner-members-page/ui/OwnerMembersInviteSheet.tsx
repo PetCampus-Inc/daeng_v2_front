@@ -7,7 +7,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useOwnerInviteQuery } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { useClipboardCopy, useShare } from '@shared/lib/device';
+import { useClipboardCopy, useShare, isNativeWebView } from '@shared/lib/device';
+import { useSaveImage } from '@shared/lib/media';
+import { toast } from '@shared/ui/toast';
 
 interface OwnerMembersInviteSheetProps {
   isOpen: boolean;
@@ -45,7 +47,7 @@ function downloadImage(url: string, filename: string) {
   document.body.removeChild(link);
 }
 
-async function downloadSvgAsPng(svgElement: SVGElement, filename: string) {
+async function svgToPngDataUrl(svgElement: SVGElement): Promise<string | null> {
   const svg = new XMLSerializer().serializeToString(svgElement);
   const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
   const svgUrl = URL.createObjectURL(svgBlob);
@@ -64,12 +66,12 @@ async function downloadSvgAsPng(svgElement: SVGElement, filename: string) {
     canvas.height = size;
 
     const context = canvas.getContext('2d');
-    if (!context) return;
+    if (!context) return null;
 
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, size, size);
     context.drawImage(image, 0, 0, size, size);
-    downloadImage(canvas.toDataURL('image/png'), filename);
+    return canvas.toDataURL('image/png');
   } finally {
     URL.revokeObjectURL(svgUrl);
   }
@@ -82,32 +84,40 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const inviteUrl = inviteQuery.data?.inviteUrl;
   const copy = useClipboardCopy();
   const share = useShare();
+  const saveImage = useSaveImage();
 
   const handleOpenChange = (open: boolean) => {
     if (!open) close();
   };
 
-  const handleDownloadQr = () => {
+  const handleDownloadQr = async () => {
     const qrCodeElement = qrCodeContainerRef.current?.querySelector('canvas, img, svg');
+    if (!qrCodeElement) return;
 
-    if (!qrCodeElement) {
-      // TODO: QR 코드 표시 구현 후 QR DOM 저장 처리
-      return;
-    }
+    let dataUrl: string | null = null;
 
     if (qrCodeElement instanceof HTMLCanvasElement) {
-      downloadImage(qrCodeElement.toDataURL('image/png'), 'owner-invite-qr.png');
+      dataUrl = qrCodeElement.toDataURL('image/png');
+    } else if (qrCodeElement instanceof HTMLImageElement) {
+      dataUrl = qrCodeElement.src;
+    } else if (qrCodeElement instanceof SVGElement) {
+      dataUrl = await svgToPngDataUrl(qrCodeElement);
+    }
+
+    if (!dataUrl) return;
+
+    const fileName = 'owner-invite-qr.png';
+
+    // 네이티브 앱에서는 <a download>가 동작하지 않아 갤러리 저장 브릿지를 거쳐야 함
+    if (isNativeWebView()) {
+      const saved = await saveImage({ url: dataUrl, fileName });
+      if (!saved) {
+        toast('QR 코드를 저장하지 못했어요.');
+      }
       return;
     }
 
-    if (qrCodeElement instanceof HTMLImageElement) {
-      downloadImage(qrCodeElement.src, 'owner-invite-qr.png');
-      return;
-    }
-
-    if (qrCodeElement instanceof SVGElement) {
-      void downloadSvgAsPng(qrCodeElement, 'owner-invite-qr.png');
-    }
+    downloadImage(dataUrl, fileName);
   };
 
   const handleCopyInviteLink = async () => {
@@ -132,7 +142,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
 
   const handleActionClick = (action: (typeof INVITE_ACTIONS)[number]['action']) => {
     if (action === 'downloadQr') {
-      handleDownloadQr();
+      void handleDownloadQr();
       return;
     }
 
