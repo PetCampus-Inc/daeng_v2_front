@@ -3,7 +3,7 @@ const guardianConnectionApplyStatusContent = {
   /** 초대 신청 완료 CTA로 진입한 경우 뒤로가기 분기용 */
   entryFromInviteComplete: 'invite-complete',
   empty: {
-    imageSrc: '/images/image_guardian_kindergarten_apply_none.png',
+    imageSrc: '/images/img_empty_students.png',
     imageAlt: '연결 신청 내역 없음',
     title: '연결 신청 내역이 없어요',
     description: '다니는 유치원에 초대를 요청해 보세요.',
