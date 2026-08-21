@@ -102,7 +102,7 @@ interface BreedSelectListProps {
   onSelect?: (breed: Breed) => void;
 }
 
-const OTHER_BREED: Breed = { breedId: 0, breedName: '기타' };
+const OTHER_BREED: Breed = { breedId: 0, breedName: '기타', alias: null };
 
 function BreedSelectList({ className, query, breeds = [], value, isLoading, onSearch, onSelect }: BreedSelectListProps) {
   const hasNoResults = Boolean(query?.trim()) && !isLoading && breeds.length === 0;
@@ -154,11 +154,12 @@ function BreedSelectList({ className, query, breeds = [], value, isLoading, onSe
               <li
                 className={cn(
                   'body1-medium text-text-primary text-start',
-                  breed.breedId === value?.breedId && 'text-text-accent'
+                  (breed.breedId === value?.breedId || breed.breedName === value?.breedName) && 'text-text-accent'
                 )}
-              >
-                {TextHighlights(breed.breedName, query ?? '')}
-              </li>
+                >
+                  {TextHighlights(breed.breedName, query ?? '')}
+                  {breed.alias ? ` (${breed.alias})` : null}
+                </li>
             </button>
           ))}
         </ul>
