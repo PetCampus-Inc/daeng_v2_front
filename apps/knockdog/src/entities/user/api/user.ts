@@ -52,7 +52,7 @@ function normalizeAddressDetails<T extends { addresses: UserAddress[] }>(userInf
     addresses: userInfo.addresses.map(({ addressDetail, detail, ...address }) => ({
       ...address,
       type: toAppAddressType(address.type),
-      detail: detail ?? addressDetail,
+      detail: detail?.trim() || addressDetail?.trim() || undefined,
     })),
   };
 }

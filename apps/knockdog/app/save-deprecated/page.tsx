@@ -305,7 +305,7 @@ export default function SavedPage() {
   return (
     <Layout>
       <SafeArea edges={['top']} className='flex h-dvh flex-col'>
-        <div className='flex min-h-dvh flex-col bg-white'>
+        <div className='flex min-h-0 flex-1 flex-col bg-white'>
           {/* 🔍 상단: 기본 헤더 / 검색 헤더 토글 */}
           {isSearchMode ? (
             <SearchHeader

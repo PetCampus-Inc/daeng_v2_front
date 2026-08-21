@@ -63,15 +63,18 @@ export function FullImageSheet({ isOpen, close, images = [], initialIndex = 0, o
     // AlertDialog가 open되어, dim영역 클릭시 이벤트 버블링으로인해 BottomSheet가 닫히는 현상을 방지하기 위해 dismissible={false} 설정
     <BottomSheet.Root open={isOpen} onOpenChange={close} dismissible={false}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal h-dvh max-h-dvh rounded-none' aria-describedby={'유치원 가격 정보'}>
-        <BottomSheet.Header className='justify-between pt-[50px]'>
+      <BottomSheet.Body
+        className='z-modal flex h-dvh max-h-dvh flex-col rounded-none'
+        aria-describedby={'유치원 가격 정보'}
+      >
+        <BottomSheet.Header className='shrink-0 justify-between pt-[50px]'>
           <IconButton icon='Close' onClick={close} />
 
           <BottomSheet.Title />
 
           <IconButton icon='Trash' onClick={handleRemoveImage} />
         </BottomSheet.Header>
-        <BottomSheet.Content>
+        <BottomSheet.Content className='min-h-0 flex-1'>
           <FullImageSlider initialIndex={initialIndex} images={images} onIndexChange={setCurrentIndex} />
         </BottomSheet.Content>
       </BottomSheet.Body>

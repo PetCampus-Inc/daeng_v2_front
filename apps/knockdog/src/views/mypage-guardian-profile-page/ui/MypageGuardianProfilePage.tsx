@@ -34,6 +34,7 @@ import {
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
 import { useTabNavigation } from '@shared/lib/bridge';
+import { SafeArea } from '@shared/ui/safe-area';
 import { showGuardianProfileSaveFailureToast, showGuardianProfileSaveSuccessToast } from '../model/guardianProfileToast';
 
 const EMPTY_FORM_VALUES: GuardianProfileFormValues = {
@@ -107,7 +108,7 @@ function MypageGuardianProfilePage() {
   const initializedProfileRef = useRef<{ userId: string; source: 'store' | 'remote' } | null>(null);
   const { navigateToTab } = useTabNavigation();
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
-  const profileUser = userInfo;
+  const profileUser = userInfo ?? user;
   const homeAddress = profileUser?.addresses.find((item) => item.type === USER_ADDRESS_TYPE.HOME);
   const homeAddressValue = homeAddress?.roadAddress || homeAddress?.address || '';
   const homeAddressDetail =
@@ -207,7 +208,7 @@ function MypageGuardianProfilePage() {
   };
 
   return (
-    <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+    <SafeArea edges={['bottom']} className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
       <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -244,7 +245,7 @@ function MypageGuardianProfilePage() {
           저장하기
         </ActionButton>
       </div>
-    </div>
+    </SafeArea>
   );
 }
 

@@ -36,7 +36,7 @@ interface LocationFieldProps {
 }
 
 export function LocationField({ type, value, addressId, required, optional, onChange, onAdd, onUpdate, onDelete }: LocationFieldProps) {
-  const { alias, address, add, modify, remove } = useLocationField({
+  const { alias, address, isAdding, add, modify, remove } = useLocationField({
     type,
     value,
     addressId,
@@ -79,9 +79,10 @@ export function LocationField({ type, value, addressId, required, optional, onCh
               {type !== USER_ADDRESS_TYPE.HOME && (
                 <>
                   <button
-                    className='label-semibold text-text-tertiary flex items-center gap-1 px-2 py-1'
+                    className='label-semibold text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1 px-2 py-1'
                     type='button'
                     onClick={handleDeleteClick}
+                    disabled={isAdding}
                   >
                     <Icon icon='Trash' className='text-fill-secondary-400 size-4' />
                     삭제
@@ -91,9 +92,10 @@ export function LocationField({ type, value, addressId, required, optional, onCh
               )}
 
               <button
-                className='label-semibold text-text-tertiary flex items-center gap-1 px-2 py-1'
+                className='label-semibold text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1 px-2 py-1'
                 type='button'
                 onClick={modify}
+                disabled={isAdding}
               >
                 <Icon icon='Edit' className='text-fill-secondary-400 size-4' />
                 수정

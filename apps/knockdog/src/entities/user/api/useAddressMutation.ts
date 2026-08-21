@@ -89,17 +89,26 @@ const useDeleteUserAddressMutation = () => {
       const currentUser = useUserStore.getState().user;
       if (!currentUser || currentUser.userId !== userId) return undefined;
 
+      const deletedAddress = currentUser.addresses.find(
+        (address) => String(address.id) === deletedAddressId
+      );
+
       setUser({
         ...currentUser,
         addresses: currentUser.addresses.filter((address) => String(address.id) !== deletedAddressId),
       });
 
-      return { previousUser: currentUser };
+      return { deletedAddress, userId: currentUser.userId };
     },
     onError: (_error, _deletedAddressId, context) => {
-      if (context?.previousUser && useUserStore.getState().user?.userId === context.previousUser.userId) {
-        setUser(context.previousUser);
-      }
+      const currentUser = useUserStore.getState().user;
+      if (!currentUser || !context?.deletedAddress || currentUser.userId !== context.userId) return;
+      if (currentUser.addresses.some((address) => String(address.id) === String(context.deletedAddress!.id))) return;
+
+      setUser({
+        ...currentUser,
+        addresses: [...currentUser.addresses, context.deletedAddress],
+      });
     },
     onSuccess: async () => {
       const currentUser = useUserStore.getState().user;

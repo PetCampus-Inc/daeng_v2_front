@@ -6,8 +6,7 @@ const PUSH_SETTING_QUERY_KEY = ['pushSetting'] as const;
 const usePushSettingQuery = () => {
   return useQuery({
     queryKey: PUSH_SETTING_QUERY_KEY,
-    queryFn: getPushSetting,
-    select: (response) => response.data,
+    queryFn: async () => (await getPushSetting()).data,
   });
 };
 

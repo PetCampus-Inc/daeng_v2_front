@@ -44,13 +44,13 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal h-dvh max-h-dvh rounded-none' aria-label={'지도에서 선택하기'}>
-        <SafeArea edges={['bottom', 'top']}>
-          <BottomSheet.Header className='justify-center'>
+        <SafeArea edges={['bottom', 'top']} className='flex h-full flex-col'>
+          <BottomSheet.Header className='shrink-0 justify-center'>
             <BottomSheet.CloseButton />
             <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>
           </BottomSheet.Header>
 
-          <div className='h-[calc(100dvh-304px)]'>
+          <div className='min-h-0 flex-1'>
             <Map
               ref={map}
               center={defaultLocation}
@@ -64,7 +64,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
             </Map>
           </div>
 
-          <div>
+          <div className='shrink-0'>
             <div className='px-4' />
             <div className='flex items-center justify-center gap-x-1 px-4 py-3'>
               <Icon icon='LocationFill' />

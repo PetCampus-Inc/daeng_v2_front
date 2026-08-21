@@ -43,6 +43,7 @@ function showLocationErrorToast() {
 
 const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, onDelete }: UseLocationFieldOptions) => {
   const [address, setAddress] = useState<Omit<UserAddress, 'id'> | null>(value ?? null);
+  const [isAdding, setIsAdding] = useState(false);
 
   const { pushForResult } = useStackNavigation();
 
@@ -82,12 +83,17 @@ const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, o
     if (!result) return;
 
     try {
+      setIsAdding(true);
       await onAdd?.(result);
       const resultAlias = result.alias || USER_ADDRESS_TYPE_KR[type];
       showLocationResultToast(resultAlias, `${pickJosa(resultAlias, '이', '가')} 추가되었습니다`);
     } catch (error) {
+      setAddress(null);
+      onChange?.(undefined);
       console.error('장소 추가 실패:', error);
       showLocationErrorToast();
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -98,7 +104,7 @@ const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, o
     const { alias: currentAlias, addressDetail, detail, ...restAddress } = address;
     const result = await navigateToAddressForm(
       {
-        address: { ...restAddress, detail: detail ?? addressDetail },
+        address: { ...restAddress, detail: detail?.trim() || addressDetail?.trim() || undefined },
         alias: currentAlias,
       },
       addressId
@@ -136,7 +142,7 @@ const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, o
     }
   };
 
-  return { alias, address, add, modify, remove };
+  return { alias, address, isAdding, add, modify, remove };
 };
 
 export { useLocationField };
