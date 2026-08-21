@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 
 import { Divider } from '@knockdog/ui';
 import Image from 'next/image';
-import { GuestLoginButton, LoginButton } from '@features/auth';
+import { GuestLoginButton, isGuestLoginEnabled, LoginButton } from '@features/auth';
 import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
@@ -14,6 +14,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 export default function LoginPage() {
   const { getParams } = useStackNavigation();
   const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
+  const showGuestLogin = isGuestLoginEnabled();
 
   const providers = useMemo(() => {
     const allProviders = Object.values(SOCIAL_PROVIDER) as SocialProvider[];
@@ -25,7 +26,7 @@ export default function LoginPage() {
 
   return (
     <SafeArea className='flex h-screen flex-col items-center justify-between'>
-      <div className='flex w-fit flex-col items-center'>
+      <div className='mt-16 flex w-fit flex-col items-center'>
         <p className='body1-medium'>우리 강아지에게 딱 맞는 유치원을 찾을 땐,</p>
 
         <div className='flex w-full flex-col items-center gap-y-3'>
@@ -59,13 +60,17 @@ export default function LoginPage() {
           ))}
         </div>
 
-        <div className='flex items-center gap-x-2'>
-          <Divider className='flex-1' />
-          <span className='text-text-tertiary body2-regular'>또는</span>
-          <Divider className='flex-1' />
-        </div>
+        {showGuestLogin ? (
+          <>
+            <div className='flex items-center gap-x-2'>
+              <Divider className='flex-1' />
+              <span className='text-text-tertiary body2-regular'>또는</span>
+              <Divider className='flex-1' />
+            </div>
 
-        <GuestLoginButton redirectTo={redirectTo} />
+            <GuestLoginButton redirectTo={redirectTo} />
+          </>
+        ) : null}
       </div>
     </SafeArea>
   );
