@@ -28,14 +28,15 @@ import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
+import { EXTERNAL_LINKS } from '@shared/constants';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
 
-const EXTERNAL_LINKS = {
-  NOTICE: 'https://fifth-potato-175.notion.site/2006c15f67fb803aadc1f2ec7dbb8892?source=copy_link',
+const MYPAGE_EXTERNAL_LINKS = {
+  NOTICE: 'https://app.notion.com/p/3876c15f67fb807f9444c1545c5753c5?source=copy_link',
   OPEN_SOURCE_LICENSE: 'https://fifth-potato-175.notion.site/2ba6c15f67fb805d9b8df5db96f2bfc1?source=copy_link',
 };
 
@@ -88,8 +89,8 @@ function Mypage() {
     push({ pathname: '/mypage/pet-add' });
   };
 
-  const handleOpenLink = (key: keyof typeof EXTERNAL_LINKS) => {
-    openExternalLink(EXTERNAL_LINKS[key]);
+  const handleOpenLink = (key: keyof typeof MYPAGE_EXTERNAL_LINKS) => {
+    openExternalLink(MYPAGE_EXTERNAL_LINKS[key]);
   };
 
   const handleKindergartenClick = () => {
@@ -273,7 +274,7 @@ function Mypage() {
           </>
         )}
 
-        {isLoggedIn && <QuickActionsSection />}
+        {isLoggedIn && <QuickActionsSection contactUrl={isOwnerView ? EXTERNAL_LINKS.OWNER_CONTACT : EXTERNAL_LINKS.CONTACT} />}
 
         <SettingsSection
           variant={isLoggedIn && isOwnerView ? 'owner' : 'guardian'}
