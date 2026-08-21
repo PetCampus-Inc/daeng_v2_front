@@ -50,6 +50,8 @@ function GuardianProfileFields({
   onPhoneNumberBlur,
   onEmergencyPhoneNumberBlur,
 }: GuardianProfileFieldsProps) {
+  const canEnterAddressDetail = values.address.trim().length > 0;
+
   const updateValue = (nextValue: Partial<GuardianProfileFormValues>) => {
     onChange({ ...values, ...nextValue });
   };
@@ -124,8 +126,8 @@ function GuardianProfileFields({
         {phoneNumberError ? <p className='text-error body2-regular pt-2'>{phoneNumberError}</p> : null}
       </div>
 
-      <div className='relative z-10 flex h-[184px] flex-col gap-y-2 py-x4'>
-        <div className='flex h-[76px] flex-col gap-y-2 px-x4'>
+      <div className='relative z-10 flex flex-col gap-y-2 px-x4 py-x4'>
+        <div className='flex flex-col gap-y-2'>
           <div className='body2-bold text-text-primary flex h-5 items-center gap-0.5'>
             주소<span className='text-text-accent'>*</span>
           </div>
@@ -150,11 +152,11 @@ function GuardianProfileFields({
           />
         </div>
 
-        <div className='h-[68px] px-x4 py-x2'>
+        <div>
           <TextField
             className='h-x13'
             suffix={
-              values.addressDetail ? (
+              canEnterAddressDetail && values.addressDetail ? (
                 <ClearInputButton ariaLabel='상세 주소 지우기' onClick={() => updateValue({ addressDetail: '' })} />
               ) : undefined
             }
@@ -162,6 +164,7 @@ function GuardianProfileFields({
             <TextFieldInput
               value={values.addressDetail}
               placeholder='상세 주소를 입력해 주세요'
+              disabled={!canEnterAddressDetail}
               onChange={(event) => updateValue({ addressDetail: formatAddressDetail(event.target.value) })}
             />
           </TextField>

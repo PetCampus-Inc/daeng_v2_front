@@ -41,7 +41,9 @@ function SocialAccountEmailField({
   return (
     <div className='border-line-200 bg-fill-secondary-50 flex h-12 items-center rounded-lg border px-4'>
       {provider ? <Icon icon={SOCIAL_PROVIDER_ICONS[provider]} className='mr-1 size-5' /> : null}
-      <span className='body1-regular text-text-secondary truncate'>{email}</span>
+      <span className='body1-regular text-text-secondary truncate'>
+        {email}
+      </span>
     </div>
   );
 }
@@ -119,9 +121,7 @@ function AccountSection({
             </div>
           ) : null}
 
-          {provider && email ? (
-            <SocialAccountEmailField provider={provider} email={email} />
-          ) : null}
+          <SocialAccountEmailField provider={provider} email={email} />
 
           {releasePermissionLabel ? (
             <ActionButton
@@ -141,7 +141,7 @@ function AccountSection({
   if (!accountInfo) return null;
 
   const guardianSocialProvider = socialProvider ?? socialUser?.provider;
-  const guardianSocialEmail = socialEmail || socialUser?.email || '';
+  const guardianSocialEmail = socialEmail ?? socialUser?.email ?? '';
 
   return (
     <div className='px-4 py-5'>
@@ -198,9 +198,7 @@ function AccountSection({
               </button>
             </div>
 
-            {guardianSocialProvider && guardianSocialEmail ? (
-              <SocialAccountEmailField provider={guardianSocialProvider} email={guardianSocialEmail} />
-            ) : null}
+            <SocialAccountEmailField provider={guardianSocialProvider} email={guardianSocialEmail} />
           </div>
         </section>
       </div>

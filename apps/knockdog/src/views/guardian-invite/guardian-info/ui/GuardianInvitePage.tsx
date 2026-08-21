@@ -157,7 +157,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
       gender: userInfo.gender === 'MALE' ? 'male' : userInfo.gender === 'FEMALE' ? 'female' : null,
       phoneNumber: userInfo.phoneNumber?.trim() ?? '',
       address,
-      addressDetail: userInfo.guardianAddressDetail?.trim() ?? '',
+      addressDetail: homeAddress?.detail?.trim() || homeAddress?.addressDetail?.trim() || userInfo.guardianAddressDetail?.trim() || '',
       emergencyPhoneNumber: userInfo.emergencyPhoneNumber?.trim() ?? '',
     });
     setSelectedAddress(

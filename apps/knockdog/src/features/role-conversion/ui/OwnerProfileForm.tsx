@@ -48,7 +48,7 @@ function OwnerProfileForm({
         noValidate
         className='flex flex-col gap-y-5'
       >
-        <div className='scrollbar-hide relative h-[calc(100vh-200px)] overflow-y-auto'>
+        <div className='scrollbar-hide relative h-[calc(100dvh-200px)] overflow-y-auto'>
           <Controller
             name='profileImageUrl'
             control={control}

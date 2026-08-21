@@ -34,7 +34,7 @@ function BottomSheetBody({ className, ...props }: React.ComponentProps<typeof Bo
   }
   return (
     <BottomSheetPrimitive.Body
-      className={cn('webview:max-w-full mx-auto max-h-[calc(100vh-64px)] max-w-120', className)}
+      className={cn('webview:max-w-full mx-auto max-h-[calc(100dvh-64px)] max-w-120', className)}
       {...props}
     />
   );

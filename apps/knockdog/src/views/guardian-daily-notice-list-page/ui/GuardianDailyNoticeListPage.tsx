@@ -25,7 +25,6 @@ import {
 } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
@@ -248,10 +247,7 @@ function GuardianDailyNoticeListPage() {
   };
 
   return (
-    <div
-      className='bg-bg-50 relative flex h-dvh flex-col'
-      style={{ paddingBottom: BOTTOM_BAR_HEIGHT }}
-    >
+    <div className='bg-bg-50 web:pb-(--bottom-bar-height) relative flex h-dvh flex-col'>
       <div className='sticky top-0 z-10 shrink-0'>
         <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
           <Header className='border-b-0'>

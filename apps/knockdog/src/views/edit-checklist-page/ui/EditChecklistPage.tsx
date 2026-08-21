@@ -110,7 +110,7 @@ function EditChecklistPage() {
           )}
         </Header.RightSection>
       </Header>
-      <div className='scrollbar-hide h-[calc(100vh-150px)] overflow-y-auto'>
+      <div className='scrollbar-hide h-[calc(100dvh-150px)] overflow-y-auto'>
         <ChecklistEditor isEditing={isEditing} answers={draftAnswers} onAnswersChange={setDraftAnswers} />
       </div>
     </SafeArea>

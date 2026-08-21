@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
 
-import { USER_ADDRESS_TYPE, UserAddress, UserAddressType } from '@entities/user';
+import { USER_ADDRESS_TYPE, UserAddress, UserAddressType, useUserInfoQuery, useUserStore } from '@entities/user';
 import { Address } from '@entities/address';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
@@ -16,6 +16,9 @@ const useLocationAddPage = () => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as UserAddressType;
   const txId = searchParams.get('_txId');
+  const addressId = searchParams.get('addressId');
+  const user = useUserStore((state) => state.user);
+  const { data: userInfo } = useUserInfoQuery(user?.userId);
 
   if (!type) back();
 
@@ -27,6 +30,7 @@ const useLocationAddPage = () => {
   const {
     control,
     handleSubmit: submit,
+    getValues,
     setValue,
     reset,
   } = useForm<LocationAddFormState>({
@@ -47,19 +51,29 @@ const useLocationAddPage = () => {
   const canSubmit = hasAddress && (type !== USER_ADDRESS_TYPE.WORK || !!alias?.trim());
   const isDirty = JSON.stringify(watchedValues) !== JSON.stringify(baselineRef.current);
 
-  const handleAddressSelect = (address: Address) => {
-    setValue('address', address, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  const handleAddressSelect = (selectedAddress: Address) => {
+    setValue(
+      'address',
+      { ...selectedAddress, detail: '' },
+      { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+    );
+    setValue('address.detail', '', { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   };
 
   const handleAddressClear = () => {
-    setValue('address', undefined as unknown as LocationAddFormState['address'], {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    reset(
+      { ...getValues(), address: undefined as unknown as LocationAddFormState['address'] },
+      { keepDefaultValues: true }
+    );
   };
 
   const handleSubmit = ({ alias, address }: LocationAddFormState) => {
-    const userAddress: Omit<UserAddress, 'id'> = { ...address, alias, type };
+    const userAddress: Omit<UserAddress, 'id'> = {
+      ...address,
+      detail: address.detail ?? getValues('address.detail'),
+      alias,
+      type,
+    };
 
     send(userAddress);
     back();
@@ -70,6 +84,7 @@ const useLocationAddPage = () => {
   // 새 txId의 params를 다시 읽지 못한다. txId가 바뀔 때마다 다시 읽되, StrictMode의 이펙트
   // 2회 실행에서는 같은 txId를 중복 소비하지 않도록 ref로 가드한다.
   const consumedTxIdRef = useRef<string | null>(null);
+  const restoredInitialValuesRef = useRef(false);
 
   useEffect(() => {
     if (!txId || consumedTxIdRef.current === txId) return;
@@ -81,9 +96,23 @@ const useLocationAddPage = () => {
     if (params && params.address) {
       const restoredValues: LocationAddFormState = { address: params.address, alias: params.alias ?? '' };
       baselineRef.current = restoredValues;
+      restoredInitialValuesRef.current = true;
       reset(restoredValues, { keepDefaultValues: true });
     }
   }, [txId, getParams, reset]);
+
+  useEffect(() => {
+    if (!addressId || restoredInitialValuesRef.current) return;
+
+    const savedAddress = (userInfo ?? user)?.addresses.find((candidate) => String(candidate.id) === addressId);
+    if (!savedAddress) return;
+
+    const { id: _id, ...address } = savedAddress;
+    const restoredValues: LocationAddFormState = { address, alias: savedAddress.alias ?? '' };
+    baselineRef.current = restoredValues;
+    restoredInitialValuesRef.current = true;
+    reset(restoredValues, { keepDefaultValues: true });
+  }, [addressId, userInfo, user, reset]);
 
   return {
     type,

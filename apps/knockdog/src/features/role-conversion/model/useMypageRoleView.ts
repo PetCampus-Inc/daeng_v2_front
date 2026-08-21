@@ -6,19 +6,22 @@ import { usePathname } from 'next/navigation';
 import { useIsOwnerVerified } from './useIsOwnerVerified';
 import { useMypageRoleViewStore } from './mypageRoleViewStore';
 import { useOwnerMypageSummary } from './useOwnerMypageSummary';
+import { useOwnerRole } from './useOwnerRole';
 
 function useMypageRoleView() {
-  const isOwnerVerified = useIsOwnerVerified();
+  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
   const togglePrefersGuardianView = useMypageRoleViewStore((state) => state.togglePrefersGuardianView);
   const resetPrefersGuardianView = useMypageRoleViewStore((state) => state.resetPrefersGuardianView);
   const { canSwitchToGuardian } = useOwnerMypageSummary();
 
   useEffect(() => {
-    if (!isOwnerVerified) {
+    // 원장 권한 조회 전에는 isOwner가 false다. 이 시점에 초기화하면
+    // localStorage에 저장한 마지막 보호자 화면 선택이 매 진입마다 사라진다.
+    if (isOwnerRoleResolved && !isOwnerVerified) {
       resetPrefersGuardianView();
     }
-  }, [isOwnerVerified, resetPrefersGuardianView]);
+  }, [isOwnerRoleResolved, isOwnerVerified, resetPrefersGuardianView]);
 
   const canToggleRoleView = isOwnerVerified && canSwitchToGuardian;
   const isOwnerView = isOwnerVerified && (!canToggleRoleView || !prefersGuardianView);

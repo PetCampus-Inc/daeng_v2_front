@@ -10,6 +10,10 @@ function mapExpoStatus(status: string, canAskAgain: boolean): { status: Permissi
   return { status: 'denied', canAskAgain };
 }
 
+function isNotificationPermissionGranted(permission: Notifications.NotificationPermissionsStatus) {
+  return permission.granted || permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+}
+
 export function registerPermissionHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.requestCameraPermission, async () => {
     const result = await ImagePicker.requestCameraPermissionsAsync();
@@ -21,6 +25,14 @@ export function registerPermissionHandlers(router: NativeBridgeRouter) {
     return mapExpoStatus(result.status, result.canAskAgain);
   });
 
+  router.register(METHODS.getNotificationPermission, async () => {
+    const permission = await Notifications.getPermissionsAsync();
+    if (isNotificationPermissionGranted(permission)) {
+      return { status: 'allowed' as const, canAskAgain: permission.canAskAgain };
+    }
+    return mapExpoStatus(permission.status, permission.canAskAgain);
+  });
+
   router.register(METHODS.requestNotificationPermission, async () => {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('push_notifications', {
@@ -30,8 +42,8 @@ export function registerPermissionHandlers(router: NativeBridgeRouter) {
     }
 
     const existing = await Notifications.getPermissionsAsync();
-    if (existing.granted || existing.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL) {
-      return { status: 'allowed' as const, canAskAgain: true };
+    if (isNotificationPermissionGranted(existing)) {
+      return { status: 'allowed' as const, canAskAgain: existing.canAskAgain };
     }
 
     const requested = await Notifications.requestPermissionsAsync();

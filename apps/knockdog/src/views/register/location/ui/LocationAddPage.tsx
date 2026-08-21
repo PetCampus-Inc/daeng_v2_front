@@ -33,7 +33,7 @@ import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
 const MAX_LOCATION_NAME_LENGTH = 5;
 
 function LocationAddPage() {
-  const { type, control, canSubmit, isDirty, back, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
+  const { type, control, canSubmit, hasAddress, isDirty, back, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
     useLocationAddPage();
 
   const handleBack = () => {
@@ -159,7 +159,7 @@ function LocationAddPage() {
                     <TextField
                       className='h-x13'
                       suffix={
-                        field.value ? (
+                        hasAddress && field.value ? (
                           <IconButton
                             type='button'
                             icon='DeleteInput'
@@ -173,6 +173,7 @@ function LocationAddPage() {
                       <TextFieldInput
                         value={field.value ?? ''}
                         placeholder='상세 주소를 입력해 주세요'
+                        disabled={!hasAddress}
                         onChange={(event) => field.onChange(formatAddressDetail(event.target.value))}
                       />
                     </TextField>

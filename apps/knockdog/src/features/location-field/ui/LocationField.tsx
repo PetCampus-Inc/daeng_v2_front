@@ -26,6 +26,7 @@ import { withEulReul } from '../lib/josa';
 interface LocationFieldProps {
   type: UserAddressType;
   value?: Omit<UserAddress, 'id'>;
+  addressId?: string;
   required?: boolean;
   optional?: boolean;
   onChange?: (address?: Omit<UserAddress, 'id'>) => void;
@@ -34,8 +35,16 @@ interface LocationFieldProps {
   onDelete?: () => void | Promise<void>;
 }
 
-export function LocationField({ type, value, required, optional, onChange, onAdd, onUpdate, onDelete }: LocationFieldProps) {
-  const { alias, address, add, modify, remove } = useLocationField({ type, value, onChange, onAdd, onUpdate, onDelete });
+export function LocationField({ type, value, addressId, required, optional, onChange, onAdd, onUpdate, onDelete }: LocationFieldProps) {
+  const { alias, address, isAdding, add, modify, remove } = useLocationField({
+    type,
+    value,
+    addressId,
+    onChange,
+    onAdd,
+    onUpdate,
+    onDelete,
+  });
 
   const handleDeleteClick = () => {
     overlay.open(({ isOpen, close }) => (
@@ -70,9 +79,10 @@ export function LocationField({ type, value, required, optional, onChange, onAdd
               {type !== USER_ADDRESS_TYPE.HOME && (
                 <>
                   <button
-                    className='label-semibold text-text-tertiary flex items-center gap-1 px-2 py-1'
+                    className='label-semibold text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1 px-2 py-1'
                     type='button'
                     onClick={handleDeleteClick}
+                    disabled={isAdding}
                   >
                     <Icon icon='Trash' className='text-fill-secondary-400 size-4' />
                     삭제
@@ -82,9 +92,10 @@ export function LocationField({ type, value, required, optional, onChange, onAdd
               )}
 
               <button
-                className='label-semibold text-text-tertiary flex items-center gap-1 px-2 py-1'
+                className='label-semibold text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1 px-2 py-1'
                 type='button'
                 onClick={modify}
+                disabled={isAdding}
               >
                 <Icon icon='Edit' className='text-fill-secondary-400 size-4' />
                 수정
@@ -94,16 +105,25 @@ export function LocationField({ type, value, required, optional, onChange, onAdd
         </FieldLabel>
 
         <FieldContent>
-          <button className='text-left' type='button' onClick={add}>
-            {address ? (
-              <span className='text-text-primary body1-regular'>{address.address}</span>
-            ) : (
+          {address ? (
+            <div>
+              <span className='flex flex-col gap-0'>
+                <span className='text-text-primary body1-regular'>
+                  {address.roadAddress || address.address}
+                </span>
+                {address.detail || address.addressDetail ? (
+                  <span className='text-text-primary body1-regular'>{address.detail || address.addressDetail}</span>
+                ) : null}
+              </span>
+            </div>
+          ) : (
+            <button className='text-left' type='button' onClick={add}>
               <span className='text-text-tertiary body2-semibold flex items-center gap-x-1'>
                 <Icon icon='Plus' className='size-4' />
                 추가하기
               </span>
-            )}
-          </button>
+            </button>
+          )}
         </FieldContent>
       </Field>
     </div>

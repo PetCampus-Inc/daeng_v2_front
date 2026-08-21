@@ -17,6 +17,8 @@ interface OwnerPetGuardianDto {
   emergencyPhoneNumber?: string | null;
   roadAddress?: string | null;
   address?: string | null;
+  addressDetail?: string | null;
+  guardianAddressDetail?: string | null;
 }
 
 interface OwnerPet {
@@ -73,6 +75,7 @@ function toOwnerPetGuardian(dto: OwnerPetGuardianDto | null | undefined): OwnerP
 
   const roadAddress = dto.roadAddress?.trim() ?? '';
   const address = dto.address?.trim() ?? '';
+  const addressDetail = dto.addressDetail?.trim() || dto.guardianAddressDetail?.trim() || undefined;
 
   return {
     name: dto.name?.trim() ?? '',
@@ -80,7 +83,7 @@ function toOwnerPetGuardian(dto: OwnerPetGuardianDto | null | undefined): OwnerP
     phone: dto.phoneNumber?.trim() ?? '',
     emergencyPhone: dto.emergencyPhoneNumber?.trim() ?? '',
     address: roadAddress || address,
-    addressDetail: roadAddress && address && roadAddress !== address ? address : undefined,
+    addressDetail,
   };
 }
 

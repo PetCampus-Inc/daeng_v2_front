@@ -19,7 +19,6 @@ import { PetProfileForm, type PetFormData } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
@@ -118,8 +117,8 @@ export function MypagePetEditPage() {
   };
 
   return (
-    <>
-      <Header>
+    <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+      <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
@@ -141,6 +140,6 @@ export function MypagePetEditPage() {
         onRestoreValuesApplied={handleRestoreValuesApplied}
         submitButtonText='수정하기'
       />
-    </>
+    </div>
   );
 }

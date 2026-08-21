@@ -52,7 +52,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       name: pet?.name || '',
       relationship: pet?.relationship ?? '',
       relationshipText: pet?.relationshipText || '',
-      breed: pet?.breed ? { breedId: 0, breedName: pet.breed } : null,
+      breed: pet?.breed ? { breedId: 0, breedName: pet.breed, alias: null } : null,
       birthYear: pet?.birthYear ? String(pet.birthYear) : undefined,
       weight: pet?.weight || undefined,
       gender: pet?.gender || '',

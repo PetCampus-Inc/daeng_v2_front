@@ -9,6 +9,7 @@ import { pickJosa } from '../lib/josa';
 interface UseLocationFieldOptions {
   type: UserAddressType;
   value?: Omit<UserAddress, 'id'>;
+  addressId?: string;
   onChange?: (address?: Omit<UserAddress, 'id'>) => void;
   onAdd?: (address: Omit<UserAddress, 'id'>) => void | Promise<void>;
   onUpdate?: (address: Omit<UserAddress, 'id'>) => void | Promise<void>;
@@ -40,8 +41,9 @@ function showLocationErrorToast() {
   });
 }
 
-const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: UseLocationFieldOptions) => {
+const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, onDelete }: UseLocationFieldOptions) => {
   const [address, setAddress] = useState<Omit<UserAddress, 'id'> | null>(value ?? null);
+  const [isAdding, setIsAdding] = useState(false);
 
   const { pushForResult } = useStackNavigation();
 
@@ -50,13 +52,13 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
     setAddress(value ?? null);
   }, [value]);
 
-  const navigateToAddressForm = async (params?: Record<string, unknown>) => {
+  const navigateToAddressForm = async (params?: Record<string, unknown>, editAddressId?: string) => {
     let result: Omit<UserAddress, 'id'> | undefined;
     try {
       result = await pushForResult<Omit<UserAddress, 'id'>>(
         {
           pathname: route.register.location.add.root,
-          query: { type },
+          query: { type, ...(editAddressId ? { addressId: editAddressId } : {}) },
           params,
         },
         600_000
@@ -81,12 +83,17 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
     if (!result) return;
 
     try {
+      setIsAdding(true);
       await onAdd?.(result);
       const resultAlias = result.alias || USER_ADDRESS_TYPE_KR[type];
       showLocationResultToast(resultAlias, `${pickJosa(resultAlias, '이', '가')} 추가되었습니다`);
     } catch (error) {
+      setAddress(null);
+      onChange?.(undefined);
       console.error('장소 추가 실패:', error);
       showLocationErrorToast();
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -94,8 +101,14 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
   const modify = async () => {
     if (!address) return;
 
-    const { alias: currentAlias, ...restAddress } = address;
-    const result = await navigateToAddressForm({ address: restAddress, alias: currentAlias });
+    const { alias: currentAlias, addressDetail, detail, ...restAddress } = address;
+    const result = await navigateToAddressForm(
+      {
+        address: { ...restAddress, detail: detail?.trim() || addressDetail?.trim() || undefined },
+        alias: currentAlias,
+      },
+      addressId
+    );
     if (!result) return;
 
     try {
@@ -112,21 +125,24 @@ const useLocationField = ({ type, value, onChange, onAdd, onUpdate, onDelete }: 
 
   /** 삭제 버튼 */
   const remove = async () => {
+    const previousAddress = address;
+
+    setAddress(null);
+    onChange?.(undefined);
+
     try {
       await onDelete?.();
 
-      // 로컬 state를 직접 지우지 않는다. 삭제 뮤테이션 성공 시 상위(store)의 주소 목록이
-      // 갱신되고, 그 값이 value prop → 위 useEffect를 통해 자연스럽게 반영된다.
-      // 여기서 setAddress/onChange를 같이 호출하면 상위 값 반영과 경합해
-      // 간헐적으로 삭제한 주소가 다시 나타나는 문제가 있었다.
       showLocationResultToast(alias, `${pickJosa(alias, '을', '를')} 삭제했어요`);
     } catch (error) {
+      setAddress(previousAddress);
+      onChange?.(previousAddress ?? undefined);
       console.error('장소 삭제 실패:', error);
       showLocationErrorToast();
     }
   };
 
-  return { alias, address, add, modify, remove };
+  return { alias, address, isAdding, add, modify, remove };
 };
 
 export { useLocationField };

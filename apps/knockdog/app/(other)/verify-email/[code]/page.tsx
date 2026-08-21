@@ -30,7 +30,7 @@ export default function VerifyEmail() {
   const { title, description, image } = CONTENT_MAP[verificationStatus];
 
   return (
-    <div className='h-screen pt-12'>
+    <div className='h-dvh pt-12'>
       <div className='flex w-full justify-center'>
         <div className='border-primitive-neutral-400 inline-flex flex-col items-center rounded-3xl border p-10 max-sm:border-transparent'>
           <Image src='/images/img_logo.png' alt='knockdog-logo' width={96} height={26} />

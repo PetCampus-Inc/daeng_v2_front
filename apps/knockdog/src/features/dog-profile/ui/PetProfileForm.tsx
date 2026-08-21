@@ -190,7 +190,7 @@ function PetProfileForm({
 
   return (
     <>
-      <div className='h-[calc(100dvh-64px)] px-4'>
+      <div className='min-h-0 flex-1 px-4'>
         <form
           id='pet-profile-form'
           onSubmit={handleFormSubmit}

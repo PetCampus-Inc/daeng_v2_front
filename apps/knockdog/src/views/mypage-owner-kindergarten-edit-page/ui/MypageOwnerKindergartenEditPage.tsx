@@ -110,6 +110,7 @@ interface ClearableTextFieldProps {
   readOnly?: boolean;
   underlineValue?: boolean;
   spellCheck?: boolean;
+  disabled?: boolean;
   invalid?: boolean;
   errorMessage?: string;
 }
@@ -127,6 +128,7 @@ function ClearableTextField({
   readOnly = false,
   underlineValue = false,
   spellCheck,
+  disabled = false,
   invalid = false,
   errorMessage,
 }: ClearableTextFieldProps) {
@@ -136,6 +138,7 @@ function ClearableTextField({
         label={label}
         required={required}
         indicator={indicator}
+        disabled={disabled}
         invalid={invalid}
         className={`h-x13 ${
           underlineValue && value
@@ -143,7 +146,7 @@ function ClearableTextField({
             : ''
         }`}
         suffix={
-          value ? (
+          !disabled && value ? (
             <IconButton
               type='button'
               icon='DeleteInput'
@@ -160,6 +163,7 @@ function ClearableTextField({
           placeholder={placeholder}
           inputMode={inputMode}
           readOnly={readOnly}
+          disabled={disabled}
           spellCheck={spellCheck}
         />
       </TextField>
@@ -281,7 +285,7 @@ function MypageOwnerKindergartenEditPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
+    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection className='relative z-10'>
           <Header.BackButton onClick={handleBack} />
@@ -357,6 +361,7 @@ function MypageOwnerKindergartenEditPage() {
               value={formData.addressDetail}
               onChange={formData.handleAddressDetailChange}
               placeholder={ownerMypageContent.kindergartenEditAddressDetailPlaceholder}
+              disabled={!formData.address.trim()}
             />
           </div>
 

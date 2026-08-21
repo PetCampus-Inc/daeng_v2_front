@@ -286,7 +286,7 @@ function MypageOwnerKindergartenPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-screen flex-col'>
+    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />

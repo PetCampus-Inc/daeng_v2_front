@@ -35,6 +35,7 @@ function OwnerDailyPage() {
   const rawTodayFilter = searchParams.get('todayFilter');
   const initialTodayAttendanceFilter = resolveTodayAttendanceFilter(rawTodayFilter);
   const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveOwnerDailyTab(rawTab));
+  const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
   const {
@@ -109,6 +110,10 @@ function OwnerDailyPage() {
     setSelectedTab(value as OwnerDailyTab);
   };
 
+  const handleContentScroll = (scrollTop: number) => {
+    setIsScrollTopButtonVisible(scrollTop > 0);
+  };
+
   const handleScrollToTop = () => {
     const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -119,6 +124,7 @@ function OwnerDailyPage() {
   }, [rawTab]);
 
   useLayoutEffect(() => {
+    setIsScrollTopButtonVisible(false);
     const animationFrameId = requestAnimationFrame(() => {
       const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
       contentRef.current?.scrollTo({ top: 0 });
@@ -159,6 +165,7 @@ function OwnerDailyPage() {
               ref={attendanceCheckContentRef}
               value='attendance-check'
               className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+              onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
             >
               <OwnerDailyTabContent
                 items={attendanceCheckMembers}
@@ -178,6 +185,7 @@ function OwnerDailyPage() {
               ref={todayAttendanceContentRef}
               value='today-attendance'
               className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+              onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
             >
               <TodayAttendanceTab
                 items={todayAttendanceMembers}
@@ -192,22 +200,24 @@ function OwnerDailyPage() {
           </Tabs>
         )}
       </main>
-      <Float
-        placement='bottom-end'
-        offsetX='x4'
-        offsetY='calc(var(--bottom-bar-height) + 20px)'
-        zIndex={50}
-      >
-        <FloatingActionButton
-          className='text-black'
-          icon='ChevronTop'
-          label='맨 위로'
-          variant='neutralLight'
-          size='medium'
-          extended={false}
-          onClick={handleScrollToTop}
-        />
-      </Float>
+      {isScrollTopButtonVisible ? (
+        <Float
+          placement='bottom-end'
+          offsetX='x4'
+          offsetY='calc(var(--bottom-bar-height) + 20px)'
+          zIndex={50}
+        >
+          <FloatingActionButton
+            className='text-black'
+            icon='ChevronTop'
+            label='맨 위로'
+            variant='neutralLight'
+            size='medium'
+            extended={false}
+            onClick={handleScrollToTop}
+          />
+        </Float>
+      ) : null}
     </div>
   );
 }

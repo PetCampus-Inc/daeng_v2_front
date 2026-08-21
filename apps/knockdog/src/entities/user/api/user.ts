@@ -1,5 +1,6 @@
 import { api, ApiResponse } from '@shared/api';
 import { User, UserAddress, WithdrawReasonType } from '../model/user';
+import { USER_ADDRESS_TYPE } from '../model/constant/user';
 
 interface RegisterUserRequest {
   nickname: string;
@@ -39,17 +40,37 @@ interface GuardianProfile {
 interface UserInfo extends Omit<User, 'profileImageUrl'>, GuardianProfile {
   profileImage: string;
   infoRcvEmail: string;
+  loginProvider?: SocialLoginProvider | null;
+}
+
+const toAppAddressType = (type: string): UserAddress['type'] =>
+  type === 'OTHER' ? USER_ADDRESS_TYPE.WORK : (type as UserAddress['type']);
+
+function normalizeAddressDetails<T extends { addresses: UserAddress[] }>(userInfo: T): T {
+  return {
+    ...userInfo,
+    addresses: userInfo.addresses.map(({ addressDetail, detail, ...address }) => ({
+      ...address,
+      type: toAppAddressType(address.type),
+      detail: detail?.trim() || addressDetail?.trim() || undefined,
+    })),
+  };
+}
+
+function normalizeUserInfoResponse(response: ApiResponse<UserInfo>): ApiResponse<UserInfo> {
+  return { ...response, data: normalizeAddressDetails(response.data) };
 }
 
 /** API 사용자 정보 응답을 앱 전역 사용자 모델로 변환한다. */
 const toUser = ({ profileImage, ...userInfo }: UserInfo): User => ({
-  ...userInfo,
+  ...normalizeAddressDetails(userInfo),
   profileImageUrl: profileImage,
 });
 
 /** `GET` - 유저 정보 조회 API */
 const getUserInfo = async () => {
-  return await api.get(`mypage/getUserInfo`).json<ApiResponse<UserInfo>>();
+  const response = await api.get(`mypage/getUserInfo`).json<ApiResponse<UserInfo>>();
+  return normalizeUserInfoResponse(response);
 };
 
 interface UpdateGuardianProfileRequest {
@@ -69,7 +90,8 @@ interface GuardianProfileAddress {
 
 /** `POST` - 보호자 프로필 등록 및 수정 API */
 const postUpdateGuardianProfile = async (request: UpdateGuardianProfileRequest) => {
-  return await api.post(`mypage/updateGuardianProfile`, { json: request }).json<ApiResponse<UserInfo>>();
+  const response = await api.post(`mypage/updateGuardianProfile`, { json: request }).json<ApiResponse<UserInfo>>();
+  return normalizeUserInfoResponse(response);
 };
 
 /** `POST` - 유저 정보 수정 API */

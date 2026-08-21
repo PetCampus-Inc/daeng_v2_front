@@ -86,7 +86,7 @@ function CompareKindergartenDetailPage() {
           <IconButton icon='Search' />
         </Header.RightSection>
       </Header>
-      <div className='h-[calc(100vh-206px)] overflow-y-auto' ref={scrollableDivRef}>
+      <div className='h-[calc(100dvh-206px)] overflow-y-auto' ref={scrollableDivRef}>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
           <MainBannerSwiper images={images ?? []} />

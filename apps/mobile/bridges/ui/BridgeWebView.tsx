@@ -1,7 +1,7 @@
 import WebView from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type RefObject, useRef, useMemo, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
 import { buildConsolePatch } from '../lib/consolePatch';
@@ -74,6 +74,7 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
       style.setProperty('--safe-area-inset-bottom', '${bottom}px');
       style.setProperty('--safe-area-inset-left', '${left}px');
       style.setProperty('--safe-area-inset-right', '${right}px');
+      style.setProperty('--bottom-bar-height', '0px');
     })();
     true;
   `;
@@ -117,6 +118,15 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
     lastInjectedInsetsRef.current = key;
     ref.injectJavaScript(buildSafeAreaInjector(insets));
   }, [insets, refToUse]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active') return;
+      refToUse.current?.injectJavaScript("window.dispatchEvent(new Event('appresume'));true;");
+    });
+
+    return () => subscription.remove();
+  }, [refToUse]);
 
   // unmount 시 이 WebView가 기다리던 모든 txId 정리
   useEffect(() => {

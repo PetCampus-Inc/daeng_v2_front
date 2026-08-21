@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 
 import { useGuardianHomeQuery } from '@entities/guardian-home';
+import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
 import { startOfDay } from '@shared/lib/calendar-date';
 
@@ -24,6 +25,11 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
     selectedPetId: storePetId,
   } = useGuardianSelectedPet();
   const selectedPetId = options?.petId || storePetId;
+
+  const { data: hasUnreadAlarm = false } = useHasUnreadNotificationQuery({
+    userId,
+    enabled: Boolean(userId),
+  });
 
   const {
     data: home,
@@ -83,7 +89,7 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
     checkInAt,
     checkOutAt,
     firstAttendedAt,
-    hasUnreadAlarm: false,
+    hasUnreadAlarm,
     /** 홈 API는 알림장 본문을 주지 않음 — 배너만 todayNoteArrived로 노출 */
     hasDailyNotice,
     albumPhotos,

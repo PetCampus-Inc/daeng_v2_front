@@ -222,12 +222,12 @@ function ReportingKindergartenUpdate() {
       </div>
 
       <div>
-        <div className='h-[calc(100vh-77px)]'>
+        <div className='h-[calc(100dvh-77px)]'>
           <div className='label-medium text-text-secondary bg-neutral-50 px-4 pt-[10px] pb-3'>
             최대 <span className='text-text-accent'>{MAX_UPLOAD_COUNT}</span>장까지 등록 가능
           </div>
 
-          <div className='h-[calc(100vh-167px)] overflow-y-auto'>
+          <div className='h-[calc(100dvh-167px)] overflow-y-auto pb-24'>
             {checkOptions.map((opt) => (
               <ReportOptionCard
                 key={opt.key}

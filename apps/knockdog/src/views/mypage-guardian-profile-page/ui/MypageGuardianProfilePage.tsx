@@ -111,6 +111,8 @@ function MypageGuardianProfilePage() {
   const profileUser = userInfo ?? user;
   const homeAddress = profileUser?.addresses.find((item) => item.type === USER_ADDRESS_TYPE.HOME);
   const homeAddressValue = homeAddress?.roadAddress || homeAddress?.address || '';
+  const homeAddressDetail =
+    homeAddress?.detail?.trim() || homeAddress?.addressDetail?.trim() || userInfo?.guardianAddressDetail?.trim() || '';
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(formValues.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
@@ -148,7 +150,11 @@ function MypageGuardianProfilePage() {
 
     if (!isNewUser && (!isRemoteProfileReady || isDirty)) return;
 
-    const nextFormValues = toGuardianProfileFormValues({ ...profileUser, homeAddress: homeAddressValue });
+    const nextFormValues = toGuardianProfileFormValues({
+      ...profileUser,
+      homeAddress: homeAddressValue,
+      guardianAddressDetail: homeAddressDetail,
+    });
     setFormValues(nextFormValues);
     setInitialFormValues(nextFormValues);
     setSelectedAddress({
@@ -156,7 +162,7 @@ function MypageGuardianProfilePage() {
       roadAddress: homeAddress?.roadAddress || homeAddressValue,
     });
     initializedProfileRef.current = { userId: profileUser.userId, source: profileSource };
-  }, [homeAddress, homeAddressValue, isDirty, profileUser, userInfo]);
+  }, [homeAddress, homeAddressDetail, homeAddressValue, isDirty, profileUser, userInfo]);
 
   const navigateToMypage = () => navigateToTab('/mypage');
 
@@ -202,8 +208,8 @@ function MypageGuardianProfilePage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
-      <Header>
+    <SafeArea edges={['bottom']} className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+      <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>

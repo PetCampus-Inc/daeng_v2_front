@@ -21,6 +21,7 @@ interface UserAddress {
   roadAddress: string;
   address: string;
   detail?: string;
+  addressDetail?: string;
   lat: number;
   lng: number;
 }

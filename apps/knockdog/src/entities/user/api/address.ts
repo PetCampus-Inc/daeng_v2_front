@@ -13,7 +13,7 @@ export type AddressRequest =
       alias?: string;
       roadAddress: string;
       address: string;
-      detail?: string;
+      addressDetail?: string;
       lat: number;
       lng: number;
     }
@@ -24,7 +24,7 @@ export type AddressRequest =
       alias?: string;
       roadAddress: string;
       address: string;
-      detail?: string;
+      addressDetail?: string;
       lat: number;
       lng: number;
     };
