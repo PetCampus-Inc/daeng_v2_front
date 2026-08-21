@@ -43,7 +43,7 @@
     "expo-image-manipulator": "~13.1.7",
     "expo-image-picker": "~16.1.4",
     "expo-linking": "~8.0.8",
-    "expo-location": "^18.1.6",
+    "expo-location": "^57.0.11",
     "expo-media-library": "~17.1.7",
     "expo-notifications": "~0.31.4",
     "expo-router": "^5.1.7",
