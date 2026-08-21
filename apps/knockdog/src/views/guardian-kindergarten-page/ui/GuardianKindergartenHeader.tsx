@@ -115,7 +115,11 @@ function GuardianKindergartenHeader({
           </div>
         ) : (
           <button type='button' className='gap-x4 flex items-center text-left' onClick={handlePetSelectClick}>
-            <DogProfileAvatar name={petName || '강아지'} imageUrl={petImageUrl} className='size-[52px]' />
+            <DogProfileAvatar
+              name={petName || '강아지'}
+              imageUrl={petImageUrl?.trim() ? petImageUrl : undefined}
+              className='size-[52px]'
+            />
 
             <div className='gap-x1 flex flex-col items-start justify-center'>
               <div className='gap-x1 flex items-center'>
