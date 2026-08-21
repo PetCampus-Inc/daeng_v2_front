@@ -39,19 +39,24 @@ function GuardianDailyNoticeArrivedBanner({ onViewClick }: GuardianDailyNoticeAr
 interface GuardianDailyNoticeTimelineCardProps {
   notice: GuardianDailyNoticeMock;
   timeLabel: string;
+  showConnector?: boolean;
   onViewAllClick?: () => void;
 }
 
 function GuardianDailyNoticeTimelineCard({
   notice,
   timeLabel,
+  showConnector = false,
   onViewAllClick,
 }: GuardianDailyNoticeTimelineCardProps) {
   const content = guardianKindergartenAttendingContent;
 
   return (
-    <div className='flex w-full items-start gap-4'>
-      <p className='caption1-regular text-text-secondary w-12 shrink-0'>{timeLabel}</p>
+    <div className='flex w-full items-start gap-3'>
+      <div className='flex w-14 shrink-0 flex-col items-center gap-1 self-stretch'>
+        <p className='caption1-regular text-text-secondary whitespace-nowrap'>{timeLabel}</p>
+        {showConnector ? <div className='bg-line-200 w-px flex-1' /> : null}
+      </div>
       <div className='bg-bg-50 radius-r2 flex min-w-0 flex-1 flex-col items-end gap-4 p-4'>
         <div className='gap-x2 flex w-full flex-col items-start gap-2'>
           {notice.conditionLabel || notice.stoolLabel ? (
