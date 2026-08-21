@@ -8,12 +8,12 @@ const requiredTermsConsentContent = {
     {
       id: USER_AGREEMENT_TERM.TERMS_OF_SERVICE,
       label: '[필수] 서비스 이용 약관',
-      detailUrl: EXTERNAL_LINKS.REQUIRED_TERMS_DETAIL,
+      detailUrl: EXTERNAL_LINKS.TERMS_OF_SERVICE,
     },
     {
       id: USER_AGREEMENT_TERM.PRIVACY_POLICY,
       label: '[필수] 개인정보 수집∙이용 동의',
-      detailUrl: EXTERNAL_LINKS.REQUIRED_TERMS_DETAIL,
+      detailUrl: EXTERNAL_LINKS.PRIVACY_POLICY,
     },
     {
       id: USER_AGREEMENT_TERM.AGE_OVER_14,

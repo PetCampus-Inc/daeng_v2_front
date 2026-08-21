@@ -20,6 +20,7 @@ import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/m
 import {
   toKindergartenSelectOptions,
   toKindergartenSelectOptionsFromConnections,
+  toMembershipIdBySchoolId,
   toMonthEndDateKey,
 } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
@@ -57,7 +58,7 @@ function GuardianDailyNoticeListPage() {
   const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: connections } = useGuardianSchoolConnectionsQuery({
+  const { data: connections, isPending: isMembershipPending } = useGuardianSchoolConnectionsQuery({
     userId,
     petId: selectedPetId,
     enabled: Boolean(userId) && Boolean(selectedPetId),
@@ -95,6 +96,12 @@ function GuardianDailyNoticeListPage() {
     () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
     [selectedAttendedUntilKey]
   );
+  const selectedMembershipId = useMemo(
+    () =>
+      selectedKindergarten?.membershipId ??
+      toMembershipIdBySchoolId(connections ?? [], selectedKindergarten?.id ?? null, selectedAttendedUntilKey),
+    [connections, selectedAttendedUntilKey, selectedKindergarten?.id, selectedKindergarten?.membershipId]
+  );
   const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
 
   const {
@@ -106,13 +113,14 @@ function GuardianDailyNoticeListPage() {
     isFirstAttendanceDateFallback,
     isPending,
   } = useGuardianDailyNoticeMonthList({
-    schoolId: selectedKindergarten?.id ?? linkedKindergarten?.id,
+    membershipId: selectedMembershipId,
     petId: selectedPetId,
     selectedMonth: requestedMonth,
     firstAttendedAt,
     attendedUntil: selectedAttendedUntil,
     isDisconnected: isSelectedDisconnected,
     isPetsReady,
+    isMembershipPending,
   });
 
   const selectedMonth = useMemo(() => {
