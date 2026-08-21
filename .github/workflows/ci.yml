@@ -73,6 +73,14 @@ jobs:
             ${{ runner.os }}-nextjs-build-
             ${{ runner.os }}-nextjs-
 
+      - name: Guard guest login flag
+        if: matrix.command == 'build'
+        run: |
+          if [ "${NEXT_PUBLIC_ENABLE_GUEST_LOGIN:-}" = "true" ]; then
+            echo "::error::NEXT_PUBLIC_ENABLE_GUEST_LOGIN must be unset/false for production builds"
+            exit 1
+          fi
+
       - name: Run ${{ matrix.command }}
         run: |
           set -euo pipefail
