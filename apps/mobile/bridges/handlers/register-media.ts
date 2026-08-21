@@ -26,11 +26,19 @@ const MIME_EXTENSION_MAP: Record<string, string> = {
   'image/heif': 'heif',
 };
 
-/** data:<mime>;base64,<payload> 형태의 URL을 파싱. 클라이언트에서 canvas로 즉석 생성한 이미지(QR 등) 저장용 */
+/**
+ * data:<mime>;base64,<payload> 형태의 URL을 파싱. 클라이언트에서 canvas로 즉석 생성한 이미지(QR 등) 저장용.
+ * MIME_EXTENSION_MAP에 없는 타입이거나 payload가 비어있으면 지원하지 않는 것으로 간주해 null 반환.
+ */
 function parseDataUrl(url: string): { mime: string; base64: string } | null {
   const match = /^data:([^;,]+)?;base64,(.*)$/s.exec(url);
   if (!match) return null;
-  return { mime: match[1] || 'image/png', base64: match[2] };
+
+  const mime = (match[1] || 'image/png').toLowerCase();
+  const base64 = match[2];
+  if (!base64 || !(mime in MIME_EXTENSION_MAP)) return null;
+
+  return { mime, base64 };
 }
 
 function sanitizeFileName(fileName: string) {
@@ -95,7 +103,8 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
 
     const tempDir = `${cacheDir}album-save/`;
     const targetFileName = resolveFileName(url, fileName, dataUrl);
-    const localUri = `${tempDir}${targetFileName}`;
+    // 동시 저장 요청이 같은 파일명(예: QR의 고정 fileName)을 써도 경로가 겹치지 않도록 요청별 접두사 부여
+    const localUri = `${tempDir}${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${targetFileName}`;
 
     try {
       await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
