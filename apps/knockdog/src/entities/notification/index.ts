@@ -7,6 +7,10 @@ export {
 } from './api/useNotificationsInfiniteQuery';
 export type { NotificationsCache } from './api/useNotificationsInfiniteQuery';
 export { useNotificationReadMutation } from './api/useNotificationReadMutation';
+export {
+  notificationsUnreadQueryKey,
+  useHasUnreadNotificationQuery,
+} from './api/useHasUnreadNotificationQuery';
 export { toNotificationListPage } from './model/notification';
 export type {
   Notification,

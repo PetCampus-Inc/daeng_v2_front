@@ -126,7 +126,7 @@ export function GuardianKindergartenPage() {
         isDismissed={Boolean(showDayState && isDismissed)}
         checkInAt={checkInAt}
         checkOutAt={checkOutAt}
-        hasUnreadAlarm={Boolean(showDayState && hasUnreadAlarm)}
+        hasUnreadAlarm={hasUnreadAlarm}
         hasNoPet={hasNoPet}
       />
 
