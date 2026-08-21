@@ -3,19 +3,20 @@
 import { Divider, Icon } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import { useOpenExternalLink } from '@shared/lib/bridge';
+import { EXTERNAL_LINKS } from '@shared/constants';
 
 const TERMS_URLS = [
   {
-    title: '개인(위치)정보 처리방침',
-    url: 'https://www.notion.so/2086c15f67fb80fda893c0d69410d2ec?source=copy_link',
+    title: '개인정보 처리방침',
+    url: EXTERNAL_LINKS.PRIVACY_POLICY,
   },
   {
     title: '서비스 이용약관',
-    url: 'https://www.notion.so/2086c15f67fb80bf8702c6a7e1974737?source=copy_link',
+    url: EXTERNAL_LINKS.TERMS_OF_SERVICE,
   },
   {
-    title: '위치기반서비스 이용약관',
-    url: 'https://www.notion.so/2086c15f67fb80c68b65f4197df8cb59?source=copy_link',
+    title: '위치 기반 서비스 이용약관',
+    url: EXTERNAL_LINKS.LOCATION_BASED_SERVICE_TERMS,
   },
 ];
 

@@ -5,16 +5,17 @@ import { EXTERNAL_LINKS } from '@shared/constants';
 
 interface QuickActionsSectionProps {
   className?: string;
+  contactUrl?: string;
   onContactClick?: () => void;
   onSuggestionClick?: () => void;
   onChatRoomClick?: () => void;
 }
 
-function QuickActionsSection({ className, onChatRoomClick }: QuickActionsSectionProps) {
+function QuickActionsSection({ className, contactUrl = EXTERNAL_LINKS.CONTACT, onChatRoomClick }: QuickActionsSectionProps) {
   const openExternalLink = useOpenExternalLink();
 
   const handleContactClick = () => {
-    openExternalLink(EXTERNAL_LINKS.CONTACT);
+    openExternalLink(contactUrl);
   };
 
   const handleSuggestionClick = () => {
