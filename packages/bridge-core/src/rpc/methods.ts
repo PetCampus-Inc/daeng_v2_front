@@ -11,6 +11,7 @@ const METHODS = {
   getLastKnownLocation: 'device.getLastKnownLocation',
   requestCameraPermission: 'device.requestCameraPermission',
   requestPhotosPermission: 'device.requestPhotosPermission',
+  getNotificationPermission: 'device.getNotificationPermission',
   requestNotificationPermission: 'device.requestNotificationPermission',
 
   // system

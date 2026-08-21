@@ -39,6 +39,10 @@ interface LocationRPCSchema {
     params: {};
     result: { status: PermissionStatus; canAskAgain: boolean };
   };
+  [METHODS.getNotificationPermission]: {
+    params: {};
+    result: { status: PermissionStatus; canAskAgain: boolean };
+  };
   [METHODS.requestNotificationPermission]: {
     params: {};
     result: { status: PermissionStatus; canAskAgain: boolean };

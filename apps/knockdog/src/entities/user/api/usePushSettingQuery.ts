@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { getPushSetting } from './pushSetting';
 
+const PUSH_SETTING_QUERY_KEY = ['pushSetting'] as const;
+
 const usePushSettingQuery = () => {
   return useQuery({
-    queryKey: ['pushSetting'],
+    queryKey: PUSH_SETTING_QUERY_KEY,
     queryFn: getPushSetting,
+    select: (response) => response.data,
   });
 };
 
-export { usePushSettingQuery };
+export { PUSH_SETTING_QUERY_KEY, usePushSettingQuery };

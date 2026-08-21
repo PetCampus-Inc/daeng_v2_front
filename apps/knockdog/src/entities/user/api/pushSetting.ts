@@ -1,18 +1,15 @@
-import { api } from '@shared/api';
+import { api, type ApiResponse } from '@shared/api';
 
 interface PushSetting {
-  app_push: boolean;
-  mkt_consent: boolean;
-  mkt_push: boolean;
-  mkt_email: boolean;
+  pushEnabled: boolean;
 }
 
 const getPushSetting = async () => {
-  return await api.get(`mypage/getPushSetting`).json<PushSetting>();
+  return await api.get('notification-settings').json<ApiResponse<PushSetting>>();
 };
 
-const postPushSetting = async (request: PushSetting) => {
-  return await api.post(`mypage/updatePushSetting`, { json: request }).json<PushSetting>();
+const putPushSetting = async (request: PushSetting) => {
+  return await api.put('notification-settings', { json: request });
 };
 
-export { type PushSetting, getPushSetting, postPushSetting };
+export { type PushSetting, getPushSetting, putPushSetting };
