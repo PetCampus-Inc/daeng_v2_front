@@ -130,7 +130,7 @@ function BreedSelectList({ className, query, breeds = [], value, isLoading, onSe
       </div>
 
       {hasNoResults ? (
-        <div className='flex flex-col items-center gap-4 py-5'>
+        <div className='flex h-[calc(100dvh-250px)] flex-col items-center justify-center gap-4'>
           <div className='flex flex-col items-center gap-1'>
             <p className='h2-extrabold text-text-primary text-center'>일치하는 견종이 없어요</p>
             <p className='body1-regular text-text-secondary text-center'>검색어를 확인하거나 ‘기타’로 등록해 주세요.</p>
@@ -140,7 +140,7 @@ function BreedSelectList({ className, query, breeds = [], value, isLoading, onSe
           </ActionButton>
         </div>
       ) : (
-        <ul className='scrollbar-hide flex h-[calc(100vh-250px)] flex-col overflow-y-auto'>
+        <ul className='scrollbar-hide flex h-[calc(100dvh-250px)] flex-col overflow-y-auto'>
           {breeds.map((breed, index) => (
             <button
               key={breed.breedId}

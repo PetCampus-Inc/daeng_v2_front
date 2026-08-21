@@ -43,14 +43,14 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal h-screen max-h-screen rounded-none' aria-label={'지도에서 선택하기'}>
+      <BottomSheet.Body className='z-modal h-dvh max-h-dvh rounded-none' aria-label={'지도에서 선택하기'}>
         <SafeArea edges={['bottom', 'top']}>
           <BottomSheet.Header className='justify-center'>
             <BottomSheet.CloseButton />
             <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>
           </BottomSheet.Header>
 
-          <div className='h-[calc(100vh-304px)]'>
+          <div className='h-[calc(100dvh-304px)]'>
             <Map
               ref={map}
               center={defaultLocation}

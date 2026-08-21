@@ -24,7 +24,7 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <SafeArea className='flex h-screen flex-col items-center justify-between'>
+    <SafeArea className='flex h-dvh flex-col items-center justify-between'>
       <div className='flex w-fit flex-col items-center'>
         <p className='body1-medium'>우리 강아지에게 딱 맞는 유치원을 찾을 땐,</p>
 

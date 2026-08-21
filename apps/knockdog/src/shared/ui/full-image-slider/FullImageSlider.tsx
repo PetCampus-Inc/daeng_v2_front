@@ -19,7 +19,7 @@ export function FullImageSlider({ initialIndex = 0, images, onIndexChange }: Ful
   };
 
   return (
-    <div className='h-screen w-full'>
+    <div className='h-dvh w-full'>
       <div className='flex h-full flex-col'>
         {/* 이미지 영역 */}
         <div className='relative min-h-0 flex-1'>

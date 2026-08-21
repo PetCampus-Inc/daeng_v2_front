@@ -1,13 +1,15 @@
 import { useSearchParams } from 'next/navigation';
 
 import { useMutation } from '@tanstack/react-query';
+import { METHODS } from '@knockdog/bridge-core';
 
 import { clearSession } from '@entities/owner-verification';
 import { OWNER_ROLE_QUERY_KEY } from '@entities/user';
 import { getQueryClient } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { EXTERNAL_LINKS } from '@shared/constants';
-import { useOpenExternalLink, useStackNavigation } from '@shared/lib/bridge';
+import { useBridge, useOpenExternalLink, useStackNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 
 import { RESULT_STATUS } from '@views/role-conversion/complete/config/roleConversionResultStatus';
 import { getResultContent } from '@views/role-conversion/complete/config/roleConversionResultContent';
@@ -18,6 +20,7 @@ import { submitOwnerVerification } from '@views/role-conversion/lib/submitOwnerV
 function useResultPage() {
   const searchParams = useSearchParams();
   const { push, replace, reset } = useStackNavigation();
+  const bridge = useBridge();
   const openExternalLink = useOpenExternalLink();
 
   const status = resolveResultStatus(searchParams.get('status'));
@@ -42,9 +45,19 @@ function useResultPage() {
   const handlePrimaryClick = () => {
     switch (status) {
       case RESULT_STATUS.SUCCESS: {
-        // 원장 권한 쿼리 갱신 후 이동 — SyncNativeMainTabModeEffect가 owner 상태를 관측하도록
+        // 완료 화면은 Stack WebView라 공통 탭 동기화가 실행되지 않는다.
+        // reset 전에 네이티브 모드를 owner로 맞춰야 /owner/members의 부모 탭도 원장 탭으로 구성된다.
         void getQueryClient()
           .refetchQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] })
+          .then(async () => {
+            if (!isNativeWebView()) return;
+            await bridge.request(METHODS.navSetMainTabMode, { mode: 'owner' });
+          })
+          .catch((error) => {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[RoleConversion] failed to switch native tab mode', error);
+            }
+          })
           .finally(() => {
             reset(route.owner.members.root);
           });

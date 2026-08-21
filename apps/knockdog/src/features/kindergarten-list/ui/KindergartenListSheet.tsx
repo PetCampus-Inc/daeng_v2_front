@@ -54,7 +54,7 @@ export function KindergartenListSheet({ fabSlot, children }: KindergartenListShe
         <RemoveScroll forwardProps noIsolation>
           <BottomSheet.Body
             className={cn(
-              'pointer-events-auto absolute inset-x-0 h-full max-h-[calc(100vh-64px)] shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
+              'pointer-events-auto absolute inset-x-0 h-full max-h-[calc(100dvh-64px)] shadow-[0px_-2px_10px] shadow-black/6 focus-visible:outline-none',
               isMarkerActive && 'hidden',
               isFullExtended && 'rounded-none shadow-none'
             )}

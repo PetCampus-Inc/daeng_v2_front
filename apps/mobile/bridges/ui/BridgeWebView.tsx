@@ -74,6 +74,8 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
       style.setProperty('--safe-area-inset-bottom', '${bottom}px');
       style.setProperty('--safe-area-inset-left', '${left}px');
       style.setProperty('--safe-area-inset-right', '${right}px');
+      // 네이티브 탭 바는 WebView 바깥에서 렌더링된다. 웹 전용 탭 여백을 제거한다.
+      style.setProperty('--bottom-bar-height', '0px');
     })();
     true;
   `;

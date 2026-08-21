@@ -107,7 +107,7 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
               activeSnapPoint === 1 ? 'h-full' : 'h-fit'
             )}
             style={{
-              ['--initial-transform' as never]: `calc(100vh - ${MAX_SNAP_POINT_OFFSET}px)`,
+              ['--initial-transform' as never]: `calc(100dvh - ${MAX_SNAP_POINT_OFFSET}px)`,
             }}
             onPointerDownOutside={(e) => {
               e.preventDefault();
@@ -119,7 +119,7 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
             <BottomSheet.Title className='sr-only'>{displayData?.title}</BottomSheet.Title>
 
             {/* Visual Apron: 바텀시트 하단 gap을 가려주는 역할 */}
-            <div aria-hidden='true' className='absolute top-[99%] left-0 h-screen w-full bg-white' />
+            <div aria-hidden='true' className='absolute top-[99%] left-0 h-dvh w-full bg-white' />
 
             <KindergartenItemSheetContent
               displayData={displayData}

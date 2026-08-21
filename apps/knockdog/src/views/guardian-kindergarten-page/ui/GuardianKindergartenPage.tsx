@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
@@ -157,10 +156,7 @@ export function GuardianKindergartenPage() {
       </div>
 
       {shouldShowOwnerVerification && (
-        <div
-          className='fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'
-          style={{ bottom: `calc(${BOTTOM_BAR_HEIGHT + 20}px + var(--safe-area-inset-bottom, 0px))` }}
-        >
+        <div className='web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'>
           <OwnerVerificationEntry requiresLogin={false} variant='banner' />
         </div>
       )}

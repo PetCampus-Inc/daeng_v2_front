@@ -71,7 +71,7 @@ function CompareCompletePage() {
 
   return (
     <SafeArea edges={['bottom']}>
-      <div className='flex h-screen flex-col bg-white pb-16'>
+      <div className='flex h-dvh flex-col bg-white pb-16'>
         <Header>
           <Header.LeftSection>
             {isNative && <Header.BackButton />}
