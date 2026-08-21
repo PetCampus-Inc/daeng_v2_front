@@ -43,6 +43,10 @@ function MypageProfileLocationPage() {
       )
     : {};
 
+  const addressIds: Partial<Record<UserAddressType, string>> = Object.fromEntries(
+    Object.entries(existingAddressMap).map(([type, address]) => [type, String(address.id)])
+  );
+
   const { control, handleSubmit: submit } = useForm<LocationFormState>({
     defaultValues,
     values: defaultValues as LocationFormState,
@@ -101,7 +105,7 @@ function MypageProfileLocationPage() {
         id='location-form'
         className='px-4'
         control={control}
-        defaultValues={defaultValues}
+        addressIds={addressIds}
         onAdd={handleAdd}
         onUpdate={handleUpdate}
         onDelete={handleDelete}

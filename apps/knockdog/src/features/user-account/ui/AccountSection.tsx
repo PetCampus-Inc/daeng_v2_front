@@ -141,7 +141,7 @@ function AccountSection({
   if (!accountInfo) return null;
 
   const guardianSocialProvider = socialProvider ?? socialUser?.provider;
-  const guardianSocialEmail = socialEmail || socialUser?.email || '';
+  const guardianSocialEmail = socialEmail ?? socialUser?.email ?? '';
 
   return (
     <div className='px-4 py-5'>

@@ -31,7 +31,7 @@ const BreedSelector = ({ ref, className, value, required, errorMessage, onChange
   };
 
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={setIsOpen}>
+    <BottomSheet.Root open={isOpen} onOpenChange={setIsOpen} repositionInputs={false}>
       <BottomSheet.Overlay className='z-overlay' />
 
       <BottomSheet.Trigger asChild>
@@ -68,7 +68,7 @@ const BreedSelector = ({ ref, className, value, required, errorMessage, onChange
         </TextField>
       </BottomSheet.Trigger>
 
-      <BottomSheet.Body className='z-modal'>
+      <BottomSheet.Body className='z-modal' style={{ maxHeight: 'calc(100dvh - 96px)' }}>
         <BottomSheet.Handle />
 
         {/* 시트 헤더 */}

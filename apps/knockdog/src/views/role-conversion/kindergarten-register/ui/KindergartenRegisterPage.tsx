@@ -111,6 +111,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                     <TextFieldInput
                       placeholder={kindergartenRegisterContent.addressDetailPlaceholder}
                       value={form.addressDetail ?? ''}
+                      disabled={!form.address.trim()}
                       onChange={(e) => handleFieldChange('addressDetail', e.target.value)}
                     />
                   </TextField>

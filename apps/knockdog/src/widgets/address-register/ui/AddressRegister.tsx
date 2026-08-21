@@ -9,7 +9,7 @@ type LocationFormState = Record<UserAddressType, Omit<UserAddress, 'id'>>;
 
 interface AddressRegisterProps extends Omit<React.ComponentProps<'form'>, 'children'> {
   control: Control<LocationFormState>;
-  defaultValues?: Partial<LocationFormState>;
+  addressIds?: Partial<Record<UserAddressType, string>>;
   onAdd?: (type: UserAddressType, address: Omit<UserAddress, 'id'>) => void;
   onUpdate?: (type: UserAddressType, address: Omit<UserAddress, 'id'>) => void;
   onDelete?: (type: UserAddressType) => void;
@@ -18,7 +18,7 @@ interface AddressRegisterProps extends Omit<React.ComponentProps<'form'>, 'child
 function AddressRegister({
   className,
   control,
-  defaultValues,
+  addressIds,
   onAdd,
   onUpdate,
   onDelete,
@@ -38,7 +38,8 @@ function AddressRegister({
                 <LocationField
                   key={type}
                   type={type}
-                  value={field.value ?? defaultValues?.[type]}
+                  value={field.value}
+                  addressId={addressIds?.[type]}
                   required={isRequired}
                   optional={!isRequired}
                   onChange={field.onChange}

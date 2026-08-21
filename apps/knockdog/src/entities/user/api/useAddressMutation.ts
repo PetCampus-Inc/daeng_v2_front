@@ -2,7 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postAddUserAddress, postUpdateUserAddress, postDeleteUserAddress, type AddressRequest } from './address';
 import { UserAddress } from '../model/user';
 import { useUserStore } from '../model/store/useUserStore';
+import { USER_ADDRESS_TYPE } from '../model/constant/user';
 import { getUserInfo, toUser } from './user';
+
+const toApiAddressType = (type: UserAddress['type']) => (type === USER_ADDRESS_TYPE.WORK ? 'OTHER' : type);
 
 const useAddUserAddressMutation = () => {
   const queryClient = useQueryClient();
@@ -13,10 +16,11 @@ const useAddUserAddressMutation = () => {
     mutationFn: (params: UserAddress) => {
       const addressRequest: AddressRequest = {
         operation: 'ADD',
-        type: params.type,
+        type: toApiAddressType(params.type),
         alias: params.alias,
         roadAddress: params.roadAddress,
         address: params.address,
+        addressDetail: params.detail,
         lat: params.lat,
         lng: params.lng,
       };
@@ -49,10 +53,11 @@ const useUpdateUserAddressMutation = () => {
       const addressRequest: AddressRequest = {
         id: typeof params.id === 'string' ? Number(params.id) : params.id,
         operation: 'UPDATE',
-        type: params.type,
+        type: toApiAddressType(params.type),
         alias: params.alias,
         roadAddress: params.roadAddress,
         address: params.address,
+        addressDetail: params.detail,
         lat: params.lat,
         lng: params.lng,
       };
@@ -80,8 +85,25 @@ const useDeleteUserAddressMutation = () => {
 
   return useMutation({
     mutationFn: postDeleteUserAddress,
+    onMutate: (deletedAddressId) => {
+      const currentUser = useUserStore.getState().user;
+      if (!currentUser || currentUser.userId !== userId) return undefined;
+
+      setUser({
+        ...currentUser,
+        addresses: currentUser.addresses.filter((address) => String(address.id) !== deletedAddressId),
+      });
+
+      return { previousUser: currentUser };
+    },
+    onError: (_error, _deletedAddressId, context) => {
+      if (context?.previousUser && useUserStore.getState().user?.userId === context.previousUser.userId) {
+        setUser(context.previousUser);
+      }
+    },
     onSuccess: async () => {
-      if (useUserStore.getState().user?.userId !== userId) return;
+      const currentUser = useUserStore.getState().user;
+      if (!currentUser || currentUser.userId !== userId) return;
 
       await queryClient.invalidateQueries({ queryKey: ['userInfo'] });
 
@@ -114,10 +136,11 @@ const useUpdateUserAddressesMutation = () => {
       const promises = [
         ...toAdd.map((address) =>
           postAddUserAddress({
-            type: address.type,
+            type: toApiAddressType(address.type),
             alias: address.alias,
             roadAddress: address.roadAddress,
             address: address.address,
+            addressDetail: address.detail,
             lat: address.lat,
             lng: address.lng,
           })
@@ -125,10 +148,11 @@ const useUpdateUserAddressesMutation = () => {
         ...toUpdate.map((address) =>
           postUpdateUserAddress({
             id: typeof address.id === 'string' ? Number(address.id) : address.id,
-            type: address.type,
+            type: toApiAddressType(address.type),
             alias: address.alias,
             roadAddress: address.roadAddress,
             address: address.address,
+            addressDetail: address.detail,
             lat: address.lat,
             lng: address.lng,
           })

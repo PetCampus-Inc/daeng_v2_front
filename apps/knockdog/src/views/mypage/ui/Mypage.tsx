@@ -25,7 +25,7 @@ import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
 import { usePetListQuery } from '@entities/pet';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
-import { useUserStore } from '@entities/user';
+import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import {
@@ -44,6 +44,8 @@ function Mypage() {
   const user = useUserStore((state) => state.user);
   const openExternalLink = useOpenExternalLink();
   const isLoggedIn = !!user;
+  const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
+  const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId: user?.userId,
     enabled: isLoggedIn,
@@ -254,8 +256,8 @@ function Mypage() {
               accountSectionTitle={ownerMypageContent.accountSectionTitle}
               ttokIdLabel={ownerMypageContent.ttokIdLabel}
               ttokIdDescription={ownerMypageContent.ttokIdDescription}
-              socialProvider={isOwnerView ? loginProvider : undefined}
-              socialEmail={isOwnerView ? loginEmail : undefined}
+              socialProvider={isOwnerView ? loginProvider : userInfo?.loginProvider}
+              socialEmail={isOwnerView ? loginEmail : userInfo?.infoRcvEmail}
               releasePermissionLabel={
                 isOwnerView && canReleaseOperationPermission
                   ? ownerMypageContent.releasePermissionLabel

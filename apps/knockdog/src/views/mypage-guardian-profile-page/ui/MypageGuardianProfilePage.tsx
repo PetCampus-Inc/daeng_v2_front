@@ -107,9 +107,11 @@ function MypageGuardianProfilePage() {
   const initializedProfileRef = useRef<{ userId: string; source: 'store' | 'remote' } | null>(null);
   const { navigateToTab } = useTabNavigation();
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
-  const profileUser = userInfo ?? user;
+  const profileUser = userInfo;
   const homeAddress = profileUser?.addresses.find((item) => item.type === USER_ADDRESS_TYPE.HOME);
   const homeAddressValue = homeAddress?.roadAddress || homeAddress?.address || '';
+  const homeAddressDetail =
+    homeAddress?.detail?.trim() || homeAddress?.addressDetail?.trim() || userInfo?.guardianAddressDetail?.trim() || '';
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(formValues.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
@@ -147,7 +149,11 @@ function MypageGuardianProfilePage() {
 
     if (!isNewUser && (!isRemoteProfileReady || isDirty)) return;
 
-    const nextFormValues = toGuardianProfileFormValues({ ...profileUser, homeAddress: homeAddressValue });
+    const nextFormValues = toGuardianProfileFormValues({
+      ...profileUser,
+      homeAddress: homeAddressValue,
+      guardianAddressDetail: homeAddressDetail,
+    });
     setFormValues(nextFormValues);
     setInitialFormValues(nextFormValues);
     setSelectedAddress({
@@ -155,7 +161,7 @@ function MypageGuardianProfilePage() {
       roadAddress: homeAddress?.roadAddress || homeAddressValue,
     });
     initializedProfileRef.current = { userId: profileUser.userId, source: profileSource };
-  }, [homeAddress, homeAddressValue, isDirty, profileUser, userInfo]);
+  }, [homeAddress, homeAddressDetail, homeAddressValue, isDirty, profileUser, userInfo]);
 
   const navigateToMypage = () => navigateToTab('/mypage');
 
