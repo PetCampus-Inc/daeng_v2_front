@@ -1,3 +1,12 @@
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.NEXT_PUBLIC_ENABLE_GUEST_LOGIN === 'true'
+) {
+  throw new Error(
+    'NEXT_PUBLIC_ENABLE_GUEST_LOGIN must be unset/false for production builds. Use apps/knockdog/.env.development for local only.'
+  );
+}
+
 const nextConfig = {
   transpilePackages: ["@knockdog/bridge-core", "@knockdog/bridge-web"],
   async headers() {
