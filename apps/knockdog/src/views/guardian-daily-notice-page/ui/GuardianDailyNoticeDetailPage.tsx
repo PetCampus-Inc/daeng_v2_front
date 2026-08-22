@@ -265,7 +265,7 @@ function GuardianDailyNoticeDetailPage() {
             onVisibleCheckInStateChange={handleVisibleCheckInStateChange}
           />
 
-          <div className='flex min-h-0 flex-1 flex-col gap-5 px-4 pb-16'>
+          <div className='flex min-h-0 flex-1 flex-col gap-5 px-4 pb-[calc(5rem+var(--safe-area-inset-bottom,0px))]'>
             {showEmptyWeekNoCheckIn ? (
               <div className='bg-bg-50 radius-r5 flex min-h-[282px] flex-1 items-center justify-center'>
                 <div className='flex w-full flex-col items-center gap-1'>
