@@ -28,7 +28,7 @@ export function BannerImageSlider(props: BannerImageSliderProps) {
       <div ref={emblaRef}>
         <div className='flex'>
           {slides?.map((item) => (
-            <div className='relative aspect-[16/9] flex-[0_0_100%]' key={item}>
+            <div className='bg-bg-0 relative aspect-[16/9] flex-[0_0_100%]' key={item}>
               <img
                 src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${item}`}
                 alt={name}

@@ -46,12 +46,12 @@ function PriceImageSlider({ images, thumbnailSize = 120 }: PriceImageSliderProps
             key={`${image}-${index}`}
             type='button'
             onClick={() => handleImageClick(index)}
-            className='shrink-0'
+            className={`${sizeClass} radius-r2 bg-bg-0 shrink-0 overflow-hidden`}
           >
             <Image
               src={image}
               alt=''
-              className={`${sizeClass} radius-r2 object-cover`}
+              className={`${sizeClass} object-cover`}
               width={thumbnailSize}
               height={thumbnailSize}
             />
