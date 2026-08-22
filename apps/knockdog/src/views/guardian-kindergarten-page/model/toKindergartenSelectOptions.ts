@@ -23,6 +23,7 @@ function toKindergartenSelectOptions(
       membershipId: null,
       name: linkedKindergarten.name,
       imageUrl: linkedKindergarten.imageUrl,
+      attendedFrom: null,
       attendedUntil,
     },
   ];
@@ -39,6 +40,7 @@ function toKindergartenSelectOptionsFromConnections(
     membershipId: connection.id,
     name: connection.name,
     imageUrl: connection.imageUrl,
+    attendedFrom: connection.connectedAt ? formatDateKey(connection.connectedAt) : null,
     attendedUntil: connection.disconnectedAt ? formatDateKey(connection.disconnectedAt) : null,
   }));
 }
