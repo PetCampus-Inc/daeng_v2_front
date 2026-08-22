@@ -633,14 +633,19 @@ function OwnerDailyNoticeWritePage() {
   }, [attendanceRecord, isExpired, noticeId, noticeWriteDate.dateKey, openExpiredDialog]);
 
   return (
+    /**
+     * `(stack)/layout` SafeArea가 이미 top inset을 줌
+     * 여기 또 pt 하면 상태바 아래 빈 띠 여백이 생겨서, 레이아웃 inset은 -mt로 상쇄하고
+     * 주황 헤더가 edge-to-edge로 상태바 뒤까지 칠해지게 한 뒤 콘텐츠만 pt로 내림
+     */
     <div
-      className='flex h-dvh flex-col'
+      className='-mt-[var(--safe-area-inset-top,0px)] flex h-dvh flex-col pt-(--safe-area-inset-top,0px)'
       style={{
         background:
           'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
       }}
     >
-      <div className='relative overflow-hidden pt-(--safe-area-inset-top,0px)'>
+      <div className='relative overflow-hidden'>
         <Icon
           icon='Paw'
           aria-hidden='true'

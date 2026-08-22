@@ -35,10 +35,11 @@ const FRAME_SLOTS = [
 
 function GuardianAlbumPhotoStack({ photos }: GuardianAlbumPhotoStackProps) {
   const content = guardianKindergartenAttendingContent;
+  // 1장: 좌측 큰 프레임, 2장: 우측 아래, 3장: 우측 위
   const slots = [
     photos[0] ?? null,
-    photos[1] ?? null,
     photos[2] ?? null,
+    photos[1] ?? null,
   ] as const;
 
   return (

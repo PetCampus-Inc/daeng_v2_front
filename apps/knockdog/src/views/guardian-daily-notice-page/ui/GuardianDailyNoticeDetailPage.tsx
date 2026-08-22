@@ -1,9 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 
+import {
+  useGuardianSchoolConnectionsQuery,
+  type GuardianSchoolConnection,
+} from '@entities/guardian-home';
+import { useUserStore } from '@entities/user';
 import { guardianDailyNoticeContent } from '@views/guardian-daily-notice-page/config/guardianDailyNoticeContent';
 import {
   formatNoticeClockTime,
@@ -25,7 +30,7 @@ import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-p
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
+import { formatDateKey, isAfterDay, isBeforeDay, startOfDay } from '@shared/lib/calendar-date';
 import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
@@ -40,24 +45,96 @@ function parsePetIdQuery(value: string | null) {
   return value && /^\d+$/.test(value) ? value : null;
 }
 
+/** notice 일자가 membership 기간(connectedAt~disconnectedAt) 안인지 */
+function isNoticeDateInMembership(connection: GuardianSchoolConnection, noticeDate: Date) {
+  if (!connection.connectedAt) return false;
+  const connectedAt = startOfDay(connection.connectedAt);
+  if (isBeforeDay(noticeDate, connectedAt)) return false;
+  if (connection.disconnectedAt) {
+    const disconnectedAt = startOfDay(connection.disconnectedAt);
+    if (isAfterDay(noticeDate, disconnectedAt)) return false;
+  }
+  return true;
+}
+
+/**
+ * linked school + notice 일자에 해당하는 membership (해제 이력 포함).
+ * 일자에 맞는 건이 없으면 해당 학교 활성 → 전역 활성 순으로 폴백.
+ */
+function resolveActiveConnection(
+  connections: GuardianSchoolConnection[] | undefined,
+  linkedSchoolId: string | null | undefined,
+  noticeDate: Date
+) {
+  const list = connections ?? [];
+  const schoolList = linkedSchoolId
+    ? list.filter((connection) => connection.schoolId === linkedSchoolId)
+    : list;
+
+  const covering =
+    schoolList.find((connection) => isNoticeDateInMembership(connection, noticeDate)) ?? null;
+  if (covering) return covering;
+
+  if (linkedSchoolId) {
+    const activeForSchool = schoolList.find((connection) => connection.disconnectedAt == null);
+    if (activeForSchool) return activeForSchool;
+  }
+
+  return list.find((connection) => connection.disconnectedAt == null) ?? null;
+}
+
 function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
   const { push, reset } = useStackNavigation();
   const petIdFromQuery = parsePetIdQuery(searchParams.get('petId'));
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
+  const userId = useUserStore((state) => state.user?.userId);
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome({
     petId: petIdFromQuery,
   });
-  const { isPetsReady } = useGuardianSelectedPet();
+  const { selectedPetId: storePetId, isPetsReady } = useGuardianSelectedPet();
+  const selectedPetId = petIdFromQuery || storePetId;
+
+  const { data: connections, isPending: isConnectionsPending } = useGuardianSchoolConnectionsQuery({
+    userId,
+    petId: selectedPetId,
+    enabled: Boolean(userId) && Boolean(selectedPetId),
+  });
 
   useEffect(() => {
     if (petIdFromQuery) setSelectedPetId(petIdFromQuery);
   }, [petIdFromQuery, setSelectedPetId]);
 
-  const [selectedDate, setSelectedDate] = useState(() => {
+  /** membership 매칭에 사용 */
+  const [selectedDateState, setSelectedDate] = useState(() => {
     return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
   });
+
+  const activeConnection = useMemo(
+    () => resolveActiveConnection(connections, linkedKindergarten?.id, selectedDateState),
+    [connections, linkedKindergarten?.id, selectedDateState]
+  );
+
+  /** membership connectedAt~disconnectedAt — 주간 캘린더 선택/점 범위 */
+  const membershipMinDate = useMemo(
+    () => (activeConnection?.connectedAt ? startOfDay(activeConnection.connectedAt) : null),
+    [activeConnection]
+  );
+  const membershipMaxDate = useMemo(
+    () =>
+      activeConnection?.disconnectedAt ? startOfDay(activeConnection.disconnectedAt) : null,
+    [activeConnection]
+  );
+  const calendarMinDate = membershipMinDate;
+  const calendarFirstAttendedAt = membershipMinDate ?? firstAttendedAt ?? undefined;
+
+  const selectedDate = useMemo(() => {
+    let next = selectedDateState;
+    if (membershipMinDate && isBeforeDay(next, membershipMinDate)) next = membershipMinDate;
+    if (membershipMaxDate && isAfterDay(next, membershipMaxDate)) next = membershipMaxDate;
+    return next;
+  }, [membershipMaxDate, membershipMinDate, selectedDateState]);
   const [visibleCheckInState, setVisibleCheckInState] = useState<VisibleCheckInState>({
     isReady: false,
     hasCheckIn: true,
@@ -65,9 +142,24 @@ function GuardianDailyNoticeDetailPage() {
     isSelectedDateEnabled: true,
   });
 
+  const handleVisibleCheckInStateChange = useCallback((state: VisibleCheckInState) => {
+    setVisibleCheckInState((prev) => {
+      if (
+        prev.isReady === state.isReady &&
+        prev.hasCheckIn === state.hasCheckIn &&
+        prev.isWeeklyView === state.isWeeklyView &&
+        prev.isSelectedDateEnabled === state.isSelectedDateEnabled
+      ) {
+        return prev;
+      }
+      return state;
+    });
+  }, []);
+
   const selectedDateKey = formatDateKey(selectedDate);
   const showEmptyWeekNoCheckIn =
     isPetsReady &&
+    !isConnectionsPending &&
     visibleCheckInState.isReady &&
     visibleCheckInState.isWeeklyView &&
     !visibleCheckInState.hasCheckIn;
@@ -115,6 +207,7 @@ function GuardianDailyNoticeDetailPage() {
    */
   const isContentLoading =
     !isPetsReady ||
+    isConnectionsPending ||
     !visibleCheckInState.isReady ||
     !visibleCheckInState.isSelectedDateEnabled ||
     isPending;
@@ -165,12 +258,14 @@ function GuardianDailyNoticeDetailPage() {
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             petId={petIdFromQuery}
-            firstAttendedAt={firstAttendedAt ?? undefined}
+            minDate={calendarMinDate ?? undefined}
+            maxDate={membershipMaxDate ?? undefined}
+            firstAttendedAt={calendarFirstAttendedAt}
             onlyCheckInDatesSelectable
-            onVisibleCheckInStateChange={setVisibleCheckInState}
+            onVisibleCheckInStateChange={handleVisibleCheckInStateChange}
           />
 
-          <div className='flex min-h-0 flex-1 flex-col gap-5 px-4 pb-16'>
+          <div className='flex min-h-0 flex-1 flex-col gap-5 px-4 pb-[calc(5rem+var(--safe-area-inset-bottom,0px))]'>
             {showEmptyWeekNoCheckIn ? (
               <div className='bg-bg-50 radius-r5 flex min-h-[282px] flex-1 items-center justify-center'>
                 <div className='flex w-full flex-col items-center gap-1'>
