@@ -23,7 +23,6 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
-import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 import { PageError } from '@shared/ui/page-error';
 import { tokenUtils } from '@shared/utils';
@@ -207,7 +206,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
   }
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -250,7 +249,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
           다음
         </ActionButton>
       </div>
-    </SafeArea>
+    </div>
   );
 }
 

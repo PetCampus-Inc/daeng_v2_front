@@ -211,8 +211,8 @@ function ReportingKindergartenUpdate() {
   };
 
   return (
-    <>
-      <div className='sticky top-0 z-10'>
+    <div className='flex h-full flex-col'>
+      <div className='shrink-0'>
         <Header>
           <Header.LeftSection>
             <Header.BackButton />
@@ -221,34 +221,32 @@ function ReportingKindergartenUpdate() {
         </Header>
       </div>
 
-      <div>
-        <div className='h-[calc(100dvh-77px)]'>
-          <div className='label-medium text-text-secondary bg-neutral-50 px-4 pt-[10px] pb-3'>
-            최대 <span className='text-text-accent'>{MAX_UPLOAD_COUNT}</span>장까지 등록 가능
-          </div>
+      <div className='flex min-h-0 flex-1 flex-col'>
+        <div className='label-medium text-text-secondary bg-neutral-50 px-4 pt-[10px] pb-3'>
+          최대 <span className='text-text-accent'>{MAX_UPLOAD_COUNT}</span>장까지 등록 가능
+        </div>
 
-          <div className='h-[calc(100dvh-167px)] overflow-y-auto pb-24'>
-            {checkOptions.map((opt) => (
-              <ReportOptionCard
-                key={opt.key}
-                checked={isChecked(opt.key)}
-                title={opt.title}
-                description={opt.description}
-                onCheckedChange={(v) => toggleCheck(opt.key, v)}
-              >
-                {renderOptionContent(opt.key)}
-              </ReportOptionCard>
-            ))}
-          </div>
+        <div className='min-h-0 flex-1 overflow-y-auto'>
+          {checkOptions.map((opt) => (
+            <ReportOptionCard
+              key={opt.key}
+              checked={isChecked(opt.key)}
+              title={opt.title}
+              description={opt.description}
+              onCheckedChange={(v) => toggleCheck(opt.key, v)}
+            >
+              {renderOptionContent(opt.key)}
+            </ReportOptionCard>
+          ))}
         </div>
       </div>
 
-      <div className='fixed right-0 bottom-0 left-0 z-10 flex w-full items-center gap-1 bg-white p-4'>
+      <div className='flex w-full shrink-0 items-center gap-1 bg-white p-4'>
         <ActionButton disabled={!isFormValid || isPending} onClick={handleSubmit}>
           정보 수정 제보하기
         </ActionButton>
       </div>
-    </>
+    </div>
   );
 }
 

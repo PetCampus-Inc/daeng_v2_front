@@ -34,7 +34,6 @@ import {
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
 import { useTabNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 import { showGuardianProfileSaveFailureToast, showGuardianProfileSaveSuccessToast } from '../model/guardianProfileToast';
 
 const EMPTY_FORM_VALUES: GuardianProfileFormValues = {
@@ -208,7 +207,7 @@ function MypageGuardianProfilePage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -245,7 +244,7 @@ function MypageGuardianProfilePage() {
           저장하기
         </ActionButton>
       </div>
-    </SafeArea>
+    </div>
   );
 }
 

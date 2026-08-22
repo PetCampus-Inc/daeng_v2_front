@@ -24,7 +24,6 @@ import {
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 
@@ -95,7 +94,7 @@ export function MypagePetDetailPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
+    <div className='flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -119,6 +118,6 @@ export function MypagePetDetailPage() {
           </ActionButton>
         </div>
       </PetDetailInfo>
-    </SafeArea>
+    </div>
   );
 }

@@ -18,7 +18,6 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { useParams } from 'next/navigation';
 import { useChecklistMutate, useChecklistAnswersQuery } from '@features/checklist';
 import type { AnswerGroup } from '@entities/checklist';
-import { SafeArea } from '@shared/ui/safe-area';
 
 function EditChecklistPage() {
   const params = useParams<{ id: string }>();
@@ -91,8 +90,8 @@ function EditChecklistPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']}>
-      <Header>
+    <div className='flex h-full flex-col'>
+      <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
@@ -110,10 +109,10 @@ function EditChecklistPage() {
           )}
         </Header.RightSection>
       </Header>
-      <div className='scrollbar-hide h-[calc(100dvh-150px)] overflow-y-auto'>
+      <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
         <ChecklistEditor isEditing={isEditing} answers={draftAnswers} onAnswersChange={setDraftAnswers} />
       </div>
-    </SafeArea>
+    </div>
   );
 }
 

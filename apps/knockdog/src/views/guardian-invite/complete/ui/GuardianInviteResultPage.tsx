@@ -4,8 +4,6 @@ import Image from 'next/image';
 
 import { ActionButton } from '@knockdog/ui';
 
-import { SafeArea } from '@shared/ui/safe-area';
-
 import { GUARDIAN_INVITE_RESULT_STATUS } from '../config/guardianInviteResultStatus';
 import { useGuardianInviteResultPage } from '../model/useGuardianInviteResultPage';
 
@@ -27,7 +25,7 @@ function GuardianInviteResultPage() {
   );
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <main className='flex min-h-0 flex-1 items-center justify-center overflow-y-auto'>
         <section className={`flex w-full flex-col items-center ${isApplicationFailed ? 'gap-5' : ''}`}>
           <div className='flex w-full flex-col items-center gap-3'>
@@ -68,7 +66,7 @@ function GuardianInviteResultPage() {
           <div className='w-full p-x4'>{actionButtons}</div>
         </section>
       </main>
-    </SafeArea>
+    </div>
   );
 }
 

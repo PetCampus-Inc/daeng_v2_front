@@ -16,7 +16,6 @@ import {
 } from '@entities/compare';
 import type { UserAddress } from '@entities/user';
 import { useUserStore } from '@entities/user';
-import { SafeArea } from '@shared/ui/safe-area';
 import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { useShare } from '@shared/lib/device/useShare';
 import { isNativeWebView } from '@shared/lib/device';
@@ -37,11 +36,11 @@ function CompareCompletePage() {
   const addressOptions = useMemo(
     () =>
       (savedAddresses ?? [])
-    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
-    .map(({ type, alias }) => ({
-        value: type as ReferencePointType,
-        label: alias,
-      })),
+        .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
+        .map(({ type, alias }) => ({
+          value: type as ReferencePointType,
+          label: alias,
+        })),
     [savedAddresses]
   );
   const referencePointOptions = coords // URL로 공유된 위치인 경우 기준점 옵션
@@ -70,59 +69,55 @@ function CompareCompletePage() {
   };
 
   return (
-    <SafeArea edges={['bottom']}>
-      <div className='flex h-dvh flex-col bg-white pb-16'>
-        <Header>
-          <Header.LeftSection>
-            {isNative && <Header.BackButton />}
-          </Header.LeftSection>
-          <Header.Title>비교 결과</Header.Title>
-          <Header.RightSection>
-            {!coords && (
-              <button
-                type='button'
-                className='label-semibold text-text-primary px-2 py-1'
-                aria-label='비교 결과 공유하기'
-                onClick={handleShare}
-              >
-                공유하기
-              </button>
-            )}
-          </Header.RightSection>
-        </Header>
+    <div className='flex h-full flex-col bg-white'>
+      <Header>
+        <Header.LeftSection>{isNative && <Header.BackButton />}</Header.LeftSection>
+        <Header.Title>비교 결과</Header.Title>
+        <Header.RightSection>
+          {!coords && (
+            <button
+              type='button'
+              className='label-semibold text-text-primary px-2 py-1'
+              aria-label='비교 결과 공유하기'
+              onClick={handleShare}
+            >
+              공유하기
+            </button>
+          )}
+        </Header.RightSection>
+      </Header>
 
-        {isPending || !left || !right ? (
-          <LoadingSpinner fullscreen className='bg-text-primary' />
-        ) : (
-          <>
-            {/* 선택된 두 유치원 */}
-            <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
-              {[left, right].map(({ id, name, categories, thumbnailS3Key }, idx) => {
-                return (
-                  <SelectedCell
-                    key={id}
-                    name={name}
-                    type={serializeCategories(categories)}
-                    avatar={s3ToUrl(thumbnailS3Key)}
-                    className={idx === 0 ? 'pr-2' : 'pl-2'}
-                  />
-                );
-              })}
-            </div>
+      {isPending || !left || !right ? (
+        <LoadingSpinner fullscreen className='bg-text-primary' />
+      ) : (
+        <>
+          {/* 선택된 두 유치원 */}
+          <div className='grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 bg-white'>
+            {[left, right].map(({ id, name, categories, thumbnailS3Key }, idx) => {
+              return (
+                <SelectedCell
+                  key={id}
+                  name={name}
+                  type={serializeCategories(categories)}
+                  avatar={s3ToUrl(thumbnailS3Key)}
+                  className={idx === 0 ? 'pr-2' : 'pl-2'}
+                />
+              );
+            })}
+          </div>
 
-            <div className='min-h-0 flex-1'>
-              <CompareCompleteTabs
-                left={left}
-                right={right}
-                referencePoint={referencePoint}
-                referencePointOptions={referencePointOptions}
-                onReferencePointChange={setReferencePoint}
-              />
-            </div>
-          </>
-        )}
-      </div>
-    </SafeArea>
+          <div className='min-h-0 flex-1'>
+            <CompareCompleteTabs
+              left={left}
+              right={right}
+              referencePoint={referencePoint}
+              referencePointOptions={referencePointOptions}
+              onReferencePointChange={setReferencePoint}
+            />
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
