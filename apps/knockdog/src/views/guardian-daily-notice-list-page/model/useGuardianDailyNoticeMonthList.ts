@@ -78,7 +78,7 @@ function useGuardianDailyNoticeMonthList({
 
   /**
    * 월 네비/조회 하한.
-   * membership 기준 records `firstAvailableMonth`를 우선 사용한다.
+   * membership 기준 records `firstAvailableMonth`(연·월)를 우선 사용.
    * (home `firstAttendedAt`는 현재 연결 기준일 수 있어 과거 연결 이력에 오표시를 만들 수 있다)
    */
   const effectiveFirstAttendedAt = useMemo(() => {
@@ -120,11 +120,31 @@ function useGuardianDailyNoticeMonthList({
 
   /**
    * 첫 등원 월이면 리스트 하단에 시작 문구 노출.
-   * 유효 첫 등원일이 없으면 퍼블리싱용으로 이 달 최신 등원일 하루 전을 쓴다.
+   * `firstAvailableMonth`는 연·월만 오므로 1일로 쓰면 안 된다.
+   * CONNECTED 이벤트일 → 없으면 해당 월 가장 오래된 기록일.
    */
   const firstAttendanceDate = useMemo(() => {
+    if (membershipId) {
+      const connectedDay = (records?.days ?? []).find(
+        (day) => day.membershipEvent === 'CONNECTED'
+      );
+      if (connectedDay && isSameYearMonth(connectedDay.date, selectedMonth)) {
+        return startOfDay(connectedDay.date);
+      }
+
+      if (
+        firstAvailableMonth &&
+        isSameYearMonth(firstAvailableMonth, selectedMonth) &&
+        items.length > 0
+      ) {
+        const oldestAttendedDate = items[items.length - 1]?.date;
+        return oldestAttendedDate ? startOfDay(oldestAttendedDate) : null;
+      }
+
+      return null;
+    }
+
     if (!effectiveFirstAttendedAt) {
-      if (membershipId) return null;
       const oldestAttendedDate = items[items.length - 1]?.date;
       return oldestAttendedDate ? addDays(oldestAttendedDate, -1) : null;
     }
@@ -132,10 +152,17 @@ function useGuardianDailyNoticeMonthList({
     return isSameYearMonth(effectiveFirstAttendedAt, selectedMonth)
       ? startOfDay(effectiveFirstAttendedAt)
       : null;
-  }, [effectiveFirstAttendedAt, items, membershipId, selectedMonth]);
+  }, [
+    effectiveFirstAttendedAt,
+    firstAvailableMonth,
+    items,
+    membershipId,
+    records?.days,
+    selectedMonth,
+  ]);
 
   /** 폴백으로 만든 날짜인지 구분 — 월 이동 하한 계산에는 사용하지 않는다 */
-  const isFirstAttendanceDateFallback = effectiveFirstAttendedAt == null;
+  const isFirstAttendanceDateFallback = !membershipId && effectiveFirstAttendedAt == null;
 
   /**
    * 연결 해제 월이면 리스트 상단에 종료 문구 노출.

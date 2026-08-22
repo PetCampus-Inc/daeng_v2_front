@@ -35,10 +35,12 @@ interface GuardianKindergartenDateCalendarProps {
    */
   onlyCheckInDatesSelectable?: boolean;
   /**
-   * 첫 등원일 — 주황 점 하한만 적용.
-   * 캘린더 이동/선택 minDate에는 쓰지 않음.
+   * 첫 등원일 — 주황 점 하한.
+   * 선택/이동 하한은 minDate로 별도 지정(미지정 시 2020-01-01).
    */
   firstAttendedAt?: Date;
+  /** 선택 가능 최소일. membership connectedAt 등 */
+  minDate?: Date;
   /** 선택 가능 최대일. 미지정 시 오늘. 연결 해제일 등 */
   maxDate?: Date;
   /** false면 dates API 조회 안 함 (markedDateKeys만 사용) */
@@ -78,16 +80,19 @@ function getVisibleRecordDateRange(options: {
   };
 }
 
-function filterMarksFromFirstAttend(
+function filterDateKeysByRange(
   dateKeys: Set<string> | undefined,
-  firstAttendKey: string | null
+  minKey: string | null,
+  maxKey: string | null
 ) {
   if (!dateKeys || dateKeys.size === 0) return dateKeys;
-  if (!firstAttendKey) return dateKeys;
+  if (!minKey && !maxKey) return dateKeys;
 
   const filtered = new Set<string>();
   for (const key of dateKeys) {
-    if (key >= firstAttendKey) filtered.add(key);
+    if (minKey && key < minKey) continue;
+    if (maxKey && key > maxKey) continue;
+    filtered.add(key);
   }
   return filtered;
 }
@@ -99,12 +104,17 @@ function GuardianKindergartenDateCalendar({
   petId: petIdOverride,
   onlyCheckInDatesSelectable = false,
   firstAttendedAt,
+  minDate: minDateProp,
   maxDate: maxDateProp,
   fetchRecordMarks = true,
   onVisibleCheckInStateChange,
 }: GuardianKindergartenDateCalendarProps) {
   const today = useMemo(() => startOfDay(new Date()), []);
-  const minDate = useMemo(() => startOfDay(new Date(2020, 0, 1)), []);
+  /** 선택/이동 하한. membership 등으로 명시할 때만 조인다. */
+  const minDate = useMemo(
+    () => startOfDay(minDateProp ?? new Date(2020, 0, 1)),
+    [minDateProp]
+  );
   const maxDate = useMemo(
     () => startOfDay(maxDateProp ?? today),
     [maxDateProp, today]
@@ -113,6 +123,13 @@ function GuardianKindergartenDateCalendar({
     () => (firstAttendedAt ? formatKstDateKey(firstAttendedAt) : null),
     [firstAttendedAt]
   );
+  /** 주황 점·등원일 마커 하한 = max(첫 등원일, minDate) */
+  const markMinKey = useMemo(() => {
+    const minKey = formatDateKey(minDate);
+    if (!firstAttendKey) return minKey;
+    return firstAttendKey > minKey ? firstAttendKey : minKey;
+  }, [firstAttendKey, minDate]);
+  const markMaxKey = useMemo(() => formatDateKey(maxDate), [maxDate]);
 
   const { selectedPetId: storePetId } = useGuardianSelectedPet();
   const selectedPetId = petIdOverride || storePetId;
@@ -134,11 +151,15 @@ function GuardianKindergartenDateCalendar({
     if (firstAttendKey && nextFrom < firstAttendKey) {
       nextFrom = firstAttendKey;
     }
+    if (markMinKey && nextFrom < markMinKey) {
+      nextFrom = markMinKey;
+    }
 
     const visibleDateKeys = range.dates
       .filter((date) => {
         const key = formatDateKey(date);
-        if (firstAttendKey && key < firstAttendKey) return false;
+        if (markMinKey && key < markMinKey) return false;
+        if (markMaxKey && key > markMaxKey) return false;
         if (isBeforeDay(date, minDate)) return false;
         if (isAfterDay(date, maxDate)) return false;
         return true;
@@ -146,7 +167,7 @@ function GuardianKindergartenDateCalendar({
       .map((date) => formatDateKey(date));
 
     return { from: nextFrom, to: nextTo, visibleDateKeys };
-  }, [firstAttendKey, isMonthlyExpanded, maxDate, minDate, selectedDate, viewMonth]);
+  }, [firstAttendKey, isMonthlyExpanded, markMaxKey, markMinKey, maxDate, minDate, selectedDate, viewMonth]);
 
   const { from, to, visibleDateKeys } = visibleRange;
   const isVisibleRangeValid = from <= to;
@@ -172,28 +193,39 @@ function GuardianKindergartenDateCalendar({
 
   const markedDateKeys = useMemo(() => {
     if (onlyCheckInDatesSelectable && isCheckInKeysReady) {
-      return filterMarksFromFirstAttend(checkInDateKeys, firstAttendKey) ?? new Set<string>();
+      return (
+        filterDateKeysByRange(checkInDateKeys, markMinKey, markMaxKey) ?? new Set<string>()
+      );
     }
     if (!isVisibleRangeValid && markedDateKeysProp == null) {
       return new Set<string>();
     }
     if (markedDateKeysProp) {
-      return filterMarksFromFirstAttend(markedDateKeysProp, firstAttendKey);
+      return filterDateKeysByRange(markedDateKeysProp, markMinKey, markMaxKey);
     }
-    return filterMarksFromFirstAttend(recordDateSet, firstAttendKey);
+    return filterDateKeysByRange(recordDateSet, markMinKey, markMaxKey);
   }, [
     checkInDateKeys,
-    firstAttendKey,
     isCheckInKeysReady,
     isVisibleRangeValid,
+    markMaxKey,
+    markMinKey,
     markedDateKeysProp,
     onlyCheckInDatesSelectable,
     recordDateSet,
   ]);
 
-  // 로딩 중엔 제한하지 않고, 준비되면 등원 시각 있는 날만 활성
-  const enabledDateKeys =
-    onlyCheckInDatesSelectable && isCheckInKeysReady ? checkInDateKeys : undefined;
+  // 로딩 중엔 제한하지 않고, 준비되면 등원 시각 있는 날만 활성 (+ membership 기간)
+  const enabledDateKeys = useMemo(() => {
+    if (!onlyCheckInDatesSelectable || !isCheckInKeysReady) return undefined;
+    return filterDateKeysByRange(checkInDateKeys, markMinKey, markMaxKey);
+  }, [
+    checkInDateKeys,
+    isCheckInKeysReady,
+    markMaxKey,
+    markMinKey,
+    onlyCheckInDatesSelectable,
+  ]);
 
   const handleSelectDate = (date: Date) => {
     const nextDay = startOfDay(date);
@@ -218,7 +250,7 @@ function GuardianKindergartenDateCalendar({
     if (!onlyCheckInDatesSelectable || !onVisibleCheckInStateChange) return;
     onVisibleCheckInStateChange({
       isReady: isCheckInKeysReady,
-      hasCheckIn: checkInDateKeys.size > 0,
+      hasCheckIn: (enabledDateKeys?.size ?? checkInDateKeys.size) > 0,
       isWeeklyView: !isMonthlyExpanded,
       isSelectedDateEnabled:
         enabledDateKeys == null ||
@@ -226,7 +258,7 @@ function GuardianKindergartenDateCalendar({
         enabledDateKeys.has(formatDateKey(selectedDate)),
     });
   }, [
-    checkInDateKeys,
+    checkInDateKeys.size,
     enabledDateKeys,
     isCheckInKeysReady,
     isMonthlyExpanded,
