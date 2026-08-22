@@ -73,6 +73,7 @@ export function MypagePetDetailPage() {
                       refetchType: 'all',
                     });
                     syncWebViewQuery.refetch(['petList']);
+                    syncWebViewQuery.refetch([GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY]);
                     handleBack();
                   },
                   onError: (error) => {
