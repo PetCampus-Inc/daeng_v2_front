@@ -45,18 +45,41 @@ function parsePetIdQuery(value: string | null) {
   return value && /^\d+$/.test(value) ? value : null;
 }
 
-/** 현재 연결 membership — linked school 우선, 없으면 활성 1건 */
+/** notice 일자가 membership 기간(connectedAt~disconnectedAt) 안인지 */
+function isNoticeDateInMembership(connection: GuardianSchoolConnection, noticeDate: Date) {
+  if (!connection.connectedAt) return false;
+  const connectedAt = startOfDay(connection.connectedAt);
+  if (isBeforeDay(noticeDate, connectedAt)) return false;
+  if (connection.disconnectedAt) {
+    const disconnectedAt = startOfDay(connection.disconnectedAt);
+    if (isAfterDay(noticeDate, disconnectedAt)) return false;
+  }
+  return true;
+}
+
+/**
+ * linked school + notice 일자에 해당하는 membership (해제 이력 포함).
+ * 일자에 맞는 건이 없으면 해당 학교 활성 → 전역 활성 순으로 폴백.
+ */
 function resolveActiveConnection(
   connections: GuardianSchoolConnection[] | undefined,
-  linkedSchoolId: string | null | undefined
+  linkedSchoolId: string | null | undefined,
+  noticeDate: Date
 ) {
   const list = connections ?? [];
+  const schoolList = linkedSchoolId
+    ? list.filter((connection) => connection.schoolId === linkedSchoolId)
+    : list;
+
+  const covering =
+    schoolList.find((connection) => isNoticeDateInMembership(connection, noticeDate)) ?? null;
+  if (covering) return covering;
+
   if (linkedSchoolId) {
-    const matched = list.find(
-      (connection) => connection.schoolId === linkedSchoolId && connection.disconnectedAt == null
-    );
-    if (matched) return matched;
+    const activeForSchool = schoolList.find((connection) => connection.disconnectedAt == null);
+    if (activeForSchool) return activeForSchool;
   }
+
   return list.find((connection) => connection.disconnectedAt == null) ?? null;
 }
 
@@ -79,9 +102,18 @@ function GuardianDailyNoticeDetailPage() {
     enabled: Boolean(userId) && Boolean(selectedPetId),
   });
 
+  useEffect(() => {
+    if (petIdFromQuery) setSelectedPetId(petIdFromQuery);
+  }, [petIdFromQuery, setSelectedPetId]);
+
+  /** membership 매칭에 사용 */
+  const [selectedDateState, setSelectedDate] = useState(() => {
+    return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
+  });
+
   const activeConnection = useMemo(
-    () => resolveActiveConnection(connections, linkedKindergarten?.id),
-    [connections, linkedKindergarten?.id]
+    () => resolveActiveConnection(connections, linkedKindergarten?.id, selectedDateState),
+    [connections, linkedKindergarten?.id, selectedDateState]
   );
 
   /** membership connectedAt~disconnectedAt — 주간 캘린더 선택/점 범위 */
@@ -97,13 +129,6 @@ function GuardianDailyNoticeDetailPage() {
   const calendarMinDate = membershipMinDate;
   const calendarFirstAttendedAt = membershipMinDate ?? firstAttendedAt ?? undefined;
 
-  useEffect(() => {
-    if (petIdFromQuery) setSelectedPetId(petIdFromQuery);
-  }, [petIdFromQuery, setSelectedPetId]);
-
-  const [selectedDateState, setSelectedDate] = useState(() => {
-    return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
-  });
   const selectedDate = useMemo(() => {
     let next = selectedDateState;
     if (membershipMinDate && isBeforeDay(next, membershipMinDate)) next = membershipMinDate;
