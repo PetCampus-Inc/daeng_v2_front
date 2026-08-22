@@ -129,7 +129,7 @@ function ImageGalleryViewer({
           <Icon icon='Close' className='size-6' />
         </button>
 
-        <div className='absolute top-[183px] left-4 h-[390px] w-[calc(100%-32px)] overflow-hidden'>
+        <div className='bg-bg-0 absolute top-[183px] left-4 h-[390px] w-[calc(100%-32px)] overflow-hidden'>
           <Image
             src={currentImage}
             alt={`사진 ${currentIndex + 1}`}
@@ -173,7 +173,7 @@ function ImageGalleryViewer({
               onClick={() => setCurrentIndex(index)}
               aria-label={`${index + 1}번째 사진 보기`}
               aria-current={currentIndex === index}
-              className='relative size-[60px] shrink-0 overflow-hidden rounded-lg bg-background-50'
+              className='bg-bg-0 relative size-[60px] shrink-0 overflow-hidden rounded-lg'
             >
               <Image src={image} alt='' fill sizes='60px' className='object-cover' />
             </button>

@@ -91,9 +91,14 @@ function GuardianDailyNoticeListPage() {
     kindergartens[0] ??
     null;
   const selectedAttendedUntilKey = selectedKindergarten?.attendedUntil ?? null;
+  const selectedAttendedFromKey = selectedKindergarten?.attendedFrom ?? null;
   const selectedAttendedUntil = useMemo(
     () => (selectedAttendedUntilKey ? parseDateKey(selectedAttendedUntilKey) : null),
     [selectedAttendedUntilKey]
+  );
+  const selectedAttendedFrom = useMemo(
+    () => (selectedAttendedFromKey ? parseDateKey(selectedAttendedFromKey) : null),
+    [selectedAttendedFromKey]
   );
   const selectedMembershipId = useMemo(
     () =>
@@ -116,6 +121,7 @@ function GuardianDailyNoticeListPage() {
     petId: selectedPetId,
     selectedMonth: requestedMonth,
     firstAttendedAt,
+    attendedFrom: selectedAttendedFrom,
     attendedUntil: selectedAttendedUntil,
     isDisconnected: isSelectedDisconnected,
     isPetsReady,
@@ -129,8 +135,11 @@ function GuardianDailyNoticeListPage() {
   }, [isSelectedDisconnected, lastAvailableMonth, requestedMonth]);
 
   const minMonth = useMemo(
-    () => startOfMonth(effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)),
-    [effectiveFirstAttendedAt, firstAttendedAt]
+    () =>
+      startOfMonth(
+        selectedAttendedFrom ?? effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)
+      ),
+    [effectiveFirstAttendedAt, firstAttendedAt, selectedAttendedFrom]
   );
   const maxMonth = useMemo(
     () => startOfMonth(selectedAttendedUntil ?? lastAvailableMonth ?? new Date()),

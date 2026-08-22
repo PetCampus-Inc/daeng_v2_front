@@ -311,7 +311,7 @@ function MypageOwnerKindergartenPage() {
                 onClick={handleImageClick}
                 disabled={imageUrls.length === 0}
                 aria-label={imageUrls.length > 0 ? `유치원 사진 ${imageUrls.length}장 보기` : undefined}
-                className='radius-r3 relative block h-[200px] w-full overflow-hidden'
+                className='radius-r3 bg-bg-0 relative block h-[200px] w-full overflow-hidden'
               >
                 {usesDefaultImage || !imageUrl ? (
                   <div className='bg-fill-secondary-50 size-full' />

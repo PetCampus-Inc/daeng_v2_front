@@ -15,7 +15,8 @@ function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKinderga
   const imageSrc = resolvePublicImageSrc(kindergarten.imageUrl);
 
   const handleClick = () => {
-    push({ pathname: `/kindergarten/${kindergarten.id}` });
+    if (!kindergarten.placeId) return;
+    push({ pathname: `/kindergarten/${kindergarten.placeId}` });
   };
 
   return (

@@ -150,6 +150,7 @@ function GuardianAlbumPage() {
       schoolId && hasLinkedSchool
         ? {
             id: schoolId,
+            placeId: null,
             name: schoolName ?? '',
             address: '',
             imageUrl: schoolImageUrl ?? '',
