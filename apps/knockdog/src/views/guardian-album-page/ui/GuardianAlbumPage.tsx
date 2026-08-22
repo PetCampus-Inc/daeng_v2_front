@@ -5,7 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
-import { useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
+import {
+  useGuardianSchoolConnectionsQuery,
+  type GuardianSchoolConnection,
+} from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import {
@@ -45,7 +48,7 @@ import { toKindergartenSelectOptions, toKindergartenSelectOptionsFromConnections
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { startOfDay } from '@shared/lib/calendar-date';
+import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
@@ -62,6 +65,35 @@ function startOfMonth(date: Date) {
 
 function addMonths(date: Date, months: number) {
   return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
+
+/** 앨범에서 고른 유치원 옵션 → 해당 membership 연결 */
+function resolveSelectedConnection(
+  connections: GuardianSchoolConnection[] | undefined,
+  optionId: string | null,
+  schoolId: string | null | undefined,
+  attendedUntil: string | null
+) {
+  const list = connections ?? [];
+  if (optionId) {
+    const byMembership = list.find((connection) => connection.id === optionId);
+    if (byMembership) return byMembership;
+  }
+  if (!schoolId) return null;
+
+  const candidates = list.filter((connection) => connection.schoolId === schoolId);
+  if (candidates.length === 0) return null;
+
+  if (attendedUntil) {
+    const matched = candidates.find(
+      (connection) =>
+        connection.disconnectedAt != null &&
+        formatDateKey(connection.disconnectedAt) === attendedUntil
+    );
+    if (matched) return matched;
+  }
+
+  return candidates.find((connection) => connection.disconnectedAt == null) ?? candidates[0] ?? null;
 }
 
 function GuardianAlbumPage() {
@@ -139,6 +171,22 @@ function GuardianAlbumPage() {
   const attendedUntil = selectedKindergarten?.attendedUntil ?? null;
   const isDisconnected = attendedUntil != null || status === 'disconnected';
   const hasSelectedSchool = Boolean(activeSchoolId);
+  const selectedConnection = useMemo(
+    () =>
+      resolveSelectedConnection(
+        connections,
+        selectedKindergarten?.id ?? null,
+        activeSchoolId,
+        attendedUntil
+      ),
+    [activeSchoolId, attendedUntil, connections, selectedKindergarten?.id]
+  );
+  /** membership 연결일 — 일자 캘린더 하한 (firstAvailableMonth 1일 대체) */
+  const membershipConnectedAt = useMemo(
+    () =>
+      selectedConnection?.connectedAt ? startOfDay(selectedConnection.connectedAt) : null,
+    [selectedConnection]
+  );
 
   const {
     days: monthDays,
@@ -342,22 +390,35 @@ function GuardianAlbumPage() {
     [handleResetFilter]
   );
 
+  /**
+   * 첫 등원 월 하단 문구.
+   * `connectionStartedAt`은 firstAvailableMonth→1일이라 membership connectedAt을 우선.
+   */
+  const connectionStartDate =
+    membershipConnectedAt ??
+    (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : null);
   const showConnectionStartMessage =
-    connectionStartedAt != null &&
-    isSameYearMonth(selectedMonth, parseDateKey(connectionStartedAt));
+    connectionStartDate != null && isSameYearMonth(selectedMonth, connectionStartDate);
   const showAttendedUntilMessage =
     isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
 
   const minMonth = startOfMonth(firstAvailableMonth ?? selectedMonth);
   const maxMonth = startOfMonth(lastAvailableMonth ?? selectedMonth);
+  /**
+   * 일자 선택 하한.
+   * `firstAvailableMonth`는 연·월만 오므로 1일로 쓰면 안 된다 → membership connectedAt 우선.
+   */
   const minDate = startOfDay(
-    firstAvailableMonth ??
+    membershipConnectedAt ??
       (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : selectedMonth)
   );
   const maxDate = startOfDay(
     lastAvailableMonth
       ? new Date(lastAvailableMonth.getFullYear(), lastAvailableMonth.getMonth() + 1, 0)
       : albumRangeEnd
+  );
+  const dateSelectInitialDate = startOfDay(
+    attendedUntil != null ? parseDateKey(attendedUntil) : new Date()
   );
   const canGoPrevMonth = compareYearMonth(selectedMonth, minMonth) > 0;
   const canGoNextMonth = compareYearMonth(selectedMonth, maxMonth) < 0;
@@ -457,8 +518,9 @@ function GuardianAlbumPage() {
         close={close}
         minDate={minDate}
         maxDate={maxDate}
-        initialDate={selectedMonth}
+        initialDate={dateSelectInitialDate}
         enabledDateKeys={albumPhotoDateKeys}
+        markedDateKeys={albumPhotoDateKeys}
         onConfirm={handleOpenDateDetail}
       />
     ));
