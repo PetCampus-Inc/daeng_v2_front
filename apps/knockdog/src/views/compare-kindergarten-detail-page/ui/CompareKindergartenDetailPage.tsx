@@ -11,7 +11,6 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import type { SelectedIds } from '@entities/compare/model/compare';
 import { isSelectedIds } from '@entities/compare';
 import { useCurrentLocation } from '@shared/lib/geolocation';
-import { SafeArea } from '@shared/ui/safe-area';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useCompareStore } from '@shared/store';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
@@ -73,8 +72,8 @@ function CompareKindergartenDetailPage() {
   const { banner: images, ...restKindergartenMainData } = kindergartenMain;
 
   return (
-    <SafeArea edges={['bottom']}>
-      <Header className=''>
+    <div className='flex h-full flex-col'>
+      <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton />
           <Header.HomeButton />
@@ -86,7 +85,7 @@ function CompareKindergartenDetailPage() {
           <IconButton icon='Search' />
         </Header.RightSection>
       </Header>
-      <div className='h-[calc(100dvh-206px)] overflow-y-auto' ref={scrollableDivRef}>
+      <div className='min-h-0 flex-1 overflow-y-auto' ref={scrollableDivRef}>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
           <MainBannerSwiper images={images ?? []} />
@@ -105,13 +104,15 @@ function CompareKindergartenDetailPage() {
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}
-      <SelectActionButtons
-        isSelected={isSelected}
-        disabled={disabled}
-        onClick={() => handleSelectClick(id)}
-        onClose={handleCloseClick}
-      />
-    </SafeArea>
+      <div className='shrink-0'>
+        <SelectActionButtons
+          isSelected={isSelected}
+          disabled={disabled}
+          onClick={() => handleSelectClick(id)}
+          onClose={handleCloseClick}
+        />
+      </div>
+    </div>
   );
 }
 

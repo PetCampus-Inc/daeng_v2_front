@@ -3,7 +3,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
-import { SafeArea } from '@shared/ui/safe-area';
 
 import {
   TAB,
@@ -31,7 +30,7 @@ function OwnerMemberProfilePage() {
   } = useOwnerMemberProfilePage();
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-50 flex h-dvh flex-col'>
+    <div className='bg-bg-50 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -97,7 +96,7 @@ function OwnerMemberProfilePage() {
           </div>
         </Tabs>
       )}
-    </SafeArea>
+    </div>
   );
 }
 

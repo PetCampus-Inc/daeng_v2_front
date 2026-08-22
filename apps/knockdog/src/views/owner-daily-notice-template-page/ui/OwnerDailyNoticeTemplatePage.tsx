@@ -22,7 +22,6 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
 /**
@@ -102,8 +101,8 @@ function OwnerDailyNoticeTemplatePage() {
   };
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
-      <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
+    <div className='bg-bg-50 flex h-full flex-col'>
+      <div className='bg-bg-50'>
         <Header className='bg-bg-50'>
           <Header.LeftSection>
             <Header.BackButton />
@@ -146,7 +145,7 @@ function OwnerDailyNoticeTemplatePage() {
         </div>
       )}
 
-      <SafeArea edges={['bottom']} className='bg-bg-50 shrink-0'>
+      <div className='bg-bg-50 shrink-0'>
         <div className='flex gap-2 px-4 py-5'>
           <ActionButton
             type='button'
@@ -174,7 +173,7 @@ function OwnerDailyNoticeTemplatePage() {
             {ownerDailyNoticeTemplateContent.loadTemplateLabel}
           </ActionButton>
         </div>
-      </SafeArea>
+      </div>
     </div>
   );
 }

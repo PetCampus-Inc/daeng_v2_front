@@ -28,7 +28,6 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
-import { SafeArea } from '@shared/ui/safe-area';
 
 const TAB = {
   OPERATION: 'operation',
@@ -286,7 +285,7 @@ function MypageOwnerKindergartenPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
+    <div className='flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -358,7 +357,7 @@ function MypageOwnerKindergartenPage() {
           </div>
         </div>
       </Tabs>
-    </SafeArea>
+    </div>
   );
 }
 

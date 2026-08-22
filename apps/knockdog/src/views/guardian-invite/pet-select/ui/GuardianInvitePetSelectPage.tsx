@@ -9,7 +9,6 @@ import { type GuardianPetConnection, useGuardianPetConnectionStatusesQuery } fro
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 
 const STATUS_LABEL = {
   PENDING: '승인 대기',
@@ -152,7 +151,7 @@ function GuardianInvitePetSelectPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -217,7 +216,7 @@ function GuardianInvitePetSelectPage() {
           다음
         </ActionButton>
       </div>
-    </SafeArea>
+    </div>
   );
 }
 

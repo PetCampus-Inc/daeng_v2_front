@@ -37,7 +37,6 @@ import { ownerMypageContent } from '@features/role-conversion';
 import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
-import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
 /** 섹션 탭·복수선택 칩 공통 톤. size만 다름 (탭=38, 옵션=48) */
@@ -285,7 +284,7 @@ function MypageOwnerKindergartenEditPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
+    <div className='flex h-full flex-col'>
       <Header>
         <Header.LeftSection className='relative z-10'>
           <Header.BackButton onClick={handleBack} />
@@ -577,7 +576,7 @@ function MypageOwnerKindergartenEditPage() {
         values={formData.closedDays}
         onChange={formData.handleClosedDaysChange}
       />
-    </SafeArea>
+    </div>
   );
 }
 

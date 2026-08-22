@@ -3,7 +3,6 @@
 import { ActionButton, Checkbox, ProgressBar, ScrollBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
-import { SafeArea } from '@shared/ui/safe-area';
 
 import { useGuardianInvitePrivacyConsentPage } from '../model/useGuardianInvitePrivacyConsentPage';
 import { privacyConsentPolicyClosing, privacyConsentPolicyIntro, privacyConsentPolicySections } from '../config/privacyConsentPolicyBody';
@@ -13,7 +12,7 @@ function GuardianInvitePrivacyConsentPage() {
   const { handleAgreedChange, handleBack, handleSubmit, isAgreed, isSubmitEnabled } = useGuardianInvitePrivacyConsentPage();
 
   return (
-    <SafeArea edges={['bottom']} className='bg-bg-0 flex h-dvh flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={() => void handleBack()} />
@@ -94,7 +93,7 @@ function GuardianInvitePrivacyConsentPage() {
           유치원 등록
         </ActionButton>
       </div>
-    </SafeArea>
+    </div>
   );
 }
 

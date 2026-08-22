@@ -36,7 +36,7 @@ function OwnerProfileForm({
   }, [isDirty, onDirtyChange]);
 
   return (
-    <div className='px-4'>
+    <div className='min-h-0 flex-1 px-4'>
       <form
         id='owner-profile-form'
         onSubmit={handleSubmit}
@@ -46,9 +46,9 @@ function OwnerProfileForm({
           }
         }}
         noValidate
-        className='flex flex-col gap-y-5'
+        className='flex h-full min-h-0 flex-col'
       >
-        <div className='scrollbar-hide relative h-[calc(100dvh-200px)] overflow-y-auto'>
+        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
           <Controller
             name='profileImageUrl'
             control={control}
@@ -138,7 +138,7 @@ function OwnerProfileForm({
           </div>
         </div>
 
-        <div className='absolute right-0 bottom-6 left-0 bg-white px-4'>
+        <div className='shrink-0 bg-white py-x5'>
           <ActionButton type='submit' disabled={!isValid || isSubmitting}>
             {submitButtonText}
           </ActionButton>

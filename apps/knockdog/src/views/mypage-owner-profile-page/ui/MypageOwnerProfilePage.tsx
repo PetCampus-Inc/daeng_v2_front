@@ -7,14 +7,13 @@ import { Header } from '@widgets/Header';
 import { ownerMypageContent, OwnerProfileDetailInfo, useOwnerProfile } from '@features/role-conversion';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 
 function MypageOwnerProfilePage() {
   const { push } = useStackNavigation();
   const { profile } = useOwnerProfile();
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
+    <div className='flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -37,7 +36,7 @@ function MypageOwnerProfilePage() {
           </ActionButton>
         </div>
       </div>
-    </SafeArea>
+    </div>
   );
 }
 

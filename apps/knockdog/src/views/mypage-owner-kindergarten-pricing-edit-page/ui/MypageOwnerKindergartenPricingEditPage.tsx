@@ -19,7 +19,6 @@ import { Header } from '@widgets/Header';
 import { ownerMypageContent } from '@features/role-conversion';
 import { PRODUCT_TYPE_MAP_LIST, type ProductType } from '@entities/pricing';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
-import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 import { useKindergartenPricingEditForm } from '@views/mypage-owner-kindergarten-pricing-edit-page/model/useKindergartenPricingEditForm';
 
@@ -123,7 +122,7 @@ function MypageOwnerKindergartenPricingEditPage() {
   };
 
   return (
-    <SafeArea edges={['bottom']} className='flex h-dvh flex-col'>
+    <div className='flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -189,7 +188,7 @@ function MypageOwnerKindergartenPricingEditPage() {
           </ActionButton>
         </div>
       </div>
-    </SafeArea>
+    </div>
   );
 }
 
