@@ -63,7 +63,7 @@ function AlbumImageInner({
       );
 
   return (
-    <div className={cn('min-h-0 min-w-0 overflow-hidden', className)}>
+    <div className={cn('bg-bg-0 min-h-0 min-w-0 overflow-hidden', className)}>
       <div className='relative size-full min-h-0 min-w-0'>
         {!hasError ? (
           <AlbumImageSkeleton

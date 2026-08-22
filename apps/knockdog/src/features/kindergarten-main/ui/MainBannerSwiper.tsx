@@ -21,7 +21,7 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
       <SwiperRoot onSlideChange={handleSlideChange}>
         {images.map((image, index) => (
           <SwiperSlideItem key={index}>
-            <div className='relative h-[292px] w-full'>
+            <div className='bg-bg-0 relative h-[292px] w-full'>
               <Image
                 src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
                 alt={`업체 이미지 ${index + 1}`}

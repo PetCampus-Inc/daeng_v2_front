@@ -1,4 +1,6 @@
 
+import { formatKstTimeLabel } from '@shared/lib/calendar-date';
+
 type AttendanceRecordPoop =
   | 'HEALTHY'
   | 'HARD'
@@ -14,6 +16,8 @@ type AttendanceRecordCondition =
 
 type AttendanceRecordStatus = 'DRAFT' | 'SENT';
 
+type AttendanceRecordDateTime = string | number[];
+
 interface AttendanceRecordPayload {
   petId: number;
   date: string;
@@ -27,6 +31,8 @@ interface AttendanceRecordPayload {
 interface AttendanceRecordDto {
   petId: number | string;
   date: string;
+  checkInAt?: AttendanceRecordDateTime | null;
+  checkOutAt?: AttendanceRecordDateTime | null;
   condition: AttendanceRecordCondition | string | null;
   snack: string | null;
   poop: AttendanceRecordPoop | string | null;
@@ -38,8 +44,9 @@ interface AttendanceRecordDto {
 interface AttendanceRecord {
   petId: number;
   date: string;
-  //@todo 등하원 시간도 API 스펙에 반영 필요
+  /** 화면 표기용 등원 시각 (예: `오전 9:00`) */
   checkIn: string | null;
+  /** 화면 표기용 하원 시각 (예: `오후 5:05`) */
   checkOut: string | null;
   condition: AttendanceRecordCondition | null;
   snack: string;
@@ -109,13 +116,39 @@ function getRecordCandidate(value: unknown): Record<string, unknown> | null {
   return record;
 }
 
-function getStringValue(record: Record<string, unknown>, keys: string[]): string | null {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.length > 0) return value;
+/** LocalDateTime string  → Date */
+function normalizeDateTime(value: unknown): Date | null {
+  if (typeof value === 'string' && value.length > 0) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (Array.isArray(value) && value.length >= 5) {
+    const [year, month, day, hour, minute, second = 0, nanosecond = 0] = value;
+    const parts = [year, month, day, hour, minute, second, nanosecond];
+    if (!parts.every((part) => typeof part === 'number' && Number.isFinite(part))) return null;
+
+    const date = new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        hour - 9,
+        minute,
+        second,
+        Math.floor(nanosecond / 1_000_000)
+      )
+    );
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   return null;
+}
+
+/** `checkInAt` / `checkOutAt`  */
+function toAttendanceTimeLabel(value: unknown): string | null {
+  const date = normalizeDateTime(value);
+  return date ? formatKstTimeLabel(date) : null;
 }
 
 /** LocalDate `[y, m, d]` / `YYYY-MM-DD` */
@@ -200,8 +233,8 @@ function toAttendanceRecord(
   return {
     petId,
     date,
-    checkIn: getStringValue(record, ['checkIn', 'check_in', 'checkInTime']),
-    checkOut: getStringValue(record, ['checkOut', 'check_out', 'checkOutTime']),
+    checkIn: toAttendanceTimeLabel(record.checkInAt),
+    checkOut: toAttendanceTimeLabel(record.checkOutAt),
     condition: normalizeAttendanceRecordCondition(record.condition),
     snack: typeof record.snack === 'string' ? record.snack : '',
     poop: normalizeAttendanceRecordPoop(record.poop),

@@ -6,6 +6,8 @@ interface KindergartenSelectOption {
   membershipId?: string | null;
   name: string;
   imageUrl: string;
+  /** membership connectedAt `YYYY-MM-DD`. 없으면 records/home 하한 폴백 */
+  attendedFrom?: string | null;
   /** null이면 현재 재원 중 */
   attendedUntil: string | null;
 }

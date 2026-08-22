@@ -6,6 +6,7 @@ import type {
 /** API 연동 전 임시 테스트용 mock 유치원 (지도 검색: 도그포레 강아지유치원) */
 const MOCK_LINKED_KINDERGARTEN: GuardianLinkedKindergarten = {
   id: '1201415581',
+  placeId: '1201415581',
   name: '도그포레 강아지유치원',
   address: '서울특별시 도봉구 창동 582-19 도그포레',
   imageUrl: '서울특별시/도봉구/1201415581/thumbnail_optimized.webp',
