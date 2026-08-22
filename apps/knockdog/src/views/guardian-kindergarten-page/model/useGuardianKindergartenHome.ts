@@ -47,6 +47,7 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
   const linkedKindergarten: GuardianLinkedKindergarten | null = home?.school
     ? {
         id: home.school.id,
+        placeId: home.school.placeId,
         name: home.school.name,
         address: home.school.address,
         imageUrl: home.school.imageUrl,

@@ -17,7 +17,7 @@ function toHistoryItem(connection: GuardianSchoolConnection): GuardianConnection
 
   return {
     id: connection.id,
-    kindergartenId: connection.schoolId,
+    kindergartenId: connection.placeId ?? connection.schoolId,
     name: connection.name,
     address: connection.address,
     imageUrl: connection.imageUrl,

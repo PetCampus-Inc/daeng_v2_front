@@ -10,6 +10,8 @@ type GuardianSchoolConnectionStatus = 'pending' | 'approved' | 'disconnected' | 
 interface GuardianSchoolConnectionDto {
   schoolPetMembershipId?: number | string | null;
   schoolId?: number | string | null;
+  /** `School.kindergartenPlaceId` — 상세 `kindergarten/main/{placeId}` */
+  placeId?: number | string | null;
   name?: string | null;
   address?: string | null;
   thumbnailImageUrl?: string | null;
@@ -26,6 +28,8 @@ interface GuardianSchoolConnectionsDto {
 interface GuardianSchoolConnection {
   id: string;
   schoolId: string;
+  /** kindergartenPlaceId — 상세 페이지 경로 */
+  placeId: string | null;
   name: string;
   address: string;
   imageUrl: string;
@@ -66,9 +70,11 @@ function toGuardianSchoolConnection(
   const schoolId = dto.schoolId;
   if (membershipId == null || membershipId === '' || schoolId == null || schoolId === '') return null;
 
+  const placeId = dto.placeId;
   return {
     id: String(membershipId),
     schoolId: String(schoolId),
+    placeId: placeId == null || placeId === '' ? null : String(placeId),
     name: dto.name ?? '',
     address: dto.address ?? '',
     imageUrl: toAbsoluteImageUrl(dto.thumbnailImageUrl),
