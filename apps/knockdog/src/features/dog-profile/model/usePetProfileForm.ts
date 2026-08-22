@@ -11,6 +11,7 @@ import {
   RELATIONSHIP,
   RELATIONSHIP_LABEL,
 } from '@entities/pet';
+import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { useUserStore } from '@entities/user';
 import { useMoveImageMutation } from '@shared/lib/media';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
@@ -185,6 +186,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
       }
 
       syncWebViewQuery.refetch(['petList']);
+      // 강아지 선택 화면(보호자 초대)은 pet/list가 아닌 별도 연결 상태 query를 쓰므로 같이 갱신
+      syncWebViewQuery.refetch([GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY]);
 
       onSuccess?.(newPetId);
     } catch (error) {

@@ -1,11 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { ActionButton, Avatar, AvatarFallback, AvatarImage, Checkbox, Icon, ProgressBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
-import { type GuardianPetConnection, useGuardianPetConnectionStatusesQuery } from '@entities/guardian-invite';
+import {
+  guardianPetConnectionStatusesQueryKey,
+  type GuardianPetConnection,
+  useGuardianPetConnectionStatusesQuery,
+} from '@entities/guardian-invite';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -107,12 +112,29 @@ function GuardianInvitePetSelectPage() {
   const { token } = useParams<{ token: string }>();
   const { push, replace } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
+  const queryClient = useQueryClient();
   const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
   const pets = petConnectionStatusesQuery.data?.data?.pets;
   const displayedPets = pets ?? [];
   const profileCount = petConnectionStatusesQuery.data?.data?.totalProfileCount ?? 0;
   const canAddPet = profileCount < 5;
   const [selectedPetIds, setSelectedPetIds] = useState<number[]>([]);
+
+  // 강아지 추가/수정 화면은 별도 Stack WebView라 그쪽의 invalidate가 이 화면 캐시에 전달되지 않음 → 복귀 시 재조회
+  useEffect(() => {
+    const handleRefresh = () => {
+      if (document.visibilityState === 'hidden') return;
+      queryClient.refetchQueries({ queryKey: guardianPetConnectionStatusesQueryKey(userId) });
+    };
+
+    window.addEventListener('pageshow', handleRefresh);
+    document.addEventListener('visibilitychange', handleRefresh);
+
+    return () => {
+      window.removeEventListener('pageshow', handleRefresh);
+      document.removeEventListener('visibilitychange', handleRefresh);
+    };
+  }, [queryClient, userId]);
 
   const selectablePetIds = new Set(
     displayedPets.filter((pet) => pet.connectionStatus == null).map((pet) => pet.petId)
