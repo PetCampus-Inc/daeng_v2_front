@@ -31,6 +31,7 @@ import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib
 import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
+import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
@@ -178,8 +179,8 @@ function OwnerDailyNoticeTemplateCreatePage() {
   };
 
   return (
-    <div className='bg-bg-50 flex h-full flex-col'>
-      <div className='bg-bg-50'>
+    <div className='bg-bg-50 flex h-dvh flex-col'>
+      <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
         <Header className='bg-bg-50'>
           <Header.LeftSection>
             <Header.BackButton onClick={handleBackClick} />
@@ -220,7 +221,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
           />
         </section>
 
-        <div className='bg-bg-50 shrink-0'>
+        <SafeArea edges={['bottom']} className='bg-bg-50 shrink-0'>
           <div className='py-5'>
             <ActionButton
               type='button'
@@ -233,7 +234,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
               {ownerDailyNoticeTemplateCreateContent.createButtonLabel}
             </ActionButton>
           </div>
-        </div>
+        </SafeArea>
       </div>
     </div>
   );
