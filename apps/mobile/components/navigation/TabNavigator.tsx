@@ -18,7 +18,6 @@ import OwnerMembersTab from '@/screens/owner-members';
 import SaveTab from '@/screens/save';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -53,8 +52,8 @@ export default function TabNavigator() {
         return {
           tabBarIcon: ({ focused }) => {
             const iconProps = {
-              fill: focused ? '#41424A' : '#8C8C94',
-              color: focused ? '#41424A' : '#8C8C94',
+              fill: focused ? '#FF6E0C' : '#8C8C94',
+              color: focused ? '#FF6E0C' : '#8C8C94',
             };
 
             switch (route.name) {
@@ -67,22 +66,7 @@ export default function TabNavigator() {
               case 'OwnerHome':
                 return <HomeIcon width={24} height={24} {...iconProps} />;
               case 'OwnerDaily':
-                return focused ? (
-                  <View
-                    style={{
-                      width: 24,
-                      height: 24,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 12,
-                      backgroundColor: '#FF6E0C',
-                    }}
-                  >
-                    <NoticebookIcon width={24} height={24} {...iconProps} />
-                  </View>
-                ) : (
-                  <NoticebookIcon width={24} height={24} {...iconProps} />
-                );
+                return <NoticebookIcon width={24} height={24} {...iconProps} />;
               case 'OwnerAlbum':
                 return <GalleryIcon width={24} height={24} {...iconProps} />;
               case 'OwnerMembers':
@@ -94,7 +78,7 @@ export default function TabNavigator() {
                 return null;
             }
           },
-          tabBarActiveTintColor: '#41424A',
+          tabBarActiveTintColor: '#FF6E0C',
           tabBarInactiveTintColor: '#8C8C94',
           tabBarStyle: isTabBarVisible
             ? {
