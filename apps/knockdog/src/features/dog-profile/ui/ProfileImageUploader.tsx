@@ -83,31 +83,34 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
 
   return (
     <div className='relative flex items-center justify-center py-5'>
-      <Avatar className='h-[120px] w-[120px] overflow-hidden'>
-        {selectedImage && (
-          <AvatarImage
-            key={selectedImage}
-            src={selectedImage}
-            className='object-cover transition-opacity duration-300'
-            onLoad={handleImageLoad}
-            style={{
-              opacity: isImageLoading ? 0 : 1,
-            }}
-          />
-        )}
-        {!isImageLoading && (
-          <AvatarFallback className='bg-primitive-neutral-100 rounded-full p-0.5'>
-            <Icon icon='Paw' className='text-fill-secondary-400 h-[52px] w-[52px]' />
-          </AvatarFallback>
-        )}
-      </Avatar>
-      <button
-        type='button'
-        onClick={handleImagePick}
-        className='border-line-100 absolute right-[35%] bottom-[15%] z-10 flex h-[36px] w-[36px] items-center justify-center rounded-full border bg-orange-500 p-2'
-      >
-        <Icon icon='Camera' className='text-text-primary-inverse' />
-      </button>
+      <div className='relative h-[120px] w-[120px]'>
+        <Avatar className='h-[120px] w-[120px] overflow-hidden'>
+          {selectedImage && (
+            <AvatarImage
+              key={selectedImage}
+              src={selectedImage}
+              className='object-cover transition-opacity duration-300'
+              onLoad={handleImageLoad}
+              style={{
+                opacity: isImageLoading ? 0 : 1,
+              }}
+            />
+          )}
+          {!isImageLoading && (
+            <AvatarFallback className='bg-primitive-neutral-100 rounded-full p-0.5'>
+              <Icon icon='Paw' className='text-fill-secondary-400 h-[52px] w-[52px]' />
+            </AvatarFallback>
+          )}
+        </Avatar>
+        <button
+          type='button'
+          onClick={handleImagePick}
+          aria-label='프로필 사진 변경'
+          className='bg-bg-0 absolute top-[70%] left-[70%] z-10 flex size-9 items-center justify-center rounded-full p-1'
+        >
+          <Icon icon='Camera' className='text-fill-secondary-700 size-7' />
+        </button>
+      </div>
     </div>
   );
 }

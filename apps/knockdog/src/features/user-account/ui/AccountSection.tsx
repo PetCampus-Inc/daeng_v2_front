@@ -40,7 +40,12 @@ function SocialAccountEmailField({
 }) {
   return (
     <div className='border-line-200 bg-fill-secondary-50 flex h-12 items-center rounded-lg border px-4'>
-      {provider ? <Icon icon={SOCIAL_PROVIDER_ICONS[provider]} className='mr-1 size-5' /> : null}
+      {provider ? (
+        <Icon
+          icon={SOCIAL_PROVIDER_ICONS[provider]}
+          className={provider === 'APPLE' ? 'mr-1 size-5 text-text-tertiary' : 'mr-1 size-5'}
+        />
+      ) : null}
       <span className='body1-regular text-text-secondary truncate'>
         {email}
       </span>
