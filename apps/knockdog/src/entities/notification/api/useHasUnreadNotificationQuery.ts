@@ -13,17 +13,19 @@ interface UseHasUnreadNotificationQueryOptions {
   enabled?: boolean;
 }
 
+async function getHasUnreadNotification() {
+  const response = await getNotifications({ size: 1 });
+  return toNotificationListPage(response.data).hasUnread;
+}
+
 /** 헤더 알림 아이콘 배지용 — 목록 상세 없이 안읽음 여부만 필요할 때 size 최소값(1)으로 조회 */
 function useHasUnreadNotificationQuery({ userId, enabled = true }: UseHasUnreadNotificationQueryOptions = {}) {
   return useQuery({
     queryKey: notificationsUnreadQueryKey(userId),
-    queryFn: async () => {
-      const response = await getNotifications({ size: 1 });
-      return toNotificationListPage(response.data).hasUnread;
-    },
+    queryFn: getHasUnreadNotification,
     enabled: enabled && Boolean(userId),
     staleTime: 60_000,
   });
 }
 
-export { notificationsUnreadQueryKey, useHasUnreadNotificationQuery };
+export { getHasUnreadNotification, notificationsUnreadQueryKey, useHasUnreadNotificationQuery };
