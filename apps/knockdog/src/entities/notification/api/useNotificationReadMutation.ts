@@ -78,6 +78,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
     mutationFn: patchNotificationRead,
     onMutate: async (notificationId): Promise<NotificationReadMutationContext> => {
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: unreadQueryKey });
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
       const readAt = new Date().toISOString();
       queryClient.setQueryData(queryKey, (cache: NotificationsCache | undefined) =>
@@ -98,6 +99,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
     mutationFn: patchNotificationsReadAll,
     onMutate: async (): Promise<NotificationReadMutationContext> => {
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: unreadQueryKey });
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
       const previousUnread = queryClient.getQueryData<boolean>(unreadQueryKey);
       const readAt = new Date().toISOString();

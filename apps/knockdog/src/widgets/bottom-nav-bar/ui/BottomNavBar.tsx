@@ -45,7 +45,7 @@ function BottomNavBarLinks() {
               className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 ${colorClassName}`}
             >
               <div className='flex size-6 items-center justify-center'>
-                <Icon icon={item.icon} className='size-6' />
+                <Icon icon={item.icon} className={`size-6 ${colorClassName}`} />
               </div>
               <span className='text-[12px] leading-[16px] font-regular tracking-normal'>{item.label}</span>
             </Link>
