@@ -74,7 +74,7 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
 
-        <div className='py-5'>
+        <div className='pt-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
           {dogs.map((dog, index) => (
             <div key={dog.id}>
               <button
@@ -85,7 +85,7 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
               >
                 <span className='relative size-11 shrink-0'>
                   <Avatar className='size-11'>
-                    <AvatarImage src={dog.profileImage} />
+                    <AvatarImage src={dog.profileImage} className='object-cover' />
                     <AvatarFallback className='border-line-200 rounded-full border p-0.5'>
                       <Icon icon='Paw' className='text-fill-secondary-400 h-6 w-6' />
                     </AvatarFallback>

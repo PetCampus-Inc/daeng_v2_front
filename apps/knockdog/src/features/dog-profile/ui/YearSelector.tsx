@@ -61,12 +61,12 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
         <BottomSheet.Title className='sr-only'>태어난 해 선택</BottomSheet.Title>
 
         <div className='px-4'>
-          <ul className='scrollbar-hide flex h-[50vh] flex-col overflow-y-auto'>
+          <ul className='scrollbar-hide flex h-[50vh] flex-col overflow-y-auto pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
             {yearList.map((year) => (
               <button
                 key={year}
                 type='button'
-                className='gap-x2 border-line-100 active:text-text-accent flex items-center border-b p-4'
+                className='gap-x2 border-line-100 active:text-text-accent flex items-center border-b p-4 last:border-b-0'
                 onClick={handleSelect(year)}
               >
                 <li className='body1-medium text-text-secondary text-start'>

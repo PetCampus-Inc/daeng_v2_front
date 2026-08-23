@@ -7,6 +7,7 @@ import {
   notificationsQueryKey,
   type NotificationsCache,
 } from './useNotificationsInfiniteQuery';
+import { getHasUnreadNotification, notificationsUnreadQueryKey } from './useHasUnreadNotificationQuery';
 
 interface UseNotificationReadMutationOptions {
   userId?: string;
@@ -16,6 +17,8 @@ interface UseNotificationReadMutationOptions {
 interface NotificationReadMutationContext {
   queryKey: ReturnType<typeof notificationsQueryKey>;
   previous: NotificationsCache | undefined;
+  unreadQueryKey?: ReturnType<typeof notificationsUnreadQueryKey>;
+  previousUnread?: boolean;
 }
 
 function withUnreadFlag(pages: NotificationListPage[], hasUnreadOverride?: boolean) {
@@ -65,11 +68,17 @@ function updateNotificationsCache(
 function useNotificationReadMutation({ userId, size }: UseNotificationReadMutationOptions = {}) {
   const queryClient = useQueryClient();
   const queryKey = notificationsQueryKey(userId, size);
+  const unreadQueryKey = notificationsUnreadQueryKey(userId);
+
+  const refreshUnreadNotification = async () => {
+    await queryClient.fetchQuery({ queryKey: unreadQueryKey, queryFn: getHasUnreadNotification }).catch(() => undefined);
+  };
 
   const markRead = useMutation({
     mutationFn: patchNotificationRead,
     onMutate: async (notificationId): Promise<NotificationReadMutationContext> => {
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: unreadQueryKey });
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
       const readAt = new Date().toISOString();
       queryClient.setQueryData(queryKey, (cache: NotificationsCache | undefined) =>
@@ -82,6 +91,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] });
+      await refreshUnreadNotification();
     },
   });
 
@@ -89,18 +99,29 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
     mutationFn: patchNotificationsReadAll,
     onMutate: async (): Promise<NotificationReadMutationContext> => {
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: unreadQueryKey });
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
+      const previousUnread = queryClient.getQueryData<boolean>(unreadQueryKey);
       const readAt = new Date().toISOString();
       queryClient.setQueryData(queryKey, (cache: NotificationsCache | undefined) =>
         updateNotificationsCache(cache, (notification) => markAllNotificationsRead(notification, readAt), false)
       );
-      return { queryKey, previous };
+      queryClient.setQueryData(unreadQueryKey, false);
+      return { queryKey, previous, unreadQueryKey, previousUnread };
     },
     onError: (_error, _variables, context) => {
       if (context?.previous) queryClient.setQueryData(context.queryKey, context.previous);
+      if (context?.unreadQueryKey) {
+        if (context.previousUnread === undefined) {
+          queryClient.removeQueries({ queryKey: context.unreadQueryKey, exact: true });
+        } else {
+          queryClient.setQueryData(context.unreadQueryKey, context.previousUnread);
+        }
+      }
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] });
+      await refreshUnreadNotification();
     },
   });
 

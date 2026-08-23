@@ -1,10 +1,10 @@
-import ChecklistIcon from '@/assets/icons/checklist_basic.svg';
 import CompareIcon from '@/assets/icons/compare_basic.svg';
 import ExploreIcon from '@/assets/icons/explore_basic.svg';
 import GalleryIcon from '@/assets/icons/gallery_basic.svg';
 import HomeIcon from '@/assets/icons/home_basic.svg';
 import MembersIcon from '@/assets/icons/members_basic.svg';
 import MypageIcon from '@/assets/icons/mypage_basic.svg';
+import NoticebookIcon from '@/assets/icons/noticebook_basic.svg';
 import SaveIcon from '@/assets/icons/save_basic.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
@@ -52,8 +52,8 @@ export default function TabNavigator() {
         return {
           tabBarIcon: ({ focused }) => {
             const iconProps = {
-              fill: focused ? '#41424A' : '#8C8C94',
-              color: focused ? '#41424A' : '#8C8C94',
+              fill: focused ? '#FF6E0C' : '#8C8C94',
+              color: focused ? '#FF6E0C' : '#8C8C94',
             };
 
             switch (route.name) {
@@ -66,7 +66,7 @@ export default function TabNavigator() {
               case 'OwnerHome':
                 return <HomeIcon width={24} height={24} {...iconProps} />;
               case 'OwnerDaily':
-                return <ChecklistIcon width={24} height={24} {...iconProps} />;
+                return <NoticebookIcon width={24} height={24} {...iconProps} />;
               case 'OwnerAlbum':
                 return <GalleryIcon width={24} height={24} {...iconProps} />;
               case 'OwnerMembers':
@@ -78,7 +78,7 @@ export default function TabNavigator() {
                 return null;
             }
           },
-          tabBarActiveTintColor: '#41424A',
+          tabBarActiveTintColor: '#FF6E0C',
           tabBarInactiveTintColor: '#8C8C94',
           tabBarStyle: isTabBarVisible
             ? {

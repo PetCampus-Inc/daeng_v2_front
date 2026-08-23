@@ -135,19 +135,18 @@ function BreedSelectList({ className, query, breeds = [], value, isLoading, onSe
             <p className='h2-extrabold text-text-primary text-center'>일치하는 견종이 없어요</p>
             <p className='body1-regular text-text-secondary text-center'>검색어를 확인하거나 ‘기타’로 등록해 주세요.</p>
           </div>
-          <ActionButton size='large' variant='secondaryLine' onClick={() => onSelect?.(OTHER_BREED)}>
+          <ActionButton type='button' size='large' variant='secondaryLine' onClick={() => onSelect?.(OTHER_BREED)}>
             기타로 등록하기
           </ActionButton>
         </div>
       ) : (
-        <ul className='scrollbar-hide flex h-[calc(100dvh-250px)] flex-col overflow-y-auto'>
-          {breeds.map((breed, index) => (
+        <ul className='scrollbar-hide flex h-[calc(100dvh-250px)] flex-col overflow-y-auto pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
+          {breeds.map((breed) => (
             <button
               key={breed.breedId}
               type='button'
               className={cn(
-                'gap-x2 border-line-200 active:bg-fill-secondary-50 flex items-center py-4',
-                index !== breeds.length - 1 && 'border-b'
+                'gap-x2 border-line-200 active:bg-fill-secondary-50 flex items-center border-b py-4 last:border-b-0'
               )}
               onClick={() => onSelect?.(breed)}
             >
