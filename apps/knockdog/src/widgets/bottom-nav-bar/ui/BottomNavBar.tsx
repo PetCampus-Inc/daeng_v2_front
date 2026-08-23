@@ -44,7 +44,11 @@ function BottomNavBarLinks() {
               href={item.href}
               className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 ${colorClassName}`}
             >
-              <div className='flex size-6 items-center justify-center'>
+              <div
+                className={`flex size-6 items-center justify-center ${
+                  item.icon === 'Noticebook' && isActive ? 'rounded-full bg-fill-primary-500' : ''
+                }`}
+              >
                 <Icon icon={item.icon} className='size-6' />
               </div>
               <span className='text-[12px] leading-[16px] font-regular tracking-normal'>{item.label}</span>

@@ -1,10 +1,10 @@
-import ChecklistIcon from '@/assets/icons/checklist_basic.svg';
 import CompareIcon from '@/assets/icons/compare_basic.svg';
 import ExploreIcon from '@/assets/icons/explore_basic.svg';
 import GalleryIcon from '@/assets/icons/gallery_basic.svg';
 import HomeIcon from '@/assets/icons/home_basic.svg';
 import MembersIcon from '@/assets/icons/members_basic.svg';
 import MypageIcon from '@/assets/icons/mypage_basic.svg';
+import NoticebookIcon from '@/assets/icons/noticebook_basic.svg';
 import SaveIcon from '@/assets/icons/save_basic.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
@@ -18,6 +18,7 @@ import OwnerMembersTab from '@/screens/owner-members';
 import SaveTab from '@/screens/save';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -66,7 +67,22 @@ export default function TabNavigator() {
               case 'OwnerHome':
                 return <HomeIcon width={24} height={24} {...iconProps} />;
               case 'OwnerDaily':
-                return <ChecklistIcon width={24} height={24} {...iconProps} />;
+                return focused ? (
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 12,
+                      backgroundColor: '#FF6E0C',
+                    }}
+                  >
+                    <NoticebookIcon width={24} height={24} {...iconProps} />
+                  </View>
+                ) : (
+                  <NoticebookIcon width={24} height={24} {...iconProps} />
+                );
               case 'OwnerAlbum':
                 return <GalleryIcon width={24} height={24} {...iconProps} />;
               case 'OwnerMembers':
