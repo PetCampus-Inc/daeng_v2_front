@@ -12,12 +12,13 @@ interface UseGuardianCalendarDayOptions {
   selectedDate: Date;
   enabled?: boolean;
   petId?: string | null;
-  /** 생략 시 서버가 가장 최근 관계 유치원 사용 */
+  /** 생략 시 서버가 가장 최근 관계 유치원 사용 — 호출부에서 가능하면 항상 전달 */
   schoolId?: string | null;
 }
 
 /**
  * 선택 날짜의 등하원·알림장 (`GET guardian/school/calendar/detail`)
+ * schoolId 없으면 요청하지 않는다 (서버 기본값=현재 연결로 과거 재연결 이력이 빠짐).
  */
 function useGuardianCalendarDay({
   selectedDate,
@@ -42,7 +43,7 @@ function useGuardianCalendarDay({
     petId,
     date: dateKey,
     schoolId,
-    enabled: enabled && Boolean(petId),
+    enabled: enabled && Boolean(petId) && Boolean(schoolId),
   });
 
   return {

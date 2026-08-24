@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import type { RefObject } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import WebView from 'react-native-webview';
+import type { WebViewNavigation } from 'react-native-webview';
 import { BridgeWebView } from '@/bridges/ui/BridgeWebView';
 import type { InitialState } from '@/types/navigation';
 
@@ -11,6 +12,7 @@ interface WebViewScreenProps {
   uri: string;
   webviewRef?: AnyWebViewRef;
   initialState?: InitialState;
+  onNavigationStateChange?: (navState: WebViewNavigation) => void;
 }
 
 function injectNativeTabFocus(webview: WebView | null, focused: boolean) {
@@ -23,7 +25,12 @@ function injectNativeTabFocus(webview: WebView | null, focused: boolean) {
   webview.injectJavaScript(script);
 }
 
-export default function WebViewScreen({ uri, webviewRef, initialState }: WebViewScreenProps) {
+export default function WebViewScreen({
+  uri,
+  webviewRef,
+  initialState,
+  onNavigationStateChange,
+}: WebViewScreenProps) {
   const isFocusedRef = useRef(false);
   const internalRef = useRef<WebView>(null);
   const resolvedRef = (webviewRef ?? internalRef) as RefObject<WebView>;
@@ -52,6 +59,7 @@ export default function WebViewScreen({ uri, webviewRef, initialState }: WebView
       webviewRef={resolvedRef}
       initialState={initialState}
       onLoadEnd={handleLoadEnd}
+      onNavigationStateChange={onNavigationStateChange}
     />
   );
 }

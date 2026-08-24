@@ -54,7 +54,7 @@ function GuardianKindergartenAttendingState({
     checkOutAt: selectedCheckOutAt,
     dailyNotice: selectedDailyNotice,
     isPending: isCalendarDayPending,
-  } = useGuardianCalendarDay({ selectedDate });
+  } = useGuardianCalendarDay({ selectedDate, schoolId: kindergarten.id });
 
   const isDismissed = Boolean(checkOutAt);
   const hasAlbumPhotos = albumPhotos.length > 0;
@@ -66,7 +66,7 @@ function GuardianKindergartenAttendingState({
   const showAlbumArrived = hasUnseenAlbumPhotos && (isDismissed ? hasDailyNotice : true);
 
   const handleNoticeViewClick = () => {
-    pushGuardianDailyNoticeDetail(push, new Date());
+    pushGuardianDailyNoticeDetail(push, new Date(), { schoolId: kindergarten.id });
   };
 
   const handleHistoryClick = () => {
@@ -203,7 +203,9 @@ function GuardianKindergartenAttendingState({
           dailyNotice={selectedDailyNotice}
           emptyMessage={content.calendarEmptyMessage}
           isLoading={isCalendarDayPending}
-          onNoticeViewAllClick={() => pushGuardianDailyNoticeDetail(push, selectedDate)}
+          onNoticeViewAllClick={() =>
+            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
+          }
         />
       </section>
 

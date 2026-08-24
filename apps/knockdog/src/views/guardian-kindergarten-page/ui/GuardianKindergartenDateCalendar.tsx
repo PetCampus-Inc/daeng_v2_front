@@ -29,6 +29,8 @@ interface GuardianKindergartenDateCalendarProps {
   markedDateKeys?: Set<string>;
   /** 지정 시 선택 강아지 store 대신 이 petId로 등원일 조회 */
   petId?: string | null;
+  /** calendar/detail 조회 학교. 알림장 상세에서는 필수 */
+  schoolId?: string | null;
   /**
    * true면 등원 시각(checkInAt) 있는 날짜만 선택 가능.
    * 알림장 상세에서 미등원일 비활성 처리용.
@@ -56,6 +58,11 @@ interface GuardianKindergartenDateCalendarProps {
     /** false면 선택일이 등원일로 스냅되기 전 — 호출부는 로딩을 유지해야 한다 */
     isSelectedDateEnabled: boolean;
   }) => void;
+  /**
+   * true면 등원일 스냅을 하지 않는다.
+   * 리스트/딥링크로 연 URL date를 membership·등원 마커 하한에 빼앗기지 않게 유지.
+   */
+  lockSelectedDate?: boolean;
 }
 
 function getVisibleRecordDateRange(options: {
@@ -102,12 +109,14 @@ function GuardianKindergartenDateCalendar({
   onSelectDate,
   markedDateKeys: markedDateKeysProp,
   petId: petIdOverride,
+  schoolId,
   onlyCheckInDatesSelectable = false,
   firstAttendedAt,
   minDate: minDateProp,
   maxDate: maxDateProp,
   fetchRecordMarks = true,
   onVisibleCheckInStateChange,
+  lockSelectedDate = false,
 }: GuardianKindergartenDateCalendarProps) {
   const today = useMemo(() => startOfDay(new Date()), []);
   /** 선택/이동 하한. membership 등으로 명시할 때만 조인다. */
@@ -185,14 +194,18 @@ function GuardianKindergartenDateCalendar({
     enabled: shouldFetchMarks && !onlyCheckInDatesSelectable,
   });
 
+  const canFetchCheckIns =
+    onlyCheckInDatesSelectable && Boolean(selectedPetId) && Boolean(schoolId);
   const { checkInDateKeys, isReady: isCheckInKeysReady } = useGuardianCalendarCheckInDateKeys({
     petId: selectedPetId,
+    schoolId,
     dateKeys: visibleDateKeys,
-    enabled: onlyCheckInDatesSelectable && Boolean(selectedPetId),
+    enabled: canFetchCheckIns,
   });
+  const isCheckInReady = !onlyCheckInDatesSelectable || (canFetchCheckIns && isCheckInKeysReady);
 
   const markedDateKeys = useMemo(() => {
-    if (onlyCheckInDatesSelectable && isCheckInKeysReady) {
+    if (onlyCheckInDatesSelectable && isCheckInReady) {
       return (
         filterDateKeysByRange(checkInDateKeys, markMinKey, markMaxKey) ?? new Set<string>()
       );
@@ -206,7 +219,7 @@ function GuardianKindergartenDateCalendar({
     return filterDateKeysByRange(recordDateSet, markMinKey, markMaxKey);
   }, [
     checkInDateKeys,
-    isCheckInKeysReady,
+    isCheckInReady,
     isVisibleRangeValid,
     markMaxKey,
     markMinKey,
@@ -217,11 +230,11 @@ function GuardianKindergartenDateCalendar({
 
   // 로딩 중엔 제한하지 않고, 준비되면 등원 시각 있는 날만 활성 (+ membership 기간)
   const enabledDateKeys = useMemo(() => {
-    if (!onlyCheckInDatesSelectable || !isCheckInKeysReady) return undefined;
+    if (!onlyCheckInDatesSelectable || !isCheckInReady) return undefined;
     return filterDateKeysByRange(checkInDateKeys, markMinKey, markMaxKey);
   }, [
     checkInDateKeys,
-    isCheckInKeysReady,
+    isCheckInReady,
     markMaxKey,
     markMinKey,
     onlyCheckInDatesSelectable,
@@ -249,10 +262,11 @@ function GuardianKindergartenDateCalendar({
   useEffect(() => {
     if (!onlyCheckInDatesSelectable || !onVisibleCheckInStateChange) return;
     onVisibleCheckInStateChange({
-      isReady: isCheckInKeysReady,
+      isReady: isCheckInReady,
       hasCheckIn: (enabledDateKeys?.size ?? checkInDateKeys.size) > 0,
       isWeeklyView: !isMonthlyExpanded,
       isSelectedDateEnabled:
+        lockSelectedDate ||
         enabledDateKeys == null ||
         enabledDateKeys.size === 0 ||
         enabledDateKeys.has(formatDateKey(selectedDate)),
@@ -260,15 +274,17 @@ function GuardianKindergartenDateCalendar({
   }, [
     checkInDateKeys.size,
     enabledDateKeys,
-    isCheckInKeysReady,
+    isCheckInReady,
     isMonthlyExpanded,
+    lockSelectedDate,
     onVisibleCheckInStateChange,
     onlyCheckInDatesSelectable,
     selectedDate,
   ]);
 
   useEffect(() => {
-    if (!onlyCheckInDatesSelectable || !isCheckInKeysReady) return;
+    if (lockSelectedDate) return;
+    if (!onlyCheckInDatesSelectable || !isCheckInReady) return;
     if (!enabledDateKeys || enabledDateKeys.size === 0) return;
     if (enabledDateKeys.has(formatDateKey(selectedDate))) return;
 
@@ -276,7 +292,8 @@ function GuardianKindergartenDateCalendar({
     if (!isSameDay(next, selectedDate)) onSelectDate(next);
   }, [
     enabledDateKeys,
-    isCheckInKeysReady,
+    isCheckInReady,
+    lockSelectedDate,
     maxDate,
     minDate,
     onSelectDate,

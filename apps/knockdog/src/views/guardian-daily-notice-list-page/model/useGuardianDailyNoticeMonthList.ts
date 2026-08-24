@@ -109,13 +109,7 @@ function useGuardianDailyNoticeMonthList({
   const items = useMemo(() => {
     const days = records?.days ?? [];
     return days.reduce<GuardianDailyNoticeMonthItem[]>((acc, day) => {
-      const hasRecord = Boolean(
-        day.checkInAt ||
-          day.checkOutAt ||
-          day.dailyNotice ||
-          day.thumbnailUrl ||
-          day.membershipEvents.length > 0
-      );
+      const hasRecord = Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice);
       if (!hasRecord) return acc;
       const date = parseDateKey(day.dateKey);
       // school 스코프 records는 재연결 사이클을 포함하므로 membership 기간으로 잘라내지 않는다.

@@ -36,7 +36,7 @@ function GuardianKindergartenApprovedState({
     checkOutAt,
     dailyNotice,
     isPending: isCalendarDayPending,
-  } = useGuardianCalendarDay({ selectedDate });
+  } = useGuardianCalendarDay({ selectedDate, schoolId: kindergarten.id });
 
   useEffect(() => {
     if (initialSelectedDate) setSelectedDate(initialSelectedDate);
@@ -108,7 +108,9 @@ function GuardianKindergartenApprovedState({
           dailyNotice={dailyNotice}
           emptyMessage={content.calendarEmptyMessage}
           isLoading={isCalendarDayPending}
-          onNoticeViewAllClick={() => pushGuardianDailyNoticeDetail(push, selectedDate)}
+          onNoticeViewAllClick={() =>
+            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
+          }
         />
       </section>
 

@@ -43,7 +43,10 @@ function useNotificationInboxDeepLink() {
 
     switch (destination.kind) {
       case 'attendanceRecord':
-        pushGuardianDailyNoticeDetail(push, parseLocalDateKey(destination.date), destination.petId, 'inbox');
+        pushGuardianDailyNoticeDetail(push, parseLocalDateKey(destination.date), {
+          petId: destination.petId,
+          source: 'inbox',
+        });
         return;
       case 'guardianKindergarten':
         void navigateToTab('/compare', {

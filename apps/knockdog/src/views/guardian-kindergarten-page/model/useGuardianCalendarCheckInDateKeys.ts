@@ -13,6 +13,7 @@ import { useUserStore } from '@entities/user';
 
 interface UseGuardianCalendarCheckInDateKeysOptions {
   petId?: string | null;
+  schoolId?: string | null;
   /** YYYY-MM-DD */
   dateKeys: string[];
   enabled?: boolean;
@@ -31,17 +32,29 @@ function hasCheckIn(detail: GuardianCalendarDetail | undefined) {
  */
 function useGuardianCalendarCheckInDateKeys({
   petId,
+  schoolId,
   dateKeys,
   enabled = true,
 }: UseGuardianCalendarCheckInDateKeysOptions) {
   const userId = useUserStore((state) => state.user?.userId);
-  const canQuery = enabled && Boolean(userId) && Boolean(petId) && dateKeys.length > 0;
+  const canQuery =
+    enabled && Boolean(userId) && Boolean(petId) && Boolean(schoolId) && dateKeys.length > 0;
   const dateKeysKey = dateKeys.join(',');
 
   const queries = useQueries({
     queries: dateKeys.map((date) => ({
-      queryKey: guardianCalendarDetailQueryKey(userId, petId ?? undefined, date),
-      queryFn: () => getGuardianCalendarDetail({ petId: petId!, date }),
+      queryKey: guardianCalendarDetailQueryKey(
+        userId,
+        petId ?? undefined,
+        date,
+        schoolId ?? undefined
+      ),
+      queryFn: () =>
+        getGuardianCalendarDetail({
+          petId: petId!,
+          date,
+          schoolId: schoolId ?? undefined,
+        }),
       select: (response: Awaited<ReturnType<typeof getGuardianCalendarDetail>>) =>
         toGuardianCalendarDetail(response.data),
       enabled: canQuery,
