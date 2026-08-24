@@ -126,6 +126,19 @@ function getActiveTabName(): TabName | null {
   return (activeRoute?.name as TabName | undefined) ?? null;
 }
 
+/** 네이티브 탭바 높이가 바뀐 뒤 WebView의 바텀시트·지도 레이아웃을 다시 계산한다. */
+function notifyActiveTabViewportChanged() {
+  // React Navigation의 탭바 레이아웃 반영 뒤에 WebView에 resize를 전달한다.
+  setTimeout(() => {
+    const activeTab = getActiveTabName();
+    if (!activeTab) return;
+
+    tabWebViewStore
+      .get(activeTab)
+      ?.current?.injectJavaScript("window.dispatchEvent(new Event('resize'));true;");
+  }, 100);
+}
+
 function isStackFocused(): boolean {
   const state = navigationRef.getState();
   if (!state) return false;
@@ -462,6 +475,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     lastBottomTabBarVisibilityRequestId = payload.requestId;
     const visible = payload?.visible !== false;
     useBottomTabBarVisibilityStore.getState().setVisible(visible);
+    notifyActiveTabViewportChanged();
     return { visible };
   });
 }
