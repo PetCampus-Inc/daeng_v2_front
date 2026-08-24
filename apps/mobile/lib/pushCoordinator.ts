@@ -40,12 +40,23 @@ class PushCoordinator {
     if (!token) return;
     this.currentToken = token;
     this.platform = platform;
+    if (__DEV__) {
+      console.info('[PushDevice] native fcm token ready', {
+        platform,
+        hasActiveWebView: Boolean(this.activeWebView?.current),
+      });
+    }
     this.sendToken(this.activeWebView);
   }
 
   markSessionReady(webRef: WebRef) {
     this.readyWebViews.add(webRef);
     this.activeWebView = webRef;
+    if (__DEV__) {
+      console.info('[PushDevice] push.sessionReady received — delivering token to webview', {
+        hasToken: Boolean(this.currentToken),
+      });
+    }
     this.sendToken(webRef);
     this.flushNavigation();
   }
@@ -89,8 +100,11 @@ class PushCoordinator {
 
     try {
       nativeWebView.injectJavaScript(`window.__bridge?.receive(${serializeForJS(message)}); true;`);
+      if (__DEV__) {
+        console.info('[PushDevice] fcm token delivered to webview', { platform: this.platform });
+      }
     } catch (error) {
-      if (__DEV__) console.warn('[PushCoordinator] token delivery failed', error);
+      if (__DEV__) console.warn('[PushDevice] token delivery failed', error);
     }
   }
 
@@ -104,6 +118,7 @@ class PushCoordinator {
       const params = new URLSearchParams({
         petId: destination.petId,
         date: destination.date,
+        source: 'push',
       });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/notice?${params}`) }));
       return;
@@ -135,12 +150,9 @@ class PushCoordinator {
     compareWebView.injectJavaScript(`
       (function() {
         var petId = ${serializedPetId};
-        try {
-          localStorage.setItem('GUARDIAN_SELECTED_PET', JSON.stringify({ state: { selectedPetId: String(petId) }, version: 0 }));
-        } catch (e) {}
-        window.dispatchEvent(new CustomEvent('knockdog:guardian-selected-pet', { detail: { petId: String(petId) } }));
         var url = new URL(window.location.href);
         url.searchParams.set('pushPetId', petId);
+        url.searchParams.set('source', 'push');
         url.searchParams.delete('pushDate');
         history.replaceState(null, '', url.pathname + url.search + url.hash);
         window.dispatchEvent(new PopStateEvent('popstate', { state: null }));

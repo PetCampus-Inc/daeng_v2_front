@@ -2,12 +2,14 @@
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isPetIdInList } from '@shared/lib/notification';
+import { toast } from '@shared/ui/toast';
+import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
 import { resolveNotificationInboxDestination } from '@views/notification-inbox-page/lib/resolveNotificationInboxDestination';
-import { toast } from '@shared/ui/toast';
-import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
-import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 
 function parseLocalDateKey(value: string) {
   const [yearText, monthText, dayText] = value.split('-');
@@ -17,6 +19,7 @@ function parseLocalDateKey(value: string) {
 function useNotificationInboxDeepLink() {
   const { push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
+  const { pets, isPetsReady, isPetsError } = useGuardianSelectedPet();
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
 
   const openNotification = (item: NotificationInboxItem) => {
@@ -26,16 +29,26 @@ function useNotificationInboxDeepLink() {
     }
 
     const destination = resolveNotificationInboxDestination(item.type, item.payload);
+    const destinationPetId = 'petId' in destination ? destination.petId : undefined;
+    const canValidatePetList = isPetsReady && !isPetsError;
+
+    if (
+      destinationPetId &&
+      canValidatePetList &&
+      !isPetIdInList(pets, destinationPetId)
+    ) {
+      toast(notificationInboxContent.pageNotFoundToast);
+      return;
+    }
 
     switch (destination.kind) {
       case 'attendanceRecord':
-        setSelectedPetId(destination.petId);
-        pushGuardianDailyNoticeDetail(push, parseLocalDateKey(destination.date), destination.petId);
+        pushGuardianDailyNoticeDetail(push, parseLocalDateKey(destination.date), destination.petId, 'inbox');
         return;
       case 'guardianKindergarten':
-        setSelectedPetId(destination.petId);
         void navigateToTab('/compare', {
           pushPetId: destination.petId,
+          source: 'inbox',
         });
         return;
       case 'ownerMemberApprovals':

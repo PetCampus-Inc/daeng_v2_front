@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react';
 
 import { usePetListQuery, usePetRepresentativeQuery } from '@entities/pet';
+import type { Pet } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
 import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
+
+const EMPTY_PETS: Pet[] = [];
 
 function hasUserStoreHydrated() {
   return useUserStore.persist?.hasHydrated?.() ?? true;
@@ -53,7 +56,7 @@ function useGuardianSelectedPet() {
   const selectedPetId = useGuardianSelectedPetStore((state) => state.selectedPetId);
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
 
-  const pets = petListResponse?.data ?? [];
+  const pets = petListResponse?.data ?? EMPTY_PETS;
   const selectedPet =
     pets.find((pet) => selectedPetId != null && String(pet.id) === String(selectedPetId)) ??
     representativePet ??

@@ -4,11 +4,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
 import { useTabNavigation } from '@shared/lib/bridge';
+import {
+  isPetIdInList,
+  parseNotificationEntrySource,
+  useUnavailableNotificationAction,
+} from '@shared/lib/notification';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
-import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
@@ -23,22 +28,49 @@ export function GuardianKindergartenPage() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
-  const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
+  const { pets, isPetsReady, isPetsError, setSelectedPetId } = useGuardianSelectedPet();
+  const { rejectUnavailableTabTarget } = useUnavailableNotificationAction();
   const pushPetIdFromRouter = searchParams.get('pushPetId');
 
   /** Native는 history.replaceState라 Next useSearchParams가 안 바뀐다. location을 직접 읽는다. */
   useEffect(() => {
+    if (!isPetsReady || isPetsError) return;
+
+    function readPushPetFromLocation() {
+      const params = new URLSearchParams(window.location.search);
+      const petId = params.get('pushPetId') ?? pushPetIdFromRouter;
+      const source = parseNotificationEntrySource(params.get('source'));
+      return { petId, source };
+    }
+
+    function clearPushPetQuery() {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has('pushPetId') && !url.searchParams.has('source')) return;
+      url.searchParams.delete('pushPetId');
+      url.searchParams.delete('source');
+      url.searchParams.delete('pushDate');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+
     function applyPushPetFromLocation() {
-      const petId =
-        new URLSearchParams(window.location.search).get('pushPetId') ?? pushPetIdFromRouter;
+      const { petId, source } = readPushPetFromLocation();
       if (!petId || !/^\d+$/.test(petId)) return;
-      setSelectedPetId(petId);
+
+      if (isPetIdInList(pets, petId)) {
+        setSelectedPetId(petId);
+        clearPushPetQuery();
+        return;
+      }
+
+      // 삭제된 강아지: 다른 강아지로 갈아타지 않는다. 푸시는 홈 유지, 알림함은 토스트.
+      rejectUnavailableTabTarget(source);
+      clearPushPetQuery();
     }
 
     applyPushPetFromLocation();
     window.addEventListener('popstate', applyPushPetFromLocation);
     return () => window.removeEventListener('popstate', applyPushPetFromLocation);
-  }, [pushPetIdFromRouter, setSelectedPetId]);
+  }, [isPetsError, isPetsReady, pets, pushPetIdFromRouter, rejectUnavailableTabTarget, setSelectedPetId]);
 
   const handleAuthError = useCallback(
     async (_error: Error) => {
@@ -51,8 +83,6 @@ export function GuardianKindergartenPage() {
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const {
     hasNoPet,
-    isPetsReady,
-    isPetsError,
     isPetsFetching,
     refetchPets,
     isHomeError,
