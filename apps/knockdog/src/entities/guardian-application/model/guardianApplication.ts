@@ -140,21 +140,43 @@ function parseAppliedAt(value: GuardianApplicationDateTime | null | undefined): 
     return '';
   }
 
-  const millisecond =
-    typeof nano === 'number' && Number.isFinite(nano) ? Math.floor(nano / 1_000_000) : 0;
-  const date = new Date(
-    Date.UTC(
-      year,
-      month - 1,
-      day,
-      hour - 9,
-      minute,
-      typeof second === 'number' && Number.isFinite(second) ? second : 0,
-      millisecond
-    )
-  );
+  const normalizedSecond = typeof second === 'number' && Number.isFinite(second) ? second : 0;
+  const normalizedNano = typeof nano === 'number' && Number.isFinite(nano) ? nano : 0;
+  if (
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31 ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59 ||
+    normalizedSecond < 0 ||
+    normalizedSecond > 59 ||
+    normalizedNano < 0 ||
+    normalizedNano > 999_999_999
+  ) {
+    return '';
+  }
 
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+  const millisecond = Math.floor(normalizedNano / 1_000_000);
+  const date = new Date(Date.UTC(year, month - 1, day, hour - 9, minute, normalizedSecond, millisecond));
+  if (Number.isNaN(date.getTime())) return '';
+
+  // Date.UTC 정규화(2/31→3/3 등) 거부 — KST wall(hour-9)을 되돌린 값과 원본 비교
+  const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  if (
+    kst.getUTCFullYear() !== year ||
+    kst.getUTCMonth() + 1 !== month ||
+    kst.getUTCDate() !== day ||
+    kst.getUTCHours() !== hour ||
+    kst.getUTCMinutes() !== minute ||
+    kst.getUTCSeconds() !== normalizedSecond
+  ) {
+    return '';
+  }
+
+  return date.toISOString();
 }
 
 function toGuardianApplication(dto: GuardianApplicationDto): GuardianApplication | null {

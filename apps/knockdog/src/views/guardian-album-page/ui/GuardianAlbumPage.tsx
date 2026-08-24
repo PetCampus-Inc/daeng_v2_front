@@ -60,6 +60,24 @@ interface GuardianAlbumDetailState {
   photos: GuardianAlbumPhoto[];
   initialIndex: number;
   showListButton: boolean;
+  /** 오늘의 새 사진이 포함된 상세면 닫을 때 lastViewed에 쓸 max uploadedAt(ms) */
+  todayNewViewedAt: number | null;
+}
+
+/** 오늘 날짜/lastViewed 이후 사진만 모아 읽음 마커용 max createdAt */
+function resolveTodayNewViewedAt(
+  photos: GuardianAlbumPhoto[],
+  todayDateKey: string,
+  lastViewedAt: number
+) {
+  let maxUploadedAt = 0;
+  for (const photo of photos) {
+    const uploadedAt = new Date(photo.uploadedAt).getTime();
+    if (!Number.isFinite(uploadedAt) || uploadedAt <= lastViewedAt) continue;
+    if (toDateKey(new Date(uploadedAt)) !== todayDateKey) continue;
+    if (uploadedAt > maxUploadedAt) maxUploadedAt = uploadedAt;
+  }
+  return maxUploadedAt > 0 ? maxUploadedAt : null;
 }
 
 function startOfMonth(date: Date) {
@@ -278,15 +296,18 @@ function GuardianAlbumPage() {
         photos,
         initialIndex: foundIndex >= 0 ? foundIndex : 0,
         showListButton,
+        todayNewViewedAt: resolveTodayNewViewedAt(photos, todayDateKey, lastViewedAt),
       });
     },
-    []
+    [lastViewedAt, todayDateKey]
   );
 
   const handleCloseDetail = useCallback(() => {
-    markAsViewed();
+    if (detailState?.todayNewViewedAt != null) {
+      markAsViewed(detailState.todayNewViewedAt);
+    }
     setDetailState(null);
-  }, [markAsViewed]);
+  }, [detailState, markAsViewed]);
 
   const handleOpenTodayDetail = useCallback(
     (photoId?: string) => {

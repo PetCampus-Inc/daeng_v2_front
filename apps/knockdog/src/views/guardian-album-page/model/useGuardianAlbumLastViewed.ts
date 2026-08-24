@@ -19,10 +19,9 @@ function useGuardianAlbumLastViewed() {
     writeLastViewedAt(Date.now());
   }, []);
 
-  const markAsViewed = useCallback(() => {
-    const now = Date.now();
-    writeLastViewedAt(now);
-    setLastViewedAt(now);
+  const markAsViewed = useCallback((viewedAt = Date.now()) => {
+    writeLastViewedAt(viewedAt);
+    setLastViewedAt(viewedAt);
   }, []);
 
   useEffect(() => {

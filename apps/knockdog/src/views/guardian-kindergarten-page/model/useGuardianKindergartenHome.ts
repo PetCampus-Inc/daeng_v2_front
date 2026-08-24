@@ -13,7 +13,7 @@ import { useGuardianSelectedPet } from './useGuardianSelectedPet';
 /**
  * 보호자 유치원 탭 홈 (`GET guardian/school/home`) 기반 view model.
  */
-function useGuardianKindergartenHome(options?: { petId?: string | null }) {
+function useGuardianKindergartenHome(options?: { petId?: string | null; enabled?: boolean }) {
   const userId = useUserStore((state) => state.user?.userId);
   const {
     hasNoPet,
@@ -25,6 +25,7 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
     selectedPetId: storePetId,
   } = useGuardianSelectedPet();
   const selectedPetId = options?.petId || storePetId;
+  const isEnabled = options?.enabled ?? true;
 
   const { data: hasUnreadAlarm = false } = useHasUnreadNotificationQuery({
     userId,
@@ -40,7 +41,11 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
   } = useGuardianHomeQuery({
     userId,
     petId: selectedPetId,
-    enabled: Boolean(userId) && Boolean(selectedPetId) && (Boolean(options?.petId) || (isPetsReady && !hasNoPet)),
+    enabled:
+      isEnabled &&
+      Boolean(userId) &&
+      Boolean(selectedPetId) &&
+      (Boolean(options?.petId) || (isPetsReady && !hasNoPet)),
   });
 
   const status = home?.status ?? 'none';

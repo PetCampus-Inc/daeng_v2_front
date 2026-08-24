@@ -192,7 +192,8 @@ function toGuardianHomeSchool(dto: GuardianHomeSchoolDto | null | undefined): Gu
   const schoolId = dto.schoolId;
   if (schoolId == null || schoolId === '') return null;
 
-  const placeId = dto.placeId ?? dto.kindergartenPlaceId;
+  const placeId =
+    dto.placeId == null || dto.placeId === '' ? dto.kindergartenPlaceId : dto.placeId;
   return {
     id: String(schoolId),
     placeId: placeId == null || placeId === '' ? null : String(placeId),

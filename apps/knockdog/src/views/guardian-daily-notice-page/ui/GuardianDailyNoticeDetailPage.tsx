@@ -104,6 +104,7 @@ function GuardianDailyNoticeDetailPage() {
     petIdFromQuery != null && canValidatePetList && !isPetIdInList(pets, petIdFromQuery);
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome({
     petId: petIdFromQuery,
+    enabled: petIdFromQuery == null || (isPetsReady && !isQueryPetMissing),
   });
   const selectedPetId = petIdFromQuery || storePetId;
 
