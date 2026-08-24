@@ -24,12 +24,12 @@ const layoutStyle: Record<PageErrorLayout, { root: string; main: string; footer:
   overlay: {
     root: 'bg-bg-0 fixed inset-0 z-100 mx-auto flex h-dvh w-full max-w-120 flex-col',
     main: 'flex min-h-0 flex-1 flex-col items-center pt-[202px]',
-    footer: 'flex h-24 w-full items-center gap-2 px-4 py-5',
+    footer: 'flex w-full items-center gap-2 px-4 pt-5 pb-[calc(1.25rem+var(--safe-area-inset-bottom,0px))]',
   },
   inline: {
     root: 'bg-bg-0 flex min-h-0 w-full flex-1 flex-col',
     main: 'flex min-h-0 flex-1 flex-col items-center justify-center px-4',
-    footer: 'shrink-0 px-4 py-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]',
+    footer: 'shrink-0 px-4 pt-5 pb-[calc(1.25rem+var(--safe-area-inset-bottom,0px))]',
   },
 };
 
