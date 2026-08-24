@@ -11,7 +11,7 @@ function LocationPermissionSection() {
     <div className='mt-5 flex flex-col gap-y-2 px-4'>
       <div className='flex items-center justify-between'>
         <span className='body2-regular text-text-secondary'>
-          집, 직장 외<span className='text-text-accent'> 1개 </span>
+          집 외<span className='text-text-accent'> 1개 </span>
           추가 등록 가능
         </span>
         <Tooltip placement='bottom-left'>
