@@ -37,7 +37,6 @@ import {
 
 const MYPAGE_EXTERNAL_LINKS = {
   NOTICE: 'https://app.notion.com/p/3876c15f67fb807f9444c1545c5753c5?source=copy_link',
-  OPEN_SOURCE_LICENSE: 'https://fifth-potato-175.notion.site/2ba6c15f67fb805d9b8df5db96f2bfc1?source=copy_link',
 };
 
 function Mypage() {
@@ -277,14 +276,12 @@ function Mypage() {
         {isLoggedIn && <QuickActionsSection contactUrl={isOwnerView ? EXTERNAL_LINKS.OWNER_CONTACT : EXTERNAL_LINKS.CONTACT} />}
 
         <SettingsSection
-          variant={isLoggedIn && isOwnerView ? 'owner' : 'guardian'}
           otherInfoTitle={ownerMypageContent.otherInfoTitle}
           logoutLabel={ownerMypageContent.logoutLabel}
           withdrawLabel={ownerMypageContent.withdrawLabel}
           onNoticeClick={() => handleOpenLink('NOTICE')}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
-          onLicenseClick={() => handleOpenLink('OPEN_SOURCE_LICENSE')}
           onLogoutClick={handleLogout}
           onWithdrawClick={handleWithdrawClick}
         />
