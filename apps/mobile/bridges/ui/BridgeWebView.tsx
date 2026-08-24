@@ -15,6 +15,7 @@ interface Props {
   webviewRef?: RefObject<WebView>;
   /** navPush/navReplace/navReset로 받은 state를 주입 */
   initialState?: InitialState;
+  onLoadEnd?: () => void;
 }
 
 /** 초기 history.state & URL 쿼리 주입 스크립트 */
@@ -80,7 +81,7 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
   `;
 }
 
-export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
+export function BridgeWebView({ uri, webviewRef, initialState, onLoadEnd }: Props) {
   const insets = useSafeAreaInsets();
   const lastInjectedInsetsRef = useRef<string | null>(null);
 
@@ -149,6 +150,7 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
           }
         }
         notifyReady();
+        onLoadEnd?.();
       }}
       javaScriptEnabled
       domStorageEnabled
