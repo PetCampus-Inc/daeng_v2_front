@@ -45,13 +45,13 @@ export function registerPermissionHandlers(router: NativeBridgeRouter) {
     const existing = await Notifications.getPermissionsAsync();
     if (isNotificationPermissionGranted(existing)) {
       pushCoordinator.notifyNotificationPermissionGranted();
-      return { status: 'allowed' as const, canAskAgain: existing.canAskAgain };
+      return { status: 'allowed' as const, canAskAgain: existing.canAskAgain, requested: false };
     }
 
     const requested = await Notifications.requestPermissionsAsync();
     if (isNotificationPermissionGranted(requested)) {
       pushCoordinator.notifyNotificationPermissionGranted();
     }
-    return mapExpoStatus(requested.status, requested.canAskAgain);
+    return { ...mapExpoStatus(requested.status, requested.canAskAgain), requested: true };
   });
 }
