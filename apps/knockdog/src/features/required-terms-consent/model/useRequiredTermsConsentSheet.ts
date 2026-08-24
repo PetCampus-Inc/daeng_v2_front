@@ -7,6 +7,8 @@ import {
   useUserAgreementsStatusQuery,
   useUserStore,
 } from '@entities/user';
+import { consumePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -22,6 +24,7 @@ const initialCheckedTermsState = (): CheckedTermsState =>
   Object.fromEntries(requiredTermIds.map((id) => [id, false])) as CheckedTermsState;
 
 function useRequiredTermsConsentSheet() {
+  const { reset } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const agreementsStatusQuery = useUserAgreementsStatusQuery(userId);
   const { mutateAsync: submitAgreements, isPending: isSubmitting } = usePostUserAgreementsMutation();
@@ -91,6 +94,19 @@ function useRequiredTermsConsentSheet() {
     try {
       await submitAgreements({ agreedTerms });
       setIsOpen(false);
+
+      const redirectTo = consumePostSignUpRedirect();
+      if (redirectTo) {
+        try {
+          await reset(redirectTo);
+        } catch {
+          toast({
+            title: '다음 화면으로 이동하지 못했어요. 다시 시도해 주세요.',
+            shape: 'square',
+            position: 'top',
+          });
+        }
+      }
     } catch (error) {
       console.error('[useRequiredTermsConsentSheet] 약관 동의 실패:', error);
       toast({
@@ -99,7 +115,7 @@ function useRequiredTermsConsentSheet() {
         position: 'top',
       });
     }
-  }, [checkedTerms, isAllChecked, isSubmitting, submitAgreements]);
+  }, [checkedTerms, isAllChecked, isSubmitting, reset, submitAgreements]);
 
   return {
     isOpen,

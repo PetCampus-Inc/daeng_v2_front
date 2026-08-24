@@ -91,7 +91,8 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
     const shouldResetToMain = isNewSignUp && options?.resetToMainAfterSignUp === true;
 
-    if (redirectTo && !shouldResetToMain) {
+    // 신규 가입은 필수 약관 동의가 끝난 뒤에만 원래 진입 컨텍스트로 이동한다.
+    if (isNewSignUp && redirectTo) {
       savePostSignUpRedirect(redirectTo);
     } else {
       clearPostSignUpRedirect();
@@ -101,7 +102,10 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
     if (!hasSeenDevicePermissionIntro()) {
       const query = {
-        ...(redirectTo ? { redirectTo } : {}),
+        // 신규 가입자는 권한 안내를 마친 뒤 내 주변에서 필수 약관을 먼저 동의한다.
+        // 이 시점에 redirectTo를 전달하면 약관 동의 전에 초대 흐름으로 이동하게 된다.
+        ...(!isNewSignUp && redirectTo ? { redirectTo } : {}),
+        ...(isNewSignUp ? { deferRequiredTerms: 'true' } : {}),
         ...(resultTxId ? { resume: 'stack', _txId: resultTxId } : {}),
       };
       const hasQuery = Object.keys(query).length > 0;
@@ -123,7 +127,7 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
       navResult.send(true);
     }
 
-    if (shouldResetToMain) {
+    if (isNewSignUp || shouldResetToMain) {
       reset(route.root).catch(() => undefined);
       return;
     }

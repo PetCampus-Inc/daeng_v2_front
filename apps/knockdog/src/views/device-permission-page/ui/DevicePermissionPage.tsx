@@ -52,6 +52,13 @@ function DevicePermissionPage() {
       markDevicePermissionIntroSeen();
 
       const searchParams = new URLSearchParams(window.location.search);
+      // 신규 가입자는 내 주변에서 필수 약관 동의 바텀시트를 먼저 표시한다.
+      // 가입 전 저장한 redirectTo는 약관 동의 완료 시점에 소비한다.
+      if (searchParams.get('deferRequiredTerms') === 'true') {
+        await reset(route.root);
+        return;
+      }
+
       const redirectTo =
         getInternalRedirect(searchParams.get('redirectTo')) ?? consumePostSignUpRedirect();
 
