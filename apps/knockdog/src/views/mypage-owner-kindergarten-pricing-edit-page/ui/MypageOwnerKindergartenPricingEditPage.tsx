@@ -18,6 +18,8 @@ import { Header } from '@widgets/Header';
 
 import { ownerMypageContent } from '@features/role-conversion';
 import { PRODUCT_TYPE_MAP_LIST, type ProductType } from '@entities/pricing';
+import { EXTERNAL_LINKS } from '@shared/constants';
+import { useOpenExternalLink } from '@shared/lib/bridge';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
 import { useKindergartenPricingEditForm } from '@views/mypage-owner-kindergarten-pricing-edit-page/model/useKindergartenPricingEditForm';
@@ -72,6 +74,7 @@ function ProductTypeChipGroup({ selected, onToggle }: ProductTypeChipGroupProps)
 
 function MypageOwnerKindergartenPricingEditPage() {
   const formData = useKindergartenPricingEditForm();
+  const openExternalLink = useOpenExternalLink();
 
   const handleBack = () => {
     if (formData.leaveIfClean()) return;
@@ -163,10 +166,14 @@ function MypageOwnerKindergartenPricingEditPage() {
               <span className='body1-bold text-text-primary'>
                 {ownerMypageContent.kindergartenPricingEditServiceNoticeTitle}
               </span>
-              <span className='body2-semibold text-text-tertiary flex shrink-0 items-center gap-1 px-2 py-1'>
+              <button
+                type='button'
+                className='body2-semibold text-text-tertiary flex shrink-0 items-center gap-1 px-2 py-1'
+                onClick={() => openExternalLink(EXTERNAL_LINKS.OWNER_CONTACT)}
+              >
                 {ownerMypageContent.kindergartenPricingEditCustomerCenterLabel}
                 <Icon icon='ChevronRight' className='size-4' />
-              </span>
+              </button>
             </div>
             <p className='body2-regular text-text-tertiary'>
               {ownerMypageContent.kindergartenPricingEditServiceNoticeDescription}
