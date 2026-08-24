@@ -1,4 +1,4 @@
-import WebView from 'react-native-webview';
+import WebView, { type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type RefObject, useRef, useMemo, useEffect } from 'react';
 import { AppState, Platform } from 'react-native';
@@ -16,6 +16,7 @@ interface Props {
   /** navPush/navReplace/navReset로 받은 state를 주입 */
   initialState?: InitialState;
   onLoadEnd?: () => void;
+  onNavigationStateChange?: (navState: WebViewNavigation) => void;
 }
 
 /** 초기 history.state & URL 쿼리 주입 스크립트 */
@@ -81,7 +82,13 @@ function buildSafeAreaInjector(insets: { top: number; bottom: number; left: numb
   `;
 }
 
-export function BridgeWebView({ uri, webviewRef, initialState, onLoadEnd }: Props) {
+export function BridgeWebView({
+  uri,
+  webviewRef,
+  initialState,
+  onLoadEnd,
+  onNavigationStateChange,
+}: Props) {
   const insets = useSafeAreaInsets();
   const lastInjectedInsetsRef = useRef<string | null>(null);
 
@@ -142,6 +149,7 @@ export function BridgeWebView({ uri, webviewRef, initialState, onLoadEnd }: Prop
       ref={refToUse}
       source={{ uri }}
       onMessage={handleOnMessage}
+      onNavigationStateChange={onNavigationStateChange}
       onLoadEnd={() => {
         if (Platform.OS === 'android') {
           const ref = refToUse.current;

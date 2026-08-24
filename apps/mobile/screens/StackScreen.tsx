@@ -1,13 +1,14 @@
-import BridgeDebugOverlay from '@/components/BridgeDebugOverlay';
 import WebViewScreen from '@/components/WebViewScreen';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
 import WebView from 'react-native-webview';
-import { View, TouchableOpacity, StyleSheet, Text, BackHandler, Platform } from 'react-native';
+import type { WebViewNavigation } from 'react-native-webview';
+import { View, TouchableOpacity, StyleSheet, BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/types/navigation';
 import { navBridgeHub } from '@/bridges/model/navBridgeHub';
+import { isExternalWebViewUrl } from '@/bridges/lib/isFirstPartyWebViewUrl';
 
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
 
@@ -30,27 +31,20 @@ const NATIVE_BACK_INJECT = `
   true;
 `;
 
-function isExternalUrl(url: string): boolean {
-  try {
-    const urlObj = new URL(url);
-    // EXPO_PUBLIC_WEBVIEW_URL 또는 NEXT_PUBLIC_WEB_URL과 origin 비교
-    const webUrl = process.env.EXPO_PUBLIC_WEBVIEW_URL || process.env.NEXT_PUBLIC_WEB_URL || '';
-    if (!webUrl) return url.startsWith('http://') || url.startsWith('https://');
-
-    const webUrlOrigin = new URL(webUrl || 'http://localhost').origin;
-    return urlObj.origin !== webUrlOrigin;
-  } catch {
-    // URL 파싱 실패 시 경로로 간주 (외부 URL 아님)
-    return false;
-  }
-}
-
 export default function StackScreen() {
   const { path, initialState } = useRoute<StackRoute>().params;
   const webviewRef = useRef<WebView>(null);
   const navigation = useNavigation();
+  const [currentUrl, setCurrentUrl] = useState(path);
+  const currentUrlRef = useRef(path);
 
-  const isExternal = useMemo(() => isExternalUrl(path), [path]);
+  const isExternal = useMemo(() => isExternalWebViewUrl(currentUrl), [currentUrl]);
+
+  const handleNavigationStateChange = useCallback((navState: WebViewNavigation) => {
+    if (!navState.url) return;
+    currentUrlRef.current = navState.url;
+    setCurrentUrl(navState.url);
+  }, []);
 
   // 뒤로가기 감지: beforeRemove 이벤트 리스너
   useEffect(() => {
@@ -66,17 +60,29 @@ export default function StackScreen() {
     return unsubscribe;
   }, [navigation, initialState?._txId]);
 
-  // 안드로이드 시스템 뒤로가기 → 웹에 knockdog:native-back 전달 (이탈 가드 등)
+  // 안드로이드 시스템 뒤로가기
+  // - 외부 origin: 웹 스크립트 주입 없이 네이티브 goBack (실패 시 시스템 back 허용)
+  // - first-party: knockdog:native-back (이탈 가드 등)
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      const url = currentUrlRef.current || path;
+
+      if (isExternalWebViewUrl(url)) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return true;
+        }
+        return false;
+      }
+
       webviewRef.current?.injectJavaScript(NATIVE_BACK_INJECT);
       return true;
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [navigation, path]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -94,8 +100,12 @@ export default function StackScreen() {
           </View>
         </SafeAreaView>
       )}
-      <WebViewScreen uri={path} webviewRef={webviewRef} initialState={initialState} />
-      {/* <BridgeDebugOverlay /> */}
+      <WebViewScreen
+        uri={path}
+        webviewRef={webviewRef}
+        initialState={initialState}
+        onNavigationStateChange={handleNavigationStateChange}
+      />
     </View>
   );
 }

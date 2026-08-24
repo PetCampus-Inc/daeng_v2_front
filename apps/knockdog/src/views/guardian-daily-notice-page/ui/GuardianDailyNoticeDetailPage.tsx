@@ -197,8 +197,9 @@ function GuardianDailyNoticeDetailPage() {
       ),
     [connections, linkedKindergarten?.id, schoolIdFromQuery, selectedDate]
   );
-  /** URL schoolId > 선택일 membership > 현재 연결 */
-  const schoolId = schoolIdFromQuery ?? activeConnection?.schoolId ?? null;
+  /** URL schoolId > 선택일 membership > 현재 연결(이력 없을 때) */
+  const schoolId =
+    schoolIdFromQuery ?? activeConnection?.schoolId ?? linkedKindergarten?.id ?? null;
 
   /** 해당 학교 전체 연결 이력 — 주간 캘린더 선택/점 범위 */
   const { minDate: membershipMinDate, maxDate: membershipMaxDate } = useMemo(
