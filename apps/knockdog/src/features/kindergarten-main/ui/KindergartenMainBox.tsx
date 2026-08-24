@@ -1,15 +1,13 @@
 'use client';
 
-import React from 'react';
 import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
-import { DeparturePointSheet, ServiceBadgeList } from '@entities/kindergarten';
+import { cn } from '@knockdog/ui/lib';
+import { DeparturePointSheet, ServiceBadgeList, type KindergartenMain } from '@entities/kindergarten';
 
-import { type KindergartenMain } from '@entities/kindergarten';
+interface KindergartenMainBoxProps extends KindergartenMain {}
 
-interface KindergartenMainBoxProps extends Omit<KindergartenMain, 'banner'> {}
-
-const KindergartenMainBox = ({
+function KindergartenMainBox({
   title,
   ctg,
   dist,
@@ -21,14 +19,17 @@ const KindergartenMainBox = ({
   pickupType,
   memo,
   coords,
-}: KindergartenMainBoxProps) => {
-  const openDeparturePointSheet = () =>
-    overlay.open(({ isOpen, close }) => (
-      <DeparturePointSheet isOpen={isOpen} close={close} to={{ lat: coords.lat, lng: coords.lng, name: title }} />
-    ));
+  banner,
+}: KindergartenMainBoxProps) {
+  const hasBannerImages = (banner ?? []).some(Boolean);
 
   return (
-    <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px] pb-12'>
+    <div
+      className={cn(
+        'relative z-10 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px] pb-12',
+        hasBannerImages && '-mt-8'
+      )}
+    >
       <div className='flex justify-between'>
         <div className='flex flex-col'>
           <span className='h2-extrabold'>{title}</span>
@@ -36,7 +37,17 @@ const KindergartenMainBox = ({
         </div>
         {/* 심사 대응용 임시 비노출
         <div className='flex'>
-          <button onClick={openDeparturePointSheet}>
+          <button
+            onClick={() =>
+              overlay.open(({ isOpen, close }) => (
+                <DeparturePointSheet
+                  isOpen={isOpen}
+                  close={close}
+                  to={{ lat: coords.lat, lng: coords.lng, name: title }}
+                />
+              ))
+            }
+          >
             <Icon icon='Navigation' className='text-fill-secondary-500 size-x8' />
           </button>
         </div>
@@ -76,6 +87,7 @@ const KindergartenMainBox = ({
       <ServiceBadgeList serviceTags={serviceTags} pickupType={pickupType} />
     </div>
   );
-};
+}
 
 export { KindergartenMainBox };
+export type { KindergartenMainBoxProps };

@@ -69,7 +69,7 @@ function CompareKindergartenDetailPage() {
 
   if (!id || lng == null || lat == null || !kindergartenMain) return null;
 
-  const { banner: images, ...restKindergartenMainData } = kindergartenMain;
+  const bannerImages = (kindergartenMain.banner ?? []).filter(Boolean);
 
   return (
     <div className='flex h-full flex-col'>
@@ -88,14 +88,14 @@ function CompareKindergartenDetailPage() {
       <div className='min-h-0 flex-1 overflow-y-auto' ref={scrollableDivRef}>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
-          <MainBannerSwiper images={images ?? []} />
+          <MainBannerSwiper images={bannerImages} />
         </div>
 
         {/* 컨텐츠 영역 */}
         <div className='relative'>
           <div className='absolute top-[-50px]' />
           {/* 대표 컨텐츠 영역 */}
-          <KindergartenMainBox {...restKindergartenMainData} />
+          <KindergartenMainBox {...kindergartenMain} />
           {/* Divider */}
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}

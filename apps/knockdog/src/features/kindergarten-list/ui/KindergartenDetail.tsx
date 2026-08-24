@@ -14,7 +14,7 @@ interface KindergartenDetailProps extends KindergartenMain {
 export function KindergartenDetail({ onPhoneCall, onBookmarkClick, activeTab, setActiveTab, ...props }: KindergartenDetailProps) {
   const scrollableContentRef = useRef<HTMLDivElement>(null);
 
-  const { banner: images, ...restKindergartenMainData } = props;
+  const bannerImages = (props.banner ?? []).filter(Boolean);
 
   const handleReviewClick = () => {
     setActiveTab('후기'); // 후기 탭 활성화
@@ -25,14 +25,14 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, activeTab, se
       <div ref={scrollableContentRef} className='flex-1 overflow-y-auto'>
         <div>
           {/* 업체 메인이미지 슬라이드형 */}
-          <MainBannerSwiper images={images ?? []} />
+          <MainBannerSwiper images={bannerImages} />
         </div>
 
         {/* 컨텐츠 영역 */}
         <div className='relative'>
           <div className='absolute top-[-50px]' />
           {/* 대표 컨텐츠 영역 */}
-          <KindergartenMainBox {...restKindergartenMainData} />
+          <KindergartenMainBox {...props} />
           {/* Divider */}
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}
