@@ -8,6 +8,7 @@ import { ownerMypageContent } from '../config/ownerMypageContent';
 import {
   isValidEmail,
   isValidRepresentativePhone,
+  REPRESENTATIVE_NAME_MAX_LENGTH,
 } from '../lib/formatKindergartenRegisterField';
 import { useOwnerProfileForm } from '../model/useOwnerProfileForm';
 import type { OwnerProfile } from '../model/ownerProfile';
@@ -26,7 +27,8 @@ function OwnerProfileForm({
   onDirtyChange,
   renderProfileImage,
 }: OwnerProfileFormProps) {
-  const { control, handleSubmit, isSubmitting, isValid, isDirty, formatName, formatPhone } = useOwnerProfileForm({
+  const { control, handleSubmit, isSubmitting, isValid, isDirty, formatRepresentativeName, formatPhone } =
+    useOwnerProfileForm({
     defaultValues,
     onSuccess,
   });
@@ -69,8 +71,9 @@ function OwnerProfileForm({
                 >
                   <TextFieldInput
                     {...field}
+                    maxLength={REPRESENTATIVE_NAME_MAX_LENGTH}
                     placeholder={ownerMypageContent.ownerNamePlaceholder}
-                    onChange={(event) => field.onChange(formatName(event.target.value))}
+                    onChange={(event) => field.onChange(formatRepresentativeName(event.target.value))}
                   />
                 </TextField>
               )}
