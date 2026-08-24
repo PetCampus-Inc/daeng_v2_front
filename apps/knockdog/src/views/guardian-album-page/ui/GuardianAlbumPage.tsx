@@ -26,12 +26,14 @@ import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuard
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
 import { mergeGuardianAlbumDayPhotos } from '@views/guardian-album-page/lib/mergeGuardianAlbumDayPhotos';
+import { writeLastViewedAt } from '@views/guardian-album-page/lib/guardianAlbumLastViewed';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
 import { useGuardianAlbumAttendedDays } from '@views/guardian-album-page/model/useGuardianAlbumAttendedDays';
 import { useGuardianAlbumFavorites } from '@views/guardian-album-page/model/useGuardianAlbumFavorites';
 import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model/useGuardianAlbumFavoriteToggle';
+import { useGuardianAlbumLastViewed } from '@views/guardian-album-page/model/useGuardianAlbumLastViewed';
 import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/GuardianAlbumAttendanceList';
 import { GuardianAlbumFavoriteList } from '@views/guardian-album-page/ui/GuardianAlbumFavoriteList';
 import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
@@ -58,6 +60,24 @@ interface GuardianAlbumDetailState {
   photos: GuardianAlbumPhoto[];
   initialIndex: number;
   showListButton: boolean;
+  /** 오늘의 새 사진이 포함된 상세면 닫을 때 lastViewed에 쓸 max uploadedAt(ms) */
+  todayNewViewedAt: number | null;
+}
+
+/** 오늘 날짜/lastViewed 이후 사진만 모아 읽음 마커용 max createdAt */
+function resolveTodayNewViewedAt(
+  photos: GuardianAlbumPhoto[],
+  todayDateKey: string,
+  lastViewedAt: number
+) {
+  let maxUploadedAt = 0;
+  for (const photo of photos) {
+    const uploadedAt = new Date(photo.uploadedAt).getTime();
+    if (!Number.isFinite(uploadedAt) || uploadedAt <= lastViewedAt) continue;
+    if (toDateKey(new Date(uploadedAt)) !== todayDateKey) continue;
+    if (uploadedAt > maxUploadedAt) maxUploadedAt = uploadedAt;
+  }
+  return maxUploadedAt > 0 ? maxUploadedAt : null;
 }
 
 function startOfMonth(date: Date) {
@@ -99,6 +119,7 @@ function resolveSelectedConnection(
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
+  const { lastViewedAt, markAsViewed } = useGuardianAlbumLastViewed();
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPetId: earlySelectedPetId } = useGuardianSelectedPet();
@@ -275,14 +296,18 @@ function GuardianAlbumPage() {
         photos,
         initialIndex: foundIndex >= 0 ? foundIndex : 0,
         showListButton,
+        todayNewViewedAt: resolveTodayNewViewedAt(photos, todayDateKey, lastViewedAt),
       });
     },
-    []
+    [lastViewedAt, todayDateKey]
   );
 
   const handleCloseDetail = useCallback(() => {
+    if (detailState?.todayNewViewedAt != null) {
+      markAsViewed(detailState.todayNewViewedAt);
+    }
     setDetailState(null);
-  }, []);
+  }, [detailState, markAsViewed]);
 
   const handleOpenTodayDetail = useCallback(
     (photoId?: string) => {
@@ -388,6 +413,7 @@ function GuardianAlbumPage() {
       handleResetFilter();
       return;
     }
+    writeLastViewedAt();
     back();
   }, [back, handleResetFilter, viewMode]);
 
@@ -654,6 +680,7 @@ function GuardianAlbumPage() {
                   isAttendedToday={isAttendedToday}
                   todayPhotoCount={todayPhotoCount}
                   todayPhotos={todayPhotos}
+                  lastViewedAt={lastViewedAt}
                   onOpenDetail={handleOpenTodayDetail}
                   onToggleFavorite={toggleFavorite}
                 />

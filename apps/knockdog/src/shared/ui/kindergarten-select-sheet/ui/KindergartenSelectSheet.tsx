@@ -79,8 +79,8 @@ function KindergartenSelectSheet({
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
-        <BottomSheet.Header className='border-line-100 border-b'>
-          <BottomSheet.Title>{content.title}</BottomSheet.Title>
+        <BottomSheet.Header className='border-line-100 border-b items-start text-left'>
+          <BottomSheet.Title className='w-full pr-10 text-left'>{content.title}</BottomSheet.Title>
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
 
@@ -119,7 +119,7 @@ function KindergartenSelectSheet({
                     ) : null}
                   </div>
 
-                  <div className='flex min-w-0 flex-1 flex-col items-start'>
+                  <div className='flex min-w-0 flex-1 flex-col items-start text-left'>
                     <span
                       className={cn(
                         'body1-bold w-full truncate',

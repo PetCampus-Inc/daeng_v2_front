@@ -29,6 +29,7 @@ function useGuardianCalendarDay({
 
   const {
     data: dayDetail,
+    error,
     isError,
     isFetching,
     isPending,
@@ -45,6 +46,7 @@ function useGuardianCalendarDay({
     checkInAt: dayDetail?.checkInAt ?? null,
     checkOutAt: dayDetail?.checkOutAt ?? null,
     dailyNotice: dayDetail?.dailyNotice ?? null,
+    error,
     isError,
     isFetching,
     isPending,

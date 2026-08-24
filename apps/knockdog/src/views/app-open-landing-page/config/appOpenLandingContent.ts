@@ -6,12 +6,16 @@ const APP_OPEN_STORE_URLS = {
 /** 설치 시 보호자 홈(Explore)으로 진입 */
 const APP_OPEN_NATIVE_SCHEME = 'daengv2mobile://';
 
+/** `/open` 랜딩 전용 — 인앱에서 빈 스킴(`daengv2mobile://`)은 페이지 이동이 무시되는 경우가 있음 */
+const APP_OPEN_NATIVE_DEEP_LINK = `${APP_OPEN_NATIVE_SCHEME}open`;
+
 const APP_OPEN_WEB_HOME_URL = 'https://home.knockdog.net/';
 
 /** 앱 미오픈으로 판단 후 스토어로 보내는 대기 시간 */
 const APP_OPEN_STORE_FALLBACK_MS = 1200;
 
 export {
+  APP_OPEN_NATIVE_DEEP_LINK,
   APP_OPEN_NATIVE_SCHEME,
   APP_OPEN_STORE_FALLBACK_MS,
   APP_OPEN_STORE_URLS,

@@ -2,37 +2,47 @@
 
 import { useState } from 'react';
 import { SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
-import Image from 'next/image';
+
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface MainBannerSwiperProps {
   images: string[];
 }
 
 function MainBannerSwiper({ images }: MainBannerSwiperProps) {
-  const totalSlides = images.length;
+  const slides = images.filter(Boolean);
+  const totalSlides = slides.length;
   const [currentSlide, setCurrentSlide] = useState(1);
 
   const handleSlideChange = (currentIndex: number) => {
     setCurrentSlide(currentIndex + 1);
   };
 
+  if (totalSlides === 0) {
+    return <div className='bg-fill-secondary-50 h-[292px] w-full' aria-hidden />;
+  }
+
   return (
     <div className='relative'>
       <SwiperRoot onSlideChange={handleSlideChange}>
-        {images.map((image, index) => (
-          <SwiperSlideItem key={index}>
-            <div className='bg-bg-0 relative h-[292px] w-full'>
-              <Image
-                src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
-                alt={`업체 이미지 ${index + 1}`}
-                fill
-                sizes='100vw'
-                className='object-cover'
-                priority={index === 0}
-              />
-            </div>
-          </SwiperSlideItem>
-        ))}
+        {slides.map((image, index) => {
+          const src = resolvePublicImageSrc(image);
+          return (
+            <SwiperSlideItem key={`${image}-${index}`}>
+              <div className='bg-fill-secondary-50 relative h-[292px] w-full'>
+                {/* eslint-disable-next-line @next/next/no-img-element -- 목록 배너와 동일: CDN/한글 키는 Next Image remotePatterns 밖 */}
+                <img
+                  src={src}
+                  alt={`업체 이미지 ${index + 1}`}
+                  className='size-full object-cover'
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  decoding='async'
+                  referrerPolicy='no-referrer'
+                />
+              </div>
+            </SwiperSlideItem>
+          );
+        })}
       </SwiperRoot>
 
       {/* 슬라이더 카운터 영역 */}

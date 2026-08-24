@@ -79,13 +79,20 @@ export function toKindergartenMain({
   const memoByShopId = new Map(memo.map((m) => [String(m.shopId), m]));
   const bookmarkedSet = new Set(bookmark.map((b) => b.shopId ?? b.id).filter(Boolean) as string[]);
 
+  const ctgTags = (item.ctg ?? '')
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .map((tag) => CTG[tag as keyof typeof CTG] || tag);
+
+  const distValue = Number.isFinite(item.dist)
+    ? formatDistance(item.dist, { unit: 'kilometer' })
+    : '';
+
   return {
     ...item,
-    ctg: item.ctg
-      .split(',')
-      .map((tag) => CTG[tag.trim() as keyof typeof CTG] || tag.trim())
-      .join(' ・ '),
-    dist: formatDistance(item.dist, { unit: 'kilometer' }),
+    ctg: ctgTags.join(' ・ '),
+    dist: distValue,
     memo: memoByShopId.get(item.id) ? formatMemoDate(memoByShopId.get(item.id)!) : undefined,
     bookmarked: bookmarkedSet.has(item.id),
   };

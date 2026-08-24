@@ -31,6 +31,12 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey, isAfterDay, isBeforeDay, startOfDay } from '@shared/lib/calendar-date';
+import {
+  isPetIdInList,
+  isUnavailableResourceError,
+  parseNotificationEntrySource,
+  useUnavailableNotificationAction,
+} from '@shared/lib/notification';
 import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
@@ -87,24 +93,32 @@ function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
   const { push, reset } = useStackNavigation();
+  const { leaveUnavailableStackPage } = useUnavailableNotificationAction();
   const petIdFromQuery = parsePetIdQuery(searchParams.get('petId'));
+  const entrySource = parseNotificationEntrySource(searchParams.get('source'));
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
   const userId = useUserStore((state) => state.user?.userId);
+  const { pets, selectedPetId: storePetId, isPetsReady, isPetsError } = useGuardianSelectedPet();
+  const canValidatePetList = isPetsReady && !isPetsError;
+  const isQueryPetMissing =
+    petIdFromQuery != null && canValidatePetList && !isPetIdInList(pets, petIdFromQuery);
   const { firstAttendedAt, linkedKindergarten } = useGuardianKindergartenHome({
     petId: petIdFromQuery,
+    enabled: petIdFromQuery == null || (isPetsReady && !isQueryPetMissing),
   });
-  const { selectedPetId: storePetId, isPetsReady } = useGuardianSelectedPet();
   const selectedPetId = petIdFromQuery || storePetId;
 
   const { data: connections, isPending: isConnectionsPending } = useGuardianSchoolConnectionsQuery({
     userId,
     petId: selectedPetId,
-    enabled: Boolean(userId) && Boolean(selectedPetId),
+    enabled: Boolean(userId) && Boolean(selectedPetId) && !isQueryPetMissing,
   });
 
   useEffect(() => {
-    if (petIdFromQuery) setSelectedPetId(petIdFromQuery);
-  }, [petIdFromQuery, setSelectedPetId]);
+    if (!petIdFromQuery || !canValidatePetList) return;
+    if (!isPetIdInList(pets, petIdFromQuery)) return;
+    setSelectedPetId(petIdFromQuery);
+  }, [canValidatePetList, petIdFromQuery, pets, setSelectedPetId]);
 
   /** membership 매칭에 사용 */
   const [selectedDateState, setSelectedDate] = useState(() => {
@@ -158,17 +172,24 @@ function GuardianDailyNoticeDetailPage() {
 
   const selectedDateKey = formatDateKey(selectedDate);
   const showEmptyWeekNoCheckIn =
+    !isQueryPetMissing &&
     isPetsReady &&
     !isConnectionsPending &&
     visibleCheckInState.isReady &&
     visibleCheckInState.isWeeklyView &&
     !visibleCheckInState.hasCheckIn;
 
-  const { checkInAt, checkOutAt, dailyNotice, isPending } = useGuardianCalendarDay({
+  const { checkInAt, checkOutAt, dailyNotice, error: calendarError, isPending } = useGuardianCalendarDay({
     selectedDate,
     petId: petIdFromQuery,
-    enabled: !showEmptyWeekNoCheckIn,
+    enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing,
   });
+  const isTargetUnavailable = isQueryPetMissing || isUnavailableResourceError(calendarError);
+
+  useEffect(() => {
+    if (!isTargetUnavailable) return;
+    leaveUnavailableStackPage(entrySource);
+  }, [entrySource, isTargetUnavailable, leaveUnavailableStackPage]);
   const {
     photos: albumPhotos,
     photoCount: albumPhotoCount,
@@ -178,7 +199,7 @@ function GuardianDailyNoticeDetailPage() {
   } = useGuardianDailyNoticeDayAlbum({
     schoolId: linkedKindergarten?.id,
     date: selectedDateKey,
-    enabled: !showEmptyWeekNoCheckIn,
+    enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing,
   });
 
   const checkInLabel = checkInAt ? formatNoticeClockTime(checkInAt) : content.emptyTimeLabel;
@@ -206,6 +227,7 @@ function GuardianDailyNoticeDetailPage() {
    * 확정 전에 렌더하면 알림장 미작성 블록이 스쳐 지나간다.
    */
   const isContentLoading =
+    isTargetUnavailable ||
     !isPetsReady ||
     isConnectionsPending ||
     !visibleCheckInState.isReady ||
@@ -222,6 +244,14 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumViewClick = () => {
     push({ pathname: route.compare.album.root });
   };
+
+  if (isTargetUnavailable) {
+    return (
+      <div className='flex h-dvh items-center justify-center'>
+        <RingLoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div
