@@ -8,6 +8,7 @@ import {
   type NotificationsCache,
 } from './useNotificationsInfiniteQuery';
 import { getHasUnreadNotification, notificationsUnreadQueryKey } from './useHasUnreadNotificationQuery';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface UseNotificationReadMutationOptions {
   userId?: string;
@@ -71,7 +72,14 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
   const unreadQueryKey = notificationsUnreadQueryKey(userId);
 
   const refreshUnreadNotification = async () => {
-    await queryClient.fetchQuery({ queryKey: unreadQueryKey, queryFn: getHasUnreadNotification }).catch(() => undefined);
+    await queryClient
+      .fetchQuery({ queryKey: unreadQueryKey, queryFn: getHasUnreadNotification, staleTime: 0 })
+      .catch(() => undefined);
+  };
+
+  const syncUnreadNotification = async () => {
+    await refreshUnreadNotification();
+    syncWebViewQuery.refetch([NOTIFICATIONS_QUERY_KEY]);
   };
 
   const markRead = useMutation({
@@ -91,7 +99,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] });
-      await refreshUnreadNotification();
+      await syncUnreadNotification();
     },
   });
 
@@ -121,7 +129,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] });
-      await refreshUnreadNotification();
+      await syncUnreadNotification();
     },
   });
 
