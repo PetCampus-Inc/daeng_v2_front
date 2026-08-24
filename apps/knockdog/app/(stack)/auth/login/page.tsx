@@ -13,7 +13,9 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function LoginPage() {
   const { getParams } = useStackNavigation();
-  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
+  const [loginParams] = useState(() => getParams());
+  const [redirectTo] = useState(() => getInternalRedirect(loginParams?.redirectTo));
+  const [resetToMainAfterSignUp] = useState(() => loginParams?.resetToMainAfterSignUp === true);
   const showGuestLogin = isGuestLoginEnabled();
 
   const providers = useMemo(() => {
@@ -56,7 +58,12 @@ export default function LoginPage() {
       <div className='absolute right-0 bottom-[10%] left-0 flex flex-col gap-y-7 px-4'>
         <div className='flex flex-col gap-y-3'>
           {providers.map((provider) => (
-            <LoginButton key={provider} provider={provider} redirectTo={redirectTo} />
+            <LoginButton
+              key={provider}
+              provider={provider}
+              redirectTo={redirectTo}
+              resetToMainAfterSignUp={resetToMainAfterSignUp}
+            />
           ))}
         </div>
 

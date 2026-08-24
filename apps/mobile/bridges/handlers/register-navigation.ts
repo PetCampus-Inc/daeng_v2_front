@@ -39,6 +39,9 @@ type StackRoute = {
 
 type NativeRoute = TabsRoute | StackRoute;
 
+/** WebView 요청은 비동기로 도착할 수 있으므로, 가장 최근 탭바 상태 요청만 적용한다. */
+let lastBottomTabBarVisibilityRequestId = 0;
+
 // params에서 query를 추출해서 쿼리스트링으로 변환
 // name은 전체 URL 또는 경로일 수 있음
 function buildPath(name: string, params?: WebNavPayload['params']) {
@@ -451,7 +454,12 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     return { mode };
   });
 
-  router.register<{ visible: boolean }>(METHODS.navSetBottomTabBarVisible, async (payload) => {
+  router.register<{ visible: boolean; requestId: number }>(METHODS.navSetBottomTabBarVisible, async (payload) => {
+    if (payload.requestId < lastBottomTabBarVisibilityRequestId) {
+      return { visible: useBottomTabBarVisibilityStore.getState().visible };
+    }
+
+    lastBottomTabBarVisibilityRequestId = payload.requestId;
     const visible = payload?.visible !== false;
     useBottomTabBarVisibilityStore.getState().setVisible(visible);
     return { visible };
