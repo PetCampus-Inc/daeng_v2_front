@@ -69,6 +69,7 @@ export function GuardianKindergartenPage() {
     hasUnreadAlarm,
     hasDailyNotice,
     albumPhotos,
+    albumLatestCreatedAt,
   } = useGuardianKindergartenHome();
 
   useEffect(() => {
@@ -139,6 +140,7 @@ export function GuardianKindergartenPage() {
             checkOutAt={checkOutAt}
             hasDailyNotice={hasDailyNotice}
             albumPhotos={albumPhotos}
+            albumLatestCreatedAt={albumLatestCreatedAt}
             firstAttendedAt={firstAttendedAt}
           />
         ) : showDisconnected ? (

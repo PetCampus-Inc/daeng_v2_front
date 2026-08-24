@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ActionButton, Icon } from '@knockdog/ui';
 
+import { useLiveAlbumLastViewedAt } from '@views/guardian-album-page/model/useGuardianAlbumLastViewed';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { formatAttendingDuration } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
@@ -26,6 +27,8 @@ interface GuardianKindergartenAttendingStateProps {
   checkOutAt?: Date | null;
   hasDailyNotice: boolean;
   albumPhotos: string[];
+  /** 오늘 앨범 프리뷰 중 가장 최근 업로드. 없으면 null */
+  albumLatestCreatedAt?: number | null;
   /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
   firstAttendedAt?: Date | null;
   initialSelectedDate?: Date | null;
@@ -37,6 +40,7 @@ function GuardianKindergartenAttendingState({
   checkOutAt = null,
   hasDailyNotice,
   albumPhotos,
+  albumLatestCreatedAt = null,
   firstAttendedAt = null,
   initialSelectedDate = null,
 }: GuardianKindergartenAttendingStateProps) {
@@ -44,6 +48,7 @@ function GuardianKindergartenAttendingState({
   const [now, setNow] = useState(() => new Date());
   const content = guardianKindergartenAttendingContent;
   const { push } = useStackNavigation();
+  const lastViewedAt = useLiveAlbumLastViewedAt();
   const {
     checkInAt: selectedCheckInAt,
     checkOutAt: selectedCheckOutAt,
@@ -53,9 +58,12 @@ function GuardianKindergartenAttendingState({
 
   const isDismissed = Boolean(checkOutAt);
   const hasAlbumPhotos = albumPhotos.length > 0;
+  const hasUnseenAlbumPhotos =
+    hasAlbumPhotos &&
+    (albumLatestCreatedAt == null ? lastViewedAt === 0 : albumLatestCreatedAt > lastViewedAt);
   const durationLabel = formatAttendingDuration(checkInAt, now);
   const statusBadgeLabel = isDismissed ? content.dayFinishedLabel : durationLabel;
-  const showAlbumArrived = hasAlbumPhotos && (isDismissed ? hasDailyNotice : true);
+  const showAlbumArrived = hasUnseenAlbumPhotos && (isDismissed ? hasDailyNotice : true);
 
   const handleNoticeViewClick = () => {
     pushGuardianDailyNoticeDetail(push, new Date());

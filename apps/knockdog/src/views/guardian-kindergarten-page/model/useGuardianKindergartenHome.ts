@@ -63,6 +63,12 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
     () => (home?.todayAlbumPreview ?? []).slice(0, 3).map((photo) => photo.imageUrl),
     [home?.todayAlbumPreview]
   );
+  const albumLatestCreatedAt = useMemo(() => {
+    const times = (home?.todayAlbumPreview ?? [])
+      .map((photo) => (photo.createdAt ? new Date(photo.createdAt).getTime() : Number.NaN))
+      .filter((time) => Number.isFinite(time));
+    return times.length > 0 ? Math.max(...times) : null;
+  }, [home?.todayAlbumPreview]);
 
   /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
   const firstAttendedAt = useMemo(() => {
@@ -94,6 +100,7 @@ function useGuardianKindergartenHome(options?: { petId?: string | null }) {
     /** 홈 API는 알림장 본문을 주지 않음 — 배너만 todayNoteArrived로 노출 */
     hasDailyNotice,
     albumPhotos,
+    albumLatestCreatedAt,
   };
 }
 

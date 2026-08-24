@@ -42,4 +42,31 @@ function useGuardianAlbumLastViewed() {
   return { lastViewedAt, markAsViewed };
 }
 
-export { useGuardianAlbumLastViewed };
+/** 유치원 홈 등 — 앨범 확인 시각을 탭 복귀 때 다시 읽는다 */
+function useLiveAlbumLastViewedAt() {
+  const [lastViewedAt, setLastViewedAt] = useState(0);
+
+  useEffect(() => {
+    const sync = () => setLastViewedAt(readLastViewedAt());
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') sync();
+    };
+
+    sync();
+    window.addEventListener('focus', sync);
+    window.addEventListener('pageshow', sync);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('knockdog:native-tab-focus', sync);
+
+    return () => {
+      window.removeEventListener('focus', sync);
+      window.removeEventListener('pageshow', sync);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('knockdog:native-tab-focus', sync);
+    };
+  }, []);
+
+  return lastViewedAt;
+}
+
+export { useGuardianAlbumLastViewed, useLiveAlbumLastViewedAt };

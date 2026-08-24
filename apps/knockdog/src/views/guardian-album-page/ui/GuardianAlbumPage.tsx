@@ -26,6 +26,7 @@ import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuard
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
 import { mergeGuardianAlbumDayPhotos } from '@views/guardian-album-page/lib/mergeGuardianAlbumDayPhotos';
+import { writeLastViewedAt } from '@views/guardian-album-page/lib/guardianAlbumLastViewed';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
 import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianAlbumEmptyState';
@@ -391,6 +392,7 @@ function GuardianAlbumPage() {
       handleResetFilter();
       return;
     }
+    writeLastViewedAt();
     back();
   }, [back, handleResetFilter, viewMode]);
 
