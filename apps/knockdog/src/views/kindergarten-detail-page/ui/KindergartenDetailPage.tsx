@@ -15,6 +15,10 @@ import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDe
 import { isNativeWebView, useShare } from '@shared/lib/device';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { useBasePoint } from '@entities/user';
+import { PageError } from '@shared/ui/page-error';
+
+/** 기준점(현위치/집/회사) 미준비 시 거리 계산용 폴백 — 비교 상세와 동일 */
+const FALLBACK_COORD = { lng: 126.883439, lat: 37.511281 };
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -26,15 +30,20 @@ function KindergartenDetailPage() {
   const { back } = useStackNavigation();
   const navResult = useNavigationResult<boolean>();
   const { coord } = useBasePoint();
-  const lng = coord?.lng ?? 0;
-  const lat = coord?.lat ?? 0;
-  const isCoordReady = Boolean(coord && coord.lng != null && coord.lat != null);
+  const lng = coord?.lng ?? FALLBACK_COORD.lng;
+  const lat = coord?.lat ?? FALLBACK_COORD.lat;
 
-  const { data: kindergartenMain } = useKindergartenMainQuery({
+  const {
+    data: kindergartenMain,
+    isPending,
+    isError,
+    isFetching,
+    refetch,
+  } = useKindergartenMainQuery({
     id,
     lng,
     lat,
-    enabled: isCoordReady,
+    enabled: Boolean(id),
   });
   const { mutate: toggleBookmark } = useDetailBookmarkToggle({
     id,
@@ -48,7 +57,19 @@ function KindergartenDetailPage() {
   /** 최근 본 업체 저장 */
   useRecentKindergartenView(kindergartenMain);
 
-  if (lng == null || lat == null || !kindergartenMain) return null;
+  if (!id) {
+    return <PageError layout='inline' onRetry={() => void back()} />;
+  }
+
+  if (isError) {
+    return (
+      <PageError layout='inline' isRetrying={isFetching} onRetry={() => void refetch()} />
+    );
+  }
+
+  if (isPending || !kindergartenMain) {
+    return <main className='bg-bg-0 min-h-dvh' />;
+  }
 
   const { banner: images, ...restKindergartenMainData } = kindergartenMain;
 

@@ -11,11 +11,13 @@ interface GuardianHomeSchoolDto {
   schoolId?: number | string | null;
   /** `School.kindergartenPlaceId` — 상세 `kindergarten/main/{placeId}` */
   placeId?: number | string | null;
+  kindergartenPlaceId?: number | string | null;
   name?: string | null;
   address?: string | null;
   imageUrl?: string | null;
   thumbnailUrl?: string | null;
   thumbnailImageUrl?: string | null;
+  thumbnailS3Key?: string | null;
   /** 해당 유치원 첫 등원일 — 주황점 하한 */
   firstAttendedAt?: GuardianHomeDateTime | null;
   firstAttendanceDate?: string | null;
@@ -93,7 +95,7 @@ function toAbsoluteImageUrl(url: string | null | undefined): string {
   if (!url) return '';
   if (/^(https?:|blob:|data:)/i.test(url)) return url;
   const base = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? '';
-  return `${base}${url}`;
+  return `${base}${encodeURI(url)}`;
 }
 
 function parseApiDateTime(value: GuardianHomeDateTime | null | undefined): Date | null {
@@ -190,13 +192,15 @@ function toGuardianHomeSchool(dto: GuardianHomeSchoolDto | null | undefined): Gu
   const schoolId = dto.schoolId;
   if (schoolId == null || schoolId === '') return null;
 
-  const placeId = dto.placeId;
+  const placeId = dto.placeId ?? dto.kindergartenPlaceId;
   return {
     id: String(schoolId),
     placeId: placeId == null || placeId === '' ? null : String(placeId),
     name: dto.name ?? '',
     address: dto.address ?? '',
-    imageUrl: toAbsoluteImageUrl(dto.thumbnailImageUrl ?? dto.imageUrl ?? dto.thumbnailUrl),
+    imageUrl: toAbsoluteImageUrl(
+      dto.thumbnailImageUrl ?? dto.imageUrl ?? dto.thumbnailUrl ?? dto.thumbnailS3Key
+    ),
   };
 }
 
