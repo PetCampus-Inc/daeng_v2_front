@@ -3,13 +3,32 @@ import WebViewScreen from '@/components/WebViewScreen';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useRef, useEffect, useMemo } from 'react';
 import WebView from 'react-native-webview';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, BackHandler, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/types/navigation';
 import { navBridgeHub } from '@/bridges/model/navBridgeHub';
 
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
+
+const NATIVE_BACK_INJECT = `
+  (function () {
+    try {
+      var ev = new CustomEvent('knockdog:native-back', { cancelable: true });
+      var allowed = window.dispatchEvent(ev);
+      if (allowed) {
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({ type: 'knockdog:native-back-unhandled' })
+        );
+      }
+    } catch (e) {
+      window.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: 'knockdog:native-back-unhandled' })
+      );
+    }
+  })();
+  true;
+`;
 
 function isExternalUrl(url: string): boolean {
   try {
@@ -46,6 +65,18 @@ export default function StackScreen() {
 
     return unsubscribe;
   }, [navigation, initialState?._txId]);
+
+  // 안드로이드 시스템 뒤로가기 → 웹에 knockdog:native-back 전달 (이탈 가드 등)
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      webviewRef.current?.injectJavaScript(NATIVE_BACK_INJECT);
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   const handleBackPress = () => {
     navigation.goBack();

@@ -57,7 +57,7 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
@@ -212,6 +212,7 @@ function OwnerDailyNoticeWritePage() {
   const draftRef = useRef<NoticeDraft>(EMPTY_NOTICE_DRAFT);
   /** 임시저장/서버 hydrate 기준 — 이후 수정분만 이탈 모달 */
   const persistedDraftRef = useRef<NoticeDraft>(EMPTY_NOTICE_DRAFT);
+  const isExitDialogOpenRef = useRef(false);
   const sendAttemptRef = useRef<NoticeSendAttempt | null>(null);
 
   const hasSentRecord = attendanceRecord?.status === 'SENT';
@@ -337,7 +338,7 @@ function OwnerDailyNoticeWritePage() {
     }
   };
 
-  const handleBackClick = () => {
+  const handleBackClick = useCallback(() => {
     if (isReadOnly) {
       back();
       return;
@@ -349,8 +350,19 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
 
+    if (isExitDialogOpenRef.current) return;
+    isExitDialogOpenRef.current = true;
+
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
+      <AlertDialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            isExitDialogOpenRef.current = false;
+            close();
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{ownerDailyNoticeWriteContent.unsavedExitTitle}</AlertDialogTitle>
@@ -367,7 +379,9 @@ function OwnerDailyNoticeWritePage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  };
+  }, [back, isReadOnly]);
+
+  useNativeBackHandler(handleBackClick);
 
   const openTemplatePage = async () => {
     if (!noticeId) return;

@@ -3,6 +3,7 @@ export { useStackNavigation } from './useStackNavigation';
 export { useTabNavigation } from './useTabNavigation';
 export { useNavigationResult, getCurrentTxId } from './useNavigationResult';
 export { useOpenExternalLink } from './useOpenExternalLink';
+export { useNativeBackHandler, NATIVE_BACK_EVENT } from './useNativeBackHandler';
 export { StackLink } from './StackLink';
 export { navigateToLogin } from './navigateToLogin';
 export { openSystemSetting } from './openSystemSetting';

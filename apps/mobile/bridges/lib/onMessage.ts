@@ -1,5 +1,6 @@
 import type { WebViewMessageEvent } from 'react-native-webview';
 import { handleConsoleMessage } from './consoleOnMessage';
+import { handleNativeBackUnhandledMessage } from './nativeBackOnMessage';
 
 /**
  * WebView에서 메시지를 받아서 처리하는 함수
@@ -8,6 +9,10 @@ import { handleConsoleMessage } from './consoleOnMessage';
 function makeOnMessage(onMessage: (event: WebViewMessageEvent) => void) {
   return (event: WebViewMessageEvent) => {
     if (handleConsoleMessage(event)) {
+      return;
+    }
+
+    if (handleNativeBackUnhandledMessage(event)) {
       return;
     }
 
