@@ -9,6 +9,7 @@ import {
 } from '@entities/user';
 import { consumePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -18,14 +19,47 @@ import {
 
 type CheckedTermsState = Record<RequiredTermsConsentItemId, boolean>;
 
+declare global {
+  interface Window {
+    __knockdogNativeTabFocused?: boolean;
+  }
+}
+
 const requiredTermIds = requiredTermsConsentContent.items.map((item) => item.id);
 
 const initialCheckedTermsState = (): CheckedTermsState =>
   Object.fromEntries(requiredTermIds.map((id) => [id, false])) as CheckedTermsState;
 
+/** 스택 화면(권한 안내 등)이 탭 WebView를 덮는 동안 약관 시트를 열지 않는다. */
+function useIsNativeTabFocused() {
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isNativeWebView()) {
+      setIsFocused(true);
+      return;
+    }
+
+    const handleFocus = () => setIsFocused(true);
+    const handleBlur = () => setIsFocused(false);
+
+    window.addEventListener('knockdog:native-tab-focus', handleFocus);
+    window.addEventListener('knockdog:native-tab-blur', handleBlur);
+    setIsFocused(window.__knockdogNativeTabFocused === true);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-focus', handleFocus);
+      window.removeEventListener('knockdog:native-tab-blur', handleBlur);
+    };
+  }, []);
+
+  return isFocused;
+}
+
 function useRequiredTermsConsentSheet() {
   const { reset } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
+  const isNativeTabFocused = useIsNativeTabFocused();
   const agreementsStatusQuery = useUserAgreementsStatusQuery(userId);
   const { mutateAsync: submitAgreements, isPending: isSubmitting } = usePostUserAgreementsMutation();
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +69,7 @@ function useRequiredTermsConsentSheet() {
   const hasAgreedRequiredTerms = agreementsStatusQuery.data?.data?.hasAgreedRequiredTerms === true;
   const shouldOpen =
     Boolean(userId) &&
+    isNativeTabFocused &&
     agreementsStatusQuery.isSuccess &&
     !agreementsStatusQuery.isError &&
     !hasAgreedRequiredTerms;
