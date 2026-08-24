@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Icon } from '@knockdog/ui';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { ActionButton, Icon } from '@knockdog/ui';
 
 import { guardianKindergartenDisconnectedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenDisconnectedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
-import { useGuardianDisconnectedDay } from '@views/guardian-kindergarten-page/model/useGuardianDisconnectedDay';
+import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
+import { useGuardianDisconnectedMembership } from '@views/guardian-kindergarten-page/model/useGuardianDisconnectedMembership';
 import { route } from '@shared/constants/route';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -19,34 +21,43 @@ import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard
 
 interface GuardianKindergartenDisconnectedStateProps {
   kindergarten: GuardianLinkedKindergarten;
+  albumPhotos: string[];
+  /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
+  firstAttendedAt?: Date | null;
   initialSelectedDate?: Date | null;
 }
 
 function GuardianKindergartenDisconnectedState({
   kindergarten,
+  albumPhotos,
+  firstAttendedAt = null,
   initialSelectedDate = null,
 }: GuardianKindergartenDisconnectedStateProps) {
   const content = guardianKindergartenDisconnectedContent;
   const { push } = useStackNavigation();
-  const {
-    disconnectedAt,
-    lastAlbumPhotos,
-    attendanceRecordDateKeys,
-    getDayRecord,
-  } = useGuardianDisconnectedDay();
+  const { disconnectedAt, connectedAt } = useGuardianDisconnectedMembership({
+    schoolId: kindergarten.id,
+  });
+  const [selectedDate, setSelectedDate] = useState(
+    () => initialSelectedDate ?? disconnectedAt ?? startOfDay(new Date())
+  );
+  const hasAlbumPhotos = albumPhotos.length > 0;
 
-  const [selectedDate, setSelectedDate] = useState(() => initialSelectedDate ?? startOfDay(disconnectedAt));
+  const {
+    checkInAt,
+    checkOutAt,
+    dailyNotice,
+    isPending: isCalendarDayPending,
+  } = useGuardianCalendarDay({
+    selectedDate,
+    enabled: Boolean(initialSelectedDate ?? disconnectedAt),
+  });
 
   useEffect(() => {
-    if (initialSelectedDate) setSelectedDate(initialSelectedDate);
-  }, [initialSelectedDate]);
-
-  const selectedDateKey = formatDateKey(selectedDate);
-  const dayRecord = useMemo(() => getDayRecord(selectedDateKey), [getDayRecord, selectedDateKey]);
-
-  const checkInAt = dayRecord ? new Date(dayRecord.checkInAt) : null;
-  const checkOutAt = dayRecord ? new Date(dayRecord.checkOutAt) : null;
-  const dailyNotice = dayRecord?.dailyNotice ?? null;
+    const next = initialSelectedDate ?? disconnectedAt;
+    if (!next) return;
+    setSelectedDate((prev) => (formatDateKey(prev) === formatDateKey(next) ? prev : next));
+  }, [disconnectedAt, initialSelectedDate]);
 
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });
@@ -75,18 +86,56 @@ function GuardianKindergartenDisconnectedState({
 
         {/* 마지막 앨범 */}
         <section className='flex w-full flex-col items-center gap-5'>
-          <div className='flex w-full items-center justify-between'>
+          <div className={`flex w-full items-center ${hasAlbumPhotos ? 'justify-between' : ''}`}>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
+            {hasAlbumPhotos ? (
+              <button
+                type='button'
+                className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+                onClick={handleAlbumViewAllClick}
+              >
+                <span className='label-semibold text-text-tertiary'>{content.albumViewAllLabel}</span>
+                <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
+              </button>
+            ) : null}
+          </div>
+
+          {hasAlbumPhotos ? (
             <button
               type='button'
-              className='gap-x1 flex items-center justify-center rounded px-2 py-1'
+              className='relative'
               onClick={handleAlbumViewAllClick}
+              aria-label={content.albumTitle}
             >
-              <span className='label-semibold text-text-tertiary'>{content.albumViewAllLabel}</span>
-              <Icon icon='ChevronRight' className='text-fill-secondary-500 size-4' />
+              <GuardianAlbumPhotoStack photos={albumPhotos} />
             </button>
-          </div>
-          <GuardianAlbumPhotoStack photos={lastAlbumPhotos} />
+          ) : (
+            <>
+              <div className='relative size-[200px] shrink-0'>
+                <Image
+                  src={content.albumEmptyImageSrc}
+                  alt={content.albumEmptyImageAlt}
+                  fill
+                  className='object-contain'
+                  sizes='200px'
+                  priority
+                />
+              </div>
+              <div className='flex w-[174px] flex-col items-center gap-4'>
+                <p className='body1-bold text-text-primary text-center'>{content.albumEmptyTitle}</p>
+                <ActionButton
+                  type='button'
+                  variant='primaryLine'
+                  size='medium'
+                  className='w-auto'
+                  onClick={handleAlbumViewAllClick}
+                >
+                  {content.albumPreviousLabel}
+                  <Icon icon='ChevronRight' className='text-text-accent size-5' />
+                </ActionButton>
+              </div>
+            </>
+          )}
         </section>
       </div>
 
@@ -95,8 +144,9 @@ function GuardianKindergartenDisconnectedState({
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          markedDateKeys={attendanceRecordDateKeys}
-          maxDate={disconnectedAt}
+          firstAttendedAt={firstAttendedAt ?? undefined}
+          minDate={connectedAt ?? undefined}
+          maxDate={disconnectedAt ?? undefined}
         />
         <GuardianKindergartenDayTimeline
           checkInAt={checkInAt}
@@ -104,6 +154,7 @@ function GuardianKindergartenDisconnectedState({
           dailyNotice={dailyNotice}
           emptyMessage={content.noAttendanceMessage}
           noNoticeMessage={content.noNoticeMessage}
+          isLoading={isCalendarDayPending}
           onNoticeViewAllClick={() => pushGuardianDailyNoticeDetail(push, selectedDate)}
         />
       </section>

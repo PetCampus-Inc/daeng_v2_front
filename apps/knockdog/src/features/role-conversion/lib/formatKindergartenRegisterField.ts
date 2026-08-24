@@ -1,4 +1,5 @@
 const NAME_MAX_LENGTH = 30;
+const REPRESENTATIVE_NAME_MAX_LENGTH = 20;
 const ADDRESS_MAX_LENGTH = 50;
 const ALLOWED_TEXT_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z0-9!-/:-@\[-`{-~\s]/g;
 
@@ -8,6 +9,10 @@ function extractAllowedText(value: string, maxLength: number) {
 
 function formatName(value: string) {
   return extractAllowedText(value, NAME_MAX_LENGTH);
+}
+
+function formatRepresentativeName(value: string) {
+  return extractAllowedText(value, REPRESENTATIVE_NAME_MAX_LENGTH);
 }
 
 function formatAddress(value: string) {
@@ -106,7 +111,9 @@ export {
   formatAddress,
   formatName,
   formatPhone,
+  formatRepresentativeName,
   isValidEmail,
   isValidKindergartenPhone,
   isValidRepresentativePhone,
+  REPRESENTATIVE_NAME_MAX_LENGTH,
 };

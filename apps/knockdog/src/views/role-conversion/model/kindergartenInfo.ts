@@ -48,6 +48,19 @@ const emptyRegisterForm: KindergartenRegisterForm = {
   phoneNumber: '',
 };
 
+function fromKindergartenInfo(info: RoleConversionKindergartenInfo): KindergartenRegisterForm {
+  return {
+    source: info.source,
+    placeId: info.placeId,
+    name: info.name,
+    address: info.address,
+    addressDetail: info.addressDetail ?? '',
+    kindergartenNumber: info.kindergartenNumber,
+    ownerName: info.ownerName,
+    phoneNumber: info.phoneNumber,
+  };
+}
+
 function fromSearchPrefill(prefill: SearchPrefill): KindergartenRegisterForm {
   return {
     source: 'search',
@@ -94,4 +107,4 @@ export type {
   RoleConversionKindergartenInfo,
   SearchPrefill,
 };
-export { emptyRegisterForm, fromSearchPrefill, toDisplayItems, toKindergartenInfo };
+export { emptyRegisterForm, fromKindergartenInfo, fromSearchPrefill, toDisplayItems, toKindergartenInfo };

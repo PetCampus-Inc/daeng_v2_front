@@ -17,8 +17,16 @@ function OwnerDailyMemberCard({
   onMemberClick,
   onAttendanceButtonClick,
 }: OwnerDailyMemberCardProps) {
+  const subtitle = [
+    member.breed,
+    member.weightKg != null ? `${member.weightKg}kg` : null,
+    member.age ? `${member.age}살` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
-    <div className='bg-bg-0 radius-r3 flex h-20 w-full items-center justify-between'>
+    <div className='bg-bg-0 radius-r3 flex h-20 w-full min-w-0 items-center justify-between overflow-hidden'>
       <button
         type='button'
         className='flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2 p-4 pr-0 text-left'
@@ -36,9 +44,9 @@ function OwnerDailyMemberCard({
           )}
           <AvatarFallback className='bg-fill-secondary-50' />
         </Avatar>
-        <div className='flex h-11 min-w-0 flex-1 flex-col justify-center'>
-          <div className='flex h-6 min-w-0 items-center gap-1'>
-            <span className='body1-extrabold text-text-primary truncate'>
+        <div className='flex h-11 min-w-0 flex-1 flex-col justify-center overflow-hidden'>
+          <div className='flex h-6 min-w-0 w-full items-center gap-1'>
+            <span className='body1-extrabold text-text-primary min-w-0 truncate'>
               {TextHighlights(member.name, searchKeyword)}
             </span>
             {member.gender ? (
@@ -48,11 +56,11 @@ function OwnerDailyMemberCard({
               />
             ) : null}
           </div>
-          <span className='body2-regular text-text-secondary truncate'>
-            {member.breed ? TextHighlights(member.breed, searchKeyword) : null}
-            {member.weightKg != null ? `${member.breed ? ' · ' : ''}${member.weightKg}kg` : null}
-            {member.age ? `${member.breed || member.weightKg != null ? ' · ' : ''}${member.age}살` : null}
-          </span>
+          {subtitle ? (
+            <p className='body2-regular text-text-secondary m-0 min-w-0 w-full truncate'>
+              {searchKeyword.trim() ? TextHighlights(subtitle, searchKeyword) : subtitle}
+            </p>
+          ) : null}
         </div>
       </button>
       <div className='flex h-full shrink-0 items-center gap-2 px-4'>

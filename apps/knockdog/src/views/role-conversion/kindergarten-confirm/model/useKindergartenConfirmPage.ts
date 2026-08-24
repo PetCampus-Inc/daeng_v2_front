@@ -11,7 +11,9 @@ import {
   readParams,
   saveSearchPrefill,
 } from '@views/role-conversion/model/kindergartenConfirmParams';
+import { saveRegisterFormDraft } from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
 import {
+  fromKindergartenInfo,
   toDisplayItems,
   type RoleConversionKindergartenInfo,
 } from '@views/role-conversion/model/kindergartenInfo';
@@ -116,8 +118,12 @@ function useKindergartenConfirmPage() {
   }, [back, isParamsResolved, kindergartenInfo]);
 
   const handleNo = () => {
+    if (!kindergartenInfo) return;
+
+    saveRegisterFormDraft(fromKindergartenInfo(kindergartenInfo));
     clearDraft();
-    if (kindergartenInfo?.source === 'search' && kindergartenInfo.placeId) {
+
+    if (kindergartenInfo.source === 'search' && kindergartenInfo.placeId) {
       const searchPrefill = {
         placeId: kindergartenInfo.placeId,
         name: kindergartenInfo.name,
