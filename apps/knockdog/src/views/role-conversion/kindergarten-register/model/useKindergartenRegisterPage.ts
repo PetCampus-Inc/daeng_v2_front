@@ -71,12 +71,25 @@ function resolveInitialForm(
       return { form: registerDraft, fromNavPrefill: false, isRestoredDraft: true };
     }
 
-    const navPrefill = readNavSearchPrefill(getParams) ?? loadSearchPrefill();
-    if (!navPrefill || registerDraft.placeId === navPrefill.placeId) {
-      return { form: registerDraft, fromNavPrefill: false, isRestoredDraft: true };
-    }
+    const navPrefill = readNavSearchPrefill(getParams);
 
-    clearRegisterFormDraft();
+    if (isNativeWebView()) {
+      if (navPrefill) {
+        if (registerDraft.placeId === navPrefill.placeId) {
+          return { form: registerDraft, fromNavPrefill: false, isRestoredDraft: true };
+        }
+
+        clearRegisterFormDraft();
+      }
+      // nav params 주입 전에는 draft를 확정하지 않음 — waitForNavParams에서 재판단
+    } else {
+      const prefillForCompare = navPrefill ?? loadSearchPrefill();
+      if (!prefillForCompare || registerDraft.placeId === prefillForCompare.placeId) {
+        return { form: registerDraft, fromNavPrefill: false, isRestoredDraft: true };
+      }
+
+      clearRegisterFormDraft();
+    }
   }
 
   if (mode === 'manual') {
@@ -116,7 +129,9 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<PhoneField, string>>>({});
   // nav params로 확정된 경우만 resolved — storage/cache만으로는 wait 스킵하지 않음
   const hasSearchPrefillRef = useRef(
-    mode === 'search' && (initialResolved.fromNavPrefill || initialResolved.isRestoredDraft)
+    mode === 'search' &&
+      (initialResolved.fromNavPrefill ||
+        (initialResolved.isRestoredDraft && Boolean(readNavSearchPrefill(getParams))))
   );
 
   // 네이티브(특히 Android): history.state._params 주입이 첫 렌더보다 늦을 수 있음
@@ -138,7 +153,25 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
         if (navPrefill) {
           saveSearchPrefill(navPrefill);
           hasSearchPrefillRef.current = true;
+
+          const draft = loadRegisterFormDraft();
+          if (draft?.source === 'search' && draft.placeId === navPrefill.placeId) {
+            setForm(draft);
+            return;
+          }
+
+          if (draft?.source === 'search') {
+            clearRegisterFormDraft();
+          }
+
           setForm(fromSearchPrefill(navPrefill));
+          return;
+        }
+
+        const draft = loadRegisterFormDraft();
+        if (draft?.source === 'search') {
+          hasSearchPrefillRef.current = true;
+          setForm(draft);
           return;
         }
 

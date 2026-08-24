@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { Field, FieldLabel, Icon, IconButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -33,6 +33,7 @@ export function AddressPicker({
   clearOnReselect = false,
   inputClassName,
   embeddedResultsClassName,
+  ref: externalRef,
   ...props
 }: AddressPickerProps) {
   const {
@@ -54,22 +55,61 @@ export function AddressPicker({
 
   const isEmbedded = variant === 'embedded';
   const embeddedContainerRef = useRef<HTMLDivElement>(null);
+  const scrollTimerRef = useRef<number | null>(null);
   const showHint = !isEmbedded && !isSelected && inputValue === '' && searchQuery === '';
   const showResults = !isSelected && searchQuery.length > 0;
   const hasResults = (addressList?.length ?? 0) > 0;
   const listKeyword = inputValue || searchQuery;
+
+  const setEmbeddedContainerRef = (node: HTMLDivElement | null) => {
+    embeddedContainerRef.current = node;
+
+    if (typeof externalRef === 'function') {
+      externalRef(node);
+      return;
+    }
+
+    if (externalRef) {
+      externalRef.current = node;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current != null) {
+        window.clearTimeout(scrollTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     handleFocus();
 
     if (!isEmbedded) return;
 
+    if (scrollTimerRef.current != null) {
+      window.clearTimeout(scrollTimerRef.current);
+    }
+
+    const input = event.currentTarget;
+
     // iOS WebView: absolute 드롭다운 대신 in-flow 결과를 키보드 위까지 스크롤
-    window.setTimeout(() => {
+    scrollTimerRef.current = window.setTimeout(() => {
+      scrollTimerRef.current = null;
+      if (document.activeElement !== input) return;
       embeddedContainerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, 300);
 
-    event.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+
+  const handleInputBlur = () => {
+    if (scrollTimerRef.current != null) {
+      window.clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = null;
+    }
+
+    handleBlur();
   };
 
   const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -100,7 +140,7 @@ export function AddressPicker({
         value={inputValue}
         onChange={handleChange}
         onFocus={handleInputFocus}
-        onBlur={handleBlur}
+        onBlur={handleInputBlur}
         placeholder={placeholder}
       />
     </TextField>
@@ -133,7 +173,7 @@ export function AddressPicker({
 
   if (isEmbedded) {
     return (
-      <div ref={embeddedContainerRef} className={cn('relative', className)} {...props}>
+      <div ref={setEmbeddedContainerRef} className={cn('relative', className)} {...props}>
         {searchField}
         {showResults && hasResults && (
           <div className={cn('bg-fill-secondary-0 mt-2', embeddedResultsClassName)}>

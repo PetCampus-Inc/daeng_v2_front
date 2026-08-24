@@ -48,7 +48,10 @@ function GuardianKindergartenDisconnectedState({
     checkOutAt,
     dailyNotice,
     isPending: isCalendarDayPending,
-  } = useGuardianCalendarDay({ selectedDate });
+  } = useGuardianCalendarDay({
+    selectedDate,
+    enabled: Boolean(initialSelectedDate ?? disconnectedAt),
+  });
 
   useEffect(() => {
     const next = initialSelectedDate ?? disconnectedAt;

@@ -9,7 +9,7 @@ async function resolveGuardianAlbumFavoriteDayPhotos(
   day: GuardianAlbumFilterDay
 ): Promise<GuardianAlbumPhoto[]> {
   if (day.photos.length >= day.photoCount) {
-    return day.photos;
+    return day.photos.filter((photo) => photo.isBookmarked);
   }
 
   try {
@@ -20,7 +20,7 @@ async function resolveGuardianAlbumFavoriteDayPhotos(
     // favorites list preview로 폴백
   }
 
-  return day.photos;
+  return day.photos.filter((photo) => photo.isBookmarked);
 }
 
 export { resolveGuardianAlbumFavoriteDayPhotos };
