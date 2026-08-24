@@ -28,22 +28,22 @@ function TodayAttendanceCard({
     <div
       role='button'
       tabIndex={0}
-      className='bg-bg-0 radius-r3 focus-visible:ring-line-accent flex h-[192px] w-full cursor-pointer flex-col items-start gap-4 p-4 text-left focus-visible:ring-2 focus-visible:outline-none'
+      className='bg-bg-0 radius-r3 focus-visible:ring-line-accent flex h-[192px] w-full min-w-0 cursor-pointer flex-col items-stretch gap-4 overflow-hidden p-4 text-left focus-visible:ring-2 focus-visible:outline-none'
       onClick={() => onMemberClick(member.id)}
       onKeyDown={handleCardKeyDown}
     >
-      <div className='flex h-24 w-full flex-col items-start gap-4'>
-        <div className='flex h-11 w-full items-start justify-between gap-4'>
-          <div className='flex h-11 w-[161px] items-center gap-2'>
+      <div className='flex h-24 w-full min-w-0 flex-col gap-4'>
+        <div className='flex h-11 w-full min-w-0 items-start justify-between gap-4'>
+          <div className='flex h-11 min-w-0 flex-1 items-center gap-2 overflow-hidden'>
             <Avatar className='size-x11 shrink-0'>
               {member.profileImageUrl && (
                 <AvatarImage src={member.profileImageUrl} alt={`${member.name} 프로필 이미지`} className='object-cover' />
               )}
               <AvatarFallback className='bg-fill-secondary-50' />
             </Avatar>
-            <div className='flex h-11 flex-col items-start'>
-              <div className='flex h-6 min-w-0 items-center gap-1'>
-                <span className='body1-extrabold text-text-primary flex h-6 items-center truncate'>{member.name}</span>
+            <div className='flex h-11 min-w-0 flex-1 flex-col items-start overflow-hidden'>
+              <div className='flex h-6 min-w-0 w-full items-center gap-1'>
+                <span className='body1-extrabold text-text-primary min-w-0 truncate'>{member.name}</span>
                 {member.gender ? (
                   <Icon
                     icon={member.gender === 'MALE' ? 'Male' : 'Female'}
@@ -51,7 +51,7 @@ function TodayAttendanceCard({
                   />
                 ) : null}
               </div>
-              <span className='body2-regular text-text-secondary flex h-5 items-center truncate'>
+              <span className='body2-regular text-text-secondary block min-w-0 w-full truncate'>
                 {[
                   member.breed,
                   member.weightKg != null ? `${member.weightKg}kg` : null,
@@ -132,7 +132,7 @@ function TodayAttendanceStatusBadge({ status }: TodayAttendanceStatusBadgeProps)
   }[status];
 
   return (
-    <div className={`flex h-[26px] items-center justify-center rounded-full px-2 py-1 ${statusContent.className}`}>
+    <div className={`flex h-[26px] shrink-0 items-center justify-center rounded-full px-2 py-1 ${statusContent.className}`}>
       <span className='caption1-semibold flex h-[18px] items-center whitespace-nowrap text-center'>
         {statusContent.label}
       </span>
