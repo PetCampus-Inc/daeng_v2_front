@@ -21,6 +21,7 @@ import {
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
 import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { fetchGuardianAlbumDayPhotos } from '@views/guardian-album-page/model/fetchGuardianAlbumDayPhotos';
+import { resolveGuardianAlbumFavoriteDayPhotos } from '@views/guardian-album-page/model/resolveGuardianAlbumFavoriteDayPhotos';
 import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuardianAlbumMonth';
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
@@ -301,6 +302,17 @@ function GuardianAlbumPage() {
 
   const handleOpenFilterDayDetail = useCallback(
     async (day: GuardianAlbumFilterDay) => {
+      if (viewMode === 'favorite') {
+        if (!activeSchoolId) {
+          openDetail(day.photos, undefined, false);
+          return;
+        }
+
+        const photos = await resolveGuardianAlbumFavoriteDayPhotos(activeSchoolId, day);
+        openDetail(photos, undefined, false);
+        return;
+      }
+
       if (!activeSchoolId) {
         openDetail(day.photos, undefined, false);
         return;
@@ -313,7 +325,7 @@ function GuardianAlbumPage() {
         openDetail(day.photos, undefined, false);
       }
     },
-    [openDetail, activeSchoolId]
+    [openDetail, activeSchoolId, viewMode]
   );
 
   /** 날짜 검색 시트 — 선택일 상세 슬라이드 진입 */

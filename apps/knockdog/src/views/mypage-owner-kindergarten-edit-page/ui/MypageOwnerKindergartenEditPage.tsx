@@ -293,7 +293,7 @@ function MypageOwnerKindergartenEditPage() {
         <Header.Title>{ownerMypageContent.kindergartenEditPageTitle}</Header.Title>
       </Header>
 
-      <div ref={scrollRef} className='flex-1 overflow-y-auto'>
+      <div ref={scrollRef} className='flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'>
         <div
           ref={tabsRef}
           className='scrollbar-hide sticky top-0 z-10 flex gap-2 overflow-x-auto bg-white px-4 py-4'
