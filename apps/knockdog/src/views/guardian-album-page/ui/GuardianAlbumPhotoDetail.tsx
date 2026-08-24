@@ -19,8 +19,6 @@ import { useSaveImage } from '@shared/lib/media';
 import { AlbumImage } from '@shared/ui/album-image';
 import { toast } from '@shared/ui/toast';
 
-const PHOTO_ASPECT_CLASS = 'aspect-[358/287]';
-
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -347,7 +345,6 @@ function GuardianAlbumPhotoDetail({
                     <ZoomableAlbumPhoto
                       src={photo.url}
                       isActive={index === activeIndex}
-                      photoAspectClassName={PHOTO_ASPECT_CLASS}
                       onSwipeEdge={handleSwipeEdge}
                       canSwipePrev={activeIndex > 0}
                       canSwipeNext={activeIndex < photos.length - 1}

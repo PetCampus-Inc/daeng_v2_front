@@ -582,7 +582,7 @@ function usePinchZoom({
           maxWidth: 'none',
           transform: 'translate(-50%, -50%)',
           transformOrigin: 'center center',
-          objectFit: 'cover',
+          objectFit: 'contain',
           userSelect: 'none',
           pointerEvents: 'none',
         } satisfies CSSProperties,
