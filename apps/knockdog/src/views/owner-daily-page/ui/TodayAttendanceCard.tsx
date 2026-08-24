@@ -3,6 +3,8 @@ import { ActionButton, Avatar, AvatarFallback, AvatarImage, Icon } from '@knockd
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 
+import { DogMetaLine } from '@shared/ui/dog-meta-line';
+
 interface TodayAttendanceCardProps {
   member: AttendanceMember;
   onCheckOutButtonClick: (member: AttendanceMember) => void;
@@ -51,15 +53,12 @@ function TodayAttendanceCard({
                   />
                 ) : null}
               </div>
-              <span className='body2-regular text-text-secondary block min-w-0 w-full truncate'>
-                {[
-                  member.breed,
-                  member.weightKg != null ? `${member.weightKg}kg` : null,
-                  member.age ? `${member.age}살` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </span>
+              <DogMetaLine
+                breed={member.breed}
+                weightKg={member.weightKg}
+                age={member.age}
+                className='body2-regular text-text-secondary'
+              />
             </div>
           </div>
           {status ? <TodayAttendanceStatusBadge status={status} /> : null}

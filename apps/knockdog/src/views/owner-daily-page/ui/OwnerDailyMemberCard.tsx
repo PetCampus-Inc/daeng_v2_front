@@ -2,6 +2,7 @@ import { ActionButton, Avatar, AvatarFallback, AvatarImage, Icon } from '@knockd
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 
+import { DogMetaLine } from '@shared/ui/dog-meta-line';
 import { TextHighlights } from '@shared/ui/text-highlights';
 
 interface OwnerDailyMemberCardProps {
@@ -17,14 +18,6 @@ function OwnerDailyMemberCard({
   onMemberClick,
   onAttendanceButtonClick,
 }: OwnerDailyMemberCardProps) {
-  const subtitle = [
-    member.breed,
-    member.weightKg != null ? `${member.weightKg}kg` : null,
-    member.age ? `${member.age}살` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
   return (
     <div className='bg-bg-0 radius-r3 flex h-20 w-full min-w-0 items-center justify-between overflow-hidden'>
       <button
@@ -56,11 +49,13 @@ function OwnerDailyMemberCard({
               />
             ) : null}
           </div>
-          {subtitle ? (
-            <p className='body2-regular text-text-secondary m-0 min-w-0 w-full truncate'>
-              {searchKeyword.trim() ? TextHighlights(subtitle, searchKeyword) : subtitle}
-            </p>
-          ) : null}
+          <DogMetaLine
+            breed={member.breed}
+            weightKg={member.weightKg}
+            age={member.age}
+            searchKeyword={searchKeyword}
+            className='body2-regular text-text-secondary'
+          />
         </div>
       </button>
       <div className='flex h-full shrink-0 items-center gap-2 px-4'>
