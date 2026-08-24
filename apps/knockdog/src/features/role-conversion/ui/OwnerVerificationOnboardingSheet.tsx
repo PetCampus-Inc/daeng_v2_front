@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 import { ActionButton } from '@knockdog/ui';
 
@@ -26,6 +27,7 @@ function OwnerVerificationOnboardingSheet({
   requiresLogin = true,
 }: OwnerVerificationOnboardingSheetProps) {
   const { push } = useStackNavigation();
+  const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(0);
   const isLastStep = currentStep === STEP_COUNT - 1;
 
@@ -33,6 +35,23 @@ function OwnerVerificationOnboardingSheet({
   const deltaX = useRef(0);
   const isDragging = useRef(false);
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const openedPathnameRef = useRef(pathname);
+
+  // 오버레이는 전역 Provider에 렌더링되므로, 화면이 바뀌면 명시적으로 닫는다.
+  useEffect(() => {
+    if (openedPathnameRef.current === pathname) return;
+    close();
+  }, [close, pathname]);
+
+  // 네이티브 탭 전환은 WebView의 pathname을 바꾸지 않으므로 blur 이벤트도 처리한다.
+  useEffect(() => {
+    const handleNativeTabBlur = () => close();
+    window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+    };
+  }, [close]);
 
   const clampStep = (index: number) => Math.max(0, Math.min(STEP_COUNT - 1, index));
 
