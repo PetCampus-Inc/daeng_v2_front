@@ -5,6 +5,7 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 
 import { devicePermissionContent } from '../config/devicePermissionContent';
 import { requestDevicePermissions } from '../model/requestDevicePermissions';
+import { usePushSettingMutation } from '@entities/user';
 import { markDevicePermissionIntroSeen } from '@shared/lib/auth/devicePermissionIntro';
 import { consumePostSignUpRedirect, getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { route } from '@shared/constants/route';
@@ -19,6 +20,7 @@ function DevicePermissionPage() {
   const requestPromiseRef = useRef<Promise<void> | null>(null);
   const [hasRequestStarted, setHasRequestStarted] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const { mutateAsync: updatePushSetting } = usePushSettingMutation();
 
   useEffect(() => {
     let cancelled = false;
@@ -26,7 +28,11 @@ function DevicePermissionPage() {
     const timer = window.setTimeout(() => {
       if (cancelled) return;
 
-      requestPromiseRef.current = requestDevicePermissions().catch(() => undefined);
+      requestPromiseRef.current = requestDevicePermissions().then(async (notificationPermission) => {
+        if (notificationPermission.grantedNow) {
+          await updatePushSetting({ pushEnabled: true });
+        }
+      });
       setHasRequestStarted(true);
     }, PERMISSION_PROMPT_DELAY_MS);
 
@@ -34,7 +40,7 @@ function DevicePermissionPage() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [updatePushSetting]);
 
   const handleConfirm = async () => {
     if (!hasRequestStarted || isConfirming) return;
