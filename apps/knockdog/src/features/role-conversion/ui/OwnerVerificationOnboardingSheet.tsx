@@ -41,6 +41,7 @@ function OwnerVerificationOnboardingSheet({
   useEffect(() => {
     if (openedPathnameRef.current === pathname) return;
     close();
+    openedPathnameRef.current = pathname;
   }, [close, pathname]);
 
   // 네이티브 탭 전환은 WebView의 pathname을 바꾸지 않으므로 blur 이벤트도 처리한다.

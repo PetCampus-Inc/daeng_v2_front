@@ -78,6 +78,8 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
   };
 
   const syncUnreadNotification = async () => {
+    if (!userId) return;
+
     await refreshUnreadNotification();
     syncWebViewQuery.refetch([NOTIFICATIONS_QUERY_KEY]);
   };
@@ -98,7 +100,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
       if (context?.previous) queryClient.setQueryData(context.queryKey, context.previous);
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] });
+      await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY, userId] });
       await syncUnreadNotification();
     },
   });
@@ -128,7 +130,7 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
       }
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] });
+      await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY, userId] });
       await syncUnreadNotification();
     },
   });

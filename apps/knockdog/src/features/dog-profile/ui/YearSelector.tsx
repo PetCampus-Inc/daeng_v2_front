@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -17,6 +17,7 @@ interface YearSelectorProps {
 
 const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const ignoreNextFocusRef = useRef(false);
 
   const yearList = useMemo(
     () =>
@@ -32,19 +33,43 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
     onChange?.(isSelectedYear ? '' : year);
     if (!isSelectedYear) onComplete?.();
 
+    closeSheet();
+  };
+
+  const closeSheet = () => {
+    // 시트가 닫힐 때 트리거로 돌아오는 포커스로 다시 열리지 않도록 한다.
+    ignoreNextFocusRef.current = true;
     setIsOpen(false);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setIsOpen(true);
+      return;
+    }
+
+    closeSheet();
+  };
+
+  const handleFocus = () => {
+    if (ignoreNextFocusRef.current) {
+      ignoreNextFocusRef.current = false;
+      return;
+    }
+
+    setIsOpen(true);
+  };
+
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={setIsOpen}>
+    <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
       <BottomSheet.Overlay className='z-overlay' />
 
-      <BottomSheet.Trigger asChild>
-        <div className='flex w-full min-w-0 flex-col'>
-          <div className='pb-x2 gap-x0_5 flex items-center'>
-            <span className='text-text-primary body2-bold'>태어난 해</span>
-            <span className='text-text-tertiary caption1-semibold'>(선택)</span>
-          </div>
+      <div className='flex w-full min-w-0 flex-col'>
+        <div className='pb-x2 gap-x0_5 flex items-center'>
+          <span className='text-text-primary body2-bold'>태어난 해</span>
+          <span className='text-text-tertiary caption1-semibold'>(선택)</span>
+        </div>
+        <BottomSheet.Trigger asChild>
           <button
             ref={ref as React.Ref<HTMLButtonElement>}
             type='button'
@@ -53,13 +78,13 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
               className,
               value && 'text-text-primary'
             )}
-            onFocus={() => setIsOpen(true)}
+            onFocus={handleFocus}
           >
             {value || '태어난 해를 선택해 주세요'}
             <Icon icon='ChevronBottom' className='text-fill-secondary-400 h-5 w-5' />
           </button>
-        </div>
-      </BottomSheet.Trigger>
+        </BottomSheet.Trigger>
+      </div>
 
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />

@@ -64,14 +64,15 @@ function toAttendanceTimestamp(value: OwnerMemberDateTime | null | undefined): n
 }
 
 function toOwnerMember(member: OwnerMemberDto): OwnerMember {
-  const fallbackId = `${member.dogName}-${member.guardianName}`;
+  const guardianName = member.guardianName ?? '';
+  const fallbackId = `${member.dogName}-${guardianName}`;
   const petId = member.petId == null ? null : String(member.petId);
 
   return {
     id: String(member.memberId ?? member.requestId ?? member.id ?? petId ?? fallbackId),
     petId,
     dogName: member.dogName,
-    guardianName: member.guardianName ?? '',
+    guardianName,
     profileImageUrl: member.profileImageUrl,
     lastAttendanceAt: toAttendanceTimestamp(member.lastAttendanceAt),
   };
