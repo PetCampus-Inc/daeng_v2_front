@@ -86,7 +86,9 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
           <span className='body2-regular text-text-secondary'>
             {ownerMemberProfileContent.snackLabel}
           </span>
-          <p className='body1-medium text-text-primary'>{record.snack || EMPTY_VALUE}</p>
+          <p className='body1-medium text-text-primary whitespace-pre-wrap'>
+            {record.snack || EMPTY_VALUE}
+          </p>
         </div>
 
         <Divider />
@@ -103,7 +105,7 @@ function AttendanceDayCard({ date, record }: AttendanceDayCardProps) {
         {record.note && (
           <>
             <Divider />
-            <p className='body1-medium text-text-primary'>{record.note}</p>
+            <p className='body1-medium text-text-primary whitespace-pre-wrap'>{record.note}</p>
           </>
         )}
       </div>

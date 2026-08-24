@@ -8,6 +8,23 @@ import type { AddressSearchResult } from '../model/address';
 import { useAddressPicker } from '../model/useAddressPicker';
 import { Address } from '@entities/address';
 
+function getScrollableAncestor(el: HTMLElement | null): HTMLElement | null {
+  let node = el?.parentElement ?? null;
+
+  while (node && node !== document.body) {
+    const { overflowY } = window.getComputedStyle(node);
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') &&
+      node.scrollHeight > node.clientHeight + 1
+    ) {
+      return node;
+    }
+    node = node.parentElement;
+  }
+
+  return null;
+}
+
 interface AddressPickerProps extends Omit<React.ComponentProps<'div'>, 'onSelect'> {
   value?: string;
   onSelect?: (address: Address) => void;
@@ -58,11 +75,20 @@ export function AddressPicker({
 
   const isEmbedded = variant === 'embedded';
   const embeddedContainerRef = useRef<HTMLDivElement>(null);
-  const scrollTimerRef = useRef<number | null>(null);
+  const scrollRestoreTimersRef = useRef<number[]>([]);
   const showHint = !isEmbedded && !isSelected && inputValue === '' && searchQuery === '';
   const showResults = !isSelected && searchQuery.length > 0;
   const hasResults = (addressList?.length ?? 0) > 0;
   const listKeyword = inputValue || searchQuery;
+
+  const clearScrollRestoreTimers = () => {
+    for (const timerId of scrollRestoreTimersRef.current) {
+      window.clearTimeout(timerId);
+    }
+    scrollRestoreTimersRef.current = [];
+  };
+
+  useEffect(() => clearScrollRestoreTimers, []);
 
   const setEmbeddedContainerRef = (node: HTMLDivElement | null) => {
     embeddedContainerRef.current = node;
@@ -77,41 +103,40 @@ export function AddressPicker({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (scrollTimerRef.current != null) {
-        window.clearTimeout(scrollTimerRef.current);
-      }
-    };
-  }, []);
-
   const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     handleFocus();
 
     if (!isEmbedded) return;
 
-    if (scrollTimerRef.current != null) {
-      window.clearTimeout(scrollTimerRef.current);
-    }
-
+    // iOS WebView: focus/키보드 시 overflow 조상이 scrollTop=0으로 리셋되는 경우만 되돌림.
+    // scrollIntoView는 필드를 최상단으로 끌어올려서 쓰지 않음.
     const input = event.currentTarget;
+    const scrollParent = getScrollableAncestor(input);
+    if (!scrollParent) return;
 
-    // iOS WebView: absolute 드롭다운 대신 in-flow 결과를 키보드 위까지 스크롤
-    scrollTimerRef.current = window.setTimeout(() => {
-      scrollTimerRef.current = null;
+    const savedTop = scrollParent.scrollTop;
+    if (savedTop <= 8) return;
+
+    clearScrollRestoreTimers();
+
+    const restoreIfJumpedToTop = () => {
       if (document.activeElement !== input) return;
-      embeddedContainerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, 300);
+      if (scrollParent.scrollTop > 1) return;
+      scrollParent.scrollTop = savedTop;
+    };
 
-    input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      restoreIfJumpedToTop();
+      requestAnimationFrame(restoreIfJumpedToTop);
+    });
+
+    for (const delay of [50, 150, 350]) {
+      scrollRestoreTimersRef.current.push(window.setTimeout(restoreIfJumpedToTop, delay));
+    }
   };
 
   const handleInputBlur = () => {
-    if (scrollTimerRef.current != null) {
-      window.clearTimeout(scrollTimerRef.current);
-      scrollTimerRef.current = null;
-    }
-
+    clearScrollRestoreTimers();
     handleBlur();
   };
 

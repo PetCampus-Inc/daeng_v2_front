@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
@@ -156,6 +156,13 @@ function GuardianDailyNoticeListPage() {
   const handleBack = () => {
     navigateToTab('/compare');
   };
+
+  // 강아지 전환으로 연결 유치원이 없어지면 빈 리스트에 머물지 않고 유치원 홈으로
+  useEffect(() => {
+    if (!isPetsReady || isMembershipPending || isMockMode) return;
+    if (kindergartens.length > 0) return;
+    void navigateToTab('/compare');
+  }, [isMembershipPending, isMockMode, isPetsReady, kindergartens.length, navigateToTab]);
 
   const handleKindergartenSelect = useCallback(
     (kindergartenId: string) => {

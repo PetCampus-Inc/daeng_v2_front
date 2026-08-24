@@ -13,7 +13,7 @@ import type { GuardianKindergartenConnectionStatus } from '@views/guardian-kinde
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 
 import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
@@ -79,6 +79,7 @@ function GuardianKindergartenHeader({
   hasNoPet = false,
 }: GuardianKindergartenHeaderProps) {
   const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const { pets, selectedPet, selectedPetId, setSelectedPetId } = useGuardianSelectedPet();
 
   const petName = selectedPet?.name ?? '';
@@ -94,7 +95,11 @@ function GuardianKindergartenHeader({
         close={close}
         dogs={pets}
         currentPetId={selectedPetId}
-        onSelect={setSelectedPetId}
+        onSelect={(petId) => {
+          setSelectedPetId(petId);
+          // 이전 강아지 알림장 리스트/스택이 뒤로가기에 남지 않게 유치원 홈으로 정리
+          navigateToTab('/compare').catch(() => undefined);
+        }}
       />
     ));
   };

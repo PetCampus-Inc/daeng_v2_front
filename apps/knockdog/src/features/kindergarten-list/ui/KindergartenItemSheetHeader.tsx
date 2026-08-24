@@ -30,13 +30,14 @@ export function KindergartenItemSheetHeader({
       className='absolute top-0 left-0 z-50 w-full bg-white pt-(--safe-area-inset-top,0px)'
       style={{ opacity, pointerEvents }}
     >
-      <Header className='block'>
+      <Header className='block' innerClassName='min-w-0 gap-x-3'>
         <Header.LeftSection>
           <Header.BackButton onClick={onBack} />
           <Header.HomeButton onClick={onHome} />
         </Header.LeftSection>
 
-        <Header.Title className='max-w-[calc(100%-7.5rem)] truncate'>{title}</Header.Title>
+        {/* absolute 중앙 Title은 집 아이콘과 겹침 → flex 남은 폭 + truncate */}
+        <h1 className='h3-extrabold text-text-primary min-w-0 flex-1 truncate'>{title}</h1>
 
         <Header.RightSection>
           <Header.ShareButton onClick={onShare} disabled={!canShare} />

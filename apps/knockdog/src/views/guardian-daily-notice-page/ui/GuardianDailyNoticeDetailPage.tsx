@@ -470,7 +470,9 @@ function GuardianDailyNoticeDetailPage() {
                                 iconSrc={content.noticeIconSrc}
                                 title={content.noticeSectionTitle}
                               >
-                                <p className='body1-regular text-text-primary'>{noticeBody}</p>
+                                <p className='body1-regular text-text-primary whitespace-pre-wrap'>
+                                  {noticeBody}
+                                </p>
                               </GuardianDailyNoticeSection>
                             ) : null}
 
@@ -483,7 +485,9 @@ function GuardianDailyNoticeDetailPage() {
                                 iconSrc={content.snackIconSrc}
                                 title={content.snackSectionTitle}
                               >
-                                <p className='body1-regular text-text-primary'>{snackBody}</p>
+                                <p className='body1-regular text-text-primary whitespace-pre-wrap'>
+                                  {snackBody}
+                                </p>
                               </GuardianDailyNoticeSection>
                             ) : null}
 
@@ -503,7 +507,9 @@ function GuardianDailyNoticeDetailPage() {
                                   />
                                 ) : null}
                                 {stoolBody ? (
-                                  <p className='body1-regular text-text-primary'>{stoolBody}</p>
+                                  <p className='body1-regular text-text-primary whitespace-pre-wrap'>
+                                    {stoolBody}
+                                  </p>
                                 ) : null}
                               </GuardianDailyNoticeSection>
                             ) : null}
