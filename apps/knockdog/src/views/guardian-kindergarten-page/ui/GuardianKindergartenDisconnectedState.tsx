@@ -50,6 +50,7 @@ function GuardianKindergartenDisconnectedState({
     isPending: isCalendarDayPending,
   } = useGuardianCalendarDay({
     selectedDate,
+    schoolId: kindergarten.id,
     enabled: Boolean(initialSelectedDate ?? disconnectedAt),
   });
 

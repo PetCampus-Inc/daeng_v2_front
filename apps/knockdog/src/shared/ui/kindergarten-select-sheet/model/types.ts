@@ -1,8 +1,8 @@
 interface KindergartenSelectOption {
   id: string;
-  /** albums/{schoolId} 등 school 경로 API용 */
+  /** albums/{schoolId}, records?schoolId= 등 school 경로 API용 */
   schoolId: string;
-  /** records?membershipId= 등 membership API용. 없으면 schoolId만으로 조회 */
+  /** 사이클 단위 이력이 필요할 때만. school 스코프 API에는 사용하지 않음 */
   membershipId?: string | null;
   name: string;
   imageUrl: string;

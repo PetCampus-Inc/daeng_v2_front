@@ -26,6 +26,8 @@ export type {
 export { toGuardianCalendarDetail } from './model/guardianCalendarDetail';
 export { getGuardianSchoolConnections } from './api/guardianSchoolConnections';
 export type { GetGuardianSchoolConnectionsParams } from './api/guardianSchoolConnections';
+export { getGuardianSchoolConnectionSchools } from './api/guardianSchoolConnectionSchools';
+export type { GetGuardianSchoolConnectionSchoolsParams } from './api/guardianSchoolConnectionSchools';
 export { getGuardianSchoolRecords } from './api/guardianSchoolRecords';
 export type { GetGuardianSchoolRecordsParams } from './api/guardianSchoolRecords';
 export {
@@ -33,6 +35,11 @@ export {
   guardianSchoolConnectionsQueryKey,
   useGuardianSchoolConnectionsQuery,
 } from './api/useGuardianSchoolConnectionsQuery';
+export {
+  GUARDIAN_SCHOOL_CONNECTION_SCHOOLS_QUERY_KEY,
+  guardianSchoolConnectionSchoolsQueryKey,
+  useGuardianSchoolConnectionSchoolsQuery,
+} from './api/useGuardianSchoolConnectionSchoolsQuery';
 export {
   GUARDIAN_SCHOOL_RECORDS_QUERY_KEY,
   guardianSchoolRecordsQueryKey,

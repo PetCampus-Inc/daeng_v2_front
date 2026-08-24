@@ -12,6 +12,8 @@ interface UseGuardianCalendarDayOptions {
   selectedDate: Date;
   enabled?: boolean;
   petId?: string | null;
+  /** 생략 시 서버가 가장 최근 관계 유치원 사용 */
+  schoolId?: string | null;
 }
 
 /**
@@ -21,6 +23,7 @@ function useGuardianCalendarDay({
   selectedDate,
   enabled = true,
   petId: petIdOverride,
+  schoolId,
 }: UseGuardianCalendarDayOptions) {
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPetId } = useGuardianSelectedPet();
@@ -38,6 +41,7 @@ function useGuardianCalendarDay({
     userId,
     petId,
     date: dateKey,
+    schoolId,
     enabled: enabled && Boolean(petId),
   });
 

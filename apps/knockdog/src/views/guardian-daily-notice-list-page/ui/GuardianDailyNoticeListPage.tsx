@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
-import { useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
+import { useGuardianSchoolConnectionSchoolsQuery } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
@@ -20,7 +20,6 @@ import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/m
 import {
   toKindergartenSelectOptions,
   toKindergartenSelectOptionsFromConnections,
-  toMembershipIdBySchoolId,
   toMonthEndDateKey,
 } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
@@ -57,7 +56,7 @@ function GuardianDailyNoticeListPage() {
   const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: connections, isPending: isMembershipPending } = useGuardianSchoolConnectionsQuery({
+  const { data: connections, isPending: isMembershipPending } = useGuardianSchoolConnectionSchoolsQuery({
     userId,
     petId: selectedPetId,
     enabled: Boolean(userId) && Boolean(selectedPetId),
@@ -75,7 +74,7 @@ function GuardianDailyNoticeListPage() {
 
   const disconnectedUntilKey = isDisconnected ? toMonthEndDateKey(new Date()) : null;
 
-  /** 연결 이력 다건. 없으면 home 현재 연결 1건 */
+  /** 학교 단위 목록. 없으면 home 현재 연결 1건 */
   const kindergartens = useMemo(() => {
     const fromConnections = toKindergartenSelectOptionsFromConnections(connections ?? []);
     if (fromConnections.length > 0) return fromConnections;
@@ -100,12 +99,7 @@ function GuardianDailyNoticeListPage() {
     () => (selectedAttendedFromKey ? parseDateKey(selectedAttendedFromKey) : null),
     [selectedAttendedFromKey]
   );
-  const selectedMembershipId = useMemo(
-    () =>
-      selectedKindergarten?.membershipId ??
-      toMembershipIdBySchoolId(connections ?? [], selectedKindergarten?.id ?? null, selectedAttendedUntilKey),
-    [connections, selectedAttendedUntilKey, selectedKindergarten?.id, selectedKindergarten?.membershipId]
-  );
+  const selectedSchoolId = selectedKindergarten?.schoolId ?? selectedKindergarten?.id ?? null;
   const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
 
   const {
@@ -117,7 +111,7 @@ function GuardianDailyNoticeListPage() {
     isFirstAttendanceDateFallback,
     isPending,
   } = useGuardianDailyNoticeMonthList({
-    membershipId: selectedMembershipId,
+    schoolId: selectedSchoolId,
     petId: selectedPetId,
     selectedMonth: requestedMonth,
     firstAttendedAt,

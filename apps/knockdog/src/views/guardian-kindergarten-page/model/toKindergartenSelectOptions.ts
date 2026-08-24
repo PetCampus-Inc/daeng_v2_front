@@ -29,13 +29,15 @@ function toKindergartenSelectOptions(
   ];
 }
 
-/** 연결 이력 — 학교별 다건(활성/해제 이력 모두) */
+/**
+ * `GET guardian/school/connections/schools` — 학교 단위(재연결 중복 없음).
+ * option id = schoolId.
+ */
 function toKindergartenSelectOptionsFromConnections(
   connections: GuardianSchoolConnection[]
 ): KindergartenSelectOption[] {
   return connections.map((connection) => ({
-    // membershipId를 옵션 id로 유지해 동일 학교의 이력 다건을 구분한다.
-    id: connection.id,
+    id: connection.schoolId,
     schoolId: connection.schoolId,
     membershipId: connection.id,
     name: connection.name,
@@ -45,34 +47,8 @@ function toKindergartenSelectOptionsFromConnections(
   }));
 }
 
-function toMembershipIdBySchoolId(
-  connections: GuardianSchoolConnection[],
-  optionId: string | null,
-  attendedUntil: string | null
-) {
-  if (!optionId) return null;
-
-  const selectedByMembershipId = connections.find((connection) => connection.id === optionId);
-  if (selectedByMembershipId) return selectedByMembershipId.id;
-
-  const candidates = connections.filter((connection) => connection.schoolId === optionId);
-  if (candidates.length === 0) return null;
-
-  if (attendedUntil) {
-    const matchedDisconnected = candidates.find(
-      (connection) =>
-        connection.disconnectedAt != null && formatDateKey(connection.disconnectedAt) === attendedUntil
-    );
-    if (matchedDisconnected) return matchedDisconnected.id;
-  }
-
-  const connected = candidates.find((connection) => connection.disconnectedAt == null);
-  return connected?.id ?? candidates[0]?.id ?? null;
-}
-
 export {
   toKindergartenSelectOptions,
   toKindergartenSelectOptionsFromConnections,
-  toMembershipIdBySchoolId,
   toMonthEndDateKey,
 };

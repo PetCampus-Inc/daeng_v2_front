@@ -6,7 +6,7 @@ import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import {
-  useGuardianSchoolConnectionsQuery,
+  useGuardianSchoolConnectionSchoolsQuery,
   type GuardianSchoolConnection,
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
@@ -123,7 +123,7 @@ function GuardianAlbumPage() {
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPetId: earlySelectedPetId } = useGuardianSelectedPet();
-  const { data: connections } = useGuardianSchoolConnectionsQuery({
+  const { data: connections } = useGuardianSchoolConnectionSchoolsQuery({
     userId,
     petId: earlySelectedPetId,
     enabled: Boolean(userId) && Boolean(earlySelectedPetId),
