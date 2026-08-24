@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { STORAGE_KEYS } from '@shared/constants/storage';
+import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
+import { safeLocalStorage } from '@shared/lib/storage';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
@@ -23,6 +26,23 @@ function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
   return value === 'today-attendance' ? 'today-attendance' : 'attendance-check';
 }
 
+function readPersistedOwnerDailyTab(): OwnerDailyTab | null {
+  const value = safeLocalStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
+  if (value === 'today-attendance' || value === 'attendance-check') return value;
+  return null;
+}
+
+function persistOwnerDailyTab(tab: OwnerDailyTab) {
+  safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
+}
+
+function resolveInitialOwnerDailyTab(rawTab: string | null): OwnerDailyTab {
+  if (rawTab === 'today-attendance' || rawTab === 'attendance-check') {
+    return resolveOwnerDailyTab(rawTab);
+  }
+  return readPersistedOwnerDailyTab() ?? 'attendance-check';
+}
+
 function resolveTodayAttendanceFilter(value: string | null): TodayAttendanceFilter {
   if (value === 'checked-in' || value === 'noticebook-pending') return value;
 
@@ -30,11 +50,13 @@ function resolveTodayAttendanceFilter(value: string | null): TodayAttendanceFilt
 }
 
 function OwnerDailyPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get('tab');
   const rawTodayFilter = searchParams.get('todayFilter');
   const initialTodayAttendanceFilter = resolveTodayAttendanceFilter(rawTodayFilter);
-  const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveOwnerDailyTab(rawTab));
+  const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveInitialOwnerDailyTab(rawTab));
   const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
@@ -107,7 +129,18 @@ function OwnerDailyPage() {
   };
 
   const handleTabValueChange = (value: string) => {
-    setSelectedTab(value as OwnerDailyTab);
+    const nextTab = value as OwnerDailyTab;
+    setSelectedTab(nextTab);
+    persistOwnerDailyTab(nextTab);
+
+    const query = searchParamsToQuery(searchParams);
+    if (nextTab === 'today-attendance') {
+      query.tab = 'today-attendance';
+    } else {
+      delete query.tab;
+      delete query.todayFilter;
+    }
+    router.replace(buildHref(pathname, query), { scroll: false });
   };
 
   const handleContentScroll = (scrollTop: number) => {
@@ -120,8 +153,25 @@ function OwnerDailyPage() {
   };
 
   useEffect(() => {
-    setSelectedTab(resolveOwnerDailyTab(rawTab));
+    // URL에 tab이 있을 때만 동기화. remount 시 bare /owner/daily면 localStorage 유지.
+    if (rawTab !== 'today-attendance' && rawTab !== 'attendance-check') return;
+
+    const nextTab = resolveOwnerDailyTab(rawTab);
+    setSelectedTab(nextTab);
+    persistOwnerDailyTab(nextTab);
   }, [rawTab]);
+
+  // remount 후 URL에 tab이 없으면 저장된 탭을 쿼리에 반영 (뒤로가기 등)
+  useEffect(() => {
+    if (rawTab === 'today-attendance' || rawTab === 'attendance-check') return;
+    if (selectedTab !== 'today-attendance') return;
+
+    const query = searchParamsToQuery(searchParams);
+    query.tab = 'today-attendance';
+    router.replace(buildHref(pathname, query), { scroll: false });
+    // mount 시 1회만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useLayoutEffect(() => {
     setIsScrollTopButtonVisible(false);
