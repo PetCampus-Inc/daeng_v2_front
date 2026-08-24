@@ -49,9 +49,9 @@ function useTabNavigation() {
         return;
       }
 
-      // 웹 환경: router.push 사용
+      // 웹: replace로 탭 전환 — push면 알림장 리스트 등이 뒤로가기에 남음
       const href = buildHref(pathname, query);
-      router.push(href);
+      router.replace(href);
     },
     [router, bridge, isNative]
   );
