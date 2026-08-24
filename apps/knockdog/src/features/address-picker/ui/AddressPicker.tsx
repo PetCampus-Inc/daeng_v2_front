@@ -4,6 +4,7 @@ import { Field, FieldLabel, Icon, IconButton, TextField, TextFieldInput } from '
 import { cn } from '@knockdog/ui/lib';
 
 import { highlightSpanText } from '../lib/renderHighlightText';
+import type { AddressSearchResult } from '../model/address';
 import { useAddressPicker } from '../model/useAddressPicker';
 import { Address } from '@entities/address';
 
@@ -46,6 +47,8 @@ export function AddressPicker({
     handleFocus,
     handleBlur,
     handleClear,
+    markListInteraction,
+    endListInteraction,
   } = useAddressPicker({
     value,
     onSelect,
@@ -146,24 +149,35 @@ export function AddressPicker({
     </TextField>
   );
 
+  const selectAddress = (address: AddressSearchResult) => {
+    handleSelect(address)().catch((error) => {
+      console.error('[AddressPicker] address selection failed:', error);
+    });
+  };
+
+  const listInteractionProps = {
+    onPointerDown: markListInteraction,
+    onPointerUp: endListInteraction,
+    onPointerCancel: endListInteraction,
+  };
+
   const resultsSection = (
     <>
       {showHint && <AddressPickerHint className={isEmbedded ? 'px-0 pt-1' : 'px-6'} />}
 
       {showResults && (
-        <AddressList className={isEmbedded ? undefined : 'px-4'} showEmptyFallback={!isEmbedded}>
+        <AddressList
+          className={isEmbedded ? undefined : 'px-4'}
+          showEmptyFallback={!isEmbedded}
+          {...listInteractionProps}
+        >
           {addressList?.map((address, index) => (
             <AddressListItem
               key={index}
               address={address.address}
               roadAddress={address.roadAddress}
               keyword={listKeyword}
-              onPointerDown={(event) => {
-                event.preventDefault();
-                handleSelect(address)().catch((error) => {
-                  console.error('주소 선택에 실패했습니다:', error);
-                });
-              }}
+              onSelect={() => selectAddress(address)}
             />
           ))}
         </AddressList>
@@ -176,7 +190,13 @@ export function AddressPicker({
       <div ref={setEmbeddedContainerRef} className={cn('relative', className)} {...props}>
         {searchField}
         {showResults && hasResults && (
-          <div className={cn('bg-fill-secondary-0 mt-2', embeddedResultsClassName)}>
+          <div
+            className={cn(
+              'bg-fill-secondary-0 mt-2 max-h-[min(50dvh,22rem)] touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+              embeddedResultsClassName
+            )}
+            {...listInteractionProps}
+          >
             <AddressList className='px-4' showEmptyFallback={false}>
               {addressList?.map((address, index) => (
                 <AddressListItem
@@ -184,12 +204,7 @@ export function AddressPicker({
                   address={address.address}
                   roadAddress={address.roadAddress}
                   keyword={listKeyword}
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    handleSelect(address)().catch((error) => {
-                      console.error('[AddressPicker] address selection failed:', error);
-                    });
-                  }}
+                  onSelect={() => selectAddress(address)}
                 />
               ))}
             </AddressList>
@@ -206,8 +221,13 @@ export function AddressPicker({
         {searchField}
       </Field>
 
-      <div className='flex-1 overflow-hidden'>
-        <div className='h-full overflow-y-auto'>{resultsSection}</div>
+      <div className='min-h-0 flex-1 overflow-hidden'>
+        <div
+          className='h-full touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'
+          {...listInteractionProps}
+        >
+          {resultsSection}
+        </div>
       </div>
     </div>
   );
@@ -232,19 +252,55 @@ function AddressList({
   return <ul {...props}>{children}</ul>;
 }
 
-interface AddressListItemProps extends React.ComponentProps<'li'> {
+const TAP_MOVE_THRESHOLD_PX = 10;
+
+interface AddressListItemProps {
   address: string;
   roadAddress: string;
   keyword: string;
-  onClick?: () => void;
+  onSelect: () => void;
 }
 
 /**
- * 검색 결과 리스트 아이템 컴포넌트
+ * 검색 결과 리스트 아이템.
+ * pointerdown에서 바로 선택하면 모바일 스크롤이 막히고 그 자리 주소가 선택됨.
+ * 손가락이 움직였으면 click을 무시한다.
  */
-function AddressListItem({ address, roadAddress, keyword, ...props }: AddressListItemProps) {
+function AddressListItem({ address, roadAddress, keyword, onSelect }: AddressListItemProps) {
+  const ignoreClickRef = useRef(false);
+
   return (
-    <li className='border-b border-neutral-100 py-4 last:border-b-0' {...props}>
+    <li
+      className='border-b border-neutral-100 py-4 last:border-b-0'
+      onPointerDown={(event) => {
+        ignoreClickRef.current = false;
+        const startX = event.clientX;
+        const startY = event.clientY;
+
+        const handleMove = (moveEvent: PointerEvent) => {
+          if (
+            Math.abs(moveEvent.clientX - startX) > TAP_MOVE_THRESHOLD_PX ||
+            Math.abs(moveEvent.clientY - startY) > TAP_MOVE_THRESHOLD_PX
+          ) {
+            ignoreClickRef.current = true;
+          }
+        };
+
+        const handleEnd = () => {
+          window.removeEventListener('pointermove', handleMove);
+          window.removeEventListener('pointerup', handleEnd);
+          window.removeEventListener('pointercancel', handleEnd);
+        };
+
+        window.addEventListener('pointermove', handleMove);
+        window.addEventListener('pointerup', handleEnd);
+        window.addEventListener('pointercancel', handleEnd);
+      }}
+      onClick={() => {
+        if (ignoreClickRef.current) return;
+        onSelect();
+      }}
+    >
       <div className='body2-semibold'>{highlightSpanText(address, keyword)}</div>
       <span className='body2-regular text-text-tertiary'>{highlightSpanText(roadAddress, keyword)}</span>
     </li>
