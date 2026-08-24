@@ -86,7 +86,7 @@ function GuardianInvitePage() {
   // 모바일 브라우저 폴백은 스토어로, 그 외 웹은 기존 초대 페이지로 유지한다.
   if (!isPlatformResolved) return null;
 
-  if (!isNative && isMobileBrowser) return <GuardianInviteAppInstallPage />;
+  if (!isNative && isMobileBrowser) return <GuardianInviteAppInstallPage token={token} />;
 
   if (!isNative) return <GuardianInviteProfilePage token={token} />;
 
