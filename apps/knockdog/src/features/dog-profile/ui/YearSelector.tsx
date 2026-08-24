@@ -27,8 +27,9 @@ const YearSelector = ({ ref, className, value, onChange, onComplete }: YearSelec
   );
 
   const handleSelect = (year: string) => () => {
-    onChange?.(year);
-    onComplete?.();
+    const isSelectedYear = value === year;
+    onChange?.(isSelectedYear ? '' : year);
+    if (!isSelectedYear) onComplete?.();
 
     setIsOpen(false);
   };

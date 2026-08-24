@@ -178,7 +178,7 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
           relationshipText: relationshipValue,
           profileImage: finalProfileImage,
           breed: data.breed?.breedName,
-          birthYear: data.birthYear ? Number(data.birthYear) : undefined,
+          birthYear: Number(data.birthYear || '0'),
           gender: data.gender || undefined,
           isNeutered: data.isNeutered === 'Y' ? true : data.isNeutered === 'N' ? false : undefined,
           weight: data.weight,
