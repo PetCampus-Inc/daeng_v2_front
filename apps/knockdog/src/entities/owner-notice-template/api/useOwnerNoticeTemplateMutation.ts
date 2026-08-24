@@ -1,8 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useUserStore } from '@entities/user';
+import type { ApiResponse } from '@shared/api';
 
-import type { CreateOwnerNoticeTemplateInput } from '../model/ownerNoticeTemplate';
+import type {
+  AttendanceRecordNoteTemplateDto,
+  CreateOwnerNoticeTemplateInput,
+} from '../model/ownerNoticeTemplate';
 import {
   deleteAttendanceRecordNoteTemplate,
   postAttendanceRecordNoteTemplate,
@@ -53,6 +57,19 @@ function useOwnerNoticeTemplateMutation() {
   const deleteMutation = useMutation({
     mutationFn: deleteAttendanceRecordNoteTemplate,
     onSuccess: async (_data, templateId) => {
+      // 상세에서 삭제 후 목록(스택 유지) 선택 상태가 바로 맞게 캐시 먼저 갱신
+      queryClient.setQueryData(
+        ownerNoticeTemplatesQueryKey(userId),
+        (previous: ApiResponse<AttendanceRecordNoteTemplateDto[]> | undefined) => {
+          if (!previous || !Array.isArray(previous.data)) return previous;
+
+          return {
+            ...previous,
+            data: previous.data.filter((item) => String(item.id) !== String(templateId)),
+          };
+        }
+      );
+
       await invalidateTemplates(templateId);
     },
   });
