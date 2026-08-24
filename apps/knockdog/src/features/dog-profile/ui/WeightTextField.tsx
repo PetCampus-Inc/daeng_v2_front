@@ -19,7 +19,7 @@ function WeightTextField({ ref, value, onChange }: WeightTextFieldProps) {
     <TextField label='몸무게 (kg)' required suffix={value && <IconButton icon='DeleteInput' onClick={handleDelete} />}>
       <TextFieldInput
         ref={ref}
-        placeholder='숫자만 입력'
+        placeholder='강아지 몸무게를 입력해 주세요'
         value={value ?? ''}
         maxLength={String(MAX_DOG_WEIGHT).length}
         inputMode='numeric'
