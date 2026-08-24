@@ -15,6 +15,13 @@ declare global {
   }
 }
 
+let lastMainTabModeRequestId = 0;
+
+function getNextMainTabModeRequestId() {
+  lastMainTabModeRequestId = Math.max(Date.now(), lastMainTabModeRequestId + 1);
+  return lastMainTabModeRequestId;
+}
+
 function useHasMypageRoleViewHydrated() {
   const [hasHydrated, setHasHydrated] = useState(
     () => useMypageRoleViewStore.persist?.hasHydrated?.() ?? true
@@ -114,7 +121,7 @@ function SyncNativeMainTabModeEffect() {
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    bridge.request(METHODS.navSetMainTabMode, { mode: syncMode }).catch((error) => {
+    bridge.request(METHODS.navSetMainTabMode, { mode: syncMode, requestId: getNextMainTabModeRequestId() }).catch((error) => {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
       }
