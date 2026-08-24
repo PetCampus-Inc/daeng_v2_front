@@ -92,17 +92,19 @@ const tokenRefreshInterceptor = async (
       case TOKEN_ERROR_CODE.EXPIRED_REFRESH_TOKEN:
       case TOKEN_ERROR_CODE.INVALID_TOKEN:
       case TOKEN_ERROR_CODE.UNAUTHORIZED_REQUEST:
-        await navigateToLogin();
-        break;
       case TOKEN_ERROR_CODE.TOKEN_VERIFICATION_FAILED:
-        await logout();
+        // 이미 인증이 무효화된 응답이므로 서버 로그아웃을 재호출하지 않는다.
+        // 이 요청까지 401이 되면 인터셉터가 재진입할 수 있다.
+        await logout({ notifyServer: false });
+        await navigateToLogin();
         break;
     }
   } catch (refreshError) {
     console.error('액세스 토큰 갱신 중 오류 발생:', refreshError);
 
     // 토큰 갱신 중 오류 발생 시, 로그아웃 처리
-    await logout();
+    await logout({ notifyServer: false });
+    await navigateToLogin();
   }
 
   return response;

@@ -9,7 +9,10 @@ function LoginPrompt() {
   const { pushForResult } = useStackNavigation();
 
   const handleLogin = async () => {
-    const loggedIn = await pushForResult<boolean>({ pathname: '/auth/login' }, 600_000);
+    const loggedIn = await pushForResult<boolean>(
+      { pathname: '/auth/login', params: { resetToMainAfterSignUp: true } },
+      600_000
+    );
     if (!loggedIn) return;
 
     // Stack WebView에서 저장된 USER를 마이페이지 탭 인메모리 store에 반영

@@ -28,10 +28,11 @@ const BUTTON_STYLE_MAP = {
 interface LoginButtonProps extends Omit<React.ComponentProps<'button'>, 'onClick'> {
   provider: SocialProvider;
   redirectTo?: string;
+  resetToMainAfterSignUp?: boolean;
 }
 
-export function LoginButton({ className, provider, redirectTo, ...props }: LoginButtonProps) {
-  const { login } = useLogin({ redirectTo });
+export function LoginButton({ className, provider, redirectTo, resetToMainAfterSignUp, ...props }: LoginButtonProps) {
+  const { login } = useLogin({ redirectTo, resetToMainAfterSignUp });
 
   const { text, icon, styles } = BUTTON_STYLE_MAP[provider];
 

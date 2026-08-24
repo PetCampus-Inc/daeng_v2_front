@@ -33,7 +33,7 @@ const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.APPLE]: METHODS.appleLogin,
 } as const;
 
-export const useLogin = (options?: { redirectTo?: string }) => {
+export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp?: boolean }) => {
   const { push, back, replace, reset } = useStackNavigation();
   const bridge = useBridge();
   const navResult = useNavigationResult<boolean>();
@@ -73,7 +73,7 @@ export const useLogin = (options?: { redirectTo?: string }) => {
     }
   };
 
-  const handleLoginSuccess = (data: User) => {
+  const handleLoginSuccess = (data: User, { isNewSignUp = false }: { isNewSignUp?: boolean } = {}) => {
     // BE가 200을 주더라도 status가 ACTIVE가 아니면 silent 진행 금지.
     // 정식 흐름에선 handleLoginError에서 잡히지만, dev/guest 라우트처럼
     // status 체크 없이 user를 그대로 반환하는 엔드포인트 대비 안전망.
@@ -89,13 +89,15 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
     setUser(data);
 
-    if (redirectTo) {
+    const shouldResetToMain = isNewSignUp && options?.resetToMainAfterSignUp === true;
+
+    if (redirectTo && !shouldResetToMain) {
       savePostSignUpRedirect(redirectTo);
     } else {
       clearPostSignUpRedirect();
     }
 
-    const resultTxId = getCurrentTxId();
+    const resultTxId = shouldResetToMain ? null : getCurrentTxId();
 
     if (!hasSeenDevicePermissionIntro()) {
       const query = {
@@ -119,6 +121,11 @@ export const useLogin = (options?: { redirectTo?: string }) => {
 
     if (resultTxId) {
       navResult.send(true);
+    }
+
+    if (shouldResetToMain) {
+      reset(route.root).catch(() => undefined);
+      return;
     }
 
     if (redirectTo) {
@@ -146,7 +153,7 @@ export const useLogin = (options?: { redirectTo?: string }) => {
   const completeSignUp = async () => {
     try {
       const user = await registerCurrentSocialUser();
-      handleLoginSuccess(user);
+      handleLoginSuccess(user, { isNewSignUp: true });
     } catch (error) {
       console.error('[useLogin] 회원가입 실패:', error);
       toast({
