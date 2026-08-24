@@ -5,7 +5,6 @@ import { Icon } from '@knockdog/ui';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumPhoto } from '@views/guardian-album-page/config/guardianAlbumTodayMock';
-import { useGuardianAlbumLastViewed } from '@views/guardian-album-page/model/useGuardianAlbumLastViewed';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 
 import { GuardianAlbumTodayPhotoStrip } from './GuardianAlbumTodayPhotoStrip';
@@ -15,6 +14,7 @@ interface GuardianAlbumTodaySectionProps {
   isAttendedToday: boolean;
   todayPhotoCount: number;
   todayPhotos: GuardianAlbumPhoto[];
+  lastViewedAt: number;
   onOpenDetail?: (photoId?: string) => void;
   onToggleFavorite?: (photoId: string, isFavorite: boolean) => Promise<void>;
 }
@@ -26,11 +26,11 @@ function GuardianAlbumTodaySection({
   isAttendedToday,
   todayPhotoCount,
   todayPhotos,
+  lastViewedAt,
   onOpenDetail,
   onToggleFavorite,
 }: GuardianAlbumTodaySectionProps) {
   const { today } = guardianAlbumContent;
-  const { lastViewedAt } = useGuardianAlbumLastViewed();
   const dateLabel = formatKoreanDateWithWeekday(new Date());
 
   const previewPhotos = useMemo(

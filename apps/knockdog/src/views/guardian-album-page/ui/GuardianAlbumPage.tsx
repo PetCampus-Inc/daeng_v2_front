@@ -32,6 +32,7 @@ import { GuardianAlbumEmptyState } from '@views/guardian-album-page/ui/GuardianA
 import { useGuardianAlbumAttendedDays } from '@views/guardian-album-page/model/useGuardianAlbumAttendedDays';
 import { useGuardianAlbumFavorites } from '@views/guardian-album-page/model/useGuardianAlbumFavorites';
 import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model/useGuardianAlbumFavoriteToggle';
+import { useGuardianAlbumLastViewed } from '@views/guardian-album-page/model/useGuardianAlbumLastViewed';
 import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/GuardianAlbumAttendanceList';
 import { GuardianAlbumFavoriteList } from '@views/guardian-album-page/ui/GuardianAlbumFavoriteList';
 import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
@@ -99,6 +100,7 @@ function resolveSelectedConnection(
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
+  const { lastViewedAt, markAsViewed } = useGuardianAlbumLastViewed();
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPetId: earlySelectedPetId } = useGuardianSelectedPet();
@@ -281,8 +283,9 @@ function GuardianAlbumPage() {
   );
 
   const handleCloseDetail = useCallback(() => {
+    markAsViewed();
     setDetailState(null);
-  }, []);
+  }, [markAsViewed]);
 
   const handleOpenTodayDetail = useCallback(
     (photoId?: string) => {
@@ -654,6 +657,7 @@ function GuardianAlbumPage() {
                   isAttendedToday={isAttendedToday}
                   todayPhotoCount={todayPhotoCount}
                   todayPhotos={todayPhotos}
+                  lastViewedAt={lastViewedAt}
                   onOpenDetail={handleOpenTodayDetail}
                   onToggleFavorite={toggleFavorite}
                 />
