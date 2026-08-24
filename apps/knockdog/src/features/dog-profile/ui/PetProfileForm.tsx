@@ -366,6 +366,7 @@ function PetProfileForm({
                     <TextFieldInput
                       {...field}
                       value={field.value ?? ''}
+                      placeholder='강아지 몸무게를 입력해 주세요'
                       maxLength={String(MAX_DOG_WEIGHT).length}
                       inputMode='numeric'
                       pattern='[0-9]*'

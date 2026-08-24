@@ -22,7 +22,11 @@ function normalizeSearchText(value: string) {
 function sortOwnerMembers(members: OwnerMember[], sortType: OwnerMemberSortType) {
   return [...members].sort((currentMember, nextMember) => {
     if (sortType === 'recentAttendance') {
-      return (nextMember.recentAttendanceDate ?? '').localeCompare(currentMember.recentAttendanceDate ?? '');
+      const attendanceDifference =
+        (nextMember.lastAttendanceAt ?? Number.NEGATIVE_INFINITY) -
+        (currentMember.lastAttendanceAt ?? Number.NEGATIVE_INFINITY);
+
+      if (attendanceDifference) return attendanceDifference;
     }
 
     return (
