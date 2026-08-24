@@ -9,6 +9,12 @@ import { useMypageRoleViewStore } from '../model/mypageRoleViewStore';
 import { useBridge, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
+declare global {
+  interface Window {
+    __knockdogNativeTabFocused?: boolean;
+  }
+}
+
 function useHasMypageRoleViewHydrated() {
   const [hasHydrated, setHasHydrated] = useState(
     () => useMypageRoleViewStore.persist?.hasHydrated?.() ?? true
@@ -25,6 +31,28 @@ function useHasMypageRoleViewHydrated() {
   return hasHydrated;
 }
 
+/** 네이티브가 주입하는 탭 focus — 백그라운드 탭 WebView가 mode를 덮어쓰지 않게 함 */
+function useIsNativeTabFocused() {
+  const [isFocused, setIsFocused] = useState(() =>
+    typeof window !== 'undefined' ? window.__knockdogNativeTabFocused === true : false
+  );
+
+  useEffect(() => {
+    const handleFocus = () => setIsFocused(true);
+    const handleBlur = () => setIsFocused(false);
+
+    window.addEventListener('knockdog:native-tab-focus', handleFocus);
+    window.addEventListener('knockdog:native-tab-blur', handleBlur);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-focus', handleFocus);
+      window.removeEventListener('knockdog:native-tab-blur', handleBlur);
+    };
+  }, []);
+
+  return isFocused;
+}
+
 /**
  * 원장 권한/뷰 모드에 맞춰 네이티브 바텀탭(보호자 ↔ 원장)을 동기화한다.
  * 웹 BottomNavBar는 네이티브 WebView에서 숨겨지므로 네이티브 탭 전환이 필요하다.
@@ -36,6 +64,9 @@ function useHasMypageRoleViewHydrated() {
  * prefersGuardianView는 localStorage persist — 탭별 WebView가 기본값 false로
  * 원장 모드를 다시 밀어 올리는 것을 막는다.
  * /compare 는 보호자 전용이라 항상 guardian 모드로 네이티브 탭을 동기화한다.
+ *
+ * 단일 writer: focused + visible 메인 탭만 sync.
+ * 백그라운드 /compare 등이 guardian으로 덮어 iOS GNB thrash 나는 것을 막는다.
  */
 function SyncNativeMainTabModeEffect() {
   const bridge = useBridge();
@@ -45,14 +76,28 @@ function SyncNativeMainTabModeEffect() {
   const { isOwner, isResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
   const hasRoleViewHydrated = useHasMypageRoleViewHydrated();
+  const isNativeTabFocused = useIsNativeTabFocused();
   const lastSyncedModeRef = useRef<'owner' | 'guardian' | null>(null);
+  const retryCountRef = useRef(0);
   const [retryNonce, setRetryNonce] = useState(0);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
+    typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
+  );
 
   const mode = isOwner && !prefersGuardianView ? 'owner' : 'guardian';
 
   useEffect(() => {
+    const handleVisibility = () => {
+      setIsDocumentVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
+  useEffect(() => {
     if (!isNative || !isResolved || !hasRoleViewHydrated) return;
     if (!isMainTab()) return;
+    if (!isNativeTabFocused || !isDocumentVisible) return;
     // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
     if (mode === 'guardian' && isFetching) return;
 
@@ -71,7 +116,8 @@ function SyncNativeMainTabModeEffect() {
       }
       lastSyncedModeRef.current = null;
       if (cancelled) return;
-      // mode가 그대로여도 effect가 다시 돌도록 retry state bump
+      if (retryCountRef.current >= 2) return;
+      retryCountRef.current += 1;
       retryTimer = setTimeout(() => {
         setRetryNonce((nonce) => nonce + 1);
       }, 300);
@@ -84,14 +130,22 @@ function SyncNativeMainTabModeEffect() {
   }, [
     bridge,
     hasRoleViewHydrated,
+    isDocumentVisible,
     isFetching,
     isMainTab,
     isNative,
+    isNativeTabFocused,
     isResolved,
     mode,
     pathname,
     retryNonce,
   ]);
+
+  useEffect(() => {
+    if (isNativeTabFocused && isDocumentVisible) {
+      retryCountRef.current = 0;
+    }
+  }, [isDocumentVisible, isNativeTabFocused]);
 
   return null;
 }

@@ -129,14 +129,20 @@ function isStackFocused(): boolean {
   return state.routes[state.index ?? 0]?.name === 'Stack';
 }
 
-function applyMainTabMode(mode: MainTabMode) {
+let pendingMainTabMode: MainTabMode | null = null;
+let mainTabModeTimer: ReturnType<typeof setTimeout> | undefined;
+
+function applyMainTabModeNow(mode: MainTabMode) {
+  // Stack이 떠 있는 동안 setMode/navigate 모두 스킵
+  // (템플릿 불러오기 등 pushForResult로 연 Stack WebView의 SyncNativeMainTabModeEffect)
+  if (isStackFocused()) return;
+
+  const current = useMainTabModeStore.getState().mode;
+  if (current === mode) return;
+
   useMainTabModeStore.getState().setMode(mode);
 
   if (!isNavReady()) return;
-
-  // Stack이 떠 있는 동안 Tabs로 navigate하면 열린 Stack이 전부 pop되어 홈으로 튕김
-  // (템플릿 불러오기 등 pushForResult로 연 Stack WebView의 SyncNativeMainTabModeEffect)
-  if (isStackFocused()) return;
 
   const activeTab = getActiveTabName();
   if (!activeTab || activeTab === 'Mypage') return;
@@ -149,6 +155,20 @@ function applyMainTabMode(mode: MainTabMode) {
   if (mode === 'guardian' && isOwnerOnlyTab(activeTab)) {
     navigationRef.navigate('Tabs', { screen: 'Explore' });
   }
+}
+
+/** 탭 WebView들이 owner/guardian을 동시에 밀어올리는 레이스를 흡수 */
+function applyMainTabMode(mode: MainTabMode) {
+  pendingMainTabMode = mode;
+
+  if (mainTabModeTimer !== undefined) clearTimeout(mainTabModeTimer);
+  mainTabModeTimer = setTimeout(() => {
+    mainTabModeTimer = undefined;
+    const next = pendingMainTabMode;
+    pendingMainTabMode = null;
+    if (next == null) return;
+    applyMainTabModeNow(next);
+  }, 200);
 }
 
 /** 웹 경로 → 네이티브 라우트 변환 (Tabs / Stack(path)) */
