@@ -1,5 +1,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+
+import { useSearchMachine } from '@features/kindergarten-map/model/useSearchMachine';
 import { Header } from '@widgets/Header';
 
 interface SearchHeaderProps {
@@ -9,6 +11,7 @@ interface SearchHeaderProps {
 export function SearchHeader({ query }: SearchHeaderProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { dispatch } = useSearchMachine();
 
   /**
    * 검색창 재활성화 (검색 페이지로 이동)
@@ -19,19 +22,10 @@ export function SearchHeader({ query }: SearchHeaderProps) {
   };
 
   /**
-   * 검색 취소 (메인 페이지로 이동)
+   * 검색어만 삭제 — 현재 지도/메인 페이지에 유지
    */
-  const handleClose = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    // FIXME: nuqs 통해 관리
-    params.delete('query');
-    params.delete('filters');
-    params.delete('region');
-    params.delete('bounds');
-    params.delete('searchLock');
-    params.set('scope', 'nearby');
-    params.set('bottomSheetSnapIndex', '0');
-    router.replace(`/?${params.toString()}`);
+  const handleClearQuery = () => {
+    dispatch({ type: 'CLEAR_QUERY' });
   };
 
   return (
@@ -59,7 +53,7 @@ export function SearchHeader({ query }: SearchHeaderProps) {
       </TextField>
 
       <Header.RightSection>
-        <Header.CloseButton onClick={handleClose} />
+        <Header.CloseButton onClick={handleClearQuery} aria-label='검색어 삭제' />
       </Header.RightSection>
     </Header>
   );
