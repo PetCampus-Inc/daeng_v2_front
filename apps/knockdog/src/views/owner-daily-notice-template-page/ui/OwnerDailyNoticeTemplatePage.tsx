@@ -40,6 +40,7 @@ function OwnerDailyNoticeTemplatePage() {
     selectedTemplateId,
     setSelectedTemplateId,
     hasTemplates,
+    templateIds,
     isLoading,
   } = useOwnerNoticeTemplates();
 
@@ -120,8 +121,12 @@ function OwnerDailyNoticeTemplatePage() {
       ) : hasTemplates ? (
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4'>
           <RadioGroup
-            value={selectedTemplateId}
-            onValueChange={setSelectedTemplateId}
+            key={templateIds || 'empty'}
+            value={selectedTemplateId ?? ''}
+            onValueChange={(value) => {
+              if (!value) return;
+              setSelectedTemplateId(value);
+            }}
             className='gap-4'
           >
             {templates.map((template) => (

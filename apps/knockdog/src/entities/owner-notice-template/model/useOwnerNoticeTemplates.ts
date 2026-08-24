@@ -21,9 +21,12 @@ function useOwnerNoticeTemplates() {
       return;
     }
 
+    const ids = templateIds.split(',');
+
     setSelectedTemplateId((current) => {
-      if (!current) return undefined;
-      if (templateIds.split(',').includes(current)) return current;
+      if (current && ids.includes(current)) return current;
+      // 선택 중이던 템플릿이 삭제된 경우 → 남은 첫 항목으로 맞춤 (UI·불러오기 버튼 동기화)
+      if (current) return ids[0];
       return undefined;
     });
   }, [templateIds]);
@@ -34,6 +37,7 @@ function useOwnerNoticeTemplates() {
     setSelectedTemplateId,
     hasTemplates: templates.length > 0,
     templateCount: templates.length,
+    templateIds,
     isLoading,
     isError,
     refetch,

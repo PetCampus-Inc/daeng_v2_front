@@ -18,6 +18,7 @@ function OwnerNoticeTemplateRadioCard({
   onPreview,
 }: OwnerNoticeTemplateRadioCardProps) {
   const handleClick = (event: MouseEvent<HTMLLabelElement>) => {
+    // 이미 선택된 카드만 상세로. 미선택 클릭은 RadioGroup 선택에 맡김
     if (!isSelected) return;
 
     event.preventDefault();

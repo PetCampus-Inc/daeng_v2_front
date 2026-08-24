@@ -15,9 +15,9 @@ interface InfoRowProps {
 
 function InfoRow({ label, value }: InfoRowProps) {
   return (
-    <div className='flex items-center justify-between py-4'>
-      <span className='body2-regular text-text-secondary'>{label}</span>
-      <span className='body1-bold text-text-primary'>{value}</span>
+    <div className='flex items-start justify-between gap-4 py-4'>
+      <span className='body2-regular text-text-secondary shrink-0 whitespace-nowrap'>{label}</span>
+      <span className='body1-bold text-text-primary min-w-0 flex-1 text-right break-words'>{value}</span>
     </div>
   );
 }
