@@ -96,14 +96,22 @@ export function AddressPicker({
 
     const input = event.currentTarget;
 
-    // iOS WebView: absolute 드롭다운 대신 in-flow 결과를 키보드 위까지 스크롤
+    // 키보드가 올라온 뒤에만, 가려진 경우에만 최소 스크롤
+    // focus 직후 block:center/start 는 이미 보이는 필드를 위로 보내버림
     scrollTimerRef.current = window.setTimeout(() => {
       scrollTimerRef.current = null;
       if (document.activeElement !== input) return;
-      embeddedContainerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, 300);
 
-    input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const viewportOffsetTop = window.visualViewport?.offsetTop ?? 0;
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const visibleTop = viewportOffsetTop + 8;
+      const visibleBottom = viewportOffsetTop + viewportHeight - 8;
+      const rect = input.getBoundingClientRect();
+
+      if (rect.top >= visibleTop && rect.bottom <= visibleBottom) return;
+
+      input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 350);
   };
 
   const handleInputBlur = () => {
