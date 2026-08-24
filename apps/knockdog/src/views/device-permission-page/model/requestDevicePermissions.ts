@@ -11,18 +11,32 @@ interface NotificationPermissionRequestResult {
   grantedNow: boolean;
 }
 
+interface NativePermissionResult {
+  status: PermissionStatus;
+  canAskAgain: boolean;
+}
+
+interface NativeNotificationPermissionResult extends NativePermissionResult {
+  requested: boolean;
+}
+
 async function requestNativePermission(
   method:
     | typeof METHODS.requestLocationPermission
     | typeof METHODS.requestCameraPermission
     | typeof METHODS.requestPhotosPermission
-    | typeof METHODS.getNotificationPermission
-    | typeof METHODS.requestNotificationPermission
 ) {
   const bridge = getBridgeInstance();
   if (!bridge) return null;
 
-  return bridge.request<{ status: PermissionStatus; canAskAgain: boolean }>(method, {}, { timeoutMs: REQUEST_TIMEOUT_MS });
+  return bridge.request<NativePermissionResult>(method, {}, { timeoutMs: REQUEST_TIMEOUT_MS });
+}
+
+async function requestNativeNotificationPermission() {
+  const bridge = getBridgeInstance();
+  if (!bridge) return null;
+
+  return bridge.request<NativeNotificationPermissionResult>(METHODS.requestNotificationPermission, {}, { timeoutMs: REQUEST_TIMEOUT_MS });
 }
 
 async function requestWebCameraPermission() {
@@ -51,13 +65,13 @@ async function requestDevicePermissions(): Promise<NotificationPermissionRequest
   await requestNativePermission(METHODS.requestLocationPermission).catch(() => undefined);
   await requestNativePermission(METHODS.requestCameraPermission).catch(() => undefined);
   await requestNativePermission(METHODS.requestPhotosPermission).catch(() => undefined);
-  const notificationPermissionBefore = await requestNativePermission(METHODS.getNotificationPermission).catch(() => null);
-  const notificationPermissionAfter = await requestNativePermission(METHODS.requestNotificationPermission).catch(() => null);
+  const notificationPermissionAfter = await requestNativeNotificationPermission().catch(() => null);
 
   return {
     status: notificationPermissionAfter?.status ?? 'undetermined',
+    // Android는 요청 전 상태를 denied로 반환할 수 있으므로, 상태값 대신 실제 요청 여부를 기준으로 판단한다.
     // 이미 허용된 기기의 다른 계정에 설정을 자동 적용하지 않는다.
-    grantedNow: notificationPermissionBefore?.status === 'undetermined' && notificationPermissionAfter?.status === 'allowed',
+    grantedNow: notificationPermissionAfter?.requested === true && notificationPermissionAfter.status === 'allowed',
   };
 }
 
