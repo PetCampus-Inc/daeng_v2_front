@@ -13,7 +13,12 @@ import {
   APP_OPEN_WEB_HOME_URL,
 } from '../config/appOpenLandingContent';
 
-function useAppOpenLanding() {
+interface UseAppOpenLandingOptions {
+  /** 앱을 열 때 유지해야 하는 딥링크. 생략하면 보호자 홈으로 연다. */
+  nativeUrl?: string;
+}
+
+function useAppOpenLanding({ nativeUrl = APP_OPEN_NATIVE_SCHEME }: UseAppOpenLandingOptions = {}) {
   const { reset } = useStackNavigation();
 
   useEffect(() => {
@@ -31,7 +36,7 @@ function useAppOpenLanding() {
     }
 
     // 앱 오픈을 먼저 시도하고, 미설치로 판단되면 스토어로 이동
-    window.location.href = APP_OPEN_NATIVE_SCHEME;
+    window.location.href = nativeUrl;
 
     const timerId = window.setTimeout(() => {
       if (document.visibilityState === 'hidden') return;
@@ -41,7 +46,7 @@ function useAppOpenLanding() {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [reset]);
+  }, [nativeUrl, reset]);
 }
 
 export { useAppOpenLanding };
