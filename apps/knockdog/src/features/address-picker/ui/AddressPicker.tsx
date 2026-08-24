@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import { Field, FieldLabel, Icon, IconButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -53,10 +53,24 @@ export function AddressPicker({
   });
 
   const isEmbedded = variant === 'embedded';
+  const embeddedContainerRef = useRef<HTMLDivElement>(null);
   const showHint = !isEmbedded && !isSelected && inputValue === '' && searchQuery === '';
   const showResults = !isSelected && searchQuery.length > 0;
   const hasResults = (addressList?.length ?? 0) > 0;
   const listKeyword = inputValue || searchQuery;
+
+  const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    handleFocus();
+
+    if (!isEmbedded) return;
+
+    // iOS WebView: absolute 드롭다운 대신 in-flow 결과를 키보드 위까지 스크롤
+    window.setTimeout(() => {
+      embeddedContainerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }, 300);
+
+    event.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
 
   const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -85,7 +99,7 @@ export function AddressPicker({
       <TextFieldInput
         value={inputValue}
         onChange={handleChange}
-        onFocus={handleFocus}
+        onFocus={handleInputFocus}
         onBlur={handleBlur}
         placeholder={placeholder}
       />
@@ -119,15 +133,10 @@ export function AddressPicker({
 
   if (isEmbedded) {
     return (
-      <div className={cn('relative', className)} {...props}>
+      <div ref={embeddedContainerRef} className={cn('relative', className)} {...props}>
         {searchField}
         {showResults && hasResults && (
-          <div
-            className={cn(
-              'bg-fill-secondary-0 absolute inset-x-0 top-full z-10 max-h-[280px] overflow-y-auto',
-              embeddedResultsClassName
-            )}
-          >
+          <div className={cn('bg-fill-secondary-0 mt-2', embeddedResultsClassName)}>
             <AddressList className='px-4' showEmptyFallback={false}>
               {addressList?.map((address, index) => (
                 <AddressListItem
