@@ -142,7 +142,11 @@ export function GuardianKindergartenPage() {
             firstAttendedAt={firstAttendedAt}
           />
         ) : showDisconnected ? (
-          <GuardianKindergartenDisconnectedState kindergarten={linkedKindergarten} />
+          <GuardianKindergartenDisconnectedState
+            kindergarten={linkedKindergarten}
+            albumPhotos={albumPhotos}
+            firstAttendedAt={firstAttendedAt}
+          />
         ) : showApproved ? (
           <GuardianKindergartenApprovedState
             kindergarten={linkedKindergarten}
