@@ -25,7 +25,9 @@ function injectNativeTabFocus(webview: WebView | null, focused: boolean) {
 
 export default function WebViewScreen({ uri, webviewRef, initialState }: WebViewScreenProps) {
   const isFocusedRef = useRef(false);
-  const resolveWebView = useCallback(() => webviewRef?.current ?? null, [webviewRef]);
+  const internalRef = useRef<WebView>(null);
+  const resolvedRef = (webviewRef ?? internalRef) as RefObject<WebView>;
+  const resolveWebView = useCallback(() => resolvedRef.current ?? null, [resolvedRef]);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,7 +49,7 @@ export default function WebViewScreen({ uri, webviewRef, initialState }: WebView
   return (
     <BridgeWebView
       uri={uri}
-      webviewRef={webviewRef as RefObject<WebView>}
+      webviewRef={resolvedRef}
       initialState={initialState}
       onLoadEnd={handleLoadEnd}
     />

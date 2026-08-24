@@ -43,6 +43,7 @@ function useIsNativeTabFocused() {
 
     window.addEventListener('knockdog:native-tab-focus', handleFocus);
     window.addEventListener('knockdog:native-tab-blur', handleBlur);
+    setIsFocused(window.__knockdogNativeTabFocused === true);
 
     return () => {
       window.removeEventListener('knockdog:native-tab-focus', handleFocus);
@@ -97,7 +98,10 @@ function SyncNativeMainTabModeEffect() {
   useEffect(() => {
     if (!isNative || !isResolved || !hasRoleViewHydrated) return;
     if (!isMainTab()) return;
-    if (!isNativeTabFocused || !isDocumentVisible) return;
+    if (!isNativeTabFocused || !isDocumentVisible) {
+      lastSyncedModeRef.current = null;
+      return;
+    }
     // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
     if (mode === 'guardian' && isFetching) return;
 
