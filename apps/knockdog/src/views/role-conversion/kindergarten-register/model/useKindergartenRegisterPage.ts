@@ -5,7 +5,14 @@ import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
 import type { Address } from '@entities/address';
-import { formatAddress, formatName, formatPhone, isValidKindergartenPhone, isValidRepresentativePhone } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+import {
+  formatAddress,
+  formatName,
+  formatPhone,
+  formatRepresentativeName,
+  isValidKindergartenPhone,
+  isValidRepresentativePhone,
+} from '@features/role-conversion/lib/formatKindergartenRegisterField';
 
 import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
 import {
@@ -34,7 +41,7 @@ const fieldFormatters = {
   address: formatAddress,
   addressDetail: formatAddress,
   kindergartenNumber: formatPhone,
-  ownerName: formatName,
+  ownerName: formatRepresentativeName,
   phoneNumber: formatPhone,
 } as const;
 
