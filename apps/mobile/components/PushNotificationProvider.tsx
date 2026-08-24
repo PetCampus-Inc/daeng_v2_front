@@ -32,19 +32,13 @@ function hasNotificationPermission(permission: Notifications.NotificationPermiss
   );
 }
 
-async function requestNotificationPermission() {
+async function ensureNotificationChannel() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
       name: '일반 알림',
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
-
-  const existingPermission = await Notifications.getPermissionsAsync();
-  if (hasNotificationPermission(existingPermission)) return true;
-
-  const requestedPermission = await Notifications.requestPermissionsAsync();
-  return hasNotificationPermission(requestedPermission);
 }
 
 function notificationData(message: RemoteMessage): Record<string, unknown> {
@@ -74,8 +68,9 @@ export function PushNotificationProvider() {
 
     const initialize = async () => {
       try {
-        const authorized = await requestNotificationPermission();
-        if (!authorized) return;
+        await ensureNotificationChannel();
+        const permission = await Notifications.getPermissionsAsync();
+        if (!hasNotificationPermission(permission)) return;
 
         if (Platform.OS === 'ios') await registerDeviceForRemoteMessages(firebaseMessaging);
         const token = await getToken(firebaseMessaging);
@@ -89,7 +84,9 @@ export function PushNotificationProvider() {
       }
     };
 
+    // OS 권한 요청은 로그인 후 권한 안내 화면이 담당한다. 여기서는 이미 허용된 경우만 초기화한다.
     void initialize();
+    const permissionUnsubscribe = pushCoordinator.onNotificationPermissionGranted(() => void initialize());
     const tokenUnsubscribe = onTokenRefresh(firebaseMessaging, (token) => pushCoordinator.setToken(token, pushPlatform));
     const foregroundUnsubscribe = onMessage(firebaseMessaging, (message) => {
       void showForegroundNotification(message).catch((error) => console.warn('[Push] foreground display failed', error));
@@ -103,6 +100,7 @@ export function PushNotificationProvider() {
 
     return () => {
       mounted = false;
+      permissionUnsubscribe();
       tokenUnsubscribe();
       foregroundUnsubscribe();
       openedUnsubscribe();

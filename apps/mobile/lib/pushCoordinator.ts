@@ -25,6 +25,16 @@ class PushCoordinator {
   private pendingDestination: PushDestination | null = null;
   private lastDestinationKey: string | null = null;
   private lastDestinationAt = 0;
+  private notificationPermissionGrantedListeners = new Set<() => void>();
+
+  onNotificationPermissionGranted(listener: () => void) {
+    this.notificationPermissionGrantedListeners.add(listener);
+    return () => this.notificationPermissionGrantedListeners.delete(listener);
+  }
+
+  notifyNotificationPermissionGranted() {
+    this.notificationPermissionGrantedListeners.forEach((listener) => listener());
+  }
 
   setToken(token: string, platform: 'IOS' | 'ANDROID') {
     if (!token) return;

@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Notifications from 'expo-notifications';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS, type PermissionStatus } from '@knockdog/bridge-core';
+import { pushCoordinator } from '@/lib/pushCoordinator';
 
 function mapExpoStatus(status: string, canAskAgain: boolean): { status: PermissionStatus; canAskAgain: boolean } {
   if (status === 'granted' || status === 'limited') return { status: 'allowed', canAskAgain: true };
@@ -43,10 +44,14 @@ export function registerPermissionHandlers(router: NativeBridgeRouter) {
 
     const existing = await Notifications.getPermissionsAsync();
     if (isNotificationPermissionGranted(existing)) {
+      pushCoordinator.notifyNotificationPermissionGranted();
       return { status: 'allowed' as const, canAskAgain: existing.canAskAgain };
     }
 
     const requested = await Notifications.requestPermissionsAsync();
+    if (isNotificationPermissionGranted(requested)) {
+      pushCoordinator.notifyNotificationPermissionGranted();
+    }
     return mapExpoStatus(requested.status, requested.canAskAgain);
   });
 }
