@@ -16,12 +16,19 @@ import {
 interface UseAppOpenLandingOptions {
   /** 앱을 열 때 유지해야 하는 딥링크. 생략하면 보호자 홈으로 연다. */
   nativeUrl?: string;
+  /** false면 앱 오픈/스토어 분기를 돌리지 않는다. 초대 폴백은 기본값 유지. */
+  enabled?: boolean;
 }
 
-function useAppOpenLanding({ nativeUrl = APP_OPEN_NATIVE_SCHEME }: UseAppOpenLandingOptions = {}) {
+function useAppOpenLanding({
+  nativeUrl = APP_OPEN_NATIVE_SCHEME,
+  enabled = true,
+}: UseAppOpenLandingOptions = {}) {
   const { reset } = useStackNavigation();
 
   useEffect(() => {
+    if (!enabled) return;
+
     if (isNativeWebView()) {
       // 설치·딥링크로 앱 WebView에 진입한 경우 → 보호자 홈 (비로그인은 홈/가드에서 처리)
       void reset(route.root);
@@ -46,7 +53,7 @@ function useAppOpenLanding({ nativeUrl = APP_OPEN_NATIVE_SCHEME }: UseAppOpenLan
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [nativeUrl, reset]);
+  }, [enabled, nativeUrl, reset]);
 }
 
 export { useAppOpenLanding };
