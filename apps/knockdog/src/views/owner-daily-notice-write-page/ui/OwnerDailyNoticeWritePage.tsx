@@ -156,6 +156,24 @@ function clearNoticeDraft(noticeId: string, dateKey: string) {
   localStorage.removeItem(getDraftStorageKey(noticeId, dateKey));
 }
 
+const EMPTY_NOTICE_DRAFT: NoticeDraft = {
+  selectedConditionId: null,
+  snack: '',
+  selectedStoolStatus: null,
+  stoolMemo: '',
+  notice: '',
+};
+
+function areNoticeDraftsEqual(a: NoticeDraft, b: NoticeDraft) {
+  return (
+    a.selectedConditionId === b.selectedConditionId &&
+    a.snack === b.snack &&
+    a.selectedStoolStatus === b.selectedStoolStatus &&
+    a.stoolMemo === b.stoolMemo &&
+    a.notice === b.notice
+  );
+}
+
 /**
  * 원장 일과 탭 — 원생별 알림장 작성 페이지
  */
@@ -191,13 +209,9 @@ function OwnerDailyNoticeWritePage() {
   const [isEditingSent, setIsEditingSent] = useState(isEditQuery);
   const [hydratedRecordKey, setHydratedRecordKey] = useState<string | null>(null);
   const hasOpenedEntryDialogRef = useRef(false);
-  const draftRef = useRef<NoticeDraft>({
-    selectedConditionId: null,
-    snack: '',
-    selectedStoolStatus: null,
-    stoolMemo: '',
-    notice: '',
-  });
+  const draftRef = useRef<NoticeDraft>(EMPTY_NOTICE_DRAFT);
+  /** 임시저장/서버 hydrate 기준 — 이후 수정분만 이탈 모달 */
+  const persistedDraftRef = useRef<NoticeDraft>(EMPTY_NOTICE_DRAFT);
   const sendAttemptRef = useRef<NoticeSendAttempt | null>(null);
 
   const hasSentRecord = attendanceRecord?.status === 'SENT';
@@ -219,23 +233,51 @@ function OwnerDailyNoticeWritePage() {
       noticeId != null ? loadNoticeDraft(noticeId, noticeWriteDate.dateKey) : null;
 
     if ((isTemplateRoundTrip || pendingTemplate !== null) && draft) {
-      setSelectedConditionId(draft.selectedConditionId);
-      setSnack(draft.snack);
-      setSelectedStoolStatus(draft.selectedStoolStatus);
-      setStoolMemo(draft.stoolMemo);
-      setNotice(pendingTemplate ?? draft.notice);
+      const nextDraft: NoticeDraft = {
+        selectedConditionId: draft.selectedConditionId,
+        snack: draft.snack,
+        selectedStoolStatus: draft.selectedStoolStatus,
+        stoolMemo: draft.stoolMemo,
+        notice: pendingTemplate ?? draft.notice,
+      };
+      setSelectedConditionId(nextDraft.selectedConditionId);
+      setSnack(nextDraft.snack);
+      setSelectedStoolStatus(nextDraft.selectedStoolStatus);
+      setStoolMemo(nextDraft.stoolMemo);
+      setNotice(nextDraft.notice);
+      // 템플릿 적용분은 미저장 변경으로 취급 — baseline은 로컬 draft(임시저장본)
+      persistedDraftRef.current = draft;
     } else if (pendingTemplate !== null) {
-      setSelectedConditionId(normalizeConditionOptionId(attendanceRecord.condition));
-      setSnack(attendanceRecord.snack);
-      setSelectedStoolStatus(normalizeNoticeWriteStoolStatus(attendanceRecord.poop));
-      setStoolMemo(attendanceRecord.poopMemo);
-      setNotice(pendingTemplate);
+      const nextDraft: NoticeDraft = {
+        selectedConditionId: normalizeConditionOptionId(attendanceRecord.condition),
+        snack: attendanceRecord.snack,
+        selectedStoolStatus: normalizeNoticeWriteStoolStatus(attendanceRecord.poop),
+        stoolMemo: attendanceRecord.poopMemo,
+        notice: pendingTemplate,
+      };
+      setSelectedConditionId(nextDraft.selectedConditionId);
+      setSnack(nextDraft.snack);
+      setSelectedStoolStatus(nextDraft.selectedStoolStatus);
+      setStoolMemo(nextDraft.stoolMemo);
+      setNotice(nextDraft.notice);
+      persistedDraftRef.current = {
+        ...nextDraft,
+        notice: attendanceRecord.note,
+      };
     } else {
-      setSelectedConditionId(normalizeConditionOptionId(attendanceRecord.condition));
-      setSnack(attendanceRecord.snack);
-      setSelectedStoolStatus(normalizeNoticeWriteStoolStatus(attendanceRecord.poop));
-      setStoolMemo(attendanceRecord.poopMemo);
-      setNotice(attendanceRecord.note);
+      const nextDraft: NoticeDraft = {
+        selectedConditionId: normalizeConditionOptionId(attendanceRecord.condition),
+        snack: attendanceRecord.snack,
+        selectedStoolStatus: normalizeNoticeWriteStoolStatus(attendanceRecord.poop),
+        stoolMemo: attendanceRecord.poopMemo,
+        notice: attendanceRecord.note,
+      };
+      setSelectedConditionId(nextDraft.selectedConditionId);
+      setSnack(nextDraft.snack);
+      setSelectedStoolStatus(nextDraft.selectedStoolStatus);
+      setStoolMemo(nextDraft.stoolMemo);
+      setNotice(nextDraft.notice);
+      persistedDraftRef.current = nextDraft;
     }
   }
 
@@ -284,12 +326,47 @@ function OwnerDailyNoticeWritePage() {
     openExpiredNoticeDialog(back);
   }, [back]);
 
-  const applyDraft = (draft: NoticeDraft) => {
+  const applyDraft = (draft: NoticeDraft, options?: { asPersisted?: boolean }) => {
     setSelectedConditionId(draft.selectedConditionId);
     setSnack(draft.snack);
     setSelectedStoolStatus(draft.selectedStoolStatus);
     setStoolMemo(draft.stoolMemo);
     setNotice(draft.notice);
+    if (options?.asPersisted) {
+      persistedDraftRef.current = draft;
+    }
+  };
+
+  const handleBackClick = () => {
+    if (isReadOnly) {
+      back();
+      return;
+    }
+
+    const hasUnsavedChanges = !areNoticeDraftsEqual(draftRef.current, persistedDraftRef.current);
+    if (!hasUnsavedChanges) {
+      back();
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{ownerDailyNoticeWriteContent.unsavedExitTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {ownerDailyNoticeWriteContent.unsavedExitDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{ownerDailyNoticeWriteContent.unsavedExitCancelLabel}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => back()}>
+              {ownerDailyNoticeWriteContent.unsavedExitConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
   };
 
   const openTemplatePage = async () => {
@@ -391,8 +468,16 @@ function OwnerDailyNoticeWritePage() {
     }
 
     try {
-      await draftMutation.mutateAsync(buildPayload());
+      const payload = buildPayload();
+      await draftMutation.mutateAsync(payload);
       saveNoticeDraft(noticeId, noticeWriteDate.dateKey, currentDraft);
+      persistedDraftRef.current = currentDraft;
+      queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
+        status: 200,
+        code: 'OK',
+        message: '',
+        data: toAttendanceRecordDtoFromPayload(payload, 'DRAFT'),
+      });
       toast({
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
         titleParts: [
@@ -582,10 +667,13 @@ function OwnerDailyNoticeWritePage() {
     if (isTemplateRoundTrip || loadedTemplateContent !== null) {
       const draft = loadNoticeDraft(noticeId, noticeWriteDate.dateKey);
       if (draft) {
-        applyDraft({
+        const nextDraft: NoticeDraft = {
           ...draft,
           notice: loadedTemplateContent ?? draft.notice,
-        });
+        };
+        applyDraft(nextDraft);
+        // 로컬 임시저장본은 baseline, 템플릿으로 바뀐 본문만 dirty
+        persistedDraftRef.current = draft;
       } else if (loadedTemplateContent !== null) {
         setNotice(loadedTemplateContent);
       }
@@ -620,7 +708,7 @@ function OwnerDailyNoticeWritePage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                applyDraft(draft);
+                applyDraft(draft, { asPersisted: true });
                 close();
               }}
             >
@@ -654,7 +742,7 @@ function OwnerDailyNoticeWritePage() {
 
         <Header variant='transparent'>
           <Header.LeftSection>
-            <Header.BackButton className='text-text-primary-inverse' />
+            <Header.BackButton className='text-text-primary-inverse' onClick={handleBackClick} />
           </Header.LeftSection>
           <Header.Title className='text-text-primary-inverse'>
             {ownerDailyNoticeWriteContent.pageTitle}
