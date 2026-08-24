@@ -21,7 +21,7 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
   const summary = buildDogSummary(dog);
 
   return (
-    <div className='bg-bg-0 flex flex-col items-center gap-2 pt-5'>
+    <div className='bg-bg-0 flex w-full min-w-0 flex-col items-center gap-2 pt-5'>
       <Avatar className='size-[120px]'>
         {dog.profileImageUrl ? (
           <AvatarImage src={dog.profileImageUrl} alt={`${dog.name} 프로필`} className='object-cover' />
@@ -31,12 +31,14 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
         </AvatarFallback>
       </Avatar>
 
-      <div className='flex flex-col items-center gap-1'>
-        <div className='flex items-center gap-1'>
-          <h1 className='h1-extrabold text-text-primary'>{dog.name}</h1>
-          {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-6' /> : null}
+      <div className='flex w-full min-w-0 flex-col items-center gap-1 px-4'>
+        <div className='flex max-w-full min-w-0 items-center gap-1'>
+          <h1 className='h1-extrabold text-text-primary min-w-0 truncate'>{dog.name}</h1>
+          {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-6 shrink-0' /> : null}
         </div>
-        {summary ? <p className='body1-medium text-text-secondary'>{summary}</p> : null}
+        {summary ? (
+          <p className='body1-medium text-text-secondary w-full truncate text-center'>{summary}</p>
+        ) : null}
       </div>
     </div>
   );
