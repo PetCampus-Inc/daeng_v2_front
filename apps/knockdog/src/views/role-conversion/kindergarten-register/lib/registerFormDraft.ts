@@ -61,8 +61,8 @@ function updateRegisterFormDraftAddress(address: string) {
 
   saveRegisterFormDraft({
     ...(draft ?? emptyRegisterForm),
-    source: 'manual',
     address,
+    addressDetail: '',
   });
 }
 

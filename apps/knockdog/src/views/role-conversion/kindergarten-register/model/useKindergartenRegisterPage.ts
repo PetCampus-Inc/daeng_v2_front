@@ -204,9 +204,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     setForm((prev) => {
       const next = { ...prev, [field]: fieldFormatters[field](value) };
 
-      if (mode === 'manual') {
-        saveRegisterFormDraft(next);
-      }
+      saveRegisterFormDraft(next);
 
       return next;
     });
@@ -234,9 +232,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     setForm((prev) => {
       const next = { ...prev, address: selectedAddress };
 
-      if (mode === 'manual') {
-        saveRegisterFormDraft(next);
-      }
+      saveRegisterFormDraft(next);
 
       return next;
     });
@@ -246,9 +242,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     setForm((prev) => {
       const next = { ...prev, address: '', addressDetail: '' };
 
-      if (mode === 'manual') {
-        saveRegisterFormDraft(next);
-      }
+      saveRegisterFormDraft(next);
 
       return next;
     });

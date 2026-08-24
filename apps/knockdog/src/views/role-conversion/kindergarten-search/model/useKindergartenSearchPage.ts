@@ -40,7 +40,7 @@ function useKindergartenSearchPage() {
       const searchPrefill = {
         placeId: place.id,
         name: place.title,
-        address: place.roadAddress,
+        address: '',
         kindergartenNumber: phoneNumber,
       };
 
