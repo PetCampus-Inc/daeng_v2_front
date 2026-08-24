@@ -51,7 +51,11 @@ function useResultPage() {
           .refetchQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] })
           .then(async () => {
             if (!isNativeWebView()) return;
-            await bridge.request(METHODS.navSetMainTabMode, { mode: 'owner' });
+            await bridge.request(METHODS.navSetMainTabMode, {
+              mode: 'owner',
+              requestId: Date.now(),
+              force: true,
+            });
           })
           .catch((error) => {
             if (process.env.NODE_ENV === 'development') {

@@ -145,13 +145,27 @@ function isStackFocused(): boolean {
   return state.routes[state.index ?? 0]?.name === 'Stack';
 }
 
-let pendingMainTabMode: MainTabMode | null = null;
-let mainTabModeTimer: ReturnType<typeof setTimeout> | undefined;
+let lastMainTabModeRequest: { id: number; source: RefObject<WebView> | null } = {
+  id: 0,
+  source: null,
+};
+
+function isRequestFromActiveTab(currentWebRef?: RefObject<WebView>) {
+  if (isStackFocused()) return false;
+
+  const activeTab = getActiveTabName();
+  if (!activeTab || !currentWebRef?.current) return false;
+
+  return tabWebViewStore.get(activeTab)?.current === currentWebRef.current;
+}
 
 function applyMainTabModeNow(mode: MainTabMode) {
-  // Stack이 떠 있는 동안 setMode/navigate 모두 스킵
-  // (템플릿 불러오기 등 pushForResult로 연 Stack WebView의 SyncNativeMainTabModeEffect)
-  if (isStackFocused()) return;
+  // Stack 화면에서는 탭 이동 없이 모드만 선반영한다.
+  // 원장 인증 완료 후 reset이 올바른 원장 탭을 선택할 수 있어야 한다.
+  if (isStackFocused()) {
+    useMainTabModeStore.getState().setMode(mode);
+    return;
+  }
 
   const current = useMainTabModeStore.getState().mode;
   if (current === mode) return;
@@ -173,18 +187,9 @@ function applyMainTabModeNow(mode: MainTabMode) {
   }
 }
 
-/** 탭 WebView들이 owner/guardian을 동시에 밀어올리는 레이스를 흡수 */
+/** 현재 활성 탭에서 온 최신 모드 요청만 즉시 반영한다. */
 function applyMainTabMode(mode: MainTabMode) {
-  pendingMainTabMode = mode;
-
-  if (mainTabModeTimer !== undefined) clearTimeout(mainTabModeTimer);
-  mainTabModeTimer = setTimeout(() => {
-    mainTabModeTimer = undefined;
-    const next = pendingMainTabMode;
-    pendingMainTabMode = null;
-    if (next == null) return;
-    applyMainTabModeNow(next);
-  }, 200);
+  applyMainTabModeNow(mode);
 }
 
 /** 웹 경로 → 네이티브 라우트 변환 (Tabs / Stack(path)) */
@@ -461,8 +466,24 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     return { switched: true };
   });
 
-  router.register<{ mode: MainTabMode }>(METHODS.navSetMainTabMode, async (payload) => {
+  router.register<{ mode: MainTabMode; requestId: number; force?: boolean }>(METHODS.navSetMainTabMode, async (payload) => {
     const mode = payload?.mode === 'owner' ? 'owner' : 'guardian';
+    const requestId = payload?.requestId ?? 0;
+
+    if (!payload?.force && !isRequestFromActiveTab(options?.currentWebRef)) {
+      return { mode: useMainTabModeStore.getState().mode };
+    }
+
+    // 요청 순번은 WebView별로 생성된다. 다른 탭이 새로 활성화된 경우에는
+    // 이전 탭의 더 큰 순번이 최신 활성 탭 요청을 막지 않도록 출처별로 비교한다.
+    if (!payload?.force && options?.currentWebRef === lastMainTabModeRequest.source && requestId < lastMainTabModeRequest.id) {
+      return { mode: useMainTabModeStore.getState().mode };
+    }
+
+    lastMainTabModeRequest = {
+      id: requestId,
+      source: payload?.force ? null : options?.currentWebRef ?? null,
+    };
     applyMainTabMode(mode);
     return { mode };
   });
