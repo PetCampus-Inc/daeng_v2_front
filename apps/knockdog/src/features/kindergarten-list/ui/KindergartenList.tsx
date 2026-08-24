@@ -15,6 +15,7 @@ import {
   SegmentedControlItem,
 } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+import { METHODS } from '@knockdog/bridge-core';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
 import { KindergartenListItem } from './KindergartenListItem';
@@ -38,7 +39,8 @@ import {
 import { LocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useBridge, useStackNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 import { ellipsisText, tokenUtils } from '@shared/utils';
@@ -48,12 +50,24 @@ interface KindergartenListProps {
   onOpenFilter: () => void;
 }
 
+let lastBottomTabBarDimRequestId = 0;
+
+function setNativeBottomTabBarDimmed(bridge: ReturnType<typeof useBridge>, dimmed: boolean) {
+  if (!isNativeWebView()) return;
+
+  lastBottomTabBarDimRequestId = Math.max(Date.now(), lastBottomTabBarDimRequestId + 1);
+  void bridge
+    .request(METHODS.navSetBottomTabBarDimmed, { dimmed, requestId: lastBottomTabBarDimRequestId })
+    .catch(() => undefined);
+}
+
 export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+  const bridge = useBridge();
   const { push, pushForResult } = useStackNavigation();
   const user = useUserStore((s) => s.user);
   const addAddressMutation = useAddUserAddressMutation();
@@ -111,52 +125,62 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     setBaseType(newType);
   };
 
-  const handleOpenAlertDialog = (type: UserAddressType) =>
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
-            <AlertDialogDescription>
-              장소를 등록하면 <br/> 가까운 유치원을 찾을 수 있어요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                close();
+  const handleOpenAlertDialog = (type: UserAddressType) => {
+    setNativeBottomTabBarDimmed(bridge, true);
 
-                let result: Omit<UserAddress, 'id'> | undefined;
-                try {
-                  result = await pushForResult<Omit<UserAddress, 'id'>>(
-                    { pathname: route.register.location.add.root, query: { type } },
-                    600_000
-                  );
-                } catch {
-                  // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
-                  return;
-                }
-                if (!result) return;
+    return overlay.open(({ isOpen, close }) => {
+      const closeDialog = () => {
+        close();
+        setNativeBottomTabBarDimmed(bridge, false);
+      };
 
-                try {
-                  await addAddressMutation.mutateAsync({ ...result, id: '0', type });
-                  setBaseType(type as BasePointType);
-                } catch (error) {
-                  console.error('장소 등록 실패:', error);
-                  toast({
-                    title: '일시적 오류로 요청을 완료하지 못했어요',
-                    nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
-                  });
-                }
-              }}
-            >
-              등록하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+      return (
+        <AlertDialog open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
+              <AlertDialogDescription>
+                장소를 등록하면 <br /> 가까운 유치원을 찾을 수 있어요.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>나중에 하기</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  closeDialog();
+
+                  let result: Omit<UserAddress, 'id'> | undefined;
+                  try {
+                    result = await pushForResult<Omit<UserAddress, 'id'>>(
+                      { pathname: route.register.location.add.root, query: { type } },
+                      600_000
+                    );
+                  } catch {
+                    // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+                    return;
+                  }
+                  if (!result) return;
+
+                  try {
+                    await addAddressMutation.mutateAsync({ ...result, id: '0', type });
+                    setBaseType(type as BasePointType);
+                  } catch (error) {
+                    console.error('장소 등록 실패:', error);
+                    toast({
+                      title: '일시적 오류로 요청을 완료하지 못했어요',
+                      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+                    });
+                  }
+                }}
+              >
+                등록하기
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    });
+  };
 
   const handleBookmarkClick = (id: string, bookmarked: boolean) => {
     mutate({ id, bookmarked });

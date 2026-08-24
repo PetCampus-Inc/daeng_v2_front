@@ -30,6 +30,7 @@ const METHODS = {
   navSwitchTab: 'system.navSwitchTab',
   navSetMainTabMode: 'system.navSetMainTabMode',
   navSetBottomTabBarVisible: 'system.navSetBottomTabBarVisible',
+  navSetBottomTabBarDimmed: 'system.navSetBottomTabBarDimmed',
 
   // external
   naverOpenRoute: 'naver.openRoute',

@@ -8,13 +8,7 @@ import { navBridgeHub } from '../model/navBridgeHub';
 import { tabWebViewStore } from '../model/tabWebViewStore';
 import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '../model/bottomTabBarVisibilityStore';
-import {
-  pathToTab,
-  pathToBaseTab,
-  isGuardianOnlyTab,
-  isOwnerOnlyTab,
-  type TabName,
-} from '../lib/tabRoutes';
+import { pathToTab, pathToBaseTab, isGuardianOnlyTab, isOwnerOnlyTab, type TabName } from '../lib/tabRoutes';
 
 type WebNavPayload = {
   name: string; // 예: '/detail'
@@ -41,6 +35,7 @@ type NativeRoute = TabsRoute | StackRoute;
 
 /** WebView 요청은 비동기로 도착할 수 있으므로, 가장 최근 탭바 상태 요청만 적용한다. */
 let lastBottomTabBarVisibilityRequestId = 0;
+let lastBottomTabBarDimRequestId = 0;
 
 // params에서 query를 추출해서 쿼리스트링으로 변환
 // name은 전체 URL 또는 경로일 수 있음
@@ -133,9 +128,7 @@ function notifyActiveTabViewportChanged() {
     const activeTab = getActiveTabName();
     if (!activeTab) return;
 
-    tabWebViewStore
-      .get(activeTab)
-      ?.current?.injectJavaScript("window.dispatchEvent(new Event('resize'));true;");
+    tabWebViewStore.get(activeTab)?.current?.injectJavaScript("window.dispatchEvent(new Event('resize'));true;");
   }, 100);
 }
 
@@ -340,9 +333,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       } catch {
         stackPathname = extractPathFromUrl(route.params.path);
       }
-      const baseTab = resolveTabScreen(
-        pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore'
-      );
+      const baseTab = resolveTabScreen(pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore');
 
       navigationRef.dispatch(
         CommonActions.reset({
@@ -466,27 +457,34 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     return { switched: true };
   });
 
-  router.register<{ mode: MainTabMode; requestId: number; force?: boolean }>(METHODS.navSetMainTabMode, async (payload) => {
-    const mode = payload?.mode === 'owner' ? 'owner' : 'guardian';
-    const requestId = payload?.requestId ?? 0;
+  router.register<{ mode: MainTabMode; requestId: number; force?: boolean }>(
+    METHODS.navSetMainTabMode,
+    async (payload) => {
+      const mode = payload?.mode === 'owner' ? 'owner' : 'guardian';
+      const requestId = payload?.requestId ?? 0;
 
-    if (!payload?.force && !isRequestFromActiveTab(options?.currentWebRef)) {
-      return { mode: useMainTabModeStore.getState().mode };
+      if (!payload?.force && !isRequestFromActiveTab(options?.currentWebRef)) {
+        return { mode: useMainTabModeStore.getState().mode };
+      }
+
+      // 요청 순번은 WebView별로 생성된다. 다른 탭이 새로 활성화된 경우에는
+      // 이전 탭의 더 큰 순번이 최신 활성 탭 요청을 막지 않도록 출처별로 비교한다.
+      if (
+        !payload?.force &&
+        options?.currentWebRef === lastMainTabModeRequest.source &&
+        requestId < lastMainTabModeRequest.id
+      ) {
+        return { mode: useMainTabModeStore.getState().mode };
+      }
+
+      lastMainTabModeRequest = {
+        id: requestId,
+        source: payload?.force ? null : (options?.currentWebRef ?? null),
+      };
+      applyMainTabMode(mode);
+      return { mode };
     }
-
-    // 요청 순번은 WebView별로 생성된다. 다른 탭이 새로 활성화된 경우에는
-    // 이전 탭의 더 큰 순번이 최신 활성 탭 요청을 막지 않도록 출처별로 비교한다.
-    if (!payload?.force && options?.currentWebRef === lastMainTabModeRequest.source && requestId < lastMainTabModeRequest.id) {
-      return { mode: useMainTabModeStore.getState().mode };
-    }
-
-    lastMainTabModeRequest = {
-      id: requestId,
-      source: payload?.force ? null : options?.currentWebRef ?? null,
-    };
-    applyMainTabMode(mode);
-    return { mode };
-  });
+  );
 
   router.register<{ visible: boolean; requestId: number }>(METHODS.navSetBottomTabBarVisible, async (payload) => {
     if (payload.requestId < lastBottomTabBarVisibilityRequestId) {
@@ -498,6 +496,17 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     useBottomTabBarVisibilityStore.getState().setVisible(visible);
     notifyActiveTabViewportChanged();
     return { visible };
+  });
+
+  router.register<{ dimmed: boolean; requestId: number }>(METHODS.navSetBottomTabBarDimmed, async (payload) => {
+    if (payload.requestId < lastBottomTabBarDimRequestId) {
+      return { dimmed: useBottomTabBarVisibilityStore.getState().dimmed };
+    }
+
+    lastBottomTabBarDimRequestId = payload.requestId;
+    const dimmed = payload?.dimmed === true;
+    useBottomTabBarVisibilityStore.getState().setDimmed(dimmed);
+    return { dimmed };
   });
 }
 
