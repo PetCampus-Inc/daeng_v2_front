@@ -305,7 +305,10 @@ function GuardianDailyNoticeListPage() {
               items={items}
               attendedUntilDate={attendedUntilDate}
               firstAttendanceDate={firstAttendanceDate}
-              onItemClick={(item) => pushGuardianDailyNoticeDetail(push, item.date)}
+              onItemClick={(item) => {
+                if (!selectedSchoolId) return;
+                pushGuardianDailyNoticeDetail(push, item.date, { schoolId: selectedSchoolId });
+              }}
             />
           ) : (
             <GuardianDailyNoticeListMonthEmpty />

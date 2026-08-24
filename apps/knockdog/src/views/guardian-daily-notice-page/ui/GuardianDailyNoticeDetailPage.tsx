@@ -30,7 +30,12 @@ import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-p
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { formatDateKey, isAfterDay, isBeforeDay, startOfDay } from '@shared/lib/calendar-date';
+import {
+  formatDateKey,
+  isAfterDay,
+  isBeforeDay,
+  startOfDay,
+} from '@shared/lib/calendar-date';
 import {
   isPetIdInList,
   isUnavailableResourceError,
@@ -49,6 +54,10 @@ interface VisibleCheckInState {
 
 function parsePetIdQuery(value: string | null) {
   return value && /^\d+$/.test(value) ? value : null;
+}
+
+function parseSchoolIdQuery(value: string | null) {
+  return value?.trim() ? value : null;
 }
 
 /** notice 일자가 membership 기간(connectedAt~disconnectedAt) 안인지 */
@@ -89,12 +98,46 @@ function resolveActiveConnection(
   return list.find((connection) => connection.disconnectedAt == null) ?? null;
 }
 
+/** 같은 학교 재연결 이력을 합친 캘린더 선택 범위 */
+function resolveSchoolDateRange(
+  connections: GuardianSchoolConnection[] | undefined,
+  schoolId: string | null
+) {
+  if (!schoolId) return { minDate: null as Date | null, maxDate: null as Date | null };
+
+  const schoolList = (connections ?? []).filter((connection) => connection.schoolId === schoolId);
+  if (schoolList.length === 0) return { minDate: null, maxDate: null };
+
+  let minDate: Date | null = null;
+  let maxDate: Date | null = null;
+  let hasActive = false;
+
+  for (const connection of schoolList) {
+    if (connection.connectedAt) {
+      const connectedAt = startOfDay(connection.connectedAt);
+      if (!minDate || isBeforeDay(connectedAt, minDate)) minDate = connectedAt;
+    }
+    if (connection.disconnectedAt == null) {
+      hasActive = true;
+      continue;
+    }
+    const disconnectedAt = startOfDay(connection.disconnectedAt);
+    if (!maxDate || isAfterDay(disconnectedAt, maxDate)) maxDate = disconnectedAt;
+  }
+
+  return {
+    minDate,
+    maxDate: hasActive ? null : maxDate,
+  };
+}
+
 function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
   const { push, reset } = useStackNavigation();
   const { leaveUnavailableStackPage } = useUnavailableNotificationAction();
   const petIdFromQuery = parsePetIdQuery(searchParams.get('petId'));
+  const schoolIdFromQuery = parseSchoolIdQuery(searchParams.get('schoolId'));
   const entrySource = parseNotificationEntrySource(searchParams.get('source'));
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
   const userId = useUserStore((state) => state.user?.userId);
@@ -120,35 +163,80 @@ function GuardianDailyNoticeDetailPage() {
     setSelectedPetId(petIdFromQuery);
   }, [canValidatePetList, petIdFromQuery, pets, setSelectedPetId]);
 
-  /** membership 매칭에 사용 */
-  const [selectedDateState, setSelectedDate] = useState(() => {
-    return startOfDay(parseDateQuery(searchParams.get('date')) ?? new Date());
-  });
+  const dateQueryValue = searchParams.get('date');
+  const dateFromQuery = useMemo(() => {
+    const parsed = parseDateQuery(dateQueryValue);
+    return parsed ? startOfDay(parsed) : null;
+  }, [dateQueryValue]);
+  const dateFromQueryKey = dateQueryValue ?? '';
+
+  /** URL date/schoolId가 있으면 membership 클램프·홈 firstAttendedAt보다 우선 */
+  const [selectedDate, setSelectedDateState] = useState(
+    () => dateFromQuery ?? startOfDay(new Date())
+  );
+  const [hasUserPickedDate, setHasUserPickedDate] = useState(false);
+  const [syncedDateQueryKey, setSyncedDateQueryKey] = useState(dateFromQueryKey);
+
+  if (syncedDateQueryKey !== dateFromQueryKey) {
+    setSyncedDateQueryKey(dateFromQueryKey);
+    setSelectedDateState(dateFromQuery ?? startOfDay(new Date()));
+    setHasUserPickedDate(false);
+  }
+
+  const handleSelectDate = useCallback((date: Date) => {
+    setHasUserPickedDate(true);
+    setSelectedDateState(date);
+  }, []);
 
   const activeConnection = useMemo(
-    () => resolveActiveConnection(connections, linkedKindergarten?.id, selectedDateState),
-    [connections, linkedKindergarten?.id, selectedDateState]
-  );
-
-  /** membership connectedAt~disconnectedAt — 주간 캘린더 선택/점 범위 */
-  const membershipMinDate = useMemo(
-    () => (activeConnection?.connectedAt ? startOfDay(activeConnection.connectedAt) : null),
-    [activeConnection]
-  );
-  const membershipMaxDate = useMemo(
     () =>
-      activeConnection?.disconnectedAt ? startOfDay(activeConnection.disconnectedAt) : null,
-    [activeConnection]
+      resolveActiveConnection(
+        connections,
+        schoolIdFromQuery ?? linkedKindergarten?.id,
+        selectedDate
+      ),
+    [connections, linkedKindergarten?.id, schoolIdFromQuery, selectedDate]
   );
-  const calendarMinDate = membershipMinDate;
-  const calendarFirstAttendedAt = membershipMinDate ?? firstAttendedAt ?? undefined;
+  /** URL schoolId > 선택일 membership > 현재 연결 */
+  const schoolId = schoolIdFromQuery ?? activeConnection?.schoolId ?? null;
 
-  const selectedDate = useMemo(() => {
-    let next = selectedDateState;
-    if (membershipMinDate && isBeforeDay(next, membershipMinDate)) next = membershipMinDate;
-    if (membershipMaxDate && isAfterDay(next, membershipMaxDate)) next = membershipMaxDate;
-    return next;
-  }, [membershipMaxDate, membershipMinDate, selectedDateState]);
+  /** 해당 학교 전체 연결 이력 — 주간 캘린더 선택/점 범위 */
+  const { minDate: membershipMinDate, maxDate: membershipMaxDate } = useMemo(
+    () => resolveSchoolDateRange(connections, schoolId),
+    [connections, schoolId]
+  );
+
+  /**
+   * URL로 연 과거일(재연결 이전 사이클)이 membershipMin/홈 firstAttendedAt에
+   * 잘려 오늘로 스냅되지 않도록 선택일을 하한에 포함한다.
+   * schoolId가 쿼리에 있으면 홈(현재 유치원) firstAttendedAt은 쓰지 않는다.
+   */
+  const calendarMinDate = useMemo(() => {
+    if (!membershipMinDate) return dateFromQuery ?? undefined;
+    return isBeforeDay(selectedDate, membershipMinDate) ? selectedDate : membershipMinDate;
+  }, [dateFromQuery, membershipMinDate, selectedDate]);
+
+  const calendarMaxDate = useMemo(() => {
+    if (!membershipMaxDate) return undefined;
+    return isAfterDay(selectedDate, membershipMaxDate) ? selectedDate : membershipMaxDate;
+  }, [membershipMaxDate, selectedDate]);
+
+  const calendarFirstAttendedAt = useMemo(() => {
+    if (membershipMinDate) {
+      return isBeforeDay(selectedDate, membershipMinDate) ? selectedDate : membershipMinDate;
+    }
+    if (schoolIdFromQuery) return dateFromQuery ?? selectedDate;
+    return firstAttendedAt ?? undefined;
+  }, [
+    dateFromQuery,
+    firstAttendedAt,
+    membershipMinDate,
+    schoolIdFromQuery,
+    selectedDate,
+  ]);
+
+  const lockSelectedDate = Boolean(dateFromQuery) && !hasUserPickedDate;
+
   const [visibleCheckInState, setVisibleCheckInState] = useState<VisibleCheckInState>({
     isReady: false,
     hasCheckIn: true,
@@ -171,10 +259,11 @@ function GuardianDailyNoticeDetailPage() {
   }, []);
 
   const selectedDateKey = formatDateKey(selectedDate);
+  const isWaitingForMembership = isConnectionsPending && !schoolIdFromQuery;
   const showEmptyWeekNoCheckIn =
     !isQueryPetMissing &&
     isPetsReady &&
-    !isConnectionsPending &&
+    !isWaitingForMembership &&
     visibleCheckInState.isReady &&
     visibleCheckInState.isWeeklyView &&
     !visibleCheckInState.hasCheckIn;
@@ -182,7 +271,8 @@ function GuardianDailyNoticeDetailPage() {
   const { checkInAt, checkOutAt, dailyNotice, error: calendarError, isPending } = useGuardianCalendarDay({
     selectedDate,
     petId: petIdFromQuery,
-    enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing,
+    schoolId,
+    enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
   const isTargetUnavailable = isQueryPetMissing || isUnavailableResourceError(calendarError);
 
@@ -197,9 +287,9 @@ function GuardianDailyNoticeDetailPage() {
     isLoading: isAlbumLoading,
     isError: isAlbumError,
   } = useGuardianDailyNoticeDayAlbum({
-    schoolId: linkedKindergarten?.id,
+    schoolId,
     date: selectedDateKey,
-    enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing,
+    enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
 
   const checkInLabel = checkInAt ? formatNoticeClockTime(checkInAt) : content.emptyTimeLabel;
@@ -229,9 +319,9 @@ function GuardianDailyNoticeDetailPage() {
   const isContentLoading =
     isTargetUnavailable ||
     !isPetsReady ||
-    isConnectionsPending ||
+    isWaitingForMembership ||
     !visibleCheckInState.isReady ||
-    !visibleCheckInState.isSelectedDateEnabled ||
+    (!lockSelectedDate && !visibleCheckInState.isSelectedDateEnabled) ||
     isPending;
   const showWritingInProgress = !isAlbumLoading && hasAttendanceTime && !dailyNotice;
   const hasAlbumSection = !showEmptyWeekNoCheckIn && (hasAlbumPhotos || isAlbumError);
@@ -286,12 +376,14 @@ function GuardianDailyNoticeDetailPage() {
         <div className='flex min-h-full flex-col'>
           <GuardianKindergartenDateCalendar
             selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
+            onSelectDate={handleSelectDate}
             petId={petIdFromQuery}
-            minDate={calendarMinDate ?? undefined}
-            maxDate={membershipMaxDate ?? undefined}
+            schoolId={schoolId}
+            minDate={calendarMinDate}
+            maxDate={calendarMaxDate}
             firstAttendedAt={calendarFirstAttendedAt}
             onlyCheckInDatesSelectable
+            lockSelectedDate={lockSelectedDate}
             onVisibleCheckInStateChange={handleVisibleCheckInStateChange}
           />
 

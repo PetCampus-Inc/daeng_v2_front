@@ -156,7 +156,9 @@ function GuardianKindergartenDisconnectedState({
           emptyMessage={content.noAttendanceMessage}
           noNoticeMessage={content.noNoticeMessage}
           isLoading={isCalendarDayPending}
-          onNoticeViewAllClick={() => pushGuardianDailyNoticeDetail(push, selectedDate)}
+          onNoticeViewAllClick={() =>
+            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
+          }
         />
       </section>
 

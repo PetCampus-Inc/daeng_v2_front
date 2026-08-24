@@ -247,7 +247,7 @@ const route = {
       root: '/compare/album',
     },
     notice: {
-      /** 보호자 알림장 상세 */
+      /** 보호자 알림장 상세. query: date(필수), schoolId(권장·재연결 스코프), petId?, source? */
       root: '/compare/notice',
       /** 보호자 알림장 월별 리스트 */
       list: {
