@@ -10,7 +10,7 @@ import {
 import { useMoveImageMutation } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
-import { formatName, formatPhone } from '../lib/formatKindergartenRegisterField';
+import { formatPhone, formatRepresentativeName } from '../lib/formatKindergartenRegisterField';
 
 import { clearOwnerProfile, type OwnerProfile } from './ownerProfile';
 
@@ -114,7 +114,7 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
     isSubmitting,
     isValid,
     isDirty,
-    formatName,
+    formatRepresentativeName,
     formatPhone,
   };
 }

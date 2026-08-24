@@ -8,7 +8,6 @@ import {
   FieldError,
   FieldLabel,
   FieldLabelIndicator,
-  Icon,
   ProgressBar,
   TextField,
   TextFieldInput,
@@ -30,7 +29,6 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
     form,
     fieldErrors,
     isNextEnabled,
-    isManualMode,
     handleFieldChange,
     handlePhoneFieldBlur,
     handleAddressSelect,
@@ -84,30 +82,16 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                   <FieldLabelIndicator type='required' className='ml-0' />
                 </FieldLabel>
                 <div className='relative flex flex-col gap-2'>
-                  {isManualMode ? (
-                    <AddressPicker
-                      variant='embedded'
-                      showLabel={false}
-                      fieldVariant='default'
-                      clearOnReselect
-                      value={form.address}
-                      placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
-                      onSelect={handleAddressSelect}
-                      onClear={handleClearAddress}
-                    />
-                  ) : (
-                    <TextField
-                      className='h-x13'
-                      prefix={<Icon icon='Search' className='text-text-secondary' />}
-                    >
-                      <TextFieldInput
-                        readOnly
-                        tabIndex={-1}
-                        placeholder={kindergartenRegisterContent.addressPlaceholder}
-                        value={form.address}
-                      />
-                    </TextField>
-                  )}
+                  <AddressPicker
+                    variant='embedded'
+                    showLabel={false}
+                    fieldVariant='default'
+                    clearOnReselect
+                    value={form.address}
+                    placeholder={kindergartenRegisterContent.addressSearchPlaceholder}
+                    onSelect={handleAddressSelect}
+                    onClear={handleClearAddress}
+                  />
                   <TextField className='h-x13'>
                     <TextFieldInput
                       placeholder={kindergartenRegisterContent.addressDetailPlaceholder}

@@ -22,6 +22,9 @@ interface GuardianSchoolRecordDayDto {
   checkOutAt?: string | number[] | null;
   note?: GuardianSchoolRecordNoteDto | null;
   albumFirstPhotoUrl?: string | null;
+  /** 재연결 이력이 있으면 같은 날짜에 CONNECTED/DISCONNECTED가 여러 개일 수 있음 */
+  membershipEvents?: GuardianSchoolMembershipEvent[] | null;
+  /** @deprecated membershipEvents로 대체. 구응답 호환용 */
   membershipEvent?: GuardianSchoolMembershipEvent | null;
 }
 
@@ -39,7 +42,7 @@ interface GuardianSchoolRecordDay {
   checkOutAt: Date | null;
   dailyNotice: GuardianCalendarDailyNotice | null;
   thumbnailUrl: string | null;
-  membershipEvent: GuardianSchoolMembershipEvent | null;
+  membershipEvents: GuardianSchoolMembershipEvent[];
 }
 
 interface GuardianSchoolRecords {
@@ -116,6 +119,16 @@ function toDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function toMembershipEvents(
+  dto: GuardianSchoolRecordDayDto | null | undefined
+): GuardianSchoolMembershipEvent[] {
+  if (Array.isArray(dto?.membershipEvents) && dto.membershipEvents.length > 0) {
+    return dto.membershipEvents.filter((event): event is GuardianSchoolMembershipEvent => Boolean(event));
+  }
+  if (dto?.membershipEvent) return [dto.membershipEvent];
+  return [];
+}
+
 function toGuardianSchoolRecordDay(
   dto: GuardianSchoolRecordDayDto | null | undefined
 ): GuardianSchoolRecordDay | null {
@@ -130,7 +143,7 @@ function toGuardianSchoolRecordDay(
     checkOutAt: parseApiDateTime(dto.checkOutAt),
     dailyNotice: toDailyNotice(dto.note),
     thumbnailUrl: dto.albumFirstPhotoUrl?.trim() || null,
-    membershipEvent: dto.membershipEvent ?? null,
+    membershipEvents: toMembershipEvents(dto),
   };
 }
 

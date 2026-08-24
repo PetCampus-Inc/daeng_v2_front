@@ -1,24 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 
 import type { OwnerPet } from '@entities/owner-pet';
+import { DogMetaLine } from '@shared/ui/dog-meta-line';
 
 interface OwnerMemberProfileHeaderProps {
   dog: OwnerPet;
 }
 
-function buildDogSummary(dog: OwnerPet) {
-  const parts: string[] = [];
-
-  if (dog.breed) parts.push(dog.breed);
-  if (dog.weightKg != null) parts.push(`${dog.weightKg}kg`);
-  if (dog.age != null) parts.push(`${dog.age}살`);
-
-  return parts.join(' · ');
-}
-
 function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
   const genderIcon = dog.gender === 'MALE' ? 'Male' : dog.gender === 'FEMALE' ? 'Female' : null;
-  const summary = buildDogSummary(dog);
 
   return (
     <div className='bg-bg-0 flex w-full min-w-0 flex-col items-center gap-2 pt-5'>
@@ -36,9 +26,13 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
           <h1 className='h1-extrabold text-text-primary min-w-0 truncate'>{dog.name}</h1>
           {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-6 shrink-0' /> : null}
         </div>
-        {summary ? (
-          <p className='body1-medium text-text-secondary w-full truncate text-center'>{summary}</p>
-        ) : null}
+        <DogMetaLine
+          breed={dog.breed}
+          weightKg={dog.weightKg}
+          age={dog.age}
+          centered
+          className='body1-medium text-text-secondary'
+        />
       </div>
     </div>
   );

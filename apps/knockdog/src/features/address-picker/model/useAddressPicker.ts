@@ -27,6 +27,8 @@ const useAddressPicker = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSelected, setIsSelected] = useState(false);
   const isSelectedRef = useRef(isSelected);
+  const isListInteractingRef = useRef(false);
+  const listInteractionEndTimerRef = useRef<number | null>(null);
 
   isSelectedRef.current = isSelected;
 
@@ -73,18 +75,37 @@ const useAddressPicker = ({
     setSearchQuery(previous);
   };
 
+  /** 결과 리스트 터치/스크롤 중에는 blur로 검색어를 지우지 않음 */
+  const markListInteraction = () => {
+    isListInteractingRef.current = true;
+    if (listInteractionEndTimerRef.current != null) {
+      window.clearTimeout(listInteractionEndTimerRef.current);
+      listInteractionEndTimerRef.current = null;
+    }
+  };
+
+  const endListInteraction = () => {
+    if (listInteractionEndTimerRef.current != null) {
+      window.clearTimeout(listInteractionEndTimerRef.current);
+    }
+    listInteractionEndTimerRef.current = window.setTimeout(() => {
+      listInteractionEndTimerRef.current = null;
+      isListInteractingRef.current = false;
+    }, 300);
+  };
+
   /** 목록 바깥 클릭 시 미선택이면 기존 value로 복원 */
   const handleBlur = () => {
-    if (!clearOnReselect) return;
-
     window.setTimeout(() => {
+      if (isListInteractingRef.current) return;
+      if (!clearOnReselect) return;
       if (isSelectedRef.current) return;
 
       const restored = value ?? '';
       setInputValue(restored);
       setSearchQuery(restored);
       setIsSelected(!!restored);
-    }, 100);
+    }, 180);
   };
 
   const handleClear = () => {
@@ -105,6 +126,14 @@ const useAddressPicker = ({
     setInputValue('');
   }, [value]);
 
+  useEffect(() => {
+    return () => {
+      if (listInteractionEndTimerRef.current != null) {
+        window.clearTimeout(listInteractionEndTimerRef.current);
+      }
+    };
+  }, []);
+
   return {
     addressList: data,
     inputValue,
@@ -115,6 +144,8 @@ const useAddressPicker = ({
     handleFocus,
     handleBlur,
     handleClear,
+    markListInteraction,
+    endListInteraction,
   };
 };
 

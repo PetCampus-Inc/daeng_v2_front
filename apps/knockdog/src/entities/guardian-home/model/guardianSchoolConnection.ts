@@ -68,11 +68,12 @@ function toGuardianSchoolConnection(
 
   const membershipId = dto.schoolPetMembershipId;
   const schoolId = dto.schoolId;
-  if (membershipId == null || membershipId === '' || schoolId == null || schoolId === '') return null;
+  if (schoolId == null || schoolId === '') return null;
 
+  const hasMembershipId = membershipId != null && membershipId !== '';
   const placeId = dto.placeId;
   return {
-    id: String(membershipId),
+    id: hasMembershipId ? String(membershipId) : String(schoolId),
     schoolId: String(schoolId),
     placeId: placeId == null || placeId === '' ? null : String(placeId),
     name: dto.name ?? '',

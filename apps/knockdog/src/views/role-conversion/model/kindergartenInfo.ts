@@ -66,7 +66,7 @@ function fromSearchPrefill(prefill: SearchPrefill): KindergartenRegisterForm {
     source: 'search',
     placeId: prefill.placeId,
     name: prefill.name,
-    address: prefill.address,
+    address: '',
     addressDetail: '',
     kindergartenNumber: prefill.kindergartenNumber,
     ownerName: '',

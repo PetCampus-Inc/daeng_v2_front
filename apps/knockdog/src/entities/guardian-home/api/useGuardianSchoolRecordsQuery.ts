@@ -5,31 +5,43 @@ import { getGuardianSchoolRecords } from './guardianSchoolRecords';
 
 const GUARDIAN_SCHOOL_RECORDS_QUERY_KEY = 'guardianSchoolRecords';
 
-const guardianSchoolRecordsQueryKey = (userId?: string, membershipId?: string, yearMonth?: string) =>
-  [GUARDIAN_SCHOOL_RECORDS_QUERY_KEY, userId, membershipId, yearMonth] as const;
+const guardianSchoolRecordsQueryKey = (
+  userId?: string,
+  petId?: string,
+  schoolId?: string,
+  yearMonth?: string
+) => [GUARDIAN_SCHOOL_RECORDS_QUERY_KEY, userId, petId, schoolId, yearMonth] as const;
 
 interface UseGuardianSchoolRecordsQueryOptions {
   userId?: string;
-  membershipId?: string | null;
+  petId?: string | null;
+  schoolId?: string | null;
   yearMonth?: string;
   enabled?: boolean;
 }
 
 function useGuardianSchoolRecordsQuery({
   userId,
-  membershipId,
+  petId,
+  schoolId,
   yearMonth,
   enabled = true,
 }: UseGuardianSchoolRecordsQueryOptions = {}) {
   return useQuery({
-    queryKey: guardianSchoolRecordsQueryKey(userId, membershipId ?? undefined, yearMonth),
+    queryKey: guardianSchoolRecordsQueryKey(
+      userId,
+      petId ?? undefined,
+      schoolId ?? undefined,
+      yearMonth
+    ),
     queryFn: () =>
       getGuardianSchoolRecords({
-        membershipId: membershipId!,
+        petId: petId!,
+        schoolId: schoolId!,
         yearMonth: yearMonth!,
       }),
     select: (response) => toGuardianSchoolRecords(response.data),
-    enabled: enabled && Boolean(userId) && Boolean(membershipId) && Boolean(yearMonth),
+    enabled: enabled && Boolean(userId) && Boolean(petId) && Boolean(schoolId) && Boolean(yearMonth),
     staleTime: 60_000,
   });
 }

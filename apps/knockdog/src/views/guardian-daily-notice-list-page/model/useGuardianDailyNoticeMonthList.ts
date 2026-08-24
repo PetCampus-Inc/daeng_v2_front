@@ -7,7 +7,7 @@ import {
   useGuardianSchoolRecordsQuery,
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
-import { addDays, isAfterDay, isBeforeDay, startOfDay } from '@shared/lib/calendar-date';
+import { addDays, isAfterDay, startOfDay } from '@shared/lib/calendar-date';
 
 interface GuardianDailyNoticeMonthItem {
   /** YYYY-MM-DD */
@@ -20,11 +20,11 @@ interface GuardianDailyNoticeMonthItem {
 }
 
 interface UseGuardianDailyNoticeMonthListParams {
-  membershipId?: string | null;
+  schoolId?: string | null;
   petId?: string | null;
   selectedMonth: Date;
   firstAttendedAt?: Date | null;
-  /** membership connectedAt. 연결 이력과 리스트 시작일을 맞춘다 */
+  /** 연결 이력 connectedAt. 연결 이력과 리스트 시작일을 맞춘다 */
   attendedFrom?: Date | null;
   /** 연결 해제일. 없으면 퍼블리싱 폴백 */
   attendedUntil?: Date | null;
@@ -53,10 +53,10 @@ function formatYearMonth(date: Date) {
 
 /**
  * 선택 월의 등원일별 알림장 리스트.
- * `guardian/school/records` 월별 응답을 그대로 사용한다.
+ * `guardian/school/records` 월별 응답을 그대로 사용한다. (petId + schoolId 스코프)
  */
 function useGuardianDailyNoticeMonthList({
-  membershipId,
+  schoolId,
   petId,
   selectedMonth,
   firstAttendedAt = null,
@@ -71,9 +71,10 @@ function useGuardianDailyNoticeMonthList({
   const yearMonth = useMemo(() => formatYearMonth(selectedMonth), [selectedMonth]);
   const schoolRecordsQuery = useGuardianSchoolRecordsQuery({
     userId,
-    membershipId,
+    petId,
+    schoolId,
     yearMonth,
-    enabled: enabled && Boolean(membershipId) && Boolean(petId),
+    enabled: enabled && Boolean(schoolId) && Boolean(petId),
   });
   const records = schoolRecordsQuery.data;
   const firstAvailableMonth = records?.firstAvailableMonth ?? null;
@@ -81,37 +82,43 @@ function useGuardianDailyNoticeMonthList({
 
   /**
    * 월 네비 하한.
-   * membership `connectedAt`- 연결 이력과 시작일을 맞춤.
-   * `firstAvailableMonth`는 연·월만 오므로 connectedAt이 없을 때만 씀.
+   * school 스코프 records의 `firstAvailableMonth`를 우선 — 재연결 시에도 전체 이력이 잡힘.
+   * `attendedFrom`은 학교 단위 옵션의 보조 하한.
    */
   const effectiveFirstAttendedAt = useMemo(() => {
-    if (attendedFrom) return startOfDay(attendedFrom);
     if (firstAvailableMonth) return startOfDay(firstAvailableMonth);
-    if (membershipId) return null;
+    if (attendedFrom) return startOfDay(attendedFrom);
+    if (schoolId) return null;
     if (firstAttendedAt) return startOfDay(firstAttendedAt);
     return null;
-  }, [attendedFrom, firstAttendedAt, firstAvailableMonth, membershipId]);
+  }, [attendedFrom, firstAttendedAt, firstAvailableMonth, schoolId]);
 
   const isAuthPending = enabled && !userId;
   const isPetLookupPending = enabled && !isPetsReady;
   const isDisconnectRangePending =
     enabled && isDisconnected && !attendedUntil && lastAvailableMonth == null;
-  const isRecordsPending = Boolean(membershipId) && schoolRecordsQuery.isPending;
+  const isRecordsPending = Boolean(schoolId) && schoolRecordsQuery.isPending;
   const isPending =
     isAuthPending ||
     isPetLookupPending ||
     isDisconnectRangePending ||
     isMembershipPending ||
     isRecordsPending;
-  const hasError = Boolean(membershipId) && schoolRecordsQuery.isError;
+  const hasError = Boolean(schoolId) && schoolRecordsQuery.isError;
 
   const items = useMemo(() => {
     const days = records?.days ?? [];
     return days.reduce<GuardianDailyNoticeMonthItem[]>((acc, day) => {
-      const hasRecord = Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice || day.thumbnailUrl || day.membershipEvent);
+      const hasRecord = Boolean(
+        day.checkInAt ||
+          day.checkOutAt ||
+          day.dailyNotice ||
+          day.thumbnailUrl ||
+          day.membershipEvents.length > 0
+      );
       if (!hasRecord) return acc;
       const date = parseDateKey(day.dateKey);
-      if (attendedFrom && isBeforeDay(date, attendedFrom)) return acc;
+      // school 스코프 records는 재연결 사이클을 포함하므로 membership 기간으로 잘라내지 않는다.
       if (attendedUntil && isAfterDay(date, attendedUntil)) return acc;
       acc.push({
         dateKey: day.dateKey,
@@ -123,20 +130,20 @@ function useGuardianDailyNoticeMonthList({
       });
       return acc;
     }, []);
-  }, [attendedFrom, attendedUntil, records?.days]);
+  }, [attendedUntil, records?.days]);
 
   /**
    * 첫 등원 월이면 리스트 하단에 시작 문구 노출.
-   * 연결 이력 `connectedAt` 우선 — `firstAvailableMonth`는 1일로 떨어질 수 있음.
+   * CONNECTED 이벤트·`firstAvailableMonth` 우선.
    */
   const firstAttendanceDate = useMemo(() => {
     if (attendedFrom && isSameYearMonth(attendedFrom, selectedMonth)) {
       return startOfDay(attendedFrom);
     }
 
-    if (membershipId) {
-      const connectedDay = (records?.days ?? []).find(
-        (day) => day.membershipEvent === 'CONNECTED'
+    if (schoolId) {
+      const connectedDay = (records?.days ?? []).find((day) =>
+        day.membershipEvents.includes('CONNECTED')
       );
       if (connectedDay && isSameYearMonth(connectedDay.date, selectedMonth)) {
         return startOfDay(connectedDay.date);
@@ -167,13 +174,13 @@ function useGuardianDailyNoticeMonthList({
     effectiveFirstAttendedAt,
     firstAvailableMonth,
     items,
-    membershipId,
+    schoolId,
     records?.days,
     selectedMonth,
   ]);
 
   /** 폴백으로 만든 날짜인지 구분 — 월 이동 하한 계산에는 사용하지 않는다 */
-  const isFirstAttendanceDateFallback = !membershipId && effectiveFirstAttendedAt == null;
+  const isFirstAttendanceDateFallback = !schoolId && effectiveFirstAttendedAt == null;
 
   /**
    * 연결 해제 월이면 리스트 상단에 종료 문구 노출.
