@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 
 import { Field, FieldLabel, Icon, IconButton, TextField, TextFieldInput } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -58,7 +58,6 @@ export function AddressPicker({
 
   const isEmbedded = variant === 'embedded';
   const embeddedContainerRef = useRef<HTMLDivElement>(null);
-  const scrollTimerRef = useRef<number | null>(null);
   const showHint = !isEmbedded && !isSelected && inputValue === '' && searchQuery === '';
   const showResults = !isSelected && searchQuery.length > 0;
   const hasResults = (addressList?.length ?? 0) > 0;
@@ -75,52 +74,6 @@ export function AddressPicker({
     if (externalRef) {
       externalRef.current = node;
     }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (scrollTimerRef.current != null) {
-        window.clearTimeout(scrollTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-    handleFocus();
-
-    if (!isEmbedded) return;
-
-    if (scrollTimerRef.current != null) {
-      window.clearTimeout(scrollTimerRef.current);
-    }
-
-    const input = event.currentTarget;
-
-    // 키보드가 올라온 뒤에만, 가려진 경우에만 최소 스크롤
-    // focus 직후 block:center/start 는 이미 보이는 필드를 위로 보내버림
-    scrollTimerRef.current = window.setTimeout(() => {
-      scrollTimerRef.current = null;
-      if (document.activeElement !== input) return;
-
-      const viewportOffsetTop = window.visualViewport?.offsetTop ?? 0;
-      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      const visibleTop = viewportOffsetTop + 8;
-      const visibleBottom = viewportOffsetTop + viewportHeight - 8;
-      const rect = input.getBoundingClientRect();
-
-      if (rect.top >= visibleTop && rect.bottom <= visibleBottom) return;
-
-      input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }, 350);
-  };
-
-  const handleInputBlur = () => {
-    if (scrollTimerRef.current != null) {
-      window.clearTimeout(scrollTimerRef.current);
-      scrollTimerRef.current = null;
-    }
-
-    handleBlur();
   };
 
   const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -150,8 +103,8 @@ export function AddressPicker({
       <TextFieldInput
         value={inputValue}
         onChange={handleChange}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={placeholder}
       />
     </TextField>
