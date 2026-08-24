@@ -40,7 +40,7 @@ function RoleConversionStepLayout({
         />
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col px-4 pt-3 pb-5'>
+      <div className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-3 pb-5'>
         <div className='flex flex-col gap-5'>
           <h1 className='h1-extrabold'>
             {titleLine1}
@@ -51,7 +51,7 @@ function RoleConversionStepLayout({
           {children}
         </div>
 
-        {footer ? <div className='mt-auto py-5'>{footer}</div> : null}
+        {footer ? <div className='py-5'>{footer}</div> : null}
       </div>
     </div>
   );

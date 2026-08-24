@@ -53,6 +53,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
       </div>
 
       <div className='flex min-h-0 flex-1 flex-col px-4 pt-3 pb-5'>
+        {/* 다음 버튼을 스크롤 안에 둠 — iOS에서 footer가 키보드에 붙어 올라오지 않게 */}
         <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>
           <div className='flex flex-col gap-5'>
             <h1 className='h1-extrabold'>
@@ -154,19 +155,19 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
               </Field>
             </div>
           </div>
-        </div>
 
-        <div className='shrink-0 py-5'>
-          <ActionButton
-            type='button'
-            variant='secondaryFill'
-            size='large'
-            className='w-full'
-            disabled={!isNextEnabled}
-            onClick={handleNextClick}
-          >
-            {kindergartenRegisterContent.nextButtonLabel}
-          </ActionButton>
+          <div className='py-5'>
+            <ActionButton
+              type='button'
+              variant='secondaryFill'
+              size='large'
+              className='w-full'
+              disabled={!isNextEnabled}
+              onClick={handleNextClick}
+            >
+              {kindergartenRegisterContent.nextButtonLabel}
+            </ActionButton>
+          </div>
         </div>
       </div>
     </div>

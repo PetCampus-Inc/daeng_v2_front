@@ -39,7 +39,7 @@ function BusinessVerificationPage() {
         />
       </div>
 
-      <div className='flex flex-1 flex-col px-4 pt-3 pb-5'>
+      <div className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-3 pb-5'>
         <div className='flex flex-col gap-5'>
           <h1 className='h1-extrabold'>
             {businessVerificationContent.titleLine1}
@@ -67,7 +67,8 @@ function BusinessVerificationPage() {
           </Field>
         </div>
 
-        <div className='mt-auto py-5'>
+        {/* mt-auto 제거 — iOS 키보드에 다음 버튼이 붙지 않도록 문서 흐름에 둠 */}
+        <div className='py-5'>
           <ActionButton
             type='button'
             variant='secondaryFill'
