@@ -44,6 +44,18 @@ const isSameOrigin = (request: Request) => {
 };
 
 /**
+ * 이전 세션의 늦은 401 응답이 새 세션을 로그아웃시키지 않도록 확인한다.
+ * 인증 헤더 없이 보낸 요청(로그인·토큰 재발급 등)의 실패도 현재 세션을 무효화하지 않는다.
+ */
+const isStaleOrUnauthenticatedRequest = (request: Request) => {
+  const authorization = request.headers.get('authorization');
+  if (!authorization) return true;
+
+  const requestToken = tokenUtils.removeBearerPrefix(authorization);
+  return !requestToken || requestToken !== tokenUtils.getAccessToken();
+};
+
+/**
  * `afterResponse` - 액세스 토큰 업데이트 인터셉터
  *
  * @description API 응답 헤더에서 액세스 토큰을 추출하여 로컬 스토리지에 저장하는 인터셉터입니다.
@@ -78,6 +90,10 @@ const tokenRefreshInterceptor = async (
 ): Promise<Response> => {
   // 401 에러가 아니라면 그대로 반환
   if (response.status !== 401) return response;
+
+  // 로그아웃 후 남아 있던 탭 WebView의 요청, 또는 새 로그인 전의 요청은
+  // 현재 세션과 토큰이 다르다. 이 응답으로 새 세션을 정리하면 안 된다.
+  if (isStaleOrUnauthenticatedRequest(request)) return response;
 
   try {
     const { code } = (await response.clone().json()) as ApiError;
