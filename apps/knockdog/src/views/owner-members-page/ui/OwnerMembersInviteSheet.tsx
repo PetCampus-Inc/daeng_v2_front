@@ -131,7 +131,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
 
     const shared = await share({
       title: '보호자 초대',
-      message: `보호자 초대장을 확인해 주세요.\n${inviteUrl}`,
+      message: '보호자 초대장을 확인해 주세요.',
       url: inviteUrl,
     });
 
