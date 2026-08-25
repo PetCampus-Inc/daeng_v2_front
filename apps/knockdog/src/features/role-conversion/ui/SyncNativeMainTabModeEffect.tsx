@@ -120,19 +120,29 @@ function SyncNativeMainTabModeEffect() {
 
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
-
-    bridge.request(METHODS.navSetMainTabMode, { mode: syncMode, requestId: getNextMainTabModeRequestId() }).catch((error) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
-      }
+    const retrySync = () => {
       lastSyncedModeRef.current = null;
-      if (cancelled) return;
-      if (retryCountRef.current >= 2) return;
+      if (cancelled || retryCountRef.current >= 2) return;
+
       retryCountRef.current += 1;
       retryTimer = setTimeout(() => {
         setRetryNonce((nonce) => nonce + 1);
       }, 300);
-    });
+    };
+
+    bridge
+      .request(METHODS.navSetMainTabMode, { mode: syncMode, requestId: getNextMainTabModeRequestId() })
+      .then(({ mode: appliedMode }) => {
+        // 앱 시작 직후에는 활성 WebView 등록 전 요청이 무시될 수 있다.
+        // 그 경우 네이티브가 유지한 기존 모드가 응답되므로 재시도한다.
+        if (appliedMode !== syncMode) retrySync();
+      })
+      .catch((error) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
+        }
+        retrySync();
+      });
 
     return () => {
       cancelled = true;

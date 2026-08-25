@@ -30,10 +30,9 @@ const logout = async ({ notifyServer = true }: LogoutOptions = {}) => {
     // 등록 요청이 완료된 뒤 ID를 읽어야, 로그아웃 중 생성된 등록도 서버에서 함께 해제할 수 있다.
     await waitForPendingPushDeviceRegistration();
 
-    const registration = loadPushDeviceRegistration();
     const currentUserId = useUserStore.getState().user?.userId;
-    const pushDeviceId =
-      registration && registration.userId === currentUserId ? registration.pushDeviceId : undefined;
+    const registration = loadPushDeviceRegistration(currentUserId);
+    const pushDeviceId = registration?.pushDeviceId;
 
     // 서버가 인증된 세션과 기기 등록의 소유 관계를 검증하고 함께 해제한다.
     // 다른 계정의 등록값은 절대 현재 세션의 로그아웃 body에 넣지 않는다.
@@ -43,7 +42,7 @@ const logout = async ({ notifyServer = true }: LogoutOptions = {}) => {
 
     // 네트워크 실패 시에는 다음 동일 계정 로그인에서 기기 등록을 재동기화할 수 있도록 보존한다.
     // 세션이 이미 무효화된 경우에는 다른 계정에 등록 정보가 이어지지 않도록 제거한다.
-    clearPushDeviceRegistration();
+    clearPushDeviceRegistration(currentUserId);
   } finally {
     // 로그아웃 API가 실패해도 로그아웃 처리
     tokenUtils.removeAccessToken();

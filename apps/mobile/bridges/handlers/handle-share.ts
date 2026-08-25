@@ -14,16 +14,18 @@ function handleShare(event: string, payload: unknown): boolean {
     return true;
   }
 
-  // React Native Share는 message가 필수이므로 기본값 설정
-  const shareMessage = message || url || '';
+  // Android React Native Share는 url 필드를 전달하지 않고 message만 공유한다.
+  // URL을 한 번만 포함한 본문을 만들고, iOS에서는 URL을 별도 공유 항목으로 유지한다.
+  const content: { message?: string; url?: string; title?: string } = {};
 
-  const content: { message: string; url?: string; title?: string } = {
-    message: shareMessage,
-  };
-
-  // URL 설정
-  if (url) {
-    content.url = url;
+  if (Platform.OS === 'android') {
+    // Android React Native Share는 url 필드를 전달하지 않는다.
+    content.message = url ? [message, url].filter(Boolean).join('\n') : message;
+  } else {
+    // iOS는 메시지와 URL을 별도 activity item으로 전달한다.
+    // URL만 있을 때 message에 URL을 중복 설정하지 않는다.
+    if (message) content.message = message;
+    if (url) content.url = url;
   }
 
   // Android 제목 설정
@@ -55,7 +57,8 @@ function handleShare(event: string, payload: unknown): boolean {
     }
   }
 
-  Share.share(content, options).catch((error) => {
+  // React Native 타입은 message를 필수로 선언하지만, iOS 구현은 url 단독 공유를 지원한다.
+  Share.share(content as Parameters<typeof Share.share>[0], options).catch((error) => {
     console.error('[Bridge] share error', error);
   });
 

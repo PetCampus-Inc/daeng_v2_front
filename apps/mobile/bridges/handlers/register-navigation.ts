@@ -161,9 +161,9 @@ function applyMainTabModeNow(mode: MainTabMode) {
   }
 
   const current = useMainTabModeStore.getState().mode;
-  if (current === mode) return;
-
-  useMainTabModeStore.getState().setMode(mode);
+  if (current !== mode) {
+    useMainTabModeStore.getState().setMode(mode);
+  }
 
   if (!isNavReady()) return;
 
