@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -85,6 +85,16 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const copy = useClipboardCopy();
   const share = useShare();
   const saveImage = useSaveImage();
+
+  // 네이티브 탭 전환 시 WebView는 유지되므로, 전역 오버레이를 명시적으로 정리한다.
+  useEffect(() => {
+    const handleNativeTabBlur = () => close();
+    window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+    };
+  }, [close]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) close();

@@ -5,11 +5,34 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS } from '@knockdog/bridge-core';
+import { useBlockingOverlayStore } from '@/features/blocking-overlay';
+
+let lastBlockingOverlayRequestId = 0;
+let lastAddressRegistrationDialogRequestId = 0;
 
 /**
  * 시스템 핸들러
  */
 export function registerSystemHandlers(router: NativeBridgeRouter) {
+  router.register<{ visible: boolean; message: string; requestId: number }>(METHODS.setBlockingOverlay, async (params) => {
+    if (params.requestId < lastBlockingOverlayRequestId) {
+      return { visible: useBlockingOverlayStore.getState().content !== null };
+    }
+
+    lastBlockingOverlayRequestId = params.requestId;
+    const visible = params.visible === true;
+    useBlockingOverlayStore.getState().setUploadOverlay(visible, visible ? params.message : '');
+    return { visible };
+  });
+
+  router.register<{ requestId: number }>(METHODS.showAddressRegistrationDialog, async (params) => {
+    if (params.requestId < lastAddressRegistrationDialogRequestId) return { action: 'cancel' as const };
+
+    lastAddressRegistrationDialogRequestId = params.requestId;
+    const action = await useBlockingOverlayStore.getState().showAddressRegistrationDialog();
+    return { action };
+  });
+
   /** 전화 걸기 */
   router.register(METHODS.callPhone, async (params: { phoneNumber: string }) => {
     const { phoneNumber } = params;

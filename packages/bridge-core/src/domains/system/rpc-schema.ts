@@ -22,6 +22,25 @@ interface SystemRPCSchema {
     params: CallPhoneParams;
     result: CallPhoneResult;
   };
+  [METHODS.setBlockingOverlay]: {
+    params: {
+      visible: boolean;
+      message: string;
+      /** 늦게 도착한 이전 표시 상태 요청을 무시하기 위한 단조 증가 순번 */
+      requestId: number;
+    };
+    result: {
+      visible: boolean;
+    };
+  };
+  [METHODS.showAddressRegistrationDialog]: {
+    params: {
+      requestId: number;
+    };
+    result: {
+      action: 'cancel' | 'register';
+    };
+  };
 }
 
 export type { SystemRPCSchema };

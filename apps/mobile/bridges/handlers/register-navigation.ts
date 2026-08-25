@@ -152,6 +152,29 @@ function isRequestFromActiveTab(currentWebRef?: RefObject<WebView>) {
   return tabWebViewStore.get(activeTab)?.current === currentWebRef.current;
 }
 
+/** 모드 전환 직후 TabNavigator 재렌더링과 겹쳐도 기본 탭 화면 전환을 보장한다. */
+function navigateToModeDefaultTab(mode: MainTabMode) {
+  const targetTab = mode === 'owner' ? 'OwnerHome' : 'Explore';
+  const navigate = () => navigationRef.navigate('Tabs', { screen: targetTab });
+
+  navigate();
+
+  // 앱 시작 직후에는 Tabs의 nested state가 아직 생성되지 않을 수 있다.
+  // 다음 프레임에 한 번 더 확인해 바텀탭 모드와 화면이 어긋나지 않게 한다.
+  setTimeout(() => {
+    if (isStackFocused()) return;
+
+    const activeTab = getActiveTabName();
+    const isStillOppositeMode =
+      !activeTab ||
+      (mode === 'owner' && isGuardianOnlyTab(activeTab)) ||
+      (mode === 'guardian' && isOwnerOnlyTab(activeTab));
+
+    if (!isStillOppositeMode) return;
+    navigate();
+  }, 0);
+}
+
 function applyMainTabModeNow(mode: MainTabMode) {
   // Stack 화면에서는 탭 이동 없이 모드만 선반영한다.
   // 원장 인증 완료 후 reset이 올바른 원장 탭을 선택할 수 있어야 한다.
@@ -168,15 +191,15 @@ function applyMainTabModeNow(mode: MainTabMode) {
   if (!isNavReady()) return;
 
   const activeTab = getActiveTabName();
-  if (!activeTab || activeTab === 'Mypage') return;
+  if (activeTab === 'Mypage') return;
 
-  if (mode === 'owner' && isGuardianOnlyTab(activeTab)) {
-    navigationRef.navigate('Tabs', { screen: 'OwnerHome' });
+  if (!activeTab || (mode === 'owner' && isGuardianOnlyTab(activeTab))) {
+    navigateToModeDefaultTab(mode);
     return;
   }
 
   if (mode === 'guardian' && isOwnerOnlyTab(activeTab)) {
-    navigationRef.navigate('Tabs', { screen: 'Explore' });
+    navigateToModeDefaultTab(mode);
   }
 }
 

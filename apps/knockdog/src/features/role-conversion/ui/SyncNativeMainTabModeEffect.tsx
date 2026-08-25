@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { METHODS } from '@knockdog/bridge-core';
 
 import { useOwnerRole } from '../model/useOwnerRole';
 import { useMypageRoleViewStore } from '../model/mypageRoleViewStore';
 import { useBridge, useTabNavigation } from '@shared/lib/bridge';
-import { isNativeWebView } from '@shared/lib/device';
 
 declare global {
   interface Window {
@@ -79,7 +78,6 @@ function useIsNativeTabFocused() {
 function SyncNativeMainTabModeEffect() {
   const bridge = useBridge();
   const pathname = usePathname();
-  const isNative = useMemo(() => isNativeWebView(), []);
   const { isMainTab } = useTabNavigation();
   const { isOwner, isResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
@@ -103,7 +101,7 @@ function SyncNativeMainTabModeEffect() {
   }, []);
 
   useEffect(() => {
-    if (!isNative || !isResolved || !hasRoleViewHydrated) return;
+    if (!isResolved || !hasRoleViewHydrated) return;
     if (!isMainTab()) return;
     if (!isNativeTabFocused || !isDocumentVisible) {
       lastSyncedModeRef.current = null;
@@ -131,7 +129,12 @@ function SyncNativeMainTabModeEffect() {
     };
 
     bridge
-      .request(METHODS.navSetMainTabMode, { mode: syncMode, requestId: getNextMainTabModeRequestId() })
+      .request(METHODS.navSetMainTabMode, {
+        mode: syncMode,
+        requestId: getNextMainTabModeRequestId(),
+        // 탭 focus로 활성 WebView임을 확인했으므로, 시작 직후 ref 등록 전에도 적용한다.
+        force: true,
+      })
       .then(({ mode: appliedMode }) => {
         // 앱 시작 직후에는 활성 WebView 등록 전 요청이 무시될 수 있다.
         // 그 경우 네이티브가 유지한 기존 모드가 응답되므로 재시도한다.
@@ -154,7 +157,6 @@ function SyncNativeMainTabModeEffect() {
     isDocumentVisible,
     isFetching,
     isMainTab,
-    isNative,
     isNativeTabFocused,
     isResolved,
     mode,

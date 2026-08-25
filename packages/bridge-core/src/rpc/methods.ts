@@ -21,6 +21,8 @@ const METHODS = {
   openExternalLink: 'system.openExternalLink',
   openSettings: 'system.openSettings',
   getAppVersion: 'system.getAppVersion',
+  setBlockingOverlay: 'system.setBlockingOverlay',
+  showAddressRegistrationDialog: 'system.showAddressRegistrationDialog',
 
   // navigation
   navPush: 'system.navPush',
