@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { useUserStore } from '@entities/user';
@@ -12,16 +12,21 @@ function hasAuthSession() {
   return !!useUserStore.getState().user || tokenUtils.hasAccessToken();
 }
 
+interface RequireAuthGateProps {
+  children: ReactNode;
+}
+
 /**
  * 앱 전역 미로그인 차단.
- * 공개 경로가 아니면 로그인으로 reset한다 (게스트/비로그인 탭 사용 불가).
+ * 공개 경로가 아니면 hydrate + 세션 확인 전까지 protected subtree를 렌더하지 않고 로그인으로 reset.
  */
-function RequireAuthGate() {
+function RequireAuthGate({ children }: RequireAuthGateProps) {
   const pathname = usePathname();
   const user = useUserStore((state) => state.user);
   const [isHydrated, setIsHydrated] = useState(
     () => useUserStore.persist?.hasHydrated?.() ?? true
   );
+  const isPublicPath = isPublicUnauthenticatedPath(pathname);
 
   useEffect(() => {
     if (useUserStore.persist?.hasHydrated?.()) {
@@ -38,13 +43,17 @@ function RequireAuthGate() {
 
   useEffect(() => {
     if (!isHydrated) return;
-    if (isPublicUnauthenticatedPath(pathname)) return;
+    if (isPublicPath) return;
     if (hasAuthSession()) return;
 
     navigateToLogin().catch(() => undefined);
-  }, [isHydrated, pathname, user]);
+  }, [isHydrated, isPublicPath, user]);
 
-  return null;
+  if (isPublicPath) return children;
+  if (!isHydrated) return null;
+  if (!hasAuthSession()) return null;
+
+  return children;
 }
 
 export { RequireAuthGate };

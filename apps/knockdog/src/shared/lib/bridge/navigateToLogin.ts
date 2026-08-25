@@ -29,7 +29,8 @@ async function navigateToLogin() {
         window.location.replace(pathname);
         return;
       }
-      const fullPath = `${webUrl}/${normalizedPath}`;
+      const baseUrl = webUrl.replace(/\/+$/, '');
+      const fullPath = `${baseUrl}/${normalizedPath}`;
       const bridge = getBridgeInstance();
 
       if (!bridge) {

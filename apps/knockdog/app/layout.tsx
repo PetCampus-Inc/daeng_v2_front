@@ -49,16 +49,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <SyncWebViewQueryEffect />
                 <SyncNativeMainTabModeEffect />
                 <PushDeviceSyncEffect />
-                <RequireAuthGate />
                 <div
                   id='root'
                   className='webview:max-w-full relative mx-auto flex h-dvh w-screen max-w-120 flex-col shadow-lg'
                 >
-                  <OverlayProvider>
-                    {/* @TODO HeaderWrapper 추후 삭제 필요 */}
-                    <HeaderWrapper />
-                    {children}
-                  </OverlayProvider>
+                  <RequireAuthGate>
+                    <OverlayProvider>
+                      {/* @TODO HeaderWrapper 추후 삭제 필요 */}
+                      <HeaderWrapper />
+                      {children}
+                    </OverlayProvider>
+                  </RequireAuthGate>
                 </div>
               </BridgeProvider>
             </ReactQueryProvider>

@@ -2,6 +2,7 @@ import {
   emptyRegisterForm,
   type KindergartenRegisterForm,
 } from '@views/role-conversion/model/kindergartenInfo';
+import { eventBus } from '@shared/utils';
 
 const REGISTER_FORM_DRAFT_KEY = 'role_conversion_register_form_draft';
 const REGISTER_FORM_DRAFT_UPDATED_EVENT = 'role-conversion:register-form-draft-updated';
@@ -87,6 +88,8 @@ function clearRegisterFormDraft() {
   localStorage.removeItem(REGISTER_FORM_DRAFT_KEY);
   sessionStorage.removeItem(REGISTER_FORM_DRAFT_KEY);
 }
+
+eventBus.subscribe('auth:logout', clearRegisterFormDraft);
 
 export {
   clearRegisterFormDraft,

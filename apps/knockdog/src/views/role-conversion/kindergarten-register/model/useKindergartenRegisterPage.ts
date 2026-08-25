@@ -67,18 +67,21 @@ type RegisterNavParams = {
 };
 
 function readNavRegisterForm(
-  getParams: () => RegisterNavParams | null
+  getParams: () => RegisterNavParams | null,
+  mode: KindergartenRegisterSource
 ): KindergartenRegisterForm | null {
   const navForm = getParams()?.registerForm;
-  return navForm && isKindergartenRegisterForm(navForm) ? navForm : null;
+  if (!navForm || !isKindergartenRegisterForm(navForm)) return null;
+  if (navForm.source !== mode) return null;
+  return navForm;
 }
 
 function resolveInitialForm(
   mode: KindergartenRegisterSource,
   getParams: () => RegisterNavParams | null
 ): { form: KindergartenRegisterForm; fromNavPrefill: boolean; isRestoredDraft: boolean } {
-  const navRegisterForm = readNavRegisterForm(getParams);
-  if (navRegisterForm && navRegisterForm.source === mode) {
+  const navRegisterForm = readNavRegisterForm(getParams, mode);
+  if (navRegisterForm) {
     saveRegisterFormDraft(navRegisterForm);
     return { form: navRegisterForm, fromNavPrefill: false, isRestoredDraft: true };
   }
@@ -155,8 +158,8 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
     if (mode !== 'search' || hasSearchPrefillRef.current) return;
 
     if (!isNativeWebView()) {
-      const navRegisterForm = readNavRegisterForm(getParams);
-      if (navRegisterForm?.source === 'search') {
+      const navRegisterForm = readNavRegisterForm(getParams, mode);
+      if (navRegisterForm) {
         hasSearchPrefillRef.current = true;
         saveRegisterFormDraft(navRegisterForm);
         setForm(navRegisterForm);
@@ -178,7 +181,7 @@ function useKindergartenRegisterPage(mode: KindergartenRegisterSource) {
 
     return waitForNavParams(
       () => {
-        const navForm = readNavRegisterForm(getParams);
+        const navForm = readNavRegisterForm(getParams, mode);
         if (navForm) return { type: 'form' as const, form: navForm };
 
         const navPrefill = readNavSearchPrefill(getParams);
