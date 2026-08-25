@@ -56,7 +56,7 @@ function applyDraftToState(
   }
 ) {
   setters.setImages(draft.images as WebImageAsset[]);
-  setters.setName(draft.name);
+  setters.setName(formatName(draft.name));
   setters.setAddress(draft.address);
   setters.setAddressDetail(draft.addressDetail);
   setters.setPhone(draft.phone);

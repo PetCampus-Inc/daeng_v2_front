@@ -12,8 +12,11 @@ import {
   trackPendingPushDeviceRegistration,
 } from '../model/pendingPushDeviceRegistration';
 import {
+  PUSH_DEVICE_PUT_TIMEOUT_MS,
+  RENEW_INTERVAL_MS,
   markPushDeviceRegistrationComplete,
   releasePushDeviceRegistrationLock,
+  renewPushDeviceRegistrationLock,
   tryAcquirePushDeviceRegistrationLock,
 } from '../model/pushDeviceRegistrationLock';
 
@@ -83,7 +86,8 @@ function PushDeviceSyncEffect() {
     const token = fcmToken.token;
 
     // 탭마다 WebView가 PushDeviceSyncEffect를 띄워 동시 PUT → BE 데드락 방지
-    if (!tryAcquirePushDeviceRegistrationLock(registeredUserId, token)) {
+    const leaseId = tryAcquirePushDeviceRegistrationLock(registeredUserId, token);
+    if (!leaseId) {
       logPushDevice('skip push-devices — another webview holds registration lock', {
         userId: registeredUserId,
         token: maskPushToken(token),
@@ -97,23 +101,32 @@ function PushDeviceSyncEffect() {
       token: maskPushToken(token),
     });
 
-    const registration = putPushDevice({ provider: 'FCM', platform: fcmToken.platform, token })
+    const renewTimer = window.setInterval(() => {
+      renewPushDeviceRegistrationLock(registeredUserId, token, leaseId);
+    }, RENEW_INTERVAL_MS);
+
+    const registration = Promise.race([
+      putPushDevice({ provider: 'FCM', platform: fcmToken.platform, token }),
+      new Promise<never>((_, reject) => {
+        window.setTimeout(() => reject(new Error('push-devices put timeout')), PUSH_DEVICE_PUT_TIMEOUT_MS);
+      }),
+    ])
       .then((pushDeviceId) => {
         // 요청 중 로그아웃하거나 다른 계정으로 전환됐다면 이전 세션의 ID를 저장하지 않는다.
         const currentUserId = useUserStore.getState().user?.userId;
         if (pushDeviceId && currentUserId === registeredUserId && tokenUtils.hasAccessToken()) {
           savePushDeviceRegistration({ userId: registeredUserId, pushDeviceId });
-          markPushDeviceRegistrationComplete(registeredUserId, token);
+          markPushDeviceRegistrationComplete(registeredUserId, token, leaseId);
           logPushDevice('push device registered', {
             userId: registeredUserId,
             pushDeviceId,
             token: maskPushToken(token),
           });
         } else if (!pushDeviceId) {
-          releasePushDeviceRegistrationLock(registeredUserId, token);
+          releasePushDeviceRegistrationLock(registeredUserId, token, leaseId);
           console.warn('[PushDevice] push device upsert response has no id; logout cleanup will be skipped');
         } else {
-          releasePushDeviceRegistrationLock(registeredUserId, token);
+          releasePushDeviceRegistrationLock(registeredUserId, token, leaseId);
           logPushDevice('push device registration result ignored — session changed during request', {
             registeredUserId,
             currentUserId,
@@ -121,8 +134,11 @@ function PushDeviceSyncEffect() {
         }
       })
       .catch((error) => {
-        releasePushDeviceRegistrationLock(registeredUserId, token);
+        releasePushDeviceRegistrationLock(registeredUserId, token, leaseId);
         console.warn('[PushDevice] device registration failed', error);
+      })
+      .finally(() => {
+        window.clearInterval(renewTimer);
       });
 
     void trackPendingPushDeviceRegistration(registration);
