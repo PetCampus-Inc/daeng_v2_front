@@ -101,6 +101,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@react-native-firebase/messaging',
     './plugins/rnfirebase-disable-spm',
     './plugins/naver-map-queries',
+    './plugins/disable-android-backup',
     [
       'expo-image-picker',
       {

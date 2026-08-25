@@ -100,10 +100,11 @@ function useStackNavigation() {
 
   const back = useCallback(async () => {
     if (isNative) {
-      await bridge.request(METHODS.navBack, {});
-      return;
+      const result = await bridge.request<{ wentBack?: boolean }>(METHODS.navBack, {});
+      return result?.wentBack === true;
     }
     router.back();
+    return true;
   }, [bridge, router, isNative]);
 
   const replace = useCallback(

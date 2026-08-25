@@ -14,7 +14,7 @@ import {
 } from '@knockdog/ui';
 
 import { AddressPicker } from '@features/address-picker';
-import { REPRESENTATIVE_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+import { REPRESENTATIVE_NAME_MAX_LENGTH, KINDERGARTEN_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 
 import { Header } from '@widgets/Header';
 
@@ -72,6 +72,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
                   <TextFieldInput
                     placeholder={kindergartenRegisterContent.namePlaceholder}
                     value={form.name}
+                    maxLength={KINDERGARTEN_NAME_MAX_LENGTH}
                     onChange={(e) => handleFieldChange('name', e.target.value)}
                   />
                 </TextField>

@@ -1,14 +1,19 @@
 const NAME_MAX_LENGTH = 30;
+const KINDERGARTEN_NAME_MAX_LENGTH = NAME_MAX_LENGTH;
 const REPRESENTATIVE_NAME_MAX_LENGTH = 20;
 const ADDRESS_MAX_LENGTH = 50;
+/** 공백은 일반 스페이스만 — 줄바꿈/탭 거부. 이모지는 범위 밖이라 자동 제외 */
+const NAME_ALLOWED_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z0-9!-/:-@\[-`{-~ ]+/g;
 const ALLOWED_TEXT_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z0-9!-/:-@\[-`{-~\s]/g;
 
-function extractAllowedText(value: string, maxLength: number) {
-  return (value.match(ALLOWED_TEXT_PATTERN) ?? []).join('').slice(0, maxLength);
+function extractAllowedText(value: string, maxLength: number, pattern = ALLOWED_TEXT_PATTERN) {
+  return (value.match(pattern) ?? []).join('').slice(0, maxLength);
 }
 
+/** 유치원명: 최대 30자(정확히 30 허용), 이모지·줄바꿈 거부, 숫자·기호·스페이스 허용 */
 function formatName(value: string) {
-  return extractAllowedText(value, NAME_MAX_LENGTH);
+  const withoutBreaks = value.replace(/[\r\n\u2028\u2029\t]/g, '');
+  return extractAllowedText(withoutBreaks, KINDERGARTEN_NAME_MAX_LENGTH, NAME_ALLOWED_PATTERN);
 }
 
 function formatRepresentativeName(value: string) {
@@ -17,6 +22,12 @@ function formatRepresentativeName(value: string) {
 
 function formatAddress(value: string) {
   return extractAllowedText(value, ADDRESS_MAX_LENGTH);
+}
+
+/** 표시용 1줄 말줄임 — 백엔드 최대 길이와 동일 기준 */
+function truncateKindergartenName(name: string, maxLength = KINDERGARTEN_NAME_MAX_LENGTH) {
+  if (name.length <= maxLength) return name;
+  return `${name.slice(0, maxLength)}…`;
 }
 
 function formatPhone(value: string) {
@@ -115,5 +126,7 @@ export {
   isValidEmail,
   isValidKindergartenPhone,
   isValidRepresentativePhone,
+  KINDERGARTEN_NAME_MAX_LENGTH,
   REPRESENTATIVE_NAME_MAX_LENGTH,
+  truncateKindergartenName,
 };

@@ -125,6 +125,14 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
     if (resultTxId) {
       navResult.send(true);
+      // pushForResult(탭 위 Stack): back으로 복귀. auth-only면 wentBack=false → 홈 reset
+      void back()
+        .then((wentBack) => {
+          if (wentBack === false) return reset(route.root);
+          return undefined;
+        })
+        .catch(() => reset(route.root).catch(() => undefined));
+      return;
     }
 
     if (isNewSignUp || shouldResetToMain) {
@@ -134,9 +142,11 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
     if (redirectTo) {
       replace({ pathname: redirectTo });
-    } else {
-      back();
+      return;
     }
+
+    // 게이트가 login으로 replace 한 경우 history가 비어 back()이 무반응/이탈함 → 홈으로 reset
+    reset(route.root).catch(() => undefined);
   };
 
   const registerCurrentSocialUser = async () => {

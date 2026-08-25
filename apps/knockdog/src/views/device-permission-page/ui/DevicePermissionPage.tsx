@@ -12,6 +12,8 @@ import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
 const PERMISSION_PROMPT_DELAY_MS = 1_000;
+/** 확인 시 권한 브릿지가 hang 되어도 UX가 막히지 않게 하는 상한 */
+const CONFIRM_PERMISSION_WAIT_MS = 1_500;
 
 function DevicePermissionPage() {
   const content = devicePermissionContent;
@@ -48,7 +50,14 @@ function DevicePermissionPage() {
     setIsConfirming(true);
 
     try {
-      await requestPromiseRef.current;
+      // OS 권한 요청이 이미 시작됐으면 확인을 막지 않는다.
+      // (에뮬/이미 허용된 권한에서 브릿지 request가 resolve되지 않는 케이스 방지)
+      await Promise.race([
+        requestPromiseRef.current ?? Promise.resolve(),
+        new Promise<void>((resolve) => {
+          window.setTimeout(resolve, CONFIRM_PERMISSION_WAIT_MS);
+        }),
+      ]);
       markDevicePermissionIntroSeen();
 
       const searchParams = new URLSearchParams(window.location.search);

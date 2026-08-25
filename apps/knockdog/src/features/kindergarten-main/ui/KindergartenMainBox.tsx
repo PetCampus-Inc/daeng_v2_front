@@ -35,8 +35,8 @@ function KindergartenMainBox({
       )}
     >
       <div className='flex justify-between'>
-        <div className='flex flex-col'>
-          <span className='h2-extrabold'>{title}</span>
+        <div className='flex min-w-0 flex-1 flex-col'>
+          <span className='h2-extrabold block truncate'>{title}</span>
           <span className='body2-semibold text-text-tertiary'>{ctg}</span>
         </div>
         {/* 심사 대응용 임시 비노출

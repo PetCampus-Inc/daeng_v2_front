@@ -14,6 +14,7 @@ import { isValidWebAddressFormat } from '@views/mypage-owner-kindergarten-edit-p
 
 import { ownerMypageContent, useOwnerKindergarten } from '@features/role-conversion';
 import {
+  formatName,
   formatPhone,
   isValidKindergartenPhone,
 } from '@features/role-conversion/lib/formatKindergartenRegisterField';
@@ -55,7 +56,7 @@ function applyDraftToState(
   }
 ) {
   setters.setImages(draft.images as WebImageAsset[]);
-  setters.setName(draft.name);
+  setters.setName(formatName(draft.name));
   setters.setAddress(draft.address);
   setters.setAddressDetail(draft.addressDetail);
   setters.setPhone(draft.phone);
@@ -522,7 +523,7 @@ function useKindergartenEditForm() {
     closeTimeSheet: () => setActiveTimeField(null),
     closeClosedDaysSheet: () => setIsClosedDaysSheetOpen(false),
     handleImagesChange: (next: WebImageAsset[]) => updateField(setImages, next),
-    handleNameChange: (value: string) => updateField(setName, value),
+    handleNameChange: (value: string) => updateField(setName, formatName(value)),
     handleAddressDetailChange: (value: string) => updateField(setAddressDetail, value),
     handlePhoneChange: (value: string) => {
       setPhoneError(undefined);
