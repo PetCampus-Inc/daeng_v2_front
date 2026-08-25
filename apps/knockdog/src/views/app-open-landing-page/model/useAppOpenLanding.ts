@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { detectPlatform, isNativeWebView } from '@shared/lib/device';
+import { tokenUtils } from '@shared/utils';
 
 import {
   APP_OPEN_NATIVE_SCHEME,
@@ -30,8 +31,9 @@ function useAppOpenLanding({
     if (!enabled) return;
 
     if (isNativeWebView()) {
-      // 설치·딥링크로 앱 WebView에 진입한 경우 → 보호자 홈 (비로그인은 홈/가드에서 처리)
-      void reset(route.root);
+      // 미로그인 → 로그인, 로그인됨 → 홈
+      const next = tokenUtils.hasAccessToken() ? route.root : route.auth.login.root;
+      void reset(next);
       return;
     }
 
