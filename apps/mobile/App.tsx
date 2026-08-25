@@ -119,7 +119,11 @@ export default function App() {
               <NavigationContainer
                 ref={navigationRef}
                 linking={linking}
-                onReady={() => pushCoordinator.markNavigationReady()}
+                onReady={() => {
+                  const state = navigationRef.getRootState();
+                  previousRootRouteNameRef.current = state?.routes?.[state.index ?? 0]?.name ?? null;
+                  pushCoordinator.markNavigationReady();
+                }}
                 onStateChange={handleNavigationStateChange}
               >
                 <PushNotificationProvider />
