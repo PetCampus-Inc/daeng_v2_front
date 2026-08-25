@@ -16,7 +16,7 @@ let lastAddressRegistrationDialogRequestId = 0;
 export function registerSystemHandlers(router: NativeBridgeRouter) {
   router.register<{ visible: boolean; message: string; requestId: number }>(METHODS.setBlockingOverlay, async (params) => {
     if (params.requestId < lastBlockingOverlayRequestId) {
-      return { visible: useBlockingOverlayStore.getState().visible };
+      return { visible: useBlockingOverlayStore.getState().content !== null };
     }
 
     lastBlockingOverlayRequestId = params.requestId;
