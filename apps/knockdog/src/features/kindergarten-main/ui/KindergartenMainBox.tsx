@@ -5,7 +5,9 @@ import { Icon, Divider } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { DeparturePointSheet, ServiceBadgeList, type KindergartenMain } from '@entities/kindergarten';
 
-interface KindergartenMainBoxProps extends KindergartenMain {}
+interface KindergartenMainBoxProps extends KindergartenMain {
+  compact?: boolean;
+}
 
 function KindergartenMainBox({
   title,
@@ -20,13 +22,15 @@ function KindergartenMainBox({
   memo,
   coords,
   banner,
+  compact = false,
 }: KindergartenMainBoxProps) {
   const hasBannerImages = (banner ?? []).some(Boolean);
 
   return (
     <div
       className={cn(
-        'relative z-10 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px] pb-12',
+        'relative z-10 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px]',
+        compact ? 'pb-5' : 'pb-12',
         hasBannerImages && '-mt-8'
       )}
     >
@@ -58,33 +62,39 @@ function KindergartenMainBox({
           <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist}</span>
           <span className='body2-regular'>{roadAddress}</span>
         </div>
-        <div>
-          <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
-            {businessStatus.title}
-          </span>
-          <span className='body2-regular'>{businessStatus.description}</span>
-        </div>
-      </div>
-      {/* 뱃지 및 가격영역 */}
-      <div className='flex justify-between'>
-        <div className='flex gap-1'>
-          <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
-            <Icon icon='Naver' className='h-[16px] w-[16px]' />
-            리뷰 {reviewCount}개
+        {!compact && (
+          <div>
+            <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
+              {businessStatus.title}
+            </span>
+            <span className='body2-regular'>{businessStatus.description}</span>
           </div>
-          {memo?.memoDate && (
-            <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
-              <Icon icon='Note' className='h-[16px] w-[16px]' />
-              {memo?.memoDate} 노트
-            </div>
-          )}
-        </div>
-        <span className='h3-extrabold'>{price.toLocaleString()}원~</span>
+        )}
       </div>
-      {/* Divider */}
-      <Divider />
-      {/* 뱃지 리스트 */}
-      <ServiceBadgeList serviceTags={serviceTags} pickupType={pickupType} />
+      {!compact && (
+        <>
+          {/* 뱃지 및 가격영역 */}
+          <div className='flex justify-between'>
+            <div className='flex gap-1'>
+              <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
+                <Icon icon='Naver' className='h-[16px] w-[16px]' />
+                리뷰 {reviewCount}개
+              </div>
+              {memo?.memoDate && (
+                <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
+                  <Icon icon='Note' className='h-[16px] w-[16px]' />
+                  {memo?.memoDate} 노트
+                </div>
+              )}
+            </div>
+            <span className='h3-extrabold'>{price.toLocaleString()}원~</span>
+          </div>
+          {/* Divider */}
+          <Divider />
+          {/* 뱃지 리스트 */}
+          <ServiceBadgeList serviceTags={serviceTags} pickupType={pickupType} />
+        </>
+      )}
     </div>
   );
 }

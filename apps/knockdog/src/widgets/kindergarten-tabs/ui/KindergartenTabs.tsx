@@ -16,6 +16,7 @@ interface KindergartenTabsProps {
   kindergartenId?: string;
   scrollableDivRef?: React.RefObject<HTMLDivElement | null>;
   showNearSection?: boolean;
+  hideDetailTabs?: boolean;
   value?: string;
   onValueChange?: (value: string) => void;
 }
@@ -24,6 +25,7 @@ function KindergartenTabs({
   kindergartenId,
   scrollableDivRef,
   showNearSection = true,
+  hideDetailTabs = false,
   value,
   onValueChange,
 }: KindergartenTabsProps) {
@@ -68,6 +70,15 @@ function KindergartenTabs({
     }
     lastAutoResetRef.current = null;
   }, [activeTab, isLoggedIn, setActiveTab]);
+
+  if (hideDetailTabs) {
+    return showNearSection ? (
+      <>
+        <Divider size='thick' className='mb-12' />
+        <KindergartenNearSection kindergartenId={kindergartenId} />
+      </>
+    ) : null;
+  }
 
   return (
     <>

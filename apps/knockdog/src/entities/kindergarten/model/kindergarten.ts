@@ -1,6 +1,7 @@
 import { OPERATION_STATUS, PICKUP, SERVICE_TAGS } from '../config/enum';
 export interface Kindergarten {
   id: string;
+  schoolStatus?: string;
   title: string;
   ctg: string;
   operationTimes: {
