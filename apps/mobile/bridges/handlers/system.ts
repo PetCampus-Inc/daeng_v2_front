@@ -8,6 +8,7 @@ import { METHODS } from '@knockdog/bridge-core';
 import { useBlockingOverlayStore } from '@/features/blocking-overlay';
 
 let lastBlockingOverlayRequestId = 0;
+let lastAddressRegistrationDialogRequestId = 0;
 
 /**
  * 시스템 핸들러
@@ -22,6 +23,14 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     const visible = params.visible === true;
     useBlockingOverlayStore.getState().setUploadOverlay(visible, visible ? params.message : '');
     return { visible };
+  });
+
+  router.register<{ requestId: number }>(METHODS.showAddressRegistrationDialog, async (params) => {
+    if (params.requestId < lastAddressRegistrationDialogRequestId) return { action: 'cancel' as const };
+
+    lastAddressRegistrationDialogRequestId = params.requestId;
+    const action = await useBlockingOverlayStore.getState().showAddressRegistrationDialog();
+    return { action };
   });
 
   /** 전화 걸기 */

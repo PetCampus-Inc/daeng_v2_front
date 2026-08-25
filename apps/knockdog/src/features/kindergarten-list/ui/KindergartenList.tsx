@@ -50,16 +50,7 @@ interface KindergartenListProps {
   onOpenFilter: () => void;
 }
 
-let lastBottomTabBarDimRequestId = 0;
-
-function setNativeBottomTabBarDimmed(bridge: ReturnType<typeof useBridge>, dimmed: boolean) {
-  if (!isNativeWebView()) return;
-
-  lastBottomTabBarDimRequestId = Math.max(Date.now(), lastBottomTabBarDimRequestId + 1);
-  void bridge
-    .request(METHODS.navSetBottomTabBarDimmed, { dimmed, requestId: lastBottomTabBarDimRequestId })
-    .catch(() => undefined);
-}
+let lastAddressRegistrationDialogRequestId = 0;
 
 export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -125,13 +116,46 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     setBaseType(newType);
   };
 
-  const handleOpenAlertDialog = (type: UserAddressType) => {
-    setNativeBottomTabBarDimmed(bridge, true);
+  const handleAddressRegistration = async (type: UserAddressType) => {
+    let result: Omit<UserAddress, 'id'> | undefined;
+    try {
+      result = await pushForResult<Omit<UserAddress, 'id'>>(
+        { pathname: route.register.location.add.root, query: { type } },
+        600_000
+      );
+    } catch {
+      // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+      return;
+    }
+    if (!result) return;
+
+    try {
+      await addAddressMutation.mutateAsync({ ...result, id: '0', type });
+      setBaseType(type as BasePointType);
+    } catch (error) {
+      console.error('장소 등록 실패:', error);
+      toast({
+        title: '일시적 오류로 요청을 완료하지 못했어요',
+        nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+      });
+    }
+  };
+
+  const handleOpenAlertDialog = (type: UserAddressType, useNativeDialog = true) => {
+    if (isNativeWebView() && useNativeDialog) {
+      lastAddressRegistrationDialogRequestId = Math.max(Date.now(), lastAddressRegistrationDialogRequestId + 1);
+      void bridge
+        .request(METHODS.showAddressRegistrationDialog, { requestId: lastAddressRegistrationDialogRequestId })
+        .then(({ action }) => {
+          if (action === 'register') void handleAddressRegistration(type);
+        })
+        .catch(() => handleOpenAlertDialog(type, false));
+      return;
+    }
 
     return overlay.open(({ isOpen, close }) => {
       const closeDialog = () => {
         close();
-        setNativeBottomTabBarDimmed(bridge, false);
       };
 
       return (
@@ -148,29 +172,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               <AlertDialogAction
                 onClick={async () => {
                   closeDialog();
-
-                  let result: Omit<UserAddress, 'id'> | undefined;
-                  try {
-                    result = await pushForResult<Omit<UserAddress, 'id'>>(
-                      { pathname: route.register.location.add.root, query: { type } },
-                      600_000
-                    );
-                  } catch {
-                    // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
-                    return;
-                  }
-                  if (!result) return;
-
-                  try {
-                    await addAddressMutation.mutateAsync({ ...result, id: '0', type });
-                    setBaseType(type as BasePointType);
-                  } catch (error) {
-                    console.error('장소 등록 실패:', error);
-                    toast({
-                      title: '일시적 오류로 요청을 완료하지 못했어요',
-                      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
-                    });
-                  }
+                  await handleAddressRegistration(type);
                 }}
               >
                 등록하기

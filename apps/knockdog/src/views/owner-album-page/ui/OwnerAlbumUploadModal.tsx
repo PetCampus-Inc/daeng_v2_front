@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { METHODS } from '@knockdog/bridge-core';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
@@ -18,9 +18,14 @@ let lastBlockingOverlayRequestId = 0;
 function OwnerAlbumUploadModal({ isOpen }: OwnerAlbumUploadModalProps) {
   const bridge = useBridge();
   const hasRequestedNativeOverlay = useRef(false);
+  const [isNative, setIsNative] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !isNativeWebView()) return;
+    setIsNative(isNativeWebView());
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !isNative) return;
 
     hasRequestedNativeOverlay.current = true;
     lastBlockingOverlayRequestId = Math.max(Date.now(), lastBlockingOverlayRequestId + 1);
@@ -45,9 +50,11 @@ function OwnerAlbumUploadModal({ isOpen }: OwnerAlbumUploadModalProps) {
         })
         .catch(() => undefined);
     };
-  }, [bridge, isOpen]);
+  }, [bridge, isNative, isOpen]);
 
-  if (!isOpen || isNativeWebView()) return null;
+  // 환경 판별 전에는 웹 팝업을 렌더링하지 않는다.
+  // WebView 주입 시점에 따라 웹/네이티브 팝업이 동시에 나타나는 것을 방지한다.
+  if (!isOpen || isNative !== false) return null;
 
   return (
     <div

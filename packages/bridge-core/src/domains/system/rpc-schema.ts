@@ -33,6 +33,14 @@ interface SystemRPCSchema {
       visible: boolean;
     };
   };
+  [METHODS.showAddressRegistrationDialog]: {
+    params: {
+      requestId: number;
+    };
+    result: {
+      action: 'cancel' | 'register';
+    };
+  };
 }
 
 export type { SystemRPCSchema };
