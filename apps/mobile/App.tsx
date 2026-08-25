@@ -12,6 +12,7 @@ import { initializeKakaoSDK } from '@react-native-kakao/core';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RootStackNavigator, useLinking } from './components/navigation';
 import { PushNotificationProvider } from './components/PushNotificationProvider';
+import { BlockingOverlay } from './features/blocking-overlay';
 import { pushCoordinator } from './lib/pushCoordinator';
 import { useBottomTabBarVisibilityStore } from './bridges/model/bottomTabBarVisibilityStore';
 
@@ -129,6 +130,7 @@ export default function App() {
                 <PushNotificationProvider />
                 <RootStackNavigator />
               </NavigationContainer>
+              <BlockingOverlay />
             </ToastProvider>
           </View>
         </PortalProvider>

@@ -1,15 +1,53 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import { METHODS } from '@knockdog/bridge-core';
+
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
 
+import { useBridge } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 
 interface OwnerAlbumUploadModalProps {
   isOpen: boolean;
 }
 
+let lastBlockingOverlayRequestId = 0;
+
 function OwnerAlbumUploadModal({ isOpen }: OwnerAlbumUploadModalProps) {
-  if (!isOpen) return null;
+  const bridge = useBridge();
+  const hasRequestedNativeOverlay = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen || !isNativeWebView()) return;
+
+    hasRequestedNativeOverlay.current = true;
+    lastBlockingOverlayRequestId = Math.max(Date.now(), lastBlockingOverlayRequestId + 1);
+    void bridge
+      .request(METHODS.setBlockingOverlay, {
+        visible: true,
+        message: ownerAlbumContent.uploadModalMessage,
+        requestId: lastBlockingOverlayRequestId,
+      })
+      .catch(() => undefined);
+
+    return () => {
+      if (!hasRequestedNativeOverlay.current) return;
+
+      hasRequestedNativeOverlay.current = false;
+      lastBlockingOverlayRequestId = Math.max(Date.now(), lastBlockingOverlayRequestId + 1);
+      void bridge
+        .request(METHODS.setBlockingOverlay, {
+          visible: false,
+          message: '',
+          requestId: lastBlockingOverlayRequestId,
+        })
+        .catch(() => undefined);
+    };
+  }, [bridge, isOpen]);
+
+  if (!isOpen || isNativeWebView()) return null;
 
   return (
     <div
