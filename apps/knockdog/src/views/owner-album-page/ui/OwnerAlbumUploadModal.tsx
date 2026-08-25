@@ -19,14 +19,20 @@ function OwnerAlbumUploadModal({ isOpen }: OwnerAlbumUploadModalProps) {
   const bridge = useBridge();
   const hasRequestedNativeOverlay = useRef(false);
   const [isNative, setIsNative] = useState<boolean | null>(null);
+  const [isNativeOverlayUnavailable, setIsNativeOverlayUnavailable] = useState(false);
 
   useEffect(() => {
     setIsNative(isNativeWebView());
   }, []);
 
   useEffect(() => {
-    if (!isOpen || !isNative) return;
+    if (!isOpen) setIsNativeOverlayUnavailable(false);
+  }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !isNative || isNativeOverlayUnavailable) return;
+
+    let disposed = false;
     hasRequestedNativeOverlay.current = true;
     lastBlockingOverlayRequestId = Math.max(Date.now(), lastBlockingOverlayRequestId + 1);
     void bridge
@@ -35,9 +41,12 @@ function OwnerAlbumUploadModal({ isOpen }: OwnerAlbumUploadModalProps) {
         message: ownerAlbumContent.uploadModalMessage,
         requestId: lastBlockingOverlayRequestId,
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!disposed) setIsNativeOverlayUnavailable(true);
+      });
 
     return () => {
+      disposed = true;
       if (!hasRequestedNativeOverlay.current) return;
 
       hasRequestedNativeOverlay.current = false;
@@ -50,11 +59,11 @@ function OwnerAlbumUploadModal({ isOpen }: OwnerAlbumUploadModalProps) {
         })
         .catch(() => undefined);
     };
-  }, [bridge, isNative, isOpen]);
+  }, [bridge, isNative, isNativeOverlayUnavailable, isOpen]);
 
   // 환경 판별 전에는 웹 팝업을 렌더링하지 않는다.
   // WebView 주입 시점에 따라 웹/네이티브 팝업이 동시에 나타나는 것을 방지한다.
-  if (!isOpen || isNative !== false) return null;
+  if (!isOpen || (isNative !== false && !isNativeOverlayUnavailable)) return null;
 
   return (
     <div
