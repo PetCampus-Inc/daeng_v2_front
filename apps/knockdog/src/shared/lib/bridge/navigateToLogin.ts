@@ -7,11 +7,11 @@ import { route } from '@shared/constants/route';
 let isNavigating = false;
 
 /**
- * hook 없이 /login 페이지로 stack navigation
- * @description interceptor 등 hook을 사용할 수 없는 환경에서 사용
+ * hook 없이 로그인 화면으로 navigation (reset)
+ * push가 아니라 reset이라 뒤로가기로 비로그인 탭에 떨어지지 않음
+ * interceptor 등 hook을 사용할 수 없는 환경에서 사용
  */
 async function navigateToLogin() {
-  // 이미 네비게이션 진행 중이면 무시
   if (isNavigating) {
     return;
   }
@@ -26,36 +26,33 @@ async function navigateToLogin() {
       const webUrl = process.env.NEXT_PUBLIC_WEB_URL;
       if (!webUrl) {
         console.error('[navigateToLogin] NEXT_PUBLIC_WEB_URL is not defined');
-        window.location.href = pathname;
+        window.location.replace(pathname);
         return;
       }
-      const fullPath = `${webUrl}/${normalizedPath}`;
-      // 네이티브 환경: bridge를 통해 stack push
+      const baseUrl = webUrl.replace(/\/+$/, '');
+      const fullPath = `${baseUrl}/${normalizedPath}`;
       const bridge = getBridgeInstance();
 
       if (!bridge) {
         console.warn('[navigateToLogin] Bridge not initialized, falling back to window.location');
-        window.location.href = pathname;
+        window.location.replace(pathname);
         return;
       }
 
       try {
-        await bridge.request(METHODS.navPush, {
+        await bridge.request(METHODS.navReset, {
           name: fullPath,
           params: {},
         });
       } catch (error) {
         console.error('[navigateToLogin] Failed to navigate via bridge:', error);
-        // Fallback: window.location 사용
-        window.location.href = pathname;
+        window.location.replace(pathname);
       }
       return;
     }
 
-    // 웹 환경: window.location 사용
-    window.location.href = pathname;
+    window.location.replace(pathname);
   } finally {
-    // 일정 시간 후 플래그 리셋 (네비게이션 완료 후 재시도 가능하도록)
     setTimeout(() => {
       isNavigating = false;
     }, 1000);

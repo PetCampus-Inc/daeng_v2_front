@@ -10,23 +10,41 @@ const resolveName = (name: string | null | undefined, email: string | null | und
 const kakaoLogin = async () => {
   try {
     const { idToken } = await login();
+    if (!idToken) throw new Error('Kakao idToken is empty (talk login)');
+
     const { email, nickname, profileImageUrl } = await me();
     return { idToken, email: email ?? '', name: resolveName(nickname, email), picture: profileImageUrl ?? '' };
-  } catch {
-    // 카카오톡 앱 로그인 실패 시, 웹뷰로 로그인
-    const { idToken } = await login({ useKakaoAccountLogin: true });
-    const { email, nickname, profileImageUrl } = await me();
-    return { idToken, email: email ?? '', name: resolveName(nickname, email), picture: profileImageUrl ?? '' };
+  } catch (talkError) {
+    console.warn('[auth] Kakao talk login failed, fallback to account login', talkError);
+
+    try {
+      // 애뮬에는 카카오톡이 없어서 계정(웹) 로그인으로 폴백
+      const { idToken } = await login({ useKakaoAccountLogin: true });
+      if (!idToken) throw new Error('Kakao idToken is empty (account login)');
+
+      const { email, nickname, profileImageUrl } = await me();
+      return { idToken, email: email ?? '', name: resolveName(nickname, email), picture: profileImageUrl ?? '' };
+    } catch (accountError) {
+      console.error('[auth] Kakao account login failed', accountError);
+      throw accountError;
+    }
   }
 };
 
 const googleLogin = async () => {
-  await GoogleSignin.hasPlayServices();
+  await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
   const { data } = await GoogleSignin.signIn();
 
-  if (!data) throw new Error('Google 로그인 실패');
+  if (!data) throw new Error('Google 로그인 실패: signIn data is null');
 
   const { idToken, user } = data;
+
+  // webClientId가 Web OAuth 클라이언트가 아니면 idToken이 null로 온다
+  if (!idToken) {
+    throw new Error(
+      'Google idToken is null — EXPO_PUBLIC_ANDROID_CLIENT_ID 가 Web client ID 인지, debug SHA-1 이 Google Cloud에 등록됐는지 확인'
+    );
+  }
 
   return {
     idToken,

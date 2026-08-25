@@ -7,6 +7,7 @@ import { Header } from '@widgets/Header';
 import { WITHDRAW_REASON_TYPE, type WithdrawReasonType, type WithdrawRequest } from '@entities/user';
 import { useStackNavigation, useOpenExternalLink  } from '@shared/lib/bridge';
 import { withdraw } from '@shared/lib/auth';
+import { route } from '@shared/constants/route';
 
 import { EXTERNAL_LINKS } from '@shared/constants';
 
@@ -59,7 +60,7 @@ function WithdrawSurveyPage() {
     setIsPending(true);
     try {
       await withdraw(request);
-      await reset();
+      await reset(route.auth.login.root);
     } catch (error) {
       console.error('탈퇴 처리 중 오류 발생:', error);
     } finally {

@@ -76,6 +76,7 @@ export function AddressPicker({
   const isEmbedded = variant === 'embedded';
   const embeddedContainerRef = useRef<HTMLDivElement>(null);
   const scrollRestoreTimersRef = useRef<number[]>([]);
+  const scrollTopBeforeFocusRef = useRef<number | null>(null);
   const showHint = !isEmbedded && !isSelected && inputValue === '' && searchQuery === '';
   const showResults = !isSelected && searchQuery.length > 0;
   const hasResults = (addressList?.length ?? 0) > 0;
@@ -103,35 +104,42 @@ export function AddressPicker({
     }
   };
 
+  const handleInputPointerDown = () => {
+    if (!isEmbedded) return;
+
+    const scrollParent = getScrollableAncestor(embeddedContainerRef.current);
+    scrollTopBeforeFocusRef.current = scrollParent?.scrollTop ?? null;
+  };
+
   const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     handleFocus();
 
     if (!isEmbedded) return;
 
-    // iOS WebView: focus/키보드 시 overflow 조상이 scrollTop=0으로 리셋되는 경우만 되돌림.
-    // scrollIntoView는 필드를 최상단으로 끌어올려서 쓰지 않음.
+    // 포커스/목록 등장 시 스크롤이 튀면(특히 아래로) 직전 위치로 되돌림.
+    // scrollIntoView는 필드를 끌어올려서 쓰지 않음.
     const input = event.currentTarget;
     const scrollParent = getScrollableAncestor(input);
     if (!scrollParent) return;
 
-    const savedTop = scrollParent.scrollTop;
-    if (savedTop <= 8) return;
+    const savedTop = scrollTopBeforeFocusRef.current ?? scrollParent.scrollTop;
+    scrollTopBeforeFocusRef.current = null;
 
     clearScrollRestoreTimers();
 
-    const restoreIfJumpedToTop = () => {
+    const restoreIfScrolledAway = () => {
       if (document.activeElement !== input) return;
-      if (scrollParent.scrollTop > 1) return;
+      if (Math.abs(scrollParent.scrollTop - savedTop) < 4) return;
       scrollParent.scrollTop = savedTop;
     };
 
     requestAnimationFrame(() => {
-      restoreIfJumpedToTop();
-      requestAnimationFrame(restoreIfJumpedToTop);
+      restoreIfScrolledAway();
+      requestAnimationFrame(restoreIfScrolledAway);
     });
 
-    for (const delay of [50, 150, 350]) {
-      scrollRestoreTimersRef.current.push(window.setTimeout(restoreIfJumpedToTop, delay));
+    for (const delay of [50, 150, 350, 500]) {
+      scrollRestoreTimersRef.current.push(window.setTimeout(restoreIfScrolledAway, delay));
     }
   };
 
@@ -167,6 +175,7 @@ export function AddressPicker({
       <TextFieldInput
         value={inputValue}
         onChange={handleChange}
+        onPointerDown={handleInputPointerDown}
         onFocus={handleInputFocus}
         onBlur={handleInputBlur}
         placeholder={placeholder}
@@ -212,12 +221,17 @@ export function AddressPicker({
 
   if (isEmbedded) {
     return (
-      <div ref={setEmbeddedContainerRef} className={cn('relative', className)} {...props}>
+      <div
+        ref={setEmbeddedContainerRef}
+        className={cn('relative [overflow-anchor:none]', className)}
+        {...props}
+      >
         {searchField}
         {showResults && hasResults && (
           <div
             className={cn(
-              'bg-fill-secondary-0 mt-2 max-h-[min(50dvh,22rem)] touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+              // in-flow로 펼치면 페이지 높이가 늘어나 포커스 시 아래로 스크롤됨 → 오버레이
+              'bg-fill-secondary-0 absolute top-full right-0 left-0 z-30 mt-2 max-h-[min(50dvh,22rem)] touch-pan-y overflow-y-auto overscroll-y-contain rounded-lg shadow-[0_4px_16px_rgba(15,20,26,0.12)] [-webkit-overflow-scrolling:touch]',
               embeddedResultsClassName
             )}
             {...listInteractionProps}

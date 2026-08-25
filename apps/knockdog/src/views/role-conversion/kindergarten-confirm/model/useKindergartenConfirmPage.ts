@@ -11,7 +11,7 @@ import {
   readParams,
   saveSearchPrefill,
 } from '@views/role-conversion/model/kindergartenConfirmParams';
-import { saveRegisterFormDraft } from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
+import { saveRegisterFormDraft, clearRegisterFormDraft } from '@views/role-conversion/kindergarten-register/lib/registerFormDraft';
 import {
   fromKindergartenInfo,
   toDisplayItems,
@@ -52,6 +52,7 @@ function useKindergartenConfirmPage() {
   const proceedToBusinessVerification = () => {
     if (!kindergartenInfo) return;
     clearDraft();
+    clearRegisterFormDraft();
     push({
       pathname: route.roleConversion.businessVerification.root,
       params: { kindergarten: kindergartenInfo },
@@ -120,7 +121,8 @@ function useKindergartenConfirmPage() {
   const handleNo = () => {
     if (!kindergartenInfo) return;
 
-    saveRegisterFormDraft(fromKindergartenInfo(kindergartenInfo));
+    const registerForm = fromKindergartenInfo(kindergartenInfo);
+    saveRegisterFormDraft(registerForm);
     clearDraft();
 
     if (kindergartenInfo.source === 'search' && kindergartenInfo.placeId) {
@@ -135,7 +137,7 @@ function useKindergartenConfirmPage() {
       replace({
         pathname: route.roleConversion.kindergartenRegister.root,
         query: { mode: 'search', reset: Date.now().toString() },
-        params: { searchPrefill },
+        params: { searchPrefill, registerForm },
       });
       return;
     }
@@ -144,6 +146,7 @@ function useKindergartenConfirmPage() {
     replace({
       pathname: route.roleConversion.kindergartenRegister.root,
       query: { reset: Date.now().toString() },
+      params: { registerForm },
     });
   };
 

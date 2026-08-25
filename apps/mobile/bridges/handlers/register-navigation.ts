@@ -10,6 +10,18 @@ import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore
 import { useBottomTabBarVisibilityStore } from '../model/bottomTabBarVisibilityStore';
 import { pathToTab, pathToBaseTab, isGuardianOnlyTab, isOwnerOnlyTab, type TabName } from '../lib/tabRoutes';
 
+/** 미로그인 게이트 화면 — Tabs 없이 Stack만 reset */
+function isAuthOnlyStackPath(pathname: string) {
+  return (
+    pathname === '/auth/login' ||
+    pathname.startsWith('/auth/login/') ||
+    pathname === '/auth/device-permission' ||
+    pathname.startsWith('/auth/device-permission/') ||
+    pathname.startsWith('/auth/rejoin-blocked') ||
+    pathname.startsWith('/auth/reconnect-social')
+  );
+}
+
 type WebNavPayload = {
   name: string; // 예: '/detail'
   params?: Record<string, unknown> | { query?: Record<string, unknown> };
@@ -356,6 +368,18 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       } catch {
         stackPathname = extractPathFromUrl(route.params.path);
       }
+
+      // 로그인·권한 안내 등 인증 게이트: Tabs를 깔지 않아 비로그인 탭으로 뒤로가기 불가
+      if (isAuthOnlyStackPath(stackPathname)) {
+        navigationRef.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Stack', params: route.params }],
+          })
+        );
+        return { reset: true };
+      }
+
       const baseTab = resolveTabScreen(pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore');
 
       navigationRef.dispatch(

@@ -6,7 +6,6 @@ import { overlay } from 'overlay-kit';
 import { Header } from '@widgets/Header';
 
 import { SettingsSection } from '@features/app-settings';
-import { LoginPrompt } from '@features/auth';
 import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
 import {
   ownerMypageContent,
@@ -27,6 +26,7 @@ import { usePetListQuery } from '@entities/pet';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
+import { PrivateAccess } from '@shared/ui/private-access';
 import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
 import {
@@ -39,16 +39,15 @@ const MYPAGE_EXTERNAL_LINKS = {
   NOTICE: 'https://app.notion.com/p/3876c15f67fb807f9444c1545c5753c5?source=copy_link',
 };
 
-function Mypage() {
-  const { push } = useStackNavigation();
+function MypageContent() {
+  const { push, reset } = useStackNavigation();
   const user = useUserStore((state) => state.user);
   const openExternalLink = useOpenExternalLink();
-  const isLoggedIn = !!user;
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId: user?.userId,
-    enabled: isLoggedIn,
+    enabled: true,
   });
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
@@ -63,7 +62,7 @@ function Mypage() {
   } = useOwnerMypageSummary();
 
   const { data: petListResponse, isLoading: isPetListLoading } = usePetListQuery({
-    enabled: isLoggedIn && (!isOwnerVerified || isGuardianView),
+    enabled: !isOwnerVerified || isGuardianView,
   });
 
   const openDogSelectSheet = () => {
@@ -73,7 +72,7 @@ function Mypage() {
   };
 
   const hasDogs = (petListResponse?.data?.length ?? 0) > 0;
-  const shouldShowOwnerVerification = isLoggedIn && isOwnerRoleResolved && !isOwnerVerified;
+  const shouldShowOwnerVerification = isOwnerRoleResolved && !isOwnerVerified;
 
   const accountInfo: AccountInfo = {
     nickname: user?.nickname || '살구형',
@@ -106,7 +105,7 @@ function Mypage() {
     } catch {
       // 로그아웃 API 실패 시에도 로컬 세션은 이미 정리됨(logout() 내부 finally)
     } finally {
-      push({ pathname: route.auth.login.root });
+      await reset(route.auth.login.root);
     }
   };
 
@@ -173,18 +172,7 @@ function Mypage() {
       </Header>
 
       <div className='web:pb-(--bottom-bar-height) webview:pb-0 flex-1 overflow-y-auto'>
-        {!isLoggedIn && <LoginPrompt />}
-
-        {!isLoggedIn && (
-          <>
-            <Divider size='thick' />
-            <div className='flex flex-col gap-5 px-4 pt-7 pb-7'>
-              <QuickActionsSection className='gap-y-7 px-0 py-0' />
-            </div>
-          </>
-        )}
-
-        {isLoggedIn && canToggleRoleView && (
+        {canToggleRoleView && (
           <RoleConversionButton onClick={handleRoleViewToggle}>
             {isOwnerView
               ? roleConversionButtonContent.convertoGuardian
@@ -192,12 +180,12 @@ function Mypage() {
           </RoleConversionButton>
         )}
 
-        {isLoggedIn && isOwnerView ? (
+        {isOwnerView ? (
           <div className='bg-background-0'>
             <OwnerProfileRow
               name={profile.name}
               profileImageUrl={
-                profile.profileImageUrl ?? ownerProfileImageUrl ?? user.profileImageUrl
+                profile.profileImageUrl ?? ownerProfileImageUrl ?? user?.profileImageUrl
               }
               onClick={() => push({ pathname: route.mypage.profile.root })}
             />
@@ -216,7 +204,7 @@ function Mypage() {
           </div>
         ) : (
           <>
-            {isLoggedIn && !isPetListLoading && !hasDogs && (
+            {!isPetListLoading && !hasDogs && (
               <div className='bg-bg-0 flex flex-col items-center px-4 py-5'>
                 <NoDogPrompt
                   nickname={user?.nickname || '사용자'}
@@ -227,7 +215,7 @@ function Mypage() {
               </div>
             )}
 
-            {isLoggedIn && hasDogs && (
+            {hasDogs && (
               <>
                 <DogHouseSection
                   dogs={petListResponse?.data || []}
@@ -244,36 +232,32 @@ function Mypage() {
               </>
             )}
 
-            {isLoggedIn && <Divider size='thick' />}
-          </>
-        )}
-
-        {isLoggedIn && (
-          <>
-            <AccountSection
-              variant={isOwnerView ? 'owner' : 'guardian'}
-              accountInfo={accountInfo}
-              accountSectionTitle={ownerMypageContent.accountSectionTitle}
-              ttokIdLabel={ownerMypageContent.ttokIdLabel}
-              ttokIdDescription={ownerMypageContent.ttokIdDescription}
-              socialProvider={isOwnerView ? loginProvider : userInfo?.loginProvider}
-              socialEmail={isOwnerView ? loginEmail : userInfo?.infoRcvEmail}
-              releasePermissionLabel={
-                isOwnerView && canReleaseOperationPermission
-                  ? ownerMypageContent.releasePermissionLabel
-                  : undefined
-              }
-              onProfileClick={() => push({ pathname: route.mypage.guardian.profile.root })}
-              onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
-              onConnectionApplicationsClick={() => push({ pathname: route.guardian.connectionApply.status.root })}
-              onReleasePermissionClick={() => push({ pathname: route.roleConversion.releasePermission.root })}
-            />
-
             <Divider size='thick' />
           </>
         )}
 
-        {isLoggedIn && <QuickActionsSection contactUrl={isOwnerView ? EXTERNAL_LINKS.OWNER_CONTACT : EXTERNAL_LINKS.CONTACT} />}
+        <AccountSection
+          variant={isOwnerView ? 'owner' : 'guardian'}
+          accountInfo={accountInfo}
+          accountSectionTitle={ownerMypageContent.accountSectionTitle}
+          ttokIdLabel={ownerMypageContent.ttokIdLabel}
+          ttokIdDescription={ownerMypageContent.ttokIdDescription}
+          socialProvider={isOwnerView ? loginProvider : userInfo?.loginProvider}
+          socialEmail={isOwnerView ? loginEmail : userInfo?.infoRcvEmail}
+          releasePermissionLabel={
+            isOwnerView && canReleaseOperationPermission
+              ? ownerMypageContent.releasePermissionLabel
+              : undefined
+          }
+          onProfileClick={() => push({ pathname: route.mypage.guardian.profile.root })}
+          onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+          onConnectionApplicationsClick={() => push({ pathname: route.guardian.connectionApply.status.root })}
+          onReleasePermissionClick={() => push({ pathname: route.roleConversion.releasePermission.root })}
+        />
+
+        <Divider size='thick' />
+
+        <QuickActionsSection contactUrl={isOwnerView ? EXTERNAL_LINKS.OWNER_CONTACT : EXTERNAL_LINKS.CONTACT} />
 
         <SettingsSection
           otherInfoTitle={ownerMypageContent.otherInfoTitle}
@@ -287,6 +271,14 @@ function Mypage() {
         />
       </div>
     </div>
+  );
+}
+
+function Mypage() {
+  return (
+    <PrivateAccess>
+      <MypageContent />
+    </PrivateAccess>
   );
 }
 
