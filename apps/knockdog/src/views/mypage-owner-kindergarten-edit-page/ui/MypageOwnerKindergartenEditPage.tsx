@@ -34,6 +34,7 @@ import { Header } from '@widgets/Header';
 
 import { AddressPicker } from '@features/address-picker';
 import { ownerMypageContent } from '@features/role-conversion';
+import { KINDERGARTEN_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
@@ -106,6 +107,7 @@ interface ClearableTextFieldProps {
   onBlur?: () => void;
   placeholder?: string;
   inputMode?: ComponentProps<'input'>['inputMode'];
+  maxLength?: number;
   readOnly?: boolean;
   underlineValue?: boolean;
   spellCheck?: boolean;
@@ -124,6 +126,7 @@ function ClearableTextField({
   onBlur,
   placeholder,
   inputMode,
+  maxLength,
   readOnly = false,
   underlineValue = false,
   spellCheck,
@@ -161,6 +164,7 @@ function ClearableTextField({
           onBlur={onBlur}
           placeholder={placeholder}
           inputMode={inputMode}
+          maxLength={maxLength}
           readOnly={readOnly}
           disabled={disabled}
           spellCheck={spellCheck}
@@ -337,6 +341,7 @@ function MypageOwnerKindergartenEditPage() {
               required
               value={formData.name}
               onChange={formData.handleNameChange}
+              maxLength={KINDERGARTEN_NAME_MAX_LENGTH}
               placeholder='유치원을 입력해주세요'
             />
           </div>
