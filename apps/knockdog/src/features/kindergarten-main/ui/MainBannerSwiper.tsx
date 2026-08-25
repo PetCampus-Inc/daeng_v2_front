@@ -18,8 +18,10 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
     setCurrentSlide(currentIndex + 1);
   };
 
+  // 이미지 없으면 플레이스홀더도 렌더하지 않음.
+  // 빈 영역 + MainBox `-mt-8` 오버랩이면 배너 배경에 이름이 가려져 잘려 보임.
   if (totalSlides === 0) {
-    return <div className='bg-fill-secondary-50 h-[292px] w-full' aria-hidden />;
+    return null;
   }
 
   return (

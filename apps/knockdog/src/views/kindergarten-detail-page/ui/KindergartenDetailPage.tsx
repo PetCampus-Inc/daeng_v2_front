@@ -71,7 +71,7 @@ function KindergartenDetailPage() {
     return <main className='bg-bg-0 min-h-dvh' />;
   }
 
-  const { banner: images, ...restKindergartenMainData } = kindergartenMain;
+  const bannerImages = (kindergartenMain.banner ?? []).filter(Boolean);
 
   const handleShare = () => {
     const shareData = {
@@ -120,14 +120,14 @@ function KindergartenDetailPage() {
         <main className='flex-1 overflow-y-auto' ref={scrollableDivRef}>
           <div>
             {/* 업체 메인이미지 슬라이드형 */}
-            <MainBannerSwiper images={images ?? []} />
+            <MainBannerSwiper images={bannerImages} />
           </div>
 
           {/* 컨텐츠 영역 */}
           <div className='relative'>
             <div className='absolute top-[-50px]' />
             {/* 대표 컨텐츠 영역 */}
-            <KindergartenMainBox {...restKindergartenMainData} />
+            <KindergartenMainBox {...kindergartenMain} />
             {/* Divider */}
             <Divider size='thick' />
             {/* 세부 컨텐츠 영역 */}
