@@ -14,15 +14,16 @@ function handleShare(event: string, payload: unknown): boolean {
     return true;
   }
 
-  // React Native Share는 message가 필수이므로 기본값 설정
-  const shareMessage = message || url || '';
+  // Android React Native Share는 url 필드를 전달하지 않고 message만 공유한다.
+  // URL을 한 번만 포함한 본문을 만들고, iOS에서는 URL을 별도 공유 항목으로 유지한다.
+  const shareMessage = Platform.OS === 'android' && url ? [message, url].filter(Boolean).join('\n') : message || url || '';
 
   const content: { message: string; url?: string; title?: string } = {
     message: shareMessage,
   };
 
-  // URL 설정
-  if (url) {
+  // React Native의 url 공유는 iOS에서만 지원한다.
+  if (Platform.OS === 'ios' && url) {
     content.url = url;
   }
 
