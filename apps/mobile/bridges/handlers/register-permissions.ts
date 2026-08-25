@@ -51,6 +51,7 @@ export function registerPermissionHandlers(router: NativeBridgeRouter) {
     const requested = await Notifications.requestPermissionsAsync();
     if (isNotificationPermissionGranted(requested)) {
       pushCoordinator.notifyNotificationPermissionGranted();
+      return { status: 'allowed' as const, canAskAgain: requested.canAskAgain, requested: true };
     }
     return { ...mapExpoStatus(requested.status, requested.canAskAgain), requested: true };
   });
