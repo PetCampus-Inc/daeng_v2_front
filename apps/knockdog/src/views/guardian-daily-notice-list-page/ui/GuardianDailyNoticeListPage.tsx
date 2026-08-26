@@ -108,7 +108,6 @@ function GuardianDailyNoticeListPage() {
     attendedUntilDate,
     effectiveFirstAttendedAt,
     lastAvailableMonth,
-    isFirstAttendanceDateFallback,
     isPending,
   } = useGuardianDailyNoticeMonthList({
     schoolId: selectedSchoolId,
@@ -131,19 +130,21 @@ function GuardianDailyNoticeListPage() {
   const minMonth = useMemo(
     () =>
       startOfMonth(
-        selectedAttendedFrom ?? effectiveFirstAttendedAt ?? firstAttendedAt ?? new Date(2020, 0, 1)
+        // records firstAvailableMonth(전체 이력) > schools 최신 connectedAt
+        effectiveFirstAttendedAt ?? selectedAttendedFrom ?? firstAttendedAt ?? new Date(2020, 0, 1)
       ),
     [effectiveFirstAttendedAt, firstAttendedAt, selectedAttendedFrom]
   );
   const maxMonth = useMemo(
-    () => startOfMonth(selectedAttendedUntil ?? lastAvailableMonth ?? new Date()),
+    () =>
+      startOfMonth(
+        // 다니는 중이면 lastAvailableMonth=null → 이번 달까지
+        lastAvailableMonth ?? selectedAttendedUntil ?? new Date()
+      ),
     [lastAvailableMonth, selectedAttendedUntil]
   );
-  /** 실제 첫 등원일이 있는 달만 이전 이동 차단 (퍼블리싱 폴백 날짜는 하한에 쓰지 않음) */
-  const isFirstAttendanceMonth =
-    firstAttendanceDate != null && !isFirstAttendanceDateFallback;
-  const canGoPrevMonth =
-    selectedMonth.getTime() > minMonth.getTime() && !isFirstAttendanceMonth;
+  /** 최초 연결월(하한)에 있을 때만 이전 달 이동 차단 — 재연결 월 배너와 무관 */
+  const canGoPrevMonth = selectedMonth.getTime() > minMonth.getTime();
   const canGoNextMonth = selectedMonth.getTime() < maxMonth.getTime();
 
   const title = selectedKindergarten?.name ?? linkedKindergarten?.name ?? '';
