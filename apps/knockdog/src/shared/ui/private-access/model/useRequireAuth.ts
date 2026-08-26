@@ -15,6 +15,7 @@ async function rehydrateUserStore() {
 export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
   const user = useUserStore((state) => state.user);
   const isNavigatingRef = useRef(false);
+  const isRehydratingRef = useRef(false);
   const pathname = usePathname();
 
   const checkAuth = useCallback(() => {
@@ -51,6 +52,13 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return;
+      // 빠른 탭 전환 직후 백그라운드→포그라운드 복귀 시 visibilitychange가 짧은 간격으로
+      // 여러 번 발생할 수 있다. rehydrate가 겹쳐 실행되면 먼저 시작된 rehydrate가 나중
+      // 것보다 늦게 끝나며 최신 user 상태를 stale 값으로 덮어써 원장/보호자 뷰가
+      // 오락가락하는 원인이 될 수 있어, 진행 중에는 새 rehydrate를 건너뛴다.
+      if (isRehydratingRef.current) return;
+
+      isRehydratingRef.current = true;
 
       rehydrateUserStore()
         .then(() => {
@@ -60,7 +68,10 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
           }
           return undefined;
         })
-        .catch(() => undefined);
+        .catch(() => undefined)
+        .finally(() => {
+          isRehydratingRef.current = false;
+        });
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);

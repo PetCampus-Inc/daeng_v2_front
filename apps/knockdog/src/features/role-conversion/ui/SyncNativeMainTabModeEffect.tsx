@@ -119,9 +119,11 @@ function SyncNativeMainTabModeEffect() {
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
     const retrySync = () => {
-      lastSyncedModeRef.current = null;
       if (cancelled || retryCountRef.current >= 2) return;
 
+      // 재시도를 실제로 예약할 때만 ref를 비운다. 재시도 상한을 넘긴 뒤에도 비우면
+      // 관계없는 의존성 변경(isFetching 등)마다 같은 syncMode 요청을 무한히 재전송하게 된다.
+      lastSyncedModeRef.current = null;
       retryCountRef.current += 1;
       retryTimer = setTimeout(() => {
         setRetryNonce((nonce) => nonce + 1);
