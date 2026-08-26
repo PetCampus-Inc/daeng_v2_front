@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -78,6 +78,7 @@ async function svgToPngDataUrl(svgElement: SVGElement): Promise<string | null> {
 }
 
 function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps) {
+  const [shouldRender, setShouldRender] = useState(isOpen);
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
   const userId = useUserStore((state) => state.user?.userId);
   const inviteQuery = useOwnerInviteQuery({ userId, enabled: isOpen && !!userId });
@@ -86,12 +87,23 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const share = useShare();
   const saveImage = useSaveImage();
 
-  // 네이티브 탭 전환 시 WebView는 유지되므로, 전역 오버레이를 명시적으로 정리한다.
   useEffect(() => {
-    const handleNativeTabBlur = () => close();
+    setShouldRender(isOpen);
+  }, [isOpen]);
+
+  // 탭 전환 직전에는 닫힘 애니메이션 없이 제거한다.
+  // 전환 후 blur는 이전 버전 네이티브 브리지 호환을 위한 fallback이다.
+  useEffect(() => {
+    const handleNativeTabBlur = () => {
+      setShouldRender(false);
+      close();
+    };
+
+    window.addEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
     window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
 
     return () => {
+      window.removeEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
       window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
     };
   }, [close]);
@@ -165,6 +177,8 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   };
 
   const isInviteActionDisabled = !inviteUrl;
+
+  if (!shouldRender) return null;
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
