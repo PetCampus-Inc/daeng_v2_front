@@ -56,6 +56,20 @@ function NoticeBadge({ label, value }: NoticeBadgeProps) {
   );
 }
 
+/** 본문 우선. 없으면 간식 → 배변 메모 */
+function resolveNoticeListPreview(notice: NonNullable<GuardianDailyNoticeMonthItem['dailyNotice']>) {
+  const body = notice.body.trim();
+  if (body) return body;
+
+  const snack = notice.snack.trim();
+  if (snack) return snack;
+
+  const poopMemo = notice.poopMemo.trim();
+  if (poopMemo) return poopMemo;
+
+  return null;
+}
+
 function GuardianDailyNoticeListCard({
   item,
   dateLabel,
@@ -66,7 +80,7 @@ function GuardianDailyNoticeListCard({
 
   const checkInLabel = checkInAt ? formatNoticeClockTime(checkInAt) : null;
   const checkOutLabel = checkOutAt ? formatNoticeClockTime(checkOutAt) : null;
-  const noticeBody = dailyNotice?.body || null;
+  const noticePreview = dailyNotice ? resolveNoticeListPreview(dailyNotice) : null;
   const conditionLabel = dailyNotice?.conditionLabel || null;
   const stoolLabel = dailyNotice?.stoolLabel || null;
   const hasBadge = Boolean(conditionLabel || stoolLabel);
@@ -103,8 +117,8 @@ function GuardianDailyNoticeListCard({
       <div className='flex min-w-0 flex-1 flex-col gap-3'>
         <div className='flex w-full flex-col gap-1'>
           <CheckInOutTime checkInLabel={checkInLabel} checkOutLabel={checkOutLabel} />
-          {noticeBody ? (
-            <p className='body2-regular text-text-primary line-clamp-3 w-full'>{noticeBody}</p>
+          {noticePreview ? (
+            <p className='body2-regular text-text-primary line-clamp-3 w-full'>{noticePreview}</p>
           ) : null}
         </div>
 
