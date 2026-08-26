@@ -39,7 +39,7 @@ function OwnerVerificationOnboardingSheet({
   const openedPathnameRef = useRef(pathname);
 
   useEffect(() => {
-    setShouldRender(isOpen);
+    if (isOpen) setShouldRender(true);
   }, [isOpen]);
 
   // 오버레이는 전역 Provider에 렌더링되므로, 화면이 바뀌면 명시적으로 닫는다.

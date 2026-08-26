@@ -88,7 +88,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const saveImage = useSaveImage();
 
   useEffect(() => {
-    setShouldRender(isOpen);
+    if (isOpen) setShouldRender(true);
   }, [isOpen]);
 
   // 탭 전환 직전에는 닫힘 애니메이션 없이 제거한다.
