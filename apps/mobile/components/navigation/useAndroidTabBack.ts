@@ -58,6 +58,7 @@ function handleHomeExitBack() {
 
 /**
  * 바텀탭 AOS 시스템 뒤로가기
+ * - 보호자 홈 외 탭 → 내 주변(Explore)
  * - 원장 홈 외 탭 → 원장 홈
  * - 보호자 홈(내 주변) / 원장 홈 → 토스트 후 한 번 더 누르면 종료
  * Stack 포커스면 처리하지 않음
@@ -79,6 +80,13 @@ function useAndroidTabBack() {
       // 보호자 홈(내 주변)
       if (mode === 'guardian' && tabName === 'Explore') {
         return handleHomeExitBack();
+      }
+
+      // 보호자 홈 외 탭 → 내 주변
+      if (mode === 'guardian') {
+        clearExitArm();
+        navigationRef.navigate('Tabs', { screen: 'Explore' });
+        return true;
       }
 
       if (mode === 'owner') {
