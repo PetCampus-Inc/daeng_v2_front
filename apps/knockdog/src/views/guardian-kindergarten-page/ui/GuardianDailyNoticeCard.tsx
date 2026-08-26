@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 
+import type { GuardianCalendarDailyNotice } from '@entities/guardian-home';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
-import type { GuardianDailyNoticeMock } from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
 
 interface GuardianDailyNoticeArrivedBannerProps {
   onViewClick?: () => void;
@@ -37,10 +37,28 @@ function GuardianDailyNoticeArrivedBanner({ onViewClick }: GuardianDailyNoticeAr
 }
 
 interface GuardianDailyNoticeTimelineCardProps {
-  notice: GuardianDailyNoticeMock;
+  notice: GuardianCalendarDailyNotice;
   timeLabel: string;
   showConnector?: boolean;
   onViewAllClick?: () => void;
+}
+
+/**
+ * 본문 우선. 본문·컨디션·배변 상태 모두 없으면 간식 → 배변 메모 순으로 미리보기.
+ */
+function resolveNoticeTimelinePreview(notice: GuardianCalendarDailyNotice): string | null {
+  const body = notice.body.trim();
+  if (body) return body;
+
+  if (notice.conditionLabel || notice.stoolLabel) return null;
+
+  const snack = notice.snack.trim();
+  if (snack) return snack;
+
+  const poopMemo = notice.poopMemo.trim();
+  if (poopMemo) return poopMemo;
+
+  return null;
 }
 
 function GuardianDailyNoticeTimelineCard({
@@ -50,6 +68,7 @@ function GuardianDailyNoticeTimelineCard({
   onViewAllClick,
 }: GuardianDailyNoticeTimelineCardProps) {
   const content = guardianKindergartenAttendingContent;
+  const previewText = resolveNoticeTimelinePreview(notice);
 
   return (
     <div className='flex w-full items-start gap-3'>
@@ -75,8 +94,8 @@ function GuardianDailyNoticeTimelineCard({
               ) : null}
             </div>
           ) : null}
-          {notice.body ? (
-            <p className='body2-regular text-text-primary line-clamp-2 w-full'>{notice.body}</p>
+          {previewText ? (
+            <p className='body2-regular text-text-primary line-clamp-2 w-full'>{previewText}</p>
           ) : null}
         </div>
         <button

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
-import type { GuardianDailyNoticeMock } from '@views/guardian-kindergarten-page/config/guardianAttendanceMock';
+import type { GuardianCalendarDailyNotice } from '@entities/guardian-home';
 import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 
 import { GuardianDailyNoticeTimelineCard } from './GuardianDailyNoticeCard';
@@ -11,7 +11,7 @@ import { GuardianDailyNoticeTimelineCard } from './GuardianDailyNoticeCard';
 interface GuardianKindergartenDayTimelineProps {
   checkInAt: Date | null;
   checkOutAt?: Date | null;
-  dailyNotice?: GuardianDailyNoticeMock | null;
+  dailyNotice?: GuardianCalendarDailyNotice | null;
   emptyMessage: string;
   isLoading?: boolean;
   /** 알림장 없을 때 문구. 미지정 시 attending content 기본값 */
@@ -30,7 +30,7 @@ type TimelineEvent =
       kind: 'notice';
       at: number;
       timeLabel: string;
-      notice: GuardianDailyNoticeMock;
+      notice: GuardianCalendarDailyNotice;
     };
 
 const EVENT_ORDER: Record<TimelineEvent['kind'], number> = {
@@ -66,7 +66,7 @@ function TimelineEventRow({
 function buildTimelineEvents(options: {
   checkInAt: Date;
   checkOutAt: Date | null;
-  dailyNotice: GuardianDailyNoticeMock | null;
+  dailyNotice: GuardianCalendarDailyNotice | null;
   checkInLabel: string;
   checkOutLabel: string;
 }): TimelineEvent[] {
