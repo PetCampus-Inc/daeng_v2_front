@@ -151,11 +151,11 @@ export function BridgeWebView({
       onMessage={handleOnMessage}
       onNavigationStateChange={onNavigationStateChange}
       onLoadEnd={() => {
-        if (Platform.OS === 'android') {
-          const ref = refToUse.current;
-          if (ref) {
-            ref.injectJavaScript(buildSafeAreaInjector(insets));
-          }
+        const ref = refToUse.current;
+        if (ref) {
+          // iOS도 초기 주입이 WebView 로드 타이밍과 경합할 수 있다.
+          // 로드 완료 후 다시 적용해 모든 화면에서 safe area 값을 보장한다.
+          ref.injectJavaScript(buildSafeAreaInjector(insets));
         }
         notifyReady();
         onLoadEnd?.();
