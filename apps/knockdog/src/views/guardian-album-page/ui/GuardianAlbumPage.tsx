@@ -50,7 +50,7 @@ import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/Guardia
 import { toKindergartenSelectOptions, toKindergartenSelectOptionsFromConnections, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
@@ -437,13 +437,20 @@ function GuardianAlbumPage() {
   }, []);
 
   const handleHeaderBack = useCallback(() => {
+    // 상세/필터는 같은 Stack WebView 오버레이 — AOS/헤더 모두 한 단계씩 닫기
+    if (detailState) {
+      handleCloseDetail();
+      return;
+    }
     if (viewMode === 'favorite' || viewMode === 'attendance') {
       handleResetFilter();
       return;
     }
     writeLastViewedAt();
-    back();
-  }, [back, handleResetFilter, viewMode]);
+    void back();
+  }, [back, detailState, handleCloseDetail, handleResetFilter, viewMode]);
+
+  useNativeBackHandler(handleHeaderBack);
 
   const handleFilterSelect = useCallback(
     (mode: GuardianAlbumViewMode) => {

@@ -11,7 +11,9 @@ interface GuardianSchoolRecordsMonthDto {
 
 interface GuardianSchoolRecordNoteDto {
   condition?: string | null;
+  snack?: string | null;
   poop?: string | null;
+  poopMemo?: string | null;
   content?: string | null;
   sentAt?: string | number[] | null;
 }
@@ -106,8 +108,8 @@ function toDailyNotice(
     conditionLabel,
     stoolLabel,
     poop: stoolLabel ? poopKey : null,
-    snack: '',
-    poopMemo: '',
+    snack: dto.snack?.trim() ?? '',
+    poopMemo: dto.poopMemo?.trim() ?? '',
     body: dto.content?.trim() ?? '',
   };
 }

@@ -2,16 +2,17 @@
 
 import { useMemo } from 'react';
 
-import { useGuardianHomeQuery } from '@entities/guardian-home';
+import { useGuardianCalendarDetailQuery, useGuardianHomeQuery } from '@entities/guardian-home';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
-import { startOfDay } from '@shared/lib/calendar-date';
+import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 
 import type { GuardianLinkedKindergarten } from './guardianKindergartenConnection';
 import { useGuardianSelectedPet } from './useGuardianSelectedPet';
 
 /**
  * 보호자 유치원 탭 홈 (`GET guardian/school/home`) 기반 view model.
+ * 재연결 직후 home이 등원 시각을 안 주는 경우 오늘 calendar/detail로 보강
  */
 function useGuardianKindergartenHome(options?: { petId?: string | null; enabled?: boolean }) {
   const userId = useUserStore((state) => state.user?.userId);
@@ -59,8 +60,32 @@ function useGuardianKindergartenHome(options?: { petId?: string | null; enabled?
       }
     : null;
 
-  const checkInAt = home?.checkInAt ?? null;
-  const checkOutAt = home?.checkOutAt ?? null;
+  const todayDateKey = useMemo(() => formatDateKey(startOfDay(new Date())), []);
+  /** home이 등원 전인데 실제 등원 기록이 있는 재연결 케이스 보강 */
+  const shouldResolveTodayAttendance =
+    status === 'approved' && Boolean(linkedKindergarten?.id) && !home?.checkInAt;
+
+  const {
+    data: todayDetail,
+    isPending: isTodayDetailPending,
+    isError: isTodayDetailError,
+  } = useGuardianCalendarDetailQuery({
+    userId,
+    petId: selectedPetId,
+    date: todayDateKey,
+    schoolId: linkedKindergarten?.id,
+    enabled:
+      isEnabled &&
+      shouldResolveTodayAttendance &&
+      Boolean(userId) &&
+      Boolean(selectedPetId) &&
+      Boolean(linkedKindergarten?.id),
+  });
+
+  const checkInAt = home?.checkInAt ?? todayDetail?.checkInAt ?? null;
+  const checkOutAt = home?.checkInAt
+    ? (home.checkOutAt ?? null)
+    : (todayDetail?.checkOutAt ?? null);
   const isDismissed = Boolean(checkInAt && checkOutAt);
   const isAttending = Boolean(checkInAt && !checkOutAt);
   const hasDailyNotice = Boolean(home?.todayNoteArrived);
@@ -81,7 +106,12 @@ function useGuardianKindergartenHome(options?: { petId?: string | null; enabled?
     return startOfDay(home.firstAttendedAt);
   }, [home?.firstAttendedAt]);
 
-  const isHomeReady = hasNoPet || (!isHomePending && home !== undefined) || isHomeError;
+  const isTodayAttendanceResolving =
+    shouldResolveTodayAttendance && isTodayDetailPending && !isTodayDetailError;
+  const isHomeReady =
+    hasNoPet ||
+    ((!isHomePending && home !== undefined) || isHomeError) &&
+      !isTodayAttendanceResolving;
 
   return {
     selectedPet,
