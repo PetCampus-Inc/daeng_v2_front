@@ -24,7 +24,8 @@ import {
 } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import { Header } from '@widgets/Header';
-import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
+import { useStackNavigation, useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -56,7 +57,7 @@ function GuardianDailyNoticeListPage() {
   const content = guardianDailyNoticeListContent;
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
-  const { push } = useStackNavigation();
+  const { push, back } = useStackNavigation();
   const { selectedPetId, isPetsReady } = useGuardianSelectedPet();
   const { firstAttendedAt, linkedKindergarten, status } = useGuardianKindergartenHome();
   const userId = useUserStore((state) => state.user?.userId);
@@ -67,6 +68,8 @@ function GuardianDailyNoticeListPage() {
   });
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
   const schoolIdFromQuery = parseSchoolIdQuery(searchParams.get('schoolId'));
+  const noticeReturnDate = searchParams.get('date')?.trim() || null;
+  const isFromNoticeDetail = searchParams.get('from') === 'notice' && Boolean(noticeReturnDate);
 
   const isDisconnected = status === 'disconnected' || isMockMode;
 
@@ -165,9 +168,26 @@ function GuardianDailyNoticeListPage() {
   /** 펫/상세 조회 끝나기 전 empty 일러스트가 스치지 않게 */
   const isListLoading = isPending;
 
-  const handleBack = () => {
-    navigateToTab('/compare');
-  };
+  const handleBack = useCallback(() => {
+    if (isFromNoticeDetail && noticeReturnDate) {
+      void (async () => {
+        const wentBack = await back();
+        if (wentBack) return;
+        // reset 등으로 스택이 없으면 같은 날짜 상세로 재진입
+        push({
+          pathname: route.compare.notice.root,
+          query: {
+            date: noticeReturnDate,
+            ...(schoolIdFromQuery ? { schoolId: schoolIdFromQuery } : {}),
+          },
+        });
+      })();
+      return;
+    }
+    void navigateToTab('/compare');
+  }, [back, isFromNoticeDetail, navigateToTab, noticeReturnDate, push, schoolIdFromQuery]);
+
+  useNativeBackHandler(handleBack);
 
   // 강아지 전환으로 연결 유치원이 없어지면 빈 리스트에 머물지 않고 유치원 홈으로
   useEffect(() => {
