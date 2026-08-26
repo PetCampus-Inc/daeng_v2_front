@@ -2,8 +2,8 @@
 
 import { ActionButton } from '@knockdog/ui';
 
-import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { rehydrateUserStore } from '@shared/ui/private-access';
 
 function LoginPrompt() {
   const { pushForResult } = useStackNavigation();
@@ -16,7 +16,7 @@ function LoginPrompt() {
     if (!loggedIn) return;
 
     // Stack WebView에서 저장된 USER를 마이페이지 탭 인메모리 store에 반영
-    await useUserStore.persist.rehydrate();
+    await rehydrateUserStore();
   };
 
   return (
