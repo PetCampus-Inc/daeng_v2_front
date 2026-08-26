@@ -29,6 +29,7 @@ function OwnerVerificationOnboardingSheet({
   const { push } = useStackNavigation();
   const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(0);
+  const [shouldRender, setShouldRender] = useState(isOpen);
   const isLastStep = currentStep === STEP_COUNT - 1;
 
   const startX = useRef(0);
@@ -37,6 +38,10 @@ function OwnerVerificationOnboardingSheet({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const openedPathnameRef = useRef(pathname);
 
+  useEffect(() => {
+    if (isOpen) setShouldRender(true);
+  }, [isOpen]);
+
   // 오버레이는 전역 Provider에 렌더링되므로, 화면이 바뀌면 명시적으로 닫는다.
   useEffect(() => {
     if (openedPathnameRef.current === pathname) return;
@@ -44,12 +49,19 @@ function OwnerVerificationOnboardingSheet({
     openedPathnameRef.current = pathname;
   }, [close, pathname]);
 
-  // 네이티브 탭 전환은 WebView의 pathname을 바꾸지 않으므로 blur 이벤트도 처리한다.
+  // 탭 전환 직전에는 닫힘 애니메이션 없이 제거한다.
+  // 전환 후 blur는 이전 버전 네이티브 브리지 호환을 위한 fallback이다.
   useEffect(() => {
-    const handleNativeTabBlur = () => close();
+    const handleNativeTabBlur = () => {
+      setShouldRender(false);
+      close();
+    };
+
+    window.addEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
     window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
 
     return () => {
+      window.removeEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
       window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
     };
   }, [close]);
@@ -107,6 +119,8 @@ function OwnerVerificationOnboardingSheet({
 
   // currentStep은 항상 clampStep으로 [0, STEP_COUNT - 1] 범위로 고정됨
   const step = ownerVerificationOnboardingSteps[currentStep]!;
+
+  if (!shouldRender) return null;
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>

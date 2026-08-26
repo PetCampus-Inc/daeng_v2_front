@@ -509,15 +509,22 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     async (payload) => {
       const mode = payload?.mode === 'owner' ? 'owner' : 'guardian';
       const requestId = payload?.requestId ?? 0;
+      const activeTab = getActiveTabName();
+      const activeTabWebView = activeTab ? tabWebViewStore.get(activeTab)?.current : null;
+      const isRequestFromCurrentTab = isRequestFromActiveTab(options?.currentWebRef);
+      // 앱 시작 직후에는 활성 WebView ref가 아직 store에 등록되지 않아 현재 탭 요청도
+      // 판별할 수 없다. force는 이 짧은 구간에서만 허용하고, ref 등록 후에는 이전 탭이
+      // 보낸 요청이 현재 모드를 덮어쓰지 못하게 한다.
+      const canForceBeforeActiveRefRegistration = payload?.force === true && !activeTabWebView;
 
-      if (!payload?.force && !isRequestFromActiveTab(options?.currentWebRef)) {
+      if (!isRequestFromCurrentTab && !canForceBeforeActiveRefRegistration) {
         return { mode: useMainTabModeStore.getState().mode };
       }
 
       // 요청 순번은 WebView별로 생성된다. 다른 탭이 새로 활성화된 경우에는
       // 이전 탭의 더 큰 순번이 최신 활성 탭 요청을 막지 않도록 출처별로 비교한다.
       if (
-        !payload?.force &&
+        isRequestFromCurrentTab &&
         options?.currentWebRef === lastMainTabModeRequest.source &&
         requestId < lastMainTabModeRequest.id
       ) {
@@ -526,7 +533,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
       lastMainTabModeRequest = {
         id: requestId,
-        source: payload?.force ? null : (options?.currentWebRef ?? null),
+        source: options?.currentWebRef ?? null,
       };
       applyMainTabMode(mode);
       return { mode };
