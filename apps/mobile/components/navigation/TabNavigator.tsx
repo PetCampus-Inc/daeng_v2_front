@@ -21,7 +21,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useOwnerAndroidBack } from './useOwnerAndroidBack';
+import { useAndroidTabBack } from './useAndroidTabBack';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,7 +49,7 @@ export default function TabNavigator() {
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
   const isBottomTabBarDimmed = useBottomTabBarVisibilityStore((state) => state.dimmed);
 
-  useOwnerAndroidBack();
+  useAndroidTabBack();
 
   return (
     <View style={styles.container}>
