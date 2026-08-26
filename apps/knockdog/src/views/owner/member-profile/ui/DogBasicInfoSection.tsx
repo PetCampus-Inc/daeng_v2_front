@@ -1,6 +1,7 @@
 import { Divider } from '@knockdog/ui';
 
 import type { OwnerPet } from '@entities/owner-pet';
+import { formatAge } from '@entities/pet';
 
 import { ownerMemberProfileContent } from '../config/ownerMemberProfileContent';
 
@@ -52,14 +53,10 @@ function getGenderDisplay(dog: OwnerPet) {
 function DogBasicInfoSection({ dog }: DogBasicInfoSectionProps) {
   const weightValue =
     dog.weightKg != null ? `${dog.weightKg}kg` : ownerMemberProfileContent.emptyValue;
-  const ageValue =
-    dog.age != null && dog.birthYear != null
-      ? `${dog.age}살 (${dog.birthYear}년생)`
-      : dog.age != null
-        ? `${dog.age}살`
-        : dog.birthYear != null
-          ? `${dog.birthYear}년생`
-          : ownerMemberProfileContent.emptyValue;
+  const formattedAge = formatAge(dog.birthYear);
+  const ageValue = formattedAge
+    ? `${formattedAge} (${dog.birthYear}년생)`
+    : ownerMemberProfileContent.emptyValue;
 
   return (
     <div className='flex flex-col gap-4 px-4 py-5'>

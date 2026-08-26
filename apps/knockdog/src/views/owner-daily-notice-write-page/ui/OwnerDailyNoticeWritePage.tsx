@@ -50,7 +50,8 @@ import {
   findOwnerMemberByPetId,
   useOwnerMembersQuery,
 } from '@entities/owner-member';
-import { formatAge, usePetByIdQuery } from '@entities/pet';
+import { useOwnerPetQuery } from '@entities/owner-pet';
+import { formatAge } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 
 import { Header } from '@widgets/Header';
@@ -194,7 +195,7 @@ function OwnerDailyNoticeWritePage() {
   });
   const { data: membersData } = useOwnerMembersQuery({ userId });
   const resolvedPetId = attendanceRecord ? String(attendanceRecord.petId) : noticeId;
-  const { data: pet } = usePetByIdQuery(resolvedPetId ?? '');
+  const { data: pet } = useOwnerPetQuery({ petId: resolvedPetId });
   const members = membersData?.members ?? [];
   const studentByPetId = findOwnerMemberByPetId(members, resolvedPetId);
   const studentByDogName = findOwnerMemberByDogName(members, pet?.name);
@@ -284,13 +285,15 @@ function OwnerDailyNoticeWritePage() {
 
   const dogName = pet?.name ?? student?.dogName ?? '';
   const guardianName = student?.guardianName ?? '';
-  const profileImageUrl = pet?.profileImage ?? student?.profileImageUrl ?? undefined;
+  const profileImageUrl = pet?.profileImageUrl ?? student?.profileImageUrl ?? undefined;
   const genderIcon = pet?.gender === 'MALE' ? 'Male' : 'Female';
-  const hasPetSummary =
-    Boolean(pet?.breed) && typeof pet?.weight === 'number' && typeof pet?.birthYear === 'number';
-  const petSummary = hasPetSummary
-    ? `${pet?.breed} ∙ ${pet?.weight}kg ∙ ${formatAge(pet!.birthYear)}`
-    : '';
+  const petSummary = [
+    pet?.breed?.trim(),
+    typeof pet?.weightKg === 'number' ? `${pet.weightKg}kg` : '',
+    formatAge(pet?.birthYear),
+  ]
+    .filter(Boolean)
+    .join(' ∙ ');
   const hasAnyContent =
     selectedConditionId !== null ||
     snack.trim().length > 0 ||

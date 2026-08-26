@@ -29,7 +29,7 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
         <DogMetaLine
           breed={dog.breed}
           weightKg={dog.weightKg}
-          age={dog.age}
+          birthYear={dog.birthYear}
           centered
           className='body1-medium text-text-secondary'
         />
