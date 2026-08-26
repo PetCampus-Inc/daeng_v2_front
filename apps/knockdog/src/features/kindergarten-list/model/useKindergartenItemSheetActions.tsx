@@ -30,11 +30,7 @@ export function useKindergartenItemSheetActions({
 
   const onShare = useCallback(() => {
     if (!displayData) return;
-    const shareData = {
-      message: `${displayData.title}\n ${WEB_URL}/kindergarten/${displayData.id}`,
-      url: `${WEB_URL}/kindergarten/${displayData.id}`,
-    };
-    share(shareData);
+    share({ url: `${WEB_URL}/kindergarten/${displayData.id}` });
   }, [displayData, share]);
 
   const onPhoneCall = useCallback(() => {
