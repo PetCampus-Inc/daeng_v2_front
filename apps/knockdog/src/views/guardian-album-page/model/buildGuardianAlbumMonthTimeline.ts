@@ -32,8 +32,8 @@ function isSameYearMonthKey(dateKey: string, month: Date) {
  * 월별 앨범 days + periods → 최신순 타임라인.
  *
  * 같은 날 connect+disconnect 분기:
- * - 해제로 끝난 날(ACTIVE 사이클 없음): 해제 → 사진 → 시작
- * - 해제 후 재연결 날(그날 시작한 ACTIVE 있음): 시작 → 해제 → 사진
+ * - 단일 사이클 당일 종료: 해제 → 사진 → 시작
+ * - 해제 후 재연결(다른 사이클이 같은 날 시작, 이후 종료돼도 동일): 시작 → 해제 → 사진
  */
 function buildGuardianAlbumMonthTimeline(
   days: GuardianAlbumDayAlbum[],
@@ -42,22 +42,42 @@ function buildGuardianAlbumMonthTimeline(
 ): GuardianAlbumTimelineRow[] {
   const connectedByDate = new Map<string, number>();
   const disconnectedByDate = new Map<string, number>();
-  const hasActiveConnectOnDate = new Set<string>();
+  /** 같은 날 이전 사이클 해제 후 다른 사이클이 시작한 날짜(재연결 최신) */
+  const hasReconnectOnDate = new Set<string>();
 
-  for (const period of periods) {
-    const connectedKey = formatDateKey(startOfDay(period.connectedAt));
+  const periodDateKeys = periods.map((period) => ({
+    period,
+    connectedKey: formatDateKey(startOfDay(period.connectedAt)),
+    disconnectedKey: period.disconnectedAt
+      ? formatDateKey(startOfDay(period.disconnectedAt))
+      : null,
+  }));
+
+  for (const { connectedKey, disconnectedKey } of periodDateKeys) {
     if (isSameYearMonthKey(connectedKey, selectedMonth)) {
       connectedByDate.set(connectedKey, (connectedByDate.get(connectedKey) ?? 0) + 1);
-      if (!period.disconnectedAt) hasActiveConnectOnDate.add(connectedKey);
     }
-    if (!period.disconnectedAt) continue;
-    const disconnectedKey = formatDateKey(startOfDay(period.disconnectedAt));
-    if (isSameYearMonthKey(disconnectedKey, selectedMonth)) {
+    if (disconnectedKey && isSameYearMonthKey(disconnectedKey, selectedMonth)) {
       disconnectedByDate.set(
         disconnectedKey,
         (disconnectedByDate.get(disconnectedKey) ?? 0) + 1
       );
     }
+  }
+
+  for (const ended of periodDateKeys) {
+    if (!ended.disconnectedKey || !isSameYearMonthKey(ended.disconnectedKey, selectedMonth)) {
+      continue;
+    }
+    const endedAt = ended.period.disconnectedAt;
+    if (!endedAt) continue;
+
+    const hasLaterConnectSameDay = periodDateKeys.some((started) => {
+      if (started.period === ended.period) return false;
+      if (started.connectedKey !== ended.disconnectedKey) return false;
+      return started.period.connectedAt.getTime() >= endedAt.getTime();
+    });
+    if (hasLaterConnectSameDay) hasReconnectOnDate.add(ended.disconnectedKey);
   }
 
   const dayByKey = new Map(days.map((day) => [day.dateKey, day] as const));
@@ -76,7 +96,7 @@ function buildGuardianAlbumMonthTimeline(
     const connectedCount = connectedByDate.get(dateKey) ?? 0;
     const day = dayByKey.get(dateKey);
     const isReconnectNewest =
-      disconnectedCount > 0 && connectedCount > 0 && hasActiveConnectOnDate.has(dateKey);
+      disconnectedCount > 0 && connectedCount > 0 && hasReconnectOnDate.has(dateKey);
 
     const pushDisconnected = () => {
       for (let index = 0; index < disconnectedCount; index += 1) {
