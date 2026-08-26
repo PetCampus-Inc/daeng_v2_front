@@ -58,8 +58,8 @@ function NotificationInboxPage() {
   };
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col overflow-hidden'>
-      <div className='bg-bg-0 shrink-0 pt-[var(--safe-area-inset-top,0px)]'>
+    <div className='bg-bg-50 flex min-h-0 flex-1 flex-col overflow-hidden'>
+      <div className='bg-bg-0 shrink-0'>
         <Header>
           <Header.BackButton />
           <Header.Title>{content.pageTitle}</Header.Title>
@@ -82,7 +82,7 @@ function NotificationInboxPage() {
       ) : isPending ? (
         <div className='min-h-0 flex-1 bg-bg-50' />
       ) : (
-        <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
+        <div className='min-h-0 flex-1 overflow-y-auto'>
           {items.length === 0 ? (
             <NotificationInboxEmpty />
           ) : (
