@@ -123,7 +123,7 @@ function KindergartenDetailPage() {
 
   return (
     <>
-      <Header>
+      <Header innerClassName='min-w-0 gap-x-3'>
         <Header.LeftSection>
           {isNative && (
             <>
@@ -133,9 +133,10 @@ function KindergartenDetailPage() {
           )}
         </Header.LeftSection>
 
-        <Header.Title className='max-w-[calc(100%-7.5rem)] truncate'>
+        {/* absolute 중앙 Title은 네이티브(뒤로+홈)에서 집 아이콘과 겹침 → flex 남은 폭 + truncate */}
+        <h1 className='h3-extrabold text-text-primary min-w-0 flex-1 truncate text-center'>
           {kindergartenMain?.title}
-        </Header.Title>
+        </h1>
 
         <Header.RightSection>
           <Header.ShareButton onClick={handleShare} />
