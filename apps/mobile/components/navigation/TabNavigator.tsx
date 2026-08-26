@@ -8,6 +8,8 @@ import NoticebookIcon from '@/assets/icons/noticebook_basic.svg';
 import SaveIcon from '@/assets/icons/save_basic.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
+import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
+import type { TabName } from '@/bridges/lib/tabRoutes';
 import CompareTab from '@/screens/compare';
 import ExploreTab from '@/screens/explore';
 import MypageTab from '@/screens/mypage';
@@ -42,6 +44,14 @@ function isTabVisible(routeName: string, isOwnerMode: boolean) {
   return true;
 }
 
+function notifyCurrentTabWillBlur(tabName: TabName) {
+  tabWebViewStore
+    .get(tabName)
+    ?.current?.injectJavaScript(
+      `(function(){window.dispatchEvent(new CustomEvent('knockdog:native-tab-will-blur'));})();true;`
+    );
+}
+
 export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
   const mode = useMainTabModeStore((state) => state.mode);
@@ -54,6 +64,17 @@ export default function TabNavigator() {
   return (
     <View style={styles.container}>
       <Tab.Navigator
+        screenListeners={({ navigation }) => ({
+          // blur는 화면 전환 후 발생한다. 그 전에 WebView 오버레이를 즉시 제거해
+          // Android에서 이전 탭의 닫힘 애니메이션이 보이지 않게 한다.
+          tabPress: (event) => {
+            const state = navigation.getState();
+            const currentRoute = state.routes[state.index ?? 0];
+
+            if (!currentRoute || currentRoute.key === event.target) return;
+            notifyCurrentTabWillBlur(currentRoute.name as TabName);
+          },
+        })}
         screenOptions={({ route }) => {
           const visible = isTabVisible(route.name, isOwnerMode);
 
