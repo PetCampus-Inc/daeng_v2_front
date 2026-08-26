@@ -7,7 +7,6 @@ interface OwnerPetDto {
   breed?: string | null;
   weight?: number | null;
   birthYear?: number | null;
-  age?: number | null;
 }
 
 interface OwnerPetGuardianDto {
@@ -30,7 +29,6 @@ interface OwnerPet {
   breed: string;
   weightKg: number | null;
   birthYear: number | null;
-  age: number | null;
 }
 
 interface OwnerPetGuardian {
@@ -66,7 +64,6 @@ function toOwnerPet(dto: OwnerPetDto | null | undefined): OwnerPet | null {
     breed: dto.breed ?? '',
     weightKg: typeof dto.weight === 'number' ? dto.weight : null,
     birthYear: typeof dto.birthYear === 'number' ? dto.birthYear : null,
-    age: typeof dto.age === 'number' ? dto.age : null,
   };
 }
 

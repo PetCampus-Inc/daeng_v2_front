@@ -56,7 +56,7 @@ function TodayAttendanceCard({
               <DogMetaLine
                 breed={member.breed}
                 weightKg={member.weightKg}
-                age={member.age}
+                birthYear={member.birthYear}
                 className='body2-regular text-text-secondary'
               />
             </div>
