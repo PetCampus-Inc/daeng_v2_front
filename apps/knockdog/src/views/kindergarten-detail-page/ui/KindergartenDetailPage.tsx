@@ -98,7 +98,6 @@ function KindergartenDetailPage() {
 
   const handleShare = () => {
     const shareData = {
-      message: kindergartenMain.title,
       url: `${process.env.NEXT_PUBLIC_WEB_URL}/kindergarten/${kindergartenMain.id}`,
     };
     share(shareData);
