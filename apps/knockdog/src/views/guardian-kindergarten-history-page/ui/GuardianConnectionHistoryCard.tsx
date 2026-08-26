@@ -14,9 +14,10 @@ interface GuardianConnectionHistoryCardProps {
 
 function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
   const content = guardianConnectionHistoryContent;
-  const [isImageFailed, setIsImageFailed] = useState(false);
   const isCurrent = item.disconnectedAt == null;
   const imageSrc = useMemo(() => item.imageUrl.trim(), [item.imageUrl]);
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
+  const isImageFailed = failedImageSrc === imageSrc;
   const showImage = imageSrc.length > 0 && !isImageFailed;
   const connectedLabel = formatKoreanHistoryDate(item.connectedAt);
   const disconnectedLabel = item.disconnectedAt
@@ -43,7 +44,7 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
                 loading='lazy'
                 decoding='async'
                 referrerPolicy='no-referrer'
-                onError={() => setIsImageFailed(true)}
+                onError={() => setFailedImageSrc(imageSrc)}
               />
             ) : (
               <div className='bg-fill-secondary-100 flex size-full items-center justify-center' aria-hidden='true'>
