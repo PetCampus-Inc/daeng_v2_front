@@ -58,8 +58,8 @@ function NotificationInboxPage() {
   };
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
-      <div className='bg-bg-0 shrink-0'>
+    <div className='bg-bg-50 flex h-dvh flex-col overflow-hidden'>
+      <div className='bg-bg-0 shrink-0 pt-(--safe-area-inset-top,0px)'>
         <Header>
           <Header.BackButton />
           <Header.Title>{content.pageTitle}</Header.Title>
