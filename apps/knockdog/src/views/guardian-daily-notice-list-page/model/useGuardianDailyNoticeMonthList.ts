@@ -94,46 +94,35 @@ function toNoticeItem(day: GuardianSchoolRecordDay): GuardianDailyNoticeMonthIte
 
 /**
  * records days(최신→과거) + membership 이벤트를 날짜 타임라인으로 합침.
- * - 같은 날: 알림장→CONNECTED/DISCONNECTED
- * - CONNECTED 배너는 해당 월 가장 이른 연결만 표시되도록 함.
- * - DISCONNECTED는 전부 날짜 위치에 삽입되므로 리스트 상단 고정 금지.
+ * - 리스트 위가 최신
+ * - 같은 날 membership이 해제로 끝남: DISCONNECTED → 알림장 → CONNECTED
+ * - 같은 날 해제 후 재연결(현재 재원): 알림장 → CONNECTED → DISCONNECTED
+ * - records에 재연결 CONNECTED가 없으면 connections.attendedFrom으로 폴백
  */
 function buildTimelineRows(
   days: GuardianSchoolRecordDay[],
   options: {
     fallbackConnectedDate: Date | null;
     fallbackDisconnectedDate: Date | null;
+    /** 선택 membership 종료일 — 이 날짜는 해제가 최신 */
+    membershipEndDateKey: string | null;
   }
 ): GuardianDailyNoticeTimelineRow[] {
-  const earliestConnectedDateKey = days.reduce<string | null>((earliest, day) => {
-    if (!day.membershipEvents.includes('CONNECTED')) return earliest;
-    if (!earliest || day.dateKey < earliest) return day.dateKey;
-    return earliest;
-  }, null);
-
   const rows: GuardianDailyNoticeTimelineRow[] = [];
-  let hasConnectedRow = false;
   let hasDisconnectedRow = false;
+  const connectedDateKeys = new Set<string>();
+  const { fallbackConnectedDate, fallbackDisconnectedDate, membershipEndDateKey } = options;
 
   for (const day of days) {
     const date = parseDateKey(day.dateKey);
     const hasRecord = Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice);
+    const disconnectedEvents = day.membershipEvents.filter((event) => event === 'DISCONNECTED');
+    const connectedEvents = day.membershipEvents.filter((event) => event === 'CONNECTED');
+    // 선택 이력이 이 날짜에 끝났으면 해제가 최신 (연결→알림→해제)
+    const disconnectIsNewest = membershipEndDateKey === day.dateKey;
 
-    if (hasRecord) {
-      rows.push({
-        type: 'notice',
-        id: `notice-${day.dateKey}`,
-        dateKey: day.dateKey,
-        date,
-        item: toNoticeItem(day),
-      });
-    }
-
-    // API 이벤트는 시간순(오름차순) 가정 → 최신순 리스트에서는 역순
-    const events = [...day.membershipEvents].reverse();
-    for (let index = 0; index < events.length; index += 1) {
-      const event = events[index];
-      if (event === 'DISCONNECTED') {
+    const pushDisconnected = () => {
+      for (let index = 0; index < disconnectedEvents.length; index += 1) {
         rows.push({
           type: 'disconnected',
           id: `disconnected-${day.dateKey}-${index}`,
@@ -141,27 +130,52 @@ function buildTimelineRows(
           date,
         });
         hasDisconnectedRow = true;
-        continue;
       }
-      if (event === 'CONNECTED' && day.dateKey === earliestConnectedDateKey) {
+    };
+
+    const pushConnected = () => {
+      for (let index = 0; index < connectedEvents.length; index += 1) {
         rows.push({
           type: 'connected',
           id: `connected-${day.dateKey}-${index}`,
           dateKey: day.dateKey,
           date,
         });
-        hasConnectedRow = true;
+        connectedDateKeys.add(day.dateKey);
       }
+    };
+
+    const pushNotice = () => {
+      if (!hasRecord) return;
+      rows.push({
+        type: 'notice',
+        id: `notice-${day.dateKey}`,
+        dateKey: day.dateKey,
+        date,
+        item: toNoticeItem(day),
+      });
+    };
+
+    if (disconnectIsNewest) {
+      // 해제로 끝남: 해제(최신) → 알림장 → 연결시작
+      pushDisconnected();
+      pushNotice();
+      pushConnected();
+    } else {
+      // 재연결이 더 최신: 알림장 → 재연결 → 이전 해제
+      pushNotice();
+      pushConnected();
+      pushDisconnected();
     }
   }
 
-  const { fallbackConnectedDate, fallbackDisconnectedDate } = options;
-
   if (!hasDisconnectedRow && fallbackDisconnectedDate) {
     const dateKey = formatDateKey(fallbackDisconnectedDate);
-    const insertAt = rows.findIndex(
-      (row) => row.dateKey < dateKey || (row.dateKey === dateKey && row.type !== 'notice')
-    );
+    const disconnectIsNewest = membershipEndDateKey === dateKey;
+    // 해제가 최신이면 날짜 블록 맨 위, 아니면 맨 아래
+    const insertAt = disconnectIsNewest
+      ? rows.findIndex((row) => row.dateKey < dateKey || row.dateKey === dateKey)
+      : rows.findIndex((row) => row.dateKey < dateKey);
     const row: GuardianDailyNoticeTimelineRow = {
       type: 'disconnected',
       id: `disconnected-fallback-${dateKey}`,
@@ -172,17 +186,28 @@ function buildTimelineRows(
     else rows.splice(insertAt, 0, row);
   }
 
-  if (!hasConnectedRow && fallbackConnectedDate) {
+  // 재연결일: records에 CONNECTED가 없어도 connections.connectedAt(attendedFrom)으로 배너 추가
+  if (fallbackConnectedDate) {
     const dateKey = formatDateKey(fallbackConnectedDate);
-    const insertAt = rows.findIndex((row) => row.dateKey < dateKey);
-    const row: GuardianDailyNoticeTimelineRow = {
-      type: 'connected',
-      id: `connected-fallback-${dateKey}`,
-      dateKey,
-      date: startOfDay(fallbackConnectedDate),
-    };
-    if (insertAt < 0) rows.push(row);
-    else rows.splice(insertAt, 0, row);
+    if (!connectedDateKeys.has(dateKey)) {
+      const disconnectIsNewest = membershipEndDateKey === dateKey;
+      // 해제로 끝난 날: 날짜 블록 끝(notice 다음). 재연결 날: DISCONNECTED 앞
+      const insertAt = disconnectIsNewest
+        ? rows.findIndex((row) => row.dateKey < dateKey)
+        : rows.findIndex(
+            (row) =>
+              row.dateKey < dateKey ||
+              (row.dateKey === dateKey && row.type === 'disconnected')
+          );
+      const row: GuardianDailyNoticeTimelineRow = {
+        type: 'connected',
+        id: `connected-fallback-${dateKey}`,
+        dateKey,
+        date: startOfDay(fallbackConnectedDate),
+      };
+      if (insertAt < 0) rows.push(row);
+      else rows.splice(insertAt, 0, row);
+    }
   }
 
   return rows;
@@ -257,6 +282,16 @@ function useGuardianDailyNoticeMonthList({
 
   const fallbackConnectedDate = useMemo(() => {
     const days = records?.days ?? [];
+
+    // 최신 membership 시작일(재연결 포함). 해당 날짜에 CONNECTED 이벤트가 없으면 폴백
+    if (attendedFrom && isSameYearMonth(attendedFrom, selectedMonth)) {
+      const attendedFromKey = formatDateKey(attendedFrom);
+      const hasConnectedOnAttendedFrom = days.some(
+        (day) => day.dateKey === attendedFromKey && day.membershipEvents.includes('CONNECTED')
+      );
+      if (!hasConnectedOnAttendedFrom) return startOfDay(attendedFrom);
+    }
+
     const hasConnectedEvent = days.some((day) => day.membershipEvents.includes('CONNECTED'));
     if (hasConnectedEvent) return null;
 
@@ -270,10 +305,6 @@ function useGuardianDailyNoticeMonthList({
         return oldestAttendedDate ? startOfDay(oldestAttendedDate) : null;
       }
       return null;
-    }
-
-    if (attendedFrom && isSameYearMonth(attendedFrom, selectedMonth)) {
-      return startOfDay(attendedFrom);
     }
 
     if (!effectiveFirstAttendedAt) {
@@ -316,13 +347,21 @@ function useGuardianDailyNoticeMonthList({
     return isSameYearMonth(until, selectedMonth) ? startOfDay(until) : null;
   }, [attendedUntil, isDisconnected, items, lastAvailableMonth, records?.days, selectedMonth]);
 
+  const membershipEndDateKey = useMemo(() => {
+    if (!isDisconnected) return null;
+    if (attendedUntil) return formatDateKey(attendedUntil);
+    if (fallbackDisconnectedDate) return formatDateKey(fallbackDisconnectedDate);
+    return null;
+  }, [attendedUntil, fallbackDisconnectedDate, isDisconnected]);
+
   const timeline = useMemo(
     () =>
       buildTimelineRows(records?.days ?? [], {
         fallbackConnectedDate,
         fallbackDisconnectedDate,
+        membershipEndDateKey,
       }),
-    [fallbackConnectedDate, fallbackDisconnectedDate, records?.days]
+    [fallbackConnectedDate, fallbackDisconnectedDate, membershipEndDateKey, records?.days]
   );
 
   return {

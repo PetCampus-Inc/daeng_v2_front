@@ -134,7 +134,7 @@ function resolveSchoolDateRange(
 function GuardianDailyNoticeDetailPage() {
   const content = guardianDailyNoticeContent;
   const searchParams = useSearchParams();
-  const { push, reset } = useStackNavigation();
+  const { push } = useStackNavigation();
   const { leaveUnavailableStackPage } = useUnavailableNotificationAction();
   const petIdFromQuery = parsePetIdQuery(searchParams.get('petId'));
   const schoolIdFromQuery = parseSchoolIdQuery(searchParams.get('schoolId'));
@@ -328,12 +328,25 @@ function GuardianDailyNoticeDetailPage() {
   const hasAlbumSection = !showEmptyWeekNoCheckIn && (hasAlbumPhotos || isAlbumError);
 
   const handleAlbumListClick = () => {
-    // 스택 상세 → 메인 탭 리스트 (하단 탭 유지)
-    reset(route.compare.notice.list.root, { month: selectedDateKey.slice(0, 7) });
+    // 스택에 상세를 남기고 리스트 push — 뒤로가기 시 해당 알림장 상세로 복귀
+    push({
+      pathname: route.compare.notice.list.root,
+      query: {
+        from: 'notice',
+        date: selectedDateKey,
+        month: selectedDateKey.slice(0, 7),
+        ...(schoolId ? { schoolId } : {}),
+      },
+    });
   };
 
   const handleAlbumViewClick = () => {
-    push({ pathname: route.compare.album.root });
+    push({
+      pathname: route.compare.album.root,
+      query: {
+        ...(schoolId ? { schoolId } : {}),
+      },
+    });
   };
 
   if (isTargetUnavailable) {

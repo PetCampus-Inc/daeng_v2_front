@@ -59,10 +59,12 @@ export {
   toGuardianAlbumMonth,
 } from './model/guardianAlbumMonth';
 export type {
+  GuardianAlbumMembershipPeriod,
   GuardianAlbumMonth,
   GuardianAlbumMonthDay,
   GuardianAlbumMonthDayDto,
   GuardianAlbumMonthDto,
+  GuardianAlbumPeriodDto,
   GuardianAlbumYearMonthDto,
 } from './model/guardianAlbumMonth';
 export { toGuardianAlbumFavoritesPage } from './model/guardianAlbumFavorites';
