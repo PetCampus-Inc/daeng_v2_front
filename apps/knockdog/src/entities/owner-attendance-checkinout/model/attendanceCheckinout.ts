@@ -8,7 +8,7 @@ interface AttendanceCheckinoutCandidateDto {
   breed: string | null;
   gender: 'MALE' | 'FEMALE' | string | null;
   weight: number | null;
-  age: number | null;
+  birthYear?: number | null;
   profileImage: string | null;
   checkinoutStatus: CheckinoutStatus | string;
   checkInAt?: ApiDateTime | null;
@@ -54,7 +54,7 @@ interface AttendanceCheckinoutCandidate {
   gender: 'MALE' | 'FEMALE' | null;
   breed: string;
   weightKg: number | null;
-  age: number | null;
+  birthYear: number | null;
   profileImageUrl: string | null;
   checkinoutStatus: CheckinoutStatus;
   checkInAt: string | null;
@@ -174,7 +174,7 @@ function toAttendanceCheckinoutCandidate(
     gender: normalizeGender(dto.gender),
     breed: dto.breed ?? '',
     weightKg: typeof dto.weight === 'number' ? dto.weight : null,
-    age: typeof dto.age === 'number' ? dto.age : null,
+    birthYear: typeof dto.birthYear === 'number' ? dto.birthYear : null,
     profileImageUrl: dto.profileImage ?? null,
     checkinoutStatus: normalizeCheckinoutStatus(dto.checkinoutStatus),
     checkInAt: normalizeDateTime(dto.checkInAt),

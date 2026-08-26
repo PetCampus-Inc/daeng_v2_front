@@ -52,7 +52,7 @@ function OwnerDailyMemberCard({
           <DogMetaLine
             breed={member.breed}
             weightKg={member.weightKg}
-            age={member.age}
+            birthYear={member.birthYear}
             searchKeyword={searchKeyword}
             className='body2-regular text-text-secondary'
           />

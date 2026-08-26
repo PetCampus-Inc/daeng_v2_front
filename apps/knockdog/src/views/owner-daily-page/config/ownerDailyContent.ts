@@ -5,7 +5,7 @@ interface AttendanceMember {
   gender: 'MALE' | 'FEMALE' | null;
   breed: string;
   weightKg: number | null;
-  age?: number;
+  birthYear?: number;
   profileImageUrl?: string;
   checkedIn: boolean;
   checkedInTime?: string;
