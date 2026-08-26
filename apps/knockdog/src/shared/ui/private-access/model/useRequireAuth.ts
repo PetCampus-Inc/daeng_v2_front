@@ -8,27 +8,14 @@ import { isPublicUnauthenticatedPath } from '@shared/lib/auth/isPublicUnauthenti
 import { navigateToLogin } from '@shared/lib/bridge';
 import { tokenUtils } from '@shared/utils';
 
-let inFlightRehydrate: Promise<void> | null = null;
-
-/**
- * useUserStore.persist.rehydrate()를 공유 in-flight Promise로 감싼 coordinator.
- *
- * zustand persist 미들웨어는 rehydrate() 동시 호출을 직렬화/중복 제거하지 않아, 서로 다른
- * 호출자가 겹쳐 호출하면 나중에 끝나는 쪽이 먼저 끝난 쪽의 최신 상태를 stale 값으로 덮어쓸
- * 수 있다. 모든 호출자가 이 함수를 통해서만 rehydrate하도록 하여 진행 중인 요청을 재사용한다.
- */
-export function rehydrateUserStore(): Promise<void> {
-  if (!inFlightRehydrate) {
-    inFlightRehydrate = Promise.resolve(useUserStore.persist?.rehydrate?.()).finally(() => {
-      inFlightRehydrate = null;
-    });
-  }
-  return inFlightRehydrate;
+async function rehydrateUserStore() {
+  await useUserStore.persist?.rehydrate?.();
 }
 
 export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
   const user = useUserStore((state) => state.user);
   const isNavigatingRef = useRef(false);
+  const isRehydratingRef = useRef(false);
   const pathname = usePathname();
 
   const checkAuth = useCallback(() => {
@@ -65,6 +52,13 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return;
+      // 빠른 탭 전환 직후 백그라운드→포그라운드 복귀 시 visibilitychange가 짧은 간격으로
+      // 여러 번 발생할 수 있다. rehydrate가 겹쳐 실행되면 먼저 시작된 rehydrate가 나중
+      // 것보다 늦게 끝나며 최신 user 상태를 stale 값으로 덮어써 원장/보호자 뷰가
+      // 오락가락하는 원인이 될 수 있어, 진행 중에는 새 rehydrate를 건너뛴다.
+      if (isRehydratingRef.current) return;
+
+      isRehydratingRef.current = true;
 
       rehydrateUserStore()
         .then(() => {
@@ -74,7 +68,10 @@ export function useRequireAuth(onAuthError?: (error: Error) => void): boolean {
           }
           return undefined;
         })
-        .catch(() => undefined);
+        .catch(() => undefined)
+        .finally(() => {
+          isRehydratingRef.current = false;
+        });
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
