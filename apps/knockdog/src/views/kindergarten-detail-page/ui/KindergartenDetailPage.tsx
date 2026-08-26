@@ -44,7 +44,7 @@ function ClosedKindergartenNotice() {
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
-  const [, setActiveTab] = useKindergartenTab();
+  const [activeTab, setActiveTab] = useKindergartenTab();
 
   const params = useParams<{ id: string }>();
   const id = params?.id;
@@ -159,7 +159,13 @@ function KindergartenDetailPage() {
             {!isClosed && <Divider size='thick' />}
             {/* 세부 컨텐츠 영역 */}
             {/* 탭 */}
-            <KindergartenTabs kindergartenId={id} scrollableDivRef={scrollableDivRef} hideDetailTabs={isClosed} />
+            <KindergartenTabs
+              kindergartenId={id}
+              scrollableDivRef={scrollableDivRef}
+              hideDetailTabs={isClosed}
+              value={activeTab}
+              onValueChange={setActiveTab}
+            />
           </div>
         </main>
         {/* 하단 고정 버튼 영역 */}

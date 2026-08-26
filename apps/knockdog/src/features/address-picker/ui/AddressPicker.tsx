@@ -62,10 +62,7 @@ export function AddressPicker({
     handleSelect,
     handleChange,
     handleFocus,
-    handleBlur,
     handleClear,
-    markListInteraction,
-    endListInteraction,
   } = useAddressPicker({
     value,
     onSelect,
@@ -145,7 +142,6 @@ export function AddressPicker({
 
   const handleInputBlur = () => {
     clearScrollRestoreTimers();
-    handleBlur();
   };
 
   const handleClearClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -189,12 +185,6 @@ export function AddressPicker({
     });
   };
 
-  const listInteractionProps = {
-    onPointerDown: markListInteraction,
-    onPointerUp: endListInteraction,
-    onPointerCancel: endListInteraction,
-  };
-
   const resultsSection = (
     <>
       {showHint && <AddressPickerHint className={isEmbedded ? 'px-0 pt-1' : 'px-6'} />}
@@ -203,7 +193,6 @@ export function AddressPicker({
         <AddressList
           className={isEmbedded ? undefined : 'px-4'}
           showEmptyFallback={!isEmbedded}
-          {...listInteractionProps}
         >
           {addressList?.map((address, index) => (
             <AddressListItem
@@ -234,7 +223,6 @@ export function AddressPicker({
               'bg-fill-secondary-0 absolute top-full right-0 left-0 z-30 mt-2 max-h-[min(50dvh,22rem)] touch-pan-y overflow-y-auto overscroll-y-contain rounded-lg shadow-[0_4px_16px_rgba(15,20,26,0.12)] [-webkit-overflow-scrolling:touch]',
               embeddedResultsClassName
             )}
-            {...listInteractionProps}
           >
             <AddressList className='px-4' showEmptyFallback={false}>
               {addressList?.map((address, index) => (
@@ -263,7 +251,6 @@ export function AddressPicker({
       <div className='min-h-0 flex-1 overflow-hidden'>
         <div
           className='h-full touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'
-          {...listInteractionProps}
         >
           {resultsSection}
         </div>

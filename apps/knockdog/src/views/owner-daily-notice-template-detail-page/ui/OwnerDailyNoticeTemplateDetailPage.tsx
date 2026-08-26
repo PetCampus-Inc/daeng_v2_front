@@ -27,7 +27,6 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
@@ -125,15 +124,13 @@ function OwnerDailyNoticeTemplateDetailPage() {
 
   if (isLoading || !template) {
     return (
-      <div className='bg-bg-50 flex h-dvh flex-col'>
-        <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
-          <Header className='bg-bg-50'>
-            <Header.LeftSection>
-              <Header.BackButton />
-            </Header.LeftSection>
-            <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
-          </Header>
-        </div>
+      <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+        <Header className='bg-bg-50'>
+          <Header.LeftSection>
+            <Header.BackButton />
+          </Header.LeftSection>
+          <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
+        </Header>
         <div className='flex flex-1 items-center justify-center px-4'>
           <p className='body1-regular text-text-secondary'>
             {isLoading ? '템플릿을 불러오는 중이에요' : '템플릿을 찾을 수 없어요'}
@@ -144,15 +141,13 @@ function OwnerDailyNoticeTemplateDetailPage() {
   }
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
-      <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
-        <Header className='bg-bg-50'>
-          <Header.LeftSection>
-            <Header.BackButton />
-          </Header.LeftSection>
-          <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
-        </Header>
-      </div>
+    <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+      <Header className='bg-bg-50'>
+        <Header.LeftSection>
+          <Header.BackButton />
+        </Header.LeftSection>
+        <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
+      </Header>
 
       <div className='flex min-h-0 flex-1 flex-col px-4'>
         <section className='flex shrink-0 flex-col gap-2 py-2'>
@@ -168,7 +163,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
           </div>
         </section>
 
-        <SafeArea edges={['bottom']} className='bg-bg-50 shrink-0'>
+        <div className='bg-bg-50 shrink-0'>
           <div className='flex gap-2 py-5'>
             <ActionButton
               type='button'
@@ -190,7 +185,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
               {ownerDailyNoticeTemplateDetailContent.editButtonLabel}
             </ActionButton>
           </div>
-        </SafeArea>
+        </div>
       </div>
     </div>
   );

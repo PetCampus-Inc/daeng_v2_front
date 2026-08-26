@@ -31,7 +31,6 @@ import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib
 import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
-import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
@@ -221,7 +220,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
           />
         </section>
 
-        <SafeArea edges={['bottom']} className='bg-bg-50 shrink-0'>
+        <div className='bg-bg-50 shrink-0'>
           <div className='py-5'>
             <ActionButton
               type='button'
@@ -234,7 +233,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
               {ownerDailyNoticeTemplateCreateContent.createButtonLabel}
             </ActionButton>
           </div>
-        </SafeArea>
+        </div>
       </div>
     </div>
   );

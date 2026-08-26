@@ -89,6 +89,9 @@ export function PushNotificationProvider() {
     const permissionUnsubscribe = pushCoordinator.onNotificationPermissionGranted(() => void initialize());
     const tokenUnsubscribe = onTokenRefresh(firebaseMessaging, (token) => pushCoordinator.setToken(token, pushPlatform));
     const foregroundUnsubscribe = onMessage(firebaseMessaging, (message) => {
+      // iOS는 notification 블록이 있으면 expo-notifications 델리게이트가 원본 푸시를 이미 자동으로 배너 표시하므로,
+      // 여기서 또 표시하면 중복 알림이 뜬다. Android는 포그라운드에서 자동 표시가 없어 수동 표시가 필요하다.
+      if (Platform.OS === 'ios') return;
       void showForegroundNotification(message).catch((error) => console.warn('[Push] foreground display failed', error));
     });
     const openedUnsubscribe = onNotificationOpenedApp(firebaseMessaging, (message) => {

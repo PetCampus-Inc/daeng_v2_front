@@ -39,7 +39,7 @@ export function SafeArea({ edges, style, children, ...props }: SafeAreaProps) {
       return existingValue;
     }
 
-    const cssVar = `var(--safe-area-inset-${edge})`;
+    const cssVar = `max(var(--safe-area-inset-${edge}, 0px), env(safe-area-inset-${edge}, 0px))`;
 
     if (mode === 'maximum') {
       return `max(${cssVar}, ${valueStr})`;
