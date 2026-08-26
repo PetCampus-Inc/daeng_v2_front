@@ -235,7 +235,7 @@ function GuardianAlbumPage() {
       ),
     [activeSchoolId, attendedUntil, connections, selectedKindergarten?.id]
   );
-  /** membership 연결일 — 일자 캘린더 하한 (firstAvailableMonth 1일 대체) */
+  /** schools API 최신 membership 연결일 — firstAvailableMonth 없을 때 월 하한 폴백 */
   const membershipConnectedAt = useMemo(
     () =>
       selectedConnection?.connectedAt ? startOfDay(selectedConnection.connectedAt) : null,
@@ -296,18 +296,16 @@ function GuardianAlbumPage() {
   );
 
   const todayDateKey = todayDate ?? toDateKey(new Date());
-  /** membership 연결일 이후(해제일이 있으면 그 날까지)만 앨범 노출 */
-  const membershipConnectedDateKey = membershipConnectedAt
-    ? toDateKey(membershipConnectedAt)
-    : null;
-
+  /**
+   * 학교 전체 이력 노출 — 최신 재연결 connectedAt으로 과거를 자르지 않는다.
+   * 해제된 유치원만 attendedUntil 상한 적용.
+   */
   const isAlbumDateInMembershipRange = useCallback(
     (dateKey: string) => {
-      if (membershipConnectedDateKey && dateKey < membershipConnectedDateKey) return false;
       if (attendedUntil && dateKey > attendedUntil) return false;
       return true;
     },
-    [membershipConnectedDateKey, attendedUntil]
+    [attendedUntil]
   );
 
   const visibleDays = useMemo<GuardianAlbumDayAlbum[]>(() => {
@@ -496,28 +494,28 @@ function GuardianAlbumPage() {
   );
 
   /**
-   * 첫 등원 월 하단 문구.
-   * `connectionStartedAt`은 firstAvailableMonth→1일이라 membership connectedAt을 우선.
+   * 첫 등원 월 하단 문구 — school 최초 이용월(firstAvailableMonth).
+   * 재연결 최신 connectedAt이 아니라 전체 이력 시작월에 표시.
    */
   const connectionStartDate =
-    membershipConnectedAt ??
-    (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : null);
+    firstAvailableMonth ??
+    (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : null) ??
+    membershipConnectedAt;
   const showConnectionStartMessage =
     connectionStartDate != null && isSameYearMonth(selectedMonth, connectionStartDate);
   const showAttendedUntilMessage =
     isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
 
+  /** 월 네비 하한: album firstAvailableMonth(전체 이력) > schools 최신 connectedAt */
   const minMonth = startOfMonth(
-    membershipConnectedAt ?? firstAvailableMonth ?? selectedMonth
+    firstAvailableMonth ?? membershipConnectedAt ?? selectedMonth
   );
   const maxMonth = startOfMonth(lastAvailableMonth ?? selectedMonth);
-  /**
-   * 일자 선택 하한.
-   * `firstAvailableMonth`는 연·월만 오므로 1일로 쓰면 안 된다 → membership connectedAt 우선.
-   */
+  /** 일자 선택 하한 — 최초 이용월 1일(connectionStartedAt) 우선 */
   const minDate = startOfDay(
-    membershipConnectedAt ??
-      (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : selectedMonth)
+    connectionStartedAt != null
+      ? parseDateKey(connectionStartedAt)
+      : (firstAvailableMonth ?? membershipConnectedAt ?? selectedMonth)
   );
   const maxDate = startOfDay(
     lastAvailableMonth
