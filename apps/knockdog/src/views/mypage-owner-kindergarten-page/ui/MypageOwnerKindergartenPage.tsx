@@ -322,7 +322,9 @@ function MypageOwnerKindergartenPage() {
                 className='radius-r3 bg-bg-0 relative block h-[200px] w-full overflow-hidden'
               >
                 {usesDefaultImage || !imageUrl ? (
-                  <div className='bg-fill-secondary-50 size-full' />
+                  <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
+                    <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
+                  </div>
                 ) : (
                   <Image src={imageUrl} alt={name} fill sizes='100vw' className='object-cover' priority />
                 )}

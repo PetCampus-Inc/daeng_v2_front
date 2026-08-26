@@ -47,7 +47,7 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
               />
             ) : (
               <div className='bg-fill-secondary-100 flex size-full items-center justify-center' aria-hidden='true'>
-                <Icon icon='Paw' className='text-fill-secondary-400 size-5' />
+                <Icon icon='Paw' className='text-fill-secondary-300 size-5' />
               </div>
             )}
           </div>

@@ -24,7 +24,9 @@ function OwnerKindergartenCard({
       <div className='px-4'>
         <div className='radius-r3 relative h-[126px] w-full overflow-hidden'>
           {usesDefaultImage || !imageUrl ? (
-            <div className='bg-fill-secondary-50 size-full' />
+            <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
+              <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
+            </div>
           ) : (
             <Image src={imageUrl} alt={name} fill sizes='100vw' className='object-cover' priority />
           )}

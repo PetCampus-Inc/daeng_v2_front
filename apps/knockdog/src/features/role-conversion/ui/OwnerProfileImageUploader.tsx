@@ -67,7 +67,11 @@ function OwnerProfileImageUploader({ profileImage, imageAlt = '', onImageSelect 
             style={{ opacity: isImageLoading ? 0 : 1 }}
           />
         ) : null}
-        {!selectedImage && !isImageLoading ? <AvatarFallback className='bg-fill-secondary-50' /> : null}
+        {!selectedImage && !isImageLoading ? (
+          <AvatarFallback className='bg-fill-secondary-50'>
+            <Icon icon='Paw' className='text-fill-secondary-300 h-[33px] w-[33px]' />
+          </AvatarFallback>
+        ) : null}
       </Avatar>
 
       <button

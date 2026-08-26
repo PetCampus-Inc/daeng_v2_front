@@ -46,6 +46,7 @@ export declare const fillSecondary700: 'var(--color-fill-secondary-700)';
 export declare const fillSecondary600: 'var(--color-fill-secondary-600)';
 export declare const fillSecondary500: 'var(--color-fill-secondary-500)';
 export declare const fillSecondary400: 'var(--color-fill-secondary-400)';
+export declare const fillSecondary300: 'var(--color-fill-secondary-300)';
 export declare const fillSecondary200: 'var(--color-fill-secondary-200)';
 export declare const fillSecondary100: 'var(--color-fill-secondary-100)';
 export declare const fillSecondary50: 'var(--color-fill-secondary-50)';

@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage, Divider } from '@knockdog/ui';
+import { Avatar, AvatarFallback, AvatarImage, Divider, Icon } from '@knockdog/ui';
 
 import { ownerMypageContent } from '../config/ownerMypageContent';
 import type { OwnerProfile } from '../model/ownerProfile';
@@ -21,7 +21,9 @@ function OwnerProfileDetailInfo({ profile }: OwnerProfileDetailInfoProps) {
           {profile.profileImageUrl ? (
             <AvatarImage src={profile.profileImageUrl} alt={profile.name} className='object-cover' />
           ) : null}
-          <AvatarFallback className='bg-fill-secondary-50' />
+          <AvatarFallback className='bg-fill-secondary-50'>
+            <Icon icon='Paw' className='text-fill-secondary-300 h-[52px] w-[52px]' aria-hidden='true' />
+          </AvatarFallback>
         </Avatar>
 
         <span className='h3-extrabold text-text-primary'>{profile.name}</span>
