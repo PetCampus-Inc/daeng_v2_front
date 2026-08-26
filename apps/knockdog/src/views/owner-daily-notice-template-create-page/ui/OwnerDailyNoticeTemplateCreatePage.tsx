@@ -179,8 +179,8 @@ function OwnerDailyNoticeTemplateCreatePage() {
   };
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
-      <div className='bg-bg-50 pt-(--safe-area-inset-top,0px)'>
+    <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+      <div className='bg-bg-50 shrink-0'>
         <Header className='bg-bg-50'>
           <Header.LeftSection>
             <Header.BackButton onClick={handleBackClick} />
