@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 
 import {
   type GuardianCalendarDailyNotice,
+  type GuardianSchoolRecordDay,
   useGuardianSchoolRecordsQuery,
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
@@ -18,6 +19,27 @@ interface GuardianDailyNoticeMonthItem {
   dailyNotice: GuardianCalendarDailyNotice | null;
   thumbnailUrl: string | null;
 }
+
+type GuardianDailyNoticeTimelineRow =
+  | {
+      type: 'notice';
+      id: string;
+      dateKey: string;
+      date: Date;
+      item: GuardianDailyNoticeMonthItem;
+    }
+  | {
+      type: 'disconnected';
+      id: string;
+      dateKey: string;
+      date: Date;
+    }
+  | {
+      type: 'connected';
+      id: string;
+      dateKey: string;
+      date: Date;
+    };
 
 interface UseGuardianDailyNoticeMonthListParams {
   schoolId?: string | null;
@@ -49,6 +71,121 @@ function formatYearMonth(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
+}
+
+function formatDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function toNoticeItem(day: GuardianSchoolRecordDay): GuardianDailyNoticeMonthItem {
+  const date = parseDateKey(day.dateKey);
+  return {
+    dateKey: day.dateKey,
+    date,
+    checkInAt: day.checkInAt ?? null,
+    checkOutAt: day.checkOutAt ?? null,
+    dailyNotice: day.dailyNotice ?? null,
+    thumbnailUrl: day.thumbnailUrl ?? null,
+  };
+}
+
+/**
+ * records days(최신→과거) + membership 이벤트를 날짜 타임라인으로 합침.
+ * - 같은 날: 알림장→CONNECTED/DISCONNECTED
+ * - CONNECTED 배너는 해당 월 가장 이른 연결만 표시되도록 함.
+ * - DISCONNECTED는 전부 날짜 위치에 삽입되므로 리스트 상단 고정 금지.
+ */
+function buildTimelineRows(
+  days: GuardianSchoolRecordDay[],
+  options: {
+    fallbackConnectedDate: Date | null;
+    fallbackDisconnectedDate: Date | null;
+  }
+): GuardianDailyNoticeTimelineRow[] {
+  const earliestConnectedDateKey = days.reduce<string | null>((earliest, day) => {
+    if (!day.membershipEvents.includes('CONNECTED')) return earliest;
+    if (!earliest || day.dateKey < earliest) return day.dateKey;
+    return earliest;
+  }, null);
+
+  const rows: GuardianDailyNoticeTimelineRow[] = [];
+  let hasConnectedRow = false;
+  let hasDisconnectedRow = false;
+
+  for (const day of days) {
+    const date = parseDateKey(day.dateKey);
+    const hasRecord = Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice);
+
+    if (hasRecord) {
+      rows.push({
+        type: 'notice',
+        id: `notice-${day.dateKey}`,
+        dateKey: day.dateKey,
+        date,
+        item: toNoticeItem(day),
+      });
+    }
+
+    // API 이벤트는 시간순(오름차순) 가정 → 최신순 리스트에서는 역순
+    const events = [...day.membershipEvents].reverse();
+    for (let index = 0; index < events.length; index += 1) {
+      const event = events[index];
+      if (event === 'DISCONNECTED') {
+        rows.push({
+          type: 'disconnected',
+          id: `disconnected-${day.dateKey}-${index}`,
+          dateKey: day.dateKey,
+          date,
+        });
+        hasDisconnectedRow = true;
+        continue;
+      }
+      if (event === 'CONNECTED' && day.dateKey === earliestConnectedDateKey) {
+        rows.push({
+          type: 'connected',
+          id: `connected-${day.dateKey}-${index}`,
+          dateKey: day.dateKey,
+          date,
+        });
+        hasConnectedRow = true;
+      }
+    }
+  }
+
+  const { fallbackConnectedDate, fallbackDisconnectedDate } = options;
+
+  if (!hasDisconnectedRow && fallbackDisconnectedDate) {
+    const dateKey = formatDateKey(fallbackDisconnectedDate);
+    const insertAt = rows.findIndex(
+      (row) => row.dateKey < dateKey || (row.dateKey === dateKey && row.type !== 'notice')
+    );
+    const row: GuardianDailyNoticeTimelineRow = {
+      type: 'disconnected',
+      id: `disconnected-fallback-${dateKey}`,
+      dateKey,
+      date: startOfDay(fallbackDisconnectedDate),
+    };
+    if (insertAt < 0) rows.push(row);
+    else rows.splice(insertAt, 0, row);
+  }
+
+  if (!hasConnectedRow && fallbackConnectedDate) {
+    const dateKey = formatDateKey(fallbackConnectedDate);
+    const insertAt = rows.findIndex((row) => row.dateKey < dateKey);
+    const row: GuardianDailyNoticeTimelineRow = {
+      type: 'connected',
+      id: `connected-fallback-${dateKey}`,
+      dateKey,
+      date: startOfDay(fallbackConnectedDate),
+    };
+    if (insertAt < 0) rows.push(row);
+    else rows.splice(insertAt, 0, row);
+  }
+
+  return rows;
 }
 
 /**
@@ -110,35 +247,20 @@ function useGuardianDailyNoticeMonthList({
     return days.reduce<GuardianDailyNoticeMonthItem[]>((acc, day) => {
       const hasRecord = Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice);
       if (!hasRecord) return acc;
-      const date = parseDateKey(day.dateKey);
-      // school 스코프 records는 재연결 사이클을 포함하므로 membership 최신 해제일로 잘라내지 않는다.
-      acc.push({
-        dateKey: day.dateKey,
-        date,
-        checkInAt: day.checkInAt ?? null,
-        checkOutAt: day.checkOutAt ?? null,
-        dailyNotice: day.dailyNotice ?? null,
-        thumbnailUrl: day.thumbnailUrl ?? null,
-      });
+      acc.push(toNoticeItem(day));
       return acc;
     }, []);
   }, [records?.days]);
 
-  /**
-   * 해당 월 CONNECTED 이벤트(또는 firstAvailableMonth)면 리스트 하단 시작 문구.
-   * schools의 최신 connectedAt(attendedFrom)은 쓰지 않음 — 과거 월 이동을 막기 때문.
-   */
-  const firstAttendanceDate = useMemo(() => {
-    if (schoolId) {
-      const connectedDays = (records?.days ?? []).filter((day) =>
-        day.membershipEvents.includes('CONNECTED')
-      );
-      // 같은 월에 여러 번 연결되면 가장 이른 CONNECTED를 노출
-      const connectedDay = connectedDays[connectedDays.length - 1] ?? connectedDays[0] ?? null;
-      if (connectedDay && isSameYearMonth(connectedDay.date, selectedMonth)) {
-        return startOfDay(connectedDay.date);
-      }
+  /** 폴백으로 만든 날짜인지 구분 — 월 이동 하한 계산에는 사용하지 않는다 */
+  const isFirstAttendanceDateFallback = !schoolId && effectiveFirstAttendedAt == null;
 
+  const fallbackConnectedDate = useMemo(() => {
+    const days = records?.days ?? [];
+    const hasConnectedEvent = days.some((day) => day.membershipEvents.includes('CONNECTED'));
+    if (hasConnectedEvent) return null;
+
+    if (schoolId) {
       if (
         firstAvailableMonth &&
         isSameYearMonth(firstAvailableMonth, selectedMonth) &&
@@ -147,7 +269,6 @@ function useGuardianDailyNoticeMonthList({
         const oldestAttendedDate = items[items.length - 1]?.date;
         return oldestAttendedDate ? startOfDay(oldestAttendedDate) : null;
       }
-
       return null;
     }
 
@@ -168,28 +289,15 @@ function useGuardianDailyNoticeMonthList({
     effectiveFirstAttendedAt,
     firstAvailableMonth,
     items,
-    schoolId,
     records?.days,
+    schoolId,
     selectedMonth,
   ]);
 
-  /** 폴백으로 만든 날짜인지 구분 — 월 이동 하한 계산에는 사용하지 않는다 */
-  const isFirstAttendanceDateFallback = !schoolId && effectiveFirstAttendedAt == null;
-
-  /**
-   * 해당 월 DISCONNECTED 이벤트면 리스트 상단 종료 문구.
-   * 현재 재연결된 상태여도 과거 해제월을 볼 수 있게 records 이벤트를 우선한다.
-   */
-  const attendedUntilDate = useMemo(() => {
-    const disconnectedDays = (records?.days ?? []).filter((day) =>
-      day.membershipEvents.includes('DISCONNECTED')
-    );
-    // 같은 월에 여러 번 해제되면 가장 늦은 DISCONNECTED를 상단에 노출
-    const disconnectedDay = disconnectedDays[0] ?? null;
-    if (disconnectedDay && isSameYearMonth(disconnectedDay.date, selectedMonth)) {
-      return startOfDay(disconnectedDay.date);
-    }
-
+  const fallbackDisconnectedDate = useMemo(() => {
+    const days = records?.days ?? [];
+    const hasDisconnectedEvent = days.some((day) => day.membershipEvents.includes('DISCONNECTED'));
+    if (hasDisconnectedEvent) return null;
     if (!isDisconnected) return null;
 
     const until =
@@ -208,10 +316,20 @@ function useGuardianDailyNoticeMonthList({
     return isSameYearMonth(until, selectedMonth) ? startOfDay(until) : null;
   }, [attendedUntil, isDisconnected, items, lastAvailableMonth, records?.days, selectedMonth]);
 
+  const timeline = useMemo(
+    () =>
+      buildTimelineRows(records?.days ?? [], {
+        fallbackConnectedDate,
+        fallbackDisconnectedDate,
+      }),
+    [fallbackConnectedDate, fallbackDisconnectedDate, records?.days]
+  );
+
   return {
     items,
-    firstAttendanceDate,
-    attendedUntilDate,
+    timeline,
+    firstAttendanceDate: timeline.find((row) => row.type === 'connected')?.date ?? null,
+    attendedUntilDate: timeline.find((row) => row.type === 'disconnected')?.date ?? null,
     /** 월 네비 하한 — 첫 등원(또는 앨범 첫 이용 월) */
     effectiveFirstAttendedAt,
     lastAvailableMonth,
@@ -222,4 +340,4 @@ function useGuardianDailyNoticeMonthList({
 }
 
 export { useGuardianDailyNoticeMonthList };
-export type { GuardianDailyNoticeMonthItem };
+export type { GuardianDailyNoticeMonthItem, GuardianDailyNoticeTimelineRow };

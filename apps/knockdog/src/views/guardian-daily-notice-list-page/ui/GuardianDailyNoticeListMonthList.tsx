@@ -3,16 +3,15 @@
 import { Icon } from '@knockdog/ui';
 
 import { guardianDailyNoticeListContent } from '@views/guardian-daily-notice-list-page/config/guardianDailyNoticeListContent';
-import type { GuardianDailyNoticeMonthItem } from '@views/guardian-daily-notice-list-page/model/useGuardianDailyNoticeMonthList';
+import type {
+  GuardianDailyNoticeMonthItem,
+  GuardianDailyNoticeTimelineRow,
+} from '@views/guardian-daily-notice-list-page/model/useGuardianDailyNoticeMonthList';
 import { GuardianDailyNoticeListCard } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListCard';
 import { WEEKDAY_LABELS, isSameDay } from '@shared/lib/calendar-date';
 
 interface GuardianDailyNoticeListMonthListProps {
-  items: GuardianDailyNoticeMonthItem[];
-  /** 연결 해제 월이면 리스트 상단 종료 문구 날짜 */
-  attendedUntilDate?: Date | null;
-  /** 첫 등원 월이면 리스트 하단 시작 문구 날짜 */
-  firstAttendanceDate?: Date | null;
+  timeline: GuardianDailyNoticeTimelineRow[];
   onItemClick?: (item: GuardianDailyNoticeMonthItem) => void;
 }
 
@@ -35,10 +34,28 @@ function NoticeListDate({ date, isToday }: NoticeListDateProps) {
   );
 }
 
+function MembershipBanner({
+  date,
+  icon,
+  message,
+}: {
+  date: Date;
+  icon: 'CheckFill' | 'KindergartenFill';
+  message: string;
+}) {
+  return (
+    <div className='flex w-full items-start gap-2'>
+      <NoticeListDate date={date} isToday={false} />
+      <div className='bg-bg-100 radius-r3 flex min-w-0 flex-1 items-center justify-center gap-1 p-4'>
+        <Icon icon={icon} className='text-text-tertiary size-5 shrink-0' aria-hidden='true' />
+        <span className='label-semibold text-text-tertiary'>{message}</span>
+      </div>
+    </div>
+  );
+}
+
 function GuardianDailyNoticeListMonthList({
-  items,
-  attendedUntilDate = null,
-  firstAttendanceDate = null,
+  timeline,
   onItemClick,
 }: GuardianDailyNoticeListMonthListProps) {
   const { attendedUntil, firstAttendance } = guardianDailyNoticeListContent;
@@ -46,38 +63,42 @@ function GuardianDailyNoticeListMonthList({
 
   return (
     <div className='flex w-full flex-col gap-5 p-4'>
-      {attendedUntilDate ? (
-        <div className='flex w-full items-start gap-2'>
-          <NoticeListDate date={attendedUntilDate} isToday={false} />
-          <div className='bg-bg-100 radius-r3 flex min-w-0 flex-1 items-center justify-center gap-1 p-4'>
-            <Icon icon='CheckFill' className='text-text-tertiary size-5 shrink-0' aria-hidden='true' />
-            <span className='label-semibold text-text-tertiary'>{attendedUntil.message}</span>
-          </div>
-        </div>
-      ) : null}
-
-      {items.map((item) => (
-        <div key={item.dateKey} className='flex w-full items-start gap-2'>
-          <NoticeListDate date={item.date} isToday={isSameDay(item.date, today)} />
-          <div className='min-w-0 flex-1'>
-            <GuardianDailyNoticeListCard
-              item={item}
-              dateLabel={`${item.date.getMonth() + 1}월 ${item.date.getDate()}일`}
-              onClick={() => onItemClick?.(item)}
+      {timeline.map((row) => {
+        if (row.type === 'disconnected') {
+          return (
+            <MembershipBanner
+              key={row.id}
+              date={row.date}
+              icon='CheckFill'
+              message={attendedUntil.message}
             />
-          </div>
-        </div>
-      ))}
+          );
+        }
 
-      {firstAttendanceDate ? (
-        <div className='flex w-full items-start gap-2'>
-          <NoticeListDate date={firstAttendanceDate} isToday={false} />
-          <div className='bg-bg-100 radius-r3 flex min-w-0 flex-1 items-center justify-center gap-1 p-4'>
-            <Icon icon='KindergartenFill' className='text-text-tertiary size-5 shrink-0' aria-hidden='true' />
-            <span className='label-semibold text-text-tertiary'>{firstAttendance.message}</span>
+        if (row.type === 'connected') {
+          return (
+            <MembershipBanner
+              key={row.id}
+              date={row.date}
+              icon='KindergartenFill'
+              message={firstAttendance.message}
+            />
+          );
+        }
+
+        return (
+          <div key={row.id} className='flex w-full items-start gap-2'>
+            <NoticeListDate date={row.date} isToday={isSameDay(row.date, today)} />
+            <div className='min-w-0 flex-1'>
+              <GuardianDailyNoticeListCard
+                item={row.item}
+                dateLabel={`${row.date.getMonth() + 1}월 ${row.date.getDate()}일`}
+                onClick={() => onItemClick?.(row.item)}
+              />
+            </div>
           </div>
-        </div>
-      ) : null}
+        );
+      })}
     </div>
   );
 }
