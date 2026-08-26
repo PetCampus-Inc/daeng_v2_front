@@ -88,6 +88,10 @@ function addMonths(date: Date, months: number) {
   return new Date(date.getFullYear(), date.getMonth() + months, 1);
 }
 
+function parseSchoolIdQuery(value: string | null) {
+  return value?.trim() ? value : null;
+}
+
 /** 앨범에서 고른 유치원 옵션 → 해당 membership 연결 */
 function resolveSelectedConnection(
   connections: GuardianSchoolConnection[] | undefined,
@@ -119,6 +123,8 @@ function resolveSelectedConnection(
 
 function GuardianAlbumPage() {
   const content = guardianAlbumContent;
+  const searchParams = useSearchParams();
+  const schoolIdFromQuery = parseSchoolIdQuery(searchParams.get('schoolId'));
   const { lastViewedAt, markAsViewed } = useGuardianAlbumLastViewed();
   const [selectedKindergartenId, setSelectedKindergartenId] = useState<string | null>(null);
   const userId = useUserStore((state) => state.user?.userId);
@@ -129,13 +135,13 @@ function GuardianAlbumPage() {
     enabled: Boolean(userId) && Boolean(earlySelectedPetId),
   });
   const selectedOptionSchoolId = useMemo(() => {
-    if (!selectedKindergartenId) return null;
+    const optionId = selectedKindergartenId ?? schoolIdFromQuery;
+    if (!optionId) return null;
     const matched = (connections ?? []).find(
-      (connection) =>
-        connection.id === selectedKindergartenId || connection.schoolId === selectedKindergartenId
+      (connection) => connection.id === optionId || connection.schoolId === optionId
     );
-    return matched?.schoolId ?? selectedKindergartenId;
-  }, [connections, selectedKindergartenId]);
+    return matched?.schoolId ?? optionId;
+  }, [connections, schoolIdFromQuery, selectedKindergartenId]);
   const {
     selectedPet,
     selectedPetId,
@@ -155,12 +161,12 @@ function GuardianAlbumPage() {
     refetch: refetchAlbumToday,
   } = useGuardianAlbumToday({ schoolId: selectedOptionSchoolId });
   const { back } = useStackNavigation();
-  const searchParams = useSearchParams();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const didOpenHomeDetailRef = useRef(false);
   const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
   const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
+  const [syncedQuerySchoolId, setSyncedQuerySchoolId] = useState<string | null>(null);
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
   const [detailState, setDetailState] = useState<GuardianAlbumDetailState | null>(null);
   const [isEntryRetrying, setIsEntryRetrying] = useState(false);
@@ -184,10 +190,35 @@ function GuardianAlbumPage() {
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
+  const queryKindergartenId = useMemo(() => {
+    if (!schoolIdFromQuery) return null;
+    return (
+      kindergartens.find(
+        (item) => item.schoolId === schoolIdFromQuery || item.id === schoolIdFromQuery
+      )?.id ?? null
+    );
+  }, [kindergartens, schoolIdFromQuery]);
+  const resolvedKindergartenId =
+    selectedKindergartenId ?? queryKindergartenId ?? defaultKindergartenId;
   const selectedKindergarten =
-    kindergartens.find((item) => item.id === (selectedKindergartenId ?? defaultKindergartenId)) ??
+    kindergartens.find((item) => item.id === resolvedKindergartenId) ??
     kindergartens[0] ??
     null;
+
+  // schoolId 쿼리로 과거 유치원 진입 시 종료월로 맞춤 (유저 선택 전)
+  if (
+    queryKindergartenId &&
+    !selectedKindergartenId &&
+    syncedQuerySchoolId !== queryKindergartenId
+  ) {
+    setSyncedQuerySchoolId(queryKindergartenId);
+    const queryKindergarten =
+      kindergartens.find((item) => item.id === queryKindergartenId) ?? null;
+    if (queryKindergarten?.attendedUntil != null) {
+      setSelectedMonth(startOfMonth(parseDateKey(queryKindergarten.attendedUntil)));
+    }
+  }
+
   const activeSchoolId = selectedKindergarten?.schoolId ?? schoolId;
   const kindergartenName = selectedKindergarten?.name ?? schoolName ?? '유치원';
   const petName = selectedPet?.name ?? '강아지';
@@ -549,7 +580,7 @@ function GuardianAlbumPage() {
         isOpen={isOpen}
         close={close}
         kindergartens={kindergartens}
-        currentKindergartenId={selectedKindergartenId ?? defaultKindergartenId}
+        currentKindergartenId={resolvedKindergartenId}
         onSelect={handleKindergartenSelect}
       />
     ));

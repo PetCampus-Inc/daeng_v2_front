@@ -48,6 +48,10 @@ function parseDateKey(dateKey: string) {
   return startOfDay(new Date(Number(year), Number(month) - 1, Number(day)));
 }
 
+function parseSchoolIdQuery(value: string | null) {
+  return value?.trim() ? value : null;
+}
+
 function GuardianDailyNoticeListPage() {
   const content = guardianDailyNoticeListContent;
   const searchParams = useSearchParams();
@@ -62,6 +66,7 @@ function GuardianDailyNoticeListPage() {
     enabled: Boolean(userId) && Boolean(selectedPetId),
   });
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
+  const schoolIdFromQuery = parseSchoolIdQuery(searchParams.get('schoolId'));
 
   const isDisconnected = status === 'disconnected' || isMockMode;
 
@@ -83,8 +88,17 @@ function GuardianDailyNoticeListPage() {
   const canSelectKindergarten = kindergartens.length > 1;
   const defaultKindergartenId =
     kindergartens.find((item) => item.attendedUntil == null)?.id ?? kindergartens[0]?.id ?? null;
+  const queryKindergartenId = useMemo(() => {
+    if (!schoolIdFromQuery) return null;
+    return (
+      kindergartens.find(
+        (item) => item.schoolId === schoolIdFromQuery || item.id === schoolIdFromQuery
+      )?.id ?? null
+    );
+  }, [kindergartens, schoolIdFromQuery]);
 
-  const resolvedKindergartenId = selectedKindergartenId ?? defaultKindergartenId;
+  const resolvedKindergartenId =
+    selectedKindergartenId ?? queryKindergartenId ?? defaultKindergartenId;
   const selectedKindergarten =
     kindergartens.find((item) => item.id === resolvedKindergartenId) ??
     kindergartens[0] ??

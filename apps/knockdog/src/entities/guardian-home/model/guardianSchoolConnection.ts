@@ -42,6 +42,7 @@ interface GuardianSchoolConnection {
 const STATUS_BY_API: Record<string, GuardianSchoolConnectionStatus> = {
   PENDING: 'pending',
   DISCONNECTED: 'disconnected',
+  ACTIVE: 'approved',
   APPROVED: 'approved',
   CONNECTED: 'approved',
   BEFORE_ATTENDANCE: 'approved',

@@ -328,12 +328,20 @@ function GuardianDailyNoticeDetailPage() {
   const hasAlbumSection = !showEmptyWeekNoCheckIn && (hasAlbumPhotos || isAlbumError);
 
   const handleAlbumListClick = () => {
-    // 스택 상세 → 메인 탭 리스트 (하단 탭 유지)
-    reset(route.compare.notice.list.root, { month: selectedDateKey.slice(0, 7) });
+    // 스택 상세 → 메인 탭 리스트 (하단 탭 유지). schoolId로 선택 유치원 유지
+    reset(route.compare.notice.list.root, {
+      month: selectedDateKey.slice(0, 7),
+      ...(schoolId ? { schoolId } : {}),
+    });
   };
 
   const handleAlbumViewClick = () => {
-    push({ pathname: route.compare.album.root });
+    push({
+      pathname: route.compare.album.root,
+      query: {
+        ...(schoolId ? { schoolId } : {}),
+      },
+    });
   };
 
   if (isTargetUnavailable) {

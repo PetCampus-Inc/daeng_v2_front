@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
@@ -34,6 +34,48 @@ function formatAttendedUntilLabel(attendedUntil: string) {
   }
 
   return kindergartenSelectSheetContent.pastStatusLabel(`${year}년 ${month}월 ${day}일`);
+}
+
+function KindergartenSelectThumbnail({
+  imageUrl,
+  isSelected,
+}: {
+  imageUrl: string;
+  isSelected: boolean;
+}) {
+  const imageSrc = resolvePublicImageSrc(imageUrl);
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
+  const showImage = imageSrc.length > 0 && failedImageSrc !== imageSrc;
+
+  return (
+    <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
+      {showImage ? (
+        // eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 img로 로드
+        <img
+          src={imageSrc}
+          alt=''
+          className='size-full object-cover'
+          loading='lazy'
+          decoding='async'
+          referrerPolicy='no-referrer'
+          onError={() => setFailedImageSrc(imageSrc)}
+        />
+      ) : (
+        <div
+          className='bg-fill-secondary-100 flex size-full items-center justify-center'
+          aria-hidden='true'
+        >
+          <Icon icon='Paw' className='text-fill-secondary-300 size-5' />
+        </div>
+      )}
+      {isSelected ? (
+        <span className='absolute right-0 bottom-0 size-6'>
+          <span className='absolute inset-[3px] rounded-full bg-white' aria-hidden='true' />
+          <Icon icon='CheckFill' className='text-text-accent relative size-6' />
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 function KindergartenSelectSheet({
@@ -89,7 +131,6 @@ function KindergartenSelectSheet({
             const isSelected = currentKindergartenId === kindergarten.id;
             const attendedUntil = kindergarten.attendedUntil;
             const isAttending = attendedUntil == null;
-            const imageSrc = resolvePublicImageSrc(kindergarten.imageUrl);
             const statusLabel = isAttending
               ? content.attendingStatusLabel
               : formatAttendedUntilLabel(attendedUntil);
@@ -101,23 +142,10 @@ function KindergartenSelectSheet({
                   className='flex w-full items-center gap-2 px-4 py-4'
                   onClick={() => handleSelect(kindergarten)}
                 >
-                  <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 img로 로드 */}
-                    <img
-                      src={imageSrc}
-                      alt=''
-                      className='size-full object-cover'
-                      loading='lazy'
-                      decoding='async'
-                      referrerPolicy='no-referrer'
-                    />
-                    {isSelected ? (
-                      <span className='absolute right-0 bottom-0 size-6'>
-                        <span className='absolute inset-[3px] rounded-full bg-white' aria-hidden='true' />
-                        <Icon icon='CheckFill' className='text-text-accent relative size-6' />
-                      </span>
-                    ) : null}
-                  </div>
+                  <KindergartenSelectThumbnail
+                    imageUrl={kindergarten.imageUrl}
+                    isSelected={isSelected}
+                  />
 
                   <div className='flex min-w-0 flex-1 flex-col items-start text-left'>
                     <span
