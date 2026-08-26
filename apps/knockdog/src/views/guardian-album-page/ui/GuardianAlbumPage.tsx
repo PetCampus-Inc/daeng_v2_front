@@ -34,6 +34,7 @@ import { useGuardianAlbumAttendedDays } from '@views/guardian-album-page/model/u
 import { useGuardianAlbumFavorites } from '@views/guardian-album-page/model/useGuardianAlbumFavorites';
 import { useGuardianAlbumFavoriteToggle } from '@views/guardian-album-page/model/useGuardianAlbumFavoriteToggle';
 import { useGuardianAlbumLastViewed } from '@views/guardian-album-page/model/useGuardianAlbumLastViewed';
+import { buildGuardianAlbumMonthTimeline } from '@views/guardian-album-page/model/buildGuardianAlbumMonthTimeline';
 import { GuardianAlbumAttendanceList } from '@views/guardian-album-page/ui/GuardianAlbumAttendanceList';
 import { GuardianAlbumFavoriteList } from '@views/guardian-album-page/ui/GuardianAlbumFavoriteList';
 import { GuardianAlbumFilterEmpty } from '@views/guardian-album-page/ui/GuardianAlbumFilterEmpty';
@@ -244,6 +245,7 @@ function GuardianAlbumPage() {
 
   const {
     days: monthDays,
+    periods: membershipPeriods,
     firstAvailableMonth,
     lastAvailableMonth,
     connectionStartedAt,
@@ -321,6 +323,14 @@ function GuardianAlbumPage() {
     todayDateKey,
     isAlbumDateInMembershipRange,
   ]);
+
+  const monthTimeline = useMemo(
+    () => buildGuardianAlbumMonthTimeline(visibleDays, membershipPeriods, selectedMonth),
+    [membershipPeriods, selectedMonth, visibleDays]
+  );
+
+  const hasPeriodBanners = membershipPeriods.length > 0;
+  const hasMonthTimelineContent = monthTimeline.length > 0;
 
   const enrichedAttendanceDays = useMemo(() => {
     const monthByDate = new Map(monthDays.map((day) => [day.dateKey, day] as const));
@@ -494,17 +504,19 @@ function GuardianAlbumPage() {
   );
 
   /**
-   * 첫 등원 월 하단 문구 — school 최초 이용월(firstAvailableMonth).
-   * 재연결 최신 connectedAt이 아니라 전체 이력 시작월에 표시.
+   * 첫 등원/해제 월 폴백 배너 — periods가 없을 때만 월 단위로 노출.
+   * periods가 있으면 타임라인 배너가 재연결 이력을 모두 표시한다.
    */
   const connectionStartDate =
     firstAvailableMonth ??
     (connectionStartedAt != null ? parseDateKey(connectionStartedAt) : null) ??
     membershipConnectedAt;
   const showConnectionStartMessage =
-    connectionStartDate != null && isSameYearMonth(selectedMonth, connectionStartDate);
+    !hasPeriodBanners &&
+    connectionStartDate != null &&
+    isSameYearMonth(selectedMonth, connectionStartDate);
   const showAttendedUntilMessage =
-    isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
+    !hasPeriodBanners && isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
 
   /** 월 네비 하한: album firstAvailableMonth(전체 이력) > schools 최신 connectedAt */
   const minMonth = startOfMonth(
@@ -774,7 +786,7 @@ function GuardianAlbumPage() {
                 onYearMonthClick={handleYearMonthClick}
                 onSearchClick={handleSearchClick}
               />
-              {isMonthListLoading ? null : visibleDays.length === 0 ? (
+              {isMonthListLoading ? null : !hasMonthTimelineContent ? (
                 <>
                   {showAttendedUntilMessage ? (
                     <p className='body1-medium text-text-secondary mt-5 px-4 py-4 text-center'>
@@ -790,7 +802,7 @@ function GuardianAlbumPage() {
                 </>
               ) : (
                 <GuardianAlbumDayList
-                  days={visibleDays}
+                  timeline={monthTimeline}
                   showConnectionStartMessage={showConnectionStartMessage}
                   showAttendedUntilMessage={showAttendedUntilMessage}
                   onDayClick={handleOpenDayDetail}

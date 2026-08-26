@@ -42,6 +42,7 @@ function useGuardianAlbumMonth({
     yearMonth,
     monthAlbum: query.data,
     days: query.data?.days ?? [],
+    periods: query.data?.periods ?? [],
     firstAvailableMonth: query.data?.firstAvailableMonth ?? null,
     lastAvailableMonth: query.data?.lastAvailableMonth ?? null,
     connectionStartedAt: query.data?.connectionStartedAt ?? null,
