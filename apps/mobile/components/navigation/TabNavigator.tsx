@@ -21,6 +21,8 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useOwnerAndroidBack } from './useOwnerAndroidBack';
+
 const Tab = createBottomTabNavigator();
 
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
@@ -46,6 +48,8 @@ export default function TabNavigator() {
   const isOwnerMode = mode === 'owner';
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
   const isBottomTabBarDimmed = useBottomTabBarVisibilityStore((state) => state.dimmed);
+
+  useOwnerAndroidBack();
 
   return (
     <View style={styles.container}>
