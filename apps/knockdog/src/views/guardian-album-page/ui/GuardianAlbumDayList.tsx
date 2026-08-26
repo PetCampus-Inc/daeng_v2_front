@@ -2,40 +2,62 @@
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumDayAlbum } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
+import type { GuardianAlbumTimelineRow } from '@views/guardian-album-page/model/buildGuardianAlbumMonthTimeline';
 import { GuardianAlbumDayCard } from '@views/guardian-album-page/ui/GuardianAlbumDayCard';
 import { GuardianAlbumHistoryEmpty } from '@views/guardian-album-page/ui/GuardianAlbumHistoryEmpty';
 
 interface GuardianAlbumDayListProps {
-  days: GuardianAlbumDayAlbum[];
-  showConnectionStartMessage: boolean;
-  /** 연결 해제 유치원 · 마지막 재원 월 상단 문구 */
+  timeline: GuardianAlbumTimelineRow[];
+  /** periods 없을 때 월 단위 폴백 배너 */
+  showConnectionStartMessage?: boolean;
   showAttendedUntilMessage?: boolean;
   onDayClick?: (dayAlbum: GuardianAlbumDayAlbum) => void;
 }
 
+function GuardianAlbumHistoryBanner({ message }: { message: string }) {
+  return (
+    <div className='flex w-full flex-col items-center py-4'>
+      <p className='body1-medium text-text-secondary text-center'>{message}</p>
+    </div>
+  );
+}
+
 function GuardianAlbumDayList({
-  days,
-  showConnectionStartMessage,
+  timeline,
+  showConnectionStartMessage = false,
   showAttendedUntilMessage = false,
   onDayClick,
 }: GuardianAlbumDayListProps) {
   const { history } = guardianAlbumContent;
+  const hasPeriodBanners = timeline.some(
+    (row) => row.type === 'connected' || row.type === 'disconnected'
+  );
 
   return (
     <div className='mt-5 flex w-full flex-col gap-4 px-4'>
-      {showAttendedUntilMessage ? (
-        <p className='body1-medium text-text-secondary py-4 text-center'>
-          {history.attendedUntilMessage}
-        </p>
+      {!hasPeriodBanners && showAttendedUntilMessage ? (
+        <GuardianAlbumHistoryBanner message={history.attendedUntilMessage} />
       ) : null}
-      {days.map((dayAlbum) => (
-        <GuardianAlbumDayCard
-          key={dayAlbum.dateKey}
-          dayAlbum={dayAlbum}
-          onClick={() => onDayClick?.(dayAlbum)}
-        />
-      ))}
-      {showConnectionStartMessage ? <GuardianAlbumHistoryEmpty /> : null}
+      {timeline.map((row) => {
+        if (row.type === 'disconnected') {
+          return (
+            <GuardianAlbumHistoryBanner key={row.id} message={history.attendedUntilMessage} />
+          );
+        }
+        if (row.type === 'connected') {
+          return (
+            <GuardianAlbumHistoryBanner key={row.id} message={history.firstAttendanceMessage} />
+          );
+        }
+        return (
+          <GuardianAlbumDayCard
+            key={row.id}
+            dayAlbum={row.day}
+            onClick={() => onDayClick?.(row.day)}
+          />
+        );
+      })}
+      {!hasPeriodBanners && showConnectionStartMessage ? <GuardianAlbumHistoryEmpty /> : null}
     </div>
   );
 }
