@@ -33,6 +33,15 @@ const kakaoLogin = async () => {
 
 const googleLogin = async () => {
   await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+  // Android는 앱에 캐시된 Google 세션이 있으면 계정 선택 UI 없이 바로 로그인됨.
+  // iOS는 보통 계정 시트가 뜨지만, 동일하게 이전 세션을 비워 계정 선택을 유도함.
+  try {
+    await GoogleSignin.signOut();
+  } catch {
+    // 이전 세션 없으면 무시
+  }
+
   const { data } = await GoogleSignin.signIn();
 
   if (!data) throw new Error('Google 로그인 실패: signIn data is null');

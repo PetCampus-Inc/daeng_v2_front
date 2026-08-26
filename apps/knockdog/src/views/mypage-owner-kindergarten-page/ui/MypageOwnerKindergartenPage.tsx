@@ -38,19 +38,26 @@ interface InfoRowProps {
   label: string;
   value?: string;
   lines?: string[];
+  /** 첫 번째 값 줄 clamp,기본 1(말줄임), 주소 기본값은 2 */
+  firstLineClamp?: 1 | 2;
 }
 
-function InfoRow({ label, value, lines }: InfoRowProps) {
+function InfoRow({ label, value, lines, firstLineClamp = 1 }: InfoRowProps) {
   const displayLines = (lines ?? (value ? [value] : [])).filter(Boolean);
-  const isMultiline = displayLines.length > 1;
+  const isMultiline = displayLines.length > 1 || firstLineClamp > 1;
 
   return (
     <div className={`flex justify-between gap-x-4 p-4 ${isMultiline ? 'items-start' : 'items-center'}`}>
       <span className='body1-medium text-text-tertiary shrink-0'>{label}</span>
       {displayLines.length > 0 ? (
         <div className='flex min-w-0 flex-1 flex-col items-end'>
-          {displayLines.map((line) => (
-            <span key={line} className='body1-bold text-text-primary w-full truncate text-right'>
+          {displayLines.map((line, index) => (
+            <span
+              key={`${index}-${line}`}
+              className={`body1-bold text-text-primary w-full text-right ${
+                index === 0 && firstLineClamp === 2 ? 'line-clamp-2' : 'truncate'
+              }`}
+            >
               {line}
             </span>
           ))}
@@ -83,6 +90,7 @@ function BasicInfoCard({ name, address, addressDetail = '', phone = '' }: BasicI
         <InfoRow
           label={ownerMypageContent.kindergartenAddressLabel}
           lines={[address, addressDetail]}
+          firstLineClamp={2}
         />
         <Divider />
         <InfoRow label={ownerMypageContent.kindergartenPhoneLabel} value={phone} />
@@ -314,7 +322,9 @@ function MypageOwnerKindergartenPage() {
                 className='radius-r3 bg-bg-0 relative block h-[200px] w-full overflow-hidden'
               >
                 {usesDefaultImage || !imageUrl ? (
-                  <div className='bg-fill-secondary-50 size-full' />
+                  <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
+                    <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
+                  </div>
                 ) : (
                   <Image src={imageUrl} alt={name} fill sizes='100vw' className='object-cover' priority />
                 )}

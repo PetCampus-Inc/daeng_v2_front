@@ -132,9 +132,11 @@ function KindergartenDetailPage() {
           )}
         </Header.LeftSection>
 
-        <Header.Title className='max-w-[calc(100%-7.5rem)] truncate'>
-          {kindergartenMain?.title}
-        </Header.Title>
+        <Header.CenterSection>
+          <h1 className='h3-extrabold text-text-primary max-w-[200px] truncate text-center'>
+            {kindergartenMain?.title}
+          </h1>
+        </Header.CenterSection>
 
         <Header.RightSection>
           <Header.ShareButton onClick={handleShare} />

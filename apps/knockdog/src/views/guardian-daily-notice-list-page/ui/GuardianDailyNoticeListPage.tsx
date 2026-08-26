@@ -103,9 +103,7 @@ function GuardianDailyNoticeListPage() {
   const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
 
   const {
-    items,
-    firstAttendanceDate,
-    attendedUntilDate,
+    timeline,
     effectiveFirstAttendedAt,
     lastAvailableMonth,
     isPending,
@@ -149,8 +147,7 @@ function GuardianDailyNoticeListPage() {
 
   const title = selectedKindergarten?.name ?? linkedKindergarten?.name ?? '';
 
-  const hasRows =
-    items.length > 0 || firstAttendanceDate != null || attendedUntilDate != null;
+  const hasRows = timeline.length > 0;
   /** 펫/상세 조회 끝나기 전 empty 일러스트가 스치지 않게 */
   const isListLoading = isPending;
 
@@ -310,9 +307,7 @@ function GuardianDailyNoticeListPage() {
             </div>
           ) : hasRows ? (
             <GuardianDailyNoticeListMonthList
-              items={items}
-              attendedUntilDate={attendedUntilDate}
-              firstAttendanceDate={firstAttendanceDate}
+              timeline={timeline}
               onItemClick={(item) => {
                 if (!selectedSchoolId) return;
                 pushGuardianDailyNoticeDetail(push, item.date, { schoolId: selectedSchoolId });

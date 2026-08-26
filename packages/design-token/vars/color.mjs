@@ -45,6 +45,7 @@ export const fillSecondary700 = 'var(--color-fill-secondary-700)';
 export const fillSecondary600 = 'var(--color-fill-secondary-600)';
 export const fillSecondary500 = 'var(--color-fill-secondary-500)';
 export const fillSecondary400 = 'var(--color-fill-secondary-400)';
+export const fillSecondary300 = 'var(--color-fill-secondary-300)';
 export const fillSecondary200 = 'var(--color-fill-secondary-200)';
 export const fillSecondary100 = 'var(--color-fill-secondary-100)';
 export const fillSecondary50 = 'var(--color-fill-secondary-50)';
