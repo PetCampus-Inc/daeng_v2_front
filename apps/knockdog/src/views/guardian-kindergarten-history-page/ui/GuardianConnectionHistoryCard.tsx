@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
@@ -12,7 +14,10 @@ interface GuardianConnectionHistoryCardProps {
 
 function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
   const content = guardianConnectionHistoryContent;
+  const [isImageFailed, setIsImageFailed] = useState(false);
   const isCurrent = item.disconnectedAt == null;
+  const imageSrc = useMemo(() => item.imageUrl.trim(), [item.imageUrl]);
+  const showImage = imageSrc.length > 0 && !isImageFailed;
   const connectedLabel = formatKoreanHistoryDate(item.connectedAt);
   const disconnectedLabel = item.disconnectedAt
     ? formatKoreanHistoryDate(item.disconnectedAt)
@@ -29,15 +34,22 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
       <div className='flex w-full items-start gap-2'>
         <div className='gap-x2 flex min-w-0 flex-1 items-start'>
           <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
-            {/* eslint-disable-next-line @next/next/no-img-element -- 썸네일은 절대 URL 또는 S3 키 */}
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              className='size-full object-cover'
-              loading='lazy'
-              decoding='async'
-              referrerPolicy='no-referrer'
-            />
+            {showImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- 썸네일은 절대 URL 또는 S3 키
+              <img
+                src={imageSrc}
+                alt={item.name}
+                className='size-full object-cover'
+                loading='lazy'
+                decoding='async'
+                referrerPolicy='no-referrer'
+                onError={() => setIsImageFailed(true)}
+              />
+            ) : (
+              <div className='bg-fill-secondary-100 flex size-full items-center justify-center' aria-hidden='true'>
+                <Icon icon='Paw' className='text-fill-secondary-400 size-5' />
+              </div>
+            )}
           </div>
           <div className='flex min-w-0 flex-1 flex-col items-start'>
             <p className='body1-bold text-text-primary w-full truncate'>{item.name}</p>
