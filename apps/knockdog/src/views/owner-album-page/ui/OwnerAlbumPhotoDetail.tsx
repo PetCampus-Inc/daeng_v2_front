@@ -330,7 +330,7 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
                     isSelected ? 'border-line-accent border-2' : ''
                   }`}
                 >
-                  <AlbumImage src={photo.url} className='absolute inset-0 radius-r2' />
+                  <AlbumImage src={photo.url} className='absolute inset-0' />
                 </button>
               );
             })}

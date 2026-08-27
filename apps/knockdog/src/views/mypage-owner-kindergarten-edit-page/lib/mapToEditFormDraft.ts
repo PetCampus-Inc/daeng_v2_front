@@ -3,6 +3,7 @@ import {
   type FilterOption,
   type KindergartenBasic,
 } from '@entities/kindergarten';
+import { sortDaysOfWeek } from '@shared/constants';
 import type { WebImageAsset } from '@shared/lib/media';
 import {
   emptyEditFormDraft,
@@ -62,7 +63,7 @@ function extractOperationHours(basic?: KindergartenBasic) {
     weekdayEnd: normalizeTime(operation.weekday?.[0]?.breakTime),
     weekendStart: normalizeTime(operation.weekend?.[0]?.time),
     weekendEnd: normalizeTime(operation.weekend?.[0]?.breakTime),
-    closedDays: (operation.closedDays ?? []).filter((day) => day !== 'WEEKEND'),
+    closedDays: sortDaysOfWeek((operation.closedDays ?? []).filter((day) => day !== 'WEEKEND')),
   };
 }
 

@@ -54,7 +54,7 @@ function TimelineEventRow({
         <p className='caption1-regular text-text-secondary whitespace-nowrap'>{timeLabel}</p>
         {showConnector ? <div className='bg-line-200 w-px flex-1' /> : null}
       </div>
-      <div className='min-w-0 flex-1 pb-1'>
+      <div className='min-w-0 flex-1'>
         <div className='bg-bg-50 radius-r2 flex h-9 w-full items-center justify-center px-4 py-2'>
           <p className='body2-regular text-text-primary'>{label}</p>
         </div>
@@ -155,7 +155,7 @@ function GuardianKindergartenDayTimeline({
   const hasNotice = events.some((event) => event.kind === 'notice');
 
   return (
-    <div className='flex w-full flex-col gap-1 p-4'>
+    <div className='flex w-full flex-col gap-x4 p-4'>
       {events.map((event, index) => {
         const showConnector = index < events.length - 1;
 

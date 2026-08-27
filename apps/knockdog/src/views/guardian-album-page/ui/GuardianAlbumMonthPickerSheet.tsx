@@ -213,7 +213,7 @@ function GuardianAlbumMonthPickerSheet({
           </div>
         </div>
 
-        <div className='px-4 pt-0 pb-5'>
+        <div className='px-4 pt-0 pb-[calc(1.25rem+var(--safe-area-inset-bottom,0px))]'>
           <ActionButton type='button' variant='secondaryFill' size='large' onClick={handleConfirm}>
             {monthPickerSheet.confirmLabel}
           </ActionButton>

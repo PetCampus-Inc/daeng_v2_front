@@ -19,6 +19,7 @@ import {
   isValidKindergartenPhone,
 } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { CLOSED_DAYS } from '@entities/compare';
+import { sortDaysOfWeek } from '@shared/constants';
 import type { FilterOption } from '@entities/kindergarten';
 import { usePutOwnerSchoolProfileMutation } from '@entities/owner-school';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -368,7 +369,7 @@ function useKindergartenEditForm() {
 
   const closedDaysLabel = useMemo(
     () =>
-      closedDays
+      sortDaysOfWeek(closedDays)
         .map((day) => CLOSED_DAYS[day as keyof typeof CLOSED_DAYS] ?? day)
         .join(', '),
     [closedDays]
@@ -547,7 +548,7 @@ function useKindergartenEditForm() {
     handleSafetyFacilitiesChange: (next: FilterOption[]) =>
       updateField(setSafetyFacilities, next),
     handleAmenitiesChange: (next: FilterOption[]) => updateField(setAmenities, next),
-    handleClosedDaysChange: (next: string[]) => updateField(setClosedDays, next),
+    handleClosedDaysChange: (next: string[]) => updateField(setClosedDays, sortDaysOfWeek(next)),
     leaveIfClean,
     handleLeaveWithoutSaving,
     handleAddressSelect: (value: string) => {

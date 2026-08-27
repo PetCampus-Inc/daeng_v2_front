@@ -1,5 +1,6 @@
 import type { KindergartenComparison } from '../model/compare';
 import { CLOSED_DAYS } from '../model/constants/compare';
+import { sortDaysOfWeek } from '@shared/constants';
 
 /**
  * 시간 문자열을 분으로 변환합니다.
@@ -49,7 +50,12 @@ function parseMinutesToTimeStr(minutes: number): string {
  * @returns "월요일, 화요일, 수요일" 형식의 문자열
  */
 function getClosedDaysText(kg?: KindergartenComparison | null): string {
-  return (kg?.operatingSchedule?.closedDays ?? []).map((dayKey) => CLOSED_DAYS[dayKey]).join(', ') || '-';
+  return (
+    sortDaysOfWeek(kg?.operatingSchedule?.closedDays ?? [])
+      .map((dayKey) => CLOSED_DAYS[dayKey as keyof typeof CLOSED_DAYS])
+      .filter(Boolean)
+      .join(', ') || '-'
+  );
 }
 
 export { parseTimeStrToMinutes, parseMinutesToTimeStr, getClosedDaysText };

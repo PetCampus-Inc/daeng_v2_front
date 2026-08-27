@@ -1,5 +1,5 @@
 import type { OperationTime } from '@entities/kindergarten';
-import { DAY_OF_WEEK } from '@shared/constants';
+import { DAY_OF_WEEK, sortDaysOfWeek } from '@shared/constants';
 
 interface OperationHoursCardProps {
   operationTime: OperationTime;
@@ -49,7 +49,9 @@ function OperationHoursCard({ operationTime }: OperationHoursCardProps) {
           <div className='flex'>
             <dt className='body2-bold text-text-tertiary mr-3 min-w-[76px]'>정기 휴무</dt>
             <dd className='body2-regular text-text-primary'>
-              {closedDays.map((day) => DAY_OF_WEEK[day as keyof typeof DAY_OF_WEEK]).join('·')}
+              {sortDaysOfWeek(closedDays)
+                .map((day) => DAY_OF_WEEK[day as keyof typeof DAY_OF_WEEK] ?? day)
+                .join('·')}
             </dd>
           </div>
         )}

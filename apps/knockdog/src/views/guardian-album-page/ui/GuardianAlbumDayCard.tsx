@@ -61,12 +61,15 @@ function GuardianAlbumDayCard({ dayAlbum, onClick }: GuardianAlbumDayCardProps) 
       {hasLoadError ? (
         <p className='body2-regular text-text-secondary'>{dayCard.loadErrorMessage}</p>
       ) : (
-        <div className='flex w-full min-w-0 items-center gap-1 overflow-hidden'>
+        <div className='grid w-full min-w-0 grid-cols-4 gap-1'>
           {previewPhotos.map((photo, index) => {
             const isOverflowTile = remainingCount > 0 && index === PREVIEW_LIMIT - 1;
 
             return (
-              <div key={photo.id} className='relative size-[78px] shrink-0 overflow-hidden rounded-lg'>
+              <div
+                key={photo.id}
+                className='relative aspect-square min-h-0 min-w-0 overflow-hidden rounded-lg'
+              >
                 <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
                 {isOverflowTile ? (
                   <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
