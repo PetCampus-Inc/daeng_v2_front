@@ -42,24 +42,24 @@ export function PetDetailInfo({ pet, children }: { pet: Pet | undefined; childre
       <div className='px-4'>
         <div className='flex flex-col'>
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>강아지 이름</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>강아지 이름</span>
               <span className='body1-bold'>{pet?.name}</span>
             </div>
             <Divider />
           </div>
 
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>강아지와 내 관계</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>강아지와 내 관계</span>
               <span className='body1-bold'>{getRelationshipDisplay()}</span>
             </div>
             <Divider />
           </div>
 
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>견종</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>견종</span>
               <span className={`body1-${pet?.breed ? 'bold' : 'medium text-text-tertiary'}`}>
                 {pet?.breed || '선택해주세요'}
               </span>
@@ -68,8 +68,8 @@ export function PetDetailInfo({ pet, children }: { pet: Pet | undefined; childre
           </div>
 
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>태어난 해</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>태어난 해</span>
               <span className={`body1-${pet?.birthYear ? 'bold' : 'medium text-text-tertiary'}`}>
                 {pet?.birthYear || '선택해주세요'}
               </span>
@@ -78,8 +78,8 @@ export function PetDetailInfo({ pet, children }: { pet: Pet | undefined; childre
           </div>
 
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>몸무게(kg)</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>몸무게(kg)</span>
               <span className={`body1-${pet?.weight ? 'bold' : 'medium text-text-tertiary'}`}>
                 {pet?.weight || '선택해주세요'}
               </span>
@@ -88,8 +88,8 @@ export function PetDetailInfo({ pet, children }: { pet: Pet | undefined; childre
           </div>
 
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>성별</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>성별</span>
               {pet?.gender ? (
                 <span className='body1-bold flex items-center gap-x-1'>{getGenderDisplay()}</span>
               ) : (
@@ -100,8 +100,8 @@ export function PetDetailInfo({ pet, children }: { pet: Pet | undefined; childre
           </div>
 
           <div>
-            <div className='flex items-center justify-between p-4'>
-              <span className='body1-medium'>중성화 여부</span>
+            <div className='flex items-center justify-between gap-3 p-4'>
+              <span className='body1-medium shrink-0 whitespace-nowrap'>중성화 여부</span>
               <span
                 className={`body1-${pet?.isNeutered === null || pet?.isNeutered === undefined ? 'medium text-text-tertiary' : 'bold'}`}
               >
