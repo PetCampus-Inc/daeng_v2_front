@@ -284,7 +284,21 @@ function PetProfileForm({
                     '관계를 입력해 주세요',
                 }}
                 render={({ field, fieldState: { error } }) => (
-                  <TextField label='관계(직접 입력)' required invalid={!!error} errorMessage={error?.message}>
+                  <TextField
+                    label='관계(직접 입력)'
+                    required
+                    invalid={!!error}
+                    errorMessage={error?.message}
+                    suffix={
+                      field.value && (
+                        <IconButton
+                          icon='DeleteInput'
+                          iconClassName='text-fill-secondary-700'
+                          onClick={() => field.onChange('')}
+                        />
+                      )
+                    }
+                  >
                     <TextFieldInput
                       {...field}
                       maxLength={MAX_RELATIONSHIP_TEXT_LENGTH}
