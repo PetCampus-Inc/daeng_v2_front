@@ -4,7 +4,7 @@ const guardianConnectionHistoryContent = {
   subtitle: '그동안의 소중한 기록을 모아봤어요',
   currentLabel: '현재',
   attendanceBadgePrefix: '등원',
-  attendanceBadgeSuffix: '일',
+  attendanceBadgeSuffix: '회',
 } as const;
 
 export { guardianConnectionHistoryContent };

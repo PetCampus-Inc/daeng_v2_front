@@ -17,6 +17,7 @@ interface GuardianKindergartenDayTimelineProps {
   /** 알림장 없을 때 문구. 미지정 시 attending content 기본값 */
   noNoticeMessage?: string;
   onNoticeViewAllClick?: () => void;
+  onPastNoticesClick?: () => void;
 }
 
 type TimelineEvent =
@@ -113,6 +114,18 @@ function buildTimelineEvents(options: {
   });
 }
 
+function PastNoticesLink({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type='button'
+      className='body2-regular text-text-tertiary underline underline-offset-2'
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
+}
+
 function GuardianKindergartenDayTimeline({
   checkInAt,
   checkOutAt = null,
@@ -121,8 +134,12 @@ function GuardianKindergartenDayTimeline({
   isLoading = false,
   noNoticeMessage = guardianKindergartenAttendingContent.noNoticeMessage,
   onNoticeViewAllClick,
+  onPastNoticesClick,
 }: GuardianKindergartenDayTimelineProps) {
   const content = guardianKindergartenAttendingContent;
+  const pastNoticesLink = onPastNoticesClick ? (
+    <PastNoticesLink onClick={onPastNoticesClick} label={content.pastNoticesLabel} />
+  ) : null;
 
   const events = useMemo(() => {
     if (!checkInAt) return [];
@@ -145,8 +162,9 @@ function GuardianKindergartenDayTimeline({
 
   if (!checkInAt) {
     return (
-      <div className='flex w-full flex-col items-center p-4'>
+      <div className='flex w-full flex-col items-center gap-4 p-4'>
         <p className='body1-medium text-text-tertiary text-center'>{emptyMessage}</p>
+        {pastNoticesLink}
       </div>
     );
   }
@@ -184,6 +202,8 @@ function GuardianKindergartenDayTimeline({
       {isDismissed && !hasNotice ? (
         <p className='body1-medium text-text-tertiary pt-2'>{noNoticeMessage}</p>
       ) : null}
+
+      {pastNoticesLink ? <div className='flex w-full justify-center pt-2'>{pastNoticesLink}</div> : null}
     </div>
   );
 }

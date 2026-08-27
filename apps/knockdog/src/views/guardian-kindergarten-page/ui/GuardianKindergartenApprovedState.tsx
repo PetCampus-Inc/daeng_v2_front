@@ -7,6 +7,10 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
+import {
+  pushGuardianDailyNoticeList,
+  toMonthQuery,
+} from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeList';
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { route } from '@shared/constants/route';
@@ -110,6 +114,12 @@ function GuardianKindergartenApprovedState({
           isLoading={isCalendarDayPending}
           onNoticeViewAllClick={() =>
             pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
+          }
+          onPastNoticesClick={() =>
+            pushGuardianDailyNoticeList(push, {
+              schoolId: kindergarten.id,
+              month: toMonthQuery(selectedDate),
+            })
           }
         />
       </section>

@@ -10,6 +10,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
+  Icon,
 } from '@knockdog/ui';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
@@ -40,7 +41,9 @@ function OwnerDailyCancelCheckInDialog({
                   className='object-cover'
                 />
               )}
-              <AvatarFallback className='bg-fill-secondary-50' />
+              <AvatarFallback className='bg-bg-50'>
+                <Icon icon='Paw' className='text-fill-secondary-300 size-5' aria-hidden='true' />
+              </AvatarFallback>
             </Avatar>
             <span>
               <span className='text-text-accent'>{member.name}</span>의 등원을 취소할까요?

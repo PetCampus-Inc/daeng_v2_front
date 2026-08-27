@@ -128,6 +128,7 @@ function GuardianDogSelectSheet({
                       name={dog.name}
                       imageUrl={dog.profileImage}
                       className='border-line-100 size-11 border'
+                      pawClassName='text-fill-secondary-300'
                     />
                     {isSelected ? (
                       <span className='absolute right-0 bottom-0 size-6'>

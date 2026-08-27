@@ -18,6 +18,7 @@ import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
+import { Skeleton } from '@shared/ui/skeleton';
 
 interface PhotoUploaderProps {
   maxCount?: number;
@@ -46,6 +47,7 @@ function PhotoUploader({
 }: PhotoUploaderProps) {
   const { pickImage } = useImagePicker();
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
+  const [uploadingCount, setUploadingCount] = useState(0);
 
   useEffect(() => {
     // undefined만 skip — 빈 배열([])도 autofill/초기화 반영
@@ -57,18 +59,26 @@ function PhotoUploader({
   const state = assets.length === 0 ? 'empty' : assets.length < maxCount ? 'partial' : 'full';
   const isTileLayout = emptyVariant === 'tile';
   const isFull = state === 'full';
-  const showUploadTile = isTileLayout || state === 'partial';
+  const isUploading = uploadingCount > 0;
+  const showUploadTile = isTileLayout || state === 'partial' || isUploading;
+  const remainingSlots = Math.max(maxCount - assets.length, 0);
+  const skeletonCount = Math.min(uploadingCount, remainingSlots);
 
   const handlePickImages = async (source: 'library' | 'camera') => {
-    if (isFull) return;
+    if (isFull || isUploading) return;
 
     try {
-      const result = await pickImage({
-        source,
-        allowsMultipleSelection: true,
-        selectionLimit: maxCount - assets.length,
-        quality,
-      });
+      const result = await pickImage(
+        {
+          source,
+          allowsMultipleSelection: true,
+          selectionLimit: maxCount - assets.length,
+          quality,
+        },
+        {
+          onUploading: (count) => setUploadingCount(count),
+        }
+      );
       if (!result.cancelled && result.assets) {
         const newAssets = [...assets, ...(result.assets as WebImageAsset[])].slice(0, maxCount);
         setAssets(newAssets);
@@ -99,11 +109,13 @@ function PhotoUploader({
           position: 'bottom-above-nav',
         });
       }
+    } finally {
+      setUploadingCount(0);
     }
   };
 
   const openSourceSelectSheet = () => {
-    if (isFull) return;
+    if (isFull || isUploading) return;
 
     overlay.open(({ isOpen, close }) => (
       <BottomSheet.Root open={isOpen} onOpenChange={close} modal={false}>
@@ -141,12 +153,14 @@ function PhotoUploader({
   };
 
   const removeImage = (index: number) => {
+    if (isUploading) return;
     const newAssets = assets.filter((_, i) => i !== index);
     setAssets(newAssets);
     onChange?.(newAssets);
   };
 
   const handleImageClick = (index: number) => {
+    if (isUploading) return;
     overlay.open(({ isOpen, close }) => (
       <FullImageSheet
         isOpen={isOpen}
@@ -160,7 +174,7 @@ function PhotoUploader({
     ));
   };
 
-  if (state === 'empty' && !isTileLayout) {
+  if (state === 'empty' && !isTileLayout && !isUploading) {
     return (
       <ActionButton variant='secondaryLine' size='medium' onClick={openSourceSelectSheet}>
         <Icon icon='Plus' className='size-x6' />
@@ -170,15 +184,15 @@ function PhotoUploader({
   }
 
   return (
-    <div className='scrollbar-hide flex gap-2 overflow-x-auto'>
+    <div className='scrollbar-hide flex gap-2 overflow-x-auto' aria-busy={isUploading}>
       {showUploadTile ? (
         <button
           type='button'
           onClick={openSourceSelectSheet}
-          disabled={isFull}
+          disabled={isFull || isUploading}
           aria-label='사진 업로드'
           className={`body2-regular flex h-[80px] min-w-[80px] flex-col items-center justify-center rounded-lg border py-5 ${
-            isFull
+            isFull || isUploading
               ? 'border-line-200 text-text-tertiary cursor-not-allowed opacity-40'
               : 'border-line-400 text-text-tertiary'
           }`}
@@ -193,7 +207,7 @@ function PhotoUploader({
           <MiniPhotoBox
             imageUrl={asset.uri}
             className='h-[80px] w-[80px]'
-            onRemove={() => removeImage(index)}
+            onRemove={isUploading ? undefined : () => removeImage(index)}
             badgeLabel={
               showRepresentativeBadge && assets.length >= 2 && index === 0
                 ? representativeBadgeLabel
@@ -201,6 +215,14 @@ function PhotoUploader({
             }
           />
         </div>
+      ))}
+
+      {Array.from({ length: skeletonCount }, (_, index) => (
+        <Skeleton
+          key={`upload-skeleton-${index}`}
+          className='h-[80px] w-[80px] shrink-0 rounded-lg'
+          aria-label='사진 업로드 중'
+        />
       ))}
     </div>
   );

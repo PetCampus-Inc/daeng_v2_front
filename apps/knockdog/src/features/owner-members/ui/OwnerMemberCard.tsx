@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@knockdog/ui';
+import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 
 interface OwnerMemberCardMember {
   dogName: string;
@@ -33,7 +33,9 @@ function OwnerMemberCard({ member, rightAddon, onClick }: OwnerMemberCardProps) 
         {member.profileImageUrl && (
           <AvatarImage src={member.profileImageUrl} alt={`${member.dogName} 프로필 이미지`} className='object-cover' />
         )}
-        <AvatarFallback className='bg-fill-secondary-50' />
+        <AvatarFallback className='bg-bg-50'>
+          <Icon icon='Paw' className='text-fill-secondary-300 size-5' aria-hidden='true' />
+        </AvatarFallback>
       </Avatar>
 
       <div className='flex h-x11 min-w-0 flex-1 flex-col'>

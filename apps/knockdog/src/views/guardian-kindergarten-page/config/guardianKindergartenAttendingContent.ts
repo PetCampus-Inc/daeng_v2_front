@@ -25,6 +25,7 @@ const guardianKindergartenAttendingContent = {
   historyLabel: '유치원 연결 이력 보기',
   noNoticeMessage: '이 날은 도착한 알림장이 없어요',
   calendarEmptyMessage: '이 날의 등원 기록이 없어요',
+  pastNoticesLabel: '지난 알림장 보기',
 } as const;
 
 export { guardianKindergartenAttendingContent };

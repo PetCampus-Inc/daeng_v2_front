@@ -23,11 +23,11 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
       type='button'
       onClick={handleClick}
       className={cn(
-        'border-line-200 flex w-full items-center border-b p-4 text-left',
+        'border-line-200 flex w-full items-start border-b p-4 text-left',
         item.isRead ? 'bg-bg-0' : 'bg-fill-primary-50'
       )}
     >
-      <div className='gap-x3 flex min-w-0 flex-1 items-center'>
+      <div className='gap-x3 flex min-w-0 flex-1 items-start'>
         <div className='bg-bg-100 relative size-[50px] shrink-0 overflow-hidden rounded-lg'>
           {imageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 지도 카드와 동일하게 img로 로드

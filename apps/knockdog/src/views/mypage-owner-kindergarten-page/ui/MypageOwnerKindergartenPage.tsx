@@ -5,6 +5,8 @@ import {
   ActionButton,
   Divider,
   Icon,
+  SwiperRoot,
+  SwiperSlideItem,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -219,6 +221,68 @@ function OperationSections({ data }: OperationSectionsProps) {
   );
 }
 
+interface OwnerKindergartenImageBannerProps {
+  name: string;
+  imageUrls: string[];
+  usesDefaultImage: boolean;
+  onOpenGallery: (index: number) => void;
+}
+
+/** 운영 탭 대표 이미지. 여러 장이면 좌우 스와이프 + 탭 시 갤러리 */
+function OwnerKindergartenImageBanner({
+  name,
+  imageUrls,
+  usesDefaultImage,
+  onOpenGallery,
+}: OwnerKindergartenImageBannerProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const total = imageUrls.length;
+
+  if (usesDefaultImage || total === 0) {
+    return (
+      <div className='radius-r3 bg-bg-0 relative h-[200px] w-full overflow-hidden'>
+        <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
+          <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='radius-r3 bg-bg-0 relative h-[200px] w-full overflow-hidden'>
+      <SwiperRoot
+        className='size-full'
+        loop={total > 1}
+        onSlideChange={(index) => setCurrentIndex(index)}
+      >
+        {imageUrls.map((url, index) => (
+          <SwiperSlideItem key={`${url}-${index}`} index={index}>
+            <button
+              type='button'
+              onClick={() => onOpenGallery(index)}
+              aria-label={`유치원 사진 ${index + 1}/${total}장 보기`}
+              className='relative block h-[200px] w-full'
+            >
+              <Image
+                src={url}
+                alt={`${name} ${index + 1}`}
+                fill
+                sizes='100vw'
+                className='object-cover'
+                priority={index === 0}
+              />
+            </button>
+          </SwiperSlideItem>
+        ))}
+      </SwiperRoot>
+
+      <span className='caption1-semibold text-text-primary-inverse pointer-events-none absolute right-4 bottom-4 z-10 rounded-full bg-[rgba(15,20,26,0.7)] px-2 py-1'>
+        {currentIndex + 1}/{total}
+      </span>
+    </div>
+  );
+}
+
 function MypageOwnerKindergartenPage() {
   const { push } = useStackNavigation();
   const queryClient = useQueryClient();
@@ -230,7 +294,6 @@ function MypageOwnerKindergartenPage() {
     phoneNumber,
     source,
     kindergartenId,
-    imageUrl,
     imageUrls,
     usesDefaultImage,
     basic,
@@ -279,7 +342,7 @@ function MypageOwnerKindergartenPage() {
     push({ pathname: route.mypage.kindergarten.edit.root });
   };
 
-  const handleImageClick = () => {
+  const handleImageClick = (index = 0) => {
     if (imageUrls.length === 0) return;
 
     overlay.open(({ isOpen, close }) => (
@@ -287,6 +350,7 @@ function MypageOwnerKindergartenPage() {
         isOpen={isOpen}
         close={close}
         images={imageUrls}
+        initialIndex={index}
         ariaLabel='유치원 사진 보기'
       />
     ));
@@ -314,27 +378,12 @@ function MypageOwnerKindergartenPage() {
         <div className='flex-1 overflow-y-auto'>
           <TabsContent value={TAB.OPERATION}>
             <div className='px-4 pt-5'>
-              <button
-                type='button'
-                onClick={handleImageClick}
-                disabled={imageUrls.length === 0}
-                aria-label={imageUrls.length > 0 ? `유치원 사진 ${imageUrls.length}장 보기` : undefined}
-                className='radius-r3 bg-bg-0 relative block h-[200px] w-full overflow-hidden'
-              >
-                {usesDefaultImage || !imageUrl ? (
-                  <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
-                    <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
-                  </div>
-                ) : (
-                  <Image src={imageUrl} alt={name} fill sizes='100vw' className='object-cover' priority />
-                )}
-
-                {imageUrls.length > 0 ? (
-                  <span className='caption1-semibold text-text-primary-inverse absolute right-4 bottom-4 rounded-full bg-[rgba(15,20,26,0.7)] px-2 py-1'>
-                    1/{imageUrls.length}
-                  </span>
-                ) : null}
-              </button>
+              <OwnerKindergartenImageBanner
+                name={name}
+                imageUrls={imageUrls}
+                usesDefaultImage={usesDefaultImage}
+                onOpenGallery={handleImageClick}
+              />
             </div>
 
             <BasicInfoCard
