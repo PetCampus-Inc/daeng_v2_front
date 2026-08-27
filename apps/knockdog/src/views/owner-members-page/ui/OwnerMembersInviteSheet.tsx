@@ -133,19 +133,25 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     // 네이티브 앱에서는 <a download>가 동작하지 않아 갤러리 저장 브릿지를 거쳐야 함
     if (isNativeWebView()) {
       const saved = await saveImage({ url: dataUrl, fileName });
-      if (!saved) {
-        toast('QR 코드를 저장하지 못했어요.');
+      if (saved) {
+        toast('QR 코드를 저장했어요');
+      } else {
+        toast('QR 코드를 저장하지 못했어요');
       }
       return;
     }
 
     downloadImage(dataUrl, fileName);
+    toast('QR 코드를 저장했어요');
   };
 
   const handleCopyInviteLink = async () => {
     if (!inviteUrl) return;
 
-    await copy(inviteUrl);
+    const copied = await copy(inviteUrl);
+    if (copied) {
+      toast('초대 링크를 복사했어요');
+    }
   };
 
   const handleShareInviteLink = async () => {
