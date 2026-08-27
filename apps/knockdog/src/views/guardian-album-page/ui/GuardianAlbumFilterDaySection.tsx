@@ -63,7 +63,7 @@ function GuardianAlbumFilterDaySection({
         ) : null}
       </div>
 
-      <div className='grid w-full min-w-0 grid-cols-3 gap-1'>
+      <div className='grid w-full min-w-0 grid-cols-4 gap-1'>
         {previewPhotos.map((photo, index) => {
           const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
 
