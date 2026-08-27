@@ -129,7 +129,7 @@ function GuardianConnectionApplyStatusPage() {
           <GuardianConnectionApplyStatusEmpty />
         </div>
       ) : (
-        <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
+        <div className='min-h-0 flex-1 overflow-y-auto'>
           <GuardianConnectionApplyStatusList items={visibleItems} onCancelClick={handleCancelClick} />
         </div>
       )}
