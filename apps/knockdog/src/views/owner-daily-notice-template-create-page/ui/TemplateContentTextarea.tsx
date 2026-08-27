@@ -19,7 +19,7 @@ function TemplateContentTextarea({
   onChange,
 }: TemplateContentTextareaProps) {
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(event.target.value);
+    onChange(event.target.value.slice(0, maxLength));
   };
 
   return (

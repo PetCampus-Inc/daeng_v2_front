@@ -83,8 +83,14 @@ function OwnerDailyNoticeTemplateCreatePage() {
   useEffect(() => {
     if (isExpired || !editingTemplateId || !editingTemplate) return;
 
-    const nextTitle = editingTemplate.title;
-    const nextContent = editingTemplate.content;
+    const nextTitle = editingTemplate.title.slice(
+      0,
+      ownerDailyNoticeTemplateCreateContent.titleMaxLength
+    );
+    const nextContent = editingTemplate.content.slice(
+      0,
+      ownerDailyNoticeTemplateCreateContent.contentMaxLength
+    );
 
     const timerId = window.setTimeout(() => {
       setFormState({
@@ -149,8 +155,8 @@ function OwnerDailyNoticeTemplateCreatePage() {
     }
 
     const input = {
-      title: title.trim(),
-      content: content.trim(),
+      title: title.trim().slice(0, ownerDailyNoticeTemplateCreateContent.titleMaxLength),
+      content: content.trim().slice(0, ownerDailyNoticeTemplateCreateContent.contentMaxLength),
     };
 
     try {
