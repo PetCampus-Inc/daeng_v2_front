@@ -97,7 +97,16 @@ function OwnerMembersApprovalPage() {
   const handleReject = (_requestId: string, dogName: string) => {
     rejectMutation.mutate(_requestId, {
       onSuccess: () => {
-        toast({ title: `${dogName}의 연결 신청을 거절했어요` });
+        toast({
+          nativeTitle: `${dogName}의 연결 신청을 거절했어요`,
+          titleParts: [{ text: dogName, accent: true }, { text: '의 연결 신청을 거절했어요' }],
+          title: (
+            <>
+              <span className='text-text-accent'>{dogName}</span>
+              <span>의 연결 신청을 거절했어요</span>
+            </>
+          ),
+        });
       },
       onError: () => {
         toast({ title: '연결 신청 거절에 실패했어요' });
@@ -108,7 +117,16 @@ function OwnerMembersApprovalPage() {
   const handleApprove = (_requestId: string, dogName: string) => {
     approveMutation.mutate(_requestId, {
       onSuccess: () => {
-        toast({ title: `${dogName}의 연결 신청을 승인했어요` });
+        toast({
+          nativeTitle: `${dogName}의 연결 신청을 승인했어요`,
+          titleParts: [{ text: dogName, accent: true }, { text: '의 연결 신청을 승인했어요' }],
+          title: (
+            <>
+              <span className='text-text-accent'>{dogName}</span>
+              <span>의 연결 신청을 승인했어요</span>
+            </>
+          ),
+        });
       },
       onError: () => {
         toast({ title: '연결 신청 승인에 실패했어요' });
