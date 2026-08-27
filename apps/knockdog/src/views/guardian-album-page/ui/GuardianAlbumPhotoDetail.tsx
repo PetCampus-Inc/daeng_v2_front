@@ -438,9 +438,9 @@ function GuardianAlbumPhotoDetail({
                   }`}
                 >
                   {hasError ? (
-                    <div className='bg-fill-secondary-200 radius-r2 absolute inset-0' />
+                    <div className='bg-fill-secondary-200 absolute inset-0' />
                   ) : (
-                    <AlbumImage src={photo.url} className='absolute inset-0 radius-r2' />
+                    <AlbumImage src={photo.url} className='absolute inset-0' />
                   )}
                 </button>
               );
