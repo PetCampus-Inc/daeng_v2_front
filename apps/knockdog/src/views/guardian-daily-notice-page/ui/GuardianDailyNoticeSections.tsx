@@ -93,7 +93,12 @@ function GuardianDailyNoticeAlbumSection({
           </div>
         </div>
       ) : (
-        <div className='grid w-full grid-cols-4 gap-2.5'>
+        <button
+          type='button'
+          className='grid w-full grid-cols-4 gap-2.5 text-left'
+          onClick={onAlbumClick}
+          aria-label={content.albumViewAriaLabel}
+        >
           {previewPhotos.map((photo, index) => {
             const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
 
@@ -113,7 +118,7 @@ function GuardianDailyNoticeAlbumSection({
               </div>
             );
           })}
-        </div>
+        </button>
       )}
     </div>
   );
