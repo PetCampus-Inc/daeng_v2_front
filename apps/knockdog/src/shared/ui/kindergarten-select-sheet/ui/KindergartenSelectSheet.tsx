@@ -126,7 +126,7 @@ function KindergartenSelectSheet({
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
 
-        <div className='max-h-[60vh] overflow-y-auto py-5'>
+        <div className='max-h-[60vh] overflow-y-auto pt-5 pb-[calc(1.25rem+var(--safe-area-inset-bottom,0px))]'>
           {kindergartens.map((kindergarten, index) => {
             const isSelected = currentKindergartenId === kindergarten.id;
             const attendedUntil = kindergarten.attendedUntil;
