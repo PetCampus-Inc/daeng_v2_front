@@ -2,6 +2,7 @@ export { getOwnerMembers, getOwnerPendingMembers } from './api/ownerMember';
 export {
   useOwnerMemberApprovalMutation,
   useOwnerMemberDisconnectMutation,
+  isAlreadyCancelledError,
 } from './api/useOwnerMemberMutation';
 export {
   OWNER_MEMBERS_QUERY_KEY,

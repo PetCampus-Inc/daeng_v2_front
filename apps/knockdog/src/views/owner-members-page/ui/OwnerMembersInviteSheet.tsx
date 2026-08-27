@@ -134,15 +134,15 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     if (isNativeWebView()) {
       const saved = await saveImage({ url: dataUrl, fileName });
       if (saved) {
-        toast('QR 코드를 저장했어요');
+        toast({ type: 'success', title: 'QR 코드를 저장했어요', nativeTitle: 'QR 코드를 저장했어요' });
       } else {
-        toast('QR 코드를 저장하지 못했어요');
+        toast({ title: 'QR 코드를 저장하지 못했어요', nativeTitle: 'QR 코드를 저장하지 못했어요' });
       }
       return;
     }
 
     downloadImage(dataUrl, fileName);
-    toast('QR 코드를 저장했어요');
+    toast({ type: 'success', title: 'QR 코드를 저장했어요', nativeTitle: 'QR 코드를 저장했어요' });
   };
 
   const handleCopyInviteLink = async () => {
@@ -150,7 +150,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
 
     const copied = await copy(inviteUrl);
     if (copied) {
-      toast('초대 링크를 복사했어요');
+      toast({ type: 'success', title: '초대 링크를 복사했어요', nativeTitle: '초대 링크를 복사했어요' });
     }
   };
 

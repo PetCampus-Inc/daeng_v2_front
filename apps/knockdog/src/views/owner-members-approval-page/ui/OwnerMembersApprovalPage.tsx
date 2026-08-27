@@ -8,9 +8,17 @@ import { Header } from '@widgets/Header';
 import { OwnerMemberCard } from '@features/owner-members';
 import { useOwnerRole } from '@features/role-conversion';
 
-import { useOwnerMemberApprovalMutation, useOwnerPendingMembersQuery } from '@entities/owner-member';
+import {
+  isAlreadyCancelledError,
+  useOwnerMemberApprovalMutation,
+  useOwnerPendingMembersQuery,
+} from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { toast } from '@shared/ui/toast';
+
+function showCancelledRequestToast() {
+  toast({ title: '취소된 연결 신청이에요' });
+}
 
 interface ApprovalActionsProps {
   dogName: string;
@@ -98,17 +106,22 @@ function OwnerMembersApprovalPage() {
     rejectMutation.mutate(_requestId, {
       onSuccess: () => {
         toast({
+          type: 'success',
           nativeTitle: `${dogName}의 연결 신청을 거절했어요`,
           titleParts: [{ text: dogName, accent: true }, { text: '의 연결 신청을 거절했어요' }],
           title: (
             <>
               <span className='text-text-accent'>{dogName}</span>
-              <span>의 연결 신청을 거절했어요</span>
+              <span className='text-text-primary-inverse'>의 연결 신청을 거절했어요</span>
             </>
           ),
         });
       },
-      onError: () => {
+      onError: (error) => {
+        if (isAlreadyCancelledError(error)) {
+          showCancelledRequestToast();
+          return;
+        }
         toast({ title: '연결 신청 거절에 실패했어요' });
       },
     });
@@ -118,17 +131,22 @@ function OwnerMembersApprovalPage() {
     approveMutation.mutate(_requestId, {
       onSuccess: () => {
         toast({
-          nativeTitle: `${dogName}의 연결 신청을 승인했어요`,
-          titleParts: [{ text: dogName, accent: true }, { text: '의 연결 신청을 승인했어요' }],
+          type: 'success',
+          nativeTitle: `${dogName}의 유치원 연결이 완료됐어요`,
+          titleParts: [{ text: dogName, accent: true }, { text: '의 유치원 연결이 완료됐어요' }],
           title: (
             <>
               <span className='text-text-accent'>{dogName}</span>
-              <span>의 연결 신청을 승인했어요</span>
+              <span className='text-text-primary-inverse'>의 유치원 연결이 완료됐어요</span>
             </>
           ),
         });
       },
-      onError: () => {
+      onError: (error) => {
+        if (isAlreadyCancelledError(error)) {
+          showCancelledRequestToast();
+          return;
+        }
         toast({ title: '연결 신청 승인에 실패했어요' });
       },
     });

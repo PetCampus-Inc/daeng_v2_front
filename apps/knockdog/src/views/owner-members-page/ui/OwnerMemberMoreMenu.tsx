@@ -60,12 +60,13 @@ function OwnerMemberDisconnectDialog({
     try {
       await onDisconnect(memberId);
       toast({
+        type: 'success',
         nativeTitle: `${dogName}의 유치원 연결을 해제했어요`,
         titleParts: [{ text: dogName, accent: true }, { text: '의 유치원 연결을 해제했어요' }],
         title: (
           <>
             <span className='text-text-accent'>{dogName}</span>
-            <span>의 유치원 연결을 해제했어요</span>
+            <span className='text-text-primary-inverse'>의 유치원 연결을 해제했어요</span>
           </>
         ),
       });
