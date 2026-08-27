@@ -33,9 +33,9 @@ function OwnerProfileDetailInfo({ profile }: OwnerProfileDetailInfoProps) {
         <div className='flex flex-col'>
           {rows.map((row, index) => (
             <div key={row.label}>
-              <div className='flex items-center justify-between p-4'>
-                <span className='body1-medium text-text-primary'>{row.label}</span>
-                <span className='body1-bold text-text-primary'>{row.value}</span>
+              <div className='flex items-start justify-between gap-4 p-4'>
+                <span className='body1-medium text-text-primary shrink-0 whitespace-nowrap'>{row.label}</span>
+                <span className='body1-bold text-text-primary min-w-0 break-words'>{row.value}</span>
               </div>
               {index < rows.length - 1 ? <Divider /> : null}
             </div>
