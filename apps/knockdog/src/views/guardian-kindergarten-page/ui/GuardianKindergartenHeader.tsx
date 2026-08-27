@@ -113,7 +113,11 @@ function GuardianKindergartenHeader({
       <div className='px-x4 flex items-start justify-between py-5'>
         {hasNoPet ? (
           <div className='gap-x4 flex items-center'>
-            <DogProfileAvatar name={guardianKindergartenNoPetContent.headerTitle} className='size-[52px]' />
+            <DogProfileAvatar
+              name={guardianKindergartenNoPetContent.headerTitle}
+              className='size-[52px]'
+              pawClassName='text-fill-secondary-300'
+            />
             <span className='h3-extrabold text-text-primary-inverse'>
               {guardianKindergartenNoPetContent.headerTitle}
             </span>
@@ -124,6 +128,7 @@ function GuardianKindergartenHeader({
               name={petName || '강아지'}
               imageUrl={petImageUrl?.trim() ? petImageUrl : undefined}
               className='size-[52px]'
+              pawClassName='text-fill-secondary-300'
             />
 
             <div className='gap-x1 flex flex-col items-start justify-center'>
