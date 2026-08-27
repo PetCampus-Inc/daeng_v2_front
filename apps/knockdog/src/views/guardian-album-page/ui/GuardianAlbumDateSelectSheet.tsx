@@ -136,7 +136,7 @@ function GuardianAlbumDateSelectSheet({
           onGoToday={handleGoToday}
         />
 
-        <div className='px-4 pt-8 pb-5'>
+        <div className='px-4 pt-8 pb-[calc(1.25rem+var(--safe-area-inset-bottom,0px))]'>
           <ActionButton
             type='button'
             variant='primaryFill'
