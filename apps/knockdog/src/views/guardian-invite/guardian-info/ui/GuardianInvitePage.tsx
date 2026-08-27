@@ -222,8 +222,12 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
         <section className='flex h-[120px] flex-col justify-center gap-1 px-x4 py-x5'>
           <h1 className='h2-extrabold text-text-primary'>보호자 정보를 입력해 주세요</h1>
           <p className='body1-medium text-text-primary'>
-            <span className='text-text-accent'>{inviteQuery.data?.data?.schoolName ?? '유치원'}</span>에 전달될 정보이니
-            <br />
+            <span className='flex min-w-0 items-baseline'>
+              <span className='text-text-accent min-w-0 flex-1 truncate'>
+                {inviteQuery.data?.data?.schoolName ?? '유치원'}
+              </span>
+              <span className='shrink-0 whitespace-nowrap'>에 전달될 정보이니</span>
+            </span>
             정확한지 확인해 주세요.
           </p>
         </section>

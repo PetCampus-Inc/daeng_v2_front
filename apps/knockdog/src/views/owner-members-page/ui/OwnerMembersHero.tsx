@@ -51,6 +51,19 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
             aria-label='구성원 검색어 입력'
             onChange={(e) => onSearchQueryChange(e.target.value)}
           />
+          {searchQuery && (
+            <button
+              type='button'
+              onMouseDown={(event) => {
+                event.preventDefault();
+                onSearchQueryChange('');
+              }}
+              aria-label='검색어 초기화'
+              className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
+            >
+              <Icon icon='DeleteInput' className='size-x5 text-primitive-neutral-700' />
+            </button>
+          )}
         </TextField>
       </div>
     </div>

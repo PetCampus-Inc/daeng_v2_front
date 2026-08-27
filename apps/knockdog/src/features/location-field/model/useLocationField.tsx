@@ -1,10 +1,15 @@
-import { USER_ADDRESS_TYPE_KR, UserAddress, UserAddressType } from '@entities/user';
+import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR, UserAddress, UserAddressType } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { useState } from 'react';
 
 import { pickJosa } from '../lib/josa';
+
+function resolveLocationAlias(type: UserAddressType, alias?: string | null): string {
+  if (type === USER_ADDRESS_TYPE.HOME) return USER_ADDRESS_TYPE_KR.HOME;
+  return alias || USER_ADDRESS_TYPE_KR[type];
+}
 
 interface UseLocationFieldOptions {
   type: UserAddressType;
@@ -81,7 +86,7 @@ const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, o
     try {
       setIsAdding(true);
       await onAdd?.(result);
-      const resultAlias = result.alias || USER_ADDRESS_TYPE_KR[type];
+      const resultAlias = resolveLocationAlias(type, result.alias);
       showLocationResultToast(resultAlias, `${pickJosa(resultAlias, '이', '가')} 추가되었습니다`);
     } catch (error) {
       onChange?.(undefined);
@@ -110,7 +115,7 @@ const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, o
 
     try {
       await onUpdate?.(result);
-      const resultAlias = result.alias || USER_ADDRESS_TYPE_KR[type];
+      const resultAlias = resolveLocationAlias(type, result.alias);
       showLocationResultToast(resultAlias, `${pickJosa(resultAlias, '이', '가')} 수정되었습니다`);
     } catch (error) {
       onChange?.(previousAddress);
@@ -119,7 +124,7 @@ const useLocationField = ({ type, value, addressId, onChange, onAdd, onUpdate, o
     }
   };
 
-  const alias = address?.alias || USER_ADDRESS_TYPE_KR[type];
+  const alias = resolveLocationAlias(type, address?.alias);
 
   /** 삭제 버튼 */
   const remove = async () => {
