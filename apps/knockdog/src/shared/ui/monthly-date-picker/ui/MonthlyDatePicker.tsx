@@ -126,11 +126,11 @@ function MonthlyDatePicker({
         </div>
 
         <div className='flex w-full flex-col gap-1 px-4 pb-0'>
-          <div className='flex w-full items-center justify-between'>
+          <div className='grid w-full grid-cols-7 justify-items-center'>
             {WEEKDAY_LABELS.map((label, index) => (
               <div
                 key={label}
-                className='flex w-[33px] flex-col items-center justify-center py-0.5'
+                className='flex h-[38px] w-full flex-col items-center justify-center py-0.5'
               >
                 <span
                   className={`caption1-semibold ${
@@ -162,7 +162,7 @@ function MonthlyDatePicker({
                   type='button'
                   disabled={isDisabled}
                   onClick={() => onSelectDate(date)}
-                  className={`flex h-[38px] w-[30px] flex-col items-center justify-center gap-0.5 ${
+                  className={`flex h-[38px] w-full max-w-[38px] flex-col items-center justify-center gap-0.5 ${
                     !inCurrentMonth ? 'pointer-events-none opacity-0' : ''
                   } ${isSelected ? 'bg-fill-secondary-700 rounded-[8px]' : ''} ${
                     !isSelected && isToday ? 'bg-fill-secondary-500 rounded-[8px]' : ''
