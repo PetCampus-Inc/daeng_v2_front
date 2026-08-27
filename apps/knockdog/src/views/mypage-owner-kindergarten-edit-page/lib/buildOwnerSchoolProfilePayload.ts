@@ -1,5 +1,6 @@
 import type { PutOwnerSchoolProfileRequest } from '@entities/owner-school';
 import { buildOwnerSchoolImagePayload } from '@entities/owner-school';
+import { sortDaysOfWeek } from '@shared/constants';
 import type { WebImageAsset } from '@shared/lib/media';
 import type { EditFormDraft } from '@views/mypage-owner-kindergarten-edit-page/lib/editFormDraft';
 
@@ -72,7 +73,7 @@ async function buildOwnerSchoolProfilePayload({
     weekdayCloseTime: requireTime(draft.weekdayEnd, '평일 종료 시간'),
     weekendOpenTime: requireTime(draft.weekendStart, '주말 시작 시간'),
     weekendCloseTime: requireTime(draft.weekendEnd, '주말 종료 시간'),
-    closedDays: draft.closedDays,
+    closedDays: sortDaysOfWeek(draft.closedDays),
     homepageUrl: draft.homepage.trim(),
     instagramUrl: draft.instagram.trim(),
     youtubeUrl: draft.youtube.trim(),

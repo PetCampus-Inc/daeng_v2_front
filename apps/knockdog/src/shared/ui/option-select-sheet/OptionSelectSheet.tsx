@@ -32,6 +32,19 @@ interface OptionSelectSheetMultipleProps extends OptionSelectSheetBaseProps {
 
 type OptionSelectSheetProps = OptionSelectSheetSingleProps | OptionSelectSheetMultipleProps;
 
+/** 선택값을 options 나열 순으로 정렬 (휴무일: 월→일) */
+function orderValuesByOptions(values: string[], options: OptionItem[]) {
+  const order = options.map((option) => option.value);
+
+  return [...values].sort((a, b) => {
+    const aIndex = order.indexOf(a);
+    const bIndex = order.indexOf(b);
+    const aRank = aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex;
+    const bRank = bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex;
+    return aRank - bRank;
+  });
+}
+
 /**
  * 단일/복수 선택 공용 바텀시트.
  * - 단일: 항목 탭 즉시 선택 후 close
@@ -42,18 +55,18 @@ function OptionSelectSheet(props: OptionSelectSheetProps) {
   const isMultiple = props.multiple === true;
 
   const [draftValues, setDraftValues] = useState<string[]>(
-    isMultiple ? (props.values ?? []) : []
+    isMultiple ? orderValuesByOptions(props.values ?? [], options) : []
   );
 
   useEffect(() => {
     if (!isOpen || !isMultiple) return;
-    setDraftValues(props.values ?? []);
+    setDraftValues(orderValuesByOptions(props.values ?? [], options));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open 시점에만 parent values 동기화
   }, [isOpen, isMultiple]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      if (isMultiple) props.onChange(draftValues);
+      if (isMultiple) props.onChange(orderValuesByOptions(draftValues, options));
       close();
     }
   };
@@ -71,7 +84,10 @@ function OptionSelectSheet(props: OptionSelectSheetProps) {
 
   const handleToggle = (value: string) => {
     setDraftValues((prev) =>
-      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+      orderValuesByOptions(
+        prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value],
+        options
+      )
     );
   };
 
