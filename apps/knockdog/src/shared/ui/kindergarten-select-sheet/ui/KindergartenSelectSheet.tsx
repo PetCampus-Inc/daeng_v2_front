@@ -122,14 +122,14 @@ function KindergartenSelectSheet({
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleClose}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal'>
+      <BottomSheet.Body className='z-modal pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'>
         <BottomSheet.Handle />
         <BottomSheet.Header className='border-line-100 border-b items-start text-left'>
           <BottomSheet.Title className='w-full pr-10 text-left'>{content.title}</BottomSheet.Title>
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
 
-        <div className='max-h-[60vh] overflow-y-auto pt-5 pb-[calc(1.25rem+var(--safe-area-inset-bottom,0px))]'>
+        <div className='max-h-[60vh] overflow-y-auto pt-5 pb-5'>
           {kindergartens.map((kindergarten, index) => {
             const isSelected = currentKindergartenId === kindergarten.id;
             const attendedUntil = kindergarten.attendedUntil;
