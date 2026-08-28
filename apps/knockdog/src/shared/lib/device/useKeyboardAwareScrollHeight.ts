@@ -29,13 +29,14 @@ function useKeyboardAwareScrollHeight<T extends HTMLElement>(): RefObject<T | nu
 
     const node = ref.current;
 
+    const isKeyboardOpen = () =>
+      viewport.height < window.innerHeight - KEYBOARD_OPEN_THRESHOLD_PX;
+
     const apply = () => {
       const scrollNode = ref.current;
       if (!scrollNode) return;
 
-      const isKeyboardOpen = viewport.height < window.innerHeight - KEYBOARD_OPEN_THRESHOLD_PX;
-
-      if (!isKeyboardOpen) {
+      if (!isKeyboardOpen()) {
         resetScrollContainerStyle(scrollNode);
         return;
       }
@@ -48,8 +49,14 @@ function useKeyboardAwareScrollHeight<T extends HTMLElement>(): RefObject<T | nu
       scrollNode.style.height = `${height}px`;
     };
 
+    const handleWindowScroll = () => {
+      if (isKeyboardOpen()) {
+        lockWindowScroll();
+      }
+    };
+
     const handleViewportScroll = () => {
-      if (viewport.height < window.innerHeight - KEYBOARD_OPEN_THRESHOLD_PX) {
+      if (isKeyboardOpen()) {
         lockWindowScroll();
       }
       apply();
@@ -57,7 +64,7 @@ function useKeyboardAwareScrollHeight<T extends HTMLElement>(): RefObject<T | nu
 
     viewport.addEventListener('resize', apply);
     viewport.addEventListener('scroll', handleViewportScroll);
-    window.addEventListener('scroll', lockWindowScroll, { capture: true, passive: true });
+    window.addEventListener('scroll', handleWindowScroll, { capture: true, passive: true });
     window.addEventListener('focusin', apply);
     window.addEventListener('focusout', apply);
     apply();
@@ -65,7 +72,7 @@ function useKeyboardAwareScrollHeight<T extends HTMLElement>(): RefObject<T | nu
     return () => {
       viewport.removeEventListener('resize', apply);
       viewport.removeEventListener('scroll', handleViewportScroll);
-      window.removeEventListener('scroll', lockWindowScroll, { capture: true });
+      window.removeEventListener('scroll', handleWindowScroll, { capture: true });
 
       if (node) resetScrollContainerStyle(node);
     };

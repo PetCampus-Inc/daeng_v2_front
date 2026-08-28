@@ -431,10 +431,19 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
   });
 
   function extractQueryFromNavParams(params?: WebNavPayload['params']) {
-    if (!params || typeof params !== 'object' || !('query' in params)) return null;
-    const query = params.query;
-    if (!query || typeof query !== 'object') return null;
-    return query as Record<string, unknown>;
+    if (!params || typeof params !== 'object' || Array.isArray(params)) return null;
+
+    if ('query' in params) {
+      const query = params.query;
+      if (!query || typeof query !== 'object' || Array.isArray(query)) return null;
+      return query as Record<string, unknown>;
+    }
+
+    const query = Object.fromEntries(
+      Object.entries(params).filter(([key]) => key !== '_txId' && key !== '_params')
+    );
+
+    return Object.keys(query).length > 0 ? query : null;
   }
 
   async function injectTabWebViewQuery(tabName: TabName, query: Record<string, unknown>) {

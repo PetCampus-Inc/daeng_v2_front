@@ -142,16 +142,11 @@ function TemplateContentTextarea({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const handleTouchStart = (event: TouchEvent) => {
+    const handleTouchStart = () => {
       scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current, textarea);
-
-      if (document.activeElement === textarea) return;
-
-      event.preventDefault();
-      textarea.focus({ preventScroll: true });
     };
 
-    textarea.addEventListener('touchstart', handleTouchStart, { passive: false });
+    textarea.addEventListener('touchstart', handleTouchStart, { passive: true });
 
     return () => {
       textarea.removeEventListener('touchstart', handleTouchStart);
@@ -168,11 +163,6 @@ function TemplateContentTextarea({
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
 
     scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current, event.currentTarget);
-
-    if (document.activeElement === event.currentTarget) return;
-
-    event.preventDefault();
-    event.currentTarget.focus({ preventScroll: true });
   };
 
   const startScrollLock = (snapshot: ScrollSnapshot, textarea: HTMLTextAreaElement) => {
@@ -186,7 +176,8 @@ function TemplateContentTextarea({
       restoreScrollSnapshot(snapshot, textarea);
     };
 
-    const onScroll = () => {
+    const onScroll = (event: Event) => {
+      if (event.target === textarea) return;
       restoreIfScrolledAway();
     };
 
