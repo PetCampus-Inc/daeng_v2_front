@@ -4,7 +4,7 @@ import { NavigationContainer, type NavigationState, type PartialState } from '@r
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context'; // ★ SafeAreaProvider 사용
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context'; // ★ SafeAreaProvider 사용
 import { PortalProvider } from '@gorhom/portal'; // ★ 포털
 import { navigationRef } from './bridges/lib/navigationRef';
 import { ToastProvider } from './components/toast'; // ★ 토스트 프로바이더 (네이티브 구현)
@@ -108,7 +108,7 @@ export default function App() {
     // 제스처가 최상단을 감싸야 스와이프-투-디스미스 제스처가 안정적으로 동작
     <GestureHandlerRootView style={{ flex: 1 }}>
       {/* 세이프에어리어를 먼저 공급 (토스트 뷰포트가 bottom inset을 사용) */}
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         {/* 포털 루트: 토스트가 네비게이션 위 레이어로 뜨도록 */}
         <PortalProvider>
           {/* 상태바는 취향에 따라 */}
