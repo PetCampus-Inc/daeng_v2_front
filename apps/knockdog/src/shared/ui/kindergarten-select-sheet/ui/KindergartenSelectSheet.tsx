@@ -8,6 +8,7 @@ import { kindergartenSelectSheetContent } from '@shared/ui/kindergarten-select-s
 import type { KindergartenSelectOption } from '@shared/ui/kindergarten-select-sheet/model/types';
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
 interface KindergartenSelectSheetProps {
@@ -86,6 +87,8 @@ function KindergartenSelectSheet({
   onSelect,
 }: KindergartenSelectSheetProps) {
   const content = kindergartenSelectSheetContent;
+
+  useNativeBackToClose(isOpen, close);
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) close();

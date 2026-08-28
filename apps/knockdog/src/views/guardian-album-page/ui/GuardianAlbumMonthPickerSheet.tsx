@@ -7,6 +7,7 @@ import { cn } from '@knockdog/ui/lib';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { compareYearMonth } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
 
 const ITEM_HEIGHT = 56;
 
@@ -173,6 +174,8 @@ function GuardianAlbumMonthPickerSheet({
     const nextMonth = clampMonthValue(draftYear, draftMonth, minMonth, maxMonth);
     if (nextMonth !== draftMonth) setDraftMonth(nextMonth);
   }, [draftYear, draftMonth, minMonth, maxMonth]);
+
+  useNativeBackToClose(isOpen, close);
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) close();

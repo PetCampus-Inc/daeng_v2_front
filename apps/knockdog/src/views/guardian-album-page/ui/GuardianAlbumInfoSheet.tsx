@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
 
 interface GuardianAlbumInfoSheetProps {
   isOpen: boolean;
@@ -32,6 +33,8 @@ function GuardianAlbumInfoSheet({ isOpen, close }: GuardianAlbumInfoSheetProps) 
       window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
     };
   }, [close]);
+
+  useNativeBackToClose(isOpen, close);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) close();
