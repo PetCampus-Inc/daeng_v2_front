@@ -2,6 +2,7 @@ import type { Kindergarten } from './kindergarten';
 import type { MemoItem } from '@entities/memo';
 import type { BookmarkItem } from '@entities/bookmark';
 import { formatDistance } from '@shared/lib';
+import { dedupeBannerKeys } from '../lib/dedupeBannerKeys';
 import type { KindergartenListItemDto, KindergartenSearchListDto } from './search-list';
 import type { KindergartenListItem, KindergartenMain } from './types';
 import { CTG } from '../config/enum';
@@ -18,6 +19,7 @@ function toKindergartenListItem(
   const bookmarked = bookmarkedSet.has(item.id);
   return {
     ...rest,
+    banner: dedupeBannerKeys(rest.banner ?? []),
     ctg: ctg
       .split(',')
       .map((tag) => CTG[tag.trim() as keyof typeof CTG] || tag.trim())
@@ -91,6 +93,7 @@ export function toKindergartenMain({
 
   return {
     ...item,
+    banner: dedupeBannerKeys(item.banner ?? []),
     ctg: ctgTags.join(' ・ '),
     dist: distValue,
     memo: memoByShopId.get(item.id) ? formatMemoDate(memoByShopId.get(item.id)!) : undefined,
