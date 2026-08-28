@@ -6,6 +6,12 @@
 @variant web (&:where([data-env='web'], [data-env='web'] &));
 @variant webview (&:where([data-env='webview'], [data-env='webview'] &));
 
+/* AOS WebView만: 시스템 글자 크기 확대를 rem 타이포에 반영하지 않음 (iOS 미적용) */
+html[data-env='webview'][data-platform='android'] {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 @theme {
   /* breakpoint */
   --breakpoint-sm: 30rem;

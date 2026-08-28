@@ -104,6 +104,7 @@ function GuardianKindergartenApprovedState({
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
+          schoolId={kindergarten.id}
           firstAttendedAt={firstAttendedAt ?? undefined}
         />
         <GuardianKindergartenDayTimeline

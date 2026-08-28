@@ -26,6 +26,7 @@ import { useGuardianAlbumMonth } from '@views/guardian-album-page/model/useGuard
 import { useGuardianAlbumToday } from '@views/guardian-album-page/model/useGuardianAlbumToday';
 import { expandGuardianAlbumPhotos } from '@views/guardian-album-page/lib/expandGuardianAlbumPhotos';
 import { mergeGuardianAlbumDayPhotos } from '@views/guardian-album-page/lib/mergeGuardianAlbumDayPhotos';
+import { isGuardianAlbumAccessibleDay } from '@views/guardian-album-page/lib/isGuardianAlbumAccessibleDay';
 import { writeLastViewedAt } from '@views/guardian-album-page/lib/guardianAlbumLastViewed';
 import { GuardianAlbumDayList } from '@views/guardian-album-page/ui/GuardianAlbumDayList';
 import { GuardianAlbumDateSelectSheet } from '@views/guardian-album-page/ui/GuardianAlbumDateSelectSheet';
@@ -298,6 +299,15 @@ function GuardianAlbumPage() {
   );
 
   const todayDateKey = todayDate ?? toDateKey(new Date());
+  const albumAccessibleContext = useMemo(
+    () => ({ todayDateKey, isAttendedToday }),
+    [isAttendedToday, todayDateKey]
+  );
+  const isAlbumDayAccessible = useCallback(
+    (day: { dateKey: string; isAttended: boolean }) =>
+      isGuardianAlbumAccessibleDay(day, albumAccessibleContext),
+    [albumAccessibleContext]
+  );
   /**
    * 학교 전체 이력 노출 — 최신 재연결 connectedAt으로 과거를 자르지 않는다.
    * 해제된 유치원만 attendedUntil 상한 적용.
@@ -314,7 +324,8 @@ function GuardianAlbumPage() {
     const hideTodayInList = !isDisconnected && isAttendedToday;
     return monthDays.filter((day) => {
       if (hideTodayInList && day.dateKey === todayDateKey) return false;
-      return isAlbumDateInMembershipRange(day.dateKey);
+      if (!isAlbumDateInMembershipRange(day.dateKey)) return false;
+      return isAlbumDayAccessible(day);
     });
   }, [
     monthDays,
@@ -322,6 +333,7 @@ function GuardianAlbumPage() {
     isAttendedToday,
     todayDateKey,
     isAlbumDateInMembershipRange,
+    isAlbumDayAccessible,
   ]);
 
   const monthTimeline = useMemo(
@@ -335,23 +347,65 @@ function GuardianAlbumPage() {
   const enrichedAttendanceDays = useMemo(() => {
     const monthByDate = new Map(monthDays.map((day) => [day.dateKey, day] as const));
     return attendanceDays
-      .filter((day) => isAlbumDateInMembershipRange(day.dateKey))
+      .filter(
+        (day) => isAlbumDateInMembershipRange(day.dateKey) && isAlbumDayAccessible(day)
+      )
       .map((day) => mergeGuardianAlbumDayPhotos(day, monthByDate.get(day.dateKey) ?? null));
-  }, [attendanceDays, monthDays, isAlbumDateInMembershipRange]);
+  }, [attendanceDays, isAlbumDayAccessible, monthDays, isAlbumDateInMembershipRange]);
 
   const visibleFavoriteDays = useMemo(
-    () => favoriteDays.filter((day) => isAlbumDateInMembershipRange(day.dateKey)),
-    [favoriteDays, isAlbumDateInMembershipRange]
+    () =>
+      favoriteDays.filter(
+        (day) => isAlbumDateInMembershipRange(day.dateKey) && isAlbumDayAccessible(day)
+      ),
+    [favoriteDays, isAlbumDateInMembershipRange, isAlbumDayAccessible]
   );
 
   const hasAttendancePhotosReady = !isAttendancePending;
   const hasFavoritePhotosReady = !isFavoritePending;
 
+  const isAttendanceFilterExhausted =
+    hasAttendancePhotosReady && !hasAttendanceNextPage && !isAttendanceFetchingNextPage;
+  const isFavoriteFilterExhausted =
+    hasFavoritePhotosReady && !hasFavoriteNextPage && !isFavoriteFetchingNextPage;
+
+  useEffect(() => {
+    if (viewMode !== 'attendance') return;
+    if (!hasAttendancePhotosReady) return;
+    if (enrichedAttendanceDays.length > 0) return;
+    if (!hasAttendanceNextPage || isAttendanceFetchingNextPage) return;
+    fetchAttendanceNextPage();
+  }, [
+    viewMode,
+    hasAttendancePhotosReady,
+    enrichedAttendanceDays.length,
+    hasAttendanceNextPage,
+    isAttendanceFetchingNextPage,
+    fetchAttendanceNextPage,
+  ]);
+
+  useEffect(() => {
+    if (viewMode !== 'favorite') return;
+    if (!hasFavoritePhotosReady) return;
+    if (visibleFavoriteDays.length > 0) return;
+    if (!hasFavoriteNextPage || isFavoriteFetchingNextPage) return;
+    fetchFavoriteNextPage();
+  }, [
+    viewMode,
+    hasFavoritePhotosReady,
+    visibleFavoriteDays.length,
+    hasFavoriteNextPage,
+    isFavoriteFetchingNextPage,
+    fetchFavoriteNextPage,
+  ]);
+
   const isFilterEmpty =
     (viewMode === 'attendance' &&
-      hasAttendancePhotosReady &&
+      isAttendanceFilterExhausted &&
       enrichedAttendanceDays.length === 0) ||
-    (viewMode === 'favorite' && hasFavoritePhotosReady && visibleFavoriteDays.length === 0);
+    (viewMode === 'favorite' &&
+      isFavoriteFilterExhausted &&
+      visibleFavoriteDays.length === 0);
 
   const isFilterMode = viewMode === 'favorite' || viewMode === 'attendance';
 
@@ -385,15 +439,17 @@ function GuardianAlbumPage() {
 
   const handleOpenDayDetail = useCallback(
     (dayAlbum: GuardianAlbumDayAlbum) => {
-      if (dayAlbum.hasLoadError) return;
+      if (dayAlbum.hasLoadError || !isAlbumDayAccessible(dayAlbum)) return;
       const photos = expandGuardianAlbumPhotos(dayAlbum.photos, dayAlbum.photoCount);
       openDetail(photos, undefined, false);
     },
-    [openDetail]
+    [isAlbumDayAccessible, openDetail]
   );
 
   const handleOpenFilterDayDetail = useCallback(
     async (day: GuardianAlbumFilterDay) => {
+      if (!isAlbumDayAccessible(day)) return;
+
       if (viewMode === 'favorite') {
         if (!activeSchoolId) {
           openDetail(day.photos, undefined, false);
@@ -417,7 +473,7 @@ function GuardianAlbumPage() {
         openDetail(day.photos, undefined, false);
       }
     },
-    [openDetail, activeSchoolId, viewMode]
+    [isAlbumDayAccessible, openDetail, activeSchoolId, viewMode]
   );
 
   /** 날짜 검색 시트 — 선택일 상세 슬라이드 진입 */
@@ -427,12 +483,14 @@ function GuardianAlbumPage() {
       setSelectedMonth(startOfMonth(date));
       setIsScrollTopVisible(false);
 
-      if (dateKey === todayDateKey && todayDetailPhotos.length > 0) {
+      if (dateKey === todayDateKey) {
+        if (!isAttendedToday || todayDetailPhotos.length === 0) return;
         openDetail(todayDetailPhotos, undefined, false);
         return;
       }
 
       const monthDay = monthDays.find((day) => day.dateKey === dateKey) ?? null;
+      if (monthDay && !isAlbumDayAccessible(monthDay)) return;
 
       if (!activeSchoolId) {
         if (monthDay) handleOpenDayDetail(monthDay);
@@ -453,6 +511,8 @@ function GuardianAlbumPage() {
     },
     [
       handleOpenDayDetail,
+      isAlbumDayAccessible,
+      isAttendedToday,
       monthDays,
       openDetail,
       activeSchoolId,
@@ -464,11 +524,11 @@ function GuardianAlbumPage() {
   useEffect(() => {
     if (didOpenHomeDetailRef.current) return;
     if (searchParams.get('from') !== 'home') return;
-    if (!hasAlbumHistory || todayDetailPhotos.length === 0) return;
+    if (!hasAlbumHistory || !isAttendedToday || todayDetailPhotos.length === 0) return;
 
     didOpenHomeDetailRef.current = true;
     openDetail(todayDetailPhotos, undefined, true);
-  }, [hasAlbumHistory, openDetail, searchParams, todayDetailPhotos]);
+  }, [hasAlbumHistory, isAttendedToday, openDetail, searchParams, todayDetailPhotos]);
 
   const handleResetFilter = useCallback(() => {
     setViewMode('all');
@@ -542,7 +602,11 @@ function GuardianAlbumPage() {
   const albumPhotoDateKeys = useMemo(() => {
     const keys = new Set<string>();
     for (const day of monthDays) {
-      if (day.photoCount > 0 && isAlbumDateInMembershipRange(day.dateKey)) {
+      if (
+        day.photoCount > 0 &&
+        isAlbumDateInMembershipRange(day.dateKey) &&
+        isAlbumDayAccessible(day)
+      ) {
         keys.add(day.dateKey);
       }
     }
@@ -557,6 +621,7 @@ function GuardianAlbumPage() {
     return keys;
   }, [
     monthDays,
+    isAlbumDayAccessible,
     isDisconnected,
     isAttendedToday,
     todayPhotoCount,

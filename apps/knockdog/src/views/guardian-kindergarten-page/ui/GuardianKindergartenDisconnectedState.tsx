@@ -149,6 +149,7 @@ function GuardianKindergartenDisconnectedState({
         <GuardianKindergartenDateCalendar
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
+          schoolId={kindergarten.id}
           firstAttendedAt={firstAttendedAt ?? undefined}
           minDate={connectedAt ?? undefined}
           maxDate={disconnectedAt ?? undefined}

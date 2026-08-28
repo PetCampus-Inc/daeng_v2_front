@@ -20,6 +20,7 @@ export { kindergartenQueries } from './config/kindergartenQueries';
 /** lib */
 export { isValidBounds, isEqualFilters } from './lib/is';
 export { serializeBounds, serializeFilters } from './lib/serialize';
+export { dedupeBannerKeys } from './lib/dedupeBannerKeys';
 
 /** model */
 export type {

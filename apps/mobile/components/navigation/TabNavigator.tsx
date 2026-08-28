@@ -20,7 +20,7 @@ import OwnerMembersTab from '@/screens/owner-members';
 import SaveTab from '@/screens/save';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
@@ -30,6 +30,36 @@ const Tab = createBottomTabNavigator();
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
 const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Compare']);
 const BOTTOM_TAB_BAR_DIM_HEIGHT = 64;
+const ANDROID_TAB_BAR_CONTENT_HEIGHT = 64;
+const ANDROID_TAB_BAR_MIN_BOTTOM_INSET = 12;
+
+function getAndroidTabBarBottomInset(bottom: number) {
+  return Math.max(bottom, ANDROID_TAB_BAR_MIN_BOTTOM_INSET);
+}
+
+function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
+  if (!isTabBarVisible) {
+    return { display: 'none' as const };
+  }
+
+  if (Platform.OS === 'android') {
+    const tabBarBottomInset = getAndroidTabBarBottomInset(bottom);
+
+    return {
+      height: ANDROID_TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
+      paddingBottom: tabBarBottomInset,
+      paddingTop: 6,
+      paddingLeft: 12,
+      paddingRight: 12,
+    };
+  }
+
+  return {
+    paddingBottom: bottom,
+    paddingLeft: 12,
+    paddingRight: 12,
+  };
+}
 
 /** v7: tabBarButton null만으론 flex 공간이 남아 탭이 한쪽으로 쏠림 */
 const HIDDEN_TAB_OPTIONS = {
@@ -54,6 +84,7 @@ function notifyCurrentTabWillBlur(tabName: TabName) {
 
 export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
+  const androidTabBarBottomInset = getAndroidTabBarBottomInset(bottom);
   const mode = useMainTabModeStore((state) => state.mode);
   const isOwnerMode = mode === 'owner';
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
@@ -109,13 +140,8 @@ export default function TabNavigator() {
             },
             tabBarActiveTintColor: '#FF6E0C',
             tabBarInactiveTintColor: '#8C8C94',
-            tabBarStyle: isTabBarVisible
-              ? {
-                  paddingBottom: bottom,
-                  paddingLeft: 12,
-                  paddingRight: 12,
-                }
-              : { display: 'none' },
+            ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
+            tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
             tabBarLabelStyle: {
               fontSize: 12,
               marginTop: 2,
@@ -135,7 +161,17 @@ export default function TabNavigator() {
         <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이' }} />
       </Tab.Navigator>
       {isTabBarVisible && isBottomTabBarDimmed ? (
-        <View pointerEvents='auto' style={[styles.bottomTabBarDim, { height: BOTTOM_TAB_BAR_DIM_HEIGHT + bottom }]} />
+        <View
+          pointerEvents='auto'
+          style={[
+            styles.bottomTabBarDim,
+            {
+              height:
+                BOTTOM_TAB_BAR_DIM_HEIGHT +
+                (Platform.OS === 'android' ? androidTabBarBottomInset : bottom),
+            },
+          ]}
+        />
       ) : null}
     </View>
   );

@@ -12,6 +12,7 @@ import {
 } from '@shared/lib/calendar-date';
 import { MonthlyDatePicker } from '@shared/ui/monthly-date-picker';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
 
 interface GuardianAlbumDateSelectSheetProps {
   isOpen: boolean;
@@ -77,6 +78,8 @@ function GuardianAlbumDateSelectSheet({
     setSelectedDate(next);
     setViewMonth(startOfDay(new Date(next.getFullYear(), next.getMonth(), 1)));
   }, [isOpen, initialDate, minDate, maxDate, enabledDateKeys]);
+
+  useNativeBackToClose(isOpen, close);
 
   const canConfirm =
     enabledDateKeys == null || enabledDateKeys.has(formatDateKey(selectedDate));

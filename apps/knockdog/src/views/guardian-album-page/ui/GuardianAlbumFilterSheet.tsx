@@ -7,6 +7,7 @@ import { cn } from '@knockdog/ui/lib';
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import type { GuardianAlbumViewMode } from '@views/guardian-album-page/model/guardianAlbumViewMode';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
 
 interface GuardianAlbumFilterSheetProps {
   isOpen: boolean;
@@ -22,6 +23,8 @@ function GuardianAlbumFilterSheet({
   onSelect,
 }: GuardianAlbumFilterSheetProps) {
   const { filterSheet } = guardianAlbumContent;
+
+  useNativeBackToClose(isOpen, close);
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) close();
