@@ -145,7 +145,12 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     if (isNativeWebView() && useNativeDialog) {
       lastAddressRegistrationDialogRequestId = Math.max(Date.now(), lastAddressRegistrationDialogRequestId + 1);
       void bridge
-        .request(METHODS.showAddressRegistrationDialog, { requestId: lastAddressRegistrationDialogRequestId })
+        .request(
+          METHODS.showAddressRegistrationDialog,
+          { requestId: lastAddressRegistrationDialogRequestId },
+          // 사용자 응답을 기다리는 네이티브 다이얼로그이므로 기본 8초 대신 다른 응답 대기형 RPC와 동일하게 120초 사용
+          { timeoutMs: 120_000 }
+        )
         .then(({ action }) => {
           if (action === 'register') void handleAddressRegistration(type);
         })
