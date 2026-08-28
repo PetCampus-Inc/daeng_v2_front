@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { ActionButton } from '@knockdog/ui';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
@@ -13,10 +14,32 @@ interface OwnerAlbumInfoSheetProps {
 
 function OwnerAlbumInfoSheet({ isOpen, close }: OwnerAlbumInfoSheetProps) {
   const { infoSheet } = ownerAlbumContent;
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) setShouldRender(true);
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleNativeTabBlur = () => {
+      setShouldRender(false);
+      close();
+    };
+
+    window.addEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
+    window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
+      window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+    };
+  }, [close]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) close();
   };
+
+  if (!shouldRender) return null;
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>

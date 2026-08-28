@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { guardianAlbumContent } from '@views/guardian-album-page/config/guardianAlbumContent';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
@@ -10,10 +12,32 @@ interface GuardianAlbumInfoSheetProps {
 
 function GuardianAlbumInfoSheet({ isOpen, close }: GuardianAlbumInfoSheetProps) {
   const { infoSheet } = guardianAlbumContent;
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) setShouldRender(true);
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleNativeTabBlur = () => {
+      setShouldRender(false);
+      close();
+    };
+
+    window.addEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
+    window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
+      window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+    };
+  }, [close]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) close();
   };
+
+  if (!shouldRender) return null;
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
