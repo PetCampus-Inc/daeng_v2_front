@@ -15,6 +15,7 @@ import { useGuardianDailyNoticeMonthList } from '@views/guardian-daily-notice-li
 import { GuardianDailyNoticeListMonthEmpty } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthEmpty';
 import { GuardianDailyNoticeListMonthList } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthList';
 import { GuardianDailyNoticeListMonthNav } from '@views/guardian-daily-notice-list-page/ui/GuardianDailyNoticeListMonthNav';
+import { SafeArea } from '@shared/ui/safe-area';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import {
@@ -289,9 +290,14 @@ function GuardianDailyNoticeListPage() {
   };
 
   return (
-    <div className='bg-bg-50 web:pb-(--bottom-bar-height) relative flex h-dvh flex-col'>
+    <SafeArea className='bg-bg-50 relative flex h-dvh flex-col' edges={['top', 'bottom']}>
+      <div
+        aria-hidden
+        className='bg-bg-0 pointer-events-none absolute inset-x-0 top-0'
+        style={{ height: 'max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px))' }}
+      />
       <div className='sticky top-0 z-10 shrink-0'>
-        <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
+        <div className='bg-bg-0'>
           <Header className='border-b-0'>
             <Header.LeftSection>
               <Header.BackButton onClick={handleBack} />
@@ -356,7 +362,7 @@ function GuardianDailyNoticeListPage() {
           onClick={handleScrollTop}
         />
       </div>
-    </div>
+    </SafeArea>
   );
 }
 

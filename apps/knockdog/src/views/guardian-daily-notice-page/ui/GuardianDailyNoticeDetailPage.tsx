@@ -45,6 +45,8 @@ import {
 import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
+const SAFE_AREA_INSET_TOP = 'max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px))';
+
 interface VisibleCheckInState {
   isReady: boolean;
   hasCheckIn: boolean;
@@ -361,6 +363,8 @@ function GuardianDailyNoticeDetailPage() {
     <div
       className='flex h-dvh flex-col'
       style={{
+        marginTop: `calc(-1 * ${SAFE_AREA_INSET_TOP})`,
+        paddingTop: SAFE_AREA_INSET_TOP,
         background:
           'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
       }}
