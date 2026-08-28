@@ -105,7 +105,7 @@ function GuardianConnectionApplyStatusPage() {
   const isPageLoading = isAuthResolving || isLoading;
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
+    <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col'>
       <div className='bg-bg-0 shrink-0'>
         <Header>
           <Header.BackButton onClick={handleBack} />

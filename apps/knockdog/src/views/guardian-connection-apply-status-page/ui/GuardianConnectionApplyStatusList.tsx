@@ -10,7 +10,7 @@ interface GuardianConnectionApplyStatusListProps {
 
 function GuardianConnectionApplyStatusList({ items, onCancelClick }: GuardianConnectionApplyStatusListProps) {
   return (
-    <ul className='flex w-full flex-col gap-4 px-4 pt-5 pb-[calc(2rem+var(--safe-area-inset-bottom,0px))]'>
+    <ul className='flex w-full flex-col gap-4 px-4 pt-5 pb-[calc(0.5rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
       {items.map((item) => (
         <li key={item.id}>
           <GuardianConnectionApplyStatusCard item={item} onCancelClick={onCancelClick} />

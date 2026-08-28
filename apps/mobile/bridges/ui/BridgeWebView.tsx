@@ -65,12 +65,14 @@ function buildHistoryStateInjector(state?: InitialState) {
 /** Safe Area Insets 주입 스크립트 */
 function buildSafeAreaInjector(insets: { top: number; bottom: number; left: number; right: number }) {
   const { top, bottom, left, right } = insets;
+  const platform = Platform.OS;
   return `
     (function(){
       var insets = { top: ${top}, bottom: ${bottom}, left: ${left}, right: ${right} };
       window.__SAFE_AREA_INSETS__ = insets;
       var root = document.documentElement;
       root.setAttribute('data-env', 'webview');
+      root.setAttribute('data-platform', '${platform}');
       var style = root.style;
       style.setProperty('--safe-area-inset-top', '${top}px');
       style.setProperty('--safe-area-inset-bottom', '${bottom}px');
@@ -165,6 +167,8 @@ export function BridgeWebView({
       originWhitelist={['*']}
       cacheEnabled
       geolocationEnabled
+      // AOS 시스템 글자 크기 설정을 WebView에 반영하지 않음 (iOS와 동일하게 고정)
+      {...(Platform.OS === 'android' ? { textZoom: 100 } : {})}
       webviewDebuggingEnabled={__DEV__}
       injectedJavaScriptBeforeContentLoaded={Platform.OS === 'ios' ? INJECT_BEFORE : undefined}
       injectedJavaScript={Platform.OS === 'android' ? INJECT_BEFORE : undefined}

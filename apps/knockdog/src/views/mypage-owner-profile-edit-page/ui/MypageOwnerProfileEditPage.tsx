@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,14 +21,14 @@ import {
   OwnerProfileImageUploader,
   useOwnerProfile,
 } from '@features/role-conversion';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 
 function MypageOwnerProfileEditPage() {
   const { back } = useStackNavigation();
   const { profile, isReady } = useOwnerProfile();
   const isDirtyRef = useRef(false);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (!isDirtyRef.current) {
       back?.();
       return;
@@ -52,7 +52,9 @@ function MypageOwnerProfileEditPage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  };
+  }, [back]);
+
+  useNativeBackHandler(handleBack);
 
   return (
     <>
