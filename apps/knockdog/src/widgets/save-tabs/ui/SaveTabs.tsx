@@ -24,7 +24,7 @@ import type { FilterState } from '@features/bookmarked-list';
 import type { BookmarkItem } from '@entities/bookmark';
 import { useCompareStore } from '@shared/store';
 import { useUserStore, useAddUserAddressMutation, USER_ADDRESS_TYPE, type UserAddress } from '@entities/user';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
@@ -55,7 +55,32 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
     }
   };
 
-  const handleOpenNoHomeAddressDialog = () =>
+  const registerHomeAddressAndCompare = async () => {
+    let result: Omit<UserAddress, 'id'> | undefined;
+    try {
+      result = await pushForResult<Omit<UserAddress, 'id'>>(
+        { pathname: route.register.location.add.root, query: { type: USER_ADDRESS_TYPE.HOME } },
+        600_000
+      );
+    } catch {
+      // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+      return;
+    }
+    if (!result) return;
+
+    try {
+      await addAddressMutation.mutateAsync({ ...result, id: '0', type: USER_ADDRESS_TYPE.HOME });
+      await proceedToCompareMode();
+    } catch (error) {
+      console.error('장소 등록 실패:', error);
+      toast({
+        title: '일시적 오류로 요청을 완료하지 못했어요',
+        nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+      });
+    }
+  };
+
+  const openWebNoHomeAddressDialog = () =>
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
@@ -70,29 +95,7 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
             <AlertDialogAction
               onClick={async () => {
                 close();
-
-                let result: Omit<UserAddress, 'id'> | undefined;
-                try {
-                  result = await pushForResult<Omit<UserAddress, 'id'>>(
-                    { pathname: route.register.location.add.root, query: { type: USER_ADDRESS_TYPE.HOME } },
-                    600_000
-                  );
-                } catch {
-                  // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
-                  return;
-                }
-                if (!result) return;
-
-                try {
-                  await addAddressMutation.mutateAsync({ ...result, id: '0', type: USER_ADDRESS_TYPE.HOME });
-                  await proceedToCompareMode();
-                } catch (error) {
-                  console.error('장소 등록 실패:', error);
-                  toast({
-                    title: '일시적 오류로 요청을 완료하지 못했어요',
-                    nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
-                  });
-                }
+                await registerHomeAddressAndCompare();
               }}
             >
               등록하기
@@ -102,10 +105,28 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
       </AlertDialog>
     ));
 
+  const handleOpenNoHomeAddressDialog = async () => {
+    const result = await openConfirmDialog({
+      title: '등록된 장소가 없어요',
+      description: '장소를 등록하면\n유치원과의 거리를 비교할 수 있어요.',
+      cancelLabel: '나중에 하기',
+      confirmLabel: '등록하기',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void registerHomeAddressAndCompare();
+      return;
+    }
+
+    openWebNoHomeAddressDialog();
+  };
+
   const handleEnterCompareMode = async () => {
     const hasHomeAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.HOME);
     if (!hasHomeAddress) {
-      handleOpenNoHomeAddressDialog();
+      void handleOpenNoHomeAddressDialog();
       return;
     }
 

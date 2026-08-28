@@ -8,7 +8,7 @@ import { METHODS } from '@knockdog/bridge-core';
 import { useBlockingOverlayStore } from '@/features/blocking-overlay';
 
 let lastBlockingOverlayRequestId = 0;
-let lastAddressRegistrationDialogRequestId = 0;
+let lastConfirmDialogRequestId = 0;
 
 /**
  * 시스템 핸들러
@@ -25,11 +25,34 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     return { visible };
   });
 
-  router.register<{ requestId: number }>(METHODS.showAddressRegistrationDialog, async (params) => {
-    if (params.requestId < lastAddressRegistrationDialogRequestId) return { action: 'cancel' as const };
+  router.register<{
+    requestId: number;
+    title: string;
+    titleParts?: { text: string; accent?: boolean }[];
+    description?: string;
+    cancelLabel?: string;
+    confirmLabel?: string;
+    showCancelButton?: boolean;
+    confirmVariant?: 'accent' | 'neutral';
+    contentPaddingHorizontal?: number;
+    showAvatar?: boolean;
+    avatarUrl?: string;
+  }>(METHODS.showConfirmDialog, async (params) => {
+    if (params.requestId < lastConfirmDialogRequestId) return { action: 'cancel' as const };
 
-    lastAddressRegistrationDialogRequestId = params.requestId;
-    const action = await useBlockingOverlayStore.getState().showAddressRegistrationDialog();
+    lastConfirmDialogRequestId = params.requestId;
+    const action = await useBlockingOverlayStore.getState().showConfirmDialog({
+      title: params.title,
+      titleParts: params.titleParts,
+      description: params.description,
+      cancelLabel: params.cancelLabel,
+      confirmLabel: params.confirmLabel,
+      showCancelButton: params.showCancelButton,
+      confirmVariant: params.confirmVariant,
+      contentPaddingHorizontal: params.contentPaddingHorizontal,
+      showAvatar: params.showAvatar,
+      avatarUrl: params.avatarUrl,
+    });
     return { action };
   });
 

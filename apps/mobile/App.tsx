@@ -3,6 +3,7 @@ import { AppState, View } from 'react-native';
 import { NavigationContainer, type NavigationState, type PartialState } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Font from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context'; // ★ SafeAreaProvider 사용
 import { PortalProvider } from '@gorhom/portal'; // ★ 포털
@@ -40,8 +41,17 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        // 필요한 리소스(폰트, 이미지 프리로드 등) 로드 위치
-        // 예) await Font.loadAsync({ ... });
+        await Font.loadAsync({
+          'SUIT-Thin': require('./assets/fonts/SUIT-Thin.ttf'),
+          'SUIT-ExtraLight': require('./assets/fonts/SUIT-ExtraLight.ttf'),
+          'SUIT-Light': require('./assets/fonts/SUIT-Light.ttf'),
+          'SUIT-Regular': require('./assets/fonts/SUIT-Regular.ttf'),
+          'SUIT-Medium': require('./assets/fonts/SUIT-Medium.ttf'),
+          'SUIT-SemiBold': require('./assets/fonts/SUIT-SemiBold.ttf'),
+          'SUIT-Bold': require('./assets/fonts/SUIT-Bold.ttf'),
+          'SUIT-ExtraBold': require('./assets/fonts/SUIT-ExtraBold.ttf'),
+          'SUIT-Heavy': require('./assets/fonts/SUIT-Heavy.ttf'),
+        });
 
         // UX용 최소 노출 시간(선택)
         await new Promise((r) => setTimeout(r, 350));

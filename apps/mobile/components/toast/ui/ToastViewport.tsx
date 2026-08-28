@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { InteractionManager, View, Text, Pressable } from 'react-native';
+import { InteractionManager, View, Text, Pressable, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle, runOnJS } from 'react-native-reanimated';
@@ -26,6 +26,16 @@ const tokens = {
     bottomAboveNav: 55, // 네비게이션 바 위 (네비게이션 바 높이 + 여백)
   },
 };
+
+const toastTextStyle = {
+  fontFamily: 'SUIT-Medium',
+  fontSize: 16,
+  lineHeight: 24,
+  letterSpacing: -0.16,
+};
+
+// AOS 시스템 글자 크기 설정이 고정 lineHeight 레이아웃을 깨뜨리는 것을 방지 (QA3-198과 동일 정책, iOS 미적용)
+const ALLOW_FONT_SCALING = Platform.OS !== 'android';
 
 export function ToastViewport({ store, position }: { store: StoreApi<ToastState>; position: ToastPosition }) {
   const items = useStore(store, (s) => s.items);
@@ -161,12 +171,21 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
               )}
               <View style={{ flex: 1 }}>
                 {(!!item.titleParts?.length || !!item.title) && (
-                  <Text style={{ color: tokens.colors.fg, fontWeight: '500', marginBottom: item.description ? 4 : 0 }}>
+                  <Text
+                    allowFontScaling={ALLOW_FONT_SCALING}
+                    style={[toastTextStyle, { color: tokens.colors.fg, marginBottom: item.description ? 4 : 0 }]}
+                  >
                     {item.titleParts?.length
                       ? item.titleParts.map((part, index) => (
                           <Text
                             key={`${part.text}-${index}`}
-                            style={{ color: part.accent ? tokens.colors.accent : tokens.colors.fg, fontWeight: '500' }}
+                            allowFontScaling={ALLOW_FONT_SCALING}
+                            style={[
+                              toastTextStyle,
+                              part.accent
+                                ? { color: tokens.colors.accent, fontFamily: 'SUIT-Bold' }
+                                : { color: tokens.colors.fg },
+                            ]}
                           >
                             {part.text}
                           </Text>
@@ -174,7 +193,11 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
                       : item.title}
                   </Text>
                 )}
-                {!!item.description && <Text style={{ color: tokens.colors.fg }}>{item.description}</Text>}
+                {!!item.description && (
+                  <Text allowFontScaling={ALLOW_FONT_SCALING} style={[toastTextStyle, { color: tokens.colors.fg }]}>
+                    {item.description}
+                  </Text>
+                )}
               </View>
             </View>
           </Pressable>

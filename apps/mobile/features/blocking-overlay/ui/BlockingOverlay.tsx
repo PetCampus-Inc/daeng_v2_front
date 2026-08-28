@@ -1,10 +1,13 @@
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { Portal } from '@gorhom/portal';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import { useBlockingOverlayStore } from '../model/blockingOverlayStore';
 
 const AnimatedSvg = Animated.createAnimatedComponent(Svg);
+
+// AOS 시스템 글자 크기 설정이 고정 lineHeight 레이아웃을 깨뜨리는 것을 방지 (QA3-198과 동일 정책, iOS 미적용)
+const ALLOW_FONT_SCALING = Platform.OS !== 'android';
 
 function RingLoadingSpinner() {
   const rotation = useRef(new Animated.Value(0)).current;
@@ -37,9 +40,53 @@ function RingLoadingSpinner() {
   );
 }
 
+/** 웹 packages/icons의 Paw 아이콘과 동일한 path (프로필 이미지 없을 때 아바타 fallback용) */
+function PawIcon({ size = 20, color = '#DEDEE3' }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox='0 0 24 24' fill='none'>
+      <Ellipse
+        cx='2.30077'
+        cy='3.06816'
+        rx='2.30077'
+        ry='3.06816'
+        transform='matrix(0.996198 -0.0871178 0.0871937 0.996191 6.59668 3.40088)'
+        fill={color}
+      />
+      <Ellipse
+        cx='2.30074'
+        cy='3.06821'
+        rx='2.30074'
+        ry='3.06821'
+        transform='matrix(0.978166 -0.207824 0.207999 0.978129 2 8.11441)'
+        fill={color}
+      />
+      <Ellipse
+        cx='2.30074'
+        cy='3.06821'
+        rx='2.30074'
+        ry='3.06821'
+        transform='matrix(-0.978166 -0.207824 -0.207999 0.978129 22 8.11441)'
+        fill={color}
+      />
+      <Path
+        d='M15.3744 11.4579C14.6474 10.489 13.8396 9.84311 11.6587 9.84311C9.51806 9.96422 8.62958 11.4579 7.98337 12.7498C7.33716 14.0416 6.48904 14.2839 5.64083 15.5353C4.97923 16.5115 4.99462 18.3209 5.64083 19.209C6.28704 20.0972 7.37752 20.2587 8.50838 20.2587C9.63925 20.2587 10.6893 19.6127 11.9414 19.6127C13.1934 19.6127 13.88 20.0568 15.0109 20.2587C16.1417 20.4605 17.4745 20.299 18.4035 19.209C19.3324 18.119 19.0093 15.6161 17.6361 14.6068C16.2629 13.5976 16.1013 12.4268 15.3744 11.4579Z'
+        fill={color}
+      />
+      <Ellipse
+        cx='2.30077'
+        cy='3.06816'
+        rx='2.30077'
+        ry='3.06816'
+        transform='matrix(-0.996198 -0.0871178 -0.0871937 0.996191 17.4648 3.40088)'
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
 function BlockingOverlay() {
   const content = useBlockingOverlayStore((state) => state.content);
-  const resolveAddressRegistrationDialog = useBlockingOverlayStore((state) => state.resolveAddressRegistrationDialog);
+  const resolveConfirmDialog = useBlockingOverlayStore((state) => state.resolveConfirmDialog);
 
   if (!content) return null;
 
@@ -49,26 +96,70 @@ function BlockingOverlay() {
         {content.kind === 'upload' ? (
           <View style={styles.uploadContent} accessibilityLabel={content.message}>
             <RingLoadingSpinner />
-            <Text style={styles.uploadMessage}>{content.message}</Text>
+            <Text style={styles.uploadMessage} allowFontScaling={ALLOW_FONT_SCALING}>
+              {content.message}
+            </Text>
           </View>
         ) : (
-          <View style={styles.addressDialogContent} accessibilityLabel='등록된 장소가 없어요'>
-            <View style={styles.addressDialogHeader}>
-              <Text style={styles.addressDialogTitle}>등록된 장소가 없어요</Text>
-              <Text style={styles.addressDialogDescription}>장소를 등록하면{`\n`}가까운 유치원을 찾을 수 있어요.</Text>
+          <View style={styles.confirmDialogContent} accessibilityLabel={content.title}>
+            <View
+              style={[
+                styles.confirmDialogHeader,
+                content.contentPaddingHorizontal != null && { paddingHorizontal: content.contentPaddingHorizontal },
+              ]}
+            >
+              {content.showAvatar && (
+                <View style={styles.confirmDialogAvatar}>
+                  {content.avatarUrl ? (
+                    <Image source={{ uri: content.avatarUrl }} style={styles.confirmDialogAvatarImage} />
+                  ) : (
+                    <PawIcon />
+                  )}
+                </View>
+              )}
+              <Text style={styles.confirmDialogTitle} allowFontScaling={ALLOW_FONT_SCALING}>
+                {content.titleParts
+                  ? content.titleParts.map((part, index) => (
+                      <Text key={index} style={part.accent ? styles.confirmDialogTitleAccent : undefined}>
+                        {part.text}
+                      </Text>
+                    ))
+                  : content.title}
+              </Text>
+              {content.description && (
+                <Text style={styles.confirmDialogDescription} allowFontScaling={ALLOW_FONT_SCALING}>
+                  {content.description}
+                </Text>
+              )}
             </View>
-            <View style={styles.addressDialogFooter}>
+            <View
+              style={[
+                styles.confirmDialogFooter,
+                content.contentPaddingHorizontal != null && { paddingHorizontal: content.contentPaddingHorizontal },
+              ]}
+            >
+              {content.showCancelButton !== false && (
+                <Pressable
+                  style={[styles.confirmDialogButton, styles.confirmDialogCancelButton]}
+                  onPress={() => resolveConfirmDialog('cancel')}
+                >
+                  <Text style={styles.confirmDialogCancelButtonText} allowFontScaling={ALLOW_FONT_SCALING}>
+                    {content.cancelLabel ?? '취소'}
+                  </Text>
+                </Pressable>
+              )}
               <Pressable
-                style={[styles.addressDialogButton, styles.addressDialogCancelButton]}
-                onPress={() => resolveAddressRegistrationDialog('cancel')}
+                style={[
+                  styles.confirmDialogButton,
+                  content.confirmVariant === 'neutral'
+                    ? styles.confirmDialogActionButtonNeutral
+                    : styles.confirmDialogActionButton,
+                ]}
+                onPress={() => resolveConfirmDialog('confirm')}
               >
-                <Text style={styles.addressDialogCancelButtonText}>나중에 하기</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.addressDialogButton, styles.addressDialogActionButton]}
-                onPress={() => resolveAddressRegistrationDialog('register')}
-              >
-                <Text style={styles.addressDialogActionButtonText}>등록하기</Text>
+                <Text style={styles.confirmDialogActionButtonText} allowFontScaling={ALLOW_FONT_SCALING}>
+                  {content.confirmLabel ?? '확인'}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -84,7 +175,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(15, 20, 26, 0.7)',
-    paddingHorizontal: 40,
   },
   uploadContent: {
     width: '100%',
@@ -98,14 +188,14 @@ const styles = StyleSheet.create({
   },
   uploadMessage: {
     color: '#1C1C1E',
+    fontFamily: 'SUIT-Bold',
     fontSize: 16,
-    fontWeight: '700',
     lineHeight: 22,
     textAlign: 'center',
   },
-  addressDialogContent: {
+  confirmDialogContent: {
     width: '100%',
-    maxWidth: 334,
+    maxWidth: 358,
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000000',
@@ -114,60 +204,81 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 5,
   },
-  addressDialogHeader: {
+  confirmDialogHeader: {
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 20,
     paddingTop: 28,
   },
-  addressDialogTitle: {
+  confirmDialogAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#F9F9FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    marginBottom: 16, // + header의 gap(8) = 아바타-제목 사이 24px
+  },
+  confirmDialogAvatarImage: {
+    width: 52,
+    height: 52,
+  },
+  confirmDialogTitle: {
     color: '#15161B',
+    fontFamily: 'SUIT-ExtraBold',
     fontSize: 20,
-    fontWeight: '800',
     letterSpacing: -0.4,
     lineHeight: 28,
+    textAlign: 'center',
   },
-  addressDialogDescription: {
+  confirmDialogTitleAccent: {
+    color: '#FF6E0C',
+  },
+  confirmDialogDescription: {
     color: '#70727C',
+    fontFamily: 'SUIT-Regular',
     fontSize: 16,
-    fontWeight: '400',
     letterSpacing: -0.16,
     lineHeight: 24,
     textAlign: 'center',
   },
-  addressDialogFooter: {
+  confirmDialogFooter: {
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 28,
   },
-  addressDialogButton: {
+  confirmDialogButton: {
     flex: 1,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
   },
-  addressDialogCancelButton: {
+  confirmDialogCancelButton: {
     borderWidth: 1,
     borderColor: '#B4B4BB',
     backgroundColor: '#FFFFFF',
   },
-  addressDialogActionButton: {
+  confirmDialogActionButton: {
     backgroundColor: '#FF6E0C',
   },
-  addressDialogCancelButtonText: {
+  confirmDialogActionButtonNeutral: {
+    backgroundColor: '#41424A',
+  },
+  confirmDialogCancelButtonText: {
     color: '#70727C',
+    fontFamily: 'SUIT-Bold',
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: -0.16,
     lineHeight: 24,
   },
-  addressDialogActionButtonText: {
+  confirmDialogActionButtonText: {
     color: '#FFFFFF',
+    fontFamily: 'SUIT-Bold',
     fontSize: 16,
-    fontWeight: '700',
     letterSpacing: -0.16,
     lineHeight: 24,
   },

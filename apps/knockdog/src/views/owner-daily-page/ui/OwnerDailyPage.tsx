@@ -6,8 +6,10 @@ import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger }
 import { overlay } from 'overlay-kit';
 
 import { STORAGE_KEYS } from '@shared/constants/storage';
+import { openConfirmDialog } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
 import { safeLocalStorage } from '@shared/lib/storage';
+import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
@@ -86,8 +88,26 @@ function OwnerDailyPage() {
     todayAttendanceMembers,
   } = useOwnerDailyPage();
 
-  const handleCancelCheckIn = (member: AttendanceMember) => {
+  const handleCancelCheckIn = async (member: AttendanceMember) => {
     if (!canOpenCancelCheckInDialog(member)) return;
+
+    const result = await openConfirmDialog({
+      title: `${ellipsisText(member.name, 8)}의 등원을 취소할까요?`,
+      titleParts: [{ text: ellipsisText(member.name, 8), accent: true }, { text: '의 등원을 취소할까요?' }],
+      description: '취소하면 등원 전 상태로 돌아가요.',
+      cancelLabel: '닫기',
+      confirmLabel: '등원 취소',
+      contentPaddingHorizontal: 16,
+      showAvatar: true,
+      avatarUrl: member.profileImageUrl,
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void cancelCheckIn(member, () => {});
+      return;
+    }
 
     overlay.open(({ isOpen, close }) => (
       <OwnerDailyCancelCheckInDialog
@@ -108,7 +128,25 @@ function OwnerDailyPage() {
     handleCheckIn(member);
   };
 
-  const handleCancelCheckOut = (member: AttendanceMember) => {
+  const handleCancelCheckOut = async (member: AttendanceMember) => {
+    const result = await openConfirmDialog({
+      title: `${ellipsisText(member.name, 8)}의 하원을 취소할까요?`,
+      titleParts: [{ text: ellipsisText(member.name, 8), accent: true }, { text: '의 하원을 취소할까요?' }],
+      description: '취소하면 재원 중 상태로 돌아가요.',
+      cancelLabel: '닫기',
+      confirmLabel: '하원 취소',
+      contentPaddingHorizontal: 16,
+      showAvatar: true,
+      avatarUrl: member.profileImageUrl,
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void cancelCheckOut(member, () => {});
+      return;
+    }
+
     overlay.open(({ isOpen, close }) => (
       <OwnerDailyCancelCheckOutDialog
         member={member}

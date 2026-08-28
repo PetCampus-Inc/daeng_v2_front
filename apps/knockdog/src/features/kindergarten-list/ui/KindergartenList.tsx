@@ -15,7 +15,6 @@ import {
   SegmentedControlItem,
 } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { METHODS } from '@knockdog/bridge-core';
 import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
 import { KindergartenListItem } from './KindergartenListItem';
@@ -39,8 +38,7 @@ import {
 import { LocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
 import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
 import { type BasePointType, useBasePointType } from '@shared/store';
-import { useBridge, useStackNavigation } from '@shared/lib/bridge';
-import { isNativeWebView } from '@shared/lib/device';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 import { ellipsisText, tokenUtils } from '@shared/utils';
@@ -50,15 +48,12 @@ interface KindergartenListProps {
   onOpenFilter: () => void;
 }
 
-let lastAddressRegistrationDialogRequestId = 0;
-
 export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-  const bridge = useBridge();
   const { push, pushForResult } = useStackNavigation();
   const user = useUserStore((s) => s.user);
   const addAddressMutation = useAddUserAddressMutation();
@@ -141,19 +136,22 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     }
   };
 
-  const handleOpenAlertDialog = (type: UserAddressType, useNativeDialog = true) => {
-    if (isNativeWebView() && useNativeDialog) {
-      lastAddressRegistrationDialogRequestId = Math.max(Date.now(), lastAddressRegistrationDialogRequestId + 1);
-      void bridge
-        .request(METHODS.showAddressRegistrationDialog, { requestId: lastAddressRegistrationDialogRequestId })
-        .then(({ action }) => {
-          if (action === 'register') void handleAddressRegistration(type);
-        })
-        .catch(() => handleOpenAlertDialog(type, false));
+  const handleOpenAlertDialog = async (type: UserAddressType) => {
+    const result = await openConfirmDialog({
+      title: '등록된 장소가 없어요',
+      description: '장소를 등록하면\n가까운 유치원을 찾을 수 있어요.',
+      cancelLabel: '나중에 하기',
+      confirmLabel: '등록하기',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void handleAddressRegistration(type);
       return;
     }
 
-    return overlay.open(({ isOpen, close }) => {
+    overlay.open(({ isOpen, close }) => {
       const closeDialog = () => {
         close();
       };

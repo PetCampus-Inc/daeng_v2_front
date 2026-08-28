@@ -22,7 +22,7 @@ const METHODS = {
   openSettings: 'system.openSettings',
   getAppVersion: 'system.getAppVersion',
   setBlockingOverlay: 'system.setBlockingOverlay',
-  showAddressRegistrationDialog: 'system.showAddressRegistrationDialog',
+  showConfirmDialog: 'system.showConfirmDialog',
 
   // navigation
   navPush: 'system.navPush',
