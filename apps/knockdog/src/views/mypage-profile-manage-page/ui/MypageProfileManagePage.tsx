@@ -27,7 +27,7 @@ import { DogSelectSheet } from '@features/dog-profile';
 import { usePetRepresentativeQuery, RELATIONSHIP_LABEL, usePetListQuery } from '@entities/pet';
 import { useUserInfoQuery, useUserStore, useUserUpdateUserEmailMutation } from '@entities/user';
 import { useSocialUserStore, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
-import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { logout } from '@shared/lib/auth/logout';
 
 function MypageProfileManagePage() {
@@ -58,30 +58,52 @@ function MypageProfileManagePage() {
     setIsEditingEmail(false);
   }, [user?.userId, userInfo?.infoRcvEmail]);
 
-  const handleLogout = () => {
+  const performLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      await navigateToTab('/');
+    }
+  };
+
+  const openWebLogoutDialog = () => {
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>로그아웃하시겠습니까?</AlertDialogTitle>
+            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogCancel>아니오</AlertDialogCancel>
             <AlertDialogAction
-              onClick={async () => {
-                try {
-                  await logout();
-                } finally {
-                  await navigateToTab('/');
-                }
+              onClick={() => {
+                close();
+                void performLogout();
               }}
             >
-              확인
+              예
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     ));
+  };
+
+  const handleLogout = async () => {
+    const result = await openConfirmDialog({
+      title: '로그아웃 할까요?',
+      cancelLabel: '아니오',
+      confirmLabel: '예',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') await performLogout();
+      return;
+    }
+
+    openWebLogoutDialog();
   };
 
   const handleNicknameClick = () => {

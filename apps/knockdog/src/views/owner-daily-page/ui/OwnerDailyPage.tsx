@@ -8,7 +8,7 @@ import { overlay } from 'overlay-kit';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
-import { safeLocalStorage } from '@shared/lib/storage';
+import { safeSessionStorage } from '@shared/lib/storage';
 import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
@@ -29,13 +29,13 @@ function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
 }
 
 function readPersistedOwnerDailyTab(): OwnerDailyTab | null {
-  const value = safeLocalStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
+  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
   if (value === 'today-attendance' || value === 'attendance-check') return value;
   return null;
 }
 
 function persistOwnerDailyTab(tab: OwnerDailyTab) {
-  safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
+  safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
 }
 
 function resolveInitialOwnerDailyTab(rawTab: string | null): OwnerDailyTab {

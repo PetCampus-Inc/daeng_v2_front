@@ -1,6 +1,5 @@
 import type { FilterState } from '../model/filterState';
-import type { UserAddress } from '@entities/user';
-import { useUserStore } from '@entities/user';
+import { resolveAddressAlias, useUserStore } from '@entities/user';
 import type { ReferencePointType } from '@entities/compare';
 import { Dropdown } from '@shared/ui/dropdown';
 
@@ -9,12 +8,15 @@ export function FilterBar({ refPoint, onChangeRefPoint, showMemoOnly, onMemoTogg
   const savedAddresses = user?.addresses;
 
   const refPointOptions = (savedAddresses ?? [])
-    .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
-    .map(({ type, alias }) => ({
-      value: type as ReferencePointType,
-      label: alias,
-      displayLabel: `거리기준: ${alias}`,
-    }));
+    .filter((addr) => !!addr.alias)
+    .map(({ type, alias }) => {
+      const label = resolveAddressAlias(type, alias);
+      return {
+        value: type as ReferencePointType,
+        label,
+        displayLabel: `거리기준: ${label}`,
+      };
+    });
 
   return (
     <div className='border-line-200 flex items-center justify-between border-y bg-white px-4 py-2'>

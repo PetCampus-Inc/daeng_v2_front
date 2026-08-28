@@ -86,6 +86,7 @@ export {
   USER_STATUS,
   USER_ADDRESS_TYPE,
   WITHDRAW_REASON_TYPE,
+  resolveAddressAlias,
   type User,
   type UserStatus,
   type UserAddress,

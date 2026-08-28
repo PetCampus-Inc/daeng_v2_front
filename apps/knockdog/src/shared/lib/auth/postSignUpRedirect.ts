@@ -39,8 +39,19 @@ function savePostSignUpRedirect(pathname: string | undefined) {
 
 /** 신규 가입 완료 후 돌아갈 경로를 한 번만 꺼낸다. */
 function consumePostSignUpRedirect(): string | null {
-  const redirect = postSignUpRedirectStorage.get();
+  const redirect = peekPostSignUpRedirect();
   postSignUpRedirectStorage.clear();
+
+  return redirect;
+}
+
+/**
+ * 저장된 경로를 지우지 않고 확인만 한다.
+ * 이동이 실제로 성공한 뒤에만 `clearPostSignUpRedirect`로 지워서,
+ * 네비게이션 실패 시에도 다음 시도에서 다시 소비할 수 있게 한다.
+ */
+function peekPostSignUpRedirect(): string | null {
+  const redirect = postSignUpRedirectStorage.get();
 
   if (!redirect || redirect.expiresAt < Date.now()) return null;
 
@@ -51,4 +62,10 @@ function clearPostSignUpRedirect() {
   postSignUpRedirectStorage.clear();
 }
 
-export { clearPostSignUpRedirect, consumePostSignUpRedirect, getInternalRedirect, savePostSignUpRedirect };
+export {
+  clearPostSignUpRedirect,
+  consumePostSignUpRedirect,
+  getInternalRedirect,
+  peekPostSignUpRedirect,
+  savePostSignUpRedirect,
+};

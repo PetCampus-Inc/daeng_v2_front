@@ -25,6 +25,11 @@ const STACK_SAFE_AREA_THEME_RULES: readonly StackSafeAreaThemeRule[] = [
     matches: (pathname) => /^\/notification(?:\/|$)/.test(pathname),
     theme: { topBackgroundClassName: 'bg-bg-0', bottomBackgroundClassName: 'bg-bg-50' },
   },
+  {
+    // 연결신청현황: 하단은 본문(bg-bg-50)과 맞춤
+    matches: (pathname) => /^\/guardian\/connection-apply\/status(?:\/|$)/.test(pathname),
+    theme: { bottomBackgroundClassName: 'bg-bg-50' },
+  },
 ];
 
 const DEFAULT_STACK_SAFE_AREA_THEME: StackSafeAreaTheme = {};

@@ -60,7 +60,7 @@ import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { useStackNavigation, useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
-import { safeLocalStorage } from '@shared/lib/storage';
+import { safeSessionStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
@@ -331,7 +331,7 @@ function OwnerDailyNoticeWritePage() {
   draftRef.current = currentDraft;
 
   const returnToOwnerDailyTodayAttendance = useCallback(async () => {
-    safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
+    safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
 
     if (isNative) {
       await reset(route.owner.daily.root);

@@ -5,6 +5,8 @@ const ADDRESS_MAX_LENGTH = 50;
 /** 공백은 일반 스페이스만 — 줄바꿈/탭 거부. 이모지는 범위 밖이라 자동 제외 */
 const NAME_ALLOWED_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z0-9!-/:-@\[-`{-~ ]+/g;
 const ALLOWED_TEXT_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z0-9!-/:-@\[-`{-~\s]/g;
+// representative name: allow Hangul, English letters, and space only (no digits/symbols)
+const REPRESENTATIVE_NAME_ALLOWED_PATTERN = /[\uAC00-\uD7A3\u3131-\u318Ea-zA-Z ]/g;
 
 function extractAllowedText(value: string, maxLength: number, pattern = ALLOWED_TEXT_PATTERN) {
   return (value.match(pattern) ?? []).join('').slice(0, maxLength);
@@ -17,7 +19,7 @@ function formatName(value: string) {
 }
 
 function formatRepresentativeName(value: string) {
-  return extractAllowedText(value, REPRESENTATIVE_NAME_MAX_LENGTH);
+  return extractAllowedText(value, REPRESENTATIVE_NAME_MAX_LENGTH, REPRESENTATIVE_NAME_ALLOWED_PATTERN);
 }
 
 function formatAddress(value: string) {
