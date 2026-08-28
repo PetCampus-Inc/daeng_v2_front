@@ -118,7 +118,7 @@ function BlockingOverlay() {
                 </View>
               )}
               <Text style={styles.confirmDialogTitle} allowFontScaling={ALLOW_FONT_SCALING}>
-                {content.titleParts
+                {content.titleParts?.length
                   ? content.titleParts.map((part, index) => (
                       <Text key={index} style={part.accent ? styles.confirmDialogTitleAccent : undefined}>
                         {part.text}
