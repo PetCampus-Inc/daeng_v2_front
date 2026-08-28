@@ -184,7 +184,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
   };
 
   return (
-    <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-50 flex min-h-0 flex-1 flex-col overflow-hidden'>
       <div className='bg-bg-50 shrink-0'>
         <Header className='bg-bg-50'>
           <Header.LeftSection>
@@ -194,7 +194,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
         </Header>
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col px-4'>
+      <div className='flex min-h-0 flex-1 flex-col overflow-hidden px-4'>
         <section className='flex shrink-0 flex-col gap-2 py-4'>
           <FieldLabel label={ownerDailyNoticeTemplateCreateContent.titleSectionLabel} />
           <TextField variant='default' className='h-x13 focus-within:!border-line-200'>

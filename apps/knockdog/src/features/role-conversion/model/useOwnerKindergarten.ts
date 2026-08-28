@@ -15,6 +15,7 @@ import {
   toS3Url,
   useOwnerSchoolProfileQuery,
 } from '@entities/owner-school';
+import { dedupeBannerKeys } from '@entities/kindergarten';
 import { useUserStore } from '@entities/user';
 
 /**
@@ -63,11 +64,13 @@ function useOwnerKindergarten() {
   });
 
   const main = mainQuery.data;
-  const profileBannerKeys = [...(profile?.profileImages ?? [])]
-    .sort((left, right) => left.displayOrder - right.displayOrder)
-    .map((image) => image.s3Key)
-    .filter(Boolean);
-  const bannerKeys = isSelected ? (main?.banner ?? []) : profileBannerKeys;
+  const profileBannerKeys = dedupeBannerKeys(
+    [...(profile?.profileImages ?? [])]
+      .sort((left, right) => left.displayOrder - right.displayOrder)
+      .map((image) => image.s3Key)
+      .filter(Boolean)
+  );
+  const bannerKeys = isSelected ? dedupeBannerKeys(main?.banner ?? []) : profileBannerKeys;
   const profileImageUrl = profile ? resolveThumbnailUrl(profile) : null;
   const displayBannerKeys = profileBannerKeys.length > 0 ? profileBannerKeys : bannerKeys;
   const imageUrls = displayBannerKeys
@@ -159,13 +162,8 @@ function useOwnerKindergarten() {
       ? placeBasic
       : profileBasic;
 
-  /** profile 배너가 비면 place main.banner 폴백 (저장본만 보고 [] 되는 문제 방지) */
-  const autofillBannerKeys =
-    profileBannerKeys.length > 0
-      ? profileBannerKeys
-      : isSelected
-        ? (main?.banner ?? [])
-        : profileBannerKeys;
+  /** profile 배너가 비면 dedupe된 place bannerKeys 폴백 (저장본만 보고 [] 되는 문제 방지) */
+  const autofillBannerKeys = profileBannerKeys.length > 0 ? profileBannerKeys : bannerKeys;
 
   const needsPlaceBannerFallback =
     isSelected && profileBannerKeys.length === 0 && Boolean(resolvedPlaceId);

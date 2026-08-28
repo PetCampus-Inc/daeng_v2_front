@@ -181,51 +181,58 @@ function GuardianKindergartenDateCalendar({
   const { from, to, visibleDateKeys } = visibleRange;
   const isVisibleRangeValid = from <= to;
 
-  const shouldFetchMarks =
+  const shouldFetchCheckInMarks =
     fetchRecordMarks &&
     markedDateKeysProp == null &&
     Boolean(selectedPetId) &&
+    Boolean(schoolId) &&
+    isVisibleRangeValid;
+
+  const shouldFetchRecordMarks =
+    fetchRecordMarks &&
+    markedDateKeysProp == null &&
+    Boolean(selectedPetId) &&
+    !schoolId &&
     isVisibleRangeValid;
 
   const { data: recordDateSet } = useAttendanceRecordDatesQuery({
     petId: selectedPetId ?? undefined,
     from,
     to,
-    enabled: shouldFetchMarks && !onlyCheckInDatesSelectable,
+    enabled: shouldFetchRecordMarks,
   });
 
-  const canFetchCheckIns =
-    onlyCheckInDatesSelectable && Boolean(selectedPetId) && Boolean(schoolId);
   const { checkInDateKeys, isReady: isCheckInKeysReady } = useGuardianCalendarCheckInDateKeys({
     petId: selectedPetId,
     schoolId,
     dateKeys: visibleDateKeys,
-    enabled: canFetchCheckIns,
+    enabled: shouldFetchCheckInMarks,
   });
-  const isCheckInReady = !onlyCheckInDatesSelectable || (canFetchCheckIns && isCheckInKeysReady);
+  const isCheckInReady = !onlyCheckInDatesSelectable || (shouldFetchCheckInMarks && isCheckInKeysReady);
 
   const markedDateKeys = useMemo(() => {
-    if (onlyCheckInDatesSelectable && isCheckInReady) {
-      return (
-        filterDateKeysByRange(checkInDateKeys, markMinKey, markMaxKey) ?? new Set<string>()
-      );
-    }
-    if (!isVisibleRangeValid && markedDateKeysProp == null) {
-      return new Set<string>();
-    }
     if (markedDateKeysProp) {
       return filterDateKeysByRange(markedDateKeysProp, markMinKey, markMaxKey);
+    }
+    if (!isVisibleRangeValid) {
+      return new Set<string>();
+    }
+    if (schoolId) {
+      if (!isCheckInKeysReady) {
+        return new Set<string>();
+      }
+      return filterDateKeysByRange(checkInDateKeys, markMinKey, markMaxKey) ?? new Set<string>();
     }
     return filterDateKeysByRange(recordDateSet, markMinKey, markMaxKey);
   }, [
     checkInDateKeys,
-    isCheckInReady,
+    isCheckInKeysReady,
     isVisibleRangeValid,
     markMaxKey,
     markMinKey,
     markedDateKeysProp,
-    onlyCheckInDatesSelectable,
     recordDateSet,
+    schoolId,
   ]);
 
   // 로딩 중엔 제한하지 않고, 준비되면 등원 시각 있는 날만 활성 (+ membership 기간)

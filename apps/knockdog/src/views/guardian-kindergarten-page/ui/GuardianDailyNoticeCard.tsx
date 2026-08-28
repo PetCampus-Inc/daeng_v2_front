@@ -95,7 +95,7 @@ function GuardianDailyNoticeTimelineCard({
             </div>
           ) : null}
           {previewText ? (
-            <p className='body2-regular text-text-primary line-clamp-2 w-full'>{previewText}</p>
+            <p className='body2-regular text-text-primary line-clamp-2 w-full whitespace-pre-wrap'>{previewText}</p>
           ) : null}
         </div>
         <button

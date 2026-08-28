@@ -34,14 +34,16 @@ function isSameYearMonthKey(dateKey: string, month: Date) {
  * 같은 날 connect+disconnect 분기:
  * - 단일 사이클 당일 종료: 해제 → 사진 → 시작
  * - 해제 후 재연결(다른 사이클이 같은 날 시작, 이후 종료돼도 동일): 시작 → 해제 → 사진
+ *
+ * 동일 날짜의 connectedAt/disconnectedAt은 period가 여러 개여도 배너 1개만 노출.
  */
 function buildGuardianAlbumMonthTimeline(
   days: GuardianAlbumDayAlbum[],
   periods: GuardianAlbumMembershipPeriod[],
   selectedMonth: Date
 ): GuardianAlbumTimelineRow[] {
-  const connectedByDate = new Map<string, number>();
-  const disconnectedByDate = new Map<string, number>();
+  const connectedDates = new Set<string>();
+  const disconnectedDates = new Set<string>();
   /** 같은 날 이전 사이클 해제 후 다른 사이클이 시작한 날짜(재연결 최신) */
   const hasReconnectOnDate = new Set<string>();
 
@@ -55,13 +57,10 @@ function buildGuardianAlbumMonthTimeline(
 
   for (const { connectedKey, disconnectedKey } of periodDateKeys) {
     if (isSameYearMonthKey(connectedKey, selectedMonth)) {
-      connectedByDate.set(connectedKey, (connectedByDate.get(connectedKey) ?? 0) + 1);
+      connectedDates.add(connectedKey);
     }
     if (disconnectedKey && isSameYearMonthKey(disconnectedKey, selectedMonth)) {
-      disconnectedByDate.set(
-        disconnectedKey,
-        (disconnectedByDate.get(disconnectedKey) ?? 0) + 1
-      );
+      disconnectedDates.add(disconnectedKey);
     }
   }
 
@@ -82,39 +81,33 @@ function buildGuardianAlbumMonthTimeline(
 
   const dayByKey = new Map(days.map((day) => [day.dateKey, day] as const));
   const dateKeys = Array.from(
-    new Set([
-      ...dayByKey.keys(),
-      ...connectedByDate.keys(),
-      ...disconnectedByDate.keys(),
-    ])
+    new Set([...dayByKey.keys(), ...connectedDates, ...disconnectedDates])
   ).sort((left, right) => (left < right ? 1 : left > right ? -1 : 0));
 
   const rows: GuardianAlbumTimelineRow[] = [];
 
   for (const dateKey of dateKeys) {
-    const disconnectedCount = disconnectedByDate.get(dateKey) ?? 0;
-    const connectedCount = connectedByDate.get(dateKey) ?? 0;
+    const hasDisconnected = disconnectedDates.has(dateKey);
+    const hasConnected = connectedDates.has(dateKey);
     const day = dayByKey.get(dateKey);
     const isReconnectNewest =
-      disconnectedCount > 0 && connectedCount > 0 && hasReconnectOnDate.has(dateKey);
+      hasDisconnected && hasConnected && hasReconnectOnDate.has(dateKey);
 
     const pushDisconnected = () => {
-      for (let index = 0; index < disconnectedCount; index += 1) {
-        rows.push({
-          type: 'disconnected',
-          id: `disconnected-${dateKey}-${index}`,
-          dateKey,
-        });
-      }
+      if (!hasDisconnected) return;
+      rows.push({
+        type: 'disconnected',
+        id: `disconnected-${dateKey}`,
+        dateKey,
+      });
     };
     const pushConnected = () => {
-      for (let index = 0; index < connectedCount; index += 1) {
-        rows.push({
-          type: 'connected',
-          id: `connected-${dateKey}-${index}`,
-          dateKey,
-        });
-      }
+      if (!hasConnected) return;
+      rows.push({
+        type: 'connected',
+        id: `connected-${dateKey}`,
+        dateKey,
+      });
     };
     const pushDay = () => {
       if (!day) return;

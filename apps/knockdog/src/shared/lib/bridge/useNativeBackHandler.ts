@@ -21,4 +21,23 @@ function useNativeBackHandler(handler: () => void) {
   }, [handler]);
 }
 
-export { useNativeBackHandler, NATIVE_BACK_EVENT };
+/**
+ * 열린 바텀시트/오버레이에서 AOS 뒤로가기로 닫기.
+ * capture 단계에서 상위 페이지 `useNativeBackHandler`보다 먼저 소비한다.
+ */
+function useNativeBackToClose(isOpen: boolean, onClose: () => void) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onNativeBack = (event: Event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    };
+
+    window.addEventListener(NATIVE_BACK_EVENT, onNativeBack, true);
+    return () => window.removeEventListener(NATIVE_BACK_EVENT, onNativeBack, true);
+  }, [isOpen, onClose]);
+}
+
+export { useNativeBackHandler, useNativeBackToClose, NATIVE_BACK_EVENT };
