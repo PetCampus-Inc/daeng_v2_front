@@ -337,7 +337,7 @@ function GuardianDailyNoticeListPage() {
       <div className='relative min-h-0 flex-1'>
         <div
           ref={scrollRef}
-          className='bg-bg-50 flex h-full flex-col overflow-y-auto'
+          className='bg-bg-50 web:pb-(--bottom-bar-height) flex h-full flex-col overflow-y-auto'
           onScroll={handleScroll}
           aria-label={content.listAriaLabel}
         >

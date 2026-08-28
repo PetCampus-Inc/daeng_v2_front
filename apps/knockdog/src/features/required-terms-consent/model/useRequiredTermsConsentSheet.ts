@@ -7,7 +7,7 @@ import {
   useUserAgreementsStatusQuery,
   useUserStore,
 } from '@entities/user';
-import { consumePostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { clearPostSignUpRedirect, consumePostSignUpRedirect, peekPostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -92,10 +92,19 @@ function useRequiredTermsConsentSheet() {
   useEffect(() => {
     if (!userId || !agreementsStatusQuery.isSuccess || !hasAgreedRequiredTerms) return;
 
-    const redirectTo = consumePostSignUpRedirect();
+    // 이동이 성공한 뒤에만 지운다 — 실패 시 저장된 값을 남겨 다음 시도에서 다시 소비되게 한다.
+    const redirectTo = peekPostSignUpRedirect();
     if (!redirectTo) return;
 
-    reset(redirectTo).catch(() => undefined);
+    reset(redirectTo)
+      .then(() => clearPostSignUpRedirect())
+      .catch(() => {
+        toast({
+          title: '다음 화면으로 이동하지 못했어요. 다시 시도해 주세요.',
+          shape: 'square',
+          position: 'top',
+        });
+      });
   }, [userId, agreementsStatusQuery.isSuccess, hasAgreedRequiredTerms, reset]);
 
   useEffect(() => {
