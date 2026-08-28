@@ -20,7 +20,7 @@ import OwnerMembersTab from '@/screens/owner-members';
 import SaveTab from '@/screens/save';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
@@ -109,6 +109,7 @@ export default function TabNavigator() {
             },
             tabBarActiveTintColor: '#FF6E0C',
             tabBarInactiveTintColor: '#8C8C94',
+            ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
             tabBarStyle: isTabBarVisible
               ? {
                   paddingBottom: bottom,
