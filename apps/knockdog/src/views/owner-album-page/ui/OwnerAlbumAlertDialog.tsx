@@ -11,6 +11,7 @@ import {
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { openConfirmDialog } from '@shared/lib/bridge';
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
 
 interface OwnerAlbumAlertDialogProps {
@@ -38,12 +39,23 @@ function OwnerAlbumAlertDialog({ isOpen, close, title, description }: OwnerAlbum
   );
 }
 
+function openWebAlbumAlert(title: string, description: string) {
+  overlay.open(({ isOpen, close }) => (
+    <OwnerAlbumAlertDialog isOpen={isOpen} close={close} title={title} description={description} />
+  ));
+}
+
 /** 업로드 로딩 모달이 내려간 뒤 띄워서 딤 오버레이가 가려지지 않게 함 */
 function openOwnerAlbumAlert(title: string, description: string) {
-  setTimeout(() => {
-    overlay.open(({ isOpen, close }) => (
-      <OwnerAlbumAlertDialog isOpen={isOpen} close={close} title={title} description={description} />
-    ));
+  setTimeout(async () => {
+    const result = await openConfirmDialog({
+      title,
+      description,
+      confirmLabel: ownerAlbumContent.upload.confirmLabel,
+      showCancelButton: false,
+    });
+
+    if (result.status === 'unavailable') openWebAlbumAlert(title, description);
   }, 0);
 }
 

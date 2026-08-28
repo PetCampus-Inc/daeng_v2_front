@@ -14,6 +14,7 @@ import {
 } from '@knockdog/ui';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
+import { ellipsisText } from '@shared/utils';
 
 interface OwnerDailyCancelCheckOutDialogProps {
   member: AttendanceMember;
@@ -30,8 +31,8 @@ function OwnerDailyCancelCheckOutDialog({
 }: OwnerDailyCancelCheckOutDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
+      <AlertDialogContent className='max-w-[358px]'>
+        <AlertDialogHeader className='px-x4'>
           <AlertDialogTitle className='flex flex-col items-center gap-6 text-center'>
             <Avatar className='size-x13'>
               {member.profileImageUrl && (
@@ -46,12 +47,12 @@ function OwnerDailyCancelCheckOutDialog({
               </AvatarFallback>
             </Avatar>
             <span>
-              <span className='text-text-accent'>{member.name}</span>의 하원을 취소할까요?
+              <span className='text-text-accent'>{ellipsisText(member.name, 8)}</span>의 하원을 취소할까요?
             </span>
           </AlertDialogTitle>
           <AlertDialogDescription>취소하면 재원 중 상태로 돌아가요.</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className='px-x4'>
           <AlertDialogCancel>닫기</AlertDialogCancel>
           <AlertDialogAction onClick={onCancel}>하원 취소</AlertDialogAction>
         </AlertDialogFooter>

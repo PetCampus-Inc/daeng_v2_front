@@ -27,7 +27,7 @@ import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { PrivateAccess } from '@shared/ui/private-access';
-import { useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
 import {
   route,
@@ -109,12 +109,16 @@ function MypageContent() {
     }
   };
 
-  const handleWithdrawClick = () => {
-    if (!isOwnerVerified) {
-      push({ pathname: '/withdraw/confirm' });
-      return;
-    }
+  const goToReleasePermission = () => {
+    push({
+      pathname: route.roleConversion.releasePermission.root,
+      query: {
+        [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: RELEASE_PERMISSION_SOURCE.WITHDRAW,
+      },
+    });
+  };
 
+  const openWebWithdrawBlockedDialog = () => {
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
@@ -135,12 +139,7 @@ function MypageContent() {
               className='bg-fill-secondary-700 active:bg-fill-secondary-400'
               onClick={() => {
                 close();
-                push({
-                  pathname: route.roleConversion.releasePermission.root,
-                  query: {
-                    [RELEASE_PERMISSION_SOURCE_QUERY_KEY]: RELEASE_PERMISSION_SOURCE.WITHDRAW,
-                  },
-                });
+                goToReleasePermission();
               }}
             >
               {ownerMypageContent.withdrawBlockedModalConfirmLabel}
@@ -149,6 +148,30 @@ function MypageContent() {
         </AlertDialogContent>
       </AlertDialog>
     ));
+  };
+
+  const handleWithdrawClick = async () => {
+    if (!isOwnerVerified) {
+      push({ pathname: '/withdraw/confirm' });
+      return;
+    }
+
+    const result = await openConfirmDialog({
+      title: `${ownerMypageContent.withdrawBlockedModalTitleLine1}\n${ownerMypageContent.withdrawBlockedModalTitleLine2}`,
+      description: `${ownerMypageContent.withdrawBlockedModalDescriptionLine1}\n${ownerMypageContent.withdrawBlockedModalDescriptionLine2}`,
+      confirmLabel: ownerMypageContent.withdrawBlockedModalConfirmLabel,
+      showCancelButton: false,
+      confirmVariant: 'neutral',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') goToReleasePermission();
+      return;
+    }
+
+    openWebWithdrawBlockedDialog();
   };
 
   return (

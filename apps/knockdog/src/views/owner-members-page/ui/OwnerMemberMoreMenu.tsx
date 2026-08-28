@@ -27,7 +27,9 @@ import { overlay } from 'overlay-kit';
 import { useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 
+import { openConfirmDialog } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { ellipsisText } from '@shared/utils';
 
 interface OwnerMemberMoreMenuProps {
   memberId: string;
@@ -43,6 +45,32 @@ interface OwnerMemberDisconnectDialogProps {
   onDisconnect: (memberId: string) => Promise<void>;
 }
 
+/** @returns 연결 해제 성공 여부 */
+async function disconnectAndNotify(
+  memberId: string,
+  dogName: string,
+  onDisconnect: (memberId: string) => Promise<void>
+) {
+  try {
+    await onDisconnect(memberId);
+    toast({
+      type: 'success',
+      nativeTitle: `${dogName}의 유치원 연결을 해제했어요`,
+      titleParts: [{ text: dogName, accent: true }, { text: '의 유치원 연결을 해제했어요' }],
+      title: (
+        <>
+          <span className='text-text-accent'>{dogName}</span>
+          <span className='text-text-primary-inverse'>의 유치원 연결을 해제했어요</span>
+        </>
+      ),
+    });
+    return true;
+  } catch {
+    toast({ title: '유치원 연결 해제에 실패했어요' });
+    return false;
+  }
+}
+
 function OwnerMemberDisconnectDialog({
   isOpen,
   memberId,
@@ -56,34 +84,17 @@ function OwnerMemberDisconnectDialog({
     if (isSubmitting) return;
 
     setIsSubmitting(true);
-
-    try {
-      await onDisconnect(memberId);
-      toast({
-        type: 'success',
-        nativeTitle: `${dogName}의 유치원 연결을 해제했어요`,
-        titleParts: [{ text: dogName, accent: true }, { text: '의 유치원 연결을 해제했어요' }],
-        title: (
-          <>
-            <span className='text-text-accent'>{dogName}</span>
-            <span className='text-text-primary-inverse'>의 유치원 연결을 해제했어요</span>
-          </>
-        ),
-      });
-      close();
-    } catch {
-      toast({ title: '유치원 연결 해제에 실패했어요' });
-    } finally {
-      setIsSubmitting(false);
-    }
+    const success = await disconnectAndNotify(memberId, dogName, onDisconnect);
+    setIsSubmitting(false);
+    if (success) close();
   };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={close}>
       <AlertDialogContent className='max-w-[358px]'>
-        <AlertDialogHeader>
+        <AlertDialogHeader className='px-x4'>
           <AlertDialogTitle>
-            <span className='text-text-accent'>{dogName}</span>의
+            <span className='text-text-accent'>{ellipsisText(dogName, 8)}</span>의
             <br />
             유치원 연결을 해제할까요?
           </AlertDialogTitle>
@@ -93,7 +104,7 @@ function OwnerMemberDisconnectDialog({
             수행할 수 없어요.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className='px-x4'>
           <AlertDialogCancel disabled={isSubmitting}>취소</AlertDialogCancel>
           <AlertDialogAction disabled={isSubmitting} onClick={handleDisconnect}>
             연결 해제
@@ -124,8 +135,7 @@ function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMor
     useRole(context, { role: 'menu' }),
   ]);
 
-  const handleDisconnectClick = () => {
-    setIsOpen(false);
+  const openWebDisconnectDialog = () => {
     overlay.open(({ isOpen: isDialogOpen, close }) => (
       <OwnerMemberDisconnectDialog
         isOpen={isDialogOpen}
@@ -135,6 +145,28 @@ function OwnerMemberMoreMenu({ memberId, dogName, onDisconnect }: OwnerMemberMor
         onDisconnect={onDisconnect}
       />
     ));
+  };
+
+  const handleDisconnectClick = async () => {
+    setIsOpen(false);
+
+    const result = await openConfirmDialog({
+      title: `${ellipsisText(dogName, 8)}의\n유치원 연결을 해제할까요?`,
+      titleParts: [{ text: ellipsisText(dogName, 8), accent: true }, { text: '의\n유치원 연결을 해제할까요?' }],
+      description: '연결을 해제하면 더 이상 해당 원생의 일과를\n수행할 수 없어요.',
+      cancelLabel: '취소',
+      confirmLabel: '연결 해제',
+      contentPaddingHorizontal: 16,
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void disconnectAndNotify(memberId, dogName, onDisconnect);
+      return;
+    }
+
+    openWebDisconnectDialog();
   };
 
   return (
