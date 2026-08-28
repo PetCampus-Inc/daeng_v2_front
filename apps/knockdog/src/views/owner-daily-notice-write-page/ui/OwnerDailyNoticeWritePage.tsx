@@ -58,7 +58,9 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
-import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { useStackNavigation, useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
+import { safeLocalStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
@@ -184,7 +186,8 @@ function OwnerDailyNoticeWritePage() {
   const noticeId = params?.id;
   const isEditQuery = searchParams.get('mode') === 'edit';
   const isExpired = searchParams.get('expired') === 'true';
-  const { back, pushForResult, replace, reset } = useStackNavigation();
+  const { pushForResult, replace, reset } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
@@ -326,9 +329,21 @@ function OwnerDailyNoticeWritePage() {
   };
   draftRef.current = currentDraft;
 
+  const returnToOwnerDailyTodayAttendance = useCallback(async () => {
+    safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
+
+    if (isNativeWebView()) {
+      await reset(route.owner.daily.root);
+      await navigateToTab('/owner/daily', { tab: 'today-attendance' });
+      return;
+    }
+
+    await reset(route.owner.daily.root, { tab: 'today-attendance' });
+  }, [navigateToTab, reset]);
+
   const openExpiredDialog = useCallback(() => {
-    openExpiredNoticeDialog(back);
-  }, [back]);
+    openExpiredNoticeDialog(returnToOwnerDailyTodayAttendance);
+  }, [returnToOwnerDailyTodayAttendance]);
 
   const applyDraft = (draft: NoticeDraft, options?: { asPersisted?: boolean }) => {
     setSelectedConditionId(draft.selectedConditionId);
@@ -343,13 +358,13 @@ function OwnerDailyNoticeWritePage() {
 
   const handleBackClick = useCallback(() => {
     if (isReadOnly) {
-      back();
+      returnToOwnerDailyTodayAttendance();
       return;
     }
 
     const hasUnsavedChanges = !areNoticeDraftsEqual(draftRef.current, persistedDraftRef.current);
     if (!hasUnsavedChanges) {
-      back();
+      returnToOwnerDailyTodayAttendance();
       return;
     }
 
@@ -375,14 +390,14 @@ function OwnerDailyNoticeWritePage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{ownerDailyNoticeWriteContent.unsavedExitCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back()}>
+            <AlertDialogAction onClick={() => returnToOwnerDailyTodayAttendance()}>
               {ownerDailyNoticeWriteContent.unsavedExitConfirmLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     ));
-  }, [back, isReadOnly]);
+  }, [isReadOnly, returnToOwnerDailyTodayAttendance]);
 
   useNativeBackHandler(handleBackClick);
 
