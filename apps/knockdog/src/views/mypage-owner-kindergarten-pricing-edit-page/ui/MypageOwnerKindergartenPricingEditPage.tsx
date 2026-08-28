@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import {
   ActionButton,
   AlertDialog,
@@ -19,7 +20,7 @@ import { Header } from '@widgets/Header';
 import { ownerMypageContent } from '@features/role-conversion';
 import { PRODUCT_TYPE_MAP_LIST, type ProductType } from '@entities/pricing';
 import { EXTERNAL_LINKS } from '@shared/constants';
-import { useOpenExternalLink } from '@shared/lib/bridge';
+import { useOpenExternalLink, useNativeBackHandler } from '@shared/lib/bridge';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
 import { useKindergartenPricingEditForm } from '@views/mypage-owner-kindergarten-pricing-edit-page/model/useKindergartenPricingEditForm';
@@ -76,7 +77,7 @@ function MypageOwnerKindergartenPricingEditPage() {
   const formData = useKindergartenPricingEditForm();
   const openExternalLink = useOpenExternalLink();
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (formData.leaveIfClean()) return;
 
     overlay.open(({ isOpen, close }) => (
@@ -97,7 +98,9 @@ function MypageOwnerKindergartenPricingEditPage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  };
+  }, [formData]);
+
+  useNativeBackHandler(handleBack);
 
   const handleSave = async () => {
     if (!(await formData.handleSave())) return;

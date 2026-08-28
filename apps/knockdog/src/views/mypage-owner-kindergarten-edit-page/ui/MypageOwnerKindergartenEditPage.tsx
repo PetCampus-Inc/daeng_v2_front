@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActionButton,
   AlertDialog,
@@ -36,6 +36,7 @@ import { AddressPicker } from '@features/address-picker';
 import { ownerMypageContent } from '@features/role-conversion';
 import { KINDERGARTEN_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
+import { useNativeBackHandler } from '@shared/lib/bridge';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
@@ -226,7 +227,7 @@ function MypageOwnerKindergartenEditPage() {
   const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
   const formData = useKindergartenEditForm();
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (formData.leaveIfClean()) return;
 
     overlay.open(({ isOpen, close }) => (
@@ -247,7 +248,9 @@ function MypageOwnerKindergartenEditPage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  };
+  }, [formData]);
+
+  useNativeBackHandler(handleBack);
 
   const handleSave = async () => {
     if (!(await formData.handleSave())) return;
