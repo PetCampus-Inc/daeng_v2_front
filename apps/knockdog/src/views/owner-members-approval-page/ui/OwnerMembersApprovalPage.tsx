@@ -153,7 +153,7 @@ function OwnerMembersApprovalPage() {
   };
 
   return (
-    <div className='bg-bg-0 flex h-dvh flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -170,7 +170,7 @@ function OwnerMembersApprovalPage() {
         </div>
       </div>
 
-      <div className='min-h-0 flex-1 overflow-y-auto'>
+      <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
         {isInitialPending ? (
           <div className='min-h-full w-full' />
         ) : pendingMembersQuery.isError ? (
