@@ -223,7 +223,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
           <h1 className='h2-extrabold text-text-primary'>보호자 정보를 입력해 주세요</h1>
           <p className='body1-medium text-text-primary'>
             <span className='flex min-w-0 items-baseline'>
-              <span className='text-text-accent min-w-0 flex-1 truncate'>
+              <span className='text-text-accent min-w-0 truncate'>
                 {inviteQuery.data?.data?.schoolName ?? '유치원'}
               </span>
               <span className='shrink-0 whitespace-nowrap'>에 전달될 정보이니</span>
