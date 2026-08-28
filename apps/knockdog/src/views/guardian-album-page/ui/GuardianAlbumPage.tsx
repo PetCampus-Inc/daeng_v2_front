@@ -364,11 +364,48 @@ function GuardianAlbumPage() {
   const hasAttendancePhotosReady = !isAttendancePending;
   const hasFavoritePhotosReady = !isFavoritePending;
 
+  const isAttendanceFilterExhausted =
+    hasAttendancePhotosReady && !hasAttendanceNextPage && !isAttendanceFetchingNextPage;
+  const isFavoriteFilterExhausted =
+    hasFavoritePhotosReady && !hasFavoriteNextPage && !isFavoriteFetchingNextPage;
+
+  useEffect(() => {
+    if (viewMode !== 'attendance') return;
+    if (!hasAttendancePhotosReady) return;
+    if (enrichedAttendanceDays.length > 0) return;
+    if (!hasAttendanceNextPage || isAttendanceFetchingNextPage) return;
+    fetchAttendanceNextPage();
+  }, [
+    viewMode,
+    hasAttendancePhotosReady,
+    enrichedAttendanceDays.length,
+    hasAttendanceNextPage,
+    isAttendanceFetchingNextPage,
+    fetchAttendanceNextPage,
+  ]);
+
+  useEffect(() => {
+    if (viewMode !== 'favorite') return;
+    if (!hasFavoritePhotosReady) return;
+    if (visibleFavoriteDays.length > 0) return;
+    if (!hasFavoriteNextPage || isFavoriteFetchingNextPage) return;
+    fetchFavoriteNextPage();
+  }, [
+    viewMode,
+    hasFavoritePhotosReady,
+    visibleFavoriteDays.length,
+    hasFavoriteNextPage,
+    isFavoriteFetchingNextPage,
+    fetchFavoriteNextPage,
+  ]);
+
   const isFilterEmpty =
     (viewMode === 'attendance' &&
-      hasAttendancePhotosReady &&
+      isAttendanceFilterExhausted &&
       enrichedAttendanceDays.length === 0) ||
-    (viewMode === 'favorite' && hasFavoritePhotosReady && visibleFavoriteDays.length === 0);
+    (viewMode === 'favorite' &&
+      isFavoriteFilterExhausted &&
+      visibleFavoriteDays.length === 0);
 
   const isFilterMode = viewMode === 'favorite' || viewMode === 'attendance';
 

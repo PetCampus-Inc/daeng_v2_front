@@ -162,13 +162,8 @@ function useOwnerKindergarten() {
       ? placeBasic
       : profileBasic;
 
-  /** profile 배너가 비면 place main.banner 폴백 (저장본만 보고 [] 되는 문제 방지) */
-  const autofillBannerKeys =
-    profileBannerKeys.length > 0
-      ? profileBannerKeys
-      : isSelected
-        ? (main?.banner ?? [])
-        : profileBannerKeys;
+  /** profile 배너가 비면 dedupe된 place bannerKeys 폴백 (저장본만 보고 [] 되는 문제 방지) */
+  const autofillBannerKeys = profileBannerKeys.length > 0 ? profileBannerKeys : bannerKeys;
 
   const needsPlaceBannerFallback =
     isSelected && profileBannerKeys.length === 0 && Boolean(resolvedPlaceId);

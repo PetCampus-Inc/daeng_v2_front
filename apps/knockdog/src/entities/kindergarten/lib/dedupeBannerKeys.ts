@@ -1,3 +1,11 @@
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function normalizeImageStorageKey(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
@@ -5,13 +13,13 @@ function normalizeImageStorageKey(value: string): string {
   try {
     if (trimmed.includes('://')) {
       const url = new URL(trimmed);
-      return decodeURIComponent(url.pathname.replace(/^\//, ''));
+      return safeDecodeURIComponent(url.pathname.replace(/^\//, ''));
     }
   } catch {
     // path-only key
   }
 
-  return decodeURIComponent(trimmed.replace(/^\//, ''));
+  return safeDecodeURIComponent(trimmed.replace(/^\//, ''));
 }
 
 /** thumbnail/original 등 파생 파일명을 같은 사진으로 취급 */

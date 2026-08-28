@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
@@ -188,6 +188,7 @@ function OwnerDailyNoticeWritePage() {
   const isExpired = searchParams.get('expired') === 'true';
   const { pushForResult, replace, reset } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
+  const isNative = useMemo(() => isNativeWebView(), []);
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
@@ -332,14 +333,14 @@ function OwnerDailyNoticeWritePage() {
   const returnToOwnerDailyTodayAttendance = useCallback(async () => {
     safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
 
-    if (isNativeWebView()) {
+    if (isNative) {
       await reset(route.owner.daily.root);
       await navigateToTab('/owner/daily', { tab: 'today-attendance' });
       return;
     }
 
     await reset(route.owner.daily.root, { tab: 'today-attendance' });
-  }, [navigateToTab, reset]);
+  }, [isNative, navigateToTab, reset]);
 
   const openExpiredDialog = useCallback(() => {
     openExpiredNoticeDialog(returnToOwnerDailyTodayAttendance);
