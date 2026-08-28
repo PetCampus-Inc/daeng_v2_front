@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, Icon, AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
+import { Divider, Icon, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
@@ -99,7 +99,7 @@ function MypageContent() {
     toggleRoleView();
   };
 
-  const handleLogout = async () => {
+  const performLogout = async () => {
     try {
       await logout();
     } catch {
@@ -107,6 +107,46 @@ function MypageContent() {
     } finally {
       await reset(route.auth.login.root);
     }
+  };
+
+  const openWebLogoutDialog = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>아니오</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                void performLogout();
+              }}
+            >
+              예
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
+  const handleLogoutClick = async () => {
+    const result = await openConfirmDialog({
+      title: '로그아웃 할까요?',
+      cancelLabel: '아니오',
+      confirmLabel: '예',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') await performLogout();
+      return;
+    }
+
+    openWebLogoutDialog();
   };
 
   const goToReleasePermission = () => {
@@ -289,7 +329,7 @@ function MypageContent() {
           onNoticeClick={() => handleOpenLink('NOTICE')}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
-          onLogoutClick={handleLogout}
+          onLogoutClick={handleLogoutClick}
           onWithdrawClick={handleWithdrawClick}
         />
       </div>
