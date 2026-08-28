@@ -27,6 +27,13 @@ declare global {
 
 const requiredTermIds = requiredTermsConsentContent.items.map((item) => item.id);
 
+/**
+ * 네이티브 focus 이벤트가 타이밍 이슈로 누락되면 시트가 영영 안 열리고,
+ * 그 안에서 소비돼야 할 가입 후 리다이렉트(초대 가입신청서 등)도 영영 소비되지 못해
+ * "내 주변" 화면에 멈춘 것처럼 보일 수 있다. 일정 시간 뒤엔 focus로 간주해 안전망을 둔다.
+ */
+const TAB_FOCUS_FALLBACK_MS = 2_000;
+
 const initialCheckedTermsState = (): CheckedTermsState =>
   Object.fromEntries(requiredTermIds.map((id) => [id, false])) as CheckedTermsState;
 
@@ -47,9 +54,14 @@ function useIsNativeTabFocused() {
     window.addEventListener('knockdog:native-tab-blur', handleBlur);
     setIsFocused(window.__knockdogNativeTabFocused === true);
 
+    const fallbackTimer = window.setTimeout(() => {
+      if (window.__knockdogNativeTabFocused !== false) setIsFocused(true);
+    }, TAB_FOCUS_FALLBACK_MS);
+
     return () => {
       window.removeEventListener('knockdog:native-tab-focus', handleFocus);
       window.removeEventListener('knockdog:native-tab-blur', handleBlur);
+      window.clearTimeout(fallbackTimer);
     };
   }, []);
 
@@ -73,6 +85,18 @@ function useRequiredTermsConsentSheet() {
     agreementsStatusQuery.isSuccess &&
     !agreementsStatusQuery.isError &&
     !hasAgreedRequiredTerms;
+
+  // 이미 필수 약관에 동의한 상태라 시트가 뜨지 않는 경우, 시트 제출 시점에만
+  // 소비되던 가입 후 리다이렉트(초대 가입신청서 등)가 영영 소비되지 못해
+  // "내 주변" 화면에 멈춘 것처럼 보일 수 있어 여기서도 한 번 더 소비를 시도한다.
+  useEffect(() => {
+    if (!userId || !agreementsStatusQuery.isSuccess || !hasAgreedRequiredTerms) return;
+
+    const redirectTo = consumePostSignUpRedirect();
+    if (!redirectTo) return;
+
+    reset(redirectTo).catch(() => undefined);
+  }, [userId, agreementsStatusQuery.isSuccess, hasAgreedRequiredTerms, reset]);
 
   useEffect(() => {
     if (previousUserIdRef.current !== userId) {
