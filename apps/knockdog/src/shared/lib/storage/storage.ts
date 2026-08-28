@@ -59,6 +59,36 @@ class LocalStorage implements Storage {
   }
 }
 
+class SessionStorage implements Storage {
+  public static canUse(): boolean {
+    const TEST_KEY = generateTestKey();
+
+    try {
+      sessionStorage.setItem(TEST_KEY, 'test');
+      sessionStorage.removeItem(TEST_KEY);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  public get(key: string) {
+    return sessionStorage.getItem(key);
+  }
+
+  public set(key: string, value: string) {
+    sessionStorage.setItem(key, value);
+  }
+
+  public remove(key: string) {
+    sessionStorage.removeItem(key);
+  }
+
+  public clear() {
+    sessionStorage.clear();
+  }
+}
+
 function generateTestKey() {
   return new Array(4)
     .fill(null)
@@ -73,7 +103,21 @@ export function generateStorage(): Storage {
   return new MemoStorage();
 }
 
+function generateSessionStorage(): Storage {
+  if (SessionStorage.canUse()) {
+    return new SessionStorage();
+  }
+  return new MemoStorage();
+}
+
 /**
  * @docs https://www.slash.page/ko/libraries/common/storage/src/safeLocalStorage.i18n
  */
 export const safeLocalStorage = generateStorage();
+
+/**
+ * 세션(앱 완전 종료 전까지) 동안만 유지되는 저장소.
+ * 탭 전환 등 같은 세션 안에서의 네비게이션에는 값이 유지되지만,
+ * 앱을 껐다 켜서 WebView가 새로 생성되면 초기화된다.
+ */
+export const safeSessionStorage = generateSessionStorage();
