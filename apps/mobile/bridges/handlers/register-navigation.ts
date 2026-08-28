@@ -9,6 +9,30 @@ import { tabWebViewStore } from '../model/tabWebViewStore';
 import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '../model/bottomTabBarVisibilityStore';
 import { pathToTab, pathToBaseTab, isGuardianOnlyTab, isOwnerOnlyTab, type TabName } from '../lib/tabRoutes';
+import {
+  injectTabQueryIntoWebView,
+  pendingTabQueryStore,
+} from '../lib/tabQueryInject';
+
+/** TabNavigator screen 등록 순서 — Stack reset 시 활성 탭 state 명시 */
+const TAB_SCREEN_ORDER: TabName[] = [
+  'Explore',
+  'Save',
+  'Compare',
+  'OwnerHome',
+  'OwnerDaily',
+  'OwnerAlbum',
+  'OwnerMembers',
+  'Mypage',
+];
+
+function buildTabsNestedState(activeTabName: TabName) {
+  const index = TAB_SCREEN_ORDER.indexOf(activeTabName);
+  return {
+    index: index >= 0 ? index : 0,
+    routes: TAB_SCREEN_ORDER.map((name) => ({ name })),
+  };
+}
 
 /** 미로그인 게이트 화면 — Tabs 없이 Stack만 reset */
 function isAuthOnlyStackPath(pathname: string) {
@@ -353,12 +377,22 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     if (route.screen === 'Tabs') {
       const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
+      const query = extractQueryFromNavParams(payload?.params);
+      if (query) {
+        pendingTabQueryStore.set(tabName, query);
+      }
+
       navigationRef.dispatch(
         CommonActions.reset({
           index: 0,
           routes: [{ name: 'Tabs', params: { screen: tabName } }],
         })
       );
+      navigationRef.navigate('Tabs', { screen: tabName });
+
+      if (query) {
+        await injectTabWebViewQuery(tabName, query);
+      }
     } else {
       // Stack 아래 Tabs는 경로의 부모 탭으로 깔아 뒤로가기가 올바른 탭으로 가게 함
       // (예: /owner/daily/notice/... → OwnerDaily)
@@ -386,7 +420,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
         CommonActions.reset({
           index: 1,
           routes: [
-            { name: 'Tabs', params: { screen: baseTab } },
+            { name: 'Tabs', state: buildTabsNestedState(baseTab) },
             { name: 'Stack', params: route.params },
           ],
         })
@@ -395,6 +429,34 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     return { reset: true };
   });
+
+  function extractQueryFromNavParams(params?: WebNavPayload['params']) {
+    if (!params || typeof params !== 'object' || Array.isArray(params)) return null;
+
+    if ('query' in params) {
+      const query = params.query;
+      if (!query || typeof query !== 'object' || Array.isArray(query)) return null;
+      return query as Record<string, unknown>;
+    }
+
+    const query = Object.fromEntries(
+      Object.entries(params).filter(([key]) => key !== '_txId' && key !== '_params')
+    );
+
+    return Object.keys(query).length > 0 ? query : null;
+  }
+
+  async function injectTabWebViewQuery(tabName: TabName, query: Record<string, unknown>) {
+    if (Object.keys(query).length === 0) return;
+
+    pendingTabQueryStore.set(tabName, query);
+
+    const tabWebRef = await waitForTabReady(tabName, 5000);
+    if (tabWebRef?.current) {
+      injectTabQueryIntoWebView(tabWebRef.current, query);
+      pendingTabQueryStore.consume(tabName);
+    }
+  }
 
   /**
    * 탭 전환이 완료되고 WebView가 준비될 때까지 대기
@@ -405,7 +467,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
    */
   async function waitForTabReady(
     targetTabName: TabName,
-    maxWaitTime = 2000,
+    maxWaitTime = 5000,
     checkInterval = 50
   ): Promise<RefObject<WebView | null> | null> {
     const startTime = Date.now();
@@ -413,35 +475,24 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
     return new Promise((resolve) => {
       const checkTabReady = () => {
         const elapsed = Date.now() - startTime;
+        const tabWebRef = tabWebViewStore.get(targetTabName);
+        const isWebViewReady = tabWebRef?.current != null;
 
-        // 최대 대기 시간 초과
+        if (isWebViewReady) {
+          resolve(tabWebRef ?? null);
+          return;
+        }
+
         if (elapsed >= maxWaitTime) {
           if (__DEV__) {
-            console.warn(`[waitForTabReady] 타임아웃: ${targetTabName} 탭이 ${maxWaitTime}ms 내에 준비되지 않음`);
+            console.warn(
+              `[waitForTabReady] 타임아웃: ${targetTabName} Tab WebView ref 미준비 (${maxWaitTime}ms)`
+            );
           }
           resolve(null);
           return;
         }
 
-        // Navigation state 확인: 현재 활성화된 탭이 목표 탭인지 확인
-        const state = navigationRef.getState();
-        const isTabActive =
-          state &&
-          state.routes[state.index]?.name === 'Tabs' &&
-          state.routes[state.index]?.state?.routes?.[state.routes[state.index].state?.index ?? 0]?.name ===
-            targetTabName;
-
-        // WebView ref 확인
-        const tabWebRef = tabWebViewStore.get(targetTabName);
-        const isWebViewReady = tabWebRef?.current !== null && tabWebRef?.current !== undefined;
-
-        // 탭이 활성화되고 WebView가 준비되었으면 완료
-        if (isTabActive && isWebViewReady) {
-          resolve(tabWebRef);
-          return;
-        }
-
-        // 아직 준비되지 않았으면 다음 체크까지 대기
         setTimeout(checkTabReady, checkInterval);
       };
 
@@ -455,50 +506,14 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     const tabName = resolveTabScreen(pathToTab(payload.pathname) ?? 'Explore');
 
-    // 탭 네비게이션으로 이동: navigate를 사용하면 애니메이션 없이 즉시 전환됨
+    if (payload.query && Object.keys(payload.query).length > 0) {
+      pendingTabQueryStore.set(tabName, payload.query);
+    }
+
     navigationRef.navigate('Tabs', { screen: tabName });
 
-    // query가 있으면 탭 전환 후 해당 탭의 WebView에 URL 변경 스크립트 주입
     if (payload.query && Object.keys(payload.query).length > 0) {
-      // 탭 전환이 완료되고 WebView가 준비될 때까지 대기
-      const tabWebRef = await waitForTabReady(tabName);
-
-      if (tabWebRef?.current) {
-        // query를 쿼리스트링으로 변환
-        const searchParams = new URLSearchParams();
-        for (const [key, value] of Object.entries(payload.query)) {
-          if (value == null) continue;
-          if (Array.isArray(value)) {
-            for (const item of value) {
-              searchParams.append(key, String(item));
-            }
-          } else {
-            searchParams.set(key, String(value));
-          }
-        }
-        const queryString = searchParams.toString();
-
-        // WebView에 JavaScript 주입하여 URL 변경
-        const queryStringEscaped = JSON.stringify(queryString);
-        const script = `
-          (function() {
-            try {
-              var url = new URL(window.location.href);
-              var queryStr = ${queryStringEscaped};
-              var newHref = url.pathname + (queryStr ? ('?' + queryStr) : '') + url.hash;
-              history.pushState(null, '', newHref);
-              // URL 변경 이벤트 발생시키기 (Next.js router가 감지하도록)
-              window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
-            } catch (e) {
-              console.error('[navSwitchTab] URL 변경 실패:', e);
-            }
-          })();
-        `;
-
-        tabWebRef.current.injectJavaScript(script);
-      } else if (__DEV__) {
-        console.warn(`[navSwitchTab] ${tabName} 탭의 WebView를 찾을 수 없어 URL 변경 스크립트를 주입하지 못했습니다.`);
-      }
+      await injectTabWebViewQuery(tabName, payload.query);
     }
 
     return { switched: true };

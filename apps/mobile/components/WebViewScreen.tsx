@@ -1,8 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import type { RefObject } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import WebView from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
+import { applyPendingTabQuery, resolveTabNameFromUri } from '@/bridges/lib/tabQueryInject';
 import { BridgeWebView } from '@/bridges/ui/BridgeWebView';
 import type { InitialState } from '@/types/navigation';
 
@@ -35,23 +36,30 @@ export default function WebViewScreen({
   const internalRef = useRef<WebView>(null);
   const resolvedRef = (webviewRef ?? internalRef) as RefObject<WebView>;
   const resolveWebView = useCallback(() => resolvedRef.current ?? null, [resolvedRef]);
+  const tabName = useMemo(() => resolveTabNameFromUri(uri), [uri]);
+
+  const applyPendingQuery = useCallback(() => {
+    if (!tabName) return;
+    applyPendingTabQuery(resolveWebView(), tabName);
+  }, [resolveWebView, tabName]);
 
   useFocusEffect(
     useCallback(() => {
       isFocusedRef.current = true;
+      applyPendingQuery();
       injectNativeTabFocus(resolveWebView(), true);
 
       return () => {
         isFocusedRef.current = false;
         injectNativeTabFocus(resolveWebView(), false);
       };
-    }, [resolveWebView])
+    }, [applyPendingQuery, resolveWebView])
   );
 
   const handleLoadEnd = useCallback(() => {
-    // 로드 직후 focus 플래그 재주입 — 현재 focused일 때만 true
+    applyPendingQuery();
     injectNativeTabFocus(resolveWebView(), isFocusedRef.current);
-  }, [resolveWebView]);
+  }, [applyPendingQuery, resolveWebView]);
 
   return (
     <BridgeWebView
