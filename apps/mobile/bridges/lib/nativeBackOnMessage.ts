@@ -2,6 +2,7 @@ import type { WebViewMessageEvent } from 'react-native-webview';
 
 import { isExternalWebViewUrl } from './isFirstPartyWebViewUrl';
 import { navigationRef, isNavReady } from './navigationRef';
+import { pathToBaseTab } from './tabRoutes';
 
 const NATIVE_BACK_UNHANDLED_TYPE = 'knockdog:native-back-unhandled';
 
@@ -54,6 +55,13 @@ function handleNativeBackUnhandledMessage(event: WebViewMessageEvent): boolean {
       );
       // auth-only: 로그인 성공 전·후 모두 비로그인 탭으로 빠져나가지 않음 (시스템 back = 앱 종료)
       if (isAuthOnlyStackPath(pathname)) {
+        return true;
+      }
+
+      // bare navigate('Tabs')는 기본/잔존 탭(종종 OwnerHome)으로 떨어짐 → 경로 부모 탭으로 복귀
+      const baseTab = pathToBaseTab(pathname);
+      if (baseTab) {
+        navigationRef.navigate('Tabs', { screen: baseTab });
         return true;
       }
     }
