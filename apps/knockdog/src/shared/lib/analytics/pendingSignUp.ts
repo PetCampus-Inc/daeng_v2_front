@@ -26,6 +26,10 @@ function savePendingSignUpAnalytics(method: SignUpMethod, entry_source: EntrySou
   pendingSignUpStorage.set({ method, entry_source });
 }
 
+function clearPendingSignUpAnalytics() {
+  pendingSignUpStorage.clear();
+}
+
 function consumePendingSignUpAnalytics(): PendingSignUpAnalytics | null {
   const value = pendingSignUpStorage.get();
   pendingSignUpStorage.clear();
@@ -37,6 +41,7 @@ function peekPendingSignUpAnalytics(): PendingSignUpAnalytics | null {
 }
 
 export {
+  clearPendingSignUpAnalytics,
   consumePendingSignUpAnalytics,
   peekPendingSignUpAnalytics,
   resolveEntrySource,

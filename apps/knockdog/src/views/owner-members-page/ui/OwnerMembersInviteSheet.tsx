@@ -165,10 +165,10 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
       url: inviteUrl,
     });
 
-    if (!shared) {
-      await copy(inviteUrl);
+    const copied = shared ? false : await copy(inviteUrl);
+    if (shared || copied) {
+      trackOwnerInviteShare({ method: 'link' });
     }
-    trackOwnerInviteShare({ method: 'link' });
   };
 
   const handleActionClick = (action: (typeof INVITE_ACTIONS)[number]['action']) => {

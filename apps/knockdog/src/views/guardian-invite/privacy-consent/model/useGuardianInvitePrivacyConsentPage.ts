@@ -100,7 +100,7 @@ function useGuardianInvitePrivacyConsentPage() {
       const response = await postCreateGuardianApplication({ token, petIds: validPetIds });
       const results = response.data?.results ?? [];
       const hasSuccess = results.some((result) => result.success === true);
-      if (hasSuccess || results.length === 0) {
+      if (hasSuccess) {
         trackConnectionStatus({
           status: 'submit',
           actor: 'guardian',
