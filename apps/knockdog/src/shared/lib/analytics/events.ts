@@ -1,14 +1,19 @@
 import { event } from './gtag';
+import { trackSignUp } from './gaEvents';
+import {
+  consumePendingSignUpAnalytics,
+  resolveEntrySource,
+  savePendingSignUpAnalytics,
+  toSignUpMethod,
+} from './pendingSignUp';
 
+/** @deprecated GA 가이드 v3 — 퍼널 중간 단계는 screen_view로 대체. 호출부 호환용 유지 */
 export const AnalyticsEvent = {
-  // 회원가입 관련
   SIGN_UP_START: 'sign_up_start',
   SIGN_UP_NICKNAME_COMPLETED: 'sign_up_nickname_completed',
   SIGN_UP_LOCATION_COMPLETED: 'sign_up_location_completed',
   SIGN_UP_PET_COMPLETED: 'sign_up_pet_completed',
   SIGN_UP_COMPLETED: 'sign_up_completed',
-
-  // 로그인 관련
   LOGIN: 'login',
   LOGOUT: 'logout',
 } as const;
@@ -16,6 +21,7 @@ export const AnalyticsEvent = {
 type SocialProvider = 'KAKAO' | 'GOOGLE' | 'APPLE';
 
 export const trackSignUpStart = (provider: SocialProvider) => {
+  savePendingSignUpAnalytics(toSignUpMethod(provider), 'organic');
   event({
     action: AnalyticsEvent.SIGN_UP_START,
     category: 'engagement',
@@ -44,6 +50,7 @@ export const trackSignUpPetCompleted = () => {
   });
 };
 
+/** 마케팅 동의 화면 호환 — 실제 sign_up은 필수 약관 완료에서 발화 */
 export const trackSignUpCompleted = (marketingConsent: boolean) => {
   event({
     action: AnalyticsEvent.SIGN_UP_COMPLETED,
@@ -58,4 +65,12 @@ export const trackLogin = (provider: SocialProvider) => {
     category: 'engagement',
     label: provider,
   });
+};
+
+export {
+  consumePendingSignUpAnalytics,
+  resolveEntrySource,
+  savePendingSignUpAnalytics,
+  toSignUpMethod,
+  trackSignUp,
 };

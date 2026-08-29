@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { postCreateGuardianApplication } from '@entities/guardian-application';
+import { trackConnectionStatus } from '@shared/lib/analytics';
 import { GUARDIAN_HOME_QUERY_KEY } from '@entities/guardian-home';
 import {
   GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY,
@@ -98,6 +99,14 @@ function useGuardianInvitePrivacyConsentPage() {
 
       const response = await postCreateGuardianApplication({ token, petIds: validPetIds });
       const results = response.data?.results ?? [];
+      const hasSuccess = results.some((result) => result.success === true);
+      if (hasSuccess || results.length === 0) {
+        trackConnectionStatus({
+          status: 'submit',
+          actor: 'guardian',
+          entry_source: 'invite_link',
+        });
+      }
       const failedPets = validPetIds
         .filter((petId) => results.find((result) => result.petId === petId)?.success !== true)
         .map((petId) => ({

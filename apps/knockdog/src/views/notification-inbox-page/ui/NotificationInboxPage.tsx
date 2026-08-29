@@ -4,8 +4,10 @@ import { overlay } from 'overlay-kit';
 
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+import { trackNotificationOpen } from '@shared/lib/analytics';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
+import { resolveNotificationGaType } from '@views/notification-inbox-page/lib/resolveNotificationGaType';
 import { useNotificationInboxDeepLink } from '@views/notification-inbox-page/model/useNotificationInboxDeepLink';
 import { useNotificationInboxPage } from '@views/notification-inbox-page/model/useNotificationInboxPage';
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
@@ -54,6 +56,10 @@ function NotificationInboxPage() {
 
   const handleItemClick = (item: NotificationInboxItem) => {
     if (!item.isRead) markItemAsRead(item.id);
+    const notificationType = resolveNotificationGaType(item.type);
+    if (notificationType) {
+      trackNotificationOpen({ notification_type: notificationType });
+    }
     openNotification(item);
   };
 

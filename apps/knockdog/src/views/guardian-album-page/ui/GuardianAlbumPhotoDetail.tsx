@@ -15,6 +15,7 @@ import {
 import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhoto';
 import { Header } from '@widgets/Header';
 import { useShare } from '@shared/lib/device/useShare';
+import { trackAlbumAction } from '@shared/lib/analytics';
 import { useSaveImage } from '@shared/lib/media';
 import { AlbumImage } from '@shared/ui/album-image';
 import { toast } from '@shared/ui/toast';
@@ -204,6 +205,7 @@ function GuardianAlbumPhotoDetail({
       });
 
       if (saved) {
+        trackAlbumAction({ action: 'save', role: 'guardian' });
         toast({
           type: 'success',
           nativeTitle: detail.saveSuccessToast.nativeTitle,

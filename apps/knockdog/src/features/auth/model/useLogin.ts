@@ -23,6 +23,7 @@ import {
   getInternalRedirect,
   savePostSignUpRedirect,
 } from '@shared/lib/auth/postSignUpRedirect';
+import { resolveEntrySource, savePendingSignUpAnalytics, toSignUpMethod } from '@shared/lib/analytics';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
@@ -199,6 +200,8 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
   /** 로그인 */
   const login = async (provider: SocialProvider) => {
+    savePendingSignUpAnalytics(toSignUpMethod(provider), resolveEntrySource(redirectTo));
+
     let code: Awaited<ReturnType<typeof oidcAuth>> | undefined;
     try {
       code = await oidcAuth(provider);

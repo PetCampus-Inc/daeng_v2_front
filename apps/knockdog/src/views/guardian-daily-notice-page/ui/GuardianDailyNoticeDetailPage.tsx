@@ -29,6 +29,7 @@ import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/m
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
+import { trackNotebookAction } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import {
   formatDateKey,
@@ -277,6 +278,11 @@ function GuardianDailyNoticeDetailPage() {
     schoolId,
     enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
+
+  useEffect(() => {
+    if (!dailyNotice || isPending) return;
+    trackNotebookAction({ action: 'view', role: 'guardian' });
+  }, [dailyNotice, isPending, selectedDateKey, selectedPetId]);
   const isTargetUnavailable = isQueryPetMissing || isUnavailableResourceError(calendarError);
 
   useEffect(() => {

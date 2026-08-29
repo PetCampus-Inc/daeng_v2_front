@@ -6,6 +6,7 @@ import { clearSession } from '@entities/owner-verification';
 import { OWNER_ROLE_QUERY_KEY } from '@entities/user';
 import { getQueryClient } from '@shared/api';
 import { route } from '@shared/constants/route';
+import { trackOwnerVerificationStatus } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { RESULT_STATUS } from '@views/role-conversion/complete/config/roleConversionResultStatus';
@@ -19,6 +20,7 @@ function usePrivacyConsentPage() {
   const { mutate: submitOwnerVerificationMutate, isPending } = useMutation({
     mutationFn: submitOwnerVerification,
     onSuccess: () => {
+      trackOwnerVerificationStatus({ status: 'approved' });
       clearSession();
       // 원장 권한 확인 API 재조회 → 마이페이지가 즉시 원장 상태/유치원 정보로 전환
       getQueryClient().invalidateQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] });
@@ -28,6 +30,7 @@ function usePrivacyConsentPage() {
       });
     },
     onError: (error) => {
+      trackOwnerVerificationStatus({ status: 'failed' });
       navigateToRoleConversionResult(error, push);
     },
   });

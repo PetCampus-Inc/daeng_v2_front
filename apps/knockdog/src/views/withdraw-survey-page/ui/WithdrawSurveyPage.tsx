@@ -6,6 +6,7 @@ import { ActionButton, RadioGroup, RadioGroupItem, Textarea, TextareaInput } fro
 import { Header } from '@widgets/Header';
 import { WITHDRAW_REASON_TYPE, type WithdrawReasonType, type WithdrawRequest } from '@entities/user';
 import { useStackNavigation, useOpenExternalLink  } from '@shared/lib/bridge';
+import { trackAccountDeactivation } from '@shared/lib/analytics';
 import { withdraw } from '@shared/lib/auth';
 import { route } from '@shared/constants/route';
 
@@ -26,6 +27,19 @@ const REASON_TYPE_MAP: Record<string, WithdrawReasonType> = {
   '3': WITHDRAW_REASON_TYPE.MISSING_FEATURE,
   '4': WITHDRAW_REASON_TYPE.OTHER,
 } as const;
+
+function toWithdrawalGaReason(reasonType: WithdrawReasonType) {
+  switch (reasonType) {
+    case WITHDRAW_REASON_TYPE.INACCURATE_INFO:
+      return 'inaccurate_info';
+    case WITHDRAW_REASON_TYPE.POOR_UX:
+      return 'bad_exploration';
+    case WITHDRAW_REASON_TYPE.MISSING_FEATURE:
+      return 'missing_features';
+    default:
+      return 'other';
+  }
+}
 
 function WithdrawSurveyPage() {
   const { back, reset } = useStackNavigation();
@@ -60,6 +74,10 @@ function WithdrawSurveyPage() {
     setIsPending(true);
     try {
       await withdraw(request);
+      trackAccountDeactivation({
+        action: 'withdrawal',
+        reason: toWithdrawalGaReason(reasonType),
+      });
       await reset(route.auth.login.root);
     } catch (error) {
       console.error('탈퇴 처리 중 오류 발생:', error);

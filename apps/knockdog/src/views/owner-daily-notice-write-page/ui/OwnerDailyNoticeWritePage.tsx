@@ -58,6 +58,7 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
+import { trackNotebookAction } from '@shared/lib/analytics';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
@@ -573,6 +574,10 @@ function OwnerDailyNoticeWritePage() {
       sendAttemptRef.current = { idempotencyKey, payloadSignature };
       await sendMutation.mutateAsync({ payload, idempotencyKey });
       sendAttemptRef.current = null;
+      trackNotebookAction({
+        action: isEditMode ? 'edit' : 'send',
+        role: 'owner',
+      });
       clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
 
       queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {

@@ -18,6 +18,7 @@ import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPh
 import { openOwnerAlbumAlert } from '@views/owner-album-page/ui/OwnerAlbumAlertDialog';
 
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
+import { trackAlbumAction } from '@shared/lib/analytics';
 import { toast } from '@shared/ui/toast';
 
 function showMaxCountToast() {
@@ -152,6 +153,7 @@ function useOwnerAlbumUpload() {
       });
 
       if (uploadResult.uploaded.length > 0) {
+        trackAlbumAction({ action: 'upload', role: 'owner' });
         await invalidatePhotos();
       }
 

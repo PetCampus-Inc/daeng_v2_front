@@ -8,6 +8,7 @@ import { useOwnerInviteQuery } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useClipboardCopy, useShare, isNativeWebView } from '@shared/lib/device';
+import { trackOwnerInviteShare } from '@shared/lib/analytics';
 import { useSaveImage } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
@@ -134,6 +135,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     if (isNativeWebView()) {
       const saved = await saveImage({ url: dataUrl, fileName });
       if (saved) {
+        trackOwnerInviteShare({ method: 'qr' });
         toast({ type: 'success', title: 'QR 코드를 저장했어요', nativeTitle: 'QR 코드를 저장했어요' });
       } else {
         toast({ title: 'QR 코드를 저장하지 못했어요', nativeTitle: 'QR 코드를 저장하지 못했어요' });
@@ -142,6 +144,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     }
 
     downloadImage(dataUrl, fileName);
+    trackOwnerInviteShare({ method: 'qr' });
     toast({ type: 'success', title: 'QR 코드를 저장했어요', nativeTitle: 'QR 코드를 저장했어요' });
   };
 
@@ -150,6 +153,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
 
     const copied = await copy(inviteUrl);
     if (copied) {
+      trackOwnerInviteShare({ method: 'link' });
       toast({ type: 'success', title: '초대 링크를 복사했어요', nativeTitle: '초대 링크를 복사했어요' });
     }
   };
@@ -164,6 +168,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     if (!shared) {
       await copy(inviteUrl);
     }
+    trackOwnerInviteShare({ method: 'link' });
   };
 
   const handleActionClick = (action: (typeof INVITE_ACTIONS)[number]['action']) => {
