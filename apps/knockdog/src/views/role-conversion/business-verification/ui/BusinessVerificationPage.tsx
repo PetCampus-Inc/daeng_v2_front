@@ -58,7 +58,6 @@ function BusinessVerificationPage() {
             >
               <TextFieldInput
                 inputMode='numeric'
-                maxLength={10}
                 placeholder={businessVerificationContent.inputPlaceholder}
                 value={bizNo}
                 onChange={(e) => handleInputChange(e.target.value)}
