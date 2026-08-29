@@ -2,7 +2,9 @@
 
 import {
   type ChangeEvent,
+  type CompositionEvent,
   type FocusEvent,
+  type FormEvent,
   type PointerEvent,
   useEffect,
   useRef,
@@ -31,6 +33,11 @@ function collectScrollRoots(anchor: HTMLElement | null): HTMLElement[] {
 
   let node = anchor;
   while (node) {
+    // textarea 내부 스크롤은 복원 대상에서 제외 — 본문 스크롤은 유지
+    if (node instanceof HTMLTextAreaElement) {
+      node = node.parentElement;
+      continue;
+    }
     roots.add(node);
     node = node.parentElement;
   }
@@ -41,13 +48,9 @@ function collectScrollRoots(anchor: HTMLElement | null): HTMLElement[] {
 interface ScrollSnapshot {
   positions: Map<HTMLElement, number>;
   windowScrollY: number;
-  textareaScrollTop: number;
 }
 
-function captureScrollSnapshot(
-  anchor: HTMLElement | null,
-  textarea: HTMLTextAreaElement | null
-): ScrollSnapshot {
+function captureScrollSnapshot(anchor: HTMLElement | null): ScrollSnapshot {
   const positions = new Map<HTMLElement, number>();
 
   for (const el of collectScrollRoots(anchor)) {
@@ -57,21 +60,16 @@ function captureScrollSnapshot(
   return {
     positions,
     windowScrollY: window.scrollY || document.documentElement.scrollTop || 0,
-    textareaScrollTop: textarea?.scrollTop ?? 0,
   };
 }
 
-function restoreScrollSnapshot(snapshot: ScrollSnapshot, activeElement: HTMLTextAreaElement) {
+function restoreScrollSnapshot(snapshot: ScrollSnapshot, activeElement: HTMLElement) {
   if (document.activeElement !== activeElement) return;
 
   for (const [el, top] of snapshot.positions) {
     if (Math.abs(el.scrollTop - top) >= 2) {
       el.scrollTop = top;
     }
-  }
-
-  if (Math.abs(activeElement.scrollTop - snapshot.textareaScrollTop) >= 2) {
-    activeElement.scrollTop = snapshot.textareaScrollTop;
   }
 
   const currentTop = window.scrollY || document.documentElement.scrollTop || 0;
@@ -108,6 +106,10 @@ function lockPageScroll(): () => void {
   };
 }
 
+function clampToMaxLength(value: string, maxLength: number) {
+  return value.length > maxLength ? value.slice(0, maxLength) : value;
+}
+
 const SCROLL_RESTORE_DELAYS_MS = [50, 150, 350, 500, 800] as const;
 
 /** 템플릿 본문: 세로로만 남은 영역을 채움 (가로는 제목 필드와 동일) */
@@ -142,11 +144,18 @@ function TemplateContentTextarea({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const handleTouchStart = () => {
-      scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current, textarea);
+    const handleTouchStart = (event: TouchEvent) => {
+      scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current);
+
+      // 이미 포커스면 기본 동작 유지 (캐럿/본문 스크롤)
+      if (document.activeElement === textarea) return;
+
+      // 첫 탭: 브라우저 scrollIntoView로 본문·페이지가 위로 튀는 것 차단
+      event.preventDefault();
+      textarea.focus({ preventScroll: true });
     };
 
-    textarea.addEventListener('touchstart', handleTouchStart, { passive: true });
+    textarea.addEventListener('touchstart', handleTouchStart, { passive: false });
 
     return () => {
       textarea.removeEventListener('touchstart', handleTouchStart);
@@ -155,14 +164,44 @@ function TemplateContentTextarea({
     };
   }, []);
 
+  const emitChange = (nextValue: string) => {
+    onChange(clampToMaxLength(nextValue, maxLength));
+  };
+
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(event.target.value.slice(0, maxLength));
+    emitChange(event.target.value);
+  };
+
+  const handleBeforeInput = (event: FormEvent<HTMLTextAreaElement>) => {
+    const inputEvent = event.nativeEvent as InputEvent;
+    if (inputEvent.isComposing) return;
+
+    const data = inputEvent.data;
+    if (data == null || data.length === 0) return;
+
+    const target = event.currentTarget;
+    const selectionStart = target.selectionStart ?? target.value.length;
+    const selectionEnd = target.selectionEnd ?? target.value.length;
+    const nextLength = target.value.length - (selectionEnd - selectionStart) + data.length;
+
+    if (nextLength > maxLength) {
+      event.preventDefault();
+    }
+  };
+
+  const handleCompositionEnd = (event: CompositionEvent<HTMLTextAreaElement>) => {
+    emitChange(event.currentTarget.value);
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLTextAreaElement>) => {
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
 
-    scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current, event.currentTarget);
+    scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current);
+
+    if (document.activeElement === event.currentTarget) return;
+
+    event.preventDefault();
+    event.currentTarget.focus({ preventScroll: true });
   };
 
   const startScrollLock = (snapshot: ScrollSnapshot, textarea: HTMLTextAreaElement) => {
@@ -177,6 +216,7 @@ function TemplateContentTextarea({
     };
 
     const onScroll = (event: Event) => {
+      // 본문 textarea 스크롤은 그대로 두고, 페이지/외부 스크롤만 되돌림
       if (event.target === textarea) return;
       restoreIfScrolledAway();
     };
@@ -202,8 +242,7 @@ function TemplateContentTextarea({
 
   const handleFocus = (event: FocusEvent<HTMLTextAreaElement>) => {
     const textarea = event.currentTarget;
-    const snapshot =
-      scrollSnapshotRef.current ?? captureScrollSnapshot(containerRef.current, textarea);
+    const snapshot = scrollSnapshotRef.current ?? captureScrollSnapshot(containerRef.current);
     scrollSnapshotRef.current = null;
 
     clearScrollRestoreTimers();
@@ -245,6 +284,8 @@ function TemplateContentTextarea({
           maxLength={maxLength}
           placeholder={placeholder}
           onChange={handleChange}
+          onBeforeInput={handleBeforeInput}
+          onCompositionEnd={handleCompositionEnd}
           onPointerDown={handlePointerDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
