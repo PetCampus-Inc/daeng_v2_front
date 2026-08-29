@@ -198,6 +198,7 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
   if (isLoginNavigationFailed) {
     return (
       <PageError
+        layout='overlay'
         title='로그인 화면으로 이동하지 못했어요'
         description='잠시 후 다시 시도해 주세요.'
         onRetry={() => void redirectToLogin()}

@@ -79,14 +79,21 @@ function KindergartenDetailPage() {
   /** 최근 본 업체 저장 */
   useRecentKindergartenView(kindergartenMain);
 
+  const renderErrorPage = (onRetry: () => void, isRetrying = false) => (
+    <div className='bg-bg-0 flex h-dvh flex-col'>
+      <Header>
+        <Header.LeftSection>{isNative ? <Header.BackButton /> : null}</Header.LeftSection>
+      </Header>
+      <PageError layout='inline' isRetrying={isRetrying} onRetry={onRetry} />
+    </div>
+  );
+
   if (!id) {
-    return <PageError layout='inline' onRetry={() => void back()} />;
+    return renderErrorPage(() => void back());
   }
 
   if (isError) {
-    return (
-      <PageError layout='inline' isRetrying={isFetching} onRetry={() => void refetch()} />
-    );
+    return renderErrorPage(() => void refetch(), isFetching);
   }
 
   if (isPending || !kindergartenMain) {

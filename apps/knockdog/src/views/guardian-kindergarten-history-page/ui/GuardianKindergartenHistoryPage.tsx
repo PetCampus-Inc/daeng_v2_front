@@ -25,29 +25,31 @@ function GuardianKindergartenHistoryPage() {
         <Header.Title>{content.pageTitle}</Header.Title>
       </Header>
 
-      <div className='min-h-0 flex-1 overflow-y-auto'>
-        <div className='px-x4 flex flex-col gap-1 pt-5 pb-3'>
-          <p className='h2-extrabold text-text-primary'>
-            <span className='text-text-accent'>{petName}</span>
-            <span>
-              {subjectParticle} {content.titleSuffix}
-            </span>
-          </p>
-          <p className='body1-medium text-text-primary'>{content.subtitle}</p>
-        </div>
+      {isError ? (
+        <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
+      ) : (
+        <div className='min-h-0 flex-1 overflow-y-auto'>
+          <div className='px-x4 flex flex-col gap-1 pt-5 pb-3'>
+            <p className='h2-extrabold text-text-primary'>
+              <span className='text-text-accent'>{petName}</span>
+              <span>
+                {subjectParticle} {content.titleSuffix}
+              </span>
+            </p>
+            <p className='body1-medium text-text-primary'>{content.subtitle}</p>
+          </div>
 
-        <div className='px-x4 flex flex-col gap-3 pb-8'>
-          {isError ? (
-            <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
-          ) : isPending ? (
-            <div className='flex justify-center py-16'>
-              <RingLoadingSpinner />
-            </div>
-          ) : (
-            items.map((item) => <GuardianConnectionHistoryCard key={item.id} item={item} />)
-          )}
+          <div className='px-x4 flex flex-col gap-3 pb-8'>
+            {isPending ? (
+              <div className='flex justify-center py-16'>
+                <RingLoadingSpinner />
+              </div>
+            ) : (
+              items.map((item) => <GuardianConnectionHistoryCard key={item.id} item={item} />)
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

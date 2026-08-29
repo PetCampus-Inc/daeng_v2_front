@@ -41,7 +41,7 @@ function PageError({
   retryLabel = '다시 시도하기',
   onRetry,
   isRetrying = false,
-  layout = 'overlay',
+  layout = 'inline',
   className,
 }: PageErrorProps) {
   const style = layoutStyle[layout];
