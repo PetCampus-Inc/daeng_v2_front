@@ -508,6 +508,9 @@ function OwnerDailyNoticeWritePage() {
         data: toAttendanceRecordDtoFromPayload(payload, 'DRAFT'),
       });
       toast({
+        type: 'success',
+        shape: 'rounded',
+        position: 'bottom',
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
         titleParts: [
           { text: '작성 중인 알림장', accent: true },
@@ -515,13 +518,15 @@ function OwnerDailyNoticeWritePage() {
         ],
         title: (
           <>
-            <span className='text-text-accent'>작성 중인 알림장</span>
-            <span className='text-text-primary-inverse'>을 임시저장했어요</span>
+            <span className='body1-bold text-text-accent'>작성 중인 알림장</span>
+            <span className='body1-medium text-text-primary-inverse'>을 임시저장했어요</span>
           </>
         ),
       });
     } catch {
       toast({
+        shape: 'rounded',
+        position: 'bottom',
         nativeTitle: '임시저장하지 못했어요. 다시 시도해 주세요',
         titleParts: [
           { text: '임시저장', accent: true },
@@ -529,8 +534,8 @@ function OwnerDailyNoticeWritePage() {
         ],
         title: (
           <>
-            <span className='text-text-accent'>임시저장</span>
-            <span className='text-text-primary-inverse'>하지 못했어요. 다시 시도해 주세요</span>
+            <span className='body1-bold text-text-accent'>임시저장</span>
+            <span className='body1-medium text-text-primary-inverse'>하지 못했어요. 다시 시도해 주세요</span>
           </>
         ),
       });
@@ -591,6 +596,9 @@ function OwnerDailyNoticeWritePage() {
       });
 
       toast({
+        type: 'success',
+        shape: 'rounded',
+        position: 'bottom',
         nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
         titleParts: [
           { text: '알림장', accent: true },
@@ -598,8 +606,8 @@ function OwnerDailyNoticeWritePage() {
         ],
         title: (
           <>
-            <span className='text-text-accent'>알림장</span>
-            <span className='text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
+            <span className='body1-bold text-text-accent'>알림장</span>
+            <span className='body1-medium text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
           </>
         ),
       });
