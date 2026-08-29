@@ -9,6 +9,7 @@ import { registerPermissionHandlers } from './register-permissions';
 
 import { registerImagePickerHandlers } from './register-image-picker';
 import { registerAuthHandlers } from './register-auth';
+import { registerAnalyticsHandlers } from './register-analytics';
 import type { RefObject } from 'react';
 import type { WebView } from 'react-native-webview';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
@@ -26,6 +27,7 @@ export function registerAllHandlers(
   registerToastHandlers(router);
   registerMediaHandlers(router);
   registerPermissionHandlers(router);
+  registerAnalyticsHandlers(router);
 
   // 이미지 피커 핸들러는 이벤트 방식으로 동작하므로 나중에 설정
   router.getImagePickerHandlers = () => router.imagePickerHandlers;

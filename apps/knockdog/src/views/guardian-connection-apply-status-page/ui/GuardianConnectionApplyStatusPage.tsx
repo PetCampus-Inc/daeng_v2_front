@@ -10,6 +10,7 @@ import {
 } from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
+import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
@@ -90,6 +91,7 @@ function GuardianConnectionApplyStatusPage() {
               // title: 보호자가 등록 신청을 취소했어요
               // body: `${petName}가 승인 대기 목록에서 제외됐어요.`
               await cancelMutation.mutateAsync(item.id);
+              trackConnectionStatus({ status: 'cancel', actor: 'guardian' });
             } catch {
               toast(content.cancelFailToast);
               throw new Error('CANCEL_FAIL');

@@ -7,9 +7,11 @@ import { useSearchParams } from 'next/navigation';
 
 import { useOwnerKindergarten } from '@features/role-conversion';
 import { useOwnerRoleRevokeMutation } from '@entities/user';
+import { trackAccountDeactivation } from '@shared/lib/analytics';
 import { toast } from '@shared/ui/toast';
 
 import {
+  RELEASE_PERMISSION_REASON,
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
   releasePermissionContent,
@@ -19,10 +21,15 @@ import {
   loadReleasePermissionReasonDraft,
   toRevokeOwnerRoleRequest,
 } from '@views/role-conversion/release-permission/lib/releasePermissionReasonDraft';
-
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+
+function toRoleReleaseGaReason(reason: (typeof RELEASE_PERMISSION_REASON)[keyof typeof RELEASE_PERMISSION_REASON]) {
+  if (reason === RELEASE_PERMISSION_REASON.CLOSURE) return 'closure';
+  if (reason === RELEASE_PERMISSION_REASON.SERVICE_STOP) return 'suspend';
+  return 'other';
+}
 
 function ReleasePermissionVerifyPage() {
   const { push, replace } = useStackNavigation();
@@ -54,6 +61,10 @@ function ReleasePermissionVerifyPage() {
 
     try {
       await revokeOwnerRoleAsync(toRevokeOwnerRoleRequest(draft));
+      trackAccountDeactivation({
+        action: 'role_release',
+        reason: toRoleReleaseGaReason(draft.reason),
+      });
       clearReleasePermissionReasonDraft();
 
       if (source === RELEASE_PERMISSION_SOURCE.WITHDRAW) {

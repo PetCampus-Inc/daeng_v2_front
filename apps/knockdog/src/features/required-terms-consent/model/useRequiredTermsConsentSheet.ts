@@ -8,6 +8,11 @@ import {
   useUserStore,
 } from '@entities/user';
 import { clearPostSignUpRedirect, consumePostSignUpRedirect, peekPostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import {
+  consumePendingSignUpAnalytics,
+  resolveEntrySource,
+  trackSignUp,
+} from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -163,7 +168,13 @@ function useRequiredTermsConsentSheet() {
       await submitAgreements({ agreedTerms });
       setIsOpen(false);
 
+      const pending = consumePendingSignUpAnalytics();
       const redirectTo = consumePostSignUpRedirect();
+      trackSignUp({
+        method: pending?.method ?? 'kakao',
+        entry_source: pending?.entry_source ?? resolveEntrySource(redirectTo),
+      });
+
       if (redirectTo) {
         try {
           await reset(redirectTo);

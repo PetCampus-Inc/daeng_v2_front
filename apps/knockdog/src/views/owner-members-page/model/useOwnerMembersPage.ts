@@ -12,6 +12,7 @@ import {
   type OwnerMember,
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
+import { trackConnectionStatus } from '@shared/lib/analytics';
 
 const SEARCH_ALLOWED_PATTERN = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z ]/g;
 
@@ -82,6 +83,7 @@ function useOwnerMembersPage() {
 
   const handleDisconnectMember = async (memberId: string) => {
     await disconnectMutation.mutateAsync(memberId);
+    trackConnectionStatus({ status: 'disconnect', actor: 'owner' });
   };
 
   return {

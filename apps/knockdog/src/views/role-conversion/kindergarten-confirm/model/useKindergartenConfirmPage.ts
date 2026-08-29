@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { postKindergartenManual, postKindergartenSelect, saveSession } from '@entities/owner-verification';
+import { trackOwnerVerificationStatus } from '@shared/lib/analytics';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, waitForNavParams } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
@@ -83,6 +84,7 @@ function useKindergartenConfirmPage() {
         ownerName: kindergartenInfo.ownerName,
         phoneNumber: kindergartenInfo.phoneNumber,
       });
+      trackOwnerVerificationStatus({ status: 'start' });
       proceedToBusinessVerification();
     },
     onError: (error) => {
@@ -102,6 +104,7 @@ function useKindergartenConfirmPage() {
         ownerName: kindergartenInfo.ownerName,
         phoneNumber: kindergartenInfo.phoneNumber,
       });
+      trackOwnerVerificationStatus({ status: 'start' });
       proceedToBusinessVerification();
     },
     onError: (error) => {

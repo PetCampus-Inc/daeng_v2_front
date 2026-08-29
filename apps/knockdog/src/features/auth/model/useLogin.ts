@@ -23,6 +23,12 @@ import {
   getInternalRedirect,
   savePostSignUpRedirect,
 } from '@shared/lib/auth/postSignUpRedirect';
+import {
+  clearPendingSignUpAnalytics,
+  resolveEntrySource,
+  savePendingSignUpAnalytics,
+  toSignUpMethod,
+} from '@shared/lib/analytics';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
@@ -199,6 +205,11 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
   /** 로그인 */
   const login = async (provider: SocialProvider) => {
+    const pendingAnalytics = {
+      method: toSignUpMethod(provider),
+      entry_source: resolveEntrySource(redirectTo),
+    };
+
     let code: Awaited<ReturnType<typeof oidcAuth>> | undefined;
     try {
       code = await oidcAuth(provider);
@@ -207,20 +218,29 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
       return;
     }
 
-    // OIDC 인증 성공
+    // OIDC 인증 성공 — 기존 계정 로그인. pending이 남아 약관에서 sign_up 오발화되지 않게 제거
     if (code === VERIFY_OIDC_RESULT_CODE.SUCCESS) {
+      clearPendingSignUpAnalytics();
       loginMutate(undefined, {
         onSuccess: ({ data }) => handleLoginSuccess(data),
-        onError: handleLoginError,
+        onError: (error) => {
+          // 탈퇴 후 재가입 분기
+          if ((error as ApiError).code === LOGIN_ERROR_CODE.WITHDRAWN_USER) {
+            savePendingSignUpAnalytics(pendingAnalytics.method, pendingAnalytics.entry_source);
+          }
+          handleLoginError(error);
+        },
       });
     }
 
     // 연동되지 않은 계정 — 온보딩 없이 회원가입만 진행
     else if (code === VERIFY_OIDC_RESULT_CODE.UNLINKED) {
+      savePendingSignUpAnalytics(pendingAnalytics.method, pendingAnalytics.entry_source);
       completeSignUp();
     }
     // 동일한 이메일의 계정이 존재 (연동된 소셜 계정 정보 저장 후 로그인 페이지로 이동)
     else if (code === VERIFY_OIDC_RESULT_CODE.EMAIL_ALREADY_EXISTS) {
+      clearPendingSignUpAnalytics();
       try {
         // 연동된 소셜 계정 정보 저장
         const response = await fetchLinkedSocialUser();

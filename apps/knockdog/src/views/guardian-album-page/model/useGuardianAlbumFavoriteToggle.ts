@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 
 import { useGuardianAlbumFavoriteMutation } from '@entities/guardian-album';
 import { useUserStore } from '@entities/user';
+import { trackAlbumAction } from '@shared/lib/analytics';
 import { isGuardianAlbumExpandPhotoId } from '@views/guardian-album-page/lib/guardianAlbumPhotoId';
 
 interface UseGuardianAlbumFavoriteToggleParams {
@@ -26,6 +27,9 @@ function useGuardianAlbumFavoriteToggle({
     async (photoId: string, isFavorite: boolean) => {
       if (!schoolId || isGuardianAlbumExpandPhotoId(photoId)) return;
       await mutateAsync({ photoId, isFavorite });
+      if (isFavorite) {
+        trackAlbumAction({ action: 'favorite', role: 'guardian' });
+      }
     },
     [mutateAsync, schoolId]
   );

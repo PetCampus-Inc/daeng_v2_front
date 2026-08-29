@@ -20,6 +20,7 @@ import {
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
+import { trackAttendanceAction } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useDebounced } from '@shared/lib';
 import { ApiError } from '@shared/api';
@@ -276,6 +277,7 @@ function useOwnerDailyPage() {
   const handleCheckIn = async (member: AttendanceMember) => {
     try {
       await checkInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
+      trackAttendanceAction({ action: 'check_in' });
       toast({
         type: 'success',
         nativeTitle: `${member.name}를 등원 처리했어요`,
@@ -299,6 +301,7 @@ function useOwnerDailyPage() {
     try {
       await cancelCheckInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       close();
+      trackAttendanceAction({ action: 'cancel_check_in' });
       toast({
         type: 'success',
         nativeTitle: `${member.name}의 등원을 취소했어요`,
@@ -323,6 +326,7 @@ function useOwnerDailyPage() {
 
     try {
       await checkOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
+      trackAttendanceAction({ action: 'check_out' });
       toast({
         type: 'success',
         nativeTitle: `${member.name}를 하원 처리했어요`,
@@ -348,6 +352,7 @@ function useOwnerDailyPage() {
     try {
       await cancelCheckOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       close();
+      trackAttendanceAction({ action: 'cancel_check_out' });
       toast({
         type: 'success',
         nativeTitle: `${member.name}의 하원을 취소했어요`,

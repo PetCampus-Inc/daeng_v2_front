@@ -5,6 +5,7 @@ import type { ToastRPCSchema } from '../domains/toast';
 import type { AppVersionRPCSchema } from '../domains/app-version';
 import type { SystemRPCSchema } from '../domains/system';
 import type { MediaRPCSchema } from '../domains/media';
+import type { AnalyticsRPCSchema } from '../domains/analytics';
 
 type RPCSchema = LocationRPCSchema &
   NavigationRPCSchema &
@@ -12,7 +13,8 @@ type RPCSchema = LocationRPCSchema &
   SystemRPCSchema &
   ToastRPCSchema &
   AppVersionRPCSchema &
-  MediaRPCSchema;
+  MediaRPCSchema &
+  AnalyticsRPCSchema;
 
 type RPCMethod = keyof RPCSchema;
 type ParamsOf<K extends RPCMethod> = RPCSchema[K] extends { params: infer P } ? P : never;
