@@ -123,6 +123,20 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
       return;
     }
 
+    if (isNewSignUp || shouldResetToMain) {
+      reset(route.root).catch(() => undefined);
+      return;
+    }
+
+    // redirectTo가 있으면 그쪽으로 이동한다. replace()로 params(redirectTo 등)만 실어 보낸
+    // 호출도 params가 있으면 무조건 _txId가 생기기 때문에, resultTxId만 보고 판단하면
+    // pushForResult가 아닌 호출까지 "결과 반환 흐름"으로 오인해 원래 이동해야 할 곳 대신
+    // back()으로 빠져버린다 — 그래서 resultTxId 분기보다 먼저 확인한다.
+    if (redirectTo) {
+      replace({ pathname: redirectTo });
+      return;
+    }
+
     if (resultTxId) {
       navResult.send(true);
       // pushForResult(탭 위 Stack): back으로 복귀. auth-only면 wentBack=false → 홈 reset
@@ -132,16 +146,6 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
           return undefined;
         })
         .catch(() => reset(route.root).catch(() => undefined));
-      return;
-    }
-
-    if (isNewSignUp || shouldResetToMain) {
-      reset(route.root).catch(() => undefined);
-      return;
-    }
-
-    if (redirectTo) {
-      replace({ pathname: redirectTo });
       return;
     }
 
