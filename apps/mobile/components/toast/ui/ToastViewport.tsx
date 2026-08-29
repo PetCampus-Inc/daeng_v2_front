@@ -9,6 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ToastItem } from '../model/store';
 import type { StoreApi } from 'zustand';
 import type { ToastPosition } from '@knockdog/bridge-core';
+import { getBottomTabBarHeight } from '@/components/navigation/bottomTabBarHeight';
+import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
 
 type ToastState = {
   items: ToastItem[];
@@ -22,7 +24,8 @@ const tokens = {
   gap: { rounded: 8, square: 0 },
   colors: { bg: '#41424a', fg: '#ffffff', accent: '#ff6e0c' },
   viewportOffset: {
-    bottom: 0, // 화면 하단 여백
+    bottom: 0, // 화면 하단 여백 (바텀탭 없을 때)
+    aboveBottomTabBar: 16, // 바텀탭 위 여백
     bottomAboveNav: 55, // 네비게이션 바 위 (네비게이션 바 높이 + 여백)
   },
 };
@@ -41,6 +44,7 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
   const items = useStore(store, (s) => s.items);
   const dismiss = useStore(store, (s) => s.dismiss);
   const insets = useSafeAreaInsets();
+  const isBottomTabBarVisible = useBottomTabBarVisibilityStore((s) => s.visible);
 
   const handleDismiss = useCallback(
     (id: string) => {
@@ -49,12 +53,16 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
     [dismiss]
   );
 
+  const bottomOffset = isBottomTabBarVisible
+    ? getBottomTabBarHeight(insets.bottom) + tokens.viewportOffset.aboveBottomTabBar
+    : insets.bottom + tokens.viewportOffset.bottom;
+
   const topStyle =
     position === 'top'
       ? { top: insets.top + 12 }
       : position === 'bottom-above-nav'
         ? { bottom: insets.bottom + tokens.viewportOffset.bottomAboveNav }
-        : { bottom: insets.bottom + tokens.viewportOffset.bottom };
+        : { bottom: bottomOffset };
   const isAllSquare = items.every((item) => item.shape === 'square');
   const horizontalMargin = isAllSquare ? 0 : 12;
   const gapValue = isAllSquare ? tokens.gap.square : tokens.gap.rounded;

@@ -24,18 +24,16 @@ import { StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
+import {
+  BOTTOM_TAB_BAR_DIM_HEIGHT,
+  ANDROID_TAB_BAR_CONTENT_HEIGHT,
+  getAndroidTabBarBottomInset,
+} from './bottomTabBarHeight';
 
 const Tab = createBottomTabNavigator();
 
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
 const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Compare']);
-const BOTTOM_TAB_BAR_DIM_HEIGHT = 64;
-const ANDROID_TAB_BAR_CONTENT_HEIGHT = 64;
-const ANDROID_TAB_BAR_MIN_BOTTOM_INSET = 12;
-
-function getAndroidTabBarBottomInset(bottom: number) {
-  return Math.max(bottom, ANDROID_TAB_BAR_MIN_BOTTOM_INSET);
-}
 
 function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
   if (!isTabBarVisible) {
