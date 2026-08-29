@@ -62,7 +62,13 @@ function useNotificationInboxDeepLink() {
         return;
       case 'album':
         if (destination.petId) setSelectedPetId(destination.petId);
-        void push({ pathname: route.compare.album.root });
+        void push({
+          pathname: route.compare.album.root,
+          query: {
+            ...(destination.schoolId && { schoolId: destination.schoolId }),
+            ...(destination.date && { date: destination.date }),
+          },
+        });
         return;
       default:
         toast(notificationInboxContent.pageNotFoundToast);

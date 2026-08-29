@@ -136,6 +136,22 @@ class PushCoordinator {
       return;
     }
 
+    if (destination.kind === 'connectionApplyStatus') {
+      navigationRef.navigate('Tabs', { screen: 'Mypage' });
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl('/guardian/connection-apply/status') }));
+      return;
+    }
+
+    if (destination.kind === 'album') {
+      const params = new URLSearchParams({
+        schoolId: destination.schoolId,
+        date: destination.date,
+      });
+      navigationRef.navigate('Tabs', { screen: 'Compare' });
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/album?${params}`) }));
+      return;
+    }
+
     navigationRef.navigate('Tabs', { screen: 'Explore' });
   }
 

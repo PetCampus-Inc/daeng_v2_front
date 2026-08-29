@@ -2,6 +2,8 @@ export type PushDestination =
   | { kind: 'guardianKindergarten'; petId: string; date?: string; dedupeKey: string }
   | { kind: 'attendanceRecord'; petId: string; date: string; dedupeKey: string }
   | { kind: 'ownerMemberApprovals'; dedupeKey: string }
+  | { kind: 'connectionApplyStatus'; dedupeKey: string }
+  | { kind: 'album'; schoolId: string; date: string; petId?: string; dedupeKey: string }
   | { kind: 'fallback' };
 
 type UnknownRecord = Record<string, unknown>;
@@ -19,9 +21,13 @@ const OWNER_MEMBER_APPROVAL_TYPES = new Set(['GUARDIAN_APPLICATION_REQUESTED', '
 
 const GUARDIAN_KINDERGARTEN_TYPES = new Set([
   'SCHOOL_MEMBERSHIP_APPROVED',
-  'SCHOOL_MEMBERSHIP_REJECTED',
   'SCHOOL_MEMBERSHIP_DISCONNECTED',
+  'SCHOOL_MEMBERSHIP_SERVICE_ENDED',
 ]);
+
+const CONNECTION_APPLY_TYPES = new Set(['SCHOOL_MEMBERSHIP_REJECTED']);
+
+const ALBUM_TYPES = new Set(['album_photo_uploaded', 'ALBUM_PHOTO_UPLOADED']);
 
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -111,10 +117,23 @@ export function resolvePushDestination(value: unknown): PushDestination {
     return { kind: 'ownerMemberApprovals', dedupeKey: payload.type };
   }
 
+  if (CONNECTION_APPLY_TYPES.has(payload.type)) {
+    return { kind: 'connectionApplyStatus', dedupeKey: payload.type };
+  }
+
   if (GUARDIAN_KINDERGARTEN_TYPES.has(payload.type)) {
     const petId = toPositiveId(payload.petId);
     return petId
       ? { kind: 'guardianKindergarten', petId, dedupeKey: `${payload.type}:${petId}` }
+      : { kind: 'fallback' };
+  }
+
+  if (ALBUM_TYPES.has(payload.type)) {
+    const schoolId = toPositiveId(payload.schoolId);
+    const date = toDateKey(payload.date);
+    const petId = toPositiveId(payload.petId);
+    return schoolId && date
+      ? { kind: 'album', schoolId, date, petId: petId ?? undefined, dedupeKey: `${payload.type}:${schoolId}:${date}` }
       : { kind: 'fallback' };
   }
 
