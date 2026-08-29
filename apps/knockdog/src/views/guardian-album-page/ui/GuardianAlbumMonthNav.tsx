@@ -27,7 +27,7 @@ function GuardianAlbumMonthNav({
   const { monthNav } = guardianAlbumContent;
 
   return (
-    <div className='bg-bg-0 relative flex w-full items-center justify-center p-4'>
+    <div className='bg-bg-0 relative flex w-full shrink-0 items-center justify-center p-4'>
       <div className='gap-x2 flex flex-1 items-center justify-center'>
         <button
           type='button'
