@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
@@ -58,8 +58,7 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
-import { useStackNavigation, useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
-import { isNativeWebView } from '@shared/lib/device';
+import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -187,8 +186,6 @@ function OwnerDailyNoticeWritePage() {
   const isEditQuery = searchParams.get('mode') === 'edit';
   const isExpired = searchParams.get('expired') === 'true';
   const { pushForResult, replace, reset } = useStackNavigation();
-  const { navigateToTab } = useTabNavigation();
-  const isNative = useMemo(() => isNativeWebView(), []);
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
   const { draftMutation, sendMutation } = useAttendanceRecordMutation();
@@ -336,13 +333,10 @@ function OwnerDailyNoticeWritePage() {
     safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
     const query = { tab: 'today-attendance' };
 
-    if (isNative) {
-      await navigateToTab('/owner/daily', query);
-      return;
-    }
-
+    // navigateToTab만 하면 발송 후 Stack reset으로 Tabs가 remount된 뒤
+    // reset으로 Tabs(OwnerDaily)+query를 명시함.
     await reset(route.owner.daily.root, query);
-  }, [isNative, navigateToTab, reset]);
+  }, [reset]);
 
   const openExpiredDialog = useCallback(() => {
     openExpiredNoticeDialog(returnToOwnerDailyTodayAttendance);

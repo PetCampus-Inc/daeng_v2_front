@@ -59,5 +59,12 @@ function modeForTab(tabName: TabName): 'owner' | 'guardian' | null {
   return null;
 }
 
-export { pathToTab, pathToBaseTab, isOwnerOnlyTab, isGuardianOnlyTab, modeForTab };
+/** 현재 메인 탭 모드에 맞게 탭 화면 이름 정규화 (모드에 없는 탭 → 해당 모드 기본 탭) */
+function resolveTabScreen(tabName: TabName, mode: 'owner' | 'guardian'): TabName {
+  if (mode === 'owner' && isGuardianOnlyTab(tabName)) return 'OwnerHome';
+  if (mode === 'guardian' && isOwnerOnlyTab(tabName)) return 'Explore';
+  return tabName;
+}
+
+export { pathToTab, pathToBaseTab, isOwnerOnlyTab, isGuardianOnlyTab, modeForTab, resolveTabScreen };
 export type { TabName, GuardianTabName, OwnerTabName };
