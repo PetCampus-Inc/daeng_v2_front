@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
 import { guardianInviteResultContent } from '../config/guardianInviteResultContent';
 import { GUARDIAN_INVITE_RESULT_STATUS, resolveGuardianInviteResultStatus } from '../config/guardianInviteResultStatus';
@@ -18,6 +18,7 @@ function useGuardianInviteResultPage() {
   const searchParams = useSearchParams();
   const { token } = useParams<{ token: string }>();
   const { getParams, reset } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const status = resolveGuardianInviteResultStatus(searchParams.get('status'));
   const content = guardianInviteResultContent[status];
   // getParams는 전달 데이터를 소비하므로 초기 마운트 시 한 번만 읽는다.
@@ -40,7 +41,7 @@ function useGuardianInviteResultPage() {
   };
 
   const handleSecondaryClick = () => {
-    void reset(route.root);
+    void navigateToTab('/');
   };
 
   return { content, failedPets, handlePrimaryClick, handleSecondaryClick, status };
