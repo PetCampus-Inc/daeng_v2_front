@@ -32,9 +32,9 @@ function isSameYearMonthKey(dateKey: string, month: Date) {
  * 월별 앨범 days + periods → 최신순 타임라인.
  *
  * - 연결/해제는 날짜당 기본 1개 (재연결 connected도 노출)
- * - 당일 해제+재연결: 시작 → 해제 → 사진
- * - 그날이 periods 최초 연결일이면 사진 아래에도 시작 1회 추가 (최초 연결 마커)
- * - 최초만 있는 날(당일 해제 없음): 해제 → 사진 → 시작
+ * - 당일 해제 후 다른 사이클이 같은 날 재연결: 시작 → 해제 → 사진
+ *   (단일 사이클 당일 연결→해제는 재연결이 아님 → 해제 → 사진 → 시작)
+ * - 그날이 periods 최초 연결일이면 재연결 분기에서 사진 아래에도 시작 1회 추가
  */
 function buildGuardianAlbumMonthTimeline(
   days: GuardianAlbumDayAlbum[],
@@ -43,10 +43,19 @@ function buildGuardianAlbumMonthTimeline(
 ): GuardianAlbumTimelineRow[] {
   const connectedDates = new Set<string>();
   const disconnectedDates = new Set<string>();
+  /** 같은 날 이전 사이클 해제 후 다른 사이클이 시작한 날짜 */
+  const sameDayReconnectDates = new Set<string>();
   let earliestConnectedAt: Date | null = null;
 
-  for (const period of periods) {
-    const connectedKey = formatDateKey(startOfDay(period.connectedAt));
+  const periodDateKeys = periods.map((period) => ({
+    period,
+    connectedKey: formatDateKey(startOfDay(period.connectedAt)),
+    disconnectedKey: period.disconnectedAt
+      ? formatDateKey(startOfDay(period.disconnectedAt))
+      : null,
+  }));
+
+  for (const { period, connectedKey, disconnectedKey } of periodDateKeys) {
     if (isSameYearMonthKey(connectedKey, selectedMonth)) {
       connectedDates.add(connectedKey);
     }
@@ -58,12 +67,24 @@ function buildGuardianAlbumMonthTimeline(
       earliestConnectedAt = period.connectedAt;
     }
 
-    if (period.disconnectedAt) {
-      const disconnectedKey = formatDateKey(startOfDay(period.disconnectedAt));
-      if (isSameYearMonthKey(disconnectedKey, selectedMonth)) {
-        disconnectedDates.add(disconnectedKey);
-      }
+    if (disconnectedKey && isSameYearMonthKey(disconnectedKey, selectedMonth)) {
+      disconnectedDates.add(disconnectedKey);
     }
+  }
+
+  for (const ended of periodDateKeys) {
+    if (!ended.disconnectedKey || !isSameYearMonthKey(ended.disconnectedKey, selectedMonth)) {
+      continue;
+    }
+    const endedAt = ended.period.disconnectedAt;
+    if (!endedAt) continue;
+
+    const hasLaterConnectSameDay = periodDateKeys.some((started) => {
+      if (started.period === ended.period) return false;
+      if (started.connectedKey !== ended.disconnectedKey) return false;
+      return started.period.connectedAt.getTime() >= endedAt.getTime();
+    });
+    if (hasLaterConnectSameDay) sameDayReconnectDates.add(ended.disconnectedKey);
   }
 
   const firstConnectedKey =
@@ -82,7 +103,7 @@ function buildGuardianAlbumMonthTimeline(
     const hasDisconnected = disconnectedDates.has(dateKey);
     const hasConnected = connectedDates.has(dateKey);
     const day = dayByKey.get(dateKey);
-    const isSameDayReconnect = hasConnected && hasDisconnected;
+    const isSameDayReconnect = sameDayReconnectDates.has(dateKey);
     const isFirstConnectionDay =
       isFirstConnectedInSelectedMonth && dateKey === firstConnectedKey;
 
