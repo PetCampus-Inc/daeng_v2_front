@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
@@ -167,6 +167,35 @@ function GuardianAlbumPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const didOpenHomeDetailRef = useRef(false);
   const didOpenDateDetailRef = useRef(false);
+  /** overlay-kit 바텀시트 — AOS back 시 Stack pop 대신 시트만 닫기 */
+  const overlayCloseRef = useRef<(() => void) | null>(null);
+
+  const openAlbumOverlay = useCallback(
+    (render: (props: { isOpen: boolean; close: () => void }) => ReactNode) => {
+      overlay.open(({ isOpen, close }) => {
+        const handleClose = () => {
+          overlayCloseRef.current = null;
+          close();
+        };
+
+        if (isOpen) {
+          overlayCloseRef.current = handleClose;
+        } else {
+          overlayCloseRef.current = null;
+        }
+
+        return render({ isOpen, close: handleClose });
+      });
+    },
+    []
+  );
+
+  useEffect(
+    () => () => {
+      overlayCloseRef.current = null;
+    },
+    []
+  );
   const [viewMode, setViewMode] = useState<GuardianAlbumViewMode>('all');
   const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
   const [syncedQuerySchoolId, setSyncedQuerySchoolId] = useState<string | null>(null);
@@ -548,6 +577,10 @@ function GuardianAlbumPage() {
   }, []);
 
   const handleHeaderBack = useCallback(() => {
+    if (overlayCloseRef.current) {
+      overlayCloseRef.current();
+      return;
+    }
     // 상세/필터는 같은 Stack WebView 오버레이 — AOS/헤더 모두 한 단계씩 닫기
     if (detailState) {
       handleCloseDetail();
@@ -662,7 +695,7 @@ function GuardianAlbumPage() {
   const handleKindergartenSelectClick = () => {
     if (!canSelectKindergarten) return;
 
-    overlay.open(({ isOpen, close }) => (
+    openAlbumOverlay(({ isOpen, close }) => (
       <KindergartenSelectSheet
         isOpen={isOpen}
         close={close}
@@ -674,7 +707,7 @@ function GuardianAlbumPage() {
   };
 
   const handleFilterClick = () => {
-    overlay.open(({ isOpen, close }) => (
+    openAlbumOverlay(({ isOpen, close }) => (
       <GuardianAlbumFilterSheet
         isOpen={isOpen}
         close={close}
@@ -685,7 +718,9 @@ function GuardianAlbumPage() {
   };
 
   const handleInfoClick = () => {
-    overlay.open(({ isOpen, close }) => <GuardianAlbumInfoSheet isOpen={isOpen} close={close} />);
+    openAlbumOverlay(({ isOpen, close }) => (
+      <GuardianAlbumInfoSheet isOpen={isOpen} close={close} />
+    ));
   };
 
   const handlePrevMonth = () => {
@@ -707,7 +742,7 @@ function GuardianAlbumPage() {
   };
 
   const handleYearMonthClick = () => {
-    overlay.open(({ isOpen, close }) => (
+    openAlbumOverlay(({ isOpen, close }) => (
       <GuardianAlbumMonthPickerSheet
         isOpen={isOpen}
         close={close}
@@ -720,7 +755,7 @@ function GuardianAlbumPage() {
   };
 
   const handleSearchClick = () => {
-    overlay.open(({ isOpen, close }) => (
+    openAlbumOverlay(({ isOpen, close }) => (
       <GuardianAlbumDateSelectSheet
         isOpen={isOpen}
         close={close}

@@ -60,7 +60,7 @@ import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { useStackNavigation, useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
-import { safeSessionStorage } from '@shared/lib/storage';
+import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
@@ -331,15 +331,17 @@ function OwnerDailyNoticeWritePage() {
   draftRef.current = currentDraft;
 
   const returnToOwnerDailyTodayAttendance = useCallback(async () => {
+    // Stack/Tab WebView sessionStorage 분리 → localStorage로 Tab과 공유
+    safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
     safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
+    const query = { tab: 'today-attendance' };
 
     if (isNative) {
-      await reset(route.owner.daily.root);
-      await navigateToTab('/owner/daily', { tab: 'today-attendance' });
+      await navigateToTab('/owner/daily', query);
       return;
     }
 
-    await reset(route.owner.daily.root, { tab: 'today-attendance' });
+    await reset(route.owner.daily.root, query);
   }, [isNative, navigateToTab, reset]);
 
   const openExpiredDialog = useCallback(() => {
@@ -586,6 +588,8 @@ function OwnerDailyNoticeWritePage() {
         data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
       });
       setIsEditingSent(false);
+      safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
+      safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
       // replace만 하면 템플릿 push로 쌓인 중간 Stack이 남아 뒤로가기 시 템플릿으로 돌아감.
       // reset으로 [OwnerDaily, 작성]만 남겨 뒤로가기가 /owner/daily로 가게 함.
       await reset(route.owner.daily.notice.write.root.replace('[id]', noticeId), {

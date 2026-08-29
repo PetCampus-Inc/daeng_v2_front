@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
@@ -8,7 +8,7 @@ import { overlay } from 'overlay-kit';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
-import { safeSessionStorage } from '@shared/lib/storage';
+import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
@@ -29,12 +29,16 @@ function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
 }
 
 function readPersistedOwnerDailyTab(): OwnerDailyTab | null {
-  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
+  // Stack/Tab WebView는 sessionStorage가 분리됨 → localStorage로 공유
+  const value =
+    safeLocalStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB) ??
+    safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
   if (value === 'today-attendance' || value === 'attendance-check') return value;
   return null;
 }
 
 function persistOwnerDailyTab(tab: OwnerDailyTab) {
+  safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
   safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
 }
 
@@ -51,6 +55,15 @@ function resolveTodayAttendanceFilter(value: string | null): TodayAttendanceFilt
   return 'all';
 }
 
+function resolveOwnerDailyTabFromNavigation(): OwnerDailyTab | null {
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab === 'today-attendance' || urlTab === 'attendance-check') {
+    return resolveOwnerDailyTab(urlTab);
+  }
+
+  return readPersistedOwnerDailyTab();
+}
+
 function OwnerDailyPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -59,6 +72,8 @@ function OwnerDailyPage() {
   const rawTodayFilter = searchParams.get('todayFilter');
   const initialTodayAttendanceFilter = resolveTodayAttendanceFilter(rawTodayFilter);
   const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveInitialOwnerDailyTab(rawTab));
+  const selectedTabRef = useRef(selectedTab);
+  selectedTabRef.current = selectedTab;
   const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
@@ -181,6 +196,25 @@ function OwnerDailyPage() {
     router.replace(buildHref(pathname, query), { scroll: false });
   };
 
+  const applyOwnerDailyTab = useCallback(
+    (nextTab: OwnerDailyTab, options?: { force?: boolean }) => {
+      if (!options?.force && selectedTabRef.current === nextTab) return;
+
+      setSelectedTab(nextTab);
+      persistOwnerDailyTab(nextTab);
+
+      const query = searchParamsToQuery(searchParams);
+      if (nextTab === 'today-attendance') {
+        query.tab = 'today-attendance';
+      } else {
+        delete query.tab;
+        delete query.todayFilter;
+      }
+      router.replace(buildHref(pathname, query), { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
   const handleContentScroll = (scrollTop: number) => {
     setIsScrollTopButtonVisible(scrollTop > 0);
   };
@@ -210,6 +244,39 @@ function OwnerDailyPage() {
     // mount 시 1회만
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const syncTabFromNavigation = () => {
+      const nextTab = resolveOwnerDailyTabFromNavigation();
+      if (!nextTab) return;
+      applyOwnerDailyTab(nextTab);
+    };
+
+    const handleOwnerDailyTabSync = (event: Event) => {
+      const tab = (event as CustomEvent<{ tab?: string }>).detail?.tab;
+      if (tab === 'today-attendance' || tab === 'attendance-check') {
+        applyOwnerDailyTab(resolveOwnerDailyTab(tab), { force: true });
+        return;
+      }
+      syncTabFromNavigation();
+    };
+
+    const handleNativeTabFocus = () => {
+      syncTabFromNavigation();
+      window.setTimeout(syncTabFromNavigation, 0);
+      window.setTimeout(syncTabFromNavigation, 100);
+    };
+
+    window.addEventListener('knockdog:owner-daily-tab-sync', handleOwnerDailyTabSync);
+    window.addEventListener('knockdog:native-tab-focus', handleNativeTabFocus);
+    window.addEventListener('popstate', syncTabFromNavigation);
+
+    return () => {
+      window.removeEventListener('knockdog:owner-daily-tab-sync', handleOwnerDailyTabSync);
+      window.removeEventListener('knockdog:native-tab-focus', handleNativeTabFocus);
+      window.removeEventListener('popstate', syncTabFromNavigation);
+    };
+  }, [applyOwnerDailyTab]);
 
   useLayoutEffect(() => {
     setIsScrollTopButtonVisible(false);

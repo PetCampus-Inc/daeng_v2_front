@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   AlertDialog,
@@ -18,7 +18,7 @@ import { Header } from '@widgets/Header';
 import { PetProfileForm, type PetFormData } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
@@ -49,14 +49,12 @@ export function MypagePetEditPage() {
     setRestoreValues(petEditViewDrafts.get(petId) ?? null);
   }, [petId]);
 
-  const handleBack = () => {
-    // 변경사항이 없으면 바로 뒤로가기
+  const handleBack = useCallback(() => {
     if (!isDirtyRef.current) {
       back?.();
       return;
     }
 
-    // 변경사항이 있으면 확인 다이얼로그 표시
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={close}>
         <AlertDialogContent>
@@ -73,7 +71,9 @@ export function MypagePetEditPage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  };
+  }, [back]);
+
+  useNativeBackHandler(handleBack);
 
   const handleSuccess = async () => {
     // 초대 강아지 선택 화면은 pet/list와 별도의 연결 상태 query를 사용한다.

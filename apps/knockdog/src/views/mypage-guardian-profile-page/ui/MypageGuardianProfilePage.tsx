@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ActionButton,
@@ -33,7 +33,7 @@ import {
 } from '@entities/user';
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
-import { useTabNavigation } from '@shared/lib/bridge';
+import { useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { showGuardianProfileSaveFailureToast, showGuardianProfileSaveSuccessToast } from '../model/guardianProfileToast';
 
 const EMPTY_FORM_VALUES: GuardianProfileFormValues = {
@@ -165,7 +165,7 @@ function MypageGuardianProfilePage() {
 
   const navigateToMypage = () => navigateToTab('/mypage');
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (!isDirty) {
       void navigateToMypage();
       return;
@@ -185,7 +185,9 @@ function MypageGuardianProfilePage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  };
+  }, [isDirty, navigateToMypage]);
+
+  useNativeBackHandler(handleBack);
 
   const handleSave = async () => {
     if (!isSaveEnabled || isSaving || formValues.gender == null || !selectedAddress) return;

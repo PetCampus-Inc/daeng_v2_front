@@ -26,6 +26,7 @@ import type { KindergartenRegisterSource } from '@views/role-conversion/model/ki
 
 import { kindergartenRegisterContent } from '@views/role-conversion/kindergarten-register/config/kindergartenRegisterContent';
 import { useKindergartenRegisterPage } from '@views/role-conversion/kindergarten-register/model/useKindergartenRegisterPage';
+import { useKeyboardAwareScrollHeight } from '@shared/lib/device';
 
 function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
   const {
@@ -39,23 +40,29 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
     handleBack,
     handleNextClick,
   } = useKindergartenRegisterPage(mode);
+  const scrollRef = useKeyboardAwareScrollHeight<HTMLDivElement>();
 
   return (
-    <div className='flex h-full flex-col'>
-      <Header>
-        <Header.BackButton onClick={handleBack} />
-        <Header.Title>{kindergartenRegisterContent.headerTitle}</Header.Title>
-      </Header>
+    <div className='bg-bg-0 flex h-full min-h-0 flex-col overflow-hidden'>
+      <div className='shrink-0'>
+        <Header className='relative border-b border-line-100'>
+          <Header.BackButton onClick={handleBack} />
+          <Header.Title>{kindergartenRegisterContent.headerTitle}</Header.Title>
+        </Header>
 
-      <div className='shrink-0 px-4 py-2'>
-        <ProgressBar
-          totalSteps={roleConversionProgress.totalSteps}
-          value={roleConversionProgress.kindergartenSearchStep}
-          className='h-1.5'
-        />
+        <div className='px-4 py-2'>
+          <ProgressBar
+            totalSteps={roleConversionProgress.totalSteps}
+            value={roleConversionProgress.kindergartenSearchStep}
+            className='h-1.5'
+          />
+        </div>
       </div>
 
-      <div className='scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-3 pb-5'>
+      <div
+        ref={scrollRef}
+        className='scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pt-3 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))] [-webkit-overflow-scrolling:touch]'
+      >
         {/* 다음 버튼을 스크롤 안에 둠 — iOS에서 footer가 키보드에 붙어 올라오지 않게 */}
         <div className='flex flex-col gap-5'>
           <h1 className='h1-extrabold'>
@@ -159,7 +166,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
           </div>
         </div>
 
-        <div className='py-5'>
+        <div className='pt-5'>
           <ActionButton
             type='button'
             variant='secondaryFill'
