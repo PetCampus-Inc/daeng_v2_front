@@ -36,6 +36,9 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   // RN에서는 viewportClassName 무시, position만 채널 결정
   const { store } = ensureChannel(resolvedOptions.position, resolvedOptions.viewportClassName);
 
+  // 화면에는 항상 토스트 1개만 — 채널 무관하게 새 토스트가 뜨면 기존 걸 교체
+  clearAllChannels();
+
   const id = resolvedOptions.id ?? generateId();
 
   const titleParts = resolvedOptions.titleParts;

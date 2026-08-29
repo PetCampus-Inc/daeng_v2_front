@@ -34,8 +34,8 @@ function ClosedKindergartenNotice() {
       />
       <div className='flex h-[80px] w-[214px] flex-col items-center gap-1'>
         <p className='h2-extrabold text-text-primary w-full text-center'>운영이 종료된 유치원이에요</p>
-        <p className='body1-regular text-text-primary w-[154px] text-center'>
-          이 유치원의 상세 정보는 더 이상 제공되지 않아요.
+        <p className='body1-regular text-text-primary w-full whitespace-pre-line text-center'>
+          {'이 유치원의 상세 정보는\n더 이상 제공되지 않아요.'}
         </p>
       </div>
     </div>
@@ -79,14 +79,21 @@ function KindergartenDetailPage() {
   /** 최근 본 업체 저장 */
   useRecentKindergartenView(kindergartenMain);
 
+  const renderErrorPage = (onRetry: () => void, isRetrying = false) => (
+    <div className='bg-bg-0 flex h-dvh flex-col'>
+      <Header>
+        <Header.LeftSection>{isNative ? <Header.BackButton /> : null}</Header.LeftSection>
+      </Header>
+      <PageError layout='inline' isRetrying={isRetrying} onRetry={onRetry} />
+    </div>
+  );
+
   if (!id) {
-    return <PageError layout='inline' onRetry={() => void back()} />;
+    return renderErrorPage(() => void back());
   }
 
   if (isError) {
-    return (
-      <PageError layout='inline' isRetrying={isFetching} onRetry={() => void refetch()} />
-    );
+    return renderErrorPage(() => void refetch(), isFetching);
   }
 
   if (isPending || !kindergartenMain) {

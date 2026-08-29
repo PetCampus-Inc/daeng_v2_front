@@ -75,6 +75,9 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   // viewportClassName이 우선순위가 높음 (완전 커스텀)
   const { store } = ensureChannel(resolvedOptions.position, resolvedOptions.viewportClassName);
 
+  // 화면에는 항상 토스트 1개만 — 채널 무관하게 새 토스트가 뜨면 기존 걸 교체
+  clearAllChannels();
+
   store.getState().push({
     id,
     title: resolvedOptions.title ?? defaults.title,

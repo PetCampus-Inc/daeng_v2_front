@@ -23,7 +23,7 @@ function ToastProvider(props: ToastProviderProps) {
 
 const toastVariants = cva(
   [
-    'bg-fill-secondary-700 text-text-primary-inverse body1-medium data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-10 data-[state=closed]:slide-out-to-top-10 p-3 shadow-[0_0_10px_rgba(0,0,0,0.1)] data-[state=closed]:duration-300 data-[state=open]:duration-300',
+    'bg-fill-secondary-700 text-text-primary-inverse body1-medium data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-10 data-[state=closed]:slide-out-to-top-10 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.1)] data-[state=closed]:duration-300 data-[state=open]:duration-300',
     'data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)]',
     'data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform',
     'data-[swipe=end]:translate-x-[calc(100%+var(--viewport-padding,0px))] data-[swipe=end]:transition-transform',

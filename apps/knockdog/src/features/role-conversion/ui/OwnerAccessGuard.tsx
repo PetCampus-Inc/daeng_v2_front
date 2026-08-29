@@ -78,7 +78,7 @@ function OwnerAccessGuard({ children }: OwnerAccessGuardProps) {
   }
 
   if (isOwnerRoleError) {
-    return <PageError isRetrying={isOwnerRoleFetching} onRetry={() => void refetchOwnerRole()} />;
+    return <PageError layout='overlay' isRetrying={isOwnerRoleFetching} onRetry={() => void refetchOwnerRole()} />;
   }
 
   if (!isOwnerRoleResolved || !isOwnerVerified) return null;

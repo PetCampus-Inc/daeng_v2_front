@@ -120,6 +120,7 @@ export function GuardianKindergartenPage() {
   if (isPetsError || (!hasNoPet && isHomeError)) {
     return (
       <PageError
+        layout='overlay'
         isRetrying={isPetsError ? isPetsFetching : isHomeFetching}
         onRetry={handleRetry}
       />

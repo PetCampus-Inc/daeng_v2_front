@@ -108,7 +108,12 @@ function OwnerDailyPage() {
 
     const result = await openConfirmDialog({
       title: `${ellipsisText(member.name, 8)}의 등원을 취소할까요?`,
-      titleParts: [{ text: ellipsisText(member.name, 8), accent: true }, { text: '의 등원을 취소할까요?' }],
+      titleParts: [
+        { text: ellipsisText(member.name, 8), accent: true },
+        { text: '의' },
+        { text: ' 등원을 취소할까요?' },
+      ],
+      titleLineBreakAfterPartIndex: 1,
       description: '취소하면 등원 전 상태로 돌아가요.',
       cancelLabel: '닫기',
       confirmLabel: '등원 취소',
@@ -146,7 +151,12 @@ function OwnerDailyPage() {
   const handleCancelCheckOut = async (member: AttendanceMember) => {
     const result = await openConfirmDialog({
       title: `${ellipsisText(member.name, 8)}의 하원을 취소할까요?`,
-      titleParts: [{ text: ellipsisText(member.name, 8), accent: true }, { text: '의 하원을 취소할까요?' }],
+      titleParts: [
+        { text: ellipsisText(member.name, 8), accent: true },
+        { text: '의' },
+        { text: ' 하원을 취소할까요?' },
+      ],
+      titleLineBreakAfterPartIndex: 1,
       description: '취소하면 재원 중 상태로 돌아가요.',
       cancelLabel: '닫기',
       confirmLabel: '하원 취소',

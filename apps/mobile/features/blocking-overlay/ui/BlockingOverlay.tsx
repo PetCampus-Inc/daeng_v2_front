@@ -1,5 +1,5 @@
 import { Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Portal } from '@gorhom/portal';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import { useBlockingOverlayStore } from '../model/blockingOverlayStore';
@@ -8,6 +8,7 @@ const AnimatedSvg = Animated.createAnimatedComponent(Svg);
 
 // AOS 시스템 글자 크기 설정이 고정 lineHeight 레이아웃을 깨뜨리는 것을 방지 (QA3-198과 동일 정책, iOS 미적용)
 const ALLOW_FONT_SCALING = Platform.OS !== 'android';
+const MAX_FONT_SIZE_MULTIPLIER = Platform.OS === 'android' ? 1 : undefined;
 
 function RingLoadingSpinner() {
   const rotation = useRef(new Animated.Value(0)).current;
@@ -87,6 +88,11 @@ function PawIcon({ size = 20, color = '#DEDEE3' }: { size?: number; color?: stri
 function BlockingOverlay() {
   const content = useBlockingOverlayStore((state) => state.content);
   const resolveConfirmDialog = useBlockingOverlayStore((state) => state.resolveConfirmDialog);
+  const [shouldBreakConfirmTitle, setShouldBreakConfirmTitle] = useState(false);
+
+  useEffect(() => {
+    setShouldBreakConfirmTitle(false);
+  }, [content]);
 
   if (!content) return null;
 
@@ -96,7 +102,11 @@ function BlockingOverlay() {
         {content.kind === 'upload' ? (
           <View style={styles.uploadContent} accessibilityLabel={content.message}>
             <RingLoadingSpinner />
-            <Text style={styles.uploadMessage} allowFontScaling={ALLOW_FONT_SCALING}>
+            <Text
+              style={styles.uploadMessage}
+              allowFontScaling={ALLOW_FONT_SCALING}
+              maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+            >
               {content.message}
             </Text>
           </View>
@@ -117,17 +127,40 @@ function BlockingOverlay() {
                   )}
                 </View>
               )}
-              <Text style={styles.confirmDialogTitle} allowFontScaling={ALLOW_FONT_SCALING}>
+              <Text
+                style={styles.confirmDialogTitle}
+                allowFontScaling={ALLOW_FONT_SCALING}
+                maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                onTextLayout={(event) => {
+                  if (
+                    content.titleLineBreakAfterPartIndex != null &&
+                    event.nativeEvent.lines.length > 1 &&
+                    !shouldBreakConfirmTitle
+                  ) {
+                    setShouldBreakConfirmTitle(true);
+                  }
+                }}
+              >
                 {content.titleParts?.length
                   ? content.titleParts.map((part, index) => (
-                      <Text key={index} style={part.accent ? styles.confirmDialogTitleAccent : undefined}>
+                      <Text
+                        key={index}
+                        style={part.accent ? styles.confirmDialogTitleAccent : undefined}
+                        allowFontScaling={ALLOW_FONT_SCALING}
+                        maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                      >
                         {part.text}
+                        {shouldBreakConfirmTitle && index === content.titleLineBreakAfterPartIndex ? '\n' : null}
                       </Text>
                     ))
                   : content.title}
               </Text>
               {content.description && (
-                <Text style={styles.confirmDialogDescription} allowFontScaling={ALLOW_FONT_SCALING}>
+                <Text
+                  style={styles.confirmDialogDescription}
+                  allowFontScaling={ALLOW_FONT_SCALING}
+                  maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                >
                   {content.description}
                 </Text>
               )}
@@ -143,7 +176,11 @@ function BlockingOverlay() {
                   style={[styles.confirmDialogButton, styles.confirmDialogCancelButton]}
                   onPress={() => resolveConfirmDialog('cancel')}
                 >
-                  <Text style={styles.confirmDialogCancelButtonText} allowFontScaling={ALLOW_FONT_SCALING}>
+                  <Text
+                    style={styles.confirmDialogCancelButtonText}
+                    allowFontScaling={ALLOW_FONT_SCALING}
+                    maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                  >
                     {content.cancelLabel ?? '취소'}
                   </Text>
                 </Pressable>
@@ -157,7 +194,11 @@ function BlockingOverlay() {
                 ]}
                 onPress={() => resolveConfirmDialog('confirm')}
               >
-                <Text style={styles.confirmDialogActionButtonText} allowFontScaling={ALLOW_FONT_SCALING}>
+                <Text
+                  style={styles.confirmDialogActionButtonText}
+                  allowFontScaling={ALLOW_FONT_SCALING}
+                  maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                >
                   {content.confirmLabel ?? '확인'}
                 </Text>
               </Pressable>
@@ -175,6 +216,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(15, 20, 26, 0.7)',
+    paddingHorizontal: 16,
   },
   uploadContent: {
     width: '100%',
@@ -234,6 +276,10 @@ const styles = StyleSheet.create({
   },
   confirmDialogTitleAccent: {
     color: '#FF6E0C',
+    fontFamily: 'SUIT-ExtraBold',
+    fontSize: 20,
+    letterSpacing: -0.4,
+    lineHeight: 28,
   },
   confirmDialogDescription: {
     color: '#70727C',

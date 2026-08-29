@@ -35,11 +35,13 @@ function GuardianAttendanceRecordPage() {
   });
 
   if (!hasValidParams) {
-    return <PageError onRetry={() => void back()} />;
+    return <PageError layout='overlay' onRetry={() => void back()} />;
   }
 
   if (query.isPending) return <main className='bg-bg-0 min-h-dvh p-4' />;
-  if (query.isError) return <PageError isRetrying={query.isFetching} onRetry={() => void query.refetch()} />;
+  if (query.isError) {
+    return <PageError layout='overlay' isRetrying={query.isFetching} onRetry={() => void query.refetch()} />;
+  }
 
   const notice = query.data?.dailyNotice;
   return (

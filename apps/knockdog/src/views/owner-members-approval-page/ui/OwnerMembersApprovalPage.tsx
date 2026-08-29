@@ -57,21 +57,19 @@ function ApprovalActions({ dogName, requestId, disabled, onApprove, onReject }: 
 
 function ApprovalEmptyState() {
   return (
-    <div className='flex min-h-full w-full items-center justify-center'>
-      <div className='px-x4 flex w-full flex-col items-center justify-center gap-y-2 text-center'>
-        <div className='relative h-[160px] w-[180px] opacity-100'>
-          <Image
-            src={approvalEmptyContent.imageSrc}
-            alt={approvalEmptyContent.imageAlt}
-            fill
-            className='object-contain'
-            sizes='200px'
-          />
-        </div>
-        <div className='flex flex-col items-center gap-y-1'>
-          <p className='h2-extrabold text-text-primary'>{approvalEmptyContent.title}</p>
-          <p className='body1-regular text-text-secondary'>{approvalEmptyContent.description}</p>
-        </div>
+    <div className='relative flex min-h-full w-full items-center justify-center'>
+      <div className='px-x4 flex w-full flex-col items-center gap-y-1 text-center'>
+        <p className='h2-extrabold text-text-primary'>{approvalEmptyContent.title}</p>
+        <p className='body1-regular text-text-secondary'>{approvalEmptyContent.description}</p>
+      </div>
+      <div className='absolute top-[calc(50%-208px)] h-[160px] w-[180px]'>
+        <Image
+          src={approvalEmptyContent.imageSrc}
+          alt={approvalEmptyContent.imageAlt}
+          fill
+          className='object-contain'
+          sizes='180px'
+        />
       </div>
     </div>
   );
