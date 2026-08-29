@@ -114,43 +114,53 @@ function SyncNativeMainTabModeEffect() {
     const syncMode = pathname === '/compare' ? 'guardian' : mode;
     if (lastSyncedModeRef.current === syncMode) return;
 
-    lastSyncedModeRef.current = syncMode;
-
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
-    const retrySync = () => {
-      if (cancelled || retryCountRef.current >= 2) return;
 
-      // 재시도를 실제로 예약할 때만 ref를 비운다. 재시도 상한을 넘긴 뒤에도 비우면
-      // 관계없는 의존성 변경(isFetching 등)마다 같은 syncMode 요청을 무한히 재전송하게 된다.
-      lastSyncedModeRef.current = null;
-      retryCountRef.current += 1;
-      retryTimer = setTimeout(() => {
-        setRetryNonce((nonce) => nonce + 1);
-      }, 300);
-    };
+    // 탭을 빠르게 여러 번 전환하거나 백그라운드→포그라운드 복귀 직후에는
+    // isNativeTabFocused/mode/pathname이 짧은 시간에 연속으로 바뀔 수 있다.
+    // 매 중간 상태마다 네이티브에 전송하면 여러 WebView가 서로 다른 모드를
+    // 경쟁적으로 밀어넣는 핑퐁이 발생하므로, 잠깐 대기해 마지막 상태만 반영한다.
+    const debounceTimer = setTimeout(() => {
+      if (cancelled) return;
 
-    bridge
-      .request(METHODS.navSetMainTabMode, {
-        mode: syncMode,
-        requestId: getNextMainTabModeRequestId(),
-        // 탭 focus로 활성 WebView임을 확인했으므로, 시작 직후 ref 등록 전에도 적용한다.
-        force: true,
-      })
-      .then(({ mode: appliedMode }) => {
-        // 앱 시작 직후에는 활성 WebView 등록 전 요청이 무시될 수 있다.
-        // 그 경우 네이티브가 유지한 기존 모드가 응답되므로 재시도한다.
-        if (appliedMode !== syncMode) retrySync();
-      })
-      .catch((error) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
-        }
-        retrySync();
-      });
+      lastSyncedModeRef.current = syncMode;
+
+      const retrySync = () => {
+        if (cancelled || retryCountRef.current >= 2) return;
+
+        // 재시도를 실제로 예약할 때만 ref를 비운다. 재시도 상한을 넘긴 뒤에도 비우면
+        // 관계없는 의존성 변경(isFetching 등)마다 같은 syncMode 요청을 무한히 재전송하게 된다.
+        lastSyncedModeRef.current = null;
+        retryCountRef.current += 1;
+        retryTimer = setTimeout(() => {
+          setRetryNonce((nonce) => nonce + 1);
+        }, 300);
+      };
+
+      bridge
+        .request(METHODS.navSetMainTabMode, {
+          mode: syncMode,
+          requestId: getNextMainTabModeRequestId(),
+          // 탭 focus로 활성 WebView임을 확인했으므로, 시작 직후 ref 등록 전에도 적용한다.
+          force: true,
+        })
+        .then(({ mode: appliedMode }) => {
+          // 앱 시작 직후에는 활성 WebView 등록 전 요청이 무시될 수 있다.
+          // 그 경우 네이티브가 유지한 기존 모드가 응답되므로 재시도한다.
+          if (appliedMode !== syncMode) retrySync();
+        })
+        .catch((error) => {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
+          }
+          retrySync();
+        });
+    }, 200);
 
     return () => {
       cancelled = true;
+      clearTimeout(debounceTimer);
       if (retryTimer !== undefined) clearTimeout(retryTimer);
     };
   }, [
