@@ -7,6 +7,7 @@ import {
   getKstDateKey,
   getNextKstMidnightDelay,
 } from '@views/owner-home-page/model/ownerHomeDate';
+import { showOwnerHomeRefreshedToast } from '@views/owner-home-page/model/ownerHomeToast';
 
 import { useOwnerRole } from '@features/role-conversion';
 
@@ -16,18 +17,8 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
-const SCHOOL_NAME_MAX_LENGTH = 15;
-
 interface ApprovalBannerDismissal {
   count: number;
-}
-
-function formatSchoolName(name: string) {
-  const characters = Array.from(name);
-
-  if (characters.length <= SCHOOL_NAME_MAX_LENGTH) return name;
-
-  return `${characters.slice(0, SCHOOL_NAME_MAX_LENGTH).join('')}···`;
 }
 
 function useOwnerHomePage() {
@@ -121,16 +112,20 @@ function useOwnerHomePage() {
     });
   };
 
-  const handleRefresh = useCallback(() => {
-    if (!isResolved || !isOwner) {
-      setLastRefreshedAt(new Date());
-      return;
-    }
+  const handleRefresh = useCallback(
+    (notify = false) => {
+      if (!isResolved || !isOwner) {
+        setLastRefreshedAt(new Date());
+        return;
+      }
 
-    refetchOwnerHome().finally(() => {
-      setLastRefreshedAt(new Date());
-    });
-  }, [isOwner, isResolved, refetchOwnerHome]);
+      refetchOwnerHome().finally(() => {
+        setLastRefreshedAt(new Date());
+        if (notify) showOwnerHomeRefreshedToast();
+      });
+    },
+    [isOwner, isResolved, refetchOwnerHome]
+  );
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -155,7 +150,7 @@ function useOwnerHomePage() {
 
   return {
     approval,
-    displaySchoolName: formatSchoolName(schoolName),
+    displaySchoolName: schoolName,
     handleApprovalBannerClick,
     handleApprovalBannerClose,
     handleFriendPreviewClick,

@@ -10,6 +10,7 @@ export {
   type OwnerMypageSummaryState,
 } from './model/useOwnerMypageSummary';
 export { saveOwnerProfile, type OwnerProfile } from './model/ownerProfile';
+export { showConvertedToGuardianToast, showConvertedToOwnerToast } from './model/roleConversionToast';
 export { OwnerKindergartenCard, type OwnerKindergartenCardProps } from './ui/OwnerKindergartenCard';
 export { OwnerProfileDetailInfo, type OwnerProfileDetailInfoProps } from './ui/OwnerProfileDetailInfo';
 export { OwnerProfileForm, type OwnerProfileFormProps } from './ui/OwnerProfileForm';

@@ -14,7 +14,10 @@ import {
 } from '@knockdog/ui';
 
 import { AddressPicker } from '@features/address-picker';
-import { REPRESENTATIVE_NAME_MAX_LENGTH, KINDERGARTEN_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
+import {
+  REPRESENTATIVE_NAME_MAX_LENGTH,
+  KINDERGARTEN_NAME_MAX_LENGTH,
+} from '@features/role-conversion/lib/formatKindergartenRegisterField';
 
 import { Header } from '@widgets/Header';
 
@@ -60,6 +63,7 @@ function RegisterPageContent({ mode }: { mode: KindergartenRegisterSource }) {
         ref={scrollRef}
         className='scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pt-3 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))] [-webkit-overflow-scrolling:touch]'
       >
+        {/* 다음 버튼을 스크롤 안에 둠 — iOS에서 footer가 키보드에 붙어 올라오지 않게 */}
         <div className='flex flex-col gap-5'>
           <h1 className='h1-extrabold'>
             {kindergartenRegisterContent.titleLine1}

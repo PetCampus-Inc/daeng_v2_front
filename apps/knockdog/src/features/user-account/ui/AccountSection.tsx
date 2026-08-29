@@ -132,6 +132,7 @@ function AccountSection({
             <ActionButton
               type='button'
               variant='secondaryLine'
+              size='large'
               className='w-full'
               onClick={onReleasePermissionClick}
             >

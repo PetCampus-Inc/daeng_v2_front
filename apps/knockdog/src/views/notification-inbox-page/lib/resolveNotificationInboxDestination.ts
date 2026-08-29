@@ -3,7 +3,7 @@ type NotificationInboxDestination =
   | { kind: 'guardianKindergarten'; petId: string; date?: string }
   | { kind: 'ownerMemberApprovals' }
   | { kind: 'connectionApplyStatus' }
-  | { kind: 'album'; petId?: string }
+  | { kind: 'album'; petId?: string; schoolId?: string; date?: string }
   | { kind: 'unavailable' };
 
 const ATTENDANCE_STATUS_TYPES = new Set([
@@ -22,12 +22,12 @@ const OWNER_MEMBER_APPROVAL_TYPES = new Set([
 
 const GUARDIAN_KINDERGARTEN_TYPES = new Set([
   'SCHOOL_MEMBERSHIP_APPROVED',
-  'SCHOOL_MEMBERSHIP_REJECTED',
   'SCHOOL_MEMBERSHIP_DISCONNECTED',
+  'SCHOOL_MEMBERSHIP_SERVICE_ENDED',
   'connection_completed',
 ]);
 
-const CONNECTION_APPLY_TYPES = new Set(['connection_apply_sent']);
+const CONNECTION_APPLY_TYPES = new Set(['connection_apply_sent', 'SCHOOL_MEMBERSHIP_REJECTED']);
 
 const ALBUM_TYPES = new Set(['album_photo_uploaded', 'ALBUM_PHOTO_UPLOADED']);
 
@@ -64,6 +64,7 @@ function resolveNotificationInboxDestination(
   payload: Record<string, unknown> = {}
 ): NotificationInboxDestination {
   const petId = toPositiveId(payload.petId);
+  const schoolId = toPositiveId(payload.schoolId);
   const date = toDateKey(payload.date);
 
   if (ATTENDANCE_RECORD_TYPES.has(type)) {
@@ -87,7 +88,7 @@ function resolveNotificationInboxDestination(
   }
 
   if (ALBUM_TYPES.has(type)) {
-    return { kind: 'album', petId: petId ?? undefined };
+    return { kind: 'album', petId: petId ?? undefined, schoolId: schoolId ?? undefined, date: date ?? undefined };
   }
 
   return { kind: 'unavailable' };

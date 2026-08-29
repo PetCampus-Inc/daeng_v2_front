@@ -22,7 +22,9 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  interactiveWidget: 'resizes-content',
+  // useKeyboardAwareScrollHeight가 visualViewport만 줄어드는 것을 전제로 키보드를 감지하므로
+  // 'resizes-content'로 바꾸면 window.innerHeight까지 같이 줄어들어 계산이 깨진다.
+  interactiveWidget: 'resizes-visual',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

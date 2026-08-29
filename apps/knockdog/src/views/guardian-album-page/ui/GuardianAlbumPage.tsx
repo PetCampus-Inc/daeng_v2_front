@@ -166,6 +166,7 @@ function GuardianAlbumPage() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const didOpenHomeDetailRef = useRef(false);
+  const didOpenDateDetailRef = useRef(false);
   /** overlay-kit 바텀시트 — AOS back 시 Stack pop 대신 시트만 닫기 */
   const overlayCloseRef = useRef<(() => void) | null>(null);
 
@@ -558,6 +559,17 @@ function GuardianAlbumPage() {
     didOpenHomeDetailRef.current = true;
     openDetail(todayDetailPhotos, undefined, true);
   }, [hasAlbumHistory, isAttendedToday, openDetail, searchParams, todayDetailPhotos]);
+
+  /** 알림함/푸시(사진 업로드 알림) 진입 — 특정 일자 상세 바로 오픈 */
+  useEffect(() => {
+    if (didOpenDateDetailRef.current) return;
+    const dateQuery = searchParams.get('date');
+    if (!dateQuery) return;
+    if (!activeSchoolId) return;
+
+    didOpenDateDetailRef.current = true;
+    void handleOpenDateDetail(parseDateKey(dateQuery));
+  }, [activeSchoolId, handleOpenDateDetail, searchParams]);
 
   const handleResetFilter = useCallback(() => {
     setViewMode('all');
