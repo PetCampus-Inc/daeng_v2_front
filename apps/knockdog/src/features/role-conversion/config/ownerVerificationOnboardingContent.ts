@@ -22,7 +22,8 @@ const ownerVerificationOnboardingSteps: OwnerVerificationOnboardingStep[] = [
   },
   {
     image: '/images/img_owner_onboarding4.webp',
-    title: '등하원 기록도, 원생 정보도 한 곳에',
+    // 좁은 화면에서 줄바꿈이 필요할 때 콤마 뒤에서만 끊기도록, 그 외 공백은 줄바꿈-불가 공백으로 고정
+    title: '등하원 기록도, 원생 정보도 한 곳에',
     body: '등록한 원생의 등하원 기록과\n강아지 프로필을 확인할 수 있어요.',
   },
 ];
