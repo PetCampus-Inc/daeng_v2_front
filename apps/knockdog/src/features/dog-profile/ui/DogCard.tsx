@@ -12,7 +12,7 @@ interface DogCardProps {
 }
 
 function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogCardProps) {
-  const details = [breed, age === undefined ? undefined : age < 1 ? '1살 미만' : `${age}살`].filter(Boolean);
+  const ageLabel = age === undefined ? undefined : age < 1 ? '1살 미만' : `${age}살`;
 
   return (
     <div
@@ -47,18 +47,15 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
         />
       )}
 
-      <div className='absolute bottom-4 left-4 z-10 flex flex-col gap-y-1'>
-        <div className='h3-semibold flex items-center gap-x-0.5'>
-          {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-5' />}
-          <span className='text-text-primary-inverse'>{name}</span>
+      <div className='absolute bottom-4 left-3 z-10 flex flex-col gap-y-1'>
+        <div className='h3-semibold flex max-w-[126px] items-center gap-x-0.5'>
+          {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-6 shrink-0' />}
+          <span className='text-text-primary-inverse min-w-0 truncate'>{name}</span>
         </div>
-        <div className='body2-regular text-text-primary-inverse flex max-w-[118px] items-center gap-x-1'>
-          {details.map((detail, index) => (
-            <span className='truncate' key={index}>
-              {detail}
-              {index < details.length - 1 && ' • '}
-            </span>
-          ))}
+        <div className='body2-regular text-text-primary-inverse flex max-w-[126px] items-center gap-x-1'>
+          {breed && <span className='min-w-0 truncate'>{breed}</span>}
+          {breed && ageLabel && <span className='shrink-0'>•</span>}
+          {ageLabel && <span className='shrink-0 whitespace-nowrap'>{ageLabel}</span>}
         </div>
       </div>
     </div>
