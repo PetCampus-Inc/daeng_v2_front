@@ -14,6 +14,8 @@ import {
   OwnerVerificationEntry,
   RoleConversionButton,
   roleConversionButtonContent,
+  showConvertedToGuardianToast,
+  showConvertedToOwnerToast,
   useMypageRoleView,
   useOwnerKindergarten,
   useOwnerProfile,
@@ -96,6 +98,8 @@ function MypageContent() {
   };
 
   const handleRoleViewToggle = () => {
+    if (isOwnerView) showConvertedToGuardianToast();
+    else showConvertedToOwnerToast();
     toggleRoleView();
   };
 
@@ -236,7 +240,10 @@ function MypageContent() {
 
       <div className='web:pb-(--bottom-bar-height) webview:pb-0 flex-1 overflow-y-auto'>
         {canToggleRoleView && (
-          <RoleConversionButton onClick={handleRoleViewToggle}>
+          <RoleConversionButton
+            onClick={handleRoleViewToggle}
+            className={isOwnerView ? 'bg-fill-secondary-600' : undefined}
+          >
             {isOwnerView
               ? roleConversionButtonContent.convertoGuardian
               : roleConversionButtonContent.convertToOwner}
