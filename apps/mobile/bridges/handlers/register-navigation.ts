@@ -8,7 +8,14 @@ import { navBridgeHub } from '../model/navBridgeHub';
 import { tabWebViewStore } from '../model/tabWebViewStore';
 import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '../model/bottomTabBarVisibilityStore';
-import { pathToTab, pathToBaseTab, isGuardianOnlyTab, isOwnerOnlyTab, type TabName } from '../lib/tabRoutes';
+import {
+  pathToTab,
+  pathToBaseTab,
+  isGuardianOnlyTab,
+  isOwnerOnlyTab,
+  resolveTabScreen as resolveTabScreenForMode,
+  type TabName,
+} from '../lib/tabRoutes';
 import {
   injectTabQueryIntoWebView,
   pendingTabQueryStore,
@@ -31,6 +38,34 @@ function buildTabsNestedState(activeTabName: TabName) {
   return {
     index: index >= 0 ? index : 0,
     routes: TAB_SCREEN_ORDER.map((name) => ({ name })),
+  };
+}
+
+/**
+ * Stack reset 시 Tabs를 처음부터 다시 만들면 Tab WebView가 remount되고
+ * 활성 탭이 Explore(목록 0번)로 떨어졌다가 owner 모드 sync로 OwnerHome에 고정되는 경우가 있다.
+ * 가능하면 기존 Tabs route 이름을 유지하고 활성 인덱스만 맞춘다.
+ * (전체 NavigationState를 spread하면 stale/key 때문에 ResetState 타입이 깨짐)
+ */
+function resolveTabsRouteForStackReset(activeTabName: TabName) {
+  const rootState = navigationRef.getRootState?.() ?? navigationRef.getState?.();
+  const existingTabs = rootState?.routes?.find((route) => route.name === 'Tabs');
+  const existingRoutes = existingTabs?.state?.routes;
+
+  const routes =
+    existingRoutes?.length && existingRoutes.every((route) => typeof route.name === 'string')
+      ? existingRoutes.map((route) => ({ name: route.name as TabName }))
+      : TAB_SCREEN_ORDER.map((name) => ({ name }));
+
+  const index = routes.findIndex((route) => route.name === activeTabName);
+
+  return {
+    name: 'Tabs' as const,
+    params: { screen: activeTabName },
+    state: {
+      index: index >= 0 ? index : 0,
+      routes,
+    },
   };
 }
 
@@ -138,11 +173,7 @@ function extractPathFromUrl(url: string): string {
 function resolveTabScreen(tabName: TabName): TabName {
   // 원장 모드 승격은 SyncNativeMainTabModeEffect(권한 확인 후 navSetMainTabMode)만 담당.
   // 탭 이름만으로 setMode('owner') 하면 비원장도 원장 탭바로 전환됨.
-  const mode = useMainTabModeStore.getState().mode;
-
-  if (mode === 'owner' && isGuardianOnlyTab(tabName)) return 'OwnerHome';
-  if (mode === 'guardian' && isOwnerOnlyTab(tabName)) return 'Explore';
-  return tabName;
+  return resolveTabScreenForMode(tabName, useMainTabModeStore.getState().mode);
 }
 
 function getActiveTabName(): TabName | null {
@@ -385,10 +416,15 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       navigationRef.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{ name: 'Tabs', params: { screen: tabName } }],
+          routes: [
+            {
+              name: 'Tabs',
+              params: { screen: tabName },
+              state: buildTabsNestedState(tabName),
+            },
+          ],
         })
       );
-      navigationRef.navigate('Tabs', { screen: tabName });
 
       if (query) {
         await injectTabWebViewQuery(tabName, query);
@@ -419,10 +455,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       navigationRef.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [
-            { name: 'Tabs', state: buildTabsNestedState(baseTab) },
-            { name: 'Stack', params: route.params },
-          ],
+          routes: [resolveTabsRouteForStackReset(baseTab), { name: 'Stack', params: route.params }],
         })
       );
     }

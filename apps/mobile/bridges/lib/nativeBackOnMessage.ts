@@ -1,7 +1,9 @@
 import type { WebViewMessageEvent } from 'react-native-webview';
 
+import { useMainTabModeStore } from '../model/mainTabModeStore';
 import { isExternalWebViewUrl } from './isFirstPartyWebViewUrl';
 import { navigationRef, isNavReady } from './navigationRef';
+import { pathToBaseTab, resolveTabScreen } from './tabRoutes';
 
 const NATIVE_BACK_UNHANDLED_TYPE = 'knockdog:native-back-unhandled';
 
@@ -54,6 +56,15 @@ function handleNativeBackUnhandledMessage(event: WebViewMessageEvent): boolean {
       );
       // auth-only: 로그인 성공 전·후 모두 비로그인 탭으로 빠져나가지 않음 (시스템 back = 앱 종료)
       if (isAuthOnlyStackPath(pathname)) {
+        return true;
+      }
+
+      // bare navigate('Tabs')는 기본/잔존 탭(종종 OwnerHome)으로 떨어짐 → 경로 부모 탭으로 복귀
+      // guardian 모드에서 원장 전용 탭이면 Explore로 정규화
+      const baseTab = pathToBaseTab(pathname);
+      if (baseTab) {
+        const screen = resolveTabScreen(baseTab, useMainTabModeStore.getState().mode);
+        navigationRef.navigate('Tabs', { screen });
         return true;
       }
     }

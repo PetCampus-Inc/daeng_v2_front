@@ -790,9 +790,45 @@ function GuardianAlbumPage() {
   if (!isReady) return null;
 
   const isEntryLoadError = isAlbumTodayError || searchParams.get('entryError') === '1';
+  const showTodaySection = !isDisconnected && isAttendedToday && activeSchoolId === schoolId;
+
+  const monthNav = (
+    <GuardianAlbumMonthNav
+      month={selectedMonth}
+      canGoPrevMonth={canGoPrevMonth}
+      canGoNextMonth={canGoNextMonth}
+      onPrevMonth={handlePrevMonth}
+      onNextMonth={handleNextMonth}
+      onYearMonthClick={handleYearMonthClick}
+      onSearchClick={handleSearchClick}
+    />
+  );
+
+  const monthListBody = isMonthListLoading ? null : !hasMonthTimelineContent ? (
+    <>
+      {showAttendedUntilMessage ? (
+        <p className='body1-medium text-text-secondary mt-5 px-4 py-4 text-center'>
+          {content.history.attendedUntilMessage}
+        </p>
+      ) : null}
+      <GuardianAlbumMonthEmpty />
+      {showConnectionStartMessage ? (
+        <div className='px-4'>
+          <GuardianAlbumHistoryEmpty />
+        </div>
+      ) : null}
+    </>
+  ) : (
+    <GuardianAlbumDayList
+      timeline={monthTimeline}
+      showConnectionStartMessage={showConnectionStartMessage}
+      showAttendedUntilMessage={showAttendedUntilMessage}
+      onDayClick={handleOpenDayDetail}
+    />
+  );
 
   return (
-    <div className={`${isEntryLoadError ? 'bg-bg-0' : 'bg-bg-50'} relative flex h-dvh flex-col`}>
+    <div className={`${isEntryLoadError ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
       <div className='bg-bg-0'>
         <Header>
           <Header.BackButton onClick={handleHeaderBack} />
@@ -873,12 +909,12 @@ function GuardianAlbumPage() {
           </>
         ) : (
           <>
-            <div
-              ref={scrollRef}
-              className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-5'
-              onScroll={handleScroll}
-            >
-              {!isDisconnected && isAttendedToday && activeSchoolId === schoolId ? (
+            {showTodaySection ? (
+              <div
+                ref={scrollRef}
+                className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'
+                onScroll={handleScroll}
+              >
                 <GuardianAlbumTodaySection
                   petName={petName}
                   isAttendedToday={isAttendedToday}
@@ -888,39 +924,21 @@ function GuardianAlbumPage() {
                   onOpenDetail={handleOpenTodayDetail}
                   onToggleFavorite={toggleFavorite}
                 />
-              ) : null}
-              <GuardianAlbumMonthNav
-                month={selectedMonth}
-                canGoPrevMonth={canGoPrevMonth}
-                canGoNextMonth={canGoNextMonth}
-                onPrevMonth={handlePrevMonth}
-                onNextMonth={handleNextMonth}
-                onYearMonthClick={handleYearMonthClick}
-                onSearchClick={handleSearchClick}
-              />
-              {isMonthListLoading ? null : !hasMonthTimelineContent ? (
-                <>
-                  {showAttendedUntilMessage ? (
-                    <p className='body1-medium text-text-secondary mt-5 px-4 py-4 text-center'>
-                      {content.history.attendedUntilMessage}
-                    </p>
-                  ) : null}
-                  <GuardianAlbumMonthEmpty />
-                  {showConnectionStartMessage ? (
-                    <div className='px-4'>
-                      <GuardianAlbumHistoryEmpty />
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <GuardianAlbumDayList
-                  timeline={monthTimeline}
-                  showConnectionStartMessage={showConnectionStartMessage}
-                  showAttendedUntilMessage={showAttendedUntilMessage}
-                  onDayClick={handleOpenDayDetail}
-                />
-              )}
-            </div>
+                <div className='sticky top-0 z-10'>{monthNav}</div>
+                {monthListBody}
+              </div>
+            ) : (
+              <>
+                {monthNav}
+                <div
+                  ref={scrollRef}
+                  className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'
+                  onScroll={handleScroll}
+                >
+                  {monthListBody}
+                </div>
+              </>
+            )}
             <GuardianAlbumScrollTopButton visible={isScrollTopVisible} onClick={handleScrollTop} />
           </>
         )
