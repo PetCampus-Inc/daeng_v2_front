@@ -31,11 +31,10 @@ function isSameYearMonthKey(dateKey: string, month: Date) {
 /**
  * 월별 앨범 days + periods → 최신순 타임라인.
  *
- * 같은 날 connect+disconnect 분기:
- * - 단일 사이클 당일 종료: 해제 → 사진 → 시작
- * - 해제 후 재연결(다른 사이클이 같은 날 시작, 이후 종료돼도 동일): 시작 → 해제 → 사진
- *
- * 동일 날짜의 connectedAt/disconnectedAt은 period가 여러 개여도 배너 1개만 노출.
+ * - 연결/해제는 날짜당 기본 1개 (재연결 connected도 노출)
+ * - 당일 해제+재연결: 시작 → 해제 → 사진
+ * - 그날이 periods 최초 연결일이면 사진 아래에도 시작 1회 추가 (최초 연결 마커)
+ * - 최초만 있는 날(당일 해제 없음): 해제 → 사진 → 시작
  */
 function buildGuardianAlbumMonthTimeline(
   days: GuardianAlbumDayAlbum[],
@@ -44,40 +43,33 @@ function buildGuardianAlbumMonthTimeline(
 ): GuardianAlbumTimelineRow[] {
   const connectedDates = new Set<string>();
   const disconnectedDates = new Set<string>();
-  /** 같은 날 이전 사이클 해제 후 다른 사이클이 시작한 날짜(재연결 최신) */
-  const hasReconnectOnDate = new Set<string>();
+  let earliestConnectedAt: Date | null = null;
 
-  const periodDateKeys = periods.map((period) => ({
-    period,
-    connectedKey: formatDateKey(startOfDay(period.connectedAt)),
-    disconnectedKey: period.disconnectedAt
-      ? formatDateKey(startOfDay(period.disconnectedAt))
-      : null,
-  }));
-
-  for (const { connectedKey, disconnectedKey } of periodDateKeys) {
+  for (const period of periods) {
+    const connectedKey = formatDateKey(startOfDay(period.connectedAt));
     if (isSameYearMonthKey(connectedKey, selectedMonth)) {
       connectedDates.add(connectedKey);
     }
-    if (disconnectedKey && isSameYearMonthKey(disconnectedKey, selectedMonth)) {
-      disconnectedDates.add(disconnectedKey);
+
+    if (
+      earliestConnectedAt == null ||
+      period.connectedAt.getTime() < earliestConnectedAt.getTime()
+    ) {
+      earliestConnectedAt = period.connectedAt;
+    }
+
+    if (period.disconnectedAt) {
+      const disconnectedKey = formatDateKey(startOfDay(period.disconnectedAt));
+      if (isSameYearMonthKey(disconnectedKey, selectedMonth)) {
+        disconnectedDates.add(disconnectedKey);
+      }
     }
   }
 
-  for (const ended of periodDateKeys) {
-    if (!ended.disconnectedKey || !isSameYearMonthKey(ended.disconnectedKey, selectedMonth)) {
-      continue;
-    }
-    const endedAt = ended.period.disconnectedAt;
-    if (!endedAt) continue;
-
-    const hasLaterConnectSameDay = periodDateKeys.some((started) => {
-      if (started.period === ended.period) return false;
-      if (started.connectedKey !== ended.disconnectedKey) return false;
-      return started.period.connectedAt.getTime() >= endedAt.getTime();
-    });
-    if (hasLaterConnectSameDay) hasReconnectOnDate.add(ended.disconnectedKey);
-  }
+  const firstConnectedKey =
+    earliestConnectedAt != null ? formatDateKey(startOfDay(earliestConnectedAt)) : null;
+  const isFirstConnectedInSelectedMonth =
+    firstConnectedKey != null && isSameYearMonthKey(firstConnectedKey, selectedMonth);
 
   const dayByKey = new Map(days.map((day) => [day.dateKey, day] as const));
   const dateKeys = Array.from(
@@ -90,8 +82,9 @@ function buildGuardianAlbumMonthTimeline(
     const hasDisconnected = disconnectedDates.has(dateKey);
     const hasConnected = connectedDates.has(dateKey);
     const day = dayByKey.get(dateKey);
-    const isReconnectNewest =
-      hasDisconnected && hasConnected && hasReconnectOnDate.has(dateKey);
+    const isSameDayReconnect = hasConnected && hasDisconnected;
+    const isFirstConnectionDay =
+      isFirstConnectedInSelectedMonth && dateKey === firstConnectedKey;
 
     const pushDisconnected = () => {
       if (!hasDisconnected) return;
@@ -119,13 +112,25 @@ function buildGuardianAlbumMonthTimeline(
       });
     };
 
-    if (isReconnectNewest) {
+    if (isSameDayReconnect) {
+      // 재연결 마커: 시작 → 해제 → 사진
       pushConnected();
       pushDisconnected();
       pushDay();
-    } else {
+      // 최초 연결일이면 사진 아래에 최초 시작 마커 추가
+      if (day && isFirstConnectionDay) {
+        rows.push({
+          type: 'connected',
+          id: `connected-${dateKey}-first`,
+          dateKey,
+        });
+      }
+    } else if (day) {
       pushDisconnected();
       pushDay();
+      pushConnected();
+    } else {
+      pushDisconnected();
       pushConnected();
     }
   }

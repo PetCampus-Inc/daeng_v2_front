@@ -610,7 +610,7 @@ function GuardianAlbumPage() {
 
   /**
    * 첫 등원/해제 월 폴백 배너 — periods가 없을 때만 월 단위로 노출.
-   * periods가 있으면 타임라인 배너가 재연결 이력을 모두 표시한다.
+   * periods가 있으면 타임라인 배너가 연결/재연결·해제 이력을 표시한다.
    */
   const connectionStartDate =
     firstAvailableMonth ??
