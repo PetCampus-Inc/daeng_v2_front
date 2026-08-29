@@ -144,18 +144,12 @@ function TemplateContentTextarea({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const handleTouchStart = (event: TouchEvent) => {
+    const handleTouchStart = () => {
+      // 네이티브 터치로 캐럿을 좌표에 두고, 페이지 스크롤만 focus 핸들러에서 복원
       scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current);
-
-      // 이미 포커스면 기본 동작 유지 (캐럿/본문 스크롤)
-      if (document.activeElement === textarea) return;
-
-      // 첫 탭: 브라우저 scrollIntoView로 본문·페이지가 위로 튀는 것 차단
-      event.preventDefault();
-      textarea.focus({ preventScroll: true });
     };
 
-    textarea.addEventListener('touchstart', handleTouchStart, { passive: false });
+    textarea.addEventListener('touchstart', handleTouchStart, { passive: true });
 
     return () => {
       textarea.removeEventListener('touchstart', handleTouchStart);
@@ -196,12 +190,8 @@ function TemplateContentTextarea({
   const handlePointerDown = (event: PointerEvent<HTMLTextAreaElement>) => {
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
 
+    // 네이티브 클릭으로 캐럿을 좌표에 두고, 페이지 스크롤만 focus 핸들러에서 복원
     scrollSnapshotRef.current = captureScrollSnapshot(containerRef.current);
-
-    if (document.activeElement === event.currentTarget) return;
-
-    event.preventDefault();
-    event.currentTarget.focus({ preventScroll: true });
   };
 
   const startScrollLock = (snapshot: ScrollSnapshot, textarea: HTMLTextAreaElement) => {

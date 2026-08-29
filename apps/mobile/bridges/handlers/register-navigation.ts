@@ -8,7 +8,14 @@ import { navBridgeHub } from '../model/navBridgeHub';
 import { tabWebViewStore } from '../model/tabWebViewStore';
 import { useMainTabModeStore, type MainTabMode } from '../model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '../model/bottomTabBarVisibilityStore';
-import { pathToTab, pathToBaseTab, isGuardianOnlyTab, isOwnerOnlyTab, type TabName } from '../lib/tabRoutes';
+import {
+  pathToTab,
+  pathToBaseTab,
+  isGuardianOnlyTab,
+  isOwnerOnlyTab,
+  resolveTabScreen as resolveTabScreenForMode,
+  type TabName,
+} from '../lib/tabRoutes';
 import {
   injectTabQueryIntoWebView,
   pendingTabQueryStore,
@@ -166,11 +173,7 @@ function extractPathFromUrl(url: string): string {
 function resolveTabScreen(tabName: TabName): TabName {
   // 원장 모드 승격은 SyncNativeMainTabModeEffect(권한 확인 후 navSetMainTabMode)만 담당.
   // 탭 이름만으로 setMode('owner') 하면 비원장도 원장 탭바로 전환됨.
-  const mode = useMainTabModeStore.getState().mode;
-
-  if (mode === 'owner' && isGuardianOnlyTab(tabName)) return 'OwnerHome';
-  if (mode === 'guardian' && isOwnerOnlyTab(tabName)) return 'Explore';
-  return tabName;
+  return resolveTabScreenForMode(tabName, useMainTabModeStore.getState().mode);
 }
 
 function getActiveTabName(): TabName | null {
