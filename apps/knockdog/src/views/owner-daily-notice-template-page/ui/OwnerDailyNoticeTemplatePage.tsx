@@ -59,8 +59,8 @@ function OwnerDailyNoticeTemplatePage() {
         iconAccent: true,
         title: (
           <div className='flex items-center gap-1'>
-            <Icon icon='InfoLine' className='text-text-accent size-5 shrink-0' />
-            <span className='text-text-primary-inverse'>템플릿은 최대 10개까지 저장할 수 있어요</span>
+            <Icon icon='InfoLine' className='text-text-accent size-6 shrink-0' />
+            <span className='body1-medium text-text-primary-inverse'>템플릿은 최대 10개까지 저장할 수 있어요</span>
           </div>
         ),
       });

@@ -146,8 +146,8 @@ function OwnerDailyNoticeTemplateCreatePage() {
         iconAccent: true,
         title: (
           <div className='flex items-center gap-1'>
-            <Icon icon='InfoLine' className='text-text-accent size-5 shrink-0' />
-            <span className='text-text-primary-inverse'>본문을 작성해 주세요</span>
+            <Icon icon='InfoLine' className='text-text-accent size-6 shrink-0' />
+            <span className='body1-medium text-text-primary-inverse'>본문을 작성해 주세요</span>
           </div>
         ),
       });
