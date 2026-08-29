@@ -16,18 +16,8 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
-const SCHOOL_NAME_MAX_LENGTH = 15;
-
 interface ApprovalBannerDismissal {
   count: number;
-}
-
-function formatSchoolName(name: string) {
-  const characters = Array.from(name);
-
-  if (characters.length <= SCHOOL_NAME_MAX_LENGTH) return name;
-
-  return `${characters.slice(0, SCHOOL_NAME_MAX_LENGTH).join('')}···`;
 }
 
 function useOwnerHomePage() {
@@ -155,7 +145,7 @@ function useOwnerHomePage() {
 
   return {
     approval,
-    displaySchoolName: formatSchoolName(schoolName),
+    displaySchoolName: schoolName,
     handleApprovalBannerClick,
     handleApprovalBannerClose,
     handleFriendPreviewClick,

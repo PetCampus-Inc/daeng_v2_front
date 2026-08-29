@@ -48,11 +48,14 @@ function OwnerHomePage() {
             <p className='h3-extrabold text-text-primary min-w-0 w-fit'>
               안녕하세요
               <br />
-              <span className='text-text-accent'>{displaySchoolName}</span> 원장님
+              <span className='flex min-w-0 items-center gap-1'>
+                <span className='flex min-w-0 items-baseline'>
+                  <span className='text-text-accent min-w-0 truncate'>{displaySchoolName}</span>
+                  <span className='shrink-0 whitespace-nowrap'>&nbsp;원장님</span>
+                </span>
+                <Icon icon='Kindergarten' className='text-fill-secondary-700 size-6 shrink-0' />
+              </span>
             </p>
-            <div className='flex h-12 w-6 shrink-0 items-center justify-center pt-6'>
-              <Icon icon='Kindergarten' className='text-fill-secondary-700 size-6 shrink-0' />
-            </div>
           </div>
           <button
             type='button'
