@@ -29,6 +29,7 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     requestId: number;
     title: string;
     titleParts?: { text: string; accent?: boolean }[];
+    titleLineBreakAfterPartIndex?: number;
     description?: string;
     cancelLabel?: string;
     confirmLabel?: string;
@@ -44,6 +45,7 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     const action = await useBlockingOverlayStore.getState().showConfirmDialog({
       title: params.title,
       titleParts: params.titleParts,
+      titleLineBreakAfterPartIndex: params.titleLineBreakAfterPartIndex,
       description: params.description,
       cancelLabel: params.cancelLabel,
       confirmLabel: params.confirmLabel,

@@ -1,5 +1,5 @@
 import { Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Portal } from '@gorhom/portal';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import { useBlockingOverlayStore } from '../model/blockingOverlayStore';
@@ -87,6 +87,11 @@ function PawIcon({ size = 20, color = '#DEDEE3' }: { size?: number; color?: stri
 function BlockingOverlay() {
   const content = useBlockingOverlayStore((state) => state.content);
   const resolveConfirmDialog = useBlockingOverlayStore((state) => state.resolveConfirmDialog);
+  const [shouldBreakConfirmTitle, setShouldBreakConfirmTitle] = useState(false);
+
+  useEffect(() => {
+    setShouldBreakConfirmTitle(false);
+  }, [content]);
 
   if (!content) return null;
 
@@ -117,11 +122,24 @@ function BlockingOverlay() {
                   )}
                 </View>
               )}
-              <Text style={styles.confirmDialogTitle} allowFontScaling={ALLOW_FONT_SCALING}>
+              <Text
+                style={styles.confirmDialogTitle}
+                allowFontScaling={ALLOW_FONT_SCALING}
+                onTextLayout={(event) => {
+                  if (
+                    content.titleLineBreakAfterPartIndex != null &&
+                    event.nativeEvent.lines.length > 1 &&
+                    !shouldBreakConfirmTitle
+                  ) {
+                    setShouldBreakConfirmTitle(true);
+                  }
+                }}
+              >
                 {content.titleParts?.length
                   ? content.titleParts.map((part, index) => (
                       <Text key={index} style={part.accent ? styles.confirmDialogTitleAccent : undefined}>
                         {part.text}
+                        {shouldBreakConfirmTitle && index === content.titleLineBreakAfterPartIndex ? '\n' : null}
                       </Text>
                     ))
                   : content.title}
@@ -175,6 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(15, 20, 26, 0.7)',
+    paddingHorizontal: 16,
   },
   uploadContent: {
     width: '100%',

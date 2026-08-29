@@ -11,6 +11,8 @@ interface ConfirmDialogOptions {
   title: string;
   /** 있으면 title 대신 이걸 렌더링한다. accent: true인 조각은 강조색으로 표시 */
   titleParts?: ConfirmDialogTitlePart[];
+  /** 제목이 두 줄 이상일 때만 해당 조각 뒤에서 줄바꿈한다. */
+  titleLineBreakAfterPartIndex?: number;
   description?: string;
   cancelLabel?: string;
   confirmLabel?: string;
