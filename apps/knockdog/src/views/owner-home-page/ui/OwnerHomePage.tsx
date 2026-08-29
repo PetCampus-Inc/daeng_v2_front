@@ -61,7 +61,7 @@ function OwnerHomePage() {
             type='button'
             className='bg-bg-100 radius-full flex size-9 shrink-0 items-center justify-center p-1.5'
             aria-label='새로고침'
-            onClick={handleRefresh}
+            onClick={() => handleRefresh(true)}
           >
             <Icon icon='Reset' className='text-fill-secondary-700 size-6' />
           </button>

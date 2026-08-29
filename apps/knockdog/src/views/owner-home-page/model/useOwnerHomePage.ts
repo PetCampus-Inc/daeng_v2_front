@@ -7,6 +7,7 @@ import {
   getKstDateKey,
   getNextKstMidnightDelay,
 } from '@views/owner-home-page/model/ownerHomeDate';
+import { showOwnerHomeRefreshedToast } from '@views/owner-home-page/model/ownerHomeToast';
 
 import { useOwnerRole } from '@features/role-conversion';
 
@@ -111,16 +112,20 @@ function useOwnerHomePage() {
     });
   };
 
-  const handleRefresh = useCallback(() => {
-    if (!isResolved || !isOwner) {
-      setLastRefreshedAt(new Date());
-      return;
-    }
+  const handleRefresh = useCallback(
+    (notify = false) => {
+      if (!isResolved || !isOwner) {
+        setLastRefreshedAt(new Date());
+        return;
+      }
 
-    refetchOwnerHome().finally(() => {
-      setLastRefreshedAt(new Date());
-    });
-  }, [isOwner, isResolved, refetchOwnerHome]);
+      refetchOwnerHome().finally(() => {
+        setLastRefreshedAt(new Date());
+        if (notify) showOwnerHomeRefreshedToast();
+      });
+    },
+    [isOwner, isResolved, refetchOwnerHome]
+  );
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
