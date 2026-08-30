@@ -484,10 +484,12 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     pendingTabQueryStore.set(tabName, query);
 
+    // ref가 생겼다고 해서 페이지 JS가 이미 떠 있다는 보장은 없다. 여기서 바로 consume해버리면
+    // 이 주입이 페이지 로드보다 빨라 씹혔을 때, WebViewScreen의 focus/onLoadEnd가 제공하는
+    // 재시도 기회까지 같이 사라진다. consume은 그쪽에 맡기고 여기서는 최선 시도만 한다.
     const tabWebRef = await waitForTabReady(tabName, 5000);
     if (tabWebRef?.current) {
       injectTabQueryIntoWebView(tabWebRef.current, query);
-      pendingTabQueryStore.consume(tabName);
     }
   }
 

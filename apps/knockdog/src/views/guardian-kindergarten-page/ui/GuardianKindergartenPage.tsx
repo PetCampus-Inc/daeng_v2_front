@@ -28,7 +28,13 @@ export function GuardianKindergartenPage() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
-  const { pets, isPetsReady, isPetsError, setSelectedPetId } = useGuardianSelectedPet();
+  const {
+    pets,
+    isPetsReady,
+    isPetsError,
+    setSelectedPetId,
+    refetchPets: refetchPetsForPushPet,
+  } = useGuardianSelectedPet();
   const { rejectUnavailableTabTarget } = useUnavailableNotificationAction();
   const pushPetIdFromRouter = searchParams.get('pushPetId');
 
@@ -52,11 +58,21 @@ export function GuardianKindergartenPage() {
       history.replaceState(null, '', url.pathname + url.search + url.hash);
     }
 
-    function applyPushPetFromLocation() {
+    async function applyPushPetFromLocation() {
       const { petId, source } = readPushPetFromLocation();
       if (!petId || !/^\d+$/.test(petId)) return;
 
       if (isPetIdInList(pets, petId)) {
+        setSelectedPetId(petId);
+        clearPushPetQuery();
+        return;
+      }
+
+      // 방금 막 승인된 신규 연결이면 pets 캐시(기본 staleTime 60초)가 오래돼
+      // 아직 목록에 없을 수 있다. 포기하기 전에 최신 데이터로 한 번 더 확인한다.
+      const fresh = await refetchPetsForPushPet();
+      const freshPets = fresh.data?.data ?? [];
+      if (isPetIdInList(freshPets, petId)) {
         setSelectedPetId(petId);
         clearPushPetQuery();
         return;
@@ -67,10 +83,18 @@ export function GuardianKindergartenPage() {
       clearPushPetQuery();
     }
 
-    applyPushPetFromLocation();
+    void applyPushPetFromLocation();
     window.addEventListener('popstate', applyPushPetFromLocation);
     return () => window.removeEventListener('popstate', applyPushPetFromLocation);
-  }, [isPetsError, isPetsReady, pets, pushPetIdFromRouter, rejectUnavailableTabTarget, setSelectedPetId]);
+  }, [
+    isPetsError,
+    isPetsReady,
+    pets,
+    pushPetIdFromRouter,
+    refetchPetsForPushPet,
+    rejectUnavailableTabTarget,
+    setSelectedPetId,
+  ]);
 
   const handleAuthError = useCallback(
     async (_error: Error) => {
