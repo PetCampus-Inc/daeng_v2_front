@@ -31,9 +31,8 @@ function isSameYearMonthKey(dateKey: string, month: Date) {
 /**
  * 월별 앨범 days + periods → 최신순 타임라인.
  *
- * - 재원 중: 당일 해제 후 재연결 → 시작 → 해제 → 사진
- * - 해제 이력 조회: 항상 해제 → 사진 → 시작
- * - 단일 사이클 당일 연결→해제: 해제 → 사진 → 시작
+ * - 재원 중 + 당일 재연결: 시작 → 해제 → 사진
+ * - 해제 이력 조회: 해제 → 사진 → 시작 (당일 재연결 포함)
  * - 그날이 periods 최초 연결일이면 재연결 분기에서 사진 아래에도 시작 1회 추가
  */
 function buildGuardianAlbumMonthTimeline(
@@ -143,7 +142,7 @@ function buildGuardianAlbumMonthTimeline(
       pushDisconnected();
       pushDay();
       // 최초 연결일이면 사진 아래에 최초 시작 마커 추가
-      if (day && isFirstConnectionDay) {
+      if (isFirstConnectionDay) {
         rows.push({
           type: 'connected',
           id: `connected-${dateKey}-first`,

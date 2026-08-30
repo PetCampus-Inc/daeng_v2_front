@@ -37,8 +37,8 @@ function hasNoticeRecord(day: GuardianSchoolRecordDay) {
 
 /**
  * 월별 알림장 days + connections periods → 최신순 타임라인.
- * - 재원 중: 앨범과 동일 — 당일 재연결 시 시작 → 해제 → 알림장
- * - 해제 이력 조회: 항상 해제 → 알림장 → 시작
+ * - 재원 중 + 당일 재연결: 시작 → 해제 → 알림장
+ * - 해제 이력 조회: 해제 → 알림장 → 시작 (당일 재연결 포함, 시작은 하단)
  */
 function buildGuardianDailyNoticeMonthTimeline(
   days: GuardianSchoolRecordDay[],
@@ -148,7 +148,7 @@ function buildGuardianDailyNoticeMonthTimeline(
       pushConnected();
       pushDisconnected();
       pushNotice();
-      if (day && isFirstConnectionDay) {
+      if (isFirstConnectionDay) {
         rows.push({
           type: 'connected',
           id: `connected-${dateKey}-first`,
