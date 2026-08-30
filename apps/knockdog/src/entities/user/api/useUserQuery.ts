@@ -32,6 +32,10 @@ const useOwnerRoleQuery = ({ userId, enabled = true }: UseOwnerRoleQueryOptions 
     select: (data) => data.data,
     enabled,
     staleTime: 0,
+    // 탭마다 독립된 WebView가 앱 복귀(visibilitychange) 시 동시에 재조회하면
+    // 탭별로 isOwner가 서로 다른 타이밍에 settle되어 원장/보호자 모드가 오락가락한다.
+    // 원장 권한 변경은 역할전환 완료 시점에 invalidateQueries로 명시적으로 처리한다.
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -56,6 +60,7 @@ const useOwnerMypageSummaryQuery = ({
     select: (data) => data.data,
     enabled,
     staleTime: 0,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -76,6 +81,7 @@ const useOwnerProfileQuery = ({ userId, enabled = true }: UseOwnerProfileQueryOp
     select: (data) => data.data,
     enabled,
     staleTime: 0,
+    refetchOnWindowFocus: false,
   });
 };
 
