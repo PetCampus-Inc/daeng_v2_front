@@ -11,10 +11,10 @@ const ADDRESS_SYNC_MAX_ATTEMPTS = 4;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * 주소 추가 API는 생성된 ID를 반환하지 않는다. 직후 조회가 읽기 반영 지연으로 이전
- * 목록을 돌려주면 새 주소를 화면 상태에서 제거할 수 있어, 새 타입이 확인될 때만 교체한다.
+ * 주소 API는 생성된 ID를 반환하지 않는다. 직후 조회가 읽기 반영 지연으로 이전 목록을
+ * 돌려줄 수 있어, 대상 타입의 주소가 확인될 때만 후속 작업을 진행한다.
  */
-async function getUserInfoAfterAddressAdded(type: UserAddress['type']) {
+async function getUserInfoAfterAddressAvailable(type: UserAddress['type']) {
   for (let attempt = 0; attempt < ADDRESS_SYNC_MAX_ATTEMPTS; attempt += 1) {
     const result = await getUserInfo();
     if (result.data?.addresses.some((address) => address.type === type)) return result;
@@ -51,7 +51,7 @@ const useAddUserAddressMutation = () => {
       // 이후 삭제가 존재하지 않는 주소 ID로 요청되므로, 서버에서 발급한 실제 ID를
       // 조회해 store와 query cache를 함께 교체한다. 읽기 반영이 늦은 응답으로
       // 방금 추가한 주소를 덮어쓰지 않도록 새 타입이 확인될 때까지 짧게 재시도한다.
-      const result = await getUserInfoAfterAddressAdded(variables.type);
+      const result = await getUserInfoAfterAddressAvailable(variables.type);
       if (!result) return;
       if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
 
@@ -109,9 +109,9 @@ const useDeleteUserAddressMutation = () => {
       // 조회한 뒤 삭제해야 실패 후 이전 주소가 화면에 복구되는 현상을 막을 수 있다.
       if (addressId !== '0') return postDeleteUserAddress(addressId);
 
-      const result = await getUserInfo();
-      const address = result.data?.addresses.find((item) => item.type === type);
-      if (!address) return;
+      const result = await getUserInfoAfterAddressAvailable(type);
+      const address = result?.data?.addresses.find((item) => item.type === type);
+      if (!address) throw new Error('삭제할 주소를 찾을 수 없습니다.');
 
       return postDeleteUserAddress(String(address.id));
     },

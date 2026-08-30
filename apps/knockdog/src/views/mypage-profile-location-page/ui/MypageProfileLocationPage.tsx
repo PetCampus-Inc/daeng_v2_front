@@ -93,9 +93,10 @@ function MypageProfileLocationPage() {
 
   const handleDelete = async (type: UserAddressType) => {
     const existingAddress = existingAddressMap[type];
-    if (!existingAddress) return;
 
-    await deleteMutation.mutateAsync({ addressId: String(existingAddress.id), type });
+    // 추가 직후에는 폼에는 주소가 보이지만 user store에 서버 ID가 반영되기 전일 수
+    // 있다. 이 경우 mutation이 임시 ID를 받아 서버에서 실제 ID를 조회한 뒤 삭제한다.
+    await deleteMutation.mutateAsync({ addressId: String(existingAddress?.id ?? 0), type });
     // `reset({})`만으로는 이미 등록된 Controller 필드가 최초 defaultValue를 유지할 수
     // 있다. 삭제가 성공한 뒤 해당 필드를 명시적으로 비워 과거 주소가 남지 않게 한다.
     setValue(type, undefined as unknown as Omit<UserAddress, 'id'>, { shouldDirty: false });
