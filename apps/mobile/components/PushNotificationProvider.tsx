@@ -98,7 +98,14 @@ export function PushNotificationProvider() {
       pushCoordinator.enqueueNavigation(notificationData(message));
     });
     const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      pushCoordinator.enqueueNavigation(response.notification.request.content.data);
+      // iOS 원격 푸시는 content.data가 userInfo["body"]로 제한되어 대부분 비어 있다.
+      // trigger.payload는 그 제약 없이 원본 userInfo 전체를 담고 있어 이쪽을 우선 사용한다.
+      const trigger = response.notification.request.trigger;
+      const remotePayload =
+        trigger && 'type' in trigger && trigger.type === 'push'
+          ? (trigger as Notifications.PushNotificationTrigger).payload
+          : null;
+      pushCoordinator.enqueueNavigation(remotePayload ?? response.notification.request.content.data);
     });
 
     return () => {

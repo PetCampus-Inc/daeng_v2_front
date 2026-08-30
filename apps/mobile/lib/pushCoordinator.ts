@@ -5,6 +5,7 @@ import { serializeForJS } from '@knockdog/bridge-native';
 import { BRIDGE_VERSION } from '@knockdog/bridge-core';
 import { navigationRef } from '@/bridges/lib/navigationRef';
 import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
+import type { TabName } from '@/bridges/lib/tabRoutes';
 import { API_URL } from '@/constants/apiUrl';
 import { resolvePushDestination, type PushDestination } from './pushPayload';
 
@@ -127,12 +128,14 @@ class PushCoordinator {
     if (destination.kind === 'guardianKindergarten') {
       navigationRef.navigate('Tabs', { screen: 'Compare' });
       this.setCompareTabPet(destination.petId, destination.date);
+      this.setPrefersGuardianView('Compare', true);
       return;
     }
 
     if (destination.kind === 'ownerMemberApprovals') {
       navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl('/owner/members/approval') }));
+      this.setPrefersGuardianView('OwnerMembers', false);
       return;
     }
 
@@ -149,6 +152,7 @@ class PushCoordinator {
       });
       navigationRef.navigate('Tabs', { screen: 'Compare' });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/album?${params}`) }));
+      this.setPrefersGuardianView('Compare', true);
       return;
     }
 
@@ -174,6 +178,31 @@ class PushCoordinator {
         window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
       })(); true;
     `);
+  }
+
+  /** 푸시가 원장/보호자 전용 탭으로 강제 이동시킨 뒤, 다른 탭으로 넘어가도
+   * 모드가 되돌아가지 않도록 웹 쪽의 뷰 선호도를 같이 맞춘다.
+   *
+   * 콜드 마운트인 탭은 이 시점에 웹뷰 ref는 있어도 페이지 JS가 아직 안 떴을 수 있다.
+   * 한 번만 주입하면 그 타이밍에 걸려 조용히 무시될 수 있으므로, 짧은 기간 동안 여러 번
+   * 반복 주입해 최소 한 번은 페이지가 실제로 뜬 뒤에 적중하게 한다. localStorage 쓰기는
+   * 멱등이라 여러 번 실행돼도 안전하다. */
+  private setPrefersGuardianView(tabName: TabName, value: boolean, attempt = 0) {
+    const webView = tabWebViewStore.get(tabName)?.current;
+    if (webView) {
+      webView.injectJavaScript(`
+        (function() {
+          try {
+            localStorage.setItem('MYPAGE_ROLE_VIEW', JSON.stringify({ state: { prefersGuardianView: ${value} }, version: 0 }));
+          } catch (e) {}
+          if (window.__knockdogSetPrefersGuardianView) window.__knockdogSetPrefersGuardianView(${value});
+        })(); true;
+      `);
+    }
+
+    if (attempt < 6) {
+      setTimeout(() => this.setPrefersGuardianView(tabName, value, attempt + 1), 300);
+    }
   }
 
   private toDestinationKey(destination: PushDestination) {
