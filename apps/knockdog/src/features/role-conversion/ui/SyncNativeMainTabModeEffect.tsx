@@ -107,9 +107,8 @@ function SyncNativeMainTabModeEffect() {
       lastSyncedModeRef.current = null;
       return;
     }
-    // 권한 재조회 중에는 mode가 어느 쪽이든 stale한 중간 상태일 수 있으므로
-    // 재조회가 끝나 값이 확정될 때까지 네이티브 동기화를 보류한다.
-    if (isFetching) return;
+    // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
+    if (mode === 'guardian' && isFetching) return;
 
     // 보호자 유치원 탭은 stale owner store여도 네이티브 탭을 guardian으로 맞춤
     const syncMode = pathname === '/compare' ? 'guardian' : mode;
