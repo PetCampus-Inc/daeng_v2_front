@@ -366,9 +366,20 @@ function GuardianAlbumPage() {
     isAlbumDayAccessible,
   ]);
 
+  const isDisconnectedView = useMemo(
+    () =>
+      isDisconnected ||
+      (membershipPeriods.length > 0 &&
+        membershipPeriods.every((period) => period.disconnectedAt != null)),
+    [isDisconnected, membershipPeriods]
+  );
+
   const monthTimeline = useMemo(
-    () => buildGuardianAlbumMonthTimeline(visibleDays, membershipPeriods, selectedMonth),
-    [membershipPeriods, selectedMonth, visibleDays]
+    () =>
+      buildGuardianAlbumMonthTimeline(visibleDays, membershipPeriods, selectedMonth, {
+        isDisconnectedView,
+      }),
+    [isDisconnectedView, membershipPeriods, selectedMonth, visibleDays]
   );
 
   const hasPeriodBanners = membershipPeriods.length > 0;

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
-import { useGuardianSchoolConnectionSchoolsQuery } from '@entities/guardian-home';
+import { useGuardianSchoolConnectionSchoolsQuery, useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
@@ -67,6 +67,11 @@ function GuardianDailyNoticeListPage() {
     petId: selectedPetId,
     enabled: Boolean(userId) && Boolean(selectedPetId),
   });
+  const { data: connectionHistory } = useGuardianSchoolConnectionsQuery({
+    userId,
+    petId: selectedPetId,
+    enabled: Boolean(userId) && Boolean(selectedPetId),
+  });
   const isMockMode = isDisconnectedListMock(searchParams.get('mock'));
   const schoolIdFromQuery = parseSchoolIdQuery(searchParams.get('schoolId'));
   const noticeReturnDate = searchParams.get('date')?.trim() || null;
@@ -120,6 +125,18 @@ function GuardianDailyNoticeListPage() {
   const selectedSchoolId = selectedKindergarten?.schoolId ?? selectedKindergarten?.id ?? null;
   const isSelectedDisconnected = selectedAttendedUntil != null || isDisconnected;
 
+  const membershipPeriods = useMemo(() => {
+    if (!selectedSchoolId) return [];
+
+    return (connectionHistory ?? [])
+      .filter((connection) => connection.schoolId === selectedSchoolId && connection.connectedAt)
+      .map((connection) => ({
+        connectedAt: connection.connectedAt!,
+        disconnectedAt: connection.disconnectedAt,
+      }))
+      .sort((left, right) => right.connectedAt.getTime() - left.connectedAt.getTime());
+  }, [connectionHistory, selectedSchoolId]);
+
   const {
     timeline,
     effectiveFirstAttendedAt,
@@ -135,6 +152,7 @@ function GuardianDailyNoticeListPage() {
     isDisconnected: isSelectedDisconnected,
     isPetsReady,
     isMembershipPending,
+    membershipPeriods,
   });
 
   const selectedMonth = useMemo(() => {

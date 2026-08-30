@@ -3,43 +3,19 @@
 import { useMemo } from 'react';
 
 import {
-  type GuardianCalendarDailyNotice,
+  type GuardianAlbumMembershipPeriod,
+} from '@entities/guardian-album';
+import {
   type GuardianSchoolRecordDay,
   useGuardianSchoolRecordsQuery,
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
+import { buildGuardianDailyNoticeMonthTimeline } from '@views/guardian-daily-notice-list-page/model/buildGuardianDailyNoticeMonthTimeline';
+import type {
+  GuardianDailyNoticeMonthItem,
+  GuardianDailyNoticeTimelineRow,
+} from '@views/guardian-daily-notice-list-page/model/guardianDailyNoticeTimelineTypes';
 import { addDays, startOfDay } from '@shared/lib/calendar-date';
-
-interface GuardianDailyNoticeMonthItem {
-  /** YYYY-MM-DD */
-  dateKey: string;
-  date: Date;
-  checkInAt: Date | null;
-  checkOutAt: Date | null;
-  dailyNotice: GuardianCalendarDailyNotice | null;
-  thumbnailUrl: string | null;
-}
-
-type GuardianDailyNoticeTimelineRow =
-  | {
-      type: 'notice';
-      id: string;
-      dateKey: string;
-      date: Date;
-      item: GuardianDailyNoticeMonthItem;
-    }
-  | {
-      type: 'disconnected';
-      id: string;
-      dateKey: string;
-      date: Date;
-    }
-  | {
-      type: 'connected';
-      id: string;
-      dateKey: string;
-      date: Date;
-    };
 
 interface UseGuardianDailyNoticeMonthListParams {
   schoolId?: string | null;
@@ -56,6 +32,8 @@ interface UseGuardianDailyNoticeMonthListParams {
   isPetsReady?: boolean;
   /** 연결 이력 조회 로딩 상태 */
   isMembershipPending?: boolean;
+  /** connections API 사이클 — records membershipEvent보다 우선 */
+  membershipPeriods?: GuardianAlbumMembershipPeriod[];
 }
 
 function isSameYearMonth(left: Date, right: Date) {
@@ -93,6 +71,28 @@ function toNoticeItem(day: GuardianSchoolRecordDay): GuardianDailyNoticeMonthIte
 }
 
 /**
+ * 해당 날짜에서 해제 배너가 알림장보다 위(최신)인지.
+ * - DISCONNECTED만 있음 → 해제가 최신
+ * - CONNECTED+DISCONNECTED 같은 날 → membership 종료일이면 해제가 최신, 아니면 재연결
+ * - attendedUntil만 맞고 records에 이벤트 없음 → false (해제 배너는 이벤트 있는 날에만)
+ */
+function isDisconnectNewestForDay(
+  day: GuardianSchoolRecordDay,
+  membershipEndDateKey: string | null
+): boolean {
+  const hasDisconnected = day.membershipEvents.includes('DISCONNECTED');
+  const hasConnected = day.membershipEvents.includes('CONNECTED');
+
+  if (hasDisconnected && !hasConnected) return true;
+
+  if (hasDisconnected && hasConnected) {
+    return membershipEndDateKey === day.dateKey;
+  }
+
+  return false;
+}
+
+/**
  * records days(최신→과거) + membership 이벤트를 날짜 타임라인으로 합침.
  * - 리스트 위가 최신
  * - 같은 날 membership이 해제로 끝남: DISCONNECTED → 알림장 → CONNECTED
@@ -118,8 +118,7 @@ function buildTimelineRows(
     const hasRecord = Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice);
     const disconnectedEvents = day.membershipEvents.filter((event) => event === 'DISCONNECTED');
     const connectedEvents = day.membershipEvents.filter((event) => event === 'CONNECTED');
-    // 선택 이력이 이 날짜에 끝났으면 해제가 최신 (연결→알림→해제)
-    const disconnectIsNewest = membershipEndDateKey === day.dateKey;
+    const disconnectIsNewest = isDisconnectNewestForDay(day, membershipEndDateKey);
 
     const pushDisconnected = () => {
       for (let index = 0; index < disconnectedEvents.length; index += 1) {
@@ -228,6 +227,7 @@ function useGuardianDailyNoticeMonthList({
   enabled = true,
   isPetsReady = false,
   isMembershipPending = false,
+  membershipPeriods = [],
 }: UseGuardianDailyNoticeMonthListParams) {
   const userId = useUserStore((state) => state.user?.userId);
   const yearMonth = useMemo(() => formatYearMonth(selectedMonth), [selectedMonth]);
@@ -349,20 +349,59 @@ function useGuardianDailyNoticeMonthList({
 
   const membershipEndDateKey = useMemo(() => {
     if (!isDisconnected) return null;
+
+    const days = records?.days ?? [];
+
+    const disconnectOnlyDay = days.find(
+      (day) =>
+        day.membershipEvents.includes('DISCONNECTED') &&
+        !day.membershipEvents.includes('CONNECTED')
+    );
+    if (disconnectOnlyDay) return disconnectOnlyDay.dateKey;
+
+    const sameDayEndDay = days.find(
+      (day) =>
+        day.membershipEvents.includes('DISCONNECTED') &&
+        day.membershipEvents.includes('CONNECTED')
+    );
+    if (sameDayEndDay) return sameDayEndDay.dateKey;
+
     if (attendedUntil) return formatDateKey(attendedUntil);
     if (fallbackDisconnectedDate) return formatDateKey(fallbackDisconnectedDate);
     return null;
-  }, [attendedUntil, fallbackDisconnectedDate, isDisconnected]);
+  }, [attendedUntil, fallbackDisconnectedDate, isDisconnected, records?.days]);
 
-  const timeline = useMemo(
+  const isDisconnectedView = useMemo(
     () =>
-      buildTimelineRows(records?.days ?? [], {
-        fallbackConnectedDate,
-        fallbackDisconnectedDate,
-        membershipEndDateKey,
-      }),
-    [fallbackConnectedDate, fallbackDisconnectedDate, membershipEndDateKey, records?.days]
+      isDisconnected ||
+      (membershipPeriods.length > 0 &&
+        membershipPeriods.every((period) => period.disconnectedAt != null)),
+    [isDisconnected, membershipPeriods]
   );
+
+  const timeline = useMemo(() => {
+    const days = records?.days ?? [];
+
+    if (membershipPeriods.length > 0) {
+      return buildGuardianDailyNoticeMonthTimeline(days, membershipPeriods, selectedMonth, {
+        isDisconnectedView,
+      });
+    }
+
+    return buildTimelineRows(days, {
+      fallbackConnectedDate,
+      fallbackDisconnectedDate,
+      membershipEndDateKey,
+    });
+  }, [
+    fallbackConnectedDate,
+    fallbackDisconnectedDate,
+    isDisconnectedView,
+    membershipEndDateKey,
+    membershipPeriods,
+    records?.days,
+    selectedMonth,
+  ]);
 
   return {
     items,
@@ -379,4 +418,4 @@ function useGuardianDailyNoticeMonthList({
 }
 
 export { useGuardianDailyNoticeMonthList };
-export type { GuardianDailyNoticeMonthItem, GuardianDailyNoticeTimelineRow };
+export type { GuardianDailyNoticeMonthItem, GuardianDailyNoticeTimelineRow } from '@views/guardian-daily-notice-list-page/model/guardianDailyNoticeTimelineTypes';

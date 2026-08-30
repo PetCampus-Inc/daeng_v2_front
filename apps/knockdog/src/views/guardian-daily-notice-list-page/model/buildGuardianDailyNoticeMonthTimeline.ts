@@ -1,25 +1,11 @@
-﻿import type { GuardianAlbumMembershipPeriod } from '@entities/guardian-album';
+import type { GuardianAlbumMembershipPeriod } from '@entities/guardian-album';
+import type { GuardianSchoolRecordDay } from '@entities/guardian-home';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 
-import type { GuardianAlbumDayAlbum } from '@views/guardian-album-page/config/guardianAlbumMonthMock';
-
-type GuardianAlbumTimelineRow =
-  | {
-      type: 'day';
-      id: string;
-      dateKey: string;
-      day: GuardianAlbumDayAlbum;
-    }
-  | {
-      type: 'connected';
-      id: string;
-      dateKey: string;
-    }
-  | {
-      type: 'disconnected';
-      id: string;
-      dateKey: string;
-    };
+import type {
+  GuardianDailyNoticeMonthItem,
+  GuardianDailyNoticeTimelineRow,
+} from '@views/guardian-daily-notice-list-page/model/guardianDailyNoticeTimelineTypes';
 
 function isSameYearMonthKey(dateKey: string, month: Date) {
   const year = month.getFullYear();
@@ -28,24 +14,41 @@ function isSameYearMonthKey(dateKey: string, month: Date) {
   return keyYear === year && keyMonth === monthValue;
 }
 
+function parseDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split('-');
+  return startOfDay(new Date(Number(year), Number(month) - 1, Number(day)));
+}
+
+function toNoticeItem(day: GuardianSchoolRecordDay): GuardianDailyNoticeMonthItem {
+  const date = parseDateKey(day.dateKey);
+  return {
+    dateKey: day.dateKey,
+    date,
+    checkInAt: day.checkInAt ?? null,
+    checkOutAt: day.checkOutAt ?? null,
+    dailyNotice: day.dailyNotice ?? null,
+    thumbnailUrl: day.thumbnailUrl ?? null,
+  };
+}
+
+function hasNoticeRecord(day: GuardianSchoolRecordDay) {
+  return Boolean(day.checkInAt || day.checkOutAt || day.dailyNotice);
+}
+
 /**
- * 월별 앨범 days + periods → 최신순 타임라인.
- *
- * - 재원 중: 당일 해제 후 재연결 → 시작 → 해제 → 사진
- * - 해제 이력 조회: 항상 해제 → 사진 → 시작
- * - 단일 사이클 당일 연결→해제: 해제 → 사진 → 시작
- * - 그날이 periods 최초 연결일이면 재연결 분기에서 사진 아래에도 시작 1회 추가
+ * 월별 알림장 days + connections periods → 최신순 타임라인.
+ * - 재원 중: 앨범과 동일 — 당일 재연결 시 시작 → 해제 → 알림장
+ * - 해제 이력 조회: 항상 해제 → 알림장 → 시작
  */
-function buildGuardianAlbumMonthTimeline(
-  days: GuardianAlbumDayAlbum[],
+function buildGuardianDailyNoticeMonthTimeline(
+  days: GuardianSchoolRecordDay[],
   periods: GuardianAlbumMembershipPeriod[],
   selectedMonth: Date,
   options: { isDisconnectedView?: boolean } = {}
-): GuardianAlbumTimelineRow[] {
+): GuardianDailyNoticeTimelineRow[] {
   const { isDisconnectedView = false } = options;
   const connectedDates = new Set<string>();
   const disconnectedDates = new Set<string>();
-  /** 같은 날 이전 사이클 해제 후 다른 사이클이 시작한 날짜 */
   const sameDayReconnectDates = new Set<string>();
   let earliestConnectedAt: Date | null = null;
 
@@ -99,7 +102,7 @@ function buildGuardianAlbumMonthTimeline(
     new Set([...dayByKey.keys(), ...connectedDates, ...disconnectedDates])
   ).sort((left, right) => (left < right ? 1 : left > right ? -1 : 0));
 
-  const rows: GuardianAlbumTimelineRow[] = [];
+  const rows: GuardianDailyNoticeTimelineRow[] = [];
 
   for (const dateKey of dateKeys) {
     const hasDisconnected = disconnectedDates.has(dateKey);
@@ -108,6 +111,7 @@ function buildGuardianAlbumMonthTimeline(
     const isSameDayReconnect = sameDayReconnectDates.has(dateKey);
     const isFirstConnectionDay =
       isFirstConnectedInSelectedMonth && dateKey === firstConnectedKey;
+    const date = parseDateKey(dateKey);
 
     const pushDisconnected = () => {
       if (!hasDisconnected) return;
@@ -115,6 +119,7 @@ function buildGuardianAlbumMonthTimeline(
         type: 'disconnected',
         id: `disconnected-${dateKey}`,
         dateKey,
+        date,
       });
     };
     const pushConnected = () => {
@@ -123,36 +128,37 @@ function buildGuardianAlbumMonthTimeline(
         type: 'connected',
         id: `connected-${dateKey}`,
         dateKey,
+        date,
       });
     };
-    const pushDay = () => {
-      if (!day) return;
+    const pushNotice = () => {
+      if (!day || !hasNoticeRecord(day)) return;
       rows.push({
-        type: 'day',
-        id: `day-${dateKey}`,
+        type: 'notice',
+        id: `notice-${dateKey}`,
         dateKey,
-        day,
+        date,
+        item: toNoticeItem(day),
       });
     };
 
     const useReconnectOrder = isSameDayReconnect && !isDisconnectedView;
 
     if (useReconnectOrder) {
-      // 재연결 마커: 시작 → 해제 → 사진
       pushConnected();
       pushDisconnected();
-      pushDay();
-      // 최초 연결일이면 사진 아래에 최초 시작 마커 추가
+      pushNotice();
       if (day && isFirstConnectionDay) {
         rows.push({
           type: 'connected',
           id: `connected-${dateKey}-first`,
           dateKey,
+          date,
         });
       }
-    } else if (day) {
+    } else if (day && hasNoticeRecord(day)) {
       pushDisconnected();
-      pushDay();
+      pushNotice();
       pushConnected();
     } else {
       pushDisconnected();
@@ -163,5 +169,4 @@ function buildGuardianAlbumMonthTimeline(
   return rows;
 }
 
-export { buildGuardianAlbumMonthTimeline };
-export type { GuardianAlbumTimelineRow };
+export { buildGuardianDailyNoticeMonthTimeline };
