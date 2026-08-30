@@ -43,8 +43,10 @@ interface UserInfo extends Omit<User, 'profileImageUrl'>, GuardianProfile {
   loginProvider?: SocialLoginProvider | null;
 }
 
+// WORK는 더 이상 쓰지 않는다. 과거(2026-08-21 이전)에 WORK로 저장된 레거시 주소가
+// 백엔드에 남아있을 수 있어, 응답에서 WORK가 오면 OTHER로 정규화한다.
 const toAppAddressType = (type: string): UserAddress['type'] =>
-  type === 'OTHER' ? USER_ADDRESS_TYPE.WORK : (type as UserAddress['type']);
+  type === 'WORK' ? USER_ADDRESS_TYPE.OTHER : (type as UserAddress['type']);
 
 function normalizeAddressDetails<T extends { addresses: UserAddress[] }>(userInfo: T): T {
   return {

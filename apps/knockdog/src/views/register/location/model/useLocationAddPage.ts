@@ -48,7 +48,7 @@ const useLocationAddPage = () => {
   const address = useWatch({ control, name: 'address' });
   const alias = useWatch({ control, name: 'alias' });
   const hasAddress = !!address;
-  const canSubmit = hasAddress && (type !== USER_ADDRESS_TYPE.WORK || !!alias?.trim());
+  const canSubmit = hasAddress && (type !== USER_ADDRESS_TYPE.OTHER || !!alias?.trim());
   const isDirty = JSON.stringify(watchedValues) !== JSON.stringify(baselineRef.current);
 
   const handleAddressSelect = (selectedAddress: Address) => {

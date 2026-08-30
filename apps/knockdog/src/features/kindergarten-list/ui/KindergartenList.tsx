@@ -73,9 +73,9 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof LocationPermissionError;
 
-  const workAlias =
-    user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.WORK)?.alias ||
-    USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.WORK];
+  const otherAlias =
+    user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.OTHER)?.alias ||
+    USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.OTHER];
 
   const handleBasePointTypeChange = (value: string) => {
     const newType = value as BasePointType;
@@ -99,11 +99,11 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       }
     }
 
-    // 직장 선택 시 등록된 직장 있는지 체크
-    if (newType === 'WORK') {
-      const hasWorkAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.WORK);
-      if (!hasWorkAddress) {
-        handleOpenAlertDialog(USER_ADDRESS_TYPE.WORK);
+    // 기타 선택 시 등록된 기타 주소 있는지 체크
+    if (newType === 'OTHER') {
+      const hasOtherAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.OTHER);
+      if (!hasOtherAddress) {
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.OTHER);
         return;
       }
     }
@@ -228,7 +228,7 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             <SegmentedControl value={selectedBaseType} onValueChange={handleBasePointTypeChange}>
               <SegmentedControlItem value='CURRENT'>현 위치</SegmentedControlItem>
               <SegmentedControlItem value='HOME'>집</SegmentedControlItem>
-              <SegmentedControlItem value='WORK'>{ellipsisText(workAlias, 8)}</SegmentedControlItem>
+              <SegmentedControlItem value='OTHER'>{ellipsisText(otherAlias, 8)}</SegmentedControlItem>
             </SegmentedControl>
           </div>
 
