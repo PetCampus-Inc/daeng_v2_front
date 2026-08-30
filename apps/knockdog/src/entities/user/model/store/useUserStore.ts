@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import { User } from '../user';
+import { normalizeUserAddresses, User } from '../user';
 import { eventBus } from '@shared/utils';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 
@@ -21,6 +21,18 @@ const useUserStore = create<UserStore>()(
     {
       name: STORAGE_KEYS.USER,
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.user) return;
+
+        const addresses = normalizeUserAddresses(state.user.addresses);
+        const hasChanged =
+          addresses.length !== state.user.addresses.length ||
+          addresses.some((address, index) => address !== state.user?.addresses[index]);
+
+        if (hasChanged) {
+          state.setUser({ ...state.user, addresses });
+        }
+      },
     }
   )
 );
