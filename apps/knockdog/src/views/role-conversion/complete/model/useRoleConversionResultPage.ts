@@ -10,6 +10,7 @@ import { route } from '@shared/constants/route';
 import { EXTERNAL_LINKS } from '@shared/constants';
 import { useBridge, useOpenExternalLink, useStackNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 import { RESULT_STATUS } from '@views/role-conversion/complete/config/roleConversionResultStatus';
 import { getResultContent } from '@views/role-conversion/complete/config/roleConversionResultContent';
@@ -32,6 +33,8 @@ function useResultPage() {
       clearSession();
       // 원장 권한 확인 API 재조회 → 마이페이지가 즉시 원장 상태/유치원 정보로 전환
       getQueryClient().invalidateQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] });
+      // 다른 탭(독립된 WebView/QueryClient)에도 원장 권한이 바뀌었음을 알린다.
+      syncWebViewQuery.invalidate([OWNER_ROLE_QUERY_KEY]);
       replace({
         pathname: route.roleConversion.complete.root,
         query: { status: RESULT_STATUS.SUCCESS },
@@ -50,6 +53,7 @@ function useResultPage() {
         void getQueryClient()
           .refetchQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] })
           .then(async () => {
+            syncWebViewQuery.invalidate([OWNER_ROLE_QUERY_KEY]);
             if (!isNativeWebView()) return;
             await bridge.request(METHODS.navSetMainTabMode, {
               mode: 'owner',
