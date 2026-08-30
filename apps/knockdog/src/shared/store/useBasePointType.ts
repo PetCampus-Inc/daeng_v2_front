@@ -27,6 +27,16 @@ export const useBasePointType = create<BasePointTypeState>()(
     {
       name: STORAGE_KEYS.BASE_POINT_TYPE,
       storage: createJSONStorage(() => sessionStorage),
+      // WORK 타입 제거(OTHER로 통일) 이전에 저장된 세션이 남아있으면 selectedBaseType이
+      // 'WORK'일 수 있다. useBasePoint에 WORK 분기가 없어 좌표가 undefined가 되므로 이관한다.
+      version: 1,
+      migrate: (persistedState) => {
+        const state = persistedState as { selectedBaseType?: string } | undefined;
+        if (state?.selectedBaseType === 'WORK') {
+          return { ...state, selectedBaseType: 'OTHER' as BasePointType };
+        }
+        return state;
+      },
     }
   )
 );

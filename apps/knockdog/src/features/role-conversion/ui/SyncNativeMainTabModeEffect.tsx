@@ -125,14 +125,9 @@ function SyncNativeMainTabModeEffect() {
     const debounceTimer = setTimeout(() => {
       if (cancelled) return;
 
-      lastSyncedModeRef.current = syncMode;
-
       const retrySync = () => {
         if (cancelled || retryCountRef.current >= 2) return;
 
-        // 재시도를 실제로 예약할 때만 ref를 비운다. 재시도 상한을 넘긴 뒤에도 비우면
-        // 관계없는 의존성 변경(isFetching 등)마다 같은 syncMode 요청을 무한히 재전송하게 된다.
-        lastSyncedModeRef.current = null;
         retryCountRef.current += 1;
         retryTimer = setTimeout(() => {
           setRetryNonce((nonce) => nonce + 1);
@@ -147,11 +142,20 @@ function SyncNativeMainTabModeEffect() {
           force: true,
         })
         .then(({ mode: appliedMode }) => {
+          if (cancelled) return;
+          // 브리지가 실제로 반영한 뒤에만 기록한다. 요청 전에 미리 기록해두면, effect가
+          // 도중에(예: isFetching 변경으로) 취소돼 실제로는 반영이 안 됐는데도 다음
+          // 재실행에서 "이미 동기화됨"으로 오판해 재시도를 건너뛰게 된다.
           // 앱 시작 직후에는 활성 WebView 등록 전 요청이 무시될 수 있다.
           // 그 경우 네이티브가 유지한 기존 모드가 응답되므로 재시도한다.
-          if (appliedMode !== syncMode) retrySync();
+          if (appliedMode === syncMode) {
+            lastSyncedModeRef.current = syncMode;
+          } else {
+            retrySync();
+          }
         })
         .catch((error) => {
+          if (cancelled) return;
           if (process.env.NODE_ENV === 'development') {
             console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
           }

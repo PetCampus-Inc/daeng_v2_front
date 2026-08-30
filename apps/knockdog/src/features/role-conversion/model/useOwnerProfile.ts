@@ -13,9 +13,21 @@ import { useOwnerProfileQuery, useUserStore } from '@entities/user';
  */
 function useOwnerProfile() {
   const user = useUserStore((state) => state.user);
-  const { isOwner, isResolved } = useOwnerRole();
+  const {
+    isOwner,
+    isResolved,
+    isError: isRoleError,
+    isFetching: isRoleFetching,
+    refetch: refetchRole,
+  } = useOwnerRole();
 
-  const { data, isPending } = useOwnerProfileQuery({
+  const {
+    data,
+    isPending,
+    isError: isProfileError,
+    isFetching: isProfileFetching,
+    refetch: refetchProfile,
+  } = useOwnerProfileQuery({
     userId: user?.userId,
     enabled: isOwner,
   });
@@ -29,6 +41,11 @@ function useOwnerProfile() {
     };
   }, [data]);
 
+  const refetch = () => {
+    void refetchRole();
+    if (isOwner) void refetchProfile();
+  };
+
   return {
     profile,
     // isOwner는 "원장 아님"과 "원장 여부 확인 중"을 구분하지 못해(로딩 중엔 항상 false),
@@ -37,6 +54,12 @@ function useOwnerProfile() {
     // reset()이 덮어써서 "입력했는데 반영이 안 되는" 것처럼 보이는 문제가 있었다.
     /** 원장 여부 확인이 끝났고, 원장이 아니면 즉시 true. 원장이면 프로필 첫 조회가 끝날 때까지 false */
     isReady: isResolved && (!isOwner || !isPending),
+    // 역할/프로필 조회가 캐시 없이 실패하면 isResolved가 계속 false로 남아 isReady가
+    // 영원히 true가 안 된다. 소비 화면(OwnerAccessGuard 미적용)이 재시도 UI를 띄울 수
+    // 있도록 에러/로딩/재조회 상태를 같이 노출한다.
+    isError: isRoleError || (isOwner && isProfileError),
+    isFetching: isRoleFetching || isProfileFetching,
+    refetch,
   };
 }
 

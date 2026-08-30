@@ -141,6 +141,7 @@ function OwnerFriendPreview({
               ) : null}
               <AvatarFallback className='bg-fill-secondary-100'>
                 <Icon icon='Paw' className='text-fill-secondary-300 size-4' aria-hidden='true' />
+                <span className='sr-only'>{friend.name || '강아지'} 프로필</span>
               </AvatarFallback>
             </Avatar>
           ))}

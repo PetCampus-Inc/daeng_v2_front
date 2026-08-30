@@ -20,6 +20,7 @@ import {
   injectTabQueryIntoWebView,
   pendingTabQueryStore,
 } from '../lib/tabQueryInject';
+import { getFirstPartyWebOrigin } from '../lib/isFirstPartyWebViewUrl';
 
 /** TabNavigator screen 등록 순서 — Stack reset 시 활성 탭 state 명시 */
 const TAB_SCREEN_ORDER: TabName[] = [
@@ -205,10 +206,22 @@ function isStackFocused(): boolean {
   return state.routes[state.index ?? 0]?.name === 'Stack';
 }
 
-/** reset 대상이 지금 보고 있는 Stack 화면과 같은 경로면 그 route key를 재사용해,
- * WebView를 새로 마운트하지 않고 같은 화면이 URL만 갱신되며 이어지게 한다.
- * (예: 알림장 전송 성공 후 자기 자신으로 reset하면 화면이 통째로 리로드/반복되어 보이는 문제) */
-function findReusableStackRouteKey(targetPathname: string): string | undefined {
+/** path를 절대 URL로 정규화한다. 상대 경로는 앱 자체(first-party) origin 기준으로 해석한다. */
+function toComparableUrl(path: string): URL | null {
+  try {
+    return new URL(path, getFirstPartyWebOrigin() ?? undefined);
+  } catch {
+    return null;
+  }
+}
+
+/** reset/replace 대상이 지금 보고 있는 Stack 화면과 origin+경로가 같으면 그 route key를
+ * 재사용해, WebView를 새로 마운트하지 않고 같은 화면이 URL만 갱신되며 이어지게 한다.
+ * (예: 알림장 전송 성공 후 자기 자신으로 reset하면 화면이 통째로 리로드/반복되어 보이는 문제)
+ *
+ * origin이 다르면(외부 페이지 등) history.replaceState로 URL을 바꿀 수 없어 재사용 시
+ * 목적지가 실제로는 안 열리므로, pathname뿐 아니라 origin도 반드시 함께 비교한다. */
+function findReusableStackRouteKey(targetPath: string): string | undefined {
   const state = navigationRef.getState();
   if (!state) return undefined;
 
@@ -218,12 +231,13 @@ function findReusableStackRouteKey(targetPathname: string): string | undefined {
   const currentPath = (topRoute.params as { path?: string } | undefined)?.path;
   if (!currentPath) return undefined;
 
-  try {
-    const currentPathname = new URL(currentPath, 'https://placeholder.local').pathname;
-    return currentPathname === targetPathname ? topRoute.key : undefined;
-  } catch {
-    return undefined;
-  }
+  const currentUrl = toComparableUrl(currentPath);
+  const targetUrl = toComparableUrl(targetPath);
+  if (!currentUrl || !targetUrl) return undefined;
+
+  return currentUrl.origin === targetUrl.origin && currentUrl.pathname === targetUrl.pathname
+    ? topRoute.key
+    : undefined;
 }
 
 let lastMainTabModeRequest: { id: number; source: RefObject<WebView> | null } = {
@@ -414,13 +428,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
       navigationRef.dispatch(StackActions.replace('Tabs', { screen: tabName }));
     } else {
-      let targetPathname = '/';
-      try {
-        targetPathname = new URL(route.params.path, 'https://placeholder.local').pathname;
-      } catch {
-        targetPathname = extractPathFromUrl(route.params.path);
-      }
-      const reusableStackKey = findReusableStackRouteKey(targetPathname);
+      const reusableStackKey = findReusableStackRouteKey(route.params.path);
 
       if (reusableStackKey) {
         // 지금 보고 있는 화면과 같은 경로로의 replace는 WebView를 새로 만들지 않고
@@ -487,7 +495,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       }
 
       const baseTab = resolveTabScreen(pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore');
-      const reusableStackKey = findReusableStackRouteKey(stackPathname);
+      const reusableStackKey = findReusableStackRouteKey(route.params.path);
 
       navigationRef.dispatch(
         CommonActions.reset({

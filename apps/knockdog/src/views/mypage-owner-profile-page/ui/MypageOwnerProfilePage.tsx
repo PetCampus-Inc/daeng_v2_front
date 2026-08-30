@@ -7,10 +7,15 @@ import { Header } from '@widgets/Header';
 import { ownerMypageContent, OwnerProfileDetailInfo, useOwnerProfile } from '@features/role-conversion';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { PageError } from '@shared/ui/page-error';
 
 function MypageOwnerProfilePage() {
   const { push } = useStackNavigation();
-  const { profile } = useOwnerProfile();
+  const { profile, isError, isFetching, refetch } = useOwnerProfile();
+
+  if (isError) {
+    return <PageError layout='overlay' onRetry={refetch} isRetrying={isFetching} />;
+  }
 
   return (
     <div className='flex h-full flex-col'>
