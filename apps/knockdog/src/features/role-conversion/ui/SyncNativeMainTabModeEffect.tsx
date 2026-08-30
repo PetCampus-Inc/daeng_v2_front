@@ -126,7 +126,15 @@ function SyncNativeMainTabModeEffect() {
       if (cancelled) return;
 
       const retrySync = () => {
-        if (cancelled || retryCountRef.current >= 2) return;
+        if (cancelled) return;
+
+        if (retryCountRef.current >= 2) {
+          // 재시도 상한에 도달했다. 계속 실패해도 매 의존성 변경마다 같은 syncMode를
+          // 무한히 재전송하지 않도록, 여기서 포기하고 syncMode로 정착한 것으로 표시한다.
+          // mode/pathname 등이 실제로 다시 바뀌면 그때 새로 동기화가 시도된다.
+          lastSyncedModeRef.current = syncMode;
+          return;
+        }
 
         retryCountRef.current += 1;
         retryTimer = setTimeout(() => {
