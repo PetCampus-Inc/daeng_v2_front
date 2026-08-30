@@ -19,16 +19,18 @@ function GuardianKindergartenHistoryPage() {
   const subjectParticle = getSubjectParticle(petName);
 
   return (
-    <div className='bg-bg-0 flex h-dvh flex-col'>
-      <Header>
-        <Header.BackButton />
-        <Header.Title>{content.pageTitle}</Header.Title>
-      </Header>
+    <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
+      <div className='shrink-0'>
+        <Header>
+          <Header.BackButton />
+          <Header.Title>{content.pageTitle}</Header.Title>
+        </Header>
+      </div>
 
       {isError ? (
         <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
       ) : (
-        <div className='min-h-0 flex-1 overflow-y-auto'>
+        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'>
           <div className='px-x4 flex flex-col gap-1 pt-5 pb-3'>
             <p className='h2-extrabold text-text-primary'>
               <span className='text-text-accent'>{petName}</span>
@@ -39,7 +41,7 @@ function GuardianKindergartenHistoryPage() {
             <p className='body1-medium text-text-primary'>{content.subtitle}</p>
           </div>
 
-          <div className='px-x4 flex flex-col gap-3 pb-8'>
+          <div className='px-x4 flex flex-col gap-3 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
             {isPending ? (
               <div className='flex justify-center py-16'>
                 <RingLoadingSpinner />
