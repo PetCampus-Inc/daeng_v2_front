@@ -6,6 +6,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { OWNER_ROLE_QUERY_KEY, useOwnerRoleQuery, useUserStore, type OwnerRole } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
+declare global {
+  interface Window {
+    __knockdogNativeTabFocused?: boolean;
+  }
+}
+
 interface OwnerKindergartenInfo {
   source: 'manual' | 'search';
   name: string;
@@ -99,6 +105,14 @@ function useOwnerRole(): OwnerRoleState {
     };
 
     window.addEventListener('knockdog:native-tab-focus', syncUserFromStorage);
+
+    // WebViewScreen은 화면 focus/load 완료 시점에 focus 이벤트를 주입한다. 이 훅의
+    // effect 등록보다 먼저 주입되면 이벤트 리스너는 그 한 번의 신호를 놓친다.
+    // #627에서 window focus 재조회도 비활성화했으므로, 이미 활성인 탭에서 마운트될 때
+    // 직접 동기화하지 않으면 이전 WebView의 isOwner=false 캐시가 유지될 수 있다.
+    if (window.__knockdogNativeTabFocused === true) {
+      syncUserFromStorage();
+    }
 
     return () => {
       window.removeEventListener('knockdog:native-tab-focus', syncUserFromStorage);
