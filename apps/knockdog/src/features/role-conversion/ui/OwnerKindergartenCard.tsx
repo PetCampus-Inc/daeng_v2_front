@@ -33,7 +33,7 @@ function OwnerKindergartenCard({
         </div>
       </div>
 
-      <div className='flex items-center justify-between gap-x-7 p-4'>
+      <div className='flex w-full items-center justify-between gap-x-7 p-4'>
         <div className='flex min-w-0 flex-col gap-1'>
           <p className='h3-extrabold text-text-primary truncate'>{name}</p>
           <p className='body2-regular text-text-primary truncate'>{address}</p>
