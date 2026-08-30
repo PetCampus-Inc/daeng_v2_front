@@ -5,7 +5,14 @@ import { useForm } from 'react-hook-form';
 import { Header } from '@widgets/Header';
 import { Divider } from '@knockdog/ui';
 import { LocationPermissionSection } from '@features/location-permission';
-import { USER_ADDRESS_TYPE_KR, UserAddress, UserAddressType, useUserStore } from '@entities/user';
+import {
+  toUser,
+  USER_ADDRESS_TYPE_KR,
+  UserAddress,
+  UserAddressType,
+  useUserInfoQuery,
+  useUserStore,
+} from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { AddressRegister } from '@widgets/address-register';
 import {
@@ -19,9 +26,18 @@ type LocationFormState = Record<UserAddressType, Omit<UserAddress, 'id'>>;
 function MypageProfileLocationPage() {
   const { back } = useStackNavigation();
   const user = useUserStore((state) => state.user);
-  // 주소 mutation이 store를 낙관적으로 갱신한다. 여기서 별도 query cache를 우선하면
-  // 이미 끝난 조회의 과거 응답이 삭제 직후 화면을 다시 덮을 수 있으므로 store만 사용한다.
-  const addresses = user?.addresses ?? [];
+  const setUser = useUserStore((state) => state.setUser);
+  const { data: userInfo } = useUserInfoQuery(user?.userId);
+
+  useEffect(() => {
+    if (!userInfo || userInfo.userId !== user?.userId) return;
+    // 장소관리 Stack WebView가 가진 캐시가 오래된 경우에도, 서버에서 재조회한
+    // 주소 목록을 다른 탭과 공유되는 사용자 store에 반영한다.
+    setUser(toUser(userInfo));
+  }, [setUser, user?.userId, userInfo]);
+
+  // 서버 조회가 끝나기 전에는 기존 store를 사용하고, 조회가 끝나면 서버 상태를 우선한다.
+  const addresses = userInfo?.addresses ?? user?.addresses ?? [];
 
   const addMutation = useAddUserAddressMutation();
   const updateMutation = useUpdateUserAddressMutation();

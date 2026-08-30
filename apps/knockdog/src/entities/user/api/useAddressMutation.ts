@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postAddUserAddress, postUpdateUserAddress, postDeleteUserAddress, type AddressRequest } from './address';
 import { UserAddress } from '../model/user';
 import { useUserStore } from '../model/store/useUserStore';
+import { ApiError } from '@shared/api';
 import { getUserInfo, toUser } from './user';
 import { userInfoQueryKey } from './useUserQuery';
 
@@ -25,6 +26,10 @@ async function getUserInfoAfterAddressAvailable(type: UserAddress['type']) {
   }
 
   return null;
+}
+
+function isAddressNotFoundError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404 && String(error.code) === 'ADDRESS-404-1';
 }
 
 const useAddUserAddressMutation = () => {
@@ -107,13 +112,37 @@ const useDeleteUserAddressMutation = () => {
     mutationFn: async ({ addressId, type }: { addressId: string; type: UserAddress['type'] }) => {
       // 이전 구현이 새 주소의 임시 ID('0')를 저장했던 경우를 보정한다. 실제 ID를
       // 조회한 뒤 삭제해야 실패 후 이전 주소가 화면에 복구되는 현상을 막을 수 있다.
-      if (addressId !== '0') return postDeleteUserAddress(addressId);
+      if (addressId !== '0') {
+        try {
+          return await postDeleteUserAddress(addressId);
+        } catch (error) {
+          if (!isAddressNotFoundError(error)) throw error;
+
+          // 캐시에 남은 ID가 서버에서 이미 바뀌었거나 삭제된 경우, 현재 타입의
+          // 실제 ID를 다시 확인한다. 주소가 이미 없다면 삭제 완료 상태로 취급한다.
+          const latest = await getUserInfoAfterAddressAvailable(type);
+          const currentAddress = latest?.data?.addresses.find((item) => item.type === type);
+          if (!currentAddress) return;
+
+          try {
+            return await postDeleteUserAddress(String(currentAddress.id));
+          } catch (retryError) {
+            if (isAddressNotFoundError(retryError)) return;
+            throw retryError;
+          }
+        }
+      }
 
       const result = await getUserInfoAfterAddressAvailable(type);
       const address = result?.data?.addresses.find((item) => item.type === type);
-      if (!address) throw new Error('삭제할 주소를 찾을 수 없습니다.');
+      if (!address) return;
 
-      return postDeleteUserAddress(String(address.id));
+      try {
+        return await postDeleteUserAddress(String(address.id));
+      } catch (error) {
+        if (isAddressNotFoundError(error)) return;
+        throw error;
+      }
     },
     onMutate: async ({ addressId: deletedAddressId }) => {
       const currentUser = useUserStore.getState().user;
