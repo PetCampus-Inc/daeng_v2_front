@@ -49,13 +49,29 @@ const toAppAddressType = (type: string): UserAddress['type'] =>
   type === 'WORK' ? USER_ADDRESS_TYPE.OTHER : (type as UserAddress['type']);
 
 function normalizeAddressDetails<T extends { addresses: UserAddress[] }>(userInfo: T): T {
+  // 레거시 WORK와 현재 OTHER가 동시에 내려오면 둘 다 OTHER 슬롯으로 변환된다.
+  // 장소 관리는 타입별로 하나의 주소만 표시하므로, 응답 순서에 따라 레거시 주소가
+  // 현재 OTHER 주소를 덮어쓰지 않도록 현재 타입을 우선한다.
+  const normalizedByType = new Map<UserAddress['type'], UserAddress>();
+
+  for (const { addressDetail, detail, ...address } of userInfo.addresses) {
+    const originalType = address.type as string;
+    const type = toAppAddressType(originalType);
+    const normalizedAddress: UserAddress = {
+      ...address,
+      type,
+      detail: detail?.trim() || addressDetail?.trim() || undefined,
+    };
+    const existingAddress = normalizedByType.get(type);
+
+    if (!existingAddress || originalType !== 'WORK') {
+      normalizedByType.set(type, normalizedAddress);
+    }
+  }
+
   return {
     ...userInfo,
-    addresses: userInfo.addresses.map(({ addressDetail, detail, ...address }) => ({
-      ...address,
-      type: toAppAddressType(address.type),
-      detail: detail?.trim() || addressDetail?.trim() || undefined,
-    })),
+    addresses: [...normalizedByType.values()],
   };
 }
 

@@ -54,6 +54,15 @@ if (typeof window !== 'undefined') {
       useUserStore.getState().clearUser();
     }
   });
+
+  // 네이티브 앱의 탭은 각각 별도 WebView라 로그인·주소 변경이 다른 탭에서
+  // 발생했을 때 storage 이벤트를 받지 못할 수 있다. 네이티브가 활성 탭에
+  // 주입하는 focus 이벤트에서 persist 저장소를 다시 읽어 최신 사용자 상태를 맞춘다.
+  window.addEventListener('knockdog:native-tab-focus', () => {
+    Promise.resolve(useUserStore.persist.rehydrate()).catch((error: unknown) => {
+      console.error('Failed to sync user store on native tab focus:', error);
+    });
+  });
 }
 
 export { useUserStore };

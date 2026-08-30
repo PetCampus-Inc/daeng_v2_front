@@ -5,6 +5,28 @@ import { useUserStore } from '../model/store/useUserStore';
 import { getUserInfo, toUser } from './user';
 import { userInfoQueryKey } from './useUserQuery';
 
+const ADDRESS_SYNC_RETRY_DELAY_MS = 250;
+const ADDRESS_SYNC_MAX_ATTEMPTS = 4;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * 주소 추가 API는 생성된 ID를 반환하지 않는다. 직후 조회가 읽기 반영 지연으로 이전
+ * 목록을 돌려주면 새 주소를 화면 상태에서 제거할 수 있어, 새 타입이 확인될 때만 교체한다.
+ */
+async function getUserInfoAfterAddressAdded(type: UserAddress['type']) {
+  for (let attempt = 0; attempt < ADDRESS_SYNC_MAX_ATTEMPTS; attempt += 1) {
+    const result = await getUserInfo();
+    if (result.data?.addresses.some((address) => address.type === type)) return result;
+
+    if (attempt < ADDRESS_SYNC_MAX_ATTEMPTS - 1) {
+      await delay(ADDRESS_SYNC_RETRY_DELAY_MS);
+    }
+  }
+
+  return null;
+}
+
 const useAddUserAddressMutation = () => {
   const queryClient = useQueryClient();
   const userId = useUserStore((state) => state.user?.userId);
@@ -24,11 +46,13 @@ const useAddUserAddressMutation = () => {
       };
       return postAddUserAddress(addressRequest);
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       // 추가 요청의 응답에는 생성된 주소 ID가 없다. 임시 ID('0')를 캐시에 남기면
       // 이후 삭제가 존재하지 않는 주소 ID로 요청되므로, 서버에서 발급한 실제 ID를
-      // 즉시 다시 조회해 store와 query cache를 함께 교체한다.
-      const result = await getUserInfo();
+      // 조회해 store와 query cache를 함께 교체한다. 읽기 반영이 늦은 응답으로
+      // 방금 추가한 주소를 덮어쓰지 않도록 새 타입이 확인될 때까지 짧게 재시도한다.
+      const result = await getUserInfoAfterAddressAdded(variables.type);
+      if (!result) return;
       if (useUserStore.getState().user?.userId !== userId || result.data?.userId !== userId) return;
 
       queryClient.setQueryData(userInfoQueryKey(userId), result);
