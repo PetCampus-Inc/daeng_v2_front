@@ -6,8 +6,13 @@ import { ApiError } from '../model/error';
 import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 
 import { tokenUtils } from '@shared/utils';
-import { logout } from '@shared/lib/auth';
 import { navigateToLogin } from '@shared/lib/bridge';
+
+// '@shared/lib/auth'는 entities/user(유저 스토어·API)까지 정적으로 물고 있어, kyClient가
+// 이 인터셉터를 구성에 쓰는 순환과 맞물리면 번들러/엔진(JSC 등)에 따라 순환 참조 중
+// 모듈이 아직 초기화되지 않은 시점에 걸려 "Cannot access uninitialized variable" 오류가
+// 날 수 있다. 실제로 로그아웃이 필요한 시점(401 처리)에만 동적으로 불러온다.
+const getLogout = () => import('@shared/lib/auth').then((mod) => mod.logout);
 
 const AUTH_PATH_PATTERN = /\/auth(?:\/|$)/;
 const LOGOUT_PATH_PATTERN = /\/auth\/logout$/;
@@ -111,7 +116,7 @@ const tokenRefreshInterceptor = async (
       case TOKEN_ERROR_CODE.TOKEN_VERIFICATION_FAILED:
         // 이미 인증이 무효화된 응답이므로 서버 로그아웃을 재호출하지 않는다.
         // 이 요청까지 401이 되면 인터셉터가 재진입할 수 있다.
-        await logout({ notifyServer: false });
+        await (await getLogout())({ notifyServer: false });
         await navigateToLogin();
         break;
     }
@@ -119,7 +124,7 @@ const tokenRefreshInterceptor = async (
     console.error('액세스 토큰 갱신 중 오류 발생:', refreshError);
 
     // 토큰 갱신 중 오류 발생 시, 로그아웃 처리
-    await logout({ notifyServer: false });
+    await (await getLogout())({ notifyServer: false });
     await navigateToLogin();
   }
 
