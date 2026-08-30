@@ -4,17 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
-import { overlay } from 'overlay-kit';
 
 import {
   GuardianProfileFields,
@@ -34,6 +25,7 @@ import {
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
 import { useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { showGuardianProfileSaveFailureToast, showGuardianProfileSaveSuccessToast } from '../model/guardianProfileToast';
 
 const EMPTY_FORM_VALUES: GuardianProfileFormValues = {
@@ -171,20 +163,15 @@ function MypageGuardianProfilePage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
-            <AlertDialogDescription>변경한 내용이 저장되지 않아요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void navigateToMypage()}>예</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openUnsavedExitDialog({
+      title: '저장하지 않고 나갈까요?',
+      description: '변경한 내용이 저장되지 않아요.',
+      cancelLabel: '닫기',
+      confirmLabel: '나가기',
+      onConfirm: () => {
+        void navigateToMypage();
+      },
+    });
   }, [isDirty, navigateToMypage]);
 
   useNativeBackHandler(handleBack);

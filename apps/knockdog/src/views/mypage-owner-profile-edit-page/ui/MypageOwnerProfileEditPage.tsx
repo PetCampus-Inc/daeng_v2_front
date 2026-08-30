@@ -1,21 +1,11 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
-import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
 
 import {
+  openOwnerUnsavedExitDialog,
   ownerMypageContent,
   OwnerProfileForm,
   OwnerProfileImageUploader,
@@ -34,24 +24,9 @@ function MypageOwnerProfileEditPage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>앗, 아직 저장하지 않았어요!</AlertDialogTitle>
-            <AlertDialogDescription>
-              지금 나가면 지금까지 쓴 내용이 사라져요.
-              <br />
-              저장 없이 나갈까요?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back?.()}>예</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openOwnerUnsavedExitDialog(() => {
+      back?.();
+    });
   }, [back]);
 
   useNativeBackHandler(handleBack);

@@ -2,23 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from '@knockdog/ui';
-import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm, type PetFormData } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { usePetByIdQuery, type Pet } from '@entities/pet';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
@@ -55,22 +45,15 @@ export function MypagePetEditPage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
-            <AlertDialogDescription>
-              변경한 내용이 저장되지 않아요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back?.()}>나가기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openUnsavedExitDialog({
+      title: '저장하지 않고 나갈까요?',
+      description: '변경한 내용이 저장되지 않아요.',
+      cancelLabel: '닫기',
+      confirmLabel: '나가기',
+      onConfirm: () => {
+        back?.();
+      },
+    });
   }, [back]);
 
   useNativeBackHandler(handleBack);
