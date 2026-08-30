@@ -30,12 +30,17 @@ function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: un
   }
 }
 // @TODO 가독성 및 유지보수성 리팩토링 필요
+interface CreateBridgeForWebViewOptions {
+  /** 이 WebView 인스턴스에만 적용되는 네이티브 스크롤 활성/비활성 콜백 */
+  onSetScrollEnabled?: (enabled: boolean) => void;
+}
+
 /**
  * WebView에 브릿지를 연결하는 함수
  * @param webRef WebView 참조
  * @returns wireWebView의 반환값 (onMessage, sendEvent, notifyReady)
  */
-function createBridgeForWebView(webRef: RefObject<RNWebView>) {
+function createBridgeForWebView(webRef: RefObject<RNWebView>, options?: CreateBridgeForWebViewOptions) {
   const router = makeRouter(webRef);
 
   // navBridgeHub에 forwardEvent 함수 등록
@@ -45,6 +50,12 @@ function createBridgeForWebView(webRef: RefObject<RNWebView>) {
     onWebEvent: (event, payload) => {
       if (event === 'push.sessionReady') {
         pushCoordinator.markSessionReady(webRef);
+        return;
+      }
+
+      if (event === 'system.setWebViewScrollEnabled') {
+        const enabled = (payload as { enabled?: boolean } | undefined)?.enabled;
+        options?.onSetScrollEnabled?.(enabled !== false);
         return;
       }
 

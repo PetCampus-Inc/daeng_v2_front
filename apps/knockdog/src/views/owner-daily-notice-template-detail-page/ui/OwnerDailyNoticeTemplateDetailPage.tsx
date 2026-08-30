@@ -158,7 +158,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
         </section>
 
         <section className='flex min-h-0 flex-1 flex-col py-3'>
-          <div className='bg-fill-secondary-50 border-line-200 radius-r2 flex min-h-0 flex-1 flex-col border px-4 py-3'>
+          <div className='bg-fill-secondary-50 border-line-200 radius-r2 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain border px-4 py-3'>
             <p className='body1-regular text-text-tertiary whitespace-pre-wrap'>{template.content}</p>
           </div>
         </section>

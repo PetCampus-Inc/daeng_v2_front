@@ -12,6 +12,8 @@ import {
 
 import { Textarea, TextareaInput } from '@knockdog/ui';
 
+import { useBridge } from '@shared/lib/bridge';
+
 interface TemplateContentTextareaProps {
   value: string;
   maxLength: number;
@@ -81,23 +83,35 @@ function restoreScrollSnapshot(snapshot: ScrollSnapshot, activeElement: HTMLElem
 function lockPageScroll(): () => void {
   const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
   const root = document.getElementById('root');
+  const html = document.documentElement;
 
   const previous = {
+    htmlOverflow: html.style.overflow,
+    htmlOverscrollBehavior: html.style.overscrollBehavior,
     bodyOverflow: document.body.style.overflow,
+    bodyOverscrollBehavior: document.body.style.overscrollBehavior,
     bodyPosition: document.body.style.position,
     bodyTop: document.body.style.top,
     bodyWidth: document.body.style.width,
     rootOverflow: root?.style.overflow ?? '',
   };
 
+  // body만 고정하면 html(documentElement)이 스크롤/바운스되는 경로가 남는다.
+  // overscroll-behavior도 같이 꺼야 iOS 고무줄(rubber-band) 바운스가 안 보인다.
+  html.style.overflow = 'hidden';
+  html.style.overscrollBehavior = 'none';
   document.body.style.overflow = 'hidden';
+  document.body.style.overscrollBehavior = 'none';
   document.body.style.position = 'fixed';
   document.body.style.top = `-${scrollY}px`;
   document.body.style.width = '100%';
   if (root) root.style.overflow = 'hidden';
 
   return () => {
+    html.style.overflow = previous.htmlOverflow;
+    html.style.overscrollBehavior = previous.htmlOverscrollBehavior;
     document.body.style.overflow = previous.bodyOverflow;
+    document.body.style.overscrollBehavior = previous.bodyOverscrollBehavior;
     document.body.style.position = previous.bodyPosition;
     document.body.style.top = previous.bodyTop;
     document.body.style.width = previous.bodyWidth;
@@ -119,6 +133,7 @@ function TemplateContentTextarea({
   placeholder,
   onChange,
 }: TemplateContentTextareaProps) {
+  const bridge = useBridge();
   const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollSnapshotRef = useRef<ScrollSnapshot | null>(null);
@@ -138,6 +153,11 @@ function TemplateContentTextarea({
     scrollLockCleanupRef.current = null;
     pageScrollUnlockRef.current?.();
     pageScrollUnlockRef.current = null;
+
+    // CSS/JS 잠금만으로는 못 막는, 네이티브 웹뷰 자체의 포커스-스크롤 동작을 다시 켠다.
+    if (isMobileWebView()) {
+      bridge.emit('system.setWebViewScrollEnabled', { enabled: true });
+    }
   };
 
   useEffect(() => {
@@ -199,6 +219,12 @@ function TemplateContentTextarea({
 
     if (isMobileWebView()) {
       pageScrollUnlockRef.current = lockPageScroll();
+      // 웹뷰(네이티브 스크롤뷰)의 scrollEnabled는 outer 페이지 스크롤과 textarea
+      // 내부 스크롤을 따로 구분하지 못해 같이 꺼진다. 전체화면이 절대 안 움직이는 걸
+      // 우선해서, 포커스가 유지되는 동안은 계속 꺼둔다(손가락 드래그로 본문을 스크롤은
+      // 못 하지만, 타이핑하면 커서를 따라 자동으로는 스크롤된다). blur/unmount 시
+      // stopScrollLock에서 다시 켠다.
+      bridge.emit('system.setWebViewScrollEnabled', { enabled: false });
     }
 
     const restoreIfScrolledAway = () => {
