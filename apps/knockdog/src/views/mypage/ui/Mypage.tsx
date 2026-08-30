@@ -26,7 +26,7 @@ import { QuickActionsSection } from '@features/support';
 import { AccountSection, type AccountInfo } from '@features/user-account';
 import { usePetListQuery } from '@entities/pet';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
-import { useUserInfoQuery, useUserStore } from '@entities/user';
+import { useUserInfoQuery, useUserStore, useOwnerRoleQuery } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { PrivateAccess } from '@shared/ui/private-access';
 import { openConfirmDialog, useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
@@ -53,6 +53,8 @@ function MypageContent() {
   });
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
+  // TEMP DEBUG: 실기기 원장 전환 버튼 미노출 원인 파악용. 확인 끝나면 제거.
+  const debugOwnerRoleQuery = useOwnerRoleQuery({ userId: user?.userId, enabled: !!user?.userId });
   const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
@@ -237,6 +239,38 @@ function MypageContent() {
           </Header.RightSection>
         )}
       </Header>
+
+      {/* TEMP DEBUG: 실기기 원장 전환 버튼 미노출 원인 파악용. 확인 끝나면 제거. */}
+      <pre
+        style={{
+          fontSize: 10,
+          lineHeight: 1.4,
+          background: '#111',
+          color: '#0f0',
+          padding: 8,
+          margin: 0,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}
+      >
+        {JSON.stringify(
+          {
+            userId: user?.userId,
+            isOwnerVerified,
+            isOwnerRoleResolved,
+            canToggleRoleView,
+            queryStatus: debugOwnerRoleQuery.status,
+            fetchStatus: debugOwnerRoleQuery.fetchStatus,
+            isError: debugOwnerRoleQuery.isError,
+            errorStatus: (debugOwnerRoleQuery.error as { status?: number } | null)?.status,
+            errorCode: (debugOwnerRoleQuery.error as { code?: string } | null)?.code,
+            errorMessage: debugOwnerRoleQuery.error?.message,
+            data: debugOwnerRoleQuery.data,
+          },
+          null,
+          2
+        )}
+      </pre>
 
       <div className='web:pb-(--bottom-bar-height) webview:pb-0 flex-1 overflow-y-auto'>
         {canToggleRoleView && (
