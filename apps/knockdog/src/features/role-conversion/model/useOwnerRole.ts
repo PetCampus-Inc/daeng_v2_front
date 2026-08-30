@@ -80,6 +80,22 @@ function useOwnerRole(): OwnerRoleState {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    // 네이티브의 탭은 각각 별도 WebView다. 로그인·역할 전환이 다른 WebView에서
+    // 일어나면 storage 이벤트가 현재 탭에 전달되지 않을 수 있어, 이전 로그인 상태
+    // (또는 null)를 유지한 채 원장 권한을 비원장으로 판단할 수 있다.
+    // 탭이 다시 활성화될 때 persist 저장소를 읽어 최신 사용자 상태로 맞춘다.
+    const syncUserFromStorage = () => {
+      void useUserStore.persist?.rehydrate?.();
+    };
+
+    window.addEventListener('knockdog:native-tab-focus', syncUserFromStorage);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-focus', syncUserFromStorage);
+    };
+  }, []);
+
   const { data, isSuccess, isError, isFetching, refetch } = useOwnerRoleQuery({
     userId: user?.userId,
     enabled: isUserStoreHydrated && isLoggedIn,
