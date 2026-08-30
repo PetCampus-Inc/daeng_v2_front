@@ -69,7 +69,7 @@ function LocationAddPage() {
 
       <Suspense>
         <div className='flex flex-1 flex-col px-4 pt-5'>
-          {type !== USER_ADDRESS_TYPE.WORK && (
+          {type !== USER_ADDRESS_TYPE.OTHER && (
             <>
               <p className='h3-extrabold'>{type && USER_ADDRESS_TYPE_KR[type]}</p>
               <Divider className='my-4' />
@@ -92,7 +92,7 @@ function LocationAddPage() {
               control={control}
               name='alias'
               render={({ field }) => (
-                <Field hidden={type !== USER_ADDRESS_TYPE.WORK}>
+                <Field hidden={type !== USER_ADDRESS_TYPE.OTHER}>
                   <FieldLabel>
                     장소 이름<span className='text-text-accent'>*</span>
                   </FieldLabel>
@@ -125,7 +125,7 @@ function LocationAddPage() {
             <div
               className={cn(
                 'relative z-10 flex flex-col gap-y-2',
-                type === USER_ADDRESS_TYPE.WORK && 'mt-8'
+                type === USER_ADDRESS_TYPE.OTHER && 'mt-8'
               )}
             >
               <div className='flex flex-col'>

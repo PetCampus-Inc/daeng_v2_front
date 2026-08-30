@@ -1,6 +1,6 @@
 import WebView, { type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { type RefObject, useRef, useMemo, useEffect } from 'react';
+import { type RefObject, useRef, useMemo, useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
@@ -102,7 +102,12 @@ export function BridgeWebView({
   const internalRef = useRef<WebView>(null);
   const refToUse = (webviewRef ?? internalRef) as RefObject<WebView>;
 
-  const { onMessage, notifyReady } = useMemo(() => createBridgeForWebView(refToUse), [refToUse]);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
+  const { onMessage, notifyReady } = useMemo(
+    () => createBridgeForWebView(refToUse, { onSetScrollEnabled: setScrollEnabled }),
+    [refToUse]
+  );
   const handleOnMessage = useMemo(() => makeOnMessage(onMessage), [onMessage]);
 
   // 초기 state/history 주입 스크립트
@@ -167,6 +172,7 @@ export function BridgeWebView({
       originWhitelist={['*']}
       cacheEnabled
       geolocationEnabled
+      scrollEnabled={scrollEnabled}
       // AOS 시스템 글자 크기 설정을 WebView에 반영하지 않음 (iOS와 동일하게 고정)
       {...(Platform.OS === 'android' ? { textZoom: 100 } : {})}
       webviewDebuggingEnabled={__DEV__}

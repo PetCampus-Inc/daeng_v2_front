@@ -2,11 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postAddUserAddress, postUpdateUserAddress, postDeleteUserAddress, type AddressRequest } from './address';
 import { UserAddress } from '../model/user';
 import { useUserStore } from '../model/store/useUserStore';
-import { USER_ADDRESS_TYPE } from '../model/constant/user';
 import { getUserInfo, toUser } from './user';
 import { userInfoQueryKey } from './useUserQuery';
-
-const toApiAddressType = (type: UserAddress['type']) => (type === USER_ADDRESS_TYPE.WORK ? 'OTHER' : type);
 
 const useAddUserAddressMutation = () => {
   const queryClient = useQueryClient();
@@ -17,7 +14,7 @@ const useAddUserAddressMutation = () => {
     mutationFn: (params: UserAddress) => {
       const addressRequest: AddressRequest = {
         operation: 'ADD',
-        type: toApiAddressType(params.type),
+        type: params.type,
         alias: params.alias,
         roadAddress: params.roadAddress,
         address: params.address,
@@ -50,7 +47,7 @@ const useUpdateUserAddressMutation = () => {
       const addressRequest: AddressRequest = {
         id: typeof params.id === 'string' ? Number(params.id) : params.id,
         operation: 'UPDATE',
-        type: toApiAddressType(params.type),
+        type: params.type,
         alias: params.alias,
         roadAddress: params.roadAddress,
         address: params.address,
@@ -168,7 +165,7 @@ const useUpdateUserAddressesMutation = () => {
       const promises = [
         ...toAdd.map((address) =>
           postAddUserAddress({
-            type: toApiAddressType(address.type),
+            type: address.type,
             alias: address.alias,
             roadAddress: address.roadAddress,
             address: address.address,
@@ -180,7 +177,7 @@ const useUpdateUserAddressesMutation = () => {
         ...toUpdate.map((address) =>
           postUpdateUserAddress({
             id: typeof address.id === 'string' ? Number(address.id) : address.id,
-            type: toApiAddressType(address.type),
+            type: address.type,
             alias: address.alias,
             roadAddress: address.roadAddress,
             address: address.address,

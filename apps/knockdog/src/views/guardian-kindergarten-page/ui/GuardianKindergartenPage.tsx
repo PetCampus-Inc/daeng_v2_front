@@ -28,7 +28,13 @@ export function GuardianKindergartenPage() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
-  const { pets, isPetsReady, isPetsError, setSelectedPetId } = useGuardianSelectedPet();
+  const {
+    pets,
+    isPetsReady,
+    isPetsError,
+    setSelectedPetId,
+    refetchPets: refetchPetsForPushPet,
+  } = useGuardianSelectedPet();
   const { rejectUnavailableTabTarget } = useUnavailableNotificationAction();
   const pushPetIdFromRouter = searchParams.get('pushPetId');
 
@@ -52,11 +58,30 @@ export function GuardianKindergartenPage() {
       history.replaceState(null, '', url.pathname + url.search + url.hash);
     }
 
-    function applyPushPetFromLocation() {
+    async function applyPushPetFromLocation() {
       const { petId, source } = readPushPetFromLocation();
       if (!petId || !/^\d+$/.test(petId)) return;
 
       if (isPetIdInList(pets, petId)) {
+        setSelectedPetId(petId);
+        clearPushPetQuery();
+        return;
+      }
+
+      // 방금 막 승인된 신규 연결이면 pets 캐시(기본 staleTime 60초)가 오래돼
+      // 아직 목록에 없을 수 있다. 포기하기 전에 최신 데이터로 한 번 더 확인한다.
+      const fresh = await refetchPetsForPushPet();
+
+      // await 중 popstate로 다른 pushPetId가 들어왔으면 이 시도는 이미 낡은 것이다.
+      // 그대로 진행하면 방금 도착한 새 petId를 이 낡은 결과로 덮어쓸 수 있다.
+      if (readPushPetFromLocation().petId !== petId) return;
+
+      // 재조회 자체가 실패한 거면(네트워크 오류 등) "강아지가 없다"고 확정할 수 없다.
+      // 잘못 unavailable 처리하지 않고 다음 트리거(popstate 등)를 기다린다.
+      if (!fresh.isSuccess) return;
+
+      const freshPets = fresh.data?.data ?? [];
+      if (isPetIdInList(freshPets, petId)) {
         setSelectedPetId(petId);
         clearPushPetQuery();
         return;
@@ -67,10 +92,18 @@ export function GuardianKindergartenPage() {
       clearPushPetQuery();
     }
 
-    applyPushPetFromLocation();
+    void applyPushPetFromLocation();
     window.addEventListener('popstate', applyPushPetFromLocation);
     return () => window.removeEventListener('popstate', applyPushPetFromLocation);
-  }, [isPetsError, isPetsReady, pets, pushPetIdFromRouter, rejectUnavailableTabTarget, setSelectedPetId]);
+  }, [
+    isPetsError,
+    isPetsReady,
+    pets,
+    pushPetIdFromRouter,
+    refetchPetsForPushPet,
+    rejectUnavailableTabTarget,
+    setSelectedPetId,
+  ]);
 
   const handleAuthError = useCallback(
     async (_error: Error) => {

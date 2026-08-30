@@ -31,6 +31,7 @@ import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib
 import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
+import { useKeyboardAwareScrollHeight } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
@@ -61,6 +62,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const editingTemplateId = searchParams.get('templateId');
   const isExpired = searchParams.get('expired') === 'true';
   const { back } = useStackNavigation();
+  const contentRef = useKeyboardAwareScrollHeight<HTMLDivElement>();
   const userId = useUserStore((state) => state.user?.userId);
   const { createMutation, updateMutation } = useOwnerNoticeTemplateMutation();
   const { data: editingTemplate } = useOwnerNoticeTemplateDetailQuery({
@@ -194,7 +196,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
         </Header>
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col overflow-hidden px-4'>
+      <div ref={contentRef} className='flex min-h-0 flex-1 flex-col overflow-hidden px-4'>
         <section className='flex shrink-0 flex-col gap-2 py-4'>
           <FieldLabel label={ownerDailyNoticeTemplateCreateContent.titleSectionLabel} />
           <TextField variant='default' className='h-x13 focus-within:!border-line-200'>

@@ -139,7 +139,10 @@ function OwnerFriendPreview({
               {friend.profileImageUrl ? (
                 <AvatarImage src={friend.profileImageUrl} alt={`${friend.name} 프로필`} className='object-cover' />
               ) : null}
-              <AvatarFallback className='bg-fill-secondary-100' />
+              <AvatarFallback className='bg-fill-secondary-100'>
+                <Icon icon='Paw' className='text-fill-secondary-300 size-4' aria-hidden='true' />
+                <span className='sr-only'>{friend.name || '강아지'} 프로필</span>
+              </AvatarFallback>
             </Avatar>
           ))}
           {extraCount > 0 ? (

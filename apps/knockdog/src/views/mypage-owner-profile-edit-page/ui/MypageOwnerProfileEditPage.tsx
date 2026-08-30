@@ -12,10 +12,11 @@ import {
   useOwnerProfile,
 } from '@features/role-conversion';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { PageError } from '@shared/ui/page-error';
 
 function MypageOwnerProfileEditPage() {
   const { back } = useStackNavigation();
-  const { profile, isReady } = useOwnerProfile();
+  const { profile, isReady, isError, isFetching, refetch } = useOwnerProfile();
   const isDirtyRef = useRef(false);
 
   const handleBack = useCallback(() => {
@@ -52,6 +53,8 @@ function MypageOwnerProfileEditPage() {
             <OwnerProfileImageUploader profileImage={value} imageAlt={profile.name} onImageSelect={onChange} />
           )}
         />
+      ) : isError ? (
+        <PageError layout='inline' onRetry={refetch} isRetrying={isFetching} />
       ) : null}
     </>
   );

@@ -107,8 +107,9 @@ function SyncNativeMainTabModeEffect() {
       lastSyncedModeRef.current = null;
       return;
     }
-    // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
-    if (mode === 'guardian' && isFetching) return;
+    // 권한 재조회 중에는 mode가 어느 쪽이든 stale한 중간 상태일 수 있으므로
+    // 재조회가 끝나 값이 확정될 때까지 네이티브 동기화를 보류한다.
+    if (isFetching) return;
 
     // 보호자 유치원 탭은 stale owner store여도 네이티브 탭을 guardian으로 맞춤
     const syncMode = pathname === '/compare' ? 'guardian' : mode;
@@ -124,14 +125,17 @@ function SyncNativeMainTabModeEffect() {
     const debounceTimer = setTimeout(() => {
       if (cancelled) return;
 
-      lastSyncedModeRef.current = syncMode;
-
       const retrySync = () => {
-        if (cancelled || retryCountRef.current >= 2) return;
+        if (cancelled) return;
 
-        // 재시도를 실제로 예약할 때만 ref를 비운다. 재시도 상한을 넘긴 뒤에도 비우면
-        // 관계없는 의존성 변경(isFetching 등)마다 같은 syncMode 요청을 무한히 재전송하게 된다.
-        lastSyncedModeRef.current = null;
+        if (retryCountRef.current >= 2) {
+          // 재시도 상한에 도달했다. 계속 실패해도 매 의존성 변경마다 같은 syncMode를
+          // 무한히 재전송하지 않도록, 여기서 포기하고 syncMode로 정착한 것으로 표시한다.
+          // mode/pathname 등이 실제로 다시 바뀌면 그때 새로 동기화가 시도된다.
+          lastSyncedModeRef.current = syncMode;
+          return;
+        }
+
         retryCountRef.current += 1;
         retryTimer = setTimeout(() => {
           setRetryNonce((nonce) => nonce + 1);
@@ -146,11 +150,20 @@ function SyncNativeMainTabModeEffect() {
           force: true,
         })
         .then(({ mode: appliedMode }) => {
+          if (cancelled) return;
+          // 브리지가 실제로 반영한 뒤에만 기록한다. 요청 전에 미리 기록해두면, effect가
+          // 도중에(예: isFetching 변경으로) 취소돼 실제로는 반영이 안 됐는데도 다음
+          // 재실행에서 "이미 동기화됨"으로 오판해 재시도를 건너뛰게 된다.
           // 앱 시작 직후에는 활성 WebView 등록 전 요청이 무시될 수 있다.
           // 그 경우 네이티브가 유지한 기존 모드가 응답되므로 재시도한다.
-          if (appliedMode !== syncMode) retrySync();
+          if (appliedMode === syncMode) {
+            lastSyncedModeRef.current = syncMode;
+          } else {
+            retrySync();
+          }
         })
         .catch((error) => {
+          if (cancelled) return;
           if (process.env.NODE_ENV === 'development') {
             console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
           }

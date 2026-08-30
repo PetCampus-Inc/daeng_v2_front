@@ -642,6 +642,7 @@ function OwnerDailyNoticeWritePage() {
             <AlertDialogFooter>
               <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendFailedCloseLabel}</AlertDialogCancel>
               <AlertDialogAction
+                disabled={isSubmitting}
                 onClick={() => {
                   close();
                   submitNotice();
@@ -681,6 +682,7 @@ function OwnerDailyNoticeWritePage() {
           <AlertDialogFooter>
             <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendConfirmCloseLabel}</AlertDialogCancel>
             <AlertDialogAction
+              disabled={isSubmitting}
               onClick={() => {
                 close();
                 submitNotice();

@@ -20,6 +20,7 @@ import {
   injectTabQueryIntoWebView,
   pendingTabQueryStore,
 } from '../lib/tabQueryInject';
+import { getFirstPartyWebOrigin } from '../lib/isFirstPartyWebViewUrl';
 
 /** TabNavigator screen 등록 순서 — Stack reset 시 활성 탭 state 명시 */
 const TAB_SCREEN_ORDER: TabName[] = [
@@ -203,6 +204,40 @@ function isStackFocused(): boolean {
   const state = navigationRef.getState();
   if (!state) return false;
   return state.routes[state.index ?? 0]?.name === 'Stack';
+}
+
+/** path를 절대 URL로 정규화한다. 상대 경로는 앱 자체(first-party) origin 기준으로 해석한다. */
+function toComparableUrl(path: string): URL | null {
+  try {
+    return new URL(path, getFirstPartyWebOrigin() ?? undefined);
+  } catch {
+    return null;
+  }
+}
+
+/** reset/replace 대상이 지금 보고 있는 Stack 화면과 origin+경로가 같으면 그 route key를
+ * 재사용해, WebView를 새로 마운트하지 않고 같은 화면이 URL만 갱신되며 이어지게 한다.
+ * (예: 알림장 전송 성공 후 자기 자신으로 reset하면 화면이 통째로 리로드/반복되어 보이는 문제)
+ *
+ * origin이 다르면(외부 페이지 등) history.replaceState로 URL을 바꿀 수 없어 재사용 시
+ * 목적지가 실제로는 안 열리므로, pathname뿐 아니라 origin도 반드시 함께 비교한다. */
+function findReusableStackRouteKey(targetPath: string): string | undefined {
+  const state = navigationRef.getState();
+  if (!state) return undefined;
+
+  const topRoute = state.routes[state.index ?? 0];
+  if (topRoute?.name !== 'Stack') return undefined;
+
+  const currentPath = (topRoute.params as { path?: string } | undefined)?.path;
+  if (!currentPath) return undefined;
+
+  const currentUrl = toComparableUrl(currentPath);
+  const targetUrl = toComparableUrl(targetPath);
+  if (!currentUrl || !targetUrl) return undefined;
+
+  return currentUrl.origin === targetUrl.origin && currentUrl.pathname === targetUrl.pathname
+    ? topRoute.key
+    : undefined;
 }
 
 let lastMainTabModeRequest: { id: number; source: RefObject<WebView> | null } = {
@@ -393,7 +428,16 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
       navigationRef.dispatch(StackActions.replace('Tabs', { screen: tabName }));
     } else {
-      navigationRef.dispatch(StackActions.replace('Stack', route.params));
+      const reusableStackKey = findReusableStackRouteKey(route.params.path);
+
+      if (reusableStackKey) {
+        // 지금 보고 있는 화면과 같은 경로로의 replace는 WebView를 새로 만들지 않고
+        // 현재 화면의 params(URL/initialState)만 갱신한다. (예: 수정하기 버튼이
+        // 수정 모드 유지를 위해 같은 경로로 replace하면서 화면이 매번 리로드되던 문제)
+        navigationRef.dispatch(CommonActions.setParams(route.params));
+      } else {
+        navigationRef.dispatch(StackActions.replace('Stack', route.params));
+      }
     }
 
     return { replaced: true };
@@ -451,11 +495,15 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       }
 
       const baseTab = resolveTabScreen(pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore');
+      const reusableStackKey = findReusableStackRouteKey(route.params.path);
 
       navigationRef.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [resolveTabsRouteForStackReset(baseTab), { name: 'Stack', params: route.params }],
+          routes: [
+            resolveTabsRouteForStackReset(baseTab),
+            { name: 'Stack', params: route.params, ...(reusableStackKey ? { key: reusableStackKey } : {}) },
+          ],
         })
       );
     }
@@ -484,10 +532,12 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     pendingTabQueryStore.set(tabName, query);
 
+    // ref가 생겼다고 해서 페이지 JS가 이미 떠 있다는 보장은 없다. 여기서 바로 consume해버리면
+    // 이 주입이 페이지 로드보다 빨라 씹혔을 때, WebViewScreen의 focus/onLoadEnd가 제공하는
+    // 재시도 기회까지 같이 사라진다. consume은 그쪽에 맡기고 여기서는 최선 시도만 한다.
     const tabWebRef = await waitForTabReady(tabName, 5000);
     if (tabWebRef?.current) {
       injectTabQueryIntoWebView(tabWebRef.current, query);
-      pendingTabQueryStore.consume(tabName);
     }
   }
 
