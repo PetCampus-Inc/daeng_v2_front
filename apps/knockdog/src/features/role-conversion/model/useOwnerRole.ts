@@ -3,7 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { OWNER_ROLE_QUERY_KEY, useOwnerRoleQuery, useUserStore, type OwnerRole } from '@entities/user';
+import {
+  getOwnerMypageSummary,
+  getOwnerRole,
+  ownerMypageSummaryQueryKey,
+  ownerRoleQueryKey,
+  useOwnerRoleQuery,
+  useUserStore,
+  type OwnerRole,
+} from '@entities/user';
+import { isNativeWebView } from '@shared/lib/device';
 import { tokenUtils } from '@shared/utils';
 
 declare global {
@@ -89,33 +98,52 @@ function useOwnerRole(): OwnerRoleState {
   }, []);
 
   useEffect(() => {
-    // 네이티브의 탭은 각각 별도 WebView다. 로그인·역할 전환이 다른 WebView에서
-    // 일어나면 storage 이벤트가 현재 탭에 전달되지 않을 수 있어, 이전 로그인 상태
-    // (또는 null)를 유지한 채 원장 권한을 비원장으로 판단할 수 있다.
-    // 탭이 다시 활성화될 때 persist 저장소를 읽어 최신 사용자 상태로 맞춘다.
-    const syncUserFromStorage = () => {
-      void (async () => {
-        await useUserStore.persist?.rehydrate?.();
+    if (!isNativeWebView()) return;
 
-        // 역할 전환은 user store의 사용자 정보 자체를 바꾸지 않는다. 따라서 같은
-        // userId를 가진 탭은 저장소만 다시 읽어서는 기존 owner/role 캐시(isOwner=false)를
-        // 계속 사용한다. 활성 탭에서 권한 캐시를 무효화해 최신 역할을 다시 확인한다.
-        await queryClient.invalidateQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] });
+    // 네이티브 탭은 WebView·QueryClient가 분리된다. 로그인/역할 변경이 다른 WebView에서
+    // 일어나면 storage 이벤트가 오지 않고, RQ window focus refetch도 탭 전환과 무관하다.
+    // 활성 탭 focus·앱 복귀 시에만 저장소 + owner/role을 강제 재조회한다.
+    const syncOwnerRoleOnNativeActivate = () => {
+      void (async () => {
+        try {
+          await useUserStore.persist?.rehydrate?.();
+
+          const userId = useUserStore.getState().user?.userId;
+          if (!userId || !tokenUtils.hasAccessToken()) return;
+
+          // observer가 아직 enabled=false여도 캐시에 최신값을 넣기 위해 fetchQuery 사용.
+          // invalidate만 하면 disabled 쿼리는 네트워크를 안 타서 isOwner=false가 유지된다.
+          const roleResponse = await queryClient.fetchQuery({
+            queryKey: ownerRoleQueryKey(userId),
+            queryFn: getOwnerRole,
+          });
+
+          // summary는 원장 전용(비원장 403). role과 all 하면 비원장에서 전체가 실패한다.
+          if (roleResponse?.data?.isOwner) {
+            await queryClient
+              .fetchQuery({
+                queryKey: ownerMypageSummaryQueryKey(userId),
+                queryFn: getOwnerMypageSummary,
+              })
+              .catch(() => undefined);
+          }
+        } catch {
+          // 일시 실패 시 기존 캐시 유지. 다음 focus/appresume에서 재시도.
+        }
       })();
     };
 
-    window.addEventListener('knockdog:native-tab-focus', syncUserFromStorage);
+    window.addEventListener('knockdog:native-tab-focus', syncOwnerRoleOnNativeActivate);
+    window.addEventListener('appresume', syncOwnerRoleOnNativeActivate);
 
-    // WebViewScreen은 화면 focus/load 완료 시점에 focus 이벤트를 주입한다. 이 훅의
-    // effect 등록보다 먼저 주입되면 이벤트 리스너는 그 한 번의 신호를 놓친다.
-    // #627에서 window focus 재조회도 비활성화했으므로, 이미 활성인 탭에서 마운트될 때
-    // 직접 동기화하지 않으면 이전 WebView의 isOwner=false 캐시가 유지될 수 있다.
+    // focus 주입이 이 effect 등록보다 먼저면 리스너가 놓친다. 이미 활성 탭이면 즉시 sync.
     if (window.__knockdogNativeTabFocused === true) {
-      syncUserFromStorage();
+      syncOwnerRoleOnNativeActivate();
     }
 
     return () => {
-      window.removeEventListener('knockdog:native-tab-focus', syncUserFromStorage);
+      window.removeEventListener('knockdog:native-tab-focus', syncOwnerRoleOnNativeActivate);
+      window.removeEventListener('appresume', syncOwnerRoleOnNativeActivate);
     };
   }, [queryClient]);
 

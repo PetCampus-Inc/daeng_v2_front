@@ -7,6 +7,7 @@ import { METHODS } from '@knockdog/bridge-core';
 import { useOwnerRole } from '../model/useOwnerRole';
 import { useMypageRoleViewStore } from '../model/mypageRoleViewStore';
 import { useBridge, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 
 declare global {
   interface Window {
@@ -103,7 +104,14 @@ function SyncNativeMainTabModeEffect() {
   useEffect(() => {
     if (!isResolved || !hasRoleViewHydrated) return;
     if (!isMainTab()) return;
-    if (!isNativeTabFocused || !isDocumentVisible) {
+    // 네이티브 탭 focus가 소스 오브 트루스. iOS WKWebView는 활성 탭인데도
+    // document.visibilityState가 hidden으로 남는 경우가 있어, focus된 탭은
+    // visibility와 무관하게 sync한다. 웹은 visibility도 함께 본다.
+    if (!isNativeTabFocused) {
+      lastSyncedModeRef.current = null;
+      return;
+    }
+    if (!isNativeWebView() && !isDocumentVisible) {
       lastSyncedModeRef.current = null;
       return;
     }
@@ -189,7 +197,7 @@ function SyncNativeMainTabModeEffect() {
   ]);
 
   useEffect(() => {
-    if (isNativeTabFocused && isDocumentVisible) {
+    if (isNativeTabFocused && (isDocumentVisible || isNativeWebView())) {
       retryCountRef.current = 0;
     }
   }, [isDocumentVisible, isNativeTabFocused]);

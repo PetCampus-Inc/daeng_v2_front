@@ -20,18 +20,32 @@ const OWNER_ROLE_QUERY_KEY = 'ownerRole';
 /** 유저별로 캐시를 분리해 계정 전환 시 이전 원장 상태가 남지 않도록 함 */
 const ownerRoleQueryKey = (userId?: string) => [OWNER_ROLE_QUERY_KEY, userId] as const;
 
+/**
+ * 네이티브는 탭마다 WebView가 있어 visibility/focus가 동시에 여러 인스턴스에서 발생한다.
+ * 그때 owner/role을 전부 refetch하면 탭별 isOwner settle 타이밍이 어긋나 모드가 핑퐁한다.
+ * 활성 탭 재조회는 useOwnerRole의 native-tab-focus / appresume에서만 수행한다.
+ */
+function shouldRefetchOwnerQueriesOnWindowFocus() {
+  if (typeof window === 'undefined') return true;
+  return !(window as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView;
+}
+
 interface UseOwnerRoleQueryOptions {
   userId?: string;
   enabled?: boolean;
 }
 
 const useOwnerRoleQuery = ({ userId, enabled = true }: UseOwnerRoleQueryOptions = {}) => {
+  const refetchOnWindowFocus = shouldRefetchOwnerQueriesOnWindowFocus();
+
   return useQuery({
     queryKey: ownerRoleQueryKey(userId),
     queryFn: getOwnerRole,
     select: (data) => data.data,
     enabled,
     staleTime: 0,
+    refetchOnWindowFocus,
+    refetchOnReconnect: refetchOnWindowFocus,
   });
 };
 
@@ -50,12 +64,16 @@ const useOwnerMypageSummaryQuery = ({
   userId,
   enabled = true,
 }: UseOwnerMypageSummaryQueryOptions = {}) => {
+  const refetchOnWindowFocus = shouldRefetchOwnerQueriesOnWindowFocus();
+
   return useQuery({
     queryKey: ownerMypageSummaryQueryKey(userId),
     queryFn: getOwnerMypageSummary,
     select: (data) => data.data,
     enabled,
     staleTime: 0,
+    refetchOnWindowFocus,
+    refetchOnReconnect: refetchOnWindowFocus,
   });
 };
 
@@ -70,12 +88,16 @@ interface UseOwnerProfileQueryOptions {
 }
 
 const useOwnerProfileQuery = ({ userId, enabled = true }: UseOwnerProfileQueryOptions = {}) => {
+  const refetchOnWindowFocus = shouldRefetchOwnerQueriesOnWindowFocus();
+
   return useQuery({
     queryKey: ownerProfileQueryKey(userId),
     queryFn: getOwnerProfile,
     select: (data) => data.data,
     enabled,
     staleTime: 0,
+    refetchOnWindowFocus,
+    refetchOnReconnect: refetchOnWindowFocus,
   });
 };
 
