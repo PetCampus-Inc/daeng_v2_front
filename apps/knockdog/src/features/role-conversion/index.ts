@@ -16,6 +16,7 @@ export { OwnerProfileDetailInfo, type OwnerProfileDetailInfoProps } from './ui/O
 export { OwnerProfileForm, type OwnerProfileFormProps } from './ui/OwnerProfileForm';
 export { OwnerProfileImageUploader, type OwnerProfileImageUploaderProps } from './ui/OwnerProfileImageUploader';
 export { OwnerProfileRow, type OwnerProfileRowProps } from './ui/OwnerProfileRow';
+export { openOwnerUnsavedExitDialog } from './lib/openOwnerUnsavedExitDialog';
 export { OwnerVerificationEntry, type OwnerVerificationEntryProps } from './ui/OwnerVerificationEntry';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
 export { SyncNativeMainTabModeEffect } from './ui/SyncNativeMainTabModeEffect';

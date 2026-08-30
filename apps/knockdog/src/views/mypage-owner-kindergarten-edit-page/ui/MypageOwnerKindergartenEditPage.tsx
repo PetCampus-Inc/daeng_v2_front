@@ -3,20 +3,11 @@
 import { useCallback, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
   IconButton,
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
-import { overlay } from 'overlay-kit';
 import {
   AMENITY_OPTIONS,
   BREED_OPTIONS,
@@ -33,7 +24,7 @@ import { useKindergartenEditForm } from '@views/mypage-owner-kindergarten-edit-p
 import { Header } from '@widgets/Header';
 
 import { AddressPicker } from '@features/address-picker';
-import { ownerMypageContent } from '@features/role-conversion';
+import { openOwnerUnsavedExitDialog, ownerMypageContent } from '@features/role-conversion';
 import { KINDERGARTEN_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { useNativeBackHandler } from '@shared/lib/bridge';
@@ -230,24 +221,7 @@ function MypageOwnerKindergartenEditPage() {
   const handleBack = useCallback(() => {
     if (formData.leaveIfClean()) return;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerMypageContent.unsavedExitModalTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerMypageContent.unsavedExitModalDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{ownerMypageContent.unsavedExitModalCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={formData.handleLeaveWithoutSaving}>
-              {ownerMypageContent.unsavedExitModalConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openOwnerUnsavedExitDialog(formData.handleLeaveWithoutSaving);
   }, [formData]);
 
   useNativeBackHandler(handleBack);

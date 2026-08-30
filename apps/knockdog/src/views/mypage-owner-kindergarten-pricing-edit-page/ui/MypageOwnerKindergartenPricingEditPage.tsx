@@ -3,21 +3,12 @@
 import { useCallback } from 'react';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
-import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
 
-import { ownerMypageContent } from '@features/role-conversion';
+import { openOwnerUnsavedExitDialog, ownerMypageContent } from '@features/role-conversion';
 import { PRODUCT_TYPE_MAP_LIST, type ProductType } from '@entities/pricing';
 import { EXTERNAL_LINKS } from '@shared/constants';
 import { useOpenExternalLink, useNativeBackHandler } from '@shared/lib/bridge';
@@ -80,24 +71,7 @@ function MypageOwnerKindergartenPricingEditPage() {
   const handleBack = useCallback(() => {
     if (formData.leaveIfClean()) return;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerMypageContent.unsavedExitModalTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerMypageContent.unsavedExitModalDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{ownerMypageContent.unsavedExitModalCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={formData.handleLeaveWithoutSaving}>
-              {ownerMypageContent.unsavedExitModalConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openOwnerUnsavedExitDialog(formData.handleLeaveWithoutSaving);
   }, [formData]);
 
   useNativeBackHandler(handleBack);
