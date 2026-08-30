@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import { User } from '../user';
+import { normalizeUserAddresses, User } from '../user';
 import { eventBus } from '@shared/utils';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 
@@ -21,6 +21,18 @@ const useUserStore = create<UserStore>()(
     {
       name: STORAGE_KEYS.USER,
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.user) return;
+
+        const addresses = normalizeUserAddresses(state.user.addresses);
+        const hasChanged =
+          addresses.length !== state.user.addresses.length ||
+          addresses.some((address, index) => address !== state.user?.addresses[index]);
+
+        if (hasChanged) {
+          state.setUser({ ...state.user, addresses });
+        }
+      },
     }
   )
 );
@@ -53,6 +65,15 @@ if (typeof window !== 'undefined') {
       // 삭제된 경우
       useUserStore.getState().clearUser();
     }
+  });
+
+  // 네이티브 앱의 탭은 각각 별도 WebView라 로그인·주소 변경이 다른 탭에서
+  // 발생했을 때 storage 이벤트를 받지 못할 수 있다. 네이티브가 활성 탭에
+  // 주입하는 focus 이벤트에서 persist 저장소를 다시 읽어 최신 사용자 상태를 맞춘다.
+  window.addEventListener('knockdog:native-tab-focus', () => {
+    Promise.resolve(useUserStore.persist.rehydrate()).catch((error: unknown) => {
+      console.error('Failed to sync user store on native tab focus:', error);
+    });
   });
 }
 

@@ -38,10 +38,30 @@ function resolveAddressAlias(type: UserAddressType, alias?: string | null): stri
   return alias || USER_ADDRESS_TYPE_KR[type];
 }
 
+/** 저장된 사용자 상태의 레거시 주소 타입을 현재 모델로 이관한다. */
+function normalizeUserAddresses(addresses: UserAddress[]): UserAddress[] {
+  const normalizedByType = new Map<UserAddressType, UserAddress>();
+
+  for (const address of addresses) {
+    const originalType = address.type as string;
+    const type = originalType === 'WORK' ? USER_ADDRESS_TYPE.OTHER : (originalType as UserAddressType);
+    const normalizedAddress = { ...address, type };
+    const existingAddress = normalizedByType.get(type);
+
+    // 레거시 WORK와 현재 OTHER가 공존하면 현재 타입을 우선한다.
+    if (!existingAddress || originalType !== 'WORK') {
+      normalizedByType.set(type, normalizedAddress);
+    }
+  }
+
+  return [...normalizedByType.values()];
+}
+
 export {
   USER_STATUS,
   USER_ADDRESS_TYPE,
   WITHDRAW_REASON_TYPE,
+  normalizeUserAddresses,
   resolveAddressAlias,
   type User,
   type UserStatus,

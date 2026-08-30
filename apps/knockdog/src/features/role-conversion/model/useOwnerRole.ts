@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { useOwnerRoleQuery, useUserStore, type OwnerRole } from '@entities/user';
+import { OWNER_ROLE_QUERY_KEY, useOwnerRoleQuery, useUserStore, type OwnerRole } from '@entities/user';
 import { tokenUtils } from '@shared/utils';
 
 interface OwnerKindergartenInfo {
@@ -63,6 +64,7 @@ function hasUserStoreHydrated() {
  */
 function useOwnerRole(): OwnerRoleState {
   const user = useUserStore((state) => state.user);
+  const queryClient = useQueryClient();
   const [isUserStoreHydrated, setIsUserStoreHydrated] = useState(hasUserStoreHydrated);
   const isLoggedIn = !!user;
   // token만 있고 user 미동기화 — 다른 WebView 로그인 직후 탭 store 반영 전. 비원장 오판 방지
@@ -86,7 +88,14 @@ function useOwnerRole(): OwnerRoleState {
     // (또는 null)를 유지한 채 원장 권한을 비원장으로 판단할 수 있다.
     // 탭이 다시 활성화될 때 persist 저장소를 읽어 최신 사용자 상태로 맞춘다.
     const syncUserFromStorage = () => {
-      void useUserStore.persist?.rehydrate?.();
+      void (async () => {
+        await useUserStore.persist?.rehydrate?.();
+
+        // 역할 전환은 user store의 사용자 정보 자체를 바꾸지 않는다. 따라서 같은
+        // userId를 가진 탭은 저장소만 다시 읽어서는 기존 owner/role 캐시(isOwner=false)를
+        // 계속 사용한다. 활성 탭에서 권한 캐시를 무효화해 최신 역할을 다시 확인한다.
+        await queryClient.invalidateQueries({ queryKey: [OWNER_ROLE_QUERY_KEY] });
+      })();
     };
 
     window.addEventListener('knockdog:native-tab-focus', syncUserFromStorage);
@@ -94,7 +103,7 @@ function useOwnerRole(): OwnerRoleState {
     return () => {
       window.removeEventListener('knockdog:native-tab-focus', syncUserFromStorage);
     };
-  }, []);
+  }, [queryClient]);
 
   const { data, isSuccess, isError, isFetching, refetch } = useOwnerRoleQuery({
     userId: user?.userId,
