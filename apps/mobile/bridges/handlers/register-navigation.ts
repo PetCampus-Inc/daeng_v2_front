@@ -205,6 +205,27 @@ function isStackFocused(): boolean {
   return state.routes[state.index ?? 0]?.name === 'Stack';
 }
 
+/** reset 대상이 지금 보고 있는 Stack 화면과 같은 경로면 그 route key를 재사용해,
+ * WebView를 새로 마운트하지 않고 같은 화면이 URL만 갱신되며 이어지게 한다.
+ * (예: 알림장 전송 성공 후 자기 자신으로 reset하면 화면이 통째로 리로드/반복되어 보이는 문제) */
+function findReusableStackRouteKey(targetPathname: string): string | undefined {
+  const state = navigationRef.getState();
+  if (!state) return undefined;
+
+  const topRoute = state.routes[state.index ?? 0];
+  if (topRoute?.name !== 'Stack') return undefined;
+
+  const currentPath = (topRoute.params as { path?: string } | undefined)?.path;
+  if (!currentPath) return undefined;
+
+  try {
+    const currentPathname = new URL(currentPath, 'https://placeholder.local').pathname;
+    return currentPathname === targetPathname ? topRoute.key : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 let lastMainTabModeRequest: { id: number; source: RefObject<WebView> | null } = {
   id: 0,
   source: null,
@@ -393,7 +414,22 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
       navigationRef.dispatch(StackActions.replace('Tabs', { screen: tabName }));
     } else {
-      navigationRef.dispatch(StackActions.replace('Stack', route.params));
+      let targetPathname = '/';
+      try {
+        targetPathname = new URL(route.params.path, 'https://placeholder.local').pathname;
+      } catch {
+        targetPathname = extractPathFromUrl(route.params.path);
+      }
+      const reusableStackKey = findReusableStackRouteKey(targetPathname);
+
+      if (reusableStackKey) {
+        // 지금 보고 있는 화면과 같은 경로로의 replace는 WebView를 새로 만들지 않고
+        // 현재 화면의 params(URL/initialState)만 갱신한다. (예: 수정하기 버튼이
+        // 수정 모드 유지를 위해 같은 경로로 replace하면서 화면이 매번 리로드되던 문제)
+        navigationRef.dispatch(CommonActions.setParams(route.params));
+      } else {
+        navigationRef.dispatch(StackActions.replace('Stack', route.params));
+      }
     }
 
     return { replaced: true };
@@ -451,11 +487,15 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       }
 
       const baseTab = resolveTabScreen(pathToBaseTab(stackPathname) ?? getActiveTabName() ?? 'Explore');
+      const reusableStackKey = findReusableStackRouteKey(stackPathname);
 
       navigationRef.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [resolveTabsRouteForStackReset(baseTab), { name: 'Stack', params: route.params }],
+          routes: [
+            resolveTabsRouteForStackReset(baseTab),
+            { name: 'Stack', params: route.params, ...(reusableStackKey ? { key: reusableStackKey } : {}) },
+          ],
         })
       );
     }

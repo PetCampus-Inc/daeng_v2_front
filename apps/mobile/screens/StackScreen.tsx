@@ -35,8 +35,15 @@ export default function StackScreen() {
   const { path, initialState } = useRoute<StackRoute>().params;
   const webviewRef = useRef<WebView>(null);
   const navigation = useNavigation();
-  const [currentUrl, setCurrentUrl] = useState(path);
-  const currentUrlRef = useRef(path);
+
+  // navReset/navReplace가 같은 화면을 유지한 채 route params(path)만 갱신하는 경우
+  // (예: 알림장 전송 후 mode=edit를 떼는 것)에도 uri prop이 바뀌면 웹뷰가 통째로
+  // 새로고침되어 실행 중이던 JS(전송 성공 후 토스트 등)까지 날아간다. 마운트 시점
+  // 경로로 uri를 고정하고, 이후 path 변경은 아래 effect에서 history.replaceState
+  // 주입으로만 반영한다.
+  const [initialPath] = useState(path);
+  const [currentUrl, setCurrentUrl] = useState(initialPath);
+  const currentUrlRef = useRef(initialPath);
 
   const isExternal = useMemo(() => isExternalWebViewUrl(currentUrl), [currentUrl]);
 
@@ -45,6 +52,22 @@ export default function StackScreen() {
     currentUrlRef.current = navState.url;
     setCurrentUrl(navState.url);
   }, []);
+
+  const lastSyncedPathRef = useRef(initialPath);
+  useEffect(() => {
+    if (path === lastSyncedPathRef.current) return;
+    lastSyncedPathRef.current = path;
+
+    webviewRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          var url = new URL(${JSON.stringify(path)}, window.location.href);
+          history.replaceState(null, '', url.pathname + url.search + url.hash);
+          window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+        } catch (e) {}
+      })(); true;
+    `);
+  }, [path]);
 
   // 뒤로가기 감지: beforeRemove 이벤트 리스너
   useEffect(() => {
@@ -67,7 +90,7 @@ export default function StackScreen() {
     if (Platform.OS !== 'android') return;
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      const url = currentUrlRef.current || path;
+      const url = currentUrlRef.current || initialPath;
 
       if (isExternalWebViewUrl(url)) {
         if (navigation.canGoBack()) {
@@ -82,7 +105,7 @@ export default function StackScreen() {
     });
 
     return () => subscription.remove();
-  }, [navigation, path]);
+  }, [navigation, initialPath]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -101,7 +124,7 @@ export default function StackScreen() {
         </SafeAreaView>
       )}
       <WebViewScreen
-        uri={path}
+        uri={initialPath}
         webviewRef={webviewRef}
         initialState={initialState}
         onNavigationStateChange={handleNavigationStateChange}
