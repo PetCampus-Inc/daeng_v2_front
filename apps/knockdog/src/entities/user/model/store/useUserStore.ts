@@ -1,9 +1,12 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 import { normalizeUserAddresses, User } from '../user';
 import { eventBus } from '@shared/utils';
 import { STORAGE_KEYS } from '@shared/constants/storage';
+import { createSuppressibleJSONStorage } from '@shared/lib/storage';
+
+const { storage, runWithoutPersisting } = createSuppressibleJSONStorage();
 
 interface UserStore {
   user: User | null;
@@ -20,7 +23,7 @@ const useUserStore = create<UserStore>()(
     }),
     {
       name: STORAGE_KEYS.USER,
-      storage: createJSONStorage(() => localStorage),
+      storage,
       onRehydrateStorage: () => (state) => {
         if (!state?.user) return;
 
@@ -59,10 +62,12 @@ if (typeof window !== 'undefined') {
           // 받은 값을 그대로 재기록하면(zustand persist가 매번 localStorage에
           // 재기록) 다른 탭에서 다시 storage 이벤트로 잡혀 서로 반사하는 무한
           // 핑퐁이 될 수 있다(mypageRoleViewStore의 prefersGuardianView에서
-          // 실기기로 확인된 것과 동일한 패턴). 이미 같은 내용이면 건너뛴다.
+          // 실기기로 확인된 것과 동일한 패턴 — 두 탭이 실제로 다른 값을 주고받는
+          // 경우 "같은 값이면 건너뛴다" 비교만으로는 못 막아서, 반영 자체를
+          // runWithoutPersisting으로 감싸 localStorage 재기록을 원천 차단한다).
           const current = useUserStore.getState().user;
           if (JSON.stringify(parsed.state.user) !== JSON.stringify(current)) {
-            useUserStore.getState().setUser(parsed.state.user);
+            runWithoutPersisting(() => useUserStore.getState().setUser(parsed.state.user));
           }
         }
       } catch (error) {
@@ -71,7 +76,7 @@ if (typeof window !== 'undefined') {
     } else if (e.key === STORAGE_KEYS.USER && e.newValue === null) {
       // 삭제된 경우
       if (useUserStore.getState().user !== null) {
-        useUserStore.getState().clearUser();
+        runWithoutPersisting(() => useUserStore.getState().clearUser());
       }
     }
   });

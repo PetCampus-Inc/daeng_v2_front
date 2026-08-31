@@ -1,10 +1,13 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
 import { pushRoleFlickerDebugLog } from './roleFlickerDebugLogStore';
 
 import { STORAGE_KEYS } from '@shared/constants/storage';
+import { createSuppressibleJSONStorage } from '@shared/lib/storage';
+
+const { storage, runWithoutPersisting } = createSuppressibleJSONStorage();
 
 interface MypageRoleViewStore {
   prefersGuardianView: boolean;
@@ -32,7 +35,7 @@ const useMypageRoleViewStore = create<MypageRoleViewStore>()(
     }),
     {
       name: STORAGE_KEYS.MYPAGE_ROLE_VIEW,
-      storage: createJSONStorage(() => localStorage),
+      storage,
     }
   )
 );
@@ -55,10 +58,13 @@ if (typeof window !== 'undefined') {
 
 /** 탭 WebView 간 prefersGuardianView 동기화
  *
- * iOS 실기기에서 이 탭이 받은 값을 그대로 setPrefersGuardianView로 다시 쓰면(zustand
- * persist가 매번 localStorage에 재기록), 그 재기록이 다른 탭에서 또 storage 이벤트로
- * 잡혀 서로 반사하는 무한 핑퐁이 관찰됐다(디버그 로그로 확인, 값이 초당 수백 번 왕복).
- * 들어온 값이 이 탭의 현재 값과 이미 같으면 set 자체를 건너뛰어 반사를 끊는다.
+ * 받은 값을 그대로 setPrefersGuardianView로 다시 쓰면(zustand persist가 매번
+ * localStorage에 재기록) 그 재기록이 다른 탭에서 또 storage 이벤트로 잡혀 서로
+ * 반사하는 무한 핑퐁이 될 수 있다. 실기기에서 값이 초당 수백 번 왕복하는 것을
+ * 확인했는데, 두 탭이 서로 다른 값을 실제로 주고받는 경우(예: 다른 탭이 별도
+ * 이유로 반대 값을 쓰는 경우) "같은 값이면 건너뛴다" 가드만으로는 막지 못했다.
+ * storage 이벤트로 받은 값을 반영하는 동안은 runWithoutPersisting으로 감싸
+ * localStorage 재기록 자체를 막아, 몇 개 탭이 얽혀있든 재전파를 원천 차단한다.
  */
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e: StorageEvent) => {
@@ -70,7 +76,7 @@ if (typeof window !== 'undefined') {
 
     if (e.newValue === null) {
       if (current === false) return;
-      useMypageRoleViewStore.getState().resetPrefersGuardianView();
+      runWithoutPersisting(() => useMypageRoleViewStore.getState().resetPrefersGuardianView());
       return;
     }
 
@@ -78,7 +84,7 @@ if (typeof window !== 'undefined') {
       const parsed = JSON.parse(e.newValue) as { state?: { prefersGuardianView?: boolean } };
       const incoming = parsed?.state?.prefersGuardianView;
       if (typeof incoming === 'boolean' && incoming !== current) {
-        useMypageRoleViewStore.getState().setPrefersGuardianView(incoming);
+        runWithoutPersisting(() => useMypageRoleViewStore.getState().setPrefersGuardianView(incoming));
       }
     } catch (error) {
       console.error('Failed to sync mypage role view from storage:', error);
