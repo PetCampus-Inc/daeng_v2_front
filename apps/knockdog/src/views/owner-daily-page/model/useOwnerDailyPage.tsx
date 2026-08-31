@@ -25,6 +25,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { useDebounced } from '@shared/lib';
 import { ApiError, REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { toast } from '@shared/ui/toast';
+import { getObjectParticle } from '@shared/utils';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -278,17 +279,18 @@ function useOwnerDailyPage() {
     try {
       await checkInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       trackAttendanceAction({ action: 'check_in' });
+      const checkInSuffix = `${getObjectParticle(member.name)} 등원 처리했어요`;
       toast({
         type: 'success',
-        nativeTitle: `${member.name}를 등원 처리했어요`,
+        nativeTitle: `${member.name}${checkInSuffix}`,
         titleParts: [
           { text: member.name, accent: true },
-          { text: '를 등원 처리했어요' },
+          { text: checkInSuffix },
         ],
         title: (
           <>
             <span className='text-text-accent'>{member.name}</span>
-            <span className='text-text-primary-inverse'>를 등원 처리했어요</span>
+            <span className='text-text-primary-inverse'>{checkInSuffix}</span>
           </>
         ),
       });
@@ -327,17 +329,18 @@ function useOwnerDailyPage() {
     try {
       await checkOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       trackAttendanceAction({ action: 'check_out' });
+      const checkOutSuffix = `${getObjectParticle(member.name)} 하원 처리했어요`;
       toast({
         type: 'success',
-        nativeTitle: `${member.name}를 하원 처리했어요`,
+        nativeTitle: `${member.name}${checkOutSuffix}`,
         titleParts: [
           { text: member.name, accent: true },
-          { text: '를 하원 처리했어요' },
+          { text: checkOutSuffix },
         ],
         title: (
           <>
             <span className='text-text-accent'>{member.name}</span>
-            <span className='text-text-primary-inverse'>를 하원 처리했어요</span>
+            <span className='text-text-primary-inverse'>{checkOutSuffix}</span>
           </>
         ),
       });
