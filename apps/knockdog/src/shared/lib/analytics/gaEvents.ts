@@ -5,7 +5,7 @@ import { METHODS } from '@knockdog/bridge-core';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
-import { event as gtagEvent } from './gtag';
+import { event as gtagEvent, pageview } from './gtag';
 
 type AnalyticsParamValue = string | number | boolean;
 
@@ -81,6 +81,38 @@ async function logAnalyticsEvent(name: string, params?: Record<string, Analytics
   });
 }
 
+/**
+ * 화면 조회 — 앱은 Firebase screen_view, 웹은 gtag page_view.
+ * GA페이지 제목 및 화면 클래스에 한글 화면명/유치원명이 보이도록
+ * screen_name·screen_class(웹은 page_title)에 동일 라벨을 넣는다.
+ */
+async function trackScreenView(screenName: string, screenClass?: string) {
+  const name = screenName.trim();
+  if (!name) return;
+
+  const screen_class = (screenClass?.trim() || name) as string;
+
+  if (isNativeWebView()) {
+    const bridge = getBridgeInstance();
+    if (!bridge) return;
+
+    try {
+      await bridge.request(METHODS.analyticsLogScreenView, {
+        screen_name: name,
+        screen_class,
+      });
+    } catch (error) {
+      console.warn('[analytics] native logScreenView failed', name, error);
+    }
+    return;
+  }
+
+  if (typeof document !== 'undefined') {
+    document.title = name;
+  }
+  pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name);
+}
+
 function trackNotificationPermission(params: { status: NotificationPermissionStatus }) {
   void logAnalyticsEvent(GaEvent.NOTIFICATION_PERMISSION, params);
 }
@@ -148,6 +180,7 @@ function trackNotificationOpen(params: { notification_type: NotificationType }) 
 export {
   GaEvent,
   logAnalyticsEvent,
+  trackScreenView,
   trackNotificationPermission,
   trackSignUp,
   trackPetProfileRegister,

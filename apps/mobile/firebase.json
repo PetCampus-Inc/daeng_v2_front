@@ -1,5 +1,6 @@
 {
   "react-native": {
-    "messaging_android_notification_channel_id": "push_notifications"
+    "messaging_android_notification_channel_id": "push_notifications",
+    "google_analytics_automatic_screen_reporting_enabled": false
   }
 }

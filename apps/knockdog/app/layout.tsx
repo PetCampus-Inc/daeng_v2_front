@@ -9,6 +9,7 @@ import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
+import { AnalyticsScreenTracker } from '@shared/lib/analytics';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
 import { SyncNativeMainTabModeEffect } from '@features/role-conversion';
 import { PushDeviceSyncEffect } from '@features/push';
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='ko' className={cn(suit.variable)} data-env='web' suppressHydrationWarning>
       <HeaderProvider>
         <body className='overflow-hidden'>
-          {/* Google Analytics */}
+          {/* Google Analytics — SPA screen_view는 AnalyticsScreenTracker가 발화 */}
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
             strategy='afterInteractive'
@@ -42,13 +43,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}');
+              gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
             `}
           </Script>
           <ClientErrorReporter />
           <NuqsAdapter>
             <ReactQueryProvider>
               <BridgeProvider>
+                <AnalyticsScreenTracker />
                 <SyncWebViewQueryEffect />
                 <SyncNativeMainTabModeEffect />
                 <PushDeviceSyncEffect />

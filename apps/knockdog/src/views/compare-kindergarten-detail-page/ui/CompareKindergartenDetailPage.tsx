@@ -12,6 +12,7 @@ import type { SelectedIds } from '@entities/compare/model/compare';
 import { isSelectedIds } from '@entities/compare';
 import { useCurrentLocation } from '@shared/lib/geolocation';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useCompareStore } from '@shared/store';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
@@ -35,6 +36,7 @@ function CompareKindergartenDetailPage() {
     lat,
   });
 
+  useScreenAnalyticsTitle(kindergartenMain?.title);
   // ============================================
   // 비교 선택 기능 관련 상태
   // ============================================

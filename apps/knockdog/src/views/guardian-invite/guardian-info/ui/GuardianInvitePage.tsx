@@ -21,7 +21,7 @@ import {
 } from '@entities/user';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
-import { appendEntrySourceToInvitePath } from '@shared/lib/analytics';
+import { appendEntrySourceToInvitePath, useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -115,6 +115,9 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
   const initializedUserIdRef = useRef<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoginNavigationFailed, setIsLoginNavigationFailed] = useState(false);
+
+  const schoolName = inviteQuery.data?.data?.schoolName;
+  useScreenAnalyticsTitle(schoolName ? `${schoolName} 보호자 초대` : null);
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
