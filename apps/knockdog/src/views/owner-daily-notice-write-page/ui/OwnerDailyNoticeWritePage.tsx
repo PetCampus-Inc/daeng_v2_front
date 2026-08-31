@@ -750,7 +750,7 @@ function OwnerDailyNoticeWritePage() {
     if (!draft) return;
 
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+      <AlertDialog open={isOpen} onOpenChange={(nextOpen) => !nextOpen && close()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{ownerDailyNoticeWriteContent.resumeDraftTitle}</AlertDialogTitle>

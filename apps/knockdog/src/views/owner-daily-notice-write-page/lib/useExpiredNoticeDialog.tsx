@@ -16,7 +16,7 @@ import { ownerDailyNoticeWriteContent } from '@views/owner-daily-notice-write-pa
 
 function openExpiredNoticeDialog(onConfirm: () => void) {
   return overlay.open(({ isOpen, close }) => (
-    <AlertDialog open={isOpen} onOpenChange={() => undefined}>
+    <AlertDialog open={isOpen} onOpenChange={(nextOpen) => !nextOpen && close()}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{ownerDailyNoticeWriteContent.expiredTitle}</AlertDialogTitle>

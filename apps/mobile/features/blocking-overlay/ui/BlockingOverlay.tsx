@@ -1,4 +1,4 @@
-import { Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, BackHandler, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Portal } from '@gorhom/portal';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
@@ -92,6 +92,24 @@ function BlockingOverlay() {
 
   useEffect(() => {
     setShouldBreakConfirmTitle(false);
+  }, [content]);
+
+  useEffect(() => {
+    if (!content || Platform.OS !== 'android') return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      const current = useBlockingOverlayStore.getState().content;
+      if (!current) return false;
+
+      if (current.kind === 'confirm') {
+        useBlockingOverlayStore.getState().resolveConfirmDialog('cancel');
+        return true;
+      }
+
+      return true;
+    });
+
+    return () => subscription.remove();
   }, [content]);
 
   if (!content) return null;

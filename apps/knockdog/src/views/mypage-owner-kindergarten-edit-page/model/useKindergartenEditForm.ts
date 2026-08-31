@@ -31,6 +31,24 @@ type WebAddressField = 'homepage' | 'instagram' | 'youtube';
 
 const WEB_ADDRESS_FORMAT_ERROR = ownerMypageContent.kindergartenEditWebAddressFormatError;
 const PHONE_FORMAT_ERROR = ownerMypageContent.kindergartenEditPhoneFormatError;
+const WEEKDAY_OPERATING_HOURS_ERROR = ownerMypageContent.kindergartenEditWeekdayOperatingHoursError;
+const WEEKEND_OPERATING_HOURS_ERROR = ownerMypageContent.kindergartenEditWeekendOperatingHoursError;
+
+function isDayOperatingHoursComplete(start: string | null, end: string | null) {
+  return Boolean(start && end);
+}
+
+function isOperatingHoursComplete(
+  weekdayStart: string | null,
+  weekdayEnd: string | null,
+  weekendStart: string | null,
+  weekendEnd: string | null
+) {
+  return (
+    isDayOperatingHoursComplete(weekdayStart, weekdayEnd) &&
+    isDayOperatingHoursComplete(weekendStart, weekendEnd)
+  );
+}
 
 function applyDraftToState(
   draft: EditFormDraft,
@@ -160,6 +178,9 @@ function useKindergartenEditForm() {
   const [draftRestoreTick, setDraftRestoreTick] = useState(0);
   const isSaveLockedRef = useRef(false);
   const [isPreparingSave, setIsPreparingSave] = useState(false);
+  const [isWeekdayOperatingHoursTouched, setIsWeekdayOperatingHoursTouched] = useState(false);
+  const [isWeekendOperatingHoursTouched, setIsWeekendOperatingHoursTouched] = useState(false);
+  const [hasSaveAttempted, setHasSaveAttempted] = useState(false);
 
   const draftSetters = {
     setImages,
@@ -375,19 +396,33 @@ function useKindergartenEditForm() {
     [closedDays]
   );
 
-  const isSaveEnabled =
+  const isOtherRequiredFieldsValid =
     images.length > 0 &&
     name.trim().length > 0 &&
     address.trim().length > 0 &&
     phone.trim().length > 0 &&
     isValidKindergartenPhone(phone) &&
-    Boolean(weekdayStart) &&
-    Boolean(weekdayEnd) &&
-    Boolean(weekendStart) &&
-    Boolean(weekendEnd) &&
     isValidWebAddressFormat(homepage) &&
     isValidWebAddressFormat(instagram) &&
     isValidWebAddressFormat(youtube);
+
+  const weekdayOperatingHoursError = useMemo(() => {
+    if (isDayOperatingHoursComplete(weekdayStart, weekdayEnd)) return undefined;
+    if (!isWeekdayOperatingHoursTouched && !hasSaveAttempted) return undefined;
+
+    return WEEKDAY_OPERATING_HOURS_ERROR;
+  }, [weekdayStart, weekdayEnd, isWeekdayOperatingHoursTouched, hasSaveAttempted]);
+
+  const weekendOperatingHoursError = useMemo(() => {
+    if (isDayOperatingHoursComplete(weekendStart, weekendEnd)) return undefined;
+    if (!isWeekendOperatingHoursTouched && !hasSaveAttempted) return undefined;
+
+    return WEEKEND_OPERATING_HOURS_ERROR;
+  }, [weekendStart, weekendEnd, isWeekendOperatingHoursTouched, hasSaveAttempted]);
+
+  const isSaveEnabled =
+    isOtherRequiredFieldsValid &&
+    isOperatingHoursComplete(weekdayStart, weekdayEnd, weekendStart, weekendEnd);
 
   const handlePhoneBlur = () => {
     const trimmed = phone.trim();
@@ -443,7 +478,23 @@ function useKindergartenEditForm() {
     return true;
   };
 
+  const markOperatingHoursTouched = (field: TimeFieldKey) => {
+    if (field === 'weekdayStart' || field === 'weekdayEnd') {
+      setIsWeekdayOperatingHoursTouched(true);
+      return;
+    }
+
+    setIsWeekendOperatingHoursTouched(true);
+  };
+
+  const openTimeField = (field: TimeFieldKey) => {
+    markOperatingHoursTouched(field);
+    setActiveTimeField(field);
+  };
+
   const handleSave = async () => {
+    setHasSaveAttempted(true);
+
     if (!isSaveEnabled || isSaving || isPreparingSave || isSaveLockedRef.current) return false;
 
     isSaveLockedRef.current = true;
@@ -480,6 +531,8 @@ function useKindergartenEditForm() {
 
   const handleTimeSelect = (value: string) => {
     if (!activeTimeField) return;
+
+    markOperatingHoursTouched(activeTimeField);
 
     const settersByField: Record<TimeFieldKey, (next: string | null) => void> = {
       weekdayStart: setWeekdayStart,
@@ -518,8 +571,10 @@ function useKindergartenEditForm() {
     lastUpdatedDate,
     isDirty,
     isSaveEnabled,
+    weekdayOperatingHoursError,
+    weekendOperatingHoursError,
     isSaving: isSaving || isPreparingSave,
-    setActiveTimeField,
+    openTimeField,
     setIsClosedDaysSheetOpen,
     closeTimeSheet: () => setActiveTimeField(null),
     closeClosedDaysSheet: () => setIsClosedDaysSheetOpen(false),

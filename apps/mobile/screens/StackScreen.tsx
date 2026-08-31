@@ -9,27 +9,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/types/navigation';
 import { navBridgeHub } from '@/bridges/model/navBridgeHub';
 import { isExternalWebViewUrl } from '@/bridges/lib/isFirstPartyWebViewUrl';
+import { NATIVE_BACK_INJECT } from '@/bridges/lib/nativeBackInject';
 
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
-
-const NATIVE_BACK_INJECT = `
-  (function () {
-    try {
-      var ev = new CustomEvent('knockdog:native-back', { cancelable: true });
-      var allowed = window.dispatchEvent(ev);
-      if (allowed) {
-        window.ReactNativeWebView.postMessage(
-          JSON.stringify({ type: 'knockdog:native-back-unhandled' })
-        );
-      }
-    } catch (e) {
-      window.ReactNativeWebView.postMessage(
-        JSON.stringify({ type: 'knockdog:native-back-unhandled' })
-      );
-    }
-  })();
-  true;
-`;
 
 export default function StackScreen() {
   const { path, initialState } = useRoute<StackRoute>().params;
