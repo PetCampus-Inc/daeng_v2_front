@@ -21,7 +21,7 @@ function OwnerKindergartenCard({
 }: OwnerKindergartenCardProps) {
   const content = (
     <>
-      <div className='px-4'>
+      <div className='w-full px-4'>
         <div className='radius-r3 relative h-[126px] w-full overflow-hidden'>
           {usesDefaultImage || !imageUrl ? (
             <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>

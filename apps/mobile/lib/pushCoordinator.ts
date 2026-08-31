@@ -15,6 +15,13 @@ function toStackWebUrl(path: string) {
   return `${base}${normalized}`;
 }
 
+/** 콜드 마운트 웹뷰에 강아지/뷰모드 선택을 주입하는 재시도 설정.
+ * 안드로이드는 콜드스타트 시 웹뷰 JS 하이드레이션이 iOS보다 느린 경우가 많아,
+ * 기존 1.8초(300ms×6회) 창 안에 못 뜨면 조용히 씹혔다. 4.5초(300ms×15회)로 늘려
+ * 저사양 기기의 느린 하이드레이션도 창 안에 들어오게 한다. */
+const INJECT_RETRY_MAX_ATTEMPTS = 15;
+const INJECT_RETRY_INTERVAL_MS = 300;
+
 type WebRef = RefObject<WebView>;
 
 class PushCoordinator {
@@ -182,8 +189,8 @@ class PushCoordinator {
       `);
     }
 
-    if (attempt < 6) {
-      setTimeout(() => this.setCompareTabPet(petId, _date, attempt + 1), 300);
+    if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
+      setTimeout(() => this.setCompareTabPet(petId, _date, attempt + 1), INJECT_RETRY_INTERVAL_MS);
     }
   }
 
@@ -207,8 +214,8 @@ class PushCoordinator {
       `);
     }
 
-    if (attempt < 6) {
-      setTimeout(() => this.setPrefersGuardianView(tabName, value, attempt + 1), 300);
+    if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
+      setTimeout(() => this.setPrefersGuardianView(tabName, value, attempt + 1), INJECT_RETRY_INTERVAL_MS);
     }
   }
 
@@ -231,8 +238,8 @@ class PushCoordinator {
       `);
     }
 
-    if (attempt < 6) {
-      setTimeout(() => this.setSelectedGuardianPet(tabName, petId, attempt + 1), 300);
+    if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
+      setTimeout(() => this.setSelectedGuardianPet(tabName, petId, attempt + 1), INJECT_RETRY_INTERVAL_MS);
     }
   }
 

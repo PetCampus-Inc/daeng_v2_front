@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   uploadMessage: {
     color: '#1C1C1E',
-    fontFamily: 'SUIT-Bold',
+    fontWeight: '700',
     fontSize: 16,
     lineHeight: 22,
     textAlign: 'center',
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   confirmDialogTitle: {
     color: '#15161B',
-    fontFamily: 'SUIT-ExtraBold',
+    fontWeight: '800',
     fontSize: 20,
     letterSpacing: -0.4,
     lineHeight: 28,
@@ -294,14 +294,14 @@ const styles = StyleSheet.create({
   },
   confirmDialogTitleAccent: {
     color: '#FF6E0C',
-    fontFamily: 'SUIT-ExtraBold',
+    fontWeight: '800',
     fontSize: 20,
     letterSpacing: -0.4,
     lineHeight: 28,
   },
   confirmDialogDescription: {
     color: '#70727C',
-    fontFamily: 'SUIT-Regular',
+    fontWeight: '400',
     fontSize: 16,
     letterSpacing: -0.16,
     lineHeight: 24,
@@ -334,14 +334,14 @@ const styles = StyleSheet.create({
   },
   confirmDialogCancelButtonText: {
     color: '#70727C',
-    fontFamily: 'SUIT-Bold',
+    fontWeight: '700',
     fontSize: 16,
     letterSpacing: -0.16,
     lineHeight: 24,
   },
   confirmDialogActionButtonText: {
     color: '#FFFFFF',
-    fontFamily: 'SUIT-Bold',
+    fontWeight: '700',
     fontSize: 16,
     letterSpacing: -0.16,
     lineHeight: 24,

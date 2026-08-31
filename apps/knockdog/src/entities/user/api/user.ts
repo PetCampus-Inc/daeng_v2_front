@@ -185,7 +185,8 @@ const getOwnerProfile = async () => {
 interface PutOwnerProfileRequest {
   representativeName: string;
   representativePhoneNumber: string;
-  profileImageUrl: string;
+  /** 빈 문자열이면 BE @URL(regexp) 검증에 걸려 저장이 실패한다. 이미지 없으면 null로 보낸다. */
+  profileImageUrl: string | null;
 }
 
 /** `PUT` - 원장 프로필 수정 API (원장 전용, 비원장 403) */

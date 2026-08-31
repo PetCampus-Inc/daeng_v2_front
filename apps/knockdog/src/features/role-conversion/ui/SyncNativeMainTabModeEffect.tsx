@@ -6,8 +6,6 @@ import { METHODS } from '@knockdog/bridge-core';
 
 import { useOwnerRole } from '../model/useOwnerRole';
 import { useMypageRoleViewStore } from '../model/mypageRoleViewStore';
-// TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
-import { isRoleFlickerDebugUser, pushRoleFlickerDebugLog, useRoleFlickerDebugLogStore } from '../model/roleFlickerDebugLogStore';
 import { useBridge, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
@@ -82,7 +80,6 @@ function SyncNativeMainTabModeEffect() {
   const bridge = useBridge();
   const pathname = usePathname();
   const { isMainTab } = useTabNavigation();
-  const isDebugUser = isRoleFlickerDebugUser();
   const { isOwner, isResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
   const hasRoleViewHydrated = useHasMypageRoleViewHydrated();
@@ -96,10 +93,6 @@ function SyncNativeMainTabModeEffect() {
 
   const mode = isOwner && !prefersGuardianView ? 'owner' : 'guardian';
 
-  // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
-  const debugLog = useRoleFlickerDebugLogStore((state) => state.lines);
-  const pushDebugLog = pushRoleFlickerDebugLog;
-
   useEffect(() => {
     const handleVisibility = () => {
       setIsDocumentVisible(document.visibilityState === 'visible');
@@ -109,20 +102,8 @@ function SyncNativeMainTabModeEffect() {
   }, []);
 
   useEffect(() => {
-    pushDebugLog(
-      `effect run: mode=${mode} isOwner=${isOwner} prefersGuardian=${prefersGuardianView} ` +
-        `isResolved=${isResolved} isFetching=${isFetching} ` +
-        `hydrated=${hasRoleViewHydrated} focused=${isNativeTabFocused} visible=${isDocumentVisible} ` +
-        `path=${pathname} last=${lastSyncedModeRef.current}`
-    );
-    if (!isResolved || !hasRoleViewHydrated) {
-      pushDebugLog('  -> skip: not resolved/hydrated');
-      return;
-    }
-    if (!isMainTab()) {
-      pushDebugLog('  -> skip: not main tab');
-      return;
-    }
+    if (!isResolved || !hasRoleViewHydrated) return;
+    if (!isMainTab()) return;
     // 네이티브 탭 focus가 소스 오브 트루스. iOS WKWebView는 활성 탭인데도
     // document.visibilityState가 hidden으로 남는 경우가 있어, focus된 탭은
     // visibility와 무관하게 sync한다. 웹은 visibility도 함께 본다.
@@ -132,30 +113,21 @@ function SyncNativeMainTabModeEffect() {
       // "동기화 안 된 상태"로 되돌아가 재동기화 요청이 반복 발사되어 하단
       // 탭이 깜빡인다. blur 직후 곧바로 focus가 돌아오면(포커스가 실제로는
       // 안 바뀐 셈) 리셋을 취소할 수 있도록 짧게 지연시킨다.
-      pushDebugLog('  -> skip: not native-tab-focused, scheduling reset (debounced)');
       const blurResetTimer = setTimeout(() => {
-        pushDebugLog('  -> blur-debounce elapsed, reset last=null');
         lastSyncedModeRef.current = null;
       }, 250);
       return () => clearTimeout(blurResetTimer);
     }
     if (!isNativeWebView() && !isDocumentVisible) {
-      pushDebugLog('  -> skip: web + not visible, reset last=null');
       lastSyncedModeRef.current = null;
       return;
     }
     // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
-    if (mode === 'guardian' && isFetching) {
-      pushDebugLog('  -> skip: guardian while fetching (stale isOwner=false 방지)');
-      return;
-    }
+    if (mode === 'guardian' && isFetching) return;
 
     // 보호자 유치원 탭은 stale owner store여도 네이티브 탭을 guardian으로 맞춤
     const syncMode = pathname === '/compare' ? 'guardian' : mode;
-    if (lastSyncedModeRef.current === syncMode) {
-      pushDebugLog(`  -> skip: already synced to ${syncMode}`);
-      return;
-    }
+    if (lastSyncedModeRef.current === syncMode) return;
 
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -174,19 +146,16 @@ function SyncNativeMainTabModeEffect() {
           // 재시도 상한에 도달했다. 계속 실패해도 매 의존성 변경마다 같은 syncMode를
           // 무한히 재전송하지 않도록, 여기서 포기하고 syncMode로 정착한 것으로 표시한다.
           // mode/pathname 등이 실제로 다시 바뀌면 그때 새로 동기화가 시도된다.
-          pushDebugLog(`  retry limit reached, settle as ${syncMode}`);
           lastSyncedModeRef.current = syncMode;
           return;
         }
 
         retryCountRef.current += 1;
-        pushDebugLog(`  retry #${retryCountRef.current} scheduled`);
         retryTimer = setTimeout(() => {
           setRetryNonce((nonce) => nonce + 1);
         }, 300);
       };
 
-      pushDebugLog(`  -> SEND navSetMainTabMode(${syncMode})`);
       bridge
         .request(METHODS.navSetMainTabMode, {
           mode: syncMode,
@@ -196,7 +165,6 @@ function SyncNativeMainTabModeEffect() {
         })
         .then(({ mode: appliedMode }) => {
           if (cancelled) return;
-          pushDebugLog(`  <- RESP applied=${appliedMode} (requested=${syncMode})`);
           // 브리지가 실제로 반영한 뒤에만 기록한다. 요청 전에 미리 기록해두면, effect가
           // 도중에(예: isFetching 변경으로) 취소돼 실제로는 반영이 안 됐는데도 다음
           // 재실행에서 "이미 동기화됨"으로 오판해 재시도를 건너뛰게 된다.
@@ -210,7 +178,6 @@ function SyncNativeMainTabModeEffect() {
         })
         .catch((error) => {
           if (cancelled) return;
-          pushDebugLog(`  <- ERROR ${error instanceof Error ? error.message : String(error)}`);
           if (process.env.NODE_ENV === 'development') {
             console.warn('[SyncNativeMainTabModeEffect] failed to sync main tab mode', error);
           }
@@ -223,7 +190,6 @@ function SyncNativeMainTabModeEffect() {
       clearTimeout(debounceTimer);
       if (retryTimer !== undefined) clearTimeout(retryTimer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- pushDebugLog(TEMP DEBUG)는 매 렌더 재생성되는 순수 로깅 함수라 의존성 추가 시 의도치 않게 재실행 빈도만 바뀜
   }, [
     bridge,
     hasRoleViewHydrated,
@@ -243,33 +209,7 @@ function SyncNativeMainTabModeEffect() {
     }
   }, [isDocumentVisible, isNativeTabFocused]);
 
-  // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 지정 계정에서만 노출. 확인 끝나면 제거.
-  if (!isDebugUser) return null;
-
-  return (
-    <pre
-      style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 999999,
-        maxHeight: '45vh',
-        overflow: 'hidden',
-        fontSize: 9,
-        lineHeight: 1.3,
-        background: 'rgba(0,0,0,0.85)',
-        color: '#0f0',
-        padding: 6,
-        margin: 0,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-all',
-        pointerEvents: 'none',
-      }}
-    >
-      {`mode=${mode} prefersGuardian=${prefersGuardianView} isOwner=${isOwner}\n` + debugLog.join('\n')}
-    </pre>
-  );
+  return null;
 }
 
 export { SyncNativeMainTabModeEffect };

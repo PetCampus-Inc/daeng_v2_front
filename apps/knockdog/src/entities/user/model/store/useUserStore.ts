@@ -84,11 +84,27 @@ if (typeof window !== 'undefined') {
   // 네이티브 앱의 탭은 각각 별도 WebView라 로그인·주소 변경이 다른 탭에서
   // 발생했을 때 storage 이벤트를 받지 못할 수 있다. 네이티브가 활성 탭에
   // 주입하는 focus 이벤트에서 persist 저장소를 다시 읽어 최신 사용자 상태를 맞춘다.
-  window.addEventListener('knockdog:native-tab-focus', () => {
+  const rehydrateFromNativeFocus = () => {
     Promise.resolve(useUserStore.persist.rehydrate()).catch((error: unknown) => {
       console.error('Failed to sync user store on native tab focus:', error);
     });
-  });
+  };
+
+  window.addEventListener('knockdog:native-tab-focus', rehydrateFromNativeFocus);
+
+  // WebViewScreen은 화면 focus/load 완료 시점에 focus 이벤트를 주입하는데, 이
+  // 리스너 등록보다 그 주입이 먼저 일어나면 신호를 놓친다(예: 회원가입 직후
+  // reset()으로 새로 뜬 탭에서 이 모듈이 평가되기 전에 이미 focus 처리된 경우).
+  // 놓치면 이 탭의 user가 계속 비어 있어, user 필요 화면(약관 동의 시트 등)이
+  // 영영 안 뜨는 것처럼 보일 수 있다. 이미 focus된 상태라면 곧바로 한 번
+  // 동기화하고, 그마저도 놓쳤을 경우를 대비해 짧은 시간 뒤 한 번 더 시도한다.
+  if (window.__knockdogNativeTabFocused === true) {
+    rehydrateFromNativeFocus();
+  }
+
+  window.setTimeout(() => {
+    if (window.__knockdogNativeTabFocused !== false) rehydrateFromNativeFocus();
+  }, 2_000);
 }
 
 export { useUserStore };
