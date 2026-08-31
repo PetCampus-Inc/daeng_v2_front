@@ -310,7 +310,7 @@ function OwnerDailyPage() {
         {isLoading ? (
           <div className='bg-bg-50 min-h-0 flex-1' />
         ) : isError ? (
-          <div className='bg-bg-50 flex min-h-0 flex-1 items-center justify-center px-4 pb-(--bottom-bar-height)'>
+          <div className='bg-bg-50 flex min-h-0 flex-1 items-center justify-center px-4 pb-[calc(var(--bottom-bar-height)+30px)]'>
             <div className='flex flex-col items-center gap-1 text-center'>
               <p className='h2-extrabold text-text-primary'>일과 정보를 불러오지 못했어요</p>
               <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
@@ -329,7 +329,7 @@ function OwnerDailyPage() {
             <TabsContent
               ref={attendanceCheckContentRef}
               value='attendance-check'
-              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+30px)]'
               onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
             >
               <OwnerDailyTabContent
@@ -349,7 +349,7 @@ function OwnerDailyPage() {
             <TabsContent
               ref={todayAttendanceContentRef}
               value='today-attendance'
-              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)'
+              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
               onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
             >
               <TodayAttendanceTab
