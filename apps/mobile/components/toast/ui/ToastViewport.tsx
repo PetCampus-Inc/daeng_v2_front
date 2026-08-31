@@ -31,7 +31,7 @@ const tokens = {
 };
 
 const toastTextStyle = {
-  fontFamily: 'SUIT-Medium',
+  fontWeight: '500' as const,
   fontSize: 16,
   lineHeight: 24,
   letterSpacing: -0.16,
@@ -191,7 +191,7 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
                             style={[
                               toastTextStyle,
                               part.accent
-                                ? { color: tokens.colors.accent, fontFamily: 'SUIT-Bold' }
+                                ? { color: tokens.colors.accent, fontWeight: '700' as const }
                                 : { color: tokens.colors.fg },
                             ]}
                           >
