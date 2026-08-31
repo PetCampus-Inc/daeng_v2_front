@@ -329,7 +329,7 @@ function OwnerDailyPage() {
             <TabsContent
               ref={attendanceCheckContentRef}
               value='attendance-check'
-              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+30px)]'
+              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+35px)]'
               onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
             >
               <OwnerDailyTabContent
