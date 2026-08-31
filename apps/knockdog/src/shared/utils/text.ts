@@ -40,6 +40,11 @@ export const getObjectParticle = (word: string): '을' | '를' => {
   return '을';
 };
 
+/** `{이름}이를/를 ~ 처리했어요` — 받침 있으면 주격+목적격(이를), 없으면 목적격(를) */
+export const getSubjectObjectParticle = (word: string): '이를' | '를' => {
+  return getObjectParticle(word) === '를' ? '를' : '이를';
+};
+
 export const getDirectionParticle = (word: string): '로' | '으로' => {
   if (!word || word.length === 0) {
     return '으로';
