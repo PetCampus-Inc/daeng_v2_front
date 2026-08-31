@@ -60,7 +60,7 @@ function GuardianConnectionApplyCancelSheet({
             </div>
           </BottomSheet.Content>
 
-          <div className='grid w-full grid-cols-2 gap-2 p-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
+          <div className='grid w-full grid-cols-2 gap-2 px-5 pt-5 pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
             <ActionButton
               type='button'
               variant='secondaryLine'
