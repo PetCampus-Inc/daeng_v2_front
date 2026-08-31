@@ -25,7 +25,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { useDebounced } from '@shared/lib';
 import { ApiError, REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { toast } from '@shared/ui/toast';
-import { getObjectParticle } from '@shared/utils';
+import { getSubjectObjectParticle } from '@shared/utils';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -279,7 +279,7 @@ function useOwnerDailyPage() {
     try {
       await checkInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       trackAttendanceAction({ action: 'check_in' });
-      const checkInSuffix = `${getObjectParticle(member.name)} 등원 처리했어요`;
+      const checkInSuffix = `${getSubjectObjectParticle(member.name)} 등원 처리했어요`;
       toast({
         type: 'success',
         nativeTitle: `${member.name}${checkInSuffix}`,
@@ -329,7 +329,7 @@ function useOwnerDailyPage() {
     try {
       await checkOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
       trackAttendanceAction({ action: 'check_out' });
-      const checkOutSuffix = `${getObjectParticle(member.name)} 하원 처리했어요`;
+      const checkOutSuffix = `${getSubjectObjectParticle(member.name)} 하원 처리했어요`;
       toast({
         type: 'success',
         nativeTitle: `${member.name}${checkOutSuffix}`,
