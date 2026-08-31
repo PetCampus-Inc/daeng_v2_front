@@ -375,7 +375,7 @@ function MypageOwnerKindergartenPage() {
           </TabsTrigger>
         </TabsList>
 
-        <div className='flex-1 overflow-y-auto'>
+        <div className='w-full flex-1 overflow-y-auto'>
           <TabsContent value={TAB.OPERATION}>
             <div className='px-4 pt-5'>
               <OwnerKindergartenImageBanner
