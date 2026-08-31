@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActionButton } from '@knockdog/ui';
 
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import type { GuardianConnectionApplyItem } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatus';
 import { guardianConnectionApplyStatusContent } from '@views/guardian-connection-apply-status-page/config/guardianConnectionApplyStatusContent';
 import { GuardianConnectionApplyPetSummary } from '@views/guardian-connection-apply-status-page/ui/GuardianConnectionApplyPetSummary';
@@ -45,7 +46,8 @@ function GuardianConnectionApplyCancelSheet({
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange} dismissible={!isSubmitting}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal'>
+      <BottomSheet.Body className='relative z-modal'>
+        <ActionLoadingOverlay isPending={isSubmitting} />
         <BottomSheet.Handle />
         <BottomSheet.Header className='border-line-100 border-b'>
           <BottomSheet.Title>{cancelSheet.title}</BottomSheet.Title>

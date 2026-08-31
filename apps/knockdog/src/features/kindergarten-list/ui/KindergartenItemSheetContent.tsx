@@ -3,7 +3,7 @@ import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { cn } from '@knockdog/ui/lib';
 import { motion, type MotionValue } from 'framer-motion';
 import { RemoveScroll } from 'react-remove-scroll';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import type { KindergartenMain } from '@entities/kindergarten';
 import { KindergartenCard } from './KindergartenCard';
 import { KindergartenDetail } from './KindergartenDetail';
@@ -47,7 +47,7 @@ export function KindergartenItemSheetContent({
         <BottomSheet.Handle />
         <BottomSheet.Title className='sr-only'>강아지 유치원 상세 정보</BottomSheet.Title>
         <div className='flex h-full w-full flex-col items-center justify-center'>
-          <LoadingSpinner />
+          <DelayedLoadingSpinner isLoading layout='inline' />
         </div>
       </>
     );

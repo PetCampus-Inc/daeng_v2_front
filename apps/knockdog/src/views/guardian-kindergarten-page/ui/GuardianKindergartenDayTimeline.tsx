@@ -2,8 +2,9 @@
 
 import { useMemo } from 'react';
 
-import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import type { GuardianCalendarDailyNotice } from '@entities/guardian-home';
+import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 
 import { GuardianDailyNoticeTimelineCard } from './GuardianDailyNoticeCard';
@@ -153,11 +154,7 @@ function GuardianKindergartenDayTimeline({
   }, [checkInAt, checkOutAt, dailyNotice, content.checkInLabel, content.checkOutLabel]);
 
   if (isLoading) {
-    return (
-      <div className='flex w-full flex-col items-center p-4'>
-        <p className='body1-medium text-text-tertiary text-center'>불러오는 중이에요</p>
-      </div>
-    );
+    return <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='w-full p-4' />;
   }
 
   if (!checkInAt) {

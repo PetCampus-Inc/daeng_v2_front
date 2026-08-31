@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
+import { InfiniteScrollFooter } from '@shared/ui/loading-spinner';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import type { NotificationInboxItem as NotificationInboxItemModel } from '@views/notification-inbox-page/config/notificationInboxTypes';
 import { NotificationInboxItem } from '@views/notification-inbox-page/ui/NotificationInboxItem';
@@ -43,7 +44,11 @@ function NotificationInboxList({
       </ul>
 
       {hasNextPage ? (
-        <div ref={lastElementCallback} aria-hidden='true' className='h-4' />
+        <InfiniteScrollFooter
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          sentinelRef={lastElementCallback}
+        />
       ) : (
         <p className='label-medium text-text-caption flex items-center justify-center p-4 text-center'>
           {notificationInboxContent.listFooterCaption}

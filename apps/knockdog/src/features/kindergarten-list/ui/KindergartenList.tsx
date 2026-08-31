@@ -41,6 +41,7 @@ import { type BasePointType, useBasePointType } from '@shared/store';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
+import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
 import { ellipsisText, tokenUtils } from '@shared/utils';
 
 interface KindergartenListProps {
@@ -286,6 +287,8 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
         {/* 컨텐츠 영역 */}
         {isPermissionDenied ? (
           <PermissionSection />
+        ) : listQuery.isLoading && searchList.length === 0 && !exact ? (
+          <DelayedLoadingSpinner isLoading={listQuery.isLoading} layout='content' className='min-h-[240px]' />
         ) : totalCount === 0 && !listQuery.isLoading ? (
           <NoSearchResultSection />
         ) : (
@@ -309,6 +312,11 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
             ))}
           </div>
         )}
+        {isFetchingNextPage ? (
+          <div className='flex justify-center py-4'>
+            <LoadingSpinner layout='inline' />
+          </div>
+        ) : null}
         <div ref={loadMoreRef} aria-hidden='true' className='h-4' />
       </main>
 

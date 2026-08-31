@@ -1,8 +1,9 @@
-import { HTTPError, type NormalizedOptions } from 'ky';
+import { HTTPError, TimeoutError, type NormalizedOptions } from 'ky';
 
 import { retryWithTokenRefresh } from './retryWithTokenRefresh';
 
 import { ApiError } from '../model/error';
+import { REQUEST_FAILED_MESSAGE } from '../config/messages';
 import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 
 import { tokenUtils } from '@shared/utils';
@@ -136,7 +137,11 @@ const tokenRefreshInterceptor = async (
  *
  * @description API 에러 응답 데이터를 `ApiError` 객체로 변환하여 반환하는 인터셉터입니다.
  */
-const transformErrorInterceptor = async (error: HTTPError) => {
+const transformErrorInterceptor = async (error: HTTPError | TimeoutError) => {
+  if (error instanceof TimeoutError) {
+    throw new ApiError(408, 'TIMEOUT', REQUEST_FAILED_MESSAGE);
+  }
+
   const { status } = error.response;
 
   const response = await error.response.clone().json();

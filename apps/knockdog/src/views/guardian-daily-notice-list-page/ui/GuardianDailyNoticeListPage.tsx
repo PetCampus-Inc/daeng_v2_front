@@ -29,7 +29,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { addMonths, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 function startOfMonth(date: Date) {
@@ -360,9 +360,7 @@ function GuardianDailyNoticeListPage() {
           aria-label={content.listAriaLabel}
         >
           {isListLoading && !hasRows ? (
-            <div className='flex min-h-0 flex-1 items-center justify-center'>
-              <RingLoadingSpinner />
-            </div>
+            <DelayedLoadingSpinner isLoading={isListLoading} layout='content' />
           ) : hasRows ? (
             <GuardianDailyNoticeListMonthList
               timeline={timeline}

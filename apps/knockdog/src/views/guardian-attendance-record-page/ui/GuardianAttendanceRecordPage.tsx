@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useGuardianCalendarDetailQuery } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 function validDate(value: string | null) {
@@ -38,7 +39,13 @@ function GuardianAttendanceRecordPage() {
     return <PageError layout='overlay' onRetry={() => void back()} />;
   }
 
-  if (query.isPending) return <main className='bg-bg-0 min-h-dvh p-4' />;
+  if (query.isPending) {
+    return (
+      <div className='bg-bg-0 flex min-h-dvh flex-col'>
+        <DelayedLoadingSpinner isLoading={query.isPending} layout='content' />
+      </div>
+    );
+  }
   if (query.isError) {
     return <PageError layout='overlay' isRetrying={query.isFetching} onRetry={() => void query.refetch()} />;
   }

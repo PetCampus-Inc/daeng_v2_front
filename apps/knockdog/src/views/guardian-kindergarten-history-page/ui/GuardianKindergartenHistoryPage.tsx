@@ -5,7 +5,7 @@ import { useGuardianConnectionHistory } from '@views/guardian-kindergarten-histo
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
 import { PageError } from '@shared/ui/page-error';
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { getSubjectParticle } from '@shared/utils';
 
 import { GuardianConnectionHistoryCard } from './GuardianConnectionHistoryCard';
@@ -43,9 +43,7 @@ function GuardianKindergartenHistoryPage() {
 
           <div className='px-x4 flex flex-col gap-3 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
             {isPending ? (
-              <div className='flex justify-center py-16'>
-                <RingLoadingSpinner />
-              </div>
+              <DelayedLoadingSpinner isLoading={isPending} layout='content' className='min-h-[200px]' />
             ) : (
               items.map((item) => <GuardianConnectionHistoryCard key={item.id} item={item} />)
             )}

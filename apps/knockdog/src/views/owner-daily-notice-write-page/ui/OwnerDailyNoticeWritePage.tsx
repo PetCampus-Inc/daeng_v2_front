@@ -62,6 +62,7 @@ import { trackNotebookAction } from '@shared/lib/analytics';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
+import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { SafeArea } from '@shared/ui/safe-area';
 import { toast } from '@shared/ui/toast';
 
@@ -355,6 +356,8 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const handleBackClick = useCallback(() => {
+    if (isSubmitting) return;
+
     if (isReadOnly) {
       returnToOwnerDailyTodayAttendance();
       return;
@@ -395,7 +398,7 @@ function OwnerDailyNoticeWritePage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  }, [isReadOnly, returnToOwnerDailyTodayAttendance]);
+  }, [isReadOnly, isSubmitting, returnToOwnerDailyTodayAttendance]);
 
   useNativeBackHandler(handleBackClick);
 
@@ -788,12 +791,13 @@ function OwnerDailyNoticeWritePage() {
      * 주황 헤더가 edge-to-edge로 상태바 뒤까지 칠해지게 한 뒤 콘텐츠만 pt로 내림
      */
     <div
-      className='-mt-[var(--safe-area-inset-top,0px)] flex h-dvh flex-col pt-(--safe-area-inset-top,0px)'
+      className='-mt-[var(--safe-area-inset-top,0px)] relative flex h-dvh flex-col pt-(--safe-area-inset-top,0px)'
       style={{
         background:
           'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
       }}
     >
+      <ActionLoadingOverlay isPending={isSubmitting} />
       <div className='relative overflow-hidden'>
         <Icon
           icon='Paw'

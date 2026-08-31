@@ -10,6 +10,7 @@ import { OwnerMemberMoreMenu } from '@views/owner-members-page/ui/OwnerMemberMor
 import { OwnerMemberCard } from '@features/owner-members';
 
 import type { OwnerMember } from '@entities/owner-member';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
@@ -49,7 +50,15 @@ function OwnerMembersList({
 }: OwnerMembersListProps) {
   const { push } = useStackNavigation();
 
-  if (isLoading) return <div className='min-h-0 w-full flex-1 pb-[calc(var(--bottom-bar-height)+88px)]' />;
+  if (isLoading) {
+    return (
+      <DelayedLoadingSpinner
+        isLoading={isLoading}
+        layout='content'
+        className='min-h-0 w-full flex-1 pb-[calc(var(--bottom-bar-height)+88px)]'
+      />
+    );
+  }
 
   if (isError) {
     return (

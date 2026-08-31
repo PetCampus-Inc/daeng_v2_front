@@ -15,6 +15,7 @@ import { OwnerAlbumUploadButton } from '@views/owner-album-page/ui/OwnerAlbumUpl
 import { OwnerAlbumUploadModal } from '@views/owner-album-page/ui/OwnerAlbumUploadModal';
 
 import { Header } from '@widgets/Header';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function OwnerAlbumPage() {
   const {
@@ -23,6 +24,7 @@ function OwnerAlbumPage() {
     isUploading,
     hasNextPage,
     isFetchingNextPage,
+    isPhotosLoading,
     fetchNextPage,
     handleUploadClick,
     removePhoto,
@@ -59,7 +61,9 @@ function OwnerAlbumPage() {
       </div>
 
       <main className={`${hasPhotos ? 'bg-bg-50' : 'bg-bg-0'} relative flex min-h-0 flex-1 flex-col`}>
-        {hasPhotos ? (
+        {isPhotosLoading && !hasPhotos ? (
+          <DelayedLoadingSpinner isLoading={isPhotosLoading} layout='content' />
+        ) : hasPhotos ? (
           <OwnerAlbumPhotoList
             photos={photos}
             onPhotoClick={handlePhotoClick}

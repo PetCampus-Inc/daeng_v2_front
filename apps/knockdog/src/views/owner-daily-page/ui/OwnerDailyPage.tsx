@@ -21,6 +21,7 @@ import {
   type TodayAttendanceFilter,
 } from '@views/owner-daily-page/ui/TodayAttendanceTab';
 import { Header } from '@widgets/Header';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 type OwnerDailyTab = 'attendance-check' | 'today-attendance';
 
@@ -308,7 +309,7 @@ function OwnerDailyPage() {
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
         <OwnerDailySummarySection dateLabel={dateLabel} summaryItems={summaryItems} />
         {isLoading ? (
-          <div className='bg-bg-50 min-h-0 flex-1' />
+          <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-bg-50' />
         ) : isError ? (
           <div className='bg-bg-50 flex min-h-0 flex-1 items-center justify-center px-4 pb-[calc(var(--bottom-bar-height)+30px)]'>
             <div className='flex flex-col items-center gap-1 text-center'>

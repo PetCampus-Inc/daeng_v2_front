@@ -43,7 +43,7 @@ import {
   parseNotificationEntrySource,
   useUnavailableNotificationAction,
 } from '@shared/lib/notification';
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
 const SAFE_AREA_INSET_TOP = 'max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px))';
@@ -359,8 +359,26 @@ function GuardianDailyNoticeDetailPage() {
 
   if (isTargetUnavailable) {
     return (
-      <div className='flex h-dvh items-center justify-center'>
-        <RingLoadingSpinner />
+      <div
+        className='flex h-dvh flex-col'
+        style={{
+          marginTop: `calc(-1 * ${SAFE_AREA_INSET_TOP})`,
+          paddingTop: SAFE_AREA_INSET_TOP,
+          background:
+            'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
+        }}
+      >
+        <div className='relative z-20 shrink-0 pb-5'>
+          <Header variant='transparent' className='border-none'>
+            <Header.LeftSection>
+              <Header.BackButton className='text-text-primary-inverse' />
+            </Header.LeftSection>
+            <Header.Title className='text-text-primary-inverse'>{content.pageTitle}</Header.Title>
+          </Header>
+        </div>
+        <div className='bg-bg-0 relative min-h-0 flex-1 overflow-hidden rounded-t-[24px]'>
+          <DelayedLoadingSpinner isLoading layout='content' />
+        </div>
       </div>
     );
   }
@@ -425,9 +443,11 @@ function GuardianDailyNoticeDetailPage() {
               </div>
             ) : isContentLoading ? (
               /* --:--·미작성 블록이 먼저 스치지 않도록 날짜·응답 확정까지 로딩 */
-              <div className='flex min-h-[282px] flex-1 items-center justify-center'>
-                <RingLoadingSpinner />
-              </div>
+              <DelayedLoadingSpinner
+                isLoading={isContentLoading}
+                layout='content'
+                className='min-h-[282px]'
+              />
             ) : (
               <>
                 <div className='flex w-full shrink-0 items-start justify-between'>

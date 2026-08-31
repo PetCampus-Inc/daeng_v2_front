@@ -56,6 +56,7 @@ import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 interface GuardianAlbumDetailState {
@@ -798,7 +799,25 @@ function GuardianAlbumPage() {
     });
   }, [isEntryRetrying, refetchAlbumMonth, refetchAlbumToday]);
 
-  if (!isReady) return null;
+  if (isAlbumTodayError && !isReady) {
+    return (
+      <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+        <PageError
+          layout='inline'
+          isRetrying={isEntryRetrying || isAlbumTodayFetching}
+          onRetry={handleEntryRetry}
+        />
+      </div>
+    );
+  }
+
+  if (!isReady) {
+    return (
+      <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
 
   const isEntryLoadError = isAlbumTodayError || searchParams.get('entryError') === '1';
   const showTodaySection = !isDisconnected && isAttendedToday && activeSchoolId === schoolId;
@@ -815,7 +834,9 @@ function GuardianAlbumPage() {
     />
   );
 
-  const monthListBody = isMonthListLoading ? null : !hasMonthTimelineContent ? (
+  const monthListBody = isMonthListLoading ? (
+    <DelayedLoadingSpinner isLoading={isMonthListLoading} layout='content' />
+  ) : !hasMonthTimelineContent ? (
     <>
       {showAttendedUntilMessage ? (
         <p className='body1-medium text-text-secondary mt-5 px-4 py-4 text-center'>

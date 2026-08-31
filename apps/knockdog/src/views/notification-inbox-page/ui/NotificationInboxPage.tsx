@@ -3,6 +3,7 @@
 import { overlay } from 'overlay-kit';
 
 import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 import { trackNotificationOpen } from '@shared/lib/analytics';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
@@ -86,7 +87,7 @@ function NotificationInboxPage() {
       {isError ? (
         <PageError layout='inline' className='bg-bg-50' isRetrying={isFetching} onRetry={handleRetry} />
       ) : isPending ? (
-        <div className='min-h-0 flex-1 bg-bg-50' />
+        <DelayedLoadingSpinner isLoading={isPending} layout='content' className='bg-bg-50' />
       ) : (
         <div className='min-h-0 flex-1 overflow-y-auto'>
           {items.length === 0 ? (

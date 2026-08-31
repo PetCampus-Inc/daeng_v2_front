@@ -10,6 +10,9 @@ function makeQueryClient() {
         retryOnMount: false,
         staleTime: 60 * 1000,
       },
+      mutations: {
+        retry: 0,
+      },
       dehydrate: {
         // include pending queries in dehydration
         shouldDehydrateQuery: (query) => defaultShouldDehydrateQuery(query) || query.state.status === 'pending',

@@ -23,6 +23,7 @@ import { useUserStore } from '@entities/user';
 import { ownerDailyNoticeTemplateDetailContent } from '@views/owner-daily-notice-template-detail-page/config/ownerDailyNoticeTemplateDetailContent';
 import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
@@ -122,7 +123,21 @@ function OwnerDailyNoticeTemplateDetailPage() {
     });
   };
 
-  if (isLoading || !template) {
+  if (isLoading) {
+    return (
+      <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+        <Header className='bg-bg-50'>
+          <Header.LeftSection>
+            <Header.BackButton />
+          </Header.LeftSection>
+          <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
+        </Header>
+        <DelayedLoadingSpinner isLoading={isLoading} layout='content' />
+      </div>
+    );
+  }
+
+  if (!template) {
     return (
       <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
         <Header className='bg-bg-50'>
@@ -132,9 +147,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
           <Header.Title>{ownerDailyNoticeTemplateDetailContent.pageTitle}</Header.Title>
         </Header>
         <div className='flex flex-1 items-center justify-center px-4'>
-          <p className='body1-regular text-text-secondary'>
-            {isLoading ? '템플릿을 불러오는 중이에요' : '템플릿을 찾을 수 없어요'}
-          </p>
+          <p className='body1-regular text-text-secondary'>템플릿을 찾을 수 없어요</p>
         </div>
       </div>
     );

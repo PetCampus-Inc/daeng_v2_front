@@ -11,6 +11,7 @@ import { useBridge } from '@shared/lib/bridge/BridgeProvider';
 import { isNativeWebView } from '../device/isNativeWebView';
 import { getPreviewImage } from './api/getPreviewImage';
 import { getUploadImage } from './api/getUploadImage';
+import { isImageUploadNetworkError } from './imageUploadError';
 
 interface WebImageAsset extends ImageAsset {
   uri: string;
@@ -56,17 +57,6 @@ function validateFile(file: File): SkipReason | null {
   if (file.size > MAX_FILE_SIZE_BYTES) return 'oversized';
   if (file.size <= 0) return 'unreadable';
   return null;
-}
-
-function isNetworkError(error: unknown) {
-  if (!(error instanceof Error)) return false;
-  const message = error.message.toLowerCase();
-  return (
-    message.includes('network') ||
-    message.includes('failed to fetch') ||
-    message.includes('s3 업로드') ||
-    message.includes('상태 코드')
-  );
 }
 
 async function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
@@ -137,7 +127,8 @@ async function resizeWebImageIfNeeded(file: File, resizeThresholdBytes?: number,
 }
 
 async function uploadFileToS3(uploadUrl: string, file: File) {
-  const response = await fetch(uploadUrl, {
+  const { fetchWithUploadTimeout } = await import('@shared/api/lib/fetchWithUploadTimeout');
+  const response = await fetchWithUploadTimeout(uploadUrl, {
     method: 'PUT',
     headers: {
       'Content-Type': file.type || 'application/octet-stream',
@@ -242,7 +233,7 @@ async function uploadFilesWithValidation(
       uploadedAssets.push(asset);
     } catch (error) {
       console.error('웹 이미지 업로드 실패:', error);
-      if (isNetworkError(error)) {
+      if (isImageUploadNetworkError(error)) {
         hasNetworkError = true;
       } else {
         unreadableCount += 1;

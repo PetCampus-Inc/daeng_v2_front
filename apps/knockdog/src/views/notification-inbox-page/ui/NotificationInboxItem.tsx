@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import type { NotificationInboxItem as NotificationInboxItemModel } from '@views/notification-inbox-page/config/notificationInboxTypes';
@@ -13,6 +15,12 @@ interface NotificationInboxItemProps {
 function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
   const relativeTime = formatNotificationRelativeTime(item.sentAt);
   const imageSrc = item.kindergartenImageUrl;
+  const [hasImageError, setHasImageError] = useState(false);
+  const showImage = Boolean(imageSrc) && !hasImageError;
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [imageSrc]);
 
   const handleClick = () => {
     onClick?.(item);
@@ -28,8 +36,8 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
       )}
     >
       <div className='gap-x3 flex min-w-0 flex-1 items-start'>
-        <div className='bg-bg-100 relative size-[50px] shrink-0 overflow-hidden rounded-lg'>
-          {imageSrc ? (
+        <div className='relative size-[50px] shrink-0 overflow-hidden rounded-lg'>
+          {showImage ? (
             // eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 지도 카드와 동일하게 img로 로드
             <img
               src={imageSrc}
@@ -38,8 +46,16 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
               loading='lazy'
               decoding='async'
               referrerPolicy='no-referrer'
+              onError={() => setHasImageError(true)}
             />
-          ) : null}
+          ) : (
+            <div
+              className='bg-fill-secondary-50 flex size-full items-center justify-center'
+              aria-hidden='true'
+            >
+              <Icon icon='Paw' className='text-fill-secondary-300 size-5' />
+            </div>
+          )}
         </div>
 
         <div className='gap-x1 flex min-w-0 flex-1 flex-col items-start justify-center'>

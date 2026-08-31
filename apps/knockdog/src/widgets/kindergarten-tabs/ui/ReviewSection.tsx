@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { ReviewCard } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import { useInfiniteScroll } from '@shared/lib';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
 
 const Header = () => (
   <div className='mb-3 flex'>
@@ -15,10 +15,8 @@ const Header = () => (
   </div>
 );
 
-const LoadingState = () => (
-  <div className='flex justify-center py-8'>
-    <LoadingSpinner />
-  </div>
+const LoadingState = ({ isLoading }: { isLoading: boolean }) => (
+  <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
 );
 
 const ErrorState = () => (
@@ -50,7 +48,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const allReviews = data?.pages.flatMap((page) => page.reviews) ?? [];
 
   const renderContent = () => {
-    if (isLoading) return <LoadingState />;
+    if (isLoading) return <LoadingState isLoading={isLoading} />;
     if (isError) return <ErrorState />;
     if (allReviews.length === 0) return <EmptyState />;
 
@@ -62,11 +60,11 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
           </div>
         ))}
 
-        {isFetchingNextPage && (
+        {isFetchingNextPage ? (
           <div className='flex justify-center py-4'>
-            <span className='text-text-tertiary text-sm'>더 많은 리뷰를 불러오는 중...</span>
+            <LoadingSpinner layout='inline' />
           </div>
-        )}
+        ) : null}
       </>
     );
   };

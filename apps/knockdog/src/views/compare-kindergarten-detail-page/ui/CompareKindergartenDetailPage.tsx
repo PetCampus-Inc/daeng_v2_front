@@ -15,6 +15,8 @@ import { getCurrentTxId, useStackNavigation, useTabNavigation } from '@shared/li
 import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useCompareStore } from '@shared/store';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 
 function CompareKindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
@@ -31,7 +33,7 @@ function CompareKindergartenDetailPage() {
   const { position } = useCurrentLocation();
   const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
 
-  const { data: kindergartenMain } = useKindergartenMainQuery({
+  const { data: kindergartenMain, isPending, isError, isFetching, refetch } = useKindergartenMainQuery({
     id: id ?? '',
     lng,
     lat,
@@ -79,7 +81,35 @@ function CompareKindergartenDetailPage() {
     void navigateToTab('/');
   };
 
-  if (!id || lng == null || lat == null || !kindergartenMain) return null;
+  if (!id || lng == null || lat == null) return null;
+
+  if (isError) {
+    return (
+      <div className='flex h-full flex-col'>
+        <Header className='shrink-0'>
+          <Header.LeftSection>
+            <Header.BackButton />
+            <Header.HomeButton onClick={handleHomeClick} />
+          </Header.LeftSection>
+        </Header>
+        <PageError layout='inline' isRetrying={isFetching} onRetry={() => void refetch()} />
+      </div>
+    );
+  }
+
+  if (isPending || !kindergartenMain) {
+    return (
+      <div className='flex h-full flex-col'>
+        <Header className='shrink-0'>
+          <Header.LeftSection>
+            <Header.BackButton />
+            <Header.HomeButton onClick={handleHomeClick} />
+          </Header.LeftSection>
+        </Header>
+        <DelayedLoadingSpinner isLoading={isPending || !kindergartenMain} layout='content' />
+      </div>
+    );
+  }
 
   const bannerImages = (kindergartenMain.banner ?? []).filter(Boolean);
 

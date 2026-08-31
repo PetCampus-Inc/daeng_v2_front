@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { ActionButton, ProgressBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
@@ -9,16 +10,37 @@ import { KindergartenInfoSummary } from '@views/role-conversion/ui/KindergartenI
 
 import { kindergartenConfirmContent } from '@views/role-conversion/kindergarten-confirm/config/kindergartenConfirmContent';
 import { useKindergartenConfirmPage } from '@views/role-conversion/kindergarten-confirm/model/useKindergartenConfirmPage';
+import { ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 
 function KindergartenConfirmPage() {
+  const { back } = useStackNavigation();
   const { displayItems, isReady, isPending, handleNo, handleYes } = useKindergartenConfirmPage();
 
-  if (!isReady) return null;
+  const handleBack = useCallback(() => {
+    if (isPending) return;
+    back();
+  }, [back, isPending]);
+
+  useNativeBackHandler(handleBack);
+
+  if (!isReady) {
+    return (
+      <div className='flex h-full flex-col'>
+        <Header>
+          <Header.BackButton onClick={handleBack} />
+          <Header.Title>{kindergartenConfirmContent.headerTitle}</Header.Title>
+        </Header>
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
 
   return (
-    <div className='flex h-full flex-col'>
+    <div className='relative flex h-full flex-col'>
+      <ActionLoadingOverlay isPending={isPending} />
       <Header>
-        <Header.BackButton />
+        <Header.BackButton onClick={handleBack} />
         <Header.Title>{kindergartenConfirmContent.headerTitle}</Header.Title>
       </Header>
 

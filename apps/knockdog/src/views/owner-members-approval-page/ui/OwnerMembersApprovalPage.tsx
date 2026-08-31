@@ -15,6 +15,7 @@ import {
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 function showCancelledRequestToast() {
@@ -173,7 +174,7 @@ function OwnerMembersApprovalPage() {
 
       <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
         {isInitialPending ? (
-          <div className='min-h-full w-full' />
+          <DelayedLoadingSpinner isLoading={isInitialPending} layout='content' />
         ) : pendingMembersQuery.isError ? (
           <ApprovalErrorState />
         ) : approvalRequests.length === 0 ? (

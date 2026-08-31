@@ -18,6 +18,7 @@ import { getCurrentTxId, useNavigationResult, useStackNavigation, useTabNavigati
 import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useBasePoint } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 /** 기준점(현위치/집/회사) 미준비 시 거리 계산용 폴백 — 비교 상세와 동일 */
 const FALLBACK_COORD = { lng: 126.883439, lat: 37.511281 };
@@ -102,7 +103,14 @@ function KindergartenDetailPage() {
   }
 
   if (isPending || !kindergartenMain) {
-    return <main className='bg-bg-0 min-h-dvh' />;
+    return (
+      <div className='bg-bg-0 flex h-dvh flex-col'>
+        <Header>
+          <Header.LeftSection>{isNative ? <Header.BackButton /> : null}</Header.LeftSection>
+        </Header>
+        <DelayedLoadingSpinner isLoading={isPending || !kindergartenMain} layout='content' />
+      </div>
+    );
   }
 
   const bannerImages = (kindergartenMain.banner ?? []).filter(Boolean);

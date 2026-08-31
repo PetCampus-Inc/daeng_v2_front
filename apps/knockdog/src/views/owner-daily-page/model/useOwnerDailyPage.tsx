@@ -23,7 +23,7 @@ import { route } from '@shared/constants/route';
 import { trackAttendanceAction } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useDebounced } from '@shared/lib';
-import { ApiError } from '@shared/api';
+import { ApiError, REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { toast } from '@shared/ui/toast';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -213,8 +213,8 @@ function useOwnerDailyPage() {
 
   const showRequestFailureToast = () => {
     toast({
-      title: '일시적 오류로 요청을 완료하지 못했어요',
-      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+      title: REQUEST_FAILED_MESSAGE,
+      nativeTitle: REQUEST_FAILED_MESSAGE,
     });
   };
 

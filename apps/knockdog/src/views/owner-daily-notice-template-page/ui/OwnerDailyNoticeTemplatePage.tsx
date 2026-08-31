@@ -18,6 +18,7 @@ import { ownerDailyNoticeTemplateContent } from '@views/owner-daily-notice-templ
 import { OwnerNoticeTemplateRadioCard } from '@views/owner-daily-notice-template-page/ui/OwnerNoticeTemplateRadioCard';
 import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib/useExpiredNoticeDialog';
 
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
@@ -115,9 +116,7 @@ function OwnerDailyNoticeTemplatePage() {
       </div>
 
       {isLoading ? (
-        <div className='flex min-h-0 flex-1 items-center justify-center px-4 py-4'>
-          <p className='body1-regular text-text-secondary'>템플릿을 불러오는 중이에요</p>
-        </div>
+        <DelayedLoadingSpinner isLoading={isLoading} layout='content' />
       ) : hasTemplates ? (
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4'>
           <RadioGroup
