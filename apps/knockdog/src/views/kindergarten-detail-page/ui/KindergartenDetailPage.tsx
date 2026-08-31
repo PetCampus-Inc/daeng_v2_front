@@ -14,7 +14,7 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
 import { isNativeWebView, useShare } from '@shared/lib/device';
-import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { getCurrentTxId, useNavigationResult, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useBasePoint } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
@@ -51,6 +51,7 @@ function KindergartenDetailPage() {
   const id = params?.id;
 
   const { back } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const navResult = useNavigationResult<boolean>();
   const { coord } = useBasePoint();
   const lng = coord?.lng ?? FALLBACK_COORD.lng;
@@ -115,8 +116,13 @@ function KindergartenDetailPage() {
   };
 
   const handleHomeClick = () => {
-    navResult.send(true);
-    back();
+    if (getCurrentTxId()) {
+      navResult.send(true);
+      void back();
+      return;
+    }
+
+    void navigateToTab('/');
   };
 
   const handleReviewClick = () => {
