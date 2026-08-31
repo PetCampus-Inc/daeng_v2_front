@@ -21,7 +21,7 @@ import {
 } from '@entities/user';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
-import { appendEntrySourceToInvitePath, useScreenAnalyticsTitle } from '@shared/lib/analytics';
+import { appendEntrySourceToInvitePath, parseEntrySourceFromQuery, useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -92,7 +92,10 @@ function GuardianInvitePage() {
   // 모바일 브라우저 폴백은 스토어로, 그 외 웹은 기존 초대 페이지로 유지한다.
   if (!isPlatformResolved) return null;
 
-  if (!isNative && isMobileBrowser) return <GuardianInviteAppInstallPage token={token} />;
+  if (!isNative && isMobileBrowser) {
+    const entrySource = parseEntrySourceFromQuery(searchParams) ?? 'invite_qr';
+    return <GuardianInviteAppInstallPage token={token} entrySource={entrySource} />;
+  }
 
   if (!isNative) return <GuardianInviteProfilePage token={token} inviteRedirectPath={inviteRedirectPath} />;
 

@@ -567,8 +567,9 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
 
+    const payload = buildPayload();
+
     try {
-      const payload = buildPayload();
       const payloadSignature = JSON.stringify(payload);
       const previousAttempt = sendAttemptRef.current;
       const idempotencyKey =
@@ -578,45 +579,6 @@ function OwnerDailyNoticeWritePage() {
 
       sendAttemptRef.current = { idempotencyKey, payloadSignature };
       await sendMutation.mutateAsync({ payload, idempotencyKey });
-      sendAttemptRef.current = null;
-      trackNotebookAction({
-        action: isEditMode ? 'edit' : 'send',
-        role: 'owner',
-        result: 'success',
-      });
-      clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
-
-      queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
-        status: 200,
-        code: 'OK',
-        message: '',
-        data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
-      });
-      setIsEditingSent(false);
-      safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
-      safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
-      // replace만 하면 템플릿 push로 쌓인 중간 Stack이 남아 뒤로가기 시 템플릿으로 돌아감.
-      // reset으로 [OwnerDaily, 작성]만 남겨 뒤로가기가 /owner/daily로 가게 함.
-      await reset(route.owner.daily.notice.write.root.replace('[id]', noticeId), {
-        ...(isExpired ? { expired: 'true' } : {}),
-      });
-
-      toast({
-        type: 'success',
-        shape: 'rounded',
-        position: 'bottom',
-        nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
-        titleParts: [
-          { text: '알림장', accent: true },
-          { text: '을 보냈어요. 오늘까지 수정할 수 있어요' },
-        ],
-        title: (
-          <>
-            <span className='body1-bold text-text-accent'>알림장</span>
-            <span className='body1-medium text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
-          </>
-        ),
-      });
     } catch {
       trackNotebookAction({
         action: isEditMode ? 'edit' : 'send',
@@ -661,6 +623,52 @@ function OwnerDailyNoticeWritePage() {
           </AlertDialogContent>
         </AlertDialog>
       ));
+      return;
+    }
+
+    sendAttemptRef.current = null;
+    trackNotebookAction({
+      action: isEditMode ? 'edit' : 'send',
+      role: 'owner',
+      result: 'success',
+    });
+
+    try {
+      clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
+
+      queryClient.setQueryData(ownerAttendanceRecordQueryKey(noticeId, noticeWriteDate.dateKey), {
+        status: 200,
+        code: 'OK',
+        message: '',
+        data: toAttendanceRecordDtoFromPayload(payload, 'SENT'),
+      });
+      setIsEditingSent(false);
+      safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
+      safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, 'today-attendance');
+      // replace만 하면 템플릿 push로 쌓인 중간 Stack이 남아 뒤로가기 시 템플릿으로 돌아감.
+      // reset으로 [OwnerDaily, 작성]만 남겨 뒤로가기가 /owner/daily로 가게 함.
+      await reset(route.owner.daily.notice.write.root.replace('[id]', noticeId), {
+        ...(isExpired ? { expired: 'true' } : {}),
+      });
+
+      toast({
+        type: 'success',
+        shape: 'rounded',
+        position: 'bottom',
+        nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
+        titleParts: [
+          { text: '알림장', accent: true },
+          { text: '을 보냈어요. 오늘까지 수정할 수 있어요' },
+        ],
+        title: (
+          <>
+            <span className='body1-bold text-text-accent'>알림장</span>
+            <span className='body1-medium text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
+          </>
+        ),
+      });
+    } catch (postSuccessError) {
+      console.error('[owner-daily-notice] post-send handling failed', postSuccessError);
     }
   };
 

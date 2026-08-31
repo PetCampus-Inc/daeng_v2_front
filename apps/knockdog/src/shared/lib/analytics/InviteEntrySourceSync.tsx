@@ -1,16 +1,19 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
-import { persistInviteEntrySource } from './entrySource';
+import { extractInviteTokenFromPath, persistInviteEntrySource } from './entrySource';
 
 function InviteEntrySourceSync() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const token = extractInviteTokenFromPath(pathname ?? '');
 
   useEffect(() => {
-    persistInviteEntrySource(searchParams);
-  }, [searchParams]);
+    if (!token) return;
+    persistInviteEntrySource(searchParams, token);
+  }, [searchParams, token]);
 
   return null;
 }

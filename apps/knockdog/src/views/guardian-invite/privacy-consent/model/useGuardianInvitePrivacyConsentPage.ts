@@ -104,7 +104,7 @@ function useGuardianInvitePrivacyConsentPage() {
         trackConnectionStatus({
           status: 'submit',
           actor: 'guardian',
-          entry_source: getInviteEntrySource(),
+          entry_source: getInviteEntrySource(token),
         });
       }
       const failedPets = validPetIds

@@ -107,6 +107,7 @@ function useOwnerAlbumUpload() {
 
     isUploadInFlightRef.current = true;
     let shouldTrackUploadResult = false;
+    let uploadSucceeded = false;
 
     try {
       const result = await pickImage(
@@ -156,7 +157,12 @@ function useOwnerAlbumUpload() {
 
       if (uploadResult.uploaded.length > 0) {
         trackAlbumAction({ action: 'upload', role: 'owner', result: 'success' });
-        await invalidatePhotos();
+        uploadSucceeded = true;
+        try {
+          await invalidatePhotos();
+        } catch (invalidateError) {
+          console.error('[owner-album] invalidate after upload failed', invalidateError);
+        }
       } else {
         trackAlbumAction({ action: 'upload', role: 'owner', result: 'fail' });
       }
@@ -193,7 +199,7 @@ function useOwnerAlbumUpload() {
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
 
-      if (shouldTrackUploadResult) {
+      if (shouldTrackUploadResult && !uploadSucceeded) {
         trackAlbumAction({ action: 'upload', role: 'owner', result: 'fail' });
       }
 
