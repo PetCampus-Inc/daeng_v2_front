@@ -135,19 +135,22 @@ function GuardianDogSelectSheet({
                         <span className='absolute inset-[3px] rounded-full bg-white' aria-hidden='true' />
                         <Icon icon='CheckFill' className='text-text-accent relative size-6' />
                       </span>
-                    ) : dog.isRepresentative ? (
-                      <Icon icon='Maindog' className='text-text-accent absolute right-0 bottom-0 size-6' />
                     ) : null}
                   </div>
 
                   <div className='gap-x2 flex min-w-0 flex-1 items-center'>
-                    <span
-                      className={cn(
-                        'body1-bold truncate',
-                        isSelected ? 'text-text-accent' : 'text-text-primary'
-                      )}
-                    >
-                      {dog.name}
+                    <span className='flex min-w-0 items-center gap-x-1.5'>
+                      <span
+                        className={cn(
+                          'body1-bold truncate',
+                          isSelected ? 'text-text-accent' : 'text-text-primary'
+                        )}
+                      >
+                        {dog.name}
+                      </span>
+                      {dog.isRepresentative ? (
+                        <Icon icon='Maindog' className='text-text-accent size-6 shrink-0' />
+                      ) : null}
                     </span>
                     {badge ? (
                       <span className='border-line-accent caption1-semibold text-text-accent shrink-0 rounded-full border px-2 py-1'>

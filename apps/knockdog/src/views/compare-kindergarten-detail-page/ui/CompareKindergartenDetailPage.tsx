@@ -11,7 +11,7 @@ import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from 
 import type { SelectedIds } from '@entities/compare/model/compare';
 import { isSelectedIds } from '@entities/compare';
 import { useCurrentLocation } from '@shared/lib/geolocation';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { getCurrentTxId, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useCompareStore } from '@shared/store';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
@@ -19,6 +19,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 function CompareKindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
   const { back, getParams } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
 
   // ============================================
   // 유치원 상세 정보 관련 상태
@@ -69,6 +70,15 @@ function CompareKindergartenDetailPage() {
     back();
   };
 
+  const handleHomeClick = () => {
+    if (getCurrentTxId()) {
+      void back();
+      return;
+    }
+
+    void navigateToTab('/');
+  };
+
   if (!id || lng == null || lat == null || !kindergartenMain) return null;
 
   const bannerImages = (kindergartenMain.banner ?? []).filter(Boolean);
@@ -78,7 +88,7 @@ function CompareKindergartenDetailPage() {
       <Header className='shrink-0'>
         <Header.LeftSection>
           <Header.BackButton />
-          <Header.HomeButton />
+          <Header.HomeButton onClick={handleHomeClick} />
         </Header.LeftSection>
 
         <Header.Title>{kindergartenMain?.title}</Header.Title>

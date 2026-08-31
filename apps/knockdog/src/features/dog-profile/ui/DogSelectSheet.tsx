@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Divider, Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
 import { usePetUpdateRepresentativeMutation, type Pet } from '@entities/pet';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { pickRoEuro } from '../lib/josa';
 
@@ -16,6 +17,29 @@ interface DogSelectSheetProps {
 export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => {
   const { mutateAsync: updatePetRepresentative } = usePetUpdateRepresentativeMutation();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) setShouldRender(true);
+  }, [isOpen]);
+
+  // 다른 탭으로 전환 시 시트를 닫고, 복귀 시 다시 열리지 않게 함
+  useEffect(() => {
+    const handleNativeTabBlur = () => {
+      setShouldRender(false);
+      close();
+    };
+
+    window.addEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
+    window.addEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-will-blur', handleNativeTabBlur);
+      window.removeEventListener('knockdog:native-tab-blur', handleNativeTabBlur);
+    };
+  }, [close]);
+
+  useNativeBackToClose(isOpen, close);
 
   const handleClose = (open?: boolean) => {
     if (open === false || open === undefined) {
@@ -64,6 +88,8 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
     }
   };
 
+  if (!shouldRender) return null;
+
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleClose}>
       <BottomSheet.Overlay className='z-overlay' />
@@ -90,11 +116,13 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
                       <Icon icon='Paw' className='text-fill-secondary-400 h-6 w-6' />
                     </AvatarFallback>
                   </Avatar>
-                  {dog.isRepresentative && (
-                    <Icon icon='Maindog' className='text-text-accent absolute right-0 bottom-0 size-6' />
-                  )}
                 </span>
-                <span className='body1-bold text-text-primary flex-1 text-left'>{dog.name}</span>
+                <span className='body1-bold text-text-primary flex min-w-0 flex-1 items-center gap-x-1.5 text-left'>
+                  <span className='truncate'>{dog.name}</span>
+                  {dog.isRepresentative ? (
+                    <Icon icon='Maindog' className='text-text-accent size-6 shrink-0' />
+                  ) : null}
+                </span>
               </button>
 
               {index < dogs.length - 1 && <Divider className='border-line-100 mx-4' />}
