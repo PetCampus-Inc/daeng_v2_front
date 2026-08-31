@@ -11,8 +11,6 @@ import {
   AlertDialogTitle,
 } from '@knockdog/ui';
 
-import { useNativeBackToClose } from '@shared/lib/bridge';
-
 interface UnsavedExitAlertDialogProps {
   isOpen: boolean;
   close: () => void;
@@ -32,8 +30,6 @@ function UnsavedExitAlertDialog({
   cancelLabel,
   confirmLabel,
 }: UnsavedExitAlertDialogProps) {
-  useNativeBackToClose(isOpen, close);
-
   return (
     <AlertDialog open={isOpen} onOpenChange={close}>
       <AlertDialogContent

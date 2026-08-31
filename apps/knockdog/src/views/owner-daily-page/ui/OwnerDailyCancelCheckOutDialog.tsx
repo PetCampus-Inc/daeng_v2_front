@@ -14,7 +14,6 @@ import {
 } from '@knockdog/ui';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
-import { useNativeBackToClose } from '@shared/lib/bridge';
 import { ellipsisText } from '@shared/utils';
 
 interface OwnerDailyCancelCheckOutDialogProps {
@@ -30,8 +29,6 @@ function OwnerDailyCancelCheckOutDialog({
   onOpenChange,
   onCancel,
 }: OwnerDailyCancelCheckOutDialogProps) {
-  useNativeBackToClose(open, () => onOpenChange(false));
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className='max-w-[358px]'>

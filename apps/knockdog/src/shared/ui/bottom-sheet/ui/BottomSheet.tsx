@@ -1,9 +1,29 @@
+'use client';
+
 import { BottomSheet as BottomSheetPrimitive } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import React from 'react';
 
-function BottomSheetRoot({ ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Root>) {
-  return <BottomSheetPrimitive.Root {...props} />;
+import { useNativeBackToClose } from '@shared/lib/bridge';
+
+function BottomSheetRoot({
+  open,
+  onOpenChange,
+  dismissible = true,
+  ...props
+}: React.ComponentProps<typeof BottomSheetPrimitive.Root>) {
+  const shouldCloseOnNativeBack = open === true && dismissible !== false;
+
+  useNativeBackToClose(shouldCloseOnNativeBack, () => onOpenChange?.(false));
+
+  return (
+    <BottomSheetPrimitive.Root
+      open={open}
+      onOpenChange={onOpenChange}
+      dismissible={dismissible}
+      {...props}
+    />
+  );
 }
 
 function BottomSheetNestedRoot({ ...props }: React.ComponentProps<typeof BottomSheetPrimitive.NestedRoot>) {

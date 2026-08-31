@@ -4,6 +4,7 @@ import { useMainTabModeStore } from '../model/mainTabModeStore';
 import { isExternalWebViewUrl } from './isFirstPartyWebViewUrl';
 import { navigationRef, isNavReady } from './navigationRef';
 import { pathToBaseTab, resolveTabScreen } from './tabRoutes';
+import { getFocusedRootName, handleAndroidTabBackNavigation } from './androidTabBackNavigation';
 
 const NATIVE_BACK_UNHANDLED_TYPE = 'knockdog:native-back-unhandled';
 
@@ -42,6 +43,10 @@ function handleNativeBackUnhandledMessage(event: WebViewMessageEvent): boolean {
     if (isExternalWebViewUrl(event.nativeEvent.url)) return true;
 
     if (!isNavReady()) return true;
+
+    if (getFocusedRootName() === 'Tabs') {
+      return handleAndroidTabBackNavigation();
+    }
 
     if (navigationRef.canGoBack()) {
       navigationRef.goBack();

@@ -5,7 +5,44 @@ import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
 import { cn } from '@knockdog/ui/lib';
 import { actionButtonVariants } from '../action-button';
 
-const AlertDialog = AlertDialogPrimitive.Root;
+const NATIVE_BACK_EVENT = 'knockdog:native-back';
+
+function useNativeBackToClose(isOpen: boolean, onClose: () => void) {
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const onNativeBack = (event: Event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    };
+
+    window.addEventListener(NATIVE_BACK_EVENT, onNativeBack, true);
+    return () => window.removeEventListener(NATIVE_BACK_EVENT, onNativeBack, true);
+  }, [isOpen, onClose]);
+}
+
+interface AlertDialogRootProps extends React.ComponentProps<typeof AlertDialogPrimitive.Root> {
+  /** false면 AOS 뒤로가기로 닫지 않음 */
+  closeOnNativeBack?: boolean;
+}
+
+function AlertDialogRoot({
+  open,
+  onOpenChange,
+  closeOnNativeBack = true,
+  ...props
+}: AlertDialogRootProps) {
+  const handleNativeBackClose = React.useCallback(() => {
+    onOpenChange?.(false);
+  }, [onOpenChange]);
+
+  useNativeBackToClose(open === true && closeOnNativeBack, handleNativeBackClose);
+
+  return <AlertDialogPrimitive.Root open={open} onOpenChange={onOpenChange} {...props} />;
+}
+
+const AlertDialog = AlertDialogRoot;
 
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
@@ -113,3 +150,4 @@ export {
   AlertDialogAction,
   AlertDialogCancel,
 };
+export type { AlertDialogRootProps };
