@@ -170,8 +170,7 @@ class PushCoordinator {
   }
 
   /** 콜드 마운트인 Compare 탭은 ref가 생겨도 페이지 JS가 아직 안 떴을 수 있어, 한 번만
-   * 주입하면 조용히 씹힐 수 있다. 짧은 기간 동안 여러 번 반복 주입해 최소 한 번은
-   * 페이지가 실제로 뜬 뒤에 적중하게 한다. history.replaceState는 멱등이라 안전하다. */
+   * 주입하면 조용히 씹힐 수 있다. ref를 찾을 때까지만 반복 재시도한다. */
   private setCompareTabPet(petId: string, _date?: string, attempt = 0) {
     const compareWebView = tabWebViewStore.get('Compare')?.current;
     if (compareWebView) {
@@ -187,6 +186,7 @@ class PushCoordinator {
           window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
         })(); true;
       `);
+      return;
     }
 
     if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
@@ -198,9 +198,7 @@ class PushCoordinator {
    * 모드가 되돌아가지 않도록 웹 쪽의 뷰 선호도를 같이 맞춘다.
    *
    * 콜드 마운트인 탭은 이 시점에 웹뷰 ref는 있어도 페이지 JS가 아직 안 떴을 수 있다.
-   * 한 번만 주입하면 그 타이밍에 걸려 조용히 무시될 수 있으므로, 짧은 기간 동안 여러 번
-   * 반복 주입해 최소 한 번은 페이지가 실제로 뜬 뒤에 적중하게 한다. localStorage 쓰기는
-   * 멱등이라 여러 번 실행돼도 안전하다. */
+   * ref를 찾을 때까지만 반복 재시도한다. */
   private setPrefersGuardianView(tabName: TabName, value: boolean, attempt = 0) {
     const webView = tabWebViewStore.get(tabName)?.current;
     if (webView) {
@@ -212,6 +210,7 @@ class PushCoordinator {
           if (window.__knockdogSetPrefersGuardianView) window.__knockdogSetPrefersGuardianView(${value});
         })(); true;
       `);
+      return;
     }
 
     if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
@@ -236,6 +235,7 @@ class PushCoordinator {
           window.dispatchEvent(new CustomEvent('knockdog:guardian-selected-pet', { detail: { petId: petId } }));
         })(); true;
       `);
+      return;
     }
 
     if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
