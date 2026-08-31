@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
-/** 페이지 진입/조회 로딩 — 250~300ms 미만 깜빡임 방지 */
-const LOADING_SPINNER_DELAY_MS = 275;
+import { LOADING_SPINNER_DELAY_MS } from './constants';
 
 function useDelayedLoading(isLoading: boolean, delayMs = LOADING_SPINNER_DELAY_MS) {
   const [showLoading, setShowLoading] = useState(false);
@@ -19,4 +18,4 @@ function useDelayedLoading(isLoading: boolean, delayMs = LOADING_SPINNER_DELAY_M
   return showLoading;
 }
 
-export { useDelayedLoading, LOADING_SPINNER_DELAY_MS };
+export { useDelayedLoading };

@@ -13,6 +13,7 @@ import {
   useUnavailableNotificationAction,
 } from '@shared/lib/notification';
 import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 
 import { GuardianKindergartenApprovedState } from './GuardianKindergartenApprovedState';
@@ -148,7 +149,18 @@ export function GuardianKindergartenPage() {
     void refetchHome();
   }, [isPetsError, refetchHome, refetchPets]);
 
-  if (!isMounted || !isLoggedIn || !isPetsReady) return null;
+  const pageGradientStyle = {
+    background:
+      'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
+  } as const;
+
+  if (!isMounted || !isLoggedIn || !isPetsReady) {
+    return (
+      <div className='flex h-dvh flex-col' style={pageGradientStyle}>
+        <DelayedLoadingSpinner isLoading layout='content' className='bg-bg-0 rounded-t-[24px]' />
+      </div>
+    );
+  }
 
   if (isPetsError || (!hasNoPet && isHomeError)) {
     return (
@@ -160,7 +172,24 @@ export function GuardianKindergartenPage() {
     );
   }
 
-  if (!hasNoPet && !isHomeReady) return null;
+  if (!hasNoPet && !isHomeReady) {
+    return (
+      <div className='flex h-dvh flex-col' style={pageGradientStyle}>
+        <GuardianKindergartenHeader
+          status={status}
+          isAttending={false}
+          isDismissed={false}
+          checkInAt={null}
+          checkOutAt={null}
+          hasUnreadAlarm={false}
+          hasNoPet={hasNoPet}
+        />
+        <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
+          <DelayedLoadingSpinner isLoading layout='content' />
+        </div>
+      </div>
+    );
+  }
 
   const showDayState =
     !hasNoPet &&
@@ -179,10 +208,7 @@ export function GuardianKindergartenPage() {
   return (
     <div
       className='flex h-dvh flex-col'
-      style={{
-        background:
-          'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
-      }}
+      style={pageGradientStyle}
     >
       <GuardianKindergartenHeader
         status={status}

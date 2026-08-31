@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Chip } from '@knockdog/ui';
 
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import {
   OwnerDailyFilterEmptyState,
@@ -60,7 +61,7 @@ function TodayAttendanceTab({
         ))}
       </div>
       {isLoading ? (
-        <div className='min-h-0 flex-1' />
+        <DelayedLoadingSpinner isLoading={isLoading} layout='content' />
       ) : isError ? (
         <div className='flex min-h-0 flex-1 items-center justify-center px-4 text-center'>
           <div className='flex flex-col items-center gap-1'>

@@ -137,7 +137,8 @@ async function resizeWebImageIfNeeded(file: File, resizeThresholdBytes?: number,
 }
 
 async function uploadFileToS3(uploadUrl: string, file: File) {
-  const response = await fetch(uploadUrl, {
+  const { fetchWithUploadTimeout } = await import('@shared/api/lib/fetchWithUploadTimeout');
+  const response = await fetchWithUploadTimeout(uploadUrl, {
     method: 'PUT',
     headers: {
       'Content-Type': file.type || 'application/octet-stream',

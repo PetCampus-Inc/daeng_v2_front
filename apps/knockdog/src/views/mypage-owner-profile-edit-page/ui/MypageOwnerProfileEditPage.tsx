@@ -13,6 +13,7 @@ import {
 } from '@features/role-conversion';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function MypageOwnerProfileEditPage() {
   const { back } = useStackNavigation();
@@ -55,7 +56,9 @@ function MypageOwnerProfileEditPage() {
         />
       ) : isError ? (
         <PageError layout='inline' onRetry={refetch} isRetrying={isFetching} />
-      ) : null}
+      ) : (
+        <DelayedLoadingSpinner isLoading={!isReady} layout='content' />
+      )}
     </>
   );
 }

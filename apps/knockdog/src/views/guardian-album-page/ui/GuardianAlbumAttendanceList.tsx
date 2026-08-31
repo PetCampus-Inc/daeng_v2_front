@@ -8,6 +8,7 @@ import { guardianAlbumContent } from '@views/guardian-album-page/config/guardian
 import type { GuardianAlbumFilterDay } from '@views/guardian-album-page/ui/GuardianAlbumFilterDaySection';
 import { GuardianAlbumFilterDaySection } from '@views/guardian-album-page/ui/GuardianAlbumFilterDaySection';
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
+import { InfiniteScrollFooter } from '@shared/ui/loading-spinner';
 
 interface GuardianAlbumAttendanceListProps {
   days: GuardianAlbumFilterDay[];
@@ -107,7 +108,11 @@ function GuardianAlbumAttendanceList({
           />
         ))}
         {hasNextPage ? (
-          <div ref={lastElementCallback} aria-hidden='true' className='h-4' />
+          <InfiniteScrollFooter
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            sentinelRef={lastElementCallback}
+          />
         ) : days.length > 0 ? (
           <p className='body1-medium text-text-secondary py-4 text-center'>
             {guardianAlbumContent.favoriteList.endMessage}

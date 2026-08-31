@@ -61,8 +61,9 @@ function resolveFileSize(asset: AlbumPickAsset) {
 }
 
 async function putFileToS3Web(uploadUrl: string, file: File, contentType: string) {
+  const { fetchWithUploadTimeout } = await import('@shared/api/lib/fetchWithUploadTimeout');
   // upload-urls에 선언한 contentType과 동일하게 넣어야 commit HeadObject 검증 통과
-  const response = await fetch(uploadUrl, {
+  const response = await fetchWithUploadTimeout(uploadUrl, {
     method: 'PUT',
     headers: { 'Content-Type': contentType },
     body: file,

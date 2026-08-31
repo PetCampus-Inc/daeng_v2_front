@@ -2,6 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
 import {
@@ -39,11 +40,7 @@ function OwnerMemberProfilePage() {
       </Header>
 
       {isDogLoading && !dog ? (
-        <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
-          <p className='body1-regular text-text-secondary'>
-            {ownerMemberProfileContent.profileLoadingText}
-          </p>
-        </div>
+        <DelayedLoadingSpinner isLoading={isDogLoading} layout='content' />
       ) : isDogError || !dog ? (
         <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
           <p className='body1-regular text-text-secondary'>
@@ -75,11 +72,7 @@ function OwnerMemberProfilePage() {
             </TabsContent>
             <TabsContent value={TAB.GUARDIAN}>
               {isGuardianLoading && !guardian ? (
-                <div className='flex items-center justify-center px-4 py-10'>
-                  <p className='body1-regular text-text-secondary'>
-                    {ownerMemberProfileContent.profileLoadingText}
-                  </p>
-                </div>
+                <DelayedLoadingSpinner isLoading={isGuardianLoading} layout='content' className='py-10' />
               ) : isGuardianError || !guardian ? (
                 <div className='flex items-center justify-center px-4 py-10'>
                   <p className='body1-regular text-text-secondary'>

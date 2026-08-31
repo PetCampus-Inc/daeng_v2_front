@@ -1,6 +1,7 @@
 'use client';
 
-import { LOADING_SPINNER_DELAY_MS, useDelayedLoading } from '../lib/useDelayedLoading';
+import { LOADING_SPINNER_DELAY_MS } from '../lib/constants';
+import { useDelayedLoading } from '../lib/useDelayedLoading';
 import type { DelayedLoadingSpinnerProps } from '../model/types';
 import { LoadingSpinner } from './LoadingSpinner';
 

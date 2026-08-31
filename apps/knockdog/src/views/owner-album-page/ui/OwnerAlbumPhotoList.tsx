@@ -4,6 +4,7 @@ import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPh
 import { groupAlbumPhotosByDate } from '@views/owner-album-page/lib/groupAlbumPhotosByDate';
 
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
+import { InfiniteScrollFooter } from '@shared/ui/loading-spinner';
 import { AlbumImage } from '@shared/ui/album-image';
 
 const PREVIEW_LIMIT = 6;
@@ -64,7 +65,11 @@ function OwnerAlbumPhotoList({
             </section>
           );
         })}
-        <div ref={lastElementCallback} aria-hidden='true' className='h-4' />
+        <InfiniteScrollFooter
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          sentinelRef={lastElementCallback}
+        />
       </div>
     </div>
   );

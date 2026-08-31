@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { ComparisonHistoryCard, useComparisonHistoryQuery } from '@features/compare';
 import type { ComparisonHistoryItem } from '@entities/compare';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { EmptyResultSection } from './EmptyResultSection';
 
 /**
@@ -57,11 +58,7 @@ function HistoryTab({ searchQuery = '' }: { searchQuery?: string }) {
   }, [groupedByDate]);
 
   if (isLoading) {
-    return (
-      <div className='bg-fill-secondary-50 flex h-full min-h-0 flex-col items-center justify-center'>
-        <div className='body1-regular text-text-tertiary'>로딩 중...</div>
-      </div>
-    );
+    return <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-fill-secondary-50 h-full' />;
   }
 
   if (error) {

@@ -7,6 +7,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { QUESTION_MAP } from '@entities/checklist';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 interface CheckListSectionProps {
   kindergartenId?: string;
@@ -42,9 +43,7 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
       </div>
       <div className='border-line-200 rounded-xl border-1 px-5 py-7'>
         {isLoading ? (
-          <div className='text-text-secondary flex justify-center py-8'>
-            <span className='body1-medium'>로딩 중...</span>
-          </div>
+          <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
         ) : error || !checklist?.sections || checklist?.sections.length === 0 ? (
           <div className='text-text-secondary flex justify-center py-8'>
             <span className='body1-medium'>{error instanceof Error ? error.message : '등록된 체크리스트가 없습니다'}</span>

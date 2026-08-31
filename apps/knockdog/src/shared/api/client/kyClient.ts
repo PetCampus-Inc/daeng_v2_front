@@ -1,5 +1,6 @@
 import ky from 'ky';
 
+import { API_TIMEOUT_MS } from '../config/timeouts';
 import {
   insertAuthHeaderInterceptor,
   updateAccessTokenInterceptor,
@@ -18,6 +19,7 @@ const api = ky.create({
     'Content-Type': 'application/json',
   },
   retry: 0,
+  timeout: API_TIMEOUT_MS.default,
   hooks: {
     beforeRequest: [insertAuthHeaderInterceptor],
     afterResponse: [tokenRefreshInterceptor, updateAccessTokenInterceptor],

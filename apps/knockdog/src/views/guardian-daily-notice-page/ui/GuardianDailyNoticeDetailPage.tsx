@@ -358,7 +358,29 @@ function GuardianDailyNoticeDetailPage() {
   };
 
   if (isTargetUnavailable) {
-    return <DelayedLoadingSpinner isLoading layout='screen' />;
+    return (
+      <div
+        className='flex h-dvh flex-col'
+        style={{
+          marginTop: `calc(-1 * ${SAFE_AREA_INSET_TOP})`,
+          paddingTop: SAFE_AREA_INSET_TOP,
+          background:
+            'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
+        }}
+      >
+        <div className='relative z-20 shrink-0 pb-5'>
+          <Header variant='transparent' className='border-none'>
+            <Header.LeftSection>
+              <Header.BackButton className='text-text-primary-inverse' />
+            </Header.LeftSection>
+            <Header.Title className='text-text-primary-inverse'>{content.pageTitle}</Header.Title>
+          </Header>
+        </div>
+        <div className='bg-bg-0 relative min-h-0 flex-1 overflow-hidden rounded-t-[24px]'>
+          <DelayedLoadingSpinner isLoading layout='content' />
+        </div>
+      </div>
+    );
   }
 
   return (
