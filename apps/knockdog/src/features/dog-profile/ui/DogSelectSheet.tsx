@@ -90,11 +90,13 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
                       <Icon icon='Paw' className='text-fill-secondary-400 h-6 w-6' />
                     </AvatarFallback>
                   </Avatar>
-                  {dog.isRepresentative && (
-                    <Icon icon='Maindog' className='text-text-accent absolute right-0 bottom-0 size-6' />
-                  )}
                 </span>
-                <span className='body1-bold text-text-primary flex-1 text-left'>{dog.name}</span>
+                <span className='body1-bold text-text-primary flex min-w-0 flex-1 items-center gap-x-1.5 text-left'>
+                  <span className='truncate'>{dog.name}</span>
+                  {dog.isRepresentative ? (
+                    <Icon icon='Maindog' className='text-text-accent size-6 shrink-0' />
+                  ) : null}
+                </span>
               </button>
 
               {index < dogs.length - 1 && <Divider className='border-line-100 mx-4' />}
