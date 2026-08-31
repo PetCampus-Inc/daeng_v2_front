@@ -230,7 +230,7 @@ function OwnerVerificationOnboardingSheet({
           </div>
         </div>
 
-        <BottomSheet.Footer className='bg-bg-0 flex p-0! pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]!'>
+        <BottomSheet.Footer className='bg-bg-0 flex p-0!'>
           <div className='flex h-[104px] w-full flex-col items-center justify-center gap-2 px-4 py-2'>
             <div className='flex h-6 items-center justify-center gap-2 py-2'>
               {ownerVerificationOnboardingSteps.map((item, index) => (
