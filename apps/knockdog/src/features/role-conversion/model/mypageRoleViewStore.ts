@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+// TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
+import { pushRoleFlickerDebugLog } from './roleFlickerDebugLogStore';
+
 import { STORAGE_KEYS } from '@shared/constants/storage';
 
 interface MypageRoleViewStore {
@@ -12,11 +15,20 @@ interface MypageRoleViewStore {
 
 const useMypageRoleViewStore = create<MypageRoleViewStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       prefersGuardianView: false,
-      setPrefersGuardianView: (value) => set({ prefersGuardianView: value }),
-      togglePrefersGuardianView: () => set((state) => ({ prefersGuardianView: !state.prefersGuardianView })),
-      resetPrefersGuardianView: () => set({ prefersGuardianView: false }),
+      setPrefersGuardianView: (value) => {
+        pushRoleFlickerDebugLog(`[store] setPrefersGuardianView(${value}) prev=${get().prefersGuardianView}`);
+        set({ prefersGuardianView: value });
+      },
+      togglePrefersGuardianView: () => {
+        pushRoleFlickerDebugLog(`[store] togglePrefersGuardianView() prev=${get().prefersGuardianView}`);
+        set((state) => ({ prefersGuardianView: !state.prefersGuardianView }));
+      },
+      resetPrefersGuardianView: () => {
+        pushRoleFlickerDebugLog(`[store] resetPrefersGuardianView() prev=${get().prefersGuardianView}`);
+        set({ prefersGuardianView: false });
+      },
     }),
     {
       name: STORAGE_KEYS.MYPAGE_ROLE_VIEW,
@@ -36,6 +48,7 @@ declare global {
  * 모드가 되돌아가지 않도록 뷰 선호도를 같이 맞춘다. */
 if (typeof window !== 'undefined') {
   window.__knockdogSetPrefersGuardianView = (value: boolean) => {
+    pushRoleFlickerDebugLog(`[source=native-call] __knockdogSetPrefersGuardianView(${value})`);
     useMypageRoleViewStore.getState().setPrefersGuardianView(value);
   };
 }
@@ -44,6 +57,8 @@ if (typeof window !== 'undefined') {
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e: StorageEvent) => {
     if (e.key !== STORAGE_KEYS.MYPAGE_ROLE_VIEW) return;
+
+    pushRoleFlickerDebugLog(`[source=storage-event] newValue=${e.newValue}`);
 
     if (e.newValue === null) {
       useMypageRoleViewStore.getState().resetPrefersGuardianView();
