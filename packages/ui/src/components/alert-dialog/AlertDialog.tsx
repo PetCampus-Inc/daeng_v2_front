@@ -28,18 +28,44 @@ interface AlertDialogRootProps extends React.ComponentProps<typeof AlertDialogPr
 }
 
 function AlertDialogRoot({
-  open,
+  open: openProp,
+  defaultOpen = false,
   onOpenChange,
   closeOnNativeBack = true,
   ...props
 }: AlertDialogRootProps) {
+  const isControlled = openProp !== undefined;
+  const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
+  const isOpen = isControlled ? openProp : internalOpen;
+
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(nextOpen);
+      }
+
+      onOpenChange?.(nextOpen);
+    },
+    [isControlled, onOpenChange]
+  );
+
   const handleNativeBackClose = React.useCallback(() => {
+    if (!isControlled) {
+      setInternalOpen(false);
+    }
+
     onOpenChange?.(false);
-  }, [onOpenChange]);
+  }, [isControlled, onOpenChange]);
 
-  useNativeBackToClose(open === true && closeOnNativeBack, handleNativeBackClose);
+  useNativeBackToClose(isOpen === true && closeOnNativeBack, handleNativeBackClose);
 
-  return <AlertDialogPrimitive.Root open={open} onOpenChange={onOpenChange} {...props} />;
+  return (
+    <AlertDialogPrimitive.Root
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      {...props}
+    />
+  );
 }
 
 const AlertDialog = AlertDialogRoot;

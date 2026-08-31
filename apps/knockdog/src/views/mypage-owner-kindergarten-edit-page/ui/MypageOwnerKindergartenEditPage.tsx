@@ -375,7 +375,7 @@ function MypageOwnerKindergartenEditPage() {
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
                 invalid={Boolean(formData.weekdayOperatingHoursError)}
-                onClick={() => formData.setActiveTimeField('weekdayStart')}
+                onClick={() => formData.openTimeField('weekdayStart')}
               />
               <span className='body1-regular px-1'>~</span>
               <DropdownField
@@ -383,7 +383,7 @@ function MypageOwnerKindergartenEditPage() {
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
                 invalid={Boolean(formData.weekdayOperatingHoursError)}
-                onClick={() => formData.setActiveTimeField('weekdayEnd')}
+                onClick={() => formData.openTimeField('weekdayEnd')}
               />
             </div>
             {formData.weekdayOperatingHoursError ? (
@@ -399,7 +399,7 @@ function MypageOwnerKindergartenEditPage() {
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
                 invalid={Boolean(formData.weekendOperatingHoursError)}
-                onClick={() => formData.setActiveTimeField('weekendStart')}
+                onClick={() => formData.openTimeField('weekendStart')}
               />
               <span className='body1-regular px-1'>~</span>
               <DropdownField
@@ -407,7 +407,7 @@ function MypageOwnerKindergartenEditPage() {
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
                 invalid={Boolean(formData.weekendOperatingHoursError)}
-                onClick={() => formData.setActiveTimeField('weekendEnd')}
+                onClick={() => formData.openTimeField('weekendEnd')}
               />
             </div>
             {formData.weekendOperatingHoursError ? (
@@ -544,7 +544,8 @@ function MypageOwnerKindergartenEditPage() {
             size='large'
             variant='primaryFill'
             className='w-full'
-            disabled={!formData.isSaveEnabled || formData.isSaving}
+            disabled={formData.isSaving}
+            data-disabled={!formData.isSaveEnabled || formData.isSaving ? true : undefined}
             onClick={handleSave}
           >
             {ownerMypageContent.profileSaveButtonLabel}
