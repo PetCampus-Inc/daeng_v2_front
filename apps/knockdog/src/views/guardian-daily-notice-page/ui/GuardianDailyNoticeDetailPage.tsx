@@ -43,7 +43,7 @@ import {
   parseNotificationEntrySource,
   useUnavailableNotificationAction,
 } from '@shared/lib/notification';
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
 const SAFE_AREA_INSET_TOP = 'max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px))';
@@ -358,11 +358,7 @@ function GuardianDailyNoticeDetailPage() {
   };
 
   if (isTargetUnavailable) {
-    return (
-      <div className='flex h-dvh items-center justify-center'>
-        <RingLoadingSpinner />
-      </div>
-    );
+    return <DelayedLoadingSpinner isLoading layout='screen' />;
   }
 
   return (
@@ -425,9 +421,11 @@ function GuardianDailyNoticeDetailPage() {
               </div>
             ) : isContentLoading ? (
               /* --:--·미작성 블록이 먼저 스치지 않도록 날짜·응답 확정까지 로딩 */
-              <div className='flex min-h-[282px] flex-1 items-center justify-center'>
-                <RingLoadingSpinner />
-              </div>
+              <DelayedLoadingSpinner
+                isLoading={isContentLoading}
+                layout='content'
+                className='min-h-[282px]'
+              />
             ) : (
               <>
                 <div className='flex w-full shrink-0 items-start justify-between'>

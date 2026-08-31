@@ -12,7 +12,7 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
 import { toast } from '@shared/ui/toast';
@@ -116,9 +116,7 @@ function GuardianConnectionApplyStatusPage() {
       </div>
 
       {isPageLoading ? (
-        <div className='flex min-h-0 flex-1 items-center justify-center'>
-          <RingLoadingSpinner />
-        </div>
+        <DelayedLoadingSpinner isLoading={isPageLoading} layout='content' />
       ) : isError ? (
         <PageError
           layout='inline'

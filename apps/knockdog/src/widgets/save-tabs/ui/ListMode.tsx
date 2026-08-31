@@ -4,7 +4,7 @@ import type { FilterState } from '@features/bookmarked-list';
 import { FilterBar } from '@features/bookmarked-list';
 import type { BookmarkItem } from '@entities/bookmark';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 interface ListModeProps {
   bookmarks: BookmarkItem[];
@@ -33,7 +33,7 @@ export function ListMode({ bookmarks, filterState, searchQuery, isLoading, onCom
       />
 
       {isLoading ? (
-        <LoadingSpinner fullscreen />
+        <DelayedLoadingSpinner isLoading={isLoading} layout='content' />
       ) : (
         <>
           <FavoriteListSection

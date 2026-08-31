@@ -16,7 +16,7 @@ import {
 } from '@entities/compare';
 import type { UserAddress } from '@entities/user';
 import { useUserStore } from '@entities/user';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { useShare } from '@shared/lib/device/useShare';
 import { isNativeWebView } from '@shared/lib/device';
 
@@ -88,7 +88,11 @@ function CompareCompletePage() {
       </Header>
 
       {isPending || !left || !right ? (
-        <LoadingSpinner fullscreen className='bg-text-primary' />
+        <DelayedLoadingSpinner
+          isLoading={isPending || !left || !right}
+          layout='content'
+          className='bg-text-primary'
+        />
       ) : (
         <>
           {/* 선택된 두 유치원 */}

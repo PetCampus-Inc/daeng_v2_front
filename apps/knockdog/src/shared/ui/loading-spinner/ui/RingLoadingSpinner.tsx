@@ -8,7 +8,7 @@ interface RingLoadingSpinnerProps {
   className?: string;
 }
 
-/** 반원 주황/회색 링, 시계방향 회전 */
+/** 이미지·파일 업로드 전용. 그 외 로딩은 LoadingSpinner / DelayedLoadingSpinner 사용 */
 function RingLoadingSpinner({ size = 40, className }: RingLoadingSpinnerProps) {
   return (
     <svg

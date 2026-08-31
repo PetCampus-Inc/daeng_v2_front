@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 import { ActionButton } from '@knockdog/ui';
 
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { useResultPage } from '@views/role-conversion/complete/model/useRoleConversionResultPage';
 
 function RoleConversionResultPage() {
@@ -15,7 +15,7 @@ function RoleConversionResultPage() {
     <div className='relative flex h-full flex-col items-center justify-center px-4'>
       {isRetryPending ? (
         <div className='absolute inset-0 z-10 flex items-center justify-center bg-white/80'>
-          <RingLoadingSpinner />
+          <DelayedLoadingSpinner isLoading={isRetryPending} />
         </div>
       ) : null}
 
