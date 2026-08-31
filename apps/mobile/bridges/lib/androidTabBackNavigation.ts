@@ -50,7 +50,6 @@ function handleHomeExitBack() {
   toast({
     title: EXIT_TOAST_TITLE,
     duration: EXIT_TOAST_DURATION_MS,
-    shape: 'square',
     position: 'bottom',
   });
   return true;
