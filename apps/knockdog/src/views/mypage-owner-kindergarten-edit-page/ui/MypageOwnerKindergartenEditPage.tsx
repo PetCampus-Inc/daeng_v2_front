@@ -70,15 +70,18 @@ interface DropdownFieldProps {
   value?: string;
   placeholder: string;
   className?: string;
+  invalid?: boolean;
   onClick?: () => void;
 }
 
-function DropdownField({ value, placeholder, className, onClick }: DropdownFieldProps) {
+function DropdownField({ value, placeholder, className, invalid = false, onClick }: DropdownFieldProps) {
   return (
     <button
       type='button'
       onClick={onClick}
-      className={`radius-r2 border-line-200 bg-fill-secondary-0 flex h-[52px] items-center gap-2 border px-4 py-3 text-left ${className ?? 'w-full'}`}
+      className={`radius-r2 bg-fill-secondary-0 flex h-[52px] items-center gap-2 border px-4 py-3 text-left ${
+        invalid ? 'border-error' : 'border-line-200'
+      } ${className ?? 'w-full'}`}
     >
       <span
         className={`body1-regular flex-1 truncate ${value ? 'text-text-primary' : 'text-text-tertiary'}`}
@@ -371,6 +374,7 @@ function MypageOwnerKindergartenEditPage() {
                 value={formData.weekdayStart ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                invalid={Boolean(formData.weekdayOperatingHoursError)}
                 onClick={() => formData.setActiveTimeField('weekdayStart')}
               />
               <span className='body1-regular px-1'>~</span>
@@ -378,9 +382,13 @@ function MypageOwnerKindergartenEditPage() {
                 value={formData.weekdayEnd ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                invalid={Boolean(formData.weekdayOperatingHoursError)}
                 onClick={() => formData.setActiveTimeField('weekdayEnd')}
               />
             </div>
+            {formData.weekdayOperatingHoursError ? (
+              <p className='text-error body2-regular pt-2'>{formData.weekdayOperatingHoursError}</p>
+            ) : null}
           </div>
 
           <div className='flex flex-col gap-2 px-4 py-4'>
@@ -390,6 +398,7 @@ function MypageOwnerKindergartenEditPage() {
                 value={formData.weekendStart ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                invalid={Boolean(formData.weekendOperatingHoursError)}
                 onClick={() => formData.setActiveTimeField('weekendStart')}
               />
               <span className='body1-regular px-1'>~</span>
@@ -397,9 +406,13 @@ function MypageOwnerKindergartenEditPage() {
                 value={formData.weekendEnd ?? undefined}
                 placeholder={ownerMypageContent.kindergartenEditTimePlaceholder}
                 className='flex-1'
+                invalid={Boolean(formData.weekendOperatingHoursError)}
                 onClick={() => formData.setActiveTimeField('weekendEnd')}
               />
             </div>
+            {formData.weekendOperatingHoursError ? (
+              <p className='text-error body2-regular pt-2'>{formData.weekendOperatingHoursError}</p>
+            ) : null}
           </div>
 
           <div className='flex flex-col gap-2 px-4 py-4'>

@@ -31,6 +31,24 @@ type WebAddressField = 'homepage' | 'instagram' | 'youtube';
 
 const WEB_ADDRESS_FORMAT_ERROR = ownerMypageContent.kindergartenEditWebAddressFormatError;
 const PHONE_FORMAT_ERROR = ownerMypageContent.kindergartenEditPhoneFormatError;
+const WEEKDAY_OPERATING_HOURS_ERROR = ownerMypageContent.kindergartenEditWeekdayOperatingHoursError;
+const WEEKEND_OPERATING_HOURS_ERROR = ownerMypageContent.kindergartenEditWeekendOperatingHoursError;
+
+function isDayOperatingHoursComplete(start: string | null, end: string | null) {
+  return Boolean(start && end);
+}
+
+function isOperatingHoursComplete(
+  weekdayStart: string | null,
+  weekdayEnd: string | null,
+  weekendStart: string | null,
+  weekendEnd: string | null
+) {
+  return (
+    isDayOperatingHoursComplete(weekdayStart, weekdayEnd) &&
+    isDayOperatingHoursComplete(weekendStart, weekendEnd)
+  );
+}
 
 function applyDraftToState(
   draft: EditFormDraft,
@@ -375,19 +393,33 @@ function useKindergartenEditForm() {
     [closedDays]
   );
 
-  const isSaveEnabled =
+  const isOtherRequiredFieldsValid =
     images.length > 0 &&
     name.trim().length > 0 &&
     address.trim().length > 0 &&
     phone.trim().length > 0 &&
     isValidKindergartenPhone(phone) &&
-    Boolean(weekdayStart) &&
-    Boolean(weekdayEnd) &&
-    Boolean(weekendStart) &&
-    Boolean(weekendEnd) &&
     isValidWebAddressFormat(homepage) &&
     isValidWebAddressFormat(instagram) &&
     isValidWebAddressFormat(youtube);
+
+  const weekdayOperatingHoursError = useMemo(() => {
+    if (isDayOperatingHoursComplete(weekdayStart, weekdayEnd)) return undefined;
+    if (!isOtherRequiredFieldsValid) return undefined;
+
+    return WEEKDAY_OPERATING_HOURS_ERROR;
+  }, [weekdayStart, weekdayEnd, isOtherRequiredFieldsValid]);
+
+  const weekendOperatingHoursError = useMemo(() => {
+    if (isDayOperatingHoursComplete(weekendStart, weekendEnd)) return undefined;
+    if (!isOtherRequiredFieldsValid) return undefined;
+
+    return WEEKEND_OPERATING_HOURS_ERROR;
+  }, [weekendStart, weekendEnd, isOtherRequiredFieldsValid]);
+
+  const isSaveEnabled =
+    isOtherRequiredFieldsValid &&
+    isOperatingHoursComplete(weekdayStart, weekdayEnd, weekendStart, weekendEnd);
 
   const handlePhoneBlur = () => {
     const trimmed = phone.trim();
@@ -518,6 +550,8 @@ function useKindergartenEditForm() {
     lastUpdatedDate,
     isDirty,
     isSaveEnabled,
+    weekdayOperatingHoursError,
+    weekendOperatingHoursError,
     isSaving: isSaving || isPreparingSave,
     setActiveTimeField,
     setIsClosedDaysSheetOpen,

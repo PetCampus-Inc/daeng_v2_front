@@ -46,6 +46,8 @@ export const ownerMypageContent = Object.freeze({
   kindergartenEditAddressDetailPlaceholder: '상세 주소를 입력해주세요',
   kindergartenEditPhoneLabel: '유치원 전화번호',
   kindergartenEditPhoneFormatError: '전화번호 형식을 확인해 주세요.',
+  kindergartenEditWeekdayOperatingHoursError: '운영시간을 확인해 주세요.',
+  kindergartenEditWeekendOperatingHoursError: '운영시간을 확인해 주세요.',
   kindergartenEditWeekdayLabel: '평일',
   kindergartenEditWeekendLabel: '주말',
   kindergartenEditClosedDaysLabel: '정기 휴무일',
