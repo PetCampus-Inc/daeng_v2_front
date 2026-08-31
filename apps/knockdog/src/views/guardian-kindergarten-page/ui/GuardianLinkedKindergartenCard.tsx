@@ -29,7 +29,7 @@ function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKinderga
       className='border-line-200 radius-r3 bg-bg-0 flex h-[74px] w-full items-center justify-between border p-4 text-left'
     >
       <div className='gap-x2 flex min-w-0 items-center'>
-        <div className='bg-fill-secondary-50 relative size-11 shrink-0 overflow-hidden rounded-lg'>
+        <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
           {showImage ? (
             /* eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 지도 카드와 동일하게 img로 로드 */
             <img
@@ -41,7 +41,14 @@ function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKinderga
               referrerPolicy='no-referrer'
               onError={() => setHasImageError(true)}
             />
-          ) : null}
+          ) : (
+            <div
+              className='bg-fill-secondary-50 flex size-full items-center justify-center'
+              aria-hidden='true'
+            >
+              <Icon icon='Paw' className='text-fill-secondary-300 size-5' />
+            </div>
+          )}
         </div>
         <div className='flex min-w-0 flex-col items-start'>
           <p className='body1-bold text-text-primary w-full truncate'>{kindergarten.name}</p>
