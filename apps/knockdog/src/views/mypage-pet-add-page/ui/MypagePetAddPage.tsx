@@ -116,6 +116,7 @@ export function MypagePetAddPage() {
 
       <PetProfileForm
         mode='add'
+        entryPoint={inviteToken ? 'connection_request' : 'mypage'}
         onSuccess={handleSuccess}
         onError={handleError}
         onDirtyChange={setIsFormDirty}

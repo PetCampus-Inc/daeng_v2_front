@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { saveBusinessRegistrationNumber } from '@entities/owner-verification';
 import { route } from '@shared/constants/route';
+import { trackOwnerVerificationStatus } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
@@ -31,6 +32,7 @@ function useBusinessVerificationPage() {
       return;
     }
 
+    trackOwnerVerificationStatus({ status: 'submit' });
     push({ pathname: route.roleConversion.privacyConsent.root });
   };
 

@@ -106,6 +106,8 @@ function useOwnerAlbumUpload() {
     }
 
     isUploadInFlightRef.current = true;
+    let shouldTrackUploadResult = false;
+    let uploadSucceeded = false;
 
     try {
       const result = await pickImage(
@@ -146,6 +148,7 @@ function useOwnerAlbumUpload() {
       }
 
       setIsUploading(true);
+      shouldTrackUploadResult = true;
 
       const uploadResult = await uploadOwnerAlbumPhotos({
         schoolId,
@@ -153,8 +156,15 @@ function useOwnerAlbumUpload() {
       });
 
       if (uploadResult.uploaded.length > 0) {
-        trackAlbumAction({ action: 'upload', role: 'owner' });
-        await invalidatePhotos();
+        trackAlbumAction({ action: 'upload', role: 'owner', result: 'success' });
+        uploadSucceeded = true;
+        try {
+          await invalidatePhotos();
+        } catch (invalidateError) {
+          console.error('[owner-album] invalidate after upload failed', invalidateError);
+        }
+      } else {
+        trackAlbumAction({ action: 'upload', role: 'owner', result: 'fail' });
       }
 
       const pickSkippedCount =
@@ -188,6 +198,10 @@ function useOwnerAlbumUpload() {
       showUploadSuccessToast();
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
+
+      if (shouldTrackUploadResult && !uploadSucceeded) {
+        trackAlbumAction({ action: 'upload', role: 'owner', result: 'fail' });
+      }
 
       console.error('[owner-album] upload failed', error);
       if (error && typeof error === 'object' && 'code' in error && 'message' in error) {

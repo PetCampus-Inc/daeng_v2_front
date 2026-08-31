@@ -15,6 +15,7 @@ import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
 import { isNativeWebView, useShare } from '@shared/lib/device';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useBasePoint } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
 
@@ -75,6 +76,9 @@ function KindergartenDetailPage() {
 
   const share = useShare();
   const isNative = useMemo(() => isNativeWebView(), []);
+
+  /** GA 화면명 = 유치원명 (v2 page_title과 동일) */
+  useScreenAnalyticsTitle(kindergartenMain?.title);
 
   /** 최근 본 업체 저장 */
   useRecentKindergartenView(kindergartenMain);

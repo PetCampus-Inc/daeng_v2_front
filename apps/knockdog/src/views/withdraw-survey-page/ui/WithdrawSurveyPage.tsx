@@ -76,7 +76,7 @@ function WithdrawSurveyPage() {
       await withdraw(request);
       trackAccountDeactivation({
         action: 'withdrawal',
-        reason: toWithdrawalGaReason(reasonType),
+        withdrawal_reason: toWithdrawalGaReason(reasonType),
       });
       await reset(route.auth.login.root);
     } catch (error) {

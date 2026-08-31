@@ -63,7 +63,7 @@ function ReleasePermissionVerifyPage() {
       await revokeOwnerRoleAsync(toRevokeOwnerRoleRequest(draft));
       trackAccountDeactivation({
         action: 'role_release',
-        reason: toRoleReleaseGaReason(draft.reason),
+        role_release_reason: toRoleReleaseGaReason(draft.reason),
       });
       clearReleasePermissionReasonDraft();
 

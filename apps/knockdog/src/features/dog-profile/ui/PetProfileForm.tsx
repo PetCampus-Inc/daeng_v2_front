@@ -21,11 +21,13 @@ import { usePetProfileForm, type PetFormData } from '../model/usePetProfileForm'
 import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
 import { ApiError } from '@shared/api';
+import type { PetProfileEntryPoint } from '@shared/lib/analytics';
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
   petId?: string;
   defaultValues?: Pet;
+  entryPoint?: PetProfileEntryPoint;
   submitButtonText?: string;
   onSuccess?: (petId?: string) => void;
   onError?: (error: unknown) => void;
@@ -44,6 +46,7 @@ function PetProfileForm({
   mode,
   petId,
   defaultValues,
+  entryPoint,
   submitButtonText = '저장하기',
   onSuccess,
   onError,
@@ -95,6 +98,7 @@ function PetProfileForm({
       mode,
       petId,
       defaultValues,
+      entryPoint,
       onSuccess,
       onError: handleSaveError,
     });

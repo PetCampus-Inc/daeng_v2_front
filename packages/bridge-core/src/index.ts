@@ -37,5 +37,7 @@ export type { SocialLoginResult } from './domains/auth';
 export type {
   AnalyticsLogEventParams,
   AnalyticsLogEventResult,
+  AnalyticsLogScreenViewParams,
+  AnalyticsLogScreenViewResult,
   AnalyticsParamValue,
 } from './domains/analytics';

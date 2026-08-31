@@ -15,10 +15,12 @@ declare global {
   }
 }
 
-export const pageview = (url: string) => {
+export const pageview = (url: string, title?: string) => {
   if (typeof window.gtag === 'undefined') return;
-  window.gtag('config', GA_MEASUREMENT_ID, {
+  window.gtag('event', 'page_view', {
     page_path: url,
+    page_location: typeof window !== 'undefined' ? window.location.href : undefined,
+    ...(title ? { page_title: title } : {}),
   });
 };
 

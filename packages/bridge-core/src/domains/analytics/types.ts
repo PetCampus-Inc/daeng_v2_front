@@ -10,4 +10,21 @@ interface AnalyticsLogEventResult {
   ok: boolean;
 }
 
-export type { AnalyticsLogEventParams, AnalyticsLogEventResult, AnalyticsParamValue };
+/** Firebase Analytics screen_view — GA4페이지 제목 및 화면 클래스에 반영 */
+interface AnalyticsLogScreenViewParams {
+  /** GA screen_name / 웹 page_title */
+  screen_name: string;
+  screen_class?: string;
+}
+
+interface AnalyticsLogScreenViewResult {
+  ok: boolean;
+}
+
+export type {
+  AnalyticsLogEventParams,
+  AnalyticsLogEventResult,
+  AnalyticsLogScreenViewParams,
+  AnalyticsLogScreenViewResult,
+  AnalyticsParamValue,
+};
