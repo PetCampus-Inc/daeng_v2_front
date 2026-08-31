@@ -34,6 +34,8 @@ interface PhotoUploaderProps {
   /** 2장 이상일 때 첫 번째 이미지에 대표 사진 뱃지 표시 */
   showRepresentativeBadge?: boolean;
   representativeBadgeLabel?: string;
+  /** 업로드 타일(+)에만 오류 테두리 표시 */
+  invalid?: boolean;
 }
 
 function PhotoUploader({
@@ -44,6 +46,7 @@ function PhotoUploader({
   emptyVariant = 'button',
   showRepresentativeBadge = false,
   representativeBadgeLabel = '대표 사진',
+  invalid = false,
 }: PhotoUploaderProps) {
   const { pickImage } = useImagePicker();
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
@@ -194,10 +197,12 @@ function PhotoUploader({
           className={`body2-regular flex h-[80px] min-w-[80px] flex-col items-center justify-center rounded-lg border py-5 ${
             isFull || isUploading
               ? 'border-line-200 text-text-tertiary cursor-not-allowed opacity-40'
-              : 'border-line-400 text-text-tertiary'
+              : invalid
+                ? 'border-error text-error'
+                : 'border-line-400 text-text-tertiary'
           }`}
         >
-          <Icon icon='Plus' className='h-6 w-6' />
+          <Icon icon='Plus' className='size-6 text-current' />
           {assets.length} / {maxCount}
         </button>
       ) : null}
