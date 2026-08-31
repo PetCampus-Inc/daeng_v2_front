@@ -6,8 +6,12 @@ import { METHODS } from '@knockdog/bridge-core';
 
 import { useOwnerRole } from '../model/useOwnerRole';
 import { useMypageRoleViewStore } from '../model/mypageRoleViewStore';
+import { useUserStore } from '@entities/user';
 import { useBridge, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
+
+// TEMP DEBUG: 원장/보호자 깜빡임 디버그 로그를 이 계정에서만 노출. 확인 끝나면 제거.
+const DEBUG_USER_IDS = ['KXQRFLWH'];
 
 declare global {
   interface Window {
@@ -80,6 +84,8 @@ function SyncNativeMainTabModeEffect() {
   const bridge = useBridge();
   const pathname = usePathname();
   const { isMainTab } = useTabNavigation();
+  const debugUserId = useUserStore((state) => state.user?.userId);
+  const isDebugUser = DEBUG_USER_IDS.includes(debugUserId ?? '');
   const { isOwner, isResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
   const hasRoleViewHydrated = useHasMypageRoleViewHydrated();
@@ -96,6 +102,7 @@ function SyncNativeMainTabModeEffect() {
   // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
   const [debugLog, setDebugLog] = useState<string[]>([]);
   const pushDebugLog = (line: string) => {
+    if (!isDebugUser) return;
     const time = new Date().toISOString().slice(11, 23);
     setDebugLog((prev) => [...prev.slice(-14), `${time} ${line}`]);
   };
@@ -214,6 +221,7 @@ function SyncNativeMainTabModeEffect() {
       clearTimeout(debounceTimer);
       if (retryTimer !== undefined) clearTimeout(retryTimer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pushDebugLog(TEMP DEBUG)는 매 렌더 재생성되는 순수 로깅 함수라 의존성 추가 시 의도치 않게 재실행 빈도만 바뀜
   }, [
     bridge,
     hasRoleViewHydrated,
@@ -233,7 +241,9 @@ function SyncNativeMainTabModeEffect() {
     }
   }, [isDocumentVisible, isNativeTabFocused]);
 
-  // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
+  // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 지정 계정에서만 노출. 확인 끝나면 제거.
+  if (!isDebugUser) return null;
+
   return (
     <pre
       style={{
