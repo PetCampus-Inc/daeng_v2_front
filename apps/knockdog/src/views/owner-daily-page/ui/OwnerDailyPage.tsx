@@ -8,7 +8,7 @@ import { overlay } from 'overlay-kit';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
-import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
+import { safeSessionStorage } from '@shared/lib/storage';
 import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
@@ -30,16 +30,14 @@ function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
 }
 
 function readPersistedOwnerDailyTab(): OwnerDailyTab | null {
-  // Stack/Tab WebView는 sessionStorage가 분리됨 → localStorage로 공유
-  const value =
-    safeLocalStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB) ??
-    safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
+  // localStorage는 앱을 완전히 껐다 켜도 남아있어 "재시작 시 등원 처리가 기본 화면"이라는
+  // 요구사항이 깨진다. sessionStorage만 쓰면 WebView가 새로 생성될 때(=앱 재시작) 초기화된다.
+  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
   if (value === 'today-attendance' || value === 'attendance-check') return value;
   return null;
 }
 
 function persistOwnerDailyTab(tab: OwnerDailyTab) {
-  safeLocalStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
   safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
 }
 

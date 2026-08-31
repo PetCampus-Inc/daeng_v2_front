@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
-import { ActionButton } from '@knockdog/ui';
+import { ActionButton, IconButton } from '@knockdog/ui';
 
 import { ownerVerificationOnboardingSteps } from '@features/role-conversion/config/ownerVerificationOnboardingContent';
 
@@ -38,8 +38,8 @@ function OwnerVerificationOnboardingSheet({
   const startY = useRef(0);
   const deltaX = useRef(0);
   const isDragging = useRef(false);
-  /** null: 방향 미판정, 'horizontal': 캐러셀 스와이프, 'vertical': 바텀시트 드래그-닫기에 위임, 'ignored': 의미 없는 위쪽 스와이프라 무시 */
-  const dragDirection = useRef<'horizontal' | 'vertical' | 'ignored' | null>(null);
+  /** null: 방향 미판정, 'horizontal': 캐러셀 스와이프, 'ignored': 의미 없는 세로 스와이프라 무시 */
+  const dragDirection = useRef<'horizontal' | 'ignored' | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const textTrackRef = useRef<HTMLDivElement | null>(null);
   const openedPathnameRef = useRef(pathname);
@@ -120,16 +120,10 @@ function OwnerVerificationOnboardingSheet({
       const isVerticalDominant = Math.abs(currentDeltaY) > Math.abs(currentDeltaX);
 
       if (isVerticalDominant) {
+        // 위/아래 스와이프 모두 이 영역에선 의미 있는 동작이 없으므로 완전히 무시한다.
+        // 바텀시트는 dismissible=false라 드래그-닫기 제스처 자체가 없다(X 버튼으로만 닫힘).
         isDragging.current = false;
-
-        if (currentDeltaY > 0) {
-          // 아래로 스와이프 — 캐러셀은 손을 떼고 바텀시트 자체 드래그-닫기 제스처에 넘긴다.
-          dragDirection.current = 'vertical';
-          event.currentTarget.removeAttribute('data-vaul-no-drag');
-        } else {
-          // 위로 스와이프 — 이 영역에선 의미 있는 동작이 없으므로 완전히 무시한다(바텀시트에도 넘기지 않음).
-          dragDirection.current = 'ignored';
-        }
+        dragDirection.current = 'ignored';
         return;
       }
 
@@ -167,9 +161,16 @@ function OwnerVerificationOnboardingSheet({
   if (!shouldRender) return null;
 
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
+    <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange} dismissible={false}>
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal overflow-hidden p-0'>
+        <IconButton
+          icon='Close'
+          aria-label='닫기'
+          className='absolute top-4 right-4 z-10 size-6'
+          iconClassName='size-6 text-line-100'
+          onClick={close}
+        />
         <div
           className='touch-pan-y select-none'
           data-vaul-no-drag
@@ -229,7 +230,7 @@ function OwnerVerificationOnboardingSheet({
           </div>
         </div>
 
-        <BottomSheet.Footer className='bg-bg-0 flex p-0! pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]!'>
+        <BottomSheet.Footer className='bg-bg-0 flex p-0!'>
           <div className='flex h-[104px] w-full flex-col items-center justify-center gap-2 px-4 py-2'>
             <div className='flex h-6 items-center justify-center gap-2 py-2'>
               {ownerVerificationOnboardingSteps.map((item, index) => (
