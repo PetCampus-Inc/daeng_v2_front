@@ -31,7 +31,7 @@ import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib
 import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
-import { useKeyboardAwareScrollHeight } from '@shared/lib/device';
+import { useFocusScrollLock, useKeyboardAwareScrollHeight } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 
 interface FieldLabelProps {
@@ -63,6 +63,12 @@ function OwnerDailyNoticeTemplateCreatePage() {
   const isExpired = searchParams.get('expired') === 'true';
   const { back } = useStackNavigation();
   const contentRef = useKeyboardAwareScrollHeight<HTMLDivElement>();
+  const {
+    fieldRef: titleFieldRef,
+    handleFocus: handleTitleFocus,
+    handleBlur: handleTitleBlur,
+    handlePointerDown: handleTitlePointerDown,
+  } = useFocusScrollLock<HTMLInputElement>();
   const userId = useUserStore((state) => state.user?.userId);
   const { createMutation, updateMutation } = useOwnerNoticeTemplateMutation();
   const { data: editingTemplate } = useOwnerNoticeTemplateDetailQuery({
@@ -201,6 +207,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
           <FieldLabel label={ownerDailyNoticeTemplateCreateContent.titleSectionLabel} />
           <TextField variant='default' className='h-x13 focus-within:!border-line-200'>
             <TextFieldInput
+              ref={titleFieldRef}
               value={title}
               maxLength={ownerDailyNoticeTemplateCreateContent.titleMaxLength}
               placeholder={ownerDailyNoticeTemplateCreateContent.titlePlaceholder}
@@ -210,6 +217,9 @@ function OwnerDailyNoticeTemplateCreatePage() {
                   title: event.target.value,
                 }))
               }
+              onPointerDown={handleTitlePointerDown}
+              onFocus={handleTitleFocus}
+              onBlur={handleTitleBlur}
             />
           </TextField>
         </section>
