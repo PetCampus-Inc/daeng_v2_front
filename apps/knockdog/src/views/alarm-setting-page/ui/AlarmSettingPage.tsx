@@ -8,6 +8,7 @@ import { Header } from '@widgets/Header';
 import { usePushSettingQuery, usePushSettingMutation, type PushSetting } from '@entities/user';
 import { useBridge } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
+import { trackNotificationPermission } from '@shared/lib/analytics';
 import { PrivateAccess } from '@shared/ui/private-access';
 
 function AlarmSettingPage() {
@@ -66,6 +67,12 @@ function AlarmSettingPage() {
     try {
       const permission = await bridge.request(METHODS.requestNotificationPermission, {});
       setNotificationPermission(permission.status);
+
+      if (permission.requested) {
+        trackNotificationPermission({
+          status: permission.status === 'allowed' ? 'granted' : 'denied',
+        });
+      }
 
       if (permission.status !== 'allowed') {
         if (!permission.canAskAgain) {

@@ -16,12 +16,6 @@ function toSignUpMethod(provider: string): SignUpMethod {
   return 'kakao';
 }
 
-/** 초대 경로면 invite_link, 아니면 organic (QR 구분은 초대 URL 분기 후 활성화) */
-function resolveEntrySource(pathname: string | null | undefined): EntrySource {
-  if (pathname?.includes('/invite/')) return 'invite_link';
-  return 'organic';
-}
-
 function savePendingSignUpAnalytics(method: SignUpMethod, entry_source: EntrySource) {
   pendingSignUpStorage.set({ method, entry_source });
 }
@@ -44,7 +38,6 @@ export {
   clearPendingSignUpAnalytics,
   consumePendingSignUpAnalytics,
   peekPendingSignUpAnalytics,
-  resolveEntrySource,
   savePendingSignUpAnalytics,
   toSignUpMethod,
 };

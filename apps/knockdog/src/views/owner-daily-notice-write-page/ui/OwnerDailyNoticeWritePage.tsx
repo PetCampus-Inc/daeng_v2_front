@@ -582,6 +582,7 @@ function OwnerDailyNoticeWritePage() {
       trackNotebookAction({
         action: isEditMode ? 'edit' : 'send',
         role: 'owner',
+        result: 'success',
       });
       clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
 
@@ -617,6 +618,12 @@ function OwnerDailyNoticeWritePage() {
         ),
       });
     } catch {
+      trackNotebookAction({
+        action: isEditMode ? 'edit' : 'send',
+        role: 'owner',
+        result: 'fail',
+      });
+
       // SENT 수정 실패 시 draft를 저장해도 재진입 시 attendanceRecord(SENT) hydrate가
       // draft 복원을 막고, 임시저장 안내가 실제 복원과 불일치함 → 현재 화면에서 재시도만 유도
       if (!isEditMode) {

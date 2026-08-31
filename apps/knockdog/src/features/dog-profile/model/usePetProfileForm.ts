@@ -14,6 +14,7 @@ import {
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
 import { useUserStore } from '@entities/user';
 import { useMoveImageMutation } from '@shared/lib/media';
+import { trackPetProfileRegister, type PetProfileEntryPoint } from '@shared/lib/analytics';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 import { isValidDogWeight } from '../lib/weight';
@@ -36,11 +37,12 @@ interface UsePetProfileFormProps {
   mode: 'add' | 'edit';
   petId?: string;
   defaultValues?: Pet;
+  entryPoint?: PetProfileEntryPoint;
   onSuccess?: (petId?: string) => void;
   onError?: (error: unknown) => void;
 }
 
-export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onError }: UsePetProfileFormProps) {
+export function usePetProfileForm({ mode, petId, defaultValues, entryPoint, onSuccess, onError }: UsePetProfileFormProps) {
   const { mutateAsync: registerPet } = usePetRegisterMutation();
   const { mutateAsync: updatePetDetail } = usePetUpdateDetailMutation();
   const { mutateAsync: updateRepresentative } = usePetUpdateRepresentativeMutation();
@@ -154,6 +156,8 @@ export function usePetProfileForm({ mode, petId, defaultValues, onSuccess, onErr
 
         // 첫 번째 강아지면 자동으로 대표 강아지로 지정한다.
         if (isFirstPet && newPetId) {
+          trackPetProfileRegister({ entry_point: entryPoint ?? 'mypage' });
+
           try {
             await updateRepresentative(Number(newPetId));
           } catch (error) {

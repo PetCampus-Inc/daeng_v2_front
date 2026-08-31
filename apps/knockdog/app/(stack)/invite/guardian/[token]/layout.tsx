@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import type { ReactNode, Suspense } from 'react';
+
+import { InviteEntrySourceSync } from '@shared/lib/analytics/InviteEntrySourceSync';
 
 export const metadata: Metadata = {
   robots: {
@@ -9,5 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default function GuardianInviteTokenLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return children;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <InviteEntrySourceSync />
+      </Suspense>
+      {children}
+    </>
+  );
 }

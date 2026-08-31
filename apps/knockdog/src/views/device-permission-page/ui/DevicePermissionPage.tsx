@@ -8,6 +8,7 @@ import { requestDevicePermissions } from '../model/requestDevicePermissions';
 import { usePushSettingMutation } from '@entities/user';
 import { markDevicePermissionIntroSeen } from '@shared/lib/auth/devicePermissionIntro';
 import { consumePostSignUpRedirect, getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { trackNotificationPermission } from '@shared/lib/analytics';
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
@@ -31,6 +32,12 @@ function DevicePermissionPage() {
       if (cancelled) return;
 
       requestPromiseRef.current = requestDevicePermissions().then(async (notificationPermission) => {
+        if (notificationPermission.responded) {
+          trackNotificationPermission({
+            status: notificationPermission.status === 'allowed' ? 'granted' : 'denied',
+          });
+        }
+
         if (notificationPermission.grantedNow) {
           await updatePushSetting({ pushEnabled: true });
         }

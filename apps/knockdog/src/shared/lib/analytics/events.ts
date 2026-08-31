@@ -1,8 +1,8 @@
 import { event } from './gtag';
+import { resolveEntrySource } from './entrySource';
 import { trackSignUp } from './gaEvents';
 import {
   consumePendingSignUpAnalytics,
-  resolveEntrySource,
   savePendingSignUpAnalytics,
   toSignUpMethod,
 } from './pendingSignUp';

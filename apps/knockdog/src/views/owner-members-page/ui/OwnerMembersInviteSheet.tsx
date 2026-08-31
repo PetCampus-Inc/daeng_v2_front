@@ -8,7 +8,7 @@ import { useOwnerInviteQuery } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useClipboardCopy, useShare, isNativeWebView } from '@shared/lib/device';
-import { trackOwnerInviteShare } from '@shared/lib/analytics';
+import { appendInviteQrEntrySource, trackOwnerInviteShare } from '@shared/lib/analytics';
 import { useSaveImage } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
@@ -84,6 +84,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const userId = useUserStore((state) => state.user?.userId);
   const inviteQuery = useOwnerInviteQuery({ userId, enabled: isOpen && !!userId });
   const inviteUrl = inviteQuery.data?.inviteUrl;
+  const inviteQrUrl = inviteUrl ? appendInviteQrEntrySource(inviteUrl) : undefined;
   const copy = useClipboardCopy();
   const share = useShare();
   const saveImage = useSaveImage();
@@ -219,9 +220,9 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
             ref={qrCodeContainerRef}
             className='py-x10 gap-x2_5 flex h-[280px] w-full items-center justify-center'
           >
-            {inviteUrl ? (
+            {inviteQrUrl ? (
               <QRCodeSVG
-                value={inviteUrl}
+                value={inviteQrUrl}
                 size={200}
                 className='size-[200px]'
                 level='M'

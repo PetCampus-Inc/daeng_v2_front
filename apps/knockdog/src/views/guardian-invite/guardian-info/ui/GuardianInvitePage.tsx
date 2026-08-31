@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { ActionButton, ProgressBar } from '@knockdog/ui';
 
 import {
@@ -21,6 +21,7 @@ import {
 } from '@entities/user';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
+import { appendEntrySourceToInvitePath } from '@shared/lib/analytics';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -41,6 +42,11 @@ const EMPTY_PROFILE_VALUES: GuardianProfileFormValues = {
 /** 보호자 유치원 초대 및 가입 신청 화면의 퍼블리싱 진입점 */
 function GuardianInvitePage() {
   const { token } = useParams<{ token: string }>();
+  const searchParams = useSearchParams();
+  const inviteRedirectPath = appendEntrySourceToInvitePath(
+    route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+    searchParams
+  );
   const user = useUserStore((state) => state.user);
   const { replace } = useStackNavigation();
   // SSR은 false를 사용하고, hydration 완료 후에만 실제 WebView 여부를 반영한다.
@@ -75,28 +81,28 @@ function GuardianInvitePage() {
     void replace({
       pathname: route.auth.login.root,
       params: {
-        redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+        redirectTo: inviteRedirectPath,
       },
     }).catch(() => {
       isLoginRedirectingRef.current = false;
       toast('로그인 화면으로 이동하지 못했어요. 다시 시도해 주세요.');
     });
-  }, [hasAuth, hasUserStoreHydrated, isNative, replace, token]);
+  }, [hasAuth, hasUserStoreHydrated, inviteRedirectPath, isNative, replace, token]);
 
   // 모바일 브라우저 폴백은 스토어로, 그 외 웹은 기존 초대 페이지로 유지한다.
   if (!isPlatformResolved) return null;
 
   if (!isNative && isMobileBrowser) return <GuardianInviteAppInstallPage token={token} />;
 
-  if (!isNative) return <GuardianInviteProfilePage token={token} />;
+  if (!isNative) return <GuardianInviteProfilePage token={token} inviteRedirectPath={inviteRedirectPath} />;
 
   if (!hasUserStoreHydrated || !hasAuth) return null;
 
-  return <GuardianInviteProfilePage token={token} />;
+  return <GuardianInviteProfilePage token={token} inviteRedirectPath={inviteRedirectPath} />;
 }
 
 /** 로그인된 앱 사용자에게 노출하는 보호자 정보 입력 화면 */
-function GuardianInviteProfilePage({ token }: { token: string }) {
+function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: string; inviteRedirectPath: string }) {
   const [values, setValues] = useState<GuardianProfileFormValues>(EMPTY_PROFILE_VALUES);
   const [selectedAddress, setSelectedAddress] = useState<GuardianProfileAddress | null>(null);
   const [isPhoneNumberBlurred, setIsPhoneNumberBlurred] = useState(false);
@@ -122,14 +128,14 @@ function GuardianInviteProfilePage({ token }: { token: string }) {
       await replace({
         pathname: route.auth.login.root,
         params: {
-          redirectTo: route.invite.guardian.root.replace('[token]', encodeURIComponent(token)),
+          redirectTo: inviteRedirectPath,
         },
       });
     } catch {
       setIsLoginNavigationFailed(true);
       toast('로그인 화면으로 이동하지 못했어요. 다시 시도해 주세요.');
     }
-  }, [replace, token]);
+  }, [inviteRedirectPath, replace, token]);
 
   useEffect(() => {
     if (!inviteQuery.isError) return;
