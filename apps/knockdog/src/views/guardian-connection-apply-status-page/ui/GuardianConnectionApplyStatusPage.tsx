@@ -11,7 +11,7 @@ import {
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { trackConnectionStatus } from '@shared/lib/analytics';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { useRequireAuth } from '@shared/ui/private-access/model/useRequireAuth';
@@ -79,28 +79,45 @@ function GuardianConnectionApplyStatusPage() {
   };
 
   const handleCancelClick = useCallback(
-    (item: GuardianConnectionApplyItem) => {
+    async (item: GuardianConnectionApplyItem) => {
+      const runCancel = async () => {
+        try {
+          // TODO: 원장 알림 전송 연동
+          // title: 보호자가 등록 신청을 취소했어요
+          // body: `${petName}가 승인 대기 목록에서 제외됐어요.`
+          await cancelMutation.mutateAsync(item.id);
+          trackConnectionStatus({ status: 'cancel', actor: 'guardian' });
+        } catch {
+          toast(content.cancelFailToast);
+        }
+      };
+
+      const result = await openConfirmDialog({
+        title: content.cancelSheet.title,
+        cancelLabel: content.cancelSheet.closeLabel,
+        confirmLabel: content.cancelSheet.confirmLabel,
+        showAvatar: true,
+        avatarUrl: item.pet.imageUrl,
+      });
+
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') void runCancel();
+        return;
+      }
+
+      // status === 'unavailable' — 웹에서는 네이티브 다이얼로그가 없어 기존 웹 바텀시트로 폴백
       overlay.open(({ isOpen, close }) => (
         <GuardianConnectionApplyCancelSheet
           isOpen={isOpen}
           close={close}
           item={item}
-          onConfirm={async () => {
-            try {
-              // TODO: 원장 알림 전송 연동
-              // title: 보호자가 등록 신청을 취소했어요
-              // body: `${petName}가 승인 대기 목록에서 제외됐어요.`
-              await cancelMutation.mutateAsync(item.id);
-              trackConnectionStatus({ status: 'cancel', actor: 'guardian' });
-            } catch {
-              toast(content.cancelFailToast);
-              throw new Error('CANCEL_FAIL');
-            }
-          }}
+          onConfirm={runCancel}
         />
       ));
     },
-    [cancelMutation, content.cancelFailToast]
+    [cancelMutation, content.cancelFailToast, content.cancelSheet]
   );
 
   const isAuthResolving = !isUserStoreHydrated || !hasAuth || isAuthSyncing || !userId;
