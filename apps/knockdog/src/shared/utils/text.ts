@@ -21,6 +21,25 @@ export const getSubjectParticle = (word: string): '이' | '가' => {
   return '이';
 };
 
+export const getObjectParticle = (word: string): '을' | '를' => {
+  const chars = [...word.trim().normalize('NFC')];
+
+  for (let index = chars.length - 1; index >= 0; index -= 1) {
+    const char = chars[index];
+    if (!char) continue;
+
+    const code = char.charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const jongseong = (code - 0xac00) % 28;
+      return jongseong === 0 ? '를' : '을';
+    }
+
+    if (/[a-z]/i.test(char)) return /[aeiouy]/i.test(char) ? '를' : '을';
+  }
+
+  return '을';
+};
+
 export const getDirectionParticle = (word: string): '로' | '으로' => {
   if (!word || word.length === 0) {
     return '으로';
