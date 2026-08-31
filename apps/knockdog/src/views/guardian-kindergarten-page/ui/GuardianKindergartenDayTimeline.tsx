@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner, REFRESH_LOADING_DELAY_MS } from '@shared/ui/loading-spinner';
 import type { GuardianCalendarDailyNotice } from '@entities/guardian-home';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { formatKoreanAmPmTime } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
@@ -154,7 +154,14 @@ function GuardianKindergartenDayTimeline({
   }, [checkInAt, checkOutAt, dailyNotice, content.checkInLabel, content.checkOutLabel]);
 
   if (isLoading) {
-    return <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='w-full p-4' />;
+    return (
+      <DelayedLoadingSpinner
+        isLoading={isLoading}
+        delayMs={REFRESH_LOADING_DELAY_MS}
+        layout='inline'
+        className='w-full p-4'
+      />
+    );
   }
 
   if (!checkInAt) {

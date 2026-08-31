@@ -43,7 +43,7 @@ import {
   parseNotificationEntrySource,
   useUnavailableNotificationAction,
 } from '@shared/lib/notification';
-import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner, REFRESH_LOADING_DELAY_MS } from '@shared/ui/loading-spinner';
 import { isStoolStatus } from '@shared/ui/stool-status';
 
 const SAFE_AREA_INSET_TOP = 'max(var(--safe-area-inset-top, 0px), env(safe-area-inset-top, 0px))';
@@ -445,6 +445,7 @@ function GuardianDailyNoticeDetailPage() {
               /* --:--·미작성 블록이 먼저 스치지 않도록 날짜·응답 확정까지 로딩 */
               <DelayedLoadingSpinner
                 isLoading={isContentLoading}
+                delayMs={REFRESH_LOADING_DELAY_MS}
                 layout='content'
                 className='min-h-[282px]'
               />
