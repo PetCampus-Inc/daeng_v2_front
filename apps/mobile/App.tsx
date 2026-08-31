@@ -14,6 +14,8 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RootStackNavigator, useLinking } from './components/navigation';
 import { PushNotificationProvider } from './components/PushNotificationProvider';
 import { BlockingOverlay } from './features/blocking-overlay';
+// TEMP DEBUG: 원장/보호자 하단 탭 깜빡임 원인 파악용. 확인 끝나면 import/렌더와 features/main-tab-mode-debug 폴더째 제거.
+import { MainTabModeDebugOverlay } from './features/main-tab-mode-debug';
 import { pushCoordinator } from './lib/pushCoordinator';
 import { useBottomTabBarVisibilityStore } from './bridges/model/bottomTabBarVisibilityStore';
 
@@ -141,6 +143,7 @@ export default function App() {
                 <RootStackNavigator />
               </NavigationContainer>
               <BlockingOverlay />
+              <MainTabModeDebugOverlay />
             </ToastProvider>
           </View>
         </PortalProvider>

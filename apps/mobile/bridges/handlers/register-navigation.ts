@@ -21,6 +21,8 @@ import {
   pendingTabQueryStore,
 } from '../lib/tabQueryInject';
 import { getFirstPartyWebOrigin } from '../lib/isFirstPartyWebViewUrl';
+// TEMP DEBUG: 원장/보호자 하단 탭 깜빡임 원인 파악용. 확인 끝나면 제거.
+import { pushMainTabModeDebugLog } from '../../features/main-tab-mode-debug';
 
 /** TabNavigator screen 등록 순서 — Stack reset 시 활성 탭 state 명시 */
 const TAB_SCREEN_ORDER: TabName[] = [
@@ -615,7 +617,16 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       // 보낸 요청이 현재 모드를 덮어쓰지 못하게 한다.
       const canForceBeforeActiveRefRegistration = payload?.force === true && !activeTabWebView;
 
+      // TEMP DEBUG: 원장/보호자 하단 탭 깜빡임 원인 파악용. 확인 끝나면 제거.
+      pushMainTabModeDebugLog(
+        `IN mode=${mode} reqId=${requestId} force=${payload?.force === true} activeTab=${activeTab ?? 'null'} ` +
+          `activeTabWebView=${activeTabWebView ? 'set' : 'null'} isFromCurrent=${isRequestFromCurrentTab} ` +
+          `canForceEarly=${canForceBeforeActiveRefRegistration} lastReqId=${lastMainTabModeRequest.id} ` +
+          `lastSourceSameAsCurrent=${options?.currentWebRef === lastMainTabModeRequest.source}`
+      );
+
       if (!isRequestFromCurrentTab && !canForceBeforeActiveRefRegistration) {
+        pushMainTabModeDebugLog(`  -> REJECT (not current tab, no early-force). keep=${useMainTabModeStore.getState().mode}`);
         return { mode: useMainTabModeStore.getState().mode };
       }
 
@@ -626,6 +637,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
         options?.currentWebRef === lastMainTabModeRequest.source &&
         requestId < lastMainTabModeRequest.id
       ) {
+        pushMainTabModeDebugLog(`  -> REJECT (stale reqId). keep=${useMainTabModeStore.getState().mode}`);
         return { mode: useMainTabModeStore.getState().mode };
       }
 
@@ -633,6 +645,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
         id: requestId,
         source: options?.currentWebRef ?? null,
       };
+      pushMainTabModeDebugLog(`  -> APPLY mode=${mode}`);
       applyMainTabMode(mode);
       return { mode };
     }
