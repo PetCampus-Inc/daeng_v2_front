@@ -3,6 +3,7 @@ import { BackHandler, Platform } from 'react-native';
 
 import { navigationRef, isNavReady } from '@/bridges/lib/navigationRef';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
+import { useBlockingOverlayStore } from '@/features/blocking-overlay';
 import { isOwnerOnlyTab, type TabName } from '@/bridges/lib/tabRoutes';
 import { toast } from '@/components/toast';
 
@@ -68,6 +69,14 @@ function useAndroidTabBack() {
     if (Platform.OS !== 'android') return;
 
     const onHardwareBackPress = () => {
+      const overlayContent = useBlockingOverlayStore.getState().content;
+      if (overlayContent) {
+        if (overlayContent.kind === 'confirm') {
+          useBlockingOverlayStore.getState().resolveConfirmDialog('cancel');
+        }
+        return true;
+      }
+
       if (getFocusedRootName() !== 'Tabs') {
         clearExitArm();
         return false;
