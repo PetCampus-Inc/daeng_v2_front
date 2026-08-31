@@ -133,9 +133,17 @@ function SyncNativeMainTabModeEffect() {
     // document.visibilityState가 hidden으로 남는 경우가 있어, focus된 탭은
     // visibility와 무관하게 sync한다. 웹은 visibility도 함께 본다.
     if (!isNativeTabFocused) {
-      pushDebugLog('  -> skip: not native-tab-focused, reset last=null');
-      lastSyncedModeRef.current = null;
-      return;
+      // iOS 실기기에서 네이티브가 blur→focus를 수십ms 간격으로 연달아 두 번
+      // 보내는 경우가 있다(원인 미확정). 매번 즉시 리셋하면 그 순간마다
+      // "동기화 안 된 상태"로 되돌아가 재동기화 요청이 반복 발사되어 하단
+      // 탭이 깜빡인다. blur 직후 곧바로 focus가 돌아오면(포커스가 실제로는
+      // 안 바뀐 셈) 리셋을 취소할 수 있도록 짧게 지연시킨다.
+      pushDebugLog('  -> skip: not native-tab-focused, scheduling reset (debounced)');
+      const blurResetTimer = setTimeout(() => {
+        pushDebugLog('  -> blur-debounce elapsed, reset last=null');
+        lastSyncedModeRef.current = null;
+      }, 250);
+      return () => clearTimeout(blurResetTimer);
     }
     if (!isNativeWebView() && !isDocumentVisible) {
       pushDebugLog('  -> skip: web + not visible, reset last=null');
