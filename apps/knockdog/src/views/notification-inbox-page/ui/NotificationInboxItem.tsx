@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
@@ -17,6 +17,10 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
   const imageSrc = item.kindergartenImageUrl;
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = Boolean(imageSrc) && !hasImageError;
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [imageSrc]);
 
   const handleClick = () => {
     onClick?.(item);

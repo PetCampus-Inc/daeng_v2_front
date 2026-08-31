@@ -10,13 +10,13 @@ interface ActionLoadingOverlayProps {
 }
 
 function ActionLoadingOverlay({ isPending, className }: ActionLoadingOverlayProps) {
-  const { showSpinner } = useActionLoading(isPending);
+  const { showSpinner, isLocked } = useActionLoading(isPending);
 
-  if (!showSpinner) return null;
+  if (!isLocked) return null;
 
   return (
     <div className={cn('absolute inset-0 z-10 flex items-center justify-center bg-white/80', className)}>
-      <LoadingSpinner layout='inline' />
+      {showSpinner ? <LoadingSpinner layout='inline' /> : null}
     </div>
   );
 }

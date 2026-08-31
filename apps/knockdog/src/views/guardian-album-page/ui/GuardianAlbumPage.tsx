@@ -799,6 +799,18 @@ function GuardianAlbumPage() {
     });
   }, [isEntryRetrying, refetchAlbumMonth, refetchAlbumToday]);
 
+  if (isAlbumTodayError && !isReady) {
+    return (
+      <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+        <PageError
+          layout='inline'
+          isRetrying={isEntryRetrying || isAlbumTodayFetching}
+          onRetry={handleEntryRetry}
+        />
+      </div>
+    );
+  }
+
   if (!isReady) {
     return (
       <div className='bg-bg-50 flex min-h-0 flex-1 flex-col'>

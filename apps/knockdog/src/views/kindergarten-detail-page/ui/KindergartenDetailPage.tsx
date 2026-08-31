@@ -108,7 +108,7 @@ function KindergartenDetailPage() {
         <Header>
           <Header.LeftSection>{isNative ? <Header.BackButton /> : null}</Header.LeftSection>
         </Header>
-        <DelayedLoadingSpinner isLoading={isPending} layout='content' />
+        <DelayedLoadingSpinner isLoading={isPending || !kindergartenMain} layout='content' />
       </div>
     );
   }

@@ -356,6 +356,8 @@ function OwnerDailyNoticeWritePage() {
   };
 
   const handleBackClick = useCallback(() => {
+    if (isSubmitting) return;
+
     if (isReadOnly) {
       returnToOwnerDailyTodayAttendance();
       return;
@@ -396,7 +398,7 @@ function OwnerDailyNoticeWritePage() {
         </AlertDialogContent>
       </AlertDialog>
     ));
-  }, [isReadOnly, returnToOwnerDailyTodayAttendance]);
+  }, [isReadOnly, isSubmitting, returnToOwnerDailyTodayAttendance]);
 
   useNativeBackHandler(handleBackClick);
 

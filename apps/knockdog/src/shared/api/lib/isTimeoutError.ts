@@ -1,11 +1,17 @@
-function isTimeoutError(error: unknown) {
+import { TimeoutError } from 'ky';
+
+import { UPLOAD_TIMEOUT_ERROR_NAME } from './fetchWithUploadTimeout';
+
+function isUploadTimeoutError(error: unknown) {
   if (!error || typeof error !== 'object') return false;
 
   const name = 'name' in error ? String(error.name) : '';
-  if (name === 'TimeoutError' || name === 'AbortError') return true;
-
-  const message = 'message' in error ? String(error.message) : '';
-  return /timed out|timeout|aborted/i.test(message);
+  return name === UPLOAD_TIMEOUT_ERROR_NAME;
 }
 
-export { isTimeoutError };
+function isTimeoutError(error: unknown) {
+  if (error instanceof TimeoutError) return true;
+  return isUploadTimeoutError(error);
+}
+
+export { isTimeoutError, isUploadTimeoutError };
