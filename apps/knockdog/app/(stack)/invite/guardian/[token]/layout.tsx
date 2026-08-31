@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import type { ReactNode, Suspense } from 'react';
+import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 
 import { InviteEntrySourceSync } from '@shared/lib/analytics/InviteEntrySourceSync';
 
