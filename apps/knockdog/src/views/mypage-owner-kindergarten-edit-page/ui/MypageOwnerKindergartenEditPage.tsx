@@ -311,8 +311,12 @@ function MypageOwnerKindergartenEditPage() {
               showRepresentativeBadge
               representativeBadgeLabel={ownerMypageContent.kindergartenEditRepresentativeBadge}
               defaultValue={formData.images}
+              invalid={Boolean(formData.imagesError)}
               onChange={formData.handleImagesChange}
             />
+            {formData.imagesError ? (
+              <p className='text-error body2-regular pt-2'>{formData.imagesError}</p>
+            ) : null}
           </div>
 
           <div className='px-4 py-2'>

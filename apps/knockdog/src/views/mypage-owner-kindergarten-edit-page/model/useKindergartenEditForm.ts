@@ -33,6 +33,7 @@ const WEB_ADDRESS_FORMAT_ERROR = ownerMypageContent.kindergartenEditWebAddressFo
 const PHONE_FORMAT_ERROR = ownerMypageContent.kindergartenEditPhoneFormatError;
 const WEEKDAY_OPERATING_HOURS_ERROR = ownerMypageContent.kindergartenEditWeekdayOperatingHoursError;
 const WEEKEND_OPERATING_HOURS_ERROR = ownerMypageContent.kindergartenEditWeekendOperatingHoursError;
+const IMAGES_ERROR = ownerMypageContent.kindergartenEditImagesError;
 
 function isDayOperatingHoursComplete(start: string | null, end: string | null) {
   return Boolean(start && end);
@@ -180,6 +181,7 @@ function useKindergartenEditForm() {
   const [isPreparingSave, setIsPreparingSave] = useState(false);
   const [isWeekdayOperatingHoursTouched, setIsWeekdayOperatingHoursTouched] = useState(false);
   const [isWeekendOperatingHoursTouched, setIsWeekendOperatingHoursTouched] = useState(false);
+  const [isImagesTouched, setIsImagesTouched] = useState(false);
   const [hasSaveAttempted, setHasSaveAttempted] = useState(false);
 
   const draftSetters = {
@@ -397,7 +399,6 @@ function useKindergartenEditForm() {
   );
 
   const isOtherRequiredFieldsValid =
-    images.length > 0 &&
     name.trim().length > 0 &&
     address.trim().length > 0 &&
     phone.trim().length > 0 &&
@@ -405,6 +406,13 @@ function useKindergartenEditForm() {
     isValidWebAddressFormat(homepage) &&
     isValidWebAddressFormat(instagram) &&
     isValidWebAddressFormat(youtube);
+
+  const imagesError = useMemo(() => {
+    if (images.length > 0) return undefined;
+    if (!isImagesTouched && !hasSaveAttempted) return undefined;
+
+    return IMAGES_ERROR;
+  }, [images.length, isImagesTouched, hasSaveAttempted]);
 
   const weekdayOperatingHoursError = useMemo(() => {
     if (isDayOperatingHoursComplete(weekdayStart, weekdayEnd)) return undefined;
@@ -421,6 +429,7 @@ function useKindergartenEditForm() {
   }, [weekendStart, weekendEnd, isWeekendOperatingHoursTouched, hasSaveAttempted]);
 
   const isSaveEnabled =
+    images.length > 0 &&
     isOtherRequiredFieldsValid &&
     isOperatingHoursComplete(weekdayStart, weekdayEnd, weekendStart, weekendEnd);
 
@@ -571,6 +580,7 @@ function useKindergartenEditForm() {
     lastUpdatedDate,
     isDirty,
     isSaveEnabled,
+    imagesError,
     weekdayOperatingHoursError,
     weekendOperatingHoursError,
     isSaving: isSaving || isPreparingSave,
@@ -578,7 +588,10 @@ function useKindergartenEditForm() {
     setIsClosedDaysSheetOpen,
     closeTimeSheet: () => setActiveTimeField(null),
     closeClosedDaysSheet: () => setIsClosedDaysSheetOpen(false),
-    handleImagesChange: (next: WebImageAsset[]) => updateField(setImages, next),
+    handleImagesChange: (next: WebImageAsset[]) => {
+      setIsImagesTouched(true);
+      updateField(setImages, next);
+    },
     handleNameChange: (value: string) => updateField(setName, formatName(value)),
     handleAddressDetailChange: (value: string) => updateField(setAddressDetail, value),
     handlePhoneChange: (value: string) => {
