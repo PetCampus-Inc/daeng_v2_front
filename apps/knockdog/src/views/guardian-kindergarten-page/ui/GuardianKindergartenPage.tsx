@@ -157,7 +157,9 @@ export function GuardianKindergartenPage() {
   if (!isMounted || !isLoggedIn || !isPetsReady) {
     return (
       <div className='flex h-dvh flex-col' style={pageGradientStyle}>
-        <DelayedLoadingSpinner isLoading layout='content' className='bg-bg-0 rounded-t-[24px]' />
+        <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
+          <DelayedLoadingSpinner isLoading layout='content' />
+        </div>
       </div>
     );
   }
