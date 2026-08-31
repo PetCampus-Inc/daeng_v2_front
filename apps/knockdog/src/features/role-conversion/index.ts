@@ -3,6 +3,7 @@ export { roleConversionButtonContent } from './config/roleConversionButtonConten
 export { useOwnerRole, type OwnerRoleState } from './model/useOwnerRole';
 export { useIsOwnerVerified } from './model/useIsOwnerVerified';
 export { useMypageRoleView, useShowOwnerBottomNav } from './model/useMypageRoleView';
+export { useMypageRoleViewStore } from './model/mypageRoleViewStore';
 export { useOwnerKindergarten } from './model/useOwnerKindergarten';
 export { useOwnerProfile } from './model/useOwnerProfile';
 export {

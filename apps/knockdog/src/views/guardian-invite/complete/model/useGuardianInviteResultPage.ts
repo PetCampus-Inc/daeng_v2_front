@@ -9,6 +9,8 @@ import { route } from '@shared/constants/route';
 import { useBridge, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
+import { useMypageRoleViewStore } from '@features/role-conversion';
+
 import { guardianInviteResultContent } from '../config/guardianInviteResultContent';
 import { GUARDIAN_INVITE_RESULT_STATUS, resolveGuardianInviteResultStatus } from '../config/guardianInviteResultStatus';
 
@@ -33,7 +35,14 @@ function useGuardianInviteResultPage() {
   // 초대 링크를 연 경우) "홈으로 이동하기"가 보호자 탭이 아닌 원장 탭으로 튕기므로, 탭
   // 전환 전에 모드를 보호자로 명시 고정한다. 원장 상태로 들어왔어도 항상 보호자 홈으로
   // 이동해야 하는 화면이라 무조건 'guardian'으로 맞춘다.
+  //
+  // prefersGuardianView도 같이 true로 맞춰야 한다. 원장 권한 계정은 내 주변 탭(메인
+  // 탭이라 SyncNativeMainTabModeEffect가 다시 실행됨)에 도착하는 순간 그 effect가
+  // isOwner && !prefersGuardianView로 모드를 재계산하는데, 이 값을 안 바꾸면 여전히
+  // false라 방금 강제한 guardian을 곧바로 owner로 되돌려버린다.
   const forceGuardianMainTabMode = () => {
+    useMypageRoleViewStore.getState().setPrefersGuardianView(true);
+
     if (!isNativeWebView()) return Promise.resolve();
     return bridge.request(METHODS.navSetMainTabMode, {
       mode: 'guardian',
