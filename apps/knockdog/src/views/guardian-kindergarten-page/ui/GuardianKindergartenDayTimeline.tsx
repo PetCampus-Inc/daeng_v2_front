@@ -154,10 +154,12 @@ function GuardianKindergartenDayTimeline({
   }, [checkInAt, checkOutAt, dailyNotice, content.checkInLabel, content.checkOutLabel]);
 
   if (isLoading) {
+    const loadingDelayMs = checkInAt ? REFRESH_LOADING_DELAY_MS : 0;
+
     return (
       <DelayedLoadingSpinner
         isLoading={isLoading}
-        delayMs={REFRESH_LOADING_DELAY_MS}
+        delayMs={loadingDelayMs}
         layout='inline'
         className='w-full p-4'
       />
