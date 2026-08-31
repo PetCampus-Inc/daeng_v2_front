@@ -1,4 +1,4 @@
-import { Animated, BackHandler, Easing, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, BackHandler, Dimensions, Easing, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Portal } from '@gorhom/portal';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
@@ -9,6 +9,18 @@ const AnimatedSvg = Animated.createAnimatedComponent(Svg);
 // AOS 시스템 글자 크기 설정이 고정 lineHeight 레이아웃을 깨뜨리는 것을 방지 (QA3-198과 동일 정책, iOS 미적용)
 const ALLOW_FONT_SCALING = Platform.OS !== 'android';
 const MAX_FONT_SIZE_MULTIPLIER = Platform.OS === 'android' ? 1 : undefined;
+const CONFIRM_DIALOG_MAX_HEIGHT = Dimensions.get('window').height * 0.85;
+
+/** 공백 줄바꿈으로 2줄 → 아래 '취소'만 잘리는 AOS 버그 방지 */
+function formatDialogButtonLabel(label: string) {
+  return label.replace(/ /g, '\u00A0');
+}
+
+const confirmDialogButtonTextBase = {
+  width: '100%' as const,
+  textAlign: 'center' as const,
+  ...(Platform.OS === 'android' ? { includeFontPadding: false } : null),
+};
 
 function RingLoadingSpinner() {
   const rotation = useRef(new Animated.Value(0)).current;
@@ -129,9 +141,14 @@ function BlockingOverlay() {
             </Text>
           </View>
         ) : (
-          <View style={styles.confirmDialogContent} accessibilityLabel={content.title}>
-            <View
-              style={[
+          <View
+            style={[styles.confirmDialogContent, { maxHeight: CONFIRM_DIALOG_MAX_HEIGHT }]}
+            accessibilityLabel={content.title}
+          >
+            <ScrollView
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
                 styles.confirmDialogHeader,
                 content.contentPaddingHorizontal != null && { paddingHorizontal: content.contentPaddingHorizontal },
               ]}
@@ -182,7 +199,7 @@ function BlockingOverlay() {
                   {content.description}
                 </Text>
               )}
-            </View>
+            </ScrollView>
             <View
               style={[
                 styles.confirmDialogFooter,
@@ -195,11 +212,12 @@ function BlockingOverlay() {
                   onPress={() => resolveConfirmDialog('cancel')}
                 >
                   <Text
-                    style={styles.confirmDialogCancelButtonText}
+                    style={[styles.confirmDialogCancelButtonText, confirmDialogButtonTextBase]}
                     allowFontScaling={ALLOW_FONT_SCALING}
                     maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                    numberOfLines={1}
                   >
-                    {content.cancelLabel ?? '취소'}
+                    {formatDialogButtonLabel(content.cancelLabel ?? '취소')}
                   </Text>
                 </Pressable>
               )}
@@ -213,11 +231,12 @@ function BlockingOverlay() {
                 onPress={() => resolveConfirmDialog('confirm')}
               >
                 <Text
-                  style={styles.confirmDialogActionButtonText}
+                  style={[styles.confirmDialogActionButtonText, confirmDialogButtonTextBase]}
                   allowFontScaling={ALLOW_FONT_SCALING}
                   maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+                  numberOfLines={1}
                 >
-                  {content.confirmLabel ?? '확인'}
+                  {formatDialogButtonLabel(content.confirmLabel ?? '확인')}
                 </Text>
               </Pressable>
             </View>
@@ -258,6 +277,7 @@ const styles = StyleSheet.create({
     maxWidth: 358,
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
@@ -316,10 +336,12 @@ const styles = StyleSheet.create({
   },
   confirmDialogButton: {
     flex: 1,
-    height: 56,
+    minHeight: 56,
+    minWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
+    paddingHorizontal: 8,
   },
   confirmDialogCancelButton: {
     borderWidth: 1,
