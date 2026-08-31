@@ -6,12 +6,10 @@ import { METHODS } from '@knockdog/bridge-core';
 
 import { useOwnerRole } from '../model/useOwnerRole';
 import { useMypageRoleViewStore } from '../model/mypageRoleViewStore';
-import { useUserStore } from '@entities/user';
+// TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
+import { isRoleFlickerDebugUser, pushRoleFlickerDebugLog, useRoleFlickerDebugLogStore } from '../model/roleFlickerDebugLogStore';
 import { useBridge, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
-
-// TEMP DEBUG: 원장/보호자 깜빡임 디버그 로그를 이 계정에서만 노출. 확인 끝나면 제거.
-const DEBUG_USER_IDS = ['KXQRFLWH'];
 
 declare global {
   interface Window {
@@ -84,8 +82,7 @@ function SyncNativeMainTabModeEffect() {
   const bridge = useBridge();
   const pathname = usePathname();
   const { isMainTab } = useTabNavigation();
-  const debugUserId = useUserStore((state) => state.user?.userId);
-  const isDebugUser = DEBUG_USER_IDS.includes(debugUserId ?? '');
+  const isDebugUser = isRoleFlickerDebugUser();
   const { isOwner, isResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
   const hasRoleViewHydrated = useHasMypageRoleViewHydrated();
@@ -100,12 +97,8 @@ function SyncNativeMainTabModeEffect() {
   const mode = isOwner && !prefersGuardianView ? 'owner' : 'guardian';
 
   // TEMP DEBUG: 원장/보호자 깜빡임 원인 파악용. 확인 끝나면 제거.
-  const [debugLog, setDebugLog] = useState<string[]>([]);
-  const pushDebugLog = (line: string) => {
-    if (!isDebugUser) return;
-    const time = new Date().toISOString().slice(11, 23);
-    setDebugLog((prev) => [...prev.slice(-14), `${time} ${line}`]);
-  };
+  const debugLog = useRoleFlickerDebugLogStore((state) => state.lines);
+  const pushDebugLog = pushRoleFlickerDebugLog;
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -117,7 +110,8 @@ function SyncNativeMainTabModeEffect() {
 
   useEffect(() => {
     pushDebugLog(
-      `effect run: mode=${mode} isResolved=${isResolved} isFetching=${isFetching} ` +
+      `effect run: mode=${mode} isOwner=${isOwner} prefersGuardian=${prefersGuardianView} ` +
+        `isResolved=${isResolved} isFetching=${isFetching} ` +
         `hydrated=${hasRoleViewHydrated} focused=${isNativeTabFocused} visible=${isDocumentVisible} ` +
         `path=${pathname} last=${lastSyncedModeRef.current}`
     );
