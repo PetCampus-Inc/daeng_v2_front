@@ -11,6 +11,11 @@ function useDelayedLoading(isLoading: boolean, delayMs = LOADING_SPINNER_DELAY_M
       return;
     }
 
+    if (delayMs <= 0) {
+      setShowLoading(true);
+      return;
+    }
+
     const timer = window.setTimeout(() => setShowLoading(true), delayMs);
     return () => window.clearTimeout(timer);
   }, [isLoading, delayMs]);

@@ -10,3 +10,4 @@ export { useAppVersion } from './useAppVersion';
 export { detectPlatform, isIOS, isAndroid } from './platform';
 export type { Platform } from './platform';
 export { useKeyboardAwareScrollHeight } from './useKeyboardAwareScrollHeight';
+export { useFocusScrollLock } from './useFocusScrollLock';

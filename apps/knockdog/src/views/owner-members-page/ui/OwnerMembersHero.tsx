@@ -7,6 +7,7 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { useFocusScrollLock } from '@shared/lib/device';
 
 interface OwnerMembersHeroProps {
   searchQuery: string;
@@ -15,6 +16,7 @@ interface OwnerMembersHeroProps {
 
 function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
   const { push } = useStackNavigation();
+  const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();
 
   return (
     <div className='relative overflow-hidden pt-(--safe-area-inset-top,0px) pb-6'>
@@ -43,6 +45,7 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
           className='bg-bg-0 h-x12 border-0'
         >
           <TextFieldInput
+            ref={fieldRef}
             type='search'
             inputMode='search'
             value={searchQuery}
@@ -50,6 +53,9 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
             placeholder={ownerMembersContent.searchPlaceholder}
             aria-label='구성원 검색어 입력'
             onChange={(e) => onSearchQueryChange(e.target.value)}
+            onPointerDown={handlePointerDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
           />
           {searchQuery && (
             <button
