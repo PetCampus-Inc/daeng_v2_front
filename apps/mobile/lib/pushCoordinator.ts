@@ -24,6 +24,11 @@ const INJECT_RETRY_INTERVAL_MS = 300;
 
 type WebRef = RefObject<WebView>;
 
+/** 보호자 전용 / 원장 전용 탭. Mypage처럼 양쪽이 공유하는 탭은 포함하지 않는다 —
+ * 이동한 탭 이름만으로 컨텍스트를 판별할 수 있는 경우에만 쓴다. */
+const GUARDIAN_ONLY_TABS: readonly TabName[] = ['Explore', 'Save', 'Compare'];
+const OWNER_ONLY_TABS: readonly TabName[] = ['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers'];
+
 class PushCoordinator {
   private currentToken: string | null = null;
   private platform: 'IOS' | 'ANDROID' = 'IOS';
@@ -135,20 +140,24 @@ class PushCoordinator {
     if (destination.kind === 'guardianKindergarten') {
       navigationRef.navigate('Tabs', { screen: 'Compare' });
       this.setCompareTabPet(destination.petId, destination.date);
-      this.setPrefersGuardianView('Compare', true);
+      this.applyGuardianViewForDestination('Compare');
       return;
     }
 
     if (destination.kind === 'ownerMemberApprovals') {
       navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl('/owner/members/approval') }));
-      this.setPrefersGuardianView('OwnerMembers', false);
+      this.applyGuardianViewForDestination('OwnerMembers');
       return;
     }
 
     if (destination.kind === 'connectionApplyStatus') {
+      const stackPath = '/guardian/connection-apply/status';
       navigationRef.navigate('Tabs', { screen: 'Mypage' });
-      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl('/guardian/connection-apply/status') }));
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(stackPath) }));
+      // Mypage는 원장/보호자 공용 탭이라 탭 이름만으로는 컨텍스트를 못 정하므로,
+      // 실제로 여는 스택 경로(보호자 전용)를 같이 넘겨 판별한다.
+      this.applyGuardianViewForDestination('Mypage', stackPath);
       return;
     }
 
@@ -159,7 +168,7 @@ class PushCoordinator {
       });
       navigationRef.navigate('Tabs', { screen: 'Compare' });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/album?${params}`) }));
-      this.setPrefersGuardianView('Compare', true);
+      this.applyGuardianViewForDestination('Compare');
       // 알림함 진입 시(useNotificationInboxDeepLink.ts)와 동일하게, 강아지가 있으면
       // 유치원 탭에서 보고 있는 강아지도 같이 맞춰준다.
       if (destination.petId) this.setSelectedGuardianPet('Compare', destination.petId);
@@ -192,6 +201,28 @@ class PushCoordinator {
     if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
       setTimeout(() => this.setCompareTabPet(petId, _date, attempt + 1), INJECT_RETRY_INTERVAL_MS);
     }
+  }
+
+  /** 이동한 탭 이름(필요하면 함께 여는 스택 경로)만 보고 보호자/원장 컨텍스트를
+   * 판별해 prefersGuardianView를 맞춘다. 목적지 종류가 새로 추가돼도 여기 한 곳만
+   * 맞으면 되므로, 케이스마다 개별적으로 처리를 깜빡여서 생기던 문제("이 알림만
+   * 다른 탭으로 이동하면 원장으로 되돌아간다")를 원천적으로 막는다.
+   *
+   * Mypage처럼 탭 이름만으론 판별 안 되는 공용 탭은 stackPath(예: '/guardian/...',
+   * '/owner/...')로 판별한다. 그래도 안 되면(둘 다 애매하면) 기존 선호도를 그대로 둔다. */
+  private applyGuardianViewForDestination(tabName: TabName, stackPath?: string) {
+    let value: boolean | null = null;
+
+    if (GUARDIAN_ONLY_TABS.includes(tabName)) value = true;
+    else if (OWNER_ONLY_TABS.includes(tabName)) value = false;
+
+    if (value === null && stackPath) {
+      if (stackPath.startsWith('/guardian/') || stackPath.startsWith('/compare')) value = true;
+      else if (stackPath.startsWith('/owner/')) value = false;
+    }
+
+    if (value === null) return;
+    this.setPrefersGuardianView(tabName, value);
   }
 
   /** 푸시가 원장/보호자 전용 탭으로 강제 이동시킨 뒤, 다른 탭으로 넘어가도

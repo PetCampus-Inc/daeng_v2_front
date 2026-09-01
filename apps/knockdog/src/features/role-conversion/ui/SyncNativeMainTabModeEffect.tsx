@@ -15,6 +15,15 @@ declare global {
   }
 }
 
+/** 보호자 전용 메인 탭 경로 중, 이 화면에 "있다"는 사실만으로 보호자 선호도를
+ * 확정해도 안전한 것만 포함한다. '/'(내 주변)는 원장 콜드스타트 때도 원장 모드가
+ * 확정되기 전 네이티브 기본값(guardian)으로 잠깐 거쳐가는 화면이라 여기 넣으면
+ * 안 된다 — 넣으면 원장으로 확정되기도 전에 보호자로 영구 고정돼버려서, 원장
+ * 계정이 재시작할 때마다 원장 모드로 못 돌아가는 회귀가 생긴다(실제로 발생함).
+ * '/save', '/compare'는 첫 진입 기본 탭이 아니라 사용자가 명시적으로 이동해야만
+ * 도달하므로 안전하다. */
+const GUARDIAN_ONLY_MAIN_PATHS = ['/save', '/compare'];
+
 let lastMainTabModeRequestId = 0;
 
 function getNextMainTabModeRequestId() {
@@ -125,9 +134,22 @@ function SyncNativeMainTabModeEffect() {
     // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
     if (mode === 'guardian' && isFetching) return;
 
-    // 보호자 유치원 탭은 stale owner store여도 네이티브 탭을 guardian으로 맞춤
-    const syncMode = pathname === '/compare' ? 'guardian' : mode;
+    // 보호자 전용 메인 탭 경로는 stale owner store여도 네이티브 탭을 guardian으로 맞춤.
+    // 원장 계정이 어떤 경로로 들어왔든(푸시, 알림함, 딥링크 등) 이 화면이 보호자
+    // 전용이면 무조건 guardian이어야 하므로, 개별 진입 지점마다 선호도를 챙겨줄
+    // 필요 없이 여기 한 곳에서 경로 기준으로 최종 판단한다.
+    const isGuardianOnlyPath = GUARDIAN_ONLY_MAIN_PATHS.includes(pathname);
+    const syncMode = isGuardianOnlyPath ? 'guardian' : mode;
     if (lastSyncedModeRef.current === syncMode) return;
+
+    // 위 강제와 별개로, 선호도 자체도 영구히 맞춰둔다 — 안 그러면 이 화면을 벗어나
+    // 다른 탭으로 이동하는 순간 prefersGuardianView가 여전히 false라 원장으로
+    // 되돌아간 것처럼 보인다(진짜 원인은 진입 지점이 선호도를 안 켜준 것).
+    // mode === 'owner'는 정확히 isOwner && !prefersGuardianView와 같은 조건이라
+    // (94행) 별도로 두 값을 의존성에 추가할 필요가 없다.
+    if (isGuardianOnlyPath && mode === 'owner') {
+      useMypageRoleViewStore.getState().setPrefersGuardianView(true);
+    }
 
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
