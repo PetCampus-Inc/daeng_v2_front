@@ -146,6 +146,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-build-properties',
       {
         android: {
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
           extraMavenRepos: ['https://devrepo.kakao.com/nexus/content/groups/public/'],
         },
       },
