@@ -15,9 +15,14 @@ declare global {
   }
 }
 
-/** 보호자 전용 메인 탭 경로. useTabNavigation의 MAIN_TAB_ROUTES 중 보호자만
- * 쓰는 것들(GUARDIAN_NAV_ITEMS와 동일) — 원장 전용/공용(마이페이지)은 제외. */
-const GUARDIAN_ONLY_MAIN_PATHS = ['/', '/search', '/save', '/compare'];
+/** 보호자 전용 메인 탭 경로 중, 이 화면에 "있다"는 사실만으로 보호자 선호도를
+ * 확정해도 안전한 것만 포함한다. '/'(내 주변)는 원장 콜드스타트 때도 원장 모드가
+ * 확정되기 전 네이티브 기본값(guardian)으로 잠깐 거쳐가는 화면이라 여기 넣으면
+ * 안 된다 — 넣으면 원장으로 확정되기도 전에 보호자로 영구 고정돼버려서, 원장
+ * 계정이 재시작할 때마다 원장 모드로 못 돌아가는 회귀가 생긴다(실제로 발생함).
+ * '/save', '/compare'는 첫 진입 기본 탭이 아니라 사용자가 명시적으로 이동해야만
+ * 도달하므로 안전하다. */
+const GUARDIAN_ONLY_MAIN_PATHS = ['/save', '/compare'];
 
 let lastMainTabModeRequestId = 0;
 
