@@ -43,6 +43,32 @@ if (typeof window !== 'undefined') {
   };
 }
 
+/** 네이티브 앱의 탭은 각각 별도 WebView라, 다른 탭(예: 푸시가 이동시킨 탭)에서 쓴
+ * localStorage 변경의 storage 이벤트를 백그라운드 탭이 서스펜드돼 놓칠 수 있다
+ * (useUserStore.ts와 동일한 패턴). 네이티브가 활성 탭에 주입하는 focus 이벤트에서
+ * persist 저장소를 다시 읽어 최신 값으로 맞춘다 — 이게 없으면 놓친 탭이 stale한
+ * prefersGuardianView로 SyncNativeMainTabModeEffect를 실행해 되돌아간 것처럼 보인다. */
+if (typeof window !== 'undefined') {
+  const rehydrateFromNativeFocus = () => {
+    Promise.resolve(useMypageRoleViewStore.persist.rehydrate()).catch((error: unknown) => {
+      console.error('Failed to sync mypage role view on native tab focus:', error);
+    });
+  };
+
+  window.addEventListener('knockdog:native-tab-focus', rehydrateFromNativeFocus);
+
+  // WebViewScreen은 화면 focus/load 완료 시점에 focus 이벤트를 주입하는데, 이 리스너
+  // 등록보다 그 주입이 먼저 일어나면 신호를 놓친다. 이미 focus된 상태라면 곧바로 한 번
+  // 동기화하고, 그마저도 놓쳤을 경우를 대비해 짧은 시간 뒤 한 번 더 시도한다.
+  if (window.__knockdogNativeTabFocused === true) {
+    rehydrateFromNativeFocus();
+  }
+
+  window.setTimeout(() => {
+    if (window.__knockdogNativeTabFocused !== false) rehydrateFromNativeFocus();
+  }, 2_000);
+}
+
 /** 탭 WebView 간 prefersGuardianView 동기화
  *
  * 받은 값을 그대로 setPrefersGuardianView로 다시 쓰면(zustand persist가 매번
