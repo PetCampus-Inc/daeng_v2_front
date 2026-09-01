@@ -584,23 +584,33 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
   }
 
   // Switch Tab
-  router.register<{ pathname: string; query?: Record<string, unknown> }>(METHODS.navSwitchTab, async (payload) => {
-    if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
+  router.register<{ pathname: string; query?: Record<string, unknown>; mode?: MainTabMode }>(
+    METHODS.navSwitchTab,
+    async (payload) => {
+      if (!isNavReady()) throw { code: 'EUNAVAILABLE', message: 'Navigation not ready' };
 
-    const tabName = resolveTabScreen(pathToTab(payload.pathname) ?? 'Explore');
+      // Stack 화면에서 호출하는 경우 navSetMainTabMode는 isRequestFromActiveTab 게이트에
+      // 막혀 반영되지 않는다(Stack 화면 요청은 항상 거부됨). 이 요청은 그 게이트가 없으므로,
+      // mode가 오면 탭 이름을 계산하기 전에 먼저 반영해 도착 탭이 올바르게 정해지게 한다.
+      if (payload.mode && useMainTabModeStore.getState().mode !== payload.mode) {
+        useMainTabModeStore.getState().setMode(payload.mode);
+      }
 
-    if (payload.query && Object.keys(payload.query).length > 0) {
-      pendingTabQueryStore.set(tabName, payload.query);
+      const tabName = resolveTabScreen(pathToTab(payload.pathname) ?? 'Explore');
+
+      if (payload.query && Object.keys(payload.query).length > 0) {
+        pendingTabQueryStore.set(tabName, payload.query);
+      }
+
+      navigationRef.navigate('Tabs', { screen: tabName });
+
+      if (payload.query && Object.keys(payload.query).length > 0) {
+        await injectTabWebViewQuery(tabName, payload.query);
+      }
+
+      return { switched: true };
     }
-
-    navigationRef.navigate('Tabs', { screen: tabName });
-
-    if (payload.query && Object.keys(payload.query).length > 0) {
-      await injectTabWebViewQuery(tabName, payload.query);
-    }
-
-    return { switched: true };
-  });
+  );
 
   router.register<{ mode: MainTabMode; requestId: number; force?: boolean }>(
     METHODS.navSetMainTabMode,

@@ -39,12 +39,16 @@ function useTabNavigation() {
   const isNative = useMemo(() => isNativeWebView(), []);
 
   const navigateToTab = useCallback(
-    async (pathname: TabRoute, query?: Query) => {
+    async (pathname: TabRoute, query?: Query, mode?: 'owner' | 'guardian') => {
       if (isNative) {
         // 네이티브 환경: 탭 전환 (애니메이션 없이 즉시 전환)
+        // mode를 넘기면, Stack 화면(예: 초대 완료)에서도 탭 이름 계산 전에 네이티브
+        // 메인탭 모드를 먼저 반영한다. navSetMainTabMode는 Stack 화면 요청을 거부하므로
+        // 그 경로 대신 게이트가 없는 이 브릿지에 실어 보낸다.
         await bridge.request(METHODS.navSwitchTab, {
           pathname,
           ...(query && { query }),
+          ...(mode && { mode }),
         });
         return;
       }

@@ -3,11 +3,8 @@
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
-import { METHODS } from '@knockdog/bridge-core';
-
 import { route } from '@shared/constants/route';
-import { useBridge, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
-import { isNativeWebView } from '@shared/lib/device';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
 import { useMypageRoleViewStore } from '@features/role-conversion';
 
@@ -24,7 +21,6 @@ function useGuardianInviteResultPage() {
   const { token } = useParams<{ token: string }>();
   const { getParams, reset } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const bridge = useBridge();
   const status = resolveGuardianInviteResultStatus(searchParams.get('status'));
   const content = guardianInviteResultContent[status];
   // getParams는 전달 데이터를 소비하므로 초기 마운트 시 한 번만 읽는다.
@@ -33,34 +29,19 @@ function useGuardianInviteResultPage() {
   // 이 완료 화면은 Stack WebView라 공통 탭 동기화(SyncNativeMainTabModeEffect)가 실행되지
   // 않는다. 초대 링크 진입 전 네이티브 모드가 원장으로 남아있었다면(예: 원장 탭을 보다가
   // 초대 링크를 연 경우) "홈으로 이동하기"가 보호자 탭이 아닌 원장 탭으로 튕기므로, 탭
-  // 전환 전에 모드를 보호자로 명시 고정한다. 원장 상태로 들어왔어도 항상 보호자 홈으로
-  // 이동해야 하는 화면이라 무조건 'guardian'으로 맞춘다.
+  // 전환 자체에 모드를 실어 보내 탭 이름 계산 전에 반영되게 한다. navSetMainTabMode를
+  // Stack 화면에서 별도로 호출하는 방식은 네이티브의 isRequestFromActiveTab 게이트가
+  // Stack 화면 요청을 전부 거부해 동작하지 않는다(navigateToTab의 mode 인자 참고).
+  // 원장 상태로 들어왔어도 항상 보호자 홈으로 이동해야 하는 화면이라 무조건
+  // 'guardian'으로 맞춘다.
   //
   // prefersGuardianView도 같이 true로 맞춰야 한다. 원장 권한 계정은 내 주변 탭(메인
   // 탭이라 SyncNativeMainTabModeEffect가 다시 실행됨)에 도착하는 순간 그 effect가
   // isOwner && !prefersGuardianView로 모드를 재계산하는데, 이 값을 안 바꾸면 여전히
-  // false라 방금 강제한 guardian을 곧바로 owner로 되돌려버린다.
-  const forceGuardianMainTabMode = () => {
-    useMypageRoleViewStore.getState().setPrefersGuardianView(true);
-
-    if (!isNativeWebView()) return Promise.resolve();
-    return bridge.request(METHODS.navSetMainTabMode, {
-      mode: 'guardian',
-      requestId: Date.now(),
-      force: true,
-    });
-  };
-
+  // false라 방금 반영한 guardian을 곧바로 owner로 되돌려버린다.
   const goHome = () => {
-    void forceGuardianMainTabMode()
-      .catch((error) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('[GuardianInvite] failed to switch native tab mode', error);
-        }
-      })
-      .finally(() => {
-        void navigateToTab('/');
-      });
+    useMypageRoleViewStore.getState().setPrefersGuardianView(true);
+    void navigateToTab('/', undefined, 'guardian');
   };
 
   const handlePrimaryClick = () => {

@@ -35,6 +35,10 @@ interface NavigationRPCSchema {
     params: {
       pathname: string;
       query?: Record<string, unknown>;
+      /** Stack 화면에서 특정 모드의 탭으로 이동해야 할 때, 탭 이름 계산 전에 먼저
+       * 반영할 메인탭 모드. navSetMainTabMode와 달리 이 요청은 Stack 화면에서도
+       * 항상 적용된다(전환 직후 도착 탭을 즉시 결정하기 위함). */
+      mode?: 'owner' | 'guardian';
     };
     result: {
       switched: boolean;
