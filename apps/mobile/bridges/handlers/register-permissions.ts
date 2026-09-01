@@ -22,6 +22,11 @@ export function registerPermissionHandlers(router: NativeBridgeRouter) {
   });
 
   router.register(METHODS.requestPhotosPermission, async () => {
+    if (Platform.OS === 'android') {
+      // Android 13+는 Photo Picker로 선택하므로 사진첩 read 권한 사전 요청 불필요
+      return { status: 'allowed' as const, canAskAgain: false };
+    }
+
     const result = await ImagePicker.requestMediaLibraryPermissionsAsync();
     return mapExpoStatus(result.status, result.canAskAgain);
   });

@@ -83,6 +83,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.CAMERA',
       'android.permission.POST_NOTIFICATIONS',
     ],
+    blockedPermissions: [
+      'android.permission.READ_MEDIA_IMAGES',
+      'android.permission.READ_MEDIA_VIDEO',
+      'android.permission.READ_MEDIA_AUDIO',
+      'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
+    ],
     intentFilters: [
       {
         action: 'VIEW',
@@ -113,11 +119,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-media-library',
       {
+        // 갤러리 저장(saveToLibraryAsync)만 사용 — READ_MEDIA_* 는 아래 플러그인에서 제거
         photosPermission: '프로필이나 메모에 사진을 올릴 때 사진첩을 사용해요.',
         savePhotosPermission: '간직하고 싶은 사진을 앨범에 바로 저장할 때 사용해요.',
         isAccessMediaLocationEnabled: false,
       },
     ],
+    './plugins/block-android-media-read-permissions',
     [
       'expo-splash-screen',
       {

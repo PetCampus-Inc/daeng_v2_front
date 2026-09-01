@@ -1,4 +1,5 @@
 import type { ImagePickerOptions, ImagePickerPayload } from '@/types/image-picker';
+import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadImage } from '../api/image';
@@ -169,18 +170,31 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
     } = payload;
 
     try {
-      const permissionResult =
-        source === 'library'
-          ? await ImagePicker.requestMediaLibraryPermissionsAsync()
-          : await ImagePicker.requestCameraPermissionsAsync();
+      if (source === 'camera') {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+        if (permissionResult.status !== 'granted') {
+          sendEvent('media.pickImage.cancel', {
+            requestId,
+            reason: 'NO_PERMISSION_CAMERA',
+          });
+          return;
+        }
+      } else if (Platform.OS === 'ios') {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const hasLibraryAccess =
+          permissionResult.status === 'granted' ||
+          permissionResult.accessPrivileges === 'all' ||
+          permissionResult.accessPrivileges === 'limited';
 
-      if (permissionResult.status !== 'granted') {
-        sendEvent('media.pickImage.cancel', {
-          requestId,
-          reason: source === 'library' ? 'NO_PERMISSION_LIBRARY' : 'NO_PERMISSION_CAMERA',
-        });
-        return;
+        if (!hasLibraryAccess) {
+          sendEvent('media.pickImage.cancel', {
+            requestId,
+            reason: 'NO_PERMISSION_LIBRARY',
+          });
+          return;
+        }
       }
+      // Android library: READ_MEDIA_* 없이 시스템 Photo Picker 사용
 
       const maxSelection =
         typeof selectionLimit === 'number' && selectionLimit > 0 ? selectionLimit : DEFAULT_MAX_SELECTION;
