@@ -750,7 +750,10 @@ function OwnerDailyNoticeWritePage() {
     if (attendanceRecord) return;
 
     const draft = loadNoticeDraft(noticeId, noticeWriteDate.dateKey);
-    if (!draft) return;
+    // 템플릿 화면을 열기만 하고 아무것도 선택하지 않고 나온 경우, openTemplatePage가
+    // 왕복 대비로 저장해둔 빈 draft가 그대로 남아있을 수 있다. 실제 내용이 없으면
+    // "작성하던 알림장이 있어요" 안내를 띄우지 않는다.
+    if (!draft || areNoticeDraftsEqual(draft, EMPTY_NOTICE_DRAFT)) return;
 
     overlay.open(({ isOpen, close }) => (
       <AlertDialog open={isOpen} onOpenChange={(nextOpen) => !nextOpen && close()}>
