@@ -615,7 +615,20 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
       // 보낸 요청이 현재 모드를 덮어쓰지 못하게 한다.
       const canForceBeforeActiveRefRegistration = payload?.force === true && !activeTabWebView;
 
+      console.log('[QA207-DEBUG][native] navSetMainTabMode received', {
+        requestedMode: mode,
+        requestId,
+        force: payload?.force === true,
+        activeTab,
+        isRequestFromCurrentTab,
+        canForceBeforeActiveRefRegistration,
+        isStackFocused: isStackFocused(),
+        currentMode: useMainTabModeStore.getState().mode,
+        at: Date.now(),
+      });
+
       if (!isRequestFromCurrentTab && !canForceBeforeActiveRefRegistration) {
+        console.log('[QA207-DEBUG][native] navSetMainTabMode REJECTED', { requestedMode: mode, requestId, at: Date.now() });
         return { mode: useMainTabModeStore.getState().mode };
       }
 
@@ -626,6 +639,12 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
         options?.currentWebRef === lastMainTabModeRequest.source &&
         requestId < lastMainTabModeRequest.id
       ) {
+        console.log('[QA207-DEBUG][native] navSetMainTabMode REJECTED (stale requestId)', {
+          requestedMode: mode,
+          requestId,
+          lastId: lastMainTabModeRequest.id,
+          at: Date.now(),
+        });
         return { mode: useMainTabModeStore.getState().mode };
       }
 
@@ -634,6 +653,7 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
         source: options?.currentWebRef ?? null,
       };
       applyMainTabMode(mode);
+      console.log('[QA207-DEBUG][native] navSetMainTabMode APPLIED', { mode, requestId, at: Date.now() });
       return { mode };
     }
   );

@@ -17,9 +17,20 @@ const useMypageRoleViewStore = create<MypageRoleViewStore>()(
   persist(
     (set) => ({
       prefersGuardianView: false,
-      setPrefersGuardianView: (value) => set({ prefersGuardianView: value }),
-      togglePrefersGuardianView: () => set((state) => ({ prefersGuardianView: !state.prefersGuardianView })),
-      resetPrefersGuardianView: () => set({ prefersGuardianView: false }),
+      setPrefersGuardianView: (value) => {
+        console.log('[QA207-DEBUG] setPrefersGuardianView', { value, at: Date.now() });
+        set({ prefersGuardianView: value });
+      },
+      togglePrefersGuardianView: () =>
+        set((state) => {
+          const next = !state.prefersGuardianView;
+          console.log('[QA207-DEBUG] togglePrefersGuardianView', { next, at: Date.now() });
+          return { prefersGuardianView: next };
+        }),
+      resetPrefersGuardianView: () => {
+        console.log('[QA207-DEBUG] resetPrefersGuardianView', { at: Date.now() });
+        set({ prefersGuardianView: false });
+      },
     }),
     {
       name: STORAGE_KEYS.MYPAGE_ROLE_VIEW,
@@ -39,6 +50,7 @@ declare global {
  * 모드가 되돌아가지 않도록 뷰 선호도를 같이 맞춘다. */
 if (typeof window !== 'undefined') {
   window.__knockdogSetPrefersGuardianView = (value: boolean) => {
+    console.log('[QA207-DEBUG] __knockdogSetPrefersGuardianView called', { value, at: Date.now() });
     useMypageRoleViewStore.getState().setPrefersGuardianView(value);
   };
 }
@@ -49,23 +61,39 @@ if (typeof window !== 'undefined') {
  * persist 저장소를 다시 읽어 최신 값으로 맞춘다 — 이게 없으면 놓친 탭이 stale한
  * prefersGuardianView로 SyncNativeMainTabModeEffect를 실행해 되돌아간 것처럼 보인다. */
 if (typeof window !== 'undefined') {
-  const rehydrateFromNativeFocus = () => {
-    Promise.resolve(useMypageRoleViewStore.persist.rehydrate()).catch((error: unknown) => {
-      console.error('Failed to sync mypage role view on native tab focus:', error);
+  const rehydrateFromNativeFocus = (source: string) => {
+    const startedAt = Date.now();
+    console.log('[QA207-DEBUG] rehydrateFromNativeFocus start', {
+      source,
+      at: startedAt,
+      beforePrefersGuardianView: useMypageRoleViewStore.getState().prefersGuardianView,
     });
+    Promise.resolve(useMypageRoleViewStore.persist.rehydrate())
+      .then(() => {
+        console.log('[QA207-DEBUG] rehydrateFromNativeFocus done', {
+          source,
+          startedAt,
+          finishedAt: Date.now(),
+          durationMs: Date.now() - startedAt,
+          afterPrefersGuardianView: useMypageRoleViewStore.getState().prefersGuardianView,
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to sync mypage role view on native tab focus:', error);
+      });
   };
 
-  window.addEventListener('knockdog:native-tab-focus', rehydrateFromNativeFocus);
+  window.addEventListener('knockdog:native-tab-focus', () => rehydrateFromNativeFocus('focus-event'));
 
   // WebViewScreen은 화면 focus/load 완료 시점에 focus 이벤트를 주입하는데, 이 리스너
   // 등록보다 그 주입이 먼저 일어나면 신호를 놓친다. 이미 focus된 상태라면 곧바로 한 번
   // 동기화하고, 그마저도 놓쳤을 경우를 대비해 짧은 시간 뒤 한 번 더 시도한다.
   if (window.__knockdogNativeTabFocused === true) {
-    rehydrateFromNativeFocus();
+    rehydrateFromNativeFocus('mount-already-focused');
   }
 
   window.setTimeout(() => {
-    if (window.__knockdogNativeTabFocused !== false) rehydrateFromNativeFocus();
+    if (window.__knockdogNativeTabFocused !== false) rehydrateFromNativeFocus('2s-fallback');
   }, 2_000);
 }
 
@@ -94,6 +122,7 @@ if (typeof window !== 'undefined') {
     try {
       const parsed = JSON.parse(e.newValue) as { state?: { prefersGuardianView?: boolean } };
       const incoming = parsed?.state?.prefersGuardianView;
+      console.log('[QA207-DEBUG] storage event', { incoming, current, at: Date.now() });
       if (typeof incoming === 'boolean' && incoming !== current) {
         runWithoutPersisting(() => useMypageRoleViewStore.getState().setPrefersGuardianView(incoming));
       }

@@ -200,11 +200,19 @@ class PushCoordinator {
    * 콜드 마운트인 탭은 이 시점에 웹뷰 ref는 있어도 페이지 JS가 아직 안 떴을 수 있다.
    * ref를 찾을 때까지만 반복 재시도한다. */
   private setPrefersGuardianView(tabName: TabName, value: boolean, attempt = 0) {
+    console.log('[QA207-DEBUG][native] pushCoordinator.setPrefersGuardianView', {
+      tabName,
+      value,
+      attempt,
+      hasWebView: Boolean(tabWebViewStore.get(tabName)?.current),
+      at: Date.now(),
+    });
     const webView = tabWebViewStore.get(tabName)?.current;
     if (webView) {
       webView.injectJavaScript(`
         (function() {
           try {
+            console.log('[QA207-DEBUG] pushCoordinator inject running', { value: ${value}, at: Date.now() });
             localStorage.setItem('MYPAGE_ROLE_VIEW', JSON.stringify({ state: { prefersGuardianView: ${value} }, version: 0 }));
           } catch (e) {}
           if (window.__knockdogSetPrefersGuardianView) window.__knockdogSetPrefersGuardianView(${value});

@@ -93,6 +93,19 @@ function SyncNativeMainTabModeEffect() {
 
   const mode = isOwner && !prefersGuardianView ? 'owner' : 'guardian';
 
+  console.log('[QA207-DEBUG] render', {
+    pathname,
+    isOwner,
+    prefersGuardianView,
+    mode,
+    isNativeTabFocused,
+    hasRoleViewHydrated,
+    isResolved,
+    isFetching,
+    lastSyncedMode: lastSyncedModeRef.current,
+    at: Date.now(),
+  });
+
   useEffect(() => {
     const handleVisibility = () => {
       setIsDocumentVisible(document.visibilityState === 'visible');
@@ -102,7 +115,14 @@ function SyncNativeMainTabModeEffect() {
   }, []);
 
   useEffect(() => {
-    if (!isResolved || !hasRoleViewHydrated) return;
+    if (!isResolved || !hasRoleViewHydrated) {
+      console.log('[QA207-DEBUG] effect skip: not resolved/hydrated', {
+        isResolved,
+        hasRoleViewHydrated,
+        at: Date.now(),
+      });
+      return;
+    }
     if (!isMainTab()) return;
     // 네이티브 탭 focus가 소스 오브 트루스. iOS WKWebView는 활성 탭인데도
     // document.visibilityState가 hidden으로 남는 경우가 있어, focus된 탭은
@@ -113,7 +133,12 @@ function SyncNativeMainTabModeEffect() {
       // "동기화 안 된 상태"로 되돌아가 재동기화 요청이 반복 발사되어 하단
       // 탭이 깜빡인다. blur 직후 곧바로 focus가 돌아오면(포커스가 실제로는
       // 안 바뀐 셈) 리셋을 취소할 수 있도록 짧게 지연시킨다.
+      console.log('[QA207-DEBUG] effect: not focused, scheduling lastSyncedModeRef reset', {
+        pathname,
+        at: Date.now(),
+      });
       const blurResetTimer = setTimeout(() => {
+        console.log('[QA207-DEBUG] lastSyncedModeRef reset (blur timer fired)', { pathname, at: Date.now() });
         lastSyncedModeRef.current = null;
       }, 250);
       return () => clearTimeout(blurResetTimer);
@@ -123,11 +148,30 @@ function SyncNativeMainTabModeEffect() {
       return;
     }
     // 권한 재조회 중 stale isOwner=false로 보호자 탭으로 내려가지 않도록
-    if (mode === 'guardian' && isFetching) return;
+    if (mode === 'guardian' && isFetching) {
+      console.log('[QA207-DEBUG] effect skip: guardian mode but isFetching', { pathname, at: Date.now() });
+      return;
+    }
 
     // 보호자 유치원 탭은 stale owner store여도 네이티브 탭을 guardian으로 맞춤
     const syncMode = pathname === '/compare' ? 'guardian' : mode;
-    if (lastSyncedModeRef.current === syncMode) return;
+    if (lastSyncedModeRef.current === syncMode) {
+      console.log('[QA207-DEBUG] effect skip: syncMode already matches lastSyncedModeRef', {
+        pathname,
+        syncMode,
+        lastSyncedMode: lastSyncedModeRef.current,
+        prefersGuardianView,
+        isOwner,
+        at: Date.now(),
+      });
+      return;
+    }
+    console.log('[QA207-DEBUG] effect will send sync request', {
+      pathname,
+      syncMode,
+      lastSyncedMode: lastSyncedModeRef.current,
+      at: Date.now(),
+    });
 
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -156,15 +200,29 @@ function SyncNativeMainTabModeEffect() {
         }, 300);
       };
 
+      const sentRequestId = getNextMainTabModeRequestId();
+      console.log('[QA207-DEBUG] bridge.request navSetMainTabMode', {
+        pathname,
+        syncMode,
+        requestId: sentRequestId,
+        at: Date.now(),
+      });
       bridge
         .request(METHODS.navSetMainTabMode, {
           mode: syncMode,
-          requestId: getNextMainTabModeRequestId(),
+          requestId: sentRequestId,
           // 탭 focus로 활성 WebView임을 확인했으므로, 시작 직후 ref 등록 전에도 적용한다.
           force: true,
         })
         .then(({ mode: appliedMode }) => {
           if (cancelled) return;
+          console.log('[QA207-DEBUG] bridge.request navSetMainTabMode result', {
+            pathname,
+            syncMode,
+            appliedMode,
+            requestId: sentRequestId,
+            at: Date.now(),
+          });
           // 브리지가 실제로 반영한 뒤에만 기록한다. 요청 전에 미리 기록해두면, effect가
           // 도중에(예: isFetching 변경으로) 취소돼 실제로는 반영이 안 됐는데도 다음
           // 재실행에서 "이미 동기화됨"으로 오판해 재시도를 건너뛰게 된다.
