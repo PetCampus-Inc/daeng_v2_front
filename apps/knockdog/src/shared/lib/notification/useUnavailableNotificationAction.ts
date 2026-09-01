@@ -2,6 +2,8 @@
 
 import { useCallback, useRef } from 'react';
 
+import { useMypageRoleViewStore } from '@features/role-conversion';
+
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import {
   UNAVAILABLE_NOTIFICATION_TOAST,
@@ -24,6 +26,9 @@ function useUnavailableNotificationAction() {
       didLeaveStackRef.current = true;
 
       if (source === 'push') {
+        // '/compare'는 보호자 전용 탭이라, 다른 탭으로 이동해도 원장으로
+        // 되돌아가지 않도록 선호도를 같이 맞춘다.
+        useMypageRoleViewStore.getState().setPrefersGuardianView(true);
         void navigateToTab('/compare');
         return;
       }
