@@ -8,7 +8,7 @@ import { overlay } from 'overlay-kit';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
-import { safeSessionStorage } from '@shared/lib/storage';
+import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
@@ -32,8 +32,20 @@ function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
 function readPersistedOwnerDailyTab(): OwnerDailyTab | null {
   // localStorage는 앱을 완전히 껐다 켜도 남아있어 "재시작 시 등원 처리가 기본 화면"이라는
   // 요구사항이 깨진다. sessionStorage만 쓰면 WebView가 새로 생성될 때(=앱 재시작) 초기화된다.
-  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
-  if (value === 'today-attendance' || value === 'attendance-check') return value;
+  const sessionValue = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
+  if (sessionValue === 'today-attendance' || sessionValue === 'attendance-check') return sessionValue;
+
+  // 알림장 작성 화면에서 뒤로가기(returnToOwnerDailyTodayAttendance)는 Tabs reset으로
+  // 이 페이지의 WebView를 통째로 새로 마운트시키는데, 이때 Tab/Stack WebView 간
+  // sessionStorage는 공유되지 않아(apps/mobile/bridges/lib/tabQueryInject.ts 참고) 새
+  // WebView에서는 못 읽는 경우가 있다. 그 경로에서 localStorage에도 같이 남겨둔 값을
+  // 여기서 1회성으로 소비하고 곧바로 지워, 진짜 앱 재시작 때는 영향을 주지 않게 한다.
+  const localValue = safeLocalStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
+  if (localValue === 'today-attendance' || localValue === 'attendance-check') {
+    safeLocalStorage.remove(STORAGE_KEYS.OWNER_DAILY_TAB);
+    return localValue;
+  }
+
   return null;
 }
 
