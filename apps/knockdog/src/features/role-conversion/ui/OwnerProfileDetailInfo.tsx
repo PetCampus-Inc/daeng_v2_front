@@ -11,7 +11,7 @@ function OwnerProfileDetailInfo({ profile }: OwnerProfileDetailInfoProps) {
   const rows = [
     { label: ownerMypageContent.ownerNameLabel, value: profile.name },
     { label: ownerMypageContent.ownerPhoneLabel, value: profile.phoneNumber },
-    { label: ownerMypageContent.ownerEmailLabel, value: profile.email },
+    { label: ownerMypageContent.ownerEmailLabel, value: profile.email || '-' },
   ];
 
   return (
