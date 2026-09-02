@@ -90,6 +90,7 @@ function useOwnerProfileForm({ defaultValues, onSuccess }: UseOwnerProfileFormPr
       await putOwnerProfile({
         representativeName: data.name.trim(),
         representativePhoneNumber: data.phoneNumber.trim(),
+        loginEmail: data.email.trim(),
         // 빈 문자열은 BE @URL(regexp) 검증에 걸려 저장이 실패한다. 이미지 없으면 null.
         profileImageUrl: finalProfileImageUrl || null,
       });
