@@ -2,6 +2,7 @@ import type { SocialLoginResult } from '@knockdog/bridge-core';
 
 import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 
+import { appleWebLogin } from './appleWebLogin';
 import { googleWebLogin } from './googleWebLogin';
 
 /**
@@ -13,7 +14,7 @@ async function webSocialLogin(provider: SocialProvider): Promise<SocialLoginResu
     case SOCIAL_PROVIDER.GOOGLE:
       return googleWebLogin();
     case SOCIAL_PROVIDER.APPLE:
-      throw new Error('Apple web social login is not implemented yet');
+      return appleWebLogin();
     case SOCIAL_PROVIDER.KAKAO:
       throw new Error('Kakao web social login is not implemented yet');
     default: {
