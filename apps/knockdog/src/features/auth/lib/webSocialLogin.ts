@@ -1,0 +1,26 @@
+import type { SocialLoginResult } from '@knockdog/bridge-core';
+
+import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
+
+import { googleWebLogin } from './googleWebLogin';
+
+/**
+ * 데스크톱/모바일 브라우저용 소셜 로그인.
+ * 네이티브 WebView 브릿지와 동일한 SocialLoginResult 를 반환해야 한다.
+ */
+async function webSocialLogin(provider: SocialProvider): Promise<SocialLoginResult> {
+  switch (provider) {
+    case SOCIAL_PROVIDER.GOOGLE:
+      return googleWebLogin();
+    case SOCIAL_PROVIDER.APPLE:
+      throw new Error('Apple web social login is not implemented yet');
+    case SOCIAL_PROVIDER.KAKAO:
+      throw new Error('Kakao web social login is not implemented yet');
+    default: {
+      const _exhaustive: never = provider;
+      throw new Error(`Unsupported social provider: ${_exhaustive}`);
+    }
+  }
+}
+
+export { webSocialLogin };
