@@ -4,6 +4,7 @@ import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 
 import { appleWebLogin } from './appleWebLogin';
 import { googleWebLogin } from './googleWebLogin';
+import { kakaoWebLogin } from './kakaoWebLogin';
 
 /**
  * 데스크톱/모바일 브라우저용 소셜 로그인.
@@ -16,7 +17,7 @@ async function webSocialLogin(provider: SocialProvider): Promise<SocialLoginResu
     case SOCIAL_PROVIDER.APPLE:
       return appleWebLogin();
     case SOCIAL_PROVIDER.KAKAO:
-      throw new Error('Kakao web social login is not implemented yet');
+      return kakaoWebLogin();
     default: {
       const _exhaustive: never = provider;
       throw new Error(`Unsupported social provider: ${_exhaustive}`);
