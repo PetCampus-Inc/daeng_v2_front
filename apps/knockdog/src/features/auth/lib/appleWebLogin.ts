@@ -137,14 +137,16 @@ function isAppleCancelError(error: unknown): boolean {
  * Apple Developer (모바일과 동일 Team):
  * - Services ID: net.webapp.knock-dog (NEXT_PUBLIC_APPLE_SERVICES_ID)
  * - Domains: app.knockdog.net
- * - Return URLs: https://app.knockdog.net/auth/apple/callback
- * (구) domain association 파일 배포는 현재 콘솔/문서 기준 불필요
+ * - Return URLs: https://app.knockdog.net
+ *   + https://app.knockdog.net/auth/apple/callback
  */
 async function appleWebLogin(): Promise<SocialLoginResult> {
   await loadExternalScript(APPLE_AUTH_SCRIPT_SRC);
   const appleAuth = await waitForAppleID();
 
-  const redirectURI = `${window.location.origin}${APPLE_OAUTH_CALLBACK_PATH}`;
+  // usePopup(response_mode=web_message)일 때 Apple은 redirectURI를 실제 이동보다
+  // deep path보다 origin이 통과하는 경우가 많음
+  const redirectURI = window.location.origin;
   const state = createNonce();
   const nonce = createNonce();
 
