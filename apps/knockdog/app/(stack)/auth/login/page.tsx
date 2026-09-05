@@ -8,7 +8,7 @@ import { GuestLoginButton, isGuestLoginEnabled, LoginButton } from '@features/au
 import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
 import { SafeArea } from '@shared/ui/safe-area';
 import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
-import { isAndroid } from '@shared/lib/device';
+import { isAndroid, isNativeWebView } from '@shared/lib/device';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function LoginPage() {
@@ -20,7 +20,8 @@ export default function LoginPage() {
 
   const providers = useMemo(() => {
     const allProviders = Object.values(SOCIAL_PROVIDER) as SocialProvider[];
-    if (isAndroid()) {
+    // Android 네이티브 앱만 Apple 숨김. 웹(app.knockdog.net 브라우저)에서는 노출.
+    if (isAndroid() && isNativeWebView()) {
       return allProviders.filter((provider) => provider !== SOCIAL_PROVIDER.APPLE);
     }
     return allProviders;
