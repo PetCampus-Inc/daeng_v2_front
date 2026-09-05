@@ -25,6 +25,8 @@ interface KakaoIdTokenPayload {
   picture?: string;
 }
 
+const KAKAO_TOKEN_TIMEOUT_MS = 10_000;
+
 function decodeJwtPayload(token: string): KakaoIdTokenPayload {
   const payload = token.split('.')[1];
   if (!payload) throw new Error('Invalid Kakao id_token');
@@ -71,14 +73,24 @@ export async function POST(request: NextRequest) {
 
   if (clientSecret) form.set('client_secret', clientSecret);
 
-  const kakaoResponse = await fetch('https://kauth.kakao.com/oauth/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-    },
-    body: form.toString(),
-    cache: 'no-store',
-  });
+  let kakaoResponse: Response;
+  try {
+    kakaoResponse = await fetch('https://kauth.kakao.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      },
+      body: form.toString(),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(KAKAO_TOKEN_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      console.error('[Kakao token exchange timed out]', { timeoutMs: KAKAO_TOKEN_TIMEOUT_MS });
+      return NextResponse.json({ error: 'Kakao token exchange timed out' }, { status: 504 });
+    }
+    throw error;
+  }
 
   const tokenPayload = (await kakaoResponse.json()) as KakaoTokenResponse;
   const kakaoErrorDescription = tokenPayload['error_description'];
