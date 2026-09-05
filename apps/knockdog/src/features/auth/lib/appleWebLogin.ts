@@ -7,9 +7,8 @@ import { SocialLoginCancelledError } from './socialLoginCancelledError';
 /**
  * Apple Services ID (Bundle ID 아님).
  * 모바일과 동일 Team 아래 생성해야 sub 가 네이티브와 일치한다.
- * 예: net.knockdog.web
  */
-const APPLE_SERVICES_ID = process.env.NEXT_PUBLIC_APPLE_SERVICES_ID ?? 'net.knockdog.web';
+const APPLE_SERVICES_ID = process.env.NEXT_PUBLIC_APPLE_SERVICES_ID ?? 'net.webapp.knock-dog';
 
 const APPLE_AUTH_SCRIPT_SRC =
   'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
@@ -136,10 +135,10 @@ function isAppleCancelError(error: unknown): boolean {
  * authorization.id_token 을 바로 받아 브릿지 SocialLoginResult 로 변환. BE 교환 불필요.
  *
  * Apple Developer (모바일과 동일 Team):
- * - Services ID 생성 (NEXT_PUBLIC_APPLE_SERVICES_ID)
+ * - Services ID: net.webapp.knock-dog (NEXT_PUBLIC_APPLE_SERVICES_ID)
  * - Domains: app.knockdog.net
  * - Return URLs: https://app.knockdog.net/auth/apple/callback
- * - /.well-known/apple-developer-domain-association.txt 배포
+ * (구) domain association 파일 배포는 현재 콘솔/문서 기준 불필요
  */
 async function appleWebLogin(): Promise<SocialLoginResult> {
   await loadExternalScript(APPLE_AUTH_SCRIPT_SRC);
