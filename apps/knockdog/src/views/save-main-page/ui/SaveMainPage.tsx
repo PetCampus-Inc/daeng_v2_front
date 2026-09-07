@@ -61,7 +61,7 @@ export function SaveMainPage() {
   };
 
   return (
-    <SafeArea edges={['top']} className='flex h-dvh flex-col'>
+    <SafeArea edges={['top']} className='web:pb-(--bottom-bar-height) webview:pb-0 flex h-dvh flex-col'>
       {isSearchMode ? (
         <Header>
           <Header.SearchField value={localQuery} onChange={setLocalQuery} />

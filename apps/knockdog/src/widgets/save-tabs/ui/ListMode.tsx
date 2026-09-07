@@ -45,7 +45,7 @@ export function ListMode({ bookmarks, filterState, searchQuery, isLoading, onCom
 
           {/* 비교하기 플로팅 버튼 */}
           {bookmarks.length > 0 && (
-            <div className='fixed right-6 bottom-6 z-50'>
+            <div className='web:bottom-[calc(var(--bottom-bar-height)+24px)] webview:bottom-6 fixed right-6 z-50'>
               <FloatingActionButton
                 icon='CompareNav'
                 label='비교하기'
