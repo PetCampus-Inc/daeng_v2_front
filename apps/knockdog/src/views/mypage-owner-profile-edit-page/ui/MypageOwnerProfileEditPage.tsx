@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { Header } from '@widgets/Header';
 
@@ -12,25 +12,36 @@ import {
   useOwnerProfile,
 } from '@features/role-conversion';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function MypageOwnerProfileEditPage() {
   const { back } = useStackNavigation();
   const { profile, isReady, isError, isFetching, refetch } = useOwnerProfile();
-  const isDirtyRef = useRef(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const handleBackRef = useRef(() => {});
+
+  const { releaseAndLeave } = useUnsavedBrowserBackGuard(isDirty, () => {
+    handleBackRef.current();
+  });
+
+  const leavePage = useCallback(() => {
+    releaseAndLeave(() => {
+      back?.();
+    });
+  }, [back, releaseAndLeave]);
 
   const handleBack = useCallback(() => {
-    if (!isDirtyRef.current) {
-      back?.();
+    if (!isDirty) {
+      leavePage();
       return;
     }
 
-    openOwnerUnsavedExitDialog(() => {
-      back?.();
-    });
-  }, [back]);
+    openOwnerUnsavedExitDialog(leavePage);
+  }, [isDirty, leavePage]);
 
+  handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
   return (
@@ -45,11 +56,9 @@ function MypageOwnerProfileEditPage() {
       {isReady ? (
         <OwnerProfileForm
           defaultValues={profile}
-          onSuccess={() => back?.()}
+          onSuccess={leavePage}
           submitButtonText={ownerMypageContent.profileSaveButtonLabel}
-          onDirtyChange={(isDirty) => {
-            isDirtyRef.current = isDirty;
-          }}
+          onDirtyChange={setIsDirty}
           renderProfileImage={({ value, onChange }) => (
             <OwnerProfileImageUploader profileImage={value} imageAlt={profile.name} onImageSelect={onChange} />
           )}

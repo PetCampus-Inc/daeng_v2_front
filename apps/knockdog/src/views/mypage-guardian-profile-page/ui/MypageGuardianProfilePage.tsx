@@ -26,6 +26,7 @@ import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
 import { useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { showGuardianProfileSaveFailureToast, showGuardianProfileSaveSuccessToast } from '../model/guardianProfileToast';
 
 const EMPTY_FORM_VALUES: GuardianProfileFormValues = {
@@ -155,11 +156,19 @@ function MypageGuardianProfilePage() {
     initializedProfileRef.current = { userId: profileUser.userId, source: profileSource };
   }, [homeAddress, homeAddressDetail, homeAddressValue, isDirty, profileUser, userInfo]);
 
-  const navigateToMypage = () => navigateToTab('/mypage');
+  const navigateToMypage = useCallback(() => navigateToTab('/mypage'), [navigateToTab]);
+  const handleBackRef = useRef(() => {});
+  const { releaseAndLeave } = useUnsavedBrowserBackGuard(isDirty, () => {
+    handleBackRef.current();
+  });
+
+  const leavePage = useCallback(() => {
+    releaseAndLeave(navigateToMypage);
+  }, [navigateToMypage, releaseAndLeave]);
 
   const handleBack = useCallback(() => {
     if (!isDirty) {
-      void navigateToMypage();
+      leavePage();
       return;
     }
 
@@ -168,12 +177,11 @@ function MypageGuardianProfilePage() {
       description: '변경한 내용이 저장되지 않아요.',
       cancelLabel: '닫기',
       confirmLabel: '나가기',
-      onConfirm: () => {
-        void navigateToMypage();
-      },
+      onConfirm: leavePage,
     });
-  }, [isDirty, navigateToMypage]);
+  }, [isDirty, leavePage]);
 
+  handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
   const handleSave = async () => {
