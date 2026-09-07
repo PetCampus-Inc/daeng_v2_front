@@ -24,7 +24,7 @@ export function ListMode({ bookmarks, filterState, searchQuery, isLoading, onCom
   };
 
   return (
-    <div className='flex h-full flex-col bg-white'>
+    <div className='relative flex h-full flex-col bg-white'>
       <FilterBar
         refPoint={refPoint}
         onChangeRefPoint={onChangeRefPoint}
@@ -43,9 +43,9 @@ export function ListMode({ bookmarks, filterState, searchQuery, isLoading, onCom
             onListItemClick={handleListItemClick}
           />
 
-          {/* 비교하기 플로팅 버튼 */}
+          {/* 비교하기 플로팅 버튼 — 앱 컨테이너(max-w-120) 기준 absolute */}
           {bookmarks.length > 0 && (
-            <div className='web:bottom-[calc(var(--bottom-bar-height)+24px)] webview:bottom-6 fixed right-6 z-50'>
+            <div className='absolute right-6 bottom-6 z-50'>
               <FloatingActionButton
                 icon='CompareNav'
                 label='비교하기'
