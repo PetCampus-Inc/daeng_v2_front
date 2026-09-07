@@ -29,7 +29,7 @@ export function KindergartenListItem({
   const { setSnapIndex } = useBottomSheetSnapIndex();
 
   const handleClick = async () => {
-    const isMoveHome = await pushForResult({ pathname: `/kindergarten/${id}` });
+    const isMoveHome = await pushForResult({ pathname: `/kindergarten/${id}`, query: { from: 'app' } });
     if (isMoveHome) setSnapIndex(0);
   };
 
