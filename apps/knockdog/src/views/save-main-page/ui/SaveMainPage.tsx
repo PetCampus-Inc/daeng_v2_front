@@ -82,7 +82,7 @@ export function SaveMainPage() {
         </Header>
       )}
 
-      <div className='min-h-0 flex-1'>
+      <div className='web:pb-(--bottom-bar-height) webview:pb-0 min-h-0 flex-1'>
         {isMounted && isLoggedIn && (
           <SaveTabs
             bookmarks={filteredBookmarks}
