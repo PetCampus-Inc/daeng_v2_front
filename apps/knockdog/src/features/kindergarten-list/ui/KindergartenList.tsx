@@ -52,6 +52,13 @@ interface KindergartenListProps {
 export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const filterDragStateRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    hasDragged: boolean;
+  } | null>(null);
+  const suppressFilterClickRef = useRef(false);
 
   const { selectedBaseType, setBaseType } = useBasePointType();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -69,6 +76,48 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
 
   const selectedFilters = getSelectedFilterWithLabel();
+
+  const handleFilterPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+
+    filterDragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: event.currentTarget.scrollLeft,
+      hasDragged: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleFilterPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = filterDragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    const distance = event.clientX - dragState.startX;
+    if (Math.abs(distance) > 4) {
+      dragState.hasDragged = true;
+      event.preventDefault();
+    }
+
+    event.currentTarget.scrollLeft = dragState.startScrollLeft - distance;
+  };
+
+  const handleFilterPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = filterDragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    filterDragStateRef.current = null;
+    if (!dragState.hasDragged) return;
+
+    suppressFilterClickRef.current = true;
+    window.setTimeout(() => {
+      suppressFilterClickRef.current = false;
+    }, 0);
+  };
 
   // 위치 권한 에러 체크
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
@@ -260,7 +309,19 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
               </div>
 
               {/* 스크롤 영역 */}
-              <div className='scrollbar-hide flex-1 touch-pan-x overflow-x-auto'>
+              <div
+                className='scrollbar-hide flex-1 cursor-grab touch-pan-x overflow-x-auto select-none active:cursor-grabbing'
+                onPointerDown={handleFilterPointerDown}
+                onPointerMove={handleFilterPointerMove}
+                onPointerUp={handleFilterPointerEnd}
+                onPointerCancel={handleFilterPointerEnd}
+                onClickCapture={(event) => {
+                  if (!suppressFilterClickRef.current) return;
+
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+              >
                 <div className='before:w-x2 after:w-x2 inline-flex items-center whitespace-nowrap before:shrink-0 before:content-[""] after:shrink-0 after:content-[""]'>
                   {/* 바로가기 필터 칩들 */}
                   {SHORT_CUT_FILTER_OPTIONS.map((option) => {
