@@ -10,6 +10,7 @@ import {
 
 export const ownerDailyNoticeWriteContent = Object.freeze({
   pageTitle: '알림장 작성',
+  pageTitleReadOnly: '알림장 보기',
   draftSaveLabel: '임시저장',
   editButtonLabel: '수정하기',
   conditionSectionLabel: '컨디션',
