@@ -10,7 +10,7 @@ const ATTENDANCE_TYPES = new Set([
 const NOTEBOOK_TYPES = new Set([
   'ATTENDANCE_RECORD_CREATED',
   'ATTENDANCE_RECORD_UPDATED',
-  'daily_notice_arrived',
+  'DAILY_NOTICE_ARRIVED',
 ]);
 
 const CONNECTION_TYPES = new Set([
@@ -20,17 +20,21 @@ const CONNECTION_TYPES = new Set([
   'SCHOOL_MEMBERSHIP_DISCONNECTED',
   'SCHOOL_MEMBERSHIP_SERVICE_ENDED',
   'SCHOOL_MEMBERSHIP_REJECTED',
-  'connection_completed',
-  'connection_apply_sent',
+  'CONNECTION_COMPLETED',
+  'CONNECTION_APPLY_SENT',
 ]);
 
-const ALBUM_TYPES = new Set(['album_photo_uploaded', 'ALBUM_PHOTO_UPLOADED']);
+const ALBUM_TYPES = new Set(['ALBUM_PHOTO_UPLOADED']);
 
 function resolveNotificationGaType(type: string): NotificationType | null {
-  if (ATTENDANCE_TYPES.has(type)) return 'attendance';
-  if (NOTEBOOK_TYPES.has(type)) return 'notebook';
-  if (CONNECTION_TYPES.has(type)) return 'connection';
-  if (ALBUM_TYPES.has(type)) return 'album';
+  const normalized = type.trim().toUpperCase();
+
+  if (ATTENDANCE_TYPES.has(normalized)) return 'attendance';
+  if (NOTEBOOK_TYPES.has(normalized)) return 'notebook';
+  if (CONNECTION_TYPES.has(normalized)) return 'connection';
+  if (ALBUM_TYPES.has(normalized)) return 'album';
+
+  console.warn('[analytics] unmapped notification type for notification_open', type);
   return null;
 }
 

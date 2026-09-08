@@ -54,31 +54,31 @@ function sanitizeParams(params?: Record<string, AnalyticsParamValue | undefined>
 }
 
 /**
- * WebView → 네이티브 Firebase Analytics.
- * 브라우저(웹 단독)에서는 기존 gtag로 폴백.
+ * gtag는 동기 전송을 먼저 하고, WebView면 Firebase도 fire-and-forget으로 보낸다.
+ * 브릿지를 await 한 뒤에 gtag를 호출하면 알림 탭 직후 네비게이션에 가려져
+ * 웹 GA4에 이벤트가 안 남는 경우가 있다.
  */
 async function logAnalyticsEvent(name: string, params?: Record<string, AnalyticsParamValue | undefined>) {
   const safeParams = sanitizeParams(params);
-
-  if (isNativeWebView()) {
-    const bridge = getBridgeInstance();
-    if (!bridge) return;
-
-    try {
-      await bridge.request(METHODS.analyticsLogEvent, {
-        name,
-        params: safeParams,
-      });
-    } catch (error) {
-      console.warn('[analytics] native logEvent failed', name, error);
-    }
-    return;
-  }
 
   gtagEvent({
     action: name,
     ...safeParams,
   });
+
+  if (!isNativeWebView()) return;
+
+  const bridge = getBridgeInstance();
+  if (!bridge) return;
+
+  try {
+    await bridge.request(METHODS.analyticsLogEvent, {
+      name,
+      params: safeParams,
+    });
+  } catch (error) {
+    console.warn('[analytics] native logEvent failed', name, error);
+  }
 }
 
 /**
@@ -121,7 +121,7 @@ function trackSignUp(params: { method: SignUpMethod; entry_source: EntrySource }
   void logAnalyticsEvent(GaEvent.SIGN_UP, params);
 }
 
-function trackPetProfileRegister(params: { entry_point: PetProfileEntryPoint }) {
+function trackPetProfileRegister(params: { entry_point: PetProfileEntryPoint; breed: string }) {
   void logAnalyticsEvent(GaEvent.PET_PROFILE_REGISTER, params);
 }
 

@@ -56,11 +56,13 @@ function NotificationInboxPage() {
   };
 
   const handleItemClick = (item: NotificationInboxItem) => {
-    if (!item.isRead) markItemAsRead(item.id);
     const notificationType = resolveNotificationGaType(item.type);
     if (notificationType) {
+      // 네비게이션보다 먼저 보내 화면 전환에 이벤트가 끊기지 않게 한다.
       trackNotificationOpen({ notification_type: notificationType });
     }
+
+    if (!item.isRead) markItemAsRead(item.id);
     openNotification(item);
   };
 
