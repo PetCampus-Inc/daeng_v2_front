@@ -57,6 +57,15 @@ function OverlayBackDismissHandler() {
     const handlePopState = () => {
       if (isRestoringPreviousOverlayRef.current) {
         isRestoringPreviousOverlayRef.current = false;
+
+        const overlayId = currentOverlayIdRef.current;
+        if (overlayId && window.history.state?.[OVERLAY_HISTORY_KEY] !== overlayId) {
+          window.history.pushState(
+            { ...window.history.state, [OVERLAY_HISTORY_KEY]: overlayId },
+            '',
+            window.location.href
+          );
+        }
         return;
       }
 

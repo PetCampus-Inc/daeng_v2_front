@@ -25,7 +25,7 @@ const KindergartenNearCard = ({
   const { push } = useStackNavigation();
 
   const handleClick = () => {
-    push({ pathname: `/kindergarten/${id}`, query: { from: 'app' } });
+    push({ pathname: `/kindergarten/${id}`, params: { entrySource: 'kindergarten-list' } });
   };
 
   return (

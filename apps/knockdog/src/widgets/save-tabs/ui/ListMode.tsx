@@ -20,7 +20,7 @@ export function ListMode({ bookmarks, filterState, searchQuery, isLoading, onCom
 
   // 유치원 상세 페이지로 이동
   const handleListItemClick = (id: string) => {
-    push({ pathname: `/kindergarten/${id}`, query: { from: 'app' } });
+    push({ pathname: `/kindergarten/${id}`, params: { entrySource: 'kindergarten-list' } });
   };
 
   return (

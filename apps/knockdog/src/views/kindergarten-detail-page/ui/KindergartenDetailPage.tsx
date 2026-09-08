@@ -1,9 +1,9 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Divider, ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
@@ -49,13 +49,15 @@ function KindergartenDetailPage() {
   const [activeTab, setActiveTab] = useKindergartenTab();
 
   const params = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
   const id = params?.id;
-  const isInternalEntry = searchParams.get('from') === 'app';
 
-  const { back } = useStackNavigation();
+  const { back, getParams } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const navResult = useNavigationResult<boolean>();
+  const [navigationParams, setNavigationParams] = useState<{
+    entrySource?: string;
+    expectsNavigationResult?: boolean;
+  } | null>(null);
   const { coord } = useBasePoint();
   const lng = coord?.lng ?? FALLBACK_COORD.lng;
   const lat = coord?.lat ?? FALLBACK_COORD.lat;
@@ -80,8 +82,14 @@ function KindergartenDetailPage() {
 
   const share = useShare();
 
+  useEffect(() => {
+    setNavigationParams(getParams<{ entrySource?: string; expectsNavigationResult?: boolean }>());
+  }, [getParams]);
+
+  const isInternalEntry = navigationParams?.entrySource === 'kindergarten-list';
+
   const handleHomeClick = () => {
-    if (getCurrentTxId()) {
+    if (navigationParams?.expectsNavigationResult && getCurrentTxId()) {
       navResult.send(true);
       void back();
       return;
