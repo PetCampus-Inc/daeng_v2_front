@@ -78,7 +78,8 @@ function LocationAddPage() {
             id='address-search-form'
             className='flex flex-1 flex-col pb-5'
             onSubmit={submit((data) => {
-              releaseAndLeave(() => handleSubmit(data));
+              handleSubmit(data);
+              leavePage();
             })}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {

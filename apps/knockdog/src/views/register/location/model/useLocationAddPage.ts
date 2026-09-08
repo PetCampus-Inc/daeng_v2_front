@@ -76,7 +76,6 @@ const useLocationAddPage = () => {
     };
 
     send(userAddress);
-    back();
   };
 
   // getParams()는 1회성으로 sessionStorage를 소비하는 API인데, 같은 경로(/register/location-add)를
