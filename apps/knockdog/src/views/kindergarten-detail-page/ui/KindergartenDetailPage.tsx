@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Divider, ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
@@ -13,7 +13,7 @@ import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
-import { isNativeWebView, useShare } from '@shared/lib/device';
+import { useShare } from '@shared/lib/device';
 import { getCurrentTxId, useNavigationResult, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
 import { useBasePoint } from '@entities/user';
@@ -51,9 +51,13 @@ function KindergartenDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
-  const { back } = useStackNavigation();
+  const { back, getParams } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const navResult = useNavigationResult<boolean>();
+  const [navigationParams, setNavigationParams] = useState<{
+    entrySource?: string;
+    expectsNavigationResult?: boolean;
+  } | null>(null);
   const { coord } = useBasePoint();
   const lng = coord?.lng ?? FALLBACK_COORD.lng;
   const lat = coord?.lat ?? FALLBACK_COORD.lat;
@@ -77,7 +81,35 @@ function KindergartenDetailPage() {
   });
 
   const share = useShare();
-  const isNative = useMemo(() => isNativeWebView(), []);
+
+  useEffect(() => {
+    setNavigationParams(getParams<{ entrySource?: string; expectsNavigationResult?: boolean }>());
+  }, [getParams]);
+
+  const isInternalEntry = navigationParams?.entrySource === 'kindergarten-list';
+
+  const handleHomeClick = () => {
+    if (navigationParams?.expectsNavigationResult && getCurrentTxId()) {
+      navResult.send(true);
+      void back();
+      return;
+    }
+
+    void navigateToTab('/');
+  };
+
+  const handleBackClick = async () => {
+    // 공유 링크·외부 URL 진입에는 앱 내부 스택이 없으므로 브라우저 밖으로 나가지 않고 홈으로 보낸다.
+    if (!isInternalEntry) {
+      await navigateToTab('/');
+      return;
+    }
+
+    const wentBack = await back();
+    if (!wentBack) {
+      await navigateToTab('/');
+    }
+  };
 
   /** GA 화면명 = 유치원명 (v2 page_title과 동일) */
   useScreenAnalyticsTitle(kindergartenMain?.title);
@@ -88,7 +120,10 @@ function KindergartenDetailPage() {
   const renderErrorPage = (onRetry: () => void, isRetrying = false) => (
     <div className='bg-bg-0 flex h-dvh flex-col'>
       <Header>
-        <Header.LeftSection>{isNative ? <Header.BackButton /> : null}</Header.LeftSection>
+        <Header.LeftSection>
+          <Header.BackButton onClick={() => void handleBackClick()} />
+          <Header.HomeButton onClick={handleHomeClick} />
+        </Header.LeftSection>
       </Header>
       <PageError layout='inline' isRetrying={isRetrying} onRetry={onRetry} />
     </div>
@@ -106,7 +141,10 @@ function KindergartenDetailPage() {
     return (
       <div className='bg-bg-0 flex h-dvh flex-col'>
         <Header>
-          <Header.LeftSection>{isNative ? <Header.BackButton /> : null}</Header.LeftSection>
+          <Header.LeftSection>
+            <Header.BackButton onClick={() => void handleBackClick()} />
+            <Header.HomeButton onClick={handleHomeClick} />
+          </Header.LeftSection>
         </Header>
         <DelayedLoadingSpinner isLoading={isPending || !kindergartenMain} layout='content' />
       </div>
@@ -121,16 +159,6 @@ function KindergartenDetailPage() {
       url: `${process.env.NEXT_PUBLIC_WEB_URL}/kindergarten/${kindergartenMain.id}`,
     };
     share(shareData);
-  };
-
-  const handleHomeClick = () => {
-    if (getCurrentTxId()) {
-      navResult.send(true);
-      void back();
-      return;
-    }
-
-    void navigateToTab('/');
   };
 
   const handleReviewClick = () => {
@@ -149,12 +177,8 @@ function KindergartenDetailPage() {
     <>
       <Header>
         <Header.LeftSection>
-          {isNative && (
-            <>
-              <Header.BackButton />
-              <Header.HomeButton onClick={handleHomeClick} />
-            </>
-          )}
+          <Header.BackButton onClick={() => void handleBackClick()} />
+          <Header.HomeButton onClick={handleHomeClick} />
         </Header.LeftSection>
 
         <Header.CenterSection>

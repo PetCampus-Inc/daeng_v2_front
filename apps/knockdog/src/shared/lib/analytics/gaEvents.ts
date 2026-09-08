@@ -108,7 +108,7 @@ async function trackScreenView(screenName: string, screenClass?: string) {
   }
 
   if (typeof document !== 'undefined') {
-    document.title = name;
+    document.title = `똑독 - ${name}`;
   }
   pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name);
 }
