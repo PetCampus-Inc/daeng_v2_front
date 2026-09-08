@@ -37,7 +37,7 @@ function CompareCompletePage() {
         .filter((addr): addr is UserAddress & { alias: string } => !!addr.alias)
         .map(({ type, alias }) => ({
           value: type as ReferencePointType,
-          label: alias,
+          label: type === 'HOME' ? REFERENCE_POINT_TYPE.HOME : alias,
         })),
     [savedAddresses]
   );

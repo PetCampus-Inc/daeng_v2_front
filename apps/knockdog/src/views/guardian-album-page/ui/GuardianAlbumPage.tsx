@@ -688,6 +688,12 @@ function GuardianAlbumPage() {
 
   const isMonthListLoading =
     hasSelectedSchool && isAlbumMonthPending && monthDays.length === 0 && !isAlbumMonthError;
+  const hasNoRegisteredAlbum =
+    hasSelectedSchool &&
+    !isMonthListLoading &&
+    !isAlbumMonthError &&
+    todayPhotoCount === 0 &&
+    monthDays.every((day) => day.photoCount === 0);
 
   const handleKindergartenSelect = useCallback(
     (kindergartenId: string) => {
@@ -836,6 +842,10 @@ function GuardianAlbumPage() {
 
   const monthListBody = isMonthListLoading ? (
     <DelayedLoadingSpinner isLoading={isMonthListLoading} layout='content' />
+  ) : hasNoRegisteredAlbum ? (
+    <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+      <GuardianAlbumEmptyState />
+    </div>
   ) : !hasMonthTimelineContent ? (
     <>
       {showAttendedUntilMessage ? (
