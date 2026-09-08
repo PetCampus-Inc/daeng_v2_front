@@ -48,9 +48,11 @@ function NoticeMemoTextarea({
         spellCheck={false}
         className={cn('h-auto overflow-hidden', readOnly && 'text-text-secondary')}
       />
-      <p className='body2-regular text-text-caption shrink-0'>
-        {value.length}/{maxLength}
-      </p>
+      {!readOnly ? (
+        <p className='body2-regular text-text-caption shrink-0'>
+          {value.length}/{maxLength}
+        </p>
+      ) : null}
     </Textarea>
   );
 }

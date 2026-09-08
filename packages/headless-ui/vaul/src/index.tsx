@@ -284,6 +284,11 @@ export function Root({
     if (!dismissible && !snapPoints) return;
     if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) return;
 
+    const target = event.target as HTMLElement;
+    if (target.hasAttribute('data-vaul-no-drag') || target.closest('[data-vaul-no-drag]')) {
+      return;
+    }
+
     drawerHeightRef.current = drawerRef.current?.getBoundingClientRect().height || 0;
     drawerWidthRef.current = drawerRef.current?.getBoundingClientRect().width || 0;
     isPointerDown.current = true;
@@ -1024,6 +1029,12 @@ export const Content = React.forwardRef<HTMLDivElement, ContentProps>(function (
       }}
       onPointerOut={(event) => {
         rest.onPointerOut?.(event);
+        // 자식 요소 간 이동(버튼↔텍스트 등)에서도 pointerout이 버블링되어
+        // 드래그가 조기 종료되면 닫기 제스처/탭이 깨진다. drawer 밖으로 나갈 때만 해제.
+        const relatedTarget = event.relatedTarget as Node | null;
+        if (relatedTarget && event.currentTarget.contains(relatedTarget)) {
+          return;
+        }
         handleOnPointerUp(lastKnownPointerEventRef.current);
       }}
       onContextMenu={(event) => {

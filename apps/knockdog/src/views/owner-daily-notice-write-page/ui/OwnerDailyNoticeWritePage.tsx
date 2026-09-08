@@ -813,7 +813,9 @@ function OwnerDailyNoticeWritePage() {
             <Header.BackButton className='text-text-primary-inverse' onClick={handleBackClick} />
           </Header.LeftSection>
           <Header.Title className='text-text-primary-inverse'>
-            {ownerDailyNoticeWriteContent.pageTitle}
+            {isReadOnly
+              ? ownerDailyNoticeWriteContent.pageTitleReadOnly
+              : ownerDailyNoticeWriteContent.pageTitle}
           </Header.Title>
           <Header.RightSection>
             {isReadOnly ? (
@@ -905,7 +907,7 @@ function OwnerDailyNoticeWritePage() {
             <ShortMemoTextarea
               value={snack}
               maxLength={ownerDailyNoticeWriteContent.snackMaxLength}
-              placeholder={ownerDailyNoticeWriteContent.snackPlaceholder}
+              placeholder={isReadOnly ? '' : ownerDailyNoticeWriteContent.snackPlaceholder}
               onChange={setSnack}
               readOnly={isReadOnly}
             />
@@ -959,7 +961,7 @@ function OwnerDailyNoticeWritePage() {
             <ShortMemoTextarea
               value={stoolMemo}
               maxLength={ownerDailyNoticeWriteContent.stoolMemoMaxLength}
-              placeholder={ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
+              placeholder={isReadOnly ? '' : ownerDailyNoticeWriteContent.stoolMemoPlaceholder}
               onChange={setStoolMemo}
               readOnly={isReadOnly}
             />
@@ -985,7 +987,7 @@ function OwnerDailyNoticeWritePage() {
             <NoticeMemoTextarea
               value={notice}
               maxLength={ownerDailyNoticeWriteContent.noticeMaxLength}
-              placeholder={ownerDailyNoticeWriteContent.noticePlaceholder}
+              placeholder={isReadOnly ? '' : ownerDailyNoticeWriteContent.noticePlaceholder}
               onChange={setNotice}
               readOnly={isReadOnly}
             />

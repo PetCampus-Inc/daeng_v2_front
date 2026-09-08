@@ -108,7 +108,10 @@ export function KindergartenCard(props: KindergartenCardProps) {
         </div>
       </div>
 
-      <div className='p-x4 gap-x2 flex items-center bg-white pb-[calc(env(safe-area-inset-bottom)+16px)]'>
+      <div
+        data-vaul-no-drag
+        className='p-x4 gap-x2 flex items-center bg-white pb-[calc(env(safe-area-inset-bottom)+16px)]'
+      >
         <ActionButton variant='primaryLine' size='medium' onClick={props.onPhoneCall}>
           전화하기
         </ActionButton>
