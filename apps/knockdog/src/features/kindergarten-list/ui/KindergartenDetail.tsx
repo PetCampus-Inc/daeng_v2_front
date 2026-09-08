@@ -47,7 +47,10 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, activeTab, se
       </div>
 
       {/* 하단 고정 버튼 영역 */}
-      <aside className='p-x4 gap-x2 flex shrink-0 items-center border-t border-t-gray-100 bg-white'>
+      <aside
+        data-vaul-no-drag
+        className='p-x4 gap-x2 flex shrink-0 items-center border-t border-t-gray-100 bg-white'
+      >
         <ActionButton variant='primaryLine' size='medium' onClick={onPhoneCall}>
           전화하기
         </ActionButton>

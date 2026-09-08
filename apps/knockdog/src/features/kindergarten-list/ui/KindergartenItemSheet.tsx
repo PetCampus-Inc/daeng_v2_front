@@ -89,7 +89,9 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
       >
         <BottomSheet.Root
           open={isOpen}
-          onOpenChange={onClose}
+          onOpenChange={(open) => {
+            if (!open) onClose();
+          }}
           modal={false}
           snapPoints={dynamicSnapPoints}
           activeSnapPoint={activeSnapPoint}

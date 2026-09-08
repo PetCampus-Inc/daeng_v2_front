@@ -1,6 +1,6 @@
 import React from 'react';
 import { set, isVertical } from './helpers';
-import { TRANSITIONS, VELOCITY_THRESHOLD } from './constants';
+import { TRANSITIONS, VELOCITY_THRESHOLD, CLOSE_THRESHOLD } from './constants';
 import { useControllableState } from './use-controllable-state';
 import { ContentSnap, DrawerDirection, SnapPoint } from './types';
 
@@ -417,12 +417,22 @@ export function useSnapPoints({
 
       if (isFirst && dragDirection < 0 && dismissible) {
         closeDrawer();
+        return;
       }
 
       if (activeSnapPointIndex === null) return;
 
       snapToPoint(snapPointsOffset[activeSnapPointIndex + dragDirection]);
       return;
+    }
+
+    // 첫 snap에서 아래로 충분히 끌어내리면 velocity가 낮아도 닫기 (거리 기반 dismiss)
+    if (isFirst && !hasDraggedUp && dismissible) {
+      const firstOffset = snapPointsOffset?.[0];
+      if (typeof firstOffset === 'number' && currentPosition - firstOffset >= dim * CLOSE_THRESHOLD) {
+        closeDrawer();
+        return;
+      }
     }
 
     snapToPoint(closestSnapPoint);
