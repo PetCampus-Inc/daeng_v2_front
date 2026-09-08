@@ -121,7 +121,7 @@ function trackSignUp(params: { method: SignUpMethod; entry_source: EntrySource }
   void logAnalyticsEvent(GaEvent.SIGN_UP, params);
 }
 
-function trackPetProfileRegister(params: { entry_point: PetProfileEntryPoint }) {
+function trackPetProfileRegister(params: { entry_point: PetProfileEntryPoint; breed: string }) {
   void logAnalyticsEvent(GaEvent.PET_PROFILE_REGISTER, params);
 }
 

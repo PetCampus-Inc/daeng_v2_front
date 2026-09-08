@@ -156,7 +156,10 @@ export function usePetProfileForm({ mode, petId, defaultValues, entryPoint, onSu
 
         // 첫 번째 강아지면 자동으로 대표 강아지로 지정한다.
         if (isFirstPet && newPetId) {
-          trackPetProfileRegister({ entry_point: entryPoint ?? 'mypage' });
+          trackPetProfileRegister({
+            entry_point: entryPoint ?? 'mypage',
+            breed: data.breed.breedName,
+          });
 
           try {
             await updateRepresentative(Number(newPetId));
