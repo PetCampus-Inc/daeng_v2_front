@@ -25,7 +25,7 @@ const KindergartenNearCard = ({
   const { push } = useStackNavigation();
 
   const handleClick = () => {
-    push({ pathname: `/kindergarten/${id}` });
+    push({ pathname: `/kindergarten/${id}`, params: { entrySource: 'kindergarten-list' } });
   };
 
   return (
@@ -38,6 +38,7 @@ const KindergartenNearCard = ({
             width={233}
             height={142}
             className='h-[142px] w-[233px] rounded-lg object-cover'
+            draggable={false}
           />
         )}
 

@@ -6,6 +6,8 @@ import { FilterChip } from './FilterChip';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
 import { type Bounds } from '@shared/types';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useWebBottomNavStore } from '@shared/store';
+import { isNativeWebView } from '@shared/lib/device';
 import { filterQueries } from '../api/filterQueries';
 import type { FilterOption } from '@entities/kindergarten';
 
@@ -19,6 +21,7 @@ interface FilterBottomSheetProps {
 
 export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApply }: FilterBottomSheetProps) {
   const [resultCount, setResultCount] = useState<number | null>(null);
+  const setFilterBottomSheetOpen = useWebBottomNavStore((state) => state.setFilterBottomSheetOpen);
   const {
     localFilters,
     selectedFilters,
@@ -35,6 +38,13 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
       setLocalFilters(initialFilters);
     }
   }, [isOpen, initialFilters, setLocalFilters]);
+
+  useEffect(() => {
+    if (isNativeWebView()) return;
+
+    setFilterBottomSheetOpen(isOpen);
+    return () => setFilterBottomSheetOpen(false);
+  }, [isOpen, setFilterBottomSheetOpen]);
 
   const { data: filterResultData } = useQuery({
     ...filterQueries.resultCount({
@@ -93,7 +103,7 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
 
         <div className='fixed bottom-0 w-full'>
           <div
-            className='flex h-[28px]'
+            className='flex h-6'
             style={{
               background: 'linear-gradient(0deg, #FFFFFF 0%, rgba(255,255,255,0) 100%)',
             }}

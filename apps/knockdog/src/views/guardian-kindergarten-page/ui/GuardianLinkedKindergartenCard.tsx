@@ -19,7 +19,7 @@ function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKinderga
 
   const handleClick = () => {
     if (!kindergarten.placeId) return;
-    push({ pathname: `/kindergarten/${kindergarten.placeId}` });
+    push({ pathname: `/kindergarten/${kindergarten.placeId}`, params: { entrySource: 'kindergarten-list' } });
   };
 
   return (

@@ -3,7 +3,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { cn } from '@knockdog/ui/lib';
 import { suit } from './font';
 import './globals.css';
-import type { Viewport } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
 import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
@@ -16,6 +16,13 @@ import { PushDeviceSyncEffect } from '@features/push';
 import { RequireAuthGate } from '@shared/ui/private-access';
 
 const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
+
+export const metadata: Metadata = {
+  title: {
+    default: '똑독',
+    template: '똑독 - %s',
+  },
+};
 
 export const viewport: Viewport = {
   width: 'device-width',

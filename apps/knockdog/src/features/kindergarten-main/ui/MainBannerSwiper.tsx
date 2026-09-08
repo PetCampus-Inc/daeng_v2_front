@@ -39,6 +39,7 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
                   className='size-full object-cover'
                   loading={index === 0 ? 'eager' : 'lazy'}
                   decoding='async'
+                  draggable={false}
                   referrerPolicy='no-referrer'
                 />
               </div>
