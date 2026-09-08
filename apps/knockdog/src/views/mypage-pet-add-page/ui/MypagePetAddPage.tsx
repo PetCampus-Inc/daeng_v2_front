@@ -1,23 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from '@knockdog/ui';
-import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { route } from '@shared/constants/route';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
@@ -28,41 +19,42 @@ export function MypagePetAddPage() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('inviteToken');
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const handleBackRef = useRef(() => {});
 
-  const navigateBack = () => {
+  const { releaseAndLeave, suspendGuard, resumeGuard } = useUnsavedBrowserBackGuard(isFormDirty, () => {
+    handleBackRef.current();
+  });
+
+  const navigateBack = useCallback(() => {
     if (inviteToken) {
       void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
       return;
     }
 
     back?.();
-  };
+  }, [back, inviteToken, replace]);
 
-  const handleBack = () => {
-    // 폼에 변경사항이 없으면 바로 뒤로가기
+  const leavePage = useCallback(() => {
+    releaseAndLeave(navigateBack);
+  }, [navigateBack, releaseAndLeave]);
+
+  const handleBack = useCallback(() => {
     if (!isFormDirty) {
-      navigateBack();
+      leavePage();
       return;
     }
 
-    // 변경사항이 있으면 확인 다이얼로그 표시
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
-            <AlertDialogDescription>
-              변경한 내용이 저장되지 않아요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={navigateBack}>나가기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
-  };
+    openUnsavedExitDialog({
+      title: '저장하지 않고 나갈까요?',
+      description: '변경한 내용이 저장되지 않아요.',
+      cancelLabel: '닫기',
+      confirmLabel: '나가기',
+      onConfirm: leavePage,
+    });
+  }, [isFormDirty, leavePage]);
+
+  handleBackRef.current = handleBack;
+  useNativeBackHandler(handleBack);
 
   const handleSuccess = async (petId?: string) => {
     syncWebViewQuery.invalidate(['petList']);
@@ -73,16 +65,20 @@ export function MypagePetAddPage() {
         queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
         refetchType: 'all',
       });
-      void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      releaseAndLeave(() => {
+        void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
+      });
       return;
     }
 
     if (petId) {
-      void replace({ pathname: route.mypage.pet.detail.root, query: { petId } });
+      releaseAndLeave(() => {
+        void replace({ pathname: route.mypage.pet.detail.root, query: { petId } });
+      });
       return;
     }
 
-    back?.();
+    leavePage();
   };
 
   const handleError = (error: unknown) => {
@@ -94,16 +90,24 @@ export function MypagePetAddPage() {
   };
 
   const handleGoToPetList = () => {
-    if (inviteToken) {
-      void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
-      return;
-    }
+    releaseAndLeave(() => {
+      if (inviteToken) {
+        void replace({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(inviteToken)) });
+        return;
+      }
 
-    void reset(route.mypage.root);
+      void reset(route.mypage.root);
+    });
   };
 
-  const handleViewPetProfile = (petId: string) =>
-    pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId } }, 600_000);
+  const handleViewPetProfile = async (petId: string) => {
+    suspendGuard();
+    try {
+      await pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId } }, 600_000);
+    } finally {
+      resumeGuard();
+    }
+  };
 
   return (
     <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>

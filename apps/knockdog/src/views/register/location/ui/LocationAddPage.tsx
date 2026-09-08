@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useRef } from 'react';
 import { Controller } from 'react-hook-form';
 
 import {
@@ -10,18 +11,9 @@ import {
   Divider,
   ActionButton,
   IconButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
 } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { Suspense } from 'react';
-import { overlay } from 'overlay-kit';
 
 import { useLocationAddPage } from '../model/useLocationAddPage';
 import { formatAddressDetail } from '../model/formatAddressDetail';
@@ -29,36 +21,42 @@ import { formatAddressDetail } from '../model/formatAddressDetail';
 import { Header } from '@widgets/Header';
 import { AddressPicker } from '@features/address-picker';
 import { USER_ADDRESS_TYPE, USER_ADDRESS_TYPE_KR } from '@entities/user';
+import { useNativeBackHandler } from '@shared/lib/bridge';
+import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 
 const MAX_LOCATION_NAME_LENGTH = 5;
 
 function LocationAddPage() {
   const { type, control, canSubmit, hasAddress, isDirty, back, submit, handleSubmit, handleAddressSelect, handleAddressClear } =
     useLocationAddPage();
+  const handleBackRef = useRef(() => {});
 
-  const handleBack = () => {
-    // 작성한 내용이 없으면 바로 뒤로가기
+  const { releaseAndLeave } = useUnsavedBrowserBackGuard(isDirty, () => {
+    handleBackRef.current();
+  });
+
+  const leavePage = useCallback(() => {
+    releaseAndLeave(back);
+  }, [back, releaseAndLeave]);
+
+  const handleBack = useCallback(() => {
     if (!isDirty) {
-      back();
+      leavePage();
       return;
     }
 
-    // 변경사항이 있으면 확인 다이얼로그 표시
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
-            <AlertDialogDescription>변경한 내용이 저장되지 않아요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back()}>나가기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
-  };
+    openUnsavedExitDialog({
+      title: '저장하지 않고 나갈까요?',
+      description: '변경한 내용이 저장되지 않아요.',
+      cancelLabel: '닫기',
+      confirmLabel: '나가기',
+      onConfirm: leavePage,
+    });
+  }, [isDirty, leavePage]);
+
+  handleBackRef.current = handleBack;
+  useNativeBackHandler(handleBack);
 
   return (
     <div className='flex h-full flex-col pb-5'>
@@ -79,7 +77,10 @@ function LocationAddPage() {
           <form
             id='address-search-form'
             className='flex flex-1 flex-col pb-5'
-            onSubmit={submit(handleSubmit)}
+            onSubmit={submit((data) => {
+              handleSubmit(data);
+              leavePage();
+            })}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();

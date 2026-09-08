@@ -6,9 +6,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@widgets/Header';
 import { PetProfileForm, type PetFormData } from '@features/dog-profile';
 import { GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY } from '@entities/guardian-invite';
-import { usePetByIdQuery, type Pet } from '@entities/pet';
+import { usePetByIdQuery } from '@entities/pet';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
 
@@ -20,13 +21,17 @@ export function MypagePetEditPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
-  const isDirtyRef = useRef(false);
+  const [isDirty, setIsDirty] = useState(false);
   const isMountedRef = useRef(true);
+  const handleBackRef = useRef(() => {});
   const [restoreValues, setRestoreValues] = useState<PetFormData | null>(
     () => petEditViewDrafts.get(petId) ?? null
   );
 
   const { data: petResponse } = usePetByIdQuery(petId);
+  const { releaseAndLeave, suspendGuard, resumeGuard } = useUnsavedBrowserBackGuard(isDirty, () => {
+    handleBackRef.current();
+  });
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -39,9 +44,15 @@ export function MypagePetEditPage() {
     setRestoreValues(petEditViewDrafts.get(petId) ?? null);
   }, [petId]);
 
-  const handleBack = useCallback(() => {
-    if (!isDirtyRef.current) {
+  const leavePage = useCallback(() => {
+    releaseAndLeave(() => {
       back?.();
+    });
+  }, [back, releaseAndLeave]);
+
+  const handleBack = useCallback(() => {
+    if (!isDirty) {
+      leavePage();
       return;
     }
 
@@ -50,12 +61,11 @@ export function MypagePetEditPage() {
       description: '변경한 내용이 저장되지 않아요.',
       cancelLabel: '닫기',
       confirmLabel: '나가기',
-      onConfirm: () => {
-        back?.();
-      },
+      onConfirm: leavePage,
     });
-  }, [back]);
+  }, [isDirty, leavePage]);
 
+  handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
   const handleSuccess = async () => {
@@ -65,7 +75,7 @@ export function MypagePetEditPage() {
       queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
       refetchType: 'all',
     });
-    back?.();
+    leavePage();
   };
 
   const handleError = (error: unknown) => {
@@ -77,15 +87,19 @@ export function MypagePetEditPage() {
   };
 
   const handleGoToPetList = () => {
-    void reset(route.mypage.root);
+    releaseAndLeave(() => {
+      void reset(route.mypage.root);
+    });
   };
 
   const handleViewPetProfile = async (duplicatePetId: string, formValues: PetFormData) => {
     petEditViewDrafts.set(petId, formValues);
+    suspendGuard();
 
     try {
       await pushForResult({ pathname: route.mypage.pet.detail.root, query: { petId: duplicatePetId } }, 600_000);
     } finally {
+      resumeGuard();
       // 수정 화면이 그대로 남아 있는 환경에서는 돌아온 시점에 draft를 전달한다.
       // 화면이 재생성된 환경에서는 다음 마운트의 초기 state가 동일한 draft를 읽는다.
       if (isMountedRef.current) {
@@ -114,9 +128,7 @@ export function MypagePetEditPage() {
         defaultValues={petResponse}
         onSuccess={handleSuccess}
         onError={handleError}
-        onDirtyChange={(isDirty) => {
-          isDirtyRef.current = isDirty;
-        }}
+        onDirtyChange={setIsDirty}
         onGoToPetList={handleGoToPetList}
         onViewPetProfile={handleViewPetProfile}
         restoreValues={restoreValues}

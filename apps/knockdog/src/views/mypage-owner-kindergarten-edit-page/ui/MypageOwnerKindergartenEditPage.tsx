@@ -28,6 +28,7 @@ import { openOwnerUnsavedExitDialog, ownerMypageContent } from '@features/role-c
 import { KINDERGARTEN_NAME_MAX_LENGTH } from '@features/role-conversion/lib/formatKindergartenRegisterField';
 import { FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 import { useNativeBackHandler } from '@shared/lib/bridge';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
@@ -220,13 +221,26 @@ function MypageOwnerKindergartenEditPage() {
   const tabsRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<SectionId>(SECTION.BASIC);
   const formData = useKindergartenEditForm();
+  const handleBackRef = useRef(() => {});
+
+  const { releaseAndLeave } = useUnsavedBrowserBackGuard(formData.isDirty, () => {
+    handleBackRef.current();
+  });
 
   const handleBack = useCallback(() => {
-    if (formData.leaveIfClean()) return;
+    if (!formData.isDirty) {
+      releaseAndLeave(() => {
+        formData.leaveIfClean();
+      });
+      return;
+    }
 
-    openOwnerUnsavedExitDialog(formData.handleLeaveWithoutSaving);
-  }, [formData]);
+    openOwnerUnsavedExitDialog(() => {
+      releaseAndLeave(formData.handleLeaveWithoutSaving);
+    });
+  }, [formData.handleLeaveWithoutSaving, formData.isDirty, formData.leaveIfClean, releaseAndLeave]);
 
+  handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
   const handleSave = async () => {

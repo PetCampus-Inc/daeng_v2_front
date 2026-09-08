@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   ActionButton,
   Icon,
@@ -12,6 +12,7 @@ import { openOwnerUnsavedExitDialog, ownerMypageContent } from '@features/role-c
 import { PRODUCT_TYPE_MAP_LIST, type ProductType } from '@entities/pricing';
 import { EXTERNAL_LINKS } from '@shared/constants';
 import { useOpenExternalLink, useNativeBackHandler } from '@shared/lib/bridge';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
 import { useKindergartenPricingEditForm } from '@views/mypage-owner-kindergarten-pricing-edit-page/model/useKindergartenPricingEditForm';
@@ -67,13 +68,26 @@ function ProductTypeChipGroup({ selected, onToggle }: ProductTypeChipGroupProps)
 function MypageOwnerKindergartenPricingEditPage() {
   const formData = useKindergartenPricingEditForm();
   const openExternalLink = useOpenExternalLink();
+  const handleBackRef = useRef(() => {});
+
+  const { releaseAndLeave } = useUnsavedBrowserBackGuard(formData.isDirty, () => {
+    handleBackRef.current();
+  });
 
   const handleBack = useCallback(() => {
-    if (formData.leaveIfClean()) return;
+    if (!formData.isDirty) {
+      releaseAndLeave(() => {
+        formData.leaveIfClean();
+      });
+      return;
+    }
 
-    openOwnerUnsavedExitDialog(formData.handleLeaveWithoutSaving);
-  }, [formData]);
+    openOwnerUnsavedExitDialog(() => {
+      releaseAndLeave(formData.handleLeaveWithoutSaving);
+    });
+  }, [formData.handleLeaveWithoutSaving, formData.isDirty, formData.leaveIfClean, releaseAndLeave]);
 
+  handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
   const handleSave = async () => {
