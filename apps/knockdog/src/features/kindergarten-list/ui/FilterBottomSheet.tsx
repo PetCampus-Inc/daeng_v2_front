@@ -103,7 +103,7 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
 
         <div className='fixed bottom-0 w-full'>
           <div
-            className='flex h-[28px]'
+            className='flex h-6'
             style={{
               background: 'linear-gradient(0deg, #FFFFFF 0%, rgba(255,255,255,0) 100%)',
             }}
