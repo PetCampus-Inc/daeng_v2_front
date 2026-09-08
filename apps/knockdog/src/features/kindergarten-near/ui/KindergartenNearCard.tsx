@@ -38,6 +38,7 @@ const KindergartenNearCard = ({
             width={233}
             height={142}
             className='h-[142px] w-[233px] rounded-lg object-cover'
+            draggable={false}
           />
         )}
 
