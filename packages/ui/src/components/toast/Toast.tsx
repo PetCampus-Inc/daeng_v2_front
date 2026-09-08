@@ -35,10 +35,10 @@ const toastVariants = cva(
           'radius-r1',
           'mx-3',
           'block',
-          'w-[calc(100vw-1.5rem-constant(safe-area-inset-left)-constant(safe-area-inset-right))]',
-          'w-[calc(100vw-1.5rem-env(safe-area-inset-left)-env(safe-area-inset-right))]',
+          // viewport(max-w-120) 기준 — 100vw면 데스크톱 웹에서 브라우저 전체 너비로 늘어남
+          'w-[calc(100%-1.5rem)]',
         ],
-        square: 'radius-r0 w-screen',
+        square: 'radius-r0 w-full',
       },
     },
     defaultVariants: {
