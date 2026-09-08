@@ -17,6 +17,7 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
   return (
     <div
       onClick={onClick}
+      onDragStart={(event) => event.preventDefault()}
       className={cn(
         'relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl',
         !imageUrl && 'bg-bg-100'
@@ -30,7 +31,7 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
       }
     >
       {imageUrl ? (
-        <Image src={imageUrl} alt={name} fill className='object-cover' />
+        <Image src={imageUrl} alt={name} fill draggable={false} className='object-cover' />
       ) : (
         <div className='flex h-full w-full items-center justify-center pb-[34px]'>
           <Icon icon='Paw' className='text-primitive-neutral-300 h-[52px] w-[52px]' />
