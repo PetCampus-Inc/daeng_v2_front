@@ -291,17 +291,26 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
             initialIndex={activeIndex}
             onSlideChange={handleSlideChange}
           >
-            {photos.map((photo, index) => (
-              <SwiperSlideItem key={photo.id} className='h-full'>
-                <ZoomableAlbumPhoto
-                  src={photo.url}
-                  isActive={index === activeIndex}
-                  onSwipeEdge={handleSwipeEdge}
-                  canSwipePrev={activeIndex > 0}
-                  canSwipeNext={activeIndex < photos.length - 1}
-                />
-              </SwiperSlideItem>
-            ))}
+            {photos.map((photo, index) => {
+              // 인접 슬라이드만 마운트 — 전체 원본 N장 동시 다운로드 방지
+              const shouldMount = Math.abs(index - activeIndex) <= 1;
+
+              return (
+                <SwiperSlideItem key={photo.id} className='h-full'>
+                  {shouldMount ? (
+                    <ZoomableAlbumPhoto
+                      src={photo.url}
+                      isActive={index === activeIndex}
+                      onSwipeEdge={handleSwipeEdge}
+                      canSwipePrev={activeIndex > 0}
+                      canSwipeNext={activeIndex < photos.length - 1}
+                    />
+                  ) : (
+                    <div className='bg-bg-50 h-full w-full' aria-hidden='true' />
+                  )}
+                </SwiperSlideItem>
+              );
+            })}
           </SwiperRoot>
 
           {dayPosition.total > 0 ? (
@@ -330,7 +339,13 @@ function OwnerAlbumPhotoDetail({ photos, initialIndex, onClose, onDelete }: Owne
                     isSelected ? 'border-line-accent border-2' : ''
                   }`}
                 >
-                  <AlbumImage src={photo.url} className='absolute inset-0' />
+                  <AlbumImage
+                    src={photo.url}
+                    className='absolute inset-0'
+                    optimize
+                    sizes='60px'
+                    loading={Math.abs(index - activeIndex) <= 4 ? 'eager' : 'lazy'}
+                  />
                 </button>
               );
             })}

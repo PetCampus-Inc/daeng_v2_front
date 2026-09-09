@@ -32,6 +32,7 @@ const ownerAlbumContent = {
     networkFailedTitle: '사진을 올리지 못했어요',
     networkFailedDescription: '네트워크 상태를 확인하고 다시 시도해 주세요.',
   },
+  thumbnailAriaLabel: (index: number) => `${index + 1}번째 사진 보기`,
   detail: {
     deleteAriaLabel: '사진 삭제',
     saveLabel: '저장하기',
