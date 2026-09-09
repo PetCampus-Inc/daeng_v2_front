@@ -1,13 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type SyntheticEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 
 import {
   usePinchZoom,
   type SwipeEdgeDirection,
 } from '@views/owner-album-page/lib/usePinchZoom';
 
+import { buildNextImageSrc, getAlbumDetailDisplayWidth } from '@shared/ui/album-image';
+
 interface ZoomableAlbumPhotoProps {
+  /** S3 원본 URL — 저장은 부모가 이걸 쓰고, 화면 표시는 리사이즈본 */
   src: string;
   isActive: boolean;
   onSwipeEdge?: (direction: SwipeEdgeDirection) => void;
@@ -39,6 +42,12 @@ function ZoomableAlbumPhoto({
     canSwipePrev,
     canSwipeNext,
   });
+
+  // 상세 뷰포트용 — 원본 JPEG/PNG 대신 next/image 리사이즈본
+  const displaySrc = useMemo(
+    () => buildNextImageSrc(src, getAlbumDetailDisplayWidth(), 75),
+    [src]
+  );
 
   const updateFrameSize = useCallback(() => {
     const viewport = viewportRef.current;
@@ -88,7 +97,7 @@ function ZoomableAlbumPhoto({
   useEffect(() => {
     naturalSizeRef.current = { width: 0, height: 0 };
     setFrameSize(null);
-  }, [src]);
+  }, [displaySrc]);
 
   useEffect(() => {
     if (!isActive) reset();
@@ -109,8 +118,8 @@ function ZoomableAlbumPhoto({
                 : { width: '100%', visibility: 'hidden' }
             }
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed URL 임시 미리보기 */}
-            <img {...getImageProps()} src={src} alt='' onLoad={handleLoad} onError={onLoadError} />
+            {/* eslint-disable-next-line @next/next/no-img-element -- next/image 옵티마이저 URL + pinch ref */}
+            <img {...getImageProps()} src={displaySrc} alt='' onLoad={handleLoad} onError={onLoadError} />
           </div>
         </div>
       </div>
