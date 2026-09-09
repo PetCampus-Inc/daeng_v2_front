@@ -3,7 +3,7 @@ import { cn } from '@knockdog/ui/lib';
 import { useOpenExternalLink } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
 
-interface QuickActionsSectionProps {
+export interface QuickActionsSectionProps {
   className?: string;
   contactUrl?: string;
   onContactClick?: () => void;
