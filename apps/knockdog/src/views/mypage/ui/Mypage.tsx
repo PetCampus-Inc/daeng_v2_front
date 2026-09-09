@@ -5,11 +5,11 @@ import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
 
-import { SettingsSection } from '@features/app-settings';
-import { DogSelectSheet, DogHouseSection, NoDogPrompt } from '@features/dog-profile';
+import { DogSelectSheet, NoDogPrompt } from '@features/dog-profile';
 import {
   ownerMypageContent,
   OwnerKindergartenCard,
+  OwnerKindergartenCardSkeleton,
   OwnerProfileRow,
   OwnerVerificationEntry,
   RoleConversionButton,
@@ -22,8 +22,7 @@ import {
   useOwnerMypageSummary,
   useOwnerRole,
 } from '@features/role-conversion';
-import { QuickActionsSection } from '@features/support';
-import { AccountSection, type AccountInfo } from '@features/user-account';
+import type { AccountInfo } from '@features/user-account';
 import { usePetListQuery } from '@entities/pet';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserInfoQuery, useUserStore } from '@entities/user';
@@ -36,6 +35,13 @@ import {
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
+import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
+import {
+  AccountSection,
+  DogHouseSection,
+  QuickActionsSection,
+  SettingsSection,
+} from '@views/mypage/ui/MypageLazySections';
 
 const MYPAGE_EXTERNAL_LINKS = {
   NOTICE: 'https://app.notion.com/p/3876c15f67fb807f9444c1545c5753c5?source=copy_link',
@@ -53,7 +59,7 @@ function MypageContent() {
   });
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
-  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail } =
+  const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, isProfileLoading } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
   const {
@@ -260,7 +266,9 @@ function MypageContent() {
               onClick={() => push({ pathname: route.mypage.profile.root })}
             />
 
-            {name ? (
+            {isProfileLoading && !name ? (
+              <OwnerKindergartenCardSkeleton />
+            ) : name ? (
               <OwnerKindergartenCard
                 name={name}
                 address={address}
@@ -274,7 +282,9 @@ function MypageContent() {
           </div>
         ) : (
           <>
-            {!isPetListLoading && !hasDogs && (
+            {isPetListLoading ? (
+              <MypageSectionSkeleton rows={3} />
+            ) : !hasDogs ? (
               <div className='bg-bg-0 flex flex-col items-center px-4 py-5'>
                 <NoDogPrompt
                   nickname={user?.nickname || '사용자'}
@@ -283,9 +293,7 @@ function MypageContent() {
                 />
                 {shouldShowOwnerVerification ? <OwnerVerificationEntry requiresLogin={false} variant='banner' /> : null}
               </div>
-            )}
-
-            {hasDogs && (
+            ) : (
               <>
                 <DogHouseSection
                   dogs={petListResponse?.data || []}

@@ -16,9 +16,9 @@ export function PrivateAccess({ children, onAuthError }: PrivateAccessProps) {
     setIsMounted(true);
   }, []);
 
-  // 하이드레이션 에러 방지: 초기 렌더링에서는 항상 children을 반환
+  // hydrate 전 blank → CLS. 레이아웃 높이만 유지한다.
   if (!isMounted) {
-    return null;
+    return <div className='flex min-h-0 flex-1' aria-busy='true' aria-hidden='true' />;
   }
 
   // 로그인이 안되어 있으면 아예 렌더링하지 않음 (API 호출 방지)

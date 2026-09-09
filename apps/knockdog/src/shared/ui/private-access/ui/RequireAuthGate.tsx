@@ -50,7 +50,9 @@ function RequireAuthGate({ children }: RequireAuthGateProps) {
   }, [isHydrated, isPublicPath, user]);
 
   if (isPublicPath) return children;
-  if (!isHydrated) return null;
+  if (!isHydrated) {
+    return <div className='flex min-h-0 flex-1' aria-busy='true' aria-hidden='true' />;
+  }
   if (!hasAuthSession()) return null;
 
   return children;

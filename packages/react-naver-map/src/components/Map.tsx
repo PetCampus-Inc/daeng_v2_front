@@ -1,4 +1,4 @@
-import { useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { MapProvider } from '../hooks/useMapContext';
 import { useNaverEvent } from '../hooks/useNaverEvent';
 import { useNaverMapSetEffect } from '../hooks/useNaverMapSetEffect';
@@ -6,7 +6,17 @@ import { NaverMapLoader } from '../utils/NaverMapLoader';
 import { useIsomorphicLayoutEffect } from '../utils/useIsomorphicLayoutEffect';
 import { NAVER_MAP_ID } from '../constant';
 
+/** knockdog 기본 NCP Key. 필요 시 Map `clientId` 또는 NEXT_PUBLIC_NAVER_MAP_CLIENT_ID로 덮어쓴다. */
+const DEFAULT_NAVER_MAP_CLIENT_ID =
+  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID) || 's5hu0lc2kz';
+
 type MapOptions = naver.maps.MapOptions & {
+  /**
+   * 네이버 클라우드 플랫폼 Maps ncpKeyId.
+   * 미지정 시 NEXT_PUBLIC_NAVER_MAP_CLIENT_ID 또는 앱 기본값을 사용한다.
+   */
+  clientId?: string;
+
   /**
    * 지도의 초기 중심 좌표입니다.
    */
@@ -181,6 +191,7 @@ export function Map({
   id,
   children,
   className,
+  clientId = DEFAULT_NAVER_MAP_CLIENT_ID,
   center,
   isPanto = false,
   transitionOptions = {
@@ -218,12 +229,25 @@ export function Map({
   const [map, setMap] = useState<naver.maps.Map>();
   const container = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    const callback = NaverMapLoader.addLoadListener((error) => setIsLoaded(!error));
+  useEffect(() => {
+    let cancelled = false;
+
+    void new NaverMapLoader({
+      clientId,
+      url: 'https://openapi.map.naver.com/openapi/v3/maps.js',
+    })
+      .load()
+      .then(() => {
+        if (!cancelled) setIsLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setIsLoaded(false);
+      });
+
     return () => {
-      NaverMapLoader.removeLoadListener(callback);
+      cancelled = true;
     };
-  }, []);
+  }, [clientId]);
 
   useIsomorphicLayoutEffect(() => {
     if (!isLoaded) return;
