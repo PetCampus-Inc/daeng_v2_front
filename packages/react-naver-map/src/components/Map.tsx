@@ -232,17 +232,22 @@ export function Map({
   useEffect(() => {
     let cancelled = false;
 
-    void new NaverMapLoader({
-      clientId,
-      url: 'https://openapi.map.naver.com/openapi/v3/maps.js',
-    })
-      .load()
-      .then(() => {
-        if (!cancelled) setIsLoaded(true);
+    try {
+      // 첫 clientId를 유지. 다른 clientId는 생성 시 reject → loaded로 취급하지 않음.
+      void new NaverMapLoader({
+        clientId,
+        url: 'https://openapi.map.naver.com/openapi/v3/maps.js',
       })
-      .catch(() => {
-        if (!cancelled) setIsLoaded(false);
-      });
+        .load()
+        .then(() => {
+          if (!cancelled) setIsLoaded(true);
+        })
+        .catch(() => {
+          if (!cancelled) setIsLoaded(false);
+        });
+    } catch {
+      if (!cancelled) setIsLoaded(false);
+    }
 
     return () => {
       cancelled = true;
