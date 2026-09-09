@@ -28,10 +28,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Lighthouse a11y: maximumScale < 5 / userScalable=no 는 저시력 확대 차단으로 감점.
-  // 웹은 확대 허용, 키보드 UX는 interactiveWidget으로 유지.
-  maximumScale: 5,
-  userScalable: true,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
   // useKeyboardAwareScrollHeight가 visualViewport만 줄어드는 것을 전제로 키보드를 감지하므로
   // 'resizes-content'로 바꾸면 window.innerHeight까지 같이 줄어들어 계산이 깨진다.
