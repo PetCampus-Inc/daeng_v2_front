@@ -1,1 +1,1 @@
-export { AccountSection, type AccountInfo } from './ui/AccountSection';
+export { AccountSection, type AccountInfo, type AccountSectionProps } from './ui/AccountSection';

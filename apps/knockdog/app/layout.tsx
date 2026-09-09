@@ -1,7 +1,6 @@
 import Script from 'next/script';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { cn } from '@knockdog/ui/lib';
-import { suit } from './font';
+import './suit-faces.css';
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
@@ -22,6 +21,8 @@ export const metadata: Metadata = {
     default: '똑독',
     template: '똑독 - %s',
   },
+  description: '강아지 유치원·반려견 돌봄을 한곳에서. 원장과 보호자를 위한 똑독 웹앱.',
+  // favicon은 app/icon.svg 메타데이터 파일 컨벤션 사용 (public/icon.svg와 중복 시 500)
 };
 
 export const viewport: Viewport = {
@@ -37,18 +38,33 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='ko' className={cn(suit.variable)} data-env='web' suppressHydrationWarning>
-      <HeaderProvider>
-        <body className='overflow-hidden'>
-          {/* Google Analytics — SPA screen_view는 AnalyticsScreenTracker가 발화 */}
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy='afterInteractive'
-          />
-          <Script id='google-analytics' strategy='afterInteractive'>
+    <html lang='ko' data-env='web' suppressHydrationWarning>
+      <head>
+        {/* Variable 610KB preload 대신 Regular(~164KB)만 크리티컬 경로에 올린다 */}
+        <link
+          rel='preload'
+          href='/fonts/SUIT-Regular.woff2'
+          as='font'
+          type='font/woff2'
+          crossOrigin='anonymous'
+        />
+      </head>
+      <body className='overflow-hidden'>
+        <HeaderProvider>
+          {/* gtag stub은 즉시(큐잉), 실스크립트는 idle 이후 — 초기 TBT/LCP 보호 */}
+          <Script id='gtag-stub' strategy='beforeInteractive'>
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+            `}
+          </Script>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            strategy='lazyOnload'
+          />
+          <Script id='google-analytics' strategy='lazyOnload'>
+            {`
               gtag('js', new Date());
               gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
             `}
@@ -76,12 +92,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </BridgeProvider>
             </ReactQueryProvider>
           </NuqsAdapter>
-          <Script
-            src='https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz'
-            strategy='beforeInteractive'
-          />
-        </body>
-      </HeaderProvider>
+          {/* Naver Maps는 Map 마운트 시 on-demand 로드 (전역 beforeInteractive는 /mypage 등에서 TBT·unused JS 악화) */}
+        </HeaderProvider>
+      </body>
     </html>
   );
 }

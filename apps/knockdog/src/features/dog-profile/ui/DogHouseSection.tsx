@@ -4,7 +4,7 @@ import { DogCard } from './DogCard';
 import { AddDogCard } from './AddDogCard';
 import type { Pet } from '@entities/pet';
 import { calculateAge } from '@entities/pet';
-interface DogHouseSectionProps {
+export interface DogHouseSectionProps {
   dogs: Pet[];
   maxDogs?: number;
   withBottomPadding?: boolean;

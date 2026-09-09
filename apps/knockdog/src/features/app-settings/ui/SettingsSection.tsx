@@ -1,6 +1,6 @@
 import { Divider } from '@knockdog/ui';
 
-interface SettingsSectionProps {
+export interface SettingsSectionProps {
   otherInfoTitle?: string;
   logoutLabel?: string;
   withdrawLabel?: string;

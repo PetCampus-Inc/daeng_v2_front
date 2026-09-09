@@ -37,6 +37,7 @@ export class NaverMapLoader {
   /**
    * NaverMapLoader 인스턴스를 생성합니다.
    * 싱글톤 패턴으로 구현되어 있어 항상 동일한 인스턴스를 반환합니다.
+   * document당 첫 clientId만 유지하며, 이후 다른 clientId는 즉시 거부합니다.
    *
    * @param options
    */
@@ -44,10 +45,16 @@ export class NaverMapLoader {
     this.clientId = clientId;
     this.url = url;
 
-    if (!NaverMapLoader.instance) {
-      NaverMapLoader.instance = this;
+    if (NaverMapLoader.instance) {
+      if (NaverMapLoader.instance.clientId !== clientId) {
+        throw new Error(
+          `[NaverMapLoader] Only one clientId is allowed per document. Already using "${NaverMapLoader.instance.clientId}", got "${clientId}".`
+        );
+      }
+      return NaverMapLoader.instance;
     }
-    return NaverMapLoader.instance;
+
+    NaverMapLoader.instance = this;
   }
 
   /**

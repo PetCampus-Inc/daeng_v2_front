@@ -14,7 +14,7 @@ interface AccountInfo {
   userId: string;
 }
 
-interface AccountSectionProps {
+export interface AccountSectionProps {
   variant?: 'guardian' | 'owner';
   accountInfo?: AccountInfo;
   accountSectionTitle?: string;

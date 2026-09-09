@@ -1,0 +1,29 @@
+/* SUIT static — Regular preload, SemiBold/ExtraBold만 추가 로드 (Medium/Bold 파일 제거). */
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('/fonts/SUIT-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('/fonts/SUIT-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUIT';
+  src: url('/fonts/SUIT-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  --font-suit: 'SUIT', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}

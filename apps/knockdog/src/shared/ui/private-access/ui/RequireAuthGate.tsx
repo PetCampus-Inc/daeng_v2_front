@@ -18,14 +18,13 @@ interface RequireAuthGateProps {
 
 /**
  * 앱 전역 미로그인 차단.
- * 공개 경로가 아니면 hydrate + 세션 확인 전까지 protected subtree를 렌더하지 않고 로그인으로 reset.
+ * hydrate 전에는 children을 그대로 렌더해 LCP/CLS를 막고,
+ * hydrate 후 세션 없으면 로그인으로 reset.
  */
 function RequireAuthGate({ children }: RequireAuthGateProps) {
   const pathname = usePathname();
   const user = useUserStore((state) => state.user);
-  const [isHydrated, setIsHydrated] = useState(
-    () => useUserStore.persist?.hasHydrated?.() ?? true
-  );
+  const [isHydrated, setIsHydrated] = useState(false);
   const isPublicPath = isPublicUnauthenticatedPath(pathname);
 
   useEffect(() => {
@@ -50,7 +49,10 @@ function RequireAuthGate({ children }: RequireAuthGateProps) {
   }, [isHydrated, isPublicPath, user]);
 
   if (isPublicPath) return children;
-  if (!isHydrated) return null;
+
+  // hydrate 전 null이면 LCP가 통째로 밀림 (Perf 하락 원인).
+  // 하위 PrivateAccess가 mount 전 API를 막는다.
+  if (!isHydrated) return children;
   if (!hasAuthSession()) return null;
 
   return children;
