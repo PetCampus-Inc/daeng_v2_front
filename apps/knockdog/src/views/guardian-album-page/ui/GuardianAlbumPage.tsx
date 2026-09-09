@@ -954,7 +954,7 @@ function GuardianAlbumPage() {
             {showTodaySection ? (
               <div
                 ref={scrollRef}
-                className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'
+                className='web:pb-0 flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'
                 onScroll={handleScroll}
               >
                 <GuardianAlbumTodaySection
@@ -974,7 +974,7 @@ function GuardianAlbumPage() {
                 {monthNav}
                 <div
                   ref={scrollRef}
-                  className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'
+                  className='web:pb-0 flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'
                   onScroll={handleScroll}
                 >
                   {monthListBody}
