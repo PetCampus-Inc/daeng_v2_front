@@ -4,7 +4,11 @@ import { useMainTabModeStore } from '../model/mainTabModeStore';
 import { isExternalWebViewUrl } from './isFirstPartyWebViewUrl';
 import { navigationRef, isNavReady } from './navigationRef';
 import { pathToBaseTab, resolveTabScreen } from './tabRoutes';
-import { getFocusedRootName, handleAndroidTabBackNavigation } from './androidTabBackNavigation';
+import {
+  clearExitArm,
+  getFocusedRootName,
+  handleAndroidTabBackNavigation,
+} from './androidTabBackNavigation';
 
 const NATIVE_BACK_UNHANDLED_TYPE = 'knockdog:native-back-unhandled';
 
@@ -47,6 +51,9 @@ function handleNativeBackUnhandledMessage(event: WebViewMessageEvent): boolean {
     if (getFocusedRootName() === 'Tabs') {
       return handleAndroidTabBackNavigation();
     }
+
+    // Stack 처리 — 홈에서 남긴 exit arm이 pop 직후 즉시 종료로 이어지지 않게 초기화
+    clearExitArm();
 
     if (navigationRef.canGoBack()) {
       navigationRef.goBack();
