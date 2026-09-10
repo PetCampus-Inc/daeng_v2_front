@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
+import { buildNextImageSrc } from '@shared/ui/album-image';
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface DogProfileAvatarProps {
@@ -9,6 +10,11 @@ interface DogProfileAvatarProps {
   className?: string;
   /** 프로필 없을 때 Paw 색. 기본 `text-fill-secondary-400` */
   pawClassName?: string;
+  /**
+   * 표시 크기(px) 기준 next/image 리사이즈 폭.
+   * 기본 192 ≈ 64px × 3dpr.
+   */
+  optimizeWidth?: number;
 }
 
 function PawPlaceholder({ className, pawClassName }: { className?: string; pawClassName?: string }) {
@@ -26,9 +32,20 @@ function PawPlaceholder({ className, pawClassName }: { className?: string; pawCl
 }
 
 /** 흰색 테두리 포함 강아지 프로필 원형 아바타. 이미지 없으면 회색 발바닥 플레이스홀더. */
-function DogProfileAvatar({ name, imageUrl, className, pawClassName }: DogProfileAvatarProps) {
-  const src = imageUrl?.trim() ? resolvePublicImageSrc(imageUrl.trim()) : '';
-  if (!src) return <PawPlaceholder className={className} pawClassName={pawClassName} />;
+function DogProfileAvatar({
+  name,
+  imageUrl,
+  className,
+  pawClassName,
+  optimizeWidth = 192,
+}: DogProfileAvatarProps) {
+  const resolved = imageUrl?.trim() ? resolvePublicImageSrc(imageUrl.trim()) : '';
+  if (!resolved) return <PawPlaceholder className={className} pawClassName={pawClassName} />;
+
+  // S3 원본(수백 KiB~) 대신 next/image 리사이즈본 — 캐시 TTL도 앱 서버 응답 기준
+  const src = /^(https?:)/i.test(resolved)
+    ? buildNextImageSrc(resolved, optimizeWidth, 70)
+    : resolved;
 
   return (
     <Avatar className={cn('bg-bg-50 size-11 shrink-0 border-2 border-white', className)}>

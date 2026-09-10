@@ -23,6 +23,7 @@ const nextConfig = {
   },
   // 임시 주소
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',

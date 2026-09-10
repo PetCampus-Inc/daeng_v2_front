@@ -29,7 +29,7 @@ function GuardianAlbumTodayOverflowCard({
 
   return (
     <div className='relative size-[150px] shrink-0 overflow-hidden rounded-lg'>
-      <AlbumImage src={url} className='absolute inset-0' />
+      <AlbumImage src={url} className='absolute inset-0' sizes='150px' />
       <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
         <span className='text-text-primary-inverse text-[18px] leading-[26px] font-medium tracking-[-0.36px]'>
           {today.overflowLabel(remainingCount)}

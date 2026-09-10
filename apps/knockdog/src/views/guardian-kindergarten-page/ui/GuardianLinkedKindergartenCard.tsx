@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
@@ -11,11 +12,16 @@ interface GuardianLinkedKindergartenCardProps {
   kindergarten: GuardianLinkedKindergarten;
 }
 
+function canUseNextImage(src: string) {
+  return /^https?:/i.test(src);
+}
+
 function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKindergartenCardProps) {
   const { push } = useStackNavigation();
   const imageSrc = resolvePublicImageSrc(kindergarten.imageUrl);
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = Boolean(imageSrc) && !hasImageError;
+  const useOptimized = showImage && canUseNextImage(imageSrc);
 
   const handleClick = () => {
     if (!kindergarten.placeId) return;
@@ -31,16 +37,29 @@ function GuardianLinkedKindergartenCard({ kindergarten }: GuardianLinkedKinderga
       <div className='gap-x2 flex min-w-0 items-center'>
         <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
           {showImage ? (
-            /* eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 지도 카드와 동일하게 img로 로드 */
-            <img
-              src={imageSrc}
-              alt={kindergarten.name}
-              className='size-full object-cover'
-              loading='lazy'
-              decoding='async'
-              referrerPolicy='no-referrer'
-              onError={() => setHasImageError(true)}
-            />
+            useOptimized ? (
+              <Image
+                src={imageSrc}
+                alt={kindergarten.name}
+                fill
+                sizes='44px'
+                quality={70}
+                className='object-cover'
+                loading='lazy'
+                onError={() => setHasImageError(true)}
+              />
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element -- 비http(s) 키/특수 소스 fallback */
+              <img
+                src={imageSrc}
+                alt={kindergarten.name}
+                className='size-full object-cover'
+                loading='lazy'
+                decoding='async'
+                referrerPolicy='no-referrer'
+                onError={() => setHasImageError(true)}
+              />
+            )
           ) : (
             <div
               className='bg-fill-secondary-50 flex size-full items-center justify-center'

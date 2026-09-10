@@ -23,7 +23,7 @@ function GuardianAlbumTodayPhotoCard({
   return (
     <div className='relative size-[150px] shrink-0 overflow-hidden rounded-lg'>
       <button type='button' className='absolute inset-0' onClick={onClick} aria-label='사진 상세 보기'>
-        <AlbumImage src={url} className='absolute inset-0' />
+        <AlbumImage src={url} className='absolute inset-0' sizes='150px' />
       </button>
 
       {isNew ? (

@@ -442,7 +442,7 @@ function GuardianAlbumPhotoDetail({
                   {hasError ? (
                     <div className='bg-fill-secondary-200 absolute inset-0' />
                   ) : (
-                    <AlbumImage src={photo.url} className='absolute inset-0' />
+                    <AlbumImage src={photo.url} className='absolute inset-0' sizes='60px' />
                   )}
                 </button>
               );
