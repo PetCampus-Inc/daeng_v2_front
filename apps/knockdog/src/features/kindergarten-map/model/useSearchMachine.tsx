@@ -28,9 +28,36 @@ interface SearchMachineContextValue {
 }
 
 const SearchMachineContext = createContext<SearchMachineContextValue | null>(null);
+const MAP_VIEWPORT_STORAGE_KEY = 'kindergarten-map-viewport';
 
 interface DispatchOptions {
   skipUrlSync?: boolean;
+}
+
+function readStoredMapState(): MapSnapshot | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(MAP_VIEWPORT_STORAGE_KEY) ?? 'null') as {
+      center?: Coord;
+      zoom?: number;
+    } | null;
+    const { center, zoom } = stored ?? {};
+
+    if (
+      !center ||
+      !Number.isFinite(center.lat) ||
+      !Number.isFinite(center.lng) ||
+      typeof zoom !== 'number' ||
+      !Number.isFinite(zoom)
+    ) {
+      return null;
+    }
+
+    return { center, zoom, viewportBounds: null };
+  } catch {
+    return null;
+  }
 }
 
 export function SearchStateProvider({ children }: { children: ReactNode }) {
@@ -40,7 +67,10 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   const createInitialState = () => {
     const refPointFromBase = basePoint ?? null;
     const baseState = buildUrlSyncState(urlState, refPointFromBase);
-    return transition(baseState, { type: 'URL_SYNC', payload: baseState }, { refPointFromBase });
+    const storedMapState = !urlState.center && urlState.zoom == null ? readStoredMapState() : null;
+    const initialState = storedMapState ? { ...baseState, ...storedMapState } : baseState;
+
+    return transition(initialState, { type: 'URL_SYNC', payload: initialState }, { refPointFromBase });
   };
   const initialState = createInitialState();
   const [committedState, setCommittedState] = useState<SearchSnapshot>(() => pickSearchSnapshot(initialState));
@@ -58,6 +88,15 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     basePointRef.current = basePoint;
     urlStateRef.current = urlState;
   }, [liveState, committedState, committedMapState, basePoint, urlState]);
+
+  useEffect(() => {
+    return () => {
+      const { center, zoom } = liveStateRef.current;
+      if (!center) return;
+
+      sessionStorage.setItem(MAP_VIEWPORT_STORAGE_KEY, JSON.stringify({ center, zoom }));
+    };
+  }, []);
 
   const buildTransitionContext = useCallback((): SearchTransitionContext => {
     return {
@@ -162,6 +201,10 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     const baseState = buildUrlSyncState({ ...searchUrlState, ...mapUrlState }, refPointFromBase);
     const payloadState = {
       ...baseState,
+      // 바텀시트 스냅처럼 지도와 무관한 URL 변경은 URL에 없는 center/zoom을 기본값으로
+      // 재계산하지 않는다. 사용자가 마지막으로 이동한 지도 위치를 유지한다.
+      center: mapUrlState.center ?? liveStateRef.current.center,
+      zoom: mapUrlState.zoom ?? liveStateRef.current.zoom,
       viewportBounds: liveStateRef.current.viewportBounds,
     };
     // URL 입력은 FSM으로 반영하되, URL 재동기화는 건너뜁니다.
