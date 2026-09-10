@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
-import { buildNextImageSrc } from '@shared/ui/album-image';
+import { buildNextImageSrc, canOptimizeWithNextImage } from '@shared/ui/album-image';
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface DogProfileAvatarProps {
@@ -42,8 +42,8 @@ function DogProfileAvatar({
   const resolved = imageUrl?.trim() ? resolvePublicImageSrc(imageUrl.trim()) : '';
   if (!resolved) return <PawPlaceholder className={className} pawClassName={pawClassName} />;
 
-  // S3 원본(수백 KiB~) 대신 next/image 리사이즈본 — 캐시 TTL도 앱 서버 응답 기준
-  const src = /^(https?:)/i.test(resolved)
+  // 허용 호스트만 next/image 리사이즈. 그 외는 resolved 원본 유지
+  const src = canOptimizeWithNextImage(resolved)
     ? buildNextImageSrc(resolved, optimizeWidth, 70)
     : resolved;
 

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { cn } from '@knockdog/ui/lib';
 
 import { AlbumImageSkeleton } from './AlbumImageSkeleton';
+import { canOptimizeWithNextImage } from '../lib/buildNextImageSrc';
 
 interface AlbumImageProps {
   src: string;
@@ -16,7 +17,7 @@ interface AlbumImageProps {
   loading?: 'lazy' | 'eager';
   /**
    * next/image 리사이즈. 기본 true.
-   * blob/data URL은 자동 스킵. 원본 픽셀이 필요하면 false.
+   * blob/data URL·허용 호스트 밖은 자동 스킵. 원본 픽셀이 필요하면 false.
    */
   optimize?: boolean;
   /** 뷰포트 기준 크기. optimize 시 전달 */
@@ -32,10 +33,6 @@ interface AlbumImageProps {
 
 const REVEAL_TRANSITION_MS = 500;
 const DEFAULT_OPTIMIZED_SIZES = '33vw';
-
-function canUseNextImage(src: string) {
-  return /^(https?:)/i.test(src);
-}
 
 /**
  * 앨범 이미지 — 로드 전 회색 스켈레톤, 완료 후 크로스페이드.
@@ -65,7 +62,7 @@ function AlbumImageInner({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [skipTransition, setSkipTransition] = useState(priority);
-  const useOptimized = optimize && canUseNextImage(src);
+  const useOptimized = optimize && canOptimizeWithNextImage(src);
   // LCP: opacity-0 → onLoad 페이드는 element render delay를 키움
   const shouldShowImmediately = priority || fetchPriority === 'high';
 

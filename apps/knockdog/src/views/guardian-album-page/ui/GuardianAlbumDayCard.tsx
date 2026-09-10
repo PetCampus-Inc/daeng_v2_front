@@ -73,7 +73,7 @@ function GuardianAlbumDayCard({ dayAlbum, onClick }: GuardianAlbumDayCardProps) 
                 <AlbumImage
                   src={photo.url}
                   className='absolute inset-0 bg-fill-secondary-100'
-                  sizes='33vw'
+                  sizes='25vw'
                 />
                 {isOverflowTile ? (
                   <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
