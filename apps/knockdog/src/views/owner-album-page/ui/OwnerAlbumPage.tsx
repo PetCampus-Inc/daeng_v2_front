@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
@@ -15,6 +15,7 @@ import { OwnerAlbumUploadButton } from '@views/owner-album-page/ui/OwnerAlbumUpl
 import { OwnerAlbumUploadModal } from '@views/owner-album-page/ui/OwnerAlbumUploadModal';
 
 import { Header } from '@widgets/Header';
+import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function OwnerAlbumPage() {
@@ -31,6 +32,13 @@ function OwnerAlbumPage() {
   } = useOwnerAlbumUpload();
   const [detailIndex, setDetailIndex] = useState<number | null>(null);
   const sortedPhotos = useMemo(() => sortAlbumPhotos(photos), [photos]);
+
+  const handleCloseDetail = useCallback(() => {
+    setDetailIndex(null);
+  }, []);
+
+  // 상세는 같은 URL 오버레이라 브라우저 백이 앨범 페이지를 떠나지 않도록 trap
+  useHistoryBackTrap(detailIndex !== null, handleCloseDetail);
 
   const handleInfoClick = () => {
     overlay.open(({ isOpen, close }) => <OwnerAlbumInfoSheet isOpen={isOpen} close={close} />);
@@ -83,7 +91,7 @@ function OwnerAlbumPage() {
         <OwnerAlbumPhotoDetail
           photos={sortedPhotos}
           initialIndex={detailIndex}
-          onClose={() => setDetailIndex(null)}
+          onClose={handleCloseDetail}
           onDelete={removePhoto}
         />
       ) : null}

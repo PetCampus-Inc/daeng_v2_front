@@ -54,6 +54,7 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { Header } from '@widgets/Header';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
+import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -471,6 +472,9 @@ function GuardianAlbumPage() {
     }
     setDetailState(null);
   }, [detailState, markAsViewed]);
+
+  // 상세는 같은 URL 오버레이라 브라우저 백이 앨범 페이지를 떠나지 않도록 trap
+  useHistoryBackTrap(detailState != null, handleCloseDetail);
 
   const handleOpenTodayDetail = useCallback(
     (photoId?: string) => {

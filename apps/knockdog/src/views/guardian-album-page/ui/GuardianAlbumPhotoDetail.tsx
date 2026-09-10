@@ -16,6 +16,7 @@ import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhot
 import { Header } from '@widgets/Header';
 import { useShare } from '@shared/lib/device/useShare';
 import { trackAlbumAction } from '@shared/lib/analytics';
+import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { useSaveImage } from '@shared/lib/media';
 import { AlbumImage } from '@shared/ui/album-image';
 import { toast } from '@shared/ui/toast';
@@ -176,6 +177,9 @@ function GuardianAlbumPhotoDetail({
   const handleCloseGrid = useCallback(() => {
     setIsGridOpen(false);
   }, []);
+
+  // 그리드 오픈 시 브라우저 백 → 그리드만 닫고 상세(앨범 슬라이드)에 잔류
+  useHistoryBackTrap(isGridOpen, handleCloseGrid);
 
   const handleGridPhotoClick = useCallback((index: number) => {
     setActiveIndex(index);
