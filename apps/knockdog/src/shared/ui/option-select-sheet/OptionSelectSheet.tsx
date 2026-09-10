@@ -98,7 +98,7 @@ function OptionSelectSheet(props: OptionSelectSheetProps) {
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal'>
+      <BottomSheet.Body className='z-modal pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'>
         <BottomSheet.Handle />
         <BottomSheet.Header className='items-start justify-between'>
           <div className='flex min-w-0 flex-1 flex-col gap-1'>
