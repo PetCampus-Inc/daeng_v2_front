@@ -1,12 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type SyntheticEvent,
+} from 'react';
 
 import {
   usePinchZoom,
   type SwipeEdgeDirection,
 } from '@views/owner-album-page/lib/usePinchZoom';
 
+import { isNativeWebView } from '@shared/lib/device';
 import { buildNextImageSrc, getAlbumDetailDisplayWidth } from '@shared/ui/album-image';
 
 interface ZoomableAlbumPhotoProps {
@@ -25,7 +35,19 @@ function getContainSize(naturalWidth: number, naturalHeight: number, maxWidth: n
   return { width: naturalWidth * scale, height: naturalHeight * scale };
 }
 
-function ZoomableAlbumPhoto({
+function subscribeNoop() {
+  return () => undefined;
+}
+
+function useIsNativeWebView() {
+  return useSyncExternalStore(subscribeNoop, isNativeWebView, () => false);
+}
+
+function ZoomableAlbumPhoto(props: ZoomableAlbumPhotoProps) {
+  return <ZoomableAlbumPhotoInner key={props.src} {...props} />;
+}
+
+function ZoomableAlbumPhotoInner({
   src,
   isActive,
   onSwipeEdge,
@@ -36,6 +58,9 @@ function ZoomableAlbumPhoto({
   const viewportRef = useRef<HTMLDivElement>(null);
   const naturalSizeRef = useRef({ width: 0, height: 0 });
   const [frameSize, setFrameSize] = useState<{ width: number; height: number } | null>(null);
+  /** `/_next/image` WebView 디코드 실패 시 원본으로 재시도 */
+  const [forceOriginal, setForceOriginal] = useState(false);
+  const isNative = useIsNativeWebView();
   const { getContainerProps, getFrameProps, getImageProps, reset } = usePinchZoom({
     enabled: isActive,
     onSwipeEdge,
@@ -43,11 +68,11 @@ function ZoomableAlbumPhoto({
     canSwipeNext,
   });
 
-  // 상세 뷰포트용 — 원본 JPEG/PNG 대신 next/image 리사이즈본
-  const displaySrc = useMemo(
-    () => buildNextImageSrc(src, getAlbumDetailDisplayWidth(), 75),
-    [src]
-  );
+  // 웹: next/image 리사이즈. AOS WebView는 AVIF/webp 옵티마이저가 깨져 원본 사용.
+  const displaySrc = useMemo(() => {
+    if (isNative || forceOriginal) return src;
+    return buildNextImageSrc(src, getAlbumDetailDisplayWidth(), 75);
+  }, [forceOriginal, isNative, src]);
 
   const updateFrameSize = useCallback(() => {
     const viewport = viewportRef.current;
@@ -80,6 +105,16 @@ function ZoomableAlbumPhoto({
     updateFrameSize();
   };
 
+  const handleError = () => {
+    if (!forceOriginal && displaySrc !== src) {
+      setForceOriginal(true);
+      naturalSizeRef.current = { width: 0, height: 0 };
+      setFrameSize(null);
+      return;
+    }
+    onLoadError?.();
+  };
+
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -93,11 +128,6 @@ function ZoomableAlbumPhoto({
     if (!frameSize) return;
     reset();
   }, [frameSize, reset]);
-
-  useEffect(() => {
-    naturalSizeRef.current = { width: 0, height: 0 };
-    setFrameSize(null);
-  }, [displaySrc]);
 
   useEffect(() => {
     if (!isActive) reset();
@@ -118,8 +148,16 @@ function ZoomableAlbumPhoto({
                 : { width: '100%', visibility: 'hidden' }
             }
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- next/image 옵티마이저 URL + pinch ref */}
-            <img {...getImageProps()} src={displaySrc} alt='' onLoad={handleLoad} onError={onLoadError} />
+            {/* eslint-disable-next-line @next/next/no-img-element -- pinch ref + WebView 원본/옵티마이저 폴백 */}
+            <img
+              key={displaySrc}
+              {...getImageProps()}
+              src={displaySrc}
+              alt=''
+              referrerPolicy='no-referrer'
+              onLoad={handleLoad}
+              onError={handleError}
+            />
           </div>
         </div>
       </div>
