@@ -337,7 +337,7 @@ function GuardianAlbumPage() {
     [isAttendedToday, todayDateKey]
   );
   const isAlbumDayAccessible = useCallback(
-    (day: { dateKey: string; isAttended: boolean }) =>
+    (day: { dateKey: string; isAttended: boolean; photoCount?: number }) =>
       isGuardianAlbumAccessibleDay(day, albumAccessibleContext),
     [albumAccessibleContext]
   );

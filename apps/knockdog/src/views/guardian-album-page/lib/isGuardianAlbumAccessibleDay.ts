@@ -1,32 +1,29 @@
-interface GuardianAlbumAccessibleDay {
-  dateKey: string;
-  isAttended: boolean;
-  photoCount?: number;
-}
-
-interface GuardianAlbumAccessibleDayContext {
-  /** YYYY-MM-DD */
-  todayDateKey: string;
-  isAttendedToday: boolean;
-}
-
-/**
- * 정책: 등원(체크인)한 날만 앨범 사진 접근 가능.
- * 오늘은 today API `isAttendedToday` 우선하되,
- * 연결 해제 후 today API attended가 false여도 month day 등원/사진이 있으면 접근 허용.
- */
-function isGuardianAlbumAccessibleDay(
-  day: GuardianAlbumAccessibleDay,
-  { todayDateKey, isAttendedToday }: GuardianAlbumAccessibleDayContext
-): boolean {
-  if (day.dateKey === todayDateKey) {
-    if (isAttendedToday) return true;
-    if (day.isAttended) return true;
-    if ((day.photoCount ?? 0) > 0) return true;
-    return false;
-  }
-  return day.isAttended;
-}
-
-export { isGuardianAlbumAccessibleDay };
-export type { GuardianAlbumAccessibleDay, GuardianAlbumAccessibleDayContext };
+interface GuardianAlbumAccessibleDay {
+  dateKey: string;
+  isAttended: boolean;
+  photoCount?: number;
+}
+
+interface GuardianAlbumAccessibleDayContext {
+  /** YYYY-MM-DD */
+  todayDateKey: string;
+  isAttendedToday: boolean;
+}
+
+/**
+ * 유치원에서 업로드한 사진이 있으면 등원 여부와 무관하게 접근 가능.
+ * 등원 뱃지는 UI에서 `isAttended`로만 표시한다.
+ * 오늘은 today API `isAttendedToday`도 허용(사진 업로드 전 등원 상태).
+ */
+function isGuardianAlbumAccessibleDay(
+  day: GuardianAlbumAccessibleDay,
+  { todayDateKey, isAttendedToday }: GuardianAlbumAccessibleDayContext
+): boolean {
+  if ((day.photoCount ?? 0) > 0) return true;
+  if (day.dateKey === todayDateKey && isAttendedToday) return true;
+  return day.isAttended;
+}
+
+export { isGuardianAlbumAccessibleDay };
+export type { GuardianAlbumAccessibleDay, GuardianAlbumAccessibleDayContext };
+
