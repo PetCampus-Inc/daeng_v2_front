@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 
 import { cn } from '@knockdog/ui/lib';
+
+import { isNativeWebView } from '@shared/lib/device';
 
 import { AlbumImageSkeleton } from './AlbumImageSkeleton';
 import { canOptimizeWithNextImage } from '../lib/buildNextImageSrc';
@@ -17,7 +19,7 @@ interface AlbumImageProps {
   loading?: 'lazy' | 'eager';
   /**
    * next/image 리사이즈. 기본 true.
-   * blob/data URL·허용 호스트 밖은 자동 스킵. 원본 픽셀이 필요하면 false.
+   * blob/data URL·허용 호스트 밖·네이티브 WebView는 자동 스킵. 원본 픽셀이 필요하면 false.
    */
   optimize?: boolean;
   /** 뷰포트 기준 크기. optimize 시 전달 */
@@ -33,6 +35,14 @@ interface AlbumImageProps {
 
 const REVEAL_TRANSITION_MS = 500;
 const DEFAULT_OPTIMIZED_SIZES = '33vw';
+
+function subscribeNoop() {
+  return () => undefined;
+}
+
+function useIsNativeWebView() {
+  return useSyncExternalStore(subscribeNoop, isNativeWebView, () => false);
+}
 
 /**
  * 앨범 이미지 — 로드 전 회색 스켈레톤, 완료 후 크로스페이드.
@@ -58,17 +68,21 @@ function AlbumImageInner({
   onLoad,
   onError,
 }: AlbumImageProps) {
-  const imgRef = useRef<HTMLImageElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [skipTransition, setSkipTransition] = useState(priority);
-  const useOptimized = optimize && canOptimizeWithNextImage(src);
+  /** `/_next/image` AVIF 등이 WebView에서 깨지면 원본 plain img로 재시도 */
+  const [forcePlain, setForcePlain] = useState(false);
+  const isNative = useIsNativeWebView();
+
+  // AOS WebView: next/image(/_next/image) 디코드 실패 → 회색. DogCard와 동일하게 plain img.
+  const useOptimized =
+    optimize && canOptimizeWithNextImage(src) && !forcePlain && !isNative;
   // LCP: opacity-0 → onLoad 페이드는 element render delay를 키움
   const shouldShowImmediately = priority || fetchPriority === 'high';
 
-  useEffect(() => {
-    const img = imgRef.current;
-    if (img?.complete && img.naturalWidth > 0) {
+  const markLoadedFromCache = useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete && node.naturalWidth > 0) {
       setSkipTransition(true);
       setIsLoaded(true);
     }
@@ -77,6 +91,17 @@ function AlbumImageInner({
   const handleLoad = () => {
     setIsLoaded(true);
     onLoad?.();
+  };
+
+  const handleOptimizedError = () => {
+    // 옵티마이저 실패 시 원본 URL로 폴백 (회색 고착 방지)
+    setForcePlain(true);
+    setIsLoaded(false);
+  };
+
+  const handlePlainError = () => {
+    setHasError(true);
+    onError?.();
   };
 
   const revealClassName =
@@ -92,6 +117,13 @@ function AlbumImageInner({
     revealClassName,
     imgClassName
   );
+
+  const fetchPriorityProps =
+    priority || fetchPriority === 'high'
+      ? { fetchPriority: 'high' as const }
+      : fetchPriority && fetchPriority !== 'auto'
+        ? { fetchPriority }
+        : {};
 
   return (
     <div className={cn('bg-bg-0 min-h-0 min-w-0 overflow-hidden', className)}>
@@ -112,38 +144,25 @@ function AlbumImageInner({
               quality={quality}
               priority={priority}
               // priority면 Next가 fetchpriority=high + preload. 명시적 auto/low는 LCP 경고 유발.
-              {...(priority || fetchPriority === 'high'
-                ? { fetchPriority: 'high' as const }
-                : fetchPriority && fetchPriority !== 'auto'
-                  ? { fetchPriority }
-                  : {})}
+              {...fetchPriorityProps}
               loading={priority ? undefined : loading}
               className={sharedClassName}
               onLoad={handleLoad}
-              onError={() => {
-                setHasError(true);
-                onError?.();
-              }}
+              onError={handleOptimizedError}
             />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element -- S3 pre-signed / blob / 상세 원본
+            // eslint-disable-next-line @next/next/no-img-element -- WebView / S3 pre-signed / blob / 옵티마이저 폴백
             <img
-              ref={imgRef}
+              ref={markLoadedFromCache}
               src={src}
               alt={alt}
               loading={priority ? 'eager' : loading}
-              {...(priority || fetchPriority === 'high'
-                ? { fetchPriority: 'high' as const }
-                : fetchPriority && fetchPriority !== 'auto'
-                  ? { fetchPriority }
-                  : {})}
+              {...fetchPriorityProps}
               decoding={shouldShowImmediately ? 'sync' : 'async'}
+              referrerPolicy='no-referrer'
               className={sharedClassName}
               onLoad={handleLoad}
-              onError={() => {
-                setHasError(true);
-                onError?.();
-              }}
+              onError={handlePlainError}
             />
           )
         ) : (
