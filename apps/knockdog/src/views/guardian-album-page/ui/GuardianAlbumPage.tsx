@@ -314,7 +314,8 @@ function GuardianAlbumPage() {
   } = useGuardianAlbumAttendedDays({
     schoolId: activeSchoolId,
     petId: selectedPetId,
-    enabled: hasSelectedSchool && viewMode === 'attendance',
+    // 날짜 피커 주황점/선택 가능일도 쓰므로 필터 모드와 무관하게 로드
+    enabled: hasSelectedSchool,
   });
 
   const { toggleFavorite } = useGuardianAlbumFavoriteToggle({
@@ -673,21 +674,34 @@ function GuardianAlbumPage() {
   const showAttendedUntilMessage =
     !hasPeriodBanners && isDisconnected && isSameYearMonth(selectedMonth, albumRangeEnd);
 
+  /**
+   * 월 API lastAvailableMonth는 요청 월에 따라 null/축소될 수 있음.
+   * `last ?? selectedMonth` 폴백은 8월 조회 후 9월 next를 잠금 → 상한은 항상
+   * albumRangeEnd(재원=오늘 / 해제=attendedUntil). API last가 더 미래면 그쪽 사용.
+   * (Date를 effect로 sync하면 query select마다 새 참조 → Maximum update depth)
+   */
+  const maxMonthBound = startOfMonth(albumRangeEnd);
+  const effectiveFirstAvailableMonth = firstAvailableMonth ?? membershipConnectedAt;
+  const effectiveLastAvailableMonth =
+    lastAvailableMonth != null && compareYearMonth(lastAvailableMonth, maxMonthBound) > 0
+      ? lastAvailableMonth
+      : maxMonthBound;
+
   /** 월 네비 하한: album firstAvailableMonth(전체 이력) > schools 최신 connectedAt */
-  const minMonth = startOfMonth(
-    firstAvailableMonth ?? membershipConnectedAt ?? selectedMonth
-  );
-  const maxMonth = startOfMonth(lastAvailableMonth ?? selectedMonth);
+  const minMonth = startOfMonth(effectiveFirstAvailableMonth ?? selectedMonth);
+  const maxMonth = startOfMonth(effectiveLastAvailableMonth);
   /** 일자 선택 하한 — 최초 이용월 1일(connectionStartedAt) 우선 */
   const minDate = startOfDay(
     connectionStartedAt != null
       ? parseDateKey(connectionStartedAt)
-      : (firstAvailableMonth ?? membershipConnectedAt ?? selectedMonth)
+      : (effectiveFirstAvailableMonth ?? selectedMonth)
   );
   const maxDate = startOfDay(
-    lastAvailableMonth
-      ? new Date(lastAvailableMonth.getFullYear(), lastAvailableMonth.getMonth() + 1, 0)
-      : albumRangeEnd
+    new Date(
+      effectiveLastAvailableMonth.getFullYear(),
+      effectiveLastAvailableMonth.getMonth() + 1,
+      0
+    )
   );
   const dateSelectInitialDate = startOfDay(
     attendedUntil != null ? parseDateKey(attendedUntil) : new Date()
@@ -715,6 +729,43 @@ function GuardianAlbumPage() {
     todayPhotoCount,
     todayDateKey,
     isAlbumDateInMembershipRange,
+  ]);
+
+  /** 날짜 피커 주황점 — 등원일 API(월 전환과 무관). 현재 월 사진 키만 쓰면 다른 달 점이 사라짐 */
+  const attendedMarkDateKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const day of attendanceDays) {
+      if (!isAlbumDateInMembershipRange(day.dateKey)) continue;
+      if (!isAlbumDayAccessible(day)) continue;
+      keys.add(day.dateKey);
+    }
+    if (isAttendedToday && isAlbumDateInMembershipRange(todayDateKey)) {
+      keys.add(todayDateKey);
+    }
+    return keys;
+  }, [
+    attendanceDays,
+    isAlbumDayAccessible,
+    isAlbumDateInMembershipRange,
+    isAttendedToday,
+    todayDateKey,
+  ]);
+
+  /** 날짜 피커에서 선택 가능 — 사진 있는 등원일 + 현재 로드된 월/오늘 사진 */
+  const selectableAlbumDateKeys = useMemo(() => {
+    const keys = new Set(albumPhotoDateKeys);
+    for (const day of attendanceDays) {
+      if (day.photoCount <= 0) continue;
+      if (!isAlbumDateInMembershipRange(day.dateKey)) continue;
+      if (!isAlbumDayAccessible(day)) continue;
+      keys.add(day.dateKey);
+    }
+    return keys;
+  }, [
+    albumPhotoDateKeys,
+    attendanceDays,
+    isAlbumDateInMembershipRange,
+    isAlbumDayAccessible,
   ]);
 
   const isMonthListLoading =
@@ -812,8 +863,8 @@ function GuardianAlbumPage() {
         minDate={minDate}
         maxDate={maxDate}
         initialDate={dateSelectInitialDate}
-        enabledDateKeys={albumPhotoDateKeys}
-        markedDateKeys={albumPhotoDateKeys}
+        enabledDateKeys={selectableAlbumDateKeys}
+        markedDateKeys={attendedMarkDateKeys}
         onConfirm={handleOpenDateDetail}
       />
     ));
