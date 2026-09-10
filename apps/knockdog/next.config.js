@@ -23,7 +23,8 @@ const nextConfig = {
   },
   // 임시 주소
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // AVIF는 일부 AOS WebView에서 디코드 실패 → broken/placeholder. webp만 사용.
+    formats: ['image/webp'],
     remotePatterns: [
       {
         protocol: 'https',

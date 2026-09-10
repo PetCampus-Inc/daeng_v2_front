@@ -1,6 +1,10 @@
+'use client';
+
+import { useState } from 'react';
 import { Icon } from '@knockdog/ui';
-import Image from 'next/image';
 import { cn } from '@knockdog/ui/lib';
+
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface DogCardProps {
   name: string;
@@ -13,6 +17,9 @@ interface DogCardProps {
 
 function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogCardProps) {
   const ageLabel = age === undefined ? undefined : age < 1 ? '1살 미만' : `${age}살`;
+  const resolvedImageUrl = imageUrl?.trim() ? resolvePublicImageSrc(imageUrl.trim()) : '';
+  const [hasImageError, setHasImageError] = useState(false);
+  const showImage = Boolean(resolvedImageUrl) && !hasImageError;
 
   return (
     <div
@@ -20,18 +27,29 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
       onDragStart={(event) => event.preventDefault()}
       className={cn(
         'relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl',
-        !imageUrl && 'bg-bg-100'
+        !showImage && 'bg-bg-100'
       )}
       style={
-        !imageUrl
+        !showImage
           ? {
               backgroundImage: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.8) 80%)',
             }
           : undefined
       }
     >
-      {imageUrl ? (
-        <Image src={imageUrl} alt={name} fill draggable={false} className='object-cover' />
+      {showImage ? (
+        // plain img — next/image(/_next/image AVIF)는 AOS WebView에서 깨짐. 펫 수정과 동일 경로.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={resolvedImageUrl}
+          alt={name}
+          draggable={false}
+          className='absolute inset-0 size-full object-cover'
+          loading='lazy'
+          decoding='async'
+          referrerPolicy='no-referrer'
+          onError={() => setHasImageError(true)}
+        />
       ) : (
         <div className='flex h-full w-full items-center justify-center pb-[34px]'>
           <Icon icon='Paw' className='text-primitive-neutral-300 h-[52px] w-[52px]' />
@@ -39,7 +57,7 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
       )}
 
       {/* Gradient dim overlay */}
-      {imageUrl && (
+      {showImage && (
         <div
           className='absolute inset-x-0 bottom-0 h-[80px]'
           style={{
