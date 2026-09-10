@@ -89,16 +89,17 @@ function useGuardianKindergartenHome(options?: { petId?: string | null; enabled?
   const isDismissed = Boolean(checkInAt && checkOutAt);
   const isAttending = Boolean(checkInAt && !checkOutAt);
   const hasDailyNotice = Boolean(home?.todayNoteArrived);
-  const albumPhotos = useMemo(
-    () => (home?.todayAlbumPreview ?? []).slice(0, 3).map((photo) => photo.imageUrl),
-    [home?.todayAlbumPreview]
-  );
+  const albumPhotos = useMemo(() => {
+    if (!checkInAt) return [];
+    return (home?.todayAlbumPreview ?? []).slice(0, 3).map((photo) => photo.imageUrl);
+  }, [checkInAt, home?.todayAlbumPreview]);
   const albumLatestCreatedAt = useMemo(() => {
+    if (!checkInAt) return null;
     const times = (home?.todayAlbumPreview ?? [])
       .map((photo) => (photo.createdAt ? new Date(photo.createdAt).getTime() : Number.NaN))
       .filter((time) => Number.isFinite(time));
     return times.length > 0 ? Math.max(...times) : null;
-  }, [home?.todayAlbumPreview]);
+  }, [checkInAt, home?.todayAlbumPreview]);
 
   /** 해당 유치원 첫 등원일 — 캘린더 minDate·주황점 하한 */
   const firstAttendedAt = useMemo(() => {

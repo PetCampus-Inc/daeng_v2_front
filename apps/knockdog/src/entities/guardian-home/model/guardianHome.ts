@@ -225,18 +225,23 @@ function parseFirstAttendedAt(dto: GuardianHomeDto | null | undefined): Date | n
 function toGuardianHome(dto: GuardianHomeDto | null | undefined): GuardianHome {
   const status = toConnectionStatus(dto?.status);
   const school = toGuardianHomeSchool(dto?.school);
-  const todayAlbumPreview = (dto?.todayAlbumPreview ?? [])
+  const checkInAt = parseApiDateTime(dto?.checkInAt);
+  const rawTodayAlbumPreview = (dto?.todayAlbumPreview ?? [])
     .map(toAlbumPreview)
     .filter((item): item is GuardianHomeAlbumPreview => item != null);
+
+  // 미연결/승인대기/미등원이면 프리뷰 무시 — 백엔드가 stale preview를 줘도 UI에 안 그림
+  const canShowTodayAlbumPreview =
+    (status === 'approved' || status === 'disconnected') && checkInAt != null;
 
   return {
     status,
     school: status === 'none' ? null : school,
-    checkInAt: parseApiDateTime(dto?.checkInAt),
+    checkInAt,
     checkOutAt: parseApiDateTime(dto?.checkOutAt),
     firstAttendedAt: parseFirstAttendedAt(dto),
     todayNoteArrived: Boolean(dto?.todayNoteArrived),
-    todayAlbumPreview,
+    todayAlbumPreview: canShowTodayAlbumPreview ? rawTodayAlbumPreview : [],
   };
 }
 
