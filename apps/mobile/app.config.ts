@@ -108,6 +108,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     './plugins/rnfirebase-disable-spm',
     './plugins/naver-map-queries',
     './plugins/disable-android-backup',
+    './plugins/disable-android-predictive-back',
     [
       'expo-image-picker',
       {

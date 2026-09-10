@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, View } from 'react-native';
+import { AppState, BackHandler, Platform, View } from 'react-native';
 import { NavigationContainer, type NavigationState, type PartialState } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -7,6 +7,7 @@ import * as Font from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context'; // ★ SafeAreaProvider 사용
 import { PortalProvider } from '@gorhom/portal'; // ★ 포털
+import { clearExitArm } from './bridges/lib/androidTabBackNavigation';
 import { navigationRef } from './bridges/lib/navigationRef';
 import { ToastProvider } from './components/toast'; // ★ 토스트 프로바이더 (네이티브 구현)
 import { initializeKakaoSDK } from '@react-native-kakao/core';
@@ -36,6 +37,15 @@ export default function App() {
 
     // Google SDK 초기화
     GoogleSignin.configure({ iosClientId, webClientId });
+  }, []);
+
+  // AOS: 다른 BackHandler가 false를 반환해도 Activity finish 되지 않도록 최후 방어
+  // (먼저 등록 → 역순 호출상 마지막에 실행). 실제 종료는 BackHandler.exitApp()만.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {
@@ -84,6 +94,15 @@ export default function App() {
   const handleNavigationStateChange = useCallback(
     (state: NavigationState | PartialState<NavigationState> | undefined) => {
       const currentRootRouteName = state?.routes?.[state.index ?? 0]?.name;
+
+      // Tabs↔Stack 전환 시 홈 exit arm이 남아 다음 back에 토스트 없이 종료되는 것 방지
+      if (
+        previousRootRouteNameRef.current &&
+        currentRootRouteName &&
+        previousRootRouteNameRef.current !== currentRootRouteName
+      ) {
+        clearExitArm();
+      }
 
       // 앱 내부 Stack에서 탭으로 복귀한 경우, 이전 화면이 남긴 GNB 숨김 상태를 복구한다.
       if (previousRootRouteNameRef.current === 'Stack' && currentRootRouteName === 'Tabs') {

@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '@/types/navigation';
 import { navBridgeHub } from '@/bridges/model/navBridgeHub';
 import { isExternalWebViewUrl } from '@/bridges/lib/isFirstPartyWebViewUrl';
+import { clearExitArm } from '@/bridges/lib/androidTabBackNavigation';
 import { NATIVE_BACK_INJECT } from '@/bridges/lib/nativeBackInject';
 
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
@@ -66,23 +67,31 @@ export default function StackScreen() {
   }, [navigation, initialState?._txId]);
 
   // 안드로이드 시스템 뒤로가기
-  // - 외부 origin: 웹 스크립트 주입 없이 네이티브 goBack (실패 시 시스템 back 허용)
+  // - 외부 origin: 웹 스크립트 주입 없이 네이티브 goBack
   // - first-party: knockdog:native-back (이탈 가드 등)
+  // - 항상 true 소비: false면 일부 기기에서 토스트 없이 Activity finish
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      clearExitArm();
       const url = currentUrlRef.current || initialPath;
 
       if (isExternalWebViewUrl(url)) {
         if (navigation.canGoBack()) {
           navigation.goBack();
-          return true;
         }
-        return false;
+        return true;
       }
 
-      webviewRef.current?.injectJavaScript(NATIVE_BACK_INJECT);
+      if (!webviewRef.current) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        return true;
+      }
+
+      webviewRef.current.injectJavaScript(NATIVE_BACK_INJECT);
       return true;
     });
 

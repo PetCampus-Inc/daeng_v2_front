@@ -7,15 +7,18 @@ import {
   getFocusedRootName,
   getFocusedTabName,
   handleAndroidTabBackNavigation,
+  isHomeTab,
+  tryExitAppIfArmed,
 } from '@/bridges/lib/androidTabBackNavigation';
+import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBlockingOverlayStore } from '@/features/blocking-overlay';
 import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
 
 /**
  * 바텀탭 AOS 시스템 뒤로가기
- * 1. 네이티브 오버레이(확인 모달) 닫기
- * 2. 활성 탭 WebView에 native-back 주입 → 바텀시트/웹 모달 우선 닫기
- * 3. 웹이 소비하지 않으면 handleAndroidTabBackNavigation (홈/탭 전환)
+ *
+ * 절대 `false`를 반환하지 않음 — false면 일부 기기에서 토스트 없이 Activity finish.
+ * 종료는 홈 + 이미 arm된 상태에서 두 번째 하드웨어 back일 때만.
  */
 function useAndroidTabBack() {
   useEffect(() => {
@@ -30,13 +33,32 @@ function useAndroidTabBack() {
         return true;
       }
 
-      if (getFocusedRootName() !== 'Tabs') {
+      const rootName = getFocusedRootName();
+
+      // Stack: StackScreen에 위임 (역순 호출). false여도 App 최후 방어가 Activity finish 막음.
+      if (rootName === 'Stack') {
         clearExitArm();
         return false;
       }
 
+      if (rootName !== 'Tabs') {
+        return true;
+      }
+
+      const mode = useMainTabModeStore.getState().mode;
       const tabName = getFocusedTabName();
-      if (!tabName) return false;
+
+      if (!tabName) {
+        return true;
+      }
+
+      // 두 번째 하드웨어 back에서만 종료
+      if (isHomeTab(tabName, mode) && tryExitAppIfArmed()) {
+        return true;
+      }
+
+      // 홈 포함 WebView/탭 이동 경로 — stale exit arm 해제 (unhandled 시 다시 arm)
+      clearExitArm();
 
       const webview = tabWebViewStore.get(tabName)?.current;
       if (webview) {

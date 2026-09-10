@@ -1,6 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { overlay } from 'overlay-kit';
+
+import {
+  isUnsavedExitDialogOpen,
+  markUnsavedExitDialogClosed,
+  UNSAVED_EXIT_OVERLAY_ID,
+} from '@shared/lib/openUnsavedExitDialog';
 
 const GUARD_STATE_KEY = '__unsavedExitGuard';
 
@@ -69,6 +76,14 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
       // 여전히 guard state면 사용자 이탈이 아니라 overlay cleanup이므로 무시.
       // (사진 소스 시트/이탈 모달 닫기 → 경고 재오픈/중첩 방지)
       if (isGuardHistoryState(window.history.state)) {
+        return;
+      }
+
+      // 경고 모달이 열린 채 브라우저 백 → 모달만 닫고 가드 재장착 (페이지 이탈/모달 재오픈 방지)
+      if (isUnsavedExitDialogOpen()) {
+        markUnsavedExitDialogClosed();
+        overlay.close(UNSAVED_EXIT_OVERLAY_ID);
+        pushGuardState();
         return;
       }
 

@@ -3,8 +3,14 @@
 import { useEffect, useRef } from 'react';
 import { overlay, OverlayProvider as OverClientProvider, useCurrentOverlay } from 'overlay-kit';
 
+import { UNSAVED_EXIT_OVERLAY_ID } from '@shared/lib/openUnsavedExitDialog';
+
 const OVERLAY_HISTORY_KEY = '__knockdogOverlayId';
 const NATIVE_BACK_EVENT = 'knockdog:native-back';
+
+function shouldSkipOverlayHistory(overlayId: string | null | undefined) {
+  return overlayId === UNSAVED_EXIT_OVERLAY_ID;
+}
 
 function OverlayBackDismissHandler() {
   const currentOverlayId = useCurrentOverlay();
@@ -18,7 +24,10 @@ function OverlayBackDismissHandler() {
     const previousOverlayId = previousOverlayIdRef.current;
 
     if (previousOverlayId && previousOverlayId !== currentOverlayId) {
-      if (window.history.state?.[OVERLAY_HISTORY_KEY] === previousOverlayId) {
+      if (
+        !shouldSkipOverlayHistory(previousOverlayId) &&
+        window.history.state?.[OVERLAY_HISTORY_KEY] === previousOverlayId
+      ) {
         isRestoringPreviousOverlayRef.current = true;
         window.history.back();
       }
@@ -28,6 +37,7 @@ function OverlayBackDismissHandler() {
       currentOverlayId &&
       previousOverlayId !== currentOverlayId &&
       !isRestoringPreviousOverlayRef.current &&
+      !shouldSkipOverlayHistory(currentOverlayId) &&
       window.history.state?.[OVERLAY_HISTORY_KEY] !== currentOverlayId
     ) {
       window.history.pushState(
@@ -59,7 +69,11 @@ function OverlayBackDismissHandler() {
         isRestoringPreviousOverlayRef.current = false;
 
         const overlayId = currentOverlayIdRef.current;
-        if (overlayId && window.history.state?.[OVERLAY_HISTORY_KEY] !== overlayId) {
+        if (
+          overlayId &&
+          !shouldSkipOverlayHistory(overlayId) &&
+          window.history.state?.[OVERLAY_HISTORY_KEY] !== overlayId
+        ) {
           window.history.pushState(
             { ...window.history.state, [OVERLAY_HISTORY_KEY]: overlayId },
             '',
@@ -70,6 +84,9 @@ function OverlayBackDismissHandler() {
       }
 
       if (!currentOverlayIdRef.current) return;
+
+      // 이탈 경고는 history entry 없음 — popstate는 useUnsavedBrowserBackGuard가 처리
+      if (shouldSkipOverlayHistory(currentOverlayIdRef.current)) return;
 
       closeCurrentOverlay();
     };

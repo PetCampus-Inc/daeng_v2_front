@@ -54,6 +54,7 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { Header } from '@widgets/Header';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
+import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -352,17 +353,52 @@ function GuardianAlbumPage() {
   );
 
   const visibleDays = useMemo<GuardianAlbumDayAlbum[]>(() => {
-    const hideTodayInList = !isDisconnected && isAttendedToday;
-    return monthDays.filter((day) => {
+    const showTodayAsSection = !isDisconnected && isAttendedToday;
+    const hideTodayInList = showTodayAsSection;
+
+    const filtered = monthDays.filter((day) => {
       if (hideTodayInList && day.dateKey === todayDateKey) return false;
       if (!isAlbumDateInMembershipRange(day.dateKey)) return false;
       return isAlbumDayAccessible(day);
     });
+
+    // Today 섹션이 숨겨질 때(연결 해제·미등원 등) today API 사진을 월 리스트에 합성.
+    // 등원 중엔 today를 month에서 빼 두므로, 해제 후 month에 오늘이 없으면 당일 업로드가 통째로 사라짐.
+    if (
+      !showTodayAsSection &&
+      todayPhotoCount > 0 &&
+      isAlbumDateInMembershipRange(todayDateKey)
+    ) {
+      const existingIndex = filtered.findIndex((day) => day.dateKey === todayDateKey);
+      const syntheticDay: GuardianAlbumDayAlbum = {
+        dateKey: todayDateKey,
+        isAttended: true,
+        photoCount: Math.max(todayPhotoCount, todayPhotos.length),
+        photos: todayPhotos,
+      };
+
+      if (existingIndex < 0) {
+        return [syntheticDay, ...filtered];
+      }
+
+      const existing = filtered[existingIndex];
+      if (!existing) return filtered;
+
+      if (existing.photoCount > 0 && existing.photos.length > 0) {
+        return filtered;
+      }
+
+      return filtered.map((day, index) => (index === existingIndex ? { ...day, ...syntheticDay } : day));
+    }
+
+    return filtered;
   }, [
     monthDays,
     isDisconnected,
     isAttendedToday,
     todayDateKey,
+    todayPhotoCount,
+    todayPhotos,
     isAlbumDateInMembershipRange,
     isAlbumDayAccessible,
   ]);
@@ -472,6 +508,9 @@ function GuardianAlbumPage() {
     setDetailState(null);
   }, [detailState, markAsViewed]);
 
+  // 상세는 같은 URL 오버레이라 브라우저 백이 앨범 페이지를 떠나지 않도록 trap
+  useHistoryBackTrap(detailState != null, handleCloseDetail);
+
   const handleOpenTodayDetail = useCallback(
     (photoId?: string) => {
       openDetail(todayDetailPhotos, photoId, false);
@@ -526,7 +565,7 @@ function GuardianAlbumPage() {
       setIsScrollTopVisible(false);
 
       if (dateKey === todayDateKey) {
-        if (!isAttendedToday || todayDetailPhotos.length === 0) return;
+        if (todayDetailPhotos.length === 0) return;
         openDetail(todayDetailPhotos, undefined, false);
         return;
       }
@@ -554,7 +593,6 @@ function GuardianAlbumPage() {
     [
       handleOpenDayDetail,
       isAlbumDayAccessible,
-      isAttendedToday,
       monthDays,
       openDetail,
       activeSchoolId,
@@ -667,20 +705,13 @@ function GuardianAlbumPage() {
         keys.add(day.dateKey);
       }
     }
-    if (
-      !isDisconnected &&
-      isAttendedToday &&
-      todayPhotoCount > 0 &&
-      isAlbumDateInMembershipRange(todayDateKey)
-    ) {
+    if (todayPhotoCount > 0 && isAlbumDateInMembershipRange(todayDateKey)) {
       keys.add(todayDateKey);
     }
     return keys;
   }, [
     monthDays,
     isAlbumDayAccessible,
-    isDisconnected,
-    isAttendedToday,
     todayPhotoCount,
     todayDateKey,
     isAlbumDateInMembershipRange,
