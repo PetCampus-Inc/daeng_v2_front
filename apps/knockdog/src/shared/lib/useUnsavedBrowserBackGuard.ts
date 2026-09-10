@@ -65,6 +65,13 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
         return;
       }
 
+      // OverlayProvider 등이 가드 위에 쌓은 history를 back으로 걷어낸 경우.
+      // 여전히 guard state면 사용자 이탈이 아니라 overlay cleanup이므로 무시.
+      // (사진 소스 시트/이탈 모달 닫기 → 경고 재오픈/중첩 방지)
+      if (isGuardHistoryState(window.history.state)) {
+        return;
+      }
+
       // dirty 이탈 시도 → URL 복구 후 기존 이탈 핸들러 호출
       pushGuardState();
       onAttemptLeaveRef.current();

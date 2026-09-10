@@ -31,7 +31,12 @@ function UnsavedExitAlertDialog({
   confirmLabel,
 }: UnsavedExitAlertDialogProps) {
   return (
-    <AlertDialog open={isOpen} onOpenChange={close}>
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) close();
+      }}
+    >
       <AlertDialogContent
         onOpenAutoFocus={(event) => {
           event.preventDefault();
