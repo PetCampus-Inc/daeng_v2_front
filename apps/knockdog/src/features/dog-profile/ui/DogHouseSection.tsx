@@ -35,7 +35,6 @@ function DogHouseSection({
       startScrollLeft: event.currentTarget.scrollLeft,
       hasDragged: false,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -43,11 +42,14 @@ function DogHouseSection({
     if (!dragState || dragState.pointerId !== event.pointerId) return;
 
     const distance = event.clientX - dragState.startX;
-    if (Math.abs(distance) > 4) {
+    if (!dragState.hasDragged) {
+      if (Math.abs(distance) <= 4) return;
+
       dragState.hasDragged = true;
-      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
     }
 
+    event.preventDefault();
     event.currentTarget.scrollLeft = dragState.startScrollLeft - distance;
   };
 
@@ -82,6 +84,7 @@ function DogHouseSection({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
+        onLostPointerCapture={handlePointerEnd}
         onClickCapture={(event) => {
           if (!suppressClickRef.current) return;
 

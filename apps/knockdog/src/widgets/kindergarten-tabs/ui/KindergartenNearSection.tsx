@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { KindergartenNearCard, useKindergartenNearQuery } from '@features/kindergarten-near';
 import { useCurrentLocation } from '@shared/lib/geolocation';
@@ -12,8 +12,50 @@ interface KindergartenNearSectionProps {
 const KindergartenNearSection = ({ kindergartenId }: KindergartenNearSectionProps) => {
   const params = useParams<{ id: string }>();
   const id = kindergartenId ?? params?.id;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const dragStateRef = useRef<{ pointerId: number; startX: number; startScrollLeft: number; hasDragged: boolean } | null>(null);
   const suppressClickRef = useRef(false);
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      const scrollContainer = scrollContainerRef.current;
+      if (!dragState || !scrollContainer || dragState.pointerId !== event.pointerId) return;
+
+      const distance = event.clientX - dragState.startX;
+      if (!dragState.hasDragged) {
+        if (Math.abs(distance) <= 4) return;
+
+        dragState.hasDragged = true;
+      }
+
+      event.preventDefault();
+      scrollContainer.scrollLeft = dragState.startScrollLeft - distance;
+    };
+
+    const handlePointerEnd = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+      dragStateRef.current = null;
+      if (!dragState.hasDragged) return;
+
+      suppressClickRef.current = true;
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', handlePointerEnd);
+    window.addEventListener('pointercancel', handlePointerEnd);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerEnd);
+      window.removeEventListener('pointercancel', handlePointerEnd);
+    };
+  }, []);
 
   if (!id) throw new Error('Company ID is required for near section');
 
@@ -29,6 +71,7 @@ const KindergartenNearSection = ({ kindergartenId }: KindergartenNearSectionProp
       </div>
 
       <div
+        ref={scrollContainerRef}
         className='scrollbar-hide flex cursor-grab gap-5 overflow-x-auto select-none active:cursor-grabbing'
         onPointerDown={(event) => {
           if (event.pointerType !== 'mouse' || event.button !== 0) return;
@@ -39,36 +82,6 @@ const KindergartenNearSection = ({ kindergartenId }: KindergartenNearSectionProp
             startScrollLeft: event.currentTarget.scrollLeft,
             hasDragged: false,
           };
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          const dragState = dragStateRef.current;
-          if (!dragState || dragState.pointerId !== event.pointerId) return;
-
-          const distance = event.clientX - dragState.startX;
-          if (Math.abs(distance) > 4) {
-            dragState.hasDragged = true;
-            event.preventDefault();
-          }
-          event.currentTarget.scrollLeft = dragState.startScrollLeft - distance;
-        }}
-        onPointerUp={(event) => {
-          const dragState = dragStateRef.current;
-          if (!dragState || dragState.pointerId !== event.pointerId) return;
-
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-          }
-          dragStateRef.current = null;
-
-          if (!dragState.hasDragged) return;
-          suppressClickRef.current = true;
-          window.setTimeout(() => {
-            suppressClickRef.current = false;
-          }, 0);
-        }}
-        onPointerCancel={() => {
-          dragStateRef.current = null;
         }}
         onClickCapture={(event) => {
           if (!suppressClickRef.current) return;
