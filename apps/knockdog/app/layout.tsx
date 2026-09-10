@@ -48,6 +48,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type='font/woff2'
           crossOrigin='anonymous'
         />
+        <link
+          rel='preconnect'
+          href='https://kindergarten-image-bucket.s3.ap-northeast-2.amazonaws.com'
+          crossOrigin='anonymous'
+        />
+        <link
+          rel='dns-prefetch'
+          href='https://kindergarten-image-bucket.s3.ap-northeast-2.amazonaws.com'
+        />
       </head>
       <body className='overflow-hidden'>
         <HeaderProvider>

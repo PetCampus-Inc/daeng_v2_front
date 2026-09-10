@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { cn } from '@knockdog/ui/lib';
 
 import { AlbumImageSkeleton } from './AlbumImageSkeleton';
+import { canOptimizeWithNextImage } from '../lib/buildNextImageSrc';
 
 interface AlbumImageProps {
   src: string;
@@ -15,12 +16,14 @@ interface AlbumImageProps {
   skeletonClassName?: string;
   loading?: 'lazy' | 'eager';
   /**
-   * next/image 리사이즈. 그리드/스트립 썸네일용.
-   * blob/data URL/상세 원본 줌은 false 유지.
+   * next/image 리사이즈. 기본 true.
+   * blob/data URL·허용 호스트 밖은 자동 스킵. 원본 픽셀이 필요하면 false.
    */
   optimize?: boolean;
   /** 뷰포트 기준 크기. optimize 시 전달 */
   sizes?: string;
+  /** next/image quality (1–100). 썸네일은 65 권장 */
+  quality?: number;
   /** LCP 후보 — eager + fetchPriority high + 페이드 스킵 */
   priority?: boolean;
   fetchPriority?: 'high' | 'low' | 'auto';
@@ -30,10 +33,6 @@ interface AlbumImageProps {
 
 const REVEAL_TRANSITION_MS = 500;
 const DEFAULT_OPTIMIZED_SIZES = '33vw';
-
-function canUseNextImage(src: string) {
-  return /^(https?:)/i.test(src);
-}
 
 /**
  * 앨범 이미지 — 로드 전 회색 스켈레톤, 완료 후 크로스페이드.
@@ -50,8 +49,10 @@ function AlbumImageInner({
   imgClassName,
   skeletonClassName,
   loading = 'lazy',
-  optimize = false,
+  /** 기본 true — S3 원본(수 MB)을 브라우저에 직접 받지 않음. blob/data는 자동 스킵 */
+  optimize = true,
   sizes = DEFAULT_OPTIMIZED_SIZES,
+  quality = 70,
   priority = false,
   fetchPriority,
   onLoad,
@@ -61,7 +62,7 @@ function AlbumImageInner({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [skipTransition, setSkipTransition] = useState(priority);
-  const useOptimized = optimize && canUseNextImage(src);
+  const useOptimized = optimize && canOptimizeWithNextImage(src);
   // LCP: opacity-0 → onLoad 페이드는 element render delay를 키움
   const shouldShowImmediately = priority || fetchPriority === 'high';
 
@@ -108,6 +109,7 @@ function AlbumImageInner({
               alt={alt}
               fill
               sizes={sizes}
+              quality={quality}
               priority={priority}
               // priority면 Next가 fetchpriority=high + preload. 명시적 auto/low는 LCP 경고 유발.
               {...(priority || fetchPriority === 'high'

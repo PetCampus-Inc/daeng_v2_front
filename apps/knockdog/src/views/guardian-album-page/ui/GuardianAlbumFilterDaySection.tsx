@@ -72,7 +72,11 @@ function GuardianAlbumFilterDaySection({
               key={photo.id}
               className='relative aspect-square min-h-0 min-w-0 overflow-hidden rounded-lg'
             >
-              <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
+              <AlbumImage
+                src={photo.url}
+                className='absolute inset-0 bg-fill-secondary-100'
+                sizes='25vw'
+              />
               {isOverflowTile ? (
                 <div className='bg-dim-70 absolute inset-0 z-10 flex items-center justify-center rounded-lg'>
                   <span className='body2-semibold text-text-primary-inverse'>
