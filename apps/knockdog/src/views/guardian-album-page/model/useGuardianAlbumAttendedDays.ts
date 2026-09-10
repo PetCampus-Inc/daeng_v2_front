@@ -8,6 +8,8 @@ import { useUserStore } from '@entities/user';
 interface UseGuardianAlbumAttendedDaysParams {
   schoolId?: string | null;
   petId?: string | null;
+  /** 페이지 크기 */
+  size?: number;
   enabled?: boolean;
 }
 
@@ -18,6 +20,7 @@ interface UseGuardianAlbumAttendedDaysParams {
 function useGuardianAlbumAttendedDays({
   schoolId,
   petId,
+  size = 7,
   enabled = true,
 }: UseGuardianAlbumAttendedDaysParams) {
   const userId = useUserStore((state) => state.user?.userId);
@@ -26,6 +29,7 @@ function useGuardianAlbumAttendedDays({
     userId,
     schoolId,
     petId,
+    size,
     enabled: enabled && Boolean(schoolId) && Boolean(petId),
   });
 

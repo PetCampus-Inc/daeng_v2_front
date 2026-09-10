@@ -314,6 +314,8 @@ function GuardianAlbumPage() {
   } = useGuardianAlbumAttendedDays({
     schoolId: activeSchoolId,
     petId: selectedPetId,
+    // 날짜 피커 주황점용
+    size: 31,
     // 날짜 피커 주황점/선택 가능일도 쓰므로 필터 모드와 무관하게 로드
     enabled: hasSelectedSchool,
   });
@@ -458,6 +460,18 @@ function GuardianAlbumPage() {
     viewMode,
     hasAttendancePhotosReady,
     enrichedAttendanceDays.length,
+    hasAttendanceNextPage,
+    isAttendanceFetchingNextPage,
+    fetchAttendanceNextPage,
+  ]);
+
+  /** 날짜 피커 주황점 — attended-days 전체 페이지를 미리 모은다 */
+  useEffect(() => {
+    if (!hasSelectedSchool) return;
+    if (!hasAttendanceNextPage || isAttendanceFetchingNextPage) return;
+    fetchAttendanceNextPage();
+  }, [
+    hasSelectedSchool,
     hasAttendanceNextPage,
     isAttendanceFetchingNextPage,
     fetchAttendanceNextPage,
@@ -731,12 +745,16 @@ function GuardianAlbumPage() {
     isAlbumDateInMembershipRange,
   ]);
 
-  /** 날짜 피커 주황점 — 등원일 API(월 전환과 무관). 현재 월 사진 키만 쓰면 다른 달 점이 사라짐 */
+  /** 날짜 피커 주황점 — 등원일(attended-days + 현재 월 isAttended). 사진 유무와 무관 */
   const attendedMarkDateKeys = useMemo(() => {
     const keys = new Set<string>();
     for (const day of attendanceDays) {
       if (!isAlbumDateInMembershipRange(day.dateKey)) continue;
-      if (!isAlbumDayAccessible(day)) continue;
+      keys.add(day.dateKey);
+    }
+    for (const day of monthDays) {
+      if (!day.isAttended) continue;
+      if (!isAlbumDateInMembershipRange(day.dateKey)) continue;
       keys.add(day.dateKey);
     }
     if (isAttendedToday && isAlbumDateInMembershipRange(todayDateKey)) {
@@ -745,7 +763,7 @@ function GuardianAlbumPage() {
     return keys;
   }, [
     attendanceDays,
-    isAlbumDayAccessible,
+    monthDays,
     isAlbumDateInMembershipRange,
     isAttendedToday,
     todayDateKey,
