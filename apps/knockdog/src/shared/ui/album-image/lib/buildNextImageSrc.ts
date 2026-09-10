@@ -7,9 +7,16 @@ const NEXT_IMAGE_REMOTE_PATTERNS = [
   { protocol: 'http:', hostname: 'blogpfthumb.phinf.naver.net' },
 ] as const;
 
+/** S3 pre-signed — `/_next/image`가 재fetch하면 서명 깨져 upstream invalid(404) */
+function isAwsPresignedUrl(src: string) {
+  return /[?&]X-Amz-(Algorithm|Signature|Credential)=/i.test(src);
+}
+
 /** next/image(또는 buildNextImageSrc)로 넘길 수 있는 http(s) URL인지 */
 function canOptimizeWithNextImage(src: string) {
   if (!src || !/^(https?:)/i.test(src)) return false;
+  // pre-signed는 옵티마이저 금지 — plain <img>로 직접 로드
+  if (isAwsPresignedUrl(src)) return false;
 
   try {
     const { protocol, hostname } = new URL(src);
