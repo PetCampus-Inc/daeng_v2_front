@@ -57,9 +57,8 @@ function useAndroidTabBack() {
         return true;
       }
 
-      if (!isHomeTab(tabName, mode)) {
-        clearExitArm();
-      }
+      // 홈 포함 WebView/탭 이동 경로 — stale exit arm 해제 (unhandled 시 다시 arm)
+      clearExitArm();
 
       const webview = tabWebViewStore.get(tabName)?.current;
       if (webview) {

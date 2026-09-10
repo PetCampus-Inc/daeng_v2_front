@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
@@ -19,6 +19,11 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
   const ageLabel = age === undefined ? undefined : age < 1 ? '1살 미만' : `${age}살`;
   const resolvedImageUrl = imageUrl?.trim() ? resolvePublicImageSrc(imageUrl.trim()) : '';
   const [hasImageError, setHasImageError] = useState(false);
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [resolvedImageUrl]);
+
   const showImage = Boolean(resolvedImageUrl) && !hasImageError;
 
   return (

@@ -14,6 +14,53 @@ function isHistoryTrapState(state: unknown, id: string): boolean {
   );
 }
 
+function hasHistoryTrap(state: unknown): boolean {
+  return Boolean(state && typeof state === 'object' && HISTORY_TRAP_KEY in (state as object));
+}
+
+/**
+ * cleanup 시 현재 entry가 자식 trap이어도 우리 trap이 스택에서 빠질 때까지 pop.
+ * (자식 cleanup의 history.back popstate가 오기 전에 부모 cleanup이 동기 실행되면
+ * 부모 trap이 orphan으로 남는 레이스 방지)
+ */
+function discardHistoryTrap(trapId: string, setBypass: (value: boolean) => void) {
+  if (!hasHistoryTrap(window.history.state)) return;
+
+  const finish = () => {
+    setBypass(false);
+  };
+
+  const onPop = () => {
+    window.removeEventListener('popstate', onPop);
+
+    // 자식(nested)을 걷어낸 뒤 우리 trap이 top이면 한 번 더
+    if (isHistoryTrapState(window.history.state, trapId)) {
+      window.addEventListener('popstate', onPopDone);
+      window.history.back();
+      return;
+    }
+
+    finish();
+  };
+
+  const onPopDone = () => {
+    window.removeEventListener('popstate', onPopDone);
+    finish();
+  };
+
+  setBypass(true);
+
+  if (isHistoryTrapState(window.history.state, trapId)) {
+    window.addEventListener('popstate', onPopDone);
+    window.history.back();
+    return;
+  }
+
+  // nested child trap이 top — 우리 id가 나올 때까지(최대 한 단계 자식) pop 후 재검사
+  window.addEventListener('popstate', onPop);
+  window.history.back();
+}
+
 /**
  * isActive일 때 같은 URL로 pushState해 브라우저 뒤로가기를 onBack으로 소비.
  * 헤더/코드로 닫을 때는 cleanup에서 history.back()으로 trap만 제거해 앨범 화면에 남김.
@@ -55,17 +102,9 @@ function useHistoryBackTrap(isActive: boolean, onBack: () => void) {
 
     return () => {
       window.removeEventListener('popstate', onPopState);
-
-      if (!isHistoryTrapState(window.history.state, trapId)) return;
-
-      const discardTrap = () => {
-        window.removeEventListener('popstate', discardTrap);
-        bypassRef.current = false;
-      };
-
-      window.addEventListener('popstate', discardTrap);
-      bypassRef.current = true;
-      window.history.back();
+      discardHistoryTrap(trapId, (value) => {
+        bypassRef.current = value;
+      });
     };
   }, [isActive]);
 }

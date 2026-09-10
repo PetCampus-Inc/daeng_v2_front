@@ -16,12 +16,24 @@ interface OpenUnsavedExitDialogOptions {
 }
 
 let isExitDialogOpen = false;
+/** open 예약 무효화 — close 이후 stale overlay.open 방지 */
+let openRequestToken = 0;
+let pendingOpenFrameId: number | null = null;
 
 function isUnsavedExitDialogOpen() {
   return isExitDialogOpen;
 }
 
+function cancelPendingOpen() {
+  if (pendingOpenFrameId != null) {
+    cancelAnimationFrame(pendingOpenFrameId);
+    pendingOpenFrameId = null;
+  }
+  openRequestToken += 1;
+}
+
 function markUnsavedExitDialogClosed() {
+  cancelPendingOpen();
   isExitDialogOpen = false;
 }
 
@@ -35,12 +47,21 @@ function openUnsavedExitDialog({
   if (isExitDialogOpen) return;
 
   isExitDialogOpen = true;
+  const requestToken = ++openRequestToken;
 
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
   }
 
-  requestAnimationFrame(() => {
+  pendingOpenFrameId = requestAnimationFrame(() => {
+    pendingOpenFrameId = null;
+
+    // close/markClosed가 rAF 전에 플래그를 내렸거나 토큰이 바뀌면 열지 않음
+    if (requestToken !== openRequestToken || !isExitDialogOpen) {
+      isExitDialogOpen = false;
+      return;
+    }
+
     overlay.open(
       ({ isOpen, close }) => {
         // OverlayProvider popstate 등으로 외부 close 시에도 플래그 해제
@@ -49,7 +70,7 @@ function openUnsavedExitDialog({
         }
 
         const handleClose = () => {
-          isExitDialogOpen = false;
+          markUnsavedExitDialogClosed();
           close();
         };
 
@@ -58,7 +79,7 @@ function openUnsavedExitDialog({
             isOpen={isOpen}
             close={handleClose}
             onConfirm={() => {
-              isExitDialogOpen = false;
+              markUnsavedExitDialogClosed();
               close();
               // overlay close와 같은 틱에서 releaseAndLeave(history.back) 하면
               // Overlay cleanup back과 이중 pop → 모달 재오픈됨. 한 프레임 뒤 이탈.
