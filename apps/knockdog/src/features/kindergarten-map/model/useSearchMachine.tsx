@@ -94,7 +94,11 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       const { center, zoom } = liveStateRef.current;
       if (!center) return;
 
-      sessionStorage.setItem(MAP_VIEWPORT_STORAGE_KEY, JSON.stringify({ center, zoom }));
+      try {
+        sessionStorage.setItem(MAP_VIEWPORT_STORAGE_KEY, JSON.stringify({ center, zoom }));
+      } catch {
+        // 스토리지 비활성화/접근 거부 시 저장 실패는 무시 (화면 전환을 막으면 안 됨)
+      }
     };
   }, []);
 

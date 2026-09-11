@@ -43,6 +43,9 @@ const KindergartenNearCard = ({
               src={bannerImageSrc}
               alt='페이지 이미지'
               className='h-[142px] w-[233px] rounded-lg object-cover'
+              width={233}
+              height={142}
+              loading='lazy'
               decoding='async'
               draggable={false}
             />

@@ -42,13 +42,23 @@ export function KindergartenCard(props: KindergartenCardProps) {
       <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col' onClick={handleCardClick}>
         <div className='gap-x2 flex'>
           {/* 이미지 */}
-          {hasThumbnailError ? (
+          {!thumbnailSrc ? (
+            <div
+              className='radius-r2 bg-fill-secondary-50 flex size-[90px] shrink-0 items-center justify-center'
+              aria-hidden='true'
+            >
+              <Icon icon='Paw' className='text-fill-secondary-300 size-8' />
+            </div>
+          ) : hasThumbnailError ? (
             // next/image 최적화 응답을 디코드하지 못하는 WebView에서 S3 원본으로 폴백한다.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={thumbnailSrc}
               className='radius-r2 size-[90px] object-cover'
               alt={`${props.title} 썸네일`}
+              width={90}
+              height={90}
+              loading='lazy'
               decoding='async'
             />
           ) : (
