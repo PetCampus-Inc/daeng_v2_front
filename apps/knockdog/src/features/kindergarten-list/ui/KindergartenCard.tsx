@@ -59,7 +59,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
           )}
 
           {/* 타이틀 및 카테고리 */}
-          <div className='gap-x2 flex flex-1 flex-col'>
+          <div className='gap-x2 flex min-w-0 flex-1 flex-col'>
             <div className='flex min-w-0 flex-1 items-start justify-between'>
               <div className='gap-x0_5 flex min-w-0 flex-col'>
                 <p className='h2-extrabold text-text-primary truncate'>{props.title}</p>

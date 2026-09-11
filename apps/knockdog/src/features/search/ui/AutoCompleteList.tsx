@@ -62,7 +62,7 @@ export function AutoCompleteList({ data, query, onSuggestionClick, onPlaceClick 
                 <div className='gap-x2 border-primitive-neutral-100 py-x4 flex w-full items-center border-b'>
                   <Icon icon='LocationFill' className='text-fill-secondary-400 shrink-0' />
 
-                  <div className='gap-x1 flex min-w-0 shrink-0 grow flex-col overflow-hidden'>
+                  <div className='gap-x1 flex min-w-0 flex-1 flex-col overflow-hidden'>
                     <p className='body1-extrabold text-text-primary truncate'>
                       <HighlightedText text={place.title} query={query} />
                     </p>
