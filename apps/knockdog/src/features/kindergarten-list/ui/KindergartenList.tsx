@@ -86,7 +86,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
       startScrollLeft: event.currentTarget.scrollLeft,
       hasDragged: false,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handleFilterPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -94,11 +93,14 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
     if (!dragState || dragState.pointerId !== event.pointerId) return;
 
     const distance = event.clientX - dragState.startX;
-    if (Math.abs(distance) > 4) {
+    if (!dragState.hasDragged) {
+      if (Math.abs(distance) <= 4) return;
+
       dragState.hasDragged = true;
-      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
     }
 
+    event.preventDefault();
     event.currentTarget.scrollLeft = dragState.startScrollLeft - distance;
   };
 

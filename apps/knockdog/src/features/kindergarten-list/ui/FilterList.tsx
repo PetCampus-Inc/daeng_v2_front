@@ -8,7 +8,7 @@ interface FilterContentProps {
 
 export function FilterList({ isSelected, onToggleOption }: FilterContentProps) {
   return (
-    <div className='scrollbar-hide max-h-full overflow-y-auto web:pb-48 webview:pb-[60%]'>
+    <div className='scrollbar-hide max-h-full overflow-y-auto web:pb-[60%] webview:pb-[60%]'>
       <div className='px-x4 pt-x7 gap-x8 flex flex-col'>
         {Object.entries(FILTER_CONFIG).map(([category, options]) => (
           <div key={category} className='gap-x2 flex flex-col'>
