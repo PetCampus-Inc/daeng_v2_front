@@ -1,14 +1,21 @@
 import { FilterChip } from './FilterChip';
+import { cn } from '@knockdog/ui/lib';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterOption } from '@entities/kindergarten';
 
 interface FilterContentProps {
   isSelected: (option: FilterOption) => boolean;
   onToggleOption: (option: FilterOption) => void;
+  hasSelectedFilters: boolean;
 }
 
-export function FilterList({ isSelected, onToggleOption }: FilterContentProps) {
+export function FilterList({ isSelected, onToggleOption, hasSelectedFilters }: FilterContentProps) {
   return (
-    <div className='scrollbar-hide max-h-full overflow-y-auto web:pb-48 webview:pb-[60%]'>
+    <div
+      className={cn(
+        'scrollbar-hide max-h-full overflow-y-auto',
+        hasSelectedFilters ? 'web:pb-64 webview:pb-[70%]' : 'web:pb-48 webview:pb-[60%]'
+      )}
+    >
       <div className='px-x4 pt-x7 gap-x8 flex flex-col'>
         {Object.entries(FILTER_CONFIG).map(([category, options]) => (
           <div key={category} className='gap-x2 flex flex-col'>

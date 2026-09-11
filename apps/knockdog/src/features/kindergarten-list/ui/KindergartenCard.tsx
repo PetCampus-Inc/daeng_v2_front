@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
 import type { BottomSheetSnapPoint } from './KindergartenItemSheet';
 import { DeparturePointSheet, ServiceBadgesTruncated, type KindergartenMain } from '@entities/kindergarten';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface KindergartenCardProps extends KindergartenMain {
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
@@ -14,6 +16,8 @@ interface KindergartenCardProps extends KindergartenMain {
 }
 
 export function KindergartenCard(props: KindergartenCardProps) {
+  const [hasThumbnailError, setHasThumbnailError] = useState(false);
+  const thumbnailSrc = resolvePublicImageSrc(props.banner?.[0]);
   const openDeparturePointSheet = () =>
     overlay.open(({ isOpen, close }) => (
       <DeparturePointSheet
@@ -34,13 +38,25 @@ export function KindergartenCard(props: KindergartenCardProps) {
       <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
         <div className='gap-x2 flex'>
           {/* 이미지 */}
-          <Image
-            src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${props.banner?.[0]}`}
-            className='radius-r2 size-[90px] object-cover'
-            alt={`${props.title} 썸네일`}
-            width={90}
-            height={90}
-          />
+          {hasThumbnailError ? (
+            // next/image 최적화 응답을 디코드하지 못하는 WebView에서 S3 원본으로 폴백한다.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={thumbnailSrc}
+              className='radius-r2 size-[90px] object-cover'
+              alt={`${props.title} 썸네일`}
+              decoding='async'
+            />
+          ) : (
+            <Image
+              src={thumbnailSrc}
+              className='radius-r2 size-[90px] object-cover'
+              alt={`${props.title} 썸네일`}
+              width={90}
+              height={90}
+              onError={() => setHasThumbnailError(true)}
+            />
+          )}
 
           {/* 타이틀 및 카테고리 */}
           <div className='gap-x2 flex flex-1 flex-col'>

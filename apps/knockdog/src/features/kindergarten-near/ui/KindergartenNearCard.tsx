@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 import { ServiceBadgesTruncated, OPEN_STATUS_MAP, CTAG_MAP, type KindergartenNear } from '@entities/kindergarten';
 import { BookmarkToggleIcon } from '@entities/bookmark';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface KindergartenNearProps extends KindergartenNear {}
 
@@ -23,6 +25,8 @@ const KindergartenNearCard = ({
   bookmarked = false,
 }: KindergartenNearProps) => {
   const { push } = useStackNavigation();
+  const [hasBannerError, setHasBannerError] = useState(false);
+  const bannerImageSrc = resolvePublicImageSrc(banner?.[0]);
 
   const handleClick = () => {
     push({ pathname: `/kindergarten/${id}`, params: { entrySource: 'kindergarten-list' } });
@@ -31,15 +35,28 @@ const KindergartenNearCard = ({
   return (
     <div className='min-w-[233px]' role='button' onClick={handleClick}>
       <div className='relative mb-2 rounded-lg'>
-        {banner?.[0] && process.env.NEXT_PUBLIC_IMAGE_BASE_URL && (
-          <Image
-            src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${banner[0]}`}
-            alt='페이지 이미지'
-            width={233}
-            height={142}
-            className='h-[142px] w-[233px] rounded-lg object-cover'
-            draggable={false}
-          />
+        {bannerImageSrc && (
+          hasBannerError ? (
+            // next/image 최적화 응답을 디코드하지 못하는 WebView에서 S3 원본으로 폴백한다.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bannerImageSrc}
+              alt='페이지 이미지'
+              className='h-[142px] w-[233px] rounded-lg object-cover'
+              decoding='async'
+              draggable={false}
+            />
+          ) : (
+            <Image
+              src={bannerImageSrc}
+              alt='페이지 이미지'
+              width={233}
+              height={142}
+              className='h-[142px] w-[233px] rounded-lg object-cover'
+              draggable={false}
+              onError={() => setHasBannerError(true)}
+            />
+          )
         )}
 
         {/* 뱃지 리스트 */}

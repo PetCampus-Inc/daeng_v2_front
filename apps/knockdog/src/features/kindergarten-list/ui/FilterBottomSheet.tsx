@@ -99,7 +99,11 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
 
-        <FilterList isSelected={isLocalFilterSelected} onToggleOption={onToggleLocalFilter} />
+        <FilterList
+          isSelected={isLocalFilterSelected}
+          onToggleOption={onToggleLocalFilter}
+          hasSelectedFilters={selectedFilters.length > 0}
+        />
 
         <div className='fixed bottom-0 w-full'>
           <div
