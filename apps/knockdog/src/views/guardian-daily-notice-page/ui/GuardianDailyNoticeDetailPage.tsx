@@ -359,9 +359,24 @@ function GuardianDailyNoticeDetailPage() {
   };
 
   const handleAlbumViewClick = () => {
+    // 해당 일자 앨범 모아보기(그리드)
     push({
       pathname: route.compare.album.root,
       query: {
+        date: selectedDateKey,
+        grid: '1',
+        ...(schoolId ? { schoolId } : {}),
+      },
+    });
+  };
+
+  const handleAlbumPhotoClick = (photoId: string) => {
+    // 해당 사진 앨범 상세 슬라이드
+    push({
+      pathname: route.compare.album.root,
+      query: {
+        date: selectedDateKey,
+        photoId,
         ...(schoolId ? { schoolId } : {}),
       },
     });
@@ -501,6 +516,7 @@ function GuardianDailyNoticeDetailPage() {
                           photoCount={albumPhotoCount}
                           hasError={isAlbumError}
                           onAlbumClick={handleAlbumViewClick}
+                          onPhotoClick={handleAlbumPhotoClick}
                         />
                       </div>
                     ) : null}
@@ -582,6 +598,7 @@ function GuardianDailyNoticeDetailPage() {
                         photoCount={albumPhotoCount}
                         hasError={isAlbumError}
                         onAlbumClick={handleAlbumViewClick}
+                        onPhotoClick={handleAlbumPhotoClick}
                       />
                     ) : null}
                   </>

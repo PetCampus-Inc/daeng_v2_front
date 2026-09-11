@@ -47,10 +47,12 @@ import { GuardianAlbumMonthNav } from '@views/guardian-album-page/ui/GuardianAlb
 import { GuardianAlbumMonthEmpty } from '@views/guardian-album-page/ui/GuardianAlbumMonthEmpty';
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import { GuardianAlbumPhotoDetail } from '@views/guardian-album-page/ui/GuardianAlbumPhotoDetail';
+import { GuardianAlbumPhotoGrid } from '@views/guardian-album-page/ui/GuardianAlbumPhotoGrid';
 import { GuardianAlbumScrollTopButton } from '@views/guardian-album-page/ui/GuardianAlbumScrollTopButton';
 import { GuardianAlbumTodaySection } from '@views/guardian-album-page/ui/GuardianAlbumTodaySection';
 import { toKindergartenSelectOptions, toKindergartenSelectOptionsFromConnections, toMonthEndDateKey } from '@views/guardian-kindergarten-page/model/toKindergartenSelectOptions';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { formatAlbumDetailTitle } from '@views/owner-album-page/lib/groupAlbumPhotosByDate';
 import { Header } from '@widgets/Header';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
@@ -66,6 +68,11 @@ interface GuardianAlbumDetailState {
   showListButton: boolean;
   /** 오늘의 새 사진이 포함된 상세면 닫을 때 lastViewed에 쓸 max uploadedAt(ms) */
   todayNewViewedAt: number | null;
+}
+
+interface GuardianAlbumDayGridState {
+  photos: GuardianAlbumPhoto[];
+  title: string;
 }
 
 /** 오늘 날짜/lastViewed 이후 사진만 모아 읽음 마커용 max createdAt */
@@ -203,6 +210,7 @@ function GuardianAlbumPage() {
   const [syncedQuerySchoolId, setSyncedQuerySchoolId] = useState<string | null>(null);
   const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
   const [detailState, setDetailState] = useState<GuardianAlbumDetailState | null>(null);
+  const [dayGridState, setDayGridState] = useState<GuardianAlbumDayGridState | null>(null);
   const [isEntryRetrying, setIsEntryRetrying] = useState(false);
 
   const kindergartens = useMemo(() => {
@@ -516,6 +524,15 @@ function GuardianAlbumPage() {
     [lastViewedAt, todayDateKey]
   );
 
+  const openDayGrid = useCallback((photos: GuardianAlbumPhoto[], date: Date) => {
+    if (photos.length === 0) return;
+    setDetailState(null);
+    setDayGridState({
+      photos,
+      title: formatAlbumDetailTitle(date),
+    });
+  }, []);
+
   const handleCloseDetail = useCallback(() => {
     if (detailState?.todayNewViewedAt != null) {
       markAsViewed(detailState.todayNewViewedAt);
@@ -523,8 +540,13 @@ function GuardianAlbumPage() {
     setDetailState(null);
   }, [detailState, markAsViewed]);
 
+  const handleCloseDayGrid = useCallback(() => {
+    setDayGridState(null);
+  }, []);
+
   // 상세는 같은 URL 오버레이라 브라우저 백이 앨범 페이지를 떠나지 않도록 trap
   useHistoryBackTrap(detailState != null, handleCloseDetail);
+  useHistoryBackTrap(dayGridState != null, handleCloseDayGrid);
 
   const handleOpenTodayDetail = useCallback(
     (photoId?: string) => {
@@ -572,16 +594,32 @@ function GuardianAlbumPage() {
     [isAlbumDayAccessible, openDetail, activeSchoolId, viewMode]
   );
 
-  /** 날짜 검색 시트 — 선택일 상세 슬라이드 진입 */
+  /** 날짜 검색 시트·알림장 deep link — 선택일 상세/모아보기 진입 */
   const handleOpenDateDetail = useCallback(
-    async (date: Date) => {
+    async (
+      date: Date,
+      options?: {
+        photoId?: string;
+        openGrid?: boolean;
+      }
+    ) => {
       const dateKey = toDateKey(date);
+      const photoId = options?.photoId;
+      const openGrid = options?.openGrid === true;
       setSelectedMonth(startOfMonth(date));
       setIsScrollTopVisible(false);
 
+      const openPhotos = (photos: GuardianAlbumPhoto[]) => {
+        if (openGrid) {
+          openDayGrid(photos, date);
+          return;
+        }
+        openDetail(photos, photoId, false);
+      };
+
       if (dateKey === todayDateKey) {
         if (todayDetailPhotos.length === 0) return;
-        openDetail(todayDetailPhotos, undefined, false);
+        openPhotos(todayDetailPhotos);
         return;
       }
 
@@ -589,26 +627,28 @@ function GuardianAlbumPage() {
       if (monthDay && !isAlbumDayAccessible(monthDay)) return;
 
       if (!activeSchoolId) {
-        if (monthDay) handleOpenDayDetail(monthDay);
+        if (!monthDay) return;
+        openPhotos(expandGuardianAlbumPhotos(monthDay.photos, monthDay.photoCount));
         return;
       }
 
       try {
         const photos = await fetchGuardianAlbumDayPhotos(activeSchoolId, dateKey);
         if (photos.length > 0) {
-          openDetail(photos, undefined, false);
+          openPhotos(photos);
           return;
         }
       } catch {
         // 월 카드 프리뷰로 폴백
       }
 
-      if (monthDay) handleOpenDayDetail(monthDay);
+      if (!monthDay) return;
+      openPhotos(expandGuardianAlbumPhotos(monthDay.photos, monthDay.photoCount));
     },
     [
-      handleOpenDayDetail,
       isAlbumDayAccessible,
       monthDays,
+      openDayGrid,
       openDetail,
       activeSchoolId,
       todayDateKey,
@@ -625,7 +665,7 @@ function GuardianAlbumPage() {
     openDetail(todayDetailPhotos, undefined, true);
   }, [hasAlbumHistory, isAttendedToday, openDetail, searchParams, todayDetailPhotos]);
 
-  /** 알림함/푸시(사진 업로드 알림) 진입 — 특정 일자 상세 바로 오픈 */
+  /** 알림함/푸시/알림장 — 특정 일자 상세·모아보기 deep link */
   useEffect(() => {
     if (didOpenDateDetailRef.current) return;
     const dateQuery = searchParams.get('date');
@@ -633,7 +673,9 @@ function GuardianAlbumPage() {
     if (!activeSchoolId) return;
 
     didOpenDateDetailRef.current = true;
-    void handleOpenDateDetail(parseDateKey(dateQuery));
+    const photoId = searchParams.get('photoId') ?? undefined;
+    const openGrid = searchParams.get('grid') === '1';
+    void handleOpenDateDetail(parseDateKey(dateQuery), { photoId, openGrid });
   }, [activeSchoolId, handleOpenDateDetail, searchParams]);
 
   const handleResetFilter = useCallback(() => {
@@ -646,7 +688,11 @@ function GuardianAlbumPage() {
       overlayCloseRef.current();
       return;
     }
-    // 상세/필터는 같은 Stack WebView 오버레이 — AOS/헤더 모두 한 단계씩 닫기
+    // 상세/모아보기/필터는 같은 Stack WebView 오버레이 — AOS/헤더 모두 한 단계씩 닫기
+    if (dayGridState) {
+      handleCloseDayGrid();
+      return;
+    }
     if (detailState) {
       handleCloseDetail();
       return;
@@ -657,7 +703,15 @@ function GuardianAlbumPage() {
     }
     writeLastViewedAt();
     void back();
-  }, [back, detailState, handleCloseDetail, handleResetFilter, viewMode]);
+  }, [
+    back,
+    dayGridState,
+    detailState,
+    handleCloseDayGrid,
+    handleCloseDetail,
+    handleResetFilter,
+    viewMode,
+  ]);
 
   useNativeBackHandler(handleHeaderBack);
 
@@ -1090,6 +1144,23 @@ function GuardianAlbumPage() {
           <GuardianAlbumEmptyState />
         </div>
       )}
+
+      {dayGridState ? (
+        <GuardianAlbumPhotoGrid
+          photos={dayGridState.photos}
+          title={dayGridState.title}
+          onClose={handleCloseDayGrid}
+          onPhotoClick={(index) => {
+            const photos = dayGridState.photos;
+            const photoId = photos[index]?.id;
+            setDayGridState(null);
+            // grid history trap cleanup 후에 상세 trap push
+            requestAnimationFrame(() => {
+              openDetail(photos, photoId);
+            });
+          }}
+        />
+      ) : null}
 
       {detailState ? (
         <GuardianAlbumPhotoDetail

@@ -1,7 +1,5 @@
 'use client';
 
-import Image from 'next/image';
-
 import { AlbumImage } from '@shared/ui/album-image';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 
@@ -66,11 +64,14 @@ function GuardianAlbumPhotoStack({ photos }: GuardianAlbumPhotoStackProps) {
                   loading={isLcpCandidate ? 'eager' : 'lazy'}
                 />
               ) : (
-                <Image
+                // plain img — next/image(/_next/image)는 AOS WebView에서 플레이스홀더가 깨짐
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={content.albumPlaceholderSrc}
                   alt={content.albumPlaceholderAlt}
                   width={48}
                   height={48}
+                  draggable={false}
                   className='absolute top-1/2 left-1/2 size-12 -translate-x-1/2 -translate-y-1/2 object-contain'
                 />
               )}

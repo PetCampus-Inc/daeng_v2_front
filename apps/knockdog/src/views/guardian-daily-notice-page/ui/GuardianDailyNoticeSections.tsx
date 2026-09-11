@@ -58,7 +58,10 @@ interface GuardianDailyNoticeAlbumSectionProps {
   photos: GuardianAlbumPhoto[];
   photoCount: number;
   hasError?: boolean;
+  /** 앨범보기 헤더/chevron — 해당일 모아보기 */
   onAlbumClick: () => void;
+  /** 개별 썸네일 — 해당 사진 상세 */
+  onPhotoClick: (photoId: string) => void;
 }
 
 function GuardianDailyNoticeAlbumSection({
@@ -66,6 +69,7 @@ function GuardianDailyNoticeAlbumSection({
   photoCount,
   hasError = false,
   onAlbumClick,
+  onPhotoClick,
 }: GuardianDailyNoticeAlbumSectionProps) {
   const content = guardianDailyNoticeContent;
   if (!hasError && photos.length === 0) return null;
@@ -93,19 +97,25 @@ function GuardianDailyNoticeAlbumSection({
           </div>
         </div>
       ) : (
-        <button
-          type='button'
-          className='grid w-full grid-cols-4 gap-2.5 text-left'
-          onClick={onAlbumClick}
-          aria-label={content.albumViewAriaLabel}
-        >
+        <div className='grid w-full grid-cols-4 gap-2.5'>
           {previewPhotos.map((photo, index) => {
             const isOverflowTile = remainingCount > 0 && index === previewPhotos.length - 1;
 
             return (
-              <div
+              <button
                 key={photo.id}
-                className='relative aspect-square min-w-0 overflow-hidden rounded'
+                type='button'
+                className='relative aspect-square min-w-0 overflow-hidden rounded text-left'
+                aria-label={
+                  isOverflowTile ? content.albumViewAriaLabel : content.albumPhotoAriaLabel
+                }
+                onClick={() => {
+                  if (isOverflowTile) {
+                    onAlbumClick();
+                    return;
+                  }
+                  onPhotoClick(photo.id);
+                }}
               >
                 <AlbumImage src={photo.url} className='absolute inset-0 bg-fill-secondary-100' />
                 {isOverflowTile ? (
@@ -115,10 +125,10 @@ function GuardianDailyNoticeAlbumSection({
                     </span>
                   </div>
                 ) : null}
-              </div>
+              </button>
             );
           })}
-        </button>
+        </div>
       )}
     </div>
   );
