@@ -32,10 +32,14 @@ export function KindergartenCard(props: KindergartenCardProps) {
     props.setActiveTab('후기'); // 후기 탭 활성화
   };
 
+  const handleCardClick = () => {
+    props.setActiveSnapPoint(1); // 시트 확대 (스와이프로 확장하는 것과 동일)
+  };
+
   return (
     <>
       {/* 컨텐츠 영역 */}
-      <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col'>
+      <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col' onClick={handleCardClick}>
         <div className='gap-x2 flex'>
           {/* 이미지 */}
           {hasThumbnailError ? (
