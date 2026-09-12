@@ -15,14 +15,35 @@ import { PushDeviceSyncEffect } from '@features/push';
 import { RequireAuthGate } from '@shared/ui/private-access';
 
 const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? '';
+const DEFAULT_OG_IMAGE_URL = `${WEB_URL}/images/img_ls.png`;
 
 export const metadata: Metadata = {
-  title: {
-    default: '똑독',
-    template: '똑독 - %s',
-  },
-  description: '강아지 유치원·반려견 돌봄을 한곳에서. 원장과 보호자를 위한 똑독 웹앱.',
+  title: '똑독',
+  description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
   // favicon은 app/icon.svg 메타데이터 파일 컨벤션 사용 (public/icon.svg와 중복 시 500)
+  openGraph: {
+    title: '똑독',
+    description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
+    url: WEB_URL,
+    siteName: '똑독',
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: '똑독',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '똑독',
+    description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
+    images: [DEFAULT_OG_IMAGE_URL],
+  },
 };
 
 export const viewport: Viewport = {
