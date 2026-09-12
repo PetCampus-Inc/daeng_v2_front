@@ -19,10 +19,7 @@ const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? '';
 const DEFAULT_OG_IMAGE_URL = `${WEB_URL}/images/img_ls.png`;
 
 export const metadata: Metadata = {
-  title: {
-    default: '똑독',
-    template: '똑독 - %s',
-  },
+  title: '똑독',
   description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
   // favicon은 app/icon.svg 메타데이터 파일 컨벤션 사용 (public/icon.svg와 중복 시 500)
   openGraph: {
