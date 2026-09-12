@@ -25,7 +25,7 @@ module.exports = {
         'http://localhost:3000/owner/members',
       ],
 
-      numberOfRuns: 1,
+      numberOfRuns: 3,
       puppeteerScript: './lighthouse/auth.cjs',
       chromePath: resolveChromePath(),
 
