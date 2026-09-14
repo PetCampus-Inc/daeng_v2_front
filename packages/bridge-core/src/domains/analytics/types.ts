@@ -15,6 +15,7 @@ interface AnalyticsLogScreenViewParams {
   /** GA screen_name / 웹 page_title */
   screen_name: string;
   screen_class?: string;
+  params?: Record<string, AnalyticsParamValue>;
 }
 
 interface AnalyticsLogScreenViewResult {

@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function BridgeDebugOverlay() {
   // 임시로 하드코딩된 데이터 (나중에 실제 브릿지 스토어로 교체)
-  const logs: Array<{ t: number; dir: string; type: string; payload: any }> = [];
+  const logs: { t: number; dir: string; type: string; payload: any }[] = [];
 
   return (
     <View style={styles.wrap}>

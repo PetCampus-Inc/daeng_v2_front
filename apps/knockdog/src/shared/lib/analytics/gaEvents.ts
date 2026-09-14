@@ -8,6 +8,8 @@ import { isNativeWebView } from '@shared/lib/device';
 import { event as gtagEvent, pageview } from './gtag';
 
 type AnalyticsParamValue = string | number | boolean;
+type AnalyticsSurface = 'web' | 'native_webview';
+type AnalyticsSink = 'web_ga4' | 'firebase';
 
 /** GA4 가이드 커스텀 이벤트 */
 const GaEvent = {
@@ -53,6 +55,20 @@ function sanitizeParams(params?: Record<string, AnalyticsParamValue | undefined>
   return Object.keys(next).length > 0 ? next : undefined;
 }
 
+function getAnalyticsSurface(): AnalyticsSurface {
+  return isNativeWebView() ? 'native_webview' : 'web';
+}
+
+function getCommonAnalyticsParams(sink: AnalyticsSink): Record<string, AnalyticsParamValue> {
+  const surface = getAnalyticsSurface();
+
+  return {
+    analytics_surface: surface,
+    analytics_runtime: surface === 'native_webview' ? 'app' : 'browser',
+    analytics_sink: sink,
+  };
+}
+
 /**
  * gtag는 동기 전송을 먼저 하고, WebView면 Firebase도 fire-and-forget으로 보낸다.
  * 브릿지를 await 한 뒤에 gtag를 호출하면 알림 탭 직후 네비게이션에 가려져
@@ -63,6 +79,7 @@ async function logAnalyticsEvent(name: string, params?: Record<string, Analytics
 
   gtagEvent({
     action: name,
+    ...getCommonAnalyticsParams('web_ga4'),
     ...safeParams,
   });
 
@@ -74,7 +91,10 @@ async function logAnalyticsEvent(name: string, params?: Record<string, Analytics
   try {
     await bridge.request(METHODS.analyticsLogEvent, {
       name,
-      params: safeParams,
+      params: {
+        ...getCommonAnalyticsParams('firebase'),
+        ...safeParams,
+      },
     });
   } catch (error) {
     console.warn('[analytics] native logEvent failed', name, error);
@@ -82,15 +102,25 @@ async function logAnalyticsEvent(name: string, params?: Record<string, Analytics
 }
 
 /**
- * 화면 조회 — 앱은 Firebase screen_view, 웹은 gtag page_view.
+ * 화면 조회 — 웹 GA4를 공통 기준으로 남기고, 앱 WebView는 Firebase screen_view에도 미러링한다.
  * GA페이지 제목 및 화면 클래스에 한글 화면명/유치원명이 보이도록
- * screen_name·screen_class(웹은 page_title)에 동일 라벨을 넣는다.
+ * screen_name·screen_class·page_title에 동일 라벨을 넣는다.
  */
 async function trackScreenView(screenName: string, screenClass?: string) {
   const name = screenName.trim();
   if (!name) return;
 
   const screen_class = (screenClass?.trim() || name) as string;
+
+  if (typeof document !== 'undefined') {
+    document.title = `똑독 - ${name}`;
+  }
+
+  pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name, {
+    ...getCommonAnalyticsParams('web_ga4'),
+    screen_name: name,
+    screen_class,
+  });
 
   if (isNativeWebView()) {
     const bridge = getBridgeInstance();
@@ -100,17 +130,12 @@ async function trackScreenView(screenName: string, screenClass?: string) {
       await bridge.request(METHODS.analyticsLogScreenView, {
         screen_name: name,
         screen_class,
+        params: getCommonAnalyticsParams('firebase'),
       });
     } catch (error) {
       console.warn('[analytics] native logScreenView failed', name, error);
     }
-    return;
   }
-
-  if (typeof document !== 'undefined') {
-    document.title = `똑독 - ${name}`;
-  }
-  pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name);
 }
 
 function trackNotificationPermission(params: { status: NotificationPermissionStatus }) {

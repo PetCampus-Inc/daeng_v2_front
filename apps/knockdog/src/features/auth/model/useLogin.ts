@@ -27,6 +27,7 @@ import {
   clearPendingSignUpAnalytics,
   resolveEntrySource,
   savePendingSignUpAnalytics,
+  trackLogin,
   toSignUpMethod,
 } from '@shared/lib/analytics';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
@@ -231,7 +232,10 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
     if (code === VERIFY_OIDC_RESULT_CODE.SUCCESS) {
       clearPendingSignUpAnalytics();
       loginMutate(undefined, {
-        onSuccess: ({ data }) => handleLoginSuccess(data),
+        onSuccess: ({ data }) => {
+          trackLogin(provider);
+          handleLoginSuccess(data);
+        },
         onError: (error) => {
           // 탈퇴 후 재가입 분기
           if ((error as ApiError).code === LOGIN_ERROR_CODE.WITHDRAWN_USER) {

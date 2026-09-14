@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: '똑독',
   slug: 'petcampus',
   owner: 'petcampus',
-  version: '1.0.0',
+  version: '1.0.2',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'daengv2mobile',
@@ -106,9 +106,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@react-native-firebase/app',
     '@react-native-firebase/messaging',
     './plugins/rnfirebase-disable-spm',
+    './plugins/rnfirebase-modular-headers',
     './plugins/naver-map-queries',
     './plugins/disable-android-backup',
     './plugins/disable-android-predictive-back',
+    './plugins/with-fmt-xcode26-fix',
     [
       'expo-image-picker',
       {

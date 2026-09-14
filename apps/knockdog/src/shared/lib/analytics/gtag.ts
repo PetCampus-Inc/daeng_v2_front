@@ -5,8 +5,10 @@ type GTagEvent = {
   category?: string;
   label?: string;
   value?: number;
-  [key: string]: string | number | undefined;
+  [key: string]: string | number | boolean | undefined;
 };
+
+type GTagParamValue = string | number | boolean;
 
 declare global {
   interface Window {
@@ -15,12 +17,13 @@ declare global {
   }
 }
 
-export const pageview = (url: string, title?: string) => {
+export const pageview = (url: string, title?: string, params?: Record<string, GTagParamValue | undefined>) => {
   if (typeof window.gtag === 'undefined') return;
   window.gtag('event', 'page_view', {
     page_path: url,
     page_location: typeof window !== 'undefined' ? window.location.href : undefined,
     ...(title ? { page_title: title } : {}),
+    ...params,
   });
 };
 

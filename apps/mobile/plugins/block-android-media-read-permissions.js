@@ -1,4 +1,4 @@
-const { withAndroidManifest, AndroidConfig } = require('@expo/config-plugins');
+const { withAndroidManifest, AndroidConfig } = require('expo/config-plugins');
 
 /** Google Play 사진/동영상 정책: READ_MEDIA_* 는 시스템 Photo Picker로 대체 */
 const READ_MEDIA_PERMISSIONS = [

@@ -48,6 +48,7 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
     // firebase_screen / firebase_screen_class 는 예약 파라미터 → error 14.
     // screen_name / screen_class 만 넘긴다.
     await logEvent(analytics, 'screen_view', {
+      ...(params.params ?? {}),
       screen_name: screenName,
       screen_class: screenClass,
     });

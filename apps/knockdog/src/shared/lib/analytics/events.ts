@@ -1,13 +1,12 @@
-import { event } from './gtag';
 import { resolveEntrySource } from './entrySource';
-import { trackSignUp } from './gaEvents';
+import { logAnalyticsEvent, trackSignUp } from './gaEvents';
 import {
   consumePendingSignUpAnalytics,
   savePendingSignUpAnalytics,
   toSignUpMethod,
 } from './pendingSignUp';
 
-/** @deprecated GA 가이드 v3 — 퍼널 중간 단계는 screen_view로 대체. 호출부 호환용 유지 */
+/** @deprecated GA 가이드 v3 — 퍼널 중간 단계는 screen_view/sign_up으로 대체. 호출부 호환용 유지 */
 export const AnalyticsEvent = {
   SIGN_UP_START: 'sign_up_start',
   SIGN_UP_NICKNAME_COMPLETED: 'sign_up_nickname_completed',
@@ -22,49 +21,21 @@ type SocialProvider = 'KAKAO' | 'GOOGLE' | 'APPLE';
 
 export const trackSignUpStart = (provider: SocialProvider) => {
   savePendingSignUpAnalytics(toSignUpMethod(provider), 'organic');
-  event({
-    action: AnalyticsEvent.SIGN_UP_START,
-    category: 'engagement',
-    label: provider,
-  });
 };
 
-export const trackSignUpNicknameCompleted = () => {
-  event({
-    action: AnalyticsEvent.SIGN_UP_NICKNAME_COMPLETED,
-    category: 'engagement',
-  });
-};
+export const trackSignUpNicknameCompleted = () => {};
 
-export const trackSignUpLocationCompleted = () => {
-  event({
-    action: AnalyticsEvent.SIGN_UP_LOCATION_COMPLETED,
-    category: 'engagement',
-  });
-};
+export const trackSignUpLocationCompleted = () => {};
 
-export const trackSignUpPetCompleted = () => {
-  event({
-    action: AnalyticsEvent.SIGN_UP_PET_COMPLETED,
-    category: 'engagement',
-  });
-};
+export const trackSignUpPetCompleted = () => {};
 
 /** 마케팅 동의 화면 호환 — 실제 sign_up은 필수 약관 완료에서 발화 */
-export const trackSignUpCompleted = (marketingConsent: boolean) => {
-  event({
-    action: AnalyticsEvent.SIGN_UP_COMPLETED,
-    category: 'engagement',
-    label: marketingConsent ? 'marketing_agreed' : 'marketing_declined',
-  });
-};
+export const trackSignUpCompleted = (_marketingConsent: boolean) => {};
 
 export const trackLogin = (provider: SocialProvider) => {
-  event({
-    action: AnalyticsEvent.LOGIN,
-    category: 'engagement',
-    label: provider,
-  });
+  logAnalyticsEvent(AnalyticsEvent.LOGIN, {
+    method: toSignUpMethod(provider),
+  }).catch((error) => console.warn('[analytics] login event failed', error));
 };
 
 export {

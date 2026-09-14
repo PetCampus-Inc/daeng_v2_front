@@ -9,12 +9,12 @@ import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
 import { AnalyticsScreenTracker } from '@shared/lib/analytics';
+import { GA_MEASUREMENT_ID } from '@shared/lib/analytics/gtag';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
 import { SyncNativeMainTabModeEffect } from '@features/role-conversion';
 import { PushDeviceSyncEffect } from '@features/push';
 import { RequireAuthGate } from '@shared/ui/private-access';
 
-const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? '';
 const DEFAULT_OG_IMAGE_URL = `${WEB_URL}/images/img_ls.png`;
 

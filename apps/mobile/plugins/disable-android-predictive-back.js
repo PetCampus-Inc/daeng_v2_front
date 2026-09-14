@@ -1,4 +1,4 @@
-const { withAndroidManifest } = require('@expo/config-plugins');
+const { withAndroidManifest } = require('expo/config-plugins');
 
 /**
  * targetSdk 35+/36에서 predictive back이 켜지면 KEYCODE_BACK /

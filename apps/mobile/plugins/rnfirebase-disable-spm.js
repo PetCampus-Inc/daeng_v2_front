@@ -1,4 +1,4 @@
-const { withPodfile } = require('@expo/config-plugins');
+const { withPodfile } = require('expo/config-plugins');
 
 const marker = '# @generated begin react-native-firebase-disable-spm';
 const block = `${marker}
