@@ -4,6 +4,9 @@
  *
  * PR Overall = Regression (baseline 대비)
  * Absolute Health = Web Vitals 참고용
+ *
+ * Regression Overall은 PAGE_LABELS 전 경로가 유효 run 정확히 3개일 때만 complete.
+ * 불완전하면 INCOMPLETE로 표시하고 페이지별 리포트 흐름은 유지.
  */
 const {
   COMMENT_MARKER,
@@ -11,14 +14,17 @@ const {
   aggregateByPage,
   loadBaseline,
   attachRegression,
+  assessCompleteness,
+  formatCompletenessIssues,
   worstRegressionKey,
   formatMs,
   formatMsRaw,
   formatPct,
   REGRESSION,
+  REQUIRED_RUNS,
 } = require('./lib/metrics.cjs');
 
-function buildMarkdown(pages, baseline) {
+function buildMarkdown(pages, baseline, completeness) {
   const hasBaseline = Boolean(baseline?.pages?.length);
   const lines = [
     COMMENT_MARKER,
@@ -39,10 +45,12 @@ function buildMarkdown(pages, baseline) {
   for (const page of pages) {
     lines.push(`### ${page.label}`);
     lines.push('');
-    lines.push(`\`${page.pathname}\` · median of ${page.runs} run(s)`);
+    lines.push(`\`${page.pathname}\` · median of ${page.runs} valid run(s)`);
     if (page.redirected) {
       lines.push('');
-      lines.push('> ⚠️ 최종 URL이 요청 path와 다릅니다 (로그인 리다이렉트 등).');
+      lines.push(
+        `> ⚠️ 최종 URL이 요청 path와 다른 run ${page.redirectCount}건 제외 (로그인 리다이렉트 등).`
+      );
     }
     lines.push('');
 
@@ -77,10 +85,11 @@ function buildMarkdown(pages, baseline) {
     lines.push('');
   }
 
-  const hasPoor = pages.some(
+  const pagesForAbsolute = pages.filter((p) => p.runs > 0);
+  const hasPoor = pagesForAbsolute.some(
     (p) => p.lcpGrade.label === 'Poor' || p.tbtGrade.label === 'Poor' || p.clsGrade.label === 'Poor'
   );
-  const hasNi = pages.some(
+  const hasNi = pagesForAbsolute.some(
     (p) => p.lcpGrade.label === 'NI' || p.tbtGrade.label === 'NI' || p.clsGrade.label === 'NI'
   );
 
@@ -105,6 +114,19 @@ function buildMarkdown(pages, baseline) {
     return lines.join('\n');
   }
 
+  if (!completeness.complete) {
+    lines.push(`**Regression Overall:** ⚪ INCOMPLETE`);
+    lines.push('');
+    lines.push(
+      `Reason: need exactly ${REQUIRED_RUNS} valid (non-redirect) runs for every PAGE_LABELS path`
+    );
+    for (const issue of formatCompletenessIssues(completeness)) {
+      lines.push(`- ${issue}`);
+    }
+    lines.push('');
+    return lines.join('\n');
+  }
+
   const { worst, reason } = worstRegressionKey(pages);
   const regressionMap = {
     none: { emoji: '⚪', label: 'N/A' },
@@ -114,9 +136,7 @@ function buildMarkdown(pages, baseline) {
   };
   const overall = regressionMap[worst] || regressionMap.none;
 
-  lines.push(
-    `**Regression Overall:** ${overall.emoji} ${overall.label}`
-  );
+  lines.push(`**Regression Overall:** ${overall.emoji} ${overall.label}`);
   lines.push('');
   lines.push(`Reason: ${reason}`);
   lines.push('');
@@ -130,4 +150,5 @@ function buildMarkdown(pages, baseline) {
 
 const baseline = loadBaseline();
 const pages = attachRegression(aggregateByPage(loadRuns()), baseline);
-process.stdout.write(buildMarkdown(pages, baseline));
+const completeness = assessCompleteness(pages);
+process.stdout.write(buildMarkdown(pages, baseline, completeness));

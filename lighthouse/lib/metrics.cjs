@@ -14,6 +14,9 @@ const PAGE_LABELS = {
   '/owner/members': 'Owner Members',
 };
 
+/** LHCI numberOfRuns 과 동일 — baseline / Regression Overall 완전성 기준 */
+const REQUIRED_RUNS = 3;
+
 /** Regression Overall thresholds (악화율) */
 const REGRESSION = {
   GOOD_MAX: 0.15, // ≤15%
@@ -97,6 +100,14 @@ function loadRuns() {
   return loadFromDir(RESULTS_DIR, (name) => name.endsWith('.report.json'));
 }
 
+function isRedirectRun(run, requestedPathname) {
+  return pathnameFromUrl(run.finalUrl) !== requestedPathname;
+}
+
+/**
+ * requestedUrl pathname 기준으로 집계.
+ * finalUrl이 다르면 redirect로 분리하고, 메트릭/baseline/Overall에는 제외.
+ */
 function aggregateByPage(runs) {
   const byPath = new Map();
 
@@ -108,28 +119,86 @@ function aggregateByPage(runs) {
   }
 
   return [...byPath.entries()].map(([pathname, pageRuns]) => {
-    const perf = median(pageRuns.map((r) => r.performance).filter((v) => v != null));
-    const lcp = median(pageRuns.map((r) => r.lcp).filter((v) => v != null));
-    const tbt = median(pageRuns.map((r) => r.tbt).filter((v) => v != null));
-    const cls = median(pageRuns.map((r) => r.cls).filter((v) => v != null));
-    const fcp = median(pageRuns.map((r) => r.fcp).filter((v) => v != null));
-    const redirected = pageRuns.some((r) => pathnameFromUrl(r.finalUrl) !== pathname);
+    const redirectRuns = pageRuns.filter((r) => isRedirectRun(r, pathname));
+    const validRuns = pageRuns.filter((r) => !isRedirectRun(r, pathname));
+
+    const perf = median(validRuns.map((r) => r.performance).filter((v) => v != null));
+    const lcp = median(validRuns.map((r) => r.lcp).filter((v) => v != null));
+    const tbt = median(validRuns.map((r) => r.tbt).filter((v) => v != null));
+    const cls = median(validRuns.map((r) => r.cls).filter((v) => v != null));
+    const fcp = median(validRuns.map((r) => r.fcp).filter((v) => v != null));
 
     return {
       pathname,
       label: PAGE_LABELS[pathname] || pathname,
-      runs: pageRuns.length,
+      runs: validRuns.length,
+      redirectCount: redirectRuns.length,
       performance: perf == null ? null : Math.round(perf * 100),
       lcp,
       tbt,
       cls,
       fcp,
-      redirected,
+      redirected: redirectRuns.length > 0,
       lcpGrade: gradeLcp(lcp),
       tbtGrade: gradeTbt(tbt),
       clsGrade: gradeCls(cls),
     };
   });
+}
+
+/**
+ * PAGE_LABELS 전 경로가 유효(non-redirect) run 정확히 REQUIRED_RUNS개인지 검사.
+ */
+function assessCompleteness(pages) {
+  const byPath = new Map(pages.map((page) => [page.pathname, page]));
+  const expectedPaths = Object.keys(PAGE_LABELS);
+  const missing = [];
+  const fewerThanRequired = [];
+  const moreThanRequired = [];
+
+  for (const pathname of expectedPaths) {
+    const page = byPath.get(pathname);
+    if (!page) {
+      missing.push(pathname);
+      continue;
+    }
+    if (page.runs < REQUIRED_RUNS) fewerThanRequired.push({ pathname, runs: page.runs });
+    if (page.runs > REQUIRED_RUNS) moreThanRequired.push({ pathname, runs: page.runs });
+  }
+
+  const complete =
+    missing.length === 0 && fewerThanRequired.length === 0 && moreThanRequired.length === 0;
+
+  return {
+    complete,
+    requiredRuns: REQUIRED_RUNS,
+    expectedPaths,
+    missing,
+    fewerThanRequired,
+    moreThanRequired,
+  };
+}
+
+function formatCompletenessIssues(completeness) {
+  const lines = [];
+  if (completeness.missing.length) {
+    lines.push(`missing: ${completeness.missing.join(', ')}`);
+  }
+  if (completeness.fewerThanRequired.length) {
+    lines.push(
+      `fewer than ${completeness.requiredRuns} runs: ${completeness.fewerThanRequired
+        .map((item) => `${item.pathname} (${item.runs})`)
+        .join(', ')}`
+    );
+  }
+  if (completeness.moreThanRequired.length) {
+    lines.push(
+      `more than ${completeness.requiredRuns} runs: ${completeness.moreThanRequired
+        .map((item) => `${item.pathname} (${item.runs})`)
+        .join(', ')}`
+    );
+  }
+  return lines;
 }
 
 function toBaselinePayload(pages) {
@@ -153,9 +222,20 @@ function loadBaseline() {
 }
 
 function saveBaseline(pages) {
+  const completeness = assessCompleteness(pages);
+  if (!completeness.complete) {
+    const error = new Error(
+      `Incomplete Lighthouse results — cannot save baseline.\n${formatCompletenessIssues(completeness).join('\n')}`
+    );
+    error.completeness = completeness;
+    throw error;
+  }
+
+  // redirect run은 aggregate에서 이미 제외됨 — 유효 메트릭만 저장
+  const labeledPages = pages.filter((page) => PAGE_LABELS[page.pathname]);
   const dir = path.dirname(BASELINE_PATH);
   fs.mkdirSync(dir, { recursive: true });
-  const payload = toBaselinePayload(pages);
+  const payload = toBaselinePayload(labeledPages);
   fs.writeFileSync(BASELINE_PATH, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
   return payload;
 }
@@ -235,7 +315,8 @@ function worstRegressionKey(pages) {
   let reason = 'baseline 없음';
 
   for (const page of pages) {
-    if (!page.regressions) continue;
+    // redirect run은 aggregate에서 제외됨. 유효 run이 없으면 Overall에서 스킵
+    if (!page.regressions || page.runs === 0) continue;
     for (const [metric, item] of Object.entries(page.regressions)) {
       if (!item?.grade || item.grade.key === 'none') continue;
       if (rank[item.grade.key] > rank[worst]) {
@@ -252,9 +333,12 @@ module.exports = {
   COMMENT_MARKER,
   BASELINE_PATH,
   PAGE_LABELS,
+  REQUIRED_RUNS,
   REGRESSION,
   loadRuns,
   aggregateByPage,
+  assessCompleteness,
+  formatCompletenessIssues,
   loadBaseline,
   saveBaseline,
   attachRegression,
