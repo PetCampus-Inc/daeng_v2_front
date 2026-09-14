@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: '똑독',
   slug: 'petcampus',
   owner: 'petcampus',
-  version: '1.0.2',
+  version: '1.0.3',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'daengv2mobile',
