@@ -1,0 +1,127 @@
+name: Lighthouse CI
+
+# PR 성능 모니터링 (non-blocking)
+# - Absolute Health: Web Vitals 절대 등급 (참고용, assert warn)
+# - Regression Overall: 추후 baseline 비교에서 PR 등급으로 사용
+# - 기록은 PR 코멘트만 (artifact 없음)
+# - 실패/warn이어도 merge를 막지 않음
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse (non-blocking)
+    runs-on: ubuntu-latest
+    # job 실패해도 workflow는 성공 → required check로 지정하지 말 것
+    continue-on-error: true
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Turbo Cache
+        uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-lighthouse-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-lighthouse-
+            ${{ runner.os }}-turbo-
+
+      - name: Next.js Cache
+        uses: actions/cache@v6
+        with:
+          path: apps/knockdog/.next/cache
+          key: ${{ runner.os }}-nextjs-lighthouse-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-lighthouse-
+            ${{ runner.os }}-nextjs-
+
+      - name: Build knockdog
+        run: pnpm turbo run build --filter=knockdog...
+        env:
+          TURBO_CACHE_DIR: .turbo
+          NEXT_TELEMETRY_DISABLED: 1
+          # guest login 플래그는 production build 금지(next.config.js).
+          # 인증은 lighthouse/auth.cjs 가 DEV API로 토큰 주입.
+          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
+
+      - name: Start Next.js server
+        run: |
+          pnpm --filter knockdog start &
+          echo "Waiting for server..."
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/ >/dev/null 2>&1; then
+              echo "Server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server failed to start"
+          exit 1
+        env:
+          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
+
+      - name: Run Lighthouse CI
+        id: lhci
+        run: pnpm lighthouse
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          LHCI_BASE_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+
+      - name: Post PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LHCI_OUTCOME: ${{ steps.lhci.outcome }}
+        run: |
+          node lighthouse/report-comment.cjs > /tmp/lh-comment.md
+
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "LHCI step: \`${LHCI_OUTCOME}\` · [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> /tmp/lh-comment.md
+
+          # 동일 마커 코멘트가 있으면 갱신, 없으면 생성
+          existing_id=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --paginate \
+            --jq '.[] | select(.body | contains("<!-- lighthouse-ci-report -->")) | .id' \
+            | head -n 1)
+
+          if [ -n "$existing_id" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${existing_id}" \
+              -X PATCH \
+              -F body=@/tmp/lh-comment.md
+          else
+            gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+              -F body=@/tmp/lh-comment.md
+          fi
+
+          cat /tmp/lh-comment.md >> "$GITHUB_STEP_SUMMARY"

@@ -8,7 +8,10 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
-    "commit": "cz"
+    "commit": "cz",
+    "lighthouse": "lhci autorun && node lighthouse/cleanup-html.cjs",
+    "lighthouse:baseline": "node lighthouse/save-baseline.cjs",
+    "lighthouse:comment": "node lighthouse/report-comment.cjs"
   },
   "config": {
     "commitizen": {
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
+    "@lhci/cli": "^0.15.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -32,6 +36,7 @@
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "puppeteer-core": "^25.10.0",
     "turbo": "^2.6.3",
     "typescript": "^5.9.3",
     "vitest": "^3.2.6"
