@@ -53,16 +53,14 @@ module.exports = {
     /**
      * Performance monitoring 설계
      *
-     * 1) Absolute Health (참고용)
-     *    - Web Vitals 절대 등급: Good / Needs Improvement / Poor
-     *    - 예: LCP Good ≤2.5s, NI ≤4s, Poor >4s / CLS Good ≤0.1 ...
-
-     * 2) Regression (PR Overall 등급의 기준) — 추후 baseline 비교에서 적용
-     *    🟢 GOOD  주요 지표 회귀 ≤10~15%
-     *    🟡 WARN  주요 지표 10~25% 악화
-     *    🔴 BAD   주요 지표 ≥25% 악화
-     *    (※다만, PR merge는 막지 않음)
+     * 1) Absolute Health (참고용) — Web Vitals Good/NI/Poor
+     * 2) Regression Overall (PR 등급) — baseline 대비 악화율
+     *    🟢 GOOD ≤15% / 🟡 WARN ≤25% / 🔴 BAD >25%
+     *    ※ non-blocking (PR merge 미차단)
      *
+     * baseline: lighthouse/baselines/latest.json
+     * 저장: pnpm lighthouse:baseline
+     * 코멘트: pnpm lighthouse:comment
      */
     assert: {
       aggregationMethod: 'median',

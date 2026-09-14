@@ -9,7 +9,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
     "commit": "cz",
-    "lighthouse": "lhci autorun && node lighthouse/cleanup-html.cjs"
+    "lighthouse": "lhci autorun && node lighthouse/cleanup-html.cjs",
+    "lighthouse:baseline": "node lighthouse/save-baseline.cjs",
+    "lighthouse:comment": "node lighthouse/report-comment.cjs"
   },
   "config": {
     "commitizen": {
