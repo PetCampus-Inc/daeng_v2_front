@@ -3,6 +3,7 @@ name: Lighthouse CI
 # PR 성능 모니터링 (non-blocking)
 # - Absolute Health: Web Vitals 절대 등급 (참고용, assert warn)
 # - Regression Overall: 추후 baseline 비교에서 PR 등급으로 사용
+# - 기록은 PR 코멘트만 (artifact 없음)
 # - 실패/warn이어도 merge를 막지 않음
 
 on:
@@ -16,12 +17,14 @@ concurrency:
 
 jobs:
   lighthouse:
+    name: Lighthouse (non-blocking)
     runs-on: ubuntu-latest
-    # PR merge를 막지 않음 (Regression/Absolute 모두 non-blocking)
+    # job 실패해도 workflow는 성공 → required check로 지정하지 말 것
     continue-on-error: true
     timeout-minutes: 45
     permissions:
       contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -83,6 +86,7 @@ jobs:
           NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
 
       - name: Run Lighthouse CI
+        id: lhci
         run: pnpm lighthouse
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
@@ -90,25 +94,35 @@ jobs:
           NEXT_PUBLIC_ENABLE_GUEST_LOGIN: 'true'
           NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
 
-      - name: Upload Lighthouse reports
+      - name: Post PR comment
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lighthouse-reports-${{ github.event.pull_request.number }}
-          path: |
-            lighthouse-results/
-            .lighthouseci/
-          retention-days: 14
-          if-no-files-found: warn
-
-      - name: Summary
-        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          LHCI_OUTCOME: ${{ steps.lhci.outcome }}
         run: |
+          node lighthouse/report-comment.cjs > /tmp/lh-comment.md
+
           {
-            echo "## Lighthouse CI"
             echo ""
-            echo "- Mode: **non-blocking** (continue-on-error)"
-            echo "- Absolute Health: warn assert (Web Vitals 참고용)"
-            echo "- Regression Overall: baseline 비교는 추후 추가"
-            echo "- Reports: artifact \`lighthouse-reports-${{ github.event.pull_request.number }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+            echo "---"
+            echo ""
+            echo "LHCI step: \`${LHCI_OUTCOME}\` · [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> /tmp/lh-comment.md
+
+          # 동일 마커 코멘트가 있으면 갱신, 없으면 생성
+          existing_id=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --paginate \
+            --jq '.[] | select(.body | contains("<!-- lighthouse-ci-report -->")) | .id' \
+            | head -n 1)
+
+          if [ -n "$existing_id" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${existing_id}" \
+              -X PATCH \
+              -F body=@/tmp/lh-comment.md
+          else
+            gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+              -F body=@/tmp/lh-comment.md
+          fi
+
+          cat /tmp/lh-comment.md >> "$GITHUB_STEP_SUMMARY"

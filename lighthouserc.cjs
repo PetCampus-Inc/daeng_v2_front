@@ -32,6 +32,7 @@ module.exports = {
       settings: {
         preset: 'perf',
         formFactor: 'mobile',
+        output: ['json'],
         // localStorage ACCESS_TOKEN / USER 유지 (게스트 로그인 세션)
         disableStorageReset: true,
         screenEmulation: {
