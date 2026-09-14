@@ -17,6 +17,7 @@ node_modules
 coverage
 lighthouse-results/
 .lighthouseci/
+lighthouse-pr-comment.preview.md
 
 # Turbo
 .turbo

@@ -9,7 +9,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "husky",
     "commit": "cz",
-    "lighthouse": "lhci autorun"
+    "lighthouse": "lhci autorun && node lighthouse/cleanup-html.cjs"
   },
   "config": {
     "commitizen": {

@@ -62,22 +62,35 @@ function pathnameFromUrl(url) {
 }
 
 function loadRuns() {
-  if (!fs.existsSync(RESULTS_DIR)) return [];
+  // CI/로컬 모두 최신 autorun 결과만 사용 (.lighthouseci는 매 실행마다 갱신)
+  // lighthouse-results는 로컬에서 과거 실행이 누적되어 오염될 수 있음
+  const primaryDir = path.join(process.cwd(), '.lighthouseci');
+  const fallbackDir = RESULTS_DIR;
 
-  const files = fs.readdirSync(RESULTS_DIR).filter((name) => name.endsWith('.report.json'));
-  return files.map((name) => {
-    const report = JSON.parse(fs.readFileSync(path.join(RESULTS_DIR, name), 'utf8'));
-    return {
-      requestedUrl: report.requestedUrl || report.finalUrl,
-      finalUrl: report.finalUrl || report.finalDisplayedUrl,
-      performance: report.categories?.performance?.score ?? null,
-      fcp: report.audits?.['first-contentful-paint']?.numericValue ?? null,
-      lcp: report.audits?.['largest-contentful-paint']?.numericValue ?? null,
-      tbt: report.audits?.['total-blocking-time']?.numericValue ?? null,
-      cls: report.audits?.['cumulative-layout-shift']?.numericValue ?? null,
-      si: report.audits?.['speed-index']?.numericValue ?? null,
-    };
-  });
+  const loadFromDir = (dir, predicate) => {
+    if (!fs.existsSync(dir)) return [];
+    return fs
+      .readdirSync(dir)
+      .filter(predicate)
+      .map((name) => {
+        const report = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+        return {
+          requestedUrl: report.requestedUrl || report.finalUrl,
+          finalUrl: report.finalUrl || report.finalDisplayedUrl,
+          performance: report.categories?.performance?.score ?? null,
+          fcp: report.audits?.['first-contentful-paint']?.numericValue ?? null,
+          lcp: report.audits?.['largest-contentful-paint']?.numericValue ?? null,
+          tbt: report.audits?.['total-blocking-time']?.numericValue ?? null,
+          cls: report.audits?.['cumulative-layout-shift']?.numericValue ?? null,
+          si: report.audits?.['speed-index']?.numericValue ?? null,
+        };
+      });
+  };
+
+  const fromCiDir = loadFromDir(primaryDir, (name) => /^lhr-.*\.json$/.test(name));
+  if (fromCiDir.length) return fromCiDir;
+
+  return loadFromDir(fallbackDir, (name) => name.endsWith('.report.json'));
 }
 
 function aggregateByPage(runs) {
