@@ -28,11 +28,16 @@ module.exports = {
       numberOfRuns: 3,
       puppeteerScript: './lighthouse/auth.cjs',
       chromePath: resolveChromePath(),
+      // GitHub Actions애서는 unprivileged user namespace sandbox로 불가
+      puppeteerLaunchOptions: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
 
       settings: {
         preset: 'perf',
         formFactor: 'mobile',
         output: ['json'],
+        chromeFlags: '--no-sandbox --disable-setuid-sandbox',
         // localStorage ACCESS_TOKEN / USER 유지 (게스트 로그인 세션)
         disableStorageReset: true,
         screenEmulation: {
