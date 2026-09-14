@@ -1,0 +1,114 @@
+name: Lighthouse CI
+
+# PR 성능 모니터링 (non-blocking)
+# - Absolute Health: Web Vitals 절대 등급 (참고용, assert warn)
+# - Regression Overall: 추후 baseline 비교에서 PR 등급으로 사용
+# - 실패/warn이어도 merge를 막지 않음
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    # PR merge를 막지 않음 (Regression/Absolute 모두 non-blocking)
+    continue-on-error: true
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Turbo Cache
+        uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-lighthouse-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-lighthouse-
+            ${{ runner.os }}-turbo-
+
+      - name: Next.js Cache
+        uses: actions/cache@v6
+        with:
+          path: apps/knockdog/.next/cache
+          key: ${{ runner.os }}-nextjs-lighthouse-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-lighthouse-
+            ${{ runner.os }}-nextjs-
+
+      - name: Build knockdog
+        run: pnpm turbo run build --filter=knockdog...
+        env:
+          TURBO_CACHE_DIR: .turbo
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_ENABLE_GUEST_LOGIN: 'true'
+          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
+
+      - name: Start Next.js server
+        run: |
+          pnpm --filter knockdog start &
+          echo "Waiting for server..."
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/ >/dev/null 2>&1; then
+              echo "Server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server failed to start"
+          exit 1
+        env:
+          NEXT_PUBLIC_ENABLE_GUEST_LOGIN: 'true'
+          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
+
+      - name: Run Lighthouse CI
+        run: pnpm lighthouse
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          LHCI_BASE_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_ENABLE_GUEST_LOGIN: 'true'
+          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports-${{ github.event.pull_request.number }}
+          path: |
+            lighthouse-results/
+            .lighthouseci/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Lighthouse CI"
+            echo ""
+            echo "- Mode: **non-blocking** (continue-on-error)"
+            echo "- Absolute Health: warn assert (Web Vitals 참고용)"
+            echo "- Regression Overall: baseline 비교는 추후 추가"
+            echo "- Reports: artifact \`lighthouse-reports-${{ github.event.pull_request.number }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
