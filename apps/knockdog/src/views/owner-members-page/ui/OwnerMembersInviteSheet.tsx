@@ -8,7 +8,7 @@ import { useOwnerInviteQuery } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useClipboardCopy, useShare, isNativeWebView } from '@shared/lib/device';
-import { appendInviteQrEntrySource, trackOwnerInviteShare } from '@shared/lib/analytics';
+import { appendInviteLinkEntrySource, appendInviteQrEntrySource, trackOwnerInviteShare } from '@shared/lib/analytics';
 import { useSaveImage } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
@@ -84,6 +84,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const userId = useUserStore((state) => state.user?.userId);
   const inviteQuery = useOwnerInviteQuery({ userId, enabled: isOpen && !!userId });
   const inviteUrl = inviteQuery.data?.inviteUrl;
+  const inviteLinkUrl = inviteUrl ? appendInviteLinkEntrySource(inviteUrl) : undefined;
   const inviteQrUrl = inviteUrl ? appendInviteQrEntrySource(inviteUrl) : undefined;
   const copy = useClipboardCopy();
   const share = useShare();
@@ -150,9 +151,9 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   };
 
   const handleCopyInviteLink = async () => {
-    if (!inviteUrl) return;
+    if (!inviteLinkUrl) return;
 
-    const copied = await copy(inviteUrl);
+    const copied = await copy(inviteLinkUrl);
     if (copied) {
       trackOwnerInviteShare({ method: 'link' });
       toast({ type: 'success', title: '초대 링크를 복사했어요', nativeTitle: '초대 링크를 복사했어요' });
@@ -160,13 +161,13 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   };
 
   const handleShareInviteLink = async () => {
-    if (!inviteUrl) return;
+    if (!inviteLinkUrl) return;
 
     const shared = await share({
-      url: inviteUrl,
+      url: inviteLinkUrl,
     });
 
-    const copied = shared ? false : await copy(inviteUrl);
+    const copied = shared ? false : await copy(inviteLinkUrl);
     if (shared || copied) {
       trackOwnerInviteShare({ method: 'link' });
     }

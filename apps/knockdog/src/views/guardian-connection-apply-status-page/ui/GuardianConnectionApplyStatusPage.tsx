@@ -10,7 +10,7 @@ import {
 } from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
-import { trackConnectionStatus } from '@shared/lib/analytics';
+import { trackConnectionStatus, useTrackConnectionResults } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
@@ -65,6 +65,7 @@ function GuardianConnectionApplyStatusPage() {
   const cancelMutation = useCancelGuardianApplicationMutation({ userId });
 
   const visibleItems = useMemo(() => sortByAppliedAtDesc(data ?? []), [data]);
+  useTrackConnectionResults(data);
 
   const handleBack = () => {
     if (isFromInviteComplete) {
