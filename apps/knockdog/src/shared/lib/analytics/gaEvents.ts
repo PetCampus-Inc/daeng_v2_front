@@ -176,7 +176,7 @@ function trackConnectionStatus(params: {
   });
 }
 
-function trackConnectionResult(params: { status: ConnectionResultStatus }) {
+function trackConnectionResult(params: { status: ConnectionResultStatus; application_id: string }) {
   void logAnalyticsEvent(GaEvent.CONNECTION_RESULT, params);
 }
 

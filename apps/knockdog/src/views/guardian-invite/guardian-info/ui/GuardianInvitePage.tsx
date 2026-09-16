@@ -23,7 +23,6 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import {
   appendEntrySourceToInvitePath,
-  claimInviteOpenOnce,
   getInviteEntrySource,
   parseEntrySourceFromQuery,
   persistInviteEntrySource,
@@ -127,6 +126,7 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
   const userId = useUserStore((state) => state.user?.userId);
   const userInfoQuery = useUserInfoQuery(userId);
   const initializedUserIdRef = useRef<string | null>(null);
+  const hasTrackedInviteOpenRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoginNavigationFailed, setIsLoginNavigationFailed] = useState(false);
 
@@ -134,15 +134,25 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
   useScreenAnalyticsTitle(schoolName ? `${schoolName} 보호자 초대` : null);
 
   useEffect(() => {
-    if (!inviteQuery.isSuccess) return;
-    if (!claimInviteOpenOnce(token)) return;
+    if (!inviteQuery.isSuccess || hasTrackedInviteOpenRef.current) return;
 
-    persistInviteEntrySource(searchParams, token);
-    const entrySource = getInviteEntrySource(token);
-    trackInviteOpen({
-      method: toInviteOpenMethod(entrySource),
-      entry_source: entrySource,
-    });
+    // Strict Mode 첫 effect는 cleanup으로 취소하고, 재실행/재진입 인스턴스에서만 1회 발화한다.
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (cancelled || hasTrackedInviteOpenRef.current) return;
+      hasTrackedInviteOpenRef.current = true;
+      persistInviteEntrySource(searchParams, token);
+      const entrySource = getInviteEntrySource(token);
+      trackInviteOpen({
+        method: toInviteOpenMethod(entrySource),
+        entry_source: entrySource,
+      });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
   }, [inviteQuery.isSuccess, searchParams, token]);
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;

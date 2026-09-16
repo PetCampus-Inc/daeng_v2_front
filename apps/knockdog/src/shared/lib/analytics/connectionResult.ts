@@ -31,7 +31,7 @@ function toConnectionResultStatus(status: string): ConnectionResultStatus | null
   return null;
 }
 
-/** 신청 건당 승인/거절 결과를 보호자 기준으로 1회만 기록한다. */
+/** 신청 건당 승인/거절 결과 전송. application_id로 수집 레이어 중복 제거 가능, 로컬 스토리지는 동일 기기 */
 function trackConnectionResultsOnce(applications: ConnectionResultCandidate[] | null | undefined) {
   if (!applications?.length) return;
 
@@ -45,7 +45,7 @@ function trackConnectionResultsOnce(applications: ConnectionResultCandidate[] | 
 
     tracked[application.id] = resultStatus;
     hasChange = true;
-    trackConnectionResult({ status: resultStatus });
+    trackConnectionResult({ status: resultStatus, application_id: application.id });
   }
 
   if (hasChange) {
