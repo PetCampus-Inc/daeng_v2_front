@@ -21,7 +21,16 @@ import {
 } from '@entities/user';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
-import { appendEntrySourceToInvitePath, parseEntrySourceFromQuery, useScreenAnalyticsTitle } from '@shared/lib/analytics';
+import {
+  appendEntrySourceToInvitePath,
+  getInviteEntrySource,
+  parseEntrySourceFromQuery,
+  persistInviteEntrySource,
+  toInviteOpenMethod,
+  trackConnectionStart,
+  trackInviteOpen,
+  useScreenAnalyticsTitle,
+} from '@shared/lib/analytics';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isAndroid, isIOS, isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -93,7 +102,7 @@ function GuardianInvitePage() {
   if (!isPlatformResolved) return null;
 
   if (!isNative && isMobileBrowser) {
-    const entrySource = parseEntrySourceFromQuery(searchParams) ?? 'invite_qr';
+    const entrySource = parseEntrySourceFromQuery(searchParams) ?? 'invite_link';
     return <GuardianInviteAppInstallPage token={token} entrySource={entrySource} />;
   }
 
@@ -112,15 +121,39 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
   const [isEmergencyPhoneNumberBlurred, setIsEmergencyPhoneNumberBlurred] = useState(false);
   const { push, replace } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
+  const searchParams = useSearchParams();
   const inviteQuery = useGuardianInviteQuery(token);
   const userId = useUserStore((state) => state.user?.userId);
   const userInfoQuery = useUserInfoQuery(userId);
   const initializedUserIdRef = useRef<string | null>(null);
+  const hasTrackedInviteOpenRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoginNavigationFailed, setIsLoginNavigationFailed] = useState(false);
 
   const schoolName = inviteQuery.data?.data?.schoolName;
   useScreenAnalyticsTitle(schoolName ? `${schoolName} 보호자 초대` : null);
+
+  useEffect(() => {
+    if (!inviteQuery.isSuccess || hasTrackedInviteOpenRef.current) return;
+
+    // Strict Mode 첫 effect는 cleanup으로 취소하고, 재실행/재진입 인스턴스에서만 1회 발화한다.
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (cancelled || hasTrackedInviteOpenRef.current) return;
+      hasTrackedInviteOpenRef.current = true;
+      persistInviteEntrySource(searchParams, token);
+      const entrySource = getInviteEntrySource(token);
+      trackInviteOpen({
+        method: toInviteOpenMethod(entrySource),
+        entry_source: entrySource,
+      });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [inviteQuery.isSuccess, searchParams, token]);
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
@@ -195,6 +228,7 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
         address: selectedAddress,
         addressDetail: values.addressDetail,
       });
+      trackConnectionStart({ entry_source: getInviteEntrySource(token) });
       await push({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(token)) });
     } catch {
       toast('보호자 정보 저장에 실패했어요. 다시 시도해 주세요.');

@@ -6,6 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
+import { useGuardianApplicationsQuery } from '@entities/guardian-application';
+import { useUserStore } from '@entities/user';
+import { useTrackConnectionResults } from '@shared/lib/analytics';
 import { useTabNavigation } from '@shared/lib/bridge';
 import {
   isPetIdInList,
@@ -114,6 +117,7 @@ export function GuardianKindergartenPage() {
   );
 
   const hasAuth = useRequireAuth(handleAuthError);
+  const userId = useUserStore((state) => state.user?.userId);
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const {
     hasNoPet,
@@ -135,6 +139,12 @@ export function GuardianKindergartenPage() {
     albumPhotos,
     albumLatestCreatedAt,
   } = useGuardianKindergartenHome();
+
+  const { data: guardianApplications } = useGuardianApplicationsQuery({
+    userId,
+    enabled: hasAuth && Boolean(userId),
+  });
+  useTrackConnectionResults(guardianApplications);
 
   useEffect(() => {
     setIsMounted(true);

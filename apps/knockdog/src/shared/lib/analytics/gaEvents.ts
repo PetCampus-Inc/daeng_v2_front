@@ -16,7 +16,10 @@ const GaEvent = {
   NOTIFICATION_PERMISSION: 'notification_permission',
   SIGN_UP: 'sign_up',
   PET_PROFILE_REGISTER: 'pet_profile_register',
+  INVITE_OPEN: 'invite_open',
+  CONNECTION_START: 'connection_start',
   CONNECTION_STATUS: 'connection_status',
+  CONNECTION_RESULT: 'connection_result',
   OWNER_VERIFICATION_STATUS: 'owner_verification_status',
   OWNER_INVITE_SHARE: 'owner_invite_share',
   ACCOUNT_DEACTIVATION: 'account_deactivation',
@@ -28,9 +31,12 @@ const GaEvent = {
 
 type SignUpMethod = 'kakao' | 'google' | 'apple';
 type EntrySource = 'invite_link' | 'invite_qr' | 'organic';
+type InviteOpenMethod = 'link' | 'qr';
+type InviteEntrySource = 'invite_link' | 'invite_qr';
 type PetProfileEntryPoint = 'connection_request' | 'mypage';
 type ConnectionStatus = 'submit' | 'approve' | 'reject' | 'cancel' | 'disconnect';
 type ConnectionActor = 'guardian' | 'owner';
+type ConnectionResultStatus = 'approve' | 'reject';
 type OwnerVerificationStatus = 'start' | 'submit' | 'approved' | 'failed';
 type InviteShareMethod = 'link' | 'qr';
 type DeactivationAction = 'role_release' | 'withdrawal';
@@ -150,6 +156,14 @@ function trackPetProfileRegister(params: { entry_point: PetProfileEntryPoint; br
   void logAnalyticsEvent(GaEvent.PET_PROFILE_REGISTER, params);
 }
 
+function trackInviteOpen(params: { method: InviteOpenMethod; entry_source: InviteEntrySource }) {
+  void logAnalyticsEvent(GaEvent.INVITE_OPEN, params);
+}
+
+function trackConnectionStart(params: { entry_source: InviteEntrySource }) {
+  void logAnalyticsEvent(GaEvent.CONNECTION_START, params);
+}
+
 function trackConnectionStatus(params: {
   status: ConnectionStatus;
   actor: ConnectionActor;
@@ -160,6 +174,10 @@ function trackConnectionStatus(params: {
     actor: params.actor,
     ...(params.status === 'submit' ? { entry_source: params.entry_source ?? 'organic' } : {}),
   });
+}
+
+function trackConnectionResult(params: { status: ConnectionResultStatus; application_id: string }) {
+  void logAnalyticsEvent(GaEvent.CONNECTION_RESULT, params);
 }
 
 function trackOwnerVerificationStatus(params: { status: OwnerVerificationStatus }) {
@@ -209,7 +227,10 @@ export {
   trackNotificationPermission,
   trackSignUp,
   trackPetProfileRegister,
+  trackInviteOpen,
+  trackConnectionStart,
   trackConnectionStatus,
+  trackConnectionResult,
   trackOwnerVerificationStatus,
   trackOwnerInviteShare,
   trackAccountDeactivation,
@@ -221,9 +242,12 @@ export {
 export type {
   SignUpMethod,
   EntrySource,
+  InviteOpenMethod,
+  InviteEntrySource,
   PetProfileEntryPoint,
   ConnectionStatus,
   ConnectionActor,
+  ConnectionResultStatus,
   OwnerVerificationStatus,
   InviteShareMethod,
   DeactivationAction,

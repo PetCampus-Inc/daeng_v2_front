@@ -24,6 +24,7 @@ import {
 } from '@entities/user';
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { Header } from '@widgets/Header';
+import { useTrackConnectionResults } from '@shared/lib/analytics';
 import { useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
@@ -92,6 +93,7 @@ function MypageGuardianProfilePage() {
   const { data: guardianApplications, isSuccess: isGuardianApplicationsLoaded } = useGuardianApplicationsQuery({
     userId: user?.userId,
   });
+  useTrackConnectionResults(guardianApplications);
   const [formValues, setFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
   const [initialFormValues, setInitialFormValues] = useState<GuardianProfileFormValues>(EMPTY_FORM_VALUES);
   const [selectedAddress, setSelectedAddress] = useState<GuardianProfileAddress | null>(null);
