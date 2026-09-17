@@ -4,6 +4,8 @@ import {
   ownerMembersContent,
 } from '@views/owner-members-page/config/ownerMembersContent';
 import { Header } from '@widgets/Header';
+import { useHasUnreadNotificationQuery } from '@entities/notification';
+import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -16,6 +18,8 @@ interface OwnerMembersHeroProps {
 
 function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
   const { push } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
   const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();
 
   return (
@@ -35,6 +39,12 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
             onClick={() => push({ pathname: route.owner.members.approval.root })}
           >
             연결 승인
+          </button>
+          <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
+            <Icon
+              icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
+              className='text-text-primary-inverse size-6'
+            />
           </button>
         </Header.RightSection>
       </Header>
