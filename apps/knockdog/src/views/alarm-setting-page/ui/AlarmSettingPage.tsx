@@ -133,7 +133,6 @@ function AlarmSettingPage() {
 
       <div className='flex flex-col items-center px-4 py-5'>
         <AlarmToggleRow
-          key={`push-enabled-${isPushEnabled}`}
           title='알림 받기'
           description='모든 알림을 한 번에 켜거나 끌 수 있어요.'
           pressed={isPushEnabled}
