@@ -15,10 +15,10 @@ interface DevLoginBody {
 }
 
 async function injectDevLogin(page: Page) {
-  const { baseURL, devLoginId } = getE2eEnv();
+  const { baseURL, apiBaseURL, devLoginId } = getE2eEnv();
 
-  // 브라우저 fetch는 네비게이션/CORS에 취약 → 컨텍스트 request + init script
-  const response = await page.context().request.get(`${baseURL}/api/v0/auth/dev/${devLoginId}`, {
+  // DEV API 직접 호출 (CORS 없음). CI `next start`에도 프록시 불필요.
+  const response = await page.context().request.get(`${apiBaseURL}/api/v0/auth/dev/${devLoginId}`, {
     headers: { Accept: 'application/json' },
   });
 
