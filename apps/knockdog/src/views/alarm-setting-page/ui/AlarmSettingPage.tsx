@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Switch } from '@knockdog/ui';
 import { METHODS, type PermissionStatus } from '@knockdog/bridge-core';
+import { AlarmToggleRow } from '@views/alarm-setting-page/ui/AlarmToggleRow';
+
 import { Header } from '@widgets/Header';
 import { usePushSettingQuery, usePushSettingMutation, type PushSetting } from '@entities/user';
 import { useBridge } from '@shared/lib/bridge';
@@ -17,6 +18,8 @@ function AlarmSettingPage() {
   const { data: pushSetting } = usePushSettingQuery();
   const { mutate: updatePushSetting, isPending: isPushSettingUpdating } = usePushSettingMutation();
   const [notificationPermission, setNotificationPermission] = useState<PermissionStatus | null>(null);
+  const [isGuardianAlarmEnabled, setIsGuardianAlarmEnabled] = useState(true);
+  const [isOwnerAlarmEnabled, setIsOwnerAlarmEnabled] = useState(true);
 
   const refreshNotificationPermission = useCallback(async () => {
     if (!isNative) return;
@@ -99,21 +102,39 @@ function AlarmSettingPage() {
         <Header.Title>알림 설정</Header.Title>
       </Header>
 
-      <div className='px-4 pt-5 pb-4'>
-        <div className='flex items-center justify-between gap-2 py-4'>
-          <div>
-            <h4 className='body1-bold text-text-primary'>알림 받기</h4>
-            <span className='text-text-secondary body2-regular'>서비스 업데이트, 유치원 소식 등 알림</span>
-          </div>
-          <Switch
-            key={`push-enabled-${isPushEnabled}`}
-            pressed={isPushEnabled}
-            disabled={isPushSettingUpdating}
-            onPressedChange={handlePushChange}
+      <div className='flex flex-col items-center px-4 py-5'>
+        <AlarmToggleRow
+          key={`push-enabled-${isPushEnabled}`}
+          title='알림 받기'
+          description='모든 알림을 한 번에 켜거나 끌 수 있어요.'
+          pressed={isPushEnabled}
+          disabled={isPushSettingUpdating}
+          onPressedChange={handlePushChange}
+        />
+
+        <div className='bg-bg-100 flex w-full flex-col items-start rounded-lg px-4'>
+          <AlarmToggleRow
+            title='보호자 알림 받기'
+            description='서비스 업데이트, 유치원 소식 등 알림'
+            pressed={isPushEnabled && isGuardianAlarmEnabled}
+            disabled={!isPushEnabled}
+            onPressedChange={setIsGuardianAlarmEnabled}
+            muted={!isPushEnabled}
+            disableSwitchOpacity
+          />
+          <AlarmToggleRow
+            title='원장 알림 받기'
+            description='원생 연결, 소식 확인 등 알림'
+            pressed={isPushEnabled && isOwnerAlarmEnabled}
+            disabled={!isPushEnabled}
+            onPressedChange={setIsOwnerAlarmEnabled}
+            muted={!isPushEnabled}
+            disableSwitchOpacity
           />
         </div>
-        <div className='flex items-center justify-between gap-2'>
-          <span className='text-text-primary body2-regular'>알림을 꺼도 알림함에서는 확인할 수 있어요.</span>
+
+        <div className='flex w-full items-center justify-center py-4'>
+          <span className='label-medium text-text-secondary'>알림을 꺼도 알림함에서는 확인할 수 있어요.</span>
         </div>
       </div>
     </PrivateAccess>
