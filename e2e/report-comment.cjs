@@ -14,6 +14,7 @@ const path = require('node:path');
 
 const COMMENT_MARKER = '<!-- playwright-e2e-report -->';
 const RESULTS_PATH = path.join(__dirname, 'test-results', 'results.json');
+const ERROR_MAX_LEN = 220;
 
 function statusEmoji(status) {
   if (status === 'passed' || status === 'expected') return '✅';
@@ -43,6 +44,40 @@ function resolveTestStatus(test) {
   return last?.status ?? 'failed';
 }
 
+function pickFailedResult(test) {
+  const results = test.results ?? [];
+  const failed = [...results].reverse().find((r) => r.status !== 'passed' && r.status !== 'skipped');
+  return failed ?? results[results.length - 1] ?? null;
+}
+
+function extractErrorMessage(test) {
+  const result = pickFailedResult(test);
+  if (!result) return '';
+
+  const raw =
+    result.error?.message ??
+    result.errors?.map((e) => e.message).filter(Boolean).join('\n') ??
+    '';
+
+  if (!raw) return '';
+
+  // 한 줄로 정리
+  const flat = raw
+    .replace(/\u001b\[[0-9;]*m/g, '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' · ');
+
+  if (flat.length <= ERROR_MAX_LEN) return flat;
+  return `${flat.slice(0, ERROR_MAX_LEN - 1)}…`;
+}
+
+function escapeMarkdownCell(value) {
+  return value.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+}
+
 function looksLikeFile(segment) {
   return /\.(ts|js|tsx|jsx)$/.test(segment) || segment.includes('/') || segment.includes('\\');
 }
@@ -54,10 +89,13 @@ function collectRows(suite, rows = [], ancestors = []) {
     for (const test of spec.tests ?? []) {
       const status = resolveTestStatus(test);
       const parts = [...titlePath, spec.title].filter((part) => part && !looksLikeFile(part));
+      const isFail = status !== 'passed' && status !== 'skipped' && status !== 'flaky';
+
       rows.push({
         project: test.projectName ?? '—',
         name: parts.join(' › ') || spec.title || 'unnamed',
         status,
+        error: isFail ? extractErrorMessage(test) : '',
       });
     }
   }
@@ -97,6 +135,7 @@ function buildMarkdown() {
     rows?.filter((r) => r.status !== 'passed' && r.status !== 'flaky' && r.status !== 'skipped').length ?? 0;
   const skipped = rows?.filter((r) => r.status === 'skipped').length ?? 0;
   const total = rows?.length ?? 0;
+  const failedRows = rows?.filter((r) => r.status !== 'passed' && r.status !== 'flaky' && r.status !== 'skipped') ?? [];
 
   const lines = [
     COMMENT_MARKER,
@@ -114,7 +153,9 @@ function buildMarkdown() {
   }
 
   lines.push(`| **Run** | [workflow](${runUrl}) |`);
-  lines.push(`| **Artifact** | \`${artifactName}\` |`);
+  lines.push(
+    `| **Artifact** | \`${artifactName}\` (Actions → Artifacts, 14일 · Trace/Screenshot/Video) |`
+  );
   lines.push('');
 
   if (rows?.length) {
@@ -123,7 +164,6 @@ function buildMarkdown() {
     lines.push('| Spec | Project | Status |');
     lines.push('| --- | --- | --- |');
 
-    // 실패 먼저
     const ordered = [
       ...rows.filter((r) => r.status !== 'passed' && r.status !== 'skipped' && r.status !== 'flaky'),
       ...rows.filter((r) => r.status === 'flaky'),
@@ -132,9 +172,8 @@ function buildMarkdown() {
     ];
 
     for (const row of ordered) {
-      const safeName = row.name.replace(/\|/g, '\\|');
       lines.push(
-        `| ${safeName} | \`${row.project}\` | ${statusEmoji(row.status)} ${statusLabel(row.status)} |`
+        `| ${escapeMarkdownCell(row.name)} | \`${row.project}\` | ${statusEmoji(row.status)} ${statusLabel(row.status)} |`
       );
     }
     lines.push('');
@@ -145,11 +184,25 @@ function buildMarkdown() {
     lines.push('');
   }
 
+  if (failedRows.length) {
+    lines.push('### Failures');
+    lines.push('');
+    for (const row of failedRows) {
+      lines.push(`- **${escapeMarkdownCell(row.name)}** (\`${row.project}\`)`);
+      if (row.error) {
+        lines.push(`  - \`${escapeMarkdownCell(row.error)}\``);
+      } else {
+        lines.push('  - _(에러 메시지 없음 — Artifact Trace 확인)_');
+      }
+    }
+    lines.push('');
+  }
+
   lines.push('### Failure debugging');
   lines.push('');
-  lines.push(`1. [workflow run](${runUrl}) 로그에서 실패 Step 확인`);
-  lines.push(`2. Artifact \`${artifactName}\` 다운로드`);
-  lines.push('3. Trace / Screenshot / Video / Network 로 FE · BE · Contract · Test 범위 좁히기');
+  lines.push(`1. 위 Failures 에러 메시지로 실패 Step 확인`);
+  lines.push(`2. [workflow](${runUrl}) → **Artifacts** → \`${artifactName}\` 다운로드`);
+  lines.push('3. Trace / Screenshot / Network 로 FE · BE · Contract · Test · Data 범위 좁히기');
   lines.push('');
   lines.push('> Required check 아님 — 실패해도 merge 가능');
   lines.push('');
