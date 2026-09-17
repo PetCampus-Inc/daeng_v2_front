@@ -50,12 +50,12 @@ export default defineConfig({
     {
       name: 'chromium-anon',
       dependencies: ['setup'],
-      testMatch: /auth\.smoke\.spec\.ts/,
+      testMatch: /(auth\.smoke|analytics-block)\.spec\.ts/,
     },
     {
       name: 'chromium-owner',
       dependencies: ['setup'],
-      testMatch: /owner.*\.spec\.ts/,
+      testMatch: /(owner|mypage).*\.spec\.ts/,
       use: { storageState: OWNER_STORAGE },
     },
     {

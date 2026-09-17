@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { injectDevLogin, setPrefersGuardianView } from './helpers/auth';
 import { getE2eEnv } from './helpers/env';
+import { installAnalyticsBlock } from './helpers/network';
 import { GUARDIAN_STORAGE, OWNER_STORAGE } from './helpers/paths';
 
 setup.describe.configure({ mode: 'serial' });
@@ -14,6 +15,7 @@ setup('CF-AUTH: DEV login → owner / guardian storageState', async ({ browser }
 
   // ── owner ──────────────────────────────────────
   const ownerContext = await browser.newContext();
+  await installAnalyticsBlock(ownerContext);
   const ownerPage = await ownerContext.newPage();
 
   const user = await injectDevLogin(ownerPage);
@@ -37,6 +39,7 @@ setup('CF-AUTH: DEV login → owner / guardian storageState', async ({ browser }
 
   // ── guardian ───────────────────────────────────
   const guardianContext = await browser.newContext();
+  await installAnalyticsBlock(guardianContext);
   const guardianPage = await guardianContext.newPage();
 
   await injectDevLogin(guardianPage);

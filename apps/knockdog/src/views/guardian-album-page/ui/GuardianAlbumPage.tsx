@@ -1025,7 +1025,10 @@ function GuardianAlbumPage() {
   );
 
   return (
-    <div className={`${isEntryLoadError ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
+    <div
+      data-testid='guardian-album-root'
+      className={`${isEntryLoadError ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}
+    >
       <div className='bg-bg-0'>
         <Header>
           <Header.BackButton onClick={handleHeaderBack} />

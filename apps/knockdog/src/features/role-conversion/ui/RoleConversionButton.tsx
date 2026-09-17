@@ -23,6 +23,7 @@ function RoleConversionButton({
   return (
     <button
       type='button'
+      data-testid='mypage-role-toggle'
       onClick={onClick}
       disabled={disabled}
       title={title}
