@@ -18,6 +18,10 @@ coverage
 lighthouse-results/
 .lighthouseci/
 lighthouse-pr-comment.preview.md
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+e2e/.auth/*.json
 
 # Turbo
 .turbo

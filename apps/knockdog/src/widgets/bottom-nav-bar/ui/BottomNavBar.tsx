@@ -11,6 +11,11 @@ import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 import { useWebBottomNavStore } from '@shared/store';
 
+function navItemTestId(href: string) {
+  if (href === '/') return 'bottom-nav-home';
+  return `bottom-nav-${href.replace(/^\//, '').replace(/\//g, '-')}`;
+}
+
 function isActiveNavItem(pathname: string, href: string) {
   if (href === '/' || href === '/owner') {
     return pathname === href;
@@ -33,6 +38,8 @@ function BottomNavBarLinks() {
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>
       <nav
+        data-testid='bottom-nav'
+        data-nav-mode={showOwnerBottomNav ? 'owner' : 'guardian'}
         style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
         className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-120 border-t px-3 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
       >
@@ -44,6 +51,7 @@ function BottomNavBarLinks() {
             <Link
               key={item.href}
               href={item.href}
+              data-testid={navItemTestId(item.href)}
               className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 ${colorClassName}`}
             >
               <div className='flex size-6 items-center justify-center'>

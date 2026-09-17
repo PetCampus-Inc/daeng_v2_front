@@ -24,6 +24,7 @@ function GuardianAlbumDayCard({ dayAlbum, onClick }: GuardianAlbumDayCardProps) 
 
   return (
     <article
+      data-testid='guardian-album-day-card'
       className={`bg-bg-0 radius-r3 flex w-full flex-col gap-4 p-4 ${hasLoadError ? '' : 'cursor-pointer'}`}
       onClick={hasLoadError ? undefined : onClick}
       onKeyDown={

@@ -291,6 +291,7 @@ function GuardianAlbumPhotoDetail({
         <div
           ref={dialogRef}
           role='dialog'
+          data-testid='guardian-album-detail'
           aria-modal='true'
           aria-label={formatAlbumDetailTitle(uploadedAt)}
           className='bg-bg-50 z-modal fixed inset-0 flex flex-col'

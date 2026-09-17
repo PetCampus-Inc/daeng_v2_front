@@ -191,10 +191,16 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
 
   if (!shouldRender) return null;
 
+  const inviteActionTestId = {
+    downloadQr: 'owner-invite-save-qr',
+    copyLink: 'owner-invite-copy-link',
+    shareLink: 'owner-invite-share',
+  } as const;
+
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal'>
+      <BottomSheet.Body className='z-modal' data-testid='owner-members-invite-sheet'>
         <BottomSheet.Handle />
         <BottomSheet.Title className='sr-only'>보호자 초대</BottomSheet.Title>
         <div className='h-[468px] w-full'>
@@ -203,6 +209,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
               <button
                 key={action.label}
                 type='button'
+                data-testid={inviteActionTestId[action.action]}
                 className='gap-x1 flex h-[76px] min-w-0 flex-col items-center justify-center px-x1 disabled:opacity-40'
                 disabled={isInviteActionDisabled}
                 onClick={() => handleActionClick(action.action)}
@@ -222,14 +229,16 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
             className='py-x10 gap-x2_5 flex h-[280px] w-full items-center justify-center'
           >
             {inviteQrUrl ? (
-              <QRCodeSVG
-                value={inviteQrUrl}
-                size={200}
-                className='size-[200px]'
-                level='M'
-                marginSize={0}
-                title='보호자 초대 QR 코드'
-              />
+              <div data-testid='owner-invite-qr'>
+                <QRCodeSVG
+                  value={inviteQrUrl}
+                  size={200}
+                  className='size-[200px]'
+                  level='M'
+                  marginSize={0}
+                  title='보호자 초대 QR 코드'
+                />
+              </div>
             ) : inviteQuery.isError ? (
               <div className='body1-regular text-text-secondary text-center'>
                 초대 링크를 불러오지 못했어요.

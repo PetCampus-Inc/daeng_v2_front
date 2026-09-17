@@ -26,7 +26,7 @@ function OwnerHomePage() {
   const shouldShowFriendPreview = !today.isError && today.enrolledCount > 0;
 
   return (
-    <div className='bg-bg-50 flex h-dvh flex-col'>
+    <div data-testid='owner-home-root' className='bg-bg-50 flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
         <Header>
           <Header.Title className='flex items-center'>
@@ -45,7 +45,7 @@ function OwnerHomePage() {
       <section className='flex w-full flex-col gap-5 py-5'>
         <div className='flex h-[52px] w-full items-center justify-between gap-5 px-4'>
           <div className='flex min-w-0 flex-1 gap-1'>
-            <p className='h3-extrabold text-text-primary min-w-0 w-fit'>
+            <p data-testid='owner-home-greeting' className='h3-extrabold text-text-primary min-w-0 w-fit'>
               안녕하세요
               <br />
               <span className='flex min-w-0 items-center gap-1'>
@@ -59,6 +59,7 @@ function OwnerHomePage() {
           </div>
           <button
             type='button'
+            data-testid='owner-home-refresh'
             className='bg-bg-100 radius-full flex size-9 shrink-0 items-center justify-center p-1.5'
             aria-label='새로고침'
             onClick={() => handleRefresh(true)}

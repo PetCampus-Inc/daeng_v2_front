@@ -5,11 +5,12 @@ name: Lighthouse CI
 # - Regression Overall: 추후 baseline 비교에서 PR 등급으로 사용
 # - 기록은 PR 코멘트만 (artifact 없음)
 # - 실패/warn이어도 merge를 막지 않음
+# - synchronize(푸시)마다 재실행하지 않음 — PR opened/reopened 시 1회만
 
 on:
   pull_request:
     branches: [develop]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}

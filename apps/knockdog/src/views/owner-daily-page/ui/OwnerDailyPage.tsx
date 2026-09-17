@@ -310,7 +310,7 @@ function OwnerDailyPage() {
   }, [selectedTab]);
 
   return (
-    <div className='bg-bg-50 relative flex h-dvh flex-col'>
+    <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
         <Header>
           <Header.Title>일과</Header.Title>
@@ -334,8 +334,12 @@ function OwnerDailyPage() {
             onValueChange={handleTabValueChange}
           >
             <TabsList>
-              <TabsTrigger value='attendance-check'>등원 처리</TabsTrigger>
-              <TabsTrigger value='today-attendance'>오늘 등원</TabsTrigger>
+              <TabsTrigger value='attendance-check' data-testid='owner-daily-tab-attendance-check'>
+                등원 처리
+              </TabsTrigger>
+              <TabsTrigger value='today-attendance' data-testid='owner-daily-tab-today-attendance'>
+                오늘 등원
+              </TabsTrigger>
             </TabsList>
             <TabsContent
               ref={attendanceCheckContentRef}
