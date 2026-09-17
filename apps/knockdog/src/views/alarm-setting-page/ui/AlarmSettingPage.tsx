@@ -4,8 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { METHODS, type PermissionStatus } from '@knockdog/bridge-core';
 import { AlarmToggleRow } from '@views/alarm-setting-page/ui/AlarmToggleRow';
+import {
+  showActivateAlarmToast,
+  showOwnerVerificationToast,
+} from '@views/alarm-setting-page/model/alarmSettingToast';
 
 import { Header } from '@widgets/Header';
+import { useIsOwnerVerified } from '@features/role-conversion';
 import { usePushSettingQuery, usePushSettingMutation, type PushSetting } from '@entities/user';
 import { useBridge } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
@@ -17,6 +22,7 @@ function AlarmSettingPage() {
   const isNative = useMemo(() => isNativeWebView(), []);
   const { data: pushSetting } = usePushSettingQuery();
   const { mutate: updatePushSetting, isPending: isPushSettingUpdating } = usePushSettingMutation();
+  const isOwnerVerified = useIsOwnerVerified();
   const [notificationPermission, setNotificationPermission] = useState<PermissionStatus | null>(null);
   const [isGuardianAlarmEnabled, setIsGuardianAlarmEnabled] = useState(true);
   const [isOwnerAlarmEnabled, setIsOwnerAlarmEnabled] = useState(true);
@@ -95,6 +101,29 @@ function AlarmSettingPage() {
   const isOsNotificationAllowed = !isNative || notificationPermission === null || notificationPermission === 'allowed';
   const isPushEnabled = Boolean(pushSetting?.pushEnabled && isOsNotificationAllowed);
 
+  const handleGuardianAlarmChange = (checked: boolean) => {
+    if (!isPushEnabled) {
+      showActivateAlarmToast();
+      return;
+    }
+
+    setIsGuardianAlarmEnabled(checked);
+  };
+
+  const handleOwnerAlarmChange = (checked: boolean) => {
+    if (!isOwnerVerified) {
+      showOwnerVerificationToast();
+      return;
+    }
+
+    if (!isPushEnabled) {
+      showActivateAlarmToast();
+      return;
+    }
+
+    setIsOwnerAlarmEnabled(checked);
+  };
+
   return (
     <PrivateAccess>
       <Header>
@@ -117,19 +146,15 @@ function AlarmSettingPage() {
             title='보호자 알림 받기'
             description='서비스 업데이트, 유치원 소식 등 알림'
             pressed={isPushEnabled && isGuardianAlarmEnabled}
-            disabled={!isPushEnabled}
-            onPressedChange={setIsGuardianAlarmEnabled}
+            onPressedChange={handleGuardianAlarmChange}
             muted={!isPushEnabled}
-            disableSwitchOpacity
           />
           <AlarmToggleRow
             title='원장 알림 받기'
             description='원생 연결, 소식 확인 등 알림'
-            pressed={isPushEnabled && isOwnerAlarmEnabled}
-            disabled={!isPushEnabled}
-            onPressedChange={setIsOwnerAlarmEnabled}
-            muted={!isPushEnabled}
-            disableSwitchOpacity
+            pressed={isOwnerVerified && isPushEnabled && isOwnerAlarmEnabled}
+            onPressedChange={handleOwnerAlarmChange}
+            muted={!isOwnerVerified || !isPushEnabled}
           />
         </div>
 
