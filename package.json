@@ -11,7 +11,10 @@
     "commit": "cz",
     "lighthouse": "lhci autorun && node lighthouse/cleanup-html.cjs",
     "lighthouse:baseline": "node lighthouse/save-baseline.cjs",
-    "lighthouse:comment": "node lighthouse/report-comment.cjs"
+    "lighthouse:comment": "node lighthouse/report-comment.cjs",
+    "e2e": "playwright test --config=e2e/playwright.config.ts",
+    "e2e:ui": "playwright test --config=e2e/playwright.config.ts --ui",
+    "e2e:report": "playwright show-report e2e/playwright-report"
   },
   "config": {
     "commitizen": {
@@ -23,6 +26,7 @@
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
     "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

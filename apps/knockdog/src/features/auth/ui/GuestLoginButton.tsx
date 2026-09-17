@@ -11,7 +11,12 @@ function GuestLoginButton({ redirectTo }: GuestLoginButtonProps) {
   const { guestLogin } = useLogin({ redirectTo });
 
   return (
-    <button className='label-semibold flex items-center justify-center gap-x-1 text-center' onClick={guestLogin}>
+    <button
+      type='button'
+      data-testid='login-guest'
+      className='label-semibold flex items-center justify-center gap-x-1 text-center'
+      onClick={guestLogin}
+    >
       게스트로 둘러보기
       <Icon icon='ChevronRight' className='h-4 w-4' />
     </button>

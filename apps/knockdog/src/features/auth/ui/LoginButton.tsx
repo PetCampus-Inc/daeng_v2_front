@@ -44,6 +44,7 @@ export function LoginButton({ className, provider, redirectTo, resetToMainAfterS
   return (
     <button
       type='button'
+      data-testid={`login-provider-${provider.toLowerCase()}`}
       className={cn('flex items-center justify-center gap-1 rounded-lg py-4', styles, className)}
       onClick={handleLogin}
       {...props}
