@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from 'react';
+
 import { overlay } from 'overlay-kit';
 
+import { Tabs, TabsList, TabsTrigger } from '@knockdog/ui';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -16,8 +19,11 @@ import { NotificationInboxList } from '@views/notification-inbox-page/ui/Notific
 import { NotificationInboxMarkAllReadDialog } from '@views/notification-inbox-page/ui/NotificationInboxMarkAllReadDialog';
 import { Header } from '@widgets/Header';
 
+type NotificationInboxTab = 'GUARDIAN' | 'OWNER';
+
 function NotificationInboxPage() {
   const content = notificationInboxContent;
+  const [activeTab, setActiveTab] = useState<NotificationInboxTab>('GUARDIAN');
   const {
     items,
     hasUnread,
@@ -84,6 +90,13 @@ function NotificationInboxPage() {
             </Header.RightSection>
           ) : null}
         </Header>
+
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NotificationInboxTab)}>
+          <TabsList>
+            <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
+            <TabsTrigger value='OWNER'>원장</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {isError ? (
