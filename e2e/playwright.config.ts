@@ -6,11 +6,14 @@ import { GUARDIAN_STORAGE, OWNER_STORAGE } from './helpers/paths';
 
 const { baseURL, apiBaseURL, isCI } = getE2eEnv();
 
+/** CI 워크플로가 이미 서버를 띄운 경우 webServer 스킵 */
+const skipWebServer = process.env.E2E_SKIP_WEBSERVER === '1';
+
 /**
- *  주요 사용자 플로우 E2E
+ * 주요 사용자 플로우 E2E
  * - setup: DEV login → owner/guardian storageState
  * - chromium-owner / chromium-guardian: 역할별 재사용
- * - chromium-anon: 비로그인 smoke
+ * - chromium-anon: 비로그인 smoke + GA block
  */
 export default defineConfig({
   testDir: './flows',
@@ -20,7 +23,18 @@ export default defineConfig({
   workers: isCI ? 1 : undefined,
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
+  reporter: isCI
+    ? [
+        ['list'],
+        ['html', { open: 'never', outputFolder: 'playwright-report' }],
+        ['github'],
+        ['json', { outputFile: 'test-results/results.json' }],
+      ]
+    : [
+        ['list'],
+        ['html', { open: 'never', outputFolder: 'playwright-report' }],
+        ['json', { outputFile: 'test-results/results.json' }],
+      ],
   outputDir: 'test-results',
   use: {
     baseURL,
@@ -29,18 +43,22 @@ export default defineConfig({
     video: 'retain-on-failure',
     ...devices['Desktop Chrome'],
   },
-  webServer: {
-    command: 'pnpm --filter knockdog dev',
-    url: baseURL,
-    reuseExistingServer: !isCI,
-    timeout: 180_000,
-    cwd: path.join(__dirname, '..'),
-    env: {
-      ...process.env,
-      NEXT_PUBLIC_API_BASE_URL: apiBaseURL,
-      NEXT_PUBLIC_WEB_URL: baseURL,
-    },
-  },
+  ...(skipWebServer
+    ? {}
+    : {
+        webServer: {
+          command: isCI ? 'pnpm --filter knockdog start' : 'pnpm --filter knockdog dev',
+          url: baseURL,
+          reuseExistingServer: !isCI,
+          timeout: 180_000,
+          cwd: path.join(__dirname, '..'),
+          env: {
+            ...process.env,
+            NEXT_PUBLIC_API_BASE_URL: apiBaseURL,
+            NEXT_PUBLIC_WEB_URL: baseURL,
+          },
+        },
+      }),
   projects: [
     {
       name: 'setup',

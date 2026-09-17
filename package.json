@@ -14,7 +14,8 @@
     "lighthouse:comment": "node lighthouse/report-comment.cjs",
     "e2e": "playwright test --config=e2e/playwright.config.ts",
     "e2e:ui": "playwright test --config=e2e/playwright.config.ts --ui",
-    "e2e:report": "playwright show-report e2e/playwright-report"
+    "e2e:report": "playwright show-report e2e/playwright-report",
+    "e2e:comment": "node e2e/report-comment.cjs"
   },
   "config": {
     "commitizen": {
