@@ -104,7 +104,7 @@ function TabsList({
       {indicator && (
         <span
           aria-hidden
-          className='bg-line-accent pointer-events-none absolute bottom-0 left-0 h-[3px] transition-[transform,width] duration-200 ease-out'
+          className='bg-line-accent pointer-events-none absolute bottom-0 left-0 h-[3px] transition-[transform,width] duration-200 ease-out motion-reduce:transition-none'
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
       )}
@@ -120,7 +120,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot='tabs-trigger'
       className={cn(
-        'data-[state=active]:text-text-accent body2-semibold border-b-3 flex-1 whitespace-nowrap border-b-transparent p-4 pb-3 transition-colors duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+        'data-[state=active]:text-text-accent body2-semibold border-b-3 flex-1 whitespace-nowrap border-b-transparent p-4 pb-3 transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
         className
       )}
       {...props}
