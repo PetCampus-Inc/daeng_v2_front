@@ -93,7 +93,7 @@ function OwnerDailyTabContent({
       // ) : showBeforeFilter && items.length === 0 ? (
       //   <OwnerDailyNoUncheckedState />
       ) : (
-        <div className='flex w-full flex-col gap-4 px-4 pb-5'>
+        <div className='flex w-full flex-col gap-3 px-4'>
           {items.map((member) => (
             <OwnerDailyMemberCard
               key={member.id}
