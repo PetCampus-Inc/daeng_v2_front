@@ -228,20 +228,18 @@ function MypageContent() {
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header>
         <Header.Title>마이페이지</Header.Title>
-        {!isOwnerView && (
-          <Header.RightSection>
-            <button
-              type='button'
-              aria-label='알림함'
-              onClick={() => push({ pathname: route.notification.root })}
-            >
-              <Icon
-                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-                className='size-6 text-text-primary'
-              />
-            </button>
-          </Header.RightSection>
-        )}
+        <Header.RightSection>
+          <button
+            type='button'
+            aria-label='알림함'
+            onClick={() => push({ pathname: route.notification.root })}
+          >
+            <Icon
+              icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
+              className='size-6 text-text-primary'
+            />
+          </button>
+        </Header.RightSection>
       </Header>
 
       <div className='web:pb-(--bottom-bar-height) webview:pb-0 flex-1 overflow-y-auto'>

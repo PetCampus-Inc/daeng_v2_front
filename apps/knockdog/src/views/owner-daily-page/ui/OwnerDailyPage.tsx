@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
+import { Float, FloatingActionButton, Icon, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { useHasUnreadNotificationQuery } from '@entities/notification';
+import { useUserStore } from '@entities/user';
+import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
-import { openConfirmDialog } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { ellipsisText } from '@shared/utils';
@@ -77,6 +80,9 @@ function resolveOwnerDailyTabFromNavigation(): OwnerDailyTab | null {
 
 function OwnerDailyPage() {
   const router = useRouter();
+  const { push } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get('tab');
@@ -314,6 +320,14 @@ function OwnerDailyPage() {
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
         <Header>
           <Header.Title>일과</Header.Title>
+          <Header.RightSection>
+            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
+              <Icon
+                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
+                className='size-6 text-text-primary'
+              />
+            </button>
+          </Header.RightSection>
         </Header>
       </div>
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>

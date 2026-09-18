@@ -15,10 +15,17 @@ import { OwnerAlbumUploadButton } from '@views/owner-album-page/ui/OwnerAlbumUpl
 import { OwnerAlbumUploadModal } from '@views/owner-album-page/ui/OwnerAlbumUploadModal';
 
 import { Header } from '@widgets/Header';
+import { useHasUnreadNotificationQuery } from '@entities/notification';
+import { useUserStore } from '@entities/user';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function OwnerAlbumPage() {
+  const { push } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
   const {
     photos,
     hasPhotos,
@@ -63,6 +70,12 @@ function OwnerAlbumPage() {
               onClick={handleInfoClick}
             >
               <Icon icon='InfoLine' className='text-text-secondary size-6' />
+            </button>
+            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
+              <Icon
+                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
+                className='size-6 text-text-primary'
+              />
             </button>
           </Header.RightSection>
         </Header>

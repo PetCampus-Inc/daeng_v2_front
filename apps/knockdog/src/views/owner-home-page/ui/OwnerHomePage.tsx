@@ -9,8 +9,15 @@ import { OwnerNoticebookStatus } from '@views/owner-home-page/ui/OwnerNoticebook
 import { OwnerTodaySummaryCard } from '@views/owner-home-page/ui/OwnerTodaySummaryCard';
 
 import { Header } from '@widgets/Header';
+import { useHasUnreadNotificationQuery } from '@entities/notification';
+import { useUserStore } from '@entities/user';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 function OwnerHomePage() {
+  const { push } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
   const {
     approval,
     displaySchoolName,
@@ -32,6 +39,14 @@ function OwnerHomePage() {
           <Header.Title className='flex items-center'>
             <Image src='/images/img_logo_text2.png' alt='똑독' width={48} height={26} priority />
           </Header.Title>
+          <Header.RightSection>
+            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
+              <Icon
+                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
+                className='size-6 text-text-primary'
+              />
+            </button>
+          </Header.RightSection>
         </Header>
       </div>
       {shouldShowApprovalBanner ? (
