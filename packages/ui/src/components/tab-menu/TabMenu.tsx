@@ -5,6 +5,15 @@ import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 import { cn } from '@knockdog/ui/lib';
 
+function mergeRefs<T>(...refs: Array<React.Ref<T> | undefined>): React.RefCallback<T> {
+  return (node) => {
+    refs.forEach((ref) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.RefObject<T | null>).current = node;
+    });
+  };
+}
+
 interface TabIndicatorRect {
   left: number;
   width: number;
@@ -64,15 +73,20 @@ function TabsList({
   className,
   scrollable = false,
   children,
+  ref: forwardedRef,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> & {
   scrollable?: boolean;
 }) {
   const { listRef, indicator } = useActiveTabIndicator();
+  const mergedRef = React.useMemo(
+    () => mergeRefs(listRef, forwardedRef),
+    [listRef, forwardedRef]
+  );
 
   return (
     <TabsPrimitive.List
-      ref={listRef}
+      ref={mergedRef}
       data-slot='tabs-list'
       className={cn(
         'border-b-1 border-line-200 relative flex px-4',
