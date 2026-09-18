@@ -52,10 +52,13 @@ function BottomNavBarLinks() {
               key={item.href}
               href={item.href}
               data-testid={navItemTestId(item.href)}
-              className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 transition-colors duration-100 ${colorClassName}`}
+              className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 transition-colors duration-100 motion-reduce:transition-none ${colorClassName}`}
             >
               <div className='flex size-6 items-center justify-center'>
-                <Icon icon={item.icon} className={`size-6 transition-colors duration-100 ${colorClassName}`} />
+                <Icon
+                  icon={item.icon}
+                  className={`size-6 transition-colors duration-100 motion-reduce:transition-none ${colorClassName}`}
+                />
               </div>
               <span className='caption1-regular tracking-normal'>{item.label}</span>
             </Link>
