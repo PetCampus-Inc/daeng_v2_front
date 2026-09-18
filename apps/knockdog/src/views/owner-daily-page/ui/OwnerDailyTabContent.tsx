@@ -38,7 +38,7 @@ function OwnerDailyTabContent({
   onAttendanceButtonClick,
 }: OwnerDailyTabContentProps) {
   return (
-    <div className='flex min-h-full w-full flex-col gap-5 pt-5'>
+    <div className='flex min-h-full w-full flex-col gap-2 pt-5'>
       <div className='px-4'>
         <TextField
           prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}

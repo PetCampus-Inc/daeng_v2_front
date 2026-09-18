@@ -1,15 +1,39 @@
 import type { OwnerDailySummaryItem } from '@views/owner-daily-page/config/ownerDailyContent';
+import { OwnerDailyDateNav } from '@views/owner-daily-page/ui/OwnerDailyDateNav';
 
 interface OwnerDailySummarySectionProps {
   dateLabel: string;
   summaryItems: OwnerDailySummaryItem[];
+  onPrevDay: () => void;
+  onNextDay: () => void;
+  onOpenDatePicker: () => void;
+  onGoToday: () => void;
+  isNextDayDisabled: boolean;
+  isToday: boolean;
 }
 
-function OwnerDailySummarySection({ dateLabel, summaryItems }: OwnerDailySummarySectionProps) {
+function OwnerDailySummarySection({
+  dateLabel,
+  summaryItems,
+  onPrevDay,
+  onNextDay,
+  onOpenDatePicker,
+  onGoToday,
+  isNextDayDisabled,
+  isToday,
+}: OwnerDailySummarySectionProps) {
   return (
-    <section className='bg-bg-0 flex h-[166px] w-full flex-col gap-4 pt-5 pb-4'>
+    <section className='bg-bg-0 flex w-full flex-col gap-4 pt-4 pb-4'>
       <div className='flex h-[26px] w-full gap-4 px-4'>
-        <p className='h3-extrabold text-text-primary'>{dateLabel}</p>
+        <OwnerDailyDateNav
+          label={dateLabel}
+          onPrevDay={onPrevDay}
+          onNextDay={onNextDay}
+          onOpenDatePicker={onOpenDatePicker}
+          onGoToday={onGoToday}
+          isNextDayDisabled={isNextDayDisabled}
+          isToday={isToday}
+        />
       </div>
       <div className='flex h-[88px] w-full gap-2.5 px-4'>
         <div className='bg-bg-50 radius-r3 flex h-full w-full justify-between py-4'>

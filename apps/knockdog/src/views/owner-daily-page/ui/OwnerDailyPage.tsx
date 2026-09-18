@@ -1,12 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Float, FloatingActionButton, Icon, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
+import {
+  addDays,
+  formatKstDateLabel,
+  formatKstDayLabel,
+  isBeforeDay,
+  isSameDay,
+  startOfDay,
+} from '@shared/lib/calendar-date';
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
@@ -16,6 +24,7 @@ import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
+import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
@@ -94,12 +103,17 @@ function OwnerDailyPage() {
   const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
+  const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const dateNavToday = useMemo(() => startOfDay(new Date()), []);
+  const dateNavMinDate = useMemo(() => addDays(dateNavToday, -365), [dateNavToday]);
+  const dateNavLabel = `${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
+  const isNextDayDisabled = !isBeforeDay(selectedDate, dateNavToday);
+  const isSelectedDateToday = isSameDay(selectedDate, dateNavToday);
   const {
     attendanceCheckMembers,
     canOpenCancelCheckInDialog,
     cancelCheckOut,
     cancelCheckIn,
-    dateLabel,
     handleCheckFilterClick,
     handleCheckIn,
     handleCheckOut,
@@ -242,6 +256,32 @@ function OwnerDailyPage() {
     [pathname, router, searchParams]
   );
 
+  const handlePrevDay = () => {
+    setSelectedDate((current) => addDays(current, -1));
+  };
+
+  const handleNextDay = () => {
+    if (isNextDayDisabled) return;
+    setSelectedDate((current) => addDays(current, 1));
+  };
+
+  const handleGoToday = () => {
+    setSelectedDate(dateNavToday);
+  };
+
+  const handleOpenDatePicker = () => {
+    overlay.open(({ isOpen, close }) => (
+      <OwnerDailyDatePickerSheet
+        isOpen={isOpen}
+        close={close}
+        minDate={dateNavMinDate}
+        maxDate={dateNavToday}
+        initialDate={selectedDate}
+        onConfirm={setSelectedDate}
+      />
+    ));
+  };
+
   const handleContentScroll = (scrollTop: number) => {
     setIsScrollTopButtonVisible(scrollTop > 0);
   };
@@ -331,7 +371,16 @@ function OwnerDailyPage() {
         </Header>
       </div>
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
-        <OwnerDailySummarySection dateLabel={dateLabel} summaryItems={summaryItems} />
+        <OwnerDailySummarySection
+          dateLabel={dateNavLabel}
+          summaryItems={summaryItems}
+          onPrevDay={handlePrevDay}
+          onNextDay={handleNextDay}
+          onOpenDatePicker={handleOpenDatePicker}
+          onGoToday={handleGoToday}
+          isNextDayDisabled={isNextDayDisabled}
+          isToday={isSelectedDateToday}
+        />
         {isLoading ? (
           <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-bg-50' />
         ) : isError ? (
