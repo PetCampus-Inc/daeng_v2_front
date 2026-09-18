@@ -19,7 +19,7 @@ function AlarmToggleRow({ title, description, pressed, disabled, onPressedChange
         <h4 className='body1-bold text-text-primary'>{title}</h4>
         <span className='text-text-secondary body2-regular'>{description}</span>
       </div>
-      <Switch pressed={pressed} disabled={disabled} onPressedChange={onPressedChange} />
+      <Switch aria-label={title} pressed={pressed} disabled={disabled} onPressedChange={onPressedChange} />
     </div>
   );
 }
