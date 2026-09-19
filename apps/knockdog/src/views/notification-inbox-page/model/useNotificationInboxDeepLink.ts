@@ -77,6 +77,10 @@ function useNotificationInboxDeepLink() {
         applyGuardianViewForPath(route.owner.members.approval.root);
         void push({ pathname: route.owner.members.approval.root });
         return;
+      case 'ownerMembers':
+        applyGuardianViewForPath(route.owner.members.root);
+        void push({ pathname: route.owner.members.root });
+        return;
       case 'connectionApplyStatus':
         applyGuardianViewForPath(route.guardian.connectionApply.status.root);
         void push({ pathname: route.guardian.connectionApply.status.root });

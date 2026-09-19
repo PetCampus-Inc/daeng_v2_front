@@ -13,10 +13,16 @@ interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
 }
 
-function DisconnectButton({ kindergartenName }: { kindergartenName: string }) {
+interface DisconnectButtonProps {
+  kindergartenName: string;
+  onDisconnected: (disconnectedAt: string) => void;
+}
+
+function DisconnectButton({ kindergartenName, onDisconnected }: DisconnectButtonProps) {
   const content = guardianConnectionHistoryContent;
   const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
     kindergartenName,
+    onDisconnected,
   });
 
   return (
@@ -36,14 +42,17 @@ function DisconnectButton({ kindergartenName }: { kindergartenName: string }) {
 
 function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
   const content = guardianConnectionHistoryContent;
-  const isCurrent = item.disconnectedAt == null;
+  /** UI-only 해제 시 로컬 종료일 (API 연동 전) */
+  const [localDisconnectedAt, setLocalDisconnectedAt] = useState<string | null>(null);
+  const disconnectedAt = localDisconnectedAt ?? item.disconnectedAt;
+  const isCurrent = disconnectedAt == null;
   const imageSrc = useMemo(() => item.imageUrl.trim(), [item.imageUrl]);
   const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
   const isImageFailed = failedImageSrc === imageSrc;
   const showImage = imageSrc.length > 0 && !isImageFailed;
   const connectedLabel = formatKoreanHistoryDate(item.connectedAt);
-  const disconnectedLabel = item.disconnectedAt
-    ? formatKoreanHistoryDate(item.disconnectedAt)
+  const disconnectedLabel = disconnectedAt
+    ? formatKoreanHistoryDate(disconnectedAt)
     : content.currentLabel;
   const badgeLabel = `${content.attendanceBadgePrefix} ${item.attendanceDayCount}${content.attendanceBadgeSuffix}`;
 
@@ -111,7 +120,9 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
         )}
       </div>
 
-      {isCurrent ? <DisconnectButton kindergartenName={item.name} /> : null}
+      {isCurrent ? (
+        <DisconnectButton kindergartenName={item.name} onDisconnected={setLocalDisconnectedAt} />
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { guardianApplicationsQueryKey } from '@entities/guardian-application';
 import { guardianPetConnectionStatusesQueryKey } from '@entities/guardian-invite';
+import { NOTIFICATIONS_QUERY_KEY } from '@entities/notification';
 
 import { postDisconnectGuardianSchool } from './guardianSchoolDisconnect';
 import { GUARDIAN_HOME_QUERY_KEY } from './useGuardianHomeQuery';
@@ -30,6 +31,7 @@ function useGuardianSchoolDisconnectMutation({
         queryClient.invalidateQueries({
           queryKey: guardianPetConnectionStatusesQueryKey(userId),
         }),
+        queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] }),
       ]);
     },
   });
