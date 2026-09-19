@@ -115,8 +115,12 @@ function BasicSection({ kindergartenId }: BasicSectionProps) {
         </div>
       )}
 
-      {/* 웹사이트 SNS */}
-      <ExternalLinksCard website={homepageUrl} instagram={instagramUrl} youtube={youtubeUrl} />
+      {/* 웹사이트 · SNS — 유효 URL 없으면 섹션 미노출 */}
+      <ExternalLinksCard
+        homepageUrl={homepageUrl}
+        instagramUrl={instagramUrl}
+        blogUrl={youtubeUrl}
+      />
       {/* 위치 */}
       {roadAddress && coord && <LocationMap address={roadAddress} coord={coord} />}
       {/* 최종 정보 업데이트 */}
