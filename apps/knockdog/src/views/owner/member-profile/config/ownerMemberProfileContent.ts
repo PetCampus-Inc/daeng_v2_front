@@ -48,8 +48,7 @@ const ownerMemberProfileContent = {
     nameMaxLength: 8,
   },
   disconnectSuccessToastSuffix: '의 유치원 연결을 해제했어요',
-  disconnectFailToast: '유치원 연결 해제에 실패했어요',
-  disconnectMemberNotFoundToast: '연결 정보를 찾지 못했어요',
+  disconnectFailToast: '일시적 오류로 요청을 완료하지 못했어요',
 };
 
 function getGuardianGenderLabel(gender: string) {

@@ -62,15 +62,23 @@ function useOwnerMemberProfileDisconnect({
   };
 
   const disconnectAndNotify = async () => {
-    if (!memberId) {
-      toast({ title: content.disconnectMemberNotFoundToast });
+    let resolvedMemberId = memberId;
+
+    if (!resolvedMemberId) {
+      const refreshed = await membersQuery.refetch();
+      resolvedMemberId =
+        refreshed.data?.members.find((member) => member.petId === petId)?.id ?? null;
+    }
+
+    if (!resolvedMemberId) {
+      toast({ title: content.disconnectFailToast });
       return false;
     }
 
     try {
-      await disconnectMutation.mutateAsync(memberId);
+      await disconnectMutation.mutateAsync(resolvedMemberId);
       trackConnectionStatus({ status: 'disconnect', actor: 'owner' });
-      await navigateToTab('/owner/members');
+      await navigateToTab('/owner/members', undefined, 'owner');
       showSuccessToast();
       return true;
     } catch {
