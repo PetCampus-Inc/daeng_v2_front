@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import {
-  formatKstDateLabel,
-  formatKstDayLabel,
   formatKstTimeLabel,
   getKstDateKey,
-  getNextKstMidnightDelay,
 } from '@views/owner-daily-page/lib/ownerDailyDate';
 
 import {
@@ -101,12 +98,10 @@ function getCancelCheckInBlockMessage(member: AttendanceMember) {
   return null;
 }
 
-function useOwnerDailyPage() {
+function useOwnerDailyPage(selectedDate: Date) {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const [activeDate, setActiveDate] = useState(() => new Date());
-  const todayDateKey = getKstDateKey(activeDate);
-  const dateLabel = `${formatKstDateLabel(activeDate)} ${formatKstDayLabel(activeDate)}`;
+  const selectedDateKey = getKstDateKey(selectedDate);
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showUncheckedOnly, setShowUncheckedOnly] = useState(false);
@@ -114,42 +109,19 @@ function useOwnerDailyPage() {
   const normalizedSearchKeyword = normalizeSearchText(searchKeyword);
   const candidatesSearchQuery = debouncedSearchKeyword.trim() || undefined;
 
-  const refreshActiveDate = useCallback(() => {
-    setActiveDate(new Date());
-  }, []);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      refreshActiveDate();
-    }, getNextKstMidnightDelay(activeDate));
-
-    return () => window.clearTimeout(timeout);
-  }, [activeDate, refreshActiveDate]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState !== 'visible') return;
-      if (getKstDateKey(activeDate) === getKstDateKey(new Date())) return;
-      refreshActiveDate();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [activeDate, refreshActiveDate]);
-
   const candidatesQuery = useAttendanceCheckinoutCandidatesQuery({
-    date: todayDateKey,
+    date: selectedDateKey,
     q: candidatesSearchQuery,
     userId,
     enabled: Boolean(userId),
   });
   const todayQuery = useAttendanceCheckinoutTodayQuery({
-    date: todayDateKey,
+    date: selectedDateKey,
     userId,
     enabled: Boolean(userId),
   });
   const summaryQuery = useAttendanceCheckinoutSummaryQuery({
-    date: todayDateKey,
+    date: selectedDateKey,
     userId,
     enabled: Boolean(userId),
   });
@@ -166,24 +138,24 @@ function useOwnerDailyPage() {
     );
 
     return (candidatesQuery.data?.items ?? []).map((candidate) => {
-      const member = toAttendanceMemberFromCandidate(candidate, todayDateKey);
+      const member = toAttendanceMemberFromCandidate(candidate, selectedDateKey);
 
       return {
         ...member,
         noticebookSent: noticebookSentByPetId.get(candidate.petId) ?? false,
       };
     });
-  }, [candidatesQuery.data?.items, todayDateKey, todayQuery.data?.items]);
+  }, [candidatesQuery.data?.items, selectedDateKey, todayQuery.data?.items]);
   const todayAttendanceMembers = useMemo(
     () =>
       [...(todayQuery.data?.items ?? [])]
         // 전날 등원 시각이 남아 있으면 오늘 목록에서 제외
-        .filter((item) => !item.checkInAt || isCheckInOnDate(item.checkInAt, todayDateKey))
+        .filter((item) => !item.checkInAt || isCheckInOnDate(item.checkInAt, selectedDateKey))
         .map(toAttendanceMemberFromTodayItem)
         .sort((currentMember, nextMember) =>
           currentMember.name.localeCompare(nextMember.name, 'ko-KR')
         ),
-    [todayDateKey, todayQuery.data?.items]
+    [selectedDateKey, todayQuery.data?.items]
   );
   const summaryItems = [
     { label: '오늘 등원', count: summaryQuery.data?.checkedInCount ?? 0 },
@@ -277,7 +249,7 @@ function useOwnerDailyPage() {
 
   const handleCheckIn = async (member: AttendanceMember) => {
     try {
-      await checkInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
+      await checkInMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
       trackAttendanceAction({ action: 'check_in' });
       const checkInSuffix = `${getSubjectObjectParticle(member.name)} 등원 처리했어요`;
       toast({
@@ -301,7 +273,7 @@ function useOwnerDailyPage() {
 
   const cancelCheckIn = async (member: AttendanceMember, close: () => void) => {
     try {
-      await cancelCheckInMutation.mutateAsync({ petId: member.id, date: todayDateKey });
+      await cancelCheckInMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
       close();
       trackAttendanceAction({ action: 'cancel_check_in' });
       toast({
@@ -327,7 +299,7 @@ function useOwnerDailyPage() {
     if (member.checkedOut) return;
 
     try {
-      await checkOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
+      await checkOutMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
       trackAttendanceAction({ action: 'check_out' });
       const checkOutSuffix = `${getSubjectObjectParticle(member.name)} 하원 처리했어요`;
       toast({
@@ -353,7 +325,7 @@ function useOwnerDailyPage() {
     if (!member.checkedOut) return;
 
     try {
-      await cancelCheckOutMutation.mutateAsync({ petId: member.id, date: todayDateKey });
+      await cancelCheckOutMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
       close();
       trackAttendanceAction({ action: 'cancel_check_out' });
       toast({
@@ -386,7 +358,6 @@ function useOwnerDailyPage() {
     cancelCheckOut,
     cancelCheckIn,
     canOpenCancelCheckInDialog,
-    dateLabel,
     handleCheckFilterClick,
     handleCheckIn,
     handleCheckOut,

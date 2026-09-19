@@ -136,10 +136,13 @@ function OwnerDailyPage() {
     persistedViewRef.current ? dateFromDateKey(persistedViewRef.current.date) : startOfDay(new Date())
   );
   const dateNavToday = useMemo(() => startOfDay(new Date()), []);
-  const dateNavMinDate = useMemo(() => addDays(dateNavToday, -365), [dateNavToday]);
-  const dateNavLabel = `${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
+  const dateNavMinDate = useMemo(
+    () => startOfDay(new Date(dateNavToday.getFullYear() - 1, 0, 1)),
+    [dateNavToday]
+  );
   const isNextDayDisabled = !isBeforeDay(selectedDate, dateNavToday);
   const isSelectedDateToday = isSameDay(selectedDate, dateNavToday);
+  const dateNavLabel = `${selectedDate.getFullYear() === dateNavToday.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
   const {
     attendanceCheckMembers,
     canOpenCancelCheckInDialog,
@@ -163,7 +166,7 @@ function OwnerDailyPage() {
     showUncheckedOnly,
     summaryItems,
     todayAttendanceMembers,
-  } = useOwnerDailyPage();
+  } = useOwnerDailyPage(selectedDate);
   const displaySummaryItems = isSelectedDateToday
     ? summaryItems
     : summaryItems.map((item) => {
@@ -369,6 +372,11 @@ function OwnerDailyPage() {
   };
 
   useEffect(() => {
+    if (!persistedViewRef.current) return;
+    safeSessionStorage.remove(STORAGE_KEYS.OWNER_DAILY_VIEW);
+  }, []);
+
+  useEffect(() => {
     // URL에 tab이 있을 때만 동기화. remount 시 bare /owner/daily면 localStorage 유지.
     if (rawTab !== 'today-attendance' && rawTab !== 'attendance-check') return;
 
@@ -407,6 +415,7 @@ function OwnerDailyPage() {
 
     const handleNativeTabFocus = () => {
       syncTabFromNavigation();
+      setSelectedDate(dateNavToday);
       window.setTimeout(syncTabFromNavigation, 0);
       window.setTimeout(syncTabFromNavigation, 100);
     };
@@ -420,7 +429,7 @@ function OwnerDailyPage() {
       window.removeEventListener('knockdog:native-tab-focus', handleNativeTabFocus);
       window.removeEventListener('popstate', syncTabFromNavigation);
     };
-  }, [applyOwnerDailyTab]);
+  }, [applyOwnerDailyTab, dateNavToday]);
 
   useLayoutEffect(() => {
     setIsScrollTopButtonVisible(false);
