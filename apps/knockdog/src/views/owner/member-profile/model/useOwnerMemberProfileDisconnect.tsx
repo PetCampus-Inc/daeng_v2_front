@@ -9,9 +9,8 @@ import {
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
-import { openConfirmDialog, useTabNavigation } from '@shared/lib/bridge';
+import { useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
-import { ellipsisText } from '@shared/utils';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
 import { OwnerMemberProfileDisconnectDialog } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectDialog';
 
@@ -21,13 +20,17 @@ interface UseOwnerMemberProfileDisconnectOptions {
   enabled?: boolean;
 }
 
+/**
+ * 원생 프로필 연결 해제.
+ * 네이티브 confirm 대신 overlay AlertDialog만 사용 —
+ * OverlayProvider history trap이 시스템/브라우저 뒤로가기를 가로채 모달만 닫는다.
+ */
 function useOwnerMemberProfileDisconnect({
   petId,
   dogName,
   enabled = true,
 }: UseOwnerMemberProfileDisconnectOptions) {
   const content = ownerMemberProfileContent;
-  const { disconnectDialog } = content;
   const userId = useUserStore((state) => state.user?.userId);
   const { navigateToTab } = useTabNavigation();
   const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
@@ -40,8 +43,6 @@ function useOwnerMemberProfileDisconnect({
     const members = membersQuery.data?.members ?? [];
     return members.find((member) => member.petId === petId)?.id ?? null;
   }, [membersQuery.data?.members, petId]);
-
-  const displayDogName = ellipsisText(dogName, disconnectDialog.nameMaxLength);
 
   const showSuccessToast = () => {
     toast({
@@ -78,7 +79,8 @@ function useOwnerMemberProfileDisconnect({
     }
   };
 
-  const openWebDisconnectDialog = () => {
+  const handleDisconnectClick = () => {
+    // OverlayProvider history trap — 시스템/브라우저 뒤로가기는 모달만 닫음
     overlay.open(({ isOpen, close }) => (
       <OwnerMemberProfileDisconnectDialog
         isOpen={isOpen}
@@ -87,29 +89,6 @@ function useOwnerMemberProfileDisconnect({
         onDisconnect={disconnectAndNotify}
       />
     ));
-  };
-
-  const handleDisconnectClick = async () => {
-    const result = await openConfirmDialog({
-      title: `${displayDogName}${disconnectDialog.titleSuffix}\n${disconnectDialog.titleLine2}`,
-      titleParts: [
-        { text: displayDogName, accent: true },
-        { text: `${disconnectDialog.titleSuffix}\n${disconnectDialog.titleLine2}` },
-      ],
-      description: disconnectDialog.description,
-      cancelLabel: disconnectDialog.cancelLabel,
-      confirmLabel: disconnectDialog.confirmLabel,
-      contentPaddingHorizontal: 16,
-    });
-
-    if (result.status === 'pending') return;
-
-    if (result.status === 'resolved') {
-      if (result.action === 'confirm') void disconnectAndNotify();
-      return;
-    }
-
-    openWebDisconnectDialog();
   };
 
   return {
