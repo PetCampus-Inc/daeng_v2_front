@@ -5,6 +5,7 @@ const guardianConnectionHistoryContent = {
   currentLabel: '현재',
   attendanceBadgePrefix: '등원',
   attendanceBadgeSuffix: '회',
+  disconnectButtonLabel: '연결 해제',
 } as const;
 
 export { guardianConnectionHistoryContent };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Icon } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
@@ -88,6 +88,12 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
           </span>
         )}
       </div>
+
+      {isCurrent ? (
+        <ActionButton type='button' variant='secondaryLine' size='medium'>
+          {content.disconnectButtonLabel}
+        </ActionButton>
+      ) : null}
     </div>
   );
 }
