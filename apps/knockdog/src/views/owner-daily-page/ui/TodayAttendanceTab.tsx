@@ -22,6 +22,7 @@ interface TodayAttendanceTabProps {
   initialSelectedFilter?: TodayAttendanceFilter;
   isLoading?: boolean;
   isError?: boolean;
+  showActions?: boolean;
   onCheckOutButtonClick: (member: AttendanceMember) => void;
   onMemberClick: (memberId: string) => void;
   onNoticebookButtonClick: (member: AttendanceMember) => void;
@@ -32,6 +33,7 @@ function TodayAttendanceTab({
   initialSelectedFilter = 'all',
   isLoading = false,
   isError = false,
+  showActions = true,
   onCheckOutButtonClick,
   onMemberClick,
   onNoticebookButtonClick,
@@ -47,7 +49,7 @@ function TodayAttendanceTab({
   }, [initialSelectedFilter]);
 
   return (
-    <div className='flex min-h-full w-full flex-col gap-4 pt-5'>
+    <div className='flex min-h-full w-full flex-col gap-5 pt-5'>
       <div className='flex h-[38px] w-full items-center gap-2 px-4'>
         {FILTER_OPTIONS.map((option) => (
           <Chip.Toggle
@@ -74,11 +76,12 @@ function TodayAttendanceTab({
       ) : filteredItems.length === 0 ? (
         <OwnerDailyFilterEmptyState />
       ) : (
-        <div className='flex w-full flex-col gap-4 px-4 pb-5'>
+        <div className='flex w-full flex-col gap-3 px-4'>
           {filteredItems.map((member) => (
             <TodayAttendanceCard
               key={member.id}
               member={member}
+              showActions={showActions}
               onCheckOutButtonClick={onCheckOutButtonClick}
               onMemberClick={onMemberClick}
               onNoticebookButtonClick={onNoticebookButtonClick}

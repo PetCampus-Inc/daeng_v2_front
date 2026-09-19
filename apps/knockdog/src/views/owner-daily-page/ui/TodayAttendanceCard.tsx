@@ -7,6 +7,7 @@ import { DogMetaLine } from '@shared/ui/dog-meta-line';
 
 interface TodayAttendanceCardProps {
   member: AttendanceMember;
+  showActions?: boolean;
   onCheckOutButtonClick: (member: AttendanceMember) => void;
   onMemberClick: (memberId: string) => void;
   onNoticebookButtonClick: (member: AttendanceMember) => void;
@@ -14,6 +15,7 @@ interface TodayAttendanceCardProps {
 
 function TodayAttendanceCard({
   member,
+  showActions = true,
   onCheckOutButtonClick,
   onMemberClick,
   onNoticebookButtonClick,
@@ -30,7 +32,9 @@ function TodayAttendanceCard({
     <div
       role='button'
       tabIndex={0}
-      className='bg-bg-0 radius-r3 focus-visible:ring-line-accent flex h-[192px] w-full min-w-0 cursor-pointer flex-col items-stretch gap-4 overflow-hidden p-4 text-left focus-visible:ring-2 focus-visible:outline-none'
+      className={`bg-bg-0 radius-r3 focus-visible:ring-line-accent flex w-full min-w-0 cursor-pointer flex-col items-stretch gap-4 overflow-hidden p-4 text-left focus-visible:ring-2 focus-visible:outline-none ${
+        showActions ? 'h-[192px]' : 'h-32'
+      }`}
       onClick={() => onMemberClick(member.id)}
       onKeyDown={handleCardKeyDown}
     >
@@ -72,32 +76,34 @@ function TodayAttendanceCard({
           ) : null}
         </div>
       </div>
-      <div className='flex h-12 w-full items-start gap-2'>
-        <ActionButton
-          type='button'
-          variant={member.checkedOut ? 'secondaryLine' : 'primaryLine'}
-          size='medium'
-          className='flex-1'
-          onClick={(event) => {
-            event.stopPropagation();
-            onCheckOutButtonClick(member);
-          }}
-        >
-          {member.checkedOut ? '하원 취소' : '하원'}
-        </ActionButton>
-        <ActionButton
-          type='button'
-          variant={member.noticebookSent ? 'tertiaryFill' : 'primaryFill'}
-          size='medium'
-          className='flex-1'
-          onClick={(event) => {
-            event.stopPropagation();
-            onNoticebookButtonClick(member);
-          }}
-        >
-          {member.noticebookSent ? '작성한 알림장 보기' : '알림장 작성하기'}
-        </ActionButton>
-      </div>
+      {showActions ? (
+        <div className='flex h-12 w-full items-start gap-2'>
+          <ActionButton
+            type='button'
+            variant={member.checkedOut ? 'secondaryLine' : 'primaryLine'}
+            size='medium'
+            className='flex-1'
+            onClick={(event) => {
+              event.stopPropagation();
+              onCheckOutButtonClick(member);
+            }}
+          >
+            {member.checkedOut ? '하원 취소' : '하원'}
+          </ActionButton>
+          <ActionButton
+            type='button'
+            variant={member.noticebookSent ? 'tertiaryFill' : 'primaryFill'}
+            size='medium'
+            className='flex-1'
+            onClick={(event) => {
+              event.stopPropagation();
+              onNoticebookButtonClick(member);
+            }}
+          >
+            {member.noticebookSent ? '작성한 알림장 보기' : '알림장 작성하기'}
+          </ActionButton>
+        </div>
+      ) : null}
     </div>
   );
 }
