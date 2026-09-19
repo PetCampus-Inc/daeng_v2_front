@@ -5,9 +5,7 @@ import { overlay } from 'overlay-kit';
 import { useGuardianSchoolDisconnectMutation } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
-import { openConfirmDialog } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
-import { ellipsisText } from '@shared/utils';
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 import { GuardianConnectionDisconnectDialog } from '@views/guardian-kindergarten-history-page/ui/GuardianConnectionDisconnectDialog';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
@@ -18,7 +16,6 @@ interface UseGuardianConnectionDisconnectOptions {
 
 function useGuardianConnectionDisconnect({ kindergartenName }: UseGuardianConnectionDisconnectOptions) {
   const content = guardianConnectionHistoryContent;
-  const { disconnectDialog } = content;
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPet } = useGuardianSelectedPet();
   const disconnectMutation = useGuardianSchoolDisconnectMutation({ userId });
@@ -42,7 +39,8 @@ function useGuardianConnectionDisconnect({ kindergartenName }: UseGuardianConnec
     }
   };
 
-  const openWebDisconnectDialog = () => {
+  const handleDisconnectClick = () => {
+    // OverlayProvider history trap — 시스템/브라우저 뒤로가기는 모달만 닫음
     overlay.open(({ isOpen, close }) => (
       <GuardianConnectionDisconnectDialog
         isOpen={isOpen}
@@ -52,28 +50,6 @@ function useGuardianConnectionDisconnect({ kindergartenName }: UseGuardianConnec
         onDisconnect={disconnectAndNotify}
       />
     ));
-  };
-
-  const handleDisconnectClick = async () => {
-    const displayName = ellipsisText(kindergartenName, disconnectDialog.nameMaxLength);
-
-    const result = await openConfirmDialog({
-      title: `${displayName}${disconnectDialog.titleSuffix}`,
-      titleParts: [{ text: displayName, accent: true }, { text: disconnectDialog.titleSuffix }],
-      description: `${disconnectDialog.descriptionPrefix}${petName}${disconnectDialog.descriptionSuffix}`,
-      cancelLabel: disconnectDialog.cancelLabel,
-      confirmLabel: disconnectDialog.confirmLabel,
-      contentPaddingHorizontal: 16,
-    });
-
-    if (result.status === 'pending') return;
-
-    if (result.status === 'resolved') {
-      if (result.action === 'confirm') void disconnectAndNotify();
-      return;
-    }
-
-    openWebDisconnectDialog();
   };
 
   return {

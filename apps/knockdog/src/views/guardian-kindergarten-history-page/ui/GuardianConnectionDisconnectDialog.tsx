@@ -55,7 +55,7 @@ function GuardianConnectionDisconnectDialog({
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
+    <AlertDialog open={isOpen} onOpenChange={handleOpenChange} closeOnNativeBack={false}>
       <AlertDialogContent className='max-w-[358px]'>
         {/* relative는 Content에 두면 fixed 중앙 정렬을 덮어씀 */}
         <div className='relative'>
