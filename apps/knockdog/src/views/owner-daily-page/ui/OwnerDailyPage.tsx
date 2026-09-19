@@ -25,6 +25,7 @@ import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDaily
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
 import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
+import { getKstDateKey } from '@views/owner-daily-page/lib/ownerDailyDate';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
@@ -36,6 +37,32 @@ import { Header } from '@widgets/Header';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 type OwnerDailyTab = 'attendance-check' | 'today-attendance';
+
+interface OwnerDailyViewState {
+  date: string;
+  scrollTop: number;
+}
+
+function readPersistedOwnerDailyView(): OwnerDailyViewState | null {
+  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_VIEW);
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value) as Partial<OwnerDailyViewState>;
+    const { date, scrollTop } = parsed;
+    if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || typeof scrollTop !== 'number') return null;
+    if (!Number.isFinite(scrollTop)) return null;
+    return { date, scrollTop: Math.max(0, scrollTop) };
+  } catch {
+    return null;
+  }
+}
+
+function dateFromDateKey(dateKey: string) {
+  const [yearString = '', monthString = '', dayString = ''] = dateKey.split('-');
+  const [year, month, day] = [Number(yearString), Number(monthString), Number(dayString)];
+  return startOfDay(new Date(year, month - 1, day));
+}
 
 function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
   return value === 'today-attendance' ? 'today-attendance' : 'attendance-check';
@@ -103,7 +130,11 @@ function OwnerDailyPage() {
   const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
-  const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const persistedViewRef = useRef(readPersistedOwnerDailyView());
+  const shouldRestoreScrollPositionRef = useRef(Boolean(persistedViewRef.current));
+  const [selectedDate, setSelectedDate] = useState(() =>
+    persistedViewRef.current ? dateFromDateKey(persistedViewRef.current.date) : startOfDay(new Date())
+  );
   const dateNavToday = useMemo(() => startOfDay(new Date()), []);
   const dateNavMinDate = useMemo(() => addDays(dateNavToday, -365), [dateNavToday]);
   const dateNavLabel = `${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
@@ -244,6 +275,24 @@ function OwnerDailyPage() {
     router.replace(buildHref(pathname, query), { scroll: false });
   };
 
+  const handleSummaryItemClick = (index: number) => {
+    const filters: TodayAttendanceFilter[] = ['all', 'checked-in', 'noticebook-pending'];
+    const filter = filters[index];
+    if (!filter) return;
+
+    setSelectedTab('today-attendance');
+    persistOwnerDailyTab('today-attendance');
+
+    const query = searchParamsToQuery(searchParams);
+    query.tab = 'today-attendance';
+    if (filter === 'all') {
+      delete query.todayFilter;
+    } else {
+      query.todayFilter = filter;
+    }
+    router.replace(buildHref(pathname, query), { scroll: false });
+  };
+
   const applyOwnerDailyTab = useCallback(
     (nextTab: OwnerDailyTab, options?: { force?: boolean }) => {
       if (!options?.force && selectedTabRef.current === nextTab) return;
@@ -293,8 +342,27 @@ function OwnerDailyPage() {
     setIsScrollTopButtonVisible(scrollTop > 0);
   };
 
+  const persistCurrentView = () => {
+    const contentRef =
+      !isSelectedDateToday || selectedTab === 'today-attendance'
+        ? todayAttendanceContentRef
+        : attendanceCheckContentRef;
+    safeSessionStorage.set(
+      STORAGE_KEYS.OWNER_DAILY_VIEW,
+      JSON.stringify({ date: getKstDateKey(selectedDate), scrollTop: contentRef.current?.scrollTop ?? 0 })
+    );
+  };
+
+  const handleMemberProfileClick = (memberId: string) => {
+    persistCurrentView();
+    handleMemberClick(memberId);
+  };
+
   const handleScrollToTop = () => {
-    const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
+    const contentRef =
+      !isSelectedDateToday || selectedTab === 'today-attendance'
+        ? todayAttendanceContentRef
+        : attendanceCheckContentRef;
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -355,12 +423,17 @@ function OwnerDailyPage() {
   useLayoutEffect(() => {
     setIsScrollTopButtonVisible(false);
     const animationFrameId = requestAnimationFrame(() => {
-      const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
-      contentRef.current?.scrollTo({ top: 0 });
+      const contentRef =
+        !isSelectedDateToday || selectedTab === 'today-attendance'
+          ? todayAttendanceContentRef
+          : attendanceCheckContentRef;
+      const scrollTop = shouldRestoreScrollPositionRef.current ? persistedViewRef.current?.scrollTop ?? 0 : 0;
+      contentRef.current?.scrollTo({ top: scrollTop });
+      shouldRestoreScrollPositionRef.current = false;
     });
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [selectedTab]);
+  }, [isSelectedDateToday, selectedTab]);
 
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
@@ -385,6 +458,7 @@ function OwnerDailyPage() {
           onNextDay={handleNextDay}
           onOpenDatePicker={handleOpenDatePicker}
           onGoToday={handleGoToday}
+          onSummaryItemClick={handleSummaryItemClick}
           isNextDayDisabled={isNextDayDisabled}
           isToday={isSelectedDateToday}
         />
@@ -397,7 +471,7 @@ function OwnerDailyPage() {
               <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
             </div>
           </div>
-        ) : (
+        ) : isSelectedDateToday ? (
           <Tabs
             value={selectedTab}
             className='flex min-h-0 flex-1 flex-col'
@@ -427,7 +501,7 @@ function OwnerDailyPage() {
                 onSearchKeywordChange={handleSearchKeywordChange}
                 onClearSearchKeyword={handleClearSearchKeyword}
                 onInviteGuardianClick={handleInviteGuardianClick}
-                onMemberClick={handleMemberClick}
+                onMemberClick={handleMemberProfileClick}
                 onAttendanceButtonClick={handleAttendanceButtonClick}
               />
             </TabsContent>
@@ -443,11 +517,28 @@ function OwnerDailyPage() {
                 isLoading={isTodayLoading}
                 isError={isTodayError}
                 onCheckOutButtonClick={handleCheckOutButtonClick}
-                onMemberClick={handleMemberClick}
+                onMemberClick={handleMemberProfileClick}
                 onNoticebookButtonClick={handleNoticebookButtonClick}
               />
             </TabsContent>
           </Tabs>
+        ) : (
+          <div
+            ref={todayAttendanceContentRef}
+            className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
+            onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
+          >
+            <TodayAttendanceTab
+              items={todayAttendanceMembers}
+              initialSelectedFilter={initialTodayAttendanceFilter}
+              isLoading={isTodayLoading}
+              isError={isTodayError}
+              showActions={false}
+              onCheckOutButtonClick={handleCheckOutButtonClick}
+              onMemberClick={handleMemberProfileClick}
+              onNoticebookButtonClick={handleNoticebookButtonClick}
+            />
+          </div>
         )}
       </main>
       {isScrollTopButtonVisible ? (
