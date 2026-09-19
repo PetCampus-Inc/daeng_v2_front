@@ -3,7 +3,9 @@ import type { NotificationInboxItem } from '@views/notification-inbox-page/confi
 import { buildNotificationInboxMessage } from '@views/notification-inbox-page/lib/buildNotificationInboxMessage';
 
 function toNotificationInboxItem(notification: Notification): NotificationInboxItem {
-  const fallback = buildNotificationInboxMessage(notification.type, notification.pet?.name ?? '');
+  const fallback = buildNotificationInboxMessage(notification.type, notification.pet?.name ?? '', {
+    schoolName: notification.school?.name ?? '',
+  });
 
   return {
     id: notification.id,

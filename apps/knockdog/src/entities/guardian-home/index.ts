@@ -45,6 +45,9 @@ export {
   guardianSchoolRecordsQueryKey,
   useGuardianSchoolRecordsQuery,
 } from './api/useGuardianSchoolRecordsQuery';
+export { postDisconnectGuardianSchool } from './api/guardianSchoolDisconnect';
+export type { PostDisconnectGuardianSchoolParams } from './api/guardianSchoolDisconnect';
+export { useGuardianSchoolDisconnectMutation } from './api/useGuardianSchoolDisconnectMutation';
 export { toGuardianSchoolConnections } from './model/guardianSchoolConnection';
 export type {
   GuardianSchoolConnection,
