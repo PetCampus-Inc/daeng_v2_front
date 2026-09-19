@@ -281,6 +281,8 @@ function OwnerDailyPage() {
     if (!filter) return;
 
     setSelectedTab('today-attendance');
+    setIsScrollTopButtonVisible(false);
+    todayAttendanceContentRef.current?.scrollTo({ top: 0 });
     persistOwnerDailyTab('today-attendance');
 
     const query = searchParamsToQuery(searchParams);
