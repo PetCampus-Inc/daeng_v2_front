@@ -72,9 +72,12 @@ function GuardianConnectionDisconnectDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className='px-x4'>
-            <AlertDialogCancel disabled={isSubmitting}>{disconnectDialog.cancelLabel}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isSubmitting} className='body1-bold text-text-secondary'>
+              {disconnectDialog.cancelLabel}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isSubmitting}
+              className='body1-bold text-text-primary-inverse'
               onClick={(event) => {
                 event.preventDefault();
                 void handleDisconnect();
