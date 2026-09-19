@@ -37,6 +37,19 @@ const ownerMemberProfileContent = {
   profileLoadingText: '원생 프로필을 불러오는 중이에요',
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',
+  disconnectButtonLabel: '연결 해제',
+  disconnectDialog: {
+    titleSuffix: '의',
+    titleLine2: '유치원 연결을 해제하시겠어요?',
+    description: '연결을 해제하면 더 이상 해당 원생의 일과를\n수행할 수 없어요.',
+    cancelLabel: '닫기',
+    confirmLabel: '연결 해제하기',
+    /** 강아지명 말줄임 */
+    nameMaxLength: 8,
+  },
+  disconnectSuccessToastSuffix: '의 유치원 연결을 해제했어요',
+  disconnectFailToast: '유치원 연결 해제에 실패했어요',
+  disconnectMemberNotFoundToast: '연결 정보를 찾지 못했어요',
 };
 
 function getGuardianGenderLabel(gender: string) {

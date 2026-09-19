@@ -10,11 +10,38 @@ import {
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
+import { useOwnerMemberProfileDisconnect } from '../model/useOwnerMemberProfileDisconnect';
 import { useOwnerMemberProfilePage } from '../model/useOwnerMemberProfilePage';
 import { DogBasicInfoSection } from './DogBasicInfoSection';
 import { GuardianBasicInfoSection } from './GuardianBasicInfoSection';
 import { AttendanceRecordSection } from './AttendanceRecordSection';
 import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
+
+function OwnerMemberProfileDisconnectButton({
+  petId,
+  dogName,
+}: {
+  petId: string;
+  dogName: string;
+}) {
+  const { handleDisconnectClick, isDisconnecting } = useOwnerMemberProfileDisconnect({
+    petId,
+    dogName,
+  });
+
+  return (
+    <button
+      type='button'
+      disabled={isDisconnecting}
+      onClick={() => {
+        void handleDisconnectClick();
+      }}
+      className='label-semibold text-text-primary px-2 py-1 disabled:opacity-50'
+    >
+      {ownerMemberProfileContent.disconnectButtonLabel}
+    </button>
+  );
+}
 
 function OwnerMemberProfilePage() {
   const {
@@ -37,6 +64,11 @@ function OwnerMemberProfilePage() {
           <Header.BackButton />
         </Header.LeftSection>
         <Header.Title>{ownerMemberProfileContent.pageTitle}</Header.Title>
+        {dog ? (
+          <Header.RightSection>
+            <OwnerMemberProfileDisconnectButton petId={petId} dogName={dog.name} />
+          </Header.RightSection>
+        ) : null}
       </Header>
 
       {isDogLoading && !dog ? (
