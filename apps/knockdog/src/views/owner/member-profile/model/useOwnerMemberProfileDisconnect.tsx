@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { overlay } from 'overlay-kit';
 
 import {
+  findOwnerMemberByPetId,
   useOwnerMemberDisconnectMutation,
   useOwnerMembersQuery,
 } from '@entities/owner-member';
@@ -22,8 +23,10 @@ interface UseOwnerMemberProfileDisconnectOptions {
 
 /**
  * 원생 프로필 연결 해제.
- * 네이티브 confirm 대신 overlay AlertDialog만 사용 —
- * OverlayProvider history trap이 시스템/브라우저 뒤로가기를 가로채 모달만 닫는다.
+ *
+ * - 권한 해제(API) 실패 → 공통 오류 토스트 + 프로필 화면 유지(모달 닫음)
+ * - 권한 해제 성공 후 알림·탭 이동·토스트 오류 → 연결 해제 완료로 간주
+ * - 보호자 알림/앨범 미노출/당일 등원 일과 노출은 서버 정책
  */
 function useOwnerMemberProfileDisconnect({
   petId,
@@ -39,10 +42,10 @@ function useOwnerMemberProfileDisconnect({
     enabled: enabled && Boolean(petId),
   });
 
-  const memberId = useMemo(() => {
-    const members = membersQuery.data?.members ?? [];
-    return members.find((member) => member.petId === petId)?.id ?? null;
-  }, [membersQuery.data?.members, petId]);
+  const memberId = useMemo(
+    () => findOwnerMemberByPetId(membersQuery.data?.members ?? [], petId)?.id ?? null,
+    [membersQuery.data?.members, petId]
+  );
 
   const showSuccessToast = () => {
     toast({
@@ -61,30 +64,58 @@ function useOwnerMemberProfileDisconnect({
     });
   };
 
-  const disconnectAndNotify = async () => {
-    let resolvedMemberId = memberId;
+  const showFailToast = () => {
+    toast({ title: content.disconnectFailToast });
+  };
+
+  const resolveMemberId = async () => {
+    if (memberId) return memberId;
+
+    const refreshed = await membersQuery.refetch();
+    return findOwnerMemberByPetId(refreshed.data?.members ?? [], petId)?.id ?? null;
+  };
+
+  /**
+   * @returns
+   * - `'failed'` 권한 해제 실패 — 프로필 복귀
+   * - `'completed'` 권한 해제 성공(이후 이동/토스트 실패 포함)
+   */
+  const disconnectAndNotify = async (): Promise<'failed' | 'completed'> => {
+    const resolvedMemberId = await resolveMemberId();
 
     if (!resolvedMemberId) {
-      const refreshed = await membersQuery.refetch();
-      resolvedMemberId =
-        refreshed.data?.members.find((member) => member.petId === petId)?.id ?? null;
-    }
-
-    if (!resolvedMemberId) {
-      toast({ title: content.disconnectFailToast });
-      return false;
+      showFailToast();
+      return 'failed';
     }
 
     try {
       await disconnectMutation.mutateAsync(resolvedMemberId);
-      trackConnectionStatus({ status: 'disconnect', actor: 'owner' });
-      await navigateToTab('/owner/members', undefined, 'owner');
-      showSuccessToast();
-      return true;
     } catch {
-      toast({ title: content.disconnectFailToast });
-      return false;
+      // 서버 원복 가정 — 프론트는 낙관적 미적용이므로 캐시 그대로 + 프로필 복귀
+      showFailToast();
+      return 'failed';
     }
+
+    // 여기부터 연결 해제 완료. 알림은 서버 발송. 이동/토스트 오류는 무시.
+    try {
+      trackConnectionStatus({ status: 'disconnect', actor: 'owner' });
+    } catch {
+      // analytics 실패 무시
+    }
+
+    try {
+      await navigateToTab('/owner/members', undefined, 'owner');
+    } catch {
+      // 페이지 이동 실패도 해제 완료로 간주
+    }
+
+    try {
+      showSuccessToast();
+    } catch {
+      // 토스트 실패 무시
+    }
+
+    return 'completed';
   };
 
   const handleDisconnectClick = () => {

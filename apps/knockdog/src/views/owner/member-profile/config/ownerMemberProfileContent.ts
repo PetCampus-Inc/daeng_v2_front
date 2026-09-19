@@ -48,6 +48,7 @@ const ownerMemberProfileContent = {
     nameMaxLength: 8,
   },
   disconnectSuccessToastSuffix: '의 유치원 연결을 해제했어요',
+  /** 권한 해제(API) 실패 시 — 서버 원복 후 프로필 복귀 */
   disconnectFailToast: '일시적 오류로 요청을 완료하지 못했어요',
 };
 

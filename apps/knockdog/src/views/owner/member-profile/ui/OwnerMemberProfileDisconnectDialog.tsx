@@ -19,7 +19,8 @@ interface OwnerMemberProfileDisconnectDialogProps {
   isOpen: boolean;
   dogName: string;
   close: () => void;
-  onDisconnect: () => Promise<boolean>;
+  /** failed → 프로필 복귀 / completed → 구성원 탭 이동 등 후처리 완료 */
+  onDisconnect: () => Promise<'failed' | 'completed'>;
 }
 
 function OwnerMemberProfileDisconnectDialog({
@@ -41,8 +42,9 @@ function OwnerMemberProfileDisconnectDialog({
 
     setIsSubmitting(true);
     try {
-      const success = await onDisconnect();
-      if (success) close();
+      // 성공·실패 모두 모달을 닫아 프로필(또는 이동된 구성원 탭)로 복귀
+      await onDisconnect();
+      close();
     } finally {
       setIsSubmitting(false);
     }
