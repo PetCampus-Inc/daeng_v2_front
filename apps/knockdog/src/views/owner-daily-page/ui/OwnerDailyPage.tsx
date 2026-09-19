@@ -133,6 +133,13 @@ function OwnerDailyPage() {
     summaryItems,
     todayAttendanceMembers,
   } = useOwnerDailyPage();
+  const displaySummaryItems = isSelectedDateToday
+    ? summaryItems
+    : summaryItems.map((item) => {
+        if (item.label === '오늘 등원') return { ...item, label: '등원' };
+        if (item.label === '재원 중') return { ...item, label: '하원 미처리' };
+        return item;
+      });
 
   const handleCancelCheckIn = async (member: AttendanceMember) => {
     if (!canOpenCancelCheckInDialog(member)) return;
@@ -373,7 +380,7 @@ function OwnerDailyPage() {
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
         <OwnerDailySummarySection
           dateLabel={dateNavLabel}
-          summaryItems={summaryItems}
+          summaryItems={displaySummaryItems}
           onPrevDay={handlePrevDay}
           onNextDay={handleNextDay}
           onOpenDatePicker={handleOpenDatePicker}

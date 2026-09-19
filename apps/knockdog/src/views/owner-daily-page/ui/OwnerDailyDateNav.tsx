@@ -47,7 +47,7 @@ function OwnerDailyDateNav({
         className={
           isToday
             ? 'border-line-accent caption1-semibold text-text-accent rounded-full border px-2 py-1'
-            : 'bg-fill-secondary-500 caption1-semibold text-text-primary-inverse rounded-full px-2 py-1'
+            : 'border-line-200 caption1-semibold text-text-secondary rounded-full border px-2 py-1'
         }
       >
         오늘
