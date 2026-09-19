@@ -7,9 +7,31 @@ import { cn } from '@knockdog/ui/lib';
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 import { formatKoreanHistoryDate } from '@views/guardian-kindergarten-history-page/lib/formatGuardianConnectionHistory';
 import type { GuardianConnectionHistoryItem } from '@views/guardian-kindergarten-history-page/model/guardianConnectionHistory';
+import { useGuardianConnectionDisconnect } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionDisconnect';
 
 interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
+}
+
+function DisconnectButton({ kindergartenName }: { kindergartenName: string }) {
+  const content = guardianConnectionHistoryContent;
+  const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
+    kindergartenName,
+  });
+
+  return (
+    <ActionButton
+      type='button'
+      variant='secondaryLine'
+      size='medium'
+      disabled={isDisconnecting}
+      onClick={() => {
+        void handleDisconnectClick();
+      }}
+    >
+      {content.disconnectButtonLabel}
+    </ActionButton>
+  );
 }
 
 function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
@@ -89,11 +111,7 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
         )}
       </div>
 
-      {isCurrent ? (
-        <ActionButton type='button' variant='secondaryLine' size='medium'>
-          {content.disconnectButtonLabel}
-        </ActionButton>
-      ) : null}
+      {isCurrent ? <DisconnectButton kindergartenName={item.name} /> : null}
     </div>
   );
 }
