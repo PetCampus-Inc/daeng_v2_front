@@ -15,6 +15,7 @@ import { useOwnerMemberProfilePage } from '../model/useOwnerMemberProfilePage';
 import { DogBasicInfoSection } from './DogBasicInfoSection';
 import { GuardianBasicInfoSection } from './GuardianBasicInfoSection';
 import { AttendanceRecordSection } from './AttendanceRecordSection';
+import { OwnerMemberConnectionHistorySection } from './OwnerMemberConnectionHistorySection';
 import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
 
 function OwnerMemberProfileDisconnectButton({
@@ -100,7 +101,10 @@ function OwnerMemberProfilePage() {
 
           <div className='min-h-0 flex-1 overflow-y-auto'>
             <TabsContent value={TAB.DOG}>
-              <DogBasicInfoSection dog={dog} />
+              <div className='flex flex-col gap-5'>
+                <DogBasicInfoSection dog={dog} />
+                <OwnerMemberConnectionHistorySection />
+              </div>
             </TabsContent>
             <TabsContent value={TAB.GUARDIAN}>
               {isGuardianLoading && !guardian ? (
