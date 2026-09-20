@@ -1,12 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Float, FloatingActionButton, Icon, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
+import {
+  addDays,
+  formatKstDateLabel,
+  formatKstDayLabel,
+  isBeforeDay,
+  isSameDay,
+  startOfDay,
+} from '@shared/lib/calendar-date';
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
@@ -16,6 +24,8 @@ import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
+import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
+import { getKstDateKey, getNextKstMidnightDelay } from '@views/owner-daily-page/lib/ownerDailyDate';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
@@ -27,6 +37,32 @@ import { Header } from '@widgets/Header';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 type OwnerDailyTab = 'attendance-check' | 'today-attendance';
+
+interface OwnerDailyViewState {
+  date: string;
+  scrollTop: number;
+}
+
+function readPersistedOwnerDailyView(): OwnerDailyViewState | null {
+  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_VIEW);
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value) as Partial<OwnerDailyViewState>;
+    const { date, scrollTop } = parsed;
+    if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || typeof scrollTop !== 'number') return null;
+    if (!Number.isFinite(scrollTop)) return null;
+    return { date, scrollTop: Math.max(0, scrollTop) };
+  } catch {
+    return null;
+  }
+}
+
+function dateFromDateKey(dateKey: string) {
+  const [yearString = '', monthString = '', dayString = ''] = dateKey.split('-');
+  const [year, month, day] = [Number(yearString), Number(monthString), Number(dayString)];
+  return startOfDay(new Date(year, month - 1, day));
+}
 
 function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
   return value === 'today-attendance' ? 'today-attendance' : 'attendance-check';
@@ -94,12 +130,25 @@ function OwnerDailyPage() {
   const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
   const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
   const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
+  const persistedViewRef = useRef(readPersistedOwnerDailyView());
+  const shouldRestoreScrollPositionRef = useRef(Boolean(persistedViewRef.current));
+  const [selectedDate, setSelectedDate] = useState(() =>
+    persistedViewRef.current ? dateFromDateKey(persistedViewRef.current.date) : startOfDay(new Date())
+  );
+  const [dateNavToday, setDateNavToday] = useState(() => startOfDay(new Date()));
+  const dateNavMinDate = useMemo(
+    () => startOfDay(new Date(dateNavToday.getFullYear() - 1, 0, 1)),
+    [dateNavToday]
+  );
+  const isNextDayDisabled = !isBeforeDay(selectedDate, dateNavToday);
+  const isSelectedDateToday = isSameDay(selectedDate, dateNavToday);
+  const selectedDateKey = getKstDateKey(selectedDate);
+  const dateNavLabel = `${selectedDate.getFullYear() === dateNavToday.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
   const {
     attendanceCheckMembers,
     canOpenCancelCheckInDialog,
     cancelCheckOut,
     cancelCheckIn,
-    dateLabel,
     handleCheckFilterClick,
     handleCheckIn,
     handleCheckOut,
@@ -118,7 +167,14 @@ function OwnerDailyPage() {
     showUncheckedOnly,
     summaryItems,
     todayAttendanceMembers,
-  } = useOwnerDailyPage();
+  } = useOwnerDailyPage(selectedDate, isSelectedDateToday);
+  const displaySummaryItems = isSelectedDateToday
+    ? summaryItems
+    : summaryItems.map((item) => {
+        if (item.label === '오늘 등원') return { ...item, label: '등원' };
+        if (item.label === '재원 중') return { ...item, label: '하원 미처리' };
+        return item;
+      });
 
   const handleCancelCheckIn = async (member: AttendanceMember) => {
     if (!canOpenCancelCheckInDialog(member)) return;
@@ -223,6 +279,26 @@ function OwnerDailyPage() {
     router.replace(buildHref(pathname, query), { scroll: false });
   };
 
+  const handleSummaryItemClick = (index: number) => {
+    const filters: TodayAttendanceFilter[] = ['all', 'checked-in', 'noticebook-pending'];
+    const filter = filters[index];
+    if (!filter) return;
+
+    setSelectedTab('today-attendance');
+    setIsScrollTopButtonVisible(false);
+    todayAttendanceContentRef.current?.scrollTo({ top: 0 });
+    persistOwnerDailyTab('today-attendance');
+
+    const query = searchParamsToQuery(searchParams);
+    query.tab = 'today-attendance';
+    if (filter === 'all') {
+      delete query.todayFilter;
+    } else {
+      query.todayFilter = filter;
+    }
+    router.replace(buildHref(pathname, query), { scroll: false });
+  };
+
   const applyOwnerDailyTab = useCallback(
     (nextTab: OwnerDailyTab, options?: { force?: boolean }) => {
       if (!options?.force && selectedTabRef.current === nextTab) return;
@@ -242,14 +318,86 @@ function OwnerDailyPage() {
     [pathname, router, searchParams]
   );
 
+  const handlePrevDay = () => {
+    setSelectedDate((current) => {
+      const previousDate = addDays(current, -1);
+      return isBeforeDay(previousDate, dateNavMinDate) ? current : previousDate;
+    });
+  };
+
+  const handleNextDay = () => {
+    if (isNextDayDisabled) return;
+    setSelectedDate((current) => addDays(current, 1));
+  };
+
+  const handleGoToday = () => {
+    setSelectedDate(dateNavToday);
+  };
+
+  const handleOpenDatePicker = () => {
+    overlay.open(({ isOpen, close }) => (
+      <OwnerDailyDatePickerSheet
+        isOpen={isOpen}
+        close={close}
+        minDate={dateNavMinDate}
+        maxDate={dateNavToday}
+        initialDate={selectedDate}
+        onConfirm={setSelectedDate}
+      />
+    ));
+  };
+
   const handleContentScroll = (scrollTop: number) => {
     setIsScrollTopButtonVisible(scrollTop > 0);
   };
 
+  const persistCurrentView = () => {
+    const contentRef =
+      !isSelectedDateToday || selectedTab === 'today-attendance'
+        ? todayAttendanceContentRef
+        : attendanceCheckContentRef;
+    safeSessionStorage.set(
+      STORAGE_KEYS.OWNER_DAILY_VIEW,
+      JSON.stringify({ date: getKstDateKey(selectedDate), scrollTop: contentRef.current?.scrollTop ?? 0 })
+    );
+  };
+
+  const handleMemberProfileClick = (memberId: string) => {
+    persistCurrentView();
+    handleMemberClick(memberId);
+  };
+
   const handleScrollToTop = () => {
-    const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
+    const contentRef =
+      !isSelectedDateToday || selectedTab === 'today-attendance'
+        ? todayAttendanceContentRef
+        : attendanceCheckContentRef;
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (!persistedViewRef.current) return;
+    safeSessionStorage.remove(STORAGE_KEYS.OWNER_DAILY_VIEW);
+  }, []);
+
+  useEffect(() => {
+    const refreshDateNavToday = () => {
+      const nextToday = startOfDay(new Date());
+      if (isSameDay(dateNavToday, nextToday)) return;
+      setSelectedDate((current) => (isSameDay(current, dateNavToday) ? nextToday : current));
+      setDateNavToday(nextToday);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshDateNavToday();
+    };
+    const timeout = window.setTimeout(refreshDateNavToday, getNextKstMidnightDelay());
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.clearTimeout(timeout);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [dateNavToday]);
 
   useEffect(() => {
     // URL에 tab이 있을 때만 동기화. remount 시 bare /owner/daily면 localStorage 유지.
@@ -290,6 +438,7 @@ function OwnerDailyPage() {
 
     const handleNativeTabFocus = () => {
       syncTabFromNavigation();
+      setSelectedDate(dateNavToday);
       window.setTimeout(syncTabFromNavigation, 0);
       window.setTimeout(syncTabFromNavigation, 100);
     };
@@ -303,17 +452,22 @@ function OwnerDailyPage() {
       window.removeEventListener('knockdog:native-tab-focus', handleNativeTabFocus);
       window.removeEventListener('popstate', syncTabFromNavigation);
     };
-  }, [applyOwnerDailyTab]);
+  }, [applyOwnerDailyTab, dateNavToday]);
 
   useLayoutEffect(() => {
     setIsScrollTopButtonVisible(false);
     const animationFrameId = requestAnimationFrame(() => {
-      const contentRef = selectedTab === 'today-attendance' ? todayAttendanceContentRef : attendanceCheckContentRef;
-      contentRef.current?.scrollTo({ top: 0 });
+      const contentRef =
+        !isSelectedDateToday || selectedTab === 'today-attendance'
+          ? todayAttendanceContentRef
+          : attendanceCheckContentRef;
+      const scrollTop = shouldRestoreScrollPositionRef.current ? persistedViewRef.current?.scrollTop ?? 0 : 0;
+      contentRef.current?.scrollTo({ top: scrollTop });
+      shouldRestoreScrollPositionRef.current = false;
     });
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [selectedTab]);
+  }, [isSelectedDateToday, selectedDateKey, selectedTab]);
 
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
@@ -331,7 +485,17 @@ function OwnerDailyPage() {
         </Header>
       </div>
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
-        <OwnerDailySummarySection dateLabel={dateLabel} summaryItems={summaryItems} />
+        <OwnerDailySummarySection
+          dateLabel={dateNavLabel}
+          summaryItems={displaySummaryItems}
+          onPrevDay={handlePrevDay}
+          onNextDay={handleNextDay}
+          onOpenDatePicker={handleOpenDatePicker}
+          onGoToday={handleGoToday}
+          onSummaryItemClick={handleSummaryItemClick}
+          isNextDayDisabled={isNextDayDisabled}
+          isToday={isSelectedDateToday}
+        />
         {isLoading ? (
           <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-bg-50' />
         ) : isError ? (
@@ -341,7 +505,7 @@ function OwnerDailyPage() {
               <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
             </div>
           </div>
-        ) : (
+        ) : isSelectedDateToday ? (
           <Tabs
             value={selectedTab}
             className='flex min-h-0 flex-1 flex-col'
@@ -358,7 +522,7 @@ function OwnerDailyPage() {
             <TabsContent
               ref={attendanceCheckContentRef}
               value='attendance-check'
-              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+35px)]'
+              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
               onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
             >
               <OwnerDailyTabContent
@@ -371,7 +535,7 @@ function OwnerDailyPage() {
                 onSearchKeywordChange={handleSearchKeywordChange}
                 onClearSearchKeyword={handleClearSearchKeyword}
                 onInviteGuardianClick={handleInviteGuardianClick}
-                onMemberClick={handleMemberClick}
+                onMemberClick={handleMemberProfileClick}
                 onAttendanceButtonClick={handleAttendanceButtonClick}
               />
             </TabsContent>
@@ -387,11 +551,28 @@ function OwnerDailyPage() {
                 isLoading={isTodayLoading}
                 isError={isTodayError}
                 onCheckOutButtonClick={handleCheckOutButtonClick}
-                onMemberClick={handleMemberClick}
+                onMemberClick={handleMemberProfileClick}
                 onNoticebookButtonClick={handleNoticebookButtonClick}
               />
             </TabsContent>
           </Tabs>
+        ) : (
+          <div
+            ref={todayAttendanceContentRef}
+            className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
+            onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
+          >
+            <TodayAttendanceTab
+              items={todayAttendanceMembers}
+              initialSelectedFilter={initialTodayAttendanceFilter}
+              isLoading={isTodayLoading}
+              isError={isTodayError}
+              showActions={false}
+              onCheckOutButtonClick={handleCheckOutButtonClick}
+              onMemberClick={handleMemberProfileClick}
+              onNoticebookButtonClick={handleNoticebookButtonClick}
+            />
+          </div>
         )}
       </main>
       {isScrollTopButtonVisible ? (

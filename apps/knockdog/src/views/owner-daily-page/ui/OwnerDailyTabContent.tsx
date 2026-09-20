@@ -38,7 +38,7 @@ function OwnerDailyTabContent({
   onAttendanceButtonClick,
 }: OwnerDailyTabContentProps) {
   return (
-    <div className='flex min-h-full w-full flex-col gap-5 pt-5'>
+    <div className='flex min-h-full w-full flex-col gap-2 pt-5'>
       <div className='px-4'>
         <TextField
           prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
@@ -93,7 +93,7 @@ function OwnerDailyTabContent({
       // ) : showBeforeFilter && items.length === 0 ? (
       //   <OwnerDailyNoUncheckedState />
       ) : (
-        <div className='flex w-full flex-col gap-4 px-4 pb-5'>
+        <div className='flex w-full flex-col gap-3 px-4'>
           {items.map((member) => (
             <OwnerDailyMemberCard
               key={member.id}
