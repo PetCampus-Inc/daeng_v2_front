@@ -25,7 +25,7 @@ import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDaily
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
 import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
 import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
-import { getKstDateKey } from '@views/owner-daily-page/lib/ownerDailyDate';
+import { getKstDateKey, getNextKstMidnightDelay } from '@views/owner-daily-page/lib/ownerDailyDate';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
@@ -135,13 +135,14 @@ function OwnerDailyPage() {
   const [selectedDate, setSelectedDate] = useState(() =>
     persistedViewRef.current ? dateFromDateKey(persistedViewRef.current.date) : startOfDay(new Date())
   );
-  const dateNavToday = useMemo(() => startOfDay(new Date()), []);
+  const [dateNavToday, setDateNavToday] = useState(() => startOfDay(new Date()));
   const dateNavMinDate = useMemo(
     () => startOfDay(new Date(dateNavToday.getFullYear() - 1, 0, 1)),
     [dateNavToday]
   );
   const isNextDayDisabled = !isBeforeDay(selectedDate, dateNavToday);
   const isSelectedDateToday = isSameDay(selectedDate, dateNavToday);
+  const selectedDateKey = getKstDateKey(selectedDate);
   const dateNavLabel = `${selectedDate.getFullYear() === dateNavToday.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
   const {
     attendanceCheckMembers,
@@ -166,7 +167,7 @@ function OwnerDailyPage() {
     showUncheckedOnly,
     summaryItems,
     todayAttendanceMembers,
-  } = useOwnerDailyPage(selectedDate);
+  } = useOwnerDailyPage(selectedDate, isSelectedDateToday);
   const displaySummaryItems = isSelectedDateToday
     ? summaryItems
     : summaryItems.map((item) => {
@@ -318,7 +319,10 @@ function OwnerDailyPage() {
   );
 
   const handlePrevDay = () => {
-    setSelectedDate((current) => addDays(current, -1));
+    setSelectedDate((current) => {
+      const previousDate = addDays(current, -1);
+      return isBeforeDay(previousDate, dateNavMinDate) ? current : previousDate;
+    });
   };
 
   const handleNextDay = () => {
@@ -375,6 +379,25 @@ function OwnerDailyPage() {
     if (!persistedViewRef.current) return;
     safeSessionStorage.remove(STORAGE_KEYS.OWNER_DAILY_VIEW);
   }, []);
+
+  useEffect(() => {
+    const refreshDateNavToday = () => {
+      const nextToday = startOfDay(new Date());
+      if (isSameDay(dateNavToday, nextToday)) return;
+      setSelectedDate((current) => (isSameDay(current, dateNavToday) ? nextToday : current));
+      setDateNavToday(nextToday);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshDateNavToday();
+    };
+    const timeout = window.setTimeout(refreshDateNavToday, getNextKstMidnightDelay());
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.clearTimeout(timeout);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [dateNavToday]);
 
   useEffect(() => {
     // URL에 tab이 있을 때만 동기화. remount 시 bare /owner/daily면 localStorage 유지.
@@ -444,7 +467,7 @@ function OwnerDailyPage() {
     });
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isSelectedDateToday, selectedTab]);
+  }, [isSelectedDateToday, selectedDateKey, selectedTab]);
 
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>

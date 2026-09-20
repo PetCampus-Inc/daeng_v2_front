@@ -98,7 +98,7 @@ function getCancelCheckInBlockMessage(member: AttendanceMember) {
   return null;
 }
 
-function useOwnerDailyPage(selectedDate: Date) {
+function useOwnerDailyPage(selectedDate: Date, isSelectedDateToday: boolean) {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const selectedDateKey = getKstDateKey(selectedDate);
@@ -113,7 +113,7 @@ function useOwnerDailyPage(selectedDate: Date) {
     date: selectedDateKey,
     q: candidatesSearchQuery,
     userId,
-    enabled: Boolean(userId),
+    enabled: Boolean(userId) && isSelectedDateToday,
   });
   const todayQuery = useAttendanceCheckinoutTodayQuery({
     date: selectedDateKey,
@@ -177,10 +177,9 @@ function useOwnerDailyPage(selectedDate: Date) {
 
   const isLoading =
     !userId ||
-    ((candidatesQuery.isPending || summaryQuery.isPending) &&
-      !candidatesQuery.data &&
-      !summaryQuery.data);
-  const isError = candidatesQuery.isError || summaryQuery.isError;
+    (summaryQuery.isPending && !summaryQuery.data) ||
+    (isSelectedDateToday && candidatesQuery.isPending && !candidatesQuery.data);
+  const isError = summaryQuery.isError || (isSelectedDateToday && candidatesQuery.isError);
   const isTodayLoading = todayQuery.isPending;
   const isTodayError = todayQuery.isError;
 

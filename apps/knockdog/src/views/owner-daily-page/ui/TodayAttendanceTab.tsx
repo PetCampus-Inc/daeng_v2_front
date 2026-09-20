@@ -67,7 +67,7 @@ function TodayAttendanceTab({
       ) : isError ? (
         <div className='flex min-h-0 flex-1 items-center justify-center px-4 text-center'>
           <div className='flex flex-col items-center gap-1'>
-            <p className='h2-extrabold text-text-primary'>오늘 등원 목록을 불러오지 못했어요</p>
+            <p className='h2-extrabold text-text-primary'>등원 목록을 불러오지 못했어요</p>
             <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
           </div>
         </div>
