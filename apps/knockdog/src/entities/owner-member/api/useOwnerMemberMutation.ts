@@ -1,5 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { NOTIFICATIONS_QUERY_KEY } from '@entities/notification';
+import {
+  OWNER_ATTENDANCE_CHECKINOUT_CANDIDATES_QUERY_KEY,
+  OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY,
+  OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY,
+} from '@entities/owner-attendance-checkinout';
+import { OWNER_HOME_QUERY_KEY } from '@entities/owner-home';
+import { OWNER_PET_GUARDIAN_QUERY_KEY, OWNER_PET_QUERY_KEY } from '@entities/owner-pet';
 import { ApiError } from '@shared/api';
 import {
   postApproveOwnerMember,
@@ -48,13 +56,34 @@ function useOwnerMemberApprovalMutation({ userId }: UseOwnerMemberApprovalMutati
   };
 }
 
+/**
+ * 원장 구성원 연결 해제.
+ * 성공 시 구성원/일과 목록·홈·알림함·원생 프로필 캐시를 갱신한다.
+ * (당일 등원 원생 일과 노출 등은 서버 정책 — KD3-439)
+ * 보호자 푸시/알림함 발송은 disconnect API 성공 시 서버 책임.
+ */
 function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMutationOptions = {}) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: postDisconnectOwnerMember,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ownerMembersQueryKey(userId) });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ownerMembersQueryKey(userId) }),
+        queryClient.invalidateQueries({
+          queryKey: [OWNER_ATTENDANCE_CHECKINOUT_CANDIDATES_QUERY_KEY, userId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY, userId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: [OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY, userId],
+        }),
+        queryClient.invalidateQueries({ queryKey: [OWNER_HOME_QUERY_KEY, userId] }),
+        queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] }),
+        queryClient.invalidateQueries({ queryKey: [OWNER_PET_QUERY_KEY] }),
+        queryClient.invalidateQueries({ queryKey: [OWNER_PET_GUARDIAN_QUERY_KEY] }),
+      ]);
     },
   });
 }

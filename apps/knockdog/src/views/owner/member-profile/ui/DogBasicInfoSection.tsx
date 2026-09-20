@@ -59,7 +59,7 @@ function DogBasicInfoSection({ dog }: DogBasicInfoSectionProps) {
     : ownerMemberProfileContent.emptyValue;
 
   return (
-    <div className='flex flex-col gap-4 px-4 py-5'>
+    <div className='flex flex-col gap-4 px-4 pt-5'>
       <h2 className='h3-extrabold text-text-primary'>{ownerMemberProfileContent.basicInfoTitle}</h2>
 
       <div className='bg-bg-0 radius-r3 flex flex-col overflow-hidden px-4'>
