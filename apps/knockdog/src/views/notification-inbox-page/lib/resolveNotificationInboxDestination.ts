@@ -2,6 +2,7 @@ type NotificationInboxDestination =
   | { kind: 'attendanceRecord'; petId: string; date: string }
   | { kind: 'guardianKindergarten'; petId: string; date?: string }
   | { kind: 'ownerMemberApprovals' }
+  | { kind: 'ownerMembers' }
   | { kind: 'connectionApplyStatus' }
   | { kind: 'album'; petId?: string; schoolId?: string; date?: string }
   | { kind: 'unavailable' };
@@ -19,6 +20,9 @@ const OWNER_MEMBER_APPROVAL_TYPES = new Set([
   'GUARDIAN_APPLICATION_REQUESTED',
   'GUARDIAN_APPLICATION_CANCELLED',
 ]);
+
+/** 원장 구성원 목록 — 보호자 연결 해제 등 */
+const OWNER_MEMBERS_TYPES = new Set(['GUARDIAN_MEMBERSHIP_DISCONNECTED']);
 
 const GUARDIAN_KINDERGARTEN_TYPES = new Set([
   'SCHOOL_MEMBERSHIP_APPROVED',
@@ -81,6 +85,10 @@ function resolveNotificationInboxDestination(
 
   if (OWNER_MEMBER_APPROVAL_TYPES.has(type)) {
     return { kind: 'ownerMemberApprovals' };
+  }
+
+  if (OWNER_MEMBERS_TYPES.has(type)) {
+    return { kind: 'ownerMembers' };
   }
 
   if (CONNECTION_APPLY_TYPES.has(type)) {
