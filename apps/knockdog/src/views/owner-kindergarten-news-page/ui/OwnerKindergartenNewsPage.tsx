@@ -13,7 +13,7 @@ import { Header } from '@widgets/Header';
 
 /**
  * 원장 유치원 소식 페이지
- * - 기본: mock 목록 UI
+ * - 기본: mock 목록 (공지 최상단 + 신규순, 30건 무한스크롤)
  * - empty: `/owner/news?empty=1`
  * - 헤더/시스템 뒤로가기 → 원장 홈 탭
  *
@@ -22,7 +22,7 @@ import { Header } from '@widgets/Header';
  */
 function OwnerKindergartenNewsPageContent() {
   const { navigateToTab } = useTabNavigation();
-  const { items, hasNews } = useOwnerKindergartenNews();
+  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage } = useOwnerKindergartenNews();
 
   const handleBack = useCallback(() => {
     void navigateToTab('/owner');
@@ -53,7 +53,12 @@ function OwnerKindergartenNewsPageContent() {
       <main className={`${hasNews ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
         {hasNews ? (
           <div className='min-h-0 flex-1 overflow-y-auto'>
-            <OwnerKindergartenNewsList items={items} />
+            <OwnerKindergartenNewsList
+              items={items}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+            />
           </div>
         ) : (
           <OwnerKindergartenNewsEmptyState />

@@ -12,7 +12,8 @@ const ownerKindergartenNewsContent = {
     announcementIconSrc: '/images/ico_notice.svg',
     readLabel: '읽음',
     moreAriaLabel: '더보기',
-    unreadAriaLabel: '읽지 않음',
+    /** 업로드 후 KST 3일간 유지 */
+    newBadgeAriaLabel: '새 소식',
   },
 } as const;
 

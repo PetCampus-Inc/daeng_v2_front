@@ -1,18 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
-import type { OwnerKindergartenNewsItem } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
+import type { OwnerKindergartenNewsListItemView } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
+import { Skeleton } from '@shared/ui/skeleton';
 
 interface OwnerKindergartenNewsListItemProps {
-  item: OwnerKindergartenNewsItem;
-  onMoreClick?: (item: OwnerKindergartenNewsItem) => void;
+  item: OwnerKindergartenNewsListItemView;
+  onMoreClick?: (item: OwnerKindergartenNewsListItemView) => void;
 }
 
 function OwnerKindergartenNewsListItem({ item, onMoreClick }: OwnerKindergartenNewsListItemProps) {
   const { list } = ownerKindergartenNewsContent;
+  const [isThumbnailLoaded, setIsThumbnailLoaded] = useState(false);
 
   return (
     <article className='border-line-200 bg-bg-0 flex w-full flex-col gap-2 border-b p-4'>
@@ -56,8 +59,8 @@ function OwnerKindergartenNewsListItem({ item, onMoreClick }: OwnerKindergartenN
       <div className='flex w-full items-start gap-2'>
         <div className='flex min-w-0 flex-1 flex-col gap-1'>
           <div className='flex w-full items-center gap-1'>
-            {item.isUnread ? (
-              <span className='bg-text-accent size-2 shrink-0 rounded' aria-label={list.unreadAriaLabel} />
+            {item.showNewBadge ? (
+              <span className='bg-text-accent size-2 shrink-0 rounded' aria-label={list.newBadgeAriaLabel} />
             ) : null}
             <p className='body1-bold text-text-primary truncate'>{item.title}</p>
           </div>
@@ -65,12 +68,14 @@ function OwnerKindergartenNewsListItem({ item, onMoreClick }: OwnerKindergartenN
         </div>
         {item.thumbnailUrl ? (
           <div className='radius-r3 relative size-16 shrink-0 overflow-hidden'>
+            {!isThumbnailLoaded ? <Skeleton className='absolute inset-0 size-full' /> : null}
             <Image
               src={item.thumbnailUrl}
               alt=''
               fill
-              className='object-cover'
+              className={`object-cover transition-opacity ${isThumbnailLoaded ? 'opacity-100' : 'opacity-0'}`}
               sizes='64px'
+              onLoadingComplete={() => setIsThumbnailLoaded(true)}
             />
           </div>
         ) : null}
