@@ -145,6 +145,10 @@ const route = {
     news: {
       /** 원장 유치원 소식 (진입점은 홈 연동 예정) */
       root: '/owner/news',
+      detail: {
+        /** 원장 유치원 소식 상세 */
+        root: '/owner/news/[id]',
+      },
       edit: {
         /** 원장 유치원 소식 수정 */
         root: '/owner/news/[id]/edit',

@@ -9,6 +9,8 @@ interface OwnerKindergartenNewsItem {
    * 보호자가 상세 최초 진입 시 +1, 원장/보호자 재열람은 누적하지 않음.
    */
   readCount: number;
+  /** 연결된 보호자 수 (상세 하단 읽음 현황) */
+  guardianTotalCount: number;
   title: string;
   /** 본문 전문 — 목록에서는 2줄 미리보기 */
   body: string;

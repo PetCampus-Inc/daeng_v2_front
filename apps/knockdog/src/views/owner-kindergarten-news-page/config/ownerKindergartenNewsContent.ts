@@ -26,6 +26,17 @@ const ownerKindergartenNewsContent = {
   deleteSuccessToast: {
     nativeTitle: '유치원 소식을 삭제했어요',
   },
+  detail: {
+    shareAriaLabel: '공유',
+    sendNotificationLabel: '알림 발송',
+    readStatusPrefix: '보호자',
+    readStatusMiddle: '명 중',
+    readStatusSuffix: '명이 읽었어요',
+    notFound: '소식을 찾을 수 없어요',
+  },
+  shareSuccessToast: {
+    nativeTitle: '유치원 소식을 공유했어요',
+  },
 } as const;
 
 export { ownerKindergartenNewsContent };
