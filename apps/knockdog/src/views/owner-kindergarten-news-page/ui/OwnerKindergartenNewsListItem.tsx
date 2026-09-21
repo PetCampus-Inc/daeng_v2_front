@@ -6,14 +6,15 @@ import { Icon } from '@knockdog/ui';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
 import type { OwnerKindergartenNewsListItemView } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
+import { OwnerKindergartenNewsMoreMenu } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsMoreMenu';
 import { Skeleton } from '@shared/ui/skeleton';
 
 interface OwnerKindergartenNewsListItemProps {
   item: OwnerKindergartenNewsListItemView;
-  onMoreClick?: (item: OwnerKindergartenNewsListItemView) => void;
+  onDelete: (newsId: string) => void | Promise<void>;
 }
 
-function OwnerKindergartenNewsListItem({ item, onMoreClick }: OwnerKindergartenNewsListItemProps) {
+function OwnerKindergartenNewsListItem({ item, onDelete }: OwnerKindergartenNewsListItemProps) {
   const { list } = ownerKindergartenNewsContent;
   const [isThumbnailLoaded, setIsThumbnailLoaded] = useState(false);
 
@@ -43,17 +44,7 @@ function OwnerKindergartenNewsListItem({ item, onMoreClick }: OwnerKindergartenN
             </span>
           </div>
         </div>
-        <button
-          type='button'
-          aria-label={list.moreAriaLabel}
-          className='inline-flex size-6 shrink-0 items-center justify-center'
-          onClick={(event) => {
-            event.stopPropagation();
-            onMoreClick?.(item);
-          }}
-        >
-          <Icon icon='More' className='text-fill-secondary-700 size-6 rotate-90' />
-        </button>
+        <OwnerKindergartenNewsMoreMenu newsId={item.id} onDelete={onDelete} />
       </div>
 
       <div className='flex w-full items-start gap-2'>

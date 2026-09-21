@@ -22,7 +22,8 @@ import { Header } from '@widgets/Header';
  */
 function OwnerKindergartenNewsPageContent() {
   const { navigateToTab } = useTabNavigation();
-  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage } = useOwnerKindergartenNews();
+  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, deleteNews } =
+    useOwnerKindergartenNews();
 
   const handleBack = useCallback(() => {
     void navigateToTab('/owner');
@@ -58,6 +59,7 @@ function OwnerKindergartenNewsPageContent() {
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
+              onDelete={deleteNews}
             />
           </div>
         ) : (

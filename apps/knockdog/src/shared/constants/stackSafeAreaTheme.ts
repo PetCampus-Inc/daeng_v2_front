@@ -21,7 +21,7 @@ const STACK_SAFE_AREA_THEME_RULES: readonly StackSafeAreaThemeRule[] = [
     theme: { topBackgroundClassName: 'bg-bg-0', bottomBackgroundClassName: 'bg-bg-50' },
   },
   {
-    // 유치원 소식: 상단 헤더(bg-bg-0), 하단 본문(bg-bg-50)
+    // 유치원 소식 / 소식 수정: 상단 헤더(bg-bg-0), 하단 본문(bg-bg-50)
     matches: (pathname) => /^\/owner\/news(?:\/|$)/.test(pathname),
     theme: { topBackgroundClassName: 'bg-bg-0', bottomBackgroundClassName: 'bg-bg-50' },
   },

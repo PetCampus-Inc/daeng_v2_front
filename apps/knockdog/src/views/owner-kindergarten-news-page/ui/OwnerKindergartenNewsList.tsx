@@ -10,6 +10,7 @@ interface OwnerKindergartenNewsListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
+  onDelete: (newsId: string) => void | Promise<void>;
 }
 
 function OwnerKindergartenNewsList({
@@ -17,6 +18,7 @@ function OwnerKindergartenNewsList({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  onDelete,
 }: OwnerKindergartenNewsListProps) {
   const { lastElementCallback } = useInfiniteScroll({
     hasNextPage,
@@ -27,7 +29,7 @@ function OwnerKindergartenNewsList({
   return (
     <div className='flex w-full flex-col pb-[68px]'>
       {items.map((item) => (
-        <OwnerKindergartenNewsListItem key={item.id} item={item} />
+        <OwnerKindergartenNewsListItem key={item.id} item={item} onDelete={onDelete} />
       ))}
       <InfiniteScrollFooter
         hasNextPage={hasNextPage}

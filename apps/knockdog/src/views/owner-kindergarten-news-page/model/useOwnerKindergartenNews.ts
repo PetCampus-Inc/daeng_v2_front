@@ -11,12 +11,13 @@ import {
 import { sortOwnerKindergartenNews } from '@views/owner-kindergarten-news-page/lib/sortOwnerKindergartenNews';
 import {
   OWNER_KINDERGARTEN_NEWS_PAGE_SIZE,
+  type OwnerKindergartenNewsItem,
   type OwnerKindergartenNewsListItemView,
 } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
 
 const MOCK_FETCH_DELAY_MS = 350;
 
-function toListItemView(item: (typeof MOCK_OWNER_KINDERGARTEN_NEWS)[number], now: Date): OwnerKindergartenNewsListItemView {
+function toListItemView(item: OwnerKindergartenNewsItem, now: Date): OwnerKindergartenNewsListItemView {
   const publishedAt = new Date(item.publishedAt);
 
   return {
@@ -35,14 +36,17 @@ function toListItemView(item: (typeof MOCK_OWNER_KINDERGARTEN_NEWS)[number], now
 function useOwnerKindergartenNews() {
   const searchParams = useSearchParams();
   const forceEmpty = searchParams.get('empty') === '1';
+  const [sourceItems, setSourceItems] = useState<OwnerKindergartenNewsItem[]>(() =>
+    sortOwnerKindergartenNews(MOCK_OWNER_KINDERGARTEN_NEWS)
+  );
   const [visibleCount, setVisibleCount] = useState(OWNER_KINDERGARTEN_NEWS_PAGE_SIZE);
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
   const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sortedSource = useMemo(() => {
     if (forceEmpty) return [];
-    return sortOwnerKindergartenNews(MOCK_OWNER_KINDERGARTEN_NEWS);
-  }, [forceEmpty]);
+    return sourceItems;
+  }, [forceEmpty, sourceItems]);
 
   useEffect(() => {
     setVisibleCount(OWNER_KINDERGARTEN_NEWS_PAGE_SIZE);
@@ -73,12 +77,17 @@ function useOwnerKindergartenNews() {
     }, MOCK_FETCH_DELAY_MS);
   }, [hasNextPage, isFetchingNextPage, sortedSource.length]);
 
+  const deleteNews = useCallback(async (newsId: string) => {
+    setSourceItems((current) => current.filter((item) => item.id !== newsId));
+  }, []);
+
   return {
     items,
     hasNews: sortedSource.length > 0,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    deleteNews,
   };
 }
 
