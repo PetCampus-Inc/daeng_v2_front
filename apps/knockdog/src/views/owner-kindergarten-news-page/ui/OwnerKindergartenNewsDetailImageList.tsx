@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { overlay } from 'overlay-kit';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
-import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
+import { OwnerKindergartenNewsImageViewer } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsImageViewer';
 import { Skeleton } from '@shared/ui/skeleton';
 
 interface OwnerKindergartenNewsDetailImageListProps {
@@ -50,12 +50,11 @@ function OwnerKindergartenNewsDetailImageList({ imageUrls }: OwnerKindergartenNe
 
   const handleOpen = (index: number) => {
     overlay.open(({ isOpen, close }) => (
-      <ImageGalleryViewer
+      <OwnerKindergartenNewsImageViewer
         isOpen={isOpen}
         close={close}
-        images={imageUrls}
+        imageUrls={imageUrls}
         initialIndex={index}
-        ariaLabel={ownerKindergartenNewsContent.detail.imageViewerAriaLabel}
       />
     ));
   };

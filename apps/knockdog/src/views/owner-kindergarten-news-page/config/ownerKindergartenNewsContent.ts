@@ -36,6 +36,16 @@ const ownerKindergartenNewsContent = {
     imageAriaLabel: '소식 사진 {index}/{total} 보기',
     imageViewerAriaLabel: '소식 사진 보기',
   },
+  imageViewer: {
+    closeAriaLabel: '사진 보기 닫기',
+    saveAriaLabel: '사진 저장',
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
+  },
   shareSuccessToast: {
     nativeTitle: '유치원 소식을 공유했어요',
   },
