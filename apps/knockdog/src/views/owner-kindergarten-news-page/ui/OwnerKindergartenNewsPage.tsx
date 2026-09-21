@@ -5,7 +5,7 @@ import { Icon } from '@knockdog/ui';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
 import { useOwnerKindergartenNews } from '@views/owner-kindergarten-news-page/model/useOwnerKindergartenNews';
-import { OwnerKindergartenNewsCreateButton } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsCreateButton';
+import { OwnerKindergartenNewsWriteButton } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteButton';
 import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsEmptyState';
 import { OwnerKindergartenNewsList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsList';
 import { useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
@@ -65,7 +65,7 @@ function OwnerKindergartenNewsPageContent() {
         ) : (
           <OwnerKindergartenNewsEmptyState />
         )}
-        <OwnerKindergartenNewsCreateButton />
+        <OwnerKindergartenNewsWriteButton openAsEmpty={!hasNews} />
       </main>
     </div>
   );
