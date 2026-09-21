@@ -139,7 +139,9 @@ function OwnerKindergartenNewsReadReactionSheet({
                       {reader.guardianName} 보호자
                     </span>
                     {dogLabel ? (
-                      <span className='body2-regular text-text-secondary truncate'>{dogLabel}</span>
+                      <span className='body2-regular text-text-secondary min-w-0 flex-1 truncate'>
+                        {dogLabel}
+                      </span>
                     ) : null}
                   </div>
                 </div>
