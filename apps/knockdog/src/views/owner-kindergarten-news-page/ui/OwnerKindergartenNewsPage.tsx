@@ -1,27 +1,34 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, Suspense } from 'react';
+import { Icon } from '@knockdog/ui';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
+import { useOwnerKindergartenNews } from '@views/owner-kindergarten-news-page/model/useOwnerKindergartenNews';
 import { OwnerKindergartenNewsCreateButton } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsCreateButton';
 import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsEmptyState';
+import { OwnerKindergartenNewsList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsList';
 import { useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
-import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { Header } from '@widgets/Header';
 
 /**
  * 원장 유치원 소식 페이지
- * 현재는 소식 없음(empty) 상태만 구현함.
+ * - 기본: mock 목록 UI
+ * - empty: `/owner/news?empty=1`
+ * - 헤더/시스템 뒤로가기 → 원장 홈 탭
+ *
+ * useHistoryBackTrap 미사용: Strict Mode remount 시 trap pop이
+ * navigateToTab('/owner')를 즉시 호출해 진입 직후 홈으로 튕김.
  */
-function OwnerKindergartenNewsPage() {
+function OwnerKindergartenNewsPageContent() {
   const { navigateToTab } = useTabNavigation();
+  const { items, hasNews } = useOwnerKindergartenNews();
 
   const handleBack = useCallback(() => {
     void navigateToTab('/owner');
   }, [navigateToTab]);
 
   useNativeBackHandler(handleBack);
-  useHistoryBackTrap(true, handleBack);
 
   return (
     <div data-testid='owner-kindergarten-news-root' className='bg-bg-50 flex h-full flex-col'>
@@ -31,14 +38,37 @@ function OwnerKindergartenNewsPage() {
             <Header.BackButton onClick={handleBack} />
           </Header.LeftSection>
           <Header.Title>{ownerKindergartenNewsContent.pageTitle}</Header.Title>
+          <Header.RightSection>
+            <button
+              type='button'
+              aria-label={ownerKindergartenNewsContent.searchAriaLabel}
+              className='inline-flex size-6 items-center justify-center'
+            >
+              <Icon icon='Search' className='text-text-primary size-6' />
+            </button>
+          </Header.RightSection>
         </Header>
       </div>
 
-      <main className='bg-bg-50 relative flex min-h-0 flex-1 flex-col'>
-        <OwnerKindergartenNewsEmptyState />
+      <main className={`${hasNews ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
+        {hasNews ? (
+          <div className='min-h-0 flex-1 overflow-y-auto'>
+            <OwnerKindergartenNewsList items={items} />
+          </div>
+        ) : (
+          <OwnerKindergartenNewsEmptyState />
+        )}
         <OwnerKindergartenNewsCreateButton />
       </main>
     </div>
+  );
+}
+
+function OwnerKindergartenNewsPage() {
+  return (
+    <Suspense fallback={null}>
+      <OwnerKindergartenNewsPageContent />
+    </Suspense>
   );
 }
 
