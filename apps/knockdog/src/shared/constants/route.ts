@@ -142,6 +142,10 @@ const route = {
         },
       },
     },
+    news: {
+      /** 원장 유치원 소식 (진입점은 홈 연동 예정) */
+      root: '/owner/news',
+    },
     members: {
       /** 원장 구성원 페이지 */
       root: '/owner/members',

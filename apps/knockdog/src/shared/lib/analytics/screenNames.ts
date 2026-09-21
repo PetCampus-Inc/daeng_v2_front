@@ -62,6 +62,7 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { path: '/owner', name: '원장 홈' },
   { path: '/owner/daily', name: '일과' },
   { path: '/owner/album', name: '앨범' },
+  { path: '/owner/news', name: '유치원 소식' },
   { path: '/owner/members', name: '구성원' },
   { path: '/owner/members/approval', name: '연결 승인 대기' },
 
