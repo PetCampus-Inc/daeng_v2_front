@@ -33,6 +33,8 @@ const ownerKindergartenNewsContent = {
     readStatusMiddle: '명 중',
     readStatusSuffix: '명이 읽었어요',
     notFound: '소식을 찾을 수 없어요',
+    imageAriaLabel: '소식 사진 {index}/{total} 보기',
+    imageViewerAriaLabel: '소식 사진 보기',
   },
   shareSuccessToast: {
     nativeTitle: '유치원 소식을 공유했어요',

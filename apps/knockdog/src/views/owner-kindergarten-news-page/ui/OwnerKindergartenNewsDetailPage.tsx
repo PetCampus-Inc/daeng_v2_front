@@ -11,6 +11,7 @@ import {
   subscribeOwnerKindergartenNews,
 } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
 import { OwnerKindergartenNewsDetailFooter } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsDetailFooter';
+import { OwnerKindergartenNewsDetailImageList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsDetailImageList';
 import { OwnerKindergartenNewsMoreMenu } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsMoreMenu';
 import { useShare } from '@shared/lib/device';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -121,14 +122,16 @@ function OwnerKindergartenNewsDetailPage() {
       </Header>
 
       <main className='flex min-h-0 flex-1 flex-col'>
-        <div className='min-h-0 flex-1 overflow-y-auto px-4 py-5'>
-          <div className='flex flex-col gap-5'>
+        <div className='min-h-0 flex-1 overflow-y-auto pb-20'>
+          <div className='flex flex-col gap-5 px-4 py-5'>
             <div className='flex flex-col gap-2'>
               <h1 className='h2-extrabold text-text-primary'>{news.title}</h1>
               <p className='label-semibold text-text-tertiary'>{publishedAtLabel}</p>
             </div>
             <p className='body1-regular text-text-primary whitespace-pre-wrap'>{news.body}</p>
           </div>
+
+          <OwnerKindergartenNewsDetailImageList imageUrls={news.imageUrls} />
         </div>
 
         <div className='shrink-0 web:pb-0 webview:pb-(--safe-area-inset-bottom,0px)'>

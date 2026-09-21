@@ -16,6 +16,8 @@ interface OwnerKindergartenNewsItem {
   body: string;
   /** 첫 번째 등록 이미지. 없으면 null */
   thumbnailUrl: string | null;
+  /** 첨부 이미지 (등록 순). 상세에서 원본 비율로 노출 */
+  imageUrls: string[];
 }
 
 /** 목록 렌더용 (작성시각 라벨/새소식 배지 파생) */
