@@ -13,6 +13,7 @@ import {
 import { OwnerKindergartenNewsDetailFooter } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsDetailFooter';
 import { OwnerKindergartenNewsDetailImageList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsDetailImageList';
 import { OwnerKindergartenNewsMoreMenu } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsMoreMenu';
+import { openOwnerKindergartenNewsReadReactionSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsReadReactionSheet';
 import { useShare } from '@shared/lib/device';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
@@ -87,6 +88,15 @@ function OwnerKindergartenNewsDetailPage() {
     [back]
   );
 
+  const handleOpenReadReaction = useCallback(() => {
+    if (!news) return;
+    openOwnerKindergartenNewsReadReactionSheet({
+      readers: news.readers,
+      guardianTotalCount: news.guardianTotalCount,
+      readCount: news.readCount,
+    });
+  }, [news]);
+
   if (!news) {
     return (
       <div data-testid='owner-kindergarten-news-detail-root' className='bg-bg-0 flex h-full flex-col'>
@@ -138,6 +148,7 @@ function OwnerKindergartenNewsDetailPage() {
           <OwnerKindergartenNewsDetailFooter
             readCount={news.readCount}
             guardianTotalCount={news.guardianTotalCount}
+            onOpenReadReaction={handleOpenReadReaction}
           />
         </div>
       </main>
