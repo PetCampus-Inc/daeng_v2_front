@@ -1,8 +1,12 @@
 'use client';
 
+import { useCallback } from 'react';
+
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
 import { OwnerKindergartenNewsCreateButton } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsCreateButton';
 import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsEmptyState';
+import { useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
+import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { Header } from '@widgets/Header';
 
 /**
@@ -10,12 +14,21 @@ import { Header } from '@widgets/Header';
  * 현재는 소식 없음(empty) 상태만 구현함.
  */
 function OwnerKindergartenNewsPage() {
+  const { navigateToTab } = useTabNavigation();
+
+  const handleBack = useCallback(() => {
+    void navigateToTab('/owner');
+  }, [navigateToTab]);
+
+  useNativeBackHandler(handleBack);
+  useHistoryBackTrap(true, handleBack);
+
   return (
     <div data-testid='owner-kindergarten-news-root' className='bg-bg-50 flex h-full flex-col'>
       <div className='bg-bg-0'>
         <Header>
           <Header.LeftSection>
-            <Header.BackButton />
+            <Header.BackButton onClick={handleBack} />
           </Header.LeftSection>
           <Header.Title>{ownerKindergartenNewsContent.pageTitle}</Header.Title>
         </Header>
