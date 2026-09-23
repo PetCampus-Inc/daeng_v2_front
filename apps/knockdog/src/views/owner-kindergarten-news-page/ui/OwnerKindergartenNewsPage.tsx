@@ -9,6 +9,7 @@ import { OwnerKindergartenNewsWriteButton } from '@views/owner-kindergarten-news
 import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsEmptyState';
 import { OwnerKindergartenNewsList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsList';
 import { useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
+import { PullToRefresh } from '@shared/ui/pull-to-refresh';
 import { Header } from '@widgets/Header';
 
 /**
@@ -22,7 +23,7 @@ import { Header } from '@widgets/Header';
  */
 function OwnerKindergartenNewsPageContent() {
   const { navigateToTab } = useTabNavigation();
-  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, deleteNews } =
+  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, refresh, deleteNews } =
     useOwnerKindergartenNews();
 
   const handleBack = useCallback(() => {
@@ -53,7 +54,7 @@ function OwnerKindergartenNewsPageContent() {
 
       <main className={`${hasNews ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
         {hasNews ? (
-          <div className='min-h-0 flex-1 overflow-y-auto'>
+          <PullToRefresh onRefresh={refresh}>
             <OwnerKindergartenNewsList
               items={items}
               hasNextPage={hasNextPage}
@@ -61,7 +62,7 @@ function OwnerKindergartenNewsPageContent() {
               fetchNextPage={fetchNextPage}
               onDelete={deleteNews}
             />
-          </div>
+          </PullToRefresh>
         ) : (
           <OwnerKindergartenNewsEmptyState />
         )}

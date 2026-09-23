@@ -12,6 +12,7 @@ import { GuardianKindergartenNewsList } from '@views/guardian-kindergarten-news-
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { PullToRefresh } from '@shared/ui/pull-to-refresh';
 import { Header } from '@widgets/Header';
 
 function GuardianKindergartenNewsPageContent() {
@@ -21,7 +22,7 @@ function GuardianKindergartenNewsPageContent() {
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const { linkedKindergarten } = useGuardianKindergartenHome();
-  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage } =
+  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, refresh } =
     useGuardianKindergartenNews();
 
   const kindergartenName =
@@ -76,7 +77,7 @@ function GuardianKindergartenNewsPageContent() {
 
       <main className={`${hasNews ? 'bg-bg-50' : 'bg-bg-0'} relative flex min-h-0 flex-1 flex-col`}>
         {hasNews ? (
-          <div className='min-h-0 flex-1 overflow-y-auto'>
+          <PullToRefresh onRefresh={refresh}>
             <GuardianKindergartenNewsList
               items={items}
               hasNextPage={hasNextPage}
@@ -84,7 +85,7 @@ function GuardianKindergartenNewsPageContent() {
               fetchNextPage={fetchNextPage}
               schoolId={schoolId}
             />
-          </div>
+          </PullToRefresh>
         ) : (
           <GuardianKindergartenNewsEmptyState />
         )}
