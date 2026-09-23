@@ -23,6 +23,14 @@ function formatGuardianKindergartenNewsPublishedAt(publishedAt: Date, now = new 
     return `${elapsedHours}시간 전`;
   }
 
+  return formatGuardianKindergartenNewsDetailPublishedAt(publishedAt, now);
+}
+
+/**
+ * 상세 작성일자 — 항상 절대 시각
+ * [YYYY년 ]M월 D일 (요일) 오전/오후 H:MM (올해면 연도 생략)
+ */
+function formatGuardianKindergartenNewsDetailPublishedAt(publishedAt: Date, now = new Date()) {
   const publishedParts = getKstDateParts(publishedAt);
   const nowParts = getKstDateParts(now);
   const yearPrefix = publishedParts.year === nowParts.year ? '' : `${publishedParts.year}년 `;
@@ -35,4 +43,8 @@ function isGuardianKindergartenNewsNewBadge(publishedAt: Date, now = new Date())
   return now.getTime() - publishedAt.getTime() < GUARDIAN_KINDERGARTEN_NEWS_NEW_BADGE_MS;
 }
 
-export { formatGuardianKindergartenNewsPublishedAt, isGuardianKindergartenNewsNewBadge };
+export {
+  formatGuardianKindergartenNewsPublishedAt,
+  formatGuardianKindergartenNewsDetailPublishedAt,
+  isGuardianKindergartenNewsNewBadge,
+};

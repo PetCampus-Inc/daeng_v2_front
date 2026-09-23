@@ -17,6 +17,25 @@ const guardianKindergartenNewsContent = {
     title: '아직 등록된 소식이 없어요',
     description: '유치원에서 소식이 등록되면\n이곳에서 볼 수 있어요.',
   },
+  detail: {
+    shareAriaLabel: '공유',
+    notFound: '소식을 찾을 수 없어요',
+    imageAriaLabel: '소식 사진 {index}/{total} 보기',
+    imageViewerAriaLabel: '소식 사진 보기',
+  },
+  imageViewer: {
+    closeAriaLabel: '사진 보기 닫기',
+    saveAriaLabel: '사진 저장',
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
+  },
+  shareSuccessToast: {
+    nativeTitle: '유치원 소식을 공유했어요',
+  },
 } as const;
 
 export { guardianKindergartenNewsContent };
