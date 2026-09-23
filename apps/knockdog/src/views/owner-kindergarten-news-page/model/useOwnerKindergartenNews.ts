@@ -1,14 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { MOCK_OWNER_KINDERGARTEN_NEWS } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsMock';
 import {
   formatOwnerKindergartenNewsPublishedAt,
   isOwnerKindergartenNewsNewBadge,
 } from '@views/owner-kindergarten-news-page/lib/formatOwnerKindergartenNewsPublishedAt';
-import { sortOwnerKindergartenNews } from '@views/owner-kindergarten-news-page/lib/sortOwnerKindergartenNews';
+import {
+  deleteOwnerKindergartenNewsItem,
+  getOwnerKindergartenNewsSource,
+  subscribeOwnerKindergartenNews,
+} from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
 import {
   OWNER_KINDERGARTEN_NEWS_PAGE_SIZE,
   type OwnerKindergartenNewsItem,
@@ -36,8 +39,10 @@ function toListItemView(item: OwnerKindergartenNewsItem, now: Date): OwnerKinder
 function useOwnerKindergartenNews() {
   const searchParams = useSearchParams();
   const forceEmpty = searchParams.get('empty') === '1';
-  const [sourceItems, setSourceItems] = useState<OwnerKindergartenNewsItem[]>(() =>
-    sortOwnerKindergartenNews(MOCK_OWNER_KINDERGARTEN_NEWS)
+  const sourceItems = useSyncExternalStore(
+    subscribeOwnerKindergartenNews,
+    getOwnerKindergartenNewsSource,
+    getOwnerKindergartenNewsSource
   );
   const [visibleCount, setVisibleCount] = useState(OWNER_KINDERGARTEN_NEWS_PAGE_SIZE);
   const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
@@ -78,7 +83,7 @@ function useOwnerKindergartenNews() {
   }, [hasNextPage, isFetchingNextPage, sortedSource.length]);
 
   const deleteNews = useCallback(async (newsId: string) => {
-    setSourceItems((current) => current.filter((item) => item.id !== newsId));
+    deleteOwnerKindergartenNewsItem(newsId);
   }, []);
 
   return {

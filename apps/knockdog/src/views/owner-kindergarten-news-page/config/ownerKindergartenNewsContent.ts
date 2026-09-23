@@ -26,6 +26,40 @@ const ownerKindergartenNewsContent = {
   deleteSuccessToast: {
     nativeTitle: '유치원 소식을 삭제했어요',
   },
+  detail: {
+    shareAriaLabel: '공유',
+    sendNotificationLabel: '알림 발송',
+    readStatusPrefix: '보호자',
+    readStatusMiddle: '명 중',
+    readStatusSuffix: '명이 읽었어요',
+    notFound: '소식을 찾을 수 없어요',
+    imageAriaLabel: '소식 사진 {index}/{total} 보기',
+    imageViewerAriaLabel: '소식 사진 보기',
+  },
+  readReactionSheet: {
+    title: '소식을 읽었어요',
+    closeAriaLabel: '닫기',
+    summaryMiddle: '명 중',
+    summarySuffix: '명 읽음',
+    unreadOnlyLabel: '안 읽은 보호자만',
+    notifyButtonLabel: '알림 전송',
+    notifySuccessToast: {
+      nativeTitle: '{name} 보호자에게 알림을 전송했어요',
+    },
+  },
+  imageViewer: {
+    closeAriaLabel: '사진 보기 닫기',
+    saveAriaLabel: '사진 저장',
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
+  },
+  shareSuccessToast: {
+    nativeTitle: '유치원 소식을 공유했어요',
+  },
 } as const;
 
 export { ownerKindergartenNewsContent };

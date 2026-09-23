@@ -7,6 +7,8 @@ import { Icon } from '@knockdog/ui';
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
 import type { OwnerKindergartenNewsListItemView } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
 import { OwnerKindergartenNewsMoreMenu } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsMoreMenu';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { Skeleton } from '@shared/ui/skeleton';
 
 interface OwnerKindergartenNewsListItemProps {
@@ -16,10 +18,28 @@ interface OwnerKindergartenNewsListItemProps {
 
 function OwnerKindergartenNewsListItem({ item, onDelete }: OwnerKindergartenNewsListItemProps) {
   const { list } = ownerKindergartenNewsContent;
+  const { push } = useStackNavigation();
   const [isThumbnailLoaded, setIsThumbnailLoaded] = useState(false);
 
+  const handleOpenDetail = () => {
+    void push({
+      pathname: route.owner.news.detail.root.replace('[id]', item.id),
+    });
+  };
+
   return (
-    <article className='border-line-200 bg-bg-0 flex w-full flex-col gap-2 border-b p-4'>
+    <article
+      role='button'
+      tabIndex={0}
+      className='border-line-200 bg-bg-0 flex w-full cursor-pointer flex-col gap-2 border-b p-4'
+      onClick={handleOpenDetail}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleOpenDetail();
+        }
+      }}
+    >
       <div className='flex w-full items-center justify-between'>
         <div className='flex min-w-0 items-center gap-1'>
           {item.isAnnouncement ? (
