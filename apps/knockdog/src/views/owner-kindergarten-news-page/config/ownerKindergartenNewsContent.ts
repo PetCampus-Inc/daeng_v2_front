@@ -31,6 +31,9 @@ const ownerKindergartenNewsContent = {
     draftSaveToast: {
       nativeTitle: '작성 중인 소식을 임시저장했어요',
     },
+    draftSaveFailedToast: {
+      nativeTitle: '임시저장하지 못했어요 다시 시도해 주세요',
+    },
     maxPhotoCount: 10,
     imageUpload: {
       confirmLabel: '확인',
@@ -50,6 +53,7 @@ const ownerKindergartenNewsContent = {
     settingsSheetCloseAriaLabel: '닫기',
     settingsAnnouncementLabel: '공지로 등록',
     settingsNotifyLabel: '업로드 시 연결된 보호자에게 알림 발송',
+    settingsNotifyLabelOnEdit: '수정 시 연결된 보호자에게 알림 발송',
     settingsNotifyDescription: '유치원에 연결된 보호자에게 알림이 발송됩니다.',
     announcementReplaceDialog: {
       title: '현재 공지로 등록된 소식이 있어요',
@@ -57,6 +61,18 @@ const ownerKindergartenNewsContent = {
       cancelLabel: '닫기',
       confirmLabel: '공지 설정',
     },
+  },
+  edit: {
+    submitLabel: '수정',
+    bannerText: '공지 수정 시 보호자에게 알림이 발송돼요',
+    submitSuccessToast: {
+      nativeTitle: '소식을 수정했어요',
+    },
+    submitFailedTitle: '소식을 수정하지 못했어요',
+    submitFailedDescription: '잠시 후 다시 시도해 주세요.',
+    submitFailedCloseLabel: '닫기',
+    submitFailedRetryLabel: '다시 시도',
+    notFound: '소식을 찾을 수 없어요',
   },
   empty: {
     imageSrc: '/images/image_owner_kindergarten_news_none.png',

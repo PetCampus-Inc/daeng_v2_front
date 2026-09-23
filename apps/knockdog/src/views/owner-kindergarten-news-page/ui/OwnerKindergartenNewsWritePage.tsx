@@ -29,9 +29,15 @@ import {
   isOwnerKindergartenNewsSettingsBannerDismissed,
 } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsSettingsBanner';
 import {
+  clearOwnerKindergartenNewsDraft,
+  saveOwnerKindergartenNewsDraft,
+} from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsDraft';
+import {
   createOwnerKindergartenNewsItem,
+  getOwnerKindergartenNewsById,
   getOwnerKindergartenNewsCount,
   subscribeOwnerKindergartenNews,
+  updateOwnerKindergartenNewsItem,
 } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
 import { OwnerKindergartenNewsWriteSettingsSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteSettingsSheet';
 import { openOwnerKindergartenNewsImageAlert } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsImageAlertDialog';
@@ -47,6 +53,13 @@ const MAX_PHOTO_COUNT = ownerKindergartenNewsContent.write.maxPhotoCount;
 /** 배너 유치원 키 — schoolId 연동 전 mock 기본값 */
 const BANNER_KINDERGARTEN_KEY = 'default';
 
+type ComposerMode = 'write' | 'edit';
+
+interface OwnerKindergartenNewsComposerProps {
+  mode: ComposerMode;
+  newsId?: string;
+}
+
 function showWriteSuccessToast() {
   const { submitSuccessToast } = ownerKindergartenNewsContent.write;
 
@@ -54,15 +67,32 @@ function showWriteSuccessToast() {
     type: 'success',
     nativeTitle: submitSuccessToast.nativeTitle,
     titleParts: [
-      { text: '새로운 ' },
-      { text: '소식', accent: true },
+      { text: '새로운 소식', accent: true },
       { text: '을 등록했어요' },
     ],
     title: (
       <>
-        <span className='text-text-primary-inverse'>새로운 </span>
-        <span className='text-text-accent'>소식</span>
+        <span className='text-text-accent'>새로운 소식</span>
         <span className='text-text-primary-inverse'>을 등록했어요</span>
+      </>
+    ),
+  });
+}
+
+function showEditSuccessToast() {
+  const { submitSuccessToast } = ownerKindergartenNewsContent.edit;
+
+  toast({
+    type: 'success',
+    nativeTitle: submitSuccessToast.nativeTitle,
+    titleParts: [
+      { text: '소식', accent: true },
+      { text: '을 수정했어요' },
+    ],
+    title: (
+      <>
+        <span className='text-text-accent'>소식</span>
+        <span className='text-text-primary-inverse'>을 수정했어요</span>
       </>
     ),
   });
@@ -75,15 +105,31 @@ function showDraftSaveToast() {
     type: 'success',
     nativeTitle: draftSaveToast.nativeTitle,
     titleParts: [
-      { text: '작성 중인 ' },
-      { text: '소식', accent: true },
+      { text: '작성 중인 소식', accent: true },
       { text: '을 임시저장했어요' },
     ],
     title: (
       <>
-        <span className='text-text-primary-inverse'>작성 중인 </span>
-        <span className='text-text-accent'>소식</span>
+        <span className='text-text-accent'>작성 중인 소식</span>
         <span className='text-text-primary-inverse'>을 임시저장했어요</span>
+      </>
+    ),
+  });
+}
+
+function showDraftSaveFailedToast() {
+  const { draftSaveFailedToast } = ownerKindergartenNewsContent.write;
+
+  toast({
+    nativeTitle: draftSaveFailedToast.nativeTitle,
+    titleParts: [
+      { text: '임시저장', accent: true },
+      { text: '하지 못했어요 다시 시도해 주세요' },
+    ],
+    title: (
+      <>
+        <span className='text-text-accent'>임시저장</span>
+        <span className='text-text-primary-inverse'>하지 못했어요 다시 시도해 주세요</span>
       </>
     ),
   });
@@ -111,13 +157,13 @@ function showMaxPhotoCountToast() {
 }
 
 /**
- * 원장 유치원 소식 등록
- * - 제목·본문 입력 시 등록 활성 (제목 최대 30자)
- * - 소식 0건 + 배너 미숨김 시 공지 알림 배지 노출
- * - 설정/배너 설정 탭 → 글쓰기 설정 시트 + 배너 영구 숨김
+ * 원장 유치원 소식 등록/수정 공통
+ * - write: 제목·본문 입력 시 등록 활성, 소식 0건 배너
+ * - edit: [수정] 버튼, 알림 토글 매 진입 OFF, 수정 성공 토스트
  */
-function OwnerKindergartenNewsWritePageContent() {
-  const { write } = ownerKindergartenNewsContent;
+function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsComposerProps) {
+  const { write, edit } = ownerKindergartenNewsContent;
+  const isEditMode = mode === 'edit';
   const { back, replace } = useStackNavigation();
   const { pickImage } = useImagePicker();
   const searchParams = useSearchParams();
@@ -131,24 +177,82 @@ function OwnerKindergartenNewsWritePageContent() {
   );
   const effectiveNewsCount = forceEmpty ? 0 : newsCount;
 
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [isAnnouncement, setIsAnnouncement] = useState(false);
-  const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(true);
+  const existingNews = useMemo(() => {
+    if (!isEditMode || !newsId) return null;
+    return getOwnerKindergartenNewsById(newsId);
+  }, [isEditMode, newsId]);
+
+  const resolveEditImageUrls = (news: NonNullable<typeof existingNews>) => {
+    if (news.imageUrls.length > 0) return news.imageUrls;
+    return news.thumbnailUrl ? [news.thumbnailUrl] : [];
+  };
+
+  const [title, setTitle] = useState(() => existingNews?.title ?? '');
+  const [body, setBody] = useState(() => existingNews?.body ?? '');
+  const [imageUrls, setImageUrls] = useState<string[]>(() =>
+    existingNews ? resolveEditImageUrls(existingNews) : []
+  );
+  const [isAnnouncement, setIsAnnouncement] = useState(() => existingNews?.isAnnouncement ?? false);
+  /** 수정 진입 시마다 OFF — 이전 수정 값 이어받지 않음 */
+  const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(() => !isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [isTitleLimitVisible, setIsTitleLimitVisible] = useState(false);
   const isExitDialogOpenRef = useRef(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
+  const initialSnapshotRef = useRef({
+    title: existingNews?.title ?? '',
+    body: existingNews?.body ?? '',
+    imageUrls: existingNews ? resolveEditImageUrls(existingNews) : [],
+    isAnnouncement: existingNews?.isAnnouncement ?? false,
+  });
+  const hydratedNewsIdRef = useRef<string | null>(existingNews?.id ?? null);
+
+  /** params 준비 후 기존 이미지·본문 hydrate — MiniPhotoBox X로 삭제 가능 */
+  useEffect(() => {
+    if (!isEditMode || !existingNews) return;
+    if (hydratedNewsIdRef.current === existingNews.id) return;
+
+    const nextImageUrls = resolveEditImageUrls(existingNews);
+    setTitle(existingNews.title);
+    setBody(existingNews.body);
+    setImageUrls(nextImageUrls);
+    setIsAnnouncement(existingNews.isAnnouncement);
+    initialSnapshotRef.current = {
+      title: existingNews.title,
+      body: existingNews.body,
+      imageUrls: nextImageUrls,
+      isAnnouncement: existingNews.isAnnouncement,
+    };
+    hydratedNewsIdRef.current = existingNews.id;
+  }, [existingNews, isEditMode]);
 
   const canSubmit = title.trim().length > 0 && body.trim().length > 0;
-  const isDirty = title.length > 0 || body.length > 0 || imageUrls.length > 0;
+  const isDirty = isEditMode
+    ? title !== initialSnapshotRef.current.title ||
+      body !== initialSnapshotRef.current.body ||
+      isAnnouncement !== initialSnapshotRef.current.isAnnouncement ||
+      imageUrls.length !== initialSnapshotRef.current.imageUrls.length ||
+      imageUrls.some((url, index) => url !== initialSnapshotRef.current.imageUrls[index])
+    : title.length > 0 || body.length > 0 || imageUrls.length > 0;
+
+  const submitLabel = isEditMode ? edit.submitLabel : write.submitLabel;
+  const bannerText = isEditMode ? edit.bannerText : write.bannerText;
+  const failedTitle = isEditMode ? edit.submitFailedTitle : write.submitFailedTitle;
+  const failedDescription = isEditMode
+    ? edit.submitFailedDescription
+    : write.submitFailedDescription;
+  const failedCloseLabel = isEditMode ? edit.submitFailedCloseLabel : write.submitFailedCloseLabel;
+  const failedRetryLabel = isEditMode ? edit.submitFailedRetryLabel : write.submitFailedRetryLabel;
 
   useEffect(() => {
     const dismissed = isOwnerKindergartenNewsSettingsBannerDismissed(kindergartenKey);
+    if (isEditMode) {
+      setShowBanner(!dismissed);
+      return;
+    }
     setShowBanner(effectiveNewsCount === 0 && !dismissed);
-  }, [effectiveNewsCount, kindergartenKey]);
+  }, [effectiveNewsCount, isEditMode, kindergartenKey]);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -159,7 +263,6 @@ function OwnerKindergartenNewsWritePageContent() {
     if (!el) return;
 
     el.style.height = 'auto';
-    // h2-extrabold line-height 1.75rem × 2줄
     el.style.height = `${Math.min(el.scrollHeight, 56)}px`;
   }, [title]);
 
@@ -167,10 +270,14 @@ function OwnerKindergartenNewsWritePageContent() {
     void back();
   }, [back]);
 
-  const goToListAfterSubmit = useCallback(() => {
-    // empty=1 목 목록으로 돌아가면 방금 등록한 소식이 안 보임 → 쿼리 없이 replace
-    void replace({ pathname: route.owner.news.root });
-  }, [replace]);
+  const goToDetailAfterSubmit = useCallback(
+    (targetNewsId: string) => {
+      void replace({
+        pathname: route.owner.news.detail.root.replace('[id]', targetNewsId),
+      });
+    },
+    [replace]
+  );
 
   const handleBack = useCallback(() => {
     if (isSubmitting) return;
@@ -219,13 +326,15 @@ function OwnerKindergartenNewsWritePageContent() {
       <OwnerKindergartenNewsWriteSettingsSheet
         isOpen={isOpen}
         close={close}
+        mode={mode}
+        editingNewsId={newsId}
         isAnnouncement={isAnnouncement}
         notifyGuardiansOnUpload={notifyGuardiansOnUpload}
         onAnnouncementChange={setIsAnnouncement}
         onNotifyGuardiansChange={setNotifyGuardiansOnUpload}
       />
     ));
-  }, [isAnnouncement, kindergartenKey, notifyGuardiansOnUpload, showBanner]);
+  }, [isAnnouncement, kindergartenKey, mode, newsId, notifyGuardiansOnUpload, showBanner]);
 
   const handleTitleChange = (value: string) => {
     const next = value.replace(/\n/g, '').slice(0, TITLE_MAX);
@@ -306,7 +415,20 @@ function OwnerKindergartenNewsWritePageContent() {
 
   const handleDraftSave = () => {
     if (!isDirty) return;
-    showDraftSaveToast();
+
+    try {
+      saveOwnerKindergartenNewsDraft(kindergartenKey, {
+        title,
+        body,
+        imageUrls,
+        isAnnouncement,
+        notifyGuardiansOnUpload,
+        ...(isEditMode && newsId ? { newsId } : {}),
+      });
+      showDraftSaveToast();
+    } catch {
+      showDraftSaveFailedToast();
+    }
   };
 
   const submitNews = useCallback(async () => {
@@ -314,16 +436,32 @@ function OwnerKindergartenNewsWritePageContent() {
 
     setIsSubmitting(true);
     try {
-      createOwnerKindergartenNewsItem({
-        isAnnouncement,
-        guardianTotalCount: 0,
-        title: title.trim(),
-        body: body.trim(),
-        thumbnailUrl: imageUrls[0] ?? null,
-        imageUrls,
-      });
-      showWriteSuccessToast();
-      goToListAfterSubmit();
+      if (isEditMode) {
+        if (!newsId) throw new Error('newsId required');
+        const updated = updateOwnerKindergartenNewsItem(newsId, {
+          isAnnouncement,
+          title: title.trim(),
+          body: body.trim(),
+          thumbnailUrl: imageUrls[0] ?? null,
+          imageUrls,
+        });
+        if (!updated) throw new Error('news not found');
+        clearOwnerKindergartenNewsDraft(kindergartenKey, newsId);
+        showEditSuccessToast();
+        goToDetailAfterSubmit(newsId);
+      } else {
+        const created = createOwnerKindergartenNewsItem({
+          isAnnouncement,
+          guardianTotalCount: 0,
+          title: title.trim(),
+          body: body.trim(),
+          thumbnailUrl: imageUrls[0] ?? null,
+          imageUrls,
+        });
+        clearOwnerKindergartenNewsDraft(kindergartenKey);
+        showWriteSuccessToast();
+        goToDetailAfterSubmit(created.id);
+      }
     } catch {
       overlay.open(({ isOpen, close }) => (
         <AlertDialog
@@ -334,18 +472,18 @@ function OwnerKindergartenNewsWritePageContent() {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{write.submitFailedTitle}</AlertDialogTitle>
-              <AlertDialogDescription>{write.submitFailedDescription}</AlertDialogDescription>
+              <AlertDialogTitle>{failedTitle}</AlertDialogTitle>
+              <AlertDialogDescription>{failedDescription}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{write.submitFailedCloseLabel}</AlertDialogCancel>
+              <AlertDialogCancel>{failedCloseLabel}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   close();
                   void submitNews();
                 }}
               >
-                {write.submitFailedRetryLabel}
+                {failedRetryLabel}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -354,15 +492,52 @@ function OwnerKindergartenNewsWritePageContent() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [body, canSubmit, goToListAfterSubmit, imageUrls, isAnnouncement, isSubmitting, title, write]);
+  }, [
+    body,
+    canSubmit,
+    failedCloseLabel,
+    failedDescription,
+    failedRetryLabel,
+    failedTitle,
+    goToDetailAfterSubmit,
+    imageUrls,
+    isAnnouncement,
+    isEditMode,
+    isSubmitting,
+    kindergartenKey,
+    newsId,
+    title,
+  ]);
 
   const titleLengthHint = useMemo(() => {
     if (!isTitleLimitVisible) return null;
     return write.titleMaxLengthGuide;
   }, [isTitleLimitVisible, write.titleMaxLengthGuide]);
 
+  if (isEditMode && !newsId) return null;
+
+  if (isEditMode && newsId && !existingNews) {
+    return (
+      <div className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={leaveToList} />
+          </Header.LeftSection>
+        </Header>
+        <main className='flex min-h-0 flex-1 items-center justify-center px-4'>
+          <p className='body1-regular text-text-secondary text-center'>{edit.notFound}</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div data-testid='owner-kindergarten-news-write-root' className='bg-bg-0 flex h-full flex-col'>
+    <div
+      data-testid={
+        isEditMode ? 'owner-kindergarten-news-edit-root' : 'owner-kindergarten-news-write-root'
+      }
+      className='bg-bg-0 flex h-full flex-col'
+    >
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
@@ -387,7 +562,7 @@ function OwnerKindergartenNewsWritePageContent() {
               void submitNews();
             }}
           >
-            {write.submitLabel}
+            {submitLabel}
           </button>
         </Header.RightSection>
       </Header>
@@ -420,12 +595,11 @@ function OwnerKindergartenNewsWritePageContent() {
           />
 
           {imageUrls.length > 0 ? (
-            <div className='scrollbar-hide flex gap-2 overflow-x-auto'>
+            <div className='scrollbar-hide flex gap-2 overflow-x-auto overflow-y-visible px-0.5 py-1'>
               {imageUrls.map((url, index) => (
                 <MiniPhotoBox
                   key={`${url}-${index}`}
                   imageUrl={url}
-                  className='h-[80px] w-[80px]'
                   onRemove={() => handleRemoveImage(index)}
                 />
               ))}
@@ -437,7 +611,7 @@ function OwnerKindergartenNewsWritePageContent() {
           {showBanner ? (
             <div className='bg-text-primary absolute right-4 -top-[26px] z-10 flex items-center gap-3 rounded-full px-4 py-2'>
               <span className='caption1-semibold text-text-primary-inverse whitespace-nowrap'>
-                {write.bannerText}
+                {bannerText}
               </span>
               <button
                 type='button'
@@ -488,9 +662,9 @@ function OwnerKindergartenNewsWritePageContent() {
 function OwnerKindergartenNewsWritePage() {
   return (
     <Suspense fallback={null}>
-      <OwnerKindergartenNewsWritePageContent />
+      <OwnerKindergartenNewsComposer mode='write' />
     </Suspense>
   );
 }
 
-export { OwnerKindergartenNewsWritePage };
+export { OwnerKindergartenNewsWritePage, OwnerKindergartenNewsComposer };
