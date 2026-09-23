@@ -26,12 +26,49 @@ function saveOwnerKindergartenNewsDraft(
     updatedAt: new Date().toISOString(),
   };
 
-  safeLocalStorage.set(getDraftStorageKey(kindergartenKey, draft.newsId), JSON.stringify(payload));
+  localStorage.setItem(getDraftStorageKey(kindergartenKey, draft.newsId), JSON.stringify(payload));
 }
 
 function clearOwnerKindergartenNewsDraft(kindergartenKey: string, newsId?: string) {
   safeLocalStorage.remove(getDraftStorageKey(kindergartenKey, newsId));
 }
 
+function isValidDraft(value: unknown): value is OwnerKindergartenNewsDraft {
+  if (!value || typeof value !== 'object') return false;
+
+  const draft = value as Partial<OwnerKindergartenNewsDraft>;
+  return (
+    typeof draft.title === 'string' &&
+    typeof draft.body === 'string' &&
+    Array.isArray(draft.imageUrls) &&
+    draft.imageUrls.every((url) => typeof url === 'string') &&
+    typeof draft.isAnnouncement === 'boolean' &&
+    typeof draft.notifyGuardiansOnUpload === 'boolean' &&
+    typeof draft.updatedAt === 'string' &&
+    (draft.newsId === undefined || typeof draft.newsId === 'string')
+  );
+}
+
+function loadOwnerKindergartenNewsDraft(
+  kindergartenKey: string,
+  newsId?: string
+): OwnerKindergartenNewsDraft | null {
+  const raw = safeLocalStorage.get(getDraftStorageKey(kindergartenKey, newsId));
+  if (!raw) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isValidDraft(parsed)) return null;
+    if (newsId && parsed.newsId !== newsId) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export type { OwnerKindergartenNewsDraft };
-export { saveOwnerKindergartenNewsDraft, clearOwnerKindergartenNewsDraft };
+export {
+  saveOwnerKindergartenNewsDraft,
+  clearOwnerKindergartenNewsDraft,
+  loadOwnerKindergartenNewsDraft,
+};

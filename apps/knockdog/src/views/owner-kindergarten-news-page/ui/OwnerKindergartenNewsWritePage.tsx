@@ -30,6 +30,7 @@ import {
 } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsSettingsBanner';
 import {
   clearOwnerKindergartenNewsDraft,
+  loadOwnerKindergartenNewsDraft,
   saveOwnerKindergartenNewsDraft,
 } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsDraft';
 import {
@@ -187,45 +188,139 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     return news.thumbnailUrl ? [news.thumbnailUrl] : [];
   };
 
-  const [title, setTitle] = useState(() => existingNews?.title ?? '');
-  const [body, setBody] = useState(() => existingNews?.body ?? '');
-  const [imageUrls, setImageUrls] = useState<string[]>(() =>
-    existingNews ? resolveEditImageUrls(existingNews) : []
+  const seedRef = useRef<{
+    title: string;
+    body: string;
+    imageUrls: string[];
+    isAnnouncement: boolean;
+    notifyGuardiansOnUpload: boolean;
+    hydrateKey: string | null;
+  } | null>(null);
+
+  if (!seedRef.current) {
+    const canLoadDraft = !isEditMode || Boolean(newsId);
+    const draft = canLoadDraft
+      ? loadOwnerKindergartenNewsDraft(kindergartenKey, isEditMode ? newsId : undefined)
+      : null;
+
+    if (draft) {
+      seedRef.current = {
+        title: draft.title,
+        body: draft.body,
+        imageUrls: draft.imageUrls,
+        isAnnouncement: draft.isAnnouncement,
+        notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
+        hydrateKey: `${kindergartenKey}:${newsId ?? 'write'}`,
+      };
+    } else if (existingNews) {
+      seedRef.current = {
+        title: existingNews.title,
+        body: existingNews.body,
+        imageUrls: resolveEditImageUrls(existingNews),
+        isAnnouncement: existingNews.isAnnouncement,
+        notifyGuardiansOnUpload: false,
+        hydrateKey: `${kindergartenKey}:${existingNews.id}`,
+      };
+    } else {
+      seedRef.current = {
+        title: '',
+        body: '',
+        imageUrls: [],
+        isAnnouncement: false,
+        notifyGuardiansOnUpload: !isEditMode,
+        hydrateKey: null,
+      };
+    }
+  }
+
+  const seed = seedRef.current;
+
+  const [title, setTitle] = useState(seed.title);
+  const [body, setBody] = useState(seed.body);
+  const [imageUrls, setImageUrls] = useState<string[]>(seed.imageUrls);
+  const [isAnnouncement, setIsAnnouncement] = useState(seed.isAnnouncement);
+  const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(
+    seed.notifyGuardiansOnUpload
   );
-  const [isAnnouncement, setIsAnnouncement] = useState(() => existingNews?.isAnnouncement ?? false);
-  /** 수정 진입 시마다 OFF — 이전 수정 값 이어받지 않음 */
-  const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(() => !isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [isTitleLimitVisible, setIsTitleLimitVisible] = useState(false);
   const isExitDialogOpenRef = useRef(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const initialSnapshotRef = useRef({
-    title: existingNews?.title ?? '',
-    body: existingNews?.body ?? '',
-    imageUrls: existingNews ? resolveEditImageUrls(existingNews) : [],
-    isAnnouncement: existingNews?.isAnnouncement ?? false,
+    title: seed.title,
+    body: seed.body,
+    imageUrls: seed.imageUrls,
+    isAnnouncement: seed.isAnnouncement,
   });
-  const hydratedNewsIdRef = useRef<string | null>(existingNews?.id ?? null);
+  const hydratedKeyRef = useRef<string | null>(seed.hydrateKey);
 
-  /** params 준비 후 기존 이미지·본문 hydrate — MiniPhotoBox X로 삭제 가능 */
+  /** params/스토어 준비 후 드래프트 → 기존 소식 순 hydrate */
   useEffect(() => {
-    if (!isEditMode || !existingNews) return;
-    if (hydratedNewsIdRef.current === existingNews.id) return;
+    const hydrateKey = isEditMode
+      ? newsId
+        ? `${kindergartenKey}:${newsId}`
+        : null
+      : `${kindergartenKey}:write`;
 
-    const nextImageUrls = resolveEditImageUrls(existingNews);
-    setTitle(existingNews.title);
-    setBody(existingNews.body);
-    setImageUrls(nextImageUrls);
-    setIsAnnouncement(existingNews.isAnnouncement);
-    initialSnapshotRef.current = {
-      title: existingNews.title,
-      body: existingNews.body,
-      imageUrls: nextImageUrls,
-      isAnnouncement: existingNews.isAnnouncement,
-    };
-    hydratedNewsIdRef.current = existingNews.id;
-  }, [existingNews, isEditMode]);
+    if (!hydrateKey || hydratedKeyRef.current === hydrateKey) return;
+
+    if (isEditMode) {
+      if (!existingNews) return;
+
+      const draft = loadOwnerKindergartenNewsDraft(kindergartenKey, existingNews.id);
+      if (draft) {
+        setTitle(draft.title);
+        setBody(draft.body);
+        setImageUrls(draft.imageUrls);
+        setIsAnnouncement(draft.isAnnouncement);
+        setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
+        initialSnapshotRef.current = {
+          title: draft.title,
+          body: draft.body,
+          imageUrls: draft.imageUrls,
+          isAnnouncement: draft.isAnnouncement,
+        };
+      } else {
+        const nextImageUrls =
+          existingNews.imageUrls.length > 0
+            ? existingNews.imageUrls
+            : existingNews.thumbnailUrl
+              ? [existingNews.thumbnailUrl]
+              : [];
+        setTitle(existingNews.title);
+        setBody(existingNews.body);
+        setImageUrls(nextImageUrls);
+        setIsAnnouncement(existingNews.isAnnouncement);
+        setNotifyGuardiansOnUpload(false);
+        initialSnapshotRef.current = {
+          title: existingNews.title,
+          body: existingNews.body,
+          imageUrls: nextImageUrls,
+          isAnnouncement: existingNews.isAnnouncement,
+        };
+      }
+
+      hydratedKeyRef.current = hydrateKey;
+      return;
+    }
+
+    const draft = loadOwnerKindergartenNewsDraft(kindergartenKey);
+    if (draft) {
+      setTitle(draft.title);
+      setBody(draft.body);
+      setImageUrls(draft.imageUrls);
+      setIsAnnouncement(draft.isAnnouncement);
+      setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
+      initialSnapshotRef.current = {
+        title: draft.title,
+        body: draft.body,
+        imageUrls: draft.imageUrls,
+        isAnnouncement: draft.isAnnouncement,
+      };
+    }
+    hydratedKeyRef.current = hydrateKey;
+  }, [existingNews, isEditMode, kindergartenKey, newsId]);
 
   const canSubmit = title.trim().length > 0 && body.trim().length > 0;
   const isDirty = isEditMode

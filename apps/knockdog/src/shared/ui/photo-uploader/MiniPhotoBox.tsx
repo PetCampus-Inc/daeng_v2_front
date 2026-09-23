@@ -19,7 +19,7 @@ function MiniPhotoBox({
 }: MiniPhotoBoxProps) {
   return (
     <div className={cn('relative size-20 shrink-0', className)}>
-      <div className='size-full overflow-hidden rounded-lg'>
+      <div className='relative size-full overflow-hidden rounded-lg'>
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- 로컬/원격 미리보기 uri
           <img src={imageUrl} alt={alt} className='size-full object-cover' loading='lazy' />
