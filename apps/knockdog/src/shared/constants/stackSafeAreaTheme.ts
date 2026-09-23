@@ -21,6 +21,11 @@ const STACK_SAFE_AREA_THEME_RULES: readonly StackSafeAreaThemeRule[] = [
     theme: { topBackgroundClassName: 'bg-bg-0', bottomBackgroundClassName: 'bg-bg-50' },
   },
   {
+    // 유치원 소식 / 소식 수정: 상단 헤더(bg-bg-0), 하단 본문(bg-bg-50)
+    matches: (pathname) => /^\/owner\/news(?:\/|$)/.test(pathname),
+    theme: { topBackgroundClassName: 'bg-bg-0', bottomBackgroundClassName: 'bg-bg-50' },
+  },
+  {
     // 알림함 페이지: 상단은 헤더(bg-bg-0), 하단은 본문(bg-bg-50)과 맞춤
     matches: (pathname) => /^\/notification(?:\/|$)/.test(pathname),
     theme: { topBackgroundClassName: 'bg-bg-0', bottomBackgroundClassName: 'bg-bg-50' },
