@@ -4,6 +4,7 @@ import { useCallback, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
+import { formatGuardianKindergartenNewsPageTitle } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPageTitle';
 import { formatGuardianKindergartenNewsPublishedAt } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
 import { getGuardianKindergartenNewsById } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
@@ -27,9 +28,7 @@ function GuardianKindergartenNewsDetailPageContent() {
     linkedKindergarten && (!schoolId || linkedKindergarten.id === schoolId)
       ? linkedKindergarten.name
       : null;
-  const pageTitle = kindergartenName
-    ? `${kindergartenName}${content.pageTitleSuffix}`
-    : content.pageTitleFallback;
+  const pageTitle = formatGuardianKindergartenNewsPageTitle(kindergartenName);
 
   const handleBack = useCallback(() => {
     void back().catch(() => {

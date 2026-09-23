@@ -23,6 +23,7 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { path: '/compare/notice', name: '보호자 알림장' },
   { path: '/compare/notice/list', name: '보호자 알림장 목록' },
   { path: '/compare/news', name: '보호자 유치원 소식' },
+  { path: '/compare/news/search', name: '보호자 유치원 소식 검색' },
   { pattern: /^\/compare\/news\/[^/]+$/, name: '보호자 유치원 소식 상세' },
   { path: '/compare-complete', name: '비교 결과' },
   { path: '/notification', name: '알림함' },

@@ -3,19 +3,17 @@ import {
   formatGuardianKindergartenNewsPublishedAt,
   isGuardianKindergartenNewsNewBadge,
 } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
+import { sortGuardianKindergartenNews } from '@views/guardian-kindergarten-news-page/lib/sortGuardianKindergartenNews';
 import {
   GUARDIAN_KINDERGARTEN_NEWS_PREVIEW_LIMIT,
   type GuardianKindergartenNewsItem,
-  type GuardianKindergartenNewsPreviewItem,
+  type GuardianKindergartenNewsListItemView,
 } from '@views/guardian-kindergarten-news-page/model/guardianKindergartenNews';
 
-function sortByLatest(items: GuardianKindergartenNewsItem[]) {
-  return [...items].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
-}
-
-function toPreviewItem(item: GuardianKindergartenNewsItem, now = new Date()): GuardianKindergartenNewsPreviewItem {
+function toListItemView(
+  item: GuardianKindergartenNewsItem,
+  now = new Date()
+): GuardianKindergartenNewsListItemView {
   const publishedAt = new Date(item.publishedAt);
   return {
     ...item,
@@ -24,26 +22,32 @@ function toPreviewItem(item: GuardianKindergartenNewsItem, now = new Date()): Gu
   };
 }
 
-/** 최신 등록순 전체 목록 (라벨/배지 포함) */
-function getGuardianKindergartenNewsList(now = new Date()): GuardianKindergartenNewsPreviewItem[] {
-  return sortByLatest(MOCK_GUARDIAN_KINDERGARTEN_NEWS).map((item) => toPreviewItem(item, now));
+function getGuardianKindergartenNewsSource() {
+  return sortGuardianKindergartenNews(MOCK_GUARDIAN_KINDERGARTEN_NEWS);
 }
 
-/** 홈 프리뷰 — 최신 등록순 최대 3건 */
-function getGuardianKindergartenNewsPreview(now = new Date()): GuardianKindergartenNewsPreviewItem[] {
+/** 공지 우선 + 최신순 전체 목록 (라벨/배지 포함) */
+function getGuardianKindergartenNewsList(now = new Date()): GuardianKindergartenNewsListItemView[] {
+  return getGuardianKindergartenNewsSource().map((item) => toListItemView(item, now));
+}
+
+/** 홈 프리뷰 — 정렬 후 최대 3건 */
+function getGuardianKindergartenNewsPreview(now = new Date()): GuardianKindergartenNewsListItemView[] {
   return getGuardianKindergartenNewsList(now).slice(0, GUARDIAN_KINDERGARTEN_NEWS_PREVIEW_LIMIT);
 }
 
 function getGuardianKindergartenNewsById(
   newsId: string,
   now = new Date()
-): GuardianKindergartenNewsPreviewItem | null {
+): GuardianKindergartenNewsListItemView | null {
   const found = MOCK_GUARDIAN_KINDERGARTEN_NEWS.find((item) => item.id === newsId);
-  return found ? toPreviewItem(found, now) : null;
+  return found ? toListItemView(found, now) : null;
 }
 
 export {
   getGuardianKindergartenNewsById,
   getGuardianKindergartenNewsList,
   getGuardianKindergartenNewsPreview,
+  getGuardianKindergartenNewsSource,
+  toListItemView,
 };
