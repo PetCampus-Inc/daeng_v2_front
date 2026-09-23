@@ -31,14 +31,23 @@ function GuardianKindergartenNewsDetailPageContent() {
   const pageTitle = formatGuardianKindergartenNewsPageTitle(kindergartenName);
 
   const handleBack = useCallback(() => {
-    void back().catch(() => {
-      void push({
-        pathname: route.compare.news.root,
-        query: schoolId ? { schoolId } : undefined,
-      }).catch(() => {
+    void (async () => {
+      try {
+        const wentBack = await back();
+        if (wentBack) return;
+      } catch {
+        // fall through — stack 없음/실패와 동일하게 fallback
+      }
+
+      try {
+        await push({
+          pathname: route.compare.news.root,
+          query: schoolId ? { schoolId } : undefined,
+        });
+      } catch {
         void navigateToTab('/compare');
-      });
-    });
+      }
+    })();
   }, [back, navigateToTab, push, schoolId]);
 
   useNativeBackHandler(handleBack);

@@ -31,9 +31,15 @@ function GuardianKindergartenNewsPageContent() {
   const pageTitle = formatGuardianKindergartenNewsPageTitle(kindergartenName);
 
   const handleBack = useCallback(() => {
-    void back().catch(() => {
+    void (async () => {
+      try {
+        const wentBack = await back();
+        if (wentBack) return;
+      } catch {
+        // fall through
+      }
       void navigateToTab('/compare');
-    });
+    })();
   }, [back, navigateToTab]);
 
   useNativeBackHandler(handleBack);
