@@ -34,13 +34,16 @@ import {
   subscribeOwnerKindergartenNews,
 } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
 import { OwnerKindergartenNewsWriteSettingsSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteSettingsSheet';
+import { openOwnerKindergartenNewsImageAlert } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsImageAlertDialog';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { MiniPhotoBox } from '@shared/ui/photo-uploader';
 import { useImagePicker } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 import { Header } from '@widgets/Header';
 
 const TITLE_MAX = ownerKindergartenNewsContent.write.titleMaxLength;
+const MAX_PHOTO_COUNT = ownerKindergartenNewsContent.write.maxPhotoCount;
 /** 배너 유치원 키 — schoolId 연동 전 mock 기본값 */
 const BANNER_KINDERGARTEN_KEY = 'default';
 
@@ -83,6 +86,27 @@ function showDraftSaveToast() {
         <span className='text-text-primary-inverse'>을 임시저장했어요</span>
       </>
     ),
+  });
+}
+
+function showMaxPhotoCountToast() {
+  const { imageUpload, maxPhotoCount } = ownerKindergartenNewsContent.write;
+
+  toast({
+    nativeTitle: imageUpload.maxCountToast.nativeTitle,
+    titleParts: [
+      { text: '사진은 한 번에 최대 ' },
+      { text: `${maxPhotoCount}장`, accent: true },
+      { text: '까지 올릴 수 있어요' },
+    ],
+    title: (
+      <>
+        <span className='text-text-primary-inverse'>사진은 한 번에 최대 </span>
+        <span className='text-text-accent'>{maxPhotoCount}장</span>
+        <span className='text-text-primary-inverse'>까지 올릴 수 있어요</span>
+      </>
+    ),
+    duration: 3000,
   });
 }
 
@@ -210,25 +234,74 @@ function OwnerKindergartenNewsWritePageContent() {
   };
 
   const handlePickPhoto = async () => {
+    const { imageUpload } = write;
+
     try {
       const result = await pickImage({
         source: 'library',
         mediaTypes: 'images',
         allowsMultipleSelection: true,
-        selectionLimit: 10,
+        orderedSelection: true,
+        selectionLimit: MAX_PHOTO_COUNT,
         skipUpload: true,
       });
 
-      if (result.cancelled || result.assets.length === 0) return;
+      if (result.cancelled) return;
+
+      if (result.exceededLimit) {
+        showMaxPhotoCountToast();
+      }
+
+      if (result.assets.length === 0) {
+        if (result.failure === 'network') {
+          openOwnerKindergartenNewsImageAlert(
+            imageUpload.networkFailedTitle,
+            imageUpload.networkFailedDescription
+          );
+          return;
+        }
+
+        openOwnerKindergartenNewsImageAlert(
+          imageUpload.noneValidTitle,
+          imageUpload.noneValidDescription
+        );
+        return;
+      }
 
       const urls = result.assets
         .map((asset) => asset.uri)
         .filter((uri): uri is string => Boolean(uri));
 
       setImageUrls((current) => [...current, ...urls]);
-    } catch {
-      // 취소/권한 거부 — no-op
+
+      const invalidSpecCount = result.skipped?.invalidSpecCount ?? 0;
+      const oversizedCount = result.skipped?.oversizedCount ?? 0;
+      const unreadableCount = result.skipped?.unreadableCount ?? 0;
+      const excludedCount = invalidSpecCount + oversizedCount + unreadableCount;
+
+      if (excludedCount > 0) {
+        const description =
+          invalidSpecCount > 0 || oversizedCount > 0
+            ? imageUpload.partialInvalidSpecDescription
+            : imageUpload.partialUnreadableDescription;
+
+        openOwnerKindergartenNewsImageAlert(
+          imageUpload.partialExcludedTitle(excludedCount),
+          description
+        );
+      }
+    } catch (error) {
+      if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
+
+      openOwnerKindergartenNewsImageAlert(
+        write.imageUpload.networkFailedTitle,
+        write.imageUpload.networkFailedDescription
+      );
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImageUrls((current) => current.filter((_, imageIndex) => imageIndex !== index));
   };
 
   const handleDraftSave = () => {
@@ -347,14 +420,13 @@ function OwnerKindergartenNewsWritePageContent() {
           />
 
           {imageUrls.length > 0 ? (
-            <div className='flex flex-wrap gap-2'>
+            <div className='scrollbar-hide flex gap-2 overflow-x-auto'>
               {imageUrls.map((url, index) => (
-                // eslint-disable-next-line @next/next/no-img-element -- 로컬/피커 uri
-                <img
+                <MiniPhotoBox
                   key={`${url}-${index}`}
-                  src={url}
-                  alt=''
-                  className='radius-r2 size-20 object-cover'
+                  imageUrl={url}
+                  className='h-[80px] w-[80px]'
+                  onRemove={() => handleRemoveImage(index)}
                 />
               ))}
             </div>
