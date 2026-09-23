@@ -12,22 +12,29 @@ import { BottomSheet } from '@shared/ui/bottom-sheet';
 interface OwnerKindergartenNewsWriteSettingsSheetProps {
   isOpen: boolean;
   close: () => void;
+  mode?: 'write' | 'edit';
+  /** 수정 중인 소식 id — 본인이 이미 공지면 교체 확인 생략 */
+  editingNewsId?: string;
   isAnnouncement: boolean;
   notifyGuardiansOnUpload: boolean;
   onAnnouncementChange: (value: boolean) => void;
   onNotifyGuardiansChange: (value: boolean) => void;
 }
 
-/** 글쓰기 설정 — 공지 등록 / 업로드 알림 토글 */
+/** 글쓰기 설정 — 공지 등록 / 업로드/수정 알림 토글 */
 function OwnerKindergartenNewsWriteSettingsSheet({
   isOpen,
   close,
+  mode = 'write',
+  editingNewsId,
   isAnnouncement: initialIsAnnouncement,
   notifyGuardiansOnUpload: initialNotifyGuardiansOnUpload,
   onAnnouncementChange,
   onNotifyGuardiansChange,
 }: OwnerKindergartenNewsWriteSettingsSheetProps) {
   const { write } = ownerKindergartenNewsContent;
+  const notifyLabel =
+    mode === 'edit' ? write.settingsNotifyLabelOnEdit : write.settingsNotifyLabel;
   const [shouldRender, setShouldRender] = useState(isOpen);
   const [isAnnouncement, setIsAnnouncement] = useState(initialIsAnnouncement);
   const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(
@@ -56,7 +63,10 @@ function OwnerKindergartenNewsWriteSettingsSheet({
     if (isAnnouncement) return;
 
     const activeAnnouncement = getActiveAnnouncementNews();
-    if (!activeAnnouncement) {
+    const isSelfAnnouncement =
+      Boolean(editingNewsId) && activeAnnouncement?.id === editingNewsId;
+
+    if (!activeAnnouncement || isSelfAnnouncement) {
       enableAnnouncement();
       return;
     }
@@ -108,18 +118,17 @@ function OwnerKindergartenNewsWriteSettingsSheet({
 
           <div className='flex w-full items-center justify-between gap-2 py-4'>
             <div className='flex min-w-0 flex-1 flex-col'>
-              <p className='body1-bold text-text-primary'>{write.settingsNotifyLabel}</p>
+              <p className='body1-bold text-text-primary'>{notifyLabel}</p>
               <p className='body2-regular text-text-secondary'>{write.settingsNotifyDescription}</p>
             </div>
             <Switch
-              aria-label={write.settingsNotifyLabel}
+              aria-label={notifyLabel}
               pressed={notifyGuardiansOnUpload}
               onPressedChange={handleNotifyGuardiansChange}
             />
           </div>
         </BottomSheet.Content>
 
-        {/* 확인 모달 열린 동안 시트도 배경과 동일하게 dim — 풀스크린 오버레이 이중 적용 방지 */}
         {isReplaceDialogOpen ? (
           <div className='pointer-events-none absolute inset-0 z-10 rounded-t-[16px] bg-black/40' aria-hidden />
         ) : null}

@@ -1,1 +1,2 @@
-export * from './PhotoUploader';
+export { PhotoUploader } from './PhotoUploader';
+export { MiniPhotoBox } from './MiniPhotoBox';

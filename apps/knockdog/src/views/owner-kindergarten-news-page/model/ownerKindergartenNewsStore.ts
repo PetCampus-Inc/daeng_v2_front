@@ -62,6 +62,40 @@ function createOwnerKindergartenNewsItem(
   return item;
 }
 
+function updateOwnerKindergartenNewsItem(
+  newsId: string,
+  input: Pick<
+    OwnerKindergartenNewsItem,
+    'isAnnouncement' | 'title' | 'body' | 'thumbnailUrl' | 'imageUrls'
+  >
+) {
+  const current = sourceItems.find((item) => item.id === newsId);
+  if (!current) return null;
+
+  let nextSource = sourceItems.map((item) =>
+    item.id === newsId
+      ? {
+          ...item,
+          isAnnouncement: input.isAnnouncement,
+          title: input.title,
+          body: input.body,
+          thumbnailUrl: input.thumbnailUrl,
+          imageUrls: input.imageUrls,
+        }
+      : item
+  );
+
+  if (input.isAnnouncement) {
+    nextSource = nextSource.map((item) =>
+      item.id !== newsId && item.isAnnouncement ? { ...item, isAnnouncement: false } : item
+    );
+  }
+
+  sourceItems = sortOwnerKindergartenNews(nextSource);
+  emit();
+  return getOwnerKindergartenNewsById(newsId);
+}
+
 function subscribeOwnerKindergartenNews(listener: Listener) {
   listeners.add(listener);
   return () => {
@@ -76,5 +110,6 @@ export {
   getActiveAnnouncementNews,
   deleteOwnerKindergartenNewsItem,
   createOwnerKindergartenNewsItem,
+  updateOwnerKindergartenNewsItem,
   subscribeOwnerKindergartenNews,
 };

@@ -31,10 +31,29 @@ const ownerKindergartenNewsContent = {
     draftSaveToast: {
       nativeTitle: '작성 중인 소식을 임시저장했어요',
     },
+    draftSaveFailedToast: {
+      nativeTitle: '임시저장하지 못했어요 다시 시도해 주세요',
+    },
+    maxPhotoCount: 10,
+    imageUpload: {
+      confirmLabel: '확인',
+      maxCountToast: {
+        nativeTitle: '사진은 한 번에 최대 10장까지 올릴 수 있어요',
+      },
+      partialExcludedTitle: (count: number) => `사진 ${count}장을 제외하고 올렸어요`,
+      partialInvalidSpecDescription:
+        '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진만 올릴 수 있어요.',
+      partialUnreadableDescription: '원본을 불러오지 못했거나 읽을 수 없는 사진은 제외됐어요.',
+      noneValidTitle: '올릴 수 있는 사진이 없어요',
+      noneValidDescription: '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진을 선택해 주세요.',
+      networkFailedTitle: '사진을 올리지 못했어요',
+      networkFailedDescription: '네트워크 상태를 확인하고 다시 시도해 주세요.',
+    },
     settingsSheetTitle: '글쓰기 설정',
     settingsSheetCloseAriaLabel: '닫기',
     settingsAnnouncementLabel: '공지로 등록',
     settingsNotifyLabel: '업로드 시 연결된 보호자에게 알림 발송',
+    settingsNotifyLabelOnEdit: '수정 시 연결된 보호자에게 알림 발송',
     settingsNotifyDescription: '유치원에 연결된 보호자에게 알림이 발송됩니다.',
     announcementReplaceDialog: {
       title: '현재 공지로 등록된 소식이 있어요',
@@ -42,6 +61,18 @@ const ownerKindergartenNewsContent = {
       cancelLabel: '닫기',
       confirmLabel: '공지 설정',
     },
+  },
+  edit: {
+    submitLabel: '수정',
+    bannerText: '공지 수정 시 보호자에게 알림이 발송돼요',
+    submitSuccessToast: {
+      nativeTitle: '소식을 수정했어요',
+    },
+    submitFailedTitle: '소식을 수정하지 못했어요',
+    submitFailedDescription: '잠시 후 다시 시도해 주세요.',
+    submitFailedCloseLabel: '닫기',
+    submitFailedRetryLabel: '다시 시도',
+    notFound: '소식을 찾을 수 없어요',
   },
   empty: {
     imageSrc: '/images/image_owner_kindergarten_news_none.png',
