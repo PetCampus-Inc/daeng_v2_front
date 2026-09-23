@@ -110,6 +110,8 @@ function OwnerKindergartenNewsWritePageContent() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isAnnouncement, setIsAnnouncement] = useState(false);
+  const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [isTitleLimitVisible, setIsTitleLimitVisible] = useState(false);
@@ -190,9 +192,16 @@ function OwnerKindergartenNewsWritePageContent() {
     }
 
     overlay.open(({ isOpen, close }) => (
-      <OwnerKindergartenNewsWriteSettingsSheet isOpen={isOpen} close={close} />
+      <OwnerKindergartenNewsWriteSettingsSheet
+        isOpen={isOpen}
+        close={close}
+        isAnnouncement={isAnnouncement}
+        notifyGuardiansOnUpload={notifyGuardiansOnUpload}
+        onAnnouncementChange={setIsAnnouncement}
+        onNotifyGuardiansChange={setNotifyGuardiansOnUpload}
+      />
     ));
-  }, [kindergartenKey, showBanner]);
+  }, [isAnnouncement, kindergartenKey, notifyGuardiansOnUpload, showBanner]);
 
   const handleTitleChange = (value: string) => {
     const next = value.replace(/\n/g, '').slice(0, TITLE_MAX);
@@ -233,7 +242,7 @@ function OwnerKindergartenNewsWritePageContent() {
     setIsSubmitting(true);
     try {
       createOwnerKindergartenNewsItem({
-        isAnnouncement: false,
+        isAnnouncement,
         guardianTotalCount: 0,
         title: title.trim(),
         body: body.trim(),
@@ -272,7 +281,7 @@ function OwnerKindergartenNewsWritePageContent() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [body, canSubmit, goToListAfterSubmit, imageUrls, isSubmitting, title, write]);
+  }, [body, canSubmit, goToListAfterSubmit, imageUrls, isAnnouncement, isSubmitting, title, write]);
 
   const titleLengthHint = useMemo(() => {
     if (!isTitleLimitVisible) return null;

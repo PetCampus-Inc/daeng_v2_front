@@ -32,8 +32,16 @@ const ownerKindergartenNewsContent = {
       nativeTitle: '작성 중인 소식을 임시저장했어요',
     },
     settingsSheetTitle: '글쓰기 설정',
-    settingsSheetCloseLabel: '닫기',
-    settingsSheetPlaceholder: '글쓰기 설정은 준비 중이에요.',
+    settingsSheetCloseAriaLabel: '닫기',
+    settingsAnnouncementLabel: '공지로 등록',
+    settingsNotifyLabel: '업로드 시 연결된 보호자에게 알림 발송',
+    settingsNotifyDescription: '유치원에 연결된 보호자에게 알림이 발송됩니다.',
+    announcementReplaceDialog: {
+      title: '현재 공지로 등록된 소식이 있어요',
+      description: '공지 설정 시 현재 소식을 업로드하면\n이미 등록된 공지 설정은 비활성화돼요.',
+      cancelLabel: '닫기',
+      confirmLabel: '공지 설정',
+    },
   },
   empty: {
     imageSrc: '/images/image_owner_kindergarten_news_none.png',

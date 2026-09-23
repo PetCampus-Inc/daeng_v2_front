@@ -23,6 +23,10 @@ function getOwnerKindergartenNewsById(newsId: string) {
   return sourceItems.find((item) => item.id === newsId) ?? null;
 }
 
+function getActiveAnnouncementNews() {
+  return sourceItems.find((item) => item.isAnnouncement) ?? null;
+}
+
 function deleteOwnerKindergartenNewsItem(newsId: string) {
   sourceItems = sourceItems.filter((item) => item.id !== newsId);
   emit();
@@ -36,6 +40,10 @@ function createOwnerKindergartenNewsItem(
     readers?: OwnerKindergartenNewsItem['readers'];
   }
 ) {
+  const nextSource = input.isAnnouncement
+    ? sourceItems.map((item) => (item.isAnnouncement ? { ...item, isAnnouncement: false } : item))
+    : sourceItems;
+
   const item: OwnerKindergartenNewsItem = {
     id: input.id ?? `news-${Date.now()}`,
     isAnnouncement: input.isAnnouncement,
@@ -49,7 +57,7 @@ function createOwnerKindergartenNewsItem(
     readers: input.readers ?? [],
   };
 
-  sourceItems = sortOwnerKindergartenNews([item, ...sourceItems]);
+  sourceItems = sortOwnerKindergartenNews([item, ...nextSource]);
   emit();
   return item;
 }
@@ -65,6 +73,7 @@ export {
   getOwnerKindergartenNewsById,
   getOwnerKindergartenNewsSource,
   getOwnerKindergartenNewsCount,
+  getActiveAnnouncementNews,
   deleteOwnerKindergartenNewsItem,
   createOwnerKindergartenNewsItem,
   subscribeOwnerKindergartenNews,
