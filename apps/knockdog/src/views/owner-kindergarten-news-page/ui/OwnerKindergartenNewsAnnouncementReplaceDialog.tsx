@@ -33,7 +33,7 @@ function OwnerKindergartenNewsAnnouncementReplaceDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange} closeOnNativeBack={false}>
-      <AlertDialogContent className='max-w-[358px]'>
+      <AlertDialogContent className='max-w-[358px]' overlayClassName='bg-transparent'>
         <AlertDialogHeader className='px-x4'>
           <AlertDialogTitle>{announcementReplaceDialog.title}</AlertDialogTitle>
           <AlertDialogDescription className='whitespace-pre-line'>

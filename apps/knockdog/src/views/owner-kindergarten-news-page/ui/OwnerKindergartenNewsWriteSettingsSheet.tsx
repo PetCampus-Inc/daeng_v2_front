@@ -33,6 +33,7 @@ function OwnerKindergartenNewsWriteSettingsSheet({
   const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(
     initialNotifyGuardiansOnUpload
   );
+  const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) setShouldRender(true);
@@ -60,10 +61,14 @@ function OwnerKindergartenNewsWriteSettingsSheet({
       return;
     }
 
+    setIsReplaceDialogOpen(true);
     overlay.open(({ isOpen: isDialogOpen, close: closeDialog }) => (
       <OwnerKindergartenNewsAnnouncementReplaceDialog
         isOpen={isDialogOpen}
-        close={closeDialog}
+        close={() => {
+          setIsReplaceDialogOpen(false);
+          closeDialog();
+        }}
         onConfirm={enableAnnouncement}
       />
     ));
@@ -81,9 +86,9 @@ function OwnerKindergartenNewsWriteSettingsSheet({
         if (!open) close();
       }}
     >
-      <BottomSheet.Overlay className='z-overlay' style={{ zIndex: 'var(--z-index-overlay)' }} />
+      <BottomSheet.Overlay style={{ zIndex: 'var(--z-index-overlay)' }} />
       <BottomSheet.Body
-        className='z-modal pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'
+        className='relative pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'
         style={{ zIndex: 'var(--z-index-modal)' }}
       >
         <BottomSheet.Handle />
@@ -113,6 +118,11 @@ function OwnerKindergartenNewsWriteSettingsSheet({
             />
           </div>
         </BottomSheet.Content>
+
+        {/* 확인 모달 열린 동안 시트도 배경과 동일하게 dim — 풀스크린 오버레이 이중 적용 방지 */}
+        {isReplaceDialogOpen ? (
+          <div className='pointer-events-none absolute inset-0 z-10 rounded-t-[16px] bg-black/40' aria-hidden />
+        ) : null}
       </BottomSheet.Body>
     </BottomSheet.Root>
   );
