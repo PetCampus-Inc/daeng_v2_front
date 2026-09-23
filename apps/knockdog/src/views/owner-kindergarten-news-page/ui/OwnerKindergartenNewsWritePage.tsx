@@ -88,7 +88,7 @@ function showDraftSaveToast() {
 
 /**
  * 원장 유치원 소식 등록
- * - 제목·본문 입력 시 등록 활성 (제목 최대 30자, 줄바꿈 불가)
+ * - 제목·본문 입력 시 등록 활성 (제목 최대 30자)
  * - 소식 0건 + 배너 미숨김 시 공지 알림 배지 노출
  * - 설정/배너 설정 탭 → 글쓰기 설정 시트 + 배너 영구 숨김
  */
@@ -114,7 +114,7 @@ function OwnerKindergartenNewsWritePageContent() {
   const [showBanner, setShowBanner] = useState(false);
   const [isTitleLimitVisible, setIsTitleLimitVisible] = useState(false);
   const isExitDialogOpenRef = useRef(false);
-  const titleRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
 
   const canSubmit = title.trim().length > 0 && body.trim().length > 0;
   const isDirty = title.length > 0 || body.length > 0 || imageUrls.length > 0;
@@ -127,6 +127,15 @@ function OwnerKindergartenNewsWritePageContent() {
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+
+    el.style.height = 'auto';
+    // h2-extrabold line-height 1.75rem × 2줄
+    el.style.height = `${Math.min(el.scrollHeight, 56)}px`;
+  }, [title]);
 
   const leaveToList = useCallback(() => {
     void back();
@@ -289,7 +298,7 @@ function OwnerKindergartenNewsWritePageContent() {
             disabled={!canSubmit || isSubmitting}
             className={`label-semibold radius-r1 px-2 py-1 ${
               canSubmit
-                ? 'bg-fill-primary-500 text-text-primary-inverse'
+                ? 'bg-fill-primary-50 text-text-accent'
                 : 'bg-fill-secondary-100 text-text-caption'
             } disabled:opacity-100`}
             onClick={() => {
@@ -304,13 +313,16 @@ function OwnerKindergartenNewsWritePageContent() {
       <main className='flex min-h-0 flex-1 flex-col'>
         <div className='flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-5'>
           <div className='relative flex flex-col gap-2'>
-            <input
+            <textarea
               ref={titleRef}
-              type='text'
+              rows={1}
               value={title}
               maxLength={TITLE_MAX}
               placeholder={write.titlePlaceholder}
-              className='h2-extrabold text-text-primary caret-text-accent placeholder:text-text-caption w-full bg-transparent outline-none'
+              className='h2-extrabold text-text-primary caret-text-accent placeholder:text-text-caption max-h-14 w-full resize-none overflow-hidden bg-transparent outline-none'
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') event.preventDefault();
+              }}
               onChange={(event) => handleTitleChange(event.target.value)}
             />
             {titleLengthHint ? (
