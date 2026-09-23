@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
 import { formatGuardianKindergartenNewsPublishedAt } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
 import { getGuardianKindergartenNewsById } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
+import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { Header } from '@widgets/Header';
@@ -18,8 +19,17 @@ function GuardianKindergartenNewsDetailPageContent() {
   const newsId = typeof params.id === 'string' ? params.id : '';
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
+  const { linkedKindergarten } = useGuardianKindergartenHome();
 
   const item = useMemo(() => (newsId ? getGuardianKindergartenNewsById(newsId) : null), [newsId]);
+
+  const kindergartenName =
+    linkedKindergarten && (!schoolId || linkedKindergarten.id === schoolId)
+      ? linkedKindergarten.name
+      : null;
+  const pageTitle = kindergartenName
+    ? `${kindergartenName}${content.pageTitleSuffix}`
+    : content.pageTitleFallback;
 
   const handleBack = useCallback(() => {
     void back().catch(() => {
@@ -40,7 +50,7 @@ function GuardianKindergartenNewsDetailPageContent() {
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
-        <Header.Title>{content.pageTitle}</Header.Title>
+        <Header.Title>{pageTitle}</Header.Title>
       </Header>
 
       <main className='min-h-0 flex-1 overflow-y-auto px-4 py-5'>
