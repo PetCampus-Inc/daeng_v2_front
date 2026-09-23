@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ActionButton, Icon } from '@knockdog/ui';
 
+import { GuardianKindergartenNewsSection } from '@views/guardian-kindergarten-news-page';
+import { getGuardianKindergartenNewsPreview } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
@@ -45,6 +47,8 @@ function GuardianKindergartenApprovedState({
   useEffect(() => {
     if (initialSelectedDate) setSelectedDate(initialSelectedDate);
   }, [initialSelectedDate]);
+
+  const newsPreviewItems = getGuardianKindergartenNewsPreview();
 
   const handleHistoryClick = () => {
     push({ pathname: route.compare.connectionHistory.root });
@@ -122,6 +126,15 @@ function GuardianKindergartenApprovedState({
               month: toMonthQuery(selectedDate),
             })
           }
+        />
+      </section>
+
+      {/* 유치원 새소식 */}
+      <section className='px-x4 mt-6 flex w-full flex-col items-center'>
+        <GuardianKindergartenNewsSection
+          variant={newsPreviewItems.length > 0 ? 'list' : 'empty'}
+          items={newsPreviewItems}
+          schoolId={kindergarten.id}
         />
       </section>
 
