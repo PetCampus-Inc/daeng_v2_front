@@ -1,33 +1,29 @@
 'use client';
 
 import { useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useQueryState } from 'nuqs';
 
-import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
-import { useGuardianKindergartenNewsSearch } from '@views/guardian-kindergarten-news-page/model/useGuardianKindergartenNewsSearch';
+import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
+import { useOwnerKindergartenNewsSearch } from '@views/owner-kindergarten-news-page/model/useOwnerKindergartenNewsSearch';
 import { RecentSearchKeywordSection } from '@features/search';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useKindergartenNewsSearchHistory } from '@shared/store';
 import { KindergartenNewsSearchEmptyResult } from '@shared/ui/kindergarten-news-search-empty-result';
 import { KindergartenNewsSearchResultItem } from '@shared/ui/kindergarten-news-search-result-item';
 import { Header } from '@widgets/Header';
 
 /**
- * 보호자 유치원 소식 검색
+ * 원장 유치원 소식 검색
  * - 제목·본문 통합 검색, 최신 등록순 (공지 핀 무시)
  * - 검색어 없을 때: 최근 검색어 (내 주변 검색과 동일 UI) / empty
  * - 결과 탭 → 상세, 상세 뒤로가기 → 검색 결과 유지 (q URL 동기화)
  */
-function GuardianKindergartenNewsSearchPageContent() {
-  const { search } = guardianKindergartenNewsContent;
-  const searchParams = useSearchParams();
-  const schoolId = searchParams.get('schoolId')?.trim() || undefined;
+function OwnerKindergartenNewsSearchPageContent() {
+  const { search } = ownerKindergartenNewsContent;
   const [query, setQuery] = useQueryState('q', { defaultValue: '' });
   const { back, push } = useStackNavigation();
-  const { navigateToTab } = useTabNavigation();
-  const { results, hasQuery, hasResults } = useGuardianKindergartenNewsSearch(query);
+  const { results, hasQuery, hasResults } = useOwnerKindergartenNewsSearch(query);
   const {
     recentKeywords,
     hasRecentKeywords,
@@ -42,19 +38,12 @@ function GuardianKindergartenNewsSearchPageContent() {
         const wentBack = await back();
         if (wentBack) return;
       } catch {
-        // fall through — stack 없음/실패와 동일하게 fallback
+        // fall through
       }
 
-      try {
-        await push({
-          pathname: route.compare.news.root,
-          query: schoolId ? { schoolId } : undefined,
-        });
-      } catch {
-        void navigateToTab('/compare');
-      }
+      void push({ pathname: route.owner.news.root });
     })();
-  }, [back, navigateToTab, push, schoolId]);
+  }, [back, push]);
 
   useNativeBackHandler(handleBack);
 
@@ -70,8 +59,7 @@ function GuardianKindergartenNewsSearchPageContent() {
   const handleResultClick = (newsId: string) => {
     if (query.trim()) addRecentKeyword(query);
     void push({
-      pathname: route.compare.news.detail.root.replace('[id]', newsId),
-      query: schoolId ? { schoolId } : undefined,
+      pathname: route.owner.news.detail.root.replace('[id]', newsId),
     });
   };
 
@@ -135,12 +123,12 @@ function GuardianKindergartenNewsSearchPageContent() {
   );
 }
 
-function GuardianKindergartenNewsSearchPage() {
+function OwnerKindergartenNewsSearchPage() {
   return (
     <Suspense fallback={null}>
-      <GuardianKindergartenNewsSearchPageContent />
+      <OwnerKindergartenNewsSearchPageContent />
     </Suspense>
   );
 }
 
-export { GuardianKindergartenNewsSearchPage };
+export { OwnerKindergartenNewsSearchPage };

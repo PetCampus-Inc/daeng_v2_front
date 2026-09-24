@@ -8,7 +8,8 @@ import { useOwnerKindergartenNews } from '@views/owner-kindergarten-news-page/mo
 import { OwnerKindergartenNewsWriteButton } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteButton';
 import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsEmptyState';
 import { OwnerKindergartenNewsList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsList';
-import { useNativeBackHandler, useTabNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
+import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { PullToRefresh } from '@shared/ui/pull-to-refresh';
 import { Header } from '@widgets/Header';
 
@@ -23,12 +24,17 @@ import { Header } from '@widgets/Header';
  */
 function OwnerKindergartenNewsPageContent() {
   const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
   const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, refresh, deleteNews } =
     useOwnerKindergartenNews();
 
   const handleBack = useCallback(() => {
     void navigateToTab('/owner');
   }, [navigateToTab]);
+
+  const handleSearchClick = useCallback(() => {
+    void push({ pathname: route.owner.news.search.root });
+  }, [push]);
 
   useNativeBackHandler(handleBack);
 
@@ -40,15 +46,18 @@ function OwnerKindergartenNewsPageContent() {
             <Header.BackButton onClick={handleBack} />
           </Header.LeftSection>
           <Header.Title>{ownerKindergartenNewsContent.pageTitle}</Header.Title>
-          <Header.RightSection>
-            <button
-              type='button'
-              aria-label={ownerKindergartenNewsContent.searchAriaLabel}
-              className='inline-flex size-6 items-center justify-center'
-            >
-              <Icon icon='Search' className='text-text-primary size-6' />
-            </button>
-          </Header.RightSection>
+          {hasNews ? (
+            <Header.RightSection>
+              <button
+                type='button'
+                aria-label={ownerKindergartenNewsContent.searchAriaLabel}
+                className='inline-flex size-6 items-center justify-center'
+                onClick={handleSearchClick}
+              >
+                <Icon icon='Search' className='text-text-primary size-6' />
+              </button>
+            </Header.RightSection>
+          ) : null}
         </Header>
       </div>
 

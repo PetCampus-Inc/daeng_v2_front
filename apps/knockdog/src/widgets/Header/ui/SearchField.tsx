@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 type SearchFieldProps = {
   value: string;
   onChange: (value: string) => void;
+  onSubmit?: (value: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
 };
@@ -13,6 +14,7 @@ type SearchFieldProps = {
 function SearchField({
   value,
   onChange,
+  onSubmit,
   placeholder = '업체 또는 주소를 검색하세요',
   autoFocus = true,
 }: SearchFieldProps) {
@@ -29,6 +31,7 @@ function SearchField({
 
   const handleSubmit = () => {
     searchInputRef.current?.blur();
+    onSubmit?.(value);
   };
 
   const handleClear = () => {
