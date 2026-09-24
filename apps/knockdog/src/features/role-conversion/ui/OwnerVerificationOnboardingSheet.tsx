@@ -16,6 +16,8 @@ interface OwnerVerificationOnboardingSheetProps {
   isOpen: boolean;
   close: () => void;
   requiresLogin?: boolean;
+  /** verification: 원장 인증 CTA / guide: 홈 운영 가이드 */
+  purpose?: 'verification' | 'guide';
 }
 
 const STEP_COUNT = ownerVerificationOnboardingSteps.length;
@@ -27,6 +29,7 @@ function OwnerVerificationOnboardingSheet({
   isOpen,
   close,
   requiresLogin = true,
+  purpose = 'verification',
 }: OwnerVerificationOnboardingSheetProps) {
   const { push } = useStackNavigation();
   const pathname = usePathname();
@@ -249,9 +252,9 @@ function OwnerVerificationOnboardingSheet({
                 variant='primaryFill'
                 size='large'
                 className='w-full'
-                onClick={goToVerification}
+                onClick={purpose === 'guide' ? close : goToVerification}
               >
-                원장 인증하기
+                {purpose === 'guide' ? '확인했어요' : '원장 인증하기'}
               </ActionButton>
             ) : (
               <div className='flex w-full gap-2'>
@@ -260,9 +263,9 @@ function OwnerVerificationOnboardingSheet({
                   variant='secondaryLine'
                   size='large'
                   className='w-22 shrink-0'
-                  onClick={goToVerification}
+                  onClick={purpose === 'guide' ? close : goToVerification}
                 >
-                  건너뛰기
+                  {purpose === 'guide' ? '닫기' : '건너뛰기'}
                 </ActionButton>
                 <ActionButton
                   type='button'

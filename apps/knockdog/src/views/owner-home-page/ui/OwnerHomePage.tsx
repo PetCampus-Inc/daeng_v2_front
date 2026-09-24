@@ -1,12 +1,14 @@
 'use client';
 
 import Image from 'next/image';
+import { overlay } from 'overlay-kit';
 import { Icon } from '@knockdog/ui';
 
 import { useOwnerHomePage } from '@views/owner-home-page/model/useOwnerHomePage';
-import { OwnerApprovalBanner } from '@views/owner-home-page/ui/OwnerApprovalBanner';
-import { OwnerNoticebookStatus } from '@views/owner-home-page/ui/OwnerNoticebookStatus';
-import { OwnerTodaySummaryCard } from '@views/owner-home-page/ui/OwnerTodaySummaryCard';
+import { OwnerHomeDashboardCard } from '@views/owner-home-page/ui/OwnerHomeDashboardCard';
+import { OwnerHomeOperationGuideBanner } from '@views/owner-home-page/ui/OwnerHomeOperationGuideBanner';
+import { OwnerHomeQuickMenu } from '@views/owner-home-page/ui/OwnerHomeQuickMenu';
+import { OwnerMembersInviteSheet } from '@views/owner-members-page/ui/OwnerMembersInviteSheet';
 
 import { Header } from '@widgets/Header';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
@@ -19,18 +21,21 @@ function OwnerHomePage() {
   const userId = useUserStore((state) => state.user?.userId);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
   const {
-    approval,
     displaySchoolName,
-    handleApprovalBannerClick,
-    handleApprovalBannerClose,
-    handleFriendPreviewClick,
+    handleAlbumClick,
+    handleConnectionClick,
+    handleNewsClick,
     handleNoticebookStatusClick,
-    handleRefresh,
+    hasConnectedMembers,
     noticebook,
-    shouldShowApprovalBanner,
+    ownerDisplayName,
+    pendingConnectionCount,
     today,
   } = useOwnerHomePage();
-  const shouldShowFriendPreview = !today.isError && today.enrolledCount > 0;
+
+  const handleInviteClick = () => {
+    overlay.open(({ isOpen, close }) => <OwnerMembersInviteSheet isOpen={isOpen} close={close} />);
+  };
 
   return (
     <div data-testid='owner-home-root' className='bg-bg-50 flex h-dvh flex-col'>
@@ -49,58 +54,42 @@ function OwnerHomePage() {
           </Header.RightSection>
         </Header>
       </div>
-      {shouldShowApprovalBanner ? (
-        <OwnerApprovalBanner
-          pendingCount={approval.pendingCount}
-          onClick={handleApprovalBannerClick}
-          onClose={handleApprovalBannerClose}
-        />
-      ) : null}
 
-      <section className='flex w-full flex-col gap-5 py-5'>
-        <div className='flex h-[52px] w-full items-center justify-between gap-5 px-4'>
-          <div className='flex min-w-0 flex-1 gap-1'>
-            <p data-testid='owner-home-greeting' className='h3-extrabold text-text-primary min-w-0 w-fit'>
-              안녕하세요
-              <br />
-              <span className='flex min-w-0 items-center gap-1'>
-                <span className='flex min-w-0 items-baseline'>
-                  <span className='text-text-accent min-w-0 truncate'>{displaySchoolName}</span>
-                  <span className='shrink-0 whitespace-nowrap'>&nbsp;원장님</span>
-                </span>
-                <Icon icon='Kindergarten' className='text-fill-secondary-700 size-6 shrink-0' />
-              </span>
-            </p>
-          </div>
-          <button
-            type='button'
-            data-testid='owner-home-refresh'
-            className='bg-bg-100 radius-full flex size-9 shrink-0 items-center justify-center p-1.5'
-            aria-label='새로고침'
-            onClick={() => handleRefresh(true)}
+      <section className='flex min-h-0 w-full flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5'>
+        <div className='flex w-full items-center gap-1'>
+          <Icon icon='Kindergarten' className='text-fill-primary-500 size-6 shrink-0' />
+          <h1
+            data-testid='owner-home-school-name'
+            className='h2-extrabold text-text-primary min-w-0 flex-1 truncate'
           >
-            <Icon icon='Reset' className='text-fill-secondary-700 size-6' />
-          </button>
+            {displaySchoolName}
+          </h1>
         </div>
-        <OwnerTodaySummaryCard
+
+        <OwnerHomeDashboardCard
           dateLabel={today.dateLabel}
           dayLabel={today.dayLabel}
-          currentTimeLabel={today.currentTimeLabel}
+          ownerDisplayName={ownerDisplayName}
           isError={today.isError}
+          hasConnectedMembers={hasConnectedMembers}
           enrolledCount={today.enrolledCount}
           arrivalCount={today.arrivalCount}
           departureCount={today.departureCount}
-          friends={today.friends}
-          extraFriendCount={today.extraFriendCount}
-          onFriendPreviewClick={handleFriendPreviewClick}
+          noticebookPendingCount={noticebook.pendingCount}
+          noticebookSentCount={noticebook.sentCount}
+          shouldShowNoticebook={noticebook.shouldShow}
+          onNoticebookClick={handleNoticebookStatusClick}
         />
-        {noticebook.shouldShow ? (
-          <OwnerNoticebookStatus
-            pendingCount={noticebook.pendingCount}
-            sentCount={noticebook.sentCount}
-            onClick={handleNoticebookStatusClick}
-          />
-        ) : null}
+
+        <OwnerHomeQuickMenu
+          pendingConnectionCount={pendingConnectionCount}
+          onConnectionClick={handleConnectionClick}
+          onAlbumClick={handleAlbumClick}
+          onNewsClick={handleNewsClick}
+          onInviteClick={handleInviteClick}
+        />
+
+        {!hasConnectedMembers ? <OwnerHomeOperationGuideBanner /> : null}
       </section>
     </div>
   );

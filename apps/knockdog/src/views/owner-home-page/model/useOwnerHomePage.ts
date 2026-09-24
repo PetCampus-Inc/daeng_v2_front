@@ -3,32 +3,25 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   formatKstDateLabel,
   formatKstDayLabel,
-  formatKstTimeLabel,
-  getKstDateKey,
   getNextKstMidnightDelay,
+  getKstDateKey,
 } from '@views/owner-home-page/model/ownerHomeDate';
 import { showOwnerHomeRefreshedToast } from '@views/owner-home-page/model/ownerHomeToast';
 
 import { useOwnerRole } from '@features/role-conversion';
 
-import { PET_PREVIEW_LIMIT, useOwnerHomeQuery } from '@entities/owner-home';
+import { useOwnerHomeQuery } from '@entities/owner-home';
+import { useOwnerMembersQuery } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
-interface ApprovalBannerDismissal {
-  count: number;
-}
-
 function useOwnerHomePage() {
   const { push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const { isOwner, isResolved, kindergarten } = useOwnerRole();
-  const [dismissedApprovalBanner, setDismissedApprovalBanner] = useState<ApprovalBannerDismissal | null>(
-    null
-  );
+  const { isOwner, isResolved, kindergarten, owner } = useOwnerRole();
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date());
 
   const {
@@ -40,47 +33,40 @@ function useOwnerHomePage() {
     enabled: isResolved && isOwner,
   });
 
+  const { data: ownerMembers, refetch: refetchOwnerMembers } = useOwnerMembersQuery({
+    userId,
+    enabled: isResolved && isOwner,
+  });
+
   const schoolName = ownerHome?.school.name || kindergarten?.name || '';
+  const ownerDisplayName = owner?.name?.trim() || '';
+  const totalMemberCount = ownerMembers?.totalMemberCount;
+  const hasConnectedMembers =
+    typeof totalMemberCount === 'number'
+      ? totalMemberCount > 0
+      : (ownerHome?.operationStatus.currentlyInCount ?? 0) > 0;
+  const pendingConnectionCount = ownerHome?.pendingApprovalsCount ?? 0;
 
-  const approval = {
-    pendingCount: ownerHome?.pendingApprovalsCount ?? 0,
-  };
-
-  const isSameDismissedApprovalBanner = dismissedApprovalBanner?.count === approval.pendingCount;
-  const shouldShowApprovalBanner =
-    !isOwnerHomeError && approval.pendingCount > 0 && !isSameDismissedApprovalBanner;
-
-  const today = useMemo(() => {
-    const friends = ownerHome?.currentlyInPetsPreview.items ?? [];
-    const totalCount =
-      ownerHome?.currentlyInPetsPreview.totalCount ??
-      ownerHome?.operationStatus.currentlyInCount ??
-      0;
-
-    return {
+  const today = useMemo(
+    () => ({
       isError: isOwnerHomeError,
       enrolledCount: ownerHome?.operationStatus.currentlyInCount ?? 0,
       arrivalCount: ownerHome?.operationStatus.checkedInCount ?? 0,
       departureCount: ownerHome?.operationStatus.checkedOutCount ?? 0,
-      friends,
-      extraFriendCount: Math.max(0, totalCount - Math.min(friends.length, PET_PREVIEW_LIMIT)),
-      currentTimeLabel: formatKstTimeLabel(lastRefreshedAt),
       dateLabel: formatKstDateLabel(lastRefreshedAt),
       dayLabel: formatKstDayLabel(lastRefreshedAt),
-    };
-  }, [isOwnerHomeError, lastRefreshedAt, ownerHome]);
+    }),
+    [isOwnerHomeError, lastRefreshedAt, ownerHome]
+  );
 
   const noticebook = {
     shouldShow:
+      hasConnectedMembers &&
       !isOwnerHomeError &&
       ((ownerHome?.operationStatus.checkedInCount ?? 0) > 0 ||
         (ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0) > 0),
     pendingCount: ownerHome?.operationStatus.unsentAttendanceRecordCount ?? 0,
     sentCount: ownerHome?.operationStatus.sentAttendanceRecordCount ?? 0,
-  };
-
-  const handleApprovalBannerClick = () => {
-    push({ pathname: route.owner.members.approval.root });
   };
 
   const navigateToTodayAttendance = (todayFilter: 'checked-in' | 'noticebook-pending') => {
@@ -98,18 +84,22 @@ function useOwnerHomePage() {
     });
   };
 
-  const handleFriendPreviewClick = () => {
-    navigateToTodayAttendance('checked-in');
-  };
-
   const handleNoticebookStatusClick = () => {
     navigateToTodayAttendance('noticebook-pending');
   };
 
-  const handleApprovalBannerClose = () => {
-    setDismissedApprovalBanner({
-      count: approval.pendingCount,
+  const handleConnectionClick = () => {
+    push({ pathname: route.owner.members.approval.root });
+  };
+
+  const handleAlbumClick = () => {
+    void navigateToTab('/owner/album').catch(() => {
+      push({ pathname: '/owner/album' });
     });
+  };
+
+  const handleNewsClick = () => {
+    void push({ pathname: route.owner.news.root });
   };
 
   const handleRefresh = useCallback(
@@ -119,12 +109,12 @@ function useOwnerHomePage() {
         return;
       }
 
-      refetchOwnerHome().finally(() => {
+      void Promise.all([refetchOwnerHome(), refetchOwnerMembers()]).finally(() => {
         setLastRefreshedAt(new Date());
         if (notify) showOwnerHomeRefreshedToast();
       });
     },
-    [isOwner, isResolved, refetchOwnerHome]
+    [isOwner, isResolved, refetchOwnerHome, refetchOwnerMembers]
   );
 
   useEffect(() => {
@@ -149,15 +139,16 @@ function useOwnerHomePage() {
   }, [handleRefresh, lastRefreshedAt]);
 
   return {
-    approval,
     displaySchoolName: schoolName,
-    handleApprovalBannerClick,
-    handleApprovalBannerClose,
-    handleFriendPreviewClick,
+    handleAlbumClick,
+    handleConnectionClick,
+    handleNewsClick,
     handleNoticebookStatusClick,
     handleRefresh,
+    hasConnectedMembers,
     noticebook,
-    shouldShowApprovalBanner,
+    ownerDisplayName,
+    pendingConnectionCount,
     today,
   };
 }
