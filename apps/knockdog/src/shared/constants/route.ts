@@ -270,6 +270,18 @@ const route = {
         root: '/compare/notice/list',
       },
     },
+    news: {
+      /** 보호자 유치원 소식 목록. query: schoolId? */
+      root: '/compare/news',
+      search: {
+        /** 보호자 유치원 소식 검색. query: schoolId? */
+        root: '/compare/news/search',
+      },
+      detail: {
+        /** 보호자 유치원 소식 상세 */
+        root: '/compare/news/[id]',
+      },
+    },
   },
 };
 

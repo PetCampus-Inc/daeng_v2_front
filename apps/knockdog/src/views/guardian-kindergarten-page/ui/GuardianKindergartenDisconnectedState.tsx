@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ActionButton, Icon } from '@knockdog/ui';
 
+import { GuardianKindergartenNewsSection } from '@views/guardian-kindergarten-news-page';
 import { guardianKindergartenDisconnectedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenDisconnectedContent';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
@@ -171,6 +172,11 @@ function GuardianKindergartenDisconnectedState({
             })
           }
         />
+      </section>
+
+      {/* 유치원 새소식 — 연결 해제: 전체 보기 숨김 */}
+      <section className='px-x4 mt-4 flex w-full flex-col items-center'>
+        <GuardianKindergartenNewsSection variant='disconnected' schoolId={kindergarten.id} />
       </section>
 
       {/* 유치원 카드 + 이력 */}
