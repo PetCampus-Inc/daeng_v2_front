@@ -4,6 +4,11 @@ const guardianKindergartenNewsContent = {
   sectionTitle: '유치원 새소식',
   viewAllLabel: '전체 보기',
   searchAriaLabel: '소식 검색',
+  search: {
+    placeholder: '제목 또는 내용을 검색하세요',
+    emptyRecent: '최근 검색 내역이 없어요.',
+    emptyResult: '검색 결과가 없어요.',
+  },
   newBadgeAriaLabel: '새소식',
   announcementIconSrc: '/images/ico_notice.svg',
   overflowLabel: (remaining: number) => `+ ${remaining}`,

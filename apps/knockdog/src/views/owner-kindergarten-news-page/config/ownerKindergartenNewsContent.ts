@@ -2,6 +2,11 @@ const ownerKindergartenNewsContent = {
   pageTitle: '유치원 소식',
   writeButtonLabel: '소식 올리기',
   searchAriaLabel: '소식 검색',
+  search: {
+    placeholder: '제목 또는 내용을 검색하세요',
+    emptyRecent: '최근 검색 내역이 없어요.',
+    emptyResult: '검색 결과가 없어요.',
+  },
   editPageTitle: '소식 수정',
   writePageTitle: '소식 등록',
   write: {
