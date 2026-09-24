@@ -6,14 +6,18 @@ import { useQueryState } from 'nuqs';
 
 import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
 import { useGuardianKindergartenNewsSearch } from '@views/guardian-kindergarten-news-page/model/useGuardianKindergartenNewsSearch';
+import { RecentSearchKeywordSection } from '@features/search';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { useKindergartenNewsSearchHistory } from '@shared/store';
+import { KindergartenNewsSearchEmptyResult } from '@shared/ui/kindergarten-news-search-empty-result';
 import { KindergartenNewsSearchResultItem } from '@shared/ui/kindergarten-news-search-result-item';
 import { Header } from '@widgets/Header';
 
 /**
  * 보호자 유치원 소식 검색
  * - 제목·본문 통합 검색, 최신 등록순 (공지 핀 무시)
+ * - 검색어 없을 때: 최근 검색어 (내 주변 검색과 동일 UI) / empty
  * - 결과 탭 → 상세, 상세 뒤로가기 → 검색 결과 유지 (q URL 동기화)
  */
 function GuardianKindergartenNewsSearchPageContent() {
@@ -24,6 +28,13 @@ function GuardianKindergartenNewsSearchPageContent() {
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const { results, hasQuery, hasResults } = useGuardianKindergartenNewsSearch(query);
+  const {
+    recentKeywords,
+    hasRecentKeywords,
+    addRecentKeyword,
+    removeRecentKeyword,
+    clearRecentKeywords,
+  } = useKindergartenNewsSearchHistory();
 
   const handleBack = useCallback(() => {
     void (async () => {
@@ -47,7 +58,17 @@ function GuardianKindergartenNewsSearchPageContent() {
 
   useNativeBackHandler(handleBack);
 
+  const commitQuery = useCallback(
+    (nextQuery: string) => {
+      const trimmed = nextQuery.trim();
+      void setQuery(trimmed || null);
+      if (trimmed) addRecentKeyword(trimmed);
+    },
+    [addRecentKeyword, setQuery]
+  );
+
   const handleResultClick = (newsId: string) => {
+    if (query.trim()) addRecentKeyword(query);
     void push({
       pathname: route.compare.news.detail.root.replace('[id]', newsId),
       query: schoolId ? { schoolId } : undefined,
@@ -65,17 +86,30 @@ function GuardianKindergartenNewsSearchPageContent() {
           onChange={(value) => {
             void setQuery(value || null);
           }}
+          onSubmit={commitQuery}
           placeholder={search.placeholder}
         />
       </Header>
 
-      <main className='flex min-h-0 flex-1 flex-col'>
+      <main className='flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain'>
         {!hasQuery ? (
-          <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
-            <p className='h2-semibold text-text-caption text-center'>{search.emptyRecent}</p>
-          </div>
+          hasRecentKeywords ? (
+            <RecentSearchKeywordSection
+              className='mt-4'
+              keywords={recentKeywords}
+              title={search.recentTitle}
+              clearAllLabel={search.clearAllLabel}
+              onSelect={commitQuery}
+              onRemove={removeRecentKeyword}
+              onClearAll={clearRecentKeywords}
+            />
+          ) : (
+            <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
+              <p className='h2-semibold text-text-caption text-center'>{search.emptyRecent}</p>
+            </div>
+          )
         ) : hasResults ? (
-          <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain'>
+          <div>
             {results.map((item) => (
               <KindergartenNewsSearchResultItem
                 key={item.id}
@@ -89,9 +123,12 @@ function GuardianKindergartenNewsSearchPageContent() {
             ))}
           </div>
         ) : (
-          <div className='flex min-h-0 flex-1 items-center justify-center px-4'>
-            <p className='h2-semibold text-text-caption text-center'>{search.emptyResult}</p>
-          </div>
+          <KindergartenNewsSearchEmptyResult
+            title={search.emptyResult.title}
+            description={search.emptyResult.description}
+            imageSrc={search.emptyResult.imageSrc}
+            imageAlt={search.emptyResult.imageAlt}
+          />
         )}
       </main>
     </div>
