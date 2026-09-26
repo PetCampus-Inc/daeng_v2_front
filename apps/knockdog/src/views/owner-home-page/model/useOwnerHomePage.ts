@@ -17,6 +17,7 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import type { Query } from '@shared/lib/bridge/queryUtils';
+import { isNativeWebView } from '@shared/lib/device';
 
 function useOwnerHomePage() {
   const { push } = useStackNavigation();
@@ -71,9 +72,16 @@ function useOwnerHomePage() {
   };
 
   const navigateToOwnerDaily = (query: Query) => {
-    navigateToTab('/owner/daily', query).catch(() => {
-      push({ pathname: route.owner.daily.root, query });
-    });
+    const nextQuery = { ...query, from: 'home' };
+
+    if (isNativeWebView()) {
+      navigateToTab('/owner/daily', nextQuery).catch(() => {
+        push({ pathname: route.owner.daily.root, query: nextQuery });
+      });
+      return;
+    }
+
+    push({ pathname: route.owner.daily.root, query: nextQuery });
   };
 
   const handleEnrolledClick = () => {
