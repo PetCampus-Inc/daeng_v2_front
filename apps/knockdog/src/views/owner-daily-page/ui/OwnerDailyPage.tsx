@@ -17,8 +17,9 @@ import {
 } from '@shared/lib/calendar-date';
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
-import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
-import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
+import { buildHref, searchParamsToQuery, type Query } from '@shared/lib/bridge/queryUtils';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
@@ -105,6 +106,17 @@ function resolveTodayAttendanceFilter(value: string | null): TodayAttendanceFilt
   return 'all';
 }
 
+function readCurrentQuery(): Query {
+  const query: Query = {};
+  if (typeof window === 'undefined') return query;
+
+  new URLSearchParams(window.location.search).forEach((value, key) => {
+    query[key] = value;
+  });
+
+  return query;
+}
+
 function resolveOwnerDailyTabFromNavigation(): OwnerDailyTab | null {
   const urlTab = new URLSearchParams(window.location.search).get('tab');
   if (urlTab === 'today-attendance' || urlTab === 'attendance-check') {
@@ -114,15 +126,32 @@ function resolveOwnerDailyTabFromNavigation(): OwnerDailyTab | null {
   return readPersistedOwnerDailyTab();
 }
 
+function OwnerDailyReturnHomeBack({ onBack }: { onBack: () => void }) {
+  useNativeBackHandler(onBack);
+  return null;
+}
+
 function OwnerDailyPage() {
   const router = useRouter();
-  const { push } = useStackNavigation();
+  const { back, push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get('tab');
   const rawTodayFilter = searchParams.get('todayFilter');
+  const fromHome = searchParams.get('from') === 'home';
+  const handleBackToOwnerHome = useCallback(() => {
+    if (isNativeWebView()) {
+      navigateToTab('/owner').catch(() => {
+        push({ pathname: '/owner' });
+      });
+      return;
+    }
+
+    back();
+  }, [back, navigateToTab, push]);
   const initialTodayAttendanceFilter = resolveTodayAttendanceFilter(rawTodayFilter);
   const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveInitialOwnerDailyTab(rawTab));
   const selectedTabRef = useRef(selectedTab);
@@ -269,7 +298,7 @@ function OwnerDailyPage() {
     setSelectedTab(nextTab);
     persistOwnerDailyTab(nextTab);
 
-    const query = searchParamsToQuery(searchParams);
+    const query = readCurrentQuery();
     if (nextTab === 'today-attendance') {
       query.tab = 'today-attendance';
     } else {
@@ -289,7 +318,7 @@ function OwnerDailyPage() {
     todayAttendanceContentRef.current?.scrollTo({ top: 0 });
     persistOwnerDailyTab('today-attendance');
 
-    const query = searchParamsToQuery(searchParams);
+    const query = readCurrentQuery();
     query.tab = 'today-attendance';
     if (filter === 'all') {
       delete query.todayFilter;
@@ -306,7 +335,7 @@ function OwnerDailyPage() {
       setSelectedTab(nextTab);
       persistOwnerDailyTab(nextTab);
 
-      const query = searchParamsToQuery(searchParams);
+      const query = readCurrentQuery();
       if (nextTab === 'today-attendance') {
         query.tab = 'today-attendance';
       } else {
@@ -315,7 +344,7 @@ function OwnerDailyPage() {
       }
       router.replace(buildHref(pathname, query), { scroll: false });
     },
-    [pathname, router, searchParams]
+    [pathname, router]
   );
 
   const handlePrevDay = () => {
@@ -472,7 +501,13 @@ function OwnerDailyPage() {
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
+        {fromHome ? <OwnerDailyReturnHomeBack onBack={handleBackToOwnerHome} /> : null}
         <Header>
+          {fromHome ? (
+            <Header.LeftSection>
+              <Header.BackButton aria-label='이전' onClick={handleBackToOwnerHome} />
+            </Header.LeftSection>
+          ) : null}
           <Header.Title>일과</Header.Title>
           <Header.RightSection>
             <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
