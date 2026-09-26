@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Float, FloatingActionButton, Icon, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
+import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { useHasUnreadNotificationQuery } from '@entities/notification';
@@ -20,6 +20,7 @@ import { STORAGE_KEYS } from '@shared/constants/storage';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { buildHref, searchParamsToQuery } from '@shared/lib/bridge/queryUtils';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
+import { NotificationBell } from '@shared/ui/notification-bell';
 import { ellipsisText } from '@shared/utils';
 import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
 import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
@@ -479,12 +480,10 @@ function OwnerDailyPage() {
         <Header>
           <Header.Title>일과</Header.Title>
           <Header.RightSection>
-            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
-              <Icon
-                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-                className='size-6 text-text-primary'
-              />
-            </button>
+            <NotificationBell
+              hasUnread={hasUnreadNotification}
+              onClick={() => push({ pathname: route.notification.root })}
+            />
           </Header.RightSection>
         </Header>
       </div>

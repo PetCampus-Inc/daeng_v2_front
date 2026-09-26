@@ -23,10 +23,13 @@ import { Header } from '@widgets/Header';
 
 function NotificationInboxPage() {
   const content = notificationInboxContent;
-  const { isResolved: isOwnerRoleResolved } = useOwnerRole();
+  const { isOwner, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView } = useMypageRoleView();
   const [selectedTab, setSelectedTab] = useState<NotificationAudience | null>(null);
-  const activeTab: NotificationAudience = selectedTab ?? (isOwnerView ? 'OWNER' : 'GUARDIAN');
+  const activeTab: NotificationAudience =
+    selectedTab === 'OWNER' && !isOwner
+      ? 'GUARDIAN'
+      : (selectedTab ?? (isOwnerView && isOwner ? 'OWNER' : 'GUARDIAN'));
   const {
     items,
     hasUnread,
@@ -94,12 +97,14 @@ function NotificationInboxPage() {
           ) : null}
         </Header>
 
-        <Tabs value={activeTab} onValueChange={(value) => setSelectedTab(value as NotificationAudience)}>
-          <TabsList>
-            <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
-            <TabsTrigger value='OWNER'>원장</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {isOwner ? (
+          <Tabs value={activeTab} onValueChange={(value) => setSelectedTab(value as NotificationAudience)}>
+            <TabsList>
+              <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
+              <TabsTrigger value='OWNER'>원장</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        ) : null}
       </div>
 
       {isError ? (
