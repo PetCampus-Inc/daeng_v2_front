@@ -1,7 +1,8 @@
 import { api, type ApiResponse } from '@shared/api';
 
 interface PushSetting {
-  pushEnabled: boolean;
+  guardianPushEnabled: boolean;
+  ownerPushEnabled: boolean;
 }
 
 const getPushSetting = async () => {
@@ -9,7 +10,14 @@ const getPushSetting = async () => {
 };
 
 const putPushSetting = async (request: PushSetting) => {
-  return await api.put('notification-settings', { json: request });
+  return await api
+    .put('notification-settings', {
+      json: {
+        guardianPushEnabled: request.guardianPushEnabled,
+        ownerPushEnabled: request.ownerPushEnabled,
+      },
+    })
+    .json<ApiResponse<PushSetting>>();
 };
 
 export { type PushSetting, getPushSetting, putPushSetting };

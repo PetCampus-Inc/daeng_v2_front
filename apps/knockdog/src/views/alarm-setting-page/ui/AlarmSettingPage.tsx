@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { METHODS, type PermissionStatus } from '@knockdog/bridge-core';
-import { AlarmToggleRow } from '@views/alarm-setting-page/ui/AlarmToggleRow';
 import {
   showActivateAlarmToast,
   showOwnerVerificationToast,
 } from '@views/alarm-setting-page/model/alarmSettingToast';
+import { AlarmToggleRow } from '@views/alarm-setting-page/ui/AlarmToggleRow';
 
 import { Header } from '@widgets/Header';
 import { useIsOwnerVerified } from '@features/role-conversion';
@@ -24,8 +24,6 @@ function AlarmSettingPage() {
   const { mutate: updatePushSetting, isPending: isPushSettingUpdating } = usePushSettingMutation();
   const isOwnerVerified = useIsOwnerVerified();
   const [notificationPermission, setNotificationPermission] = useState<PermissionStatus | null>(null);
-  const [isGuardianAlarmEnabled, setIsGuardianAlarmEnabled] = useState(true);
-  const [isOwnerAlarmEnabled, setIsOwnerAlarmEnabled] = useState(true);
 
   const refreshNotificationPermission = useCallback(async () => {
     if (!isNative) return;
@@ -60,18 +58,13 @@ function AlarmSettingPage() {
     if (!pushSetting) return;
 
     updatePushSetting({
-      ...pushSetting,
-      ...updates,
+      guardianPushEnabled: updates.guardianPushEnabled ?? pushSetting.guardianPushEnabled,
+      ownerPushEnabled: updates.ownerPushEnabled ?? pushSetting.ownerPushEnabled,
     });
   };
 
-  const handlePushChange = async (checked: boolean) => {
-    if (isPushSettingUpdating) return;
-
-    if (!checked || !isNative) {
-      handleUpdateSetting({ pushEnabled: checked });
-      return;
-    }
+  const requestNotificationPermission = async () => {
+    if (!isNative) return true;
 
     try {
       const permission = await bridge.request(METHODS.requestNotificationPermission, {});
@@ -87,41 +80,59 @@ function AlarmSettingPage() {
         if (!permission.canAskAgain) {
           await bridge.request(METHODS.openSettings, {});
         }
-        return;
+        return false;
       }
 
-      handleUpdateSetting({ pushEnabled: true });
+      return true;
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[AlarmSetting] failed to request notification permission', error);
       }
+      return false;
     }
   };
 
-  const isOsNotificationAllowed = !isNative || notificationPermission === null || notificationPermission === 'allowed';
-  const isPushEnabled = Boolean(pushSetting?.pushEnabled && isOsNotificationAllowed);
+  const isOsNotificationAllowed = !isNative || notificationPermission === 'allowed';
+  const isPushEnabled = Boolean(
+    (pushSetting?.guardianPushEnabled || (isOwnerVerified && pushSetting?.ownerPushEnabled)) &&
+      isOsNotificationAllowed
+  );
 
-  const handleGuardianAlarmChange = (checked: boolean) => {
+  const handlePushChange = async (checked: boolean) => {
+    if (isPushSettingUpdating) return;
+    if (checked && !(await requestNotificationPermission())) return;
+
+    handleUpdateSetting(
+      isOwnerVerified
+        ? { guardianPushEnabled: checked, ownerPushEnabled: checked }
+        : { guardianPushEnabled: checked }
+    );
+  };
+
+  const handleGuardianAlarmChange = async (checked: boolean) => {
+    if (isPushSettingUpdating) return;
     if (!isPushEnabled) {
       showActivateAlarmToast();
       return;
     }
+    if (checked && !(await requestNotificationPermission())) return;
 
-    setIsGuardianAlarmEnabled(checked);
+    handleUpdateSetting({ guardianPushEnabled: checked });
   };
 
-  const handleOwnerAlarmChange = (checked: boolean) => {
+  const handleOwnerAlarmChange = async (checked: boolean) => {
+    if (isPushSettingUpdating) return;
+    if (!isPushEnabled) {
+      showActivateAlarmToast();
+      return;
+    }
     if (!isOwnerVerified) {
       showOwnerVerificationToast();
       return;
     }
+    if (checked && !(await requestNotificationPermission())) return;
 
-    if (!isPushEnabled) {
-      showActivateAlarmToast();
-      return;
-    }
-
-    setIsOwnerAlarmEnabled(checked);
+    handleUpdateSetting({ ownerPushEnabled: checked });
   };
 
   return (
@@ -144,14 +155,16 @@ function AlarmSettingPage() {
           <AlarmToggleRow
             title='보호자 알림 받기'
             description='서비스 업데이트, 유치원 소식 등 알림'
-            pressed={isPushEnabled && isGuardianAlarmEnabled}
+            pressed={isOsNotificationAllowed && Boolean(pushSetting?.guardianPushEnabled)}
+            disabled={isPushSettingUpdating}
             onPressedChange={handleGuardianAlarmChange}
             muted={!isPushEnabled}
           />
           <AlarmToggleRow
             title='원장 알림 받기'
             description='원생 연결, 소식 확인 등 알림'
-            pressed={isOwnerVerified && isPushEnabled && isOwnerAlarmEnabled}
+            pressed={isOwnerVerified && isOsNotificationAllowed && Boolean(pushSetting?.ownerPushEnabled)}
+            disabled={isPushSettingUpdating}
             onPressedChange={handleOwnerAlarmChange}
             muted={!isOwnerVerified || !isPushEnabled}
           />

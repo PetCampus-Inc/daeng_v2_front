@@ -39,7 +39,7 @@ function DevicePermissionPage() {
         }
 
         if (notificationPermission.grantedNow) {
-          await updatePushSetting({ pushEnabled: true });
+          await updatePushSetting({ guardianPushEnabled: true, ownerPushEnabled: false });
         }
       });
       setHasRequestStarted(true);
