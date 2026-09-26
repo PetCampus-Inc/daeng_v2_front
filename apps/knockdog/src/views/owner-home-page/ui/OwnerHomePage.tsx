@@ -15,6 +15,7 @@ import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { PullToRefresh } from '@shared/ui/pull-to-refresh';
 
 function OwnerHomePage() {
   const { push } = useStackNavigation();
@@ -26,6 +27,7 @@ function OwnerHomePage() {
     handleConnectionClick,
     handleNewsClick,
     handleNoticebookStatusClick,
+    handleRefresh,
     hasConnectedMembers,
     noticebook,
     ownerDisplayName,
@@ -55,42 +57,44 @@ function OwnerHomePage() {
         </Header>
       </div>
 
-      <section className='flex min-h-0 w-full flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-5'>
-        <div className='flex w-full items-center gap-1'>
-          <Icon icon='Kindergarten' className='text-fill-primary-500 size-6 shrink-0' />
-          <h1
-            data-testid='owner-home-school-name'
-            className='h2-extrabold text-text-primary min-w-0 flex-1 truncate'
-          >
-            {displaySchoolName}
-          </h1>
-        </div>
+      <PullToRefresh onRefresh={() => handleRefresh()}>
+        <section className='flex w-full flex-col gap-5 px-4 py-5'>
+          <div className='flex w-full items-center gap-1'>
+            <Icon icon='Kindergarten' className='text-fill-primary-500 size-6 shrink-0' />
+            <h1
+              data-testid='owner-home-school-name'
+              className='h2-extrabold text-text-primary min-w-0 flex-1 truncate'
+            >
+              {displaySchoolName}
+            </h1>
+          </div>
 
-        <OwnerHomeDashboardCard
-          dateLabel={today.dateLabel}
-          dayLabel={today.dayLabel}
-          ownerDisplayName={ownerDisplayName}
-          isError={today.isError}
-          hasConnectedMembers={hasConnectedMembers}
-          enrolledCount={today.enrolledCount}
-          arrivalCount={today.arrivalCount}
-          departureCount={today.departureCount}
-          noticebookPendingCount={noticebook.pendingCount}
-          noticebookSentCount={noticebook.sentCount}
-          shouldShowNoticebook={noticebook.shouldShow}
-          onNoticebookClick={handleNoticebookStatusClick}
-        />
+          <OwnerHomeDashboardCard
+            dateLabel={today.dateLabel}
+            dayLabel={today.dayLabel}
+            ownerDisplayName={ownerDisplayName}
+            isError={today.isError}
+            hasConnectedMembers={hasConnectedMembers}
+            enrolledCount={today.enrolledCount}
+            arrivalCount={today.arrivalCount}
+            departureCount={today.departureCount}
+            noticebookPendingCount={noticebook.pendingCount}
+            noticebookSentCount={noticebook.sentCount}
+            shouldShowNoticebook={noticebook.shouldShow}
+            onNoticebookClick={handleNoticebookStatusClick}
+          />
 
-        <OwnerHomeQuickMenu
-          pendingConnectionCount={pendingConnectionCount}
-          onConnectionClick={handleConnectionClick}
-          onAlbumClick={handleAlbumClick}
-          onNewsClick={handleNewsClick}
-          onInviteClick={handleInviteClick}
-        />
+          <OwnerHomeQuickMenu
+            pendingConnectionCount={pendingConnectionCount}
+            onConnectionClick={handleConnectionClick}
+            onAlbumClick={handleAlbumClick}
+            onNewsClick={handleNewsClick}
+            onInviteClick={handleInviteClick}
+          />
 
-        {!hasConnectedMembers ? <OwnerHomeOperationGuideBanner /> : null}
-      </section>
+          {!hasConnectedMembers ? <OwnerHomeOperationGuideBanner /> : null}
+        </section>
+      </PullToRefresh>
     </div>
   );
 }

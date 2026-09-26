@@ -106,13 +106,15 @@ function useOwnerHomePage() {
     (notify = false) => {
       if (!isResolved || !isOwner) {
         setLastRefreshedAt(new Date());
-        return;
+        return Promise.resolve();
       }
 
-      void Promise.all([refetchOwnerHome(), refetchOwnerMembers()]).finally(() => {
-        setLastRefreshedAt(new Date());
-        if (notify) showOwnerHomeRefreshedToast();
-      });
+      return Promise.all([refetchOwnerHome(), refetchOwnerMembers()])
+        .finally(() => {
+          setLastRefreshedAt(new Date());
+          if (notify) showOwnerHomeRefreshedToast();
+        })
+        .then(() => undefined);
     },
     [isOwner, isResolved, refetchOwnerHome, refetchOwnerMembers]
   );
