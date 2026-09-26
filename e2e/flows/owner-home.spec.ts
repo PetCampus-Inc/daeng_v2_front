@@ -7,8 +7,7 @@ test.describe('CF-OWNER-HOME', () => {
     await expectOwnerNav(page);
 
     await expect(page.getByTestId('owner-home-root')).toBeVisible();
-    await expect(page.getByTestId('owner-home-greeting')).toContainText('안녕하세요');
-    await expect(page.getByTestId('owner-home-greeting')).toContainText('원장님');
+    await expect(page.getByTestId('owner-home-school-name')).toBeVisible();
 
     await expect(page.getByTestId('bottom-nav-owner')).toBeVisible();
     await expect(page.getByTestId('bottom-nav-owner-daily')).toBeVisible();
