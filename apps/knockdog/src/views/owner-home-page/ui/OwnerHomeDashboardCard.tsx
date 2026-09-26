@@ -16,6 +16,9 @@ interface OwnerHomeDashboardCardProps {
   noticebookPendingCount: number;
   noticebookSentCount: number;
   shouldShowNoticebook: boolean;
+  onEnrolledClick: () => void;
+  onArrivalClick: () => void;
+  onDepartureClick: () => void;
   onNoticebookClick: () => void;
 }
 
@@ -31,6 +34,9 @@ function OwnerHomeDashboardCard({
   noticebookPendingCount,
   noticebookSentCount,
   shouldShowNoticebook,
+  onEnrolledClick,
+  onArrivalClick,
+  onDepartureClick,
   onNoticebookClick,
 }: OwnerHomeDashboardCardProps) {
   const { emptyStudents, stats, noticebook, loadError, ownerNameSuffix } = ownerHomeContent;
@@ -64,25 +70,40 @@ function OwnerHomeDashboardCard({
         ) : (
           <>
             <div className='flex w-full items-end justify-between px-2 py-4'>
-              <div className='flex flex-col gap-2'>
+              <button
+                type='button'
+                className='flex flex-col items-start gap-2 text-left'
+                aria-label={`${stats.enrolledLabel} ${enrolledCount}`}
+                onClick={onEnrolledClick}
+              >
                 <span className='body2-semibold text-text-primary'>{stats.enrolledLabel}</span>
                 <span className='text-text-primary text-[40px] leading-none font-extrabold tracking-tight'>
                   {enrolledCount}
                 </span>
-              </div>
+              </button>
               <div className='flex items-start gap-5'>
-                <div className='flex flex-col items-end gap-2'>
+                <button
+                  type='button'
+                  className='flex flex-col items-end gap-2 text-right'
+                  aria-label={`${stats.arrivalLabel} ${arrivalCount}`}
+                  onClick={onArrivalClick}
+                >
                   <span className='caption1-semibold text-text-secondary'>{stats.arrivalLabel}</span>
                   <span className='text-text-primary text-[24px] leading-none font-extrabold tracking-tight'>
                     {arrivalCount}
                   </span>
-                </div>
-                <div className='flex flex-col items-end gap-2'>
+                </button>
+                <button
+                  type='button'
+                  className='flex flex-col items-end gap-2 text-right'
+                  aria-label={`${stats.departureLabel} ${departureCount}`}
+                  onClick={onDepartureClick}
+                >
                   <span className='caption1-semibold text-text-secondary'>{stats.departureLabel}</span>
                   <span className='text-text-primary text-[24px] leading-none font-extrabold tracking-tight'>
                     {departureCount}
                   </span>
-                </div>
+                </button>
               </div>
             </div>
 

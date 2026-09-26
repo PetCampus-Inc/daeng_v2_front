@@ -16,6 +16,7 @@ import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import type { Query } from '@shared/lib/bridge/queryUtils';
 
 function useOwnerHomePage() {
   const { push } = useStackNavigation();
@@ -69,23 +70,22 @@ function useOwnerHomePage() {
     sentCount: ownerHome?.operationStatus.sentAttendanceRecordCount ?? 0,
   };
 
-  const navigateToTodayAttendance = (todayFilter: 'checked-in' | 'noticebook-pending') => {
-    navigateToTab('/owner/daily', {
-      tab: 'today-attendance',
-      todayFilter,
-    }).catch(() => {
-      push({
-        pathname: route.owner.daily.root,
-        query: {
-          tab: 'today-attendance',
-          todayFilter,
-        },
-      });
+  const navigateToOwnerDaily = (query: Query) => {
+    navigateToTab('/owner/daily', query).catch(() => {
+      push({ pathname: route.owner.daily.root, query });
     });
   };
 
+  const handleEnrolledClick = () => {
+    navigateToOwnerDaily({ tab: 'attendance-check' });
+  };
+
+  const handleArrivalClick = () => {
+    navigateToOwnerDaily({ tab: 'today-attendance' });
+  };
+
   const handleNoticebookStatusClick = () => {
-    navigateToTodayAttendance('noticebook-pending');
+    navigateToOwnerDaily({ tab: 'today-attendance', todayFilter: 'noticebook-pending' });
   };
 
   const handleConnectionClick = () => {
@@ -143,7 +143,10 @@ function useOwnerHomePage() {
   return {
     displaySchoolName: schoolName,
     handleAlbumClick,
+    handleArrivalClick,
     handleConnectionClick,
+    handleDepartureClick: handleArrivalClick,
+    handleEnrolledClick,
     handleNewsClick,
     handleNoticebookStatusClick,
     handleRefresh,

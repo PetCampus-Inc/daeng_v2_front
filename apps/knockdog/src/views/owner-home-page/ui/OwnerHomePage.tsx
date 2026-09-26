@@ -24,7 +24,10 @@ function OwnerHomePage() {
   const {
     displaySchoolName,
     handleAlbumClick,
+    handleArrivalClick,
     handleConnectionClick,
+    handleDepartureClick,
+    handleEnrolledClick,
     handleNewsClick,
     handleNoticebookStatusClick,
     handleRefresh,
@@ -81,6 +84,9 @@ function OwnerHomePage() {
             noticebookPendingCount={noticebook.pendingCount}
             noticebookSentCount={noticebook.sentCount}
             shouldShowNoticebook={noticebook.shouldShow}
+            onEnrolledClick={handleEnrolledClick}
+            onArrivalClick={handleArrivalClick}
+            onDepartureClick={handleDepartureClick}
             onNoticebookClick={handleNoticebookStatusClick}
           />
 
