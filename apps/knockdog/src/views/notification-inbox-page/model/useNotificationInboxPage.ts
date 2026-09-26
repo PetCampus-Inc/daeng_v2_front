@@ -2,19 +2,26 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { useNotificationReadMutation, useNotificationsInfiniteQuery } from '@entities/notification';
+import {
+  useNotificationReadMutation,
+  useNotificationsInfiniteQuery,
+  type NotificationAudience,
+} from '@entities/notification';
 import { useUserStore } from '@entities/user';
 import { NOTIFICATION_INBOX_PAGE_SIZE } from '@views/notification-inbox-page/config/notificationInboxConstants';
 import { toNotificationInboxItem } from '@views/notification-inbox-page/lib/toNotificationInboxItem';
 
-function useNotificationInboxPage() {
+function useNotificationInboxPage(audience: NotificationAudience, enabled = true) {
   const userId = useUserStore((state) => state.user?.userId);
   const query = useNotificationsInfiniteQuery({
     userId,
+    audience,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
+    enabled,
   });
   const { markRead, markAllRead } = useNotificationReadMutation({
     userId,
+    audience,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
   });
 

@@ -19,7 +19,11 @@ interface OwnerMembersHeroProps {
 function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
+    userId,
+    audience: 'OWNER',
+    enabled: true,
+  });
   const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();
 
   return (

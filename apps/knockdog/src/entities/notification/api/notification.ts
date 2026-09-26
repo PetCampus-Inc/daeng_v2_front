@@ -2,16 +2,20 @@ import type { NotificationInboxDto } from '../model/notification';
 
 import { api, type ApiResponse } from '@shared/api';
 
+type NotificationAudience = 'OWNER' | 'GUARDIAN';
+
 interface GetNotificationsParams {
+  audience: NotificationAudience;
   cursor?: string;
   size?: number;
 }
 
-/** `GET` - 인증 사용자 알림함 조회 (최근 14일, cursor 페이지네이션) */
-function getNotifications({ cursor, size = 30 }: GetNotificationsParams = {}) {
+/** `GET` - 인증 사용자 알림함 조회 (최근 14일, cursor 페이지네이션). `audience` 필수 */
+function getNotifications({ audience, cursor, size = 30 }: GetNotificationsParams) {
   return api
     .get('notifications', {
       searchParams: {
+        audience,
         size,
         ...(cursor ? { cursor } : {}),
       },
@@ -30,4 +34,4 @@ function patchNotificationsReadAll() {
 }
 
 export { getNotifications, patchNotificationRead, patchNotificationsReadAll };
-export type { GetNotificationsParams };
+export type { GetNotificationsParams, NotificationAudience };

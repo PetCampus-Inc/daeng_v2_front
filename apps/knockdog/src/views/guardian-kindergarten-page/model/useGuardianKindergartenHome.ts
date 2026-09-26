@@ -30,6 +30,7 @@ function useGuardianKindergartenHome(options?: { petId?: string | null; enabled?
 
   const { data: hasUnreadAlarm = false } = useHasUnreadNotificationQuery({
     userId,
+    audience: 'GUARDIAN',
     enabled: Boolean(userId),
   });
 

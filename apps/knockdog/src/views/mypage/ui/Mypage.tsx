@@ -53,12 +53,13 @@ function MypageContent() {
   const openExternalLink = useOpenExternalLink();
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
-  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
-    userId: user?.userId,
-    enabled: true,
-  });
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
+    userId: user?.userId,
+    audience: isOwnerView ? 'OWNER' : 'GUARDIAN',
+    enabled: isOwnerRoleResolved,
+  });
   const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, isProfileLoading } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
