@@ -58,6 +58,7 @@ function AlarmSettingPage() {
     if (!pushSetting) return;
 
     updatePushSetting({
+      pushEnabled: updates.pushEnabled ?? pushSetting.pushEnabled,
       guardianPushEnabled: updates.guardianPushEnabled ?? pushSetting.guardianPushEnabled,
       ownerPushEnabled: updates.ownerPushEnabled ?? pushSetting.ownerPushEnabled,
     });
@@ -93,20 +94,17 @@ function AlarmSettingPage() {
   };
 
   const isOsNotificationAllowed = !isNative || notificationPermission === 'allowed';
-  const isPushEnabled = Boolean(
-    (pushSetting?.guardianPushEnabled || (isOwnerVerified && pushSetting?.ownerPushEnabled)) &&
-      isOsNotificationAllowed
-  );
+  const isPushEnabled = Boolean(pushSetting?.pushEnabled && isOsNotificationAllowed);
 
   const handlePushChange = async (checked: boolean) => {
     if (isPushSettingUpdating) return;
     if (checked && !(await requestNotificationPermission())) return;
 
-    handleUpdateSetting(
-      isOwnerVerified
-        ? { guardianPushEnabled: checked, ownerPushEnabled: checked }
-        : { guardianPushEnabled: checked }
-    );
+    handleUpdateSetting({
+      pushEnabled: checked,
+      guardianPushEnabled: checked,
+      ownerPushEnabled: checked,
+    });
   };
 
   const handleGuardianAlarmChange = async (checked: boolean) => {
@@ -155,7 +153,7 @@ function AlarmSettingPage() {
           <AlarmToggleRow
             title='보호자 알림 받기'
             description='서비스 업데이트, 유치원 소식 등 알림'
-            pressed={isOsNotificationAllowed && Boolean(pushSetting?.guardianPushEnabled)}
+            pressed={isPushEnabled && Boolean(pushSetting?.guardianPushEnabled)}
             disabled={isPushSettingUpdating}
             onPressedChange={handleGuardianAlarmChange}
             muted={!isPushEnabled}
@@ -163,7 +161,7 @@ function AlarmSettingPage() {
           <AlarmToggleRow
             title='원장 알림 받기'
             description='원생 연결, 소식 확인 등 알림'
-            pressed={isOwnerVerified && isOsNotificationAllowed && Boolean(pushSetting?.ownerPushEnabled)}
+            pressed={isOwnerVerified && isPushEnabled && Boolean(pushSetting?.ownerPushEnabled)}
             disabled={isPushSettingUpdating}
             onPressedChange={handleOwnerAlarmChange}
             muted={!isOwnerVerified || !isPushEnabled}
