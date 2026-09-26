@@ -18,12 +18,14 @@ type NotificationInboxType = string;
 
 interface NotificationInboxItem {
   id: string;
+  audience?: string;
   type: NotificationInboxType;
   title: string;
   body: string;
   kindergartenName: string;
   kindergartenImageUrl?: string;
   petName: string;
+  guardianName?: string;
   /** ISO datetime — 발송 시각 */
   sentAt: string;
   isRead: boolean;

@@ -17,7 +17,11 @@ import { useStackNavigation } from '@shared/lib/bridge';
 function OwnerHomePage() {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
+    audience: 'OWNER',
+    userId,
+    enabled: true,
+  });
   const {
     approval,
     displaySchoolName,

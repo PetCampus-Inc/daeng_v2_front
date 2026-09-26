@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { Notification, NotificationListPage } from '../model/notification';
-import { patchNotificationRead, patchNotificationsReadAll } from './notification';
+import {
+  patchNotificationRead,
+  patchNotificationsReadAll,
+  type NotificationAudience,
+} from './notification';
 import {
   NOTIFICATIONS_QUERY_KEY,
   notificationsQueryKey,
@@ -11,6 +15,7 @@ import { getHasUnreadNotification, notificationsUnreadQueryKey } from './useHasU
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface UseNotificationReadMutationOptions {
+  audience: NotificationAudience;
   userId?: string;
   size?: number;
 }
@@ -42,11 +47,6 @@ function markNotificationRead(
   return { ...notification, isRead: true, readAt };
 }
 
-function markAllNotificationsRead(notification: Notification, readAt: string): Notification {
-  if (notification.isRead) return notification;
-  return { ...notification, isRead: true, readAt };
-}
-
 function updateNotificationsCache(
   cache: NotificationsCache | undefined,
   mapNotification: (notification: Notification) => Notification,
@@ -66,14 +66,14 @@ function updateNotificationsCache(
   };
 }
 
-function useNotificationReadMutation({ userId, size }: UseNotificationReadMutationOptions = {}) {
+function useNotificationReadMutation({ audience, userId, size }: UseNotificationReadMutationOptions) {
   const queryClient = useQueryClient();
-  const queryKey = notificationsQueryKey(userId, size);
-  const unreadQueryKey = notificationsUnreadQueryKey(userId);
+  const queryKey = notificationsQueryKey(userId, audience, size);
+  const unreadQueryKey = notificationsUnreadQueryKey(userId, audience);
 
   const refreshUnreadNotification = async () => {
     await queryClient
-      .fetchQuery({ queryKey: unreadQueryKey, queryFn: getHasUnreadNotification, staleTime: 0 })
+      .fetchQuery({ queryKey: unreadQueryKey, queryFn: () => getHasUnreadNotification(audience), staleTime: 0 })
       .catch(() => undefined);
   };
 
@@ -107,16 +107,11 @@ function useNotificationReadMutation({ userId, size }: UseNotificationReadMutati
 
   const markAllRead = useMutation({
     mutationFn: patchNotificationsReadAll,
-    onMutate: async (): Promise<NotificationReadMutationContext> => {
+    onMutate: async (_audience: NotificationAudience): Promise<NotificationReadMutationContext> => {
       await queryClient.cancelQueries({ queryKey });
       await queryClient.cancelQueries({ queryKey: unreadQueryKey });
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
       const previousUnread = queryClient.getQueryData<boolean>(unreadQueryKey);
-      const readAt = new Date().toISOString();
-      queryClient.setQueryData(queryKey, (cache: NotificationsCache | undefined) =>
-        updateNotificationsCache(cache, (notification) => markAllNotificationsRead(notification, readAt), false)
-      );
-      queryClient.setQueryData(unreadQueryKey, false);
       return { queryKey, previous, unreadQueryKey, previousUnread };
     },
     onError: (_error, _variables, context) => {

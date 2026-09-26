@@ -17,6 +17,7 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
   const imageSrc = item.kindergartenImageUrl;
   const [hasImageError, setHasImageError] = useState(false);
   const showImage = Boolean(imageSrc) && !hasImageError;
+  const isOwnerRecipient = item.audience === 'OWNER' && Boolean(item.guardianName);
 
   useEffect(() => {
     setHasImageError(false);
@@ -59,18 +60,21 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
         </div>
 
         <div className='gap-x1 flex min-w-0 flex-1 flex-col items-start justify-center'>
-          {item.kindergartenName ? (
+          {item.audience !== 'OWNER' && item.kindergartenName ? (
             <p className='label-medium text-text-tertiary w-full truncate'>{item.kindergartenName}</p>
           ) : null}
           <p className='body1-bold text-text-primary w-full'>{item.title}</p>
           <p className='body2-regular text-text-secondary w-full'>{item.body}</p>
-          <p className='body2-regular text-text-secondary'>
-            {item.petName ? (
+          <p className='body2-regular text-text-secondary w-full truncate whitespace-nowrap'>
+            {isOwnerRecipient ? (
               <>
-                {item.petName}
-                <span aria-hidden>∙</span>
+                <span className='inline-block max-w-[40%] truncate align-bottom'>{item.guardianName}</span>
+                <span> 보호자({item.petName})</span>
               </>
-            ) : null}
+            ) : (
+              item.petName
+            )}{' '}
+            <span aria-hidden>∙</span>{' '}
             {relativeTime}
           </p>
         </div>

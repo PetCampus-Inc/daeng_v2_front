@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { overlay } from 'overlay-kit';
 
 import { Tabs, TabsList, TabsTrigger } from '@knockdog/ui';
+import type { NotificationAudience } from '@entities/notification';
+import { useMypageRoleView } from '@features/role-conversion';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -19,11 +21,11 @@ import { NotificationInboxList } from '@views/notification-inbox-page/ui/Notific
 import { NotificationInboxMarkAllReadDialog } from '@views/notification-inbox-page/ui/NotificationInboxMarkAllReadDialog';
 import { Header } from '@widgets/Header';
 
-type NotificationInboxTab = 'GUARDIAN' | 'OWNER';
-
 function NotificationInboxPage() {
   const content = notificationInboxContent;
-  const [activeTab, setActiveTab] = useState<NotificationInboxTab>('GUARDIAN');
+  const { isOwnerView } = useMypageRoleView();
+  const [selectedTab, setSelectedTab] = useState<NotificationAudience | null>(null);
+  const activeTab = selectedTab ?? (isOwnerView ? 'OWNER' : 'GUARDIAN');
   const {
     items,
     hasUnread,
@@ -36,7 +38,7 @@ function NotificationInboxPage() {
     refetch,
     markItemAsRead,
     markAllAsRead,
-  } = useNotificationInboxPage();
+  } = useNotificationInboxPage(activeTab);
   const { openNotification } = useNotificationInboxDeepLink();
 
   const handleRetry = () => {
@@ -91,7 +93,7 @@ function NotificationInboxPage() {
           ) : null}
         </Header>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NotificationInboxTab)}>
+        <Tabs value={activeTab} onValueChange={(value) => setSelectedTab(value as NotificationAudience)}>
           <TabsList>
             <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
             <TabsTrigger value='OWNER'>원장</TabsTrigger>

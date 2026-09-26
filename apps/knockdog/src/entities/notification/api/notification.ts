@@ -3,15 +3,19 @@ import type { NotificationInboxDto } from '../model/notification';
 import { api, type ApiResponse } from '@shared/api';
 
 interface GetNotificationsParams {
+  audience: NotificationAudience;
   cursor?: string;
   size?: number;
 }
 
+type NotificationAudience = 'OWNER' | 'GUARDIAN';
+
 /** `GET` - 인증 사용자 알림함 조회 (최근 14일, cursor 페이지네이션) */
-function getNotifications({ cursor, size = 30 }: GetNotificationsParams = {}) {
+function getNotifications({ audience, cursor, size = 30 }: GetNotificationsParams) {
   return api
     .get('notifications', {
       searchParams: {
+        audience,
         size,
         ...(cursor ? { cursor } : {}),
       },
@@ -25,9 +29,9 @@ function patchNotificationRead(notificationId: string) {
 }
 
 /** `PATCH` - 최근 알림 전체 읽음 처리 */
-function patchNotificationsReadAll() {
-  return api.patch('notifications').json<ApiResponse<null>>();
+function patchNotificationsReadAll(audience: NotificationAudience) {
+  return api.patch('notifications', { searchParams: { audience } }).json<ApiResponse<null>>();
 }
 
 export { getNotifications, patchNotificationRead, patchNotificationsReadAll };
-export type { GetNotificationsParams };
+export type { GetNotificationsParams, NotificationAudience };

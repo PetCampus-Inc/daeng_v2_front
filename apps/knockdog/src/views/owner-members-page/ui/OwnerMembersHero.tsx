@@ -19,7 +19,11 @@ interface OwnerMembersHeroProps {
 function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
+    audience: 'OWNER',
+    userId,
+    enabled: true,
+  });
   const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();
 
   return (
@@ -41,10 +45,10 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
             연결 승인
           </button>
           <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
-            <Icon
-              icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-              className='text-text-primary-inverse size-6'
-            />
+              <Icon
+                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
+                className='text-text-primary-inverse size-6 [&>circle]:fill-white [&>circle]:stroke-white'
+              />
           </button>
         </Header.RightSection>
       </Header>

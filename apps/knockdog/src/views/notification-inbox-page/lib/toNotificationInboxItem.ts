@@ -9,12 +9,14 @@ function toNotificationInboxItem(notification: Notification): NotificationInboxI
 
   return {
     id: notification.id,
+    audience: notification.audience,
     type: notification.type,
     title: notification.title || fallback.title,
     body: notification.body || fallback.body,
     kindergartenName: notification.school?.name ?? '',
     kindergartenImageUrl: notification.school?.thumbnailUrl || undefined,
     petName: notification.pet?.name ?? '',
+    guardianName: notification.pet?.guardianName ?? '',
     sentAt: notification.createdAt,
     isRead: notification.isRead,
     payload: notification.payload,
