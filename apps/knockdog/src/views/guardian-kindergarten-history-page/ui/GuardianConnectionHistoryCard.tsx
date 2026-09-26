@@ -15,13 +15,19 @@ interface GuardianConnectionHistoryCardProps {
 
 interface DisconnectButtonProps {
   kindergartenName: string;
+  schoolPetMembershipId: string | null;
   onDisconnected: (disconnectedAt: string) => void;
 }
 
-function DisconnectButton({ kindergartenName, onDisconnected }: DisconnectButtonProps) {
+function DisconnectButton({
+  kindergartenName,
+  schoolPetMembershipId,
+  onDisconnected,
+}: DisconnectButtonProps) {
   const content = guardianConnectionHistoryContent;
   const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
     kindergartenName,
+    schoolPetMembershipId,
     onDisconnected,
   });
 
@@ -42,7 +48,7 @@ function DisconnectButton({ kindergartenName, onDisconnected }: DisconnectButton
 
 function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
   const content = guardianConnectionHistoryContent;
-  /** UI-only 해제 시 로컬 종료일 (API 연동 전) */
+  /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
   const [localDisconnectedAt, setLocalDisconnectedAt] = useState<string | null>(null);
   const disconnectedAt = localDisconnectedAt ?? item.disconnectedAt;
   const isCurrent = disconnectedAt == null;
@@ -121,7 +127,11 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
       </div>
 
       {isCurrent ? (
-        <DisconnectButton kindergartenName={item.name} onDisconnected={setLocalDisconnectedAt} />
+        <DisconnectButton
+          kindergartenName={item.name}
+          schoolPetMembershipId={item.schoolPetMembershipId}
+          onDisconnected={setLocalDisconnectedAt}
+        />
       ) : null}
     </div>
   );

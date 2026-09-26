@@ -11,12 +11,13 @@ import { useUserStore } from '@entities/user';
 import { NOTIFICATION_INBOX_PAGE_SIZE } from '@views/notification-inbox-page/config/notificationInboxConstants';
 import { toNotificationInboxItem } from '@views/notification-inbox-page/lib/toNotificationInboxItem';
 
-function useNotificationInboxPage(audience: NotificationAudience) {
+function useNotificationInboxPage(audience: NotificationAudience, enabled = true) {
   const userId = useUserStore((state) => state.user?.userId);
   const query = useNotificationsInfiniteQuery({
     audience,
     userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
+    enabled,
   });
   const { markRead, markAllRead } = useNotificationReadMutation({
     audience,

@@ -4,7 +4,7 @@ import { guardianApplicationsQueryKey } from '@entities/guardian-application';
 import { guardianPetConnectionStatusesQueryKey } from '@entities/guardian-invite';
 import { NOTIFICATIONS_QUERY_KEY } from '@entities/notification';
 
-import { postDisconnectGuardianSchool } from './guardianSchoolDisconnect';
+import { deleteGuardianSchoolConnection } from './guardianSchoolDisconnect';
 import { GUARDIAN_HOME_QUERY_KEY } from './useGuardianHomeQuery';
 import { GUARDIAN_SCHOOL_CONNECTION_SCHOOLS_QUERY_KEY } from './useGuardianSchoolConnectionSchoolsQuery';
 import { GUARDIAN_SCHOOL_CONNECTIONS_QUERY_KEY } from './useGuardianSchoolConnectionsQuery';
@@ -19,7 +19,7 @@ function useGuardianSchoolDisconnectMutation({
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: postDisconnectGuardianSchool,
+    mutationFn: deleteGuardianSchoolConnection,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [GUARDIAN_HOME_QUERY_KEY] }),

@@ -1,11 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { patchNotificationRead, patchNotificationsReadAll, type NotificationAudience } from './notification';
 import type { Notification, NotificationListPage } from '../model/notification';
-import {
-  patchNotificationRead,
-  patchNotificationsReadAll,
-  type NotificationAudience,
-} from './notification';
 import {
   NOTIFICATIONS_QUERY_KEY,
   notificationsQueryKey,
@@ -66,14 +62,18 @@ function updateNotificationsCache(
   };
 }
 
-function useNotificationReadMutation({ audience, userId, size }: UseNotificationReadMutationOptions) {
+function useNotificationReadMutation({ userId, audience, size }: UseNotificationReadMutationOptions) {
   const queryClient = useQueryClient();
   const queryKey = notificationsQueryKey(userId, audience, size);
   const unreadQueryKey = notificationsUnreadQueryKey(userId, audience);
 
   const refreshUnreadNotification = async () => {
     await queryClient
-      .fetchQuery({ queryKey: unreadQueryKey, queryFn: () => getHasUnreadNotification(audience), staleTime: 0 })
+      .fetchQuery({
+        queryKey: unreadQueryKey,
+        queryFn: () => getHasUnreadNotification(audience),
+        staleTime: 0,
+      })
       .catch(() => undefined);
   };
 

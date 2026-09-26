@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { useGuardianSchoolConnectionsQuery } from '@entities/guardian-home';
+import { useGuardianSchoolConnectionSchoolsQuery } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { startOfDay } from '@shared/lib/calendar-date';
 
@@ -12,24 +12,21 @@ interface UseGuardianDisconnectedMembershipOptions {
   schoolId: string;
 }
 
-/** 현재 유치원의 최근 연결 해제 membership */
+/** 현재 유치원의 최근 연결 사이클. 학교 단위 목록은 최근 사이클 날짜를 준다. */
 function useGuardianDisconnectedMembership({ schoolId }: UseGuardianDisconnectedMembershipOptions) {
   const userId = useUserStore((state) => state.user?.userId);
   const { selectedPetId } = useGuardianSelectedPet();
 
-  const { data: connections } = useGuardianSchoolConnectionsQuery({
+  const { data: schools } = useGuardianSchoolConnectionSchoolsQuery({
     userId,
     petId: selectedPetId,
-    enabled: Boolean(userId) && Boolean(selectedPetId),
+    enabled: Boolean(userId) && Boolean(selectedPetId) && Boolean(schoolId),
   });
 
-  const connection = useMemo(() => {
-    const candidates = (connections ?? [])
-      .filter((item) => item.schoolId === schoolId && item.disconnectedAt != null)
-      .sort((left, right) => right.disconnectedAt!.getTime() - left.disconnectedAt!.getTime());
-
-    return candidates[0] ?? null;
-  }, [connections, schoolId]);
+  const connection = useMemo(
+    () => (schools ?? []).find((item) => item.schoolId === schoolId) ?? null,
+    [schools, schoolId]
+  );
 
   const disconnectedAtMs = connection?.disconnectedAt?.getTime() ?? null;
   const connectedAtMs = connection?.connectedAt?.getTime() ?? null;

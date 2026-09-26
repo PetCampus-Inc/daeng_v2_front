@@ -20,8 +20,8 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
-    audience: 'OWNER',
     userId,
+    audience: 'OWNER',
     enabled: true,
   });
   const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();

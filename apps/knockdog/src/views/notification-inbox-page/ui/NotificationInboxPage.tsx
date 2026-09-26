@@ -6,7 +6,7 @@ import { overlay } from 'overlay-kit';
 
 import { Tabs, TabsList, TabsTrigger } from '@knockdog/ui';
 import type { NotificationAudience } from '@entities/notification';
-import { useMypageRoleView } from '@features/role-conversion';
+import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -23,9 +23,10 @@ import { Header } from '@widgets/Header';
 
 function NotificationInboxPage() {
   const content = notificationInboxContent;
+  const { isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView } = useMypageRoleView();
   const [selectedTab, setSelectedTab] = useState<NotificationAudience | null>(null);
-  const activeTab = selectedTab ?? (isOwnerView ? 'OWNER' : 'GUARDIAN');
+  const activeTab: NotificationAudience = selectedTab ?? (isOwnerView ? 'OWNER' : 'GUARDIAN');
   const {
     items,
     hasUnread,
@@ -38,7 +39,7 @@ function NotificationInboxPage() {
     refetch,
     markItemAsRead,
     markAllAsRead,
-  } = useNotificationInboxPage(activeTab);
+  } = useNotificationInboxPage(activeTab, selectedTab !== null || isOwnerRoleResolved);
   const { openNotification } = useNotificationInboxDeepLink();
 
   const handleRetry = () => {
