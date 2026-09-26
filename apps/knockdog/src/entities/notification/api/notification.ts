@@ -29,8 +29,8 @@ function patchNotificationRead(notificationId: string) {
 }
 
 /** `PATCH` - 최근 알림 전체 읽음 처리 */
-function patchNotificationsReadAll() {
-  return api.patch('notifications').json<ApiResponse<null>>();
+function patchNotificationsReadAll(audience: NotificationAudience) {
+  return api.patch('notifications', { searchParams: { audience } }).json<ApiResponse<null>>();
 }
 
 export { getNotifications, patchNotificationRead, patchNotificationsReadAll };

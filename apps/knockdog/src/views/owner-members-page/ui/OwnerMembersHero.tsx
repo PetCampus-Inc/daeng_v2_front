@@ -10,6 +10,7 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useFocusScrollLock } from '@shared/lib/device';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 interface OwnerMembersHeroProps {
   searchQuery: string;
@@ -44,12 +45,11 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
           >
             연결 승인
           </button>
-          <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
-            <Icon
-              icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-              className='text-text-primary-inverse size-6'
-            />
-          </button>
+          <NotificationBell
+            hasUnread={hasUnreadNotification}
+            inverse
+            onClick={() => push({ pathname: route.notification.root })}
+          />
         </Header.RightSection>
       </Header>
 

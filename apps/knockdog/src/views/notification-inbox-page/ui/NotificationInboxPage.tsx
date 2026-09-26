@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { overlay } from 'overlay-kit';
 
 import { Tabs, TabsList, TabsTrigger } from '@knockdog/ui';
+import type { NotificationAudience } from '@entities/notification';
+import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -17,19 +19,17 @@ import { useNotificationInboxPage } from '@views/notification-inbox-page/model/u
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
 import { NotificationInboxList } from '@views/notification-inbox-page/ui/NotificationInboxList';
 import { NotificationInboxMarkAllReadDialog } from '@views/notification-inbox-page/ui/NotificationInboxMarkAllReadDialog';
-import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
 import { Header } from '@widgets/Header';
-
-import type { NotificationAudience } from '@entities/notification';
-
-type NotificationInboxTab = NotificationAudience;
 
 function NotificationInboxPage() {
   const content = notificationInboxContent;
-  const { isResolved: isOwnerRoleResolved } = useOwnerRole();
+  const { isOwner, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView } = useMypageRoleView();
-  const [selectedTab, setSelectedTab] = useState<NotificationInboxTab | null>(null);
-  const activeTab: NotificationInboxTab = selectedTab ?? (isOwnerView ? 'OWNER' : 'GUARDIAN');
+  const [selectedTab, setSelectedTab] = useState<NotificationAudience | null>(null);
+  const activeTab: NotificationAudience =
+    selectedTab === 'OWNER' && !isOwner
+      ? 'GUARDIAN'
+      : (selectedTab ?? (isOwnerView && isOwner ? 'OWNER' : 'GUARDIAN'));
   const {
     items,
     hasUnread,
@@ -97,12 +97,14 @@ function NotificationInboxPage() {
           ) : null}
         </Header>
 
-        <Tabs value={activeTab} onValueChange={(value) => setSelectedTab(value as NotificationInboxTab)}>
-          <TabsList>
-            <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
-            <TabsTrigger value='OWNER'>원장</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {isOwner ? (
+          <Tabs value={activeTab} onValueChange={(value) => setSelectedTab(value as NotificationAudience)}>
+            <TabsList>
+              <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
+              <TabsTrigger value='OWNER'>원장</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        ) : null}
       </div>
 
       {isError ? (

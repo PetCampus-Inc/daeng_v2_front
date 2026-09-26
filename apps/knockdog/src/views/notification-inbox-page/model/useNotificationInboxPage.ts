@@ -14,14 +14,14 @@ import { toNotificationInboxItem } from '@views/notification-inbox-page/lib/toNo
 function useNotificationInboxPage(audience: NotificationAudience, enabled = true) {
   const userId = useUserStore((state) => state.user?.userId);
   const query = useNotificationsInfiniteQuery({
-    userId,
     audience,
+    userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
     enabled,
   });
   const { markRead, markAllRead } = useNotificationReadMutation({
-    userId,
     audience,
+    userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
   });
 
@@ -42,7 +42,7 @@ function useNotificationInboxPage(audience: NotificationAudience, enabled = true
   );
 
   const markAllAsRead = useCallback(async () => {
-    await markAllRead.mutateAsync();
+    await markAllRead.mutateAsync(audience);
   }, [markAllRead]);
 
   return {

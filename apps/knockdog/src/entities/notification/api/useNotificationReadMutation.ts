@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { Notification, NotificationListPage } from '../model/notification';
 import { patchNotificationRead, patchNotificationsReadAll, type NotificationAudience } from './notification';
+import type { Notification, NotificationListPage } from '../model/notification';
 import {
   NOTIFICATIONS_QUERY_KEY,
   notificationsQueryKey,
@@ -11,8 +11,8 @@ import { getHasUnreadNotification, notificationsUnreadQueryKey } from './useHasU
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface UseNotificationReadMutationOptions {
-  userId?: string;
   audience: NotificationAudience;
+  userId?: string;
   size?: number;
 }
 
@@ -40,11 +40,6 @@ function markNotificationRead(
   readAt: string
 ): Notification {
   if (notification.id !== notificationId || notification.isRead) return notification;
-  return { ...notification, isRead: true, readAt };
-}
-
-function markAllNotificationsRead(notification: Notification, readAt: string): Notification {
-  if (notification.isRead) return notification;
   return { ...notification, isRead: true, readAt };
 }
 
@@ -112,16 +107,11 @@ function useNotificationReadMutation({ userId, audience, size }: UseNotification
 
   const markAllRead = useMutation({
     mutationFn: patchNotificationsReadAll,
-    onMutate: async (): Promise<NotificationReadMutationContext> => {
+    onMutate: async (_audience: NotificationAudience): Promise<NotificationReadMutationContext> => {
       await queryClient.cancelQueries({ queryKey });
       await queryClient.cancelQueries({ queryKey: unreadQueryKey });
       const previous = queryClient.getQueryData<NotificationsCache>(queryKey);
       const previousUnread = queryClient.getQueryData<boolean>(unreadQueryKey);
-      const readAt = new Date().toISOString();
-      queryClient.setQueryData(queryKey, (cache: NotificationsCache | undefined) =>
-        updateNotificationsCache(cache, (notification) => markAllNotificationsRead(notification, readAt), false)
-      );
-      queryClient.setQueryData(unreadQueryKey, false);
       return { queryKey, previous, unreadQueryKey, previousUnread };
     },
     onError: (_error, _variables, context) => {

@@ -21,6 +21,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 function OwnerAlbumPage() {
   const { push } = useStackNavigation();
@@ -75,12 +76,10 @@ function OwnerAlbumPage() {
             >
               <Icon icon='InfoLine' className='text-text-secondary size-6' />
             </button>
-            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
-              <Icon
-                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-                className='size-6 text-text-primary'
-              />
-            </button>
+            <NotificationBell
+              hasUnread={hasUnreadNotification}
+              onClick={() => push({ pathname: route.notification.root })}
+            />
           </Header.RightSection>
         </Header>
       </div>
