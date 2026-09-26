@@ -1,5 +1,7 @@
 interface GuardianConnectionHistoryItem {
   id: string;
+  /** 연결 해제 API path id. 현재 연결인데 없으면 해제 요청 불가 */
+  schoolPetMembershipId: string | null;
   kindergartenId: string;
   name: string;
   /** 상세주소 생략된 표기용 주소 */
