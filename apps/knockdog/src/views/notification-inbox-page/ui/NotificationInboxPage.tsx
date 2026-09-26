@@ -17,13 +17,19 @@ import { useNotificationInboxPage } from '@views/notification-inbox-page/model/u
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
 import { NotificationInboxList } from '@views/notification-inbox-page/ui/NotificationInboxList';
 import { NotificationInboxMarkAllReadDialog } from '@views/notification-inbox-page/ui/NotificationInboxMarkAllReadDialog';
+import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
 import { Header } from '@widgets/Header';
 
-type NotificationInboxTab = 'GUARDIAN' | 'OWNER';
+import type { NotificationAudience } from '@entities/notification';
+
+type NotificationInboxTab = NotificationAudience;
 
 function NotificationInboxPage() {
   const content = notificationInboxContent;
-  const [activeTab, setActiveTab] = useState<NotificationInboxTab>('GUARDIAN');
+  const { isResolved: isOwnerRoleResolved } = useOwnerRole();
+  const { isOwnerView } = useMypageRoleView();
+  const [selectedTab, setSelectedTab] = useState<NotificationInboxTab | null>(null);
+  const activeTab: NotificationInboxTab = selectedTab ?? (isOwnerView ? 'OWNER' : 'GUARDIAN');
   const {
     items,
     hasUnread,
@@ -36,7 +42,7 @@ function NotificationInboxPage() {
     refetch,
     markItemAsRead,
     markAllAsRead,
-  } = useNotificationInboxPage();
+  } = useNotificationInboxPage(activeTab, selectedTab !== null || isOwnerRoleResolved);
   const { openNotification } = useNotificationInboxDeepLink();
 
   const handleRetry = () => {
@@ -91,7 +97,7 @@ function NotificationInboxPage() {
           ) : null}
         </Header>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as NotificationInboxTab)}>
+        <Tabs value={activeTab} onValueChange={(value) => setSelectedTab(value as NotificationInboxTab)}>
           <TabsList>
             <TabsTrigger value='GUARDIAN'>보호자</TabsTrigger>
             <TabsTrigger value='OWNER'>원장</TabsTrigger>

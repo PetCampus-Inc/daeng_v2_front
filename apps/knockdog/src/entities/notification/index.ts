@@ -1,5 +1,5 @@
 export { getNotifications, patchNotificationRead, patchNotificationsReadAll } from './api/notification';
-export type { GetNotificationsParams } from './api/notification';
+export type { GetNotificationsParams, NotificationAudience } from './api/notification';
 export {
   NOTIFICATIONS_QUERY_KEY,
   notificationsQueryKey,

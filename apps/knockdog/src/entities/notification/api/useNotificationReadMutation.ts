@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { Notification, NotificationListPage } from '../model/notification';
-import { patchNotificationRead, patchNotificationsReadAll } from './notification';
+import { patchNotificationRead, patchNotificationsReadAll, type NotificationAudience } from './notification';
 import {
   NOTIFICATIONS_QUERY_KEY,
   notificationsQueryKey,
@@ -12,6 +12,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface UseNotificationReadMutationOptions {
   userId?: string;
+  audience: NotificationAudience;
   size?: number;
 }
 
@@ -66,14 +67,18 @@ function updateNotificationsCache(
   };
 }
 
-function useNotificationReadMutation({ userId, size }: UseNotificationReadMutationOptions = {}) {
+function useNotificationReadMutation({ userId, audience, size }: UseNotificationReadMutationOptions) {
   const queryClient = useQueryClient();
-  const queryKey = notificationsQueryKey(userId, size);
-  const unreadQueryKey = notificationsUnreadQueryKey(userId);
+  const queryKey = notificationsQueryKey(userId, audience, size);
+  const unreadQueryKey = notificationsUnreadQueryKey(userId, audience);
 
   const refreshUnreadNotification = async () => {
     await queryClient
-      .fetchQuery({ queryKey: unreadQueryKey, queryFn: getHasUnreadNotification, staleTime: 0 })
+      .fetchQuery({
+        queryKey: unreadQueryKey,
+        queryFn: () => getHasUnreadNotification(audience),
+        staleTime: 0,
+      })
       .catch(() => undefined);
   };
 
