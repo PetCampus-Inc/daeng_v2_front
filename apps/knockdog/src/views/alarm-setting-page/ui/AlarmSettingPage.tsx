@@ -103,7 +103,7 @@ function AlarmSettingPage() {
     handleUpdateSetting({
       pushEnabled: checked,
       guardianPushEnabled: checked,
-      ownerPushEnabled: checked,
+      ownerPushEnabled: checked && isOwnerVerified,
     });
   };
 
