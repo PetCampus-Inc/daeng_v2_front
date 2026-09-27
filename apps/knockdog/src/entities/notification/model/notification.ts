@@ -12,12 +12,14 @@ interface NotificationSchoolDto {
 interface NotificationPetDto {
   id?: number | string | null;
   name?: string | null;
+  guardianName?: string | null;
 }
 
 type NotificationDateTime = string | number[];
 
 interface NotificationDto {
   id?: number | string | null;
+  audience?: string | null;
   type?: string | null;
   title?: string | null;
   body?: string | null;
@@ -44,10 +46,12 @@ interface NotificationSchool {
 interface NotificationPet {
   id: string;
   name: string;
+  guardianName: string;
 }
 
 interface Notification {
   id: string;
+  audience: string;
   type: string;
   title: string;
   body: string;
@@ -150,6 +154,7 @@ function toNotificationPet(dto: NotificationPetDto | null | undefined): Notifica
   return {
     id: id ?? '',
     name,
+    guardianName: toText(dto?.guardianName),
   };
 }
 
@@ -162,6 +167,7 @@ function toNotification(dto: NotificationDto): Notification | null {
 
   return {
     id,
+    audience: toText(dto.audience),
     type: toText(dto.type),
     title: toText(dto.title),
     body: toText(dto.body),

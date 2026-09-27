@@ -14,20 +14,23 @@ import { toNotificationInboxItem } from '@views/notification-inbox-page/lib/toNo
 function useNotificationInboxPage(audience: NotificationAudience, enabled = true) {
   const userId = useUserStore((state) => state.user?.userId);
   const query = useNotificationsInfiniteQuery({
-    userId,
     audience,
+    userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
     enabled,
   });
   const { markRead, markAllRead } = useNotificationReadMutation({
-    userId,
     audience,
+    userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
   });
 
   const items = useMemo(
-    () => query.data?.pages.flatMap((page) => page.notifications.map(toNotificationInboxItem)) ?? [],
-    [query.data?.pages]
+    () =>
+      query.data?.pages.flatMap((page) =>
+        page.notifications.map((notification) => toNotificationInboxItem(notification, audience))
+      ) ?? [],
+    [audience, query.data?.pages]
   );
 
   const hasUnreadFromServer = Boolean(query.data?.pages[0]?.hasUnread);
@@ -42,8 +45,8 @@ function useNotificationInboxPage(audience: NotificationAudience, enabled = true
   );
 
   const markAllAsRead = useCallback(async () => {
-    await markAllRead.mutateAsync();
-  }, [markAllRead]);
+    await markAllRead.mutateAsync(audience);
+  }, [audience, markAllRead]);
 
   return {
     items,

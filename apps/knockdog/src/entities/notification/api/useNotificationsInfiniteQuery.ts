@@ -11,15 +11,15 @@ const notificationsQueryKey = (userId?: string, audience?: NotificationAudience,
 type NotificationsCache = InfiniteData<NotificationListPage, string | undefined>;
 
 interface UseNotificationsInfiniteQueryOptions {
-  userId?: string;
   audience: NotificationAudience;
+  userId?: string;
   size?: number;
   enabled?: boolean;
 }
 
 function useNotificationsInfiniteQuery({
-  userId,
   audience,
+  userId,
   size = 30,
   enabled = true,
 }: UseNotificationsInfiniteQueryOptions) {

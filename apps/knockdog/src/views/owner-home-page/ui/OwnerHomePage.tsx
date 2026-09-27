@@ -13,6 +13,7 @@ import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 function OwnerHomePage() {
   const { push } = useStackNavigation();
@@ -44,12 +45,10 @@ function OwnerHomePage() {
             <Image src='/images/img_logo_text2.png' alt='똑독' width={48} height={26} priority />
           </Header.Title>
           <Header.RightSection>
-            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
-              <Icon
-                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-                className='size-6 text-text-primary'
-              />
-            </button>
+            <NotificationBell
+              hasUnread={hasUnreadNotification}
+              onClick={() => push({ pathname: route.notification.root })}
+            />
           </Header.RightSection>
         </Header>
       </div>

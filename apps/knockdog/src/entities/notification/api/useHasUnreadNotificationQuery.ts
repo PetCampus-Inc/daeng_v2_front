@@ -9,8 +9,8 @@ const notificationsUnreadQueryKey = (userId?: string, audience?: NotificationAud
   [NOTIFICATIONS_QUERY_KEY, 'unread', userId, audience] as const;
 
 interface UseHasUnreadNotificationQueryOptions {
-  userId?: string;
   audience: NotificationAudience;
+  userId?: string;
   enabled?: boolean;
 }
 
