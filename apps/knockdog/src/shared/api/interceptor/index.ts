@@ -17,6 +17,21 @@ const getLogout = () => import('@shared/lib/auth').then((mod) => mod.logout);
 
 const AUTH_PATH_PATTERN = /\/auth(?:\/|$)/;
 const LOGOUT_PATH_PATTERN = /\/auth\/logout$/;
+const INVALID_SESSION_CODES = new Set<string>([
+  TOKEN_ERROR_CODE.EXPIRED_REFRESH_TOKEN,
+  TOKEN_ERROR_CODE.INVALID_TOKEN,
+  TOKEN_ERROR_CODE.UNAUTHORIZED_REQUEST,
+  TOKEN_ERROR_CODE.TOKEN_VERIFICATION_FAILED,
+]);
+
+const isInvalidSessionError = (error: unknown): error is ApiError => {
+  return error instanceof ApiError && error.status === 401 && INVALID_SESSION_CODES.has(error.code);
+};
+
+const logoutInvalidSession = async () => {
+  await (await getLogout())({ notifyServer: false });
+  await navigateToLogin();
+};
 
 /**
  * `beforeRequest` - `Authorization` 헤더에 액세스 토큰 삽입 인터셉터
@@ -101,32 +116,30 @@ const tokenRefreshInterceptor = async (
   // 현재 세션과 토큰이 다르다. 이 응답으로 새 세션을 정리하면 안 된다.
   if (isStaleOrUnauthenticatedRequest(request)) return response;
 
+  let code: string;
   try {
-    const { code } = (await response.clone().json()) as ApiError;
+    ({ code } = (await response.clone().json()) as ApiError);
+  } catch (error) {
+    console.warn('[auth] 401 응답을 해석하지 못했습니다. 세션을 유지합니다.', error);
+    return response;
+  }
 
-    switch (code) {
-      // 액세스 토큰 만료 시, 토큰 갱신 후 재요청
-      case TOKEN_ERROR_CODE.EXPIRED_TOKEN:
-        tokenUtils.removeAccessToken();
-        return await retryWithTokenRefresh(request);
+  if (code === TOKEN_ERROR_CODE.EXPIRED_TOKEN) {
+    try {
+      return await retryWithTokenRefresh(request);
+    } catch (error) {
+      if (isInvalidSessionError(error)) {
+        await logoutInvalidSession();
+      } else {
+        console.warn('[auth] 액세스 토큰 갱신에 실패했습니다. 세션을 유지합니다.', error);
+      }
 
-      // 리프레시 토큰 만료, 유효하지 않은 토큰, 토큰 검증 실패 시 로그아웃 처리
-      case TOKEN_ERROR_CODE.EXPIRED_REFRESH_TOKEN:
-      case TOKEN_ERROR_CODE.INVALID_TOKEN:
-      case TOKEN_ERROR_CODE.UNAUTHORIZED_REQUEST:
-      case TOKEN_ERROR_CODE.TOKEN_VERIFICATION_FAILED:
-        // 이미 인증이 무효화된 응답이므로 서버 로그아웃을 재호출하지 않는다.
-        // 이 요청까지 401이 되면 인터셉터가 재진입할 수 있다.
-        await (await getLogout())({ notifyServer: false });
-        await navigateToLogin();
-        break;
+      return response;
     }
-  } catch (refreshError) {
-    console.error('액세스 토큰 갱신 중 오류 발생:', refreshError);
+  }
 
-    // 토큰 갱신 중 오류 발생 시, 로그아웃 처리
-    await (await getLogout())({ notifyServer: false });
-    await navigateToLogin();
+  if (INVALID_SESSION_CODES.has(code)) {
+    await logoutInvalidSession();
   }
 
   return response;
