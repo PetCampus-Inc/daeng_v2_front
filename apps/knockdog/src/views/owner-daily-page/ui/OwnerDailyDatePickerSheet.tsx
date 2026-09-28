@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type WheelEvent,
+} from 'react';
 import { ActionButton } from '@knockdog/ui';
 
 import {
@@ -71,37 +78,69 @@ function getDatePartLabel(date: Date, part: DateWheelColumnProps['part']) {
 
 function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: DateWheelColumnProps) {
   const dragStartYRef = useRef<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const previousPreviousDate = getDateWithPartChanged(selectedDate, part, -2);
   const previousDate = getDateWithPartChanged(selectedDate, part, -1);
   const nextDate = getDateWithPartChanged(selectedDate, part, 1);
+  const nextNextDate = getDateWithPartChanged(selectedDate, part, 2);
+  const canGoPreviousPrevious =
+    !isBeforeDay(previousPreviousDate, minDate) && !isAfterDay(previousPreviousDate, maxDate);
   const canGoPrevious = !isBeforeDay(previousDate, minDate) && !isAfterDay(previousDate, maxDate);
   const canGoNext = !isBeforeDay(nextDate, minDate) && !isAfterDay(nextDate, maxDate);
+  const canGoNextNext = !isBeforeDay(nextNextDate, minDate) && !isAfterDay(nextNextDate, maxDate);
+
+  const changeDate = (offset: -1 | 1) => {
+    onChange(part, offset);
+  };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     dragStartYRef.current = event.clientY;
+    setDragOffset(0);
+    setIsDragging(true);
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const dragStartY = dragStartYRef.current;
-    dragStartYRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
     if (dragStartY == null) return;
 
     const distance = event.clientY - dragStartY;
-    if (distance <= -24 && canGoNext) onChange(part, 1);
-    if (distance >= 24 && canGoPrevious) onChange(part, -1);
+    if (distance <= -48 && canGoNext) {
+      dragStartYRef.current = event.clientY;
+      setDragOffset(0);
+      changeDate(1);
+      return;
+    }
+    if (distance >= 48 && canGoPrevious) {
+      dragStartYRef.current = event.clientY;
+      setDragOffset(0);
+      changeDate(-1);
+      return;
+    }
+
+    const minOffset = canGoNext ? -48 : 0;
+    const maxOffset = canGoPrevious ? 48 : 0;
+    setDragOffset(Math.max(minOffset, Math.min(maxOffset, distance)));
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    dragStartYRef.current = null;
+    setIsDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDragOffset(0);
   };
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (event.deltaY > 0 && canGoNext) onChange(part, 1);
-    if (event.deltaY < 0 && canGoPrevious) onChange(part, -1);
+    if (event.deltaY > 0 && canGoNext) changeDate(1);
+    if (event.deltaY < 0 && canGoPrevious) changeDate(-1);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowUp' && canGoPrevious) onChange(part, -1);
-    if (event.key === 'ArrowDown' && canGoNext) onChange(part, 1);
+    if (event.key === 'ArrowUp' && canGoPrevious) changeDate(-1);
+    if (event.key === 'ArrowDown' && canGoNext) changeDate(1);
   };
 
   return (
@@ -110,23 +149,40 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
       tabIndex={0}
       aria-label={`${part === 'year' ? '연도' : part === 'month' ? '월' : '일'} 선택`}
       aria-valuetext={getDatePartLabel(selectedDate, part)}
-      className='z-10 flex h-[152px] flex-1 touch-none select-none flex-col gap-1'
+      className='z-10 flex h-[152px] flex-1 flex-col touch-none select-none overflow-hidden'
       onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={() => {
         dragStartYRef.current = null;
+        setDragOffset(0);
+        setIsDragging(false);
       }}
       onWheel={handleWheel}
       onKeyDown={handleKeyDown}
     >
-      <div className={`flex h-12 items-center justify-center ${canGoPrevious ? '' : 'opacity-0'}`}>
-        <span className='h3-medium text-text-tertiary'>{getDatePartLabel(previousDate, part)}</span>
-      </div>
-      <div className='flex h-12 items-center justify-center'>
-        <span className='h3-extrabold text-text-accent'>{getDatePartLabel(selectedDate, part)}</span>
-      </div>
-      <div className={`flex h-12 items-center justify-center ${canGoNext ? '' : 'opacity-0'}`}>
-        <span className='h3-medium text-text-tertiary'>{getDatePartLabel(nextDate, part)}</span>
+      <div
+        className='flex w-full flex-col gap-1'
+        style={{
+          transform: `translateY(${-52 + dragOffset}px)`,
+          transition: isDragging ? 'none' : 'transform 150ms ease-out',
+        }}
+      >
+        <div className={`flex h-12 items-center justify-center ${canGoPreviousPrevious ? '' : 'opacity-0'}`}>
+          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(previousPreviousDate, part)}</span>
+        </div>
+        <div className={`flex h-12 items-center justify-center ${canGoPrevious ? '' : 'opacity-0'}`}>
+          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(previousDate, part)}</span>
+        </div>
+        <div className='flex h-12 items-center justify-center'>
+          <span className='h3-extrabold text-text-accent'>{getDatePartLabel(selectedDate, part)}</span>
+        </div>
+        <div className={`flex h-12 items-center justify-center ${canGoNext ? '' : 'opacity-0'}`}>
+          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(nextDate, part)}</span>
+        </div>
+        <div className={`flex h-12 items-center justify-center ${canGoNextNext ? '' : 'opacity-0'}`}>
+          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(nextNextDate, part)}</span>
+        </div>
       </div>
     </div>
   );
@@ -171,7 +227,7 @@ function OwnerDailyDatePickerSheet({
   };
 
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={handleClose}>
+    <BottomSheet.Root open={isOpen} onOpenChange={handleClose} handleOnly>
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal flex h-[368px] max-h-[calc(100dvh-32px)] flex-col rounded-t-[20px]'>
         <BottomSheet.Handle className='mt-3 mb-4 h-1 w-9' />
