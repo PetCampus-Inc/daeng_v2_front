@@ -13,6 +13,7 @@ const ownerMemberProfileContent = {
   attendanceTabLabel: '등하원 기록',
   basicInfoTitle: '기본 정보',
   connectionHistoryTitle: '연결 내역',
+  connectionHistoryErrorText: '연결 내역을 불러오지 못했어요',
   currentLabel: '현재',
   attendanceBadgePrefix: '등원',
   attendanceBadgeSuffix: '회',

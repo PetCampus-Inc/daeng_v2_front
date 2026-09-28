@@ -103,7 +103,7 @@ function OwnerMemberProfilePage() {
             <TabsContent value={TAB.DOG}>
               <div className='flex flex-col gap-5'>
                 <DogBasicInfoSection dog={dog} />
-                <OwnerMemberConnectionHistorySection />
+                <OwnerMemberConnectionHistorySection petId={petId} />
               </div>
             </TabsContent>
             <TabsContent value={TAB.GUARDIAN}>
