@@ -7,7 +7,11 @@ import {
   OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY,
 } from '@entities/owner-attendance-checkinout';
 import { OWNER_HOME_QUERY_KEY } from '@entities/owner-home';
-import { OWNER_PET_GUARDIAN_QUERY_KEY, OWNER_PET_QUERY_KEY } from '@entities/owner-pet';
+import {
+  OWNER_PET_HISTORY_QUERY_KEY,
+  OWNER_PET_GUARDIAN_QUERY_KEY,
+  OWNER_PET_QUERY_KEY,
+} from '@entities/owner-pet';
 import { ApiError } from '@shared/api';
 import {
   postApproveOwnerMember,
@@ -83,6 +87,7 @@ function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMuta
         queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] }),
         queryClient.invalidateQueries({ queryKey: [OWNER_PET_QUERY_KEY] }),
         queryClient.invalidateQueries({ queryKey: [OWNER_PET_GUARDIAN_QUERY_KEY] }),
+        queryClient.invalidateQueries({ queryKey: [OWNER_PET_HISTORY_QUERY_KEY] }),
       ]);
     },
   });
