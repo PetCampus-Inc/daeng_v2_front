@@ -119,8 +119,7 @@ const tokenRefreshInterceptor = async (
   let code: string;
   try {
     ({ code } = (await response.clone().json()) as ApiError);
-  } catch (error) {
-    console.warn('[auth] 401 응답을 해석하지 못했습니다. 세션을 유지합니다.', error);
+  } catch {
     return response;
   }
 
@@ -130,8 +129,6 @@ const tokenRefreshInterceptor = async (
     } catch (error) {
       if (isInvalidSessionError(error)) {
         await logoutInvalidSession();
-      } else {
-        console.warn('[auth] 액세스 토큰 갱신에 실패했습니다. 세션을 유지합니다.', error);
       }
 
       return response;
