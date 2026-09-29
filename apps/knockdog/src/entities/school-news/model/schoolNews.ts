@@ -1,9 +1,12 @@
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface SchoolNewsImageDto {
+  id?: number | null;
   imageId?: number | null;
+  imageUrl?: string | null;
   tempKey?: string | null;
   originalFilename?: string | null;
+  displayOrder?: number | null;
 }
 
 interface SchoolNewsAuthorDto {
@@ -84,6 +87,14 @@ function toImageUrl(value: string | null | undefined) {
   return resolved || null;
 }
 
+function toNewsImageId(value: number | null | undefined) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function toDisplayOrder(value: number | null | undefined) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
+}
+
 /** ISO 문자열 또는 Jackson LocalDateTime 배열(KST wall time) */
 function toPublishedAt(value: string | number[] | null | undefined) {
   if (typeof value === 'string' && value.length > 0) {
@@ -127,19 +138,23 @@ function toSchoolNewsItem(dto: SchoolNewsItemDto): SchoolNewsItem | null {
   const publishedAt = toPublishedAt(dto.createdAt);
   if (!publishedAt) return null;
 
-  const images = (dto.images ?? []).flatMap((image) => {
-    const url = toImageUrl(image.tempKey);
-    if (!url) return [];
+  const images = [...(dto.images ?? [])]
+    .sort((left, right) => toDisplayOrder(left.displayOrder) - toDisplayOrder(right.displayOrder))
+    .flatMap((image) => {
+      const url = toImageUrl(image.imageUrl) ?? toImageUrl(image.tempKey);
+      if (!url) return [];
 
-    return [
-      {
-        imageId: typeof image.imageId === 'number' && Number.isFinite(image.imageId) ? image.imageId : null,
-        tempKey: image.tempKey?.trim() || null,
-        originalFilename: image.originalFilename?.trim() || 'image.jpg',
-        url,
-      },
-    ];
-  });
+      const imageId = toNewsImageId(image.imageId ?? image.id);
+
+      return [
+        {
+          imageId,
+          tempKey: image.tempKey?.trim() || null,
+          originalFilename: image.originalFilename?.trim() || 'image.jpg',
+          url,
+        },
+      ];
+    });
   const imageUrls = images.map((image) => image.url);
 
   return {
