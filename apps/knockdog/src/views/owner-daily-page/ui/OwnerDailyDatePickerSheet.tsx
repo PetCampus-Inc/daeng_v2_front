@@ -11,7 +11,6 @@ import {
 import { ActionButton } from '@knockdog/ui';
 
 import {
-  addDays,
   formatKstDateLabel,
   formatKstDayLabel,
   isAfterDay,
@@ -59,7 +58,9 @@ function getDateWithPartChanged(date: Date, part: 'year' | 'month' | 'day', offs
     );
   }
 
-  return addDays(date, offset);
+  const daysInMonth = getDaysInMonth(year, month);
+  const nextDay = ((day - 1 + offset + daysInMonth) % daysInMonth) + 1;
+  return new Date(year, month, nextDay);
 }
 
 interface DateWheelColumnProps {
