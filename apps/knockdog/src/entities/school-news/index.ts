@@ -3,6 +3,7 @@ export {
   deleteSchoolNewsDraft,
   getSchoolNews,
   getSchoolNewsDetail,
+  getSchoolNewsPreview,
   getSchoolNewsDraft,
   getSchoolNewsReaders,
   postSchoolNews,
@@ -10,6 +11,11 @@ export {
   putSchoolNews,
   putSchoolNewsDraft,
 } from './api/schoolNews';
+export {
+  SCHOOL_NEWS_PREVIEW_QUERY_KEY,
+  schoolNewsPreviewQueryKey,
+  useSchoolNewsPreviewQuery,
+} from './api/useSchoolNewsPreviewQuery';
 export {
   SCHOOL_NEWS_READERS_QUERY_KEY,
   schoolNewsReadersQueryKey,

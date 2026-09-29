@@ -18,6 +18,11 @@ interface GetSchoolNewsParams {
   size?: number;
 }
 
+/** `GET` - 유치원 메인 소식 미리보기 */
+function getSchoolNewsPreview(schoolId: number) {
+  return api.get(`schools/${schoolId}/news/preview`).json<ApiResponse<SchoolNewsListDto>>();
+}
+
 /** `GET` - 유치원 소식 목록*/
 function getSchoolNews({ schoolId, cursor, size = SCHOOL_NEWS_PAGE_SIZE }: GetSchoolNewsParams) {
   return api
@@ -143,6 +148,7 @@ export {
   deleteSchoolNewsDraft,
   getSchoolNews,
   getSchoolNewsDetail,
+  getSchoolNewsPreview,
   getSchoolNewsDraft,
   getSchoolNewsReaders,
   postSchoolNews,
