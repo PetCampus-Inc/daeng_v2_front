@@ -76,6 +76,21 @@ function deleteSchoolNews({ schoolId, newsId }: { schoolId: number; newsId: numb
   return api.delete(`schools/${schoolId}/news/${newsId}`).json<ApiResponse<null>>();
 }
 
+/** `PUT` - 소식 임시저장 */
+function putSchoolNewsDraft({ schoolId, body }: { schoolId: number; body: SchoolNewsWriteRequest }) {
+  return api.put(`schools/${schoolId}/news/draft`, { json: body }).json<ApiResponse<null>>();
+}
+
+/** `DELETE` - 소식 임시저장 삭제, 초안이 없으면 무시 */
+async function deleteSchoolNewsDraft(schoolId: number) {
+  try {
+    return await api.delete(`schools/${schoolId}/news/draft`).json<ApiResponse<null>>();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
 /** `GET` - 소식 임시저장 조회, 저장된 초안이 없으면 null */
 async function getSchoolNewsDraft(schoolId: number) {
   try {
@@ -96,9 +111,11 @@ async function getSchoolNewsDraft(schoolId: number) {
 
 export {
   deleteSchoolNews,
+  deleteSchoolNewsDraft,
   getSchoolNews,
   getSchoolNewsDraft,
   postSchoolNews,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,
+  putSchoolNewsDraft,
 };

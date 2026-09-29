@@ -1,10 +1,12 @@
 export {
   deleteSchoolNews,
+  deleteSchoolNewsDraft,
   getSchoolNews,
   getSchoolNewsDraft,
   postSchoolNews,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,
+  putSchoolNewsDraft,
 } from './api/schoolNews';
 export {
   SCHOOL_NEWS_DRAFT_QUERY_KEY,
