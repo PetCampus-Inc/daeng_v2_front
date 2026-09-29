@@ -4,11 +4,17 @@ export {
   getSchoolNews,
   getSchoolNewsDetail,
   getSchoolNewsDraft,
+  getSchoolNewsReaders,
   postSchoolNews,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,
   putSchoolNewsDraft,
 } from './api/schoolNews';
+export {
+  SCHOOL_NEWS_READERS_QUERY_KEY,
+  schoolNewsReadersQueryKey,
+  useSchoolNewsReadersQuery,
+} from './api/useSchoolNewsReadersQuery';
 export {
   SCHOOL_NEWS_DETAIL_QUERY_KEY,
   schoolNewsDetailQueryKey,
@@ -36,6 +42,7 @@ export {
   toSchoolNewsDraft,
   toSchoolNewsItem,
   toSchoolNewsPage,
+  toSchoolNewsReaders,
 } from './model/schoolNews';
 export type {
   SchoolNewsDraft,
@@ -44,6 +51,8 @@ export type {
   SchoolNewsItem,
   SchoolNewsListDto,
   SchoolNewsPage,
+  SchoolNewsReader,
+  SchoolNewsReaders,
   SchoolNewsUploadFileRequest,
   SchoolNewsWriteRequest,
 } from './model/schoolNews';

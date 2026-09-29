@@ -128,6 +128,8 @@ const ownerKindergartenNewsContent = {
     summaryMiddle: '명 중',
     summarySuffix: '명 읽음',
     unreadOnlyLabel: '안 읽은 보호자만',
+    loadFailed: '읽은 보호자를 불러오지 못했어요',
+    retryLabel: '다시 시도',
     notifyButtonLabel: '알림 전송',
     notifySuccessToast: {
       nativeTitle: '{name} 보호자에게 알림을 전송했어요',

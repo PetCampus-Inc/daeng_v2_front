@@ -4,6 +4,7 @@ import {
   type SchoolNewsDraftDto,
   type SchoolNewsItemDto,
   type SchoolNewsListDto,
+  type SchoolNewsReadersDto,
   type SchoolNewsUploadFileRequest,
   type SchoolNewsUploadUrlResponseDto,
   type SchoolNewsWriteRequest,
@@ -92,6 +93,13 @@ async function getSchoolNewsDetail({ schoolId, newsId }: { schoolId: number; new
   }
 }
 
+/** `GET` - 원장용 소식 읽은 보호자 목록 */
+function getSchoolNewsReaders({ schoolId, newsId }: { schoolId: number; newsId: number }) {
+  return api
+    .get(`schools/${schoolId}/news/${newsId}/readers`)
+    .json<ApiResponse<SchoolNewsReadersDto>>();
+}
+
 /** `DELETE` - 유치원 소식 삭제 */
 function deleteSchoolNews({ schoolId, newsId }: { schoolId: number; newsId: number }) {
   return api.delete(`schools/${schoolId}/news/${newsId}`).json<ApiResponse<null>>();
@@ -136,6 +144,7 @@ export {
   getSchoolNews,
   getSchoolNewsDetail,
   getSchoolNewsDraft,
+  getSchoolNewsReaders,
   postSchoolNews,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,

@@ -71,7 +71,6 @@ function OwnerKindergartenNewsDetailPage() {
       imageUrls: item.imageUrls,
       readCount: item.readCount,
       guardianTotalCount: item.guardianTotalCount,
-      readers: [],
     };
   }, [item]);
 
@@ -109,11 +108,10 @@ function OwnerKindergartenNewsDetailPage() {
   const handleOpenReadReaction = useCallback(() => {
     if (!news) return;
     openOwnerKindergartenNewsReadReactionSheet({
-      readers: news.readers,
-      guardianTotalCount: news.guardianTotalCount,
-      readCount: news.readCount,
+      schoolId,
+      newsId: news.id,
     });
-  }, [news]);
+  }, [news, schoolId]);
 
   if (isHomePending || isResolving) {
     return (

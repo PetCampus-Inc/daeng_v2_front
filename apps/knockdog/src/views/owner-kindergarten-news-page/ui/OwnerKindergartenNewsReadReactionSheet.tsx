@@ -10,15 +10,18 @@ import {
   formatOwnerKindergartenNewsReadAt,
 } from '@views/owner-kindergarten-news-page/lib/formatOwnerKindergartenNewsReadReaction';
 import type { OwnerKindergartenNewsReader } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
+
+import { useSchoolNewsReadersQuery, type SchoolNewsReader } from '@entities/school-news';
+
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 interface OwnerKindergartenNewsReadReactionSheetProps {
   isOpen: boolean;
   close: () => void;
-  readers: OwnerKindergartenNewsReader[];
-  guardianTotalCount: number;
-  readCount: number;
+  schoolId: string | null;
+  newsId: string;
 }
 
 function compareGuardianName(a: string, b: string) {
@@ -29,6 +32,16 @@ function compareGuardianName(a: string, b: string) {
 function isVisibleReader(reader: OwnerKindergartenNewsReader) {
   if (reader.isConnected) return true;
   return reader.readAt != null;
+}
+
+function toSheetReader(reader: SchoolNewsReader): OwnerKindergartenNewsReader {
+  return {
+    id: reader.guardianId,
+    guardianName: reader.guardianName,
+    dogNames: reader.petSummary ? [reader.petSummary] : [],
+    readAt: reader.readAt,
+    isConnected: true,
+  };
 }
 
 function showNotifySuccessToast(guardianName: string) {
@@ -56,12 +69,22 @@ function showNotifySuccessToast(guardianName: string) {
 function OwnerKindergartenNewsReadReactionSheet({
   isOpen,
   close,
-  readers,
-  guardianTotalCount,
-  readCount,
+  schoolId,
+  newsId,
 }: OwnerKindergartenNewsReadReactionSheetProps) {
   const { readReactionSheet } = ownerKindergartenNewsContent;
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const readersQuery = useSchoolNewsReadersQuery({
+    schoolId,
+    newsId,
+    enabled: isOpen,
+  });
+  const readers = useMemo(
+    () => (readersQuery.data?.readers ?? []).map(toSheetReader),
+    [readersQuery.data?.readers]
+  );
+  const guardianTotalCount = readersQuery.data?.totalGuardianCount ?? 0;
+  const readCount = readersQuery.data?.readCount ?? 0;
 
   const visibleReaders = useMemo(() => {
     return readers
@@ -116,6 +139,21 @@ function OwnerKindergartenNewsReadReactionSheet({
         </div>
 
         <div className='min-h-0 flex-1 overflow-y-auto px-4'>
+          {readersQuery.isLoading ? <DelayedLoadingSpinner isLoading layout='content' /> : null}
+          {readersQuery.isError ? (
+            <div className='flex flex-col items-center gap-3 py-8'>
+              <p className='body2-regular text-text-secondary'>{readReactionSheet.loadFailed}</p>
+              <button
+                type='button'
+                className='body2-semibold text-text-accent'
+                onClick={() => {
+                  readersQuery.refetch().catch(() => undefined);
+                }}
+              >
+                {readReactionSheet.retryLabel}
+              </button>
+            </div>
+          ) : null}
           {visibleReaders.map((reader) => {
             const dogLabel = formatOwnerKindergartenNewsDogLabel(reader.dogNames);
             const readAtLabel = reader.readAt
@@ -163,18 +201,13 @@ function OwnerKindergartenNewsReadReactionSheet({
   );
 }
 
-function openOwnerKindergartenNewsReadReactionSheet(params: {
-  readers: OwnerKindergartenNewsReader[];
-  guardianTotalCount: number;
-  readCount: number;
-}) {
+function openOwnerKindergartenNewsReadReactionSheet(params: { schoolId: string | null; newsId: string }) {
   overlay.open(({ isOpen, close }) => (
     <OwnerKindergartenNewsReadReactionSheet
       isOpen={isOpen}
       close={close}
-      readers={params.readers}
-      guardianTotalCount={params.guardianTotalCount}
-      readCount={params.readCount}
+      schoolId={params.schoolId}
+      newsId={params.newsId}
     />
   ));
 }

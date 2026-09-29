@@ -219,6 +219,53 @@ interface SchoolNewsCreatedDto {
   id?: number | null;
 }
 
+interface SchoolNewsReaderDto {
+  guardianId?: number | null;
+  guardianName?: string | null;
+  petSummary?: string | null;
+  readAt?: string | number[] | null;
+}
+
+interface SchoolNewsReadersDto {
+  totalGuardianCount?: number | null;
+  readCount?: number | null;
+  readers?: SchoolNewsReaderDto[] | null;
+}
+
+interface SchoolNewsReader {
+  guardianId: string;
+  guardianName: string;
+  petSummary: string;
+  readAt: string | null;
+}
+
+interface SchoolNewsReaders {
+  totalGuardianCount: number;
+  readCount: number;
+  readers: SchoolNewsReader[];
+}
+
+function toSchoolNewsReaders(dto: SchoolNewsReadersDto | null | undefined): SchoolNewsReaders {
+  const readers = (dto?.readers ?? []).flatMap((reader) => {
+    if (typeof reader.guardianId !== 'number' || !Number.isFinite(reader.guardianId)) return [];
+
+    return [
+      {
+        guardianId: String(reader.guardianId),
+        guardianName: reader.guardianName?.trim() ?? '',
+        petSummary: reader.petSummary?.trim() ?? '',
+        readAt: toPublishedAt(reader.readAt),
+      },
+    ];
+  });
+
+  return {
+    totalGuardianCount: toCount(dto?.totalGuardianCount),
+    readCount: toCount(dto?.readCount),
+    readers,
+  };
+}
+
 function toCreatedNewsId(dto: SchoolNewsCreatedDto | null | undefined) {
   if (typeof dto?.id !== 'number' || !Number.isFinite(dto.id)) return null;
   return String(dto.id);
@@ -283,6 +330,7 @@ export {
   toSchoolNewsDraft,
   toSchoolNewsItem,
   toSchoolNewsPage,
+  toSchoolNewsReaders,
 };
 export type {
   SchoolNewsCreatedDto,
@@ -294,6 +342,9 @@ export type {
   SchoolNewsItemDto,
   SchoolNewsListDto,
   SchoolNewsPage,
+  SchoolNewsReader,
+  SchoolNewsReaders,
+  SchoolNewsReadersDto,
   SchoolNewsUploadFileRequest,
   SchoolNewsUploadUrlResponseDto,
   SchoolNewsWriteRequest,
