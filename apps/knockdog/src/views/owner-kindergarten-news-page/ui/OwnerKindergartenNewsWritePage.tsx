@@ -1,15 +1,8 @@
 'use client';
 
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
   AlertDialog,
@@ -34,14 +27,23 @@ import {
   saveOwnerKindergartenNewsDraft,
 } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsDraft';
 import {
-  createOwnerKindergartenNewsItem,
+  createSchoolNews,
+  NewsImageUploadError,
+  toNewsImageSource,
+  type NewsImageSource,
+} from '@views/owner-kindergarten-news-page/lib/uploadOwnerNewsImages';
+import {
   getOwnerKindergartenNewsById,
-  getOwnerKindergartenNewsCount,
-  subscribeOwnerKindergartenNews,
   updateOwnerKindergartenNewsItem,
 } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
+import { OWNER_KINDERGARTEN_NEWS_PAGE_SIZE } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
 import { OwnerKindergartenNewsWriteSettingsSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteSettingsSheet';
 import { openOwnerKindergartenNewsImageAlert } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsImageAlertDialog';
+
+import { useOwnerHomeQuery } from '@entities/owner-home';
+import { SCHOOL_NEWS_QUERY_KEY, parseSchoolId, useSchoolNewsInfiniteQuery } from '@entities/school-news';
+import { useUserStore } from '@entities/user';
+
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { MiniPhotoBox } from '@shared/ui/photo-uploader';
@@ -51,8 +53,17 @@ import { Header } from '@widgets/Header';
 
 const TITLE_MAX = ownerKindergartenNewsContent.write.titleMaxLength;
 const MAX_PHOTO_COUNT = ownerKindergartenNewsContent.write.maxPhotoCount;
-/** 배너 유치원 키 — schoolId 연동 전 mock 기본값 */
+/** schoolId를 아직 모르면 로컬 드래프트 키 */
 const BANNER_KINDERGARTEN_KEY = 'default';
+
+function unsourcedNewsImage(previewUrl: string): NewsImageSource {
+  return {
+    previewUrl,
+    fileName: 'image.jpg',
+    contentType: 'image/jpeg',
+    size: 0,
+  };
+}
 
 type ComposerMode = 'write' | 'edit';
 
@@ -167,16 +178,20 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   const isEditMode = mode === 'edit';
   const { back, replace } = useStackNavigation();
   const { pickImage } = useImagePicker();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const forceEmpty = searchParams.get('empty') === '1';
-  const kindergartenKey = BANNER_KINDERGARTEN_KEY;
-
-  const newsCount = useSyncExternalStore(
-    subscribeOwnerKindergartenNews,
-    getOwnerKindergartenNewsCount,
-    getOwnerKindergartenNewsCount
-  );
-  const effectiveNewsCount = forceEmpty ? 0 : newsCount;
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: ownerHome, isPending: isHomePending } = useOwnerHomeQuery({ userId });
+  const schoolId = ownerHome?.school.schoolId ?? null;
+  const parsedSchoolId = parseSchoolId(schoolId);
+  const kindergartenKey = schoolId ?? BANNER_KINDERGARTEN_KEY;
+  const newsQuery = useSchoolNewsInfiniteQuery({
+    schoolId,
+    size: OWNER_KINDERGARTEN_NEWS_PAGE_SIZE,
+    enabled: !isEditMode && !forceEmpty,
+  });
+  const hasServerNews = (newsQuery.data?.pages ?? []).some((page) => page.items.length > 0);
 
   const existingNews = useMemo(() => {
     if (!isEditMode || !newsId) return null;
@@ -238,6 +253,8 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   const [title, setTitle] = useState(seed.title);
   const [body, setBody] = useState(seed.body);
   const [imageUrls, setImageUrls] = useState<string[]>(seed.imageUrls);
+  const imageSourcesRef = useRef<NewsImageSource[]>(seed.imageUrls.map(unsourcedNewsImage));
+  const createAttemptRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
   const [isAnnouncement, setIsAnnouncement] = useState(seed.isAnnouncement);
   const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(
     seed.notifyGuardiansOnUpload
@@ -273,6 +290,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         setTitle(draft.title);
         setBody(draft.body);
         setImageUrls(draft.imageUrls);
+        imageSourcesRef.current = draft.imageUrls.map(unsourcedNewsImage);
         setIsAnnouncement(draft.isAnnouncement);
         setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
         initialSnapshotRef.current = {
@@ -291,6 +309,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         setTitle(existingNews.title);
         setBody(existingNews.body);
         setImageUrls(nextImageUrls);
+        imageSourcesRef.current = nextImageUrls.map(unsourcedNewsImage);
         setIsAnnouncement(existingNews.isAnnouncement);
         setNotifyGuardiansOnUpload(false);
         initialSnapshotRef.current = {
@@ -310,6 +329,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
       setTitle(draft.title);
       setBody(draft.body);
       setImageUrls(draft.imageUrls);
+      imageSourcesRef.current = draft.imageUrls.map(unsourcedNewsImage);
       setIsAnnouncement(draft.isAnnouncement);
       setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
       initialSnapshotRef.current = {
@@ -322,7 +342,10 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     hydratedKeyRef.current = hydrateKey;
   }, [existingNews, isEditMode, kindergartenKey, newsId]);
 
-  const canSubmit = title.trim().length > 0 && body.trim().length > 0;
+  const canSubmit =
+    title.trim().length > 0 &&
+    body.trim().length > 0 &&
+    (isEditMode || (parsedSchoolId != null && !isHomePending));
   const isDirty = isEditMode
     ? title !== initialSnapshotRef.current.title ||
       body !== initialSnapshotRef.current.body ||
@@ -346,8 +369,13 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
       setShowBanner(!dismissed);
       return;
     }
-    setShowBanner(effectiveNewsCount === 0 && !dismissed);
-  }, [effectiveNewsCount, isEditMode, kindergartenKey]);
+    if (forceEmpty) {
+      setShowBanner(!dismissed);
+      return;
+    }
+    if (newsQuery.isLoading) return;
+    setShowBanner(!hasServerNews && !dismissed);
+  }, [forceEmpty, hasServerNews, isEditMode, kindergartenKey, newsQuery.isLoading]);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -472,11 +500,9 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         return;
       }
 
-      const urls = result.assets
-        .map((asset) => asset.uri)
-        .filter((uri): uri is string => Boolean(uri));
-
-      setImageUrls((current) => [...current, ...urls]);
+      const sources = result.assets.map((asset, index) => toNewsImageSource(asset, index));
+      imageSourcesRef.current = [...imageSourcesRef.current, ...sources];
+      setImageUrls((current) => [...current, ...sources.map((source) => source.previewUrl)]);
 
       const invalidSpecCount = result.skipped?.invalidSpecCount ?? 0;
       const oversizedCount = result.skipped?.oversizedCount ?? 0;
@@ -505,6 +531,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   };
 
   const handleRemoveImage = (index: number) => {
+    imageSourcesRef.current = imageSourcesRef.current.filter((_, imageIndex) => imageIndex !== index);
     setImageUrls((current) => current.filter((_, imageIndex) => imageIndex !== index));
   };
 
@@ -545,19 +572,44 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         showEditSuccessToast();
         goToDetailAfterSubmit(newsId);
       } else {
-        const created = createOwnerKindergartenNewsItem({
-          isAnnouncement,
-          guardianTotalCount: 0,
+        if (parsedSchoolId == null) throw new Error('schoolId required');
+
+        const images =
+          imageSourcesRef.current.length === imageUrls.length
+            ? imageSourcesRef.current
+            : imageUrls.map(
+                (url, index) => imageSourcesRef.current[index] ?? unsourcedNewsImage(url)
+              );
+
+        const { newsId: createdNewsId } = await createSchoolNews({
+          schoolId: parsedSchoolId,
           title: title.trim(),
           body: body.trim(),
-          thumbnailUrl: imageUrls[0] ?? null,
-          imageUrls,
+          notice: isAnnouncement,
+          sendNotification: notifyGuardiansOnUpload,
+          images,
+          resolveIdempotencyKey: (payload) => {
+            const signature = JSON.stringify(payload);
+            const previous = createAttemptRef.current;
+            const idempotencyKey =
+              previous?.signature === signature ? previous.idempotencyKey : crypto.randomUUID();
+            createAttemptRef.current = { signature, idempotencyKey };
+            return idempotencyKey;
+          },
         });
+        await queryClient.invalidateQueries({ queryKey: [SCHOOL_NEWS_QUERY_KEY, parsedSchoolId] });
         clearOwnerKindergartenNewsDraft(kindergartenKey);
         showWriteSuccessToast();
-        goToDetailAfterSubmit(created.id);
+        goToDetailAfterSubmit(createdNewsId);
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof NewsImageUploadError) {
+        openOwnerKindergartenNewsImageAlert(
+          write.imageUpload.networkFailedTitle,
+          write.imageUpload.networkFailedDescription
+        );
+        return;
+      }
       overlay.open(({ isOpen, close }) => (
         <AlertDialog
           open={isOpen}
@@ -601,7 +653,12 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     isSubmitting,
     kindergartenKey,
     newsId,
+    notifyGuardiansOnUpload,
+    parsedSchoolId,
+    queryClient,
     title,
+    write.imageUpload.networkFailedDescription,
+    write.imageUpload.networkFailedTitle,
   ]);
 
   const titleLengthHint = useMemo(() => {

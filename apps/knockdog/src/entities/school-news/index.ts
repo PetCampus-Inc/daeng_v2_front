@@ -1,4 +1,4 @@
-export { getSchoolNews } from './api/schoolNews';
+export { getSchoolNews, postSchoolNews, postSchoolNewsImageUploadUrls } from './api/schoolNews';
 export {
   SCHOOL_NEWS_QUERY_KEY,
   schoolNewsQueryKey,
@@ -11,6 +11,14 @@ export {
   parseSchoolId,
   SCHOOL_NEWS_MAX_PAGES,
   SCHOOL_NEWS_PAGE_SIZE,
+  toCreatedNewsId,
   toSchoolNewsPage,
 } from './model/schoolNews';
-export type { SchoolNewsItem, SchoolNewsListDto, SchoolNewsPage } from './model/schoolNews';
+export type {
+  SchoolNewsImageRequest,
+  SchoolNewsItem,
+  SchoolNewsListDto,
+  SchoolNewsPage,
+  SchoolNewsUploadFileRequest,
+  SchoolNewsWriteRequest,
+} from './model/schoolNews';

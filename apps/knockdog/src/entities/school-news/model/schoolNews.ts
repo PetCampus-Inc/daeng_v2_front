@@ -151,5 +151,52 @@ function toSchoolNewsPage(dto: SchoolNewsListDto | null | undefined): SchoolNews
   return { items, nextCursor, hasNext: hasNext && nextCursor !== null };
 }
 
-export { parseSchoolId, SCHOOL_NEWS_MAX_PAGES, SCHOOL_NEWS_PAGE_SIZE, toSchoolNewsPage };
-export type { SchoolNewsItem, SchoolNewsListDto, SchoolNewsPage };
+interface SchoolNewsImageRequest {
+  imageId?: number;
+  tempKey: string;
+  originalFilename: string;
+}
+
+interface SchoolNewsWriteRequest {
+  title: string;
+  body: string;
+  notice: boolean;
+  sendNotification: boolean;
+  images: SchoolNewsImageRequest[];
+}
+
+interface SchoolNewsUploadFileRequest {
+  filename: string;
+  contentType: string;
+  size: number;
+}
+
+interface SchoolNewsUploadUrlItemDto {
+  tempKey?: string | null;
+  uploadUrl?: string | null;
+}
+
+interface SchoolNewsUploadUrlResponseDto {
+  items?: SchoolNewsUploadUrlItemDto[] | null;
+}
+
+interface SchoolNewsCreatedDto {
+  id?: number | null;
+}
+
+function toCreatedNewsId(dto: SchoolNewsCreatedDto | null | undefined) {
+  if (typeof dto?.id !== 'number' || !Number.isFinite(dto.id)) return null;
+  return String(dto.id);
+}
+
+export { parseSchoolId, SCHOOL_NEWS_MAX_PAGES, SCHOOL_NEWS_PAGE_SIZE, toCreatedNewsId, toSchoolNewsPage };
+export type {
+  SchoolNewsCreatedDto,
+  SchoolNewsImageRequest,
+  SchoolNewsItem,
+  SchoolNewsListDto,
+  SchoolNewsPage,
+  SchoolNewsUploadFileRequest,
+  SchoolNewsUploadUrlResponseDto,
+  SchoolNewsWriteRequest,
+};
