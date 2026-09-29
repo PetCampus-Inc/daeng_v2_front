@@ -10,12 +10,14 @@ import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-
 import { OwnerKindergartenNewsList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsList';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { PullToRefresh } from '@shared/ui/pull-to-refresh';
 import { Header } from '@widgets/Header';
 
 /**
  * 원장 유치원 소식 페이지
- * - 기본: mock 목록 (공지 최상단 + 신규순, 30건 무한스크롤)
+ * - GET /schools/{schoolId}/news (공지 최상단 + 신규순, cursor 무한스크롤)
  * - empty: `/owner/news?empty=1`
  * - 헤더/시스템 뒤로가기 → 원장 홈 탭
  *
@@ -25,8 +27,19 @@ import { Header } from '@widgets/Header';
 function OwnerKindergartenNewsPageContent() {
   const { navigateToTab } = useTabNavigation();
   const { push } = useStackNavigation();
-  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, refresh, deleteNews } =
-    useOwnerKindergartenNews();
+  const {
+    items,
+    hasNews,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+    isFetching,
+    isError,
+    fetchNextPage,
+    refresh,
+    deleteNews,
+    refetch,
+  } = useOwnerKindergartenNews();
 
   const handleBack = useCallback(() => {
     void navigateToTab('/owner');
@@ -62,7 +75,11 @@ function OwnerKindergartenNewsPageContent() {
       </div>
 
       <main className={`${hasNews ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
-        {hasNews ? (
+        {isPending ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
+        ) : isError ? (
+          <PageError layout='inline' onRetry={() => void refetch()} isRetrying={isFetching} />
+        ) : hasNews ? (
           <PullToRefresh onRefresh={refresh}>
             <OwnerKindergartenNewsList
               items={items}
@@ -75,7 +92,7 @@ function OwnerKindergartenNewsPageContent() {
         ) : (
           <OwnerKindergartenNewsEmptyState />
         )}
-        <OwnerKindergartenNewsWriteButton openAsEmpty={!hasNews} />
+        {!isPending && !isError ? <OwnerKindergartenNewsWriteButton openAsEmpty={!hasNews} /> : null}
       </main>
     </div>
   );

@@ -6,12 +6,15 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
 import { formatGuardianKindergartenNewsPageTitle } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPageTitle';
 import { formatGuardianKindergartenNewsDetailPublishedAt } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
-import { getGuardianKindergartenNewsById } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
 import { GuardianKindergartenNewsDetailImageList } from '@views/guardian-kindergarten-news-page/ui/GuardianKindergartenNewsDetailImageList';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+
+import { useSchoolNewsItem } from '@entities/school-news';
+
 import { route } from '@shared/constants/route';
 import { useShare } from '@shared/lib/device';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 import { Header } from '@widgets/Header';
 
@@ -51,9 +54,24 @@ function GuardianKindergartenNewsDetailPageContent() {
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const share = useShare();
-  const { linkedKindergarten } = useGuardianKindergartenHome();
+  const { linkedKindergarten, isHomeReady } = useGuardianKindergartenHome();
+  const resolvedSchoolId = schoolId ?? linkedKindergarten?.id;
+  const { item: newsItem, isResolving } = useSchoolNewsItem({
+    schoolId: resolvedSchoolId,
+    newsId,
+    enabled: Boolean(schoolId) || isHomeReady,
+  });
+  const item = useMemo(() => {
+    if (!newsItem) return null;
 
-  const item = useMemo(() => (newsId ? getGuardianKindergartenNewsById(newsId) : null), [newsId]);
+    return {
+      id: newsItem.id,
+      title: newsItem.title,
+      body: newsItem.body,
+      publishedAt: newsItem.publishedAt,
+      imageUrls: newsItem.imageUrls,
+    };
+  }, [newsItem]);
 
   const kindergartenName =
     linkedKindergarten && (!schoolId || linkedKindergarten.id === schoolId)
@@ -103,6 +121,20 @@ function GuardianKindergartenNewsDetailPageContent() {
 
     if (shared) showGuardianKindergartenNewsShareSuccessToast();
   }, [item, share]);
+
+  if ((!schoolId && !isHomeReady) || isResolving) {
+    return (
+      <div data-testid='guardian-kindergarten-news-detail-root' className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>{pageTitle}</Header.Title>
+        </Header>
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
 
   if (!item) {
     return (

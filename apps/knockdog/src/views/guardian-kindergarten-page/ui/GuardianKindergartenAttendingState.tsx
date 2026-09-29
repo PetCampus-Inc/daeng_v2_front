@@ -6,7 +6,7 @@ import { ActionButton, Icon } from '@knockdog/ui';
 
 import { useLiveAlbumLastViewedAt } from '@views/guardian-album-page/model/useGuardianAlbumLastViewed';
 import { GuardianKindergartenNewsSection } from '@views/guardian-kindergarten-news-page';
-import { getGuardianKindergartenNewsPreview } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
+import { useGuardianNewsPreview } from '@views/guardian-kindergarten-news-page/model/useGuardianKindergartenNews';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
 import { formatAttendingDuration } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
 import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
@@ -70,7 +70,9 @@ function GuardianKindergartenAttendingState({
   const durationLabel = formatAttendingDuration(checkInAt, now);
   const statusBadgeLabel = isDismissed ? content.dayFinishedLabel : durationLabel;
   const showAlbumArrived = hasUnseenAlbumPhotos && (isDismissed ? hasDailyNotice : true);
-  const newsPreviewItems = getGuardianKindergartenNewsPreview();
+  const { items: newsPreviewItems, isPending: isNewsPreviewPending } = useGuardianNewsPreview(
+    kindergarten.id
+  );
 
   const handleNoticeViewClick = () => {
     pushGuardianDailyNoticeDetail(push, new Date(), { schoolId: kindergarten.id });
@@ -229,6 +231,7 @@ function GuardianKindergartenAttendingState({
           variant={newsPreviewItems.length > 0 ? 'list' : 'empty'}
           items={newsPreviewItems}
           schoolId={kindergarten.id}
+          isPending={isNewsPreviewPending}
         />
       </section>
 

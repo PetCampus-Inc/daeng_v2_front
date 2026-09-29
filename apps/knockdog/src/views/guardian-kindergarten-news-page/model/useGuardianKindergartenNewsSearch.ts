@@ -3,7 +3,9 @@
 import { useMemo } from 'react';
 
 import { formatGuardianKindergartenNewsDetailPublishedAt } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
-import { getGuardianKindergartenNewsSource } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
+
+import { useSchoolNewsSearchSource } from '@entities/school-news';
+
 import { filterKindergartenNewsByQuery } from '@shared/lib/search';
 
 interface GuardianKindergartenNewsSearchResultView {
@@ -18,32 +20,30 @@ interface GuardianKindergartenNewsSearchResultView {
  * 보호자 소식 검색
  * - 제목·본문 통합 검색
  * - 최신 등록순 (공지 핀 무시)
+ * - 목록 API를 끝까지 받아 클라이언트에서 필터
  */
-function useGuardianKindergartenNewsSearch(query: string) {
+function useGuardianKindergartenNewsSearch(query: string, schoolId?: string) {
   const trimmedQuery = query.trim();
+  const { items, isSearching } = useSchoolNewsSearchSource(schoolId, trimmedQuery.length > 0);
 
   const results = useMemo((): GuardianKindergartenNewsSearchResultView[] => {
     if (!trimmedQuery) return [];
 
-    const matched = filterKindergartenNewsByQuery(getGuardianKindergartenNewsSource(), trimmedQuery);
-
-    return matched.map((item) => {
-      const publishedAt = new Date(item.publishedAt);
-      return {
-        id: item.id,
-        title: item.title,
-        body: item.body,
-        publishedAtLabel: formatGuardianKindergartenNewsDetailPublishedAt(publishedAt),
-        thumbnailUrl: item.imageUrls[0] ?? null,
-      };
-    });
-  }, [trimmedQuery]);
+    return filterKindergartenNewsByQuery(items, trimmedQuery).map((item) => ({
+      id: item.id,
+      title: item.title,
+      body: item.body,
+      publishedAtLabel: formatGuardianKindergartenNewsDetailPublishedAt(new Date(item.publishedAt)),
+      thumbnailUrl: item.thumbnailUrl,
+    }));
+  }, [items, trimmedQuery]);
 
   return {
     query: trimmedQuery,
     results,
     hasQuery: trimmedQuery.length > 0,
     hasResults: results.length > 0,
+    isSearching,
   };
 }
 

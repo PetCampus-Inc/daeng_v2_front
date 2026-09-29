@@ -6,6 +6,7 @@ import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-ne
 import type { GuardianKindergartenNewsPreviewItem } from '@views/guardian-kindergarten-news-page/model/guardianKindergartenNews';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 type GuardianKindergartenNewsSectionVariant = 'list' | 'empty' | 'disconnected';
 
@@ -13,12 +14,14 @@ interface GuardianKindergartenNewsSectionProps {
   variant?: GuardianKindergartenNewsSectionVariant;
   items?: GuardianKindergartenNewsPreviewItem[];
   schoolId?: string;
+  isPending?: boolean;
 }
 
 function GuardianKindergartenNewsSection({
   variant = 'list',
   items = [],
   schoolId,
+  isPending = false,
 }: GuardianKindergartenNewsSectionProps) {
   const content = guardianKindergartenNewsContent;
   const { push } = useStackNavigation();
@@ -55,7 +58,11 @@ function GuardianKindergartenNewsSection({
         ) : null}
       </div>
 
-      {hasItems ? (
+      {isPending ? (
+        <div className='flex min-h-[120px] w-full items-center justify-center'>
+          <DelayedLoadingSpinner isLoading />
+        </div>
+      ) : hasItems ? (
         <ul className='flex w-full flex-col gap-2'>
           {items.map((item) => (
             <li key={item.id}>

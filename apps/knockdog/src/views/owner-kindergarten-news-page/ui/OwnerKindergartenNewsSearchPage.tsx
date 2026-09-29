@@ -11,6 +11,7 @@ import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useKindergartenNewsSearchHistory } from '@shared/store';
 import { KindergartenNewsSearchEmptyResult } from '@shared/ui/kindergarten-news-search-empty-result';
 import { KindergartenNewsSearchResultItem } from '@shared/ui/kindergarten-news-search-result-item';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
 /**
@@ -23,7 +24,7 @@ function OwnerKindergartenNewsSearchPageContent() {
   const { search } = ownerKindergartenNewsContent;
   const [query, setQuery] = useQueryState('q', { defaultValue: '' });
   const { back, push } = useStackNavigation();
-  const { results, hasQuery, hasResults } = useOwnerKindergartenNewsSearch(query);
+  const { results, hasQuery, hasResults, isSearching } = useOwnerKindergartenNewsSearch(query);
   const {
     recentKeywords,
     hasRecentKeywords,
@@ -96,6 +97,8 @@ function OwnerKindergartenNewsSearchPageContent() {
               <p className='h2-semibold text-text-caption text-center'>{search.emptyRecent}</p>
             </div>
           )
+        ) : isSearching && !hasResults ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
         ) : hasResults ? (
           <div>
             {results.map((item) => (
