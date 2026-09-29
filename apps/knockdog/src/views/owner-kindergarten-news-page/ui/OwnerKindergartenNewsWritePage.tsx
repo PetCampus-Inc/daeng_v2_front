@@ -43,8 +43,10 @@ import { useOwnerHomeQuery } from '@entities/owner-home';
 import {
   SCHOOL_NEWS_QUERY_KEY,
   parseSchoolId,
+  useSchoolNewsDraftQuery,
   useSchoolNewsInfiniteQuery,
   useSchoolNewsItem,
+  type SchoolNewsImage,
 } from '@entities/school-news';
 import { useUserStore } from '@entities/user';
 
@@ -84,6 +86,17 @@ function toDraftNewsImage(image: OwnerKindergartenNewsDraftImage): NewsImageSour
 function sourcesFromDraft(imageUrls: string[], images?: OwnerKindergartenNewsDraftImage[]) {
   if (images && images.length > 0) return images.map(toDraftNewsImage);
   return imageUrls.map(unsourcedNewsImage);
+}
+
+function sourcesFromServerDraft(images: SchoolNewsImage[]): NewsImageSource[] {
+  return images.map((image) => ({
+    previewUrl: image.url,
+    fileName: image.originalFilename || 'image.jpg',
+    contentType: 'image/jpeg',
+    size: 0,
+    ...(image.imageId != null ? { imageId: image.imageId } : {}),
+    ...(image.tempKey ? { tempKey: image.tempKey } : {}),
+  }));
 }
 
 function collectComposerImages(urls: string[], sources: NewsImageSource[]) {
@@ -223,6 +236,10 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     newsId,
     enabled: isEditMode && !isHomePending && Boolean(newsId),
   });
+  const draftQuery = useSchoolNewsDraftQuery({
+    schoolId,
+    enabled: !isEditMode && !isHomePending,
+  });
 
   const seedRef = useRef<{
     title: string;
@@ -235,10 +252,8 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   } | null>(null);
 
   if (!seedRef.current) {
-    const canLoadDraft = !isEditMode || Boolean(newsId);
-    const draft = canLoadDraft
-      ? loadOwnerKindergartenNewsDraft(kindergartenKey, isEditMode ? newsId : undefined)
-      : null;
+    const draft =
+      isEditMode && newsId ? loadOwnerKindergartenNewsDraft(kindergartenKey, newsId) : null;
 
     if (draft) {
       const sources = sourcesFromDraft(draft.imageUrls, draft.images);
@@ -347,24 +362,35 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
       return;
     }
 
-    const draft = loadOwnerKindergartenNewsDraft(kindergartenKey);
+    if (isHomePending || draftQuery.isLoading) return;
+
+    const draft = draftQuery.data;
     if (draft) {
-      const sources = sourcesFromDraft(draft.imageUrls, draft.images);
+      const sources = sourcesFromServerDraft(draft.images);
+      const draftImageUrls = sources.map((source) => source.previewUrl);
       setTitle(draft.title);
       setBody(draft.body);
-      setImageUrls(sources.map((source) => source.previewUrl));
+      setImageUrls(draftImageUrls);
       imageSourcesRef.current = sources;
       setIsAnnouncement(draft.isAnnouncement);
       setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
       initialSnapshotRef.current = {
         title: draft.title,
         body: draft.body,
-        imageUrls: sources.map((source) => source.previewUrl),
+        imageUrls: draftImageUrls,
         isAnnouncement: draft.isAnnouncement,
       };
     }
     hydratedKeyRef.current = hydrateKey;
-  }, [existingNews, isEditMode, kindergartenKey, newsId]);
+  }, [
+    draftQuery.data,
+    draftQuery.isLoading,
+    existingNews,
+    isEditMode,
+    isHomePending,
+    kindergartenKey,
+    newsId,
+  ]);
 
   const canSubmit =
     title.trim().length > 0 && body.trim().length > 0 && parsedSchoolId != null && !isHomePending;
@@ -703,6 +729,19 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   }, [isTitleLimitVisible, write.titleMaxLengthGuide]);
 
   if (isEditMode && !newsId) return null;
+
+  if (!isEditMode && (isHomePending || draftQuery.isLoading)) {
+    return (
+      <div className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={leaveToList} />
+          </Header.LeftSection>
+        </Header>
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
 
   if (isEditMode && newsId && !existingNews) {
     return (

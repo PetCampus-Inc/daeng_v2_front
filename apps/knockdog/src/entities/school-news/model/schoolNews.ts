@@ -224,9 +224,69 @@ function toCreatedNewsId(dto: SchoolNewsCreatedDto | null | undefined) {
   return String(dto.id);
 }
 
-export { parseSchoolId, SCHOOL_NEWS_MAX_PAGES, SCHOOL_NEWS_PAGE_SIZE, toCreatedNewsId, toSchoolNewsPage };
+interface SchoolNewsDraftImageDto {
+  imageId?: number | null;
+  tempKey?: string | null;
+  originalFilename?: string | null;
+}
+
+interface SchoolNewsDraftDto {
+  title?: string | null;
+  body?: string | null;
+  notice?: boolean | null;
+  sendNotification?: boolean | null;
+  modifiedAt?: string | null;
+  images?: SchoolNewsDraftImageDto[] | null;
+}
+
+interface SchoolNewsDraft {
+  title: string;
+  body: string;
+  isAnnouncement: boolean;
+  notifyGuardiansOnUpload: boolean;
+  modifiedAt: string | null;
+  images: SchoolNewsImage[];
+}
+
+function toSchoolNewsDraft(dto: SchoolNewsDraftDto | null | undefined): SchoolNewsDraft | null {
+  if (!dto) return null;
+
+  const images = (dto.images ?? []).flatMap((image) => {
+    const url = toImageUrl(image.tempKey);
+    if (!url) return [];
+
+    return [
+      {
+        imageId: toNewsImageId(image.imageId),
+        tempKey: image.tempKey?.trim() || null,
+        originalFilename: image.originalFilename?.trim() || 'image.jpg',
+        url,
+      },
+    ];
+  });
+
+  return {
+    title: dto.title ?? '',
+    body: dto.body ?? '',
+    isAnnouncement: dto.notice === true,
+    notifyGuardiansOnUpload: dto.sendNotification === true,
+    modifiedAt: typeof dto.modifiedAt === 'string' && dto.modifiedAt.length > 0 ? dto.modifiedAt : null,
+    images,
+  };
+}
+
+export {
+  parseSchoolId,
+  SCHOOL_NEWS_MAX_PAGES,
+  SCHOOL_NEWS_PAGE_SIZE,
+  toCreatedNewsId,
+  toSchoolNewsDraft,
+  toSchoolNewsPage,
+};
 export type {
   SchoolNewsCreatedDto,
+  SchoolNewsDraft,
+  SchoolNewsDraftDto,
   SchoolNewsImage,
   SchoolNewsImageRequest,
   SchoolNewsItem,

@@ -1,13 +1,14 @@
 import {
   SCHOOL_NEWS_PAGE_SIZE,
   type SchoolNewsCreatedDto,
+  type SchoolNewsDraftDto,
   type SchoolNewsListDto,
   type SchoolNewsUploadFileRequest,
   type SchoolNewsUploadUrlResponseDto,
   type SchoolNewsWriteRequest,
 } from '../model/schoolNews';
 
-import { api, type ApiResponse } from '@shared/api';
+import { api, ApiError, type ApiResponse } from '@shared/api';
 
 interface GetSchoolNewsParams {
   schoolId: number;
@@ -75,4 +76,29 @@ function deleteSchoolNews({ schoolId, newsId }: { schoolId: number; newsId: numb
   return api.delete(`schools/${schoolId}/news/${newsId}`).json<ApiResponse<null>>();
 }
 
-export { deleteSchoolNews, getSchoolNews, postSchoolNews, postSchoolNewsImageUploadUrls, putSchoolNews };
+/** `GET` - 소식 임시저장 조회, 저장된 초안이 없으면 null */
+async function getSchoolNewsDraft(schoolId: number) {
+  try {
+    return await api.get(`schools/${schoolId}/news/draft`).json<ApiResponse<SchoolNewsDraftDto | null>>();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return {
+        status: 404,
+        code: 'NOT_FOUND',
+        message: '',
+        data: null,
+      } satisfies ApiResponse<SchoolNewsDraftDto | null>;
+    }
+
+    throw error;
+  }
+}
+
+export {
+  deleteSchoolNews,
+  getSchoolNews,
+  getSchoolNewsDraft,
+  postSchoolNews,
+  postSchoolNewsImageUploadUrls,
+  putSchoolNews,
+};
