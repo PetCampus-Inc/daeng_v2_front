@@ -9,12 +9,13 @@ import { formatGuardianKindergartenNewsDetailPublishedAt } from '@views/guardian
 import { GuardianKindergartenNewsDetailImageList } from '@views/guardian-kindergarten-news-page/ui/GuardianKindergartenNewsDetailImageList';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 
-import { useSchoolNewsItem } from '@entities/school-news';
+import { useSchoolNewsDetailQuery } from '@entities/school-news';
 
 import { route } from '@shared/constants/route';
 import { useShare } from '@shared/lib/device';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 import { Header } from '@widgets/Header';
 
@@ -42,6 +43,7 @@ function showGuardianKindergartenNewsShareSuccessToast() {
 /**
  * 보호자 유치원 소식 상세
  * - 원장 상세와 동일 UI (이미지 리스트/뷰어 포함)
+ * - 상세 조회가 보호자 읽음 처리
  * - 수정·삭제·읽음 반응 없음
  * - 공유: OS 공유 시트 → 완료 시 accent 토스트 (스크롤 위치 유지)
  */
@@ -56,11 +58,13 @@ function GuardianKindergartenNewsDetailPageContent() {
   const share = useShare();
   const { linkedKindergarten, isHomeReady } = useGuardianKindergartenHome();
   const resolvedSchoolId = schoolId ?? linkedKindergarten?.id;
-  const { item: newsItem, isResolving } = useSchoolNewsItem({
+  const detailQuery = useSchoolNewsDetailQuery({
     schoolId: resolvedSchoolId,
     newsId,
     enabled: Boolean(schoolId) || isHomeReady,
   });
+  const newsItem = detailQuery.data ?? null;
+  const isResolving = detailQuery.isLoading;
   const item = useMemo(() => {
     if (!newsItem) return null;
 
@@ -132,6 +136,26 @@ function GuardianKindergartenNewsDetailPageContent() {
           <Header.Title>{pageTitle}</Header.Title>
         </Header>
         <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
+
+  if (detailQuery.isError) {
+    return (
+      <div data-testid='guardian-kindergarten-news-detail-root' className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>{pageTitle}</Header.Title>
+        </Header>
+        <PageError
+          layout='inline'
+          onRetry={() => {
+            detailQuery.refetch().catch(() => undefined);
+          }}
+          isRetrying={detailQuery.isFetching}
+        />
       </div>
     );
   }

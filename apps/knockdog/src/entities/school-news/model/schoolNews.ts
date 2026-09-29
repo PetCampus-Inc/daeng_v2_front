@@ -281,6 +281,7 @@ export {
   SCHOOL_NEWS_PAGE_SIZE,
   toCreatedNewsId,
   toSchoolNewsDraft,
+  toSchoolNewsItem,
   toSchoolNewsPage,
 };
 export type {
@@ -290,6 +291,7 @@ export type {
   SchoolNewsImage,
   SchoolNewsImageRequest,
   SchoolNewsItem,
+  SchoolNewsItemDto,
   SchoolNewsListDto,
   SchoolNewsPage,
   SchoolNewsUploadFileRequest,

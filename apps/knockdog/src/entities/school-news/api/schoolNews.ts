@@ -2,6 +2,7 @@ import {
   SCHOOL_NEWS_PAGE_SIZE,
   type SchoolNewsCreatedDto,
   type SchoolNewsDraftDto,
+  type SchoolNewsItemDto,
   type SchoolNewsListDto,
   type SchoolNewsUploadFileRequest,
   type SchoolNewsUploadUrlResponseDto,
@@ -71,6 +72,26 @@ function putSchoolNews({ schoolId, newsId, idempotencyKey, body }: PutSchoolNews
     .json<ApiResponse<SchoolNewsCreatedDto>>();
 }
 
+/** `GET` - 유치원 소식 상세. 보호자가 조회하면 읽음 처리됨. 없으면 null */
+async function getSchoolNewsDetail({ schoolId, newsId }: { schoolId: number; newsId: number }) {
+  try {
+    return await api
+      .get(`schools/${schoolId}/news/${newsId}`)
+      .json<ApiResponse<SchoolNewsItemDto | null>>();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return {
+        status: 404,
+        code: 'NOT_FOUND',
+        message: '',
+        data: null,
+      } satisfies ApiResponse<SchoolNewsItemDto | null>;
+    }
+
+    throw error;
+  }
+}
+
 /** `DELETE` - 유치원 소식 삭제 */
 function deleteSchoolNews({ schoolId, newsId }: { schoolId: number; newsId: number }) {
   return api.delete(`schools/${schoolId}/news/${newsId}`).json<ApiResponse<null>>();
@@ -113,6 +134,7 @@ export {
   deleteSchoolNews,
   deleteSchoolNewsDraft,
   getSchoolNews,
+  getSchoolNewsDetail,
   getSchoolNewsDraft,
   postSchoolNews,
   postSchoolNewsImageUploadUrls,

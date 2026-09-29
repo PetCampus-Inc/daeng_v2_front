@@ -2,12 +2,18 @@ export {
   deleteSchoolNews,
   deleteSchoolNewsDraft,
   getSchoolNews,
+  getSchoolNewsDetail,
   getSchoolNewsDraft,
   postSchoolNews,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,
   putSchoolNewsDraft,
 } from './api/schoolNews';
+export {
+  SCHOOL_NEWS_DETAIL_QUERY_KEY,
+  schoolNewsDetailQueryKey,
+  useSchoolNewsDetailQuery,
+} from './api/useSchoolNewsDetailQuery';
 export {
   SCHOOL_NEWS_DRAFT_QUERY_KEY,
   schoolNewsDraftQueryKey,
@@ -28,6 +34,7 @@ export {
   SCHOOL_NEWS_PAGE_SIZE,
   toCreatedNewsId,
   toSchoolNewsDraft,
+  toSchoolNewsItem,
   toSchoolNewsPage,
 } from './model/schoolNews';
 export type {
