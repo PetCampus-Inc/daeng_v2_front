@@ -25,27 +25,32 @@ import {
   clearOwnerKindergartenNewsDraft,
   loadOwnerKindergartenNewsDraft,
   saveOwnerKindergartenNewsDraft,
+  type OwnerKindergartenNewsDraftImage,
 } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsDraft';
 import {
   createSchoolNews,
   NewsImageUploadError,
+  toKeptNewsImage,
   toNewsImageSource,
+  updateSchoolNews,
   type NewsImageSource,
 } from '@views/owner-kindergarten-news-page/lib/uploadOwnerNewsImages';
-import {
-  getOwnerKindergartenNewsById,
-  updateOwnerKindergartenNewsItem,
-} from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
 import { OWNER_KINDERGARTEN_NEWS_PAGE_SIZE } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
 import { OwnerKindergartenNewsWriteSettingsSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteSettingsSheet';
 import { openOwnerKindergartenNewsImageAlert } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsImageAlertDialog';
 
 import { useOwnerHomeQuery } from '@entities/owner-home';
-import { SCHOOL_NEWS_QUERY_KEY, parseSchoolId, useSchoolNewsInfiniteQuery } from '@entities/school-news';
+import {
+  SCHOOL_NEWS_QUERY_KEY,
+  parseSchoolId,
+  useSchoolNewsInfiniteQuery,
+  useSchoolNewsItem,
+} from '@entities/school-news';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { MiniPhotoBox } from '@shared/ui/photo-uploader';
 import { useImagePicker } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
@@ -63,6 +68,27 @@ function unsourcedNewsImage(previewUrl: string): NewsImageSource {
     contentType: 'image/jpeg',
     size: 0,
   };
+}
+
+function toDraftNewsImage(image: OwnerKindergartenNewsDraftImage): NewsImageSource {
+  return {
+    previewUrl: image.previewUrl,
+    fileName: image.fileName || 'image.jpg',
+    contentType: 'image/jpeg',
+    size: 0,
+    imageId: image.imageId,
+    tempKey: image.tempKey,
+  };
+}
+
+function sourcesFromDraft(imageUrls: string[], images?: OwnerKindergartenNewsDraftImage[]) {
+  if (images && images.length > 0) return images.map(toDraftNewsImage);
+  return imageUrls.map(unsourcedNewsImage);
+}
+
+function collectComposerImages(urls: string[], sources: NewsImageSource[]) {
+  if (sources.length === urls.length) return sources;
+  return urls.map((url, index) => sources[index] ?? unsourcedNewsImage(url));
 }
 
 type ComposerMode = 'write' | 'edit';
@@ -192,21 +218,17 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     enabled: !isEditMode && !forceEmpty,
   });
   const hasServerNews = (newsQuery.data?.pages ?? []).some((page) => page.items.length > 0);
-
-  const existingNews = useMemo(() => {
-    if (!isEditMode || !newsId) return null;
-    return getOwnerKindergartenNewsById(newsId);
-  }, [isEditMode, newsId]);
-
-  const resolveEditImageUrls = (news: NonNullable<typeof existingNews>) => {
-    if (news.imageUrls.length > 0) return news.imageUrls;
-    return news.thumbnailUrl ? [news.thumbnailUrl] : [];
-  };
+  const { item: existingNews, isResolving: isExistingNewsResolving } = useSchoolNewsItem({
+    schoolId,
+    newsId,
+    enabled: isEditMode && !isHomePending && Boolean(newsId),
+  });
 
   const seedRef = useRef<{
     title: string;
     body: string;
     imageUrls: string[];
+    sources: NewsImageSource[];
     isAnnouncement: boolean;
     notifyGuardiansOnUpload: boolean;
     hydrateKey: string | null;
@@ -219,19 +241,23 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
       : null;
 
     if (draft) {
+      const sources = sourcesFromDraft(draft.imageUrls, draft.images);
       seedRef.current = {
         title: draft.title,
         body: draft.body,
-        imageUrls: draft.imageUrls,
+        imageUrls: sources.map((source) => source.previewUrl),
+        sources,
         isAnnouncement: draft.isAnnouncement,
         notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
         hydrateKey: `${kindergartenKey}:${newsId ?? 'write'}`,
       };
     } else if (existingNews) {
+      const sources = existingNews.images.map(toKeptNewsImage);
       seedRef.current = {
         title: existingNews.title,
         body: existingNews.body,
-        imageUrls: resolveEditImageUrls(existingNews),
+        imageUrls: sources.map((source) => source.previewUrl),
+        sources,
         isAnnouncement: existingNews.isAnnouncement,
         notifyGuardiansOnUpload: false,
         hydrateKey: `${kindergartenKey}:${existingNews.id}`,
@@ -241,6 +267,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         title: '',
         body: '',
         imageUrls: [],
+        sources: [],
         isAnnouncement: false,
         notifyGuardiansOnUpload: !isEditMode,
         hydrateKey: null,
@@ -253,7 +280,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   const [title, setTitle] = useState(seed.title);
   const [body, setBody] = useState(seed.body);
   const [imageUrls, setImageUrls] = useState<string[]>(seed.imageUrls);
-  const imageSourcesRef = useRef<NewsImageSource[]>(seed.imageUrls.map(unsourcedNewsImage));
+  const imageSourcesRef = useRef<NewsImageSource[]>(seed.sources);
   const createAttemptRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
   const [isAnnouncement, setIsAnnouncement] = useState(seed.isAnnouncement);
   const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(
@@ -287,35 +314,31 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
       const draft = loadOwnerKindergartenNewsDraft(kindergartenKey, existingNews.id);
       if (draft) {
+        const sources = sourcesFromDraft(draft.imageUrls, draft.images);
         setTitle(draft.title);
         setBody(draft.body);
-        setImageUrls(draft.imageUrls);
-        imageSourcesRef.current = draft.imageUrls.map(unsourcedNewsImage);
+        setImageUrls(sources.map((source) => source.previewUrl));
+        imageSourcesRef.current = sources;
         setIsAnnouncement(draft.isAnnouncement);
         setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
         initialSnapshotRef.current = {
           title: draft.title,
           body: draft.body,
-          imageUrls: draft.imageUrls,
+          imageUrls: sources.map((source) => source.previewUrl),
           isAnnouncement: draft.isAnnouncement,
         };
       } else {
-        const nextImageUrls =
-          existingNews.imageUrls.length > 0
-            ? existingNews.imageUrls
-            : existingNews.thumbnailUrl
-              ? [existingNews.thumbnailUrl]
-              : [];
+        const sources = existingNews.images.map(toKeptNewsImage);
         setTitle(existingNews.title);
         setBody(existingNews.body);
-        setImageUrls(nextImageUrls);
-        imageSourcesRef.current = nextImageUrls.map(unsourcedNewsImage);
+        setImageUrls(sources.map((source) => source.previewUrl));
+        imageSourcesRef.current = sources;
         setIsAnnouncement(existingNews.isAnnouncement);
         setNotifyGuardiansOnUpload(false);
         initialSnapshotRef.current = {
           title: existingNews.title,
           body: existingNews.body,
-          imageUrls: nextImageUrls,
+          imageUrls: sources.map((source) => source.previewUrl),
           isAnnouncement: existingNews.isAnnouncement,
         };
       }
@@ -326,16 +349,17 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
     const draft = loadOwnerKindergartenNewsDraft(kindergartenKey);
     if (draft) {
+      const sources = sourcesFromDraft(draft.imageUrls, draft.images);
       setTitle(draft.title);
       setBody(draft.body);
-      setImageUrls(draft.imageUrls);
-      imageSourcesRef.current = draft.imageUrls.map(unsourcedNewsImage);
+      setImageUrls(sources.map((source) => source.previewUrl));
+      imageSourcesRef.current = sources;
       setIsAnnouncement(draft.isAnnouncement);
       setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
       initialSnapshotRef.current = {
         title: draft.title,
         body: draft.body,
-        imageUrls: draft.imageUrls,
+        imageUrls: sources.map((source) => source.previewUrl),
         isAnnouncement: draft.isAnnouncement,
       };
     }
@@ -343,9 +367,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   }, [existingNews, isEditMode, kindergartenKey, newsId]);
 
   const canSubmit =
-    title.trim().length > 0 &&
-    body.trim().length > 0 &&
-    (isEditMode || (parsedSchoolId != null && !isHomePending));
+    title.trim().length > 0 && body.trim().length > 0 && parsedSchoolId != null && !isHomePending;
   const isDirty = isEditMode
     ? title !== initialSnapshotRef.current.title ||
       body !== initialSnapshotRef.current.body ||
@@ -539,10 +561,17 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     if (!isDirty) return;
 
     try {
+      const images = collectComposerImages(imageUrls, imageSourcesRef.current);
       saveOwnerKindergartenNewsDraft(kindergartenKey, {
         title,
         body,
-        imageUrls,
+        imageUrls: images.map((image) => image.previewUrl),
+        images: images.map((image) => ({
+          previewUrl: image.previewUrl,
+          fileName: image.fileName,
+          ...(image.imageId != null ? { imageId: image.imageId } : {}),
+          ...(image.tempKey ? { tempKey: image.tempKey } : {}),
+        })),
         isAnnouncement,
         notifyGuardiansOnUpload,
         ...(isEditMode && newsId ? { newsId } : {}),
@@ -558,29 +587,43 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
     setIsSubmitting(true);
     try {
+      if (parsedSchoolId == null) throw new Error('schoolId required');
+
+      const images = collectComposerImages(imageUrls, imageSourcesRef.current);
+      const resolveIdempotencyKey = (payload: {
+        title: string;
+        body: string;
+        notice: boolean;
+        sendNotification: boolean;
+        images: unknown[];
+      }) => {
+        const signature = JSON.stringify(payload);
+        const previous = createAttemptRef.current;
+        const idempotencyKey =
+          previous?.signature === signature ? previous.idempotencyKey : crypto.randomUUID();
+        createAttemptRef.current = { signature, idempotencyKey };
+        return idempotencyKey;
+      };
+
       if (isEditMode) {
-        if (!newsId) throw new Error('newsId required');
-        const updated = updateOwnerKindergartenNewsItem(newsId, {
-          isAnnouncement,
+        const parsedNewsId = parseSchoolId(newsId);
+        if (!newsId || parsedNewsId == null) throw new Error('newsId required');
+
+        await updateSchoolNews({
+          schoolId: parsedSchoolId,
+          newsId: parsedNewsId,
           title: title.trim(),
           body: body.trim(),
-          thumbnailUrl: imageUrls[0] ?? null,
-          imageUrls,
+          notice: isAnnouncement,
+          sendNotification: notifyGuardiansOnUpload,
+          images,
+          resolveIdempotencyKey,
         });
-        if (!updated) throw new Error('news not found');
+        await queryClient.invalidateQueries({ queryKey: [SCHOOL_NEWS_QUERY_KEY, parsedSchoolId] });
         clearOwnerKindergartenNewsDraft(kindergartenKey, newsId);
         showEditSuccessToast();
         goToDetailAfterSubmit(newsId);
       } else {
-        if (parsedSchoolId == null) throw new Error('schoolId required');
-
-        const images =
-          imageSourcesRef.current.length === imageUrls.length
-            ? imageSourcesRef.current
-            : imageUrls.map(
-                (url, index) => imageSourcesRef.current[index] ?? unsourcedNewsImage(url)
-              );
-
         const { newsId: createdNewsId } = await createSchoolNews({
           schoolId: parsedSchoolId,
           title: title.trim(),
@@ -588,14 +631,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
           notice: isAnnouncement,
           sendNotification: notifyGuardiansOnUpload,
           images,
-          resolveIdempotencyKey: (payload) => {
-            const signature = JSON.stringify(payload);
-            const previous = createAttemptRef.current;
-            const idempotencyKey =
-              previous?.signature === signature ? previous.idempotencyKey : crypto.randomUUID();
-            createAttemptRef.current = { signature, idempotencyKey };
-            return idempotencyKey;
-          },
+          resolveIdempotencyKey,
         });
         await queryClient.invalidateQueries({ queryKey: [SCHOOL_NEWS_QUERY_KEY, parsedSchoolId] });
         clearOwnerKindergartenNewsDraft(kindergartenKey);
@@ -676,9 +712,13 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
             <Header.BackButton onClick={leaveToList} />
           </Header.LeftSection>
         </Header>
-        <main className='flex min-h-0 flex-1 items-center justify-center px-4'>
-          <p className='body1-regular text-text-secondary text-center'>{edit.notFound}</p>
-        </main>
+        {isHomePending || isExistingNewsResolving ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
+        ) : (
+          <main className='flex min-h-0 flex-1 items-center justify-center px-4'>
+            <p className='body1-regular text-text-secondary text-center'>{edit.notFound}</p>
+          </main>
+        )}
       </div>
     );
   }

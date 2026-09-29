@@ -109,6 +109,9 @@ const ownerKindergartenNewsContent = {
   deleteSuccessToast: {
     nativeTitle: '유치원 소식을 삭제했어요',
   },
+  deleteFailedToast: {
+    nativeTitle: '소식을 삭제하지 못했어요',
+  },
   detail: {
     shareAriaLabel: '공유',
     sendNotificationLabel: '알림 발송',

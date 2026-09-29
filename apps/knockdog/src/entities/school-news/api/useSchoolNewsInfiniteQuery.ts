@@ -15,7 +15,7 @@ import {
   type SchoolNewsItem,
   type SchoolNewsPage,
 } from '../model/schoolNews';
-import { getSchoolNews } from './schoolNews';
+import { deleteSchoolNews, getSchoolNews } from './schoolNews';
 
 const SCHOOL_NEWS_QUERY_KEY = 'schoolNews';
 
@@ -86,6 +86,24 @@ function useRemoveSchoolNewsItem(schoolId?: string | number | null) {
   );
 }
 
+function useDeleteSchoolNews(schoolId?: string | number | null) {
+  const parsedSchoolId = parseSchoolId(schoolId);
+  const removeNewsItem = useRemoveSchoolNewsItem(schoolId);
+
+  return useCallback(
+    async (newsId: string) => {
+      const parsedNewsId = parseSchoolId(newsId);
+      if (parsedSchoolId == null || parsedNewsId == null) {
+        throw new Error('소식 삭제에 필요한 id가 없습니다.');
+      }
+
+      await deleteSchoolNews({ schoolId: parsedSchoolId, newsId: parsedNewsId });
+      removeNewsItem(newsId);
+    },
+    [parsedSchoolId, removeNewsItem]
+  );
+}
+
 interface UseSchoolNewsItemOptions {
   schoolId?: string | number | null;
   newsId?: string;
@@ -146,6 +164,7 @@ function useSchoolNewsSearchSource(schoolId: string | number | null | undefined,
 export {
   SCHOOL_NEWS_QUERY_KEY,
   schoolNewsQueryKey,
+  useDeleteSchoolNews,
   useRemoveSchoolNewsItem,
   useSchoolNewsInfiniteQuery,
   useSchoolNewsItem,

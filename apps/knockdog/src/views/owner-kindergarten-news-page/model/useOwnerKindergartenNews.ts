@@ -15,11 +15,7 @@ import {
 } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
 
 import { useOwnerHomeQuery } from '@entities/owner-home';
-import {
-  useRemoveSchoolNewsItem,
-  useSchoolNewsInfiniteQuery,
-  type SchoolNewsItem,
-} from '@entities/school-news';
+import { useDeleteSchoolNews, useSchoolNewsInfiniteQuery, type SchoolNewsItem } from '@entities/school-news';
 import { useUserStore } from '@entities/user';
 
 import { useClientNow } from '@shared/lib/react/useClientNow';
@@ -73,7 +69,7 @@ function useOwnerKindergartenNews() {
     size: OWNER_KINDERGARTEN_NEWS_PAGE_SIZE,
     enabled: !forceEmpty,
   });
-  const removeNewsItem = useRemoveSchoolNewsItem(schoolId);
+  const deleteNews = useDeleteSchoolNews(schoolId);
   const now = useClientNow(newsQuery.dataUpdatedAt);
 
   const sourceItems = useMemo(
@@ -89,13 +85,6 @@ function useOwnerKindergartenNews() {
   const refresh = useCallback(async () => {
     await newsQuery.refetch();
   }, [newsQuery]);
-
-  const deleteNews = useCallback(
-    async (newsId: string) => {
-      removeNewsItem(newsId);
-    },
-    [removeNewsItem]
-  );
 
   return {
     items,

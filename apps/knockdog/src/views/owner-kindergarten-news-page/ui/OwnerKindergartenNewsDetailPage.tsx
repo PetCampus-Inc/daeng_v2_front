@@ -11,7 +11,7 @@ import { OwnerKindergartenNewsMoreMenu } from '@views/owner-kindergarten-news-pa
 import { openOwnerKindergartenNewsReadReactionSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsReadReactionSheet';
 
 import { useOwnerHomeQuery } from '@entities/owner-home';
-import { useRemoveSchoolNewsItem, useSchoolNewsItem } from '@entities/school-news';
+import { useDeleteSchoolNews, useSchoolNewsItem } from '@entities/school-news';
 import { useUserStore } from '@entities/user';
 
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -59,7 +59,7 @@ function OwnerKindergartenNewsDetailPage() {
     newsId,
     enabled: !isHomePending,
   });
-  const removeNewsItem = useRemoveSchoolNewsItem(schoolId);
+  const deleteNews = useDeleteSchoolNews(schoolId);
   const news = useMemo(() => {
     if (!item) return null;
 
@@ -100,10 +100,10 @@ function OwnerKindergartenNewsDetailPage() {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      removeNewsItem(id);
+      await deleteNews(id);
       await back();
     },
-    [back, removeNewsItem]
+    [back, deleteNews]
   );
 
   const handleOpenReadReaction = useCallback(() => {

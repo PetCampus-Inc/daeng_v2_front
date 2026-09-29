@@ -3,7 +3,9 @@ import { METHODS, type ImageAsset } from '@knockdog/bridge-core';
 import {
   postSchoolNews,
   postSchoolNewsImageUploadUrls,
+  putSchoolNews,
   toCreatedNewsId,
+  type SchoolNewsImage,
   type SchoolNewsWriteRequest,
 } from '@entities/school-news';
 
@@ -16,6 +18,8 @@ interface NewsImageSource {
   fileName: string;
   contentType: string;
   size: number;
+  /** 이미 저장된 사진. 있으면 재업로드하지 않고 imageId로 수정 요청 */
+  imageId?: number;
   tempKey?: string;
 }
 
@@ -40,6 +44,17 @@ function normalizeContentType(mimeType: string) {
   const lower = mimeType.toLowerCase().trim();
   if (lower === 'image/jpg') return 'image/jpeg';
   return lower || 'image/jpeg';
+}
+
+function toKeptNewsImage(image: SchoolNewsImage): NewsImageSource {
+  return {
+    previewUrl: image.url,
+    fileName: image.originalFilename || 'image.jpg',
+    contentType: 'image/jpeg',
+    size: 0,
+    imageId: image.imageId ?? undefined,
+    tempKey: image.tempKey ?? undefined,
+  };
 }
 
 function toNewsImageSource(asset: ImageAsset & { file?: File }, index: number): NewsImageSource {
@@ -81,8 +96,25 @@ async function putFileToS3Native(uri: string, uploadUrl: string, contentType: st
   });
 }
 
+function toWriteImages(images: NewsImageSource[]) {
+  return images.map((image) => {
+    if (image.imageId != null) {
+      return {
+        imageId: image.imageId,
+        ...(image.tempKey ? { tempKey: image.tempKey } : {}),
+        originalFilename: image.fileName,
+      };
+    }
+
+    return {
+      tempKey: image.tempKey ?? '',
+      originalFilename: image.fileName,
+    };
+  });
+}
+
 async function uploadPendingNewsImages(schoolId: number, images: NewsImageSource[]) {
-  const pending = images.filter((image) => !image.tempKey);
+  const pending = images.filter((image) => image.imageId == null && !image.tempKey);
   if (pending.length === 0) return;
 
   const hasUnreadable = pending.some((image) => image.size <= 0 || (!image.file && !image.uri));
@@ -143,13 +175,12 @@ async function createSchoolNews({
     body,
     notice,
     sendNotification,
-    images: images.map((image) => ({
-      tempKey: image.tempKey ?? '',
-      originalFilename: image.fileName,
-    })),
+    images: toWriteImages(images),
   };
 
-  if (payload.images.some((image) => !image.tempKey)) throw new NewsImageUploadError();
+  if (payload.images.some((image) => image.imageId == null && !image.tempKey)) {
+    throw new NewsImageUploadError();
+  }
 
   const response = await postSchoolNews({
     schoolId,
@@ -162,5 +193,41 @@ async function createSchoolNews({
   return { newsId, payload };
 }
 
-export { createSchoolNews, NewsImageUploadError, toNewsImageSource };
+interface UpdateSchoolNewsParams extends CreateSchoolNewsParams {
+  newsId: number;
+}
+
+async function updateSchoolNews({
+  schoolId,
+  newsId,
+  title,
+  body,
+  notice,
+  sendNotification,
+  images,
+  resolveIdempotencyKey,
+}: UpdateSchoolNewsParams) {
+  await uploadPendingNewsImages(schoolId, images);
+
+  const payload: SchoolNewsWriteRequest = {
+    title,
+    body,
+    notice,
+    sendNotification,
+    images: toWriteImages(images),
+  };
+
+  if (payload.images.some((image) => image.imageId == null && !image.tempKey)) {
+    throw new NewsImageUploadError();
+  }
+
+  await putSchoolNews({
+    schoolId,
+    newsId,
+    idempotencyKey: resolveIdempotencyKey(payload),
+    body: payload,
+  });
+}
+
+export { createSchoolNews, NewsImageUploadError, toKeptNewsImage, toNewsImageSource, updateSchoolNews };
 export type { NewsImageSource };

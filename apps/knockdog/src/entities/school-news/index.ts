@@ -1,7 +1,14 @@
-export { getSchoolNews, postSchoolNews, postSchoolNewsImageUploadUrls } from './api/schoolNews';
+export {
+  deleteSchoolNews,
+  getSchoolNews,
+  postSchoolNews,
+  postSchoolNewsImageUploadUrls,
+  putSchoolNews,
+} from './api/schoolNews';
 export {
   SCHOOL_NEWS_QUERY_KEY,
   schoolNewsQueryKey,
+  useDeleteSchoolNews,
   useRemoveSchoolNewsItem,
   useSchoolNewsInfiniteQuery,
   useSchoolNewsItem,
@@ -15,6 +22,7 @@ export {
   toSchoolNewsPage,
 } from './model/schoolNews';
 export type {
+  SchoolNewsImage,
   SchoolNewsImageRequest,
   SchoolNewsItem,
   SchoolNewsListDto,

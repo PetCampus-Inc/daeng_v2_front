@@ -35,6 +35,13 @@ interface SchoolNewsListDto {
   hasNext?: boolean | null;
 }
 
+interface SchoolNewsImage {
+  imageId: number | null;
+  tempKey: string | null;
+  originalFilename: string;
+  url: string;
+}
+
 interface SchoolNewsItem {
   id: string;
   title: string;
@@ -43,6 +50,7 @@ interface SchoolNewsItem {
   publishedAt: string;
   authorName: string;
   authorProfileImageUrl: string | null;
+  images: SchoolNewsImage[];
   imageUrls: string[];
   thumbnailUrl: string | null;
   readCount: number;
@@ -119,9 +127,20 @@ function toSchoolNewsItem(dto: SchoolNewsItemDto): SchoolNewsItem | null {
   const publishedAt = toPublishedAt(dto.createdAt);
   if (!publishedAt) return null;
 
-  const imageUrls = (dto.images ?? [])
-    .map((image) => toImageUrl(image.tempKey))
-    .filter((url): url is string => Boolean(url));
+  const images = (dto.images ?? []).flatMap((image) => {
+    const url = toImageUrl(image.tempKey);
+    if (!url) return [];
+
+    return [
+      {
+        imageId: typeof image.imageId === 'number' && Number.isFinite(image.imageId) ? image.imageId : null,
+        tempKey: image.tempKey?.trim() || null,
+        originalFilename: image.originalFilename?.trim() || 'image.jpg',
+        url,
+      },
+    ];
+  });
+  const imageUrls = images.map((image) => image.url);
 
   return {
     id: String(dto.id),
@@ -131,6 +150,7 @@ function toSchoolNewsItem(dto: SchoolNewsItemDto): SchoolNewsItem | null {
     publishedAt,
     authorName: dto.author?.name?.trim() ?? '',
     authorProfileImageUrl: toImageUrl(dto.author?.profileImage),
+    images,
     imageUrls,
     thumbnailUrl: imageUrls[0] ?? null,
     readCount: toCount(dto.readSummary?.readCount),
@@ -153,7 +173,7 @@ function toSchoolNewsPage(dto: SchoolNewsListDto | null | undefined): SchoolNews
 
 interface SchoolNewsImageRequest {
   imageId?: number;
-  tempKey: string;
+  tempKey?: string;
   originalFilename: string;
 }
 
@@ -192,6 +212,7 @@ function toCreatedNewsId(dto: SchoolNewsCreatedDto | null | undefined) {
 export { parseSchoolId, SCHOOL_NEWS_MAX_PAGES, SCHOOL_NEWS_PAGE_SIZE, toCreatedNewsId, toSchoolNewsPage };
 export type {
   SchoolNewsCreatedDto,
+  SchoolNewsImage,
   SchoolNewsImageRequest,
   SchoolNewsItem,
   SchoolNewsListDto,

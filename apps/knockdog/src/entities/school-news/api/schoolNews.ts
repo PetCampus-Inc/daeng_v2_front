@@ -42,6 +42,10 @@ function postSchoolNewsImageUploadUrls(schoolId: number, files: SchoolNewsUpload
     .json<ApiResponse<SchoolNewsUploadUrlResponseDto>>();
 }
 
+interface PutSchoolNewsParams extends PostSchoolNewsParams {
+  newsId: number;
+}
+
 /** `POST` - 유치원 소식 등록. 같은 Idempotency-Key 재시도는 최초 성공 응답 */
 function postSchoolNews({ schoolId, idempotencyKey, body }: PostSchoolNewsParams) {
   return api
@@ -54,4 +58,21 @@ function postSchoolNews({ schoolId, idempotencyKey, body }: PostSchoolNewsParams
     .json<ApiResponse<SchoolNewsCreatedDto>>();
 }
 
-export { getSchoolNews, postSchoolNews, postSchoolNewsImageUploadUrls };
+/** `PUT` - 유치원 소식 수정. 같은 Idempotency-Key 재시도는 최초 성공 응답 */
+function putSchoolNews({ schoolId, newsId, idempotencyKey, body }: PutSchoolNewsParams) {
+  return api
+    .put(`schools/${schoolId}/news/${newsId}`, {
+      json: body,
+      headers: {
+        'Idempotency-Key': idempotencyKey,
+      },
+    })
+    .json<ApiResponse<SchoolNewsCreatedDto>>();
+}
+
+/** `DELETE` - 유치원 소식 삭제 */
+function deleteSchoolNews({ schoolId, newsId }: { schoolId: number; newsId: number }) {
+  return api.delete(`schools/${schoolId}/news/${newsId}`).json<ApiResponse<null>>();
+}
+
+export { deleteSchoolNews, getSchoolNews, postSchoolNews, postSchoolNewsImageUploadUrls, putSchoolNews };
