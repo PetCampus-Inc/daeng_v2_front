@@ -78,13 +78,19 @@ function getDatePartLabel(date: Date, part: DateWheelColumnProps['part']) {
 }
 
 function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: DateWheelColumnProps) {
+  const changeThreshold = 24;
   const dragStartYRef = useRef<number | null>(null);
+  const dragOffsetRef = useRef(0);
+  const didDragRef = useRef(false);
+  const pendingChangeRef = useRef<-1 | 1 | null>(null);
+  const pendingSelectedDateRef = useRef<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const previousPreviousDate = getDateWithPartChanged(selectedDate, part, -2);
-  const previousDate = getDateWithPartChanged(selectedDate, part, -1);
-  const nextDate = getDateWithPartChanged(selectedDate, part, 1);
-  const nextNextDate = getDateWithPartChanged(selectedDate, part, 2);
+  const [wheelBaseDate, setWheelBaseDate] = useState(selectedDate);
+  const previousPreviousDate = getDateWithPartChanged(wheelBaseDate, part, -2);
+  const previousDate = getDateWithPartChanged(wheelBaseDate, part, -1);
+  const nextDate = getDateWithPartChanged(wheelBaseDate, part, 1);
+  const nextNextDate = getDateWithPartChanged(wheelBaseDate, part, 2);
   const canGoPreviousPrevious =
     !isBeforeDay(previousPreviousDate, minDate) && !isAfterDay(previousPreviousDate, maxDate);
   const canGoPrevious = !isBeforeDay(previousDate, minDate) && !isAfterDay(previousDate, maxDate);
@@ -95,8 +101,25 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
     onChange(part, offset);
   };
 
+  const animateDateChange = (offset: -1 | 1) => {
+    pendingChangeRef.current = offset;
+    dragOffsetRef.current = -offset * 52;
+    setDragOffset(-offset * 52);
+  };
+
+  useEffect(() => {
+    if (pendingSelectedDateRef.current === selectedDate.getTime()) return;
+    setWheelBaseDate(selectedDate);
+  }, [selectedDate]);
+
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (pendingSelectedDateRef.current != null) {
+      pendingSelectedDateRef.current = null;
+      setWheelBaseDate(selectedDate);
+    }
     dragStartYRef.current = event.clientY;
+    didDragRef.current = false;
+    dragOffsetRef.current = 0;
     setDragOffset(0);
     setIsDragging(true);
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -107,30 +130,31 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
     if (dragStartY == null) return;
 
     const distance = event.clientY - dragStartY;
-    if (distance <= -48 && canGoNext) {
-      dragStartYRef.current = event.clientY;
-      setDragOffset(0);
-      changeDate(1);
-      return;
-    }
-    if (distance >= 48 && canGoPrevious) {
-      dragStartYRef.current = event.clientY;
-      setDragOffset(0);
-      changeDate(-1);
-      return;
-    }
+    if (Math.abs(distance) > 8) didDragRef.current = true;
 
     const minOffset = canGoNext ? -48 : 0;
     const maxOffset = canGoPrevious ? 48 : 0;
-    setDragOffset(Math.max(minOffset, Math.min(maxOffset, distance)));
+    const nextDragOffset = Math.max(minOffset, Math.min(maxOffset, distance));
+    dragOffsetRef.current = nextDragOffset;
+    setDragOffset(nextDragOffset);
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const shouldGoNext = dragOffsetRef.current <= -changeThreshold && canGoNext;
+    const shouldGoPrevious = dragOffsetRef.current >= changeThreshold && canGoPrevious;
+
     dragStartYRef.current = null;
     setIsDragging(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    if (shouldGoNext || shouldGoPrevious) {
+      const offset = shouldGoNext ? 1 : -1;
+      animateDateChange(offset);
+      return;
+    }
+
+    dragOffsetRef.current = 0;
     setDragOffset(0);
   };
 
@@ -149,13 +173,14 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
       role='spinbutton'
       tabIndex={0}
       aria-label={`${part === 'year' ? '연도' : part === 'month' ? '월' : '일'} 선택`}
-      aria-valuetext={getDatePartLabel(selectedDate, part)}
+      aria-valuetext={getDatePartLabel(wheelBaseDate, part)}
       className='z-10 flex h-[152px] flex-1 flex-col touch-none select-none overflow-hidden'
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={() => {
         dragStartYRef.current = null;
+        dragOffsetRef.current = 0;
         setDragOffset(0);
         setIsDragging(false);
       }}
@@ -164,25 +189,45 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
     >
       <div
         className='flex w-full flex-col gap-1'
+        onTransitionEnd={(event) => {
+          if (event.propertyName !== 'transform') return;
+
+          const offset = pendingChangeRef.current;
+          if (offset == null) return;
+
+          pendingChangeRef.current = null;
+          pendingSelectedDateRef.current = getDateWithPartChanged(wheelBaseDate, part, offset).getTime();
+          changeDate(offset);
+        }}
         style={{
           transform: `translateY(${-52 + dragOffset}px)`,
           transition: isDragging ? 'none' : 'transform 150ms ease-out',
         }}
       >
         <div className={`flex h-12 items-center justify-center ${canGoPreviousPrevious ? '' : 'opacity-0'}`}>
-          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(previousPreviousDate, part)}</span>
+          <span className={Math.round(-dragOffset / 52) === -2 ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>{getDatePartLabel(previousPreviousDate, part)}</span>
         </div>
-        <div className={`flex h-12 items-center justify-center ${canGoPrevious ? '' : 'opacity-0'}`}>
-          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(previousDate, part)}</span>
+        <div
+          className={`flex h-12 items-center justify-center ${canGoPrevious ? '' : 'opacity-0'}`}
+          onClick={() => {
+            if (!didDragRef.current && canGoPrevious) animateDateChange(-1);
+          }}
+        >
+          <span className={Math.round(-dragOffset / 52) === -1 ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>{getDatePartLabel(previousDate, part)}</span>
         </div>
         <div className='flex h-12 items-center justify-center'>
-          <span className='h3-extrabold text-text-accent'>{getDatePartLabel(selectedDate, part)}</span>
+          <span className={Math.round(-dragOffset / 52) === 0 ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>{getDatePartLabel(wheelBaseDate, part)}</span>
         </div>
-        <div className={`flex h-12 items-center justify-center ${canGoNext ? '' : 'opacity-0'}`}>
-          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(nextDate, part)}</span>
+        <div
+          className={`flex h-12 items-center justify-center ${canGoNext ? '' : 'opacity-0'}`}
+          onClick={() => {
+            if (!didDragRef.current && canGoNext) animateDateChange(1);
+          }}
+        >
+          <span className={Math.round(-dragOffset / 52) === 1 ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>{getDatePartLabel(nextDate, part)}</span>
         </div>
         <div className={`flex h-12 items-center justify-center ${canGoNextNext ? '' : 'opacity-0'}`}>
-          <span className='h3-medium text-text-tertiary'>{getDatePartLabel(nextNextDate, part)}</span>
+          <span className={Math.round(-dragOffset / 52) === 2 ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>{getDatePartLabel(nextNextDate, part)}</span>
         </div>
       </div>
     </div>
