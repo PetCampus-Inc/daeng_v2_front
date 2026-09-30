@@ -1,7 +1,7 @@
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib/storage';
 
-import type { EntrySource, InviteEntrySource, InviteOpenMethod } from './gaEvents';
+import { createAnalyticsId, type EntrySource, type InviteChannel, type InviteEntrySource } from './gaEvents';
 
 const INVITE_ENTRY_SOURCE_QUERY_KEY = 'entry_source';
 /** 동일 초대 URL에서 link/QR 구분용 (`src=link` | `src=qr`) */
@@ -84,8 +84,20 @@ function getInviteEntrySource(token?: string | null): InviteEntrySource {
   return stored === 'invite_qr' ? 'invite_qr' : 'invite_link';
 }
 
-function toInviteOpenMethod(entrySource: InviteEntrySource): InviteOpenMethod {
-  return entrySource === 'invite_qr' ? 'qr' : 'link';
+function getOrCreateInviteFlowId(token: string) {
+  if (typeof sessionStorage === 'undefined') return createAnalyticsId();
+  const key = `analytics_invite_flow:${token}`;
+  const existing = sessionStorage.getItem(key);
+  if (existing) return existing;
+  const nextId = createAnalyticsId();
+  sessionStorage.setItem(key, nextId);
+  return nextId;
+}
+
+function toInviteChannel(entrySource: InviteEntrySource | EntrySource | null | undefined): InviteChannel {
+  if (entrySource === 'invite_qr') return 'qr';
+  if (entrySource === 'invite_link') return 'link';
+  return 'unknown';
 }
 
 function persistInviteEntrySource(search?: string | URLSearchParams | null, token?: string | null) {
@@ -159,8 +171,9 @@ export {
   buildInviteGuardianNativeDeepLink,
   extractInviteTokenFromPath,
   getInviteEntrySource,
+  getOrCreateInviteFlowId,
   parseEntrySourceFromQuery,
   persistInviteEntrySource,
   resolveEntrySource,
-  toInviteOpenMethod,
+  toInviteChannel,
 };

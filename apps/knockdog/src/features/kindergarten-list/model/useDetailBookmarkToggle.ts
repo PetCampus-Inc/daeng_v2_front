@@ -2,11 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { bookmarkQueries, deleteBookmark, postBookmark } from '@entities/bookmark';
 import { kindergartenQueries, type KindergartenMain } from '@entities/kindergarten';
+import { trackSchoolBookmarkChanged, type BookmarkEntryPoint } from '@shared/lib/analytics';
 
 type MutationVars = { id: string; bookmarked: boolean };
 type DetailParams = { id: string; lng: number; lat: number };
 
-export function useDetailBookmarkToggle(params: DetailParams) {
+export function useDetailBookmarkToggle(params: DetailParams, entryPoint: BookmarkEntryPoint = 'school_detail') {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -49,8 +50,12 @@ export function useDetailBookmarkToggle(params: DetailParams) {
         previousBookmarks,
       };
     },
-    onSuccess: () => {
-      // 북마크 리스트 캐시 무효화
+    onSuccess: (_data, variables) => {
+      trackSchoolBookmarkChanged({
+        listing_id: variables.id,
+        is_bookmarked: variables.bookmarked ? 0 : 1,
+        entry_point: entryPoint,
+      });
       queryClient.invalidateQueries({ queryKey: bookmarkQueries.keys.all() });
     },
     onError: (_err, _variables, context) => {

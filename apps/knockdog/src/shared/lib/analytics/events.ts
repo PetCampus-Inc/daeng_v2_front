@@ -1,7 +1,8 @@
 import { resolveEntrySource } from './entrySource';
-import { logAnalyticsEvent, trackSignUp } from './gaEvents';
+import { trackAuthAttempt, trackSignUp } from './gaEvents';
 import {
   consumePendingSignUpAnalytics,
+  peekPendingSignUpAnalytics,
   savePendingSignUpAnalytics,
   toSignUpMethod,
 } from './pendingSignUp';
@@ -19,8 +20,17 @@ export const AnalyticsEvent = {
 
 type SocialProvider = 'KAKAO' | 'GOOGLE' | 'APPLE';
 
-export const trackSignUpStart = (provider: SocialProvider) => {
-  savePendingSignUpAnalytics(toSignUpMethod(provider), 'organic');
+export const trackSignUpStart = (provider: SocialProvider, entryPoint = 'login') => {
+  const method = toSignUpMethod(provider);
+  savePendingSignUpAnalytics(method, resolveEntrySource(entryPoint), entryPoint);
+  const pending = peekPendingSignUpAnalytics();
+  if (!pending) return;
+  trackAuthAttempt({
+    method: pending.method,
+    entry_point: pending.entry_point,
+    flow_id: pending.flow_id,
+    auth_attempt_id: pending.auth_attempt_id,
+  });
 };
 
 export const trackSignUpNicknameCompleted = () => {};
@@ -32,16 +42,13 @@ export const trackSignUpPetCompleted = () => {};
 /** 마케팅 동의 화면 호환 — 실제 sign_up은 필수 약관 완료에서 발화 */
 export const trackSignUpCompleted = (_marketingConsent: boolean) => {};
 
-export const trackLogin = (provider: SocialProvider) => {
-  logAnalyticsEvent(AnalyticsEvent.LOGIN, {
-    method: toSignUpMethod(provider),
-  }).catch((error) => console.warn('[analytics] login event failed', error));
-};
+export const trackLogin = (_provider: SocialProvider) => {};
 
 export {
   consumePendingSignUpAnalytics,
   resolveEntrySource,
   savePendingSignUpAnalytics,
+  peekPendingSignUpAnalytics,
   toSignUpMethod,
   trackSignUp,
 };

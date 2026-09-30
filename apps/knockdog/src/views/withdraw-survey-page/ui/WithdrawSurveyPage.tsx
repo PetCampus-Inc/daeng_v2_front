@@ -6,7 +6,7 @@ import { ActionButton, RadioGroup, RadioGroupItem, Textarea, TextareaInput } fro
 import { Header } from '@widgets/Header';
 import { WITHDRAW_REASON_TYPE, type WithdrawReasonType, type WithdrawRequest } from '@entities/user';
 import { useStackNavigation, useOpenExternalLink  } from '@shared/lib/bridge';
-import { trackAccountDeactivation } from '@shared/lib/analytics';
+import { trackAccountWithdrawn } from '@shared/lib/analytics';
 import { withdraw } from '@shared/lib/auth';
 import { route } from '@shared/constants/route';
 
@@ -74,9 +74,8 @@ function WithdrawSurveyPage() {
     setIsPending(true);
     try {
       await withdraw(request);
-      trackAccountDeactivation({
-        action: 'withdrawal',
-        withdrawal_reason: toWithdrawalGaReason(reasonType),
+      trackAccountWithdrawn({
+        reason: toWithdrawalGaReason(reasonType),
       });
       await reset(route.auth.login.root);
     } catch (error) {

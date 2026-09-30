@@ -4,6 +4,8 @@ import type {
   AnalyticsLogEventResult,
   AnalyticsLogScreenViewParams,
   AnalyticsLogScreenViewResult,
+  AnalyticsSetUserIdParams,
+  AnalyticsSetUserIdResult,
 } from './types';
 
 interface AnalyticsRPCSchema {
@@ -14,6 +16,10 @@ interface AnalyticsRPCSchema {
   [METHODS.analyticsLogScreenView]: {
     params: AnalyticsLogScreenViewParams;
     result: AnalyticsLogScreenViewResult;
+  };
+  [METHODS.analyticsSetUserId]: {
+    params: AnalyticsSetUserIdParams;
+    result: AnalyticsSetUserIdResult;
   };
 }
 

@@ -98,7 +98,12 @@ function useOwnerMemberProfileDisconnect({
 
     // 여기부터 연결 해제 완료. 알림은 서버 발송. 이동/토스트 오류는 무시.
     try {
-      trackConnectionStatus({ status: 'disconnect', actor: 'owner' });
+      trackConnectionStatus({
+        status: 'disconnect',
+        initiated_by: 'owner',
+        school_pet_membership_id: resolvedMemberId,
+        reason: 'manual',
+      });
     } catch {
       // analytics 실패 무시
     }

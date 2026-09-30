@@ -15,8 +15,8 @@ import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
 import { useShare } from '@shared/lib/device';
 import { getCurrentTxId, useNavigationResult, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
-import { useScreenAnalyticsTitle } from '@shared/lib/analytics';
-import { useBasePoint } from '@entities/user';
+import { trackSchoolDetailView, useScreenAnalyticsTitle } from '@shared/lib/analytics';
+import { useBasePoint, useUserStore } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
@@ -87,6 +87,19 @@ function KindergartenDetailPage() {
   }, [getParams]);
 
   const isInternalEntry = navigationParams?.entrySource === 'kindergarten-list';
+  const userId = useUserStore((state) => state.user?.userId);
+  const trackedListingIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!id || !kindergartenMain || isPending || trackedListingIdRef.current === id) return;
+    trackedListingIdRef.current = id;
+    const entrySource = navigationParams?.entrySource;
+    trackSchoolDetailView({
+      listing_id: id,
+      entry_point: entrySource === 'share' ? 'share' : entrySource ? 'other' : 'unknown',
+      auth_state: userId ? 'logged_in' : 'logged_out',
+    });
+  }, [id, isPending, kindergartenMain, navigationParams?.entrySource, userId]);
 
   const handleHomeClick = () => {
     if (navigationParams?.expectsNavigationResult && getCurrentTxId()) {

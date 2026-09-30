@@ -19,7 +19,10 @@ export function useKindergartenItemSheetActions({
   coords,
 }: UseKindergartenItemSheetActionsParams) {
   const share = useShare();
-  const { mutate: toggleBookmark } = useDetailBookmarkToggle({ id, lng: coords.lng, lat: coords.lat });
+  const { mutate: toggleBookmark } = useDetailBookmarkToggle(
+    { id, lng: coords.lng, lat: coords.lat },
+    'map'
+  );
 
   const onBookmarkClick = useCallback(
     (targetId: string, bookmarked: boolean) => {

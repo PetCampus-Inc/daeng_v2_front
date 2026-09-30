@@ -105,7 +105,11 @@ function OwnerMembersApprovalPage() {
   const handleReject = (_requestId: string, dogName: string) => {
     rejectMutation.mutate(_requestId, {
       onSuccess: () => {
-        trackConnectionStatus({ status: 'reject', actor: 'owner' });
+        trackConnectionStatus({
+          status: 'reject',
+          initiated_by: 'owner',
+          school_pet_membership_id: _requestId,
+        });
         toast({
           type: 'success',
           nativeTitle: `${dogName}의 연결 신청을 거절했어요`,
@@ -131,7 +135,11 @@ function OwnerMembersApprovalPage() {
   const handleApprove = (_requestId: string, dogName: string) => {
     approveMutation.mutate(_requestId, {
       onSuccess: () => {
-        trackConnectionStatus({ status: 'approve', actor: 'owner' });
+        trackConnectionStatus({
+          status: 'approve',
+          initiated_by: 'owner',
+          school_pet_membership_id: _requestId,
+        });
         toast({
           type: 'success',
           nativeTitle: `${dogName}의 유치원 연결이 완료됐어요`,

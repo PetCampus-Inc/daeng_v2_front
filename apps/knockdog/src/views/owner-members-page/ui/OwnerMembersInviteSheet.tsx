@@ -8,7 +8,7 @@ import { useOwnerInviteQuery } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useClipboardCopy, useShare, isNativeWebView } from '@shared/lib/device';
-import { appendInviteLinkEntrySource, appendInviteQrEntrySource, trackOwnerInviteShare } from '@shared/lib/analytics';
+import { appendInviteLinkEntrySource, appendInviteQrEntrySource, trackInviteAction } from '@shared/lib/analytics';
 import { useSaveImage } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
@@ -137,16 +137,17 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
     if (isNativeWebView()) {
       const saved = await saveImage({ url: dataUrl, fileName });
       if (saved) {
-        trackOwnerInviteShare({ method: 'qr' });
+        trackInviteAction({ action: 'qr_save_result', result: 'success' });
         toast({ type: 'success', title: 'QR 코드를 저장했어요', nativeTitle: 'QR 코드를 저장했어요' });
       } else {
+        trackInviteAction({ action: 'qr_save_result', result: 'failed' });
         toast({ title: 'QR 코드를 저장하지 못했어요', nativeTitle: 'QR 코드를 저장하지 못했어요' });
       }
       return;
     }
 
     downloadImage(dataUrl, fileName);
-    trackOwnerInviteShare({ method: 'qr' });
+    trackInviteAction({ action: 'qr_save_result', result: 'success' });
     toast({ type: 'success', title: 'QR 코드를 저장했어요', nativeTitle: 'QR 코드를 저장했어요' });
   };
 
@@ -155,7 +156,6 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
 
     const copied = await copy(inviteLinkUrl);
     if (copied) {
-      trackOwnerInviteShare({ method: 'link' });
       toast({ type: 'success', title: '초대 링크를 복사했어요', nativeTitle: '초대 링크를 복사했어요' });
     }
   };
@@ -163,13 +163,13 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
   const handleShareInviteLink = async () => {
     if (!inviteLinkUrl) return;
 
+    trackInviteAction({ action: 'share_sheet_open' });
     const shared = await share({
       url: inviteLinkUrl,
     });
 
-    const copied = shared ? false : await copy(inviteLinkUrl);
-    if (shared || copied) {
-      trackOwnerInviteShare({ method: 'link' });
+    if (!shared) {
+      await copy(inviteLinkUrl);
     }
   };
 

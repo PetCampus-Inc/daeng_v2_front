@@ -25,10 +25,14 @@ import {
 } from '@shared/lib/auth/postSignUpRedirect';
 import {
   clearPendingSignUpAnalytics,
+  peekPendingSignUpAnalytics,
   resolveEntrySource,
   savePendingSignUpAnalytics,
-  trackLogin,
+  trackAuthResult,
+  trackSignupStep,
   toSignUpMethod,
+  type AuthResult,
+  type AccountType,
 } from '@shared/lib/analytics';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
@@ -187,8 +191,22 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
   const completeSignUp = async () => {
     try {
       const user = await registerCurrentSocialUser();
+      const pending = peekPendingSignUpAnalytics();
+      trackSignupStep({
+        flow_id: pending?.flow_id,
+        step: 'account_creation',
+        phase: 'result',
+        result: 'success',
+      });
       handleLoginSuccess(user, { isNewSignUp: true });
     } catch (error) {
+      const pending = peekPendingSignUpAnalytics();
+      trackSignupStep({
+        flow_id: pending?.flow_id,
+        step: 'account_creation',
+        phase: 'result',
+        result: 'failed',
+      });
       console.error('[useLogin] 회원가입 실패:', error);
       toast({
         title: '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.',
@@ -214,32 +232,46 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
   };
 
   /** 로그인 */
+  const emitAuthResult = (authResult: AuthResult, accountType?: AccountType) => {
+    const pending = peekPendingSignUpAnalytics();
+    if (!pending) return;
+    trackAuthResult({
+      method: pending.method,
+      auth_result: authResult,
+      account_type: accountType,
+      flow_id: pending.flow_id,
+      auth_attempt_id: pending.auth_attempt_id,
+    });
+  };
+
   const login = async (provider: SocialProvider) => {
-    const pendingAnalytics = {
-      method: toSignUpMethod(provider),
-      entry_source: resolveEntrySource(redirectTo),
-    };
+    const method = toSignUpMethod(provider);
+    if (!peekPendingSignUpAnalytics()) {
+      savePendingSignUpAnalytics(method, resolveEntrySource(redirectTo), redirectTo || 'login');
+    }
 
     let code: Awaited<ReturnType<typeof oidcAuth>> | undefined;
     try {
       code = await oidcAuth(provider);
-    } catch {
-      // oidcAuth 내부에서 사용자 안내 toast를 이미 노출함
+    } catch (error) {
+      emitAuthResult(isSocialLoginCancelled(error) ? 'cancelled' : 'failed');
       return;
     }
 
     // OIDC 인증 성공 — 기존 계정 로그인. pending이 남아 약관에서 sign_up 오발화되지 않게 제거
     if (code === VERIFY_OIDC_RESULT_CODE.SUCCESS) {
-      clearPendingSignUpAnalytics();
       loginMutate(undefined, {
         onSuccess: ({ data }) => {
-          trackLogin(provider);
+          emitAuthResult('success', 'existing');
+          clearPendingSignUpAnalytics();
           handleLoginSuccess(data);
         },
         onError: (error) => {
-          // 탈퇴 후 재가입 분기
           if ((error as ApiError).code === LOGIN_ERROR_CODE.WITHDRAWN_USER) {
-            savePendingSignUpAnalytics(pendingAnalytics.method, pendingAnalytics.entry_source);
+            emitAuthResult('success', 'new');
+          } else {
+            emitAuthResult('failed');
+            clearPendingSignUpAnalytics();
           }
           handleLoginError(error);
         },
@@ -248,11 +280,12 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
     // 연동되지 않은 계정 — 온보딩 없이 회원가입만 진행
     else if (code === VERIFY_OIDC_RESULT_CODE.UNLINKED) {
-      savePendingSignUpAnalytics(pendingAnalytics.method, pendingAnalytics.entry_source);
+      emitAuthResult('success', 'new');
       completeSignUp();
     }
     // 동일한 이메일의 계정이 존재 (연동된 소셜 계정 정보 저장 후 로그인 페이지로 이동)
     else if (code === VERIFY_OIDC_RESULT_CODE.EMAIL_ALREADY_EXISTS) {
+      emitAuthResult('success', 'existing');
       clearPendingSignUpAnalytics();
       try {
         // 연동된 소셜 계정 정보 저장
@@ -269,9 +302,9 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
         push({ pathname: route.auth.login.root });
       }
+    } else {
+      emitAuthResult('unknown');
     }
-
-    // TODO: VERIFY_OIDC_RESULT_CODE 예외 처리 필요
   };
 
   /** 게스트 로그인 (DEV) */

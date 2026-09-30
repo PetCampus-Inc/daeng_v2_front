@@ -8,7 +8,7 @@ import { requestDevicePermissions } from '../model/requestDevicePermissions';
 import { usePushSettingMutation } from '@entities/user';
 import { markDevicePermissionIntroSeen } from '@shared/lib/auth/devicePermissionIntro';
 import { consumePostSignUpRedirect, getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
-import { trackNotificationPermission } from '@shared/lib/analytics';
+import { trackNotificationSettingsChanged } from '@shared/lib/analytics';
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 
@@ -33,8 +33,9 @@ function DevicePermissionPage() {
 
       requestPromiseRef.current = requestDevicePermissions().then(async (notificationPermission) => {
         if (notificationPermission.responded) {
-          trackNotificationPermission({
-            status: notificationPermission.status === 'allowed' ? 'granted' : 'denied',
+          trackNotificationSettingsChanged({
+            change_source: 'os_prompt',
+            os_permission: notificationPermission.status === 'allowed' ? 'granted' : 'denied',
           });
         }
 

@@ -10,7 +10,7 @@ import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
-import { trackNotificationOpen } from '@shared/lib/analytics';
+import { trackNotificationInboxClick } from '@shared/lib/analytics';
 import { notificationInboxContent } from '@views/notification-inbox-page/config/notificationInboxContent';
 import type { NotificationInboxItem } from '@views/notification-inbox-page/config/notificationInboxTypes';
 import { resolveNotificationGaType } from '@views/notification-inbox-page/lib/resolveNotificationGaType';
@@ -68,11 +68,10 @@ function NotificationInboxPage() {
   };
 
   const handleItemClick = (item: NotificationInboxItem) => {
-    const notificationType = resolveNotificationGaType(item.type);
-    if (notificationType) {
-      // 네비게이션보다 먼저 보내 화면 전환에 이벤트가 끊기지 않게 한다.
-      trackNotificationOpen({ notification_type: notificationType });
-    }
+    trackNotificationInboxClick({
+      notification_id: item.id,
+      notification_type: resolveNotificationGaType(item.type) ?? undefined,
+    });
 
     if (!item.isRead) markItemAsRead(item.id);
     openNotification(item);

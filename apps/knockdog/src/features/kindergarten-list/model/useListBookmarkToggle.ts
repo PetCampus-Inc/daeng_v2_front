@@ -2,6 +2,7 @@ import { type InfiniteData, type QueryKey, useMutation, useQueryClient } from '@
 
 import { bookmarkQueries, deleteBookmark, postBookmark } from '@entities/bookmark';
 import { type KindergartenList } from '@entities/kindergarten';
+import { trackSchoolBookmarkChanged } from '@shared/lib/analytics';
 
 export function useListBookmarkToggle(listQueryKey: QueryKey) {
   const queryClient = useQueryClient();
@@ -54,6 +55,13 @@ export function useListBookmarkToggle(listQueryKey: QueryKey) {
       }
 
       return { previousListData, previousBookmarks };
+    },
+    onSuccess: (_data, variables) => {
+      trackSchoolBookmarkChanged({
+        listing_id: variables.id,
+        is_bookmarked: variables.bookmarked ? 0 : 1,
+        entry_point: 'search',
+      });
     },
     onError: (_err, _variables, context) => {
       if (context?.previousListData) {

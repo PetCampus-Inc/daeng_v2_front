@@ -25,9 +25,10 @@ import {
   appendEntrySourceToInvitePath,
   getInviteEntrySource,
   parseEntrySourceFromQuery,
+  getOrCreateInviteFlowId,
   persistInviteEntrySource,
-  toInviteOpenMethod,
-  trackConnectionStart,
+  toInviteChannel,
+  trackConnectionStep,
   trackInviteOpen,
   useScreenAnalyticsTitle,
 } from '@shared/lib/analytics';
@@ -144,8 +145,10 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
       persistInviteEntrySource(searchParams, token);
       const entrySource = getInviteEntrySource(token);
       trackInviteOpen({
-        method: toInviteOpenMethod(entrySource),
-        entry_source: entrySource,
+        invite_channel: toInviteChannel(entrySource),
+        validation_result: 'valid',
+        school_id: inviteQuery.data?.data?.schoolId ? String(inviteQuery.data.data.schoolId) : undefined,
+        flow_id: getOrCreateInviteFlowId(token),
       });
     }, 0);
 
@@ -153,7 +156,7 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
       cancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [inviteQuery.isSuccess, searchParams, token]);
+  }, [inviteQuery.data?.data?.schoolId, inviteQuery.isSuccess, searchParams, token]);
   const phoneNumberError =
     isPhoneNumberBlurred && !isValidMobilePhone(values.phoneNumber) ? PHONE_FORMAT_ERROR : undefined;
   const emergencyPhoneNumberError =
@@ -182,6 +185,16 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
     if (inviteQuery.error instanceof ApiError && inviteQuery.error.status === 401) {
       void redirectToLogin();
       return;
+    }
+
+    if (!hasTrackedInviteOpenRef.current) {
+      hasTrackedInviteOpenRef.current = true;
+      const isInvalid = inviteQuery.error instanceof ApiError && inviteQuery.error.status === 404;
+      trackInviteOpen({
+        invite_channel: toInviteChannel(getInviteEntrySource(token)),
+        validation_result: isInvalid ? 'invalid' : 'error',
+        flow_id: getOrCreateInviteFlowId(token),
+      });
     }
 
     void push({
@@ -228,7 +241,12 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
         address: selectedAddress,
         addressDetail: values.addressDetail,
       });
-      trackConnectionStart({ entry_source: getInviteEntrySource(token) });
+      trackConnectionStep({
+        flow_id: getOrCreateInviteFlowId(token),
+        step: 'guardian_info',
+        phase: 'complete',
+        invite_channel: toInviteChannel(getInviteEntrySource(token)),
+      });
       await push({ pathname: route.invite.guardian.pet.root.replace('[token]', encodeURIComponent(token)) });
     } catch {
       toast('보호자 정보 저장에 실패했어요. 다시 시도해 주세요.');

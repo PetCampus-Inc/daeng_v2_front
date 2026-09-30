@@ -39,5 +39,7 @@ export type {
   AnalyticsLogEventResult,
   AnalyticsLogScreenViewParams,
   AnalyticsLogScreenViewResult,
+  AnalyticsSetUserIdParams,
+  AnalyticsSetUserIdResult,
   AnalyticsParamValue,
 } from './domains/analytics';

@@ -10,8 +10,9 @@ import {
 import { clearPostSignUpRedirect, consumePostSignUpRedirect, peekPostSignUpRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import {
   consumePendingSignUpAnalytics,
-  resolveEntrySource,
+  peekPendingSignUpAnalytics,
   trackSignUp,
+  trackSignupStep,
 } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
@@ -82,6 +83,7 @@ function useRequiredTermsConsentSheet() {
   const [isOpen, setIsOpen] = useState(false);
   const [checkedTerms, setCheckedTerms] = useState<CheckedTermsState>(initialCheckedTermsState);
   const previousUserIdRef = useRef(userId);
+  const hasTrackedTermsViewRef = useRef(false);
 
   const hasAgreedRequiredTerms = agreementsStatusQuery.data?.data?.hasAgreedRequiredTerms === true;
   const shouldOpen =
@@ -115,6 +117,7 @@ function useRequiredTermsConsentSheet() {
   useEffect(() => {
     if (previousUserIdRef.current !== userId) {
       previousUserIdRef.current = userId;
+      hasTrackedTermsViewRef.current = false;
       setIsOpen(false);
       setCheckedTerms(initialCheckedTermsState());
     }
@@ -124,6 +127,10 @@ function useRequiredTermsConsentSheet() {
       return;
     }
     setIsOpen(true);
+    if (hasTrackedTermsViewRef.current) return;
+    hasTrackedTermsViewRef.current = true;
+    const pending = peekPendingSignUpAnalytics();
+    trackSignupStep({ flow_id: pending?.flow_id, step: 'terms', phase: 'view' });
   }, [shouldOpen, userId]);
 
   const isAllChecked = useMemo(
@@ -164,16 +171,28 @@ function useRequiredTermsConsentSheet() {
 
     if (agreedTerms.length !== requiredTermsConsentContent.items.length) return;
 
+    const pending = peekPendingSignUpAnalytics();
+    trackSignupStep({ flow_id: pending?.flow_id, step: 'terms', phase: 'submit' });
+
     try {
       await submitAgreements({ agreedTerms });
       setIsOpen(false);
 
-      const pending = consumePendingSignUpAnalytics();
+      const completed = consumePendingSignUpAnalytics();
       const redirectTo = consumePostSignUpRedirect();
-      trackSignUp({
-        method: pending?.method ?? 'kakao',
-        entry_source: pending?.entry_source ?? resolveEntrySource(redirectTo),
+      trackSignupStep({
+        flow_id: completed?.flow_id,
+        step: 'terms',
+        phase: 'result',
+        result: 'success',
       });
+      if (completed) {
+        trackSignUp({
+          method: completed.method,
+          signup_source: completed.signup_source,
+          flow_id: completed.flow_id,
+        });
+      }
 
       if (redirectTo) {
         try {
@@ -187,6 +206,13 @@ function useRequiredTermsConsentSheet() {
         }
       }
     } catch (error) {
+      const pendingOnError = peekPendingSignUpAnalytics();
+      trackSignupStep({
+        flow_id: pendingOnError?.flow_id,
+        step: 'terms',
+        phase: 'result',
+        result: 'failed',
+      });
       console.error('[useRequiredTermsConsentSheet] 약관 동의 실패:', error);
       toast({
         title: '약관 동의에 실패했어요. 잠시 후 다시 시도해 주세요.',

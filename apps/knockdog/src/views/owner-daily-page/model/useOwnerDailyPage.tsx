@@ -249,7 +249,7 @@ function useOwnerDailyPage(selectedDate: Date, isSelectedDateToday: boolean) {
   const handleCheckIn = async (member: AttendanceMember) => {
     try {
       await checkInMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
-      trackAttendanceAction({ action: 'check_in' });
+      trackAttendanceAction({ action: 'check_in', pet_id: member.id, service_date: selectedDateKey });
       const checkInSuffix = `${getSubjectObjectParticle(member.name)} 등원 처리했어요`;
       toast({
         type: 'success',
@@ -274,7 +274,11 @@ function useOwnerDailyPage(selectedDate: Date, isSelectedDateToday: boolean) {
     try {
       await cancelCheckInMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
       close();
-      trackAttendanceAction({ action: 'cancel_check_in' });
+      trackAttendanceAction({
+        action: 'cancel_check_in',
+        pet_id: member.id,
+        service_date: selectedDateKey,
+      });
       toast({
         type: 'success',
         nativeTitle: `${member.name}의 등원을 취소했어요`,
@@ -299,7 +303,7 @@ function useOwnerDailyPage(selectedDate: Date, isSelectedDateToday: boolean) {
 
     try {
       await checkOutMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
-      trackAttendanceAction({ action: 'check_out' });
+      trackAttendanceAction({ action: 'check_out', pet_id: member.id, service_date: selectedDateKey });
       const checkOutSuffix = `${getSubjectObjectParticle(member.name)} 하원 처리했어요`;
       toast({
         type: 'success',
@@ -326,7 +330,11 @@ function useOwnerDailyPage(selectedDate: Date, isSelectedDateToday: boolean) {
     try {
       await cancelCheckOutMutation.mutateAsync({ petId: member.id, date: selectedDateKey });
       close();
-      trackAttendanceAction({ action: 'cancel_check_out' });
+      trackAttendanceAction({
+        action: 'cancel_check_out',
+        pet_id: member.id,
+        service_date: selectedDateKey,
+      });
       toast({
         type: 'success',
         nativeTitle: `${member.name}의 하원을 취소했어요`,
