@@ -8,6 +8,7 @@ export {
   getSchoolNewsDraft,
   getSchoolNewsReaders,
   postSchoolNews,
+  postSchoolNewsReminder,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,
   putSchoolNewsDraft,

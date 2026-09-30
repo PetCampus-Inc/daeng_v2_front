@@ -224,6 +224,7 @@ interface SchoolNewsReaderDto {
   guardianName?: string | null;
   petSummary?: string | null;
   readAt?: string | number[] | null;
+  connected?: boolean | null;
 }
 
 interface SchoolNewsReadersDto {
@@ -237,6 +238,7 @@ interface SchoolNewsReader {
   guardianName: string;
   petSummary: string;
   readAt: string | null;
+  connected: boolean;
 }
 
 interface SchoolNewsReaders {
@@ -255,6 +257,7 @@ function toSchoolNewsReaders(dto: SchoolNewsReadersDto | null | undefined): Scho
         guardianName: reader.guardianName?.trim() ?? '',
         petSummary: reader.petSummary?.trim() ?? '',
         readAt: toPublishedAt(reader.readAt),
+        connected: reader.connected !== false,
       },
     ];
   });

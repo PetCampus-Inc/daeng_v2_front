@@ -134,6 +134,9 @@ const ownerKindergartenNewsContent = {
     notifySuccessToast: {
       nativeTitle: '{name} 보호자에게 알림을 전송했어요',
     },
+    notifyFailedToast: {
+      nativeTitle: '알림을 전송하지 못했어요',
+    },
   },
   imageViewer: {
     closeAriaLabel: '사진 보기 닫기',

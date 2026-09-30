@@ -120,11 +120,28 @@ async function getSchoolNewsDetail({ schoolId, newsId }: { schoolId: number; new
   }
 }
 
-/** `GET` - 원장용 소식 읽은 보호자 목록 */
+/** `GET` - 원장용 소식 보호자 읽음 현황. readAt이 없으면 안 읽음 */
 function getSchoolNewsReaders({ schoolId, newsId }: { schoolId: number; newsId: number }) {
   return api
     .get(`schools/${schoolId}/news/${newsId}/readers`)
     .json<ApiResponse<SchoolNewsReadersDto>>();
+}
+
+/** `POST` - 소식 알림을 보호자 1명에게 전송 */
+function postSchoolNewsReminder({
+  schoolId,
+  newsId,
+  guardianId,
+}: {
+  schoolId: number;
+  newsId: number;
+  guardianId: number;
+}) {
+  return api
+    .post(`schools/${schoolId}/news/${newsId}/reminders`, {
+      json: { guardianId },
+    })
+    .json<ApiResponse<null>>();
 }
 
 /** `DELETE` - 유치원 소식 삭제 */
@@ -190,6 +207,7 @@ export {
   getSchoolNewsDraft,
   getSchoolNewsReaders,
   postSchoolNews,
+  postSchoolNewsReminder,
   postSchoolNewsImageUploadUrls,
   putSchoolNews,
   putSchoolNewsDraft,

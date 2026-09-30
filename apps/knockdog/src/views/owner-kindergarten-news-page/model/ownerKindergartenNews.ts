@@ -6,7 +6,7 @@ interface OwnerKindergartenNewsReader {
   dogNames: string[];
   /** 최초 열람 시각. null이면 미열람 */
   readAt: string | null;
-  /** false면 연결 해제 — 미열람은 목록 제외, 열람 기록은 유지 */
+  /** false면 연결 해제. 행은 유지하고 알림 전송 버튼만 숨김 */
   isConnected: boolean;
 }
 
