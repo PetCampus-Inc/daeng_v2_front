@@ -102,7 +102,6 @@ function toWriteImages(images: NewsImageSource[]) {
     if (image.imageId != null) {
       return {
         imageId: image.imageId,
-        ...(image.tempKey ? { tempKey: image.tempKey } : {}),
         originalFilename: image.fileName,
       };
     }
@@ -232,12 +231,13 @@ async function updateSchoolNews({
 
 async function saveSchoolNewsDraft({
   schoolId,
+  newsId,
   title,
   body,
   notice,
   sendNotification,
   images,
-}: Omit<CreateSchoolNewsParams, 'resolveIdempotencyKey'>) {
+}: Omit<CreateSchoolNewsParams, 'resolveIdempotencyKey'> & { newsId?: number }) {
   await uploadPendingNewsImages(schoolId, images);
 
   const payload: SchoolNewsWriteRequest = {
@@ -252,7 +252,7 @@ async function saveSchoolNewsDraft({
     throw new NewsImageUploadError();
   }
 
-  await putSchoolNewsDraft({ schoolId, body: payload });
+  await putSchoolNewsDraft({ schoolId, newsId, body: payload });
 }
 
 export {

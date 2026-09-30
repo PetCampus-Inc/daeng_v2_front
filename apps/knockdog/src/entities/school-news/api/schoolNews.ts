@@ -132,15 +132,28 @@ function deleteSchoolNews({ schoolId, newsId }: { schoolId: number; newsId: numb
   return api.delete(`schools/${schoolId}/news/${newsId}`).json<ApiResponse<null>>();
 }
 
-/** `PUT` - 소식 임시저장 */
-function putSchoolNewsDraft({ schoolId, body }: { schoolId: number; body: SchoolNewsWriteRequest }) {
-  return api.put(`schools/${schoolId}/news/draft`, { json: body }).json<ApiResponse<null>>();
+/** newsId가 없으면 등록 초안, 있으면 해당 소식 수정 초안 */
+function schoolNewsDraftPath(schoolId: number, newsId?: number) {
+  return newsId == null ? `schools/${schoolId}/news/draft` : `schools/${schoolId}/news/${newsId}/draft`;
+}
+
+/** `PUT` - 소식 임시저장. newsId가 있으면 수정 초안 */
+function putSchoolNewsDraft({
+  schoolId,
+  newsId,
+  body,
+}: {
+  schoolId: number;
+  newsId?: number;
+  body: SchoolNewsWriteRequest;
+}) {
+  return api.put(schoolNewsDraftPath(schoolId, newsId), { json: body }).json<ApiResponse<null>>();
 }
 
 /** `DELETE` - 소식 임시저장 삭제, 초안이 없으면 무시 */
-async function deleteSchoolNewsDraft(schoolId: number) {
+async function deleteSchoolNewsDraft(schoolId: number, newsId?: number) {
   try {
-    return await api.delete(`schools/${schoolId}/news/draft`).json<ApiResponse<null>>();
+    return await api.delete(schoolNewsDraftPath(schoolId, newsId)).json<ApiResponse<null>>();
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
     throw error;
@@ -148,9 +161,11 @@ async function deleteSchoolNewsDraft(schoolId: number) {
 }
 
 /** `GET` - 소식 임시저장 조회, 저장된 초안이 없으면 null */
-async function getSchoolNewsDraft(schoolId: number) {
+async function getSchoolNewsDraft(schoolId: number, newsId?: number) {
   try {
-    return await api.get(`schools/${schoolId}/news/draft`).json<ApiResponse<SchoolNewsDraftDto | null>>();
+    return await api
+      .get(schoolNewsDraftPath(schoolId, newsId))
+      .json<ApiResponse<SchoolNewsDraftDto | null>>();
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return {

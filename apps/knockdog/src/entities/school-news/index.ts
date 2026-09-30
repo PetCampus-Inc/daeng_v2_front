@@ -29,7 +29,9 @@ export {
 } from './api/useSchoolNewsDetailQuery';
 export {
   SCHOOL_NEWS_DRAFT_QUERY_KEY,
+  SCHOOL_NEWS_EDIT_DRAFT_QUERY_KEY,
   schoolNewsDraftQueryKey,
+  schoolNewsEditDraftQueryKey,
   useSchoolNewsDraftQuery,
 } from './api/useSchoolNewsDraftQuery';
 export {

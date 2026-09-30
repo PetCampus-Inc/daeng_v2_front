@@ -272,7 +272,9 @@ function toCreatedNewsId(dto: SchoolNewsCreatedDto | null | undefined) {
 }
 
 interface SchoolNewsDraftImageDto {
+  id?: number | null;
   imageId?: number | null;
+  imageUrl?: string | null;
   tempKey?: string | null;
   originalFilename?: string | null;
 }
@@ -299,13 +301,14 @@ function toSchoolNewsDraft(dto: SchoolNewsDraftDto | null | undefined): SchoolNe
   if (!dto) return null;
 
   const images = (dto.images ?? []).flatMap((image) => {
-    const url = toImageUrl(image.tempKey);
+    const imageId = toNewsImageId(image.imageId ?? image.id);
+    const url = toImageUrl(image.imageUrl) ?? toImageUrl(image.tempKey);
     if (!url) return [];
 
     return [
       {
-        imageId: toNewsImageId(image.imageId),
-        tempKey: image.tempKey?.trim() || null,
+        imageId,
+        tempKey: imageId == null ? image.tempKey?.trim() || null : null,
         originalFilename: image.originalFilename?.trim() || 'image.jpg',
         url,
       },
