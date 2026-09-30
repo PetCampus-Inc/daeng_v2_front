@@ -54,6 +54,7 @@ const METHODS = {
   // analytics
   analyticsLogEvent: 'analytics.logEvent',
   analyticsLogScreenView: 'analytics.logScreenView',
+  analyticsSetUserId: 'analytics.setUserId',
 } as const;
 
 type MethodName = (typeof METHODS)[keyof typeof METHODS];

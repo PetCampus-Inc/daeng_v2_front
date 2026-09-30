@@ -22,10 +22,21 @@ interface AnalyticsLogScreenViewResult {
   ok: boolean;
 }
 
+/** Firebase setUserId. null이면 로그아웃/계정 전환으로 식별을 지운다. */
+interface AnalyticsSetUserIdParams {
+  user_id: string | null;
+}
+
+interface AnalyticsSetUserIdResult {
+  ok: boolean;
+}
+
 export type {
   AnalyticsLogEventParams,
   AnalyticsLogEventResult,
   AnalyticsLogScreenViewParams,
   AnalyticsLogScreenViewResult,
+  AnalyticsSetUserIdParams,
+  AnalyticsSetUserIdResult,
   AnalyticsParamValue,
 };

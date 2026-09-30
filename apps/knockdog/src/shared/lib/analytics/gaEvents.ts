@@ -5,7 +5,7 @@ import { METHODS } from '@knockdog/bridge-core';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
-import { event as gtagEvent, pageview } from './gtag';
+import { event as gtagEvent, pageview, setGaUserId } from './gtag';
 
 type AnalyticsParamValue = string | number | boolean;
 type AnalyticsSurface = 'web' | 'native_webview';
@@ -50,15 +50,53 @@ type NotificationType = 'connection' | 'notebook' | 'album' | 'attendance';
 type ActorRole = 'owner' | 'guardian';
 type ActionResult = 'success' | 'fail';
 
+const BLOCKED_PARAM_KEYS = new Set([
+  'user_id',
+  'session_id',
+  'user_pseudo_id',
+  'email',
+  'phone',
+  'phone_number',
+  'name',
+]);
+
+const FLAG_PARAM_KEYS = new Set(['is_internal', 'is_demo']);
+
+function toFlag(value: AnalyticsParamValue) {
+  if (value === true || value === 1) return 1;
+  if (value === false || value === 0) return 0;
+  return undefined;
+}
+
 function sanitizeParams(params?: Record<string, AnalyticsParamValue | undefined>) {
   if (!params) return undefined;
 
   const next: Record<string, AnalyticsParamValue> = {};
   for (const [key, value] of Object.entries(params)) {
-    if (value === undefined) continue;
+    if (value === undefined || BLOCKED_PARAM_KEYS.has(key)) continue;
+    if (FLAG_PARAM_KEYS.has(key)) {
+      const flag = toFlag(value);
+      if (flag === undefined) continue;
+      next[key] = flag;
+      continue;
+    }
     next[key] = value;
   }
   return Object.keys(next).length > 0 ? next : undefined;
+}
+
+function syncAnalyticsUserId(userId: string | null) {
+  const nextUserId = userId?.trim() ? userId.trim() : null;
+  setGaUserId(nextUserId);
+
+  if (!isNativeWebView()) return;
+
+  const bridge = getBridgeInstance();
+  if (!bridge) return;
+
+  bridge.request(METHODS.analyticsSetUserId, { user_id: nextUserId }).catch((error) => {
+    console.warn('[analytics] native setUserId failed', error);
+  });
 }
 
 function getAnalyticsSurface(): AnalyticsSurface {
@@ -223,6 +261,7 @@ function trackNotificationOpen(params: { notification_type: NotificationType }) 
 export {
   GaEvent,
   logAnalyticsEvent,
+  syncAnalyticsUserId,
   trackScreenView,
   trackNotificationPermission,
   trackSignUp,

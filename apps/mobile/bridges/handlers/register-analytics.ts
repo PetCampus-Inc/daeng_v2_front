@@ -1,9 +1,10 @@
-import { getAnalytics, logEvent, setAnalyticsCollectionEnabled } from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setUserId } from '@react-native-firebase/analytics';
 import { getApp } from '@react-native-firebase/app';
 import {
   METHODS,
   type AnalyticsLogEventParams,
   type AnalyticsLogScreenViewParams,
+  type AnalyticsSetUserIdParams,
 } from '@knockdog/bridge-core';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 
@@ -52,6 +53,17 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
       screen_name: screenName,
       screen_class: screenClass,
     });
+    return { ok: true as const };
+  });
+
+  router.register(METHODS.analyticsSetUserId, async (params: AnalyticsSetUserIdParams) => {
+    const rawUserId = params?.user_id;
+    const userId = typeof rawUserId === 'string' && rawUserId.trim() ? rawUserId.trim() : null;
+
+    await ensureAnalyticsCollection();
+
+    const analytics = getAnalytics(getApp());
+    await setUserId(analytics, userId);
     return { ok: true as const };
   });
 }
