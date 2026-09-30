@@ -2,25 +2,35 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { useNotificationReadMutation, useNotificationsInfiniteQuery } from '@entities/notification';
+import {
+  useNotificationReadMutation,
+  useNotificationsInfiniteQuery,
+  type NotificationAudience,
+} from '@entities/notification';
 import { useUserStore } from '@entities/user';
 import { NOTIFICATION_INBOX_PAGE_SIZE } from '@views/notification-inbox-page/config/notificationInboxConstants';
 import { toNotificationInboxItem } from '@views/notification-inbox-page/lib/toNotificationInboxItem';
 
-function useNotificationInboxPage() {
+function useNotificationInboxPage(audience: NotificationAudience, enabled = true) {
   const userId = useUserStore((state) => state.user?.userId);
   const query = useNotificationsInfiniteQuery({
+    audience,
     userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
+    enabled,
   });
   const { markRead, markAllRead } = useNotificationReadMutation({
+    audience,
     userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
   });
 
   const items = useMemo(
-    () => query.data?.pages.flatMap((page) => page.notifications.map(toNotificationInboxItem)) ?? [],
-    [query.data?.pages]
+    () =>
+      query.data?.pages.flatMap((page) =>
+        page.notifications.map((notification) => toNotificationInboxItem(notification, audience))
+      ) ?? [],
+    [audience, query.data?.pages]
   );
 
   const hasUnreadFromServer = Boolean(query.data?.pages[0]?.hasUnread);
@@ -35,8 +45,8 @@ function useNotificationInboxPage() {
   );
 
   const markAllAsRead = useCallback(async () => {
-    await markAllRead.mutateAsync();
-  }, [markAllRead]);
+    await markAllRead.mutateAsync(audience);
+  }, [audience, markAllRead]);
 
   return {
     items,

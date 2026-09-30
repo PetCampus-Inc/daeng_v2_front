@@ -27,6 +27,8 @@ interface GuardianSchoolConnectionsDto {
 
 interface GuardianSchoolConnection {
   id: string;
+  /** 연결 해제 `DELETE` path. 없으면 해제 불가 */
+  schoolPetMembershipId: string | null;
   schoolId: string;
   /** kindergartenPlaceId — 상세 페이지 경로 */
   placeId: string | null;
@@ -75,6 +77,7 @@ function toGuardianSchoolConnection(
   const placeId = dto.placeId;
   return {
     id: hasMembershipId ? String(membershipId) : String(schoolId),
+    schoolPetMembershipId: hasMembershipId ? String(membershipId) : null,
     schoolId: String(schoolId),
     placeId: placeId == null || placeId === '' ? null : String(placeId),
     name: dto.name ?? '',

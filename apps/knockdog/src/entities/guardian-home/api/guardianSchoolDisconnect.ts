@@ -1,24 +1,23 @@
 import { api, type ApiResponse } from '@shared/api';
 
-interface PostDisconnectGuardianSchoolParams {
-  /** 펫 ID (`dogId` 쿼리) */
-  dogId: string;
+interface DeleteGuardianSchoolConnectionParams {
+  /** `GET guardian/school/connections`의 `schoolPetMembershipId` */
+  schoolPetMembershipId: string;
 }
 
 /**
- * `POST` - 보호자 유치원 연결 해제
- * `POST /api/v0/member/dog/school?dogId=` (`disconnectSchool`)
+ * `DELETE` - 보호자 유치원 연결 해제
+ * `DELETE /api/v0/guardian/school/connections/{schoolPetMembershipId}`
  *
- * TODO: 서버 구현/배포 확인 후 UI 플로우에 연동.
- * 현재 런타임에서는 404 — 연결 이력 화면은 UI-only로 처리 중.
+ * 당일 등원 기록이 있으면 서버가 거절한다.
  */
-function postDisconnectGuardianSchool({ dogId }: PostDisconnectGuardianSchoolParams) {
+function deleteGuardianSchoolConnection({
+  schoolPetMembershipId,
+}: DeleteGuardianSchoolConnectionParams) {
   return api
-    .post('member/dog/school', {
-      searchParams: { dogId },
-    })
+    .delete(`guardian/school/connections/${schoolPetMembershipId}`)
     .json<ApiResponse<Record<string, never>>>();
 }
 
-export { postDisconnectGuardianSchool };
-export type { PostDisconnectGuardianSchoolParams };
+export { deleteGuardianSchoolConnection };
+export type { DeleteGuardianSchoolConnectionParams };

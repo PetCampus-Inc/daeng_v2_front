@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, Icon, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
+import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
 import { Header } from '@widgets/Header';
@@ -27,6 +27,7 @@ import { usePetListQuery } from '@entities/pet';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
+import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
 import { openConfirmDialog, useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
@@ -53,12 +54,13 @@ function MypageContent() {
   const openExternalLink = useOpenExternalLink();
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
-  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
-    userId: user?.userId,
-    enabled: true,
-  });
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
+    userId: user?.userId,
+    audience: isOwnerView ? 'OWNER' : 'GUARDIAN',
+    enabled: isOwnerRoleResolved,
+  });
   const { name, address, imageUrl, usesDefaultImage, canOpenKindergartenDetail, isProfileLoading } =
     useOwnerKindergarten();
   const { profile } = useOwnerProfile();
@@ -229,16 +231,10 @@ function MypageContent() {
       <Header>
         <Header.Title>마이페이지</Header.Title>
         <Header.RightSection>
-          <button
-            type='button'
-            aria-label='알림함'
+          <NotificationBell
+            hasUnread={hasUnreadNotification}
             onClick={() => push({ pathname: route.notification.root })}
-          >
-            <Icon
-              icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-              className='size-6 text-text-primary'
-            />
-          </button>
+          />
         </Header.RightSection>
       </Header>
 

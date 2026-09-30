@@ -1,30 +1,33 @@
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 
 import { toNotificationListPage, type NotificationListPage } from '../model/notification';
-import { getNotifications } from './notification';
+import { getNotifications, type NotificationAudience } from './notification';
 
 const NOTIFICATIONS_QUERY_KEY = 'notifications';
 
-const notificationsQueryKey = (userId?: string, size?: number) =>
-  [NOTIFICATIONS_QUERY_KEY, userId, size] as const;
+const notificationsQueryKey = (userId?: string, audience?: NotificationAudience, size?: number) =>
+  [NOTIFICATIONS_QUERY_KEY, userId, audience, size] as const;
 
 type NotificationsCache = InfiniteData<NotificationListPage, string | undefined>;
 
 interface UseNotificationsInfiniteQueryOptions {
+  audience: NotificationAudience;
   userId?: string;
   size?: number;
   enabled?: boolean;
 }
 
 function useNotificationsInfiniteQuery({
+  audience,
   userId,
   size = 30,
   enabled = true,
-}: UseNotificationsInfiniteQueryOptions = {}) {
+}: UseNotificationsInfiniteQueryOptions) {
   return useInfiniteQuery({
-    queryKey: notificationsQueryKey(userId, size),
+    queryKey: notificationsQueryKey(userId, audience, size),
     queryFn: async ({ pageParam }) => {
       const response = await getNotifications({
+        audience,
         cursor: pageParam,
         size,
       });

@@ -2,6 +2,10 @@
 
 import { overlay } from 'overlay-kit';
 
+import { useGuardianSchoolDisconnectMutation } from '@entities/guardian-home';
+import { useUserStore } from '@entities/user';
+import { ApiError } from '@shared/api';
+import { trackConnectionStatus } from '@shared/lib/analytics';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { toast } from '@shared/ui/toast';
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
@@ -10,20 +14,28 @@ import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/m
 
 interface UseGuardianConnectionDisconnectOptions {
   kindergartenName: string;
-  /** UI-only 성공 시 호출 — 카드 과거 이력 전환용 */
+  schoolPetMembershipId: string | null;
+  /** 성공 시 카드 과거 이력 전환용. 목록 재조회 전 즉시 반영 */
   onDisconnected: (disconnectedAt: string) => void;
 }
 
+function isTodayAttendanceBlockedError(error: unknown) {
+  return error instanceof ApiError && error.message.includes('등원');
+}
+
 /**
- * 보호자 연결 해제 UI 플로우.
- * TODO: `POST member/dog/school` 등 보호자 disconnect API 준비되면 mutate 연동.
- * 지금은 API 없이 모달/토스트/카드 상태만 처리함.
+ * 보호자 연결 해제.
+ * `DELETE /api/v0/guardian/school/connections/{schoolPetMembershipId}`
+ * 당일 등원은 홈 `checkInAt`으로 선차단하고, 서버 거절도 같은 토스트로 처리한다.
  */
 function useGuardianConnectionDisconnect({
   kindergartenName,
+  schoolPetMembershipId,
   onDisconnected,
 }: UseGuardianConnectionDisconnectOptions) {
   const content = guardianConnectionHistoryContent;
+  const userId = useUserStore((state) => state.user?.userId);
+  const disconnectMutation = useGuardianSchoolDisconnectMutation({ userId });
   const { selectedPet, checkInAt, refetchHome, isHomeReady } = useGuardianKindergartenHome();
 
   const petName = selectedPet?.name?.trim() || '강아지';
@@ -46,19 +58,31 @@ function useGuardianConnectionDisconnect({
   };
 
   const disconnectAndNotify = async () => {
-    // UI-only: 로딩 오버레이 체감용 짧은 딜레이
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    if (!schoolPetMembershipId) {
+      toast({ title: content.disconnectFailToast });
+      return false;
+    }
 
-    const disconnectedAt = formatDateKey(new Date());
-    onDisconnected(disconnectedAt);
+    try {
+      await disconnectMutation.mutateAsync({ schoolPetMembershipId });
+    } catch (error) {
+      toast({
+        title: isTodayAttendanceBlockedError(error)
+          ? content.disconnectBlockedToast
+          : content.disconnectFailToast,
+      });
+      return isTodayAttendanceBlockedError(error);
+    }
+
+    onDisconnected(formatDateKey(new Date()));
+    trackConnectionStatus({ status: 'disconnect', actor: 'guardian' });
     showSuccessToast();
     return true;
   };
 
   const handleDisconnectClick = async () => {
-    if (!isHomeReady) return;
+    if (!isHomeReady || disconnectMutation.isPending) return;
 
-    // 당일 등원 기록 있으면 모달 없이 차단 토스트
     const homeResult = await refetchHome();
     const hasTodayAttendance = Boolean(homeResult.data?.checkInAt ?? checkInAt);
     if (hasTodayAttendance) {
@@ -79,7 +103,7 @@ function useGuardianConnectionDisconnect({
 
   return {
     handleDisconnectClick,
-    isDisconnecting: !isHomeReady,
+    isDisconnecting: !isHomeReady || disconnectMutation.isPending,
   };
 }
 

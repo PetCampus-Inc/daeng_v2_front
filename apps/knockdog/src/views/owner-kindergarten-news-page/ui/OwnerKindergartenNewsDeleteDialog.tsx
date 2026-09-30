@@ -40,6 +40,8 @@ function OwnerKindergartenNewsDeleteDialog({
     try {
       await onConfirm();
       close();
+    } catch {
+      showNewsDeleteFailedToast();
     } finally {
       setIsSubmitting(false);
     }
@@ -86,6 +88,26 @@ function showOwnerKindergartenNewsDeleteSuccessToast() {
         <span className='text-text-primary-inverse'>유치원 소식을 </span>
         <span className='text-text-accent'>삭제</span>
         <span className='text-text-primary-inverse'>했어요</span>
+      </>
+    ),
+  });
+}
+
+function showNewsDeleteFailedToast() {
+  const { deleteFailedToast } = ownerKindergartenNewsContent;
+
+  toast({
+    nativeTitle: deleteFailedToast.nativeTitle,
+    titleParts: [
+      { text: '소식을 ' },
+      { text: '삭제', accent: true },
+      { text: '하지 못했어요' },
+    ],
+    title: (
+      <>
+        <span className='text-text-primary-inverse'>소식을 </span>
+        <span className='text-text-accent'>삭제</span>
+        <span className='text-text-primary-inverse'>하지 못했어요</span>
       </>
     ),
   });

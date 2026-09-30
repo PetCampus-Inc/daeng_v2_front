@@ -6,12 +6,14 @@ import { useQueryState } from 'nuqs';
 
 import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
 import { useGuardianKindergartenNewsSearch } from '@views/guardian-kindergarten-news-page/model/useGuardianKindergartenNewsSearch';
+import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { RecentSearchKeywordSection } from '@features/search';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { useKindergartenNewsSearchHistory } from '@shared/store';
 import { KindergartenNewsSearchEmptyResult } from '@shared/ui/kindergarten-news-search-empty-result';
 import { KindergartenNewsSearchResultItem } from '@shared/ui/kindergarten-news-search-result-item';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
 /**
@@ -27,7 +29,12 @@ function GuardianKindergartenNewsSearchPageContent() {
   const [query, setQuery] = useQueryState('q', { defaultValue: '' });
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const { results, hasQuery, hasResults } = useGuardianKindergartenNewsSearch(query);
+  const { linkedKindergarten, isHomeReady } = useGuardianKindergartenHome();
+  const resolvedSchoolId = schoolId ?? linkedKindergarten?.id;
+  const { results, hasQuery, hasResults, isSearching } = useGuardianKindergartenNewsSearch(
+    query,
+    resolvedSchoolId
+  );
   const {
     recentKeywords,
     hasRecentKeywords,
@@ -108,6 +115,8 @@ function GuardianKindergartenNewsSearchPageContent() {
               <p className='h2-semibold text-text-caption text-center'>{search.emptyRecent}</p>
             </div>
           )
+        ) : (isSearching || (!schoolId && !isHomeReady)) && !hasResults ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
         ) : hasResults ? (
           <div>
             {results.map((item) => (

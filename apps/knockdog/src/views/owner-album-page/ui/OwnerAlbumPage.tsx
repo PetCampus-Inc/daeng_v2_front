@@ -21,11 +21,16 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 function OwnerAlbumPage() {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
-  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ userId, enabled: true });
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
+    userId,
+    audience: 'OWNER',
+    enabled: true,
+  });
   const {
     photos,
     hasPhotos,
@@ -71,12 +76,10 @@ function OwnerAlbumPage() {
             >
               <Icon icon='InfoLine' className='text-text-secondary size-6' />
             </button>
-            <button type='button' aria-label='알림함' onClick={() => push({ pathname: route.notification.root })}>
-              <Icon
-                icon={hasUnreadNotification ? 'AlarmLineActive' : 'AlarmNone'}
-                className='size-6 text-text-primary'
-              />
-            </button>
+            <NotificationBell
+              hasUnread={hasUnreadNotification}
+              onClick={() => push({ pathname: route.notification.root })}
+            />
           </Header.RightSection>
         </Header>
       </div>

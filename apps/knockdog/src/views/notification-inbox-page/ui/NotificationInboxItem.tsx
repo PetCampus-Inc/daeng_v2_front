@@ -6,6 +6,7 @@ import { cn } from '@knockdog/ui/lib';
 
 import type { NotificationInboxItem as NotificationInboxItemModel } from '@views/notification-inbox-page/config/notificationInboxTypes';
 import { formatNotificationRelativeTime } from '@views/notification-inbox-page/lib/formatNotificationRelativeTime';
+import { NotificationRecipientMeta } from '@views/notification-inbox-page/ui/NotificationRecipientMeta';
 
 interface NotificationInboxItemProps {
   item: NotificationInboxItemModel;
@@ -59,20 +60,17 @@ function NotificationInboxItem({ item, onClick }: NotificationInboxItemProps) {
         </div>
 
         <div className='gap-x1 flex min-w-0 flex-1 flex-col items-start justify-center'>
-          {item.kindergartenName ? (
+          {item.audience !== 'OWNER' && item.kindergartenName ? (
             <p className='label-medium text-text-tertiary w-full truncate'>{item.kindergartenName}</p>
           ) : null}
           <p className='body1-bold text-text-primary w-full'>{item.title}</p>
           <p className='body2-regular text-text-secondary w-full'>{item.body}</p>
-          <p className='body2-regular text-text-secondary'>
-            {item.petName ? (
-              <>
-                {item.petName}
-                <span aria-hidden>∙</span>
-              </>
-            ) : null}
-            {relativeTime}
-          </p>
+          <NotificationRecipientMeta
+            audience={item.audience}
+            guardianName={item.guardianName}
+            petName={item.petName}
+            relativeTime={relativeTime}
+          />
         </div>
       </div>
     </button>

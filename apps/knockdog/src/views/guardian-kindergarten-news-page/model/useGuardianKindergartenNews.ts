@@ -1,91 +1,109 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useMemo } from 'react';
 
 import {
-  getGuardianKindergartenNewsSource,
-  toListItemView,
-} from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
+  formatGuardianKindergartenNewsDetailPublishedAt,
+  formatGuardianKindergartenNewsPublishedAt,
+  isGuardianKindergartenNewsNewBadge,
+} from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
 import {
   GUARDIAN_KINDERGARTEN_NEWS_PAGE_SIZE,
+  GUARDIAN_KINDERGARTEN_NEWS_PREVIEW_LIMIT,
   type GuardianKindergartenNewsListItemView,
 } from '@views/guardian-kindergarten-news-page/model/guardianKindergartenNews';
+
+import {
+  useSchoolNewsInfiniteQuery,
+  useSchoolNewsPreviewQuery,
+  type SchoolNewsItem,
+} from '@entities/school-news';
+
 import { useClientNow } from '@shared/lib/react/useClientNow';
 
-const MOCK_FETCH_DELAY_MS = 350;
-const MOCK_REFRESH_DELAY_MS = 700;
+interface UseGuardianKindergartenNewsOptions {
+  enabled?: boolean;
+}
 
-/**
- * 보호자 소식 목록 (API 전 mock).
- * - 공지 최상단 + 신규등록순
- * - 페이지당 30건, 하단 도달 시 추가 조회
- * - pull-to-refresh: 1페이지부터 재조회
- * - empty: `/compare/news?empty=1`
- */
-function useGuardianKindergartenNews() {
-  const searchParams = useSearchParams();
-  const forceEmpty = searchParams.get('empty') === '1';
-  const [visibleCount, setVisibleCount] = useState(GUARDIAN_KINDERGARTEN_NEWS_PAGE_SIZE);
-  const [isFetchingNextPage, setIsFetchingNextPage] = useState(false);
-  const [refreshTick, setRefreshTick] = useState(0);
-  const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const now = useClientNow(refreshTick);
-
-  const sortedSource = useMemo(() => {
-    if (forceEmpty) return [];
-    return getGuardianKindergartenNewsSource();
-  }, [forceEmpty, refreshTick]);
-
-  useEffect(() => {
-    setVisibleCount(GUARDIAN_KINDERGARTEN_NEWS_PAGE_SIZE);
-  }, [forceEmpty]);
-
-  useEffect(() => {
-    return () => {
-      if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
-      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-    };
-  }, []);
-
-  const hasNextPage = visibleCount < sortedSource.length;
-
-  const items: GuardianKindergartenNewsListItemView[] = useMemo(() => {
-    return sortedSource.slice(0, visibleCount).map((item) => toListItemView(item, now));
-  }, [sortedSource, visibleCount, now]);
-
-  const fetchNextPage = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage) return;
-
-    setIsFetchingNextPage(true);
-    fetchTimeoutRef.current = setTimeout(() => {
-      setVisibleCount((current) =>
-        Math.min(current + GUARDIAN_KINDERGARTEN_NEWS_PAGE_SIZE, sortedSource.length)
-      );
-      setIsFetchingNextPage(false);
-    }, MOCK_FETCH_DELAY_MS);
-  }, [hasNextPage, isFetchingNextPage, sortedSource.length]);
-
-  /** 최상단 당겨서 새로고침 — 1페이지부터 재조회 */
-  const refresh = useCallback(async () => {
-    await new Promise<void>((resolve) => {
-      refreshTimeoutRef.current = setTimeout(() => {
-        setVisibleCount(GUARDIAN_KINDERGARTEN_NEWS_PAGE_SIZE);
-        setRefreshTick((tick) => tick + 1);
-        resolve();
-      }, MOCK_REFRESH_DELAY_MS);
-    });
-  }, []);
+function toListItemView(
+  item: SchoolNewsItem,
+  now: Date | null
+): GuardianKindergartenNewsListItemView {
+  const publishedAt = new Date(item.publishedAt);
 
   return {
-    items,
-    hasNews: sortedSource.length > 0,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-    refresh,
+    id: item.id,
+    title: item.title,
+    body: item.body,
+    publishedAt: item.publishedAt,
+    isAnnouncement: item.isAnnouncement,
+    imageUrls: item.imageUrls,
+    author: {
+      name: item.authorName,
+      profileImageUrl: item.authorProfileImageUrl,
+    },
+    publishedAtLabel: now
+      ? formatGuardianKindergartenNewsPublishedAt(publishedAt, now)
+      : formatGuardianKindergartenNewsDetailPublishedAt(publishedAt, publishedAt),
+    showNewBadge: now ? isGuardianKindergartenNewsNewBadge(publishedAt, now) : false,
   };
 }
 
-export { useGuardianKindergartenNews };
+/**
+ * 보호자 유치원 소식 목록.
+ * - GET /schools/{schoolId}/news
+ * - 서버 정렬(공지 우선 + 최신순) 유지, cursor 무한스크롤
+ */
+function useGuardianKindergartenNews(
+  schoolId?: string,
+  { enabled = true }: UseGuardianKindergartenNewsOptions = {}
+) {
+  const newsQuery = useSchoolNewsInfiniteQuery({
+    schoolId,
+    size: GUARDIAN_KINDERGARTEN_NEWS_PAGE_SIZE,
+    enabled,
+  });
+  const now = useClientNow(newsQuery.dataUpdatedAt);
+
+  const items = useMemo(() => {
+    const sourceItems = newsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+    return sourceItems.map((item) => toListItemView(item, now));
+  }, [newsQuery.data, now]);
+
+  const refresh = useCallback(async () => {
+    await newsQuery.refetch();
+  }, [newsQuery]);
+
+  return {
+    items,
+    hasNews: items.length > 0,
+    hasNextPage: Boolean(newsQuery.hasNextPage),
+    isFetchingNextPage: newsQuery.isFetchingNextPage,
+    isPending: enabled && newsQuery.isLoading,
+    isFetching: newsQuery.isFetching,
+    isError: newsQuery.isError,
+    fetchNextPage: newsQuery.fetchNextPage,
+    refresh,
+    refetch: newsQuery.refetch,
+  };
+}
+
+/** 홈 프리뷰 — GET /schools/{schoolId}/news/preview */
+function useGuardianNewsPreview(schoolId?: string) {
+  const previewQuery = useSchoolNewsPreviewQuery({ schoolId });
+  const now = useClientNow(previewQuery.dataUpdatedAt);
+
+  const items = useMemo(() => {
+    const sourceItems = previewQuery.data?.items ?? [];
+    return sourceItems
+      .slice(0, GUARDIAN_KINDERGARTEN_NEWS_PREVIEW_LIMIT)
+      .map((item) => toListItemView(item, now));
+  }, [now, previewQuery.data]);
+
+  return {
+    items,
+    isPending: previewQuery.isLoading,
+  };
+}
+
+export { useGuardianKindergartenNews, useGuardianNewsPreview };

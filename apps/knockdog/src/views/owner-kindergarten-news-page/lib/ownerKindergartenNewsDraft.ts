@@ -1,10 +1,19 @@
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { safeLocalStorage } from '@shared/lib/storage';
 
+interface OwnerKindergartenNewsDraftImage {
+  previewUrl: string;
+  imageId?: number;
+  tempKey?: string;
+  fileName?: string;
+}
+
 interface OwnerKindergartenNewsDraft {
   title: string;
   body: string;
   imageUrls: string[];
+  /** 기존 사진 imageId·tempKey. 없으면 imageUrls만 복원 */
+  images?: OwnerKindergartenNewsDraftImage[];
   isAnnouncement: boolean;
   notifyGuardiansOnUpload: boolean;
   /** 수정 화면 드래프트일 때 대상 소식 id */
@@ -33,6 +42,17 @@ function clearOwnerKindergartenNewsDraft(kindergartenKey: string, newsId?: strin
   safeLocalStorage.remove(getDraftStorageKey(kindergartenKey, newsId));
 }
 
+function isDraftImage(value: unknown): value is OwnerKindergartenNewsDraftImage {
+  if (!value || typeof value !== 'object') return false;
+  const image = value as Partial<OwnerKindergartenNewsDraftImage>;
+  return (
+    typeof image.previewUrl === 'string' &&
+    (image.imageId === undefined || typeof image.imageId === 'number') &&
+    (image.tempKey === undefined || typeof image.tempKey === 'string') &&
+    (image.fileName === undefined || typeof image.fileName === 'string')
+  );
+}
+
 function isValidDraft(value: unknown): value is OwnerKindergartenNewsDraft {
   if (!value || typeof value !== 'object') return false;
 
@@ -45,7 +65,8 @@ function isValidDraft(value: unknown): value is OwnerKindergartenNewsDraft {
     typeof draft.isAnnouncement === 'boolean' &&
     typeof draft.notifyGuardiansOnUpload === 'boolean' &&
     typeof draft.updatedAt === 'string' &&
-    (draft.newsId === undefined || typeof draft.newsId === 'string')
+    (draft.newsId === undefined || typeof draft.newsId === 'string') &&
+    (draft.images === undefined || (Array.isArray(draft.images) && draft.images.every(isDraftImage)))
   );
 }
 
@@ -66,7 +87,7 @@ function loadOwnerKindergartenNewsDraft(
   }
 }
 
-export type { OwnerKindergartenNewsDraft };
+export type { OwnerKindergartenNewsDraft, OwnerKindergartenNewsDraftImage };
 export {
   saveOwnerKindergartenNewsDraft,
   clearOwnerKindergartenNewsDraft,

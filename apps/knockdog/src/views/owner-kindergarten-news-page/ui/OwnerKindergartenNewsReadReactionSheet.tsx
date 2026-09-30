@@ -10,25 +10,46 @@ import {
   formatOwnerKindergartenNewsReadAt,
 } from '@views/owner-kindergarten-news-page/lib/formatOwnerKindergartenNewsReadReaction';
 import type { OwnerKindergartenNewsReader } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNews';
+
+import {
+  parseSchoolId,
+  postSchoolNewsReminder,
+  useSchoolNewsReadersQuery,
+  type SchoolNewsReader,
+} from '@entities/school-news';
+
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 interface OwnerKindergartenNewsReadReactionSheetProps {
   isOpen: boolean;
   close: () => void;
-  readers: OwnerKindergartenNewsReader[];
-  guardianTotalCount: number;
-  readCount: number;
+  schoolId: string | null;
+  newsId: string;
 }
 
 function compareGuardianName(a: string, b: string) {
   return a.localeCompare(b, 'ko');
 }
 
-/** 연결 해제 + 미열람은 제외. 연결 해제여도 열람 기록은 유지 */
-function isVisibleReader(reader: OwnerKindergartenNewsReader) {
-  if (reader.isConnected) return true;
-  return reader.readAt != null;
+function toSheetReader(reader: SchoolNewsReader): OwnerKindergartenNewsReader {
+  return {
+    id: reader.guardianId,
+    guardianName: reader.guardianName,
+    dogNames: reader.petSummary ? [reader.petSummary] : [],
+    readAt: reader.readAt,
+    isConnected: reader.connected,
+  };
+}
+
+function showNotifyFailedToast() {
+  const { readReactionSheet } = ownerKindergartenNewsContent;
+
+  toast({
+    nativeTitle: readReactionSheet.notifyFailedToast.nativeTitle,
+    title: readReactionSheet.notifyFailedToast.nativeTitle,
+  });
 }
 
 function showNotifySuccessToast(guardianName: string) {
@@ -56,16 +77,26 @@ function showNotifySuccessToast(guardianName: string) {
 function OwnerKindergartenNewsReadReactionSheet({
   isOpen,
   close,
-  readers,
-  guardianTotalCount,
-  readCount,
+  schoolId,
+  newsId,
 }: OwnerKindergartenNewsReadReactionSheetProps) {
   const { readReactionSheet } = ownerKindergartenNewsContent;
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [notifyingGuardianId, setNotifyingGuardianId] = useState<string | null>(null);
+  const readersQuery = useSchoolNewsReadersQuery({
+    schoolId,
+    newsId,
+    enabled: isOpen,
+  });
+  const readers = useMemo(
+    () => (readersQuery.data?.readers ?? []).map(toSheetReader),
+    [readersQuery.data?.readers]
+  );
+  const guardianTotalCount = readersQuery.data?.totalGuardianCount ?? 0;
+  const readCount = readersQuery.data?.readCount ?? 0;
 
   const visibleReaders = useMemo(() => {
     return readers
-      .filter(isVisibleReader)
       .filter((reader) => (showUnreadOnly ? reader.readAt == null : true))
       .slice()
       .sort((a, b) => compareGuardianName(a.guardianName, b.guardianName));
@@ -75,9 +106,35 @@ function OwnerKindergartenNewsReadReactionSheet({
     if (!open) close();
   };
 
-  const handleNotifyClick = (guardianName: string) => {
-    // API 연동 전 — 성공 토스트만
-    showNotifySuccessToast(guardianName);
+  const handleNotifyClick = async (reader: OwnerKindergartenNewsReader) => {
+    if (!reader.isConnected || notifyingGuardianId != null) return;
+
+    const parsedSchoolId = parseSchoolId(schoolId);
+    const parsedNewsId = parseSchoolId(newsId);
+    const guardianId = Number(reader.id);
+    if (
+      parsedSchoolId == null ||
+      parsedNewsId == null ||
+      !Number.isSafeInteger(guardianId) ||
+      guardianId <= 0
+    ) {
+      showNotifyFailedToast();
+      return;
+    }
+
+    setNotifyingGuardianId(reader.id);
+    try {
+      await postSchoolNewsReminder({
+        schoolId: parsedSchoolId,
+        newsId: parsedNewsId,
+        guardianId,
+      });
+      showNotifySuccessToast(reader.guardianName);
+    } catch {
+      showNotifyFailedToast();
+    } finally {
+      setNotifyingGuardianId(null);
+    }
   };
 
   return (
@@ -116,6 +173,21 @@ function OwnerKindergartenNewsReadReactionSheet({
         </div>
 
         <div className='min-h-0 flex-1 overflow-y-auto px-4'>
+          {readersQuery.isLoading ? <DelayedLoadingSpinner isLoading layout='content' /> : null}
+          {readersQuery.isError ? (
+            <div className='flex flex-col items-center gap-3 py-8'>
+              <p className='body2-regular text-text-secondary'>{readReactionSheet.loadFailed}</p>
+              <button
+                type='button'
+                className='body2-semibold text-text-accent'
+                onClick={() => {
+                  readersQuery.refetch().catch(() => undefined);
+                }}
+              >
+                {readReactionSheet.retryLabel}
+              </button>
+            </div>
+          ) : null}
           {visibleReaders.map((reader) => {
             const dogLabel = formatOwnerKindergartenNewsDogLabel(reader.dogNames);
             const readAtLabel = reader.readAt
@@ -146,14 +218,19 @@ function OwnerKindergartenNewsReadReactionSheet({
                   </div>
                 </div>
 
-                <button
-                  type='button'
-                  className='bg-fill-primary-500 radius-r2 body2-bold text-text-primary-inverse inline-flex shrink-0 items-center gap-1 px-4 py-3.5'
-                  onClick={() => handleNotifyClick(reader.guardianName)}
-                >
-                  <Icon icon='AlarmLine' className='size-5' aria-hidden />
-                  {readReactionSheet.notifyButtonLabel}
-                </button>
+                {reader.isConnected ? (
+                  <button
+                    type='button'
+                    disabled={notifyingGuardianId === reader.id}
+                    className='bg-fill-primary-500 radius-r2 body2-bold text-text-primary-inverse inline-flex shrink-0 items-center gap-1 px-4 py-3.5 disabled:opacity-50'
+                    onClick={() => {
+                      handleNotifyClick(reader).catch(() => undefined);
+                    }}
+                  >
+                    <Icon icon='AlarmLine' className='size-5' aria-hidden />
+                    {readReactionSheet.notifyButtonLabel}
+                  </button>
+                ) : null}
               </div>
             );
           })}
@@ -163,18 +240,13 @@ function OwnerKindergartenNewsReadReactionSheet({
   );
 }
 
-function openOwnerKindergartenNewsReadReactionSheet(params: {
-  readers: OwnerKindergartenNewsReader[];
-  guardianTotalCount: number;
-  readCount: number;
-}) {
+function openOwnerKindergartenNewsReadReactionSheet(params: { schoolId: string | null; newsId: string }) {
   overlay.open(({ isOpen, close }) => (
     <OwnerKindergartenNewsReadReactionSheet
       isOpen={isOpen}
       close={close}
-      readers={params.readers}
-      guardianTotalCount={params.guardianTotalCount}
-      readCount={params.readCount}
+      schoolId={params.schoolId}
+      newsId={params.newsId}
     />
   ));
 }

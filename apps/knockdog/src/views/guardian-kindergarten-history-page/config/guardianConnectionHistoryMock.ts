@@ -10,6 +10,7 @@ const MOCK_THUMBNAIL = '서울특별시/도봉구/1201415581/thumbnail_optimized
 const MOCK_CONNECTION_HISTORY: GuardianConnectionHistoryItem[] = [
   {
     id: 'history-momo-current',
+    schoolPetMembershipId: 'history-momo-current',
     kindergartenId: 'momo',
     name: '모모네 유치원',
     address: '충남 태안군 안면읍 해안관광로 954-51',
@@ -20,6 +21,7 @@ const MOCK_CONNECTION_HISTORY: GuardianConnectionHistoryItem[] = [
   },
   {
     id: 'history-nuri-2',
+    schoolPetMembershipId: null,
     kindergartenId: 'nuri',
     name: '누리 애견 유치원',
     address: '서울특별시 강서구 까치산로 75',
@@ -30,6 +32,7 @@ const MOCK_CONNECTION_HISTORY: GuardianConnectionHistoryItem[] = [
   },
   {
     id: 'history-forest',
+    schoolPetMembershipId: null,
     kindergartenId: 'forest',
     name: '풀숲 강아지 유치원',
     address: '서울특별시 관악구 봉천로17가길 3',
@@ -40,6 +43,7 @@ const MOCK_CONNECTION_HISTORY: GuardianConnectionHistoryItem[] = [
   },
   {
     id: 'history-nuri-1',
+    schoolPetMembershipId: null,
     kindergartenId: 'nuri',
     name: '누리 애견 유치원',
     address: '서울특별시 강서구 까치산로 75',
