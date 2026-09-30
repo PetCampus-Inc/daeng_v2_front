@@ -161,6 +161,17 @@ class PushCoordinator {
       return;
     }
 
+    if (destination.kind === 'kindergartenNews') {
+      const params = new URLSearchParams();
+      if (destination.schoolId) params.set('schoolId', destination.schoolId);
+      const query = params.toString();
+      const path = query ? `/compare/news/${destination.newsId}?${query}` : `/compare/news/${destination.newsId}`;
+      navigationRef.navigate('Tabs', { screen: 'Compare' });
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(path) }));
+      this.applyGuardianViewForDestination('Compare');
+      return;
+    }
+
     if (destination.kind === 'album') {
       const params = new URLSearchParams({
         schoolId: destination.schoolId,

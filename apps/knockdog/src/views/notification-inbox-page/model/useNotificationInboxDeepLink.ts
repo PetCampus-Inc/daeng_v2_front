@@ -96,6 +96,13 @@ function useNotificationInboxDeepLink() {
           },
         });
         return;
+      case 'kindergartenNews':
+        applyGuardianViewForPath('/compare');
+        void push({
+          pathname: route.compare.news.detail.root.replace('[id]', destination.newsId),
+          query: destination.schoolId ? { schoolId: destination.schoolId } : undefined,
+        });
+        return;
       default:
         toast(notificationInboxContent.pageNotFoundToast);
     }

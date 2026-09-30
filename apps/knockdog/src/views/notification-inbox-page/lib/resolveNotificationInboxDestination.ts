@@ -5,6 +5,7 @@ type NotificationInboxDestination =
   | { kind: 'ownerMembers' }
   | { kind: 'connectionApplyStatus' }
   | { kind: 'album'; petId?: string; schoolId?: string; date?: string }
+  | { kind: 'kindergartenNews'; newsId: string; schoolId?: string }
   | { kind: 'unavailable' };
 
 const ATTENDANCE_STATUS_TYPES = new Set([
@@ -34,6 +35,12 @@ const GUARDIAN_KINDERGARTEN_TYPES = new Set([
 const CONNECTION_APPLY_TYPES = new Set(['connection_apply_sent', 'SCHOOL_MEMBERSHIP_REJECTED']);
 
 const ALBUM_TYPES = new Set(['album_photo_uploaded', 'ALBUM_PHOTO_UPLOADED']);
+
+const KINDERGARTEN_NEWS_TYPES = new Set([
+  'KINDERGARTEN_NEWS_CREATED',
+  'KINDERGARTEN_NEWS_UPDATED',
+  'KINDERGARTEN_NEWS_REMINDED',
+]);
 
 function toPositiveId(value: unknown): string | null {
   const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
@@ -69,6 +76,7 @@ function resolveNotificationInboxDestination(
 ): NotificationInboxDestination {
   const petId = toPositiveId(payload.petId);
   const schoolId = toPositiveId(payload.schoolId);
+  const newsId = toPositiveId(payload.newsId);
   const date = toDateKey(payload.date);
 
   if (ATTENDANCE_RECORD_TYPES.has(type)) {
@@ -97,6 +105,12 @@ function resolveNotificationInboxDestination(
 
   if (ALBUM_TYPES.has(type)) {
     return { kind: 'album', petId: petId ?? undefined, schoolId: schoolId ?? undefined, date: date ?? undefined };
+  }
+
+  if (KINDERGARTEN_NEWS_TYPES.has(type)) {
+    return newsId
+      ? { kind: 'kindergartenNews', newsId, schoolId: schoolId ?? undefined }
+      : { kind: 'unavailable' };
   }
 
   return { kind: 'unavailable' };
