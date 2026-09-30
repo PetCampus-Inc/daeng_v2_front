@@ -31,7 +31,7 @@ function savePendingSignUpAnalytics(method: SignUpMethod, entry_source: EntrySou
     method,
     entry_source,
     entry_point: entryPoint,
-    signup_source: toSignupSource(entrySource),
+    signup_source: toSignupSource(entry_source),
     flow_id: createAnalyticsId(),
     auth_attempt_id: createAnalyticsId(),
   });
