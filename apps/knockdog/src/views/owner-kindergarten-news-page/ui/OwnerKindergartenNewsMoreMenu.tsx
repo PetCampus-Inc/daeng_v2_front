@@ -53,14 +53,16 @@ function OwnerKindergartenNewsMoreMenu({ newsId, onDelete }: OwnerKindergartenNe
 
   useNativeBackToClose(isOpen, () => setIsOpen(false));
 
-  const handleEditClick = () => {
+  const handleEditClick = (event: MouseEvent) => {
+    event.stopPropagation();
     setIsOpen(false);
     void push({
       pathname: route.owner.news.edit.root.replace('[id]', newsId),
     });
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (event: MouseEvent) => {
+    event.stopPropagation();
     setIsOpen(false);
     openOwnerKindergartenNewsDeleteDialog(async () => {
       await onDelete(newsId);
@@ -94,8 +96,15 @@ function OwnerKindergartenNewsMoreMenu({ newsId, onDelete }: OwnerKindergartenNe
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              {...getFloatingProps()}
+              {...getFloatingProps({
+                onClick: (event: MouseEvent) => {
+                  event.stopPropagation();
+                },
+              })}
               className='border-line-200 bg-bg-0 radius-r2 z-999 flex w-[120px] flex-col gap-4 border p-3 shadow-sm'
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
             >
               <button
                 type='button'

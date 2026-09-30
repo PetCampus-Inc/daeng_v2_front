@@ -6,12 +6,16 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { guardianKindergartenNewsContent } from '@views/guardian-kindergarten-news-page/config/guardianKindergartenNewsContent';
 import { formatGuardianKindergartenNewsPageTitle } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPageTitle';
 import { formatGuardianKindergartenNewsDetailPublishedAt } from '@views/guardian-kindergarten-news-page/lib/formatGuardianKindergartenNewsPublishedAt';
-import { getGuardianKindergartenNewsById } from '@views/guardian-kindergarten-news-page/model/getGuardianKindergartenNewsPreview';
 import { GuardianKindergartenNewsDetailImageList } from '@views/guardian-kindergarten-news-page/ui/GuardianKindergartenNewsDetailImageList';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
+
+import { useSchoolNewsDetailQuery } from '@entities/school-news';
+
 import { route } from '@shared/constants/route';
 import { useShare } from '@shared/lib/device';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 import { Header } from '@widgets/Header';
 
@@ -39,6 +43,7 @@ function showGuardianKindergartenNewsShareSuccessToast() {
 /**
  * 보호자 유치원 소식 상세
  * - 원장 상세와 동일 UI (이미지 리스트/뷰어 포함)
+ * - 상세 조회가 보호자 읽음 처리
  * - 수정·삭제·읽음 반응 없음
  * - 공유: OS 공유 시트 → 완료 시 accent 토스트 (스크롤 위치 유지)
  */
@@ -51,9 +56,26 @@ function GuardianKindergartenNewsDetailPageContent() {
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const share = useShare();
-  const { linkedKindergarten } = useGuardianKindergartenHome();
+  const { linkedKindergarten, isHomeReady } = useGuardianKindergartenHome();
+  const resolvedSchoolId = schoolId ?? linkedKindergarten?.id;
+  const detailQuery = useSchoolNewsDetailQuery({
+    schoolId: resolvedSchoolId,
+    newsId,
+    enabled: Boolean(schoolId) || isHomeReady,
+  });
+  const newsItem = detailQuery.data ?? null;
+  const isResolving = detailQuery.isLoading;
+  const item = useMemo(() => {
+    if (!newsItem) return null;
 
-  const item = useMemo(() => (newsId ? getGuardianKindergartenNewsById(newsId) : null), [newsId]);
+    return {
+      id: newsItem.id,
+      title: newsItem.title,
+      body: newsItem.body,
+      publishedAt: newsItem.publishedAt,
+      imageUrls: newsItem.imageUrls,
+    };
+  }, [newsItem]);
 
   const kindergartenName =
     linkedKindergarten && (!schoolId || linkedKindergarten.id === schoolId)
@@ -103,6 +125,40 @@ function GuardianKindergartenNewsDetailPageContent() {
 
     if (shared) showGuardianKindergartenNewsShareSuccessToast();
   }, [item, share]);
+
+  if ((!schoolId && !isHomeReady) || isResolving) {
+    return (
+      <div data-testid='guardian-kindergarten-news-detail-root' className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>{pageTitle}</Header.Title>
+        </Header>
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
+
+  if (detailQuery.isError) {
+    return (
+      <div data-testid='guardian-kindergarten-news-detail-root' className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>{pageTitle}</Header.Title>
+        </Header>
+        <PageError
+          layout='inline'
+          onRetry={() => {
+            detailQuery.refetch().catch(() => undefined);
+          }}
+          isRetrying={detailQuery.isFetching}
+        />
+      </div>
+    );
+  }
 
   if (!item) {
     return (

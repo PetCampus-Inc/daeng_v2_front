@@ -20,5 +20,9 @@ export { OwnerProfileRow, type OwnerProfileRowProps } from './ui/OwnerProfileRow
 export { OwnerKindergartenCardSkeleton } from './ui/OwnerKindergartenCardSkeleton';
 export { openOwnerUnsavedExitDialog } from './lib/openOwnerUnsavedExitDialog';
 export { OwnerVerificationEntry, type OwnerVerificationEntryProps } from './ui/OwnerVerificationEntry';
+export {
+  OwnerVerificationOnboardingSheet,
+  type OwnerVerificationOnboardingSheetProps,
+} from './ui/OwnerVerificationOnboardingSheet';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
 export { SyncNativeMainTabModeEffect } from './ui/SyncNativeMainTabModeEffect';

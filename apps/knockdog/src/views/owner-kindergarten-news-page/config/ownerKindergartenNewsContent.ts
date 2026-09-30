@@ -109,6 +109,9 @@ const ownerKindergartenNewsContent = {
   deleteSuccessToast: {
     nativeTitle: '유치원 소식을 삭제했어요',
   },
+  deleteFailedToast: {
+    nativeTitle: '소식을 삭제하지 못했어요',
+  },
   detail: {
     shareAriaLabel: '공유',
     sendNotificationLabel: '알림 발송',
@@ -125,9 +128,14 @@ const ownerKindergartenNewsContent = {
     summaryMiddle: '명 중',
     summarySuffix: '명 읽음',
     unreadOnlyLabel: '안 읽은 보호자만',
+    loadFailed: '읽은 보호자를 불러오지 못했어요',
+    retryLabel: '다시 시도',
     notifyButtonLabel: '알림 전송',
     notifySuccessToast: {
       nativeTitle: '{name} 보호자에게 알림을 전송했어요',
+    },
+    notifyFailedToast: {
+      nativeTitle: '알림을 전송하지 못했어요',
     },
   },
   imageViewer: {
