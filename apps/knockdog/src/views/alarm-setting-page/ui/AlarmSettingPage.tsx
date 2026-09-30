@@ -14,7 +14,7 @@ import { useIsOwnerVerified } from '@features/role-conversion';
 import { usePushSettingQuery, usePushSettingMutation, type PushSetting } from '@entities/user';
 import { useBridge } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
-import { trackNotificationPermission } from '@shared/lib/analytics';
+import { trackNotificationSettingsChanged } from '@shared/lib/analytics';
 import { PrivateAccess } from '@shared/ui/private-access';
 
 function AlarmSettingPage() {
@@ -72,8 +72,9 @@ function AlarmSettingPage() {
       setNotificationPermission(permission.status);
 
       if (permission.requested) {
-        trackNotificationPermission({
-          status: permission.status === 'allowed' ? 'granted' : 'denied',
+        trackNotificationSettingsChanged({
+          change_source: 'os_prompt',
+          os_permission: permission.status === 'allowed' ? 'granted' : 'denied',
         });
       }
 
@@ -104,6 +105,10 @@ function AlarmSettingPage() {
       pushEnabled: checked,
       guardianPushEnabled: checked,
       ownerPushEnabled: checked && isOwnerVerified,
+    });
+    trackNotificationSettingsChanged({
+      change_source: 'app_toggle',
+      app_push_enabled: checked ? 1 : 0,
     });
   };
 

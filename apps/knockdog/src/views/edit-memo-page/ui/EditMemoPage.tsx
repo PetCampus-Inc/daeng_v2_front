@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MemoEditor, useMemoQuery, useMemoMutation } from '@features/memo';
 import { Header } from '@widgets/Header';
 import { useParams } from 'next/navigation';
@@ -16,6 +16,7 @@ import {
   AlertDialogCancel,
 } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { createAnalyticsId, trackSchoolMemoChangeResult, trackSchoolMemoView } from '@shared/lib/analytics';
 
 const MAX_LENGTH = 2000;
 
@@ -31,11 +32,40 @@ export function EditMemoPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const { data: memoData } = useMemoQuery(id);
+  const hasTrackedMemoViewRef = useRef(false);
+  const memoOperationIdRef = useRef<string | null>(null);
   const { mutate: updateMemo, isPending } = useMemoMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       setIsEditing(false);
+      trackSchoolMemoChangeResult({
+        listing_id: id,
+        operation_id: memoOperationIdRef.current ?? createAnalyticsId(),
+        action: 'text_save',
+        has_text: variables.content?.trim() ? 1 : 0,
+        photo_count: variables.photoKeys?.length ?? 0,
+        result: 'success',
+      });
+    },
+    onError: () => {
+      trackSchoolMemoChangeResult({
+        listing_id: id,
+        operation_id: memoOperationIdRef.current ?? createAnalyticsId(),
+        action: 'text_save',
+        result: 'failed',
+      });
     },
   });
+
+  useEffect(() => {
+    if (!memoData || hasTrackedMemoViewRef.current) return;
+    hasTrackedMemoViewRef.current = true;
+    trackSchoolMemoView({
+      listing_id: id,
+      has_text: memoData.content?.trim() ? 1 : 0,
+      photo_count: memoData.photos?.length ?? 0,
+      entry_point: 'school_detail',
+    });
+  }, [id, memoData]);
   const [memo, setMemo] = useState(memoData?.content ?? '');
 
   // memoData 업데이트 시 memo state 동기화
@@ -47,6 +77,7 @@ export function EditMemoPage() {
 
   const handleSave = () => {
     const photoKeys = memoData?.photos?.map((photo) => photo.key) ?? [];
+    memoOperationIdRef.current = createAnalyticsId();
     updateMemo({ targetId: id, content: memo, photoKeys });
   };
 

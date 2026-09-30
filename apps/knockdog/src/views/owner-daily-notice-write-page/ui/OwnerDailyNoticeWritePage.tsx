@@ -58,7 +58,7 @@ import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
-import { trackNotebookAction } from '@shared/lib/analytics';
+import { createAnalyticsId, trackNotebookComposeStart, trackNotebookSent, trackNotebookUpdated } from '@shared/lib/analytics';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
@@ -223,6 +223,18 @@ function OwnerDailyNoticeWritePage() {
   const isReadOnly = hasSentRecord && !isEditingSent;
   const canDraftSave = !hasSentRecord;
   const isEditMode = hasSentRecord && isEditingSent;
+  const hasTrackedComposeStartRef = useRef(false);
+
+  useEffect(() => {
+    if (!noticeId || isEditMode || hasTrackedComposeStartRef.current) return;
+    hasTrackedComposeStartRef.current = true;
+    const draft = loadNoticeDraft(noticeId, noticeWriteDate.dateKey);
+    trackNotebookComposeStart({
+      compose_id: createAnalyticsId(),
+      entry_point: 'attendance',
+      draft_restored: draft ? 1 : 0,
+    });
+  }, [isEditMode, noticeId, noticeWriteDate.dateKey]);
   const recordHydrateKey = attendanceRecord
     ? `${attendanceRecord.petId}:${attendanceRecord.date}:${attendanceRecord.status}`
     : null;
@@ -583,11 +595,6 @@ function OwnerDailyNoticeWritePage() {
       sendAttemptRef.current = { idempotencyKey, payloadSignature };
       await sendMutation.mutateAsync({ payload, idempotencyKey });
     } catch {
-      trackNotebookAction({
-        action: isEditMode ? 'edit' : 'send',
-        role: 'owner',
-        result: 'fail',
-      });
 
       // SENT 수정 실패 시 draft를 저장해도 재진입 시 attendanceRecord(SENT) hydrate가
       // draft 복원을 막고, 임시저장 안내가 실제 복원과 불일치함 → 현재 화면에서 재시도만 유도
@@ -630,11 +637,14 @@ function OwnerDailyNoticeWritePage() {
     }
 
     sendAttemptRef.current = null;
-    trackNotebookAction({
-      action: isEditMode ? 'edit' : 'send',
-      role: 'owner',
-      result: 'success',
-    });
+    if (isEditMode) {
+      trackNotebookUpdated({});
+    } else {
+      trackNotebookSent({
+        pet_id: resolvedPetId,
+        service_date: noticeWriteDate.dateKey,
+      });
+    }
 
     try {
       clearNoticeDraft(noticeId, noticeWriteDate.dateKey);

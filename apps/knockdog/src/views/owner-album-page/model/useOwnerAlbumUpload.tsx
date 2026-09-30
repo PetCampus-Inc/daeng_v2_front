@@ -18,7 +18,7 @@ import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPh
 import { openOwnerAlbumAlert } from '@views/owner-album-page/ui/OwnerAlbumAlertDialog';
 
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
-import { trackAlbumAction } from '@shared/lib/analytics';
+import { createAnalyticsId, trackAlbumUploadResult } from '@shared/lib/analytics';
 import { toast } from '@shared/ui/toast';
 
 function showMaxCountToast() {
@@ -106,9 +106,6 @@ function useOwnerAlbumUpload() {
     }
 
     isUploadInFlightRef.current = true;
-    let shouldTrackUploadResult = false;
-    let uploadSucceeded = false;
-
     try {
       const result = await pickImage(
         {
@@ -148,29 +145,32 @@ function useOwnerAlbumUpload() {
       }
 
       setIsUploading(true);
-      shouldTrackUploadResult = true;
-
       const uploadResult = await uploadOwnerAlbumPhotos({
         schoolId,
         assets: result.assets as WebImageAsset[],
       });
 
       if (uploadResult.uploaded.length > 0) {
-        trackAlbumAction({ action: 'upload', role: 'owner', result: 'success' });
-        uploadSucceeded = true;
         try {
           await invalidatePhotos();
         } catch (invalidateError) {
           console.error('[owner-album] invalidate after upload failed', invalidateError);
         }
-      } else {
-        trackAlbumAction({ action: 'upload', role: 'owner', result: 'fail' });
       }
 
       const pickSkippedCount =
         (result.skipped?.invalidSpecCount ?? 0) + (result.skipped?.unreadableCount ?? 0);
       const commitExcludedCount = uploadResult.excludedCount + uploadResult.s3FailedCount;
       const totalExcluded = pickSkippedCount + commitExcludedCount;
+      const publishedCount = uploadResult.uploaded.length;
+      trackAlbumUploadResult({
+        upload_batch_id: createAnalyticsId(),
+        school_id: String(schoolId),
+        selected_count: publishedCount + totalExcluded,
+        excluded_count: totalExcluded,
+        published_count: publishedCount,
+        result: publishedCount === 0 ? 'failed' : totalExcluded > 0 ? 'partial_success' : 'success',
+      });
 
       if (uploadResult.uploaded.length === 0) {
         openOwnerAlbumAlert(
@@ -198,10 +198,6 @@ function useOwnerAlbumUpload() {
       showUploadSuccessToast();
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
-
-      if (shouldTrackUploadResult && !uploadSucceeded) {
-        trackAlbumAction({ action: 'upload', role: 'owner', result: 'fail' });
-      }
 
       console.error('[owner-album] upload failed', error);
       if (error && typeof error === 'object' && 'code' in error && 'message' in error) {

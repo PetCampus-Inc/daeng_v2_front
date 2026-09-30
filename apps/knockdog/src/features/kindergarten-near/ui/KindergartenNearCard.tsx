@@ -80,7 +80,7 @@ const KindergartenNearCard = ({
         {/* 내용 영역 */}
         <div className='flex justify-between'>
           <span className='body1-extrabold'>{title}</span>
-          <BookmarkToggleIcon id={id} bookmarked={bookmarked} />
+          <BookmarkToggleIcon id={id} bookmarked={bookmarked} entryPoint='map' />
         </div>
         <span className='body2-regular text-text-tertiary'>
           {ctg

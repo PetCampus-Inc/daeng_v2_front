@@ -15,7 +15,7 @@ import {
 import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhoto';
 import { Header } from '@widgets/Header';
 import { useShare } from '@shared/lib/device/useShare';
-import { trackAlbumAction } from '@shared/lib/analytics';
+import { trackAlbumPhotoView } from '@shared/lib/analytics';
 import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
 import { useSaveImage } from '@shared/lib/media';
 import { AlbumImage } from '@shared/ui/album-image';
@@ -75,6 +75,14 @@ function GuardianAlbumPhotoDetail({
   const isCurrentLoadError = currentPhoto
     ? currentPhoto.hasLoadError === true || failedPhotoIds.has(currentPhoto.id)
     : false;
+  const trackedPhotoIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!currentPhoto || isCurrentLoadError || isGuardianAlbumExpandPhotoId(currentPhoto.id)) return;
+    if (trackedPhotoIdRef.current === currentPhoto.id) return;
+    trackedPhotoIdRef.current = currentPhoto.id;
+    trackAlbumPhotoView({ photo_id: currentPhoto.id, entry_point: 'list' });
+  }, [currentPhoto, isCurrentLoadError]);
 
   const handlePhotoLoadError = useCallback((photoId: string) => {
     setFailedPhotoIds((prev) => {
@@ -209,7 +217,6 @@ function GuardianAlbumPhotoDetail({
       });
 
       if (saved) {
-        trackAlbumAction({ action: 'save', role: 'guardian' });
         toast({
           type: 'success',
           nativeTitle: detail.saveSuccessToast.nativeTitle,

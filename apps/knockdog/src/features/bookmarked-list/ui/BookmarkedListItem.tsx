@@ -52,7 +52,12 @@ function BookmarkedListItem({
             </div>
             {!bookmarkDisabled && (
               <div className='shrink-0'>
-                <BookmarkToggleIcon id={kindergarten.id} bookmarked className='text-fill-secondary-700' />
+                <BookmarkToggleIcon
+                  id={kindergarten.id}
+                  bookmarked
+                  entryPoint='bookmark_list'
+                  className='text-fill-secondary-700'
+                />
               </div>
             )}
           </div>

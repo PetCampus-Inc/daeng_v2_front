@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Icon, IconType } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { trackSignUpStart } from '@shared/lib/analytics';
@@ -33,12 +34,17 @@ interface LoginButtonProps extends Omit<React.ComponentProps<'button'>, 'onClick
 
 export function LoginButton({ className, provider, redirectTo, resetToMainAfterSignUp, ...props }: LoginButtonProps) {
   const { login } = useLogin({ redirectTo, resetToMainAfterSignUp });
+  const isAuthPendingRef = useRef(false);
 
   const { text, icon, styles } = BUTTON_STYLE_MAP[provider];
 
   const handleLogin = () => {
-    trackSignUpStart(provider);
-    login(provider);
+    if (isAuthPendingRef.current) return;
+    isAuthPendingRef.current = true;
+    trackSignUpStart(provider, redirectTo);
+    void Promise.resolve(login(provider)).finally(() => {
+      isAuthPendingRef.current = false;
+    });
   };
 
   return (

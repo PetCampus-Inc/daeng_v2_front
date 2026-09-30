@@ -83,7 +83,12 @@ function useOwnerMembersPage() {
 
   const handleDisconnectMember = async (memberId: string) => {
     await disconnectMutation.mutateAsync(memberId);
-    trackConnectionStatus({ status: 'disconnect', actor: 'owner' });
+    trackConnectionStatus({
+      status: 'disconnect',
+      initiated_by: 'owner',
+      school_pet_membership_id: memberId,
+      reason: 'manual',
+    });
   };
 
   return {

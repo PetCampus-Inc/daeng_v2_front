@@ -154,13 +154,18 @@ export function usePetProfileForm({ mode, petId, defaultValues, entryPoint, onSu
         const registerResponse = await registerPet(registerRequest);
         newPetId = registerResponse.data?.id;
 
+        if (newPetId) {
+          const breedId = data.breed.breedId;
+          trackPetProfileRegister({
+            pet_id: newPetId,
+            entry_point: entryPoint ?? 'mypage',
+            ...(breedId > 0 ? { breed_code: String(breedId) } : {}),
+            ...(data.birthYear ? { birth_year: Number(data.birthYear) } : {}),
+          });
+        }
+
         // 첫 번째 강아지면 자동으로 대표 강아지로 지정한다.
         if (isFirstPet && newPetId) {
-          trackPetProfileRegister({
-            entry_point: entryPoint ?? 'mypage',
-            breed: data.breed.breedName,
-          });
-
           try {
             await updateRepresentative(Number(newPetId));
           } catch (error) {

@@ -92,7 +92,7 @@ function GuardianConnectionApplyStatusPage() {
               // title: 보호자가 등록 신청을 취소했어요
               // body: `${petName}가 승인 대기 목록에서 제외됐어요.`
               await cancelMutation.mutateAsync(item.id);
-              trackConnectionStatus({ status: 'cancel', actor: 'guardian' });
+              trackConnectionStatus({ status: 'cancel', initiated_by: 'guardian' });
             } catch {
               toast(content.cancelFailToast);
               throw new Error('CANCEL_FAIL');

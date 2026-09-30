@@ -13,42 +13,83 @@ type AnalyticsSink = 'web_ga4' | 'firebase';
 
 /** GA4 가이드 커스텀 이벤트 */
 const GaEvent = {
-  NOTIFICATION_PERMISSION: 'notification_permission',
+  AUTH_ATTEMPT: 'auth_attempt',
+  AUTH_RESULT: 'auth_result',
   SIGN_UP: 'sign_up',
-  PET_PROFILE_REGISTER: 'pet_profile_register',
+  SIGNUP_STEP: 'signup_step',
+  INVITE_ACTION: 'invite_action',
   INVITE_OPEN: 'invite_open',
-  CONNECTION_START: 'connection_start',
+  CONNECTION_STEP: 'connection_step',
+  PET_PROFILE_REGISTER: 'pet_profile_register',
   CONNECTION_STATUS: 'connection_status',
-  CONNECTION_RESULT: 'connection_result',
-  OWNER_VERIFICATION_STATUS: 'owner_verification_status',
-  OWNER_INVITE_SHARE: 'owner_invite_share',
-  ACCOUNT_DEACTIVATION: 'account_deactivation',
-  NOTEBOOK_ACTION: 'notebook_action',
-  ALBUM_ACTION: 'album_action',
+  OWNER_VERIFICATION_STEP: 'owner_verification_step',
+  OWNER_VERIFICATION_APPROVED: 'owner_verification_approved',
   ATTENDANCE_ACTION: 'attendance_action',
-  NOTIFICATION_OPEN: 'notification_open',
+  NOTEBOOK_COMPOSE_START: 'notebook_compose_start',
+  NOTEBOOK_SENT: 'notebook_sent',
+  NOTEBOOK_UPDATED: 'notebook_updated',
+  NOTEBOOK_VIEW: 'notebook_view',
+  ALBUM_UPLOAD_RESULT: 'album_upload_result',
+  ALBUM_PHOTO_VIEW: 'album_photo_view',
+  ALBUM_FAVORITED: 'album_favorited',
+  NOTIFICATION_INBOX_CLICK: 'notification_inbox_click',
+  NOTIFICATION_SETTINGS_CHANGED: 'notification_settings_changed',
+  OWNER_ROLE_RELEASED: 'owner_role_released',
+  ACCOUNT_WITHDRAWN: 'account_withdrawn',
+  SCHOOL_DETAIL_VIEW: 'school_detail_view',
+  MEMBER_APP_USE: 'member_app_use',
+  SCHOOL_MEMO_VIEW: 'school_memo_view',
+  SCHOOL_MEMO_CHANGE_RESULT: 'school_memo_change_result',
+  SCHOOL_BOOKMARK_LIST_VIEW: 'school_bookmark_list_view',
+  SCHOOL_BOOKMARK_CHANGED: 'school_bookmark_changed',
 } as const;
 
 type SignUpMethod = 'kakao' | 'google' | 'apple';
 type EntrySource = 'invite_link' | 'invite_qr' | 'organic';
-type InviteOpenMethod = 'link' | 'qr';
 type InviteEntrySource = 'invite_link' | 'invite_qr';
+type InviteChannel = 'link' | 'qr' | 'unknown';
+type SignupSource = 'invite' | 'other' | 'unknown';
+type AuthResult = 'success' | 'cancelled' | 'failed' | 'unknown';
+type AccountType = 'new' | 'existing' | 'unknown';
 type PetProfileEntryPoint = 'connection_request' | 'mypage';
 type ConnectionStatus = 'submit' | 'approve' | 'reject' | 'cancel' | 'disconnect';
-type ConnectionActor = 'guardian' | 'owner';
-type ConnectionResultStatus = 'approve' | 'reject';
-type OwnerVerificationStatus = 'start' | 'submit' | 'approved' | 'failed';
-type InviteShareMethod = 'link' | 'qr';
-type DeactivationAction = 'role_release' | 'withdrawal';
+type ConnectionInitiator = 'guardian' | 'owner' | 'system';
+type DisconnectReason = 'manual' | 'owner_role_release' | 'account_withdrawal' | 'other' | 'unknown';
+type OwnerVerificationStep =
+  | 'entry'
+  | 'onboarding'
+  | 'daycare_selection'
+  | 'profile'
+  | 'business_number'
+  | 'terms'
+  | 'business_check'
+  | 'complete';
+type StepPhase = 'view' | 'complete';
+type SignupStep = 'terms' | 'account_creation';
+type SignupPhase = 'view' | 'submit' | 'result';
+type StepResult = 'success' | 'failed' | 'unknown';
 type RoleReleaseReason = 'closure' | 'suspend' | 'other';
+type RoleReleaseTrigger = 'manual' | 'account_withdrawal';
 type WithdrawalReason = 'inaccurate_info' | 'bad_exploration' | 'missing_features' | 'other';
-type NotificationPermissionStatus = 'granted' | 'denied';
-type NotebookAction = 'send' | 'edit' | 'view';
-type AlbumAction = 'upload' | 'save' | 'favorite';
 type AttendanceAction = 'check_in' | 'check_out' | 'cancel_check_in' | 'cancel_check_out';
-type NotificationType = 'connection' | 'notebook' | 'album' | 'attendance';
-type ActorRole = 'owner' | 'guardian';
-type ActionResult = 'success' | 'fail';
+type NotificationType = 'connection' | 'notebook' | 'album';
+type OsPermission = 'not_determined' | 'granted' | 'denied' | 'provisional' | 'unknown';
+type NotificationChangeSource = 'app_toggle' | 'os_prompt' | 'settings_return';
+type AlbumUploadResult = 'success' | 'partial_success' | 'failed';
+type SchoolEntryPoint = 'map' | 'search' | 'saved' | 'share' | 'other' | 'unknown';
+type BookmarkEntryPoint = 'map' | 'search' | 'school_detail' | 'bookmark_list' | 'other' | 'unknown';
+type AuthState = 'logged_in' | 'logged_out';
+
+function createAnalyticsId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function track(name: string, params?: Record<string, AnalyticsParamValue | undefined>) {
+  void logAnalyticsEvent(name, params);
+}
 
 const BLOCKED_PARAM_KEYS = new Set([
   'user_id',
@@ -60,7 +101,18 @@ const BLOCKED_PARAM_KEYS = new Set([
   'name',
 ]);
 
-const FLAG_PARAM_KEYS = new Set(['is_internal', 'is_demo']);
+const FLAG_PARAM_KEYS = new Set([
+  'is_internal',
+  'is_demo',
+  'onboarding_eligible',
+  'draft_restored',
+  'app_push_enabled',
+  'is_favorited',
+  'was_owner',
+  'has_text',
+  'is_empty',
+  'is_bookmarked',
+]);
 
 function toFlag(value: AnalyticsParamValue) {
   if (value === true || value === 1) return 1;
@@ -182,121 +234,335 @@ async function trackScreenView(screenName: string, screenClass?: string) {
   }
 }
 
-function trackNotificationPermission(params: { status: NotificationPermissionStatus }) {
-  void logAnalyticsEvent(GaEvent.NOTIFICATION_PERMISSION, params);
+function trackAuthAttempt(params: {
+  method: SignUpMethod;
+  entry_point: string;
+  flow_id: string;
+  auth_attempt_id: string;
+}) {
+  track(GaEvent.AUTH_ATTEMPT, params);
 }
 
-function trackSignUp(params: { method: SignUpMethod; entry_source: EntrySource }) {
-  void logAnalyticsEvent(GaEvent.SIGN_UP, params);
+function trackAuthResult(params: {
+  method: SignUpMethod;
+  auth_result: AuthResult;
+  account_type?: AccountType;
+  flow_id: string;
+  auth_attempt_id: string;
+}) {
+  track(GaEvent.AUTH_RESULT, {
+    method: params.method,
+    auth_result: params.auth_result,
+    flow_id: params.flow_id,
+    auth_attempt_id: params.auth_attempt_id,
+    ...(params.account_type ? { account_type: params.account_type } : {}),
+  });
 }
 
-function trackPetProfileRegister(params: { entry_point: PetProfileEntryPoint; breed: string }) {
-  void logAnalyticsEvent(GaEvent.PET_PROFILE_REGISTER, params);
+function trackSignUp(params: { method: SignUpMethod; signup_source: SignupSource; flow_id?: string }) {
+  track(GaEvent.SIGN_UP, params);
 }
 
-function trackInviteOpen(params: { method: InviteOpenMethod; entry_source: InviteEntrySource }) {
-  void logAnalyticsEvent(GaEvent.INVITE_OPEN, params);
+function trackSignupStep(params: {
+  flow_id?: string;
+  step: SignupStep;
+  phase: SignupPhase;
+  result?: StepResult;
+}) {
+  track(GaEvent.SIGNUP_STEP, {
+    flow_id: params.flow_id,
+    step: params.step,
+    phase: params.phase,
+    ...(params.phase === 'result' ? { result: params.result ?? 'unknown' } : {}),
+  });
 }
 
-function trackConnectionStart(params: { entry_source: InviteEntrySource }) {
-  void logAnalyticsEvent(GaEvent.CONNECTION_START, params);
+function trackInviteAction(
+  params:
+    | { action: 'share_sheet_open' }
+    | { action: 'qr_save_result'; result: 'success' | 'failed' | 'unknown' }
+) {
+  track(GaEvent.INVITE_ACTION, params);
+}
+
+function trackInviteOpen(params: {
+  invite_channel: InviteChannel;
+  validation_result: 'valid' | 'invalid' | 'error';
+  school_id?: string;
+  flow_id?: string;
+}) {
+  track(GaEvent.INVITE_OPEN, params);
+}
+
+function trackConnectionStep(params: {
+  flow_id: string;
+  step: 'start' | 'guardian_info' | 'pet_selection' | 'consent' | 'submission';
+  phase: StepPhase;
+  invite_channel: InviteChannel;
+}) {
+  track(GaEvent.CONNECTION_STEP, params);
+}
+
+function trackPetProfileRegister(params: {
+  pet_id: string;
+  entry_point: PetProfileEntryPoint;
+  breed_code?: string;
+  birth_year?: number;
+}) {
+  track(GaEvent.PET_PROFILE_REGISTER, params);
 }
 
 function trackConnectionStatus(params: {
   status: ConnectionStatus;
-  actor: ConnectionActor;
-  entry_source?: EntrySource;
+  school_id?: string;
+  school_pet_membership_id?: string;
+  initiated_by: ConnectionInitiator;
+  invite_channel?: InviteChannel;
+  reason?: DisconnectReason;
+  flow_id?: string;
+  operation_id?: string;
 }) {
-  void logAnalyticsEvent(GaEvent.CONNECTION_STATUS, {
+  track(GaEvent.CONNECTION_STATUS, {
     status: params.status,
-    actor: params.actor,
-    ...(params.status === 'submit' ? { entry_source: params.entry_source ?? 'organic' } : {}),
+    school_id: params.school_id,
+    school_pet_membership_id: params.school_pet_membership_id,
+    initiated_by: params.initiated_by,
+    ...(params.status === 'submit' ? { invite_channel: params.invite_channel } : {}),
+    ...(params.status === 'disconnect' ? { reason: params.reason } : {}),
+    ...(params.status === 'submit' || params.status === 'cancel' ? { flow_id: params.flow_id } : {}),
+    operation_id: params.operation_id,
   });
 }
 
-function trackConnectionResult(params: { status: ConnectionResultStatus; application_id: string }) {
-  void logAnalyticsEvent(GaEvent.CONNECTION_RESULT, params);
+function trackOwnerVerificationStep(params: {
+  flow_id?: string;
+  step: OwnerVerificationStep;
+  phase: StepPhase;
+  outcome?: 'success' | 'skipped' | 'blocked' | 'error';
+  registration_path?: 'existing' | 'new' | 'unknown';
+  verification_id?: string;
+}) {
+  track(GaEvent.OWNER_VERIFICATION_STEP, {
+    ...params,
+    ...(params.phase === 'complete' ? { outcome: params.outcome } : {}),
+  });
 }
 
-function trackOwnerVerificationStatus(params: { status: OwnerVerificationStatus }) {
-  void logAnalyticsEvent(GaEvent.OWNER_VERIFICATION_STATUS, params);
+function trackOwnerVerificationApproved(params: {
+  verification_id?: string;
+  school_id?: string;
+  registration_path?: 'existing' | 'new';
+  daycare_origin?: 'crawled' | 'owner_created' | 'other' | 'unknown';
+  flow_id?: string;
+}) {
+  track(GaEvent.OWNER_VERIFICATION_APPROVED, params);
 }
 
-function trackOwnerInviteShare(params: { method: InviteShareMethod }) {
-  void logAnalyticsEvent(GaEvent.OWNER_INVITE_SHARE, params);
+function trackAttendanceAction(params: {
+  action: AttendanceAction;
+  attendance_id?: string;
+  school_id?: string;
+  pet_id?: string;
+  service_date?: string;
+}) {
+  track(GaEvent.ATTENDANCE_ACTION, params);
 }
 
-function trackAccountDeactivation(
-  params:
-    | { action: 'role_release'; role_release_reason: RoleReleaseReason }
-    | { action: 'withdrawal'; withdrawal_reason: WithdrawalReason }
-) {
-  void logAnalyticsEvent(GaEvent.ACCOUNT_DEACTIVATION, params);
+function trackNotebookComposeStart(params: {
+  compose_id: string;
+  entry_point?: string;
+  draft_restored?: 0 | 1;
+}) {
+  track(GaEvent.NOTEBOOK_COMPOSE_START, params);
 }
 
-function trackNotebookAction(
-  params:
-    | { action: 'send' | 'edit'; role: ActorRole; result: ActionResult }
-    | { action: 'view'; role: ActorRole }
-) {
-  void logAnalyticsEvent(GaEvent.NOTEBOOK_ACTION, params);
+function trackNotebookSent(params: {
+  notebook_id?: string;
+  school_id?: string;
+  pet_id?: string;
+  service_date?: string;
+}) {
+  track(GaEvent.NOTEBOOK_SENT, params);
 }
 
-function trackAlbumAction(
-  params:
-    | { action: 'upload'; role: ActorRole; result: ActionResult }
-    | { action: 'save' | 'favorite'; role: ActorRole }
-) {
-  void logAnalyticsEvent(GaEvent.ALBUM_ACTION, params);
+function trackNotebookUpdated(params: { notebook_id?: string; school_id?: string; revision?: number }) {
+  track(GaEvent.NOTEBOOK_UPDATED, params);
 }
 
-function trackAttendanceAction(params: { action: AttendanceAction }) {
-  void logAnalyticsEvent(GaEvent.ATTENDANCE_ACTION, params);
+function trackNotebookView(params: {
+  notebook_id?: string;
+  entry_point?: 'home' | 'calendar' | 'push' | 'inbox';
+  connection_context?: 'current' | 'past';
+  revision?: number;
+}) {
+  track(GaEvent.NOTEBOOK_VIEW, params);
 }
 
-function trackNotificationOpen(params: { notification_type: NotificationType }) {
-  void logAnalyticsEvent(GaEvent.NOTIFICATION_OPEN, params);
+function trackAlbumUploadResult(params: {
+  upload_batch_id: string;
+  school_id?: string;
+  selected_count: number;
+  excluded_count: number;
+  published_count: number;
+  result: AlbumUploadResult;
+}) {
+  track(GaEvent.ALBUM_UPLOAD_RESULT, params);
+}
+
+function trackAlbumPhotoView(params: {
+  photo_id: string;
+  school_id?: string;
+  entry_point?: 'home' | 'notebook' | 'list' | 'push' | 'inbox';
+  connection_context?: 'current' | 'past';
+}) {
+  track(GaEvent.ALBUM_PHOTO_VIEW, params);
+}
+
+function trackAlbumFavorited(params: { photo_id: string; is_favorited: 0 | 1 }) {
+  track(GaEvent.ALBUM_FAVORITED, params);
+}
+
+function trackNotificationInboxClick(params: { notification_id: string; notification_type?: NotificationType }) {
+  track(GaEvent.NOTIFICATION_INBOX_CLICK, params);
+}
+
+function trackNotificationSettingsChanged(params: {
+  change_source: NotificationChangeSource;
+  app_push_enabled?: 0 | 1;
+  os_permission?: OsPermission;
+}) {
+  track(GaEvent.NOTIFICATION_SETTINGS_CHANGED, params);
+}
+
+function trackOwnerRoleReleased(params: {
+  school_id?: string;
+  reason: RoleReleaseReason;
+  trigger: RoleReleaseTrigger;
+}) {
+  track(GaEvent.OWNER_ROLE_RELEASED, params);
+}
+
+function trackAccountWithdrawn(params: { reason: WithdrawalReason; was_owner?: 0 | 1 }) {
+  track(GaEvent.ACCOUNT_WITHDRAWN, params);
+}
+
+function trackSchoolDetailView(params: {
+  listing_id: string;
+  listing_id_source?: string;
+  entry_point?: SchoolEntryPoint;
+  auth_state: AuthState;
+  search_flow_id?: string;
+  search_id?: string;
+  search_surface?: 'suggestion' | 'results';
+}) {
+  track(GaEvent.SCHOOL_DETAIL_VIEW, params);
+}
+
+function trackMemberAppUse(params: { screen_name: string; is_internal?: 0 | 1; is_demo?: 0 | 1 }) {
+  track(GaEvent.MEMBER_APP_USE, params);
+}
+
+function trackSchoolMemoView(params: {
+  listing_id: string;
+  listing_id_source?: string;
+  has_text: 0 | 1;
+  photo_count: number;
+  entry_point?: 'school_detail' | 'other' | 'unknown';
+}) {
+  track(GaEvent.SCHOOL_MEMO_VIEW, params);
+}
+
+function trackSchoolMemoChangeResult(params: {
+  listing_id: string;
+  listing_id_source?: string;
+  operation_id: string;
+  action: 'text_save' | 'photo_add' | 'photo_delete';
+  has_text?: 0 | 1;
+  photo_count?: number;
+  result: 'success' | 'failed' | 'unknown';
+  reason_code?: string;
+  search_flow_id?: string;
+  search_id?: string;
+  search_surface?: 'suggestion' | 'results';
+}) {
+  track(GaEvent.SCHOOL_MEMO_CHANGE_RESULT, params);
+}
+
+function trackSchoolBookmarkListView(params: {
+  item_count: number;
+  is_empty: 0 | 1;
+  entry_point?: 'tab' | 'other' | 'unknown';
+}) {
+  track(GaEvent.SCHOOL_BOOKMARK_LIST_VIEW, params);
+}
+
+function trackSchoolBookmarkChanged(params: {
+  listing_id: string;
+  listing_id_source?: string;
+  is_bookmarked: 0 | 1;
+  entry_point?: BookmarkEntryPoint;
+  search_flow_id?: string;
+  search_id?: string;
+  search_surface?: 'suggestion' | 'results';
+}) {
+  track(GaEvent.SCHOOL_BOOKMARK_CHANGED, params);
 }
 
 export {
+  createAnalyticsId,
   GaEvent,
   logAnalyticsEvent,
   syncAnalyticsUserId,
-  trackScreenView,
-  trackNotificationPermission,
-  trackSignUp,
-  trackPetProfileRegister,
-  trackInviteOpen,
-  trackConnectionStart,
-  trackConnectionStatus,
-  trackConnectionResult,
-  trackOwnerVerificationStatus,
-  trackOwnerInviteShare,
-  trackAccountDeactivation,
-  trackNotebookAction,
-  trackAlbumAction,
+  trackAccountWithdrawn,
+  trackAlbumFavorited,
+  trackAlbumPhotoView,
+  trackAlbumUploadResult,
   trackAttendanceAction,
-  trackNotificationOpen,
+  trackAuthAttempt,
+  trackAuthResult,
+  trackConnectionStatus,
+  trackConnectionStep,
+  trackInviteAction,
+  trackInviteOpen,
+  trackMemberAppUse,
+  trackNotebookComposeStart,
+  trackNotebookSent,
+  trackNotebookUpdated,
+  trackNotebookView,
+  trackNotificationInboxClick,
+  trackNotificationSettingsChanged,
+  trackOwnerRoleReleased,
+  trackOwnerVerificationApproved,
+  trackOwnerVerificationStep,
+  trackPetProfileRegister,
+  trackSchoolBookmarkChanged,
+  trackSchoolBookmarkListView,
+  trackSchoolDetailView,
+  trackSchoolMemoChangeResult,
+  trackSchoolMemoView,
+  trackScreenView,
+  trackSignUp,
+  trackSignupStep,
 };
 export type {
-  SignUpMethod,
-  EntrySource,
-  InviteOpenMethod,
-  InviteEntrySource,
-  PetProfileEntryPoint,
-  ConnectionStatus,
-  ConnectionActor,
-  ConnectionResultStatus,
-  OwnerVerificationStatus,
-  InviteShareMethod,
-  DeactivationAction,
-  RoleReleaseReason,
-  WithdrawalReason,
-  NotificationPermissionStatus,
-  NotebookAction,
-  AlbumAction,
+  AccountType,
   AttendanceAction,
+  AuthResult,
+  AuthState,
+  BookmarkEntryPoint,
+  ConnectionInitiator,
+  ConnectionStatus,
+  DisconnectReason,
+  EntrySource,
+  InviteChannel,
+  InviteEntrySource,
   NotificationType,
-  ActorRole,
-  ActionResult,
+  OsPermission,
+  PetProfileEntryPoint,
+  RoleReleaseReason,
+  RoleReleaseTrigger,
+  SchoolEntryPoint,
+  SignUpMethod,
+  SignupSource,
+  WithdrawalReason,
 };

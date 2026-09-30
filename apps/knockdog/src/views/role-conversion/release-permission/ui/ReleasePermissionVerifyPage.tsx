@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { useOwnerKindergarten } from '@features/role-conversion';
 import { useOwnerRoleRevokeMutation } from '@entities/user';
-import { trackAccountDeactivation } from '@shared/lib/analytics';
+import { trackOwnerRoleReleased } from '@shared/lib/analytics';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -61,9 +61,9 @@ function ReleasePermissionVerifyPage() {
 
     try {
       await revokeOwnerRoleAsync(toRevokeOwnerRoleRequest(draft));
-      trackAccountDeactivation({
-        action: 'role_release',
-        role_release_reason: toRoleReleaseGaReason(draft.reason),
+      trackOwnerRoleReleased({
+        reason: toRoleReleaseGaReason(draft.reason),
+        trigger: source === RELEASE_PERMISSION_SOURCE.WITHDRAW ? 'account_withdrawal' : 'manual',
       });
       clearReleasePermissionReasonDraft();
 

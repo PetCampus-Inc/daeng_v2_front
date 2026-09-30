@@ -5,7 +5,13 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { postCreateGuardianApplication } from '@entities/guardian-application';
-import { trackConnectionStatus, getInviteEntrySource } from '@shared/lib/analytics';
+import {
+  getInviteEntrySource,
+  getOrCreateInviteFlowId,
+  toInviteChannel,
+  trackConnectionStatus,
+  trackConnectionStep,
+} from '@shared/lib/analytics';
 import { GUARDIAN_HOME_QUERY_KEY } from '@entities/guardian-home';
 import {
   GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY,
@@ -101,10 +107,20 @@ function useGuardianInvitePrivacyConsentPage() {
       const results = response.data?.results ?? [];
       const hasSuccess = results.some((result) => result.success === true);
       if (hasSuccess) {
+        const inviteChannel = toInviteChannel(getInviteEntrySource(token));
+        const flowId = getOrCreateInviteFlowId(token);
+        trackConnectionStep({
+          flow_id: flowId,
+          step: 'submission',
+          phase: 'complete',
+          invite_channel: inviteChannel,
+        });
         trackConnectionStatus({
           status: 'submit',
-          actor: 'guardian',
-          entry_source: getInviteEntrySource(token),
+          initiated_by: 'guardian',
+          invite_channel: inviteChannel,
+          flow_id: flowId,
+          operation_id: getOrCreateInviteFlowId(`${token}:submit`),
         });
       }
       const failedPets = validPetIds

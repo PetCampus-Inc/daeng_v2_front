@@ -75,7 +75,12 @@ function useGuardianConnectionDisconnect({
     }
 
     onDisconnected(formatDateKey(new Date()));
-    trackConnectionStatus({ status: 'disconnect', actor: 'guardian' });
+    trackConnectionStatus({
+      status: 'disconnect',
+      initiated_by: 'guardian',
+      school_pet_membership_id: schoolPetMembershipId,
+      reason: 'manual',
+    });
     showSuccessToast();
     return true;
   };
