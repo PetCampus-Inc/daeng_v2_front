@@ -12,6 +12,8 @@ import { GuardianKindergartenNewsList } from '@views/guardian-kindergarten-news-
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { PullToRefresh } from '@shared/ui/pull-to-refresh';
 import { Header } from '@widgets/Header';
 
@@ -21,9 +23,24 @@ function GuardianKindergartenNewsPageContent() {
   const schoolId = searchParams.get('schoolId')?.trim() || undefined;
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const { linkedKindergarten } = useGuardianKindergartenHome();
-  const { items, hasNews, hasNextPage, isFetchingNextPage, fetchNextPage, refresh } =
-    useGuardianKindergartenNews();
+  const { linkedKindergarten, isHomeReady } = useGuardianKindergartenHome();
+  const resolvedSchoolId = schoolId ?? linkedKindergarten?.id;
+  const forceEmpty = searchParams.get('empty') === '1';
+  const {
+    items,
+    hasNews,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+    isFetching,
+    isError,
+    fetchNextPage,
+    refresh,
+    refetch,
+  } = useGuardianKindergartenNews(resolvedSchoolId, {
+    enabled: !forceEmpty && (Boolean(schoolId) || isHomeReady),
+  });
+  const showPending = isPending || (!forceEmpty && !resolvedSchoolId && !isHomeReady);
 
   const kindergartenName =
     linkedKindergarten && (!schoolId || linkedKindergarten.id === schoolId)
@@ -76,14 +93,18 @@ function GuardianKindergartenNewsPageContent() {
       </div>
 
       <main className={`${hasNews ? 'bg-bg-50' : 'bg-bg-0'} relative flex min-h-0 flex-1 flex-col`}>
-        {hasNews ? (
+        {showPending ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
+        ) : isError ? (
+          <PageError layout='inline' onRetry={() => void refetch()} isRetrying={isFetching} />
+        ) : hasNews ? (
           <PullToRefresh onRefresh={refresh}>
             <GuardianKindergartenNewsList
               items={items}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
-              schoolId={schoolId}
+              schoolId={resolvedSchoolId}
             />
           </PullToRefresh>
         ) : (

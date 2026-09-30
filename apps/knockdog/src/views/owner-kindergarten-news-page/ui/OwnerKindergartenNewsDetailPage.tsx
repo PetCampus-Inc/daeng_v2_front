@@ -1,21 +1,22 @@
 'use client';
 
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
 import { formatOwnerKindergartenNewsDetailPublishedAt } from '@views/owner-kindergarten-news-page/lib/formatOwnerKindergartenNewsPublishedAt';
-import {
-  deleteOwnerKindergartenNewsItem,
-  getOwnerKindergartenNewsById,
-  subscribeOwnerKindergartenNews,
-} from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
 import { OwnerKindergartenNewsDetailFooter } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsDetailFooter';
 import { OwnerKindergartenNewsDetailImageList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsDetailImageList';
 import { OwnerKindergartenNewsMoreMenu } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsMoreMenu';
 import { openOwnerKindergartenNewsReadReactionSheet } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsReadReactionSheet';
-import { useShare } from '@shared/lib/device';
+
+import { useOwnerHomeQuery } from '@entities/owner-home';
+import { useDeleteSchoolNews, useSchoolNewsItem } from '@entities/school-news';
+import { useUserStore } from '@entities/user';
+
 import { useStackNavigation } from '@shared/lib/bridge';
+import { useShare } from '@shared/lib/device';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 import { Header } from '@widgets/Header';
 function showOwnerKindergartenNewsShareSuccessToast() {
@@ -50,12 +51,29 @@ function OwnerKindergartenNewsDetailPage() {
   const { back } = useStackNavigation();
   const share = useShare();
   const { pageTitle, detail } = ownerKindergartenNewsContent;
+  const userId = useUserStore((state) => state.user?.userId);
+  const { data: ownerHome, isPending: isHomePending } = useOwnerHomeQuery({ userId });
+  const schoolId = ownerHome?.school.schoolId ?? null;
+  const { item, isResolving } = useSchoolNewsItem({
+    schoolId,
+    newsId,
+    enabled: !isHomePending,
+  });
+  const deleteNews = useDeleteSchoolNews(schoolId);
+  const news = useMemo(() => {
+    if (!item) return null;
 
-  const news = useSyncExternalStore(
-    subscribeOwnerKindergartenNews,
-    () => (newsId ? getOwnerKindergartenNewsById(newsId) : null),
-    () => (newsId ? getOwnerKindergartenNewsById(newsId) : null)
-  );
+    return {
+      id: item.id,
+      title: item.title,
+      body: item.body,
+      publishedAt: item.publishedAt,
+      imageUrls: item.imageUrls,
+      readCount: item.readCount,
+      guardianTotalCount: item.guardianTotalCount,
+      readers: [],
+    };
+  }, [item]);
 
   const publishedAtLabel = useMemo(() => {
     if (!news) return '';
@@ -82,10 +100,10 @@ function OwnerKindergartenNewsDetailPage() {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      deleteOwnerKindergartenNewsItem(id);
+      await deleteNews(id);
       await back();
     },
-    [back]
+    [back, deleteNews]
   );
 
   const handleOpenReadReaction = useCallback(() => {
@@ -96,6 +114,20 @@ function OwnerKindergartenNewsDetailPage() {
       readCount: news.readCount,
     });
   }, [news]);
+
+  if (isHomePending || isResolving) {
+    return (
+      <div data-testid='owner-kindergarten-news-detail-root' className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton />
+          </Header.LeftSection>
+          <Header.Title>{pageTitle}</Header.Title>
+        </Header>
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
 
   if (!news) {
     return (
