@@ -15,7 +15,7 @@ import {
   type SchoolNewsItem,
   type SchoolNewsPage,
 } from '../model/schoolNews';
-import { deleteSchoolNews, getSchoolNews } from './schoolNews';
+import { deleteSchoolNews, getSchoolNews, getSchoolNewsSearch } from './schoolNews';
 
 const SCHOOL_NEWS_QUERY_KEY = 'schoolNews';
 
@@ -139,8 +139,34 @@ function useSchoolNewsItem({ schoolId, newsId, enabled = true }: UseSchoolNewsIt
   return { item, isResolving, isError: query.isError };
 }
 
-function useSchoolNewsSearchSource(schoolId: string | number | null | undefined, active: boolean) {
-  const query = useSchoolNewsInfiniteQuery({ schoolId, enabled: active });
+const SCHOOL_NEWS_SEARCH_QUERY_KEY = 'schoolNewsSearch';
+
+function useSchoolNewsSearchSource(schoolId: string | number | null | undefined, keyword: string) {
+  const parsedSchoolId = parseSchoolId(schoolId);
+  const trimmedKeyword = keyword.trim();
+  const active = parsedSchoolId != null && trimmedKeyword.length > 0;
+
+  const query = useInfiniteQuery({
+    queryKey: [SCHOOL_NEWS_SEARCH_QUERY_KEY, parsedSchoolId, trimmedKeyword, SCHOOL_NEWS_PAGE_SIZE] as const,
+    queryFn: async ({ pageParam }) => {
+      if (parsedSchoolId == null || !trimmedKeyword) {
+        return { items: [], nextCursor: null, hasNext: false };
+      }
+
+      const response = await getSchoolNewsSearch({
+        schoolId: parsedSchoolId,
+        keyword: trimmedKeyword,
+        cursor: pageParam,
+        size: SCHOOL_NEWS_PAGE_SIZE,
+      });
+
+      return toSchoolNewsPage(response.data);
+    },
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: active,
+    staleTime: 0,
+  });
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = query;
   const pageCount = data?.pages.length ?? 0;
   const reachedPageCap = pageCount >= SCHOOL_NEWS_MAX_PAGES;
@@ -151,7 +177,7 @@ function useSchoolNewsSearchSource(schoolId: string | number | null | undefined,
     fetchNextPage().catch(() => undefined);
   }, [active, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, reachedPageCap]);
 
-  const items = useMemo(() => flattenSchoolNewsItems(data), [data]);
+  const items = useMemo(() => (active ? flattenSchoolNewsItems(data) : []), [active, data]);
   const isSearching =
     active &&
     (query.isLoading ||

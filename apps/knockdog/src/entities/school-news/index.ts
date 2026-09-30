@@ -2,6 +2,7 @@ export {
   deleteSchoolNews,
   deleteSchoolNewsDraft,
   getSchoolNews,
+  getSchoolNewsSearch,
   getSchoolNewsDetail,
   getSchoolNewsPreview,
   getSchoolNewsDraft,

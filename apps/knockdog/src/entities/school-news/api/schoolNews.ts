@@ -18,6 +18,10 @@ interface GetSchoolNewsParams {
   size?: number;
 }
 
+interface GetSchoolNewsSearchParams extends GetSchoolNewsParams {
+  keyword: string;
+}
+
 /** `GET` - 유치원 메인 소식 미리보기 */
 function getSchoolNewsPreview(schoolId: number) {
   return api.get(`schools/${schoolId}/news/preview`).json<ApiResponse<SchoolNewsListDto>>();
@@ -28,6 +32,24 @@ function getSchoolNews({ schoolId, cursor, size = SCHOOL_NEWS_PAGE_SIZE }: GetSc
   return api
     .get(`schools/${schoolId}/news`, {
       searchParams: {
+        size,
+        ...(cursor === undefined ? {} : { cursor }),
+      },
+    })
+    .json<ApiResponse<SchoolNewsListDto>>();
+}
+
+/** `GET` - 유치원 소식 제목·본문 검색 */
+function getSchoolNewsSearch({
+  schoolId,
+  keyword,
+  cursor,
+  size = SCHOOL_NEWS_PAGE_SIZE,
+}: GetSchoolNewsSearchParams) {
+  return api
+    .get(`schools/${schoolId}/news/search`, {
+      searchParams: {
+        keyword,
         size,
         ...(cursor === undefined ? {} : { cursor }),
       },
@@ -147,6 +169,7 @@ export {
   deleteSchoolNews,
   deleteSchoolNewsDraft,
   getSchoolNews,
+  getSchoolNewsSearch,
   getSchoolNewsDetail,
   getSchoolNewsPreview,
   getSchoolNewsDraft,
