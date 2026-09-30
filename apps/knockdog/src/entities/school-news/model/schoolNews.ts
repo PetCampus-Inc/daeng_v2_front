@@ -219,19 +219,138 @@ interface SchoolNewsCreatedDto {
   id?: number | null;
 }
 
+interface SchoolNewsReaderDto {
+  guardianId?: number | null;
+  guardianName?: string | null;
+  petSummary?: string | null;
+  readAt?: string | number[] | null;
+  connected?: boolean | null;
+}
+
+interface SchoolNewsReadersDto {
+  totalGuardianCount?: number | null;
+  readCount?: number | null;
+  readers?: SchoolNewsReaderDto[] | null;
+}
+
+interface SchoolNewsReader {
+  guardianId: string;
+  guardianName: string;
+  petSummary: string;
+  readAt: string | null;
+  connected: boolean;
+}
+
+interface SchoolNewsReaders {
+  totalGuardianCount: number;
+  readCount: number;
+  readers: SchoolNewsReader[];
+}
+
+function toSchoolNewsReaders(dto: SchoolNewsReadersDto | null | undefined): SchoolNewsReaders {
+  const readers = (dto?.readers ?? []).flatMap((reader) => {
+    if (typeof reader.guardianId !== 'number' || !Number.isFinite(reader.guardianId)) return [];
+
+    return [
+      {
+        guardianId: String(reader.guardianId),
+        guardianName: reader.guardianName?.trim() ?? '',
+        petSummary: reader.petSummary?.trim() ?? '',
+        readAt: toPublishedAt(reader.readAt),
+        connected: reader.connected !== false,
+      },
+    ];
+  });
+
+  return {
+    totalGuardianCount: toCount(dto?.totalGuardianCount),
+    readCount: toCount(dto?.readCount),
+    readers,
+  };
+}
+
 function toCreatedNewsId(dto: SchoolNewsCreatedDto | null | undefined) {
   if (typeof dto?.id !== 'number' || !Number.isFinite(dto.id)) return null;
   return String(dto.id);
 }
 
-export { parseSchoolId, SCHOOL_NEWS_MAX_PAGES, SCHOOL_NEWS_PAGE_SIZE, toCreatedNewsId, toSchoolNewsPage };
+interface SchoolNewsDraftImageDto {
+  id?: number | null;
+  imageId?: number | null;
+  imageUrl?: string | null;
+  tempKey?: string | null;
+  originalFilename?: string | null;
+}
+
+interface SchoolNewsDraftDto {
+  title?: string | null;
+  body?: string | null;
+  notice?: boolean | null;
+  sendNotification?: boolean | null;
+  modifiedAt?: string | null;
+  images?: SchoolNewsDraftImageDto[] | null;
+}
+
+interface SchoolNewsDraft {
+  title: string;
+  body: string;
+  isAnnouncement: boolean;
+  notifyGuardiansOnUpload: boolean;
+  modifiedAt: string | null;
+  images: SchoolNewsImage[];
+}
+
+function toSchoolNewsDraft(dto: SchoolNewsDraftDto | null | undefined): SchoolNewsDraft | null {
+  if (!dto) return null;
+
+  const images = (dto.images ?? []).flatMap((image) => {
+    const imageId = toNewsImageId(image.imageId ?? image.id);
+    const url = toImageUrl(image.imageUrl) ?? toImageUrl(image.tempKey);
+    if (!url) return [];
+
+    return [
+      {
+        imageId,
+        tempKey: imageId == null ? image.tempKey?.trim() || null : null,
+        originalFilename: image.originalFilename?.trim() || 'image.jpg',
+        url,
+      },
+    ];
+  });
+
+  return {
+    title: dto.title ?? '',
+    body: dto.body ?? '',
+    isAnnouncement: dto.notice === true,
+    notifyGuardiansOnUpload: dto.sendNotification === true,
+    modifiedAt: typeof dto.modifiedAt === 'string' && dto.modifiedAt.length > 0 ? dto.modifiedAt : null,
+    images,
+  };
+}
+
+export {
+  parseSchoolId,
+  SCHOOL_NEWS_MAX_PAGES,
+  SCHOOL_NEWS_PAGE_SIZE,
+  toCreatedNewsId,
+  toSchoolNewsDraft,
+  toSchoolNewsItem,
+  toSchoolNewsPage,
+  toSchoolNewsReaders,
+};
 export type {
   SchoolNewsCreatedDto,
+  SchoolNewsDraft,
+  SchoolNewsDraftDto,
   SchoolNewsImage,
   SchoolNewsImageRequest,
   SchoolNewsItem,
+  SchoolNewsItemDto,
   SchoolNewsListDto,
   SchoolNewsPage,
+  SchoolNewsReader,
+  SchoolNewsReaders,
+  SchoolNewsReadersDto,
   SchoolNewsUploadFileRequest,
   SchoolNewsUploadUrlResponseDto,
   SchoolNewsWriteRequest,

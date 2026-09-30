@@ -21,15 +21,11 @@ import {
   dismissOwnerKindergartenNewsSettingsBanner,
   isOwnerKindergartenNewsSettingsBannerDismissed,
 } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsSettingsBanner';
-import {
-  clearOwnerKindergartenNewsDraft,
-  loadOwnerKindergartenNewsDraft,
-  saveOwnerKindergartenNewsDraft,
-  type OwnerKindergartenNewsDraftImage,
-} from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsDraft';
+import { clearOwnerKindergartenNewsDraft } from '@views/owner-kindergarten-news-page/lib/ownerKindergartenNewsDraft';
 import {
   createSchoolNews,
   NewsImageUploadError,
+  saveSchoolNewsDraft,
   toKeptNewsImage,
   toNewsImageSource,
   updateSchoolNews,
@@ -42,9 +38,14 @@ import { openOwnerKindergartenNewsImageAlert } from '@views/owner-kindergarten-n
 import { useOwnerHomeQuery } from '@entities/owner-home';
 import {
   SCHOOL_NEWS_QUERY_KEY,
+  deleteSchoolNewsDraft,
   parseSchoolId,
+  schoolNewsDraftQueryKey,
+  schoolNewsEditDraftQueryKey,
+  useSchoolNewsDraftQuery,
   useSchoolNewsInfiniteQuery,
   useSchoolNewsItem,
+  type SchoolNewsImage,
 } from '@entities/school-news';
 import { useUserStore } from '@entities/user';
 
@@ -70,20 +71,15 @@ function unsourcedNewsImage(previewUrl: string): NewsImageSource {
   };
 }
 
-function toDraftNewsImage(image: OwnerKindergartenNewsDraftImage): NewsImageSource {
-  return {
-    previewUrl: image.previewUrl,
-    fileName: image.fileName || 'image.jpg',
+function sourcesFromServerDraft(images: SchoolNewsImage[]): NewsImageSource[] {
+  return images.map((image) => ({
+    previewUrl: image.url,
+    fileName: image.originalFilename || 'image.jpg',
     contentType: 'image/jpeg',
     size: 0,
-    imageId: image.imageId,
-    tempKey: image.tempKey,
-  };
-}
-
-function sourcesFromDraft(imageUrls: string[], images?: OwnerKindergartenNewsDraftImage[]) {
-  if (images && images.length > 0) return images.map(toDraftNewsImage);
-  return imageUrls.map(unsourcedNewsImage);
+    ...(image.imageId != null ? { imageId: image.imageId } : {}),
+    ...(image.tempKey ? { tempKey: image.tempKey } : {}),
+  }));
 }
 
 function collectComposerImages(urls: string[], sources: NewsImageSource[]) {
@@ -211,6 +207,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   const { data: ownerHome, isPending: isHomePending } = useOwnerHomeQuery({ userId });
   const schoolId = ownerHome?.school.schoolId ?? null;
   const parsedSchoolId = parseSchoolId(schoolId);
+  const parsedNewsId = parseSchoolId(newsId);
   const kindergartenKey = schoolId ?? BANNER_KINDERGARTEN_KEY;
   const newsQuery = useSchoolNewsInfiniteQuery({
     schoolId,
@@ -222,6 +219,11 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     schoolId,
     newsId,
     enabled: isEditMode && !isHomePending && Boolean(newsId),
+  });
+  const draftQuery = useSchoolNewsDraftQuery({
+    schoolId,
+    newsId: isEditMode ? newsId : undefined,
+    enabled: !isHomePending && (isEditMode ? parsedNewsId != null : true),
   });
 
   const seedRef = useRef<{
@@ -235,44 +237,15 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   } | null>(null);
 
   if (!seedRef.current) {
-    const canLoadDraft = !isEditMode || Boolean(newsId);
-    const draft = canLoadDraft
-      ? loadOwnerKindergartenNewsDraft(kindergartenKey, isEditMode ? newsId : undefined)
-      : null;
-
-    if (draft) {
-      const sources = sourcesFromDraft(draft.imageUrls, draft.images);
-      seedRef.current = {
-        title: draft.title,
-        body: draft.body,
-        imageUrls: sources.map((source) => source.previewUrl),
-        sources,
-        isAnnouncement: draft.isAnnouncement,
-        notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
-        hydrateKey: `${kindergartenKey}:${newsId ?? 'write'}`,
-      };
-    } else if (existingNews) {
-      const sources = existingNews.images.map(toKeptNewsImage);
-      seedRef.current = {
-        title: existingNews.title,
-        body: existingNews.body,
-        imageUrls: sources.map((source) => source.previewUrl),
-        sources,
-        isAnnouncement: existingNews.isAnnouncement,
-        notifyGuardiansOnUpload: false,
-        hydrateKey: `${kindergartenKey}:${existingNews.id}`,
-      };
-    } else {
-      seedRef.current = {
-        title: '',
-        body: '',
-        imageUrls: [],
-        sources: [],
-        isAnnouncement: false,
-        notifyGuardiansOnUpload: !isEditMode,
-        hydrateKey: null,
-      };
-    }
+    seedRef.current = {
+      title: '',
+      body: '',
+      imageUrls: [],
+      sources: [],
+      isAnnouncement: false,
+      notifyGuardiansOnUpload: !isEditMode,
+      hydrateKey: null,
+    };
   }
 
   const seed = seedRef.current;
@@ -287,15 +260,18 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     seed.notifyGuardiansOnUpload
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [isTitleLimitVisible, setIsTitleLimitVisible] = useState(false);
   const isExitDialogOpenRef = useRef(false);
+  const isDraftSavingRef = useRef(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const initialSnapshotRef = useRef({
     title: seed.title,
     body: seed.body,
     imageUrls: seed.imageUrls,
     isAnnouncement: seed.isAnnouncement,
+    notifyGuardiansOnUpload: seed.notifyGuardiansOnUpload,
   });
   const hydratedKeyRef = useRef<string | null>(seed.hydrateKey);
 
@@ -310,22 +286,24 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     if (!hydrateKey || hydratedKeyRef.current === hydrateKey) return;
 
     if (isEditMode) {
-      if (!existingNews) return;
+      if (!existingNews || draftQuery.isLoading) return;
 
-      const draft = loadOwnerKindergartenNewsDraft(kindergartenKey, existingNews.id);
+      const draft = draftQuery.data;
       if (draft) {
-        const sources = sourcesFromDraft(draft.imageUrls, draft.images);
+        const sources = sourcesFromServerDraft(draft.images);
+        const draftImageUrls = sources.map((source) => source.previewUrl);
         setTitle(draft.title);
         setBody(draft.body);
-        setImageUrls(sources.map((source) => source.previewUrl));
+        setImageUrls(draftImageUrls);
         imageSourcesRef.current = sources;
         setIsAnnouncement(draft.isAnnouncement);
         setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
         initialSnapshotRef.current = {
           title: draft.title,
           body: draft.body,
-          imageUrls: sources.map((source) => source.previewUrl),
+          imageUrls: draftImageUrls,
           isAnnouncement: draft.isAnnouncement,
+          notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
         };
       } else {
         const sources = existingNews.images.map(toKeptNewsImage);
@@ -340,6 +318,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
           body: existingNews.body,
           imageUrls: sources.map((source) => source.previewUrl),
           isAnnouncement: existingNews.isAnnouncement,
+          notifyGuardiansOnUpload: false,
         };
       }
 
@@ -347,34 +326,46 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
       return;
     }
 
-    const draft = loadOwnerKindergartenNewsDraft(kindergartenKey);
+    if (isHomePending || draftQuery.isLoading) return;
+
+    const draft = draftQuery.data;
     if (draft) {
-      const sources = sourcesFromDraft(draft.imageUrls, draft.images);
+      const sources = sourcesFromServerDraft(draft.images);
+      const draftImageUrls = sources.map((source) => source.previewUrl);
       setTitle(draft.title);
       setBody(draft.body);
-      setImageUrls(sources.map((source) => source.previewUrl));
+      setImageUrls(draftImageUrls);
       imageSourcesRef.current = sources;
       setIsAnnouncement(draft.isAnnouncement);
       setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
       initialSnapshotRef.current = {
         title: draft.title,
         body: draft.body,
-        imageUrls: sources.map((source) => source.previewUrl),
+        imageUrls: draftImageUrls,
         isAnnouncement: draft.isAnnouncement,
+        notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
       };
     }
     hydratedKeyRef.current = hydrateKey;
-  }, [existingNews, isEditMode, kindergartenKey, newsId]);
+  }, [
+    draftQuery.data,
+    draftQuery.isLoading,
+    existingNews,
+    isEditMode,
+    isHomePending,
+    kindergartenKey,
+    newsId,
+  ]);
 
   const canSubmit =
     title.trim().length > 0 && body.trim().length > 0 && parsedSchoolId != null && !isHomePending;
-  const isDirty = isEditMode
-    ? title !== initialSnapshotRef.current.title ||
-      body !== initialSnapshotRef.current.body ||
-      isAnnouncement !== initialSnapshotRef.current.isAnnouncement ||
-      imageUrls.length !== initialSnapshotRef.current.imageUrls.length ||
-      imageUrls.some((url, index) => url !== initialSnapshotRef.current.imageUrls[index])
-    : title.length > 0 || body.length > 0 || imageUrls.length > 0;
+  const isDirty =
+    title !== initialSnapshotRef.current.title ||
+    body !== initialSnapshotRef.current.body ||
+    isAnnouncement !== initialSnapshotRef.current.isAnnouncement ||
+    notifyGuardiansOnUpload !== initialSnapshotRef.current.notifyGuardiansOnUpload ||
+    imageUrls.length !== initialSnapshotRef.current.imageUrls.length ||
+    imageUrls.some((url, index) => url !== initialSnapshotRef.current.imageUrls[index]);
 
   const submitLabel = isEditMode ? edit.submitLabel : write.submitLabel;
   const bannerText = isEditMode ? edit.bannerText : write.bannerText;
@@ -425,7 +416,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   );
 
   const handleBack = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || isDraftSaving) return;
 
     if (!isDirty) {
       leaveToList();
@@ -457,7 +448,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         </AlertDialogContent>
       </AlertDialog>
     ));
-  }, [isDirty, isSubmitting, leaveToList, write]);
+  }, [isDirty, isDraftSaving, isSubmitting, leaveToList, write]);
 
   useNativeBackHandler(handleBack);
 
@@ -557,28 +548,56 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     setImageUrls((current) => current.filter((_, imageIndex) => imageIndex !== index));
   };
 
-  const handleDraftSave = () => {
-    if (!isDirty) return;
+  const handleDraftSave = async () => {
+    if (!isDirty || isDraftSavingRef.current || isSubmitting) return;
 
+    const images = collectComposerImages(imageUrls, imageSourcesRef.current);
+    const savedSnapshot = {
+      title,
+      body,
+      imageUrls: images.map((image) => image.previewUrl),
+      isAnnouncement,
+      notifyGuardiansOnUpload,
+    };
+
+    if (parsedSchoolId == null || (isEditMode && parsedNewsId == null)) {
+      showDraftSaveFailedToast();
+      return;
+    }
+
+    isDraftSavingRef.current = true;
+    setIsDraftSaving(true);
     try {
-      const images = collectComposerImages(imageUrls, imageSourcesRef.current);
-      saveOwnerKindergartenNewsDraft(kindergartenKey, {
+      await saveSchoolNewsDraft({
+        schoolId: parsedSchoolId,
+        ...(isEditMode && parsedNewsId != null ? { newsId: parsedNewsId } : {}),
         title,
         body,
-        imageUrls: images.map((image) => image.previewUrl),
-        images: images.map((image) => ({
-          previewUrl: image.previewUrl,
-          fileName: image.fileName,
-          ...(image.imageId != null ? { imageId: image.imageId } : {}),
-          ...(image.tempKey ? { tempKey: image.tempKey } : {}),
-        })),
-        isAnnouncement,
-        notifyGuardiansOnUpload,
-        ...(isEditMode && newsId ? { newsId } : {}),
+        notice: isAnnouncement,
+        sendNotification: notifyGuardiansOnUpload,
+        images,
       });
+      await queryClient.invalidateQueries({
+        queryKey:
+          isEditMode && parsedNewsId != null
+            ? schoolNewsEditDraftQueryKey(parsedSchoolId, parsedNewsId)
+            : schoolNewsDraftQueryKey(parsedSchoolId),
+      });
+      clearOwnerKindergartenNewsDraft(kindergartenKey, isEditMode ? newsId : undefined);
+      initialSnapshotRef.current = savedSnapshot;
       showDraftSaveToast();
-    } catch {
+    } catch (error) {
+      if (error instanceof NewsImageUploadError) {
+        openOwnerKindergartenNewsImageAlert(
+          write.imageUpload.networkFailedTitle,
+          write.imageUpload.networkFailedDescription
+        );
+        return;
+      }
       showDraftSaveFailedToast();
+    } finally {
+      isDraftSavingRef.current = false;
+      setIsDraftSaving(false);
     }
   };
 
@@ -606,7 +625,6 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
       };
 
       if (isEditMode) {
-        const parsedNewsId = parseSchoolId(newsId);
         if (!newsId || parsedNewsId == null) throw new Error('newsId required');
 
         await updateSchoolNews({
@@ -621,6 +639,10 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         });
         await queryClient.invalidateQueries({ queryKey: [SCHOOL_NEWS_QUERY_KEY, parsedSchoolId] });
         clearOwnerKindergartenNewsDraft(kindergartenKey, newsId);
+        await deleteSchoolNewsDraft(parsedSchoolId, parsedNewsId).catch(() => undefined);
+        await queryClient.invalidateQueries({
+          queryKey: schoolNewsEditDraftQueryKey(parsedSchoolId, parsedNewsId),
+        });
         showEditSuccessToast();
         goToDetailAfterSubmit(newsId);
       } else {
@@ -635,6 +657,8 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         });
         await queryClient.invalidateQueries({ queryKey: [SCHOOL_NEWS_QUERY_KEY, parsedSchoolId] });
         clearOwnerKindergartenNewsDraft(kindergartenKey);
+        await deleteSchoolNewsDraft(parsedSchoolId).catch(() => undefined);
+        await queryClient.invalidateQueries({ queryKey: schoolNewsDraftQueryKey(parsedSchoolId) });
         showWriteSuccessToast();
         goToDetailAfterSubmit(createdNewsId);
       }
@@ -690,6 +714,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     kindergartenKey,
     newsId,
     notifyGuardiansOnUpload,
+    parsedNewsId,
     parsedSchoolId,
     queryClient,
     title,
@@ -704,7 +729,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
   if (isEditMode && !newsId) return null;
 
-  if (isEditMode && newsId && !existingNews) {
+  if (!isEditMode && (isHomePending || draftQuery.isLoading)) {
     return (
       <div className='bg-bg-0 flex h-full flex-col'>
         <Header>
@@ -712,7 +737,20 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
             <Header.BackButton onClick={leaveToList} />
           </Header.LeftSection>
         </Header>
-        {isHomePending || isExistingNewsResolving ? (
+        <DelayedLoadingSpinner isLoading layout='content' />
+      </div>
+    );
+  }
+
+  if (isEditMode && newsId && (isHomePending || isExistingNewsResolving || draftQuery.isLoading || !existingNews)) {
+    return (
+      <div className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={leaveToList} />
+          </Header.LeftSection>
+        </Header>
+        {isHomePending || isExistingNewsResolving || draftQuery.isLoading ? (
           <DelayedLoadingSpinner isLoading layout='content' />
         ) : (
           <main className='flex min-h-0 flex-1 items-center justify-center px-4'>
@@ -738,7 +776,9 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
           <button
             type='button'
             className='label-semibold text-text-primary radius-r1 px-2 py-1'
-            onClick={handleDraftSave}
+            onClick={() => {
+              handleDraftSave().catch(() => undefined);
+            }}
           >
             {write.draftSaveLabel}
           </button>

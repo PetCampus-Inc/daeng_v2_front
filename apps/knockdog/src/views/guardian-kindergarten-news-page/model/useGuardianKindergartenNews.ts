@@ -13,7 +13,11 @@ import {
   type GuardianKindergartenNewsListItemView,
 } from '@views/guardian-kindergarten-news-page/model/guardianKindergartenNews';
 
-import { useSchoolNewsInfiniteQuery, type SchoolNewsItem } from '@entities/school-news';
+import {
+  useSchoolNewsInfiniteQuery,
+  useSchoolNewsPreviewQuery,
+  type SchoolNewsItem,
+} from '@entities/school-news';
 
 import { useClientNow } from '@shared/lib/react/useClientNow';
 
@@ -84,13 +88,21 @@ function useGuardianKindergartenNews(
   };
 }
 
-/** 홈 프리뷰 — 목록 첫 페이지에서 최대 3건 */
+/** 홈 프리뷰 — GET /schools/{schoolId}/news/preview */
 function useGuardianNewsPreview(schoolId?: string) {
-  const { items, isPending } = useGuardianKindergartenNews(schoolId);
+  const previewQuery = useSchoolNewsPreviewQuery({ schoolId });
+  const now = useClientNow(previewQuery.dataUpdatedAt);
+
+  const items = useMemo(() => {
+    const sourceItems = previewQuery.data?.items ?? [];
+    return sourceItems
+      .slice(0, GUARDIAN_KINDERGARTEN_NEWS_PREVIEW_LIMIT)
+      .map((item) => toListItemView(item, now));
+  }, [now, previewQuery.data]);
 
   return {
-    items: items.slice(0, GUARDIAN_KINDERGARTEN_NEWS_PREVIEW_LIMIT),
-    isPending,
+    items,
+    isPending: previewQuery.isLoading,
   };
 }
 
