@@ -16,10 +16,8 @@ import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhot
 import { Header } from '@widgets/Header';
 import { trackAlbumPhotoView } from '@shared/lib/analytics';
 import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
-import { isNativeWebView } from '@shared/lib/device';
-import { useSaveImage, useShareAlbumPhoto, type ShareAlbumPhotoPhase } from '@shared/lib/media';
+import { useSaveImage, useShareAlbumPhoto } from '@shared/lib/media';
 import { AlbumImage } from '@shared/ui/album-image';
-import { RingLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 const FOCUSABLE_SELECTOR =
@@ -53,8 +51,6 @@ function GuardianAlbumPhotoDetail({
   const [isGridOpen, setIsGridOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [sharePhase, setSharePhase] = useState<ShareAlbumPhotoPhase | null>(null);
-  const [isNative, setIsNative] = useState<boolean | null>(null);
   const [failedPhotoIds, setFailedPhotoIds] = useState<Set<string>>(() => {
     return new Set(photos.filter((photo) => photo.hasLoadError).map((photo) => photo.id));
   });
@@ -67,9 +63,8 @@ function GuardianAlbumPhotoDetail({
   const isSaveInFlightRef = useRef(false);
   const isShareInFlightRef = useRef(false);
   const saveImage = useSaveImage();
-  const shareAlbumPhoto = useShareAlbumPhoto();
-
   const currentPhoto = photos[activeIndex];
+  const { shareAlbumPhoto, isWebShareReady } = useShareAlbumPhoto(currentPhoto?.url);
   const current = activeIndex + 1;
   const total = photos.length;
   const isBookmarked = currentPhoto
@@ -255,12 +250,17 @@ function GuardianAlbumPhotoDetail({
     }
   }, [currentPhoto, detail.saveFailedToast.nativeTitle, detail.saveSuccessToast.nativeTitle, isCurrentLoadError, isSaving, saveImage]);
 
-  useEffect(() => {
-    setIsNative(isNativeWebView());
-  }, []);
-
   const handleShareClick = useCallback(async () => {
-    if (!currentPhoto || isCurrentLoadError || isShareInFlightRef.current || isSharing || isSaving) return;
+    if (
+      !currentPhoto ||
+      isCurrentLoadError ||
+      !isWebShareReady ||
+      isShareInFlightRef.current ||
+      isSharing ||
+      isSaving
+    ) {
+      return;
+    }
 
     isShareInFlightRef.current = true;
     setIsSharing(true);
@@ -270,7 +270,6 @@ function GuardianAlbumPhotoDetail({
         url: currentPhoto.url,
         savingMessage: detail.shareSavingMessage,
         sendingMessage: detail.shareSendingMessage,
-        onPhase: setSharePhase,
       });
 
       if (shared) return;
@@ -287,7 +286,6 @@ function GuardianAlbumPhotoDetail({
     } finally {
       isShareInFlightRef.current = false;
       setIsSharing(false);
-      setSharePhase(null);
     }
   }, [
     currentPhoto,
@@ -297,6 +295,7 @@ function GuardianAlbumPhotoDetail({
     isCurrentLoadError,
     isSaving,
     isSharing,
+    isWebShareReady,
     shareAlbumPhoto,
   ]);
 
@@ -442,7 +441,7 @@ function GuardianAlbumPhotoDetail({
                 type='button'
                 className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.shareAriaLabel}
-                disabled={isSharing || isSaving || isCurrentLoadError}
+                disabled={!isWebShareReady || isSharing || isSaving || isCurrentLoadError}
                 onClick={handleShareClick}
               >
                 <Icon icon='Share' className='text-fill-secondary-700 size-6' />
@@ -502,22 +501,6 @@ function GuardianAlbumPhotoDetail({
           </div>
         </div>
 
-        {sharePhase && isNative === false ? (
-          <div
-            className='absolute inset-0 z-30 flex items-center justify-center bg-[rgb(15,20,26)]/70 px-10'
-            role='alertdialog'
-            aria-modal='true'
-            aria-busy='true'
-            aria-label={sharePhase === 'saving' ? detail.shareSavingMessage : detail.shareSendingMessage}
-          >
-            <div className='radius-r4 bg-bg-0 flex w-full max-w-[280px] flex-col items-center gap-4 px-6 py-8'>
-              <RingLoadingSpinner size={40} />
-              <p className='body1-bold text-text-primary text-center'>
-                {sharePhase === 'saving' ? detail.shareSavingMessage : detail.shareSendingMessage}
-              </p>
-            </div>
-          </div>
-        ) : null}
       </div>
       </RemoveScroll>
 

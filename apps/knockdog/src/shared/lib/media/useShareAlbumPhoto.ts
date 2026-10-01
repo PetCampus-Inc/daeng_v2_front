@@ -1,17 +1,13 @@
 import { METHODS, BridgeException } from '@knockdog/bridge-core';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useBridge } from '@shared/lib/bridge/BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
-
-type ShareAlbumPhotoPhase = 'saving' | 'sending';
 
 interface ShareAlbumPhotoParams {
   url: string;
   savingMessage: string;
   sendingMessage: string;
-  /** 웹 공유 시트용 로딩 문구. 네이티브는 브리지가 오버레이를 직접 바꾼다. */
-  onPhase?: (phase: ShareAlbumPhotoPhase | null) => void;
 }
 
 function toAbsoluteUrl(url: string) {
@@ -56,54 +52,86 @@ function pickWebSharePayload(file: File, absoluteUrl: string): ShareData {
   return withLink;
 }
 
-async function shareAlbumPhotoWeb({
-  url,
-  onPhase,
-}: ShareAlbumPhotoParams): Promise<boolean> {
+function isShareCancel(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
+function needsWebShareFile(url: string | null | undefined) {
+  if (!url) return false;
   if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') return false;
+  return !isNativeWebView();
+}
 
-  onPhase?.('saving');
+/** 클릭 턴 안에서 share()를 호출한다. 그 전에 await 하면 사용자 제스처가 끊긴다. */
+function shareAlbumPhotoWeb(url: string, file: File | undefined): Promise<boolean> {
+  if (!file || typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
+    return Promise.resolve(false);
+  }
 
+  const absoluteUrl = toAbsoluteUrl(url);
+  let sharePromise: Promise<void>;
   try {
-    const absoluteUrl = toAbsoluteUrl(url);
-    const file = await fetchShareFile(absoluteUrl, `album-${Date.now()}.jpg`);
-    if (!file) return false;
+    sharePromise = navigator.share(pickWebSharePayload(file, absoluteUrl));
+  } catch (error) {
+    if (isShareCancel(error)) return Promise.resolve(true);
+    console.error('[WEB] shareAlbumPhoto error', error);
+    return Promise.resolve(false);
+  }
 
-    onPhase?.(null);
-
-    const payload = pickWebSharePayload(file, absoluteUrl);
-
-    try {
-      await navigator.share(payload);
-      return true;
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return true;
+  return sharePromise.then(
+    () => true,
+    (error: unknown) => {
+      if (isShareCancel(error)) return true;
       console.error('[WEB] shareAlbumPhoto error', error);
       return false;
     }
-  } catch (error) {
-    console.error('[WEB] shareAlbumPhoto error', error);
-    return false;
-  } finally {
-    onPhase?.(null);
-  }
+  );
 }
 
-function useShareAlbumPhoto() {
+function useShareAlbumPhoto(url: string | null | undefined) {
   const bridge = useBridge();
+  const fileCacheRef = useRef(new Map<string, File>());
+  const [readyUrl, setReadyUrl] = useState<string | null>(null);
+  const absoluteUrl = url ? toAbsoluteUrl(url) : null;
+  const isWebShareReady =
+    !needsWebShareFile(url) || (absoluteUrl != null && readyUrl === absoluteUrl);
 
-  return useCallback(
+  useEffect(() => {
+    if (!absoluteUrl || !needsWebShareFile(url) || readyUrl === absoluteUrl) return;
+
+    let cancelled = false;
+    fetchShareFile(absoluteUrl, `album-${Date.now()}.jpg`)
+      .then((file) => {
+        if (cancelled || !file) return;
+        fileCacheRef.current.clear();
+        fileCacheRef.current.set(absoluteUrl, file);
+        setReadyUrl(absoluteUrl);
+      })
+      .catch((error: unknown) => {
+        console.error('[WEB] shareAlbumPhoto prepare error', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [absoluteUrl, readyUrl, url]);
+
+  const shareAlbumPhoto = useCallback(
     async function shareAlbumPhoto(params: ShareAlbumPhotoParams): Promise<boolean> {
-      const { url, savingMessage, sendingMessage } = params;
-      if (!url) return false;
+      const { url: shareUrl, savingMessage, sendingMessage } = params;
+      if (!shareUrl) return false;
 
       if (isNativeWebView()) {
         try {
-          const response = await bridge.request(METHODS.shareImage, {
-            url: toAbsoluteUrl(url),
-            savingMessage,
-            sendingMessage,
-          });
+          const response = await bridge.request(
+            METHODS.shareImage,
+            {
+              url: toAbsoluteUrl(shareUrl),
+              savingMessage,
+              sendingMessage,
+            },
+            { timeoutMs: null }
+          );
 
           return Boolean(response?.shared);
         } catch (error) {
@@ -122,11 +150,13 @@ function useShareAlbumPhoto() {
         }
       }
 
-      return shareAlbumPhotoWeb(params);
+      const absoluteUrl = toAbsoluteUrl(shareUrl);
+      return shareAlbumPhotoWeb(shareUrl, fileCacheRef.current.get(absoluteUrl));
     },
     [bridge]
   );
+
+  return { shareAlbumPhoto, isWebShareReady };
 }
 
 export { useShareAlbumPhoto };
-export type { ShareAlbumPhotoPhase };
