@@ -436,7 +436,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className='max-w-[min(358px,calc(100%-32px))]'>
           <AlertDialogHeader>
             <AlertDialogTitle>{write.unsavedExitTitle}</AlertDialogTitle>
             <AlertDialogDescription>{write.unsavedExitDescription}</AlertDialogDescription>
