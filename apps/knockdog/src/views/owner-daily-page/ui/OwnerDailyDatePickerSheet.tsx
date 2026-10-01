@@ -1,10 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type WheelEvent,
+} from 'react';
 import { ActionButton } from '@knockdog/ui';
 
 import {
-  addDays,
   formatKstDateLabel,
   formatKstDayLabel,
   isAfterDay,
@@ -44,15 +50,13 @@ function getDateWithPartChanged(date: Date, part: 'year' | 'month' | 'day', offs
   }
 
   if (part === 'month') {
-    const nextMonthDate = new Date(year, month + offset, 1);
-    return new Date(
-      nextMonthDate.getFullYear(),
-      nextMonthDate.getMonth(),
-      Math.min(day, getDaysInMonth(nextMonthDate.getFullYear(), nextMonthDate.getMonth()))
-    );
+    const nextMonth = ((month + offset) % 12 + 12) % 12;
+    return new Date(year, nextMonth, Math.min(day, getDaysInMonth(year, nextMonth)));
   }
 
-  return addDays(date, offset);
+  const daysInMonth = getDaysInMonth(year, month);
+  const nextDay = ((day - 1 + offset + daysInMonth) % daysInMonth) + 1;
+  return new Date(year, month, nextDay);
 }
 
 interface DateWheelColumnProps {
@@ -60,7 +64,7 @@ interface DateWheelColumnProps {
   selectedDate: Date;
   minDate: Date;
   maxDate: Date;
-  onChange: (part: 'year' | 'month' | 'day', offset: number) => void;
+  onChange: (date: Date) => void;
 }
 
 function getDatePartLabel(date: Date, part: DateWheelColumnProps['part']) {
@@ -69,39 +73,188 @@ function getDatePartLabel(date: Date, part: DateWheelColumnProps['part']) {
   return `${date.getDate()}일`;
 }
 
-function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: DateWheelColumnProps) {
+function DateWheelColumn({
+  part,
+  selectedDate,
+  minDate,
+  maxDate,
+  onChange,
+}: DateWheelColumnProps) {
+  const rowHeight = 52;
+  const maxVisibleOffset = 15;
   const dragStartYRef = useRef<number | null>(null);
-  const previousDate = getDateWithPartChanged(selectedDate, part, -1);
-  const nextDate = getDateWithPartChanged(selectedDate, part, 1);
-  const canGoPrevious = !isBeforeDay(previousDate, minDate) && !isAfterDay(previousDate, maxDate);
-  const canGoNext = !isBeforeDay(nextDate, minDate) && !isAfterDay(nextDate, maxDate);
+  const dragOffsetRef = useRef(0);
+  const tappedDateOffsetRef = useRef<number | null>(null);
+  const queuedTapRef = useRef(false);
+  const pendingChangeRef = useRef<number | null>(null);
+  const pendingTargetDateRef = useRef<Date | null>(null);
+  const queuedDateChangesRef = useRef<Array<{ offset: number; targetDate: Date }>>([]);
+  const pendingSelectedDateRef = useRef<number | null>(null);
+  const transitionFallbackRef = useRef<number | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDateChanging, setIsDateChanging] = useState(false);
+  const [isRebasing, setIsRebasing] = useState(false);
+  const [wheelBaseDate, setWheelBaseDate] = useState(selectedDate);
+  const baseDate = isDateChanging ? wheelBaseDate : selectedDate;
+  const wheelOffsets = Array.from({ length: maxVisibleOffset * 2 + 1 }, (_, index) => index - maxVisibleOffset);
+  const getOffsetLimit = (direction: -1 | 1) => {
+    let limit = 0;
+    for (let step = 1; step <= maxVisibleOffset; step += 1) {
+      const date = getDateWithPartChanged(baseDate, part, direction * step);
+      if (isBeforeDay(date, minDate) || isAfterDay(date, maxDate)) break;
+      limit = step;
+    }
+    return limit;
+  };
+  const previousLimit = getOffsetLimit(-1);
+  const nextLimit = getOffsetLimit(1);
+  const canGoPrevious = previousLimit > 0;
+  const canGoNext = nextLimit > 0;
+
+  const changeDate = (date: Date) => {
+    onChange(date);
+  };
+
+  const clearTransitionFallback = () => {
+    if (transitionFallbackRef.current == null) return;
+    window.clearTimeout(transitionFallbackRef.current);
+    transitionFallbackRef.current = null;
+  };
+
+  const completeDateChange = () => {
+    clearTransitionFallback();
+
+    const offset = pendingChangeRef.current;
+    const nextDate = pendingTargetDateRef.current;
+    if (offset == null || nextDate == null) return;
+
+    pendingChangeRef.current = null;
+    pendingTargetDateRef.current = null;
+    setIsRebasing(true);
+    setWheelBaseDate(nextDate);
+    dragOffsetRef.current = 0;
+    setDragOffset(0);
+    const nextChange = queuedDateChangesRef.current.shift();
+
+    if (nextChange != null) {
+      pendingChangeRef.current = nextChange.offset;
+      pendingTargetDateRef.current = nextChange.targetDate;
+      pendingSelectedDateRef.current = nextChange.targetDate.getTime();
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          setIsRebasing(false);
+          dragOffsetRef.current = -nextChange.offset * rowHeight;
+          setDragOffset(-nextChange.offset * rowHeight);
+          transitionFallbackRef.current = window.setTimeout(completeDateChange, 200);
+        })
+      );
+      return;
+    }
+
+    setIsDateChanging(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setIsRebasing(false)));
+  };
+
+  const animateDateChange = (offset: number) => {
+    if (offset === 0) return;
+
+    if (pendingChangeRef.current != null) {
+      const pendingTargetDate = pendingTargetDateRef.current ?? wheelBaseDate;
+      const targetDate = getDateWithPartChanged(pendingTargetDate, part, offset);
+      queuedDateChangesRef.current.push({ offset, targetDate });
+      changeDate(targetDate);
+      return;
+    }
+
+    const nextDate = getDateWithPartChanged(baseDate, part, offset);
+    pendingChangeRef.current = offset;
+    pendingTargetDateRef.current = nextDate;
+    pendingSelectedDateRef.current = nextDate.getTime();
+    setWheelBaseDate(baseDate);
+    setIsDateChanging(true);
+    changeDate(nextDate);
+    dragOffsetRef.current = -offset * rowHeight;
+    setDragOffset(-offset * rowHeight);
+    transitionFallbackRef.current = window.setTimeout(completeDateChange, 200);
+  };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const tappedDateOffset = (event.target as HTMLElement)
+      .closest<HTMLElement>('[data-date-offset]')
+      ?.dataset.dateOffset;
+    const dateOffset = tappedDateOffset == null ? null : Number(tappedDateOffset);
+
+    if (pendingChangeRef.current != null) {
+      queuedTapRef.current = true;
+      if (dateOffset != null) animateDateChange(dateOffset);
+      return;
+    }
+
+    queuedTapRef.current = false;
+    if (pendingSelectedDateRef.current != null) {
+      pendingSelectedDateRef.current = null;
+      setWheelBaseDate(selectedDate);
+    }
     dragStartYRef.current = event.clientY;
+    tappedDateOffsetRef.current = dateOffset;
+    dragOffsetRef.current = 0;
+    setDragOffset(0);
+    setIsDragging(true);
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const dragStartY = dragStartYRef.current;
-    dragStartYRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
     if (dragStartY == null) return;
 
     const distance = event.clientY - dragStartY;
-    if (distance <= -24 && canGoNext) onChange(part, 1);
-    if (distance >= 24 && canGoPrevious) onChange(part, -1);
+    const minOffset = -nextLimit * rowHeight;
+    const maxOffset = previousLimit * rowHeight;
+    const nextDragOffset = Math.max(minOffset, Math.min(maxOffset, distance));
+    dragOffsetRef.current = nextDragOffset;
+    setDragOffset(nextDragOffset);
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (queuedTapRef.current) {
+      queuedTapRef.current = false;
+      return;
+    }
+
+    const offset = Math.round(-dragOffsetRef.current / rowHeight);
+    const tappedDateOffset = offset === 0 ? tappedDateOffsetRef.current : null;
+
+    dragStartYRef.current = null;
+    tappedDateOffsetRef.current = null;
+    setIsDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    if (offset !== 0) {
+      animateDateChange(offset);
+      return;
+    }
+
+    if (tappedDateOffset != null) {
+      animateDateChange(tappedDateOffset);
+      return;
+    }
+
+    dragOffsetRef.current = 0;
+    setDragOffset(0);
   };
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (event.deltaY > 0 && canGoNext) onChange(part, 1);
-    if (event.deltaY < 0 && canGoPrevious) onChange(part, -1);
+    if (pendingChangeRef.current != null) return;
+    if (event.deltaY > 0 && canGoNext) changeDate(getDateWithPartChanged(baseDate, part, 1));
+    if (event.deltaY < 0 && canGoPrevious) changeDate(getDateWithPartChanged(baseDate, part, -1));
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowUp' && canGoPrevious) onChange(part, -1);
-    if (event.key === 'ArrowDown' && canGoNext) onChange(part, 1);
+    if (pendingChangeRef.current != null) return;
+    if (event.key === 'ArrowUp' && canGoPrevious) changeDate(getDateWithPartChanged(baseDate, part, -1));
+    if (event.key === 'ArrowDown' && canGoNext) changeDate(getDateWithPartChanged(baseDate, part, 1));
   };
 
   return (
@@ -109,24 +262,49 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
       role='spinbutton'
       tabIndex={0}
       aria-label={`${part === 'year' ? '연도' : part === 'month' ? '월' : '일'} 선택`}
-      aria-valuetext={getDatePartLabel(selectedDate, part)}
-      className='z-10 flex h-[152px] flex-1 touch-none select-none flex-col gap-1'
+      aria-valuetext={getDatePartLabel(baseDate, part)}
+      className='z-10 flex h-[152px] flex-1 flex-col touch-none select-none overflow-hidden'
       onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={() => {
         dragStartYRef.current = null;
+        tappedDateOffsetRef.current = null;
+        dragOffsetRef.current = 0;
+        setDragOffset(0);
+        setIsDragging(false);
       }}
       onWheel={handleWheel}
       onKeyDown={handleKeyDown}
     >
-      <div className={`flex h-12 items-center justify-center ${canGoPrevious ? '' : 'opacity-0'}`}>
-        <span className='h3-medium text-text-tertiary'>{getDatePartLabel(previousDate, part)}</span>
-      </div>
-      <div className='flex h-12 items-center justify-center'>
-        <span className='h3-extrabold text-text-accent'>{getDatePartLabel(selectedDate, part)}</span>
-      </div>
-      <div className={`flex h-12 items-center justify-center ${canGoNext ? '' : 'opacity-0'}`}>
-        <span className='h3-medium text-text-tertiary'>{getDatePartLabel(nextDate, part)}</span>
+      <div
+        className='flex w-full flex-col gap-1'
+        onTransitionEnd={(event) => {
+          if (event.propertyName !== 'transform') return;
+          completeDateChange();
+        }}
+        style={{
+          transform: `translateY(${-maxVisibleOffset * rowHeight + rowHeight + dragOffset}px)`,
+          transition: isDragging || isRebasing ? 'none' : 'transform 150ms ease-out',
+        }}
+      >
+        {wheelOffsets.map((offset) => {
+          const date = getDateWithPartChanged(baseDate, part, offset);
+          const isSelectable = !isBeforeDay(date, minDate) && !isAfterDay(date, maxDate);
+          const isSelected = Math.round(-dragOffset / rowHeight) === offset;
+
+          return (
+            <div
+              key={offset}
+              data-date-offset={isSelectable && offset !== 0 ? offset : undefined}
+              className={`flex h-12 items-center justify-center ${isSelectable ? '' : 'opacity-0'}`}
+            >
+              <span className={isSelected ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>
+                {getDatePartLabel(date, part)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -142,11 +320,13 @@ function OwnerDailyDatePickerSheet({
 }: OwnerDailyDatePickerSheetProps) {
   const today = startOfDay(new Date());
   const [selectedDate, setSelectedDate] = useState(() => clampDate(initialDate, minDate, maxDate));
+  const selectedDateRef = useRef(selectedDate);
   const selectedDateLabel = `${selectedDate.getFullYear() === today.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
 
   useEffect(() => {
     if (!isOpen) return;
     const next = clampDate(initialDate, minDate, maxDate);
+    selectedDateRef.current = next;
     setSelectedDate(next);
   }, [isOpen, initialDate, minDate, maxDate]);
 
@@ -158,20 +338,19 @@ function OwnerDailyDatePickerSheet({
 
   const handleSelectDate = (date: Date) => {
     const next = clampDate(date, minDate, maxDate);
+    selectedDateRef.current = next;
     setSelectedDate(next);
   };
 
-  const handleChangeDatePart = (part: DateWheelColumnProps['part'], offset: number) => {
-    handleSelectDate(getDateWithPartChanged(selectedDate, part, offset));
-  };
+  const handleChangeDatePart = (date: Date) => handleSelectDate(date);
 
   const handleConfirm = () => {
-    onConfirm(selectedDate);
+    onConfirm(selectedDateRef.current);
     close();
   };
 
   return (
-    <BottomSheet.Root open={isOpen} onOpenChange={handleClose}>
+    <BottomSheet.Root open={isOpen} onOpenChange={handleClose} handleOnly>
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal flex h-[368px] max-h-[calc(100dvh-32px)] flex-col rounded-t-[20px]'>
         <BottomSheet.Handle className='mt-3 mb-4 h-1 w-9' />
