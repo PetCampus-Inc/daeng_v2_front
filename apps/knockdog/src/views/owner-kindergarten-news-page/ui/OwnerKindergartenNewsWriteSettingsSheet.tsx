@@ -96,10 +96,10 @@ function OwnerKindergartenNewsWriteSettingsSheet({
         if (!open) close();
       }}
     >
-      <BottomSheet.Overlay style={{ zIndex: 'var(--z-index-overlay)' }} />
+      <BottomSheet.Overlay className='z-overlay' style={{ zIndex: 'var(--z-index-overlay)' }} />
       <BottomSheet.Body
-        className='relative pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'
-        style={{ zIndex: 'var(--z-index-modal)' }}
+        className='z-modal relative pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'
+        style={{ zIndex: 'var(--z-index-modal)', bottom: 'var(--bottom-bar-height, 0px)' }}
       >
         <BottomSheet.Handle />
         <BottomSheet.Header className='items-center justify-between px-4!'>

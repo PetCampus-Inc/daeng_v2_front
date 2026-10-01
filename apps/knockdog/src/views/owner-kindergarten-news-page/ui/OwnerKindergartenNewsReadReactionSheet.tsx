@@ -139,8 +139,11 @@ function OwnerKindergartenNewsReadReactionSheet({
 
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={handleOpenChange}>
-      <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal flex max-h-[calc(100dvh-80px)] flex-col'>
+      <BottomSheet.Overlay className='z-overlay' style={{ zIndex: 'var(--z-index-overlay)' }} />
+      <BottomSheet.Body
+        className='z-modal flex max-h-[calc(100dvh-80px-var(--bottom-bar-height,0px))] flex-col pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'
+        style={{ zIndex: 'var(--z-index-modal)', bottom: 'var(--bottom-bar-height, 0px)' }}
+      >
         <BottomSheet.Handle />
         <BottomSheet.Header className='items-center justify-between px-4!'>
           <BottomSheet.Title>{readReactionSheet.title}</BottomSheet.Title>

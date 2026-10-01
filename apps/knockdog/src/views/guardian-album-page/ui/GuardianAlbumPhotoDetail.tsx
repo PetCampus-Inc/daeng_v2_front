@@ -14,10 +14,9 @@ import {
 } from '@views/owner-album-page/lib/groupAlbumPhotosByDate';
 import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhoto';
 import { Header } from '@widgets/Header';
-import { useShare } from '@shared/lib/device/useShare';
 import { trackAlbumPhotoView } from '@shared/lib/analytics';
 import { useHistoryBackTrap } from '@shared/lib/useHistoryBackTrap';
-import { useSaveImage } from '@shared/lib/media';
+import { useSaveImage, useShareAlbumPhoto } from '@shared/lib/media';
 import { AlbumImage } from '@shared/ui/album-image';
 import { toast } from '@shared/ui/toast';
 
@@ -51,6 +50,7 @@ function GuardianAlbumPhotoDetail({
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isGridOpen, setIsGridOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [failedPhotoIds, setFailedPhotoIds] = useState<Set<string>>(() => {
     return new Set(photos.filter((photo) => photo.hasLoadError).map((photo) => photo.id));
   });
@@ -61,10 +61,10 @@ function GuardianAlbumPhotoDetail({
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const isSaveInFlightRef = useRef(false);
+  const isShareInFlightRef = useRef(false);
   const saveImage = useSaveImage();
-  const share = useShare();
-
   const currentPhoto = photos[activeIndex];
+  const { shareAlbumPhoto, isWebShareReady } = useShareAlbumPhoto(currentPhoto?.url);
   const current = activeIndex + 1;
   const total = photos.length;
   const isBookmarked = currentPhoto
@@ -251,20 +251,53 @@ function GuardianAlbumPhotoDetail({
   }, [currentPhoto, detail.saveFailedToast.nativeTitle, detail.saveSuccessToast.nativeTitle, isCurrentLoadError, isSaving, saveImage]);
 
   const handleShareClick = useCallback(async () => {
-    if (!currentPhoto || isCurrentLoadError) return;
+    if (
+      !currentPhoto ||
+      isCurrentLoadError ||
+      !isWebShareReady ||
+      isShareInFlightRef.current ||
+      isSharing ||
+      isSaving
+    ) {
+      return;
+    }
 
-    // 상대경로 mock/이미지 URL도 OS 공유 시트에 절대경로로 전달
-    const shareUrl =
-      typeof window !== 'undefined'
-        ? new URL(currentPhoto.url, window.location.origin).href
-        : currentPhoto.url;
+    isShareInFlightRef.current = true;
+    setIsSharing(true);
 
-    await share({
-      title: '앨범 사진',
-      message: shareUrl,
-      url: shareUrl,
-    });
-  }, [currentPhoto, isCurrentLoadError, share]);
+    try {
+      const shared = await shareAlbumPhoto({
+        url: currentPhoto.url,
+        savingMessage: detail.shareSavingMessage,
+        sendingMessage: detail.shareSendingMessage,
+      });
+
+      if (shared) return;
+
+      toast({
+        nativeTitle: detail.shareFailedToast.nativeTitle,
+        title: detail.shareFailedToast.nativeTitle,
+      });
+    } catch {
+      toast({
+        nativeTitle: detail.shareFailedToast.nativeTitle,
+        title: detail.shareFailedToast.nativeTitle,
+      });
+    } finally {
+      isShareInFlightRef.current = false;
+      setIsSharing(false);
+    }
+  }, [
+    currentPhoto,
+    detail.shareFailedToast.nativeTitle,
+    detail.shareSavingMessage,
+    detail.shareSendingMessage,
+    isCurrentLoadError,
+    isSaving,
+    isSharing,
+    isWebShareReady,
+    shareAlbumPhoto,
+  ]);
 
   const handleFavoriteClick = useCallback(() => {
     if (!currentPhoto || !canToggleFavorite) return;
@@ -371,11 +404,16 @@ function GuardianAlbumPhotoDetail({
           </SwiperRoot>
 
           <div className='pointer-events-none absolute inset-x-0 bottom-5 z-10 flex justify-center'>
-            <div className='pointer-events-auto bg-bg-0 flex items-center gap-4 rounded-full px-6 py-4'>
+            <div
+              className={`bg-bg-0 flex items-center gap-4 rounded-full px-6 py-4 ${
+                isSharing ? 'pointer-events-none' : 'pointer-events-auto'
+              }`}
+            >
               <button
                 type='button'
-                className='inline-flex size-6 items-center justify-center'
+                className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.gridAriaLabel}
+                disabled={isSharing}
                 onClick={handleOpenGrid}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 디자인 제공 PNG 아이콘 */}
@@ -393,7 +431,7 @@ function GuardianAlbumPhotoDetail({
                 type='button'
                 className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.saveAriaLabel}
-                disabled={isSaving || isCurrentLoadError}
+                disabled={isSaving || isSharing || isCurrentLoadError}
                 onClick={handleSaveClick}
               >
                 <Icon icon='Download' className='text-fill-secondary-700 size-6' />
@@ -403,7 +441,7 @@ function GuardianAlbumPhotoDetail({
                 type='button'
                 className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.shareAriaLabel}
-                disabled={isCurrentLoadError}
+                disabled={!isWebShareReady || isSharing || isSaving || isCurrentLoadError}
                 onClick={handleShareClick}
               >
                 <Icon icon='Share' className='text-fill-secondary-700 size-6' />
@@ -414,7 +452,7 @@ function GuardianAlbumPhotoDetail({
                 className='inline-flex size-6 items-center justify-center disabled:opacity-50'
                 aria-label={detail.favoriteAriaLabel}
                 aria-pressed={isBookmarked}
-                disabled={!canToggleFavorite}
+                disabled={!canToggleFavorite || isSharing}
                 onClick={handleFavoriteClick}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 디자인 제공 PNG 아이콘 */}
@@ -444,6 +482,7 @@ function GuardianAlbumPhotoDetail({
                     thumbnailRefs.current[index] = node;
                   }}
                   type='button'
+                  disabled={isSharing}
                   onClick={() => handleThumbnailClick(index)}
                   aria-label={detail.thumbnailAriaLabel(index)}
                   aria-current={isSelected}
@@ -461,6 +500,7 @@ function GuardianAlbumPhotoDetail({
             })}
           </div>
         </div>
+
       </div>
       </RemoveScroll>
 

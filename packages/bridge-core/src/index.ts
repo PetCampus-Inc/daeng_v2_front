@@ -29,6 +29,8 @@ export type {
   PickImageFailureReason,
   SaveImageToGalleryParams,
   SaveImageToGalleryResult,
+  ShareImageParams,
+  ShareImageResult,
   PutFileToPresignedUrlParams,
   PutFileToPresignedUrlResult,
 } from './domains/media';

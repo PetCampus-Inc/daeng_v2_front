@@ -85,6 +85,8 @@ const guardianAlbumContent = {
     gridAriaLabel: '모아보기',
     saveAriaLabel: '저장',
     shareAriaLabel: '공유',
+    shareSavingMessage: '사진을 임시저장 중입니다',
+    shareSendingMessage: '메시지를 전송 중입니다',
     favoriteAriaLabel: '즐겨찾기',
     gridIconSrc: '/images/ico_album_view_grid.png',
     favoriteIconDefaultSrc: '/images/ico_photo_like_default.png',

@@ -282,7 +282,7 @@ const route = {
         root: '/compare/news/search',
       },
       detail: {
-        /** 보호자 유치원 소식 상세 */
+        /** 보호자 유치원 소식 상세. query: schoolId?, source?=inbox|push (알림 진입 시 뒤로가기 → 목록) */
         root: '/compare/news/[id]',
       },
     },

@@ -4,6 +4,7 @@ export type PushDestination =
   | { kind: 'ownerMemberApprovals'; dedupeKey: string }
   | { kind: 'connectionApplyStatus'; dedupeKey: string }
   | { kind: 'album'; schoolId: string; date: string; petId?: string; dedupeKey: string }
+  | { kind: 'kindergartenNews'; newsId: string; schoolId?: string; dedupeKey: string }
   | { kind: 'fallback' };
 
 type UnknownRecord = Record<string, unknown>;
@@ -29,6 +30,12 @@ const GUARDIAN_KINDERGARTEN_TYPES = new Set([
 const CONNECTION_APPLY_TYPES = new Set(['connection_apply_sent', 'SCHOOL_MEMBERSHIP_REJECTED']);
 
 const ALBUM_TYPES = new Set(['album_photo_uploaded', 'ALBUM_PHOTO_UPLOADED']);
+
+const KINDERGARTEN_NEWS_TYPES = new Set([
+  'KINDERGARTEN_NEWS_CREATED',
+  'KINDERGARTEN_NEWS_UPDATED',
+  'KINDERGARTEN_NEWS_REMINDED',
+]);
 
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -135,6 +142,19 @@ export function resolvePushDestination(value: unknown): PushDestination {
     const petId = toPositiveId(payload.petId);
     return schoolId && date
       ? { kind: 'album', schoolId, date, petId: petId ?? undefined, dedupeKey: `${payload.type}:${schoolId}:${date}` }
+      : { kind: 'fallback' };
+  }
+
+  if (KINDERGARTEN_NEWS_TYPES.has(payload.type)) {
+    const newsId = toPositiveId(payload.newsId);
+    const schoolId = toPositiveId(payload.schoolId);
+    return newsId
+      ? {
+          kind: 'kindergartenNews',
+          newsId,
+          schoolId: schoolId ?? undefined,
+          dedupeKey: `${payload.type}:${newsId}`,
+        }
       : { kind: 'fallback' };
   }
 

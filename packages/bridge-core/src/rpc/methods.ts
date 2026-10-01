@@ -44,6 +44,7 @@ const METHODS = {
 
   // media
   saveImageToGallery: 'media.saveImageToGallery',
+  shareImage: 'media.shareImage',
   putFileToPresignedUrl: 'media.putFileToPresignedUrl',
 
   // auth
