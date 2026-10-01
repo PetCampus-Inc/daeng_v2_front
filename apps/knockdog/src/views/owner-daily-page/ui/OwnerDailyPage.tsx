@@ -443,7 +443,6 @@ function OwnerDailyPage() {
 
     const handleNativeTabFocus = () => {
       syncTabFromNavigation();
-      setSelectedDate(dateNavToday);
       window.setTimeout(syncTabFromNavigation, 0);
       window.setTimeout(syncTabFromNavigation, 100);
     };
