@@ -67,7 +67,7 @@ function OwnerHomeQuickMenu({
         >
           <span className='radius-r2 bg-bg-0 relative flex aspect-square w-full items-center justify-center overflow-hidden p-1 shadow-[0px_6px_12px_0px_rgba(0,0,0,0.02)]'>
             <span className='relative size-[60px] shrink-0'>
-              <Image src={item.iconSrc} alt='' fill className='object-contain' sizes='60px' />
+              <Image src={item.iconSrc} alt='' fill unoptimized className='object-contain' sizes='60px' />
             </span>
             {'badge' in item && item.badge ? (
               <span className='bg-fill-secondary-600 absolute top-1 right-1 flex min-w-5 flex-col items-end justify-center rounded-xl px-1 py-0.5'>
