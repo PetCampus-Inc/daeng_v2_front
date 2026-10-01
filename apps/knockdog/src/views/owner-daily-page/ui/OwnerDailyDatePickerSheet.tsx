@@ -50,12 +50,8 @@ function getDateWithPartChanged(date: Date, part: 'year' | 'month' | 'day', offs
   }
 
   if (part === 'month') {
-    const nextMonthDate = new Date(year, month + offset, 1);
-    return new Date(
-      nextMonthDate.getFullYear(),
-      nextMonthDate.getMonth(),
-      Math.min(day, getDaysInMonth(nextMonthDate.getFullYear(), nextMonthDate.getMonth()))
-    );
+    const nextMonth = ((month + offset) % 12 + 12) % 12;
+    return new Date(year, nextMonth, Math.min(day, getDaysInMonth(year, nextMonth)));
   }
 
   const daysInMonth = getDaysInMonth(year, month);
@@ -68,7 +64,7 @@ interface DateWheelColumnProps {
   selectedDate: Date;
   minDate: Date;
   maxDate: Date;
-  onChange: (part: 'year' | 'month' | 'day', offset: number) => void;
+  onChange: (date: Date) => void;
 }
 
 function getDatePartLabel(date: Date, part: DateWheelColumnProps['part']) {
@@ -92,7 +88,7 @@ function DateWheelColumn({
   const queuedTapRef = useRef(false);
   const pendingChangeRef = useRef<number | null>(null);
   const pendingTargetDateRef = useRef<Date | null>(null);
-  const queuedChangeOffsetsRef = useRef<number[]>([]);
+  const queuedDateChangesRef = useRef<Array<{ offset: number; targetDate: Date }>>([]);
   const pendingSelectedDateRef = useRef<number | null>(null);
   const transitionFallbackRef = useRef<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
@@ -116,9 +112,8 @@ function DateWheelColumn({
   const canGoPrevious = previousLimit > 0;
   const canGoNext = nextLimit > 0;
 
-  const changeDate = (offset: number) => {
-    if (offset === 0) return;
-    onChange(part, offset);
+  const changeDate = (date: Date) => {
+    onChange(date);
   };
 
   const clearTransitionFallback = () => {
@@ -140,18 +135,17 @@ function DateWheelColumn({
     setWheelBaseDate(nextDate);
     dragOffsetRef.current = 0;
     setDragOffset(0);
-    const nextOffset = queuedChangeOffsetsRef.current.shift();
+    const nextChange = queuedDateChangesRef.current.shift();
 
-    if (nextOffset != null) {
-      const queuedDate = getDateWithPartChanged(nextDate, part, nextOffset);
-      pendingChangeRef.current = nextOffset;
-      pendingTargetDateRef.current = queuedDate;
-      pendingSelectedDateRef.current = queuedDate.getTime();
+    if (nextChange != null) {
+      pendingChangeRef.current = nextChange.offset;
+      pendingTargetDateRef.current = nextChange.targetDate;
+      pendingSelectedDateRef.current = nextChange.targetDate.getTime();
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           setIsRebasing(false);
-          dragOffsetRef.current = -nextOffset * rowHeight;
-          setDragOffset(-nextOffset * rowHeight);
+          dragOffsetRef.current = -nextChange.offset * rowHeight;
+          setDragOffset(-nextChange.offset * rowHeight);
           transitionFallbackRef.current = window.setTimeout(completeDateChange, 200);
         })
       );
@@ -166,8 +160,10 @@ function DateWheelColumn({
     if (offset === 0) return;
 
     if (pendingChangeRef.current != null) {
-      queuedChangeOffsetsRef.current.push(offset);
-      changeDate(offset);
+      const pendingTargetDate = pendingTargetDateRef.current ?? wheelBaseDate;
+      const targetDate = getDateWithPartChanged(pendingTargetDate, part, offset);
+      queuedDateChangesRef.current.push({ offset, targetDate });
+      changeDate(targetDate);
       return;
     }
 
@@ -175,8 +171,9 @@ function DateWheelColumn({
     pendingChangeRef.current = offset;
     pendingTargetDateRef.current = nextDate;
     pendingSelectedDateRef.current = nextDate.getTime();
+    setWheelBaseDate(baseDate);
     setIsDateChanging(true);
-    changeDate(offset);
+    changeDate(nextDate);
     dragOffsetRef.current = -offset * rowHeight;
     setDragOffset(-offset * rowHeight);
     transitionFallbackRef.current = window.setTimeout(completeDateChange, 200);
@@ -194,6 +191,7 @@ function DateWheelColumn({
       return;
     }
 
+    queuedTapRef.current = false;
     if (pendingSelectedDateRef.current != null) {
       pendingSelectedDateRef.current = null;
       setWheelBaseDate(selectedDate);
@@ -248,13 +246,15 @@ function DateWheelColumn({
   };
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (event.deltaY > 0 && canGoNext) changeDate(1);
-    if (event.deltaY < 0 && canGoPrevious) changeDate(-1);
+    if (pendingChangeRef.current != null) return;
+    if (event.deltaY > 0 && canGoNext) changeDate(getDateWithPartChanged(baseDate, part, 1));
+    if (event.deltaY < 0 && canGoPrevious) changeDate(getDateWithPartChanged(baseDate, part, -1));
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowUp' && canGoPrevious) changeDate(-1);
-    if (event.key === 'ArrowDown' && canGoNext) changeDate(1);
+    if (pendingChangeRef.current != null) return;
+    if (event.key === 'ArrowUp' && canGoPrevious) changeDate(getDateWithPartChanged(baseDate, part, -1));
+    if (event.key === 'ArrowDown' && canGoNext) changeDate(getDateWithPartChanged(baseDate, part, 1));
   };
 
   return (
@@ -320,11 +320,13 @@ function OwnerDailyDatePickerSheet({
 }: OwnerDailyDatePickerSheetProps) {
   const today = startOfDay(new Date());
   const [selectedDate, setSelectedDate] = useState(() => clampDate(initialDate, minDate, maxDate));
+  const selectedDateRef = useRef(selectedDate);
   const selectedDateLabel = `${selectedDate.getFullYear() === today.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
 
   useEffect(() => {
     if (!isOpen) return;
     const next = clampDate(initialDate, minDate, maxDate);
+    selectedDateRef.current = next;
     setSelectedDate(next);
   }, [isOpen, initialDate, minDate, maxDate]);
 
@@ -336,15 +338,14 @@ function OwnerDailyDatePickerSheet({
 
   const handleSelectDate = (date: Date) => {
     const next = clampDate(date, minDate, maxDate);
+    selectedDateRef.current = next;
     setSelectedDate(next);
   };
 
-  const handleChangeDatePart = (part: DateWheelColumnProps['part'], offset: number) => {
-    handleSelectDate(getDateWithPartChanged(selectedDate, part, offset));
-  };
+  const handleChangeDatePart = (date: Date) => handleSelectDate(date);
 
   const handleConfirm = () => {
-    onConfirm(selectedDate);
+    onConfirm(selectedDateRef.current);
     close();
   };
 
