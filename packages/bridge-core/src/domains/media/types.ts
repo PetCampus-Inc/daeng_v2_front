@@ -103,6 +103,19 @@ interface SaveImageToGalleryResult {
   saved: boolean;
 }
 
+interface ShareImageParams {
+  /** 공유할 이미지 URL */
+  url: string;
+  /** 임시 파일로 받는 동안 네이티브 로딩에 보여줄 문구 */
+  savingMessage: string;
+  /** 공유 시트가 닫힌 뒤 대상 앱으로 넘기는 동안 보여줄 문구 */
+  sendingMessage: string;
+}
+
+interface ShareImageResult {
+  shared: boolean;
+}
+
 interface PutFileToPresignedUrlParams {
   /** 로컬 파일 URI */
   uri: string;
@@ -123,6 +136,8 @@ export type {
   PickImageFailureReason,
   SaveImageToGalleryParams,
   SaveImageToGalleryResult,
+  ShareImageParams,
+  ShareImageResult,
   PutFileToPresignedUrlParams,
   PutFileToPresignedUrlResult,
 };

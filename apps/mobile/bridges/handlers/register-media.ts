@@ -1,11 +1,15 @@
+import { AppState, Platform, Share } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 import {
   METHODS,
   type PutFileToPresignedUrlParams,
   type SaveImageToGalleryParams,
+  type ShareImageParams,
 } from '@knockdog/bridge-core';
+import { useBlockingOverlayStore } from '@/features/blocking-overlay';
 
 function getExtensionFromUrl(url: string) {
   try {
@@ -56,6 +60,135 @@ function resolveFileName(url: string, fileName?: string, dataUrl?: { mime: strin
   if (fileName && fileName.trim().length > 0) return sanitizeFileName(fileName);
   const extension = dataUrl ? (MIME_EXTENSION_MAP[dataUrl.mime] ?? 'png') : getExtensionFromUrl(url);
   return `knockdog-${Date.now()}.${extension}`;
+}
+
+const SHARE_FILE_CLEANUP_DELAY_MS = 60_000;
+const SHARE_HANDOFF_TIMEOUT_MS = 1500;
+
+function scheduleFileCleanup(uris: string[]) {
+  const uniqueUris = [...new Set(uris)];
+  setTimeout(() => {
+    uniqueUris.forEach((uri) => {
+      void FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => undefined);
+    });
+  }, SHARE_FILE_CLEANUP_DELAY_MS);
+}
+
+function extensionFromUri(uri: string) {
+  const match = uri.match(/\.([a-z0-9]+)$/i);
+  const extension = match?.[1]?.toLowerCase() ?? '';
+  return extension === 'jpeg' ? 'jpg' : extension;
+}
+
+function shareMimeType(uri: string) {
+  const extension = extensionFromUri(uri);
+  if (extension === 'png') return 'image/png';
+  if (extension === 'webp') return 'image/webp';
+  return 'image/jpeg';
+}
+
+function readContentType(headers: Record<string, string | null> | undefined) {
+  if (!headers) return undefined;
+  const value = Object.entries(headers).find(([key]) => key.toLowerCase() === 'content-type')?.[1];
+  return value ?? undefined;
+}
+
+function toDownloadUrl(url: string) {
+  if (!/[^\u0000-\u007F]/.test(url)) return url;
+  return new URL(url).href;
+}
+
+async function alignShareFile(localUri: string, contentType?: string) {
+  const mime = contentType?.split(';')[0]?.trim().toLowerCase() ?? '';
+  const extension = MIME_EXTENSION_MAP[mime];
+  if (!extension || extension === extensionFromUri(localUri)) return localUri;
+
+  const renamed = localUri.replace(/\.[^.]+$/, `.${extension === 'jpeg' ? 'jpg' : extension}`);
+  if (renamed === localUri) return localUri;
+  await FileSystem.moveAsync({ from: localUri, to: renamed });
+  return renamed;
+}
+
+function setShareOverlay(visible: boolean, message = '') {
+  useBlockingOverlayStore.getState().setUploadOverlay(visible, visible ? message : '');
+}
+
+/** 복사·에어드롭처럼 앱을 벗어나지 않는 공유는 전송 로딩을 띄우지 않는다. */
+function isLocalShareActivity(activityType?: string | null) {
+  if (!activityType) return false;
+  const value = activityType.toLowerCase();
+  return ['copy', 'savetocameraroll', 'airdrop', 'print', 'markup', 'addtoreadinglist', 'assign'].some((token) =>
+    value.includes(token)
+  );
+}
+
+function waitForShareHandoff() {
+  return new Promise<void>((resolve) => {
+    if (AppState.currentState === 'background') {
+      resolve();
+      return;
+    }
+
+    const timeout = setTimeout(finish, SHARE_HANDOFF_TIMEOUT_MS);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') finish();
+    });
+
+    function finish() {
+      clearTimeout(timeout);
+      subscription.remove();
+      resolve();
+    }
+  });
+}
+
+/**
+ * OS 공유 시트는 시스템이 그린다.
+ * 전송 로딩은 시트가 닫힌 뒤, 카톡·문자 등으로 넘기는 동안에만 띄운다.
+ */
+async function presentAlbumShare(shareUri: string, sendingMessage: string) {
+  let handedOff = false;
+  const subscription = AppState.addEventListener('change', (state) => {
+    if (state !== 'background') return;
+    handedOff = true;
+    setShareOverlay(true, sendingMessage);
+  });
+
+  try {
+    if (Platform.OS === 'ios') {
+      try {
+        const result = await Share.share({ url: shareUri } as Parameters<typeof Share.share>[0]);
+
+        if (result.action !== Share.sharedAction) return true;
+        if (handedOff || isLocalShareActivity(result.activityType)) return true;
+
+        setShareOverlay(true, sendingMessage);
+        await waitForShareHandoff();
+        return true;
+      } catch (error) {
+        console.error('[APP] ios share sheet error', error);
+        const mimeType = shareMimeType(shareUri);
+        await Sharing.shareAsync(shareUri, {
+          mimeType,
+          ...(mimeType === 'image/png' ? { UTI: 'public.png' } : { UTI: 'public.jpeg' }),
+        });
+        return true;
+      }
+    }
+
+    const mimeType = shareMimeType(shareUri);
+    await Sharing.shareAsync(shareUri, {
+      mimeType,
+      ...(mimeType === 'image/png'
+        ? { UTI: 'public.png' }
+        : mimeType === 'image/jpeg'
+          ? { UTI: 'public.jpeg' }
+          : {}),
+    });
+    return true;
+  } finally {
+    subscription.remove();
+  }
 }
 
 function assertSupportedImageUrl(url: string, dataUrl: { mime: string; base64: string } | null) {
@@ -131,6 +264,61 @@ export function registerMediaHandlers(router: NativeBridgeRouter) {
       throw { code: 'EUNAVAILABLE', message: '사진을 갤러리에 저장하지 못했습니다.' };
     } finally {
       await FileSystem.deleteAsync(localUri, { idempotent: true }).catch(() => undefined);
+    }
+  });
+
+  router.register(METHODS.shareImage, async (params: ShareImageParams) => {
+    const { url, savingMessage, sendingMessage } = params;
+    assertSupportedImageUrl(url, null);
+
+    const cacheDir = FileSystem.cacheDirectory;
+    if (!cacheDir) {
+      throw { code: 'EUNAVAILABLE', message: '임시 저장 공간을 사용할 수 없습니다.' };
+    }
+
+    const tempDir = `${cacheDir}album-share/`;
+    const localUri = `${tempDir}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    let shareUri = localUri;
+
+    setShareOverlay(true, savingMessage);
+
+    try {
+      await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
+
+      const download = await FileSystem.downloadAsync(toDownloadUrl(url), localUri);
+      if (download.status < 200 || download.status >= 300) {
+        throw { code: 'EUNAVAILABLE', message: '이미지를 다운로드하지 못했습니다.' };
+      }
+
+      const info = await FileSystem.getInfoAsync(localUri, { size: true });
+      if (!info.exists || !info.size) {
+        throw { code: 'EUNAVAILABLE', message: '이미지를 다운로드하지 못했습니다.' };
+      }
+
+      shareUri = await alignShareFile(localUri, readContentType(download.headers));
+
+      if (Platform.OS !== 'ios') {
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          throw { code: 'EUNAVAILABLE', message: '이 기기에서 공유할 수 없습니다.' };
+        }
+      }
+
+      // OS 공유 시트는 시스템이 그린다. 앱 로딩이 시트를 가리지 않게 먼저 내린다.
+      setShareOverlay(false);
+
+      const shared = await presentAlbumShare(shareUri, sendingMessage);
+      return { shared };
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        throw error;
+      }
+
+      console.error('[APP] shareImage error', error);
+      throw { code: 'EUNAVAILABLE', message: '사진을 공유하지 못했습니다.' };
+    } finally {
+      setShareOverlay(false);
+      scheduleFileCleanup([localUri, shareUri]);
     }
   });
 
