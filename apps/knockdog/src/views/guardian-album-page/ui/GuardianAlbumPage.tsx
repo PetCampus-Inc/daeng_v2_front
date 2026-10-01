@@ -842,12 +842,16 @@ function GuardianAlbumPage() {
 
   const isMonthListLoading =
     hasSelectedSchool && isAlbumMonthPending && monthDays.length === 0 && !isAlbumMonthError;
+  // 조회 가능한 다른 달이 있으면 '앨범 없음'이 아니라 해당 월 빈 화면.
+  // 월초처럼 이번 달만 비어 있어도 이전 달로 넘어갈 수 있어야 한다.
   const hasNoRegisteredAlbum =
     hasSelectedSchool &&
     !isMonthListLoading &&
     !isAlbumMonthError &&
     todayPhotoCount === 0 &&
-    monthDays.every((day) => day.photoCount === 0);
+    monthDays.every((day) => day.photoCount === 0) &&
+    !canGoPrevMonth &&
+    !canGoNextMonth;
   const albumContentBackgroundClassName = hasNoRegisteredAlbum ? 'bg-bg-0' : '';
 
   const handleKindergartenSelect = useCallback(
