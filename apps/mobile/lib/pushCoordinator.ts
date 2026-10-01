@@ -162,10 +162,9 @@ class PushCoordinator {
     }
 
     if (destination.kind === 'kindergartenNews') {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({ source: 'push' });
       if (destination.schoolId) params.set('schoolId', destination.schoolId);
-      const query = params.toString();
-      const path = query ? `/compare/news/${destination.newsId}?${query}` : `/compare/news/${destination.newsId}`;
+      const path = `/compare/news/${destination.newsId}?${params.toString()}`;
       navigationRef.navigate('Tabs', { screen: 'Compare' });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(path) }));
       this.applyGuardianViewForDestination('Compare');

@@ -12,8 +12,9 @@ import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/m
 import { useSchoolNewsDetailQuery } from '@entities/school-news';
 
 import { route } from '@shared/constants/route';
-import { useShare } from '@shared/lib/device';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { useShare } from '@shared/lib/device';
+import { parseNotificationEntrySource } from '@shared/lib/notification';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
@@ -52,8 +53,9 @@ function GuardianKindergartenNewsDetailPageContent() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const schoolId = searchParams.get('schoolId')?.trim() || undefined;
+  const entrySource = parseNotificationEntrySource(searchParams.get('source'));
   const newsId = typeof params.id === 'string' ? params.id : '';
-  const { back, push } = useStackNavigation();
+  const { back, push, replace } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const share = useShare();
   const { linkedKindergarten, isHomeReady } = useGuardianKindergartenHome();
@@ -89,6 +91,18 @@ function GuardianKindergartenNewsDetailPageContent() {
   }, [item]);
 
   const handleBack = useCallback(() => {
+    const newsListQuery = schoolId ? { schoolId } : undefined;
+
+    if (entrySource === 'inbox' || entrySource === 'push') {
+      void replace({
+        pathname: route.compare.news.root,
+        query: newsListQuery,
+      }).catch(() => {
+        void navigateToTab('/compare');
+      });
+      return;
+    }
+
     void (async () => {
       try {
         const wentBack = await back();
@@ -100,13 +114,13 @@ function GuardianKindergartenNewsDetailPageContent() {
       try {
         await push({
           pathname: route.compare.news.root,
-          query: schoolId ? { schoolId } : undefined,
+          query: newsListQuery,
         });
       } catch {
         void navigateToTab('/compare');
       }
     })();
-  }, [back, navigateToTab, push, schoolId]);
+  }, [back, entrySource, navigateToTab, push, replace, schoolId]);
 
   useNativeBackHandler(handleBack);
 

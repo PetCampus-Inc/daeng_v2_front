@@ -100,7 +100,10 @@ function useNotificationInboxDeepLink() {
         applyGuardianViewForPath('/compare');
         void push({
           pathname: route.compare.news.detail.root.replace('[id]', destination.newsId),
-          query: destination.schoolId ? { schoolId: destination.schoolId } : undefined,
+          query: {
+            source: 'inbox',
+            ...(destination.schoolId ? { schoolId: destination.schoolId } : {}),
+          },
         });
         return;
       default:
