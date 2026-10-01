@@ -56,17 +56,17 @@ function OwnerHomeQuickMenu({
   ] as const;
 
   return (
-    <div className='flex w-full items-center justify-between'>
+    <div className='flex w-full items-start justify-between gap-3'>
       {items.map((item) => (
         <button
           key={item.key}
           type='button'
           aria-label={item.ariaLabel}
-          className='flex w-20 flex-col items-center justify-center gap-2'
+          className='flex max-w-20 min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-2'
           onClick={item.onClick}
         >
-          <span className='radius-r2 bg-bg-0 relative flex aspect-square w-full items-center justify-center overflow-hidden p-1 shadow-[0px_6px_12px_0px_rgba(0,0,0,0.02)]'>
-            <span className='relative size-[60px] shrink-0'>
+          <span className='radius-r2 bg-bg-0 relative flex aspect-square w-full items-center justify-center overflow-hidden shadow-[0px_6px_12px_0px_rgba(0,0,0,0.02)]'>
+            <span className='relative aspect-square w-3/4'>
               <Image src={item.iconSrc} alt='' fill unoptimized className='object-contain' sizes='60px' />
             </span>
             {'badge' in item && item.badge ? (
@@ -75,7 +75,7 @@ function OwnerHomeQuickMenu({
               </span>
             ) : null}
           </span>
-          <span className='label-semibold text-text-secondary'>{item.label}</span>
+          <span className='label-semibold text-text-secondary w-full text-center'>{item.label}</span>
         </button>
       ))}
     </div>
