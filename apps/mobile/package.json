@@ -77,7 +77,7 @@
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-config-expo": "~9.2.0",
-    "react-native-svg-transformer": "^1.5.2",
+    "react-native-svg-transformer": "^1.5.3",
     "typescript": "~5.8.3"
   },
   "expo": {
