@@ -96,8 +96,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
           <Script id='google-analytics' strategy='lazyOnload'>
             {`
-              gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
+              if (!window.ReactNativeWebView) {
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
+              }
             `}
           </Script>
           <ClientErrorReporter />
