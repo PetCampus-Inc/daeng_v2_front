@@ -69,21 +69,18 @@ function getCommonAnalyticsParams(sink: AnalyticsSink): Record<string, Analytics
   };
 }
 
-/**
- * gtag는 동기 전송을 먼저 하고, WebView면 Firebase도 fire-and-forget으로 보낸다.
- * 브릿지를 await 한 뒤에 gtag를 호출하면 알림 탭 직후 네비게이션에 가려져
- * 웹 GA4에 이벤트가 안 남는 경우가 있다.
- */
+/** 브라우저는 웹 GA4, 앱 WebView는 Firebase 한 곳으로만 전송한다. */
 async function logAnalyticsEvent(name: string, params?: Record<string, AnalyticsParamValue | undefined>) {
   const safeParams = sanitizeParams(params);
 
-  gtagEvent({
-    action: name,
-    ...getCommonAnalyticsParams('web_ga4'),
-    ...safeParams,
-  });
-
-  if (!isNativeWebView()) return;
+  if (!isNativeWebView()) {
+    gtagEvent({
+      action: name,
+      ...getCommonAnalyticsParams('web_ga4'),
+      ...safeParams,
+    });
+    return;
+  }
 
   const bridge = getBridgeInstance();
   if (!bridge) return;
@@ -102,7 +99,7 @@ async function logAnalyticsEvent(name: string, params?: Record<string, Analytics
 }
 
 /**
- * 화면 조회 — 웹 GA4를 공통 기준으로 남기고, 앱 WebView는 Firebase screen_view에도 미러링한다.
+ * 화면 조회 — 브라우저는 웹 GA4, 앱 WebView는 Firebase에 기록한다.
  * GA페이지 제목 및 화면 클래스에 한글 화면명/유치원명이 보이도록
  * screen_name·screen_class·page_title에 동일 라벨을 넣는다.
  */
@@ -116,25 +113,26 @@ async function trackScreenView(screenName: string, screenClass?: string) {
     document.title = `똑독 - ${name}`;
   }
 
-  pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name, {
-    ...getCommonAnalyticsParams('web_ga4'),
-    screen_name: name,
-    screen_class,
-  });
+  if (!isNativeWebView()) {
+    pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name, {
+      ...getCommonAnalyticsParams('web_ga4'),
+      screen_name: name,
+      screen_class,
+    });
+    return;
+  }
 
-  if (isNativeWebView()) {
-    const bridge = getBridgeInstance();
-    if (!bridge) return;
+  const bridge = getBridgeInstance();
+  if (!bridge) return;
 
-    try {
-      await bridge.request(METHODS.analyticsLogScreenView, {
-        screen_name: name,
-        screen_class,
-        params: getCommonAnalyticsParams('firebase'),
-      });
-    } catch (error) {
-      console.warn('[analytics] native logScreenView failed', name, error);
-    }
+  try {
+    await bridge.request(METHODS.analyticsLogScreenView, {
+      screen_name: name,
+      screen_class,
+      params: getCommonAnalyticsParams('firebase'),
+    });
+  } catch (error) {
+    console.warn('[analytics] native logScreenView failed', name, error);
   }
 }
 
