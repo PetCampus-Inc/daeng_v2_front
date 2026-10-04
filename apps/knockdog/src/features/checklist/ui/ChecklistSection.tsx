@@ -1,6 +1,6 @@
 'use client';
 
-import { Divider, Icon } from '@knockdog/ui';
+import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -25,33 +25,48 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
     enabled: isLoggedIn,
   });
 
+  // @TODO: 화면 이동 경우 상수 이용할것
+  const handleEditChecklist = () => push({ pathname: `/kindergarten/${id}/edit-checklist` });
+
+  const answeredSections =
+    checklist?.sections
+      ?.map((section) => ({
+        ...section,
+        answers: section.answers.filter((answer) => answer.value != null && String(answer.value).trim() !== ''),
+      }))
+      .filter((section) => section.answers.length > 0) ?? [];
+  // 체크리스트 미작성 시 API가 에러로 응답하는 경우도 빈 상태로 처리
+  const isEmpty = !isLoading && (!!error || answeredSections.length === 0);
+
   return (
     <div>
-      <div className='mb-2 flex justify-between gap-1 py-3'>
+      <div className='flex justify-between gap-1 py-3'>
         <div className='flex items-center gap-1'>
-          <Icon icon='Note' className='text-text-accent h-7 w-7' />
-          <span className='h3-extrabold'>상담시 체크리스트</span>
+          <Icon icon='Checklist' className='text-text-accent h-6 w-6' />
+          <span className='h3-extrabold'>체크리스트</span>
         </div>
-        {/* @TODO: 화면 이동 경우 상수 이용할것 */}
-        <button
-          onClick={() => push({ pathname: `/kindergarten/${id}/edit-checklist` })}
-          className='text-text-tertiary flex items-center gap-1'
-        >
-          <span className='label-semibold'>편집</span>
-          <Icon icon='ChevronRight' className='h-4 w-4' />
-        </button>
+        {!isEmpty && (
+          <button onClick={handleEditChecklist} className='text-text-tertiary flex items-center gap-1'>
+            <span className='label-semibold'>편집</span>
+            <Icon icon='ChevronRight' className='h-4 w-4' />
+          </button>
+        )}
       </div>
-      <div className='border-line-200 rounded-xl border-1 px-5 py-7'>
-        {isLoading ? (
-          <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
-        ) : error || !checklist?.sections || checklist?.sections.length === 0 ? (
-          <div className='text-text-secondary flex justify-center py-8'>
-            <span className='body1-medium'>{error instanceof Error ? error.message : '등록된 체크리스트가 없습니다'}</span>
+      {isEmpty ? (
+        <>
+          <p className='body1-medium text-text-tertiary p-4 text-center'>상담 중 확인할 내용을 체크해 보세요</p>
+          <div className='pb-4'>
+            <ActionButton variant='secondaryLine' onClick={handleEditChecklist}>
+              체크리스트 작성하기
+            </ActionButton>
           </div>
-        ) : (
-          checklist.sections
-            .filter((section) => section.answers.length > 0)
-            .map((section, index, filteredSections) => (
+        </>
+      ) : (
+        <div className='border-line-200 mt-2 rounded-xl border-1 px-5 py-7'>
+          {isLoading ? (
+            <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
+          ) : (
+            answeredSections.map((section, index) => (
               <div key={section.sectionId}>
                 <div className='mb-3'>
                   <span className='body2-semibold'>{section.title}</span>
@@ -79,11 +94,12 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
                     );
                   })}
                 </div>
-                {index < filteredSections.length - 1 && <Divider className='my-5' />}
+                {index < answeredSections.length - 1 && <Divider className='my-5' />}
               </div>
             ))
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
