@@ -1,0 +1,32 @@
+export const editMemoContent = {
+  pageTitle: '자유메모 작성',
+  saveLabel: '저장',
+  placeholder: '메모는 최대 2,000자까지 작성 가능해요',
+  photoLabel: '사진',
+  maxLength: 2000,
+  maxPhotoCount: 5,
+  saveSuccessToast: '메모를 저장했어요',
+  maxPhotoCountToast: '사진은 최대 5장까지 올릴 수 있어요',
+  unsavedExit: {
+    title: '저장하지 않고 나갈까요?',
+    description: '변경한 내용이 저장되지 않아요.',
+    cancelLabel: '닫기',
+    confirmLabel: '나가기',
+  },
+  saveFailed: {
+    title: '메모를 저장하지 못했어요',
+    description: '잠시 후 다시 시도해 주세요.',
+    cancelLabel: '닫기',
+    retryLabel: '다시 시도',
+  },
+  imageUpload: {
+    confirmLabel: '확인',
+    partialExcludedTitle: (count: number) => `사진 ${count}장을 제외하고 올렸어요`,
+    partialInvalidSpecDescription: '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진만 올릴 수 있어요.',
+    partialUnreadableDescription: '원본을 불러오지 못했거나 읽을 수 없는 사진은 제외됐어요.',
+    noneValidTitle: '올릴 수 있는 사진이 없어요',
+    noneValidDescription: '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진을 선택해 주세요.',
+    networkFailedTitle: '사진을 올리지 못했어요',
+    networkFailedDescription: '네트워크 상태를 확인하고 다시 시도해 주세요.',
+  },
+} as const;
