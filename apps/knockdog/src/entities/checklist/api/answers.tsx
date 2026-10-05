@@ -30,7 +30,7 @@ const getAnswers = async (targetId: string): Promise<AnswersResponse> => {
 
 interface UpdateAnswersRequest {
   targetId: string;
-  answers: { questionId: string; value: string }[];
+  answers: { questionId: string; value: string; memo?: string }[];
 }
 
 const updateAnswers = async ({ targetId, answers }: UpdateAnswersRequest) => {
