@@ -33,6 +33,9 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [openMemoIds, setOpenMemoIds] = useState<string[]>([]);
   const [focusedMemoId, setFocusedMemoId] = useState<string | null>(null);
+  const [memoDrafts, setMemoDrafts] = useState<Record<string, string>>({});
+  const hasEditedRef = useRef(false);
+  const initialMemosRef = useRef<Record<string, string>>({});
   const sections = questions?.sections ?? [];
   const currentSectionId = activeSectionId ?? sections[0]?.id ?? null;
 
@@ -61,6 +64,18 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
     return () => observer.disconnect();
   }, [questions?.sections]);
 
+  useEffect(() => {
+    if (hasEditedRef.current) return;
+
+    const snapshot: Record<string, string> = {};
+    safeAnswers.forEach((answerGroup) => {
+      answerGroup.answers.forEach((answer) => {
+        snapshot[answer.questionId] = answer.memo?.trim() ?? '';
+      });
+    });
+    initialMemosRef.current = snapshot;
+  }, [safeAnswers]);
+
   const handleSectionClick = (sectionId: string) => {
     setActiveSectionId(sectionId);
     scrollLockRef.current = true;
@@ -81,6 +96,7 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
 
   const patchAnswer = (questionId: string, patch: Partial<Pick<Answer, 'value' | 'memo'>>) => {
     if (!isEditing) return;
+    hasEditedRef.current = true;
 
     const questionSection = questions?.sections.find((section) =>
       section.questions.some((question) => question.id === questionId)
@@ -132,8 +148,16 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
   };
 
   const closeMemo = (questionId: string) => {
+    hasEditedRef.current = true;
+    initialMemosRef.current[questionId] = '';
     setOpenMemoIds((ids) => ids.filter((id) => id !== questionId));
     setFocusedMemoId((id) => (id === questionId ? null : id));
+    setMemoDrafts((drafts) => {
+      if (!(questionId in drafts)) return drafts;
+      const nextDrafts = { ...drafts };
+      delete nextDrafts[questionId];
+      return nextDrafts;
+    });
 
     const nextAnswers = safeAnswers
       .map((answerGroup) => ({
@@ -149,9 +173,49 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
     onAnswersChange(nextAnswers);
   };
 
-  const handleRemoveMemo = (questionId: string) => {
-    const memo = findAnswerForQuestion(questionId)?.memo ?? '';
+  const handleMemoChange = (questionId: string, memo: string) => {
+    setOpenMemoIds((ids) => (ids.includes(questionId) ? ids : [...ids, questionId]));
+    setMemoDrafts((drafts) => ({ ...drafts, [questionId]: memo }));
+
+    const savedMemo = initialMemosRef.current[questionId] ?? '';
+    const currentMemo = findAnswerForQuestion(questionId)?.memo ?? '';
+
     if (memo.trim() === '') {
+      if (savedMemo) {
+        if (currentMemo !== savedMemo) patchAnswer(questionId, { memo: savedMemo });
+        return;
+      }
+      if (currentMemo !== '') patchAnswer(questionId, { memo: '' });
+      return;
+    }
+
+    patchAnswer(questionId, { memo });
+  };
+
+  const handleMemoBlur = (questionId: string) => {
+    const draft = memoDrafts[questionId];
+    if (draft === undefined || draft.trim() !== '') return;
+
+    const savedMemo = initialMemosRef.current[questionId] ?? '';
+    if (savedMemo) {
+      setMemoDrafts((drafts) => {
+        const nextDrafts = { ...drafts };
+        delete nextDrafts[questionId];
+        return nextDrafts;
+      });
+      const currentMemo = findAnswerForQuestion(questionId)?.memo ?? '';
+      if (currentMemo !== savedMemo) patchAnswer(questionId, { memo: savedMemo });
+      return;
+    }
+
+    const currentMemo = findAnswerForQuestion(questionId)?.memo ?? '';
+    if (currentMemo !== '') patchAnswer(questionId, { memo: '' });
+  };
+
+  const handleRemoveMemo = (questionId: string) => {
+    const visibleMemo = (memoDrafts[questionId] ?? findAnswerForQuestion(questionId)?.memo ?? '').trim();
+    const savedMemo = (initialMemosRef.current[questionId] ?? '').trim();
+    if (visibleMemo === '' && savedMemo === '') {
       closeMemo(questionId);
       return;
     }
@@ -170,7 +234,7 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
                 close();
               }}
             >
-              삭제
+              삭제하기
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -208,7 +272,9 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
               <div className='flex flex-col gap-4'>
                 {section.questions.map((question) => {
                   const answer = findAnswerForQuestion(question.id);
-                  const isMemoOpen = openMemoIds.includes(question.id) || Boolean(answer?.memo);
+                  const memoValue = memoDrafts[question.id] ?? answer?.memo ?? '';
+                  const isMemoOpen =
+                    openMemoIds.includes(question.id) || Boolean(answer?.memo?.trim()) || question.id in memoDrafts;
                   return (
                     <div key={question.id}>
                       <div className='flex items-center justify-between gap-3'>
@@ -294,15 +360,13 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
                         <div className='mt-2 flex items-center gap-2'>
                           <div className='bg-fill-secondary-50 radius-r2 flex h-12 min-w-0 flex-1 items-center px-4'>
                             <input
-                              value={answer?.memo ?? ''}
+                              value={memoValue}
                               placeholder='메모를 입력해 주세요'
                               autoFocus={focusedMemoId === question.id}
                               readOnly={!isEditing}
                               className='body2-regular caret-text-accent placeholder:text-text-caption text-text-primary min-w-0 flex-1 bg-transparent outline-none'
-                              onChange={(event) => {
-                                setOpenMemoIds((ids) => (ids.includes(question.id) ? ids : [...ids, question.id]));
-                                patchAnswer(question.id, { memo: event.target.value });
-                              }}
+                              onChange={(event) => handleMemoChange(question.id, event.target.value)}
+                              onBlur={() => handleMemoBlur(question.id)}
                             />
                           </div>
                           <button
