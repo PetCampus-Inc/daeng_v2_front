@@ -9,6 +9,7 @@ import { getChecklistChip } from '@entities/checklist';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { ChecklistMoreMenu } from './ChecklistMoreMenu';
 
 interface CheckListSectionProps {
   kindergartenId?: string;
@@ -76,15 +77,7 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
           <Icon icon='Checklist' className='text-text-accent size-6 shrink-0' />
           <span className='h3-extrabold'>체크리스트</span>
         </div>
-        {isFilled && (
-          <button
-            type='button'
-            onClick={handleEditChecklist}
-            className='label-semibold text-text-tertiary shrink-0 px-2 py-1'
-          >
-            수정하기
-          </button>
-        )}
+        {isFilled && <ChecklistMoreMenu targetId={id} onEdit={handleEditChecklist} />}
       </div>
       {isLoading ? (
         <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
