@@ -4,6 +4,8 @@ import { api } from '@shared/api';
 // @TODO API Response, 타입 정의 필요
 interface AnswersResponse {
   sections: AnswerGroup[];
+  updatedAt?: string | number[] | null;
+  modifiedAt?: string | number[] | null;
 }
 
 interface ApiResponse {
