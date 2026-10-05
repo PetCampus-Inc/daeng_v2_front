@@ -91,6 +91,8 @@ export function EditMemoPage() {
   const [photos, setPhotos] = useState<MemoPhoto[]>([]);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPickingPhoto, setIsPickingPhoto] = useState(false);
+  const isPickingPhotoRef = useRef(false);
   const initialRef = useRef<{ content: string; photos: MemoPhoto[] }>({ content: '', photos: [] });
   const isHydratedRef = useRef(false);
   const isExitDialogOpenRef = useRef(false);
@@ -115,7 +117,7 @@ export function EditMemoPage() {
 
   const isUploading = uploadingCount > 0;
   const isDirty = content !== initialRef.current.content || !isSamePhotos(photos, initialRef.current.photos);
-  const canSave = content.trim().length > 0 && !isUploading && !isSaving;
+  const canSave = isDirty && !isPickingPhoto && !isUploading && !isSaving;
 
   const handleBack = useCallback(() => {
     if (isSaving) return;
@@ -152,7 +154,7 @@ export function EditMemoPage() {
   useNativeBackHandler(handleBack);
 
   const handlePickPhoto = async () => {
-    if (isUploading) return;
+    if (isPickingPhotoRef.current || isUploading) return;
 
     const remaining = MAX_PHOTO_COUNT - photos.length;
     if (remaining <= 0) {
@@ -161,6 +163,8 @@ export function EditMemoPage() {
     }
 
     const { imageUpload } = editMemoContent;
+    isPickingPhotoRef.current = true;
+    setIsPickingPhoto(true);
 
     try {
       const result = await pickImage(
@@ -206,6 +210,8 @@ export function EditMemoPage() {
       openMemoImageAlert(imageUpload.networkFailedTitle, imageUpload.networkFailedDescription);
     } finally {
       setUploadingCount(0);
+      isPickingPhotoRef.current = false;
+      setIsPickingPhoto(false);
     }
   };
 
