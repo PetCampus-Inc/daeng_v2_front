@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type MouseEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
   autoUpdate,
@@ -27,9 +28,14 @@ import {
 } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
+import { checklistQueryKeys, type AnswersResponse } from '@entities/checklist';
 import { useNativeBackToClose } from '@shared/lib/bridge';
 
 import { useChecklistMutate } from '../api/useChecklistMutate';
+
+function clearedAnswerValue(value: string) {
+  return /^\d+$/.test(value.trim()) ? '' : 'UNKNOWN';
+}
 
 interface ChecklistMoreMenuProps {
   targetId: string;
@@ -38,7 +44,13 @@ interface ChecklistMoreMenuProps {
 
 function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { mutate: updateAnswers, isPending } = useChecklistMutate();
+  const queryClient = useQueryClient();
+  const queryKey = checklistQueryKeys.answers(targetId);
+  const { mutate: updateAnswers, isPending } = useChecklistMutate({
+    onSuccess: () => {
+      queryClient.setQueryData(queryKey, { sections: [] });
+    },
+  });
 
   const { refs, floatingStyles, context } = useFloating({
     placement: 'bottom-end',
@@ -80,8 +92,29 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
             <AlertDialogCancel>닫기</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
+                const previous = queryClient.getQueryData<AnswersResponse>(queryKey);
+                const answers = (previous?.sections ?? []).flatMap((section) =>
+                  section.answers
+                    .filter(
+                      (answer) => String(answer.value ?? '').trim() !== '' || (answer.memo?.trim() ?? '') !== ''
+                    )
+                    .map((answer) => ({
+                      questionId: answer.questionId,
+                      value: clearedAnswerValue(String(answer.value ?? '')),
+                      memo: '',
+                    }))
+                );
+
                 close();
-                updateAnswers({ targetId, answers: [] });
+                queryClient.setQueryData(queryKey, { sections: [] });
+                updateAnswers(
+                  { targetId, answers },
+                  {
+                    onError: () => {
+                      queryClient.setQueryData(queryKey, previous);
+                    },
+                  }
+                );
               }}
             >
               초기화하기
