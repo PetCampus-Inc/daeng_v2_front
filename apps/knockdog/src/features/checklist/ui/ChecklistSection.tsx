@@ -4,7 +4,7 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { QUESTION_MAP } from '@entities/checklist';
+import { getChecklistChip } from '@entities/checklist';
 import { useUserStore } from '@entities/user/model/store/useUserStore';
 import { useChecklistAnswersQuery } from '../api/useChecklistQuery';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -32,9 +32,12 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
     checklist?.sections
       ?.map((section) => ({
         ...section,
-        answers: section.answers.filter((answer) => answer.value != null && String(answer.value).trim() !== ''),
+        chips: section.answers.flatMap((answer) => {
+          const chip = getChecklistChip(answer.questionId, answer.question, String(answer.value ?? ''));
+          return chip ? [{ ...chip, key: answer.questionId }] : [];
+        }),
       }))
-      .filter((section) => section.answers.length > 0) ?? [];
+      .filter((section) => section.chips.length > 0) ?? [];
   // 체크리스트 미작성 시 API가 에러로 응답하는 경우도 빈 상태로 처리
   const isEmpty = !isLoading && (!!error || answeredSections.length === 0);
 
@@ -73,26 +76,18 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
                 </div>
 
                 <div className='flex flex-wrap gap-2'>
-                  {section.answers.map((answer) => {
-                    const isActive =
-                      answer.value === 'YES' ||
-                      (answer.question === '총원' && typeof answer.value === 'number' && answer.value >= 1);
-
-                    return (
-                      <div
-                        key={answer.question}
-                        className={cn(
-                          'rounded-lg px-2 py-[6px]',
-                          isActive && 'text-text-accent border-line-accent border',
-                          !isActive && 'text-text-secondary bg-fill-secondary-50'
-                        )}
-                      >
-                        <span className='body2-semibold'>
-                          {QUESTION_MAP[answer.questionId as keyof typeof QUESTION_MAP] || answer.question}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {section.chips.map((chip) => (
+                    <div
+                      key={chip.key}
+                      className={cn(
+                        'rounded-lg border bg-white px-2 py-[6px]',
+                        chip.tone === 'yes' && 'text-text-accent border-line-accent',
+                        chip.tone === 'no' && 'border-[#1890ff] text-[#1890ff]'
+                      )}
+                    >
+                      <span className='body2-semibold'>{chip.label}</span>
+                    </div>
+                  ))}
                 </div>
                 {index < answeredSections.length - 1 && <Divider className='my-5' />}
               </div>
