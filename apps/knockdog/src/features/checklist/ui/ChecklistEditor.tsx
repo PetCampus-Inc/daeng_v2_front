@@ -7,7 +7,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -161,8 +160,7 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
       <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>메모를 삭제할까요?</AlertDialogTitle>
-            <AlertDialogDescription>해당 메모만 삭제되고, 예/아니오 선택은 유지돼요.</AlertDialogDescription>
+            <AlertDialogTitle>해당 메모를 삭제할까요?</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>닫기</AlertDialogCancel>
@@ -172,7 +170,7 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
                 close();
               }}
             >
-              삭제하기
+              삭제
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
