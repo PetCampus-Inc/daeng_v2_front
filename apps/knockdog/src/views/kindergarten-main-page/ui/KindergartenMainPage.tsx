@@ -186,14 +186,10 @@ function KindergartenMainPageContent() {
       )}
 
       <div className='px-x4 gap-x2 absolute top-[calc(var(--top-bar-height)+var(--safe-area-inset-top,0px))] flex w-full items-center'>
-        <button
-          type='button'
-          aria-label='똑독 인증 필터'
-          className='radius-r2 bg-fill-secondary-0 border-line-200 box-border flex h-[38px] w-[104px] shrink-0 items-center gap-x1 border-[1.4px] px-[calc(var(--dimension-x3_5)-1.4px)] py-x2'
-        >
+        <div className='radius-r2 bg-fill-secondary-0 border-line-200 box-border flex h-[38px] w-[104px] shrink-0 items-center gap-x1 border-[1.4px] px-[calc(var(--dimension-x3_5)-1.4px)] py-x2'>
           <Icon icon='Verified' className='size-x5 shrink-0' />
           <span className='body2-semibold text-text-primary h-x5 w-x13 shrink-0 text-center'>똑독 인증</span>
-        </button>
+        </div>
         <Chip.Toggle variant='outline' checked={isOnlyMemoed} onChange={toggleMemoed}>
           <Chip.PrefixIcon>
             <Icon icon='Note' className='size-x4' />

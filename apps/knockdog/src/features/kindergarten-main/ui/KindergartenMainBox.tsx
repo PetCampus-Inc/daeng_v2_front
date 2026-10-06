@@ -37,7 +37,7 @@ function KindergartenMainBox({
         <div className='flex min-w-0 flex-1 flex-col'>
           <span className='h2-extrabold block truncate'>{title}</span>
           <div className='flex min-w-0 items-center gap-x2'>
-            <span className='body2-semibold text-text-tertiary shrink-0 truncate'>{ctg}</span>
+            <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</span>
             <ReviewRating />
           </div>
         </div>

@@ -70,7 +70,7 @@ export function KindergartenListItem({
           <div className='flex min-w-0 flex-1 flex-col items-start justify-center gap-0.5'>
             <h1 className='h2-extrabold text-text-primary w-full truncate'>{title}</h1>
             <div className='flex w-full min-w-0 items-center gap-x2'>
-              <p className='body2-semibold text-text-tertiary shrink-0 truncate'>{ctg}</p>
+              <p className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</p>
               <ReviewRating />
             </div>
           </div>

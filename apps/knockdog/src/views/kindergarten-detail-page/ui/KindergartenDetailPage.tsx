@@ -183,14 +183,21 @@ function KindergartenDetailPage() {
   };
 
   const handleBookmarkClick = (targetId: string, bookmarked: boolean) => {
-    toggleBookmark({ id: targetId, bookmarked });
+    const shouldShowOnboarding =
+      !bookmarked && !safeLocalStorage.get(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY);
 
-    // 이미 보관된 업체를 해제하는 경우에는 완료 안내를 노출하지 않는다.
-    if (bookmarked || safeLocalStorage.get(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY)) return;
-
-    // 앱 재설치 시 WebView 저장소가 초기화되므로, 설치 후 최초 1회만 다시 노출된다.
-    safeLocalStorage.set(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY, '1');
-    setIsBookmarkOnboardingOpen(true);
+    toggleBookmark(
+      { id: targetId, bookmarked },
+      shouldShowOnboarding
+        ? {
+            onSuccess: () => {
+              // 앱 재설치 시 WebView 저장소가 초기화되므로, 설치 후 최초 1회만 다시 노출된다.
+              safeLocalStorage.set(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY, '1');
+              setIsBookmarkOnboardingOpen(true);
+            },
+          }
+        : undefined
+    );
   };
 
   const openPhoneCallSheet = () => {

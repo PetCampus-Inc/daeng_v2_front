@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ActionButton, Icon } from '@knockdog/ui';
-import { FilterList } from './FilterList';
+import { FilterList, scrollFilterListToCategory } from './FilterList';
 import { FilterChip } from './FilterChip';
 import { useLocalSearchFilter } from '../model/useLocalSearchFilter';
 import { type Bounds } from '@shared/types';
@@ -55,15 +55,7 @@ export function FilterBottomSheet({
 
   const handleCategorySelect = (category: FilterCategory) => {
     setActiveCategory(category);
-    const list = filterListRef.current;
-    const target = list?.querySelector<HTMLElement>(`[data-filter-category="${category}"]`);
-    if (!list || !target) return;
-
-    // Keep the sheet header and tabs fixed; scroll just the option list.
-    const listTop = list.getBoundingClientRect().top;
-    const targetTop = target.getBoundingClientRect().top;
-    // Keep a little breathing room between the fixed tabs and the section heading.
-    list.scrollTo({ top: list.scrollTop + targetTop - listTop - 16, behavior: 'smooth' });
+    scrollFilterListToCategory(filterListRef.current, category);
   };
 
   useEffect(() => {
@@ -126,8 +118,7 @@ export function FilterBottomSheet({
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
 
-        <div
-          role='tablist'
+        <nav
           aria-label='필터 카테고리'
           className='border-line-200 scrollbar-hide flex h-12 w-full shrink-0 overflow-x-auto border-b bg-white px-4'
         >
@@ -137,8 +128,7 @@ export function FilterBottomSheet({
               <button
                 key={category}
                 type='button'
-                role='tab'
-                aria-selected={isActive}
+                aria-current={isActive ? 'location' : undefined}
                 className={`body2-semibold flex h-full shrink-0 items-center justify-center border-b-[3px] px-4 ${
                   isActive ? 'border-line-accent text-text-accent' : 'border-transparent text-text-primary'
                 }`}
@@ -148,7 +138,7 @@ export function FilterBottomSheet({
               </button>
             );
           })}
-        </div>
+        </nav>
 
         <FilterList
           listRef={filterListRef}

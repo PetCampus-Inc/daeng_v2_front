@@ -7,7 +7,7 @@ export function CurrentLocationFAB() {
   const { dispatch, liveState } = useSearchMachine();
   const { data: currentLocation, refetch } = useGeolocationQuery({ enabled: false });
   const { setBaseType } = useBasePointType();
-  const isAtCurrentLocation = !currentLocation || isEqualCoord(liveState.center, currentLocation);
+  const isAtCurrentLocation = !!currentLocation && isEqualCoord(liveState.center, currentLocation);
 
   const handleClick = async () => {
     setBaseType('CURRENT');

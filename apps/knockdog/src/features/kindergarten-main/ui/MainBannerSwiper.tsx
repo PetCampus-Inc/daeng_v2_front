@@ -1,6 +1,6 @@
 'use client';
 
-import { type PointerEvent, useRef, useState } from 'react';
+import { type MouseEvent, type PointerEvent, useRef, useState } from 'react';
 import { SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
@@ -23,11 +23,13 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
     setCurrentSlide(currentIndex + 1);
   };
 
-  const handleImageClick = () => {
-    if (wasDraggingRef.current) {
+  const handleImageClick = (event: MouseEvent<HTMLButtonElement>) => {
+    // Keyboard-generated clicks have detail=0 and should not be affected by a prior pointer drag.
+    if (event.detail > 0 && wasDraggingRef.current) {
       wasDraggingRef.current = false;
       return;
     }
+    wasDraggingRef.current = false;
 
     overlay.open(({ isOpen, unmount }) => (
       <KindergartenImageViewer
@@ -39,12 +41,12 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
     ));
   };
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     pointerStartRef.current = { x: event.clientX, y: event.clientY };
     wasDraggingRef.current = false;
   };
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
     const pointerStart = pointerStartRef.current;
     if (!pointerStart) return;
 
@@ -66,8 +68,10 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
           const src = resolvePublicImageSrc(image);
           return (
             <SwiperSlideItem key={`${image}-${index}`}>
-              <div
-                className='bg-fill-secondary-50 relative h-[292px] w-full cursor-pointer'
+              <button
+                type='button'
+                aria-label={`사진 ${index + 1} 확대 보기`}
+                className='bg-fill-secondary-50 relative block h-[292px] w-full cursor-pointer border-0 p-0 text-left'
                 onClick={handleImageClick}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
@@ -80,11 +84,6 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
                 onPointerCancel={() => {
                   pointerStartRef.current = null;
                 }}
-                role='button'
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') handleImageClick();
-                }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 목록 배너와 동일: CDN/한글 키는 Next Image remotePatterns 밖 */}
                 <img
@@ -96,7 +95,7 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
                   draggable={false}
                   referrerPolicy='no-referrer'
                 />
-              </div>
+              </button>
             </SwiperSlideItem>
           );
         })}

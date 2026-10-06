@@ -1,6 +1,33 @@
-import { useCallback, useEffect, useLayoutEffect, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { FilterChip } from './FilterChip';
 import { FILTER_CONFIG, FILTER_OPTIONS, type FilterCategory, type FilterOption } from '@entities/kindergarten';
+
+const programmaticScrollTimeouts = new WeakMap<HTMLElement, number>();
+
+export function scrollFilterListToCategory(
+  root: HTMLElement | null,
+  category: FilterCategory,
+  behavior: ScrollBehavior = 'smooth'
+) {
+  const target = root?.querySelector<HTMLElement>(`[data-filter-category="${category}"]`);
+  if (!root || !target) return;
+
+  const rootTop = root.getBoundingClientRect().top;
+  const targetTop = target.getBoundingClientRect().top;
+  if (behavior === 'smooth') {
+    root.dataset.programmaticScroll = 'true';
+    const previousTimeout = programmaticScrollTimeouts.get(root);
+    if (previousTimeout) window.clearTimeout(previousTimeout);
+    programmaticScrollTimeouts.set(
+      root,
+      window.setTimeout(() => {
+        delete root.dataset.programmaticScroll;
+        programmaticScrollTimeouts.delete(root);
+      }, 1000)
+    );
+  }
+  root.scrollTo({ top: root.scrollTop + targetTop - rootTop - 16, behavior });
+}
 
 interface FilterContentProps {
   isSelected: (option: FilterOption) => boolean;
@@ -18,18 +45,14 @@ export function FilterList({
   onActiveCategoryChange,
 }: FilterContentProps) {
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
+  const scrollSettleTimerRef = useRef<number | null>(null);
 
-  const scrollToCategory = useCallback((category: FilterCategory, behavior: ScrollBehavior = 'smooth') => {
-    const root = listRef.current;
-    const target = root?.querySelector<HTMLElement>(`[data-filter-category="${category}"]`);
-    if (!root || !target) return;
-
-    // scrollIntoView also scrolls the fixed bottom-sheet on some browsers,
-    // moving its header and category tabs out of view. Scroll only the list.
-    const rootTop = root.getBoundingClientRect().top;
-    const targetTop = target.getBoundingClientRect().top;
-    root.scrollTo({ top: root.scrollTop + targetTop - rootTop - 16, behavior });
-  }, [listRef]);
+  const scrollToCategory = useCallback(
+    (category: FilterCategory, behavior: ScrollBehavior = 'smooth') => {
+      scrollFilterListToCategory(listRef.current, category, behavior);
+    },
+    [listRef]
+  );
 
   useLayoutEffect(() => {
     const root = listRef.current;
@@ -63,6 +86,7 @@ export function FilterList({
     if (!root) return;
 
     const updateActiveCategory = () => {
+      if (root.dataset.programmaticScroll === 'true') return;
       const rootTop = root.getBoundingClientRect().top;
       const sections = Array.from(root.querySelectorAll<HTMLElement>('[data-filter-category]'));
       const isAtListEnd = root.scrollTop + root.clientHeight >= root.scrollHeight - 1;
@@ -77,9 +101,38 @@ export function FilterList({
       if (category) onActiveCategoryChange(category);
     };
 
-    root.addEventListener('scroll', updateActiveCategory, { passive: true });
-    return () => root.removeEventListener('scroll', updateActiveCategory);
-  }, [onActiveCategoryChange]);
+    const finishProgrammaticScroll = () => {
+      if (scrollSettleTimerRef.current !== null) window.clearTimeout(scrollSettleTimerRef.current);
+      scrollSettleTimerRef.current = null;
+      const timeout = programmaticScrollTimeouts.get(root);
+      if (timeout) window.clearTimeout(timeout);
+      programmaticScrollTimeouts.delete(root);
+      delete root.dataset.programmaticScroll;
+      updateActiveCategory();
+    };
+
+    const handleScroll = () => {
+      if (root.dataset.programmaticScroll !== 'true') {
+        updateActiveCategory();
+        return;
+      }
+
+      if (scrollSettleTimerRef.current !== null) window.clearTimeout(scrollSettleTimerRef.current);
+      scrollSettleTimerRef.current = window.setTimeout(finishProgrammaticScroll, 140);
+    };
+
+    root.addEventListener('scroll', handleScroll, { passive: true });
+    root.addEventListener('scrollend', finishProgrammaticScroll);
+    return () => {
+      root.removeEventListener('scroll', handleScroll);
+      root.removeEventListener('scrollend', finishProgrammaticScroll);
+      if (scrollSettleTimerRef.current !== null) window.clearTimeout(scrollSettleTimerRef.current);
+      scrollSettleTimerRef.current = null;
+      const timeout = programmaticScrollTimeouts.get(root);
+      if (timeout) window.clearTimeout(timeout);
+      programmaticScrollTimeouts.delete(root);
+    };
+  }, [listRef, onActiveCategoryChange]);
 
   return (
     <div ref={listRef} className='scrollbar-hide min-h-0 flex-1 overflow-y-auto'>

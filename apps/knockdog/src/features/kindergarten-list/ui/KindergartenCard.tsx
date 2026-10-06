@@ -80,7 +80,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
               <div className='gap-x0_5 flex min-w-0 flex-1 flex-col'>
                 <p className='h2-extrabold text-text-primary truncate'>{props.title}</p>
                 <div className='flex min-w-0 items-center gap-x2'>
-                  <span className='body2-semibold text-text-tertiary shrink-0 truncate'>{props.ctg}</span>
+                  <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{props.ctg}</span>
                   <ReviewRating />
                 </div>
               </div>

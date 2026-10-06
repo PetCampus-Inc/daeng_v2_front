@@ -38,7 +38,7 @@ export function VerifiedBubbleMarker({
         <div className='flex h-[38px] w-[97px] items-start justify-center gap-x0_5'>
           <Icon icon='Verified' className='size-x5 shrink-0' />
           <div className='flex h-[38px] w-[75px] flex-col items-start'>
-            <span className={cn('body2-bold text-text-primary h-x5 w-[61px] text-left', selected && 'text-text-primary-inverse')}>
+            <span className={cn('body2-bold text-text-primary h-x5 w-[61px] min-w-0 truncate text-left', selected && 'text-text-primary-inverse')}>
               {title}
             </span>
             <div className='flex h-[18px] w-[75px] items-center justify-center gap-x0_5'>

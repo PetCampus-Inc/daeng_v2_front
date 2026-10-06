@@ -19,6 +19,29 @@ interface KindergartenImageViewerProps {
 export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose }: KindergartenImageViewerProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setActiveIndex(initialIndex);
+  }, [initialIndex]);
+
+  useEffect(() => {
+    if (!isOpen || images.length === 0) return;
+
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [images.length, isOpen, onClose]);
 
   useEffect(() => {
     thumbnailRefs.current[activeIndex]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -39,6 +62,8 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
   return (
     <RemoveScroll forwardProps>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         data-kindergarten-image-viewer
         role='dialog'
         aria-modal='true'
@@ -63,6 +88,7 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
 
         <div className='bg-bg-50 relative min-h-0 flex-1 overflow-hidden'>
           <SwiperRoot
+            key={`${images.length}-${initialIndex}`}
             className='absolute inset-0 h-full w-full [&>div]:h-full'
             loop={false}
             initialIndex={initialIndex}

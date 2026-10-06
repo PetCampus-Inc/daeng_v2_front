@@ -76,6 +76,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   const [committedState, setCommittedState] = useState<SearchSnapshot>(() => pickSearchSnapshot(initialState));
   const [committedMapState, setCommittedMapState] = useState<MapSnapshot>(() => pickMapSnapshot(initialState));
   const [liveState, setLiveState] = useState<MapSnapshot>(() => pickMapSnapshot(initialState));
+  const [urlWriteVersion, setUrlWriteVersion] = useState(0);
 
   const liveStateRef = useRef(liveState);
   const committedStateRef = useRef(committedState);
@@ -83,6 +84,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   const urlStateRef = useRef(urlState);
   const pendingUrlStateRef = useRef<ReturnType<typeof toComparableState> | null>(null);
   const pendingUrlWriteCountRef = useRef(0);
+  const pendingUrlWriteIdRef = useRef(0);
 
   useEffect(() => {
     liveStateRef.current = liveState;
@@ -112,15 +114,19 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
 
   const writeUrlState = useCallback(
     (state: SearchState) => {
+      const writeId = ++pendingUrlWriteIdRef.current;
       pendingUrlStateRef.current = toComparableState(state);
       pendingUrlWriteCountRef.current += 1;
-      void Promise.resolve(setUrlState(state)).then(
-        () => {
-          pendingUrlWriteCountRef.current = Math.max(0, pendingUrlWriteCountRef.current - 1);
-        },
-        () => {
-          pendingUrlWriteCountRef.current = Math.max(0, pendingUrlWriteCountRef.current - 1);
+      const settleWrite = (failed: boolean) => {
+        pendingUrlWriteCountRef.current = Math.max(0, pendingUrlWriteCountRef.current - 1);
+        if (failed && writeId === pendingUrlWriteIdRef.current) {
+          pendingUrlStateRef.current = null;
         }
+        setUrlWriteVersion((version) => version + 1);
+      };
+      void Promise.resolve(setUrlState(state)).then(
+        () => settleWrite(false),
+        () => settleWrite(true)
       );
     },
     [setUrlState]
@@ -246,7 +252,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     };
     // URL 입력은 FSM으로 반영하되, URL 재동기화는 건너뜁니다.
     dispatch({ type: 'URL_SYNC', payload: payloadState }, { skipUrlSync: true });
-  }, [dispatch, urlState, searchUrlState, mapUrlState, writeUrlState]);
+  }, [dispatch, urlState, searchUrlState, mapUrlState, writeUrlState, urlWriteVersion]);
 
   const searchState = useMemo(
     () => mergeSnapshots(committedState, committedMapState),
