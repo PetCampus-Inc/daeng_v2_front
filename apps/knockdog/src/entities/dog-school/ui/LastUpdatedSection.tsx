@@ -23,7 +23,7 @@ export function LastUpdatedSection({ lastUpdated }: LastUpdatedSectionProps) {
           href={`/company/${slug}/report-info-update`}
           className='body2-bold text-text-accent mx-auto flex h-x5 w-[104px] items-center justify-center text-center underline'
         >
-          정보 수정 제보하기
+          정보와 달라요
         </Link>
       </div>
     </div>

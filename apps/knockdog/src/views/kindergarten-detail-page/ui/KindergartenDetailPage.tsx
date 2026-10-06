@@ -16,12 +16,15 @@ import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDe
 import { useShare } from '@shared/lib/device';
 import { getCurrentTxId, useNavigationResult, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { trackSchoolDetailView, useScreenAnalyticsTitle } from '@shared/lib/analytics';
+import { safeLocalStorage } from '@shared/lib/storage';
 import { useBasePoint, useUserStore } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { KindergartenBookmarkOnboardingSheet } from './KindergartenBookmarkOnboardingSheet';
 
 /** 기준점(현위치/집/회사) 미준비 시 거리 계산용 폴백 — 비교 상세와 동일 */
 const FALLBACK_COORD = { lng: 126.883439, lat: 37.511281 };
+const KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY = 'kindergarten-bookmark-onboarding-shown';
 
 function ClosedKindergartenNotice() {
   return (
@@ -47,6 +50,7 @@ function ClosedKindergartenNotice() {
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useKindergartenTab();
+  const [isBookmarkOnboardingOpen, setIsBookmarkOnboardingOpen] = useState(false);
 
   const params = useParams<{ id: string }>();
   const id = params?.id;
@@ -178,7 +182,16 @@ function KindergartenDetailPage() {
     setActiveTab('후기'); // 후기 탭 활성화
   };
 
-  const handleBookmarkClick = (targetId: string, bookmarked: boolean) => toggleBookmark({ id: targetId, bookmarked });
+  const handleBookmarkClick = (targetId: string, bookmarked: boolean) => {
+    toggleBookmark({ id: targetId, bookmarked });
+
+    // 이미 보관된 업체를 해제하는 경우에는 완료 안내를 노출하지 않는다.
+    if (bookmarked || safeLocalStorage.get(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY)) return;
+
+    // 앱 재설치 시 WebView 저장소가 초기화되므로, 설치 후 최초 1회만 다시 노출된다.
+    safeLocalStorage.set(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY, '1');
+    setIsBookmarkOnboardingOpen(true);
+  };
 
   const openPhoneCallSheet = () => {
     overlay.open(({ isOpen, close }) => (
@@ -188,6 +201,10 @@ function KindergartenDetailPage() {
 
   return (
     <>
+      <KindergartenBookmarkOnboardingSheet
+        isOpen={isBookmarkOnboardingOpen}
+        close={() => setIsBookmarkOnboardingOpen(false)}
+      />
       <Header>
         <Header.LeftSection>
           <Header.BackButton onClick={() => void handleBackClick()} />

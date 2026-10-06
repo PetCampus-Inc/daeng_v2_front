@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
 
-import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
+import { KindergartenImageViewer } from '@features/kindergarten-main';
 
 interface PriceImageSliderProps {
   images: string[];
@@ -20,13 +20,12 @@ function PriceImageSlider({ images, thumbnailSize = 120 }: PriceImageSliderProps
   const imageUrls = images.map(toImageUrl);
 
   const handleImageClick = (index: number) => {
-    overlay.open(({ isOpen, close }) => (
-      <ImageGalleryViewer
+    overlay.open(({ isOpen, unmount }) => (
+      <KindergartenImageViewer
         isOpen={isOpen}
-        close={close}
         images={imageUrls}
         initialIndex={index}
-        ariaLabel='가격표 사진 보기'
+        onClose={unmount}
       />
     ));
   };

@@ -39,6 +39,7 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
   return (
     <RemoveScroll forwardProps>
       <div
+        data-kindergarten-image-viewer
         role='dialog'
         aria-modal='true'
         aria-label='유치원 사진 보기'
