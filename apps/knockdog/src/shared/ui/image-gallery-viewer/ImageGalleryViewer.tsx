@@ -11,6 +11,8 @@ interface ImageGalleryViewerProps {
   images: string[];
   initialIndex?: number;
   ariaLabel?: string;
+  /** 서명된 S3 URL처럼 next/image 호스트 설정이 없는 주소 */
+  native?: boolean;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -22,6 +24,7 @@ function ImageGalleryViewer({
   images,
   initialIndex = 0,
   ariaLabel = '사진 보기',
+  native = false,
 }: ImageGalleryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -130,14 +133,18 @@ function ImageGalleryViewer({
         </button>
 
         <div className='bg-bg-0 absolute top-[183px] left-4 h-[390px] w-[calc(100%-32px)] overflow-hidden'>
-          <Image
-            src={currentImage}
-            alt={`사진 ${currentIndex + 1}`}
-            fill
-            sizes='358px'
-            className='object-cover'
-            priority
-          />
+          {native ? (
+            <img src={currentImage} alt={`사진 ${currentIndex + 1}`} className='size-full object-cover' draggable={false} />
+          ) : (
+            <Image
+              src={currentImage}
+              alt={`사진 ${currentIndex + 1}`}
+              fill
+              sizes='358px'
+              className='object-cover'
+              priority
+            />
+          )}
 
           {images.length > 1 ? (
             <>
@@ -175,7 +182,11 @@ function ImageGalleryViewer({
               aria-current={currentIndex === index}
               className='bg-bg-0 relative size-[60px] shrink-0 overflow-hidden rounded-lg'
             >
-              <Image src={image} alt='' fill sizes='60px' className='object-cover' />
+              {native ? (
+                <img src={image} alt='' className='size-full object-cover' draggable={false} />
+              ) : (
+                <Image src={image} alt='' fill sizes='60px' className='object-cover' />
+              )}
             </button>
           ))}
         </div>

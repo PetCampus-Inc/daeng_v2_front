@@ -8,6 +8,10 @@ export interface MemoPhoto {
 export interface MemoResponse {
   content: string;
   photos: MemoPhoto[];
+  createdAt?: string | number[] | null;
+  writtenAt?: string | number[] | null;
+  updatedAt?: string | number[] | null;
+  modifiedAt?: string | number[] | null;
 }
 
 export const getMemo = async (targetId: string): Promise<MemoResponse> => {
