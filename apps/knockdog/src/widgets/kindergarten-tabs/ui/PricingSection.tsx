@@ -58,7 +58,7 @@ function PricingSection({ kindergartenId }: PricingSectionProps) {
       {/* 가격표 */}
       <PriceImageSlider images={pricing?.priceImages ?? []} />
       {/* 최종 정보 업데이트 */}
-      <div className='flex justify-between py-4'>
+      <div className='flex items-center justify-between py-4'>
         <div className='flex flex-col'>
           <span className='body1-bold'>최종 정보 업데이트</span>
           <span className='body2-regular text-text-tertiary'>{pricing?.lastUpdatedAt}</span>
@@ -66,7 +66,7 @@ function PricingSection({ kindergartenId }: PricingSectionProps) {
         <div>
           <button
             onClick={() => push({ pathname: `/kindergarten/${id}/report-info-update` })}
-            className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'
+            className='body2-bold text-text-accent mx-auto flex h-x5 w-[104px] items-center justify-center text-center underline'
           >
             정보 수정 제보하기
           </button>

@@ -115,16 +115,16 @@ function BasicSection({ kindergartenId }: BasicSectionProps) {
         </div>
       )}
 
+      {/* 위치 */}
+      {roadAddress && coord && <LocationMap address={roadAddress} coord={coord} />}
       {/* 웹사이트 · SNS — 유효 URL 없으면 섹션 미노출 */}
       <ExternalLinksCard
         homepageUrl={homepageUrl}
         instagramUrl={instagramUrl}
         blogUrl={youtubeUrl}
       />
-      {/* 위치 */}
-      {roadAddress && coord && <LocationMap address={roadAddress} coord={coord} />}
       {/* 최종 정보 업데이트 */}
-      <div className='flex justify-between py-4'>
+      <div className='flex items-center justify-between py-4'>
         <div className='flex flex-col'>
           <span className='body1-bold'>최종 정보 업데이트</span>
           <span className='body2-regular text-text-tertiary'>{lastUpdatedAt}</span>
@@ -136,7 +136,7 @@ function BasicSection({ kindergartenId }: BasicSectionProps) {
                 pathname: `/kindergarten/${id}/report-info-update`,
               })
             }
-            className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'
+            className='body2-bold text-text-accent mx-auto flex h-x5 w-[104px] items-center justify-center text-center underline'
           >
             정보 수정 제보하기
           </button>

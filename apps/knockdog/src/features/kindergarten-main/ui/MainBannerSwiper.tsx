@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { type PointerEvent, useRef, useState } from 'react';
 import { SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
 
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
+import { KindergartenImageViewer } from './KindergartenImageViewer';
 
 interface MainBannerSwiperProps {
   images: string[];
@@ -13,9 +15,42 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
   const slides = images.filter(Boolean);
   const totalSlides = slides.length;
   const [currentSlide, setCurrentSlide] = useState(1);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const wasDraggingRef = useRef(false);
+  const imageUrls = slides.map((image) => resolvePublicImageSrc(image));
 
   const handleSlideChange = (currentIndex: number) => {
     setCurrentSlide(currentIndex + 1);
+  };
+
+  const handleImageClick = () => {
+    if (wasDraggingRef.current) {
+      wasDraggingRef.current = false;
+      return;
+    }
+
+    overlay.open(({ isOpen, unmount }) => (
+      <KindergartenImageViewer
+        isOpen={isOpen}
+        images={imageUrls}
+        initialIndex={currentSlide - 1}
+        onClose={unmount}
+      />
+    ));
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    pointerStartRef.current = { x: event.clientX, y: event.clientY };
+    wasDraggingRef.current = false;
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const pointerStart = pointerStartRef.current;
+    if (!pointerStart) return;
+
+    if (Math.abs(event.clientX - pointerStart.x) > 8 || Math.abs(event.clientY - pointerStart.y) > 8) {
+      wasDraggingRef.current = true;
+    }
   };
 
   // 이미지 없으면 플레이스홀더도 렌더하지 않음.
@@ -31,7 +66,26 @@ function MainBannerSwiper({ images }: MainBannerSwiperProps) {
           const src = resolvePublicImageSrc(image);
           return (
             <SwiperSlideItem key={`${image}-${index}`}>
-              <div className='bg-fill-secondary-50 relative h-[292px] w-full'>
+              <div
+                className='bg-fill-secondary-50 relative h-[292px] w-full cursor-pointer'
+                onClick={handleImageClick}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={() => {
+                  pointerStartRef.current = null;
+                }}
+                onPointerLeave={() => {
+                  pointerStartRef.current = null;
+                }}
+                onPointerCancel={() => {
+                  pointerStartRef.current = null;
+                }}
+                role='button'
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') handleImageClick();
+                }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 목록 배너와 동일: CDN/한글 키는 Next Image remotePatterns 밖 */}
                 <img
                   src={src}

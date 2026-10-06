@@ -1,0 +1,115 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { SwiperRoot, SwiperSlideItem } from '@knockdog/ui';
+import { RemoveScroll } from 'react-remove-scroll';
+
+import { ZoomableAlbumPhoto } from '@views/owner-album-page/ui/ZoomableAlbumPhoto';
+import { Header } from '@widgets/Header';
+import { AlbumImage } from '@shared/ui/album-image';
+
+interface KindergartenImageViewerProps {
+  isOpen: boolean;
+  images: string[];
+  initialIndex: number;
+  onClose: () => void;
+}
+
+/** 원장 앨범 사진 상세와 같은 탐색 UI를 사용하는 유치원 이미지 뷰어 */
+export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose }: KindergartenImageViewerProps) {
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  useEffect(() => {
+    thumbnailRefs.current[activeIndex]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [activeIndex]);
+
+  const handleSwipeEdge = useCallback(
+    (direction: 'prev' | 'next') => {
+      setActiveIndex((previous) => {
+        if (direction === 'prev') return previous > 0 ? previous - 1 : previous;
+        return previous < images.length - 1 ? previous + 1 : previous;
+      });
+    },
+    [images.length]
+  );
+
+  if (!isOpen || images.length === 0) return null;
+
+  return (
+    <RemoveScroll forwardProps>
+      <div
+        role='dialog'
+        aria-modal='true'
+        aria-label='유치원 사진 보기'
+        className='bg-bg-50 z-modal fixed inset-0 flex flex-col'
+      >
+        <div className='bg-bg-0 z-20 shrink-0 pt-(--safe-area-inset-top,0px)'>
+          <Header>
+            <Header.LeftSection>
+              <Header.CloseButton
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onClose();
+                }}
+              />
+            </Header.LeftSection>
+            <Header.Title>
+              <span className='text-text-accent'>{activeIndex + 1}</span> / {images.length}
+            </Header.Title>
+          </Header>
+        </div>
+
+        <div className='bg-bg-50 relative min-h-0 flex-1 overflow-hidden'>
+          <SwiperRoot
+            className='absolute inset-0 h-full w-full [&>div]:h-full'
+            loop={false}
+            initialIndex={initialIndex}
+            onSlideChange={setActiveIndex}
+          >
+            {images.map((image, index) => (
+              <SwiperSlideItem key={`${image}-${index}`} className='h-full'>
+                {Math.abs(index - activeIndex) <= 1 ? (
+                  <ZoomableAlbumPhoto
+                    src={image}
+                    isActive={index === activeIndex}
+                    onSwipeEdge={handleSwipeEdge}
+                    canSwipePrev={activeIndex > 0}
+                    canSwipeNext={activeIndex < images.length - 1}
+                  />
+                ) : (
+                  <div className='bg-bg-50 h-full w-full' aria-hidden='true' />
+                )}
+              </SwiperSlideItem>
+            ))}
+          </SwiperRoot>
+        </div>
+
+        <div className='bg-bg-0 z-20 shrink-0 pb-(--safe-area-inset-bottom,0px)'>
+          <div className='scrollbar-hide flex gap-2 overflow-x-auto px-4 py-5'>
+            {images.map((image, index) => {
+              const isSelected = index === activeIndex;
+              return (
+                <button
+                  key={`${image}-${index}`}
+                  ref={(node) => {
+                    thumbnailRefs.current[index] = node;
+                  }}
+                  type='button'
+                  onClick={() => setActiveIndex(index)}
+                  aria-label={`${index + 1}번째 사진 보기`}
+                  aria-current={isSelected}
+                  className={`bg-bg-50 radius-r2 relative size-[60px] shrink-0 overflow-hidden ${
+                    isSelected ? 'border-line-accent border-2' : ''
+                  }`}
+                >
+                  <AlbumImage src={image} className='absolute inset-0' optimize sizes='60px' />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </RemoveScroll>
+  );
+}

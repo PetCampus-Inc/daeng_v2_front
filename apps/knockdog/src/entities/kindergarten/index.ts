@@ -66,3 +66,4 @@ export { toKindergartenList, toKindergartenMain } from './model/mappers';
 export { DeparturePointSheet } from './ui/DeparturePointSheet';
 export { ServiceBadgesTruncated } from './ui/ServiceBadgesTruncated';
 export { ServiceBadgeList } from './ui/ServiceBadgeList';
+export { ReviewRating } from './ui/ReviewRating';
