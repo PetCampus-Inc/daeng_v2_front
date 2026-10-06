@@ -81,6 +81,8 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
   const committedStateRef = useRef(committedState);
   const basePointRef = useRef<Coord | null>(basePoint);
   const urlStateRef = useRef(urlState);
+  const pendingUrlStateRef = useRef<ReturnType<typeof toComparableState> | null>(null);
+  const pendingUrlWriteCountRef = useRef(0);
 
   useEffect(() => {
     liveStateRef.current = liveState;
@@ -107,6 +109,22 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
       refPointFromBase: basePointRef.current ?? null,
     };
   }, []);
+
+  const writeUrlState = useCallback(
+    (state: SearchState) => {
+      pendingUrlStateRef.current = toComparableState(state);
+      pendingUrlWriteCountRef.current += 1;
+      void Promise.resolve(setUrlState(state)).then(
+        () => {
+          pendingUrlWriteCountRef.current = Math.max(0, pendingUrlWriteCountRef.current - 1);
+        },
+        () => {
+          pendingUrlWriteCountRef.current = Math.max(0, pendingUrlWriteCountRef.current - 1);
+        }
+      );
+    },
+    [setUrlState]
+  );
 
   const dispatch = useCallback(
     (event: SearchEvent, options?: DispatchOptions) => {
@@ -163,11 +181,12 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
         const nextComparable = toComparableState(next);
         const urlComparable = normalizeUrlState(urlStateRef.current);
         if (!areComparableStatesEqual(nextComparable, urlComparable)) {
-          setUrlState(next);
+          // Wait for nuqs to settle local URL writes before accepting URL_SYNC.
+          writeUrlState(next);
         }
       }
     },
-    [buildTransitionContext, setUrlState]
+    [buildTransitionContext, setUrlState, writeUrlState]
   );
 
   const prevBaseTypeRef = useRef(baseType);
@@ -195,6 +214,20 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
      * URL_SYNC는 urlState를 다시 쓰지 않고 liveState를 재정렬한다.
      */
     const urlComparable = normalizeUrlState(urlState);
+    const pendingUrlState = pendingUrlStateRef.current;
+    if (pendingUrlState) {
+      if (pendingUrlWriteCountRef.current > 0) return;
+      if (!areComparableStatesEqual(urlComparable, pendingUrlState)) {
+        const latestState = mergeSnapshots(committedStateRef.current, liveStateRef.current);
+        const latestComparable = toComparableState(latestState);
+        if (areComparableStatesEqual(latestComparable, pendingUrlState)) {
+          writeUrlState(latestState);
+          return;
+        }
+      }
+      pendingUrlStateRef.current = null;
+    }
+
     const committedComparable = toComparableState(mergeSnapshots(committedStateRef.current, liveStateRef.current));
     if (areComparableStatesEqual(urlComparable, committedComparable)) {
       return;
@@ -213,7 +246,7 @@ export function SearchStateProvider({ children }: { children: ReactNode }) {
     };
     // URL 입력은 FSM으로 반영하되, URL 재동기화는 건너뜁니다.
     dispatch({ type: 'URL_SYNC', payload: payloadState }, { skipUrlSync: true });
-  }, [dispatch, urlState, searchUrlState, mapUrlState]);
+  }, [dispatch, urlState, searchUrlState, mapUrlState, writeUrlState]);
 
   const searchState = useMemo(
     () => mergeSnapshots(committedState, committedMapState),

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ActionButton, Icon } from '@knockdog/ui';
 import { FilterList } from './FilterList';
@@ -9,7 +9,10 @@ import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useWebBottomNavStore } from '@shared/store';
 import { isNativeWebView } from '@shared/lib/device';
 import { filterQueries } from '../api/filterQueries';
-import type { FilterOption } from '@entities/kindergarten';
+import { FILTER_CONFIG, type FilterCategory, type FilterOption } from '@entities/kindergarten';
+
+const FILTER_CATEGORIES = Object.keys(FILTER_CONFIG) as FilterCategory[];
+const DEFAULT_FILTER_CATEGORY: FilterCategory = '영업 시간';
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -17,10 +20,20 @@ interface FilterBottomSheetProps {
   bounds: Bounds | null;
   initialFilters: FilterOption[];
   onApply: (filters: FilterOption[]) => void;
+  initialCategory?: FilterCategory;
 }
 
-export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApply }: FilterBottomSheetProps) {
+export function FilterBottomSheet({
+  isOpen,
+  close,
+  bounds,
+  initialFilters,
+  onApply,
+  initialCategory,
+}: FilterBottomSheetProps) {
   const [resultCount, setResultCount] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<FilterCategory>(initialCategory ?? DEFAULT_FILTER_CATEGORY);
+  const filterListRef = useRef<HTMLDivElement>(null);
   const setFilterBottomSheetOpen = useWebBottomNavStore((state) => state.setFilterBottomSheetOpen);
   const {
     localFilters,
@@ -36,8 +49,22 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
   useEffect(() => {
     if (isOpen) {
       setLocalFilters(initialFilters);
+      setActiveCategory(initialCategory ?? DEFAULT_FILTER_CATEGORY);
     }
-  }, [isOpen, initialFilters, setLocalFilters]);
+  }, [isOpen, initialFilters, initialCategory, setLocalFilters]);
+
+  const handleCategorySelect = (category: FilterCategory) => {
+    setActiveCategory(category);
+    const list = filterListRef.current;
+    const target = list?.querySelector<HTMLElement>(`[data-filter-category="${category}"]`);
+    if (!list || !target) return;
+
+    // Keep the sheet header and tabs fixed; scroll just the option list.
+    const listTop = list.getBoundingClientRect().top;
+    const targetTop = target.getBoundingClientRect().top;
+    // Keep a little breathing room between the fixed tabs and the section heading.
+    list.scrollTo({ top: list.scrollTop + targetTop - listTop - 16, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     if (isNativeWebView()) return;
@@ -92,16 +119,46 @@ export function FilterBottomSheet({ isOpen, close, bounds, initialFilters, onApp
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay />
-      <BottomSheet.Body className='h-full'>
+      <BottomSheet.Body className='flex h-full flex-col overflow-hidden'>
         <BottomSheet.Handle />
-        <BottomSheet.Header className='border-line-100 border-b'>
+        <BottomSheet.Header className='shrink-0'>
           <BottomSheet.Title>필터</BottomSheet.Title>
           <BottomSheet.CloseButton />
         </BottomSheet.Header>
 
-        <FilterList isSelected={isLocalFilterSelected} onToggleOption={onToggleLocalFilter} />
+        <div
+          role='tablist'
+          aria-label='필터 카테고리'
+          className='border-line-200 scrollbar-hide flex h-12 w-full shrink-0 overflow-x-auto border-b bg-white px-4'
+        >
+          {FILTER_CATEGORIES.map((category) => {
+            const isActive = activeCategory === category;
+            return (
+              <button
+                key={category}
+                type='button'
+                role='tab'
+                aria-selected={isActive}
+                className={`body2-semibold flex h-full shrink-0 items-center justify-center border-b-[3px] px-4 ${
+                  isActive ? 'border-line-accent text-text-accent' : 'border-transparent text-text-primary'
+                }`}
+                onClick={() => handleCategorySelect(category)}
+              >
+                {category.replace(' ∙ ', '∙')}
+              </button>
+            );
+          })}
+        </div>
 
-        <div className='fixed bottom-0 w-full'>
+        <FilterList
+          listRef={filterListRef}
+          isSelected={isLocalFilterSelected}
+          onToggleOption={onToggleLocalFilter}
+          initialCategory={initialCategory}
+          onActiveCategoryChange={setActiveCategory}
+        />
+
+        <div className='mt-auto w-full shrink-0'>
           <div
             className='flex h-6'
             style={{

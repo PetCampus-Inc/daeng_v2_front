@@ -11,7 +11,7 @@ export type { KindergartenMainParams } from './api/kindergarten-main';
 /** config */
 export { SERVICE_TAGS, PICKUP, OPERATION_STATUS } from './config/enum';
 export { FILTER_CONFIG, FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from './config/filter-options';
-export type { FilterOption, FilterState } from './config/filter-options';
+export type { FilterCategory, FilterOption, FilterState } from './config/filter-options';
 export { createKindergartenBasicQueryOptions } from './config/kindergartenBasicQueryKeys';
 export { createKindergartenNearQueryOptions, kindergartenNearQueryKeys } from './config/kindergartenNearQueryKeys';
 export { createKindergartenMainQueryOptions, kindergartenMainQueryKeys } from './config/kindergartenMainQueryKeys';

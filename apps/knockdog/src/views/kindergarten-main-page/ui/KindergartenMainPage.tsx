@@ -26,7 +26,7 @@ import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-ma
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
-import type { KindergartenListItem } from '@entities/kindergarten';
+import type { FilterCategory, KindergartenListItem } from '@entities/kindergarten';
 import { getLocationPermission, isEqualCoord, requestLocationPermission, useBottomSheetSnapIndex } from '@shared/lib';
 import { useBasePointType, useMarkerState } from '@shared/store';
 
@@ -139,13 +139,14 @@ function KindergartenMainPageContent() {
     ));
   };
 
-  const handleOpenFilter = () => {
+  const handleOpenFilter = (category: FilterCategory) => {
     overlay.open(({ isOpen, close }) => (
       <FilterBottomSheet
         isOpen={isOpen}
         close={close}
         bounds={boundsSnapshotToBounds(liveState.viewportBounds)}
         initialFilters={committedState.filters}
+        initialCategory={category}
         onApply={(newFilters) => {
           if (newFilters.length > 0) {
             dispatch({ type: 'FILTERS_CHANGED', filters: newFilters });
@@ -223,7 +224,12 @@ function KindergartenMainPageContent() {
           </div>
         }
       >
-        <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
+        <KindergartenList
+          onOpenFilter={handleOpenFilter}
+          onClearFilters={() => dispatch({ type: 'CLEAR_FILTERS' })}
+          selectedFilters={committedState.filters}
+          region={searchParams?.get('region')}
+        />
       </KindergartenListSheet>
 
       <RequiredTermsConsentSheetHost />
