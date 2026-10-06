@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Divider, ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { overlay } from 'overlay-kit';
+import { overlay, useCurrentOverlay } from 'overlay-kit';
 import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
@@ -52,6 +52,7 @@ function KindergartenDetailPage() {
   const id = params?.id;
 
   const { back, getParams } = useStackNavigation();
+  const currentOverlayId = useCurrentOverlay();
   const { navigateToTab } = useTabNavigation();
   const navResult = useNavigationResult<boolean>();
   const [navigationParams, setNavigationParams] = useState<{
@@ -112,6 +113,11 @@ function KindergartenDetailPage() {
   };
 
   const handleBackClick = async () => {
+    if (currentOverlayId) {
+      overlay.close(currentOverlayId);
+      return;
+    }
+
     // 공유 링크·외부 URL 진입에는 앱 내부 스택이 없으므로 브라우저 밖으로 나가지 않고 홈으로 보낸다.
     if (!isInternalEntry) {
       await navigateToTab('/');

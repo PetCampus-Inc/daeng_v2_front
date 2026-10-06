@@ -1,78 +1,123 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import { ActionButton, Icon, Textarea, TextareaInput } from '@knockdog/ui';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { overlay } from 'overlay-kit';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
-import { PhotoUploader } from '@shared/ui/photo-uploader';
-import { useMemoQuery } from '../api/useMemoQuery';
-import { useMemoMutation } from '../api/useMemoMutation';
-import { useResolveMemoPhotoKeys } from '../lib/useResolveMemoPhotoKeys';
-import { toMemoPhotoUrl } from '../lib/toMemoPhotoUrl';
-import { useStackNavigation } from '@shared/lib/bridge';
-import type { WebImageAsset } from '@shared/lib/media';
-import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
-const MEMO_PHOTO_MAX_COUNT = 5;
+import { useStackNavigation } from '@shared/lib/bridge';
+import { formatKstDateLabel, formatKstDayLabel, formatKstTimeLabel, getKstDateParts } from '@shared/lib/calendar-date';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
+
+import { useMemoQuery } from '../api/useMemoQuery';
+import { toMemoPhotoUrl } from '../lib/toMemoPhotoUrl';
+import { MemoMoreMenu } from './MemoMoreMenu';
 
 interface FreeMemoSectionProps {
   kindergartenId?: string;
+}
+
+function parseMemoWrittenAt(value: string | number[] | null | undefined) {
+  if (value == null) return null;
+
+  if (Array.isArray(value)) {
+    // Jackson LocalDateTime [y,m,d,h,mi,s,nano] — KST wall time
+    const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = value;
+    if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') return null;
+
+    const millisecond = typeof nano === 'number' && Number.isFinite(nano) ? Math.floor(nano / 1_000_000) : 0;
+    const date = new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        (typeof hour === 'number' ? hour : 0) - 9,
+        typeof minute === 'number' ? minute : 0,
+        typeof second === 'number' ? second : 0,
+        millisecond
+      )
+    );
+
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatMemoWrittenAt(value: string | number[] | null | undefined) {
+  const date = parseMemoWrittenAt(value);
+  if (!date) return '';
+
+  const { year } = getKstDateParts(date);
+  const isCurrentYear = year === getKstDateParts(new Date()).year;
+  const dateLabel = isCurrentYear ? formatKstDateLabel(date) : `${year}년 ${formatKstDateLabel(date)}`;
+
+  return `${dateLabel} ${formatKstDayLabel(date)} ${formatKstTimeLabel(date)}`;
 }
 
 export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
   const params = useParams<{ id: string }>();
   const id = kindergartenId ?? params?.id;
   const { push } = useStackNavigation();
+  const contentRef = useRef<HTMLParagraphElement>(null);
+  const [expandedContent, setExpandedContent] = useState<string | null>(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const { data: memo = { content: '', photos: [] }, isLoading } = useMemoQuery(id ?? '', { enabled: !!id });
+  const content = memo.content ?? '';
+  const isExpanded = expandedContent === content;
+  const writtenAtLabel = formatMemoWrittenAt(memo.updatedAt ?? memo.modifiedAt ?? memo.writtenAt ?? memo.createdAt);
+  const photoUrls = memo.photos.map((photo) => toMemoPhotoUrl(photo.key));
+  const hasMemo = content.trim().length > 0 || memo.photos.length > 0;
+
+  const handleEditMemo = () => {
+    if (!id) return;
+    push({ pathname: `/kindergarten/${id}/edit-memo` });
+  };
+
+  const handleImageClick = (index: number) => {
+    overlay.open(({ isOpen, close }) => (
+      <ImageGalleryViewer
+        isOpen={isOpen}
+        close={close}
+        images={photoUrls}
+        initialIndex={index}
+        ariaLabel='메모 사진 보기'
+        native
+      />
+    ));
+  };
+
+  useLayoutEffect(() => {
+    const element = contentRef.current;
+    if (!element || isExpanded) return;
+    setIsOverflowing(element.scrollHeight > element.clientHeight + 1);
+  }, [content, isExpanded]);
 
   if (!id) throw new Error('Company ID is required for free memo section');
 
-  const { data: memo = { content: '', photos: [] }, isLoading } = useMemoQuery(id);
-  const { mutate: updateMemo } = useMemoMutation();
-  const resolvePhotoKeys = useResolveMemoPhotoKeys(id);
-
-  const defaultPhotos = useMemo<WebImageAsset[]>(
-    () =>
-      memo.photos.map((photo) => {
-        const imageUrl = toMemoPhotoUrl(photo.key);
-        return { key: photo.key, preSignedUrl: imageUrl, uri: imageUrl };
-      }),
-    [memo.photos]
-  );
-
-  const handlePhotosChange = useCallback(
-    async (assets: WebImageAsset[]) => {
-      try {
-        const photoKeys = await resolvePhotoKeys(
-          assets.map((asset) => asset.key),
-          memo.photos.map((photo) => photo.key)
-        );
-        updateMemo({ targetId: id, content: memo.content, photoKeys });
-      } catch (error) {
-        console.error('이미지 이동 실패:', error);
-      }
-    },
-    [id, memo.content, memo.photos, resolvePhotoKeys, updateMemo]
-  );
-
-  const handleEditMemo = () => push({ pathname: `/kindergarten/${id}/edit-memo` });
-
   const header = (
-    <div className='flex items-center gap-1 py-3'>
-      <Icon icon='Note' className='text-text-accent h-6 w-6' />
-      <span className='h3-extrabold'>자유메모</span>
+    <div className='flex items-center justify-between gap-1 py-3'>
+      <div className='flex min-w-0 items-center gap-1'>
+        <Icon icon='Note' className='text-text-accent size-6 shrink-0' />
+        <span className='h3-extrabold'>자유메모</span>
+      </div>
+      {!isLoading && hasMemo ? <MemoMoreMenu targetId={id} onEdit={handleEditMemo} /> : null}
     </div>
   );
 
-  if (isLoading)
+  if (isLoading) {
     return (
       <div>
         {header}
         <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
       </div>
     );
+  }
 
-  const isEmpty = !memo.content?.trim() && memo.photos.length === 0;
-
-  if (isEmpty)
+  if (!hasMemo) {
     return (
       <div>
         {header}
@@ -84,30 +129,46 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
         </div>
       </div>
     );
+  }
 
   return (
     <div>
       {header}
-      <div className='flex justify-between'>
-        <span className='body1-regular'>자유롭게 메모를 작성하세요</span>
-
-        {/* @TODO: 화면 이동 경로의 경우 상수 이용할것 */}
-        <button
-          onClick={handleEditMemo}
-          className='text-text-tertiary flex items-center gap-1'
-        >
-          <span className='label-semibold'>편집</span>
-          <Icon icon='ChevronRight' className='h-4 w-4' />
-        </button>
-      </div>
-      <span className='body2-regular text-text-tertiary'>사진 최대 {MEMO_PHOTO_MAX_COUNT}개 등록 가능</span>
-      <div className='py-3'>
-        <Textarea cols={5} className='h-[144px]'>
-          <TextareaInput readOnly value={memo?.content ?? ''} />
-        </Textarea>
-      </div>
-      <div className='overflow-y-auto'>
-        <PhotoUploader maxCount={MEMO_PHOTO_MAX_COUNT} defaultValue={defaultPhotos} onChange={handlePhotosChange} />
+      <div className='flex flex-col gap-3'>
+        {writtenAtLabel ? <p className='body2-semibold text-text-secondary'>{writtenAtLabel}</p> : null}
+        {photoUrls.length > 0 ? (
+          <div className='scrollbar-hide flex gap-3 overflow-x-auto'>
+            {photoUrls.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type='button'
+                onClick={() => handleImageClick(index)}
+                className='radius-r2 bg-bg-100 size-[120px] shrink-0 overflow-hidden'
+              >
+                {/* 서명된 S3 URL이라 next/image 호스트 설정 대신 img를 쓴다 */}
+                <img src={image} alt='' width={120} height={120} className='size-[120px] object-cover' draggable={false} />
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {content.trim() ? (
+          <p
+            ref={contentRef}
+            className={cn('body1-regular text-text-primary whitespace-pre-line', !isExpanded && 'line-clamp-3')}
+          >
+            {content}
+          </p>
+        ) : null}
+        {content.trim() && (isOverflowing || isExpanded) ? (
+          <button
+            type='button'
+            className='label-semibold text-text-primary flex w-fit items-center gap-1 py-1'
+            onClick={() => setExpandedContent(isExpanded ? null : content)}
+          >
+            {isExpanded ? '접기' : '더보기'}
+            <Icon icon='ChevronBottom' className={cn('size-4', isExpanded && 'rotate-180')} />
+          </button>
+        ) : null}
       </div>
     </div>
   );

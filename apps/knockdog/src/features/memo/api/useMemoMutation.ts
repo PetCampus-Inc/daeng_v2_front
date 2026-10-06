@@ -3,12 +3,12 @@ import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/
 import { updateMemo, memoQueryKeys, type MemoResponse, type UpdateMemoRequest, memoQueries } from '@entities/memo';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
-interface MemoMutationContext {
-  userContext?: unknown;
+interface MemoMutationContext<TUserContext> {
+  userContext?: TUserContext;
 }
 
-export const useMemoMutation = (
-  options?: Omit<UseMutationOptions<MemoResponse, Error, UpdateMemoRequest, MemoMutationContext>, 'mutationFn'>
+export const useMemoMutation = <TUserContext = unknown>(
+  options?: Omit<UseMutationOptions<MemoResponse, Error, UpdateMemoRequest, TUserContext>, 'mutationFn'>
 ) => {
   const queryClient = useQueryClient();
   const {
@@ -19,23 +19,30 @@ export const useMemoMutation = (
     ...restOptions
   } = options ?? {};
 
-  const userOnMutate = rawOnMutate as ((variables: UpdateMemoRequest) => Promise<unknown> | unknown) | undefined;
+  const userOnMutate = rawOnMutate as
+    | ((variables: UpdateMemoRequest) => Promise<TUserContext> | TUserContext)
+    | undefined;
   const userOnError = rawOnError as
-    | ((error: Error, variables: UpdateMemoRequest, context: unknown) => unknown)
+    | ((error: Error, variables: UpdateMemoRequest, context: TUserContext | undefined) => unknown)
     | undefined;
   const userOnSuccess = rawOnSuccess as
-    | ((data: MemoResponse, variables: UpdateMemoRequest, context: unknown) => unknown)
+    | ((data: MemoResponse, variables: UpdateMemoRequest, context: TUserContext | undefined) => unknown)
     | undefined;
   const userOnSettled = rawOnSettled as
-    | ((data: MemoResponse | undefined, error: Error | null, variables: UpdateMemoRequest, context: unknown) => unknown)
+    | ((
+        data: MemoResponse | undefined,
+        error: Error | null,
+        variables: UpdateMemoRequest,
+        context: TUserContext | undefined
+      ) => unknown)
     | undefined;
 
-  return useMutation({
+  return useMutation<MemoResponse, Error, UpdateMemoRequest, MemoMutationContext<TUserContext>>({
     ...restOptions,
     mutationFn: updateMemo as (variables: UpdateMemoRequest) => Promise<MemoResponse>,
     onMutate: async (variables) => {
       const userContext = await userOnMutate?.(variables);
-      const context: MemoMutationContext = { userContext };
+      const context: MemoMutationContext<TUserContext> = { userContext };
 
       return context;
     },
