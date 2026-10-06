@@ -11,4 +11,4 @@ export {
 
 // model
 export type { Answer, AnswerGroup, QuestionGroup, Question } from './model/checklist';
-export { QUESTION_MAP } from './config/questionMap';
+export { getChecklistChip } from './config/questionMap';

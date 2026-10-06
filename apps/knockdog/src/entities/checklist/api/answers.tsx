@@ -4,6 +4,8 @@ import { api } from '@shared/api';
 // @TODO API Response, 타입 정의 필요
 interface AnswersResponse {
   sections: AnswerGroup[];
+  updatedAt?: string | number[] | null;
+  modifiedAt?: string | number[] | null;
 }
 
 interface ApiResponse {
@@ -30,7 +32,7 @@ const getAnswers = async (targetId: string): Promise<AnswersResponse> => {
 
 interface UpdateAnswersRequest {
   targetId: string;
-  answers: { questionId: string; value: string }[];
+  answers: { questionId: string; value: string; memo?: string }[];
 }
 
 const updateAnswers = async ({ targetId, answers }: UpdateAnswersRequest) => {
