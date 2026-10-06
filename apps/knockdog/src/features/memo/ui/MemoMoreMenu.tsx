@@ -2,6 +2,7 @@
 
 import { useState, type MouseEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { overlay } from 'overlay-kit';
 import {
   autoUpdate,
   flip,
@@ -14,7 +15,16 @@ import {
   useInteractions,
   useRole,
 } from '@floating-ui/react';
-import { Icon } from '@knockdog/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Icon,
+} from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
 import { memoQueryKeys, type MemoResponse } from '@entities/memo';
@@ -39,8 +49,19 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
       queryClient.setQueryData(queryKey, EMPTY_MEMO);
       toast({
         type: 'success',
-        nativeTitle: '메모를 삭제했어요',
-        title: '메모를 삭제했어요',
+        nativeTitle: '자유메모를 삭제했어요',
+        titleParts: [
+          { text: '자유메모를 ', accent: false },
+          { text: '삭제', accent: true },
+          { text: '했어요', accent: false },
+        ],
+        title: (
+          <>
+            <span className='text-text-primary-inverse'>자유메모를 </span>
+            <span className='text-text-accent'>삭제</span>
+            <span className='text-text-primary-inverse'>했어요</span>
+          </>
+        ),
       });
     },
   });
@@ -74,16 +95,35 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
     event.stopPropagation();
     setIsOpen(false);
 
-    const previous = queryClient.getQueryData<MemoResponse>(queryKey);
-    queryClient.setQueryData(queryKey, EMPTY_MEMO);
-    updateMemo(
-      { targetId, content: '', photoKeys: [] },
-      {
-        onError: () => {
-          if (previous) queryClient.setQueryData(queryKey, previous);
-        },
-      }
-    );
+    overlay.open(({ isOpen: isDialogOpen, close }) => (
+      <AlertDialog open={isDialogOpen} onOpenChange={(open) => !open && close()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>자유메모를 삭제할까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const previous = queryClient.getQueryData<MemoResponse>(queryKey);
+                close();
+                queryClient.setQueryData(queryKey, EMPTY_MEMO);
+                updateMemo(
+                  { targetId, content: '', photoKeys: [] },
+                  {
+                    onError: () => {
+                      if (previous) queryClient.setQueryData(queryKey, previous);
+                    },
+                  }
+                );
+              }}
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
   };
 
   return (
