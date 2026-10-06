@@ -94,8 +94,8 @@ export function KindergartenListItem({
           </div>
         </div>
 
-        {/* 구분선 */}
-        <div className='bg-line-100 flex h-px w-full items-center justify-center' />
+        {/* 메모가 없을 때는 주소와 하단 정보 영역을 구분한다. */}
+        {!memo && <div className='bg-line-100 flex h-px w-full items-center justify-center' />}
 
         {/* 메모 영역 */}
         {memo && (
