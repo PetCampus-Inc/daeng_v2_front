@@ -40,11 +40,39 @@ interface MemoMoreMenuProps {
 
 const EMPTY_MEMO: MemoResponse = { content: '', photos: [] };
 
+interface DeleteMemoContext {
+  previous?: MemoResponse;
+}
+
 function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const queryKey = memoQueryKeys.byTargetId(targetId);
   const { mutate: updateMemo, isPending } = useMemoMutation({
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<MemoResponse>(queryKey);
+      queryClient.setQueryData(queryKey, EMPTY_MEMO);
+      return { previous } satisfies DeleteMemoContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+      toast({
+        nativeTitle: '자유메모를 삭제하지 못했어요',
+        titleParts: [
+          { text: '자유메모를 ', accent: false },
+          { text: '삭제', accent: true },
+          { text: '하지 못했어요', accent: false },
+        ],
+        title: (
+          <>
+            <span className='text-text-primary-inverse'>자유메모를 </span>
+            <span className='text-text-accent'>삭제</span>
+            <span className='text-text-primary-inverse'>하지 못했어요</span>
+          </>
+        ),
+      });
+    },
     onSuccess: () => {
       queryClient.setQueryData(queryKey, EMPTY_MEMO);
       toast({
@@ -105,17 +133,8 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
             <AlertDialogCancel>닫기</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                const previous = queryClient.getQueryData<MemoResponse>(queryKey);
                 close();
-                queryClient.setQueryData(queryKey, EMPTY_MEMO);
-                updateMemo(
-                  { targetId, content: '', photoKeys: [] },
-                  {
-                    onError: () => {
-                      if (previous) queryClient.setQueryData(queryKey, previous);
-                    },
-                  }
-                );
+                updateMemo({ targetId, content: '', photoKeys: [] });
               }}
             >
               삭제

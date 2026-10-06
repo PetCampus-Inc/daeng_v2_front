@@ -23,9 +23,24 @@ function parseMemoWrittenAt(value: string | number[] | null | undefined) {
   if (value == null) return null;
 
   if (Array.isArray(value)) {
-    const [year, month, day, hour = 0, minute = 0] = value;
+    // Jackson LocalDateTime [y,m,d,h,mi,s,nano] — KST wall time
+    const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = value;
     if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') return null;
-    return new Date(year, month - 1, day, hour, minute);
+
+    const millisecond = typeof nano === 'number' && Number.isFinite(nano) ? Math.floor(nano / 1_000_000) : 0;
+    const date = new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        (typeof hour === 'number' ? hour : 0) - 9,
+        typeof minute === 'number' ? minute : 0,
+        typeof second === 'number' ? second : 0,
+        millisecond
+      )
+    );
+
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   const parsed = new Date(value);
