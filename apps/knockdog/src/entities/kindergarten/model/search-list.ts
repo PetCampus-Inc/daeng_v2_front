@@ -38,6 +38,7 @@ export interface KindergartenListItemDto {
   serviceTags: (keyof typeof SERVICE_TAGS)[];
   pickupType: keyof typeof PICKUP;
   phoneNumber: string;
+  verified?: boolean;
 }
 
 export interface Aggregation {

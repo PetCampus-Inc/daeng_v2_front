@@ -394,6 +394,7 @@ export function MapView(props: MapViewProps) {
               const leaves = supercluster.getLeaves(cluster_id, Infinity);
               const firstLeaf = leaves[0];
               if (!firstLeaf?.properties?.marker) return null;
+              const hasVerified = leaves.some((leaf) => leaf.properties.marker.verified);
 
               // 현재 활성화된 마커가 해당 클러스터에 포함되어 있다면 그 마커를 대표로 표시
               const activeLeaf = leaves.find((leaf) => leaf.properties.marker.id === activeMarkerId);
@@ -413,6 +414,7 @@ export function MapView(props: MapViewProps) {
                           distance={representative.dist}
                           bookmarked={representative.bookmarked}
                           hasMemo={!!representative.memo}
+                          hasVerified={hasVerified}
                           totalCount={point_count}
                           selected={representative.id === activeMarkerId}
                         />
@@ -449,7 +451,7 @@ export function MapView(props: MapViewProps) {
                     ) : marker.bookmarked || !!marker.memo ? (
                       <BaseBubbleMarker bookmarked={marker.bookmarked} hasMemo={!!marker.memo} />
                     ) : (
-                      <DotMarker />
+                      <DotMarker verified={marker.verified} />
                     )
                   ) : (
                     // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
@@ -480,6 +482,7 @@ export function MapView(props: MapViewProps) {
                     <CalloutOverlay
                       items={selectedClusterData.items}
                       totalCount={selectedClusterData.pointCount}
+                      hasVerified={selectedClusterData.items.some((item) => item.verified)}
                       onItemClick={(item) => {
                         setSelectedClusterId(null);
                         dispatch({ type: 'CENTER_CHANGED', center: selectedClusterData.coord });
@@ -517,7 +520,7 @@ export function MapView(props: MapViewProps) {
                 ) : exact.bookmarked || !!exact.memo ? (
                   <BaseBubbleMarker bookmarked={exact.bookmarked} hasMemo={!!exact.memo} />
                 ) : (
-                  <DotMarker />
+                  <DotMarker verified={exact.verified} />
                 )
               ) : (
                 // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출

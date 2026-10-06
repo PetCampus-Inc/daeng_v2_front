@@ -1,12 +1,13 @@
 import { FloatingActionButton } from '@knockdog/ui';
 import { useSearchMachine } from '../model/useSearchMachine';
-import { getLocationPermission, requestLocationPermission, useGeolocationQuery, openSystemSetting } from '@shared/lib';
+import { getLocationPermission, requestLocationPermission, useGeolocationQuery, openSystemSetting, isEqualCoord } from '@shared/lib';
 import { useBasePointType } from '@shared/store';
 
 export function CurrentLocationFAB() {
-  const { dispatch } = useSearchMachine();
-  const { refetch } = useGeolocationQuery({ enabled: false });
+  const { dispatch, liveState } = useSearchMachine();
+  const { data: currentLocation, refetch } = useGeolocationQuery({ enabled: false });
   const { setBaseType } = useBasePointType();
+  const isAtCurrentLocation = !currentLocation || isEqualCoord(liveState.center, currentLocation);
 
   const handleClick = async () => {
     setBaseType('CURRENT');
@@ -43,12 +44,14 @@ export function CurrentLocationFAB() {
 
   return (
     <FloatingActionButton
-      icon='LocationFill'
+      icon='LocationSearching'
       label='현재 위치'
       variant='neutralLight'
       size='medium'
       onClick={handleClick}
       extended={false}
+      className='min-w-[53px] max-w-[53px] !shadow-[0_2px_6px_0_rgba(0,0,0,0.12)]'
+      iconClassName={isAtCurrentLocation ? 'text-fill-primary-500' : 'text-fill-secondary-400'}
     />
   );
 }
