@@ -4,6 +4,7 @@ interface PagingDto {
   currentPage: number;
   hasNext: boolean;
   totalPage: number;
+  totalCount?: number;
 }
 
 interface ReviewListResponse {
