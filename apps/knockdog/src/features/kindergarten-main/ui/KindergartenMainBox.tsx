@@ -3,7 +3,7 @@
 import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { DeparturePointSheet, ServiceBadgeList, type KindergartenMain } from '@entities/kindergarten';
+import { DeparturePointSheet, ReviewRating, ServiceBadgeList, type KindergartenMain } from '@entities/kindergarten';
 
 interface KindergartenMainBoxProps extends KindergartenMain {
   compact?: boolean;
@@ -16,8 +16,9 @@ function KindergartenMainBox({
   roadAddress,
   businessStatus,
   price,
-  serviceTags,
+  rating,
   reviewCount,
+  serviceTags,
   pickupType,
   memo,
   coords,
@@ -37,7 +38,10 @@ function KindergartenMainBox({
       <div className='flex justify-between'>
         <div className='flex min-w-0 flex-1 flex-col'>
           <span className='h2-extrabold block truncate'>{title}</span>
-          <span className='body2-semibold text-text-tertiary'>{ctg}</span>
+          <div className='flex min-w-0 items-center gap-x2'>
+            <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</span>
+            <ReviewRating rating={rating} reviewCount={reviewCount} />
+          </div>
         </div>
         {/* 심사 대응용 임시 비노출
         <div className='flex'>
@@ -76,14 +80,10 @@ function KindergartenMainBox({
           {/* 뱃지 및 가격영역 */}
           <div className='flex justify-between'>
             <div className='flex gap-1'>
-              <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
-                <Icon icon='Naver' className='h-[16px] w-[16px]' />
-                리뷰 {reviewCount}개
-              </div>
               {memo?.memoDate && (
                 <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
                   <Icon icon='Note' className='h-[16px] w-[16px]' />
-                  {memo?.memoDate} 노트
+                  {memo?.memoDate} 메모
                 </div>
               )}
             </div>

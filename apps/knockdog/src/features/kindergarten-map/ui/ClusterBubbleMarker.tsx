@@ -12,6 +12,7 @@ interface ClusterBubbleMarkerProps {
   className?: string;
   bookmarked?: boolean;
   hasMemo?: boolean;
+  hasVerified?: boolean;
   totalCount?: number;
 }
 
@@ -23,6 +24,7 @@ export function ClusterBubbleMarker({
   className,
   bookmarked,
   hasMemo,
+  hasVerified,
   totalCount,
 }: ClusterBubbleMarkerProps) {
   return (
@@ -35,7 +37,12 @@ export function ClusterBubbleMarker({
         )}
       >
         {totalCount && (
-          <div className='size-x5 bg-fill-secondary-700 border-line-100 radius-full absolute -top-2 -right-2 flex aspect-square items-center justify-center border'>
+          <div
+            className={cn(
+              'size-x5 border-line-100 radius-full absolute -top-2 -right-2 flex aspect-square items-center justify-center border',
+              hasVerified ? 'bg-fill-primary-500' : 'bg-fill-secondary-700'
+            )}
+          >
             <span className='caption2-extrabold text-white'>{totalCount}</span>
           </div>
         )}

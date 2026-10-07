@@ -1,4 +1,5 @@
 import { useParams } from 'next/navigation';
+import { Icon } from '@knockdog/ui';
 import { ProductTypeSection, PriceImageSlider, usePricingQuery } from '@features/pricing';
 import { useCallPhone } from '@shared/lib/device';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -25,17 +26,20 @@ function PricingSection({ kindergartenId }: PricingSectionProps) {
 
       {/* 서비스 및 이용요금 */}
       <div>
-        <div className='mb-1 flex items-center justify-between'>
-          <span className='body1-bold'>서비스 및 이용요금</span>
-          <button
-            onClick={() => callPhone(pricing?.phoneNumber ?? '')}
-            className='body2-bold cursor-pointer text-neutral-500 hover:text-neutral-700'
-          >
-            전화걸기
-          </button>
+        <div className='mb-1'>
+          <span className='body1-extrabold'>서비스 및 이용요금</span>
         </div>
         <div className='flex flex-col gap-5'>
-          <span className='body2-regular text-text-tertiary'>자세한 내용은 업체로 문의 바랍니다.</span>
+          <div className='flex items-center justify-between gap-x2'>
+            <span className='body2-regular text-text-tertiary'>자세한 내용은 업체로 문의 바랍니다.</span>
+            <button
+              onClick={() => callPhone(pricing?.phoneNumber ?? '')}
+              className='body2-bold text-text-accent flex h-x5 w-[73px] shrink-0 items-center gap-x1'
+            >
+              <Icon icon='Call' className='text-fill-primary-500 size-x5 shrink-0' />
+              전화하기
+            </button>
+          </div>
 
           {pricing?.productCategories.map((category) => (
             <div key={category.productName}>
@@ -58,7 +62,7 @@ function PricingSection({ kindergartenId }: PricingSectionProps) {
       {/* 가격표 */}
       <PriceImageSlider images={pricing?.priceImages ?? []} />
       {/* 최종 정보 업데이트 */}
-      <div className='flex justify-between py-4'>
+      <div className='flex items-center justify-between py-4'>
         <div className='flex flex-col'>
           <span className='body1-bold'>최종 정보 업데이트</span>
           <span className='body2-regular text-text-tertiary'>{pricing?.lastUpdatedAt}</span>
@@ -66,9 +70,9 @@ function PricingSection({ kindergartenId }: PricingSectionProps) {
         <div>
           <button
             onClick={() => push({ pathname: `/kindergarten/${id}/report-info-update` })}
-            className='text-text-accent caption2-semibold border-accent rounded-lg border px-3 py-2'
+            className='body2-bold text-text-accent mx-auto flex h-x5 w-[104px] items-center justify-center text-center underline'
           >
-            정보 수정 제보하기
+            정보와 달라요
           </button>
         </div>
       </div>

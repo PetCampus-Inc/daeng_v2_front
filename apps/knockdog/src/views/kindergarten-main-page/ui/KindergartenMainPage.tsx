@@ -26,7 +26,7 @@ import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-ma
 import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
 import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
 import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
-import type { KindergartenListItem } from '@entities/kindergarten';
+import type { FilterCategory, KindergartenListItem } from '@entities/kindergarten';
 import { getLocationPermission, isEqualCoord, requestLocationPermission, useBottomSheetSnapIndex } from '@shared/lib';
 import { useBasePointType, useMarkerState } from '@shared/store';
 
@@ -45,7 +45,8 @@ function KindergartenMainPageContent() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { liveState, committedState, searchState, dispatch } = useSearchMachine();
-  const { isOnlyBookmarked, isOnlyMemoed, toggleBookmarked, toggleMemoed } = useDisplayFilterContext();
+  const { isOnlyBookmarked, isOnlyMemoed, isOnlyVerified, toggleBookmarked, toggleMemoed, toggleVerified } =
+    useDisplayFilterContext();
 
   const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
@@ -139,13 +140,14 @@ function KindergartenMainPageContent() {
     ));
   };
 
-  const handleOpenFilter = () => {
+  const handleOpenFilter = (category: FilterCategory) => {
     overlay.open(({ isOpen, close }) => (
       <FilterBottomSheet
         isOpen={isOpen}
         close={close}
         bounds={boundsSnapshotToBounds(liveState.viewportBounds)}
         initialFilters={committedState.filters}
+        initialCategory={category}
         onApply={(newFilters) => {
           if (newFilters.length > 0) {
             dispatch({ type: 'FILTERS_CHANGED', filters: newFilters });
@@ -185,6 +187,12 @@ function KindergartenMainPageContent() {
       )}
 
       <div className='px-x4 gap-x2 absolute top-[calc(var(--top-bar-height)+var(--safe-area-inset-top,0px))] flex w-full items-center'>
+        <Chip.Toggle variant='outline' checked={isOnlyVerified} onChange={toggleVerified}>
+          <Chip.PrefixIcon>
+            <Icon icon='Verified' className='size-x5' />
+          </Chip.PrefixIcon>
+          <Chip.Label>똑독 인증</Chip.Label>
+        </Chip.Toggle>
         <Chip.Toggle variant='outline' checked={isOnlyMemoed} onChange={toggleMemoed}>
           <Chip.PrefixIcon>
             <Icon icon='Note' className='size-x4' />
@@ -215,7 +223,12 @@ function KindergartenMainPageContent() {
           </div>
         }
       >
-        <KindergartenList onOpenFilter={handleOpenFilter} region={searchParams?.get('region')} />
+        <KindergartenList
+          onOpenFilter={handleOpenFilter}
+          onClearFilters={() => dispatch({ type: 'CLEAR_FILTERS' })}
+          selectedFilters={committedState.filters}
+          region={searchParams?.get('region')}
+        />
       </KindergartenListSheet>
 
       <RequiredTermsConsentSheetHost />

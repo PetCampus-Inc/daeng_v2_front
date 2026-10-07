@@ -18,6 +18,7 @@ import { PlaceBubbleMarker } from './PlaceBubbleMarker';
 import { DotMarker } from './DotMarker';
 import { BaseBubbleMarker } from './BaseBubbleMarker';
 import { ClusterBubbleMarker } from './ClusterBubbleMarker';
+import { VerifiedBubbleMarker } from './VerifiedBubbleMarker';
 import { CalloutOverlay } from './CalloutOverlay';
 import { useMapClustering, type MapPoint, type MapCluster } from '../model/useMapClustering';
 import type { BoundsSnapshot } from '../lib/searchMachine';
@@ -63,6 +64,23 @@ export function MapView(props: MapViewProps) {
     disableClustering: !isClusteringZoom(mapState.zoom),
   });
 
+  const clusterLeavesById = useMemo(() => {
+    const cache = new Map<
+      number,
+      { leaves: ReturnType<typeof supercluster.getLeaves>; hasVerified: boolean }
+    >();
+    clusters.forEach((feature) => {
+      if (!feature.properties.cluster) return;
+      const clusterId = (feature as MapCluster).properties.cluster_id;
+      const leaves = supercluster.getLeaves(clusterId, Infinity);
+      cache.set(clusterId, {
+        leaves,
+        hasVerified: leaves.some((leaf) => leaf.properties.marker.verified),
+      });
+    });
+    return cache;
+  }, [clusters, supercluster]);
+
   const [selectedClusterId, setSelectedClusterId] = useState<number | null>(null);
 
   /**
@@ -78,7 +96,7 @@ export function MapView(props: MapViewProps) {
     if (!cluster) return null;
 
     const [lng, lat] = cluster.geometry.coordinates as [number, number];
-    const leaves = supercluster.getLeaves(selectedClusterId, Infinity);
+    const leaves = clusterLeavesById.get(selectedClusterId)?.leaves ?? [];
 
     return {
       id: selectedClusterId,
@@ -86,7 +104,7 @@ export function MapView(props: MapViewProps) {
       items: leaves.map((leaf) => leaf.properties.marker),
       pointCount: cluster.properties.point_count,
     };
-  }, [selectedClusterId, clusters, supercluster]);
+  }, [selectedClusterId, clusters, clusterLeavesById]);
 
   const { aggregation, geoBounds, dataUpdatedAt } = useAggregationQuery();
 
@@ -391,9 +409,11 @@ export function MapView(props: MapViewProps) {
               const cluster = feature as MapCluster;
               const { cluster_id, point_count } = cluster.properties;
 
-              const leaves = supercluster.getLeaves(cluster_id, Infinity);
+              const clusterData = clusterLeavesById.get(cluster_id);
+              const leaves = clusterData?.leaves ?? [];
               const firstLeaf = leaves[0];
               if (!firstLeaf?.properties?.marker) return null;
+              const hasVerified = clusterData?.hasVerified ?? false;
 
               // 현재 활성화된 마커가 해당 클러스터에 포함되어 있다면 그 마커를 대표로 표시
               const activeLeaf = leaves.find((leaf) => leaf.properties.marker.id === activeMarkerId);
@@ -413,6 +433,7 @@ export function MapView(props: MapViewProps) {
                           distance={representative.dist}
                           bookmarked={representative.bookmarked}
                           hasMemo={!!representative.memo}
+                          hasVerified={hasVerified}
                           totalCount={point_count}
                           selected={representative.id === activeMarkerId}
                         />
@@ -445,14 +466,27 @@ export function MapView(props: MapViewProps) {
                         selected={true}
                         bookmarked={marker.bookmarked}
                         hasMemo={!!marker.memo}
+                        verified={marker.verified}
                       />
                     ) : marker.bookmarked || !!marker.memo ? (
-                      <BaseBubbleMarker bookmarked={marker.bookmarked} hasMemo={!!marker.memo} />
+                      <BaseBubbleMarker
+                        bookmarked={marker.bookmarked}
+                        hasMemo={!!marker.memo}
+                        verified={marker.verified}
+                      />
                     ) : (
-                      <DotMarker />
+                      <DotMarker verified={marker.verified} />
                     )
+                  ) : // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
+                  marker.verified ? (
+                    <VerifiedBubbleMarker
+                      title={marker.title}
+                      distance={marker.dist}
+                      selected={isSelected}
+                      bookmarked={marker.bookmarked}
+                      hasMemo={!!marker.memo}
+                    />
                   ) : (
-                    // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
                     <PlaceBubbleMarker
                       title={marker.title}
                       distance={marker.dist}
@@ -480,6 +514,7 @@ export function MapView(props: MapViewProps) {
                     <CalloutOverlay
                       items={selectedClusterData.items}
                       totalCount={selectedClusterData.pointCount}
+                      hasVerified={selectedClusterData.items.some((item) => item.verified)}
                       onItemClick={(item) => {
                         setSelectedClusterId(null);
                         dispatch({ type: 'CENTER_CHANGED', center: selectedClusterData.coord });
@@ -513,14 +548,23 @@ export function MapView(props: MapViewProps) {
                     selected={true}
                     bookmarked={exact.bookmarked}
                     hasMemo={!!exact.memo}
+                    verified={exact.verified}
                   />
                 ) : exact.bookmarked || !!exact.memo ? (
-                  <BaseBubbleMarker bookmarked={exact.bookmarked} hasMemo={!!exact.memo} />
+                  <BaseBubbleMarker bookmarked={exact.bookmarked} hasMemo={!!exact.memo} verified={exact.verified} />
                 ) : (
-                  <DotMarker />
+                  <DotMarker verified={exact.verified} />
                 )
+              ) : // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
+              exact.verified ? (
+                <VerifiedBubbleMarker
+                  title={exact.title}
+                  distance={exact.dist}
+                  selected={exact.id === activeMarkerId}
+                  bookmarked={exact.bookmarked}
+                  hasMemo={!!exact.memo}
+                />
               ) : (
-                // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
                 <PlaceBubbleMarker
                   title={exact.title}
                   distance={exact.dist}

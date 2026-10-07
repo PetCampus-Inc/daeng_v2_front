@@ -15,7 +15,6 @@ import {
   SegmentedControlItem,
 } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { useSearchFilter } from '../model/useSearchFilter';
 import { useFabExtension } from '../model/useFabExtension';
 import { KindergartenListItem } from './KindergartenListItem';
 import { SortSelect } from './SortSelect';
@@ -26,7 +25,7 @@ import { NearByRecommendBanner } from './NearByRecommendBanner';
 import { useListBookmarkToggle } from '../model/useListBookmarkToggle';
 import { overlay } from 'overlay-kit';
 import { useFilteredSearchList } from '@features/kindergarten-map';
-import { FILTER_OPTIONS, SHORT_CUT_FILTER_OPTIONS } from '@entities/kindergarten';
+import { FILTER_CONFIG, type FilterCategory, type FilterOption } from '@entities/kindergarten';
 import {
   useUserStore,
   useAddUserAddressMutation,
@@ -46,10 +45,12 @@ import { ellipsisText, tokenUtils } from '@shared/utils';
 
 interface KindergartenListProps {
   region?: string | null;
-  onOpenFilter: () => void;
+  onOpenFilter: (category: FilterCategory) => void;
+  selectedFilters: FilterOption[];
+  onClearFilters: () => void;
 }
 
-export function KindergartenList({ onOpenFilter, region }: KindergartenListProps) {
+export function KindergartenList({ onOpenFilter, onClearFilters, selectedFilters, region }: KindergartenListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const filterDragStateRef = useRef<{
@@ -67,15 +68,13 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
   const addAddressMutation = useAddUserAddressMutation();
   const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
-  const { getSelectedFilterWithLabel, onToggleOption, isSelectedOption, isEmptyFilters } = useSearchFilter();
+  const hasSelectedFilters = selectedFilters.length > 0;
   const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
 
   const { listQuery, searchListQueryKey, searchList, exact, totalCount } = useFilteredSearchList();
   const { mutate } = useListBookmarkToggle(searchListQueryKey);
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
-
-  const selectedFilters = getSelectedFilterWithLabel();
 
   const handleFilterPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
@@ -286,30 +285,6 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
 
           <div className='border-line-200 flex h-[52px] w-full items-center border-t border-b'>
             <div className='py-x2 flex w-full items-center'>
-              {/* 고정 버튼 영역 */}
-              <div className='pl-x4 flex shrink-0 items-center gap-x-2'>
-                <button
-                  className={`gap-x0.5 radius-full px-x3 py-x2 body2-semibold flex shrink-0 cursor-pointer items-center outline-[1.5] outline-offset-[-1.5px] ${
-                    isEmptyFilters
-                      ? 'outline-line-200 bg-fill-secondary-0 text-text-primary'
-                      : 'outline-line-accent bg-fill-primary-50 text-text-accent'
-                  }`}
-                  onClick={onOpenFilter}
-                >
-                  <Icon
-                    icon='Filter'
-                    className={`size-x4 ${isEmptyFilters ? 'text-fill-secondary-700' : 'text-fill-primary-500'}`}
-                  />
-                  필터
-                  {!isEmptyFilters && (
-                    <span className='body2-extrabold text-text-accent'>{selectedFilters.length}</span>
-                  )}
-                </button>
-
-                {/* 구분선 */}
-                <div className='bg-line-200 h-[14px] w-px shrink-0' />
-              </div>
-
               {/* 스크롤 영역 */}
               <div
                 className='scrollbar-hide flex-1 cursor-grab touch-pan-x overflow-x-auto select-none active:cursor-grabbing'
@@ -324,20 +299,39 @@ export function KindergartenList({ onOpenFilter, region }: KindergartenListProps
                   event.stopPropagation();
                 }}
               >
-                <div className='before:w-x2 after:w-x2 inline-flex items-center whitespace-nowrap before:shrink-0 before:content-[""] after:shrink-0 after:content-[""]'>
-                  {/* 바로가기 필터 칩들 */}
-                  {SHORT_CUT_FILTER_OPTIONS.map((option) => {
-                    const optionLabel = FILTER_OPTIONS[option];
-                    const isSelected = isSelectedOption(option);
+                <div className='before:w-x4 after:w-x4 gap-x1 inline-flex items-center whitespace-nowrap before:shrink-0 before:content-[""] after:shrink-0 after:content-[""]'>
+                  {/* 선택 필터 초기화 */}
+                  {hasSelectedFilters && (
+                    <div className='gap-x2 flex h-9 w-[92px] shrink-0 items-center pr-x1'>
+                      <FilterChip
+                        variant='status'
+                        activated={false}
+                        type='button'
+                        onClick={onClearFilters}
+                        className='w-[79px] justify-center'
+                      >
+                        <Icon icon='Reset' className='text-text-primary size-x4' />
+                        <span>초기화</span>
+                      </FilterChip>
+                      <div className='bg-line-200 h-[14px] w-px shrink-0' />
+                    </div>
+                  )}
+                  {/* 카테고리 필터 칩들 */}
+                  {Object.entries(FILTER_CONFIG).map(([category, options]) => {
+                    const filterCategory = category as FilterCategory;
+                    const selectedCount = options.filter((option) => selectedFilters.includes(option)).length;
+                    const isSelected = selectedCount > 0;
 
                     return (
                       <FilterChip
                         variant='status'
-                        key={option}
+                        key={category}
                         activated={isSelected}
-                        onClick={() => onToggleOption(option)}
+                        type='button'
+                        onClick={() => onOpenFilter(filterCategory)}
                       >
-                        {optionLabel}
+                        <span>{category.replace(' ∙ ', '∙')}</span>
+                        {isSelected && <span className='text-text-accent'>{selectedCount}</span>}
                       </FilterChip>
                     );
                   })}

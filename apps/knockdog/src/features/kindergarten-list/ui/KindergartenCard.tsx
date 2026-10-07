@@ -5,10 +5,12 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
 import type { BottomSheetSnapPoint } from './KindergartenItemSheet';
-import { DeparturePointSheet, ServiceBadgesTruncated, type KindergartenMain } from '@entities/kindergarten';
+import { DeparturePointSheet, ReviewRating, ServiceBadgesTruncated, type KindergartenMain } from '@entities/kindergarten';
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
+import { KindergartenFeatureBadges } from './KindergartenFeatureBadges';
 
 interface KindergartenCardProps extends KindergartenMain {
+  resident?: boolean;
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
   onPhoneCall: () => void;
   setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
@@ -40,6 +42,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
     <>
       {/* 컨텐츠 영역 */}
       <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col' onClick={handleCardClick}>
+        <KindergartenFeatureBadges verified={props.verified} resident={props.resident} />
         <div className='gap-x2 flex'>
           {/* 이미지 */}
           {!thumbnailSrc ? (
@@ -75,9 +78,12 @@ export function KindergartenCard(props: KindergartenCardProps) {
           {/* 타이틀 및 카테고리 */}
           <div className='gap-x2 flex min-w-0 flex-1 flex-col'>
             <div className='flex min-w-0 flex-1 items-start justify-between'>
-              <div className='gap-x0_5 flex min-w-0 flex-col'>
+              <div className='gap-x0_5 flex min-w-0 flex-1 flex-col'>
                 <p className='h2-extrabold text-text-primary truncate'>{props.title}</p>
-                <span className='label-medium text-text-tertiary'>{props.ctg}</span>
+                <div className='flex min-w-0 items-center gap-x2'>
+                  <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{props.ctg}</span>
+                  <ReviewRating rating={props.rating} reviewCount={props.reviewCount} />
+                </div>
               </div>
               {/* 심사 대응용 임시 비노출
               <button onClick={openDeparturePointSheet}>
@@ -88,11 +94,6 @@ export function KindergartenCard(props: KindergartenCardProps) {
 
             {/* 리뷰 및 메모 영역 */}
             <div className='gap-x1 flex'>
-              <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
-                <Icon icon='Naver' className='size-x4' />
-                <span className='caption1-semibold text-text-primary text-center'>리뷰 {props.reviewCount}개</span>
-              </div>
-
               {props.memo?.memoDate && (
                 <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
                   <Icon icon='Note' className='size-x4' />

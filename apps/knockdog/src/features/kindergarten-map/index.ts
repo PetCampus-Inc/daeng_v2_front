@@ -5,6 +5,7 @@ export { PlaceBubbleMarker } from './ui/PlaceBubbleMarker';
 export { DotMarker } from './ui/DotMarker';
 export { BaseBubbleMarker } from './ui/BaseBubbleMarker';
 export { ClusterBubbleMarker } from './ui/ClusterBubbleMarker';
+export { VerifiedBubbleMarker } from './ui/VerifiedBubbleMarker';
 export { CalloutOverlay } from './ui/CalloutOverlay';
 export { CurrentLocationDisplayFAB } from './ui/CurrentLocationDisplayFAB';
 export { CurrentLocationFAB } from './ui/CurrentLocationFAB';

@@ -10,6 +10,7 @@ interface PlaceBubbleMarkerProps {
   className?: string;
   bookmarked?: boolean;
   hasMemo?: boolean;
+  verified?: boolean;
 }
 
 export function PlaceBubbleMarker({
@@ -20,6 +21,7 @@ export function PlaceBubbleMarker({
   className,
   bookmarked,
   hasMemo,
+  verified,
 }: PlaceBubbleMarkerProps) {
   return (
     <div className='relative select-none'>
@@ -30,9 +32,22 @@ export function PlaceBubbleMarker({
           className
         )}
       >
-        <p className={cn('body2-bold text-text-primary whitespace-nowrap', selected && 'text-text-primary-inverse')}>
-          {ellipsisText(title, titleMaxLength)}
-        </p>
+        <div className='gap-x0_5 flex max-w-full items-center'>
+          {verified && (
+            <Icon
+              icon='Verified'
+              className={cn('size-x4 text-fill-primary-500 shrink-0', selected && 'text-text-primary-inverse')}
+            />
+          )}
+          <p
+            className={cn(
+              'body2-bold text-text-primary min-w-0 truncate whitespace-nowrap',
+              selected && 'text-text-primary-inverse'
+            )}
+          >
+            {ellipsisText(title, titleMaxLength)}
+          </p>
+        </div>
         <div className='gap-x0_5 flex items-center'>
           <span className={cn('text-text-tertiary caption1-semibold', selected && 'text-text-secondary-inverse')}>
             {distance}

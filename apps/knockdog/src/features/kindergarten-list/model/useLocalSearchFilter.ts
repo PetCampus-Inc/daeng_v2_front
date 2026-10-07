@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { type FilterOption, FILTER_OPTIONS } from '@entities/kindergarten';
+import { type FilterOption, FILTER_CONFIG, FILTER_OPTIONS } from '@entities/kindergarten';
 
 interface UseLocalSearchFilterProps {
   initialFilters: FilterOption[];
@@ -54,10 +54,11 @@ export function useLocalSearchFilter({
   }, [localFilters, onApply]);
 
   /** 선택된 필터옵션 + 라벨 */
-  const selectedFilters = localFilters.map((option) => ({
-    option,
-    optionLabel: FILTER_OPTIONS[option],
-  }));
+  const selectedFilters = Object.values(FILTER_CONFIG).flatMap((options) =>
+    options
+      .filter((option) => localFilters.includes(option))
+      .map((option) => ({ option, optionLabel: FILTER_OPTIONS[option] }))
+  );
 
   /** 로컬 필터 선택 여부 */
   const isLocalFilterSelected = (option: FilterOption) => localFilters.includes(option);

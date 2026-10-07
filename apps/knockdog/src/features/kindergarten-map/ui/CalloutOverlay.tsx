@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { KindergartenListItem } from '@entities/kindergarten';
+import { Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 interface CalloutOverlayProps {
   items: KindergartenListItem[];
   totalCount?: number;
+  hasVerified?: boolean;
   onItemClick?: (item: KindergartenListItem) => void;
 }
 
-export function CalloutOverlay({ items, totalCount, onItemClick }: CalloutOverlayProps) {
+export function CalloutOverlay({ items, totalCount, hasVerified, onItemClick }: CalloutOverlayProps) {
   const scrollRef = useRef<HTMLUListElement>(null);
   const [showGradient, setShowGradient] = useState(false);
 
@@ -35,7 +38,12 @@ export function CalloutOverlay({ items, totalCount, onItemClick }: CalloutOverla
       role='complementary'
       aria-label='유치원 목록'
     >
-      <div className='size-x5 bg-fill-secondary-700 border-line-100 radius-full absolute -top-2 -right-2 flex aspect-square items-center justify-center border'>
+      <div
+        className={cn(
+          'size-x5 border-line-100 radius-full absolute -top-2 -right-2 flex aspect-square items-center justify-center border',
+          hasVerified ? 'bg-fill-primary-500' : 'bg-fill-secondary-700'
+        )}
+      >
         <span className='caption2-extrabold text-white'>{totalCount}</span>
       </div>
       <ul ref={scrollRef} className='scrollbar-style flex flex-col overflow-y-auto' role='list'>
@@ -56,9 +64,12 @@ export function CalloutOverlay({ items, totalCount, onItemClick }: CalloutOverla
               }
             }}
           >
-            <p className='body2-bold text-text-primary min-w-0 overflow-hidden text-ellipsis whitespace-nowrap'>
-              {item.title}
-            </p>
+            <div className='flex min-w-0 items-center gap-x0_5'>
+              <p className='body2-bold text-text-primary min-w-0 overflow-hidden text-ellipsis whitespace-nowrap'>
+                {item.title}
+              </p>
+              {item.verified && <Icon icon='Verified' className='size-x4 shrink-0' />}
+            </div>
             <span className='caption1-semibold text-text-tertiary'>{item.dist}</span>
           </li>
         ))}

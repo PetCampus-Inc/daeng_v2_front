@@ -13,7 +13,7 @@ function ProductTypeSection({
   return (
     <div>
       <div className='mb-3'>
-        <span className='body1-bold'>{title}</span>
+        <span className='body1-extrabold'>{title}</span>
       </div>
       <div className='flex gap-3'>
         {PRODUCT_TYPE_MAP_LIST.map(({ code, name }) => (

@@ -35,9 +35,11 @@ export interface KindergartenListItemDto {
   roadAddress: string;
   coords: Coord;
   reviewCount: number;
+  rating?: number;
   serviceTags: (keyof typeof SERVICE_TAGS)[];
   pickupType: keyof typeof PICKUP;
   phoneNumber: string;
+  verified?: boolean;
 }
 
 export interface Aggregation {

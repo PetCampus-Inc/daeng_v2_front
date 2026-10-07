@@ -1,12 +1,13 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@knockdog/ui/lib';
 
 const filterChipVariants = cva(
   'body2-semibold flex items-center whitespace-nowrap transition-colors',
   {
     variants: {
       variant: {
-        toggle: 'radius-r2 py-x2 px-x3_5 border-line-200 border-[1.4]',
-        status: 'py-x2 px-x2 gap-x0_5',
+        toggle: 'box-border h-[38px] gap-x1 radius-r2 border-line-200 border-[1.4px] border-solid px-[14px] py-[9px]',
+        status: 'box-border h-x9 gap-x0_5 radius-full border-[1.4px] border-solid px-x3 py-x2',
       },
       activated: {
         true: '',
@@ -27,12 +28,12 @@ const filterChipVariants = cva(
       {
         variant: 'status',
         activated: true,
-        class: 'text-text-primary [&>svg]:text-fill-primary-500',
+        class: 'bg-fill-primary-50 border-line-accent text-text-accent',
       },
       {
         variant: 'status',
         activated: false,
-        class: 'text-text-primary [&>svg]:text-fill-secondary-400',
+        class: 'bg-fill-secondary-0 border-line-200 text-text-primary',
       },
     ],
   }
@@ -48,15 +49,11 @@ export function FilterChip({
   variant = 'toggle',
   activated = false,
   children,
+  className,
   ...props
 }: FilterChipProps) {
   return (
-    <button className={filterChipVariants({ variant, activated })} {...props}>
-      {variant === 'status' && (
-        <svg width='16' height='16' viewBox='0 0 16 16' fill='none'>
-          <rect x='3' y='3' width='10' height='10' rx='5' fill='currentColor' />
-        </svg>
-      )}
+    <button className={cn(filterChipVariants({ variant, activated }), className)} {...props}>
       {children}
     </button>
   );

@@ -113,7 +113,11 @@ export function KindergartenItemSheet({ position, isOpen, onClose, ...item }: Ki
             }}
             onPointerDownOutside={(e) => {
               e.preventDefault();
-              if (!headerRef.current?.contains(e.target as Node)) {
+              const target = e.target as Element;
+              if (
+                !headerRef.current?.contains(target) &&
+                !target.closest('[data-kindergarten-image-viewer]')
+              ) {
                 onClose();
               }
             }}

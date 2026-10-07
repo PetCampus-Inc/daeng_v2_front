@@ -1,7 +1,8 @@
 import { Icon } from '@knockdog/ui';
 import { CardBtnClipDefs } from './CardBtnClipDefs';
 import { BannerImageSlider } from './BannerImageSlider';
-import { ServiceBadgesTruncated, type KindergartenListItem as KindergartenListItemType } from '@entities/kindergarten';
+import { KindergartenFeatureBadges } from './KindergartenFeatureBadges';
+import { ReviewRating, ServiceBadgesTruncated, type KindergartenListItem as KindergartenListItemType } from '@entities/kindergarten';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useBottomSheetSnapIndex } from '@shared/lib';
 
@@ -16,11 +17,13 @@ export function KindergartenListItem({
   ctg,
   dist,
   roadAddress,
-  reviewCount,
   businessStatus,
   price,
   serviceTags,
   pickupType,
+  rating,
+  reviewCount,
+  verified,
   memo,
   bookmarked = false,
   onBookmarkClick,
@@ -42,6 +45,9 @@ export function KindergartenListItem({
       <div className='relative aspect-video w-full overflow-hidden'>
         <BannerImageSlider id={id} name={title} slides={banner} />
         <CardBtnClipDefs id={id} />
+        <div className='absolute top-2 left-2 z-10'>
+          <KindergartenFeatureBadges verified={verified} />
+        </div>
         {/* 북마크 버튼 */}
         <button
           aria-label='보관하기'
@@ -64,15 +70,12 @@ export function KindergartenListItem({
         {/* 컨텐츠 상단 영역 */}
         <div className='gap-x2 flex min-w-0 items-start justify-between self-stretch'>
           {/* 타이틀 */}
-          <div className='flex min-w-0 flex-col items-start justify-center gap-0.5'>
+          <div className='flex min-w-0 flex-1 flex-col items-start justify-center gap-0.5'>
             <h1 className='h2-extrabold text-text-primary w-full truncate'>{title}</h1>
-            <p className='body2-regular text-text-tertiary w-full truncate'>{ctg}</p>
-          </div>
-
-          {/* 네이버 리뷰 badge */}
-          <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
-            <Icon icon='Naver' className='size-x4' />
-            <span className='caption1-semibold text-text-primary text-center'>리뷰 {reviewCount}개</span>
+            <div className='flex w-full min-w-0 items-center gap-x2'>
+              <p className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</p>
+              <ReviewRating rating={rating} reviewCount={reviewCount} />
+            </div>
           </div>
         </div>
 
@@ -94,8 +97,8 @@ export function KindergartenListItem({
           </div>
         </div>
 
-        {/* 구분선 */}
-        <div className='bg-line-100 flex h-px w-full items-center justify-center' />
+        {/* 메모가 없을 때는 주소와 하단 정보 영역을 구분한다. */}
+        {!memo && <div className='bg-line-100 flex h-px w-full items-center justify-center' />}
 
         {/* 메모 영역 */}
         {memo && (
