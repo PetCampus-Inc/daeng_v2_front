@@ -5,7 +5,17 @@ import { ActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@kno
 import { useParams } from 'next/navigation';
 import { useQueryState } from 'nuqs';
 
-import { getReviewTotalCount, ReviewCard, ReviewRatingSummary, type ReviewRatingCounts } from '@features/review';
+import {
+  getReviewTotalCount,
+  KnockdogReviewList,
+  KnockdogReviewSortButton,
+  MOCK_KNOCKDOG_REVIEWS,
+  ReviewCard,
+  ReviewRatingSummary,
+  sortKnockdogReviews,
+  type KnockdogReviewSort,
+  type ReviewRatingCounts,
+} from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import type { ReviewListResponse } from '@entities/review';
 import { useInfiniteScroll } from '@shared/lib';
@@ -72,9 +82,13 @@ function KnockdogReviewEmpty({ onWriteClick }: { onWriteClick: () => void }) {
 
 function KnockdogReviewHeader({
   counts,
+  sort,
+  onSortChange,
   onWriteClick,
 }: {
   counts: ReviewRatingCounts;
+  sort: KnockdogReviewSort;
+  onSortChange: (sort: KnockdogReviewSort) => void;
   onWriteClick: () => void;
 }) {
   const total = getReviewTotalCount(counts);
@@ -95,10 +109,7 @@ function KnockdogReviewHeader({
       </div>
       <div className='flex items-center justify-between px-4 py-2'>
         <p className='label-medium text-fill-secondary-500'>총 {total.toLocaleString('ko-KR')}개 리뷰</p>
-        <button type='button' className='label-semibold text-fill-secondary-500 flex items-center gap-1 py-1'>
-          최신순
-          <Icon icon='ChevronBottom' className='size-4' />
-        </button>
+        <KnockdogReviewSortButton value={sort} onChange={onSortChange} />
       </div>
     </>
   );
@@ -142,6 +153,8 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const { push } = useStackNavigation();
   const showKnockdogReviewMock = knockdogReview === '1';
   const [sourceOverride, setSourceOverride] = useState<ReviewSource | null>(null);
+  const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
+  const [knockdogReviews, setKnockdogReviews] = useState(MOCK_KNOCKDOG_REVIEWS);
   const source = sourceOverride ?? (showKnockdogReviewMock ? 'knockdog' : 'blog');
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
@@ -151,6 +164,25 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const knockdogRatingCounts = showKnockdogReviewMock ? MOCK_KNOCKDOG_RATING_COUNTS : EMPTY_KNOCKDOG_RATING_COUNTS;
   const knockdogReviewCount = getReviewTotalCount(knockdogRatingCounts);
   const handleWriteReview = () => push({ pathname: `/kindergarten/${id}/write-review` });
+  const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
+
+  const handleHelpfulToggle = (reviewId: string) => {
+    setKnockdogReviews((current) =>
+      current.map((review) => {
+        if (review.id !== reviewId) return review;
+        const isHelpful = !review.isHelpful;
+        return {
+          ...review,
+          isHelpful,
+          helpfulCount: Math.max(0, review.helpfulCount + (isHelpful ? 1 : -1)),
+        };
+      })
+    );
+  };
+
+  const handleDeleteReview = (reviewId: string) => {
+    setKnockdogReviews((current) => current.filter((review) => review.id !== reviewId));
+  };
 
   const handleSourceChange = (value: string) => {
     if (value === 'knockdog' || value === 'blog') setSourceOverride(value);
@@ -195,7 +227,20 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
         knockdogReviewCount === 0 ? (
           <KnockdogReviewEmpty onWriteClick={handleWriteReview} />
         ) : (
-          <KnockdogReviewHeader counts={knockdogRatingCounts} onWriteClick={handleWriteReview} />
+          <>
+            <KnockdogReviewHeader
+              counts={knockdogRatingCounts}
+              sort={knockdogReviewSort}
+              onSortChange={setKnockdogReviewSort}
+              onWriteClick={handleWriteReview}
+            />
+            <KnockdogReviewList
+              reviews={sortedKnockdogReviews}
+              onHelpfulToggle={handleHelpfulToggle}
+              onEdit={handleWriteReview}
+              onDelete={handleDeleteReview}
+            />
+          </>
         )
       ) : (
         <div className='flex flex-col gap-7 px-4'>
