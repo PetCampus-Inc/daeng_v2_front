@@ -5,9 +5,10 @@ interface BaseBubbleMarkerProps {
   className?: string;
   bookmarked?: boolean;
   hasMemo?: boolean;
+  verified?: boolean;
 }
 
-export function BaseBubbleMarker({ className, bookmarked, hasMemo }: BaseBubbleMarkerProps) {
+export function BaseBubbleMarker({ className, bookmarked, hasMemo, verified }: BaseBubbleMarkerProps) {
   return (
     <div className='relative select-none'>
       <div
@@ -17,6 +18,7 @@ export function BaseBubbleMarker({ className, bookmarked, hasMemo }: BaseBubbleM
         )}
       >
         <div className='gap-x0_5 flex items-center'>
+          {verified && <Icon icon='Verified' className='text-fill-primary-500 size-x4' />}
           {bookmarked && <Icon icon='BookmarkFill' className={cn('text-fill-secondary-700 size-x4')} />}
           {hasMemo && <Icon icon='Note' className={cn('text-fill-secondary-700 size-x4')} />}
         </div>

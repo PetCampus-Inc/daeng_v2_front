@@ -19,12 +19,14 @@ interface KindergartenImageViewerProps {
 export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose }: KindergartenImageViewerProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [swiperInitialIndex, setSwiperInitialIndex] = useState(initialIndex);
+  const [swiperSelectionVersion, setSwiperSelectionVersion] = useState(0);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setActiveIndex(initialIndex);
     setSwiperInitialIndex(initialIndex);
+    setSwiperSelectionVersion((version) => version + 1);
   }, [initialIndex]);
 
   useEffect(() => {
@@ -33,9 +35,39 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialogRef.current?.focus();
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      onClose();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (!firstElement || !lastElement) return;
+
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && (activeElement === firstElement || !dialogRef.current?.contains(activeElement))) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && (activeElement === lastElement || !dialogRef.current?.contains(activeElement))) {
+        event.preventDefault();
+        firstElement.focus();
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
 
@@ -90,7 +122,7 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
 
         <div className='bg-bg-50 relative min-h-0 flex-1 overflow-hidden'>
           <SwiperRoot
-            key={`${images.length}-${swiperInitialIndex}`}
+            key={`${images.length}-${swiperInitialIndex}-${swiperSelectionVersion}`}
             className='absolute inset-0 h-full w-full [&>div]:h-full'
             loop={false}
             initialIndex={swiperInitialIndex}
@@ -128,6 +160,7 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
                   onClick={() => {
                     setActiveIndex(index);
                     setSwiperInitialIndex(index);
+                    setSwiperSelectionVersion((version) => version + 1);
                   }}
                   aria-label={`${index + 1}번째 사진 보기`}
                   aria-current={isSelected}

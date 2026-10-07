@@ -78,7 +78,7 @@ function KindergartenDetailPage() {
     lat,
     enabled: Boolean(id),
   });
-  const { mutate: toggleBookmark } = useDetailBookmarkToggle({
+  const { mutate: toggleBookmark, isPending: isBookmarkPending } = useDetailBookmarkToggle({
     id,
     lng,
     lat,
@@ -183,8 +183,9 @@ function KindergartenDetailPage() {
   };
 
   const handleBookmarkClick = (targetId: string, bookmarked: boolean) => {
-    const shouldShowOnboarding =
-      !bookmarked && !safeLocalStorage.get(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY);
+    if (isBookmarkPending) return;
+
+    const shouldShowOnboarding = !bookmarked && !safeLocalStorage.get(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY);
 
     toggleBookmark(
       { id: targetId, bookmarked },
@@ -275,6 +276,8 @@ function KindergartenDetailPage() {
             </ActionButton>
             <button
               aria-label='보관하기'
+              disabled={isBookmarkPending}
+              aria-busy={isBookmarkPending}
               className='radius-r3 bg-fill-primary-50 flex size-11 shrink-0 items-center justify-center'
               onClick={() => handleBookmarkClick(kindergartenMain.id, kindergartenMain.bookmarked ?? false)}
             >

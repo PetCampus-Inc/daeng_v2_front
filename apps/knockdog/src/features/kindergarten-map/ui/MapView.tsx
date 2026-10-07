@@ -466,32 +466,34 @@ export function MapView(props: MapViewProps) {
                         selected={true}
                         bookmarked={marker.bookmarked}
                         hasMemo={!!marker.memo}
+                        verified={marker.verified}
                       />
                     ) : marker.bookmarked || !!marker.memo ? (
-                      <BaseBubbleMarker bookmarked={marker.bookmarked} hasMemo={!!marker.memo} />
+                      <BaseBubbleMarker
+                        bookmarked={marker.bookmarked}
+                        hasMemo={!!marker.memo}
+                        verified={marker.verified}
+                      />
                     ) : (
                       <DotMarker verified={marker.verified} />
                     )
+                  ) : // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
+                  marker.verified ? (
+                    <VerifiedBubbleMarker
+                      title={marker.title}
+                      distance={marker.dist}
+                      selected={isSelected}
+                      bookmarked={marker.bookmarked}
+                      hasMemo={!!marker.memo}
+                    />
                   ) : (
-                    // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
-                    marker.verified ? (
-                      <VerifiedBubbleMarker
-                        title={marker.title}
-                        distance={marker.dist}
-                        selected={isSelected}
-                        bookmarked={marker.bookmarked}
-                        hasMemo={!!marker.memo}
-                        connectionBadgeLabel='유치원을 다니는 중이에요'
-                      />
-                    ) : (
-                      <PlaceBubbleMarker
-                        title={marker.title}
-                        distance={marker.dist}
-                        selected={isSelected}
-                        bookmarked={marker.bookmarked}
-                        hasMemo={!!marker.memo}
-                      />
-                    )
+                    <PlaceBubbleMarker
+                      title={marker.title}
+                      distance={marker.dist}
+                      selected={isSelected}
+                      bookmarked={marker.bookmarked}
+                      hasMemo={!!marker.memo}
+                    />
                   ),
                 }}
               />
@@ -546,32 +548,30 @@ export function MapView(props: MapViewProps) {
                     selected={true}
                     bookmarked={exact.bookmarked}
                     hasMemo={!!exact.memo}
+                    verified={exact.verified}
                   />
                 ) : exact.bookmarked || !!exact.memo ? (
-                  <BaseBubbleMarker bookmarked={exact.bookmarked} hasMemo={!!exact.memo} />
+                  <BaseBubbleMarker bookmarked={exact.bookmarked} hasMemo={!!exact.memo} verified={exact.verified} />
                 ) : (
                   <DotMarker verified={exact.verified} />
                 )
+              ) : // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
+              exact.verified ? (
+                <VerifiedBubbleMarker
+                  title={exact.title}
+                  distance={exact.dist}
+                  selected={exact.id === activeMarkerId}
+                  bookmarked={exact.bookmarked}
+                  hasMemo={!!exact.memo}
+                />
               ) : (
-                // High Zoom (>= 15): 상세 마커(PlaceBubble) 노출
-                exact.verified ? (
-                  <VerifiedBubbleMarker
-                    title={exact.title}
-                    distance={exact.dist}
-                    selected={exact.id === activeMarkerId}
-                    bookmarked={exact.bookmarked}
-                    hasMemo={!!exact.memo}
-                    connectionBadgeLabel='유치원을 다니는 중이에요'
-                  />
-                ) : (
-                  <PlaceBubbleMarker
-                    title={exact.title}
-                    distance={exact.dist}
-                    selected={exact.id === activeMarkerId}
-                    bookmarked={exact.bookmarked}
-                    hasMemo={!!exact.memo}
-                  />
-                )
+                <PlaceBubbleMarker
+                  title={exact.title}
+                  distance={exact.dist}
+                  selected={exact.id === activeMarkerId}
+                  bookmarked={exact.bookmarked}
+                  hasMemo={!!exact.memo}
+                />
               ),
             }}
           />
