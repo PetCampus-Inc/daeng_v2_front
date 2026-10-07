@@ -1,5 +1,12 @@
-/** API 평점 연결 전 목록·상세 화면에 사용하는 리뷰 표시 */
-export function ReviewRating() {
+/** 평점과 리뷰 수가 제공된 목록·상세 화면에 표시하는 리뷰 요약 */
+interface ReviewRatingProps {
+  rating?: number | null;
+  reviewCount?: number | null;
+}
+
+export function ReviewRating({ rating, reviewCount }: ReviewRatingProps) {
+  if (rating == null || reviewCount == null || !Number.isFinite(rating) || !Number.isFinite(reviewCount)) return null;
+
   return (
     <div className='flex h-x5 shrink-0 items-center'>
       <svg className='text-fill-primary-500 size-x5 shrink-0' viewBox='0 0 20 20' fill='none' aria-hidden='true'>
@@ -8,8 +15,8 @@ export function ReviewRating() {
           fill='currentColor'
         />
       </svg>
-      <span className='body2-bold text-text-primary'>4.2</span>
-      <span className='body2-semibold text-text-tertiary whitespace-nowrap'>(9,999개)</span>
+      <span className='body2-bold text-text-primary'>{rating.toFixed(1)}</span>
+      <span className='body2-semibold text-text-tertiary whitespace-nowrap'>({reviewCount.toLocaleString()}개)</span>
     </div>
   );
 }

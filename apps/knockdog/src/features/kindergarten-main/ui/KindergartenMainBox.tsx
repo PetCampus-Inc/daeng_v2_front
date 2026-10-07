@@ -16,6 +16,8 @@ function KindergartenMainBox({
   roadAddress,
   businessStatus,
   price,
+  rating,
+  reviewCount,
   serviceTags,
   pickupType,
   memo,
@@ -38,7 +40,7 @@ function KindergartenMainBox({
           <span className='h2-extrabold block truncate'>{title}</span>
           <div className='flex min-w-0 items-center gap-x2'>
             <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</span>
-            <ReviewRating />
+            <ReviewRating rating={rating} reviewCount={reviewCount} />
           </div>
         </div>
         {/* 심사 대응용 임시 비노출

@@ -21,6 +21,9 @@ export function KindergartenListItem({
   price,
   serviceTags,
   pickupType,
+  rating,
+  reviewCount,
+  verified,
   memo,
   bookmarked = false,
   onBookmarkClick,
@@ -43,7 +46,7 @@ export function KindergartenListItem({
         <BannerImageSlider id={id} name={title} slides={banner} />
         <CardBtnClipDefs id={id} />
         <div className='absolute top-2 left-2 z-10'>
-          <KindergartenFeatureBadges />
+          <KindergartenFeatureBadges verified={verified} />
         </div>
         {/* 북마크 버튼 */}
         <button
@@ -71,7 +74,7 @@ export function KindergartenListItem({
             <h1 className='h2-extrabold text-text-primary w-full truncate'>{title}</h1>
             <div className='flex w-full min-w-0 items-center gap-x2'>
               <p className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</p>
-              <ReviewRating />
+              <ReviewRating rating={rating} reviewCount={reviewCount} />
             </div>
           </div>
         </div>

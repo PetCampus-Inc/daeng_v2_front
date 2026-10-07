@@ -10,6 +10,7 @@ import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 import { KindergartenFeatureBadges } from './KindergartenFeatureBadges';
 
 interface KindergartenCardProps extends KindergartenMain {
+  resident?: boolean;
   onBookmarkClick: (id: string, bookmarked: boolean) => void;
   onPhoneCall: () => void;
   setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
@@ -41,7 +42,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
     <>
       {/* 컨텐츠 영역 */}
       <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col' onClick={handleCardClick}>
-        <KindergartenFeatureBadges />
+        <KindergartenFeatureBadges verified={props.verified} resident={props.resident} />
         <div className='gap-x2 flex'>
           {/* 이미지 */}
           {!thumbnailSrc ? (
@@ -81,7 +82,7 @@ export function KindergartenCard(props: KindergartenCardProps) {
                 <p className='h2-extrabold text-text-primary truncate'>{props.title}</p>
                 <div className='flex min-w-0 items-center gap-x2'>
                   <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{props.ctg}</span>
-                  <ReviewRating />
+                  <ReviewRating rating={props.rating} reviewCount={props.reviewCount} />
                 </div>
               </div>
               {/* 심사 대응용 임시 비노출

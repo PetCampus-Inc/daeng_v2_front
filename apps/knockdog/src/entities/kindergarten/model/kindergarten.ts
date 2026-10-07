@@ -21,6 +21,8 @@ export interface Kindergarten {
   };
   roadAddress: string;
   reviewCount: number;
+  rating?: number;
+  verified?: boolean;
   serviceTags: (keyof typeof SERVICE_TAGS)[];
   pickupType: keyof typeof PICKUP;
   banner: string[];

@@ -5,7 +5,7 @@ import type { KindergartenListItem } from '@entities/kindergarten';
 
 export function useFilteredSearchList() {
   const { listQuery, searchList, exact, ...rest } = useSearchListQuery();
-  const { isOnlyBookmarked, isOnlyMemoed, isFilterActive } = useDisplayFilterContext();
+  const { isOnlyBookmarked, isOnlyMemoed, isOnlyVerified, isFilterActive } = useDisplayFilterContext();
 
   const filteredData = useMemo(() => {
     if (!isFilterActive) {
@@ -17,17 +17,11 @@ export function useFilteredSearchList() {
     }
 
     const filterFn = (item: KindergartenListItem) => {
-      if (isOnlyBookmarked && isOnlyMemoed) {
-        return !!item.bookmarked || !!item.memo;
-      }
-
-      if (isOnlyBookmarked) {
-        return !!item.bookmarked;
-      }
-      if (isOnlyMemoed) {
-        return !!item.memo;
-      }
-      return true;
+      return (
+        (isOnlyBookmarked && !!item.bookmarked) ||
+        (isOnlyMemoed && !!item.memo) ||
+        (isOnlyVerified && !!item.verified)
+      );
     };
 
     const filteredList = searchList.filter(filterFn);
@@ -40,7 +34,7 @@ export function useFilteredSearchList() {
       filteredExact: filteredExactItem,
       totalCount,
     };
-  }, [searchList, exact, isOnlyBookmarked, isOnlyMemoed, isFilterActive, listQuery.data]);
+  }, [searchList, exact, isOnlyBookmarked, isOnlyMemoed, isOnlyVerified, isFilterActive, listQuery.data]);
 
   return {
     ...rest,
