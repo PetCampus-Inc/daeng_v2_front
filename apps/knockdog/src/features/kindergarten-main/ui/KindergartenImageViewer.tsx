@@ -18,11 +18,13 @@ interface KindergartenImageViewerProps {
 /** 원장 앨범 사진 상세와 같은 탐색 UI를 사용하는 유치원 이미지 뷰어 */
 export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose }: KindergartenImageViewerProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [swiperInitialIndex, setSwiperInitialIndex] = useState(initialIndex);
   const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setActiveIndex(initialIndex);
+    setSwiperInitialIndex(initialIndex);
   }, [initialIndex]);
 
   useEffect(() => {
@@ -88,10 +90,10 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
 
         <div className='bg-bg-50 relative min-h-0 flex-1 overflow-hidden'>
           <SwiperRoot
-            key={`${images.length}-${initialIndex}`}
+            key={`${images.length}-${swiperInitialIndex}`}
             className='absolute inset-0 h-full w-full [&>div]:h-full'
             loop={false}
-            initialIndex={initialIndex}
+            initialIndex={swiperInitialIndex}
             onSlideChange={setActiveIndex}
           >
             {images.map((image, index) => (
@@ -123,7 +125,10 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
                     thumbnailRefs.current[index] = node;
                   }}
                   type='button'
-                  onClick={() => setActiveIndex(index)}
+                  onClick={() => {
+                    setActiveIndex(index);
+                    setSwiperInitialIndex(index);
+                  }}
                   aria-label={`${index + 1}번째 사진 보기`}
                   aria-current={isSelected}
                   className={`bg-bg-50 radius-r2 relative size-[60px] shrink-0 overflow-hidden ${
