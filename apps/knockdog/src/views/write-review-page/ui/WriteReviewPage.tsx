@@ -5,6 +5,8 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 
+import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComplete';
+
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
 import { useBasePoint } from '@entities/user';
@@ -177,6 +179,7 @@ export function WriteReviewPage() {
 
   const { back } = useStackNavigation();
   const { pickImage } = useImagePicker();
+  const [isComplete, setIsComplete] = useState(false);
   const [rating, setRating] = useState(0);
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState<ReviewPhoto[]>([]);
@@ -196,7 +199,7 @@ export function WriteReviewPage() {
   }, []);
 
   const handleBack = useCallback(() => {
-    if (!isDirty) {
+    if (isComplete || !isDirty) {
       back();
       return;
     }
@@ -208,7 +211,7 @@ export function WriteReviewPage() {
       confirmLabel: '나가기',
       onConfirm: () => back(),
     });
-  }, [back, isDirty]);
+  }, [back, isComplete, isDirty]);
 
   useNativeBackHandler(handleBack);
 
@@ -258,6 +261,8 @@ export function WriteReviewPage() {
       isPickingPhotoRef.current = false;
     }
   };
+
+  if (isComplete) return <WriteReviewComplete id={id} onConfirm={back} />;
 
   return (
     <div className='bg-bg-0 flex h-full flex-col'>
@@ -317,7 +322,7 @@ export function WriteReviewPage() {
       </div>
 
       <div className='bg-bg-0 shrink-0 p-4'>
-        <ActionButton type='button' size='large' disabled={!canSubmit}>
+        <ActionButton type='button' size='large' disabled={!canSubmit} onClick={() => setIsComplete(true)}>
           등록하기
         </ActionButton>
       </div>
