@@ -8,6 +8,7 @@ import { ReviewCard } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import type { ReviewListResponse } from '@entities/review';
 import { useInfiniteScroll } from '@shared/lib';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
 
 type ReviewSource = 'knockdog' | 'blog';
@@ -33,7 +34,7 @@ function ReviewSourceLabel({ label, count }: { label: string; count: number | nu
   );
 }
 
-function KnockdogReviewEmpty() {
+function KnockdogReviewEmpty({ onWriteClick }: { onWriteClick: () => void }) {
   return (
     <div className='flex flex-col items-center gap-7 px-4'>
       <div className='mt-8 flex size-[200px] items-center justify-center'>
@@ -43,7 +44,9 @@ function KnockdogReviewEmpty() {
         <p className='body1-bold text-text-primary'>유치원 이용 후기를 남겨 주세요!</p>
         <p className='body2-regular text-text-secondary'>리뷰가 다른 보호자에게 도움이 될 수 있어요.</p>
       </div>
-      <ActionButton type='button'>리뷰 작성하기</ActionButton>
+      <ActionButton type='button' onClick={onWriteClick}>
+        리뷰 작성하기
+      </ActionButton>
     </div>
   );
 }
@@ -82,6 +85,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
 
   if (!id) throw new Error('Company ID is required for review section');
 
+  const { push } = useStackNavigation();
   const [source, setSource] = useState<ReviewSource>('blog');
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
@@ -129,7 +133,9 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
       </div>
 
       {source === 'knockdog' ? (
-        <KnockdogReviewEmpty />
+        <KnockdogReviewEmpty
+          onWriteClick={() => push({ pathname: `/kindergarten/${id}/write-review` })}
+        />
       ) : (
         <div className='flex flex-col gap-7 px-4'>
           <div className='flex flex-col gap-3'>
