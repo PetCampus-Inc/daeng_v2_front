@@ -5,12 +5,11 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 
-import { ReviewEditConfirmDialog, ReviewEditFailureDialog } from '@views/write-review-page/ui/ReviewEditDialogs';
 import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComplete';
 
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
-import { saveKnockdogReviewEdit, useKnockdogReviews } from '@features/review';
+import { ReviewActionDialog, saveKnockdogReviewEdit, useKnockdogReviews } from '@features/review';
 import { useBasePoint } from '@entities/user';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
@@ -419,17 +418,26 @@ export function WriteReviewPage() {
 
       {isEdit ? (
         <>
-          <ReviewEditConfirmDialog
+          <ReviewActionDialog
             isOpen={dialog === 'confirm'}
             isSubmitting={isSubmitting}
+            title='리뷰를 수정할까요?'
+            description='수정한 리뷰를 저장합니다.'
+            hideDescription
+            cancelLabel='아니요'
+            confirmLabel='네'
             onClose={() => setDialog(null)}
             onConfirm={() => {
               handleSave();
             }}
           />
-          <ReviewEditFailureDialog
+          <ReviewActionDialog
             isOpen={dialog === 'failure'}
             isSubmitting={isSubmitting}
+            title='리뷰를 수정하지 못했어요'
+            description='잠시 후 다시 시도해 주세요.'
+            cancelLabel='닫기'
+            confirmLabel='다시 시도'
             onClose={() => setDialog(null)}
             onConfirm={() => {
               handleSave();

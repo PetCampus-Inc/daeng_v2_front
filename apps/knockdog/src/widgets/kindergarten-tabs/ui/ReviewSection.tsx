@@ -8,9 +8,9 @@ import { useQueryState } from 'nuqs';
 import {
   deleteKnockdogReview,
   getReviewTotalCount,
-  KnockdogReviewDeleteDialogs,
   KnockdogReviewList,
   KnockdogReviewSortButton,
+  ReviewActionDialog,
   ReviewCard,
   ReviewRatingSummary,
   sortKnockdogReviews,
@@ -265,9 +265,27 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
               onEdit={handleEditReview}
               onDelete={handleDeleteReview}
             />
-            <KnockdogReviewDeleteDialogs
-              dialog={deleteDialog}
+            <ReviewActionDialog
+              isOpen={deleteDialog === 'confirm'}
               isSubmitting={isDeleting}
+              title='해당 리뷰를 삭제할까요?'
+              description='삭제한 리뷰는 복구할 수 없습니다.'
+              hideDescription
+              cancelLabel='닫기'
+              confirmLabel='삭제'
+              closeOnOutside
+              onClose={handleCloseDeleteDialog}
+              onConfirm={() => {
+                handleConfirmDelete();
+              }}
+            />
+            <ReviewActionDialog
+              isOpen={deleteDialog === 'failure'}
+              isSubmitting={isDeleting}
+              title='리뷰를 삭제하지 못했어요'
+              description='잠시 후 다시 시도해 주세요.'
+              cancelLabel='닫기'
+              confirmLabel='다시 시도'
               onClose={handleCloseDeleteDialog}
               onConfirm={() => {
                 handleConfirmDelete();

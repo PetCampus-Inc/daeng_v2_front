@@ -23,25 +23,22 @@ let reviews: KnockdogReview[] = MOCK_KNOCKDOG_REVIEWS;
 let ratingCounts: ReviewRatingCounts = INITIAL_KNOCKDOG_RATING_COUNTS;
 const listeners = new Set<() => void>();
 
-function scoreCountKey(score: number): keyof ReviewRatingCounts {
+const SCORE_COUNT_KEYS = ['score1', 'score2', 'score3', 'score4', 'score5'] as const;
+
+function scoreCountKey(score: number) {
   const rounded = Math.min(5, Math.max(1, Math.round(score)));
-  if (rounded === 5) return 'score5';
-  if (rounded === 4) return 'score4';
-  if (rounded === 3) return 'score3';
-  if (rounded === 2) return 'score2';
-  return 'score1';
+  return SCORE_COUNT_KEYS[rounded - 1] ?? 'score1';
+}
+
+function addRatingCount(score: number, delta: number) {
+  const key = scoreCountKey(score);
+  ratingCounts = { ...ratingCounts, [key]: Math.max(0, ratingCounts[key] + delta) };
 }
 
 function shiftRatingCount(fromScore: number, toScore: number) {
-  const fromKey = scoreCountKey(fromScore);
-  const toKey = scoreCountKey(toScore);
-  if (fromKey === toKey) return;
-
-  ratingCounts = {
-    ...ratingCounts,
-    [fromKey]: Math.max(0, ratingCounts[fromKey] - 1),
-    [toKey]: ratingCounts[toKey] + 1,
-  };
+  if (scoreCountKey(fromScore) === scoreCountKey(toScore)) return;
+  addRatingCount(fromScore, -1);
+  addRatingCount(toScore, 1);
 }
 
 function emit() {
@@ -83,11 +80,7 @@ async function deleteKnockdogReview(reviewId: string) {
   if (!latest) throw new Error('REVIEW_NOT_FOUND');
 
   reviews = reviews.filter((review) => review.id !== reviewId);
-  const key = scoreCountKey(latest.score);
-  ratingCounts = {
-    ...ratingCounts,
-    [key]: Math.max(0, ratingCounts[key] - 1),
-  };
+  addRatingCount(latest.score, -1);
   emit();
 }
 
