@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   type Kindergarten,
   type KindergartenMainParams,
+  isKindergartenId,
   kindergartenQueries,
   toKindergartenMain,
 } from '@entities/kindergarten';
@@ -41,6 +42,6 @@ export function useKindergartenMainQuery(params: KindergartenMainParams & { enab
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     select,
-    enabled: enabled && Boolean(id && lng != null && lat != null),
+    enabled: enabled && isKindergartenId(id) && lng != null && lat != null,
   });
 }

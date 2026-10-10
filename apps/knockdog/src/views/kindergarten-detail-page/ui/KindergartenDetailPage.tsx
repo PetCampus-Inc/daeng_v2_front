@@ -11,6 +11,7 @@ import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
+import { isKindergartenId } from '@entities/kindergarten';
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
 import { useShare } from '@shared/lib/device';
@@ -50,6 +51,7 @@ function KindergartenDetailPage() {
 
   const params = useParams<{ id: string }>();
   const id = params?.id;
+  const hasKindergartenId = isKindergartenId(id);
 
   const { back, getParams } = useStackNavigation();
   const currentOverlayId = useCurrentOverlay();
@@ -73,7 +75,7 @@ function KindergartenDetailPage() {
     id,
     lng,
     lat,
-    enabled: Boolean(id),
+    enabled: hasKindergartenId,
   });
   const { mutate: toggleBookmark } = useDetailBookmarkToggle({
     id,
@@ -148,7 +150,7 @@ function KindergartenDetailPage() {
     </div>
   );
 
-  if (!id) {
+  if (!isKindergartenId(id)) {
     return renderErrorPage(() => void back());
   }
 

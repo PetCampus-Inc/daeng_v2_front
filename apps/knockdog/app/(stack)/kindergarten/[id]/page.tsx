@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { KindergartenDetailPage } from '@views/kindergarten-detail-page';
-import { getKindergartenMain } from '@entities/kindergarten/api/kindergarten-main';
+import { getKindergartenMain, isKindergartenId } from '@entities/kindergarten/api/kindergarten-main';
 import { generatePageMetadata } from '@shared/lib/metadata/generatePageMetadata';
 
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? '';
@@ -12,6 +12,12 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
+
+  if (!isKindergartenId(id)) {
+    return generatePageMetadata({
+      url: `${WEB_URL}/kindergarten/${id ?? ''}`,
+    });
+  }
 
   try {
     // 메타데이터 생성용 유치원 정보 조회 - 거리 계산 불필요하여 좌표 0으로 설정
