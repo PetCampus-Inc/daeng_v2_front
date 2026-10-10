@@ -5,10 +5,12 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 
+import { ReviewEditConfirmDialog, ReviewEditFailureDialog } from '@views/write-review-page/ui/ReviewEditDialogs';
 import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComplete';
 
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
+import { saveKnockdogReviewEdit, useKnockdogReviews } from '@features/review';
 import { useBasePoint } from '@entities/user';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
@@ -35,8 +37,18 @@ interface ReviewPhoto {
   url: string;
 }
 
+type EditDialog = 'confirm' | 'failure' | null;
+
 function formatScore(rating: number) {
   return rating > 0 ? rating.toFixed(1) : '0';
+}
+
+function toPhotos(images: string[]) {
+  return images.map((url, index) => ({ id: `${url}-${index}`, url }));
+}
+
+function isSameImages(original: string[], photos: ReviewPhoto[]) {
+  return original.length === photos.length && original.every((url, index) => photos[index]?.url === url);
 }
 
 function ReviewStars({ rating, onChange }: { rating: number; onChange: (rating: number) => void }) {
@@ -68,10 +80,12 @@ function PhotoStrip({
   photos,
   canAdd,
   onAdd,
+  onRemove,
 }: {
   photos: ReviewPhoto[];
   canAdd: boolean;
   onAdd: () => void;
+  onRemove?: (photoId: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState({ visible: false, left: 0 });
@@ -101,13 +115,20 @@ function PhotoStrip({
     <div>
       <div ref={scrollRef} className='scrollbar-hide flex gap-2 overflow-x-auto' onScroll={updateThumb}>
         {photos.map((photo) => (
-          // eslint-disable-next-line @next/next/no-img-element -- 선택한 사진 미리보기
-          <img
-            key={photo.id}
-            src={photo.url}
-            alt=''
-            className='radius-r2 size-[72px] shrink-0 object-cover'
-          />
+          <div key={photo.id} className='relative size-[72px] shrink-0'>
+            {/* eslint-disable-next-line @next/next/no-img-element -- 선택한 사진 미리보기 */}
+            <img src={photo.url} alt='' className='radius-r2 size-full object-cover' />
+            {onRemove ? (
+              <button
+                type='button'
+                aria-label='사진 삭제'
+                className='absolute top-1 right-1 z-20 inline-flex size-5 items-center justify-center'
+                onClick={() => onRemove(photo.id)}
+              >
+                <Icon icon='DeleteInput' className='text-fill-secondary-700 !size-5' />
+              </button>
+            ) : null}
+          </div>
         ))}
         {canAdd ? (
           <button
@@ -172,26 +193,45 @@ function KindergartenSummary({ id }: { id: string }) {
 }
 
 export function WriteReviewPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id: string; reviewId?: string }>();
   const id = params?.id;
 
   if (!id) throw new Error('Company ID is required for write review page');
 
+  const reviewId = params.reviewId;
+  const reviews = useKnockdogReviews();
+  const editingReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
+
   const { back } = useStackNavigation();
   const { pickImage } = useImagePicker();
   const [isComplete, setIsComplete] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [content, setContent] = useState('');
-  const [photos, setPhotos] = useState<ReviewPhoto[]>([]);
+  const [rating, setRating] = useState(editingReview?.score ?? 0);
+  const [content, setContent] = useState(editingReview?.content ?? '');
+  const [photos, setPhotos] = useState<ReviewPhoto[]>(() => toPhotos(editingReview?.images ?? []));
+  const [dialog, setDialog] = useState<EditDialog>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isPickingPhotoRef = useRef(false);
+  const isSubmittingRef = useRef(false);
+  const didSaveRef = useRef(false);
   const photosRef = useRef<ReviewPhoto[]>([]);
   photosRef.current = photos;
 
-  const isDirty = rating > 0 || content.length > 0 || photos.length > 0;
-  const canSubmit = rating > 0 && content.trim().length > 0;
+  const isEdit = Boolean(editingReview);
+  const isDirty = editingReview
+    ? rating !== editingReview.score || content !== editingReview.content || !isSameImages(editingReview.images, photos)
+    : rating > 0 || content.length > 0 || photos.length > 0;
+  const canSubmit = editingReview
+    ? isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
+    : rating > 0 && content.trim().length > 0;
+
+  useEffect(() => {
+    if (!reviewId || editingReview) return;
+    back();
+  }, [back, editingReview, reviewId]);
 
   useEffect(() => {
     return () => {
+      if (didSaveRef.current) return;
       photosRef.current.forEach((photo) => {
         if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
       });
@@ -199,24 +239,29 @@ export function WriteReviewPage() {
   }, []);
 
   const handleBack = useCallback(() => {
+    if (isSubmittingRef.current) return;
+    if (dialog) {
+      setDialog(null);
+      return;
+    }
     if (isComplete || !isDirty) {
       back();
       return;
     }
 
     openUnsavedExitDialog({
-      title: '저장하지 않고 나갈까요?',
-      description: '변경한 내용은 저장되지 않아요.',
+      title: isEdit ? '수정하지 않고 나갈까요?' : '저장하지 않고 나갈까요?',
+      description: isEdit ? '변경된 내용은 저장되지 않아요.' : '변경한 내용은 저장되지 않아요.',
       cancelLabel: '닫기',
       confirmLabel: '나가기',
       onConfirm: () => back(),
     });
-  }, [back, isComplete, isDirty]);
+  }, [back, dialog, isComplete, isDirty, isEdit]);
 
   useNativeBackHandler(handleBack);
 
   const handlePickPhoto = async () => {
-    if (isPickingPhotoRef.current) return;
+    if (isPickingPhotoRef.current || isSubmittingRef.current) return;
 
     const remaining = MAX_PHOTO_COUNT - photos.length;
     if (remaining <= 0) return;
@@ -259,6 +304,39 @@ export function WriteReviewPage() {
       toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
     } finally {
       isPickingPhotoRef.current = false;
+    }
+  };
+
+  const handleRemovePhoto = (photoId: string) => {
+    if (isSubmittingRef.current) return;
+
+    setPhotos((current) => {
+      const target = current.find((photo) => photo.id === photoId);
+      if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url);
+      return current.filter((photo) => photo.id !== photoId);
+    });
+  };
+
+  const handleSave = async () => {
+    if (!editingReview || isSubmittingRef.current || !canSubmit) return;
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
+      await saveKnockdogReviewEdit(editingReview.id, {
+        score: rating,
+        content,
+        images: photos.map((photo) => photo.url),
+      });
+      didSaveRef.current = true;
+      setDialog(null);
+      back();
+    } catch {
+      setDialog('failure');
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -307,6 +385,7 @@ export function WriteReviewPage() {
             photos={photos}
             canAdd={photos.length < MAX_PHOTO_COUNT}
             onAdd={handlePickPhoto}
+            onRemove={isEdit ? handleRemovePhoto : undefined}
           />
         </div>
 
@@ -322,10 +401,42 @@ export function WriteReviewPage() {
       </div>
 
       <div className='bg-bg-0 shrink-0 p-4'>
-        <ActionButton type='button' size='large' disabled={!canSubmit} onClick={() => setIsComplete(true)}>
-          등록하기
+        <ActionButton
+          type='button'
+          size='large'
+          disabled={!canSubmit}
+          onClick={() => {
+            if (isEdit) {
+              setDialog('confirm');
+              return;
+            }
+            setIsComplete(true);
+          }}
+        >
+          {isEdit ? '수정하기' : '등록하기'}
         </ActionButton>
       </div>
+
+      {isEdit ? (
+        <>
+          <ReviewEditConfirmDialog
+            isOpen={dialog === 'confirm'}
+            isSubmitting={isSubmitting}
+            onClose={() => setDialog(null)}
+            onConfirm={() => {
+              handleSave();
+            }}
+          />
+          <ReviewEditFailureDialog
+            isOpen={dialog === 'failure'}
+            isSubmitting={isSubmitting}
+            onClose={() => setDialog(null)}
+            onConfirm={() => {
+              handleSave();
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

@@ -6,13 +6,15 @@ import { useParams } from 'next/navigation';
 import { useQueryState } from 'nuqs';
 
 import {
+  deleteKnockdogReview,
   getReviewTotalCount,
   KnockdogReviewList,
   KnockdogReviewSortButton,
-  MOCK_KNOCKDOG_REVIEWS,
   ReviewCard,
   ReviewRatingSummary,
   sortKnockdogReviews,
+  toggleKnockdogReviewHelpful,
+  useKnockdogReviews,
   type KnockdogReviewSort,
   type ReviewRatingCounts,
 } from '@features/review';
@@ -154,7 +156,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const showKnockdogReviewMock = knockdogReview === '1';
   const [sourceOverride, setSourceOverride] = useState<ReviewSource | null>(null);
   const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
-  const [knockdogReviews, setKnockdogReviews] = useState(MOCK_KNOCKDOG_REVIEWS);
+  const knockdogReviews = useKnockdogReviews();
   const source = sourceOverride ?? (showKnockdogReviewMock ? 'knockdog' : 'blog');
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
@@ -164,24 +166,17 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const knockdogRatingCounts = showKnockdogReviewMock ? MOCK_KNOCKDOG_RATING_COUNTS : EMPTY_KNOCKDOG_RATING_COUNTS;
   const knockdogReviewCount = getReviewTotalCount(knockdogRatingCounts);
   const handleWriteReview = () => push({ pathname: `/kindergarten/${id}/write-review` });
+  const handleEditReview = (reviewId: string) => {
+    push({ pathname: `/kindergarten/${id}/edit-review/${reviewId}` });
+  };
   const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
 
   const handleHelpfulToggle = (reviewId: string) => {
-    setKnockdogReviews((current) =>
-      current.map((review) => {
-        if (review.id !== reviewId) return review;
-        const isHelpful = !review.isHelpful;
-        return {
-          ...review,
-          isHelpful,
-          helpfulCount: Math.max(0, review.helpfulCount + (isHelpful ? 1 : -1)),
-        };
-      })
-    );
+    toggleKnockdogReviewHelpful(reviewId);
   };
 
   const handleDeleteReview = (reviewId: string) => {
-    setKnockdogReviews((current) => current.filter((review) => review.id !== reviewId));
+    deleteKnockdogReview(reviewId);
   };
 
   const handleSourceChange = (value: string) => {
@@ -237,7 +232,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
             <KnockdogReviewList
               reviews={sortedKnockdogReviews}
               onHelpfulToggle={handleHelpfulToggle}
-              onEdit={handleWriteReview}
+              onEdit={handleEditReview}
               onDelete={handleDeleteReview}
             />
           </>

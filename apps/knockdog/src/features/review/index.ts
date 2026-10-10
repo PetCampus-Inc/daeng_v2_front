@@ -5,5 +5,11 @@ export { KnockdogReviewSortButton } from './ui/KnockdogReviewSortButton';
 export { getReviewTotalCount } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';
 export { MOCK_KNOCKDOG_REVIEWS } from './config/knockdogReviewMock';
+export {
+  deleteKnockdogReview,
+  saveKnockdogReviewEdit,
+  toggleKnockdogReviewHelpful,
+  useKnockdogReviews,
+} from './model/knockdogReviewStore';
 export type { ReviewRatingCounts } from './lib/reviewRating';
 export type { KnockdogReview, KnockdogReviewSort } from './config/knockdogReviewMock';

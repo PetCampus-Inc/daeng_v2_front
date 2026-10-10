@@ -40,7 +40,7 @@ const MOCK_KNOCKDOG_REVIEWS: KnockdogReview[] = [
     createdAt: '2026-09-19T18:00:00',
     enrollment: 'attending',
     content: '지금도 다니고 있는 곳인데 사회화 프로그램이 체계적이었어요. 위치도 찾기 쉬웠습니다.',
-    images: [],
+    images: [MOCK_REVIEW_IMAGE, MOCK_REVIEW_IMAGE],
     helpfulCount: 10,
     isHelpful: false,
     isMine: true,

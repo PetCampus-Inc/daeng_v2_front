@@ -119,6 +119,21 @@ function KnockdogReviewMoreMenu({ onEdit, onDelete }: { onEdit: () => void; onDe
   );
 }
 
+function isRemoteReviewImage(src: string) {
+  return src.startsWith('blob:') || src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://');
+}
+
+function ReviewImage({ src, sizes }: { src: string; sizes: string }) {
+  if (isRemoteReviewImage(src)) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- 기기에서 고른 사진·원격 URL
+      <img src={src} alt='' className='size-full object-cover' />
+    );
+  }
+
+  return <Image src={src} alt='' fill sizes={sizes} className='object-cover' />;
+}
+
 function KnockdogReviewImages({ images }: { images: string[] }) {
   if (images.length === 0) return null;
 
@@ -144,7 +159,7 @@ function KnockdogReviewImages({ images }: { images: string[] }) {
         onClick={() => handleSelect(0)}
         className='bg-bg-100 relative h-60 w-full overflow-hidden rounded-lg'
       >
-        <Image src={image} alt='' fill sizes='358px' className='object-cover' />
+        <ReviewImage src={image} sizes='358px' />
       </button>
     );
   }
@@ -158,7 +173,7 @@ function KnockdogReviewImages({ images }: { images: string[] }) {
           onClick={() => handleSelect(index)}
           className='bg-bg-100 relative aspect-square overflow-hidden rounded-lg'
         >
-          <Image src={image} alt='' fill sizes='33vw' className='object-cover' />
+          <ReviewImage src={image} sizes='33vw' />
         </button>
       ))}
     </div>
