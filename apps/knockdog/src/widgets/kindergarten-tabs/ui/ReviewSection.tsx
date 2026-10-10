@@ -50,7 +50,7 @@ function ReviewSourceLabel({ label, count }: { label: string; count: number | nu
   );
 }
 
-/** `?tab=후기&knockdogReview=1` 로 접속하면 리뷰가 있는 화면을 보여 준다. */
+/** `?tab=후기&knockdogReview=1` 이면 리뷰 목록과 작성 화면 플로우를 보여 준다. */
 const EMPTY_KNOCKDOG_RATING_COUNTS: ReviewRatingCounts = {
   score5: 0,
   score4: 0,
@@ -165,7 +165,18 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const blogReviewCount = getBlogReviewCount(data?.pages);
   const knockdogRatingCounts = showKnockdogReviewMock ? knockdogRatingCountsFromStore : EMPTY_KNOCKDOG_RATING_COUNTS;
   const knockdogReviewCount = getReviewTotalCount(knockdogRatingCounts);
-  const handleWriteReview = () => push({ pathname: `/kindergarten/${id}/write-review` });
+  const handleWriteReview = () => {
+    if (showKnockdogReviewMock) {
+      push({ pathname: `/kindergarten/${id}/write-review` });
+      return;
+    }
+
+    toast({
+      title: '현재 리뷰 작성하기는 준비 중이에요',
+      nativeTitle: '현재 리뷰 작성하기는 준비 중이에요',
+      position: 'bottom',
+    });
+  };
   const handleEditReview = (reviewId: string) => {
     push({ pathname: `/kindergarten/${id}/edit-review/${reviewId}` });
   };
