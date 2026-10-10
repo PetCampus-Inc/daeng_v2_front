@@ -9,7 +9,13 @@ export interface KindergartenMainParams {
   lat: number;
 }
 
+function isKindergartenId(id: string | null | undefined): id is string {
+  return typeof id === 'string' && id.length > 0 && id !== 'null' && id !== 'undefined';
+}
+
 function getKindergartenMain({ id, lng, lat }: KindergartenMainParams): Promise<Kindergarten> {
+  if (!isKindergartenId(id)) return Promise.reject(new Error('유치원 id가 없습니다'));
+
   return api
     .get(`kindergarten/main/${id}`, {
       searchParams: {
@@ -20,4 +26,4 @@ function getKindergartenMain({ id, lng, lat }: KindergartenMainParams): Promise<
     .json();
 }
 
-export { getKindergartenMain };
+export { getKindergartenMain, isKindergartenId };

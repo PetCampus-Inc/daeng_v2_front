@@ -5,7 +5,7 @@ export { getFilterResultCount } from './api/filters';
 export type { FilterResultCountParams } from './api/filters';
 export { getKindergartenSearchList, getKindergartenAggregation } from './api/search-list';
 export type { KindergartenSearchListParams, KindergartenAggregationParams, SortType } from './api/search-list';
-export { getKindergartenMain } from './api/kindergarten-main';
+export { getKindergartenMain, isKindergartenId } from './api/kindergarten-main';
 export type { KindergartenMainParams } from './api/kindergarten-main';
 
 /** config */

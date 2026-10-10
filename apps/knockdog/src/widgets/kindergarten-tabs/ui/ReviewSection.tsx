@@ -1,16 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { useParams } from 'next/navigation';
 import { useQueryState } from 'nuqs';
 
-import { getReviewTotalCount, ReviewCard, ReviewRatingSummary, type ReviewRatingCounts } from '@features/review';
+import {
+  deleteKnockdogReview,
+  getReviewTotalCount,
+  KnockdogReviewList,
+  KnockdogReviewSortButton,
+  ReviewActionDialog,
+  ReviewCard,
+  ReviewRatingSummary,
+  sortKnockdogReviews,
+  toggleKnockdogReviewHelpful,
+  useKnockdogRatingCounts,
+  useKnockdogReviews,
+  type KnockdogReviewSort,
+  type ReviewRatingCounts,
+} from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import type { ReviewListResponse } from '@entities/review';
 import { useInfiniteScroll } from '@shared/lib';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
+import { toast } from '@shared/ui/toast';
 
 type ReviewSource = 'knockdog' | 'blog';
 
@@ -35,15 +50,7 @@ function ReviewSourceLabel({ label, count }: { label: string; count: number | nu
   );
 }
 
-/** `?tab=후기&knockdogReview=1` 로 접속하면 리뷰가 있는 화면을 보여 준다. */
-const MOCK_KNOCKDOG_RATING_COUNTS: ReviewRatingCounts = {
-  score5: 7200,
-  score4: 1500,
-  score3: 600,
-  score2: 400,
-  score1: 299,
-};
-
+/** `?tab=후기&knockdogReview=1` 이면 리뷰 목록과 작성 화면 플로우를 보여 준다. */
 const EMPTY_KNOCKDOG_RATING_COUNTS: ReviewRatingCounts = {
   score5: 0,
   score4: 0,
@@ -72,9 +79,13 @@ function KnockdogReviewEmpty({ onWriteClick }: { onWriteClick: () => void }) {
 
 function KnockdogReviewHeader({
   counts,
+  sort,
+  onSortChange,
   onWriteClick,
 }: {
   counts: ReviewRatingCounts;
+  sort: KnockdogReviewSort;
+  onSortChange: (sort: KnockdogReviewSort) => void;
   onWriteClick: () => void;
 }) {
   const total = getReviewTotalCount(counts);
@@ -95,10 +106,7 @@ function KnockdogReviewHeader({
       </div>
       <div className='flex items-center justify-between px-4 py-2'>
         <p className='label-medium text-fill-secondary-500'>총 {total.toLocaleString('ko-KR')}개 리뷰</p>
-        <button type='button' className='label-semibold text-fill-secondary-500 flex items-center gap-1 py-1'>
-          최신순
-          <Icon icon='ChevronBottom' className='size-4' />
-        </button>
+        <KnockdogReviewSortButton value={sort} onChange={onSortChange} />
       </div>
     </>
   );
@@ -142,15 +150,75 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const { push } = useStackNavigation();
   const showKnockdogReviewMock = knockdogReview === '1';
   const [sourceOverride, setSourceOverride] = useState<ReviewSource | null>(null);
+  const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
+  const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isDeletingRef = useRef(false);
+  const knockdogReviews = useKnockdogReviews();
+  const knockdogRatingCountsFromStore = useKnockdogRatingCounts();
   const source = sourceOverride ?? (showKnockdogReviewMock ? 'knockdog' : 'blog');
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
   const allReviews = data?.pages.flatMap((page) => page.reviews) ?? [];
   const blogReviewCount = getBlogReviewCount(data?.pages);
-  const knockdogRatingCounts = showKnockdogReviewMock ? MOCK_KNOCKDOG_RATING_COUNTS : EMPTY_KNOCKDOG_RATING_COUNTS;
+  const knockdogRatingCounts = showKnockdogReviewMock ? knockdogRatingCountsFromStore : EMPTY_KNOCKDOG_RATING_COUNTS;
   const knockdogReviewCount = getReviewTotalCount(knockdogRatingCounts);
-  const handleWriteReview = () => push({ pathname: `/kindergarten/${id}/write-review` });
+  const handleWriteReview = () => {
+    if (showKnockdogReviewMock) {
+      push({ pathname: `/kindergarten/${id}/write-review` });
+      return;
+    }
+
+    toast({
+      title: '현재 리뷰 작성하기는 준비 중이에요',
+      nativeTitle: '현재 리뷰 작성하기는 준비 중이에요',
+      position: 'bottom',
+    });
+  };
+  const handleEditReview = (reviewId: string) => {
+    push({ pathname: `/kindergarten/${id}/edit-review/${reviewId}` });
+  };
+  const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
+
+  const handleHelpfulToggle = (reviewId: string) => {
+    toggleKnockdogReviewHelpful(reviewId);
+  };
+
+  const handleDeleteReview = (reviewId: string) => {
+    setDeleteTargetId(reviewId);
+    setDeleteDialog('confirm');
+  };
+
+  const handleCloseDeleteDialog = () => {
+    if (isDeletingRef.current) return;
+    setDeleteDialog(null);
+    setDeleteTargetId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId || isDeletingRef.current) return;
+
+    isDeletingRef.current = true;
+    setIsDeleting(true);
+
+    try {
+      await deleteKnockdogReview(deleteTargetId);
+      setDeleteDialog(null);
+      setDeleteTargetId(null);
+      toast({
+        title: '유치원 이용 리뷰를 삭제했어요',
+        nativeTitle: '유치원 이용 리뷰를 삭제했어요',
+        position: 'bottom',
+      });
+    } catch {
+      setDeleteDialog('failure');
+    } finally {
+      isDeletingRef.current = false;
+      setIsDeleting(false);
+    }
+  };
 
   const handleSourceChange = (value: string) => {
     if (value === 'knockdog' || value === 'blog') setSourceOverride(value);
@@ -195,7 +263,46 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
         knockdogReviewCount === 0 ? (
           <KnockdogReviewEmpty onWriteClick={handleWriteReview} />
         ) : (
-          <KnockdogReviewHeader counts={knockdogRatingCounts} onWriteClick={handleWriteReview} />
+          <>
+            <KnockdogReviewHeader
+              counts={knockdogRatingCounts}
+              sort={knockdogReviewSort}
+              onSortChange={setKnockdogReviewSort}
+              onWriteClick={handleWriteReview}
+            />
+            <KnockdogReviewList
+              reviews={sortedKnockdogReviews}
+              onHelpfulToggle={handleHelpfulToggle}
+              onEdit={handleEditReview}
+              onDelete={handleDeleteReview}
+            />
+            <ReviewActionDialog
+              isOpen={deleteDialog === 'confirm'}
+              isSubmitting={isDeleting}
+              title='해당 리뷰를 삭제할까요?'
+              description='삭제한 리뷰는 복구할 수 없습니다.'
+              hideDescription
+              cancelLabel='닫기'
+              confirmLabel='삭제'
+              closeOnOutside
+              onClose={handleCloseDeleteDialog}
+              onConfirm={() => {
+                handleConfirmDelete();
+              }}
+            />
+            <ReviewActionDialog
+              isOpen={deleteDialog === 'failure'}
+              isSubmitting={isDeleting}
+              title='리뷰를 삭제하지 못했어요'
+              description='잠시 후 다시 시도해 주세요.'
+              cancelLabel='닫기'
+              confirmLabel='다시 시도'
+              onClose={handleCloseDeleteDialog}
+              onConfirm={() => {
+                handleConfirmDelete();
+              }}
+            />
+          </>
         )
       ) : (
         <div className='flex flex-col gap-7 px-4'>
