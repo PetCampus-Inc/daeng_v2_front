@@ -9,7 +9,9 @@ export {
   deleteKnockdogReview,
   saveKnockdogReviewEdit,
   toggleKnockdogReviewHelpful,
+  useKnockdogRatingCounts,
   useKnockdogReviews,
 } from './model/knockdogReviewStore';
+export { KnockdogReviewDeleteDialogs } from './ui/KnockdogReviewDeleteDialogs';
 export type { ReviewRatingCounts } from './lib/reviewRating';
 export type { KnockdogReview, KnockdogReviewSort } from './config/knockdogReviewMock';
