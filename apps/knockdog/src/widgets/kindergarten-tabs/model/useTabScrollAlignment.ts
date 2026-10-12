@@ -23,6 +23,13 @@ export function useTabScrollAlignment(
     if (!scrollContainer || !tabsElement || !spacerElement) return;
 
     const currentSpacerHeight = spacerElement.offsetHeight;
+
+    // 후기(똑독 리뷰)는 아래 공간이 남아도 탭을 붙이기 위한 여백을 만들지 않는다.
+    if (activeTab === '후기') {
+      if (currentSpacerHeight !== 0) spacerElement.style.height = '0px';
+      return;
+    }
+
     const tabsRect = tabsElement.getBoundingClientRect();
     const containerRect = scrollContainer.getBoundingClientRect();
     const targetScrollTop = tabsRect.top - containerRect.top + scrollContainer.scrollTop;
@@ -33,7 +40,7 @@ export function useTabScrollAlignment(
     if (needed !== currentSpacerHeight) {
       spacerElement.style.height = `${needed}px`;
     }
-  }, [scrollContainerRef]);
+  }, [activeTab, scrollContainerRef]);
 
   const scrollToTabs = useCallback(() => {
     const scrollContainer = scrollContainerRef?.current;
