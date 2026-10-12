@@ -1,20 +1,34 @@
 'use client';
 
+import { overlay } from 'overlay-kit';
 import { ActionButton } from '@knockdog/ui';
 
 import { useStackNavigation } from '@shared/lib/bridge';
-import { toast } from '@shared/ui/toast';
+import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { Header } from '@widgets/Header';
 
+import { useWritableKindergartens } from '../model/useWritableKindergartens';
+
 function GuardianMyReviewsPage() {
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
+  const { kindergartens, isLoading } = useWritableKindergartens();
+  const canWriteReview = !isLoading && kindergartens.length > 0;
+
+  const handleSelectKindergarten = (kindergartenId: string) => {
+    push({ pathname: `/kindergarten/${kindergartenId}/write-review` });
+  };
 
   const handleWriteReview = () => {
-    toast({
-      title: '현재 리뷰 작성하기는 준비 중이에요',
-      nativeTitle: '현재 리뷰 작성하기는 준비 중이에요',
-      position: 'bottom',
-    });
+    overlay.open(({ isOpen, close }) => (
+      <KindergartenSelectSheet
+        mode='write'
+        isOpen={isOpen}
+        close={close}
+        kindergartens={kindergartens}
+        currentKindergartenId={null}
+        onSelect={handleSelectKindergarten}
+      />
+    ));
   };
 
   return (
@@ -34,9 +48,11 @@ function GuardianMyReviewsPage() {
             <p className='body1-bold text-text-primary w-full'>작성한 유치원 이용 후기가 없어요</p>
             <p className='body2-regular text-text-secondary w-full'>유치원 이용 후기를 작성해 보세요.</p>
           </div>
-          <ActionButton type='button' onClick={handleWriteReview}>
-            리뷰 작성하기
-          </ActionButton>
+          {canWriteReview ? (
+            <ActionButton type='button' onClick={handleWriteReview}>
+              리뷰 작성하기
+            </ActionButton>
+          ) : null}
         </div>
       </div>
     </div>

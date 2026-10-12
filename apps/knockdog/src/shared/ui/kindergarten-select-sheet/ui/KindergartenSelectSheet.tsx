@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Divider, Icon } from '@knockdog/ui';
+import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { kindergartenSelectSheetContent } from '@shared/ui/kindergarten-select-sheet/config/kindergartenSelectSheetContent';
@@ -17,6 +17,8 @@ interface KindergartenSelectSheetProps {
   kindergartens: KindergartenSelectOption[];
   currentKindergartenId: string | null;
   onSelect: (kindergartenId: string) => void;
+  /** write: 리뷰 작성 대상 선택. switch: 연결 유치원 전환 */
+  mode?: 'switch' | 'write';
 }
 
 function formatAttendedUntilLabel(attendedUntil: string) {
@@ -85,8 +87,10 @@ function KindergartenSelectSheet({
   kindergartens,
   currentKindergartenId,
   onSelect,
+  mode = 'switch',
 }: KindergartenSelectSheetProps) {
   const content = kindergartenSelectSheetContent;
+  const isWriteMode = mode === 'write';
 
   useNativeBackToClose(isOpen, close);
 
@@ -95,13 +99,15 @@ function KindergartenSelectSheet({
   };
 
   const handleSelect = (kindergarten: KindergartenSelectOption) => {
-    if (kindergarten.id === currentKindergartenId) {
+    if (!isWriteMode && kindergarten.id === currentKindergartenId) {
       close();
       return;
     }
 
     onSelect(kindergarten.id);
     close();
+
+    if (isWriteMode) return;
 
     toast({
       type: 'success',
@@ -125,7 +131,9 @@ function KindergartenSelectSheet({
       <BottomSheet.Body className='z-modal pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'>
         <BottomSheet.Handle />
         <BottomSheet.Header className='border-line-100 border-b items-start text-left'>
-          <BottomSheet.Title className='w-full pr-10 text-left'>{content.title}</BottomSheet.Title>
+          <BottomSheet.Title className='w-full pr-10 text-left'>
+            {isWriteMode ? content.writeTitle : content.title}
+          </BottomSheet.Title>
           <BottomSheet.CloseButton onClick={close} />
         </BottomSheet.Header>
 
@@ -140,37 +148,54 @@ function KindergartenSelectSheet({
 
             return (
               <React.Fragment key={kindergarten.id}>
-                <button
-                  type='button'
-                  className='flex w-full items-center gap-2 px-4 py-4'
-                  onClick={() => handleSelect(kindergarten)}
-                >
-                  <KindergartenSelectThumbnail
-                    imageUrl={kindergarten.imageUrl}
-                    isSelected={isSelected}
-                  />
-
-                  <div className='flex min-w-0 flex-1 flex-col items-start text-left'>
-                    <span
-                      className={cn(
-                        'body1-bold w-full truncate',
-                        isSelected ? 'text-text-accent' : 'text-text-primary'
-                      )}
-                    >
+                {isWriteMode ? (
+                  <div className='flex w-full items-center gap-2 px-4 py-4'>
+                    <KindergartenSelectThumbnail imageUrl={kindergarten.imageUrl} isSelected={false} />
+                    <span className='body1-bold text-text-primary min-w-0 flex-1 truncate text-left'>
                       {kindergarten.name}
                     </span>
-                    <span
-                      className={cn(
-                        'w-full truncate',
-                        isAttending
-                          ? 'body2-semibold text-text-accent'
-                          : 'body2-regular text-text-secondary'
-                      )}
+                    <ActionButton
+                      type='button'
+                      size='small'
+                      className='shrink-0'
+                      onClick={() => handleSelect(kindergarten)}
                     >
-                      {statusLabel}
-                    </span>
+                      {content.writeActionLabel}
+                    </ActionButton>
                   </div>
-                </button>
+                ) : (
+                  <button
+                    type='button'
+                    className='flex w-full items-center gap-2 px-4 py-4'
+                    onClick={() => handleSelect(kindergarten)}
+                  >
+                    <KindergartenSelectThumbnail
+                      imageUrl={kindergarten.imageUrl}
+                      isSelected={isSelected}
+                    />
+
+                    <div className='flex min-w-0 flex-1 flex-col items-start text-left'>
+                      <span
+                        className={cn(
+                          'body1-bold w-full truncate',
+                          isSelected ? 'text-text-accent' : 'text-text-primary'
+                        )}
+                      >
+                        {kindergarten.name}
+                      </span>
+                      <span
+                        className={cn(
+                          'w-full truncate',
+                          isAttending
+                            ? 'body2-semibold text-text-accent'
+                            : 'body2-regular text-text-secondary'
+                        )}
+                      >
+                        {statusLabel}
+                      </span>
+                    </div>
+                  </button>
+                )}
                 {index < kindergartens.length - 1 ? (
                   <div className='px-4'>
                     <Divider />
