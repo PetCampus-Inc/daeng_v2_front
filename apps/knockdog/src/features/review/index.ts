@@ -15,6 +15,7 @@ export {
   useKnockdogReviews,
 } from './model/knockdogReviewStore';
 export { deleteMyWrittenReview, saveMyWrittenReviewEdit, useMyWrittenReviews } from './model/myWrittenReviewStore';
+export { markWrittenKindergartenReview, useWrittenKindergartenPlaceIds } from './model/writtenKindergartenReviewStore';
 export {
   DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
   hasKnockdogReviewReport,

@@ -19,6 +19,7 @@ function toHistoryItem(connection: GuardianSchoolConnection): GuardianConnection
     id: connection.id,
     schoolPetMembershipId: connection.schoolPetMembershipId,
     kindergartenId: connection.placeId ?? connection.schoolId,
+    placeId: connection.placeId,
     name: connection.name,
     address: connection.address,
     imageUrl: connection.imageUrl,

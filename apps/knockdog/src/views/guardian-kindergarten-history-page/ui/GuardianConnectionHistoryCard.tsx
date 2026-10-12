@@ -8,9 +8,12 @@ import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-h
 import { formatKoreanHistoryDate } from '@views/guardian-kindergarten-history-page/lib/formatGuardianConnectionHistory';
 import type { GuardianConnectionHistoryItem } from '@views/guardian-kindergarten-history-page/model/guardianConnectionHistory';
 import { useGuardianConnectionDisconnect } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionDisconnect';
+import { isKindergartenId } from '@entities/kindergarten';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
+  hasWrittenReview: boolean;
 }
 
 interface DisconnectButtonProps {
@@ -46,7 +49,16 @@ function DisconnectButton({
   );
 }
 
-function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
+function WriteReviewButton({ onClick }: { onClick: () => void }) {
+  return (
+    <ActionButton type='button' variant='primaryFill' size='medium' onClick={onClick}>
+      {guardianConnectionHistoryContent.writeReviewButtonLabel}
+    </ActionButton>
+  );
+}
+
+function GuardianConnectionHistoryCard({ item, hasWrittenReview }: GuardianConnectionHistoryCardProps) {
+  const { push } = useStackNavigation();
   const content = guardianConnectionHistoryContent;
   /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
   const [localDisconnectedAt, setLocalDisconnectedAt] = useState<string | null>(null);
@@ -61,6 +73,12 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
     ? formatKoreanHistoryDate(disconnectedAt)
     : content.currentLabel;
   const badgeLabel = `${content.attendanceBadgePrefix} ${item.attendanceDayCount}${content.attendanceBadgeSuffix}`;
+  const canWriteReview = isKindergartenId(item.placeId) && !hasWrittenReview;
+
+  const handleWriteReview = () => {
+    if (!isKindergartenId(item.placeId)) return;
+    push({ pathname: `/kindergarten/${item.placeId}/write-review` });
+  };
 
   return (
     <div
@@ -126,13 +144,30 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
         )}
       </div>
 
-      {isCurrent ? (
+      {isCurrent && canWriteReview ? (
+        <div className='flex gap-2'>
+          <div className='min-w-0 flex-1'>
+            <DisconnectButton
+              kindergartenName={item.name}
+              schoolPetMembershipId={item.schoolPetMembershipId}
+              onDisconnected={setLocalDisconnectedAt}
+            />
+          </div>
+          <div className='min-w-0 flex-1'>
+            <WriteReviewButton onClick={handleWriteReview} />
+          </div>
+        </div>
+      ) : null}
+
+      {isCurrent && !canWriteReview ? (
         <DisconnectButton
           kindergartenName={item.name}
           schoolPetMembershipId={item.schoolPetMembershipId}
           onDisconnected={setLocalDisconnectedAt}
         />
       ) : null}
+
+      {!isCurrent && canWriteReview ? <WriteReviewButton onClick={handleWriteReview} /> : null}
     </div>
   );
 }
