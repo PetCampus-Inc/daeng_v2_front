@@ -28,6 +28,7 @@ export interface AccountSectionProps {
   onProfileClick?: () => void;
   onLocationClick?: () => void;
   onConnectionApplicationsClick?: () => void;
+  onMyReviewsClick?: () => void;
   onReleasePermissionClick?: () => void;
 }
 
@@ -66,6 +67,7 @@ function AccountSection({
   onProfileClick,
   onLocationClick,
   onConnectionApplicationsClick,
+  onMyReviewsClick,
   onReleasePermissionClick,
 }: AccountSectionProps) {
   const socialUser = useSocialUserStore((state) => state.socialUser);
@@ -178,6 +180,14 @@ function AccountSection({
               onClick={onConnectionApplicationsClick}
             >
               <span className='body1-medium flex-1 text-text-primary'>연결 신청 내역</span>
+              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
+            </button>
+            <button
+              type='button'
+              className='flex h-14 w-full items-center gap-2 py-4 text-left'
+              onClick={onMyReviewsClick}
+            >
+              <span className='body1-medium flex-1 text-text-primary'>내 리뷰 관리</span>
               <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
             </button>
           </div>

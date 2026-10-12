@@ -107,6 +107,10 @@ const route = {
         /** 보호자 프로필 페이지 */
         root: '/mypage/guardian/profile',
       },
+      reviews: {
+        /** 보호자 내 리뷰 관리 */
+        root: '/mypage/guardian/reviews',
+      },
     },
     pet: {
       add: {

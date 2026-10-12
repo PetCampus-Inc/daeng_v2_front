@@ -54,6 +54,7 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { path: '/mypage/profile/location', name: '내 장소 설정' },
   { path: '/mypage/profile/manage', name: '프로필 관리' },
   { path: '/mypage/guardian/profile', name: '보호자 프로필' },
+  { path: '/mypage/guardian/reviews', name: '내 리뷰 관리' },
   { path: '/mypage/kindergarten', name: '원장 유치원 정보' },
   { path: '/mypage/kindergarten/edit', name: '유치원 운영 정보 수정' },
   { path: '/mypage/kindergarten/edit/address', name: '유치원 주소 수정' },
