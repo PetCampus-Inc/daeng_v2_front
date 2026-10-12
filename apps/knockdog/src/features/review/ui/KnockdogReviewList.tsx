@@ -11,7 +11,7 @@ interface KnockdogReviewListProps {
   onHelpfulToggle: (reviewId: string) => void;
   onEdit: (reviewId: string) => void;
   onDelete: (reviewId: string) => void;
-  onReport: () => void;
+  onReport: (reviewId: string) => void;
 }
 
 function KnockdogReviewList({ reviews, onHelpfulToggle, onEdit, onDelete, onReport }: KnockdogReviewListProps) {

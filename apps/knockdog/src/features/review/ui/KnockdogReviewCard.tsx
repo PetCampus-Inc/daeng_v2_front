@@ -29,7 +29,7 @@ interface KnockdogReviewCardProps {
   onHelpfulToggle: (reviewId: string) => void;
   onEdit: (reviewId: string) => void;
   onDelete: (reviewId: string) => void;
-  onReport: () => void;
+  onReport: (reviewId: string) => void;
 }
 
 const ENROLLMENT_LABEL = {
@@ -266,7 +266,11 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onRepor
             </span>
           ) : null}
         </button>
-        <button type='button' className='label-semibold text-fill-secondary-500 py-1' onClick={onReport}>
+        <button
+          type='button'
+          className='label-semibold text-fill-secondary-500 py-1'
+          onClick={() => onReport(review.id)}
+        >
           신고하기
         </button>
       </div>

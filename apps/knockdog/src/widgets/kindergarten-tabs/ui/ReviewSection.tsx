@@ -180,8 +180,8 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const handleEditReview = (reviewId: string) => {
     push({ pathname: `/kindergarten/${id}/edit-review/${reviewId}` });
   };
-  const handleReportReview = () => {
-    push({ pathname: `/kindergarten/${id}/report-review` });
+  const handleReportReview = (reviewId: string) => {
+    push({ pathname: `/kindergarten/${id}/report-review`, query: { reviewId } });
   };
   const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
 

@@ -1,26 +1,64 @@
 'use client';
 
-import { ActionButton } from '@knockdog/ui';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { ActionButton, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { useKnockdogReviews } from '@features/review';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 const REPORT_REASONS = [
   '유치원과 관련 없는 내용이에요',
-  '광고∙홍보성 내용이에요',
+  '광고·홍보성 내용이에요',
   '개인정보가 포함되어 있어요',
-  '욕설∙비방∙차별 표현이 있어요',
+  '욕설·비방·차별 표현이 있어요',
   '허위 내용 또는 악의적인 내용이에요',
   '저작권 등 권리 침해가 있어요',
   '같은 내용이 반복돼요',
   '기타',
 ] as const;
 
-const REPORTED_REVIEW_CONTENT =
-  '선생님들이 강아지 성향을 잘 봐주시고 알림도 꼼꼼해서 안심하고 보내고 있어요. 처음 등원할 때 많이 긴장했는데 하루 일과를 사진으로 확인할 수 있어 마음이 놓였고, 산책 후 강아지 컨디션도 안정적이었습니다.';
+const ETC_REASON = '기타';
+const MAX_DETAIL_LENGTH = 1000;
+const DETAIL_PLACEHOLDER = '신고하는 상세 이유를 입력하세요. 신고 사유 중 기타 선택 시 필수로 입력해 주세요.';
+const DETAIL_LIMIT_MESSAGE = '최대 1,000자까지 작성할 수 있어요.';
+
+type ReportReason = (typeof REPORT_REASONS)[number];
+
+function formatReviewDate(createdAt: string) {
+  const [datePart] = createdAt.split('T');
+  const [year, month, day] = datePart?.split('-') ?? [];
+  if (!year || !month || !day) return '';
+  return `${year}. ${month}. ${day}`;
+}
 
 function ReviewReportPage() {
   const { back } = useStackNavigation();
+  const searchParams = useSearchParams();
+  const reviewId = searchParams.get('reviewId');
+  const reviews = useKnockdogReviews();
+  const review = reviews.find((item) => item.id === reviewId) ?? null;
+  const [reason, setReason] = useState<ReportReason | ''>('');
+  const [detail, setDetail] = useState('');
+  const detailRef = useRef<HTMLTextAreaElement>(null);
+  const isEtcReason = reason === ETC_REASON;
+  const isDetailAtLimit = detail.length >= MAX_DETAIL_LENGTH;
+  const canSubmit = reason !== '' && (!isEtcReason || detail.trim().length > 0);
+
+  useEffect(() => {
+    if (review) return;
+    back();
+  }, [back, review]);
+
+  useLayoutEffect(() => {
+    const element = detailRef.current;
+    if (!element) return;
+    element.style.height = 'auto';
+    element.style.height = `${element.scrollHeight}px`;
+  }, [detail]);
+
+  if (!review) return null;
 
   return (
     <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
@@ -41,11 +79,11 @@ function ReviewReportPage() {
               <span className='flex items-center gap-0.5'>
                 {/* eslint-disable-next-line @next/next/no-img-element -- 별점 아이콘 원본 색 유지 */}
                 <img src='/images/img_review_card_star.svg' alt='' className='size-4' />
-                <span className='body2-bold text-fill-secondary-700'>1.0</span>
+                <span className='body2-bold text-fill-secondary-700'>{review.score.toFixed(1)}</span>
               </span>
-              <span className='body2-regular text-text-tertiary'>2026. 09. 19</span>
+              <span className='body2-regular text-text-tertiary'>{formatReviewDate(review.createdAt)}</span>
             </div>
-            <p className='body1-regular text-text-primary line-clamp-3'>{REPORTED_REVIEW_CONTENT}</p>
+            <p className='body1-regular text-text-primary line-clamp-3'>{review.content}</p>
           </div>
         </section>
 
@@ -54,38 +92,57 @@ function ReviewReportPage() {
             신고 사유를 선택해 주세요
             <span className='text-text-accent'> *</span>
           </p>
-          <div className='flex flex-col gap-3'>
-            {REPORT_REASONS.map((reason) => (
-              <div
-                key={reason}
-                className='border-line-200 radius-r2 flex items-center gap-2 border px-4 py-[11px]'
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- 미선택 라디오 원본 크기 유지 */}
-                <img src='/images/img_review_report_radio.svg' alt='' width={24} height={24} />
-                <p className='body1-medium text-text-primary min-w-0 flex-1'>{reason}</p>
-              </div>
-            ))}
-          </div>
+          <RadioGroup
+            value={reason}
+            onValueChange={(value) => setReason(value as ReportReason)}
+            className='gap-3'
+          >
+            {REPORT_REASONS.map((item, index) => {
+              const itemId = `report-reason-${index}`;
+
+              return (
+                <label
+                  key={item}
+                  htmlFor={itemId}
+                  className='border-line-200 radius-r2 flex cursor-pointer items-center gap-2 border px-4 py-[11px]'
+                >
+                  <div className='[&>div]:space-x-0'>
+                    <RadioGroupItem value={item} id={itemId} />
+                  </div>
+                  <p className='body1-medium text-text-primary min-w-0 flex-1'>{item}</p>
+                </label>
+              );
+            })}
+          </RadioGroup>
         </section>
 
         <section className='flex flex-col gap-2 px-4 py-3'>
           <p className='body2-bold text-text-primary flex items-center gap-0.5'>
             상세 내용
-            <span className='caption1-semibold text-text-tertiary'>(선택)</span>
+            {isEtcReason ? (
+              <span className='text-text-accent'> *</span>
+            ) : (
+              <span className='caption1-semibold text-text-tertiary'>(선택)</span>
+            )}
           </p>
-          <div className='bg-bg-50 radius-r2 flex flex-col gap-8 px-4 py-3'>
-            <p className='body1-regular text-text-tertiary'>
-              신고하는 상세 이유를 입력하세요. 신고 사유 중 기타 선택 시 필수로 입력해 주세요.
-            </p>
-            <p className='body2-regular text-text-caption'>
-              0<span>/1,000</span>
-            </p>
-          </div>
+          <label className='bg-bg-50 radius-r2 flex flex-col gap-8 px-4 py-3'>
+            <textarea
+              ref={detailRef}
+              value={detail}
+              rows={2}
+              maxLength={MAX_DETAIL_LENGTH}
+              placeholder={DETAIL_PLACEHOLDER}
+              className='body1-regular text-text-primary placeholder:text-text-tertiary w-full resize-none overflow-hidden bg-transparent outline-none'
+              onChange={(event) => setDetail(event.target.value)}
+            />
+            <p className='body2-regular text-text-caption'>{detail.length.toLocaleString('ko-KR')}/1,000</p>
+          </label>
+          {isDetailAtLimit ? <p className='body2-regular text-error'>{DETAIL_LIMIT_MESSAGE}</p> : null}
         </section>
       </div>
 
       <div className='bg-bg-0 shrink-0 p-4'>
-        <ActionButton type='button' size='large' disabled>
+        <ActionButton type='button' size='large' disabled={!canSubmit}>
           신고 접수
         </ActionButton>
       </div>
