@@ -5,8 +5,15 @@ import { useSearchParams } from 'next/navigation';
 import { ActionButton, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
-import { useKnockdogReviews } from '@features/review';
+import {
+  DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+  submitKnockdogReviewReport,
+  useKnockdogReviews,
+} from '@features/review';
+import { useUserStore } from '@entities/user';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
+import { toast } from '@shared/ui/toast';
 
 const REPORT_REASONS = [
   '유치원과 관련 없는 내용이에요',
@@ -23,6 +30,7 @@ const ETC_REASON = '기타';
 const MAX_DETAIL_LENGTH = 1000;
 const DETAIL_PLACEHOLDER = '신고하는 상세 이유를 입력하세요. 신고 사유 중 기타 선택 시 필수로 입력해 주세요.';
 const DETAIL_LIMIT_MESSAGE = '최대 1,000자까지 작성할 수 있어요.';
+const REPORT_SUBMITTED_MESSAGE = '신고가 접수됐어요. 검토 후 조치할게요.';
 
 type ReportReason = (typeof REPORT_REASONS)[number];
 
@@ -37,14 +45,17 @@ function ReviewReportPage() {
   const { back } = useStackNavigation();
   const searchParams = useSearchParams();
   const reviewId = searchParams.get('reviewId');
+  const reporterId = useUserStore((state) => state.user?.userId) ?? '';
   const reviews = useKnockdogReviews();
   const review = reviews.find((item) => item.id === reviewId) ?? null;
   const [reason, setReason] = useState<ReportReason | ''>('');
   const [detail, setDetail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const detailRef = useRef<HTMLTextAreaElement>(null);
+  const isSubmittingRef = useRef(false);
   const isEtcReason = reason === ETC_REASON;
   const isDetailAtLimit = detail.length >= MAX_DETAIL_LENGTH;
-  const canSubmit = reason !== '' && (!isEtcReason || detail.trim().length > 0);
+  const canSubmit = reason !== '' && (!isEtcReason || detail.trim().length > 0) && !isSubmitting;
 
   useEffect(() => {
     if (review) return;
@@ -58,16 +69,56 @@ function ReviewReportPage() {
     element.style.height = `${element.scrollHeight}px`;
   }, [detail]);
 
+  const handleBack = () => {
+    if (isSubmittingRef.current) return;
+    back();
+  };
+
+  const handleSubmit = async () => {
+    if (!review || reason === '' || isSubmittingRef.current) return;
+    if (isEtcReason && detail.trim().length === 0) return;
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
+      await submitKnockdogReviewReport({
+        reviewId: review.id,
+        score: review.score,
+        createdAt: review.createdAt,
+        content: review.content,
+        reason,
+        detail: detail.trim(),
+        reporterId,
+      });
+      toast({
+        title: REPORT_SUBMITTED_MESSAGE,
+        nativeTitle: REPORT_SUBMITTED_MESSAGE,
+        position: 'bottom',
+      });
+      back();
+    } catch (error) {
+      if (error instanceof Error && error.message === 'ALREADY_REPORTED') {
+        toast({
+          title: DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+          nativeTitle: DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+          position: 'bottom',
+        });
+        back();
+        return;
+      }
+
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+    }
+  };
+
   if (!review) return null;
 
   return (
-    <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-0 relative flex h-full min-h-0 flex-1 flex-col'>
       <Header>
-        <Header.BackButton
-          onClick={() => {
-            back();
-          }}
-        />
+        <Header.BackButton onClick={handleBack} />
         <Header.Title>리뷰 신고하기</Header.Title>
       </Header>
 
@@ -94,6 +145,7 @@ function ReviewReportPage() {
           </p>
           <RadioGroup
             value={reason}
+            disabled={isSubmitting}
             onValueChange={(value) => setReason(value as ReportReason)}
             className='gap-3'
           >
@@ -133,6 +185,7 @@ function ReviewReportPage() {
               maxLength={MAX_DETAIL_LENGTH}
               placeholder={DETAIL_PLACEHOLDER}
               className='body1-regular text-text-primary placeholder:text-text-tertiary w-full resize-none overflow-hidden bg-transparent outline-none'
+              disabled={isSubmitting}
               onChange={(event) => setDetail(event.target.value)}
             />
             <p className='body2-regular text-text-caption'>{detail.length.toLocaleString('ko-KR')}/1,000</p>
@@ -142,10 +195,18 @@ function ReviewReportPage() {
       </div>
 
       <div className='bg-bg-0 shrink-0 p-4'>
-        <ActionButton type='button' size='large' disabled={!canSubmit}>
+        <ActionButton
+          type='button'
+          size='large'
+          disabled={!canSubmit}
+          onClick={() => {
+            handleSubmit();
+          }}
+        >
           신고 접수
         </ActionButton>
       </div>
+      <ActionLoadingOverlay isPending={isSubmitting} />
     </div>
   );
 }
