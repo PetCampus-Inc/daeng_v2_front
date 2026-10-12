@@ -9,7 +9,13 @@ import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComp
 
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
-import { ReviewActionDialog, saveKnockdogReviewEdit, useKnockdogReviews } from '@features/review';
+import {
+  ReviewActionDialog,
+  saveKnockdogReviewEdit,
+  saveMyWrittenReviewEdit,
+  useKnockdogReviews,
+  useMyWrittenReviews,
+} from '@features/review';
 import { useBasePoint } from '@entities/user';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
@@ -199,7 +205,10 @@ export function WriteReviewPage() {
 
   const reviewId = params.reviewId;
   const reviews = useKnockdogReviews();
-  const editingReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
+  const myWrittenReviews = useMyWrittenReviews();
+  const editingKnockdogReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
+  const editingMyReview = reviewId ? myWrittenReviews.find((review) => review.id === reviewId) : undefined;
+  const editingReview = editingKnockdogReview ?? editingMyReview;
 
   const { back } = useStackNavigation();
   const { pickImage } = useImagePicker();
@@ -323,11 +332,13 @@ export function WriteReviewPage() {
     setIsSubmitting(true);
 
     try {
-      await saveKnockdogReviewEdit(editingReview.id, {
+      const patch = {
         score: rating,
         content,
         images: photos.map((photo) => photo.url),
-      });
+      };
+      if (editingMyReview) await saveMyWrittenReviewEdit(editingReview.id, patch);
+      else await saveKnockdogReviewEdit(editingReview.id, patch);
       didSaveRef.current = true;
       setDialog(null);
       back();
