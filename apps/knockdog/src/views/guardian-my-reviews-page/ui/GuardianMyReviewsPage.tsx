@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { ActionButton } from '@knockdog/ui';
 import { useQueryState } from 'nuqs';
-import { overlay } from 'overlay-kit';
 import { useWritableKindergartens } from '@views/guardian-my-reviews-page/model/useWritableKindergartens';
 
 import { Header } from '@widgets/Header';
@@ -17,7 +16,6 @@ import {
   type MyWrittenReviewSort,
 } from '@features/review';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { toast } from '@shared/ui/toast';
 
 function GuardianMyReviewsPage() {
@@ -36,21 +34,26 @@ function GuardianMyReviewsPage() {
     [mock, sort, writtenReviews]
   );
 
-  const handleSelectKindergarten = (kindergartenId: string) => {
-    push({ pathname: `/kindergarten/${kindergartenId}/write-review` });
-  };
-
   const handleWriteReview = () => {
-    overlay.open(({ isOpen, close }) => (
-      <KindergartenSelectSheet
-        mode='write'
-        isOpen={isOpen}
-        close={close}
-        kindergartens={kindergartens}
-        currentKindergartenId={null}
-        onSelect={handleSelectKindergarten}
-      />
-    ));
+    // @todo API 연동 후 연결된 유치원 바텀시트에서 작성 화면으로 이동
+    // const handleSelectKindergarten = (kindergartenId: string) => {
+    //   push({ pathname: `/kindergarten/${kindergartenId}/write-review` });
+    // };
+    // overlay.open(({ isOpen, close }) => (
+    //   <KindergartenSelectSheet
+    //     mode='write'
+    //     isOpen={isOpen}
+    //     close={close}
+    //     kindergartens={kindergartens}
+    //     currentKindergartenId={null}
+    //     onSelect={handleSelectKindergarten}
+    //   />
+    // ));
+    toast({
+      title: '현재 리뷰 작성하기는 준비 중이에요',
+      nativeTitle: '현재 리뷰 작성하기는 준비 중이에요',
+      position: 'bottom',
+    });
   };
 
   const handleEditReview = (review: MyWrittenReview) => {
