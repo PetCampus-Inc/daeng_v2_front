@@ -29,6 +29,7 @@ interface KnockdogReviewCardProps {
   onHelpfulToggle: (reviewId: string) => void;
   onEdit: (reviewId: string) => void;
   onDelete: (reviewId: string) => void;
+  onReport: () => void;
 }
 
 const ENROLLMENT_LABEL = {
@@ -180,7 +181,7 @@ function KnockdogReviewImages({ images }: { images: string[] }) {
   );
 }
 
-function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete }: KnockdogReviewCardProps) {
+function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onReport }: KnockdogReviewCardProps) {
   const contentRef = useRef<HTMLParagraphElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -265,7 +266,7 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete }: Knock
             </span>
           ) : null}
         </button>
-        <button type='button' className='label-semibold text-fill-secondary-500 py-1'>
+        <button type='button' className='label-semibold text-fill-secondary-500 py-1' onClick={onReport}>
           신고하기
         </button>
       </div>

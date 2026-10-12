@@ -11,9 +11,10 @@ interface KnockdogReviewListProps {
   onHelpfulToggle: (reviewId: string) => void;
   onEdit: (reviewId: string) => void;
   onDelete: (reviewId: string) => void;
+  onReport: () => void;
 }
 
-function KnockdogReviewList({ reviews, onHelpfulToggle, onEdit, onDelete }: KnockdogReviewListProps) {
+function KnockdogReviewList({ reviews, onHelpfulToggle, onEdit, onDelete, onReport }: KnockdogReviewListProps) {
   return (
     <div>
       {reviews.map((review, index) => (
@@ -23,7 +24,13 @@ function KnockdogReviewList({ reviews, onHelpfulToggle, onEdit, onDelete }: Knoc
               <Divider />
             </div>
           ) : null}
-          <KnockdogReviewCard review={review} onHelpfulToggle={onHelpfulToggle} onEdit={onEdit} onDelete={onDelete} />
+          <KnockdogReviewCard
+            review={review}
+            onHelpfulToggle={onHelpfulToggle}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onReport={onReport}
+          />
         </div>
       ))}
     </div>

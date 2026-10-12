@@ -118,6 +118,7 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { pattern: /^\/kindergarten\/[^/]+\/edit-memo$/, name: '유치원 메모 수정' },
   { pattern: /^\/kindergarten\/[^/]+\/edit-review\/[^/]+$/, name: '유치원 후기 수정' },
   { pattern: /^\/kindergarten\/[^/]+\/write-review$/, name: '유치원 후기 작성' },
+  { pattern: /^\/kindergarten\/[^/]+\/report-review$/, name: '리뷰 신고하기' },
   { pattern: /^\/kindergarten\/[^/]+$/, name: '유치원 상세', dynamic: true },
   { pattern: /^\/compare\/kindergarten\/[^/]+$/, name: '유치원 상세', dynamic: true },
   { pattern: /^\/company\/[^/]+\/edit-checklist$/, name: '체크리스트 수정' },
