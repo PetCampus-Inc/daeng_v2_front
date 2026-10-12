@@ -13,6 +13,7 @@ import {
   ReviewActionDialog,
   saveKnockdogReviewEdit,
   saveMyWrittenReviewEdit,
+  markWrittenKindergartenReview,
   useKnockdogReviews,
   useMyWrittenReviews,
 } from '@features/review';
@@ -420,6 +421,7 @@ export function WriteReviewPage() {
               setDialog('confirm');
               return;
             }
+            if (id) markWrittenKindergartenReview(id);
             setIsComplete(true);
           }}
         >

@@ -4,6 +4,7 @@ import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-h
 import { useGuardianConnectionHistory } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionHistory';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { Header } from '@widgets/Header';
+import { useWrittenKindergartenPlaceIds } from '@features/review';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { getSubjectParticle } from '@shared/utils';
@@ -14,6 +15,7 @@ function GuardianKindergartenHistoryPage() {
   const content = guardianConnectionHistoryContent;
   const { selectedPet } = useGuardianSelectedPet();
   const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
+  const writtenPlaceIds = useWrittenKindergartenPlaceIds();
 
   const petName = selectedPet?.name?.trim() || '강아지';
   const subjectParticle = getSubjectParticle(petName);
@@ -45,7 +47,13 @@ function GuardianKindergartenHistoryPage() {
             {isPending ? (
               <DelayedLoadingSpinner isLoading={isPending} layout='content' className='min-h-[200px]' />
             ) : (
-              items.map((item) => <GuardianConnectionHistoryCard key={item.id} item={item} />)
+              items.map((item) => (
+                <GuardianConnectionHistoryCard
+                  key={item.id}
+                  item={item}
+                  hasWrittenReview={item.placeId != null && writtenPlaceIds.has(item.placeId)}
+                />
+              ))
             )}
           </div>
         </div>

@@ -6,6 +6,7 @@ const guardianConnectionHistoryContent = {
   attendanceBadgePrefix: '등원',
   attendanceBadgeSuffix: '회',
   disconnectButtonLabel: '연결 해제',
+  writeReviewButtonLabel: '리뷰 작성',
   disconnectDialog: {
     titleSuffix: '과의 연결을 해제할까요?',
     descriptionPrefix: '연결을 해제하면 ',

@@ -6,8 +6,10 @@ import { useParams } from 'next/navigation';
 import { useQueryState } from 'nuqs';
 
 import {
+  DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
   deleteKnockdogReview,
   getReviewTotalCount,
+  hasKnockdogReviewReport,
   KnockdogReviewList,
   KnockdogReviewSortButton,
   ReviewActionDialog,
@@ -22,6 +24,7 @@ import {
 } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import type { ReviewListResponse } from '@entities/review';
+import { useUserStore } from '@entities/user';
 import { useInfiniteScroll } from '@shared/lib';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
@@ -155,6 +158,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const isDeletingRef = useRef(false);
+  const reporterId = useUserStore((state) => state.user?.userId) ?? '';
   const knockdogReviews = useKnockdogReviews();
   const knockdogRatingCountsFromStore = useKnockdogRatingCounts();
   const source = sourceOverride ?? (showKnockdogReviewMock ? 'knockdog' : 'blog');
@@ -179,6 +183,18 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
   };
   const handleEditReview = (reviewId: string) => {
     push({ pathname: `/kindergarten/${id}/edit-review/${reviewId}` });
+  };
+  const handleReportReview = (reviewId: string) => {
+    if (hasKnockdogReviewReport(reviewId, reporterId)) {
+      toast({
+        title: DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+        nativeTitle: DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+        position: 'bottom',
+      });
+      return;
+    }
+
+    push({ pathname: `/kindergarten/${id}/report-review`, query: { reviewId } });
   };
   const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
 
@@ -275,6 +291,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, onScrollTo
               onHelpfulToggle={handleHelpfulToggle}
               onEdit={handleEditReview}
               onDelete={handleDeleteReview}
+              onReport={handleReportReview}
             />
             <ReviewActionDialog
               isOpen={deleteDialog === 'confirm'}
