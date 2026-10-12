@@ -39,6 +39,7 @@ export function KindergartenDetail({ onPhoneCall, onBookmarkClick, activeTab, se
           {/* 탭 */}
           <KindergartenTabs
             kindergartenId={props.id}
+            schoolId={props.schoolId}
             scrollableDivRef={scrollableContentRef}
             value={activeTab}
             onValueChange={setActiveTab}

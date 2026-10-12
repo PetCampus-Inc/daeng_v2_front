@@ -8,6 +8,7 @@ interface KnockdogReview {
   helpfulCount: number;
   isHelpful: boolean;
   isMine: boolean;
+  reportedByMe?: boolean;
 }
 
 type KnockdogReviewSort = 'latest' | 'ratingDesc' | 'ratingAsc' | 'helpful';

@@ -8,17 +8,25 @@ import { KnockdogReviewCard } from './KnockdogReviewCard';
 
 interface KnockdogReviewListProps {
   reviews: KnockdogReview[];
+  lastItemRef?: (node: HTMLDivElement | null) => void;
   onHelpfulToggle: (reviewId: string) => void;
   onEdit: (reviewId: string) => void;
   onDelete: (reviewId: string) => void;
   onReport: (reviewId: string) => void;
 }
 
-function KnockdogReviewList({ reviews, onHelpfulToggle, onEdit, onDelete, onReport }: KnockdogReviewListProps) {
+function KnockdogReviewList({
+  reviews,
+  lastItemRef,
+  onHelpfulToggle,
+  onEdit,
+  onDelete,
+  onReport,
+}: KnockdogReviewListProps) {
   return (
     <div>
       {reviews.map((review, index) => (
-        <div key={review.id}>
+        <div key={review.id} ref={index === reviews.length - 1 ? lastItemRef : undefined}>
           {index > 0 ? (
             <div className='py-1'>
               <Divider />

@@ -1,6 +1,8 @@
 import { OPERATION_STATUS, PICKUP, SERVICE_TAGS } from '../config/enum';
 export interface Kindergarten {
   id: string;
+  /** 앱 리뷰 등 `/schools/{schoolId}` API 키. 미등록 유치원은 null */
+  schoolId?: number | string | null;
   schoolStatus?: string;
   title: string;
   ctg: string;
