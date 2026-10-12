@@ -7,6 +7,7 @@ import { ActionButton, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import {
   DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+  ReviewActionDialog,
   submitKnockdogReviewReport,
   useKnockdogReviews,
 } from '@features/review';
@@ -51,6 +52,7 @@ function ReviewReportPage() {
   const [reason, setReason] = useState<ReportReason | ''>('');
   const [detail, setDetail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFailureOpen, setIsFailureOpen] = useState(false);
   const detailRef = useRef<HTMLTextAreaElement>(null);
   const isSubmittingRef = useRef(false);
   const isEtcReason = reason === ETC_REASON;
@@ -72,6 +74,11 @@ function ReviewReportPage() {
   const handleBack = () => {
     if (isSubmittingRef.current) return;
     back();
+  };
+
+  const handleCloseFailure = () => {
+    if (isSubmittingRef.current) return;
+    setIsFailureOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -110,6 +117,7 @@ function ReviewReportPage() {
 
       isSubmittingRef.current = false;
       setIsSubmitting(false);
+      setIsFailureOpen(true);
     }
   };
 
@@ -206,7 +214,19 @@ function ReviewReportPage() {
           신고 접수
         </ActionButton>
       </div>
-      <ActionLoadingOverlay isPending={isSubmitting} />
+      <ActionLoadingOverlay isPending={isSubmitting && !isFailureOpen} />
+      <ReviewActionDialog
+        isOpen={isFailureOpen}
+        isSubmitting={isSubmitting}
+        title='신고를 접수하지 못했어요'
+        description='잠시 후 다시 시도해 주세요.'
+        cancelLabel='닫기'
+        confirmLabel='다시 시도'
+        onClose={handleCloseFailure}
+        onConfirm={() => {
+          handleSubmit();
+        }}
+      />
     </div>
   );
 }
