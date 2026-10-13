@@ -1,12 +1,14 @@
-import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
 import {
   createSchoolReview,
   deleteSchoolReview,
   schoolReviewQueryKeys,
+  setSchoolReviewHelpful,
   updateSchoolReview,
   type CreateSchoolReviewParams,
   type DeleteSchoolReviewParams,
   type SchoolReviewPage,
+  type SetSchoolReviewHelpfulParams,
   type UpdateSchoolReviewParams,
 } from '@entities/review';
 
@@ -66,4 +68,55 @@ function useDeleteSchoolReview() {
   return useSchoolReviewMutation<DeleteSchoolReviewParams>(deleteSchoolReview);
 }
 
-export { useCachedSchoolReview, useCreateSchoolReview, useDeleteSchoolReview, useUpdateSchoolReview };
+function patchSchoolReviewHelpful(
+  queryClient: QueryClient,
+  schoolId: number,
+  reviewId: number,
+  helpfulCount: number,
+  helpedByMe: boolean
+) {
+  const reviewKey = String(reviewId);
+
+  queryClient.setQueriesData<InfiniteData<SchoolReviewPage>>(
+    { queryKey: [...schoolReviewQueryKeys.all, schoolId] },
+    (current) => {
+      if (!current) return current;
+
+      return {
+        ...current,
+        pages: current.pages.map((page) => ({
+          ...page,
+          items: page.items.map((item) =>
+            item.id === reviewKey ? { ...item, helpfulCount, helpedByMe } : item
+          ),
+        })),
+      };
+    }
+  );
+}
+
+function useSetSchoolReviewHelpful() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: SetSchoolReviewHelpfulParams) => setSchoolReviewHelpful(params),
+    onSuccess: (response, variables) => {
+      const helpfulCount = response.data?.helpfulCount;
+      const helpedByMe = response.data?.helpedByMe;
+      if (typeof helpfulCount !== 'number' || typeof helpedByMe !== 'boolean') {
+        void invalidateSchoolReviews(queryClient, variables.schoolId);
+        return;
+      }
+
+      patchSchoolReviewHelpful(queryClient, variables.schoolId, variables.reviewId, helpfulCount, helpedByMe);
+    },
+  });
+}
+
+export {
+  useCachedSchoolReview,
+  useCreateSchoolReview,
+  useDeleteSchoolReview,
+  useSetSchoolReviewHelpful,
+  useUpdateSchoolReview,
+};

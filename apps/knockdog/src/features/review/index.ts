@@ -7,6 +7,7 @@ export {
   useCachedSchoolReview,
   useCreateSchoolReview,
   useDeleteSchoolReview,
+  useSetSchoolReviewHelpful,
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
 export { useSchoolReviewQuery } from './api/useSchoolReviewQuery';

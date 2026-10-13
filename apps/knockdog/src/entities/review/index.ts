@@ -5,12 +5,14 @@ export {
   deleteSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
+  setSchoolReviewHelpful,
   updateSchoolReview,
 } from './api/schoolReview';
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
   SchoolReviewImageWrite,
+  SetSchoolReviewHelpfulParams,
   UpdateSchoolReviewParams,
 } from './api/schoolReview';
 

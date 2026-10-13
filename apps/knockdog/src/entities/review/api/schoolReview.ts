@@ -79,6 +79,26 @@ function deleteSchoolReview({ schoolId, reviewId }: DeleteSchoolReviewParams) {
   return api.delete(`schools/${schoolId}/reviews/${reviewId}`).json<ApiResponse<unknown>>();
 }
 
+interface SetSchoolReviewHelpfulParams {
+  schoolId: number;
+  reviewId: number;
+  enabled: boolean;
+}
+
+interface SchoolReviewHelpful {
+  helpfulCount?: number | null;
+  helpedByMe?: boolean | null;
+}
+
+/** `PUT /schools/{schoolId}/reviews/{reviewId}/helpful?enabled=` — 도움돼요 적용/취소. 본인 리뷰는 불가 */
+function setSchoolReviewHelpful({ schoolId, reviewId, enabled }: SetSchoolReviewHelpfulParams) {
+  return api
+    .put(`schools/${schoolId}/reviews/${reviewId}/helpful`, {
+      searchParams: { enabled },
+    })
+    .json<ApiResponse<SchoolReviewHelpful>>();
+}
+
 interface SchoolReviewImageUploadFile {
   filename: string;
   contentType: string;
@@ -103,11 +123,13 @@ export {
   deleteSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
+  setSchoolReviewHelpful,
   updateSchoolReview,
 };
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
   SchoolReviewImageWrite,
+  SetSchoolReviewHelpfulParams,
   UpdateSchoolReviewParams,
 };

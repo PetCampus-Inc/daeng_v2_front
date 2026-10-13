@@ -22,6 +22,7 @@ import {
   useKnockdogReviews,
   useSchoolReviewQuery,
   useDeleteSchoolReview,
+  useSetSchoolReviewHelpful,
   type KnockdogReviewSort,
   type ReviewRatingCounts,
 } from '@features/review';
@@ -171,6 +172,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     fetchNextPage: fetchNextSchoolReviewPage,
   } = useSchoolReviewQuery(schoolId, knockdogReviewSort, !showKnockdogReviewMock);
   const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
+  const { mutate: setSchoolReviewHelpful } = useSetSchoolReviewHelpful();
   const { lastElementCallback: schoolReviewLastElementCallback } = useInfiniteScroll({
     hasNextPage: hasNextSchoolReviewPage,
     isFetchingNextPage: isFetchingNextSchoolReviewPage,
@@ -214,7 +216,28 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
 
   const handleHelpfulToggle = (reviewId: string) => {
-    toggleKnockdogReviewHelpful(reviewId);
+    if (showKnockdogReviewMock) {
+      toggleKnockdogReviewHelpful(reviewId);
+      return;
+    }
+
+    const review = schoolReviews.find((item) => item.id === reviewId);
+    const parsedSchoolId = parseSchoolId(schoolId);
+    const parsedReviewId = parseSchoolId(reviewId);
+    if (!review || review.isMine || parsedSchoolId == null || parsedReviewId == null) return;
+
+    setSchoolReviewHelpful(
+      { schoolId: parsedSchoolId, reviewId: parsedReviewId, enabled: !review.isHelpful },
+      {
+        onError: () => {
+          toast({
+            title: '도움돼요를 반영하지 못했어요',
+            nativeTitle: '도움돼요를 반영하지 못했어요',
+            position: 'bottom',
+          });
+        },
+      }
+    );
   };
 
   const handleDeleteReview = (reviewId: string) => {

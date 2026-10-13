@@ -246,8 +246,9 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onRepor
         <button
           type='button'
           aria-pressed={review.isHelpful}
+          disabled={review.isMine}
           onClick={() => onHelpfulToggle(review.id)}
-          className='border-line-200 flex items-center gap-1 rounded-full border px-3 py-2'
+          className='border-line-200 flex items-center gap-1 rounded-full border px-3 py-2 disabled:cursor-default'
         >
           <span className='flex size-5 items-center justify-center'>
             {/* eslint-disable-next-line @next/next/no-img-element -- 도움돼요 SVG 원본 크기 유지 */}
