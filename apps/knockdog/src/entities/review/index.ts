@@ -1,9 +1,18 @@
 // api
 export { getReviewList, type ReviewListResponse } from './api/review';
-export { createSchoolReview, deleteSchoolReview, getSchoolReviews, updateSchoolReview } from './api/schoolReview';
+export {
+  createSchoolReview,
+  deleteSchoolReview,
+  getSchoolReviews,
+  postSchoolReviewImageUploadUrls,
+  updateSchoolReview,
+} from './api/schoolReview';
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
+  SchoolReviewImageWrite,
+  SchoolReviewImageUploadFile,
+  SchoolReviewImageUploadTarget,
   UpdateSchoolReviewParams,
 } from './api/schoolReview';
 

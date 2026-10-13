@@ -5,6 +5,11 @@ import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
 
+import {
+  resolveSchoolReviewImages,
+  toLocalReviewPhoto,
+  type ReviewPhotoSource as ReviewPhoto,
+} from '@views/write-review-page/lib/uploadSchoolReviewImages';
 import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComplete';
 
 import { Header } from '@widgets/Header';
@@ -43,23 +48,21 @@ const REVIEW_NOTICES = [
 ] as const;
 const INVALID_PHOTO_MESSAGE = '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진만 올릴 수 있어요.';
 
-interface ReviewPhoto {
-  id: string;
-  url: string;
-  key: string;
-}
-
 type EditDialog = 'confirm' | 'failure' | null;
 
 function formatScore(rating: number) {
   return rating > 0 ? rating.toFixed(1) : '0';
 }
 
-function toPhotos(images: string[], keys: string[] = []) {
+function toPhotos(images: string[], imageIds: Array<number | null> = []): ReviewPhoto[] {
   return images.map((url, index) => ({
-    id: `${keys[index] || url}-${index}`,
+    id: `${imageIds[index] ?? url}-${index}`,
     url,
-    key: keys[index] ?? '',
+    key: '',
+    imageId: imageIds[index] ?? undefined,
+    fileName: '',
+    contentType: '',
+    size: 0,
   }));
 }
 
@@ -271,7 +274,7 @@ export function WriteReviewPage() {
     didHydrateRef.current = true;
     setRating(apiReview.rating);
     setContent(apiReview.content);
-    setPhotos(toPhotos(apiReview.images, apiReview.imageKeys ?? []));
+    setPhotos(toPhotos(apiReview.images, apiReview.imageIds ?? []));
   }, [apiReview, editingReview]);
 
   useEffect(() => {
@@ -315,21 +318,28 @@ export function WriteReviewPage() {
     isPickingPhotoRef.current = true;
 
     try {
+      const usesReviewUpload = !editingReview;
       const result = await pickImage({
         source: 'library',
         mediaTypes: 'images',
         allowsMultipleSelection: true,
         orderedSelection: true,
         selectionLimit: remaining,
+        skipUpload: usesReviewUpload,
       });
 
       if (result.cancelled) return;
 
-      const nextPhotos = result.assets.flatMap((asset) => {
-        const url = asset.preSignedUrl || asset.uri;
-        if (!url || !asset.key) return [];
-        return [{ id: asset.key, url, key: asset.key }];
-      });
+      const nextPhotos = usesReviewUpload
+        ? result.assets.flatMap((asset, index) => {
+            const photo = toLocalReviewPhoto(asset, photos.length + index);
+            return photo ? [photo] : [];
+          })
+        : result.assets.flatMap((asset) => {
+            const url = asset.preSignedUrl || asset.uri;
+            if (!url || !asset.key) return [];
+            return [{ id: asset.key, url, key: asset.key, fileName: '', contentType: '', size: 0 }];
+          });
       if (nextPhotos.length === 0) {
         toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
         return;
@@ -374,11 +384,12 @@ export function WriteReviewPage() {
     setIsSubmitting(true);
 
     try {
+      const images = await resolveSchoolReviewImages(schoolId, photos);
       await createSchoolReview({
         schoolId,
         rating,
         content,
-        images: photos.flatMap((photo) => (photo.key ? [photo.key] : [])),
+        images,
       });
       didSaveRef.current = true;
       markWrittenKindergartenReview(id);
@@ -402,12 +413,13 @@ export function WriteReviewPage() {
       if (apiReview && schoolId != null && !editingReview) {
         const reviewIdNumber = parseSchoolId(apiReview.id);
         if (reviewIdNumber == null) throw new Error('reviewId required');
+        const images = await resolveSchoolReviewImages(schoolId, photos);
         await updateSchoolReview({
           schoolId,
           reviewId: reviewIdNumber,
           rating,
           content,
-          images: photos.flatMap((photo) => (photo.key ? [photo.key] : [])),
+          images,
           version: apiReview.version ?? 0,
         });
       } else if (editingMyReview) {

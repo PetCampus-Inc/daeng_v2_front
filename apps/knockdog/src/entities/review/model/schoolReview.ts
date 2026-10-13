@@ -31,6 +31,7 @@ interface SchoolReview {
   content: string;
   images: string[];
   imageKeys: string[];
+  imageIds: Array<number | null>;
   version: number;
   helpfulCount: number;
   helpedByMe: boolean;
@@ -89,12 +90,16 @@ function toDateTime(value: string | number[] | null | undefined) {
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
 }
 
-function toReviewImages(value: unknown): { key: string; url: string }[] {
+function toImageId(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function toReviewImages(value: unknown): { imageId: number | null; key: string; url: string }[] {
   if (typeof value === 'string') {
     const key = value.trim();
     if (!key) return [];
     const url = resolvePublicImageSrc(key);
-    return url ? [{ key, url }] : [];
+    return url ? [{ imageId: null, key, url }] : [];
   }
 
   if (Array.isArray(value)) return value.flatMap((item) => toReviewImages(item));
@@ -102,18 +107,19 @@ function toReviewImages(value: unknown): { key: string; url: string }[] {
   if (!value || typeof value !== 'object') return [];
 
   const record = value as Record<string, unknown>;
-  const rawKey = [record.s3Key, record.key, record.imageKey].find(
+  const imageId = toImageId(record.imageId);
+  const rawKey = [record.s3Key, record.key, record.imageKey, record.tempKey].find(
     (item) => typeof item === 'string' && item.length > 0
   );
   const rawUrl = [record.url, record.imageUrl].find((item) => typeof item === 'string' && item.length > 0);
+  const key = typeof rawKey === 'string' ? rawKey : '';
+  const url =
+    typeof rawUrl === 'string' && /^(https?:|blob:|data:)/i.test(rawUrl)
+      ? rawUrl
+      : resolvePublicImageSrc(key || (typeof rawUrl === 'string' ? rawUrl : ''));
 
-  if (typeof rawKey === 'string') {
-    const url =
-      typeof rawUrl === 'string' && /^(https?:|blob:|data:)/i.test(rawUrl) ? rawUrl : resolvePublicImageSrc(rawKey);
-    return url ? [{ key: rawKey, url }] : [];
-  }
-
-  return typeof rawUrl === 'string' ? toReviewImages(rawUrl) : [];
+  if (!url && imageId == null) return [];
+  return [{ imageId, key, url: url || '' }];
 }
 
 function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
@@ -131,6 +137,7 @@ function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
     content: dto.content ?? '',
     images: images.map((image) => image.url),
     imageKeys: images.map((image) => image.key),
+    imageIds: images.map((image) => image.imageId),
     version: toCount(dto.version),
     helpfulCount: toCount(dto.helpfulCount),
     helpedByMe: dto.helpedByMe === true,
