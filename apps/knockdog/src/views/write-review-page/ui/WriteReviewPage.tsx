@@ -14,15 +14,18 @@ import {
   saveKnockdogReviewEdit,
   saveMyWrittenReviewEdit,
   markWrittenKindergartenReview,
+  useCreateSchoolReview,
   useKnockdogReviews,
   useMyWrittenReviews,
 } from '@features/review';
+import { parseSchoolId } from '@entities/review';
 import { useBasePoint } from '@entities/user';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { resolvePublicImageSrc } from '@shared/lib/utils';
 import { Skeleton } from '@shared/ui/skeleton';
+import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 const FALLBACK_COORD = { lng: 126.883439, lat: 37.511281 };
@@ -41,6 +44,7 @@ const INVALID_PHOTO_MESSAGE = '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진�
 interface ReviewPhoto {
   id: string;
   url: string;
+  key: string;
 }
 
 type EditDialog = 'confirm' | 'failure' | null;
@@ -50,7 +54,7 @@ function formatScore(rating: number) {
 }
 
 function toPhotos(images: string[]) {
-  return images.map((url, index) => ({ id: `${url}-${index}`, url }));
+  return images.map((url, index) => ({ id: `${url}-${index}`, url, key: '' }));
 }
 
 function isSameImages(original: string[], photos: ReviewPhoto[]) {
@@ -213,11 +217,21 @@ export function WriteReviewPage() {
 
   const { back } = useStackNavigation();
   const { pickImage } = useImagePicker();
+  const { mutateAsync: createSchoolReview } = useCreateSchoolReview();
+  const { coord } = useBasePoint();
+  const { data: kindergarten, isPending: isKindergartenPending } = useKindergartenMainQuery({
+    id,
+    lng: coord?.lng ?? FALLBACK_COORD.lng,
+    lat: coord?.lat ?? FALLBACK_COORD.lat,
+    enabled: Boolean(id),
+  });
+  const schoolId = parseSchoolId(kindergarten?.schoolId);
   const [isComplete, setIsComplete] = useState(false);
   const [rating, setRating] = useState(editingReview?.score ?? 0);
   const [content, setContent] = useState(editingReview?.content ?? '');
   const [photos, setPhotos] = useState<ReviewPhoto[]>(() => toPhotos(editingReview?.images ?? []));
   const [dialog, setDialog] = useState<EditDialog>(null);
+  const [isCreateFailed, setIsCreateFailed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isPickingPhotoRef = useRef(false);
   const isSubmittingRef = useRef(false);
@@ -231,7 +245,7 @@ export function WriteReviewPage() {
     : rating > 0 || content.length > 0 || photos.length > 0;
   const canSubmit = editingReview
     ? isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
-    : rating > 0 && content.trim().length > 0;
+    : rating > 0 && content.trim().length > 0 && !isSubmitting;
 
   useEffect(() => {
     if (!reviewId || editingReview) return;
@@ -249,8 +263,9 @@ export function WriteReviewPage() {
 
   const handleBack = useCallback(() => {
     if (isSubmittingRef.current) return;
-    if (dialog) {
+    if (dialog || isCreateFailed) {
       setDialog(null);
+      setIsCreateFailed(false);
       return;
     }
     if (isComplete || !isDirty) {
@@ -265,7 +280,7 @@ export function WriteReviewPage() {
       confirmLabel: '나가기',
       onConfirm: () => back(),
     });
-  }, [back, dialog, isComplete, isDirty, isEdit]);
+  }, [back, dialog, isComplete, isCreateFailed, isDirty, isEdit]);
 
   useNativeBackHandler(handleBack);
 
@@ -284,15 +299,14 @@ export function WriteReviewPage() {
         allowsMultipleSelection: true,
         orderedSelection: true,
         selectionLimit: remaining,
-        skipUpload: true,
       });
 
       if (result.cancelled) return;
 
       const nextPhotos = result.assets.flatMap((asset) => {
         const url = asset.preSignedUrl || asset.uri;
-        if (!url) return [];
-        return [{ id: url, url }];
+        if (!url || !asset.key) return [];
+        return [{ id: asset.key, url, key: asset.key }];
       });
       if (nextPhotos.length === 0) {
         toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
@@ -324,6 +338,36 @@ export function WriteReviewPage() {
       if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url);
       return current.filter((photo) => photo.id !== photoId);
     });
+  };
+
+  const handleCreate = async () => {
+    if (isEdit || isSubmittingRef.current || !canSubmit) return;
+    if (isKindergartenPending) return;
+    if (schoolId == null) {
+      setIsCreateFailed(true);
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
+      await createSchoolReview({
+        schoolId,
+        rating,
+        content,
+        images: photos.flatMap((photo) => (photo.key ? [photo.key] : [])),
+      });
+      didSaveRef.current = true;
+      markWrittenKindergartenReview(id);
+      setIsCreateFailed(false);
+      setIsComplete(true);
+    } catch {
+      setIsCreateFailed(true);
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   const handleSave = async () => {
@@ -396,7 +440,7 @@ export function WriteReviewPage() {
             photos={photos}
             canAdd={photos.length < MAX_PHOTO_COUNT}
             onAdd={handlePickPhoto}
-            onRemove={isEdit ? handleRemovePhoto : undefined}
+            onRemove={handleRemovePhoto}
           />
         </div>
 
@@ -415,14 +459,13 @@ export function WriteReviewPage() {
         <ActionButton
           type='button'
           size='large'
-          disabled={!canSubmit}
+          disabled={!canSubmit || (!isEdit && isKindergartenPending)}
           onClick={() => {
             if (isEdit) {
               setDialog('confirm');
               return;
             }
-            if (id) markWrittenKindergartenReview(id);
-            setIsComplete(true);
+            void handleCreate();
           }}
         >
           {isEdit ? '수정하기' : '등록하기'}
@@ -457,7 +500,24 @@ export function WriteReviewPage() {
             }}
           />
         </>
-      ) : null}
+      ) : (
+        <ReviewActionDialog
+          isOpen={isCreateFailed}
+          isSubmitting={isSubmitting}
+          title='리뷰를 등록하지 못했어요'
+          description='잠시 후 다시 시도해 주세요.'
+          cancelLabel='닫기'
+          confirmLabel='다시 시도'
+          onClose={() => {
+            if (isSubmittingRef.current) return;
+            setIsCreateFailed(false);
+          }}
+          onConfirm={() => {
+            void handleCreate();
+          }}
+        />
+      )}
+      <ActionLoadingOverlay isPending={isSubmitting && !isEdit && !isCreateFailed} />
     </div>
   );
 }

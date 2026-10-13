@@ -1,9 +1,9 @@
 // api
 export { getReviewList, type ReviewListResponse } from './api/review';
-export { getSchoolReviews } from './api/schoolReview';
+export { getSchoolReviews, createSchoolReview } from './api/schoolReview';
 
 // config
-export { createSchoolReviewInfiniteQueryOptions } from './config/schoolReviewQueryKeys';
+export { createSchoolReviewInfiniteQueryOptions, schoolReviewQueryKeys } from './config/schoolReviewQueryKeys';
 
 // model
 export type { Review } from './model/review';

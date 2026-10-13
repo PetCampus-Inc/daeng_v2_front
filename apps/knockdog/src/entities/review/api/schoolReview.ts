@@ -25,5 +25,26 @@ function getSchoolReviews({ schoolId, sort, page, size = SCHOOL_REVIEW_PAGE_SIZE
     .then((response) => toSchoolReviewPage(response.data, page));
 }
 
-export { getSchoolReviews };
-export type { GetSchoolReviewsParams, SchoolReviewPage };
+interface CreateSchoolReviewParams {
+  schoolId: number;
+  rating: number;
+  content: string;
+  images: string[];
+}
+
+/** `POST /schools/{schoolId}/reviews` — 앱 리뷰 작성. 사진은 S3 키, 없으면 빈 배열 */
+function createSchoolReview({ schoolId, rating, content, images }: CreateSchoolReviewParams) {
+  return api
+    .post(`schools/${schoolId}/reviews`, {
+      json: {
+        rating,
+        content,
+        images,
+        version: 0,
+      },
+    })
+    .json<ApiResponse<unknown>>();
+}
+
+export { createSchoolReview, getSchoolReviews };
+export type { CreateSchoolReviewParams, GetSchoolReviewsParams, SchoolReviewPage };
