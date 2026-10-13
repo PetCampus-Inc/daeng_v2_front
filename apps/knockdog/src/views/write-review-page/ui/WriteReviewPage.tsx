@@ -14,9 +14,11 @@ import {
   saveKnockdogReviewEdit,
   saveMyWrittenReviewEdit,
   markWrittenKindergartenReview,
+  useCachedSchoolReview,
   useCreateSchoolReview,
   useKnockdogReviews,
   useMyWrittenReviews,
+  useUpdateSchoolReview,
 } from '@features/review';
 import { parseSchoolId } from '@entities/review';
 import { useBasePoint } from '@entities/user';
@@ -53,8 +55,12 @@ function formatScore(rating: number) {
   return rating > 0 ? rating.toFixed(1) : '0';
 }
 
-function toPhotos(images: string[]) {
-  return images.map((url, index) => ({ id: `${url}-${index}`, url, key: '' }));
+function toPhotos(images: string[], keys: string[] = []) {
+  return images.map((url, index) => ({
+    id: `${keys[index] || url}-${index}`,
+    url,
+    key: keys[index] ?? '',
+  }));
 }
 
 function isSameImages(original: string[], photos: ReviewPhoto[]) {
@@ -226,6 +232,8 @@ export function WriteReviewPage() {
     enabled: Boolean(id),
   });
   const schoolId = parseSchoolId(kindergarten?.schoolId);
+  const { review: apiReview, isLoading: isApiReviewLoading } = useCachedSchoolReview(schoolId, reviewId);
+  const { mutateAsync: updateSchoolReview } = useUpdateSchoolReview();
   const [isComplete, setIsComplete] = useState(false);
   const [rating, setRating] = useState(editingReview?.score ?? 0);
   const [content, setContent] = useState(editingReview?.content ?? '');
@@ -236,21 +244,35 @@ export function WriteReviewPage() {
   const isPickingPhotoRef = useRef(false);
   const isSubmittingRef = useRef(false);
   const didSaveRef = useRef(false);
+  const didHydrateRef = useRef(false);
   const photosRef = useRef<ReviewPhoto[]>([]);
   photosRef.current = photos;
 
-  const isEdit = Boolean(editingReview);
-  const isDirty = editingReview
-    ? rating !== editingReview.score || content !== editingReview.content || !isSameImages(editingReview.images, photos)
+  const isEdit = Boolean(reviewId);
+  const baseline = editingReview
+    ? { score: editingReview.score, content: editingReview.content, images: editingReview.images }
+    : apiReview
+      ? { score: apiReview.rating, content: apiReview.content, images: apiReview.images }
+      : null;
+  const isDirty = baseline
+    ? rating !== baseline.score || content !== baseline.content || !isSameImages(baseline.images, photos)
     : rating > 0 || content.length > 0 || photos.length > 0;
-  const canSubmit = editingReview
-    ? isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
+  const canSubmit = isEdit
+    ? Boolean(baseline) && isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
     : rating > 0 && content.trim().length > 0 && !isSubmitting;
 
   useEffect(() => {
-    if (!reviewId || editingReview) return;
+    if (!reviewId || editingReview || apiReview || isKindergartenPending || isApiReviewLoading) return;
     back();
-  }, [back, editingReview, reviewId]);
+  }, [apiReview, back, editingReview, isApiReviewLoading, isKindergartenPending, reviewId]);
+
+  useEffect(() => {
+    if (!apiReview || editingReview || didHydrateRef.current) return;
+    didHydrateRef.current = true;
+    setRating(apiReview.rating);
+    setContent(apiReview.content);
+    setPhotos(toPhotos(apiReview.images, apiReview.imageKeys ?? []));
+  }, [apiReview, editingReview]);
 
   useEffect(() => {
     return () => {
@@ -371,19 +393,38 @@ export function WriteReviewPage() {
   };
 
   const handleSave = async () => {
-    if (!editingReview || isSubmittingRef.current || !canSubmit) return;
+    if (isSubmittingRef.current || !canSubmit || !baseline) return;
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      const patch = {
-        score: rating,
-        content,
-        images: photos.map((photo) => photo.url),
-      };
-      if (editingMyReview) await saveMyWrittenReviewEdit(editingReview.id, patch);
-      else await saveKnockdogReviewEdit(editingReview.id, patch);
+      if (apiReview && schoolId != null && !editingReview) {
+        const reviewIdNumber = parseSchoolId(apiReview.id);
+        if (reviewIdNumber == null) throw new Error('reviewId required');
+        await updateSchoolReview({
+          schoolId,
+          reviewId: reviewIdNumber,
+          rating,
+          content,
+          images: photos.flatMap((photo) => (photo.key ? [photo.key] : [])),
+          version: apiReview.version ?? 0,
+        });
+      } else if (editingMyReview) {
+        await saveMyWrittenReviewEdit(editingReview?.id ?? editingMyReview.id, {
+          score: rating,
+          content,
+          images: photos.map((photo) => photo.url),
+        });
+      } else if (editingReview) {
+        await saveKnockdogReviewEdit(editingReview.id, {
+          score: rating,
+          content,
+          images: photos.map((photo) => photo.url),
+        });
+      } else {
+        throw new Error('review required');
+      }
       didSaveRef.current = true;
       setDialog(null);
       back();
@@ -459,7 +500,7 @@ export function WriteReviewPage() {
         <ActionButton
           type='button'
           size='large'
-          disabled={!canSubmit || (!isEdit && isKindergartenPending)}
+          disabled={!canSubmit || (!editingReview && isKindergartenPending)}
           onClick={() => {
             if (isEdit) {
               setDialog('confirm');

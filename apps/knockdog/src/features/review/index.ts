@@ -4,6 +4,7 @@ export { KnockdogReviewList } from './ui/KnockdogReviewList';
 export { KnockdogReviewSortButton } from './ui/KnockdogReviewSortButton';
 export { MyWrittenReviewList } from './ui/MyWrittenReviewList';
 export { useCreateSchoolReview } from './api/useCreateSchoolReview';
+export { useCachedSchoolReview, useDeleteSchoolReview, useUpdateSchoolReview } from './api/useSchoolReviewMutations';
 export { useSchoolReviewQuery } from './api/useSchoolReviewQuery';
 export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';

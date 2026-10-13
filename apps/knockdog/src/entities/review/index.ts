@@ -1,6 +1,11 @@
 // api
 export { getReviewList, type ReviewListResponse } from './api/review';
-export { getSchoolReviews, createSchoolReview } from './api/schoolReview';
+export { createSchoolReview, deleteSchoolReview, getSchoolReviews, updateSchoolReview } from './api/schoolReview';
+export type {
+  CreateSchoolReviewParams,
+  DeleteSchoolReviewParams,
+  UpdateSchoolReviewParams,
+} from './api/schoolReview';
 
 // config
 export { createSchoolReviewInfiniteQueryOptions, schoolReviewQueryKeys } from './config/schoolReviewQueryKeys';

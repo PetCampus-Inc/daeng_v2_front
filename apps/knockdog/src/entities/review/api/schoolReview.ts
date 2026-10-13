@@ -46,5 +46,39 @@ function createSchoolReview({ schoolId, rating, content, images }: CreateSchoolR
     .json<ApiResponse<unknown>>();
 }
 
-export { createSchoolReview, getSchoolReviews };
-export type { CreateSchoolReviewParams, GetSchoolReviewsParams, SchoolReviewPage };
+interface UpdateSchoolReviewParams {
+  schoolId: number;
+  reviewId: number;
+  rating: number;
+  content: string;
+  images: string[];
+  version: number;
+}
+
+/** `PUT /schools/{schoolId}/reviews/{reviewId}` — 내 앱 리뷰 수정. version은 조회한 값 */
+function updateSchoolReview({ schoolId, reviewId, rating, content, images, version }: UpdateSchoolReviewParams) {
+  return api
+    .put(`schools/${schoolId}/reviews/${reviewId}`, {
+      json: { rating, content, images, version },
+    })
+    .json<ApiResponse<unknown>>();
+}
+
+interface DeleteSchoolReviewParams {
+  schoolId: number;
+  reviewId: number;
+}
+
+/** `DELETE /schools/{schoolId}/reviews/{reviewId}` — 내 앱 리뷰 삭제 */
+function deleteSchoolReview({ schoolId, reviewId }: DeleteSchoolReviewParams) {
+  return api.delete(`schools/${schoolId}/reviews/${reviewId}`).json<ApiResponse<unknown>>();
+}
+
+export { createSchoolReview, deleteSchoolReview, getSchoolReviews, updateSchoolReview };
+export type {
+  CreateSchoolReviewParams,
+  DeleteSchoolReviewParams,
+  GetSchoolReviewsParams,
+  SchoolReviewPage,
+  UpdateSchoolReviewParams,
+};

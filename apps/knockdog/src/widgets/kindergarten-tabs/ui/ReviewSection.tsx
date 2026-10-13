@@ -21,6 +21,7 @@ import {
   useKnockdogRatingCounts,
   useKnockdogReviews,
   useSchoolReviewQuery,
+  useDeleteSchoolReview,
   type KnockdogReviewSort,
   type ReviewRatingCounts,
 } from '@features/review';
@@ -169,6 +170,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     isFetchingNextPage: isFetchingNextSchoolReviewPage,
     fetchNextPage: fetchNextSchoolReviewPage,
   } = useSchoolReviewQuery(schoolId, knockdogReviewSort, !showKnockdogReviewMock);
+  const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
   const { lastElementCallback: schoolReviewLastElementCallback } = useInfiniteScroll({
     hasNextPage: hasNextSchoolReviewPage,
     isFetchingNextPage: isFetchingNextSchoolReviewPage,
@@ -233,7 +235,14 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     setIsDeleting(true);
 
     try {
-      await deleteKnockdogReview(deleteTargetId);
+      if (showKnockdogReviewMock) {
+        await deleteKnockdogReview(deleteTargetId);
+      } else {
+        const parsedSchoolId = parseSchoolId(schoolId);
+        const parsedReviewId = parseSchoolId(deleteTargetId);
+        if (parsedSchoolId == null || parsedReviewId == null) throw new Error('review required');
+        await removeSchoolReview({ schoolId: parsedSchoolId, reviewId: parsedReviewId });
+      }
       setDeleteDialog(null);
       setDeleteTargetId(null);
       toast({

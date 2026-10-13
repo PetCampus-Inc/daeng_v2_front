@@ -9,6 +9,7 @@ interface SchoolReviewItemDto {
   createdAt?: string | number[] | null;
   displayedAt?: string | number[] | null;
   images?: unknown;
+  version?: number | null;
   helpfulCount?: number | null;
   helpedByMe?: boolean | null;
   reportedByMe?: boolean | null;
@@ -29,6 +30,8 @@ interface SchoolReview {
   createdAt: string;
   content: string;
   images: string[];
+  imageKeys: string[];
+  version: number;
   helpfulCount: number;
   helpedByMe: boolean;
   reportedByMe: boolean;
@@ -86,22 +89,31 @@ function toDateTime(value: string | number[] | null | undefined) {
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
 }
 
-function toImageUrl(value: unknown): string[] {
+function toReviewImages(value: unknown): { key: string; url: string }[] {
   if (typeof value === 'string') {
-    const url = resolvePublicImageSrc(value.trim());
-    return url ? [url] : [];
+    const key = value.trim();
+    if (!key) return [];
+    const url = resolvePublicImageSrc(key);
+    return url ? [{ key, url }] : [];
   }
 
-  if (Array.isArray(value)) return value.flatMap((item) => toImageUrl(item));
+  if (Array.isArray(value)) return value.flatMap((item) => toReviewImages(item));
 
   if (!value || typeof value !== 'object') return [];
 
   const record = value as Record<string, unknown>;
-  const key = [record.s3Key, record.key, record.url, record.imageUrl, record.thumbnailS3Key].find(
+  const rawKey = [record.s3Key, record.key, record.imageKey].find(
     (item) => typeof item === 'string' && item.length > 0
   );
+  const rawUrl = [record.url, record.imageUrl].find((item) => typeof item === 'string' && item.length > 0);
 
-  return typeof key === 'string' ? toImageUrl(key) : [];
+  if (typeof rawKey === 'string') {
+    const url =
+      typeof rawUrl === 'string' && /^(https?:|blob:|data:)/i.test(rawUrl) ? rawUrl : resolvePublicImageSrc(rawKey);
+    return url ? [{ key: rawKey, url }] : [];
+  }
+
+  return typeof rawUrl === 'string' ? toReviewImages(rawUrl) : [];
 }
 
 function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
@@ -110,12 +122,16 @@ function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
   const displayedAt = toDateTime(dto.displayedAt);
   const createdAt = toDateTime(dto.createdAt);
 
+  const images = toReviewImages(dto.images);
+
   return {
     id: String(dto.id),
     rating: toCount(dto.rating),
     createdAt: displayedAt || createdAt,
     content: dto.content ?? '',
-    images: toImageUrl(dto.images),
+    images: images.map((image) => image.url),
+    imageKeys: images.map((image) => image.key),
+    version: toCount(dto.version),
     helpfulCount: toCount(dto.helpfulCount),
     helpedByMe: dto.helpedByMe === true,
     reportedByMe: dto.reportedByMe === true,
