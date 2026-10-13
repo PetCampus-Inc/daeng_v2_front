@@ -4,6 +4,7 @@ export {
   createSchoolReview,
   deleteSchoolReview,
   getMyReviews,
+  getReviewableSchools,
   getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
@@ -25,6 +26,7 @@ export type {
 // config
 export {
   createMySchoolReviewInfiniteQueryOptions,
+  createReviewableSchoolsQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
   mySchoolReviewQueryKeys,
@@ -37,6 +39,7 @@ export { parseSchoolId, toSchoolReview } from './model/schoolReview';
 export type {
   MySchoolReview,
   MySchoolReviewPage,
+  ReviewableSchool,
   SchoolReview,
   SchoolReviewPage,
   SchoolReviewPhoto,

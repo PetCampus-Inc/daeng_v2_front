@@ -3,7 +3,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { ActionButton } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
-import { useWritableKindergartens } from '@views/guardian-my-reviews-page/model/useWritableKindergartens';
+import {
+  useReviewableKindergartens,
+  useWritableKindergartens,
+} from '@views/guardian-my-reviews-page/model/useWritableKindergartens';
 
 import { Header } from '@widgets/Header';
 import {
@@ -23,7 +26,8 @@ import { toast } from '@shared/ui/toast';
 
 function GuardianMyReviewsPage() {
   const { back, push } = useStackNavigation();
-  const { kindergartens, isLoading } = useWritableKindergartens();
+  const { kindergartens: connectedKindergartens } = useWritableKindergartens();
+  const { kindergartens, isLoading } = useReviewableKindergartens();
   const canWriteReview = !isLoading && kindergartens.length > 0;
   const [sort, setSort] = useState<MyWrittenReviewSort>('latest');
   const {
@@ -67,7 +71,8 @@ function GuardianMyReviewsPage() {
   const handleEditReview = (review: MyWrittenReview) => {
     const placeId =
       review.placeId ||
-      kindergartens.find((kindergarten) => parseSchoolId(kindergarten.schoolId) === review.schoolId)?.id;
+      kindergartens.find((kindergarten) => parseSchoolId(kindergarten.schoolId) === review.schoolId)?.id ||
+      connectedKindergartens.find((kindergarten) => parseSchoolId(kindergarten.schoolId) === review.schoolId)?.id;
     if (!placeId) {
       toast({
         title: '유치원 정보를 찾지 못했어요',

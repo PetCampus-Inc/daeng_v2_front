@@ -104,10 +104,24 @@ function KindergartenSelectSheet({
       return;
     }
 
+    if (isWriteMode) {
+      // 시트를 닫으면 overlay history.back이 같은 틱의 push를 되돌린다. back 이후에 이동한다.
+      let didNavigate = false;
+      const navigate = () => {
+        if (didNavigate) return;
+        didNavigate = true;
+        window.removeEventListener('popstate', navigate);
+        onSelect(kindergarten.id);
+      };
+
+      window.addEventListener('popstate', navigate);
+      close();
+      window.setTimeout(navigate, 300);
+      return;
+    }
+
     onSelect(kindergarten.id);
     close();
-
-    if (isWriteMode) return;
 
     toast({
       type: 'success',
@@ -149,7 +163,7 @@ function KindergartenSelectSheet({
             return (
               <React.Fragment key={kindergarten.id}>
                 {isWriteMode ? (
-                  <div className='flex w-full items-center gap-2 px-4 py-4'>
+                  <div data-vaul-no-drag className='flex w-full items-center gap-2 px-4 py-4'>
                     <KindergartenSelectThumbnail imageUrl={kindergarten.imageUrl} isSelected={false} />
                     <span className='body1-bold text-text-primary min-w-0 flex-1 truncate text-left'>
                       {kindergarten.name}
@@ -157,6 +171,7 @@ function KindergartenSelectSheet({
                     <ActionButton
                       type='button'
                       size='small'
+                      data-vaul-no-drag
                       className='shrink-0'
                       onClick={() => handleSelect(kindergarten)}
                     >

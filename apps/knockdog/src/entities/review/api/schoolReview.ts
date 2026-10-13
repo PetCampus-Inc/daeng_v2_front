@@ -3,9 +3,11 @@ import { ApiError, api, type ApiResponse } from '@shared/api';
 import {
   SCHOOL_REVIEW_PAGE_SIZE,
   toMySchoolReviewPage,
+  toReviewableSchool,
   toSchoolReview,
   toSchoolReviewPage,
   type SchoolReviewItemDto,
+  type ReviewableSchoolDto,
   type SchoolReviewListDto,
   type SchoolReviewSort,
 } from '../model/schoolReview';
@@ -60,6 +62,19 @@ function getMyReviews({ sort, page, size = SCHOOL_REVIEW_PAGE_SIZE }: GetMyRevie
     })
     .json<ApiResponse<SchoolReviewListDto>>()
     .then((response) => toMySchoolReviewPage(response.data, page));
+}
+
+/** `GET /me/reviewable-schools` — 연결 이력 중 리뷰를 아직 쓰지 않은 유치원 */
+function getReviewableSchools() {
+  return api
+    .get('me/reviewable-schools')
+    .json<ApiResponse<{ schools?: ReviewableSchoolDto[] | null }>>()
+    .then((response) =>
+      (response.data?.schools ?? []).flatMap((school) => {
+        const reviewableSchool = toReviewableSchool(school);
+        return reviewableSchool ? [reviewableSchool] : [];
+      })
+    );
 }
 
 interface SchoolReviewImageWrite {
@@ -188,6 +203,7 @@ export {
   createSchoolReview,
   deleteSchoolReview,
   getMyReviews,
+  getReviewableSchools,
   getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,

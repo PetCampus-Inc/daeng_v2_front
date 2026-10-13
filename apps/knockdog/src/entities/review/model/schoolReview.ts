@@ -97,6 +97,63 @@ function toDateTime(value: string | number[] | null | undefined) {
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
 }
 
+interface ReviewableSchoolDto {
+  schoolId?: number | string | null;
+  id?: number | string | null;
+  placeId?: number | string | null;
+  kindergartenPlaceId?: number | string | null;
+  name?: string | null;
+  schoolName?: string | null;
+  thumbnailImageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  thumbnailS3Key?: string | null;
+  schoolThumbnailS3Key?: string | null;
+  status?: string | null;
+  disconnectedAt?: string | number[] | null;
+  isCurrentlyAttending?: boolean | null;
+}
+
+interface ReviewableSchool {
+  schoolId: number | null;
+  placeId: string;
+  name: string;
+  imageUrl: string;
+  isAttending: boolean;
+  disconnectedAt: string;
+}
+
+function toPlaceId(value: number | string | null | undefined) {
+  if (typeof value === 'number' && Number.isSafeInteger(value) && value > 0) return String(value);
+  if (typeof value !== 'string') return '';
+
+  const placeId = value.trim();
+  if (!placeId || placeId === 'null' || placeId === 'undefined') return '';
+  return placeId;
+}
+
+/** 연결 이력/리뷰 학교 필드를 함께 읽는다. */
+function toReviewableSchool(dto: ReviewableSchoolDto): ReviewableSchool | null {
+  const placeId = toPlaceId(dto.placeId) || toPlaceId(dto.kindergartenPlaceId);
+  const name = (dto.name ?? dto.schoolName ?? '').trim();
+  if (!placeId || !name) return null;
+
+  const disconnectedAt = toDateTime(dto.disconnectedAt);
+  const isAttending =
+    dto.isCurrentlyAttending === true ||
+    dto.status === 'ACTIVE' ||
+    dto.status === 'approved' ||
+    (dto.isCurrentlyAttending == null && dto.status == null && !disconnectedAt);
+
+  return {
+    schoolId: parseSchoolId(dto.schoolId) ?? parseSchoolId(dto.id),
+    placeId,
+    name,
+    imageUrl: dto.thumbnailImageUrl || dto.thumbnailUrl || dto.schoolThumbnailS3Key || dto.thumbnailS3Key || '',
+    isAttending,
+    disconnectedAt,
+  };
+}
+
 function toImageId(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
@@ -204,10 +261,19 @@ function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: n
   };
 }
 
-export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toMySchoolReviewPage, toSchoolReview, toSchoolReviewPage };
+export {
+  parseSchoolId,
+  SCHOOL_REVIEW_PAGE_SIZE,
+  toMySchoolReviewPage,
+  toReviewableSchool,
+  toSchoolReview,
+  toSchoolReviewPage,
+};
 export type {
   MySchoolReview,
   MySchoolReviewPage,
+  ReviewableSchool,
+  ReviewableSchoolDto,
   SchoolReview,
   SchoolReviewItemDto,
   SchoolReviewListDto,

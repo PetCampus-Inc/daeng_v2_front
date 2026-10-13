@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
   createMySchoolReviewInfiniteQueryOptions,
+  createReviewableSchoolsQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
   parseSchoolId,
@@ -89,6 +90,13 @@ function useMySchoolReviewQuery(sort: MyWrittenReviewSort, enabled = true) {
   });
 }
 
+function useReviewableSchoolsQuery(enabled = true) {
+  return useQuery({
+    ...createReviewableSchoolsQueryOptions(),
+    enabled,
+  });
+}
+
 function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) {
   const parsedReviewId = parseSchoolId(reviewId);
 
@@ -98,4 +106,4 @@ function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) 
   });
 }
 
-export { useMySchoolReviewQuery, useSchoolReviewDetailQuery, useSchoolReviewQuery };
+export { useMySchoolReviewQuery, useReviewableSchoolsQuery, useSchoolReviewDetailQuery, useSchoolReviewQuery };

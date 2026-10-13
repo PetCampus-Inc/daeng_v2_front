@@ -10,7 +10,12 @@ export {
   useSetSchoolReviewHelpful,
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
-export { useMySchoolReviewQuery, useSchoolReviewDetailQuery, useSchoolReviewQuery } from './api/useSchoolReviewQuery';
+export {
+  useMySchoolReviewQuery,
+  useReviewableSchoolsQuery,
+  useSchoolReviewDetailQuery,
+  useSchoolReviewQuery,
+} from './api/useSchoolReviewQuery';
 export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';
 export { MOCK_KNOCKDOG_REVIEWS } from './config/knockdogReviewMock';
