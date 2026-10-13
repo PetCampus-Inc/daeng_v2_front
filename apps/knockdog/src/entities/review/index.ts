@@ -11,8 +11,6 @@ export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
   SchoolReviewImageWrite,
-  SchoolReviewImageUploadFile,
-  SchoolReviewImageUploadTarget,
   UpdateSchoolReviewParams,
 } from './api/schoolReview';
 
@@ -22,4 +20,4 @@ export { createSchoolReviewInfiniteQueryOptions, schoolReviewQueryKeys } from '.
 // model
 export type { Review } from './model/review';
 export { parseSchoolId } from './model/schoolReview';
-export type { SchoolReview, SchoolReviewPage, SchoolReviewSort } from './model/schoolReview';
+export type { SchoolReview, SchoolReviewPage, SchoolReviewPhoto, SchoolReviewSort } from './model/schoolReview';

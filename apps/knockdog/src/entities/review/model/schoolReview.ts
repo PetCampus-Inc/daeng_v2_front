@@ -24,14 +24,17 @@ interface SchoolReviewListDto {
   items?: SchoolReviewItemDto[] | null;
 }
 
+interface SchoolReviewPhoto {
+  imageId: number | null;
+  url: string;
+}
+
 interface SchoolReview {
   id: string;
   rating: number;
   createdAt: string;
   content: string;
-  images: string[];
-  imageKeys: string[];
-  imageIds: Array<number | null>;
+  photos: SchoolReviewPhoto[];
   version: number;
   helpfulCount: number;
   helpedByMe: boolean;
@@ -94,32 +97,31 @@ function toImageId(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
-function toReviewImages(value: unknown): { imageId: number | null; key: string; url: string }[] {
-  if (typeof value === 'string') {
-    const key = value.trim();
-    if (!key) return [];
-    const url = resolvePublicImageSrc(key);
-    return url ? [{ imageId: null, key, url }] : [];
-  }
-
-  if (Array.isArray(value)) return value.flatMap((item) => toReviewImages(item));
-
-  if (!value || typeof value !== 'object') return [];
-
-  const record = value as Record<string, unknown>;
+function toReviewPhoto(record: Record<string, unknown>): SchoolReviewPhoto | null {
   const imageId = toImageId(record.imageId);
   const rawKey = [record.s3Key, record.key, record.imageKey, record.tempKey].find(
-    (item) => typeof item === 'string' && item.length > 0
+    (item): item is string => typeof item === 'string' && item.length > 0
   );
-  const rawUrl = [record.url, record.imageUrl].find((item) => typeof item === 'string' && item.length > 0);
-  const key = typeof rawKey === 'string' ? rawKey : '';
+  const rawUrl = [record.url, record.imageUrl].find(
+    (item): item is string => typeof item === 'string' && item.length > 0
+  );
   const url =
-    typeof rawUrl === 'string' && /^(https?:|blob:|data:)/i.test(rawUrl)
-      ? rawUrl
-      : resolvePublicImageSrc(key || (typeof rawUrl === 'string' ? rawUrl : ''));
+    rawUrl && /^(https?:|blob:|data:)/i.test(rawUrl) ? rawUrl : resolvePublicImageSrc(rawKey || rawUrl);
 
-  if (!url && imageId == null) return [];
-  return [{ imageId, key, url: url || '' }];
+  if (!url && imageId == null) return null;
+  return { imageId, url: url || '' };
+}
+
+function toReviewPhotos(value: unknown): SchoolReviewPhoto[] {
+  if (typeof value === 'string') {
+    const photo = toReviewPhoto({ key: value.trim() });
+    return photo ? [photo] : [];
+  }
+
+  if (Array.isArray(value)) return value.flatMap((item) => toReviewPhotos(item));
+  if (!value || typeof value !== 'object') return [];
+  const photo = toReviewPhoto(value as Record<string, unknown>);
+  return photo ? [photo] : [];
 }
 
 function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
@@ -128,16 +130,12 @@ function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
   const displayedAt = toDateTime(dto.displayedAt);
   const createdAt = toDateTime(dto.createdAt);
 
-  const images = toReviewImages(dto.images);
-
   return {
     id: String(dto.id),
     rating: toCount(dto.rating),
     createdAt: displayedAt || createdAt,
     content: dto.content ?? '',
-    images: images.map((image) => image.url),
-    imageKeys: images.map((image) => image.key),
-    imageIds: images.map((image) => image.imageId),
+    photos: toReviewPhotos(dto.images),
     version: toCount(dto.version),
     helpfulCount: toCount(dto.helpfulCount),
     helpedByMe: dto.helpedByMe === true,
@@ -162,4 +160,4 @@ function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: n
 }
 
 export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toSchoolReviewPage };
-export type { SchoolReview, SchoolReviewListDto, SchoolReviewPage, SchoolReviewSort };
+export type { SchoolReview, SchoolReviewListDto, SchoolReviewPage, SchoolReviewPhoto, SchoolReviewSort };

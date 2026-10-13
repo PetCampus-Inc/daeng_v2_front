@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import {
+  createSchoolReview,
   deleteSchoolReview,
   schoolReviewQueryKeys,
   updateSchoolReview,
+  type CreateSchoolReviewParams,
   type DeleteSchoolReviewParams,
-  type SchoolReview,
   type SchoolReviewPage,
   type UpdateSchoolReviewParams,
 } from '@entities/review';
@@ -44,26 +45,25 @@ function invalidateSchoolReviews(queryClient: QueryClient, schoolId: number) {
   return queryClient.invalidateQueries({ queryKey: [...schoolReviewQueryKeys.all, schoolId] });
 }
 
-function useUpdateSchoolReview() {
+function useSchoolReviewMutation<Params extends { schoolId: number }>(mutationFn: (params: Params) => Promise<unknown>) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: UpdateSchoolReviewParams) => updateSchoolReview(params),
-    onSuccess: async (_data, variables) => {
-      await invalidateSchoolReviews(queryClient, variables.schoolId);
-    },
+    mutationFn,
+    onSuccess: (_data, variables) => invalidateSchoolReviews(queryClient, variables.schoolId),
   });
+}
+
+function useCreateSchoolReview() {
+  return useSchoolReviewMutation<CreateSchoolReviewParams>(createSchoolReview);
+}
+
+function useUpdateSchoolReview() {
+  return useSchoolReviewMutation<UpdateSchoolReviewParams>(updateSchoolReview);
 }
 
 function useDeleteSchoolReview() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (params: DeleteSchoolReviewParams) => deleteSchoolReview(params),
-    onSuccess: async (_data, variables) => {
-      await invalidateSchoolReviews(queryClient, variables.schoolId);
-    },
-  });
+  return useSchoolReviewMutation<DeleteSchoolReviewParams>(deleteSchoolReview);
 }
 
-export { useCachedSchoolReview, useDeleteSchoolReview, useUpdateSchoolReview };
+export { useCachedSchoolReview, useCreateSchoolReview, useDeleteSchoolReview, useUpdateSchoolReview };

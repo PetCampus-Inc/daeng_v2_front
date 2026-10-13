@@ -54,16 +54,19 @@ function formatScore(rating: number) {
   return rating > 0 ? rating.toFixed(1) : '0';
 }
 
-function toPhotos(images: string[], imageIds: Array<number | null> = []): ReviewPhoto[] {
-  return images.map((url, index) => ({
-    id: `${imageIds[index] ?? url}-${index}`,
-    url,
-    key: '',
-    imageId: imageIds[index] ?? undefined,
+function toStoredPhotos(photos: { imageId?: number | null; url: string }[]): ReviewPhoto[] {
+  return photos.map((photo, index) => ({
+    id: `${photo.imageId ?? photo.url}-${index}`,
+    url: photo.url,
+    imageId: photo.imageId ?? undefined,
     fileName: '',
     contentType: '',
     size: 0,
   }));
+}
+
+function toPhotos(images: string[]) {
+  return toStoredPhotos(images.map((url) => ({ url })));
 }
 
 function isSameImages(original: string[], photos: ReviewPhoto[]) {
@@ -255,7 +258,7 @@ export function WriteReviewPage() {
   const baseline = editingReview
     ? { score: editingReview.score, content: editingReview.content, images: editingReview.images }
     : apiReview
-      ? { score: apiReview.rating, content: apiReview.content, images: apiReview.images }
+      ? { score: apiReview.rating, content: apiReview.content, images: apiReview.photos.map((photo) => photo.url) }
       : null;
   const isDirty = baseline
     ? rating !== baseline.score || content !== baseline.content || !isSameImages(baseline.images, photos)
@@ -274,7 +277,7 @@ export function WriteReviewPage() {
     didHydrateRef.current = true;
     setRating(apiReview.rating);
     setContent(apiReview.content);
-    setPhotos(toPhotos(apiReview.images, apiReview.imageIds ?? []));
+    setPhotos(toStoredPhotos(apiReview.photos));
   }, [apiReview, editingReview]);
 
   useEffect(() => {
@@ -338,7 +341,7 @@ export function WriteReviewPage() {
         : result.assets.flatMap((asset) => {
             const url = asset.preSignedUrl || asset.uri;
             if (!url || !asset.key) return [];
-            return [{ id: asset.key, url, key: asset.key, fileName: '', contentType: '', size: 0 }];
+            return [{ id: asset.key, url, fileName: '', contentType: '', size: 0 }];
           });
       if (nextPhotos.length === 0) {
         toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
@@ -420,7 +423,7 @@ export function WriteReviewPage() {
           rating,
           content,
           images,
-          version: apiReview.version ?? 0,
+          version: apiReview.version,
         });
       } else if (editingMyReview) {
         await saveMyWrittenReviewEdit(editingReview?.id ?? editingMyReview.id, {

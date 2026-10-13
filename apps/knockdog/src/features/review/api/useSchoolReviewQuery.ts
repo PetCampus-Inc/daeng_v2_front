@@ -22,7 +22,7 @@ function toKnockdogReview(review: SchoolReview): KnockdogReview {
     createdAt: review.createdAt,
     enrollment: review.isCurrentlyAttending ? 'attending' : 'former',
     content: review.content,
-    images: review.images.filter((url) => url.length > 0),
+    images: review.photos.flatMap((photo) => (photo.url ? [photo.url] : [])),
     helpfulCount: review.helpfulCount,
     isHelpful: review.helpedByMe,
     isMine: review.mine,

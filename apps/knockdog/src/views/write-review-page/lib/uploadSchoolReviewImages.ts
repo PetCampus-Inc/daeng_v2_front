@@ -6,7 +6,6 @@ import { getBridgeInstance } from '@shared/lib/bridge';
 interface ReviewPhotoSource {
   id: string;
   url: string;
-  key: string;
   imageId?: number;
   file?: File;
   uri?: string;
@@ -19,11 +18,8 @@ interface PickedReviewAsset extends ImageAsset {
   file?: File;
 }
 
-class SchoolReviewImageUploadError extends Error {
-  constructor() {
-    super('리뷰 사진을 업로드하지 못했습니다.');
-    this.name = 'SchoolReviewImageUploadError';
-  }
+function uploadFailed(): never {
+  throw new Error('리뷰 사진을 업로드하지 못했습니다.');
 }
 
 function normalizeContentType(mimeType: string) {
@@ -56,7 +52,6 @@ function toLocalReviewPhoto(asset: PickedReviewAsset, index: number): ReviewPhot
   return {
     id: `local-${fileName}-${index}-${size}`,
     url,
-    key: '',
     file,
     uri,
     fileName,
@@ -73,12 +68,12 @@ async function putFileToS3Web(uploadUrl: string, file: File, contentType: string
     body: file,
   });
 
-  if (!response.ok) throw new SchoolReviewImageUploadError();
+  if (!response.ok) uploadFailed();
 }
 
 async function putFileToS3Native(uri: string, uploadUrl: string, contentType: string) {
   const bridge = getBridgeInstance();
-  if (!bridge) throw new SchoolReviewImageUploadError();
+  if (!bridge) uploadFailed();
 
   await bridge.request(METHODS.putFileToPresignedUrl, {
     uri,
@@ -87,22 +82,23 @@ async function putFileToS3Native(uri: string, uploadUrl: string, contentType: st
   });
 }
 
-function isKeptReviewPhoto(photo: ReviewPhotoSource) {
+function isKeptReviewPhoto(photo: ReviewPhotoSource): photo is ReviewPhotoSource & { imageId: number } {
   return typeof photo.imageId === 'number';
+}
+
+function toUploadTarget(item: { tempKey?: string | null; uploadUrl?: string | null } | null | undefined) {
+  const tempKey = item?.tempKey?.trim() ?? '';
+  const uploadUrl = item?.uploadUrl?.trim() ?? '';
+  return tempKey && uploadUrl ? { tempKey, uploadUrl } : null;
 }
 
 async function resolveSchoolReviewImages(schoolId: number, photos: ReviewPhotoSource[]) {
   const pending = photos.flatMap((photo, index) => (isKeptReviewPhoto(photo) ? [] : [{ photo, index }]));
-  const images: SchoolReviewImageWrite[] = photos.map((photo) =>
-    isKeptReviewPhoto(photo) ? { imageId: photo.imageId } : {}
-  );
-  if (pending.length === 0) return images;
+  const uploaded = new Map<number, SchoolReviewImageWrite>();
 
-  const hasUnreadable = pending.some(({ photo }) => photo.size <= 0 || (!photo.file && !photo.uri));
-  if (hasUnreadable) throw new SchoolReviewImageUploadError();
+  if (pending.length > 0) {
+    if (pending.some(({ photo }) => photo.size <= 0 || (!photo.file && !photo.uri))) uploadFailed();
 
-  let targets: { key: string; uploadUrl: string }[] = [];
-  try {
     const response = await postSchoolReviewImageUploadUrls(
       schoolId,
       pending.map(({ photo }) => ({
@@ -110,40 +106,41 @@ async function resolveSchoolReviewImages(schoolId: number, photos: ReviewPhotoSo
         contentType: photo.contentType,
         size: photo.size,
       }))
-    );
-    targets = response.data ?? [];
-  } catch (error) {
-    if (error instanceof SchoolReviewImageUploadError) throw error;
-    throw new SchoolReviewImageUploadError();
-  }
+    ).catch(() => uploadFailed());
+    const targets = (response.data?.items ?? []).flatMap((item) => {
+      const target = toUploadTarget(item);
+      return target ? [target] : [];
+    });
+    if (targets.length !== pending.length) uploadFailed();
 
-  if (targets.length !== pending.length) throw new SchoolReviewImageUploadError();
+    for (let index = 0; index < pending.length; index += 1) {
+      const item = pending[index];
+      const target = targets[index];
+      if (!item || !target) uploadFailed();
 
-  for (let index = 0; index < pending.length; index += 1) {
-    const item = pending[index];
-    const target = targets[index];
-    if (!item || !target?.key || !target.uploadUrl) throw new SchoolReviewImageUploadError();
-
-    try {
-      if (item.photo.file) {
-        await putFileToS3Web(target.uploadUrl, item.photo.file, item.photo.contentType);
-      } else if (item.photo.uri) {
-        await putFileToS3Native(item.photo.uri, target.uploadUrl, item.photo.contentType);
-      } else {
-        throw new SchoolReviewImageUploadError();
+      try {
+        if (item.photo.file) {
+          await putFileToS3Web(target.uploadUrl, item.photo.file, item.photo.contentType);
+        } else if (item.photo.uri) {
+          await putFileToS3Native(item.photo.uri, target.uploadUrl, item.photo.contentType);
+        } else {
+          uploadFailed();
+        }
+      } catch {
+        uploadFailed();
       }
-    } catch (error) {
-      if (error instanceof SchoolReviewImageUploadError) throw error;
-      throw new SchoolReviewImageUploadError();
-    }
 
-    images[item.index] = {
-      tempKey: target.key,
-      originalFilename: item.photo.fileName.slice(0, 255),
-    };
+      uploaded.set(item.index, {
+        tempKey: target.tempKey,
+        originalFilename: item.photo.fileName.slice(0, 255),
+      });
+    }
   }
 
-  return images;
+  return photos.map((photo, index) => {
+    if (isKeptReviewPhoto(photo)) return { imageId: photo.imageId };
+    return uploaded.get(index) ?? uploadFailed();
+  });
 }
 
 export { resolveSchoolReviewImages, toLocalReviewPhoto };

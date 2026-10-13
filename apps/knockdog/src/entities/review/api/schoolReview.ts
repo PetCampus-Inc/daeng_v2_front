@@ -31,11 +31,14 @@ interface SchoolReviewImageWrite {
   originalFilename?: string;
 }
 
-interface CreateSchoolReviewParams {
-  schoolId: number;
+interface SchoolReviewWriteFields {
   rating: number;
   content: string;
   images: SchoolReviewImageWrite[];
+}
+
+interface CreateSchoolReviewParams extends SchoolReviewWriteFields {
+  schoolId: number;
 }
 
 /** `POST /schools/{schoolId}/reviews` — 앱 리뷰 작성. 새 사진은 tempKey, version은 생략 */
@@ -51,12 +54,9 @@ function createSchoolReview({ schoolId, rating, content, images }: CreateSchoolR
     .json<ApiResponse<unknown>>();
 }
 
-interface UpdateSchoolReviewParams {
+interface UpdateSchoolReviewParams extends SchoolReviewWriteFields {
   schoolId: number;
   reviewId: number;
-  rating: number;
-  content: string;
-  images: SchoolReviewImageWrite[];
   version: number;
 }
 
@@ -85,37 +85,8 @@ interface SchoolReviewImageUploadFile {
   size: number;
 }
 
-interface SchoolReviewImageUploadTarget {
-  key: string;
-  uploadUrl: string;
-}
-
-function readUploadRows(data: unknown) {
-  if (Array.isArray(data)) return data;
-  if (!data || typeof data !== 'object') return [];
-
-  const record = data as Record<string, unknown>;
-  const rows = record.items ?? record.files;
-  return Array.isArray(rows) ? rows : [];
-}
-
-function toSchoolReviewImageUploadTargets(data: unknown): SchoolReviewImageUploadTarget[] {
-  return readUploadRows(data).flatMap((item) => {
-    if (!item || typeof item !== 'object') return [];
-
-    const row = item as Record<string, unknown>;
-    const key =
-      (typeof row.tempKey === 'string' && row.tempKey) ||
-      (typeof row.key === 'string' && row.key) ||
-      (typeof row.s3Key === 'string' && row.s3Key) ||
-      '';
-    const uploadUrl =
-      (typeof row.uploadUrl === 'string' && row.uploadUrl) ||
-      (typeof row.preSignedUrl === 'string' && row.preSignedUrl) ||
-      '';
-
-    return key && uploadUrl ? [{ key, uploadUrl }] : [];
-  });
+interface SchoolReviewImageUploadUrlResponse {
+  items?: { tempKey?: string | null; uploadUrl?: string | null }[] | null;
 }
 
 /** `POST /schools/{schoolId}/reviews/image-upload-urls` — 리뷰 사진 임시 S3 업로드 URL. 최대 10장 */
@@ -124,11 +95,7 @@ function postSchoolReviewImageUploadUrls(schoolId: number, files: SchoolReviewIm
     .post(`schools/${schoolId}/reviews/image-upload-urls`, {
       json: { files },
     })
-    .json<ApiResponse<unknown>>()
-    .then((response) => ({
-      ...response,
-      data: toSchoolReviewImageUploadTargets(response.data),
-    }));
+    .json<ApiResponse<SchoolReviewImageUploadUrlResponse>>();
 }
 
 export {
@@ -141,10 +108,6 @@ export {
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
-  GetSchoolReviewsParams,
   SchoolReviewImageWrite,
-  SchoolReviewImageUploadFile,
-  SchoolReviewImageUploadTarget,
-  SchoolReviewPage,
   UpdateSchoolReviewParams,
 };
