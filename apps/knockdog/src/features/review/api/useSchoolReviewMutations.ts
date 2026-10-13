@@ -2,6 +2,7 @@ import { useMutation, useQueryClient, type InfiniteData, type QueryClient } from
 import {
   createSchoolReview,
   deleteSchoolReview,
+  mySchoolReviewQueryKeys,
   reportSchoolReview,
   schoolReviewQueryKeys,
   setSchoolReviewHelpful,
@@ -15,7 +16,10 @@ import {
 } from '@entities/review';
 
 function invalidateSchoolReviews(queryClient: QueryClient, schoolId: number) {
-  return queryClient.invalidateQueries({ queryKey: [...schoolReviewQueryKeys.all, schoolId] });
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: [...schoolReviewQueryKeys.all, schoolId] }),
+    queryClient.invalidateQueries({ queryKey: mySchoolReviewQueryKeys.all }),
+  ]);
 }
 
 function useSchoolReviewMutation<Params extends { schoolId: number }>(mutationFn: (params: Params) => Promise<unknown>) {

@@ -4,6 +4,10 @@ type SchoolReviewSort = 'LATEST' | 'RATING_HIGH' | 'RATING_LOW' | 'HELPFUL';
 
 interface SchoolReviewItemDto {
   id?: number | null;
+  schoolId?: number | string | null;
+  schoolName?: string | null;
+  schoolAddress?: string | null;
+  schoolThumbnailS3Key?: string | null;
   rating?: number | null;
   content?: string | null;
   createdAt?: string | number[] | null;
@@ -145,6 +149,47 @@ function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
   };
 }
 
+interface MySchoolReview extends SchoolReview {
+  schoolId: number | null;
+  schoolName: string;
+  schoolAddress: string;
+  schoolThumbnailUrl: string;
+}
+
+interface MySchoolReviewPage {
+  totalCount: number;
+  page: number;
+  hasNext: boolean;
+  items: MySchoolReview[];
+}
+
+function toMySchoolReview(dto: SchoolReviewItemDto): MySchoolReview | null {
+  const review = toSchoolReview(dto);
+  if (!review) return null;
+
+  return {
+    ...review,
+    schoolId: parseSchoolId(dto.schoolId),
+    schoolName: dto.schoolName?.trim() || '',
+    schoolAddress: dto.schoolAddress?.trim() || '',
+    schoolThumbnailUrl: resolvePublicImageSrc(dto.schoolThumbnailS3Key),
+  };
+}
+
+function toMySchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: number): MySchoolReviewPage {
+  const items = (dto?.items ?? []).flatMap((item) => {
+    const review = toMySchoolReview(item);
+    return review ? [review] : [];
+  });
+
+  return {
+    totalCount: toCount(dto?.totalCount),
+    page: typeof dto?.page === 'number' && Number.isFinite(dto.page) ? dto.page : page,
+    hasNext: dto?.hasNext === true,
+    items,
+  };
+}
+
 function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: number): SchoolReviewPage {
   const items = (dto?.items ?? []).flatMap((item) => {
     const review = toSchoolReview(item);
@@ -159,8 +204,10 @@ function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: n
   };
 }
 
-export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toSchoolReview, toSchoolReviewPage };
+export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toMySchoolReviewPage, toSchoolReview, toSchoolReviewPage };
 export type {
+  MySchoolReview,
+  MySchoolReviewPage,
   SchoolReview,
   SchoolReviewItemDto,
   SchoolReviewListDto,

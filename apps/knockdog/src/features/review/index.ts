@@ -10,10 +10,9 @@ export {
   useSetSchoolReviewHelpful,
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
-export { useSchoolReviewDetailQuery, useSchoolReviewQuery } from './api/useSchoolReviewQuery';
+export { useMySchoolReviewQuery, useSchoolReviewDetailQuery, useSchoolReviewQuery } from './api/useSchoolReviewQuery';
 export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';
-export { sortMyWrittenReviews } from './lib/sortMyWrittenReviews';
 export { MOCK_KNOCKDOG_REVIEWS } from './config/knockdogReviewMock';
 export {
   deleteKnockdogReview,
@@ -22,7 +21,6 @@ export {
   useKnockdogRatingCounts,
   useKnockdogReviews,
 } from './model/knockdogReviewStore';
-export { deleteMyWrittenReview, saveMyWrittenReviewEdit, useMyWrittenReviews } from './model/myWrittenReviewStore';
 export { markWrittenKindergartenReview, useWrittenKindergartenPlaceIds } from './model/writtenKindergartenReviewStore';
 export {
   DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
@@ -32,4 +30,4 @@ export {
 export { ReviewActionDialog } from './ui/ReviewActionDialog';
 export type { ReviewRatingCounts } from './lib/reviewRating';
 export type { KnockdogReview, KnockdogReviewSort } from './config/knockdogReviewMock';
-export type { MyWrittenReview, MyWrittenReviewSort } from './config/myWrittenReviewMock';
+export type { MyWrittenReview, MyWrittenReviewSort } from './config/myWrittenReview';

@@ -3,6 +3,7 @@ export { getReviewList, type ReviewListResponse } from './api/review';
 export {
   createSchoolReview,
   deleteSchoolReview,
+  getMyReviews,
   getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
@@ -23,12 +24,21 @@ export type {
 
 // config
 export {
+  createMySchoolReviewInfiniteQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
+  mySchoolReviewQueryKeys,
   schoolReviewQueryKeys,
 } from './config/schoolReviewQueryKeys';
 
 // model
 export type { Review } from './model/review';
 export { parseSchoolId, toSchoolReview } from './model/schoolReview';
-export type { SchoolReview, SchoolReviewPage, SchoolReviewPhoto, SchoolReviewSort } from './model/schoolReview';
+export type {
+  MySchoolReview,
+  MySchoolReviewPage,
+  SchoolReview,
+  SchoolReviewPage,
+  SchoolReviewPhoto,
+  SchoolReviewSort,
+} from './model/schoolReview';

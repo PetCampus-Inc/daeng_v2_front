@@ -2,11 +2,11 @@ import { ApiError, api, type ApiResponse } from '@shared/api';
 
 import {
   SCHOOL_REVIEW_PAGE_SIZE,
+  toMySchoolReviewPage,
   toSchoolReview,
   toSchoolReviewPage,
   type SchoolReviewItemDto,
   type SchoolReviewListDto,
-  type SchoolReviewPage,
   type SchoolReviewSort,
 } from '../model/schoolReview';
 
@@ -44,6 +44,22 @@ function getSchoolReviews({ schoolId, sort, page, size = SCHOOL_REVIEW_PAGE_SIZE
     })
     .json<ApiResponse<SchoolReviewListDto>>()
     .then((response) => toSchoolReviewPage(response.data, page));
+}
+
+interface GetMyReviewsParams {
+  sort: SchoolReviewSort;
+  page: number;
+  size?: number;
+}
+
+/** `GET /me/reviews` — 내가 작성한 앱 리뷰. page는 1부터 */
+function getMyReviews({ sort, page, size = SCHOOL_REVIEW_PAGE_SIZE }: GetMyReviewsParams) {
+  return api
+    .get('me/reviews', {
+      searchParams: { sort, page, size },
+    })
+    .json<ApiResponse<SchoolReviewListDto>>()
+    .then((response) => toMySchoolReviewPage(response.data, page));
 }
 
 interface SchoolReviewImageWrite {
@@ -171,6 +187,7 @@ function postSchoolReviewImageUploadUrls(schoolId: number, files: SchoolReviewIm
 export {
   createSchoolReview,
   deleteSchoolReview,
+  getMyReviews,
   getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,

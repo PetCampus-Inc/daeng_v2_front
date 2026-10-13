@@ -2,39 +2,50 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { ActionButton } from '@knockdog/ui';
-import { useQueryState } from 'nuqs';
 import { overlay } from 'overlay-kit';
 import { useWritableKindergartens } from '@views/guardian-my-reviews-page/model/useWritableKindergartens';
 
 import { Header } from '@widgets/Header';
 import {
-  deleteMyWrittenReview,
   MyWrittenReviewList,
   ReviewActionDialog,
-  sortMyWrittenReviews,
-  useMyWrittenReviews,
+  useDeleteSchoolReview,
+  useMySchoolReviewQuery,
   type MyWrittenReview,
   type MyWrittenReviewSort,
 } from '@features/review';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { parseSchoolId } from '@entities/review';
+import { useInfiniteScroll, useStackNavigation } from '@shared/lib';
+import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { toast } from '@shared/ui/toast';
 
 function GuardianMyReviewsPage() {
   const { back, push } = useStackNavigation();
-  const [mock] = useQueryState('mock');
   const { kindergartens, isLoading } = useWritableKindergartens();
-  const writtenReviews = useMyWrittenReviews();
   const canWriteReview = !isLoading && kindergartens.length > 0;
   const [sort, setSort] = useState<MyWrittenReviewSort>('latest');
+  const {
+    data: myReviewData,
+    isLoading: isMyReviewLoading,
+    isError: isMyReviewError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    refetch,
+  } = useMySchoolReviewQuery(sort);
+  const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+  const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
   const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const isDeletingRef = useRef(false);
-  const sortedReviews = useMemo(
-    () => sortMyWrittenReviews(mock === '1' ? writtenReviews : [], sort),
-    [mock, sort, writtenReviews]
+  const reviews = useMemo(
+    () => myReviewData?.pages.flatMap((page) => page.items) ?? [],
+    [myReviewData]
   );
+  const reviewCount = myReviewData?.pages[0]?.totalCount ?? reviews.length;
 
   const handleWriteReview = () => {
     const handleSelectKindergarten = (kindergartenId: string) => {
@@ -54,7 +65,19 @@ function GuardianMyReviewsPage() {
   };
 
   const handleEditReview = (review: MyWrittenReview) => {
-    push({ pathname: `/kindergarten/${review.placeId}/edit-review/${review.id}` });
+    const placeId =
+      review.placeId ||
+      kindergartens.find((kindergarten) => parseSchoolId(kindergarten.schoolId) === review.schoolId)?.id;
+    if (!placeId) {
+      toast({
+        title: '유치원 정보를 찾지 못했어요',
+        nativeTitle: '유치원 정보를 찾지 못했어요',
+        position: 'bottom',
+      });
+      return;
+    }
+
+    push({ pathname: `/kindergarten/${placeId}/edit-review/${review.id}` });
   };
 
   const handleDeleteReview = (review: MyWrittenReview) => {
@@ -75,7 +98,11 @@ function GuardianMyReviewsPage() {
     setIsDeleting(true);
 
     try {
-      await deleteMyWrittenReview(deleteTargetId);
+      const target = reviews.find((review) => review.id === deleteTargetId);
+      const schoolId = target?.schoolId ?? null;
+      const reviewId = parseSchoolId(deleteTargetId);
+      if (schoolId == null || reviewId == null) throw new Error('review required');
+      await removeSchoolReview({ schoolId, reviewId });
       setDeleteDialog(null);
       setDeleteTargetId(null);
       toast({
@@ -102,7 +129,15 @@ function GuardianMyReviewsPage() {
         <Header.Title>내 리뷰 관리</Header.Title>
       </Header>
 
-      {sortedReviews.length === 0 ? (
+      {isMyReviewLoading && !myReviewData ? (
+        <DelayedLoadingSpinner isLoading layout='content' />
+      ) : isMyReviewError && !myReviewData ? (
+        <PageError
+          onRetry={() => {
+            refetch();
+          }}
+        />
+      ) : reviews.length === 0 ? (
         <div className='flex min-h-0 flex-1 flex-col items-center justify-center px-4'>
           <div className='flex w-full flex-col items-center gap-4 px-8'>
             <div className='flex h-[140px] w-[200px] shrink-0 items-center justify-center'>
@@ -123,12 +158,19 @@ function GuardianMyReviewsPage() {
       ) : (
         <div className='min-h-0 flex-1 overflow-y-auto pb-6'>
           <MyWrittenReviewList
-            reviews={sortedReviews}
+            reviews={reviews}
+            totalCount={reviewCount}
             sort={sort}
             onSortChange={setSort}
             onEdit={handleEditReview}
             onDelete={handleDeleteReview}
+            lastItemRef={lastElementCallback}
           />
+          {isFetchingNextPage ? (
+            <div className='flex justify-center py-4'>
+              <LoadingSpinner layout='inline' />
+            </div>
+          ) : null}
         </div>
       )}
 

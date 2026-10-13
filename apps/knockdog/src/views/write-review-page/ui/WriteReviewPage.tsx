@@ -17,12 +17,10 @@ import { useKindergartenMainQuery } from '@features/kindergarten-main';
 import {
   ReviewActionDialog,
   saveKnockdogReviewEdit,
-  saveMyWrittenReviewEdit,
   markWrittenKindergartenReview,
   useSchoolReviewDetailQuery,
   useCreateSchoolReview,
   useKnockdogReviews,
-  useMyWrittenReviews,
   useUpdateSchoolReview,
 } from '@features/review';
 import { parseSchoolId } from '@entities/review';
@@ -222,10 +220,7 @@ export function WriteReviewPage() {
 
   const reviewId = params.reviewId;
   const reviews = useKnockdogReviews();
-  const myWrittenReviews = useMyWrittenReviews();
-  const editingKnockdogReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
-  const editingMyReview = reviewId ? myWrittenReviews.find((review) => review.id === reviewId) : undefined;
-  const editingReview = editingKnockdogReview ?? editingMyReview;
+  const editingReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
 
   const { back } = useStackNavigation();
   const { pickImage } = useImagePicker();
@@ -424,12 +419,6 @@ export function WriteReviewPage() {
           content,
           images,
           version: apiReview.version,
-        });
-      } else if (editingMyReview) {
-        await saveMyWrittenReviewEdit(editingReview?.id ?? editingMyReview.id, {
-          score: rating,
-          content,
-          images: photos.map((photo) => photo.url),
         });
       } else if (editingReview) {
         await saveKnockdogReviewEdit(editingReview.id, {

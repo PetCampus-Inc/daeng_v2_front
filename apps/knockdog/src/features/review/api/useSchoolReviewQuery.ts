@@ -1,13 +1,16 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
+  createMySchoolReviewInfiniteQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
   parseSchoolId,
+  type MySchoolReview,
   type SchoolReview,
   type SchoolReviewSort,
 } from '@entities/review';
 
 import type { KnockdogReview, KnockdogReviewSort } from '../config/knockdogReviewMock';
+import type { MyWrittenReview, MyWrittenReviewSort } from '../config/myWrittenReview';
 
 const SCHOOL_REVIEW_SORT = {
   latest: 'LATEST',
@@ -15,6 +18,12 @@ const SCHOOL_REVIEW_SORT = {
   ratingAsc: 'RATING_LOW',
   helpful: 'HELPFUL',
 } as const satisfies Record<KnockdogReviewSort, SchoolReviewSort>;
+
+const MY_REVIEW_SORT = {
+  latest: 'LATEST',
+  ratingDesc: 'RATING_HIGH',
+  ratingAsc: 'RATING_LOW',
+} as const satisfies Record<MyWrittenReviewSort, SchoolReviewSort>;
 
 function toKnockdogReview(review: SchoolReview): KnockdogReview {
   return {
@@ -52,6 +61,34 @@ function useSchoolReviewQuery(
   });
 }
 
+function toMyWrittenReview(review: MySchoolReview): MyWrittenReview {
+  return {
+    id: review.id,
+    placeId: '',
+    schoolId: review.schoolId,
+    kindergartenName: review.schoolName,
+    kindergartenImage: review.schoolThumbnailUrl,
+    score: review.rating,
+    createdAt: review.createdAt,
+    content: review.content,
+    images: review.photos.flatMap((photo) => (photo.url ? [photo.url] : [])),
+  };
+}
+
+function useMySchoolReviewQuery(sort: MyWrittenReviewSort, enabled = true) {
+  return useInfiniteQuery({
+    ...createMySchoolReviewInfiniteQueryOptions(MY_REVIEW_SORT[sort]),
+    select: (data) => ({
+      ...data,
+      pages: data.pages.map((page) => ({
+        ...page,
+        items: page.items.map(toMyWrittenReview),
+      })),
+    }),
+    enabled,
+  });
+}
+
 function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) {
   const parsedReviewId = parseSchoolId(reviewId);
 
@@ -61,4 +98,4 @@ function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) 
   });
 }
 
-export { useSchoolReviewDetailQuery, useSchoolReviewQuery };
+export { useMySchoolReviewQuery, useSchoolReviewDetailQuery, useSchoolReviewQuery };
