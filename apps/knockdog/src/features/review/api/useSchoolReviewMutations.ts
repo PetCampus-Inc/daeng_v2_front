@@ -2,11 +2,13 @@ import { useMutation, useQueryClient, type InfiniteData, type QueryClient } from
 import {
   createSchoolReview,
   deleteSchoolReview,
+  reportSchoolReview,
   schoolReviewQueryKeys,
   setSchoolReviewHelpful,
   updateSchoolReview,
   type CreateSchoolReviewParams,
   type DeleteSchoolReviewParams,
+  type ReportSchoolReviewParams,
   type SchoolReviewPage,
   type SetSchoolReviewHelpfulParams,
   type UpdateSchoolReviewParams,
@@ -35,6 +37,10 @@ function useUpdateSchoolReview() {
 
 function useDeleteSchoolReview() {
   return useSchoolReviewMutation<DeleteSchoolReviewParams>(deleteSchoolReview);
+}
+
+function useReportSchoolReview() {
+  return useSchoolReviewMutation<ReportSchoolReviewParams>(reportSchoolReview);
 }
 
 function patchSchoolReviewHelpful(
@@ -85,6 +91,7 @@ function useSetSchoolReviewHelpful() {
 export {
   useCreateSchoolReview,
   useDeleteSchoolReview,
+  useReportSchoolReview,
   useSetSchoolReviewHelpful,
   useUpdateSchoolReview,
 };

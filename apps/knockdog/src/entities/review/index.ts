@@ -6,13 +6,17 @@ export {
   getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
+  reportSchoolReview,
   setSchoolReviewHelpful,
   updateSchoolReview,
 } from './api/schoolReview';
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
+  ReportSchoolReviewParams,
+  SchoolReviewHelpful,
   SchoolReviewImageWrite,
+  SchoolReviewReportReason,
   SetSchoolReviewHelpfulParams,
   UpdateSchoolReviewParams,
 } from './api/schoolReview';

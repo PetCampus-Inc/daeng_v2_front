@@ -111,6 +111,35 @@ interface SchoolReviewHelpful {
   helpedByMe?: boolean | null;
 }
 
+type SchoolReviewReportReason =
+  | 'UNRELATED'
+  | 'ADVERTISEMENT'
+  | 'PERSONAL_INFORMATION'
+  | 'ABUSIVE_OR_DISCRIMINATORY'
+  | 'FALSE_OR_MALICIOUS'
+  | 'COPYRIGHT_INFRINGEMENT'
+  | 'REPETITIVE'
+  | 'OTHER';
+
+interface ReportSchoolReviewParams {
+  schoolId: number;
+  reviewId: number;
+  reason: SchoolReviewReportReason;
+  detail?: string;
+}
+
+/** `POST /schools/{schoolId}/reviews/{reviewId}/reports` — 리뷰당 사용자 1회. OTHER는 detail 필수 */
+function reportSchoolReview({ schoolId, reviewId, reason, detail }: ReportSchoolReviewParams) {
+  return api
+    .post(`schools/${schoolId}/reviews/${reviewId}/reports`, {
+      json: {
+        reason,
+        ...(detail ? { detail } : {}),
+      },
+    })
+    .json<ApiResponse<unknown>>();
+}
+
 /** `PUT /schools/{schoolId}/reviews/{reviewId}/helpful?enabled=` — 도움돼요 적용/취소. 본인 리뷰는 불가 */
 function setSchoolReviewHelpful({ schoolId, reviewId, enabled }: SetSchoolReviewHelpfulParams) {
   return api
@@ -145,13 +174,17 @@ export {
   getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
+  reportSchoolReview,
   setSchoolReviewHelpful,
   updateSchoolReview,
 };
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
+  ReportSchoolReviewParams,
+  SchoolReviewHelpful,
   SchoolReviewImageWrite,
+  SchoolReviewReportReason,
   SetSchoolReviewHelpfulParams,
   UpdateSchoolReviewParams,
 };

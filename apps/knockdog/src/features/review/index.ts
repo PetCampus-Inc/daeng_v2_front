@@ -6,6 +6,7 @@ export { MyWrittenReviewList } from './ui/MyWrittenReviewList';
 export {
   useCreateSchoolReview,
   useDeleteSchoolReview,
+  useReportSchoolReview,
   useSetSchoolReviewHelpful,
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
