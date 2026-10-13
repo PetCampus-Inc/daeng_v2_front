@@ -1,3 +1,4 @@
+import type { SchoolReviewSummary } from '@entities/review';
 import { cn } from '@knockdog/ui/lib';
 
 import {
@@ -12,13 +13,14 @@ const SCORE_LABELS = [5, 4, 3, 2, 1] as const;
 
 interface ReviewRatingSummaryProps {
   counts: ReviewRatingCounts;
+  summary?: SchoolReviewSummary | null;
 }
 
-function ReviewRatingSummary({ counts }: ReviewRatingSummaryProps) {
-  const total = getReviewTotalCount(counts);
-  const score = getReviewAverageScore(counts);
-  const filledStarCount = getReviewFilledStarCount(score);
-  const percents = getReviewScorePercents(counts);
+function ReviewRatingSummary({ counts, summary }: ReviewRatingSummaryProps) {
+  const total = summary?.totalCount ?? getReviewTotalCount(counts);
+  const score = summary?.averageRating ?? getReviewAverageScore(counts);
+  const filledStarCount = summary?.filledStarCount ?? getReviewFilledStarCount(score);
+  const percents = summary?.percentages ?? getReviewScorePercents(counts);
   const maxPercent = Math.max(...percents);
 
   return (

@@ -4,6 +4,7 @@ import {
   createReviewableSchoolsQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
+  createSchoolReviewSummaryQueryOptions,
   parseSchoolId,
   type MySchoolReview,
   type SchoolReview,
@@ -97,6 +98,15 @@ function useReviewableSchoolsQuery(enabled = true) {
   });
 }
 
+function useSchoolReviewSummaryQuery(schoolId: string | number | null | undefined, enabled = true) {
+  const parsedSchoolId = parseSchoolId(schoolId);
+
+  return useQuery({
+    ...createSchoolReviewSummaryQueryOptions(parsedSchoolId ?? 0),
+    enabled: enabled && parsedSchoolId != null,
+  });
+}
+
 function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) {
   const parsedReviewId = parseSchoolId(reviewId);
 
@@ -106,4 +116,10 @@ function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) 
   });
 }
 
-export { useMySchoolReviewQuery, useReviewableSchoolsQuery, useSchoolReviewDetailQuery, useSchoolReviewQuery };
+export {
+  useMySchoolReviewQuery,
+  useReviewableSchoolsQuery,
+  useSchoolReviewDetailQuery,
+  useSchoolReviewQuery,
+  useSchoolReviewSummaryQuery,
+};

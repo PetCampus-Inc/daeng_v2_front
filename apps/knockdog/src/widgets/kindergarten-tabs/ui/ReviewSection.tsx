@@ -21,13 +21,14 @@ import {
   useKnockdogRatingCounts,
   useKnockdogReviews,
   useSchoolReviewQuery,
+  useSchoolReviewSummaryQuery,
   useDeleteSchoolReview,
   useSetSchoolReviewHelpful,
   type KnockdogReviewSort,
   type ReviewRatingCounts,
 } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
-import { parseSchoolId, type ReviewListResponse } from '@entities/review';
+import { parseSchoolId, type ReviewListResponse, type SchoolReviewSummary } from '@entities/review';
 import { useUserStore } from '@entities/user';
 import { useInfiniteScroll } from '@shared/lib';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -58,7 +59,13 @@ function ReviewSourceLabel({ label, count }: { label: string; count: number | nu
 }
 
 /** `?tab=후기&knockdogReview=1` 이면 리뷰 목록과 작성 화면 플로우를 보여 준다. */
-function KnockdogReviewEmpty({ onWriteClick }: { onWriteClick: () => void }) {
+function KnockdogReviewEmpty({
+  onWriteClick,
+  writeLabel,
+}: {
+  onWriteClick: () => void;
+  writeLabel: string | null;
+}) {
   return (
     <div className='flex flex-col items-center gap-7 px-4'>
       <div className='mt-8 flex size-[200px] items-center justify-center'>
@@ -69,40 +76,48 @@ function KnockdogReviewEmpty({ onWriteClick }: { onWriteClick: () => void }) {
         <p className='body1-bold text-text-primary'>유치원 이용 후기를 남겨 주세요!</p>
         <p className='body2-regular text-text-secondary'>리뷰가 다른 보호자에게 도움이 될 수 있어요.</p>
       </div>
-      <ActionButton type='button' onClick={onWriteClick}>
-        리뷰 작성하기
-      </ActionButton>
+      {writeLabel ? (
+        <ActionButton type='button' onClick={onWriteClick}>
+          {writeLabel}
+        </ActionButton>
+      ) : null}
     </div>
   );
 }
 
 function KnockdogReviewHeader({
   counts,
+  summary,
   totalCount,
   sort,
   onSortChange,
   onWriteClick,
+  writeLabel,
 }: {
   counts: ReviewRatingCounts;
+  summary?: SchoolReviewSummary | null;
   totalCount?: number;
   sort: KnockdogReviewSort;
   onSortChange: (sort: KnockdogReviewSort) => void;
   onWriteClick: () => void;
+  writeLabel: string | null;
 }) {
-  const total = totalCount ?? getReviewTotalCount(counts);
+  const total = summary?.totalCount ?? totalCount ?? getReviewTotalCount(counts);
 
   return (
     <>
       <div className='flex flex-col gap-4 px-4 pb-4'>
-        <ReviewRatingSummary counts={counts} />
+        <ReviewRatingSummary counts={counts} summary={summary} />
         <div className='flex items-center gap-2'>
           <div className='min-w-0 flex-1'>
             <p className='caption1-semibold text-text-primary'>유치원 이용 후기를 남겨 주세요!</p>
             <p className='caption1-regular text-text-secondary'>작성한 리뷰가 다른 보호자에게 도움이 될 수 있어요.</p>
           </div>
-          <ActionButton type='button' size='small' className='shrink-0' onClick={onWriteClick}>
-            리뷰 작성하기
-          </ActionButton>
+          {writeLabel ? (
+            <ActionButton type='button' size='small' className='shrink-0' onClick={onWriteClick}>
+              {writeLabel}
+            </ActionButton>
+          ) : null}
         </div>
       </div>
       <div className='flex items-center justify-between px-4 py-2'>
@@ -171,6 +186,10 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     isFetchingNextPage: isFetchingNextSchoolReviewPage,
     fetchNextPage: fetchNextSchoolReviewPage,
   } = useSchoolReviewQuery(schoolId, knockdogReviewSort, !showKnockdogReviewMock);
+  const { data: schoolReviewSummary, isLoading: isSchoolReviewSummaryLoading } = useSchoolReviewSummaryQuery(
+    schoolId,
+    !showKnockdogReviewMock
+  );
   const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
   const { mutate: setSchoolReviewHelpful } = useSetSchoolReviewHelpful();
   const { lastElementCallback: schoolReviewLastElementCallback } = useInfiniteScroll({
@@ -187,14 +206,32 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     ? knockdogRatingCountsFromStore
     : toReviewRatingCounts(schoolReviews);
   const hasSchool = parseSchoolId(schoolId) != null;
+  const summary = showKnockdogReviewMock ? null : schoolReviewSummary;
   const knockdogReviewCount = showKnockdogReviewMock
     ? getReviewTotalCount(knockdogRatingCountsFromStore)
     : !hasSchool
       ? 0
-      : schoolReviewData
-        ? schoolReviewTotal
-        : null;
+      : summary
+        ? summary.totalCount
+        : schoolReviewData
+          ? schoolReviewTotal
+          : null;
+  const writeLabel = showKnockdogReviewMock
+    ? '리뷰 작성하기'
+    : isSchoolReviewSummaryLoading
+      ? '리뷰 작성하기'
+      : !summary || summary.canWrite
+        ? '리뷰 작성하기'
+        : summary.myReviewId != null
+          ? '리뷰 수정하기'
+          : null;
   const handleWriteReview = () => {
+    if (!showKnockdogReviewMock && isSchoolReviewSummaryLoading) return;
+    if (summary && !summary.canWrite) {
+      if (summary.myReviewId == null) return;
+      push({ pathname: `/kindergarten/${id}/edit-review/${summary.myReviewId}` });
+      return;
+    }
     push({ pathname: `/kindergarten/${id}/write-review` });
   };
   const handleEditReview = (reviewId: string) => {
@@ -286,16 +323,18 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     if (!showKnockdogReviewMock && isSchoolReviewError) return <ErrorState />;
 
     const reviews = showKnockdogReviewMock ? sortedKnockdogReviews : schoolReviews;
-    if (reviews.length === 0) return <KnockdogReviewEmpty onWriteClick={handleWriteReview} />;
+    if (reviews.length === 0) return <KnockdogReviewEmpty onWriteClick={handleWriteReview} writeLabel={writeLabel} />;
 
     return (
       <>
         <KnockdogReviewHeader
           counts={knockdogRatingCounts}
+          summary={summary}
           totalCount={showKnockdogReviewMock ? undefined : schoolReviewTotal}
           sort={knockdogReviewSort}
           onSortChange={setKnockdogReviewSort}
           onWriteClick={handleWriteReview}
+          writeLabel={writeLabel}
         />
         <KnockdogReviewList
           reviews={reviews}

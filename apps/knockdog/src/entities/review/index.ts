@@ -6,6 +6,7 @@ export {
   getMyReviews,
   getReviewableSchools,
   getSchoolReview,
+  getSchoolReviewSummary,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
   reportSchoolReview,
@@ -29,6 +30,7 @@ export {
   createReviewableSchoolsQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
+  createSchoolReviewSummaryQueryOptions,
   mySchoolReviewQueryKeys,
   schoolReviewQueryKeys,
 } from './config/schoolReviewQueryKeys';
@@ -44,4 +46,5 @@ export type {
   SchoolReviewPage,
   SchoolReviewPhoto,
   SchoolReviewSort,
+  SchoolReviewSummary,
 } from './model/schoolReview';

@@ -15,6 +15,7 @@ export {
   useReviewableSchoolsQuery,
   useSchoolReviewDetailQuery,
   useSchoolReviewQuery,
+  useSchoolReviewSummaryQuery,
 } from './api/useSchoolReviewQuery';
 export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';

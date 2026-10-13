@@ -247,6 +247,63 @@ function toMySchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page:
   };
 }
 
+interface SchoolReviewSummaryDistributionDto {
+  rating?: number | null;
+  count?: number | null;
+  percentage?: number | null;
+}
+
+interface SchoolReviewSummaryDto {
+  schoolId?: number | string | null;
+  totalCount?: number | null;
+  averageRating?: number | null;
+  filledStarCount?: number | null;
+  distribution?: SchoolReviewSummaryDistributionDto[] | null;
+  canWrite?: boolean | null;
+  myReviewId?: number | string | null;
+}
+
+interface SchoolReviewSummary {
+  totalCount: number;
+  averageRating: number;
+  filledStarCount: number;
+  /** 5점부터 1점 순 */
+  percentages: [number, number, number, number, number];
+  canWrite: boolean;
+  myReviewId: number | null;
+}
+
+function toPercent(value: number | null | undefined) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function toSchoolReviewSummary(dto: SchoolReviewSummaryDto | null | undefined): SchoolReviewSummary {
+  const averageRating =
+    typeof dto?.averageRating === 'number' && Number.isFinite(dto.averageRating)
+      ? Math.round(Math.min(5, Math.max(0, dto.averageRating)) * 10) / 10
+      : 0;
+  const filledStarCount =
+    typeof dto?.filledStarCount === 'number' && Number.isFinite(dto.filledStarCount)
+      ? Math.min(5, Math.max(0, Math.floor(dto.filledStarCount)))
+      : Math.floor(averageRating);
+  const percentages: [number, number, number, number, number] = [0, 0, 0, 0, 0];
+
+  for (const item of dto?.distribution ?? []) {
+    if (typeof item.rating !== 'number' || item.rating < 1 || item.rating > 5) continue;
+    percentages[5 - item.rating] = toPercent(item.percentage);
+  }
+
+  return {
+    totalCount: toCount(dto?.totalCount),
+    averageRating,
+    filledStarCount,
+    percentages,
+    canWrite: dto?.canWrite !== false,
+    myReviewId: parseSchoolId(dto?.myReviewId),
+  };
+}
+
 function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: number): SchoolReviewPage {
   const items = (dto?.items ?? []).flatMap((item) => {
     const review = toSchoolReview(item);
@@ -268,6 +325,7 @@ export {
   toReviewableSchool,
   toSchoolReview,
   toSchoolReviewPage,
+  toSchoolReviewSummary,
 };
 export type {
   MySchoolReview,
@@ -280,4 +338,6 @@ export type {
   SchoolReviewPage,
   SchoolReviewPhoto,
   SchoolReviewSort,
+  SchoolReviewSummary,
+  SchoolReviewSummaryDto,
 };

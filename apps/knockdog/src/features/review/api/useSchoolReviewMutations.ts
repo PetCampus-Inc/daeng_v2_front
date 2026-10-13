@@ -59,7 +59,7 @@ function patchSchoolReviewHelpful(
   queryClient.setQueriesData<InfiniteData<SchoolReviewPage>>(
     { queryKey: [...schoolReviewQueryKeys.all, schoolId] },
     (current) => {
-      if (!current) return current;
+      if (!current || !Array.isArray(current.pages)) return current;
 
       return {
         ...current,

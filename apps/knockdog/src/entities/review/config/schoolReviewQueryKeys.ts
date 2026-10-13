@@ -1,4 +1,4 @@
-import { getMyReviews, getReviewableSchools, getSchoolReview, getSchoolReviews } from '../api/schoolReview';
+import { getMyReviews, getReviewableSchools, getSchoolReview, getSchoolReviewSummary, getSchoolReviews } from '../api/schoolReview';
 import type { MySchoolReviewPage, SchoolReviewPage, SchoolReviewSort } from '../model/schoolReview';
 
 const schoolReviewQueryKeys = {
@@ -7,6 +7,7 @@ const schoolReviewQueryKeys = {
     [...schoolReviewQueryKeys.all, schoolId, 'detail', reviewId] as const,
   infinite: (schoolId: number, sort: SchoolReviewSort) =>
     [...schoolReviewQueryKeys.all, schoolId, sort, 'infinite'] as const,
+  summary: (schoolId: number) => [...schoolReviewQueryKeys.all, schoolId, 'summary'] as const,
 } as const;
 
 function createSchoolReviewDetailQueryOptions(schoolId: number, reviewId: number) {
@@ -39,6 +40,13 @@ function createMySchoolReviewInfiniteQueryOptions(sort: SchoolReviewSort) {
   };
 }
 
+function createSchoolReviewSummaryQueryOptions(schoolId: number) {
+  return {
+    queryKey: schoolReviewQueryKeys.summary(schoolId),
+    queryFn: () => getSchoolReviewSummary(schoolId),
+  };
+}
+
 function createSchoolReviewInfiniteQueryOptions(schoolId: number, sort: SchoolReviewSort) {
   return {
     queryKey: schoolReviewQueryKeys.infinite(schoolId, sort),
@@ -54,6 +62,7 @@ export {
   createReviewableSchoolsQueryOptions,
   createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
+  createSchoolReviewSummaryQueryOptions,
   mySchoolReviewQueryKeys,
   schoolReviewQueryKeys,
 };

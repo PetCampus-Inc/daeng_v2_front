@@ -6,10 +6,12 @@ import {
   toReviewableSchool,
   toSchoolReview,
   toSchoolReviewPage,
+  toSchoolReviewSummary,
   type SchoolReviewItemDto,
   type ReviewableSchoolDto,
   type SchoolReviewListDto,
   type SchoolReviewSort,
+  type SchoolReviewSummaryDto,
 } from '../model/schoolReview';
 
 interface GetSchoolReviewsParams {
@@ -36,6 +38,14 @@ async function getSchoolReview({ schoolId, reviewId }: GetSchoolReviewParams) {
     if (error instanceof ApiError && error.status === 404) return null;
     throw error;
   }
+}
+
+/** `GET /schools/{schoolId}/reviews/summary` — 전체 수, 평균, 별점 분포, 내 작성 가능 여부 */
+function getSchoolReviewSummary(schoolId: number) {
+  return api
+    .get(`schools/${schoolId}/reviews/summary`)
+    .json<ApiResponse<SchoolReviewSummaryDto | null>>()
+    .then((response) => toSchoolReviewSummary(response.data));
 }
 
 /** `GET /schools/{schoolId}/reviews` — 유치원 앱 리뷰 목록 */
@@ -205,6 +215,7 @@ export {
   getMyReviews,
   getReviewableSchools,
   getSchoolReview,
+  getSchoolReviewSummary,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
   reportSchoolReview,
