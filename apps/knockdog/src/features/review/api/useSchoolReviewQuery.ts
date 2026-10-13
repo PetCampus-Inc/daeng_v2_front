@@ -1,5 +1,6 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
+  createSchoolReviewDetailQueryOptions,
   createSchoolReviewInfiniteQueryOptions,
   parseSchoolId,
   type SchoolReview,
@@ -51,4 +52,13 @@ function useSchoolReviewQuery(
   });
 }
 
-export { useSchoolReviewQuery };
+function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) {
+  const parsedReviewId = parseSchoolId(reviewId);
+
+  return useQuery({
+    ...createSchoolReviewDetailQueryOptions(schoolId ?? 0, parsedReviewId ?? 0),
+    enabled: schoolId != null && parsedReviewId != null,
+  });
+}
+
+export { useSchoolReviewDetailQuery, useSchoolReviewQuery };

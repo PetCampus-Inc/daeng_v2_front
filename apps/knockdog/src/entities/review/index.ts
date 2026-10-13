@@ -3,6 +3,7 @@ export { getReviewList, type ReviewListResponse } from './api/review';
 export {
   createSchoolReview,
   deleteSchoolReview,
+  getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
   setSchoolReviewHelpful,
@@ -17,9 +18,13 @@ export type {
 } from './api/schoolReview';
 
 // config
-export { createSchoolReviewInfiniteQueryOptions, schoolReviewQueryKeys } from './config/schoolReviewQueryKeys';
+export {
+  createSchoolReviewDetailQueryOptions,
+  createSchoolReviewInfiniteQueryOptions,
+  schoolReviewQueryKeys,
+} from './config/schoolReviewQueryKeys';
 
 // model
 export type { Review } from './model/review';
-export { parseSchoolId } from './model/schoolReview';
+export { parseSchoolId, toSchoolReview } from './model/schoolReview';
 export type { SchoolReview, SchoolReviewPage, SchoolReviewPhoto, SchoolReviewSort } from './model/schoolReview';

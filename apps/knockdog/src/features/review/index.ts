@@ -4,13 +4,12 @@ export { KnockdogReviewList } from './ui/KnockdogReviewList';
 export { KnockdogReviewSortButton } from './ui/KnockdogReviewSortButton';
 export { MyWrittenReviewList } from './ui/MyWrittenReviewList';
 export {
-  useCachedSchoolReview,
   useCreateSchoolReview,
   useDeleteSchoolReview,
   useSetSchoolReviewHelpful,
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
-export { useSchoolReviewQuery } from './api/useSchoolReviewQuery';
+export { useSchoolReviewDetailQuery, useSchoolReviewQuery } from './api/useSchoolReviewQuery';
 export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';
 export { sortMyWrittenReviews } from './lib/sortMyWrittenReviews';

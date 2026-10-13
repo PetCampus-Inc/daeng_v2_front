@@ -19,7 +19,7 @@ import {
   saveKnockdogReviewEdit,
   saveMyWrittenReviewEdit,
   markWrittenKindergartenReview,
-  useCachedSchoolReview,
+  useSchoolReviewDetailQuery,
   useCreateSchoolReview,
   useKnockdogReviews,
   useMyWrittenReviews,
@@ -238,7 +238,7 @@ export function WriteReviewPage() {
     enabled: Boolean(id),
   });
   const schoolId = parseSchoolId(kindergarten?.schoolId);
-  const { review: apiReview, isLoading: isApiReviewLoading } = useCachedSchoolReview(schoolId, reviewId);
+  const { data: apiReview, isLoading: isApiReviewLoading } = useSchoolReviewDetailQuery(schoolId, reviewId);
   const { mutateAsync: updateSchoolReview } = useUpdateSchoolReview();
   const [isComplete, setIsComplete] = useState(false);
   const [rating, setRating] = useState(editingReview?.score ?? 0);

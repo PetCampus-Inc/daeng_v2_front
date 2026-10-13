@@ -1,8 +1,10 @@
-import { api, type ApiResponse } from '@shared/api';
+import { ApiError, api, type ApiResponse } from '@shared/api';
 
 import {
   SCHOOL_REVIEW_PAGE_SIZE,
+  toSchoolReview,
   toSchoolReviewPage,
+  type SchoolReviewItemDto,
   type SchoolReviewListDto,
   type SchoolReviewPage,
   type SchoolReviewSort,
@@ -13,6 +15,25 @@ interface GetSchoolReviewsParams {
   sort: SchoolReviewSort;
   page: number;
   size?: number;
+}
+
+interface GetSchoolReviewParams {
+  schoolId: number;
+  reviewId: number;
+}
+
+/** `GET /schools/{schoolId}/reviews/{reviewId}` — 앱 리뷰 상세. 없으면 null */
+async function getSchoolReview({ schoolId, reviewId }: GetSchoolReviewParams) {
+  try {
+    const response = await api
+      .get(`schools/${schoolId}/reviews/${reviewId}`)
+      .json<ApiResponse<SchoolReviewItemDto | null>>();
+
+    return response.data ? toSchoolReview(response.data) : null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 /** `GET /schools/{schoolId}/reviews` — 유치원 앱 리뷰 목록 */
@@ -121,6 +142,7 @@ function postSchoolReviewImageUploadUrls(schoolId: number, files: SchoolReviewIm
 export {
   createSchoolReview,
   deleteSchoolReview,
+  getSchoolReview,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
   setSchoolReviewHelpful,

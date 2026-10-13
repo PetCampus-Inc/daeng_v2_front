@@ -159,5 +159,12 @@ function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: n
   };
 }
 
-export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toSchoolReviewPage };
-export type { SchoolReview, SchoolReviewListDto, SchoolReviewPage, SchoolReviewPhoto, SchoolReviewSort };
+export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toSchoolReview, toSchoolReviewPage };
+export type {
+  SchoolReview,
+  SchoolReviewItemDto,
+  SchoolReviewListDto,
+  SchoolReviewPage,
+  SchoolReviewPhoto,
+  SchoolReviewSort,
+};
