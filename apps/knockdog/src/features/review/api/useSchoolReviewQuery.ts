@@ -60,6 +60,7 @@ function useSchoolReviewQuery(
       })),
     }),
     enabled: enabled && parsedSchoolId != null,
+    refetchOnMount: 'always',
   });
 }
 
@@ -104,6 +105,7 @@ function useSchoolReviewSummaryQuery(schoolId: string | number | null | undefine
   return useQuery({
     ...createSchoolReviewSummaryQueryOptions(parsedSchoolId ?? 0),
     enabled: enabled && parsedSchoolId != null,
+    refetchOnMount: 'always',
   });
 }
 
