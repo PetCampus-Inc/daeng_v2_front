@@ -75,6 +75,7 @@ function toMyWrittenReview(review: MySchoolReview): MyWrittenReview {
     createdAt: review.createdAt,
     content: review.content,
     images: review.photos.flatMap((photo) => (photo.url ? [photo.url] : [])),
+    helpfulCount: review.helpfulCount,
   };
 }
 
