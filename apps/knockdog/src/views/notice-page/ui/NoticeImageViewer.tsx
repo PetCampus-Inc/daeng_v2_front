@@ -63,7 +63,7 @@ function NoticeImageViewer({ isOpen, close, src }: NoticeImageViewerProps) {
           iconClassName='size-6'
           className='text-text-primary-inverse absolute top-[max(16px,env(safe-area-inset-top))] right-4 z-10 size-10'
         />
-        <div className='absolute inset-x-4 top-16 bottom-16'>
+        <div className='pointer-events-none absolute inset-x-4 top-16 bottom-16'>
           <Image src={src} alt='유치원에서 함께 있는 강아지들' fill sizes='100vw' className='object-contain' />
         </div>
       </div>
