@@ -13,6 +13,7 @@ export { useCreateInquiryMutation } from './api/useCreateInquiryMutation';
 export { useResolveInquiryMutation } from './api/useResolveInquiryMutation';
 export { formatInquiryDateTime } from './lib/formatInquiryDateTime';
 export { INQUIRY_STATUS_LABEL, InquiryStatusBadge } from './ui/InquiryStatusBadge';
+export { InquiryImageScroller } from './ui/InquiryImageScroller';
 export {
   INQUIRY_BODY_MAX_LENGTH,
   INQUIRY_ERROR_CODE,

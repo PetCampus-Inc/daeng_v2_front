@@ -56,13 +56,8 @@ function InquiryListPage() {
     query.refetch();
   };
 
-  const handleItemClick = (_item: InquiryListItemDto) => {
-    // @todo 문의 상세 화면 구현 후 이동 연결
-    toast({
-      title: '현재 문의 상세는 준비 중이에요',
-      nativeTitle: '현재 문의 상세는 준비 중이에요',
-      position: 'bottom',
-    });
+  const handleItemClick = (item: InquiryListItemDto) => {
+    push({ pathname: route.mypage.inquiry.detail.root.replace('[id]', String(item.id)) });
   };
 
   const handleWriteInquiry = () => {
