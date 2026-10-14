@@ -66,6 +66,7 @@ export function useTabScrollAlignment(
 
     if (pendingScrollRef.current) {
       pendingScrollRef.current = false;
+      if (scrollContainerRef?.current?.dataset.preserveScroll === 'true') return;
       scrollToTabs();
     }
   }, [recalculateSpacer, scrollToTabs]);

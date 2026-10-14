@@ -2,6 +2,7 @@
 
 import { useState, type MouseEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQueryState } from 'nuqs';
 import { overlay } from 'overlay-kit';
 import {
   autoUpdate,
@@ -31,7 +32,7 @@ import { memoQueryKeys, type MemoResponse } from '@entities/memo';
 import { useNativeBackToClose } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
-import { useMemoMutation } from '../api/useMemoMutation';
+import { useDeleteMemoMutation } from '../api/useMemoMutation';
 
 interface MemoMoreMenuProps {
   targetId: string;
@@ -46,9 +47,13 @@ interface DeleteMemoContext {
 
 function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [, setActiveTab] = useQueryState('tab', {
+    defaultValue: '기본정보',
+    shallow: true,
+  });
   const queryClient = useQueryClient();
   const queryKey = memoQueryKeys.byTargetId(targetId);
-  const { mutate: updateMemo, isPending } = useMemoMutation({
+  const { mutate: deleteMemo, isPending } = useDeleteMemoMutation({
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<MemoResponse>(queryKey);
@@ -74,7 +79,7 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
       });
     },
     onSuccess: () => {
-      queryClient.setQueryData(queryKey, EMPTY_MEMO);
+      void setActiveTab('메모');
       toast({
         type: 'success',
         nativeTitle: '자유메모를 삭제했어요',
@@ -134,7 +139,7 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
             <AlertDialogAction
               onClick={() => {
                 close();
-                updateMemo({ targetId, content: '', photoKeys: [] });
+                deleteMemo({ targetId });
               }}
             >
               삭제

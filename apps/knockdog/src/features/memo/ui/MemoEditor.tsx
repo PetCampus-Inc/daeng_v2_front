@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Textarea, TextareaInput } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+import { countMemoCharacters, MEMO_MAX_CONTENT_LENGTH, truncateMemoContent } from '@entities/memo';
 
 interface MemoEditorProps {
   defaultValue?: string;
@@ -16,7 +17,7 @@ interface MemoEditorProps {
 
 export function MemoEditor({
   defaultValue = '',
-  maxLength = 2000,
+  maxLength = MEMO_MAX_CONTENT_LENGTH,
   value,
   onChange,
   className = '',
@@ -26,7 +27,8 @@ export function MemoEditor({
   const currentValue = (value !== undefined ? value : memo) ?? '';
 
   const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
+    const newValue = truncateMemoContent(e.target.value, maxLength);
+    e.target.value = newValue;
     setMemo(newValue);
     onChange?.(e);
   };
@@ -34,7 +36,7 @@ export function MemoEditor({
   return (
     <div className={cn('relative', className)}>
       <div className='body2-regular sticky top-[65px] mb-7 flex items-center justify-center bg-white py-3'>
-        <span className='text-text-accent'>{currentValue.length}</span>
+        <span className='text-text-accent'>{countMemoCharacters(currentValue)}</span>
         <span>/{maxLength}</span>
       </div>
 
@@ -42,7 +44,6 @@ export function MemoEditor({
         <TextareaInput
           readOnly={readOnly}
           value={currentValue}
-          maxLength={maxLength}
           placeholder='메모를 작성해 주세요'
           onChange={handleMemoChange}
         />

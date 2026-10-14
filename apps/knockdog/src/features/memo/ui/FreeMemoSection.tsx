@@ -19,35 +19,29 @@ interface FreeMemoSectionProps {
   kindergartenId?: string;
 }
 
-function parseMemoWrittenAt(value: string | number[] | null | undefined) {
-  if (value == null) return null;
+function memoScrollStorageKey(kindergartenId: string) {
+  return `kindergarten-memo-scroll:${kindergartenId}`;
+}
 
-  if (Array.isArray(value)) {
-    // Jackson LocalDateTime [y,m,d,h,mi,s,nano] — KST wall time
-    const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = value;
-    if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') return null;
+function findScrollParent(element: HTMLElement | null) {
+  let current = element?.parentElement;
 
-    const millisecond = typeof nano === 'number' && Number.isFinite(nano) ? Math.floor(nano / 1_000_000) : 0;
-    const date = new Date(
-      Date.UTC(
-        year,
-        month - 1,
-        day,
-        (typeof hour === 'number' ? hour : 0) - 9,
-        typeof minute === 'number' ? minute : 0,
-        typeof second === 'number' ? second : 0,
-        millisecond
-      )
-    );
-
-    return Number.isNaN(date.getTime()) ? null : date;
+  while (current) {
+    const overflow = getComputedStyle(current).overflowY;
+    if (overflow === 'auto' || overflow === 'scroll') return current;
+    current = current.parentElement;
   }
 
+  return null;
+}
+
+function parseMemoWrittenAt(value: string | null | undefined) {
+  if (!value) return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function formatMemoWrittenAt(value: string | number[] | null | undefined) {
+function formatMemoWrittenAt(value: string | null | undefined) {
   const date = parseMemoWrittenAt(value);
   if (!date) return '';
 
@@ -62,20 +56,59 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
   const params = useParams<{ id: string }>();
   const id = kindergartenId ?? params?.id;
   const { push } = useStackNavigation();
+  const sectionRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLParagraphElement>(null);
   const [expandedContent, setExpandedContent] = useState<string | null>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const { data: memo = { content: '', photos: [] }, isLoading } = useMemoQuery(id ?? '', { enabled: !!id });
   const content = memo.content ?? '';
   const isExpanded = expandedContent === content;
-  const writtenAtLabel = formatMemoWrittenAt(memo.updatedAt ?? memo.modifiedAt ?? memo.writtenAt ?? memo.createdAt);
-  const photoUrls = memo.photos.map((photo) => toMemoPhotoUrl(photo.key));
-  const hasMemo = content.trim().length > 0 || memo.photos.length > 0;
+  const writtenAtLabel = formatMemoWrittenAt(memo.updatedAt ?? memo.createdAt);
+  const photoUrls = (memo.photos ?? []).map((photo) => toMemoPhotoUrl(photo.key));
+  const hasMemo = content.trim().length > 0 || (memo.photos ?? []).length > 0;
 
   const handleEditMemo = () => {
     if (!id) return;
+
+    const scrollParent = findScrollParent(sectionRef.current);
+    if (scrollParent) sessionStorage.setItem(memoScrollStorageKey(id), String(scrollParent.scrollTop));
     push({ pathname: `/kindergarten/${id}/edit-memo` });
   };
+
+  useLayoutEffect(() => {
+    if (!id) return;
+
+    const restoreSavedScroll = () => {
+      if (document.visibilityState === 'hidden' || !sectionRef.current) return;
+
+      const raw = sessionStorage.getItem(memoScrollStorageKey(id));
+      if (raw == null) return;
+
+      const scrollTop = Number(raw);
+      const scrollParent = findScrollParent(sectionRef.current);
+      if (!scrollParent || !Number.isFinite(scrollTop)) return;
+
+      sessionStorage.removeItem(memoScrollStorageKey(id));
+      scrollParent.dataset.preserveScroll = 'true';
+      const restoreScroll = () => {
+        scrollParent.scrollTop = scrollTop;
+      };
+      restoreScroll();
+      requestAnimationFrame(() => requestAnimationFrame(restoreScroll));
+      window.setTimeout(() => {
+        delete scrollParent.dataset.preserveScroll;
+      }, 500);
+    };
+
+    restoreSavedScroll();
+    window.addEventListener('pageshow', restoreSavedScroll);
+    document.addEventListener('visibilitychange', restoreSavedScroll);
+
+    return () => {
+      window.removeEventListener('pageshow', restoreSavedScroll);
+      document.removeEventListener('visibilitychange', restoreSavedScroll);
+    };
+  }, [id]);
 
   const handleImageClick = (index: number) => {
     overlay.open(({ isOpen, close }) => (
@@ -110,7 +143,7 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
 
   if (isLoading) {
     return (
-      <div>
+      <div ref={sectionRef}>
         {header}
         <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
       </div>
@@ -119,7 +152,7 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
 
   if (!hasMemo) {
     return (
-      <div>
+      <div ref={sectionRef}>
         {header}
         <p className='body1-medium text-text-tertiary p-4 text-center'>자유롭게 유치원 메모를 작성하세요</p>
         <div className='pb-4'>
@@ -132,7 +165,7 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
   }
 
   return (
-    <div>
+    <div ref={sectionRef}>
       {header}
       <div className='flex flex-col gap-3'>
         {writtenAtLabel ? <p className='body2-semibold text-text-secondary'>{writtenAtLabel}</p> : null}
