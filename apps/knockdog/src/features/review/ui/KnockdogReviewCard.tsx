@@ -23,6 +23,7 @@ import type { KnockdogReview } from '../config/knockdogReviewMock';
 
 import { useNativeBackToClose } from '@shared/lib/bridge';
 import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
+import { Skeleton } from '@shared/ui/skeleton';
 
 interface KnockdogReviewCardProps {
   review: KnockdogReview;
@@ -125,14 +126,38 @@ function isRemoteReviewImage(src: string) {
 }
 
 function ReviewImage({ src, sizes }: { src: string; sizes: string }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   if (isRemoteReviewImage(src)) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- 기기에서 고른 사진·원격 URL
-      <img src={src} alt='' className='size-full object-cover' />
+      <>
+        {!isLoaded ? <Skeleton className='absolute inset-0 size-full' /> : null}
+        {/* eslint-disable-next-line @next/next/no-img-element -- 기기에서 고른 사진·원격 URL */}
+        <img
+          src={src}
+          alt=''
+          className={cn('size-full object-cover transition-opacity', isLoaded ? 'opacity-100' : 'opacity-0')}
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
+        />
+      </>
     );
   }
 
-  return <Image src={src} alt='' fill sizes={sizes} className='object-cover' />;
+  return (
+    <>
+      {!isLoaded ? <Skeleton className='absolute inset-0 size-full' /> : null}
+      <Image
+        src={src}
+        alt=''
+        fill
+        sizes={sizes}
+        className={cn('object-cover transition-opacity', isLoaded ? 'opacity-100' : 'opacity-0')}
+        onLoadingComplete={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
+      />
+    </>
+  );
 }
 
 function KnockdogReviewImages({ images }: { images: string[] }) {
@@ -160,7 +185,7 @@ function KnockdogReviewImages({ images }: { images: string[] }) {
         onClick={() => handleSelect(0)}
         className='bg-bg-100 relative h-60 w-full overflow-hidden rounded-lg'
       >
-        <ReviewImage src={image} sizes='358px' />
+        <ReviewImage key={image} src={image} sizes='358px' />
       </button>
     );
   }
