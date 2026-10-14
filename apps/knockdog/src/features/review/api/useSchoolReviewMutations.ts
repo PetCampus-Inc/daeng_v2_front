@@ -14,10 +14,16 @@ import {
   type SetSchoolReviewHelpfulParams,
   type UpdateSchoolReviewParams,
 } from '@entities/review';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 function invalidateSchoolReviews(queryClient: QueryClient, schoolId: number) {
+  const schoolReviewKey = [...schoolReviewQueryKeys.all, schoolId] as const;
+
+  syncWebViewQuery.invalidate(schoolReviewKey);
+  syncWebViewQuery.invalidate(mySchoolReviewQueryKeys.all);
+
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: [...schoolReviewQueryKeys.all, schoolId] }),
+    queryClient.invalidateQueries({ queryKey: schoolReviewKey }),
     queryClient.invalidateQueries({ queryKey: mySchoolReviewQueryKeys.all }),
   ]);
 }

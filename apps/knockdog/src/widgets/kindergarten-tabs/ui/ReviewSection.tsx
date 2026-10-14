@@ -166,7 +166,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
 
   const { push } = useStackNavigation();
   const showKnockdogReviewMock = knockdogReview === '1';
-  const [sourceOverride, setSourceOverride] = useState<ReviewSource | null>(null);
+  const [source, setSource] = useState<ReviewSource>('knockdog');
   const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
   const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -175,7 +175,6 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   const reporterId = useUserStore((state) => state.user?.userId) ?? '';
   const knockdogReviews = useKnockdogReviews();
   const knockdogRatingCountsFromStore = useKnockdogRatingCounts();
-  const source = sourceOverride ?? (showKnockdogReviewMock ? 'knockdog' : 'blog');
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
   const {
@@ -380,7 +379,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   };
 
   const handleSourceChange = (value: string) => {
-    if (value === 'knockdog' || value === 'blog') setSourceOverride(value);
+    if (value === 'knockdog' || value === 'blog') setSource(value);
   };
 
   const renderContent = () => {
