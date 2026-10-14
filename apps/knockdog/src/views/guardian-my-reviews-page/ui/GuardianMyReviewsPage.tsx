@@ -53,7 +53,10 @@ function GuardianMyReviewsPage() {
 
   const handleWriteReview = () => {
     const handleSelectKindergarten = (kindergartenId: string) => {
-      push({ pathname: `/kindergarten/${kindergartenId}/write-review` });
+      push({
+        pathname: `/kindergarten/${kindergartenId}/write-review`,
+        params: { completionDestination: 'review-list' },
+      });
     };
 
     overlay.open(({ isOpen, close }) => (

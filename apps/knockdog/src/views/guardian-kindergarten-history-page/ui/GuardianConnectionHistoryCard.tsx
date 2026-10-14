@@ -76,7 +76,10 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
 
   const handleWriteReview = () => {
     if (!isKindergartenId(item.placeId)) return;
-    push({ pathname: `/kindergarten/${item.placeId}/write-review` });
+    push({
+      pathname: `/kindergarten/${item.placeId}/write-review`,
+      params: { completionDestination: 'review-list' },
+    });
   };
 
   return (
