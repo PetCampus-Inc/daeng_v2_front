@@ -1,5 +1,11 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { updateAnswers, checklistQueryKeys, type UpdateAnswersRequest } from '@entities/checklist';
+import {
+  deleteChecklist,
+  updateAnswers,
+  checklistQueryKeys,
+  type DeleteChecklistRequest,
+  type UpdateAnswersRequest,
+} from '@entities/checklist';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 const useChecklistMutate = (options?: Omit<UseMutationOptions<unknown, Error, UpdateAnswersRequest>, 'mutationFn'>) => {
@@ -31,4 +37,24 @@ const useChecklistMutate = (options?: Omit<UseMutationOptions<unknown, Error, Up
   });
 };
 
-export { useChecklistMutate };
+const useDeleteChecklistMutation = <TContext = unknown>(
+  options?: Omit<UseMutationOptions<void, Error, DeleteChecklistRequest, TContext>, 'mutationFn'>
+) => {
+  const queryClient = useQueryClient();
+  const { onSuccess: userOnSuccess, onSettled: userOnSettled, ...restOptions } = options ?? {};
+
+  return useMutation<void, Error, DeleteChecklistRequest, TContext>({
+    ...restOptions,
+    mutationFn: deleteChecklist,
+    onSuccess: (data, variables, context, mutationContext) => {
+      queryClient.invalidateQueries({ queryKey: checklistQueryKeys.answers(variables.targetId) });
+      userOnSuccess?.(data, variables, context, mutationContext);
+    },
+    onSettled: (data, error, variables, context, mutationContext) => {
+      syncWebViewQuery.invalidate(checklistQueryKeys.answers(variables.targetId));
+      userOnSettled?.(data, error, variables, context, mutationContext);
+    },
+  });
+};
+
+export { useChecklistMutate, useDeleteChecklistMutation };

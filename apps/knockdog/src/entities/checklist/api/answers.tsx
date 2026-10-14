@@ -1,11 +1,10 @@
-import type { AnswerGroup } from '../model/checklist';
-import { api } from '@shared/api';
+import type { Answer, AnswerGroup } from '../model/checklist';
+import { toSavedChecklistAnswers } from '../lib/checklistAnswers';
+import { ApiError, api } from '@shared/api';
 
-// @TODO API Response, 타입 정의 필요
 interface AnswersResponse {
   sections: AnswerGroup[];
-  updatedAt?: string | number[] | null;
-  modifiedAt?: string | number[] | null;
+  updatedAt?: string | null;
 }
 
 interface ApiResponse {
@@ -15,19 +14,42 @@ interface ApiResponse {
   result: AnswersResponse;
 }
 
+const EMPTY_CHECKLIST: AnswersResponse = { sections: [], updatedAt: null };
+
+function normalizeAnswer(answer: Answer): Answer {
+  const memo = answer.memo?.trim() ?? '';
+
+  return {
+    ...answer,
+    questionId: String(answer.questionId),
+    question: answer.question ?? '',
+    value: answer.value == null ? '' : String(answer.value),
+    memo: memo || undefined,
+  };
+}
+
 const getAnswers = async (targetId: string): Promise<AnswersResponse> => {
-  const response = await api.get('memo/checklist/answer', {
-    searchParams: {
-      targetId,
-    },
-  });
-  const data = await response.json<ApiResponse>();
-  
-  if (data.success) {
-    return data.result;
+  try {
+    const response = await api.get('memo/checklist/answer', {
+      searchParams: {
+        targetId,
+      },
+    });
+    const data = await response.json<ApiResponse>();
+
+    if (!data.success) throw new Error(data.message || '체크리스트를 불러올 수 없습니다');
+
+    return {
+      sections: (data.result.sections ?? []).map((section) => ({
+        ...section,
+        answers: (section.answers ?? []).map(normalizeAnswer),
+      })),
+      updatedAt: data.result.updatedAt ?? null,
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return EMPTY_CHECKLIST;
+    throw error;
   }
-  
-  throw new Error(data.message || '체크리스트를 불러올 수 없습니다');
 };
 
 interface UpdateAnswersRequest {
@@ -41,7 +63,7 @@ const updateAnswers = async ({ targetId, answers }: UpdateAnswersRequest) => {
       targetId,
     },
     json: {
-      answers,
+      answers: toSavedChecklistAnswers(answers),
     },
   });
   const data = await response.json<ApiResponse>();

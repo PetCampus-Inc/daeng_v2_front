@@ -15,8 +15,13 @@ import {
   AlertDialogTitle,
 } from '@knockdog/ui';
 
-import { ChecklistEditor, useChecklistAnswersQuery, useChecklistMutate } from '@features/checklist';
-import type { AnswerGroup } from '@entities/checklist';
+import {
+  ChecklistEditor,
+  useChecklistAnswersQuery,
+  useChecklistMutate,
+  useDeleteChecklistMutation,
+} from '@features/checklist';
+import { toSavedChecklistAnswers, type AnswerGroup } from '@entities/checklist';
 
 import { Header } from '@widgets/Header';
 
@@ -75,7 +80,9 @@ function EditChecklistPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const { data: answers } = useChecklistAnswersQuery(id ?? '');
-  const { mutateAsync: updateAnswers, isPending } = useChecklistMutate();
+  const { mutateAsync: updateAnswers, isPending: isSaving } = useChecklistMutate();
+  const { mutateAsync: deleteChecklist, isPending: isDeleting } = useDeleteChecklistMutation();
+  const isPending = isSaving || isDeleting;
   const [draftAnswers, setDraftAnswers] = useState<AnswerGroup[] | null>(null);
   const [editorKey, setEditorKey] = useState(0);
 
@@ -89,18 +96,21 @@ function EditChecklistPage() {
     if (!id || !isDirty || isPending) return;
 
     try {
-      await updateAnswers({
-        targetId: id,
-        answers: currentAnswers.flatMap((section) =>
-          section.answers
-            .filter((answer) => answer.value.trim() !== '' || (answer.memo?.trim() ?? '') !== '')
-            .map((answer) => ({
-              questionId: answer.questionId,
-              value: answer.value,
-              memo: answer.memo?.trim() ?? '',
-            }))
-        ),
-      });
+      const nextAnswers = toSavedChecklistAnswers(
+        currentAnswers.flatMap((section) =>
+          section.answers.map((answer) => ({
+            questionId: answer.questionId,
+            value: answer.value,
+            memo: answer.memo,
+          }))
+        )
+      );
+
+      if (nextAnswers.length === 0) {
+        await deleteChecklist({ targetId: id });
+      } else {
+        await updateAnswers({ targetId: id, answers: nextAnswers });
+      }
       showSaveSuccessToast();
       back();
     } catch {
@@ -134,7 +144,7 @@ function EditChecklistPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>작성한 내용을 초기화할까요?</AlertDialogTitle>
-            <AlertDialogDescription>현재 선택한 항목의 체크가 모두 해제됩니다.</AlertDialogDescription>
+            <AlertDialogDescription>작성한 체크와 메모가 모두 삭제됩니다.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>닫기</AlertDialogCancel>
