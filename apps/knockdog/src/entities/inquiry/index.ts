@@ -11,6 +11,8 @@ export { useInquiryDetailQuery } from './api/useInquiryDetailQuery';
 export { useAdditionalInquiryMutation } from './api/useAdditionalInquiryMutation';
 export { useCreateInquiryMutation } from './api/useCreateInquiryMutation';
 export { useResolveInquiryMutation } from './api/useResolveInquiryMutation';
+export { formatInquiryDateTime } from './lib/formatInquiryDateTime';
+export { INQUIRY_STATUS_LABEL, InquiryStatusBadge } from './ui/InquiryStatusBadge';
 export {
   INQUIRY_BODY_MAX_LENGTH,
   INQUIRY_ERROR_CODE,

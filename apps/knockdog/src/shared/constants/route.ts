@@ -120,6 +120,10 @@ const route = {
         root: '/mypage/guardian/reviews',
       },
     },
+    inquiry: {
+      /** 1:1 문의 내역 페이지 */
+      root: '/mypage/inquiry',
+    },
     pet: {
       add: {
         /** 강아지 프로필 추가 페이지 */

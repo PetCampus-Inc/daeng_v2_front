@@ -1,21 +1,22 @@
 import { ActionButton } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
-import { useOpenExternalLink } from '@shared/lib/bridge';
+import { useOpenExternalLink, useStackNavigation } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
+import { route } from '@shared/constants/route';
 
 export interface QuickActionsSectionProps {
   className?: string;
-  contactUrl?: string;
   onContactClick?: () => void;
   onSuggestionClick?: () => void;
   onChatRoomClick?: () => void;
 }
 
-function QuickActionsSection({ className, contactUrl = EXTERNAL_LINKS.CONTACT, onChatRoomClick }: QuickActionsSectionProps) {
+function QuickActionsSection({ className, onChatRoomClick }: QuickActionsSectionProps) {
   const openExternalLink = useOpenExternalLink();
+  const { push } = useStackNavigation();
 
   const handleContactClick = () => {
-    openExternalLink(contactUrl);
+    push({ pathname: route.mypage.inquiry.root });
   };
 
   const handleSuggestionClick = () => {
