@@ -6,7 +6,7 @@ export {
   postInquiryImageUploadUrls,
   postResolveInquiry,
 } from './api/inquiry';
-export { useInquiriesInfiniteQuery } from './api/useInquiriesInfiniteQuery';
+export { inquiriesQueryKeys, useInquiriesInfiniteQuery } from './api/useInquiriesInfiniteQuery';
 export { useInquiryDetailQuery } from './api/useInquiryDetailQuery';
 export { useAdditionalInquiryMutation } from './api/useAdditionalInquiryMutation';
 export { useCreateInquiryMutation } from './api/useCreateInquiryMutation';

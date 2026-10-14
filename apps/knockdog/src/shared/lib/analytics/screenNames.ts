@@ -56,6 +56,7 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { path: '/mypage/guardian/profile', name: '보호자 프로필' },
   { path: '/mypage/guardian/reviews', name: '내 리뷰 관리' },
   { path: '/mypage/inquiry', name: '1:1 문의' },
+  { path: '/mypage/inquiry/write', name: '1:1 문의 작성' },
   { path: '/mypage/kindergarten', name: '원장 유치원 정보' },
   { path: '/mypage/kindergarten/edit', name: '유치원 운영 정보 수정' },
   { path: '/mypage/kindergarten/edit/address', name: '유치원 주소 수정' },

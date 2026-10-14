@@ -123,6 +123,10 @@ const route = {
     inquiry: {
       /** 1:1 문의 내역 페이지 */
       root: '/mypage/inquiry',
+      write: {
+        /** 1:1 문의 작성 페이지 */
+        root: '/mypage/inquiry/write',
+      },
     },
     pet: {
       add: {

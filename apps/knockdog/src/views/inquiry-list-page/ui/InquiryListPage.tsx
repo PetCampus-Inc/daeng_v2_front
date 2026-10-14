@@ -11,13 +11,14 @@ import { useInquiriesInfiniteQuery, type InquiryListItemDto } from '@entities/in
 import { useUserStore } from '@entities/user';
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 import { DelayedLoadingSpinner, InfiniteScrollFooter } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
 /** 1:1 문의 내역 목록. 계정의 전체 문의를 최근 활동일시 순으로 보여주고 스크롤하면 이어서 불러온다 */
 function InquiryListPage() {
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const query = useInquiriesInfiniteQuery({ userId });
 
@@ -65,12 +66,7 @@ function InquiryListPage() {
   };
 
   const handleWriteInquiry = () => {
-    // @todo 문의 작성 화면 구현 후 이동 연결
-    toast({
-      title: '현재 문의하기는 준비 중이에요',
-      nativeTitle: '현재 문의하기는 준비 중이에요',
-      position: 'bottom',
-    });
+    push({ pathname: route.mypage.inquiry.write.root });
   };
 
   return (
