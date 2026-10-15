@@ -8,6 +8,18 @@ interface ReviewRatingCounts {
 
 const SCORE_KEYS = ['score5', 'score4', 'score3', 'score2', 'score1'] as const;
 
+function toReviewRatingCounts(reviews: { score: number }[]) {
+  const counts: ReviewRatingCounts = { score5: 0, score4: 0, score3: 0, score2: 0, score1: 0 };
+
+  reviews.forEach((review) => {
+    const rounded = Math.min(5, Math.max(1, Math.round(review.score)));
+    const key = SCORE_KEYS[5 - rounded];
+    if (key) counts[key] += 1;
+  });
+
+  return counts;
+}
+
 function getReviewTotalCount(counts: ReviewRatingCounts) {
   return SCORE_KEYS.reduce((total, key) => total + counts[key], 0);
 }
@@ -49,5 +61,11 @@ function getReviewScorePercents(counts: ReviewRatingCounts) {
   return percents;
 }
 
-export { getReviewAverageScore, getReviewFilledStarCount, getReviewScorePercents, getReviewTotalCount };
+export {
+  getReviewAverageScore,
+  getReviewFilledStarCount,
+  getReviewScorePercents,
+  getReviewTotalCount,
+  toReviewRatingCounts,
+};
 export type { ReviewRatingCounts };

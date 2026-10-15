@@ -142,7 +142,12 @@ function CompareKindergartenDetailPage() {
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}
           {/* 탭 */}
-          <KindergartenTabs scrollableDivRef={scrollableDivRef} showNearSection={false} />
+          <KindergartenTabs
+            kindergartenId={id}
+            schoolId={kindergartenMain.schoolId}
+            scrollableDivRef={scrollableDivRef}
+            showNearSection={false}
+          />
         </div>
       </div>
       {/* 하단 고정 버튼 영역 */}

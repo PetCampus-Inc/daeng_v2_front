@@ -3,7 +3,14 @@ export { ReviewRatingSummary } from './ui/ReviewRatingSummary';
 export { KnockdogReviewList } from './ui/KnockdogReviewList';
 export { KnockdogReviewSortButton } from './ui/KnockdogReviewSortButton';
 export { MyWrittenReviewList } from './ui/MyWrittenReviewList';
-export { getReviewTotalCount } from './lib/reviewRating';
+export {
+  useCachedSchoolReview,
+  useCreateSchoolReview,
+  useDeleteSchoolReview,
+  useUpdateSchoolReview,
+} from './api/useSchoolReviewMutations';
+export { useSchoolReviewQuery } from './api/useSchoolReviewQuery';
+export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';
 export { sortMyWrittenReviews } from './lib/sortMyWrittenReviews';
 export { MOCK_KNOCKDOG_REVIEWS } from './config/knockdogReviewMock';

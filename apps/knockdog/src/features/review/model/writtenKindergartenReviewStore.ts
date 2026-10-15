@@ -16,7 +16,7 @@ function getWrittenKindergartenPlaceIds() {
   return placeIds;
 }
 
-/** 리뷰 작성 API 연동 전. 등록이 끝나면 같은 유치원 작성 버튼을 숨긴다. */
+/** 등록이 끝나면 같은 유치원 작성 버튼을 숨긴다. 목록 재조회 전의 세션 표시. */
 function markWrittenKindergartenReview(placeId: string) {
   if (!placeId || placeIds.has(placeId)) return;
 

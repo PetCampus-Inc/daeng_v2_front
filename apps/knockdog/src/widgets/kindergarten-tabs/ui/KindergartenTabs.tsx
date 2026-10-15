@@ -14,6 +14,7 @@ import { useTabScrollAlignment } from '../model/useTabScrollAlignment';
 
 interface KindergartenTabsProps {
   kindergartenId?: string;
+  schoolId?: number | string | null;
   scrollableDivRef?: React.RefObject<HTMLDivElement | null>;
   showNearSection?: boolean;
   hideDetailTabs?: boolean;
@@ -23,6 +24,7 @@ interface KindergartenTabsProps {
 
 function KindergartenTabs({
   kindergartenId,
+  schoolId,
   scrollableDivRef,
   showNearSection = true,
   hideDetailTabs = false,
@@ -102,7 +104,7 @@ function KindergartenTabs({
           <PricingSection kindergartenId={kindergartenId} />
         </TabsContent>
         <TabsContent value='후기'>
-          <ReviewSection kindergartenId={kindergartenId} onScrollTop={scrollToTabs} />
+          <ReviewSection kindergartenId={kindergartenId} schoolId={schoolId} onScrollTop={scrollToTabs} />
         </TabsContent>
         <TabsContent value='메모'>
           <MemoSection kindergartenId={kindergartenId} />

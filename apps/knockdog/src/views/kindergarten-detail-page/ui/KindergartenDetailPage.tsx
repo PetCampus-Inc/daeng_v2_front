@@ -256,6 +256,7 @@ function KindergartenDetailPage() {
             {/* 탭 */}
             <KindergartenTabs
               kindergartenId={id}
+              schoolId={kindergartenMain.schoolId}
               scrollableDivRef={scrollableDivRef}
               hideDetailTabs={isClosed}
               value={activeTab}

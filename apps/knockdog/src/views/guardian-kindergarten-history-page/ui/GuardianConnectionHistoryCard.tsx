@@ -9,7 +9,7 @@ import { formatKoreanHistoryDate } from '@views/guardian-kindergarten-history-pa
 import type { GuardianConnectionHistoryItem } from '@views/guardian-kindergarten-history-page/model/guardianConnectionHistory';
 import { useGuardianConnectionDisconnect } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionDisconnect';
 import { isKindergartenId } from '@entities/kindergarten';
-import { toast } from '@shared/ui/toast';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
@@ -58,6 +58,7 @@ function WriteReviewButton({ onClick }: { onClick: () => void }) {
 }
 
 function GuardianConnectionHistoryCard({ item, hasWrittenReview }: GuardianConnectionHistoryCardProps) {
+  const { push } = useStackNavigation();
   const content = guardianConnectionHistoryContent;
   /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
   const [localDisconnectedAt, setLocalDisconnectedAt] = useState<string | null>(null);
@@ -76,13 +77,7 @@ function GuardianConnectionHistoryCard({ item, hasWrittenReview }: GuardianConne
 
   const handleWriteReview = () => {
     if (!isKindergartenId(item.placeId)) return;
-    // @todo API 연동 후 작성 화면으로 이동
-    // push({ pathname: `/kindergarten/${item.placeId}/write-review` });
-    toast({
-      title: '현재 리뷰 작성하기는 준비 중이에요',
-      nativeTitle: '현재 리뷰 작성하기는 준비 중이에요',
-      position: 'bottom',
-    });
+    push({ pathname: `/kindergarten/${item.placeId}/write-review` });
   };
 
   return (
