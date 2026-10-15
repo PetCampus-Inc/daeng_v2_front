@@ -29,7 +29,7 @@ import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
-import { openConfirmDialog, useStackNavigation, useOpenExternalLink } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { EXTERNAL_LINKS } from '@shared/constants';
 import {
   route,
@@ -44,14 +44,9 @@ import {
   SettingsSection,
 } from '@views/mypage/ui/MypageLazySections';
 
-const MYPAGE_EXTERNAL_LINKS = {
-  NOTICE: 'https://app.notion.com/p/3876c15f67fb807f9444c1545c5753c5?source=copy_link',
-};
-
 function MypageContent() {
   const { push, reset } = useStackNavigation();
   const user = useUserStore((state) => state.user);
-  const openExternalLink = useOpenExternalLink();
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
@@ -95,10 +90,6 @@ function MypageContent() {
 
   const handleAddDog = () => {
     push({ pathname: '/mypage/pet-add' });
-  };
-
-  const handleOpenLink = (key: keyof typeof MYPAGE_EXTERNAL_LINKS) => {
-    openExternalLink(MYPAGE_EXTERNAL_LINKS[key]);
   };
 
   const handleKindergartenClick = () => {
@@ -336,7 +327,7 @@ function MypageContent() {
           otherInfoTitle={ownerMypageContent.otherInfoTitle}
           logoutLabel={ownerMypageContent.logoutLabel}
           withdrawLabel={ownerMypageContent.withdrawLabel}
-          onNoticeClick={() => handleOpenLink('NOTICE')}
+          onNoticeClick={() => push({ pathname: route.mypage.notice.root })}
           onNotificationClick={() => push({ pathname: '/alarm-setting' })}
           onTermsClick={() => push({ pathname: '/terms' })}
           onLogoutClick={handleLogoutClick}

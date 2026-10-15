@@ -74,6 +74,14 @@ const route = {
   mypage: {
     /** 마이 페이지 */
     root: '/mypage',
+    notice: {
+      /** 공지사항 목록 */
+      root: '/mypage/notice',
+      detail: {
+        /** 공지사항 상세 */
+        root: '/mypage/notice/[id]',
+      },
+    },
     kindergarten: {
       /** 원장 유치원 정보 페이지 */
       root: '/mypage/kindergarten',
@@ -258,6 +266,20 @@ const route = {
   notification: {
     /** 알림함 */
     root: '/notification',
+  },
+  terms: {
+    service: {
+      /** 서비스 이용약관 상세 */
+      root: '/terms/service',
+    },
+    privacy: {
+      /** 개인정보 처리방침 상세 */
+      root: '/terms/privacy',
+    },
+    location: {
+      /** 위치기반서비스 이용약관 상세 */
+      root: '/terms/location',
+    },
   },
   compare: {
     /** 보호자 유치원 탭 */
