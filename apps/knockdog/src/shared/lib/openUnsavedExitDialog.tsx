@@ -62,10 +62,17 @@ function openUnsavedExitDialog({
       return;
     }
 
+    // overlay-kit은 같은 id의 닫힌 overlay가 남아 있으면 처음 렌더 함수로 다시 연다.
+    // 이전 화면의 문구·onConfirm이 재사용되지 않도록 남은 것을 지우고 새로 연다
+    overlay.unmount(UNSAVED_EXIT_OVERLAY_ID);
+    // 새 overlay는 isOpen=false로 한 번 그려진 뒤 열린다. 그 첫 렌더에서 플래그를 내리지 않도록 열린 적이 있는지 기억한다
+    let hasOpened = false;
     overlay.open(
       ({ isOpen, close }) => {
         // OverlayProvider popstate 등으로 외부 close 시에도 플래그 해제
-        if (!isOpen) {
+        if (isOpen) {
+          hasOpened = true;
+        } else if (hasOpened) {
           isExitDialogOpen = false;
         }
 
