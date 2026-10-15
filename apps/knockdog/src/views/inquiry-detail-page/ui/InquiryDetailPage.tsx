@@ -23,11 +23,13 @@ import {
   INQUIRY_ERROR_CODE,
   InquiryStatusBadge,
   inquiriesQueryKeys,
+  parseInquiryId,
   useInquiryDetailQuery,
   useResolveInquiryMutation,
 } from '@entities/inquiry';
 import { useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
+import { route } from '@shared/constants/route';
 import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -41,17 +43,11 @@ const RESOLVE_DIALOG = {
   confirmLabel: '종료하기',
 };
 
-/** 경로의 문의 id. 숫자가 아니면 null */
-function parseInquiryId(value: string | string[] | undefined) {
-  const id = Number(value);
-  return typeof value === 'string' && Number.isInteger(id) && id > 0 ? id : null;
-}
-
 /** 문의 상세. 사용자 문의와 운영자 답변을 시간순으로 보여주고, 해결 완료 전에는 추가 문의·종료 버튼을 둔다 */
 function InquiryDetailPage() {
   const params = useParams<{ id: string }>();
   const inquiryId = parseInquiryId(params.id);
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const query = useInquiryDetailQuery({ userId, inquiryId });
@@ -136,12 +132,8 @@ function InquiryDetailPage() {
   };
 
   const handleAdditionalInquiryClick = () => {
-    // @todo 추가 문의 작성 화면 구현 후 이동 연결
-    toast({
-      title: '현재 추가 문의는 준비 중이에요',
-      nativeTitle: '현재 추가 문의는 준비 중이에요',
-      position: 'bottom',
-    });
+    if (inquiryId === null) return;
+    push({ pathname: route.mypage.inquiry.detail.write.root.replace('[id]', String(inquiryId)) });
   };
 
   return (

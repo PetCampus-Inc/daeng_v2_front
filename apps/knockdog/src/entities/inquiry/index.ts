@@ -7,11 +7,12 @@ export {
   postResolveInquiry,
 } from './api/inquiry';
 export { inquiriesQueryKeys, useInquiriesInfiniteQuery } from './api/useInquiriesInfiniteQuery';
-export { useInquiryDetailQuery } from './api/useInquiryDetailQuery';
+export { inquiryDetailQueryKey, useInquiryDetailQuery } from './api/useInquiryDetailQuery';
 export { useAdditionalInquiryMutation } from './api/useAdditionalInquiryMutation';
 export { useCreateInquiryMutation } from './api/useCreateInquiryMutation';
 export { useResolveInquiryMutation } from './api/useResolveInquiryMutation';
 export { formatInquiryDateTime } from './lib/formatInquiryDateTime';
+export { parseInquiryId } from './lib/parseInquiryId';
 export { INQUIRY_STATUS_LABEL, InquiryStatusBadge } from './ui/InquiryStatusBadge';
 export { InquiryImageScroller } from './ui/InquiryImageScroller';
 export {

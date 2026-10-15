@@ -130,6 +130,10 @@ const route = {
       detail: {
         /** 1:1 문의 상세 페이지 */
         root: '/mypage/inquiry/[id]',
+        write: {
+          /** 1:1 추가 문의 작성 페이지 */
+          root: '/mypage/inquiry/[id]/write',
+        },
       },
     },
     pet: {
