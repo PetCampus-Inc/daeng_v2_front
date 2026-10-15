@@ -7,6 +7,7 @@ import { Header } from '@widgets/Header';
 import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
 import { SupportUserTypeField, type SupportUserType } from '@features/support';
 import { IDEA_CONTENT_MAX_LENGTH, useIdeaSuggestionMutation } from '@entities/idea-suggestion';
+import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
@@ -15,7 +16,7 @@ import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
 /** 아이디어 제안 작성. 사용자 유형과 내용만 받는다 (PRD 7.5) */
 function IdeaSuggestionWritePage() {
-  const { back } = useStackNavigation();
+  const { back, replace } = useStackNavigation();
   const submitSuggestion = useIdeaSuggestionMutation();
 
   // 사용자 유형 초기값: 진입한 마이페이지의 현재 모드. 모드를 확인하기 전에는 미선택으로 둔다
@@ -72,10 +73,9 @@ function IdeaSuggestionWritePage() {
 
     try {
       await submitSuggestion.mutateAsync({ idempotencyKey, body: payload });
-      // @todo 제안 완료 화면 구현 후 완료 화면으로 이동 (작성 화면은 히스토리에서 제외)
+      // 작성 화면으로 돌아가 다시 보내지 못하게 완료 화면으로 바꿔 연다 (PRD 7.6)
       releaseAndLeave(() => {
-        back();
-        toast('현재 제안 완료 화면은 준비 중이에요');
+        replace({ pathname: route.mypage.ideaSuggestion.complete.root });
       });
     } catch {
       // 실패하면 화면과 사용자 유형·내용을 그대로 둔다

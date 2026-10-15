@@ -139,6 +139,10 @@ const route = {
     ideaSuggestion: {
       /** 아이디어 제안 작성 페이지 */
       root: '/mypage/idea-suggestion',
+      complete: {
+        /** 아이디어 제안 완료 페이지 */
+        root: '/mypage/idea-suggestion/complete',
+      },
     },
     pet: {
       add: {
