@@ -19,6 +19,7 @@ import { useBasePoint, useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 const REPORT_REASONS = [
@@ -76,6 +77,8 @@ function ReviewReportPage() {
     data: kindergarten,
     isPending: isKindergartenPending,
     isFetching: isKindergartenFetching,
+    isError: isKindergartenError,
+    refetch: refetchKindergarten,
   } = useKindergartenMainQuery({
     id,
     lng: coord?.lng ?? FALLBACK_COORD.lng,
@@ -85,10 +88,13 @@ function ReviewReportPage() {
   const schoolId = parseSchoolId(kindergarten?.schoolId);
   const reviews = useKnockdogReviews();
   const localReview = !isApiReview && reviewId ? (reviews.find((item) => item.id === reviewId) ?? null) : null;
-  const { data: apiReview, isLoading: isApiReviewLoading } = useSchoolReviewDetailQuery(
-    isApiReview ? schoolId : null,
-    reviewId ?? undefined
-  );
+  const {
+    data: apiReview,
+    isLoading: isApiReviewLoading,
+    isError: isApiReviewError,
+    isFetching: isApiReviewFetching,
+    refetch: refetchApiReview,
+  } = useSchoolReviewDetailQuery(isApiReview ? schoolId : null, reviewId ?? undefined);
   const reportSchoolReview = useReportSchoolReview();
   const review = useMemo(() => {
     if (localReview) {
@@ -121,14 +127,16 @@ function ReviewReportPage() {
   const isDetailAtLimit = detail.length >= MAX_DETAIL_LENGTH;
   const canSubmit = reason !== '' && (!isEtcReason || detail.trim().length > 0) && !isSubmitting;
 
+  const isReviewLoadError = isApiReview && (isKindergartenError || isApiReviewError);
+
   useEffect(() => {
     if (!id || !reviewId) {
       back();
       return;
     }
-    if (isResolvingReview || review) return;
+    if (isResolvingReview || review || isReviewLoadError) return;
     back();
-  }, [back, id, isResolvingReview, review, reviewId]);
+  }, [back, id, isResolvingReview, isReviewLoadError, review, reviewId]);
 
   useLayoutEffect(() => {
     const element = detailRef.current;
@@ -200,7 +208,31 @@ function ReviewReportPage() {
     }
   };
 
-  if (!review) return null;
+  if (!review) {
+    if (!isReviewLoadError) return null;
+
+    const handleRetryReviewLoad = () => {
+      if (isKindergartenError) {
+        refetchKindergarten().catch(() => undefined);
+        return;
+      }
+      refetchApiReview().catch(() => undefined);
+    };
+
+    return (
+      <div className='bg-bg-0 relative flex h-full min-h-0 flex-1 flex-col'>
+        <Header>
+          <Header.BackButton onClick={handleBack} />
+          <Header.Title>리뷰 신고하기</Header.Title>
+        </Header>
+        <PageError
+          layout='inline'
+          isRetrying={isKindergartenFetching || isApiReviewFetching}
+          onRetry={handleRetryReviewLoad}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className='bg-bg-0 relative flex h-full min-h-0 flex-1 flex-col'>
