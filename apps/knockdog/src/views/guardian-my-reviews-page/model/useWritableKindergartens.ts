@@ -3,6 +3,8 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 
+import { useReviewableSchoolsQuery } from '@features/review';
+
 import {
   getGuardianSchoolConnections,
   guardianSchoolConnectionsQueryKey,
@@ -23,7 +25,7 @@ function sortByConnectedAt(connections: GuardianSchoolConnection[]) {
   });
 }
 
-/** 강아지 등록 순 → 연결 순. 같은 유치원은 한 번만, 리뷰 작성 가능한 placeId만. */
+/** 강아지 등록 순 → 연결 순. 수정 화면 placeId 조회용. 같은 유치원은 한 번만. */
 function collectWritableKindergartens(
   petIds: string[],
   connectionsByPetId: Map<string, GuardianSchoolConnection[]>
@@ -51,6 +53,24 @@ function collectWritableKindergartens(
   }
 
   return kindergartens;
+}
+
+function useReviewableKindergartens() {
+  const query = useReviewableSchoolsQuery();
+  const kindergartens = useMemo(
+    () =>
+      (query.data ?? []).map((school) => ({
+        id: school.placeId,
+        schoolId: school.schoolId == null ? '' : String(school.schoolId),
+        name: school.name,
+        imageUrl: school.imageUrl,
+        attendedUntil:
+          school.isAttending || !school.disconnectedAt ? null : formatDateKey(new Date(school.disconnectedAt)),
+      })),
+    [query.data]
+  );
+
+  return { kindergartens, isLoading: query.isLoading, isError: query.isError };
 }
 
 function useWritableKindergartens() {
@@ -83,4 +103,4 @@ function useWritableKindergartens() {
   return { kindergartens, isLoading };
 }
 
-export { useWritableKindergartens };
+export { useReviewableKindergartens, useWritableKindergartens };

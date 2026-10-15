@@ -15,6 +15,8 @@ interface GuardianConnectionHistoryItem {
   disconnectedAt: string | null;
   /** 뱃지용 총 연결(등원) 일수 */
   attendanceDayCount: number;
+  /** 서버가 이 연결에 리뷰 작성을 허용했는지 */
+  canWriteReview: boolean;
 }
 
 export type { GuardianConnectionHistoryItem };

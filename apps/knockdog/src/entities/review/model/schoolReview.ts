@@ -4,6 +4,10 @@ type SchoolReviewSort = 'LATEST' | 'RATING_HIGH' | 'RATING_LOW' | 'HELPFUL';
 
 interface SchoolReviewItemDto {
   id?: number | null;
+  schoolId?: number | string | null;
+  schoolName?: string | null;
+  schoolAddress?: string | null;
+  schoolThumbnailS3Key?: string | null;
   rating?: number | null;
   content?: string | null;
   createdAt?: string | number[] | null;
@@ -93,6 +97,63 @@ function toDateTime(value: string | number[] | null | undefined) {
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
 }
 
+interface ReviewableSchoolDto {
+  schoolId?: number | string | null;
+  id?: number | string | null;
+  placeId?: number | string | null;
+  kindergartenPlaceId?: number | string | null;
+  name?: string | null;
+  schoolName?: string | null;
+  thumbnailImageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  thumbnailS3Key?: string | null;
+  schoolThumbnailS3Key?: string | null;
+  status?: string | null;
+  disconnectedAt?: string | number[] | null;
+  isCurrentlyAttending?: boolean | null;
+}
+
+interface ReviewableSchool {
+  schoolId: number | null;
+  placeId: string;
+  name: string;
+  imageUrl: string;
+  isAttending: boolean;
+  disconnectedAt: string;
+}
+
+function toPlaceId(value: number | string | null | undefined) {
+  if (typeof value === 'number' && Number.isSafeInteger(value) && value > 0) return String(value);
+  if (typeof value !== 'string') return '';
+
+  const placeId = value.trim();
+  if (!placeId || placeId === 'null' || placeId === 'undefined') return '';
+  return placeId;
+}
+
+/** 연결 이력/리뷰 학교 필드를 함께 읽는다. */
+function toReviewableSchool(dto: ReviewableSchoolDto): ReviewableSchool | null {
+  const placeId = toPlaceId(dto.placeId) || toPlaceId(dto.kindergartenPlaceId);
+  const name = (dto.name ?? dto.schoolName ?? '').trim();
+  if (!placeId || !name) return null;
+
+  const disconnectedAt = toDateTime(dto.disconnectedAt);
+  const isAttending =
+    dto.isCurrentlyAttending === true ||
+    dto.status === 'ACTIVE' ||
+    dto.status === 'approved' ||
+    (dto.isCurrentlyAttending == null && dto.status == null && !disconnectedAt);
+
+  return {
+    schoolId: parseSchoolId(dto.schoolId) ?? parseSchoolId(dto.id),
+    placeId,
+    name,
+    imageUrl: dto.thumbnailImageUrl || dto.thumbnailUrl || dto.schoolThumbnailS3Key || dto.thumbnailS3Key || '',
+    isAttending,
+    disconnectedAt,
+  };
+}
+
 function toImageId(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
@@ -145,6 +206,104 @@ function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
   };
 }
 
+interface MySchoolReview extends SchoolReview {
+  schoolId: number | null;
+  schoolName: string;
+  schoolAddress: string;
+  schoolThumbnailUrl: string;
+}
+
+interface MySchoolReviewPage {
+  totalCount: number;
+  page: number;
+  hasNext: boolean;
+  items: MySchoolReview[];
+}
+
+function toMySchoolReview(dto: SchoolReviewItemDto): MySchoolReview | null {
+  const review = toSchoolReview(dto);
+  if (!review) return null;
+
+  return {
+    ...review,
+    schoolId: parseSchoolId(dto.schoolId),
+    schoolName: dto.schoolName?.trim() || '',
+    schoolAddress: dto.schoolAddress?.trim() || '',
+    schoolThumbnailUrl: resolvePublicImageSrc(dto.schoolThumbnailS3Key),
+  };
+}
+
+function toMySchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: number): MySchoolReviewPage {
+  const items = (dto?.items ?? []).flatMap((item) => {
+    const review = toMySchoolReview(item);
+    return review ? [review] : [];
+  });
+
+  return {
+    totalCount: toCount(dto?.totalCount),
+    page: typeof dto?.page === 'number' && Number.isFinite(dto.page) ? dto.page : page,
+    hasNext: dto?.hasNext === true,
+    items,
+  };
+}
+
+interface SchoolReviewSummaryDistributionDto {
+  rating?: number | null;
+  count?: number | null;
+  percentage?: number | null;
+}
+
+interface SchoolReviewSummaryDto {
+  schoolId?: number | string | null;
+  totalCount?: number | null;
+  averageRating?: number | null;
+  filledStarCount?: number | null;
+  distribution?: SchoolReviewSummaryDistributionDto[] | null;
+  canWrite?: boolean | null;
+  myReviewId?: number | string | null;
+}
+
+interface SchoolReviewSummary {
+  totalCount: number;
+  averageRating: number;
+  filledStarCount: number;
+  /** 5점부터 1점 순 */
+  percentages: [number, number, number, number, number];
+  canWrite: boolean;
+  myReviewId: number | null;
+}
+
+function toPercent(value: number | null | undefined) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function toSchoolReviewSummary(dto: SchoolReviewSummaryDto | null | undefined): SchoolReviewSummary {
+  const averageRating =
+    typeof dto?.averageRating === 'number' && Number.isFinite(dto.averageRating)
+      ? Math.round(Math.min(5, Math.max(0, dto.averageRating)) * 10) / 10
+      : 0;
+  const filledStarCount =
+    typeof dto?.filledStarCount === 'number' && Number.isFinite(dto.filledStarCount)
+      ? Math.min(5, Math.max(0, Math.floor(dto.filledStarCount)))
+      : Math.floor(averageRating);
+  const percentages: [number, number, number, number, number] = [0, 0, 0, 0, 0];
+
+  for (const item of dto?.distribution ?? []) {
+    if (typeof item.rating !== 'number' || item.rating < 1 || item.rating > 5) continue;
+    percentages[5 - item.rating] = toPercent(item.percentage);
+  }
+
+  return {
+    totalCount: toCount(dto?.totalCount),
+    averageRating,
+    filledStarCount,
+    percentages,
+    canWrite: dto?.canWrite !== false,
+    myReviewId: parseSchoolId(dto?.myReviewId),
+  };
+}
+
 function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: number): SchoolReviewPage {
   const items = (dto?.items ?? []).flatMap((item) => {
     const review = toSchoolReview(item);
@@ -159,5 +318,26 @@ function toSchoolReviewPage(dto: SchoolReviewListDto | null | undefined, page: n
   };
 }
 
-export { parseSchoolId, SCHOOL_REVIEW_PAGE_SIZE, toSchoolReviewPage };
-export type { SchoolReview, SchoolReviewListDto, SchoolReviewPage, SchoolReviewPhoto, SchoolReviewSort };
+export {
+  parseSchoolId,
+  SCHOOL_REVIEW_PAGE_SIZE,
+  toMySchoolReviewPage,
+  toReviewableSchool,
+  toSchoolReview,
+  toSchoolReviewPage,
+  toSchoolReviewSummary,
+};
+export type {
+  MySchoolReview,
+  MySchoolReviewPage,
+  ReviewableSchool,
+  ReviewableSchoolDto,
+  SchoolReview,
+  SchoolReviewItemDto,
+  SchoolReviewListDto,
+  SchoolReviewPage,
+  SchoolReviewPhoto,
+  SchoolReviewSort,
+  SchoolReviewSummary,
+  SchoolReviewSummaryDto,
+};

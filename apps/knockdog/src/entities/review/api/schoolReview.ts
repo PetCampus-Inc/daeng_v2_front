@@ -1,11 +1,17 @@
-import { api, type ApiResponse } from '@shared/api';
+import { ApiError, api, type ApiResponse } from '@shared/api';
 
 import {
   SCHOOL_REVIEW_PAGE_SIZE,
+  toMySchoolReviewPage,
+  toReviewableSchool,
+  toSchoolReview,
   toSchoolReviewPage,
+  toSchoolReviewSummary,
+  type SchoolReviewItemDto,
+  type ReviewableSchoolDto,
   type SchoolReviewListDto,
-  type SchoolReviewPage,
   type SchoolReviewSort,
+  type SchoolReviewSummaryDto,
 } from '../model/schoolReview';
 
 interface GetSchoolReviewsParams {
@@ -13,6 +19,33 @@ interface GetSchoolReviewsParams {
   sort: SchoolReviewSort;
   page: number;
   size?: number;
+}
+
+interface GetSchoolReviewParams {
+  schoolId: number;
+  reviewId: number;
+}
+
+/** `GET /schools/{schoolId}/reviews/{reviewId}` — 앱 리뷰 상세. 없으면 null */
+async function getSchoolReview({ schoolId, reviewId }: GetSchoolReviewParams) {
+  try {
+    const response = await api
+      .get(`schools/${schoolId}/reviews/${reviewId}`)
+      .json<ApiResponse<SchoolReviewItemDto | null>>();
+
+    return response.data ? toSchoolReview(response.data) : null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+/** `GET /schools/{schoolId}/reviews/summary` — 전체 수, 평균, 별점 분포, 내 작성 가능 여부 */
+function getSchoolReviewSummary(schoolId: number) {
+  return api
+    .get(`schools/${schoolId}/reviews/summary`)
+    .json<ApiResponse<SchoolReviewSummaryDto | null>>()
+    .then((response) => toSchoolReviewSummary(response.data));
 }
 
 /** `GET /schools/{schoolId}/reviews` — 유치원 앱 리뷰 목록 */
@@ -23,6 +56,35 @@ function getSchoolReviews({ schoolId, sort, page, size = SCHOOL_REVIEW_PAGE_SIZE
     })
     .json<ApiResponse<SchoolReviewListDto>>()
     .then((response) => toSchoolReviewPage(response.data, page));
+}
+
+interface GetMyReviewsParams {
+  sort: SchoolReviewSort;
+  page: number;
+  size?: number;
+}
+
+/** `GET /me/reviews` — 내가 작성한 앱 리뷰. page는 1부터 */
+function getMyReviews({ sort, page, size = SCHOOL_REVIEW_PAGE_SIZE }: GetMyReviewsParams) {
+  return api
+    .get('me/reviews', {
+      searchParams: { sort, page, size },
+    })
+    .json<ApiResponse<SchoolReviewListDto>>()
+    .then((response) => toMySchoolReviewPage(response.data, page));
+}
+
+/** `GET /me/reviewable-schools` — 연결 이력 중 리뷰를 아직 쓰지 않은 유치원 */
+function getReviewableSchools() {
+  return api
+    .get('me/reviewable-schools')
+    .json<ApiResponse<{ schools?: ReviewableSchoolDto[] | null }>>()
+    .then((response) =>
+      (response.data?.schools ?? []).flatMap((school) => {
+        const reviewableSchool = toReviewableSchool(school);
+        return reviewableSchool ? [reviewableSchool] : [];
+      })
+    );
 }
 
 interface SchoolReviewImageWrite {
@@ -79,6 +141,55 @@ function deleteSchoolReview({ schoolId, reviewId }: DeleteSchoolReviewParams) {
   return api.delete(`schools/${schoolId}/reviews/${reviewId}`).json<ApiResponse<unknown>>();
 }
 
+interface SetSchoolReviewHelpfulParams {
+  schoolId: number;
+  reviewId: number;
+  enabled: boolean;
+}
+
+interface SchoolReviewHelpful {
+  helpfulCount?: number | null;
+  helpedByMe?: boolean | null;
+}
+
+type SchoolReviewReportReason =
+  | 'UNRELATED'
+  | 'ADVERTISEMENT'
+  | 'PERSONAL_INFORMATION'
+  | 'ABUSIVE_OR_DISCRIMINATORY'
+  | 'FALSE_OR_MALICIOUS'
+  | 'COPYRIGHT_INFRINGEMENT'
+  | 'REPETITIVE'
+  | 'OTHER';
+
+interface ReportSchoolReviewParams {
+  schoolId: number;
+  reviewId: number;
+  reason: SchoolReviewReportReason;
+  detail?: string;
+}
+
+/** `POST /schools/{schoolId}/reviews/{reviewId}/reports` — 리뷰당 사용자 1회. OTHER는 detail 필수 */
+function reportSchoolReview({ schoolId, reviewId, reason, detail }: ReportSchoolReviewParams) {
+  return api
+    .post(`schools/${schoolId}/reviews/${reviewId}/reports`, {
+      json: {
+        reason,
+        ...(detail ? { detail } : {}),
+      },
+    })
+    .json<ApiResponse<unknown>>();
+}
+
+/** `PUT /schools/{schoolId}/reviews/{reviewId}/helpful?enabled=` — 도움돼요 적용/취소. 본인 리뷰는 불가 */
+function setSchoolReviewHelpful({ schoolId, reviewId, enabled }: SetSchoolReviewHelpfulParams) {
+  return api
+    .put(`schools/${schoolId}/reviews/${reviewId}/helpful`, {
+      searchParams: { enabled },
+    })
+    .json<ApiResponse<SchoolReviewHelpful>>();
+}
+
 interface SchoolReviewImageUploadFile {
   filename: string;
   contentType: string;
@@ -101,13 +212,23 @@ function postSchoolReviewImageUploadUrls(schoolId: number, files: SchoolReviewIm
 export {
   createSchoolReview,
   deleteSchoolReview,
+  getMyReviews,
+  getReviewableSchools,
+  getSchoolReview,
+  getSchoolReviewSummary,
   getSchoolReviews,
   postSchoolReviewImageUploadUrls,
+  reportSchoolReview,
+  setSchoolReviewHelpful,
   updateSchoolReview,
 };
 export type {
   CreateSchoolReviewParams,
   DeleteSchoolReviewParams,
+  ReportSchoolReviewParams,
+  SchoolReviewHelpful,
   SchoolReviewImageWrite,
+  SchoolReviewReportReason,
+  SetSchoolReviewHelpfulParams,
   UpdateSchoolReviewParams,
 };

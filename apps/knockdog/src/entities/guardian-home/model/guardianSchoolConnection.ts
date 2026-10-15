@@ -19,6 +19,7 @@ interface GuardianSchoolConnectionDto {
   connectedAt?: GuardianHomeDateTime | null;
   disconnectedAt?: GuardianHomeDateTime | null;
   attendedDays?: number | null;
+  canWriteReview?: boolean | null;
 }
 
 interface GuardianSchoolConnectionsDto {
@@ -39,6 +40,7 @@ interface GuardianSchoolConnection {
   connectedAt: Date | null;
   disconnectedAt: Date | null;
   attendedDays: number;
+  canWriteReview: boolean;
 }
 
 const STATUS_BY_API: Record<string, GuardianSchoolConnectionStatus> = {
@@ -87,6 +89,7 @@ function toGuardianSchoolConnection(
     connectedAt: parseApiDateTime(dto.connectedAt),
     disconnectedAt: parseApiDateTime(dto.disconnectedAt),
     attendedDays: Number.isFinite(dto.attendedDays) ? Number(dto.attendedDays) : 0,
+    canWriteReview: dto.canWriteReview === true,
   };
 }
 

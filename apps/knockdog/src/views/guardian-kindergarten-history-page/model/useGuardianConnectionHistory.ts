@@ -26,6 +26,7 @@ function toHistoryItem(connection: GuardianSchoolConnection): GuardianConnection
     connectedAt: formatDateKey(connection.connectedAt),
     disconnectedAt: connection.disconnectedAt ? formatDateKey(connection.disconnectedAt) : null,
     attendanceDayCount: connection.attendedDays,
+    canWriteReview: connection.canWriteReview,
   };
 }
 

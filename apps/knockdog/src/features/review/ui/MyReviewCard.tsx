@@ -17,7 +17,7 @@ import {
 import { Icon } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
-import type { MyWrittenReview } from '../config/myWrittenReviewMock';
+import type { MyWrittenReview } from '../config/myWrittenReview';
 
 import { useNativeBackToClose } from '@shared/lib/bridge';
 import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';

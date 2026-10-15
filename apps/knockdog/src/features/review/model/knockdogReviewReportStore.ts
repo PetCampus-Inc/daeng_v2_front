@@ -20,7 +20,7 @@ function hasKnockdogReviewReport(reviewId: string, reporterId: string) {
   return reports.some((report) => report.reviewId === reviewId && report.reporterId === reporterId);
 }
 
-/** 리뷰 신고 API 연동 전 로컬 반영. 같은 사용자가 같은 리뷰를 다시 신고하면 거절한다. */
+/** 리뷰 신고 API. 숫자 id 리뷰는 신고 API를 쓰고, 같은 사용자가 다시 신고하면 거절한다. */
 async function submitKnockdogReviewReport(input: KnockdogReviewReportInput) {
   if (hasKnockdogReviewReport(input.reviewId, input.reporterId)) {
     throw new Error('ALREADY_REPORTED');

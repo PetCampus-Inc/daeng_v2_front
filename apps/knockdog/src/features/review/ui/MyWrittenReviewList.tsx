@@ -21,17 +21,19 @@ import {
   MY_WRITTEN_REVIEW_SORT_OPTIONS,
   type MyWrittenReview,
   type MyWrittenReviewSort,
-} from '../config/myWrittenReviewMock';
+} from '../config/myWrittenReview';
 import { MyReviewCard } from './MyReviewCard';
 
 import { useNativeBackToClose } from '@shared/lib/bridge';
 
 interface MyWrittenReviewListProps {
   reviews: MyWrittenReview[];
+  totalCount?: number;
   sort: MyWrittenReviewSort;
   onSortChange: (sort: MyWrittenReviewSort) => void;
   onEdit: (review: MyWrittenReview) => void;
   onDelete: (review: MyWrittenReview) => void;
+  lastItemRef?: (node: HTMLDivElement | null) => void;
 }
 
 function MyReviewSortButton({
@@ -104,20 +106,28 @@ function MyReviewSortButton({
   );
 }
 
-function MyWrittenReviewList({ reviews, sort, onSortChange, onEdit, onDelete }: MyWrittenReviewListProps) {
+function MyWrittenReviewList({
+  reviews,
+  totalCount = reviews.length,
+  sort,
+  onSortChange,
+  onEdit,
+  onDelete,
+  lastItemRef,
+}: MyWrittenReviewListProps) {
   return (
     <div>
       <div className='flex items-center justify-between px-4 pt-5'>
         <p className='label-semibold flex items-center gap-1'>
           <span className='text-text-tertiary'>작성한 리뷰</span>
-          <span className='text-text-primary'>{reviews.length.toLocaleString('ko-KR')}개</span>
+          <span className='text-text-primary'>{totalCount.toLocaleString('ko-KR')}개</span>
         </p>
         <MyReviewSortButton value={sort} onChange={onSortChange} />
       </div>
 
       <div className='mt-5'>
         {reviews.map((review, index) => (
-          <div key={review.id}>
+          <div key={review.id} ref={index === reviews.length - 1 ? lastItemRef : undefined}>
             {index > 0 ? (
               <div className='px-4'>
                 <Divider />

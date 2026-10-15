@@ -13,7 +13,6 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
-  hasWrittenReview: boolean;
 }
 
 interface DisconnectButtonProps {
@@ -57,7 +56,7 @@ function WriteReviewButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function GuardianConnectionHistoryCard({ item, hasWrittenReview }: GuardianConnectionHistoryCardProps) {
+function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
   const { push } = useStackNavigation();
   const content = guardianConnectionHistoryContent;
   /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
@@ -73,7 +72,7 @@ function GuardianConnectionHistoryCard({ item, hasWrittenReview }: GuardianConne
     ? formatKoreanHistoryDate(disconnectedAt)
     : content.currentLabel;
   const badgeLabel = `${content.attendanceBadgePrefix} ${item.attendanceDayCount}${content.attendanceBadgeSuffix}`;
-  const canWriteReview = isKindergartenId(item.placeId) && !hasWrittenReview;
+  const canWriteReview = item.canWriteReview && isKindergartenId(item.placeId);
 
   const handleWriteReview = () => {
     if (!isKindergartenId(item.placeId)) return;

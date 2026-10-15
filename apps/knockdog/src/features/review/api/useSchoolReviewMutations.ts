@@ -1,48 +1,25 @@
-import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
 import {
   createSchoolReview,
   deleteSchoolReview,
+  mySchoolReviewQueryKeys,
+  reportSchoolReview,
   schoolReviewQueryKeys,
+  setSchoolReviewHelpful,
   updateSchoolReview,
   type CreateSchoolReviewParams,
   type DeleteSchoolReviewParams,
+  type ReportSchoolReviewParams,
   type SchoolReviewPage,
+  type SetSchoolReviewHelpfulParams,
   type UpdateSchoolReviewParams,
 } from '@entities/review';
 
-import { useSchoolReviewQuery } from './useSchoolReviewQuery';
-
-interface SchoolReviewInfiniteData {
-  pages: SchoolReviewPage[];
-}
-
-function findCachedSchoolReview(queryClient: QueryClient, schoolId: number, reviewId: string) {
-  const entries = queryClient.getQueriesData<SchoolReviewInfiniteData>({
-    queryKey: [...schoolReviewQueryKeys.all, schoolId],
-  });
-
-  for (const [, data] of entries) {
-    const review = data?.pages.flatMap((page) => page.items).find((item) => item.id === reviewId);
-    if (review) return review;
-  }
-
-  return undefined;
-}
-
-function useCachedSchoolReview(schoolId: number | null, reviewId?: string) {
-  const queryClient = useQueryClient();
-  const list = useSchoolReviewQuery(schoolId, 'latest', schoolId != null && Boolean(reviewId));
-  const review =
-    schoolId == null || !reviewId ? undefined : findCachedSchoolReview(queryClient, schoolId, reviewId);
-
-  return {
-    review,
-    isLoading: Boolean(reviewId) && schoolId != null && !review && (list.isLoading || list.isFetching),
-  };
-}
-
 function invalidateSchoolReviews(queryClient: QueryClient, schoolId: number) {
-  return queryClient.invalidateQueries({ queryKey: [...schoolReviewQueryKeys.all, schoolId] });
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: [...schoolReviewQueryKeys.all, schoolId] }),
+    queryClient.invalidateQueries({ queryKey: mySchoolReviewQueryKeys.all }),
+  ]);
 }
 
 function useSchoolReviewMutation<Params extends { schoolId: number }>(mutationFn: (params: Params) => Promise<unknown>) {
@@ -66,4 +43,59 @@ function useDeleteSchoolReview() {
   return useSchoolReviewMutation<DeleteSchoolReviewParams>(deleteSchoolReview);
 }
 
-export { useCachedSchoolReview, useCreateSchoolReview, useDeleteSchoolReview, useUpdateSchoolReview };
+function useReportSchoolReview() {
+  return useSchoolReviewMutation<ReportSchoolReviewParams>(reportSchoolReview);
+}
+
+function patchSchoolReviewHelpful(
+  queryClient: QueryClient,
+  schoolId: number,
+  reviewId: number,
+  helpfulCount: number,
+  helpedByMe: boolean
+) {
+  const reviewKey = String(reviewId);
+
+  queryClient.setQueriesData<InfiniteData<SchoolReviewPage>>(
+    { queryKey: [...schoolReviewQueryKeys.all, schoolId] },
+    (current) => {
+      if (!current || !Array.isArray(current.pages)) return current;
+
+      return {
+        ...current,
+        pages: current.pages.map((page) => ({
+          ...page,
+          items: page.items.map((item) =>
+            item.id === reviewKey ? { ...item, helpfulCount, helpedByMe } : item
+          ),
+        })),
+      };
+    }
+  );
+}
+
+function useSetSchoolReviewHelpful() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: SetSchoolReviewHelpfulParams) => setSchoolReviewHelpful(params),
+    onSuccess: (response, variables) => {
+      const helpfulCount = response.data?.helpfulCount;
+      const helpedByMe = response.data?.helpedByMe;
+      if (typeof helpfulCount !== 'number' || typeof helpedByMe !== 'boolean') {
+        void invalidateSchoolReviews(queryClient, variables.schoolId);
+        return;
+      }
+
+      patchSchoolReviewHelpful(queryClient, variables.schoolId, variables.reviewId, helpfulCount, helpedByMe);
+    },
+  });
+}
+
+export {
+  useCreateSchoolReview,
+  useDeleteSchoolReview,
+  useReportSchoolReview,
+  useSetSchoolReviewHelpful,
+  useUpdateSchoolReview,
+};
