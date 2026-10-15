@@ -49,11 +49,8 @@ const REPORT_REASON_CODE = {
 } as const satisfies Record<ReportReason, SchoolReviewReportReason>;
 
 function isDuplicateReportError(error: unknown) {
-  if (error instanceof Error && error.message === 'ALREADY_REPORTED') return true;
-  if (!(error instanceof ApiError)) return false;
-  if (error.status === 409) return true;
-
-  return /already|duplicate|이미|중복/i.test(`${error.code} ${error.message}`);
+  if (error instanceof ApiError) return error.status === 409 || String(error.code) === 'ALREADY_REPORTED';
+  return error instanceof Error && error.message === 'ALREADY_REPORTED';
 }
 const DETAIL_PLACEHOLDER = '신고하는 상세 이유를 입력하세요. 신고 사유 중 기타 선택 시 필수로 입력해 주세요.';
 const DETAIL_LIMIT_MESSAGE = '최대 1,000자까지 작성할 수 있어요.';
