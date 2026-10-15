@@ -538,6 +538,7 @@ export function WriteReviewPage() {
           <ReviewActionDialog
             isOpen={dialog === 'confirm'}
             isSubmitting={isSubmitting}
+            fullScreenLoading
             title='리뷰를 수정할까요?'
             description='수정한 리뷰를 저장합니다.'
             hideDescription
@@ -551,6 +552,7 @@ export function WriteReviewPage() {
           <ReviewActionDialog
             isOpen={dialog === 'failure'}
             isSubmitting={isSubmitting}
+            fullScreenLoading
             title='리뷰를 수정하지 못했어요'
             description='잠시 후 다시 시도해 주세요.'
             cancelLabel='닫기'
