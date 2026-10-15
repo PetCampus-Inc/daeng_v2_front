@@ -7,12 +7,9 @@ import {
   schoolReviewQueryKeys,
   setSchoolReviewHelpful,
   updateSchoolReview,
-  type CreateSchoolReviewParams,
-  type DeleteSchoolReviewParams,
   type ReportSchoolReviewParams,
   type SchoolReviewPage,
   type SetSchoolReviewHelpfulParams,
-  type UpdateSchoolReviewParams,
 } from '@entities/review';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
@@ -38,15 +35,15 @@ function useSchoolReviewMutation<Params extends { schoolId: number }>(mutationFn
 }
 
 function useCreateSchoolReview() {
-  return useSchoolReviewMutation<CreateSchoolReviewParams>(createSchoolReview);
+  return useSchoolReviewMutation(createSchoolReview);
 }
 
 function useUpdateSchoolReview() {
-  return useSchoolReviewMutation<UpdateSchoolReviewParams>(updateSchoolReview);
+  return useSchoolReviewMutation(updateSchoolReview);
 }
 
 function useDeleteSchoolReview() {
-  return useSchoolReviewMutation<DeleteSchoolReviewParams>(deleteSchoolReview);
+  return useSchoolReviewMutation(deleteSchoolReview);
 }
 
 function useReportSchoolReview() {

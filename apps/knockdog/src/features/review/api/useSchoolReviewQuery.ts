@@ -9,6 +9,7 @@ import {
   type MySchoolReview,
   type SchoolReview,
   type SchoolReviewSort,
+  type SchoolReviewSummary,
 } from '@entities/review';
 
 import type { KnockdogReview, KnockdogReviewSort } from '../config/knockdogReviewMock';
@@ -100,6 +101,12 @@ function useReviewableSchoolsQuery(enabled = true) {
   });
 }
 
+function toSchoolReviewHeaderRating(summary: SchoolReviewSummary) {
+  if (summary.totalCount <= 0) return { rating: undefined, reviewCount: 0 };
+
+  return { rating: summary.averageRating, reviewCount: summary.totalCount };
+}
+
 function useSchoolReviewSummaryQuery(schoolId: string | number | null | undefined, enabled = true) {
   const parsedSchoolId = parseSchoolId(schoolId);
 
@@ -120,6 +127,7 @@ function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) 
 }
 
 export {
+  toSchoolReviewHeaderRating,
   useMySchoolReviewQuery,
   useReviewableSchoolsQuery,
   useSchoolReviewDetailQuery,

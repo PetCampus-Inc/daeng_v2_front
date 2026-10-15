@@ -11,6 +11,7 @@ export {
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
 export {
+  toSchoolReviewHeaderRating,
   useMySchoolReviewQuery,
   useReviewableSchoolsQuery,
   useSchoolReviewDetailQuery,
