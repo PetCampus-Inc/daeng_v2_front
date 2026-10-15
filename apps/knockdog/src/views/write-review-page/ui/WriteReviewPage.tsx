@@ -481,12 +481,13 @@ export function WriteReviewPage() {
 
         <div className='mt-5 flex flex-col gap-2 px-4 py-3'>
           <p className='body2-bold text-text-primary'>리뷰 작성</p>
-          <label className='bg-bg-50 radius-r2 flex flex-col gap-8 px-4 py-3'>
+          <label className='bg-bg-50 radius-r2 flex flex-col gap-2 px-4 py-3'>
             <textarea
               value={content}
+              rows={3}
               maxLength={MAX_REVIEW_LENGTH}
               placeholder={REVIEW_PLACEHOLDER}
-              className='body1-regular text-text-primary placeholder:text-fill-secondary-500 min-h-12 w-full resize-none bg-transparent outline-none'
+              className='body1-regular text-text-primary placeholder:text-fill-secondary-500 h-[4.5rem] w-full resize-none overflow-y-auto bg-transparent outline-none'
               onChange={(event) => setContent(event.target.value)}
             />
             <p className='body2-regular text-text-caption'>

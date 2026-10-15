@@ -267,14 +267,14 @@ function ReviewReportPage() {
               <span className='caption1-semibold text-text-tertiary'>(선택)</span>
             )}
           </p>
-          <label className='bg-bg-50 radius-r2 flex flex-col gap-8 px-4 py-3'>
+          <label className='bg-bg-50 radius-r2 flex flex-col gap-2 px-4 py-3'>
             <textarea
               ref={detailRef}
               value={detail}
-              rows={2}
+              rows={3}
               maxLength={MAX_DETAIL_LENGTH}
               placeholder={DETAIL_PLACEHOLDER}
-              className='body1-regular text-text-primary placeholder:text-text-tertiary w-full resize-none overflow-hidden bg-transparent outline-none'
+              className='body1-regular text-text-primary placeholder:text-text-tertiary min-h-[4.5rem] w-full resize-none overflow-hidden bg-transparent outline-none'
               disabled={isSubmitting}
               onChange={(event) => setDetail(event.target.value)}
             />
