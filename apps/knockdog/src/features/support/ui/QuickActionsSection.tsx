@@ -20,7 +20,7 @@ function QuickActionsSection({ className, onChatRoomClick }: QuickActionsSection
   };
 
   const handleSuggestionClick = () => {
-    openExternalLink(EXTERNAL_LINKS.SUGGESTION);
+    push({ pathname: route.mypage.ideaSuggestion.root });
   };
 
   const handleChatRoomClick = () => {

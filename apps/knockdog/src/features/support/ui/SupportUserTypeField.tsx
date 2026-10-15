@@ -1,18 +1,20 @@
 import { cn } from '@knockdog/ui/lib';
-import type { InquiryUserType } from '@entities/inquiry';
 
-const USER_TYPE_OPTIONS: { value: InquiryUserType; label: string }[] = [
+/** 문의·아이디어 제안의 사용자 유형. 두 API 모두 같은 값을 쓴다 */
+type SupportUserType = 'GUARDIAN' | 'OWNER';
+
+const USER_TYPE_OPTIONS: { value: SupportUserType; label: string }[] = [
   { value: 'GUARDIAN', label: '보호자' },
   { value: 'OWNER', label: '원장' },
 ];
 
-interface InquiryUserTypeFieldProps {
-  value: InquiryUserType | null;
-  onChange: (value: InquiryUserType | null) => void;
+interface SupportUserTypeFieldProps {
+  value: SupportUserType | null;
+  onChange: (value: SupportUserType | null) => void;
 }
 
-/** 사용자 유형 단일 선택. 선택된 항목을 다시 누르면 선택 해제 */
-function InquiryUserTypeField({ value, onChange }: InquiryUserTypeFieldProps) {
+/** 문의·아이디어 제안의 사용자 유형 단일 선택. 선택된 항목을 다시 누르면 선택 해제 */
+function SupportUserTypeField({ value, onChange }: SupportUserTypeFieldProps) {
   return (
     <div className='gap-x2 px-x4 py-x3 flex flex-col'>
       <p className='gap-x0_5 body2-bold text-text-primary flex'>
@@ -44,4 +46,5 @@ function InquiryUserTypeField({ value, onChange }: InquiryUserTypeFieldProps) {
   );
 }
 
-export { InquiryUserTypeField };
+export { SupportUserTypeField };
+export type { SupportUserType };

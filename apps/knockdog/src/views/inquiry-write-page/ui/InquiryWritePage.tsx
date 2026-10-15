@@ -4,10 +4,10 @@ import { useCallback, useRef, useState } from 'react';
 
 import { ActionButton, IconButton, Textarea, TextareaInput, TextField, TextFieldInput } from '@knockdog/ui';
 import { canSubmitInquiry, hasInquiryWriteInput } from '@views/inquiry-write-page/lib/inquiryWriteForm';
-import { InquiryUserTypeField } from '@views/inquiry-write-page/ui/InquiryUserTypeField';
 import { Header } from '@widgets/Header';
 import { InquiryPhotoField, useInquiryPhotos } from '@features/inquiry-photo';
 import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
+import { SupportUserTypeField } from '@features/support';
 import {
   INQUIRY_BODY_MAX_LENGTH,
   INQUIRY_TITLE_MAX_LENGTH,
@@ -113,7 +113,7 @@ function InquiryWritePage() {
       </Header>
 
       <div className='min-h-0 flex-1 overflow-y-auto'>
-        <InquiryUserTypeField value={userType} onChange={setSelectedUserType} />
+        <SupportUserTypeField value={userType} onChange={setSelectedUserType} />
 
         <div className='px-x4 py-x3'>
           {/* Figma 입력창 48px. input은 줄 높이 대신 글꼴 높이로 계산돼 46px이 되므로 높이를 고정한다 */}

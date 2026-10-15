@@ -136,6 +136,10 @@ const route = {
         },
       },
     },
+    ideaSuggestion: {
+      /** 아이디어 제안 작성 페이지 */
+      root: '/mypage/idea-suggestion',
+    },
     pet: {
       add: {
         /** 강아지 프로필 추가 페이지 */
