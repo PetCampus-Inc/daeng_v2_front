@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
@@ -23,7 +24,8 @@ import {
   useKnockdogReviews,
   useUpdateSchoolReview,
 } from '@features/review';
-import { parseSchoolId } from '@entities/review';
+import { kindergartenQueries, type Kindergarten } from '@entities/kindergarten';
+import { parseSchoolId, postReviewSchool } from '@entities/review';
 import { useBasePoint } from '@entities/user';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
@@ -223,6 +225,7 @@ export function WriteReviewPage() {
   const editingReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
 
   const { back, replace } = useStackNavigation();
+  const queryClient = useQueryClient();
   const { pickImage } = useImagePicker();
   const { mutateAsync: createSchoolReview } = useCreateSchoolReview();
   const { coord } = useBasePoint();
@@ -385,18 +388,24 @@ export function WriteReviewPage() {
   const handleCreate = async () => {
     if (isEdit || isSubmittingRef.current || !canSubmit) return;
     if (isKindergartenPending) return;
-    if (schoolId == null) {
-      setIsCreateFailed(true);
-      return;
-    }
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      const images = await resolveSchoolReviewImages(schoolId, photos);
+      let resolvedSchoolId = schoolId;
+      if (resolvedSchoolId == null) {
+        resolvedSchoolId = await postReviewSchool(id);
+        const issuedSchoolId = resolvedSchoolId;
+        queryClient.setQueriesData<Kindergarten>(
+          { queryKey: [...kindergartenQueries.keys.all(), 'main', id] },
+          (current) => (current ? { ...current, schoolId: issuedSchoolId } : current)
+        );
+      }
+
+      const images = await resolveSchoolReviewImages(resolvedSchoolId, photos);
       await createSchoolReview({
-        schoolId,
+        schoolId: resolvedSchoolId,
         rating,
         content,
         images,
