@@ -30,7 +30,11 @@ function KindergartenCard({ id }: { id: string }) {
   const showImage = Boolean(imageSrc) && !hasImageError;
 
   const handleClick = () => {
-    push({ pathname: `/kindergarten/${id}`, params: { entrySource: 'kindergarten-list' } });
+    push({
+      pathname: `/kindergarten/${id}`,
+      query: { tab: '후기' },
+      params: { entrySource: 'kindergarten-list' },
+    });
   };
 
   if (isLoading) {

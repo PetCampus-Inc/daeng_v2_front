@@ -48,10 +48,6 @@ const INVALID_PHOTO_MESSAGE = '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진�
 
 type EditDialog = 'confirm' | 'failure' | null;
 
-interface WriteReviewNavigationParams {
-  completionDestination?: 'review-list';
-}
-
 function formatScore(rating: number) {
   return rating > 0 ? rating.toFixed(1) : '0';
 }
@@ -226,7 +222,7 @@ export function WriteReviewPage() {
   const reviews = useKnockdogReviews();
   const editingReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
 
-  const { back, getParams, replace } = useStackNavigation();
+  const { back, replace } = useStackNavigation();
   const { pickImage } = useImagePicker();
   const { mutateAsync: createSchoolReview } = useCreateSchoolReview();
   const { coord } = useBasePoint();
@@ -246,8 +242,6 @@ export function WriteReviewPage() {
   const [dialog, setDialog] = useState<EditDialog>(null);
   const [isCreateFailed, setIsCreateFailed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [completionDestination, setCompletionDestination] =
-    useState<WriteReviewNavigationParams['completionDestination']>();
   const isPickingPhotoRef = useRef(false);
   const isSubmittingRef = useRef(false);
   const didSaveRef = useRef(false);
@@ -268,9 +262,13 @@ export function WriteReviewPage() {
     ? Boolean(baseline) && isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
     : rating > 0 && content.trim().length > 0 && !isSubmitting;
 
-  useEffect(() => {
-    setCompletionDestination(getParams<WriteReviewNavigationParams>()?.completionDestination);
-  }, [getParams]);
+  const openKnockdogReviewTab = useCallback(() => {
+    void replace({
+      pathname: `/kindergarten/${id}`,
+      query: { tab: '후기' },
+      params: { entrySource: 'kindergarten-list' },
+    });
+  }, [id, replace]);
 
   useEffect(() => {
     if (!reviewId || editingReview || apiReview || isKindergartenPending || isApiReviewLoading) return;
@@ -301,7 +299,11 @@ export function WriteReviewPage() {
       setIsCreateFailed(false);
       return;
     }
-    if (isComplete || !isDirty) {
+    if (isComplete) {
+      openKnockdogReviewTab();
+      return;
+    }
+    if (!isDirty) {
       back();
       return;
     }
@@ -313,7 +315,7 @@ export function WriteReviewPage() {
       confirmLabel: '나가기',
       onConfirm: () => back(),
     });
-  }, [back, dialog, isComplete, isCreateFailed, isDirty, isEdit]);
+  }, [back, dialog, isComplete, isCreateFailed, isDirty, isEdit, openKnockdogReviewTab]);
 
   useNativeBackHandler(handleBack);
 
@@ -441,7 +443,7 @@ export function WriteReviewPage() {
       }
       didSaveRef.current = true;
       setDialog(null);
-      back();
+      openKnockdogReviewTab();
     } catch {
       setDialog('failure');
     } finally {
@@ -451,16 +453,7 @@ export function WriteReviewPage() {
   };
 
   const handleCompleteConfirm = () => {
-    if (completionDestination === 'review-list') {
-      void replace({
-        pathname: `/kindergarten/${id}`,
-        query: { tab: '후기' },
-        params: { entrySource: 'kindergarten-list' },
-      });
-      return;
-    }
-
-    void back();
+    openKnockdogReviewTab();
   };
 
   if (isComplete) return <WriteReviewComplete id={id} onConfirm={handleCompleteConfirm} />;
