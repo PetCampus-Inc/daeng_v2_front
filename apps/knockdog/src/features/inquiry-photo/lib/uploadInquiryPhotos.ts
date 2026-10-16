@@ -3,6 +3,7 @@ import { METHODS, type ImageAsset } from '@knockdog/bridge-core';
 import { postInquiryImageUploadUrls, type InquiryUploadFileRequestDto } from '@entities/inquiry';
 import { fetchWithUploadTimeout } from '@shared/api';
 import { getBridgeInstance } from '@shared/lib/bridge';
+import { getPreviewImage } from '@shared/lib/media';
 
 interface InquiryPickAsset extends ImageAsset {
   file?: File;
@@ -57,6 +58,18 @@ async function putToUploadUrl(asset: InquiryPickAsset, uploadUrl: string, conten
 }
 
 /**
+ * 썸네일 주소. 웹은 고른 파일의 blob: 주소를 그대로 쓴다.
+ * 앱은 고른 사진이 file:// 경로라 WebView가 불러오지 못하므로, 올린 사진의 조회용 주소를 받아 쓴다
+ */
+async function resolvePreviewUrl(asset: InquiryPickAsset, tempKey: string) {
+  if (asset.file) return asset.preSignedUrl || asset.uri || '';
+
+  const { data } = await getPreviewImage(tempKey);
+  if (!data?.preSignedUrl) throw new Error('사진 미리보기 주소를 받지 못했어요.');
+  return data.preSignedUrl;
+}
+
+/**
  * 고른 사진을 문의 업로드 URL로 올린다 (발급 → PUT).
  * 형식·용량이 맞지 않으면 발급 단계에서 ApiError(INQUIRY_ERROR_CODE.INVALID_IMAGE_SPEC)가 난다
  */
@@ -90,7 +103,7 @@ async function uploadInquiryPhotos(assets: InquiryPickAsset[]): Promise<InquiryP
       return {
         tempKey: target.tempKey,
         originalFilename: filename,
-        previewUrl: asset.preSignedUrl || asset.uri || '',
+        previewUrl: await resolvePreviewUrl(asset, target.tempKey),
       };
     })
   );
