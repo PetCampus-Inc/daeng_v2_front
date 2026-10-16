@@ -71,32 +71,66 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
     if (!id) return;
 
     const scrollParent = findScrollParent(sectionRef.current);
-    if (scrollParent) sessionStorage.setItem(memoScrollStorageKey(id), String(scrollParent.scrollTop));
+    if (scrollParent) {
+      try {
+        sessionStorage.setItem(memoScrollStorageKey(id), String(scrollParent.scrollTop));
+      } catch {
+        // 저장소 접근이 실패해도 작성 화면 이동은 진행한다
+      }
+    }
     push({ pathname: `/kindergarten/${id}/edit-memo` });
   };
 
   useLayoutEffect(() => {
     if (!id) return;
 
+    let preserveTimerId: number | null = null;
+    let preserveParent: HTMLElement | null = null;
+
+    const clearPreserve = () => {
+      if (preserveTimerId != null) {
+        window.clearTimeout(preserveTimerId);
+        preserveTimerId = null;
+      }
+      if (preserveParent) {
+        delete preserveParent.dataset.preserveScroll;
+        preserveParent = null;
+      }
+    };
+
     const restoreSavedScroll = () => {
       if (document.visibilityState === 'hidden' || !sectionRef.current) return;
 
-      const raw = sessionStorage.getItem(memoScrollStorageKey(id));
+      let raw: string | null;
+      try {
+        raw = sessionStorage.getItem(memoScrollStorageKey(id));
+      } catch {
+        return;
+      }
       if (raw == null) return;
 
       const scrollTop = Number(raw);
       const scrollParent = findScrollParent(sectionRef.current);
       if (!scrollParent || !Number.isFinite(scrollTop)) return;
 
-      sessionStorage.removeItem(memoScrollStorageKey(id));
+      try {
+        sessionStorage.removeItem(memoScrollStorageKey(id));
+      } catch {
+        // 키 삭제에 실패해도 스크롤 위치는 복원한다
+      }
+
+      clearPreserve();
       scrollParent.dataset.preserveScroll = 'true';
+      preserveParent = scrollParent;
       const restoreScroll = () => {
         scrollParent.scrollTop = scrollTop;
       };
       restoreScroll();
       requestAnimationFrame(() => requestAnimationFrame(restoreScroll));
-      window.setTimeout(() => {
+      preserveTimerId = window.setTimeout(() => {
         delete scrollParent.dataset.preserveScroll;
+        if (preserveParent === scrollParent) preserveParent = null;
+        preserveTimerId = null;
       }, 500);
     };
 
@@ -105,6 +139,7 @@ export function FreeMemoSection({ kindergartenId }: FreeMemoSectionProps) {
     document.addEventListener('visibilitychange', restoreSavedScroll);
 
     return () => {
+      clearPreserve();
       window.removeEventListener('pageshow', restoreSavedScroll);
       document.removeEventListener('visibilitychange', restoreSavedScroll);
     };

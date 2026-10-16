@@ -136,6 +136,9 @@ function ReviewImage({ src, sizes }: { src: string; sizes: string }) {
         {!isLoaded ? <Skeleton className='absolute inset-0 size-full' /> : null}
         {/* eslint-disable-next-line @next/next/no-img-element -- 기기에서 고른 사진·원격 URL */}
         <img
+          ref={(node) => {
+            if (node?.complete) setIsLoaded(true);
+          }}
           src={src}
           alt=''
           className={cn('size-full object-cover transition-opacity', isLoaded ? 'opacity-100' : 'opacity-0')}

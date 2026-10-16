@@ -241,7 +241,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     : !hasSchool
       ? 0
       : (summary?.totalCount ?? null);
-  const writeLabel = showKnockdogReviewMock
+  const writeLabel = showKnockdogReviewMock || !hasSchool
     ? '리뷰 작성하기'
     : summary?.canWrite
       ? '리뷰 작성하기'
@@ -252,7 +252,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     void refetchSchoolReviewSummary();
   };
   const handleWriteReview = () => {
-    if (showKnockdogReviewMock) {
+    if (showKnockdogReviewMock || !hasSchool) {
       push({ pathname: `/kindergarten/${id}/write-review` });
       return;
     }

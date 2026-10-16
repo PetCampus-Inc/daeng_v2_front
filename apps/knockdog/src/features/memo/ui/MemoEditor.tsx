@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Textarea, TextareaInput } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { countMemoCharacters, MEMO_MAX_CONTENT_LENGTH, truncateMemoContent } from '@entities/memo';
@@ -24,13 +24,38 @@ export function MemoEditor({
   readOnly,
 }: MemoEditorProps) {
   const [memo, setMemo] = useState(defaultValue);
+  const isComposingRef = useRef(false);
   const currentValue = (value !== undefined ? value : memo) ?? '';
 
-  const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = truncateMemoContent(e.target.value, maxLength);
-    e.target.value = newValue;
+  const commitTruncatedValue = (target: HTMLTextAreaElement) => {
+    const newValue = truncateMemoContent(target.value, maxLength);
+    target.value = newValue;
     setMemo(newValue);
+  };
+
+  const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (isComposingRef.current) {
+      setMemo(e.target.value);
+      onChange?.(e);
+      return;
+    }
+
+    commitTruncatedValue(e.target);
     onChange?.(e);
+  };
+
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent<HTMLTextAreaElement>) => {
+    isComposingRef.current = false;
+    commitTruncatedValue(e.currentTarget);
+    onChange?.({
+      ...e,
+      target: e.currentTarget,
+      currentTarget: e.currentTarget,
+    } as unknown as React.ChangeEvent<HTMLTextAreaElement>);
   };
 
   return (
@@ -46,6 +71,8 @@ export function MemoEditor({
           value={currentValue}
           placeholder='메모를 작성해 주세요'
           onChange={handleMemoChange}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
         />
       </Textarea>
     </div>

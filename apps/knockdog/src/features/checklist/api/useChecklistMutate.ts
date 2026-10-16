@@ -46,8 +46,8 @@ const useDeleteChecklistMutation = <TContext = unknown>(
   return useMutation<void, Error, DeleteChecklistRequest, TContext>({
     ...restOptions,
     mutationFn: deleteChecklist,
-    onSuccess: (data, variables, context, mutationContext) => {
-      queryClient.invalidateQueries({ queryKey: checklistQueryKeys.answers(variables.targetId) });
+    onSuccess: async (data, variables, context, mutationContext) => {
+      await queryClient.invalidateQueries({ queryKey: checklistQueryKeys.answers(variables.targetId) });
       userOnSuccess?.(data, variables, context, mutationContext);
     },
     onSettled: (data, error, variables, context, mutationContext) => {
