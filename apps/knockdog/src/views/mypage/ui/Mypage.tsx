@@ -30,7 +30,6 @@ import { logout } from '@shared/lib/auth/logout';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
-import { EXTERNAL_LINKS } from '@shared/constants';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
@@ -321,7 +320,7 @@ function MypageContent() {
 
         <Divider size='thick' />
 
-        <QuickActionsSection contactUrl={isOwnerView ? EXTERNAL_LINKS.OWNER_CONTACT : EXTERNAL_LINKS.CONTACT} />
+        <QuickActionsSection />
 
         <SettingsSection
           otherInfoTitle={ownerMypageContent.otherInfoTitle}
