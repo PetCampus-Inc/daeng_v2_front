@@ -8,4 +8,4 @@ export { toMemoPhotoUrl } from './lib/toMemoPhotoUrl';
 
 // api
 export { useMemoQuery } from './api/useMemoQuery';
-export { useMemoMutation } from './api/useMemoMutation';
+export { useDeleteMemoMutation, useMemoMutation } from './api/useMemoMutation';

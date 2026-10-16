@@ -11,6 +11,7 @@ import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
+import { toSchoolReviewHeaderRating, useSchoolReviewSummaryQuery } from '@features/review';
 import { isKindergartenId } from '@entities/kindergarten';
 import { PhoneCallSheet } from '@features/kindergarten-list';
 import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
@@ -81,6 +82,8 @@ function KindergartenDetailPage() {
     lat,
     enabled: hasKindergartenId,
   });
+  const { data: reviewSummary } = useSchoolReviewSummaryQuery(kindergartenMain?.schoolId);
+  const headerReview = reviewSummary ? toSchoolReviewHeaderRating(reviewSummary) : null;
   const { mutate: toggleBookmark, isPending: isBookmarkPending } = useDetailBookmarkToggle({
     id,
     lng,
@@ -248,7 +251,7 @@ function KindergartenDetailPage() {
           <div className='relative'>
             <div className='absolute top-[-50px]' />
             {/* 대표 컨텐츠 영역 */}
-            <KindergartenMainBox {...kindergartenMain} compact={isClosed} />
+            <KindergartenMainBox {...kindergartenMain} {...(headerReview ?? {})} compact={isClosed} />
             {isClosed && <ClosedKindergartenNotice />}
             {/* Divider */}
             {!isClosed && <Divider size='thick' />}

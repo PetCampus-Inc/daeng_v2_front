@@ -209,6 +209,22 @@ function MyReviewCard({ review, onEdit, onDelete }: MyReviewCardProps) {
       </div>
       <p className='body1-regular text-text-primary'>{review.content}</p>
       {review.images.length > 0 ? <MyReviewPhotoStrip images={review.images} /> : null}
+      <button
+        type='button'
+        disabled
+        className='border-line-200 flex w-fit items-center gap-1 rounded-full border px-3 py-2'
+      >
+        <span className='flex size-5 items-center justify-center'>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 도움돼요 SVG 원본 크기 유지 */}
+          <img src='/images/img_review_like.svg' alt='' />
+        </span>
+        <span className='label-semibold text-fill-secondary-500'>도움돼요</span>
+        {review.helpfulCount > 0 ? (
+          <span className='label-semibold text-fill-secondary-500'>
+            {review.helpfulCount.toLocaleString('ko-KR')}
+          </span>
+        ) : null}
+      </button>
     </article>
   );
 }

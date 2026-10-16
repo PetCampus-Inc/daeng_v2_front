@@ -8,6 +8,7 @@ export {
   getSchoolReview,
   getSchoolReviewSummary,
   getSchoolReviews,
+  postReviewSchool,
   postSchoolReviewImageUploadUrls,
   reportSchoolReview,
   setSchoolReviewHelpful,

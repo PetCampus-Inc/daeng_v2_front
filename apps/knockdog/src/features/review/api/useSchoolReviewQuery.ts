@@ -9,6 +9,7 @@ import {
   type MySchoolReview,
   type SchoolReview,
   type SchoolReviewSort,
+  type SchoolReviewSummary,
 } from '@entities/review';
 
 import type { KnockdogReview, KnockdogReviewSort } from '../config/knockdogReviewMock';
@@ -60,6 +61,7 @@ function useSchoolReviewQuery(
       })),
     }),
     enabled: enabled && parsedSchoolId != null,
+    refetchOnMount: 'always',
   });
 }
 
@@ -74,6 +76,7 @@ function toMyWrittenReview(review: MySchoolReview): MyWrittenReview {
     createdAt: review.createdAt,
     content: review.content,
     images: review.photos.flatMap((photo) => (photo.url ? [photo.url] : [])),
+    helpfulCount: review.helpfulCount,
   };
 }
 
@@ -98,12 +101,19 @@ function useReviewableSchoolsQuery(enabled = true) {
   });
 }
 
+function toSchoolReviewHeaderRating(summary: SchoolReviewSummary) {
+  if (summary.totalCount <= 0) return { rating: undefined, reviewCount: 0 };
+
+  return { rating: summary.averageRating, reviewCount: summary.totalCount };
+}
+
 function useSchoolReviewSummaryQuery(schoolId: string | number | null | undefined, enabled = true) {
   const parsedSchoolId = parseSchoolId(schoolId);
 
   return useQuery({
     ...createSchoolReviewSummaryQueryOptions(parsedSchoolId ?? 0),
     enabled: enabled && parsedSchoolId != null,
+    refetchOnMount: 'always',
   });
 }
 
@@ -117,6 +127,7 @@ function useSchoolReviewDetailQuery(schoolId: number | null, reviewId?: string) 
 }
 
 export {
+  toSchoolReviewHeaderRating,
   useMySchoolReviewQuery,
   useReviewableSchoolsQuery,
   useSchoolReviewDetailQuery,

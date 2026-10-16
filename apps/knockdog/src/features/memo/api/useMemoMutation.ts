@@ -1,6 +1,14 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
-import { updateMemo, memoQueryKeys, type MemoResponse, type UpdateMemoRequest, memoQueries } from '@entities/memo';
+import {
+  deleteMemo,
+  updateMemo,
+  memoQueryKeys,
+  type DeleteMemoRequest,
+  type MemoResponse,
+  type UpdateMemoRequest,
+  memoQueries,
+} from '@entities/memo';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
 interface MemoMutationContext<TUserContext> {
@@ -58,6 +66,32 @@ export const useMemoMutation = <TUserContext = unknown>(
       syncWebViewQuery.invalidate(memoQueryKeys.byTargetId(variables.targetId));
       syncWebViewQuery.invalidate(memoQueries.keys.all());
       userOnSettled?.(data, error, variables, context?.userContext);
+    },
+  });
+};
+
+export const useDeleteMemoMutation = <TUserContext = unknown>(
+  options?: Omit<UseMutationOptions<void, Error, DeleteMemoRequest, TUserContext>, 'mutationFn'>
+) => {
+  const queryClient = useQueryClient();
+  const {
+    onSuccess: userOnSuccess,
+    onSettled: userOnSettled,
+    ...restOptions
+  } = options ?? {};
+
+  return useMutation<void, Error, DeleteMemoRequest, TUserContext>({
+    ...restOptions,
+    mutationFn: deleteMemo,
+    onSuccess: (data, variables, context, mutationContext) => {
+      queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
+      queryClient.invalidateQueries({ queryKey: memoQueries.keys.all() });
+      userOnSuccess?.(data, variables, context, mutationContext);
+    },
+    onSettled: (data, error, variables, context, mutationContext) => {
+      syncWebViewQuery.invalidate(memoQueryKeys.byTargetId(variables.targetId));
+      syncWebViewQuery.invalidate(memoQueries.keys.all());
+      userOnSettled?.(data, error, variables, context, mutationContext);
     },
   });
 };

@@ -8,6 +8,7 @@ import { KindergartenTabs } from '@widgets/kindergarten-tabs';
 import { Header } from '@widgets/Header';
 import { SelectActionButtons } from '@widgets/compare-list';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
+import { toSchoolReviewHeaderRating, useSchoolReviewSummaryQuery } from '@features/review';
 import type { SelectedIds } from '@entities/compare/model/compare';
 import { isSelectedIds } from '@entities/compare';
 import { useCurrentLocation } from '@shared/lib/geolocation';
@@ -38,6 +39,8 @@ function CompareKindergartenDetailPage() {
     lng,
     lat,
   });
+  const { data: reviewSummary } = useSchoolReviewSummaryQuery(kindergartenMain?.schoolId);
+  const headerReview = reviewSummary ? toSchoolReviewHeaderRating(reviewSummary) : null;
 
   useScreenAnalyticsTitle(kindergartenMain?.title);
   // ============================================
@@ -137,7 +140,7 @@ function CompareKindergartenDetailPage() {
         <div className='relative'>
           <div className='absolute top-[-50px]' />
           {/* 대표 컨텐츠 영역 */}
-          <KindergartenMainBox {...kindergartenMain} />
+          <KindergartenMainBox {...kindergartenMain} {...(headerReview ?? {})} />
           {/* Divider */}
           <Divider size='thick' />
           {/* 세부 컨텐츠 영역 */}

@@ -15,20 +15,13 @@ interface CheckListSectionProps {
   kindergartenId?: string;
 }
 
-function parseChecklistWrittenAt(value: string | number[] | null | undefined) {
-  if (value == null) return null;
-
-  if (Array.isArray(value)) {
-    const [year, month, day, hour = 0, minute = 0] = value;
-    if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') return null;
-    return new Date(year, month - 1, day, hour, minute);
-  }
-
+function parseChecklistWrittenAt(value: string | null | undefined) {
+  if (!value) return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function formatChecklistWrittenAt(value: string | number[] | null | undefined) {
+function formatChecklistWrittenAt(value: string | null | undefined) {
   const date = parseChecklistWrittenAt(value);
   if (!date) return '';
 
@@ -62,9 +55,13 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
           const chip = getChecklistChip(answer.questionId, answer.question, String(answer.value ?? ''));
           return chip ? [{ ...chip, key: answer.questionId }] : [];
         }),
+        memos: section.answers.flatMap((answer) => {
+          const memo = answer.memo?.trim() ?? '';
+          return memo ? [{ key: answer.questionId, question: answer.question, memo }] : [];
+        }),
       }))
-      .filter((section) => section.chips.length > 0) ?? [];
-  const writtenAtLabel = formatChecklistWrittenAt(checklist?.updatedAt ?? checklist?.modifiedAt);
+      .filter((section) => section.chips.length > 0 || section.memos.length > 0) ?? [];
+  const writtenAtLabel = formatChecklistWrittenAt(checklist?.updatedAt);
   // 체크리스트 미작성 시 API가 에러로 응답하는 경우도 빈 상태로 처리
   const isEmpty = !isLoading && (!!error || answeredSections.length === 0);
 
@@ -98,20 +95,28 @@ function CheckListSection({ kindergartenId }: CheckListSectionProps) {
           {answeredSections.map((section) => (
             <div key={section.sectionId} className='border-line-200 flex flex-col gap-3 border-b py-4'>
               <p className='body1-extrabold'>{section.title}</p>
-              <div className='flex flex-wrap gap-2'>
-                {section.chips.map((chip) => (
-                  <div
-                    key={chip.key}
-                    className={cn(
-                      'label-medium rounded-lg px-2 py-[6px]',
-                      chip.tone === 'yes' && 'border-line-accent text-primitive-orange-600 border bg-white',
-                      chip.tone === 'no' && 'bg-fill-secondary-50 text-text-secondary'
-                    )}
-                  >
-                    {chip.label}
-                  </div>
-                ))}
-              </div>
+              {section.chips.length > 0 ? (
+                <div className='flex flex-wrap gap-2'>
+                  {section.chips.map((chip) => (
+                    <div
+                      key={chip.key}
+                      className={cn(
+                        'label-medium rounded-lg px-2 py-[6px]',
+                        chip.tone === 'yes' && 'border-line-accent text-primitive-orange-600 border bg-white',
+                        chip.tone === 'no' && 'bg-fill-secondary-50 text-text-secondary'
+                      )}
+                    >
+                      {chip.label}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {section.memos.map((memo) => (
+                <p key={memo.key} className='body2-regular text-text-secondary'>
+                  {memo.question ? <span className='body2-bold text-text-primary'>{memo.question} </span> : null}
+                  {memo.memo}
+                </p>
+              ))}
             </div>
           ))}
         </>

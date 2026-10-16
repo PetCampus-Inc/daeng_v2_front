@@ -22,6 +22,7 @@ import { openMemoImageAlert } from '@views/edit-memo-page/ui/MemoImageAlertDialo
 import { toMemoPhotoUrl, useMemoMutation, useMemoQuery, useResolveMemoPhotoKeys } from '@features/memo';
 
 import { Header } from '@widgets/Header';
+import { countMemoCharacters, truncateMemoContent } from '@entities/memo';
 
 import { createAnalyticsId, trackSchoolMemoChangeResult, trackSchoolMemoView } from '@shared/lib/analytics';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
@@ -117,7 +118,7 @@ export function EditMemoPage() {
 
   const isUploading = uploadingCount > 0;
   const isDirty = content !== initialRef.current.content || !isSamePhotos(photos, initialRef.current.photos);
-  const canSave = isDirty && !isPickingPhoto && !isUploading && !isSaving;
+  const canSave = isDirty && content.trim().length > 0 && !isPickingPhoto && !isUploading && !isSaving;
 
   const handleBack = useCallback(() => {
     if (isSaving) return;
@@ -323,13 +324,12 @@ export function EditMemoPage() {
         <div className='flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-5'>
           <textarea
             value={content}
-            maxLength={MAX_LENGTH}
             placeholder={editMemoContent.placeholder}
             className='body1-regular text-text-primary caret-text-accent placeholder:text-text-caption min-h-40 w-full flex-1 resize-none bg-transparent outline-none'
-            onChange={(event) => setContent(event.target.value)}
+            onChange={(event) => setContent(truncateMemoContent(event.target.value, MAX_LENGTH))}
           />
           <p className='body2-regular text-text-caption shrink-0'>
-            {content.length.toLocaleString()}/{MAX_LENGTH.toLocaleString()}
+            {countMemoCharacters(content).toLocaleString()}/{MAX_LENGTH.toLocaleString()}
           </p>
         </div>
 

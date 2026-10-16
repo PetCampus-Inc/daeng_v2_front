@@ -20,9 +20,12 @@ import { cn } from '@knockdog/ui/lib';
 import { RemoveScroll } from 'react-remove-scroll';
 
 import type { KnockdogReview } from '../config/knockdogReviewMock';
+import { OWN_REVIEW_HELPFUL_MESSAGE } from '../config/reviewMessages';
 
 import { useNativeBackToClose } from '@shared/lib/bridge';
 import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
+import { Skeleton } from '@shared/ui/skeleton';
+import { toast } from '@shared/ui/toast';
 
 interface KnockdogReviewCardProps {
   review: KnockdogReview;
@@ -125,14 +128,41 @@ function isRemoteReviewImage(src: string) {
 }
 
 function ReviewImage({ src, sizes }: { src: string; sizes: string }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   if (isRemoteReviewImage(src)) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- 기기에서 고른 사진·원격 URL
-      <img src={src} alt='' className='size-full object-cover' />
+      <>
+        {!isLoaded ? <Skeleton className='absolute inset-0 size-full' /> : null}
+        {/* eslint-disable-next-line @next/next/no-img-element -- 기기에서 고른 사진·원격 URL */}
+        <img
+          ref={(node) => {
+            if (node?.complete) setIsLoaded(true);
+          }}
+          src={src}
+          alt=''
+          className={cn('size-full object-cover transition-opacity', isLoaded ? 'opacity-100' : 'opacity-0')}
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
+        />
+      </>
     );
   }
 
-  return <Image src={src} alt='' fill sizes={sizes} className='object-cover' />;
+  return (
+    <>
+      {!isLoaded ? <Skeleton className='absolute inset-0 size-full' /> : null}
+      <Image
+        src={src}
+        alt=''
+        fill
+        sizes={sizes}
+        className={cn('object-cover transition-opacity', isLoaded ? 'opacity-100' : 'opacity-0')}
+        onLoadingComplete={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
+      />
+    </>
+  );
 }
 
 function KnockdogReviewImages({ images }: { images: string[] }) {
@@ -160,7 +190,7 @@ function KnockdogReviewImages({ images }: { images: string[] }) {
         onClick={() => handleSelect(0)}
         className='bg-bg-100 relative h-60 w-full overflow-hidden rounded-lg'
       >
-        <ReviewImage src={image} sizes='358px' />
+        <ReviewImage key={image} src={image} sizes='358px' />
       </button>
     );
   }
@@ -186,12 +216,26 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onRepor
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const showExpandButton = isOverflowing || isExpanded;
+  const isHelpfulActive = !review.isMine && review.isHelpful;
 
   useLayoutEffect(() => {
     const element = contentRef.current;
     if (!element || isExpanded) return;
     setIsOverflowing(element.scrollHeight > element.clientHeight + 1);
   }, [isExpanded, review.content]);
+
+  const handleHelpfulClick = () => {
+    if (review.isMine) {
+      toast({
+        title: OWN_REVIEW_HELPFUL_MESSAGE,
+        nativeTitle: OWN_REVIEW_HELPFUL_MESSAGE,
+        position: 'bottom',
+      });
+      return;
+    }
+
+    onHelpfulToggle(review.id);
+  };
 
   return (
     <article className='flex flex-col gap-5 p-4'>
@@ -245,35 +289,37 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onRepor
       <div className='flex items-center justify-between'>
         <button
           type='button'
-          aria-pressed={review.isHelpful}
-          disabled={review.isMine}
-          onClick={() => onHelpfulToggle(review.id)}
-          className='border-line-200 flex items-center gap-1 rounded-full border px-3 py-2 disabled:cursor-default'
+          aria-pressed={isHelpfulActive}
+          aria-disabled={review.isMine}
+          onClick={handleHelpfulClick}
+          className='border-line-200 flex items-center gap-1 rounded-full border px-3 py-2'
         >
           <span className='flex size-5 items-center justify-center'>
             {/* eslint-disable-next-line @next/next/no-img-element -- 도움돼요 SVG 원본 크기 유지 */}
-            <img src={review.isHelpful ? '/images/img_review_like_fill.svg' : '/images/img_review_like.svg'} alt='' />
+            <img src={isHelpfulActive ? '/images/img_review_like_fill.svg' : '/images/img_review_like.svg'} alt='' />
           </span>
-          <span className={cn('label-semibold', review.isHelpful ? 'text-text-primary' : 'text-fill-secondary-500')}>
+          <span className={cn('label-semibold', isHelpfulActive ? 'text-text-primary' : 'text-fill-secondary-500')}>
             도움돼요
           </span>
           {review.helpfulCount > 0 ? (
             <span
               className={cn(
-                review.isHelpful ? 'label-extrabold text-text-accent' : 'label-semibold text-fill-secondary-500'
+                isHelpfulActive ? 'label-extrabold text-text-accent' : 'label-semibold text-fill-secondary-500'
               )}
             >
               {review.helpfulCount.toLocaleString('ko-KR')}
             </span>
           ) : null}
         </button>
-        <button
-          type='button'
-          className='label-semibold text-fill-secondary-500 py-1'
-          onClick={() => onReport(review.id)}
-        >
-          신고하기
-        </button>
+        {!review.isMine ? (
+          <button
+            type='button'
+            className='label-semibold text-fill-secondary-500 py-1'
+            onClick={() => onReport(review.id)}
+          >
+            신고하기
+          </button>
+        ) : null}
       </div>
     </article>
   );
