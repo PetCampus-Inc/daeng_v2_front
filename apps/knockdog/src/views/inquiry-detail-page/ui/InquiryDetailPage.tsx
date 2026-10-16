@@ -32,7 +32,7 @@ import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
-import { ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
@@ -59,7 +59,9 @@ function InquiryDetailPage() {
   const isError = inquiryId === null || query.isError;
   const isPending = !userId || query.isPending;
   const messages = inquiry
-    ? [...inquiry.messages].sort((first, second) => first.createdAt.localeCompare(second.createdAt) || first.id - second.id)
+    ? [...inquiry.messages].sort(
+        (first, second) => first.createdAt.localeCompare(second.createdAt) || first.id - second.id
+      )
     : [];
 
   // 알림에서 바로 들어와 이전 화면이 없으면 홈으로 보낸다 (PRD 7.2)
@@ -168,12 +170,7 @@ function InquiryDetailPage() {
             <div className='bg-bg-0 shrink-0'>
               <p className='body1-bold text-text-primary px-x4 pt-x4 text-center'>궁금한 점이 해결되었나요?</p>
               <div className='gap-x2 p-x4 flex'>
-                <ActionButton
-                  type='button'
-                  variant='secondaryLine'
-                  size='large'
-                  onClick={handleAdditionalInquiryClick}
-                >
+                <ActionButton type='button' variant='secondaryLine' size='large' onClick={handleAdditionalInquiryClick}>
                   추가 문의하기
                 </ActionButton>
                 <ActionButton
@@ -191,7 +188,7 @@ function InquiryDetailPage() {
         </>
       )}
 
-      <ActionLoadingOverlay isPending={resolveInquiry.isPending} />
+      <ActionLoadingOverlay isPending={resolveInquiry.isPending} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>
   );
 }

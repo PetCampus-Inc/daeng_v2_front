@@ -21,7 +21,7 @@ import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
-import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
+import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS } from '@shared/ui/loading-spinner';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
 /** 추가 문의 작성. 기존 문의 스레드에 이어서 등록하고, 성공하면 문의 상세로 돌아간다 (PRD 7.4) */
@@ -36,6 +36,8 @@ function InquiryAdditionalWritePage() {
 
   const [body, setBody] = useState('');
   const isSubmittingRef = useRef(false);
+  // 성공 후 화면을 떠날 때까지 잠금을 유지한다. 풀면 이동 전에 작성 화면이 다시 보인다
+  const [isLeaving, setIsLeaving] = useState(false);
   // 같은 내용을 다시 보내면 같은 키를 써서 서버가 중복 등록하지 않게 한다
   const submitAttemptRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
 
@@ -92,12 +94,14 @@ function InquiryAdditionalWritePage() {
     try {
       await addInquiry.mutateAsync({ inquiryId, idempotencyKey, body: payload });
       notifyOtherWebViews();
+      setIsLeaving(true);
       releaseAndLeave(() => back());
     } catch (error) {
       // 다른 기기에서 이미 종료한 문의면 상세로 돌아가 해결 완료 상태를 보여준다 (OQ-X11)
       if (error instanceof ApiError && error.code === INQUIRY_ERROR_CODE.ALREADY_RESOLVED) {
         await queryClient.invalidateQueries({ queryKey: inquiryDetailQueryKey(userId, inquiryId) });
         notifyOtherWebViews();
+        setIsLeaving(true);
         releaseAndLeave(() => back());
         return;
       }
@@ -149,7 +153,7 @@ function InquiryAdditionalWritePage() {
         </ActionButton>
       </div>
 
-      <ActionLoadingOverlay isPending={addInquiry.isPending} />
+      <ActionLoadingOverlay isPending={addInquiry.isPending || isLeaving} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>
   );
 }

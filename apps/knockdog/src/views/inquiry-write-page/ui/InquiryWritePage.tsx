@@ -20,7 +20,7 @@ import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
-import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
+import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS } from '@shared/ui/loading-spinner';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
 /** 1:1 문의 작성. 등록에 성공하면 문의 내역 목록으로 돌아가 `문의를 접수했어요` 토스트를 띄운다 (PRD 차이 C-9) */
@@ -40,6 +40,8 @@ function InquiryWritePage() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const isSubmittingRef = useRef(false);
+  // 성공 후 화면을 떠날 때까지 잠금을 유지한다. 풀면 이동 전에 작성 화면이 다시 보인다
+  const [isLeaving, setIsLeaving] = useState(false);
   // 같은 내용을 다시 보내면 같은 키를 써서 서버가 중복 등록하지 않게 한다
   const createAttemptRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
 
@@ -93,6 +95,7 @@ function InquiryWritePage() {
       // 앱에서는 목록이 다른 웹뷰라 그쪽 캐시도 다시 불러오게 알린다
       // userId가 있을 때만 보내므로 키에 undefined가 들어가지 않는다
       if (userId) syncWebViewQuery.invalidate(inquiriesQueryKeys.byUser(userId) as readonly string[]);
+      setIsLeaving(true);
       releaseAndLeave(() => {
         back();
         toast('문의를 접수했어요');
@@ -121,7 +124,11 @@ function InquiryWritePage() {
             label='문의 제목'
             required
             className='h-x12'
-            suffix={title ? <IconButton icon='DeleteInput' aria-label='제목 지우기' onClick={() => setTitle('')} /> : undefined}
+            suffix={
+              title ? (
+                <IconButton icon='DeleteInput' aria-label='제목 지우기' onClick={() => setTitle('')} />
+              ) : undefined
+            }
           >
             <TextFieldInput
               placeholder='문의 제목을 입력해 주세요.'
@@ -164,7 +171,7 @@ function InquiryWritePage() {
         </ActionButton>
       </div>
 
-      <ActionLoadingOverlay isPending={createInquiry.isPending} />
+      <ActionLoadingOverlay isPending={createInquiry.isPending || isLeaving} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>
   );
 }

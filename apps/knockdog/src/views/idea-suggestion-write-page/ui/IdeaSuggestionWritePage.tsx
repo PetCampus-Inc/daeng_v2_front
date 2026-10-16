@@ -11,7 +11,7 @@ import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
-import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
+import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS } from '@shared/ui/loading-spinner';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
 /** 아이디어 제안 작성. 사용자 유형과 내용만 받는다 (PRD 7.5) */
@@ -28,6 +28,8 @@ function IdeaSuggestionWritePage() {
 
   const [content, setContent] = useState('');
   const isSubmittingRef = useRef(false);
+  // 성공 후 화면을 떠날 때까지 잠금을 유지한다. 풀면 이동 전에 작성 화면이 다시 보인다
+  const [isLeaving, setIsLeaving] = useState(false);
   // 같은 내용을 다시 보내면 같은 키를 써서 서버가 중복 등록하지 않게 한다
   const submitAttemptRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
 
@@ -51,7 +53,8 @@ function IdeaSuggestionWritePage() {
 
     openUnsavedExitDialog({
       title: '소중한 의견, 조금만 더 들려주세요.',
-      description: '보내주신 아이디어는 똑독을 더 나은 서비스로 만드는 데 큰 도움이 돼요. 지금 나가면 작성한 내용이 저장되지 않아요.',
+      description:
+        '보내주신 아이디어는 똑독을 더 나은 서비스로 만드는 데 큰 도움이 돼요. 지금 나가면 작성한 내용이 저장되지 않아요.',
       cancelLabel: '닫기',
       confirmLabel: '나가기',
       onConfirm: leavePage,
@@ -73,6 +76,7 @@ function IdeaSuggestionWritePage() {
 
     try {
       await submitSuggestion.mutateAsync({ idempotencyKey, body: payload });
+      setIsLeaving(true);
       // 작성 화면으로 돌아가 다시 보내지 못하게 완료 화면으로 바꿔 연다 (PRD 7.6)
       releaseAndLeave(() => {
         replace({ pathname: route.mypage.ideaSuggestion.complete.root });
@@ -102,7 +106,12 @@ function IdeaSuggestionWritePage() {
 
         <div className='px-x4 py-x3'>
           {/* 문의 작성과 같은 148px(테두리 포함)로 맞춘다. Figma는 100px (OQ-X14). textarea는 inline이라 아래 여백이 생기므로 block으로 둔다 */}
-          <Textarea label='아이디어 내용' required variant='secondary' className='flex h-[148px] flex-col justify-between'>
+          <Textarea
+            label='아이디어 내용'
+            required
+            variant='secondary'
+            className='flex h-[148px] flex-col justify-between'
+          >
             <TextareaInput
               placeholder='아이디어 내용을 작성해 주세요.'
               rows={3}
@@ -124,7 +133,7 @@ function IdeaSuggestionWritePage() {
         </ActionButton>
       </div>
 
-      <ActionLoadingOverlay isPending={submitSuggestion.isPending} />
+      <ActionLoadingOverlay isPending={submitSuggestion.isPending || isLeaving} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>
   );
 }
