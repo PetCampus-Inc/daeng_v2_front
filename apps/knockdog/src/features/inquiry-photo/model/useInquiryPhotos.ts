@@ -10,6 +10,8 @@ import { useImagePicker } from '@shared/lib/media';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
 const INVALID_PHOTO_MESSAGE = '사진의 형식과 크기를 확인해 주세요.';
+/** PRD에 없는 임시 문구 (OQ-X2) */
+const MAX_PHOTO_COUNT_MESSAGE = `사진은 최대 ${INQUIRY_IMAGE_MAX_COUNT}장까지 올릴 수 있어요`;
 
 function revokePreview(photo: InquiryPhoto) {
   if (photo.previewUrl.startsWith('blob:')) URL.revokeObjectURL(photo.previewUrl);
@@ -48,7 +50,9 @@ function useInquiryPhotos() {
         (result.skipped?.invalidSpecCount ?? 0) +
         (result.skipped?.oversizedCount ?? 0) +
         (result.skipped?.unreadableCount ?? 0);
-      if (skippedCount > 0) toast(INVALID_PHOTO_MESSAGE);
+      // Android 사진 선택기는 selectionLimit을 넘겨 고를 수 있어 앱이 앞에서부터 남은 장수만 남긴다. 빠진 사진이 있다고 알린다
+      if (result.exceededLimit) toast(MAX_PHOTO_COUNT_MESSAGE);
+      else if (skippedCount > 0) toast(INVALID_PHOTO_MESSAGE);
 
       const assets = (result.assets ?? []).slice(0, remainingCount) as InquiryPickAsset[];
       if (assets.length === 0) return;
