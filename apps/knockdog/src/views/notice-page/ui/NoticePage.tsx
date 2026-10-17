@@ -8,7 +8,7 @@ import { formatPlatformDate, usePlatformNoticesInfiniteQuery } from '@entities/p
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useInfiniteScroll } from '@shared/lib/react/useInfiniteScroll';
-import { InfiniteScrollFooter } from '@shared/ui/loading-spinner';
+import { DelayedLoadingSpinner, InfiniteScrollFooter } from '@shared/ui/loading-spinner';
 
 function NoticePage() {
   const { push } = useStackNavigation();
@@ -29,9 +29,9 @@ function NoticePage() {
         <Header.Title>공지사항</Header.Title>
       </Header>
 
-      <main className='min-h-0 flex-1 overflow-y-auto' aria-label='공지사항 목록'>
-        {query.isPending ? (
-          <p className='body1-regular text-text-secondary px-4 py-8 text-center'>공지사항을 불러오고 있어요.</p>
+      <main className='flex min-h-0 flex-1 flex-col overflow-y-auto' aria-label='공지사항 목록'>
+        {query.isLoading ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
         ) : query.isError ? (
           <p className='body1-regular text-text-secondary px-4 py-8 text-center'>공지사항을 불러오지 못했어요.</p>
         ) : notices.length === 0 ? (

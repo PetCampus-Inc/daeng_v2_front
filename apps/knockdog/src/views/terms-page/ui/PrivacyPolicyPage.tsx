@@ -13,6 +13,7 @@ import {
   useLegalDocumentVersionsQuery,
   type LegalDocumentType,
 } from '@entities/platform-content';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function TermVersionBadge({ label }: { label: '현행' | '예정' }) {
   return (
@@ -81,7 +82,7 @@ function TermsDetailPage({ title, type }: { title: string; type: LegalDocumentTy
         <Header.Title>{title}</Header.Title>
       </Header>
 
-      <main className='min-h-0 flex-1 overflow-y-auto px-4'>
+      <main className='flex min-h-0 flex-1 flex-col overflow-y-auto px-4'>
         {versionsQuery.data && versionsQuery.data.length > 0 && (
           <div ref={versionMenuRef} className='relative mt-2 mb-2'>
             <button
@@ -151,8 +152,8 @@ function TermsDetailPage({ title, type }: { title: string; type: LegalDocumentTy
 
         {versionsQuery.isError ? (
           <p className='body1-regular text-text-secondary py-8 text-center'>약관 버전을 불러오지 못했어요.</p>
-        ) : versionsQuery.isPending || (currentVersion && detailQuery.isPending) || (selectedVersionId && detailQuery.isPending) ? (
-          <p className='body1-regular text-text-secondary py-8 text-center'>약관을 불러오고 있어요.</p>
+        ) : versionsQuery.isLoading || detailQuery.isLoading ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
         ) : detailQuery.isError ? (
           <p className='body1-regular text-text-secondary py-8 text-center'>약관을 불러오지 못했어요.</p>
         ) : detailQuery.data ? (

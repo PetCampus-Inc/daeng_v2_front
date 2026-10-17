@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Header } from '@widgets/Header';
 
 import { formatPlatformDate, PlatformRichContent, usePlatformNoticeDetailQuery } from '@entities/platform-content';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 function NoticeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,9 +19,9 @@ function NoticeDetailPage() {
         <Header.Title>공지사항</Header.Title>
       </Header>
 
-      <main className='min-h-0 flex-1 overflow-y-auto'>
-        {query.isPending ? (
-          <p className='body1-regular text-text-secondary px-4 py-8 text-center'>공지사항을 불러오고 있어요.</p>
+      <main className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
+        {query.isLoading ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
         ) : query.isError ? (
           <p className='body1-regular text-text-secondary px-4 py-8 text-center'>공지사항을 불러오지 못했어요.</p>
         ) : notice ? (
