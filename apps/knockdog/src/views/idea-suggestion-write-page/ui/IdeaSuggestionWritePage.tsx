@@ -84,10 +84,9 @@ function IdeaSuggestionWritePage() {
         replace({ pathname: route.mypage.ideaSuggestion.complete.root });
       });
     } catch {
-      // 실패하면 화면과 사용자 유형·내용을 그대로 둔다
-      toast(COMMON_ERROR_TOAST_MESSAGE);
-    } finally {
+      // 실패하면 화면과 사용자 유형·내용을 그대로 둔다. 성공하면 화면을 떠날 때까지 잠가 두어 뒤로가기를 무시한다
       isSubmittingRef.current = false;
+      toast(COMMON_ERROR_TOAST_MESSAGE);
     }
   };
 

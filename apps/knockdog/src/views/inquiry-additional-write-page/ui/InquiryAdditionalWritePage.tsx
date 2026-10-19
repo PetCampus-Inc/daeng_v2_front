@@ -107,10 +107,9 @@ function InquiryAdditionalWritePage() {
         releaseAndLeave(() => back());
         return;
       }
-      // 실패하면 화면과 입력값·사진을 그대로 둔다
-      toast(COMMON_ERROR_TOAST_MESSAGE);
-    } finally {
+      // 실패하면 화면과 입력값·사진을 그대로 둔다. 화면을 떠날 때는 떠날 때까지 잠가 두어 뒤로가기를 무시한다
       isSubmittingRef.current = false;
+      toast(COMMON_ERROR_TOAST_MESSAGE);
     }
   };
 
