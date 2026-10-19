@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -68,7 +68,9 @@ function InquiryAdditionalWritePage() {
     });
   }, [hasInput, leavePage]);
 
-  handleBackRef.current = handleBack;
+  useLayoutEffect(() => {
+    handleBackRef.current = handleBack;
+  }, [handleBack]);
   useNativeBackHandler(handleBack);
 
   /** 앱에서는 상세·목록이 다른 웹뷰라 그쪽 캐시도 다시 불러오게 알린다 */

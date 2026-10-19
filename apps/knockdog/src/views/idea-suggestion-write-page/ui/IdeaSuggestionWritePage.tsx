@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import { ActionButton, Textarea, TextareaInput } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
@@ -61,7 +61,9 @@ function IdeaSuggestionWritePage() {
     });
   }, [hasInput, leavePage]);
 
-  handleBackRef.current = handleBack;
+  useLayoutEffect(() => {
+    handleBackRef.current = handleBack;
+  }, [handleBack]);
   useNativeBackHandler(handleBack);
 
   const handleSubmit = async () => {

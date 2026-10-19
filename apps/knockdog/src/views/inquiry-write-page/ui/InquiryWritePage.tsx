@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import { ActionButton, IconButton, Textarea, TextareaInput, TextField, TextFieldInput } from '@knockdog/ui';
 import { canSubmitInquiry, hasInquiryWriteInput } from '@views/inquiry-write-page/lib/inquiryWriteForm';
@@ -72,7 +72,9 @@ function InquiryWritePage() {
     });
   }, [hasInput, leavePage]);
 
-  handleBackRef.current = handleBack;
+  useLayoutEffect(() => {
+    handleBackRef.current = handleBack;
+  }, [handleBack]);
   useNativeBackHandler(handleBack);
 
   const handleSubmit = async () => {
