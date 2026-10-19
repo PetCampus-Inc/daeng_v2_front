@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ActionButton } from '@knockdog/ui';
 import { InquiryListEmpty } from '@views/inquiry-list-page/ui/InquiryListEmpty';
@@ -29,8 +29,10 @@ function InquiryListPage() {
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
 
   // 다음 페이지 조회가 실패하면 하단 감지 영역이 화면에 남아 있어 곧바로 재요청이 반복된다.
-  // 실패 후에는 자동 조회를 멈추고, 사용자가 직접 스크롤(터치·휠)하면 다시 조회할 수 있게 한다
+  // 실패 후에는 자동 조회를 멈추고, 감지 영역이 화면 밖으로 나갔다가 다시 들어올 때만 다시 조회한다.
+  // 목록 끝에서 계속 스크롤해도 재요청·오류 토스트가 반복되지 않는다
   const [isAutoFetchPaused, setIsAutoFetchPaused] = useState(false);
+  const resumeObserverRef = useRef<IntersectionObserver | null>(null);
 
   // 렌더마다 새 함수를 넘기면 IntersectionObserver가 매번 다시 연결되므로 고정한다
   const handleFetchNextPage = useCallback(async () => {
@@ -47,10 +49,27 @@ function InquiryListPage() {
     fetchNextPage: handleFetchNextPage,
   });
 
-  // 스피너가 사라지며 생기는 스크롤 이벤트로는 재개하지 않도록, 실제 사용자 입력에서만 재개한다
-  const handleUserScroll = () => {
-    if (isAutoFetchPaused) setIsAutoFetchPaused(false);
-  };
+  /** 감지 영역을 다음 페이지 조회에 연결하고, 화면 밖으로 나가면 멈춘 자동 조회를 다시 켠다 */
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      lastElementCallback(node);
+      resumeObserverRef.current?.disconnect();
+      resumeObserverRef.current = null;
+      if (!node) return;
+
+      // 다음 페이지 조회와 같은 범위(useInfiniteScroll 기본 100px)를 벗어나야 나간 것으로 본다
+      resumeObserverRef.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry && !entry.isIntersecting) setIsAutoFetchPaused(false);
+        },
+        { rootMargin: '100px' }
+      );
+      resumeObserverRef.current.observe(node);
+    },
+    [lastElementCallback]
+  );
+
+  useEffect(() => () => resumeObserverRef.current?.disconnect(), []);
 
   const handleRetry = () => {
     query.refetch();
@@ -84,11 +103,7 @@ function InquiryListPage() {
           {items.length === 0 ? (
             <InquiryListEmpty />
           ) : (
-            <div
-              className='min-h-0 flex-1 overflow-y-auto'
-              onTouchMove={handleUserScroll}
-              onWheel={handleUserScroll}
-            >
+            <div className='min-h-0 flex-1 overflow-y-auto'>
               <ul className='flex w-full flex-col'>
                 {items.map((item) => (
                   <li key={item.id}>
@@ -100,7 +115,7 @@ function InquiryListPage() {
                 <InfiniteScrollFooter
                   hasNextPage={hasNextPage}
                   isFetchingNextPage={isFetchingNextPage}
-                  sentinelRef={lastElementCallback}
+                  sentinelRef={sentinelRef}
                 />
               ) : null}
             </div>
