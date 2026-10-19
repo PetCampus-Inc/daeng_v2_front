@@ -58,8 +58,9 @@ function useInquiryPhotos() {
       if (assets.length === 0) return;
 
       setUploadingCount(assets.length);
-      const uploaded = await uploadInquiryPhotos(assets);
+      const { uploaded, failedCount } = await uploadInquiryPhotos(assets);
       setPhotos((current) => [...current, ...uploaded].slice(0, INQUIRY_IMAGE_MAX_COUNT));
+      if (failedCount > 0) toast(`사진 ${failedCount}장을 올리지 못했어요.`);
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
       const isInvalidSpec = error instanceof ApiError && error.code === INQUIRY_ERROR_CODE.INVALID_IMAGE_SPEC;

@@ -16,6 +16,11 @@ interface InquiryPhoto {
   previewUrl: string;
 }
 
+interface InquiryPhotoUploadResult {
+  uploaded: InquiryPhoto[];
+  failedCount: number;
+}
+
 function resolveContentType(asset: InquiryPickAsset) {
   const mimeType = (asset.file?.type || asset.mimeType || '').toLowerCase().trim();
   if (mimeType === 'image/jpg') return 'image/jpeg';
@@ -73,7 +78,7 @@ async function resolvePreviewUrl(asset: InquiryPickAsset, tempKey: string) {
  * 고른 사진을 문의 업로드 URL로 올린다 (발급 → PUT).
  * 형식·용량이 맞지 않으면 발급 단계에서 ApiError(INQUIRY_ERROR_CODE.INVALID_IMAGE_SPEC)가 난다
  */
-async function uploadInquiryPhotos(assets: InquiryPickAsset[]): Promise<InquiryPhoto[]> {
+async function uploadInquiryPhotos(assets: InquiryPickAsset[]): Promise<InquiryPhotoUploadResult> {
   const prepared = assets.map((asset, index) => ({
     asset,
     contentType: resolveContentType(asset),
@@ -96,7 +101,7 @@ async function uploadInquiryPhotos(assets: InquiryPickAsset[]): Promise<InquiryP
     throw new Error('업로드 URL 개수가 고른 사진 수와 달라요.');
   }
 
-  return Promise.all(
+  const results = await Promise.allSettled(
     prepared.map(async ({ asset, contentType, filename }, index) => {
       const target = targets[index]!;
       await putToUploadUrl(asset, target.uploadUrl, contentType);
@@ -107,6 +112,9 @@ async function uploadInquiryPhotos(assets: InquiryPickAsset[]): Promise<InquiryP
       };
     })
   );
+
+  const uploaded = results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
+  return { uploaded, failedCount: results.length - uploaded.length };
 }
 
 export { uploadInquiryPhotos };
