@@ -1,7 +1,7 @@
 import { METHODS, type ImageAsset } from '@knockdog/bridge-core';
 
-import { postInquiryImageUploadUrls, type InquiryUploadFileRequestDto } from '@entities/inquiry';
-import { fetchWithUploadTimeout } from '@shared/api';
+import { INQUIRY_ERROR_CODE, postInquiryImageUploadUrls, type InquiryUploadFileRequestDto } from '@entities/inquiry';
+import { ApiError, fetchWithUploadTimeout } from '@shared/api';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { getPreviewImage } from '@shared/lib/media';
 
@@ -19,6 +19,8 @@ interface InquiryPhoto {
 interface InquiryPhotoUploadResult {
   uploaded: InquiryPhoto[];
   failedCount: number;
+  /** 실패한 사진 중 서버가 형식·용량 위반으로 거절한 장수 */
+  invalidSpecCount: number;
 }
 
 function resolveContentType(asset: InquiryPickAsset) {
@@ -75,46 +77,44 @@ async function resolvePreviewUrl(asset: InquiryPickAsset, tempKey: string) {
 }
 
 /**
- * 고른 사진을 문의 업로드 URL로 올린다 (발급 → PUT).
+ * 사진 한 장을 올린다 (업로드 URL 발급 → PUT → 썸네일 주소).
  * 형식·용량이 맞지 않으면 발급 단계에서 ApiError(INQUIRY_ERROR_CODE.INVALID_IMAGE_SPEC)가 난다
  */
+async function uploadInquiryPhoto(asset: InquiryPickAsset, index: number): Promise<InquiryPhoto> {
+  const contentType = resolveContentType(asset);
+  const filename = resolveFileName(asset, index);
+  const size = resolveFileSize(asset);
+  if (size <= 0) throw new Error('파일 크기를 확인할 수 없는 사진이 있어요.');
+
+  const file: InquiryUploadFileRequestDto = { filename, contentType, size };
+  const { data } = await postInquiryImageUploadUrls([file]);
+  const target = data?.items?.[0];
+  if (!target) throw new Error('사진 업로드 URL을 받지 못했어요.');
+
+  await putToUploadUrl(asset, target.uploadUrl, contentType);
+  return {
+    tempKey: target.tempKey,
+    originalFilename: filename,
+    previewUrl: await resolvePreviewUrl(asset, target.tempKey),
+  };
+}
+
+function isInvalidSpecError(reason: unknown) {
+  return reason instanceof ApiError && reason.code === INQUIRY_ERROR_CODE.INVALID_IMAGE_SPEC;
+}
+
+/**
+ * 고른 사진을 한 장씩 따로 올린다. 일부가 실패해도 성공한 사진은 고른 순서대로 돌려주고,
+ * 실패한 장수와 그중 형식·용량 위반 장수를 함께 돌려준다
+ */
 async function uploadInquiryPhotos(assets: InquiryPickAsset[]): Promise<InquiryPhotoUploadResult> {
-  const prepared = assets.map((asset, index) => ({
-    asset,
-    contentType: resolveContentType(asset),
-    filename: resolveFileName(asset, index),
-    size: resolveFileSize(asset),
-  }));
-
-  if (prepared.some(({ size }) => size <= 0)) {
-    throw new Error('파일 크기를 확인할 수 없는 사진이 있어요.');
-  }
-
-  const files: InquiryUploadFileRequestDto[] = prepared.map(({ filename, contentType, size }) => ({
-    filename,
-    contentType,
-    size,
-  }));
-  const { data } = await postInquiryImageUploadUrls(files);
-  const targets = data?.items ?? [];
-  if (targets.length !== prepared.length) {
-    throw new Error('업로드 URL 개수가 고른 사진 수와 달라요.');
-  }
-
-  const results = await Promise.allSettled(
-    prepared.map(async ({ asset, contentType, filename }, index) => {
-      const target = targets[index]!;
-      await putToUploadUrl(asset, target.uploadUrl, contentType);
-      return {
-        tempKey: target.tempKey,
-        originalFilename: filename,
-        previewUrl: await resolvePreviewUrl(asset, target.tempKey),
-      };
-    })
-  );
+  const results = await Promise.allSettled(assets.map(uploadInquiryPhoto));
 
   const uploaded = results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
-  return { uploaded, failedCount: results.length - uploaded.length };
+  const invalidSpecCount = results.filter(
+    (result) => result.status === 'rejected' && isInvalidSpecError(result.reason)
+  ).length;
+  return { uploaded, failedCount: results.length - uploaded.length, invalidSpecCount };
 }
 
 export { uploadInquiryPhotos };

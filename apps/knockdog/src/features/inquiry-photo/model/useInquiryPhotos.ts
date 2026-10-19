@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { uploadInquiryPhotos, type InquiryPhoto, type InquiryPickAsset } from '../lib/uploadInquiryPhotos';
 
-import { INQUIRY_ERROR_CODE, INQUIRY_IMAGE_MAX_COUNT } from '@entities/inquiry';
-import { ApiError } from '@shared/api';
+import { INQUIRY_IMAGE_MAX_COUNT } from '@entities/inquiry';
 import { useImagePicker } from '@shared/lib/media';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
 
@@ -58,13 +57,15 @@ function useInquiryPhotos() {
       if (assets.length === 0) return;
 
       setUploadingCount(assets.length);
-      const { uploaded, failedCount } = await uploadInquiryPhotos(assets);
+      const { uploaded, failedCount, invalidSpecCount } = await uploadInquiryPhotos(assets);
       setPhotos((current) => [...current, ...uploaded].slice(0, INQUIRY_IMAGE_MAX_COUNT));
-      if (failedCount > 0) toast(`사진 ${failedCount}장을 올리지 못했어요.`);
+      // 실패 문구는 PRD에 없는 임시 문구 (OQ-X23)
+      if (failedCount > 0) {
+        toast(invalidSpecCount === failedCount ? INVALID_PHOTO_MESSAGE : `사진 ${failedCount}장을 올리지 못했어요.`);
+      }
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
-      const isInvalidSpec = error instanceof ApiError && error.code === INQUIRY_ERROR_CODE.INVALID_IMAGE_SPEC;
-      toast(isInvalidSpec ? INVALID_PHOTO_MESSAGE : COMMON_ERROR_TOAST_MESSAGE);
+      toast(COMMON_ERROR_TOAST_MESSAGE);
     } finally {
       setUploadingCount(0);
       isBusyRef.current = false;
