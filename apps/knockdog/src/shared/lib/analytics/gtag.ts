@@ -1,4 +1,4 @@
-export const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
+export const GA_MEASUREMENT_ID = 'G-SYYR0V8GLB';
 
 let pendingUserId: string | null | undefined;
 let userIdFlushAttempts = 0;

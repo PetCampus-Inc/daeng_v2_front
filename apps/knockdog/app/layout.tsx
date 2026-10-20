@@ -9,7 +9,7 @@ import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
 import { AnalyticsScreenTracker } from '@shared/lib/analytics';
-import { GA_MEASUREMENT_ID } from '@shared/lib/analytics/gtag';
+import { GoogleAnalytics } from '@shared/lib/analytics/GoogleAnalytics';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
 import { AnalyticsUserSync } from '@features/auth';
 import { SyncNativeMainTabModeEffect } from '@features/role-conversion';
@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className='overflow-hidden'>
         <HeaderProvider>
-          {/* gtag stub은 즉시(큐잉), 실스크립트는 idle 이후 — 초기 TBT/LCP 보호 */}
+          {/* stub만 먼저 둔다. gtag.js는 브라우저에서 GoogleAnalytics가 붙인다. */}
           <Script id='gtag-stub' strategy='beforeInteractive'>
             {`
               window.dataLayer = window.dataLayer || [];
@@ -90,18 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               window.gtag = gtag;
             `}
           </Script>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy='lazyOnload'
-          />
-          <Script id='google-analytics' strategy='lazyOnload'>
-            {`
-              if (!window.ReactNativeWebView) {
-                gtag('js', new Date());
-                gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
-              }
-            `}
-          </Script>
+          <GoogleAnalytics />
           <ClientErrorReporter />
           <NuqsAdapter>
             <ReactQueryProvider>
