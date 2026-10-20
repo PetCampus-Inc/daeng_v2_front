@@ -30,11 +30,14 @@ import { RemoveScroll } from 'react-remove-scroll';
 
 import { checklistQueryKeys, type AnswersResponse } from '@entities/checklist';
 import { useNativeBackToClose } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
-import { useChecklistMutate } from '../api/useChecklistMutate';
+import { useDeleteChecklistMutation } from '../api/useChecklistMutate';
 
-function clearedAnswerValue(value: string) {
-  return /^\d+$/.test(value.trim()) ? '' : 'UNKNOWN';
+const EMPTY_CHECKLIST: AnswersResponse = { sections: [] };
+
+interface DeleteChecklistContext {
+  previous?: AnswersResponse;
 }
 
 interface ChecklistMoreMenuProps {
@@ -46,9 +49,48 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const queryKey = checklistQueryKeys.answers(targetId);
-  const { mutate: updateAnswers, isPending } = useChecklistMutate({
+  const { mutate: resetChecklist, isPending } = useDeleteChecklistMutation({
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<AnswersResponse>(queryKey);
+      queryClient.setQueryData(queryKey, EMPTY_CHECKLIST);
+      return { previous } satisfies DeleteChecklistContext;
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+      toast({
+        nativeTitle: '체크리스트를 초기화하지 못했어요',
+        titleParts: [
+          { text: '체크리스트를 ', accent: false },
+          { text: '초기화', accent: true },
+          { text: '하지 못했어요', accent: false },
+        ],
+        title: (
+          <>
+            <span className='text-text-primary-inverse'>체크리스트를 </span>
+            <span className='text-text-accent'>초기화</span>
+            <span className='text-text-primary-inverse'>하지 못했어요</span>
+          </>
+        ),
+      });
+    },
     onSuccess: () => {
-      queryClient.setQueryData(queryKey, { sections: [] });
+      toast({
+        type: 'success',
+        nativeTitle: '체크리스트를 초기화했어요',
+        titleParts: [
+          { text: '체크리스트를 ', accent: false },
+          { text: '초기화', accent: true },
+          { text: '했어요', accent: false },
+        ],
+        title: (
+          <>
+            <span className='text-text-primary-inverse'>체크리스트를 </span>
+            <span className='text-text-accent'>초기화</span>
+            <span className='text-text-primary-inverse'>했어요</span>
+          </>
+        ),
+      });
     },
   });
 
@@ -86,35 +128,14 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>작성한 내용을 초기화할까요?</AlertDialogTitle>
-            <AlertDialogDescription>현재 선택한 항목의 체크가 모두 해제됩니다.</AlertDialogDescription>
+            <AlertDialogDescription>작성한 체크와 메모가 모두 삭제됩니다.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>닫기</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                const previous = queryClient.getQueryData<AnswersResponse>(queryKey);
-                const answers = (previous?.sections ?? []).flatMap((section) =>
-                  section.answers
-                    .filter(
-                      (answer) => String(answer.value ?? '').trim() !== '' || (answer.memo?.trim() ?? '') !== ''
-                    )
-                    .map((answer) => ({
-                      questionId: answer.questionId,
-                      value: clearedAnswerValue(String(answer.value ?? '')),
-                      memo: '',
-                    }))
-                );
-
                 close();
-                queryClient.setQueryData(queryKey, { sections: [] });
-                updateAnswers(
-                  { targetId, answers },
-                  {
-                    onError: () => {
-                      queryClient.setQueryData(queryKey, previous);
-                    },
-                  }
-                );
+                resetChecklist({ targetId });
               }}
             >
               초기화하기

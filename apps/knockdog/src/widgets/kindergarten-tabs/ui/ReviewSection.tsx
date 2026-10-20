@@ -8,7 +8,6 @@ import { useQueryState } from 'nuqs';
 import {
   DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
   deleteKnockdogReview,
-  getReviewTotalCount,
   hasKnockdogReviewReport,
   KnockdogReviewList,
   KnockdogReviewSortButton,
@@ -17,7 +16,7 @@ import {
   ReviewRatingSummary,
   sortKnockdogReviews,
   toggleKnockdogReviewHelpful,
-  toReviewRatingCounts,
+  toCompleteReviewSummary,
   useKnockdogRatingCounts,
   useKnockdogReviews,
   useSchoolReviewQuery,
@@ -25,7 +24,6 @@ import {
   useDeleteSchoolReview,
   useSetSchoolReviewHelpful,
   type KnockdogReviewSort,
-  type ReviewRatingCounts,
 } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
 import { parseSchoolId, type ReviewListResponse, type SchoolReviewSummary } from '@entities/review';
@@ -85,29 +83,52 @@ function KnockdogReviewEmpty({
   );
 }
 
+function ReviewSummaryPending() {
+  return <DelayedLoadingSpinner isLoading layout='inline' className='py-6' />;
+}
+
+function ReviewSummaryError({ isRetrying, onRetry }: { isRetrying: boolean; onRetry: () => void }) {
+  return (
+    <div className='flex flex-col items-center gap-3 py-4'>
+      <p className='body2-regular text-text-secondary text-center'>리뷰 요약을 불러오지 못했어요</p>
+      <ActionButton type='button' size='small' disabled={isRetrying} onClick={onRetry}>
+        다시 시도
+      </ActionButton>
+    </div>
+  );
+}
+
 function KnockdogReviewHeader({
-  counts,
   summary,
-  totalCount,
+  isSummaryPending,
+  isSummaryFailed,
+  isSummaryRetrying,
+  onRetrySummary,
   sort,
   onSortChange,
   onWriteClick,
   writeLabel,
 }: {
-  counts: ReviewRatingCounts;
-  summary?: SchoolReviewSummary | null;
-  totalCount?: number;
+  summary: SchoolReviewSummary | null;
+  isSummaryPending: boolean;
+  isSummaryFailed: boolean;
+  isSummaryRetrying: boolean;
+  onRetrySummary: () => void;
   sort: KnockdogReviewSort;
   onSortChange: (sort: KnockdogReviewSort) => void;
   onWriteClick: () => void;
   writeLabel: string | null;
 }) {
-  const total = summary?.totalCount ?? totalCount ?? getReviewTotalCount(counts);
-
   return (
     <>
       <div className='flex flex-col gap-4 px-4 pb-4'>
-        <ReviewRatingSummary counts={counts} summary={summary} />
+        {summary ? (
+          <ReviewRatingSummary summary={summary} />
+        ) : isSummaryFailed ? (
+          <ReviewSummaryError isRetrying={isSummaryRetrying} onRetry={onRetrySummary} />
+        ) : isSummaryPending ? (
+          <ReviewSummaryPending />
+        ) : null}
         <div className='flex items-center gap-2'>
           <div className='min-w-0 flex-1'>
             <p className='caption1-semibold text-text-primary'>유치원 이용 후기를 남겨 주세요!</p>
@@ -121,7 +142,13 @@ function KnockdogReviewHeader({
         </div>
       </div>
       <div className='flex items-center justify-between px-4 py-2'>
-        <p className='label-medium text-fill-secondary-500'>총 {total.toLocaleString('ko-KR')}개 리뷰</p>
+        {summary ? (
+          <p className='label-medium text-fill-secondary-500'>
+            총 {summary.totalCount.toLocaleString('ko-KR')}개 리뷰
+          </p>
+        ) : (
+          <span />
+        )}
         <KnockdogReviewSortButton value={sort} onChange={onSortChange} />
       </div>
     </>
@@ -166,7 +193,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
 
   const { push } = useStackNavigation();
   const showKnockdogReviewMock = knockdogReview === '1';
-  const [sourceOverride, setSourceOverride] = useState<ReviewSource | null>(null);
+  const [source, setSource] = useState<ReviewSource>('knockdog');
   const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
   const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -175,7 +202,6 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   const reporterId = useUserStore((state) => state.user?.userId) ?? '';
   const knockdogReviews = useKnockdogReviews();
   const knockdogRatingCountsFromStore = useKnockdogRatingCounts();
-  const source = sourceOverride ?? (showKnockdogReviewMock ? 'knockdog' : 'blog');
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
   const {
@@ -186,10 +212,12 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     isFetchingNextPage: isFetchingNextSchoolReviewPage,
     fetchNextPage: fetchNextSchoolReviewPage,
   } = useSchoolReviewQuery(schoolId, knockdogReviewSort, !showKnockdogReviewMock);
-  const { data: schoolReviewSummary, isLoading: isSchoolReviewSummaryLoading } = useSchoolReviewSummaryQuery(
-    schoolId,
-    !showKnockdogReviewMock
-  );
+  const {
+    data: schoolReviewSummary,
+    isError: isSchoolReviewSummaryError,
+    isFetching: isSchoolReviewSummaryFetching,
+    refetch: refetchSchoolReviewSummary,
+  } = useSchoolReviewSummaryQuery(schoolId, !showKnockdogReviewMock);
   const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
   const { mutate: setSchoolReviewHelpful } = useSetSchoolReviewHelpful();
   const { lastElementCallback: schoolReviewLastElementCallback } = useInfiniteScroll({
@@ -201,33 +229,35 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   const allReviews = data?.pages.flatMap((page) => page.reviews) ?? [];
   const blogReviewCount = getBlogReviewCount(data?.pages);
   const schoolReviews = schoolReviewData?.pages.flatMap((page) => page.items) ?? [];
-  const schoolReviewTotal = schoolReviewData?.pages[0]?.totalCount ?? schoolReviews.length;
-  const knockdogRatingCounts = showKnockdogReviewMock
-    ? knockdogRatingCountsFromStore
-    : toReviewRatingCounts(schoolReviews);
   const hasSchool = parseSchoolId(schoolId) != null;
-  const summary = showKnockdogReviewMock ? null : schoolReviewSummary;
+  const isApiReview = !showKnockdogReviewMock && hasSchool;
+  const summary = showKnockdogReviewMock
+    ? toCompleteReviewSummary(knockdogRatingCountsFromStore)
+    : (schoolReviewSummary ?? null);
+  const isSummaryFailed = isApiReview && summary == null && isSchoolReviewSummaryError;
+  const isSummaryPending = isApiReview && summary == null && !isSchoolReviewSummaryError;
   const knockdogReviewCount = showKnockdogReviewMock
-    ? getReviewTotalCount(knockdogRatingCountsFromStore)
+    ? (summary?.totalCount ?? 0)
     : !hasSchool
       ? 0
-      : summary
-        ? summary.totalCount
-        : schoolReviewData
-          ? schoolReviewTotal
-          : null;
-  const writeLabel = showKnockdogReviewMock
+      : (summary?.totalCount ?? null);
+  const writeLabel = showKnockdogReviewMock || !hasSchool
     ? '리뷰 작성하기'
-    : isSchoolReviewSummaryLoading
+    : summary?.canWrite
       ? '리뷰 작성하기'
-      : !summary || summary.canWrite
-        ? '리뷰 작성하기'
-        : summary.myReviewId != null
-          ? '리뷰 수정하기'
-          : null;
+      : summary?.myReviewId != null
+        ? '리뷰 수정하기'
+        : null;
+  const handleRetrySummary = () => {
+    void refetchSchoolReviewSummary();
+  };
   const handleWriteReview = () => {
-    if (!showKnockdogReviewMock && isSchoolReviewSummaryLoading) return;
-    if (summary && !summary.canWrite) {
+    if (showKnockdogReviewMock || !hasSchool) {
+      push({ pathname: `/kindergarten/${id}/write-review` });
+      return;
+    }
+    if (!summary) return;
+    if (!summary.canWrite) {
       if (summary.myReviewId == null) return;
       push({ pathname: `/kindergarten/${id}/edit-review/${summary.myReviewId}` });
       return;
@@ -323,14 +353,29 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     if (!showKnockdogReviewMock && isSchoolReviewError) return <ErrorState />;
 
     const reviews = showKnockdogReviewMock ? sortedKnockdogReviews : schoolReviews;
-    if (reviews.length === 0) return <KnockdogReviewEmpty onWriteClick={handleWriteReview} writeLabel={writeLabel} />;
+    if (reviews.length === 0) {
+      return (
+        <>
+          {isSummaryFailed ? (
+            <div className='px-4'>
+              <ReviewSummaryError isRetrying={isSchoolReviewSummaryFetching} onRetry={handleRetrySummary} />
+            </div>
+          ) : isSummaryPending ? (
+            <ReviewSummaryPending />
+          ) : null}
+          <KnockdogReviewEmpty onWriteClick={handleWriteReview} writeLabel={writeLabel} />
+        </>
+      );
+    }
 
     return (
       <>
         <KnockdogReviewHeader
-          counts={knockdogRatingCounts}
           summary={summary}
-          totalCount={showKnockdogReviewMock ? undefined : schoolReviewTotal}
+          isSummaryPending={isSummaryPending}
+          isSummaryFailed={isSummaryFailed}
+          isSummaryRetrying={isSchoolReviewSummaryFetching}
+          onRetrySummary={handleRetrySummary}
           sort={knockdogReviewSort}
           onSortChange={setKnockdogReviewSort}
           onWriteClick={handleWriteReview}
@@ -380,7 +425,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   };
 
   const handleSourceChange = (value: string) => {
-    if (value === 'knockdog' || value === 'blog') setSourceOverride(value);
+    if (value === 'knockdog' || value === 'blog') setSource(value);
   };
 
   const renderContent = () => {

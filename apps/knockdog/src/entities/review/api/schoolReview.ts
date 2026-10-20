@@ -1,6 +1,7 @@
 import { ApiError, api, type ApiResponse } from '@shared/api';
 
 import {
+  parseSchoolId,
   SCHOOL_REVIEW_PAGE_SIZE,
   toMySchoolReviewPage,
   toReviewableSchool,
@@ -200,6 +201,17 @@ interface SchoolReviewImageUploadUrlResponse {
   items?: { tempKey?: string | null; uploadUrl?: string | null }[] | null;
 }
 
+/** `POST /kindergarten/{placeId}/review-school` — 미인증 포함 리뷰 대상 schoolId 발급. 있으면 기존 ID */
+async function postReviewSchool(placeId: string) {
+  const response = await api
+    .post(`kindergarten/${placeId}/review-school`)
+    .json<ApiResponse<number | string | null>>();
+  const schoolId = parseSchoolId(response.data);
+  if (schoolId == null) throw new Error('schoolId required');
+
+  return schoolId;
+}
+
 /** `POST /schools/{schoolId}/reviews/image-upload-urls` — 리뷰 사진 임시 S3 업로드 URL. 최대 10장 */
 function postSchoolReviewImageUploadUrls(schoolId: number, files: SchoolReviewImageUploadFile[]) {
   return api
@@ -217,6 +229,7 @@ export {
   getSchoolReview,
   getSchoolReviewSummary,
   getSchoolReviews,
+  postReviewSchool,
   postSchoolReviewImageUploadUrls,
   reportSchoolReview,
   setSchoolReviewHelpful,

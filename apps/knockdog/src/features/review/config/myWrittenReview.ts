@@ -8,6 +8,7 @@ interface MyWrittenReview {
   createdAt: string;
   content: string;
   images: string[];
+  helpfulCount: number;
 }
 
 type MyWrittenReviewSort = 'latest' | 'ratingDesc' | 'ratingAsc';

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { useParams } from 'next/navigation';
@@ -23,7 +24,8 @@ import {
   useKnockdogReviews,
   useUpdateSchoolReview,
 } from '@features/review';
-import { parseSchoolId } from '@entities/review';
+import { kindergartenQueries, type Kindergarten } from '@entities/kindergarten';
+import { parseSchoolId, postReviewSchool } from '@entities/review';
 import { useBasePoint } from '@entities/user';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
@@ -222,7 +224,8 @@ export function WriteReviewPage() {
   const reviews = useKnockdogReviews();
   const editingReview = reviewId ? reviews.find((review) => review.id === reviewId) : undefined;
 
-  const { back } = useStackNavigation();
+  const { back, replace } = useStackNavigation();
+  const queryClient = useQueryClient();
   const { pickImage } = useImagePicker();
   const { mutateAsync: createSchoolReview } = useCreateSchoolReview();
   const { coord } = useBasePoint();
@@ -262,6 +265,14 @@ export function WriteReviewPage() {
     ? Boolean(baseline) && isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
     : rating > 0 && content.trim().length > 0 && !isSubmitting;
 
+  const openKnockdogReviewTab = useCallback(() => {
+    void replace({
+      pathname: `/kindergarten/${id}`,
+      query: { tab: '후기' },
+      params: { entrySource: 'kindergarten-list' },
+    });
+  }, [id, replace]);
+
   useEffect(() => {
     if (!reviewId || editingReview || apiReview || isKindergartenPending || isApiReviewLoading) return;
     back();
@@ -291,7 +302,11 @@ export function WriteReviewPage() {
       setIsCreateFailed(false);
       return;
     }
-    if (isComplete || !isDirty) {
+    if (isComplete) {
+      openKnockdogReviewTab();
+      return;
+    }
+    if (!isDirty) {
       back();
       return;
     }
@@ -303,7 +318,7 @@ export function WriteReviewPage() {
       confirmLabel: '나가기',
       onConfirm: () => back(),
     });
-  }, [back, dialog, isComplete, isCreateFailed, isDirty, isEdit]);
+  }, [back, dialog, isComplete, isCreateFailed, isDirty, isEdit, openKnockdogReviewTab]);
 
   useNativeBackHandler(handleBack);
 
@@ -373,18 +388,24 @@ export function WriteReviewPage() {
   const handleCreate = async () => {
     if (isEdit || isSubmittingRef.current || !canSubmit) return;
     if (isKindergartenPending) return;
-    if (schoolId == null) {
-      setIsCreateFailed(true);
-      return;
-    }
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      const images = await resolveSchoolReviewImages(schoolId, photos);
+      let resolvedSchoolId = schoolId;
+      if (resolvedSchoolId == null) {
+        resolvedSchoolId = await postReviewSchool(id);
+        const issuedSchoolId = resolvedSchoolId;
+        queryClient.setQueriesData<Kindergarten>(
+          { queryKey: [...kindergartenQueries.keys.all(), 'main', id] },
+          (current) => (current ? { ...current, schoolId: issuedSchoolId } : current)
+        );
+      }
+
+      const images = await resolveSchoolReviewImages(resolvedSchoolId, photos);
       await createSchoolReview({
-        schoolId,
+        schoolId: resolvedSchoolId,
         rating,
         content,
         images,
@@ -431,7 +452,7 @@ export function WriteReviewPage() {
       }
       didSaveRef.current = true;
       setDialog(null);
-      back();
+      openKnockdogReviewTab();
     } catch {
       setDialog('failure');
     } finally {
@@ -440,7 +461,11 @@ export function WriteReviewPage() {
     }
   };
 
-  if (isComplete) return <WriteReviewComplete id={id} onConfirm={back} />;
+  const handleCompleteConfirm = () => {
+    openKnockdogReviewTab();
+  };
+
+  if (isComplete) return <WriteReviewComplete id={id} onConfirm={handleCompleteConfirm} />;
 
   return (
     <div className='bg-bg-0 flex h-full flex-col'>
@@ -465,12 +490,13 @@ export function WriteReviewPage() {
 
         <div className='mt-5 flex flex-col gap-2 px-4 py-3'>
           <p className='body2-bold text-text-primary'>리뷰 작성</p>
-          <label className='bg-bg-50 radius-r2 flex flex-col gap-8 px-4 py-3'>
+          <label className='bg-bg-50 radius-r2 flex flex-col gap-2 px-4 py-3'>
             <textarea
               value={content}
+              rows={3}
               maxLength={MAX_REVIEW_LENGTH}
               placeholder={REVIEW_PLACEHOLDER}
-              className='body1-regular text-text-primary placeholder:text-fill-secondary-500 min-h-12 w-full resize-none bg-transparent outline-none'
+              className='body1-regular text-text-primary placeholder:text-fill-secondary-500 h-[4.5rem] w-full resize-none overflow-y-auto bg-transparent outline-none'
               onChange={(event) => setContent(event.target.value)}
             />
             <p className='body2-regular text-text-caption'>
@@ -522,6 +548,7 @@ export function WriteReviewPage() {
           <ReviewActionDialog
             isOpen={dialog === 'confirm'}
             isSubmitting={isSubmitting}
+            fullScreenLoading
             title='리뷰를 수정할까요?'
             description='수정한 리뷰를 저장합니다.'
             hideDescription
@@ -535,6 +562,7 @@ export function WriteReviewPage() {
           <ReviewActionDialog
             isOpen={dialog === 'failure'}
             isSubmitting={isSubmitting}
+            fullScreenLoading
             title='리뷰를 수정하지 못했어요'
             description='잠시 후 다시 시도해 주세요.'
             cancelLabel='닫기'

@@ -11,13 +11,14 @@ export {
   useUpdateSchoolReview,
 } from './api/useSchoolReviewMutations';
 export {
+  toSchoolReviewHeaderRating,
   useMySchoolReviewQuery,
   useReviewableSchoolsQuery,
   useSchoolReviewDetailQuery,
   useSchoolReviewQuery,
   useSchoolReviewSummaryQuery,
 } from './api/useSchoolReviewQuery';
-export { getReviewTotalCount, toReviewRatingCounts } from './lib/reviewRating';
+export { getReviewTotalCount, toCompleteReviewSummary, toReviewRatingCounts } from './lib/reviewRating';
 export { sortKnockdogReviews } from './lib/sortKnockdogReviews';
 export { MOCK_KNOCKDOG_REVIEWS } from './config/knockdogReviewMock';
 export {

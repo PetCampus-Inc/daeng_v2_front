@@ -1,10 +1,12 @@
+import { MEMO_MAX_CONTENT_LENGTH, MEMO_MAX_PHOTO_COUNT } from '@entities/memo';
+
 export const editMemoContent = {
   pageTitle: '자유메모 작성',
   saveLabel: '저장',
   placeholder: '메모는 최대 2,000자까지 작성 가능해요',
   photoLabel: '사진',
-  maxLength: 2000,
-  maxPhotoCount: 5,
+  maxLength: MEMO_MAX_CONTENT_LENGTH,
+  maxPhotoCount: MEMO_MAX_PHOTO_COUNT,
   saveSuccessToast: '메모를 저장했어요',
   maxPhotoCountToast: '사진은 최대 5장까지 올릴 수 있어요',
   unsavedExit: {

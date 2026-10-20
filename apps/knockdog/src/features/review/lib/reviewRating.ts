@@ -1,3 +1,5 @@
+import type { SchoolReviewSummary } from '@entities/review';
+
 interface ReviewRatingCounts {
   score5: number;
   score4: number;
@@ -36,10 +38,10 @@ function getReviewFilledStarCount(score: number) {
   return Math.min(5, Math.max(0, Math.floor(score)));
 }
 
-function getReviewScorePercents(counts: ReviewRatingCounts) {
+function getReviewScorePercents(counts: ReviewRatingCounts): [number, number, number, number, number] {
   const values = SCORE_KEYS.map((key) => counts[key]);
   const total = values.reduce((sum, count) => sum + count, 0);
-  if (total === 0) return values.map(() => 0);
+  if (total === 0) return [0, 0, 0, 0, 0];
 
   const raw = values.map((count) => (count / total) * 100);
   const percents = raw.map((value) => Math.floor(value));
@@ -58,7 +60,21 @@ function getReviewScorePercents(counts: ReviewRatingCounts) {
     cursor += 1;
   }
 
-  return percents;
+  return [percents[0] ?? 0, percents[1] ?? 0, percents[2] ?? 0, percents[3] ?? 0, percents[4] ?? 0];
+}
+
+/** 로컬에 전체가 있는 목 리뷰 전용. 페이지 일부 집계를 요약으로 쓰지 않는다. */
+function toCompleteReviewSummary(counts: ReviewRatingCounts): SchoolReviewSummary {
+  const averageRating = getReviewAverageScore(counts);
+
+  return {
+    totalCount: getReviewTotalCount(counts),
+    averageRating,
+    filledStarCount: getReviewFilledStarCount(averageRating),
+    percentages: getReviewScorePercents(counts),
+    canWrite: true,
+    myReviewId: null,
+  };
 }
 
 export {
@@ -66,6 +82,7 @@ export {
   getReviewFilledStarCount,
   getReviewScorePercents,
   getReviewTotalCount,
+  toCompleteReviewSummary,
   toReviewRatingCounts,
 };
 export type { ReviewRatingCounts };

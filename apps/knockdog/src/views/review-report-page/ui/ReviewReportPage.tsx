@@ -19,6 +19,7 @@ import { useBasePoint, useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 const REPORT_REASONS = [
@@ -49,11 +50,8 @@ const REPORT_REASON_CODE = {
 } as const satisfies Record<ReportReason, SchoolReviewReportReason>;
 
 function isDuplicateReportError(error: unknown) {
-  if (error instanceof Error && error.message === 'ALREADY_REPORTED') return true;
-  if (!(error instanceof ApiError)) return false;
-  if (error.status === 409) return true;
-
-  return /already|duplicate|이미|중복/i.test(`${error.code} ${error.message}`);
+  if (error instanceof ApiError) return error.status === 409 || String(error.code) === 'ALREADY_REPORTED';
+  return error instanceof Error && error.message === 'ALREADY_REPORTED';
 }
 const DETAIL_PLACEHOLDER = '신고하는 상세 이유를 입력하세요. 신고 사유 중 기타 선택 시 필수로 입력해 주세요.';
 const DETAIL_LIMIT_MESSAGE = '최대 1,000자까지 작성할 수 있어요.';
@@ -79,6 +77,8 @@ function ReviewReportPage() {
     data: kindergarten,
     isPending: isKindergartenPending,
     isFetching: isKindergartenFetching,
+    isError: isKindergartenError,
+    refetch: refetchKindergarten,
   } = useKindergartenMainQuery({
     id,
     lng: coord?.lng ?? FALLBACK_COORD.lng,
@@ -88,10 +88,13 @@ function ReviewReportPage() {
   const schoolId = parseSchoolId(kindergarten?.schoolId);
   const reviews = useKnockdogReviews();
   const localReview = !isApiReview && reviewId ? (reviews.find((item) => item.id === reviewId) ?? null) : null;
-  const { data: apiReview, isLoading: isApiReviewLoading } = useSchoolReviewDetailQuery(
-    isApiReview ? schoolId : null,
-    reviewId ?? undefined
-  );
+  const {
+    data: apiReview,
+    isLoading: isApiReviewLoading,
+    isError: isApiReviewError,
+    isFetching: isApiReviewFetching,
+    refetch: refetchApiReview,
+  } = useSchoolReviewDetailQuery(isApiReview ? schoolId : null, reviewId ?? undefined);
   const reportSchoolReview = useReportSchoolReview();
   const review = useMemo(() => {
     if (localReview) {
@@ -124,14 +127,16 @@ function ReviewReportPage() {
   const isDetailAtLimit = detail.length >= MAX_DETAIL_LENGTH;
   const canSubmit = reason !== '' && (!isEtcReason || detail.trim().length > 0) && !isSubmitting;
 
+  const isReviewLoadError = isApiReview && (isKindergartenError || isApiReviewError);
+
   useEffect(() => {
     if (!id || !reviewId) {
       back();
       return;
     }
-    if (isResolvingReview || review) return;
+    if (isResolvingReview || review || isReviewLoadError) return;
     back();
-  }, [back, id, isResolvingReview, review, reviewId]);
+  }, [back, id, isResolvingReview, isReviewLoadError, review, reviewId]);
 
   useLayoutEffect(() => {
     const element = detailRef.current;
@@ -203,7 +208,31 @@ function ReviewReportPage() {
     }
   };
 
-  if (!review) return null;
+  if (!review) {
+    if (!isReviewLoadError) return null;
+
+    const handleRetryReviewLoad = () => {
+      if (isKindergartenError) {
+        refetchKindergarten().catch(() => undefined);
+        return;
+      }
+      refetchApiReview().catch(() => undefined);
+    };
+
+    return (
+      <div className='bg-bg-0 relative flex h-full min-h-0 flex-1 flex-col'>
+        <Header>
+          <Header.BackButton onClick={handleBack} />
+          <Header.Title>리뷰 신고하기</Header.Title>
+        </Header>
+        <PageError
+          layout='inline'
+          isRetrying={isKindergartenFetching || isApiReviewFetching}
+          onRetry={handleRetryReviewLoad}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className='bg-bg-0 relative flex h-full min-h-0 flex-1 flex-col'>
@@ -267,14 +296,14 @@ function ReviewReportPage() {
               <span className='caption1-semibold text-text-tertiary'>(선택)</span>
             )}
           </p>
-          <label className='bg-bg-50 radius-r2 flex flex-col gap-8 px-4 py-3'>
+          <label className='bg-bg-50 radius-r2 flex flex-col gap-2 px-4 py-3'>
             <textarea
               ref={detailRef}
               value={detail}
-              rows={2}
+              rows={3}
               maxLength={MAX_DETAIL_LENGTH}
               placeholder={DETAIL_PLACEHOLDER}
-              className='body1-regular text-text-primary placeholder:text-text-tertiary w-full resize-none overflow-hidden bg-transparent outline-none'
+              className='body1-regular text-text-primary placeholder:text-text-tertiary min-h-[4.5rem] w-full resize-none overflow-hidden bg-transparent outline-none'
               disabled={isSubmitting}
               onChange={(event) => setDetail(event.target.value)}
             />

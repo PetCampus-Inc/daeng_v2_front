@@ -9,6 +9,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogPortal,
   AlertDialogTitle,
 } from '@knockdog/ui';
 
@@ -23,6 +24,8 @@ interface ReviewActionDialogProps {
   cancelLabel: string;
   confirmLabel: string;
   closeOnOutside?: boolean;
+  /** 로딩을 모달 안이 아니라 화면 전체에 깐다 */
+  fullScreenLoading?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -44,6 +47,7 @@ function ReviewActionDialog({
   cancelLabel,
   confirmLabel,
   closeOnOutside = false,
+  fullScreenLoading = false,
   onClose,
   onConfirm,
 }: ReviewActionDialogProps) {
@@ -81,8 +85,13 @@ function ReviewActionDialog({
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
-        <ActionLoadingOverlay isPending={isSubmitting} />
+        {fullScreenLoading ? null : <ActionLoadingOverlay isPending={isSubmitting} />}
       </AlertDialogContent>
+      {fullScreenLoading ? (
+        <AlertDialogPortal>
+          <ActionLoadingOverlay isPending={isSubmitting} className='fixed inset-0 z-[10000]' />
+        </AlertDialogPortal>
+      ) : null}
     </AlertDialog>
   );
 }
