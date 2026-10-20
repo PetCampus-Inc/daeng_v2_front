@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { isNativeWebView } from '@shared/lib/device';
 
 import { isAnalyticsCollectionBlocked } from './excludedUserIds';
-import { GA_MEASUREMENT_ID } from './gtag';
+import { GA_LEGACY_MEASUREMENT_ID, GA_MEASUREMENT_ID } from './gtag';
 
 /**
  * 브라우저에서만 gtag.js를 붙인다.
@@ -15,8 +15,12 @@ import { GA_MEASUREMENT_ID } from './gtag';
 function GoogleAnalytics() {
   useEffect(() => {
     if (isNativeWebView()) return;
+
+    const gaDisable = window as unknown as Record<string, boolean>;
+    gaDisable[`ga-disable-${GA_LEGACY_MEASUREMENT_ID}`] = true;
+
     if (isAnalyticsCollectionBlocked()) {
-      (window as unknown as Record<string, boolean>)[`ga-disable-${GA_MEASUREMENT_ID}`] = true;
+      gaDisable[`ga-disable-${GA_MEASUREMENT_ID}`] = true;
       return;
     }
     if (document.querySelector(`script[data-ga-id="${GA_MEASUREMENT_ID}"]`)) return;

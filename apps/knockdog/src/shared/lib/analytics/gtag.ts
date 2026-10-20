@@ -2,6 +2,9 @@ import { isAnalyticsCollectionBlocked } from './excludedUserIds';
 
 export const GA_MEASUREMENT_ID = 'G-SYYR0V8GLB';
 
+/** 결합 태그의 원래 목적지. 관리자에서 지울 수 없어서 브라우저 전송만 끈다. */
+export const GA_LEGACY_MEASUREMENT_ID = 'G-3XK1LPFE9J';
+
 function setGaCollectionEnabled(enabled: boolean) {
   if (typeof window === 'undefined') return;
   (window as unknown as Record<string, boolean>)[`ga-disable-${GA_MEASUREMENT_ID}`] = !enabled;
