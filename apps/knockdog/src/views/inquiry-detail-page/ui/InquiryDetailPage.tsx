@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
@@ -31,6 +31,7 @@ import { useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
@@ -42,6 +43,28 @@ const RESOLVE_DIALOG = {
   cancelLabel: '닫기',
   confirmLabel: '종료하기',
 };
+
+let hasInsertedHomeEntry = false;
+
+/**
+ * 웹에서 주소 입력·외부 링크로 상세에 바로 들어왔으면 브라우저 기록을 [홈, 상세]로 바꿔 뒤로가기가 홈으로 가게 한다.
+ * 앱 안에서 이동해 왔거나 새로고침·앞뒤 이동으로 연 경우는 앞에 앱 화면 기록이 있으므로 건드리지 않는다
+ */
+function insertHomeEntryOnDirectEntry() {
+  if (hasInsertedHomeEntry || isNativeWebView()) return;
+  hasInsertedHomeEntry = true;
+
+  const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+  if (!entry || entry.type !== 'navigate') return;
+  // 처음 연 주소가 지금 주소와 다르면 앱 안에서 이동해 온 것이다
+  if (new URL(entry.name).pathname !== window.location.pathname) return;
+
+  const currentUrl = window.location.href;
+  // Next가 history 호출을 가로채 라우터와 맞추므로 Next의 state를 옮겨 담지 않고 null로 넣는다.
+  // state를 복사해 넣으면 라우터가 홈 기준으로 맞춰져 주소가 홈으로 바뀐다
+  window.history.replaceState(null, '', route.root);
+  window.history.pushState(null, '', currentUrl);
+}
 
 /** 문의 상세. 사용자 문의와 운영자 답변을 시간순으로 보여주고, 해결 완료 전에는 추가 문의·종료 버튼을 둔다 */
 function InquiryDetailPage() {
@@ -64,7 +87,11 @@ function InquiryDetailPage() {
       )
     : [];
 
-  // 알림에서 바로 들어와 이전 화면이 없으면 홈으로 보낸다 (PRD 7.2)
+  useEffect(() => {
+    insertHomeEntryOnDirectEntry();
+  }, []);
+
+  // 알림에서 바로 들어와 이전 화면이 없으면 홈으로 보낸다 (PRD 7.2). 웹은 insertHomeEntryOnDirectEntry가 넣은 홈 기록으로 간다
   const handleBack = useCallback(async () => {
     try {
       if (await back()) return;
