@@ -1,4 +1,11 @@
+import { isAnalyticsCollectionBlocked } from './excludedUserIds';
+
 export const GA_MEASUREMENT_ID = 'G-SYYR0V8GLB';
+
+function setGaCollectionEnabled(enabled: boolean) {
+  if (typeof window === 'undefined') return;
+  (window as unknown as Record<string, boolean>)[`ga-disable-${GA_MEASUREMENT_ID}`] = !enabled;
+}
 
 let pendingUserId: string | null | undefined;
 let userIdFlushAttempts = 0;
@@ -48,6 +55,7 @@ declare global {
 }
 
 export const pageview = (url: string, title?: string, params?: Record<string, GTagParamValue | undefined>) => {
+  if (isAnalyticsCollectionBlocked()) return;
   flushGaUserId();
   if (typeof window.gtag === 'undefined') return;
   window.gtag('event', 'page_view', {
@@ -58,9 +66,10 @@ export const pageview = (url: string, title?: string, params?: Record<string, GT
   });
 };
 
-export { setGaUserId };
+export { setGaCollectionEnabled, setGaUserId };
 
 export const event = ({ action, category, label, value, ...rest }: GTagEvent) => {
+  if (isAnalyticsCollectionBlocked()) return;
   flushGaUserId();
   if (typeof window.gtag === 'undefined') return;
   window.gtag('event', action, {

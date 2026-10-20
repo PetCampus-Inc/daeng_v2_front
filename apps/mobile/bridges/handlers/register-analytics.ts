@@ -1,6 +1,7 @@
 import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setUserId } from '@react-native-firebase/analytics';
 import { getApp } from '@react-native-firebase/app';
 import {
+  isExcludedAnalyticsUserId,
   METHODS,
   type AnalyticsLogEventParams,
   type AnalyticsLogScreenViewParams,
@@ -9,9 +10,10 @@ import {
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 
 let collectionEnabled = false;
+let collectionBlocked = false;
 
 async function ensureAnalyticsCollection() {
-  if (collectionEnabled) return;
+  if (collectionBlocked || collectionEnabled) return;
   try {
     const analytics = getAnalytics(getApp());
     await setAnalyticsCollectionEnabled(analytics, true);
@@ -28,6 +30,8 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
       throw { code: 'EINVALID', message: 'analytics event name is required' };
     }
 
+    if (collectionBlocked) return { ok: true as const };
+
     await ensureAnalyticsCollection();
 
     const analytics = getAnalytics(getApp());
@@ -42,6 +46,8 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
     }
 
     const screenClass = params.screen_class?.trim() || screenName;
+
+    if (collectionBlocked) return { ok: true as const };
 
     await ensureAnalyticsCollection();
 
@@ -59,10 +65,20 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.analyticsSetUserId, async (params: AnalyticsSetUserIdParams) => {
     const rawUserId = params?.user_id;
     const userId = typeof rawUserId === 'string' && rawUserId.trim() ? rawUserId.trim() : null;
-
-    await ensureAnalyticsCollection();
-
+    const blocked = params?.collection_enabled === false || isExcludedAnalyticsUserId(userId);
     const analytics = getAnalytics(getApp());
+
+    if (blocked) {
+      collectionBlocked = true;
+      collectionEnabled = false;
+      await setAnalyticsCollectionEnabled(analytics, false);
+      await setUserId(analytics, null);
+      return { ok: true as const };
+    }
+
+    collectionBlocked = false;
+    await setAnalyticsCollectionEnabled(analytics, true);
+    collectionEnabled = true;
     await setUserId(analytics, userId);
     return { ok: true as const };
   });
