@@ -17,6 +17,7 @@ export { type ApiResponse } from './model/response';
 
 /** Constant */
 export { LOGIN_ERROR_CODE, TOKEN_ERROR_CODE } from './model/constant/authErrorCode';
+export { COMMON_ERROR_CODE } from './model/constant/commonErrorCode';
 
 /** Endpoint */
 export { postLogin, postLogout, fetchDevLogin } from './endpoint/auth';

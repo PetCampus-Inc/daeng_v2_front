@@ -120,6 +120,30 @@ const route = {
         root: '/mypage/guardian/reviews',
       },
     },
+    inquiry: {
+      /** 1:1 문의 내역 페이지 */
+      root: '/mypage/inquiry',
+      write: {
+        /** 1:1 문의 작성 페이지 */
+        root: '/mypage/inquiry/write',
+      },
+      detail: {
+        /** 1:1 문의 상세 페이지 */
+        root: '/mypage/inquiry/[id]',
+        write: {
+          /** 1:1 추가 문의 작성 페이지 */
+          root: '/mypage/inquiry/[id]/write',
+        },
+      },
+    },
+    ideaSuggestion: {
+      /** 아이디어 제안 작성 페이지 */
+      root: '/mypage/idea-suggestion',
+      complete: {
+        /** 아이디어 제안 완료 페이지 */
+        root: '/mypage/idea-suggestion/complete',
+      },
+    },
     pet: {
       add: {
         /** 강아지 프로필 추가 페이지 */
