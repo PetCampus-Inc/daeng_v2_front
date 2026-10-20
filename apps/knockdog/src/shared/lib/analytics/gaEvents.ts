@@ -5,7 +5,8 @@ import { METHODS } from '@knockdog/bridge-core';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 
-import { event as gtagEvent, pageview, setGaUserId } from './gtag';
+import { isAnalyticsCollectionBlocked, setAnalyticsCollectionBlocked } from './excludedUserIds';
+import { event as gtagEvent, pageview, setGaCollectionEnabled, setGaUserId } from './gtag';
 
 type AnalyticsParamValue = string | number | boolean;
 type AnalyticsSurface = 'web' | 'native_webview';
@@ -139,14 +140,19 @@ function sanitizeParams(params?: Record<string, AnalyticsParamValue | undefined>
 
 function syncAnalyticsUserId(userId: string | null) {
   const nextUserId = userId?.trim() ? userId.trim() : null;
-  setGaUserId(nextUserId);
+  const blocked = setAnalyticsCollectionBlocked(nextUserId);
+  setGaCollectionEnabled(!blocked);
+  setGaUserId(blocked ? null : nextUserId);
 
   if (!isNativeWebView()) return;
 
   const bridge = getBridgeInstance();
   if (!bridge) return;
 
-  bridge.request(METHODS.analyticsSetUserId, { user_id: nextUserId }).catch((error) => {
+  bridge.request(METHODS.analyticsSetUserId, {
+    user_id: blocked ? null : nextUserId,
+    collection_enabled: !blocked,
+  }).catch((error) => {
     console.warn('[analytics] native setUserId failed', error);
   });
 }
@@ -167,6 +173,8 @@ function getCommonAnalyticsParams(sink: AnalyticsSink): Record<string, Analytics
 
 /** 브라우저는 웹 GA4, 앱 WebView는 Firebase 한 곳으로만 전송한다. */
 async function logAnalyticsEvent(name: string, params?: Record<string, AnalyticsParamValue | undefined>) {
+  if (isAnalyticsCollectionBlocked()) return;
+
   const safeParams = sanitizeParams(params);
 
   if (!isNativeWebView()) {
@@ -208,6 +216,8 @@ async function trackScreenView(screenName: string, screenClass?: string) {
   if (typeof document !== 'undefined') {
     document.title = `똑독 - ${name}`;
   }
+
+  if (isAnalyticsCollectionBlocked()) return;
 
   if (!isNativeWebView()) {
     pageview(typeof window !== 'undefined' ? window.location.pathname : screen_class, name, {

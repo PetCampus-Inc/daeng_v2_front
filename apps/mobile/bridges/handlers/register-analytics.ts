@@ -1,6 +1,7 @@
 import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setUserId } from '@react-native-firebase/analytics';
 import { getApp } from '@react-native-firebase/app';
 import {
+  isExcludedAnalyticsUserId,
   METHODS,
   type AnalyticsLogEventParams,
   type AnalyticsLogScreenViewParams,
@@ -9,9 +10,20 @@ import {
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 
 let collectionEnabled = false;
+let collectionBlocked = false;
+let setUserIdQueue: Promise<void> = Promise.resolve();
+
+function enqueueSetUserId<T>(task: () => Promise<T>) {
+  const run = setUserIdQueue.then(task, task);
+  setUserIdQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
 
 async function ensureAnalyticsCollection() {
-  if (collectionEnabled) return;
+  if (collectionBlocked || collectionEnabled) return;
   try {
     const analytics = getAnalytics(getApp());
     await setAnalyticsCollectionEnabled(analytics, true);
@@ -28,6 +40,8 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
       throw { code: 'EINVALID', message: 'analytics event name is required' };
     }
 
+    if (collectionBlocked) return { ok: true as const };
+
     await ensureAnalyticsCollection();
 
     const analytics = getAnalytics(getApp());
@@ -43,6 +57,8 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
 
     const screenClass = params.screen_class?.trim() || screenName;
 
+    if (collectionBlocked) return { ok: true as const };
+
     await ensureAnalyticsCollection();
 
     const analytics = getAnalytics(getApp());
@@ -56,16 +72,43 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
     return { ok: true as const };
   });
 
-  router.register(METHODS.analyticsSetUserId, async (params: AnalyticsSetUserIdParams) => {
-    const rawUserId = params?.user_id;
-    const userId = typeof rawUserId === 'string' && rawUserId.trim() ? rawUserId.trim() : null;
+  router.register(METHODS.analyticsSetUserId, (params: AnalyticsSetUserIdParams) =>
+    enqueueSetUserId(async () => {
+      const rawUserId = params?.user_id;
+      const userId = typeof rawUserId === 'string' && rawUserId.trim() ? rawUserId.trim() : null;
+      const blocked = params?.collection_enabled === false || isExcludedAnalyticsUserId(userId);
+      const analytics = getAnalytics(getApp());
 
-    await ensureAnalyticsCollection();
+      if (blocked) {
+        collectionBlocked = true;
+        collectionEnabled = false;
 
-    const analytics = getAnalytics(getApp());
-    await setUserId(analytics, userId);
-    return { ok: true as const };
-  });
+        let collectionError: unknown;
+        try {
+          await setAnalyticsCollectionEnabled(analytics, false);
+        } catch (error) {
+          collectionError = error;
+          console.warn('[analytics] setAnalyticsCollectionEnabled failed', error);
+        }
+
+        try {
+          await setUserId(analytics, null);
+        } catch (error) {
+          console.warn('[analytics] setUserId failed', error);
+          if (!collectionError) throw error;
+        }
+
+        if (collectionError) throw collectionError;
+        return { ok: true as const };
+      }
+
+      collectionBlocked = false;
+      await setAnalyticsCollectionEnabled(analytics, true);
+      collectionEnabled = true;
+      await setUserId(analytics, userId);
+      return { ok: true as const };
+    }),
+  );
 }
 
 export { registerAnalyticsHandlers };

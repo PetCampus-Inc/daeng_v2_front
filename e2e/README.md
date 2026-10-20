@@ -49,7 +49,7 @@ auth.setup
 | 파일 | 역할 |
 |------|------|
 | `fixtures/test.ts` | context 단위 GA/트래킹 차단 |
-| `helpers/network.ts` | gtag/collect abort + `ga-disable-G-3XK1LPFE9J` + gtag noop |
+| `helpers/network.ts` | gtag/collect abort + `ga-disable-G-SYYR0V8GLB` + gtag noop |
 | `helpers/nav.ts` | owner/guardian nav assert, hard sleep 금지 |
 | `flows/analytics-block.spec.ts` | GA 미전송 가드 |
 
