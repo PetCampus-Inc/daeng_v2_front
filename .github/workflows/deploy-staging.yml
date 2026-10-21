@@ -30,7 +30,7 @@ jobs:
 
       - name: Create Comment
         if: ${{ steps.vercel-deploy.outputs.DEPLOYMENT_CREATED }}
-        uses: phulsechinmay/rewritable-pr-comment@v0.3.0
+        uses: phulsechinmay/rewritable-pr-comment@v0.4.0
         with:
           message: |
             ✅ **Staging Preview has been deployed to Vercel** ▲ - [View GitHub Actions Workflow Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
