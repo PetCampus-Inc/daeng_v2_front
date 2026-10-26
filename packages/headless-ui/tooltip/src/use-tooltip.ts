@@ -119,6 +119,20 @@ export function useTooltip(props: UseTooltipProps) {
     if (!trig || !cont) return;
 
     const tr = trig.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const viewportMargin = 8;
+    const anchorOnRight = placement === 'top-left' || placement === 'bottom-left';
+    const availableWidth = anchorOnRight
+      ? Math.max(tr.right - offset - viewportMargin, 0)
+      : Math.max(vw - tr.left - viewportMargin, 0);
+
+    // 뾰족한 코너는 툴팁 아래에 고정하고, 넘치면 박스를 왼쪽으로 밀지 않고 너비만 줄인다.
+    cont.style.maxWidth = '';
+    const naturalWidth = cont.getBoundingClientRect().width;
+    const maxWidth = naturalWidth > availableWidth ? availableWidth : undefined;
+    cont.style.maxWidth = maxWidth != null ? `${maxWidth}px` : '';
+
     const cr = cont.getBoundingClientRect();
     let top = 0;
     let left = 0;
@@ -142,15 +156,16 @@ export function useTooltip(props: UseTooltipProps) {
         break;
     }
 
-    // 화면 밖으로 튀는 단순 보정
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    if (left + cr.width > vw) left = vw - cr.width - 8;
-    if (left < 8) left = 8;
-    if (top + cr.height > vh) top = vh - cr.height - 8;
-    if (top < 8) top = 8;
+    if (top + cr.height > vh) top = vh - cr.height - viewportMargin;
+    if (top < viewportMargin) top = viewportMargin;
 
-    setPositionStyle({ position: 'fixed', top, left, visibility: 'visible' });
+    setPositionStyle({
+      position: 'fixed',
+      top,
+      left,
+      visibility: 'visible',
+      ...(maxWidth != null ? { maxWidth } : {}),
+    });
   }, [placement, offset]);
 
   // 초기 위치 계산 및 리사이즈 이벤트 처리
