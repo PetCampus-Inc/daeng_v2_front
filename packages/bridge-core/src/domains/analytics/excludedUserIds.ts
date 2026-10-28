@@ -1,5 +1,5 @@
 /** 운영 GA에 집계하지 않는 user_id. */
-const EXCLUDED_ANALYTICS_USER_IDS = new Set(['4LPWCATV', 'PN0N0P6S']);
+const EXCLUDED_ANALYTICS_USER_IDS = new Set(['4LPWCATV', 'PN0N0P6S', 'S6WYHO7Z', '83Z4YDG8']);
 
 function isExcludedAnalyticsUserId(userId: string | null | undefined) {
   if (typeof userId !== 'string') return false;
