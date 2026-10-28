@@ -122,15 +122,20 @@ export function useTooltip(props: UseTooltipProps) {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const viewportMargin = 8;
+
+    const minTooltipWidth = 160;
     const anchorOnRight = placement === 'top-left' || placement === 'bottom-left';
     const availableWidth = anchorOnRight
       ? Math.max(tr.right - offset - viewportMargin, 0)
       : Math.max(vw - tr.left - viewportMargin, 0);
 
-    // 뾰족한 코너는 툴팁 아래에 고정하고, 넘치면 박스를 왼쪽으로 밀지 않고 너비만 줄인다.
+    // 남는 폭이 최소 너비 이상이면 코너를 트리거에 두고 너비만 줄인다.
+    // 그보다 좁으면 박스를 화면 안으로 옮긴다.
     cont.style.maxWidth = '';
     const naturalWidth = cont.getBoundingClientRect().width;
-    const maxWidth = naturalWidth > availableWidth ? availableWidth : undefined;
+    const viewportCap = Math.max(vw - viewportMargin * 2, 0);
+    const shrinkInPlace = availableWidth >= minTooltipWidth && naturalWidth > availableWidth;
+    const maxWidth = shrinkInPlace ? availableWidth : naturalWidth > viewportCap ? viewportCap : undefined;
     cont.style.maxWidth = maxWidth != null ? `${maxWidth}px` : '';
 
     const cr = cont.getBoundingClientRect();
@@ -158,6 +163,10 @@ export function useTooltip(props: UseTooltipProps) {
 
     if (top + cr.height > vh) top = vh - cr.height - viewportMargin;
     if (top < viewportMargin) top = viewportMargin;
+    if (!shrinkInPlace) {
+      if (left + cr.width > vw - viewportMargin) left = vw - cr.width - viewportMargin;
+      if (left < viewportMargin) left = viewportMargin;
+    }
 
     setPositionStyle({
       position: 'fixed',
