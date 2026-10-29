@@ -119,6 +119,25 @@ export function useTooltip(props: UseTooltipProps) {
     if (!trig || !cont) return;
 
     const tr = trig.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const viewportMargin = 8;
+
+    const minTooltipWidth = 160;
+    const anchorOnRight = placement === 'top-left' || placement === 'bottom-left';
+    const availableWidth = anchorOnRight
+      ? Math.max(tr.right - offset - viewportMargin, 0)
+      : Math.max(vw - tr.left - viewportMargin, 0);
+
+    // 남는 폭이 최소 너비 이상이면 코너를 트리거에 두고 너비만 줄인다.
+    // 그보다 좁으면 박스를 화면 안으로 옮긴다.
+    cont.style.maxWidth = '';
+    const naturalWidth = cont.getBoundingClientRect().width;
+    const viewportCap = Math.max(vw - viewportMargin * 2, 0);
+    const shrinkInPlace = availableWidth >= minTooltipWidth && naturalWidth > availableWidth;
+    const maxWidth = shrinkInPlace ? availableWidth : naturalWidth > viewportCap ? viewportCap : undefined;
+    cont.style.maxWidth = maxWidth != null ? `${maxWidth}px` : '';
+
     const cr = cont.getBoundingClientRect();
     let top = 0;
     let left = 0;
@@ -142,15 +161,20 @@ export function useTooltip(props: UseTooltipProps) {
         break;
     }
 
-    // 화면 밖으로 튀는 단순 보정
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    if (left + cr.width > vw) left = vw - cr.width - 8;
-    if (left < 8) left = 8;
-    if (top + cr.height > vh) top = vh - cr.height - 8;
-    if (top < 8) top = 8;
+    if (top + cr.height > vh) top = vh - cr.height - viewportMargin;
+    if (top < viewportMargin) top = viewportMargin;
+    if (!shrinkInPlace) {
+      if (left + cr.width > vw - viewportMargin) left = vw - cr.width - viewportMargin;
+      if (left < viewportMargin) left = viewportMargin;
+    }
 
-    setPositionStyle({ position: 'fixed', top, left, visibility: 'visible' });
+    setPositionStyle({
+      position: 'fixed',
+      top,
+      left,
+      visibility: 'visible',
+      ...(maxWidth != null ? { maxWidth } : {}),
+    });
   }, [placement, offset]);
 
   // 초기 위치 계산 및 리사이즈 이벤트 처리

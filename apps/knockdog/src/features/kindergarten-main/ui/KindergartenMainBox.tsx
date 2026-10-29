@@ -4,6 +4,7 @@ import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { DeparturePointSheet, ReviewRating, ServiceBadgeList, type KindergartenMain } from '@entities/kindergarten';
+import { VerifiedKindergartenMark } from './VerifiedKindergartenMark';
 
 interface KindergartenMainBoxProps extends KindergartenMain {
   compact?: boolean;
@@ -11,6 +12,7 @@ interface KindergartenMainBoxProps extends KindergartenMain {
 
 function KindergartenMainBox({
   title,
+  verified,
   ctg,
   dist,
   roadAddress,
@@ -37,7 +39,10 @@ function KindergartenMainBox({
     >
       <div className='flex justify-between'>
         <div className='flex min-w-0 flex-1 flex-col'>
-          <span className='h2-extrabold block truncate'>{title}</span>
+          <div className='flex min-w-0 items-center gap-x1'>
+            <span className='h2-extrabold min-w-0 truncate'>{title}</span>
+            {verified && <VerifiedKindergartenMark />}
+          </div>
           <div className='flex min-w-0 items-center gap-x2'>
             <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</span>
             <ReviewRating rating={rating} reviewCount={reviewCount} />
