@@ -50,3 +50,6 @@ storybook-static
 .pnpm-store
 
 .agent
+
+# Sentry
+.env.sentry-build-plugin
