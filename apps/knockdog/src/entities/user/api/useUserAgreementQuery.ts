@@ -1,13 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { ApiResponse } from '@shared/api';
-
 import { useUserStore } from '../model/store/useUserStore';
 import {
   getUserAgreementsStatus,
   postUserAgreements,
   type CreateUserAgreementsRequest,
-  type UserAgreementsStatus,
 } from './userAgreement';
 
 const USER_AGREEMENTS_STATUS_QUERY_KEY = 'userAgreementsStatus';
@@ -31,15 +28,7 @@ function usePostUserAgreementsMutation() {
 
   return useMutation({
     mutationFn: (request: CreateUserAgreementsRequest) => postUserAgreements(request),
-    onSuccess: () => {
-      queryClient.setQueryData<ApiResponse<UserAgreementsStatus>>(
-        userAgreementsStatusQueryKey(userId),
-        (previous) =>
-          previous
-            ? { ...previous, data: { hasAgreedRequiredTerms: true } }
-            : { status: 0, code: 'SUCCESS', message: '', data: { hasAgreedRequiredTerms: true } }
-      );
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userAgreementsStatusQueryKey(userId) }),
   });
 }
 

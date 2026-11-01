@@ -84,6 +84,16 @@ function useRequiredTermsConsentSheet() {
   const [checkedTerms, setCheckedTerms] = useState<CheckedTermsState>(initialCheckedTermsState);
   const previousUserIdRef = useRef(userId);
   const hasTrackedTermsViewRef = useRef(false);
+  const documentIds = agreementsStatusQuery.data?.data?.currentLegalDocumentIds;
+  const documentKey = `${documentIds?.TERMS_OF_SERVICE ?? ''}:${documentIds?.PRIVACY_POLICY ?? ''}`;
+  const previousDocumentKeyRef = useRef(documentKey);
+
+  useEffect(() => {
+    if (previousDocumentKeyRef.current !== documentKey) {
+      previousDocumentKeyRef.current = documentKey;
+      setCheckedTerms(initialCheckedTermsState());
+    }
+  }, [documentKey]);
 
   const hasAgreedRequiredTerms = agreementsStatusQuery.data?.data?.hasAgreedRequiredTerms === true;
   const shouldOpen =
@@ -175,7 +185,9 @@ function useRequiredTermsConsentSheet() {
     trackSignupStep({ flow_id: pending?.flow_id, step: 'terms', phase: 'submit' });
 
     try {
-      await submitAgreements({ agreedTerms });
+      const legalDocumentIds = agreementsStatusQuery.data?.data?.currentLegalDocumentIds;
+      if (!legalDocumentIds) throw new Error('현재 약관 문서 정보를 불러오지 못했습니다.');
+      await submitAgreements({ agreedTerms, legalDocumentIds });
       setIsOpen(false);
 
       const completed = consumePendingSignUpAnalytics();
@@ -220,11 +232,12 @@ function useRequiredTermsConsentSheet() {
         position: 'top',
       });
     }
-  }, [checkedTerms, isAllChecked, isSubmitting, reset, submitAgreements]);
+  }, [agreementsStatusQuery.data, checkedTerms, isAllChecked, isSubmitting, reset, submitAgreements]);
 
   return {
     isOpen,
     checkedTerms,
+    legalDocumentIds: agreementsStatusQuery.data?.data?.currentLegalDocumentIds,
     isAllChecked,
     isSubmitting,
     handleMasterCheckedChange,

@@ -4,7 +4,7 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { useOpenExternalLink } from '@shared/lib/bridge';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 import { requiredTermsConsentContent } from '../config/requiredTermsConsentContent';
 import { useSyncRequiredTermsOverlay } from '../lib/useSyncRequiredTermsOverlay';
@@ -12,10 +12,11 @@ import { useRequiredTermsConsentSheet } from '../model/useRequiredTermsConsentSh
 import { TermsItemCheckControl, TermsMasterCheckControl } from './TermsCheckControl';
 
 function RequiredTermsConsentSheetHost() {
-  const openExternalLink = useOpenExternalLink();
+  const { push } = useStackNavigation();
   const {
     isOpen,
     checkedTerms,
+    legalDocumentIds,
     isAllChecked,
     isSubmitting,
     handleMasterCheckedChange,
@@ -66,7 +67,12 @@ function RequiredTermsConsentSheetHost() {
                       type='button'
                       className='text-text-secondary flex size-6 shrink-0 items-center justify-center'
                       aria-label={`${item.label} 상세 보기`}
-                      onClick={() => openExternalLink(item.detailUrl!)}
+                      onClick={() => {
+                        const versionId = item.id === 'TERMS_OF_SERVICE'
+                          ? legalDocumentIds?.TERMS_OF_SERVICE
+                          : legalDocumentIds?.PRIVACY_POLICY;
+                        void push({ pathname: item.detailUrl!, query: versionId != null ? { versionId } : undefined });
+                      }}
                     >
                       <Icon icon='ChevronRight' className='size-6' />
                     </button>
@@ -83,7 +89,7 @@ function RequiredTermsConsentSheetHost() {
             variant='primaryFill'
             size='large'
             className='w-full'
-            disabled={!isAllChecked || isSubmitting}
+            disabled={!isAllChecked || isSubmitting || !legalDocumentIds?.TERMS_OF_SERVICE || !legalDocumentIds?.PRIVACY_POLICY}
             onClick={() => void handleSubmit()}
           >
             {requiredTermsConsentContent.submitLabel}

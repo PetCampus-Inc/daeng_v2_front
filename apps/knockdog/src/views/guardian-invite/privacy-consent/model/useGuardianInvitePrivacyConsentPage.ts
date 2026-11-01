@@ -79,7 +79,10 @@ function useGuardianInvitePrivacyConsentPage() {
     try {
       // 서버는 필수 약관 전체를 한 요청에서 검증한다. 이미 저장된 동의는 upsert로 유지한다.
       if (!hasAgreedRequiredTerms) {
+        const legalDocumentIds = userAgreementsStatusQuery.data?.data?.currentLegalDocumentIds;
+        if (!legalDocumentIds) throw new Error('현재 약관 문서 정보를 불러오지 못했습니다.');
         await postUserAgreements({
+          legalDocumentIds,
           agreedTerms: [
             USER_AGREEMENT_TERM.TERMS_OF_SERVICE,
             USER_AGREEMENT_TERM.PRIVACY_POLICY,

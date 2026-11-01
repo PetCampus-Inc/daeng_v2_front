@@ -38,11 +38,13 @@ function TermsDetailPage({ title, type }: { title: string; type: LegalDocumentTy
   const selectedVersion = Number.isSafeInteger(queryVersionId)
     ? versionsQuery.data?.find((version) => version.id === queryVersionId)
     : undefined;
-  const selectedVersionId = selectedVersion?.id;
+  const selectedVersionId = Number.isSafeInteger(queryVersionId) && queryVersionId > 0
+    ? queryVersionId
+    : undefined;
   const detailQuery = useLegalDocumentDetailQuery(
     type,
     selectedVersionId,
-    currentVersion != null || selectedVersionId != null
+    true
   );
   const displayedVersion = selectedVersion ?? currentVersion;
 
