@@ -85,12 +85,16 @@ function useRequiredTermsConsentSheet() {
   const previousUserIdRef = useRef(userId);
   const hasTrackedTermsViewRef = useRef(false);
   const documentIds = agreementsStatusQuery.data?.data?.currentLegalDocumentIds;
-  const documentKey = `${documentIds?.TERMS_OF_SERVICE ?? ''}:${documentIds?.PRIVACY_POLICY ?? ''}`;
+  const hasLegalDocumentIds = documentIds?.TERMS_OF_SERVICE != null && documentIds?.PRIVACY_POLICY != null;
+  const documentKey = hasLegalDocumentIds ? `${documentIds.TERMS_OF_SERVICE}:${documentIds.PRIVACY_POLICY}` : null;
   const previousDocumentKeyRef = useRef(documentKey);
 
+  // 최초 로딩(null → 값)에서는 사용자가 이미 체크한 내용을 유지하고, 약관 버전이 실제로 바뀐 경우에만 다시 동의받는다.
   useEffect(() => {
-    if (previousDocumentKeyRef.current !== documentKey) {
-      previousDocumentKeyRef.current = documentKey;
+    if (documentKey == null) return;
+    const previousKey = previousDocumentKeyRef.current;
+    previousDocumentKeyRef.current = documentKey;
+    if (previousKey != null && previousKey !== documentKey) {
       setCheckedTerms(initialCheckedTermsState());
     }
   }, [documentKey]);
@@ -181,12 +185,21 @@ function useRequiredTermsConsentSheet() {
 
     if (agreedTerms.length !== requiredTermsConsentContent.items.length) return;
 
+    const legalDocumentIds = agreementsStatusQuery.data?.data?.currentLegalDocumentIds;
+    if (!hasLegalDocumentIds || !legalDocumentIds) {
+      toast({
+        title: '약관 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+        shape: 'square',
+        position: 'top',
+      });
+      void agreementsStatusQuery.refetch();
+      return;
+    }
+
     const pending = peekPendingSignUpAnalytics();
     trackSignupStep({ flow_id: pending?.flow_id, step: 'terms', phase: 'submit' });
 
     try {
-      const legalDocumentIds = agreementsStatusQuery.data?.data?.currentLegalDocumentIds;
-      if (!legalDocumentIds) throw new Error('현재 약관 문서 정보를 불러오지 못했습니다.');
       await submitAgreements({ agreedTerms, legalDocumentIds });
       setIsOpen(false);
 
@@ -232,12 +245,13 @@ function useRequiredTermsConsentSheet() {
         position: 'top',
       });
     }
-  }, [agreementsStatusQuery.data, checkedTerms, isAllChecked, isSubmitting, reset, submitAgreements]);
+  }, [agreementsStatusQuery, hasLegalDocumentIds, checkedTerms, isAllChecked, isSubmitting, reset, submitAgreements]);
 
   return {
     isOpen,
     checkedTerms,
     legalDocumentIds: agreementsStatusQuery.data?.data?.currentLegalDocumentIds,
+    hasLegalDocumentIds,
     isAllChecked,
     isSubmitting,
     handleMasterCheckedChange,

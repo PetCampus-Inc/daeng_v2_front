@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { ApiResponse } from '@shared/api';
+
 import { useUserStore } from '../model/store/useUserStore';
 import {
   getUserAgreementsStatus,
   postUserAgreements,
   type CreateUserAgreementsRequest,
+  type UserAgreementsStatus,
 } from './userAgreement';
 
 const USER_AGREEMENTS_STATUS_QUERY_KEY = 'userAgreementsStatus';
@@ -28,7 +31,14 @@ function usePostUserAgreementsMutation() {
 
   return useMutation({
     mutationFn: (request: CreateUserAgreementsRequest) => postUserAgreements(request),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userAgreementsStatusQueryKey(userId) }),
+    onSuccess: () => {
+      const queryKey = userAgreementsStatusQueryKey(userId);
+      // 재조회가 끝나기 전에 시트가 다시 열리지 않도록 동의 완료로 먼저 반영하고, 서버 값으로 다시 맞춘다.
+      queryClient.setQueryData<ApiResponse<UserAgreementsStatus>>(queryKey, (previous) =>
+        previous?.data ? { ...previous, data: { ...previous.data, hasAgreedRequiredTerms: true } } : previous
+      );
+      return queryClient.invalidateQueries({ queryKey });
+    },
   });
 }
 

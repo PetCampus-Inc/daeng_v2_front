@@ -17,6 +17,7 @@ function RequiredTermsConsentSheetHost() {
     isOpen,
     checkedTerms,
     legalDocumentIds,
+    hasLegalDocumentIds,
     isAllChecked,
     isSubmitting,
     handleMasterCheckedChange,
@@ -68,9 +69,7 @@ function RequiredTermsConsentSheetHost() {
                       className='text-text-secondary flex size-6 shrink-0 items-center justify-center'
                       aria-label={`${item.label} 상세 보기`}
                       onClick={() => {
-                        const versionId = item.id === 'TERMS_OF_SERVICE'
-                          ? legalDocumentIds?.TERMS_OF_SERVICE
-                          : legalDocumentIds?.PRIVACY_POLICY;
+                        const versionId = 'legalDocumentKey' in item ? legalDocumentIds?.[item.legalDocumentKey] : undefined;
                         void push({ pathname: item.detailUrl!, query: versionId != null ? { versionId } : undefined });
                       }}
                     >
@@ -89,7 +88,7 @@ function RequiredTermsConsentSheetHost() {
             variant='primaryFill'
             size='large'
             className='w-full'
-            disabled={!isAllChecked || isSubmitting || !legalDocumentIds?.TERMS_OF_SERVICE || !legalDocumentIds?.PRIVACY_POLICY}
+            disabled={!isAllChecked || isSubmitting || !hasLegalDocumentIds}
             onClick={() => void handleSubmit()}
           >
             {requiredTermsConsentContent.submitLabel}
