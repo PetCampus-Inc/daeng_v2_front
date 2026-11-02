@@ -26,7 +26,12 @@ function readPersistedUserId() {
 
 function readExcludedDevice() {
   if (typeof window === 'undefined') return false;
-  return window.localStorage.getItem(EXCLUDED_DEVICE_KEY) === '1';
+
+  try {
+    return window.localStorage.getItem(EXCLUDED_DEVICE_KEY) === '1';
+  } catch {
+    return false;
+  }
 }
 
 function writeExcludedDevice(excluded: boolean) {
@@ -45,11 +50,16 @@ function isAnalyticsCollectionBlocked() {
 }
 
 function setAnalyticsCollectionBlocked(userId: string | null) {
-  if (isExcludedAnalyticsUserId(userId)) writeExcludedDevice(true);
-  else if (userId) writeExcludedDevice(false);
-
   const blocked = userId ? isExcludedAnalyticsUserId(userId) : readExcludedDevice();
   blockedOverride = blocked;
+
+  try {
+    if (isExcludedAnalyticsUserId(userId)) writeExcludedDevice(true);
+    else if (userId) writeExcludedDevice(false);
+  } catch {
+    // 저장소가 막혀도 메모리 차단과 이후 GA 해제는 진행한다.
+  }
+
   analyticsBlockListeners.forEach((listener) => listener(blocked));
   return blocked;
 }

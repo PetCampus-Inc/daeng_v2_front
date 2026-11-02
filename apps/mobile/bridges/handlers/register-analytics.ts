@@ -76,7 +76,13 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
     enqueueSetUserId(async () => {
       const rawUserId = params?.user_id;
       const userId = typeof rawUserId === 'string' && rawUserId.trim() ? rawUserId.trim() : null;
-      const blocked = params?.collection_enabled === false || isExcludedAnalyticsUserId(userId);
+      const collectionEnabledParam = params?.collection_enabled;
+      const blocked =
+        typeof collectionEnabledParam === 'boolean'
+          ? collectionEnabledParam === false || isExcludedAnalyticsUserId(userId)
+          : userId
+            ? isExcludedAnalyticsUserId(userId)
+            : collectionBlocked;
       const analytics = getAnalytics(getApp());
 
       if (blocked) {
