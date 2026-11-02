@@ -26,3 +26,4 @@ export {
 } from './ui/OwnerVerificationOnboardingSheet';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
 export { SyncNativeMainTabModeEffect } from './ui/SyncNativeMainTabModeEffect';
+export { SentryUserSync } from './ui/SentryUserSync';

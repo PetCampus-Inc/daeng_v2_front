@@ -12,7 +12,7 @@ import { AnalyticsScreenTracker } from '@shared/lib/analytics';
 import { GA_MEASUREMENT_ID } from '@shared/lib/analytics/gtag';
 import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
 import { AnalyticsUserSync } from '@features/auth';
-import { SyncNativeMainTabModeEffect } from '@features/role-conversion';
+import { SentryUserSync, SyncNativeMainTabModeEffect } from '@features/role-conversion';
 import { PushDeviceSyncEffect } from '@features/push';
 import { RequireAuthGate } from '@shared/ui/private-access';
 
@@ -107,6 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ReactQueryProvider>
               <BridgeProvider>
                 <AnalyticsUserSync />
+                <SentryUserSync />
                 <AnalyticsScreenTracker />
                 <SyncWebViewQueryEffect />
                 <SyncNativeMainTabModeEffect />
