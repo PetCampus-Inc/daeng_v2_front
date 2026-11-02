@@ -1,7 +1,7 @@
 import type { BrowserContext, Page } from '@playwright/test';
 
 /** 앱 GA Measurement ID — `apps/knockdog/.../gtag.ts` 와 동일 */
-const GA_MEASUREMENT_ID = 'G-3XK1LPFE9J';
+const GA_MEASUREMENT_ID = 'G-SYYR0V8GLB';
 
 /** GA/GTM/광고·기타 트래킹 호스트 — collect 포함 */
 const ANALYTICS_HOST_SNIPPETS = [
@@ -37,16 +37,21 @@ async function installAnalyticsBlock(target: Page | BrowserContext) {
 
   await target.addInitScript(
     ({ measurementId }) => {
+      const pageWindow = window as unknown as Window & {
+        dataLayer: unknown[];
+        gtag: (...args: unknown[]) => void;
+      };
+
       // 공식 GA disable 플래그 (스크립트가 로드돼도 hit 억제)
-      (window as unknown as Record<string, boolean>)[`ga-disable-${measurementId}`] = true;
+      (pageWindow as unknown as Record<string, boolean>)[`ga-disable-${measurementId}`] = true;
 
       const noop = () => undefined;
-      window.dataLayer = [];
-      window.dataLayer.push = (..._args: unknown[]) => 0;
-      window.gtag = noop as typeof window.gtag;
+      pageWindow.dataLayer = [];
+      pageWindow.dataLayer.push = (..._args: unknown[]) => 0;
+      pageWindow.gtag = noop;
 
       // layout beforeInteractive stub이 덮어쓰기 전에 다시 막기
-      Object.defineProperty(window, 'gtag', {
+      Object.defineProperty(pageWindow, 'gtag', {
         configurable: true,
         get: () => noop,
         set: () => undefined,
