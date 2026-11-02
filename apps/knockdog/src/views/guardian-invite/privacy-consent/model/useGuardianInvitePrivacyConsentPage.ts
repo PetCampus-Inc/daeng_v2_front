@@ -70,7 +70,8 @@ function useGuardianInvitePrivacyConsentPage() {
     selectedPetIds.length > 0 &&
     !isSubmitting &&
     !userAgreementsStatusQuery.isLoading &&
-    !userAgreementsStatusQuery.isError;
+    !userAgreementsStatusQuery.isError &&
+    (hasAgreedRequiredTerms || userAgreementsStatusQuery.data?.data?.currentLegalDocumentIds != null);
 
   const handleSubmit = async () => {
     if (!isAgreed || isSubmitting || selectedPetIds.length === 0) return;
@@ -79,7 +80,14 @@ function useGuardianInvitePrivacyConsentPage() {
     try {
       // 서버는 필수 약관 전체를 한 요청에서 검증한다. 이미 저장된 동의는 upsert로 유지한다.
       if (!hasAgreedRequiredTerms) {
+        const legalDocumentIds = userAgreementsStatusQuery.data?.data?.currentLegalDocumentIds;
+        if (!legalDocumentIds) {
+          void userAgreementsStatusQuery.refetch();
+          toast('약관 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+          return;
+        }
         await postUserAgreements({
+          legalDocumentIds,
           agreedTerms: [
             USER_AGREEMENT_TERM.TERMS_OF_SERVICE,
             USER_AGREEMENT_TERM.PRIVACY_POLICY,
