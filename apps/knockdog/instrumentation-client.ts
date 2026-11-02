@@ -4,6 +4,8 @@
 
 import * as Sentry from "@sentry/nextjs";
 
+import { filterSentryBreadcrumb, filterSentryEvent } from "./src/shared/lib/sentry/filterSentryEvent";
+
 Sentry.init({
   dsn: "https://363e8026f1104e3979575f4c3c9ad51e@o4512331024302080.ingest.us.sentry.io/4512350513725440",
 
@@ -23,6 +25,8 @@ Sentry.init({
     cookies: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
     urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
   },
+  beforeSend: filterSentryEvent,
+  beforeBreadcrumb: filterSentryBreadcrumb,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

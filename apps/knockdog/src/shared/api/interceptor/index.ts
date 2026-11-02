@@ -8,6 +8,7 @@ import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 
 import { tokenUtils } from '@shared/utils';
 import { navigateToLogin } from '@shared/lib/bridge';
+import { reportUnexpectedApiError } from '@shared/lib/sentry/reportUnexpectedApiError';
 
 // '@shared/lib/auth'는 entities/user(유저 스토어·API)까지 정적으로 물고 있어, kyClient가
 // 이 인터셉터를 구성에 쓰는 순환과 맞물리면 번들러/엔진(JSC 등)에 따라 순환 참조 중
@@ -155,11 +156,13 @@ const transformErrorInterceptor = async (error: HTTPError | TimeoutError) => {
   const { status } = error.response;
 
   const response = await error.response.clone().json();
-  if (response.code !== undefined && response.message !== undefined) {
-    throw new ApiError(status, response.code, response.message);
-  }
+  const apiError =
+    response.code !== undefined && response.message !== undefined
+      ? new ApiError(status, response.code, response.message)
+      : new ApiError(status, 'UNKNOWN_ERROR', '알 수 없는 오류가 발생했습니다.');
 
-  throw new ApiError(status, 'UNKNOWN_ERROR', '알 수 없는 오류가 발생했습니다.');
+  reportUnexpectedApiError(apiError);
+  throw apiError;
 };
 
 export {
