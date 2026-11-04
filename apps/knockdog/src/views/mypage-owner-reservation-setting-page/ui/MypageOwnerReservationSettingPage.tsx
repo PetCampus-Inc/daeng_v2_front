@@ -4,6 +4,7 @@ import { useCallback, useRef } from 'react';
 import { ActionButton, Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import {
+  TIME_OPTIONS,
   TIME_PLACEHOLDER,
   TIME_SHEET_TITLE,
   type AdmissionTimeField,
@@ -14,21 +15,28 @@ import { Header } from '@widgets/Header';
 import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
 import { useNativeBackHandler } from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
+import { toast } from '@shared/ui/toast';
+
+const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
 
 interface TimeFieldProps {
   value: string | null;
   placeholder: string;
   label: string;
+  invalid?: boolean;
   onClick: () => void;
 }
 
-function TimeField({ value, placeholder, label, onClick }: TimeFieldProps) {
+function TimeField({ value, placeholder, label, invalid = false, onClick }: TimeFieldProps) {
   return (
     <button
       type='button'
       onClick={onClick}
       aria-label={label}
-      className='radius-r3 border-line-200 bg-fill-secondary-0 flex h-[58px] min-w-0 flex-1 items-center justify-between border py-4 pr-3 pl-4'
+      aria-invalid={invalid}
+      className={`radius-r3 bg-fill-secondary-0 flex h-[58px] min-w-0 flex-1 items-center justify-between border py-4 pr-3 pl-4 ${
+        invalid ? 'border-error' : 'border-line-200'
+      }`}
     >
       <span className={`body1-medium ${value ? 'text-text-primary' : 'text-text-caption'}`}>
         {value || placeholder}
@@ -44,27 +52,33 @@ interface TimeRangeFieldProps {
   end: string | null;
   startField: AdmissionTimeField;
   endField: AdmissionTimeField;
+  error?: string | null;
   onOpen: (field: AdmissionTimeField) => void;
 }
 
-function TimeRangeField({ label, start, end, startField, endField, onOpen }: TimeRangeFieldProps) {
+function TimeRangeField({ label, start, end, startField, endField, error, onOpen }: TimeRangeFieldProps) {
   return (
     <section className='flex flex-col gap-4 px-4 pt-5'>
       <p className='body2-medium text-text-secondary px-1'>{label}</p>
-      <div className='flex items-center'>
-        <TimeField
-          value={start}
-          placeholder={TIME_PLACEHOLDER.start}
-          label={`${label} 시작`}
-          onClick={() => onOpen(startField)}
-        />
-        <span className='body1-regular text-text-tertiary px-1'>~</span>
-        <TimeField
-          value={end}
-          placeholder={TIME_PLACEHOLDER.end}
-          label={`${label} 종료`}
-          onClick={() => onOpen(endField)}
-        />
+      <div className='flex flex-col gap-2'>
+        <div className='flex items-center'>
+          <TimeField
+            value={start}
+            placeholder={TIME_PLACEHOLDER.start}
+            label={`${label} 시작`}
+            invalid={Boolean(error)}
+            onClick={() => onOpen(startField)}
+          />
+          <span className='body1-regular text-text-tertiary px-1'>~</span>
+          <TimeField
+            value={end}
+            placeholder={TIME_PLACEHOLDER.end}
+            label={`${label} 종료`}
+            invalid={Boolean(error)}
+            onClick={() => onOpen(endField)}
+          />
+        </div>
+        {error ? <p className='caption1-regular text-error px-1'>{error}</p> : null}
       </div>
     </section>
   );
@@ -94,6 +108,27 @@ function MypageOwnerReservationSettingPage() {
   handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
+  const handleSave = () => {
+    if (!form.isSaveEnabled) return;
+
+    const saved = form.handleSave();
+    toast({
+      type: saved ? 'success' : 'default',
+      shape: 'rounded',
+      position: 'bottom',
+      nativeTitle: saved ? '예약 설정을 저장했어요' : '예약 설정을 저장하지 못했어요',
+      title: saved ? (
+        '예약 설정을 저장했어요'
+      ) : (
+        <span className='inline-flex items-center gap-2'>
+          <Icon icon='Close' className='size-6 shrink-0' />
+          예약 설정을 저장하지 못했어요
+        </span>
+      ),
+      viewportClassName: SAVE_TOAST_VIEWPORT,
+    });
+  };
+
   const { hoursLine, closedLine } = form.operatingHoursNote;
 
   return (
@@ -112,6 +147,7 @@ function MypageOwnerReservationSettingPage() {
           end={form.values.weekdayEnd}
           startField='weekdayStart'
           endField='weekdayEnd'
+          error={form.weekdayTimeError}
           onOpen={form.openTimeField}
         />
         <TimeRangeField
@@ -120,6 +156,7 @@ function MypageOwnerReservationSettingPage() {
           end={form.values.weekendEnd}
           startField='weekendStart'
           endField='weekendEnd'
+          error={form.weekendTimeError}
           onOpen={form.openTimeField}
         />
 
@@ -130,6 +167,7 @@ function MypageOwnerReservationSettingPage() {
           <div className='flex flex-col gap-2'>
             <TextField
               className='h-[58px]'
+              invalid={Boolean(form.capacityError)}
               suffix={<span className='body2-regular text-text-secondary font-normal'>마리</span>}
             >
               <TextFieldInput
@@ -139,6 +177,9 @@ function MypageOwnerReservationSettingPage() {
                 aria-label='하루 정원'
               />
             </TextField>
+            {form.capacityError ? (
+              <p className='caption1-regular text-error px-2'>{form.capacityError}</p>
+            ) : null}
             <p className='caption1-regular text-text-secondary px-2'>
               * 미입력시 정원 제한 없이 예약을 받아요.
             </p>
@@ -170,7 +211,7 @@ function MypageOwnerReservationSettingPage() {
           variant='primaryFill'
           className='radius-r3'
           disabled={!form.isSaveEnabled}
-          onClick={form.handleSave}
+          onClick={handleSave}
         >
           저장하기
         </ActionButton>
@@ -180,7 +221,7 @@ function MypageOwnerReservationSettingPage() {
         isOpen={form.activeTimeField !== null}
         close={form.closeTimeSheet}
         title={form.activeTimeField ? TIME_SHEET_TITLE[form.activeTimeField] : ''}
-        options={form.activeTimeOptions}
+        options={TIME_OPTIONS}
         value={form.activeTimeValue}
         confirmLabel='확인'
         onSelect={form.handleTimeConfirm}

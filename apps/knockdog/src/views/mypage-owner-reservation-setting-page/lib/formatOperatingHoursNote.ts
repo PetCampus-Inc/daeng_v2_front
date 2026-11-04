@@ -10,9 +10,11 @@ function normalizeClock(value?: string | null) {
   if (!value) return null;
 
   const match = /^(\d{1,2}):(\d{2})/.exec(value.trim());
-  if (!match) return null;
+  const hour = match?.[1];
+  const minute = match?.[2];
+  if (!hour || !minute) return null;
 
-  return `${match[1].padStart(2, '0')}:${match[2]}`;
+  return `${hour.padStart(2, '0')}:${minute}`;
 }
 
 function formatSlot(slot?: { time: string; breakTime: string }) {
