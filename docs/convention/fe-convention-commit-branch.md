@@ -1,9 +1,9 @@
 ---
-title: FE 코드 컨벤션 - 협업
+title: FE 코드 컨벤션 - 커밋과 브랜치
 date: 2026-11-04
 tags: [convention, commit, branch]
 ---
-# FE 코드 컨벤션 - 협업
+# FE 코드 컨벤션 - 커밋과 브랜치
 
 커밋 메시지와 브랜치 운영·머지 방식을 정한 규칙.
 
