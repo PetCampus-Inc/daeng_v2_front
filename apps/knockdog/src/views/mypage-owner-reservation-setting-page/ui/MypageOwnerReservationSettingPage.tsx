@@ -2,7 +2,12 @@
 
 import { useCallback, useRef } from 'react';
 import { ActionButton, Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { TIME_PLACEHOLDER } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
+import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
+import {
+  TIME_PLACEHOLDER,
+  TIME_SHEET_TITLE,
+  type AdmissionTimeField,
+} from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
 import { useReservationSettingForm } from '@views/mypage-owner-reservation-setting-page/model/useReservationSettingForm';
 
 import { Header } from '@widgets/Header';
@@ -13,16 +18,23 @@ import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGua
 interface TimeFieldProps {
   value: string | null;
   placeholder: string;
+  label: string;
+  onClick: () => void;
 }
 
-function TimeField({ value, placeholder }: TimeFieldProps) {
+function TimeField({ value, placeholder, label, onClick }: TimeFieldProps) {
   return (
-    <div className='radius-r3 border-line-200 bg-fill-secondary-0 flex h-[58px] min-w-0 flex-1 items-center justify-between border py-4 pr-3 pl-4'>
+    <button
+      type='button'
+      onClick={onClick}
+      aria-label={label}
+      className='radius-r3 border-line-200 bg-fill-secondary-0 flex h-[58px] min-w-0 flex-1 items-center justify-between border py-4 pr-3 pl-4'
+    >
       <span className={`body1-medium ${value ? 'text-text-primary' : 'text-text-caption'}`}>
         {value || placeholder}
       </span>
       <Icon icon='ChevronBottom' className='text-text-tertiary size-6 shrink-0' />
-    </div>
+    </button>
   );
 }
 
@@ -30,16 +42,29 @@ interface TimeRangeFieldProps {
   label: string;
   start: string | null;
   end: string | null;
+  startField: AdmissionTimeField;
+  endField: AdmissionTimeField;
+  onOpen: (field: AdmissionTimeField) => void;
 }
 
-function TimeRangeField({ label, start, end }: TimeRangeFieldProps) {
+function TimeRangeField({ label, start, end, startField, endField, onOpen }: TimeRangeFieldProps) {
   return (
     <section className='flex flex-col gap-4 px-4 pt-5'>
       <p className='body2-medium text-text-secondary px-1'>{label}</p>
       <div className='flex items-center'>
-        <TimeField value={start} placeholder={TIME_PLACEHOLDER.start} />
+        <TimeField
+          value={start}
+          placeholder={TIME_PLACEHOLDER.start}
+          label={`${label} 시작`}
+          onClick={() => onOpen(startField)}
+        />
         <span className='body1-regular text-text-tertiary px-1'>~</span>
-        <TimeField value={end} placeholder={TIME_PLACEHOLDER.end} />
+        <TimeField
+          value={end}
+          placeholder={TIME_PLACEHOLDER.end}
+          label={`${label} 종료`}
+          onClick={() => onOpen(endField)}
+        />
       </div>
     </section>
   );
@@ -85,11 +110,17 @@ function MypageOwnerReservationSettingPage() {
           label='평일 등원 가능 시간'
           start={form.values.weekdayStart}
           end={form.values.weekdayEnd}
+          startField='weekdayStart'
+          endField='weekdayEnd'
+          onOpen={form.openTimeField}
         />
         <TimeRangeField
           label='주말 등원 가능 시간'
           start={form.values.weekendStart}
           end={form.values.weekendEnd}
+          startField='weekendStart'
+          endField='weekendEnd'
+          onOpen={form.openTimeField}
         />
 
         <section className='flex flex-col gap-4 px-4 pt-4'>
@@ -144,6 +175,16 @@ function MypageOwnerReservationSettingPage() {
           저장하기
         </ActionButton>
       </div>
+
+      <OptionSelectSheet
+        isOpen={form.activeTimeField !== null}
+        close={form.closeTimeSheet}
+        title={form.activeTimeField ? TIME_SHEET_TITLE[form.activeTimeField] : ''}
+        options={form.activeTimeOptions}
+        value={form.activeTimeValue}
+        confirmLabel='확인'
+        onSelect={form.handleTimeConfirm}
+      />
     </div>
   );
 }

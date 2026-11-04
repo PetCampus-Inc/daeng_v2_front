@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Icon } from '@knockdog/ui';
+import { useEffect, useRef, useState } from 'react';
+import { ActionButton, Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
 
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
@@ -22,6 +22,8 @@ interface OptionSelectSheetSingleProps extends OptionSelectSheetBaseProps {
   multiple?: false;
   value?: string | null;
   onSelect: (value: string) => void;
+  /** 있으면 항목 탭은 임시 선택만 하고, 이 버튼을 눌러야 반영된다. X·바깥 탭은 버린다. */
+  confirmLabel?: string;
 }
 
 interface OptionSelectSheetMultipleProps extends OptionSelectSheetBaseProps {
@@ -48,21 +50,37 @@ function orderValuesByOptions(values: string[], options: OptionItem[]) {
 /**
  * 단일/복수 선택 공용 바텀시트.
  * - 단일: 항목 탭 즉시 선택 후 close
+ * - confirmLabel: 항목 탭은 임시 선택, 확인으로 반영하고 X/바깥 탭은 버린다
  * - 복수: 상단 선택 칩 + 목록 토글 (시트 닫을 때까지 유지)
  */
 function OptionSelectSheet(props: OptionSelectSheetProps) {
   const { isOpen, close, title, description, options } = props;
   const isMultiple = props.multiple === true;
+  const confirmLabel = isMultiple ? undefined : props.confirmLabel;
+  const listRef = useRef<HTMLDivElement>(null);
 
   const [draftValues, setDraftValues] = useState<string[]>(
     isMultiple ? orderValuesByOptions(props.values ?? [], options) : []
   );
+  const [draftValue, setDraftValue] = useState<string | null>(isMultiple ? null : (props.value ?? null));
 
   useEffect(() => {
     if (!isOpen || !isMultiple) return;
     setDraftValues(orderValuesByOptions(props.values ?? [], options));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open 시점에만 parent values 동기화
   }, [isOpen, isMultiple]);
+
+  useEffect(() => {
+    if (!isOpen || isMultiple || !confirmLabel) return;
+    setDraftValue(props.value ?? null);
+
+    const frame = requestAnimationFrame(() => {
+      listRef.current?.querySelector('[data-state="checked"]')?.closest('label')?.scrollIntoView({ block: 'center' });
+    });
+
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open 시점에만 parent value 동기화
+  }, [isOpen, isMultiple, confirmLabel]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -73,7 +91,14 @@ function OptionSelectSheet(props: OptionSelectSheetProps) {
 
   const isSelected = (value: string) => {
     if (isMultiple) return draftValues.includes(value);
+    if (confirmLabel) return draftValue === value;
     return props.value === value;
+  };
+
+  const handleConfirm = () => {
+    if (isMultiple || !confirmLabel || !draftValue) return;
+    props.onSelect(draftValue);
+    close();
   };
 
   const handleSingleSelect = (value: string) => {
@@ -129,27 +154,58 @@ function OptionSelectSheet(props: OptionSelectSheetProps) {
           </div>
         ) : null}
 
-        <div className='max-h-[50vh] overflow-y-auto'>
-          {options.map((option) => {
-            const selected = isSelected(option.value);
-            return (
-              <div key={option.value}>
-                <button
-                  type='button'
-                  onClick={() =>
-                    isMultiple ? handleToggle(option.value) : handleSingleSelect(option.value)
-                  }
-                  className={`body1-medium w-full px-4 py-4 text-left ${
-                    selected ? 'text-text-accent' : 'text-text-primary'
-                  }`}
-                >
-                  {option.label}
-                </button>
-                <div className='bg-line-200 h-px w-full' />
-              </div>
-            );
-          })}
+        <div ref={listRef} className='max-h-[50vh] overflow-y-auto'>
+          {confirmLabel ? (
+            <RadioGroup value={draftValue ?? ''} onValueChange={setDraftValue} className='gap-0'>
+              {options.map((option) => {
+                const selected = isSelected(option.value);
+                return (
+                  <div key={option.value}>
+                    <label className='flex w-full cursor-pointer items-center justify-between px-4 py-4'>
+                      <span className={`body1-medium ${selected ? 'text-text-accent' : 'text-text-primary'}`}>
+                        {option.label}
+                      </span>
+                      <RadioGroupItem value={option.value} aria-label={option.label} />
+                    </label>
+                    <div className='bg-line-200 h-px w-full' />
+                  </div>
+                );
+              })}
+            </RadioGroup>
+          ) : (
+            options.map((option) => {
+              const selected = isSelected(option.value);
+              return (
+                <div key={option.value}>
+                  <button
+                    type='button'
+                    onClick={() => (isMultiple ? handleToggle(option.value) : handleSingleSelect(option.value))}
+                    className={`body1-medium w-full px-4 py-4 text-left ${
+                      selected ? 'text-text-accent' : 'text-text-primary'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                  <div className='bg-line-200 h-px w-full' />
+                </div>
+              );
+            })
+          )}
         </div>
+        {confirmLabel ? (
+          <div className='shrink-0 bg-white px-4 py-4'>
+            <ActionButton
+              type='button'
+              size='large'
+              variant='primaryFill'
+              className='radius-r3'
+              disabled={!draftValue}
+              onClick={handleConfirm}
+            >
+              {confirmLabel}
+            </ActionButton>
+          </div>
+        ) : null}
       </BottomSheet.Body>
     </BottomSheet.Root>
   );
