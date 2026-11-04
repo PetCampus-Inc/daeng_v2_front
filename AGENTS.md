@@ -1,0 +1,16 @@
+# 작업 지침
+
+이 파일은 이 저장소 작업의 문서 진입점이다.  
+작업을 시작하기 전에 아래 표에서 지금 하는 일에 해당하는 문서만 찾아 읽고 적용한다.
+
+## FE 코드 컨벤션
+
+| 문서                                                                 | 다루는 내용                                      | 읽는 시점                                                   |
+| -------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------- |
+| [코드 작성](docs/convention/fe-convention-code.md)                   | 변수·상수, 함수, 타입, 컴포넌트의 이름과 작성 방식 | 변수·함수·타입·컴포넌트를 새로 만들거나 고칠 때             |
+| [데이터와 상태](docs/convention/fe-convention-data-state.md)         | 서버 데이터(DTO), 서버 상태, 클라이언트 상태     | API 호출, 서버 데이터 타입, 상태관리를 만들거나 고칠 때     |
+| [파일과 폴더](docs/convention/fe-convention-files-folders.md)        | 파일 이름, export·import, FSD 폴더 구조          | 파일을 만들거나 옮길 때, import 경로를 쓸 때                |
+| [네이티브 기능](docs/convention/fe-convention-native.md)             | WebView 브릿지 호출·추가 규칙                    | 브릿지 메서드를 호출하거나 추가할 때                        |
+| [협업](docs/convention/fe-convention-collaboration.md)               | 커밋 메시지, 브랜치, 머지 방식                   | 커밋하거나 브랜치를 만들거나 머지할 때                      |
+| [테스트와 Lighthouse](docs/convention/fe-convention-test-lighthouse.md) | 테스트 작성 기준·실행 범위·E2E, Lighthouse     | 테스트를 쓰거나 실행할 때, 성능을 측정할 때                 |
+| [단계별 문서와 버전](docs/convention/fe-convention-docs.md)          | PRD·진행 기록 폴더 구성, 문서 버전 규칙          | PRD나 진행 기록 문서를 만들거나 버전을 올릴 때              |
