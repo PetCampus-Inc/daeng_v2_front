@@ -366,7 +366,7 @@ function MypageOwnerKindergartenPage() {
         <Header.RightSection>
           <IconButton
             type='button'
-            icon='Edit'
+            icon='EditV4'
             aria-label={ownerMypageContent.editInfoButtonLabel}
             iconClassName='text-text-primary size-6'
             onClick={handleEditClick}
