@@ -57,7 +57,7 @@ function BottomNavBarLinks() {
               <div className='flex size-6 items-center justify-center'>
                 <Icon
                   icon={item.icon}
-                  className={`size-6 transition-colors duration-100 motion-reduce:transition-none ${colorClassName}`}
+                  className={`transition-colors duration-100 motion-reduce:transition-none ${colorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
                 />
               </div>
               <span className='caption1-regular tracking-normal'>{item.label}</span>
