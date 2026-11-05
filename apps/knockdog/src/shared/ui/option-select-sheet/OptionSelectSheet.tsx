@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ActionButton, Icon, RadioGroup, RadioGroupItem } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
@@ -16,6 +17,7 @@ interface OptionSelectSheetBaseProps {
   title: string;
   description?: string;
   options: OptionItem[];
+  listClassName?: string;
 }
 
 interface OptionSelectSheetSingleProps extends OptionSelectSheetBaseProps {
@@ -54,7 +56,7 @@ function orderValuesByOptions(values: string[], options: OptionItem[]) {
  * - 복수: 상단 선택 칩 + 목록 토글 (시트 닫을 때까지 유지)
  */
 function OptionSelectSheet(props: OptionSelectSheetProps) {
-  const { isOpen, close, title, description, options } = props;
+  const { isOpen, close, title, description, options, listClassName } = props;
   const isMultiple = props.multiple === true;
   const confirmLabel = isMultiple ? undefined : props.confirmLabel;
   const listRef = useRef<HTMLDivElement>(null);
@@ -154,7 +156,7 @@ function OptionSelectSheet(props: OptionSelectSheetProps) {
           </div>
         ) : null}
 
-        <div ref={listRef} className='max-h-[50vh] overflow-y-auto'>
+        <div ref={listRef} className={cn('max-h-[50vh] overflow-y-auto', listClassName)}>
           {confirmLabel ? (
             <RadioGroup value={draftValue ?? ''} onValueChange={setDraftValue} className='gap-0'>
               {options.map((option) => {

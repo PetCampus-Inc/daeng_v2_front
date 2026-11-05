@@ -18,6 +18,8 @@ import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGua
 import { toast } from '@shared/ui/toast';
 
 const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
+/** 행 높이(py-4 32px + body1 24px + 구분선 1px) × 3 */
+const TIME_SHEET_LIST_CLASS = 'h-[calc(3*(2rem+1.5rem+1px))] max-h-[calc(3*(2rem+1.5rem+1px))]';
 
 interface TimeFieldProps {
   value: string | null;
@@ -224,6 +226,7 @@ function MypageOwnerReservationSettingPage() {
         options={TIME_OPTIONS}
         value={form.activeTimeValue}
         confirmLabel='확인'
+        listClassName={TIME_SHEET_LIST_CLASS}
         onSelect={form.handleTimeConfirm}
       />
     </div>
