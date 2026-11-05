@@ -2,7 +2,7 @@ import { type ComponentProps, type ReactNode } from 'react';
 
 import { cn } from '@knockdog/ui/lib';
 
-interface TicketListItemProps extends Omit<ComponentProps<'button'>, 'children'> {
+interface TicketListItemProps extends Omit<ComponentProps<'button'>, 'children' | 'title'> {
   title: ReactNode;
   description?: ReactNode;
 }
