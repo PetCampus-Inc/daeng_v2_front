@@ -85,6 +85,10 @@ const route = {
     kindergarten: {
       /** 원장 유치원 정보 페이지 */
       root: '/mypage/kindergarten',
+      reservation: {
+        /** 원장 예약 설정 */
+        root: '/mypage/kindergarten/reservation',
+      },
       edit: {
         /** 원장 유치원 운영 정보 수정 페이지 */
         root: '/mypage/kindergarten/edit',

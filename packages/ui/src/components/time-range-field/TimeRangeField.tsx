@@ -40,18 +40,24 @@ function ChevronDown(props: ComponentProps<'svg'>) {
 
 function TimeField({
   value,
+  hint,
   tone,
   muted,
   onClick,
 }: {
   value: string;
+  hint: string;
   tone: 'default' | 'error';
   muted: boolean;
   onClick?: ComponentProps<'button'>['onClick'];
 }) {
+  const hasValue = value.trim().length > 0;
+
   return (
     <button type='button' onClick={onClick} className={timeFieldBoxVariants({ tone })}>
-      <span className={cn('body1-medium', muted ? 'text-text-secondary-inverse' : 'text-text-primary')}>{value}</span>
+      <span className={cn('body1-medium', muted || !hasValue ? 'text-text-secondary-inverse' : 'text-text-primary')}>
+        {hasValue ? value : hint}
+      </span>
       <ChevronDown className='text-text-secondary-inverse shrink-0' />
     </button>
   );
@@ -72,9 +78,15 @@ function TimeRangeField({
   return (
     <div className={cn('flex w-full flex-col gap-x2', className)}>
       <div className='flex w-full items-center'>
-        <TimeField value={startTime} tone={state === 'error' ? 'error' : 'default'} muted={isMuted} onClick={onStartClick} />
+        <TimeField
+          value={startTime}
+          hint='09:00'
+          tone={state === 'error' ? 'error' : 'default'}
+          muted={isMuted}
+          onClick={onStartClick}
+        />
         <span className='body1-regular text-fill-secondary-500 shrink-0 px-x1'>~</span>
-        <TimeField value={endTime} tone='default' muted={isMuted} onClick={onEndClick} />
+        <TimeField value={endTime} hint='12:00' tone='default' muted={isMuted} onClick={onEndClick} />
       </div>
       {state === 'error' && errorMessage ? (
         <p className='caption1-regular text-error px-x2 whitespace-nowrap'>{errorMessage}</p>

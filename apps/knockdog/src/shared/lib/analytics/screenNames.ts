@@ -62,6 +62,7 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { path: '/mypage/idea-suggestion', name: '아이디어 제안' },
   { path: '/mypage/idea-suggestion/complete', name: '아이디어 제안 완료' },
   { path: '/mypage/kindergarten', name: '원장 유치원 정보' },
+  { path: '/mypage/kindergarten/reservation', name: '예약 설정' },
   { path: '/mypage/kindergarten/edit', name: '유치원 운영 정보 수정' },
   { path: '/mypage/kindergarten/edit/address', name: '유치원 주소 수정' },
   { path: '/mypage/kindergarten/edit/pricing', name: '유치원 요금 수정' },
