@@ -15,7 +15,6 @@ import {
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import {
   TIME_OPTIONS,
-  TIME_PLACEHOLDER,
   TIME_SHEET_TITLE,
   type AdmissionTimeField,
 } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
@@ -28,6 +27,8 @@ import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGua
 import { toast } from '@shared/ui/toast';
 
 const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
+/** 휴무 요일이 오기 전까지 보여주는 임시 문구 */
+const MOCK_CLOSED_LINE = '화요일, 목요일 휴무';
 /** 행 높이(py-4 32px + body1 24px + 구분선 1px) × 3 */
 const TIME_SHEET_LIST_CLASS = 'h-[calc(3*(2rem+1.5rem+1px))] max-h-[calc(3*(2rem+1.5rem+1px))]';
 
@@ -50,10 +51,10 @@ interface AdmissionTimeRangeProps {
 function AdmissionTimeRange({ label, start, end, startField, endField, error, onOpen }: AdmissionTimeRangeProps) {
   return (
     <Field className='gap-4 px-4 pt-5'>
-      <FieldLabel className='px-1'>{label}</FieldLabel>
+      <FieldLabel className='text-text-secondary px-1'>{label}</FieldLabel>
       <TimeRangeField
-        startTime={start ?? TIME_PLACEHOLDER.start}
-        endTime={end ?? TIME_PLACEHOLDER.end}
+        startTime={start ?? ''}
+        endTime={end ?? ''}
         state={timeRangeState(start, end, error)}
         errorMessage={error}
         onStartClick={() => onOpen(startField)}
@@ -109,6 +110,7 @@ function MypageOwnerReservationSettingPage() {
   };
 
   const { hoursLine, closedLine } = form.operatingHoursNote;
+  const closedNote = closedLine ?? MOCK_CLOSED_LINE;
 
   return (
     <div className='flex h-full flex-col bg-white'>
@@ -140,9 +142,9 @@ function MypageOwnerReservationSettingPage() {
         />
 
         <Field className='gap-4 px-4 pt-4'>
-          <FieldLabel className='px-1'>
+          <FieldLabel className='text-text-secondary px-1'>
             하루 정원
-            <FieldLabelIndicator type='optional' />
+            <FieldLabelIndicator type='optional' className='text-text-accent' />
           </FieldLabel>
           <div className='flex flex-col gap-2'>
             <NumberField
@@ -158,18 +160,14 @@ function MypageOwnerReservationSettingPage() {
           </div>
         </Field>
 
-        <section className='caption1-regular text-primitive-neutral-500 flex flex-col gap-2.5 px-5 py-5'>
+        <section className='caption1-regular text-fill-secondary-500 flex flex-col gap-2.5 px-6 py-5'>
           {hoursLine ? (
             <p>
               * 현재 운영시간
               <br />
               {`- ${hoursLine}`}
-              {closedLine ? (
-                <>
-                  <br />
-                  {`- ${closedLine}`}
-                </>
-              ) : null}
+              <br />
+              {`- ${closedNote}`}
             </p>
           ) : null}
           <p>* 운영 시간은 유치원 기본 정보에서 변경 가능해요.</p>
