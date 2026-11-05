@@ -16,6 +16,11 @@ function timeOrderError(start: string | null, end: string | null) {
   return TIME_ORDER_ERROR;
 }
 
+/** 시작과 끝은 둘 다 있거나 둘 다 없어야 한다. */
+function isTimePairComplete(start: string | null, end: string | null) {
+  return Boolean(start) === Boolean(end);
+}
+
 function capacityLimitError(value: string, peak: number | null) {
   if (!value || peak == null) return null;
   const count = Number(value);
@@ -70,7 +75,10 @@ function useReservationSettingForm() {
   const weekendTimeError = timeOrderError(values.weekendStart, values.weekendEnd);
   const capacityError = capacityLimitError(values.dailyCapacity, PEAK_DAILY_RESERVATION_COUNT);
   const hasFieldError = Boolean(weekdayTimeError || weekendTimeError || capacityError);
-  const isSaveEnabled = isDirty && !hasFieldError;
+  const hasIncompleteTimePair =
+    !isTimePairComplete(values.weekdayStart, values.weekdayEnd) ||
+    !isTimePairComplete(values.weekendStart, values.weekendEnd);
+  const isSaveEnabled = isDirty && !hasFieldError && !hasIncompleteTimePair;
 
   const updateValue = <Key extends keyof ReservationSettingValues>(
     key: Key,
