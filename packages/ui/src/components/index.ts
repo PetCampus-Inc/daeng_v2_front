@@ -23,3 +23,6 @@ export * from './tooltip';
 export * from './field';
 export * from './slot';
 export * from './toggle-chip';
+export * from './role-badge';
+export * from './ticket-lifecycle-badge';
+export * from './ticket-status-badge';
