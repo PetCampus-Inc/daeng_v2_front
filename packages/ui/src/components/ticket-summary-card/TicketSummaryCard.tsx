@@ -4,7 +4,7 @@ import { cn } from '@knockdog/ui/lib';
 
 import { TicketLifecycleBadge } from '../ticket-lifecycle-badge';
 
-type TicketSummaryStatus = 'active' | 'scheduled' | 'expired';
+type TicketSummaryStatus = 'active' | 'scheduled' | 'onHold' | 'expired';
 
 interface TicketSummaryCardProps extends Omit<ComponentProps<'article'>, 'title'> {
   title: ReactNode;
@@ -47,7 +47,7 @@ function TicketSummaryCard({
       </p>
       <div className='flex items-center gap-x1_5'>
         <p className='body2-regular text-text-secondary'>{period}</p>
-        {status === 'active' && remainingDays != null ? (
+        {!isExpired && remainingDays != null ? (
           <p className='body2-bold text-fill-secondary-500'>· {remainingDays}일 남음</p>
         ) : null}
       </div>

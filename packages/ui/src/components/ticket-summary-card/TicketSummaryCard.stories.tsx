@@ -11,7 +11,7 @@ const meta = {
   argTypes: {
     status: {
       control: 'select',
-      options: ['active', 'scheduled', 'expired'],
+      options: ['active', 'scheduled', 'onHold', 'expired'],
     },
   },
   decorators: [
