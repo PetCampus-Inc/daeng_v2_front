@@ -321,23 +321,17 @@ function GuardianDailyNoticeListPage() {
               <Header.BackButton onClick={handleBack} />
             </Header.LeftSection>
             {canSelectKindergarten ? (
-              <Header.CenterSection>
-                <button
-                  type='button'
-                  className='h3-extrabold text-text-primary gap-x1 flex max-w-[200px] items-center'
-                  aria-label={content.kindergartenSelectAriaLabel}
-                  onClick={handleKindergartenSelectClick}
-                >
-                  <span className='truncate'>{title}</span>
-                  <Icon
-                    icon='ChevronBottom'
-                    className='text-text-primary size-5 shrink-0'
-                    aria-hidden='true'
-                  />
-                </button>
-              </Header.CenterSection>
+              <button
+                type='button'
+                className='h3-extrabold text-text-primary gap-x1 flex min-w-0 flex-1 items-center text-left'
+                aria-label={content.kindergartenSelectAriaLabel}
+                onClick={handleKindergartenSelectClick}
+              >
+                <span className='truncate'>{title}</span>
+                <Icon icon='ChevronBottom' className='text-text-primary size-5 shrink-0' aria-hidden='true' />
+              </button>
             ) : (
-              <Header.Title className='max-w-[200px] truncate'>{title}</Header.Title>
+              <Header.Title>{title}</Header.Title>
             )}
           </Header>
         </div>
