@@ -55,3 +55,4 @@ export * from './status-filter-chip';
 export * from './duration-chip';
 export * from './custom-duration-chip';
 export * from './ticket-option-card';
+export * from './monthly-calendar';
