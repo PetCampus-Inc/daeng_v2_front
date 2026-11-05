@@ -230,11 +230,7 @@ function KindergartenDetailPage() {
           <Header.HomeButton onClick={handleHomeClick} />
         </Header.LeftSection>
 
-        <Header.CenterSection>
-          <h1 className='h3-extrabold text-text-primary max-w-[200px] truncate text-center'>
-            {kindergartenMain?.title}
-          </h1>
-        </Header.CenterSection>
+        <Header.Title>{kindergartenMain?.title}</Header.Title>
 
         <Header.RightSection>
           <Header.ShareButton onClick={handleShare} />

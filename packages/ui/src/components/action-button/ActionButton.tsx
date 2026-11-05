@@ -19,12 +19,12 @@ const actionButtonVariants = cva(
         secondaryLine:
           'bg-fill-secondary-0 text-text-secondary border-line-400 active:bg-fill-secondary-100 data-[active]:bg-fill-secondary-100 disabled:text-text-secondary-inverse data-[disabled]:text-text-secondary-inverse border border-solid',
         tertiaryFill:
-          'bg-fill-secondary-100 text-text-primary active:bg-fill-secondary-200 data-[active]:bg-fill-secondary-200 disabled:text-text-tertiary data-[disabled]:text-text-tertiary',
+          'bg-fill-secondary-100 text-text-secondary active:bg-fill-secondary-200 data-[active]:bg-fill-secondary-200 disabled:text-text-caption data-[disabled]:text-text-caption',
       },
       size: {
-        small: 'radius-r2 h-x7_5 caption1-semibold py-x2 px-x3 gap-x1',
-        medium: 'h-x12 radius-r2 body2-bold py-x3.5 px-x4 gap-x1 w-full',
-        large: 'h-x14 radius-r2 body1-bold p-x4 gap-x1 w-full',
+        small: 'radius-r3 h-x7_5 caption1-regular py-x2 px-x3 gap-x1',
+        medium: 'h-x12 radius-r3 body2-regular py-x3.5 px-x4 gap-x1 w-full',
+        large: 'h-x14 radius-r3 body1-regular p-x4 gap-x1 w-full',
       },
     },
     defaultVariants: {

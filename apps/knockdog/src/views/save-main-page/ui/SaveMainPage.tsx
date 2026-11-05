@@ -72,13 +72,12 @@ export function SaveMainPage() {
         </Header>
       ) : (
         <Header>
+          <Header.Title>보관함</Header.Title>
           {isMounted && isLoggedIn && (
             <Header.RightSection>
               <IconButton icon='Search' onClick={handleSearch} />
             </Header.RightSection>
           )}
-
-          <Header.Title>보관함</Header.Title>
         </Header>
       )}
 

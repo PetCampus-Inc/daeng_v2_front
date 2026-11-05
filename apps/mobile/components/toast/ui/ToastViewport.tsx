@@ -19,7 +19,7 @@ type ToastState = {
 };
 
 const tokens = {
-  radius: { rounded: 4, square: 0 } as const,
+  radius: { rounded: 12, square: 0 } as const,
   padding: 12,
   gap: { rounded: 8, square: 0 },
   colors: { bg: '#41424a', fg: '#ffffff', accent: '#ff6e0c' },

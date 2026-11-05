@@ -1,10 +1,11 @@
 import CompareIcon from '@/assets/icons/compare_basic.svg';
 import ExploreIcon from '@/assets/icons/explore_basic.svg';
-import GalleryIcon from '@/assets/icons/gallery_basic.svg';
-import HomeIcon from '@/assets/icons/home_basic.svg';
-import MembersIcon from '@/assets/icons/members_basic.svg';
 import MypageIcon from '@/assets/icons/mypage_basic.svg';
-import NoticebookIcon from '@/assets/icons/noticebook_basic.svg';
+import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
+import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
+import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
+import OwnerMembersIcon from '@/assets/icons/owner_members.svg';
+import OwnerMypageIcon from '@/assets/icons/owner_mypage.svg';
 import SaveIcon from '@/assets/icons/save_basic.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
@@ -122,15 +123,19 @@ export default function TabNavigator() {
                 case 'Compare':
                   return <CompareIcon width={25} height={25} {...iconProps} />;
                 case 'OwnerHome':
-                  return <HomeIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerHomeIcon width={21} height={21} {...iconProps} />;
                 case 'OwnerDaily':
-                  return <NoticebookIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerDailyIcon width={20} height={20} {...iconProps} />;
                 case 'OwnerAlbum':
-                  return <GalleryIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerAlbumIcon width={20} height={20} {...iconProps} />;
                 case 'OwnerMembers':
-                  return <MembersIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerMembersIcon width={21} height={21} {...iconProps} />;
                 case 'Mypage':
-                  return <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />;
+                  return isOwnerMode ? (
+                    <OwnerMypageIcon width={21} height={21} {...iconProps} />
+                  ) : (
+                    <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />
+                  );
                 default:
                   console.warn('❗ tabBarIcon: Unknown route name', route.name);
                   return null;

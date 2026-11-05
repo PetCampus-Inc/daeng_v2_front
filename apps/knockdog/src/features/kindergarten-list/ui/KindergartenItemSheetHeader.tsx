@@ -36,9 +36,7 @@ export function KindergartenItemSheetHeader({
           <Header.HomeButton onClick={onHome} />
         </Header.LeftSection>
 
-        <Header.CenterSection className='pointer-events-none absolute top-1/2 inset-x-0 -translate-y-1/2 px-20'>
-          <h1 className='h3-extrabold text-text-primary truncate text-center'>{title}</h1>
-        </Header.CenterSection>
+        <h1 className='h3-extrabold text-text-primary min-w-0 flex-1 truncate text-left'>{title}</h1>
 
         <Header.RightSection>
           <Header.ShareButton onClick={onShare} disabled={!canShare} />
