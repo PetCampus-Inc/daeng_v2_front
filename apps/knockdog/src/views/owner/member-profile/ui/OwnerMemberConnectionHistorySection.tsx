@@ -17,7 +17,7 @@ function OwnerMemberConnectionHistorySection({ petId }: OwnerMemberConnectionHis
 
   return (
     <div className='flex flex-col gap-4 px-4 pb-5'>
-      <h2 className='h3-extrabold text-text-primary'>{content.connectionHistoryTitle}</h2>
+      <h2 className='h3-extrabold text-text-primary px-1'>{content.connectionHistoryTitle}</h2>
       {isPending ? (
         <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
       ) : isError ? (

@@ -11,7 +11,7 @@ const meta = {
   argTypes: {
     status: {
       control: 'select',
-      options: ['active', 'expired'],
+      options: ['active', 'scheduled', 'expired'],
     },
   },
   decorators: [
@@ -50,7 +50,7 @@ export const All: Story = {
       />
       <TicketSummaryCard
         title='자유 10회권'
-        status='expired'
+        status='scheduled'
         remainingCount={10}
         totalCount={10}
         period='2026.08.01 ~ 만료 없음'

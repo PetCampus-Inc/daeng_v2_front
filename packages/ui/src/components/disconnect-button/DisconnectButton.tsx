@@ -12,7 +12,7 @@ function DisconnectButton({ children = '연결해제', className, type = 'button
     <button
       type={type}
       className={cn(
-        'label-semibold text-text-accent radius-r1 inline-flex h-x6 items-center justify-center px-x2 py-x1',
+        'body1-bold text-text-accent radius-r1 inline-flex h-x6 items-center justify-center px-x2 py-x1',
         className
       )}
       {...props}
