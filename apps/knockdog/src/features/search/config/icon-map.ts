@@ -2,7 +2,7 @@ import type { IconType } from '@knockdog/ui';
 import type { FilterItemCode } from '@entities/kindergarten';
 
 export const FILTER_ICON_MAP: Record<FilterItemCode, IconType> = {
-  DOG_FREE: 'Alldogs',
+  ALL_BREEDS: 'Alldogs',
   SMALL_DOG_ONLY: 'Smalldog',
   MEDIUM_LARGE_DOG_ONLY: 'Largedog',
 
@@ -20,8 +20,8 @@ export const FILTER_ICON_MAP: Record<FilterItemCode, IconType> = {
   NON_SLIP: 'Floor',
   CCTV: 'Cctv',
   PLAYGROUND: 'Playground',
-  ROOFTOP: 'Rooftop',
-  YARD: 'Field',
+  ROOFTOP_TERRACE: 'Rooftop',
+  TRAINING_GROUND_YARD: 'Field',
 
   PICKDROP: 'PickdropLine',
   DIARY: 'Noticebook',

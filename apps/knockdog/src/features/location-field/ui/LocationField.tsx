@@ -1,33 +1,131 @@
-import { Icon } from '@knockdog/ui';
-import { USER_ADDRESS_TYPE_KR, UserAddressType } from '@entities/user';
+'use client';
+
+import { overlay } from 'overlay-kit';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Divider,
+  Field,
+  FieldContent,
+  FieldLabel,
+  FieldLabelIndicator,
+  Icon,
+} from '@knockdog/ui';
+
+import { USER_ADDRESS_TYPE, UserAddress, UserAddressType } from '@entities/user';
+
+import { useLocationField } from '../model/useLocationField';
+import { withEulReul } from '../lib/josa';
 
 interface LocationFieldProps {
   type: UserAddressType;
+  value?: Omit<UserAddress, 'id'>;
+  addressId?: string;
   required?: boolean;
-  onAdd?: () => void;
+  optional?: boolean;
+  onChange?: (address?: Omit<UserAddress, 'id'>) => void;
+  onAdd?: (address: Omit<UserAddress, 'id'>) => void | Promise<void>;
+  onUpdate?: (address: Omit<UserAddress, 'id'>) => void | Promise<void>;
+  onDelete?: () => void | Promise<void>;
 }
 
-export function LocationField({ type, required, onAdd }: LocationFieldProps) {
+export function LocationField({ type, value, addressId, required, optional, onChange, onAdd, onUpdate, onDelete }: LocationFieldProps) {
+  const { alias, address, isAdding, add, modify, remove } = useLocationField({
+    type,
+    value,
+    addressId,
+    onChange,
+    onAdd,
+    onUpdate,
+    onDelete,
+  });
+
+  const handleDeleteClick = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{withEulReul(alias)} 삭제할까요?</AlertDialogTitle>
+            <AlertDialogDescription>삭제한 장소는 복구할 수 없어요.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={remove}>삭제하기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
   return (
-    <div className='flex flex-col gap-y-2 py-5'>
-      {/* 라벨 */}
-      <div className='flex items-center gap-x-px'>
-        <span className='h3-extrabold'>{USER_ADDRESS_TYPE_KR[type]}</span>
+    <div className='flex flex-col gap-y-2 py-4'>
+      <Field>
+        <FieldLabel className='h3-extrabold flex items-center'>
+          <div className='flex-1'>
+            {alias}
 
-        {required ? (
-          <span className='body1-extrabold text-text-accent'>*</span>
-        ) : (
-          <span className='body1-medium text-text-secondary'>(선택)</span>
-        )}
-      </div>
+            {required && <FieldLabelIndicator type='required' />}
+            {optional && <FieldLabelIndicator type='optional' className='text-text-secondary body1-regular' />}
+          </div>
 
-      {/* 추가 버튼 */}
-      <button>
-        <div className='text-text-tertiary body1-bold flex items-center gap-x-1'>
-          <Icon icon='Plus' className='h-5 w-5' />
-          추가하기
-        </div>
-      </button>
+          {address && (
+            <div className='flex items-center gap-x-0.5'>
+              {type !== USER_ADDRESS_TYPE.HOME && (
+                <>
+                  <button
+                    className='label-semibold text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1 px-2 py-1'
+                    type='button'
+                    onClick={handleDeleteClick}
+                    disabled={isAdding}
+                  >
+                    <Icon icon='Trash' className='text-fill-secondary-400 size-4' />
+                    삭제
+                  </button>
+                  <Divider orientation='vertical' className='h-3.5' />
+                </>
+              )}
+
+              <button
+                className='label-semibold text-text-tertiary disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1 px-2 py-1'
+                type='button'
+                onClick={modify}
+                disabled={isAdding}
+              >
+                <Icon icon='Edit' className='text-fill-secondary-400 size-4' />
+                수정
+              </button>
+            </div>
+          )}
+        </FieldLabel>
+
+        <FieldContent>
+          {address ? (
+            <div>
+              <span className='flex flex-col gap-0'>
+                <span className='text-text-primary body1-regular'>
+                  {address.roadAddress || address.address}
+                </span>
+                {address.detail || address.addressDetail ? (
+                  <span className='text-text-primary body1-regular'>{address.detail || address.addressDetail}</span>
+                ) : null}
+              </span>
+            </div>
+          ) : (
+            <button className='text-left' type='button' onClick={add}>
+              <span className='text-text-tertiary body2-semibold flex items-center gap-x-1'>
+                <Icon icon='Plus' className='size-4' />
+                추가하기
+              </span>
+            </button>
+          )}
+        </FieldContent>
+      </Field>
     </div>
   );
 }

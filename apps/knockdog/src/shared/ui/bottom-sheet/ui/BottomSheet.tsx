@@ -1,9 +1,29 @@
+'use client';
+
 import { BottomSheet as BottomSheetPrimitive } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import React from 'react';
 
-function BottomSheetRoot({ ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Root>) {
-  return <BottomSheetPrimitive.Root {...props} />;
+import { useNativeBackToClose } from '@shared/lib/bridge';
+
+function BottomSheetRoot({
+  open,
+  onOpenChange,
+  dismissible = true,
+  ...props
+}: React.ComponentProps<typeof BottomSheetPrimitive.Root>) {
+  const shouldCloseOnNativeBack = open === true && dismissible !== false;
+
+  useNativeBackToClose(shouldCloseOnNativeBack, () => onOpenChange?.(false));
+
+  return (
+    <BottomSheetPrimitive.Root
+      open={open}
+      onOpenChange={onOpenChange}
+      dismissible={dismissible}
+      {...props}
+    />
+  );
 }
 
 function BottomSheetNestedRoot({ ...props }: React.ComponentProps<typeof BottomSheetPrimitive.NestedRoot>) {
@@ -19,7 +39,7 @@ function BottomSheetPortal({ ...props }: React.ComponentProps<typeof BottomSheet
 }
 
 function BottomSheetOverlay({ className, ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Overlay>) {
-  return <BottomSheetPrimitive.Overlay className={cn('mx-auto max-w-screen-sm', className)} {...props} />;
+  return <BottomSheetPrimitive.Overlay className={cn('webview:max-w-full mx-auto max-w-120', className)} {...props} />;
 }
 
 function BottomSheetBody({ className, ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Body>) {
@@ -32,7 +52,12 @@ function BottomSheetBody({ className, ...props }: React.ComponentProps<typeof Bo
   if (!mounted) {
     return null;
   }
-  return <BottomSheetPrimitive.Body className={cn('mx-auto max-w-screen-sm', className)} {...props} />;
+  return (
+    <BottomSheetPrimitive.Body
+      className={cn('webview:max-w-full mx-auto max-h-[calc(100dvh-64px)] max-w-120', className)}
+      {...props}
+    />
+  );
 }
 
 function BottomSheetContent({ ...props }: React.ComponentProps<typeof BottomSheetPrimitive.Content>) {

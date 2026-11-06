@@ -1,0 +1,156 @@
+const ownerKindergartenNewsContent = {
+  pageTitle: '유치원 소식',
+  writeButtonLabel: '소식 올리기',
+  searchAriaLabel: '소식 검색',
+  search: {
+    placeholder: '제목 또는 내용을 검색하세요',
+    emptyRecent: '최근 검색 내역이 없어요.',
+    emptyResult: {
+      imageSrc: '/images/image_search_none.png',
+      imageAlt: '검색 결과 없음',
+      title: '검색 결과가 없어요',
+      description: '검색어를 다시 확인해 주세요.',
+    },
+    recentTitle: '최근 검색어',
+    clearAllLabel: '전체 삭제',
+  },
+  editPageTitle: '소식 수정',
+  writePageTitle: '소식 등록',
+  write: {
+    draftSaveLabel: '임시저장',
+    submitLabel: '등록',
+    titlePlaceholder: '제목을 입력하세요.',
+    bodyPlaceholder: '연결된 보호자들에게 전달할 소식을 작성해 주세요.',
+    titleMaxLength: 30,
+    titleMaxLengthGuide: '소식 제목은 최대 30자까지 입력할 수 있어요.',
+    photoLabel: '사진',
+    settingsLabel: '공지 및 알림 설정',
+    settingsIconSrc: '/images/ico_owner_kindergarten_news_setting.svg',
+    settingsAriaLabel: '공지 및 알림 설정',
+    bannerText: '공지 등록 시 보호자에게 알림이 발송돼요',
+    bannerSettingsLabel: '설정',
+    unsavedExitTitle: '저장하지 않고 나갈까요?',
+    unsavedExitDescription: '변경한 내용이 저장되지 않아요.',
+    unsavedExitCancelLabel: '닫기',
+    unsavedExitConfirmLabel: '나가기',
+    submitSuccessToast: {
+      nativeTitle: '새로운 소식을 등록했어요',
+    },
+    submitFailedTitle: '소식을 등록하지 못했어요',
+    submitFailedDescription: '잠시 후 다시 시도해 주세요.',
+    submitFailedCloseLabel: '닫기',
+    submitFailedRetryLabel: '다시 시도',
+    draftSaveToast: {
+      nativeTitle: '작성 중인 소식을 임시저장했어요',
+    },
+    draftSaveFailedToast: {
+      nativeTitle: '임시저장하지 못했어요 다시 시도해 주세요',
+    },
+    maxPhotoCount: 10,
+    imageUpload: {
+      confirmLabel: '확인',
+      maxCountToast: {
+        nativeTitle: '사진은 한 번에 최대 10장까지 올릴 수 있어요',
+      },
+      partialExcludedTitle: (count: number) => `사진 ${count}장을 제외하고 올렸어요`,
+      partialInvalidSpecDescription:
+        '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진만 올릴 수 있어요.',
+      partialUnreadableDescription: '원본을 불러오지 못했거나 읽을 수 없는 사진은 제외됐어요.',
+      noneValidTitle: '올릴 수 있는 사진이 없어요',
+      noneValidDescription: '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진을 선택해 주세요.',
+      networkFailedTitle: '사진을 올리지 못했어요',
+      networkFailedDescription: '네트워크 상태를 확인하고 다시 시도해 주세요.',
+    },
+    settingsSheetTitle: '글쓰기 설정',
+    settingsSheetCloseAriaLabel: '닫기',
+    settingsAnnouncementLabel: '공지로 등록',
+    settingsNotifyLabel: '업로드 시 연결된 보호자에게 알림 발송',
+    settingsNotifyLabelOnEdit: '수정 시 연결된 보호자에게 알림 발송',
+    settingsNotifyDescription: '유치원에 연결된 보호자에게 알림이 발송됩니다.',
+    announcementReplaceDialog: {
+      title: '현재 공지로 등록된 소식이 있어요',
+      description: '공지 설정 시 현재 소식을 업로드하면\n이미 등록된 공지 설정은 비활성화돼요.',
+      cancelLabel: '닫기',
+      confirmLabel: '공지 설정',
+    },
+  },
+  edit: {
+    submitLabel: '수정',
+    bannerText: '공지 수정 시 보호자에게 알림이 발송돼요',
+    submitSuccessToast: {
+      nativeTitle: '소식을 수정했어요',
+    },
+    submitFailedTitle: '소식을 수정하지 못했어요',
+    submitFailedDescription: '잠시 후 다시 시도해 주세요.',
+    submitFailedCloseLabel: '닫기',
+    submitFailedRetryLabel: '다시 시도',
+    notFound: '소식을 찾을 수 없어요',
+  },
+  empty: {
+    imageSrc: '/images/image_owner_kindergarten_news_none.png',
+    imageAlt: '올린 소식 없음',
+    title: '아직 올린 소식이 없어요',
+    description: '소식을 올려 보호자에게 알려 보세요.',
+  },
+  list: {
+    announcementIconSrc: '/images/ico_notice.svg',
+    readLabel: '읽음',
+    moreAriaLabel: '더보기',
+    /** 업로드 후 KST 3일간 유지 */
+    newBadgeAriaLabel: '새 소식',
+    editLabel: '수정하기',
+    deleteLabel: '삭제하기',
+  },
+  deleteDialog: {
+    title: '소식을 삭제할까요?',
+    cancelLabel: '닫기',
+    confirmLabel: '삭제하기',
+  },
+  deleteSuccessToast: {
+    nativeTitle: '유치원 소식을 삭제했어요',
+  },
+  deleteFailedToast: {
+    nativeTitle: '소식을 삭제하지 못했어요',
+  },
+  detail: {
+    shareAriaLabel: '공유',
+    sendNotificationLabel: '알림 발송',
+    readStatusPrefix: '보호자',
+    readStatusMiddle: '명 중',
+    readStatusSuffix: '명이 읽었어요',
+    notFound: '소식을 찾을 수 없어요',
+    imageAriaLabel: '소식 사진 {index}/{total} 보기',
+    imageViewerAriaLabel: '소식 사진 보기',
+  },
+  readReactionSheet: {
+    title: '소식을 읽었어요',
+    closeAriaLabel: '닫기',
+    summaryMiddle: '명 중',
+    summarySuffix: '명 읽음',
+    unreadOnlyLabel: '안 읽은 보호자만',
+    loadFailed: '읽은 보호자를 불러오지 못했어요',
+    retryLabel: '다시 시도',
+    notifyButtonLabel: '알림 전송',
+    notifySuccessToast: {
+      nativeTitle: '{name} 보호자에게 알림을 전송했어요',
+    },
+    notifyFailedToast: {
+      nativeTitle: '알림을 전송하지 못했어요',
+    },
+  },
+  imageViewer: {
+    closeAriaLabel: '사진 보기 닫기',
+    saveAriaLabel: '사진 저장',
+    saveSuccessToast: {
+      nativeTitle: '사진을 저장했어요',
+    },
+    saveFailedToast: {
+      nativeTitle: '사진을 저장하지 못했어요',
+    },
+  },
+  shareSuccessToast: {
+    nativeTitle: '유치원 소식을 공유했어요',
+  },
+} as const;
+
+export { ownerKindergartenNewsContent };

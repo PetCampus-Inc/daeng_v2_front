@@ -2,6 +2,7 @@ interface Answer {
   questionId: string;
   question: string;
   value: string;
+  memo?: string;
 }
 
 interface AnswerGroup {

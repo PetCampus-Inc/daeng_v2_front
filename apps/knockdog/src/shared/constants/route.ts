@@ -1,6 +1,10 @@
 const route = {
   /** 루트(메인) 페이지 */
   root: '/',
+  /** 인스타 등 외부 유입 — 앱 오픈 / 스토어 / 웹 홈 분기 */
+  open: {
+    root: '/open',
+  },
   auth: {
     login: {
       /** 로그인 페이지 */
@@ -10,10 +14,10 @@ const route = {
         root: '/auth/login/redirect',
       },
     },
-    profile: {
+    register: {
       location: {
         /** 프로필 - 장소 등록 페이지 */
-        root: '/profile/location',
+        root: '/register/location',
       },
     },
     reconnectSocial: {
@@ -28,7 +32,322 @@ const route = {
       /** 재가입 제한 기간 페이지 */
       root: '/auth/rejoin-blocked',
     },
+    devicePermission: {
+      /** 기기 권한 안내 */
+      root: '/auth/device-permission',
+    },
+  },
+  register: {
+    location: {
+      /** 장소 등록 페이지 */
+      root: '/register/location',
+      add: {
+        /** 장소 검색/추가 페이지 */
+        root: '/register/location-add',
+      },
+    },
+    userNickname: {
+      /** 닉네임 등록 페이지 */
+      root: '/register/user-nickname',
+    },
+    pet: {
+      /** 반려동물 등록 페이지 */
+      root: '/register/pet',
+      detail: {
+        /** 반려동물 상세 등록 페이지 */
+        root: '/register/pet/detail',
+      },
+      profile: {
+        /** 반려동물 프로필 등록 페이지 */
+        root: '/register/pet/profile',
+      },
+      relationship: {
+        /** 반려동물 관계 등록 페이지 */
+        root: '/register/pet/relationship',
+      },
+    },
+    welcome: {
+      /** 환영 페이지 */
+      root: '/register/welcome',
+    },
+  },
+  mypage: {
+    /** 마이 페이지 */
+    root: '/mypage',
+    notice: {
+      /** 공지사항 목록 */
+      root: '/mypage/notice',
+      detail: {
+        /** 공지사항 상세 */
+        root: '/mypage/notice/[id]',
+      },
+    },
+    kindergarten: {
+      /** 원장 유치원 정보 페이지 */
+      root: '/mypage/kindergarten',
+      reservation: {
+        /** 원장 예약 설정 */
+        root: '/mypage/kindergarten/reservation',
+      },
+      edit: {
+        /** 원장 유치원 운영 정보 수정 페이지 */
+        root: '/mypage/kindergarten/edit',
+        address: {
+          /** 원장 유치원 운영 정보 수정 - 주소 검색 */
+          root: '/mypage/kindergarten/edit/address',
+        },
+        pricing: {
+          /** 원장 유치원 요금 정보 수정 페이지 */
+          root: '/mypage/kindergarten/edit/pricing',
+        },
+      },
+    },
+    profile: {
+      /** 원장 프로필 페이지 */
+      root: '/mypage/profile',
+      edit: {
+        /** 원장 프로필 수정 페이지 */
+        root: '/mypage/profile/edit',
+      },
+      location: {
+        /** 내 장소 설정 페이지 */
+        root: '/mypage/profile/location',
+      },
+    },
+    guardian: {
+      profile: {
+        /** 보호자 프로필 페이지 */
+        root: '/mypage/guardian/profile',
+      },
+      reviews: {
+        /** 보호자 내 리뷰 관리 */
+        root: '/mypage/guardian/reviews',
+      },
+    },
+    inquiry: {
+      /** 1:1 문의 내역 페이지 */
+      root: '/mypage/inquiry',
+      write: {
+        /** 1:1 문의 작성 페이지 */
+        root: '/mypage/inquiry/write',
+      },
+      detail: {
+        /** 1:1 문의 상세 페이지 */
+        root: '/mypage/inquiry/[id]',
+        write: {
+          /** 1:1 추가 문의 작성 페이지 */
+          root: '/mypage/inquiry/[id]/write',
+        },
+      },
+    },
+    ideaSuggestion: {
+      /** 아이디어 제안 작성 페이지 */
+      root: '/mypage/idea-suggestion',
+      complete: {
+        /** 아이디어 제안 완료 페이지 */
+        root: '/mypage/idea-suggestion/complete',
+      },
+    },
+    pet: {
+      add: {
+        /** 강아지 프로필 추가 페이지 */
+        root: '/mypage/pet-add',
+      },
+      detail: {
+        /** 강아지 프로필 상세 페이지 */
+        root: '/mypage/pet-detail',
+      },
+    },
+  },
+  owner: {
+    /** 원장 일과 탭 */
+    daily: {
+      root: '/owner/daily',
+      notice: {
+        write: {
+          /** 원생별 알림장 작성 페이지 (임시) */
+          root: '/owner/daily/notice/[id]',
+        },
+        template: {
+          /** 알림장 템플릿 목록 페이지 */
+          root: '/owner/daily/notice/[id]/template',
+          create: {
+            /** 알림장 템플릿 생성 페이지 */
+            root: '/owner/daily/notice/[id]/template/create',
+          },
+          detail: {
+            /** 알림장 템플릿 상세 페이지 */
+            root: '/owner/daily/notice/[id]/template/[templateId]',
+          },
+        },
+      },
+    },
+    news: {
+      /** 원장 유치원 소식 (진입점은 홈 연동 예정) */
+      root: '/owner/news',
+      search: {
+        /** 원장 유치원 소식 검색 */
+        root: '/owner/news/search',
+      },
+      write: {
+        /** 원장 유치원 소식 등록 */
+        root: '/owner/news/write',
+      },
+      detail: {
+        /** 원장 유치원 소식 상세 */
+        root: '/owner/news/[id]',
+      },
+      edit: {
+        /** 원장 유치원 소식 수정 */
+        root: '/owner/news/[id]/edit',
+      },
+    },
+    members: {
+      /** 원장 구성원 페이지 */
+      root: '/owner/members',
+      detail: {
+        /** 원장 원생 프로필 페이지 */
+        root: '/owner/members/[id]',
+      },
+      approval: {
+        /** 원장 구성원 연결 승인 대기 목록 페이지 */
+        root: '/owner/members/approval',
+      },
+    },
+  },
+  invite: {
+    guardian: {
+      /** 보호자 유치원 초대 */
+      root: '/invite/guardian/[token]',
+      pet: {
+        /** 보호자 유치원 초대 - 강아지 선택 */
+        root: '/invite/guardian/[token]/pet',
+      },
+      consent: {
+        /** 보호자 유치원 초대 - 개인정보 수집 및 이용 동의 */
+        root: '/invite/guardian/[token]/consent',
+      },
+      complete: {
+        /** 보호자 유치원 연결 신청 결과 */
+        root: '/invite/guardian/[token]/complete',
+      },
+    },
+  },
+  roleConversion: {
+    businessVerification: {
+      /** 관리자 전환 - 사업자번호 인증 */
+      root: '/role-conversion/business-verification',
+    },
+    kindergartenSearch: {
+      /** 관리자 전환 - 유치원 검색 */
+      root: '/role-conversion/kindergarten-search',
+    },
+    kindergartenRegister: {
+      /** 관리자 전환 - 유치원 직접 등록 */
+      root: '/role-conversion/kindergarten-register',
+      address: {
+        /** 관리자 전환 - 유치원 주소 검색 */
+        root: '/role-conversion/kindergarten-register/address',
+      },
+    },
+    kindergartenConfirm: {
+      /** 관리자 전환 - 유치원 정보 확인 */
+      root: '/role-conversion/kindergarten-confirm',
+    },
+    privacyConsent: {
+      /** 관리자 전환 - 개인정보 수집·이용 동의 */
+      root: '/role-conversion/privacy-consent',
+    },
+    complete: {
+      /** 관리자 전환 - 원장 권한 인증 완료 */
+      root: '/role-conversion/complete',
+    },
+    releasePermission: {
+      /** 관리자 전환 - 원장 권한 해제 */
+      root: '/role-conversion/release-permission',
+      reason: {
+        /** 관리자 전환 - 원장 권한 해제 사유 선택 */
+        root: '/role-conversion/release-permission/reason',
+      },
+      verify: {
+        /** 관리자 전환 - 원장 권한 해제 유치원명 확인 */
+        root: '/role-conversion/release-permission/verify',
+      },
+      complete: {
+        /** 관리자 전환 - 원장 권한 해제 완료 */
+        root: '/role-conversion/release-permission/complete',
+      },
+      withdraw: {
+        /** 관리자 전환 - 권한 해제 후 회원 탈퇴 분기 */
+        root: '/role-conversion/release-permission/withdraw',
+      },
+    },
+  },
+  guardian: {
+    connectionApply: {
+      status: {
+        /** 보호자 유치원 연결 신청 현황 */
+        root: '/guardian/connection-apply/status',
+      },
+    },
+  },
+  notification: {
+    /** 알림함 */
+    root: '/notification',
+  },
+  terms: {
+    service: {
+      /** 서비스 이용약관 상세 */
+      root: '/terms/service',
+    },
+    privacy: {
+      /** 개인정보 처리방침 상세 */
+      root: '/terms/privacy',
+    },
+    location: {
+      /** 위치기반서비스 이용약관 상세 */
+      root: '/terms/location',
+    },
+  },
+  compare: {
+    /** 보호자 유치원 탭 */
+    root: '/compare',
+    connectionHistory: {
+      /** 보호자 유치원 연결 이력 */
+      root: '/compare/connection-history',
+    },
+    album: {
+      /** 보호자 유치원 앨범 전체 보기 */
+      root: '/compare/album',
+    },
+    notice: {
+      /** 보호자 알림장 상세. query: date(필수), schoolId(권장·재연결 스코프), petId?, source? */
+      root: '/compare/notice',
+      /** 보호자 알림장 월별 리스트. query: month?, schoolId?, from?=notice, date?(from=notice 복귀용) */
+      list: {
+        root: '/compare/notice/list',
+      },
+    },
+    news: {
+      /** 보호자 유치원 소식 목록. query: schoolId? */
+      root: '/compare/news',
+      search: {
+        /** 보호자 유치원 소식 검색. query: schoolId? */
+        root: '/compare/news/search',
+      },
+      detail: {
+        /** 보호자 유치원 소식 상세. query: schoolId?, source?=inbox|push (알림 진입 시 뒤로가기 → 목록) */
+        root: '/compare/news/[id]',
+      },
+    },
   },
 };
 
-export { route };
+/** 원장 권한 해제 플로우 진입 출처 (탈퇴 플로우 분기 판별용) */
+const RELEASE_PERMISSION_SOURCE = {
+  WITHDRAW: 'withdraw',
+} as const;
+
+const RELEASE_PERMISSION_SOURCE_QUERY_KEY = 'source';
+
+export { RELEASE_PERMISSION_SOURCE, RELEASE_PERMISSION_SOURCE_QUERY_KEY, route };

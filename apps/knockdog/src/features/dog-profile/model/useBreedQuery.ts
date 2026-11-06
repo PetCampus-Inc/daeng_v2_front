@@ -1,31 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { Breed } from './breed.type';
+import { api, type ApiResponse } from '@shared/api';
 
-export const useBreedQuery = () => {
+export const useBreedQuery = (searchText: string) => {
+  const normalizedSearchText = searchText.trim();
+
   return useQuery<Breed[]>({
-    queryKey: ['breed'],
+    queryKey: ['breed', normalizedSearchText],
     staleTime: 1000 * 60 * 60 * 24, // 24시간
     gcTime: 1000 * 60 * 60 * 24, // 24시간
     queryFn: async () => {
-      try {
-        const res = await fetch('/api/v0/breed', {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!res.ok) {
-          console.warn('Breed API 를 불러오는데 실패했습니다:', res.status);
-          return [];
-        }
-
-        const data = await res.json();
-        return Array.isArray(data) ? data : [];
-      } catch (error) {
-        console.error('Breed API 를 불러오는데 실패했습니다:', error);
-        return [];
-      }
+      const response = await api
+        .get('breed-catalog', { searchParams: normalizedSearchText ? { searchText: normalizedSearchText } : {} })
+        .json<ApiResponse<Breed[]>>();
+      return response.data ?? [];
     },
   });
 };

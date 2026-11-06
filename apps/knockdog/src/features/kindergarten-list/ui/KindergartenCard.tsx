@@ -1,0 +1,162 @@
+'use client';
+
+import { useState } from 'react';
+import { ActionButton, Icon } from '@knockdog/ui';
+import Image from 'next/image';
+import { overlay } from 'overlay-kit';
+import type { BottomSheetSnapPoint } from './KindergartenItemSheet';
+import { DeparturePointSheet, ReviewRating, ServiceBadgesTruncated, type KindergartenMain } from '@entities/kindergarten';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
+import { KindergartenFeatureBadges } from './KindergartenFeatureBadges';
+
+interface KindergartenCardProps extends KindergartenMain {
+  resident?: boolean;
+  onBookmarkClick: (id: string, bookmarked: boolean) => void;
+  onPhoneCall: () => void;
+  setActiveSnapPoint: (snapPoint: BottomSheetSnapPoint) => void;
+  setActiveTab: (tab: string) => void;
+}
+
+export function KindergartenCard(props: KindergartenCardProps) {
+  const [hasThumbnailError, setHasThumbnailError] = useState(false);
+  const thumbnailSrc = resolvePublicImageSrc(props.banner?.[0]);
+  const openDeparturePointSheet = () =>
+    overlay.open(({ isOpen, close }) => (
+      <DeparturePointSheet
+        isOpen={isOpen}
+        close={close}
+        to={{ lat: props.coords.lat, lng: props.coords.lng, name: props.title }}
+      />
+    ));
+
+  const handleReviewClick = () => {
+    props.setActiveSnapPoint(1); // 시트 확대 (snapPoint[1])
+    props.setActiveTab('후기'); // 후기 탭 활성화
+  };
+
+  const handleCardClick = () => {
+    props.setActiveSnapPoint(1); // 시트 확대 (스와이프로 확장하는 것과 동일)
+  };
+
+  return (
+    <>
+      {/* 컨텐츠 영역 */}
+      <div className='pt-x3_5 gap-x3 px-x4 flex w-full flex-col' onClick={handleCardClick}>
+        <KindergartenFeatureBadges verified={props.verified} resident={props.resident} />
+        <div className='gap-x2 flex'>
+          {/* 이미지 */}
+          {!thumbnailSrc ? (
+            <div
+              className='radius-r2 bg-fill-secondary-50 flex size-[90px] shrink-0 items-center justify-center'
+              aria-hidden='true'
+            >
+              <Icon icon='Paw' className='text-fill-secondary-300 size-8' />
+            </div>
+          ) : hasThumbnailError ? (
+            // next/image 최적화 응답을 디코드하지 못하는 WebView에서 S3 원본으로 폴백한다.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={thumbnailSrc}
+              className='radius-r2 size-[90px] object-cover'
+              alt={`${props.title} 썸네일`}
+              width={90}
+              height={90}
+              loading='lazy'
+              decoding='async'
+            />
+          ) : (
+            <Image
+              src={thumbnailSrc}
+              className='radius-r2 size-[90px] object-cover'
+              alt={`${props.title} 썸네일`}
+              width={90}
+              height={90}
+              onError={() => setHasThumbnailError(true)}
+            />
+          )}
+
+          {/* 타이틀 및 카테고리 */}
+          <div className='gap-x2 flex min-w-0 flex-1 flex-col'>
+            <div className='flex min-w-0 flex-1 items-start justify-between'>
+              <div className='gap-x0_5 flex min-w-0 flex-1 flex-col'>
+                <p className='h2-extrabold text-text-primary truncate'>{props.title}</p>
+                <div className='flex min-w-0 items-center gap-x2'>
+                  <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{props.ctg}</span>
+                  <ReviewRating rating={props.rating} reviewCount={props.reviewCount} />
+                </div>
+              </div>
+              {/* 심사 대응용 임시 비노출
+              <button onClick={openDeparturePointSheet}>
+                <Icon icon='Navigation' className='text-fill-secondary-500 size-x8' />
+              </button>
+              */}
+            </div>
+
+            {/* 리뷰 및 메모 영역 */}
+            <div className='gap-x1 flex'>
+              {props.memo?.memoDate && (
+                <div className='px-x2 py-x1 radius-r2 bg-fill-secondary-50 flex shrink-0 items-center gap-0.5'>
+                  <Icon icon='Note' className='size-x4' />
+                  <span className='caption1-semibold text-text-primary'>{props.memo.memoDate}</span>
+                  <span className='caption1-semibold text-text-primary'>메모</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 영업 정보 및 주소 영역 */}
+        <div className='flex flex-col gap-y-1 self-stretch'>
+          <div className='grid grid-cols-[minmax(52px,max-content)_1fr] grid-rows-2 gap-x-2 gap-y-2 self-stretch'>
+            <span className='body2-extrabold text-text-primary col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
+              {props.dist}
+            </span>
+            <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
+              {props.roadAddress}
+            </span>
+            <span className='body2-extrabold text-text-accent col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
+              {props.businessStatus.title}
+            </span>
+            <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
+              {props.businessStatus.description}
+            </span>
+          </div>
+        </div>
+
+        {/* 구분선 */}
+        <div className='bg-line-100 flex h-px w-full items-center justify-center' />
+
+        {/* 하단 필터 + 가격 영역 */}
+        <div className='gap-x2 flex min-w-0 items-center justify-between self-stretch'>
+          {/* badge 영역 */}
+          <ServiceBadgesTruncated serviceTags={props.serviceTags} pickupType={props.pickupType} />
+
+          {/* 가격 영역 */}
+          <div className='gap-x1 flex shrink-0 items-center'>
+            <span className='body2-regular text-text-primary'>이용요금</span>
+            <span className='h3-extrabold text-text-primary'>{props.price.toLocaleString()}~</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        data-vaul-no-drag
+        className='p-x4 gap-x2 flex items-center bg-white pb-[calc(env(safe-area-inset-bottom)+16px)]'
+      >
+        <ActionButton variant='primaryLine' size='medium' onClick={props.onPhoneCall}>
+          전화하기
+        </ActionButton>
+        <ActionButton variant='primaryFill' size='medium' onClick={handleReviewClick}>
+          후기보기
+        </ActionButton>
+        <button
+          aria-label='보관하기'
+          className='radius-r3 bg-fill-primary-50 flex size-11 shrink-0 items-center justify-center'
+          onClick={() => props.onBookmarkClick(props.id, props.bookmarked ?? false)}
+        >
+          <Icon icon={props.bookmarked ? 'BookmarkFill' : 'BookmarkLine'} className='size-x6 text-fill-primary-500' />
+        </button>
+      </div>
+    </>
+  );
+}

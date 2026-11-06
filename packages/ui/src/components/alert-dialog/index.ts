@@ -10,4 +10,5 @@ export {
   AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
+  type AlertDialogRootProps,
 } from './AlertDialog';

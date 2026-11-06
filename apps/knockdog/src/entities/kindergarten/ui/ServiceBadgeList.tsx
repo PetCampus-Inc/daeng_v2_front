@@ -1,20 +1,21 @@
 import { Icon } from '@knockdog/ui';
+import { useRef } from 'react';
 import { ServiceBadge } from './ServiceBadge';
-import { PICKUP_TYPE_MAP, ALL_SERVICE_MAP } from '../model/constants/kindergarten';
+import { SERVICE_TAGS, PICKUP } from '../config/enum';
 
 interface ServiceBadgeListProps {
-  serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
-  pickupType: keyof typeof PICKUP_TYPE_MAP;
+  serviceTags: (keyof typeof SERVICE_TAGS)[];
+  pickupType: keyof typeof PICKUP;
 }
 
 function ServiceBadgeList({ serviceTags, pickupType }: ServiceBadgeListProps) {
   const allBadges = [];
 
-  if (pickupType !== 'NONE') {
+  if (!!pickupType && pickupType !== 'NONE') {
     allBadges.push(
       <ServiceBadge key={`pickup-${pickupType}`} variant='solid'>
-        <Icon icon={pickupType === 'FREE' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
-        {PICKUP_TYPE_MAP[pickupType]}
+        <Icon icon={pickupType === 'FREE_PICKUP' ? 'PickupFree' : 'PickupPaid'} className='size-x4' />
+        {PICKUP[pickupType]}
       </ServiceBadge>
     );
   }
@@ -22,7 +23,7 @@ function ServiceBadgeList({ serviceTags, pickupType }: ServiceBadgeListProps) {
   serviceTags.forEach((tag) => {
     allBadges.push(
       <ServiceBadge key={`service-${tag}`} variant='outline'>
-        {ALL_SERVICE_MAP[tag]}
+        {SERVICE_TAGS[tag]}
       </ServiceBadge>
     );
   });
@@ -37,10 +38,41 @@ interface BadgeGroupProps {
 }
 
 function BadgeGroup({ children }: BadgeGroupProps) {
+  const dragStateRef = useRef<{ pointerId: number; startX: number; startScrollLeft: number } | null>(null);
+
   if (!children || children.length === 0) return null;
 
   return (
-    <ul className='gap-x1 scrollbar-hide flex flex-nowrap items-center overflow-x-auto overflow-y-hidden'>
+    <ul
+      className='gap-x1 scrollbar-hide flex cursor-grab flex-nowrap items-center overflow-x-auto overflow-y-hidden select-none active:cursor-grabbing'
+      onPointerDown={(event) => {
+        if (event.pointerType !== 'mouse' || event.button !== 0) return;
+
+        dragStateRef.current = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startScrollLeft: event.currentTarget.scrollLeft,
+        };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        const dragState = dragStateRef.current;
+        if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+        event.preventDefault();
+        event.currentTarget.scrollLeft = dragState.startScrollLeft - (event.clientX - dragState.startX);
+      }}
+      onPointerUp={(event) => {
+        if (dragStateRef.current?.pointerId !== event.pointerId) return;
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        dragStateRef.current = null;
+      }}
+      onPointerCancel={() => {
+        dragStateRef.current = null;
+      }}
+    >
       {children.map((child, index) => (
         <li key={index} className='flex shrink-0 items-center'>
           {child}

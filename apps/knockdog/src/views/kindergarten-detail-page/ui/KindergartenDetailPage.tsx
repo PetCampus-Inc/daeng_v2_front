@@ -1,41 +1,216 @@
 'use client';
 
-import { useRef } from 'react';
-import { Divider, ActionButton } from '@knockdog/ui';
+import { useEffect, useRef, useState } from 'react';
+import { Divider, ActionButton, Icon } from '@knockdog/ui';
+import Image from 'next/image';
+import { useParams } from 'next/navigation';
+import { overlay, useCurrentOverlay } from 'overlay-kit';
+import { useRecentKindergartenView } from '../model/useRecentKindergartenView';
 
 import { KindergartenTabs } from '@widgets/kindergarten-tabs';
+import { useKindergartenTab } from '@widgets/kindergarten-tabs/model';
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery, KindergartenMainBox, MainBannerSwiper } from '@features/kindergarten-main';
-import { useCurrentLocation } from '@shared/lib/geolocation';
-import { useParams } from 'next/navigation';
-import { BookmarkToggleIcon } from '@entities/bookmark';
-import { PhoneCallSheet } from '@features/kindergarten';
-import { overlay } from 'overlay-kit';
+import { toSchoolReviewHeaderRating, useSchoolReviewSummaryQuery } from '@features/review';
+import { isKindergartenId } from '@entities/kindergarten';
+import { PhoneCallSheet } from '@features/kindergarten-list';
+import { useDetailBookmarkToggle } from '@features/kindergarten-list/model/useDetailBookmarkToggle';
 import { useShare } from '@shared/lib/device';
+import { getCurrentTxId, useNavigationResult, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { trackSchoolDetailView, useScreenAnalyticsTitle } from '@shared/lib/analytics';
+import { safeLocalStorage } from '@shared/lib/storage';
+import { useBasePoint, useUserStore } from '@entities/user';
+import { PageError } from '@shared/ui/page-error';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { KindergartenBookmarkOnboardingSheet } from './KindergartenBookmarkOnboardingSheet';
+
+/** 기준점(현위치/집/회사) 미준비 시 거리 계산용 폴백 — 비교 상세와 동일 */
+const FALLBACK_COORD = { lng: 126.883439, lat: 37.511281 };
+const KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY = 'kindergarten-bookmark-onboarding-shown';
+
+function ClosedKindergartenNotice() {
+  return (
+    <div className='flex flex-col items-center gap-5 bg-white pb-12'>
+      <Image
+        src='/images/img_empty_result.png'
+        alt='운영 종료 안내 이미지'
+        width={200}
+        height={200}
+        priority
+        className='block'
+      />
+      <div className='flex h-[80px] w-[214px] flex-col items-center gap-1'>
+        <p className='h2-extrabold text-text-primary w-full text-center'>운영이 종료된 유치원이에요</p>
+        <p className='body1-regular text-text-primary w-full whitespace-pre-line text-center'>
+          {'이 유치원의 상세 정보는\n더 이상 제공되지 않아요.'}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function KindergartenDetailPage() {
   const scrollableDivRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useKindergartenTab();
+  const [isBookmarkOnboardingOpen, setIsBookmarkOnboardingOpen] = useState(false);
 
-  const params = useParams();
-  const rawId = (params as Record<string, string | string[] | undefined>)?.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId;
-  if (!id) return null;
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
+  const hasKindergartenId = isKindergartenId(id);
 
-  const { position } = useCurrentLocation();
-  const { lng, lat } = position || { lng: 126.883439, lat: 37.511281 };
+  const { back, getParams } = useStackNavigation();
+  const currentOverlayId = useCurrentOverlay();
+  const { navigateToTab } = useTabNavigation();
+  const navResult = useNavigationResult<boolean>();
+  const [navigationParams, setNavigationParams] = useState<{
+    entrySource?: string;
+    expectsNavigationResult?: boolean;
+  } | null>(null);
+  const { coord } = useBasePoint();
+  const lng = coord?.lng ?? FALLBACK_COORD.lng;
+  const lat = coord?.lat ?? FALLBACK_COORD.lat;
 
-  const { data: kindergartenMain } = useKindergartenMainQuery({
+  const {
+    data: kindergartenMain,
+    isPending,
+    isError,
+    isFetching,
+    refetch,
+  } = useKindergartenMainQuery({
     id,
     lng,
     lat,
-    enabled: Boolean(id && lng != null && lat != null),
+    enabled: hasKindergartenId,
+  });
+  const { data: reviewSummary } = useSchoolReviewSummaryQuery(kindergartenMain?.schoolId);
+  const headerReview = reviewSummary ? toSchoolReviewHeaderRating(reviewSummary) : null;
+  const { mutate: toggleBookmark, isPending: isBookmarkPending } = useDetailBookmarkToggle({
+    id,
+    lng,
+    lat,
   });
 
   const share = useShare();
 
-  if (lng == null || lat == null || !kindergartenMain) return null;
+  useEffect(() => {
+    setNavigationParams(getParams<{ entrySource?: string; expectsNavigationResult?: boolean }>());
+  }, [getParams]);
 
-  const { banner: images, ...restKindergartenMainData } = kindergartenMain;
+  const isInternalEntry = navigationParams?.entrySource === 'kindergarten-list';
+  const userId = useUserStore((state) => state.user?.userId);
+  const trackedListingIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!id || !kindergartenMain || isPending || trackedListingIdRef.current === id) return;
+    trackedListingIdRef.current = id;
+    const entrySource = navigationParams?.entrySource;
+    trackSchoolDetailView({
+      listing_id: id,
+      entry_point: entrySource === 'share' ? 'share' : entrySource ? 'other' : 'unknown',
+      auth_state: userId ? 'logged_in' : 'logged_out',
+    });
+  }, [id, isPending, kindergartenMain, navigationParams?.entrySource, userId]);
+
+  const handleHomeClick = () => {
+    if (navigationParams?.expectsNavigationResult && getCurrentTxId()) {
+      navResult.send(true);
+      void back();
+      return;
+    }
+
+    void navigateToTab('/');
+  };
+
+  const handleBackClick = async () => {
+    if (currentOverlayId) {
+      overlay.close(currentOverlayId);
+      return;
+    }
+
+    // 공유 링크·외부 URL 진입에는 앱 내부 스택이 없으므로 브라우저 밖으로 나가지 않고 홈으로 보낸다.
+    if (!isInternalEntry) {
+      await navigateToTab('/');
+      return;
+    }
+
+    const wentBack = await back();
+    if (!wentBack) {
+      await navigateToTab('/');
+    }
+  };
+
+  /** GA 화면명 = 유치원명 (v2 page_title과 동일) */
+  useScreenAnalyticsTitle(kindergartenMain?.title);
+
+  /** 최근 본 업체 저장 */
+  useRecentKindergartenView(kindergartenMain);
+
+  const renderErrorPage = (onRetry: () => void, isRetrying = false) => (
+    <div className='bg-bg-0 flex h-dvh flex-col'>
+      <Header>
+        <Header.LeftSection>
+          <Header.BackButton onClick={() => void handleBackClick()} />
+          <Header.HomeButton onClick={handleHomeClick} />
+        </Header.LeftSection>
+      </Header>
+      <PageError layout='inline' isRetrying={isRetrying} onRetry={onRetry} />
+    </div>
+  );
+
+  if (!isKindergartenId(id)) {
+    return renderErrorPage(() => void back());
+  }
+
+  if (isError) {
+    return renderErrorPage(() => void refetch(), isFetching);
+  }
+
+  if (isPending || !kindergartenMain) {
+    return (
+      <div className='bg-bg-0 flex h-dvh flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={() => void handleBackClick()} />
+            <Header.HomeButton onClick={handleHomeClick} />
+          </Header.LeftSection>
+        </Header>
+        <DelayedLoadingSpinner isLoading={isPending || !kindergartenMain} layout='content' />
+      </div>
+    );
+  }
+
+  const bannerImages = (kindergartenMain.banner ?? []).filter(Boolean);
+  const isClosed = kindergartenMain.schoolStatus === 'CLOSED';
+
+  const handleShare = () => {
+    const shareData = {
+      url: `${process.env.NEXT_PUBLIC_WEB_URL}/kindergarten/${kindergartenMain.id}`,
+    };
+    share(shareData);
+  };
+
+  const handleReviewClick = () => {
+    setActiveTab('후기'); // 후기 탭 활성화
+  };
+
+  const handleBookmarkClick = (targetId: string, bookmarked: boolean) => {
+    if (isBookmarkPending) return;
+
+    const shouldShowOnboarding = !bookmarked && !safeLocalStorage.get(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY);
+
+    toggleBookmark(
+      { id: targetId, bookmarked },
+      shouldShowOnboarding
+        ? {
+            onSuccess: () => {
+              // 앱 재설치 시 WebView 저장소가 초기화되므로, 설치 후 최초 1회만 다시 노출된다.
+              safeLocalStorage.set(KINDERGARTEN_BOOKMARK_ONBOARDING_STORAGE_KEY, '1');
+              setIsBookmarkOnboardingOpen(true);
+            },
+          }
+        : undefined
+    );
+  };
 
   const openPhoneCallSheet = () => {
     overlay.open(({ isOpen, close }) => (
@@ -43,21 +218,16 @@ function KindergartenDetailPage() {
     ));
   };
 
-  const handleShare = () => {
-    const shareData = {
-      message: `${kindergartenMain.title}\n https://knockdog.com/kindergarten/${id}`,
-      url: `https://knockdog.com/kindergarten/${id}`,
-    };
-
-    share(shareData);
-  };
-
   return (
     <>
-      <Header withSpacing={false}>
+      <KindergartenBookmarkOnboardingSheet
+        isOpen={isBookmarkOnboardingOpen}
+        close={() => setIsBookmarkOnboardingOpen(false)}
+      />
+      <Header>
         <Header.LeftSection>
-          <Header.BackButton />
-          <Header.HomeButton />
+          <Header.BackButton onClick={() => void handleBackClick()} />
+          <Header.HomeButton onClick={handleHomeClick} />
         </Header.LeftSection>
 
         <Header.Title>{kindergartenMain?.title}</Header.Title>
@@ -66,33 +236,66 @@ function KindergartenDetailPage() {
           <Header.ShareButton onClick={handleShare} />
         </Header.RightSection>
       </Header>
-      <div className='mb-[80px] h-[calc(100vh-146px)] overflow-y-auto' ref={scrollableDivRef}>
-        <div>
-          {/* 업체 메인이미지 슬라이드형 */}
-          <MainBannerSwiper images={images ?? []} />
-        </div>
+      <div className='flex h-[calc(100%-var(--top-bar-height))] w-full flex-col'>
+        <main className='flex-1 overflow-y-auto' ref={scrollableDivRef}>
+          <div>
+            {/* 업체 메인이미지 슬라이드형 */}
+            <MainBannerSwiper images={bannerImages} />
+          </div>
 
-        {/* 컨텐츠 영역 */}
-        <div className='relative'>
-          <div className='absolute top-[-50px]' />
-          {/* 대표 컨텐츠 영역 */}
-          <KindergartenMainBox {...restKindergartenMainData} />
-          {/* Divider */}
-          <Divider size='thick' />
-          {/* 세부 컨텐츠 영역 */}
-          {/* 탭 */}
-          <KindergartenTabs scrollableDivRef={scrollableDivRef} />
-        </div>
-      </div>
-      {/* 하단 고정 버튼 영역 */}
-      <div className='absolute bottom-0 z-10 flex w-full items-center gap-1 bg-white p-4'>
-        <ActionButton variant='primaryLine' className='flex-1' onClick={openPhoneCallSheet}>
-          전화 걸기
-        </ActionButton>
-        {/* @TODO 비교하기 페이지로 Route */}
-        <ActionButton className='flex-1'>비교하기</ActionButton>
-
-        <BookmarkToggleIcon id={id} bookmarked={kindergartenMain?.bookmarked ?? false} />
+          {/* 컨텐츠 영역 */}
+          <div className='relative'>
+            <div className='absolute top-[-50px]' />
+            {/* 대표 컨텐츠 영역 */}
+            <KindergartenMainBox {...kindergartenMain} {...(headerReview ?? {})} compact={isClosed} />
+            {isClosed && <ClosedKindergartenNotice />}
+            {/* Divider */}
+            {!isClosed && <Divider size='thick' />}
+            {/* 세부 컨텐츠 영역 */}
+            {/* 탭 */}
+            <KindergartenTabs
+              kindergartenId={id}
+              schoolId={kindergartenMain.schoolId}
+              scrollableDivRef={scrollableDivRef}
+              hideDetailTabs={isClosed}
+              value={activeTab}
+              onValueChange={setActiveTab}
+            />
+          </div>
+        </main>
+        {/* 하단 고정 버튼 영역 */}
+        {isClosed ? (
+          <aside className='flex h-24 w-full shrink-0 bg-white px-4 py-5'>
+            <button
+              type='button'
+              disabled
+              className='body1-bold h-14 w-full rounded-lg bg-fill-secondary-100 text-text-secondary-inverse'
+            >
+              운영이 종료된 곳입니다
+            </button>
+          </aside>
+        ) : (
+          <aside className='gap-x2 p-x4 flex w-full shrink-0 items-center border-t border-t-gray-100 bg-white'>
+            <ActionButton disabled={!kindergartenMain.phoneNumber} variant='primaryLine' onClick={openPhoneCallSheet}>
+              전화하기
+            </ActionButton>
+            <ActionButton variant='primaryFill' onClick={handleReviewClick}>
+              후기보기
+            </ActionButton>
+            <button
+              aria-label='보관하기'
+              disabled={isBookmarkPending}
+              aria-busy={isBookmarkPending}
+              className='radius-r3 bg-fill-primary-50 flex size-11 shrink-0 items-center justify-center'
+              onClick={() => handleBookmarkClick(kindergartenMain.id, kindergartenMain.bookmarked ?? false)}
+            >
+              <Icon
+                icon={kindergartenMain.bookmarked ? 'BookmarkFill' : 'BookmarkLine'}
+                className='size-x6 text-fill-primary-500'
+              />
+            </button>
+          </aside>
+        )}
       </div>
     </>
   );

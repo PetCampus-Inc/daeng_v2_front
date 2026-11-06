@@ -15,7 +15,7 @@ export interface RegionSuggestion {
 // TODO: 다른 곳에서도 활용되는지 확인 필요
 export type FilterItemCode = Exclude<
   FilterOption,
-  'OPEN_NOW' | 'OPEN_HOLIDAY' | 'PASS_TICKET' | 'SUBSCRIPTION' | 'MEMBERSHIP'
+  'OPEN_NOW' | 'OPEN_HOLIDAY' | 'COUNT_TICKET' | 'MONTHLY_TICKET' | 'MEMBERSHIP'
 >;
 
 export interface FilterItemSuggestion {
@@ -27,7 +27,7 @@ export interface FilterItemSuggestion {
   zoom: number;
 }
 
-interface Shop {
+export interface AutocompletePlace {
   id: string;
   title: string;
   coord: {
@@ -40,6 +40,6 @@ interface Shop {
 }
 
 export interface Autocomplete {
-  suggestions: RegionSuggestion[] | FilterItemSuggestion[];
-  shops: Shop[];
+  suggestion: RegionSuggestion[] | FilterItemSuggestion[];
+  place: AutocompletePlace[];
 }

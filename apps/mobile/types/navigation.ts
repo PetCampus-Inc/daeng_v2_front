@@ -4,12 +4,26 @@ interface InitialState {
   query?: Record<string, unknown>;
 }
 
+type TabScreen =
+  | 'Explore'
+  | 'Save'
+  | 'Compare'
+  | 'Mypage'
+  | 'OwnerHome'
+  | 'OwnerDaily'
+  | 'OwnerAlbum'
+  | 'OwnerMembers';
+
 type RootStackParamList = {
-  Tabs: undefined;
+  Tabs:
+    | undefined
+    | {
+        screen?: TabScreen;
+      };
   Stack: {
     path: string;
     initialState?: InitialState;
   };
 };
 
-export type { InitialState, RootStackParamList };
+export type { InitialState, RootStackParamList, TabScreen };

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { redirect, useRouter } from 'next/navigation';
 import { Header } from '@widgets/Header';
 
@@ -9,20 +9,24 @@ import { SOCIAL_PROVIDER_KO, SocialUser } from '@entities/social-user';
 import { route } from '@shared/constants/route';
 import { TypedStorage } from '@shared/lib';
 import { STORAGE_KEYS } from '@shared/constants';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function RedirectLoginPage() {
-  const { push } = useRouter();
+  const { push, getParams } = useStackNavigation();
+  const [redirectTo] = useState(() => getInternalRedirect(getParams()?.redirectTo));
+  const [linkedSocialUser, setLinkedSocialUser] = useState<SocialUser | null>(null);
 
-  const linkedSocialUserStorage = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, {
-    initialValue: null,
-  });
+  useEffect(() => {
+    const linkedSocialUserStorage = new TypedStorage<SocialUser | null>(STORAGE_KEYS.LINKED_SOCIAL_USER, {
+      initialValue: null,
+    });
+    setLinkedSocialUser(linkedSocialUserStorage.get());
+  }, []);
 
-  const linkedSocialUser = linkedSocialUserStorage.get();
+  const handleReconnectClick = () => push({ pathname: route.auth.reconnectSocial.root, params: { redirectTo } });
 
-  if (!linkedSocialUser) redirect(route.auth.login.root);
-
-  const handleReconnectClick = () => push(route.auth.reconnectSocial.root);
-
+  if (!linkedSocialUser) return null;
   return (
     <>
       <Header>
@@ -44,7 +48,7 @@ export default function RedirectLoginPage() {
         </div>
 
         <div className='mb-5 flex flex-col gap-3 px-4'>
-          <LoginButton provider={linkedSocialUser.provider} />
+          <LoginButton provider={linkedSocialUser.provider} redirectTo={redirectTo} />
           <button className='label-semibold text-text-secondary py-3 underline' onClick={handleReconnectClick}>
             기존 계정으로 로그인 할 수 없나요?
           </button>

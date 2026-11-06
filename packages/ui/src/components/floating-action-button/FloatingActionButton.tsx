@@ -50,10 +50,13 @@ export interface FloatingActionButtonProps
   label: React.ReactNode;
 
   icon?: IconType;
+
+  /** 아이콘에만 적용할 추가 스타일 */
+  iconClassName?: string;
 }
 
 export function FloatingActionButton({ ref, ...props }: FloatingActionButtonProps) {
-  const { asChild, variant, extended = true, size = 'medium', label, icon, className, ...restProps } = props;
+  const { asChild, variant, extended = true, size = 'medium', label, icon, iconClassName, className, ...restProps } = props;
 
   const Comp = asChild ? Slot : 'button';
   return (
@@ -70,7 +73,7 @@ export function FloatingActionButton({ ref, ...props }: FloatingActionButtonProp
       )}
       {...restProps}
     >
-      {icon && <Icon icon={icon} className={iconVariants({ extended })} />}
+      {icon && <Icon icon={icon} className={cn(iconVariants({ extended }), iconClassName)} />}
       <span className={cn('overflow-hidden whitespace-nowrap', !extended && 'opacity-0')}>{label}</span>
     </Comp>
   );

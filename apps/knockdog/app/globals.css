@@ -3,8 +3,32 @@
 @config '@knockdog/ui/tailwind-config';
 @source '@knockdog/ui';
 
+@variant web (&:where([data-env='web'], [data-env='web'] &));
+@variant webview (&:where([data-env='webview'], [data-env='webview'] &));
+
+/* AOS WebView만: 시스템 글자 크기 확대를 rem 타이포에 반영하지 않음 (iOS 미적용) */
+html[data-env='webview'][data-platform='android'] {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 @theme {
+  /* breakpoint */
   --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+
+  /* z-index */
+  --z-index-float: 100;
+  --z-index-overlay: 1000;
+  --z-index-modal: 2000;
+  --z-index-toast: 3000;
+
+  /* height */
+  --top-bar-height: 64px;
+  --bottom-bar-height: 68px;
+
+  /* animation */
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 html body[data-scroll-locked] {
@@ -39,6 +63,10 @@ body {
   font-smooth: never;
 }
 
+button {
+  cursor: pointer;
+}
+
 /* 스크롤바 숨김 */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -47,4 +75,15 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-style {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
 }

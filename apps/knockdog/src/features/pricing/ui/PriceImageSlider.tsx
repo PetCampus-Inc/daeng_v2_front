@@ -2,18 +2,36 @@
 
 import Image from 'next/image';
 import { overlay } from 'overlay-kit';
-import { PriceFullImageSheet } from './PriceFullImageSheet';
+
+import { KindergartenImageViewer } from '@features/kindergarten-main';
 
 interface PriceImageSliderProps {
   images: string[];
+  /** 썸네일 한 변 길이. 상세 기본 120, 원장 마이페이지 80 */
+  thumbnailSize?: 80 | 120;
 }
 
-function PriceImageSlider({ images }: PriceImageSliderProps) {
+function toImageUrl(image: string) {
+  if (image.startsWith('http://') || image.startsWith('https://')) return image;
+  return `${process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? ''}${image}`;
+}
+
+function PriceImageSlider({ images, thumbnailSize = 120 }: PriceImageSliderProps) {
+  const imageUrls = images.map(toImageUrl);
+
   const handleImageClick = (index: number) => {
-    overlay.open(({ isOpen, close }) => (
-      <PriceFullImageSheet isOpen={isOpen} close={close} images={images} initialIndex={index} />
+    overlay.open(({ isOpen, unmount }) => (
+      <KindergartenImageViewer
+        isOpen={isOpen}
+        images={imageUrls}
+        initialIndex={index}
+        onClose={unmount}
+      />
     ));
   };
+
+  const gapClass = thumbnailSize === 80 ? 'gap-3' : 'gap-[14px]';
+  const sizeClass = thumbnailSize === 80 ? 'h-20 w-20' : 'h-[120px] w-[120px]';
 
   return (
     <div>
@@ -21,15 +39,20 @@ function PriceImageSlider({ images }: PriceImageSliderProps) {
         <span className='body1-bold mr-1'>가격표</span>
         <span className='text-text-accent body1-bold'>{images.length}</span>
       </div>
-      <div className='scrollbar-hide flex gap-[14px] overflow-x-auto'>
-        {images.map((image, index) => (
-          <button key={index} onClick={() => handleImageClick(index)}>
+      <div className={`scrollbar-hide flex overflow-x-auto ${gapClass}`}>
+        {imageUrls.map((image, index) => (
+          <button
+            key={`${image}-${index}`}
+            type='button'
+            onClick={() => handleImageClick(index)}
+            className={`${sizeClass} radius-r2 bg-bg-0 shrink-0 overflow-hidden`}
+          >
             <Image
-              src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${image}`}
+              src={image}
               alt=''
-              className='h-[120px] w-[120px] rounded-lg object-cover'
-              width={120}
-              height={120}
+              className={`${sizeClass} object-cover`}
+              width={thumbnailSize}
+              height={thumbnailSize}
             />
           </button>
         ))}

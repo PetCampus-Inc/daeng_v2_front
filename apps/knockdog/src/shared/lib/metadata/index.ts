@@ -1,0 +1,1 @@
+export { generatePageMetadata } from './generatePageMetadata';

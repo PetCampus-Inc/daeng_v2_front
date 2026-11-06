@@ -1,51 +1,196 @@
 import CompareIcon from '@/assets/icons/compare_basic.svg';
 import ExploreIcon from '@/assets/icons/explore_basic.svg';
 import MypageIcon from '@/assets/icons/mypage_basic.svg';
+import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
+import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
+import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
+import OwnerMembersIcon from '@/assets/icons/owner_members.svg';
+import OwnerMypageIcon from '@/assets/icons/owner_mypage.svg';
 import SaveIcon from '@/assets/icons/save_basic.svg';
+import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
+import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
+import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
+import type { TabName } from '@/bridges/lib/tabRoutes';
 import CompareTab from '@/screens/compare';
 import ExploreTab from '@/screens/explore';
 import MypageTab from '@/screens/mypage';
+import OwnerAlbumTab from '@/screens/owner-album';
+import OwnerDailyTab from '@/screens/owner-daily';
+import OwnerHomeTab from '@/screens/owner-home';
+import OwnerMembersTab from '@/screens/owner-members';
 import SaveTab from '@/screens/save';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
+import { StyleSheet, View, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useAndroidTabBack } from './useAndroidTabBack';
+import {
+  BOTTOM_TAB_BAR_DIM_HEIGHT,
+  ANDROID_TAB_BAR_CONTENT_HEIGHT,
+  getAndroidTabBarBottomInset,
+} from './bottomTabBarHeight';
+
 const Tab = createBottomTabNavigator();
 
-export default function TabNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => {
-        return {
-          tabBarIcon: ({ focused }) => {
-            const iconProps = {
-              width: 24,
-              height: 24,
-              fill: focused ? '#FF6F0F' : '#C2C2C2',
-            };
+const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
+const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Compare']);
 
-            switch (route.name) {
-              case 'Explore':
-                return <ExploreIcon {...iconProps} />;
-              case 'Save':
-                return <SaveIcon {...iconProps} />;
-              case 'Compare':
-                return <CompareIcon {...iconProps} />;
-              case 'Mypage':
-                return <MypageIcon {...iconProps} />;
-              default:
-                console.warn('❗ tabBarIcon: Unknown route name', route.name);
-                return null;
-            }
+function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
+  if (!isTabBarVisible) {
+    return { display: 'none' as const };
+  }
+
+  if (Platform.OS === 'android') {
+    const tabBarBottomInset = getAndroidTabBarBottomInset(bottom);
+
+    return {
+      height: ANDROID_TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
+      paddingBottom: tabBarBottomInset,
+      paddingTop: 6,
+      paddingLeft: 12,
+      paddingRight: 12,
+    };
+  }
+
+  return {
+    paddingBottom: bottom,
+    paddingLeft: 12,
+    paddingRight: 12,
+  };
+}
+
+/** v7: tabBarButton null만으론 flex 공간이 남아 탭이 한쪽으로 쏠림 */
+const HIDDEN_TAB_OPTIONS = {
+  tabBarButton: () => null,
+  tabBarItemStyle: { display: 'none' as const },
+};
+
+function isTabVisible(routeName: string, isOwnerMode: boolean) {
+  if (routeName === 'Mypage') return true;
+  if (OWNER_TAB_NAMES.has(routeName)) return isOwnerMode;
+  if (GUARDIAN_TAB_NAMES.has(routeName)) return !isOwnerMode;
+  return true;
+}
+
+function notifyCurrentTabWillBlur(tabName: TabName) {
+  tabWebViewStore
+    .get(tabName)
+    ?.current?.injectJavaScript(
+      `(function(){window.dispatchEvent(new CustomEvent('knockdog:native-tab-will-blur'));})();true;`
+    );
+}
+
+export default function TabNavigator() {
+  const { bottom } = useSafeAreaInsets();
+  const androidTabBarBottomInset = getAndroidTabBarBottomInset(bottom);
+  const mode = useMainTabModeStore((state) => state.mode);
+  const isOwnerMode = mode === 'owner';
+  const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
+  const isBottomTabBarDimmed = useBottomTabBarVisibilityStore((state) => state.dimmed);
+
+  useAndroidTabBack();
+
+  return (
+    <View style={styles.container}>
+      <Tab.Navigator
+        screenListeners={({ navigation }) => ({
+          // blur는 화면 전환 후 발생한다. 그 전에 WebView 오버레이를 즉시 제거해
+          // Android에서 이전 탭의 닫힘 애니메이션이 보이지 않게 한다.
+          tabPress: (event) => {
+            const state = navigation.getState();
+            const currentRoute = state.routes[state.index ?? 0];
+
+            if (!currentRoute || currentRoute.key === event.target) return;
+            notifyCurrentTabWillBlur(currentRoute.name as TabName);
           },
-          tabBarActiveTintColor: '#FF6F0F',
-          tabBarInactiveTintColor: '#C2C2C2',
-          headerShown: false,
-        };
-      }}
-    >
-      <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '탐색' }} />
-      <Tab.Screen name='Save' component={SaveTab} options={{ title: '저장' }} />
-      <Tab.Screen name='Compare' component={CompareTab} options={{ title: '비교' }} />
-      <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이페이지' }} />
-    </Tab.Navigator>
+        })}
+        screenOptions={({ route }) => {
+          const visible = isTabVisible(route.name, isOwnerMode);
+
+          return {
+            tabBarIcon: ({ focused }) => {
+              const iconProps = {
+                fill: focused ? '#FF6E0C' : '#8C8C94',
+                color: focused ? '#FF6E0C' : '#8C8C94',
+              };
+
+              switch (route.name) {
+                case 'Explore':
+                  return <ExploreIcon width={21} height={21} {...iconProps} />;
+                case 'Save':
+                  return <SaveIcon width={21} height={21} {...iconProps} />;
+                case 'Compare':
+                  return <CompareIcon width={25} height={25} {...iconProps} />;
+                case 'OwnerHome':
+                  return <OwnerHomeIcon width={21} height={21} {...iconProps} />;
+                case 'OwnerDaily':
+                  return <OwnerDailyIcon width={20} height={20} {...iconProps} />;
+                case 'OwnerAlbum':
+                  return <OwnerAlbumIcon width={20} height={20} {...iconProps} />;
+                case 'OwnerMembers':
+                  return <OwnerMembersIcon width={21} height={21} {...iconProps} />;
+                case 'Mypage':
+                  return isOwnerMode ? (
+                    <OwnerMypageIcon width={21} height={21} {...iconProps} />
+                  ) : (
+                    <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />
+                  );
+                default:
+                  console.warn('❗ tabBarIcon: Unknown route name', route.name);
+                  return null;
+              }
+            },
+            tabBarActiveTintColor: '#FF6E0C',
+            tabBarInactiveTintColor: '#8C8C94',
+            ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
+            tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
+            tabBarLabelStyle: {
+              fontSize: 12,
+              marginTop: 2,
+            },
+            headerShown: false,
+            ...(visible ? {} : HIDDEN_TAB_OPTIONS),
+          };
+        }}
+      >
+        <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
+        <Tab.Screen name='Save' component={SaveTab} options={{ title: '보관함' }} />
+        <Tab.Screen name='Compare' component={CompareTab} options={{ title: '유치원' }} />
+        <Tab.Screen name='OwnerHome' component={OwnerHomeTab} options={{ title: '홈' }} />
+        <Tab.Screen name='OwnerDaily' component={OwnerDailyTab} options={{ title: '일과' }} />
+        <Tab.Screen name='OwnerAlbum' component={OwnerAlbumTab} options={{ title: '앨범' }} />
+        <Tab.Screen name='OwnerMembers' component={OwnerMembersTab} options={{ title: '구성원' }} />
+        <Tab.Screen name='Mypage' component={MypageTab} options={{ title: '마이' }} />
+      </Tab.Navigator>
+      {isTabBarVisible && isBottomTabBarDimmed ? (
+        <View
+          pointerEvents='auto'
+          style={[
+            styles.bottomTabBarDim,
+            {
+              height:
+                BOTTOM_TAB_BAR_DIM_HEIGHT +
+                (Platform.OS === 'android' ? androidTabBarBottomInset : bottom),
+            },
+          ]}
+        />
+      ) : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  bottomTabBarDim: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    elevation: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+});

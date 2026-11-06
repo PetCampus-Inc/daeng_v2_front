@@ -1,1 +1,1 @@
-export { LocationField } from './ui';
+export { LocationField } from './ui/LocationField';

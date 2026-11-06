@@ -1,0 +1,231 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  Divider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  Icon,
+  IconButton,
+  ActionButton,
+  TextField,
+  TextFieldInput,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
+import NicknameDialog from './NicknameDialog';
+import { Header } from '@widgets/Header';
+import { DogSelectSheet } from '@features/dog-profile';
+import { usePetRepresentativeQuery, RELATIONSHIP_LABEL, usePetListQuery } from '@entities/pet';
+import { useUserInfoQuery, useUserStore, useUserUpdateUserEmailMutation } from '@entities/user';
+import { useSocialUserStore, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
+import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { logout } from '@shared/lib/auth/logout';
+
+function MypageProfileManagePage() {
+  const { push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
+  const queryClient = useQueryClient();
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [email, setEmail] = useState('');
+
+  const user = useUserStore((state) => state.user);
+  const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
+  const socialUser = useSocialUserStore((state) => state.socialUser);
+  const { data: representativePet } = usePetRepresentativeQuery();
+  const { data: petList } = usePetListQuery();
+  const { mutate: updateUserEmail } = useUserUpdateUserEmailMutation();
+
+  const isRepresentativePet = !!representativePet;
+  const hasPets = (petList?.data?.length ?? 0) > 0;
+  const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
+
+  const nickname =
+    isRepresentativePet && representativePet
+      ? `${representativePet.name}의 ${representativePet.relationshipText}`
+      : user?.nickname || '';
+
+  useEffect(() => {
+    setEmail(userInfo?.infoRcvEmail ?? '');
+    setIsEditingEmail(false);
+  }, [user?.userId, userInfo?.infoRcvEmail]);
+
+  const performLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      await navigateToTab('/');
+    }
+  };
+
+  const openWebLogoutDialog = () => {
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={close}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>아니오</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                close();
+                void performLogout();
+              }}
+            >
+              예
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
+  };
+
+  const handleLogout = async () => {
+    const result = await openConfirmDialog({
+      title: '로그아웃 할까요?',
+      cancelLabel: '아니오',
+      confirmLabel: '예',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') await performLogout();
+      return;
+    }
+
+    openWebLogoutDialog();
+  };
+
+  const handleNicknameClick = () => {
+    overlay.open(({ isOpen, close }) => <NicknameDialog isOpen={isOpen} close={close} />);
+  };
+
+  const handleRepresentativePetClick = () => {
+    overlay.open(({ isOpen, close }) => <DogSelectSheet isOpen={isOpen} close={close} dogs={petList?.data || []} />);
+  };
+
+  const handleEmailEditToggle = () => {
+    if (isEditingEmail) {
+      // 완료 버튼 클릭 시 API 호출
+      updateUserEmail(email, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['userInfo'] });
+          setIsEditingEmail(false);
+        },
+      });
+    } else {
+      // 변경 버튼 클릭 시 편집 모드로 전환
+      setIsEditingEmail(true);
+    }
+  };
+
+  return (
+    <>
+      <Header>
+        <Header.LeftSection>
+          <Header.BackButton />
+        </Header.LeftSection>
+        <Header.Title>계정 관리</Header.Title>
+      </Header>
+
+      <div className='mt-[28px] flex h-full flex-col justify-between'>
+        <div className='flex flex-col gap-y-[40px] px-4'>
+          <div className='flex flex-col gap-y-2'>
+            <div className='flex items-center justify-between'>
+              <span className='body2-bold text-text-primary'>내 별명</span>
+              {isRepresentativePet ? (
+                <div className='body2-semibold text-text-primary'>
+                  <span>대표 강아지 : </span>
+                  <span className='text-text-accent'>{representativePet?.name}</span>
+                </div>
+              ) : hasPets ? (
+                <button
+                  className='label-semibold text-text-secondary flex items-center gap-x-1'
+                  onClick={handleRepresentativePetClick}
+                >
+                  대표 강아지를 등록해 주세요
+                  <Icon icon='ChevronRight' className='text-text-secondary h-5 w-5' />
+                </button>
+              ) : null}
+            </div>
+            <TextField
+              disabled={isRepresentativePet}
+              readOnly={!isRepresentativePet}
+              suffix={
+                isRepresentativePet ? undefined : (
+                  <IconButton icon='Edit' onClick={handleNicknameClick} className='text-text-secondary' />
+                )
+              }
+            >
+              <TextFieldInput value={nickname} />
+            </TextField>
+            <TextField disabled>
+              <TextFieldInput value={`#${user?.userId}` || ''} />
+            </TextField>
+          </div>
+          <div>
+            <TextField
+              label='아이디'
+              disabled
+              prefix={<Icon icon={SOCIAL_PROVIDER_ICONS[socialUser?.provider ?? 'GOOGLE']} className='h-5 w-5' />}
+            >
+              <TextFieldInput value={socialUser?.email || ''} />
+            </TextField>
+          </div>
+          <div className='flex flex-col gap-y-2'>
+            <div className='flex items-center gap-x-2'>
+              <span className='body2-bold'>정보 수신 이메일</span>
+              <Tooltip className='h-6'>
+                <TooltipTrigger />
+                <TooltipContent className='max-w-[230px]'>
+                  <p>
+                    애플 계정 가입자 <br />
+                    애플ID 설정에서 ‘이메일 연동 취소’를 할 경우, 이벤트 혜택 수신 및 고객 대응에 어려움이 있을 수
+                    있으므로 새로 사용할 이메일 정보로 업데이트 하기를 권장해요.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className='flex gap-x-2'>
+              <div className='min-w-[80%] flex-1'>
+                <TextField readOnly={!isEditingEmail}>
+                  <TextFieldInput
+                    placeholder='다른 이메일 주소를 입력해 주세요'
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </TextField>
+              </div>
+
+              <ActionButton variant={isEditingEmail ? 'secondaryFill' : 'tertiaryFill'} onClick={handleEmailEditToggle}>
+                {isEditingEmail ? '완료' : '변경'}
+              </ActionButton>
+            </div>
+          </div>
+        </div>
+
+        <div className='mb-10 flex items-center justify-center px-4'>
+          <button onClick={handleLogout} className='label-semibold text-text-tertiary'>
+            로그아웃
+          </button>
+          <Divider orientation='vertical' className='mx-4' />
+          <button onClick={() => push({ pathname: '/withdraw/confirm' })} className='label-semibold text-text-tertiary'>
+            탈퇴하기
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export { MypageProfileManagePage };

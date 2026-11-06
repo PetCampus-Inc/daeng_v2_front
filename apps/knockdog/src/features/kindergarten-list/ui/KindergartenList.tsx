@@ -1,0 +1,401 @@
+import { Fragment, useEffect, useRef } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Float,
+  FloatingActionButton,
+  Icon,
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
+import { useFabExtension } from '../model/useFabExtension';
+import { KindergartenListItem } from './KindergartenListItem';
+import { SortSelect } from './SortSelect';
+import { FilterChip } from './FilterChip';
+import { PermissionSection } from './PermissionSection';
+import { NoSearchResultSection } from './NoSearchResultSection';
+import { NearByRecommendBanner } from './NearByRecommendBanner';
+import { useListBookmarkToggle } from '../model/useListBookmarkToggle';
+import { overlay } from 'overlay-kit';
+import { useFilteredSearchList } from '@features/kindergarten-map';
+import { FILTER_CONFIG, type FilterCategory, type FilterOption } from '@entities/kindergarten';
+import {
+  useUserStore,
+  useAddUserAddressMutation,
+  USER_ADDRESS_TYPE,
+  USER_ADDRESS_TYPE_KR,
+  type UserAddress,
+  type UserAddressType,
+} from '@entities/user';
+import { LocationPermissionError, useBottomSheetSnapIndex } from '@shared/lib';
+import { useGeolocationQuery } from '@shared/lib/geolocation/useGeolocationQuery';
+import { type BasePointType, useBasePointType } from '@shared/store';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
+import { toast } from '@shared/ui/toast';
+import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
+import { ellipsisText, tokenUtils } from '@shared/utils';
+
+interface KindergartenListProps {
+  region?: string | null;
+  onOpenFilter: (category: FilterCategory) => void;
+  selectedFilters: FilterOption[];
+  onClearFilters: () => void;
+}
+
+export function KindergartenList({ onOpenFilter, onClearFilters, selectedFilters, region }: KindergartenListProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const filterDragStateRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    hasDragged: boolean;
+  } | null>(null);
+  const suppressFilterClickRef = useRef(false);
+
+  const { selectedBaseType, setBaseType } = useBasePointType();
+  const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
+  const { push, pushForResult } = useStackNavigation();
+  const user = useUserStore((s) => s.user);
+  const addAddressMutation = useAddUserAddressMutation();
+  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
+
+  const hasSelectedFilters = selectedFilters.length > 0;
+  const { isFabExtended, sentinelRef } = useFabExtension(containerRef);
+
+  const { listQuery, searchListQueryKey, searchList, exact, totalCount } = useFilteredSearchList();
+  const { mutate } = useListBookmarkToggle(searchListQueryKey);
+
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = listQuery;
+
+  const handleFilterPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+
+    filterDragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: event.currentTarget.scrollLeft,
+      hasDragged: false,
+    };
+  };
+
+  const handleFilterPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = filterDragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    const distance = event.clientX - dragState.startX;
+    if (!dragState.hasDragged) {
+      if (Math.abs(distance) <= 4) return;
+
+      dragState.hasDragged = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    event.preventDefault();
+    event.currentTarget.scrollLeft = dragState.startScrollLeft - distance;
+  };
+
+  const handleFilterPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = filterDragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    filterDragStateRef.current = null;
+    if (!dragState.hasDragged) return;
+
+    suppressFilterClickRef.current = true;
+    window.setTimeout(() => {
+      suppressFilterClickRef.current = false;
+    }, 0);
+  };
+
+  // 위치 권한 에러 체크
+  const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
+  const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof LocationPermissionError;
+
+  const otherAlias =
+    user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.OTHER)?.alias ||
+    USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.OTHER];
+
+  const handleBasePointTypeChange = (value: string) => {
+    const newType = value as BasePointType;
+
+    // 비로그인 사용자 체크
+    if (!isLoggedIn) {
+      if (newType !== 'CURRENT') {
+        push({ pathname: route.auth.login.root });
+        return;
+      }
+    }
+
+    // 집 선택 시 등록된 집 있는지 체크
+    // user 스토어가 아직 hydrate되지 않아 확인 불가한 경우도 미등록으로 간주해 안내한다.
+    // (조용히 무시하면 로그인 직후 탭이 응답 없는 것처럼 보인다)
+    if (newType === 'HOME') {
+      const hasHomeAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.HOME);
+      if (!hasHomeAddress) {
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.HOME);
+        return;
+      }
+    }
+
+    // 기타 선택 시 등록된 기타 주소 있는지 체크
+    if (newType === 'OTHER') {
+      const hasOtherAddress = user?.addresses?.some((addr) => addr.type === USER_ADDRESS_TYPE.OTHER);
+      if (!hasOtherAddress) {
+        handleOpenAlertDialog(USER_ADDRESS_TYPE.OTHER);
+        return;
+      }
+    }
+
+    setBaseType(newType);
+  };
+
+  const handleAddressRegistration = async (type: UserAddressType) => {
+    let result: Omit<UserAddress, 'id'> | undefined;
+    try {
+      result = await pushForResult<Omit<UserAddress, 'id'>>(
+        { pathname: route.register.location.add.root, query: { type } },
+        600_000
+      );
+    } catch {
+      // 등록 화면에서 저장하지 않고 뒤로 나간 경우. 에러가 아니므로 조용히 무시한다.
+      return;
+    }
+    if (!result) return;
+
+    try {
+      await addAddressMutation.mutateAsync({ ...result, id: '0', type });
+      setBaseType(type as BasePointType);
+    } catch (error) {
+      console.error('장소 등록 실패:', error);
+      toast({
+        title: '일시적 오류로 요청을 완료하지 못했어요',
+        nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+      });
+    }
+  };
+
+  const handleOpenAlertDialog = async (type: UserAddressType) => {
+    const result = await openConfirmDialog({
+      title: '등록된 장소가 없어요',
+      description: '장소를 등록하면\n가까운 유치원을 찾을 수 있어요.',
+      cancelLabel: '나중에 하기',
+      confirmLabel: '등록하기',
+    });
+
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void handleAddressRegistration(type);
+      return;
+    }
+
+    overlay.open(({ isOpen, close }) => {
+      const closeDialog = () => {
+        close();
+      };
+
+      return (
+        <AlertDialog open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
+              <AlertDialogDescription>
+                장소를 등록하면 <br /> 가까운 유치원을 찾을 수 있어요.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>나중에 하기</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  closeDialog();
+                  await handleAddressRegistration(type);
+                }}
+              >
+                등록하기
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    });
+  };
+
+  const handleBookmarkClick = (id: string, bookmarked: boolean) => {
+    mutate({ id, bookmarked });
+  };
+
+  useEffect(() => {
+    const root = isFullExtended ? containerRef.current : null;
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        if (!hasNextPage || isFetchingNextPage) return;
+        fetchNextPage();
+      },
+      {
+        root,
+        rootMargin: '0px 0px 30% 0px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasNextPage, isFetchingNextPage]);
+
+  return (
+    <>
+      <main
+        id='test-id'
+        ref={containerRef}
+        className={cn(
+          'relative flex h-full w-full flex-col',
+          isFullExtended ? 'overflow-y-auto' : 'min-h-full overflow-hidden'
+        )}
+      >
+        {/* 스크롤 감지용 sentinel 요소 */}
+        <div ref={sentinelRef} className='pointer-events-none absolute top-0 h-1 w-full' aria-hidden='true' />
+
+        {/* 헤더 영역  */}
+        <div className='bg-bg-0 sticky top-[-.5px] z-20'>
+          <div className='px-x4 pb-x4 pt-x2'>
+            <SegmentedControl value={selectedBaseType} onValueChange={handleBasePointTypeChange}>
+              <SegmentedControlItem value='CURRENT'>현 위치</SegmentedControlItem>
+              <SegmentedControlItem value='HOME'>집</SegmentedControlItem>
+              <SegmentedControlItem value='OTHER'>{ellipsisText(otherAlias, 8)}</SegmentedControlItem>
+            </SegmentedControl>
+          </div>
+
+          <div className='border-line-200 flex h-[52px] w-full items-center border-t border-b'>
+            <div className='py-x2 flex w-full items-center'>
+              {/* 스크롤 영역 */}
+              <div
+                className='scrollbar-hide flex-1 cursor-grab touch-pan-x overflow-x-auto select-none active:cursor-grabbing'
+                onPointerDown={handleFilterPointerDown}
+                onPointerMove={handleFilterPointerMove}
+                onPointerUp={handleFilterPointerEnd}
+                onPointerCancel={handleFilterPointerEnd}
+                onClickCapture={(event) => {
+                  if (!suppressFilterClickRef.current) return;
+
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+              >
+                <div className='before:w-x4 after:w-x4 gap-x1 inline-flex items-center whitespace-nowrap before:shrink-0 before:content-[""] after:shrink-0 after:content-[""]'>
+                  {/* 선택 필터 초기화 */}
+                  {hasSelectedFilters && (
+                    <div className='gap-x2 flex h-9 w-[92px] shrink-0 items-center pr-x1'>
+                      <FilterChip
+                        variant='status'
+                        activated={false}
+                        type='button'
+                        onClick={onClearFilters}
+                        className='w-[79px] justify-center'
+                      >
+                        <Icon icon='Reset' className='text-text-primary size-x4' />
+                        <span>초기화</span>
+                      </FilterChip>
+                      <div className='bg-line-200 h-[14px] w-px shrink-0' />
+                    </div>
+                  )}
+                  {/* 카테고리 필터 칩들 */}
+                  {Object.entries(FILTER_CONFIG).map(([category, options]) => {
+                    const filterCategory = category as FilterCategory;
+                    const selectedCount = options.filter((option) => selectedFilters.includes(option)).length;
+                    const isSelected = selectedCount > 0;
+
+                    return (
+                      <FilterChip
+                        variant='status'
+                        key={category}
+                        activated={isSelected}
+                        type='button'
+                        onClick={() => onOpenFilter(filterCategory)}
+                      >
+                        <span>{category.replace(' ∙ ', '∙')}</span>
+                        {isSelected && <span className='text-text-accent'>{selectedCount}</span>}
+                      </FilterChip>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 컨텐츠 영역 */}
+        {isPermissionDenied ? (
+          <PermissionSection />
+        ) : listQuery.isLoading && searchList.length === 0 && !exact ? (
+          <DelayedLoadingSpinner isLoading={listQuery.isLoading} layout='content' className='min-h-[240px]' />
+        ) : totalCount === 0 && !listQuery.isLoading ? (
+          <NoSearchResultSection />
+        ) : (
+          <div className='flex-1'>
+            <div className='border-line-200 px-x4 py-x2 flex h-[52px] items-center justify-between border-b'>
+              <div className='body2-semibold text-text-tertiary'>총 {totalCount}개</div>
+              <SortSelect />
+            </div>
+
+            {exact && (
+              <>
+                <KindergartenListItem {...exact} onBookmarkClick={handleBookmarkClick} />
+                <NearByRecommendBanner title={exact.title} />
+              </>
+            )}
+            {searchList.map((item) => (
+              <Fragment key={item.id}>
+                <KindergartenListItem {...item} banner={item.banner ?? []} onBookmarkClick={handleBookmarkClick} />
+                <hr className='bg-line-100 text-line-100 h-[8px] w-full' />
+              </Fragment>
+            ))}
+          </div>
+        )}
+        {isFetchingNextPage ? (
+          <div className='flex justify-center py-4'>
+            <LoadingSpinner layout='inline' />
+          </div>
+        ) : null}
+        <div ref={loadMoreRef} aria-hidden='true' className='h-4' />
+      </main>
+
+      {/* 지도보기 FAB */}
+      <Float
+        placement='bottom-end'
+        offsetX='x4'
+        zIndex={50}
+        style={{
+          bottom: '12px',
+        }}
+      >
+        <FloatingActionButton
+          className='max-w-[103px]'
+          variant='neutralLight'
+          label='지도보기'
+          size='medium'
+          icon='Map'
+          onClick={() => setSnapIndex(0)}
+          extended={isFabExtended}
+        />
+      </Float>
+    </>
+  );
+}

@@ -54,16 +54,16 @@ export function useReportingForm(): UseReportingFormReturn {
     const params: Record<string, any> = {};
 
     if (checkedSet.has('closed') && files.closed.length) {
-      params.businessChange = files.closed;
+      params.businessChange = files.closed.map((asset) => asset.key);
     }
     if (checkedSet.has('price') && files.price.length) {
-      params.priceChange = files.price;
+      params.priceChange = files.price.map((asset) => asset.key);
     }
     if (checkedSet.has('phone') && files.phone.length) {
-      params.phoneChange = files.phone;
+      params.phoneChange = files.phone.map((asset) => asset.key);
     }
     if (checkedSet.has('time') && files.time.length) {
-      params.hoursChange = files.time;
+      params.hoursChange = files.time.map((asset) => asset.key);
     }
     if (checkedSet.has('address') && newAddress?.trim()) {
       params.address = newAddress;

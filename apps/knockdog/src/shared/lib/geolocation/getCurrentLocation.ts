@@ -1,108 +1,173 @@
-import { METHODS, BridgeException, type Accuracy, type Location, type PermissionStatus } from '@knockdog/bridge-core';
+import {
+  METHODS,
+  LOCATION_ERROR_CODES,
+  BridgeException,
+  type Accuracy,
+  type Location,
+  type PermissionStatus,
+} from '@knockdog/bridge-core';
 import { isNativeWebView } from '../device';
 import { getBridgeInstance } from '../bridge';
+import { LocationPermissionError, LocationServiceDisabledError, LocationUnavailableError } from './errors';
+import { getLocationPermission, isLocationServiceEnabled } from './permission';
 
-interface GeolocationOptions {
-  enableHighAccuracy?: boolean;
-  timeout?: number;
-  maximumAge?: number;
+export type LocationSource = 'lastKnown' | 'gps';
+export type LocationQuality = 'approximate' | 'precise';
+
+export interface GetCurrentLocationResult {
+  location: Location;
+  source: LocationSource;
+  quality: LocationQuality;
 }
 
-interface GetCurrentLocationOptions {
-  accuracy: Accuracy;
-}
-
-/**
- * 현재 위치 권한 에러
- */
-export class GetLocationPermissionError extends Error {
-  constructor(message = '위치 권한이 거부되었습니다') {
-    super(message);
-    this.name = 'GetLocationPermissionError';
-  }
+export interface GetCurrentLocationOptions {
+  /** 캐시 유효 시간 (ms). 기본값: 300000 (5분) */
+  maxAge?: number;
+  /** GPS 정확도. 기본값: 'balanced' */
+  accuracy?: Accuracy;
+  /** last-known 위치를 받았을 때 호출되는 콜백 (UI 즉시 업데이트용) */
+  onLastKnown?: (location: Location) => void;
+  /** 정밀 위치 획득 실패 시 last-known으로 fallback 할지 여부. 기본값: true */
+  fallbackOnError?: boolean;
 }
 
 /**
  * 현재 위치 가져오기
- * - 앱 환경: bridge를 통해 네이티브에서 위치 정보 가져오기
- * - 웹 환경: 브라우저 Geolocation API 사용
+ *
+ * 1. 권한/서비스 체크
+ * 2. last-known + GPS 병렬 시작 (async-parallel)
+ * 3. last-known 먼저 완료되면 onLastKnown 콜백
+ * 4. GPS 완료되면 최종 결과 반환
+ *
+ * @example
+ * ```ts
+ * // 기본 사용
+ * const { location, quality } = await getCurrentLocation();
+ *
+ * // 캐시 위치로 즉시 UI 업데이트
+ * const result = await getCurrentLocation({
+ *   onLastKnown: (loc) => map.setCenter(loc.coords),
+ * });
+ * ```
  */
-export async function getCurrentLocation(
-  options: GetCurrentLocationOptions | GeolocationOptions = { accuracy: 'high' }
-): Promise<Location | { coords: { latitude: number; longitude: number } }> {
-  // 앱 환경
-  if (isNativeWebView()) {
-    const bridge = getBridgeInstance();
-
-    if (!bridge) {
-      throw new Error('Bridge not initialized');
-    }
-
-    try {
-      return await bridge.request<Location>(METHODS.getCurrentLocation, options);
-    } catch (error) {
-      if (error instanceof BridgeException && error.code === 'EPERMISSION') {
-        throw new GetLocationPermissionError(error.message);
-      }
-      throw error;
-    }
-  }
+export async function getCurrentLocation(options: GetCurrentLocationOptions = {}): Promise<GetCurrentLocationResult> {
+  const { maxAge = 300_000, accuracy = 'balanced', onLastKnown, fallbackOnError = true } = options;
 
   // 웹 환경
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined' || !navigator.geolocation) {
-      reject(new Error('geolocation_unavailable'));
-      return;
+  if (!isNativeWebView()) {
+    return getLocationFromBrowser(accuracy, maxAge);
+  }
+
+  const bridge = getBridgeInstance();
+  if (!bridge) {
+    throw new Error('Bridge not initialized');
+  }
+
+  // 1. 권한 + 서비스 병렬 체크
+  const [permissionStatus, serviceEnabled] = await Promise.all([getLocationPermission(), isLocationServiceEnabled()]);
+
+  if (permissionStatus !== 'allowed') {
+    const canAskAgain = permissionStatus === 'undetermined';
+    throw new LocationPermissionError(permissionStatus, canAskAgain);
+  }
+
+  if (!serviceEnabled) {
+    throw new LocationServiceDisabledError();
+  }
+
+  // 2. last-known + GPS 병렬 시작 (async-parallel)
+  const lastKnownPromise = bridge.request<Location | null>(METHODS.getLastKnownLocation, { maxAge }).catch(() => null); // last-known 실패는 무시
+
+  const gpsPromise = bridge.request<Location>(METHODS.getCurrentLocation, { accuracy }, { timeoutMs: 20_000 });
+
+  // 3. last-known 먼저 처리
+  const lastKnownLocation = await lastKnownPromise;
+  if (lastKnownLocation && onLastKnown) {
+    onLastKnown(lastKnownLocation);
+  }
+
+  // 4. GPS 대기
+  try {
+    const preciseLocation = await gpsPromise;
+    return {
+      location: preciseLocation,
+      source: 'gps',
+      quality: 'precise',
+    };
+  } catch (error) {
+    // GPS 실패 시 fallback
+    if (fallbackOnError && lastKnownLocation) {
+      return {
+        location: lastKnownLocation,
+        source: 'lastKnown',
+        quality: 'approximate',
+      };
     }
 
-    const browserOptions = {
-      timeout: 10_000,
-      maximumAge: 300_000,
-      enableHighAccuracy: !!(options as GeolocationOptions).enableHighAccuracy,
-      ...(options as GeolocationOptions),
-    };
+    // 에러 변환
+    if (error instanceof BridgeException) {
+      const errorData = error.data as { permissionStatus?: PermissionStatus; canAskAgain?: boolean } | undefined;
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ coords: { latitude: pos.coords.latitude, longitude: pos.coords.longitude } }),
-      (err) => {
-        console.warn('위치 정보를 가져올 수 없습니다:', err.message);
-        if (err.code === err.PERMISSION_DENIED) {
-          reject(new GetLocationPermissionError(err.message));
-        } else {
-          reject(err);
-        }
-      },
-      browserOptions
-    );
-  });
+      switch (error.code) {
+        case LOCATION_ERROR_CODES.PERMISSION_DENIED:
+          throw new LocationPermissionError(
+            errorData?.permissionStatus ?? 'denied',
+            errorData?.canAskAgain ?? false,
+            error.message
+          );
+        case LOCATION_ERROR_CODES.SERVICE_DISABLED:
+          throw new LocationServiceDisabledError(error.message);
+        case LOCATION_ERROR_CODES.TIMEOUT:
+        case LOCATION_ERROR_CODES.UNAVAILABLE:
+          throw new LocationUnavailableError(error.message);
+      }
+    }
+
+    throw error;
+  }
 }
 
 /**
- * 위치 권한 상태 확인
- * @description 앱 환경에서만 사용 가능
+ * 브라우저 Geolocation API (웹 환경)
  */
-getCurrentLocation.getPermission = async (): Promise<PermissionStatus> => {
-  const bridge = getBridgeInstance();
+async function getLocationFromBrowser(accuracy: Accuracy, maxAge: number): Promise<GetCurrentLocationResult> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      reject(new LocationUnavailableError('Geolocation API not available'));
+      return;
+    }
 
-  if (!bridge) {
-    throw new Error('Bridge not initialized');
-  }
-
-  const { status } = await bridge.request<{ status: PermissionStatus }>(METHODS.getLocationPermission, {});
-  return status;
-};
-
-/**
- * 위치 권한 요청 다이얼로그 열기
- * @description 앱 환경에서만 사용 가능
- */
-getCurrentLocation.openPermissionDialog = async (): Promise<PermissionStatus> => {
-  const bridge = getBridgeInstance();
-
-  if (!bridge) {
-    throw new Error('Bridge not initialized');
-  }
-
-  const { status } = await bridge.request<{ status: PermissionStatus }>(METHODS.openLocationPermissionDialog, {});
-  return status;
-};
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          location: {
+            coords: {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              accuracy: pos.coords.accuracy,
+              altitude: pos.coords.altitude,
+              altitudeAccuracy: pos.coords.altitudeAccuracy,
+              heading: pos.coords.heading,
+              speed: pos.coords.speed,
+            },
+            timestamp: pos.timestamp,
+          },
+          source: 'gps',
+          quality: 'precise',
+        });
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          reject(new LocationPermissionError('denied', false, err.message));
+        } else {
+          reject(new LocationUnavailableError(err.message));
+        }
+      },
+      {
+        enableHighAccuracy: accuracy === 'high',
+        timeout: 15_000,
+        maximumAge: maxAge,
+      }
+    );
+  });
+}

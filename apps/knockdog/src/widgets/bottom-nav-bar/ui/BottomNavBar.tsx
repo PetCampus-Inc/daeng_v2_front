@@ -1,30 +1,82 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
+import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
+import { useShowOwnerBottomNav } from '@features/role-conversion';
+import { useRequiredTermsConsentOverlayStore } from '@features/required-terms-consent';
 import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
-import { NAV_ITEMS } from '../config/navitem';
+import { useWebBottomNavStore } from '@shared/store';
 
-export function BottomNavBar() {
-  if (isNativeWebView()) {
+function navItemTestId(href: string) {
+  if (href === '/') return 'bottom-nav-home';
+  return `bottom-nav-${href.replace(/^\//, '').replace(/\//g, '-')}`;
+}
+
+function isActiveNavItem(pathname: string, href: string) {
+  if (href === '/' || href === '/owner') {
+    return pathname === href;
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function BottomNavBarLinks() {
+  const pathname = usePathname();
+  const showOwnerBottomNav = useShowOwnerBottomNav();
+  const isTermsOverlayOpen = useRequiredTermsConsentOverlayStore((state) => state.isBlockingOverlayOpen);
+  const isFilterBottomSheetOpen = useWebBottomNavStore((state) => state.isFilterBottomSheetOpen);
+  const navItems = showOwnerBottomNav ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
+
+  if (isTermsOverlayOpen || isFilterBottomSheetOpen) {
     return null;
   }
+
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>
       <nav
+        data-testid='bottom-nav'
+        data-nav-mode={showOwnerBottomNav ? 'owner' : 'guardian'}
         style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
-        className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-screen-sm border-t px-4 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
+        className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-120 border-t px-3 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
       >
-        {NAV_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} className='flex flex-1 flex-col items-center justify-center gap-y-1'>
-            <div className='size-6'>
-              <Icon icon={item.icon} />
-            </div>
-            <span className='caption1-extrabold text-fill-secondary-700'>{item.label}</span>
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const isActive = isActiveNavItem(pathname, item.href);
+          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-secondary';
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              data-testid={navItemTestId(item.href)}
+              className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 transition-colors duration-100 motion-reduce:transition-none ${colorClassName}`}
+            >
+              <div className='flex size-6 items-center justify-center'>
+                <Icon
+                  icon={item.icon}
+                  className={`transition-colors duration-100 motion-reduce:transition-none ${colorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
+                />
+              </div>
+              <span className='caption1-regular tracking-normal'>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
 }
+
+function BottomNavBarContent() {
+  if (isNativeWebView()) {
+    return null;
+  }
+
+  return <BottomNavBarLinks />;
+}
+
+export const BottomNavBar = dynamic(() => Promise.resolve(BottomNavBarContent), {
+  ssr: false,
+});

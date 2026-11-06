@@ -2,9 +2,12 @@ import type { RefObject } from 'react';
 import type { WebView as RNWebView } from 'react-native-webview';
 import { wireWebView, serializeForJS } from '@knockdog/bridge-native';
 import { makeRouter } from '../handlers/router';
-import { handleSystemEvent } from '../handlers/open-external-link';
+import { handleOpenExternalLink } from '../handlers/open-external-link';
 import { navBridgeHub } from '../model/navBridgeHub';
 import { BRIDGE_VERSION, type BridgeEventMap } from '@knockdog/bridge-core';
+import { handleOpenSystemSetting } from '../handlers/open-system-setting';
+import { handleShare } from '../handlers/handle-share';
+import { pushCoordinator } from '@/lib/pushCoordinator';
 
 // A의 WebView로 이벤트 재주입
 function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: unknown) {
@@ -27,16 +30,35 @@ function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: un
   }
 }
 // @TODO 가독성 및 유지보수성 리팩토링 필요
+interface CreateBridgeForWebViewOptions {
+  /** 이 WebView 인스턴스에만 적용되는 네이티브 스크롤 활성/비활성 콜백 */
+  onSetScrollEnabled?: (enabled: boolean) => void;
+}
+
 /**
  * WebView에 브릿지를 연결하는 함수
  * @param webRef WebView 참조
  * @returns wireWebView의 반환값 (onMessage, sendEvent, notifyReady)
  */
-function createBridgeForWebView(webRef: RefObject<RNWebView>) {
+function createBridgeForWebView(webRef: RefObject<RNWebView>, options?: CreateBridgeForWebViewOptions) {
   const router = makeRouter(webRef);
+
+  // navBridgeHub에 forwardEvent 함수 등록
+  navBridgeHub.setForwardEventFn(forwardEventTo);
 
   const wire = wireWebView(webRef as any, router, {
     onWebEvent: (event, payload) => {
+      if (event === 'push.sessionReady') {
+        pushCoordinator.markSessionReady(webRef);
+        return;
+      }
+
+      if (event === 'system.setWebViewScrollEnabled') {
+        const enabled = (payload as { enabled?: boolean } | undefined)?.enabled;
+        options?.onSetScrollEnabled?.(enabled !== false);
+        return;
+      }
+
       // nav.result, nav.cancel 이벤트 라우팅
       if (event === 'nav.result' || event === 'nav.cancel') {
         // 타입 안전한 txId 추출
@@ -68,7 +90,15 @@ function createBridgeForWebView(webRef: RefObject<RNWebView>) {
         return;
       }
 
-      if (handleSystemEvent(event, payload)) {
+      if (handleOpenExternalLink(event, payload)) {
+        return;
+      }
+
+      if (handleOpenSystemSetting(event)) {
+        return;
+      }
+
+      if (handleShare(event, payload)) {
         return;
       }
 

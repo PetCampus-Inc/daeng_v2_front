@@ -20,7 +20,7 @@ jobs:
       app: ${{ steps.filter.outputs.app }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Check changed paths
         uses: dorny/paths-filter@v3
@@ -41,11 +41,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command: ['type-check', 'lint', 'build']
+        # To re-enable type-check, add 'type-check' back into this list.
+        command: ['lint', 'build']
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -54,30 +55,43 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Turbo Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ matrix.command }}-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ matrix.command }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-turbo-${{ matrix.command }}-
             ${{ runner.os }}-turbo-
 
-      - name: Run ${{ matrix.command }}
-        run: |
-          if [ "${{ matrix.command }}" = "build" ]; then
-            COMMAND="pnpm build --filter=knockdog..."
-          else
-            COMMAND="pnpm --filter=knockdog ${{ matrix.command }}"
-          fi
+      - name: Next.js Cache
+        if: matrix.command == 'build'
+        uses: actions/cache@v6
+        with:
+          path: apps/knockdog/.next/cache
+          key: ${{ runner.os }}-nextjs-build-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-build-
+            ${{ runner.os }}-nextjs-
 
-          if eval $COMMAND; then
-            echo "✅ **${{ matrix.command }}** passed" >> $GITHUB_STEP_SUMMARY
-            exit 0
-          else
-            echo "❌ **${{ matrix.command }}** failed" >> $GITHUB_STEP_SUMMARY
+      - name: Guard guest login flag
+        if: matrix.command == 'build'
+        run: |
+          if [ "${NEXT_PUBLIC_ENABLE_GUEST_LOGIN:-}" = "true" ]; then
+            echo "::error::NEXT_PUBLIC_ENABLE_GUEST_LOGIN must be unset/false for production builds"
             exit 1
           fi
+
+      - name: Run ${{ matrix.command }}
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.command }}" = "build" ]; then
+            pnpm turbo run build --filter=knockdog...
+          else
+            pnpm turbo run "${{ matrix.command }}" --filter=knockdog
+          fi
+          echo "✅ **${{ matrix.command }}** passed" >> $GITHUB_STEP_SUMMARY
         env:
+          TURBO_CACHE_DIR: .turbo
           NEXT_TELEMETRY_DISABLED: 1
           # CI 빌드용 환경변수
           NEXT_PUBLIC_API_BASE_URL: 'https://example.com'

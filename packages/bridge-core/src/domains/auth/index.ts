@@ -1,0 +1,1 @@
+export type { SocialLoginResult } from './types';

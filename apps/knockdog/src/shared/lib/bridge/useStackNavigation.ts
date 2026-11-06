@@ -1,13 +1,12 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useBridge } from './BridgeProvider';
 import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
+import { buildHref, buildNativeFullPath, type Query } from './queryUtils';
 
-type QueryValue = string | number | boolean | null | undefined;
-type Query = Record<string, QueryValue>;
 type Params = Record<string, unknown>;
 
 type PushOptions = {
@@ -18,26 +17,8 @@ type PushOptions = {
   scroll?: boolean;
 };
 
-function buildHref(pathname: string, query?: Query, searchParams?: URLSearchParams | null) {
-  const params = query ? new URLSearchParams(searchParams || undefined) : new URLSearchParams();
-
-  if (query) {
-    for (const [key, value] of Object.entries(query)) {
-      if (value === undefined || value === null) {
-        params.delete(key);
-      } else {
-        params.set(key, String(value));
-      }
-    }
-  }
-
-  const queryString = params.toString();
-  return queryString ? `${pathname}?${queryString}` : pathname;
-}
-
 function useStackNavigation() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const bridge = useBridge();
 
   const isNative = useMemo(() => isNativeWebView(), []);
@@ -54,19 +35,19 @@ function useStackNavigation() {
     ) => {
       const { pathname, query, params, replace, scroll } = options;
 
-      const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
+      const isExternalUrl = pathname.startsWith('http://') || pathname.startsWith('https://');
+      const fullPath = isExternalUrl ? pathname : buildNativeFullPath(pathname);
 
       // forcedTxId가 제공되면 사용, params가 있으면 새로 생성, 아니면 null
       const txId = forcedTxId !== undefined ? forcedTxId : params ? makeId() : null;
 
       if (isNative) {
-        // 네이티브 환경
+        // 네이티브: _txId를 URL 쿼리에도 넣어 Next가 history.state를 덮어도 getCurrentTxId가 동작
         if (txId) {
           await bridge.request(method, {
             name: fullPath,
             params: {
-              ...(query && { query }),
+              query: { ...query, _txId: txId },
               _txId: txId,
               ...(params && { _params: params }),
             },
@@ -80,6 +61,15 @@ function useStackNavigation() {
         return;
       }
 
+      // 웹 환경: 외부 URL은 처리할 수 없음
+      if (isExternalUrl) {
+        console.warn(
+          '[useStackNavigation] 외부 URL은 웹 환경에서 스택 네비게이션으로 처리할 수 없습니다. 새 창으로 열립니다.'
+        );
+        window.open(fullPath, '_blank');
+        return;
+      }
+
       // 웹 환경
       let finalQuery = query;
 
@@ -90,7 +80,7 @@ function useStackNavigation() {
         finalQuery = { ...query, _txId: txId };
       }
 
-      const href = buildHref(pathname, finalQuery, searchParams);
+      const href = buildHref(pathname, finalQuery);
 
       if (replace || method === METHODS.navReplace) {
         router.replace(href, { scroll });
@@ -98,7 +88,7 @@ function useStackNavigation() {
         router.push(href, { scroll });
       }
     },
-    [bridge, router, isNative, searchParams]
+    [bridge, router, isNative]
   );
 
   const push = useCallback(
@@ -110,10 +100,11 @@ function useStackNavigation() {
 
   const back = useCallback(async () => {
     if (isNative) {
-      await bridge.request(METHODS.navBack, {});
-      return;
+      const result = await bridge.request<{ wentBack?: boolean }>(METHODS.navBack, {});
+      return result?.wentBack === true;
     }
     router.back();
+    return true;
   }, [bridge, router, isNative]);
 
   const replace = useCallback(
@@ -125,8 +116,8 @@ function useStackNavigation() {
 
   const reset = useCallback(
     async (pathname: string = '/', query?: Query, params?: Params) => {
-      const normalizedPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      const fullPath = `${process.env.NEXT_PUBLIC_WEB_URL}/${normalizedPath}`;
+      const isExternalUrl = pathname.startsWith('http://') || pathname.startsWith('https://');
+      const fullPath = isExternalUrl ? pathname : buildNativeFullPath(pathname);
 
       // params가 있으면 txId 생성
       const txId = params ? makeId() : null;
@@ -136,7 +127,7 @@ function useStackNavigation() {
           await bridge.request(METHODS.navReset, {
             name: fullPath,
             params: {
-              ...(query && { query }),
+              query: { ...query, _txId: txId },
               _txId: txId,
               ...(params && { _params: params }),
             },
@@ -147,6 +138,13 @@ function useStackNavigation() {
             ...(query && { params: { query } }),
           });
         }
+        return;
+      }
+
+      // 웹 환경: 외부 URL은 처리할 수 없음
+      if (isExternalUrl) {
+        console.warn('[useStackNavigation] 외부 URL은 웹 환경에서 reset으로 처리할 수 없습니다. 새 창으로 열립니다.');
+        window.open(fullPath, '_blank');
         return;
       }
 
@@ -187,13 +185,9 @@ function useStackNavigation() {
     }
 
     // 웹 환경 — sessionStorage에서 params 읽기
-    // history.state에서 txId를 못 가져오면 URL query에서 가져오기
-    let txId = state?._txId;
-
-    if (!txId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      txId = urlParams.get('_txId');
-    }
+    // URL query를 우선 (Next가 history.state를 덮을 수 있음)
+    const urlParams = new URLSearchParams(window.location.search);
+    const txId = urlParams.get('_txId') ?? state?._txId;
 
     if (!txId) return null;
 
@@ -263,7 +257,17 @@ function useStackNavigation() {
 
           // 웹 전용 경로: 뒤로 돌아왔을 때 sessionStorage에서 복구
           const onPop = () => {
-            resolveFromStorage();
+            // 부모 화면으로 돌아온 경우 URL에는 _txId가 없을 수 있어 먼저 결과를 확인한다.
+            if (resolveFromStorage()) {
+              return;
+            }
+
+            // 결과 없이 back → 즉시 cancel로 settle 
+            if (!settled) {
+              settled = true;
+              cleanup();
+              reject(new Error('Navigation cancelled: User navigated back without providing result'));
+            }
           };
           const onShow = () => {
             resolveFromStorage();

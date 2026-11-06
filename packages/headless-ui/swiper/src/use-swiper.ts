@@ -1,7 +1,7 @@
 // use-swiper.ts
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { getChildren } from './get-children';
 
 export interface UseSwiperProps {
@@ -36,12 +36,16 @@ export function useSwiper(props: UseSwiperProps) {
   const initialVirtual = loop ? initialReal + slidesPerView : initialReal;
 
   const [virtualIndex, setVirtualIndex] = useState(initialVirtual);
+  const onSlideChangeRef = useRef(onSlideChange);
 
   useEffect(() => {
-    const nextMaxVirtual = Math.max(0, (originalSlides.length ?? 0) - slidesPerView);
+    onSlideChangeRef.current = onSlideChange;
+  }, [onSlideChange]);
+
+  useEffect(() => {
     const nextReal = clampReal(initialIndex);
     const nextVirtual = loop ? nextReal + slidesPerView : nextReal;
-    setVirtualIndex(nextVirtual);
+    setVirtualIndex((prev) => (prev === nextVirtual ? prev : nextVirtual));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalSlides, slidesPerView, loop, initialIndex]);
 
@@ -76,8 +80,8 @@ export function useSwiper(props: UseSwiperProps) {
   }, [virtualIndex, slidesPerView, totalSlides, loop]);
 
   useEffect(() => {
-    onSlideChange?.(currentIndex);
-  }, [currentIndex, onSlideChange]);
+    onSlideChangeRef.current?.(currentIndex);
+  }, [currentIndex]);
 
   return {
     slides,

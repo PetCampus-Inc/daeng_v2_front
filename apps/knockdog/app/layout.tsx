@@ -1,40 +1,122 @@
 import Script from 'next/script';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { cn } from '@knockdog/ui/lib';
-import { suit } from './font';
+import './suit-faces.css';
 import './globals.css';
+import type { Metadata, Viewport } from 'next';
 import { ReactQueryProvider } from '@app/providers/ReactQueryProvider';
 import { OverlayProvider } from '@app/providers/OverlayProvider';
+import { ClientErrorReporter } from '@app/providers/ClientErrorReporter';
 import { HeaderProvider, HeaderWrapper } from '@widgets/Header';
 import { BridgeProvider } from '@shared/lib/bridge';
-import type { Viewport } from 'next';
+import { AnalyticsScreenTracker } from '@shared/lib/analytics';
+import { GoogleAnalytics } from '@shared/lib/analytics/GoogleAnalytics';
+import { SyncWebViewQueryEffect } from '@shared/lib/sync-webview-query';
+import { AnalyticsUserSync } from '@features/auth';
+import { SyncNativeMainTabModeEffect } from '@features/role-conversion';
+import { PushDeviceSyncEffect } from '@features/push';
+import { RequireAuthGate } from '@shared/ui/private-access';
+
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? '';
+const DEFAULT_OG_IMAGE_URL = `${WEB_URL}/images/img_ls.png`;
+
+export const metadata: Metadata = {
+  title: '똑독',
+  description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
+  // favicon은 app/icon.svg 메타데이터 파일 컨벤션 사용 (public/icon.svg와 중복 시 500)
+  openGraph: {
+    title: '똑독',
+    description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
+    url: WEB_URL,
+    siteName: '똑독',
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: '똑독',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '똑독',
+    description: '우리 강아지에게 딱 맞는 유치원을 찾을 땐, 똑독',
+    images: [DEFAULT_OG_IMAGE_URL],
+  },
+};
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
+  // useKeyboardAwareScrollHeight가 visualViewport만 줄어드는 것을 전제로 키보드를 감지하므로
+  // 'resizes-content'로 바꾸면 window.innerHeight까지 같이 줄어들어 계산이 깨진다.
+  interactiveWidget: 'resizes-visual',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='ko' className={cn(suit.variable)}>
+    <html lang='ko' data-env='web' suppressHydrationWarning>
+      <head>
+        {/* Variable 610KB preload 대신 Regular(~164KB)만 크리티컬 경로에 올린다 */}
+        <link
+          rel='preload'
+          href='/fonts/SUIT-Regular.woff2'
+          as='font'
+          type='font/woff2'
+          crossOrigin='anonymous'
+        />
+        <link
+          rel='preconnect'
+          href='https://kindergarten-image-bucket.s3.ap-northeast-2.amazonaws.com'
+          crossOrigin='anonymous'
+        />
+        <link
+          rel='dns-prefetch'
+          href='https://kindergarten-image-bucket.s3.ap-northeast-2.amazonaws.com'
+        />
+      </head>
       <body className='overflow-hidden'>
-        <NuqsAdapter>
-          <ReactQueryProvider>
-            <BridgeProvider>
-              <OverlayProvider>
-                <HeaderProvider>
-                  <div className='relative mx-auto flex h-dvh w-screen max-w-screen-sm flex-col shadow-lg'>
-                    {/* @TODO HeaderWrapper 추후 삭제 필요 */}
-                    <HeaderWrapper />
-                    {children}
-                  </div>
-                </HeaderProvider>
-              </OverlayProvider>
-            </BridgeProvider>
-          </ReactQueryProvider>
-        </NuqsAdapter>
-        <Script src='//openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=s5hu0lc2kz' strategy='beforeInteractive' />
+        <HeaderProvider>
+          {/* stub만 먼저 둔다. gtag.js는 브라우저에서 GoogleAnalytics가 붙인다. */}
+          <Script id='gtag-stub' strategy='beforeInteractive'>
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              window.gtag = gtag;
+            `}
+          </Script>
+          <GoogleAnalytics />
+          <ClientErrorReporter />
+          <NuqsAdapter>
+            <ReactQueryProvider>
+              <BridgeProvider>
+                <AnalyticsUserSync />
+                <AnalyticsScreenTracker />
+                <SyncWebViewQueryEffect />
+                <SyncNativeMainTabModeEffect />
+                <PushDeviceSyncEffect />
+                <div
+                  id='root'
+                  className='webview:max-w-full relative mx-auto flex h-dvh w-screen max-w-120 flex-col shadow-lg'
+                >
+                  <RequireAuthGate>
+                    <OverlayProvider>
+                      {/* @TODO HeaderWrapper 추후 삭제 필요 */}
+                      <HeaderWrapper />
+                      {children}
+                    </OverlayProvider>
+                  </RequireAuthGate>
+                </div>
+              </BridgeProvider>
+            </ReactQueryProvider>
+          </NuqsAdapter>
+          {/* Naver Maps는 Map 마운트 시 on-demand 로드 (전역 beforeInteractive는 /mypage 등에서 TBT·unused JS 악화) */}
+        </HeaderProvider>
       </body>
     </html>
   );

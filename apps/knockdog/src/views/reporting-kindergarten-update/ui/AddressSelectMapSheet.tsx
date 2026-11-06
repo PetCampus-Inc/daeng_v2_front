@@ -2,9 +2,12 @@
 
 import { useRef, useState } from 'react';
 import { ActionButton, Icon } from '@knockdog/ui';
-import { MapView } from '@features/map';
+import { Map, Overlay } from '@knockdog/react-naver-map';
+import { CurrentSelectionMarker } from './CurrentSelectionMarker';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useCurrentAddress } from '@shared/lib';
+import type { Coord } from '@shared/types';
+import { SafeArea } from '@shared/ui/safe-area';
 
 interface AddressSelectMapSheetProps {
   isOpen: boolean;
@@ -25,7 +28,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
 
   const { primaryText, isLoading } = useCurrentAddress(selectedLocation);
 
-  const handleMapClick = (coord: { lat: number; lng: number }) => {
+  const handleMapClick = (coord: Coord) => {
     setSelectedLocation(coord);
   };
 
@@ -40,27 +43,31 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={close}>
       <BottomSheet.Overlay className='z-overlay' />
-      <BottomSheet.Body className='z-modal h-screen max-h-screen rounded-none' aria-label={'지도에서 선택하기'}>
-        <BottomSheet.Header className='justify-center'>
-          <BottomSheet.CloseButton />
-          <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>
-        </BottomSheet.Header>
+      <BottomSheet.Body className='z-modal h-dvh max-h-dvh rounded-none' aria-label={'지도에서 선택하기'}>
+        <SafeArea edges={['bottom', 'top']} className='flex h-full flex-col'>
+          <BottomSheet.Header className='shrink-0 justify-center'>
+            <BottomSheet.CloseButton />
+            <BottomSheet.Title>지도에서 선택하기</BottomSheet.Title>
+          </BottomSheet.Header>
 
-        <div>
-          <div className='h-[calc(100vh-184px)]'>
-            <MapView
+          <div className='min-h-0 flex-1'>
+            <Map
               ref={map}
-              selection={selectedLocation}
               center={defaultLocation}
               zoom={DEFAULT_MAP_ZOOM_LEVEL}
-              onClick={handleMapClick}
-            />
+              className='h-full w-full'
+              onClick={(e) => handleMapClick({ lat: e.coord.y, lng: e.coord.x })}
+            >
+              <Overlay position={selectedLocation}>
+                <CurrentSelectionMarker />
+              </Overlay>
+            </Map>
           </div>
 
-          <div>
-            <div className='px-4'></div>
+          <div className='shrink-0'>
+            <div className='px-4' />
             <div className='flex items-center justify-center gap-x-1 px-4 py-3'>
-              <Icon icon='Location' />
+              <Icon icon='LocationFill' />
               <span className='body1-bold'>
                 {isLoading ? '주소 검색 중...' : (primaryText ?? defaultLocation.name)}
               </span>
@@ -72,7 +79,7 @@ export function AddressSelectMapSheet({ isOpen, close, defaultLocation, onSelect
               </ActionButton>
             </div>
           </div>
-        </div>
+        </SafeArea>
       </BottomSheet.Body>
     </BottomSheet.Root>
   );

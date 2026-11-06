@@ -7,7 +7,7 @@ const kindergartenBasicQueryKeys = {
 
 const createKindergartenBasicQueryOptions = (id: string) => ({
   queryKey: kindergartenBasicQueryKeys.byId(id),
-  queryFn: () => getKindergartenBasic(id),
+  queryFn: () => getKindergartenBasic({ id }),
 });
 
 export { kindergartenBasicQueryKeys, createKindergartenBasicQueryOptions };

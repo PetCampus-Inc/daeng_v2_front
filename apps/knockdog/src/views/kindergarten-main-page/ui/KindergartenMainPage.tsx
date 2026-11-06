@@ -1,259 +1,237 @@
-'use client';
-
 import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Float, Icon } from '@knockdog/ui';
-import { cn } from '@knockdog/ui/lib';
-import { useMapState } from '@views/kindergarten-main-page/model/useMapState';
-
-import { getRegionLevel, isAggregationZoom, isBusinessZoom } from '@views/kindergarten-main-page/model/markers';
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM_LEVEL } from '@views/kindergarten-main-page/config/map';
 import { overlay } from 'overlay-kit';
-import { MapSearchContext, useMapSearch } from '@views/kindergarten-main-page/model/useMapSearchContext';
-
-import { CurrentLocationDisplayFAB, CurrentLocationFAB, ListFAB, MapView, RefreshFAB } from '@features/map';
+import { Chip, Float, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
+import { useQueryClient } from '@tanstack/react-query';
 import {
-  KindergartenCardSheet,
+  CurrentLocationDisplayFAB,
+  CurrentLocationFAB,
+  ListFAB,
+  MapView,
+  ResearchFAB,
+  DisplayFilterProvider,
+  useDisplayFilterContext,
+} from '@features/kindergarten-map';
+import { RequiredTermsConsentSheetHost } from '@features/required-terms-consent';
+import {
+  FilterBottomSheet,
+  KindergartenItemSheet,
   KindergartenListSheet,
-  KindergartenSearchContext,
-  SortContext,
-  useSearchFilter,
-} from '@features/kindergarten';
+  SearchHeader,
+} from '@features/kindergarten-list';
+import { KindergartenList } from '@features/kindergarten-list/ui/KindergartenList';
+import { SearchStateProvider, useSearchMachine } from '@features/kindergarten-map/model/useSearchMachine';
+import { getRegionLevel } from '@features/kindergarten-map/lib/markers';
+import type { BoundsSnapshot } from '@features/kindergarten-map/lib/searchMachine';
+import { boundsSnapshotToBounds, toBoundsSnapshot } from '@features/kindergarten-map/lib/bounds';
+import type { FilterCategory, KindergartenListItem } from '@entities/kindergarten';
+import { getLocationPermission, isEqualCoord, requestLocationPermission, useBottomSheetSnapIndex } from '@shared/lib';
+import { useBasePointType, useMarkerState } from '@shared/store';
 
-import { isSameCoord, isValidCoord, useBasePoint, useBottomSheetSnapIndex, useSafeAreaInsets } from '@shared/lib';
-import { useMarkerState } from '@shared/store';
-
-export function KindergartenMainPage() {
-  const { filter } = useSearchFilter();
-
+export default function KindergartenMainPage() {
   return (
-    <MapSearchContext filters={filter}>
-      <MapWithSchoolsContent />
-    </MapSearchContext>
+    <SearchStateProvider>
+      <DisplayFilterProvider>
+        <KindergartenMainPageContent />
+      </DisplayFilterProvider>
+    </SearchStateProvider>
   );
 }
 
-export function MapWithSchoolsContent() {
-  const map = useRef<naver.maps.Map | null>(null);
-  const { coord: basePoint } = useBasePoint();
-  const { filter } = useSearchFilter();
-  const { top } = useSafeAreaInsets();
-
-  /** 지도 스냅샷 */
-  const { mapSnapshot, setMapSnapshot, isMapLoaded, setIsMapLoaded, schoolList, aggregations } = useMapSearch();
-
-  /** 지도 상태(라이브, URL 연동) */
-  const { center, zoomLevel, searchedLevel, setCenter, setZoomLevel, setSearchedLevel } = useMapState();
-
+function KindergartenMainPageContent() {
+  const mapRef = useRef<naver.maps.Map | null>(null);
   const searchParams = useSearchParams();
-  const { activeMarkerId, setActiveMarker } = useMarkerState();
+  const queryClient = useQueryClient();
+  const { liveState, committedState, searchState, dispatch } = useSearchMachine();
+  const { isOnlyBookmarked, isOnlyMemoed, isOnlyVerified, toggleBookmarked, toggleMemoed, toggleVerified } =
+    useDisplayFilterContext();
+
+  const { setActiveMarker } = useMarkerState();
   const { isFullExtended, setSnapIndex } = useBottomSheetSnapIndex();
-
-  const mapCenter = isValidCoord(center) ? center : isValidCoord(basePoint) ? basePoint : DEFAULT_MAP_CENTER;
-
-  /** 지도 초기 설정 (mapState 초기화) */
-  useEffect(() => {
-    if (!isMapLoaded || isValidCoord(center) || !isValidCoord(basePoint)) return;
-
-    map.current?.setCenter(basePoint);
-    setCenter(basePoint);
-    setZoomLevel(DEFAULT_MAP_ZOOM_LEVEL);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMapLoaded, center, basePoint]);
-
-  /** 커밋된 상태 초기 설정 (mapSnapshot 초기화) */
-  useEffect(() => {
-    if (!isMapLoaded || mapSnapshot.center !== null) return;
-
-    const initialCenter = center ? { lat: center.lat, lng: center.lng } : isValidCoord(basePoint) ? basePoint : null;
-    const initialZoom = zoomLevel || DEFAULT_MAP_ZOOM_LEVEL;
-    const initialBounds = map.current?.getBounds() as naver.maps.LatLngBounds;
-
-    if (!initialCenter) return;
-    setMapSnapshot({
-      center: initialCenter,
-      bounds: initialBounds,
-      zoomLevel: initialZoom,
-    });
-
-    const initialLevel = getRegionLevel(initialZoom);
-    setSearchedLevel(initialLevel);
-  }, [isMapLoaded, center, basePoint, zoomLevel, mapSnapshot.center, setSearchedLevel, setMapSnapshot]);
+  const { selectedBaseType } = useBasePointType();
 
   /**
-   * 지도 로드 핸들러
-   * - 지도의 center, zoom 업데이트
+   * 페이지 진입시 위치 권한 확인 및 요청
+   * - 현재 위치 모드일 때만 실행
+   * - 권한이 없으면 자동으로 요청
+   * - 권한 획득시 위치 쿼리 갱신
    */
-  const handleMapLoad = (map: naver.maps.Map) => {
-    setIsMapLoaded(true);
+  useEffect(() => {
+    if (selectedBaseType !== 'CURRENT') return;
 
-    if (isValidCoord(center)) {
-      map.setCenter(center);
-    }
-    if (zoomLevel) {
-      map.setZoom(zoomLevel);
-    }
-  };
+    const ensureLocationPermission = async () => {
+      try {
+        const status = await getLocationPermission();
+
+        // 이미 허용된 경우 요청 스킵
+        if (status === 'allowed') return;
+
+        // 권한이 없거나 미결정 상태면 요청
+        const result = await requestLocationPermission();
+
+        // 권한 획득 성공시 위치 쿼리 무효화하여 자동 재실행
+        if (result.status === 'allowed') {
+          queryClient.invalidateQueries({ queryKey: ['geolocation'] });
+        }
+      } catch (error) {
+        // 권한 요청 실패
+      }
+    };
+
+    ensureLocationPermission();
+  }, [queryClient, selectedBaseType]);
 
   /**
-   * 새로고침 핸들러
+   * 재검색 버튼 표시 여부
+   */
+  const shouldShowRefresh = useMemo(() => {
+    if (!liveState.viewportBounds) return false;
+
+    const zoomChanged = liveState.zoom !== searchState.zoom;
+    if (zoomChanged) return true;
+
+    if (committedState.searchCenter && liveState.center) {
+      return !isEqualCoord(committedState.searchCenter, liveState.center);
+    }
+
+    return false;
+  }, [liveState, committedState.searchCenter, searchState.zoom]);
+
+  /**
+   * 재검색 핸들러
    * - 현재 mapState를 스냅샷으로 저장
+   * - 검색 모드를 boundary로 전환
    */
   const handleRefresh = () => {
-    if (!isValidCoord(basePoint) || !zoomLevel) return;
+    const bounds = mapRef.current?.getBounds();
+    const viewportBounds: BoundsSnapshot | null = toBoundsSnapshot(bounds);
 
-    setMapSnapshot({
-      center: { lat: center?.lat, lng: center?.lng },
-      bounds: map.current?.getBounds() as naver.maps.LatLngBounds,
-      zoomLevel,
+    dispatch({
+      type: 'RESEARCH_HERE',
+      viewportBounds,
+      levelFromZoom: getRegionLevel(liveState.zoom),
     });
   };
 
-  /**
-   * 집계 마커 클릭 핸들러
-   * - 집계 마커 클릭 시 center, zoom 변경
-   */
-  const handleAggregationClick = (code: string, coord: { lat: number; lng: number }, nextZoom: number) => {
-    map.current?.setCenter(coord);
-    map.current?.setZoom(nextZoom, true);
-  };
+  const handleOpenCard = (item: KindergartenListItem) => {
+    const itemId = item.id;
 
-  /**
-   * 마커 클릭 핸들러
-   * - 마커 클릭 시 지도 중심 이동 및 상세 정보 표시
-   */
-  const handleMarkerClick = (id: string, coord: { lat: number; lng: number }) => {
-    map.current?.panTo(coord);
-    setActiveMarker(id);
-    openDogSchoolCardSheet(id);
-  };
-
-  /**
-   * 줌 변경 완료 핸들러
-   * - 줌 변경 완료 시 local state(center) 업데이트
-   * - 검색 레벨 비교 후 스냅샷 저장
-   */
-  const handleZoomEnd = () => {
-    if (!map.current) return;
-
-    const coord = map.current.getCenter();
-    const bounds = map.current.getBounds() as naver.maps.LatLngBounds;
-    const zoom = map.current.getZoom();
-    setCenter({ lat: coord.y, lng: coord.x });
-
-    const currentLevel = getRegionLevel(zoom);
-
-    if (searchedLevel !== null && currentLevel !== searchedLevel && isValidCoord(basePoint)) {
-      setMapSnapshot({
-        center: { lat: coord.y, lng: coord.x },
-        bounds,
-        zoomLevel: zoom,
-      });
-      setSearchedLevel(currentLevel);
+    if (useMarkerState.getState().activeMarkerId === itemId) {
+      return;
     }
-  };
 
-  const openDogSchoolCardSheet = (id: string) => {
-    overlay.open(({ isOpen, close }) => {
-      const selectedSchool = schoolList.find((school) => school.id === id);
+    setActiveMarker(itemId);
 
-      if (!selectedSchool) return null;
-
-      return (
-        <KindergartenCardSheet
-          isOpen={isOpen}
-          close={() => {
+    overlay.open(({ isOpen, unmount }) => (
+      <KindergartenItemSheet
+        key={itemId}
+        isOpen={isOpen}
+        onClose={() => {
+          if (useMarkerState.getState().activeMarkerId === itemId) {
             setActiveMarker(null);
-            close();
-          }}
-          {...selectedSchool}
-          images={selectedSchool.images || []}
-        />
-      );
-    });
+          }
+          unmount();
+        }}
+        {...item}
+        position={{ lng: committedState.refPoint?.lng ?? 0, lat: committedState.refPoint?.lat ?? 0 }}
+      />
+    ));
   };
 
-  const shouldShowRefresh = useMemo(() => {
-    return !(isSameCoord(center, mapSnapshot.center) && zoomLevel === mapSnapshot.zoomLevel);
-  }, [center, zoomLevel, mapSnapshot.center, mapSnapshot.zoomLevel]);
-
-  // 줌레벨에 따른 마커 표시 여부
-  const showAggregation = isAggregationZoom(mapSnapshot.zoomLevel);
-  const showBusiness = isBusinessZoom(mapSnapshot.zoomLevel);
-
-  const overlays = useMemo(
-    () =>
-      showBusiness
-        ? schoolList.map((school) => ({
-            id: school.id,
-            coord: { lat: school.coord.lat, lng: school.coord.lng },
-            title: school.title,
-            dist: school.dist,
-          }))
-        : [],
-    [showBusiness, schoolList]
-  );
-
-  const aggregationMarkers = useMemo(() => (showAggregation ? aggregations : []), [aggregations, showAggregation]);
+  const handleOpenFilter = (category: FilterCategory) => {
+    overlay.open(({ isOpen, close }) => (
+      <FilterBottomSheet
+        isOpen={isOpen}
+        close={close}
+        bounds={boundsSnapshotToBounds(liveState.viewportBounds)}
+        initialFilters={committedState.filters}
+        initialCategory={category}
+        onApply={(newFilters) => {
+          if (newFilters.length > 0) {
+            dispatch({ type: 'FILTERS_CHANGED', filters: newFilters });
+          } else {
+            dispatch({ type: 'CLEAR_FILTERS' });
+          }
+        }}
+      />
+    ));
+  };
 
   return (
     <>
-      <MapView
-        ref={map}
-        overlays={overlays}
-        aggregations={aggregationMarkers}
-        onMarkerClick={handleMarkerClick}
-        onAggregationClick={handleAggregationClick}
-        selectedMarkerId={activeMarkerId}
-        center={mapCenter}
-        zoom={zoomLevel ?? DEFAULT_MAP_ZOOM_LEVEL}
-        onLoad={handleMapLoad}
-        onDragEnd={() => {
-          if (!map.current) return;
-          const coord = map.current.getCenter();
-          setCenter({ lat: coord.y, lng: coord.x });
-        }}
-        onZoomChanged={(zoom) => {
-          setZoomLevel(zoom);
-        }}
-        onZoomEnd={handleZoomEnd}
-      />
+      <MapView ref={mapRef} onOpenCard={handleOpenCard} />
 
-      <div
-        className={cn(
-          'px-x4 pb-x2 absolute top-0 z-50 w-full transition-colors ease-out',
-          isFullExtended && 'bg-fill-secondary-0'
-        )}
-        style={{ paddingTop: top + 20 }}
-      >
-        <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`}>
-          <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-[48px] items-center border'>
-            <Icon icon='Search' className='size-x5 text-fill-secondary-700 mr-x2' />
-            <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
-              업체 또는 주소를 검색하세요
-            </div>
+      {committedState.query.trim().length > 0 ? (
+        <SearchHeader query={committedState.query} />
+      ) : (
+        <div
+          className={cn(
+            `absolute top-0 right-0 left-0 z-50 pt-(--safe-area-inset-top,0px) ${
+              isFullExtended ? 'bg-fill-secondary-0' : ''
+            }`
+          )}
+        >
+          <div className='px-x4 flex h-16 w-full items-center transition-colors ease-out'>
+            <Link href={`/search${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`} className='w-full'>
+              <div className='radius-r2 border-line-600 bg-fill-secondary-0 px-x4 flex h-12 items-center border'>
+                <Icon icon='Search' className='size-x6 text-fill-secondary-700 mr-x2' />
+                <div role='button' aria-label='검색창 열기' className='text-text-tertiary body1-regular flex-1'>
+                  업체 또는 주소를 검색하세요
+                </div>
+              </div>
+            </Link>
           </div>
-        </Link>
+        </div>
+      )}
+
+      <div className='px-x4 gap-x2 absolute top-[calc(var(--top-bar-height)+var(--safe-area-inset-top,0px))] flex w-full items-center'>
+        <Chip.Toggle variant='outline' checked={isOnlyVerified} onChange={toggleVerified}>
+          <Chip.PrefixIcon>
+            <Icon icon='Verified' className='size-x5' />
+          </Chip.PrefixIcon>
+          <Chip.Label>똑독 인증</Chip.Label>
+        </Chip.Toggle>
+        <Chip.Toggle variant='outline' checked={isOnlyMemoed} onChange={toggleMemoed}>
+          <Chip.PrefixIcon>
+            <Icon icon='Note' className='size-x4' />
+          </Chip.PrefixIcon>
+          <Chip.Label>메모</Chip.Label>
+        </Chip.Toggle>
+        <Chip.Toggle variant='outline' checked={isOnlyBookmarked} onChange={toggleBookmarked}>
+          <Chip.PrefixIcon>
+            <Icon icon='BookmarkFill' className='size-x4' />
+          </Chip.PrefixIcon>
+          <Chip.Label>북마크</Chip.Label>
+        </Chip.Toggle>
       </div>
 
-      <SortContext>
-        <KindergartenSearchContext bounds={mapSnapshot.bounds} zoomLevel={mapSnapshot.zoomLevel} filters={filter}>
-          <KindergartenListSheet
-            fabSlot={
-              <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
-                <Float placement='top-start' offsetX='x4'>
-                  <CurrentLocationFAB />
-                </Float>
-                {shouldShowRefresh ? <RefreshFAB onClick={handleRefresh} /> : <CurrentLocationDisplayFAB />}
-                <Float placement='top-end' offsetX='x4'>
-                  <ListFAB onClick={() => setSnapIndex(2)} />
-                </Float>
-              </div>
-            }
-          />
-        </KindergartenSearchContext>
-      </SortContext>
+      <KindergartenListSheet
+        fabSlot={
+          <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
+            <Float placement='top-start' offsetX='x4'>
+              <CurrentLocationFAB />
+            </Float>
+            {shouldShowRefresh && <ResearchFAB onClick={handleRefresh} />}
+            <div className={shouldShowRefresh ? 'hidden' : 'block'}>
+              <CurrentLocationDisplayFAB />
+            </div>
+            <Float placement='top-end' offsetX='x4'>
+              <ListFAB onClick={() => setSnapIndex(2)} />
+            </Float>
+          </div>
+        }
+      >
+        <KindergartenList
+          onOpenFilter={handleOpenFilter}
+          onClearFilters={() => dispatch({ type: 'CLEAR_FILTERS' })}
+          selectedFilters={committedState.filters}
+          region={searchParams?.get('region')}
+        />
+      </KindergartenListSheet>
+
+      <RequiredTermsConsentSheetHost />
     </>
   );
 }

@@ -1,37 +1,85 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 
-import { Icon, Divider } from '@knockdog/ui';
-import { LoginButton } from '@features/auth';
-import { SOCIAL_PROVIDER } from '@entities/social-user';
+import { Divider } from '@knockdog/ui';
+import Image from 'next/image';
+import { GuestLoginButton, isGuestLoginEnabled, LoginButton } from '@features/auth';
+import { SOCIAL_PROVIDER, type SocialProvider } from '@entities/social-user';
+import { SafeArea } from '@shared/ui/safe-area';
+import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
+import { isAndroid, isNativeWebView } from '@shared/lib/device';
+import { useStackNavigation } from '@shared/lib/bridge';
 
 export default function LoginPage() {
+  const { getParams } = useStackNavigation();
+  const [loginParams] = useState(() => getParams());
+  const [redirectTo] = useState(() => getInternalRedirect(loginParams?.redirectTo));
+  const [resetToMainAfterSignUp] = useState(() => loginParams?.resetToMainAfterSignUp === true);
+  const showGuestLogin = isGuestLoginEnabled();
+
+  const providers = useMemo(() => {
+    const allProviders = Object.values(SOCIAL_PROVIDER) as SocialProvider[];
+    // Android 네이티브 앱만 Apple 숨김. 웹(app.knockdog.net 브라우저)에서는 노출.
+    if (isAndroid() && isNativeWebView()) {
+      return allProviders.filter((provider) => provider !== SOCIAL_PROVIDER.APPLE);
+    }
+    return allProviders;
+  }, []);
+
   return (
-    <div className='mb-[20%] mt-[16%] flex h-screen flex-col justify-between gap-y-4'>
-      <div className='flex flex-col items-center'>
+    <SafeArea className='flex h-dvh flex-col items-center justify-between'>
+      <div className='mt-16 flex w-fit flex-col items-center'>
         <p className='body1-medium'>우리 강아지에게 딱 맞는 유치원을 찾을 땐,</p>
+
+        <div className='flex w-full flex-col items-center gap-y-3'>
+          <div className='relative mt-5 h-auto w-[40%]'>
+            <Image
+              src='/images/img_logo_text.png'
+              alt='login-dog'
+              width={0}
+              height={0}
+              sizes='100vw'
+              className='h-auto w-full object-cover'
+            />
+          </div>
+          <div className='relative mt-5 h-auto w-[90%]'>
+            <Image
+              src='/images/img_login.png'
+              alt='login-dog'
+              width={0}
+              height={0}
+              sizes='100vw'
+              className='h-auto w-full object-cover'
+            />
+          </div>
+        </div>
       </div>
 
-      {/* 하단 영역 */}
-      <div className='left-0 right-0 flex flex-col gap-y-7 bg-white px-4'>
+      <div className='absolute right-0 bottom-[10%] left-0 flex flex-col gap-y-7 px-4'>
         <div className='flex flex-col gap-y-3'>
-          {Object.values(SOCIAL_PROVIDER).map((provider) => (
-            <LoginButton key={provider} provider={provider} />
+          {providers.map((provider) => (
+            <LoginButton
+              key={provider}
+              provider={provider}
+              redirectTo={redirectTo}
+              resetToMainAfterSignUp={resetToMainAfterSignUp}
+            />
           ))}
         </div>
 
-        <div className='flex items-center gap-x-2'>
-          <Divider className='flex-1' />
-          <span className='text-text-tertiary body2-regular'>또는</span>
-          <Divider className='flex-1' />
-        </div>
+        {showGuestLogin ? (
+          <>
+            <div className='flex items-center gap-x-2'>
+              <Divider className='flex-1' />
+              <span className='text-text-tertiary body2-regular'>또는</span>
+              <Divider className='flex-1' />
+            </div>
 
-        <div className='label-semibold flex items-center justify-center gap-x-1'>
-          게스트로 둘러보기
-          <Icon icon='ChevronRight' className='h-4 w-4' />
-        </div>
+            <GuestLoginButton redirectTo={redirectTo} />
+          </>
+        ) : null}
       </div>
-    </div>
+    </SafeArea>
   );
 }

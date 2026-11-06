@@ -1,53 +1,49 @@
 'use client';
 
+import { Icon } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
-import { Divider, Icon } from '@knockdog/ui';
-import { useOpenExternalLink } from '@shared/lib/bridge';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { route } from '@shared/constants/route';
 
 const TERMS_URLS = [
   {
-    title: '개인(위치)정보 처리방침',
-    url: 'https://www.notion.so/2086c15f67fb80fda893c0d69410d2ec?source=copy_link',
+    title: '서비스 이용약관',
+    href: route.terms.service.root,
   },
   {
-    title: '서비스 이용약관',
-    url: 'https://www.notion.so/2086c15f67fb80bf8702c6a7e1974737?source=copy_link',
+    title: '개인정보 처리방침',
+    href: route.terms.privacy.root,
   },
   {
     title: '위치기반서비스 이용약관',
-    url: 'https://www.notion.so/2086c15f67fb80c68b65f4197df8cb59?source=copy_link',
+    href: route.terms.location.root,
   },
 ];
 
 function TermsPage() {
-  const openExternalLink = useOpenExternalLink();
+  const { push } = useStackNavigation();
 
   return (
-    <>
-      <Header withSpacing={false}>
+    <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+      <Header className='h-[66px] shrink-0'>
         <Header.BackButton />
         <Header.Title>이용약관</Header.Title>
       </Header>
 
-      <div className='px-4 py-7'>
-        <h3 className='text-text-tertiary text-sm font-medium'>약관 내용</h3>
-        <div className='py-2'>
-          {TERMS_URLS.map((term, index) => (
-            <div key={term.title}>
-              <button
-                type='button'
-                className='flex w-full items-center justify-between rounded-lg px-2 py-4 text-left transition-colors hover:bg-gray-50 active:bg-gray-100'
-                onClick={() => openExternalLink(term.url)}
-              >
-                <span className='h3-semibold'>{term.title}</span>
-                <Icon icon='ChevronRight' />
-              </button>
-              {index !== TERMS_URLS.length - 1 && <Divider className='my-2' />}
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
+      <main>
+        {TERMS_URLS.map((term) => (
+          <button
+            key={term.title}
+            type='button'
+            className='flex h-[66px] w-full items-center justify-between px-4 text-left'
+            onClick={() => push({ pathname: term.href })}
+          >
+            <span className='h3-medium text-text-primary'>{term.title}</span>
+            <Icon icon='ChevronRight' className='text-text-primary size-6' />
+          </button>
+        ))}
+      </main>
+    </div>
   );
 }
 

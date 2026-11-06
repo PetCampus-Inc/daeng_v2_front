@@ -1,5 +1,4 @@
 import { config } from '@knockdog/eslint-config/react-internal';
-import tsParser from '@typescript-eslint/parser';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,7 +12,6 @@ export default [
     files: ['src/**/*.ts', 'src/**/*.tsx'],
     ignores: ['scripts/**/*.js'],
     languageOptions: {
-      parser: tsParser,
       parserOptions: {
         project: './tsconfig.json',
         tsconfigRootDir: __dirname,

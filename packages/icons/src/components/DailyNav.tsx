@@ -1,0 +1,34 @@
+export function DailyNav(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
+      <path
+        d='M13.3333 1.66667V4.16667'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M17.5 12.5V4.16667C17.5 3.72464 17.3244 3.30072 17.0118 2.98816C16.6993 2.67559 16.2754 2.5 15.8333 2.5H4.16667C3.72464 2.5 3.30072 2.67559 2.98816 2.98816C2.67559 3.30072 2.5 3.72464 2.5 4.16667V15.8333C2.5 16.2754 2.67559 16.6993 2.98816 17.0118C3.30072 17.3244 3.72464 17.5 4.16667 17.5H12.5M17.5 12.5H13.3333C13.1123 12.5 12.9004 12.5878 12.7441 12.7441C12.5878 12.9004 12.5 13.1123 12.5 13.3333V17.5M17.5 12.5C17.5006 12.7641 17.449 13.0257 17.348 13.2697C17.247 13.5137 17.0987 13.7353 16.9117 13.9217L13.9217 16.9117C13.7353 17.0987 13.5137 17.247 13.2697 17.348C13.0257 17.449 12.7641 17.5006 12.5 17.5'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M2.5 7.5H17.5'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M6.66667 1.66667V4.16667'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}

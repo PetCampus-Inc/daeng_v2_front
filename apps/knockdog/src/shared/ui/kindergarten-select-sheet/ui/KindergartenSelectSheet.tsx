@@ -1,0 +1,229 @@
+'use client';
+
+import React, { useState } from 'react';
+import { ActionButton, Divider, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
+
+import { kindergartenSelectSheetContent } from '@shared/ui/kindergarten-select-sheet/config/kindergartenSelectSheetContent';
+import type { KindergartenSelectOption } from '@shared/ui/kindergarten-select-sheet/model/types';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
+import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { useNativeBackToClose } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
+
+interface KindergartenSelectSheetProps {
+  isOpen: boolean;
+  close: () => void;
+  kindergartens: KindergartenSelectOption[];
+  currentKindergartenId: string | null;
+  onSelect: (kindergartenId: string) => void;
+  /** write: 리뷰 작성 대상 선택. switch: 연결 유치원 전환 */
+  mode?: 'switch' | 'write';
+}
+
+function formatAttendedUntilLabel(attendedUntil: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(attendedUntil);
+  if (!match) return kindergartenSelectSheetContent.pastStatusLabel(attendedUntil);
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  const isValidCalendarDate =
+    date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+  if (!isValidCalendarDate) {
+    return kindergartenSelectSheetContent.pastStatusLabel(attendedUntil);
+  }
+
+  return kindergartenSelectSheetContent.pastStatusLabel(`${year}년 ${month}월 ${day}일`);
+}
+
+function KindergartenSelectThumbnail({
+  imageUrl,
+  isSelected,
+}: {
+  imageUrl: string;
+  isSelected: boolean;
+}) {
+  const imageSrc = resolvePublicImageSrc(imageUrl);
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
+  const showImage = imageSrc.length > 0 && failedImageSrc !== imageSrc;
+
+  return (
+    <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
+      {showImage ? (
+        // eslint-disable-next-line @next/next/no-img-element -- S3 배너 키는 img로 로드
+        <img
+          src={imageSrc}
+          alt=''
+          className='size-full object-cover'
+          loading='lazy'
+          decoding='async'
+          referrerPolicy='no-referrer'
+          onError={() => setFailedImageSrc(imageSrc)}
+        />
+      ) : (
+        <div
+          className='bg-fill-secondary-100 flex size-full items-center justify-center'
+          aria-hidden='true'
+        >
+          <Icon icon='Paw' className='text-fill-secondary-300 size-5' />
+        </div>
+      )}
+      {isSelected ? (
+        <span className='absolute right-0 bottom-0 size-6'>
+          <span className='absolute inset-[3px] rounded-full bg-white' aria-hidden='true' />
+          <Icon icon='CheckFill' className='text-text-accent relative size-6' />
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function KindergartenSelectSheet({
+  isOpen,
+  close,
+  kindergartens,
+  currentKindergartenId,
+  onSelect,
+  mode = 'switch',
+}: KindergartenSelectSheetProps) {
+  const content = kindergartenSelectSheetContent;
+  const isWriteMode = mode === 'write';
+
+  useNativeBackToClose(isOpen, close);
+
+  const handleClose = (open?: boolean) => {
+    if (open === false || open === undefined) close();
+  };
+
+  const handleSelect = (kindergarten: KindergartenSelectOption) => {
+    if (!isWriteMode && kindergarten.id === currentKindergartenId) {
+      close();
+      return;
+    }
+
+    if (isWriteMode) {
+      // 시트를 닫으면 overlay history.back이 같은 틱의 push를 되돌린다. back 이후에 이동한다.
+      let didNavigate = false;
+      const navigate = () => {
+        if (didNavigate) return;
+        didNavigate = true;
+        window.removeEventListener('popstate', navigate);
+        onSelect(kindergarten.id);
+      };
+
+      window.addEventListener('popstate', navigate);
+      close();
+      window.setTimeout(navigate, 300);
+      return;
+    }
+
+    onSelect(kindergarten.id);
+    close();
+
+    toast({
+      type: 'success',
+      nativeTitle: `${content.toastAccentLabel}${content.toastSuffix}`,
+      titleParts: [
+        { text: content.toastAccentLabel, accent: true },
+        { text: content.toastSuffix },
+      ],
+      title: (
+        <>
+          <span className='body1-bold text-text-accent'>{content.toastAccentLabel}</span>
+          <span className='body1-medium text-text-primary-inverse'>{content.toastSuffix}</span>
+        </>
+      ),
+    });
+  };
+
+  return (
+    <BottomSheet.Root open={isOpen} onOpenChange={handleClose}>
+      <BottomSheet.Overlay className='z-overlay' />
+      <BottomSheet.Body className='z-modal pb-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))]'>
+        <BottomSheet.Handle />
+        <BottomSheet.Header className='border-line-100 border-b items-start text-left'>
+          <BottomSheet.Title className='w-full pr-10 text-left'>
+            {isWriteMode ? content.writeTitle : content.title}
+          </BottomSheet.Title>
+          <BottomSheet.CloseButton onClick={close} />
+        </BottomSheet.Header>
+
+        <div className='max-h-[60vh] overflow-y-auto pt-5 pb-5'>
+          {kindergartens.map((kindergarten, index) => {
+            const isSelected = currentKindergartenId === kindergarten.id;
+            const attendedUntil = kindergarten.attendedUntil;
+            const isAttending = attendedUntil == null;
+            const statusLabel = isAttending
+              ? content.attendingStatusLabel
+              : formatAttendedUntilLabel(attendedUntil);
+
+            return (
+              <React.Fragment key={kindergarten.id}>
+                {isWriteMode ? (
+                  <div data-vaul-no-drag className='flex w-full items-center gap-2 px-4 py-4'>
+                    <KindergartenSelectThumbnail imageUrl={kindergarten.imageUrl} isSelected={false} />
+                    <span className='body1-bold text-text-primary min-w-0 flex-1 truncate text-left'>
+                      {kindergarten.name}
+                    </span>
+                    <ActionButton
+                      type='button'
+                      size='small'
+                      data-vaul-no-drag
+                      className='shrink-0'
+                      onClick={() => handleSelect(kindergarten)}
+                    >
+                      {content.writeActionLabel}
+                    </ActionButton>
+                  </div>
+                ) : (
+                  <button
+                    type='button'
+                    className='flex w-full items-center gap-2 px-4 py-4'
+                    onClick={() => handleSelect(kindergarten)}
+                  >
+                    <KindergartenSelectThumbnail
+                      imageUrl={kindergarten.imageUrl}
+                      isSelected={isSelected}
+                    />
+
+                    <div className='flex min-w-0 flex-1 flex-col items-start text-left'>
+                      <span
+                        className={cn(
+                          'body1-bold w-full truncate',
+                          isSelected ? 'text-text-accent' : 'text-text-primary'
+                        )}
+                      >
+                        {kindergarten.name}
+                      </span>
+                      <span
+                        className={cn(
+                          'w-full truncate',
+                          isAttending
+                            ? 'body2-semibold text-text-accent'
+                            : 'body2-regular text-text-secondary'
+                        )}
+                      >
+                        {statusLabel}
+                      </span>
+                    </div>
+                  </button>
+                )}
+                {index < kindergartens.length - 1 ? (
+                  <div className='px-4'>
+                    <Divider />
+                  </div>
+                ) : null}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </BottomSheet.Body>
+    </BottomSheet.Root>
+  );
+}
+
+export { KindergartenSelectSheet };
+export type { KindergartenSelectSheetProps };

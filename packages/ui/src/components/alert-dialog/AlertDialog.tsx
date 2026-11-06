@@ -5,7 +5,70 @@ import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
 import { cn } from '@knockdog/ui/lib';
 import { actionButtonVariants } from '../action-button';
 
-const AlertDialog = AlertDialogPrimitive.Root;
+const NATIVE_BACK_EVENT = 'knockdog:native-back';
+
+function useNativeBackToClose(isOpen: boolean, onClose: () => void) {
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const onNativeBack = (event: Event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    };
+
+    window.addEventListener(NATIVE_BACK_EVENT, onNativeBack, true);
+    return () => window.removeEventListener(NATIVE_BACK_EVENT, onNativeBack, true);
+  }, [isOpen, onClose]);
+}
+
+interface AlertDialogRootProps extends React.ComponentProps<typeof AlertDialogPrimitive.Root> {
+  /** false면 AOS 뒤로가기로 닫지 않음 */
+  closeOnNativeBack?: boolean;
+}
+
+function AlertDialogRoot({
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  closeOnNativeBack = true,
+  ...props
+}: AlertDialogRootProps) {
+  const isControlled = openProp !== undefined;
+  const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
+  const isOpen = isControlled ? openProp : internalOpen;
+
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(nextOpen);
+      }
+
+      onOpenChange?.(nextOpen);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  const handleNativeBackClose = React.useCallback(() => {
+    if (!isControlled) {
+      setInternalOpen(false);
+    }
+
+    onOpenChange?.(false);
+  }, [isControlled, onOpenChange]);
+
+  useNativeBackToClose(isOpen === true && closeOnNativeBack, handleNativeBackClose);
+
+  return (
+    <AlertDialogPrimitive.Root
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      {...props}
+    />
+  );
+}
+
+const AlertDialog = AlertDialogRoot;
 
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
@@ -17,7 +80,7 @@ const AlertDialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in bg-dim-70 fixed inset-0 z-50',
+      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in bg-dim-70 fixed inset-0 z-overlay',
       className
     )}
     {...props}
@@ -37,7 +100,7 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        'bg-bg-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-130 data-[state=closed]:slide-out-to-bottom-0 data-[state=open]:slide-in-from-bottom-10 radius-r3 fixed left-[50%] top-[50%] z-50 grid w-full max-w-[334px] translate-x-[-50%] translate-y-[-50%] shadow-lg duration-200 ease-[cubic-bezier(.03,.4,.1,1)]',
+        'bg-bg-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-130 data-[state=closed]:slide-out-to-bottom-0 data-[state=open]:slide-in-from-bottom-10 radius-r3 fixed left-[50%] top-[50%] z-modal grid w-full max-w-[334px] translate-x-[-50%] translate-y-[-50%] shadow-lg duration-200 ease-[cubic-bezier(.03,.4,.1,1)]',
         className
       )}
       {...props}
@@ -47,7 +110,7 @@ const AlertDialogContent = React.forwardRef<
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
 const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('pt-x7 px-x5 gap-x2 flex flex-col text-center', className)} {...props} />
+  <div className={cn('pt-x7 px-x5 gap-x2 flex flex-col', className, 'text-left')} {...props} />
 );
 AlertDialogHeader.displayName = 'AlertDialogHeader';
 
@@ -60,7 +123,7 @@ const AlertDialogTitle = React.forwardRef<
   React.ComponentRef<typeof AlertDialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Title ref={ref} className={cn('h2-extrabold text-text-primary', className)} {...props} />
+  <AlertDialogPrimitive.Title ref={ref} className={cn('h2-extrabold text-text-primary', className, 'text-left')} {...props} />
 ));
 AlertDialogTitle.displayName = AlertDialogPrimitive.Title.displayName;
 
@@ -70,7 +133,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
-    className={cn('body1-regular text-text-secondary', className)}
+    className={cn('body1-regular text-text-secondary', className, 'text-left')}
     {...props}
   />
 ));
@@ -113,3 +176,4 @@ export {
   AlertDialogAction,
   AlertDialogCancel,
 };
+export type { AlertDialogRootProps };

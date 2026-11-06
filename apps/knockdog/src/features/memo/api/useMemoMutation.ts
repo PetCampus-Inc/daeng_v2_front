@@ -1,14 +1,22 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
-import { updateMemo, memoQueryKeys, type MemoResponse, type UpdateMemoRequest } from '@entities/memo';
+import {
+  deleteMemo,
+  updateMemo,
+  memoQueryKeys,
+  type DeleteMemoRequest,
+  type MemoResponse,
+  type UpdateMemoRequest,
+  memoQueries,
+} from '@entities/memo';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 
-interface MemoMutationContext {
-  previous: MemoResponse | undefined;
-  userContext?: unknown;
+interface MemoMutationContext<TUserContext> {
+  userContext?: TUserContext;
 }
 
-export const useMemoMutation = (
-  options?: Omit<UseMutationOptions<MemoResponse, Error, UpdateMemoRequest, MemoMutationContext>, 'mutationFn'>
+export const useMemoMutation = <TUserContext = unknown>(
+  options?: Omit<UseMutationOptions<MemoResponse, Error, UpdateMemoRequest, TUserContext>, 'mutationFn'>
 ) => {
   const queryClient = useQueryClient();
   const {
@@ -19,51 +27,71 @@ export const useMemoMutation = (
     ...restOptions
   } = options ?? {};
 
-  const userOnMutate = rawOnMutate as ((variables: UpdateMemoRequest) => Promise<unknown> | unknown) | undefined;
+  const userOnMutate = rawOnMutate as
+    | ((variables: UpdateMemoRequest) => Promise<TUserContext> | TUserContext)
+    | undefined;
   const userOnError = rawOnError as
-    | ((error: Error, variables: UpdateMemoRequest, context: unknown) => unknown)
+    | ((error: Error, variables: UpdateMemoRequest, context: TUserContext | undefined) => unknown)
     | undefined;
   const userOnSuccess = rawOnSuccess as
-    | ((data: MemoResponse, variables: UpdateMemoRequest, context: unknown) => unknown)
+    | ((data: MemoResponse, variables: UpdateMemoRequest, context: TUserContext | undefined) => unknown)
     | undefined;
   const userOnSettled = rawOnSettled as
-    | ((data: MemoResponse | undefined, error: Error | null, variables: UpdateMemoRequest, context: unknown) => unknown)
+    | ((
+        data: MemoResponse | undefined,
+        error: Error | null,
+        variables: UpdateMemoRequest,
+        context: TUserContext | undefined
+      ) => unknown)
     | undefined;
 
-  return useMutation({
+  return useMutation<MemoResponse, Error, UpdateMemoRequest, MemoMutationContext<TUserContext>>({
     ...restOptions,
     mutationFn: updateMemo as (variables: UpdateMemoRequest) => Promise<MemoResponse>,
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
-
-      const previous = queryClient.getQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId));
-
-      if (previous) {
-        const optimistic: MemoResponse = {
-          content: variables.content ?? previous.content,
-          photos: variables.photos ?? previous.photos,
-        };
-
-        queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), optimistic);
-      }
-
       const userContext = await userOnMutate?.(variables);
-      const context: MemoMutationContext = { previous, userContext };
+      const context: MemoMutationContext<TUserContext> = { userContext };
 
       return context;
     },
     onError: (error, variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData<MemoResponse>(memoQueryKeys.byTargetId(variables.targetId), context.previous);
-      }
       userOnError?.(error, variables, context?.userContext);
     },
     onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
+      queryClient.invalidateQueries({ queryKey: memoQueries.keys.all() });
       userOnSuccess?.(data, variables, context?.userContext);
     },
     onSettled: async (data, error, variables, context) => {
-      await queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
+      syncWebViewQuery.invalidate(memoQueryKeys.byTargetId(variables.targetId));
+      syncWebViewQuery.invalidate(memoQueries.keys.all());
       userOnSettled?.(data, error, variables, context?.userContext);
+    },
+  });
+};
+
+export const useDeleteMemoMutation = <TUserContext = unknown>(
+  options?: Omit<UseMutationOptions<void, Error, DeleteMemoRequest, TUserContext>, 'mutationFn'>
+) => {
+  const queryClient = useQueryClient();
+  const {
+    onSuccess: userOnSuccess,
+    onSettled: userOnSettled,
+    ...restOptions
+  } = options ?? {};
+
+  return useMutation<void, Error, DeleteMemoRequest, TUserContext>({
+    ...restOptions,
+    mutationFn: deleteMemo,
+    onSuccess: (data, variables, context, mutationContext) => {
+      queryClient.invalidateQueries({ queryKey: memoQueryKeys.byTargetId(variables.targetId) });
+      queryClient.invalidateQueries({ queryKey: memoQueries.keys.all() });
+      userOnSuccess?.(data, variables, context, mutationContext);
+    },
+    onSettled: (data, error, variables, context, mutationContext) => {
+      syncWebViewQuery.invalidate(memoQueryKeys.byTargetId(variables.targetId));
+      syncWebViewQuery.invalidate(memoQueries.keys.all());
+      userOnSettled?.(data, error, variables, context, mutationContext);
     },
   });
 };

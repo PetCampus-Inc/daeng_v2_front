@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@knockdog/ui';
 import { ServiceBadgesTruncated, OPEN_STATUS_MAP, CTAG_MAP, type KindergartenNear } from '@entities/kindergarten';
 import { BookmarkToggleIcon } from '@entities/bookmark';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 
 interface KindergartenNearProps extends KindergartenNear {}
 
@@ -23,22 +25,41 @@ const KindergartenNearCard = ({
   bookmarked = false,
 }: KindergartenNearProps) => {
   const { push } = useStackNavigation();
+  const [hasBannerError, setHasBannerError] = useState(false);
+  const bannerImageSrc = resolvePublicImageSrc(banner?.[0]);
 
   const handleClick = () => {
-    push({ pathname: `/kindergarten/${id}` });
+    push({ pathname: `/kindergarten/${id}`, params: { entrySource: 'kindergarten-list' } });
   };
 
   return (
     <div className='min-w-[233px]' role='button' onClick={handleClick}>
       <div className='relative mb-2 rounded-lg'>
-        {banner?.[0] && process.env.NEXT_PUBLIC_IMAGE_BASE_URL && (
-          <Image
-            src={`${process.env.NEXT_PUBLIC_IMAGE_BASE_URL}${banner[0]}`}
-            alt='페이지 이미지'
-            width={233}
-            height={142}
-            className='h-[142px] w-[233px] rounded-lg object-cover'
-          />
+        {bannerImageSrc && (
+          hasBannerError ? (
+            // next/image 최적화 응답을 디코드하지 못하는 WebView에서 S3 원본으로 폴백한다.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bannerImageSrc}
+              alt='페이지 이미지'
+              className='h-[142px] w-[233px] rounded-lg object-cover'
+              width={233}
+              height={142}
+              loading='lazy'
+              decoding='async'
+              draggable={false}
+            />
+          ) : (
+            <Image
+              src={bannerImageSrc}
+              alt='페이지 이미지'
+              width={233}
+              height={142}
+              className='h-[142px] w-[233px] rounded-lg object-cover'
+              draggable={false}
+              onError={() => setHasBannerError(true)}
+            />
+          )
         )}
 
         {/* 뱃지 리스트 */}
@@ -59,7 +80,7 @@ const KindergartenNearCard = ({
         {/* 내용 영역 */}
         <div className='flex justify-between'>
           <span className='body1-extrabold'>{title}</span>
-          <BookmarkToggleIcon id={id} bookmarked={bookmarked} />
+          <BookmarkToggleIcon id={id} bookmarked={bookmarked} entryPoint='map' />
         </div>
         <span className='body2-regular text-text-tertiary'>
           {ctg
@@ -73,13 +94,13 @@ const KindergartenNearCard = ({
           <span className='body2-regular text-text-tertiary'>{roadAddress}</span>
         </div>
         <div>
-          <span className='body2-bold min-w-13 text-text-accent mr-1 inline-block'>
+          <span className='body2-bold text-text-accent mr-1 inline-block min-w-13'>
             {OPEN_STATUS_MAP[operationStatus]}
           </span>
           <span className='body2-regular text-text-tertiary'>{operationDescription}</span>
         </div>
         <div>
-          <span className='body2-bold min-w-13 mr-1 inline-block'>이용요금</span>
+          <span className='body2-bold mr-1 inline-block min-w-13'>이용요금</span>
           <span className='body2-bold'>{price.toLocaleString()}원~</span>
         </div>
       </div>

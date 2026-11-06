@@ -1,0 +1,50 @@
+{
+  "savedAt": "2026-09-14T03:42:34.106Z",
+  "pages": [
+    {
+      "pathname": "/compare",
+      "label": "Guardian Kindergarten",
+      "performance": 46,
+      "lcp": 12628.97,
+      "tbt": 391.22699999999895,
+      "cls": 0.00001096068752343319,
+      "fcp": 9628.945
+    },
+    {
+      "pathname": "/compare/album",
+      "label": "Guardian Album",
+      "performance": 49,
+      "lcp": 16307.187,
+      "tbt": 287.94600000000173,
+      "cls": 0.0002645414914936426,
+      "fcp": 9848.799
+    },
+    {
+      "pathname": "/owner/album",
+      "label": "Owner Album",
+      "performance": 47,
+      "lcp": 19488.674,
+      "tbt": 348.75300000000243,
+      "cls": 0.0004015536851055307,
+      "fcp": 13088.9
+    },
+    {
+      "pathname": "/mypage",
+      "label": "Guardian MyPage",
+      "performance": 32,
+      "lcp": 16327.96,
+      "tbt": 832.5419999999976,
+      "cls": 0.11852099305970706,
+      "fcp": 13411.44
+    },
+    {
+      "pathname": "/owner/members",
+      "label": "Owner Members",
+      "performance": 52,
+      "lcp": 10254.147,
+      "tbt": 217.41399999999885,
+      "cls": 0.0005070651507405897,
+      "fcp": 8987.509
+    }
+  ]
+}

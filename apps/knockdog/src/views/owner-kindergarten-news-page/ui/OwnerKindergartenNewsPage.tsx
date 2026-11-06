@@ -1,0 +1,109 @@
+'use client';
+
+import { useCallback, Suspense } from 'react';
+import { Icon } from '@knockdog/ui';
+
+import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
+import { useOwnerKindergartenNews } from '@views/owner-kindergarten-news-page/model/useOwnerKindergartenNews';
+import { OwnerKindergartenNewsWriteButton } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsWriteButton';
+import { OwnerKindergartenNewsEmptyState } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsEmptyState';
+import { OwnerKindergartenNewsList } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsList';
+import { route } from '@shared/constants/route';
+import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
+import { PullToRefresh } from '@shared/ui/pull-to-refresh';
+import { Header } from '@widgets/Header';
+
+/**
+ * 원장 유치원 소식 페이지
+ * - GET /schools/{schoolId}/news (공지 최상단 + 신규순, cursor 무한스크롤)
+ * - empty: `/owner/news?empty=1`
+ * - 헤더/시스템 뒤로가기 → 원장 홈 탭
+ *
+ * useHistoryBackTrap 미사용: Strict Mode remount 시 trap pop이
+ * navigateToTab('/owner')를 즉시 호출해 진입 직후 홈으로 튕김.
+ */
+function OwnerKindergartenNewsPageContent() {
+  const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
+  const {
+    items,
+    hasNews,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+    isFetching,
+    isError,
+    fetchNextPage,
+    refresh,
+    deleteNews,
+    refetch,
+  } = useOwnerKindergartenNews();
+
+  const handleBack = useCallback(() => {
+    void navigateToTab('/owner');
+  }, [navigateToTab]);
+
+  const handleSearchClick = useCallback(() => {
+    void push({ pathname: route.owner.news.search.root });
+  }, [push]);
+
+  useNativeBackHandler(handleBack);
+
+  return (
+    <div data-testid='owner-kindergarten-news-root' className='bg-bg-50 flex h-full flex-col'>
+      <div className='bg-bg-0'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>{ownerKindergartenNewsContent.pageTitle}</Header.Title>
+          {hasNews ? (
+            <Header.RightSection>
+              <button
+                type='button'
+                aria-label={ownerKindergartenNewsContent.searchAriaLabel}
+                className='inline-flex size-6 items-center justify-center'
+                onClick={handleSearchClick}
+              >
+                <Icon icon='Search' className='text-text-primary size-6' />
+              </button>
+            </Header.RightSection>
+          ) : null}
+        </Header>
+      </div>
+
+      <main className={`${hasNews ? 'bg-bg-0' : 'bg-bg-50'} relative flex min-h-0 flex-1 flex-col`}>
+        {isPending ? (
+          <DelayedLoadingSpinner isLoading layout='content' />
+        ) : isError ? (
+          <PageError layout='inline' onRetry={() => void refetch()} isRetrying={isFetching} />
+        ) : hasNews ? (
+          <PullToRefresh onRefresh={refresh}>
+            <OwnerKindergartenNewsList
+              items={items}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+              onDelete={deleteNews}
+            />
+          </PullToRefresh>
+        ) : (
+          <OwnerKindergartenNewsEmptyState />
+        )}
+        {!isPending && !isError ? <OwnerKindergartenNewsWriteButton openAsEmpty={!hasNews} /> : null}
+      </main>
+    </div>
+  );
+}
+
+function OwnerKindergartenNewsPage() {
+  return (
+    <Suspense fallback={null}>
+      <OwnerKindergartenNewsPageContent />
+    </Suspense>
+  );
+}
+
+export { OwnerKindergartenNewsPage };

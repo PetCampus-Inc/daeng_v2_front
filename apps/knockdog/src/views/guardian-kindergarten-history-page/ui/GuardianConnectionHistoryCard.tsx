@@ -1,0 +1,174 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { ActionButton, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
+
+import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
+import { formatKoreanHistoryDate } from '@views/guardian-kindergarten-history-page/lib/formatGuardianConnectionHistory';
+import type { GuardianConnectionHistoryItem } from '@views/guardian-kindergarten-history-page/model/guardianConnectionHistory';
+import { useGuardianConnectionDisconnect } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionDisconnect';
+import { isKindergartenId } from '@entities/kindergarten';
+import { useStackNavigation } from '@shared/lib/bridge';
+
+interface GuardianConnectionHistoryCardProps {
+  item: GuardianConnectionHistoryItem;
+}
+
+interface DisconnectButtonProps {
+  kindergartenName: string;
+  schoolPetMembershipId: string | null;
+  onDisconnected: (disconnectedAt: string) => void;
+}
+
+function DisconnectButton({
+  kindergartenName,
+  schoolPetMembershipId,
+  onDisconnected,
+}: DisconnectButtonProps) {
+  const content = guardianConnectionHistoryContent;
+  const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
+    kindergartenName,
+    schoolPetMembershipId,
+    onDisconnected,
+  });
+
+  return (
+    <ActionButton
+      type='button'
+      variant='secondaryLine'
+      size='medium'
+      disabled={isDisconnecting}
+      onClick={() => {
+        void handleDisconnectClick();
+      }}
+    >
+      {content.disconnectButtonLabel}
+    </ActionButton>
+  );
+}
+
+function WriteReviewButton({ onClick }: { onClick: () => void }) {
+  return (
+    <ActionButton type='button' variant='primaryFill' size='medium' onClick={onClick}>
+      {guardianConnectionHistoryContent.writeReviewButtonLabel}
+    </ActionButton>
+  );
+}
+
+function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
+  const { push } = useStackNavigation();
+  const content = guardianConnectionHistoryContent;
+  /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
+  const [localDisconnectedAt, setLocalDisconnectedAt] = useState<string | null>(null);
+  const disconnectedAt = localDisconnectedAt ?? item.disconnectedAt;
+  const isCurrent = disconnectedAt == null;
+  const imageSrc = useMemo(() => item.imageUrl.trim(), [item.imageUrl]);
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
+  const isImageFailed = failedImageSrc === imageSrc;
+  const showImage = imageSrc.length > 0 && !isImageFailed;
+  const connectedLabel = formatKoreanHistoryDate(item.connectedAt);
+  const disconnectedLabel = disconnectedAt
+    ? formatKoreanHistoryDate(disconnectedAt)
+    : content.currentLabel;
+  const badgeLabel = `${content.attendanceBadgePrefix} ${item.attendanceDayCount}${content.attendanceBadgeSuffix}`;
+  const canWriteReview = item.canWriteReview && isKindergartenId(item.placeId);
+
+  const handleWriteReview = () => {
+    if (!isKindergartenId(item.placeId)) return;
+    push({ pathname: `/kindergarten/${item.placeId}/write-review` });
+  };
+
+  return (
+    <div
+      className={cn(
+        'radius-r3 flex w-full flex-col gap-4 p-4',
+        isCurrent ? 'bg-bg-0 border-line-200 border' : 'bg-bg-50'
+      )}
+    >
+      <div className='flex w-full items-start gap-2'>
+        <div className='gap-x2 flex min-w-0 flex-1 items-start'>
+          <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
+            {showImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- 썸네일은 절대 URL 또는 S3 키
+              <img
+                src={imageSrc}
+                alt={item.name}
+                className='size-full object-cover'
+                loading='lazy'
+                decoding='async'
+                referrerPolicy='no-referrer'
+                onError={() => setFailedImageSrc(imageSrc)}
+              />
+            ) : (
+              <div className='bg-fill-secondary-100 flex size-full items-center justify-center' aria-hidden='true'>
+                <Icon icon='Paw' className='text-fill-secondary-300 size-5' />
+              </div>
+            )}
+          </div>
+          <div className='flex min-w-0 flex-1 flex-col items-start'>
+            <p className='body1-bold text-text-primary w-full truncate'>{item.name}</p>
+            <p className='body2-regular text-text-secondary w-full truncate'>{item.address}</p>
+          </div>
+        </div>
+
+        <span
+          className={cn(
+            'caption1-semibold shrink-0 rounded-full border px-2 py-1',
+            isCurrent
+              ? 'border-line-accent text-text-accent'
+              : 'border-line-200 text-text-secondary'
+          )}
+        >
+          {badgeLabel}
+        </span>
+      </div>
+
+      <div
+        className={cn(
+          'radius-r2 flex w-full items-center justify-center gap-1 overflow-hidden px-4 py-2',
+          isCurrent ? 'bg-fill-primary-50' : 'bg-bg-100'
+        )}
+      >
+        {isCurrent ? (
+          <>
+            <span className='body2-semibold text-text-primary'>{connectedLabel}</span>
+            <span className='body2-semibold text-text-primary'>~</span>
+            <span className='body2-bold text-text-accent'>{disconnectedLabel}</span>
+          </>
+        ) : (
+          <span className='body2-semibold text-text-secondary'>
+            {connectedLabel} ~ {disconnectedLabel}
+          </span>
+        )}
+      </div>
+
+      {isCurrent && canWriteReview ? (
+        <div className='flex gap-2'>
+          <div className='min-w-0 flex-1'>
+            <DisconnectButton
+              kindergartenName={item.name}
+              schoolPetMembershipId={item.schoolPetMembershipId}
+              onDisconnected={setLocalDisconnectedAt}
+            />
+          </div>
+          <div className='min-w-0 flex-1'>
+            <WriteReviewButton onClick={handleWriteReview} />
+          </div>
+        </div>
+      ) : null}
+
+      {isCurrent && !canWriteReview ? (
+        <DisconnectButton
+          kindergartenName={item.name}
+          schoolPetMembershipId={item.schoolPetMembershipId}
+          onDisconnected={setLocalDisconnectedAt}
+        />
+      ) : null}
+
+      {!isCurrent && canWriteReview ? <WriteReviewButton onClick={handleWriteReview} /> : null}
+    </div>
+  );
+}
+
+export { GuardianConnectionHistoryCard };

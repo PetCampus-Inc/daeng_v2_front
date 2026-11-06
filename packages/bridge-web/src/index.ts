@@ -10,13 +10,31 @@ import {
   ResultOf,
 } from '@knockdog/bridge-core';
 
+declare global {
+  interface Window {
+    __bridge?: {
+      receive: (msg: BridgeMessage) => void;
+    };
+    __bridgeDebug?: boolean;
+  }
+}
+
 type Unsubscribes = () => void;
 type Listener<K extends keyof BridgeEventMap = keyof BridgeEventMap> = (payload: BridgeEventMap[K]) => void;
+
+interface WebBridgeRequestOptions {
+  /** null이면 타이머 없이 네이티브 응답까지 대기 */
+  timeoutMs?: number | null;
+}
 
 class WebBridge {
   private pending = new Map<
     string,
-    { resolve: (v: unknown) => void; reject: (e: BridgeException) => void; timer: ReturnType<typeof setTimeout> }
+    {
+      resolve: (v: unknown) => void;
+      reject: (e: BridgeException) => void;
+      timer?: ReturnType<typeof setTimeout>;
+    }
   >();
   private listeners = new Map<keyof BridgeEventMap, Set<(payload: unknown) => void>>();
 
@@ -40,7 +58,10 @@ class WebBridge {
       window.removeEventListener('message', this._onMessage);
     }
 
-    this.pending.forEach((p) => p.reject(new BridgeException({ code: 'EDESTROYED', message: 'bridge_destroyed' })));
+    this.pending.forEach((p) => {
+      if (p.timer != null) clearTimeout(p.timer);
+      p.reject(new BridgeException({ code: 'EDESTROYED', message: 'bridge_destroyed' }));
+    });
     this.pending.clear();
     this.listeners.clear();
   }
@@ -67,10 +88,11 @@ class WebBridge {
   }
 
   /** Web -> Native 이벤트 전송 */
-  emit<K extends keyof BridgeEventMap>(event: K, payload: BridgeEventMap[K]): void {
+  emit<K extends keyof BridgeEventMap>(event: K, payload?: BridgeEventMap[K] | undefined): void {
     const id = makeId();
 
-    if (typeof window === 'undefined' || !window.ReactNativeWebView) {
+    const webView = (window as any).ReactNativeWebView;
+    if (typeof window === 'undefined' || !webView) {
       // RN WebView가 없으면 이벤트를 보낼 상대가 없음 (웹 단독 환경)
       // 여기서는 조용히 무시하거나 warn만 남김
       if (process.env.NODE_ENV !== 'production') {
@@ -80,7 +102,7 @@ class WebBridge {
       return;
     }
 
-    window.ReactNativeWebView.postMessage(
+    webView.postMessage(
       JSON.stringify({
         id,
         type: 'event',
@@ -91,13 +113,18 @@ class WebBridge {
     );
   }
 
-  request<K extends RPCMethod>(method: K, params: ParamsOf<K>, options?: { timeoutMs?: number }): Promise<ResultOf<K>>;
-  request<T = unknown>(method: string, params?: unknown, options?: { timeoutMs?: number }): Promise<T>;
+  request<K extends RPCMethod>(
+    method: K,
+    params: ParamsOf<K>,
+    options?: WebBridgeRequestOptions
+  ): Promise<ResultOf<K>>;
+  request<T = unknown>(method: string, params?: unknown, options?: WebBridgeRequestOptions): Promise<T>;
 
-  async request(method: string, params?: unknown, options?: { timeoutMs?: number }) {
+  async request(method: string, params?: unknown, options?: WebBridgeRequestOptions) {
     const id = makeId();
 
-    if (typeof window === 'undefined' || !window.ReactNativeWebView) {
+    const webView = (window as any).ReactNativeWebView;
+    if (typeof window === 'undefined' || !webView) {
       throw new BridgeException({
         code: 'ENOTFOUND',
         message: 'ReactNativeWebView not available',
@@ -106,10 +133,15 @@ class WebBridge {
     }
 
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.pending.delete(id);
-        reject(new BridgeException({ code: 'ETIMEDOUT', message: `timeout ${method}` }));
-      }, options?.timeoutMs ?? this.timeoutMs);
+      const timeoutMs =
+        options != null && 'timeoutMs' in options ? options.timeoutMs : this.timeoutMs;
+      const timer =
+        typeof timeoutMs === 'number'
+          ? setTimeout(() => {
+              this.pending.delete(id);
+              reject(new BridgeException({ code: 'ETIMEDOUT', message: `timeout ${method}` }));
+            }, timeoutMs)
+          : undefined;
 
       this.pending.set(id, {
         resolve: resolve as (v: unknown) => void,
@@ -118,7 +150,7 @@ class WebBridge {
       });
 
       // Web -> Native
-      window.ReactNativeWebView?.postMessage(
+      webView.postMessage(
         JSON.stringify({
           id,
           type: 'request',
@@ -141,7 +173,7 @@ class WebBridge {
       const entry = this.pending.get(msg.id);
       if (!entry) return;
 
-      clearTimeout(entry.timer);
+      if (entry.timer != null) clearTimeout(entry.timer);
       this.pending.delete(msg.id);
 
       if ('error' in msg) {

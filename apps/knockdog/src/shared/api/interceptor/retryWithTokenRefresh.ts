@@ -1,9 +1,14 @@
 import { ApiError } from '../model/error';
 import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 import { postTokenReissue } from '../endpoint/auth';
-import api from '../client/kyClient';
 
 import { tokenUtils } from '@shared/utils';
+
+// kyClient가 이 인터셉터를 구성에 사용하고, 이 인터셉터는 재시도를 위해 kyClient를
+// 다시 참조하는 순환 구조다. 정적 import로 두면 번들러/엔진에 따라(JSC 등) 모듈이
+// 아직 초기화되지 않은 시점에 참조돼 "Cannot access uninitialized variable" 오류가
+// 날 수 있어, 실제로 필요한 시점(재시도 시)에 동적으로 불러온다.
+const getApi = () => import('../client/kyClient').then((mod) => mod.default);
 
 let isTokenRefreshing = false;
 
@@ -26,6 +31,7 @@ const retryWithTokenRefresh = async (request: Request): Promise<Response> => {
 
     // 3. 새 토큰으로 요청 재시도
     const authRequest = await createAuthRequest(request, newAccessToken);
+    const api = await getApi();
 
     return api(authRequest);
   } catch (error) {
@@ -80,6 +86,7 @@ const enqueueRequest = async (request: Request): Promise<Response> => {
       }
 
       const authRequest = await createAuthRequest(request, newToken);
+      const api = await getApi();
       resolve(api(authRequest));
     });
   });

@@ -1,0 +1,47 @@
+import { useMemo } from 'react';
+import { useSearchListQuery } from './useSearchQuery';
+import { useDisplayFilterContext } from './useDisplayFilterContext';
+import type { KindergartenListItem } from '@entities/kindergarten';
+
+export function useFilteredSearchList() {
+  const { listQuery, searchList, exact, ...rest } = useSearchListQuery();
+  const { isOnlyBookmarked, isOnlyMemoed, isOnlyVerified, isFilterActive } = useDisplayFilterContext();
+
+  const filteredData = useMemo(() => {
+    if (!isFilterActive) {
+      return {
+        filteredSearchList: searchList,
+        filteredExact: exact,
+        totalCount: listQuery.data?.pages[0]?.schoolResult.totalCount || 0,
+      };
+    }
+
+    const filterFn = (item: KindergartenListItem) => {
+      return (
+        (isOnlyBookmarked && !!item.bookmarked) ||
+        (isOnlyMemoed && !!item.memo) ||
+        (isOnlyVerified && !!item.verified)
+      );
+    };
+
+    const filteredList = searchList.filter(filterFn);
+    const filteredExactItem = exact && filterFn(exact) ? exact : null;
+
+    const totalCount = filteredList.length + (filteredExactItem ? 1 : 0);
+
+    return {
+      filteredSearchList: filteredList,
+      filteredExact: filteredExactItem,
+      totalCount,
+    };
+  }, [searchList, exact, isOnlyBookmarked, isOnlyMemoed, isOnlyVerified, isFilterActive, listQuery.data]);
+
+  return {
+    ...rest,
+    listQuery,
+    searchList: filteredData.filteredSearchList,
+    exact: filteredData.filteredExact,
+    totalCount: filteredData.totalCount,
+    isFilterActive,
+  };
+}

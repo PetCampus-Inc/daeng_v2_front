@@ -1,16 +1,22 @@
-import WebView from 'react-native-webview';
-import { type RefObject, useRef, useMemo, useEffect } from 'react';
+import WebView, { type WebViewNavigation } from 'react-native-webview';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { type RefObject, useRef, useMemo, useEffect, useState } from 'react';
+import { AppState, Platform } from 'react-native';
 import { makeOnMessage } from '../lib/onMessage';
 import { createBridgeForWebView } from '../wiring/createBridge';
 import { buildConsolePatch } from '../lib/consolePatch';
 import { navBridgeHub } from '../model/navBridgeHub';
+import { pushCoordinator } from '@/lib/pushCoordinator';
 import type { InitialState } from '@/types/navigation';
+import ErrorScreen from './ErrorScreen';
 
 interface Props {
   uri: string;
   webviewRef?: RefObject<WebView>;
   /** navPush/navReplace/navReset로 받은 state를 주입 */
   initialState?: InitialState;
+  onLoadEnd?: () => void;
+  onNavigationStateChange?: (navState: WebViewNavigation) => void;
 }
 
 /** 초기 history.state & URL 쿼리 주입 스크립트 */
@@ -26,25 +32,29 @@ function buildHistoryStateInjector(state?: InitialState) {
           return;
         }
 
-        // URL 동기화 (query가 있으면 searchParams를 대체)
         var url = new URL(window.location.href);
-        if (__BRIDGE_INITIAL_STATE__.query && 
-            typeof __BRIDGE_INITIAL_STATE__.query === 'object' && 
+        var sp = new URLSearchParams(url.search);
+
+        // query가 있으면 searchParams를 대체
+        if (__BRIDGE_INITIAL_STATE__.query &&
+            typeof __BRIDGE_INITIAL_STATE__.query === 'object' &&
             !Array.isArray(__BRIDGE_INITIAL_STATE__.query)) {
-          var sp = new URLSearchParams();
+          sp = new URLSearchParams();
           Object.keys(__BRIDGE_INITIAL_STATE__.query).forEach(function(k){
             var v = __BRIDGE_INITIAL_STATE__.query[k];
-            if (v === null || v === undefined) return; // undefined/null은 쿼리 제외
+            if (v === null || v === undefined) return;
             sp.set(k, String(v));
           });
-          var qs = sp.toString();
-          var newHref = url.pathname + (qs ? ('?' + qs) : '') + url.hash;
-          // state 주입 + URL 변경
-          history.replaceState(__BRIDGE_INITIAL_STATE__, '', newHref);
-        } else {
-          // 쿼리 변경 없으면 URL은 그대로, state만 주입
-          history.replaceState(__BRIDGE_INITIAL_STATE__, '', window.location.href);
         }
+
+        // Next가 history.state를 덮어도 getCurrentTxId가 동작하도록 URL에도 유지
+        if (__BRIDGE_INITIAL_STATE__._txId) {
+          sp.set('_txId', String(__BRIDGE_INITIAL_STATE__._txId));
+        }
+
+        var qs = sp.toString();
+        var newHref = url.pathname + (qs ? ('?' + qs) : '') + url.hash;
+        history.replaceState(__BRIDGE_INITIAL_STATE__, '', newHref);
       } catch (e) {
         console.error('[BridgeWebView] state 주입 실패:', e);
       }
@@ -52,7 +62,38 @@ function buildHistoryStateInjector(state?: InitialState) {
   `;
 }
 
-export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
+/** Safe Area Insets 주입 스크립트 */
+function buildSafeAreaInjector(insets: { top: number; bottom: number; left: number; right: number }) {
+  const { top, bottom, left, right } = insets;
+  const platform = Platform.OS;
+  return `
+    (function(){
+      var insets = { top: ${top}, bottom: ${bottom}, left: ${left}, right: ${right} };
+      window.__SAFE_AREA_INSETS__ = insets;
+      var root = document.documentElement;
+      root.setAttribute('data-env', 'webview');
+      root.setAttribute('data-platform', '${platform}');
+      var style = root.style;
+      style.setProperty('--safe-area-inset-top', '${top}px');
+      style.setProperty('--safe-area-inset-bottom', '${bottom}px');
+      style.setProperty('--safe-area-inset-left', '${left}px');
+      style.setProperty('--safe-area-inset-right', '${right}px');
+      style.setProperty('--bottom-bar-height', '0px');
+    })();
+    true;
+  `;
+}
+
+export function BridgeWebView({
+  uri,
+  webviewRef,
+  initialState,
+  onLoadEnd,
+  onNavigationStateChange,
+}: Props) {
+  const insets = useSafeAreaInsets();
+  const lastInjectedInsetsRef = useRef<string | null>(null);
+
   const CONSOLE_PATCH = useMemo(
     () => buildConsolePatch({ tag: 'WEBVIEW', levels: ['log', 'warn', 'error'], maxLen: 1_000 }),
     []
@@ -61,24 +102,52 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
   const internalRef = useRef<WebView>(null);
   const refToUse = (webviewRef ?? internalRef) as RefObject<WebView>;
 
-  const { onMessage, notifyReady } = useMemo(() => createBridgeForWebView(refToUse), [refToUse]);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
+  const { onMessage, notifyReady } = useMemo(
+    () => createBridgeForWebView(refToUse, { onSetScrollEnabled: setScrollEnabled }),
+    [refToUse]
+  );
   const handleOnMessage = useMemo(() => makeOnMessage(onMessage), [onMessage]);
 
   // 초기 state/history 주입 스크립트
   const INJECT_STATE = useMemo(() => buildHistoryStateInjector(initialState), [initialState]);
 
+  // Safe Area 주입 스크립트
+  const INJECT_SAFE_AREA = useMemo(() => buildSafeAreaInjector(insets), [insets]);
+
   // 개발 모드에서는 콘솔 패치 + state 주입을 함께, 프로덕션에서도 state 주입은 항상 수행
   const INJECT_BEFORE = useMemo(() => {
     const scripts = [];
     if (__DEV__) scripts.push(CONSOLE_PATCH);
+    scripts.push(INJECT_SAFE_AREA);
     scripts.push(INJECT_STATE);
     return scripts.join('\n');
-  }, [CONSOLE_PATCH, INJECT_STATE]);
+  }, [CONSOLE_PATCH, INJECT_STATE, INJECT_SAFE_AREA]);
+
+  useEffect(() => {
+    const ref = refToUse.current;
+    if (!ref) return;
+    const key = `${insets.top}-${insets.bottom}-${insets.left}-${insets.right}`;
+    if (lastInjectedInsetsRef.current === key) return;
+    lastInjectedInsetsRef.current = key;
+    ref.injectJavaScript(buildSafeAreaInjector(insets));
+  }, [insets, refToUse]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active') return;
+      refToUse.current?.injectJavaScript("window.dispatchEvent(new Event('appresume'));true;");
+    });
+
+    return () => subscription.remove();
+  }, [refToUse]);
 
   // unmount 시 이 WebView가 기다리던 모든 txId 정리
   useEffect(() => {
     return () => {
       navBridgeHub.cleanup(refToUse);
+      pushCoordinator.removeSessionWebView(refToUse);
     };
   }, [refToUse]);
 
@@ -87,14 +156,31 @@ export function BridgeWebView({ uri, webviewRef, initialState }: Props) {
       ref={refToUse}
       source={{ uri }}
       onMessage={handleOnMessage}
-      onLoadEnd={notifyReady}
+      onNavigationStateChange={onNavigationStateChange}
+      onLoadEnd={() => {
+        const ref = refToUse.current;
+        if (ref) {
+          // iOS도 초기 주입이 WebView 로드 타이밍과 경합할 수 있다.
+          // 로드 완료 후 다시 적용해 모든 화면에서 safe area 값을 보장한다.
+          ref.injectJavaScript(buildSafeAreaInjector(insets));
+        }
+        notifyReady();
+        onLoadEnd?.();
+      }}
       javaScriptEnabled
+      domStorageEnabled
       originWhitelist={['*']}
-      startInLoadingState
-      cacheEnabled={false}
-      injectedJavaScriptBeforeContentLoaded={INJECT_BEFORE}
+      cacheEnabled
       geolocationEnabled
+      scrollEnabled={scrollEnabled}
+      // AOS 시스템 글자 크기 설정을 WebView에 반영하지 않음 (iOS와 동일하게 고정)
+      {...(Platform.OS === 'android' ? { textZoom: 100 } : {})}
       webviewDebuggingEnabled={__DEV__}
+      injectedJavaScriptBeforeContentLoaded={Platform.OS === 'ios' ? INJECT_BEFORE : undefined}
+      injectedJavaScript={Platform.OS === 'android' ? INJECT_BEFORE : undefined}
+      renderError={() => <ErrorScreen onRefresh={() => {
+        refToUse.current?.reload();
+      }} />}
     />
   );
 }

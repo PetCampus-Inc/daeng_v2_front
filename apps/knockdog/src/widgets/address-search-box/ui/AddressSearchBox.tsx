@@ -133,7 +133,7 @@ export function AddressSearchBox({ onSelect }: AddressSearchBoxProps) {
         </TextField>
       </div>
 
-      <div ref={scrollRef} className='max-h-[calc(100vh-134px)] overflow-y-auto px-4'>
+      <div ref={scrollRef} className='max-h-[calc(100dvh-134px)] overflow-y-auto px-4'>
         {search === '' && (results?.length ?? 0) === 0 && (
           <div className='mt-5 px-4'>
             <ul className='text-text-tertiary body2-regular list-disc space-y-2'>

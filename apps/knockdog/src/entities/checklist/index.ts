@@ -1,6 +1,8 @@
 // api
 export { getAnswers, type AnswersResponse, updateAnswers, type UpdateAnswersRequest } from './api/answers';
+export { deleteChecklist, type DeleteChecklistRequest } from './api/deleteChecklist';
 export { getQuestions, type QuestionGroupResponse } from './api/questions';
+export { toSavedChecklistAnswers } from './lib/checklistAnswers';
 
 // config
 export {
@@ -11,4 +13,4 @@ export {
 
 // model
 export type { Answer, AnswerGroup, QuestionGroup, Question } from './model/checklist';
-export { QUESTION_MAP } from './config/questionMap';
+export { getChecklistChip } from './config/questionMap';

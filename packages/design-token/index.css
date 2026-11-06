@@ -37,7 +37,7 @@
 
   --color-text-primary: var(--color-primitive-neutral-900);
   --color-text-secondary: var(--color-primitive-neutral-600);
-  --color-text-tertiary: var(--color-primitive-neutral-500);
+  --color-text-tertiary: var(--color-primitive-neutral-600);
   --color-text-caption: var(--color-primitive-neutral-400);
   --color-text-primary-inverse: var(--color-primitive-neutral-0);
   --color-text-secondary-inverse: var(--color-primitive-neutral-400);
@@ -46,10 +46,12 @@
   --color-fill-primary-700: var(--color-primitive-orange-700);
   --color-fill-primary-500: var(--color-primitive-orange-500);
   --color-fill-primary-50: var(--color-primitive-orange-50);
+  --color-fill-secondary-800: var(--color-primitive-neutral-800);
   --color-fill-secondary-700: var(--color-primitive-neutral-700);
   --color-fill-secondary-600: var(--color-primitive-neutral-600);
   --color-fill-secondary-500: var(--color-primitive-neutral-500);
   --color-fill-secondary-400: var(--color-primitive-neutral-400);
+  --color-fill-secondary-300: var(--color-primitive-neutral-300);
   --color-fill-secondary-200: var(--color-primitive-neutral-200);
   --color-fill-secondary-100: var(--color-primitive-neutral-100);
   --color-fill-secondary-50: var(--color-primitive-neutral-50);

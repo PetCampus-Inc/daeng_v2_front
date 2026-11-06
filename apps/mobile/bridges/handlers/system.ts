@@ -1,14 +1,63 @@
 import * as Linking from 'expo-linking';
 import * as Clipboard from 'expo-clipboard';
+import * as Application from 'expo-application';
 import Constants from 'expo-constants';
-import { Platform, Share } from 'react-native';
+import { Platform } from 'react-native';
 import { NativeBridgeRouter } from '@knockdog/bridge-native';
-import { METHODS, type ShareParams, type ShareResult } from '@knockdog/bridge-core';
+import { METHODS } from '@knockdog/bridge-core';
+import { useBlockingOverlayStore } from '@/features/blocking-overlay';
+
+let lastBlockingOverlayRequestId = 0;
+let lastConfirmDialogRequestId = 0;
 
 /**
  * 시스템 핸들러
  */
 export function registerSystemHandlers(router: NativeBridgeRouter) {
+  router.register<{ visible: boolean; message: string; requestId: number }>(METHODS.setBlockingOverlay, async (params) => {
+    if (params.requestId < lastBlockingOverlayRequestId) {
+      return { visible: useBlockingOverlayStore.getState().content !== null };
+    }
+
+    lastBlockingOverlayRequestId = params.requestId;
+    const visible = params.visible === true;
+    useBlockingOverlayStore.getState().setUploadOverlay(visible, visible ? params.message : '');
+    return { visible };
+  });
+
+  router.register<{
+    requestId: number;
+    title: string;
+    titleParts?: { text: string; accent?: boolean }[];
+    titleLineBreakAfterPartIndex?: number;
+    description?: string;
+    cancelLabel?: string;
+    confirmLabel?: string;
+    showCancelButton?: boolean;
+    confirmVariant?: 'accent' | 'neutral';
+    contentPaddingHorizontal?: number;
+    showAvatar?: boolean;
+    avatarUrl?: string;
+  }>(METHODS.showConfirmDialog, async (params) => {
+    if (params.requestId < lastConfirmDialogRequestId) return { action: 'cancel' as const };
+
+    lastConfirmDialogRequestId = params.requestId;
+    const action = await useBlockingOverlayStore.getState().showConfirmDialog({
+      title: params.title,
+      titleParts: params.titleParts,
+      titleLineBreakAfterPartIndex: params.titleLineBreakAfterPartIndex,
+      description: params.description,
+      cancelLabel: params.cancelLabel,
+      confirmLabel: params.confirmLabel,
+      showCancelButton: params.showCancelButton,
+      confirmVariant: params.confirmVariant,
+      contentPaddingHorizontal: params.contentPaddingHorizontal,
+      showAvatar: params.showAvatar,
+      avatarUrl: params.avatarUrl,
+    });
+    return { action };
+  });
+
   /** 전화 걸기 */
   router.register(METHODS.callPhone, async (params: { phoneNumber: string }) => {
     const { phoneNumber } = params;
@@ -17,31 +66,45 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
       throw { code: 'EINVALID', message: '전화번호가 유효하지 않습니다.' };
     }
 
-    // 시뮬레이터 환경 체크
-    const isEmulator = !Constants.isDevice;
+    // WebView에서 이미 정규화된 번호를 받으므로, 추가 정규화는 최소화
+    // 단, 공백과 하이픈만 제거 (이미 WebView에서 숫자, *, #, +만 남긴 상태)
+    const normalizedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
 
-    if (isEmulator) {
-      console.log('[APP] 시뮬레이터/에뮬레이터 환경에서 전화 기능 사용 불가');
-      console.log(`[APP] 전화번호: ${phoneNumber} (시뮬레이터에서는 실제 전화가 걸리지 않습니다)`);
-
-      // 개발 환경에서는 시뮬레이터에서도 성공으로 처리 (테스트용)
-      if (__DEV__) {
-        console.log('[APP] 개발 모드: 시뮬레이터에서도 전화 성공으로 처리');
-        return { opened: true, simulated: true };
-      }
-
-      throw { code: 'ESIMULATOR', message: '시뮬레이터에서는 전화를 걸 수 없습니다.' };
+    if (!normalizedPhoneNumber || normalizedPhoneNumber.length === 0) {
+      throw { code: 'EINVALID', message: '정규화된 전화번호가 유효하지 않습니다.' };
     }
 
-    const canOpenURL = await Linking.canOpenURL(`tel:${phoneNumber}`);
+    const telUrl = `tel:${normalizedPhoneNumber}`;
 
-    if (!canOpenURL) {
+    // iOS에서도 canOpenURL 체크를 수행 (iOS 9+ 권장)
+    // tel: 스키마는 시스템 스키마이지만, 안전을 위해 체크
+    try {
+      const canOpenURL = await Linking.canOpenURL(telUrl);
+      if (!canOpenURL) {
+        console.warn('[APP] canOpenURL returned false for tel:', telUrl);
+        // iOS에서는 canOpenURL이 false여도 실제로는 열릴 수 있으므로 시도
+        if (Platform.OS === 'android') {
+          throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+        }
+      }
+    } catch (canOpenError) {
+      // canOpenURL 자체가 실패한 경우 (권한 문제 등)
+      if (Platform.OS === 'android') {
+        console.error('[APP] canOpenURL check failed:', canOpenError);
+        throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
+      }
+      // iOS에서는 canOpenURL 실패해도 시도
+    }
+
+    try {
+      const opened = await Linking.openURL(telUrl);
+      // Linking.openURL은 Promise<boolean>을 반환하지 않을 수 있으므로
+      // 항상 성공으로 간주 (실제로는 시스템이 처리)
+      return { opened: true };
+    } catch (error) {
+      console.error('[APP] openURL error:', error);
       throw { code: 'EUNAVAILABLE', message: '이 기기에서 전화를 걸 수 없습니다.' };
     }
-
-    await Linking.openURL(`tel:${phoneNumber}`);
-
-    return { opened: true };
   });
 
   /** 클립보드 복사 */
@@ -64,62 +127,25 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     }
   });
 
-  /** 공유하기 */
-  router.register(METHODS.share, async (params: ShareParams): Promise<ShareResult> => {
-    const { message, url, subject, excludedActivityTypes, tintColor, title, dialogTitle } = params ?? {};
-
-    if (!message && !url) {
-      throw { code: 'EINVALID', message: '공유할 메시지 또는 URL이 필요합니다.' };
-    }
-
+  /** 앱 버전 가져오기 */
+  router.register(METHODS.getAppVersion, async () => {
     try {
-      // React Native Share는 message가 필수이므로 기본값 설정
-      const shareMessage = message || url || '';
-
-      const content: { message: string; url?: string; title?: string } = {
-        message: shareMessage,
-      };
-
-      // URL 설정
-      if (url) {
-        content.url = url;
-      }
-
-      // 플랫폼별 제목 설정
-      if (Platform.OS === 'ios' && subject) {
-        content.title = subject;
-      } else if (Platform.OS === 'android' && title) {
-        content.title = title;
-      }
-
-      // 플랫폼별 옵션 설정
-      const options: {
-        dialogTitle?: string;
-        excludedActivityTypes?: string[];
-        tintColor?: string;
-      } = {};
-
-      if (Platform.OS === 'android' && dialogTitle) {
-        options.dialogTitle = dialogTitle;
-      }
-
-      if (Platform.OS === 'ios') {
-        if (excludedActivityTypes) {
-          options.excludedActivityTypes = excludedActivityTypes;
-        }
-        if (tintColor) {
-          options.tintColor = tintColor;
-        }
-      }
-
-      const response = await Share.share(content, options);
-
-      const shared = response?.action === Share.sharedAction;
-
-      return { shared: !!shared, activityType: response?.activityType ?? undefined };
+      const version = Application.nativeApplicationVersion || Constants.expoConfig?.version || '1.0.0';
+      return { version };
     } catch (error) {
-      console.error('[APP] share error', error);
-      throw { code: 'EUNAVAILABLE', message: '공유할 수 없습니다.' };
+      console.error('[APP] getAppVersion error', error);
+      throw { code: 'EUNAVAILABLE', message: '앱 버전을 가져올 수 없습니다.' };
+    }
+  });
+
+  /** 설정창 열기 */
+  router.register(METHODS.openSettings, async () => {
+    try {
+      await Linking.openSettings();
+      return { opened: true };
+    } catch (error) {
+      console.error('[APP] openSettings error', error);
+      throw { code: 'EUNAVAILABLE', message: '설정창을 열 수 없습니다.' };
     }
   });
 }

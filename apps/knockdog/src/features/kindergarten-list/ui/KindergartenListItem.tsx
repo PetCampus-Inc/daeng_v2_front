@@ -1,0 +1,128 @@
+import { Icon } from '@knockdog/ui';
+import { CardBtnClipDefs } from './CardBtnClipDefs';
+import { BannerImageSlider } from './BannerImageSlider';
+import { KindergartenFeatureBadges } from './KindergartenFeatureBadges';
+import { ReviewRating, ServiceBadgesTruncated, type KindergartenListItem as KindergartenListItemType } from '@entities/kindergarten';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { useBottomSheetSnapIndex } from '@shared/lib';
+
+interface KindergartenListItemProps extends KindergartenListItemType {
+  onBookmarkClick?: (id: string, bookmarked: boolean) => void;
+}
+
+export function KindergartenListItem({
+  id,
+  title,
+  banner,
+  ctg,
+  dist,
+  roadAddress,
+  businessStatus,
+  price,
+  serviceTags,
+  pickupType,
+  rating,
+  reviewCount,
+  verified,
+  memo,
+  bookmarked = false,
+  onBookmarkClick,
+}: KindergartenListItemProps) {
+  const { pushForResult } = useStackNavigation();
+  const { setSnapIndex } = useBottomSheetSnapIndex();
+
+  const handleClick = async () => {
+    const isMoveHome = await pushForResult({
+      pathname: `/kindergarten/${id}`,
+      params: { entrySource: 'kindergarten-list', expectsNavigationResult: true },
+    });
+    if (isMoveHome) setSnapIndex(0);
+  };
+
+  return (
+    <div onClick={handleClick} className='gap-x4 px-x4 py-x6 flex w-full flex-col items-center'>
+      {/* 이미지 컨테이너 */}
+      <div className='relative aspect-video w-full overflow-hidden'>
+        <BannerImageSlider id={id} name={title} slides={banner} />
+        <CardBtnClipDefs id={id} />
+        <div className='absolute top-2 left-2 z-10'>
+          <KindergartenFeatureBadges verified={verified} />
+        </div>
+        {/* 북마크 버튼 */}
+        <button
+          aria-label='보관하기'
+          className='bg-bg-0 absolute top-0 right-0 z-10 flex h-[19.9%] min-h-8 w-[11.17%] min-w-8 items-center justify-center border-0 p-0'
+          style={{ clipPath: `url(#card-btn-${id})` }}
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            event.stopPropagation();
+            onBookmarkClick?.(id, bookmarked);
+          }}
+        >
+          <Icon
+            icon={bookmarked ? 'BookmarkFill' : 'BookmarkLine'}
+            className={`size-x6 ${bookmarked ? 'text-fill-secondary-700' : 'text-fill-secondary-500'}`}
+          />
+        </button>
+      </div>
+
+      {/* 컨텐츠 영역 */}
+      <div className='gap-x3 flex w-full flex-col'>
+        {/* 컨텐츠 상단 영역 */}
+        <div className='gap-x2 flex min-w-0 items-start justify-between self-stretch'>
+          {/* 타이틀 */}
+          <div className='flex min-w-0 flex-1 flex-col items-start justify-center gap-0.5'>
+            <h1 className='h2-extrabold text-text-primary w-full truncate'>{title}</h1>
+            <div className='flex w-full min-w-0 items-center gap-x2'>
+              <p className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</p>
+              <ReviewRating rating={rating} reviewCount={reviewCount} />
+            </div>
+          </div>
+        </div>
+
+        {/* 영업 정보 및 주소 영역 */}
+        <div className='flex flex-col gap-y-1 self-stretch'>
+          <div className='grid grid-cols-[minmax(52px,max-content)_1fr] grid-rows-2 gap-x-2 gap-y-2 self-stretch'>
+            <span className='body2-extrabold text-text-accent col-start-1 row-start-1 overflow-hidden text-ellipsis whitespace-nowrap'>
+              {businessStatus.title}
+            </span>
+            <span className='body2-regular text-text-primary col-start-2 row-start-1 overflow-hidden text-ellipsis'>
+              {businessStatus.description}
+            </span>
+            <span className='body2-extrabold text-text-primary col-start-1 row-start-2 overflow-hidden text-ellipsis whitespace-nowrap'>
+              {dist}
+            </span>
+            <span className='body2-regular text-text-primary col-start-2 row-start-2 overflow-hidden text-ellipsis'>
+              {roadAddress}
+            </span>
+          </div>
+        </div>
+
+        {/* 메모가 없을 때는 주소와 하단 정보 영역을 구분한다. */}
+        {!memo && <div className='bg-line-100 flex h-px w-full items-center justify-center' />}
+
+        {/* 메모 영역 */}
+        {memo && (
+          <div className='bg-fill-secondary-100 px-x3 py-x4 gap-x1 radius-r2 flex w-full flex-col'>
+            <div className='gap-x1 flex items-center'>
+              <Icon icon='Note' className='size-x4 text-fill-secondary-600' />
+              <span className='caption1-extrabold text-primitive-neutral-700'>{memo.memoDate} 메모</span>
+            </div>
+            <p className='body2-regular text-text-primary line-clamp-2'>{memo.content}</p>
+          </div>
+        )}
+
+        {/* 하단 필터 + 가격 영역 */}
+        <div className='gap-x2 flex min-w-0 items-center justify-between self-stretch'>
+          {/* badge 영역 */}
+          <ServiceBadgesTruncated serviceTags={serviceTags} pickupType={pickupType} />
+
+          {/* 가격 영역 */}
+          <div className='gap-x1 flex shrink-0 items-center'>
+            <span className='body2-regular text-text-primary'>이용요금</span>
+            <span className='h3-extrabold text-text-primary'>{price.toLocaleString()}~</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
 export * from './bottom-sheet';
+export * from './bridge';
 export * from './device';
 export * from './dom';
 export * from './react';

@@ -226,7 +226,7 @@ function useSegmentedControl(props: UseSegmentedControlProps) {
           }
         },
         disabled: itemState.disabled,
-        defaultChecked: itemState.checked,
+        checked: itemState.checked,
         style: dom.visuallyHiddenStyle,
       };
     },

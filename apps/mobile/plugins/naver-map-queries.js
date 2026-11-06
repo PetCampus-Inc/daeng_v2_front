@@ -1,4 +1,4 @@
-const { withAndroidManifest } = require('@expo/config-plugins');
+const { withAndroidManifest } = require('expo/config-plugins');
 
 /**
  * Android에 nmap 스킴 쿼리를 추가하는 Expo Config Plugin

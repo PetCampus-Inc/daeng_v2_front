@@ -1,0 +1,281 @@
+import {
+  areComparableStatesEqual,
+  buildUrlSyncState,
+  mergeSnapshots,
+  normalizeUrlState,
+  pickMapSnapshot,
+  pickSearchSnapshot,
+  toComparableState,
+  type MapSnapshot,
+  type SearchEvent,
+  type SearchSnapshot,
+  type SearchState,
+  type SearchTransitionContext,
+  transition,
+} from '../lib/searchMachine';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useSearchUrlState } from './useSearchUrlState';
+import { isEqualFilters } from '@entities/kindergarten';
+import { useBasePoint } from '@entities/user';
+import { isEqualBounds, isEqualCoord } from '@shared/lib';
+import type { Coord } from '@shared/types';
+
+interface SearchMachineContextValue {
+  liveState: MapSnapshot;
+  committedState: SearchSnapshot;
+  searchState: SearchState;
+  dispatch: (event: SearchEvent, options?: DispatchOptions) => void;
+}
+
+const SearchMachineContext = createContext<SearchMachineContextValue | null>(null);
+const MAP_VIEWPORT_STORAGE_KEY = 'kindergarten-map-viewport';
+
+interface DispatchOptions {
+  skipUrlSync?: boolean;
+}
+
+function readStoredMapState(): MapSnapshot | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(MAP_VIEWPORT_STORAGE_KEY) ?? 'null') as {
+      center?: Coord;
+      zoom?: number;
+    } | null;
+    const { center, zoom } = stored ?? {};
+
+    if (
+      !center ||
+      !Number.isFinite(center.lat) ||
+      !Number.isFinite(center.lng) ||
+      typeof zoom !== 'number' ||
+      !Number.isFinite(zoom)
+    ) {
+      return null;
+    }
+
+    return { center, zoom, viewportBounds: null };
+  } catch {
+    return null;
+  }
+}
+
+export function SearchStateProvider({ children }: { children: ReactNode }) {
+  const { coord: basePoint, type: baseType } = useBasePoint();
+
+  const { urlState, searchUrlState, mapUrlState, setUrlState } = useSearchUrlState();
+  const createInitialState = () => {
+    const refPointFromBase = basePoint ?? null;
+    const baseState = buildUrlSyncState(urlState, refPointFromBase);
+    const storedMapState = !urlState.center && urlState.zoom == null ? readStoredMapState() : null;
+    const initialState = storedMapState ? { ...baseState, ...storedMapState } : baseState;
+
+    return transition(initialState, { type: 'URL_SYNC', payload: initialState }, { refPointFromBase });
+  };
+  const initialState = createInitialState();
+  const [committedState, setCommittedState] = useState<SearchSnapshot>(() => pickSearchSnapshot(initialState));
+  const [committedMapState, setCommittedMapState] = useState<MapSnapshot>(() => pickMapSnapshot(initialState));
+  const [liveState, setLiveState] = useState<MapSnapshot>(() => pickMapSnapshot(initialState));
+  const [urlWriteVersion, setUrlWriteVersion] = useState(0);
+
+  const liveStateRef = useRef(liveState);
+  const committedStateRef = useRef(committedState);
+  const basePointRef = useRef<Coord | null>(basePoint);
+  const urlStateRef = useRef(urlState);
+  const pendingUrlStateRef = useRef<ReturnType<typeof toComparableState> | null>(null);
+  const pendingUrlWriteCountRef = useRef(0);
+  const pendingUrlWriteIdRef = useRef(0);
+
+  useEffect(() => {
+    liveStateRef.current = liveState;
+    committedStateRef.current = committedState;
+    basePointRef.current = basePoint;
+    urlStateRef.current = urlState;
+  }, [liveState, committedState, committedMapState, basePoint, urlState]);
+
+  useEffect(() => {
+    return () => {
+      const { center, zoom } = liveStateRef.current;
+      if (!center) return;
+
+      try {
+        sessionStorage.setItem(MAP_VIEWPORT_STORAGE_KEY, JSON.stringify({ center, zoom }));
+      } catch {
+        // 스토리지 비활성화/접근 거부 시 저장 실패는 무시 (화면 전환을 막으면 안 됨)
+      }
+    };
+  }, []);
+
+  const buildTransitionContext = useCallback((): SearchTransitionContext => {
+    return {
+      refPointFromBase: basePointRef.current ?? null,
+    };
+  }, []);
+
+  const writeUrlState = useCallback(
+    (state: SearchState) => {
+      const writeId = ++pendingUrlWriteIdRef.current;
+      pendingUrlStateRef.current = toComparableState(state);
+      pendingUrlWriteCountRef.current += 1;
+      const settleWrite = (failed: boolean) => {
+        pendingUrlWriteCountRef.current = Math.max(0, pendingUrlWriteCountRef.current - 1);
+        if (failed && writeId === pendingUrlWriteIdRef.current) {
+          pendingUrlStateRef.current = null;
+        }
+        setUrlWriteVersion((version) => version + 1);
+      };
+      void Promise.resolve(setUrlState(state)).then(
+        () => settleWrite(false),
+        () => settleWrite(true)
+      );
+    },
+    [setUrlState]
+  );
+
+  const dispatch = useCallback(
+    (event: SearchEvent, options?: DispatchOptions) => {
+      /**
+       * liveState ↔ urlState 동기화 규칙
+       * - dispatch는 항상 liveState를 갱신한다.
+       * - map/search 변화가 있으면 urlState에 반영한다.
+       * - urlState 변경은 URL_SYNC로 유입되어 liveState를 다시 맞춘다.
+       */
+      const prevSearch = committedStateRef.current;
+      const prevMap = liveStateRef.current;
+      const prevState = mergeSnapshots(prevSearch, prevMap);
+      const ctx = buildTransitionContext();
+      const next = transition(prevState, event, ctx);
+
+      // 로컬 상태 즉시 업데이트
+      const nextSearch = pickSearchSnapshot(next);
+      const nextMap = pickMapSnapshot(next);
+      setLiveState(nextMap);
+      // 연속 이벤트에서도 최신 map 상태를 즉시 참조하도록 업데이트한다.
+      liveStateRef.current = nextMap;
+
+      const isSearchChanged =
+        nextSearch.scope !== prevSearch.scope ||
+        nextSearch.searchedLevel !== prevSearch.searchedLevel ||
+        nextSearch.query !== prevSearch.query ||
+        !isEqualFilters(nextSearch.filters, prevSearch.filters) ||
+        !isEqualCoord(nextSearch.refPoint, prevSearch.refPoint) ||
+        !isEqualBounds(nextSearch.searchBounds, prevSearch.searchBounds) ||
+        nextSearch.searchLock !== prevSearch.searchLock ||
+        !isEqualCoord(nextSearch.searchCenter, prevSearch.searchCenter);
+
+      const isMapChanged =
+        nextMap.zoom !== prevMap.zoom ||
+        !isEqualCoord(nextMap.center, prevMap.center) ||
+        !isEqualBounds(nextMap.viewportBounds, prevMap.viewportBounds);
+
+      const shouldCommitMap = isSearchChanged;
+
+      if (isSearchChanged) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[SearchMachine] State changed:', { event, prev: prevState, next });
+        }
+        setCommittedState(nextSearch);
+        // URL_SYNC 직후 들어오는 이벤트가 최신 검색 상태를 사용하도록 보장한다.
+        committedStateRef.current = nextSearch;
+      }
+
+      if (shouldCommitMap) {
+        setCommittedMapState(nextMap);
+      }
+
+      if ((isSearchChanged || isMapChanged) && !options?.skipUrlSync) {
+        const nextComparable = toComparableState(next);
+        const urlComparable = normalizeUrlState(urlStateRef.current);
+        if (!areComparableStatesEqual(nextComparable, urlComparable)) {
+          // Wait for nuqs to settle local URL writes before accepting URL_SYNC.
+          writeUrlState(next);
+        }
+      }
+    },
+    [buildTransitionContext, setUrlState, writeUrlState]
+  );
+
+  const prevBaseTypeRef = useRef(baseType);
+  useEffect(() => {
+    if (!basePoint) return;
+
+    const hasUrlRefPoint = !!urlStateRef.current.refPoint;
+
+    if (!committedState.refPoint && !hasUrlRefPoint) {
+      dispatch({ type: 'BASEPOINT_SYNC', payload: { basePoint, reason: 'passive' } });
+      prevBaseTypeRef.current = baseType;
+      return;
+    }
+
+    const baseTypeChanged = prevBaseTypeRef.current !== baseType;
+    if (baseTypeChanged && !isEqualCoord(committedState.refPoint, basePoint)) {
+      dispatch({ type: 'BASEPOINT_SYNC', payload: { basePoint, reason: 'explicit' } });
+    }
+    prevBaseTypeRef.current = baseType;
+  }, [basePoint, baseType, committedState.refPoint, dispatch]);
+
+  useEffect(() => {
+    /**
+     * URL 변경(뒤로가기/외부 진입)을 FSM으로 흡수한다.
+     * URL_SYNC는 urlState를 다시 쓰지 않고 liveState를 재정렬한다.
+     */
+    const urlComparable = normalizeUrlState(urlState);
+    const pendingUrlState = pendingUrlStateRef.current;
+    if (pendingUrlState) {
+      if (pendingUrlWriteCountRef.current > 0) return;
+      if (!areComparableStatesEqual(urlComparable, pendingUrlState)) {
+        const latestState = mergeSnapshots(committedStateRef.current, liveStateRef.current);
+        const latestComparable = toComparableState(latestState);
+        if (areComparableStatesEqual(latestComparable, pendingUrlState)) {
+          writeUrlState(latestState);
+          return;
+        }
+      }
+      pendingUrlStateRef.current = null;
+    }
+
+    const committedComparable = toComparableState(mergeSnapshots(committedStateRef.current, liveStateRef.current));
+    if (areComparableStatesEqual(urlComparable, committedComparable)) {
+      return;
+    }
+
+    const refPointFromBase = basePointRef.current ?? null;
+    // URL 파라미터를 search/map으로 분리해 FSM 입력을 구성한다.
+    const baseState = buildUrlSyncState({ ...searchUrlState, ...mapUrlState }, refPointFromBase);
+    const payloadState = {
+      ...baseState,
+      // 바텀시트 스냅처럼 지도와 무관한 URL 변경은 URL에 없는 center/zoom을 기본값으로
+      // 재계산하지 않는다. 사용자가 마지막으로 이동한 지도 위치를 유지한다.
+      center: mapUrlState.center ?? liveStateRef.current.center,
+      zoom: mapUrlState.zoom ?? liveStateRef.current.zoom,
+      viewportBounds: liveStateRef.current.viewportBounds,
+    };
+    // URL 입력은 FSM으로 반영하되, URL 재동기화는 건너뜁니다.
+    dispatch({ type: 'URL_SYNC', payload: payloadState }, { skipUrlSync: true });
+  }, [dispatch, urlState, searchUrlState, mapUrlState, writeUrlState, urlWriteVersion]);
+
+  const searchState = useMemo(
+    () => mergeSnapshots(committedState, committedMapState),
+    [committedState, committedMapState]
+  );
+
+  const value = useMemo<SearchMachineContextValue>(
+    () => ({
+      liveState,
+      committedState,
+      searchState,
+      dispatch,
+    }),
+    [liveState, committedState, searchState, dispatch]
+  );
+
+  return <SearchMachineContext.Provider value={value}>{children}</SearchMachineContext.Provider>;
+}
+
+export function useSearchMachine(): SearchMachineContextValue {
+  const ctx = useContext(SearchMachineContext);
+  if (!ctx) {
+    throw new Error('useSearchMachine은 SearchStateProvider 하위에서만 사용할 수 있습니다.');
+  }
+  return ctx;
+}

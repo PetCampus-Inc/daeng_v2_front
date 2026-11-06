@@ -1,8 +1,9 @@
 {
   "extends": "@knockdog/typescript-config/base.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": ".",
   },
-  "include": ["src/**/*", "../bridge-web/src/global.d.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

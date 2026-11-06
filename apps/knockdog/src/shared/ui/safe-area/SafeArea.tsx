@@ -1,4 +1,3 @@
-import { useSafeAreaInsets } from '@shared/lib';
 import { CSSProperties } from 'react';
 
 type EdgeMode = 'off' | 'additive' | 'maximum';
@@ -24,48 +23,38 @@ interface SafeAreaProps extends React.HTMLAttributes<HTMLDivElement> {
  *   - 'maximum': finalPadding = max(safeArea, padding)
  */
 export function SafeArea({ edges, style, children, ...props }: SafeAreaProps) {
-  const insets = useSafeAreaInsets();
-
   const normalizedEdges: EdgesObject = Array.isArray(edges)
     ? edges.reduce((acc, edge) => ({ ...acc, [edge]: 'additive' as EdgeMode }), {})
     : (edges ?? { top: 'additive', right: 'additive', bottom: 'additive', left: 'additive' });
 
   const existingStyle = style ?? {};
-  const parsePadding = (value: string | number | undefined): number => {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string') return parseFloat(value) || 0;
-    return 0;
-  };
 
-  const existingPadding = {
-    top: parsePadding(existingStyle.paddingTop),
-    right: parsePadding(existingStyle.paddingRight),
-    bottom: parsePadding(existingStyle.paddingBottom),
-    left: parsePadding(existingStyle.paddingLeft),
-  };
+  const getEdgeValue = (edge: Edge, existingValue: string | number | undefined): string | number | undefined => {
+    const mode = normalizedEdges[edge] ?? 'off';
 
-  const calculatePadding = (edge: Edge, safeAreaValue: number): number => {
-    const mode = normalizedEdges[edge];
-    const existingValue = existingPadding[edge];
+    const valueStr =
+      existingValue === undefined ? '0px' : typeof existingValue === 'number' ? `${existingValue}px` : existingValue;
 
     if (mode === 'off') {
       return existingValue;
     }
 
+    const cssVar = `max(var(--safe-area-inset-${edge}, 0px), env(safe-area-inset-${edge}, 0px))`;
+
     if (mode === 'maximum') {
-      return Math.max(safeAreaValue, existingValue);
+      return `max(${cssVar}, ${valueStr})`;
     }
 
-    // 'additive'
-    return safeAreaValue + existingValue;
+    // additive
+    return `calc(${cssVar} + ${valueStr})`;
   };
 
   const finalStyle: CSSProperties = {
     ...existingStyle,
-    paddingTop: calculatePadding('top', insets.top),
-    paddingRight: calculatePadding('right', insets.right),
-    paddingBottom: calculatePadding('bottom', insets.bottom),
-    paddingLeft: calculatePadding('left', insets.left),
+    paddingTop: getEdgeValue('top', existingStyle.paddingTop),
+    paddingRight: getEdgeValue('right', existingStyle.paddingRight),
+    paddingBottom: getEdgeValue('bottom', existingStyle.paddingBottom),
+    paddingLeft: getEdgeValue('left', existingStyle.paddingLeft),
   };
 
   return (

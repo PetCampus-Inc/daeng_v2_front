@@ -1,21 +1,24 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { Icon, ActionButton, TextField, TextFieldInput } from '@knockdog/ui';
 
 import { useVerifyEmailProcess } from '../model/useVerifyEmailProcess';
-import { useRouter } from 'next/navigation';
 
 import { Header } from '@widgets/Header';
-import { route } from '@shared/constants/route';
+
+const emptySubscribe = () => () => {};
 
 function VerifyEmailPage() {
-  const router = useRouter();
   const { socialUser, timerDisplay, error, sendEmail, verification } = useVerifyEmailProcess();
+  const isHydrated = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    if (!socialUser) router.push(route.auth.login.root);
-  }, [socialUser, router]);
+  if (!isHydrated) return null;
+  if (!socialUser) throw new Error('소셜 유저 정보가 없습니다');
 
   return (
     <>

@@ -1,19 +1,47 @@
-import { createKindergartenMainQueryOptions } from '@entities/kindergarten';
+import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import {
+  type Kindergarten,
+  type KindergartenMainParams,
+  isKindergartenId,
+  kindergartenQueries,
+  toKindergartenMain,
+} from '@entities/kindergarten';
+import { useUserStore } from '@entities/user';
+import { bookmarkQueries } from '@entities/bookmark';
+import { memoQueries } from '@entities/memo';
+import { tokenUtils } from '@shared/utils';
 
-interface KindergartenMainQueryParams {
-  id: string;
-  lng: number;
-  lat: number;
-  enabled?: boolean;
-}
+export function useKindergartenMainQuery(params: KindergartenMainParams & { enabled?: boolean }) {
+  const { id, lng, lat, enabled = true } = params;
+  const user = useUserStore((state) => state.user);
+  const isLoggedIn = !!user || tokenUtils.hasAccessToken();
 
-function useKindergartenMainQuery(params: KindergartenMainQueryParams) {
-  const { id, lng, lat, enabled } = params;
+  const bookmarksQuery = useQuery({
+    ...bookmarkQueries.list(),
+    enabled: isLoggedIn,
+  });
+
+  const memoListQuery = useQuery({
+    ...memoQueries.list(),
+    enabled: isLoggedIn,
+  });
+
+  const select = useCallback(
+    (data: Kindergarten) =>
+      toKindergartenMain({
+        item: data,
+        memo: memoListQuery.data?.memos ?? [],
+        bookmark: bookmarksQuery.data ?? [],
+      }),
+    [bookmarksQuery.data, memoListQuery.data]
+  );
+
   return useQuery({
-    ...createKindergartenMainQueryOptions(id, lng, lat),
-    enabled: enabled ?? true,
+    ...kindergartenQueries.main({ id, lng, lat }),
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    select,
+    enabled: enabled && isKindergartenId(id) && lng != null && lat != null,
   });
 }
-
-export { useKindergartenMainQuery };

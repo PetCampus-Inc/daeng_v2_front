@@ -1,85 +1,108 @@
-import React from 'react';
+'use client';
+
 import { overlay } from 'overlay-kit';
 import { Icon, Divider } from '@knockdog/ui';
-import { ServiceBadgeList } from '@entities/kindergarten';
-import { DeparturePointSheet } from '@features/kindergarten';
-import { OPEN_STATUS_MAP, CTAG_MAP, type Kindergarten } from '@entities/kindergarten';
+import { cn } from '@knockdog/ui/lib';
+import { DeparturePointSheet, ReviewRating, ServiceBadgeList, type KindergartenMain } from '@entities/kindergarten';
+import { VerifiedKindergartenMark } from './VerifiedKindergartenMark';
 
-interface KindergartenMainBoxProps extends Omit<Kindergarten, 'banner'> {}
+interface KindergartenMainBoxProps extends KindergartenMain {
+  compact?: boolean;
+}
 
-const KindergartenMainBox = ({
+function KindergartenMainBox({
   title,
+  verified,
   ctg,
   dist,
   roadAddress,
-  operationStatus,
-  operationDescription,
+  businessStatus,
   price,
-  serviceTags,
+  rating,
   reviewCount,
+  serviceTags,
   pickupType,
-  memoDate,
+  memo,
   coords,
-}: KindergartenMainBoxProps) => {
-  const openDeparturePointSheet = () =>
-    overlay.open(({ isOpen, close }) => (
-      <DeparturePointSheet isOpen={isOpen} close={close} to={{ lat: coords.lat, lng: coords.lng, name: title }} />
-    ));
+  banner,
+  compact = false,
+}: KindergartenMainBoxProps) {
+  const hasBannerImages = (banner ?? []).some(Boolean);
 
   return (
-    <div className='relative z-10 -mt-8 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px] pb-12'>
+    <div
+      className={cn(
+        'relative z-10 flex flex-col gap-[16px] rounded-t-[20px] bg-white px-4 pt-[20px]',
+        compact ? 'pb-5' : 'pb-12',
+        hasBannerImages && '-mt-8'
+      )}
+    >
       <div className='flex justify-between'>
-        <div className='flex flex-col'>
-          <span className='h2-extrabold'>{title}</span>
-          <span className='body2-semibold text-text-tertiary'>
-            {ctg
-              .split(',')
-              .map((tag) => CTAG_MAP[tag.trim() as keyof typeof CTAG_MAP])
-              .filter(Boolean)
-              .join(' ・ ')}
-          </span>
+        <div className='flex min-w-0 flex-1 flex-col'>
+          <div className='flex min-w-0 items-center gap-x1'>
+            <span className='h2-extrabold min-w-0 truncate'>{title}</span>
+            {verified && <VerifiedKindergartenMark />}
+          </div>
+          <div className='flex min-w-0 items-center gap-x2'>
+            <span className='body2-semibold text-text-tertiary min-w-0 shrink truncate'>{ctg}</span>
+            <ReviewRating rating={rating} reviewCount={reviewCount} />
+          </div>
         </div>
+        {/* 심사 대응용 임시 비노출
         <div className='flex'>
-          {/* 길찾기 버튼 */}
-          <button onClick={openDeparturePointSheet}>
+          <button
+            onClick={() =>
+              overlay.open(({ isOpen, close }) => (
+                <DeparturePointSheet
+                  isOpen={isOpen}
+                  close={close}
+                  to={{ lat: coords.lat, lng: coords.lng, name: title }}
+                />
+              ))
+            }
+          >
             <Icon icon='Navigation' className='text-fill-secondary-500 size-x8' />
           </button>
         </div>
+        */}
       </div>
       <div className='flex flex-col gap-[4px]'>
         <div>
-          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist.toFixed(2)}km</span>
+          <span className='body2-extrabold mr-1 inline-block min-w-[52px]'>{dist}</span>
           <span className='body2-regular'>{roadAddress}</span>
         </div>
-        <div>
-          <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
-            {OPEN_STATUS_MAP[operationStatus]}
-          </span>
-          <span className='body2-regular'>{operationDescription}</span>
-        </div>
-      </div>
-      {/* 뱃지 및 가격영역 */}
-      <div className='flex justify-between'>
-        <div className='flex gap-1'>
-          <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
-            <Icon icon='Naver' className='h-[16px] w-[16px]' />
-            리뷰 {reviewCount}개
+        {!compact && (
+          <div>
+            <span className='body2-extrabold text-text-accent mr-1 inline-block min-w-[52px]'>
+              {businessStatus.title}
+            </span>
+            <span className='body2-regular'>{businessStatus.description}</span>
           </div>
-          {memoDate && (
-            <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
-              <Icon icon='Note' className='h-[16px] w-[16px]' />
-              {memoDate} 노트
-            </div>
-          )}
-        </div>
-        <span className='h3-extrabold'>{price.toLocaleString()}원~</span>
+        )}
       </div>
-      {/* Divider */}
-      <Divider />
-      {/* 뱃지 리스트 */}
-      <ServiceBadgeList serviceTags={serviceTags} pickupType={pickupType} />
+      {!compact && (
+        <>
+          {/* 뱃지 및 가격영역 */}
+          <div className='flex justify-between'>
+            <div className='flex gap-1'>
+              {memo?.memoDate && (
+                <div className='text-size-caption1 flex gap-[2px] rounded-md bg-gray-100 px-2 py-1'>
+                  <Icon icon='Note' className='h-[16px] w-[16px]' />
+                  {memo?.memoDate} 메모
+                </div>
+              )}
+            </div>
+            <span className='h3-extrabold'>{price.toLocaleString()}원~</span>
+          </div>
+          {/* Divider */}
+          <Divider />
+          {/* 뱃지 리스트 */}
+          <ServiceBadgeList serviceTags={serviceTags} pickupType={pickupType} />
+        </>
+      )}
     </div>
   );
-};
+}
 
 export { KindergartenMainBox };
+export type { KindergartenMainBoxProps };

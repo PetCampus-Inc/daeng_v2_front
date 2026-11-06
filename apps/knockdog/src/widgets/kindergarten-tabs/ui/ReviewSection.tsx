@@ -1,27 +1,169 @@
 'use client';
 
-import { Icon } from '@knockdog/ui';
-
-import { ReviewCard } from '@features/review';
-import { useReviewQuery } from '@features/review/api/useReviewQuery';
-import { useInfiniteScroll } from '@shared/lib';
+import { useRef, useState } from 'react';
+import { ActionButton, Icon, SegmentedControl, SegmentedControlItem } from '@knockdog/ui';
 import { useParams } from 'next/navigation';
+import { useQueryState } from 'nuqs';
 
-interface ReviewSectionProps {
-  onScrollTop?: () => void;
+import {
+  DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+  deleteKnockdogReview,
+  hasKnockdogReviewReport,
+  KnockdogReviewList,
+  KnockdogReviewSortButton,
+  ReviewActionDialog,
+  ReviewCard,
+  ReviewRatingSummary,
+  sortKnockdogReviews,
+  toggleKnockdogReviewHelpful,
+  toCompleteReviewSummary,
+  useKnockdogRatingCounts,
+  useKnockdogReviews,
+  useSchoolReviewQuery,
+  useSchoolReviewSummaryQuery,
+  useDeleteSchoolReview,
+  useSetSchoolReviewHelpful,
+  type KnockdogReviewSort,
+} from '@features/review';
+import { useReviewQuery } from '@features/review/api/useReviewQuery';
+import { parseSchoolId, type ReviewListResponse, type SchoolReviewSummary } from '@entities/review';
+import { useUserStore } from '@entities/user';
+import { useInfiniteScroll } from '@shared/lib';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
+import { toast } from '@shared/ui/toast';
+
+type ReviewSource = 'knockdog' | 'blog';
+
+function formatReviewCount(count: number) {
+  return count.toLocaleString('ko-KR');
+}
+
+function getBlogReviewCount(pages: ReviewListResponse[] | undefined) {
+  const paging = pages?.[0]?.paging;
+  if (!paging) return null;
+  if (typeof paging.totalCount === 'number') return paging.totalCount;
+  if (!paging.hasNext) return pages?.reduce((count, page) => count + page.reviews.length, 0) ?? 0;
+  return null;
+}
+
+function ReviewSourceLabel({ label, count }: { label: string; count: number | null }) {
+  return (
+    <span className='inline-flex items-center gap-1'>
+      <span>{label}</span>
+      {count != null ? <span>{formatReviewCount(count)}</span> : null}
+    </span>
+  );
+}
+
+/** `?tab=후기&knockdogReview=1` 이면 리뷰 목록과 작성 화면 플로우를 보여 준다. */
+function KnockdogReviewEmpty({
+  onWriteClick,
+  writeLabel,
+}: {
+  onWriteClick: () => void;
+  writeLabel: string | null;
+}) {
+  return (
+    <div className='flex flex-col items-center gap-7 px-4'>
+      <div className='mt-8 flex size-[200px] items-center justify-center'>
+        {/* eslint-disable-next-line @next/next/no-img-element -- 빈 후기 일러스트 SVG */}
+        <img src='/images/img_empty_knockdog_review.svg' alt='' />
+      </div>
+      <div className='flex flex-col items-center gap-1 text-center'>
+        <p className='body1-bold text-text-primary'>유치원 이용 후기를 남겨 주세요!</p>
+        <p className='body2-regular text-text-secondary'>리뷰가 다른 보호자에게 도움이 될 수 있어요.</p>
+      </div>
+      {writeLabel ? (
+        <ActionButton type='button' onClick={onWriteClick}>
+          {writeLabel}
+        </ActionButton>
+      ) : null}
+    </div>
+  );
+}
+
+function ReviewSummaryPending() {
+  return <DelayedLoadingSpinner isLoading layout='inline' className='py-6' />;
+}
+
+function ReviewSummaryError({ isRetrying, onRetry }: { isRetrying: boolean; onRetry: () => void }) {
+  return (
+    <div className='flex flex-col items-center gap-3 py-4'>
+      <p className='body2-regular text-text-secondary text-center'>리뷰 요약을 불러오지 못했어요</p>
+      <ActionButton type='button' size='small' disabled={isRetrying} onClick={onRetry}>
+        다시 시도
+      </ActionButton>
+    </div>
+  );
+}
+
+function KnockdogReviewHeader({
+  summary,
+  isSummaryPending,
+  isSummaryFailed,
+  isSummaryRetrying,
+  onRetrySummary,
+  sort,
+  onSortChange,
+  onWriteClick,
+  writeLabel,
+}: {
+  summary: SchoolReviewSummary | null;
+  isSummaryPending: boolean;
+  isSummaryFailed: boolean;
+  isSummaryRetrying: boolean;
+  onRetrySummary: () => void;
+  sort: KnockdogReviewSort;
+  onSortChange: (sort: KnockdogReviewSort) => void;
+  onWriteClick: () => void;
+  writeLabel: string | null;
+}) {
+  return (
+    <>
+      <div className='flex flex-col gap-4 px-4 pb-4'>
+        {summary ? (
+          <ReviewRatingSummary summary={summary} />
+        ) : isSummaryFailed ? (
+          <ReviewSummaryError isRetrying={isSummaryRetrying} onRetry={onRetrySummary} />
+        ) : isSummaryPending ? (
+          <ReviewSummaryPending />
+        ) : null}
+        <div className='flex items-center gap-2'>
+          <div className='min-w-0 flex-1'>
+            <p className='caption1-semibold text-text-primary'>유치원 이용 후기를 남겨 주세요!</p>
+            <p className='caption1-regular text-text-secondary'>작성한 리뷰가 다른 보호자에게 도움이 될 수 있어요.</p>
+          </div>
+          {writeLabel ? (
+            <ActionButton type='button' size='small' className='shrink-0' onClick={onWriteClick}>
+              {writeLabel}
+            </ActionButton>
+          ) : null}
+        </div>
+      </div>
+      <div className='flex items-center justify-between px-4 py-2'>
+        {summary ? (
+          <p className='label-medium text-fill-secondary-500'>
+            총 {summary.totalCount.toLocaleString('ko-KR')}개 리뷰
+          </p>
+        ) : (
+          <span />
+        )}
+        <KnockdogReviewSortButton value={sort} onChange={onSortChange} />
+      </div>
+    </>
+  );
 }
 
 const Header = () => (
-  <div className='mb-3 flex'>
-    <Icon icon='NaverFill' className='mr-2 h-[22px] w-[22px]' />
+  <div className='flex items-center gap-2'>
+    <Icon icon='NaverFill' className='size-6' />
     <span className='body1-bold'>블로그 리뷰</span>
   </div>
 );
 
-const LoadingState = () => (
-  <div className='flex justify-center py-8'>
-    <span className='text-text-tertiary'>로딩 중...</span>
-  </div>
+const LoadingState = ({ isLoading }: { isLoading: boolean }) => (
+  <DelayedLoadingSpinner isLoading={isLoading} layout='inline' className='py-8' />
 );
 
 const ErrorState = () => (
@@ -36,59 +178,311 @@ const EmptyState = () => (
   </div>
 );
 
-export const ReviewSection = function ReviewSection({ onScrollTop }: ReviewSectionProps) {
+interface ReviewSectionProps {
+  kindergartenId?: string;
+  schoolId?: number | string | null;
+  onScrollTop?: () => void;
+}
+
+export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, onScrollTop }: ReviewSectionProps) {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const [knockdogReview] = useQueryState('knockdogReview');
+  const id = kindergartenId ?? params?.id;
 
   if (!id) throw new Error('Company ID is required for review section');
 
+  const { push } = useStackNavigation();
+  const showKnockdogReviewMock = knockdogReview === '1';
+  const [source, setSource] = useState<ReviewSource>('knockdog');
+  const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
+  const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isDeletingRef = useRef(false);
+  const reporterId = useUserStore((state) => state.user?.userId) ?? '';
+  const knockdogReviews = useKnockdogReviews();
+  const knockdogRatingCountsFromStore = useKnockdogRatingCounts();
   const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
   const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+  const {
+    data: schoolReviewData,
+    isLoading: isSchoolReviewLoading,
+    isError: isSchoolReviewError,
+    hasNextPage: hasNextSchoolReviewPage,
+    isFetchingNextPage: isFetchingNextSchoolReviewPage,
+    fetchNextPage: fetchNextSchoolReviewPage,
+  } = useSchoolReviewQuery(schoolId, knockdogReviewSort, !showKnockdogReviewMock);
+  const {
+    data: schoolReviewSummary,
+    isError: isSchoolReviewSummaryError,
+    isFetching: isSchoolReviewSummaryFetching,
+    refetch: refetchSchoolReviewSummary,
+  } = useSchoolReviewSummaryQuery(schoolId, !showKnockdogReviewMock);
+  const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
+  const { mutate: setSchoolReviewHelpful } = useSetSchoolReviewHelpful();
+  const { lastElementCallback: schoolReviewLastElementCallback } = useInfiniteScroll({
+    hasNextPage: hasNextSchoolReviewPage,
+    isFetchingNextPage: isFetchingNextSchoolReviewPage,
+    fetchNextPage: fetchNextSchoolReviewPage,
+  });
 
   const allReviews = data?.pages.flatMap((page) => page.reviews) ?? [];
+  const blogReviewCount = getBlogReviewCount(data?.pages);
+  const schoolReviews = schoolReviewData?.pages.flatMap((page) => page.items) ?? [];
+  const hasSchool = parseSchoolId(schoolId) != null;
+  const isApiReview = !showKnockdogReviewMock && hasSchool;
+  const summary = showKnockdogReviewMock
+    ? toCompleteReviewSummary(knockdogRatingCountsFromStore)
+    : (schoolReviewSummary ?? null);
+  const isSummaryFailed = isApiReview && summary == null && isSchoolReviewSummaryError;
+  const isSummaryPending = isApiReview && summary == null && !isSchoolReviewSummaryError;
+  const knockdogReviewCount = showKnockdogReviewMock
+    ? (summary?.totalCount ?? 0)
+    : !hasSchool
+      ? 0
+      : (summary?.totalCount ?? null);
+  const writeLabel = showKnockdogReviewMock || !hasSchool
+    ? '리뷰 작성하기'
+    : summary?.canWrite
+      ? '리뷰 작성하기'
+      : summary?.myReviewId != null
+        ? '리뷰 수정하기'
+        : null;
+  const handleRetrySummary = () => {
+    void refetchSchoolReviewSummary();
+  };
+  const handleWriteReview = () => {
+    if (showKnockdogReviewMock || !hasSchool) {
+      push({ pathname: `/kindergarten/${id}/write-review` });
+      return;
+    }
+    if (!summary) return;
+    if (!summary.canWrite) {
+      if (summary.myReviewId == null) return;
+      push({ pathname: `/kindergarten/${id}/edit-review/${summary.myReviewId}` });
+      return;
+    }
+    push({ pathname: `/kindergarten/${id}/write-review` });
+  };
+  const handleEditReview = (reviewId: string) => {
+    push({ pathname: `/kindergarten/${id}/edit-review/${reviewId}` });
+  };
+  const handleReportReview = (reviewId: string) => {
+    const reportedByMe = schoolReviews.some((review) => review.id === reviewId && review.reportedByMe);
+    if (reportedByMe || hasKnockdogReviewReport(reviewId, reporterId)) {
+      toast({
+        title: DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+        nativeTitle: DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
+        position: 'bottom',
+      });
+      return;
+    }
+
+    push({ pathname: `/kindergarten/${id}/report-review`, query: { reviewId } });
+  };
+  const sortedKnockdogReviews = sortKnockdogReviews(knockdogReviews, knockdogReviewSort);
+
+  const handleHelpfulToggle = (reviewId: string) => {
+    if (showKnockdogReviewMock) {
+      toggleKnockdogReviewHelpful(reviewId);
+      return;
+    }
+
+    const review = schoolReviews.find((item) => item.id === reviewId);
+    const parsedSchoolId = parseSchoolId(schoolId);
+    const parsedReviewId = parseSchoolId(reviewId);
+    if (!review || review.isMine || parsedSchoolId == null || parsedReviewId == null) return;
+
+    setSchoolReviewHelpful(
+      { schoolId: parsedSchoolId, reviewId: parsedReviewId, enabled: !review.isHelpful },
+      {
+        onError: () => {
+          toast({
+            title: '도움돼요를 반영하지 못했어요',
+            nativeTitle: '도움돼요를 반영하지 못했어요',
+            position: 'bottom',
+          });
+        },
+      }
+    );
+  };
+
+  const handleDeleteReview = (reviewId: string) => {
+    setDeleteTargetId(reviewId);
+    setDeleteDialog('confirm');
+  };
+
+  const handleCloseDeleteDialog = () => {
+    if (isDeletingRef.current) return;
+    setDeleteDialog(null);
+    setDeleteTargetId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId || isDeletingRef.current) return;
+
+    isDeletingRef.current = true;
+    setIsDeleting(true);
+
+    try {
+      if (showKnockdogReviewMock) {
+        await deleteKnockdogReview(deleteTargetId);
+      } else {
+        const parsedSchoolId = parseSchoolId(schoolId);
+        const parsedReviewId = parseSchoolId(deleteTargetId);
+        if (parsedSchoolId == null || parsedReviewId == null) throw new Error('review required');
+        await removeSchoolReview({ schoolId: parsedSchoolId, reviewId: parsedReviewId });
+      }
+      setDeleteDialog(null);
+      setDeleteTargetId(null);
+      toast({
+        title: '유치원 이용 리뷰를 삭제했어요',
+        nativeTitle: '유치원 이용 리뷰를 삭제했어요',
+        position: 'bottom',
+      });
+    } catch {
+      setDeleteDialog('failure');
+    } finally {
+      isDeletingRef.current = false;
+      setIsDeleting(false);
+    }
+  };
+
+  const renderKnockdogContent = () => {
+    if (!showKnockdogReviewMock && isSchoolReviewLoading && !schoolReviewData) return <LoadingState isLoading />;
+    if (!showKnockdogReviewMock && isSchoolReviewError) return <ErrorState />;
+
+    const reviews = showKnockdogReviewMock ? sortedKnockdogReviews : schoolReviews;
+    if (reviews.length === 0) {
+      return (
+        <>
+          {isSummaryFailed ? (
+            <div className='px-4'>
+              <ReviewSummaryError isRetrying={isSchoolReviewSummaryFetching} onRetry={handleRetrySummary} />
+            </div>
+          ) : isSummaryPending ? (
+            <ReviewSummaryPending />
+          ) : null}
+          <KnockdogReviewEmpty onWriteClick={handleWriteReview} writeLabel={writeLabel} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <KnockdogReviewHeader
+          summary={summary}
+          isSummaryPending={isSummaryPending}
+          isSummaryFailed={isSummaryFailed}
+          isSummaryRetrying={isSchoolReviewSummaryFetching}
+          onRetrySummary={handleRetrySummary}
+          sort={knockdogReviewSort}
+          onSortChange={setKnockdogReviewSort}
+          onWriteClick={handleWriteReview}
+          writeLabel={writeLabel}
+        />
+        <KnockdogReviewList
+          reviews={reviews}
+          lastItemRef={showKnockdogReviewMock ? undefined : schoolReviewLastElementCallback}
+          onHelpfulToggle={handleHelpfulToggle}
+          onEdit={handleEditReview}
+          onDelete={handleDeleteReview}
+          onReport={handleReportReview}
+        />
+        {!showKnockdogReviewMock && isFetchingNextSchoolReviewPage ? (
+          <div className='flex justify-center py-4'>
+            <LoadingSpinner layout='inline' />
+          </div>
+        ) : null}
+        <ReviewActionDialog
+          isOpen={deleteDialog === 'confirm'}
+          isSubmitting={isDeleting}
+          title='해당 리뷰를 삭제할까요?'
+          description='삭제한 리뷰는 복구할 수 없습니다.'
+          hideDescription
+          cancelLabel='닫기'
+          confirmLabel='삭제'
+          closeOnOutside
+          onClose={handleCloseDeleteDialog}
+          onConfirm={() => {
+            handleConfirmDelete();
+          }}
+        />
+        <ReviewActionDialog
+          isOpen={deleteDialog === 'failure'}
+          isSubmitting={isDeleting}
+          title='리뷰를 삭제하지 못했어요'
+          description='잠시 후 다시 시도해 주세요.'
+          cancelLabel='닫기'
+          confirmLabel='다시 시도'
+          onClose={handleCloseDeleteDialog}
+          onConfirm={() => {
+            handleConfirmDelete();
+          }}
+        />
+      </>
+    );
+  };
+
+  const handleSourceChange = (value: string) => {
+    if (value === 'knockdog' || value === 'blog') setSource(value);
+  };
 
   const renderContent = () => {
-    if (isLoading) return <LoadingState />;
+    if (isLoading) return <LoadingState isLoading={isLoading} />;
     if (isError) return <ErrorState />;
     if (allReviews.length === 0) return <EmptyState />;
 
     return (
-      <>
+      <div className='flex flex-col gap-5'>
         {allReviews.map((review, index) => (
           <div key={review.reviewIdx} ref={index === allReviews.length - 1 ? lastElementCallback : null}>
             <ReviewCard {...review} />
           </div>
         ))}
 
-        {isFetchingNextPage && (
+        {isFetchingNextPage ? (
           <div className='flex justify-center py-4'>
-            <span className='text-text-tertiary text-sm'>더 많은 리뷰를 불러오는 중...</span>
+            <LoadingSpinner layout='inline' />
           </div>
-        )}
-
-        {!hasNextPage && allReviews.length > 0 && (
-          <div className='flex justify-center py-4'>
-            <span className='text-text-tertiary text-sm'>모든 리뷰를 불러왔습니다.</span>
-          </div>
-        )}
-      </>
+        ) : null}
+      </div>
     );
   };
 
   return (
-    <div className='mb-12 mt-10 flex flex-col px-4'>
-      <div className='mb-9'>
-        <Header />
-        {renderContent()}
+    <div className='flex flex-col pb-12'>
+      <div className='px-4 pt-5 pb-4'>
+        <SegmentedControl value={source} onValueChange={handleSourceChange}>
+          <SegmentedControlItem value='knockdog'>
+            <ReviewSourceLabel label='똑독 리뷰' count={knockdogReviewCount} />
+          </SegmentedControlItem>
+          <SegmentedControlItem value='blog'>
+            <ReviewSourceLabel label='블로그 리뷰' count={blogReviewCount} />
+          </SegmentedControlItem>
+        </SegmentedControl>
       </div>
 
-      {allReviews.length > 0 && (
-        <button
-          onClick={onScrollTop}
-          className='text-text-tertiary label-semibold flex items-center justify-center gap-x-1'
-        >
-          맨 위로 가기 <Icon icon='ChevronTop' />
-        </button>
+      {source === 'knockdog' ? (
+        renderKnockdogContent()
+      ) : (
+        <div className='flex flex-col gap-7 px-4'>
+          <div className='flex flex-col gap-3'>
+            <Header />
+            {renderContent()}
+          </div>
+
+          {allReviews.length > 0 ? (
+            <button
+              type='button'
+              onClick={onScrollTop}
+              className='label-semibold text-text-tertiary flex h-[26px] items-center justify-center gap-1'
+            >
+              맨 위로 가기
+              <Icon icon='ChevronTop' className='size-4' />
+            </button>
+          ) : null}
+        </div>
       )}
     </div>
   );

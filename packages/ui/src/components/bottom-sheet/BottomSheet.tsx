@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Drawer as DrawerPrimitive } from 'vaul';
+import { Drawer as DrawerPrimitive } from '@daeng-design/vaul';
 
 import { cn } from '@knockdog/ui/lib';
 import { Icon } from '../icon';
@@ -25,7 +25,7 @@ function BottomSheetOverlay({ className, ...props }: React.ComponentProps<typeof
   return (
     <DrawerPrimitive.Overlay
       data-slot='bottom-sheet-overlay'
-      className={cn('fixed inset-0 z-(--z-index-overlay) bg-black/40', className)}
+      className={cn('fixed inset-0 z-40 bg-black/40', className)}
       {...props}
     />
   );
@@ -36,7 +36,7 @@ function BottomSheetBody({ className, children, ...props }: React.ComponentProps
     <DrawerPrimitive.Content
       data-slot='bottom-sheet-body'
       className={cn(
-        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-(--z-index-modal) max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
+        'bg-primitive-neutral-0 fixed inset-x-0 bottom-0 z-50 max-h-[calc(100vh-72px)] w-full rounded-t-[16px] shadow-[0px_-16px_20px] shadow-black/5',
         className
       )}
       {...props}
@@ -46,8 +46,12 @@ function BottomSheetBody({ className, children, ...props }: React.ComponentProps
   );
 }
 
-function BottomSheetContent({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
-  return <div data-slot='bottom-sheet-content' className={cn('px-x6 py-x2', className)} {...props} />;
+interface BottomSheetContentProps extends React.ComponentProps<typeof DrawerPrimitive.Content> {
+  padded?: boolean;
+}
+
+function BottomSheetContent({ className, padded = true, ...props }: BottomSheetContentProps) {
+  return <div data-slot='bottom-sheet-content' className={cn(padded && 'px-x6 py-x2', className)} {...props} />;
 }
 
 function BottomSheetHandle({ className, ...props }: React.ComponentProps<typeof DrawerPrimitive.Handle>) {

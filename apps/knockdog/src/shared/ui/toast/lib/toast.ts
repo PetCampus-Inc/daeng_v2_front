@@ -17,6 +17,10 @@ function isToastOptions(value: unknown): value is ToastOptions {
     typeof value === 'object' &&
     value != null &&
     ('title' in value ||
+      'nativeTitle' in value ||
+      'titleParts' in value ||
+      'icon' in value ||
+      'iconAccent' in value ||
       'description' in value ||
       'duration' in value ||
       'position' in value ||
@@ -43,14 +47,21 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   if (isNativeWebView()) {
     const bridge = getBridgeInstance();
     if (bridge) {
+      const titleFromParts = resolvedOptions.titleParts?.map((part) => part.text).join('');
       const params: ToastShowParams = {
         id,
-        title: resolvedOptions.title,
+        title:
+          typeof resolvedOptions.title === 'string'
+            ? resolvedOptions.title
+            : (resolvedOptions.nativeTitle ?? titleFromParts ?? ''),
+        titleParts: resolvedOptions.titleParts,
         description: resolvedOptions.description,
         duration: resolvedOptions.duration,
         position: resolvedOptions.position,
         shape: resolvedOptions.shape,
         type: resolvedOptions.type,
+        icon: resolvedOptions.icon,
+        iconAccent: resolvedOptions.iconAccent,
       };
       bridge.request(METHODS.toastShow, params).catch((error) => {
         console.error('[toast] Bridge request failed:', error);
@@ -63,6 +74,9 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   // position 또는 viewportClassName으로 채널 결정
   // viewportClassName이 우선순위가 높음 (완전 커스텀)
   const { store } = ensureChannel(resolvedOptions.position, resolvedOptions.viewportClassName);
+
+  // 화면에는 항상 토스트 1개만 — 채널 무관하게 새 토스트가 뜨면 기존 걸 교체
+  clearAllChannels();
 
   store.getState().push({
     id,

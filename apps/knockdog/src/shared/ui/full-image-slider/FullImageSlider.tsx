@@ -19,14 +19,14 @@ export function FullImageSlider({ initialIndex = 0, images, onIndexChange }: Ful
   };
 
   return (
-    <div className='h-screen w-full'>
+    <div className='h-full w-full'>
       <div className='flex h-full flex-col'>
         {/* 이미지 영역 */}
         <div className='relative min-h-0 flex-1'>
           <SwiperRoot navigation onSlideChange={handleSlideChange} className='h-full' initialIndex={initialIndex}>
             {images.map((image, index) => (
               <SwiperSlideItem key={index} className='h-full'>
-                <div className='flex w-full items-center justify-center' style={{ height: 'calc(70vh)' }}>
+                <div className='flex w-full items-center justify-center' style={{ height: '70dvh' }}>
                   <Image
                     src={image}
                     alt=''
@@ -41,7 +41,7 @@ export function FullImageSlider({ initialIndex = 0, images, onIndexChange }: Ful
           </SwiperRoot>
         </div>
         {/* 바텀 영역 */}
-        <div className='mb-[84px] flex flex-shrink-0 items-center justify-center px-4 py-3'>
+        <div className='mb-[184px] flex shrink-0 items-center justify-center px-4 py-3'>
           <span className='text-text-accent'>{currentIndex + 1}</span>/{images.length}
         </div>
       </div>

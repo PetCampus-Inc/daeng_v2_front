@@ -1,76 +1,34 @@
-import { PICKUP_TYPE_MAP, OPEN_STATUS_MAP, ALL_SERVICE_MAP, CTAG_MAP } from './constants/kindergarten';
-import type { OperationStatus, ServiceTag, PickupType } from '../config/constant';
-
-export interface KindergartenSearchList {
-  paging: {
-    currentPage: number;
-    hasNext: boolean;
-    totalPage: number;
-  };
-  schoolResult: {
-    totalCount: number;
-    list: KindergartenListItem[];
-  };
-}
-
-export interface Aggregation {
-  aggregations: {
-    sidoAggregations: SidoGunguAggregation[] | null;
-    sigunAggregations: SidoGunguAggregation[] | null;
-    geoBoundAggregation: GeoBoundAggregation;
-  };
-}
-
+import { OPERATION_STATUS, PICKUP, SERVICE_TAGS } from '../config/enum';
 export interface Kindergarten {
   id: string;
-  title: string;
-  ctg: keyof typeof CTAG_MAP;
-  operationDescription: string;
-  operationStatus: keyof typeof OPEN_STATUS_MAP;
-  price: number;
-  dist: number;
-  coords: Coord;
-  roadAddress: string;
-  reviewCount: number;
-  serviceTags: (keyof typeof ALL_SERVICE_MAP)[];
-  pickupType: keyof typeof PICKUP_TYPE_MAP;
-  banner: string[];
-  bookmarked: boolean;
-  memoDate: string;
-  phoneNumber: string;
-}
-export interface KindergartenListItem {
-  id: string;
+  /** 앱 리뷰 등 `/schools/{schoolId}` API 키. 미등록 유치원은 null */
+  schoolId?: number | string | null;
+  schoolStatus?: string;
   title: string;
   ctg: string;
-  images?: string[];
   operationTimes: {
     startTime: string;
     endTime: string;
   };
-  operationStatus: keyof typeof OperationStatus;
+  businessStatus: {
+    title: string;
+    description: string;
+  };
+  operationStatus: keyof typeof OPERATION_STATUS;
   price: number;
   dist: number;
+  coords: {
+    lat: number;
+    lng: number;
+  };
   roadAddress: string;
-  coord: Coord;
   reviewCount: number;
-  serviceTags: (keyof typeof ServiceTag)[];
-  pickupType: keyof typeof PickupType;
+  rating?: number;
+  verified?: boolean;
+  serviceTags: (keyof typeof SERVICE_TAGS)[];
+  pickupType: keyof typeof PICKUP;
+  banner: string[];
+  bookmarked: boolean;
+  memoDate: string;
   phoneNumber: string;
-}
-interface Coord {
-  lat: number;
-  lng: number;
-}
-export interface SidoGunguAggregation {
-  code: string;
-  count: number;
-  label: string;
-  coord: Coord;
-  nextZoom: number;
-}
-
-interface GeoBoundAggregation {
-  sw: Coord;
-  ne: Coord;
 }

@@ -1,32 +1,31 @@
 import { api } from '@shared/api';
-import { Photo } from '../model/memo';
+import type { MemoResponse } from './getMemo';
+import {
+  countMemoCharacters,
+  MEMO_MAX_CONTENT_LENGTH,
+  MEMO_MAX_PHOTO_COUNT,
+  normalizeMemoContent,
+} from '../lib/memoContent';
 
-// @TODO API Response, 타입 정의 필요
 export interface UpdateMemoRequest {
   targetId: string;
-  content?: string;
-  photos?: Photo[];
+  content: string;
+  photoKeys: string[];
 }
 
-export const updateMemo = async ({ targetId, content, photos }: UpdateMemoRequest) => {
-  const formData = new FormData();
-  
-  if (content !== undefined) {
-    formData.append('content', content);
+export const updateMemo = async ({ targetId, content, photoKeys }: UpdateMemoRequest) => {
+  const normalizedContent = normalizeMemoContent(content);
+
+  if (!normalizedContent) throw new Error('메모 내용을 입력해 주세요.');
+  if (countMemoCharacters(normalizedContent) > MEMO_MAX_CONTENT_LENGTH) {
+    throw new Error(`메모는 최대 ${MEMO_MAX_CONTENT_LENGTH.toLocaleString()}자까지 작성할 수 있어요.`);
   }
-  
-  if (photos) {
-    formData.append('photos', JSON.stringify(photos));
+  if (photoKeys.length > MEMO_MAX_PHOTO_COUNT) {
+    throw new Error(`사진은 최대 ${MEMO_MAX_PHOTO_COUNT}장까지 등록할 수 있어요.`);
   }
 
-  const response = await api.post(`memo`, {
-    searchParams: {
-      targetId,
-    },
-    body: formData,
-    headers: {
-      'Content-Type': undefined, // FormData 사용 시 브라우저가 자동으로 설정하도록 제거
-    },
+  const response = await api.post(`memo?targetId=${targetId}`, {
+    json: { content: normalizedContent, photoKeys },
   });
-  return response.json();
+  return response.json<MemoResponse>();
 };

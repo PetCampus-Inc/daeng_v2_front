@@ -1,10 +1,16 @@
 import { QueryClient, defaultShouldDehydrateQuery, isServer } from '@tanstack/react-query';
 
+import { eventBus } from '@shared/utils';
+
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
+        retry: 0,
+        retryOnMount: false,
         staleTime: 60 * 1000,
+      },
+      mutations: {
         retry: 0,
       },
       dehydrate: {
@@ -30,4 +36,10 @@ export function getQueryClient() {
     if (!browserQueryClient) browserQueryClient = makeQueryClient();
     return browserQueryClient;
   }
+}
+
+if (typeof window !== 'undefined') {
+  eventBus.subscribe('auth:logout', () => {
+    getQueryClient().clear();
+  });
 }

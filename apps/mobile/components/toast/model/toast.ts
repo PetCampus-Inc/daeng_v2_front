@@ -12,6 +12,9 @@ function isToastOptions(value: unknown): value is ToastOptions {
     value != null &&
     ('id' in value ||
       'title' in value ||
+      'titleParts' in value ||
+      'icon' in value ||
+      'iconAccent' in value ||
       'duration' in value ||
       'className' in value ||
       'variant' in value || // 존재 체크만 (RN에서 사용 안 함)
@@ -33,15 +36,24 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   // RN에서는 viewportClassName 무시, position만 채널 결정
   const { store } = ensureChannel(resolvedOptions.position, resolvedOptions.viewportClassName);
 
+  // 화면에는 항상 토스트 1개만 — 채널 무관하게 새 토스트가 뜨면 기존 걸 교체
+  clearAllChannels();
+
   const id = resolvedOptions.id ?? generateId();
+
+  const titleParts = resolvedOptions.titleParts;
+  const titleFromParts = titleParts?.map((part) => part.text).join('');
 
   store.getState().push({
     id,
-    title: resolvedOptions.title ?? defaults.title ?? '',
+    title: resolvedOptions.title ?? titleFromParts ?? defaults.title ?? '',
+    titleParts,
     description: resolvedOptions.description ?? defaults.description ?? '',
     duration: resolvedOptions.duration ?? defaults.duration ?? 2000,
     shape: resolvedOptions.shape ?? (defaults as any).shape ?? 'rounded',
     type: resolvedOptions.type ?? (defaults as any).type ?? 'default',
+    icon: resolvedOptions.icon,
+    iconAccent: resolvedOptions.iconAccent,
     open: true,
     onOpen: resolvedOptions.onOpen,
     onClose: resolvedOptions.onClose,

@@ -7,23 +7,24 @@ import MenuButton from './MenuButton';
 import CloseButton from './CloseButton';
 import InputField from './InputField';
 import HomeButton from './HomeButton';
+import SearchField from './SearchField';
 import { cn } from '@knockdog/ui/lib';
-import type { ComponentProps } from 'react';
+import { type ComponentProps } from 'react';
 import type { HeaderVariant } from '../model/HeaderProvider';
 
 export function Header({
   className,
+  innerClassName,
   variant = 'solid',
-  withSpacing = true,
   children,
   ...props
 }: ComponentProps<'header'> & {
   variant?: HeaderVariant;
   fontColor?: string;
-  withSpacing?: boolean;
+  innerClassName?: string;
 }) {
   const variantClass = {
-    solid: 'bg-white border-b',
+    solid: 'bg-white border-b border-line-100',
     transparent: 'bg-transparent',
   };
 
@@ -37,17 +38,21 @@ export function Header({
         )}
         {...props}
       >
-        <div className='relative flex w-full'>{children}</div>
+        <div className={cn('flex h-16 w-full items-center gap-x-4', innerClassName)}>{children}</div>
       </header>
-
-      {withSpacing && <div className='h-16' />}
     </>
   );
 }
 
 function LeftSection({ children, ...props }: ComponentProps<'div'>) {
   return (
-    <div className='flex items-center gap-x-1' {...props}>
+    <div
+      className={cn(
+        'flex items-center gap-x-4',
+        '[&>button]:relative [&>button]:before:absolute [&>button]:before:-inset-2 [&>button]:before:content-[""]'
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -55,7 +60,13 @@ function LeftSection({ children, ...props }: ComponentProps<'div'>) {
 
 function RightSection({ children, ...props }: ComponentProps<'div'>) {
   return (
-    <div className='flex items-center gap-x-1' {...props}>
+    <div
+      className={cn(
+        'ml-auto flex items-center gap-x-4',
+        '[&>button]:relative [&>button]:before:absolute [&>button]:before:-inset-2 [&>button]:before:content-[""]'
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -79,3 +90,4 @@ Header.CloseButton = CloseButton;
 Header.InputField = InputField;
 Header.HomeButton = HomeButton;
 Header.LeftSection = LeftSection;
+Header.SearchField = SearchField;

@@ -1,7 +1,68 @@
-export const ellipsisText = (
-  text: string,
-  maxLength: number = 7,
-  suffix = '…'
-) => {
+export const ellipsisText = (text: string, maxLength: number = 7, suffix = '…') => {
   return text.length > maxLength ? text.slice(0, maxLength) + suffix : text;
+};
+
+export const getSubjectParticle = (word: string): '이' | '가' => {
+  const chars = [...word.trim().normalize('NFC')];
+
+  for (let index = chars.length - 1; index >= 0; index -= 1) {
+    const char = chars[index];
+    if (!char) continue;
+
+    const code = char.charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const jongseong = (code - 0xac00) % 28;
+      return jongseong === 0 ? '가' : '이';
+    }
+
+    if (/[a-z]/i.test(char)) return /[aeiouy]/i.test(char) ? '가' : '이';
+  }
+
+  return '이';
+};
+
+export const getObjectParticle = (word: string): '을' | '를' => {
+  const chars = [...word.trim().normalize('NFC')];
+
+  for (let index = chars.length - 1; index >= 0; index -= 1) {
+    const char = chars[index];
+    if (!char) continue;
+
+    const code = char.charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const jongseong = (code - 0xac00) % 28;
+      return jongseong === 0 ? '를' : '을';
+    }
+
+    if (/[a-z]/i.test(char)) return /[aeiouy]/i.test(char) ? '를' : '을';
+  }
+
+  return '을';
+};
+
+/** `{이름}이를/를 ~ 처리했어요` — 받침 있으면 주격+목적격(이를), 없으면 목적격(를) */
+export const getSubjectObjectParticle = (word: string): '이를' | '를' => {
+  return getObjectParticle(word) === '를' ? '를' : '이를';
+};
+
+export const getDirectionParticle = (word: string): '로' | '으로' => {
+  if (!word || word.length === 0) {
+    return '으로';
+  }
+
+  const lastCharCode = word.charCodeAt(word.length - 1);
+
+  if (lastCharCode < 0xac00 || lastCharCode > 0xd7a3) {
+    return '으로';
+  }
+
+  const jongseong = (lastCharCode - 0xac00) % 28;
+  const hasNoJongseong = jongseong === 0;
+
+  // 8: 'ㄹ'
+  if (hasNoJongseong || jongseong === 8) {
+    return '로';
+  }
+
+  return '으로';
 };

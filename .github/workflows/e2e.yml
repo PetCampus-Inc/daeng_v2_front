@@ -1,0 +1,153 @@
+name: E2E (Playwright)
+
+# 주요 사용자 QA 시나리오 E2E (non-blocking)
+# - LHCI와 별 workflow로 진행 → 병렬
+# - 실패해도 merge를 막지 않음 (continue-on-error)
+# - required check로 지정하지 말 것 (안정화 후 전환 검토)
+# - synchronize(푸시)마다 재실행하지 않음 — PR opened/reopened 시 1회만
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, reopened]
+    paths:
+      - 'apps/knockdog/**'
+      - 'e2e/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/e2e.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: write
+
+    env:
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+      NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
+      E2E_BASE_URL: 'http://localhost:3000'
+      E2E_API_BASE_URL: 'https://api.knockdog.net'
+      E2E_DEV_LOGIN_ID: '113'
+      E2E_EXPECTED_EMAIL: 'hyeonsu-k@kakao.com'
+      CI: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Store Playwright version
+        id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Turbo Cache
+        uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-e2e-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-e2e-
+            ${{ runner.os }}-turbo-
+
+      - name: Next.js Cache
+        uses: actions/cache@v6
+        with:
+          path: apps/knockdog/.next/cache
+          key: ${{ runner.os }}-nextjs-e2e-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-e2e-
+            ${{ runner.os }}-nextjs-
+
+      - name: Build knockdog
+        run: pnpm turbo run build --filter=knockdog...
+        env:
+          TURBO_CACHE_DIR: .turbo
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Start Next.js server
+        run: |
+          pnpm --filter knockdog start &
+          echo "Waiting for server..."
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/ >/dev/null 2>&1; then
+              echo "Server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server failed to start"
+          exit 1
+
+      - name: Run Playwright E2E
+        id: e2e
+        run: pnpm e2e
+        env:
+          E2E_SKIP_WEBSERVER: '1'
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-pr-${{ github.event.pull_request.number }}
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Post PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          E2E_OUTCOME: ${{ steps.e2e.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ARTIFACT_NAME: playwright-report-pr-${{ github.event.pull_request.number }}
+        run: |
+          pnpm e2e:comment > /tmp/e2e-comment.md
+
+          existing_id=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --paginate \
+            --jq '.[] | select(.body | contains("<!-- playwright-e2e-report -->")) | .id' \
+            | head -n 1)
+
+          if [ -n "$existing_id" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${existing_id}" \
+              -X PATCH \
+              -F body=@/tmp/e2e-comment.md
+          else
+            gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+              -F body=@/tmp/e2e-comment.md
+          fi
+
+          cat /tmp/e2e-comment.md >> "$GITHUB_STEP_SUMMARY"

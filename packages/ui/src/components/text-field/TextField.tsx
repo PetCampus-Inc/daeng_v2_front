@@ -55,7 +55,7 @@ function TextField({ ref, ...props }: TextFieldProps) {
   const Comp = asChild ? Slot : TextFieldPrimitive.Root;
 
   return (
-    <Comp ref={ref} className='flex w-full flex-col' {...restProps}>
+    <Comp ref={ref} className='flex w-full min-w-0 flex-col' {...restProps}>
       {renderHeader && (
         <div className='pb-x2 gap-x0_5 flex items-center'>
           <TextFieldPrimitive.Label className='text-text-primary body2-bold'>{label}</TextFieldPrimitive.Label>
@@ -85,12 +85,12 @@ function TextField({ ref, ...props }: TextFieldProps) {
             </TextFieldPrimitive.Description>
           )}
           {renderErrorMessage && (
-            <TextFieldPrimitive.Message className='text-error body2-regular absolute'>
+            <TextFieldPrimitive.Message className='text-error body2-regular'>
               {errorMessage}
             </TextFieldPrimitive.Message>
           )}
           {renderSuccessMessage && (
-            <TextFieldPrimitive.Message className='text-success body2-regular absolute'>
+            <TextFieldPrimitive.Message className='text-success body2-regular'>
               {successMessage}
             </TextFieldPrimitive.Message>
           )}
