@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   toReservationSetting,
@@ -16,6 +16,7 @@ import {
   canSaveReservationSetting,
   capacityLimitError,
   isSameReservationSetting,
+  keepUnsavedReservationEdits,
   sanitizeDailyCapacity,
   timeOrderError,
   type ReservationSettingValues,
@@ -44,6 +45,17 @@ function useReservationSettingForm(setting: ReservationSetting) {
   const [baseline, setBaseline] = useState<ReservationSettingValues>(initialValues);
   const [values, setValues] = useState<ReservationSettingValues>(initialValues);
   const [activeTimeField, setActiveTimeField] = useState<AdmissionTimeField | null>(null);
+  const baselineRef = useRef(baseline);
+  baselineRef.current = baseline;
+
+  useEffect(() => {
+    const incoming = toFormValues(setting);
+    const previous = baselineRef.current;
+    if (isSameReservationSetting(incoming, previous)) return;
+
+    setValues((current) => keepUnsavedReservationEdits(previous, current, incoming));
+    setBaseline(incoming);
+  }, [setting]);
 
   const weekdayTimeError = timeOrderError(values.weekdayStart, values.weekdayEnd);
   const weekendTimeError = timeOrderError(values.weekendStart, values.weekendEnd);
@@ -81,15 +93,16 @@ function useReservationSettingForm(setting: ReservationSetting) {
     setValues((prev) => applyConfirmedTime(prev, activeTimeField, value));
   };
 
-  /** 성공하면 서버 값을 기준값으로 잡는다. 실패하면 입력값을 그대로 둔다. */
+  /** 성공하면 응답을 기준값으로 잡는다. 요청 중에 고친 칸은 미저장으로 남긴다. */
   const handleSave = async () => {
     if (!isSaveEnabled) return null;
 
+    const snapshot = values;
+
     try {
-      const saved = toReservationSetting(await mutateAsync(values));
-      const nextValues = toFormValues(saved);
-      setBaseline(nextValues);
-      setValues(nextValues);
+      const saved = toFormValues(toReservationSetting(await mutateAsync(snapshot)));
+      setBaseline(saved);
+      setValues((current) => keepUnsavedReservationEdits(snapshot, current, saved));
       return 'saved' as const;
     } catch (error) {
       return mapRequestErrorMessage(error);

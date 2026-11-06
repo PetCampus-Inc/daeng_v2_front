@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useSyncExternalStore } from 'react';
 import {
   ActionButton,
   Field,
@@ -72,10 +72,14 @@ function ReservationSettingPending({
   isError,
   isRetrying,
   onRetry,
+  title,
+  description,
 }: {
   isError: boolean;
   isRetrying: boolean;
   onRetry: () => void;
+  title?: string;
+  description?: string;
 }) {
   const { back } = useStackNavigation();
   const handleBack = useCallback(() => {
@@ -93,7 +97,13 @@ function ReservationSettingPending({
         <Header.Title>예약 설정</Header.Title>
       </Header>
       {isError ? (
-        <PageError layout='inline' onRetry={onRetry} isRetrying={isRetrying} />
+        <PageError
+          layout='inline'
+          title={title}
+          description={description}
+          onRetry={onRetry}
+          isRetrying={isRetrying}
+        />
       ) : (
         <DelayedLoadingSpinner isLoading layout='content' />
       )}
@@ -240,10 +250,34 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
 }
 
 function MypageOwnerReservationSettingPage() {
+  const hasUserStoreHydrated = useSyncExternalStore(
+    (onStoreChange) => useUserStore.persist.onFinishHydration(onStoreChange),
+    () => useUserStore.persist.hasHydrated(),
+    () => false
+  );
   const userId = useUserStore((state) => state.user?.userId);
   const settingQuery = useReservationSettingQuery({ userId });
+  const handleAuthRetry = () => {
+    void useUserStore.persist.rehydrate();
+  };
 
-  if (settingQuery.isError || !settingQuery.data) {
+  if (!hasUserStoreHydrated) {
+    return <ReservationSettingPending isError={false} isRetrying={false} onRetry={handleAuthRetry} />;
+  }
+
+  if (!userId) {
+    return (
+      <ReservationSettingPending
+        isError
+        isRetrying={false}
+        title='로그인 정보를 불러오지 못했어요'
+        description='다시 로그인한 뒤 시도해 주세요.'
+        onRetry={handleAuthRetry}
+      />
+    );
+  }
+
+  if (!settingQuery.data) {
     return (
       <ReservationSettingPending
         isError={settingQuery.isError}

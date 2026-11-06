@@ -48,6 +48,10 @@ describe('toReservationSettingRequest', () => {
   it('시간 4개가 없으면 요청을 만들지 않는다', () => {
     expect(toReservationSettingRequest({ ...draft, weekendEnd: null })).toBeNull();
   });
+
+  it('정원이 1보다 작으면 요청을 만들지 않는다', () => {
+    expect(toReservationSettingRequest({ ...draft, dailyCapacity: '0' })).toBeNull();
+  });
 });
 
 describe('toReservationSetting', () => {
