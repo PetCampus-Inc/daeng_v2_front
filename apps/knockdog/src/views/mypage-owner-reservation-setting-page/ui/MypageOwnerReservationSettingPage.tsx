@@ -12,7 +12,19 @@ import {
   TimeRangeField,
   type TimeRangeState,
 } from '@knockdog/ui';
+import {
+  useReservationSettingQuery,
+  type ReservationSetting,
+} from '@entities/owner-reservation-setting';
+import { useUserStore } from '@entities/user';
+import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
+import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
+import { PageError } from '@shared/ui/page-error';
+import { toast } from '@shared/ui/toast';
+import { Header } from '@widgets/Header';
 import {
   TIME_OPTIONS,
   TIME_SHEET_TITLE,
@@ -20,15 +32,7 @@ import {
 } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
 import { useReservationSettingForm } from '@views/mypage-owner-reservation-setting-page/model/useReservationSettingForm';
 
-import { Header } from '@widgets/Header';
-import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
-import { useNativeBackHandler } from '@shared/lib/bridge';
-import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
-import { toast } from '@shared/ui/toast';
-
 const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
-/** 휴무 요일이 오기 전까지 보여주는 임시 문구 */
-const MOCK_CLOSED_LINE = '화요일, 목요일 휴무';
 /** 행 높이(py-4 32px + body1 24px + 구분선 1px) × 3 */
 const TIME_SHEET_LIST_CLASS = 'h-[calc(3*(2rem+1.5rem+1px))] max-h-[calc(3*(2rem+1.5rem+1px))]';
 
@@ -64,8 +68,41 @@ function AdmissionTimeRange({ label, start, end, startField, endField, error, on
   );
 }
 
-function MypageOwnerReservationSettingPage() {
-  const form = useReservationSettingForm();
+function ReservationSettingPending({
+  isError,
+  isRetrying,
+  onRetry,
+}: {
+  isError: boolean;
+  isRetrying: boolean;
+  onRetry: () => void;
+}) {
+  const { back } = useStackNavigation();
+  const handleBack = useCallback(() => {
+    back?.();
+  }, [back]);
+
+  useNativeBackHandler(handleBack);
+
+  return (
+    <div className='flex h-full flex-col bg-white'>
+      <Header>
+        <Header.LeftSection className='relative z-10'>
+          <Header.BackButton onClick={handleBack} />
+        </Header.LeftSection>
+        <Header.Title>예약 설정</Header.Title>
+      </Header>
+      {isError ? (
+        <PageError layout='inline' onRetry={onRetry} isRetrying={isRetrying} />
+      ) : (
+        <DelayedLoadingSpinner isLoading layout='content' />
+      )}
+    </div>
+  );
+}
+
+function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) {
+  const form = useReservationSettingForm(setting);
   const handleBackRef = useRef(() => {});
 
   const { releaseAndLeave } = useUnsavedBrowserBackGuard(form.isDirty, () => {
@@ -109,8 +146,7 @@ function MypageOwnerReservationSettingPage() {
     });
   };
 
-  const { hoursLine, closedLine } = form.operatingHoursNote;
-  const closedNote = closedLine ?? MOCK_CLOSED_LINE;
+  const { hoursLine, closedLine } = form;
 
   return (
     <div className='flex h-full flex-col bg-white'>
@@ -161,13 +197,13 @@ function MypageOwnerReservationSettingPage() {
         </Field>
 
         <section className='caption1-regular text-fill-secondary-500 flex flex-col gap-2.5 px-6 py-5'>
-          {hoursLine ? (
+          {hoursLine || closedLine ? (
             <p>
               * 현재 운영시간
               <br />
-              {`- ${hoursLine}`}
-              <br />
-              {`- ${closedNote}`}
+              {hoursLine ? `- ${hoursLine}` : null}
+              {hoursLine && closedLine ? <br /> : null}
+              {closedLine ? `- ${closedLine}` : null}
             </p>
           ) : null}
           <p>* 운영 시간은 유치원 기본 정보에서 변경 가능해요.</p>
@@ -198,6 +234,25 @@ function MypageOwnerReservationSettingPage() {
       />
     </div>
   );
+}
+
+function MypageOwnerReservationSettingPage() {
+  const userId = useUserStore((state) => state.user?.userId);
+  const settingQuery = useReservationSettingQuery({ userId });
+
+  if (settingQuery.isError || !settingQuery.data) {
+    return (
+      <ReservationSettingPending
+        isError={settingQuery.isError}
+        isRetrying={settingQuery.isFetching}
+        onRetry={() => {
+          void settingQuery.refetch();
+        }}
+      />
+    );
+  }
+
+  return <ReservationSettingEditor setting={settingQuery.data} />;
 }
 
 export { MypageOwnerReservationSettingPage };
