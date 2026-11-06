@@ -13,6 +13,10 @@
     },
     "preview": {
       "distribution": "internal",
+      "ios": {
+        "distribution": "store",
+        "image": "macos-tahoe-26.5-xcode-26.6"
+      },
       "android": {
         "buildType": "apk"
       },
@@ -39,6 +43,11 @@
     }
   },
   "submit": {
+    "preview": {
+      "ios": {
+        "ascAppId": "6754978978"
+      }
+    },
     "production": {
       "ios": {
         "ascAppId": "6754978978"
