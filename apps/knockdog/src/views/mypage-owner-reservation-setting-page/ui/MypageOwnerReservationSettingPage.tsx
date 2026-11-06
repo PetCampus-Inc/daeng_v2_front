@@ -125,21 +125,24 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
   handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.isSaveEnabled) return;
 
-    const saved = form.handleSave();
+    const result = await form.handleSave();
+    if (!result) return;
+
+    const saved = result === 'saved';
     toast({
       type: saved ? 'success' : 'default',
       shape: 'rounded',
       position: 'bottom',
-      nativeTitle: saved ? '예약 설정을 저장했어요' : '예약 설정을 저장하지 못했어요',
+      nativeTitle: saved ? '예약 설정을 저장했어요' : result,
       title: saved ? (
         '예약 설정을 저장했어요'
       ) : (
         <span className='inline-flex items-center gap-2'>
           <Icon icon='Close' className='size-6 shrink-0' />
-          예약 설정을 저장하지 못했어요
+          {result}
         </span>
       ),
       viewportClassName: SAVE_TOAST_VIEWPORT,

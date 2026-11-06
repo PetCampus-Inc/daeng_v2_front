@@ -1,13 +1,15 @@
 import { getReservationSetting } from '../api/getReservationSetting';
 import { toReservationSetting } from '../model/reservationSetting';
 
+const RESERVATION_SETTING_KEY = 'owner-reservation-setting';
+
 const reservationSettingQueryKeys = {
-  all: ['owner-reservation-setting'] as const,
-  byUser: (userId?: string) => [...reservationSettingQueryKeys.all, userId] as const,
-} as const;
+  all: [RESERVATION_SETTING_KEY] as const,
+  byUser: (userId: string) => [RESERVATION_SETTING_KEY, userId] as const,
+};
 
 const createReservationQueryOptions = (userId?: string) => ({
-  queryKey: reservationSettingQueryKeys.byUser(userId),
+  queryKey: userId ? reservationSettingQueryKeys.byUser(userId) : reservationSettingQueryKeys.all,
   queryFn: getReservationSetting,
   select: toReservationSetting,
 });

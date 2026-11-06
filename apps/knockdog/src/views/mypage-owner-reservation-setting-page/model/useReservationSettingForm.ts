@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 
-import type { ReservationSetting } from '@entities/owner-reservation-setting';
+import {
+  toReservationSetting,
+  usePutReservationMutation,
+  type ReservationSetting,
+} from '@entities/owner-reservation-setting';
+import { useUserStore } from '@entities/user';
+import { mapRequestErrorMessage } from '@shared/api';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { TIME_PLACEHOLDER, type AdmissionTimeField } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
 import {
@@ -32,6 +38,8 @@ function isStartTimeField(field: AdmissionTimeField) {
 
 function useReservationSettingForm(setting: ReservationSetting) {
   const { back } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
+  const { mutateAsync, isPending: isSaving } = usePutReservationMutation(userId);
   const initialValues = toFormValues(setting);
   const [baseline, setBaseline] = useState<ReservationSettingValues>(initialValues);
   const [values, setValues] = useState<ReservationSettingValues>(initialValues);
@@ -41,7 +49,7 @@ function useReservationSettingForm(setting: ReservationSetting) {
   const weekendTimeError = timeOrderError(values.weekendStart, values.weekendEnd);
   const capacityError = capacityLimitError(values.dailyCapacity, PEAK_DAILY_RESERVATION_COUNT);
   const isDirty = !isSameReservationSetting(values, baseline);
-  const isSaveEnabled = canSaveReservationSetting(values, baseline, PEAK_DAILY_RESERVATION_COUNT);
+  const isSaveEnabled = canSaveReservationSetting(values, baseline, PEAK_DAILY_RESERVATION_COUNT) && !isSaving;
 
   const updateValue = <Key extends keyof ReservationSettingValues>(
     key: Key,
@@ -73,14 +81,19 @@ function useReservationSettingForm(setting: ReservationSetting) {
     setValues((prev) => applyConfirmedTime(prev, activeTimeField, value));
   };
 
-  /**
-   * 예약 설정 저장 API가 아직 없다.
-   * 성공하면 현재 값을 기준값으로 잡는다. 실패하면 입력값을 그대로 둔다.
-   */
-  const handleSave = () => {
-    if (!isSaveEnabled) return false;
-    setBaseline(values);
-    return true;
+  /** 성공하면 서버 값을 기준값으로 잡는다. 실패하면 입력값을 그대로 둔다. */
+  const handleSave = async () => {
+    if (!isSaveEnabled) return null;
+
+    try {
+      const saved = toReservationSetting(await mutateAsync(values));
+      const nextValues = toFormValues(saved);
+      setBaseline(nextValues);
+      setValues(nextValues);
+      return 'saved' as const;
+    } catch (error) {
+      return mapRequestErrorMessage(error);
+    }
   };
 
   const leaveIfClean = () => {
@@ -94,6 +107,7 @@ function useReservationSettingForm(setting: ReservationSetting) {
     hoursLine: setting.hoursLine,
     closedLine: setting.closedLine,
     isDirty,
+    isSaving,
     isSaveEnabled,
     weekdayTimeError,
     weekendTimeError,

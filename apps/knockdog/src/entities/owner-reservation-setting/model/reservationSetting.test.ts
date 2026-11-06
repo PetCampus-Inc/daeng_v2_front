@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { reservationSettingDtoSchema, toReservationSetting } from './reservationSetting';
+import { reservationSettingDtoSchema, toReservationSetting, toReservationSettingRequest } from './reservationSetting';
 
 const savedDto = {
   weekdayStartTime: '09:00',
@@ -16,6 +16,39 @@ const savedDto = {
     closedDays: ['목', '화'],
   },
 };
+
+const draft = {
+  weekdayStart: '09:00',
+  weekdayEnd: '12:00',
+  weekendStart: '10:00',
+  weekendEnd: '17:00',
+  dailyCapacity: '8',
+};
+
+describe('toReservationSettingRequest', () => {
+  it('등원 시간 4개와 정원을 저장 요청으로 바꾼다', () => {
+    expect(toReservationSettingRequest(draft)).toEqual({
+      weekdayStartTime: '09:00',
+      weekdayEndTime: '12:00',
+      weekendStartTime: '10:00',
+      weekendEndTime: '17:00',
+      dailyCapacity: 8,
+    });
+  });
+
+  it('정원이 비면 제한 없음으로 보낸다', () => {
+    expect(toReservationSettingRequest({ ...draft, dailyCapacity: '' })).toEqual({
+      weekdayStartTime: '09:00',
+      weekdayEndTime: '12:00',
+      weekendStartTime: '10:00',
+      weekendEndTime: '17:00',
+    });
+  });
+
+  it('시간 4개가 없으면 요청을 만들지 않는다', () => {
+    expect(toReservationSettingRequest({ ...draft, weekendEnd: null })).toBeNull();
+  });
+});
 
 describe('toReservationSetting', () => {
   it('저장 이력이 없으면 입력값과 운영 안내를 비운다', () => {

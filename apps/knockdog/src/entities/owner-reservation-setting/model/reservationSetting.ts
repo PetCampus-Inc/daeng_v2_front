@@ -86,6 +86,47 @@ const formatClosedLine = (closedDays: string[]) => {
   return labels.length > 0 ? `${labels.join(', ')} 휴무` : null;
 };
 
+const settingResponseSchema = z.object({
+  data: reservationSettingDtoSchema,
+});
+
+interface ReservationSettingDraft {
+  weekdayStart: string | null;
+  weekdayEnd: string | null;
+  weekendStart: string | null;
+  weekendEnd: string | null;
+  dailyCapacity: string;
+}
+
+interface ReservationSettingRequest {
+  weekdayStartTime: string;
+  weekdayEndTime: string;
+  weekendStartTime: string;
+  weekendEndTime: string;
+  dailyCapacity?: number;
+}
+
+const parseReservationSetting = (response: unknown) => settingResponseSchema.parse(response).data;
+
+const toReservationSettingRequest = (draft: ReservationSettingDraft): ReservationSettingRequest | null => {
+  const { weekdayStart, weekdayEnd, weekendStart, weekendEnd, dailyCapacity } = draft;
+  if (!weekdayStart || !weekdayEnd || !weekendStart || !weekendEnd) return null;
+
+  const request: ReservationSettingRequest = {
+    weekdayStartTime: weekdayStart,
+    weekdayEndTime: weekdayEnd,
+    weekendStartTime: weekendStart,
+    weekendEndTime: weekendEnd,
+  };
+
+  if (dailyCapacity === '') return request;
+
+  const capacity = Number(dailyCapacity);
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 9999) return null;
+
+  return { ...request, dailyCapacity: capacity };
+};
+
 const toReservationSetting = (dto: ReservationSettingDto): ReservationSetting => ({
   weekdayStart: normalizeClock(dto.weekdayStartTime),
   weekdayEnd: normalizeClock(dto.weekdayEndTime),
@@ -96,5 +137,10 @@ const toReservationSetting = (dto: ReservationSettingDto): ReservationSetting =>
   closedLine: formatClosedLine(dto.operatingInfo.closedDays),
 });
 
-export { reservationSettingDtoSchema, toReservationSetting };
-export type { ReservationSetting, ReservationSettingDto };
+export {
+  parseReservationSetting,
+  reservationSettingDtoSchema,
+  toReservationSetting,
+  toReservationSettingRequest,
+};
+export type { ReservationSetting, ReservationSettingDraft, ReservationSettingDto, ReservationSettingRequest };
