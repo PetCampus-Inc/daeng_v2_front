@@ -5,6 +5,7 @@ import {
   applyConfirmedTime,
   canSaveReservationSetting,
   capacityLimitError,
+  keepUnsavedReservationEdits,
   sanitizeDailyCapacity,
   timeOrderError,
 } from './reservationSettingRules';
@@ -77,6 +78,24 @@ describe('canSaveReservationSetting', () => {
     expect(capacityLimitError('', 5)).toBeNull();
     expect(capacityLimitError('5', 5)).toBeNull();
     expect(capacityLimitError('3', null)).toBeNull();
+  });
+
+  it('정원이 1보다 작으면 저장할 수 없고 정원 오류를 보여 준다', () => {
+    expect(capacityLimitError('0', null)).toBe('하루 정원은 1마리 이상이어야 해요.');
+    expect(canSaveReservationSetting({ ...savedPair, dailyCapacity: '0' }, savedPair, null)).toBe(false);
+  });
+});
+
+describe('keepUnsavedReservationEdits', () => {
+  it('기준과 다른 칸만 남기고 나머지는 새 값으로 바꾼다', () => {
+    const current = { ...savedPair, weekdayStart: '10:00', dailyCapacity: '4' };
+    const next = { ...savedPair, weekdayStart: '08:00', dailyCapacity: '9', weekendEnd: '16:00' };
+
+    expect(keepUnsavedReservationEdits(savedPair, current, next)).toEqual({
+      ...next,
+      weekdayStart: '10:00',
+      dailyCapacity: '4',
+    });
   });
 });
 

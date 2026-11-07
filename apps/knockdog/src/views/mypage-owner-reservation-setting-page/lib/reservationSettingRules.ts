@@ -29,14 +29,31 @@ function isTimePairComplete(start: string | null, end: string | null) {
 }
 
 function capacityLimitError(value: string, peak: number | null) {
-  if (!value || peak == null) return null;
+  if (!value) return null;
+
   const count = Number(value);
-  if (!Number.isFinite(count) || count >= peak) return null;
+  if (!Number.isInteger(count) || count < 1) return '하루 정원은 1마리 이상이어야 해요.';
+  if (peak == null || count >= peak) return null;
   return `하루 ${peak}마리가 예약된 날이 있어 ${peak}마리보다 적게 정할 수 없어요.`;
 }
 
 function sanitizeDailyCapacity(value: string) {
   return value.replace(/\D/g, '').slice(0, 3);
+}
+
+/** origin과 다른 칸은 편집으로 보고 current를 남긴다. 같은 칸은 next로 바꾼다. */
+function keepUnsavedReservationEdits(
+  origin: ReservationSettingValues,
+  current: ReservationSettingValues,
+  next: ReservationSettingValues
+): ReservationSettingValues {
+  return {
+    weekdayStart: current.weekdayStart === origin.weekdayStart ? next.weekdayStart : current.weekdayStart,
+    weekdayEnd: current.weekdayEnd === origin.weekdayEnd ? next.weekdayEnd : current.weekdayEnd,
+    weekendStart: current.weekendStart === origin.weekendStart ? next.weekendStart : current.weekendStart,
+    weekendEnd: current.weekendEnd === origin.weekendEnd ? next.weekendEnd : current.weekendEnd,
+    dailyCapacity: current.dailyCapacity === origin.dailyCapacity ? next.dailyCapacity : current.dailyCapacity,
+  };
 }
 
 function isSameReservationSetting(left: ReservationSettingValues, right: ReservationSettingValues) {
@@ -78,6 +95,7 @@ export {
   canSaveReservationSetting,
   capacityLimitError,
   isSameReservationSetting,
+  keepUnsavedReservationEdits,
   sanitizeDailyCapacity,
   timeOrderError,
 };
