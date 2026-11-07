@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 
-import { ChargeButton, StatusFilterChip, TicketEmptyCard, TicketSummaryCard } from '@knockdog/ui';
+import { ChargeButton, StatusFilterChip, TicketSummaryCard } from '@knockdog/ui';
 
 import { memberTicketListContent } from '@views/owner/member-ticket-list/config/memberTicketListContent';
 import {
@@ -14,6 +14,8 @@ import {
   sortMemberTicketList,
   type TicketListFilter,
 } from '@views/owner/member-ticket-list/model/memberTicketList';
+
+import { MemberTicketListEmpty } from '@views/owner/member-ticket-list/ui/MemberTicketListEmpty';
 
 import { Header } from '@widgets/Header';
 
@@ -72,26 +74,27 @@ function MemberTicketListPage() {
         </div>
       ) : null}
 
-      <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4'>
-        {tickets.length === 0 ? (
-          <TicketEmptyCard title={content.emptyTitle} description={content.emptyDescription} onAction={handleCharge} />
-        ) : null}
-        {tickets.length > 0 && visibleTickets.length === 0 ? (
-          <p className='body1-bold text-text-primary py-10 text-center'>{content.emptyFilter(filterLabel)}</p>
-        ) : null}
-        {visibleTickets.map((ticket) => (
-          <TicketSummaryCard
-            key={ticket.id}
-            title={ticket.name}
-            status={ticket.status}
-            remainingCount={ticket.remainingCount}
-            totalCount={ticket.totalCount}
-            period={ticket.period}
-            remainingDays={ticket.remainingDays ?? undefined}
-            highlightRemaining={false}
-          />
-        ))}
-      </div>
+      {tickets.length === 0 ? (
+        <MemberTicketListEmpty />
+      ) : (
+        <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4'>
+          {visibleTickets.length === 0 ? (
+            <p className='body1-bold text-text-primary py-10 text-center'>{content.emptyFilter(filterLabel)}</p>
+          ) : null}
+          {visibleTickets.map((ticket) => (
+            <TicketSummaryCard
+              key={ticket.id}
+              title={ticket.name}
+              status={ticket.status}
+              remainingCount={ticket.remainingCount}
+              totalCount={ticket.totalCount}
+              period={ticket.period}
+              remainingDays={ticket.remainingDays ?? undefined}
+              highlightRemaining={false}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
