@@ -7,8 +7,10 @@ import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
 import { findTicketDetail, type TicketHistoryLine } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { applyExpiryExtension } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
 import { applyTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
 
+import { TicketExpirySheet } from '@views/owner/member-ticket-detail/ui/TicketExpirySheet';
 import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHoldSheet';
 
 import { Header } from '@widgets/Header';
@@ -36,12 +38,17 @@ function MemberTicketDetailPage() {
   const [detail, setDetail] = useState(findTicketDetail);
   const [isHoldOpen, setIsHoldOpen] = useState(false);
   const [isHoldSet, setIsHoldSet] = useState(false);
+  const [isExpiryOpen, setIsExpiryOpen] = useState(false);
   const endLabel = detail.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail.status === 'active' || detail.status === 'onHold';
 
   const handleConfirmHold = (startsOn: string, endsOn: string) => {
     setDetail((current) => applyTicketHold(current, startsOn, endsOn, new Date()));
     setIsHoldSet(true);
+  };
+
+  const handleConfirmExpiry = (endsOn: string) => {
+    setDetail((current) => applyExpiryExtension(current, endsOn));
   };
 
   return (
@@ -83,7 +90,7 @@ function MemberTicketDetailPage() {
             <DetailFact label={content.chargedOn} value={detail.chargedOn} />
             <div className='bg-line-100 h-px w-full' />
             {detail.endsOn ? (
-              <ExpirationDateRow date={detail.endsOn} />
+              <ExpirationDateRow date={detail.endsOn} onClick={() => setIsExpiryOpen(true)} />
             ) : (
               <DetailFact label={content.expiresOn} value={content.noExpiry} />
             )}
@@ -118,6 +125,12 @@ function MemberTicketDetailPage() {
         </section>
       </div>
       <TicketHoldSheet isOpen={isHoldOpen} onOpenChange={setIsHoldOpen} onConfirm={handleConfirmHold} />
+      <TicketExpirySheet
+        isOpen={isExpiryOpen}
+        currentEndsOn={detail.endsOn}
+        onOpenChange={setIsExpiryOpen}
+        onConfirm={handleConfirmExpiry}
+      />
     </div>
   );
 }

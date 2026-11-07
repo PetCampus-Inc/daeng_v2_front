@@ -3,7 +3,7 @@
 import { ActionButton, BottomSheet, MonthlyCalendar } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
-import { formatHoldSelectLabel } from '@views/owner/member-ticket-detail/model/memberTicketHold';
+import { formatTicketSelectLabel } from '@views/owner/member-ticket-detail/model/memberTicketDate';
 
 interface TicketHoldDateSheetProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface TicketHoldDateSheetProps {
   onDraftChange: (date: Date) => void;
   onMonthChange: (date: Date) => void;
   onConfirm: () => void;
+  isConfirmDisabled?: boolean;
 }
 
 function TicketHoldDateSheet({
@@ -25,6 +26,7 @@ function TicketHoldDateSheet({
   onDraftChange,
   onMonthChange,
   onConfirm,
+  isConfirmDisabled = false,
 }: TicketHoldDateSheetProps) {
   const content = memberTicketDetailContent;
 
@@ -47,8 +49,15 @@ function TicketHoldDateSheet({
           />
         </div>
         <div className='px-4 py-4'>
-          <ActionButton type='button' variant='primaryFill' size='large' className='body1-bold' onClick={onConfirm}>
-            {content.selectDate(formatHoldSelectLabel(draft))}
+          <ActionButton
+            type='button'
+            variant='primaryFill'
+            size='large'
+            className='body1-bold'
+            disabled={isConfirmDisabled}
+            onClick={onConfirm}
+          >
+            {content.selectDate(formatTicketSelectLabel(draft))}
           </ActionButton>
         </div>
       </BottomSheet.Body>
