@@ -8,6 +8,28 @@ import { createSuppressibleJSONStorage } from '@shared/lib/storage';
 
 const { storage, runWithoutPersisting } = createSuppressibleJSONStorage();
 
+type UserHydrationStatus = 'pending' | 'ready' | 'error';
+
+let userHydrationStatus: UserHydrationStatus = 'pending';
+const userHydrationListeners = new Set<() => void>();
+
+function setUserHydrationStatus(status: UserHydrationStatus) {
+  if (userHydrationStatus === status) return;
+  userHydrationStatus = status;
+  userHydrationListeners.forEach((listener) => listener());
+}
+
+function getUserHydrationStatus() {
+  return userHydrationStatus;
+}
+
+function subscribeUserHydration(listener: () => void) {
+  userHydrationListeners.add(listener);
+  return () => {
+    userHydrationListeners.delete(listener);
+  };
+}
+
 interface UserStore {
   user: User | null;
   setUser: (user: User | null) => void;
@@ -24,7 +46,13 @@ const useUserStore = create<UserStore>()(
     {
       name: STORAGE_KEYS.USER,
       storage,
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          setUserHydrationStatus('error');
+          return;
+        }
+
+        setUserHydrationStatus('ready');
         if (!state?.user) return;
 
         const addresses = normalizeUserAddresses(state.user.addresses);
@@ -107,4 +135,4 @@ if (typeof window !== 'undefined') {
   }, 2_000);
 }
 
-export { useUserStore };
+export { getUserHydrationStatus, subscribeUserHydration, useUserStore };
