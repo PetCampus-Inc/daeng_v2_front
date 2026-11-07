@@ -208,6 +208,10 @@ const route = {
       detail: {
         /** 원장 원생 프로필 페이지 */
         root: '/owner/members/[id]',
+        ticketCharge: {
+          /** 원장 원생 이용권 충전 페이지 */
+          root: '/owner/members/[id]/ticket-charge',
+        },
       },
       approval: {
         /** 원장 구성원 연결 승인 대기 목록 페이지 */
