@@ -13,6 +13,7 @@ interface TicketSummaryCardProps extends Omit<ComponentProps<'article'>, 'title'
   totalCount: ReactNode;
   period: ReactNode;
   remainingDays?: ReactNode;
+  highlightRemaining?: boolean;
 }
 
 /** V4 / Card / Ticket Summary */
@@ -23,6 +24,7 @@ function TicketSummaryCard({
   totalCount,
   period,
   remainingDays,
+  highlightRemaining = true,
   className,
   ...props
 }: TicketSummaryCardProps) {
@@ -42,7 +44,10 @@ function TicketSummaryCard({
         <TicketLifecycleBadge status={status} />
       </div>
       <p className='body2-semibold text-text-secondary'>
-        잔여 <span className={status === 'active' ? 'text-text-accent' : undefined}>{remainingCount}회</span>
+        잔여{' '}
+        <span className={status === 'active' && highlightRemaining ? 'text-text-accent' : undefined}>
+          {remainingCount}회
+        </span>
         {` / ${totalCount}회`}
       </p>
       <div className='flex items-center gap-x1_5'>

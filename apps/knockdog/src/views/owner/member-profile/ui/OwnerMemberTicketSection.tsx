@@ -3,7 +3,9 @@
 import { ChargeButton, TicketEmptyCard, TicketSectionLink, TicketSummaryCard } from '@knockdog/ui';
 
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
-import { MOCK_OWNER_MEMBER_TICKETS, toOwnerMemberTicketView } from '@views/owner/member-profile/model/ownerMemberTicket';
+import { MOCK_OWNER_MEMBER_TICKETS } from '@views/owner/member-profile/model/ownerMemberTicket';
+
+import { toOwnerMemberTicketView } from '@entities/owner-member';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -14,7 +16,7 @@ interface OwnerMemberTicketSectionProps {
 }
 
 function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
-  const { pushForResult } = useStackNavigation();
+  const { push, pushForResult } = useStackNavigation();
   const tickets = MOCK_OWNER_MEMBER_TICKETS.map((ticket) => toOwnerMemberTicketView(ticket, new Date()));
 
   const handleCharge = async () => {
@@ -40,7 +42,11 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
   return (
     <section className='flex flex-col gap-4 px-4 pt-9 pb-4'>
       <div className='flex items-center justify-between px-1'>
-        <TicketSectionLink />
+        <TicketSectionLink
+          onClick={() => {
+            push({ pathname: route.owner.members.detail.tickets.root.replace('[id]', petId) }).catch(() => undefined);
+          }}
+        />
         <ChargeButton
           onClick={() => {
             handleCharge().catch(() => undefined);

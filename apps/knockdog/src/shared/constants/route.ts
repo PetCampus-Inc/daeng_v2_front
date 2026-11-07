@@ -212,6 +212,10 @@ const route = {
           /** 원장 원생 이용권 충전 페이지 */
           root: '/owner/members/[id]/ticket-charge',
         },
+        tickets: {
+          /** 원장 원생 이용권 목록 페이지 */
+          root: '/owner/members/[id]/tickets',
+        },
       },
       approval: {
         /** 원장 구성원 연결 승인 대기 목록 페이지 */

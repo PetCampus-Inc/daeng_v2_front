@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  NO_END_DATE_LABEL,
-  TICKET_STATUS,
-  toOwnerMemberTicketView,
-  type OwnerMemberTicket,
-} from './ownerMemberTicket';
+import { NO_END_DATE_LABEL, TICKET_STATUS, toOwnerMemberTicketView, type OwnerMemberTicket } from './ownerMemberTicket';
 
 const today = new Date(2026, 10, 5);
 
@@ -29,10 +24,7 @@ describe('toOwnerMemberTicketView', () => {
   });
 
   it('종료일이 없으면 만료 없음이고 잔여 일수는 없다', () => {
-    const view = toOwnerMemberTicketView(
-      { ...ticket, status: TICKET_STATUS.scheduled, endsOn: null },
-      today
-    );
+    const view = toOwnerMemberTicketView({ ...ticket, status: TICKET_STATUS.scheduled, endsOn: null }, today);
 
     expect(view.status).toBe(TICKET_STATUS.scheduled);
     expect(view.period.endsWith(NO_END_DATE_LABEL)).toBe(true);
