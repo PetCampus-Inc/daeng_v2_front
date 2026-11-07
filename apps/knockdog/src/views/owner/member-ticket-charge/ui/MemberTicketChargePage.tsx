@@ -30,7 +30,7 @@ import { TicketChargeLeaveDialog } from '@views/owner/member-ticket-charge/ui/Ti
 import { TicketChargePresetSheet } from '@views/owner/member-ticket-charge/ui/TicketChargePresetSheet';
 import { Header } from '@widgets/Header';
 
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { getCurrentTxId, useNativeBackHandler, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { toast } from '@shared/ui/toast';
 
@@ -55,6 +55,7 @@ function toChargeDuration(choice: DurationChoice, amountText: string, unit: Char
 function MemberTicketChargePage() {
   const content = memberTicketChargeContent;
   const { back } = useStackNavigation();
+  const { send } = useNavigationResult<boolean>();
   const handleBackRef = useRef(() => {});
   const [today] = useState(() => startOfChargeDay(new Date()));
   const [startDate, setStartDate] = useState(today);
@@ -140,18 +141,29 @@ function MemberTicketChargePage() {
     releaseAndLeave(back);
   };
 
-  const handleCharge = () => {
-    if (!canSubmit) return;
-
-    setIsSubmitting(true);
+  const showSuccessToast = () => {
     toast({
-      type: 'default',
+      type: 'success',
       shape: 'rounded',
       position: 'bottom',
-      nativeTitle: content.failure,
-      title: content.failure,
+      nativeTitle: content.success,
+      title: content.success,
     });
-    setIsSubmitting(false);
+  };
+
+  const handleCharge = () => {
+    if (!canSubmit || isSubmitting) return;
+
+    setIsSubmitting(true);
+    if (getCurrentTxId()) send(true);
+    else showSuccessToast();
+
+    // popstate 안에서 바로 back() 하면 브라우저가 두 번째 이동을 버려서 가드만 빠진다
+    releaseAndLeave(() => {
+      requestAnimationFrame(() => {
+        void back();
+      });
+    });
   };
 
   return (

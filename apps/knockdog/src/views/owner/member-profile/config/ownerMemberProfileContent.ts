@@ -39,6 +39,7 @@ const ownerMemberProfileContent = {
   attendanceEmptyText: '선택한 날짜에 등하원 기록이 없어요.',
   todayButtonLabel: '오늘',
   copyToastSuffix: '를 복사했어요',
+  ticketChargeSuccessToast: '이용권 충전이 완료되었어요',
   profileLoadingText: '원생 프로필을 불러오는 중이에요',
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',

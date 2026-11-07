@@ -34,7 +34,8 @@ const memberTicketChargeContent = {
     hint: (start: string, end: string) => `* ${start}부터 사용하고 ${end}에 만료돼요.`,
   },
   submit: '충전하기',
-  failure: '이용권을 충전하지 못했어요.',
+  success: '이용권 충전이 완료되었어요',
+  failure: '이용권을 충전하지 못했어요',
   leave: {
     title: '충전하지 않고 나갈까요?',
     description: '입력한 내용이 저장되지 않아요.',
