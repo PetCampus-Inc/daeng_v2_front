@@ -5,6 +5,8 @@ const memberTicketChargeContent = {
   startDate: {
     label: '시작일',
     placeholder: '시작일을 선택하세요',
+    sheetTitle: '시작일 선택',
+    confirm: (date: string) => `${date} 선택`,
   },
   preset: {
     label: '등록된 이용권',

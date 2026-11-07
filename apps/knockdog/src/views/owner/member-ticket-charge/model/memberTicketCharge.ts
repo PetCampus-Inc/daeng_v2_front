@@ -17,6 +17,14 @@ function formatChargeDotDate(date: Date) {
   return `${date.getFullYear()}.${month}.${day}`;
 }
 
+function formatChargeSelectLabel(date: Date) {
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+}
+
+function isSameChargeDay(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
+}
+
 function addChargeMonths(date: Date, months: number) {
   const next = new Date(date.getFullYear(), date.getMonth() + months, date.getDate());
   if (next.getDate() === date.getDate()) return next;
@@ -64,5 +72,7 @@ export {
   chargeCountError,
   chargeEndDate,
   formatChargeDotDate,
+  formatChargeSelectLabel,
+  isSameChargeDay,
   startOfChargeDay,
 };

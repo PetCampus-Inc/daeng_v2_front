@@ -18,11 +18,13 @@ import {
   chargeCountError,
   chargeEndDate,
   formatChargeDotDate,
+  isSameChargeDay,
   startOfChargeDay,
   type ChargeDuration,
   type ChargeMonth,
   type ChargeUnit,
 } from '@views/owner/member-ticket-charge/model/memberTicketCharge';
+import { TicketChargeDateSheet } from '@views/owner/member-ticket-charge/ui/TicketChargeDateSheet';
 import { TicketChargeLeaveDialog } from '@views/owner/member-ticket-charge/ui/TicketChargeLeaveDialog';
 import { Header } from '@widgets/Header';
 
@@ -47,6 +49,10 @@ function MemberTicketChargePage() {
   const { back } = useStackNavigation();
   const handleBackRef = useRef(() => {});
   const [today] = useState(() => startOfChargeDay(new Date()));
+  const [startDate, setStartDate] = useState(today);
+  const [draftDate, setDraftDate] = useState(today);
+  const [calendarMonth, setCalendarMonth] = useState(today);
+  const [isDateOpen, setIsDateOpen] = useState(false);
   const [name, setName] = useState('');
   const [count, setCount] = useState('');
   const [hasCountBlurred, setHasCountBlurred] = useState(false);
@@ -59,14 +65,29 @@ function MemberTicketChargePage() {
   const duration = toChargeDuration(choice, customAmount, unit);
   const countError = hasCountBlurred ? chargeCountError(count) : null;
   const canSubmit = canChargeTicket(name, count, duration) && !isSubmitting;
-  const endDate = duration ? chargeEndDate(today, duration) : null;
-  const isDirty = name !== '' || count !== '' || choice !== null || customAmount !== '';
+  const endDate = duration ? chargeEndDate(startDate, duration) : null;
+  const isDirty = name !== '' || count !== '' || choice !== null || customAmount !== '' || !isSameChargeDay(startDate, today);
 
   const { releaseAndLeave } = useUnsavedBrowserBackGuard(isDirty, () => {
     handleBackRef.current();
   });
 
+  const handleOpenDate = () => {
+    setDraftDate(startDate);
+    setCalendarMonth(startDate);
+    setIsDateOpen(true);
+  };
+
+  const handleConfirmDate = () => {
+    setStartDate(draftDate);
+    setIsDateOpen(false);
+  };
+
   const handleBack = useCallback(() => {
+    if (isDateOpen) {
+      setIsDateOpen(false);
+      return;
+    }
     if (isLeaveOpen) {
       setIsLeaveOpen(false);
       return;
@@ -76,7 +97,7 @@ function MemberTicketChargePage() {
       return;
     }
     setIsLeaveOpen(true);
-  }, [back, isDirty, isLeaveOpen, releaseAndLeave]);
+  }, [back, isDateOpen, isDirty, isLeaveOpen, releaseAndLeave]);
 
   useLayoutEffect(() => {
     handleBackRef.current = handleBack;
@@ -114,7 +135,12 @@ function MemberTicketChargePage() {
       <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-5 pb-4'>
         <div className='flex flex-col gap-x4'>
           <p className='label-medium text-text-secondary px-x1'>{content.startDate.label}</p>
-          <TicketValueField state='filled' value={formatChargeDotDate(today)} placeholder={content.startDate.placeholder} />
+          <TicketValueField
+            state='filled'
+            value={formatChargeDotDate(startDate)}
+            placeholder={content.startDate.placeholder}
+            onClick={handleOpenDate}
+          />
         </div>
 
         <div className='flex flex-col gap-x4'>
@@ -173,7 +199,7 @@ function MemberTicketChargePage() {
 
         {endDate ? (
           <p className='caption1-regular text-fill-secondary-500 px-x1'>
-            {content.duration.hint(formatChargeDotDate(today), formatChargeDotDate(endDate))}
+            {content.duration.hint(formatChargeDotDate(startDate), formatChargeDotDate(endDate))}
           </p>
         ) : null}
       </div>
@@ -191,6 +217,15 @@ function MemberTicketChargePage() {
         </ActionButton>
       </div>
 
+      <TicketChargeDateSheet
+        isOpen={isDateOpen}
+        draft={draftDate}
+        month={calendarMonth}
+        onOpenChange={setIsDateOpen}
+        onDraftChange={setDraftDate}
+        onMonthChange={setCalendarMonth}
+        onConfirm={handleConfirmDate}
+      />
       <TicketChargeLeaveDialog isOpen={isLeaveOpen} onStay={() => setIsLeaveOpen(false)} onLeave={handleLeave} />
     </div>
   );

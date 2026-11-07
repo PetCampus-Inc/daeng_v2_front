@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canChargeTicket, chargeCountError, chargeEndDate, formatChargeDotDate } from './memberTicketCharge';
+import { canChargeTicket, chargeCountError, chargeEndDate, formatChargeDotDate, formatChargeSelectLabel } from './memberTicketCharge';
 
 const start = new Date(2026, 9, 24);
 
@@ -11,6 +11,12 @@ describe('chargeEndDate', () => {
 
   it('만료 없음은 만료일을 만들지 않는다', () => {
     expect(chargeEndDate(start, { kind: 'none' })).toBeNull();
+  });
+});
+
+describe('formatChargeSelectLabel', () => {
+  it('월과 일을 0 없이 적는다', () => {
+    expect(formatChargeSelectLabel(start)).toBe('2026년 10월 24일');
   });
 });
 
