@@ -10,6 +10,8 @@ import { canExtendExpiry } from '@views/owner/member-ticket-detail/model/memberT
 
 import { TicketHoldDateSheet } from '@views/owner/member-ticket-detail/ui/TicketHoldDateSheet';
 
+import { useNativeBackToClose } from '@shared/lib/bridge';
+
 interface TicketExpirySheetProps {
   isOpen: boolean;
   currentEndsOn: string | null;
@@ -37,6 +39,8 @@ function TicketExpirySheet({ isOpen, currentEndsOn, onOpenChange, onConfirm }: T
     if (!nextOpen) clearDraft();
     onOpenChange(nextOpen);
   };
+
+  useNativeBackToClose(isOpen && !isDateOpen, () => handleOpenChange(false));
 
   const handleOpenDate = () => {
     const seed = nextEndsOn ?? (currentEndsOn ? dayAfterDotDate(currentEndsOn) : startOfTicketDay(new Date()));
@@ -80,7 +84,7 @@ function TicketExpirySheet({ isOpen, currentEndsOn, onOpenChange, onConfirm }: T
             </div>
             {currentEndsOn ? <p className='caption1-regular text-text-tertiary'>{content.expiryHint(currentEndsOn)}</p> : null}
           </div>
-          <div className='px-4 py-4'>
+          <div className='px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
             <ActionButton
               type='button'
               variant='primaryFill'

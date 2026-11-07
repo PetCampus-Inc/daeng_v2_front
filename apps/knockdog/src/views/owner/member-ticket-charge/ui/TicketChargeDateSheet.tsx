@@ -5,6 +5,8 @@ import { ActionButton, BottomSheet, MonthlyCalendar } from '@knockdog/ui';
 import { memberTicketChargeContent } from '@views/owner/member-ticket-charge/config/memberTicketChargeContent';
 import { formatChargeSelectLabel } from '@views/owner/member-ticket-charge/model/memberTicketCharge';
 
+import { useNativeBackToClose } from '@shared/lib/bridge';
+
 interface TicketChargeDateSheetProps {
   isOpen: boolean;
   draft: Date;
@@ -26,6 +28,8 @@ function TicketChargeDateSheet({
 }: TicketChargeDateSheetProps) {
   const { startDate } = memberTicketChargeContent;
 
+  useNativeBackToClose(isOpen, () => onOpenChange(false));
+
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={onOpenChange} handleOnly>
       <BottomSheet.Overlay className='z-overlay' />
@@ -44,7 +48,7 @@ function TicketChargeDateSheet({
             onMonthChange={onMonthChange}
           />
         </div>
-        <div className='px-4 py-4'>
+        <div className='px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
           <ActionButton type='button' variant='primaryFill' size='large' className='body1-bold' onClick={onConfirm}>
             {startDate.confirm(formatChargeSelectLabel(draft))}
           </ActionButton>

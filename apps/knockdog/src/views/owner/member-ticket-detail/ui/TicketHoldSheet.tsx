@@ -13,6 +13,8 @@ import {
 
 import { TicketHoldDateSheet } from '@views/owner/member-ticket-detail/ui/TicketHoldDateSheet';
 
+import { useNativeBackToClose } from '@shared/lib/bridge';
+
 type HoldDateTarget = 'start' | 'end';
 
 interface TicketHoldSheetProps {
@@ -68,6 +70,8 @@ function TicketHoldSheet({ isOpen, onOpenChange, onConfirm }: TicketHoldSheetPro
     onOpenChange(nextOpen);
   };
 
+  useNativeBackToClose(isOpen && dateField === null, () => handleOpenChange(false));
+
   const handleOpenDate = (field: HoldDateTarget) => {
     const seed = startOfHoldDay((field === 'start' ? startsOn : endsOn) ?? new Date());
     setDraft(seed);
@@ -113,7 +117,7 @@ function TicketHoldSheet({ isOpen, onOpenChange, onConfirm }: TicketHoldSheetPro
             />
             <p className='caption1-regular text-text-tertiary'>{content.holdHint}</p>
           </div>
-          <div className='px-4 py-4'>
+          <div className='px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
             <ActionButton
               type='button'
               variant='primaryFill'

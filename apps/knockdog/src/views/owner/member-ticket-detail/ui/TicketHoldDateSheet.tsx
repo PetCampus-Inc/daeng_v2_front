@@ -5,6 +5,8 @@ import { ActionButton, BottomSheet, MonthlyCalendar } from '@knockdog/ui';
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
 import { formatTicketSelectLabel } from '@views/owner/member-ticket-detail/model/memberTicketDate';
 
+import { useNativeBackToClose } from '@shared/lib/bridge';
+
 interface TicketHoldDateSheetProps {
   isOpen: boolean;
   title: string;
@@ -30,6 +32,8 @@ function TicketHoldDateSheet({
 }: TicketHoldDateSheetProps) {
   const content = memberTicketDetailContent;
 
+  useNativeBackToClose(isOpen, () => onOpenChange(false));
+
   return (
     <BottomSheet.Root open={isOpen} onOpenChange={onOpenChange} handleOnly>
       <BottomSheet.Overlay className='z-overlay' />
@@ -48,7 +52,7 @@ function TicketHoldDateSheet({
             onMonthChange={onMonthChange}
           />
         </div>
-        <div className='px-4 py-4'>
+        <div className='px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
           <ActionButton
             type='button'
             variant='primaryFill'
