@@ -1,10 +1,15 @@
 'use client';
 
+import { useState } from 'react';
+
 import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
 import { findTicketDetail, type TicketHistoryLine } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { applyTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
+
+import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHoldSheet';
 
 import { Header } from '@widgets/Header';
 
@@ -28,9 +33,16 @@ function HistoryLine({ line }: { line: TicketHistoryLine }) {
 
 function MemberTicketDetailPage() {
   const content = memberTicketDetailContent;
-  const detail = findTicketDetail();
+  const [detail, setDetail] = useState(findTicketDetail);
+  const [isHoldOpen, setIsHoldOpen] = useState(false);
+  const [isHoldSet, setIsHoldSet] = useState(false);
   const endLabel = detail.endsOn ?? content.noExpiry;
-  const isActive = detail.status === 'active';
+  const isRemainingAccent = detail.status === 'active' || detail.status === 'onHold';
+
+  const handleConfirmHold = (startsOn: string, endsOn: string) => {
+    setDetail((current) => applyTicketHold(current, startsOn, endsOn, new Date()));
+    setIsHoldSet(true);
+  };
 
   return (
     <div className='bg-bg-100 flex h-full flex-col'>
@@ -53,7 +65,7 @@ function MemberTicketDetailPage() {
           </div>
           <div className='flex flex-col gap-2 px-1'>
             <p>
-              <span className={`h2-extrabold ${isActive ? 'text-text-accent' : 'text-text-secondary'}`}>
+              <span className={`h2-extrabold ${isRemainingAccent ? 'text-text-accent' : 'text-text-secondary'}`}>
                 {content.remaining(detail.remainingCount)}
               </span>
               <span className='body1-medium text-text-secondary'>{content.total(detail.totalCount)}</span>
@@ -85,9 +97,10 @@ function MemberTicketDetailPage() {
           </div>
           <button
             type='button'
-            className='body1-bold text-fill-secondary-500 border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4'
+            className={`body1-bold border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${isHoldSet ? 'text-text-tertiary' : 'text-fill-secondary-500'}`}
+            onClick={isHoldSet ? undefined : () => setIsHoldOpen(true)}
           >
-            {content.hold}
+            {isHoldSet ? content.cancelHold : content.hold}
           </button>
         </section>
 
@@ -104,6 +117,7 @@ function MemberTicketDetailPage() {
           </div>
         </section>
       </div>
+      <TicketHoldSheet isOpen={isHoldOpen} onOpenChange={setIsHoldOpen} onConfirm={handleConfirmHold} />
     </div>
   );
 }
