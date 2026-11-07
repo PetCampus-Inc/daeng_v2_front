@@ -69,7 +69,7 @@ function MemberTicketChargePage() {
   const [hasCountBlurred, setHasCountBlurred] = useState(false);
   const [choice, setChoice] = useState<DurationChoice>(null);
   const [customAmount, setCustomAmount] = useState('');
-  const [unit, setUnit] = useState<ChargeUnit>('month');
+  const [unit, setUnit] = useState<ChargeUnit>('day');
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -224,45 +224,46 @@ function MemberTicketChargePage() {
           onChange={(event) => setCount(event.target.value.replace(/\D/g, '').slice(0, 4))}
         />
 
-        <div className='flex flex-wrap justify-between gap-y-3'>
-          <DurationChip selected={choice === 'none'} disabled={Boolean(selectedPreset)} onClick={() => setChoice('none')}>
-            {content.duration.none}
-          </DurationChip>
-          {MONTH_PRESETS.map((months) => (
-            <DurationChip
-              key={months}
-              selected={choice === months}
-              disabled={Boolean(selectedPreset)}
-              onClick={() => setChoice(months)}
-            >
-              {content.duration.month(months)}
+        <div className='flex flex-col gap-x4'>
+          <p className='label-medium text-text-secondary px-x1'>{content.duration.label}</p>
+          <div className='flex flex-wrap justify-between gap-y-3'>
+            <DurationChip selected={choice === 'none'} disabled={Boolean(selectedPreset)} onClick={() => setChoice('none')}>
+              {content.duration.none}
             </DurationChip>
-          ))}
-          <CustomDurationChip
-            selected={choice === 'custom'}
-            disabled={Boolean(selectedPreset)}
-            onClick={() => setChoice('custom')}
-          >
-            {content.duration.custom}
-          </CustomDurationChip>
+            {MONTH_PRESETS.map((months) => (
+              <DurationChip
+                key={months}
+                selected={choice === months}
+                disabled={Boolean(selectedPreset)}
+                onClick={() => setChoice(months)}
+              >
+                {content.duration.month(months)}
+              </DurationChip>
+            ))}
+            <CustomDurationChip
+              selected={choice === 'custom'}
+              disabled={Boolean(selectedPreset)}
+              onClick={() => setChoice('custom')}
+            >
+              {content.duration.custom}
+            </CustomDurationChip>
+          </div>
+          {choice === 'custom' ? (
+            <DurationUnitField
+              unit={unit}
+              value={customAmount}
+              inputMode='numeric'
+              disabled={Boolean(selectedPreset)}
+              onUnitChange={selectedPreset ? undefined : setUnit}
+              onChange={(event) => setCustomAmount(event.target.value.replace(/\D/g, '').slice(0, 4))}
+            />
+          ) : null}
+          {endDate ? (
+            <p className='caption1-regular text-fill-secondary-500 px-x1'>
+              {content.duration.hint(formatChargeDotDate(startDate), formatChargeDotDate(endDate))}
+            </p>
+          ) : null}
         </div>
-
-        {choice === 'custom' ? (
-          <DurationUnitField
-            unit={unit}
-            value={customAmount}
-            inputMode='numeric'
-            disabled={Boolean(selectedPreset)}
-            onUnitChange={selectedPreset ? undefined : setUnit}
-            onChange={(event) => setCustomAmount(event.target.value.replace(/\D/g, '').slice(0, 4))}
-          />
-        ) : null}
-
-        {endDate ? (
-          <p className='caption1-regular text-fill-secondary-500 px-x1'>
-            {content.duration.hint(formatChargeDotDate(startDate), formatChargeDotDate(endDate))}
-          </p>
-        ) : null}
       </div>
 
       <div className='shrink-0 bg-white px-4 py-4'>

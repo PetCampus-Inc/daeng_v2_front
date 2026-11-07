@@ -4,7 +4,7 @@ const memberTicketChargeContent = {
   title: '이용권 충전',
   startDate: {
     label: '시작일',
-    placeholder: '시작일을 선택하세요',
+    placeholder: '시작일 선택하기',
     sheetTitle: '시작일 선택',
     confirm: (date: string) => `${date} 선택`,
   },
@@ -18,16 +18,17 @@ const memberTicketChargeContent = {
   },
   name: {
     label: '이용권 이름',
-    placeholder: '이름을 입력하세요',
+    placeholder: '이름을 입력하세요.',
     maxLength: 50,
   },
   count: {
     label: '충전 횟수',
-    placeholder: '횟수를 입력하세요',
+    placeholder: '횟수를 입력하세요.',
     unit: '회',
     error: CHARGE_COUNT_ERROR,
   },
   duration: {
+    label: '유효기간',
     none: '만료 없음',
     month: (months: number) => `${months}개월`,
     custom: '직접 입력',
