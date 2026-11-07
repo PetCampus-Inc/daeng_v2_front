@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ActionButton,
   Field,
@@ -16,7 +16,7 @@ import {
   useReservationSettingQuery,
   type ReservationSetting,
 } from '@entities/owner-reservation-setting';
-import { useUserStore } from '@entities/user';
+import { getUserHydrationStatus, subscribeUserHydration, useUserStore } from '@entities/user';
 import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
@@ -250,18 +250,26 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
 }
 
 function MypageOwnerReservationSettingPage() {
-  const hasUserStoreHydrated = useSyncExternalStore(
-    (onStoreChange) => useUserStore.persist.onFinishHydration(onStoreChange),
-    () => useUserStore.persist.hasHydrated(),
-    () => false
+  const userHydrationStatus = useSyncExternalStore(
+    subscribeUserHydration,
+    getUserHydrationStatus,
+    () => 'pending' as const
   );
+  const [isHydrationRetrying, setIsHydrationRetrying] = useState(false);
   const userId = useUserStore((state) => state.user?.userId);
   const settingQuery = useReservationSettingQuery({ userId });
   const handleAuthRetry = () => {
-    void useUserStore.persist.rehydrate();
+    setIsHydrationRetrying(true);
+    void Promise.resolve(useUserStore.persist.rehydrate()).finally(() => {
+      setIsHydrationRetrying(false);
+    });
   };
 
-  if (!hasUserStoreHydrated) {
+  if (userHydrationStatus === 'error') {
+    return <ReservationSettingPending isError isRetrying={isHydrationRetrying} onRetry={handleAuthRetry} />;
+  }
+
+  if (userHydrationStatus !== 'ready') {
     return <ReservationSettingPending isError={false} isRetrying={false} onRetry={handleAuthRetry} />;
   }
 
