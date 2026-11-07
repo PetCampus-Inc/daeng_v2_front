@@ -17,6 +17,7 @@ import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHold
 import { Header } from '@widgets/Header';
 
 import { useStackNavigation } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
 function DetailFact({ label, value }: { label: string; value: string }) {
   return (
@@ -48,6 +49,16 @@ function MemberTicketDetailPage() {
   const endLabel = detail.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail.status === 'active' || detail.status === 'onHold';
 
+  const showSuccessToast = (title: string) => {
+    toast({
+      type: 'success',
+      shape: 'rounded',
+      position: 'bottom',
+      nativeTitle: title,
+      title,
+    });
+  };
+
   const handleConfirmHold = (startsOn: string, endsOn: string) => {
     setDetail((current) => applyTicketHold(current, startsOn, endsOn, new Date()));
   };
@@ -55,10 +66,12 @@ function MemberTicketDetailPage() {
   const handleConfirmCancel = () => {
     setDetail((current) => cancelTicketHold(current, new Date()));
     setIsCancelOpen(false);
+    showSuccessToast(content.cancelHoldSuccess);
   };
 
   const handleConfirmDelete = () => {
     setIsDeleteOpen(false);
+    showSuccessToast(content.deleteSuccess);
     back().catch(() => undefined);
   };
 
