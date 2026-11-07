@@ -1,4 +1,4 @@
-import { TICKET_STATUS, type TicketStatus } from '@entities/owner-member';
+import type { TicketHoldPlan } from '@views/owner/member-ticket-detail/model/memberTicketHold';import { TICKET_STATUS, type TicketStatus } from '@entities/owner-member';
 
 interface TicketHistoryLine {
   id: string;
@@ -18,6 +18,7 @@ interface TicketDetail {
   chargedOn: string;
   remainingDays: number | null;
   history: TicketHistoryLine[];
+  hold: TicketHoldPlan | null;
 }
 
 /** 상세 시안. 이용권 API 전이라 어떤 카드로 들어와도 이 프레임을 보여 준다. */
@@ -31,6 +32,7 @@ const MOCK_TICKET_DETAIL: TicketDetail = {
   endsOn: '2026.12.04',
   chargedOn: '2026.09.01',
   remainingDays: 41,
+  hold: null,
   history: [
     { id: 'use-2', title: '사용(8회)', detail: '2026.11.01 예약', isCancelled: false },
     { id: 'hold-end', title: '홀딩 해제', detail: '기간 ~ 2026.10.30', isCancelled: false },

@@ -8,12 +8,15 @@ import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
 import { findTicketDetail, type TicketHistoryLine } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
 import { applyExpiryExtension } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
-import { applyTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
+import { applyTicketHold, cancelTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
 
+import { TicketConfirmDialog } from '@views/owner/member-ticket-detail/ui/TicketConfirmDialog';
 import { TicketExpirySheet } from '@views/owner/member-ticket-detail/ui/TicketExpirySheet';
 import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHoldSheet';
 
 import { Header } from '@widgets/Header';
+
+import { useStackNavigation } from '@shared/lib/bridge';
 
 function DetailFact({ label, value }: { label: string; value: string }) {
   return (
@@ -35,16 +38,28 @@ function HistoryLine({ line }: { line: TicketHistoryLine }) {
 
 function MemberTicketDetailPage() {
   const content = memberTicketDetailContent;
+  const { back } = useStackNavigation();
   const [detail, setDetail] = useState(findTicketDetail);
   const [isHoldOpen, setIsHoldOpen] = useState(false);
-  const [isHoldSet, setIsHoldSet] = useState(false);
   const [isExpiryOpen, setIsExpiryOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const isHoldSet = detail.hold != null;
   const endLabel = detail.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail.status === 'active' || detail.status === 'onHold';
 
   const handleConfirmHold = (startsOn: string, endsOn: string) => {
     setDetail((current) => applyTicketHold(current, startsOn, endsOn, new Date()));
-    setIsHoldSet(true);
+  };
+
+  const handleConfirmCancel = () => {
+    setDetail((current) => cancelTicketHold(current, new Date()));
+    setIsCancelOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    setIsDeleteOpen(false);
+    back().catch(() => undefined);
   };
 
   const handleConfirmExpiry = (endsOn: string) => {
@@ -59,7 +74,7 @@ function MemberTicketDetailPage() {
         </Header.LeftSection>
         <Header.Title>{detail.name}</Header.Title>
         <Header.RightSection>
-          <button type='button' aria-label={content.deleteLabel} className='text-text-accent'>
+          <button type='button' aria-label={content.deleteLabel} className='text-text-accent' onClick={() => setIsDeleteOpen(true)}>
             <TrashV4 />
           </button>
         </Header.RightSection>
@@ -105,7 +120,7 @@ function MemberTicketDetailPage() {
           <button
             type='button'
             className={`body1-bold border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${isHoldSet ? 'text-text-tertiary' : 'text-fill-secondary-500'}`}
-            onClick={isHoldSet ? undefined : () => setIsHoldOpen(true)}
+            onClick={() => (isHoldSet ? setIsCancelOpen(true) : setIsHoldOpen(true))}
           >
             {isHoldSet ? content.cancelHold : content.hold}
           </button>
@@ -125,6 +140,22 @@ function MemberTicketDetailPage() {
         </section>
       </div>
       <TicketHoldSheet isOpen={isHoldOpen} onOpenChange={setIsHoldOpen} onConfirm={handleConfirmHold} />
+      <TicketConfirmDialog
+        isOpen={isDeleteOpen}
+        title={content.deleteTitle}
+        description={content.deleteDescription}
+        confirmLabel={content.deleteConfirm}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
+      <TicketConfirmDialog
+        isOpen={isCancelOpen}
+        title={content.cancelHoldTitle}
+        description={content.cancelHoldDescription}
+        confirmLabel={content.cancelHoldConfirm}
+        onClose={() => setIsCancelOpen(false)}
+        onConfirm={handleConfirmCancel}
+      />
       <TicketExpirySheet
         isOpen={isExpiryOpen}
         currentEndsOn={detail.endsOn}

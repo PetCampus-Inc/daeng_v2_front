@@ -22,6 +22,13 @@ const memberTicketDetailContent = {
   expiryHint: (date: string) => `* 기존 만료일(${date}) 이후 날짜만 선택할 수 있어요.`,
   historyTitle: '이용권 이력',
   deleteLabel: '이용권 삭제',
+  close: '닫기',
+  deleteTitle: '이용권을 삭제할까요?',
+  deleteDescription: '한 번 삭제한 이용권은 다시 불러올 수 없어요',
+  deleteConfirm: '삭제하기',
+  cancelHoldTitle: '홀딩을 취소할까요?',
+  cancelHoldDescription: '오늘부터 이용권을 다시 쓸 수 있어요',
+  cancelHoldConfirm: '취소하기',
   remaining: (count: number) => `잔여 ${count}회`,
   total: (count: number) => ` / ${count}회`,
   period: (start: string, end: string, remainingDays: number | null) =>

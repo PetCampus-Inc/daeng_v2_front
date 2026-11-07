@@ -28,4 +28,11 @@ function dayAfterDotDate(value: string) {
   return new Date(next.getUTCFullYear(), next.getUTCMonth(), next.getUTCDate());
 }
 
-export { dayAfterDotDate, daysBetweenDotDates, formatTicketDotDate, formatTicketSelectLabel, startOfTicketDay };
+function addDotDays(value: string, days: number) {
+  const next = new Date(dotDateUtc(value) + days * DAY_MS);
+  const month = String(next.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(next.getUTCDate()).padStart(2, '0');
+  return `${next.getUTCFullYear()}.${month}.${day}`;
+}
+
+export { addDotDays, dayAfterDotDate, daysBetweenDotDates, formatTicketDotDate, formatTicketSelectLabel, startOfTicketDay };
