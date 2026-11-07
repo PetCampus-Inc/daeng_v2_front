@@ -151,12 +151,28 @@ function MemberTicketChargePage() {
     });
   };
 
+  const showFailureToast = () => {
+    toast({
+      type: 'default',
+      shape: 'rounded',
+      position: 'bottom',
+      nativeTitle: content.failure,
+      title: content.failure,
+    });
+  };
+
   const handleCharge = () => {
     if (!canSubmit || isSubmitting) return;
 
     setIsSubmitting(true);
-    if (getCurrentTxId()) send(true);
-    else showSuccessToast();
+    try {
+      if (getCurrentTxId()) send(true);
+      else showSuccessToast();
+    } catch {
+      setIsSubmitting(false);
+      showFailureToast();
+      return;
+    }
 
     // popstate 안에서 바로 back() 하면 브라우저가 두 번째 이동을 버려서 가드만 빠진다
     releaseAndLeave(() => {

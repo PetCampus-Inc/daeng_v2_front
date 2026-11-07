@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
 import { ChargeButton, StatusFilterChip, TicketSummaryCard } from '@knockdog/ui';
@@ -28,12 +28,46 @@ function toTicketViews(today: Date) {
   return sortMemberTicketList(MOCK_MEMBER_TICKET_LIST).map((ticket) => toOwnerMemberTicketView(ticket, today));
 }
 
+function isSameLocalDay(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
+}
+
 function MemberTicketListPage() {
   const content = memberTicketListContent;
   const params = useParams<{ id: string }>();
   const petId = params?.id ?? '';
   const { push } = useStackNavigation();
-  const [today] = useState(() => new Date());
+  const [today, setToday] = useState(() => new Date());
+
+  useEffect(() => {
+    const refresh = () => {
+      setToday((current) => {
+        const now = new Date();
+        return isSameLocalDay(current, now) ? current : now;
+      });
+    };
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    let timer = 0;
+    const scheduleNextDay = () => {
+      const now = new Date();
+      const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      timer = window.setTimeout(() => {
+        refresh();
+        scheduleNextDay();
+      }, nextDay.getTime() - now.getTime());
+    };
+
+    scheduleNextDay();
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
   const [filter, setFilter] = useState<TicketListFilter>('all');
   const tickets = toTicketViews(today);
   const counts = countTicketList(tickets);

@@ -57,7 +57,7 @@ function TicketHoldSheet({ isOpen, onOpenChange, onConfirm }: TicketHoldSheetPro
 
   const startLabel = startsOn ? formatHoldDotDate(startsOn) : null;
   const endLabel = endsOn ? formatHoldDotDate(endsOn) : null;
-  const canConfirm = canConfirmHold(startLabel, endLabel);
+  const canConfirm = canConfirmHold(startLabel, endLabel, new Date());
 
   const clearDraft = () => {
     setStartsOn(null);

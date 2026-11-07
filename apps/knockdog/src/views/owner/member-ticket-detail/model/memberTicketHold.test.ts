@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyTicketHold, canConfirmHold, cancelTicketHold } from './memberTicketHold';
+import { applyTicketHold, canConfirmHold, cancelTicketHold, syncTicketHold } from './memberTicketHold';
 
 const TODAY = new Date(2026, 10, 7);
 
@@ -92,6 +92,79 @@ describe('memberTicketHold', () => {
     expect(next.endsOn).toBe('2026.12.04');
     expect(next.remainingDays).toBe(41);
     expect(next.history[0]).toMatchObject({ title: '홀딩 해제', detail: '기간 2026.11.07' });
+  });
+
+  it('이미 끝난 기간은 홀딩으로 잡지 않는다', () => {
+    const ticket = {
+      status: 'active',
+      endsOn: '2026.12.04',
+      remainingDays: 41,
+      hold: null,
+      history: [{ id: 'charge', title: '충전', detail: '2026.09.01', isCancelled: false }],
+    };
+
+    expect(canConfirmHold('2026.11.01', '2026.11.06', TODAY)).toBe(false);
+    expect(applyTicketHold(ticket, '2026.11.01', '2026.11.06', TODAY)).toBe(ticket);
+  });
+
+  it('예정 종료일 이후에 취소해도 종료일까지만 만료일을 늘린다', () => {
+    const ticket = applyTicketHold(
+      {
+        status: 'active',
+        endsOn: '2026.12.04',
+        remainingDays: 41,
+        hold: null,
+        history: [{ id: 'charge', title: '충전', detail: '2026.09.01', isCancelled: false }],
+      },
+      '2026.11.01',
+      '2026.11.03',
+      new Date(2026, 10, 2)
+    );
+
+    const next = cancelTicketHold(ticket, TODAY);
+
+    expect(next.endsOn).toBe('2026.12.07');
+    expect(next.remainingDays).toBe(44);
+    expect(next.history[0]).toMatchObject({ title: '홀딩 해제', detail: '기간 2026.11.03' });
+  });
+
+  it('같은 기간을 다시 홀딩해도 이력 id는 다르다', () => {
+    const base = {
+      status: 'active',
+      endsOn: '2026.12.04',
+      remainingDays: 41,
+      hold: null,
+      history: [{ id: 'charge', title: '충전', detail: '2026.09.01', isCancelled: false }],
+    };
+    const first = applyTicketHold(base, '2026.11.01', '2026.12.01', TODAY);
+    const second = applyTicketHold(first, '2026.11.01', '2026.12.01', TODAY);
+
+    expect(first.history[0]?.id).not.toBe(second.history[0]?.id);
+  });
+
+  it('날짜가 지나면 홀딩을 끝내고 연장은 한 번만 한다', () => {
+    const ticket = applyTicketHold(
+      {
+        status: 'active',
+        endsOn: '2026.12.04',
+        remainingDays: 41,
+        hold: null,
+        history: [{ id: 'charge', title: '충전', detail: '2026.09.01', isCancelled: false }],
+      },
+      '2026.11.08',
+      '2026.11.10',
+      TODAY
+    );
+    const started = syncTicketHold(ticket, new Date(2026, 10, 8));
+    const ended = syncTicketHold(started, new Date(2026, 10, 11));
+    const again = syncTicketHold(ended, new Date(2026, 10, 12));
+
+    expect(started.status).toBe('onHold');
+    expect(started.endsOn).toBe('2026.12.04');
+    expect(ended.status).toBe('active');
+    expect(ended.endsOn).toBe('2026.12.07');
+    expect(ended.hold).toBeNull();
+    expect(again).toBe(ended);
   });
 
   it('홀딩이 없으면 취소해도 그대로다', () => {

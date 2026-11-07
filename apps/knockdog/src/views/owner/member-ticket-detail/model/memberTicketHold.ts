@@ -21,13 +21,31 @@ interface HoldableTicket {
   hold: TicketHoldPlan | null;
 }
 
-function canConfirmHold(startsOn: string | null, endsOn: string | null) {
+let holdHistorySerial = 0;
+
+function holdHistoryId(prefix: string) {
+  holdHistorySerial += 1;
+  return `${prefix}-${holdHistorySerial}`;
+}
+
+function canConfirmHold(startsOn: string | null, endsOn: string | null, today?: Date) {
   if (startsOn == null || endsOn == null) return false;
-  return endsOn >= startsOn;
+  if (endsOn < startsOn) return false;
+  if (today != null && endsOn < formatTicketDotDate(today)) return false;
+  return true;
+}
+
+/** 취소·자동 종료가 세는 마지막 경계. 예정 종료일 다음 날을 넘지 않는다. */
+function holdCountUntil(plan: TicketHoldPlan, todayLabel: string) {
+  const dayAfterEnd = addDotDays(plan.endsOn, 1);
+  return dayAfterEnd < todayLabel ? dayAfterEnd : todayLabel;
 }
 
 function applyTicketHold<Ticket extends HoldableTicket>(ticket: Ticket, startsOn: string, endsOn: string, today: Date): Ticket {
-  const isStarted = startsOn <= formatTicketDotDate(today);
+  const todayLabel = formatTicketDotDate(today);
+  if (endsOn < todayLabel) return ticket;
+
+  const isStarted = startsOn <= todayLabel;
 
   return {
     ...ticket,
@@ -35,7 +53,7 @@ function applyTicketHold<Ticket extends HoldableTicket>(ticket: Ticket, startsOn
     hold: { startsOn, endsOn, statusBefore: ticket.status },
     history: [
       {
-        id: `hold-${startsOn}-${endsOn}`,
+        id: holdHistoryId('hold'),
         title: '홀딩',
         detail: `기간 ${startsOn} ~ ${endsOn}`,
         isCancelled: false,
@@ -50,8 +68,9 @@ function cancelTicketHold<Ticket extends HoldableTicket>(ticket: Ticket, today: 
   if (!plan) return ticket;
 
   const todayLabel = formatTicketDotDate(today);
-  const heldDays = plan.startsOn < todayLabel ? daysBetweenDotDates(plan.startsOn, todayLabel) : 0;
-  const releaseOn = heldDays === 0 ? todayLabel : addDotDays(todayLabel, -1);
+  const countUntil = holdCountUntil(plan, todayLabel);
+  const heldDays = plan.startsOn < countUntil ? daysBetweenDotDates(plan.startsOn, countUntil) : 0;
+  const releaseOn = heldDays === 0 ? todayLabel : addDotDays(countUntil, -1);
 
   return {
     ...ticket,
@@ -61,7 +80,7 @@ function cancelTicketHold<Ticket extends HoldableTicket>(ticket: Ticket, today: 
     hold: null,
     history: [
       {
-        id: `hold-end-${releaseOn}`,
+        id: holdHistoryId('hold-end'),
         title: '홀딩 해제',
         detail: `기간 ${releaseOn}`,
         isCancelled: false,
@@ -71,6 +90,21 @@ function cancelTicketHold<Ticket extends HoldableTicket>(ticket: Ticket, today: 
   };
 }
 
-export { applyTicketHold, canConfirmHold, cancelTicketHold };
+/** 날짜가 바뀌거나 화면에 다시 들어왔을 때 홀딩 상태를 맞춘다. 종료 연장은 한 번만. */
+function syncTicketHold<Ticket extends HoldableTicket>(ticket: Ticket, today: Date): Ticket {
+  const plan = ticket.hold;
+  if (!plan) return ticket;
+
+  const todayLabel = formatTicketDotDate(today);
+  if (todayLabel < plan.startsOn) {
+    return ticket.status === plan.statusBefore ? ticket : { ...ticket, status: plan.statusBefore as Ticket['status'] };
+  }
+  if (todayLabel <= plan.endsOn) {
+    return ticket.status === 'onHold' ? ticket : { ...ticket, status: 'onHold' as Ticket['status'] };
+  }
+  return cancelTicketHold(ticket, today);
+}
+
+export { applyTicketHold, canConfirmHold, cancelTicketHold, syncTicketHold };
 export { formatTicketDotDate as formatHoldDotDate, formatTicketSelectLabel as formatHoldSelectLabel, startOfTicketDay as startOfHoldDay } from './memberTicketDate';
 export type { HoldableTicket, HoldHistoryLine, TicketHoldPlan };

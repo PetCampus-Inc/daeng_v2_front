@@ -48,7 +48,9 @@ function TicketSummaryCard({
         <span className={status === 'active' && highlightRemaining ? 'text-text-accent' : undefined}>
           {remainingCount}회
         </span>
-        {` / ${totalCount}회`}
+        {' / '}
+        {totalCount}
+        회
       </p>
       <div className='flex items-center gap-x1_5'>
         <p className='body2-regular text-text-secondary'>{period}</p>

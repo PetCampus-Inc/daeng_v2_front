@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
@@ -8,7 +8,7 @@ import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
 import { findTicketDetail, type TicketHistoryLine } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
 import { applyExpiryExtension } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
-import { applyTicketHold, cancelTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
+import { applyTicketHold, cancelTicketHold, syncTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
 
 import { TicketConfirmDialog } from '@views/owner/member-ticket-detail/ui/TicketConfirmDialog';
 import { TicketExpirySheet } from '@views/owner/member-ticket-detail/ui/TicketExpirySheet';
@@ -46,6 +46,34 @@ function MemberTicketDetailPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const isHoldSet = detail.hold != null;
+
+  useEffect(() => {
+    const refresh = () => {
+      setDetail((current) => syncTicketHold(current, new Date()));
+    };
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    let timer = 0;
+    const scheduleNextDay = () => {
+      const now = new Date();
+      const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      timer = window.setTimeout(() => {
+        refresh();
+        scheduleNextDay();
+      }, nextDay.getTime() - now.getTime());
+    };
+
+    refresh();
+    scheduleNextDay();
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
   const endLabel = detail.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail.status === 'active' || detail.status === 'onHold';
 
