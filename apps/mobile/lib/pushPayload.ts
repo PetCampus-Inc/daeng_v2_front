@@ -5,6 +5,8 @@ export type PushDestination =
   | { kind: 'connectionApplyStatus'; dedupeKey: string }
   | { kind: 'album'; schoolId: string; date: string; petId?: string; dedupeKey: string }
   | { kind: 'kindergartenNews'; newsId: string; schoolId?: string; dedupeKey: string }
+  | { kind: 'guardianReservation'; petId?: string; dedupeKey: string }
+  | { kind: 'ownerExpiringMembers'; dedupeKey: string }
   | { kind: 'fallback' };
 
 type UnknownRecord = Record<string, unknown>;
@@ -36,6 +38,16 @@ const KINDERGARTEN_NEWS_TYPES = new Set([
   'KINDERGARTEN_NEWS_UPDATED',
   'KINDERGARTEN_NEWS_REMINDED',
 ]);
+
+const GUARDIAN_TICKET_TYPES = new Set([
+  'PET_TICKET_CHARGED',
+  'PET_TICKET_HOLD_CANCELED',
+  'PET_TICKET_HOLD_ENDED',
+  'PET_TICKET_EXPIRY_EXTENDED',
+  'PET_TICKET_EXPIRING',
+]);
+
+const OWNER_TICKET_EXPIRING_TYPES = new Set(['PET_TICKET_EXPIRING_OWNER']);
 
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -156,6 +168,19 @@ export function resolvePushDestination(value: unknown): PushDestination {
           dedupeKey: `${payload.type}:${newsId}`,
         }
       : { kind: 'fallback' };
+  }
+
+  if (GUARDIAN_TICKET_TYPES.has(payload.type)) {
+    const petId = toPositiveId(payload.petId);
+    return {
+      kind: 'guardianReservation',
+      petId: petId ?? undefined,
+      dedupeKey: `${payload.type}:${petId ?? 'all'}`,
+    };
+  }
+
+  if (OWNER_TICKET_EXPIRING_TYPES.has(payload.type)) {
+    return { kind: 'ownerExpiringMembers', dedupeKey: payload.type };
   }
 
   return { kind: 'fallback' };

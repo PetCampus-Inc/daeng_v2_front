@@ -106,6 +106,19 @@ function useNotificationInboxDeepLink() {
           },
         });
         return;
+      case 'guardianReservation':
+        applyGuardianViewForPath('/compare');
+        if (destination.petId) setSelectedPetId(destination.petId);
+        void navigateToTab('/compare', {
+          tab: 'reservation',
+          source: 'inbox',
+          ...(destination.petId ? { pushPetId: destination.petId } : {}),
+        });
+        return;
+      case 'ownerExpiringMembers':
+        applyGuardianViewForPath(route.owner.members.root);
+        void navigateToTab('/owner/members', { filter: 'expiring', source: 'inbox' });
+        return;
       default:
         toast(notificationInboxContent.pageNotFoundToast);
     }

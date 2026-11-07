@@ -171,6 +171,24 @@ class PushCoordinator {
       return;
     }
 
+    if (destination.kind === 'guardianReservation') {
+      navigationRef.navigate('Tabs', { screen: 'Compare' });
+      this.applyGuardianViewForDestination('Compare');
+      this.replaceTabQuery('Compare', {
+        tab: 'reservation',
+        source: 'push',
+        ...(destination.petId ? { pushPetId: destination.petId } : {}),
+      });
+      return;
+    }
+
+    if (destination.kind === 'ownerExpiringMembers') {
+      navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
+      this.applyGuardianViewForDestination('OwnerMembers');
+      this.replaceTabQuery('OwnerMembers', { filter: 'expiring', source: 'push' });
+      return;
+    }
+
     if (destination.kind === 'album') {
       const params = new URLSearchParams({
         schoolId: destination.schoolId,
@@ -186,6 +204,30 @@ class PushCoordinator {
     }
 
     navigationRef.navigate('Tabs', { screen: 'Explore' });
+  }
+
+  /** 알림함(useNotificationInboxDeepLink)과 같은 쿼리. tab=reservation, filter=expiring. */
+  private replaceTabQuery(tabName: TabName, query: Record<string, string>, attempt = 0) {
+    const webView = tabWebViewStore.get(tabName)?.current;
+    if (webView) {
+      const serializedQuery = serializeForJS(query);
+      webView.injectJavaScript(`
+        (function() {
+          var query = ${serializedQuery};
+          var url = new URL(window.location.href);
+          Object.keys(query).forEach(function(key) {
+            url.searchParams.set(key, query[key]);
+          });
+          history.replaceState(null, '', url.pathname + url.search + url.hash);
+          window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+        })(); true;
+      `);
+      return;
+    }
+
+    if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
+      setTimeout(() => this.replaceTabQuery(tabName, query, attempt + 1), INJECT_RETRY_INTERVAL_MS);
+    }
   }
 
   /** 콜드 마운트인 Compare 탭은 ref가 생겨도 페이지 JS가 아직 안 떴을 수 있어, 한 번만

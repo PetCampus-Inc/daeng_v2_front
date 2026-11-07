@@ -6,6 +6,8 @@ type NotificationInboxDestination =
   | { kind: 'connectionApplyStatus' }
   | { kind: 'album'; petId?: string; schoolId?: string; date?: string }
   | { kind: 'kindergartenNews'; newsId: string; schoolId?: string }
+  | { kind: 'guardianReservation'; petId?: string }
+  | { kind: 'ownerExpiringMembers' }
   | { kind: 'unavailable' };
 
 const ATTENDANCE_STATUS_TYPES = new Set([
@@ -41,6 +43,18 @@ const KINDERGARTEN_NEWS_TYPES = new Set([
   'KINDERGARTEN_NEWS_UPDATED',
   'KINDERGARTEN_NEWS_REMINDED',
 ]);
+
+/** 보호자 이용권 알림 — 예약 탭. API payload는 아직 없고 petId만 있으면 강아지를 맞춘다. */
+const GUARDIAN_TICKET_TYPES = new Set([
+  'PET_TICKET_CHARGED',
+  'PET_TICKET_HOLD_CANCELED',
+  'PET_TICKET_HOLD_ENDED',
+  'PET_TICKET_EXPIRY_EXTENDED',
+  'PET_TICKET_EXPIRING',
+]);
+
+/** 원장 이용권 만료 예정 — 구성원 목록(만료예정) */
+const OWNER_TICKET_EXPIRING_TYPES = new Set(['PET_TICKET_EXPIRING_OWNER']);
 
 function toPositiveId(value: unknown): string | null {
   const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
@@ -111,6 +125,14 @@ function resolveNotificationInboxDestination(
     return newsId
       ? { kind: 'kindergartenNews', newsId, schoolId: schoolId ?? undefined }
       : { kind: 'unavailable' };
+  }
+
+  if (GUARDIAN_TICKET_TYPES.has(type)) {
+    return { kind: 'guardianReservation', petId: petId ?? undefined };
+  }
+
+  if (OWNER_TICKET_EXPIRING_TYPES.has(type)) {
+    return { kind: 'ownerExpiringMembers' };
   }
 
   return { kind: 'unavailable' };
