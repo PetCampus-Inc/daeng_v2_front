@@ -44,6 +44,13 @@ function MemberTicketListPage() {
     push({ pathname: route.owner.members.detail.ticketCharge.root.replace('[id]', petId) }).catch(() => undefined);
   };
 
+  const handleOpenDetail = (ticketId: string) => {
+    const pathname = route.owner.members.detail.tickets.detail.root
+      .replace('[id]', petId)
+      .replace('[ticketId]', ticketId);
+    push({ pathname }).catch(() => undefined);
+  };
+
   return (
     <div className='bg-bg-50 flex h-full flex-col'>
       <Header>
@@ -90,8 +97,10 @@ function MemberTicketListPage() {
               totalCount={ticket.totalCount}
               period={ticket.period}
               remainingDays={ticket.remainingDays ?? undefined}
-              highlightRemaining={false}
-            />
+            highlightRemaining={false}
+            className='cursor-pointer'
+            onClick={() => handleOpenDetail(ticket.id)}
+          />
           ))}
         </div>
       )}

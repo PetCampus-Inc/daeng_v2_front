@@ -65,6 +65,13 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
             totalCount={ticket.totalCount}
             period={ticket.period}
             remainingDays={ticket.remainingDays ?? undefined}
+            className='cursor-pointer'
+            onClick={() => {
+              const pathname = route.owner.members.detail.tickets.detail.root
+                .replace('[id]', petId)
+                .replace('[ticketId]', ticket.id);
+              push({ pathname }).catch(() => undefined);
+            }}
           />
         ))
       )}

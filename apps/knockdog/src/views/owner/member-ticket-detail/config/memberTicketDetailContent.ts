@@ -1,0 +1,18 @@
+const memberTicketDetailContent = {
+  chargeCount: '충전 횟수',
+  startDate: '시작일',
+  chargedOn: '충전일',
+  expiresOn: '만료일',
+  noExpiry: '만료 없음',
+  manageTitle: '이용권 관리',
+  manageDescription: '홀딩 기간 중에는 해당 이용권으로 예약할 수 없어요. 홀딩한 기간만큼 만료일이 연장돼요.',
+  hold: '홀딩하기',
+  historyTitle: '이용권 이력',
+  deleteLabel: '이용권 삭제',
+  remaining: (count: number) => `잔여 ${count}회`,
+  total: (count: number) => ` / ${count}회`,
+  period: (start: string, end: string, remainingDays: number | null) =>
+    remainingDays == null ? `${start} ~ ${end}` : `${start} ~ ${end} · ${remainingDays}일 남음`,
+} as const;
+
+export { memberTicketDetailContent };

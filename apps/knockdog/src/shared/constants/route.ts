@@ -215,6 +215,10 @@ const route = {
         tickets: {
           /** 원장 원생 이용권 목록 페이지 */
           root: '/owner/members/[id]/tickets',
+          detail: {
+            /** 원장 원생 이용권 상세 페이지 */
+            root: '/owner/members/[id]/tickets/[ticketId]',
+          },
         },
       },
       approval: {
