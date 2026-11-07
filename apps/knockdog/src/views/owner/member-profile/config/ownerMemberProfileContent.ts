@@ -1,5 +1,5 @@
 const TAB = {
-  DOG: 'dog',
+  USAGE: 'usage',
   GUARDIAN: 'guardian',
   ATTENDANCE: 'attendance',
 } as const;
@@ -8,7 +8,7 @@ type OwnerMemberProfileTab = (typeof TAB)[keyof typeof TAB];
 
 const ownerMemberProfileContent = {
   pageTitle: '원생 프로필',
-  dogTabLabel: '강아지 정보',
+  usageTabLabel: '이용 정보',
   guardianTabLabel: '보호자 정보',
   attendanceTabLabel: '등하원 기록',
   basicInfoTitle: '기본 정보',
@@ -25,8 +25,8 @@ const ownerMemberProfileContent = {
   phoneLabel: '연락처',
   emergencyPhoneLabel: '비상 연락처',
   addressLabel: '주소',
-  maleDogLabel: '남자아이',
-  femaleDogLabel: '여자아이',
+  maleDogLabel: '남',
+  femaleDogLabel: '여',
   maleGuardianLabel: '남',
   femaleGuardianLabel: '여',
   neuteredDoneLabel: '중성화 완료',
@@ -39,10 +39,10 @@ const ownerMemberProfileContent = {
   attendanceEmptyText: '선택한 날짜에 등하원 기록이 없어요.',
   todayButtonLabel: '오늘',
   copyToastSuffix: '를 복사했어요',
+  ticketChargeSuccessToast: '이용권 충전이 완료되었어요',
   profileLoadingText: '원생 프로필을 불러오는 중이에요',
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',
-  disconnectButtonLabel: '연결 해제',
   disconnectDialog: {
     titleSuffix: '의',
     titleLine2: '유치원 연결을 해제하시겠어요?',

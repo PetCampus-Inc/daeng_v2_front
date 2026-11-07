@@ -4,7 +4,7 @@ import { cn } from '@knockdog/ui/lib';
 
 import { TicketLifecycleBadge } from '../ticket-lifecycle-badge';
 
-type TicketSummaryStatus = 'active' | 'expired';
+type TicketSummaryStatus = 'active' | 'scheduled' | 'onHold' | 'expired';
 
 interface TicketSummaryCardProps extends Omit<ComponentProps<'article'>, 'title'> {
   title: ReactNode;
@@ -13,6 +13,7 @@ interface TicketSummaryCardProps extends Omit<ComponentProps<'article'>, 'title'
   totalCount: ReactNode;
   period: ReactNode;
   remainingDays?: ReactNode;
+  highlightRemaining?: boolean;
 }
 
 /** V4 / Card / Ticket Summary */
@@ -23,6 +24,7 @@ function TicketSummaryCard({
   totalCount,
   period,
   remainingDays,
+  highlightRemaining = true,
   className,
   ...props
 }: TicketSummaryCardProps) {
@@ -39,10 +41,16 @@ function TicketSummaryCard({
     >
       <div className='flex w-full items-center justify-between'>
         <p className='body1-bold text-text-primary min-w-0 flex-1 truncate'>{title}</p>
-        <TicketLifecycleBadge status={isExpired ? 'expired' : 'active'} />
+        <TicketLifecycleBadge status={status} />
       </div>
       <p className='body2-semibold text-text-secondary'>
-        잔여 {remainingCount}회 / {totalCount}회
+        잔여{' '}
+        <span className={status === 'active' && highlightRemaining ? 'text-text-accent' : undefined}>
+          {remainingCount}회
+        </span>
+        {' / '}
+        {totalCount}
+        회
       </p>
       <div className='flex items-center gap-x1_5'>
         <p className='body2-regular text-text-secondary'>{period}</p>

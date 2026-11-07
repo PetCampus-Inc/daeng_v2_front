@@ -18,7 +18,7 @@ function useOwnerMemberProfilePage() {
   const params = useParams<{ id: string }>();
   const petId = params?.id ?? '';
   const copy = useClipboardCopy();
-  const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.DOG);
+  const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.USAGE);
 
   const {
     data: dog,

@@ -18,7 +18,7 @@ function InfoRow({ label, value }: InfoRowProps) {
   return (
     <div className='flex items-start justify-between gap-4 py-4'>
       <span className='body2-regular text-text-secondary shrink-0 whitespace-nowrap'>{label}</span>
-      <span className='body1-bold text-text-primary min-w-0 flex-1 text-right break-words'>{value}</span>
+      <span className='body1-medium text-text-primary min-w-0 flex-1 text-right break-words'>{value}</span>
     </div>
   );
 }
@@ -60,7 +60,7 @@ function DogBasicInfoSection({ dog }: DogBasicInfoSectionProps) {
 
   return (
     <div className='flex flex-col gap-4 px-4 pt-5'>
-      <h2 className='h3-extrabold text-text-primary'>{ownerMemberProfileContent.basicInfoTitle}</h2>
+      <h2 className='h3-extrabold text-text-primary px-1'>{ownerMemberProfileContent.basicInfoTitle}</h2>
 
       <div className='bg-bg-0 radius-r3 flex flex-col overflow-hidden px-4'>
         <InfoRow

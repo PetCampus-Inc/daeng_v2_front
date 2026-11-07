@@ -110,31 +110,31 @@ export default function TabNavigator() {
 
           return {
             tabBarIcon: ({ focused }) => {
-              const iconProps = {
-                fill: focused ? '#FF6E0C' : '#8C8C94',
-                color: focused ? '#FF6E0C' : '#8C8C94',
-              };
+              const tint = focused ? '#FF6E0C' : '#8C8C94';
+              // 보호자 아이콘은 fill. 원장 아이콘은 stroke라 fill을 주면 면으로 채워져 깨진다.
+              const fillIconProps = { fill: tint, color: tint };
+              const strokeIconProps = { color: tint };
 
               switch (route.name) {
                 case 'Explore':
-                  return <ExploreIcon width={21} height={21} {...iconProps} />;
+                  return <ExploreIcon width={21} height={21} {...fillIconProps} />;
                 case 'Save':
-                  return <SaveIcon width={21} height={21} {...iconProps} />;
+                  return <SaveIcon width={21} height={21} {...fillIconProps} />;
                 case 'Compare':
-                  return <CompareIcon width={25} height={25} {...iconProps} />;
+                  return <CompareIcon width={25} height={25} {...fillIconProps} />;
                 case 'OwnerHome':
-                  return <OwnerHomeIcon width={21} height={21} {...iconProps} />;
+                  return <OwnerHomeIcon width={21} height={21} {...strokeIconProps} />;
                 case 'OwnerDaily':
-                  return <OwnerDailyIcon width={20} height={20} {...iconProps} />;
+                  return <OwnerDailyIcon width={20} height={20} {...strokeIconProps} />;
                 case 'OwnerAlbum':
-                  return <OwnerAlbumIcon width={20} height={20} {...iconProps} />;
+                  return <OwnerAlbumIcon width={20} height={20} {...strokeIconProps} />;
                 case 'OwnerMembers':
-                  return <OwnerMembersIcon width={21} height={21} {...iconProps} />;
+                  return <OwnerMembersIcon width={21} height={21} {...strokeIconProps} />;
                 case 'Mypage':
                   return isOwnerMode ? (
-                    <OwnerMypageIcon width={21} height={21} {...iconProps} />
+                    <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
                   ) : (
-                    <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />
+                    <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...fillIconProps} />
                   );
                 default:
                   console.warn('❗ tabBarIcon: Unknown route name', route.name);
