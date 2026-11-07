@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { canChargeTicket, chargeCountError, chargeEndDate, formatChargeDotDate, formatChargeSelectLabel } from './memberTicketCharge';
+import {
+  CHARGE_PRESETS,
+  canChargeTicket,
+  chargeCountError,
+  chargeEndDate,
+  chargePresetDetail,
+  formatChargeDotDate,
+  formatChargeSelectLabel,
+} from './memberTicketCharge';
 
 const start = new Date(2026, 9, 24);
 
@@ -25,6 +33,12 @@ describe('chargeCountError', () => {
     expect(chargeCountError('1')).toBeNull();
     expect(chargeCountError('1000')).toBeNull();
     expect(chargeCountError('1001')).toBe('충전 횟수는 1~1000회 사이로 입력해 주세요.');
+  });
+});
+
+describe('chargePresetDetail', () => {
+  it('횟수와 만료 없음을 카드 문구로 붙인다', () => {
+    expect(chargePresetDetail(CHARGE_PRESETS[0]!)).toBe('10회 • 만료 없음');
   });
 });
 

@@ -12,6 +12,9 @@ const memberTicketChargeContent = {
     label: '등록된 이용권',
     optional: '(선택)',
     placeholder: '이용권 선택하기',
+    sheetTitle: '등록된 이용권',
+    direct: '직접입력',
+    lockHint: '등록된 이용권은 시작일만 입력이 가능해요.',
   },
   name: {
     label: '이용권 이름',

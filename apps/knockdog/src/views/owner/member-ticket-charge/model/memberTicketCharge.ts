@@ -7,6 +7,20 @@ type ChargeMonth = (typeof MONTH_PRESETS)[number];
 type ChargeUnit = 'day' | 'month';
 type ChargeDuration = { kind: 'none' } | { kind: 'month'; months: ChargeMonth } | { kind: 'custom'; amount: number; unit: ChargeUnit };
 
+interface ChargePreset {
+  id: string;
+  name: string;
+  count: number;
+  duration: ChargeDuration;
+}
+
+const CHARGE_PRESETS: ChargePreset[] = [
+  { id: 'pass-10', name: '정기권 10회권', count: 10, duration: { kind: 'none' } },
+  { id: 'pass-20', name: '정기권 20회권', count: 20, duration: { kind: 'none' } },
+  { id: 'pass-30', name: '정기권 30회권', count: 30, duration: { kind: 'none' } },
+  { id: 'pass-40', name: '정기권 40회권', count: 40, duration: { kind: 'none' } },
+];
+
 function startOfChargeDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -56,6 +70,13 @@ function chargeCountError(value: string) {
   return null;
 }
 
+function chargePresetDetail(preset: ChargePreset) {
+  if (preset.duration.kind === 'none') return `${preset.count}회 • 만료 없음`;
+  if (preset.duration.kind === 'month') return `${preset.count}회 • ${preset.duration.months}개월`;
+  const unitLabel = preset.duration.unit === 'day' ? '일' : '개월';
+  return `${preset.count}회 • ${preset.duration.amount}${unitLabel}`;
+}
+
 function canChargeTicket(name: string, count: string, duration: ChargeDuration | null) {
   const hasName = name.trim().length > 0;
   const hasCount = count !== '' && chargeCountError(count) === null;
@@ -63,14 +84,16 @@ function canChargeTicket(name: string, count: string, duration: ChargeDuration |
   return hasName && hasCount && hasCustomAmount;
 }
 
-export type { ChargeDuration, ChargeMonth, ChargeUnit };
+export type { ChargeDuration, ChargeMonth, ChargePreset, ChargeUnit };
 export {
   CHARGE_COUNT_ERROR,
+  CHARGE_PRESETS,
   MONTH_PRESETS,
   addChargeMonths,
   canChargeTicket,
   chargeCountError,
   chargeEndDate,
+  chargePresetDetail,
   formatChargeDotDate,
   formatChargeSelectLabel,
   isSameChargeDay,

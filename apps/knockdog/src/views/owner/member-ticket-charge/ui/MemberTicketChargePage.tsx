@@ -22,10 +22,12 @@ import {
   startOfChargeDay,
   type ChargeDuration,
   type ChargeMonth,
+  type ChargePreset,
   type ChargeUnit,
 } from '@views/owner/member-ticket-charge/model/memberTicketCharge';
 import { TicketChargeDateSheet } from '@views/owner/member-ticket-charge/ui/TicketChargeDateSheet';
 import { TicketChargeLeaveDialog } from '@views/owner/member-ticket-charge/ui/TicketChargeLeaveDialog';
+import { TicketChargePresetSheet } from '@views/owner/member-ticket-charge/ui/TicketChargePresetSheet';
 import { Header } from '@widgets/Header';
 
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
@@ -33,6 +35,12 @@ import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGua
 import { toast } from '@shared/ui/toast';
 
 type DurationChoice = 'none' | 'custom' | ChargeMonth | null;
+
+function choiceFromPreset(duration: ChargeDuration): DurationChoice {
+  if (duration.kind === 'none') return 'none';
+  if (duration.kind === 'month') return duration.months;
+  return 'custom';
+}
 
 function toChargeDuration(choice: DurationChoice, amountText: string, unit: ChargeUnit): ChargeDuration | null {
   if (choice === null) return null;
@@ -53,6 +61,8 @@ function MemberTicketChargePage() {
   const [draftDate, setDraftDate] = useState(today);
   const [calendarMonth, setCalendarMonth] = useState(today);
   const [isDateOpen, setIsDateOpen] = useState(false);
+  const [isPresetOpen, setIsPresetOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<ChargePreset | null>(null);
   const [name, setName] = useState('');
   const [count, setCount] = useState('');
   const [hasCountBlurred, setHasCountBlurred] = useState(false);
@@ -83,9 +93,30 @@ function MemberTicketChargePage() {
     setIsDateOpen(false);
   };
 
+  const handleSelectDirect = () => {
+    setSelectedPreset(null);
+    setIsPresetOpen(false);
+  };
+
+  const handleSelectPreset = (preset: ChargePreset) => {
+    setSelectedPreset(preset);
+    setName(preset.name);
+    setCount(String(preset.count));
+    setChoice(choiceFromPreset(preset.duration));
+    if (preset.duration.kind === 'custom') {
+      setCustomAmount(String(preset.duration.amount));
+      setUnit(preset.duration.unit);
+    }
+    setIsPresetOpen(false);
+  };
+
   const handleBack = useCallback(() => {
     if (isDateOpen) {
       setIsDateOpen(false);
+      return;
+    }
+    if (isPresetOpen) {
+      setIsPresetOpen(false);
       return;
     }
     if (isLeaveOpen) {
@@ -97,7 +128,7 @@ function MemberTicketChargePage() {
       return;
     }
     setIsLeaveOpen(true);
-  }, [back, isDateOpen, isDirty, isLeaveOpen, releaseAndLeave]);
+  }, [back, isDateOpen, isDirty, isLeaveOpen, isPresetOpen, releaseAndLeave]);
 
   useLayoutEffect(() => {
     handleBackRef.current = handleBack;
@@ -147,7 +178,15 @@ function MemberTicketChargePage() {
           <p className='label-medium text-text-secondary px-x1'>
             {content.preset.label} <span className='text-text-accent'>{content.preset.optional}</span>
           </p>
-          <TicketValueField state='placeholder' placeholder={content.preset.placeholder} />
+          <TicketValueField
+            state={selectedPreset ? 'filled' : 'placeholder'}
+            value={selectedPreset?.name}
+            placeholder={content.preset.placeholder}
+            onClick={() => setIsPresetOpen(true)}
+          />
+          {selectedPreset ? (
+            <p className='caption1-regular text-fill-secondary-500 px-x1'>{content.preset.lockHint}</p>
+          ) : null}
         </div>
 
         <FormField
@@ -155,7 +194,7 @@ function MemberTicketChargePage() {
           value={name}
           maxLength={content.name.maxLength}
           placeholder={content.name.placeholder}
-          state={name ? 'filled' : 'default'}
+          state={selectedPreset ? 'locked' : name ? 'filled' : 'default'}
           trailing={`${name.length}/${content.name.maxLength}`}
           onChange={(event) => setName(event.target.value)}
         />
@@ -165,7 +204,7 @@ function MemberTicketChargePage() {
           value={count}
           inputMode='numeric'
           placeholder={content.count.placeholder}
-          state={countError ? 'error' : count ? 'filled' : 'default'}
+          state={selectedPreset ? 'locked' : countError ? 'error' : count ? 'filled' : 'default'}
           trailing={content.count.unit}
           trailingSize='body'
           errorMessage={countError}
@@ -174,15 +213,24 @@ function MemberTicketChargePage() {
         />
 
         <div className='flex flex-wrap justify-between gap-y-3'>
-          <DurationChip selected={choice === 'none'} onClick={() => setChoice('none')}>
+          <DurationChip selected={choice === 'none'} disabled={Boolean(selectedPreset)} onClick={() => setChoice('none')}>
             {content.duration.none}
           </DurationChip>
           {MONTH_PRESETS.map((months) => (
-            <DurationChip key={months} selected={choice === months} onClick={() => setChoice(months)}>
+            <DurationChip
+              key={months}
+              selected={choice === months}
+              disabled={Boolean(selectedPreset)}
+              onClick={() => setChoice(months)}
+            >
               {content.duration.month(months)}
             </DurationChip>
           ))}
-          <CustomDurationChip selected={choice === 'custom'} onClick={() => setChoice('custom')}>
+          <CustomDurationChip
+            selected={choice === 'custom'}
+            disabled={Boolean(selectedPreset)}
+            onClick={() => setChoice('custom')}
+          >
             {content.duration.custom}
           </CustomDurationChip>
         </div>
@@ -192,7 +240,8 @@ function MemberTicketChargePage() {
             unit={unit}
             value={customAmount}
             inputMode='numeric'
-            onUnitChange={setUnit}
+            disabled={Boolean(selectedPreset)}
+            onUnitChange={selectedPreset ? undefined : setUnit}
             onChange={(event) => setCustomAmount(event.target.value.replace(/\D/g, '').slice(0, 4))}
           />
         ) : null}
@@ -225,6 +274,13 @@ function MemberTicketChargePage() {
         onDraftChange={setDraftDate}
         onMonthChange={setCalendarMonth}
         onConfirm={handleConfirmDate}
+      />
+      <TicketChargePresetSheet
+        isOpen={isPresetOpen}
+        selectedId={selectedPreset?.id ?? null}
+        onOpenChange={setIsPresetOpen}
+        onSelectDirect={handleSelectDirect}
+        onSelectPreset={handleSelectPreset}
       />
       <TicketChargeLeaveDialog isOpen={isLeaveOpen} onStay={() => setIsLeaveOpen(false)} onLeave={handleLeave} />
     </div>
