@@ -1,6 +1,6 @@
 ---
 name: "tdd-implement"
-description: "확정된 테스트 목록(docs/test-lists/PRD이름.md)을 따라 기능마다 테스트 작성, 실패 확인, 최소 구현, 리팩터링, 커밋을 반복하고 목록을 체크한다. 구현을 시작할 때, 구현 중이나 리뷰 중에 기획이 바뀌었을 때 사용."
+description: "확정된 테스트 목록(PRD 폴더의 test-list.md)을 따라 기능마다 테스트 작성, 실패 확인, 최소 구현, 리팩터링, 커밋을 반복하고 목록을 체크한다. 구현을 시작할 때, 구현 중이나 리뷰 중에 기획이 바뀌었을 때 사용."
 ---
 
 # tdd-implement
@@ -11,7 +11,7 @@ description: "확정된 테스트 목록(docs/test-lists/PRD이름.md)을 따라
 
 ## 입력
 
-- `docs/test-lists/<PRD이름>.md` (저장소 루트 기준)
+- `docs/prd/[<Jira 티켓 번호>] <소문자 영어 PRD 제목>/test-list.md` (저장소 루트 기준)
 - 파일이 없으면 멈추고, 테스트 목록 단계를 먼저 진행해야 한다고 보고한다.
 
 ## 시작 전 확인

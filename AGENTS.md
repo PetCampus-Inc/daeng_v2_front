@@ -41,7 +41,7 @@
 | 4    | 구현 단계        | `tdd-implement`         | 테스트 목록의 모든 `결정:`이 채워졌다                                  |
 | 5    | PR 생성 단계     | `tdd-create-pr`         | 보류가 아닌 케이스가 모두 체크됐다                                     |
 | 6    | 리뷰 반영 단계   | `tdd-apply-review`      | 반영하지 않은 리뷰 코멘트가 있다 (라운드마다 반복)                     |
-| 7    | 마무리 단계      | `tdd-delete-test-list`  | 사람이 리뷰가 끝났다고 알렸다                                          |
+| 7    | 마무리 단계      | `cleanup-prd`         | PR을 머지한 지 3개월이 지났다                                          |
 | 수시 | Figma 조회       | `figma-access`          | Figma 링크나 노드의 구조·문구·이미지를 읽거나 내보내야 한다            |
 | 수시 | Figma 구현       | `figma-to-code`         | Figma 기준으로 화면을 구현하거나 크기·간격을 Figma 수치와 대조해야 한다 |
 

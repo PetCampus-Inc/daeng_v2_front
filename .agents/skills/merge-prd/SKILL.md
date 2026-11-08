@@ -11,7 +11,7 @@ description: 여러 기획 원본(PDF, Markdown, 화면설계서, 시안)과 Fig
 
 1. 원본을 끝까지 읽고 파일명, 상태, 편집일, 링크를 기록한다. 원본은 수정하지 않는다.
 2. 통합 PRD는 `docs/prd/` 아래에 저장한다.
-3. 결과를 `docs/prd/[<Jira 티켓 번호>] <소문자 영어 PRD 제목>/` 폴더 하나로 묶는다. 예: `docs/prd/[KD3-636] pass-registration/`. 본문은 이 폴더의 `PRD.md`, 문서 원본은 `original/`, Figma 캐시는 `figma/`에 둔다. Jira 티켓 번호나 PRD 제목을 알 수 없으면 사용자에게 묻는다.
+3. 결과를 `docs/prd/[<Jira 티켓 번호>] <소문자 영어 PRD 제목>/` 폴더 하나로 묶는다. 예: `docs/prd/[KD3-636] pass-registration/`. 본문은 이 폴더의 `PRD-<Jira 티켓 번호>-<영어 제목>.md`(제목은 단어마다 첫 글자를 대문자로 하고 하이픈으로 잇는다. 예: `PRD-KD3-636-Pass-Registration.md`), 문서 원본은 `original/`, Figma 캐시는 `figma/`에 둔다. Jira 티켓 번호나 PRD 제목을 알 수 없으면 사용자에게 묻는다.
 4. Figma가 없으면 어떤 원본을 본문 기준으로 삼을지 선택받는다. 가능한 경우 구조화된 선택 UI를 쓰고, 없으면 짧은 번호 선택지를 제시한다. 편집일만 보고 자동 결정하지 않는다.
 
 ## 원본 보존
