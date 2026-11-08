@@ -31,6 +31,8 @@ export * from './rsv-status-badge';
 export * from './rsv-timetable-time';
 export * from './rsv-date-time';
 export * from './rsv-timetable';
+export * from './rsv-day-status';
+export * from './rsv-monthly-calendar';
 export * from './form-field';
 export * from './search-field';
 export * from './time-range-field';
