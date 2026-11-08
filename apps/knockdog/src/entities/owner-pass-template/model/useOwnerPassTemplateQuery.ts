@@ -46,7 +46,10 @@ function useOwnerPassTemplateMutation() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteOwnerPassTemplate(id),
-    onSuccess: invalidateList,
+    // 삭제 후에는 목록으로 바로 이동하므로 갱신이 끝나길 기다리지 않는다.
+    onSuccess: () => {
+      invalidateList();
+    },
   });
 
   return { createMutation, updateMutation, deleteMutation };

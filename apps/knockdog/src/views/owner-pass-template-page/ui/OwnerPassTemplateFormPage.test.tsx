@@ -489,6 +489,19 @@ describe('삭제', () => {
     expect(navigation.replace).toHaveBeenCalledTimes(1);
   });
 
+  test('삭제에 성공하면 목록 갱신이 끝나기 전에도 바로 목록으로 이동해 `이용권을 삭제했어요` 토스트를 보여 준다', async () => {
+    const user = userEvent.setup();
+    mockedDelete.mockResolvedValue(undefined);
+    await renderEdit();
+    mockedGet.mockReturnValue(new Promise(() => {}));
+    const dialog = await openDeleteDialog(user);
+
+    await user.click(within(dialog).getByRole('button', { name: '삭제하기' }));
+
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith({ pathname: LIST_PATH }));
+    expect(mockedToast).toHaveBeenCalledWith(expect.objectContaining({ type: 'success' }));
+  });
+
   test('마지막 남은 템플릿(기본 템플릿 포함)을 삭제하면 목록이 빈 상태로 보인다', async () => {
     const user = userEvent.setup();
     mockedGet.mockResolvedValueOnce({ templates: [savedDto] }).mockResolvedValue({ templates: [] });
