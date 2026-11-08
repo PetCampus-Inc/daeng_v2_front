@@ -1,0 +1,4 @@
+interface:
+  display_name: "Merge PRD"
+  short_description: "원본 문서와 Figma를 개발 기준 PRD로 통합"
+  default_prompt: "Use $merge-prd to combine my product documents and Figma section into one development-ready PRD."

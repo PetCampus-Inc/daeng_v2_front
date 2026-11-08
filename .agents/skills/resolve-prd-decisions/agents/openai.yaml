@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD 결정 해결"
+  short_description: "통합 PRD의 차이와 열린 질문을 하나씩 해결"
+  default_prompt: "$resolve-prd-decisions를 사용해 통합 PRD의 DIFF와 OQ를 검토하고 차단 결정을 하나씩 해결해 줘."
