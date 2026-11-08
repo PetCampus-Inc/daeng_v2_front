@@ -1,10 +1,10 @@
-import { Suspense } from 'react';
-import { GuardianAttendanceRecordPage } from '@views/guardian-attendance-record-page';
+import { route } from '@shared/constants/route';
+import { redirectKeepingQuery } from '@shared/lib/navigation/redirectKeepingQuery';
 
-export default function AttendanceRecordPage() {
-  return (
-    <Suspense fallback={<main className='bg-bg-0 min-h-dvh p-4' />}>
-      <GuardianAttendanceRecordPage />
-    </Suspense>
-  );
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  redirectKeepingQuery(route.kindergarten.attendanceRecord.root, await searchParams);
 }

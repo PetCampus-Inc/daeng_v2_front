@@ -7,7 +7,8 @@ interface InitialState {
 type TabScreen =
   | 'Explore'
   | 'Save'
-  | 'Compare'
+  | 'Reserve'
+  | 'Kindergarten'
   | 'Mypage'
   | 'OwnerHome'
   | 'OwnerDaily'

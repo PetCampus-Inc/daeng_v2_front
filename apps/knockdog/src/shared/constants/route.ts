@@ -321,37 +321,45 @@ const route = {
       root: '/terms/location',
     },
   },
-  compare: {
-    /** 보호자 유치원 탭 */
-    root: '/compare',
+  kindergarten: {
+    /** 보호자 똑독로그 탭 */
+    root: '/kindergarten',
     connectionHistory: {
       /** 보호자 유치원 연결 이력 */
-      root: '/compare/connection-history',
+      root: '/kindergarten/connection-history',
     },
     album: {
       /** 보호자 유치원 앨범 전체 보기 */
-      root: '/compare/album',
+      root: '/kindergarten/album',
+    },
+    attendanceRecord: {
+      /** 보호자 등원 기록 */
+      root: '/kindergarten/attendance-record',
     },
     notice: {
       /** 보호자 알림장 상세. query: date(필수), schoolId(권장·재연결 스코프), petId?, source? */
-      root: '/compare/notice',
+      root: '/kindergarten/notice',
       /** 보호자 알림장 월별 리스트. query: month?, schoolId?, from?=notice, date?(from=notice 복귀용) */
       list: {
-        root: '/compare/notice/list',
+        root: '/kindergarten/notice/list',
       },
     },
     news: {
       /** 보호자 유치원 소식 목록. query: schoolId? */
-      root: '/compare/news',
+      root: '/kindergarten/news',
       search: {
         /** 보호자 유치원 소식 검색. query: schoolId? */
-        root: '/compare/news/search',
+        root: '/kindergarten/news/search',
       },
       detail: {
         /** 보호자 유치원 소식 상세. query: schoolId?, source?=inbox|push (알림 진입 시 뒤로가기 → 목록) */
-        root: '/compare/news/[id]',
+        root: '/kindergarten/news/[id]',
       },
     },
+  },
+  reservation: {
+    /** 보호자 예약 탭 */
+    root: '/reservation',
   },
 };
 

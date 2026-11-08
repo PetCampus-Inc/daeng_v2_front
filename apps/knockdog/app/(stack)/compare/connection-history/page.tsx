@@ -1,5 +1,10 @@
-import { GuardianKindergartenHistoryPage } from '@views/guardian-kindergarten-history-page';
+import { route } from '@shared/constants/route';
+import { redirectKeepingQuery } from '@shared/lib/navigation/redirectKeepingQuery';
 
-export default function Page() {
-  return <GuardianKindergartenHistoryPage />;
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  redirectKeepingQuery(route.kindergarten.connectionHistory.root, await searchParams);
 }

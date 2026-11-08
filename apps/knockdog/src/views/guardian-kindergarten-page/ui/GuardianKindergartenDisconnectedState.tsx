@@ -66,11 +66,11 @@ function GuardianKindergartenDisconnectedState({
   }, [disconnectedAt, initialSelectedDate]);
 
   const handleHistoryClick = () => {
-    push({ pathname: route.compare.connectionHistory.root });
+    push({ pathname: route.kindergarten.connectionHistory.root });
   };
 
   const handleAlbumViewAllClick = () => {
-    push({ pathname: route.compare.album.root });
+    push({ pathname: route.kindergarten.album.root });
   };
 
   return (

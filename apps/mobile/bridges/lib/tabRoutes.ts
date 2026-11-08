@@ -1,9 +1,9 @@
-type GuardianTabName = 'Explore' | 'Save' | 'Compare' | 'Mypage';
+type GuardianTabName = 'Explore' | 'Save' | 'Reserve' | 'Kindergarten' | 'Mypage';
 type OwnerTabName = 'OwnerHome' | 'OwnerDaily' | 'OwnerAlbum' | 'OwnerMembers' | 'Mypage';
 type TabName = GuardianTabName | OwnerTabName;
 
 const OWNER_ONLY_TABS = new Set<TabName>(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
-const GUARDIAN_ONLY_TABS = new Set<TabName>(['Explore', 'Save', 'Compare']);
+const GUARDIAN_ONLY_TABS = new Set<TabName>(['Explore', 'Save', 'Reserve', 'Kindergarten']);
 
 function pathToTab(pathname: string): TabName | null {
   const normalizedPath = pathname === '' ? '/' : pathname;
@@ -15,8 +15,11 @@ function pathToTab(pathname: string): TabName | null {
       return 'Explore';
     case '/save':
       return 'Save';
+    case '/reservation':
+      return 'Reserve';
     case '/compare':
-      return 'Compare';
+    case '/kindergarten':
+      return 'Kindergarten';
     case '/mypage':
       return 'Mypage';
     case '/owner':
@@ -32,11 +35,29 @@ function pathToTab(pathname: string): TabName | null {
   }
 }
 
+const GUARDIAN_LOG_STACK_PREFIXES = [
+  '/kindergarten/notice',
+  '/kindergarten/news',
+  '/kindergarten/album',
+  '/kindergarten/connection-history',
+  '/kindergarten/attendance-record',
+  '/compare/notice',
+  '/compare/news',
+  '/compare/album',
+  '/compare/connection-history',
+  '/compare/attendance-record',
+];
+
+function isGuardianLogStackPath(pathname: string) {
+  return GUARDIAN_LOG_STACK_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
 /** Stack 경로의 부모 탭 */
 function pathToBaseTab(pathname: string): TabName | null {
   const exact = pathToTab(pathname);
   if (exact) return exact;
 
+  if (isGuardianLogStackPath(pathname)) return 'Kindergarten';
   if (pathname === '/owner/daily' || pathname.startsWith('/owner/daily/')) return 'OwnerDaily';
   if (pathname === '/owner/album' || pathname.startsWith('/owner/album/')) return 'OwnerAlbum';
   if (pathname === '/owner/members' || pathname.startsWith('/owner/members/')) return 'OwnerMembers';
@@ -66,5 +87,5 @@ function resolveTabScreen(tabName: TabName, mode: 'owner' | 'guardian'): TabName
   return tabName;
 }
 
-export { pathToTab, pathToBaseTab, isOwnerOnlyTab, isGuardianOnlyTab, modeForTab, resolveTabScreen };
+export { pathToTab, pathToBaseTab, isGuardianLogStackPath, isOwnerOnlyTab, isGuardianOnlyTab, modeForTab, resolveTabScreen };
 export type { TabName, GuardianTabName, OwnerTabName };

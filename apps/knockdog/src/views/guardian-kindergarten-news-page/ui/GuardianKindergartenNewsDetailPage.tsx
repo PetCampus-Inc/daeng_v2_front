@@ -95,10 +95,10 @@ function GuardianKindergartenNewsDetailPageContent() {
 
     if (entrySource === 'inbox' || entrySource === 'push') {
       void replace({
-        pathname: route.compare.news.root,
+        pathname: route.kindergarten.news.root,
         query: newsListQuery,
       }).catch(() => {
-        void navigateToTab('/compare');
+        void navigateToTab('/kindergarten');
       });
       return;
     }
@@ -113,11 +113,11 @@ function GuardianKindergartenNewsDetailPageContent() {
 
       try {
         await push({
-          pathname: route.compare.news.root,
+          pathname: route.kindergarten.news.root,
           query: newsListQuery,
         });
       } catch {
-        void navigateToTab('/compare');
+        void navigateToTab('/kindergarten');
       }
     })();
   }, [back, entrySource, navigateToTab, push, replace, schoolId]);
@@ -128,7 +128,7 @@ function GuardianKindergartenNewsDetailPageContent() {
     if (!item) return;
 
     const shareUrl =
-      typeof window !== 'undefined' ? window.location.href : route.compare.news.detail.root.replace('[id]', item.id);
+      typeof window !== 'undefined' ? window.location.href : route.kindergarten.news.detail.root.replace('[id]', item.id);
 
     const shared = await share({
       title: item.title,

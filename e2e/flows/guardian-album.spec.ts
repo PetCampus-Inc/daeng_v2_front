@@ -3,7 +3,7 @@ import { gotoAuthed } from '../helpers/nav';
 
 test.describe('CF-GUARDIAN-ALBUM', () => {
   test('월별 앨범 목록 노출 후 상세 진입', async ({ page }) => {
-    await gotoAuthed(page, '/compare/album');
+    await gotoAuthed(page, '/kindergarten/album');
     // stack 페이지 — 바텀내비 없을 수 있음. 세션만 확인
     await expect(page).not.toHaveURL(/\/auth\/login/);
 
@@ -32,6 +32,6 @@ test.describe('CF-GUARDIAN-ALBUM', () => {
 
     await dayCard.click();
     await expect(page.getByTestId('guardian-album-detail')).toBeVisible({ timeout: 15_000 });
-    await expect(page).toHaveURL(/\/compare\/album/);
+    await expect(page).toHaveURL(/\/kindergarten\/album/);
   });
 });

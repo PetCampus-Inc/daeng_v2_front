@@ -46,7 +46,8 @@ function isGuardianMainPath(pathname: string) {
     pathname === '/' ||
     pathname === '/search' ||
     pathname === '/save' ||
-    pathname === '/compare' ||
+    pathname === '/reservation' ||
+    pathname === '/kindergarten' ||
     pathname.startsWith('/save/')
   );
 }

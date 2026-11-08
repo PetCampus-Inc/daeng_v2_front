@@ -19,7 +19,7 @@ function GuardianKindergartenNewsListItem({ item, schoolId }: GuardianKindergart
 
   const handleOpenDetail = () => {
     void push({
-      pathname: route.compare.news.detail.root.replace('[id]', item.id),
+      pathname: route.kindergarten.news.detail.root.replace('[id]', item.id),
       query: schoolId ? { schoolId } : undefined,
     });
   };

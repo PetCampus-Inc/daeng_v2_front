@@ -1,10 +1,7 @@
-import { Suspense } from 'react';
-import { GuardianKindergartenPage } from '@views/guardian-kindergarten-page';
+import { redirect } from 'next/navigation';
+
+import { route } from '@shared/constants/route';
 
 export default function Page() {
-  return (
-    <Suspense fallback={<main className='bg-bg-0 min-h-dvh p-4' />}>
-      <GuardianKindergartenPage />
-    </Suspense>
-  );
+  redirect(route.kindergarten.root);
 }

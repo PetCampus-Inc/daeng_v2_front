@@ -1,6 +1,7 @@
-import CompareIcon from '@/assets/icons/compare_basic.svg';
 import ExploreIcon from '@/assets/icons/explore_basic.svg';
-import MypageIcon from '@/assets/icons/mypage_basic.svg';
+import GuardianLogIcon from '@/assets/icons/guardian_log.svg';
+import GuardianMyIcon from '@/assets/icons/guardian_my.svg';
+import GuardianReserveIcon from '@/assets/icons/guardian_reserve.svg';
 import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
 import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
 import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
@@ -11,8 +12,9 @@ import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
 import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
 import type { TabName } from '@/bridges/lib/tabRoutes';
-import CompareTab from '@/screens/compare';
 import ExploreTab from '@/screens/explore';
+import KindergartenTab from '@/screens/kindergarten';
+import ReservationTab from '@/screens/reservation';
 import MypageTab from '@/screens/mypage';
 import OwnerAlbumTab from '@/screens/owner-album';
 import OwnerDailyTab from '@/screens/owner-daily';
@@ -34,7 +36,7 @@ import {
 const Tab = createBottomTabNavigator();
 
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
-const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Compare']);
+const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Reserve', 'Kindergarten']);
 
 function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
   if (!isTabBarVisible) {
@@ -111,7 +113,7 @@ export default function TabNavigator() {
           return {
             tabBarIcon: ({ focused }) => {
               const tint = focused ? '#FF6E0C' : '#8C8C94';
-              // 보호자 아이콘은 fill. 원장 아이콘은 stroke라 fill을 주면 면으로 채워져 깨진다.
+              // fill을 루트에 주면 stroke·마스크 아이콘이 면으로 채워진다. 색만 넘긴다.
               const fillIconProps = { fill: tint, color: tint };
               const strokeIconProps = { color: tint };
 
@@ -120,8 +122,10 @@ export default function TabNavigator() {
                   return <ExploreIcon width={21} height={21} {...fillIconProps} />;
                 case 'Save':
                   return <SaveIcon width={21} height={21} {...fillIconProps} />;
-                case 'Compare':
-                  return <CompareIcon width={25} height={25} {...fillIconProps} />;
+                case 'Reserve':
+                  return <GuardianReserveIcon width={21} height={21} {...strokeIconProps} />;
+                case 'Kindergarten':
+                  return <GuardianLogIcon width={23} height={20} {...strokeIconProps} />;
                 case 'OwnerHome':
                   return <OwnerHomeIcon width={21} height={21} {...strokeIconProps} />;
                 case 'OwnerDaily':
@@ -134,7 +138,7 @@ export default function TabNavigator() {
                   return isOwnerMode ? (
                     <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
                   ) : (
-                    <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...fillIconProps} />
+                    <GuardianMyIcon width={21} height={21} {...strokeIconProps} />
                   );
                 default:
                   console.warn('❗ tabBarIcon: Unknown route name', route.name);
@@ -156,7 +160,8 @@ export default function TabNavigator() {
       >
         <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
         <Tab.Screen name='Save' component={SaveTab} options={{ title: '보관함' }} />
-        <Tab.Screen name='Compare' component={CompareTab} options={{ title: '유치원' }} />
+        <Tab.Screen name='Reserve' component={ReservationTab} options={{ title: '예약' }} />
+        <Tab.Screen name='Kindergarten' component={KindergartenTab} options={{ title: '똑독로그' }} />
         <Tab.Screen name='OwnerHome' component={OwnerHomeTab} options={{ title: '홈' }} />
         <Tab.Screen name='OwnerDaily' component={OwnerDailyTab} options={{ title: '일과' }} />
         <Tab.Screen name='OwnerAlbum' component={OwnerAlbumTab} options={{ title: '앨범' }} />
