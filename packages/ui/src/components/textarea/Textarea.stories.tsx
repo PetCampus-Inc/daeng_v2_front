@@ -540,3 +540,17 @@ export const Form = () => {
     </form>
   );
 };
+
+export const Request: Story = {
+  render: () => (
+    <div className='flex w-[390px] flex-col gap-4'>
+      <Textarea readOnly value='' emptyLabel='작성한 요청 사항이 없어요.' />
+      <Textarea
+        readOnly
+        value='오늘은 오후 5시 반에 픽업하러 갈게요!'
+        maxLength={200}
+        description='요청을 수정하려면 예약을 취소하고 다시 예약해주세요.'
+      />
+    </div>
+  ),
+};
