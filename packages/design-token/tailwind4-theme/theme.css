@@ -16,6 +16,7 @@
   --color-primitive-neutral-0: var(--color-primitive-neutral-0);
   --color-primitive-neutral-50: var(--color-primitive-neutral-50);
   --color-primitive-neutral-100: var(--color-primitive-neutral-100);
+  --color-primitive-neutral-150: var(--color-primitive-neutral-150);
   --color-primitive-neutral-200: var(--color-primitive-neutral-200);
   --color-primitive-neutral-300: var(--color-primitive-neutral-300);
   --color-primitive-neutral-400: var(--color-primitive-neutral-400);
@@ -31,6 +32,7 @@
   --color-bg-100: var(--color-bg-100);
 
   --color-line-100: var(--color-line-100);
+  --color-line-150: var(--color-line-150);
   --color-line-200: var(--color-line-200);
   --color-line-400: var(--color-line-400);
   --color-line-600: var(--color-line-600);

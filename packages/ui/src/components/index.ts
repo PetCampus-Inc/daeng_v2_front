@@ -54,6 +54,8 @@ export * from './diary-thumbnail';
 export * from './diary-photo-remove';
 export * from './diary-photo-add';
 export * from './diary-photo-add-list';
+export * from './diary-sample-card';
+export * from './diary-onboarding-sheet';
 export * from './form-field';
 export * from './search-field';
 export * from './time-range-field';
