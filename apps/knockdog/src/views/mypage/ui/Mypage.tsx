@@ -42,6 +42,7 @@ import {
   QuickActionsSection,
   SettingsSection,
 } from '@views/mypage/ui/MypageLazySections';
+import { OwnerPassTemplateManagementSection } from '@views/mypage/ui/OwnerPassTemplateManagementSection';
 
 function MypageContent() {
   const { push, reset } = useStackNavigation();
@@ -261,6 +262,10 @@ function MypageContent() {
                 onClick={canOpenKindergartenDetail ? handleKindergartenClick : undefined}
               />
             ) : null}
+
+            <OwnerPassTemplateManagementSection
+              onClick={() => push({ pathname: route.mypage.passTemplate.root })}
+            />
 
             <Divider size='thick' />
           </div>
