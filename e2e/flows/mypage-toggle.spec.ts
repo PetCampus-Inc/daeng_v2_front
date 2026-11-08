@@ -13,7 +13,7 @@ test.describe('CF-MYPAGE-TOGGLE', () => {
 
     await toggle.click();
     await expectGuardianNav(page);
-    await expect(page.getByTestId('bottom-nav-compare')).toBeVisible();
+    await expect(page.getByTestId('bottom-nav-kindergarten')).toBeVisible();
     await expect(toggle).toContainText('원장으로 전환');
 
     await toggle.click();

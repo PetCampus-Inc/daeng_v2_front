@@ -26,7 +26,8 @@ import { getFirstPartyWebOrigin } from '../lib/isFirstPartyWebViewUrl';
 const TAB_SCREEN_ORDER: TabName[] = [
   'Explore',
   'Save',
-  'Compare',
+  'Reserve',
+  'Kindergarten',
   'OwnerHome',
   'OwnerDaily',
   'OwnerAlbum',

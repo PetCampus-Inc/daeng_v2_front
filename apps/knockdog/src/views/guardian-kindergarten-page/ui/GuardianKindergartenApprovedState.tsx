@@ -53,11 +53,11 @@ function GuardianKindergartenApprovedState({
   );
 
   const handleHistoryClick = () => {
-    push({ pathname: route.compare.connectionHistory.root });
+    push({ pathname: route.kindergarten.connectionHistory.root });
   };
 
   const handleAlbumPreviousClick = () => {
-    push({ pathname: route.compare.album.root });
+    push({ pathname: route.kindergarten.album.root });
   };
 
   return (

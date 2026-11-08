@@ -30,14 +30,14 @@ function GuardianKindergartenNewsSection({
 
   const handleViewAllClick = () => {
     push({
-      pathname: route.compare.news.root,
+      pathname: route.kindergarten.news.root,
       query: schoolId ? { schoolId } : undefined,
     });
   };
 
   const handleItemClick = (newsId: string) => {
     push({
-      pathname: route.compare.news.detail.root.replace('[id]', newsId),
+      pathname: route.kindergarten.news.detail.root.replace('[id]', newsId),
       query: schoolId ? { schoolId } : undefined,
     });
   };

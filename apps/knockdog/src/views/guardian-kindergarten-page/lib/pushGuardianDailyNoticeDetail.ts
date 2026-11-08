@@ -15,7 +15,7 @@ function pushGuardianDailyNoticeDetail(
   options?: PushGuardianDailyNoticeDetailOptions
 ) {
   push({
-    pathname: route.compare.notice.root,
+    pathname: route.kindergarten.notice.root,
     query: {
       date: formatDateKey(startOfDay(date)),
       ...(options?.petId ? { petId: options.petId } : {}),

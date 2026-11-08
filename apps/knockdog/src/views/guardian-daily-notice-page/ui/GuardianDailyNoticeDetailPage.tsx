@@ -348,7 +348,7 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumListClick = () => {
     // 스택에 상세를 남기고 리스트 push — 뒤로가기 시 해당 알림장 상세로 복귀
     push({
-      pathname: route.compare.notice.list.root,
+      pathname: route.kindergarten.notice.list.root,
       query: {
         from: 'notice',
         date: selectedDateKey,
@@ -361,7 +361,7 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumViewClick = () => {
     // 해당 일자 앨범 모아보기(그리드)
     push({
-      pathname: route.compare.album.root,
+      pathname: route.kindergarten.album.root,
       query: {
         date: selectedDateKey,
         grid: '1',
@@ -373,7 +373,7 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumPhotoClick = (photoId: string) => {
     // 해당 사진 앨범 상세 슬라이드
     push({
-      pathname: route.compare.album.root,
+      pathname: route.kindergarten.album.root,
       query: {
         date: selectedDateKey,
         photoId,

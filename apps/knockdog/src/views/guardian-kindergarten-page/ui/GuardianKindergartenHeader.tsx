@@ -98,7 +98,7 @@ function GuardianKindergartenHeader({
         onSelect={(petId) => {
           setSelectedPetId(petId);
           // 이전 강아지 알림장 리스트/스택이 뒤로가기에 남지 않게 유치원 홈으로 정리
-          navigateToTab('/compare').catch(() => undefined);
+          navigateToTab('/kindergarten').catch(() => undefined);
         }}
       />
     ));

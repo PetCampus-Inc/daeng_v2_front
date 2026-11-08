@@ -17,7 +17,7 @@ function pushGuardianDailyNoticeList(
   options?: PushGuardianDailyNoticeListOptions
 ) {
   push({
-    pathname: route.compare.notice.list.root,
+    pathname: route.kindergarten.notice.list.root,
     query: {
       ...(options?.schoolId ? { schoolId: options.schoolId } : {}),
       ...(options?.month ? { month: options.month } : {}),

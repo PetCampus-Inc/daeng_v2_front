@@ -79,15 +79,15 @@ function GuardianKindergartenAttendingState({
   };
 
   const handleHistoryClick = () => {
-    push({ pathname: route.compare.connectionHistory.root });
+    push({ pathname: route.kindergarten.connectionHistory.root });
   };
 
   const handleAlbumViewAllClick = () => {
-    push({ pathname: route.compare.album.root });
+    push({ pathname: route.kindergarten.album.root });
   };
 
   const handleAlbumShortcutClick = () => {
-    push({ pathname: route.compare.album.root, query: { from: 'home' } });
+    push({ pathname: route.kindergarten.album.root, query: { from: 'home' } });
   };
 
   useEffect(() => {

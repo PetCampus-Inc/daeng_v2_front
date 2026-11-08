@@ -1,11 +1,10 @@
-import { Suspense } from 'react';
+import { route } from '@shared/constants/route';
+import { redirectKeepingQuery } from '@shared/lib/navigation/redirectKeepingQuery';
 
-import { GuardianDailyNoticeListPage } from '@views/guardian-daily-notice-list-page';
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
-export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <GuardianDailyNoticeListPage />
-    </Suspense>
-  );
+export default async function Page({ searchParams }: PageProps) {
+  redirectKeepingQuery(route.kindergarten.notice.list.root, await searchParams);
 }

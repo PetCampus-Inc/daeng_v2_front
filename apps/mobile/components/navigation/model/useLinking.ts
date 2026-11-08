@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { LinkingOptions, PartialState, NavigationState } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
+import { isGuardianLogStackPath } from '@/bridges/lib/tabRoutes';
 import { RootStackParamList, TabScreen } from '@/types/navigation';
 
 const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL || 'https://app.knockdog.net';
@@ -9,7 +10,9 @@ const WEBVIEW_URL = process.env.EXPO_PUBLIC_WEBVIEW_URL || 'https://app.knockdog
 const TAB_PATHS: Record<string, TabScreen> = {
   '': 'Explore',
   save: 'Save',
-  compare: 'Compare',
+  reservation: 'Reserve',
+  compare: 'Kindergarten',
+  kindergarten: 'Kindergarten',
   mypage: 'Mypage',
   owner: 'OwnerHome',
   'owner/daily': 'OwnerDaily',
@@ -22,6 +25,7 @@ function resolveBaseTab(normalizedPath: string): TabScreen {
   const exact = TAB_PATHS[normalizedPath];
   if (exact) return exact;
 
+  if (isGuardianLogStackPath(`/${normalizedPath}`)) return 'Kindergarten';
   if (normalizedPath === 'owner/daily' || normalizedPath.startsWith('owner/daily/')) return 'OwnerDaily';
   if (normalizedPath === 'owner/album' || normalizedPath.startsWith('owner/album/')) return 'OwnerAlbum';
   if (normalizedPath === 'owner/members' || normalizedPath.startsWith('owner/members/'))
