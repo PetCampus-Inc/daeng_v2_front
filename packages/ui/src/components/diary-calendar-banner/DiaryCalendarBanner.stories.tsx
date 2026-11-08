@@ -14,13 +14,6 @@ const meta = {
       options: ['today', 'past', 'disabled'],
     },
   },
-  decorators: [
-    (Story) => (
-      <div className='w-[299px]'>
-        <Story />
-      </div>
-    ),
-  ],
 } satisfies Meta<typeof DiaryCalendarBanner>;
 
 export default meta;
@@ -34,9 +27,9 @@ export const Default: Story = {
 
 export const All: Story = {
   render: () => (
-    <div className='flex w-[299px] flex-col gap-x3'>
-      <DiaryCalendarBanner state='today' />
-      <DiaryCalendarBanner state='past' />
+    <div className='flex flex-col items-start gap-x3'>
+      <DiaryCalendarBanner state='today' dogName='콩이' />
+      <DiaryCalendarBanner state='past' dogName='강아지 이름' />
       <DiaryCalendarBanner state='disabled' />
     </div>
   ),
