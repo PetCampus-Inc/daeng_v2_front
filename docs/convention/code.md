@@ -31,7 +31,6 @@ tags: [convention, code]
 - 4. 컴포넌트
   - 4-1. 이름
   - 4-2. props
-  - 4-3. 스타일
 
 ---
 
@@ -282,44 +281,4 @@ interface UserCardProps {
 export const UserCard = ({ user, onSelect }: UserCardProps) => {
   return <div onClick={() => onSelect?.(user)}>{user.name}</div>;
 };
-```
-
-### 4-3. 스타일
-
-#### 클래스 조합
-
-- `cn`만 사용
-
-#### 색·간격
-
-- 기존 토큰 사용 (`text-text-primary`, `gap-x1`)
-- 임의의 hex 새로 추가 금지
-
-#### 테마 색상
-
-- shadcn 컨벤션에 따라 CSS 변수로 관리
-
-#### 공용 컴포넌트
-
-- 버튼·툴팁·시트는 `@knockdog/ui`의 컴포넌트 사용
-- 같은 모양을 슬라이스 안에 다시 만들지 않음
-
-#### Variants (cva)
-
-- shadcn 컴포넌트 스타일은 `class-variance-authority(cva)`로 관리
-- base 스타일에 `variant`/`size` 옵션별 클래스를 매핑
-- 새 variant: `[component]Variants.ts`의 `variants` 객체에 키 추가
-
-```tsx
-// ui/buttonVariants.ts
-export const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md ...', // base
-  {
-    variants: {
-      variant: { default: '...', destructive: '...', outline: '...' },
-      size: { default: '...', sm: '...', lg: '...' },
-    },
-    defaultVariants: { variant: 'default', size: 'default' },
-  },
-);
 ```
