@@ -393,7 +393,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
             onChange={(event) => setChargeCount(event.target.value)}
           />
 
-          <fieldset>
+          <fieldset className='min-w-0'>
             <legend className='body2-bold text-text-primary pb-2'>
               {ownerPassTemplateContent.durationLabel}
               <span className='text-text-accent'>*</span>
