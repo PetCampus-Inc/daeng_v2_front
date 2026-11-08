@@ -14,6 +14,7 @@
   --color-primitive-neutral-0: #ffffff;
   --color-primitive-neutral-50: #f9f9fa;
   --color-primitive-neutral-100: #f3f3f7;
+  --color-primitive-neutral-150: #ececf1;
   --color-primitive-neutral-200: #ebebf0;
   --color-primitive-neutral-300: #dedee3;
   --color-primitive-neutral-400: #b4b4bb;
@@ -29,6 +30,7 @@
   --color-bg-100: var(--color-primitive-neutral-100);
 
   --color-line-100: var(--color-primitive-neutral-100);
+  --color-line-150: var(--color-primitive-neutral-150);
   --color-line-200: var(--color-primitive-neutral-200);
   --color-line-400: var(--color-primitive-neutral-400);
   --color-line-600: var(--color-primitive-neutral-600);
