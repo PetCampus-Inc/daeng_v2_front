@@ -298,13 +298,23 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
                 isDeletingRef.current = true;
                 try {
                   await deleteMutation.mutateAsync(templateId);
+                  // 삭제 확인은 미저장 변경까지 버리는 명시적 결정이다. 모달을 닫을 때 앱이
+                  // history.back()을 실행하므로, 그 popstate가 끝난 뒤에 목록으로 이동해
+                  // 이동이 뒤로가기에 덮어씌워지지 않게 한다. 신호가 없으면 300ms 뒤 이동한다.
+                  let didNavigate = false;
+                  const goToList = () => {
+                    if (didNavigate) return;
+                    didNavigate = true;
+                    window.removeEventListener('popstate', goToList);
+                    // 수정 중이면 이탈 방지용 history 칸이 하나 더 있어, 먼저 풀고 이동한다.
+                    releaseAndLeave(() => {
+                      void replace({ pathname: route.mypage.passTemplate.root });
+                    });
+                  };
+                  window.addEventListener('popstate', goToList);
                   close();
                   toast({ title: '이용권을 삭제했어요', nativeTitle: '이용권을 삭제했어요', type: 'success' });
-                  // 삭제 확인은 미저장 변경까지 버리는 명시적 결정이다. 모달 history가
-                  // 정리된 다음 목록을 열어 overlay cleanup back과 경합하지 않게 한다.
-                  requestAnimationFrame(() => {
-                    void replace({ pathname: route.mypage.passTemplate.root });
-                  });
+                  window.setTimeout(goToList, 300);
                 } catch {
                   isDeletingRef.current = false;
                   close();
