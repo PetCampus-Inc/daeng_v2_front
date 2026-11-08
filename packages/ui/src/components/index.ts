@@ -26,6 +26,8 @@ export * from './toggle-chip';
 export * from './role-badge';
 export * from './ticket-lifecycle-badge';
 export * from './ticket-status-badge';
+export * from './membership-card-status-badge';
+export * from './rsv-status-badge';
 export * from './form-field';
 export * from './search-field';
 export * from './time-range-field';
