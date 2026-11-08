@@ -14,7 +14,7 @@ model: opus
 2. 통합 PRD는 `docs/prd/` 아래에 저장한다.
 3. 결과를 `docs/prd/[<Jira 티켓 번호>] <소문자 영어 PRD 제목>/` 폴더 하나로 묶는다. 예: `docs/prd/[KD3-636] pass-registration/`. 본문은 이 폴더의 `PRD-<Jira 티켓 번호>-<영어 제목>.md`(제목은 단어마다 첫 글자를 대문자로 하고 하이픈으로 잇는다. 예: `PRD-KD3-636-Pass-Registration.md`), 문서 원본은 `original/`, Figma 캐시는 `figma/`에 둔다. Jira 티켓 번호나 PRD 제목을 알 수 없으면 사용자에게 묻는다.
 4. Figma가 없으면 어떤 원본을 본문 기준으로 삼을지 선택받는다. 가능한 경우 구조화된 선택 UI를 쓰고, 없으면 짧은 번호 선택지를 제시한다. 편집일만 보고 자동 결정하지 않는다.
-5. API 스펙(OpenAPI/Swagger 등)이 입력으로 주어졌는지 확인한다. 없으면 https://api.knockdog.net/swagger-ui/index.html#/ 에서 먼저 찾고, 거기서도 못 찾으면 사용자에게 스펙을 요청한다.
+5. API 스펙(OpenAPI/Swagger 등)이 입력으로 주어졌는지 확인한다. 없으면 https://api.knockdog.net/swagger-ui/index.html#/ 에서 먼저 찾는다. Swagger에 없으면 백엔드 저장소(https://github.com/PetCampus-Inc/daeng_v1_back)의 `dev` 브랜치 가장 최신 상태를 참고한다. 거기서도 못 찾으면 사용자에게 스펙을 요청한다.
 
 ## 원본 보존
 
