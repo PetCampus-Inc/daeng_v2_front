@@ -19,7 +19,7 @@ tags: [convention, data, state]
 
 ---
 
-- 이름·함수·타입 규칙은 `fe-convention-code.md` 참고
+- 이름·함수·타입 규칙은 `code.md` 참고
 
 ---
 

@@ -216,7 +216,7 @@ type ReviewType = {};
 
 - 객체 형태: `interface`
 - 유니온·교차·기본형·매핑: `type` 〔GTS [#prefer-interfaces-over-type-literal-aliases](https://google.github.io/styleguide/tsguide.html#prefer-interfaces-over-type-literal-aliases)〕
-- 예외: 서버 데이터는 Zod 스키마에서 `z.infer`로 뽑은 타입 사용 (`fe-convention-data-state.md` 1장)
+- 예외: 서버 데이터는 Zod 스키마에서 `z.infer`로 뽑은 타입 사용 (`data-state.md` 1장)
 
 ```tsx
 interface User {
