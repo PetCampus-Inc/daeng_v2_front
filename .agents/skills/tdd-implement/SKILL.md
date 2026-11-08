@@ -1,6 +1,7 @@
 ---
 name: "tdd-implement"
 description: "확정된 테스트 목록(PRD 폴더의 test-list.md)을 따라 기능마다 테스트 작성, 실패 확인, 최소 구현, 리팩터링, 커밋을 반복하고 목록을 체크한다. 구현을 시작할 때, 구현 중이나 리뷰 중에 기획이 바뀌었을 때 사용."
+model: sonnet
 ---
 
 # tdd-implement

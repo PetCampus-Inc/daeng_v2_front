@@ -1,6 +1,7 @@
 ---
 name: "cleanup-prd"
 description: "PR을 머지한 지 3개월이 지난 PRD 폴더(docs/prd/[티켓] 제목/)에서 통합 PRD만 docs/prd/ 바로 아래로 옮기고 나머지 폴더와 파일을 삭제해 커밋한다. PR을 머지하고 3개월이 지난 뒤에 사용."
+model: sonnet
 ---
 
 # cleanup-prd

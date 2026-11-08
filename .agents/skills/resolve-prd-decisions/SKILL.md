@@ -1,6 +1,7 @@
 ---
 name: resolve-prd-decisions
 description: PRD 통합 단계가 근거를 확인해 남긴 차단 DIFF·OQ를 사용자에게 하나씩 확인받고, 답을 통합 PRD에 반영한다. 원본 재조사, TC 작성, 제품 구현은 담당하지 않는다.
+model: sonnet
 ---
 
 # PRD 차이와 질문 해결

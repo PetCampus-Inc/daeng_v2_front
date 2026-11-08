@@ -1,6 +1,7 @@
 ---
 name: "tdd-create-pr"
 description: "구현 단계를 마친 뒤 유닛·컴포넌트·E2E 테스트를 전부 실행하고, 프로젝트 PR 템플릿에 맞춰 테스트 목록(PRD 폴더의 test-list.md) 내용으로 PR 설명을 작성해 PR을 만든다. 테스트 목록의 구현을 모두 끝내고 PR을 올릴 때 사용."
+model: sonnet
 ---
 
 # tdd-create-pr

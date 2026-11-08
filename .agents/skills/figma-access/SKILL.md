@@ -1,6 +1,7 @@
 ---
 name: figma-access
 description: Figma 링크나 노드의 구조·문구·이미지를 읽거나 내보낼 때 캐시를 먼저 사용하고 REST·MCP 호출을 최소화한다. PRD 정리, 디자인 검토·핸드오프, 화면 구현처럼 Figma 데이터를 실제로 조회해야 할 때 사용한다. 이미 제공된 스크린샷이나 캐시만으로 작업해 Figma 조회가 필요 없으면 사용하지 않는다.
+model: sonnet
 ---
 
 # Figma 접근과 호출 관리

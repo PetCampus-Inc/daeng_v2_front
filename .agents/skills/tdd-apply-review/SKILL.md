@@ -1,6 +1,7 @@
 ---
 name: "tdd-apply-review"
 description: "PR에 달린 리뷰 코멘트 한 라운드를 분류해 반영하고, 전체 테스트를 다시 실행한 뒤 PR 설명을 갱신해 푸시하고, 코멘트별 답글 초안을 작성한다. 리뷰 코멘트가 달렸을 때, 리뷰 라운드마다 사용."
+model: opus
 ---
 
 # tdd-apply-review

@@ -1,6 +1,7 @@
 ---
 name: "tdd-write-test-list"
 description: "Open Questions가 해결된 PRD를 받아 기능-케이스 2단 테스트 목록을 만들고, 케이스마다 테스트 수준(유닛/컴포넌트/E2E/생략)과 기존 테스트 상태를 표시해 PRD 폴더(docs/prd/[티켓] 제목/)의 test-list.md로 작성한다. PRD를 받았을 때, 구현 시작 전에 기획이 바뀌었을 때 사용."
+model: opus
 ---
 
 # tdd-write-test-list

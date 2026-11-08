@@ -1,6 +1,7 @@
 ---
 name: figma-to-code
 description: Figma 디자인을 코드로 구현하고 실제 화면의 크기·간격을 Figma 수치와 대조한다. 사용자가 Figma 링크나 캐시된 Figma 자료를 기준으로 화면을 구현·수정하거나 디자인과 코드의 차이를 맞춰 달라고 할 때 사용한다. Figma 근거 없이 일반 화면을 수정하는 작업에는 사용하지 않는다.
+model: sonnet
 ---
 
 # Figma 디자인을 코드로 구현

@@ -1,6 +1,7 @@
 ---
 name: merge-prd
 description: 여러 기획 원본(PDF, Markdown, 화면설계서, 시안)과 Figma 섹션을 하나의 개발 기준 PRD로 통합한다. 원본·정책·코드·API 근거를 대조해 DIFF와 실제 미해결 OQ를 정리한다. 사용자 결정 요청·답변 반영, TC 작성, 구현에는 사용하지 않는다.
+model: opus
 ---
 
 # Merge PRD
