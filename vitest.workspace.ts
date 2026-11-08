@@ -18,6 +18,7 @@ export default [
     esbuild: { jsx: 'automatic' },
     resolve: {
       alias: {
+        '@app': path.resolve(__dirname, 'apps/knockdog/src/app'),
         '@shared': path.resolve(__dirname, 'apps/knockdog/src/shared'),
         '@entities': path.resolve(__dirname, 'apps/knockdog/src/entities'),
         '@features': path.resolve(__dirname, 'apps/knockdog/src/features'),

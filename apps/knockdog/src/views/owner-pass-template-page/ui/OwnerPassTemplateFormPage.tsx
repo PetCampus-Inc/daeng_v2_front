@@ -48,12 +48,14 @@ import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
-import { ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { ACTION_SPINNER_DELAY_MS, ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 type OwnerPassTemplateFormMode = 'create' | 'edit';
 type DurationOption = PassTemplateDurationOption;
+/** 처음 들어온 등록 화면은 아무 칩도 고르지 않은 null 상태다. */
+type DurationSelection = DurationOption | null;
 
 interface OwnerPassTemplateFormPageProps {
   mode: OwnerPassTemplateFormMode;
@@ -71,16 +73,17 @@ const DURATION_OPTIONS: { value: DurationOption; label: string }[] = [
 const CREATE_INITIAL_SIGNATURE = JSON.stringify({
   name: '',
   chargeCount: '',
-  durationOption: 'CUSTOM',
+  durationOption: null,
   customDuration: '',
   customUnit: 'DAY',
 });
 
 function durationOptionToInput(
-  durationOption: DurationOption,
+  durationOption: DurationSelection,
   customDuration: string,
   customUnit: PassTemplateDurationUnit
 ): OwnerPassTemplateInput['duration'] | null {
+  if (durationOption === null) return null;
   if (durationOption === 'NONE') return { type: 'NONE' };
   if (durationOption === 'CUSTOM') {
     const value = parsePassTemplateValidity(customDuration);
@@ -103,6 +106,7 @@ interface PassTemplateTextFieldProps extends ComponentProps<'input'> {
   required?: boolean;
   errorMessage?: string;
   suffix?: ReactNode;
+  counter?: string;
 }
 
 function PassTemplateTextField({
@@ -110,6 +114,7 @@ function PassTemplateTextField({
   required = false,
   errorMessage,
   suffix,
+  counter,
   ...inputProps
 }: PassTemplateTextFieldProps) {
   return (
@@ -134,6 +139,7 @@ function PassTemplateTextField({
         {suffix ? <span className='body2-bold text-text-primary'>{suffix}</span> : null}
       </span>
       {errorMessage ? <span className='text-error body2-regular pt-2'>{errorMessage}</span> : null}
+      {counter ? <span className='text-text-tertiary body2-regular self-end pt-2'>{counter}</span> : null}
     </label>
   );
 }
@@ -142,7 +148,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
   const params = useParams<{ id?: string }>();
   const templateId = mode === 'edit' ? params?.id : undefined;
   const { back, replace } = useStackNavigation();
-  const listQuery = useOwnerPassTemplatesQuery();
+  const listQuery = useOwnerPassTemplatesQuery({ enabled: mode === 'edit' });
   const template = useMemo(
     () => (listQuery.data ? findPassTemplateById(listQuery.data, templateId) : null),
     [listQuery.data, templateId]
@@ -151,7 +157,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
 
   const [name, setName] = useState('');
   const [chargeCount, setChargeCount] = useState('');
-  const [durationOption, setDurationOption] = useState<DurationOption>('CUSTOM');
+  const [durationOption, setDurationOption] = useState<DurationSelection>(null);
   const [customDuration, setCustomDuration] = useState('');
   const [customUnit, setCustomUnit] = useState<PassTemplateDurationUnit>('DAY');
   const [duplicateNameError, setDuplicateNameError] = useState(false);
@@ -178,9 +184,11 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
     initializedTemplateIdRef.current = template.id;
   }, [template]);
 
+  // 삭제를 시작했으면 목록이 갱신돼 항목이 사라져도 `찾을 수 없음`으로 처리하지 않는다.
+  const isDeletingRef = useRef(false);
   const isTemplateNotFound = mode === 'edit' && listQuery.isSuccess && !template;
   useEffect(() => {
-    if (!isTemplateNotFound) return;
+    if (!isTemplateNotFound || isDeletingRef.current) return;
     toast({ title: '이용권을 찾을 수 없어요', nativeTitle: '이용권을 찾을 수 없어요' });
     void replace({ pathname: route.mypage.passTemplate.root });
   }, [isTemplateNotFound, replace]);
@@ -286,6 +294,8 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
             <AlertDialogAction
               onClick={async (event) => {
                 event.preventDefault();
+                if (isDeletingRef.current) return;
+                isDeletingRef.current = true;
                 try {
                   await deleteMutation.mutateAsync(templateId);
                   close();
@@ -296,6 +306,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
                     void replace({ pathname: route.mypage.passTemplate.root });
                   });
                 } catch {
+                  isDeletingRef.current = false;
                   close();
                   toast({ title: '이용권을 삭제하지 못했어요', nativeTitle: '이용권을 삭제하지 못했어요' });
                 }
@@ -363,6 +374,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
             errorMessage={duplicateNameError ? ownerPassTemplateContent.duplicateNameError : undefined}
             value={name}
             maxLength={PASS_TEMPLATE_NAME_MAX_LENGTH}
+            counter={`${name.length}/${PASS_TEMPLATE_NAME_MAX_LENGTH}`}
             placeholder={ownerPassTemplateContent.namePlaceholder}
             onChange={(event) => {
               setName(event.target.value);
@@ -444,7 +456,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         </ActionButton>
       </div>
 
-      <ActionLoadingOverlay isPending={isPending} />
+      <ActionLoadingOverlay isPending={isPending} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>
   );
 }

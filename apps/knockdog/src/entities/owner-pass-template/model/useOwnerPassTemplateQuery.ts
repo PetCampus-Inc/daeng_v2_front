@@ -25,8 +25,8 @@ const createTemplatesQueryOptions = () =>
   });
 
 /** 이용권 템플릿 목록. 수정 화면도 이 목록에서 ID로 항목을 찾는다. */
-function useOwnerPassTemplatesQuery() {
-  return useQuery(createTemplatesQueryOptions());
+function useOwnerPassTemplatesQuery({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ ...createTemplatesQueryOptions(), enabled });
 }
 
 function useOwnerPassTemplateMutation() {
@@ -45,7 +45,7 @@ function useOwnerPassTemplateMutation() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteOwnerPassTemplate,
+    mutationFn: (id: string) => deleteOwnerPassTemplate(id),
     onSuccess: invalidateList,
   });
 

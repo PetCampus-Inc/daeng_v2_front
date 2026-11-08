@@ -2,6 +2,14 @@
 
 import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
+import {
+  AccountSection,
+  DogHouseSection,
+  QuickActionsSection,
+  SettingsSection,
+} from '@views/mypage/ui/MypageLazySections';
+import { OwnerPassTemplateManagementSection } from '@views/mypage/ui/OwnerPassTemplateManagementSection';
 
 import { Header } from '@widgets/Header';
 
@@ -35,14 +43,6 @@ import {
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
-import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
-import {
-  AccountSection,
-  DogHouseSection,
-  QuickActionsSection,
-  SettingsSection,
-} from '@views/mypage/ui/MypageLazySections';
-import { OwnerPassTemplateManagementSection } from '@views/mypage/ui/OwnerPassTemplateManagementSection';
 
 function MypageContent() {
   const { push, reset } = useStackNavigation();
@@ -263,9 +263,7 @@ function MypageContent() {
               />
             ) : null}
 
-            <OwnerPassTemplateManagementSection
-              onClick={() => push({ pathname: route.mypage.passTemplate.root })}
-            />
+            <OwnerPassTemplateManagementSection />
 
             <Divider size='thick' />
           </div>
