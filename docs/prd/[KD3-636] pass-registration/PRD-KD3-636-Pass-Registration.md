@@ -7,6 +7,7 @@
 - 담당자 전달용 질문지: `../PRD-KD3-636-Open-Questions.md`
 - 관련 에픽: [KD3-566] 4.0 유치원 이용 여정 확장
 - Jira: https://jira-knockdog.atlassian.net/browse/KD3-636
+- 구현 PR: #776
 
 ## 이 문서를 읽는 법
 
