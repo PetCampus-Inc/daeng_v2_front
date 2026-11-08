@@ -38,3 +38,5 @@
 | 3    | PR 생성 단계     | `tdd-create-pr`        | 보류가 아닌 케이스가 모두 체크됐다            |
 | 4    | 리뷰 반영 단계   | `tdd-apply-review`     | 반영하지 않은 리뷰 코멘트가 있다 (라운드마다 반복) |
 | 5    | 마무리 단계      | `tdd-delete-test-list` | 사람이 리뷰가 끝났다고 알렸다                 |
+
+스킬 원본은 `.agents/skills/<스킬이름>/`에 있다. `.claude/skills/<스킬이름>`은 이 원본을 가리키는 상대 경로 심볼릭 링크(`../../.agents/skills/<스킬이름>`)이다. 스킬을 고치거나 새로 만들 때는 `.agents/skills/`의 원본을 고치고, 새 스킬은 `.claude/skills/`에 같은 방식으로 링크를 건다.
