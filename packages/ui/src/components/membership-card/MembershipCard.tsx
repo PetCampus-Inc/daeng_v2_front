@@ -31,6 +31,7 @@ interface MembershipCardProps {
   count?: ReactNode;
   total?: ReactNode;
   remainingCount?: ReactNode;
+  badge?: ReactNode;
   showIcon?: boolean;
   className?: string;
   onClick?: () => void;
@@ -72,6 +73,7 @@ function MembershipCard({
   count,
   total,
   remainingCount = '2',
+  badge,
   showIcon = true,
   className,
   onClick,
@@ -95,10 +97,10 @@ function MembershipCard({
     const copy = COPY.reservation;
 
     return (
-      <div className={cn('bg-bg-0 radius-r3 py-x4 pr-x4 pl-x5 gap-x3 flex w-full items-start', className)}>
-        <div className='gap-x2 flex min-w-0 flex-1 flex-col'>
-          <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS.reservation} />
-          <div className='gap-x1 flex flex-col pl-x0_5'>
+      <div className={cn('bg-bg-0 radius-r3 py-x4 pr-x4 pl-x5 gap-x3 flex w-full items-stretch', className)}>
+        <div className='gap-x2 flex min-w-0 flex-1 flex-col items-start'>
+          {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS.reservation} />}
+          <div className='gap-x1 flex w-full flex-col pl-x0_5'>
             <div className='gap-x1 flex items-center'>
               <p className='h3-semibold text-text-primary'>{title ?? copy.title}</p>
               <p className='body2-regular text-text-secondary'>
@@ -108,13 +110,15 @@ function MembershipCard({
             <p className='body2-regular text-text-secondary'>{period ?? copy.period}</p>
           </div>
         </div>
-        <button
-          type='button'
-          onClick={onReserve}
-          className='body2-bold text-text-primary bg-bg-50 h-x10 w-[84px] shrink-0 rounded-[10px]'
-        >
-          예약하기
-        </button>
+        <div className='flex w-[84px] shrink-0 flex-col justify-end self-stretch'>
+          <button
+            type='button'
+            onClick={onReserve}
+            className='body2-bold text-text-primary bg-bg-50 flex h-x10 w-full items-center justify-center rounded-[10px]'
+          >
+            예약하기
+          </button>
+        </div>
       </div>
     );
   }
