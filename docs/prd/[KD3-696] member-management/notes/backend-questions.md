@@ -2,17 +2,13 @@
 
 원장 앱 `구성원` 화면(Figma `V.4.0_원장-구성원`)을 만드는 중인데, 화면에 필요한 값이 현재 API 응답에 없어서 4가지를 여쭤봅니다.
 
-확인한 기준: 배포된 Swagger(`https://api.knockdog.net/v3/api-docs`)와 `daeng_v1_back` `dev`(89ccf57f, 2026-11-06)
-
 ---
 
 ## 1. 성별·보호자 연락처
 
-대상 API
-
-- `GET /api/v0/owner/members` (등록 원생 목록)
-- `GET /api/v0/owner/members/pending` (신청 목록)
-
+- 대상 API
+  - `GET /api/v0/owner/members` (등록 원생 목록)
+  - `GET /api/v0/owner/members/pending` (신청 목록)
 - 현재: 두 응답에 `memberId`, `petId`, `dogName`, `guardianName`, `profileImageUrl`(등록 원생 목록은 `lastAttendanceAt`도)만 있습니다.
 - 필요: 목록 한 줄에 강아지 성별 아이콘과 `{보호자 이름} 보호자 · 010-0000-0000` 형식의 연락처를 보여줍니다.
 - 질문
@@ -21,11 +17,9 @@
 
 ## 2. 목록의 이용권 정보
 
-대상 API
-
-- `GET /api/v0/owner/members` (등록 원생 목록)
+- 대상 API
+  - `GET /api/v0/owner/members` (등록 원생 목록)
 - 참고: `GET /api/v0/owner/pets/{petId}/tickets` (KD3-695, 아직 dev 병합 전)
-
 - 현재: 목록 응답에 이용권 정보가 없습니다. 이용권은 원생별 이용권 API로만 볼 수 있습니다.
 - 필요: 목록 한 줄에 `1회 남음` / `D-n` / `만료` 배지와 `20회권.. | 1회·90일 남음` 같은 이용권 정보를 보여주고, `만료예정`·`만료` 칩으로 걸러서 보여줍니다.
 - 질문
@@ -34,10 +28,8 @@
 
 ## 3. 견종 검색
 
-대상 API
-
-- `GET /api/v0/owner/members?keyword=` (등록 원생 목록 검색)
-
+- 대상 API
+  - `GET /api/v0/owner/members?keyword=` (등록 원생 목록 검색)
 - 현재: 강아지 이름과 보호자 이름만 검색하고, 견종은 응답에도 검색에도 없습니다.
 - 필요: 검색창 문구가 `이름 혹은 견종을 입력해 주세요`라서 견종으로도 검색해야 합니다.
 - 질문
@@ -45,10 +37,8 @@
 
 ## 4. 신청 목록 정렬
 
-대상 API
-
-- `GET /api/v0/owner/members/pending` (신청 목록)
-
+- 대상 API
+  - `GET /api/v0/owner/members/pending` (신청 목록)
 - 현재: 응답에 신청 일시가 없고 정렬 파라미터도 없습니다. 서버가 이름순(한글 우선)으로만 내려줍니다.
 - 필요: 정렬 기준이 `최신순`(기본) / `이름순` / `오래된순` 3가지입니다.
 - 질문
