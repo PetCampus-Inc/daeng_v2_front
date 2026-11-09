@@ -17,6 +17,7 @@ import {
   type SortOption,
 } from '@knockdog/ui';
 import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
+import { ownerMembersEmptyContent } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { OwnerMemberCard } from '@features/owner-members';
 import { useOwnerRole } from '@features/role-conversion';
@@ -77,28 +78,29 @@ function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActi
   );
 }
 
-function ApprovalEmptyState() {
+function ApprovalEmptyState({ isSearchResult }: { isSearchResult: boolean }) {
+  const content = isSearchResult ? ownerMembersEmptyContent.emptySearchResult : approvalEmptyContent;
+
   return (
     <div className='relative flex min-h-full w-full items-center justify-center'>
       <div className='px-x4 flex w-full flex-col items-center gap-y-1 text-center'>
-        <p className='h2-extrabold text-text-primary'>{approvalEmptyContent.title}</p>
-        <p className='body1-regular text-text-secondary'>{approvalEmptyContent.description}</p>
+        <p className='h2-extrabold text-text-primary'>{content.title}</p>
+        <p className='body1-regular text-text-secondary'>{content.description}</p>
       </div>
       <div className='absolute top-[calc(50%-208px)] h-[160px] w-[180px]'>
-        <Image
-          src={approvalEmptyContent.imageSrc}
-          alt={approvalEmptyContent.imageAlt}
-          fill
-          className='object-contain'
-          sizes='180px'
-        />
+        <Image src={content.imageSrc} alt={content.imageAlt} fill className='object-contain' sizes='180px' />
       </div>
     </div>
   );
 }
 
 /** 구성원 화면의 `신청` 탭 — 보호자 연결 신청 목록과 승인·거절 */
-function OwnerMembersPendingTab() {
+interface OwnerMembersPendingTabProps {
+  /** 검색창에 입력한 검색어 */
+  keyword: string;
+}
+
+function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved } = useOwnerRole();
@@ -109,6 +111,7 @@ function OwnerMembersPendingTab() {
   const pendingMembersQuery = useOwnerPendingMembersQuery({
     userId,
     sort: SORT_BY_OPTION[sortOption],
+    keyword,
     enabled: isResolved && isOwner,
   });
   const approvalRequests = pendingMembersQuery.data?.members ?? [];
@@ -188,7 +191,7 @@ function OwnerMembersPendingTab() {
             isRetrying={pendingMembersQuery.isFetching}
           />
         ) : approvalRequests.length === 0 ? (
-          <ApprovalEmptyState />
+          <ApprovalEmptyState isSearchResult={keyword.length > 0} />
         ) : (
           approvalRequests.map((member) => (
             <OwnerMemberCard
