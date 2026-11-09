@@ -105,8 +105,8 @@ const pendingFixture = (): PendingRequest[] => [
   { requestId: 'p1', petId: 11, dogName: '가가', guardianName: '김가가' },
   { requestId: 'p3', petId: 13, dogName: '다다', guardianName: '김다다' },
 ];
-const respondPending = (sort = 'LATEST') => {
-  const requests = [...pendingRequests];
+const respondPending = (sort = 'LATEST', keyword = '') => {
+  const requests = pendingRequests.filter((request) => request.dogName.includes(keyword));
   if (sort === 'NAME') requests.sort((a, b) => a.dogName.localeCompare(b.dogName, 'ko'));
   if (sort === 'OLDEST') requests.reverse();
 
@@ -126,7 +126,9 @@ const listedDogNames = () => screen.getAllByText(/^(가가|나나|다다)$/).map
 const setupApis = () => {
   vi.clearAllMocks();
   pendingRequests = pendingFixture();
-  mocks.getOwnerPendingMembers.mockImplementation(async (params?: { sort?: string }) => respondPending(params?.sort));
+  mocks.getOwnerPendingMembers.mockImplementation(async (params?: { sort?: string; keyword?: string }) =>
+    respondPending(params?.sort, params?.keyword)
+  );
   mocks.getOwnerMembers.mockImplementation(async () => createMembersResponse({ pendingCount: pendingRequests.length }));
   mocks.postApproveOwnerMember.mockImplementation(removePending);
   mocks.postRejectOwnerMember.mockImplementation(removePending);
@@ -296,5 +298,48 @@ describe('거절 확인 모달과 거절 완료 토스트', () => {
     await waitFor(() => expect(mocks.toast).toHaveBeenCalled());
     expect(mocks.toast).not.toHaveBeenCalledWith(expect.objectContaining({ title: '원생 거절이 완료되었어요' }));
     expect(listedDogNames()).toEqual(['나나', '가가', '다다']);
+  });
+});
+
+describe('신청 탭 검색', () => {
+  beforeEach(setupApis);
+  afterEach(cleanup);
+
+  const typeKeyword = (value: string) =>
+    fireEvent.change(screen.getByLabelText('구성원 검색어 입력'), { target: { value } });
+
+  it('신청 탭에서 검색어를 입력하면 이름이나 견종이 일치하는 신청 목록으로 바뀐다', async () => {
+    renderPage('tab=pending');
+    await screen.findByText('가가');
+
+    typeKeyword('나나');
+
+    await waitFor(() => expect(listedDogNames()).toEqual(['나나']));
+  });
+
+  it('신청 탭에서 검색 결과가 없으면 `검색된 원생이 없어요` / `다른 원생을 검색해보세요.`가 보이고 검색창과 탭은 그대로다', async () => {
+    renderPage('tab=pending');
+    await screen.findByText('가가');
+
+    typeKeyword('개냥이');
+
+    expect(await screen.findByText('검색된 원생이 없어요')).toBeTruthy();
+    expect(screen.getByText('다른 원생을 검색해보세요.')).toBeTruthy();
+    expect(screen.getByLabelText('구성원 검색어 입력')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: /신청/, selected: true })).toBeTruthy();
+  });
+
+  it('신청 탭에서 검색어를 지우면 정렬 기준에 맞는 전체 신청 목록으로 돌아간다', async () => {
+    renderPage('tab=pending');
+    await screen.findByText('가가');
+    fireEvent.click(screen.getByRole('button', { name: '최신순' }));
+    fireEvent.click(screen.getByRole('button', { name: '이름순' }));
+    await waitFor(() => expect(listedDogNames()).toEqual(['가가', '나나', '다다']));
+    typeKeyword('나나');
+    await waitFor(() => expect(listedDogNames()).toEqual(['나나']));
+
+    typeKeyword('');
+
+    await waitFor(() => expect(listedDogNames()).toEqual(['가가', '나나', '다다']));
   });
 });

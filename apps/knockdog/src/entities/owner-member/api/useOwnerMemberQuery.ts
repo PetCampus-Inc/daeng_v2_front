@@ -41,9 +41,10 @@ function useOwnerMembersQuery({ userId, keyword, filter, enabled = true }: UseOw
 function useOwnerPendingMembersQuery({
   userId,
   sort,
+  keyword,
   enabled = true,
 }: GetOwnerPendingMembersParams & { userId?: string; enabled?: boolean } = {}) {
-  const params = { sort };
+  const params = { sort, keyword };
 
   return useQuery({
     queryKey: ownerPendingMembersQueryKey(userId, params),

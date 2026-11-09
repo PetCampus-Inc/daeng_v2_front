@@ -23,13 +23,18 @@ function getOwnerMembers({ keyword, filter }: GetOwnerMembersParams = {}) {
 type OwnerPendingSort = 'LATEST' | 'NAME' | 'OLDEST';
 
 interface GetOwnerPendingMembersParams {
+  /** 검색어. 비어 있으면 보내지 않는다 */
+  keyword?: string;
   /** 신청 목록 정렬 기준. 기본 `LATEST` */
   sort?: OwnerPendingSort;
 }
 
 /** `GET` - 원장 구성원 승인 대기 목록 조회 */
-function getOwnerPendingMembers({ sort = 'LATEST' }: GetOwnerPendingMembersParams = {}) {
-  return api.get('owner/members/pending', { searchParams: { sort } }).json<ApiResponse<OwnerPendingMembersDto>>();
+function getOwnerPendingMembers({ sort = 'LATEST', keyword }: GetOwnerPendingMembersParams = {}) {
+  const searchParams: Record<string, string> = { sort };
+  if (keyword) searchParams.keyword = keyword;
+
+  return api.get('owner/members/pending', { searchParams }).json<ApiResponse<OwnerPendingMembersDto>>();
 }
 
 /** `POST` - 원장 구성원 연결 신청 승인 */
