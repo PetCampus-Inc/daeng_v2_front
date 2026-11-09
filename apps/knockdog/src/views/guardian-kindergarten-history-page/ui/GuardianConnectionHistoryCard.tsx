@@ -13,22 +13,26 @@ import { useStackNavigation } from '@shared/lib/bridge';
 
 interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
+  petName: string;
 }
 
 interface DisconnectButtonProps {
   kindergartenName: string;
+  petName: string;
   schoolPetMembershipId: string | null;
   onDisconnected: (disconnectedAt: string) => void;
 }
 
 function DisconnectButton({
   kindergartenName,
+  petName,
   schoolPetMembershipId,
   onDisconnected,
 }: DisconnectButtonProps) {
   const content = guardianConnectionHistoryContent;
   const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
     kindergartenName,
+    petName,
     schoolPetMembershipId,
     onDisconnected,
   });
@@ -56,7 +60,7 @@ function WriteReviewButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardProps) {
+function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHistoryCardProps) {
   const { push } = useStackNavigation();
   const content = guardianConnectionHistoryContent;
   /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
@@ -148,6 +152,7 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
           <div className='min-w-0 flex-1'>
             <DisconnectButton
               kindergartenName={item.name}
+              petName={petName}
               schoolPetMembershipId={item.schoolPetMembershipId}
               onDisconnected={setLocalDisconnectedAt}
             />
@@ -161,6 +166,7 @@ function GuardianConnectionHistoryCard({ item }: GuardianConnectionHistoryCardPr
       {isCurrent && !canWriteReview ? (
         <DisconnectButton
           kindergartenName={item.name}
+              petName={petName}
           schoolPetMembershipId={item.schoolPetMembershipId}
           onDisconnected={setLocalDisconnectedAt}
         />

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { type ReactNode } from 'react';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OverlayProvider } from 'overlay-kit';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -79,15 +79,6 @@ vi.mock('@entities/guardian-home', () => ({
     refetch: refetchConnections,
   }),
   useGuardianSchoolDisconnectMutation: () => ({ mutateAsync: vi.fn(), isPending: false }),
-}));
-
-vi.mock('@views/guardian-kindergarten-page/model/useGuardianKindergartenHome', () => ({
-  useGuardianKindergartenHome: () => ({
-    selectedPet: null,
-    checkInAt: null,
-    refetchHome: vi.fn(),
-    isHomeReady: true,
-  }),
 }));
 
 const createConnection = (overrides: Partial<TestConnection>): TestConnection => ({
@@ -294,5 +285,51 @@ describe('연결 이력 목록', () => {
     await userEvent.click(await screen.findByRole('button', { name: /다시 시도/ }));
 
     expect(refetchConnections).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('연결 해제 확인 모달', () => {
+  beforeEach(() => {
+    petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
+    connectionState.byPetId = { '1': [createConnection({})] };
+  });
+
+  const openDisconnectDialog = async () => {
+    renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
+    return screen.findByRole('alertdialog');
+  };
+
+  test('`연결 해제`를 누르면 확인 모달이 열린다', async () => {
+    const dialog = await openDisconnectDialog();
+
+    expect(within(dialog).getByRole('button', { name: '연결 해제하기' })).toBeTruthy();
+  });
+
+  test('모달에 해당 유치원 이름과 강아지 이름이 들어간다', async () => {
+    const dialog = await openDisconnectDialog();
+
+    expect(within(dialog).getByText(/모모네 유치원/)).toBeTruthy();
+    expect(within(dialog).getByText(/초코/)).toBeTruthy();
+  });
+
+  test('`닫기`를 누르면 모달이 닫히고 연결 이력은 그대로다', async () => {
+    const dialog = await openDisconnectDialog();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: '닫기' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    const current = screen.getByRole('region', { name: '지금 다니는 유치원' });
+    expect(within(current).getByText('모모네 유치원')).toBeTruthy();
+    expect(within(current).getByRole('button', { name: '연결 해제' })).toBeTruthy();
+  });
+
+  test('모달 바깥을 눌러도 모달이 닫히지 않는다', async () => {
+    await openDisconnectDialog();
+
+    // 모달이 열려 있는 동안 바깥은 `pointer-events: none`이라 검사를 끄고 실제 바깥 누르기를 재현한다
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(document.body);
+
+    expect(screen.getByRole('alertdialog')).toBeTruthy();
   });
 });

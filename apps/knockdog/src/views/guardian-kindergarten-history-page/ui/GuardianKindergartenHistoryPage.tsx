@@ -16,6 +16,7 @@ function GuardianKindergartenHistoryPage() {
   const { pets, selectedPet, hasNoPet, setSelectedPetId } = useGuardianSelectedPet();
   const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
 
+  const petName = selectedPet?.name?.trim() || '강아지';
   const currentItem = items.find((item) => item.disconnectedAt == null);
   const previousItems = items.filter((item) => item.disconnectedAt != null);
   const hasNoHistory = hasNoPet || (!isPending && items.length === 0);
@@ -46,7 +47,7 @@ function GuardianKindergartenHistoryPage() {
               <section aria-label={content.currentSectionTitle} className='flex flex-col gap-3'>
                 <h2 className='h3-extrabold text-text-primary'>{content.currentSectionTitle}</h2>
                 {currentItem ? (
-                  <GuardianConnectionHistoryCard item={currentItem} />
+                  <GuardianConnectionHistoryCard item={currentItem} petName={petName} />
                 ) : (
                   <p className='body1-regular text-text-secondary bg-bg-50 radius-r3 px-x4 py-x6 text-center'>
                     {content.currentEmpty}
@@ -63,7 +64,7 @@ function GuardianKindergartenHistoryPage() {
                   <ul className='flex flex-col gap-3'>
                     {previousItems.map((item) => (
                       <li key={item.id}>
-                        <GuardianConnectionHistoryCard item={item} />
+                        <GuardianConnectionHistoryCard item={item} petName={petName} />
                       </li>
                     ))}
                   </ul>
