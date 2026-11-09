@@ -70,5 +70,5 @@ function toOwnerMemberTicketView(ticket: OwnerMemberTicket, today: Date): OwnerM
   };
 }
 
-export { NO_END_DATE_LABEL, TICKET_STATUS, toOwnerMemberTicketView };
+export { NO_END_DATE_LABEL, TICKET_STATUS, formatDotDate, toOwnerMemberTicketView };
 export type { OwnerMemberTicket, OwnerMemberTicketView, TicketStatus };
