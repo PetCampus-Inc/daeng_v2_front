@@ -13,6 +13,11 @@ interface ImageGalleryViewerProps {
   ariaLabel?: string;
   /** 서명된 S3 URL처럼 next/image 호스트 설정이 없는 주소 */
   native?: boolean;
+  /**
+   * 사진을 잘라 채우지 않고 원본 비율로 폭에 맞춰 보여 주며, 화면 세로 가운데에 둔다.
+   * 켜면 next/image 대신 일반 img로 그린다.
+   */
+  originalRatio?: boolean;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -25,6 +30,7 @@ function ImageGalleryViewer({
   initialIndex = 0,
   ariaLabel = '사진 보기',
   native = false,
+  originalRatio = false,
 }: ImageGalleryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -34,8 +40,7 @@ function ImageGalleryViewer({
   useLayoutEffect(() => {
     if (!isOpen || images.length === 0) return;
 
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeButtonRef.current?.focus();
 
     return () => {
@@ -67,9 +72,7 @@ function ImageGalleryViewer({
       const container = dialogRef.current;
       if (!container) return;
 
-      const focusable = Array.from(
-        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-      );
+      const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 
       if (focusable.length === 0) return;
 
@@ -115,12 +118,7 @@ function ImageGalleryViewer({
         aria-label={ariaLabel}
         className='z-modal fixed inset-y-0 left-1/2 w-full max-w-120 -translate-x-1/2 bg-[rgba(15,20,26,0.7)]'
       >
-        <button
-          type='button'
-          onClick={close}
-          aria-label='사진 보기 닫기'
-          className='absolute inset-0'
-        />
+        <button type='button' onClick={close} aria-label='사진 보기 닫기' className='absolute inset-0' />
 
         <button
           ref={closeButtonRef}
@@ -132,9 +130,29 @@ function ImageGalleryViewer({
           <Icon icon='Close' className='size-6' />
         </button>
 
-        <div className='bg-bg-0 absolute top-[183px] left-4 h-[390px] w-[calc(100%-32px)] overflow-hidden'>
-          {native ? (
-            <img src={currentImage} alt={`사진 ${currentIndex + 1}`} className='size-full object-cover' draggable={false} />
+        <div
+          className={
+            originalRatio
+              ? 'absolute top-1/2 left-4 w-[calc(100%-32px)] -translate-y-1/2 overflow-hidden'
+              : 'bg-bg-0 absolute top-[183px] left-4 h-[390px] w-[calc(100%-32px)] overflow-hidden'
+          }
+        >
+          {originalRatio ? (
+            // eslint-disable-next-line @next/next/no-img-element -- 원본 비율 표시: 서명된 S3 URL은 next/image 호스트 설정 밖
+            <img
+              src={currentImage}
+              alt={`사진 ${currentIndex + 1}`}
+              className='block h-auto max-h-[calc(100dvh-240px)] w-full object-contain'
+              draggable={false}
+            />
+          ) : native ? (
+            // eslint-disable-next-line @next/next/no-img-element -- 서명된 S3 URL은 next/image 호스트 설정 밖
+            <img
+              src={currentImage}
+              alt={`사진 ${currentIndex + 1}`}
+              className='size-full object-cover'
+              draggable={false}
+            />
           ) : (
             <Image
               src={currentImage}
@@ -183,6 +201,7 @@ function ImageGalleryViewer({
               className='bg-bg-0 relative size-[60px] shrink-0 overflow-hidden rounded-lg'
             >
               {native ? (
+                // eslint-disable-next-line @next/next/no-img-element -- 서명된 S3 URL은 next/image 호스트 설정 밖
                 <img src={image} alt='' className='size-full object-cover' draggable={false} />
               ) : (
                 <Image src={image} alt='' fill sizes='60px' className='object-cover' />
