@@ -59,7 +59,11 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
       ) : isError ? (
         <p className='body2-regular text-text-secondary'>{ownerMemberProfileContent.ticketLoadErrorText}</p>
       ) : tickets.length === 0 ? (
-        <TicketEmptyCard />
+        <TicketEmptyCard
+          onAction={() => {
+            handleCharge().catch(() => undefined);
+          }}
+        />
       ) : (
         tickets.map((ticket) => (
           <TicketSummaryCard
