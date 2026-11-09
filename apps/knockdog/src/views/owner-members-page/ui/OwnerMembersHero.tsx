@@ -1,8 +1,10 @@
+import { overlay } from 'overlay-kit';
 import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
 import {
   OWNER_MEMBER_SEARCH_MAX_LENGTH,
   ownerMembersContent,
 } from '@views/owner-members-page/config/ownerMembersContent';
+import { OwnerMembersInviteSheet } from '@views/owner-members-page/ui/OwnerMembersInviteSheet';
 import { Header } from '@widgets/Header';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
@@ -27,6 +29,10 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
   });
   const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();
 
+  const handleInviteClick = () => {
+    overlay.open(({ isOpen, close }) => <OwnerMembersInviteSheet isOpen={isOpen} close={close} />);
+  };
+
   return (
     <div className='relative overflow-hidden pt-(--safe-area-inset-top,0px) pb-6'>
       <Icon
@@ -38,6 +44,14 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
       <Header variant='transparent'>
         <Header.Title className='text-text-primary-inverse'>구성원</Header.Title>
         <Header.RightSection>
+          <button
+            type='button'
+            aria-label='보호자 초대 QR코드'
+            data-testid='owner-members-qr-button'
+            onClick={handleInviteClick}
+          >
+            <Icon icon='Qr' className='text-text-primary-inverse size-6' />
+          </button>
           <NotificationBell
             hasUnread={hasUnreadNotification}
             inverse

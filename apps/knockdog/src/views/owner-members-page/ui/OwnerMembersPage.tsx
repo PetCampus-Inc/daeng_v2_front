@@ -3,7 +3,6 @@
 import { MemberCountTab } from '@knockdog/ui';
 import { useOwnerMembersPage } from '@views/owner-members-page/model/useOwnerMembersPage';
 import { OwnerMembersHero } from '@views/owner-members-page/ui/OwnerMembersHero';
-import { OwnerMembersInviteButton } from '@views/owner-members-page/ui/OwnerMembersInviteButton';
 import { OwnerMembersPendingTab } from '@views/owner-members-page/ui/OwnerMembersPendingTab';
 import { OwnerMembersList } from '@views/owner-members-page/ui/OwnerMembersList';
 import { OwnerMembersSummaryBar } from '@views/owner-members-page/ui/OwnerMembersSummaryBar';
@@ -80,8 +79,6 @@ function OwnerMembersPage() {
             />
           </div>
         )}
-
-        <OwnerMembersInviteButton />
       </div>
     </div>
   );
