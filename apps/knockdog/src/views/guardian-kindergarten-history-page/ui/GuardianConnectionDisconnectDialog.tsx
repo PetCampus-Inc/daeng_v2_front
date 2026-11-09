@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +11,6 @@ import {
   AlertDialogTitle,
 } from '@knockdog/ui';
 
-import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { ellipsisText } from '@shared/utils';
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 
@@ -21,7 +19,8 @@ interface GuardianConnectionDisconnectDialogProps {
   kindergartenName: string;
   petName: string;
   close: () => void;
-  onDisconnect: () => Promise<boolean>;
+  /** 모달을 닫은 뒤 해제 조건 검사와 해제를 진행한다 */
+  onDisconnect: () => void;
 }
 
 function GuardianConnectionDisconnectDialog({
@@ -32,26 +31,18 @@ function GuardianConnectionDisconnectDialog({
   onDisconnect,
 }: GuardianConnectionDisconnectDialogProps) {
   const { disconnectDialog } = guardianConnectionHistoryContent;
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const displayKindergartenName = ellipsisText(
     kindergartenName,
     disconnectDialog.nameMaxLength
   );
 
   const handleOpenChange = (open: boolean) => {
-    if (!open && !isSubmitting) close();
+    if (!open) close();
   };
 
-  const handleDisconnect = async () => {
-    if (isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      const success = await onDisconnect();
-      if (success) close();
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleDisconnect = () => {
+    close();
+    onDisconnect();
   };
 
   return (
@@ -59,7 +50,6 @@ function GuardianConnectionDisconnectDialog({
       <AlertDialogContent className='max-w-[358px]'>
         {/* relative는 Content에 두면 fixed 중앙 정렬을 덮어씀 */}
         <div className='relative'>
-          <ActionLoadingOverlay isPending={isSubmitting} />
           <AlertDialogHeader className='px-x4'>
             <AlertDialogTitle>
               <span className='text-text-accent'>{displayKindergartenName}</span>
@@ -72,15 +62,14 @@ function GuardianConnectionDisconnectDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className='px-x4'>
-            <AlertDialogCancel disabled={isSubmitting} className='body1-bold text-text-secondary'>
+            <AlertDialogCancel className='body1-bold text-text-secondary'>
               {disconnectDialog.cancelLabel}
             </AlertDialogCancel>
             <AlertDialogAction
-              disabled={isSubmitting}
               className='body1-bold text-text-primary-inverse'
               onClick={(event) => {
                 event.preventDefault();
-                void handleDisconnect();
+                handleDisconnect();
               }}
             >
               {disconnectDialog.confirmLabel}

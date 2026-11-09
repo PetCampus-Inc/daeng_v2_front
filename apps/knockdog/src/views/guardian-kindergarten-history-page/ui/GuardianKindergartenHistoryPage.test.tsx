@@ -23,12 +23,29 @@ interface TestConnection {
 }
 
 const push = vi.fn();
+const getDisconnectEligibility = vi.fn();
+const deleteConnection = vi.fn();
 const petState = { pets: [] as TestPet[] };
 const refetchConnections = vi.fn();
 const connectionState = { byPetId: {} as Record<string, TestConnection[]>, isError: false };
 
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push, back: vi.fn() }),
+}));
+
+// vaul이 테스트 환경에서 다른 React를 불러와 그려지지 않아, 열림 여부와 제목만 따르는 단순 dialog로 바꾼다
+vi.mock('@shared/ui/bottom-sheet', () => ({
+  BottomSheet: {
+    Root: ({ open, children }: { open?: boolean; children: ReactNode }) =>
+      open ? (
+        <div role='dialog' aria-labelledby='bottom-sheet-title'>
+          {children}
+        </div>
+      ) : null,
+    Overlay: () => null,
+    Body: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    Title: ({ children }: { children: ReactNode }) => <h2 id='bottom-sheet-title'>{children}</h2>,
+  },
 }));
 
 vi.mock('@widgets/Header', () => {
@@ -57,7 +74,9 @@ vi.mock('@entities/pet', () => ({
   formatAge: () => '3살',
 }));
 
-vi.mock('@entities/guardian-home', () => ({
+vi.mock('@entities/guardian-home', async () => ({
+  ...(await import('@entities/guardian-home/model/guardianDisconnectEligibility')),
+  getDisconnectEligibility: (params: unknown) => getDisconnectEligibility(params),
   useGuardianSchoolConnectionsQuery: ({ petId }: { petId?: string | null }) => ({
     data: (connectionState.byPetId[petId ?? ''] ?? []).map((connection) => ({
       id: connection.schoolPetMembershipId,
@@ -78,7 +97,7 @@ vi.mock('@entities/guardian-home', () => ({
     isFetching: false,
     refetch: refetchConnections,
   }),
-  useGuardianSchoolDisconnectMutation: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useGuardianSchoolDisconnectMutation: () => ({ mutateAsync: deleteConnection, isPending: false }),
 }));
 
 const createConnection = (overrides: Partial<TestConnection>): TestConnection => ({
@@ -121,6 +140,8 @@ afterEach(() => {
   connectionState.byPetId = {};
   connectionState.isError = false;
   refetchConnections.mockReset();
+  getDisconnectEligibility.mockReset();
+  deleteConnection.mockReset();
 });
 
 describe('연결 이력 화면의 강아지 선택', () => {
@@ -331,5 +352,92 @@ describe('연결 해제 확인 모달', () => {
     await userEvent.setup({ pointerEventsCheck: 0 }).click(document.body);
 
     expect(screen.getByRole('alertdialog')).toBeTruthy();
+  });
+});
+
+describe('해제 불가 바텀시트', () => {
+  beforeEach(() => {
+    petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
+    connectionState.byPetId = { '1': [createConnection({})] };
+  });
+
+  const openBlockedSheet = async (blocks: unknown[]) => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: false, blocks });
+    renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
+    const dialog = await screen.findByRole('alertdialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: '연결 해제하기' }));
+    return screen.findByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ });
+  };
+
+  const TICKET_BLOCKS = [
+    { type: 'TICKET', ticket: { name: '10회권', remainingCount: 6, expiresOn: '2026-01-12' } },
+    { type: 'TICKET', ticket: { name: '체험권', remainingCount: 1, expiresOn: null } },
+  ];
+  const RESERVATION_BLOCKS = [
+    { type: 'RESERVATION', reservation: { date: '2026-10-12', time: '15:00', status: '예약 확정' } },
+  ];
+
+  describe('이용권이 남은 경우', () => {
+    test('남은 이용권이 여러 장이면 모두 이름·만료일·잔여 횟수와 함께 보여 준다', async () => {
+      const sheet = await openBlockedSheet(TICKET_BLOCKS);
+
+      expect(within(sheet).getByText('10회권')).toBeTruthy();
+      expect(within(sheet).getByText('2026.01.12까지')).toBeTruthy();
+      expect(within(sheet).getByText('6회 남음')).toBeTruthy();
+      expect(within(sheet).getByText('체험권')).toBeTruthy();
+      expect(within(sheet).getByText('만료 없음')).toBeTruthy();
+      expect(within(sheet).getByText('1회 남음')).toBeTruthy();
+    });
+
+    test('`유치원에 문의`를 누르면 해당 유치원 상세 페이지로 이동한다', async () => {
+      const sheet = await openBlockedSheet(TICKET_BLOCKS);
+
+      await userEvent.click(within(sheet).getByRole('button', { name: '유치원에 문의' }));
+
+      expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/10' });
+    });
+
+    test('`확인`을 누르면 시트가 닫힌다', async () => {
+      const sheet = await openBlockedSheet(TICKET_BLOCKS);
+
+      await userEvent.click(within(sheet).getByRole('button', { name: '확인' }));
+
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ })).toBeNull());
+    });
+
+    test('시트 바깥을 누르거나 아래로 밀어도 시트가 닫히지 않는다', async () => {
+      await openBlockedSheet(TICKET_BLOCKS);
+
+      await userEvent.setup({ pointerEventsCheck: 0 }).click(document.documentElement);
+
+      expect(screen.getByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ })).toBeTruthy();
+    });
+  });
+
+  describe('예약이 남은 경우', () => {
+    test('예약 안내에 유치원 이름, 등원 예정 날짜·시간, 등원 전 상태가 보인다', async () => {
+      const sheet = await openBlockedSheet(RESERVATION_BLOCKS);
+
+      expect(within(sheet).getByText('모모네 유치원 예약')).toBeTruthy();
+      expect(within(sheet).getByText('2026.10.12 오후 3:00 등원 예정')).toBeTruthy();
+      expect(within(sheet).getByText('등원 전')).toBeTruthy();
+    });
+
+    test('`유치원에 문의`를 누르면 해당 유치원 상세 페이지로 이동한다', async () => {
+      const sheet = await openBlockedSheet(RESERVATION_BLOCKS);
+
+      await userEvent.click(within(sheet).getByRole('button', { name: '유치원에 문의' }));
+
+      expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/10' });
+    });
+
+    test('`확인`을 누르면 시트가 닫힌다', async () => {
+      const sheet = await openBlockedSheet(RESERVATION_BLOCKS);
+
+      await userEvent.click(within(sheet).getByRole('button', { name: '확인' }));
+
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ })).toBeNull());
+    });
   });
 });

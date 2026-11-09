@@ -19,6 +19,7 @@ interface GuardianConnectionHistoryCardProps {
 interface DisconnectButtonProps {
   kindergartenName: string;
   petName: string;
+  placeId: string | null;
   schoolPetMembershipId: string | null;
   onDisconnected: (disconnectedAt: string) => void;
 }
@@ -26,6 +27,7 @@ interface DisconnectButtonProps {
 function DisconnectButton({
   kindergartenName,
   petName,
+  placeId,
   schoolPetMembershipId,
   onDisconnected,
 }: DisconnectButtonProps) {
@@ -33,6 +35,7 @@ function DisconnectButton({
   const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
     kindergartenName,
     petName,
+    placeId,
     schoolPetMembershipId,
     onDisconnected,
   });
@@ -153,6 +156,7 @@ function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHist
             <DisconnectButton
               kindergartenName={item.name}
               petName={petName}
+              placeId={item.placeId}
               schoolPetMembershipId={item.schoolPetMembershipId}
               onDisconnected={setLocalDisconnectedAt}
             />
@@ -167,6 +171,7 @@ function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHist
         <DisconnectButton
           kindergartenName={item.name}
               petName={petName}
+              placeId={item.placeId}
           schoolPetMembershipId={item.schoolPetMembershipId}
           onDisconnected={setLocalDisconnectedAt}
         />

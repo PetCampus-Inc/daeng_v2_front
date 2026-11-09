@@ -25,6 +25,17 @@ const guardianConnectionHistoryContent = {
     /** 유치원명 10자 초과 시 말줄임 */
     nameMaxLength: 10,
   },
+  blockedSheet: {
+    title: '아직 연결을 해제할 수 없어요.',
+    ticketsBody:
+      '사용할 수 있는 이용권이 아직 남아 있어요. \n이용권을 다 쓰거나, 기한이 끝나야 해제할 수 있어요. \n남은 이용권 정리는 유치원에 문의해 주세요.',
+    reservationBody:
+      '아직 이용이 완료되지 않은 예약이 남아 있어요. \n예약이 이용 완료 상태가 되면 연결을 해제할 수 있어요. ',
+    reservationTitleSuffix: ' 예약',
+    reservationStatus: '등원 전',
+    ticketRemainingSuffix: '회 남음',
+    scrollableTicketCount: 3,
+  },
   /** 당일 등원 기록이 있을 때 */
   disconnectBlockedToast: '오늘은 등원 기록이 있어 연결을 해제할 수 없어요',
   /** API/네트워크 실패 */
