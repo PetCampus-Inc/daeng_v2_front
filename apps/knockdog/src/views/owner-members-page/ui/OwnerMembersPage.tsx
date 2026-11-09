@@ -13,7 +13,6 @@ function OwnerMembersPage() {
     emptyStateType,
     searchQuery,
     handleSearchQueryChange,
-    handleDisconnectMember,
     sortType,
     setSortType,
     isLoading,
@@ -48,7 +47,6 @@ function OwnerMembersPage() {
             emptyStateType={emptyStateType}
             isLoading={isLoading}
             isError={isError}
-            onDisconnectMember={handleDisconnectMember}
           />
         </div>
 

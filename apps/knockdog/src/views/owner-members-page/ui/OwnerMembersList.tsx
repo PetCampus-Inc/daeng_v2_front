@@ -5,7 +5,6 @@ import {
   ownerMembersEmptyContent,
   type OwnerMembersEmptyStateType,
 } from '@views/owner-members-page/config/ownerMembersEmptyContent';
-import { OwnerMemberMoreMenu } from '@views/owner-members-page/ui/OwnerMemberMoreMenu';
 
 import { OwnerMemberCard } from '@features/owner-members';
 
@@ -20,7 +19,6 @@ interface OwnerMembersListProps {
   emptyStateType: OwnerMembersEmptyStateType | null;
   isLoading: boolean;
   isError: boolean;
-  onDisconnectMember: (memberId: string) => Promise<void>;
 }
 
 function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembersEmptyStateType }) {
@@ -41,13 +39,7 @@ function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembe
   );
 }
 
-function OwnerMembersList({
-  members,
-  emptyStateType,
-  isLoading,
-  isError,
-  onDisconnectMember,
-}: OwnerMembersListProps) {
+function OwnerMembersList({ members, emptyStateType, isLoading, isError }: OwnerMembersListProps) {
   const { push } = useStackNavigation();
 
   if (isLoading) {
@@ -106,13 +98,6 @@ function OwnerMembersList({
               });
             }
           }}
-          rightAddon={
-            <OwnerMemberMoreMenu
-              memberId={member.id}
-              dogName={member.dogName}
-              onDisconnect={onDisconnectMember}
-            />
-          }
         />
       ))}
     </div>

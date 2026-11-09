@@ -6,13 +6,8 @@ import {
 import type { OwnerMembersEmptyStateType } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { useOwnerRole } from '@features/role-conversion';
 
-import {
-  useOwnerMemberDisconnectMutation,
-  useOwnerMembersQuery,
-  type OwnerMember,
-} from '@entities/owner-member';
+import { useOwnerMembersQuery, type OwnerMember } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
-import { trackConnectionStatus } from '@shared/lib/analytics';
 
 const SEARCH_ALLOWED_PATTERN = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z ]/g;
 
@@ -47,7 +42,6 @@ function useOwnerMembersPage() {
     userId,
     enabled: isResolved && isOwner,
   });
-  const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
 
   const ownerMembers = useMemo(() => {
     const query = normalizeSearchText(searchQuery);
@@ -81,23 +75,12 @@ function useOwnerMembersPage() {
     );
   };
 
-  const handleDisconnectMember = async (memberId: string) => {
-    await disconnectMutation.mutateAsync(memberId);
-    trackConnectionStatus({
-      status: 'disconnect',
-      initiated_by: 'owner',
-      school_pet_membership_id: memberId,
-      reason: 'manual',
-    });
-  };
-
   return {
     ownerMembers,
     totalMemberCount,
     emptyStateType,
     searchQuery,
     handleSearchQueryChange,
-    handleDisconnectMember,
     sortType,
     setSortType,
     isLoading: isInitialPending,
