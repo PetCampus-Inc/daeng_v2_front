@@ -1,3 +1,4 @@
+import type { OwnerPassTemplate } from '@entities/owner-pass-template';
 import type { PetTicketChargeRequest } from '@entities/owner-pet-ticket';
 
 const MONTH_PRESETS = [1, 3, 6, 12] as const;
@@ -15,13 +16,6 @@ interface ChargePreset {
   count: number;
   duration: ChargeDuration;
 }
-
-const CHARGE_PRESETS: ChargePreset[] = [
-  { id: 'pass-10', name: '정기권 10회권', count: 10, duration: { kind: 'none' } },
-  { id: 'pass-20', name: '정기권 20회권', count: 20, duration: { kind: 'none' } },
-  { id: 'pass-30', name: '정기권 30회권', count: 30, duration: { kind: 'none' } },
-  { id: 'pass-40', name: '정기권 40회권', count: 40, duration: { kind: 'none' } },
-];
 
 function startOfChargeDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -72,6 +66,24 @@ function chargeCountError(value: string) {
   return null;
 }
 
+function isChargeMonth(value: number): value is ChargeMonth {
+  return MONTH_PRESETS.some((month) => month === value);
+}
+
+function toChargePreset(template: OwnerPassTemplate): ChargePreset {
+  if (template.duration.type === 'NONE') {
+    return { id: template.id, name: template.name, count: template.chargeCount, duration: { kind: 'none' } };
+  }
+
+  const { value, unit } = template.duration;
+  const duration: ChargeDuration =
+    unit === 'MONTH' && isChargeMonth(value)
+      ? { kind: 'month', months: value }
+      : { kind: 'custom', amount: value, unit: unit === 'DAY' ? 'day' : 'month' };
+
+  return { id: template.id, name: template.name, count: template.chargeCount, duration };
+}
+
 function chargePresetDetail(preset: ChargePreset) {
   if (preset.duration.kind === 'none') return `${preset.count}회 • 만료 없음`;
   if (preset.duration.kind === 'month') return `${preset.count}회 • ${preset.duration.months}개월`;
@@ -85,7 +97,7 @@ function formatChargeApiDate(date: Date) {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/** 등록 이용권은 화면 값으로 보내고, 템플릿 id는 템플릿 API를 붙인 뒤에 쓴다. */
+/** 등록 이용권에서 고른 값도 충전 API는 이름·횟수·기간으로 받는다. */
 function toChargeTicketRequest(
   start: Date,
   name: string,
@@ -121,7 +133,6 @@ function canChargeTicket(name: string, count: string, duration: ChargeDuration |
 export type { ChargeDuration, ChargeMonth, ChargePreset, ChargeUnit };
 export {
   CHARGE_COUNT_ERROR,
-  CHARGE_PRESETS,
   MONTH_PRESETS,
   addChargeMonths,
   canChargeTicket,
@@ -132,5 +143,6 @@ export {
   formatChargeSelectLabel,
   isSameChargeDay,
   startOfChargeDay,
+  toChargePreset,
   toChargeTicketRequest,
 };

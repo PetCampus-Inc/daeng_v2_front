@@ -21,6 +21,7 @@ import {
   formatChargeDotDate,
   isSameChargeDay,
   startOfChargeDay,
+  toChargePreset,
   toChargeTicketRequest,
   type ChargeDuration,
   type ChargeMonth,
@@ -32,6 +33,7 @@ import { TicketChargeLeaveDialog } from '@views/owner/member-ticket-charge/ui/Ti
 import { TicketChargePresetSheet } from '@views/owner/member-ticket-charge/ui/TicketChargePresetSheet';
 import { Header } from '@widgets/Header';
 
+import { useOwnerPassTemplatesQuery } from '@entities/owner-pass-template';
 import { useChargePetTicketMutation } from '@entities/owner-pet-ticket';
 
 import { getCurrentTxId, useNativeBackHandler, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
@@ -63,6 +65,8 @@ function MemberTicketChargePage() {
   const { back } = useStackNavigation();
   const { send } = useNavigationResult<boolean>();
   const chargeTicket = useChargePetTicketMutation(petId);
+  const templatesQuery = useOwnerPassTemplatesQuery();
+  const presets = (templatesQuery.data ?? []).map(toChargePreset);
   const handleBackRef = useRef(() => {});
   const chargeKeyRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
   const [today] = useState(() => startOfChargeDay(new Date()));
@@ -329,6 +333,7 @@ function MemberTicketChargePage() {
       />
       <TicketChargePresetSheet
         isOpen={isPresetOpen}
+        presets={presets}
         selectedId={selectedPreset?.id ?? null}
         onOpenChange={setIsPresetOpen}
         onSelectDirect={handleSelectDirect}
