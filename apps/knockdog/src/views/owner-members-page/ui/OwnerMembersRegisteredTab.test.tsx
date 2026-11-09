@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   searchParams: { value: new URLSearchParams() },
   toast: vi.fn(),
   push: vi.fn(),
+  hasUnreadNotification: { value: false },
   getOwnerMembers: vi.fn(),
   getOwnerPendingMembers: vi.fn(),
   postApproveOwnerMember: vi.fn(),
@@ -57,7 +58,7 @@ vi.mock('@entities/user', () => ({
     selector({ user: { userId: 'owner-1' } }),
 }));
 vi.mock('@entities/notification', () => ({
-  useHasUnreadNotificationQuery: () => ({ data: false }),
+  useHasUnreadNotificationQuery: () => ({ data: mocks.hasUnreadNotification.value }),
   NOTIFICATIONS_QUERY_KEY: 'notifications',
 }));
 vi.mock('@shared/ui/toast', () => ({ toast: mocks.toast }));
@@ -100,5 +101,31 @@ describe('등록 원생 상세 이동', () => {
     await waitFor(() =>
       expect(mocks.push).toHaveBeenCalledWith({ pathname: '/owner/members/1' })
     );
+  });
+});
+
+describe('상단 내비게이션', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.hasUnreadNotification.value = false;
+    mocks.getOwnerMembers.mockResolvedValue(membersResponse);
+    mocks.getOwnerPendingMembers.mockResolvedValue(pendingResponse);
+  });
+  afterEach(cleanup);
+
+  it('알림 아이콘을 누르면 알림 화면으로 이동한다', async () => {
+    renderPage('');
+
+    fireEvent.click(await screen.findByRole('button', { name: /알림함/ }));
+
+    expect(mocks.push).toHaveBeenCalledWith({ pathname: '/notification' });
+  });
+
+  it('읽지 않은 알림이 있으면 알림 아이콘에 표시가 보인다', async () => {
+    mocks.hasUnreadNotification.value = true;
+
+    renderPage('');
+
+    expect(await screen.findByRole('button', { name: /읽지 않은 알림/ })).toBeTruthy();
   });
 });
