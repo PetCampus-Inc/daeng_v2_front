@@ -12,7 +12,6 @@ import {
 } from '@entities/guardian-home';
 import { isKindergartenId } from '@entities/kindergarten';
 import { useUserStore } from '@entities/user';
-import { ApiError } from '@shared/api';
 import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
@@ -22,6 +21,10 @@ import {
   toReservationScheduleLabel,
   toTicketExpiryLabel,
 } from '@views/guardian-kindergarten-history-page/lib/formatGuardianDisconnectBlock';
+import {
+  classifyGuardianDisconnectError,
+  GUARDIAN_DISCONNECT_ERROR,
+} from '@views/guardian-kindergarten-history-page/lib/classifyGuardianDisconnectError';
 import {
   GUARDIAN_DISCONNECT_JUDGEMENT,
   judgeGuardianDisconnect,
@@ -36,11 +39,9 @@ interface UseGuardianConnectionDisconnectOptions {
   placeId: string | null;
   schoolPetMembershipId: string | null;
   /** 성공 시 카드 과거 이력 전환용. 목록 재조회 전 즉시 반영 */
-  onDisconnected: (disconnectedAt: string) => void;
-}
-
-function isTodayAttendanceBlockedError(error: unknown) {
-  return error instanceof ApiError && error.message.includes('등원');
+  onDisconnected?: (disconnectedAt: string) => void;
+  /** 이미 해제된 연결(409)일 때 연결 이력을 다시 불러오는 함수 */
+  onHistoryOutdated?: () => void;
 }
 
 /**
@@ -54,6 +55,7 @@ function useGuardianConnectionDisconnect({
   placeId,
   schoolPetMembershipId,
   onDisconnected,
+  onHistoryOutdated,
 }: UseGuardianConnectionDisconnectOptions) {
   const content = guardianConnectionHistoryContent;
   const { push } = useStackNavigation();
@@ -65,10 +67,7 @@ function useGuardianConnectionDisconnect({
     toast({
       type: 'success',
       nativeTitle: `${kindergartenName}${content.disconnectSuccessToastSuffix}`,
-      titleParts: [
-        { text: kindergartenName, accent: true },
-        { text: content.disconnectSuccessToastSuffix },
-      ],
+      titleParts: [{ text: kindergartenName, accent: true }, { text: content.disconnectSuccessToastSuffix }],
       title: (
         <>
           <span className='text-text-accent'>{kindergartenName}</span>
@@ -121,26 +120,7 @@ function useGuardianConnectionDisconnect({
     }
   };
 
-  const disconnect = async (membershipId: string) => {
-    try {
-      await disconnectMutation.mutateAsync({ schoolPetMembershipId: membershipId });
-    } catch (error) {
-      toast({
-        title: isTodayAttendanceBlockedError(error) ? content.disconnectBlockedToast : content.disconnectFailToast,
-      });
-      return;
-    }
-
-    onDisconnected(formatDateKey(new Date()));
-    trackConnectionStatus({
-      status: 'disconnect',
-      initiated_by: 'guardian',
-      school_pet_membership_id: membershipId,
-      reason: 'manual',
-    });
-    showSuccessToast();
-  };
-
+  /** 해제 조건을 조회해 막는 이유가 있으면 안내하고, 없으면 해제를 진행한다 */
   const checkAndDisconnect = async () => {
     if (!schoolPetMembershipId) {
       toast({ title: content.disconnectFailToast });
@@ -149,15 +129,13 @@ function useGuardianConnectionDisconnect({
 
     setIsChecking(true);
     try {
-      const eligibility = toDisconnectEligibility(
-        await getDisconnectEligibility({ schoolPetMembershipId })
-      );
+      const eligibility = toDisconnectEligibility(await getDisconnectEligibility({ schoolPetMembershipId }));
       const judgement = judgeGuardianDisconnect(eligibility);
 
       if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.todayAttendance) {
         toast({ title: content.disconnectBlockedToast });
       } else if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.proceed) {
-        await disconnect(schoolPetMembershipId);
+        await requestDisconnect(schoolPetMembershipId);
       } else {
         openBlockedSheetFor(eligibility, judgement);
       }
@@ -166,6 +144,55 @@ function useGuardianConnectionDisconnect({
     } finally {
       setIsChecking(false);
     }
+  };
+
+  /** 이용권·예약이 남아 해제가 거절되면 조건을 다시 조회해 해제 불가 시트를 연다 */
+  const recheckAfterRejection = async (membershipId: string) => {
+    try {
+      const eligibility = toDisconnectEligibility(
+        await getDisconnectEligibility({ schoolPetMembershipId: membershipId })
+      );
+      const judgement = judgeGuardianDisconnect(eligibility);
+
+      if (
+        judgement === GUARDIAN_DISCONNECT_JUDGEMENT.tickets ||
+        judgement === GUARDIAN_DISCONNECT_JUDGEMENT.reservation
+      ) {
+        openBlockedSheetFor(eligibility, judgement);
+        return;
+      }
+    } catch {
+      // 다시 조회하지 못하면 아래 실패 토스트로 알린다
+    }
+    toast({ title: content.disconnectFailToast });
+  };
+
+  const requestDisconnect = async (membershipId: string) => {
+    try {
+      await disconnectMutation.mutateAsync({ schoolPetMembershipId: membershipId });
+    } catch (error) {
+      const errorKind = classifyGuardianDisconnectError(error);
+
+      if (errorKind === GUARDIAN_DISCONNECT_ERROR.ticketsOrReservationRemain) {
+        await recheckAfterRejection(membershipId);
+      } else if (errorKind === GUARDIAN_DISCONNECT_ERROR.alreadyDisconnected) {
+        onHistoryOutdated?.();
+      } else if (errorKind === GUARDIAN_DISCONNECT_ERROR.todayAttendance) {
+        toast({ title: content.disconnectBlockedToast });
+      } else {
+        toast({ title: content.disconnectFailToast });
+      }
+      return;
+    }
+
+    onDisconnected?.(formatDateKey(new Date()));
+    trackConnectionStatus({
+      status: 'disconnect',
+      initiated_by: 'guardian',
+      school_pet_membership_id: membershipId,
+      reason: 'manual',
+    });
+    showSuccessToast();
   };
 
   const handleDisconnectClick = () => {

@@ -14,7 +14,7 @@ import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 function GuardianKindergartenHistoryPage() {
   const content = guardianConnectionHistoryContent;
   const { pets, selectedPet, hasNoPet, setSelectedPetId } = useGuardianSelectedPet();
-  const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
+  const { items, isPending, isError, isFetching, refetch, markDisconnected } = useGuardianConnectionHistory();
 
   const petName = selectedPet?.name?.trim() || '강아지';
   const currentItem = items.find((item) => item.disconnectedAt == null);
@@ -47,7 +47,12 @@ function GuardianKindergartenHistoryPage() {
               <section aria-label={content.currentSectionTitle} className='flex flex-col gap-3'>
                 <h2 className='h3-extrabold text-text-primary'>{content.currentSectionTitle}</h2>
                 {currentItem ? (
-                  <GuardianConnectionHistoryCard item={currentItem} petName={petName} />
+                  <GuardianConnectionHistoryCard
+                    item={currentItem}
+                    petName={petName}
+                    onDisconnected={(disconnectedAt) => markDisconnected(currentItem.id, disconnectedAt)}
+                    onHistoryOutdated={refetch}
+                  />
                 ) : (
                   <p className='body1-regular text-text-secondary bg-bg-50 radius-r3 px-x4 py-x6 text-center'>
                     {content.currentEmpty}

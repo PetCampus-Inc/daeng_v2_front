@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OverlayProvider } from 'overlay-kit';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { GuardianKindergartenHistoryPage } from './GuardianKindergartenHistoryPage';
+
+import { ApiError } from '@shared/api';
+import { toast } from '@shared/ui/toast';
 
 interface TestPet {
   id: string;
@@ -77,26 +80,33 @@ vi.mock('@entities/pet', () => ({
 vi.mock('@entities/guardian-home', async () => ({
   ...(await import('@entities/guardian-home/model/guardianDisconnectEligibility')),
   getDisconnectEligibility: (params: unknown) => getDisconnectEligibility(params),
-  useGuardianSchoolConnectionsQuery: ({ petId }: { petId?: string | null }) => ({
-    data: (connectionState.byPetId[petId ?? ''] ?? []).map((connection) => ({
-      id: connection.schoolPetMembershipId,
-      schoolPetMembershipId: connection.schoolPetMembershipId,
-      schoolId: connection.schoolPetMembershipId,
-      placeId: '10',
-      name: connection.name,
-      address: '서울시',
-      imageUrl: '',
-      status: connection.disconnectedAt ? 'disconnected' : 'approved',
-      connectedAt: new Date('2026-01-01'),
-      disconnectedAt: connection.disconnectedAt,
-      attendedDays: 3,
-      canWriteReview: false,
-    })),
-    isPending: false,
-    isError: connectionState.isError,
-    isFetching: false,
-    refetch: refetchConnections,
-  }),
+  useGuardianSchoolConnectionsQuery: ({ petId }: { petId?: string | null }) => {
+    const [, rerender] = useState(0);
+    return {
+      data: (connectionState.byPetId[petId ?? ''] ?? []).map((connection) => ({
+        id: connection.schoolPetMembershipId,
+        schoolPetMembershipId: connection.schoolPetMembershipId,
+        schoolId: connection.schoolPetMembershipId,
+        placeId: '10',
+        name: connection.name,
+        address: '서울시',
+        imageUrl: '',
+        status: connection.disconnectedAt ? 'disconnected' : 'approved',
+        connectedAt: new Date('2026-01-01'),
+        disconnectedAt: connection.disconnectedAt,
+        attendedDays: 3,
+        canWriteReview: false,
+      })),
+      isPending: false,
+      isError: connectionState.isError,
+      isFetching: false,
+      refetch: () => {
+        refetchConnections();
+        rerender((count) => count + 1);
+        return Promise.resolve();
+      },
+    };
+  },
   useGuardianSchoolDisconnectMutation: () => ({ mutateAsync: deleteConnection, isPending: false }),
 }));
 
@@ -142,6 +152,7 @@ afterEach(() => {
   refetchConnections.mockReset();
   getDisconnectEligibility.mockReset();
   deleteConnection.mockReset();
+  vi.mocked(toast).mockReset();
 });
 
 describe('연결 이력 화면의 강아지 선택', () => {
@@ -439,5 +450,143 @@ describe('해제 불가 바텀시트', () => {
 
       await waitFor(() => expect(screen.queryByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ })).toBeNull());
     });
+  });
+});
+
+describe('연결 해제 처리와 완료', () => {
+  const currentRegion = () => screen.getByRole('region', { name: /지금 다니는 유치원/ });
+  const previousRegion = () => screen.getByRole('region', { name: /이전에 다녔던 유치원/ });
+  const confirmDisconnect = async () => {
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
+    const dialog = await screen.findByRole('alertdialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: '연결 해제하기' }));
+  };
+
+  beforeEach(() => {
+    petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
+    connectionState.byPetId = { '1': [createConnection({})] };
+  });
+
+  test('해제에 성공하면 해제한 유치원이 이전에 다녔던 유치원 목록으로 옮겨지고 지금 다니는 유치원은 빈 카드가 된다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [] });
+    deleteConnection.mockResolvedValue({});
+    renderPage();
+
+    await confirmDisconnect();
+
+    await waitFor(() => expect(within(previousRegion()).getByText('모모네 유치원')).toBeTruthy());
+    expect(within(currentRegion()).queryByText('모모네 유치원')).toBeNull();
+    expect(within(currentRegion()).getByText('연결된 유치원이 없어요.')).toBeTruthy();
+  });
+
+  test('해제 조건 검사와 해제 요청 중에 `연결 해제하기`를 다시 눌러도 요청은 한 번만 간다', async () => {
+    let resolveEligibility: (value: unknown) => void = () => undefined;
+    getDisconnectEligibility.mockReturnValue(
+      new Promise((resolve) => {
+        resolveEligibility = resolve;
+      })
+    );
+    deleteConnection.mockResolvedValue({});
+    renderPage();
+
+    await confirmDisconnect();
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(screen.getByRole('button', { name: '연결 해제' }));
+    resolveEligibility({ canDisconnect: true, blocks: [] });
+
+    await waitFor(() => expect(deleteConnection).toHaveBeenCalledTimes(1));
+    expect(getDisconnectEligibility).toHaveBeenCalledTimes(1);
+  });
+
+  test('해제 불가 시트가 열리면 해제 요청을 보내지 않고 카드는 지금 다니는 유치원에 그대로 남는다', async () => {
+    getDisconnectEligibility.mockResolvedValue({
+      canDisconnect: false,
+      blocks: [{ type: 'TICKET', ticket: { name: '10회권', remainingCount: 6, expiresOn: null } }],
+    });
+    renderPage();
+
+    await confirmDisconnect();
+
+    await screen.findByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ });
+    expect(deleteConnection).not.toHaveBeenCalled();
+    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
+  });
+});
+
+describe('연결 해제 실패 처리', () => {
+  const currentRegion = () => screen.getByRole('region', { name: /지금 다니는 유치원/ });
+  const previousRegion = () => screen.getByRole('region', { name: /이전에 다녔던 유치원/ });
+  const confirmDisconnect = async () => {
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
+    const dialog = await screen.findByRole('alertdialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: '연결 해제하기' }));
+  };
+  const serverError = (status: number, code: string) => new ApiError(status, code as never, '서버 문구');
+  const TICKET_BLOCKS = [{ type: 'TICKET', ticket: { name: '10회권', remainingCount: 6, expiresOn: null } }];
+
+  beforeEach(() => {
+    petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
+    connectionState.byPetId = { '1': [createConnection({})] };
+  });
+
+  test('조회나 해제 요청이 서버 오류로 실패하면 현재 화면을 유지하고 카드는 지금 다니는 유치원에 남는다 (조회 실패)', async () => {
+    getDisconnectEligibility.mockRejectedValue(serverError(500, 'UNKNOWN_ERROR'));
+    renderPage();
+
+    await confirmDisconnect();
+
+    await waitFor(() => expect(toast).toHaveBeenCalled());
+    expect(deleteConnection).not.toHaveBeenCalled();
+    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
+  });
+
+  test('조회나 해제 요청이 서버 오류로 실패하면 현재 화면을 유지하고 카드는 지금 다니는 유치원에 남는다 (해제 요청 실패)', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [] });
+    deleteConnection.mockRejectedValue(serverError(500, 'UNKNOWN_ERROR'));
+    renderPage();
+
+    await confirmDisconnect();
+
+    await waitFor(() => expect(toast).toHaveBeenCalled());
+    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ })).toBeNull();
+  });
+
+  test('해제 요청에서 이용권·예약이 남아 거절되면 조건을 다시 검사해 해제 불가 시트를 연다', async () => {
+    getDisconnectEligibility
+      .mockResolvedValueOnce({ canDisconnect: true, blocks: [] })
+      .mockResolvedValueOnce({ canDisconnect: false, blocks: TICKET_BLOCKS });
+    deleteConnection.mockRejectedValue(serverError(409, 'GUARDIAN_SCHOOL_CONNECTION-409-2'));
+    renderPage();
+
+    await confirmDisconnect();
+
+    const sheet = await screen.findByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ });
+    expect(within(sheet).getByText('10회권')).toBeTruthy();
+    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
+  });
+
+  test('다른 기기에서 이미 해제된 연결이면 연결 이력을 다시 불러와 해제된 상태로 보여 준다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [] });
+    deleteConnection.mockRejectedValue(serverError(409, 'GUARDIAN_SCHOOL_CONNECTION-409-1'));
+    refetchConnections.mockImplementation(() => {
+      connectionState.byPetId = { '1': [createConnection({ disconnectedAt: new Date('2026-11-09') })] };
+    });
+    renderPage();
+
+    await confirmDisconnect();
+
+    await waitFor(() => expect(within(previousRegion()).getByText('모모네 유치원')).toBeTruthy());
+    expect(within(currentRegion()).getByText('연결된 유치원이 없어요.')).toBeTruthy();
+  });
+
+  test('오늘 등원 기록이 있어 해제가 막히면 연결은 유지되고 카드는 지금 다니는 유치원에 남는다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: false, blocks: [{ type: 'ATTENDANCE' }] });
+    renderPage();
+
+    await confirmDisconnect();
+
+    await waitFor(() => expect(toast).toHaveBeenCalled());
+    expect(deleteConnection).not.toHaveBeenCalled();
+    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
   });
 });

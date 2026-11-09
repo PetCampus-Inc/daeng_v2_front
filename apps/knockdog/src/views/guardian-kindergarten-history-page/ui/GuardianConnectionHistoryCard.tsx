@@ -14,6 +14,10 @@ import { useStackNavigation } from '@shared/lib/bridge';
 interface GuardianConnectionHistoryCardProps {
   item: GuardianConnectionHistoryItem;
   petName: string;
+  /** 해제에 성공했을 때. 이전 이력으로 옮기는 일은 부모가 한다 */
+  onDisconnected?: (disconnectedAt: string) => void;
+  /** 이미 해제된 연결이라 이력을 다시 불러와야 할 때 */
+  onHistoryOutdated?: () => void;
 }
 
 interface DisconnectButtonProps {
@@ -21,7 +25,8 @@ interface DisconnectButtonProps {
   petName: string;
   placeId: string | null;
   schoolPetMembershipId: string | null;
-  onDisconnected: (disconnectedAt: string) => void;
+  onDisconnected?: (disconnectedAt: string) => void;
+  onHistoryOutdated?: () => void;
 }
 
 function DisconnectButton({
@@ -30,6 +35,7 @@ function DisconnectButton({
   placeId,
   schoolPetMembershipId,
   onDisconnected,
+  onHistoryOutdated,
 }: DisconnectButtonProps) {
   const content = guardianConnectionHistoryContent;
   const { handleDisconnectClick, isDisconnecting } = useGuardianConnectionDisconnect({
@@ -38,6 +44,7 @@ function DisconnectButton({
     placeId,
     schoolPetMembershipId,
     onDisconnected,
+    onHistoryOutdated,
   });
 
   return (
@@ -63,21 +70,22 @@ function WriteReviewButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHistoryCardProps) {
+function GuardianConnectionHistoryCard({
+  item,
+  petName,
+  onDisconnected,
+  onHistoryOutdated,
+}: GuardianConnectionHistoryCardProps) {
   const { push } = useStackNavigation();
   const content = guardianConnectionHistoryContent;
-  /** 해제 성공 직후, 목록 재조회 전에 카드를 과거 이력으로 전환 */
-  const [localDisconnectedAt, setLocalDisconnectedAt] = useState<string | null>(null);
-  const disconnectedAt = localDisconnectedAt ?? item.disconnectedAt;
+  const { disconnectedAt } = item;
   const isCurrent = disconnectedAt == null;
   const imageSrc = useMemo(() => item.imageUrl.trim(), [item.imageUrl]);
   const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
   const isImageFailed = failedImageSrc === imageSrc;
   const showImage = imageSrc.length > 0 && !isImageFailed;
   const connectedLabel = formatKoreanHistoryDate(item.connectedAt);
-  const disconnectedLabel = disconnectedAt
-    ? formatKoreanHistoryDate(disconnectedAt)
-    : content.currentLabel;
+  const disconnectedLabel = disconnectedAt ? formatKoreanHistoryDate(disconnectedAt) : content.currentLabel;
   const badgeLabel = `${content.attendanceBadgePrefix} ${item.attendanceDayCount}${content.attendanceBadgeSuffix}`;
   const canWriteReview = item.canWriteReview && isKindergartenId(item.placeId);
 
@@ -122,9 +130,7 @@ function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHist
         <span
           className={cn(
             'caption1-semibold shrink-0 rounded-full border px-2 py-1',
-            isCurrent
-              ? 'border-line-accent text-text-accent'
-              : 'border-line-200 text-text-secondary'
+            isCurrent ? 'border-line-accent text-text-accent' : 'border-line-200 text-text-secondary'
           )}
         >
           {badgeLabel}
@@ -158,7 +164,8 @@ function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHist
               petName={petName}
               placeId={item.placeId}
               schoolPetMembershipId={item.schoolPetMembershipId}
-              onDisconnected={setLocalDisconnectedAt}
+              onDisconnected={onDisconnected}
+              onHistoryOutdated={onHistoryOutdated}
             />
           </div>
           <div className='min-w-0 flex-1'>
@@ -170,10 +177,11 @@ function GuardianConnectionHistoryCard({ item, petName }: GuardianConnectionHist
       {isCurrent && !canWriteReview ? (
         <DisconnectButton
           kindergartenName={item.name}
-              petName={petName}
-              placeId={item.placeId}
+          petName={petName}
+          placeId={item.placeId}
           schoolPetMembershipId={item.schoolPetMembershipId}
-          onDisconnected={setLocalDisconnectedAt}
+          onDisconnected={onDisconnected}
+          onHistoryOutdated={onHistoryOutdated}
         />
       ) : null}
 
