@@ -13,10 +13,17 @@ export default [
         '**/coverage/**',
       ],
       environment: 'node',
+      env: { NEXT_PUBLIC_API_BASE_URL: 'http://localhost' },
     },
+    esbuild: { jsx: 'automatic' },
     resolve: {
       alias: {
+        '@app': path.resolve(__dirname, 'apps/knockdog/src/app'),
         '@shared': path.resolve(__dirname, 'apps/knockdog/src/shared'),
+        '@entities': path.resolve(__dirname, 'apps/knockdog/src/entities'),
+        '@features': path.resolve(__dirname, 'apps/knockdog/src/features'),
+        '@views': path.resolve(__dirname, 'apps/knockdog/src/views'),
+        '@widgets': path.resolve(__dirname, 'apps/knockdog/src/widgets'),
       },
     },
   }),

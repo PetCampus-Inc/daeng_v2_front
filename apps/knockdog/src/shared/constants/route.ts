@@ -102,6 +102,18 @@ const route = {
         },
       },
     },
+    passTemplate: {
+      /** 원장 이용권 템플릿 목록 */
+      root: '/mypage/pass-templates',
+      create: {
+        /** 원장 이용권 템플릿 등록 */
+        root: '/mypage/pass-templates/create',
+      },
+      detail: {
+        /** 원장 이용권 템플릿 수정 */
+        root: '/mypage/pass-templates/[id]',
+      },
+    },
     profile: {
       /** 원장 프로필 페이지 */
       root: '/mypage/profile',
