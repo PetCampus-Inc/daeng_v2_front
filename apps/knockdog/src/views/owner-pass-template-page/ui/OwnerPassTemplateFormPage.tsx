@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentProps,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useParams } from 'next/navigation';
 import {
   ActionButton,
@@ -21,9 +12,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  CustomDurationChip,
+  DurationChip,
+  DurationUnitField,
+  FormField,
   IconButton,
 } from '@knockdog/ui';
-import { cn } from '@knockdog/ui/lib';
 import { overlay } from 'overlay-kit';
 
 import { ownerPassTemplateContent } from '@views/owner-pass-template-page/config/ownerPassTemplateContent';
@@ -94,53 +88,13 @@ function durationOptionToInput(
   return { type: 'FIXED', value: Number(durationOption.split('_')[0]), unit: 'MONTH' };
 }
 
-function selectionChipClassName(isSelected: boolean) {
-  return cn(
-    'radius-r2 body2-semibold h-12 shrink-0 px-4',
-    isSelected ? 'bg-fill-secondary-700 text-text-primary-inverse' : 'bg-fill-secondary-50 text-text-primary'
-  );
-}
-
-interface PassTemplateTextFieldProps extends ComponentProps<'input'> {
-  label?: string;
-  required?: boolean;
-  errorMessage?: string;
-  suffix?: ReactNode;
-  counter?: string;
-}
-
-function PassTemplateTextField({
-  label,
-  required = false,
-  errorMessage,
-  suffix,
-  counter,
-  ...inputProps
-}: PassTemplateTextFieldProps) {
+/** 필수 항목 라벨. Figma의 라벨 옆 `*` 표시를 붙인다. */
+function requiredLabel(label: ReactNode) {
   return (
-    <label className='flex min-w-0 flex-1 flex-col'>
-      {label ? (
-        <span className='body2-bold text-text-primary flex items-center gap-px pb-2'>
-          {label}
-          {required ? <span className='text-text-accent'>*</span> : null}
-        </span>
-      ) : null}
-      <span
-        className={cn(
-          'radius-r2 bg-fill-secondary-0 focus-within:border-line-600 flex h-[52px] items-center gap-2 border px-4 transition-colors',
-          errorMessage ? 'border-error' : 'border-line-200'
-        )}
-      >
-        <input
-          {...inputProps}
-          aria-invalid={Boolean(errorMessage)}
-          className='placeholder:text-text-tertiary text-text-primary caret-text-accent body1-regular h-full min-w-0 flex-1 bg-transparent py-3 outline-none'
-        />
-        {suffix ? <span className='body2-bold text-text-primary'>{suffix}</span> : null}
-      </span>
-      {errorMessage ? <span className='text-error body2-regular pt-2'>{errorMessage}</span> : null}
-      {counter ? <span className='text-text-tertiary body2-regular self-end pt-2'>{counter}</span> : null}
-    </label>
+    <>
+      {label}
+      <span className='text-text-accent'>*</span>
+    </>
   );
 }
 
@@ -376,15 +330,18 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         ) : null}
       </Header>
 
-      <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-6 pb-4'>
-        <div className='flex flex-col gap-6'>
-          <PassTemplateTextField
-            label={ownerPassTemplateContent.nameLabel}
-            required
-            errorMessage={duplicateNameError ? ownerPassTemplateContent.duplicateNameError : undefined}
+      {/* Figma: 헤더 아래 간격 16 + 각 항목 위 여백 20 = 36, 항목 사이도 16 + 20 = 36 */}
+      <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-9 pb-4'>
+        <div className='flex flex-col gap-9'>
+          <FormField
+            label={requiredLabel(ownerPassTemplateContent.nameLabel)}
+            aria-label={ownerPassTemplateContent.nameLabel}
+            aria-invalid={duplicateNameError}
+            state={duplicateNameError ? 'error' : name ? 'filled' : 'default'}
+            errorMessage={ownerPassTemplateContent.duplicateNameError}
+            trailing={`${name.length}/${PASS_TEMPLATE_NAME_MAX_LENGTH}`}
             value={name}
             maxLength={PASS_TEMPLATE_NAME_MAX_LENGTH}
-            counter={`${name.length}/${PASS_TEMPLATE_NAME_MAX_LENGTH}`}
             placeholder={ownerPassTemplateContent.namePlaceholder}
             onChange={(event) => {
               setName(event.target.value);
@@ -392,67 +349,67 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
             }}
           />
 
-          <PassTemplateTextField
-            label={ownerPassTemplateContent.chargeCountLabel}
-            required
-            errorMessage={showChargeCountError ? ownerPassTemplateContent.chargeCountError : undefined}
-            suffix='회'
+          <FormField
+            label={requiredLabel(ownerPassTemplateContent.chargeCountLabel)}
+            aria-label={ownerPassTemplateContent.chargeCountLabel}
+            aria-invalid={showChargeCountError}
+            state={showChargeCountError ? 'error' : chargeCount ? 'filled' : 'default'}
+            errorMessage={ownerPassTemplateContent.chargeCountError}
+            trailing='회'
+            trailingSize='body'
             value={chargeCount}
             inputMode='numeric'
             placeholder={ownerPassTemplateContent.chargeCountPlaceholder}
             onChange={(event) => setChargeCount(event.target.value)}
           />
 
-          <fieldset className='min-w-0'>
-            <legend className='body2-bold text-text-primary pb-2'>
-              {ownerPassTemplateContent.durationLabel}
-              <span className='text-text-accent'>*</span>
-            </legend>
-            <div className='flex flex-wrap gap-2'>
-              {DURATION_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type='button'
-                  aria-pressed={durationOption === option.value}
-                  className={selectionChipClassName(durationOption === option.value)}
-                  onClick={() => setDurationOption(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
+          <div role='group' aria-labelledby='pass-template-duration-label' className='flex min-w-0 flex-col gap-4'>
+            <p id='pass-template-duration-label' className='label-medium text-text-secondary px-x1'>
+              {requiredLabel(ownerPassTemplateContent.durationLabel)}
+            </p>
+            <div className='flex flex-wrap gap-x-1 gap-y-3'>
+              {DURATION_OPTIONS.map((option) =>
+                option.value === 'CUSTOM' ? (
+                  <CustomDurationChip
+                    key={option.value}
+                    selected={durationOption === option.value}
+                    onClick={() => setDurationOption(option.value)}
+                  >
+                    {option.label}
+                  </CustomDurationChip>
+                ) : (
+                  <DurationChip
+                    key={option.value}
+                    selected={durationOption === option.value}
+                    onClick={() => setDurationOption(option.value)}
+                  >
+                    {option.label}
+                  </DurationChip>
+                )
+              )}
             </div>
 
             {durationOption === 'CUSTOM' ? (
-              <div className='mt-3 flex items-start gap-2'>
-                <PassTemplateTextField
-                  errorMessage={showDurationError ? ownerPassTemplateContent.durationError : undefined}
+              <div className='flex flex-col gap-x2'>
+                <DurationUnitField
+                  className='pr-[2px] pl-x1'
+                  unit={customUnit === 'DAY' ? 'day' : 'month'}
+                  onUnitChange={(unit) => setCustomUnit(unit === 'day' ? 'DAY' : 'MONTH')}
                   value={customDuration}
-                  inputMode='numeric'
+                  aria-invalid={showDurationError}
                   placeholder='1~99'
                   onChange={(event) => setCustomDuration(event.target.value)}
                 />
-                <div className='bg-fill-secondary-50 radius-r2 flex h-[52px] shrink-0 p-1'>
-                  {(['DAY', 'MONTH'] as const).map((unit) => (
-                    <button
-                      key={unit}
-                      type='button'
-                      className={cn(
-                        'radius-r1 body2-semibold min-w-14 px-3',
-                        customUnit === unit ? 'bg-fill-secondary-0 text-text-primary shadow-sm' : 'text-text-secondary'
-                      )}
-                      onClick={() => setCustomUnit(unit)}
-                    >
-                      {unit === 'DAY' ? '일' : '개월'}
-                    </button>
-                  ))}
-                </div>
+                {showDurationError ? (
+                  <p className='caption1-regular text-error px-x2'>{ownerPassTemplateContent.durationError}</p>
+                ) : null}
               </div>
             ) : null}
-          </fieldset>
+          </div>
         </div>
       </div>
 
-      <div className='bg-bg-0 shrink-0 px-4 pt-5 pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
+      <div className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
         <ActionButton
           type='button'
           size='large'

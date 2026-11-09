@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 
-import { ActionButton, Icon } from '@knockdog/ui';
+import { ActionButton, TicketListItem } from '@knockdog/ui';
 
 import { ownerPassTemplateContent } from '@views/owner-pass-template-page/config/ownerPassTemplateContent';
 import { Header } from '@widgets/Header';
@@ -37,33 +37,27 @@ function OwnerPassTemplateListPage() {
           }}
         />
       ) : templates?.length ? (
-        <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-6 pb-4'>
+        // Figma: 헤더 아래 간격 16 + 본문 위 여백 24 = 40, 항목 사이 12
+        <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-10 pb-4'>
           <ul className='flex flex-col gap-3'>
             {templates.map((template) => (
               <li key={template.id}>
-                <button
-                  type='button'
-                  className='radius-r3 border-line-200 flex h-20 w-full items-center gap-3 border px-4 text-left'
+                <TicketListItem
+                  title={<span className='block truncate'>{template.name}</span>}
+                  description={formatPassTemplateSummary(template)}
                   onClick={() =>
                     push({
                       pathname: route.mypage.passTemplate.detail.root.replace('[id]', encodeURIComponent(template.id)),
                     })
                   }
-                >
-                  <span className='min-w-0 flex-1'>
-                    <span className='body1-bold text-text-primary block truncate'>{template.name}</span>
-                    <span className='body2-regular text-text-tertiary mt-1 block'>
-                      {formatPassTemplateSummary(template)}
-                    </span>
-                  </span>
-                  <Icon icon='ChevronRight' className='text-text-tertiary size-5 shrink-0' />
-                </button>
+                />
               </li>
             ))}
           </ul>
         </div>
       ) : (
-        <div className='flex min-h-0 flex-1 flex-col items-center justify-center px-4 text-center'>
+        // Figma: 헤더 아래 147px 지점에서 시작하는 고정 위치(가운데 정렬 아님)
+        <div className='flex min-h-0 flex-1 flex-col items-center px-4 pt-[147px] text-center'>
           <div className='relative size-[200px] shrink-0'>
             <Image
               src={ownerPassTemplateContent.emptyImageSrc}
@@ -75,12 +69,12 @@ function OwnerPassTemplateListPage() {
             />
           </div>
           <p className='h2-extrabold text-text-primary mt-1'>{ownerPassTemplateContent.emptyTitle}</p>
-          <p className='body1-regular text-text-secondary mt-1'>{ownerPassTemplateContent.emptyDescription}</p>
+          <p className='body1-regular text-fill-secondary-500 mt-1'>{ownerPassTemplateContent.emptyDescription}</p>
         </div>
       )}
 
       {!isError ? (
-        <div className='bg-bg-0 shrink-0 px-4 pt-5 pb-[calc(1.25rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
+        <div className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
           <ActionButton
             type='button'
             size='large'
