@@ -12,30 +12,23 @@ import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveR
 import {
   LIST_STATUS,
   LIST_TAB,
-  collectReservations,
   formatListWhen,
   groupUpcoming,
-  listPast,
-  listUpcoming,
-  pastListStatus,
-  toVisitKey,
   type ListStatus,
   type ListTab,
   type PastRange,
   type ReservationSource,
 } from '@views/guardian-reservation-page/lib/guardianReservationList';
-import {
-  takeCancelNotice,
-  useBookedVisits,
-  useCancelNotice,
-  useCancelledIds,
-} from '@views/guardian-reservation-page/model/bookedVisits';
-import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
+import { takeCancelNotice, useCancelNotice } from '@views/guardian-reservation-page/model/bookedVisits';
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 
 import { Header } from '@widgets/Header';
 
+import { RESERVATION_PERIOD, RESERVATION_SCOPE, useGuardianReservationQuery } from '@entities/guardian-reservation';
+
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 const PAST_FILTERS = [
@@ -74,7 +67,7 @@ function UpcomingRow({ item, onOpen }: { item: ReservationSource; onOpen: () => 
       onClick={onOpen}
     >
       <p className='body1-medium text-text-primary px-x1 min-w-0 flex-1'>{formatListWhen(item.startsAt)}</p>
-      <ReservationBadge status={LIST_STATUS.confirmed} />
+      <ReservationBadge status={item.status} />
       <ChevronRight className='text-text-tertiary size-4 shrink-0' />
     </button>
   );
@@ -103,32 +96,43 @@ function PastRow({ item }: { item: ReservationSource }) {
     <div className='flex flex-col'>
       <div className='py-x5 flex items-center justify-between'>
         <p className='body1-medium text-text-primary'>{formatListWhen(item.startsAt)}</p>
-        <ReservationBadge status={pastListStatus(item)} />
+        <ReservationBadge status={item.status} />
       </div>
       <Divider className='m-0' />
     </div>
   );
 }
 
+function toListSource(item: { id: string; petId: string; startsAt: string; status: ListStatus }): ReservationSource {
+  return {
+    id: item.id,
+    dogId: item.petId,
+    startsAt: item.startsAt,
+    status: item.status,
+    isCancelled: false,
+    note: '',
+  };
+}
+
 function GuardianReservationListPage() {
   const copy = RESERVATION_LIST_COPY;
   const searchParams = useSearchParams();
-  const dogId = searchParams.get('dogId') ?? '';
+  const queryPetId = searchParams.get('dogId') ?? '';
+  const { selectedPetId, isPetsReady, isPetsError } = useGuardianSelectedPet();
+  const petId = /^\d+$/.test(queryPetId) ? queryPetId : selectedPetId == null ? '' : String(selectedPetId);
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const { now, dogs } = useReservationDogs();
-  const nowKey = toVisitKey(now);
-  const visits = useBookedVisits();
-  const cancelledIds = useCancelledIds();
   const cancelNotice = useCancelNotice();
-  const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];
-  const activeDogId = dog?.id ?? '';
   const [tab, setTab] = useState<ListTab>(LIST_TAB.upcoming);
   const [pastRange, setPastRange] = useState<PastRange>('one');
-  const items = collectReservations(activeDogId, now, dog?.upcoming?.startsAt ?? null, visits, cancelledIds);
-
-  const upcomingGroups = groupUpcoming(listUpcoming(items, nowKey));
-  const pastItems = listPast(items, now, nowKey, pastRange);
+  const scope = tab === LIST_TAB.past ? RESERVATION_SCOPE.past : RESERVATION_SCOPE.upcoming;
+  const period = scope === RESERVATION_SCOPE.past ? RESERVATION_PERIOD[pastRange] : undefined;
+  const reservationsQuery = useGuardianReservationQuery(petId, scope, period);
+  const items = (reservationsQuery.data ?? []).map(toListSource);
+  const upcomingGroups = groupUpcoming(items);
+  const isPetPending = !petId && !isPetsReady;
+  const showSpinner = (isPetPending || reservationsQuery.isLoading) && items.length === 0;
+  const showLoadError = (reservationsQuery.isError || (isPetsError && !petId)) && items.length === 0 && !showSpinner;
 
   const handleBack = () => {
     leaveReservationTab(back, navigateToTab);
@@ -172,6 +176,11 @@ function GuardianReservationListPage() {
 
         <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
           {tab === LIST_TAB.upcoming ? (
+            showSpinner ? (
+              <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
+            ) : showLoadError ? (
+              <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
+            ) : (
             <div className='gap-x5 flex flex-col'>
               {upcomingGroups.map((group) => (
                 <section key={group.heading} className='px-x4 pt-x5 gap-x4 flex flex-col'>
@@ -184,7 +193,7 @@ function GuardianReservationListPage() {
                         onOpen={() => {
                           push({
                             pathname: route.reservation.detail.root,
-                            query: { dogId: activeDogId, reservationId: item.id },
+                            query: { dogId: petId, reservationId: item.id },
                           }).catch(() => undefined);
                         }}
                       />
@@ -193,6 +202,7 @@ function GuardianReservationListPage() {
                 </section>
               ))}
             </div>
+            )
           ) : (
             <div className='px-x4 pt-x5 gap-x2 flex flex-col'>
               <div className='gap-x2 flex items-center'>
@@ -206,12 +216,20 @@ function GuardianReservationListPage() {
                   </StatusFilterChip>
                 ))}
               </div>
-              <div className='flex flex-col'>
-                {pastItems.map((item) => (
-                  <PastRow key={item.id} item={item} />
-                ))}
-              </div>
-              <p className='body2-regular text-text-tertiary py-x8 text-center'>{copy.pastHint}</p>
+              {showSpinner ? (
+                <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
+              ) : showLoadError ? (
+                <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
+              ) : (
+                <>
+                  <div className='flex flex-col'>
+                    {items.map((item) => (
+                      <PastRow key={item.id} item={item} />
+                    ))}
+                  </div>
+                  <p className='body2-regular text-text-tertiary py-x8 text-center'>{copy.pastHint}</p>
+                </>
+              )}
             </div>
           )}
         </div>
