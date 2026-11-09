@@ -32,9 +32,13 @@ function ReservationEmptySchedule() {
   );
 }
 
-function ReservationTicketManageRow() {
+function ReservationTicketManageRow({ onClick }: { onClick: () => void }) {
   return (
-    <button type='button' className='bg-bg-0 radius-r3 p-x4 flex w-full items-center justify-between text-left'>
+    <button
+      type='button'
+      onClick={onClick}
+      className='bg-bg-0 radius-r3 p-x4 flex w-full items-center justify-between text-left'
+    >
       <span className='body1-bold text-text-primary'>이용권 관리</span>
       <ChevronRight className='text-text-primary shrink-0' />
     </button>
@@ -88,6 +92,11 @@ function GuardianReservationPage() {
 
   const handleOpenNotification = () => {
     push({ pathname: route.notification.root }).catch(() => undefined);
+  };
+
+  const handleOpenTickets = () => {
+    if (!selectedDog) return;
+    push({ pathname: route.reservation.tickets.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
   };
 
   if (!selectedDog) return null;
@@ -165,7 +174,7 @@ function GuardianReservationPage() {
                 );
               })
             )}
-            <ReservationTicketManageRow />
+            <ReservationTicketManageRow onClick={handleOpenTickets} />
           </section>
         </div>
       )}

@@ -3,10 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
   RESERVE_STEP,
   TICKET_BADGE_STATUS,
+  TICKET_SECTION,
   TICKET_STATUS,
+  formatManageTicket,
   formatReservationWhen,
   formatTicketPeriod,
   getTicketBadge,
+  groupManageTickets,
   KINDERGARTEN_LINK,
   listUsableTickets,
   RESERVATION_EMPTY,
@@ -20,8 +23,10 @@ const today = new Date(2026, 9, 6);
 function createTicket(overrides: Partial<ReservationTicket> = {}): ReservationTicket {
   return {
     id: 'ticket',
+    name: '왈왈컹컹 유치원 10회권',
     totalCount: 10,
     remainingCount: 2,
+    startsOn: '2026-08-13',
     endsOn: '2026-10-13',
     chargedAt: '2026-08-13T00:00:00',
     status: TICKET_STATUS.active,
@@ -63,6 +68,64 @@ describe('listUsableTickets', () => {
     ];
 
     expect(listUsableTickets(tickets).map((ticket) => ticket.id)).toEqual(['earlier', 'later']);
+  });
+});
+
+describe('formatManageTicket', () => {
+  it('상태별 기간과 잔여 문구를 적는다', () => {
+    expect(formatManageTicket(createTicket())).toEqual({
+      period: '2026.08.13 ~ 2026.10.13',
+      count: '2회',
+      total: '/ 10회 예약 가능',
+    });
+    expect(
+      formatManageTicket(createTicket({ status: TICKET_STATUS.onHold, startsOn: '2026-10-01', endsOn: '2026-10-31' }))
+    ).toEqual({
+      periodLead: '홀딩 기간',
+      period: '2026.10.01 ~ 2026.10.31',
+      count: '2회',
+      total: '/ 10회 예약 가능',
+    });
+    expect(formatManageTicket(createTicket({ endsOn: null })).period).toBe('이용 기간 무제한');
+    expect(
+      formatManageTicket(
+        createTicket({ status: TICKET_STATUS.expired, remainingCount: 0, totalCount: 1, endsOn: '2026-04-12' })
+      )
+    ).toEqual({
+      period: '2026.04.12 만료',
+      count: '0회',
+      total: '/ 1회',
+    });
+    expect(
+      formatManageTicket(
+        createTicket({ status: TICKET_STATUS.expired, remainingCount: 2, totalCount: 5, endsOn: '2026-03-09' })
+      )
+    ).toEqual({
+      period: '2026.03.09 이용 기간 만료',
+      count: '2회',
+      total: '/ 5회 (기간 만료로 예약 불가)',
+    });
+  });
+});
+
+describe('groupManageTickets', () => {
+  it('상태별로 묶고 빈 섹션은 빼며 먼저 충전한 순으로 둔다', () => {
+    const sections = groupManageTickets([
+      createTicket({ id: 'later', chargedAt: '2026-09-01T00:00:00' }),
+      createTicket({ id: 'held', status: TICKET_STATUS.onHold, chargedAt: '2026-08-01T00:00:00' }),
+      createTicket({ id: 'earlier', chargedAt: '2026-08-01T00:00:00' }),
+      createTicket({ id: 'planned', status: TICKET_STATUS.scheduled, chargedAt: '2026-07-01T00:00:00' }),
+      createTicket({ id: 'used', status: TICKET_STATUS.expired, chargedAt: '2026-02-01T00:00:00' }),
+    ]);
+
+    expect(sections.map((section) => section.id)).toEqual([
+      TICKET_SECTION.active,
+      TICKET_SECTION.inactive,
+      TICKET_SECTION.expired,
+    ]);
+    expect(sections[0]?.tickets.map((ticket) => ticket.id)).toEqual(['earlier', 'later']);
+    expect(sections[1]?.tickets.map((ticket) => ticket.id)).toEqual(['planned', 'held']);
+    expect(groupManageTickets([]).map((section) => section.id)).toEqual([]);
   });
 });
 

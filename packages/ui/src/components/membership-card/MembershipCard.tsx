@@ -9,6 +9,7 @@ import { MembershipCardStatusBadge, type MembershipCardStatus } from '../members
 const MEMBERSHIP_CARD_STATE = {
   active: 'active',
   onHold: 'onHold',
+  scheduled: 'scheduled',
   expired: 'expired',
   reservation: 'reservation',
   empty: 'empty',
@@ -19,6 +20,7 @@ type MembershipCardState = keyof typeof MEMBERSHIP_CARD_STATE;
 const MEMBERSHIP_BADGE_STATUS = {
   active: 'soon',
   onHold: 'onHold',
+  scheduled: 'scheduled',
   expired: 'expired',
   reservation: 'soon',
 } as const satisfies Record<Exclude<MembershipCardState, 'empty'>, MembershipCardStatus>;
@@ -50,6 +52,12 @@ const COPY = {
     periodLead: '홀딩 기간',
     period: '2026.10.01 ~ 2026.10.31',
     count: '6회',
+    total: '/ 10회 예약 가능',
+  },
+  scheduled: {
+    title: '왈왈컹컹 유치원 10회권',
+    period: '2026.10.01 ~ 2026.10.31',
+    count: '10회',
     total: '/ 10회 예약 가능',
   },
   expired: {
@@ -125,7 +133,7 @@ function MembershipCard({
 
   const copy = COPY[state];
   const isExpired = state === 'expired';
-  const isOnHold = state === 'onHold';
+  const isMuted = state === 'onHold' || state === 'scheduled';
   const lead = periodLead ?? ('periodLead' in copy ? copy.periodLead : undefined);
 
   return (
@@ -142,7 +150,7 @@ function MembershipCard({
         <span className='pr-x2 flex w-full items-center justify-between'>
           <span className='gap-x2_5 flex min-w-0 items-center'>
             <span className='h3-semibold text-text-primary'>{title ?? copy.title}</span>
-            <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS[state]} />
+            {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS[state]} />}
           </span>
           {showIcon ? (
             <ChevronRight className={isExpired ? 'text-fill-secondary-500 shrink-0' : 'text-text-primary shrink-0'} />
@@ -162,7 +170,7 @@ function MembershipCard({
         <span
           className={cn(
             isExpired ? 'label-semibold text-fill-secondary-500' : 'h2-extrabold',
-            !isExpired && (isOnHold ? 'text-fill-secondary-500' : 'text-text-accent')
+            !isExpired && (isMuted ? 'text-fill-secondary-500' : 'text-text-accent')
           )}
         >
           {count ?? copy.count}

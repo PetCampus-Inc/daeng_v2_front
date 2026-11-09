@@ -32,8 +32,10 @@ interface TicketBadge {
 
 interface ReservationTicket {
   id: string;
+  name: string;
   totalCount: number;
   remainingCount: number;
+  startsOn: string;
   endsOn: string | null;
   chargedAt: string;
   status: TicketStatus;
@@ -166,6 +168,98 @@ function resolveReserveStep(hasAttendanceHours: boolean): ReserveStep {
   return hasAttendanceHours ? RESERVE_STEP.dateTime : RESERVE_STEP.hoursUnset;
 }
 
+const TICKET_SECTION = {
+  active: 'active',
+  inactive: 'inactive',
+  expired: 'expired',
+} as const;
+
+type TicketSectionId = keyof typeof TICKET_SECTION;
+
+const TICKET_SECTION_ORDER = [TICKET_SECTION.active, TICKET_SECTION.inactive, TICKET_SECTION.expired] as const;
+
+interface ManageTicketCopy {
+  periodLead?: string;
+  period: string;
+  count: string;
+  total: string;
+}
+
+interface TicketSection {
+  id: TicketSectionId;
+  tickets: ReservationTicket[];
+}
+
+function toDotDate(value: string) {
+  return value.split('-').join('.');
+}
+
+function formatTicketRange(startsOn: string, endsOn: string | null) {
+  if (!endsOn) return '이용 기간 무제한';
+  return `${toDotDate(startsOn)} ~ ${toDotDate(endsOn)}`;
+}
+
+function formatManageTicket(ticket: ReservationTicket): ManageTicketCopy {
+  const count = `${ticket.remainingCount}회`;
+  const bookable = `/ ${ticket.totalCount}회 예약 가능`;
+  const isExpired = ticket.status === TICKET_STATUS.expired;
+  const isUsedUp = isExpired && ticket.remainingCount === 0;
+
+  if (isUsedUp) {
+    return {
+      period: ticket.endsOn ? `${toDotDate(ticket.endsOn)} 만료` : '만료',
+      count,
+      total: `/ ${ticket.totalCount}회`,
+    };
+  }
+
+  if (isExpired) {
+    return {
+      period: ticket.endsOn ? `${toDotDate(ticket.endsOn)} 이용 기간 만료` : '이용 기간 만료',
+      count,
+      total: `/ ${ticket.totalCount}회 (기간 만료로 예약 불가)`,
+    };
+  }
+
+  if (ticket.status === TICKET_STATUS.onHold) {
+    return {
+      periodLead: '홀딩 기간',
+      period: formatTicketRange(ticket.startsOn, ticket.endsOn),
+      count,
+      total: bookable,
+    };
+  }
+
+  return {
+    period: formatTicketRange(ticket.startsOn, ticket.endsOn),
+    count,
+    total: bookable,
+  };
+}
+
+function sectionOf(status: TicketStatus) {
+  if (status === TICKET_STATUS.active) return TICKET_SECTION.active;
+  if (status === TICKET_STATUS.onHold || status === TICKET_STATUS.scheduled) return TICKET_SECTION.inactive;
+  return TICKET_SECTION.expired;
+}
+
+function groupManageTickets(tickets: ReservationTicket[]): TicketSection[] {
+  const grouped: Record<TicketSectionId, ReservationTicket[]> = {
+    active: [],
+    inactive: [],
+    expired: [],
+  };
+
+  for (const ticket of tickets) {
+    grouped[sectionOf(ticket.status)].push(ticket);
+  }
+
+  return TICKET_SECTION_ORDER.flatMap((id) => {
+    const sectionTickets = grouped[id].slice().sort((left, right) => left.chargedAt.localeCompare(right.chargedAt));
+    return sectionTickets.length === 0 ? [] : [{ id, tickets: sectionTickets }];
+  });
+}
+
 function resolveReservationEmpty(link: KindergartenLink, hasUpcoming: boolean, usableCount: number) {
   if (link === KINDERGARTEN_LINK.none) return RESERVATION_EMPTY.unlinked;
   if (link === KINDERGARTEN_LINK.pending) return RESERVATION_EMPTY.pending;
@@ -176,6 +270,7 @@ function resolveReservationEmpty(link: KindergartenLink, hasUpcoming: boolean, u
 export {
   KINDERGARTEN_LINK,
   RESERVATION_EMPTY,
+  TICKET_SECTION,
   RESERVE_STEP,
   TICKET_BADGE_STATUS,
   TICKET_STATUS,
@@ -183,8 +278,10 @@ export {
   formatDogAge,
   formatDogWeight,
   formatReservationWhen,
+  formatManageTicket,
   formatTicketPeriod,
   getTicketBadge,
+  groupManageTickets,
   listUsableTickets,
   resolveReservationEmpty,
   resolveReserveStep,
@@ -197,6 +294,8 @@ export type {
   ReservationEmpty,
   ReservationKindergarten,
   ReservationTicket,
+  TicketSection,
+  TicketSectionId,
   ReserveStep,
   TicketBadge,
   UpcomingReservation,

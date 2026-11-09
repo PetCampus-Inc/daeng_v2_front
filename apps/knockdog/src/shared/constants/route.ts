@@ -360,6 +360,10 @@ const route = {
   reservation: {
     /** 보호자 예약 탭 */
     root: '/reservation',
+    tickets: {
+      /** 보호자 이용권 관리 */
+      root: '/reservation/tickets',
+    },
   },
 };
 
