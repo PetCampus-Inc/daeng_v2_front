@@ -51,5 +51,5 @@ storybook-static
 .pnpm-store
 
 .agent
-# KD3-696 Figma 캐시
-docs/prd/[[]KD3-696[]] member-management/figma/
+# PRD 폴더별 Figma 캐시
+docs/prd/*/figma/
