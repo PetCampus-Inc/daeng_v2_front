@@ -13,6 +13,7 @@ import type { OwnerMember } from '@entities/owner-member';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 interface OwnerMembersListProps {
@@ -20,6 +21,8 @@ interface OwnerMembersListProps {
   emptyStateType: OwnerMembersEmptyStateType | null;
   isLoading: boolean;
   isError: boolean;
+  isRetrying: boolean;
+  onRetry: () => void;
   onDisconnectMember: (memberId: string) => Promise<void>;
 }
 
@@ -46,6 +49,8 @@ function OwnerMembersList({
   emptyStateType,
   isLoading,
   isError,
+  isRetrying,
+  onRetry,
   onDisconnectMember,
 }: OwnerMembersListProps) {
   const { push } = useStackNavigation();
@@ -60,16 +65,7 @@ function OwnerMembersList({
     );
   }
 
-  if (isError) {
-    return (
-      <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-[calc(var(--bottom-bar-height)+88px)]'>
-        <div className='flex h-x14 w-full flex-col items-center justify-center gap-y-1 text-center'>
-          <p className='h2-extrabold text-text-primary'>구성원 목록을 불러오지 못했어요</p>
-          <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
-        </div>
-      </div>
-    );
-  }
+  if (isError) return <PageError layout='inline' onRetry={onRetry} isRetrying={isRetrying} />;
 
   if (emptyStateType) return <OwnerMembersEmptyState emptyStateType={emptyStateType} />;
 
@@ -107,11 +103,7 @@ function OwnerMembersList({
             }
           }}
           rightAddon={
-            <OwnerMemberMoreMenu
-              memberId={member.id}
-              dogName={member.dogName}
-              onDisconnect={onDisconnectMember}
-            />
+            <OwnerMemberMoreMenu memberId={member.id} dogName={member.dogName} onDisconnect={onDisconnectMember} />
           }
         />
       ))}

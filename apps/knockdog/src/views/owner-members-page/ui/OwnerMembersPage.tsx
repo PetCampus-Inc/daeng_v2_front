@@ -25,6 +25,8 @@ function OwnerMembersPage() {
     setSortType,
     isLoading,
     isError,
+    isRetrying,
+    handleRetry,
   } = useOwnerMembersPage();
   const hasMembers = !isLoading && !isError && totalMemberCount > 0;
   const isPendingTab = selectedTab === OWNER_MEMBERS_TAB.pending;
@@ -72,6 +74,8 @@ function OwnerMembersPage() {
               emptyStateType={emptyStateType}
               isLoading={isLoading}
               isError={isError}
+              isRetrying={isRetrying}
+              onRetry={handleRetry}
               onDisconnectMember={handleDisconnectMember}
             />
           </div>

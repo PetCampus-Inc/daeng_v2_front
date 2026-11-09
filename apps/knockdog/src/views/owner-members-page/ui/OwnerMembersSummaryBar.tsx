@@ -1,9 +1,6 @@
 import { Dropdown } from '@shared/ui/dropdown';
 
-import {
-  SORT_OPTIONS,
-  type OwnerMemberSortType,
-} from '@views/owner-members-page/config/ownerMembersContent';
+import { SORT_OPTIONS, type OwnerMemberSortType } from '@views/owner-members-page/config/ownerMembersContent';
 
 interface OwnerMembersSummaryBarProps {
   memberCount: number;
@@ -19,8 +16,8 @@ function OwnerMembersSummaryBar({
   onSortTypeChange,
 }: OwnerMembersSummaryBarProps) {
   return (
-    <div className='px-x4 py-x2 flex h-x13 w-full shrink-0 items-center justify-between'>
-      <div className='body2-bold text-text-primary gap-x1 flex h-x5 items-center text-center'>
+    <div className='px-x4 py-x2 h-x13 flex w-full shrink-0 items-center justify-between'>
+      <div className='body2-bold text-text-primary gap-x1 h-x5 flex items-center text-center'>
         <span>{isSearchResult ? '검색 결과' : '전체 원생'}</span>
         <span className='text-text-accent'>{memberCount}</span>
       </div>

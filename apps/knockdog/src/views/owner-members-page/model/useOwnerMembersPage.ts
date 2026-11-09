@@ -4,6 +4,7 @@ import {
   OWNER_MEMBER_SEARCH_MAX_LENGTH,
   type OwnerMemberSortType,
 } from '@views/owner-members-page/config/ownerMembersContent';
+import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import type { OwnerMembersEmptyStateType } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { useOwnerRole } from '@features/role-conversion';
 
@@ -81,7 +82,9 @@ function useOwnerMembersPage() {
 
     return sortOwnerMembers(filteredMembers, sortType);
   }, [ownerMembersQuery.data?.members, searchQuery, sortType]);
-  const isInitialPending = !isResolved || ownerMembersQuery.isLoading || !ownerMembersQuery.isFetchedAfterMount;
+  const isLoadFailed = hasListLoadFailed(ownerMembersQuery);
+  const isInitialPending =
+    !isLoadFailed && (!isResolved || ownerMembersQuery.isLoading || !ownerMembersQuery.isFetchedAfterMount);
   const totalMemberCount = ownerMembersQuery.data?.totalMemberCount ?? 0;
   const hasSearchQuery = normalizeSearchText(searchQuery).length > 0;
   const emptyStateType: OwnerMembersEmptyStateType | null = (() => {
@@ -119,7 +122,9 @@ function useOwnerMembersPage() {
     sortType,
     setSortType,
     isLoading: isInitialPending,
-    isError: ownerMembersQuery.isError,
+    isError: isLoadFailed,
+    isRetrying: ownerMembersQuery.isFetching,
+    handleRetry: () => void ownerMembersQuery.refetch(),
   };
 }
 
