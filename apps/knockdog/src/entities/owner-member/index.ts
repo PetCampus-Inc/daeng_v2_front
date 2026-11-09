@@ -30,5 +30,7 @@ export type {
   OwnerInviteDto,
   OwnerPendingMembersDto,
 } from './model/ownerMember';
+export { OWNER_MEMBERS_TAB, OWNER_MEMBERS_TAB_QUERY_KEY } from './config/ownerMembersTab';
+export type { OwnerMembersTab } from './config/ownerMembersTab';
 export { NO_END_DATE_LABEL, TICKET_STATUS, toOwnerMemberTicketView } from './model/ownerMemberTicket';
 export type { OwnerMemberTicket, OwnerMemberTicketView, TicketStatus } from './model/ownerMemberTicket';

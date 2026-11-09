@@ -3,8 +3,7 @@
 import Image from 'next/image';
 
 import { ActionButton } from '@knockdog/ui';
-import { approvalEmptyContent } from '@views/owner-members-approval-page/config/ownerMembersApprovalEmptyContent';
-import { Header } from '@widgets/Header';
+import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
 import { OwnerMemberCard } from '@features/owner-members';
 import { useOwnerRole } from '@features/role-conversion';
 
@@ -88,7 +87,8 @@ function ApprovalErrorState() {
   );
 }
 
-function OwnerMembersApprovalPage() {
+/** 구성원 화면의 `신청` 탭 — 보호자 연결 신청 목록과 승인·거절 */
+function OwnerMembersPendingTab() {
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved } = useOwnerRole();
   const { approveMutation, rejectMutation } = useOwnerMemberApprovalMutation({ userId });
@@ -163,14 +163,7 @@ function OwnerMembersApprovalPage() {
   };
 
   return (
-    <div className='bg-bg-0 flex h-full flex-col'>
-      <Header>
-        <Header.LeftSection>
-          <Header.BackButton />
-        </Header.LeftSection>
-        <Header.Title>승인 대기 목록</Header.Title>
-      </Header>
-
+    <div className='flex min-h-0 flex-1 flex-col'>
       <div className='px-x4 py-x2 flex h-x13 w-full shrink-0 items-center justify-between'>
         <div className='py-x2 flex h-x9 w-full items-center justify-between'>
           <div className='body2-bold text-text-primary gap-x1 flex h-x5 items-center whitespace-nowrap'>
@@ -209,4 +202,4 @@ function OwnerMembersApprovalPage() {
   );
 }
 
-export { OwnerMembersApprovalPage };
+export { OwnerMembersPendingTab };

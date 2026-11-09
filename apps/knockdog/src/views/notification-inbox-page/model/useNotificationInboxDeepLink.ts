@@ -1,6 +1,7 @@
 'use client';
 
 import { useMypageRoleViewStore } from '@features/role-conversion';
+import { OWNER_MEMBERS_TAB, OWNER_MEMBERS_TAB_QUERY_KEY } from '@entities/owner-member';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
@@ -74,8 +75,11 @@ function useNotificationInboxDeepLink() {
         });
         return;
       case 'ownerMemberApprovals':
-        applyGuardianViewForPath(route.owner.members.approval.root);
-        void push({ pathname: route.owner.members.approval.root });
+        applyGuardianViewForPath(route.owner.members.root);
+        void push({
+          pathname: route.owner.members.root,
+          query: { [OWNER_MEMBERS_TAB_QUERY_KEY]: OWNER_MEMBERS_TAB.pending },
+        });
         return;
       case 'ownerMembers':
         applyGuardianViewForPath(route.owner.members.root);

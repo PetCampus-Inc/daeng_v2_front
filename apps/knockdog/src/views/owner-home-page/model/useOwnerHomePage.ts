@@ -11,7 +11,11 @@ import { showOwnerHomeRefreshedToast } from '@views/owner-home-page/model/ownerH
 import { useOwnerRole } from '@features/role-conversion';
 
 import { useOwnerHomeQuery } from '@entities/owner-home';
-import { useOwnerMembersQuery } from '@entities/owner-member';
+import {
+  OWNER_MEMBERS_TAB,
+  OWNER_MEMBERS_TAB_QUERY_KEY,
+  useOwnerMembersQuery,
+} from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
@@ -97,7 +101,10 @@ function useOwnerHomePage() {
   };
 
   const handleConnectionClick = () => {
-    push({ pathname: route.owner.members.approval.root });
+    push({
+      pathname: route.owner.members.root,
+      query: { [OWNER_MEMBERS_TAB_QUERY_KEY]: OWNER_MEMBERS_TAB.pending },
+    });
   };
 
   const handleAlbumClick = () => {
