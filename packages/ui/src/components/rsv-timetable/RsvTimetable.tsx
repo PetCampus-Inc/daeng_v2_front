@@ -8,6 +8,7 @@ interface RsvTimetableSlot {
   time?: string;
   state?: RsvTimetableTimeState;
   isReserved?: boolean;
+  onSelect?: () => void;
 }
 
 interface RsvTimetableProps extends Omit<ComponentProps<'div'>, 'children'> {
@@ -24,7 +25,12 @@ function RsvTimetable({ period = '오전', slots = DEFAULT_SLOTS, className, ...
       <p className='label-semibold text-text-secondary'>{period}</p>
       <div className='grid w-full grid-cols-4 gap-x1_5'>
         {slots.map((slot, index) => (
-          <RsvTimetableTime key={`${slot.time ?? '00:00'}-${index}`} state={slot.state} isReserved={slot.isReserved}>
+          <RsvTimetableTime
+            key={`${slot.time ?? '00:00'}-${index}`}
+            state={slot.state}
+            isReserved={slot.isReserved}
+            onClick={slot.onSelect}
+          >
             {slot.time ?? '00:00'}
           </RsvTimetableTime>
         ))}

@@ -104,14 +104,14 @@ function GuardianReservationPage() {
     push({ pathname: route.reservation.tickets.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
   };
 
-  const handleReserve = () => {
-    if (!selectedDog || resolveReserveStep(selectedDog.hasAttendanceHours) !== RESERVE_STEP.hoursUnset) return;
-    push({ pathname: route.reservation.schedule.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
+  const handleReserve = (ticketId: string) => {
+    if (!selectedDog) return;
+    const isHoursUnset = resolveReserveStep(selectedDog.hasAttendanceHours) === RESERVE_STEP.hoursUnset;
+    const pathname = isHoursUnset ? route.reservation.schedule.root : route.reservation.time.root;
+    push({ pathname, query: { dogId: selectedDog.id, ticketId } }).catch(() => undefined);
   };
 
   if (!selectedDog) return null;
-
-  const canReserve = resolveReserveStep(selectedDog.hasAttendanceHours) === RESERVE_STEP.hoursUnset;
 
   return (
     <main className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
@@ -182,7 +182,7 @@ function GuardianReservationPage() {
                     remainingCount={ticket.remainingCount}
                     period={formatTicketPeriod(ticket.endsOn)}
                     badge={<MembershipCardStatusBadge status={badge.status}>{badge.label}</MembershipCardStatusBadge>}
-                    onReserve={canReserve ? handleReserve : undefined}
+                    onReserve={() => handleReserve(ticket.id)}
                   />
                 );
               })
