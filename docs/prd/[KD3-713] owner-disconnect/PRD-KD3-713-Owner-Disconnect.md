@@ -79,13 +79,13 @@
 (문서 §4)
 
 1. `구성원` > `등록 원생` > `원생 프로필`에서 `연결해제`를 누른다.
-2. 해제 가능 조건을 검사한다.
-   - 이용권·예약이 남아 있으면 → 해제 불가 바텀시트. `확인` 또는 `X`를 누르면 원생 프로필로 돌아간다.
+2. 해제 가능 조건을 검사한다(해제 가능 여부 조회 API, 4.1).
+   - 이용권·예약이 남아 있으면 → 해제 불가 바텀시트. `확인`을 누르거나 어두운 배경(Dim)을 누르면 원생 프로필로 돌아간다.
    - 모두 없으면 → 해제 확인 모달.
 3. 해제 확인 모달
    - `닫기` → 원생 프로필로 돌아간다.
-   - `해제하기` → 처리 직전에 조건을 다시 검사한다.
-     - 조건이 바뀌었으면 → 해제 불가 바텀시트.
+   - `해제하기` → 해제 API를 호출한다. 서버가 처리 직전에 조건을 다시 검사한다(4.4).
+     - 조건이 바뀌었으면(409 `OWNER_MEMBER-409-3`) → 해제 가능 여부를 다시 조회해 해제 불가 바텀시트를 보여준다.
      - 통과하면 → 연결 해제 + 이력 저장 + 보호자 알림.
 4. 해제가 끝나면 구성원 목록으로 이동하고(해제한 원생 제외) 토스트를 보여준다.
 
@@ -98,10 +98,18 @@
 사용할 수 있는 이용권과 끝나지 않은 예약이 **모두 없을 때만** 해제할 수 있다. 기준은 보호자 연동해제 FR-03과 같다.
 
 - 사용할 수 있는 이용권: 사용 예정·사용 중·홀딩 중. 만료된 이용권만 있거나 이용권이 없으면 해제할 수 있다.
-- 끝난 예약: 결석(원장 결석·자동 결석), 하원 완료, 하원 처리를 하지 않은 예약일이 지난 등원 완료. 이 외의 예약(예약 확정·당일 등원 전·당일 재원 중)이 있으면 해제할 수 없다.
+- 끝난 예약: 결석(원장 결석·자동 결석), 하원 완료, 하원 처리를 하지 않은 예약일이 지난 등원 완료. 이 외의 예약(예약 확정·당일 등원 전·당일 재원 중)이 있으면 해제할 수 없다. (당일 재원 중도 막는지는 OQ-S6)
 - 하원은 자동 처리하지 않지만, 예약일이 지나면 하원 처리 여부와 상관없이 끝난 예약으로 본다.
 - 예약일이 지난 등원 전 예약은 다음 날 0시에 자동 결석되므로 해제를 막지 않는다([KD3-682] FR-09).
-- 이 조건을 어디서 검사하는지(서버/클라이언트)와 조회 API는 다음과 같다. 이용권은 `GET /api/v0/owner/pets/{petId}/tickets`의 `counts.inUse`·`counts.scheduled`·`counts.holding`이 모두 0이면 해제할 수 있다(11장). 예약은 원장용 조회 API가 없고 (OQ-S2), 조건 검사를 서버가 하는지는 (OQ-S3). 서버는 같은 날 등원·하원을 마친 원생도 해제할 수 있다(dev에서 당일 등원 차단이 제거됨, 2026-11-09 백엔드 코드 확인).
+- 조건 검사는 서버가 한다. 클라이언트는 이용권·예약을 직접 세지 않고 해제 가능 여부 조회 API의 결과를 따른다. (2026-11-09 서버 개발자 답변)
+  - 조회: `GET /api/v0/owner/members/{memberId}/disconnect-eligibility` (`memberId`는 구성원 목록의 값)
+  - 응답: `{ canDisconnect, blocks[] }`. `canDisconnect`가 `true`면 확인 모달(S-03), `false`면 `blocks`를 해제 불가 시트(S-02)에 보여준다.
+  - `blocks`는 끝나지 않은 예약(`RESERVATION`)이 먼저, 남은 이용권(`TICKET`)이 뒤에 온다. 둘 다 있으면 모두 내려온다.
+  - 이용권 항목: `name`, `remainingCount`, `expiresOn`(만료 없으면 `null`)
+  - 예약 항목: `date`, `time`(`HH:mm`), `status`
+  - 당일 등원 기록은 원장 해제를 막지 않는다. 같은 날 등원·하원을 마친 원생도 해제할 수 있다.
+  - 결과가 시점마다 바뀌므로 캐시하지 않는다. `연결해제`를 누를 때마다 새로 조회한다.
+- 이용권 목록 API(`GET /api/v0/owner/pets/{petId}/tickets`)는 해제 가능 여부 판단에 쓰지 않는다. 판단은 위 조회 API 하나로 한다.
 
 ### 4.2 해제 단위와 진입점
 
@@ -128,6 +136,8 @@
 (문서 FR-06) (PRD 단독)
 
 - 확인 모달을 띄운 사이 보호자가 예약하거나 이용권이 충전되면 해제하지 않고 해제 불가 안내로 전환한다(보호자 연결 해제 FR-06과 같음).
+- 서버가 `POST /api/v0/owner/members/{memberId}/disconnect`를 처리하기 직전에 같은 검사를 다시 한다. 이용권·예약이 남아 있으면 해제하지 않고 409 `OWNER_MEMBER-409-3`을 준다. 이미 해제된 구성원은 기존대로 400 `OWNER_MEMBER-400-2`다. (2026-11-09 서버 개발자 답변)
+- 409 응답에는 사유가 없다. 클라이언트는 409를 받으면 해제 가능 여부 조회 API(4.1)를 다시 호출해 사유를 받아 S-02를 보여준다.
 - 해제할 수 없는 동안 기존 연결 관계를 유지하고, 이용권 상태가 바뀌면 해제 가능 여부를 다시 확인한다. (문서 FR-04, Figma Description)
 
 ### 4.5 해제 후 원장 쪽
@@ -197,7 +207,7 @@
 | 목록 | 항목 |
 |---|---|
 | 남은 이용권 | 이름(예: `모모네 유치원 10회권`), 오른쪽 `{n}회 남음`, 아래 `YYYY.MM.DD까지` (만료일이 없으면 `만료 없음`, 이 부분은 PRD 단독) |
-| 끝나지 않은 예약 | `{유치원} 예약`, 아래 `YYYY.MM.DD 오후 h:mm 등원 예정`, 오른쪽 `등원전` (DIFF-1) |
+| 끝나지 않은 예약 | `{유치원} 예약`, 아래 `YYYY.MM.DD 오후 h:mm 등원 예정`, 오른쪽 `등원전` (DIFF-1). 서버 응답의 `date`(날짜)·`time`(`HH:mm`)로 만든다. 오른쪽 문구는 서버 `status` 값(`예약 확정`)을 그대로 쓰지 않고 `등원전`을 보여준다. (내 추론) |
 
 ## 7. 화면 명세
 
@@ -217,8 +227,8 @@
 
 공통(문서 §8 S-02, Figma Description 36:17084)
 
-- 배경 Dim, 제목, 오른쪽 위 `X`, 본문, 목록, `확인` 버튼 (X 표시는 OQ-F4)
-- `확인`(Orange Filled)이나 오른쪽 위 `X`를 누르면 시트를 닫고 원생 프로필을 유지한다.
+- 배경 Dim, 제목, 본문, 목록, `확인` 버튼. 오른쪽 위 `X`는 두지 않는다. (2026-11-09 사용자 결정: 문서·Description의 `X`는 쓰지 않고 Figma 화면대로 둔다)
+- `확인`(Orange Filled)을 누르거나 어두운 배경(Dim)을 누르면 시트를 닫고 원생 프로필을 유지한다. (2026-11-09 사용자 결정)
 - 제목: `아직 연결을 해제할 수 없어요.` (DIFF-2)
 - 해제할 수 없는 동안 원생과 유치원의 기존 연결 관계를 유지한다.
 
@@ -250,7 +260,7 @@
 |---|---|---|---|
 | 확인 모달 | 배경 Dim, 제목, 본문, `닫기`·`해제하기` 버튼 | `닫기`: 모달을 닫고 기존 연결 상태 유지. `해제하기`: 재검사 후 해제하고 구성원 목록으로 이동해 토스트 표시. 처리 중 `해제하기` 비활성화 | 제목 `{원생 이름}의 연결을 해제할까요?` (원생 이름 주황색 강조), 본문 `연결 해제 시 원생과 보호자 정보를 볼 수 없어요.`, 버튼 `닫기`(Gray Outline) · `해제하기`(Orange Filled) |
 | 해제 성공 | 구성원 목록으로 이동 | 해제한 원생은 목록에서 제외 | Toast `{원생 이름}의 유치원 연결이 해제되었어요` (Figma `36:16665` 기준, 글자색 강조 없음) |
-| 조건 변경 | S-02로 전환 | 재검사에서 조건을 충족하지 못한 경우. 연결 상태를 바꾸지 않는다 | S-02 문구를 따른다 |
+| 조건 변경 | S-02로 전환 | 해제 요청이 409 `OWNER_MEMBER-409-3`으로 거절된 경우. 연결 상태를 바꾸지 않고, 해제 가능 여부를 다시 조회해 사유를 S-02에 보여준다 | S-02 문구를 따른다 |
 | 해제 실패 | 모달을 닫고 S-01 유지 | 연결 상태를 바꾸지 않는다 | Toast `연결 해제를 완료하지 못했어요` |
 | 이미 해제됨 | 구성원 목록으로 이동 | 다른 기기에서 원장이 해제했거나 보호자가 먼저 해제한 경우 (서버는 이 경우 해제 요청에 400 `OWNER_MEMBER-400-2`로 응답한다. 백엔드 코드 확인 2026-11-09) | Toast `이미 연결을 해제한 원생이에요.` (DIFF-3) |
 
@@ -321,7 +331,6 @@
 
 | ID | 내용 | Figma 위치 | 본문 반영 | 확인할 질문 |
 |---|---|---|---|---|
-| OQ-F4 | 시트 오른쪽 위 `X`가 Description(`36:17084`)과 문서에는 있는데, Figma 화면 세 장(`36:16885`, `36:16945`, `36:17003`)에서는 `ico_close`가 숨김 처리되어 보이지 않는다. | `36:17084`, 화면 3장 | 7.2 | `X`를 보여주는가? (임시: 보여준다. 2026-11-09 사용자 답변: 디자이너에게 확인 중) |
 
 ### 클라이언트에 확인할 내용
 
@@ -332,8 +341,7 @@
 
 | ID | 내용 | 원본·계약 위치 | 임시 기준 | 확인할 질문 |
 |---|---|---|---|---|
-| OQ-S2 | 원장이 원생의 끝나지 않은 예약(날짜·등원 예정 시간·상태)을 조회하는 API가 없다. 보호자용 해제 가능 여부 조회(`GET /api/v0/guardian/school/connections/{schoolPetMembershipId}/disconnect-eligibility`)는 dev에 있다. | 백엔드 `daeng_v1_back` dev `3a8ff6ce`(2026-11-09 확인): `GuardianSchoolController.java`(보호자용 조회), `DisconnectEligibilityService`·`ReservationDisconnectBlockChecker`(`CONFIRMED` 예약만 사유로 내리고 상태 문구는 `예약 확정`), 원장용 조회 없음 / 배포 Swagger(2026-11-09, 원장용 예약·해제 가능 여부 조회 없음) | 없음 | 보호자용과 같은 공용 검사(`DisconnectEligibilityService`)로 원장용 해제 가능 여부 조회 API를 추가할 계획인가? 보호자용은 예약이 있으면 가장 가까운 1건만, 이용권은 예약이 없을 때만 내려주는데, 원장 안내 창은 예약과 이용권을 둘 다 보여준다(7.2). 원장용은 둘 다 내려줄 수 있는가? |
-| OQ-S3 | 원장 해제 API는 이용권·예약 조건을 검사하지 않는다. dev 코드 주석이 `원장 해제는 PRD상 사전 조건 검사가 없다`고 쓰는데, 이 PRD(기획 문서 최종 편집 2026-11-05)는 원장 해제도 보호자와 같은 조건을 따른다고 한다(FR-03). 처리 직전 재검사(FR-06)를 서버가 하는지 정해져 있지 않다. | 백엔드 `OwnerMemberService.java`의 `disconnectMember`(dev `3a8ff6ce`, 2026-11-09 확인, 149번째 줄 주석) / 보호자용은 409 `GUARDIAN_SCHOOL_CONNECTION-409-2`로 막는다(`ErrorCode.java`) / 문서 FR-03, FR-06 | 없음 | 원장 해제 API에도 보호자와 같은 이용권·예약 검사를 넣을 계획인가? 조건에 걸리면 어떤 오류 코드를 주는가? |
+| OQ-S6 | PRD는 오늘 등원해서 아직 하원 전인 원생(당일 재원 중)의 예약도 해제를 막는다고 한다. 서버는 `예약 확정` 상태의 예약만 해제를 막는 사유로 내리고, 답변에서 당일 등원 기록은 해제를 막지 않는다고 했다. 등원하면 예약 상태가 `예약 확정`에서 바뀌는지 코드에서 확인하지 못했다. | 문서 FR-03 / 백엔드 `ReservationDisconnectBlockChecker.java`(`CONFIRMED`만 조회), `ReservationStatus.java`(`CONFIRMED`·`ATTENDED`·`ABSENT`·`CANCELED`), dev `c9b095c7` | PRD 4.1대로 당일 재원 중도 막는다(서버 답변이 오기 전까지 PRD를 유지). 화면은 서버 조회 결과를 그대로 따른다. | 원장 앱 기준으로 오늘 등원해서 아직 하원 전인 원생(당일 재원 중)이 있을 때 해제 가능 여부 조회와 해제 API는 막나요? (`notes/backend-questions.md` 3번) |
 
 ### 확정된 질문
 
@@ -349,10 +357,13 @@
 | (질문 번호 없음) | 오래된 구성원 목록에서 이미 해제된 원생 카드를 눌렀을 때 동작 | 사용자 질문(문서·Figma에 없음) | 2026-11-09 사용자 답변: 해제돼서 볼 수 없는 경우 구성원 목록 화면 하단에 토스트 메시지를 띄운다. | 7.5, 5 |
 | OQ-F1 | 성공 토스트 문구가 둘이다. 기획 문서(S-03)·Figma Description(`36:17084`)·토스트 단독 컴포넌트(`36:16884`)는 `연결 해제가 완료되었어요`, 구성원 목록 화면(`36:16665`)은 `{뭉치}의 유치원 연결이 해제되었어요` | 문서 S-03 / Figma `36:17084`, `36:16884`, `36:16665` | 2026-11-09 사용자 답변: `b`(`{뭉치}의 유치원 연결이 해제되었어요`). 이름 자리에 원생 이름을 넣고, Figma 이미지에 강조 색이 없어 글자색은 모두 같다. 문서의 `연결 해제가 완료되었어요`는 쓰지 않는다. | 7.3 |
 | OQ-F2 | 실패 토스트 문구가 셋이다. Figma Description(`36:17084`)은 `연결 해제를 완료하지 못했어요.`(마침표), 실패 화면(`36:16827`)은 `일시적 오류로 요청을 완료하지 못했어요`, 문서 S-03은 `연결 해제를 완료하지 못했어요`(마침표 없음) | 문서 S-03 / Figma `36:17084`, `36:16827` | 2026-11-09 사용자 답변: `A. 연결 해제를 완료하지 못했어요`(마침표 없이). | 7.3 |
+| OQ-F4 | 시트 오른쪽 위 `X`가 Description(`36:17084`)과 문서에는 있는데, Figma 화면 세 장(`36:16885`, `36:16945`, `36:17003`)에서는 `ico_close`가 숨김 처리되어 보이지 않았다. | Figma `36:17084`, 화면 3장 | 2026-11-09 사용자 답변: `딤 처리 된 배경 누르면 닫히기로 변경`. `X`는 두지 않고, `확인`을 누르거나 어두운 배경(Dim)을 누르면 시트가 닫힌다. | 3, 7.2 |
 | OQ-F3 | 예약이 남은 경우의 시트가 두 가지다. `36:17003`은 문서와 같은 본문, `36:16885`는 `아직 이용이 완료되지 않은 예약이 남아 있어요.` 줄바꿈 `예약이 이용 완료 상태가 되면 연결을 해제할 수 있어요.` 본문에 이용권 항목을 보여준다. | Figma `36:17003`, `36:16885` | 2026-11-09 사용자 답변: `A. 기획 문서와 같은 시안`. `36:17003`과 문서 문구를 따르고 `36:16885`는 쓰지 않는다. | 7.2 |
 | OQ-C1 | 해제 가능 조건을 조회하는 동안(로딩)과 조회에 실패했을 때 화면 동작이 문서·Figma에 없음 | 문서 §8.1 / `apps/knockdog/src/views/owner/member-profile/model/useOwnerMemberProfileDisconnect.tsx` | 2026-11-09 사용자 답변: `A. 버튼 비활성화 + 실패 토스트`. 조회 중에는 `연결해제` 버튼만 비활성화하고, 실패하면 토스트 `연결 해제를 완료하지 못했어요`를 보여준다. | 5, 7.1 |
 | OQ-S4 | 이미 해제된 원생을 해제하려 할 때와 오래된 목록에서 해제된 원생의 프로필을 불러올 때 서버가 구분되는 오류를 주는지 | Swagger `POST /api/v0/owner/members/{memberId}/disconnect` / 백엔드 `OwnerMemberService.java`의 `disconnectMember`, `OwnerPetService.java`의 `getAuthorizedMembership` | 2026-11-09 백엔드 코드 확인(`daeng_v1_back` dev `3a8ff6ce`, 사용자 답변 아님): 이미 해제된 원생의 해제 요청은 400 `OWNER_MEMBER-400-2`(`이미 연결 해제되었거나 연결된 구성원이 아닙니다.`), 해제된 원생의 프로필 조회는 403 `PET-403-1`(`PET_NOT_AUTHORIZED`)이다. 클라이언트는 이 코드로 S-03 `이미 해제됨`과 7.5 목록 토스트를 띄운다. | 7.3, 7.5 |
-| OQ-S1 | 원생별 이용권(사용 예정·사용 중·홀딩 중, 만료)을 조회하는 API가 있는지(배포 Swagger에는 없고 프로필 이용권은 목업) | 배포 Swagger / 백엔드 `daeng_v1_back` dev `3a8ff6ce` | 2026-11-09 백엔드 코드 확인(사용자 답변 아님): `GET /api/v0/owner/pets/{petId}/tickets`가 있다(`PetTicketController.java`). 응답은 `counts{all,inUse,scheduled,holding,expired}`와 `tickets[{ticketId,name,status,remainingCount,chargeCount,startDate,expiresOn,daysLeft}]`이고 `status`는 `SCHEDULED`·`IN_USE`·`HOLDING`·`EXPIRED`, `expiresOn`이 `null`이면 만료 없음이다. `status` 쿼리로 거를 수 있다. 이 API는 dev에 반영돼 있다(#508 `90083c87`, 2026-11-08). 2026-11-09에 받은 배포 Swagger(`api.knockdog.net`)에는 아직 보이지 않았다. | 4.1, 6장, 11장 |
+| OQ-S1 | 원생별 이용권(사용 예정·사용 중·홀딩 중, 만료)을 조회하는 API가 있는지(배포 Swagger에는 없고 프로필 이용권은 목업) | 배포 Swagger / 백엔드 `daeng_v1_back` dev `3a8ff6ce` | 2026-11-09 백엔드 코드 확인(사용자 답변 아님): `GET /api/v0/owner/pets/{petId}/tickets`가 있다(`PetTicketController.java`). 응답은 `counts{all,inUse,scheduled,holding,expired}`와 `tickets[{ticketId,name,status,remainingCount,chargeCount,startDate,expiresOn,daysLeft}]`이고 `status`는 `SCHEDULED`·`IN_USE`·`HOLDING`·`EXPIRED`, `expiresOn`이 `null`이면 만료 없음이다. `status` 쿼리로 거를 수 있다. 이 API는 dev에 반영돼 있다(#508 `90083c87`, 2026-11-08). 2026-11-09에 받은 배포 Swagger(`api.knockdog.net`)에는 아직 보이지 않았다. 이후 서버 개발자가 원장용 해제 가능 여부 조회 API(OQ-S2)를 답했으므로, 해제 가능 여부 판단에는 이 API를 쓰지 않는다. | 4.1, 11장 |
+| OQ-S2 | 원장이 원생의 끝나지 않은 예약(날짜·등원 예정 시간·상태)을 조회하는 API가 없었다(보호자용 해제 가능 여부 조회만 있음). 보호자용은 예약이 있으면 1건만, 이용권은 예약이 없을 때만 내려주는데 원장 안내 창은 둘 다 보여준다. | 백엔드 `daeng_v1_back` dev(2026-11-09 확인): `GuardianSchoolController.java`(보호자용 조회) | 2026-11-09 서버 개발자 답변(사용자 답변 아님, `notes/backend-questions.md` 1번): `GET /api/v0/owner/members/{memberId}/disconnect-eligibility`를 추가했다(`memberId`는 구성원 목록의 값). 응답은 `{ canDisconnect, blocks[] }`이고 `blocks`에 끝나지 않은 예약(`RESERVATION`)이 먼저, 남은 이용권(`TICKET`)이 뒤에 오며 둘 다 있으면 모두 내려간다. 이용권은 `name`·`remainingCount`·`expiresOn`(만료 없으면 `null`), 예약은 `date`·`time`(`HH:mm`)·`status`. 당일 등원 기록은 해제를 막지 않는다. 결과가 시점마다 바뀌니 캐시하지 않는다. 백엔드 dev `c9b095c7`(#520) 코드에서 같은 내용을 확인했다. | 3, 4.1, 6장, 7.2, 11장 |
+| OQ-S3 | 원장 해제 API가 이용권·예약 조건을 검사하지 않았다(dev 코드 주석 `원장 해제는 PRD상 사전 조건 검사가 없다`). 처리 직전 재검사(FR-06)를 서버가 하는지 정해져 있지 않았다. | 백엔드 `OwnerMemberService.java`의 `disconnectMember` / 문서 FR-03, FR-06 | 2026-11-09 서버 개발자 답변(사용자 답변 아님, `notes/backend-questions.md` 2번): `POST /api/v0/owner/members/{memberId}/disconnect`가 처리 직전에 같은 검사를 다시 한다. 이용권·예약이 남아 있으면 409 `OWNER_MEMBER-409-3`으로 거절하고 해제하지 않는다. 이미 해제된 구성원은 기존대로 400 `OWNER_MEMBER-400-2`다. 409 응답에는 사유가 없어 사유는 해제 가능 여부 조회 API로 확인한다. 백엔드 dev `c9b095c7`(#520)의 `ErrorCode.java`에 `OWNER_MEMBER_DISCONNECT_BLOCKED`가 있다. | 3, 4.4, 7.3 |
 | OQ-S5 | 서버가 오늘 등원 기록이 있으면 해제를 막아(409), 하원까지 마친 날의 해제를 허용하는 문서와 다른지 | 문서 FR-03, FR-10 / 백엔드 `OwnerMemberService.java` | 2026-11-09 백엔드 코드 확인(사용자 답변 아님): dev의 #516(`64c3a7cf`, 2026-11-08)에서 당일 등원 차단이 제거됐다. 원장 해제는 당일 등원·하원 처리된 원생도 할 수 있다(dev `3a8ff6ce`의 `disconnectMember` 149번째 줄 주석). 문서와 같다. | 4.1, 4.5 |
 
 </details>
@@ -371,5 +382,7 @@
 - 이용권 상태 모델은 `apps/knockdog/src/entities/owner-member/model/ownerMemberTicket.ts`의 `TICKET_STATUS`(`active`·`scheduled`·`onHold`·`expired`). 문서의 사용 중·사용 예정·홀딩 중·만료와 대응한다. 날짜 표시용 `formatDotDate`(`YYYY.MM.DD`)와 `NO_END_DATE_LABEL`(`만료 없음`)이 있다. 프로필의 이용권은 아직 목업이다. 실제 이용권 조회 API는 이 장 마지막 메모를 본다.
 - 해제된 원생 프로필 접근: `OwnerMemberProfilePage.tsx`는 원생 조회가 실패하면 `원생 프로필을 불러오지 못했어요` 인라인 문구를 보여주며(`ownerMemberProfileContent.profileErrorText`), 공통 오류 화면이 아니다. 공통 오류 화면 컴포넌트는 `apps/knockdog/src/shared/ui/page-error/ui/PageError.tsx`(`layout='overlay'`가 전면 화면)가 있고, 문구는 7.4에서 기본 문구로 정했다.
 - 보호자 쪽 해제(`apps/knockdog/src/views/guardian-kindergarten-history-page/model/useGuardianConnectionDisconnect.tsx`)는 당일 등원을 클라이언트에서 먼저 막고 서버 거절도 같은 토스트로 처리한다. 원장 쪽 조건 검사 순서를 정할 때 참고할 수 있다.
-- 이용권 조회 API는 백엔드 dev에 반영돼 있지만(#508, 2026-11-09 확인) 배포 Swagger(`api.knockdog.net`)에는 아직 보이지 않아, Orval 생성물은 배포된 뒤에 만들 수 있다. 그 뒤 `GET /api/v0/owner/pets/{petId}/tickets`를 쓰고, 해제 가능 여부는 `status`가 `SCHEDULED`·`IN_USE`·`HOLDING`인 이용권이 없는지로 판단한다(`EXPIRED`만 있거나 비어 있으면 해제 가능). 프론트 `TICKET_STATUS`(`scheduled`·`active`·`onHold`·`expired`)와 서버 `status`(`SCHEDULED`·`IN_USE`·`HOLDING`·`EXPIRED`)의 이름이 다르므로 변환이 필요하다.
-- 서버의 보호자용 해제 가능 여부 조회(dev `3a8ff6ce`)는 예약 사유의 상태 문구를 `예약 확정`으로 내린다(`ReservationDisconnectBlockChecker`, `CONFIRMED` 예약만 대상). 원장 안내 창(7.2, Figma `36:17003`)은 `등원전`을 보여주므로 원장용 조회가 생기면 문구 변환이 필요한지 함께 확인한다(OQ-S2).
+- 해제 가능 여부 조회(`GET /api/v0/owner/members/{memberId}/disconnect-eligibility`)와 409 `OWNER_MEMBER-409-3`은 백엔드 dev `c9b095c7`(#520, 2026-11-09 확인)에 있지만 배포 Swagger(`api.knockdog.net`)에는 아직 없어, Orval 생성물은 배포된 뒤에 만들 수 있다(이 단계에서는 만들지 않는다).
+- 조회 응답의 `blocks[]` 각 항목은 `type`(`TICKET`·`RESERVATION`)과 `ticket`·`reservation` 객체 중 `type`에 맞는 하나만 값이 있고 나머지는 `null`이다. `ticket.expiresOn`이 `null`이면 `만료 없음`. `reservation.time`과 `reservation.status`도 `null`일 수 있다.
+- 서버는 예약 중 `CONFIRMED`(예약 확정) 예약만 해제를 막는 사유로 내리고 `status` 문구는 `예약 확정`이다(`ReservationDisconnectBlockChecker`). 이용권 목록의 순서는 만료가 이른 순이고 만료 없는 이용권이 마지막이다. 예약은 등원 예정일 순이다. 목록은 서버 순서를 그대로 쓴다. (내 추론)
+- 이용권 목록 API(`GET /api/v0/owner/pets/{petId}/tickets`, #508)는 해제 가능 여부 판단에 쓰지 않는다. 프론트 `TICKET_STATUS`(`scheduled`·`active`·`onHold`·`expired`)와 서버 이용권 `status`(`SCHEDULED`·`IN_USE`·`HOLDING`·`EXPIRED`)의 이름이 다르다는 점은 프로필 이용권 탭을 이 API로 바꿀 때 필요한 정보다.
