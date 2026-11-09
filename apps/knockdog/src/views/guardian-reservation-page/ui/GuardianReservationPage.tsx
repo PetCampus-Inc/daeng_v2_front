@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
 import { MembershipCard, MembershipCardStatusBadge, SelectDogCard, UpcomingRsvCard } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import { ReservationEmptyState } from '@views/guardian-reservation-page/ui/ReservationEmptyState';
 import {
   formatDogAge,
@@ -76,8 +76,7 @@ function ReservationDogList({ dogs, onSelect }: { dogs: ReservationDog[]; onSele
 
 function GuardianReservationPage() {
   const { push } = useStackNavigation();
-  const today = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(today), [today]);
+  const { now: today, dogs } = useReservationDogs();
   const [selectedDogId, setSelectedDogId] = useState(dogs[0]?.id ?? '');
   const [isDogListOpen, setIsDogListOpen] = useState(false);
   const hiddenIds = useHiddenTicketIds();

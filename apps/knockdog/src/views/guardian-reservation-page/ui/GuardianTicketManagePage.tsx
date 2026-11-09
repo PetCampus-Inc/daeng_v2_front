@@ -1,24 +1,24 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { MembershipCard, MEMBERSHIP_CARD_STATE, MembershipCardStatusBadge } from '@knockdog/ui';
+import { MembershipCard, MembershipCardStatusBadge } from '@knockdog/ui';
 
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
+import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
+import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
   TICKET_SECTION,
   TICKET_STATUS,
   formatManageTicket,
   getTicketBadge,
   groupManageTickets,
-  type ReservationTicket,
   type TicketSectionId,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
-import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import { visibleTickets } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
 import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
 import { useHiddenTicketIds } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
+import { toCardState } from '@views/guardian-reservation-page/ui/ticketCardState';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
@@ -29,34 +29,20 @@ const SECTION_LABEL = {
   [TICKET_SECTION.expired]: '만료',
 } as const satisfies Record<TicketSectionId, string>;
 
-function toCardState(status: ReservationTicket['status']) {
-  if (status === TICKET_STATUS.onHold) return MEMBERSHIP_CARD_STATE.onHold;
-  if (status === TICKET_STATUS.scheduled) return MEMBERSHIP_CARD_STATE.scheduled;
-  if (status === TICKET_STATUS.expired) return MEMBERSHIP_CARD_STATE.expired;
-  return MEMBERSHIP_CARD_STATE.active;
-}
-
 function GuardianTicketManagePage() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const today = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(today), [today]);
+  const { now: today, dogs } = useReservationDogs();
   const hiddenIds = useHiddenTicketIds();
   const visits = useBookedVisits();
   const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];
   const sections = dog ? groupManageTickets(visibleTickets(dog.tickets, hiddenIds)) : [];
 
-  const handleBack = useCallback(() => {
-    back()
-      .then((wentBack) => {
-        if (wentBack) return;
-        return navigateToTab('/reservation');
-      })
-      .catch(() => navigateToTab('/reservation'))
-      .catch(() => undefined);
-  }, [back, navigateToTab]);
+  const handleBack = () => {
+    leaveReservationTab(back, navigateToTab);
+  };
 
   useNativeBackHandler(handleBack);
 

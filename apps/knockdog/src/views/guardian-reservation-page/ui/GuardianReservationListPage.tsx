@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ChevronRight, Plus } from '@knockdog/icons';
@@ -8,7 +8,7 @@ import { ActionButton, Divider, StatusFilterChip, Tabs, TabsList, TabsTrigger } 
 import { cn } from '@knockdog/ui/lib';
 
 import { RESERVATION_LIST_COPY } from '@views/guardian-reservation-page/config/guardianReservationList';
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
+import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import {
   LIST_STATUS,
   LIST_TAB,
@@ -30,6 +30,7 @@ import {
   useCancelNotice,
   useCancelledIds,
 } from '@views/guardian-reservation-page/model/bookedVisits';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 
 import { Header } from '@widgets/Header';
 
@@ -115,9 +116,8 @@ function GuardianReservationListPage() {
   const dogId = searchParams.get('dogId') ?? '';
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const now = useMemo(() => new Date(), []);
+  const { now, dogs } = useReservationDogs();
   const nowKey = toVisitKey(now);
-  const dogs = useMemo(() => createReservationMainMock(now), [now]);
   const visits = useBookedVisits();
   const cancelledIds = useCancelledIds();
   const cancelNotice = useCancelNotice();
@@ -131,13 +131,7 @@ function GuardianReservationListPage() {
   const pastItems = listPast(items, now, nowKey, pastRange);
 
   const handleBack = () => {
-    back()
-      .then((wentBack) => {
-        if (wentBack) return;
-        return navigateToTab('/reservation');
-      })
-      .catch(() => navigateToTab('/reservation'))
-      .catch(() => undefined);
+    leaveReservationTab(back, navigateToTab);
   };
 
   useNativeBackHandler(handleBack);

@@ -1,4 +1,5 @@
-const WEEKDAY_LABEL = ['일', '월', '화', '수', '목', '금', '토'] as const;
+import { formatHourClock, formatVisitDate, parseVisitKey, toVisitKey } from '@views/guardian-reservation-page/lib/visitClock';
+
 const EXPIRING_BADGE_DAYS = 3;
 const MS_PER_DAY = 86_400_000;
 
@@ -99,22 +100,12 @@ function toDateKey(date: Date) {
 }
 
 function toDateTimeKey(date: Date) {
-  const hour = String(date.getHours()).padStart(2, '0');
-  const minute = String(date.getMinutes()).padStart(2, '0');
-  return `${toDateKey(date)}T${hour}:${minute}`;
+  return toVisitKey(date);
 }
 
 function parseDateKey(value: string) {
   const [year, month, day] = value.split('-');
   return new Date(Number(year), Number(month) - 1, Number(day));
-}
-
-function parseDateTimeKey(value: string) {
-  const [datePart = '', timePart = '00:00'] = value.split('T');
-  const [hour, minute] = timePart.split(':');
-  const date = parseDateKey(datePart);
-  date.setHours(Number(hour), Number(minute), 0, 0);
-  return date;
 }
 
 function daysUntil(endsOn: string, today: Date) {
@@ -132,14 +123,8 @@ function formatDogWeight(weightKg: number) {
 }
 
 function formatReservationWhen(startsAt: string) {
-  const date = parseDateTimeKey(startsAt);
-  const hour = date.getHours();
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  const minute = String(date.getMinutes()).padStart(2, '0');
-  const meridiem = hour < 12 ? '오전' : '오후';
-  const weekday = WEEKDAY_LABEL[date.getDay()];
-
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${weekday}) ${meridiem} ${String(hour12).padStart(2, '0')}:${minute}`;
+  const date = parseVisitKey(startsAt);
+  return `${formatVisitDate(date)} ${formatHourClock(date.getHours(), date.getMinutes(), true)}`;
 }
 
 function formatTicketPeriod(endsOn: string | null) {

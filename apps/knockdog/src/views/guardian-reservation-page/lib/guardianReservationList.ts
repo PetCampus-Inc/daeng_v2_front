@@ -1,4 +1,4 @@
-const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토'] as const;
+import { formatHourClock, formatVisitDate, parseVisitKey, toVisitKey } from '@views/guardian-reservation-page/lib/visitClock';
 
 const LIST_TAB = {
   upcoming: 'upcoming',
@@ -35,32 +35,13 @@ interface ReservationGroup {
   items: ReservationSource[];
 }
 
-function pad(value: number) {
-  return String(value).padStart(2, '0');
-}
-
-function toVisitKey(date: Date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 function shiftDays(today: Date, days: number, hour: number, minute: number) {
   return toVisitKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + days, hour, minute));
 }
 
-function parseVisitKey(value: string) {
-  const [datePart = '', timePart = '00:00'] = value.split('T');
-  const [year = '0', month = '1', day = '1'] = datePart.split('-');
-  const [hour = '0', minute = '0'] = timePart.split(':');
-  return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
-}
-
 function formatListWhen(startsAt: string) {
   const date = parseVisitKey(startsAt);
-  const hour = date.getHours();
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  const minute = pad(date.getMinutes());
-  const weekday = WEEKDAY_SHORT[date.getDay()] ?? '';
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${weekday}) ${hour < 12 ? '오전' : '오후'} ${hour12}:${minute}`;
+  return `${formatVisitDate(date)} ${formatHourClock(date.getHours(), date.getMinutes(), false)}`;
 }
 
 function formatMonthHeading(startsAt: string) {

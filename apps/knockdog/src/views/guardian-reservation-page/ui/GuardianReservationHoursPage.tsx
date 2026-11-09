@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ActionButton } from '@knockdog/ui';
 
 import { RESERVATION_HOURS_COPY } from '@views/guardian-reservation-page/config/guardianReservationHours';
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
+import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import { ReservationKindergartenCard } from '@views/guardian-reservation-page/ui/ReservationKindergartenCard';
 
 import { Header } from '@widgets/Header';
@@ -19,18 +19,11 @@ function GuardianReservationHoursPage() {
   const dogId = searchParams.get('dogId') ?? '';
   const { back } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const today = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(today), [today]);
+  const { dogs } = useReservationDogs();
   const kindergarten = dogs.find((dog) => dog.id === dogId)?.kindergarten ?? null;
 
   const handleBack = () => {
-    back()
-      .then((wentBack) => {
-        if (wentBack) return;
-        return navigateToTab('/reservation');
-      })
-      .catch(() => navigateToTab('/reservation'))
-      .catch(() => undefined);
+    leaveReservationTab(back, navigateToTab);
   };
 
   useNativeBackHandler(handleBack);

@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ActionButton, RsvDateTime, RsvMonthlyCalendar, RsvTimetable } from '@knockdog/ui';
 
 import { RESERVATION_TIME_COPY } from '@views/guardian-reservation-page/config/guardianReservationTime';
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
 import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
+import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { toDateKey } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import {
   canContinueReserve,
@@ -22,6 +22,7 @@ import {
   type ScheduleSlot,
 } from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
 import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import {
   clearReserveDraft,
   readReserveDraft,
@@ -55,8 +56,7 @@ function GuardianReservationTimePage() {
   const ticketId = searchParams.get('ticketId') ?? '';
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const now = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(now), [now]);
+  const { now, dogs } = useReservationDogs();
   const visits = useBookedVisits();
   const draft = readReserveDraft(dogId, ticketId);
   const restoredDate = draft ? dateFromKey(draft.dateKey) : null;
@@ -80,13 +80,7 @@ function GuardianReservationTimePage() {
 
   const handleBack = () => {
     clearReserveDraft();
-    back()
-      .then((wentBack) => {
-        if (wentBack) return;
-        return navigateToTab('/reservation');
-      })
-      .catch(() => navigateToTab('/reservation'))
-      .catch(() => undefined);
+    leaveReservationTab(back, navigateToTab);
   };
 
   useNativeBackHandler(handleBack);

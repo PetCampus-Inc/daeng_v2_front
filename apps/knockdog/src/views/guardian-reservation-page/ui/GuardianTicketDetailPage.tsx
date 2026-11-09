@@ -1,13 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
 import { InfoLine, TrashV4 } from '@knockdog/icons';
-import { MembershipCard, MEMBERSHIP_CARD_STATE, MembershipCardStatusBadge } from '@knockdog/ui';
+import { MembershipCard, MembershipCardStatusBadge } from '@knockdog/ui';
 
 import {
-  createReservationMainMock,
   findTicketHistory,
 } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
 import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
@@ -15,7 +14,6 @@ import {
   TICKET_STATUS,
   formatManageTicket,
   getTicketBadge,
-  type ReservationTicket,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import {
   HISTORY_KIND,
@@ -24,20 +22,15 @@ import {
   type TicketHistory,
 } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
 import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import { hideGuardianTicket, useHiddenTicketIds } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
+import { toCardState } from '@views/guardian-reservation-page/ui/ticketCardState';
 import { GuardianTicketDeleteDialog } from '@views/guardian-reservation-page/ui/GuardianTicketDeleteDialog';
 import { GuardianTicketHistoryList } from '@views/guardian-reservation-page/ui/GuardianTicketHistoryList';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
-
-function toCardState(status: ReservationTicket['status']) {
-  if (status === TICKET_STATUS.onHold) return MEMBERSHIP_CARD_STATE.onHold;
-  if (status === TICKET_STATUS.scheduled) return MEMBERSHIP_CARD_STATE.scheduled;
-  if (status === TICKET_STATUS.expired) return MEMBERSHIP_CARD_STATE.expired;
-  return MEMBERSHIP_CARD_STATE.active;
-}
 
 function GuardianTicketDetailPage() {
   const params = useParams<{ ticketId: string }>();
@@ -47,8 +40,7 @@ function GuardianTicketDetailPage() {
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const today = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(today), [today]);
+  const { now: today, dogs } = useReservationDogs();
   const hiddenIds = useHiddenTicketIds();
   const visits = useBookedVisits();
   const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];

@@ -1,13 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { Call, Copy, InfoLine, LocationFill, RsvInfoCircle } from '@knockdog/icons';
 import { ActionButton } from '@knockdog/ui';
 
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
 import { NOTE_LIMIT, isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
   canCancelReservation,
@@ -23,6 +22,7 @@ import {
   useBookedVisits,
   useCancelledIds,
 } from '@views/guardian-reservation-page/model/bookedVisits';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import { ReservationCancelDialog } from '@views/guardian-reservation-page/ui/ReservationCancelDialog';
 
 import { Header } from '@widgets/Header';
@@ -47,8 +47,7 @@ function GuardianReservationDetailPage() {
   const reservationId = searchParams.get('reservationId') ?? '';
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const now = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(now), [now]);
+  const { now, dogs } = useReservationDogs();
   const visits = useBookedVisits();
   const cancelledIds = useCancelledIds();
   const [isCancelOpen, setIsCancelOpen] = useState(false);

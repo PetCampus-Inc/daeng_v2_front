@@ -1,12 +1,11 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, TextareaInput } from '@knockdog/ui';
 
 import { RESERVATION_CONFIRM_COPY } from '@views/guardian-reservation-page/config/guardianReservationConfirm';
-import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
 import {
   BOOKING_STATUS,
   clipNote,
@@ -29,6 +28,7 @@ import {
   isSlotBookable,
 } from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
 import { bookVisit, useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
+import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import { clearReserveDraft } from '@views/guardian-reservation-page/model/reserveDraft';
 import { ReservationLeaveDialog } from '@views/guardian-reservation-page/ui/ReservationLeaveDialog';
 
@@ -78,8 +78,7 @@ function ReservationConfirmPage() {
   const selection = readReserveQuery(searchParams.get('date'), searchParams.get('minutes'));
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const now = useMemo(() => new Date(), []);
-  const dogs = useMemo(() => createReservationMainMock(now), [now]);
+  const { now, dogs } = useReservationDogs();
   const visits = useBookedVisits();
   const dog = dogs.find((item) => item.id === dogId);
   const ticket = dog?.tickets.find((item) => item.id === ticketId);

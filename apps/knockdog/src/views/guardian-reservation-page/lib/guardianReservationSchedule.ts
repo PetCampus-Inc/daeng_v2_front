@@ -1,3 +1,5 @@
+import { formatHourClock } from '@views/guardian-reservation-page/lib/visitClock';
+
 const WEEKDAY_NAME = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'] as const;
 const CLOSED_WEEKDAY = 0;
 const NOON_MINUTES = 12 * 60;
@@ -160,10 +162,7 @@ function formatReserveDay(date: Date) {
 }
 
 function formatReserveClock(minutes: number) {
-  const hour = Math.floor(minutes / 60);
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  const minute = String(minutes % 60).padStart(2, '0');
-  return `${hour < 12 ? '오전' : '오후'} ${hour12}:${minute}`;
+  return formatHourClock(Math.floor(minutes / 60), minutes % 60, false);
 }
 
 function formatSelectedPass(placeName: string, totalCount: number, remainingCount: number) {

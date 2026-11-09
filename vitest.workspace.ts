@@ -17,6 +17,7 @@ export default [
     resolve: {
       alias: {
         '@shared': path.resolve(__dirname, 'apps/knockdog/src/shared'),
+        '@views': path.resolve(__dirname, 'apps/knockdog/src/views'),
       },
     },
   }),

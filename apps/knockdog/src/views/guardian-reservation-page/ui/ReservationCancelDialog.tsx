@@ -1,17 +1,7 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
-
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
+import { ReservationAlertDialog } from '@views/guardian-reservation-page/ui/ReservationAlertDialog';
 
 interface ReservationCancelDialogProps {
   isOpen: boolean;
@@ -25,35 +15,23 @@ function ReservationCancelDialog({ isOpen, whenLabel, summary, onClose, onConfir
   const copy = RESERVATION_DETAIL_COPY;
 
   return (
-    <AlertDialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
+    <ReservationAlertDialog
+      isOpen={isOpen}
+      title={copy.cancelTitle}
+      body={copy.cancelBody}
+      cancelLabel={copy.close}
+      confirmLabel={copy.cancel}
+      contentClassName='min-w-0 max-w-[min(326px,calc(100%-64px))]'
+      descriptionClassName='body2-regular min-w-0'
+      actionClassName='min-w-0 flex-1'
+      onClose={onClose}
+      onConfirm={onConfirm}
     >
-      <AlertDialogContent className='min-w-0 max-w-[min(326px,calc(100%-64px))]'>
-        <AlertDialogHeader className='min-w-0'>
-          <AlertDialogTitle>{copy.cancelTitle}</AlertDialogTitle>
-          <AlertDialogDescription className='body2-regular min-w-0'>{copy.cancelBody}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className='bg-bg-50 radius-r2 mx-x5 mt-x5 p-x4 gap-x0_5 flex min-w-0 flex-col items-center text-center'>
-          <p className='body1-medium text-text-primary'>{whenLabel}</p>
-          <p className='body2-regular text-text-secondary'>{summary}</p>
-        </div>
-        <AlertDialogFooter className='min-w-0'>
-          <AlertDialogCancel className='min-w-0 flex-1'>{copy.close}</AlertDialogCancel>
-          <AlertDialogAction
-            className='min-w-0 flex-1'
-            onClick={(event) => {
-              event.preventDefault();
-              onConfirm();
-            }}
-          >
-            {copy.cancel}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <div className='bg-bg-50 radius-r2 mx-x5 mt-x5 p-x4 gap-x0_5 flex min-w-0 flex-col items-center text-center'>
+        <p className='body1-medium text-text-primary'>{whenLabel}</p>
+        <p className='body2-regular text-text-secondary'>{summary}</p>
+      </div>
+    </ReservationAlertDialog>
   );
 }
 
