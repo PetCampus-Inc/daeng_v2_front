@@ -34,16 +34,10 @@ function OwnerMembersPage() {
   ];
 
   return (
-    <div
-      className='flex h-dvh flex-col'
-      style={{
-        background:
-          'linear-gradient(180deg, var(--color-primitive-orange-400) 0%, var(--color-primitive-orange-500) 42.54%)',
-      }}
-    >
+    <div className='bg-bg-0 flex h-dvh flex-col'>
       <OwnerMembersHero searchQuery={searchQuery} onSearchQueryChange={handleSearchQueryChange} />
 
-      <div className='bg-bg-0 pt-x5 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[28px]'>
+      <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden'>
         <MemberCountTab
           items={[
             { id: OWNER_MEMBERS_TAB.registered, label: '등록 원생' },
@@ -62,7 +56,7 @@ function OwnerMembersPage() {
         ) : (
           <div className='flex min-h-0 w-full flex-1 flex-col'>
             {!isLoading && !isError && counts.all > 0 && (
-              <div className='gap-x2 px-x4 py-x3 flex shrink-0 items-center'>
+              <div className='gap-x1 px-x5 py-x3 border-line-100 flex shrink-0 items-center border-b'>
                 {filterChips.map(({ filter, label, count }) => (
                   <StatusFilterChip
                     key={filter}

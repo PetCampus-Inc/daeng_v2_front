@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 import {
-  ActionButton,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -13,13 +12,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  SortDropdown,
+  ApprovalActionButton,
+  ListHeader,
+  StudentTicketListItem,
   type SortOption,
 } from '@knockdog/ui';
 import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
 import { ownerMembersEmptyContent } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
-import { OwnerMemberCard } from '@features/owner-members';
 import { useOwnerRole } from '@features/role-conversion';
 
 import {
@@ -52,28 +52,15 @@ interface ApprovalActionsProps {
 
 function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActionsProps) {
   return (
-    <div data-testid='owner-members-pending-actions' className='gap-x2 flex shrink-0 items-center'>
-      <ActionButton
-        type='button'
-        variant='secondaryLine'
-        size='medium'
-        className='w-[57px]'
-        disabled={disabled}
-        onClick={() => onReject(member)}
-      >
-        거절
-      </ActionButton>
-      <ActionButton
-        type='button'
-        variant='secondaryFill'
-        size='medium'
-        className='w-[57px]'
+    <div data-testid='owner-members-pending-actions' className='gap-x1_5 flex shrink-0 items-center'>
+      <ApprovalActionButton action='reject' className='w-[63px]' disabled={disabled} onClick={() => onReject(member)} />
+      <ApprovalActionButton
+        action='approve'
+        className='w-[63px]'
         data-testid='owner-members-approve-button'
         disabled={disabled}
         onClick={() => onApprove(member)}
-      >
-        승인
-      </ActionButton>
+      />
     </div>
   );
 }
@@ -173,12 +160,11 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
   return (
     <div className='flex min-h-0 flex-1 flex-col'>
       {totalPendingCount > 0 && !isLoadFailed && (
-        <div className='px-x4 py-x2 h-x13 flex w-full shrink-0 items-center justify-between'>
-          <span className='caption1-semibold text-text-accent bg-primitive-orange-100 radius-r2 px-x2 py-x1'>
-            {`강아지수 ${totalPendingCount}`}
-          </span>
-          <SortDropdown value={sortOption} onValueChange={setSortOption} />
-        </div>
+        <ListHeader
+          label='강아지수'
+          count={totalPendingCount}
+          sortProps={{ value: sortOption, onValueChange: setSortOption }}
+        />
       )}
 
       <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
@@ -194,10 +180,15 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
           <ApprovalEmptyState isSearchResult={keyword.length > 0} />
         ) : (
           approvalRequests.map((member) => (
-            <OwnerMemberCard
+            <StudentTicketListItem
               key={member.id}
-              member={member}
-              rightAddon={
+              name={member.dogName}
+              guardian={`${member.guardianName} 보호자`}
+              sex={member.gender}
+              avatarSrc={member.profileImageUrl}
+              avatarAlt={`${member.dogName} 프로필 이미지`}
+              status={null}
+              action={
                 <ApprovalActions
                   member={member}
                   disabled={isActionPending}
