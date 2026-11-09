@@ -102,6 +102,18 @@ const route = {
         },
       },
     },
+    passTemplate: {
+      /** 원장 이용권 템플릿 목록 */
+      root: '/mypage/pass-templates',
+      create: {
+        /** 원장 이용권 템플릿 등록 */
+        root: '/mypage/pass-templates/create',
+      },
+      detail: {
+        /** 원장 이용권 템플릿 수정 */
+        root: '/mypage/pass-templates/[id]',
+      },
+    },
     profile: {
       /** 원장 프로필 페이지 */
       root: '/mypage/profile',
@@ -360,6 +372,34 @@ const route = {
   reservation: {
     /** 보호자 예약 탭 */
     root: '/reservation',
+    schedule: {
+      /** 보호자 예약. 원장이 등원 가능 시간을 아직 안 연 안내 */
+      root: '/reservation/schedule',
+    },
+    time: {
+      /** 보호자 예약. 날짜와 시간 선택 */
+      root: '/reservation/time',
+    },
+    confirm: {
+      /** 보호자 예약. 예약 정보 확인 */
+      root: '/reservation/confirm',
+    },
+    list: {
+      /** 보호자 예약. 내 예약 */
+      root: '/reservation/list',
+    },
+    detail: {
+      /** 보호자 예약. 예약 상세 */
+      root: '/reservation/detail',
+    },
+    tickets: {
+      /** 보호자 이용권 관리 */
+      root: '/reservation/tickets',
+      detail: {
+        /** 보호자 이용권 상세 */
+        root: '/reservation/tickets/[ticketId]',
+      },
+    },
   },
 };
 

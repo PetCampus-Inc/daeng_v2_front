@@ -11,7 +11,7 @@ const meta = {
   argTypes: {
     state: {
       control: 'select',
-      options: ['active', 'onHold', 'expired', 'reservation', 'empty'],
+      options: ['active', 'onHold', 'scheduled', 'expired', 'reservation', 'empty'],
     },
   },
   decorators: [
@@ -37,6 +37,7 @@ export const All: Story = {
     <div className='flex w-[358px] flex-col gap-x3'>
       <MembershipCard state='active' />
       <MembershipCard state='onHold' />
+      <MembershipCard state='scheduled' />
       <MembershipCard state='expired' />
       <MembershipCard state='reservation' />
       <MembershipCard state='empty' />

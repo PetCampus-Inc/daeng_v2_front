@@ -9,6 +9,7 @@ import { MembershipCardStatusBadge, type MembershipCardStatus } from '../members
 const MEMBERSHIP_CARD_STATE = {
   active: 'active',
   onHold: 'onHold',
+  scheduled: 'scheduled',
   expired: 'expired',
   reservation: 'reservation',
   empty: 'empty',
@@ -19,6 +20,7 @@ type MembershipCardState = keyof typeof MEMBERSHIP_CARD_STATE;
 const MEMBERSHIP_BADGE_STATUS = {
   active: 'soon',
   onHold: 'onHold',
+  scheduled: 'scheduled',
   expired: 'expired',
   reservation: 'soon',
 } as const satisfies Record<Exclude<MembershipCardState, 'empty'>, MembershipCardStatus>;
@@ -31,6 +33,8 @@ interface MembershipCardProps {
   count?: ReactNode;
   total?: ReactNode;
   remainingCount?: ReactNode;
+  badge?: ReactNode;
+  icon?: ReactNode;
   showIcon?: boolean;
   className?: string;
   onClick?: () => void;
@@ -49,6 +53,12 @@ const COPY = {
     periodLead: '홀딩 기간',
     period: '2026.10.01 ~ 2026.10.31',
     count: '6회',
+    total: '/ 10회 예약 가능',
+  },
+  scheduled: {
+    title: '왈왈컹컹 유치원 10회권',
+    period: '2026.10.01 ~ 2026.10.31',
+    count: '10회',
     total: '/ 10회 예약 가능',
   },
   expired: {
@@ -72,6 +82,8 @@ function MembershipCard({
   count,
   total,
   remainingCount = '2',
+  badge,
+  icon,
   showIcon = true,
   className,
   onClick,
@@ -95,10 +107,10 @@ function MembershipCard({
     const copy = COPY.reservation;
 
     return (
-      <div className={cn('bg-bg-0 radius-r3 py-x4 pr-x4 pl-x5 gap-x3 flex w-full items-start', className)}>
-        <div className='gap-x2 flex min-w-0 flex-1 flex-col'>
-          <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS.reservation} />
-          <div className='gap-x1 flex flex-col pl-x0_5'>
+      <div className={cn('bg-bg-0 radius-r3 py-x4 pr-x4 pl-x5 gap-x3 flex w-full items-stretch', className)}>
+        <div className='gap-x2 flex min-w-0 flex-1 flex-col items-start'>
+          {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS.reservation} />}
+          <div className='gap-x1 flex w-full flex-col pl-x0_5'>
             <div className='gap-x1 flex items-center'>
               <p className='h3-semibold text-text-primary'>{title ?? copy.title}</p>
               <p className='body2-regular text-text-secondary'>
@@ -108,40 +120,40 @@ function MembershipCard({
             <p className='body2-regular text-text-secondary'>{period ?? copy.period}</p>
           </div>
         </div>
-        <button
-          type='button'
-          onClick={onReserve}
-          className='body2-bold text-text-primary bg-bg-50 h-x10 w-[84px] shrink-0 rounded-[10px]'
-        >
-          예약하기
-        </button>
+        <div className='flex w-[84px] shrink-0 flex-col justify-end self-stretch'>
+          <button
+            type='button'
+            onClick={onReserve}
+            className='body2-bold text-text-primary bg-bg-50 flex h-x10 w-full items-center justify-center rounded-[10px]'
+          >
+            예약하기
+          </button>
+        </div>
       </div>
     );
   }
 
   const copy = COPY[state];
   const isExpired = state === 'expired';
-  const isOnHold = state === 'onHold';
+  const isMuted = state === 'onHold' || state === 'scheduled';
   const lead = periodLead ?? ('periodLead' in copy ? copy.periodLead : undefined);
-
-  return (
-    <button
-      type='button'
-      onClick={onClick}
-      className={cn(
-        'radius-r3 gap-x3 py-x5 pr-x2 pl-x5 flex w-full flex-col items-start text-left',
-        isExpired ? 'bg-bg-100' : 'bg-bg-0',
-        className
-      )}
-    >
+  const surfaceClass = cn(
+    'radius-r3 gap-x3 py-x5 pr-x2 pl-x5 flex w-full flex-col items-start text-left',
+    isExpired ? 'bg-bg-100' : 'bg-bg-0',
+    className
+  );
+  const content = (
+    <>
       <span className='gap-x1 flex w-full flex-col'>
         <span className='pr-x2 flex w-full items-center justify-between'>
           <span className='gap-x2_5 flex min-w-0 items-center'>
             <span className='h3-semibold text-text-primary'>{title ?? copy.title}</span>
-            <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS[state]} />
+            {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS[state]} />}
           </span>
           {showIcon ? (
-            <ChevronRight className={isExpired ? 'text-fill-secondary-500 shrink-0' : 'text-text-primary shrink-0'} />
+            icon ?? (
+              <ChevronRight className={isExpired ? 'text-fill-secondary-500 shrink-0' : 'text-text-primary shrink-0'} />
+            )
           ) : null}
         </span>
         <span
@@ -158,13 +170,21 @@ function MembershipCard({
         <span
           className={cn(
             isExpired ? 'label-semibold text-fill-secondary-500' : 'h2-extrabold',
-            !isExpired && (isOnHold ? 'text-fill-secondary-500' : 'text-text-accent')
+            !isExpired && (isMuted ? 'text-fill-secondary-500' : 'text-text-accent')
           )}
         >
           {count ?? copy.count}
         </span>
         <span className='body2-regular text-text-secondary'>{total ?? copy.total}</span>
       </span>
+    </>
+  );
+
+  if (!onClick) return <div className={surfaceClass}>{content}</div>;
+
+  return (
+    <button type='button' onClick={onClick} className={surfaceClass}>
+      {content}
     </button>
   );
 }
