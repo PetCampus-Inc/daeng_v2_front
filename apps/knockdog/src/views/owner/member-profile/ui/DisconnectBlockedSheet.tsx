@@ -27,12 +27,12 @@ interface DisconnectBlockRowProps {
 }
 
 const DisconnectBlockRow = ({ title, description, trailing }: DisconnectBlockRowProps) => (
-  <li className='radius-r3 bg-bg-0 border-line-200 py-x4 px-x4 flex items-center justify-between border border-solid'>
-    <span className='gap-x1 flex min-w-0 flex-col'>
-      <span className='body1-medium text-text-primary'>{title}</span>
-      <span className='caption1-regular text-fill-secondary-500'>{description}</span>
+  <li className='radius-r3 bg-bg-50 py-x3_5 px-x4 flex items-center justify-between'>
+    <span className='gap-x0_5 flex min-w-0 flex-col'>
+      <span className='body1-extrabold text-text-primary'>{title}</span>
+      <span className='body2-semibold text-text-secondary'>{description}</span>
     </span>
-    <span className='body1-medium text-text-accent shrink-0'>{trailing}</span>
+    <span className='body1-bold text-text-accent shrink-0'>{trailing}</span>
   </li>
 );
 
@@ -56,12 +56,12 @@ const DisconnectBlockedSheet = ({
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
-        <BottomSheet.Title className='h2-extrabold text-text-primary px-x4 pt-x4'>
+        <BottomSheet.Title className='h3-extrabold text-text-primary border-line-100 py-x3_5 pl-x6 pr-x5 border-b border-solid'>
           {disconnectBlockedSheet.title}
         </BottomSheet.Title>
-        <div className='px-x4 gap-x4 py-x4 flex flex-col'>
+        <div className='px-x6 gap-x6 pt-x1 flex flex-col'>
           <p className='body1-regular text-text-secondary whitespace-pre-line'>{body}</p>
-          <ul className='gap-x2 flex max-h-[240px] flex-col overflow-y-auto'>
+          <ul className='gap-x2_5 flex max-h-[200px] flex-col overflow-y-auto'>
             {blocks.map((block, index) =>
               block.type === 'reservation' ? (
                 <DisconnectBlockRow
@@ -81,8 +81,8 @@ const DisconnectBlockedSheet = ({
             )}
           </ul>
         </div>
-        <div className='px-x4 pb-x4'>
-          <ActionButton type='button' onClick={close}>
+        <div className='p-x4'>
+          <ActionButton type='button' size='large' onClick={close}>
             {disconnectBlockedSheet.confirmLabel}
           </ActionButton>
         </div>

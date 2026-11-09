@@ -52,17 +52,17 @@ function OwnerMemberProfileDisconnectDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange} closeOnNativeBack={false}>
-      <AlertDialogContent className='max-w-[358px]'>
-        <AlertDialogHeader className='px-x4'>
+      <AlertDialogContent className='max-w-[326px]'>
+        <AlertDialogHeader>
           <AlertDialogTitle>
             <span className='text-text-accent'>{displayDogName}</span>
             {disconnectDialog.titleSuffix}
           </AlertDialogTitle>
-          <AlertDialogDescription className='whitespace-pre-line'>
+          <AlertDialogDescription className='body2-regular whitespace-pre-line'>
             {disconnectDialog.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className='px-x4'>
+        <AlertDialogFooter className='pt-x5 pb-x6'>
           <AlertDialogCancel disabled={isSubmitting} className='body1-bold text-text-secondary'>
             {disconnectDialog.cancelLabel}
           </AlertDialogCancel>
