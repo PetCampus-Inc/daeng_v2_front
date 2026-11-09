@@ -7,6 +7,7 @@ import { MembershipCard, MembershipCardStatusBadge, SelectDogCard, UpcomingRsvCa
 import { cn } from '@knockdog/ui/lib';
 
 import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
+import { ReservationEmptyState } from '@views/guardian-reservation-page/ui/ReservationEmptyState';
 import {
   formatDogAge,
   formatDogWeight,
@@ -14,6 +15,7 @@ import {
   formatTicketPeriod,
   getTicketBadge,
   listUsableTickets,
+  resolveReservationEmpty,
   type ReservationDog,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 
@@ -71,6 +73,9 @@ function GuardianReservationPage() {
   const [isDogListOpen, setIsDogListOpen] = useState(false);
   const selectedDog = dogs.find((dog) => dog.id === selectedDogId) ?? dogs[0];
   const usableTickets = selectedDog ? listUsableTickets(selectedDog.tickets) : [];
+  const emptyKind = selectedDog
+    ? resolveReservationEmpty(selectedDog.link, Boolean(selectedDog.upcoming), usableTickets.length)
+    : null;
 
   const handleToggleDogList = () => {
     setIsDogListOpen((isOpen) => !isOpen);
@@ -88,7 +93,7 @@ function GuardianReservationPage() {
   if (!selectedDog) return null;
 
   return (
-    <main className='bg-bg-50 min-h-dvh'>
+    <main className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
       <div className='relative z-20'>
         <div className={cn('overflow-hidden', isDogListOpen ? 'bg-bg-0' : PROFILE_SURFACE)}>
           <header className='border-line-100 pl-x5 pr-x4 flex h-[66px] items-center justify-between border-b'>
@@ -124,42 +129,46 @@ function GuardianReservationPage() {
         />
       ) : null}
 
-      <div className='px-x4 py-x8 gap-x9 flex flex-col'>
-        <section className='gap-x2_5 flex flex-col'>
-          <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
-          {selectedDog.upcoming ? (
-            <UpcomingRsvCard
-              title={formatReservationWhen(selectedDog.upcoming.startsAt)}
-              place={selectedDog.upcoming.placeName}
-            />
-          ) : (
-            <ReservationEmptySchedule />
-          )}
-        </section>
+      {emptyKind ? (
+        <ReservationEmptyState kind={emptyKind} kindergarten={selectedDog.kindergarten} />
+      ) : (
+        <div className='px-x4 py-x8 gap-x9 flex flex-col'>
+          <section className='gap-x2_5 flex flex-col'>
+            <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
+            {selectedDog.upcoming ? (
+              <UpcomingRsvCard
+                title={formatReservationWhen(selectedDog.upcoming.startsAt)}
+                place={selectedDog.upcoming.placeName}
+              />
+            ) : (
+              <ReservationEmptySchedule />
+            )}
+          </section>
 
-        <section className='gap-x2_5 flex flex-col'>
-          <h2 className='body1-bold text-text-primary'>사용 가능 이용권</h2>
-          {usableTickets.length === 0 ? (
-            <MembershipCard state='empty' />
-          ) : (
-            usableTickets.map((ticket) => {
-              const badge = getTicketBadge(ticket.endsOn, today);
+          <section className='gap-x2_5 flex flex-col'>
+            <h2 className='body1-bold text-text-primary'>사용 가능 이용권</h2>
+            {usableTickets.length === 0 ? (
+              <MembershipCard state='empty' />
+            ) : (
+              usableTickets.map((ticket) => {
+                const badge = getTicketBadge(ticket.endsOn, today);
 
-              return (
-                <MembershipCard
-                  key={ticket.id}
-                  state='reservation'
-                  title={`${ticket.totalCount}회권`}
-                  remainingCount={ticket.remainingCount}
-                  period={formatTicketPeriod(ticket.endsOn)}
-                  badge={<MembershipCardStatusBadge status={badge.status}>{badge.label}</MembershipCardStatusBadge>}
-                />
-              );
-            })
-          )}
-          <ReservationTicketManageRow />
-        </section>
-      </div>
+                return (
+                  <MembershipCard
+                    key={ticket.id}
+                    state='reservation'
+                    title={`${ticket.totalCount}회권`}
+                    remainingCount={ticket.remainingCount}
+                    period={formatTicketPeriod(ticket.endsOn)}
+                    badge={<MembershipCardStatusBadge status={badge.status}>{badge.label}</MembershipCardStatusBadge>}
+                  />
+                );
+              })
+            )}
+            <ReservationTicketManageRow />
+          </section>
+        </div>
+      )}
     </main>
   );
 }

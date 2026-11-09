@@ -44,6 +44,28 @@ interface UpcomingReservation {
   placeName: string;
 }
 
+const KINDERGARTEN_LINK = {
+  connected: 'connected',
+  pending: 'pending',
+  none: 'none',
+} as const;
+
+type KindergartenLink = keyof typeof KINDERGARTEN_LINK;
+
+const RESERVATION_EMPTY = {
+  noPass: 'noPass',
+  pending: 'pending',
+  unlinked: 'unlinked',
+} as const;
+
+type ReservationEmpty = keyof typeof RESERVATION_EMPTY;
+
+interface ReservationKindergarten {
+  placeId: string;
+  name: string;
+  address: string;
+}
+
 interface ReservationDog {
   id: string;
   name: string;
@@ -51,6 +73,8 @@ interface ReservationDog {
   age: number;
   weightKg: number;
   hasAttendanceHours: boolean;
+  link: KindergartenLink;
+  kindergarten: ReservationKindergarten | null;
   upcoming: UpcomingReservation | null;
   tickets: ReservationTicket[];
 }
@@ -142,7 +166,16 @@ function resolveReserveStep(hasAttendanceHours: boolean): ReserveStep {
   return hasAttendanceHours ? RESERVE_STEP.dateTime : RESERVE_STEP.hoursUnset;
 }
 
+function resolveReservationEmpty(link: KindergartenLink, hasUpcoming: boolean, usableCount: number) {
+  if (link === KINDERGARTEN_LINK.none) return RESERVATION_EMPTY.unlinked;
+  if (link === KINDERGARTEN_LINK.pending) return RESERVATION_EMPTY.pending;
+  if (!hasUpcoming && usableCount === 0) return RESERVATION_EMPTY.noPass;
+  return null;
+}
+
 export {
+  KINDERGARTEN_LINK,
+  RESERVATION_EMPTY,
   RESERVE_STEP,
   TICKET_BADGE_STATUS,
   TICKET_STATUS,
@@ -153,8 +186,18 @@ export {
   formatTicketPeriod,
   getTicketBadge,
   listUsableTickets,
+  resolveReservationEmpty,
   resolveReserveStep,
   toDateKey,
   toDateTimeKey,
 };
-export type { ReservationDog, ReservationTicket, ReserveStep, TicketBadge, UpcomingReservation };
+export type {
+  KindergartenLink,
+  ReservationDog,
+  ReservationEmpty,
+  ReservationKindergarten,
+  ReservationTicket,
+  ReserveStep,
+  TicketBadge,
+  UpcomingReservation,
+};

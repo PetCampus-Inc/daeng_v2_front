@@ -7,7 +7,10 @@ import {
   formatReservationWhen,
   formatTicketPeriod,
   getTicketBadge,
+  KINDERGARTEN_LINK,
   listUsableTickets,
+  RESERVATION_EMPTY,
+  resolveReservationEmpty,
   resolveReserveStep,
   type ReservationTicket,
 } from './guardianReservationMain';
@@ -60,6 +63,16 @@ describe('listUsableTickets', () => {
     ];
 
     expect(listUsableTickets(tickets).map((ticket) => ticket.id)).toEqual(['earlier', 'later']);
+  });
+});
+
+describe('resolveReservationEmpty', () => {
+  it('연결·예약·이용권이 없을 때만 빈 화면을 고른다', () => {
+    expect(resolveReservationEmpty(KINDERGARTEN_LINK.none, false, 0)).toBe(RESERVATION_EMPTY.unlinked);
+    expect(resolveReservationEmpty(KINDERGARTEN_LINK.pending, true, 2)).toBe(RESERVATION_EMPTY.pending);
+    expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, false, 0)).toBe(RESERVATION_EMPTY.noPass);
+    expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, true, 0)).toBeNull();
+    expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, false, 1)).toBeNull();
   });
 });
 

@@ -1,10 +1,18 @@
 import {
+  KINDERGARTEN_LINK,
   TICKET_STATUS,
   addDays,
   toDateKey,
   toDateTimeKey,
   type ReservationDog,
+  type ReservationKindergarten,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+
+const MOMO_KINDERGARTEN: ReservationKindergarten = {
+  placeId: 'momo',
+  name: '모모네 유치원',
+  address: '서울특별시 강남구 논현로 123길 37',
+};
 
 function createReservationMainMock(today: Date): ReservationDog[] {
   const soon = toDateKey(addDays(today, 3));
@@ -19,6 +27,8 @@ function createReservationMainMock(today: Date): ReservationDog[] {
       age: 3,
       weightKg: 20,
       hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
       upcoming: { startsAt: upcomingAt, placeName: '왈왈컹컹 유치원' },
       tickets: [
         {
@@ -54,6 +64,8 @@ function createReservationMainMock(today: Date): ReservationDog[] {
       age: 2,
       weightKg: 3,
       hasAttendanceHours: false,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
       upcoming: { startsAt: upcomingAt, placeName: '왈왈컹컹 유치원' },
       tickets: [],
     },
@@ -64,6 +76,8 @@ function createReservationMainMock(today: Date): ReservationDog[] {
       age: 7,
       weightKg: 3,
       hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
       upcoming: null,
       tickets: [
         {
@@ -75,6 +89,42 @@ function createReservationMainMock(today: Date): ReservationDog[] {
           status: TICKET_STATUS.active,
         },
       ],
+    },
+    {
+      id: 'bori',
+      name: '보리',
+      breed: '웰시코기',
+      age: 4,
+      weightKg: 12,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: null,
+      tickets: [],
+    },
+    {
+      id: 'choco',
+      name: '초코',
+      breed: '비글',
+      age: 5,
+      weightKg: 11,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.pending,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: null,
+      tickets: [],
+    },
+    {
+      id: 'haneul',
+      name: '하늘',
+      breed: '푸들',
+      age: 1,
+      weightKg: 4,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.none,
+      kindergarten: null,
+      upcoming: null,
+      tickets: [],
     },
   ];
 }
