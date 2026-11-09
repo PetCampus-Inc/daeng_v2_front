@@ -1,10 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 
-import { ActionButton } from '@knockdog/ui';
-import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
+import {
+  ActionButton,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  SortDropdown,
+  type SortOption,
+} from '@knockdog/ui';
 import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
+import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { OwnerMemberCard } from '@features/owner-members';
 import { useOwnerRole } from '@features/role-conversion';
 
@@ -12,26 +25,31 @@ import {
   isAlreadyCancelledError,
   useOwnerMemberApprovalMutation,
   useOwnerPendingMembersQuery,
+  type OwnerMember,
+  type OwnerPendingSort,
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
+import { route } from '@shared/constants/route';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { trackConnectionStatus } from '@shared/lib/analytics';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
-function showCancelledRequestToast() {
-  toast({ title: '취소된 연결 신청이에요' });
-}
+const SORT_BY_OPTION: Record<SortOption, OwnerPendingSort> = {
+  newest: 'LATEST',
+  name: 'NAME',
+  oldest: 'OLDEST',
+};
 
 interface ApprovalActionsProps {
-  dogName: string;
-  requestId: string;
+  member: OwnerMember;
   disabled: boolean;
-  onApprove: (requestId: string, dogName: string) => void;
-  onReject: (requestId: string, dogName: string) => void;
+  onApprove: (member: OwnerMember) => void;
+  onReject: (member: OwnerMember) => void;
 }
 
-function ApprovalActions({ dogName, requestId, disabled, onApprove, onReject }: ApprovalActionsProps) {
+function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActionsProps) {
   return (
     <div className='gap-x2 flex shrink-0 items-center'>
       <ActionButton
@@ -40,7 +58,7 @@ function ApprovalActions({ dogName, requestId, disabled, onApprove, onReject }: 
         size='medium'
         className='w-[57px]'
         disabled={disabled}
-        onClick={() => onReject(requestId, dogName)}
+        onClick={() => onReject(member)}
       >
         거절
       </ActionButton>
@@ -50,7 +68,7 @@ function ApprovalActions({ dogName, requestId, disabled, onApprove, onReject }: 
         size='medium'
         className='w-[57px]'
         disabled={disabled}
-        onClick={() => onApprove(requestId, dogName)}
+        onClick={() => onApprove(member)}
       >
         승인
       </ActionButton>
@@ -80,11 +98,16 @@ function ApprovalEmptyState() {
 
 /** 구성원 화면의 `신청` 탭 — 보호자 연결 신청 목록과 승인·거절 */
 function OwnerMembersPendingTab() {
+  const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved } = useOwnerRole();
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [approvedMember, setApprovedMember] = useState<OwnerMember | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<OwnerMember | null>(null);
   const { approveMutation, rejectMutation } = useOwnerMemberApprovalMutation({ userId });
   const pendingMembersQuery = useOwnerPendingMembersQuery({
     userId,
+    sort: SORT_BY_OPTION[sortOption],
     enabled: isResolved && isOwner,
   });
   const approvalRequests = pendingMembersQuery.data?.members ?? [];
@@ -94,76 +117,65 @@ function OwnerMembersPendingTab() {
   const isInitialPending =
     !isLoadFailed && (!isResolved || pendingMembersQuery.isLoading || !pendingMembersQuery.isFetchedAfterMount);
 
-  const handleReject = (_requestId: string, dogName: string) => {
-    rejectMutation.mutate(_requestId, {
-      onSuccess: () => {
-        trackConnectionStatus({
-          status: 'reject',
-          initiated_by: 'owner',
-          school_pet_membership_id: _requestId,
-        });
-        toast({
-          type: 'success',
-          nativeTitle: `${dogName}의 연결 신청을 거절했어요`,
-          titleParts: [{ text: dogName, accent: true }, { text: '의 연결 신청을 거절했어요' }],
-          title: (
-            <>
-              <span className='text-text-accent'>{dogName}</span>
-              <span className='text-text-primary-inverse'>의 연결 신청을 거절했어요</span>
-            </>
-          ),
-        });
-      },
-      onError: (error) => {
-        if (isAlreadyCancelledError(error)) {
-          showCancelledRequestToast();
-          return;
-        }
-        toast({ title: '연결 신청 거절에 실패했어요' });
-      },
-    });
+  /** 이미 취소·처리된 신청이면 안내하고, 아니면 실패 안내를 보여준다 */
+  const showActionError = (error: unknown, failureTitle: string) => {
+    toast({ title: isAlreadyCancelledError(error) ? '취소된 연결 신청이에요' : failureTitle });
   };
 
-  const handleApprove = (_requestId: string, dogName: string) => {
-    approveMutation.mutate(_requestId, {
+  const handleApprove = (member: OwnerMember) => {
+    approveMutation.mutate(member.id, {
       onSuccess: () => {
         trackConnectionStatus({
           status: 'approve',
           initiated_by: 'owner',
-          school_pet_membership_id: _requestId,
+          school_pet_membership_id: member.id,
+        });
+        setApprovedMember(member);
+      },
+      onError: (error) => showActionError(error, '연결 신청 승인에 실패했어요'),
+    });
+  };
+
+  const handleConfirmReject = () => {
+    if (!rejectTarget) return;
+    const target = rejectTarget;
+
+    setRejectTarget(null);
+    rejectMutation.mutate(target.id, {
+      onSuccess: () => {
+        trackConnectionStatus({
+          status: 'reject',
+          initiated_by: 'owner',
+          school_pet_membership_id: target.id,
         });
         toast({
           type: 'success',
-          nativeTitle: `${dogName}의 유치원 연결이 완료됐어요`,
-          titleParts: [{ text: dogName, accent: true }, { text: '의 유치원 연결이 완료됐어요' }],
-          title: (
-            <>
-              <span className='text-text-accent'>{dogName}</span>
-              <span className='text-text-primary-inverse'>의 유치원 연결이 완료됐어요</span>
-            </>
-          ),
+          nativeTitle: '원생 거절이 완료되었어요',
+          title: '원생 거절이 완료되었어요',
         });
       },
-      onError: (error) => {
-        if (isAlreadyCancelledError(error)) {
-          showCancelledRequestToast();
-          return;
-        }
-        toast({ title: '연결 신청 승인에 실패했어요' });
-      },
+      onError: (error) => showActionError(error, '연결 신청 거절에 실패했어요'),
+    });
+  };
+
+  const handleOpenTicketCharge = () => {
+    if (!approvedMember?.petId) return;
+
+    void push({
+      pathname: route.owner.members.detail.ticketCharge.root.replace('[id]', approvedMember.petId),
     });
   };
 
   return (
     <div className='flex min-h-0 flex-1 flex-col'>
-      <div className='px-x4 py-x2 h-x13 flex w-full shrink-0 items-center justify-between'>
-        <div className='py-x2 h-x9 flex w-full items-center justify-between'>
-          <div className='body2-bold text-text-primary gap-x1 h-x5 flex items-center whitespace-nowrap'>
-            <span>승인대기</span>
-            <span className='text-text-accent'>{totalPendingCount}건</span>
-          </div>
+      {totalPendingCount > 0 && !isLoadFailed && (
+        <div className='px-x4 py-x2 h-x13 flex w-full shrink-0 items-center justify-between'>
+          <span className='caption1-semibold text-text-accent bg-primitive-orange-100 radius-r2 px-x2 py-x1'>
+            {`강아지수 ${totalPendingCount}`}
+          </span>
+          <SortDropdown value={sortOption} onValueChange={setSortOption} />
         </div>
-      </div>
+      )}
 
       <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
         {isInitialPending ? (
@@ -183,17 +195,44 @@ function OwnerMembersPendingTab() {
               member={member}
               rightAddon={
                 <ApprovalActions
-                  dogName={member.dogName}
-                  requestId={member.id}
+                  member={member}
                   disabled={isActionPending}
                   onApprove={handleApprove}
-                  onReject={handleReject}
+                  onReject={setRejectTarget}
                 />
               }
             />
           ))
         )}
       </div>
+
+      <AlertDialog open={approvedMember !== null} onOpenChange={(open) => !open && setApprovedMember(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>원생 승인을 완료했어요</AlertDialogTitle>
+            <AlertDialogDescription>
+              {`${approvedMember?.dogName ?? ''}의 유치원 연결이 완료됐어요.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={handleOpenTicketCharge}>이용권 충전하기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={rejectTarget !== null} onOpenChange={(open) => !open && setRejectTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>원생 승인을 거절할까요?</AlertDialogTitle>
+            <AlertDialogDescription>거절한 원생은 되돌릴 수 없어요.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>닫기</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReject}>거절하기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

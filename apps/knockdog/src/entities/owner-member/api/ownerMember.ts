@@ -20,9 +20,16 @@ function getOwnerMembers({ keyword, filter }: GetOwnerMembersParams = {}) {
   return api.get('owner/members', { searchParams }).json<ApiResponse<OwnerMembersDto>>();
 }
 
+type OwnerPendingSort = 'LATEST' | 'NAME' | 'OLDEST';
+
+interface GetOwnerPendingMembersParams {
+  /** 신청 목록 정렬 기준. 기본 `LATEST` */
+  sort?: OwnerPendingSort;
+}
+
 /** `GET` - 원장 구성원 승인 대기 목록 조회 */
-function getOwnerPendingMembers() {
-  return api.get('owner/members/pending').json<ApiResponse<OwnerPendingMembersDto>>();
+function getOwnerPendingMembers({ sort = 'LATEST' }: GetOwnerPendingMembersParams = {}) {
+  return api.get('owner/members/pending', { searchParams: { sort } }).json<ApiResponse<OwnerPendingMembersDto>>();
 }
 
 /** `POST` - 원장 구성원 연결 신청 승인 */
@@ -45,7 +52,7 @@ function postOwnerInvite() {
   return api.post('owner/invites').json<ApiResponse<OwnerInviteDto>>();
 }
 
-export type { GetOwnerMembersParams, OwnerMembersFilter };
+export type { GetOwnerMembersParams, GetOwnerPendingMembersParams, OwnerMembersFilter, OwnerPendingSort };
 export {
   getOwnerMembers,
   getOwnerPendingMembers,

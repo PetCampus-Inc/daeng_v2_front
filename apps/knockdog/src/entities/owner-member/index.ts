@@ -1,5 +1,10 @@
 export { getOwnerMembers, getOwnerPendingMembers } from './api/ownerMember';
-export type { GetOwnerMembersParams, OwnerMembersFilter } from './api/ownerMember';
+export type {
+  GetOwnerMembersParams,
+  GetOwnerPendingMembersParams,
+  OwnerMembersFilter,
+  OwnerPendingSort,
+} from './api/ownerMember';
 export {
   useOwnerMemberApprovalMutation,
   useOwnerMemberDisconnectMutation,
