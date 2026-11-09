@@ -14,20 +14,37 @@ test.describe('CF-GUARDIAN-ALBUM', () => {
     const empty = page.getByText('아직 등록된 앨범이 없어요');
     const monthEmpty = page.getByText('이 달에는 등록된 앨범이 없어요');
     const dayCard = page.getByTestId('guardian-album-day-card').first();
+    const prev = page.getByRole('button', { name: '이전 달' });
+    const monthLabel = page.getByTestId('guardian-album-month-label');
 
     await expect(dayCard.or(empty).or(monthEmpty)).toBeVisible({ timeout: 30_000 });
 
     if (await empty.isVisible().catch(() => false)) {
       throw new Error('Precondition 실패: 앨범 데이터 없음 (PHASE0 섹션5)');
     }
-    if (await monthEmpty.isVisible().catch(() => false)) {
-      const prev = page.getByRole('button', { name: '이전 달' });
-      if (await prev.isEnabled().catch(() => false)) {
-        await prev.click();
-        await expect(dayCard).toBeVisible({ timeout: 20_000 });
-      } else {
+
+    // 이전 달은 멤버십 범위면 켜져 있고, 바로 이전 달이 비어 있을 수 있다.
+    for (let step = 0; step < 24 && (await monthEmpty.isVisible().catch(() => false)); step += 1) {
+      const before = ((await monthLabel.textContent()) ?? '').trim();
+      await prev.click();
+
+      let moved = true;
+      try {
+        await expect
+          .poll(async () => ((await monthLabel.textContent()) ?? '').trim(), { timeout: 5_000 })
+          .not.toBe(before);
+      } catch {
+        moved = false;
+      }
+      if (!moved) {
         throw new Error('Precondition 실패: 조회 가능한 월별 앨범 없음');
       }
+
+      await expect(dayCard.or(monthEmpty)).toBeVisible({ timeout: 20_000 });
+    }
+
+    if (await monthEmpty.isVisible().catch(() => false)) {
+      throw new Error('Precondition 실패: 조회 가능한 월별 앨범 없음');
     }
 
     await dayCard.click();
