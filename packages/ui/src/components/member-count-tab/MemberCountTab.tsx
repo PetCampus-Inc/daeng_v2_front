@@ -49,6 +49,7 @@ function MemberCountTab({
             key={item.id}
             type='button'
             role='tab'
+            data-testid={`member-count-tab-${item.id}`}
             aria-selected={isSelected}
             onClick={() => selectTab(item.id)}
             className={cn(
