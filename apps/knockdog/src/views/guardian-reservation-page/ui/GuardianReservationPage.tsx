@@ -102,7 +102,7 @@ function GuardianReservationPage() {
           </div>
         </header>
         <SelectDogCard
-          variant={isDogListOpen ? 'open' : 'closed'}
+          isExpanded={isDogListOpen}
           name={selectedDog.name}
           breed={selectedDog.breed}
           age={formatDogAge(selectedDog.age)}
