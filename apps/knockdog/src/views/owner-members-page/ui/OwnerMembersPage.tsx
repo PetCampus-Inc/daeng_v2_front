@@ -19,6 +19,7 @@ function OwnerMembersPage() {
     ownerMembers,
     emptyStateType,
     searchQuery,
+    keyword,
     handleSearchQueryChange,
     isLoading,
     isError,
@@ -57,7 +58,7 @@ function OwnerMembersPage() {
         />
 
         {isPendingTab ? (
-          <OwnerMembersPendingTab keyword={searchQuery.trim()} />
+          <OwnerMembersPendingTab keyword={keyword} />
         ) : (
           <div className='flex min-h-0 w-full flex-1 flex-col'>
             {!isLoading && !isError && counts.all > 0 && (
