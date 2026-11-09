@@ -10,7 +10,7 @@ import type {
 } from '@entities/owner-member';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
-interface OwnerMemberProfileDisconnectBlockedSheetProps {
+interface DisconnectBlockedSheetProps {
   isOpen: boolean;
   close: () => void;
   /** 이용권이 하나라도 있으면 이용권 본문, 예약만 있으면 예약 본문 */
@@ -36,13 +36,13 @@ const DisconnectBlockRow = ({ title, description, trailing }: DisconnectBlockRow
   </li>
 );
 
-const OwnerMemberProfileDisconnectBlockedSheet = ({
+const DisconnectBlockedSheet = ({
   isOpen,
   close,
   bodyKind,
   blocks,
   kindergartenName,
-}: OwnerMemberProfileDisconnectBlockedSheetProps) => {
+}: DisconnectBlockedSheetProps) => {
   const { disconnectBlockedSheet } = ownerMemberProfileContent;
   const body =
     bodyKind === 'ticket' ? disconnectBlockedSheet.ticketBody : disconnectBlockedSheet.reservationBody;
@@ -91,4 +91,4 @@ const OwnerMemberProfileDisconnectBlockedSheet = ({
   );
 };
 
-export { OwnerMemberProfileDisconnectBlockedSheet };
+export { DisconnectBlockedSheet };

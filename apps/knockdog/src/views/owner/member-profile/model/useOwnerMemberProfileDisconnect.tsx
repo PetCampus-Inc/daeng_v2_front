@@ -17,7 +17,7 @@ import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
-import { OwnerMemberProfileDisconnectBlockedSheet } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectBlockedSheet';
+import { DisconnectBlockedSheet } from '@views/owner/member-profile/ui/DisconnectBlockedSheet';
 import { OwnerMemberProfileDisconnectDialog } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectDialog';
 
 interface UseOwnerMemberProfileDisconnectOptions {
@@ -145,7 +145,7 @@ function useOwnerMemberProfileDisconnect({
 
   const openBlockedSheet = (eligibility: OwnerMemberDisconnectEligibility, bodyKind: OwnerMemberDisconnectBodyKind) => {
     overlay.open(({ isOpen, close }) => (
-      <OwnerMemberProfileDisconnectBlockedSheet
+      <DisconnectBlockedSheet
         isOpen={isOpen}
         close={close}
         bodyKind={bodyKind}
