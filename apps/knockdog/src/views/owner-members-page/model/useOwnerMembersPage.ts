@@ -46,7 +46,10 @@ function useOwnerMembersPage() {
   const emptyStateType: OwnerMembersEmptyStateType | null = (() => {
     if (isInitialPending) return null;
     if (counts.all === 0) return 'emptyStudents';
-    if (keyword && ownerMembers.length === 0) return 'emptySearchResult';
+    if (ownerMembers.length > 0) return null;
+    if (keyword) return 'emptySearchResult';
+    if (selectedFilter === 'EXPIRING') return 'emptyExpiring';
+    if (selectedFilter === 'EXPIRED') return 'emptyExpired';
 
     return null;
   })();

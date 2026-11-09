@@ -251,3 +251,102 @@ describe('필터 칩', () => {
     expect(screen.getByRole('button', { name: '만료 3' })).toBeTruthy();
   });
 });
+
+describe('검색', () => {
+  const searchedMember = createMember({ memberId: 'm9', petId: 9, dogName: '몽실', breed: '말티즈' });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getOwnerPendingMembers.mockResolvedValue(pendingResponse);
+    mocks.getOwnerMembers.mockImplementation(async (params?: { keyword?: string }) => {
+      if (params?.keyword === '말티즈') return createMembersResponse({ members: [searchedMember] });
+      if (params?.keyword) return createMembersResponse({ members: [] });
+      return membersResponse;
+    });
+  });
+  afterEach(cleanup);
+
+  const typeKeyword = (value: string) =>
+    fireEvent.change(screen.getByLabelText('구성원 검색어 입력'), { target: { value } });
+
+  it('검색어를 입력하면 이름이나 견종이 일치하는 원생 목록으로 바뀐다', async () => {
+    renderPage('');
+    await screen.findByText('보리');
+
+    typeKeyword('말티즈');
+
+    expect(await screen.findByText('몽실')).toBeTruthy();
+    expect(screen.queryByText('보리')).toBeNull();
+  });
+
+  it('검색 결과가 없으면 `검색된 원생이 없어요` / `다른 원생을 검색해보세요.`가 보이고 검색창과 탭은 그대로다', async () => {
+    renderPage('');
+    await screen.findByText('보리');
+
+    typeKeyword('개냥이');
+
+    expect(await screen.findByText('검색된 원생이 없어요')).toBeTruthy();
+    expect(screen.getByText('다른 원생을 검색해보세요.')).toBeTruthy();
+    expect(screen.getByLabelText('구성원 검색어 입력')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: '등록 원생', selected: true })).toBeTruthy();
+  });
+
+  it('검색어를 지우면 선택한 탭과 칩 조건의 목록으로 돌아간다', async () => {
+    renderPage('');
+    await screen.findByText('보리');
+    typeKeyword('말티즈');
+    await screen.findByText('몽실');
+
+    typeKeyword('');
+
+    expect(await screen.findByText('보리')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: '등록 원생', selected: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /전체/, pressed: true })).toBeTruthy();
+  });
+});
+
+describe('등록 원생 없음·필터 결과 없음', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getOwnerPendingMembers.mockResolvedValue(pendingResponse);
+  });
+  afterEach(cleanup);
+
+  it('등록 원생이 0명이면 `등록된 원생이 없어요` / `보호자를 연결하고 유치원을 운영해 보세요.`가 보이고 필터 칩이 숨겨진다', async () => {
+    mocks.getOwnerMembers.mockResolvedValue({
+      data: { totalStudentCount: 0, pendingCount: 0, counts: { all: 0, expiring: 0, expired: 0 }, members: [] },
+    });
+
+    renderPage('');
+
+    expect(await screen.findByText('등록된 원생이 없어요')).toBeTruthy();
+    expect(screen.getByText('보호자를 연결하고 유치원을 운영해 보세요.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^전체/ })).toBeNull();
+  });
+
+  it('`만료예정` 결과가 없으면 칩은 그대로이고 `만료 예정인 원생이 없어요` / `다른 상태의 원생을 확인해 보세요.`가 보인다', async () => {
+    mocks.getOwnerMembers.mockImplementation(async (params?: { filter?: string }) =>
+      params?.filter === 'EXPIRING' ? createMembersResponse({ members: [] }) : membersResponse
+    );
+    renderPage('');
+
+    fireEvent.click(await screen.findByRole('button', { name: '만료예정 2' }));
+
+    expect(await screen.findByText('만료 예정인 원생이 없어요')).toBeTruthy();
+    expect(screen.getByText('다른 상태의 원생을 확인해 보세요.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '전체 22' })).toBeTruthy();
+  });
+
+  it('`만료` 결과가 없으면 칩은 그대로이고 `이용권이 만료된 원생이 없어요` / `다른 상태의 원생을 확인해 보세요.`가 보인다', async () => {
+    mocks.getOwnerMembers.mockImplementation(async (params?: { filter?: string }) =>
+      params?.filter === 'EXPIRED' ? createMembersResponse({ members: [] }) : membersResponse
+    );
+    renderPage('');
+
+    fireEvent.click(await screen.findByRole('button', { name: '만료 3' }));
+
+    expect(await screen.findByText('이용권이 만료된 원생이 없어요')).toBeTruthy();
+    expect(screen.getByText('다른 상태의 원생을 확인해 보세요.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '전체 22' })).toBeTruthy();
+  });
+});
