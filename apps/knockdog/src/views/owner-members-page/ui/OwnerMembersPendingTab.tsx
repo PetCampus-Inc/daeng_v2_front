@@ -3,6 +3,7 @@
 import Image from 'next/image';
 
 import { ActionButton } from '@knockdog/ui';
+import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
 import { OwnerMemberCard } from '@features/owner-members';
 import { useOwnerRole } from '@features/role-conversion';
@@ -15,6 +16,7 @@ import {
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 function showCancelledRequestToast() {
@@ -76,17 +78,6 @@ function ApprovalEmptyState() {
   );
 }
 
-function ApprovalErrorState() {
-  return (
-    <div className='flex min-h-full w-full items-center justify-center'>
-      <div className='flex h-x14 w-full flex-col items-center justify-center gap-y-1 text-center'>
-        <p className='h2-extrabold text-text-primary'>승인 대기 목록을 불러오지 못했어요</p>
-        <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
-      </div>
-    </div>
-  );
-}
-
 /** 구성원 화면의 `신청` 탭 — 보호자 연결 신청 목록과 승인·거절 */
 function OwnerMembersPendingTab() {
   const userId = useUserStore((state) => state.user?.userId);
@@ -99,8 +90,9 @@ function OwnerMembersPendingTab() {
   const approvalRequests = pendingMembersQuery.data?.members ?? [];
   const totalPendingCount = pendingMembersQuery.data?.totalMemberCount ?? 0;
   const isActionPending = approveMutation.isPending || rejectMutation.isPending;
+  const isLoadFailed = hasListLoadFailed(pendingMembersQuery);
   const isInitialPending =
-    !isResolved || pendingMembersQuery.isLoading || !pendingMembersQuery.isFetchedAfterMount;
+    !isLoadFailed && (!isResolved || pendingMembersQuery.isLoading || !pendingMembersQuery.isFetchedAfterMount);
 
   const handleReject = (_requestId: string, dogName: string) => {
     rejectMutation.mutate(_requestId, {
@@ -164,9 +156,9 @@ function OwnerMembersPendingTab() {
 
   return (
     <div className='flex min-h-0 flex-1 flex-col'>
-      <div className='px-x4 py-x2 flex h-x13 w-full shrink-0 items-center justify-between'>
-        <div className='py-x2 flex h-x9 w-full items-center justify-between'>
-          <div className='body2-bold text-text-primary gap-x1 flex h-x5 items-center whitespace-nowrap'>
+      <div className='px-x4 py-x2 h-x13 flex w-full shrink-0 items-center justify-between'>
+        <div className='py-x2 h-x9 flex w-full items-center justify-between'>
+          <div className='body2-bold text-text-primary gap-x1 h-x5 flex items-center whitespace-nowrap'>
             <span>승인대기</span>
             <span className='text-text-accent'>{totalPendingCount}건</span>
           </div>
@@ -176,8 +168,12 @@ function OwnerMembersPendingTab() {
       <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
         {isInitialPending ? (
           <DelayedLoadingSpinner isLoading={isInitialPending} layout='content' />
-        ) : pendingMembersQuery.isError ? (
-          <ApprovalErrorState />
+        ) : isLoadFailed ? (
+          <PageError
+            layout='inline'
+            onRetry={() => void pendingMembersQuery.refetch()}
+            isRetrying={pendingMembersQuery.isFetching}
+          />
         ) : approvalRequests.length === 0 ? (
           <ApprovalEmptyState />
         ) : (

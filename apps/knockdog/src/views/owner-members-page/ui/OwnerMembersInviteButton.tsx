@@ -14,7 +14,7 @@ function OwnerMembersInviteButton() {
       data-testid='owner-members-invite-fab'
       icon='Plus'
       label='보호자 초대'
-      className='h-x12! w-[118px]! gap-x0_5 px-x3_5! web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 absolute right-4 z-10'
+      className='h-x12! gap-x0_5 px-x3_5! web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 absolute right-4 z-10 w-[118px]!'
       onClick={handleInviteClick}
     />
   );
