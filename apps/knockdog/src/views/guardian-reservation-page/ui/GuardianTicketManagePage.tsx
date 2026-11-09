@@ -15,7 +15,10 @@ import {
   type ReservationTicket,
   type TicketSectionId,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import { visibleTickets } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
+import { useHiddenTicketIds } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
 import { Header } from '@widgets/Header';
+import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
 const SECTION_LABEL = {
@@ -34,12 +37,13 @@ function toCardState(status: ReservationTicket['status']) {
 function GuardianTicketManagePage() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const today = useMemo(() => new Date(), []);
   const dogs = useMemo(() => createReservationMainMock(today), [today]);
+  const hiddenIds = useHiddenTicketIds();
   const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];
-  const sections = dog ? groupManageTickets(dog.tickets) : [];
+  const sections = dog ? groupManageTickets(visibleTickets(dog.tickets, hiddenIds)) : [];
 
   const handleBack = useCallback(() => {
     back()
@@ -52,6 +56,14 @@ function GuardianTicketManagePage() {
   }, [back, navigateToTab]);
 
   useNativeBackHandler(handleBack);
+
+  const handleOpenDetail = (ticketId: string) => {
+    if (!dog) return;
+    push({
+      pathname: route.reservation.tickets.detail.root.replace('[ticketId]', ticketId),
+      query: { dogId: dog.id },
+    }).catch(() => undefined);
+  };
 
   return (
     <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col overflow-hidden'>
@@ -74,6 +86,7 @@ function GuardianTicketManagePage() {
                 <MembershipCard
                   key={ticket.id}
                   state={toCardState(ticket.status)}
+                  onClick={() => handleOpenDetail(ticket.id)}
                   title={ticket.name}
                   periodLead={copy.periodLead}
                   period={copy.period}

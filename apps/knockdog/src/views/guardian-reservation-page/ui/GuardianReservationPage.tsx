@@ -18,6 +18,8 @@ import {
   resolveReservationEmpty,
   type ReservationDog,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import { visibleTickets } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
+import { useHiddenTicketIds } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -75,8 +77,9 @@ function GuardianReservationPage() {
   const dogs = useMemo(() => createReservationMainMock(today), [today]);
   const [selectedDogId, setSelectedDogId] = useState(dogs[0]?.id ?? '');
   const [isDogListOpen, setIsDogListOpen] = useState(false);
+  const hiddenIds = useHiddenTicketIds();
   const selectedDog = dogs.find((dog) => dog.id === selectedDogId) ?? dogs[0];
-  const usableTickets = selectedDog ? listUsableTickets(selectedDog.tickets) : [];
+  const usableTickets = selectedDog ? listUsableTickets(visibleTickets(selectedDog.tickets, hiddenIds)) : [];
   const emptyKind = selectedDog
     ? resolveReservationEmpty(selectedDog.link, Boolean(selectedDog.upcoming), usableTickets.length)
     : null;

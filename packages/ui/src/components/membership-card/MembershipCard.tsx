@@ -34,6 +34,7 @@ interface MembershipCardProps {
   total?: ReactNode;
   remainingCount?: ReactNode;
   badge?: ReactNode;
+  icon?: ReactNode;
   showIcon?: boolean;
   className?: string;
   onClick?: () => void;
@@ -82,6 +83,7 @@ function MembershipCard({
   total,
   remainingCount = '2',
   badge,
+  icon,
   showIcon = true,
   className,
   onClick,
@@ -135,17 +137,13 @@ function MembershipCard({
   const isExpired = state === 'expired';
   const isMuted = state === 'onHold' || state === 'scheduled';
   const lead = periodLead ?? ('periodLead' in copy ? copy.periodLead : undefined);
-
-  return (
-    <button
-      type='button'
-      onClick={onClick}
-      className={cn(
-        'radius-r3 gap-x3 py-x5 pr-x2 pl-x5 flex w-full flex-col items-start text-left',
-        isExpired ? 'bg-bg-100' : 'bg-bg-0',
-        className
-      )}
-    >
+  const surfaceClass = cn(
+    'radius-r3 gap-x3 py-x5 pr-x2 pl-x5 flex w-full flex-col items-start text-left',
+    isExpired ? 'bg-bg-100' : 'bg-bg-0',
+    className
+  );
+  const content = (
+    <>
       <span className='gap-x1 flex w-full flex-col'>
         <span className='pr-x2 flex w-full items-center justify-between'>
           <span className='gap-x2_5 flex min-w-0 items-center'>
@@ -153,7 +151,9 @@ function MembershipCard({
             {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS[state]} />}
           </span>
           {showIcon ? (
-            <ChevronRight className={isExpired ? 'text-fill-secondary-500 shrink-0' : 'text-text-primary shrink-0'} />
+            icon ?? (
+              <ChevronRight className={isExpired ? 'text-fill-secondary-500 shrink-0' : 'text-text-primary shrink-0'} />
+            )
           ) : null}
         </span>
         <span
@@ -177,6 +177,14 @@ function MembershipCard({
         </span>
         <span className='body2-regular text-text-secondary'>{total ?? copy.total}</span>
       </span>
+    </>
+  );
+
+  if (!onClick) return <div className={surfaceClass}>{content}</div>;
+
+  return (
+    <button type='button' onClick={onClick} className={surfaceClass}>
+      {content}
     </button>
   );
 }

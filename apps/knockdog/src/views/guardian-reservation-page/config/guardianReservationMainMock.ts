@@ -7,6 +7,10 @@ import {
   type ReservationDog,
   type ReservationKindergarten,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import {
+  HISTORY_KIND,
+  type TicketHistory,
+} from '@views/guardian-reservation-page/lib/guardianTicketHistory';
 
 const MOMO_KINDERGARTEN: ReservationKindergarten = {
   placeId: 'momo',
@@ -167,4 +171,101 @@ function createReservationMainMock(today: Date): ReservationDog[] {
   ];
 }
 
-export { createReservationMainMock };
+const SHARED_HISTORY: TicketHistory[] = [
+  {
+    id: 'release',
+    occurredAt: '2026-11-25T09:00:00',
+    kind: HISTORY_KIND.release,
+    count: null,
+    remainingCount: null,
+    detailOn: null,
+    isVoided: false,
+  },
+  {
+    id: 'hold',
+    occurredAt: '2026-10-26T10:00:00',
+    kind: HISTORY_KIND.hold,
+    count: null,
+    remainingCount: null,
+    detailOn: '2026-11-25',
+    isVoided: false,
+  },
+  {
+    id: 'cancel',
+    occurredAt: '2026-10-13T15:00:00',
+    kind: HISTORY_KIND.cancel,
+    count: null,
+    remainingCount: 8,
+    detailOn: null,
+    isVoided: false,
+  },
+  {
+    id: 'voided-use',
+    occurredAt: '2026-10-13T10:00:00',
+    kind: HISTORY_KIND.use,
+    count: null,
+    remainingCount: 7,
+    detailOn: '2026-10-30',
+    isVoided: true,
+  },
+  {
+    id: 'use-september',
+    occurredAt: '2026-09-01T10:00:00',
+    kind: HISTORY_KIND.use,
+    count: null,
+    remainingCount: 8,
+    detailOn: '2026-09-12',
+    isVoided: false,
+  },
+  {
+    id: 'use-august',
+    occurredAt: '2026-08-23T10:00:00',
+    kind: HISTORY_KIND.use,
+    count: null,
+    remainingCount: 9,
+    detailOn: '2026-08-31',
+    isVoided: false,
+  },
+  {
+    id: 'charge',
+    occurredAt: '2026-08-01T09:00:00',
+    kind: HISTORY_KIND.charge,
+    count: 10,
+    remainingCount: 10,
+    detailOn: '2026-08-01',
+    isVoided: false,
+  },
+];
+
+const TICKET_HISTORY: Record<string, TicketHistory[]> = {
+  'soon-pass': [
+    {
+      id: 'extend-active',
+      occurredAt: '2026-11-25T12:00:00',
+      kind: HISTORY_KIND.extend,
+      count: null,
+      remainingCount: null,
+      detailOn: '2027-12-31',
+      isVoided: false,
+    },
+    ...SHARED_HISTORY,
+  ],
+  'period-pass': [
+    {
+      id: 'extend-expired',
+      occurredAt: '2027-01-03T10:00:00',
+      kind: HISTORY_KIND.extend,
+      count: null,
+      remainingCount: null,
+      detailOn: '2027-01-31',
+      isVoided: false,
+    },
+    ...SHARED_HISTORY,
+  ],
+};
+
+function findTicketHistory(ticketId: string) {
+  return TICKET_HISTORY[ticketId] ?? null;
+}
+
+export { createReservationMainMock, findTicketHistory };

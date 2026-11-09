@@ -363,6 +363,10 @@ const route = {
     tickets: {
       /** 보호자 이용권 관리 */
       root: '/reservation/tickets',
+      detail: {
+        /** 보호자 이용권 상세 */
+        root: '/reservation/tickets/[ticketId]',
+      },
     },
   },
 };
