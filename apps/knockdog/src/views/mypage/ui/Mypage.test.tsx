@@ -135,3 +135,44 @@ describe('마이페이지 `내 정보` 진입 항목', () => {
     expect(await screen.findByRole('button', { name: /유치원 연결 내역/ })).toBeTruthy();
   });
 });
+
+describe('마이페이지 반려견 프로필 영역', () => {
+  beforeEach(async () => {
+    const { useUserStore } = await import('@entities/user');
+    useUserStore.setState({ user: { userId: '1', nickname: '보호자' } } as never);
+  });
+
+  afterEach(() => {
+    cleanup();
+    push.mockReset();
+    petListState.pets = [];
+  });
+
+  test('등록한 강아지가 없으면 강아지 추가 안내가 보이고 마리수·대표 강아지 변경 영역은 보이지 않는다', async () => {
+    petListState.pets = [];
+
+    renderMypage();
+
+    expect(await screen.findByRole('button', { name: /강아지 추가하기/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /대표 강아지 변경/ })).toBeNull();
+    expect(screen.queryByText(/마리/)).toBeNull();
+  });
+
+  test('`대표 강아지 변경`을 누르면 대표 강아지 선택 바텀시트가 열린다', async () => {
+    petListState.pets = [
+      { id: '1', name: '초코', breed: '푸들', birthYear: 2022, isRepresentative: true },
+    ];
+
+    renderMypage();
+    await userEvent.click(await screen.findByRole('button', { name: /대표 강아지 변경/ }));
+
+    expect(await screen.findByRole('dialog', { name: '대표 강아지 선택' })).toBeTruthy();
+  });
+
+  test('원장으로 등록하지 않은 사용자에게는 `원장으로 전환` 줄이 보이지 않는다', async () => {
+    renderMypage();
+    await screen.findByRole('button', { name: /유치원 연결 내역/ });
+
+    expect(screen.queryByRole('button', { name: /원장으로 전환/ })).toBeNull();
+  });
+});
