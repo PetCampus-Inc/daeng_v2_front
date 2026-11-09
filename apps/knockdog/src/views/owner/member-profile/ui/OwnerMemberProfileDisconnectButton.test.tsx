@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OverlayProvider } from 'overlay-kit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,13 +13,18 @@ const apiMock = vi.hoisted(() => ({
   postDisconnectOwnerMember: vi.fn(),
 }));
 
+const uiMock = vi.hoisted(() => ({
+  navigateToTab: vi.fn(),
+  toast: vi.fn(),
+}));
+
 vi.mock('@entities/owner-member/api/ownerMember', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/owner-member/api/ownerMember')>()),
   ...apiMock,
 }));
 vi.mock('@shared/lib/bridge', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@shared/lib/bridge')>()),
-  useTabNavigation: () => ({ navigateToTab: vi.fn() }),
+  useTabNavigation: () => ({ navigateToTab: uiMock.navigateToTab }),
   useNativeBackToClose: () => undefined,
 }));
 // 바텀시트 라이브러리(vaul)는 React 18로 빌드돼 테스트 환경(React 19)과 충돌한다. 시트 내부 동작은 라이브러리 책임이라 가짜 시트로 바꾼다.
@@ -56,7 +61,7 @@ vi.mock('@shared/ui/bottom-sheet', async () => {
   };
 });
 vi.mock('@shared/lib/analytics', () => ({ trackConnectionStatus: vi.fn() }));
-vi.mock('@shared/ui/toast', () => ({ toast: vi.fn() }));
+vi.mock('@shared/ui/toast', () => ({ toast: uiMock.toast }));
 vi.mock('@features/role-conversion', () => ({
   useOwnerRole: () => ({ kindergarten: { name: '모모네 유치원' } }),
 }));
@@ -143,5 +148,39 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
     await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
 
     expect(await screen.findByRole('alertdialog')).toBeTruthy();
+  });
+});
+
+describe('해제 확인 모달에서 연결을 해제한다', () => {
+  beforeEach(() => {
+    apiMock.getOwnerMembers.mockResolvedValue(MEMBERS_RESPONSE);
+    apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it('`닫기`를 누르면 모달이 닫히고 연결이 해제되지 않은 채 원생 프로필이 남는다', async () => {
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await userEvent.click(await screen.findByRole('button', { name: '닫기' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
+    expect(uiMock.navigateToTab).not.toHaveBeenCalled();
+  });
+
+  it('`해제하기`가 성공하면 구성원 목록으로 이동하고 해제한 원생 이름이 들어간 토스트가 보인다', async () => {
+    apiMock.postDisconnectOwnerMember.mockResolvedValue({ data: {} });
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await userEvent.click(await screen.findByRole('button', { name: '해제하기' }));
+
+    await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
+    expect(uiMock.toast).toHaveBeenCalledWith(expect.objectContaining({ nativeTitle: expect.stringContaining('콩이') }));
   });
 });

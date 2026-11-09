@@ -56,20 +56,10 @@ function useOwnerMemberProfileDisconnect({
   );
 
   const showSuccessToast = () => {
-    toast({
-      type: 'success',
-      nativeTitle: `${dogName}${content.disconnectSuccessToastSuffix}`,
-      titleParts: [
-        { text: dogName, accent: true },
-        { text: content.disconnectSuccessToastSuffix },
-      ],
-      title: (
-        <>
-          <span className='text-text-accent'>{dogName}</span>
-          <span className='text-text-primary-inverse'>{content.disconnectSuccessToastSuffix}</span>
-        </>
-      ),
-    });
+    // 성공 토스트는 이름에 강조색을 쓰지 않는다 (Figma `36:16665`)
+    const successTitle = `${dogName}${content.disconnectSuccessToastSuffix}`;
+
+    toast({ type: 'success', title: successTitle, nativeTitle: successTitle });
   };
 
   const showFailToast = () => {
