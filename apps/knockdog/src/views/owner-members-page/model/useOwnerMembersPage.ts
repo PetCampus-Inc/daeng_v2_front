@@ -21,12 +21,22 @@ function resolveInitialTab(value: string | null): OwnerMembersTab {
   return value === OWNER_MEMBERS_TAB.pending ? OWNER_MEMBERS_TAB.pending : OWNER_MEMBERS_TAB.registered;
 }
 
+/** 주소의 `filter` 값으로 처음 고를 칩을 정한다. 알림에서는 `expiring`으로 들어온다 */
+function resolveInitialFilter(value: string | null): OwnerMembersFilter {
+  if (value?.toLowerCase() === 'expiring') return 'EXPIRING';
+  if (value?.toLowerCase() === 'expired') return 'EXPIRED';
+
+  return 'ALL';
+}
+
 function useOwnerMembersPage() {
   const searchParams = useSearchParams();
   const [selectedTab, setSelectedTab] = useState<OwnerMembersTab>(() =>
     resolveInitialTab(searchParams.get(OWNER_MEMBERS_TAB_QUERY_KEY))
   );
-  const [selectedFilter, setSelectedFilter] = useState<OwnerMembersFilter>('ALL');
+  const [selectedFilter, setSelectedFilter] = useState<OwnerMembersFilter>(() =>
+    resolveInitialFilter(searchParams.get('filter'))
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved } = useOwnerRole();
