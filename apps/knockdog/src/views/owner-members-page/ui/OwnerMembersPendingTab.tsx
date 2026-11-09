@@ -51,7 +51,7 @@ interface ApprovalActionsProps {
 
 function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActionsProps) {
   return (
-    <div className='gap-x2 flex shrink-0 items-center'>
+    <div data-testid='owner-members-pending-actions' className='gap-x2 flex shrink-0 items-center'>
       <ActionButton
         type='button'
         variant='secondaryLine'
@@ -67,6 +67,7 @@ function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActi
         variant='secondaryFill'
         size='medium'
         className='w-[57px]'
+        data-testid='owner-members-approve-button'
         disabled={disabled}
         onClick={() => onApprove(member)}
       >
@@ -207,7 +208,7 @@ function OwnerMembersPendingTab() {
       </div>
 
       <AlertDialog open={approvedMember !== null} onOpenChange={(open) => !open && setApprovedMember(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent data-testid='owner-members-approved-dialog'>
           <AlertDialogHeader>
             <AlertDialogTitle>원생 승인을 완료했어요</AlertDialogTitle>
             <AlertDialogDescription>
@@ -216,7 +217,9 @@ function OwnerMembersPendingTab() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={handleOpenTicketCharge}>이용권 충전하기</AlertDialogAction>
+            <AlertDialogAction data-testid='owner-members-approved-charge' onClick={handleOpenTicketCharge}>
+              이용권 충전하기
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
