@@ -7,6 +7,7 @@ import { ActionButton, RsvDateTime, RsvMonthlyCalendar, RsvTimetable } from '@kn
 
 import { RESERVATION_TIME_COPY } from '@views/guardian-reservation-page/config/guardianReservationTime';
 import { createReservationMainMock } from '@views/guardian-reservation-page/config/guardianReservationMainMock';
+import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import { toDateKey } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import {
   canContinueReserve,
@@ -20,9 +21,16 @@ import {
   splitScheduleSlots,
   type ScheduleSlot,
 } from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
+import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
+import {
+  clearReserveDraft,
+  readReserveDraft,
+  saveReserveDraft,
+} from '@views/guardian-reservation-page/model/reserveDraft';
 
 import { Header } from '@widgets/Header';
 
+import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
 function slotState(slot: ScheduleSlot, selectedMinutes: number | null) {
@@ -45,25 +53,33 @@ function GuardianReservationTimePage() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
   const ticketId = searchParams.get('ticketId') ?? '';
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const now = useMemo(() => new Date(), []);
   const dogs = useMemo(() => createReservationMainMock(now), [now]);
+  const visits = useBookedVisits();
+  const draft = readReserveDraft(dogId, ticketId);
+  const restoredDate = draft ? dateFromKey(draft.dateKey) : null;
   const dog = dogs.find((item) => item.id === dogId);
   const ticket = dog?.tickets.find((item) => item.id === ticketId);
   const placeName = dog?.kindergarten?.name ?? '';
   const upcomingOn = dog?.upcoming?.startsAt.slice(0, 10) ?? null;
-  const reservedKeys = new Set(reservedDateKeys(now, upcomingOn));
+  const bookedDays = visits.filter((visit) => visit.dogId === dogId).map((visit) => visit.startsAt.slice(0, 10));
+  const reservedKeys = new Set([...reservedDateKeys(now, upcomingOn), ...bookedDays]);
   const reservedDates = [...reservedKeys].map(dateFromKey);
-  const [month, setMonth] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null);
+  const [month, setMonth] = useState(() => {
+    const base = restoredDate ?? now;
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+  const [selectedDate, setSelectedDate] = useState<Date | null>(restoredDate);
+  const [selectedMinutes, setSelectedMinutes] = useState<number | null>(draft?.minutes ?? null);
   const disabledDates = listDisabledDates(month, now, now, ticket?.endsOn ?? null);
   const isReservedDay = selectedDate ? reservedKeys.has(toDateKey(selectedDate)) : false;
   const slots = selectedDate ? splitScheduleSlots(listScheduleSlots(selectedDate, now, isReservedDay)) : null;
   const canContinue = canContinueReserve(selectedDate != null, selectedMinutes != null);
 
   const handleBack = () => {
+    clearReserveDraft();
     back()
       .then((wentBack) => {
         if (wentBack) return;
@@ -78,6 +94,23 @@ function GuardianReservationTimePage() {
   const handleSelectDate = (date: Date) => {
     setSelectedDate(date);
     setSelectedMinutes(null);
+    saveReserveDraft({ dogId, ticketId, dateKey: toDateKey(date), minutes: null });
+  };
+
+  const handleSelectMinutes = (minutes: number) => {
+    setSelectedMinutes(minutes);
+    if (!selectedDate) return;
+    saveReserveDraft({ dogId, ticketId, dateKey: toDateKey(selectedDate), minutes });
+  };
+
+  const handleNext = () => {
+    if (!canContinue || !selectedDate || selectedMinutes == null || !dogId || !ticketId) return;
+    const dateKey = toDateKey(selectedDate);
+    saveReserveDraft({ dogId, ticketId, dateKey, minutes: selectedMinutes });
+    push({
+      pathname: route.reservation.confirm.root,
+      query: { dogId, ticketId, date: dateKey, minutes: String(selectedMinutes) },
+    }).catch(() => undefined);
   };
 
   return (
@@ -94,7 +127,11 @@ function GuardianReservationTimePage() {
           <div className='bg-fill-primary-50 px-x4 py-x3 gap-x3 flex items-center'>
             <p className='body2-regular text-text-secondary shrink-0'>{copy.selectedLabel}</p>
             <p className='body2-semibold text-text-primary truncate'>
-              {formatSelectedPass(placeName, ticket.totalCount, ticket.remainingCount)}
+              {formatSelectedPass(
+                placeName,
+                ticket.totalCount,
+                remainingAfterUses(ticket.remainingCount, countTicketUses(visits, ticket.id))
+              )}
             </p>
           </div>
         ) : null}
@@ -115,8 +152,14 @@ function GuardianReservationTimePage() {
 
         {slots ? (
           <div className='px-x4 py-x5 gap-x6 flex flex-col'>
-            <RsvTimetable period={copy.morning} slots={toTimetableSlots(slots.morning, selectedMinutes, setSelectedMinutes)} />
-            <RsvTimetable period={copy.afternoon} slots={toTimetableSlots(slots.afternoon, selectedMinutes, setSelectedMinutes)} />
+            <RsvTimetable
+              period={copy.morning}
+              slots={toTimetableSlots(slots.morning, selectedMinutes, handleSelectMinutes)}
+            />
+            <RsvTimetable
+              period={copy.afternoon}
+              slots={toTimetableSlots(slots.afternoon, selectedMinutes, handleSelectMinutes)}
+            />
           </div>
         ) : null}
       </div>
@@ -131,7 +174,14 @@ function GuardianReservationTimePage() {
           </RsvDateTime>
         </div>
         {isReservedDay ? <p className='caption1-regular text-error'>{copy.reservedNotice}</p> : null}
-        <ActionButton type='button' variant='primaryFill' size='large' className='body1-bold' disabled={!canContinue}>
+        <ActionButton
+          type='button'
+          variant='primaryFill'
+          size='large'
+          className='body1-bold'
+          disabled={!canContinue}
+          onClick={handleNext}
+        >
           {copy.next}
         </ActionButton>
       </div>

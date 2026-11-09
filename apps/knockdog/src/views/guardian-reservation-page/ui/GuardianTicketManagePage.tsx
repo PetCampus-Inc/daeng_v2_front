@@ -15,7 +15,9 @@ import {
   type ReservationTicket,
   type TicketSectionId,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import { visibleTickets } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
+import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
 import { useHiddenTicketIds } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
@@ -42,6 +44,7 @@ function GuardianTicketManagePage() {
   const today = useMemo(() => new Date(), []);
   const dogs = useMemo(() => createReservationMainMock(today), [today]);
   const hiddenIds = useHiddenTicketIds();
+  const visits = useBookedVisits();
   const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];
   const sections = dog ? groupManageTickets(visibleTickets(dog.tickets, hiddenIds)) : [];
 
@@ -74,18 +77,22 @@ function GuardianTicketManagePage() {
         <Header.Title>이용권 관리</Header.Title>
       </Header>
 
-      <div className='px-x4 py-x5 gap-x7 pb-[calc(var(--bottom-bar-height)+20px)] webview:pb-x5 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain'>
+      <div className='px-x4 py-x5 gap-x7 webview:pb-x5 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-[calc(var(--bottom-bar-height)+20px)]'>
         {sections.map((section) => (
           <section key={section.id} className='gap-x2_5 flex flex-col'>
             <h2 className='body2-bold text-text-secondary'>{SECTION_LABEL[section.id]}</h2>
             {section.tickets.map((ticket) => {
-              const copy = formatManageTicket(ticket);
-              const badge = ticket.status === TICKET_STATUS.active ? getTicketBadge(ticket.endsOn, today) : null;
+              const shown = {
+                ...ticket,
+                remainingCount: remainingAfterUses(ticket.remainingCount, countTicketUses(visits, ticket.id)),
+              };
+              const copy = formatManageTicket(shown);
+              const badge = shown.status === TICKET_STATUS.active ? getTicketBadge(shown.endsOn, today) : null;
 
               return (
                 <MembershipCard
                   key={ticket.id}
-                  state={toCardState(ticket.status)}
+                  state={toCardState(shown.status)}
                   onClick={() => handleOpenDetail(ticket.id)}
                   title={ticket.name}
                   periodLead={copy.periodLead}

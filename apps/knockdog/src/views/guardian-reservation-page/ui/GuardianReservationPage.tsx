@@ -18,9 +18,16 @@ import {
   RESERVE_STEP,
   resolveReservationEmpty,
   resolveReserveStep,
+  toDateTimeKey,
   type ReservationDog,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import {
+  countTicketUses,
+  pickUpcoming,
+  remainingAfterUses,
+} from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import { visibleTickets } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
+import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
 import { useHiddenTicketIds } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
 
 import { route } from '@shared/constants/route';
@@ -30,7 +37,7 @@ const PROFILE_SURFACE = 'bg-bg-0 rounded-b-[24px] shadow-[0_11px_24px_rgba(235,2
 
 function ReservationEmptySchedule() {
   return (
-    <div className='radius-r3 flex w-full items-center justify-center bg-[linear-gradient(-87deg,var(--color-primitive-orange-400)_12%,var(--color-primitive-orange-500)_93%)] px-x4 py-x5'>
+    <div className='radius-r3 px-x4 py-x5 flex w-full items-center justify-center bg-[linear-gradient(-87deg,var(--color-primitive-orange-400)_12%,var(--color-primitive-orange-500)_93%)]'>
       <p className='body1-bold text-text-primary-inverse'>아직 예정된 등원 일정이 없어요</p>
     </div>
   );
@@ -49,13 +56,7 @@ function ReservationTicketManageRow({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ReservationDogList({
-  dogs,
-  onSelect,
-}: {
-  dogs: ReservationDog[];
-  onSelect: (dogId: string) => void;
-}) {
+function ReservationDogList({ dogs, onSelect }: { dogs: ReservationDog[]; onSelect: (dogId: string) => void }) {
   return (
     <div className='bg-bg-0 absolute inset-x-0 top-full z-20 flex flex-col overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
       {dogs.map((dog) => (
@@ -80,10 +81,13 @@ function GuardianReservationPage() {
   const [selectedDogId, setSelectedDogId] = useState(dogs[0]?.id ?? '');
   const [isDogListOpen, setIsDogListOpen] = useState(false);
   const hiddenIds = useHiddenTicketIds();
+  const visits = useBookedVisits();
   const selectedDog = dogs.find((dog) => dog.id === selectedDogId) ?? dogs[0];
   const usableTickets = selectedDog ? listUsableTickets(visibleTickets(selectedDog.tickets, hiddenIds)) : [];
+  const dogVisits = selectedDog ? visits.filter((visit) => visit.dogId === selectedDog.id) : [];
+  const upcoming = selectedDog ? pickUpcoming(selectedDog.upcoming, dogVisits, toDateTimeKey(today)) : null;
   const emptyKind = selectedDog
-    ? resolveReservationEmpty(selectedDog.link, Boolean(selectedDog.upcoming), usableTickets.length)
+    ? resolveReservationEmpty(selectedDog.link, Boolean(upcoming), usableTickets.length)
     : null;
 
   const handleToggleDogList = () => {
@@ -156,11 +160,8 @@ function GuardianReservationPage() {
         <div className='px-x4 py-x8 gap-x9 flex flex-col'>
           <section className='gap-x2_5 flex flex-col'>
             <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
-            {selectedDog.upcoming ? (
-              <UpcomingRsvCard
-                title={formatReservationWhen(selectedDog.upcoming.startsAt)}
-                place={selectedDog.upcoming.placeName}
-              />
+            {upcoming ? (
+              <UpcomingRsvCard title={formatReservationWhen(upcoming.startsAt)} place={upcoming.placeName} />
             ) : (
               <ReservationEmptySchedule />
             )}
@@ -179,7 +180,7 @@ function GuardianReservationPage() {
                     key={ticket.id}
                     state='reservation'
                     title={`${ticket.totalCount}회권`}
-                    remainingCount={ticket.remainingCount}
+                    remainingCount={remainingAfterUses(ticket.remainingCount, countTicketUses(visits, ticket.id))}
                     period={formatTicketPeriod(ticket.endsOn)}
                     badge={<MembershipCardStatusBadge status={badge.status}>{badge.label}</MembershipCardStatusBadge>}
                     onReserve={() => handleReserve(ticket.id)}

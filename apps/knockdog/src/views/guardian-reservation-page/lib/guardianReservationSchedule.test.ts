@@ -5,6 +5,7 @@ import {
   formatReserveClock,
   formatReserveDay,
   formatSelectedPass,
+  isSlotBookable,
   listDisabledDates,
   listScheduleSlots,
 } from './guardianReservationSchedule';
@@ -38,6 +39,19 @@ describe('listDisabledDates', () => {
     expect(disabled).not.toContain(13);
     expect(disabled).toContain(14);
     expect(disabled).toContain(9);
+  });
+});
+
+describe('isSlotBookable', () => {
+  it('지난 시간, 정원 마감, 휴무, 만료 다음 날은 확정할 수 없다', () => {
+    expect(isSlotBookable(new Date(2026, 9, 8), 17 * 60, now, '2026-10-13')).toBe(true);
+    expect(isSlotBookable(now, 11 * 60, now, '2026-10-13')).toBe(true);
+    expect(isSlotBookable(now, 10 * 60 + 30, now, null)).toBe(false);
+    expect(isSlotBookable(now, 7 * 60, now, null)).toBe(false);
+    expect(isSlotBookable(new Date(2026, 9, 11), 17 * 60, now, null)).toBe(false);
+    expect(isSlotBookable(new Date(2026, 9, 9), 17 * 60, now, null)).toBe(false);
+    expect(isSlotBookable(new Date(2026, 9, 14), 17 * 60, now, '2026-10-13')).toBe(false);
+    expect(isSlotBookable(new Date(2026, 9, 4), 17 * 60, now, null)).toBe(false);
   });
 });
 

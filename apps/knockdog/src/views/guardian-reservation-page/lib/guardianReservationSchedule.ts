@@ -85,6 +85,17 @@ function isSlotDisabled(date: Date, minutes: number, now: Date) {
   return FULL_MINUTES.has(minutes) || isSlotPast(date, minutes, now);
 }
 
+function isKnownSlot(minutes: number) {
+  return SLOT_MINUTES.some((slot) => slot === minutes);
+}
+
+function isSlotBookable(date: Date, minutes: number, now: Date, endsOn: string | null) {
+  if (!isKnownSlot(minutes)) return false;
+  if (isPastDay(date, now) || isClosedDay(date) || isAfterExpiry(date, endsOn)) return false;
+  if (toDateKey(date) === fullDayKey(now)) return false;
+  return !isSlotDisabled(date, minutes, now);
+}
+
 function hasOpenSlot(date: Date, now: Date) {
   return SLOT_MINUTES.some((minutes) => !isSlotDisabled(date, minutes, now));
 }
@@ -170,6 +181,7 @@ export {
   formatReserveDay,
   formatSelectedPass,
   fullDayKey,
+  isSlotBookable,
   listDisabledDates,
   listScheduleSlots,
   reservedDateKeys,

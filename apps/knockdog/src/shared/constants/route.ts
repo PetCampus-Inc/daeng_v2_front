@@ -368,6 +368,10 @@ const route = {
       /** 보호자 예약. 날짜와 시간 선택 */
       root: '/reservation/time',
     },
+    confirm: {
+      /** 보호자 예약. 예약 정보 확인 */
+      root: '/reservation/confirm',
+    },
     tickets: {
       /** 보호자 이용권 관리 */
       root: '/reservation/tickets',
