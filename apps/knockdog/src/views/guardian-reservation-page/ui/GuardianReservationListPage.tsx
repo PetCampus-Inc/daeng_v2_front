@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { ChevronRight, Plus } from '@knockdog/icons';
@@ -12,24 +12,30 @@ import { createReservationMainMock } from '@views/guardian-reservation-page/conf
 import {
   LIST_STATUS,
   LIST_TAB,
-  createListSeeds,
+  collectReservations,
   formatListWhen,
   groupUpcoming,
   listPast,
   listUpcoming,
   pastListStatus,
   toVisitKey,
-  visibleReservations,
   type ListStatus,
   type ListTab,
   type PastRange,
   type ReservationSource,
 } from '@views/guardian-reservation-page/lib/guardianReservationList';
-import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
+import {
+  takeCancelNotice,
+  useBookedVisits,
+  useCancelNotice,
+  useCancelledIds,
+} from '@views/guardian-reservation-page/model/bookedVisits';
 
 import { Header } from '@widgets/Header';
 
+import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { toast } from '@shared/ui/toast';
 
 const PAST_FILTERS = [
   { id: 'one', label: RESERVATION_LIST_COPY.oneMonth },
@@ -59,14 +65,36 @@ function ReservationBadge({ status }: { status: ListStatus }) {
   );
 }
 
-function UpcomingRow({ item }: { item: ReservationSource }) {
+function UpcomingRow({ item, onOpen }: { item: ReservationSource; onOpen: () => void }) {
   return (
-    <div className='border-line-200 radius-r3 bg-bg-0 py-x4 pl-x4 pr-x3 gap-x2 flex w-full items-center border border-solid'>
+    <button
+      type='button'
+      className='border-line-200 radius-r3 bg-bg-0 py-x4 pl-x4 pr-x3 gap-x2 flex w-full items-center border border-solid text-left'
+      onClick={onOpen}
+    >
       <p className='body1-medium text-text-primary px-x1 min-w-0 flex-1'>{formatListWhen(item.startsAt)}</p>
       <ReservationBadge status={LIST_STATUS.confirmed} />
       <ChevronRight className='text-text-tertiary size-4 shrink-0' />
-    </div>
+    </button>
   );
+}
+
+function showCancelToast(startsAt: string) {
+  const when = formatListWhen(startsAt);
+  const suffix = RESERVATION_LIST_COPY.cancelToastSuffix;
+  toast({
+    type: 'success',
+    shape: 'rounded',
+    position: 'bottom',
+    nativeTitle: `${when} ${suffix}`,
+    titleParts: [{ text: when, accent: true }, { text: ` ${suffix}` }],
+    title: (
+      <>
+        <span className='body1-bold text-text-accent whitespace-pre'>{`${when} `}</span>
+        <span className='body1-medium text-text-primary-inverse'>{suffix}</span>
+      </>
+    ),
+  });
 }
 
 function PastRow({ item }: { item: ReservationSource }) {
@@ -85,38 +113,19 @@ function GuardianReservationListPage() {
   const copy = RESERVATION_LIST_COPY;
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const now = useMemo(() => new Date(), []);
   const nowKey = toVisitKey(now);
   const dogs = useMemo(() => createReservationMainMock(now), [now]);
   const visits = useBookedVisits();
+  const cancelledIds = useCancelledIds();
+  const cancelNotice = useCancelNotice();
   const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];
   const activeDogId = dog?.id ?? '';
   const [tab, setTab] = useState<ListTab>(LIST_TAB.upcoming);
   const [pastRange, setPastRange] = useState<PastRange>('one');
-  const seeds = createListSeeds(activeDogId, now);
-  const booked = visits
-    .filter((visit) => visit.dogId === activeDogId)
-    .map((visit) => ({
-      id: visit.id,
-      dogId: visit.dogId,
-      startsAt: visit.startsAt,
-      status: LIST_STATUS.confirmed,
-      isCancelled: false,
-    }));
-  const current = dog?.upcoming
-    ? [
-        {
-          id: `upcoming-${activeDogId}`,
-          dogId: activeDogId,
-          startsAt: dog.upcoming.startsAt,
-          status: LIST_STATUS.confirmed,
-          isCancelled: false,
-        },
-      ]
-    : [];
-  const items = visibleReservations([...seeds, ...current, ...booked]);
+  const items = collectReservations(activeDogId, now, dog?.upcoming?.startsAt ?? null, visits, cancelledIds);
 
   const upcomingGroups = groupUpcoming(listUpcoming(items, nowKey));
   const pastItems = listPast(items, now, nowKey, pastRange);
@@ -132,6 +141,13 @@ function GuardianReservationListPage() {
   };
 
   useNativeBackHandler(handleBack);
+
+  useEffect(() => {
+    if (!cancelNotice) return;
+    const startsAt = takeCancelNotice();
+    if (!startsAt) return;
+    showCancelToast(startsAt);
+  }, [cancelNotice]);
 
   const handleTab = (value: string) => {
     setTab(value === LIST_TAB.past ? LIST_TAB.past : LIST_TAB.upcoming);
@@ -168,7 +184,16 @@ function GuardianReservationListPage() {
                   <h2 className='body1-bold text-text-primary px-x1_5'>{group.heading}</h2>
                   <div className='gap-x3 flex flex-col'>
                     {group.items.map((item) => (
-                      <UpcomingRow key={item.id} item={item} />
+                      <UpcomingRow
+                        key={item.id}
+                        item={item}
+                        onOpen={() => {
+                          push({
+                            pathname: route.reservation.detail.root,
+                            query: { dogId: activeDogId, reservationId: item.id },
+                          }).catch(() => undefined);
+                        }}
+                      />
                     ))}
                   </div>
                 </section>

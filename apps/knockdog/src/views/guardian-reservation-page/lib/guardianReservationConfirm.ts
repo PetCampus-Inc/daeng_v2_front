@@ -17,10 +17,12 @@ interface VisitWhen {
 interface DayVisit {
   dogId: string;
   startsAt: string;
+  isCancelled?: boolean;
 }
 
 interface TicketUse {
   ticketId: string;
+  isCancelled?: boolean;
 }
 
 function clipNote(value: string) {
@@ -70,11 +72,11 @@ function readReserveQuery(date: string | null, minutes: string | null) {
 }
 
 function isSameDayTaken(visits: readonly DayVisit[], dogId: string, dateKey: string) {
-  return visits.some((visit) => visit.dogId === dogId && visit.startsAt.slice(0, 10) === dateKey);
+  return visits.some((visit) => !visit.isCancelled && visit.dogId === dogId && visit.startsAt.slice(0, 10) === dateKey);
 }
 
 function countTicketUses(visits: readonly TicketUse[], ticketId: string) {
-  return visits.filter((visit) => visit.ticketId === ticketId).length;
+  return visits.filter((visit) => visit.ticketId === ticketId && !visit.isCancelled).length;
 }
 
 function resolveBooking(input: {

@@ -41,6 +41,7 @@ describe('이용권 차감', () => {
   it('같은 이용권의 확정만 사용 횟수로 센다', () => {
     const visits = [{ ticketId: 'soon-pass' }, { ticketId: 'active-pass' }, { ticketId: 'soon-pass' }];
     expect(countTicketUses(visits, 'soon-pass')).toBe(2);
+    expect(countTicketUses([...visits, { ticketId: 'soon-pass', isCancelled: true }], 'soon-pass')).toBe(2);
   });
 });
 
@@ -58,10 +59,11 @@ describe('예약 확정 판단', () => {
   });
 
   it('같은 강아지의 같은 날은 한 건만 잡는다', () => {
-    const visits = [{ dogId: 'chapchu', startsAt: '2026-10-08T17:00' }];
-    expect(isSameDayTaken(visits, 'chapchu', '2026-10-08')).toBe(true);
-    expect(isSameDayTaken(visits, 'chapchu', '2026-10-09')).toBe(false);
-    expect(isSameDayTaken(visits, 'kong', '2026-10-08')).toBe(false);
+    const visit = { dogId: 'chapchu', startsAt: '2026-10-08T17:00' };
+    expect(isSameDayTaken([visit], 'chapchu', '2026-10-08')).toBe(true);
+    expect(isSameDayTaken([visit], 'chapchu', '2026-10-09')).toBe(false);
+    expect(isSameDayTaken([visit], 'kong', '2026-10-08')).toBe(false);
+    expect(isSameDayTaken([{ ...visit, isCancelled: true }], 'chapchu', '2026-10-08')).toBe(false);
   });
 });
 

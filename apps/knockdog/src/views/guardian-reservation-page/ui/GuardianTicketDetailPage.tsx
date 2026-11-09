@@ -59,15 +59,28 @@ function GuardianTicketDetailPage() {
     ? { ...ticket, remainingCount: remainingAfterUses(ticket.remainingCount, countTicketUses(visits, ticket.id)) }
     : undefined;
   const isExpired = shownTicket?.status === TICKET_STATUS.expired;
-  const bookedHistory: TicketHistory[] = usedVisits.map((visit) => ({
-    id: visit.id,
-    occurredAt: visit.startsAt,
-    kind: HISTORY_KIND.use,
-    count: 1,
-    remainingCount: visit.remainingCount,
-    detailOn: visit.startsAt.slice(0, 10),
-    isVoided: false,
-  }));
+  const bookedHistory: TicketHistory[] = usedVisits.flatMap((visit) => {
+    const used: TicketHistory = {
+      id: visit.id,
+      occurredAt: visit.startsAt,
+      kind: HISTORY_KIND.use,
+      count: 1,
+      remainingCount: visit.remainingCount,
+      detailOn: visit.startsAt.slice(0, 10),
+      isVoided: visit.isCancelled,
+    };
+    if (!visit.isCancelled) return [used];
+    const cancelled: TicketHistory = {
+      id: `${visit.id}-cancel`,
+      occurredAt: visit.startsAt,
+      kind: HISTORY_KIND.cancel,
+      count: 1,
+      remainingCount: visit.remainingCount + 1,
+      detailOn: visit.startsAt.slice(0, 10),
+      isVoided: false,
+    };
+    return [cancelled, used];
+  });
   const history = ticket ? [...bookedHistory, ...(findTicketHistory(ticket.id) ?? [createChargeHistory(ticket)])] : [];
 
   const handleBack = () => {

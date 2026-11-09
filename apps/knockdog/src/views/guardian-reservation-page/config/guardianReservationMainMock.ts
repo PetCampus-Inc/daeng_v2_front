@@ -7,15 +7,13 @@ import {
   type ReservationDog,
   type ReservationKindergarten,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
-import {
-  HISTORY_KIND,
-  type TicketHistory,
-} from '@views/guardian-reservation-page/lib/guardianTicketHistory';
+import { HISTORY_KIND, type TicketHistory } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
 
 const MOMO_KINDERGARTEN: ReservationKindergarten = {
   placeId: 'momo',
   name: '모모네 유치원',
   address: '서울특별시 강남구 논현로 123길 37',
+  phone: '02-1234-5678',
 };
 
 function createReservationMainMock(today: Date): ReservationDog[] {

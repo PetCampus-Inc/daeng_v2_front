@@ -66,6 +66,7 @@ interface ReservationKindergarten {
   placeId: string;
   name: string;
   address: string;
+  phone: string;
 }
 
 interface ReservationDog {

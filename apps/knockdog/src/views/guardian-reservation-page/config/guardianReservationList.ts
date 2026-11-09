@@ -10,6 +10,7 @@ const RESERVATION_LIST_COPY = {
   sixMonths: '6개월',
   pastHint: '최근 6개월 이내 예약만 확인할 수 있어요.',
   newReservation: '새 예약하기',
+  cancelToastSuffix: '예약을 취소했어요',
 } as const;
 
 export { RESERVATION_LIST_COPY };

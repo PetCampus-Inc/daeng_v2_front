@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LIST_STATUS,
   PAST_RANGE,
+  collectReservations,
   createListSeeds,
   formatListWhen,
   formatMonthHeading,
@@ -23,6 +24,7 @@ function source(partial: Partial<ReservationSource> & Pick<ReservationSource, 'i
     dogId: 'chapchu',
     status: LIST_STATUS.confirmed,
     isCancelled: false,
+    note: '',
     ...partial,
   };
 }
@@ -81,5 +83,22 @@ describe('지난 예약', () => {
     expect(absent ? pastListStatus(absent) : '').toBe(LIST_STATUS.absent);
     expect(attended ? pastListStatus(attended) : '').toBe(LIST_STATUS.attended);
     expect(PAST_RANGE.six).toBe(6);
+  });
+
+  it('취소한 예약은 목록에서 빠지고 요청도 지운다', () => {
+    const visit = {
+      id: 'book-1',
+      dogId: 'chapchu',
+      startsAt: toVisitKey(new Date(2026, 10, 12, 9, 0)),
+      note: '픽업',
+      isCancelled: false,
+    };
+    const open = collectReservations('chapchu', now, null, [visit], []);
+    const cancelled = collectReservations('chapchu', now, null, [visit], ['book-1']);
+    const repeated = collectReservations('chapchu', now, null, [{ ...visit, isCancelled: true }], ['book-1']);
+
+    expect(open.find((item) => item.id === 'book-1')?.note).toBe('픽업');
+    expect(cancelled.some((item) => item.id === 'book-1')).toBe(false);
+    expect(repeated.some((item) => item.id === 'book-1')).toBe(false);
   });
 });

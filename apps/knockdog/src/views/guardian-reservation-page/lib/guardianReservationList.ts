@@ -27,6 +27,7 @@ interface ReservationSource {
   startsAt: string;
   status: ListStatus;
   isCancelled: boolean;
+  note: string;
 }
 
 interface ReservationGroup {
@@ -124,6 +125,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, 6, 9, 0),
       status: LIST_STATUS.confirmed,
       isCancelled: false,
+      note: '오늘은 오후 5시 반에 픽업하러 갈게요!',
     },
     {
       id: `${dogId}-later`,
@@ -131,6 +133,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, 35, 9, 0),
       status: LIST_STATUS.confirmed,
       isCancelled: false,
+      note: '',
     },
     {
       id: `${dogId}-cancelled`,
@@ -138,6 +141,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, 8, 10, 0),
       status: LIST_STATUS.confirmed,
       isCancelled: true,
+      note: '',
     },
     {
       id: `${dogId}-past-near`,
@@ -145,6 +149,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, -4, 9, 0),
       status: LIST_STATUS.attended,
       isCancelled: false,
+      note: '',
     },
     {
       id: `${dogId}-past-week`,
@@ -152,6 +157,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, -9, 9, 0),
       status: LIST_STATUS.attended,
       isCancelled: false,
+      note: '',
     },
     {
       id: `${dogId}-past-absent`,
@@ -159,6 +165,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, -15, 9, 0),
       status: LIST_STATUS.absent,
       isCancelled: false,
+      note: '',
     },
     {
       id: `${dogId}-past-older`,
@@ -166,6 +173,7 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, -40, 9, 0),
       status: LIST_STATUS.attended,
       isCancelled: false,
+      note: '',
     },
     {
       id: `${dogId}-past-old`,
@@ -173,14 +181,59 @@ function createListSeeds(dogId: string, today: Date): ReservationSource[] {
       startsAt: shiftDays(today, -120, 9, 0),
       status: LIST_STATUS.attended,
       isCancelled: false,
+      note: '',
     },
   ];
+}
+
+interface BookedReservation {
+  id: string;
+  dogId: string;
+  startsAt: string;
+  note: string;
+  isCancelled: boolean;
+}
+
+function collectReservations(
+  dogId: string,
+  now: Date,
+  upcomingStartsAt: string | null,
+  booked: readonly BookedReservation[],
+  cancelledIds: readonly string[]
+) {
+  const current: ReservationSource[] = upcomingStartsAt
+    ? [
+        {
+          id: `upcoming-${dogId}`,
+          dogId,
+          startsAt: upcomingStartsAt,
+          status: LIST_STATUS.confirmed,
+          isCancelled: false,
+          note: '',
+        },
+      ]
+    : [];
+  const fromBooked = booked
+    .filter((visit) => visit.dogId === dogId)
+    .map((visit) => ({
+      id: visit.id,
+      dogId: visit.dogId,
+      startsAt: visit.startsAt,
+      status: LIST_STATUS.confirmed,
+      isCancelled: visit.isCancelled,
+      note: visit.isCancelled ? '' : visit.note,
+    }));
+  const marked = [...createListSeeds(dogId, now), ...current, ...fromBooked].map((item) =>
+    item.isCancelled || cancelledIds.includes(item.id) ? { ...item, isCancelled: true, note: '' } : item
+  );
+  return visibleReservations(marked);
 }
 
 export {
   LIST_STATUS,
   LIST_TAB,
   PAST_RANGE,
+  collectReservations,
   createListSeeds,
   formatListWhen,
   formatMonthHeading,
@@ -191,4 +244,4 @@ export {
   toVisitKey,
   visibleReservations,
 };
-export type { ListStatus, ListTab, PastRange, ReservationGroup, ReservationSource };
+export type { BookedReservation, ListStatus, ListTab, PastRange, ReservationGroup, ReservationSource };
