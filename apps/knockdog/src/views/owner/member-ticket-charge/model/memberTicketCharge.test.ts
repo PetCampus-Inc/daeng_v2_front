@@ -8,6 +8,7 @@ import {
   chargePresetDetail,
   formatChargeDotDate,
   formatChargeSelectLabel,
+  toChargeTicketRequest,
 } from './memberTicketCharge';
 
 const start = new Date(2026, 9, 24);
@@ -39,6 +40,27 @@ describe('chargeCountError', () => {
 describe('chargePresetDetail', () => {
   it('횟수와 만료 없음을 카드 문구로 붙인다', () => {
     expect(chargePresetDetail(CHARGE_PRESETS[0]!)).toBe('10회 • 만료 없음');
+  });
+});
+
+describe('toChargeTicketRequest', () => {
+  it('만료 없음은 시작일, 이름, 횟수만 보낸다', () => {
+    expect(toChargeTicketRequest(start, '  정기권   10회  ', '10', { kind: 'none' })).toEqual({
+      startDate: '2026-10-24',
+      name: '정기권 10회',
+      chargeCount: 10,
+    });
+  });
+
+  it('개월과 일 단위를 서버 단위로 바꾼다', () => {
+    expect(toChargeTicketRequest(start, '정기권', '10', { kind: 'month', months: 3 })).toMatchObject({
+      validityValue: 3,
+      validityUnit: 'MONTH',
+    });
+    expect(toChargeTicketRequest(start, '정기권', '10', { kind: 'custom', amount: 14, unit: 'day' })).toMatchObject({
+      validityValue: 14,
+      validityUnit: 'DAY',
+    });
   });
 });
 

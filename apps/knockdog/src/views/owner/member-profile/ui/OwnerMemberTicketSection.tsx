@@ -3,12 +3,12 @@
 import { ChargeButton, TicketEmptyCard, TicketSectionLink, TicketSummaryCard } from '@knockdog/ui';
 
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
-import { MOCK_OWNER_MEMBER_TICKETS } from '@views/owner/member-profile/model/ownerMemberTicket';
 
-import { toOwnerMemberTicketView } from '@entities/owner-member';
+import { usePetTicketListQuery } from '@entities/owner-pet-ticket';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 interface OwnerMemberTicketSectionProps {
@@ -17,7 +17,8 @@ interface OwnerMemberTicketSectionProps {
 
 function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
   const { push, pushForResult } = useStackNavigation();
-  const tickets = MOCK_OWNER_MEMBER_TICKETS.map((ticket) => toOwnerMemberTicketView(ticket, new Date()));
+  const { data, isLoading, isError } = usePetTicketListQuery(petId);
+  const tickets = data?.tickets ?? [];
 
   const handleCharge = async () => {
     try {
@@ -53,7 +54,11 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
           }}
         />
       </div>
-      {tickets.length === 0 ? (
+      {isLoading ? (
+        <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+      ) : isError ? (
+        <p className='body2-regular text-text-secondary'>{ownerMemberProfileContent.ticketLoadErrorText}</p>
+      ) : tickets.length === 0 ? (
         <TicketEmptyCard />
       ) : (
         tickets.map((ticket) => (

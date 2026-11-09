@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 
 import {
   ActionButton,
@@ -20,6 +21,7 @@ import {
   formatChargeDotDate,
   isSameChargeDay,
   startOfChargeDay,
+  toChargeTicketRequest,
   type ChargeDuration,
   type ChargeMonth,
   type ChargePreset,
@@ -29,6 +31,8 @@ import { TicketChargeDateSheet } from '@views/owner/member-ticket-charge/ui/Tick
 import { TicketChargeLeaveDialog } from '@views/owner/member-ticket-charge/ui/TicketChargeLeaveDialog';
 import { TicketChargePresetSheet } from '@views/owner/member-ticket-charge/ui/TicketChargePresetSheet';
 import { Header } from '@widgets/Header';
+
+import { useChargePetTicketMutation } from '@entities/owner-pet-ticket';
 
 import { getCurrentTxId, useNativeBackHandler, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
@@ -54,9 +58,13 @@ function toChargeDuration(choice: DurationChoice, amountText: string, unit: Char
 
 function MemberTicketChargePage() {
   const content = memberTicketChargeContent;
+  const params = useParams<{ id: string }>();
+  const petId = params?.id ?? '';
   const { back } = useStackNavigation();
   const { send } = useNavigationResult<boolean>();
+  const chargeTicket = useChargePetTicketMutation(petId);
   const handleBackRef = useRef(() => {});
+  const chargeKeyRef = useRef<{ signature: string; idempotencyKey: string } | null>(null);
   const [today] = useState(() => startOfChargeDay(new Date()));
   const [startDate, setStartDate] = useState(today);
   const [draftDate, setDraftDate] = useState(today);
@@ -162,24 +170,39 @@ function MemberTicketChargePage() {
   };
 
   const handleCharge = () => {
-    if (!canSubmit || isSubmitting) return;
+    const body = toChargeTicketRequest(startDate, name, count, duration);
+    if (!body || !petId || !canSubmit || isSubmitting) return;
 
+    const signature = JSON.stringify(body);
+    const previous = chargeKeyRef.current;
+    const idempotencyKey = previous?.signature === signature ? previous.idempotencyKey : crypto.randomUUID();
+    chargeKeyRef.current = { signature, idempotencyKey };
     setIsSubmitting(true);
-    try {
-      if (getCurrentTxId()) send(true);
-      else showSuccessToast();
-    } catch {
-      setIsSubmitting(false);
-      showFailureToast();
-      return;
-    }
 
-    // popstate 안에서 바로 back() 하면 브라우저가 두 번째 이동을 버려서 가드만 빠진다
-    releaseAndLeave(() => {
-      requestAnimationFrame(() => {
-        void back();
-      });
-    });
+    chargeTicket.mutate(
+      { idempotencyKey, body },
+      {
+        onSuccess: () => {
+          try {
+            if (getCurrentTxId()) send(true);
+            else showSuccessToast();
+          } catch {
+            // 충전은 끝났고 화면 결과만 전달하지 못한 경우
+          }
+
+          // popstate 안에서 바로 back() 하면 브라우저가 두 번째 이동을 버려서 가드만 빠진다
+          releaseAndLeave(() => {
+            requestAnimationFrame(() => {
+              back().catch(() => undefined);
+            });
+          });
+        },
+        onError: () => {
+          setIsSubmitting(false);
+          showFailureToast();
+        },
+      }
+    );
   };
 
   return (

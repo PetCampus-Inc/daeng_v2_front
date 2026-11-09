@@ -1,3 +1,5 @@
+import type { PetTicketChargeRequest } from '@entities/owner-pet-ticket';
+
 const MONTH_PRESETS = [1, 3, 6, 12] as const;
 const CHARGE_COUNT_MIN = 1;
 const CHARGE_COUNT_MAX = 1000;
@@ -77,6 +79,38 @@ function chargePresetDetail(preset: ChargePreset) {
   return `${preset.count}회 • ${preset.duration.amount}${unitLabel}`;
 }
 
+function formatChargeApiDate(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** 등록 이용권은 화면 값으로 보내고, 템플릿 id는 템플릿 API를 붙인 뒤에 쓴다. */
+function toChargeTicketRequest(
+  start: Date,
+  name: string,
+  count: string,
+  duration: ChargeDuration | null
+): PetTicketChargeRequest | null {
+  if (!canChargeTicket(name, count, duration)) return null;
+
+  const request: PetTicketChargeRequest = {
+    startDate: formatChargeApiDate(start),
+    name: name.trim().replace(/\s+/g, ' '),
+    chargeCount: Number(count),
+  };
+
+  if (duration == null || duration.kind === 'none') return request;
+  if (duration.kind === 'month') return { ...request, validityValue: duration.months, validityUnit: 'MONTH' };
+  if (duration.amount < 1) return null;
+
+  return {
+    ...request,
+    validityValue: duration.amount,
+    validityUnit: duration.unit === 'day' ? 'DAY' : 'MONTH',
+  };
+}
+
 function canChargeTicket(name: string, count: string, duration: ChargeDuration | null) {
   const hasName = name.trim().length > 0;
   const hasCount = count !== '' && chargeCountError(count) === null;
@@ -98,4 +132,5 @@ export {
   formatChargeSelectLabel,
   isSameChargeDay,
   startOfChargeDay,
+  toChargeTicketRequest,
 };
