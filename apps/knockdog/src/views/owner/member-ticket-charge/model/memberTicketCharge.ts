@@ -70,6 +70,10 @@ function isChargeMonth(value: number): value is ChargeMonth {
   return MONTH_PRESETS.some((month) => month === value);
 }
 
+function canSelectChargePreset(preset: ChargePreset) {
+  return preset.duration.kind !== 'custom' || preset.duration.amount > 0;
+}
+
 function toChargePreset(template: OwnerPassTemplate): ChargePreset {
   if (template.duration.type === 'NONE') {
     return { id: template.id, name: template.name, count: template.chargeCount, duration: { kind: 'none' } };
@@ -136,6 +140,7 @@ export {
   MONTH_PRESETS,
   addChargeMonths,
   canChargeTicket,
+  canSelectChargePreset,
   chargeCountError,
   chargeEndDate,
   chargePresetDetail,

@@ -30,6 +30,20 @@ const response = {
   },
 };
 
+describe('parsePetTicketList', () => {
+  it('null 만료일은 유지하고 슬래시 날짜는 응답 오류로 본다', () => {
+    expect(parsePetTicketList(response).tickets[1]?.expiresOn).toBeNull();
+    expect(() =>
+      parsePetTicketList({
+        data: {
+          ...response.data,
+          tickets: [{ ...response.data.tickets[0], expiresOn: '2026/11/30' }],
+        },
+      })
+    ).toThrow();
+  });
+});
+
 describe('toPetTicketList', () => {
   it('Jackson 날짜 배열과 빠진 만료일도 목록으로 만든다', () => {
     const list = toPetTicketList(

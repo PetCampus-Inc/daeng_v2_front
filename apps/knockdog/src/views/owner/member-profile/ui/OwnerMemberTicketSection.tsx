@@ -17,8 +17,9 @@ interface OwnerMemberTicketSectionProps {
 
 function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
   const { push, pushForResult } = useStackNavigation();
-  const { data, isLoading, isError } = usePetTicketListQuery(petId);
+  const { data, isLoading, isLoadingError, isRefetchError } = usePetTicketListQuery(petId);
   const tickets = data?.tickets ?? [];
+  const showLoadError = isLoadingError || (!isLoading && data == null);
 
   const handleCharge = async () => {
     try {
@@ -56,33 +57,40 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
       </div>
       {isLoading ? (
         <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
-      ) : isError ? (
+      ) : showLoadError ? (
         <p className='body2-regular text-text-secondary'>{ownerMemberProfileContent.ticketLoadErrorText}</p>
-      ) : tickets.length === 0 ? (
-        <TicketEmptyCard
-          onAction={() => {
-            handleCharge().catch(() => undefined);
-          }}
-        />
       ) : (
-        tickets.map((ticket) => (
-          <TicketSummaryCard
-            key={ticket.id}
-            title={ticket.name}
-            status={ticket.status}
-            remainingCount={ticket.remainingCount}
-            totalCount={ticket.totalCount}
-            period={ticket.period}
-            remainingDays={ticket.remainingDays ?? undefined}
-            className='cursor-pointer'
-            onClick={() => {
-              const pathname = route.owner.members.detail.tickets.detail.root
-                .replace('[id]', petId)
-                .replace('[ticketId]', ticket.id);
-              push({ pathname }).catch(() => undefined);
-            }}
-          />
-        ))
+        <>
+          {isRefetchError ? (
+            <p className='body2-regular text-text-secondary'>{ownerMemberProfileContent.ticketLoadErrorText}</p>
+          ) : null}
+          {tickets.length === 0 ? (
+            <TicketEmptyCard
+              onAction={() => {
+                handleCharge().catch(() => undefined);
+              }}
+            />
+          ) : (
+            tickets.map((ticket) => (
+              <TicketSummaryCard
+                key={ticket.id}
+                title={ticket.name}
+                status={ticket.status}
+                remainingCount={ticket.remainingCount}
+                totalCount={ticket.totalCount}
+                period={ticket.period}
+                remainingDays={ticket.remainingDays ?? undefined}
+                className='cursor-pointer'
+                onClick={() => {
+                  const pathname = route.owner.members.detail.tickets.detail.root
+                    .replace('[id]', petId)
+                    .replace('[ticketId]', ticket.id);
+                  push({ pathname }).catch(() => undefined);
+                }}
+              />
+            ))
+          )}
+        </>
       )}
     </section>
   );

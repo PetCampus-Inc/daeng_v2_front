@@ -23,6 +23,7 @@ const memberTicketDetailContent = {
   historyTitle: '이용권 이력',
   historyErrorText: '이용권 이력을 불러오지 못했어요',
   loadErrorText: '이용권을 불러오지 못했어요',
+  openList: '이용권 목록',
   deleteLabel: '이용권 삭제',
   close: '닫기',
   deleteTitle: '이용권을 삭제할까요?',

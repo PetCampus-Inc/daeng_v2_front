@@ -15,13 +15,15 @@ const holdButtonTypeDtoSchema = z.enum(['HOLD', 'CANCEL_HOLD', 'DISABLED']);
 
 const idSchema = z.union([z.number().int(), z.string()]);
 
-const toDateKey = (value: string | number[] | null | undefined) => {
+const toDateKey = (value: string | number[] | null | undefined, ctx: z.RefinementCtx) => {
   if (typeof value === 'string') {
     const datePart = value.slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
+    ctx.addIssue({ code: 'custom', message: '날짜 형식이 올바르지 않아요' });
+    return z.NEVER;
   }
 
-  if (!Array.isArray(value) || value.length < 3) return null;
+  if (value == null || !Array.isArray(value) || value.length < 3) return null;
 
   const [year, month, day] = value;
   if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') return null;

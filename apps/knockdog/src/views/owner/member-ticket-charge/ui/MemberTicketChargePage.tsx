@@ -16,6 +16,7 @@ import { memberTicketChargeContent } from '@views/owner/member-ticket-charge/con
 import {
   MONTH_PRESETS,
   canChargeTicket,
+  canSelectChargePreset,
   chargeCountError,
   chargeEndDate,
   formatChargeDotDate,
@@ -112,6 +113,17 @@ function MemberTicketChargePage() {
   };
 
   const handleSelectPreset = (preset: ChargePreset) => {
+    if (!canSelectChargePreset(preset)) {
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        nativeTitle: content.preset.invalid,
+        title: content.preset.invalid,
+      });
+      return;
+    }
+
     setSelectedPreset(preset);
     setName(preset.name);
     setCount(String(preset.count));
@@ -187,17 +199,32 @@ function MemberTicketChargePage() {
       { idempotencyKey, body },
       {
         onSuccess: () => {
+          let hasShownSuccess = false;
           try {
             if (getCurrentTxId()) send(true);
-            else showSuccessToast();
+            else {
+              showSuccessToast();
+              hasShownSuccess = true;
+            }
           } catch {
             // 충전은 끝났고 화면 결과만 전달하지 못한 경우
           }
 
+          const stayAfterCharge = () => {
+            setIsSubmitting(false);
+            if (hasShownSuccess) return;
+            showSuccessToast();
+            hasShownSuccess = true;
+          };
+
           // popstate 안에서 바로 back() 하면 브라우저가 두 번째 이동을 버려서 가드만 빠진다
           releaseAndLeave(() => {
             requestAnimationFrame(() => {
-              back().catch(() => undefined);
+              back()
+                .then((wentBack) => {
+                  if (!wentBack) stayAfterCharge();
+                })
+                .catch(stayAfterCharge);
             });
           });
         },

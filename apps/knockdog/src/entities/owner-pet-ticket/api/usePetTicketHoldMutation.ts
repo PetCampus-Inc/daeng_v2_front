@@ -16,6 +16,7 @@ const usePetTicketHoldMutation = (petId: string, ticketId: string) => {
       const listKey = petTicketQueryKeys.byPet(petId);
       const detailKey = petTicketQueryKeys.detail(petId, ticketId);
       const historyKey = petTicketQueryKeys.history(petId, ticketId);
+      await queryClient.cancelQueries({ queryKey: detailKey, exact: true });
       queryClient.setQueryData(detailKey, detail);
       await queryClient.invalidateQueries({ queryKey: listKey, exact: true });
       await queryClient.invalidateQueries({ queryKey: historyKey });

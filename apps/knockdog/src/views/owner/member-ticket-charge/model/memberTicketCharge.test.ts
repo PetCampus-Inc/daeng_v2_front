@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canChargeTicket,
+  canSelectChargePreset,
   chargeCountError,
   chargeEndDate,
   chargePresetDetail,
@@ -50,6 +51,21 @@ describe('toChargePreset', () => {
     expect(
       toChargePreset({ id: '3', name: '14일권', chargeCount: 8, duration: { type: 'FIXED', value: 14, unit: 'DAY' } }).duration
     ).toEqual({ kind: 'custom', amount: 14, unit: 'day' });
+  });
+
+  it('0 이하 기간은 고르지 않고 만료 없음은 고른다', () => {
+    const emptyDay = toChargePreset({
+      id: '4',
+      name: '0일권',
+      chargeCount: 1,
+      duration: { type: 'FIXED', value: 0, unit: 'DAY' },
+    });
+    expect(canSelectChargePreset(emptyDay)).toBe(false);
+    expect(
+      canSelectChargePreset(
+        toChargePreset({ id: '5', name: '자유권', chargeCount: 10, duration: { type: 'NONE' } })
+      )
+    ).toBe(true);
   });
 });
 

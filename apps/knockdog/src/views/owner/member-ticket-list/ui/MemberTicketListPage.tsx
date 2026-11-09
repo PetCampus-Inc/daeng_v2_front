@@ -27,10 +27,11 @@ function MemberTicketListPage() {
   const params = useParams<{ id: string }>();
   const petId = params?.id ?? '';
   const { push } = useStackNavigation();
-  const { data, isLoading, isError } = usePetTicketListQuery(petId);
+  const { data, isLoading, isLoadingError, isRefetchError } = usePetTicketListQuery(petId);
   const [filter, setFilter] = useState<TicketListFilter>('all');
   const tickets = data?.tickets ?? [];
   const counts = data?.counts;
+  const showLoadError = isLoadingError || (!isLoading && data == null);
   const visibleTickets = filterTicketList(tickets, filter);
   const filterLabel = TICKET_LIST_FILTERS.find((item) => item.id === filter)?.label ?? '';
 
@@ -59,27 +60,37 @@ function MemberTicketListPage() {
 
       {isLoading ? (
         <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
-      ) : isError || !counts ? (
+      ) : showLoadError ? (
         <p className='body2-regular text-text-secondary py-10 text-center'>{content.errorText}</p>
       ) : tickets.length === 0 ? (
-        <MemberTicketListEmpty />
+        <>
+          {isRefetchError ? (
+            <p className='body2-regular text-text-secondary py-10 text-center'>{content.errorText}</p>
+          ) : null}
+          <MemberTicketListEmpty />
+        </>
       ) : (
         <>
-          <div className='bg-bg-0'>
-            <div className='scrollbar-hide flex gap-x1 overflow-x-auto px-5 py-3'>
-              {TICKET_LIST_FILTERS.map((item) => (
-                <StatusFilterChip
-                  key={item.id}
-                  selected={filter === item.id}
-                  className='shrink-0'
-                  onClick={() => setFilter(item.id)}
-                >
-                  {`${item.label} ${counts[item.id]}`}
-                </StatusFilterChip>
-              ))}
+          {isRefetchError ? (
+            <p className='body2-regular text-text-secondary bg-bg-0 px-5 pt-3 text-center'>{content.errorText}</p>
+          ) : null}
+          {counts ? (
+            <div className='bg-bg-0'>
+              <div className='scrollbar-hide flex gap-x1 overflow-x-auto px-5 py-3'>
+                {TICKET_LIST_FILTERS.map((item) => (
+                  <StatusFilterChip
+                    key={item.id}
+                    selected={filter === item.id}
+                    className='shrink-0'
+                    onClick={() => setFilter(item.id)}
+                  >
+                    {`${item.label} ${counts[item.id]}`}
+                  </StatusFilterChip>
+                ))}
+              </div>
+              <div className='bg-line-100 h-px w-full' />
             </div>
-            <div className='bg-line-100 h-px w-full' />
-          </div>
+          ) : null}
           <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4'>
             {visibleTickets.length === 0 ? (
               <p className='body1-bold text-text-primary py-10 text-center'>{content.emptyFilter(filterLabel)}</p>
