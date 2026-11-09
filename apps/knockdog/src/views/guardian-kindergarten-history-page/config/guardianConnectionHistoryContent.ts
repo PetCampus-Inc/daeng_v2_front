@@ -1,10 +1,16 @@
 const guardianConnectionHistoryContent = {
-  pageTitle: '유치원 연결 이력',
+  pageTitle: '유치원 연결 내역',
   titleSuffix: '다녔던 유치원들이에요',
   subtitle: '그동안의 소중한 기록을 모아봤어요',
   currentLabel: '현재',
   attendanceBadgePrefix: '등원',
   attendanceBadgeSuffix: '회',
+  petSelector: {
+    listLabel: '강아지 선택 목록',
+    closeLabel: '강아지 선택 닫기',
+  },
+  emptyTitle: '아직 연결된 유치원이 없어요',
+  emptyDescription: '다니는 유치원에 똑독을 알려보세요!',
   disconnectButtonLabel: '연결 해제',
   writeReviewButtonLabel: '리뷰 작성',
   disconnectDialog: {

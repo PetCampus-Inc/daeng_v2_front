@@ -9,10 +9,12 @@ import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { getSubjectParticle } from '@shared/utils';
 
 import { GuardianConnectionHistoryCard } from './GuardianConnectionHistoryCard';
+import { GuardianConnectionHistoryEmpty } from './GuardianConnectionHistoryEmpty';
+import { GuardianHistoryPetSelector } from './GuardianHistoryPetSelector';
 
 function GuardianKindergartenHistoryPage() {
   const content = guardianConnectionHistoryContent;
-  const { selectedPet } = useGuardianSelectedPet();
+  const { pets, selectedPet, hasNoPet, setSelectedPetId } = useGuardianSelectedPet();
   const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
 
   const petName = selectedPet?.name?.trim() || '강아지';
@@ -31,6 +33,10 @@ function GuardianKindergartenHistoryPage() {
         <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
       ) : (
         <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'>
+          {hasNoPet ? <GuardianConnectionHistoryEmpty /> : null}
+          {selectedPet ? (
+            <GuardianHistoryPetSelector pets={pets} selectedPet={selectedPet} onSelect={setSelectedPetId} />
+          ) : null}
           <div className='px-x4 flex flex-col gap-1 pt-5 pb-3'>
             <p className='h2-extrabold text-text-primary'>
               <span className='text-text-accent'>{petName}</span>
