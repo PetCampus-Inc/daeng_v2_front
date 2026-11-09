@@ -20,6 +20,8 @@ interface StudentTicketListItemProps extends ComponentProps<'div'> {
   ticketDetail?: ReactNode;
   /** `이용권명 | 잔여 정보`를 이미 하나로 만든 문구. 주면 ticketName·ticketDetail 대신 이것만 보여준다 */
   ticketSummary?: ReactNode;
+  /** 줄 오른쪽에 놓는 버튼 영역 (예: 거절·승인) */
+  action?: ReactNode;
 }
 
 function PawIcon(props: ComponentProps<'svg'>) {
@@ -126,6 +128,7 @@ function StudentTicketListItem({
   ticketName,
   ticketDetail,
   ticketSummary,
+  action,
   className,
   ...props
 }: StudentTicketListItemProps) {
@@ -164,6 +167,7 @@ function StudentTicketListItem({
           </span>
         ) : null}
       </span>
+      {action ? <div className='flex shrink-0 items-center self-center'>{action}</div> : null}
     </div>
   );
 }

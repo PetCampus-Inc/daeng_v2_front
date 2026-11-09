@@ -20,6 +20,12 @@ const mocks = vi.hoisted(() => ({
   postOwnerInvite: vi.fn(),
 }));
 
+/** `강아지수` 라벨과 숫자가 한 묶음으로 나란히 보이는지 확인한다 */
+const expectDogCountTag = (count: string) => {
+  const group = screen.getByText('강아지수').parentElement!;
+  expect(within(group).getByText(count)).toBeTruthy();
+};
+
 const createMember = (overrides: Record<string, unknown> = {}) => ({
   memberId: 'm1',
   petId: 1,
@@ -144,7 +150,7 @@ describe('신청 인원 표시', () => {
     fireEvent.click(await screen.findByRole('tab', { name: /신청/ }));
 
     expect(await screen.findByText('가가')).toBeTruthy();
-    expect(screen.getByText('강아지수 3')).toBeTruthy();
+    expectDogCountTag('3');
   });
 
   it('신청이 0건이면 태그가 숨겨지고 `신청된 원생이 없어요` / `QR코드를 통해 원생 신청을 받아보세요.`가 보인다', async () => {
@@ -223,7 +229,7 @@ describe('승인과 승인 완료 안내 모달', () => {
 
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     await waitFor(() => expect(listedDogNames()).toEqual(['가가', '다다']));
-    expect(screen.getByText('강아지수 2')).toBeTruthy();
+    expectDogCountTag('2');
     expect(screen.getByRole('tab', { name: '신청 2' })).toBeTruthy();
   });
 
@@ -277,7 +283,7 @@ describe('거절 확인 모달과 거절 완료 토스트', () => {
       expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: '원생 거절이 완료되었어요' }))
     );
     await waitFor(() => expect(listedDogNames()).toEqual(['가가', '다다']));
-    expect(screen.getByText('강아지수 2')).toBeTruthy();
+    expectDogCountTag('2');
   });
 
   it('마지막 남은 신청을 거절하면 신청 목록 빈 상태가 보인다', async () => {
