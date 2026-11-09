@@ -1,4 +1,5 @@
-import type { TicketHoldPlan } from '@views/owner/member-ticket-detail/model/memberTicketHold';import { TICKET_STATUS, type TicketStatus } from '@entities/owner-member';
+import type { TicketHoldPlan } from '@views/owner/member-ticket-detail/model/memberTicketHold';import type { PetTicketDetail } from '@entities/owner-pet-ticket';
+import { TICKET_STATUS, type TicketStatus } from '@entities/owner-member';
 
 interface TicketHistoryLine {
   id: string;
@@ -19,33 +20,29 @@ interface TicketDetail {
   remainingDays: number | null;
   history: TicketHistoryLine[];
   hold: TicketHoldPlan | null;
+  holdAction: 'hold' | 'cancel' | 'disabled';
 }
 
-/** 상세 시안. 이용권 API 전이라 어떤 카드로 들어와도 이 프레임을 보여 준다. */
-const MOCK_TICKET_DETAIL: TicketDetail = {
-  id: 'open',
-  name: '자유 10회권',
-  status: TICKET_STATUS.active,
-  remainingCount: 8,
-  totalCount: 10,
-  startsOn: '2026.09.01',
-  endsOn: '2026.12.04',
-  chargedOn: '2026.09.01',
-  remainingDays: 41,
-  hold: null,
-  history: [
-    { id: 'use-2', title: '사용(8회)', detail: '2026.11.01 예약', isCancelled: false },
-    { id: 'hold-end', title: '홀딩 해제', detail: '기간 ~ 2026.10.30', isCancelled: false },
-    { id: 'hold', title: '홀딩', detail: '기간 2026.09.30 ~ 2026.10.30', isCancelled: false },
-    { id: 'use-cancel', title: '사용(8회)', detail: '2026.09.10 예약취소', isCancelled: true },
-    { id: 'use-1', title: '사용(9회)', detail: '2026.09.01 예약', isCancelled: false },
-    { id: 'charge', title: '충전', detail: '2026.09.01', isCancelled: false },
-  ],
-};
+function toTicketDetail(ticket: PetTicketDetail): TicketDetail {
+  const statusBefore = ticket.status === TICKET_STATUS.onHold ? TICKET_STATUS.active : ticket.status;
 
-function findTicketDetail() {
-  return MOCK_TICKET_DETAIL;
+  return {
+    id: ticket.id,
+    name: ticket.name,
+    status: ticket.status,
+    remainingCount: ticket.remainingCount,
+    totalCount: ticket.totalCount,
+    startsOn: ticket.startsOn,
+    endsOn: ticket.endsOn,
+    chargedOn: ticket.chargedOn,
+    remainingDays: ticket.remainingDays,
+    history: [],
+    hold: ticket.hold
+      ? { startsOn: ticket.hold.startsOn, endsOn: ticket.hold.endsOn, statusBefore }
+      : null,
+    holdAction: ticket.holdAction,
+  };
 }
 
-export { findTicketDetail };
+export { toTicketDetail };
 export type { TicketDetail, TicketHistoryLine };

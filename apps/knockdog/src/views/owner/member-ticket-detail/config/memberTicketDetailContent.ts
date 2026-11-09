@@ -21,6 +21,7 @@ const memberTicketDetailContent = {
   expiryConfirm: '수정하기',
   expiryHint: (date: string) => `* 기존 만료일(${date}) 이후 날짜만 선택할 수 있어요.`,
   historyTitle: '이용권 이력',
+  loadErrorText: '이용권을 불러오지 못했어요',
   deleteLabel: '이용권 삭제',
   close: '닫기',
   deleteTitle: '이용권을 삭제할까요?',

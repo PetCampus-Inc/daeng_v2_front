@@ -1,9 +1,17 @@
-import { parseChargedPetTicket, parsePetTicketList, type PetTicketChargeRequest } from '../model/petTicket';import { api } from '@shared/api';
+import { parseChargedPetTicket, parsePetTicketDetail, parsePetTicketList, type PetTicketChargeRequest } from '../model/petTicket';import { api } from '@shared/api';
 
 /** `GET` - 원생 이용권 목록. 필터 없이 전체와 상태별 개수를 받는다. */
 const getPetTickets = async (petId: string) => {
   const response = await api.get(`owner/pets/${encodeURIComponent(petId)}/tickets`).json();
   return parsePetTicketList(response);
+};
+
+/** `GET` - 원생 이용권 상세. 이력은 별도 API다. */
+const getPetTicket = async (petId: string, ticketId: string) => {
+  const response = await api
+    .get(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)
+    .json();
+  return parsePetTicketDetail(response);
 };
 
 interface PostPetTicketParams {
@@ -24,5 +32,5 @@ const postPetTicket = async ({ petId, idempotencyKey, body }: PostPetTicketParam
   return parseChargedPetTicket(response);
 };
 
-export { getPetTickets, postPetTicket };
+export { getPetTicket, getPetTickets, postPetTicket };
 export type { PostPetTicketParams };
