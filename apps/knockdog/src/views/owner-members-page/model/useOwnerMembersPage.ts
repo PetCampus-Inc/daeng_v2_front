@@ -1,48 +1,20 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  OWNER_MEMBER_SEARCH_MAX_LENGTH,
-  type OwnerMemberSortType,
-} from '@views/owner-members-page/config/ownerMembersContent';
-import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
+import { OWNER_MEMBER_SEARCH_MAX_LENGTH } from '@views/owner-members-page/config/ownerMembersContent';
 import type { OwnerMembersEmptyStateType } from '@views/owner-members-page/config/ownerMembersEmptyContent';
+import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { useOwnerRole } from '@features/role-conversion';
 
 import {
   OWNER_MEMBERS_TAB,
   OWNER_MEMBERS_TAB_QUERY_KEY,
-  useOwnerMemberDisconnectMutation,
   useOwnerMembersQuery,
-  useOwnerPendingMembersQuery,
-  type OwnerMember,
+  type OwnerMembersFilter,
   type OwnerMembersTab,
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
-import { trackConnectionStatus } from '@shared/lib/analytics';
 
 const SEARCH_ALLOWED_PATTERN = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z ]/g;
-
-function normalizeSearchText(value: string) {
-  return value.replace(/\s/g, '').toLowerCase();
-}
-
-function sortOwnerMembers(members: OwnerMember[], sortType: OwnerMemberSortType) {
-  return [...members].sort((currentMember, nextMember) => {
-    if (sortType === 'recentAttendance') {
-      const attendanceDifference =
-        (nextMember.lastAttendanceAt ?? Number.NEGATIVE_INFINITY) -
-        (currentMember.lastAttendanceAt ?? Number.NEGATIVE_INFINITY);
-
-      if (attendanceDifference) return attendanceDifference;
-    }
-
-    return (
-      currentMember.dogName.localeCompare(nextMember.dogName, 'ko') ||
-      currentMember.guardianName.localeCompare(nextMember.guardianName, 'ko') ||
-      currentMember.id.localeCompare(nextMember.id)
-    );
-  });
-}
 
 /** 주소의 `tab` 값으로 처음 열 탭을 정한다. 알 수 없는 값은 등록 원생 탭 */
 function resolveInitialTab(value: string | null): OwnerMembersTab {
@@ -54,43 +26,27 @@ function useOwnerMembersPage() {
   const [selectedTab, setSelectedTab] = useState<OwnerMembersTab>(() =>
     resolveInitialTab(searchParams.get(OWNER_MEMBERS_TAB_QUERY_KEY))
   );
-  const [sortType, setSortType] = useState<OwnerMemberSortType>('name');
+  const [selectedFilter, setSelectedFilter] = useState<OwnerMembersFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const userId = useUserStore((state) => state.user?.userId);
   const { isOwner, isResolved } = useOwnerRole();
+  const keyword = searchQuery.trim();
   const ownerMembersQuery = useOwnerMembersQuery({
     userId,
+    keyword,
+    filter: selectedFilter,
     enabled: isResolved && isOwner,
   });
-  const pendingMembersQuery = useOwnerPendingMembersQuery({
-    userId,
-    enabled: isResolved && isOwner,
-  });
-  const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
 
-  const ownerMembers = useMemo(() => {
-    const query = normalizeSearchText(searchQuery);
-    const members = ownerMembersQuery.data?.members ?? [];
-
-    const filteredMembers = !query
-      ? members
-      : members.filter(
-          (member) =>
-            normalizeSearchText(member.dogName).includes(query) ||
-            normalizeSearchText(member.guardianName).includes(query)
-        );
-
-    return sortOwnerMembers(filteredMembers, sortType);
-  }, [ownerMembersQuery.data?.members, searchQuery, sortType]);
+  const ownerMembers = ownerMembersQuery.data?.members ?? [];
+  const counts = ownerMembersQuery.data?.counts ?? { all: 0, expiring: 0, expired: 0 };
   const isLoadFailed = hasListLoadFailed(ownerMembersQuery);
   const isInitialPending =
     !isLoadFailed && (!isResolved || ownerMembersQuery.isLoading || !ownerMembersQuery.isFetchedAfterMount);
-  const totalMemberCount = ownerMembersQuery.data?.totalMemberCount ?? 0;
-  const hasSearchQuery = normalizeSearchText(searchQuery).length > 0;
   const emptyStateType: OwnerMembersEmptyStateType | null = (() => {
     if (isInitialPending) return null;
-    if (totalMemberCount === 0) return 'emptyStudents';
-    if (hasSearchQuery && ownerMembers.length === 0) return 'emptySearchResult';
+    if (counts.all === 0) return 'emptyStudents';
+    if (keyword && ownerMembers.length === 0) return 'emptySearchResult';
 
     return null;
   })();
@@ -99,28 +55,17 @@ function useOwnerMembersPage() {
     setSearchQuery(value.replace(SEARCH_ALLOWED_PATTERN, '').slice(0, OWNER_MEMBER_SEARCH_MAX_LENGTH));
   };
 
-  const handleDisconnectMember = async (memberId: string) => {
-    await disconnectMutation.mutateAsync(memberId);
-    trackConnectionStatus({
-      status: 'disconnect',
-      initiated_by: 'owner',
-      school_pet_membership_id: memberId,
-      reason: 'manual',
-    });
-  };
-
   return {
     selectedTab,
     setSelectedTab,
-    pendingCount: pendingMembersQuery.data?.totalMemberCount ?? 0,
+    selectedFilter,
+    setSelectedFilter,
+    pendingCount: ownerMembersQuery.data?.pendingCount ?? 0,
+    counts,
     ownerMembers,
-    totalMemberCount,
     emptyStateType,
     searchQuery,
     handleSearchQueryChange,
-    handleDisconnectMember,
-    sortType,
-    setSortType,
     isLoading: isInitialPending,
     isError: isLoadFailed,
     isRetrying: ownerMembersQuery.isFetching,

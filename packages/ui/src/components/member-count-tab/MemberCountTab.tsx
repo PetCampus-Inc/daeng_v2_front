@@ -57,6 +57,8 @@ function MemberCountTab({
             )}
           >
             {item.label}
+            {/* 화면 낭독기가 `신청 5`처럼 띄어 읽도록 공백을 둔다 (flex라 화면에는 보이지 않음) */}
+            {item.count != null ? ' ' : null}
             {item.count != null ? (
               <span className='caption1-semibold text-text-accent bg-primitive-orange-100 radius-r2 inline-flex h-[22px] min-w-[26px] items-center justify-center px-x2 py-x1'>
                 {item.count}

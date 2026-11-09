@@ -5,9 +5,8 @@ import {
   ownerMembersEmptyContent,
   type OwnerMembersEmptyStateType,
 } from '@views/owner-members-page/config/ownerMembersEmptyContent';
-import { OwnerMemberMoreMenu } from '@views/owner-members-page/ui/OwnerMemberMoreMenu';
 
-import { OwnerMemberCard } from '@features/owner-members';
+import { StudentTicketListItem } from '@knockdog/ui';
 
 import type { OwnerMember } from '@entities/owner-member';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -23,7 +22,6 @@ interface OwnerMembersListProps {
   isError: boolean;
   isRetrying: boolean;
   onRetry: () => void;
-  onDisconnectMember: (memberId: string) => Promise<void>;
 }
 
 function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembersEmptyStateType }) {
@@ -44,16 +42,22 @@ function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembe
   );
 }
 
-function OwnerMembersList({
-  members,
-  emptyStateType,
-  isLoading,
-  isError,
-  isRetrying,
-  onRetry,
-  onDisconnectMember,
-}: OwnerMembersListProps) {
+function OwnerMembersList({ members, emptyStateType, isLoading, isError, isRetrying, onRetry }: OwnerMembersListProps) {
   const { push } = useStackNavigation();
+
+  /** 원생 상세 프로필 화면으로 이동한다. 열 수 없으면 토스트로 알린다 */
+  const handleOpenMember = async (member: OwnerMember) => {
+    if (!member.petId) {
+      toast({ nativeTitle: '원생 프로필을 열 수 없어요', title: '원생 프로필을 열 수 없어요' });
+      return;
+    }
+
+    try {
+      await push({ pathname: route.owner.members.detail.root.replace('[id]', member.petId) });
+    } catch {
+      toast({ nativeTitle: '원생 프로필을 열 수 없어요', title: '원생 프로필을 열 수 없어요' });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -72,39 +76,25 @@ function OwnerMembersList({
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'>
       {members.map((member) => (
-        <OwnerMemberCard
+        <StudentTicketListItem
           key={member.id}
-          member={member}
-          onClick={async () => {
-            if (!member.petId) {
-              toast({
-                nativeTitle: '원생 프로필을 열 수 없어요',
-                title: '원생 프로필을 열 수 없어요',
-              });
-              return;
-            }
-
-            try {
-              await push({
-                pathname: route.owner.members.detail.root.replace('[id]', member.petId),
-              });
-            } catch (error) {
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('[OwnerMembersList] failed to open member profile', {
-                  memberId: member.id,
-                  petId: member.petId,
-                  error,
-                });
-              }
-              toast({
-                nativeTitle: '원생 프로필을 열 수 없어요',
-                title: '원생 프로필을 열 수 없어요',
-              });
+          role='button'
+          tabIndex={0}
+          className='cursor-pointer'
+          name={member.dogName}
+          guardian={member.guardianLine}
+          sex={member.gender}
+          avatarSrc={member.profileImageUrl}
+          avatarAlt={`${member.dogName} 프로필 이미지`}
+          status={member.statusBadge}
+          ticketSummary={member.ticketSummary}
+          onClick={() => void handleOpenMember(member)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              void handleOpenMember(member);
             }
           }}
-          rightAddon={
-            <OwnerMemberMoreMenu memberId={member.id} dogName={member.dogName} onDisconnect={onDisconnectMember} />
-          }
         />
       ))}
     </div>

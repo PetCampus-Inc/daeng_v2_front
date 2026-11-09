@@ -1,35 +1,36 @@
 'use client';
 
-import { MemberCountTab } from '@knockdog/ui';
+import { MemberCountTab, StatusFilterChip } from '@knockdog/ui';
 import { useOwnerMembersPage } from '@views/owner-members-page/model/useOwnerMembersPage';
 import { OwnerMembersHero } from '@views/owner-members-page/ui/OwnerMembersHero';
-import { OwnerMembersPendingTab } from '@views/owner-members-page/ui/OwnerMembersPendingTab';
 import { OwnerMembersList } from '@views/owner-members-page/ui/OwnerMembersList';
-import { OwnerMembersSummaryBar } from '@views/owner-members-page/ui/OwnerMembersSummaryBar';
+import { OwnerMembersPendingTab } from '@views/owner-members-page/ui/OwnerMembersPendingTab';
 
-import { OWNER_MEMBERS_TAB, type OwnerMembersTab } from '@entities/owner-member';
+import { OWNER_MEMBERS_TAB, type OwnerMembersFilter, type OwnerMembersTab } from '@entities/owner-member';
 
 function OwnerMembersPage() {
   const {
     selectedTab,
     setSelectedTab,
+    selectedFilter,
+    setSelectedFilter,
     pendingCount,
+    counts,
     ownerMembers,
-    totalMemberCount,
     emptyStateType,
     searchQuery,
     handleSearchQueryChange,
-    handleDisconnectMember,
-    sortType,
-    setSortType,
     isLoading,
     isError,
     isRetrying,
     handleRetry,
   } = useOwnerMembersPage();
-  const hasMembers = !isLoading && !isError && totalMemberCount > 0;
   const isPendingTab = selectedTab === OWNER_MEMBERS_TAB.pending;
-  const isSearchResult = searchQuery.trim().length > 0;
+  const filterChips: { filter: OwnerMembersFilter; label: string; count: number }[] = [
+    { filter: 'ALL', label: '전체', count: counts.all },
+    { filter: 'EXPIRING', label: '만료예정', count: counts.expiring },
+    { filter: 'EXPIRED', label: '만료', count: counts.expired },
+  ];
 
   return (
     <div
@@ -59,13 +60,18 @@ function OwnerMembersPage() {
           <OwnerMembersPendingTab />
         ) : (
           <div className='flex min-h-0 w-full flex-1 flex-col'>
-            {hasMembers && (
-              <OwnerMembersSummaryBar
-                memberCount={isSearchResult ? ownerMembers.length : totalMemberCount}
-                isSearchResult={isSearchResult}
-                sortType={sortType}
-                onSortTypeChange={setSortType}
-              />
+            {!isLoading && !isError && counts.all > 0 && (
+              <div className='gap-x2 px-x4 py-x3 flex shrink-0 items-center'>
+                {filterChips.map(({ filter, label, count }) => (
+                  <StatusFilterChip
+                    key={filter}
+                    selected={selectedFilter === filter}
+                    onClick={() => setSelectedFilter(filter)}
+                  >
+                    {`${label} ${count}`}
+                  </StatusFilterChip>
+                ))}
+              </div>
             )}
 
             <OwnerMembersList
@@ -75,7 +81,6 @@ function OwnerMembersPage() {
               isError={isError}
               isRetrying={isRetrying}
               onRetry={handleRetry}
-              onDisconnectMember={handleDisconnectMember}
             />
           </div>
         )}

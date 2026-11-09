@@ -1,4 +1,5 @@
 export { getOwnerMembers, getOwnerPendingMembers } from './api/ownerMember';
+export type { GetOwnerMembersParams, OwnerMembersFilter } from './api/ownerMember';
 export {
   useOwnerMemberApprovalMutation,
   useOwnerMemberDisconnectMutation,
@@ -24,6 +25,8 @@ export {
 } from './model/ownerMember';
 export type {
   OwnerMember,
+  OwnerMemberCounts,
+  OwnerMemberGender,
   OwnerMemberDto,
   OwnerMembersResponse,
   OwnerMembersDto,
