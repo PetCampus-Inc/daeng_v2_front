@@ -52,7 +52,7 @@ describe('PlatformRichContent', () => {
     };
     renderDom(<PlatformRichContent value={body} />);
 
-    const buttons = screen.getAllByRole('button', { name: '사진 크게 보기' });
+    const buttons = screen.getAllByRole('button', { name: /크게 보기$/ });
     expect(buttons).toHaveLength(2);
     fireEvent.click(buttons.at(1)!);
 
@@ -65,6 +65,50 @@ describe('PlatformRichContent', () => {
     expect(viewer).toContain('data-images="https://e.com/1.jpg,https://e.com/2.jpg"');
     expect(viewer).toContain('data-index="1"');
     expect(viewer).toContain('data-native="true"');
+  });
+
+  test('이미지가 여러 장이면 버튼 이름에 순서를 넣어 구분하고, 한 장이면 순서를 넣지 않는다', () => {
+    const image = (url: string) => ({ type: 'img', children: [{ text: '' }], imageId: 1, url });
+    const { unmount } = renderDom(
+      <PlatformRichContent
+        value={{ schemaVersion: 1, blocks: [image('https://e.com/1.jpg'), image('https://e.com/2.jpg')] }}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: '사진 1/2 크게 보기' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '사진 2/2 크게 보기' })).toBeTruthy();
+    unmount();
+
+    renderDom(<PlatformRichContent value={{ schemaVersion: 1, blocks: [image('https://e.com/1.jpg')] }} />);
+    expect(screen.getByRole('button', { name: '사진 크게 보기' })).toBeTruthy();
+  });
+
+  test('children이 없고 text만 있는 노드도 글자를 잃지 않고 해당 블록 모양으로 그린다', () => {
+    const html = renderToStaticMarkup(
+      <PlatformRichContent
+        value={{
+          schemaVersion: 1,
+          blocks: [
+            { type: 'paragraph', text: '평문 문단' },
+            { type: 'h2', text: '제목 노드', bold: true },
+            { type: 'text', text: '타입 text 노드' },
+          ],
+        }}
+      />
+    );
+
+    expect(html).toContain('평문 문단');
+    expect(html).toContain('타입 text 노드');
+    expect(html).toMatch(/<h2[^>]*><span[^>]*>제목 노드<\/span><\/h2>/);
+    expect(html).toContain('font-bold');
+  });
+
+  test('children 안의 문자열도 글자를 잃지 않는다', () => {
+    const html = render([{ type: 'paragraph', children: ['문자열 자식', { text: ' 그리고 노드' }] }]);
+
+    expect(html).toContain('문자열 자식');
+    expect(html).toContain(' 그리고 노드');
+    expect(html.match(/<p /g)).toHaveLength(1);
   });
 
   test('사용할 수 없는 이미지와 http가 아닌 URL은 그리지 않는다', () => {

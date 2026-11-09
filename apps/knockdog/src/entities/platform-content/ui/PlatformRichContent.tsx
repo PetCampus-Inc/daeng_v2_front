@@ -90,6 +90,7 @@ function renderChildren(children: unknown, key: string, ctx: RenderContext): Rea
 
   return children.map((child, index) => {
     const childKey = `${key}-${index}`;
+    if (typeof child === 'string') return <span key={childKey}>{child}</span>;
     if (!isRecord(child)) return null;
     if (typeof child.text === 'string' && !('children' in child)) return renderLeaf(child, childKey);
     return renderElement(child, childKey, ctx);
@@ -102,13 +103,16 @@ function renderElement(node: RichNode, key: string, ctx: RenderContext): ReactNo
   if (IMAGE_TYPES.includes(type)) {
     if (!isShowableImage(node)) return null;
     const url = node.url;
+    const index = Math.max(ctx.images.indexOf(url), 0);
+    // 이미지가 여러 장이면 화면 리더가 구분할 수 있도록 순서를 이름에 넣는다.
+    const label = ctx.images.length > 1 ? `사진 ${index + 1}/${ctx.images.length} 크게 보기` : '사진 크게 보기';
     return (
       <button
         key={key}
         type='button'
-        aria-label='사진 크게 보기'
+        aria-label={label}
         className='block w-full'
-        onClick={() => openImageViewer(ctx.images, Math.max(ctx.images.indexOf(url), 0))}
+        onClick={() => openImageViewer(ctx.images, index)}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- 서명된 S3 URL은 next/image 호스트 설정 밖 */}
         <img src={url} alt='' loading='lazy' className='h-auto w-full' />
@@ -118,7 +122,13 @@ function renderElement(node: RichNode, key: string, ctx: RenderContext): ReactNo
 
   if (type === 'hr') return <hr key={key} className='border-line-200 my-4' />;
 
-  const children = renderChildren(node.children, key, ctx);
+  // children 없이 text만 있는 노드({type:'paragraph', text:'…'})도 글자를 잃지 않는다.
+  const children =
+    'children' in node
+      ? renderChildren(node.children, key, ctx)
+      : typeof node.text === 'string'
+        ? renderLeaf(node, `${key}-text`)
+        : null;
 
   if (LINK_TYPES.includes(type)) {
     return isHttpUrl(node.url) ? (
