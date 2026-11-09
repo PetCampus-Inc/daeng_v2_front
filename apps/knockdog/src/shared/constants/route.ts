@@ -360,6 +360,10 @@ const route = {
   reservation: {
     /** 보호자 예약 탭 */
     root: '/reservation',
+    schedule: {
+      /** 보호자 예약. 원장이 등원 가능 시간을 아직 안 연 안내 */
+      root: '/reservation/schedule',
+    },
     tickets: {
       /** 보호자 이용권 관리 */
       root: '/reservation/tickets',

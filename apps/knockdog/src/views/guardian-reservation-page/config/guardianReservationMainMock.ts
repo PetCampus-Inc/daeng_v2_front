@@ -107,7 +107,18 @@ function createReservationMainMock(today: Date): ReservationDog[] {
       link: KINDERGARTEN_LINK.connected,
       kindergarten: MOMO_KINDERGARTEN,
       upcoming: { startsAt: upcomingAt, placeName: '왈왈컹컹 유치원' },
-      tickets: [],
+      tickets: [
+        {
+          id: 'kong-pass',
+          name: '모모네 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 8,
+          startsOn: '2026-09-01',
+          endsOn: later,
+          chargedAt: '2026-09-01T00:00:00',
+          status: TICKET_STATUS.active,
+        },
+      ],
     },
     {
       id: 'dubu',

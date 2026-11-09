@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { RESERVATION_HOURS_COPY } from '../config/guardianReservationHours';
 import {
   RESERVE_STEP,
   TICKET_BADGE_STATUS,
@@ -143,5 +144,14 @@ describe('resolveReserveStep', () => {
   it('등원 가능 시간이 없으면 안내 단계, 있으면 날짜 선택이다', () => {
     expect(resolveReserveStep(false)).toBe(RESERVE_STEP.hoursUnset);
     expect(resolveReserveStep(true)).toBe(RESERVE_STEP.dateTime);
+  });
+});
+
+describe('RESERVATION_HOURS_COPY', () => {
+  it('원장이 시간을 열지 않은 안내 문구를 유지한다', () => {
+    expect(RESERVATION_HOURS_COPY.title).toBe('날짜와 시간 선택');
+    expect(RESERVATION_HOURS_COPY.heading).toBe('아직 예약 가능한 날이 열리지 않았어요');
+    expect(RESERVATION_HOURS_COPY.body).toBe('궁금한 사항은 유치원에 문의해 주세요.');
+    expect(RESERVATION_HOURS_COPY.action).toBe('예약하기');
   });
 });

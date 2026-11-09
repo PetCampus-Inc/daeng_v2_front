@@ -15,7 +15,9 @@ import {
   formatTicketPeriod,
   getTicketBadge,
   listUsableTickets,
+  RESERVE_STEP,
   resolveReservationEmpty,
+  resolveReserveStep,
   type ReservationDog,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import { visibleTickets } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
@@ -102,7 +104,14 @@ function GuardianReservationPage() {
     push({ pathname: route.reservation.tickets.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
   };
 
+  const handleReserve = () => {
+    if (!selectedDog || resolveReserveStep(selectedDog.hasAttendanceHours) !== RESERVE_STEP.hoursUnset) return;
+    push({ pathname: route.reservation.schedule.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
+  };
+
   if (!selectedDog) return null;
+
+  const canReserve = resolveReserveStep(selectedDog.hasAttendanceHours) === RESERVE_STEP.hoursUnset;
 
   return (
     <main className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
@@ -173,6 +182,7 @@ function GuardianReservationPage() {
                     remainingCount={ticket.remainingCount}
                     period={formatTicketPeriod(ticket.endsOn)}
                     badge={<MembershipCardStatusBadge status={badge.status}>{badge.label}</MembershipCardStatusBadge>}
+                    onReserve={canReserve ? handleReserve : undefined}
                   />
                 );
               })
