@@ -100,6 +100,11 @@ const petTicketDetailResponseSchema = z.object({
   data: petTicketDetailDtoSchema,
 });
 
+const voidResponseSchema = z.object({
+  status: z.number().int(),
+  message: z.string(),
+});
+
 type PetTicketSummaryDto = z.infer<typeof petTicketSummaryDtoSchema>;
 type PetTicketListDto = z.infer<typeof petTicketListDtoSchema>;
 type PetTicketDetailDto = z.infer<typeof petTicketDetailDtoSchema>;
@@ -149,6 +154,10 @@ interface PetTicketDetail {
   holdAction: PetTicketHoldAction;
 }
 
+interface PetTicketExpiryRequest {
+  expiresOn: string;
+}
+
 interface PetTicketChargeRequest {
   startDate: string;
   name: string;
@@ -162,6 +171,8 @@ const parsePetTicketList = (response: unknown) => petTicketListResponseSchema.pa
 const parsePetTicketDetail = (response: unknown) => petTicketDetailResponseSchema.parse(response).data;
 
 const parseChargedPetTicket = (response: unknown) => petTicketChargeResponseSchema.parse(response).data;
+
+const parseVoidResponse = (response: unknown) => voidResponseSchema.parse(response);
 
 const formatDotDate = (value: string) => {
   const [year = '', month = '', day = ''] = value.split('-');
@@ -229,5 +240,12 @@ const toPetTicketList = (dto: PetTicketListDto): PetTicketList => ({
   tickets: dto.tickets.map(toPetTicket),
 });
 
-export { parseChargedPetTicket, parsePetTicketDetail, parsePetTicketList, toPetTicketDetail, toPetTicketList };
-export type { PetTicket, PetTicketChargeRequest, PetTicketDetail, PetTicketList, PetTicketListDto };
+export { parseChargedPetTicket, parsePetTicketDetail, parsePetTicketList, parseVoidResponse, toPetTicketDetail, toPetTicketList };
+export type {
+  PetTicket,
+  PetTicketChargeRequest,
+  PetTicketDetail,
+  PetTicketExpiryRequest,
+  PetTicketList,
+  PetTicketListDto,
+};

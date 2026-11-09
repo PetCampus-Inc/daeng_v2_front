@@ -28,6 +28,8 @@ const memberTicketDetailContent = {
   deleteDescription: '한 번 삭제한 이용권은 다시 불러올 수 없어요',
   deleteConfirm: '삭제하기',
   deleteSuccess: '이용권을 삭제했어요',
+  deleteFailure: '이용권을 삭제하지 못했어요',
+  expiryFailure: '만료일을 수정하지 못했어요',
   cancelHoldTitle: '홀딩을 취소할까요?',
   cancelHoldDescription: '오늘부터 이용권을 다시 쓸 수 있어요',
   cancelHoldConfirm: '취소하기',

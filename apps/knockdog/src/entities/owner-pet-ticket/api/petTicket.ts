@@ -1,4 +1,11 @@
-import { parseChargedPetTicket, parsePetTicketDetail, parsePetTicketList, type PetTicketChargeRequest } from '../model/petTicket';import { api } from '@shared/api';
+import {
+  parseChargedPetTicket,
+  parsePetTicketDetail,
+  parsePetTicketList,
+  parseVoidResponse,
+  type PetTicketChargeRequest,
+  type PetTicketExpiryRequest,
+} from '../model/petTicket';import { api } from '@shared/api';
 
 /** `GET` - 원생 이용권 목록. 필터 없이 전체와 상태별 개수를 받는다. */
 const getPetTickets = async (petId: string) => {
@@ -8,9 +15,7 @@ const getPetTickets = async (petId: string) => {
 
 /** `GET` - 원생 이용권 상세. 이력은 별도 API다. */
 const getPetTicket = async (petId: string, ticketId: string) => {
-  const response = await api
-    .get(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)
-    .json();
+  const response = await api.get(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`).json();
   return parsePetTicketDetail(response);
 };
 
@@ -32,5 +37,27 @@ const postPetTicket = async ({ petId, idempotencyKey, body }: PostPetTicketParam
   return parseChargedPetTicket(response);
 };
 
-export { getPetTicket, getPetTickets, postPetTicket };
-export type { PostPetTicketParams };
+/** `DELETE` - 원생 이용권 삭제. */
+const deletePetTicket = async (petId: string, ticketId: string) => {
+  const response = await api
+    .delete(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)
+    .json();
+  return parseVoidResponse(response);
+};
+
+interface PatchPetTicketExpiryParams {
+  petId: string;
+  ticketId: string;
+  body: PetTicketExpiryRequest;
+}
+
+/** `PATCH` - 원생 이용권 만료일 수정. 응답은 갱신된 상세다. */
+const patchPetTicketExpiry = async ({ petId, ticketId, body }: PatchPetTicketExpiryParams) => {
+  const response = await api
+    .patch(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}/expiry`, { json: body })
+    .json();
+  return parsePetTicketDetail(response);
+};
+
+export { deletePetTicket, getPetTicket, getPetTickets, patchPetTicketExpiry, postPetTicket };
+export type { PatchPetTicketExpiryParams, PostPetTicketParams };
