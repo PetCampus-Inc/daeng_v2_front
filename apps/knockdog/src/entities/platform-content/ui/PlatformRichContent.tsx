@@ -3,7 +3,19 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { overlay } from 'overlay-kit';
 
-import { useOpenExternalLink } from '@shared/lib/bridge';
+import {
+  collectImageUrls,
+  FONT_SIZES,
+  IMAGE_TYPES,
+  isHttpUrl,
+  isRecord,
+  isShowableImage,
+  LINK_TYPES,
+  type RichNode,
+} from '../lib/richContent';
+
+import { RichContentLink } from './RichContentLink';
+
 import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
 
 /**
@@ -14,7 +26,6 @@ import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
  * 모르는 블록은 하위 내용만 보여 주고, 문자열 본문은 문단으로 그린다.
  */
 
-type Node = Record<string, unknown>;
 interface RenderContext {
   /** 약관처럼 작은 글자(body2)로 그리는지 */
   compact: boolean;
@@ -22,10 +33,6 @@ interface RenderContext {
   images: string[];
 }
 
-const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28];
-const IMAGE_TYPES = ['img', 'image'];
-const LINK_TYPES = ['a', 'link'];
-const CONTAINER_KEYS = ['content', 'children', 'blocks', 'body'];
 const HEADING_CLASS: Record<string, string> = {
   h1: 'h2-extrabold',
   h2: 'h3-extrabold',
@@ -42,35 +49,6 @@ function blockGap(compact: boolean) {
   return compact ? 'gap-4' : 'gap-5';
 }
 
-function isRecord(value: unknown): value is Node {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isHttpUrl(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
-  try {
-    return ['http:', 'https:'].includes(new URL(value).protocol);
-  } catch {
-    return false;
-  }
-}
-
-function isShowableImage(node: Node): node is Node & { url: string } {
-  return (
-    typeof node.type === 'string' && IMAGE_TYPES.includes(node.type) && node.unavailable !== true && isHttpUrl(node.url)
-  );
-}
-
-/** 그려질 이미지의 URL을 본문 순서대로 모은다. */
-function collectImageUrls(value: unknown): string[] {
-  if (Array.isArray(value)) return value.flatMap(collectImageUrls);
-  if (!isRecord(value)) return [];
-  if (typeof value.type === 'string' && IMAGE_TYPES.includes(value.type)) {
-    return isShowableImage(value) ? [value.url] : [];
-  }
-  return CONTAINER_KEYS.flatMap((key) => collectImageUrls(value[key]));
-}
-
 function openImageViewer(images: string[], initialIndex: number) {
   overlay.open(({ isOpen, close }) => (
     <ImageGalleryViewer
@@ -85,26 +63,7 @@ function openImageViewer(images: string[], initialIndex: number) {
   ));
 }
 
-function RichLink({ url, children }: { url: string; children: ReactNode }) {
-  const openExternalLink = useOpenExternalLink();
-
-  return (
-    <a
-      href={url}
-      target='_blank'
-      rel='noopener noreferrer'
-      className='text-text-accent underline'
-      onClick={(event) => {
-        event.preventDefault();
-        openExternalLink(url);
-      }}
-    >
-      {children}
-    </a>
-  );
-}
-
-function renderLeaf(leaf: Node, key: string): ReactNode {
+function renderLeaf(leaf: RichNode, key: string): ReactNode {
   const text = leaf.text as string;
   const fontSize = typeof leaf.fontSize === 'number' && FONT_SIZES.includes(leaf.fontSize) ? leaf.fontSize : undefined;
   const decoration = [leaf.underline === true && 'underline', leaf.strikethrough === true && 'line-through']
@@ -137,11 +96,10 @@ function renderChildren(children: unknown, key: string, ctx: RenderContext): Rea
   });
 }
 
-function renderElement(node: Node, key: string, ctx: RenderContext): ReactNode {
+function renderElement(node: RichNode, key: string, ctx: RenderContext): ReactNode {
   const type = typeof node.type === 'string' ? node.type : '';
 
   if (IMAGE_TYPES.includes(type)) {
-    // 서버가 서명 URL을 만들지 못한 이미지는 unavailable로 내려준다.
     if (!isShowableImage(node)) return null;
     const url = node.url;
     return (
@@ -164,9 +122,9 @@ function renderElement(node: Node, key: string, ctx: RenderContext): ReactNode {
 
   if (LINK_TYPES.includes(type)) {
     return isHttpUrl(node.url) ? (
-      <RichLink key={key} url={node.url}>
+      <RichContentLink key={key} url={node.url}>
         {children}
-      </RichLink>
+      </RichContentLink>
     ) : (
       <span key={key}>{children}</span>
     );
