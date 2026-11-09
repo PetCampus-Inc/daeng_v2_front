@@ -316,6 +316,7 @@ function MypageContent() {
           }
           onProfileClick={() => push({ pathname: route.mypage.guardian.profile.root })}
           onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+          onConnectionHistoryClick={() => push({ pathname: route.kindergarten.connectionHistory.root })}
           onConnectionApplicationsClick={() => push({ pathname: route.guardian.connectionApply.status.root })}
           onMyReviewsClick={() => push({ pathname: route.mypage.guardian.reviews.root })}
           onReleasePermissionClick={() => push({ pathname: route.roleConversion.releasePermission.root })}
