@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event';
 import { OverlayProvider } from 'overlay-kit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ApiError } from '@shared/api';
+
 import { OwnerMemberProfileDisconnectButton } from './OwnerMemberProfileDisconnectButton';
 
 const apiMock = vi.hoisted(() => ({
@@ -115,7 +117,7 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
 
   afterEach(() => {
     cleanup();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('해제할 수 있는 원생이면 `연결해제`를 눌렀을 때 해제 확인 모달이 열린다', async () => {
@@ -159,7 +161,7 @@ describe('해제 확인 모달에서 연결을 해제한다', () => {
 
   afterEach(() => {
     cleanup();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('`닫기`를 누르면 모달이 닫히고 연결이 해제되지 않은 채 원생 프로필이 남는다', async () => {
@@ -182,5 +184,47 @@ describe('해제 확인 모달에서 연결을 해제한다', () => {
 
     await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
     expect(uiMock.toast).toHaveBeenCalledWith(expect.objectContaining({ nativeTitle: expect.stringContaining('콩이') }));
+  });
+});
+
+describe('해제 처리 중 조건이 바뀌거나 이미 해제된 경우를 나눈다', () => {
+  beforeEach(() => {
+    apiMock.getOwnerMembers.mockResolvedValue(MEMBERS_RESPONSE);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.resetAllMocks();
+  });
+
+  it('`해제하기`를 눌렀는데 그 사이 이용권·예약이 생겨 서버가 거절하면 해제 불가 시트가 열린다', async () => {
+    apiMock.getDisconnectEligibility
+      .mockResolvedValueOnce(ELIGIBLE_RESPONSE)
+      .mockResolvedValueOnce(BLOCKED_RESPONSE);
+    apiMock.postDisconnectOwnerMember.mockRejectedValue(
+      new ApiError(409, 'OWNER_MEMBER-409-3', '남은 이용권이나 끝나지 않은 예약이 있어 연결을 해제할 수 없습니다.')
+    );
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await userEvent.click(await screen.findByRole('button', { name: '해제하기' }));
+
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    expect(uiMock.navigateToTab).not.toHaveBeenCalled();
+  });
+
+  it('`해제하기`를 눌렀는데 이미 해제된 원생이라는 응답이 오면 구성원 목록으로 이동하고 이미 해제됐다는 토스트가 보인다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
+    apiMock.postDisconnectOwnerMember.mockRejectedValue(
+      new ApiError(400, 'OWNER_MEMBER-400-2', '이미 연결 해제되었거나 연결된 구성원이 아닙니다.')
+    );
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await userEvent.click(await screen.findByRole('button', { name: '해제하기' }));
+
+    await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
+    expect(uiMock.toast).toHaveBeenCalledTimes(1);
+    expect(uiMock.toast).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'success' }));
   });
 });

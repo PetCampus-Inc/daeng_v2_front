@@ -86,6 +86,14 @@ function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMuta
 
   return useMutation({
     mutationFn: postDisconnectOwnerMember,
+    // 이미 해제된 원생이면 목록에 남은 오래된 카드가 사라지도록 구성원 목록을 다시 불러온다
+    onError: (error) => {
+      if (isAlreadyDisconnectedError(error)) {
+        queryClient
+          .invalidateQueries({ queryKey: ownerMembersQueryKey(userId) })
+          .catch(() => undefined);
+      }
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ownerMembersQueryKey(userId) }),
