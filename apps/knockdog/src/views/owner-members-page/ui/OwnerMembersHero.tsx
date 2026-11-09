@@ -38,13 +38,6 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
       <Header variant='transparent'>
         <Header.Title className='text-text-primary-inverse'>구성원</Header.Title>
         <Header.RightSection>
-          <button
-            type='button'
-            className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
-            onClick={() => push({ pathname: route.owner.members.approval.root })}
-          >
-            연결 승인
-          </button>
           <NotificationBell
             hasUnread={hasUnreadNotification}
             inverse

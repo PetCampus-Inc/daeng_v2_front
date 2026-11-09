@@ -40,7 +40,7 @@ function MemberCountTab({
   }
 
   return (
-    <div className={cn('border-line-200 flex w-full border-b border-solid', className)}>
+    <div role='tablist' className={cn('border-line-200 flex w-full border-b border-solid', className)}>
       {items.map((item) => {
         const isSelected = item.id === selected;
 
@@ -48,6 +48,8 @@ function MemberCountTab({
           <button
             key={item.id}
             type='button'
+            role='tab'
+            aria-selected={isSelected}
             onClick={() => selectTab(item.id)}
             className={cn(
               'body1-bold flex flex-1 items-center justify-center gap-x2 px-x4 py-x3',

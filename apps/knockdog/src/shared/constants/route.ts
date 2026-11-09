@@ -233,10 +233,6 @@ const route = {
           },
         },
       },
-      approval: {
-        /** 원장 구성원 연결 승인 대기 목록 페이지 */
-        root: '/owner/members/approval',
-      },
     },
   },
   invite: {
