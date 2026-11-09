@@ -1,11 +1,14 @@
 import {
   parseChargedPetTicket,
   parsePetTicketDetail,
+  parsePetTicketHistory,
   parsePetTicketList,
   parseVoidResponse,
   type PetTicketChargeRequest,
   type PetTicketExpiryRequest,
-} from '../model/petTicket';import { api } from '@shared/api';
+} from '../model/petTicket';
+
+import { api } from '@shared/api';
 
 /** `GET` - 원생 이용권 목록. 필터 없이 전체와 상태별 개수를 받는다. */
 const getPetTickets = async (petId: string) => {
@@ -17,6 +20,14 @@ const getPetTickets = async (petId: string) => {
 const getPetTicket = async (petId: string, ticketId: string) => {
   const response = await api.get(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`).json();
   return parsePetTicketDetail(response);
+};
+
+/** `GET` - 원생 이용권 이력. 최신 이력이 앞에 온다. */
+const getPetTicketHistory = async (petId: string, ticketId: string) => {
+  const response = await api
+    .get(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}/history`)
+    .json();
+  return parsePetTicketHistory(response);
 };
 
 interface PostPetTicketParams {
@@ -59,5 +70,5 @@ const patchPetTicketExpiry = async ({ petId, ticketId, body }: PatchPetTicketExp
   return parsePetTicketDetail(response);
 };
 
-export { deletePetTicket, getPetTicket, getPetTickets, patchPetTicketExpiry, postPetTicket };
+export { deletePetTicket, getPetTicket, getPetTicketHistory, getPetTickets, patchPetTicketExpiry, postPetTicket };
 export type { PatchPetTicketExpiryParams, PostPetTicketParams };

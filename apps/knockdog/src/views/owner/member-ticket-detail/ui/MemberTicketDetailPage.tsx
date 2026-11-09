@@ -7,7 +7,7 @@ import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
-import { toTicketDetail, type TicketDetail, type TicketHistoryLine } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { toTicketDetail, type TicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
 import { toExpiryApiDate } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
 import { applyTicketHold, cancelTicketHold, syncTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
 
@@ -17,7 +17,13 @@ import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHold
 
 import { Header } from '@widgets/Header';
 
-import { useDeletePetTicketMutation, usePetTicketDetailQuery, usePetTicketExpiryMutation } from '@entities/owner-pet-ticket';
+import {
+  useDeletePetTicketMutation,
+  usePetTicketDetailQuery,
+  usePetTicketExpiryMutation,
+  usePetTicketHistoryQuery,
+  type PetTicketHistoryLine,
+} from '@entities/owner-pet-ticket';
 
 import { useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -32,7 +38,7 @@ function DetailFact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HistoryLine({ line }: { line: TicketHistoryLine }) {
+function HistoryLine({ line }: { line: PetTicketHistoryLine }) {
   return (
     <div className='flex w-full flex-col gap-0.5 py-[14px]'>
       <p className={`body1-bold text-text-secondary ${line.isCancelled ? 'line-through' : ''}`}>{line.title}</p>
@@ -47,6 +53,7 @@ function MemberTicketDetailPage() {
   const petId = params?.id ?? '';
   const ticketId = params?.ticketId ?? '';
   const { data, isLoading, isError } = usePetTicketDetailQuery(petId, ticketId);
+  const { data: history = [], isLoading: isHistoryLoading, isError: isHistoryError } = usePetTicketHistoryQuery(petId, ticketId);
   const deleteTicket = useDeletePetTicketMutation(petId, ticketId);
   const updateExpiry = usePetTicketExpiryMutation(petId, ticketId);
   const { back } = useStackNavigation();
@@ -208,18 +215,24 @@ function MemberTicketDetailPage() {
           </button>
         </section>
 
-        {detail.history.length > 0 ? (
+        {isHistoryLoading || isHistoryError || history.length > 0 ? (
           <section className='bg-bg-0 flex flex-col gap-3 px-4 py-5'>
             <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
-            <div className='px-2'>
-              {detail.history.map((line, index) => (
-                <div key={line.id}>
-                  {index === 0 ? <Divider /> : null}
-                  <HistoryLine line={line} />
-                  {index < detail.history.length - 1 ? <Divider /> : null}
-                </div>
-              ))}
-            </div>
+            {isHistoryLoading ? (
+              <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+            ) : isHistoryError ? (
+              <p className='body2-regular text-text-secondary px-1'>{content.historyErrorText}</p>
+            ) : (
+              <div className='px-2'>
+                {history.map((line, index) => (
+                  <div key={line.id}>
+                    {index === 0 ? <Divider /> : null}
+                    <HistoryLine line={line} />
+                    {index < history.length - 1 ? <Divider /> : null}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         ) : null}
       </div>

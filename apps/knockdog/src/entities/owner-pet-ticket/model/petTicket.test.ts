@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parsePetTicketDetail, parsePetTicketList, toPetTicketDetail, toPetTicketList } from './petTicket';
+import { parsePetTicketDetail, parsePetTicketHistory, parsePetTicketList, toPetTicketDetail, toPetTicketHistory, toPetTicketList } from './petTicket';
 
 const response = {
   data: {
@@ -74,6 +74,41 @@ describe('toPetTicketList', () => {
       period: '2026.08.01 ~ 만료 없음',
       remainingDays: null,
     });
+  });
+});
+
+describe('toPetTicketHistory', () => {
+  it('사용 취소는 취소선이고 홀딩과 충전은 화면 문구로 바꾼다', () => {
+    const history = toPetTicketHistory(
+      parsePetTicketHistory({
+        data: {
+          items: [
+            {
+              historyId: null,
+              type: 'USE',
+              occurredOn: [2026, 9, 10],
+              reservedForDate: [2026, 9, 10],
+              remainingAfter: 8,
+              canceledOn: [2026, 9, 11],
+            },
+            {
+              historyId: 2,
+              type: 'HOLD',
+              occurredOn: '2026-09-30',
+              holdStartDate: [2026, 9, 30],
+              holdEndDate: [2026, 10, 30],
+            },
+            { historyId: 1, type: 'CHARGE', occurredOn: '2026-09-01' },
+          ],
+        },
+      })
+    );
+
+    expect(history).toEqual([
+      { id: 'USE-2026.09.10-0', title: '사용(8회)', detail: '2026.09.10 예약취소', isCancelled: true },
+      { id: '2', title: '홀딩', detail: '기간 2026.09.30 ~ 2026.10.30', isCancelled: false },
+      { id: '1', title: '충전', detail: '2026.09.01', isCancelled: false },
+    ]);
   });
 });
 

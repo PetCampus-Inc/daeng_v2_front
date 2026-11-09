@@ -105,9 +105,30 @@ const voidResponseSchema = z.object({
   message: z.string(),
 });
 
+const petTicketHistoryItemDtoSchema = z.object({
+  historyId: idSchema.nullish(),
+  type: z.enum(['CHARGE', 'USE', 'HOLD', 'HOLD_RELEASE', 'EXTEND', 'EXPIRE']),
+  occurredOn: apiDateSchema,
+  countDelta: z.number().int().nullish(),
+  daysDelta: z.number().int().nullish(),
+  holdStartDate: apiDateSchema,
+  holdEndDate: apiDateSchema,
+  newExpiresOn: apiDateSchema,
+  reservedForDate: apiDateSchema,
+  remainingAfter: z.number().int().nullish(),
+  canceledOn: apiDateSchema,
+});
+
+const petTicketHistoryResponseSchema = z.object({
+  data: z.object({
+    items: z.array(petTicketHistoryItemDtoSchema),
+  }),
+});
+
 type PetTicketSummaryDto = z.infer<typeof petTicketSummaryDtoSchema>;
 type PetTicketListDto = z.infer<typeof petTicketListDtoSchema>;
 type PetTicketDetailDto = z.infer<typeof petTicketDetailDtoSchema>;
+type PetTicketHistoryItemDto = z.infer<typeof petTicketHistoryItemDtoSchema>;
 type PetTicketStatus = (typeof PET_TICKET_STATUS)[keyof typeof PET_TICKET_STATUS];
 type PetTicketHoldAction = 'hold' | 'cancel' | 'disabled';
 
@@ -154,6 +175,13 @@ interface PetTicketDetail {
   holdAction: PetTicketHoldAction;
 }
 
+interface PetTicketHistoryLine {
+  id: string;
+  title: string;
+  detail: string;
+  isCancelled: boolean;
+}
+
 interface PetTicketExpiryRequest {
   expiresOn: string;
 }
@@ -173,6 +201,8 @@ const parsePetTicketDetail = (response: unknown) => petTicketDetailResponseSchem
 const parseChargedPetTicket = (response: unknown) => petTicketChargeResponseSchema.parse(response).data;
 
 const parseVoidResponse = (response: unknown) => voidResponseSchema.parse(response);
+
+const parsePetTicketHistory = (response: unknown) => petTicketHistoryResponseSchema.parse(response).data;
 
 const formatDotDate = (value: string) => {
   const [year = '', month = '', day = ''] = value.split('-');
@@ -229,6 +259,43 @@ const toPetTicketDetail = (dto: PetTicketDetailDto): PetTicketDetail => {
   };
 };
 
+const toHistoryDate = (value: string | null | undefined) => (value ? formatDotDate(value) : '');
+
+const toPetTicketHistoryLine = (dto: PetTicketHistoryItemDto, index: number): PetTicketHistoryLine => {
+  const occurred = toHistoryDate(dto.occurredOn);
+  const id = dto.historyId == null ? `${dto.type}-${occurred}-${index}` : String(dto.historyId);
+  const isCancelled = dto.canceledOn != null;
+
+  if (dto.type === 'USE') {
+    const date = toHistoryDate(dto.reservedForDate ?? dto.occurredOn);
+    return {
+      id,
+      title: `사용(${dto.remainingAfter ?? 0}회)`,
+      detail: `${date} ${isCancelled ? '예약취소' : '예약'}`,
+      isCancelled,
+    };
+  }
+
+  if (dto.type === 'HOLD') {
+    const start = toHistoryDate(dto.holdStartDate);
+    const end = toHistoryDate(dto.holdEndDate);
+    const period = start && end ? `${start} ~ ${end}` : start || end || occurred;
+    return { id, title: '홀딩', detail: `기간 ${period}`, isCancelled: false };
+  }
+
+  if (dto.type === 'HOLD_RELEASE') return { id, title: '홀딩 해제', detail: `기간 ${occurred}`, isCancelled: false };
+
+  if (dto.type === 'EXTEND') {
+    return { id, title: '연장', detail: `만료일 ${toHistoryDate(dto.newExpiresOn) || occurred} 변경`, isCancelled: false };
+  }
+
+  if (dto.type === 'EXPIRE') return { id, title: '만료', detail: occurred, isCancelled: false };
+
+  return { id, title: '충전', detail: occurred, isCancelled: false };
+};
+
+const toPetTicketHistory = (dto: { items: PetTicketHistoryItemDto[] }) => dto.items.map(toPetTicketHistoryLine);
+
 const toPetTicketList = (dto: PetTicketListDto): PetTicketList => ({
   counts: {
     all: dto.counts.all,
@@ -240,12 +307,22 @@ const toPetTicketList = (dto: PetTicketListDto): PetTicketList => ({
   tickets: dto.tickets.map(toPetTicket),
 });
 
-export { parseChargedPetTicket, parsePetTicketDetail, parsePetTicketList, parseVoidResponse, toPetTicketDetail, toPetTicketList };
+export {
+  parseChargedPetTicket,
+  parsePetTicketDetail,
+  parsePetTicketHistory,
+  parsePetTicketList,
+  parseVoidResponse,
+  toPetTicketDetail,
+  toPetTicketHistory,
+  toPetTicketList,
+};
 export type {
   PetTicket,
   PetTicketChargeRequest,
   PetTicketDetail,
   PetTicketExpiryRequest,
+  PetTicketHistoryLine,
   PetTicketList,
   PetTicketListDto,
 };

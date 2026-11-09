@@ -13,10 +13,13 @@ const usePetTicketExpiryMutation = (petId: string, ticketId: string) => {
     onSuccess: async (detail) => {
       const listKey = petTicketQueryKeys.byPet(petId);
       const detailKey = petTicketQueryKeys.detail(petId, ticketId);
+      const historyKey = petTicketQueryKeys.history(petId, ticketId);
       queryClient.setQueryData(detailKey, detail);
       await queryClient.invalidateQueries({ queryKey: listKey, exact: true });
+      await queryClient.invalidateQueries({ queryKey: historyKey });
       syncWebViewQuery.invalidate(listKey);
       syncWebViewQuery.invalidate(detailKey);
+      syncWebViewQuery.invalidate(historyKey);
     },
   });
 };
