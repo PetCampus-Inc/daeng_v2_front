@@ -24,7 +24,8 @@ interface TestConnection {
 
 const push = vi.fn();
 const petState = { pets: [] as TestPet[] };
-const connectionState = { byPetId: {} as Record<string, TestConnection[]> };
+const refetchConnections = vi.fn();
+const connectionState = { byPetId: {} as Record<string, TestConnection[]>, isError: false };
 
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push, back: vi.fn() }),
@@ -73,9 +74,9 @@ vi.mock('@entities/guardian-home', () => ({
       canWriteReview: false,
     })),
     isPending: false,
-    isError: false,
+    isError: connectionState.isError,
     isFetching: false,
-    refetch: vi.fn(),
+    refetch: refetchConnections,
   }),
   useGuardianSchoolDisconnectMutation: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
@@ -88,6 +89,13 @@ vi.mock('@views/guardian-kindergarten-page/model/useGuardianKindergartenHome', (
     isHomeReady: true,
   }),
 }));
+
+const createConnection = (overrides: Partial<TestConnection>): TestConnection => ({
+  schoolPetMembershipId: '11',
+  name: '모모네 유치원',
+  disconnectedAt: null,
+  ...overrides,
+});
 
 const createPet = (overrides: Partial<TestPet>): TestPet => ({
   id: '1',
@@ -120,6 +128,8 @@ afterEach(() => {
   push.mockReset();
   petState.pets = [];
   connectionState.byPetId = {};
+  connectionState.isError = false;
+  refetchConnections.mockReset();
 });
 
 describe('연결 이력 화면의 강아지 선택', () => {
@@ -194,5 +204,95 @@ describe('연결 이력 화면의 강아지 선택', () => {
 
     expect(await screen.findByText(/아직 연결된 유치원이 없어요/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /초코/ })).toBeNull();
+  });
+});
+
+describe('연결 이력 목록', () => {
+  const setUpPet = () => {
+    petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
+  };
+
+  test('연결 중인 유치원이 있으면 지금 다니는 유치원 카드에 `연결 해제` 버튼이 있다', async () => {
+    setUpPet();
+    connectionState.byPetId = { '1': [createConnection({})] };
+
+    renderPage();
+
+    const current = await screen.findByRole('region', { name: '지금 다니는 유치원' });
+    expect(within(current).getByRole('button', { name: '연결 해제' })).toBeTruthy();
+  });
+
+  test('연결 해제된 유치원 카드에는 `연결 해제` 버튼이 없다', async () => {
+    setUpPet();
+    connectionState.byPetId = {
+      '1': [createConnection({ name: '누리 유치원', disconnectedAt: new Date('2026-05-01') })],
+    };
+
+    renderPage();
+
+    const previous = await screen.findByRole('region', { name: '이전에 다녔던 유치원' });
+    expect(within(previous).getByText('누리 유치원')).toBeTruthy();
+    expect(within(previous).queryByRole('button', { name: '연결 해제' })).toBeNull();
+  });
+
+  test('지금 다니는 유치원이 없으면 빈 카드를 보여 준다', async () => {
+    setUpPet();
+    connectionState.byPetId = {
+      '1': [createConnection({ disconnectedAt: new Date('2026-05-01') })],
+    };
+
+    renderPage();
+
+    const current = await screen.findByRole('region', { name: '지금 다니는 유치원' });
+    expect(within(current).queryByRole('button', { name: '연결 해제' })).toBeNull();
+    expect(within(current).getByText(/연결된 유치원이 없어요/)).toBeTruthy();
+  });
+
+  test('이전에 다닌 유치원이 0곳이어도 섹션 제목과 개수 0이 보이고 카드는 없다', async () => {
+    setUpPet();
+    connectionState.byPetId = { '1': [createConnection({})] };
+
+    renderPage();
+
+    const previous = await screen.findByRole('region', { name: '이전에 다녔던 유치원' });
+    expect(within(previous).getByText('0')).toBeTruthy();
+    expect(within(previous).queryAllByRole('listitem')).toHaveLength(0);
+  });
+
+  test('이전에 다닌 유치원 개수가 목록의 카드 수와 같다', async () => {
+    setUpPet();
+    connectionState.byPetId = {
+      '1': [
+        createConnection({ schoolPetMembershipId: '1', name: '가 유치원', disconnectedAt: new Date('2026-03-01') }),
+        createConnection({ schoolPetMembershipId: '2', name: '나 유치원', disconnectedAt: new Date('2026-04-01') }),
+        createConnection({ schoolPetMembershipId: '3', name: '다 유치원', disconnectedAt: new Date('2026-05-01') }),
+      ],
+    };
+
+    renderPage();
+
+    const previous = await screen.findByRole('region', { name: '이전에 다녔던 유치원' });
+    expect(within(previous).getByText('3')).toBeTruthy();
+    expect(within(previous).getAllByRole('listitem')).toHaveLength(3);
+  });
+
+  test('연결 이력이 하나도 없으면 연결 이력이 없는 화면을 보여 준다', async () => {
+    setUpPet();
+    connectionState.byPetId = { '1': [] };
+
+    renderPage();
+
+    expect(await screen.findByText(/아직 연결된 유치원이 없어요/)).toBeTruthy();
+    expect(screen.queryByRole('region', { name: '이전에 다녔던 유치원' })).toBeNull();
+  });
+
+  test('이력 조회에 실패하면 화면 안에 오류를 보여 주고 다시 시도할 수 있다', async () => {
+    setUpPet();
+    connectionState.isError = true;
+
+    renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: /다시 시도/ }));
+
+    expect(refetchConnections).toHaveBeenCalledTimes(1);
   });
 });
