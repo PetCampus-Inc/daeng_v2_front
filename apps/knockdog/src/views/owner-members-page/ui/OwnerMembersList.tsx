@@ -1,6 +1,8 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
+import { ownerMembersContent } from '@views/owner-members-page/config/ownerMembersContent';
 import {
   ownerMembersEmptyContent,
   type OwnerMembersEmptyStateType,
@@ -8,7 +10,9 @@ import {
 
 import { OwnerMemberCard } from '@features/owner-members';
 
-import type { OwnerMember } from '@entities/owner-member';
+import { ownerMembersQueryKey, type OwnerMember } from '@entities/owner-member';
+import { getOwnerPet, isPetNotAuthorizedError } from '@entities/owner-pet';
+import { useUserStore } from '@entities/user';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -41,6 +45,8 @@ function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembe
 
 function OwnerMembersList({ members, emptyStateType, isLoading, isError }: OwnerMembersListProps) {
   const { push } = useStackNavigation();
+  const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
 
   if (isLoading) {
     return (
@@ -78,6 +84,18 @@ function OwnerMembersList({ members, emptyStateType, isLoading, isError }: Owner
                 title: '원생 프로필을 열 수 없어요',
               });
               return;
+            }
+
+            // 보호자나 다른 기기에서 먼저 해제해 목록이 오래됐을 수 있어 먼저 해제 여부를 확인한다
+            try {
+              await getOwnerPet(member.petId);
+            } catch (error) {
+              if (isPetNotAuthorizedError(error)) {
+                toast({ title: ownerMembersContent.alreadyDisconnectedToast });
+                queryClient.invalidateQueries({ queryKey: ownerMembersQueryKey(userId) }).catch(() => undefined);
+                return;
+              }
+              // 그 밖의 조회 실패는 프로필 화면이 자체 오류 처리로 보여준다
             }
 
             try {
