@@ -2,7 +2,7 @@
 
 import { DisconnectButton } from '@knockdog/ui';
 
-import { useOwnerMemberProfileDisconnect } from '../model/useOwnerMemberProfileDisconnect';
+import { useOwnerMemberProfileDisconnect } from '@views/owner/member-profile/model/useOwnerMemberProfileDisconnect';
 
 interface OwnerMemberProfileDisconnectButtonProps {
   petId: string;
@@ -23,7 +23,7 @@ const OwnerMemberProfileDisconnectButton = ({
       type='button'
       disabled={isDisconnecting}
       onClick={() => {
-        void handleDisconnectClick();
+        handleDisconnectClick().catch(() => undefined);
       }}
     />
   );

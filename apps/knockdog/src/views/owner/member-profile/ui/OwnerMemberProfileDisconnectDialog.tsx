@@ -57,8 +57,6 @@ function OwnerMemberProfileDisconnectDialog({
           <AlertDialogTitle>
             <span className='text-text-accent'>{displayDogName}</span>
             {disconnectDialog.titleSuffix}
-            <br />
-            {disconnectDialog.titleLine2}
           </AlertDialogTitle>
           <AlertDialogDescription className='whitespace-pre-line'>
             {disconnectDialog.description}

@@ -3,16 +3,21 @@
 import { useMemo } from 'react';
 import { overlay } from 'overlay-kit';
 
+import { useOwnerRole } from '@features/role-conversion';
 import {
   findOwnerMemberByPetId,
+  useDisconnectCheckMutation,
   useOwnerMemberDisconnectMutation,
   useOwnerMembersQuery,
+  type OwnerMemberDisconnectBodyKind,
+  type OwnerMemberDisconnectEligibility,
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
+import { OwnerMemberProfileDisconnectBlockedSheet } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectBlockedSheet';
 import { OwnerMemberProfileDisconnectDialog } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectDialog';
 
 interface UseOwnerMemberProfileDisconnectOptions {
@@ -36,7 +41,10 @@ function useOwnerMemberProfileDisconnect({
   const content = ownerMemberProfileContent;
   const userId = useUserStore((state) => state.user?.userId);
   const { navigateToTab } = useTabNavigation();
+  const { kindergarten } = useOwnerRole();
+  const kindergartenName = kindergarten?.name ?? '';
   const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
+  const eligibilityMutation = useDisconnectCheckMutation();
   const membersQuery = useOwnerMembersQuery({
     userId,
     enabled: enabled && Boolean(petId),
@@ -123,7 +131,7 @@ function useOwnerMemberProfileDisconnect({
     return 'completed';
   };
 
-  const handleDisconnectClick = () => {
+  const openConfirmDialog = () => {
     // OverlayProvider history trap — 시스템/브라우저 뒤로가기는 모달만 닫음
     overlay.open(({ isOpen, close }) => (
       <OwnerMemberProfileDisconnectDialog
@@ -135,9 +143,45 @@ function useOwnerMemberProfileDisconnect({
     ));
   };
 
+  const openBlockedSheet = (eligibility: OwnerMemberDisconnectEligibility, bodyKind: OwnerMemberDisconnectBodyKind) => {
+    overlay.open(({ isOpen, close }) => (
+      <OwnerMemberProfileDisconnectBlockedSheet
+        isOpen={isOpen}
+        close={close}
+        bodyKind={bodyKind}
+        blocks={eligibility.blocks}
+        kindergartenName={kindergartenName}
+      />
+    ));
+  };
+
+  /** `연결해제`를 누르면 해제 가능 여부를 새로 조회해 시트(해제 불가) 또는 확인 모달(해제 가능)을 연다 */
+  const handleDisconnectClick = async () => {
+    const resolvedMemberId = await resolveMemberId();
+    if (!resolvedMemberId) {
+      showFailToast();
+      return;
+    }
+
+    let eligibility: OwnerMemberDisconnectEligibility;
+    try {
+      eligibility = await eligibilityMutation.mutateAsync(resolvedMemberId);
+    } catch {
+      showFailToast();
+      return;
+    }
+
+    if (eligibility.canDisconnect || !eligibility.bodyKind) {
+      openConfirmDialog();
+      return;
+    }
+
+    openBlockedSheet(eligibility, eligibility.bodyKind);
+  };
+
   return {
     handleDisconnectClick,
-    isDisconnecting: disconnectMutation.isPending,
+    isDisconnecting: disconnectMutation.isPending || eligibilityMutation.isPending,
   };
 }
 

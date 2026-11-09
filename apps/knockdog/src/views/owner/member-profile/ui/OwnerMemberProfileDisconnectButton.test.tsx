@@ -1,0 +1,147 @@
+// @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { OverlayProvider } from 'overlay-kit';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { OwnerMemberProfileDisconnectButton } from './OwnerMemberProfileDisconnectButton';
+
+const apiMock = vi.hoisted(() => ({
+  getOwnerMembers: vi.fn(),
+  getDisconnectEligibility: vi.fn(),
+  postDisconnectOwnerMember: vi.fn(),
+}));
+
+vi.mock('@entities/owner-member/api/ownerMember', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/owner-member/api/ownerMember')>()),
+  ...apiMock,
+}));
+vi.mock('@shared/lib/bridge', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@shared/lib/bridge')>()),
+  useTabNavigation: () => ({ navigateToTab: vi.fn() }),
+  useNativeBackToClose: () => undefined,
+}));
+// 바텀시트 라이브러리(vaul)는 React 18로 빌드돼 테스트 환경(React 19)과 충돌한다. 시트 내부 동작은 라이브러리 책임이라 가짜 시트로 바꾼다.
+vi.mock('@shared/ui/bottom-sheet', async () => {
+  const { createContext, createElement, useContext } = await import('react');
+  const SheetContext = createContext<(open: boolean) => void>(() => undefined);
+
+  return {
+    BottomSheet: {
+      Root: ({
+        open,
+        onOpenChange,
+        children,
+      }: {
+        open: boolean;
+        onOpenChange: (open: boolean) => void;
+        children: React.ReactNode;
+      }) =>
+        open
+          ? createElement(
+              SheetContext.Provider,
+              { value: onOpenChange },
+              createElement('div', { role: 'dialog' }, children)
+            )
+          : null,
+      Overlay: () => {
+        const onOpenChange = useContext(SheetContext);
+        return createElement('div', { 'data-testid': 'sheet-dim', onClick: () => onOpenChange(false) });
+      },
+      Body: ({ children }: { children: React.ReactNode }) => createElement('div', null, children),
+      Handle: () => null,
+      Title: ({ children }: { children: React.ReactNode }) => createElement('h2', null, children),
+    },
+  };
+});
+vi.mock('@shared/lib/analytics', () => ({ trackConnectionStatus: vi.fn() }));
+vi.mock('@shared/ui/toast', () => ({ toast: vi.fn() }));
+vi.mock('@features/role-conversion', () => ({
+  useOwnerRole: () => ({ kindergarten: { name: '모모네 유치원' } }),
+}));
+
+const MEMBERS_RESPONSE = {
+  data: {
+    totalStudentCount: 1,
+    members: [
+      {
+        memberId: 'member-1',
+        petId: 'pet-1',
+        dogName: '콩이',
+        guardianName: '보호자',
+        profileImageUrl: null,
+      },
+    ],
+  },
+};
+
+const ELIGIBLE_RESPONSE = { data: { canDisconnect: true, blocks: [] } };
+
+const BLOCKED_RESPONSE = {
+  data: {
+    canDisconnect: false,
+    blocks: [
+      {
+        type: 'TICKET',
+        ticket: { name: '모모네 유치원 10회권', remainingCount: 6, expiresOn: '2026-12-31' },
+        reservation: null,
+      },
+    ],
+  },
+};
+
+const renderDisconnectButton = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <OverlayProvider>
+        <OwnerMemberProfileDisconnectButton petId='pet-1' dogName='콩이' />
+      </OverlayProvider>
+    </QueryClientProvider>
+  );
+};
+
+describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나눈다', () => {
+  beforeEach(() => {
+    apiMock.getOwnerMembers.mockResolvedValue(MEMBERS_RESPONSE);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it('해제할 수 있는 원생이면 `연결해제`를 눌렀을 때 해제 확인 모달이 열린다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+
+    expect(await screen.findByRole('alertdialog')).toBeTruthy();
+  });
+
+  it('해제할 수 없는 원생이면 `연결해제`를 눌렀을 때 해제 불가 시트가 열리고 해제 확인 모달은 열리지 않는다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValue(BLOCKED_RESPONSE);
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  it('해제 불가 시트를 닫은 뒤 그 사이 조건이 풀렸으면 `연결해제`를 다시 눌렀을 때 해제 확인 모달이 열린다', async () => {
+    apiMock.getDisconnectEligibility
+      .mockResolvedValueOnce(BLOCKED_RESPONSE)
+      .mockResolvedValueOnce(ELIGIBLE_RESPONSE);
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await userEvent.click(await screen.findByRole('button', { name: '확인' }));
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+
+    expect(await screen.findByRole('alertdialog')).toBeTruthy();
+  });
+});
