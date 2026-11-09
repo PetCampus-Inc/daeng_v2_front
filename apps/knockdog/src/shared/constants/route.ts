@@ -372,6 +372,10 @@ const route = {
       /** 보호자 예약. 예약 정보 확인 */
       root: '/reservation/confirm',
     },
+    list: {
+      /** 보호자 예약. 내 예약 */
+      root: '/reservation/list',
+    },
     tickets: {
       /** 보호자 이용권 관리 */
       root: '/reservation/tickets',

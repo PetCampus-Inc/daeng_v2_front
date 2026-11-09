@@ -108,6 +108,11 @@ function GuardianReservationPage() {
     push({ pathname: route.reservation.tickets.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
   };
 
+  const handleOpenList = () => {
+    if (!selectedDog) return;
+    push({ pathname: route.reservation.list.root, query: { dogId: selectedDog.id } }).catch(() => undefined);
+  };
+
   const handleReserve = (ticketId: string) => {
     if (!selectedDog) return;
     const isHoursUnset = resolveReserveStep(selectedDog.hasAttendanceHours) === RESERVE_STEP.hoursUnset;
@@ -124,7 +129,7 @@ function GuardianReservationPage() {
           <header className='border-line-100 pl-x5 pr-x4 flex h-[66px] items-center justify-between border-b'>
             <h1 className='h2-extrabold text-text-primary px-x1'>예약</h1>
             <div className='gap-x3_5 flex items-center'>
-              <button type='button' aria-label='내 예약' className='text-text-primary'>
+              <button type='button' aria-label='내 예약' className='text-text-primary' onClick={handleOpenList}>
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
@@ -161,7 +166,11 @@ function GuardianReservationPage() {
           <section className='gap-x2_5 flex flex-col'>
             <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
             {upcoming ? (
-              <UpcomingRsvCard title={formatReservationWhen(upcoming.startsAt)} place={upcoming.placeName} />
+              <UpcomingRsvCard
+                title={formatReservationWhen(upcoming.startsAt)}
+                place={upcoming.placeName}
+                onClick={handleOpenList}
+              />
             ) : (
               <ReservationEmptySchedule />
             )}

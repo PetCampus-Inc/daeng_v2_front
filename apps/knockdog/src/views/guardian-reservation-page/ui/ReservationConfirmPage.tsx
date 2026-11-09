@@ -34,6 +34,7 @@ import { ReservationLeaveDialog } from '@views/guardian-reservation-page/ui/Rese
 
 import { Header } from '@widgets/Header';
 
+import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
@@ -75,7 +76,7 @@ function ReservationConfirmPage() {
   const dogId = searchParams.get('dogId') ?? '';
   const ticketId = searchParams.get('ticketId') ?? '';
   const selection = readReserveQuery(searchParams.get('date'), searchParams.get('minutes'));
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const now = useMemo(() => new Date(), []);
   const dogs = useMemo(() => createReservationMainMock(now), [now]);
@@ -264,6 +265,9 @@ function ReservationConfirmPage() {
             remaining={remainingLabel}
             onClose={handleDone}
             onConfirm={handleDone}
+            onMyReservations={() => {
+              push({ pathname: route.reservation.list.root, query: { dogId: dog.id } }).catch(() => undefined);
+            }}
           />
         </BottomSheet.Body>
       </BottomSheet.Root>
