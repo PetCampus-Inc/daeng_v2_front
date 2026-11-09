@@ -134,7 +134,7 @@ function ReservationConfirmPage() {
       isDayTaken: upcomingOn === selection.dateKey || isSameDayTaken(visits, dog.id, selection.dateKey),
     });
     const visit = {
-      id: `book-${dog.id}-${selection.dateKey}-${selection.minutes}`,
+      id: `book-${crypto.randomUUID()}`,
       dogId: dog.id,
       ticketId: ticket.id,
       startsAt: toVisitStartsAt(selection.dateKey, selection.minutes),

@@ -6,7 +6,11 @@ import { useSearchParams } from 'next/navigation';
 import { ActionButton, RsvDateTime, RsvMonthlyCalendar, RsvTimetable } from '@knockdog/ui';
 
 import { RESERVATION_TIME_COPY } from '@views/guardian-reservation-page/config/guardianReservationTime';
-import { countTicketUses, remainingAfterUses } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
+import {
+  countTicketUses,
+  isSameDayTaken,
+  remainingAfterUses,
+} from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { toDateKey } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import {
@@ -64,7 +68,9 @@ function GuardianReservationTimePage() {
   const ticket = dog?.tickets.find((item) => item.id === ticketId);
   const placeName = dog?.kindergarten?.name ?? '';
   const upcomingOn = dog?.upcoming?.startsAt.slice(0, 10) ?? null;
-  const bookedDays = visits.filter((visit) => visit.dogId === dogId).map((visit) => visit.startsAt.slice(0, 10));
+  const bookedDays = visits
+    .filter((visit) => visit.dogId === dogId && !visit.isCancelled)
+    .map((visit) => visit.startsAt.slice(0, 10));
   const reservedKeys = new Set([...reservedDateKeys(now, upcomingOn), ...bookedDays]);
   const reservedDates = [...reservedKeys].map(dateFromKey);
   const [month, setMonth] = useState(() => {
@@ -74,9 +80,13 @@ function GuardianReservationTimePage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(restoredDate);
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(draft?.minutes ?? null);
   const disabledDates = listDisabledDates(month, now, now, ticket?.endsOn ?? null);
-  const isReservedDay = selectedDate ? reservedKeys.has(toDateKey(selectedDate)) : false;
+  const selectedDateKey = selectedDate ? toDateKey(selectedDate) : null;
+  const isReservedDay = selectedDateKey ? reservedKeys.has(selectedDateKey) : false;
+  const hasActiveReservation = selectedDateKey
+    ? upcomingOn === selectedDateKey || isSameDayTaken(visits, dogId, selectedDateKey)
+    : false;
   const slots = selectedDate ? splitScheduleSlots(listScheduleSlots(selectedDate, now, isReservedDay)) : null;
-  const canContinue = canContinueReserve(selectedDate != null, selectedMinutes != null);
+  const canContinue = canContinueReserve(selectedDate != null, selectedMinutes != null) && !hasActiveReservation;
 
   const handleBack = () => {
     clearReserveDraft();

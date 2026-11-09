@@ -43,7 +43,7 @@ function GuardianTicketDetailPage() {
   const { now: today, dogs } = useReservationDogs();
   const hiddenIds = useHiddenTicketIds();
   const visits = useBookedVisits();
-  const dog = dogs.find((item) => item.id === dogId) ?? dogs[0];
+  const dog = dogId ? dogs.find((item) => item.id === dogId) : undefined;
   const selectedDogId = dog?.id ?? '';
   const ticket = dog ? visibleTickets(dog.tickets, hiddenIds).find((item) => item.id === ticketId) : undefined;
   const usedVisits = ticket ? visits.filter((visit) => visit.ticketId === ticket.id) : [];
@@ -109,7 +109,19 @@ function GuardianTicketDetailPage() {
       .catch(() => undefined);
   };
 
-  if (!shownTicket) return null;
+  if (!dog || !shownTicket) {
+    return (
+      <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>이용권 상세</Header.Title>
+        </Header>
+        <p className='body1-regular text-text-secondary px-x4 py-x8 text-center'>이용권을 찾을 수 없어요</p>
+      </div>
+    );
+  }
 
   const copy = formatManageTicket(shownTicket);
   const badge = shownTicket.status === TICKET_STATUS.active ? getTicketBadge(shownTicket.endsOn, today) : null;
