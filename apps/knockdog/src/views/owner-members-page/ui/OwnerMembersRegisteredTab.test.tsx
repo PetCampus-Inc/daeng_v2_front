@@ -291,6 +291,28 @@ describe('검색', () => {
     expect(screen.getByRole('tab', { name: '등록 원생', selected: true })).toBeTruthy();
   });
 
+  it('검색창에 숫자나 특수문자를 입력하면 입력되지 않고 `한글과 영문만 입력할 수 있어요` 토스트가 보인다', async () => {
+    renderPage('');
+    await screen.findByText('보리');
+
+    typeKeyword('말티즈1!');
+
+    expect((screen.getByLabelText('구성원 검색어 입력') as HTMLInputElement).value).toBe('말티즈');
+    expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: '한글과 영문만 입력할 수 있어요' }));
+  });
+
+  it('한글을 입력하는 중 자음·모음만 남은 글자가 있으면 검색을 새로 하지 않고 이전 목록이 그대로 보인다', async () => {
+    renderPage('');
+    await screen.findByText('보리');
+    mocks.getOwnerMembers.mockClear();
+
+    typeKeyword('ㅁ');
+
+    expect(screen.getByText('보리')).toBeTruthy();
+    expect(mocks.getOwnerMembers).not.toHaveBeenCalled();
+    expect(screen.queryByText('검색된 원생이 없어요')).toBeNull();
+  });
+
   it('검색어를 지우면 선택한 탭과 칩 조건의 목록으로 돌아간다', async () => {
     renderPage('');
     await screen.findByText('보리');
