@@ -6,6 +6,7 @@ import {
   parseVoidResponse,
   type PetTicketChargeRequest,
   type PetTicketExpiryRequest,
+  type PetTicketHoldRequest,
 } from '../model/petTicket';
 
 import { api } from '@shared/api';
@@ -62,6 +63,28 @@ interface PatchPetTicketExpiryParams {
   body: PetTicketExpiryRequest;
 }
 
+interface PostPetTicketHoldParams {
+  petId: string;
+  ticketId: string;
+  body: PetTicketHoldRequest;
+}
+
+/** `POST` - 원생 이용권 홀딩. 응답은 갱신된 상세다. */
+const postPetTicketHold = async ({ petId, ticketId, body }: PostPetTicketHoldParams) => {
+  const response = await api
+    .post(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}/hold`, { json: body })
+    .json();
+  return parsePetTicketDetail(response);
+};
+
+/** `DELETE` - 원생 이용권 홀딩 취소. 응답은 갱신된 상세다. */
+const deletePetTicketHold = async (petId: string, ticketId: string) => {
+  const response = await api
+    .delete(`owner/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}/hold`)
+    .json();
+  return parsePetTicketDetail(response);
+};
+
 /** `PATCH` - 원생 이용권 만료일 수정. 응답은 갱신된 상세다. */
 const patchPetTicketExpiry = async ({ petId, ticketId, body }: PatchPetTicketExpiryParams) => {
   const response = await api
@@ -70,5 +93,14 @@ const patchPetTicketExpiry = async ({ petId, ticketId, body }: PatchPetTicketExp
   return parsePetTicketDetail(response);
 };
 
-export { deletePetTicket, getPetTicket, getPetTicketHistory, getPetTickets, patchPetTicketExpiry, postPetTicket };
-export type { PatchPetTicketExpiryParams, PostPetTicketParams };
+export {
+  deletePetTicket,
+  deletePetTicketHold,
+  getPetTicket,
+  getPetTicketHistory,
+  getPetTickets,
+  patchPetTicketExpiry,
+  postPetTicket,
+  postPetTicketHold,
+};
+export type { PatchPetTicketExpiryParams, PostPetTicketHoldParams, PostPetTicketParams };

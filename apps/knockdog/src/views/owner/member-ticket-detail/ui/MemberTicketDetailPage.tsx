@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 
 import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
-import { toTicketDetail, type TicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
 import { toExpiryApiDate } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
-import { applyTicketHold, cancelTicketHold, syncTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
 
 import { TicketConfirmDialog } from '@views/owner/member-ticket-detail/ui/TicketConfirmDialog';
 import { TicketExpirySheet } from '@views/owner/member-ticket-detail/ui/TicketExpirySheet';
@@ -18,10 +17,12 @@ import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHold
 import { Header } from '@widgets/Header';
 
 import {
+  useCancelPetTicketHoldMutation,
   useDeletePetTicketMutation,
   usePetTicketDetailQuery,
   usePetTicketExpiryMutation,
   usePetTicketHistoryQuery,
+  usePetTicketHoldMutation,
   type PetTicketHistoryLine,
 } from '@entities/owner-pet-ticket';
 
@@ -56,43 +57,17 @@ function MemberTicketDetailPage() {
   const { data: history = [], isLoading: isHistoryLoading, isError: isHistoryError } = usePetTicketHistoryQuery(petId, ticketId);
   const deleteTicket = useDeletePetTicketMutation(petId, ticketId);
   const updateExpiry = usePetTicketExpiryMutation(petId, ticketId);
+  const holdTicket = usePetTicketHoldMutation(petId, ticketId);
+  const cancelHold = useCancelPetTicketHoldMutation(petId, ticketId);
   const { back } = useStackNavigation();
-  const [localDetail, setLocalDetail] = useState<TicketDetail | null>(null);
-  const detail = localDetail?.id === data?.id ? localDetail : data ? toTicketDetail(data) : null;
+  const detail = data ? toTicketDetail(data) : null;
   const [isHoldOpen, setIsHoldOpen] = useState(false);
   const [isExpiryOpen, setIsExpiryOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const isHoldSet = detail?.hold != null;
-  const isHoldDisabled = !isHoldSet && detail?.holdAction === 'disabled';
-
-  useEffect(() => {
-    const refresh = () => {
-      setLocalDetail((current) => (current ? syncTicketHold(current, new Date()) : current));
-    };
-    const refreshIfVisible = () => {
-      if (document.visibilityState === 'visible') refresh();
-    };
-    let timer = 0;
-    const scheduleNextDay = () => {
-      const now = new Date();
-      const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      timer = window.setTimeout(() => {
-        refresh();
-        scheduleNextDay();
-      }, nextDay.getTime() - now.getTime());
-    };
-
-    refresh();
-    scheduleNextDay();
-    document.addEventListener('visibilitychange', refreshIfVisible);
-    window.addEventListener('focus', refresh);
-    return () => {
-      window.clearTimeout(timer);
-      document.removeEventListener('visibilitychange', refreshIfVisible);
-      window.removeEventListener('focus', refresh);
-    };
-  }, []);
+  const isHoldPending = holdTicket.isPending || cancelHold.isPending;
+  const isHoldDisabled = isHoldPending || (!isHoldSet && detail?.holdAction === 'disabled');
   const endLabel = detail?.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail?.status === 'active' || detail?.status === 'onHold';
 
@@ -107,15 +82,32 @@ function MemberTicketDetailPage() {
   };
 
   const handleConfirmHold = (startsOn: string, endsOn: string) => {
-    if (!detail) return;
-    setLocalDetail(applyTicketHold(detail, startsOn, endsOn, new Date()));
+    const startDate = toExpiryApiDate(startsOn);
+    const endDate = toExpiryApiDate(endsOn);
+    if (!startDate || !endDate || !petId || !ticketId || holdTicket.isPending) return;
+
+    holdTicket.mutate(
+      { startDate, endDate },
+      {
+        onError: () => {
+          showToast(content.holdFailure, 'default');
+        },
+      }
+    );
   };
 
   const handleConfirmCancel = () => {
-    if (!detail) return;
-    setLocalDetail(cancelTicketHold(detail, new Date()));
-    setIsCancelOpen(false);
-    showToast(content.cancelHoldSuccess, 'success');
+    if (!petId || !ticketId || cancelHold.isPending) return;
+
+    cancelHold.mutate(undefined, {
+      onSuccess: () => {
+        setIsCancelOpen(false);
+        showToast(content.cancelHoldSuccess, 'success');
+      },
+      onError: () => {
+        showToast(content.cancelHoldFailure, 'default');
+      },
+    });
   };
 
   const handleConfirmDelete = () => {
@@ -138,9 +130,6 @@ function MemberTicketDetailPage() {
     if (!expiresOn || !petId || !ticketId || updateExpiry.isPending) return;
 
     updateExpiry.mutate(expiresOn, {
-      onSuccess: () => {
-        setLocalDetail(null);
-      },
       onError: () => {
         showToast(content.expiryFailure, 'default');
       },

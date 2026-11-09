@@ -186,6 +186,11 @@ interface PetTicketExpiryRequest {
   expiresOn: string;
 }
 
+interface PetTicketHoldRequest {
+  startDate: string;
+  endDate: string;
+}
+
 interface PetTicketChargeRequest {
   startDate: string;
   name: string;
@@ -323,6 +328,7 @@ export type {
   PetTicketDetail,
   PetTicketExpiryRequest,
   PetTicketHistoryLine,
+  PetTicketHoldRequest,
   PetTicketList,
   PetTicketListDto,
 };

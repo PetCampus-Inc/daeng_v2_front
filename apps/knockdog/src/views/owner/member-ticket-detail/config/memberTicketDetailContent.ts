@@ -35,6 +35,8 @@ const memberTicketDetailContent = {
   cancelHoldDescription: '오늘부터 이용권을 다시 쓸 수 있어요',
   cancelHoldConfirm: '취소하기',
   cancelHoldSuccess: '홀딩을 취소했어요',
+  cancelHoldFailure: '홀딩을 취소하지 못했어요',
+  holdFailure: '이용권을 홀딩하지 못했어요',
   remaining: (count: number) => `잔여 ${count}회`,
   total: (count: number) => ` / ${count}회`,
   period: (start: string, end: string, remainingDays: number | null) =>
