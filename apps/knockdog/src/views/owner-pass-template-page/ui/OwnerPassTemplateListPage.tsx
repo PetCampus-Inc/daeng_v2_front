@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { ActionButton, Icon } from '@knockdog/ui';
 
 import { ownerPassTemplateContent } from '@views/owner-pass-template-page/config/ownerPassTemplateContent';
@@ -62,7 +64,17 @@ function OwnerPassTemplateListPage() {
         </div>
       ) : (
         <div className='flex min-h-0 flex-1 flex-col items-center justify-center px-4 text-center'>
-          <p className='h2-extrabold text-text-primary'>{ownerPassTemplateContent.emptyTitle}</p>
+          <div className='relative size-[200px] shrink-0'>
+            <Image
+              src={ownerPassTemplateContent.emptyImageSrc}
+              alt=''
+              width={200}
+              height={136}
+              className='absolute inset-x-0 top-[23.5%]'
+              priority
+            />
+          </div>
+          <p className='h2-extrabold text-text-primary mt-1'>{ownerPassTemplateContent.emptyTitle}</p>
           <p className='body1-regular text-text-secondary mt-1'>{ownerPassTemplateContent.emptyDescription}</p>
         </div>
       )}
