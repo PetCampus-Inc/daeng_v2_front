@@ -1,0 +1,280 @@
+import {
+  KINDERGARTEN_LINK,
+  TICKET_STATUS,
+  addDays,
+  toDateKey,
+  toDateTimeKey,
+  type ReservationDog,
+  type ReservationKindergarten,
+} from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import { HISTORY_KIND, type TicketHistory } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
+
+const MOMO_KINDERGARTEN: ReservationKindergarten = {
+  placeId: 'momo',
+  name: '모모네 유치원',
+  address: '서울특별시 강남구 논현로 123길 37',
+  phone: '02-1234-5678',
+};
+
+function createReservationMainMock(today: Date): ReservationDog[] {
+  const soon = toDateKey(addDays(today, 3));
+  const later = toDateKey(addDays(today, 40));
+  const upcomingAt = toDateTimeKey(addDays(today, 2));
+
+  return [
+    {
+      id: 'chapchu',
+      name: '찹츄',
+      breed: '골든리트리버',
+      age: 3,
+      weightKg: 20,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: { startsAt: upcomingAt, placeName: '왈왈컹컹 유치원' },
+      tickets: [
+        {
+          id: 'soon-pass',
+          name: '왈왈컹컹 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 2,
+          startsOn: '2026-08-01',
+          endsOn: soon,
+          chargedAt: '2026-08-01T00:00:00',
+          status: TICKET_STATUS.active,
+        },
+        {
+          id: 'active-pass',
+          name: '왈왈컹컹 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 2,
+          startsOn: '2026-08-13',
+          endsOn: later,
+          chargedAt: '2026-08-13T00:00:00',
+          status: TICKET_STATUS.active,
+        },
+        {
+          id: 'held-pass',
+          name: '왈왈컹컹 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 4,
+          startsOn: '2026-10-01',
+          endsOn: '2026-10-31',
+          chargedAt: '2026-07-01T00:00:00',
+          status: TICKET_STATUS.onHold,
+        },
+        {
+          id: 'scheduled-pass',
+          name: '왈왈컹컹 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 10,
+          startsOn: '2026-10-01',
+          endsOn: '2026-10-31',
+          chargedAt: '2026-09-01T00:00:00',
+          status: TICKET_STATUS.scheduled,
+        },
+        {
+          id: 'used-pass',
+          name: '양파빵 유치원 1회권',
+          totalCount: 1,
+          remainingCount: 0,
+          startsOn: '2026-03-01',
+          endsOn: '2026-04-12',
+          chargedAt: '2026-01-01T00:00:00',
+          status: TICKET_STATUS.expired,
+        },
+        {
+          id: 'period-pass',
+          name: '랄랄라 유치원 5회권',
+          totalCount: 5,
+          remainingCount: 2,
+          startsOn: '2026-01-01',
+          endsOn: '2026-03-09',
+          chargedAt: '2026-02-01T00:00:00',
+          status: TICKET_STATUS.expired,
+        },
+      ],
+    },
+    {
+      id: 'kong',
+      name: '콩이',
+      breed: '말티즈',
+      age: 2,
+      weightKg: 3,
+      hasAttendanceHours: false,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: { startsAt: upcomingAt, placeName: '왈왈컹컹 유치원' },
+      tickets: [
+        {
+          id: 'kong-pass',
+          name: '모모네 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 8,
+          startsOn: '2026-09-01',
+          endsOn: later,
+          chargedAt: '2026-09-01T00:00:00',
+          status: TICKET_STATUS.active,
+        },
+      ],
+    },
+    {
+      id: 'dubu',
+      name: '두부',
+      breed: '포메라니안',
+      age: 7,
+      weightKg: 3,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: null,
+      tickets: [
+        {
+          id: 'dubu-pass',
+          name: '왈왈컹컹 유치원 10회권',
+          totalCount: 10,
+          remainingCount: 2,
+          startsOn: '2026-09-01',
+          endsOn: null,
+          chargedAt: '2026-09-01T00:00:00',
+          status: TICKET_STATUS.active,
+        },
+      ],
+    },
+    {
+      id: 'bori',
+      name: '보리',
+      breed: '웰시코기',
+      age: 4,
+      weightKg: 12,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.connected,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: null,
+      tickets: [],
+    },
+    {
+      id: 'choco',
+      name: '초코',
+      breed: '비글',
+      age: 5,
+      weightKg: 11,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.pending,
+      kindergarten: MOMO_KINDERGARTEN,
+      upcoming: null,
+      tickets: [],
+    },
+    {
+      id: 'haneul',
+      name: '하늘',
+      breed: '푸들',
+      age: 1,
+      weightKg: 4,
+      hasAttendanceHours: true,
+      link: KINDERGARTEN_LINK.none,
+      kindergarten: null,
+      upcoming: null,
+      tickets: [],
+    },
+  ];
+}
+
+const SHARED_HISTORY: TicketHistory[] = [
+  {
+    id: 'release',
+    occurredAt: '2026-11-25T09:00:00',
+    kind: HISTORY_KIND.release,
+    count: null,
+    remainingCount: null,
+    detailOn: null,
+    isVoided: false,
+  },
+  {
+    id: 'hold',
+    occurredAt: '2026-10-26T10:00:00',
+    kind: HISTORY_KIND.hold,
+    count: null,
+    remainingCount: null,
+    detailOn: '2026-11-25',
+    isVoided: false,
+  },
+  {
+    id: 'cancel',
+    occurredAt: '2026-10-13T15:00:00',
+    kind: HISTORY_KIND.cancel,
+    count: null,
+    remainingCount: 8,
+    detailOn: null,
+    isVoided: false,
+  },
+  {
+    id: 'voided-use',
+    occurredAt: '2026-10-13T10:00:00',
+    kind: HISTORY_KIND.use,
+    count: null,
+    remainingCount: 7,
+    detailOn: '2026-10-30',
+    isVoided: true,
+  },
+  {
+    id: 'use-september',
+    occurredAt: '2026-09-01T10:00:00',
+    kind: HISTORY_KIND.use,
+    count: null,
+    remainingCount: 8,
+    detailOn: '2026-09-12',
+    isVoided: false,
+  },
+  {
+    id: 'use-august',
+    occurredAt: '2026-08-23T10:00:00',
+    kind: HISTORY_KIND.use,
+    count: null,
+    remainingCount: 9,
+    detailOn: '2026-08-31',
+    isVoided: false,
+  },
+  {
+    id: 'charge',
+    occurredAt: '2026-08-01T09:00:00',
+    kind: HISTORY_KIND.charge,
+    count: 10,
+    remainingCount: 10,
+    detailOn: '2026-08-01',
+    isVoided: false,
+  },
+];
+
+const TICKET_HISTORY: Record<string, TicketHistory[]> = {
+  'soon-pass': [
+    {
+      id: 'extend-active',
+      occurredAt: '2026-11-25T12:00:00',
+      kind: HISTORY_KIND.extend,
+      count: null,
+      remainingCount: null,
+      detailOn: '2027-12-31',
+      isVoided: false,
+    },
+    ...SHARED_HISTORY,
+  ],
+  'period-pass': [
+    {
+      id: 'extend-expired',
+      occurredAt: '2027-01-03T10:00:00',
+      kind: HISTORY_KIND.extend,
+      count: null,
+      remainingCount: null,
+      detailOn: '2027-01-31',
+      isVoided: false,
+    },
+    ...SHARED_HISTORY,
+  ],
+};
+
+function findTicketHistory(ticketId: string) {
+  return TICKET_HISTORY[ticketId] ?? null;
+}
+
+export { createReservationMainMock, findTicketHistory };

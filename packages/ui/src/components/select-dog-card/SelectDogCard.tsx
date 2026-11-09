@@ -20,6 +20,7 @@ const PHOTO_SIZE = {
 
 interface SelectDogCardProps {
   variant?: SelectDogVariant;
+  isExpanded?: boolean;
   name?: string;
   breed?: string;
   age?: string;
@@ -46,6 +47,7 @@ function DetailDots({ items }: { items: string[] }) {
 /** V4 / Select Dog / Profile Card */
 function SelectDogCard({
   variant = 'closed',
+  isExpanded = false,
   name = '찹츄',
   breed = '골든리트리버',
   age = '3살',
@@ -56,12 +58,13 @@ function SelectDogCard({
   onClick,
 }: SelectDogCardProps) {
   const isList = variant === 'list';
+  const isOpen = variant === 'open' || isExpanded;
   const details = [breed, age, weight].filter((item) => item.length > 0);
 
   return (
     <button
       type='button'
-      aria-expanded={isList ? undefined : variant === 'open'}
+      aria-expanded={isList ? undefined : isOpen}
       onClick={onClick}
       className={cn(
         'gap-x4 flex w-full items-center justify-between text-left',
@@ -82,7 +85,7 @@ function SelectDogCard({
       </span>
       {showIcon && !isList ? (
         <span className='bg-bg-50 flex size-x8 shrink-0 items-center justify-center rounded-full'>
-          {variant === 'open' ? (
+          {isOpen ? (
             <ChevronTop className='text-text-secondary size-x4' />
           ) : (
             <ChevronBottom className='text-text-secondary size-x4' />
