@@ -47,7 +47,7 @@ function ReservationDogList({
   onSelect: (dogId: string) => void;
 }) {
   return (
-    <div className='bg-bg-0 flex flex-col'>
+    <div className='bg-bg-0 absolute inset-x-0 top-full z-20 flex flex-col overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
       {dogs.map((dog) => (
         <SelectDogCard
           key={dog.id}
@@ -89,27 +89,29 @@ function GuardianReservationPage() {
 
   return (
     <main className='bg-bg-50 min-h-dvh'>
-      <div className={cn(PROFILE_SURFACE, 'relative z-20 overflow-hidden')}>
-        <header className='border-line-100 pl-x5 pr-x4 flex h-[66px] items-center justify-between border-b'>
-          <h1 className='h2-extrabold text-text-primary px-x1'>예약</h1>
-          <div className='gap-x3_5 flex items-center'>
-            <button type='button' aria-label='내 예약' className='text-text-primary'>
-              <RsvHistory />
-            </button>
-            <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-              <Notification unread />
-            </button>
-          </div>
-        </header>
-        <SelectDogCard
-          isExpanded={isDogListOpen}
-          name={selectedDog.name}
-          breed={selectedDog.breed}
-          age={formatDogAge(selectedDog.age)}
-          weight={formatDogWeight(selectedDog.weightKg)}
-          className='rounded-none shadow-none'
-          onClick={handleToggleDogList}
-        />
+      <div className='relative z-20'>
+        <div className={cn('overflow-hidden', isDogListOpen ? 'bg-bg-0' : PROFILE_SURFACE)}>
+          <header className='border-line-100 pl-x5 pr-x4 flex h-[66px] items-center justify-between border-b'>
+            <h1 className='h2-extrabold text-text-primary px-x1'>예약</h1>
+            <div className='gap-x3_5 flex items-center'>
+              <button type='button' aria-label='내 예약' className='text-text-primary'>
+                <RsvHistory />
+              </button>
+              <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
+                <Notification unread />
+              </button>
+            </div>
+          </header>
+          <SelectDogCard
+            isExpanded={isDogListOpen}
+            name={selectedDog.name}
+            breed={selectedDog.breed}
+            age={formatDogAge(selectedDog.age)}
+            weight={formatDogWeight(selectedDog.weightKg)}
+            className='rounded-none shadow-none'
+            onClick={handleToggleDogList}
+          />
+        </div>
         {isDogListOpen ? <ReservationDogList dogs={dogs} onSelect={handleSelectDog} /> : null}
       </div>
 
