@@ -350,3 +350,24 @@ describe('등록 원생 없음·필터 결과 없음', () => {
     expect(screen.getByRole('button', { name: '전체 22' })).toBeTruthy();
   });
 });
+
+describe('이용권 만료 예정 알림 이동', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getOwnerPendingMembers.mockResolvedValue(pendingResponse);
+    mocks.getOwnerMembers.mockImplementation(async (params?: { filter?: string }) =>
+      params?.filter === 'EXPIRING'
+        ? createMembersResponse({ members: [createMember({ memberId: 'm2', petId: 3, dogName: '가나디' })] })
+        : membersResponse
+    );
+  });
+  afterEach(cleanup);
+
+  it('만료예정 목록 주소로 구성원 화면을 열면 `등록 원생` 탭에서 `만료예정` 칩이 선택된 목록이 보인다', async () => {
+    renderPage('filter=expiring');
+
+    expect(await screen.findByText('가나디')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: '등록 원생', selected: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '만료예정 2', pressed: true })).toBeTruthy();
+  });
+});
