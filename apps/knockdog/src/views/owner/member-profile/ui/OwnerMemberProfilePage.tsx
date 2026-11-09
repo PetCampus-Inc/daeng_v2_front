@@ -3,6 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { Header } from '@widgets/Header';
 
 import {
@@ -30,9 +31,13 @@ function OwnerMemberProfilePage() {
     handleCopy,
     isDogLoading,
     isDogError,
+    isDogAccessDenied,
     isGuardianLoading,
     isGuardianError,
   } = useOwnerMemberProfilePage();
+
+  // 해제된 원생의 프로필에는 들어갈 수 없다. 공통 오류 화면을 전면으로 보여준다.
+  if (isDogAccessDenied) return <PageError layout='overlay' />;
 
   return (
     <div className='bg-bg-50 flex h-full flex-col'>
