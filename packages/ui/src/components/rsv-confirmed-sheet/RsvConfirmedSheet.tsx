@@ -99,7 +99,7 @@ function RsvConfirmedSheet({
           <InfoRow label='이용권' value={ticket} extra={remaining} />
         </div>
       </div>
-      <div className='p-x4'>
+      <div className='px-x4 pt-x4 pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
         <button
           type='button'
           onClick={onConfirm}

@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
 
 import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
-import { findTicketDetail, type TicketHistoryLine } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
-import { applyExpiryExtension } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
-import { applyTicketHold, cancelTicketHold, syncTicketHold } from '@views/owner/member-ticket-detail/model/memberTicketHold';
+import { toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { toExpiryApiDate } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
 
 import { TicketConfirmDialog } from '@views/owner/member-ticket-detail/ui/TicketConfirmDialog';
 import { TicketExpirySheet } from '@views/owner/member-ticket-detail/ui/TicketExpirySheet';
@@ -16,7 +16,20 @@ import { TicketHoldSheet } from '@views/owner/member-ticket-detail/ui/TicketHold
 
 import { Header } from '@widgets/Header';
 
+import {
+  useCancelPetTicketHoldMutation,
+  useDeletePetTicketMutation,
+  usePetTicketDetailQuery,
+  usePetTicketExpiryMutation,
+  usePetTicketHistoryQuery,
+  usePetTicketHoldMutation,
+  type PetTicketHistoryLine,
+} from '@entities/owner-pet-ticket';
+
+import { ApiError } from '@shared/api';
+import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 function DetailFact({ label, value }: { label: string; value: string }) {
@@ -28,7 +41,7 @@ function DetailFact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HistoryLine({ line }: { line: TicketHistoryLine }) {
+function HistoryLine({ line }: { line: PetTicketHistoryLine }) {
   return (
     <div className='flex w-full flex-col gap-0.5 py-[14px]'>
       <p className={`body1-bold text-text-secondary ${line.isCancelled ? 'line-through' : ''}`}>{line.title}</p>
@@ -39,47 +52,32 @@ function HistoryLine({ line }: { line: TicketHistoryLine }) {
 
 function MemberTicketDetailPage() {
   const content = memberTicketDetailContent;
-  const { back } = useStackNavigation();
-  const [detail, setDetail] = useState(findTicketDetail);
+  const params = useParams<{ id: string; ticketId: string }>();
+  const petId = params?.id ?? '';
+  const ticketId = params?.ticketId ?? '';
+  const { data: ticket, isLoading, isError, error } = usePetTicketDetailQuery(petId, ticketId);
+  const { data: history = [], isLoading: isHistoryLoading, isError: isHistoryError } = usePetTicketHistoryQuery(petId, ticketId);
+  const deleteTicket = useDeletePetTicketMutation(petId, ticketId);
+  const updateExpiry = usePetTicketExpiryMutation(petId, ticketId);
+  const holdTicket = usePetTicketHoldMutation(petId, ticketId);
+  const cancelHold = useCancelPetTicketHoldMutation(petId, ticketId);
+  const { back, push } = useStackNavigation();
+  const isMissingTicket = error instanceof ApiError && error.status === 404;
+  const detail = ticket && !isMissingTicket ? toTicketDetail(ticket) : null;
   const [isHoldOpen, setIsHoldOpen] = useState(false);
   const [isExpiryOpen, setIsExpiryOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-  const isHoldSet = detail.hold != null;
+  const [isDeleted, setIsDeleted] = useState(false);
+  const isCancelAction = detail?.holdAction === 'cancel';
+  const isHoldPending = holdTicket.isPending || cancelHold.isPending;
+  const isHoldDisabled = isHoldPending || detail?.holdAction === 'disabled';
+  const endLabel = detail?.endsOn ?? content.noExpiry;
+  const isRemainingAccent = detail?.status === 'active' || detail?.status === 'onHold';
 
-  useEffect(() => {
-    const refresh = () => {
-      setDetail((current) => syncTicketHold(current, new Date()));
-    };
-    const refreshIfVisible = () => {
-      if (document.visibilityState === 'visible') refresh();
-    };
-    let timer = 0;
-    const scheduleNextDay = () => {
-      const now = new Date();
-      const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      timer = window.setTimeout(() => {
-        refresh();
-        scheduleNextDay();
-      }, nextDay.getTime() - now.getTime());
-    };
-
-    refresh();
-    scheduleNextDay();
-    document.addEventListener('visibilitychange', refreshIfVisible);
-    window.addEventListener('focus', refresh);
-    return () => {
-      window.clearTimeout(timer);
-      document.removeEventListener('visibilitychange', refreshIfVisible);
-      window.removeEventListener('focus', refresh);
-    };
-  }, []);
-  const endLabel = detail.endsOn ?? content.noExpiry;
-  const isRemainingAccent = detail.status === 'active' || detail.status === 'onHold';
-
-  const showSuccessToast = (title: string) => {
+  const showToast = (title: string, type: 'success' | 'default') => {
     toast({
-      type: 'success',
+      type,
       shape: 'rounded',
       position: 'bottom',
       nativeTitle: title,
@@ -87,24 +85,70 @@ function MemberTicketDetailPage() {
     });
   };
 
-  const handleConfirmHold = (startsOn: string, endsOn: string) => {
-    setDetail((current) => applyTicketHold(current, startsOn, endsOn, new Date()));
+  const handleOpenList = () => {
+    push({ pathname: route.owner.members.detail.tickets.root.replace('[id]', petId) }).catch(() => undefined);
+  };
+
+  const handleConfirmHold = (startsOn: string, endsOn: string, close: () => void) => {
+    const startDate = toExpiryApiDate(startsOn);
+    const endDate = toExpiryApiDate(endsOn);
+    if (!startDate || !endDate || !petId || !ticketId || holdTicket.isPending) return;
+
+    holdTicket.mutate(
+      { startDate, endDate },
+      {
+        onSuccess: () => {
+          close();
+        },
+        onError: () => {
+          showToast(content.holdFailure, 'default');
+        },
+      }
+    );
   };
 
   const handleConfirmCancel = () => {
-    setDetail((current) => cancelTicketHold(current, new Date()));
-    setIsCancelOpen(false);
-    showSuccessToast(content.cancelHoldSuccess);
+    if (!petId || !ticketId || cancelHold.isPending) return;
+
+    cancelHold.mutate(undefined, {
+      onSuccess: () => {
+        setIsCancelOpen(false);
+        showToast(content.cancelHoldSuccess, 'success');
+      },
+      onError: () => {
+        showToast(content.cancelHoldFailure, 'default');
+      },
+    });
   };
 
   const handleConfirmDelete = () => {
-    setIsDeleteOpen(false);
-    showSuccessToast(content.deleteSuccess);
-    back().catch(() => undefined);
+    if (!petId || !ticketId || deleteTicket.isPending) return;
+
+    deleteTicket.mutate(undefined, {
+      onSuccess: () => {
+        setIsDeleteOpen(false);
+        showToast(content.deleteSuccess, 'success');
+        back()
+          .then((wentBack) => {
+            if (!wentBack) setIsDeleted(true);
+          })
+          .catch(() => setIsDeleted(true));
+      },
+      onError: () => {
+        showToast(content.deleteFailure, 'default');
+      },
+    });
   };
 
   const handleConfirmExpiry = (endsOn: string) => {
-    setDetail((current) => applyExpiryExtension(current, endsOn));
+    const expiresOn = toExpiryApiDate(endsOn);
+    if (!expiresOn || !petId || !ticketId || updateExpiry.isPending) return;
+
+    updateExpiry.mutate(expiresOn, {
+      onError: () => {
+        showToast(content.expiryFailure, 'default');
+      },
+    });
   };
 
   return (
@@ -113,15 +157,31 @@ function MemberTicketDetailPage() {
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
-        <Header.Title>{detail.name}</Header.Title>
+        <Header.Title>{detail?.name ?? ''}</Header.Title>
         <Header.RightSection>
-          <button type='button' aria-label={content.deleteLabel} className='text-text-accent' onClick={() => setIsDeleteOpen(true)}>
-            <TrashV4 />
-          </button>
+          {detail && !isDeleted ? (
+            <button type='button' aria-label={content.deleteLabel} className='text-text-accent' onClick={() => setIsDeleteOpen(true)}>
+              <TrashV4 />
+            </button>
+          ) : null}
         </Header.RightSection>
       </Header>
 
-      <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto'>
+      {isDeleted ? (
+        <div className='flex flex-col items-center gap-4 py-10'>
+          <p className='body2-regular text-text-secondary text-center'>{content.deleteSuccess}</p>
+          <button type='button' className='body1-bold text-text-accent' onClick={handleOpenList}>
+            {content.openList}
+          </button>
+        </div>
+      ) : isLoading || !detail ? (
+        isError || isMissingTicket ? (
+          <p className='body2-regular text-text-secondary py-10 text-center'>{content.loadErrorText}</p>
+        ) : (
+          <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
+        )
+      ) : (
+      <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
         <section className='bg-bg-0 flex flex-col gap-4 px-4 py-5'>
           <div className='px-1'>
             <TicketLifecycleBadge status={detail.status} />
@@ -160,26 +220,36 @@ function MemberTicketDetailPage() {
           </div>
           <button
             type='button'
-            className={`body1-bold border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${isHoldSet ? 'text-text-tertiary' : 'text-fill-secondary-500'}`}
-            onClick={() => (isHoldSet ? setIsCancelOpen(true) : setIsHoldOpen(true))}
+            disabled={isHoldDisabled}
+            className={`body1-bold border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${isCancelAction || isHoldDisabled ? 'text-text-tertiary' : 'text-fill-secondary-500'}`}
+            onClick={() => (isCancelAction ? setIsCancelOpen(true) : setIsHoldOpen(true))}
           >
-            {isHoldSet ? content.cancelHold : content.hold}
+            {isCancelAction ? content.cancelHold : content.hold}
           </button>
         </section>
 
-        <section className='bg-bg-0 flex flex-col gap-3 px-4 py-5'>
-          <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
-          <div className='px-2'>
-            {detail.history.map((line, index) => (
-              <div key={line.id}>
-                {index === 0 ? <Divider /> : null}
-                <HistoryLine line={line} />
-                {index < detail.history.length - 1 ? <Divider /> : null}
+        {isHistoryLoading || isHistoryError || history.length > 0 ? (
+          <section className='bg-bg-0 flex flex-col gap-3 px-4 py-5'>
+            <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
+            {isHistoryLoading ? (
+              <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+            ) : isHistoryError ? (
+              <p className='body2-regular text-text-secondary px-1'>{content.historyErrorText}</p>
+            ) : (
+              <div className='px-2'>
+                {history.map((line, index) => (
+                  <div key={line.id}>
+                    {index === 0 ? <Divider /> : null}
+                    <HistoryLine line={line} />
+                    {index < history.length - 1 ? <Divider /> : null}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            )}
+          </section>
+        ) : null}
       </div>
+      )}
       <TicketHoldSheet isOpen={isHoldOpen} onOpenChange={setIsHoldOpen} onConfirm={handleConfirmHold} />
       <TicketConfirmDialog
         isOpen={isDeleteOpen}
@@ -199,7 +269,7 @@ function MemberTicketDetailPage() {
       />
       <TicketExpirySheet
         isOpen={isExpiryOpen}
-        currentEndsOn={detail.endsOn}
+        currentEndsOn={detail?.endsOn ?? null}
         onOpenChange={setIsExpiryOpen}
         onConfirm={handleConfirmExpiry}
       />

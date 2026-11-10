@@ -45,6 +45,15 @@ export {
   guardianSchoolRecordsQueryKey,
   useGuardianSchoolRecordsQuery,
 } from './api/useGuardianSchoolRecordsQuery';
+export { getDisconnectEligibility } from './api/guardianDisconnectEligibility';
+export type { GetGuardianDisconnectEligibilityParams } from './api/guardianDisconnectEligibility';
+export { toDisconnectEligibility } from './model/guardianDisconnectEligibility';
+export type {
+  GuardianDisconnectEligibility,
+  GuardianDisconnectEligibilityDto,
+  GuardianDisconnectReservation,
+  GuardianDisconnectTicket,
+} from './model/guardianDisconnectEligibility';
 export { deleteGuardianSchoolConnection } from './api/guardianSchoolDisconnect';
 export type { DeleteGuardianSchoolConnectionParams } from './api/guardianSchoolDisconnect';
 export { useGuardianSchoolDisconnectMutation } from './api/useGuardianSchoolDisconnectMutation';

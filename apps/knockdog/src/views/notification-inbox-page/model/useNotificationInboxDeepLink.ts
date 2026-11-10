@@ -1,6 +1,7 @@
 'use client';
 
 import { useMypageRoleViewStore } from '@features/role-conversion';
+import { OWNER_MEMBERS_TAB, OWNER_MEMBERS_TAB_QUERY_KEY } from '@entities/owner-member';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
@@ -23,7 +24,7 @@ function parseLocalDateKey(value: string) {
  * 처리를 깜빡여서 "이 알림만 다른 탭으로 이동하면 원장으로 되돌아간다"는 문제가
  * 생기는 걸 막는다. 네이티브 푸시 쪽(pushCoordinator.ts)과 같은 판별 규칙. */
 function resolvePrefersGuardianViewFromPath(pathname: string): boolean | null {
-  if (pathname === '/kindergarten' || pathname === '/reservation') return true;
+  if (pathname === '/kindergarten' || pathname === '/reservation' || pathname.startsWith('/reservation/')) return true;
   if (
     pathname.startsWith('/kindergarten/notice') ||
     pathname.startsWith('/kindergarten/news') ||
@@ -84,8 +85,11 @@ function useNotificationInboxDeepLink() {
         });
         return;
       case 'ownerMemberApprovals':
-        applyGuardianViewForPath(route.owner.members.approval.root);
-        void push({ pathname: route.owner.members.approval.root });
+        applyGuardianViewForPath(route.owner.members.root);
+        void push({
+          pathname: route.owner.members.root,
+          query: { [OWNER_MEMBERS_TAB_QUERY_KEY]: OWNER_MEMBERS_TAB.pending },
+        });
         return;
       case 'ownerMembers':
         applyGuardianViewForPath(route.owner.members.root);
@@ -123,6 +127,26 @@ function useNotificationInboxDeepLink() {
           source: 'inbox',
           ...(destination.petId ? { pushPetId: destination.petId } : {}),
         });
+        return;
+      case 'guardianReservationDetail':
+        applyGuardianViewForPath(route.reservation.detail.root);
+        setSelectedPetId(destination.petId);
+        void push({
+          pathname: route.reservation.detail.root,
+          query: { dogId: destination.petId, reservationId: destination.reservationId },
+        });
+        return;
+      case 'guardianTicketDetail':
+        applyGuardianViewForPath(route.reservation.tickets.detail.root);
+        setSelectedPetId(destination.petId);
+        void push({
+          pathname: route.reservation.tickets.detail.root.replace('[ticketId]', destination.ticketId),
+          query: { dogId: destination.petId },
+        });
+        return;
+      case 'guardianConnectionHistory':
+        applyGuardianViewForPath(route.kindergarten.connectionHistory.root);
+        void push({ pathname: route.kindergarten.connectionHistory.root });
         return;
       case 'ownerExpiringMembers':
         applyGuardianViewForPath(route.owner.members.root);

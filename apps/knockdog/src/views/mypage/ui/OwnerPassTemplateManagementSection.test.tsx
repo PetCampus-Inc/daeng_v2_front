@@ -24,4 +24,12 @@ describe('마이페이지 이용권 관리 진입', () => {
 
     expect(push).toHaveBeenCalledWith({ pathname: '/mypage/pass-templates' });
   });
+
+  test('원장 마이페이지의 `예약 설정` 메뉴를 누르면 예약 설정 화면으로 이동한다', async () => {
+    render(<OwnerPassTemplateManagementSection />);
+
+    await userEvent.click(screen.getByRole('button', { name: /예약 설정/ }));
+
+    expect(push).toHaveBeenCalledWith({ pathname: '/mypage/kindergarten/reservation' });
+  });
 });

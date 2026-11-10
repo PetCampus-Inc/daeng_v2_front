@@ -16,6 +16,9 @@ const mocks = vi.hoisted(() => ({
   toast: vi.fn(),
 }));
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
 vi.mock('@entities/owner-member/api/ownerMember', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/owner-member/api/ownerMember')>()),
   getOwnerMembers: mocks.getOwnerMembers,
@@ -49,7 +52,16 @@ const createMembersResponse = (...members: ReturnType<typeof createMemberDto>[])
 const MembersListHost = () => {
   const { ownerMembers } = useOwnerMembersPage();
 
-  return <OwnerMembersList members={ownerMembers} emptyStateType={null} isLoading={false} isError={false} />;
+  return (
+    <OwnerMembersList
+      members={ownerMembers}
+      emptyStateType={null}
+      isLoading={false}
+      isError={false}
+      isRetrying={false}
+      onRetry={vi.fn()}
+    />
+  );
 };
 
 const renderMembersList = () => {

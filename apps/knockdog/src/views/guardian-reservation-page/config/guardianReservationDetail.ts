@@ -10,6 +10,8 @@ const RESERVATION_DETAIL_COPY = {
   noteHint: '요청을 바꾸려면 예약을 취소하고 다시 예약해주세요.',
   placeLabel: '유치원 정보',
   phoneCopied: '전화번호가 복사되었어요',
+  loadError: '예약을 불러오지 못했어요',
+  cancelFailed: '예약을 취소하지 못했어요',
   cancel: '취소하기',
   cancelTitle: '예약을 취소할까요?',
   cancelBody: '예약을 취소하면 차감된 이용권 1회가 다시 돌아와요.',

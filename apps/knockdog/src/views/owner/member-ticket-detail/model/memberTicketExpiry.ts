@@ -13,6 +13,12 @@ interface ExpirableTicket {
   history: ExpiryHistoryLine[];
 }
 
+function toExpiryApiDate(dotDate: string) {
+  const [year = '', month = '', day = ''] = dotDate.split('.');
+  if (!year || !month || !day) return null;
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
 function canExtendExpiry(currentEndsOn: string | null, nextEndsOn: string | null) {
   if (currentEndsOn == null || nextEndsOn == null) return false;
   return nextEndsOn > currentEndsOn;
@@ -39,5 +45,5 @@ function applyExpiryExtension<Ticket extends ExpirableTicket>(ticket: Ticket, ne
   };
 }
 
-export { applyExpiryExtension, canExtendExpiry };
+export { applyExpiryExtension, canExtendExpiry, toExpiryApiDate };
 export type { ExpirableTicket, ExpiryHistoryLine };

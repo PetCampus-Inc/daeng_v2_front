@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import {
   SOCIAL_PROVIDER_ICONS,
   useSocialUserStore,
@@ -27,6 +28,7 @@ export interface AccountSectionProps {
   socialEmail?: string;
   onProfileClick?: () => void;
   onLocationClick?: () => void;
+  onConnectionHistoryClick?: () => void;
   onConnectionApplicationsClick?: () => void;
   onMyReviewsClick?: () => void;
   onReleasePermissionClick?: () => void;
@@ -35,12 +37,15 @@ export interface AccountSectionProps {
 function SocialAccountEmailField({
   provider,
   email,
+  surfaceClassName = 'bg-fill-secondary-50 rounded-lg',
 }: {
   provider?: SocialProvider | null;
   email: string;
+  /** 배경색과 모서리 반지름. 기본값은 원장 화면 기준이다. */
+  surfaceClassName?: string;
 }) {
   return (
-    <div className='border-line-200 bg-fill-secondary-50 flex h-12 items-center rounded-lg border px-4'>
+    <div className={cn('border-line-200 flex h-12 items-center border px-4', surfaceClassName)}>
       {provider ? (
         <Icon
           icon={SOCIAL_PROVIDER_ICONS[provider]}
@@ -66,6 +71,7 @@ function AccountSection({
   socialEmail,
   onProfileClick,
   onLocationClick,
+  onConnectionHistoryClick,
   onConnectionApplicationsClick,
   onMyReviewsClick,
   onReleasePermissionClick,
@@ -104,27 +110,25 @@ function AccountSection({
       socialEmail || socialUser?.email || '';
 
     return (
-      <div className='px-4 py-5'>
-        <h2 className='body2-semibold text-text-tertiary'>{accountSectionTitle}</h2>
+      <div className='bg-bg-0 px-4 pt-5 pb-7'>
+        <h2 className='label-medium text-text-secondary px-1'>{accountSectionTitle}</h2>
 
-        <div className='mt-8 flex flex-col gap-4'>
+        <div className='mt-4 flex flex-col gap-2'>
           {accountInfo?.userId ? (
-            <div className='flex min-w-0 flex-col'>
-              <span className='body1-bold text-text-primary'>{ttokIdLabel}</span>
-              <div className='flex items-center justify-between gap-3'>
-                <span className='body2-regular text-text-secondary min-w-0 truncate'>
-                  {ttokIdDescription}
-                </span>
-                <button
-                  type='button'
-                  className='flex shrink-0 items-center gap-2'
-                  aria-label={`${ttokIdLabel} 복사`}
-                  onClick={handleCopyUserId}
-                >
-                  <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
-                  <Icon icon='Copy' className='text-text-secondary size-5' />
-                </button>
+            <div className='flex items-center justify-between gap-2 px-3 py-2'>
+              <div className='flex min-w-0 flex-col gap-1'>
+                <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
+                <span className='caption1-regular text-text-tertiary truncate'>{ttokIdDescription}</span>
               </div>
+              <button
+                type='button'
+                className='flex shrink-0 items-center gap-2'
+                aria-label={`${ttokIdLabel} 복사`}
+                onClick={handleCopyUserId}
+              >
+                <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
+                <Icon icon='Copy' className='text-text-secondary size-5' />
+              </button>
             </div>
           ) : null}
 
@@ -148,76 +152,73 @@ function AccountSection({
 
   if (!accountInfo) return null;
 
+  const guardianMenuItems = [
+    { label: '보호자 프로필', icon: 'User' as const, caption: '보호자의 프로필 정보를 설정할 수 있어요.', onClick: onProfileClick },
+    { label: '내 장소 관리', icon: 'LocationLine' as const, caption: '집 외 1개의 주소를 등록하고 관리할 수 있어요.', onClick: onLocationClick },
+    { label: '유치원 연결 내역', icon: 'Kindergarten' as const, caption: '유치원 연결 내역을 보고 관리할 수 있어요.', onClick: onConnectionHistoryClick },
+    { label: '연결 신청 현황', icon: 'Note' as const, caption: '보낸 연결 신청의 처리 상태를 확인할 수 있어요.', onClick: onConnectionApplicationsClick },
+    { label: '내 리뷰 관리', icon: 'Note' as const, caption: '작성한 유치원 리뷰를 보고 관리할 수 있어요.', onClick: onMyReviewsClick },
+  ];
+
   const guardianSocialProvider = socialProvider ?? socialUser?.provider;
   const guardianSocialEmail = socialEmail ?? socialUser?.email ?? '';
 
   return (
-    <div className='px-4 py-5'>
-      <div className='flex flex-col'>
-        <section className='flex flex-col gap-4 pb-4'>
-          <h2 className='body2-semibold text-text-tertiary'>내 정보</h2>
-          {headerAddon}
-          <div>
-            <button
-              type='button'
-              className='flex h-14 w-full items-center gap-2 py-4 text-left'
-              onClick={onProfileClick}
-            >
-              <span className='body1-medium flex-1 text-text-primary'>보호자 프로필</span>
-              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
-            </button>
-            <button
-              type='button'
-              className='flex h-14 w-full items-center gap-2 py-4 text-left'
-              onClick={onLocationClick}
-            >
-              <span className='body1-medium flex-1 text-text-primary'>내 장소 관리</span>
-              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
-            </button>
-            <button
-              type='button'
-              className='flex h-14 w-full items-center gap-2 py-4 text-left'
-              onClick={onConnectionApplicationsClick}
-            >
-              <span className='body1-medium flex-1 text-text-primary'>연결 신청 내역</span>
-              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
-            </button>
-            <button
-              type='button'
-              className='flex h-14 w-full items-center gap-2 py-4 text-left'
-              onClick={onMyReviewsClick}
-            >
-              <span className='body1-medium flex-1 text-text-primary'>내 리뷰 관리</span>
-              <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
-            </button>
-          </div>
-        </section>
-
-        <Divider />
-
-        <section className='mt-5 flex flex-col gap-4'>
-          <h2 className='body2-semibold text-text-tertiary'>계정 정보</h2>
-          <div>
-            <div className='flex h-[76px] items-end justify-between gap-4 py-4'>
-              <div className='flex flex-col'>
-                <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
-                <span className='body2-regular text-text-tertiary'>{ttokIdDescription}</span>
-              </div>
+    <div className='bg-bg-0'>
+      <section className='flex flex-col gap-4 px-4 pt-4 pb-7'>
+        <h2 className='body2-medium text-text-secondary px-1 leading-[18px]'>내 정보</h2>
+        {headerAddon}
+        <div>
+          {guardianMenuItems.map((item, index) => (
+            <div key={item.label}>
               <button
                 type='button'
-                className='flex items-center gap-2'
-                aria-label={`${ttokIdLabel} 복사`}
-                onClick={handleCopyUserId}
+                className='flex w-full items-center gap-2 py-2 pr-1 pl-2 text-left'
+                onClick={() => item.onClick?.()}
               >
-                <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
-                <Icon icon='Copy' className='size-5 text-text-secondary' />
+                <span className='bg-primitive-orange-50 radius-r2 flex size-11.5 shrink-0 items-center justify-center'>
+                  <Icon icon={item.icon} className='text-primitive-orange-300 size-6' />
+                </span>
+                <span className='ml-1 flex min-w-0 flex-1 flex-col gap-1'>
+                  <span className='body1-medium text-text-primary'>{item.label}</span>
+                  <span className='caption1-regular text-primitive-neutral-500 leading-[18px]'>{item.caption}</span>
+                </span>
+                <Icon icon='ChevronRight' className='text-primitive-neutral-500 size-4' />
               </button>
+              {index < guardianMenuItems.length - 1 ? <div className='bg-line-100 my-2 h-px' /> : null}
             </div>
+          ))}
+        </div>
+      </section>
 
-            <SocialAccountEmailField provider={guardianSocialProvider} email={guardianSocialEmail} />
+      <Divider size='thick' />
+
+      <section className='flex flex-col gap-4 px-4 pt-5 pb-7'>
+        <h2 className='body2-medium text-text-secondary px-1 leading-[18px]'>계정 정보</h2>
+        <div className='flex flex-col gap-2'>
+          <div className='flex h-[62px] items-center justify-between gap-4 px-3 py-2'>
+            <div className='flex flex-col'>
+              <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
+              <span className='caption1-regular text-primitive-neutral-500'>{ttokIdDescription}</span>
+            </div>
+            <button
+              type='button'
+              className='flex items-center gap-2'
+              aria-label={`${ttokIdLabel} 복사`}
+              onClick={handleCopyUserId}
+            >
+              <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
+              <Icon icon='Copy' className='text-text-secondary size-5' />
+            </button>
           </div>
-        </section>
-      </div>
+
+          <SocialAccountEmailField
+            provider={guardianSocialProvider}
+            email={guardianSocialEmail}
+            surfaceClassName='radius-r3 bg-bg-50'
+          />
+        </div>
+      </section>
     </div>
   );
 }
