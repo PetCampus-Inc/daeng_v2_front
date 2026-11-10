@@ -7,9 +7,19 @@ import {
   OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY,
 } from '@entities/owner-attendance-checkinout';
 import { OWNER_HOME_QUERY_KEY } from '@entities/owner-home';
-import { OWNER_PET_HISTORY_QUERY_KEY, OWNER_PET_GUARDIAN_QUERY_KEY, OWNER_PET_QUERY_KEY } from '@entities/owner-pet';
+import {
+  OWNER_PET_HISTORY_QUERY_KEY,
+  OWNER_PET_GUARDIAN_QUERY_KEY,
+  OWNER_PET_QUERY_KEY,
+} from '@entities/owner-pet';
 import { ApiError } from '@shared/api';
-import { postApproveOwnerMember, postDisconnectOwnerMember, postRejectOwnerMember } from './ownerMember';
+import { toDisconnectEligibility } from '../model/ownerMemberDisconnect';
+import {
+  getDisconnectEligibility,
+  postApproveOwnerMember,
+  postDisconnectOwnerMember,
+  postRejectOwnerMember,
+} from './ownerMember';
 import { ownerMembersQueryKey, ownerPendingMembersQueryKey } from './useOwnerMemberQuery';
 
 /** 이미 보호자가 취소한 연결 신청을 승인/거절하려 할 때 백엔드가 내려주는 코드 */
@@ -17,6 +27,19 @@ const ALREADY_CANCELLED_CODE = 'OWNER_MEMBER-409-2';
 
 function isAlreadyCancelledError(error: unknown): boolean {
   return error instanceof ApiError && String(error.code) === ALREADY_CANCELLED_CODE;
+}
+
+/** 원장 해제를 이용권·예약이 남아 거절할 때 백엔드가 내려주는 코드(409, 사유는 담기지 않음) */
+const DISCONNECT_BLOCKED_CODE = 'OWNER_MEMBER-409-3';
+/** 이미 해제됐거나 연결된 구성원이 아닐 때 백엔드가 내려주는 코드(400) */
+const ALREADY_DISCONNECTED_CODE = 'OWNER_MEMBER-400-2';
+
+function isDisconnectBlockedError(error: unknown): boolean {
+  return error instanceof ApiError && String(error.code) === DISCONNECT_BLOCKED_CODE;
+}
+
+function isAlreadyDisconnectedError(error: unknown): boolean {
+  return error instanceof ApiError && String(error.code) === ALREADY_DISCONNECTED_CODE;
 }
 
 interface UseOwnerMemberApprovalMutationOptions {
@@ -63,6 +86,14 @@ function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMuta
 
   return useMutation({
     mutationFn: postDisconnectOwnerMember,
+    // 이미 해제된 원생이면 목록에 남은 오래된 카드가 사라지도록 구성원 목록을 다시 불러온다
+    onError: (error) => {
+      if (isAlreadyDisconnectedError(error)) {
+        queryClient
+          .invalidateQueries({ queryKey: ownerMembersQueryKey(userId) })
+          .catch(() => undefined);
+      }
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ownerMembersQueryKey(userId) }),
@@ -85,4 +116,23 @@ function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMuta
   });
 }
 
-export { useOwnerMemberApprovalMutation, useOwnerMemberDisconnectMutation, isAlreadyCancelledError };
+/**
+ * 원장 구성원 연결 해제 가능 여부 조회.
+ * 결과가 시점마다 바뀌어 캐시하면 안 되므로(서버 답변), 캐시를 쓰는 query 대신 누를 때마다 새로 실행하는 mutation으로 둔다.
+ * 응답은 시트·모달에 쓸 화면 모델로 바꿔 돌려준다.
+ */
+function useDisconnectCheckMutation() {
+  return useMutation({
+    mutationFn: async (memberId: string) =>
+      toDisconnectEligibility((await getDisconnectEligibility(memberId)).data),
+  });
+}
+
+export {
+  useOwnerMemberApprovalMutation,
+  useDisconnectCheckMutation,
+  useOwnerMemberDisconnectMutation,
+  isAlreadyCancelledError,
+  isAlreadyDisconnectedError,
+  isDisconnectBlockedError,
+};

@@ -1,3 +1,4 @@
+import type { OwnerMemberDisconnectEligibilityDto } from '../model/ownerMemberDisconnect';
 import type { OwnerInviteDto, OwnerMembersDto, OwnerPendingMembersDto } from '../model/ownerMember';
 
 import { api, type ApiResponse } from '@shared/api';
@@ -52,6 +53,13 @@ function postDisconnectOwnerMember(memberId: string) {
   return api.post(`owner/members/${memberId}/disconnect`).json<ApiResponse<Record<string, never>>>();
 }
 
+/** `GET` - 원장 구성원 연결 해제 가능 여부 조회 (이용권·예약이 남았는지) */
+function getDisconnectEligibility(memberId: string) {
+  return api
+    .get(`owner/members/${memberId}/disconnect-eligibility`)
+    .json<ApiResponse<OwnerMemberDisconnectEligibilityDto>>();
+}
+
 /** `POST` - 보호자 초대 링크 조회 */
 function postOwnerInvite() {
   return api.post('owner/invites').json<ApiResponse<OwnerInviteDto>>();
@@ -59,6 +67,7 @@ function postOwnerInvite() {
 
 export type { GetOwnerMembersParams, GetOwnerPendingMembersParams, OwnerMembersFilter, OwnerPendingSort };
 export {
+  getDisconnectEligibility,
   getOwnerMembers,
   getOwnerPendingMembers,
   postApproveOwnerMember,

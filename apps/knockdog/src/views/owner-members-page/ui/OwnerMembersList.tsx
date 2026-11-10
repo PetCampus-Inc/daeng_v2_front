@@ -1,6 +1,8 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
+import { ownerMembersContent } from '@views/owner-members-page/config/ownerMembersContent';
 import {
   ownerMembersEmptyContent,
   type OwnerMembersEmptyStateType,
@@ -8,7 +10,9 @@ import {
 
 import { StudentTicketListItem } from '@knockdog/ui';
 
-import type { OwnerMember } from '@entities/owner-member';
+import { ownerMembersQueryKey, type OwnerMember } from '@entities/owner-member';
+import { getOwnerPet, isPetNotAuthorizedError, ownerPetQueryKey } from '@entities/owner-pet';
+import { useUserStore } from '@entities/user';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -44,12 +48,32 @@ function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembe
 
 function OwnerMembersList({ members, emptyStateType, isLoading, isError, isRetrying, onRetry }: OwnerMembersListProps) {
   const { push } = useStackNavigation();
+  const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.user?.userId);
 
   /** 원생 상세 프로필 화면으로 이동한다. 열 수 없으면 토스트로 알린다 */
   const handleOpenMember = async (member: OwnerMember) => {
     if (!member.petId) {
       toast({ nativeTitle: '원생 프로필을 열 수 없어요', title: '원생 프로필을 열 수 없어요' });
       return;
+    }
+
+    // 보호자나 다른 기기에서 먼저 해제해 목록이 오래됐을 수 있어 먼저 해제 여부를 확인한다.
+    // 받은 응답은 프로필 화면의 원생 조회와 같은 캐시에 저장해 프로필이 다시 요청하지 않게 한다
+    try {
+      const petId = member.petId;
+      await queryClient.fetchQuery({
+        queryKey: ownerPetQueryKey(petId),
+        queryFn: () => getOwnerPet(petId),
+        staleTime: 0,
+      });
+    } catch (error) {
+      if (isPetNotAuthorizedError(error)) {
+        toast({ title: ownerMembersContent.alreadyDisconnectedToast });
+        queryClient.invalidateQueries({ queryKey: ownerMembersQueryKey(userId) }).catch(() => undefined);
+        return;
+      }
+      // 그 밖의 조회 실패는 프로필 화면이 자체 오류 처리로 보여준다
     }
 
     try {

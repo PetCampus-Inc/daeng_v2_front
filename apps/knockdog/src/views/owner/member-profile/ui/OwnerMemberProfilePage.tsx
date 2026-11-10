@@ -1,8 +1,9 @@
 'use client';
 
-import { DisconnectButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { PageError } from '@shared/ui/page-error';
 import { Header } from '@widgets/Header';
 
 import {
@@ -10,38 +11,15 @@ import {
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
-import { useOwnerMemberProfileDisconnect } from '../model/useOwnerMemberProfileDisconnect';
 import { useOwnerMemberProfilePage } from '../model/useOwnerMemberProfilePage';
 import { formatProfilePhone } from '../lib/formatProfilePhone';
 import { AttendanceRecordSection } from './AttendanceRecordSection';
 import { DogBasicInfoSection } from './DogBasicInfoSection';
 import { GuardianBasicInfoSection } from './GuardianBasicInfoSection';
 import { OwnerMemberConnectionHistorySection } from './OwnerMemberConnectionHistorySection';
+import { OwnerMemberProfileDisconnectButton } from './OwnerMemberProfileDisconnectButton';
 import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
 import { OwnerMemberTicketSection } from './OwnerMemberTicketSection';
-
-function OwnerMemberProfileDisconnectButton({
-  petId,
-  dogName,
-}: {
-  petId: string;
-  dogName: string;
-}) {
-  const { handleDisconnectClick, isDisconnecting } = useOwnerMemberProfileDisconnect({
-    petId,
-    dogName,
-  });
-
-  return (
-    <DisconnectButton
-      type='button'
-      disabled={isDisconnecting}
-      onClick={() => {
-        void handleDisconnectClick();
-      }}
-    />
-  );
-}
 
 function OwnerMemberProfilePage() {
   const {
@@ -53,9 +31,13 @@ function OwnerMemberProfilePage() {
     handleCopy,
     isDogLoading,
     isDogError,
+    isDogAccessDenied,
     isGuardianLoading,
     isGuardianError,
   } = useOwnerMemberProfilePage();
+
+  // 해제된 원생의 프로필에는 들어갈 수 없다. 공통 오류 화면을 전면으로 보여준다.
+  if (isDogAccessDenied) return <PageError layout='overlay' />;
 
   return (
     <div className='bg-bg-50 flex h-full flex-col'>

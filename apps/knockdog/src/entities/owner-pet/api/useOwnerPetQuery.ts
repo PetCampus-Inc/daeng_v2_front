@@ -8,6 +8,8 @@ const OWNER_PET_QUERY_KEY = 'ownerPet';
 const OWNER_PET_GUARDIAN_QUERY_KEY = 'ownerPetGuardian';
 const OWNER_PET_HISTORY_QUERY_KEY = 'ownerPetConnections';
 
+const OWNER_PET_FRESH_MS = 5_000;
+
 const ownerPetQueryKey = (petId?: string) => [OWNER_PET_QUERY_KEY, petId] as const;
 const ownerPetGuardianQueryKey = (petId?: string) =>
   [OWNER_PET_GUARDIAN_QUERY_KEY, petId] as const;
@@ -27,7 +29,8 @@ function useOwnerPetQuery({ petId, enabled = true }: UseOwnerPetQueryOptions) {
     queryFn: () => getOwnerPet(resolvedPetId),
     select: (response) => toOwnerPet(response.data),
     enabled: enabled && /^\d+$/.test(resolvedPetId),
-    staleTime: 0,
+    // 구성원 목록에서 카드를 눌러 방금 받은 응답을 프로필이 다시 요청하지 않고 쓰도록 짧게 신선하게 둔다
+    staleTime: OWNER_PET_FRESH_MS,
   });
 }
 
