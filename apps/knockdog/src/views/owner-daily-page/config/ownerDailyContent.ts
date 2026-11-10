@@ -1,22 +1,9 @@
-interface AttendanceMember {
-  id: string;
-  name: string;
-  guardianName?: string;
-  gender: 'MALE' | 'FEMALE' | null;
-  breed: string;
-  weightKg: number | null;
-  birthYear?: number;
-  profileImageUrl?: string;
-  checkedIn: boolean;
-  checkedInTime?: string;
-  checkedOut: boolean;
-  checkedOutTime?: string;
-  noticebookSent: boolean;
-}
+type OwnerDailyTab = 'attendance-check' | 'attendance-list';
 
-interface OwnerDailySummaryItem {
-  label: string;
-  count: number;
-}
+const OWNER_DAILY_TAB_LABEL: Record<OwnerDailyTab, string> = {
+  'attendance-check': '등원처리',
+  'attendance-list': '등원목록',
+};
 
-export type { AttendanceMember, OwnerDailySummaryItem };
+export { OWNER_DAILY_TAB_LABEL };
+export type { OwnerDailyTab };

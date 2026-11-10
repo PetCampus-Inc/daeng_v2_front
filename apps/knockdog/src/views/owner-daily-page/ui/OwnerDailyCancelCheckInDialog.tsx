@@ -13,22 +13,18 @@ import {
   Icon,
 } from '@knockdog/ui';
 
-import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
+import type { AttendanceCheckinoutCandidate } from '@entities/owner-attendance-checkinout';
+
 import { ellipsisText } from '@shared/utils';
 
 interface OwnerDailyCancelCheckInDialogProps {
-  member: AttendanceMember;
+  member: Pick<AttendanceCheckinoutCandidate, 'name' | 'profileImageUrl'>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
 }
 
-function OwnerDailyCancelCheckInDialog({
-  member,
-  open,
-  onOpenChange,
-  onCancel,
-}: OwnerDailyCancelCheckInDialogProps) {
+function OwnerDailyCancelCheckInDialog({ member, open, onOpenChange, onCancel }: OwnerDailyCancelCheckInDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className='max-w-[358px]'>

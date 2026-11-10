@@ -4,7 +4,6 @@ import {
   toAttendanceCheckinoutCandidates,
   toAttendanceCheckinoutSummary,
   toAttendanceCheckinoutToday,
-  type CheckinoutStatus,
   type TodayAttendanceFilter,
 } from '../model/attendanceCheckinout';
 import {
@@ -19,8 +18,6 @@ const OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY = 'ownerAttendanceCheckinout
 
 interface UseAttendanceCheckinoutCandidatesQueryOptions {
   date?: string;
-  q?: string;
-  checkinoutStatus?: CheckinoutStatus;
   userId?: string;
   enabled?: boolean;
 }
@@ -38,18 +35,8 @@ interface UseAttendanceCheckinoutSummaryQueryOptions {
   enabled?: boolean;
 }
 
-const ownerAttendanceCheckinoutCandidatesQueryKey = ({
-  userId,
-  date,
-  q,
-  checkinoutStatus,
-}: {
-  userId?: string;
-  date?: string;
-  q?: string;
-  checkinoutStatus?: CheckinoutStatus;
-}) =>
-  [OWNER_ATTENDANCE_CHECKINOUT_CANDIDATES_QUERY_KEY, userId, date, q, checkinoutStatus] as const;
+const ownerAttendanceCheckinoutCandidatesQueryKey = ({ userId, date }: { userId?: string; date?: string }) =>
+  [OWNER_ATTENDANCE_CHECKINOUT_CANDIDATES_QUERY_KEY, userId, date] as const;
 
 const ownerAttendanceCheckinoutTodayQueryKey = ({
   userId,
@@ -61,29 +48,17 @@ const ownerAttendanceCheckinoutTodayQueryKey = ({
   filter?: TodayAttendanceFilter;
 }) => [OWNER_ATTENDANCE_CHECKINOUT_TODAY_QUERY_KEY, userId, date, filter] as const;
 
-const ownerAttendanceCheckinoutSummaryQueryKey = ({
-  userId,
-  date,
-}: {
-  userId?: string;
-  date?: string;
-}) => [OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY, userId, date] as const;
+const ownerAttendanceCheckinoutSummaryQueryKey = ({ userId, date }: { userId?: string; date?: string }) =>
+  [OWNER_ATTENDANCE_CHECKINOUT_SUMMARY_QUERY_KEY, userId, date] as const;
 
 function useAttendanceCheckinoutCandidatesQuery({
   date,
-  q,
-  checkinoutStatus,
   userId,
   enabled = true,
 }: UseAttendanceCheckinoutCandidatesQueryOptions = {}) {
   return useQuery({
-    queryKey: ownerAttendanceCheckinoutCandidatesQueryKey({
-      userId,
-      date,
-      q,
-      checkinoutStatus,
-    }),
-    queryFn: () => getAttendanceCheckinoutCandidates({ date, q, checkinoutStatus }),
+    queryKey: ownerAttendanceCheckinoutCandidatesQueryKey({ userId, date }),
+    queryFn: () => getAttendanceCheckinoutCandidates({ date }),
     select: (response) => toAttendanceCheckinoutCandidates(response.data),
     enabled,
     staleTime: 0,

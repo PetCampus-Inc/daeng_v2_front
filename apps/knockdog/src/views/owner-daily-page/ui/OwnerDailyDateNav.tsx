@@ -8,23 +8,31 @@ interface OwnerDailyDateNavProps {
   onNextDay: () => void;
   onOpenDatePicker: () => void;
   onGoToday: () => void;
+  isPrevDayDisabled?: boolean;
   isNextDayDisabled?: boolean;
   isToday: boolean;
 }
 
-function OwnerDailyDateNav({
+const OwnerDailyDateNav = ({
   label,
   onPrevDay,
   onNextDay,
   onOpenDatePicker,
   onGoToday,
+  isPrevDayDisabled,
   isNextDayDisabled,
   isToday,
-}: OwnerDailyDateNavProps) {
+}: OwnerDailyDateNavProps) => {
   return (
     <div className='flex w-full items-center justify-between gap-2'>
       <div className='flex items-center gap-2'>
-        <button type='button' aria-label='전날' onClick={onPrevDay}>
+        <button
+          type='button'
+          aria-label='전날'
+          disabled={isPrevDayDisabled}
+          onClick={onPrevDay}
+          className='disabled:opacity-30'
+        >
           <Icon icon='ChevronLeft' className='text-text-secondary size-6' />
         </button>
         <button type='button' className='flex items-center gap-2' onClick={onOpenDatePicker}>
@@ -43,6 +51,7 @@ function OwnerDailyDateNav({
       </div>
       <button
         type='button'
+        disabled={isToday}
         onClick={onGoToday}
         className={
           isToday
@@ -54,6 +63,6 @@ function OwnerDailyDateNav({
       </button>
     </div>
   );
-}
+};
 
 export { OwnerDailyDateNav };

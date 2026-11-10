@@ -1,28 +1,13 @@
 'use client';
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type PointerEvent,
-  type WheelEvent,
-} from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from 'react';
 import { ActionButton } from '@knockdog/ui';
+import { formatOwnerDailyPickerLabel } from '@views/owner-daily-page/lib/ownerDailyDateLabel';
+import { getDateWithPartChanged, type DatePart } from '@views/owner-daily-page/lib/ownerDailyDatePicker';
 
-import {
-  formatKstDateLabel,
-  formatKstDayLabel,
-  isAfterDay,
-  isBeforeDay,
-  startOfDay,
-} from '@shared/lib/calendar-date';
+import { isAfterDay, isBeforeDay, startOfDay } from '@shared/lib/calendar-date';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useNativeBackToClose } from '@shared/lib/bridge';
-import {
-  getDateWithPartChanged,
-  type DatePart,
-} from '@views/owner-daily-page/lib/ownerDailyDatePicker';
 
 interface OwnerDailyDatePickerSheetProps {
   isOpen: boolean;
@@ -53,13 +38,7 @@ function getDatePartLabel(date: Date, part: DateWheelColumnProps['part']) {
   return `${date.getDate()}일`;
 }
 
-function DateWheelColumn({
-  part,
-  selectedDate,
-  minDate,
-  maxDate,
-  onChange,
-}: DateWheelColumnProps) {
+function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: DateWheelColumnProps) {
   const rowHeight = 52;
   const maxVisibleOffset = 15;
   const dragStartYRef = useRef<number | null>(null);
@@ -160,9 +139,8 @@ function DateWheelColumn({
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    const tappedDateOffset = (event.target as HTMLElement)
-      .closest<HTMLElement>('[data-date-offset]')
-      ?.dataset.dateOffset;
+    const tappedDateOffset = (event.target as HTMLElement).closest<HTMLElement>('[data-date-offset]')?.dataset
+      .dateOffset;
     const dateOffset = tappedDateOffset == null ? null : Number(tappedDateOffset);
 
     if (pendingChangeRef.current != null) {
@@ -243,7 +221,7 @@ function DateWheelColumn({
       tabIndex={0}
       aria-label={`${part === 'year' ? '연도' : part === 'month' ? '월' : '일'} 선택`}
       aria-valuetext={getDatePartLabel(baseDate, part)}
-      className='z-10 flex h-[152px] flex-1 flex-col touch-none select-none overflow-hidden'
+      className='z-10 flex h-[152px] flex-1 touch-none flex-col overflow-hidden select-none'
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -298,10 +276,8 @@ function OwnerDailyDatePickerSheet({
   initialDate,
   onConfirm,
 }: OwnerDailyDatePickerSheetProps) {
-  const today = startOfDay(new Date());
   const [selectedDate, setSelectedDate] = useState(() => clampDate(initialDate, minDate, maxDate));
   const selectedDateRef = useRef(selectedDate);
-  const selectedDateLabel = `${selectedDate.getFullYear() === today.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -336,11 +312,11 @@ function OwnerDailyDatePickerSheet({
         <BottomSheet.Handle className='mt-3 mb-4 h-1 w-9' />
         <BottomSheet.Header className='h-[54px] shrink-0 px-4 py-[14px]'>
           <BottomSheet.Title>날짜 선택</BottomSheet.Title>
-          <BottomSheet.CloseButton onClick={close} />
+          <BottomSheet.CloseButton aria-label='닫기' onClick={close} />
         </BottomSheet.Header>
 
         <div className='relative flex h-[152px] w-full shrink-0 items-start gap-0 px-4'>
-          <div className='bg-[#FFF7EC] absolute top-[51px] right-4 left-4 h-[50px] rounded-lg' />
+          <div className='absolute top-[51px] right-4 left-4 h-[50px] rounded-lg bg-[#FFF7EC]' />
           <DateWheelColumn
             part='year'
             selectedDate={selectedDate}
@@ -366,10 +342,10 @@ function OwnerDailyDatePickerSheet({
 
         <div className='flex h-24 shrink-0 flex-col px-4 py-5'>
           <ActionButton type='button' variant='primaryFill' size='large' onClick={handleConfirm}>
-            {`${selectedDateLabel} 확인`}
+            {formatOwnerDailyPickerLabel(selectedDate)}
           </ActionButton>
         </div>
-        <div className='min-h-[34px] shrink-0 flex-1 bg-bg-0' />
+        <div className='bg-bg-0 min-h-[34px] flex-1 shrink-0' />
       </BottomSheet.Body>
     </BottomSheet.Root>
   );

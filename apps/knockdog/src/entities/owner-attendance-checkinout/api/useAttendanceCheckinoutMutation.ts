@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
+  postAttendanceAbsent,
+  postAttendanceCancelAbsent,
   postAttendanceCancelCheckIn,
   postAttendanceCancelCheckOut,
   postAttendanceCheckIn,
@@ -48,8 +50,15 @@ function useAttendanceCheckinoutMutation({ userId }: UseAttendanceCheckinoutMuta
       onSuccess: invalidateAttendanceCheckinout,
     }),
     cancelCheckOutMutation: useMutation({
-      mutationFn: (params: AttendanceCheckinoutActionParams) =>
-        postAttendanceCancelCheckOut(params),
+      mutationFn: (params: AttendanceCheckinoutActionParams) => postAttendanceCancelCheckOut(params),
+      onSuccess: invalidateAttendanceCheckinout,
+    }),
+    absentMutation: useMutation({
+      mutationFn: (params: AttendanceCheckinoutActionParams) => postAttendanceAbsent(params),
+      onSuccess: invalidateAttendanceCheckinout,
+    }),
+    cancelAbsentMutation: useMutation({
+      mutationFn: (params: AttendanceCheckinoutActionParams) => postAttendanceCancelAbsent(params),
       onSuccess: invalidateAttendanceCheckinout,
     }),
   };
