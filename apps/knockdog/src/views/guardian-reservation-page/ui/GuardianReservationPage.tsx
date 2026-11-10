@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
-import { MembershipCard, MembershipCardStatusBadge, SelectDogCard, UpcomingRsvCard } from '@knockdog/ui';
+import { ActionButton, MembershipCard, MembershipCardStatusBadge, SelectDogCard, UpcomingRsvCard } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
@@ -19,6 +20,45 @@ import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
 const PROFILE_SURFACE = 'bg-bg-0 rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]';
+
+const RESERVATION_NO_PET = {
+  imageSrc: '/images/img_empty_no_pet.svg',
+  imageAlt: '등록된 강아지 없음',
+  prompt: '강아지를 등록해 주세요',
+  title: '아직 등록된 강아지가 없어요',
+  description: '우리 집 강아지를 등록하고,\n다니는 유치원과 연결해 보세요.',
+  ctaLabel: '강아지 등록하기',
+} as const;
+
+function ReservationNoPetState() {
+  const { push } = useStackNavigation();
+
+  const handleRegisterClick = () => {
+    push({ pathname: route.mypage.pet.add.root }).catch(() => undefined);
+  };
+
+  return (
+    <div className='px-x5 pt-x5 pb-[calc(var(--bottom-bar-height)+20px)] webview:pb-x5 flex min-h-0 w-full flex-1 flex-col items-center justify-between'>
+      <div className='flex w-full flex-1 flex-col items-center justify-center gap-1'>
+        <Image
+          src={RESERVATION_NO_PET.imageSrc}
+          alt={RESERVATION_NO_PET.imageAlt}
+          width={200}
+          height={200}
+          priority
+          unoptimized
+        />
+        <div className='flex w-full flex-col items-center gap-1 text-center'>
+          <p className='h2-extrabold text-text-primary'>{RESERVATION_NO_PET.title}</p>
+          <p className='body1-regular text-text-tertiary whitespace-pre-line'>{RESERVATION_NO_PET.description}</p>
+        </div>
+      </div>
+      <ActionButton type='button' variant='primaryFill' size='large' className='w-full' onClick={handleRegisterClick}>
+        {RESERVATION_NO_PET.ctaLabel}
+      </ActionButton>
+    </div>
+  );
+}
 
 function ReservationEmptySchedule() {
   return (
@@ -89,7 +129,7 @@ function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId:
 
 function GuardianReservationPage() {
   const { push } = useStackNavigation();
-  const { pets, selectedPet, setSelectedPetId, isPetsReady, isPetsError } = useGuardianSelectedPet();
+  const { pets, selectedPet, setSelectedPetId, isPetsReady, isPetsError, hasNoPet } = useGuardianSelectedPet();
   const [isChevronOpen, setIsChevronOpen] = useState(false);
   const petId = selectedPet?.id ?? '';
   const upcomingQuery = useGuardianReservationQuery(petId, RESERVATION_SCOPE.upcoming);
@@ -138,7 +178,30 @@ function GuardianReservationPage() {
     return <p className='body2-regular text-text-secondary py-10 text-center'>강아지를 불러오지 못했어요</p>;
   }
 
-  if (!selectedPet) return null;
+  if (hasNoPet || !selectedPet) {
+    return (
+      <main className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
+        <div className={PROFILE_SURFACE}>
+          <header className='border-line-100 pl-x5 pr-x4 flex h-[66px] items-center justify-between border-b'>
+            <h1 className='h2-extrabold text-text-primary px-x1'>예약</h1>
+            <div className='gap-x3_5 flex items-center'>
+              <button type='button' aria-label='내 예약' className='text-text-primary' onClick={handleOpenList}>
+                <RsvHistory />
+              </button>
+              <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
+                <Notification unread />
+              </button>
+            </div>
+          </header>
+          <div className='gap-x4 px-x6 py-x5 flex items-center'>
+            <DogProfileAvatar name='강아지' className='size-[52px] border-line-100' />
+            <p className='h3-extrabold text-text-primary'>{RESERVATION_NO_PET.prompt}</p>
+          </div>
+        </div>
+        <ReservationNoPetState />
+      </main>
+    );
+  }
 
   return (
     <main className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
