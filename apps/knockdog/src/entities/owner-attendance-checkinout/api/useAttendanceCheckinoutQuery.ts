@@ -78,6 +78,8 @@ function useAttendanceCheckinoutTodayQuery({
     select: (response) => toAttendanceCheckinoutToday(response.data),
     enabled,
     staleTime: 0,
+    // 필터만 바뀔 때는 새 목록이 올 때까지 이전 목록을 보여 줘 화면이 깜빡이지 않게 한다. 날짜가 바뀌면 이어 보여 주지 않는다.
+    placeholderData: (previousData, previousQuery) => (previousQuery?.queryKey[2] === date ? previousData : undefined),
   });
 }
 

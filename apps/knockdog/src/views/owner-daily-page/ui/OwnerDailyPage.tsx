@@ -63,8 +63,10 @@ const OwnerDailyPage = () => {
     isError,
     keyword,
     lateOnly,
+    todayFilter,
     setKeyword,
     setLateOnly,
+    setTodayFilter,
     handleDateSelect,
     handlePrevDayClick,
     handleNextDayClick,
@@ -209,7 +211,12 @@ const OwnerDailyPage = () => {
               onScroll={handleContentScroll}
             >
               {todayList ? (
-                <OwnerDailyAttendanceListTab todayList={todayList} onMemberClick={handleMemberClick} />
+                <OwnerDailyAttendanceListTab
+                  todayList={todayList}
+                  filter={todayFilter}
+                  onFilterChange={setTodayFilter}
+                  onMemberClick={handleMemberClick}
+                />
               ) : null}
             </TabsContent>
           </Tabs>

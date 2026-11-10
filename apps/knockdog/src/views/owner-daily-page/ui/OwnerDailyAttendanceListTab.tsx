@@ -1,37 +1,64 @@
 import { StatusFilterChip } from '@knockdog/ui';
 
+import {
+  OwnerDailyFilterEmptyState,
+  OwnerDailyNoAttendanceState,
+} from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
 import { OwnerDailyTodayAttendanceCard } from '@views/owner-daily-page/ui/OwnerDailyTodayAttendanceCard';
 
-import type { AttendanceCheckinoutToday, AttendanceCheckinoutTodayItem } from '@entities/owner-attendance-checkinout';
+import type {
+  AttendanceCheckinoutToday,
+  AttendanceCheckinoutTodayItem,
+  TodayAttendanceFilter,
+} from '@entities/owner-attendance-checkinout';
 
 interface OwnerDailyAttendanceListTabProps {
   todayList: AttendanceCheckinoutToday;
+  /** 선택한 필터 칩. `undefined`는 `전체`다. */
+  filter: TodayAttendanceFilter | undefined;
+  onFilterChange: (filter: TodayAttendanceFilter | undefined) => void;
   onMemberClick: (item: AttendanceCheckinoutTodayItem) => void;
 }
 
 /** `등원목록` 탭(오늘). 필터 칩(전체·재원중·발송전)과 등원한 원생 카드 목록을 보여 준다. */
-const OwnerDailyAttendanceListTab = ({ todayList, onMemberClick }: OwnerDailyAttendanceListTabProps) => {
+const OwnerDailyAttendanceListTab = ({
+  todayList,
+  filter,
+  onFilterChange,
+  onMemberClick,
+}: OwnerDailyAttendanceListTabProps) => {
   const { counts, items } = todayList;
-  const chips = [
-    { label: '전체', count: counts.all },
-    { label: '재원중', count: counts.currentlyIn },
-    { label: '발송전', count: counts.unsentRecord },
+  const chips: { label: string; count: number; value: TodayAttendanceFilter | undefined }[] = [
+    { label: '전체', count: counts.all, value: undefined },
+    { label: '재원중', count: counts.currentlyIn, value: 'CURRENTLY_IN' },
+    { label: '발송전', count: counts.unsentRecord, value: 'UNSENT_RECORD' },
   ];
+
+  // 등원한 원생이 아예 없으면 칩 없이 안내만 보여 준다.
+  if (counts.all === 0) return <OwnerDailyNoAttendanceState />;
 
   return (
     <div className='flex min-h-full w-full flex-col'>
       <div role='group' aria-label='필터' className='bg-bg-0 flex gap-2 px-4 py-3'>
-        {chips.map((chip, index) => (
-          <StatusFilterChip key={chip.label} selected={index === 0}>
+        {chips.map((chip) => (
+          <StatusFilterChip
+            key={chip.label}
+            selected={chip.value === filter}
+            onClick={() => onFilterChange(chip.value)}
+          >
             {`${chip.label} ${chip.count}`}
           </StatusFilterChip>
         ))}
       </div>
-      <ul className='flex w-full flex-col gap-3 px-4 pt-3'>
-        {items.map((item) => (
-          <OwnerDailyTodayAttendanceCard key={item.petId} item={item} onMemberClick={onMemberClick} />
-        ))}
-      </ul>
+      {items.length === 0 ? (
+        <OwnerDailyFilterEmptyState />
+      ) : (
+        <ul className='flex w-full flex-col gap-3 px-4 pt-3'>
+          {items.map((item) => (
+            <OwnerDailyTodayAttendanceCard key={item.petId} item={item} onMemberClick={onMemberClick} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

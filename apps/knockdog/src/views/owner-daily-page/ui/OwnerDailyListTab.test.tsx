@@ -150,3 +150,75 @@ describe('등원목록 탭 — 상태 태그와 버튼', () => {
     expect(within(card).queryByText(/^하원 (오전|오후)/)).toBeNull();
   });
 });
+
+describe('등원목록 탭 — 필터', () => {
+  const seedFourPets = () =>
+    fakeAttendanceServer.seedDay(TODAY_KEY, [
+      createFakePet({ name: '콩이', status: 'CHECKED_IN', checkInAt: CHECK_IN_AT }),
+      createFakePet({ name: '보리', status: 'CHECKED_IN', checkInAt: CHECK_IN_AT, attendanceRecordSent: true }),
+      createFakePet({
+        name: '초코',
+        status: 'CHECKED_OUT',
+        checkInAt: CHECK_IN_AT,
+        checkOutAt: CHECK_OUT_AT,
+      }),
+      createFakePet({
+        name: '두부',
+        status: 'CHECKED_OUT',
+        checkInAt: CHECK_IN_AT,
+        checkOutAt: CHECK_OUT_AT,
+        attendanceRecordSent: true,
+      }),
+    ]);
+
+  const getCardNames = () => getCards().map((card) => ['콩이', '보리', '초코', '두부'].find((name) => card.textContent?.includes(name)));
+
+  test('`전체`·`재원중`·`발송전` 칩에 각 원생 수가 보이고 `전체`가 기본 선택이다', async () => {
+    seedFourPets();
+    await openListTab();
+
+    const allChip = await screen.findByRole('button', { name: '전체 4' });
+    expect(allChip.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '재원중 2' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('button', { name: '발송전 2' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  test('`재원중` 칩을 누르면 등원했고 아직 하원하지 않은 원생만 보인다', async () => {
+    seedFourPets();
+    await openListTab();
+
+    await user.click(await screen.findByRole('button', { name: '재원중 2' }));
+
+    await waitFor(() => expect(getCardNames()).toEqual(['보리', '콩이']));
+    expect(screen.getByRole('button', { name: '재원중 2' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('`발송전` 칩을 누르면 하원 여부와 상관없이 알림장을 보내지 않은 원생만 보인다', async () => {
+    seedFourPets();
+    await openListTab();
+
+    await user.click(await screen.findByRole('button', { name: '발송전 2' }));
+
+    await waitFor(() => expect(getCardNames()).toEqual(['초코', '콩이']));
+  });
+
+  test('선택한 필터에 맞는 원생이 없으면 카드와 처리 버튼 대신 필터 결과 없음 안내가 보이고 선택한 칩은 유지된다. 다른 칩을 누르면 목록이 바뀐다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [
+      createFakePet({ name: '콩이', status: 'CHECKED_IN', checkInAt: CHECK_IN_AT, attendanceRecordSent: true }),
+    ]);
+    await openListTab();
+
+    await user.click(await screen.findByRole('button', { name: '발송전 0' }));
+
+    expect(await screen.findByText('선택한 조건에 맞는 원생이 없어요')).toBeTruthy();
+    expect(getCards()).toHaveLength(0);
+    expect(screen.queryByRole('button', { name: '하원처리' })).toBeNull();
+    expect(screen.getByRole('button', { name: '발송전 0' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('tab', { name: '등원목록' })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '전체 1' }));
+
+    await waitFor(() => expect(getCardNames()).toEqual(['콩이']));
+    expect(screen.queryByText('선택한 조건에 맞는 원생이 없어요')).toBeNull();
+  });
+});
