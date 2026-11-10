@@ -20,7 +20,7 @@ type HoldDateTarget = 'start' | 'end';
 interface TicketHoldSheetProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onConfirm: (startsOn: string, endsOn: string) => void;
+  onConfirm: (startsOn: string, endsOn: string, close: () => void) => void;
 }
 
 function HoldDateField({
@@ -87,9 +87,7 @@ function TicketHoldSheet({ isOpen, onOpenChange, onConfirm }: TicketHoldSheetPro
 
   const handleConfirm = () => {
     if (!startLabel || !endLabel || !canConfirm) return;
-    onConfirm(startLabel, endLabel);
-    clearDraft();
-    onOpenChange(false);
+    onConfirm(startLabel, endLabel, () => handleOpenChange(false));
   };
 
   return (

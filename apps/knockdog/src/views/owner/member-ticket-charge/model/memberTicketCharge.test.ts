@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  CHARGE_PRESETS,
   canChargeTicket,
+  canSelectChargePreset,
   chargeCountError,
   chargeEndDate,
   chargePresetDetail,
   formatChargeDotDate,
   formatChargeSelectLabel,
+  toChargePreset,
+  toChargeTicketRequest,
 } from './memberTicketCharge';
 
 const start = new Date(2026, 9, 24);
@@ -36,9 +38,55 @@ describe('chargeCountError', () => {
   });
 });
 
-describe('chargePresetDetail', () => {
-  it('횟수와 만료 없음을 카드 문구로 붙인다', () => {
-    expect(chargePresetDetail(CHARGE_PRESETS[0]!)).toBe('10회 • 만료 없음');
+describe('toChargePreset', () => {
+  it('등록 이용권의 만료 없음과 개월 칩, 그 외 기간을 충전 값으로 바꾼다', () => {
+    expect(
+      toChargePreset({ id: '1', name: '정기권 10회', chargeCount: 10, duration: { type: 'NONE' } })
+    ).toEqual({ id: '1', name: '정기권 10회', count: 10, duration: { kind: 'none' } });
+    expect(
+      chargePresetDetail(
+        toChargePreset({ id: '2', name: '3개월권', chargeCount: 20, duration: { type: 'FIXED', value: 3, unit: 'MONTH' } })
+      )
+    ).toBe('20회 • 3개월');
+    expect(
+      toChargePreset({ id: '3', name: '14일권', chargeCount: 8, duration: { type: 'FIXED', value: 14, unit: 'DAY' } }).duration
+    ).toEqual({ kind: 'custom', amount: 14, unit: 'day' });
+  });
+
+  it('0 이하 기간은 고르지 않고 만료 없음은 고른다', () => {
+    const emptyDay = toChargePreset({
+      id: '4',
+      name: '0일권',
+      chargeCount: 1,
+      duration: { type: 'FIXED', value: 0, unit: 'DAY' },
+    });
+    expect(canSelectChargePreset(emptyDay)).toBe(false);
+    expect(
+      canSelectChargePreset(
+        toChargePreset({ id: '5', name: '자유권', chargeCount: 10, duration: { type: 'NONE' } })
+      )
+    ).toBe(true);
+  });
+});
+
+describe('toChargeTicketRequest', () => {
+  it('만료 없음은 시작일, 이름, 횟수만 보낸다', () => {
+    expect(toChargeTicketRequest(start, '  정기권   10회  ', '10', { kind: 'none' })).toEqual({
+      startDate: '2026-10-24',
+      name: '정기권 10회',
+      chargeCount: 10,
+    });
+  });
+
+  it('개월과 일 단위를 서버 단위로 바꾼다', () => {
+    expect(toChargeTicketRequest(start, '정기권', '10', { kind: 'month', months: 3 })).toMatchObject({
+      validityValue: 3,
+      validityUnit: 'MONTH',
+    });
+    expect(toChargeTicketRequest(start, '정기권', '10', { kind: 'custom', amount: 14, unit: 'day' })).toMatchObject({
+      validityValue: 14,
+      validityUnit: 'DAY',
+    });
   });
 });
 

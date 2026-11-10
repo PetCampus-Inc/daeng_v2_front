@@ -40,6 +40,7 @@ const ownerMemberProfileContent = {
   todayButtonLabel: '오늘',
   copyToastSuffix: '를 복사했어요',
   ticketChargeSuccessToast: '이용권 충전이 완료되었어요',
+  ticketLoadErrorText: '이용권을 불러오지 못했어요',
   profileLoadingText: '원생 프로필을 불러오는 중이에요',
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',

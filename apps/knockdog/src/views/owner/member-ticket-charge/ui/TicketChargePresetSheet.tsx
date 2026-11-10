@@ -3,14 +3,11 @@
 import { BottomSheet, TicketOptionCard } from '@knockdog/ui';
 
 import { memberTicketChargeContent } from '@views/owner/member-ticket-charge/config/memberTicketChargeContent';
-import {
-  CHARGE_PRESETS,
-  chargePresetDetail,
-  type ChargePreset,
-} from '@views/owner/member-ticket-charge/model/memberTicketCharge';
+import { chargePresetDetail, type ChargePreset } from '@views/owner/member-ticket-charge/model/memberTicketCharge';
 
 interface TicketChargePresetSheetProps {
   isOpen: boolean;
+  presets: ChargePreset[];
   selectedId: string | null;
   onOpenChange: (isOpen: boolean) => void;
   onSelectDirect: () => void;
@@ -19,6 +16,7 @@ interface TicketChargePresetSheetProps {
 
 function TicketChargePresetSheet({
   isOpen,
+  presets,
   selectedId,
   onOpenChange,
   onSelectDirect,
@@ -37,7 +35,7 @@ function TicketChargePresetSheet({
         </BottomSheet.Header>
         <div className='flex flex-col gap-3 overflow-y-auto px-4 py-5'>
           <TicketOptionCard optionType='custom' title={preset.direct} selected={selectedId === null} onClick={onSelectDirect} />
-          {CHARGE_PRESETS.map((item) => (
+          {presets.map((item) => (
             <TicketOptionCard
               key={item.id}
               optionType='preset'
