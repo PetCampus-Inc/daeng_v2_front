@@ -1,4 +1,9 @@
-import { parseGuardianReservation, parseGuardianReservationList } from '../model/guardianReservation';
+import {
+  parseGuardianReservation,
+  parseGuardianReservationDetail,
+  parseGuardianReservationList,
+  parseReservationResponse,
+} from '../model/guardianReservation';
 
 import { api } from '@shared/api';
 
@@ -59,5 +64,30 @@ const postGuardianReservation = async ({ petId, idempotencyKey, body }: PostGuar
   return parseGuardianReservation(response);
 };
 
-export { RESERVATION_PERIOD, RESERVATION_SCOPE, getGuardianReservations, postGuardianReservation };
+/** `GET` - 보호자 예약 상세 */
+const getGuardianReservation = async ({ petId, reservationId }: { petId: string; reservationId: string }) => {
+  const response = await api
+    .get(`guardian/pets/${encodeURIComponent(petId)}/reservations/${encodeURIComponent(reservationId)}`)
+    .json();
+
+  return parseGuardianReservationDetail(response);
+};
+
+/** `POST` - 등원 예약 취소. 취소된 예약 응답을 돌려준다. */
+const cancelGuardianReservation = async ({ petId, reservationId }: { petId: string; reservationId: string }) => {
+  const response = await api
+    .post(`guardian/pets/${encodeURIComponent(petId)}/reservations/${encodeURIComponent(reservationId)}/cancel`)
+    .json();
+
+  return parseReservationResponse(response);
+};
+
+export {
+  RESERVATION_PERIOD,
+  RESERVATION_SCOPE,
+  cancelGuardianReservation,
+  getGuardianReservation,
+  getGuardianReservations,
+  postGuardianReservation,
+};
 export type { GetGuardianReservationsParams, GuardianReservationCreate, ReservationPeriod, ReservationScope };

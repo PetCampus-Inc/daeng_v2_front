@@ -1,0 +1,178 @@
+import { z } from 'zod';
+
+const TICKET_STATUS = {
+  IN_USE: 'active',
+  SCHEDULED: 'scheduled',
+  HOLDING: 'onHold',
+  EXPIRED: 'expired',
+} as const;
+
+const CONNECTION = {
+  NONE: 'none',
+  PENDING: 'pending',
+  CONNECTED: 'connected',
+} as const;
+
+type GuardianTicketStatus = (typeof TICKET_STATUS)[keyof typeof TICKET_STATUS];
+type GuardianTicketConnection = (typeof CONNECTION)[keyof typeof CONNECTION];
+
+interface GuardianTicketHold {
+  startsOn: string;
+  endsOn: string;
+}
+
+interface GuardianTicket {
+  id: string;
+  name: string;
+  status: GuardianTicketStatus;
+  remainingCount: number;
+  totalCount: number;
+  startsOn: string;
+  endsOn: string | null;
+  daysLeft: number | null;
+  showDDay: boolean;
+  reservable: boolean;
+  hold: GuardianTicketHold | null;
+  expiredOn: string | null;
+}
+
+interface GuardianTicketSchool {
+  id: string;
+  name: string;
+  address: string;
+}
+
+interface GuardianTicketCard {
+  connection: GuardianTicketConnection;
+  manageCount: number;
+  school: GuardianTicketSchool | null;
+  tickets: GuardianTicket[];
+}
+
+interface GuardianTicketManage {
+  available: GuardianTicket[];
+  inactive: GuardianTicket[];
+  expired: GuardianTicket[];
+}
+
+const idSchema = z.union([z.number().int(), z.string()]);
+
+const toDateKey = (value: string | number[] | null | undefined, ctx: z.RefinementCtx) => {
+  if (value == null) return null;
+
+  if (typeof value === 'string') {
+    const datePart = value.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
+  }
+
+  if (Array.isArray(value) && value.length >= 3) {
+    const [year, month, day] = value;
+    if (typeof year === 'number' && typeof month === 'number' && typeof day === 'number') {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+  }
+
+  ctx.addIssue({ code: 'custom', message: '날짜 형식이 올바르지 않아요' });
+  return z.NEVER;
+};
+
+const requiredDateSchema = z.union([z.string(), z.array(z.number())]).transform((value, ctx) => {
+  const date = toDateKey(value, ctx);
+  if (!date) {
+    ctx.addIssue({ code: 'custom', message: '날짜 형식이 올바르지 않아요' });
+    return z.NEVER;
+  }
+  return date;
+});
+
+const nullableDateSchema = z
+  .union([z.string(), z.array(z.number()), z.null()])
+  .nullish()
+  .transform((value, ctx) => toDateKey(value, ctx));
+
+const ticketDtoSchema = z.object({
+  ticketId: idSchema,
+  schoolId: idSchema,
+  schoolName: z.string(),
+  name: z.string(),
+  status: z.enum(['SCHEDULED', 'IN_USE', 'HOLDING', 'EXPIRED']),
+  remainingCount: z.number().int(),
+  chargeCount: z.number().int(),
+  startDate: requiredDateSchema,
+  expiresOn: nullableDateSchema,
+  daysLeft: z.number().int().nullish(),
+  showDDay: z.boolean(),
+  hold: z
+    .object({
+      startDate: requiredDateSchema,
+      endDate: requiredDateSchema,
+      daysAfterHold: z.number().int().nullable(),
+    })
+    .nullable(),
+  expiredReason: z.enum(['EXHAUSTED', 'PERIOD_ENDED']).nullish(),
+  expiredOn: nullableDateSchema,
+  reservable: z.boolean(),
+});
+
+const schoolDtoSchema = z
+  .object({
+    schoolId: idSchema,
+    name: z.string(),
+    address: z.string(),
+    thumbnailImageUrl: z.string().nullish(),
+  })
+  .nullable();
+
+const ticketCardResponseSchema = z.object({
+  data: z.object({
+    connection: z.enum(['NONE', 'PENDING', 'CONNECTED']),
+    school: schoolDtoSchema,
+    manageCount: z.number().int(),
+    tickets: z.array(ticketDtoSchema),
+  }),
+});
+
+const ticketManageResponseSchema = z.object({
+  data: z.object({
+    available: z.array(ticketDtoSchema),
+    inactive: z.array(ticketDtoSchema),
+    expired: z.array(ticketDtoSchema),
+  }),
+});
+
+type TicketDto = z.infer<typeof ticketDtoSchema>;
+
+const parseGuardianTicketCard = (response: unknown) => ticketCardResponseSchema.parse(response).data;
+
+const parseGuardianTicketManage = (response: unknown) => ticketManageResponseSchema.parse(response).data;
+
+const toGuardianTicket = (dto: TicketDto): GuardianTicket => ({
+  id: String(dto.ticketId),
+  name: dto.name,
+  status: TICKET_STATUS[dto.status],
+  remainingCount: dto.remainingCount,
+  totalCount: dto.chargeCount,
+  startsOn: dto.startDate,
+  endsOn: dto.expiresOn,
+  daysLeft: dto.daysLeft ?? null,
+  showDDay: dto.showDDay,
+  reservable: dto.reservable,
+  hold: dto.hold ? { startsOn: dto.hold.startDate, endsOn: dto.hold.endDate } : null,
+  expiredOn: dto.expiredOn,
+});
+
+const toGuardianTicketCard = (dto: ReturnType<typeof parseGuardianTicketCard>): GuardianTicketCard => ({
+  connection: CONNECTION[dto.connection],
+  manageCount: dto.manageCount,
+  school: dto.school ? { id: String(dto.school.schoolId), name: dto.school.name, address: dto.school.address } : null,
+  tickets: dto.tickets.map(toGuardianTicket),
+});
+
+const toGuardianTicketManage = (dto: ReturnType<typeof parseGuardianTicketManage>): GuardianTicketManage => ({
+  available: dto.available.map(toGuardianTicket),
+  inactive: dto.inactive.map(toGuardianTicket),
+  expired: dto.expired.map(toGuardianTicket),
+});
+
+export { parseGuardianTicketCard, parseGuardianTicketManage, toGuardianTicketCard, toGuardianTicketManage };
+export type { GuardianTicket, GuardianTicketCard, GuardianTicketManage, GuardianTicketStatus };

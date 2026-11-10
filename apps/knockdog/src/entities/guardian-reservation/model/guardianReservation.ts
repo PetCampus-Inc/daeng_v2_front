@@ -70,8 +70,10 @@ interface CreatedGuardianReservation extends GuardianReservation {
   remainingCount: number;
 }
 
+const parseReservationResponse = (response: unknown) => reservationResponseSchema.parse(response).data;
+
 const parseGuardianReservation = (response: unknown): CreatedGuardianReservation => {
-  const dto = reservationResponseSchema.parse(response).data;
+  const dto = parseReservationResponse(response);
   const reservation = toGuardianReservation(dto);
   if (!reservation) throw new Error('생성된 예약 응답이 아니에요');
 
@@ -100,6 +102,48 @@ const toGuardianReservations = (dto: { reservations: ReservationDto[] }) =>
     return reservation ? [reservation] : [];
   });
 
-export { parseGuardianReservation, parseGuardianReservationList, toGuardianReservations };
-export type { CreatedGuardianReservation };
+const reservationDetailSchema = z.object({
+  data: z.object({
+    reservation: reservationDtoSchema,
+    schoolAddress: z.string(),
+    schoolPhoneNumber: z.string(),
+    cancelable: z.boolean(),
+  }),
+});
+
+interface GuardianReservationDetail {
+  id: string;
+  petId: string;
+  startsAt: string;
+  schoolName: string;
+  schoolAddress: string;
+  schoolPhone: string;
+  note: string;
+  cancelable: boolean;
+}
+
+type ReservationDetailDto = z.infer<typeof reservationDetailSchema>['data'];
+
+const parseGuardianReservationDetail = (response: unknown) => reservationDetailSchema.parse(response).data;
+
+const toGuardianReservationDetail = (dto: ReservationDetailDto): GuardianReservationDetail => ({
+  id: String(dto.reservation.reservationId),
+  petId: String(dto.reservation.petId),
+  startsAt: `${dto.reservation.date}T${dto.reservation.time}`,
+  schoolName: dto.reservation.schoolName,
+  schoolAddress: dto.schoolAddress,
+  schoolPhone: dto.schoolPhoneNumber.trim(),
+  note: dto.reservation.requestMemo?.trim() ?? '',
+  cancelable: dto.cancelable,
+});
+
+export {
+  parseGuardianReservation,
+  parseGuardianReservationDetail,
+  parseGuardianReservationList,
+  parseReservationResponse,
+  toGuardianReservationDetail,
+  toGuardianReservations,
+};
+export type { CreatedGuardianReservation, GuardianReservationDetail };
 export type { GuardianReservation, GuardianReservationStatus };

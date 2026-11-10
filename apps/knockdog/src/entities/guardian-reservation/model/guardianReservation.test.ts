@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseGuardianReservation, parseGuardianReservationList, toGuardianReservations } from './guardianReservation';
+import {
+  parseGuardianReservation,
+  parseGuardianReservationDetail,
+  parseGuardianReservationList,
+  parseReservationResponse,
+  toGuardianReservationDetail,
+  toGuardianReservations,
+} from './guardianReservation';
 
 const response = {
   data: {
@@ -76,6 +83,36 @@ describe('toGuardianReservations', () => {
       ticketName: '10회권',
       remainingCount: 8,
     });
+  });
+
+  it('상세 응답에서 주소와 취소 가능 여부를 남긴다', () => {
+    const detail = toGuardianReservationDetail(
+      parseGuardianReservationDetail({
+        data: {
+          reservation: response.data.reservations[0],
+          schoolAddress: '서울특별시 강남구 논현로 123',
+          schoolPhoneNumber: ' 02-1234-5678 ',
+          cancelable: true,
+        },
+      })
+    );
+
+    expect(detail).toMatchObject({
+      id: '11',
+      schoolName: '똑독 유치원',
+      schoolAddress: '서울특별시 강남구 논현로 123',
+      schoolPhone: '02-1234-5678',
+      note: '',
+      cancelable: true,
+    });
+  });
+
+  it('취소 응답은 취소 상태여도 통과한다', () => {
+    const canceled = parseReservationResponse({
+      data: { ...response.data.reservations[0], status: 'CANCELED' },
+    });
+
+    expect(canceled.status).toBe('CANCELED');
   });
 
   it('슬래시 날짜는 응답 오류로 본다', () => {

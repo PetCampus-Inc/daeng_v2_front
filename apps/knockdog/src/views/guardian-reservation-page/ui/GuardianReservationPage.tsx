@@ -3,13 +3,14 @@
 import { useState } from 'react';
 
 import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
-import { MembershipCard, SelectDogCard, UpcomingRsvCard } from '@knockdog/ui';
+import { MembershipCard, MembershipCardStatusBadge, SelectDogCard, UpcomingRsvCard } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { formatReservationWhen } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 
 import { RESERVATION_SCOPE, useGuardianReservationQuery } from '@entities/guardian-reservation';
+import { useGuardianTicketCardQuery, type GuardianTicket } from '@entities/guardian-ticket';
 import { formatAge, type Pet } from '@entities/pet';
 
 import { route } from '@shared/constants/route';
@@ -25,6 +26,12 @@ function ReservationEmptySchedule() {
       <p className='body1-bold text-text-primary-inverse'>아직 예정된 등원 일정이 없어요</p>
     </div>
   );
+}
+
+function ticketPeriod(ticket: GuardianTicket) {
+  const startsOn = ticket.startsOn.replaceAll('-', '.');
+  if (!ticket.endsOn) return '이용 기간 무제한';
+  return `${startsOn} ~ ${ticket.endsOn.replaceAll('-', '.')}`;
 }
 
 function ReservationTicketManageRow({ onClick }: { onClick: () => void }) {
@@ -86,7 +93,9 @@ function GuardianReservationPage() {
   const [isDogListOpen, setIsDogListOpen] = useState(false);
   const petId = selectedPet?.id ?? '';
   const upcomingQuery = useGuardianReservationQuery(petId, RESERVATION_SCOPE.upcoming);
+  const ticketQuery = useGuardianTicketCardQuery(petId);
   const upcoming = upcomingQuery.data?.[0];
+  const tickets = ticketQuery.data?.tickets ?? [];
   const canSelectPet = pets.length > 1;
 
   const handleToggleDogList = () => {
@@ -106,6 +115,14 @@ function GuardianReservationPage() {
   const handleOpenTickets = () => {
     if (!selectedPet) return;
     push({ pathname: route.reservation.tickets.root, query: { dogId: selectedPet.id } }).catch(() => undefined);
+  };
+
+  const handleReserve = (ticketId: string) => {
+    if (!selectedPet) return;
+    push({
+      pathname: route.reservation.time.root,
+      query: { dogId: selectedPet.id, ticketId },
+    }).catch(() => undefined);
   };
 
   const handleOpenList = () => {
@@ -183,7 +200,29 @@ function GuardianReservationPage() {
 
         <section className='gap-x2_5 flex flex-col'>
           <h2 className='body1-bold text-text-primary'>사용 가능 이용권</h2>
-          <MembershipCard state='empty' />
+          {ticketQuery.isLoading ? (
+            <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+          ) : ticketQuery.isError ? (
+            <p className='body2-regular text-text-secondary py-6 text-center'>이용권을 불러오지 못했어요</p>
+          ) : tickets.length === 0 ? (
+            <MembershipCard state='empty' />
+          ) : (
+            tickets.map((ticket) => (
+              <MembershipCard
+                key={ticket.id}
+                state='reservation'
+                title={ticket.name}
+                period={ticketPeriod(ticket)}
+                remainingCount={ticket.remainingCount}
+                badge={
+                  <MembershipCardStatusBadge status={ticket.showDDay ? 'soon' : 'active'}>
+                    {ticket.showDDay && ticket.daysLeft != null ? `D-${ticket.daysLeft}` : '사용 중'}
+                  </MembershipCardStatusBadge>
+                }
+                onReserve={ticket.reservable ? () => handleReserve(ticket.id) : undefined}
+              />
+            ))
+          )}
           <ReservationTicketManageRow onClick={handleOpenTickets} />
         </section>
       </div>
