@@ -16,6 +16,7 @@ import { OwnerDailyAttendanceListTab } from '@views/owner-daily-page/ui/OwnerDai
 import {
   OwnerDailyFutureNoticeState,
   OwnerDailyNoReservationState,
+  OwnerDailyNotConfiguredState,
   OwnerDailyPastCheckNoticeState,
   OwnerDailyPastNoRecordState,
 } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
@@ -72,6 +73,7 @@ const OwnerDailyPage = () => {
     summary,
     candidates,
     isNoReservation,
+    isNotConfigured,
     todayList,
     isLoading,
     isError,
@@ -112,7 +114,7 @@ const OwnerDailyPage = () => {
   const isPastNoRecord = isPast && todayList?.counts.all === 0;
   const isFuture = dayKind === 'future';
   const summaryView =
-    summary && !isLoading && !isError && !isPastNoRecord && !isNoReservation
+    summary && !isNotConfigured && !isLoading && !isError && !isPastNoRecord && !isNoReservation
       ? toOwnerDailySummaryView(summary, dayKind)
       : null;
 
@@ -153,7 +155,14 @@ const OwnerDailyPage = () => {
     pushOrToastFailure(route.owner.daily.notice.write.root.replace('[id]', petId));
   };
 
+  /** `설정하기`를 누르면 예약 설정 화면으로 이동한다. */
+  const handleSetUpClick = () => {
+    pushOrToastFailure(route.mypage.kindergarten.reservation.root);
+  };
+
   const handleDatePickerOpen = () => {
+    if (isNotConfigured) return;
+
     overlay.open(({ isOpen, close }) => (
       <OwnerDailyDatePickerSheet
         isOpen={isOpen}
@@ -212,7 +221,9 @@ const OwnerDailyPage = () => {
             isToday,
           }}
         />
-        {isLoading ? (
+        {isNotConfigured ? (
+          <OwnerDailyNotConfiguredState onSetUpClick={handleSetUpClick} />
+        ) : isLoading ? (
           <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-bg-50' />
         ) : isError ? (
           // 임시 오류 문구. 정식 오류 화면(PageError)은 이어지는 작업에서 붙인다.
