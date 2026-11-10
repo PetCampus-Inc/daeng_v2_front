@@ -73,10 +73,13 @@ const OwnerDailyTodayAttendanceCard = ({
   const checkInText = toTimeText('등원', item.checkInAt);
   const checkOutText = item.status === 'CHECKED_OUT' ? toTimeText('하원', item.checkOutAt) : '';
 
-  const buttonHandlers: Partial<Record<TodayListButtonKind, () => void>> = {
-    writeRecord: () => onWriteRecord(item),
-    viewRecord: () => onViewRecord(item),
-    checkOut: () => onCheckOut(item),
+  const handleButtonClick = (kind: TodayListButtonKind) => {
+    const handlers: Partial<Record<TodayListButtonKind, (item: AttendanceCheckinoutTodayItem) => void>> = {
+      writeRecord: onWriteRecord,
+      viewRecord: onViewRecord,
+      checkOut: onCheckOut,
+    };
+    handlers[kind]?.(item);
   };
 
   return (
@@ -140,7 +143,7 @@ const OwnerDailyTodayAttendanceCard = ({
               variant={BUTTON_VARIANT[button.variant]}
               className='flex-1'
               disabled={isPending}
-              onClick={buttonHandlers[button.kind]}
+              onClick={() => handleButtonClick(button.kind)}
             >
               {BUTTON_LABEL[button.kind]}
             </ActionButton>

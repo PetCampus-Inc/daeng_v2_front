@@ -1,3 +1,4 @@
+import { useState, type MouseEvent } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,16 +14,11 @@ import {
   Icon,
 } from '@knockdog/ui';
 
+import { OWNER_DAILY_CANCEL_CONTENT, type OwnerDailyCancelKind } from '@views/owner-daily-page/config/ownerDailyContent';
+
 import type { AttendanceCheckinoutCandidate } from '@entities/owner-attendance-checkinout';
 
 import { ellipsisText } from '@shared/utils';
-
-type OwnerDailyCancelKind = 'checkIn' | 'checkOut';
-
-const CANCEL_DIALOG_CONTENT: Record<OwnerDailyCancelKind, { target: string; description: string }> = {
-  checkIn: { target: '등원', description: '취소하면 등원 전 상태로 돌아가요.' },
-  checkOut: { target: '하원', description: '취소하면 재원 중 상태로 돌아가요.' },
-};
 
 interface OwnerDailyCancelDialogProps {
   /** 무엇을 취소하는지. 제목·본문·확인 버튼 문구가 이에 맞게 바뀐다. */
@@ -30,12 +26,28 @@ interface OwnerDailyCancelDialogProps {
   member: Pick<AttendanceCheckinoutCandidate, 'name' | 'profileImageUrl'>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCancel: () => void;
+  /** `취소하기`를 눌렀을 때 취소 요청을 보낸다. 요청이 끝날 때까지 모달은 열려 있고 버튼은 잠긴다. */
+  onCancel: () => Promise<void>;
 }
 
-/** 등원·하원 취소 확인 모달. 원생 프로필과 `{이름}의 {등원|하원}을 취소할까요?` 제목을 보여 준다. */
+/** 등원·결석·하원 취소 확인 모달. 원생 프로필과 `{이름}의 {등원|결석|하원}을 취소할까요?` 제목을 보여 준다. */
 const OwnerDailyCancelDialog = ({ kind, member, open, onOpenChange, onCancel }: OwnerDailyCancelDialogProps) => {
-  const { target, description } = CANCEL_DIALOG_CONTENT[kind];
+  const { target, description } = OWNER_DAILY_CANCEL_CONTENT[kind];
+  const [isPending, setIsPending] = useState(false);
+
+  /** 요청이 끝나면(성공·실패 모두) 모달을 닫는다. 결과는 토스트로 알린다. */
+  const handleCancelClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    // 기본 동작(바로 닫힘)을 막고 요청이 끝난 뒤에 닫는다.
+    event.preventDefault();
+    if (isPending) return;
+
+    setIsPending(true);
+    try {
+      await onCancel();
+    } finally {
+      onOpenChange(false);
+    }
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -62,7 +74,9 @@ const OwnerDailyCancelDialog = ({ kind, member, open, onOpenChange, onCancel }: 
         </AlertDialogHeader>
         <AlertDialogFooter className='px-x4'>
           <AlertDialogCancel>닫기</AlertDialogCancel>
-          <AlertDialogAction onClick={onCancel}>{target} 취소</AlertDialogAction>
+          <AlertDialogAction disabled={isPending} onClick={handleCancelClick}>
+            취소하기
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -70,4 +84,3 @@ const OwnerDailyCancelDialog = ({ kind, member, open, onOpenChange, onCancel }: 
 };
 
 export { OwnerDailyCancelDialog };
-export type { OwnerDailyCancelKind };

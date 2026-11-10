@@ -54,9 +54,8 @@ vi.mock('@widgets/Header', () => {
 });
 
 const TODAY_KEY = '2026-06-18';
-/** 한국 시간 오전 9시, 오후 6시 */
+/** 한국 시간 오전 9시 */
 const CHECK_IN_AT = '2026-06-18T00:00:00.000Z';
-const CHECK_OUT_AT = '2026-06-18T09:00:00.000Z';
 
 let user: ReturnType<typeof userEvent.setup>;
 

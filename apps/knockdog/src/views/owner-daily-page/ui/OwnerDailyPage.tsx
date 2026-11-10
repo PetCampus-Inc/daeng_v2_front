@@ -9,6 +9,7 @@ import { OWNER_DAILY_TAB_LABEL, type OwnerDailyTab } from '@views/owner-daily-pa
 import { formatOwnerDailyDateLabel } from '@views/owner-daily-page/lib/ownerDailyDateLabel';
 import { toOwnerDailySummaryView } from '@views/owner-daily-page/lib/ownerDailySummary';
 import { useOwnerDailyActions } from '@views/owner-daily-page/model/useOwnerDailyActions';
+import { useOwnerDailyCancelDialog } from '@views/owner-daily-page/model/useOwnerDailyCancelDialog';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailyAttendanceCheckTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCheckTab';
 import { OwnerDailyAttendanceListTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceListTab';
@@ -73,7 +74,20 @@ const OwnerDailyPage = () => {
     handleTodayClick,
     handleTabChange,
   } = useOwnerDailyPage();
-  const { pendingPetIds, handleCheckIn, handleAbsent, handleCheckOut } = useOwnerDailyActions({ userId, dateKey: selectedDateKey });
+  const {
+    pendingPetIds,
+    handleCheckIn,
+    handleAbsent,
+    handleCheckOut,
+    handleCancelCheckIn,
+    handleCancelAbsent,
+    handleCancelCheckOut,
+  } = useOwnerDailyActions({ userId, dateKey: selectedDateKey });
+  const { openCancelDialog } = useOwnerDailyCancelDialog({
+    onCancelCheckIn: handleCancelCheckIn,
+    onCancelAbsent: handleCancelAbsent,
+    onCancelCheckOut: handleCancelCheckOut,
+  });
   // 스크롤한 화면(날짜+탭)을 기억해 두고, 날짜나 탭이 바뀌면 자동으로 버튼이 사라지게 한다.
   const [scrolledViewKey, setScrolledViewKey] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -213,6 +227,8 @@ const OwnerDailyPage = () => {
                   pendingPetIds={pendingPetIds}
                   onCheckIn={handleCheckIn}
                   onAbsent={handleAbsent}
+                  onCancelCheckIn={(item) => openCancelDialog('checkIn', item)}
+                  onCancelAbsent={(item) => openCancelDialog('absent', item)}
                 />
               ) : null}
             </TabsContent>
