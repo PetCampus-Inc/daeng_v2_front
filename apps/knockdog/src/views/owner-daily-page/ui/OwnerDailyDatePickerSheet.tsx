@@ -19,6 +19,10 @@ import {
 } from '@shared/lib/calendar-date';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useNativeBackToClose } from '@shared/lib/bridge';
+import {
+  getDateWithPartChanged,
+  type DatePart,
+} from '@views/owner-daily-page/lib/ownerDailyDatePicker';
 
 interface OwnerDailyDatePickerSheetProps {
   isOpen: boolean;
@@ -35,32 +39,8 @@ function clampDate(date: Date, minDate: Date, maxDate: Date) {
   return startOfDay(date);
 }
 
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function getDateWithPartChanged(date: Date, part: 'year' | 'month' | 'day', offset: number) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-
-  if (part === 'year') {
-    const nextYear = year + offset;
-    return new Date(nextYear, month, Math.min(day, getDaysInMonth(nextYear, month)));
-  }
-
-  if (part === 'month') {
-    const nextMonth = ((month + offset) % 12 + 12) % 12;
-    return new Date(year, nextMonth, Math.min(day, getDaysInMonth(year, nextMonth)));
-  }
-
-  const daysInMonth = getDaysInMonth(year, month);
-  const nextDay = ((day - 1 + offset + daysInMonth) % daysInMonth) + 1;
-  return new Date(year, month, nextDay);
-}
-
 interface DateWheelColumnProps {
-  part: 'year' | 'month' | 'day';
+  part: DatePart;
   selectedDate: Date;
   minDate: Date;
   maxDate: Date;
