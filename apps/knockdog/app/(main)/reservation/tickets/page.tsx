@@ -1,11 +1,14 @@
 import { Suspense } from 'react';
 
 import { GuardianTicketManagePage } from '@views/guardian-reservation-page';
+import { SafeArea } from '@shared/ui/safe-area';
 
 export default function Page() {
   return (
-    <Suspense fallback={null}>
-      <GuardianTicketManagePage />
-    </Suspense>
+    <SafeArea edges={['top']} className='flex min-h-0 flex-1 flex-col'>
+      <Suspense fallback={null}>
+        <GuardianTicketManagePage />
+      </Suspense>
+    </SafeArea>
   );
 }

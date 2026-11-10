@@ -181,7 +181,7 @@ function MemberTicketDetailPage() {
           <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
         )
       ) : (
-      <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto'>
+      <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
         <section className='bg-bg-0 flex flex-col gap-4 px-4 py-5'>
           <div className='px-1'>
             <TicketLifecycleBadge status={detail.status} />

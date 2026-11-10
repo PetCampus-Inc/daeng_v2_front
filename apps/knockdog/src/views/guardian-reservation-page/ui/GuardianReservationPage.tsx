@@ -109,11 +109,10 @@ function PetAvatar({ pet }: { pet: Pet }) {
 
 function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId: string) => void }) {
   return (
-    <div className='bg-bg-0 absolute inset-x-0 top-full z-20 flex flex-col overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
+    <div className='bg-bg-0 flex flex-col'>
       {pets.map((pet) => (
         <SelectDogCard
           key={pet.id}
-          variant='list'
           name={pet.name}
           breed={pet.breed}
           age={petAgeLabel(pet.birthYear)}
@@ -189,7 +188,7 @@ function GuardianReservationPage() {
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread />
+                <Notification unread className='translate-y-[3px]' />
               </button>
             </div>
           </header>
@@ -214,7 +213,7 @@ function GuardianReservationPage() {
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread />
+                <Notification unread className='translate-y-[3px]' />
               </button>
             </div>
           </header>
@@ -230,7 +229,11 @@ function GuardianReservationPage() {
             <PetAvatar pet={selectedPet} />
           </SelectDogCard>
         </div>
-        {isDogListOpen ? <ReservationDogList pets={pets} onSelect={handleSelectDog} /> : null}
+        {isDogListOpen ? (
+          <div className='bg-bg-0 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
+            <ReservationDogList pets={pets} onSelect={handleSelectDog} />
+          </div>
+        ) : null}
       </div>
 
       {isDogListOpen ? (
