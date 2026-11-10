@@ -9,6 +9,7 @@ import { ActionButton } from '@knockdog/ui';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
+import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { NOTE_LIMIT, isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
   formatCancelWhen,
@@ -59,7 +60,7 @@ function GuardianReservationDetailPage() {
   const isCancelling = cancelReservation.isPending;
 
   const handleBack = () => {
-    navigateToTab('/reservation').catch(() => undefined);
+    leaveReservationTab(back, navigateToTab);
   };
 
   useNativeBackHandler(handleBack);
@@ -216,7 +217,7 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 px-x4 py-x4 shrink-0'>
+      <div className='bg-bg-0 px-x4 pt-x4 pb-[calc(var(--bottom-bar-height)+20px)] webview:pb-x5 shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}
