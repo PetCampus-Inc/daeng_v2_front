@@ -12,6 +12,8 @@ const guardianConnectionHistoryContent = {
   currentSectionTitle: '지금 다니는 유치원',
   currentEmpty: '연결된 유치원이 없어요.',
   previousSectionTitle: '이전에 다녔던 유치원',
+  emptyImageSrc: '/images/img_empty_kindergarten.png',
+  emptyImageAlt: '연결된 유치원 없음',
   emptyTitle: '아직 연결된 유치원이 없어요',
   emptyDescription: '다니는 유치원에 똑독을 알려보세요!',
   disconnectButtonLabel: '연결 해제',
