@@ -28,6 +28,7 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * - 등원처리 탭의 검색어와 `지각` 토글: 탭을 오가도 유지된다. 토글 초기값은 `initialLateOnly`로 열어 둔다.
  * - 등원목록 필터 칩(`todayFilter`): 칩을 바꾸면 서버 필터로 다시 조회하고, 날짜를 바꾸면 `전체`로 돌아간다.
  * - 등원 가능 시간 미설정: 현황 응답이 미설정이면(`isNotConfigured`) 오늘 날짜만 보여 주고 날짜 이동을 막는다.
+ * - 조회 실패: 필수 조회 하나라도 실패하면 `isError`이고, `handleRetry`가 실패한 조회만 다시 요청한다.
  * - 조회: 현황(summary)은 항상, 등원 대상(candidates)은 오늘·미래, 등원목록(today)은 오늘·지난 날짜만 한다.
  */
 const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: boolean } = {}) => {
@@ -98,6 +99,13 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
     };
   }, [todayKey]);
 
+  /** 실패한 필수 조회만 다시 요청한다. */
+  const handleRetry = () => {
+    if (summaryQuery.isError) void summaryQuery.refetch();
+    if (hasCandidates && candidatesQuery.isError) void candidatesQuery.refetch();
+    if (hasTodayList && todayListQuery.isError) void todayListQuery.refetch();
+  };
+
   /** 날짜를 바꾸고 탭을 그 날짜의 기본 탭으로 되돌린다. 오늘로 돌아오면 자정 롤오버를 따라가게 한다. */
   const handleDateSelect = (date: Date) => {
     if (isNotConfigured) return;
@@ -135,6 +143,7 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
     setKeyword,
     setLateOnly,
     setTodayFilter,
+    handleRetry,
     handleDateSelect,
     handlePrevDayClick: () => handleDateSelect(addDays(selectedDate, -1)),
     handleNextDayClick: () => handleDateSelect(addDays(selectedDate, 1)),

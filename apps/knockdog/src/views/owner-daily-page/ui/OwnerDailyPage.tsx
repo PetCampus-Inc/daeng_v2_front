@@ -39,6 +39,7 @@ import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@sha
 import { isNativeWebView } from '@shared/lib/device';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { NotificationBell } from '@shared/ui/notification-bell';
+import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
 const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
@@ -83,6 +84,7 @@ const OwnerDailyPage = () => {
     setKeyword,
     setLateOnly,
     setTodayFilter,
+    handleRetry,
     handleDateSelect,
     handlePrevDayClick,
     handleNextDayClick,
@@ -226,13 +228,7 @@ const OwnerDailyPage = () => {
         ) : isLoading ? (
           <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-bg-50' />
         ) : isError ? (
-          // 임시 오류 문구. 정식 오류 화면(PageError)은 이어지는 작업에서 붙인다.
-          <div className='bg-bg-50 flex min-h-0 flex-1 items-center justify-center px-4 pb-[calc(var(--bottom-bar-height)+30px)]'>
-            <div className='flex flex-col items-center gap-1 text-center'>
-              <p className='h2-extrabold text-text-primary'>일과 정보를 불러오지 못했어요</p>
-              <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
-            </div>
-          </div>
+          <PageError layout='inline' onRetry={handleRetry} />
         ) : isPastNoRecord ? (
           <OwnerDailyPastNoRecordState />
         ) : isNoReservation ? (
