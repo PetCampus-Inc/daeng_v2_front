@@ -163,7 +163,7 @@ function AccountSection({
     <div className='px-4 py-5'>
       <div className='flex flex-col'>
         <section className='flex flex-col gap-4 pb-4'>
-          <h2 className='body2-semibold text-text-tertiary'>내 정보</h2>
+          <h2 className='body2-medium text-text-secondary'>내 정보</h2>
           {headerAddon}
           <div>
             {guardianMenuItems.map((item) => (
@@ -189,12 +189,12 @@ function AccountSection({
         <Divider />
 
         <section className='mt-5 flex flex-col gap-4'>
-          <h2 className='body2-semibold text-text-tertiary'>계정 정보</h2>
+          <h2 className='body2-medium text-text-secondary'>계정 정보</h2>
           <div>
             <div className='flex h-[76px] items-end justify-between gap-4 py-4'>
               <div className='flex flex-col'>
                 <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
-                <span className='body2-regular text-text-tertiary'>{ttokIdDescription}</span>
+                <span className='caption1-regular text-primitive-neutral-500'>{ttokIdDescription}</span>
               </div>
               <button
                 type='button'

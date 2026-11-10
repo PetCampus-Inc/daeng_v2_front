@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { cn } from '@knockdog/ui/lib';
 import { DogHouseHeader } from './DogHouseHeader';
 import { DogCard } from './DogCard';
 import { AddDogCard } from './AddDogCard';
@@ -71,12 +72,8 @@ function DogHouseSection({
   };
 
   return (
-    <div className={withBottomPadding ? 'py-5' : 'pt-5'}>
-      <DogHouseHeader
-        currentCount={dogs.length}
-        maxCount={maxDogs}
-        onChangeRepresentative={onChangeRepresentative}
-      />
+    <div className={cn('bg-bg-0 flex flex-col gap-4 pt-5', withBottomPadding ? 'pb-5' : 'pb-0')}>
+      <h2 className='body2-medium text-text-secondary px-4'>반려견 프로필</h2>
 
       <div
         className='scrollbar-hide flex cursor-grab gap-x-2 overflow-x-auto px-4 select-none active:cursor-grabbing'
@@ -107,6 +104,12 @@ function DogHouseSection({
 
         {dogs.length < maxDogs && <AddDogCard dogNumber={dogs.length + 1} onClick={onAddDog} />}
       </div>
+
+      <DogHouseHeader
+        currentCount={dogs.length}
+        maxCount={maxDogs}
+        onChangeRepresentative={onChangeRepresentative}
+      />
     </div>
   );
 }
