@@ -51,7 +51,7 @@ function GuardianConnectionDisconnectDialog({
         {/* relative는 Content에 두면 fixed 중앙 정렬을 덮어씀 */}
         <div className='relative'>
           <AlertDialogHeader className='px-x4'>
-            <AlertDialogTitle>
+            <AlertDialogTitle className='whitespace-pre-line'>
               <span className='text-text-accent'>{displayKindergartenName}</span>
               {disconnectDialog.titleSuffix}
             </AlertDialogTitle>

@@ -17,9 +17,9 @@ const guardianConnectionHistoryContent = {
   disconnectButtonLabel: '연결 해제',
   writeReviewButtonLabel: '리뷰 작성',
   disconnectDialog: {
-    titleSuffix: '과의 연결을 해제할까요?',
+    titleSuffix: '과의\n연결을 해제할까요?',
     descriptionPrefix: '연결을 해제하면 ',
-    descriptionSuffix: '의\n유치원 소식을 더 이상 받아볼 수 없어요.',
+    descriptionSuffix: '의\n유치원 소식을 더 이상 받을 수 없어요.\n지난 알림장과 앨범은 계속 볼 수 있어요.',
     cancelLabel: '닫기',
     confirmLabel: '연결 해제하기',
     /** 유치원명 10자 초과 시 말줄임 */
