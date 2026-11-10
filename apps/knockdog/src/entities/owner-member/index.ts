@@ -1,4 +1,10 @@
 export { getOwnerMembers, getOwnerPendingMembers } from './api/ownerMember';
+export type {
+  GetOwnerMembersParams,
+  GetOwnerPendingMembersParams,
+  OwnerMembersFilter,
+  OwnerPendingSort,
+} from './api/ownerMember';
 export {
   useOwnerMemberApprovalMutation,
   useOwnerMemberDisconnectMutation,
@@ -24,11 +30,15 @@ export {
 } from './model/ownerMember';
 export type {
   OwnerMember,
+  OwnerMemberCounts,
+  OwnerMemberGender,
   OwnerMemberDto,
   OwnerMembersResponse,
   OwnerMembersDto,
   OwnerInviteDto,
   OwnerPendingMembersDto,
 } from './model/ownerMember';
+export { OWNER_MEMBERS_TAB, OWNER_MEMBERS_TAB_QUERY_KEY } from './config/ownerMembersTab';
+export type { OwnerMembersTab } from './config/ownerMembersTab';
 export { NO_END_DATE_LABEL, TICKET_STATUS, toOwnerMemberTicketView } from './model/ownerMemberTicket';
 export type { OwnerMemberTicket, OwnerMemberTicketView, TicketStatus } from './model/ownerMemberTicket';

@@ -84,6 +84,7 @@ function SortDropdown({
               <button
                 key={option.value}
                 type='button'
+                aria-pressed={isSelected}
                 onClick={() => selectOption(option.value)}
                 className={cn(
                   'text-left whitespace-nowrap',
