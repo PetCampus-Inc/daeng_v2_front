@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
 import { useOwnerPetGuardianQuery, useOwnerPetQuery } from '@entities/owner-pet';
@@ -9,16 +9,21 @@ import { useClipboardCopy } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
 
 import {
+  PROFILE_TAB_QUERY_KEY,
   TAB,
   ownerMemberProfileContent,
+  toOwnerMemberProfileTab,
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
 
 function useOwnerMemberProfilePage() {
   const params = useParams<{ id: string }>();
   const petId = params?.id ?? '';
+  const searchParams = useSearchParams();
   const copy = useClipboardCopy();
-  const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(TAB.USAGE);
+  const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(() =>
+    toOwnerMemberProfileTab(searchParams?.get(PROFILE_TAB_QUERY_KEY))
+  );
 
   const {
     data: dog,

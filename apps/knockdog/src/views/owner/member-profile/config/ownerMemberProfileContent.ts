@@ -6,6 +6,13 @@ const TAB = {
 
 type OwnerMemberProfileTab = (typeof TAB)[keyof typeof TAB];
 
+/** 이동 경로의 쿼리로 프로필의 시작 탭을 지정할 때 쓰는 이름. 예: `?tab=attendance` */
+const PROFILE_TAB_QUERY_KEY = 'tab';
+
+/** 쿼리 값을 탭으로 바꾼다. 없거나 알 수 없는 값이면 첫 탭(이용권)이다. */
+const toOwnerMemberProfileTab = (value: string | null | undefined): OwnerMemberProfileTab =>
+  Object.values(TAB).find((tab) => tab === value) ?? TAB.USAGE;
+
 const ownerMemberProfileContent = {
   pageTitle: '원생 프로필',
   usageTabLabel: '이용 정보',
@@ -65,7 +72,9 @@ function getGuardianGenderLabel(gender: string) {
 }
 
 export {
+  PROFILE_TAB_QUERY_KEY,
   TAB,
+  toOwnerMemberProfileTab,
   getGuardianGenderLabel,
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,
