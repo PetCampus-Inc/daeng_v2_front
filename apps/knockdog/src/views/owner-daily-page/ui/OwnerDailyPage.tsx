@@ -248,6 +248,7 @@ const OwnerDailyPage = () => {
                   onWriteRecord={handleNoticeClick}
                   onViewRecord={handleNoticeClick}
                   onCheckOut={handleCheckOut}
+                  onCancelCheckOut={(item) => openCancelDialog('checkOut', item)}
                 />
               ) : null}
             </TabsContent>

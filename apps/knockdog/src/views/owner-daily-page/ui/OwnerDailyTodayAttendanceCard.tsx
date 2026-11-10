@@ -22,6 +22,7 @@ interface OwnerDailyTodayAttendanceCardProps {
   onWriteRecord: (item: AttendanceCheckinoutTodayItem) => void;
   onViewRecord: (item: AttendanceCheckinoutTodayItem) => void;
   onCheckOut: (item: AttendanceCheckinoutTodayItem) => void;
+  onCancelCheckOut: (item: AttendanceCheckinoutTodayItem) => void;
 }
 
 const TAG_VIEW: Record<TodayListTag, { label: string; className: string }> = {
@@ -62,6 +63,7 @@ const OwnerDailyTodayAttendanceCard = ({
   onWriteRecord,
   onViewRecord,
   onCheckOut,
+  onCancelCheckOut,
 }: OwnerDailyTodayAttendanceCardProps) => {
   const { tag, buttons } = getTodayListCardView({
     status: item.status,
@@ -74,12 +76,13 @@ const OwnerDailyTodayAttendanceCard = ({
   const checkOutText = item.status === 'CHECKED_OUT' ? toTimeText('하원', item.checkOutAt) : '';
 
   const handleButtonClick = (kind: TodayListButtonKind) => {
-    const handlers: Partial<Record<TodayListButtonKind, (item: AttendanceCheckinoutTodayItem) => void>> = {
+    const handlers: Record<TodayListButtonKind, (item: AttendanceCheckinoutTodayItem) => void> = {
       writeRecord: onWriteRecord,
       viewRecord: onViewRecord,
       checkOut: onCheckOut,
+      cancelCheckOut: onCancelCheckOut,
     };
-    handlers[kind]?.(item);
+    handlers[kind](item);
   };
 
   return (

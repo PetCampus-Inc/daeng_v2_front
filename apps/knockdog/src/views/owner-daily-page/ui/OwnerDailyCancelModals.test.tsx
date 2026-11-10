@@ -102,6 +102,11 @@ const confirmCancelFromCard = async (name: string, buttonName: string) => {
   await user.click(within(await findDialog()).getByRole('button', { name: '취소하기' }));
 };
 
+/** `등원목록` 탭으로 이동한다. */
+const openListTab = async () => {
+  await user.click(await screen.findByRole('tab', { name: '등원목록' }));
+};
+
 const getStatValue = (label: string) => screen.getByRole('group', { name: label }).textContent ?? '';
 
 /** 카드 안의 버튼을 누른다. */
@@ -386,5 +391,94 @@ describe('결석 취소', () => {
     const card = await findCard('콩이');
     expect(within(card).getByText('결석')).toBeTruthy();
     expect(within(card).getByRole('button', { name: '결석 취소' })).toBeTruthy();
+  });
+});
+
+describe('하원 취소', () => {
+  const checkedOutPet = (name: string, overrides = {}) =>
+    createFakePet({
+      name,
+      status: 'CHECKED_OUT',
+      checkInAt: CHECK_IN_AT,
+      checkOutAt: '2026-06-18T09:00:00.000Z',
+      ...overrides,
+    });
+
+  test('하원 취소 버튼을 누르면 확인 모달이 열리고 `닫기`를 누르면 하원 상태는 그대로다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [checkedOutPet('콩이')]);
+    await openPage();
+    await openListTab();
+
+    await clickCardButton('콩이', '하원 취소');
+    const dialog = await findDialog();
+    expect(within(dialog).getByText(/콩이/)).toBeTruthy();
+    await user.click(within(dialog).getByRole('button', { name: '닫기' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    const card = await findCard('콩이');
+    expect(within(card).getByText('하원완료')).toBeTruthy();
+    expect(within(card).getByRole('button', { name: '하원 취소' })).toBeTruthy();
+    expect(fakeAttendanceApi.postAttendanceCancelCheckOut).not.toHaveBeenCalled();
+  });
+
+  test('`취소하기`를 누르면 재원 중으로 돌아가고 하원 시각이 지워지며 `하원처리` 버튼이 다시 보인다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [checkedOutPet('콩이')]);
+    await openPage();
+    await openListTab();
+    expect(within(await findCard('콩이')).getByText(/^하원 (오전|오후)/)).toBeTruthy();
+
+    await confirmCancelFromCard('콩이', '하원 취소');
+
+    await waitFor(async () => {
+      const card = await findCard('콩이');
+      expect(within(card).getByRole('button', { name: '하원처리' })).toBeTruthy();
+      expect(within(card).queryByText(/^하원 (오전|오후)/)).toBeNull();
+    });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  test('하원을 취소하면 집계의 하원 완료 수치가 줄어든다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [checkedOutPet('콩이'), checkedOutPet('보리')]);
+    await openPage();
+    await openListTab();
+    await findCard('콩이');
+    expect(getStatValue('하원 완료')).toContain('2');
+
+    await confirmCancelFromCard('콩이', '하원 취소');
+
+    await waitFor(() => expect(getStatValue('하원 완료')).toContain('1'));
+  });
+
+  test('알림장을 보낸 원생의 하원을 취소하면 `발송완료` 태그로, 안 보낸 원생은 `등원완료` 태그로 돌아간다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [
+      checkedOutPet('콩이', { attendanceRecordSent: true }),
+      checkedOutPet('보리'),
+    ]);
+    await openPage();
+    await openListTab();
+
+    await confirmCancelFromCard('콩이', '하원 취소');
+    await waitFor(async () => {
+      expect(within(await findCard('콩이')).getByText('발송완료')).toBeTruthy();
+    });
+
+    await confirmCancelFromCard('보리', '하원 취소');
+    await waitFor(async () => {
+      expect(within(await findCard('보리')).getByText('등원완료')).toBeTruthy();
+    });
+  });
+
+  test('하원 취소가 실패하면 하원 상태를 바꾸지 않고 실패 안내를 보여 준다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [checkedOutPet('콩이')]);
+    fakeAttendanceServer.failNextAction('postAttendanceCancelCheckOut');
+    await openPage();
+    await openListTab();
+
+    await confirmCancelFromCard('콩이', '하원 취소');
+
+    expect(await screen.findByText(REQUEST_FAILED_MESSAGE)).toBeTruthy();
+    const card = await findCard('콩이');
+    expect(within(card).getByText('하원완료')).toBeTruthy();
+    expect(within(card).getByRole('button', { name: '하원 취소' })).toBeTruthy();
   });
 });

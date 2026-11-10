@@ -23,6 +23,7 @@ interface OwnerDailyAttendanceListTabProps {
   onWriteRecord: (item: AttendanceCheckinoutTodayItem) => void;
   onViewRecord: (item: AttendanceCheckinoutTodayItem) => void;
   onCheckOut: (item: AttendanceCheckinoutTodayItem) => void;
+  onCancelCheckOut: (item: AttendanceCheckinoutTodayItem) => void;
 }
 
 /** `등원목록` 탭(오늘). 필터 칩(전체·재원중·발송전)과 등원한 원생 카드 목록을 보여 준다. */
@@ -35,6 +36,7 @@ const OwnerDailyAttendanceListTab = ({
   onWriteRecord,
   onViewRecord,
   onCheckOut,
+  onCancelCheckOut,
 }: OwnerDailyAttendanceListTabProps) => {
   const { counts, items } = todayList;
   const chips: { label: string; count: number; value: TodayAttendanceFilter | undefined }[] = [
@@ -72,6 +74,7 @@ const OwnerDailyAttendanceListTab = ({
               onWriteRecord={onWriteRecord}
               onViewRecord={onViewRecord}
               onCheckOut={onCheckOut}
+              onCancelCheckOut={onCancelCheckOut}
             />
           ))}
         </ul>
