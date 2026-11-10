@@ -29,6 +29,8 @@ const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
   return null;
 };
 
+const NO_PENDING_PET_IDS: ReadonlySet<string> = new Set();
+
 const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]';
 
 /** 원장 일과 화면. 날짜 이동·등원 현황·`등원처리`/`등원목록` 탭을 조합한다. */
@@ -185,6 +187,9 @@ const OwnerDailyPage = () => {
                   lateOnly={lateOnly}
                   onKeywordChange={setKeyword}
                   onLateOnlyChange={setLateOnly}
+                  pendingPetIds={NO_PENDING_PET_IDS}
+                  onCheckIn={() => {}}
+                  onAbsent={() => {}}
                 />
               ) : null}
             </TabsContent>

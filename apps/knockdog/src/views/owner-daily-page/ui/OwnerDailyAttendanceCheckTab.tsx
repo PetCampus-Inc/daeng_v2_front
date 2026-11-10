@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { Icon, Switch, TextField, TextFieldInput } from '@knockdog/ui';
 
-import { filterAttendanceList, getCheckInChip, isLateForCheckIn } from '@views/owner-daily-page/lib/ownerDailyAttendance';
+import { filterAttendanceList } from '@views/owner-daily-page/lib/ownerDailyAttendance';
+import { OwnerDailyAttendanceCard } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCard';
 import { OwnerDailySearchEmptyState } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
 
 import type { AttendanceCheckinoutCandidate } from '@entities/owner-attendance-checkinout';
@@ -14,6 +15,12 @@ interface OwnerDailyAttendanceCheckTabProps {
   lateOnly: boolean;
   onKeywordChange: (keyword: string) => void;
   onLateOnlyChange: (lateOnly: boolean) => void;
+  /** 처리 요청이 진행 중인 원생(petId). 이 원생의 처리 버튼은 잠긴다. */
+  pendingPetIds: ReadonlySet<string>;
+  onCheckIn: (item: AttendanceCheckinoutCandidate) => void;
+  onAbsent: (item: AttendanceCheckinoutCandidate) => void;
+  onCancelCheckIn?: (item: AttendanceCheckinoutCandidate) => void;
+  onCancelAbsent?: (item: AttendanceCheckinoutCandidate) => void;
 }
 
 /** `등원처리` 탭. 검색창·`강아지수`·`지각` 토글과 원생 카드 목록을 보여 주고, 조건에 맞는 원생이 없으면 안내를 보여 준다. */
@@ -25,6 +32,11 @@ const OwnerDailyAttendanceCheckTab = ({
   lateOnly,
   onKeywordChange,
   onLateOnlyChange,
+  pendingPetIds,
+  onCheckIn,
+  onAbsent,
+  onCancelCheckIn,
+  onCancelAbsent,
 }: OwnerDailyAttendanceCheckTabProps) => {
   const filteredItems = useMemo(
     () => filterAttendanceList(items, { keyword, lateOnly, dateKey, now }),
@@ -34,7 +46,10 @@ const OwnerDailyAttendanceCheckTab = ({
   return (
     <div className='flex min-h-full w-full flex-col'>
       <div className='bg-bg-0 px-4 pt-4 pb-3'>
-        <TextField prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />} className='bg-fill-secondary-50 h-x12 relative min-w-0 border-0'>
+        <TextField
+          prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
+          className='bg-fill-secondary-50 h-x12 relative min-w-0 border-0'
+        >
           <TextFieldInput
             type='search'
             placeholder='이름 혹은 견종을 입력해 주세요'
@@ -66,15 +81,18 @@ const OwnerDailyAttendanceCheckTab = ({
       ) : (
         <ul className='flex w-full flex-col gap-3 px-4 pt-3'>
           {filteredItems.map((item) => {
-            const isLate = isLateForCheckIn({ status: item.status, dateKey, reservedTime: item.reservedTime, now });
-            const chip = getCheckInChip({ status: item.status, isLate });
-
             return (
-              <li key={item.petId} className='bg-bg-0 radius-r3 flex items-center gap-2 p-4'>
-                <span className='body1-extrabold text-text-primary'>{item.name}</span>
-                <span className='body2-regular text-text-secondary'>{item.reservedTime}</span>
-                {chip === 'late' ? <span className='caption1-semibold text-text-accent'>지각</span> : null}
-              </li>
+              <OwnerDailyAttendanceCard
+                key={item.petId}
+                item={item}
+                dateKey={dateKey}
+                now={now}
+                isPending={pendingPetIds.has(item.petId)}
+                onCheckIn={onCheckIn}
+                onAbsent={onAbsent}
+                onCancelCheckIn={onCancelCheckIn}
+                onCancelAbsent={onCancelAbsent}
+              />
             );
           })}
         </ul>
