@@ -90,22 +90,22 @@ function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId:
 function GuardianReservationPage() {
   const { push } = useStackNavigation();
   const { pets, selectedPet, setSelectedPetId, isPetsReady, isPetsError } = useGuardianSelectedPet();
-  const [isDogListOpen, setIsDogListOpen] = useState(false);
+  const [isChevronOpen, setIsChevronOpen] = useState(false);
   const petId = selectedPet?.id ?? '';
   const upcomingQuery = useGuardianReservationQuery(petId, RESERVATION_SCOPE.upcoming);
   const ticketQuery = useGuardianTicketCardQuery(petId);
   const upcoming = upcomingQuery.data?.[0];
   const tickets = ticketQuery.data?.tickets ?? [];
-  const canSelectPet = pets.length > 1;
+  const canOpenDogList = pets.length > 1;
+  const isDogListOpen = isChevronOpen && canOpenDogList;
 
   const handleToggleDogList = () => {
-    if (!canSelectPet) return;
-    setIsDogListOpen((isOpen) => !isOpen);
+    setIsChevronOpen((isOpen) => !isOpen);
   };
 
   const handleSelectDog = (nextPetId: string) => {
     setSelectedPetId(nextPetId);
-    setIsDogListOpen(false);
+    setIsChevronOpen(false);
   };
 
   const handleOpenNotification = () => {
@@ -156,27 +156,26 @@ function GuardianReservationPage() {
             </div>
           </header>
           <SelectDogCard
-            isExpanded={isDogListOpen}
-            showIcon={canSelectPet}
+            isExpanded={isChevronOpen}
             name={selectedPet.name}
             breed={selectedPet.breed}
             age={petAgeLabel(selectedPet.birthYear)}
             weight={petWeightLabel(selectedPet.weight)}
             className='rounded-none shadow-none'
-            onClick={canSelectPet ? handleToggleDogList : undefined}
+            onClick={handleToggleDogList}
           >
             <PetAvatar pet={selectedPet} />
           </SelectDogCard>
         </div>
-        {isDogListOpen && canSelectPet ? <ReservationDogList pets={pets} onSelect={handleSelectDog} /> : null}
+        {isDogListOpen ? <ReservationDogList pets={pets} onSelect={handleSelectDog} /> : null}
       </div>
 
-      {isDogListOpen && canSelectPet ? (
+      {isDogListOpen ? (
         <button
           type='button'
           aria-label='강아지 목록 닫기'
           className='fixed inset-0 z-10 bg-black/40'
-          onClick={() => setIsDogListOpen(false)}
+          onClick={() => setIsChevronOpen(false)}
         />
       ) : null}
 
