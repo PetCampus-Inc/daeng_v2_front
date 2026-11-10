@@ -96,6 +96,12 @@ const cancelCheckInFromCard = async (name: string) => {
   await user.click(within(dialog).getByRole('button', { name: '취소하기' }));
 };
 
+/** 카드의 버튼(`결석 취소`·`하원 취소`)을 눌러 확인 모달이 뜨면 `취소하기`까지 누른다. */
+const confirmCancelFromCard = async (name: string, buttonName: string) => {
+  await clickCardButton(name, buttonName);
+  await user.click(within(await findDialog()).getByRole('button', { name: '취소하기' }));
+};
+
 const getStatValue = (label: string) => screen.getByRole('group', { name: label }).textContent ?? '';
 
 /** 카드 안의 버튼을 누른다. */
@@ -308,5 +314,77 @@ describe('등원 취소', () => {
     const card = await findCard('콩이');
     expect(within(card).getByText('등원완료')).toBeTruthy();
     expect(within(card).getByRole('button', { name: '등원 취소' })).toBeTruthy();
+  });
+});
+
+describe('결석 취소', () => {
+  test('결석 취소 버튼을 누르면 확인 모달이 열리고 `닫기`를 누르면 결석 상태는 그대로다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [createFakePet({ name: '콩이', status: 'ABSENT' })]);
+    await openPage();
+
+    await clickCardButton('콩이', '결석 취소');
+    const dialog = await findDialog();
+    expect(within(dialog).getByText(/콩이/)).toBeTruthy();
+    await user.click(within(dialog).getByRole('button', { name: '닫기' }));
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    const card = await findCard('콩이');
+    expect(within(card).getByText('결석')).toBeTruthy();
+    expect(within(card).getByRole('button', { name: '결석 취소' })).toBeTruthy();
+    expect(fakeAttendanceApi.postAttendanceCancelAbsent).not.toHaveBeenCalled();
+  });
+
+  test('`취소하기`를 누르면 등원 전으로 돌아가고 결석처리·등원처리 버튼이 다시 보인다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [createFakePet({ name: '콩이', reservedTime: '11:00', status: 'ABSENT' })]);
+    await openPage();
+
+    await confirmCancelFromCard('콩이', '결석 취소');
+
+    await waitFor(async () => {
+      const card = await findCard('콩이');
+      expect(within(card).getByRole('button', { name: '결석처리' })).toBeTruthy();
+      expect(within(card).getByRole('button', { name: '등원처리' })).toBeTruthy();
+      expect(within(card).queryByText('결석')).toBeNull();
+    });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  test('결석을 취소하면 집계의 결석 확정 수치가 줄어든다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [
+      createFakePet({ name: '콩이', status: 'ABSENT' }),
+      createFakePet({ name: '보리', status: 'ABSENT' }),
+    ]);
+    await openPage();
+    await findCard('콩이');
+    expect(getStatValue('결석 확정')).toContain('2');
+
+    await confirmCancelFromCard('콩이', '결석 취소');
+
+    await waitFor(() => expect(getStatValue('결석 확정')).toContain('1'));
+  });
+
+  test('결석을 취소했을 때 현재 시각이 지각 조건이면 `지각` 칩이 다시 보인다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [createFakePet({ name: '콩이', reservedTime: '09:00', status: 'ABSENT' })]);
+    await openPage();
+    expect(within(await findCard('콩이')).queryByText('지각')).toBeNull();
+
+    await confirmCancelFromCard('콩이', '결석 취소');
+
+    await waitFor(async () => {
+      expect(within(await findCard('콩이')).getByText('지각')).toBeTruthy();
+    });
+  });
+
+  test('결석 취소가 실패하면 결석 상태를 바꾸지 않고 실패 안내를 보여 준다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [createFakePet({ name: '콩이', status: 'ABSENT' })]);
+    fakeAttendanceServer.failNextAction('postAttendanceCancelAbsent');
+    await openPage();
+
+    await confirmCancelFromCard('콩이', '결석 취소');
+
+    expect(await screen.findByText(REQUEST_FAILED_MESSAGE)).toBeTruthy();
+    const card = await findCard('콩이');
+    expect(within(card).getByText('결석')).toBeTruthy();
+    expect(within(card).getByRole('button', { name: '결석 취소' })).toBeTruthy();
   });
 });
