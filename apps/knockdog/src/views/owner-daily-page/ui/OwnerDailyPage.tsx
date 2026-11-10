@@ -1,139 +1,61 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useLayoutEffect, useRef, useState, type UIEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
+import { OWNER_DAILY_TAB_LABEL, type OwnerDailyTab } from '@views/owner-daily-page/config/ownerDailyContent';
+import { formatOwnerDailyDateLabel } from '@views/owner-daily-page/lib/ownerDailyDateLabel';
+import { toOwnerDailySummaryView } from '@views/owner-daily-page/lib/ownerDailySummary';
+import { useOwnerDailyActions } from '@views/owner-daily-page/model/useOwnerDailyActions';
+import { useOwnerDailyCancelDialog } from '@views/owner-daily-page/model/useOwnerDailyCancelDialog';
+import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
+import { OwnerDailyAttendanceCheckTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCheckTab';
+import { OwnerDailyAttendanceListTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceListTab';
+import {
+  OwnerDailyFutureNoticeState,
+  OwnerDailyNoReservationState,
+  OwnerDailyNotConfiguredState,
+  OwnerDailyPastCheckNoticeState,
+  OwnerDailyPastNoRecordState,
+} from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
+import { OwnerDailyFutureListTab } from '@views/owner-daily-page/ui/OwnerDailyFutureListTab';
+import { OwnerDailyPastListTab } from '@views/owner-daily-page/ui/OwnerDailyPastListTab';
+import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
+import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
+import {
+  PROFILE_TAB_QUERY_KEY,
+  TAB as PROFILE_TAB,
+} from '@views/owner/member-profile/config/ownerMemberProfileContent';
+import { Header } from '@widgets/Header';
+
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
-import {
-  addDays,
-  formatKstDateLabel,
-  formatKstDayLabel,
-  isBeforeDay,
-  isSameDay,
-  startOfDay,
-} from '@shared/lib/calendar-date';
+
+import { REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { STORAGE_KEYS } from '@shared/constants/storage';
-import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
-import { buildHref, searchParamsToQuery, type Query } from '@shared/lib/bridge/queryUtils';
-import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
-import { NotificationBell } from '@shared/ui/notification-bell';
-import { ellipsisText } from '@shared/utils';
-import type { AttendanceMember } from '@views/owner-daily-page/config/ownerDailyContent';
-import { OwnerDailyCancelCheckOutDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckOutDialog';
-import { OwnerDailyCancelCheckInDialog } from '@views/owner-daily-page/ui/OwnerDailyCancelCheckInDialog';
-import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
-import { getKstDateKey, getNextKstMidnightDelay } from '@views/owner-daily-page/lib/ownerDailyDate';
-import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
-import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
-import { OwnerDailyTabContent } from '@views/owner-daily-page/ui/OwnerDailyTabContent';
-import {
-  TodayAttendanceTab,
-  type TodayAttendanceFilter,
-} from '@views/owner-daily-page/ui/TodayAttendanceTab';
-import { Header } from '@widgets/Header';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { NotificationBell } from '@shared/ui/notification-bell';
+import { PageError } from '@shared/ui/page-error';
+import { toast } from '@shared/ui/toast';
 
-type OwnerDailyTab = 'attendance-check' | 'today-attendance';
-
-interface OwnerDailyViewState {
-  date: string;
-  scrollTop: number;
-}
-
-function readPersistedOwnerDailyView(): OwnerDailyViewState | null {
-  const value = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_VIEW);
-  if (!value) return null;
-
-  try {
-    const parsed = JSON.parse(value) as Partial<OwnerDailyViewState>;
-    const { date, scrollTop } = parsed;
-    if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || typeof scrollTop !== 'number') return null;
-    if (!Number.isFinite(scrollTop)) return null;
-    return { date, scrollTop: Math.max(0, scrollTop) };
-  } catch {
-    return null;
-  }
-}
-
-function dateFromDateKey(dateKey: string) {
-  const [yearString = '', monthString = '', dayString = ''] = dateKey.split('-');
-  const [year, month, day] = [Number(yearString), Number(monthString), Number(dayString)];
-  return startOfDay(new Date(year, month - 1, day));
-}
-
-function resolveOwnerDailyTab(value: string | null): OwnerDailyTab {
-  return value === 'today-attendance' ? 'today-attendance' : 'attendance-check';
-}
-
-function readPersistedOwnerDailyTab(): OwnerDailyTab | null {
-  // localStorage는 앱을 완전히 껐다 켜도 남아있어 "재시작 시 등원 처리가 기본 화면"이라는
-  // 요구사항이 깨진다. sessionStorage만 쓰면 WebView가 새로 생성될 때(=앱 재시작) 초기화된다.
-  const sessionValue = safeSessionStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
-  if (sessionValue === 'today-attendance' || sessionValue === 'attendance-check') return sessionValue;
-
-  // 알림장 작성 화면에서 뒤로가기(returnToOwnerDailyTodayAttendance)는 Tabs reset으로
-  // 이 페이지의 WebView를 통째로 새로 마운트시키는데, 이때 Tab/Stack WebView 간
-  // sessionStorage는 공유되지 않아(apps/mobile/bridges/lib/tabQueryInject.ts 참고) 새
-  // WebView에서는 못 읽는 경우가 있다. 그 경로에서 localStorage에도 같이 남겨둔 값을
-  // 여기서 1회성으로 소비하고 곧바로 지워, 진짜 앱 재시작 때는 영향을 주지 않게 한다.
-  const localValue = safeLocalStorage.get(STORAGE_KEYS.OWNER_DAILY_TAB);
-  if (localValue === 'today-attendance' || localValue === 'attendance-check') {
-    safeLocalStorage.remove(STORAGE_KEYS.OWNER_DAILY_TAB);
-    return localValue;
-  }
-
-  return null;
-}
-
-function persistOwnerDailyTab(tab: OwnerDailyTab) {
-  safeSessionStorage.set(STORAGE_KEYS.OWNER_DAILY_TAB, tab);
-}
-
-function resolveInitialOwnerDailyTab(rawTab: string | null): OwnerDailyTab {
-  if (rawTab === 'today-attendance' || rawTab === 'attendance-check') {
-    return resolveOwnerDailyTab(rawTab);
-  }
-  return readPersistedOwnerDailyTab() ?? 'attendance-check';
-}
-
-function resolveTodayAttendanceFilter(value: string | null): TodayAttendanceFilter {
-  if (value === 'checked-in' || value === 'noticebook-pending') return value;
-
-  return 'all';
-}
-
-function readCurrentQuery(): Query {
-  const query: Query = {};
-  if (typeof window === 'undefined') return query;
-
-  new URLSearchParams(window.location.search).forEach((value, key) => {
-    query[key] = value;
-  });
-
-  return query;
-}
-
-function resolveOwnerDailyTabFromNavigation(): OwnerDailyTab | null {
-  const urlTab = new URLSearchParams(window.location.search).get('tab');
-  if (urlTab === 'today-attendance' || urlTab === 'attendance-check') {
-    return resolveOwnerDailyTab(urlTab);
-  }
-
-  return readPersistedOwnerDailyTab();
-}
-
-function OwnerDailyReturnHomeBack({ onBack }: { onBack: () => void }) {
+const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
   useNativeBackHandler(onBack);
   return null;
-}
+};
 
-function OwnerDailyPage() {
-  const router = useRouter();
+const TAB_TRIGGER_CLASS_NAME =
+  'text-size-body1 h-x12 px-x4 py-x3 data-[state=inactive]:text-text-secondary border-b-0 leading-6 font-bold';
+
+const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]';
+// 오늘 `등원처리` 탭은 안내를 하단 내비게이션 위쪽 영역의 가운데에 두기 위해 아래 여백을 목록 쪽에서 둔다.
+const CHECK_TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)';
+
+/** 원장 일과 화면. 날짜 이동·등원 현황·`등원처리`/`등원목록` 탭을 조합한다. */
+const OwnerDailyPage = () => {
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const userId = useUserStore((state) => state.user?.userId);
@@ -142,11 +64,70 @@ function OwnerDailyPage() {
     audience: 'OWNER',
     enabled: true,
   });
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const rawTab = searchParams.get('tab');
-  const rawTodayFilter = searchParams.get('todayFilter');
   const fromHome = searchParams.get('from') === 'home';
+  // 지각 알림으로 열면 `등원처리` 탭이 지각 토글을 켠 채로 시작한다.
+  const initialLateOnly = searchParams.get('lateOnly') === 'true';
+  const {
+    now,
+    today,
+    selectedDate,
+    selectedDateKey,
+    dayKind,
+    selectedTab,
+    minDate,
+    maxDate,
+    isPrevDayDisabled,
+    isNextDayDisabled,
+    summary,
+    candidates,
+    isNoReservation,
+    isNotConfigured,
+    todayList,
+    isLoading,
+    isError,
+    keyword,
+    lateOnly,
+    todayFilter,
+    setKeyword,
+    setLateOnly,
+    setTodayFilter,
+    handleRetry,
+    handleDateSelect,
+    handlePrevDayClick,
+    handleNextDayClick,
+    handleTodayClick,
+    handleTabChange,
+  } = useOwnerDailyPage({ initialLateOnly });
+  const {
+    pendingPetIds,
+    handleCheckIn,
+    handleAbsent,
+    handleCheckOut,
+    handleCancelCheckIn,
+    handleCancelAbsent,
+    handleCancelCheckOut,
+  } = useOwnerDailyActions({ userId, dateKey: selectedDateKey });
+  const { openCancelDialog } = useOwnerDailyCancelDialog({
+    onCancelCheckIn: handleCancelCheckIn,
+    onCancelAbsent: handleCancelAbsent,
+    onCancelCheckOut: handleCancelCheckOut,
+  });
+  // 스크롤한 화면(날짜+탭)을 기억해 두고, 날짜나 탭이 바뀌면 자동으로 버튼이 사라지게 한다.
+  const [scrolledViewKey, setScrolledViewKey] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isToday = dayKind === 'today';
+  const viewKey = `${selectedDateKey}:${selectedTab}`;
+  const isScrollTopButtonVisible = scrolledViewKey === viewKey;
+  // 지난 날짜에 등원·결석 기록이 하나도 없으면 날짜 줄과 안내만 보여 준다.
+  const isPast = dayKind === 'past';
+  const isPastNoRecord = isPast && todayList?.counts.all === 0;
+  const isFuture = dayKind === 'future';
+  const summaryView =
+    summary && !isNotConfigured && !isLoading && !isError && !isPastNoRecord && !isNoReservation
+      ? toOwnerDailySummaryView(summary, dayKind)
+      : null;
+
   const handleBackToOwnerHome = useCallback(() => {
     if (isNativeWebView()) {
       navigateToTab('/owner').catch(() => {
@@ -157,362 +138,79 @@ function OwnerDailyPage() {
 
     back();
   }, [back, navigateToTab, push]);
-  const initialTodayAttendanceFilter = resolveTodayAttendanceFilter(rawTodayFilter);
-  const [selectedTab, setSelectedTab] = useState<OwnerDailyTab>(() => resolveInitialOwnerDailyTab(rawTab));
-  const selectedTabRef = useRef(selectedTab);
-  selectedTabRef.current = selectedTab;
-  const [isScrollTopButtonVisible, setIsScrollTopButtonVisible] = useState(false);
-  const attendanceCheckContentRef = useRef<HTMLDivElement>(null);
-  const todayAttendanceContentRef = useRef<HTMLDivElement>(null);
-  const persistedViewRef = useRef(readPersistedOwnerDailyView());
-  const shouldRestoreScrollPositionRef = useRef(Boolean(persistedViewRef.current));
-  const [selectedDate, setSelectedDate] = useState(() =>
-    persistedViewRef.current ? dateFromDateKey(persistedViewRef.current.date) : startOfDay(new Date())
-  );
-  const [dateNavToday, setDateNavToday] = useState(() => startOfDay(new Date()));
-  const dateNavMinDate = useMemo(
-    () => startOfDay(new Date(dateNavToday.getFullYear() - 1, 0, 1)),
-    [dateNavToday]
-  );
-  const isNextDayDisabled = !isBeforeDay(selectedDate, dateNavToday);
-  const isSelectedDateToday = isSameDay(selectedDate, dateNavToday);
-  const selectedDateKey = getKstDateKey(selectedDate);
-  const dateNavLabel = `${selectedDate.getFullYear() === dateNavToday.getFullYear() ? '' : `${selectedDate.getFullYear()}년 `}${formatKstDateLabel(selectedDate)} ${formatKstDayLabel(selectedDate)}`;
-  const {
-    attendanceCheckMembers,
-    canOpenCancelCheckInDialog,
-    cancelCheckOut,
-    cancelCheckIn,
-    handleCheckFilterClick,
-    handleCheckIn,
-    handleCheckOut,
-    handleClearSearchKeyword,
-    handleInviteGuardianClick,
-    handleMemberClick,
-    handleNoticebookButtonClick,
-    handleSearchKeywordChange,
-    hasConnectedMembers,
-    isError,
-    isLoading,
-    isTodayError,
-    isTodayLoading,
-    normalizedSearchKeyword,
-    searchKeyword,
-    showUncheckedOnly,
-    summaryItems,
-    todayAttendanceMembers,
-  } = useOwnerDailyPage(selectedDate, isSelectedDateToday);
-  const displaySummaryItems = isSelectedDateToday
-    ? summaryItems
-    : summaryItems.map((item) => {
-        if (item.label === '오늘 등원') return { ...item, label: '등원' };
-        if (item.label === '재원 중') return { ...item, label: '하원 미처리' };
-        return item;
-      });
 
-  const handleCancelCheckIn = async (member: AttendanceMember) => {
-    if (!canOpenCancelCheckInDialog(member)) return;
-
-    const result = await openConfirmDialog({
-      title: `${ellipsisText(member.name, 8)}의 등원을 취소할까요?`,
-      titleParts: [
-        { text: ellipsisText(member.name, 8), accent: true },
-        { text: '의' },
-        { text: ' 등원을 취소할까요?' },
-      ],
-      titleLineBreakAfterPartIndex: 1,
-      description: '취소하면 등원 전 상태로 돌아가요.',
-      cancelLabel: '닫기',
-      confirmLabel: '등원 취소',
-      contentPaddingHorizontal: 16,
-      showAvatar: true,
-      avatarUrl: member.profileImageUrl,
-    });
-
-    if (result.status === 'pending') return;
-
-    if (result.status === 'resolved') {
-      if (result.action === 'confirm') void cancelCheckIn(member, () => {});
-      return;
-    }
-
-    overlay.open(({ isOpen, close }) => (
-      <OwnerDailyCancelCheckInDialog
-        member={member}
-        open={isOpen}
-        onOpenChange={close}
-        onCancel={() => cancelCheckIn(member, close)}
-      />
-    ));
-  };
-
-  const handleAttendanceButtonClick = (member: AttendanceMember) => {
-    if (member.checkedIn) {
-      handleCancelCheckIn(member);
-      return;
-    }
-
-    handleCheckIn(member);
-  };
-
-  const handleCancelCheckOut = async (member: AttendanceMember) => {
-    const result = await openConfirmDialog({
-      title: `${ellipsisText(member.name, 8)}의 하원을 취소할까요?`,
-      titleParts: [
-        { text: ellipsisText(member.name, 8), accent: true },
-        { text: '의' },
-        { text: ' 하원을 취소할까요?' },
-      ],
-      titleLineBreakAfterPartIndex: 1,
-      description: '취소하면 재원 중 상태로 돌아가요.',
-      cancelLabel: '닫기',
-      confirmLabel: '하원 취소',
-      contentPaddingHorizontal: 16,
-      showAvatar: true,
-      avatarUrl: member.profileImageUrl,
-    });
-
-    if (result.status === 'pending') return;
-
-    if (result.status === 'resolved') {
-      if (result.action === 'confirm') void cancelCheckOut(member, () => {});
-      return;
-    }
-
-    overlay.open(({ isOpen, close }) => (
-      <OwnerDailyCancelCheckOutDialog
-        member={member}
-        open={isOpen}
-        onOpenChange={close}
-        onCancel={() => cancelCheckOut(member, close)}
-      />
-    ));
-  };
-
-  const handleCheckOutButtonClick = (member: AttendanceMember) => {
-    if (member.checkedOut) {
-      handleCancelCheckOut(member);
-      return;
-    }
-
-    handleCheckOut(member);
-  };
-
-  const handleTabValueChange = (value: string) => {
-    const nextTab = value as OwnerDailyTab;
-    setSelectedTab(nextTab);
-    persistOwnerDailyTab(nextTab);
-
-    const query = readCurrentQuery();
-    if (nextTab === 'today-attendance') {
-      query.tab = 'today-attendance';
-    } else {
-      delete query.tab;
-      delete query.todayFilter;
-    }
-    router.replace(buildHref(pathname, query), { scroll: false });
-  };
-
-  const handleSummaryItemClick = (index: number) => {
-    const filters: TodayAttendanceFilter[] = ['all', 'checked-in', 'noticebook-pending'];
-    const filter = filters[index];
-    if (!filter) return;
-
-    setSelectedTab('today-attendance');
-    setIsScrollTopButtonVisible(false);
-    todayAttendanceContentRef.current?.scrollTo({ top: 0 });
-    persistOwnerDailyTab('today-attendance');
-
-    const query = readCurrentQuery();
-    query.tab = 'today-attendance';
-    if (filter === 'all') {
-      delete query.todayFilter;
-    } else {
-      query.todayFilter = filter;
-    }
-    router.replace(buildHref(pathname, query), { scroll: false });
-  };
-
-  const applyOwnerDailyTab = useCallback(
-    (nextTab: OwnerDailyTab, options?: { force?: boolean }) => {
-      if (!options?.force && selectedTabRef.current === nextTab) return;
-
-      setSelectedTab(nextTab);
-      persistOwnerDailyTab(nextTab);
-
-      const query = readCurrentQuery();
-      if (nextTab === 'today-attendance') {
-        query.tab = 'today-attendance';
-      } else {
-        delete query.tab;
-        delete query.todayFilter;
-      }
-      router.replace(buildHref(pathname, query), { scroll: false });
-    },
-    [pathname, router]
-  );
-
-  const handlePrevDay = () => {
-    setSelectedDate((current) => {
-      const previousDate = addDays(current, -1);
-      return isBeforeDay(previousDate, dateNavMinDate) ? current : previousDate;
+  const pushOrToastFailure = (pathname: string, query?: Record<string, string>) => {
+    push(query ? { pathname, query } : { pathname }).catch(() => {
+      toast({ type: 'default', shape: 'rounded', title: REQUEST_FAILED_MESSAGE, nativeTitle: REQUEST_FAILED_MESSAGE });
     });
   };
 
-  const handleNextDay = () => {
-    if (isNextDayDisabled) return;
-    setSelectedDate((current) => addDays(current, 1));
+  /** 원생 카드를 누르면 그 원생의 프로필로 이동한다. */
+  const handleMemberClick = ({ petId }: { petId: string }) => {
+    pushOrToastFailure(route.owner.members.detail.root.replace('[id]', petId));
   };
 
-  const handleGoToday = () => {
-    setSelectedDate(dateNavToday);
+  /** 지난 날짜 카드를 누르면 그 원생의 프로필을 `등하원 기록` 탭으로 연다. */
+  const handlePastMemberClick = ({ petId }: { petId: string }) => {
+    pushOrToastFailure(route.owner.members.detail.root.replace('[id]', petId), {
+      [PROFILE_TAB_QUERY_KEY]: PROFILE_TAB.ATTENDANCE,
+    });
   };
 
-  const handleOpenDatePicker = () => {
+  /**
+   * `알림장 작성하기`·`알림장 보기`는 같은 원생별 알림장 화면으로 이동한다.
+   * 이 화면은 오늘 알림장이 발송됐으면 읽기 전용(발송된 알림장 상세)으로 열린다.
+   */
+  const handleNoticeClick = ({ petId }: { petId: string }) => {
+    pushOrToastFailure(route.owner.daily.notice.write.root.replace('[id]', petId));
+  };
+
+  /** `설정하기`를 누르면 예약 설정 화면으로 이동한다. */
+  const handleSetUpClick = () => {
+    pushOrToastFailure(route.mypage.kindergarten.reservation.root);
+  };
+
+  const handleDatePickerOpen = () => {
+    if (isNotConfigured) return;
+
     overlay.open(({ isOpen, close }) => (
       <OwnerDailyDatePickerSheet
         isOpen={isOpen}
         close={close}
-        minDate={dateNavMinDate}
-        maxDate={dateNavToday}
+        minDate={minDate}
+        maxDate={maxDate}
         initialDate={selectedDate}
-        onConfirm={setSelectedDate}
+        onConfirm={handleDateSelect}
       />
     ));
   };
 
-  const handleContentScroll = (scrollTop: number) => {
-    setIsScrollTopButtonVisible(scrollTop > 0);
-  };
-
-  const persistCurrentView = () => {
-    const contentRef =
-      !isSelectedDateToday || selectedTab === 'today-attendance'
-        ? todayAttendanceContentRef
-        : attendanceCheckContentRef;
-    safeSessionStorage.set(
-      STORAGE_KEYS.OWNER_DAILY_VIEW,
-      JSON.stringify({ date: getKstDateKey(selectedDate), scrollTop: contentRef.current?.scrollTop ?? 0 })
-    );
-  };
-
-  const handleMemberProfileClick = (memberId: string) => {
-    persistCurrentView();
-    handleMemberClick(memberId);
+  const handleContentScroll = (event: UIEvent<HTMLDivElement>) => {
+    setScrolledViewKey(event.currentTarget.scrollTop > 0 ? viewKey : null);
   };
 
   const handleScrollToTop = () => {
-    const contentRef =
-      !isSelectedDateToday || selectedTab === 'today-attendance'
-        ? todayAttendanceContentRef
-        : attendanceCheckContentRef;
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    if (!persistedViewRef.current) return;
-    safeSessionStorage.remove(STORAGE_KEYS.OWNER_DAILY_VIEW);
-  }, []);
-
-  useEffect(() => {
-    const refreshDateNavToday = () => {
-      const nextToday = startOfDay(new Date());
-      if (isSameDay(dateNavToday, nextToday)) return;
-      setSelectedDate((current) => (isSameDay(current, dateNavToday) ? nextToday : current));
-      setDateNavToday(nextToday);
-    };
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') refreshDateNavToday();
-    };
-    const timeout = window.setTimeout(refreshDateNavToday, getNextKstMidnightDelay());
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.clearTimeout(timeout);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [dateNavToday]);
-
-  useEffect(() => {
-    // URL에 tab이 있을 때만 동기화. remount 시 bare /owner/daily면 localStorage 유지.
-    if (rawTab !== 'today-attendance' && rawTab !== 'attendance-check') return;
-
-    const nextTab = resolveOwnerDailyTab(rawTab);
-    setSelectedTab(nextTab);
-    persistOwnerDailyTab(nextTab);
-  }, [rawTab]);
-
-  // remount 후 URL에 tab이 없으면 저장된 탭을 쿼리에 반영 (뒤로가기 등)
-  useEffect(() => {
-    if (rawTab === 'today-attendance' || rawTab === 'attendance-check') return;
-    if (selectedTab !== 'today-attendance') return;
-
-    const query = searchParamsToQuery(searchParams);
-    query.tab = 'today-attendance';
-    router.replace(buildHref(pathname, query), { scroll: false });
-    // mount 시 1회만
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const syncTabFromNavigation = () => {
-      const nextTab = resolveOwnerDailyTabFromNavigation();
-      if (!nextTab) return;
-      applyOwnerDailyTab(nextTab);
-    };
-
-    const handleOwnerDailyTabSync = (event: Event) => {
-      const tab = (event as CustomEvent<{ tab?: string }>).detail?.tab;
-      if (tab === 'today-attendance' || tab === 'attendance-check') {
-        applyOwnerDailyTab(resolveOwnerDailyTab(tab), { force: true });
-        return;
-      }
-      syncTabFromNavigation();
-    };
-
-    const handleNativeTabFocus = () => {
-      syncTabFromNavigation();
-      window.setTimeout(syncTabFromNavigation, 0);
-      window.setTimeout(syncTabFromNavigation, 100);
-    };
-
-    window.addEventListener('knockdog:owner-daily-tab-sync', handleOwnerDailyTabSync);
-    window.addEventListener('knockdog:native-tab-focus', handleNativeTabFocus);
-    window.addEventListener('popstate', syncTabFromNavigation);
-
-    return () => {
-      window.removeEventListener('knockdog:owner-daily-tab-sync', handleOwnerDailyTabSync);
-      window.removeEventListener('knockdog:native-tab-focus', handleNativeTabFocus);
-      window.removeEventListener('popstate', syncTabFromNavigation);
-    };
-  }, [applyOwnerDailyTab, dateNavToday]);
-
+  // 날짜나 탭이 바뀌면 맨 위에서 시작한다.
   useLayoutEffect(() => {
-    setIsScrollTopButtonVisible(false);
-    const animationFrameId = requestAnimationFrame(() => {
-      const contentRef =
-        !isSelectedDateToday || selectedTab === 'today-attendance'
-          ? todayAttendanceContentRef
-          : attendanceCheckContentRef;
-      const scrollTop = shouldRestoreScrollPositionRef.current ? persistedViewRef.current?.scrollTop ?? 0 : 0;
-      contentRef.current?.scrollTo({ top: scrollTop });
-      shouldRestoreScrollPositionRef.current = false;
-    });
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isSelectedDateToday, selectedDateKey, selectedTab]);
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [viewKey]);
 
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
         {fromHome ? <OwnerDailyReturnHomeBack onBack={handleBackToOwnerHome} /> : null}
-        <Header>
+        <Header className='h-[66px]' innerClassName='h-[66px]'>
           {fromHome ? (
             <Header.LeftSection>
               <Header.BackButton aria-label='이전' onClick={handleBackToOwnerHome} />
             </Header.LeftSection>
           ) : null}
-          <Header.Title>일과</Header.Title>
+          <Header.Title className='pl-x2 text-size-h2 leading-7 font-extrabold [color:var(--color-text-primary)]'>
+            일과
+          </Header.Title>
           <Header.RightSection>
             <NotificationBell
               hasUnread={hasUnreadNotification}
@@ -523,102 +221,109 @@ function OwnerDailyPage() {
       </div>
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
         <OwnerDailySummarySection
-          dateLabel={dateNavLabel}
-          summaryItems={displaySummaryItems}
-          onPrevDay={handlePrevDay}
-          onNextDay={handleNextDay}
-          onOpenDatePicker={handleOpenDatePicker}
-          onGoToday={handleGoToday}
-          onSummaryItemClick={handleSummaryItemClick}
-          isNextDayDisabled={isNextDayDisabled}
-          isToday={isSelectedDateToday}
+          summaryView={summaryView}
+          dateNav={{
+            label: formatOwnerDailyDateLabel(selectedDate, today),
+            onPrevDay: handlePrevDayClick,
+            onNextDay: handleNextDayClick,
+            onOpenDatePicker: handleDatePickerOpen,
+            onGoToday: handleTodayClick,
+            isPrevDayDisabled,
+            isNextDayDisabled,
+            isToday,
+          }}
         />
-        {isLoading ? (
+        {isNotConfigured ? (
+          <OwnerDailyNotConfiguredState onSetUpClick={handleSetUpClick} />
+        ) : isLoading ? (
           <DelayedLoadingSpinner isLoading={isLoading} layout='content' className='bg-bg-50' />
         ) : isError ? (
-          <div className='bg-bg-50 flex min-h-0 flex-1 items-center justify-center px-4 pb-[calc(var(--bottom-bar-height)+30px)]'>
-            <div className='flex flex-col items-center gap-1 text-center'>
-              <p className='h2-extrabold text-text-primary'>일과 정보를 불러오지 못했어요</p>
-              <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
-            </div>
-          </div>
-        ) : isSelectedDateToday ? (
+          <PageError layout='inline' onRetry={handleRetry} />
+        ) : isPastNoRecord ? (
+          <OwnerDailyPastNoRecordState />
+        ) : isNoReservation ? (
+          <OwnerDailyNoReservationState isFuture={isFuture} />
+        ) : (
           <Tabs
             value={selectedTab}
             className='flex min-h-0 flex-1 flex-col'
-            onValueChange={handleTabValueChange}
+            onValueChange={(value) => handleTabChange(value as OwnerDailyTab)}
           >
-            <TabsList>
-              <TabsTrigger value='attendance-check' data-testid='owner-daily-tab-attendance-check'>
-                등원 처리
+            <TabsList className='h-x12 border-b-0 shadow-[inset_0_-1px_0_0_var(--color-line-200)]'>
+              <TabsTrigger
+                value='attendance-check'
+                data-testid='owner-daily-tab-attendance-check'
+                className={TAB_TRIGGER_CLASS_NAME}
+              >
+                {OWNER_DAILY_TAB_LABEL['attendance-check']}
               </TabsTrigger>
-              <TabsTrigger value='today-attendance' data-testid='owner-daily-tab-today-attendance'>
-                오늘 등원
+              <TabsTrigger
+                value='attendance-list'
+                data-testid='owner-daily-tab-today-attendance'
+                className={TAB_TRIGGER_CLASS_NAME}
+              >
+                {OWNER_DAILY_TAB_LABEL['attendance-list']}
               </TabsTrigger>
             </TabsList>
             <TabsContent
-              ref={attendanceCheckContentRef}
+              ref={contentRef}
               value='attendance-check'
-              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
-              onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
+              className={CHECK_TAB_CONTENT_CLASS_NAME}
+              onScroll={handleContentScroll}
             >
-              <OwnerDailyTabContent
-                items={attendanceCheckMembers}
-                hasConnectedMembers={hasConnectedMembers}
-                normalizedSearchKeyword={normalizedSearchKeyword}
-                searchKeyword={searchKeyword}
-                showBeforeFilter={showUncheckedOnly}
-                onBeforeFilterClick={handleCheckFilterClick}
-                onSearchKeywordChange={handleSearchKeywordChange}
-                onClearSearchKeyword={handleClearSearchKeyword}
-                onInviteGuardianClick={handleInviteGuardianClick}
-                onMemberClick={handleMemberProfileClick}
-                onAttendanceButtonClick={handleAttendanceButtonClick}
-              />
+              {isToday && candidates ? (
+                <OwnerDailyAttendanceCheckTab
+                  items={candidates}
+                  dateKey={selectedDateKey}
+                  now={now}
+                  keyword={keyword}
+                  lateOnly={lateOnly}
+                  onKeywordChange={setKeyword}
+                  onLateOnlyChange={setLateOnly}
+                  pendingPetIds={pendingPetIds}
+                  onCheckIn={handleCheckIn}
+                  onAbsent={handleAbsent}
+                  onCancelCheckIn={(item) => openCancelDialog('checkIn', item)}
+                  onCancelAbsent={(item) => openCancelDialog('absent', item)}
+                />
+              ) : null}
+              {isPast ? <OwnerDailyPastCheckNoticeState /> : null}
+              {isFuture ? <OwnerDailyFutureNoticeState /> : null}
             </TabsContent>
             <TabsContent
-              ref={todayAttendanceContentRef}
-              value='today-attendance'
-              className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
-              onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
+              ref={contentRef}
+              value='attendance-list'
+              className={TAB_CONTENT_CLASS_NAME}
+              onScroll={handleContentScroll}
             >
-              <TodayAttendanceTab
-                items={todayAttendanceMembers}
-                initialSelectedFilter={initialTodayAttendanceFilter}
-                isLoading={isTodayLoading}
-                isError={isTodayError}
-                onCheckOutButtonClick={handleCheckOutButtonClick}
-                onMemberClick={handleMemberProfileClick}
-                onNoticebookButtonClick={handleNoticebookButtonClick}
-              />
+              {todayList && isPast ? (
+                <OwnerDailyPastListTab
+                  todayList={todayList}
+                  filter={todayFilter}
+                  onFilterChange={setTodayFilter}
+                  onMemberClick={handlePastMemberClick}
+                />
+              ) : null}
+              {isFuture && candidates ? <OwnerDailyFutureListTab items={candidates} dateKey={selectedDateKey} /> : null}
+              {todayList && !isPast ? (
+                <OwnerDailyAttendanceListTab
+                  todayList={todayList}
+                  filter={todayFilter}
+                  onFilterChange={setTodayFilter}
+                  pendingPetIds={pendingPetIds}
+                  onMemberClick={handleMemberClick}
+                  onWriteRecord={handleNoticeClick}
+                  onViewRecord={handleNoticeClick}
+                  onCheckOut={handleCheckOut}
+                  onCancelCheckOut={(item) => openCancelDialog('checkOut', item)}
+                />
+              ) : null}
             </TabsContent>
           </Tabs>
-        ) : (
-          <div
-            ref={todayAttendanceContentRef}
-            className='bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'
-            onScroll={(event) => handleContentScroll(event.currentTarget.scrollTop)}
-          >
-            <TodayAttendanceTab
-              items={todayAttendanceMembers}
-              initialSelectedFilter={initialTodayAttendanceFilter}
-              isLoading={isTodayLoading}
-              isError={isTodayError}
-              showActions={false}
-              onCheckOutButtonClick={handleCheckOutButtonClick}
-              onMemberClick={handleMemberProfileClick}
-              onNoticebookButtonClick={handleNoticebookButtonClick}
-            />
-          </div>
         )}
       </main>
       {isScrollTopButtonVisible ? (
-        <Float
-          placement='bottom-end'
-          offsetX='x4'
-          offsetY='calc(var(--bottom-bar-height) + 20px)'
-          zIndex={50}
-        >
+        <Float placement='bottom-end' offsetX='x4' offsetY='calc(var(--bottom-bar-height) + 20px)' zIndex={50}>
           <FloatingActionButton
             className='text-black'
             icon='ChevronTop'
@@ -632,6 +337,6 @@ function OwnerDailyPage() {
       ) : null}
     </div>
   );
-}
+};
 
 export { OwnerDailyPage };

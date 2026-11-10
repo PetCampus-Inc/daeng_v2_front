@@ -73,3 +73,67 @@ describe('resolveNotificationInboxDestination ticket', () => {
     expect(resolveNotificationInboxDestination('GUARDIAN_MEMBERSHIP_DISCONNECTED')).toEqual({ kind: 'ownerMembers' });
   });
 });
+
+describe('알림으로 일과 열기', () => {
+  it('원장 지각 알림을 누르면 일과 `등원처리` 탭이 지각 토글이 켜진 상태로 열리는 곳으로 이동한다', () => {
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_LATE_OWNER', {
+        payloadVersion: 1,
+        schoolId: 3,
+        date: '2026-11-10',
+      })
+    ).toEqual({ kind: 'ownerDailyLate' });
+  });
+
+  it('보호자 지각 알림을 누르면 유치원 탭에서 해당 강아지가 선택된 곳으로 이동한다', () => {
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_LATE_GUARDIAN', {
+        payloadVersion: 1,
+        schoolId: 3,
+        petId: 12,
+        date: '2026-11-10',
+        reservationId: 99,
+      })
+    ).toEqual({ kind: 'guardianKindergarten', petId: '12', date: '2026-11-10' });
+  });
+
+  it('보호자 결석 취소 알림을 누르면 유치원 탭으로 이동한다', () => {
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_CANCEL_ABSENT', {
+        payloadVersion: 1,
+        schoolId: 3,
+        petId: 12,
+        date: '2026-11-10',
+        reservationId: 99,
+      })
+    ).toEqual({ kind: 'guardianKindergarten', petId: '12', date: '2026-11-10' });
+  });
+
+  it('알림이 가리키는 화면에 접근할 수 없으면(연결 해제 등) 홈으로 이동한다', () => {
+    expect(
+      resolveNotificationInboxDestination(
+        'ATTENDANCE_LATE_OWNER',
+        { payloadVersion: 1, schoolId: 3, date: '2026-11-10' },
+        { isTargetUnavailable: true }
+      )
+    ).toEqual({ kind: 'home' });
+
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_LATE_GUARDIAN', {
+        payloadVersion: 1,
+        schoolId: 3,
+        petId: 12,
+        date: '2026-11-10',
+        disconnected: true,
+      })
+    ).toEqual({ kind: 'home' });
+
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_CANCEL_ABSENT', {
+        payloadVersion: 1,
+        schoolId: 3,
+        date: '2026-11-10',
+      })
+    ).toEqual({ kind: 'home' });
+  });
+});

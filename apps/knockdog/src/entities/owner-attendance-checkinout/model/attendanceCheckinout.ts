@@ -1,5 +1,5 @@
-type CheckinoutStatus = 'NOT_CHECKED_IN' | 'CHECKED_IN' | 'CHECKED_OUT';
-type TodayAttendanceFilter = 'CURRENTLY_IN' | 'UNSENT_RECORD';
+type CheckinoutStatus = 'NOT_CHECKED_IN' | 'CHECKED_IN' | 'CHECKED_OUT' | 'ABSENT';
+type TodayAttendanceFilter = 'CURRENTLY_IN' | 'UNSENT_RECORD' | 'ABSENT';
 type ApiDateTime = string | number[];
 
 interface AttendanceCheckinoutCandidateDto {
@@ -10,7 +10,12 @@ interface AttendanceCheckinoutCandidateDto {
   weight: number | null;
   birthYear?: number | null;
   profileImage: string | null;
-  checkinoutStatus: CheckinoutStatus | string;
+  reservationId?: number | null;
+  /** 등원 예정 시간 (KST, `HH:mm`) */
+  reservedTime?: string | null;
+  requestMemo?: string | null;
+  firstAttendance?: boolean | null;
+  status: CheckinoutStatus | string;
   checkInAt?: ApiDateTime | null;
   checkOutAt?: ApiDateTime | null;
 }
@@ -20,32 +25,36 @@ interface AttendanceCheckinoutCandidatesDto {
   items?: AttendanceCheckinoutCandidateDto[] | null;
 }
 
-/** candidates 필드 + 등/하원 시각·알림장 발송 여부 */
 interface AttendanceCheckinoutTodayItemDto extends AttendanceCheckinoutCandidateDto {
-  checkInAt?: ApiDateTime | null;
-  checkOutAt?: ApiDateTime | null;
+  tag?: string | null;
+  disconnected?: boolean | null;
   attendanceRecordSent?: boolean | null;
-  hasSentAttendanceRecord?: boolean | null;
-  noticeSent?: boolean | null;
+  attendanceRecordId?: number | null;
+}
+
+interface AttendanceCheckinoutTodayCountsDto {
+  all?: number | null;
+  currentlyIn?: number | null;
+  unsentRecord?: number | null;
+  absent?: number | null;
 }
 
 interface AttendanceCheckinoutTodayDto {
   totalCount?: number;
+  counts?: AttendanceCheckinoutTodayCountsDto | null;
   items?: AttendanceCheckinoutTodayItemDto[] | null;
 }
 
 interface AttendanceCheckinoutSummaryDto {
   date?: string | number[] | null;
+  reservationSettingConfigured?: boolean | null;
+  /** 하루 정원. null이면 제한 없음 */
+  dailyCapacity?: number | null;
+  reservedCount?: number | null;
   checkedInCount?: number | null;
-  currentlyInCount?: number | null;
-  unsentAttendanceRecordCount?: number | null;
-}
-
-interface AttendanceCheckinoutActionDto {
-  petId?: number | string;
-  checkinoutStatus?: CheckinoutStatus | string | null;
-  checkInAt?: ApiDateTime | null;
-  checkOutAt?: ApiDateTime | null;
+  absentCount?: number | null;
+  checkedOutCount?: number | null;
+  notCheckedOutCount?: number | null;
 }
 
 interface AttendanceCheckinoutCandidate {
@@ -56,15 +65,26 @@ interface AttendanceCheckinoutCandidate {
   weightKg: number | null;
   birthYear: number | null;
   profileImageUrl: string | null;
-  checkinoutStatus: CheckinoutStatus;
+  reservationId: string | null;
+  reservedTime: string;
+  requestMemo: string | null;
+  firstAttendance: boolean;
+  status: CheckinoutStatus;
   checkInAt: string | null;
   checkOutAt: string | null;
 }
 
 interface AttendanceCheckinoutTodayItem extends AttendanceCheckinoutCandidate {
-  checkInAt: string | null;
-  checkOutAt: string | null;
+  disconnected: boolean;
   attendanceRecordSent: boolean;
+  attendanceRecordId: string | null;
+}
+
+interface AttendanceCheckinoutTodayCounts {
+  all: number;
+  currentlyIn: number;
+  unsentRecord: number;
+  absent: number;
 }
 
 interface AttendanceCheckinoutCandidates {
@@ -74,26 +94,27 @@ interface AttendanceCheckinoutCandidates {
 
 interface AttendanceCheckinoutToday {
   totalCount: number;
+  counts: AttendanceCheckinoutTodayCounts;
   items: AttendanceCheckinoutTodayItem[];
 }
 
 interface AttendanceCheckinoutSummary {
   date: string | null;
+  /** false면 일과 화면 대신 등원 가능 시간 설정 안내를 보여준다 */
+  reservationSettingConfigured: boolean;
+  /** 하루 정원. null이면 제한 없음 */
+  dailyCapacity: number | null;
+  reservedCount: number;
   checkedInCount: number;
-  currentlyInCount: number;
-  unsentAttendanceRecordCount: number;
-}
-
-interface AttendanceCheckinoutAction {
-  petId: string;
-  checkinoutStatus: CheckinoutStatus;
-  checkInAt: string | null;
-  checkOutAt: string | null;
+  absentCount: number;
+  checkedOutCount: number;
+  notCheckedOutCount: number;
 }
 
 function normalizeCheckinoutStatus(value: unknown): CheckinoutStatus {
   if (value === 'CHECKED_IN') return 'CHECKED_IN';
   if (value === 'CHECKED_OUT') return 'CHECKED_OUT';
+  if (value === 'ABSENT') return 'ABSENT';
   return 'NOT_CHECKED_IN';
 }
 
@@ -136,31 +157,15 @@ function normalizeDateTime(value: unknown): string | null {
     if (!parts.every((part) => typeof part === 'number' && Number.isFinite(part))) return null;
 
     return new Date(
-      Date.UTC(
-        year,
-        month - 1,
-        day,
-        hour - 9,
-        minute,
-        second,
-        Math.floor(nanosecond / 1_000_000)
-      )
+      Date.UTC(year, month - 1, day, hour - 9, minute, second, Math.floor(nanosecond / 1_000_000))
     ).toISOString();
   }
 
   return null;
 }
 
-function resolveAttendanceRecordSent(
-  dto: Pick<
-    AttendanceCheckinoutTodayItemDto,
-    'attendanceRecordSent' | 'hasSentAttendanceRecord' | 'noticeSent'
-  >
-) {
-  if (typeof dto.attendanceRecordSent === 'boolean') return dto.attendanceRecordSent;
-  if (typeof dto.hasSentAttendanceRecord === 'boolean') return dto.hasSentAttendanceRecord;
-  if (typeof dto.noticeSent === 'boolean') return dto.noticeSent;
-  return false;
+function toCount(value: unknown) {
+  return typeof value === 'number' ? value : 0;
 }
 
 function toAttendanceCheckinoutCandidate(
@@ -176,7 +181,11 @@ function toAttendanceCheckinoutCandidate(
     weightKg: typeof dto.weight === 'number' ? dto.weight : null,
     birthYear: typeof dto.birthYear === 'number' ? dto.birthYear : null,
     profileImageUrl: dto.profileImage ?? null,
-    checkinoutStatus: normalizeCheckinoutStatus(dto.checkinoutStatus),
+    reservationId: dto.reservationId != null ? String(dto.reservationId) : null,
+    reservedTime: dto.reservedTime ?? '',
+    requestMemo: dto.requestMemo?.trim() ? dto.requestMemo : null,
+    firstAttendance: dto.firstAttendance === true,
+    status: normalizeCheckinoutStatus(dto.status),
     checkInAt: normalizeDateTime(dto.checkInAt),
     checkOutAt: normalizeDateTime(dto.checkOutAt),
   };
@@ -192,9 +201,9 @@ function toAttendanceCheckinoutTodayItem(
 
   return {
     ...base,
-    checkInAt: normalizeDateTime(dto.checkInAt),
-    checkOutAt: normalizeDateTime(dto.checkOutAt),
-    attendanceRecordSent: resolveAttendanceRecordSent(dto),
+    disconnected: dto.disconnected === true,
+    attendanceRecordSent: dto.attendanceRecordSent === true,
+    attendanceRecordId: dto.attendanceRecordId != null ? String(dto.attendanceRecordId) : null,
   };
 }
 
@@ -211,15 +220,19 @@ function toAttendanceCheckinoutCandidates(
   };
 }
 
-function toAttendanceCheckinoutToday(
-  dto: AttendanceCheckinoutTodayDto | null | undefined
-): AttendanceCheckinoutToday {
+function toAttendanceCheckinoutToday(dto: AttendanceCheckinoutTodayDto | null | undefined): AttendanceCheckinoutToday {
   const items = (dto?.items ?? [])
     .map(toAttendanceCheckinoutTodayItem)
     .filter((item): item is AttendanceCheckinoutTodayItem => item != null);
 
   return {
     totalCount: typeof dto?.totalCount === 'number' ? dto.totalCount : items.length,
+    counts: {
+      all: toCount(dto?.counts?.all),
+      currentlyIn: toCount(dto?.counts?.currentlyIn),
+      unsentRecord: toCount(dto?.counts?.unsentRecord),
+      absent: toCount(dto?.counts?.absent),
+    },
     items,
   };
 }
@@ -229,32 +242,17 @@ function toAttendanceCheckinoutSummary(
 ): AttendanceCheckinoutSummary {
   return {
     date: normalizeDateKey(dto?.date),
-    checkedInCount: typeof dto?.checkedInCount === 'number' ? dto.checkedInCount : 0,
-    currentlyInCount: typeof dto?.currentlyInCount === 'number' ? dto.currentlyInCount : 0,
-    unsentAttendanceRecordCount:
-      typeof dto?.unsentAttendanceRecordCount === 'number' ? dto.unsentAttendanceRecordCount : 0,
-  };
-}
-
-function toAttendanceCheckinoutAction(
-  dto: AttendanceCheckinoutActionDto | null | undefined
-): AttendanceCheckinoutAction | null {
-  if (!dto) return null;
-
-  const petId =
-    typeof dto.petId === 'number' || typeof dto.petId === 'string' ? String(dto.petId) : null;
-  if (!petId) return null;
-
-  return {
-    petId,
-    checkinoutStatus: normalizeCheckinoutStatus(dto.checkinoutStatus),
-    checkInAt: normalizeDateTime(dto.checkInAt),
-    checkOutAt: normalizeDateTime(dto.checkOutAt),
+    reservationSettingConfigured: dto?.reservationSettingConfigured === true,
+    dailyCapacity: typeof dto?.dailyCapacity === 'number' ? dto.dailyCapacity : null,
+    reservedCount: toCount(dto?.reservedCount),
+    checkedInCount: toCount(dto?.checkedInCount),
+    absentCount: toCount(dto?.absentCount),
+    checkedOutCount: toCount(dto?.checkedOutCount),
+    notCheckedOutCount: toCount(dto?.notCheckedOutCount),
   };
 }
 
 export {
-  toAttendanceCheckinoutAction,
   toAttendanceCheckinoutCandidate,
   toAttendanceCheckinoutCandidates,
   toAttendanceCheckinoutSummary,
@@ -262,8 +260,6 @@ export {
   toAttendanceCheckinoutTodayItem,
 };
 export type {
-  AttendanceCheckinoutAction,
-  AttendanceCheckinoutActionDto,
   AttendanceCheckinoutCandidate,
   AttendanceCheckinoutCandidateDto,
   AttendanceCheckinoutCandidates,
@@ -271,6 +267,8 @@ export type {
   AttendanceCheckinoutSummary,
   AttendanceCheckinoutSummaryDto,
   AttendanceCheckinoutToday,
+  AttendanceCheckinoutTodayCounts,
+  AttendanceCheckinoutTodayCountsDto,
   AttendanceCheckinoutTodayDto,
   AttendanceCheckinoutTodayItem,
   AttendanceCheckinoutTodayItemDto,

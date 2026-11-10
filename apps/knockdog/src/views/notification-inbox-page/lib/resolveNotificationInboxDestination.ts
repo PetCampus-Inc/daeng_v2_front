@@ -11,6 +11,8 @@ type NotificationInboxDestination =
   | { kind: 'guardianTicketDetail'; petId: string; ticketId: string }
   | { kind: 'guardianConnectionHistory' }
   | { kind: 'ownerExpiringMembers' }
+  | { kind: 'ownerDailyLate' }
+  | { kind: 'home' }
   | { kind: 'unavailable' };
 
 const ATTENDANCE_STATUS_TYPES = new Set([
@@ -18,7 +20,12 @@ const ATTENDANCE_STATUS_TYPES = new Set([
   'ATTENDANCE_CANCEL_CHECK_IN',
   'ATTENDANCE_CHECK_OUT',
   'ATTENDANCE_CANCEL_CHECK_OUT',
+  'ATTENDANCE_CANCEL_ABSENT',
+  'ATTENDANCE_LATE_GUARDIAN',
 ]);
+
+/** 원장에게 가는 지각 알림 — 일과 등원처리 탭을 지각 토글이 켜진 상태로 연다. */
+const OWNER_DAILY_LATE_TYPES = new Set(['ATTENDANCE_LATE_OWNER']);
 
 const ATTENDANCE_RECORD_TYPES = new Set(['ATTENDANCE_RECORD_CREATED', 'ATTENDANCE_RECORD_UPDATED']);
 
@@ -97,23 +104,29 @@ function toDateKey(value: unknown): string | null {
 }
 
 /** 알림 type + payload로 이동 대상을 고른다. FCM 라우팅과 동일한 계약. */
-function resolveNotificationInboxDestination(
+const resolveNotificationInboxDestination = (
   type: string,
-  payload: Record<string, unknown> = {}
-): NotificationInboxDestination {
+  payload: Record<string, unknown> = {},
+  options: { isTargetUnavailable?: boolean } = {}
+): NotificationInboxDestination => {
   const petId = toPositiveId(payload.petId);
   const schoolId = toPositiveId(payload.schoolId);
   const newsId = toPositiveId(payload.newsId);
   const reservationId = toPositiveId(payload.reservationId);
   const ticketId = toPositiveId(payload.ticketId);
   const date = toDateKey(payload.date);
+  const isTargetUnavailable = Boolean(
+    options.isTargetUnavailable || payload.isTargetUnavailable || payload.disconnected
+  );
 
   if (ATTENDANCE_RECORD_TYPES.has(type)) {
+    if (isTargetUnavailable) return { kind: 'unavailable' };
     return petId && date ? { kind: 'attendanceRecord', petId, date } : { kind: 'unavailable' };
   }
 
   if (ATTENDANCE_STATUS_TYPES.has(type)) {
-    return petId ? { kind: 'guardianKindergarten', petId, date: date ?? undefined } : { kind: 'unavailable' };
+    if (isTargetUnavailable || !petId) return { kind: 'home' };
+    return { kind: 'guardianKindergarten', petId, date: date ?? undefined };
   }
 
   if (CONNECTION_HISTORY_TYPES.has(type)) {
@@ -121,7 +134,17 @@ function resolveNotificationInboxDestination(
   }
 
   if (GUARDIAN_KINDERGARTEN_TYPES.has(type)) {
+    if (isTargetUnavailable) return { kind: 'unavailable' };
     return petId ? { kind: 'guardianKindergarten', petId } : { kind: 'unavailable' };
+  }
+
+  if (OWNER_DAILY_LATE_TYPES.has(type)) {
+    if (isTargetUnavailable) return { kind: 'home' };
+    return { kind: 'ownerDailyLate' };
+  }
+
+  if (isTargetUnavailable) {
+    return { kind: 'unavailable' };
   }
 
   if (OWNER_MEMBER_APPROVAL_TYPES.has(type)) {

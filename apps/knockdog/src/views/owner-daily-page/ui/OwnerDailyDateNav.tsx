@@ -8,52 +8,57 @@ interface OwnerDailyDateNavProps {
   onNextDay: () => void;
   onOpenDatePicker: () => void;
   onGoToday: () => void;
+  isPrevDayDisabled?: boolean;
   isNextDayDisabled?: boolean;
   isToday: boolean;
 }
 
-function OwnerDailyDateNav({
+const OwnerDailyDateNav = ({
   label,
   onPrevDay,
   onNextDay,
   onOpenDatePicker,
   onGoToday,
+  isPrevDayDisabled,
   isNextDayDisabled,
   isToday,
-}: OwnerDailyDateNavProps) {
+}: OwnerDailyDateNavProps) => {
   return (
-    <div className='flex w-full items-center justify-between gap-2'>
-      <div className='flex items-center gap-2'>
-        <button type='button' aria-label='전날' onClick={onPrevDay}>
-          <Icon icon='ChevronLeft' className='text-text-secondary size-6' />
+    <div className='flex w-full items-center justify-between'>
+      <div className='gap-x3 flex items-center'>
+        <button
+          type='button'
+          aria-label='전날'
+          disabled={isPrevDayDisabled}
+          onClick={onPrevDay}
+          className='w-x1 relative flex items-center justify-center before:absolute before:-inset-3 before:content-[""] disabled:opacity-30'
+        >
+          <Icon icon='ChevronLeft' className='text-text-caption size-x3_5 shrink-0' />
         </button>
-        <button type='button' className='flex items-center gap-2' onClick={onOpenDatePicker}>
+        <button type='button' className='gap-x2 flex items-center' onClick={onOpenDatePicker}>
           <span className='h3-extrabold text-text-primary whitespace-nowrap'>{label}</span>
-          <Icon icon='Calendar' className='text-text-primary size-6' />
+          <Icon icon='Calendar' className='text-text-primary size-x6' />
         </button>
         <button
           type='button'
           aria-label='다음날'
           disabled={isNextDayDisabled}
           onClick={onNextDay}
-          className='disabled:opacity-30'
+          className='w-x1 relative flex items-center justify-center before:absolute before:-inset-3 before:content-[""] disabled:opacity-30'
         >
-          <Icon icon='ChevronRight' className='text-text-secondary size-6' />
+          <Icon icon='ChevronRight' className='text-text-caption size-x3_5 shrink-0' />
         </button>
       </div>
       <button
         type='button'
+        disabled={isToday}
         onClick={onGoToday}
-        className={
-          isToday
-            ? 'border-line-accent caption1-semibold text-text-accent rounded-full border px-2 py-1'
-            : 'border-line-200 caption1-semibold text-text-secondary rounded-full border px-2 py-1'
-        }
+        className='border-line-400 caption1-regular text-text-secondary radius-full h-x7 w-[49px] border font-medium'
       >
         오늘
       </button>
     </div>
   );
-}
+};
 
 export { OwnerDailyDateNav };
