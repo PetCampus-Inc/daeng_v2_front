@@ -6,6 +6,10 @@ export type PushDestination =
   | { kind: 'album'; schoolId: string; date: string; petId?: string; dedupeKey: string }
   | { kind: 'kindergartenNews'; newsId: string; schoolId?: string; dedupeKey: string }
   | { kind: 'guardianReservation'; petId?: string; dedupeKey: string }
+  | { kind: 'guardianReservationDetail'; petId: string; reservationId: string; dedupeKey: string }
+  | { kind: 'guardianTicketDetail'; petId: string; ticketId: string; dedupeKey: string }
+  | { kind: 'guardianConnectionHistory'; dedupeKey: string }
+  | { kind: 'ownerMembers'; dedupeKey: string }
   | { kind: 'ownerExpiringMembers'; dedupeKey: string }
   | { kind: 'fallback' };
 
@@ -22,12 +26,15 @@ const ATTENDANCE_RECORD_TYPES = new Set(['ATTENDANCE_RECORD_CREATED', 'ATTENDANC
 
 const OWNER_MEMBER_APPROVAL_TYPES = new Set(['GUARDIAN_APPLICATION_REQUESTED', 'GUARDIAN_APPLICATION_CANCELLED']);
 
+const OWNER_MEMBERS_TYPES = new Set(['GUARDIAN_MEMBERSHIP_DISCONNECTED', 'GUARDIAN_DISCONNECTED']);
+
 const GUARDIAN_KINDERGARTEN_TYPES = new Set([
   'SCHOOL_MEMBERSHIP_APPROVED',
-  'SCHOOL_MEMBERSHIP_DISCONNECTED',
   'SCHOOL_MEMBERSHIP_SERVICE_ENDED',
   'connection_completed',
 ]);
+
+const CONNECTION_HISTORY_TYPES = new Set(['SCHOOL_MEMBERSHIP_DISCONNECTED']);
 
 const CONNECTION_APPLY_TYPES = new Set(['connection_apply_sent', 'SCHOOL_MEMBERSHIP_REJECTED']);
 
@@ -45,7 +52,13 @@ const GUARDIAN_TICKET_TYPES = new Set([
   'PET_TICKET_HOLD_ENDED',
   'PET_TICKET_EXPIRY_EXTENDED',
   'PET_TICKET_EXPIRING',
+  'PET_TICKET_ONE_LEFT',
+  'PET_TICKET_STARTED',
 ]);
+
+const TICKET_DETAIL_TYPES = new Set(['PET_TICKET_EXHAUSTED']);
+
+const RESERVATION_DETAIL_TYPES = new Set(['RESERVATION_REMINDER']);
 
 const OWNER_TICKET_EXPIRING_TYPES = new Set(['PET_TICKET_EXPIRING_OWNER']);
 
@@ -141,11 +154,19 @@ export function resolvePushDestination(value: unknown): PushDestination {
     return { kind: 'connectionApplyStatus', dedupeKey: payload.type };
   }
 
+  if (CONNECTION_HISTORY_TYPES.has(payload.type)) {
+    return { kind: 'guardianConnectionHistory', dedupeKey: payload.type };
+  }
+
   if (GUARDIAN_KINDERGARTEN_TYPES.has(payload.type)) {
     const petId = toPositiveId(payload.petId);
     return petId
       ? { kind: 'guardianKindergarten', petId, dedupeKey: `${payload.type}:${petId}` }
       : { kind: 'fallback' };
+  }
+
+  if (OWNER_MEMBERS_TYPES.has(payload.type)) {
+    return { kind: 'ownerMembers', dedupeKey: payload.type };
   }
 
   if (ALBUM_TYPES.has(payload.type)) {
@@ -167,6 +188,27 @@ export function resolvePushDestination(value: unknown): PushDestination {
           schoolId: schoolId ?? undefined,
           dedupeKey: `${payload.type}:${newsId}`,
         }
+      : { kind: 'fallback' };
+  }
+
+  if (RESERVATION_DETAIL_TYPES.has(payload.type)) {
+    const petId = toPositiveId(payload.petId);
+    const reservationId = toPositiveId(payload.reservationId);
+    return petId && reservationId
+      ? {
+          kind: 'guardianReservationDetail',
+          petId,
+          reservationId,
+          dedupeKey: `${payload.type}:${reservationId}`,
+        }
+      : { kind: 'fallback' };
+  }
+
+  if (TICKET_DETAIL_TYPES.has(payload.type)) {
+    const petId = toPositiveId(payload.petId);
+    const ticketId = toPositiveId(payload.ticketId);
+    return petId && ticketId
+      ? { kind: 'guardianTicketDetail', petId, ticketId, dedupeKey: `${payload.type}:${ticketId}` }
       : { kind: 'fallback' };
   }
 

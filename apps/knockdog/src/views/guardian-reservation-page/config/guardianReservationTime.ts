@@ -6,6 +6,8 @@ const RESERVATION_TIME_COPY = {
   morning: '오전',
   afternoon: '오후',
   next: '다음 단계',
+  loadError: '예약 일정을 불러오지 못했어요',
+  slotError: '등원 시간을 불러오지 못했어요',
 } as const;
 
 export { RESERVATION_TIME_COPY };

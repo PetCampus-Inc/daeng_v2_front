@@ -2,43 +2,42 @@
 
 import { useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, TextareaInput } from '@knockdog/ui';
 
+import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_CONFIRM_COPY } from '@views/guardian-reservation-page/config/guardianReservationConfirm';
 import {
-  BOOKING_STATUS,
   clipNote,
-  countTicketUses,
   formatConfirmDate,
   formatRemainingCount,
-  formatTicketUse,
   isNoteFilled,
-  isSameDayTaken,
   NOTE_LIMIT,
   readReserveQuery,
-  remainingAfterUse,
-  resolveBooking,
   toVisitStartsAt,
 } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
-import { formatDogAge, formatDogWeight } from '@views/guardian-reservation-page/lib/guardianReservationMain';
-import {
-  dateFromKey,
-  formatReserveClock,
-  isSlotBookable,
-} from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
-import { bookVisit, useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
-import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
+import { dateFromKey, formatReserveClock } from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
 import { clearReserveDraft } from '@views/guardian-reservation-page/model/reserveDraft';
 import { ReservationLeaveDialog } from '@views/guardian-reservation-page/ui/ReservationLeaveDialog';
 
 import { Header } from '@widgets/Header';
 
+import { useCreateReservationMutation, type CreatedGuardianReservation } from '@entities/guardian-reservation';
+import { guardianTicketQueryKeys } from '@entities/guardian-ticket';
+import { useGuardianHomeQuery } from '@entities/guardian-home';
+import { formatAge } from '@entities/pet';
+import { useUserStore } from '@entities/user';
+
+import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
-const SUBMIT_WAIT_MS = 300;
+const FULL_CODE = 'RESERVATION-409-4';
 
 function ConfirmInfoRow({ label, value, extra }: { label: string; value: string; extra?: string }) {
   return (
@@ -50,6 +49,26 @@ function ConfirmInfoRow({ label, value, extra }: { label: string; value: string;
       </div>
     </div>
   );
+}
+
+function ConfirmDogAvatar({ name, imageUrl }: { name: string; imageUrl?: string }) {
+  return (
+    <DogProfileAvatar
+      name={name}
+      imageUrl={imageUrl}
+      className='size-full border-0'
+      pawClassName='text-fill-secondary-400'
+    />
+  );
+}
+
+function showFailedToast(message: string) {
+  toast({
+    type: 'default',
+    shape: 'rounded',
+    position: 'bottom',
+    title: message,
+  });
 }
 
 function showClosedToast() {
@@ -75,19 +94,27 @@ function ReservationConfirmPage() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
   const ticketId = searchParams.get('ticketId') ?? '';
+  const petId = /^\d+$/.test(dogId) ? dogId : '';
+  const ticketNumber = /^\d+$/.test(ticketId) ? Number(ticketId) : null;
   const selection = readReserveQuery(searchParams.get('date'), searchParams.get('minutes'));
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const { now, dogs } = useReservationDogs();
-  const visits = useBookedVisits();
-  const dog = dogs.find((item) => item.id === dogId);
-  const ticket = dog?.tickets.find((item) => item.id === ticketId);
+  const { pets, isPetsReady, isPetsError } = useGuardianSelectedPet();
+  const userId = useUserStore((state) => state.user?.userId);
+  const pet = pets.find((item) => String(item.id) === petId) ?? null;
+  const { data: home } = useGuardianHomeQuery({ userId, petId: pet?.id, enabled: Boolean(pet) });
+  const queryClient = useQueryClient();
+  const createReservation = useCreateReservationMutation(petId);
   const [note, setNote] = useState('');
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
-  const [isPending, setIsPending] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [created, setCreated] = useState<CreatedGuardianReservation | null>(null);
   const isSubmitting = useRef(false);
+  const idempotencyKey = useRef('');
+  const requestSignature = useRef('');
+  const isPending = createReservation.isPending;
+  const canSubmit = Boolean(selection && petId && ticketNumber != null && Number.isSafeInteger(ticketNumber));
 
   const leaveToTime = () => {
     back()
@@ -123,52 +150,65 @@ function ReservationConfirmPage() {
   useNativeBackHandler(handleBack);
 
   const handleBook = () => {
-    if (isSubmitting.current || isPending || isClosed || isConfirmed || !selection || !dog || !ticket) return;
+    if (isSubmitting.current || isPending || isClosed || isConfirmed || !selection || !canSubmit || ticketNumber == null) {
+      return;
+    }
 
-    const usedBefore = countTicketUses(visits, ticket.id);
-    const upcomingOn = dog.upcoming?.startsAt.slice(0, 10) ?? null;
-    const status = resolveBooking({
-      isBookable: isSlotBookable(dateFromKey(selection.dateKey), selection.minutes, now, ticket.endsOn),
-      remainingCount: ticket.remainingCount,
-      usedBefore,
-      isDayTaken: upcomingOn === selection.dateKey || isSameDayTaken(visits, dog.id, selection.dateKey),
-    });
-    const visit = {
-      id: `book-${crypto.randomUUID()}`,
-      dogId: dog.id,
-      ticketId: ticket.id,
-      startsAt: toVisitStartsAt(selection.dateKey, selection.minutes),
-      placeName: dog.kindergarten?.name ?? '',
-      note: note.trim(),
-      remainingCount: remainingAfterUse(ticket.remainingCount, usedBefore),
+    const body = {
+      ticketId: ticketNumber,
+      date: selection.dateKey,
+      time: toVisitStartsAt(selection.dateKey, selection.minutes).slice(11),
+      requestMemo: note.trim() || null,
     };
+    const signature = JSON.stringify(body);
+    if (requestSignature.current !== signature) {
+      requestSignature.current = signature;
+      idempotencyKey.current = crypto.randomUUID();
+    }
 
     isSubmitting.current = true;
-    setIsPending(true);
-
-    window.setTimeout(() => {
-      setIsPending(false);
-
-      const isBooked = status === BOOKING_STATUS.booked && bookVisit(visit);
-      if (!isBooked) {
-        setIsClosed(true);
-        isSubmitting.current = false;
-        showClosedToast();
-        return;
+    createReservation.mutate(
+      { idempotencyKey: idempotencyKey.current, body },
+      {
+        onSuccess: async (reservation) => {
+          clearReserveDraft();
+          await queryClient.invalidateQueries({ queryKey: guardianTicketQueryKeys.all });
+          syncWebViewQuery.invalidate([...guardianTicketQueryKeys.all]);
+          setCreated(reservation);
+          setIsConfirmed(true);
+        },
+        onError: (error) => {
+          isSubmitting.current = false;
+          if (error instanceof ApiError && error.code === FULL_CODE) {
+            setIsClosed(true);
+            showClosedToast();
+            return;
+          }
+          const message = error instanceof ApiError && error.message ? error.message : copy.failed;
+          showFailedToast(message);
+        },
       }
-
-      clearReserveDraft();
-      setIsConfirmed(true);
-    }, SUBMIT_WAIT_MS);
+    );
   };
 
-  if (!dog || !ticket || !selection) return null;
+  if (!selection || !canSubmit) return null;
+
+  if (!isPetsReady) {
+    return <DelayedLoadingSpinner isLoading layout='content' className='py-10' />;
+  }
+
+  if (isPetsError || !pet) {
+    return <p className='body2-regular text-text-secondary py-10 text-center'>강아지를 불러오지 못했어요</p>;
+  }
 
   const date = dateFromKey(selection.dateKey);
-  const remainingLabel = formatRemainingCount(
-    remainingAfterUse(ticket.remainingCount, countTicketUses(visits, ticket.id))
-  );
-  const ticketLabel = formatTicketUse(ticket.totalCount);
+  const dogName = pet.name;
+  const breed = pet.breed;
+  const age = formatAge(pet.birthYear);
+  const weight = pet.weight ? `${pet.weight}kg` : undefined;
+  const kindergartenName = created?.schoolName || home?.school?.name || '';
+  const remainingLabel = created ? formatRemainingCount(created.remainingCount) : undefined;
+  const ticketLabel = created ? `${created.ticketName} 1회 사용` : '1회 사용';
 
   return (
     <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
@@ -182,14 +222,16 @@ function ReservationConfirmPage() {
       <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
         <SelectDogCard
           variant='list'
-          name={dog.name}
-          breed={dog.breed}
-          age={formatDogAge(dog.age)}
-          weight={formatDogWeight(dog.weightKg)}
+          name={dogName}
+          breed={breed}
+          age={age}
+          weight={weight}
           showIcon={false}
-        />
+        >
+          <ConfirmDogAvatar name={dogName} imageUrl={pet.profileImage} />
+        </SelectDogCard>
         <div className='px-x4 flex flex-col'>
-          <ConfirmInfoRow label={copy.kindergarten} value={dog.kindergarten?.name ?? ''} />
+          <ConfirmInfoRow label={copy.kindergarten} value={kindergartenName} />
           <ConfirmInfoRow label={copy.date} value={formatConfirmDate(date)} />
           <ConfirmInfoRow label={copy.time} value={formatReserveClock(selection.minutes)} />
           <ConfirmInfoRow label={copy.ticket} value={ticketLabel} extra={remainingLabel} />
@@ -224,7 +266,7 @@ function ReservationConfirmPage() {
           variant='primaryFill'
           size='large'
           className='body1-bold'
-          disabled={isPending || isClosed || isConfirmed}
+          disabled={isPending || isClosed || isConfirmed || !canSubmit}
           aria-busy={isPending}
           onClick={handleBook}
         >
@@ -253,11 +295,12 @@ function ReservationConfirmPage() {
         <BottomSheet.Body className='rounded-t-[24px] bg-transparent p-0 shadow-none'>
           <BottomSheet.Title className='sr-only'>예약이 확정되었어요</BottomSheet.Title>
           <RsvConfirmedSheet
-            dogName={dog.name}
-            breed={dog.breed}
-            age={formatDogAge(dog.age)}
-            weight={formatDogWeight(dog.weightKg)}
-            kindergarten={dog.kindergarten?.name ?? ''}
+            dogName={dogName}
+            breed={breed}
+            age={age}
+            weight={weight}
+            dogImage={<ConfirmDogAvatar name={dogName} imageUrl={pet.profileImage} />}
+            kindergarten={kindergartenName}
             date={formatConfirmDate(date)}
             time={formatReserveClock(selection.minutes)}
             ticket={ticketLabel}
@@ -265,7 +308,7 @@ function ReservationConfirmPage() {
             onClose={handleDone}
             onConfirm={handleDone}
             onMyReservations={() => {
-              push({ pathname: route.reservation.list.root, query: { dogId: dog.id } }).catch(() => undefined);
+              push({ pathname: route.reservation.list.root, query: { dogId: petId } }).catch(() => undefined);
             }}
           />
         </BottomSheet.Body>

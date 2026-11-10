@@ -57,6 +57,8 @@ function pathToBaseTab(pathname: string): TabName | null {
   const exact = pathToTab(pathname);
   if (exact) return exact;
 
+  if (pathname.startsWith('/reservation/')) return 'Reserve';
+
   if (isGuardianLogStackPath(pathname)) return 'Kindergarten';
   if (pathname === '/owner/daily' || pathname.startsWith('/owner/daily/')) return 'OwnerDaily';
   if (pathname === '/owner/album' || pathname.startsWith('/owner/album/')) return 'OwnerAlbum';

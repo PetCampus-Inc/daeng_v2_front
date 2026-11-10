@@ -181,6 +181,48 @@ class PushCoordinator {
       return;
     }
 
+    if (destination.kind === 'guardianReservationDetail') {
+      const params = new URLSearchParams({
+        dogId: destination.petId,
+        reservationId: destination.reservationId,
+      });
+      navigationRef.navigate('Tabs', { screen: 'Reserve' });
+      navigationRef.dispatch(
+        StackActions.push('Stack', { path: toStackWebUrl(`/reservation/detail?${params}`) })
+      );
+      this.applyGuardianViewForDestination('Reserve');
+      this.setSelectedGuardianPet('Reserve', destination.petId);
+      return;
+    }
+
+    if (destination.kind === 'guardianTicketDetail') {
+      const params = new URLSearchParams({ dogId: destination.petId });
+      navigationRef.navigate('Tabs', { screen: 'Reserve' });
+      navigationRef.dispatch(
+        StackActions.push('Stack', {
+          path: toStackWebUrl(`/reservation/tickets/${destination.ticketId}?${params}`),
+        })
+      );
+      this.applyGuardianViewForDestination('Reserve');
+      this.setSelectedGuardianPet('Reserve', destination.petId);
+      return;
+    }
+
+    if (destination.kind === 'guardianConnectionHistory') {
+      navigationRef.navigate('Tabs', { screen: 'Kindergarten' });
+      navigationRef.dispatch(
+        StackActions.push('Stack', { path: toStackWebUrl('/kindergarten/connection-history') })
+      );
+      this.applyGuardianViewForDestination('Kindergarten');
+      return;
+    }
+
+    if (destination.kind === 'ownerMembers') {
+      navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
+      this.applyGuardianViewForDestination('OwnerMembers');
+      return;
+    }
+
     if (destination.kind === 'ownerExpiringMembers') {
       navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
       this.applyGuardianViewForDestination('OwnerMembers');

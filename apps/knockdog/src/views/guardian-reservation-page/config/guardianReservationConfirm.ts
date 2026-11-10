@@ -15,6 +15,7 @@ const RESERVATION_CONFIRM_COPY = {
   closedPrefix: '마감된 시간이에요. ',
   closedAccent: '다른 시간',
   closedSuffix: '을 선택해 주세요',
+  failed: '예약을 만들지 못했어요',
 } as const;
 
 export { RESERVATION_CONFIRM_COPY };
