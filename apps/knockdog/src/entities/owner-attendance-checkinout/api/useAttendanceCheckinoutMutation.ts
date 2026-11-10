@@ -37,6 +37,8 @@ function useAttendanceCheckinoutMutation({ userId }: UseAttendanceCheckinoutMuta
   };
 
   return {
+    /** 집계·등원 대상·등원목록 조회를 모두 다시 부른다. 다른 기기가 먼저 처리해 요청이 거절됐을 때 쓴다. */
+    invalidateAttendanceCheckinout,
     checkInMutation: useMutation({
       mutationFn: (params: AttendanceCheckinoutActionParams) => postAttendanceCheckIn(params),
       onSuccess: invalidateAttendanceCheckinout,

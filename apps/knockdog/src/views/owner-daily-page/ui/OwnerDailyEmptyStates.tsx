@@ -45,8 +45,8 @@ function OwnerDailySearchEmptyState() {
   return (
     <div className='flex min-h-0 flex-1 items-center justify-center text-center'>
       <div className='flex h-14 w-full flex-col items-center gap-1'>
-        <p className='h2-extrabold text-text-primary w-full'>검색 결과가 없어요</p>
-        <p className='body1-regular text-text-primary w-full'>검색어를 다시 확인해 주세요.</p>
+        <p className='h2-extrabold text-text-primary w-full'>검색된 원생이 없어요</p>
+        <p className='body1-regular text-text-primary w-full'>다른 원생을 검색해보세요.</p>
       </div>
     </div>
   );

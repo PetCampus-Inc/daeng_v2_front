@@ -58,6 +58,10 @@ const OwnerDailyPage = () => {
     todayList,
     isLoading,
     isError,
+    keyword,
+    lateOnly,
+    setKeyword,
+    setLateOnly,
     handleDateSelect,
     handlePrevDayClick,
     handleNextDayClick,
@@ -173,7 +177,15 @@ const OwnerDailyPage = () => {
               onScroll={handleContentScroll}
             >
               {isToday && candidates ? (
-                <OwnerDailyAttendanceCheckTab items={candidates} dateKey={selectedDateKey} now={now} />
+                <OwnerDailyAttendanceCheckTab
+                  items={candidates}
+                  dateKey={selectedDateKey}
+                  now={now}
+                  keyword={keyword}
+                  lateOnly={lateOnly}
+                  onKeywordChange={setKeyword}
+                  onLateOnlyChange={setLateOnly}
+                />
               ) : null}
             </TabsContent>
             <TabsContent

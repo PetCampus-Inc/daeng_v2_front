@@ -24,13 +24,16 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * 일과 화면의 날짜·탭 상태와 서버 조회를 한곳에서 관리한다.
  * - 날짜: 항상 오늘로 시작한다. 오늘을 보는 중에 자정이 지나면 새 오늘로 따라간다.
  * - 탭: 오늘은 `등원처리`, 지난·미래 날짜는 `등원목록`이 기본이고 날짜를 바꾸면 기본 탭으로 돌아간다.
+ * - 등원처리 탭의 검색어와 `지각` 토글: 탭을 오가도 유지된다. 토글 초기값은 `initialLateOnly`로 열어 둔다.
  * - 조회: 현황(summary)은 항상, 등원 대상(candidates)은 오늘·미래, 등원목록(today)은 오늘·지난 날짜만 한다.
  */
-const useOwnerDailyPage = () => {
+const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: boolean } = {}) => {
   const userId = useUserStore((state) => state.user?.userId);
   const [now, setNow] = useState(() => new Date());
   const [selectedDateOverride, setSelectedDateOverride] = useState<Date | null>(null);
   const [selectedTabOverride, setSelectedTabOverride] = useState<OwnerDailyTab | null>(null);
+  const [keyword, setKeyword] = useState('');
+  const [lateOnly, setLateOnly] = useState(initialLateOnly);
 
   const todayKey = getKstDateKey(now);
   const today = useMemo(() => createDateFromDateKey(todayKey), [todayKey]);
@@ -99,6 +102,10 @@ const useOwnerDailyPage = () => {
     todayList: hasTodayList ? todayListQuery.data : undefined,
     isLoading,
     isError,
+    keyword,
+    lateOnly,
+    setKeyword,
+    setLateOnly,
     handleDateSelect,
     handlePrevDayClick: () => handleDateSelect(addDays(selectedDate, -1)),
     handleNextDayClick: () => handleDateSelect(addDays(selectedDate, 1)),

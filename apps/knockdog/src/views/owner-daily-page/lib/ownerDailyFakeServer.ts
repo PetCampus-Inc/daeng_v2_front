@@ -9,6 +9,7 @@ import type {
   TodayAttendanceFilter,
 } from '@entities/owner-attendance-checkinout';
 
+import { ApiError } from '@shared/api';
 import { getKstDateKey } from '@shared/lib/calendar-date';
 
 /**
@@ -22,6 +23,8 @@ import { getKstDateKey } from '@shared/lib/calendar-date';
  *    });
  * 2. `beforeEach`에서 `fakeAttendanceServer.reset()`을 부르고, `seedDay(날짜, 원생들)`로 날짜별 데이터를 넣는다.
  * 3. 처리 API(등원·결석·하원과 취소)는 "오늘" 원생의 상태를 실제로 바꾸고, 다음 조회에 그대로 반영된다.
+ *    허용되지 않는 상태면 `ATTENDANCE_CHECKINOUT-409-1`, 예약이 없으면 `ATTENDANCE_CHECKINOUT-409-4`로 거절한다(ApiError).
+ * 4. `failNextAction(이름, 코드)`로 다음 한 번의 처리 요청을 실패시키고, `holdActions()`로 처리 요청을 붙잡아 둘 수 있다.
  */
 
 interface FakePet {
@@ -45,11 +48,21 @@ interface FakeServerSettings {
   reservationSettingConfigured: boolean;
 }
 
+type ActionName =
+  | 'postAttendanceCheckIn'
+  | 'postAttendanceAbsent'
+  | 'postAttendanceCheckOut'
+  | 'postAttendanceCancelCheckIn'
+  | 'postAttendanceCancelAbsent'
+  | 'postAttendanceCancelCheckOut';
+
 const DEFAULT_SETTINGS: FakeServerSettings = { dailyCapacity: null, reservationSettingConfigured: true };
 
 let nextPetId = 1;
 let settings: FakeServerSettings = { ...DEFAULT_SETTINGS };
 let petsByDate = new Map<string, FakePet[]>();
+let injectedFailures = new Map<ActionName, string>();
+let heldActions: Promise<void> | null = null;
 
 /** 가짜 원생 한 명을 만든다. 넘기지 않은 값은 등원 전·예약 09:00 기본값이다. */
 const createFakePet = (overrides: Partial<FakePet> = {}): FakePet => {
@@ -159,14 +172,24 @@ const getToday = ({ date, filter }: { date?: string; filter?: TodayAttendanceFil
   return Promise.resolve(createResponse(data));
 };
 
+/** 서버가 주는 오류와 같은 모양(ApiError)으로 거절한다. */
+const rejectWith = (status: number, code: string) => Promise.reject(new ApiError<string>(status, code, code));
+
 /** 처리 API 하나를 만든다. 오늘 원생의 상태를 `nextStatus`로 바꾼다. 허용되지 않는 상태에서는 409로 거절한다. */
-const createAction = (allowedFrom: CheckinoutStatus[], nextStatus: CheckinoutStatus) =>
-  vi.fn(({ petId }: { petId: string }) => {
+const createAction = (name: ActionName, allowedFrom: CheckinoutStatus[], nextStatus: CheckinoutStatus) =>
+  vi.fn(async ({ petId }: { petId: string }) => {
+    if (heldActions) await heldActions;
+
+    const injectedCode = injectedFailures.get(name);
+    if (injectedCode) {
+      injectedFailures.delete(name);
+      return rejectWith(500, injectedCode);
+    }
+
     const pet = getPets(getTodayKey()).find((item) => String(item.petId) === petId);
 
-    if (!pet || !allowedFrom.includes(pet.status)) {
-      return Promise.reject(new Error('ATTENDANCE_CHECKINOUT-409-1'));
-    }
+    if (!pet) return rejectWith(409, 'ATTENDANCE_CHECKINOUT-409-4');
+    if (!allowedFrom.includes(pet.status)) return rejectWith(409, 'ATTENDANCE_CHECKINOUT-409-1');
 
     const nowIso = new Date().toISOString();
     pet.status = nextStatus;
@@ -174,19 +197,19 @@ const createAction = (allowedFrom: CheckinoutStatus[], nextStatus: CheckinoutSta
     if (nextStatus === 'NOT_CHECKED_IN' || nextStatus === 'ABSENT') pet.checkInAt = null;
     pet.checkOutAt = nextStatus === 'CHECKED_OUT' ? nowIso : null;
 
-    return Promise.resolve(createResponse(null));
+    return createResponse(null);
   });
 
 const fakeAttendanceApi = {
   getAttendanceCheckinoutSummary: vi.fn(getSummary),
   getAttendanceCheckinoutCandidates: vi.fn(getCandidates),
   getAttendanceCheckinoutToday: vi.fn(getToday),
-  postAttendanceCheckIn: createAction(['NOT_CHECKED_IN'], 'CHECKED_IN'),
-  postAttendanceAbsent: createAction(['NOT_CHECKED_IN'], 'ABSENT'),
-  postAttendanceCheckOut: createAction(['CHECKED_IN'], 'CHECKED_OUT'),
-  postAttendanceCancelCheckIn: createAction(['CHECKED_IN'], 'NOT_CHECKED_IN'),
-  postAttendanceCancelAbsent: createAction(['ABSENT'], 'NOT_CHECKED_IN'),
-  postAttendanceCancelCheckOut: createAction(['CHECKED_OUT'], 'CHECKED_IN'),
+  postAttendanceCheckIn: createAction('postAttendanceCheckIn', ['NOT_CHECKED_IN'], 'CHECKED_IN'),
+  postAttendanceAbsent: createAction('postAttendanceAbsent', ['NOT_CHECKED_IN'], 'ABSENT'),
+  postAttendanceCheckOut: createAction('postAttendanceCheckOut', ['CHECKED_IN'], 'CHECKED_OUT'),
+  postAttendanceCancelCheckIn: createAction('postAttendanceCancelCheckIn', ['CHECKED_IN'], 'NOT_CHECKED_IN'),
+  postAttendanceCancelAbsent: createAction('postAttendanceCancelAbsent', ['ABSENT'], 'NOT_CHECKED_IN'),
+  postAttendanceCancelCheckOut: createAction('postAttendanceCancelCheckOut', ['CHECKED_OUT'], 'CHECKED_IN'),
 };
 
 const fakeAttendanceServer = {
@@ -195,6 +218,8 @@ const fakeAttendanceServer = {
     nextPetId = 1;
     settings = { ...DEFAULT_SETTINGS };
     petsByDate = new Map();
+    injectedFailures = new Map();
+    heldActions = null;
     Object.values(fakeAttendanceApi).forEach((fn) => fn.mockClear());
   },
   /** 그 날짜(`YYYY-MM-DD`)에 예약한 원생들을 넣는다. */
@@ -204,6 +229,21 @@ const fakeAttendanceServer = {
   /** 하루 정원·등원 가능 시간 설정 여부를 바꾼다. */
   setSettings: (next: Partial<FakeServerSettings>) => {
     settings = { ...settings, ...next };
+  },
+  /** 그 처리 API가 다음에 한 번 받는 요청을 `code` 오류(ApiError)로 실패시킨다. */
+  failNextAction: (name: ActionName, code = 'UNKNOWN_ERROR') => {
+    injectedFailures.set(name, code);
+  },
+  /** 처리 요청을 `release()`를 부를 때까지 붙잡아 둔다. (요청 중 상태 확인용) */
+  holdActions: () => {
+    let release: () => void = () => {};
+    heldActions = new Promise<void>((resolve) => {
+      release = () => {
+        heldActions = null;
+        resolve();
+      };
+    });
+    return release;
   },
   /** 그 날짜의 원생 상태를 그대로 돌려준다. */
   getPets,
