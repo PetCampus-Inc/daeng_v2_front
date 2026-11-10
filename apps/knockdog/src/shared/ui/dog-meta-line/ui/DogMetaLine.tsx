@@ -1,6 +1,8 @@
+import { Fragment } from 'react';
+
 import { cn } from '@knockdog/ui/lib';
 
-import { formatAge } from '@entities/pet';
+import { getDogMetaParts } from '@shared/ui/dog-meta-line/lib/getDogMetaParts';
 import { TextHighlights } from '@shared/ui/text-highlights';
 
 interface DogMetaLineProps {
@@ -22,12 +24,11 @@ function DogMetaLine({
   className,
   centered = false,
 }: DogMetaLineProps) {
-  const weightLabel = weightKg != null ? `${weightKg}kg` : null;
-  const ageLabel = formatAge(birthYear) || null;
+  const parts = getDogMetaParts({ breed, weightKg, birthYear });
   const hasBreed = Boolean(breed?.trim());
   const keyword = searchKeyword.trim();
 
-  if (!hasBreed && !weightLabel && !ageLabel) return null;
+  if (parts.length === 0) return null;
 
   const renderPart = (text: string) => (keyword ? TextHighlights(text, keyword) : text);
 
@@ -39,19 +40,22 @@ function DogMetaLine({
         className
       )}
     >
-      {hasBreed ? <span className='min-w-0 truncate'>{renderPart(breed!.trim())}</span> : null}
-      {weightLabel ? (
-        <>
-          {hasBreed ? <span aria-hidden className='shrink-0 mx-0.5'>·</span> : null}
-          <span className='shrink-0 whitespace-nowrap'>{renderPart(weightLabel)}</span>
-        </>
-      ) : null}
-      {ageLabel ? (
-        <>
-          {hasBreed || weightLabel ? <span aria-hidden className='shrink-0 mx-0.5'>·</span> : null}
-          <span className='shrink-0 whitespace-nowrap'>{renderPart(ageLabel)}</span>
-        </>
-      ) : null}
+      {parts.map((text, index) => {
+        const isBreed = hasBreed && index === 0;
+
+        return (
+          <Fragment key={`${index}-${text}`}>
+            {index > 0 ? (
+              <span aria-hidden className='shrink-0 mx-0.5'>
+                ·
+              </span>
+            ) : null}
+            <span className={isBreed ? 'min-w-0 truncate' : 'shrink-0 whitespace-nowrap'}>
+              {renderPart(text)}
+            </span>
+          </Fragment>
+        );
+      })}
     </p>
   );
 }
