@@ -26,11 +26,11 @@ interface OwnerDailyTodayAttendanceCardProps {
 }
 
 const TAG_VIEW: Record<TodayListTag, { label: string; className: string }> = {
-  checkedIn: { label: '등원완료', className: 'bg-success-light text-success-bold' },
-  recordSent: { label: '발송완료', className: 'bg-info-light text-info-bold' },
-  checkedOut: { label: '하원완료', className: 'bg-info-light text-info-bold' },
-  dayCompleted: { label: '일과 완료', className: 'bg-fill-secondary-100 text-text-secondary' },
-  disconnected: { label: '연결해제', className: 'bg-fill-secondary-100 text-text-secondary' },
+  checkedIn: { label: '등원완료', className: 'bg-success-light text-success' },
+  recordSent: { label: '발송완료', className: 'bg-info-light text-info' },
+  checkedOut: { label: '하원완료', className: 'bg-info-light text-info' },
+  dayCompleted: { label: '일과 완료', className: 'bg-fill-secondary-100 text-fill-secondary-500' },
+  disconnected: { label: '연결해제', className: 'bg-fill-secondary-100 text-fill-secondary-500' },
 };
 
 const BUTTON_LABEL: Record<TodayListButtonKind, string> = {
@@ -86,7 +86,7 @@ const OwnerDailyTodayAttendanceCard = ({
   };
 
   return (
-    <li className='bg-bg-0 radius-r3 flex flex-col gap-3 p-4'>
+    <li className='bg-bg-0 radius-r5 p-x5 gap-x3 flex flex-col'>
       <div
         {...(item.disconnected
           ? {}
@@ -100,51 +100,55 @@ const OwnerDailyTodayAttendanceCard = ({
                 onMemberClick(item);
               },
             })}
-        className={cn('flex flex-col gap-3', !item.disconnected && 'cursor-pointer')}
+        className={cn('gap-x3 flex flex-col', !item.disconnected && 'cursor-pointer')}
       >
-        <div className='flex items-start gap-3'>
-          <Avatar className='size-14'>
+        <div className='gap-x3 flex items-center'>
+          <Avatar className='size-x10'>
             {item.profileImageUrl ? <AvatarImage src={item.profileImageUrl} alt='' className='object-cover' /> : null}
             <AvatarFallback role='img' aria-label={`${item.name} 기본 프로필 이미지`} className='bg-bg-50'>
-              <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
+              <Icon icon='Paw' className='text-fill-secondary-300 size-x5' />
             </AvatarFallback>
           </Avatar>
-          <div className='flex min-w-0 flex-1 flex-col gap-1'>
-            <div className='flex min-w-0 items-center gap-1'>
-              <span className='body1-extrabold text-text-primary min-w-0 truncate'>{item.name}</span>
-              {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-5 shrink-0' /> : null}
+          <div className='gap-x1 flex min-w-0 flex-1 flex-col'>
+            <div className='gap-x2 flex min-w-0 items-start justify-between'>
+              <div className='gap-x1 flex min-w-0 items-center'>
+                <span className='h3-semibold text-text-primary min-w-0 truncate'>{item.name}</span>
+                {genderIcon ? <Icon icon={genderIcon} className='text-text-caption size-x4 shrink-0' /> : null}
+              </div>
+              <span
+                className={cn(
+                  'caption1-semibold radius-r2 px-x2 inline-flex h-[25px] shrink-0 items-center justify-center',
+                  tagView.className
+                )}
+              >
+                {tagView.label}
+              </span>
             </div>
             <DogMetaLine
               breed={item.breed}
               weightKg={item.weightKg}
               birthYear={item.birthYear}
-              className='body2-regular text-text-secondary'
+              className='caption1-regular text-fill-secondary-500 leading-[18px]'
             />
           </div>
-          <span
-            className={cn(
-              'caption1-semibold radius-full inline-flex shrink-0 items-center justify-center px-x2 py-x1',
-              tagView.className
-            )}
-          >
-            {tagView.label}
-          </span>
         </div>
         {checkInText || checkOutText ? (
-          <div className='flex items-center gap-4'>
-            {checkInText ? <p className='body2-semibold text-text-primary'>{checkInText}</p> : null}
-            {checkOutText ? <p className='body2-semibold text-text-primary'>{checkOutText}</p> : null}
+          <div className='bg-bg-50 radius-r3 py-x3 gap-x2 pl-x4 flex items-center'>
+            <Icon icon='RsvClock' className='text-text-caption size-x4 shrink-0' />
+            {checkInText ? <p className='body2-semibold text-text-secondary'>{checkInText}</p> : null}
+            {checkOutText ? <p className='body2-semibold text-text-secondary'>{checkOutText}</p> : null}
           </div>
         ) : null}
       </div>
       {buttons.length > 0 ? (
-        <div className='border-line-100 flex gap-2 border-t pt-3'>
+        <div className='border-line-100 gap-x2 flex border-t pt-3'>
           {buttons.map((button) => (
             <ActionButton
               key={button.kind}
               type='button'
               variant={BUTTON_VARIANT[button.variant]}
-              className='flex-1'
+              size='large'
+              className='flex-1 font-bold'
               disabled={isPending}
               onClick={() => handleButtonClick(button.kind)}
             >

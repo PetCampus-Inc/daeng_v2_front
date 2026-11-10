@@ -8,10 +8,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Icon,
 } from '@knockdog/ui';
 
 import { OWNER_DAILY_CANCEL_CONTENT, type OwnerDailyCancelKind } from '@views/owner-daily-page/config/ownerDailyContent';
@@ -23,14 +19,14 @@ import { ellipsisText } from '@shared/utils';
 interface OwnerDailyCancelDialogProps {
   /** 무엇을 취소하는지. 제목·본문·확인 버튼 문구가 이에 맞게 바뀐다. */
   kind: OwnerDailyCancelKind;
-  member: Pick<AttendanceCheckinoutCandidate, 'name' | 'profileImageUrl'>;
+  member: Pick<AttendanceCheckinoutCandidate, 'name'>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** `취소하기`를 눌렀을 때 취소 요청을 보낸다. 요청이 끝날 때까지 모달은 열려 있고 버튼은 잠긴다. */
   onCancel: () => Promise<void>;
 }
 
-/** 등원·결석·하원 취소 확인 모달. 원생 프로필과 `{이름}의 {등원|결석|하원}을 취소할까요?` 제목을 보여 준다. */
+/** 등원·결석·하원 취소 확인 모달. `{이름}의 {등원|결석|하원}을 취소할까요?` 제목을 보여 준다. */
 const OwnerDailyCancelDialog = ({ kind, member, open, onOpenChange, onCancel }: OwnerDailyCancelDialogProps) => {
   const { target, description } = OWNER_DAILY_CANCEL_CONTENT[kind];
   const [isPending, setIsPending] = useState(false);
@@ -51,30 +47,16 @@ const OwnerDailyCancelDialog = ({ kind, member, open, onOpenChange, onCancel }: 
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className='max-w-[358px]'>
-        <AlertDialogHeader className='px-x4'>
-          <AlertDialogTitle className='flex flex-col items-center gap-6 text-center'>
-            <Avatar className='size-x13'>
-              {member.profileImageUrl && (
-                <AvatarImage
-                  src={member.profileImageUrl}
-                  alt={`${member.name} 프로필 이미지`}
-                  className='object-cover'
-                />
-              )}
-              <AvatarFallback className='bg-bg-50'>
-                <Icon icon='Paw' className='text-fill-secondary-300 size-5' aria-hidden='true' />
-              </AvatarFallback>
-            </Avatar>
-            <span>
-              <span className='text-text-accent'>{ellipsisText(member.name, 8)}</span>의 {target}을 취소할까요?
-            </span>
+      <AlertDialogContent className='radius-r4 max-w-[326px]'>
+        <AlertDialogHeader>
+          <AlertDialogTitle className='px-x1'>
+            <span className='text-text-accent'>{ellipsisText(member.name, 8)}</span>의 {target}을 취소할까요?
           </AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogDescription className='body2-regular px-x1'>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className='px-x4'>
-          <AlertDialogCancel>닫기</AlertDialogCancel>
-          <AlertDialogAction disabled={isPending} onClick={handleCancelClick}>
+        <AlertDialogFooter className='pt-x5! pb-x6!'>
+          <AlertDialogCancel className='flex-1'>닫기</AlertDialogCancel>
+          <AlertDialogAction className='flex-1' disabled={isPending} onClick={handleCancelClick}>
             취소하기
           </AlertDialogAction>
         </AlertDialogFooter>
