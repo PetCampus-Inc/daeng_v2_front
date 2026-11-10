@@ -8,6 +8,7 @@ import { overlay } from 'overlay-kit';
 import { OWNER_DAILY_TAB_LABEL, type OwnerDailyTab } from '@views/owner-daily-page/config/ownerDailyContent';
 import { formatOwnerDailyDateLabel } from '@views/owner-daily-page/lib/ownerDailyDateLabel';
 import { toOwnerDailySummaryView } from '@views/owner-daily-page/lib/ownerDailySummary';
+import { useOwnerDailyActions } from '@views/owner-daily-page/model/useOwnerDailyActions';
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailyAttendanceCheckTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCheckTab';
 import { OwnerDailyAttendanceListTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceListTab';
@@ -28,8 +29,6 @@ const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
   useNativeBackHandler(onBack);
   return null;
 };
-
-const NO_PENDING_PET_IDS: ReadonlySet<string> = new Set();
 
 const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]';
 
@@ -70,6 +69,7 @@ const OwnerDailyPage = () => {
     handleTodayClick,
     handleTabChange,
   } = useOwnerDailyPage();
+  const { pendingPetIds, handleCheckIn, handleAbsent } = useOwnerDailyActions({ userId, dateKey: selectedDateKey });
   // 스크롤한 화면(날짜+탭)을 기억해 두고, 날짜나 탭이 바뀌면 자동으로 버튼이 사라지게 한다.
   const [scrolledViewKey, setScrolledViewKey] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -187,9 +187,9 @@ const OwnerDailyPage = () => {
                   lateOnly={lateOnly}
                   onKeywordChange={setKeyword}
                   onLateOnlyChange={setLateOnly}
-                  pendingPetIds={NO_PENDING_PET_IDS}
-                  onCheckIn={() => {}}
-                  onAbsent={() => {}}
+                  pendingPetIds={pendingPetIds}
+                  onCheckIn={handleCheckIn}
+                  onAbsent={handleAbsent}
                 />
               ) : null}
             </TabsContent>
