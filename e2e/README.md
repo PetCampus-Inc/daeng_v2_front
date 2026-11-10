@@ -18,7 +18,7 @@ pnpm e2e:report
 |------|------|------|
 | `E2E_BASE_URL` | `http://localhost:3000` | 앱 URL |
 | `E2E_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL` | `https://dev-api.knockdog.net` | 개발 서버 (CI는 e2e.yml에서 운영 `https://api.knockdog.net`을 직접 지정) |
-| `E2E_DEV_LOGIN_ID` | `6` | DEV login 유저 id. 개발 서버는 6 또는 7, 운영 서버는 69·113 (LHCI·CI는 113) |
+| `E2E_DEV_LOGIN_ID` | `6` | DEV login 유저 id. 개발 서버는 6 또는 7, 운영 서버는 96·113 (LHCI·CI는 113) |
 | `E2E_EXPECTED_EMAIL` | `hyeonsu-k@kakao.com` | 매핑 경고용 (불일치 시 warn만) |
 | `E2E_SKIP_WEBSERVER` | — | `1`이면 Playwright webServer 스킵 (CI가 서버 기동) |
 
