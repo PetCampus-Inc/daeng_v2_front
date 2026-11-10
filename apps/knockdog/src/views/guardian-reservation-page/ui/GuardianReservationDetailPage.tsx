@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Call, Copy, InfoLine, LocationFill, RsvInfoCircle } from '@knockdog/icons';
 import { ActionButton } from '@knockdog/ui';
@@ -21,10 +22,12 @@ import { ReservationCancelDialog } from '@views/guardian-reservation-page/ui/Res
 import { Header } from '@widgets/Header';
 
 import { useCancelReservationMutation, useReservationDetailQuery } from '@entities/guardian-reservation';
+import { guardianTicketQueryKeys } from '@entities/guardian-ticket';
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
@@ -47,6 +50,7 @@ function GuardianReservationDetailPage() {
   const { navigateToTab } = useTabNavigation();
   const { pets } = useGuardianSelectedPet();
   const detailQuery = useReservationDetailQuery(petId, /^\d+$/.test(reservationId) ? reservationId : '');
+  const queryClient = useQueryClient();
   const cancelReservation = useCancelReservationMutation();
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const detail = detailQuery.data;
@@ -113,7 +117,9 @@ function GuardianReservationDetailPage() {
     cancelReservation.mutate(
       { petId, reservationId: detail.id },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          await queryClient.invalidateQueries({ queryKey: guardianTicketQueryKeys.all });
+          syncWebViewQuery.invalidate([...guardianTicketQueryKeys.all]);
           publishCancelNotice(detail.startsAt);
           setIsCancelOpen(false);
           back()

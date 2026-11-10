@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, TextareaInput } from '@knockdog/ui';
 
@@ -23,6 +24,7 @@ import { ReservationLeaveDialog } from '@views/guardian-reservation-page/ui/Rese
 import { Header } from '@widgets/Header';
 
 import { useCreateReservationMutation, type CreatedGuardianReservation } from '@entities/guardian-reservation';
+import { guardianTicketQueryKeys } from '@entities/guardian-ticket';
 import { useGuardianHomeQuery } from '@entities/guardian-home';
 import { formatAge } from '@entities/pet';
 import { useUserStore } from '@entities/user';
@@ -30,6 +32,7 @@ import { useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -100,6 +103,7 @@ function ReservationConfirmPage() {
   const userId = useUserStore((state) => state.user?.userId);
   const pet = pets.find((item) => String(item.id) === petId) ?? null;
   const { data: home } = useGuardianHomeQuery({ userId, petId: pet?.id, enabled: Boolean(pet) });
+  const queryClient = useQueryClient();
   const createReservation = useCreateReservationMutation(petId);
   const [note, setNote] = useState('');
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
@@ -166,8 +170,10 @@ function ReservationConfirmPage() {
     createReservation.mutate(
       { idempotencyKey: idempotencyKey.current, body },
       {
-        onSuccess: (reservation) => {
+        onSuccess: async (reservation) => {
           clearReserveDraft();
+          await queryClient.invalidateQueries({ queryKey: guardianTicketQueryKeys.all });
+          syncWebViewQuery.invalidate([...guardianTicketQueryKeys.all]);
           setCreated(reservation);
           setIsConfirmed(true);
         },
