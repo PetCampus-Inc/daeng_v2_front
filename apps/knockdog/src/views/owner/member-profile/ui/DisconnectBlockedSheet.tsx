@@ -56,10 +56,10 @@ const DisconnectBlockedSheet = ({
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
-        <BottomSheet.Title className='h3-extrabold text-text-primary border-line-100 py-x3_5 pl-x6 pr-x5 border-b border-solid'>
+        <BottomSheet.Title className='h3-extrabold text-text-primary py-x3_5 pl-x6 pr-x5 shadow-[inset_0_-1px_0_var(--color-line-100)]'>
           {disconnectBlockedSheet.title}
         </BottomSheet.Title>
-        <div className='px-x6 gap-x6 pt-x1 flex flex-col'>
+        <div className='px-x6 gap-x6 pt-x1 pb-x3 flex flex-col'>
           <p className='body1-regular text-text-secondary whitespace-pre-line'>{body}</p>
           <ul className='gap-x2_5 flex max-h-[200px] flex-col overflow-y-auto'>
             {blocks.map((block, index) =>
