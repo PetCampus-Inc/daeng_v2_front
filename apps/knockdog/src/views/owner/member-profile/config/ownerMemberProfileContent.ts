@@ -52,17 +52,29 @@ const ownerMemberProfileContent = {
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',
   disconnectDialog: {
-    titleSuffix: '의',
-    titleLine2: '유치원 연결을 해제하시겠어요?',
-    description: '연결을 해제하면 더 이상 해당 원생의 일과를\n수행할 수 없어요.',
+    titleSuffix: '의 연결을 해제할까요?',
+    description: '연결 해제 시 원생과 보호자 정보를 볼 수 없어요.',
     cancelLabel: '닫기',
-    confirmLabel: '연결 해제하기',
+    confirmLabel: '해제하기',
     /** 강아지명 말줄임 */
     nameMaxLength: 8,
   },
-  disconnectSuccessToastSuffix: '의 유치원 연결을 해제했어요',
-  /** 권한 해제(API) 실패 시 — 서버 원복 후 프로필 복귀 */
-  disconnectFailToast: '일시적 오류로 요청을 완료하지 못했어요',
+  /** 해제할 수 없을 때 보여주는 바텀시트 */
+  disconnectBlockedSheet: {
+    title: '아직 연결을 해제할 수 없어요.',
+    ticketBody: '사용할 수 있는 이용권이 아직 남아 있어요.\n이용권을 삭제하거나 만료된 뒤 해제할 수 있어요.',
+    reservationBody: '완료되지 않은 예약이 남아 있어요.\n예약한 날이 지나면 해제할 수 있어요.',
+    confirmLabel: '확인',
+    remainingCountSuffix: '회 남음',
+    reservationTitleSuffix: ' 예약',
+    reservationDescriptionSuffix: ' 등원 예정',
+    reservationStatusLabel: '등원전',
+  },
+  disconnectSuccessToastSuffix: '의 유치원 연결이 해제되었어요',
+  /** 해제 요청이 실패하거나 해제 가능 여부 조회가 실패했을 때 — 프로필 유지 */
+  disconnectFailToast: '연결 해제를 완료하지 못했어요',
+  /** 이미 해제된 원생일 때 */
+  alreadyDisconnectedToast: '이미 연결을 해제한 원생이에요.',
 };
 
 function getGuardianGenderLabel(gender: string) {

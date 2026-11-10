@@ -7,9 +7,18 @@ export type {
 } from './api/ownerMember';
 export {
   useOwnerMemberApprovalMutation,
+  useDisconnectCheckMutation,
   useOwnerMemberDisconnectMutation,
   isAlreadyCancelledError,
+  isAlreadyDisconnectedError,
+  isDisconnectBlockedError,
 } from './api/useOwnerMemberMutation';
+export { DISCONNECT_BLOCK_TYPE } from './model/ownerMemberDisconnect';
+export type {
+  OwnerMemberDisconnectBlock,
+  OwnerMemberDisconnectBodyKind,
+  OwnerMemberDisconnectEligibility,
+} from './model/ownerMemberDisconnect';
 export {
   OWNER_MEMBERS_QUERY_KEY,
   OWNER_PENDING_QUERY_KEY,

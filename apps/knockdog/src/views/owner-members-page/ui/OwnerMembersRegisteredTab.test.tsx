@@ -90,6 +90,10 @@ vi.mock('@entities/owner-member/api/ownerMember', () => ({
   postDisconnectOwnerMember: mocks.postDisconnectOwnerMember,
   postOwnerInvite: mocks.postOwnerInvite,
 }));
+vi.mock('@entities/owner-pet', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/owner-pet')>()),
+  getOwnerPet: vi.fn().mockResolvedValue({ data: {} }),
+}));
 
 const renderPage = (search: string) => {
   mocks.searchParams.value = new URLSearchParams(search);

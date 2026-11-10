@@ -3,7 +3,11 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
-import { useOwnerPetGuardianQuery, useOwnerPetQuery } from '@entities/owner-pet';
+import {
+  isPetNotAuthorizedError,
+  useOwnerPetGuardianQuery,
+  useOwnerPetQuery,
+} from '@entities/owner-pet';
 
 import { useClipboardCopy } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
@@ -29,6 +33,7 @@ function useOwnerMemberProfilePage() {
     data: dog,
     isLoading: isDogLoading,
     isError: isDogError,
+    error: dogError,
   } = useOwnerPetQuery({ petId, enabled: Boolean(petId) });
 
   const {
@@ -75,6 +80,8 @@ function useOwnerMemberProfilePage() {
     handleCopy,
     isDogLoading,
     isDogError,
+    /** 연결이 해제됐거나 이 유치원 소속이 아닌 원생이라 프로필에 접근할 수 없다 */
+    isDogAccessDenied: isPetNotAuthorizedError(dogError),
     isGuardianLoading,
     isGuardianError,
   };

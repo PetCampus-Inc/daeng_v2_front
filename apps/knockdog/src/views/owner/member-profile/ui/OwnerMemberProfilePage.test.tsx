@@ -1,59 +1,94 @@
 // @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
-import { OwnerMemberProfilePage } from '@views/owner/member-profile/ui/OwnerMemberProfilePage';
+import { ApiError } from '@shared/api';
+
+import { OwnerMemberProfilePage } from './OwnerMemberProfilePage';
 
 const searchParamsRef = vi.hoisted(() => ({ current: new URLSearchParams() }));
+const mocks = vi.hoisted(() => ({
+  getOwnerPet: vi.fn(),
+  getOwnerPetGuardian: vi.fn(),
+}));
 
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: '7' }),
+  useParams: () => ({ id: '1' }),
   useSearchParams: () => searchParamsRef.current,
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
-vi.mock('@entities/owner-pet', () => ({
-  useOwnerPetQuery: () => ({
-    data: {
-      petId: '7',
-      name: '콩이',
-      profileImageUrl: null,
-      gender: null,
-      isNeutered: null,
-      breed: '말티즈',
-      weightKg: null,
-      birthYear: null,
-    },
-    isLoading: false,
-    isError: false,
-  }),
-  useOwnerPetGuardianQuery: () => ({ data: undefined, isLoading: false, isError: false }),
+// 클립보드 복사는 네이티브 브리지에 의존한다. 이 테스트의 관심사가 아니다.
+vi.mock('@shared/lib/device', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@shared/lib/device')>()),
+  useClipboardCopy: () => vi.fn(),
 }));
-vi.mock('@views/owner/member-profile/model/useOwnerMemberProfileDisconnect', () => ({
-  useOwnerMemberProfileDisconnect: () => ({ handleDisconnectClick: vi.fn(), isDisconnecting: false }),
+vi.mock('@entities/owner-pet/api/ownerPet', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/owner-pet/api/ownerPet')>()),
+  ...mocks,
 }));
-vi.mock('@views/owner/member-profile/ui/OwnerMemberTicketSection', () => ({ OwnerMemberTicketSection: () => null }));
-vi.mock('@views/owner/member-profile/ui/OwnerMemberConnectionHistorySection', () => ({
+vi.mock('./OwnerMemberProfileDisconnectButton', () => ({
+  OwnerMemberProfileDisconnectButton: () => null,
+}));
+vi.mock('./OwnerMemberTicketSection', () => ({ OwnerMemberTicketSection: () => null }));
+vi.mock('./OwnerMemberConnectionHistorySection', () => ({
   OwnerMemberConnectionHistorySection: () => null,
 }));
-vi.mock('@views/owner/member-profile/ui/AttendanceRecordSection', () => ({ AttendanceRecordSection: () => null }));
-vi.mock('@shared/lib/device', () => ({ useClipboardCopy: () => vi.fn() }));
-vi.mock('@widgets/Header', () => {
-  const Slot = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
-  const Header = Object.assign(Slot, {
-    LeftSection: Slot,
-    RightSection: Slot,
-    Title: Slot,
-    BackButton: () => <button type='button'>뒤로</button>,
-  });
-  return { Header };
+vi.mock('./AttendanceRecordSection', () => ({ AttendanceRecordSection: () => null }));
+// 헤더는 네이티브 브리지에 의존한다. 이 테스트의 관심사가 아니라 단순한 자리표시로 바꾼다.
+vi.mock('@widgets/Header', async () => {
+  const { createElement } = await import('react');
+  const Slot = ({ children }: { children?: React.ReactNode }) => createElement('div', null, children);
+  return { Header: Object.assign(Slot, { LeftSection: Slot, RightSection: Slot, Title: Slot, BackButton: () => null }) };
 });
 
-const getSelectedTabName = () => screen.getByRole('tab', { selected: true }).textContent;
-const getTabName = (index: number) => screen.getAllByRole('tab')[index]?.textContent;
+const renderProfilePage = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <OwnerMemberProfilePage />
+    </QueryClientProvider>
+  );
+};
+
+describe('해제된 원생의 프로필에 들어오면 접근 불가 화면을 보여준다', () => {
+  afterEach(() => {
+    cleanup();
+    vi.resetAllMocks();
+  });
+
+  it('해제된 원생의 프로필로 들어오면 공통 오류 화면이 보이고 프로필 내용은 보이지 않는다', async () => {
+    mocks.getOwnerPet.mockRejectedValue(new ApiError(403, 'PET-403-1', '접근 권한이 없는 원생입니다.'));
+    renderProfilePage();
+
+    expect(await screen.findByRole('heading', { level: 1 })).toBeTruthy();
+    expect(screen.queryByRole('tab')).toBeNull();
+  });
+});
 
 describe('원생 프로필 탭 지정 열기', () => {
   beforeEach(() => {
     searchParamsRef.current = new URLSearchParams();
+    mocks.getOwnerPet.mockResolvedValue({
+      data: {
+        petId: 1,
+        name: '콩이',
+        profileImage: null,
+        gender: 'MALE',
+        isNeutered: true,
+        breedName: '말티즈',
+        weight: 3.5,
+        birthDate: '2023-01-01',
+        relationship: 'MOTHER',
+        allergies: [],
+        diseases: [],
+        medications: [],
+        temperament: null,
+        memo: null,
+      },
+    });
+    mocks.getOwnerPetGuardian.mockResolvedValue({ data: null });
     // jsdom에는 ResizeObserver가 없어서 비워 둔다.
     globalThis.ResizeObserver ??= class {
       observe() {}
@@ -61,19 +96,30 @@ describe('원생 프로필 탭 지정 열기', () => {
       disconnect() {}
     };
   });
-  afterEach(cleanup);
-
-  test('이동 경로에서 등하원 기록 탭을 지정하면 프로필 화면이 그 탭으로 열린다', () => {
-    searchParamsRef.current = new URLSearchParams('tab=attendance');
-    render(<OwnerMemberProfilePage />);
-
-    // 탭 순서: 이용 정보 · 보호자 정보 · 등하원 기록
-    expect(getSelectedTabName()).toBe(getTabName(2));
+  afterEach(() => {
+    cleanup();
+    vi.resetAllMocks();
   });
 
-  test('탭을 지정하지 않으면 프로필 화면이 지금처럼 첫 탭(이용권)으로 열린다', () => {
-    render(<OwnerMemberProfilePage />);
+  test('이동 경로에서 등하원 기록 탭을 지정하면 프로필 화면이 그 탭으로 열린다', async () => {
+    searchParamsRef.current = new URLSearchParams('tab=attendance');
+    renderProfilePage();
 
-    expect(getSelectedTabName()).toBe(getTabName(0));
+    await screen.findAllByRole('tab');
+    const selectedTab = screen.getByRole('tab', { selected: true }).textContent;
+    const attendanceTab = screen.getAllByRole('tab')[2]?.textContent;
+
+    // 탭 순서: 이용 정보 · 보호자 정보 · 등하원 기록
+    expect(selectedTab).toBe(attendanceTab);
+  });
+
+  test('탭을 지정하지 않으면 프로필 화면이 지금처럼 첫 탭(이용권)으로 열린다', async () => {
+    renderProfilePage();
+
+    await screen.findAllByRole('tab');
+    const selectedTab = screen.getByRole('tab', { selected: true }).textContent;
+    const usageTab = screen.getAllByRole('tab')[0]?.textContent;
+
+    expect(selectedTab).toBe(usageTab);
   });
 });
