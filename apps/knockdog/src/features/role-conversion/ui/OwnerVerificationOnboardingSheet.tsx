@@ -10,6 +10,7 @@ import { ownerVerificationOnboardingSteps } from '@features/role-conversion/conf
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface OwnerVerificationOnboardingSheetProps {
@@ -24,6 +25,7 @@ const STEP_COUNT = ownerVerificationOnboardingSteps.length;
 const SWIPE_THRESHOLD_RATIO = 0.2;
 /** 이 픽셀만큼 움직이기 전까진 가로/세로 중 어느 스와이프인지 판정을 보류한다. */
 const DIRECTION_LOCK_THRESHOLD_PX = 8;
+const OVERLAY_HISTORY_KEY = '__knockdogOverlayId';
 
 function OwnerVerificationOnboardingSheet({
   isOpen,
@@ -82,17 +84,38 @@ function OwnerVerificationOnboardingSheet({
   };
 
   const goToVerification = () => {
-    close();
+    const navigate = () => {
+      if (requiresLogin) {
+        push({
+          pathname: route.auth.login.root,
+          params: { redirectTo: route.roleConversion.kindergartenSearch.root },
+        });
+        return;
+      }
 
-    if (requiresLogin) {
-      push({
-        pathname: route.auth.login.root,
-        params: { redirectTo: route.roleConversion.kindergartenSearch.root },
-      });
+      push({ pathname: route.roleConversion.kindergartenSearch.root });
+    };
+
+    if (isNativeWebView() || !window.history.state?.[OVERLAY_HISTORY_KEY]) {
+      close();
+      navigate();
       return;
     }
 
-    push({ pathname: route.roleConversion.kindergartenSearch.root });
+    // 닫기가 오버레이의 history.back을 호출하므로, 완료된 뒤 목적지로 이동한다.
+    let didNavigate = false;
+    let fallbackTimer: number | undefined;
+    const navigateAfterClose = () => {
+      if (didNavigate) return;
+      didNavigate = true;
+      window.removeEventListener('popstate', navigateAfterClose);
+      window.clearTimeout(fallbackTimer);
+      navigate();
+    };
+
+    window.addEventListener('popstate', navigateAfterClose, { once: true });
+    close();
+    if (!didNavigate) fallbackTimer = window.setTimeout(navigateAfterClose, 300);
   };
 
   const handleNext = () => setCurrentStep((step) => clampStep(step + 1));
