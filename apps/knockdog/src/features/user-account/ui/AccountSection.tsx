@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { ActionButton, Divider, Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import {
   SOCIAL_PROVIDER_ICONS,
   useSocialUserStore,
@@ -36,12 +37,15 @@ export interface AccountSectionProps {
 function SocialAccountEmailField({
   provider,
   email,
+  surfaceClassName = 'bg-fill-secondary-50 rounded-lg',
 }: {
   provider?: SocialProvider | null;
   email: string;
+  /** 배경색과 모서리 반지름. 기본값은 원장 화면 기준이다. */
+  surfaceClassName?: string;
 }) {
   return (
-    <div className='border-line-200 bg-fill-secondary-50 radius-r3 flex h-12 items-center gap-2 border px-4'>
+    <div className={cn('border-line-200 flex h-12 items-center border px-4', surfaceClassName)}>
       {provider ? (
         <Icon
           icon={SOCIAL_PROVIDER_ICONS[provider]}
@@ -207,7 +211,11 @@ function AccountSection({
               </button>
             </div>
 
-            <SocialAccountEmailField provider={guardianSocialProvider} email={guardianSocialEmail} />
+            <SocialAccountEmailField
+              provider={guardianSocialProvider}
+              email={guardianSocialEmail}
+              surfaceClassName='radius-r3 bg-bg-50'
+            />
           </div>
         </section>
       </div>

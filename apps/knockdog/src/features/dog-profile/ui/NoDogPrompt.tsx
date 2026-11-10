@@ -9,15 +9,18 @@ interface NoDogPromptProps {
 function NoDogPrompt({ nickname, showRegistrationEmptyState = false, onAddDog }: NoDogPromptProps) {
   if (showRegistrationEmptyState) {
     return (
-      <div className='flex w-full flex-col gap-4 py-4'>
-        <div className='flex flex-col gap-1'>
-          <h1 className='h3-extrabold text-text-primary'>등록한 강아지가 없어요</h1>
-          <p className='body1-regular text-text-secondary'>강아지 프로필을 추가해 보세요.</p>
+      <div className='flex w-full flex-col gap-4'>
+        <h2 className='body2-medium text-text-secondary'>반려견 프로필</h2>
+        <div className='flex flex-col items-start gap-4 py-4'>
+          <div className='flex flex-col gap-1'>
+            <h1 className='h3-extrabold text-text-primary'>등록한 강아지가 없어요</h1>
+            <p className='body1-regular text-text-secondary'>강아지 프로필을 추가해 보세요.</p>
+          </div>
+          <ActionButton size='large' onClick={onAddDog}>
+            <Icon icon='Plus' className='size-5' />
+            강아지 추가하기
+          </ActionButton>
         </div>
-        <ActionButton size='large' onClick={onAddDog}>
-          <Icon icon='Plus' className='size-5' />
-          강아지 추가하기
-        </ActionButton>
       </div>
     );
   }
