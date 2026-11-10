@@ -149,11 +149,11 @@ function AccountSection({
   if (!accountInfo) return null;
 
   const guardianMenuItems = [
-    { label: '보호자 프로필', caption: '보호자의 프로필 정보를 설정할 수 있어요.', onClick: onProfileClick },
-    { label: '내 장소 관리', caption: '집 외 1개의 주소를 등록하고 관리할 수 있어요.', onClick: onLocationClick },
-    { label: '유치원 연결 내역', caption: '유치원 연결 내역을 보고 관리할 수 있어요.', onClick: onConnectionHistoryClick },
-    { label: '연결 신청 현황', caption: '보낸 연결 신청의 처리 상태를 확인할 수 있어요.', onClick: onConnectionApplicationsClick },
-    { label: '내 리뷰 관리', caption: '작성한 유치원 리뷰를 보고 관리할 수 있어요.', onClick: onMyReviewsClick },
+    { label: '보호자 프로필', icon: 'User' as const, caption: '보호자의 프로필 정보를 설정할 수 있어요.', onClick: onProfileClick },
+    { label: '내 장소 관리', icon: 'LocationLine' as const, caption: '집 외 1개의 주소를 등록하고 관리할 수 있어요.', onClick: onLocationClick },
+    { label: '유치원 연결 내역', icon: 'Kindergarten' as const, caption: '유치원 연결 내역을 보고 관리할 수 있어요.', onClick: onConnectionHistoryClick },
+    { label: '연결 신청 현황', icon: 'Note' as const, caption: '보낸 연결 신청의 처리 상태를 확인할 수 있어요.', onClick: onConnectionApplicationsClick },
+    { label: '내 리뷰 관리', icon: 'Note' as const, caption: '작성한 유치원 리뷰를 보고 관리할 수 있어요.', onClick: onMyReviewsClick },
   ];
 
   const guardianSocialProvider = socialProvider ?? socialUser?.provider;
@@ -170,14 +170,17 @@ function AccountSection({
               <button
                 key={item.label}
                 type='button'
-                className='flex w-full items-center gap-2 py-4 text-left'
+                className='border-line-100 flex w-full items-center gap-2 border-b py-4 text-left last:border-b-0'
                 onClick={() => item.onClick?.()}
               >
-                <span className='flex min-w-0 flex-1 flex-col'>
-                  <span className='body1-medium text-text-primary'>{item.label}</span>
-                  <span className='body2-regular text-text-tertiary'>{item.caption}</span>
+                <span className='bg-primitive-orange-50 radius-r2 flex size-12 shrink-0 items-center justify-center'>
+                  <Icon icon={item.icon} className='text-primitive-orange-300 size-6' />
                 </span>
-                <Icon icon='ChevronRight' className='size-6 text-text-tertiary' />
+                <span className='flex min-w-0 flex-1 flex-col gap-1'>
+                  <span className='body1-medium text-text-primary'>{item.label}</span>
+                  <span className='caption1-regular text-primitive-neutral-500'>{item.caption}</span>
+                </span>
+                <Icon icon='ChevronRight' className='text-primitive-neutral-500 size-4' />
               </button>
             ))}
           </div>
