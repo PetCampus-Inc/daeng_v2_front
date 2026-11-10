@@ -40,7 +40,7 @@ function MemberCountTab({
   }
 
   return (
-    <div className={cn('border-line-200 flex w-full border-b border-solid', className)}>
+    <div role='tablist' className={cn('border-line-200 flex w-full border-b border-solid', className)}>
       {items.map((item) => {
         const isSelected = item.id === selected;
 
@@ -48,6 +48,9 @@ function MemberCountTab({
           <button
             key={item.id}
             type='button'
+            role='tab'
+            data-testid={`member-count-tab-${item.id}`}
+            aria-selected={isSelected}
             onClick={() => selectTab(item.id)}
             className={cn(
               'body1-bold flex flex-1 items-center justify-center gap-x2 px-x4 py-x3',
@@ -55,6 +58,8 @@ function MemberCountTab({
             )}
           >
             {item.label}
+            {/* 화면 낭독기가 `신청 5`처럼 띄어 읽도록 공백을 둔다 (flex라 화면에는 보이지 않음) */}
+            {item.count != null ? ' ' : null}
             {item.count != null ? (
               <span className='caption1-semibold text-text-accent bg-primitive-orange-100 radius-r2 inline-flex h-[22px] min-w-[26px] items-center justify-center px-x2 py-x1'>
                 {item.count}

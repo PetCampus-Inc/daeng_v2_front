@@ -1,3 +1,6 @@
+import type { OwnerPassTemplate } from '@entities/owner-pass-template';
+import type { PetTicketChargeRequest } from '@entities/owner-pet-ticket';
+
 const MONTH_PRESETS = [1, 3, 6, 12] as const;
 const CHARGE_COUNT_MIN = 1;
 const CHARGE_COUNT_MAX = 1000;
@@ -13,13 +16,6 @@ interface ChargePreset {
   count: number;
   duration: ChargeDuration;
 }
-
-const CHARGE_PRESETS: ChargePreset[] = [
-  { id: 'pass-10', name: '정기권 10회권', count: 10, duration: { kind: 'none' } },
-  { id: 'pass-20', name: '정기권 20회권', count: 20, duration: { kind: 'none' } },
-  { id: 'pass-30', name: '정기권 30회권', count: 30, duration: { kind: 'none' } },
-  { id: 'pass-40', name: '정기권 40회권', count: 40, duration: { kind: 'none' } },
-];
 
 function startOfChargeDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -70,11 +66,65 @@ function chargeCountError(value: string) {
   return null;
 }
 
+function isChargeMonth(value: number): value is ChargeMonth {
+  return MONTH_PRESETS.some((month) => month === value);
+}
+
+function canSelectChargePreset(preset: ChargePreset) {
+  return preset.duration.kind !== 'custom' || preset.duration.amount > 0;
+}
+
+function toChargePreset(template: OwnerPassTemplate): ChargePreset {
+  if (template.duration.type === 'NONE') {
+    return { id: template.id, name: template.name, count: template.chargeCount, duration: { kind: 'none' } };
+  }
+
+  const { value, unit } = template.duration;
+  const duration: ChargeDuration =
+    unit === 'MONTH' && isChargeMonth(value)
+      ? { kind: 'month', months: value }
+      : { kind: 'custom', amount: value, unit: unit === 'DAY' ? 'day' : 'month' };
+
+  return { id: template.id, name: template.name, count: template.chargeCount, duration };
+}
+
 function chargePresetDetail(preset: ChargePreset) {
   if (preset.duration.kind === 'none') return `${preset.count}회 • 만료 없음`;
   if (preset.duration.kind === 'month') return `${preset.count}회 • ${preset.duration.months}개월`;
   const unitLabel = preset.duration.unit === 'day' ? '일' : '개월';
   return `${preset.count}회 • ${preset.duration.amount}${unitLabel}`;
+}
+
+function formatChargeApiDate(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** 등록 이용권에서 고른 값도 충전 API는 이름·횟수·기간으로 받는다. */
+function toChargeTicketRequest(
+  start: Date,
+  name: string,
+  count: string,
+  duration: ChargeDuration | null
+): PetTicketChargeRequest | null {
+  if (!canChargeTicket(name, count, duration)) return null;
+
+  const request: PetTicketChargeRequest = {
+    startDate: formatChargeApiDate(start),
+    name: name.trim().replace(/\s+/g, ' '),
+    chargeCount: Number(count),
+  };
+
+  if (duration == null || duration.kind === 'none') return request;
+  if (duration.kind === 'month') return { ...request, validityValue: duration.months, validityUnit: 'MONTH' };
+  if (duration.amount < 1) return null;
+
+  return {
+    ...request,
+    validityValue: duration.amount,
+    validityUnit: duration.unit === 'day' ? 'DAY' : 'MONTH',
+  };
 }
 
 function canChargeTicket(name: string, count: string, duration: ChargeDuration | null) {
@@ -87,10 +137,10 @@ function canChargeTicket(name: string, count: string, duration: ChargeDuration |
 export type { ChargeDuration, ChargeMonth, ChargePreset, ChargeUnit };
 export {
   CHARGE_COUNT_ERROR,
-  CHARGE_PRESETS,
   MONTH_PRESETS,
   addChargeMonths,
   canChargeTicket,
+  canSelectChargePreset,
   chargeCountError,
   chargeEndDate,
   chargePresetDetail,
@@ -98,4 +148,6 @@ export {
   formatChargeSelectLabel,
   isSameChargeDay,
   startOfChargeDay,
+  toChargePreset,
+  toChargeTicketRequest,
 };

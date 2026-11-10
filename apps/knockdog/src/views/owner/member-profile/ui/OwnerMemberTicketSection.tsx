@@ -3,12 +3,12 @@
 import { ChargeButton, TicketEmptyCard, TicketSectionLink, TicketSummaryCard } from '@knockdog/ui';
 
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
-import { MOCK_OWNER_MEMBER_TICKETS } from '@views/owner/member-profile/model/ownerMemberTicket';
 
-import { toOwnerMemberTicketView } from '@entities/owner-member';
+import { usePetTicketListQuery } from '@entities/owner-pet-ticket';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 interface OwnerMemberTicketSectionProps {
@@ -17,7 +17,9 @@ interface OwnerMemberTicketSectionProps {
 
 function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
   const { push, pushForResult } = useStackNavigation();
-  const tickets = MOCK_OWNER_MEMBER_TICKETS.map((ticket) => toOwnerMemberTicketView(ticket, new Date()));
+  const { data, isLoading, isLoadingError, isRefetchError } = usePetTicketListQuery(petId);
+  const tickets = data?.tickets ?? [];
+  const showLoadError = isLoadingError || (!isLoading && data == null);
 
   const handleCharge = async () => {
     try {
@@ -53,27 +55,42 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
           }}
         />
       </div>
-      {tickets.length === 0 ? (
-        <TicketEmptyCard />
+      {isLoading ? (
+        <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+      ) : showLoadError ? (
+        <p className='body2-regular text-text-secondary'>{ownerMemberProfileContent.ticketLoadErrorText}</p>
       ) : (
-        tickets.map((ticket) => (
-          <TicketSummaryCard
-            key={ticket.id}
-            title={ticket.name}
-            status={ticket.status}
-            remainingCount={ticket.remainingCount}
-            totalCount={ticket.totalCount}
-            period={ticket.period}
-            remainingDays={ticket.remainingDays ?? undefined}
-            className='cursor-pointer'
-            onClick={() => {
-              const pathname = route.owner.members.detail.tickets.detail.root
-                .replace('[id]', petId)
-                .replace('[ticketId]', ticket.id);
-              push({ pathname }).catch(() => undefined);
-            }}
-          />
-        ))
+        <>
+          {isRefetchError ? (
+            <p className='body2-regular text-text-secondary'>{ownerMemberProfileContent.ticketLoadErrorText}</p>
+          ) : null}
+          {tickets.length === 0 ? (
+            <TicketEmptyCard
+              onAction={() => {
+                handleCharge().catch(() => undefined);
+              }}
+            />
+          ) : (
+            tickets.map((ticket) => (
+              <TicketSummaryCard
+                key={ticket.id}
+                title={ticket.name}
+                status={ticket.status}
+                remainingCount={ticket.remainingCount}
+                totalCount={ticket.totalCount}
+                period={ticket.period}
+                remainingDays={ticket.remainingDays ?? undefined}
+                className='cursor-pointer'
+                onClick={() => {
+                  const pathname = route.owner.members.detail.tickets.detail.root
+                    .replace('[id]', petId)
+                    .replace('[ticketId]', ticket.id);
+                  push({ pathname }).catch(() => undefined);
+                }}
+              />
+            ))
+          )}
+        </>
       )}
     </section>
   );

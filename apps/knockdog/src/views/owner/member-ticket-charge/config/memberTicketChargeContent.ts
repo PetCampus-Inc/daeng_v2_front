@@ -14,6 +14,7 @@ const memberTicketChargeContent = {
     placeholder: '이용권 선택하기',
     sheetTitle: '등록된 이용권',
     direct: '직접입력',
+    invalid: '유효기간이 올바르지 않아 선택할 수 없어요',
     lockHint: '등록된 이용권은 시작일만 입력이 가능해요.',
   },
   name: {

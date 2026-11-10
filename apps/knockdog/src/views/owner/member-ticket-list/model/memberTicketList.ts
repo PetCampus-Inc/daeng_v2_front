@@ -31,50 +31,6 @@ const TICKET_LIST_FILTERS = [
   { id: TICKET_LIST_STATUS.expired, label: '만료' },
 ] as const satisfies ReadonlyArray<{ id: TicketListFilter; label: string }>;
 
-/** 목록 시안. 등록일시 오름차순이면 프레임 카드 순서가 된다. */
-const MOCK_MEMBER_TICKET_LIST: MemberTicketListItem[] = [
-  {
-    id: 'trial',
-    name: '체험권',
-    status: TICKET_LIST_STATUS.active,
-    remainingCount: 3,
-    totalCount: 10,
-    startsOn: '2026-08-01',
-    endsOn: '2026-11-30',
-    registeredAt: '2026-08-01T09:00:00',
-  },
-  {
-    id: 'trial-1',
-    name: '체험권 1',
-    status: TICKET_LIST_STATUS.scheduled,
-    remainingCount: 10,
-    totalCount: 10,
-    startsOn: '2026-08-01',
-    endsOn: '2026-11-30',
-    registeredAt: '2026-08-02T09:00:00',
-  },
-  {
-    id: 'trial-2',
-    name: '체험권 2',
-    status: TICKET_LIST_STATUS.onHold,
-    remainingCount: 10,
-    totalCount: 10,
-    startsOn: '2026-08-01',
-    endsOn: '2026-11-30',
-    registeredAt: '2026-08-03T09:00:00',
-  },
-  {
-    id: 'open',
-    name: '자유 10회권',
-    status: TICKET_LIST_STATUS.scheduled,
-    remainingCount: 0,
-    totalCount: 10,
-    startsOn: '2026-08-01',
-    endsOn: '2026-08-30',
-    registeredAt: '2026-08-04T09:00:00',
-  },
-];
-
 function sortMemberTicketList(tickets: MemberTicketListItem[]) {
   return [...tickets].sort((left, right) => left.registeredAt.localeCompare(right.registeredAt));
 }
@@ -98,12 +54,5 @@ function filterTicketList<Ticket extends TicketListCountable>(tickets: Ticket[],
   return tickets.filter((ticket) => ticket.status === filter);
 }
 
-export {
-  MOCK_MEMBER_TICKET_LIST,
-  TICKET_LIST_FILTERS,
-  TICKET_LIST_STATUS,
-  countTicketList,
-  filterTicketList,
-  sortMemberTicketList,
-};
+export { TICKET_LIST_FILTERS, TICKET_LIST_STATUS, countTicketList, filterTicketList, sortMemberTicketList };
 export type { MemberTicketListItem, TicketListFilter, TicketListStatus };

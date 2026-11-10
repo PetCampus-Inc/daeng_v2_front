@@ -66,7 +66,8 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
           # guest login 플래그는 production build 금지(next.config.js).
           # 인증은 lighthouse/auth.cjs 가 DEV API로 토큰 주입.
-          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          # develop PR은 개발 서버와 개발 계정(6·7)을 쓴다.
+          NEXT_PUBLIC_API_BASE_URL: 'https://dev-api.knockdog.net'
           NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
 
       - name: Start Next.js server
@@ -83,7 +84,7 @@ jobs:
           echo "Server failed to start"
           exit 1
         env:
-          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          NEXT_PUBLIC_API_BASE_URL: 'https://dev-api.knockdog.net'
           NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
 
       - name: Run Lighthouse CI
@@ -92,7 +93,8 @@ jobs:
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
           LHCI_BASE_URL: 'http://localhost:3000'
-          NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+          LHCI_DEV_LOGIN_ID: '6'
+          NEXT_PUBLIC_API_BASE_URL: 'https://dev-api.knockdog.net'
 
       - name: Post PR comment
         if: always()

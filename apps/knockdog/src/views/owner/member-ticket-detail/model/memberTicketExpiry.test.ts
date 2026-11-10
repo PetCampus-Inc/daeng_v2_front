@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyExpiryExtension, canExtendExpiry } from './memberTicketExpiry';
+import { applyExpiryExtension, canExtendExpiry, toExpiryApiDate } from './memberTicketExpiry';
 
 describe('memberTicketExpiry', () => {
   it('기존 만료일보다 뒤인 날짜만 연장할 수 있다', () => {
@@ -25,6 +25,12 @@ describe('memberTicketExpiry', () => {
     expect(next.history[0]).toMatchObject({ title: '연장', detail: '만료일 2026.12.05 변경' });
     expect(ticket.endsOn).toBe('2026.12.04');
     expect(ticket.history).toHaveLength(1);
+  });
+
+  it('화면 만료일을 API 날짜로 바꾼다', () => {
+    expect(toExpiryApiDate('2026.12.05')).toBe('2026-12-05');
+    expect(toExpiryApiDate('2026.2.5')).toBe('2026-02-05');
+    expect(toExpiryApiDate('2026.12')).toBeNull();
   });
 
   it('앞당기면 만료일과 이력을 그대로 둔다', () => {

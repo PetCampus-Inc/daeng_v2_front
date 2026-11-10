@@ -33,9 +33,11 @@ export const postTokenReissue = async () => {
 export const fetchDevLogin = async <T>(): Promise<ApiResponse<T>> => {
   // 게스트 전용 ACTIVE 계정. 기존 id=46이 2026-05-28 WITHDRAWN 처리되어 교체.
   // BE 별도 트랙으로 /auth/dev/* 차단 + /auth/guest 신설 예정 → 그때 엔드포인트 교체.
-  // DEV_LOGIN_ID = 70 은 2026-06-19 추가됨, 기존 69는 WITHDRAWN 처리되어 임시로 로컬 테스트를 위해 교체.
   // 79번은 isOwner = true, schoolId = 83 으로 원장 마이페이지 테스트하면 됨. => 탈퇴 상태 26.07.16
-  const DEV_LOGIN_ID = 96;
+  // 서버마다 게스트 계정이 다르다. 운영(api.knockdog.net)은 96·113, 개발(dev-api.knockdog.net)은 6·7.
+  // 기본은 운영 96번이고, 개발 서버는 96번이 없어서(2026-11-10 확인, 404) `.env.development`에
+  // NEXT_PUBLIC_GUEST_LOGIN_ID=6 (또는 7)을 적어 쓴다.
+  const DEV_LOGIN_ID = Number(process.env.NEXT_PUBLIC_GUEST_LOGIN_ID) || 96;
   const api = await getApi();
   return await api.get(`auth/dev/${DEV_LOGIN_ID}`).json<ApiResponse<T>>();
 };

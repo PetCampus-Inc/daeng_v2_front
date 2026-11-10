@@ -80,7 +80,6 @@ const SCREEN_ROUTES: ScreenRoute[] = [
   { path: '/owner/news/write', name: '소식 등록' },
   { path: '/owner/news/[id]/edit', name: '소식 수정' },
   { path: '/owner/members', name: '구성원' },
-  { path: '/owner/members/approval', name: '연결 승인 대기' },
 
   { path: '/guardian/connection-apply/status', name: '연결 신청 현황' },
 
