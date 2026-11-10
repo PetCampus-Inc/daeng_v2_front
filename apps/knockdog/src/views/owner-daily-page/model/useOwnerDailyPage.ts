@@ -25,7 +25,8 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * 일과 화면의 날짜·탭 상태와 서버 조회를 한곳에서 관리한다.
  * - 날짜: 항상 오늘로 시작한다. 오늘을 보는 중에 자정이 지나면 새 오늘로 따라간다.
  * - 탭: 오늘은 `등원처리`, 지난·미래 날짜는 `등원목록`이 기본이고 날짜를 바꾸면 기본 탭으로 돌아간다.
- * - 등원처리 탭의 검색어와 `지각` 토글: 탭을 오가도 유지된다. 토글 초기값은 `initialLateOnly`로 열어 둔다.
+ * - 등원처리 탭의 검색어와 `지각` 토글: 탭을 오가도 유지된다. 토글 초기값은 `initialLateOnly`로 열어 두고,
+ *   열려 있는 동안 `initialLateOnly`가 새로 true가 되면 오늘 날짜의 `등원처리` 탭을 토글을 켠 채로 다시 연다.
  * - 등원목록 필터 칩(`todayFilter`): 칩을 바꾸면 서버 필터로 다시 조회하고, 날짜를 바꾸면 `전체`로 돌아간다.
  * - 등원 가능 시간 미설정: 현황 응답이 미설정이면(`isNotConfigured`) 오늘 날짜만 보여 주고 날짜 이동을 막는다.
  * - 조회 실패: 필수 조회 하나라도 실패하면 `isError`이고, `handleRetry`가 실패한 조회만 다시 요청한다.
@@ -39,6 +40,18 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
   const [keyword, setKeyword] = useState('');
   const [lateOnly, setLateOnly] = useState(initialLateOnly);
   const [todayFilter, setTodayFilter] = useState<TodayAttendanceFilter | undefined>(undefined);
+
+  // 이미 열려 있는 화면에 지각 알림 쿼리가 새로 들어오면(false → true) 오늘의 `등원처리` 탭을 지각 토글을 켠 채로 연다.
+  const [handledLateOnlyRequest, setHandledLateOnlyRequest] = useState(initialLateOnly);
+  if (initialLateOnly !== handledLateOnlyRequest) {
+    setHandledLateOnlyRequest(initialLateOnly);
+    if (initialLateOnly) {
+      setSelectedDateOverride(null);
+      setSelectedTabOverride('attendance-check');
+      setTodayFilter(undefined);
+      setLateOnly(true);
+    }
+  }
 
   const todayKey = getKstDateKey(now);
   const today = useMemo(() => createDateFromDateKey(todayKey), [todayKey]);
