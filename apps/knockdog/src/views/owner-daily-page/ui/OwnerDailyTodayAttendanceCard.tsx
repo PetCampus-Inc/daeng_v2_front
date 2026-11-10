@@ -157,4 +157,4 @@ const OwnerDailyTodayAttendanceCard = ({
   );
 };
 
-export { OwnerDailyTodayAttendanceCard };
+export { OwnerDailyTodayAttendanceCard, TAG_VIEW, toTimeText };

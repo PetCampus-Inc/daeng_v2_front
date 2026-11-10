@@ -69,7 +69,29 @@ function OwnerDailyFilterEmptyState() {
   );
 }
 
+/** 지난 날짜에서 `등원처리` 탭을 열었을 때의 안내. 처리는 오늘만 할 수 있다. */
+function OwnerDailyPastCheckNoticeState() {
+  return (
+    <div className='flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-4 text-center'>
+      <p className='h2-extrabold text-text-primary'>지난 날짜의 일과는 확인할 수 없어요</p>
+      <p className='body1-regular text-text-secondary'>오늘 날짜로 이동해 일과를 관리해 보세요.</p>
+    </div>
+  );
+}
+
+/** 지난 날짜에 등원·결석 기록이 하나도 없을 때의 안내. */
+function OwnerDailyPastNoRecordState() {
+  return (
+    <div className='bg-bg-50 flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-4 text-center'>
+      <p className='h2-extrabold text-text-primary'>등원 기록이 없어요</p>
+      <p className='body1-regular text-text-secondary'>오늘 날짜로 이동해 일과를 관리해 보세요.</p>
+    </div>
+  );
+}
+
 export {
+  OwnerDailyPastCheckNoticeState,
+  OwnerDailyPastNoRecordState,
   OwnerDailyNoMembersState,
   OwnerDailyNoAttendanceState,
   OwnerDailyNoUncheckedState,

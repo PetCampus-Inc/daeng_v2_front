@@ -13,8 +13,17 @@ import { useOwnerDailyCancelDialog } from '@views/owner-daily-page/model/useOwne
 import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPage';
 import { OwnerDailyAttendanceCheckTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCheckTab';
 import { OwnerDailyAttendanceListTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceListTab';
+import {
+  OwnerDailyPastCheckNoticeState,
+  OwnerDailyPastNoRecordState,
+} from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
+import { OwnerDailyPastListTab } from '@views/owner-daily-page/ui/OwnerDailyPastListTab';
 import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
+import {
+  PROFILE_TAB_QUERY_KEY,
+  TAB as PROFILE_TAB,
+} from '@views/owner/member-profile/config/ownerMemberProfileContent';
 import { Header } from '@widgets/Header';
 
 import { useHasUnreadNotificationQuery } from '@entities/notification';
@@ -94,7 +103,11 @@ const OwnerDailyPage = () => {
   const isToday = dayKind === 'today';
   const viewKey = `${selectedDateKey}:${selectedTab}`;
   const isScrollTopButtonVisible = scrolledViewKey === viewKey;
-  const summaryView = summary && !isLoading && !isError ? toOwnerDailySummaryView(summary, dayKind) : null;
+  // 지난 날짜에 등원·결석 기록이 하나도 없으면 날짜 줄과 안내만 보여 준다.
+  const isPast = dayKind === 'past';
+  const isPastNoRecord = isPast && todayList?.counts.all === 0;
+  const summaryView =
+    summary && !isLoading && !isError && !isPastNoRecord ? toOwnerDailySummaryView(summary, dayKind) : null;
 
   const handleBackToOwnerHome = useCallback(() => {
     if (isNativeWebView()) {
@@ -107,8 +120,8 @@ const OwnerDailyPage = () => {
     back();
   }, [back, navigateToTab, push]);
 
-  const pushOrToastFailure = (pathname: string) => {
-    push({ pathname }).catch(() => {
+  const pushOrToastFailure = (pathname: string, query?: Record<string, string>) => {
+    push(query ? { pathname, query } : { pathname }).catch(() => {
       toast({ type: 'default', shape: 'rounded', title: REQUEST_FAILED_MESSAGE, nativeTitle: REQUEST_FAILED_MESSAGE });
     });
   };
@@ -116,6 +129,13 @@ const OwnerDailyPage = () => {
   /** 원생 카드를 누르면 그 원생의 프로필로 이동한다. */
   const handleMemberClick = ({ petId }: { petId: string }) => {
     pushOrToastFailure(route.owner.members.detail.root.replace('[id]', petId));
+  };
+
+  /** 지난 날짜 카드를 누르면 그 원생의 프로필을 `등하원 기록` 탭으로 연다. */
+  const handlePastMemberClick = ({ petId }: { petId: string }) => {
+    pushOrToastFailure(route.owner.members.detail.root.replace('[id]', petId), {
+      [PROFILE_TAB_QUERY_KEY]: PROFILE_TAB.ATTENDANCE,
+    });
   };
 
   /**
@@ -195,6 +215,8 @@ const OwnerDailyPage = () => {
               <p className='body1-regular text-text-secondary'>잠시 후 다시 시도해 주세요.</p>
             </div>
           </div>
+        ) : isPastNoRecord ? (
+          <OwnerDailyPastNoRecordState />
         ) : (
           <Tabs
             value={selectedTab}
@@ -231,6 +253,7 @@ const OwnerDailyPage = () => {
                   onCancelAbsent={(item) => openCancelDialog('absent', item)}
                 />
               ) : null}
+              {isPast ? <OwnerDailyPastCheckNoticeState /> : null}
             </TabsContent>
             <TabsContent
               ref={contentRef}
@@ -238,7 +261,15 @@ const OwnerDailyPage = () => {
               className={TAB_CONTENT_CLASS_NAME}
               onScroll={handleContentScroll}
             >
-              {todayList ? (
+              {todayList && isPast ? (
+                <OwnerDailyPastListTab
+                  todayList={todayList}
+                  filter={todayFilter}
+                  onFilterChange={setTodayFilter}
+                  onMemberClick={handlePastMemberClick}
+                />
+              ) : null}
+              {todayList && !isPast ? (
                 <OwnerDailyAttendanceListTab
                   todayList={todayList}
                   filter={todayFilter}
