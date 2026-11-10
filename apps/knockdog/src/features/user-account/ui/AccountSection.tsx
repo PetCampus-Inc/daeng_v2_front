@@ -40,11 +40,11 @@ function SocialAccountEmailField({
   email: string;
 }) {
   return (
-    <div className='border-line-200 bg-fill-secondary-50 flex h-12 items-center rounded-lg border px-4'>
+    <div className='border-line-200 bg-fill-secondary-50 radius-r3 flex h-12 items-center gap-2 border px-4'>
       {provider ? (
         <Icon
           icon={SOCIAL_PROVIDER_ICONS[provider]}
-          className={provider === 'APPLE' ? 'mr-1 size-5 text-text-tertiary' : 'mr-1 size-5'}
+          className={provider === 'APPLE' ? 'size-5 text-text-tertiary' : 'size-5'}
         />
       ) : null}
       <span className='body1-regular text-text-secondary truncate'>
@@ -104,27 +104,25 @@ function AccountSection({
       socialEmail || socialUser?.email || '';
 
     return (
-      <div className='px-4 py-5'>
-        <h2 className='body2-semibold text-text-tertiary'>{accountSectionTitle}</h2>
+      <div className='bg-bg-0 px-4 pt-5 pb-7'>
+        <h2 className='label-medium text-text-secondary px-1'>{accountSectionTitle}</h2>
 
-        <div className='mt-8 flex flex-col gap-4'>
+        <div className='mt-4 flex flex-col gap-2'>
           {accountInfo?.userId ? (
-            <div className='flex min-w-0 flex-col'>
-              <span className='body1-bold text-text-primary'>{ttokIdLabel}</span>
-              <div className='flex items-center justify-between gap-3'>
-                <span className='body2-regular text-text-secondary min-w-0 truncate'>
-                  {ttokIdDescription}
-                </span>
-                <button
-                  type='button'
-                  className='flex shrink-0 items-center gap-2'
-                  aria-label={`${ttokIdLabel} 복사`}
-                  onClick={handleCopyUserId}
-                >
-                  <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
-                  <Icon icon='Copy' className='text-text-secondary size-5' />
-                </button>
+            <div className='flex items-center justify-between gap-2 px-3 py-2'>
+              <div className='flex min-w-0 flex-col gap-1'>
+                <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
+                <span className='caption1-regular text-text-tertiary truncate'>{ttokIdDescription}</span>
               </div>
+              <button
+                type='button'
+                className='flex shrink-0 items-center gap-2'
+                aria-label={`${ttokIdLabel} 복사`}
+                onClick={handleCopyUserId}
+              >
+                <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
+                <Icon icon='Copy' className='text-text-secondary size-5' />
+              </button>
             </div>
           ) : null}
 

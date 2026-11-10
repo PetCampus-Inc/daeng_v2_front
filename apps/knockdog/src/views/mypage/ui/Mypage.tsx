@@ -233,7 +233,7 @@ function MypageContent() {
         {canToggleRoleView && (
           <RoleConversionButton
             onClick={handleRoleViewToggle}
-            className={isOwnerView ? 'bg-fill-secondary-600' : undefined}
+            className={isOwnerView ? 'bg-fill-primary-50 text-primitive-orange-400' : undefined}
           >
             {isOwnerView
               ? roleConversionButtonContent.convertoGuardian

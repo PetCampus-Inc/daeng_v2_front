@@ -12,6 +12,29 @@ interface OwnerKindergartenCardProps {
   onClick?: () => void;
 }
 
+function KindergartenPhoto({
+  imageUrl,
+  usesDefaultImage,
+}: {
+  imageUrl?: string | null;
+  usesDefaultImage: boolean;
+}) {
+  if (usesDefaultImage || !imageUrl) {
+    return (
+      <div className='bg-fill-secondary-50 absolute inset-0 flex items-center justify-center' aria-hidden='true'>
+        <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Image src={imageUrl} alt='' fill sizes='100vw' className='object-cover' priority />
+      <span className='absolute inset-0 bg-black/20' aria-hidden='true' />
+    </>
+  );
+}
+
 function OwnerKindergartenCard({
   name,
   address,
@@ -20,35 +43,26 @@ function OwnerKindergartenCard({
   onClick,
 }: OwnerKindergartenCardProps) {
   const content = (
-    <>
-      <div className='w-full px-4'>
-        <div className='radius-r3 relative h-[126px] w-full overflow-hidden'>
-          {usesDefaultImage || !imageUrl ? (
-            <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
-              <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
-            </div>
-          ) : (
-            <Image src={imageUrl} alt={name} fill sizes='100vw' className='object-cover' priority />
-          )}
-        </div>
-      </div>
-
-      <div className='flex w-full items-center justify-between gap-x-7 p-4'>
+    <div className='border-line-200 radius-r3 relative flex h-[210px] w-full flex-col justify-end overflow-hidden border'>
+      <KindergartenPhoto imageUrl={imageUrl} usesDefaultImage={usesDefaultImage} />
+      <div className='bg-bg-50 relative flex items-center justify-between py-4 pr-4 pl-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)]'>
         <div className='flex min-w-0 flex-col gap-1'>
-          <p className='h3-extrabold text-text-primary truncate'>{name}</p>
-          <p className='body2-regular text-text-primary truncate'>{address}</p>
+          <p className='h3-semibold text-text-primary truncate'>{name}</p>
+          <p className='caption1-regular text-text-tertiary truncate'>{address}</p>
         </div>
-        <Icon icon='ChevronRight' className='text-text-tertiary size-6 shrink-0' aria-hidden />
+        <span className='flex size-8 shrink-0 items-center justify-center'>
+          <Icon icon='ChevronRight' className='text-text-tertiary size-4' aria-hidden />
+        </span>
       </div>
-    </>
+    </div>
   );
 
   if (!onClick) {
-    return <div className='flex flex-col pt-4 pb-5'>{content}</div>;
+    return <div className='px-4 pt-2 pb-5'>{content}</div>;
   }
 
   return (
-    <button type='button' onClick={onClick} className='flex w-full flex-col pt-4 pb-5 text-left'>
+    <button type='button' onClick={onClick} className='w-full px-4 pt-2 pb-5 text-left'>
       {content}
     </button>
   );
