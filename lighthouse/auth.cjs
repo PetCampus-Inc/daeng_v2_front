@@ -12,10 +12,10 @@
  */
 module.exports = async (browser) => {
   const baseUrl = process.env.LHCI_BASE_URL ?? 'http://localhost:3000';
-  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.knockdog.net').replace(/\/$/, '');
-  // 기본은 운영 서버(api.knockdog.net)의 113번. 운영은 96·113, 개발(dev-api.knockdog.net)은 6·7.
-  // 개발 서버로 돌리려면 LHCI_DEV_LOGIN_ID=6 처럼 지정한다.
-  const DEV_LOGIN_ID = Number(process.env.LHCI_DEV_LOGIN_ID) || 113;
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://dev-api.knockdog.net').replace(/\/$/, '');
+  // 기본은 개발 서버(dev-api.knockdog.net)의 6번. 개발은 6·7, 운영(api.knockdog.net)은 96·113.
+  // 운영 서버로 돌리려면 NEXT_PUBLIC_API_BASE_URL과 LHCI_DEV_LOGIN_ID=113 처럼 함께 지정한다.
+  const DEV_LOGIN_ID = Number(process.env.LHCI_DEV_LOGIN_ID) || 6;
 
   const page = await browser.newPage();
 

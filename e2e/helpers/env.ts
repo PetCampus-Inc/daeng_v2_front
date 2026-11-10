@@ -1,7 +1,7 @@
 /** E2E 환경 변수. CI/로컬 공통 기본값. */
 
 const DEFAULT_BASE_URL = 'http://localhost:3000';
-/** 로컬 기본값은 개발 서버. CI는 e2e.yml에서 운영 서버(api.knockdog.net)와 계정을 직접 지정한다. */
+/** 기본값은 개발 서버. develop PR의 CI도 e2e.yml에서 같은 개발 서버와 계정을 지정한다. */
 const DEFAULT_API_BASE_URL = 'https://dev-api.knockdog.net';
 /** 개발 서버의 테스트 계정. 7번도 쓸 수 있다. (운영 서버 api.knockdog.net의 테스트 계정은 96, 113) */
 const DEFAULT_DEV_LOGIN_ID = 6; // 또는 7

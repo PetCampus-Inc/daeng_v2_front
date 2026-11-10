@@ -17,12 +17,12 @@ pnpm e2e:report
 | 변수 | 기본 | 설명 |
 |------|------|------|
 | `E2E_BASE_URL` | `http://localhost:3000` | 앱 URL |
-| `E2E_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL` | `https://dev-api.knockdog.net` | 개발 서버 (CI는 e2e.yml에서 운영 `https://api.knockdog.net`을 직접 지정) |
-| `E2E_DEV_LOGIN_ID` | `6` | DEV login 유저 id. 개발 서버는 6 또는 7, 운영 서버는 96·113 (LHCI·CI는 113) |
+| `E2E_API_BASE_URL` / `NEXT_PUBLIC_API_BASE_URL` | `https://dev-api.knockdog.net` | 개발 서버 (develop PR의 CI도 e2e.yml에서 같은 개발 서버를 지정) |
+| `E2E_DEV_LOGIN_ID` | `6` | DEV login 유저 id. 개발 서버는 6 또는 7, 운영 서버는 96·113 (develop PR의 CI·LHCI는 6) |
 | `E2E_EXPECTED_EMAIL` | `hyeonsu-k@kakao.com` | 매핑 경고용 (불일치 시 warn만) |
 | `E2E_SKIP_WEBSERVER` | — | `1`이면 Playwright webServer 스킵 (CI가 서버 기동) |
 
-카카오 OAuth는 CI에서 쓰지 않는다. **DEV login(Node `request` → `api.knockdog.net`) → `addInitScript` localStorage → storageState**.
+카카오 OAuth는 CI에서 쓰지 않는다. **DEV login(Node `request` → `dev-api.knockdog.net`) → `addInitScript` localStorage → storageState**.
 
 > 브라우저 fetch는 CORS로 실패함. Playwright request는 Node라 API 직접 호출 가능 (CI `next start`도 OK).
 
