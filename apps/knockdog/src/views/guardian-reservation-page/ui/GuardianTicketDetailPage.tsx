@@ -11,12 +11,11 @@ import type { TicketHistory } from '@views/guardian-reservation-page/lib/guardia
 import { toCardState } from '@views/guardian-reservation-page/ui/ticketCardState';
 import { GuardianTicketDeleteDialog } from '@views/guardian-reservation-page/ui/GuardianTicketDeleteDialog';
 import { GuardianTicketHistoryList } from '@views/guardian-reservation-page/ui/GuardianTicketHistoryList';
-import { hideGuardianTicket } from '@views/guardian-reservation-page/model/hiddenGuardianTickets';
-
 import { Header } from '@widgets/Header';
 
-import { useGuardianTicketDetailQuery, type GuardianTicket } from '@entities/guardian-ticket';
+import { useDeleteTicketMutation, useGuardianTicketDetailQuery, type GuardianTicket } from '@entities/guardian-ticket';
 
+import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -62,6 +61,7 @@ function GuardianTicketDetailPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [today] = useState(() => new Date());
   const detailQuery = useGuardianTicketDetailQuery(petId, ticketId);
+  const deleteTicket = useDeleteTicketMutation(petId, ticketId);
   const detail = detailQuery.data;
   const ticket = detail ? asManageTicket(detail.ticket) : undefined;
   const isExpired = ticket?.status === TICKET_STATUS.expired;
@@ -81,23 +81,37 @@ function GuardianTicketDetailPage() {
   useNativeBackHandler(handleBack);
 
   const handleConfirmDelete = () => {
-    if (!ticket || !petId) return;
-    hideGuardianTicket(ticket.id);
-    setIsDeleteOpen(false);
-    toast({
-      type: 'success',
-      shape: 'rounded',
-      position: 'bottom',
-      title: '이용권이 삭제되었어요',
-      nativeTitle: '이용권이 삭제되었어요',
+    if (!ticket || !petId || deleteTicket.isPending) return;
+
+    deleteTicket.mutate(undefined, {
+      onSuccess: () => {
+        setIsDeleteOpen(false);
+        toast({
+          type: 'success',
+          shape: 'rounded',
+          position: 'bottom',
+          title: '이용권이 삭제되었어요',
+          nativeTitle: '이용권이 삭제되었어요',
+        });
+        back()
+          .then((wentBack) => {
+            if (wentBack) return;
+            return push({ pathname: route.reservation.tickets.root, query: { dogId: petId } });
+          })
+          .catch(() => push({ pathname: route.reservation.tickets.root, query: { dogId: petId } }))
+          .catch(() => undefined);
+      },
+      onError: (error) => {
+        const message = error instanceof ApiError && error.message ? error.message : '이용권을 삭제하지 못했어요';
+        toast({
+          type: 'default',
+          shape: 'rounded',
+          position: 'bottom',
+          title: message,
+          nativeTitle: message,
+        });
+      },
     });
-    back()
-      .then((wentBack) => {
-        if (wentBack) return;
-        return push({ pathname: route.reservation.tickets.root, query: { dogId: petId } });
-      })
-      .catch(() => push({ pathname: route.reservation.tickets.root, query: { dogId: petId } }))
-      .catch(() => undefined);
   };
 
   if (!petId || !ticketId) {

@@ -225,6 +225,13 @@ const parseGuardianTicketManage = (response: unknown) => ticketManageResponseSch
 
 const parseGuardianTicketDetail = (response: unknown) => ticketDetailResponseSchema.parse(response).data;
 
+const voidResponseSchema = z.object({
+  status: z.number().int(),
+  message: z.string(),
+});
+
+const parseGuardianTicketDelete = (response: unknown) => voidResponseSchema.parse(response);
+
 const toGuardianTicket = (dto: TicketDto): GuardianTicket => ({
   id: String(dto.ticketId),
   name: dto.name,
@@ -282,6 +289,7 @@ const toGuardianTicketDetail = (dto: ReturnType<typeof parseGuardianTicketDetail
 
 export {
   parseGuardianTicketCard,
+  parseGuardianTicketDelete,
   parseGuardianTicketDetail,
   parseGuardianTicketManage,
   toGuardianTicketCard,

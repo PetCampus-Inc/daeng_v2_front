@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   parseGuardianTicketCard,
+  parseGuardianTicketDelete,
   parseGuardianTicketDetail,
   parseGuardianTicketManage,
   toGuardianTicketCard,
@@ -90,6 +91,12 @@ describe('toGuardianTicketManage', () => {
       status: 'onHold',
       hold: { startsOn: '2026-10-30', endsOn: '2026-11-10' },
     });
+  });
+});
+
+describe('parseGuardianTicketDelete', () => {
+  it('성공 응답을 통과시킨다', () => {
+    expect(parseGuardianTicketDelete({ status: 200, message: '정상 처리되었습니다.', data: null }).status).toBe(200);
   });
 });
 

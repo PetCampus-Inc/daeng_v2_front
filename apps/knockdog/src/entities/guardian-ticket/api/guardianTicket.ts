@@ -1,4 +1,9 @@
-import { parseGuardianTicketCard, parseGuardianTicketDetail, parseGuardianTicketManage } from '../model/guardianTicket';
+import {
+  parseGuardianTicketCard,
+  parseGuardianTicketDelete,
+  parseGuardianTicketDetail,
+  parseGuardianTicketManage,
+} from '../model/guardianTicket';
 
 import { api } from '@shared/api';
 
@@ -23,4 +28,13 @@ const getGuardianTicketDetail = async (petId: string, ticketId: string) => {
   return parseGuardianTicketDetail(response);
 };
 
-export { getGuardianTicketCard, getGuardianTicketDetail, getGuardianTicketManage };
+/** `DELETE` - 만료된 이용권을 보호자 목록에서만 지운다. 이미 지운 이용권도 성공이다. */
+const deleteGuardianTicket = async (petId: string, ticketId: string) => {
+  const response = await api
+    .delete(`guardian/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)
+    .json();
+
+  return parseGuardianTicketDelete(response);
+};
+
+export { deleteGuardianTicket, getGuardianTicketCard, getGuardianTicketDetail, getGuardianTicketManage };
