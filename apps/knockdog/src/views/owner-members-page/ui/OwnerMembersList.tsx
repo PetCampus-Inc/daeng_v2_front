@@ -11,7 +11,7 @@ import {
 import { OwnerMemberCard } from '@features/owner-members';
 
 import { ownerMembersQueryKey, type OwnerMember } from '@entities/owner-member';
-import { getOwnerPet, isPetNotAuthorizedError } from '@entities/owner-pet';
+import { getOwnerPet, isPetNotAuthorizedError, ownerPetQueryKey } from '@entities/owner-pet';
 import { useUserStore } from '@entities/user';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { route } from '@shared/constants/route';
@@ -86,9 +86,15 @@ function OwnerMembersList({ members, emptyStateType, isLoading, isError }: Owner
               return;
             }
 
-            // 보호자나 다른 기기에서 먼저 해제해 목록이 오래됐을 수 있어 먼저 해제 여부를 확인한다
+            // 보호자나 다른 기기에서 먼저 해제해 목록이 오래됐을 수 있어 먼저 해제 여부를 확인한다.
+            // 받은 응답은 프로필 화면의 원생 조회와 같은 캐시에 저장해 프로필이 다시 요청하지 않게 한다
             try {
-              await getOwnerPet(member.petId);
+              const petId = member.petId;
+              await queryClient.fetchQuery({
+                queryKey: ownerPetQueryKey(petId),
+                queryFn: () => getOwnerPet(petId),
+                staleTime: 0,
+              });
             } catch (error) {
               if (isPetNotAuthorizedError(error)) {
                 toast({ title: ownerMembersContent.alreadyDisconnectedToast });
