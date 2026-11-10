@@ -100,6 +100,7 @@ function DogHouseSection({
             age={dog.birthYear ? calculateAge(dog.birthYear) : undefined}
             imageUrl={dog.profileImage}
             isRepresentative={dog.isRepresentative}
+            gender={dog.gender}
             onClick={() => onDogClick(dog.id)}
           />
         ))}
