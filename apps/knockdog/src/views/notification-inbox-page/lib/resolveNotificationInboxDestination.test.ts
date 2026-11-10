@@ -108,4 +108,32 @@ describe('알림으로 일과 열기', () => {
       })
     ).toEqual({ kind: 'guardianKindergarten', petId: '12', date: '2026-11-10' });
   });
+
+  it('알림이 가리키는 화면에 접근할 수 없으면(연결 해제 등) 홈으로 이동한다', () => {
+    expect(
+      resolveNotificationInboxDestination(
+        'ATTENDANCE_LATE_OWNER',
+        { payloadVersion: 1, schoolId: 3, date: '2026-11-10' },
+        { isTargetUnavailable: true }
+      )
+    ).toEqual({ kind: 'home' });
+
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_LATE_GUARDIAN', {
+        payloadVersion: 1,
+        schoolId: 3,
+        petId: 12,
+        date: '2026-11-10',
+        disconnected: true,
+      })
+    ).toEqual({ kind: 'home' });
+
+    expect(
+      resolveNotificationInboxDestination('ATTENDANCE_CANCEL_ABSENT', {
+        payloadVersion: 1,
+        schoolId: 3,
+        date: '2026-11-10',
+      })
+    ).toEqual({ kind: 'home' });
+  });
 });

@@ -45,19 +45,16 @@ function applyGuardianViewForPath(pathname: string) {
   useMypageRoleViewStore.getState().setPrefersGuardianView(value);
 }
 
-function useNotificationInboxDeepLink() {
+const useNotificationInboxDeepLink = () => {
   const { push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const { pets, isPetsReady, isPetsError } = useGuardianSelectedPet();
   const setSelectedPetId = useGuardianSelectedPetStore((state) => state.setSelectedPetId);
 
   const openNotification = (item: NotificationInboxItem) => {
-    if (item.isTargetUnavailable) {
-      toast(notificationInboxContent.pageNotFoundToast);
-      return;
-    }
-
-    const destination = resolveNotificationInboxDestination(item.type, item.payload);
+    const destination = resolveNotificationInboxDestination(item.type, item.payload, {
+      isTargetUnavailable: item.isTargetUnavailable,
+    });
     const destinationPetId = 'petId' in destination ? destination.petId : undefined;
     const canValidatePetList = isPetsReady && !isPetsError;
 
@@ -71,6 +68,9 @@ function useNotificationInboxDeepLink() {
     }
 
     switch (destination.kind) {
+      case 'home':
+        void navigateToTab('/');
+        return;
       case 'attendanceRecord':
         pushGuardianDailyNoticeDetail(push, parseLocalDateKey(destination.date), {
           petId: destination.petId,
@@ -166,6 +166,6 @@ function useNotificationInboxDeepLink() {
   };
 
   return { openNotification };
-}
+};
 
 export { useNotificationInboxDeepLink };
