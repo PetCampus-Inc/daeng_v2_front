@@ -101,9 +101,9 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
 
   /** 실패한 필수 조회만 다시 요청한다. */
   const handleRetry = () => {
-    if (summaryQuery.isError) void summaryQuery.refetch();
-    if (hasCandidates && candidatesQuery.isError) void candidatesQuery.refetch();
-    if (hasTodayList && todayListQuery.isError) void todayListQuery.refetch();
+    if (summaryQuery.isError) summaryQuery.refetch();
+    if (hasCandidates && candidatesQuery.isError) candidatesQuery.refetch();
+    if (hasTodayList && todayListQuery.isError) todayListQuery.refetch();
   };
 
   /** 날짜를 바꾸고 탭을 그 날짜의 기본 탭으로 되돌린다. 오늘로 돌아오면 자정 롤오버를 따라가게 한다. */
