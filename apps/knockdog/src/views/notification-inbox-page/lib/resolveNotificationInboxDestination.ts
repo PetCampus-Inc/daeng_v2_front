@@ -11,6 +11,7 @@ type NotificationInboxDestination =
   | { kind: 'guardianTicketDetail'; petId: string; ticketId: string }
   | { kind: 'guardianConnectionHistory' }
   | { kind: 'ownerExpiringMembers' }
+  | { kind: 'ownerDailyLate' }
   | { kind: 'unavailable' };
 
 const ATTENDANCE_STATUS_TYPES = new Set([
@@ -18,7 +19,12 @@ const ATTENDANCE_STATUS_TYPES = new Set([
   'ATTENDANCE_CANCEL_CHECK_IN',
   'ATTENDANCE_CHECK_OUT',
   'ATTENDANCE_CANCEL_CHECK_OUT',
+  'ATTENDANCE_CANCEL_ABSENT',
+  'ATTENDANCE_LATE_GUARDIAN',
 ]);
+
+/** 원장에게 가는 지각 알림 — 일과 등원처리 탭을 지각 토글이 켜진 상태로 연다. */
+const OWNER_DAILY_LATE_TYPES = new Set(['ATTENDANCE_LATE_OWNER']);
 
 const ATTENDANCE_RECORD_TYPES = new Set(['ATTENDANCE_RECORD_CREATED', 'ATTENDANCE_RECORD_UPDATED']);
 
@@ -122,6 +128,10 @@ function resolveNotificationInboxDestination(
 
   if (GUARDIAN_KINDERGARTEN_TYPES.has(type)) {
     return petId ? { kind: 'guardianKindergarten', petId } : { kind: 'unavailable' };
+  }
+
+  if (OWNER_DAILY_LATE_TYPES.has(type)) {
+    return { kind: 'ownerDailyLate' };
   }
 
   if (OWNER_MEMBER_APPROVAL_TYPES.has(type)) {

@@ -148,6 +148,14 @@ function useNotificationInboxDeepLink() {
         applyGuardianViewForPath(route.kindergarten.connectionHistory.root);
         void push({ pathname: route.kindergarten.connectionHistory.root });
         return;
+      case 'ownerDailyLate':
+        applyGuardianViewForPath(route.owner.daily.root);
+        void navigateToTab('/owner/daily', {
+          tab: 'attendance-check',
+          lateOnly: 'true',
+          source: 'inbox',
+        });
+        return;
       case 'ownerExpiringMembers':
         applyGuardianViewForPath(route.owner.members.root);
         void navigateToTab('/owner/members', { filter: 'expiring', source: 'inbox' });
