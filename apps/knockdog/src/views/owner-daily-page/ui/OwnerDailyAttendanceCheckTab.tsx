@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { Icon, Switch, TextField, TextFieldInput } from '@knockdog/ui';
+import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 import { filterAttendanceList } from '@views/owner-daily-page/lib/ownerDailyAttendance';
 import { OwnerDailyAttendanceCard } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCard';
@@ -44,11 +45,11 @@ const OwnerDailyAttendanceCheckTab = ({
   );
 
   return (
-    <div className='flex min-h-full w-full flex-col'>
-      <div className='bg-bg-0 px-4 pt-4 pb-3'>
+    <div className='px-x4 pt-x5 gap-x5 flex min-h-full w-full flex-col'>
+      <div className='gap-x3 flex flex-col'>
         <TextField
-          prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-          className='bg-fill-secondary-50 h-x12 relative min-w-0 border-0'
+          prefix={<Icon icon='Search' className='size-x4_5 text-text-secondary' />}
+          className='bg-bg-0 h-x14 radius-r5 border-line-100 [&_input]:body1-medium [&_input]:placeholder:text-fill-secondary-500 relative min-w-0 border'
         >
           <TextFieldInput
             type='search'
@@ -68,18 +69,29 @@ const OwnerDailyAttendanceCheckTab = ({
             </button>
           ) : null}
         </TextField>
-      </div>
-      <div className='flex items-center justify-between px-4 pt-4'>
-        <p className='body2-semibold text-text-secondary'>강아지수 {filteredItems.length}</p>
-        <label className='flex items-center gap-2'>
-          <span className='body2-semibold text-text-secondary'>지각</span>
-          <Switch aria-label='지각' pressed={lateOnly} onPressedChange={onLateOnlyChange} />
-        </label>
+        <div className='pl-x2 flex items-center justify-between'>
+          <p className='label-medium text-text-secondary gap-x1 flex items-center'>
+            강아지수 <span className='body2-bold text-text-accent'>{filteredItems.length}</span>
+          </p>
+          <button
+            type='button'
+            aria-pressed={lateOnly}
+            className='label-medium text-text-secondary p-x2 gap-x1 flex cursor-pointer items-center'
+            onClick={() => onLateOnlyChange(!lateOnly)}
+          >
+            <span className='size-x4 flex items-center justify-center'>
+              <span
+                className={cn('size-x2_5 radius-full', lateOnly ? 'bg-fill-primary-500' : 'bg-fill-secondary-400')}
+              />
+            </span>
+            지각
+          </button>
+        </div>
       </div>
       {filteredItems.length === 0 ? (
         <OwnerDailySearchEmptyState />
       ) : (
-        <ul className='flex w-full flex-col gap-3 px-4 pt-3'>
+        <ul className='pb-x5 gap-x5 mb-[88px] flex w-full flex-col'>
           {filteredItems.map((item) => {
             return (
               <OwnerDailyAttendanceCard

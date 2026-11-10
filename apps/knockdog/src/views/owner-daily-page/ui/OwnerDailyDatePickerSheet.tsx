@@ -257,7 +257,7 @@ function DateWheelColumn({ part, selectedDate, minDate, maxDate, onChange }: Dat
               data-date-offset={isSelectable && offset !== 0 ? offset : undefined}
               className={`flex h-12 items-center justify-center ${isSelectable ? '' : 'opacity-0'}`}
             >
-              <span className={isSelected ? 'h3-extrabold text-text-accent' : 'h3-medium text-text-tertiary'}>
+              <span className={isSelected ? 'h3-extrabold text-text-accent' : 'h3-medium text-fill-secondary-500'}>
                 {getDatePartLabel(date, part)}
               </span>
             </div>
@@ -316,7 +316,7 @@ function OwnerDailyDatePickerSheet({
         </BottomSheet.Header>
 
         <div className='relative flex h-[152px] w-full shrink-0 items-start gap-0 px-4'>
-          <div className='absolute top-[51px] right-4 left-4 h-[50px] rounded-lg bg-[#FFF7EC]' />
+          <div className='bg-fill-primary-50 radius-r2 absolute top-[51px] right-4 left-4 h-[50px]' />
           <DateWheelColumn
             part='year'
             selectedDate={selectedDate}
@@ -341,7 +341,13 @@ function OwnerDailyDatePickerSheet({
         </div>
 
         <div className='flex h-24 shrink-0 flex-col px-4 py-5'>
-          <ActionButton type='button' variant='primaryFill' size='large' onClick={handleConfirm}>
+          <ActionButton
+            type='button'
+            variant='primaryFill'
+            size='large'
+            className='rounded-(--radius-r2) font-bold'
+            onClick={handleConfirm}
+          >
             {formatOwnerDailyPickerLabel(selectedDate)}
           </ActionButton>
         </div>

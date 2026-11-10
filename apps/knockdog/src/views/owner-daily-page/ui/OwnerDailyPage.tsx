@@ -47,7 +47,12 @@ const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
   return null;
 };
 
+const TAB_TRIGGER_CLASS_NAME =
+  'text-size-body1 h-x12 px-x4 py-x3 data-[state=inactive]:text-text-secondary border-b-0 leading-6 font-bold';
+
 const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]';
+// 오늘 `등원처리` 탭은 안내를 하단 내비게이션 위쪽 영역의 가운데에 두기 위해 아래 여백을 목록 쪽에서 둔다.
+const CHECK_TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)';
 
 /** 원장 일과 화면. 날짜 이동·등원 현황·`등원처리`/`등원목록` 탭을 조합한다. */
 const OwnerDailyPage = () => {
@@ -197,13 +202,15 @@ const OwnerDailyPage = () => {
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
         {fromHome ? <OwnerDailyReturnHomeBack onBack={handleBackToOwnerHome} /> : null}
-        <Header>
+        <Header className='h-[66px]' innerClassName='h-[66px]'>
           {fromHome ? (
             <Header.LeftSection>
               <Header.BackButton aria-label='이전' onClick={handleBackToOwnerHome} />
             </Header.LeftSection>
           ) : null}
-          <Header.Title>일과</Header.Title>
+          <Header.Title className='pl-x2 text-size-h2 leading-7 font-extrabold [color:var(--color-text-primary)]'>
+            일과
+          </Header.Title>
           <Header.RightSection>
             <NotificationBell
               hasUnread={hasUnreadNotification}
@@ -242,18 +249,26 @@ const OwnerDailyPage = () => {
             className='flex min-h-0 flex-1 flex-col'
             onValueChange={(value) => handleTabChange(value as OwnerDailyTab)}
           >
-            <TabsList>
-              <TabsTrigger value='attendance-check' data-testid='owner-daily-tab-attendance-check'>
+            <TabsList className='h-x12 border-b-0 shadow-[inset_0_-1px_0_0_var(--color-line-200)]'>
+              <TabsTrigger
+                value='attendance-check'
+                data-testid='owner-daily-tab-attendance-check'
+                className={TAB_TRIGGER_CLASS_NAME}
+              >
                 {OWNER_DAILY_TAB_LABEL['attendance-check']}
               </TabsTrigger>
-              <TabsTrigger value='attendance-list' data-testid='owner-daily-tab-today-attendance'>
+              <TabsTrigger
+                value='attendance-list'
+                data-testid='owner-daily-tab-today-attendance'
+                className={TAB_TRIGGER_CLASS_NAME}
+              >
                 {OWNER_DAILY_TAB_LABEL['attendance-list']}
               </TabsTrigger>
             </TabsList>
             <TabsContent
               ref={contentRef}
               value='attendance-check'
-              className={TAB_CONTENT_CLASS_NAME}
+              className={isToday ? CHECK_TAB_CONTENT_CLASS_NAME : TAB_CONTENT_CLASS_NAME}
               onScroll={handleContentScroll}
             >
               {isToday && candidates ? (

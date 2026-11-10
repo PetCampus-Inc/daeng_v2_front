@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
-import { ActionButton, Avatar, AvatarFallback, AvatarImage, Icon, RsvStatusBadge } from '@knockdog/ui';
+import { ActionButton, Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { getCheckInChip, isLateForCheckIn, type CheckInChip } from '@views/owner-daily-page/lib/ownerDailyAttendance';
 import { formatKstClock24 } from '@views/owner-daily-page/lib/ownerDailyTime';
@@ -22,11 +23,26 @@ interface OwnerDailyAttendanceCardProps {
   onCancelAbsent?: (item: AttendanceCheckinoutCandidate) => void;
 }
 
-const STATUS_CHIP_PROPS: Record<CheckInChip, { status: 'confirmed' | 'attended' | 'absence'; label: string }> = {
-  late: { status: 'confirmed', label: '지각' },
-  checkedIn: { status: 'attended', label: '등원완료' },
-  absent: { status: 'absence', label: '결석' },
+const STATUS_CHIP_PROPS: Record<CheckInChip, { status: StatusChipVariant; label: string }> = {
+  late: { status: 'late', label: '지각' },
+  checkedIn: { status: 'checkedIn', label: '등원완료' },
+  absent: { status: 'absent', label: '결석' },
 };
+
+const statusChipVariants = cva(
+  'caption1-semibold radius-r2 px-x2 inline-flex h-[25px] shrink-0 items-center justify-center',
+  {
+    variants: {
+      status: {
+        late: 'bg-fill-primary-50 text-text-accent',
+        checkedIn: 'bg-success-light text-success',
+        absent: 'bg-fill-secondary-100 text-fill-secondary-500',
+      },
+    },
+  }
+);
+
+type StatusChipVariant = NonNullable<VariantProps<typeof statusChipVariants>['status']>;
 
 /** 카드에 보여 줄 시간 문구. 등원 완료·하원 완료는 실제 등원 시각, 등원 전·결석은 예정 시간이다. */
 const getTimeLabel = (item: AttendanceCheckinoutCandidate): string => {
@@ -55,10 +71,13 @@ const OwnerDailyRequestMemo = ({ memo }: { memo: string }) => {
   );
 
   return (
-    <div role='group' aria-label='요청사항' className='bg-bg-50 radius-r3 flex items-start gap-2 p-3'>
+    <div role='group' aria-label='요청사항' className='bg-bg-50 radius-r4 py-x3 gap-x1 px-x5 flex items-start'>
       <p
         ref={measureOverflow}
-        className={cn('body2-regular text-text-secondary min-w-0 flex-1', !isExpanded && 'line-clamp-2')}
+        className={cn(
+          'body2-regular text-fill-secondary-500 min-w-0 flex-1 leading-[21px]',
+          !isExpanded && 'line-clamp-1'
+        )}
       >
         {memo}
       </p>
@@ -67,10 +86,10 @@ const OwnerDailyRequestMemo = ({ memo }: { memo: string }) => {
           type='button'
           aria-label='요청사항 더보기'
           aria-expanded={isExpanded}
-          className='flex shrink-0 cursor-pointer items-center justify-center'
+          className='h-x6 flex shrink-0 cursor-pointer items-center justify-center'
           onClick={() => setIsExpanded((prev) => !prev)}
         >
-          <Icon icon={isExpanded ? 'ChevronTop' : 'ChevronBottom'} className='text-text-secondary size-5' />
+          <Icon icon={isExpanded ? 'ChevronTop' : 'ChevronBottom'} className='text-fill-secondary-500 size-x5' />
         </button>
       ) : null}
     </div>
@@ -96,38 +115,51 @@ const OwnerDailyAttendanceCard = ({
   const memo = item.requestMemo?.trim() ?? '';
 
   return (
-    <li className='bg-bg-0 radius-r3 flex flex-col gap-3 p-4'>
-      <div className='flex items-start gap-3'>
-        <Avatar className='size-14'>
-          {item.profileImageUrl ? <AvatarImage src={item.profileImageUrl} alt='' className='object-cover' /> : null}
-          <AvatarFallback role='img' aria-label={`${item.name} 기본 프로필 이미지`} className='bg-bg-50'>
-            <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
-          </AvatarFallback>
-        </Avatar>
-        <div className='flex min-w-0 flex-1 flex-col gap-1'>
-          <div className='flex min-w-0 items-center gap-1'>
-            <span className='body1-extrabold text-text-primary min-w-0 truncate'>{item.name}</span>
-            {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-5 shrink-0' /> : null}
-            {item.firstAttendance ? <RsvStatusBadge status='confirmed'>첫등원</RsvStatusBadge> : null}
+    <li className='bg-bg-0 radius-r5 p-x5 gap-x3 flex flex-col'>
+      <div className='gap-x5 flex flex-col'>
+        <div className='gap-x3 flex items-center'>
+          <Avatar className='size-x10'>
+            {item.profileImageUrl ? <AvatarImage src={item.profileImageUrl} alt='' className='object-cover' /> : null}
+            <AvatarFallback role='img' aria-label={`${item.name} 기본 프로필 이미지`} className='bg-bg-50'>
+              <Icon icon='Paw' className='text-fill-secondary-400 size-x6' />
+            </AvatarFallback>
+          </Avatar>
+          <div className='gap-x1 flex min-w-0 flex-1 flex-col'>
+            <div className='gap-x1 flex min-w-0 items-center'>
+              <span className='h3-semibold text-text-primary min-w-0 truncate'>{item.name}</span>
+              {genderIcon ? <Icon icon={genderIcon} className='text-text-caption size-x4 shrink-0' /> : null}
+              {item.firstAttendance ? (
+                <span className='caption1-semibold bg-fill-primary-50 text-text-accent radius-r3 px-x2 inline-flex h-[26px] shrink-0 items-center'>
+                  첫등원
+                </span>
+              ) : null}
+            </div>
+            <DogMetaLine
+              breed={item.breed}
+              weightKg={item.weightKg}
+              birthYear={item.birthYear}
+              className='caption1-regular text-fill-secondary-500 leading-[18px]'
+            />
           </div>
-          <DogMetaLine
-            breed={item.breed}
-            weightKg={item.weightKg}
-            birthYear={item.birthYear}
-            className='body2-regular text-text-secondary'
-          />
         </div>
-        {chipProps ? <RsvStatusBadge status={chipProps.status}>{chipProps.label}</RsvStatusBadge> : null}
+        {memo ? <OwnerDailyRequestMemo memo={memo} /> : null}
+        {timeLabel || chipProps ? (
+          <div className='pl-x2 flex h-[25px] items-center justify-between'>
+            <p className={cn('label-semibold', isLate ? 'text-text-accent' : 'text-fill-secondary-500')}>{timeLabel}</p>
+            {chipProps ? (
+              <span className={statusChipVariants({ status: chipProps.status })}>{chipProps.label}</span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-      {memo ? <OwnerDailyRequestMemo memo={memo} /> : null}
-      {timeLabel ? <p className='body2-semibold text-text-primary'>{timeLabel}</p> : null}
-      <div className='border-line-100 flex gap-2 border-t pt-3'>
+      <div className='border-line-100 gap-x2 flex border-t pt-3'>
         {item.status === 'NOT_CHECKED_IN' ? (
           <>
             <ActionButton
               type='button'
               variant='tertiaryFill'
-              className='flex-1'
+              size='large'
+              className='flex-1 font-bold'
               disabled={isPending}
               onClick={() => onAbsent(item)}
             >
@@ -136,7 +168,8 @@ const OwnerDailyAttendanceCard = ({
             <ActionButton
               type='button'
               variant='primaryFill'
-              className='flex-1'
+              size='large'
+              className='flex-1 font-bold'
               disabled={isPending}
               onClick={() => onCheckIn(item)}
             >
@@ -144,11 +177,23 @@ const OwnerDailyAttendanceCard = ({
             </ActionButton>
           </>
         ) : item.status === 'ABSENT' ? (
-          <ActionButton type='button' variant='secondaryLine' onClick={() => onCancelAbsent?.(item)}>
+          <ActionButton
+            type='button'
+            variant='secondaryLine'
+            size='large'
+            className='font-bold'
+            onClick={() => onCancelAbsent?.(item)}
+          >
             결석 취소
           </ActionButton>
         ) : (
-          <ActionButton type='button' variant='secondaryLine' onClick={() => onCancelCheckIn?.(item)}>
+          <ActionButton
+            type='button'
+            variant='secondaryLine'
+            size='large'
+            className='font-bold'
+            onClick={() => onCancelCheckIn?.(item)}
+          >
             등원 취소
           </ActionButton>
         )}

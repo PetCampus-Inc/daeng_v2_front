@@ -1,4 +1,4 @@
-import { type ComponentProps } from 'react';
+import { Fragment, type ComponentProps } from 'react';
 
 import type { OwnerDailySummaryView } from '@views/owner-daily-page/lib/ownerDailySummary';
 import { OwnerDailyDateNav } from '@views/owner-daily-page/ui/OwnerDailyDateNav';
@@ -11,28 +11,32 @@ interface OwnerDailySummarySectionProps {
 
 const OwnerDailySummarySection = ({ dateNav, summaryView }: OwnerDailySummarySectionProps) => {
   return (
-    <section className='bg-bg-0 flex w-full flex-col gap-4 pt-4 pb-4'>
-      <div className='flex h-[26px] w-full gap-4 px-4'>
+    <section className='bg-bg-0 flex w-full flex-col'>
+      <div className='px-x6 py-x5 flex w-full'>
         <OwnerDailyDateNav {...dateNav} />
       </div>
       {summaryView ? (
-        <div className='flex w-full flex-col gap-3 px-4'>
-          <section aria-label='등원 현황' className='bg-bg-50 radius-r3 px-4 py-3'>
-            <p className='body1-bold text-text-primary'>{summaryView.bannerText}</p>
+        <div className='pt-x1 px-x4 pb-x5 gap-x4 flex w-full flex-col'>
+          <section aria-label='등원 현황' className='bg-fill-primary-50 radius-r5 px-x5 py-x4'>
+            <p className='h3-semibold text-text-primary'>{summaryView.bannerText}</p>
           </section>
           {summaryView.stats.length > 0 ? (
-            <div className='bg-bg-50 radius-r3 flex w-full justify-between py-4'>
-              {summaryView.stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  role='group'
-                  aria-label={stat.label}
-                  className='flex h-14 flex-1 flex-col items-center justify-center gap-1'
-                >
-                  <span className='caption1-regular text-text-secondary text-center leading-[18px]'>{stat.label}</span>
-                  <span className='h1-extrabold text-text-primary text-center'>{stat.count}</span>
-                </div>
-              ))}
+            <div className='bg-bg-50 radius-r3 px-x4 py-x0_5 flex w-full'>
+              <div className='py-x3 flex w-full items-center justify-between'>
+                {summaryView.stats.map((stat, index) => (
+                  <Fragment key={stat.label}>
+                    {index > 0 ? <span aria-hidden className='bg-line-100 h-x10 w-px shrink-0' /> : null}
+                    <div
+                      role='group'
+                      aria-label={stat.label}
+                      className='flex w-[100px] shrink-0 flex-col items-center justify-center'
+                    >
+                      <span className='h1-extrabold text-text-primary text-center'>{stat.count}</span>
+                      <span className='body2-regular text-fill-secondary-500 text-center'>{stat.label}</span>
+                    </div>
+                  </Fragment>
+                ))}
+              </div>
             </div>
           ) : null}
         </div>

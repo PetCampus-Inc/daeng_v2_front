@@ -14,9 +14,9 @@ function OwnerDailyNoUncheckedState() {
 function OwnerDailySearchEmptyState() {
   return (
     <div className='flex min-h-0 flex-1 items-center justify-center text-center'>
-      <div className='flex h-14 w-full flex-col items-center gap-1'>
-        <p className='h2-extrabold text-text-primary w-full'>검색된 원생이 없어요</p>
-        <p className='body1-regular text-text-primary w-full'>다른 원생을 검색해보세요.</p>
+      <div className='gap-x1 flex w-full flex-col items-center'>
+        <p className='h2-semibold text-text-primary w-full'>검색된 원생이 없어요</p>
+        <p className='body2-regular text-fill-secondary-500 w-full'>다른 원생을 검색해보세요.</p>
       </div>
     </div>
   );
@@ -78,7 +78,9 @@ function OwnerDailyNotConfiguredState({ onSetUpClick }: { onSetUpClick: () => vo
     <div className='bg-bg-50 flex min-h-0 flex-1 flex-col items-center justify-center gap-5 px-4 text-center'>
       <div className='flex flex-col items-center gap-1'>
         <p className='h2-extrabold text-text-primary'>등원 가능 시간을 먼저 설정해 주세요</p>
-        <p className='body1-regular text-text-secondary'>등원 가능 시간을 설정해야 보호자가 등원 예약을 할 수 있어요.</p>
+        <p className='body1-regular text-text-secondary'>
+          등원 가능 시간을 설정해야 보호자가 등원 예약을 할 수 있어요.
+        </p>
       </div>
       <ActionButton type='button' variant='primaryFill' size='medium' onClick={onSetUpClick}>
         설정하기
