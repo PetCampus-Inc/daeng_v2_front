@@ -49,7 +49,7 @@ function SocialAccountEmailField({
       {provider ? (
         <Icon
           icon={SOCIAL_PROVIDER_ICONS[provider]}
-          className={provider === 'APPLE' ? 'size-5 text-text-tertiary' : 'size-5'}
+          className={provider === 'APPLE' ? 'mr-1 size-5 text-text-tertiary' : 'mr-1 size-5'}
         />
       ) : null}
       <span className='body1-regular text-text-secondary truncate'>
@@ -164,61 +164,61 @@ function AccountSection({
   const guardianSocialEmail = socialEmail ?? socialUser?.email ?? '';
 
   return (
-    <div className='px-4 py-5'>
-      <div className='flex flex-col'>
-        <section className='flex flex-col gap-4 pb-4'>
-          <h2 className='body2-medium text-text-secondary'>내 정보</h2>
-          {headerAddon}
-          <div>
-            {guardianMenuItems.map((item) => (
+    <div className='bg-bg-0'>
+      <section className='flex flex-col gap-4 px-4 pt-4 pb-7'>
+        <h2 className='body2-medium text-text-secondary px-1 leading-[18px]'>내 정보</h2>
+        {headerAddon}
+        <div>
+          {guardianMenuItems.map((item, index) => (
+            <div key={item.label}>
               <button
-                key={item.label}
                 type='button'
-                className='border-line-100 flex w-full items-center gap-2 border-b py-4 text-left last:border-b-0'
+                className='flex w-full items-center gap-2 py-2 pr-1 pl-2 text-left'
                 onClick={() => item.onClick?.()}
               >
-                <span className='bg-primitive-orange-50 radius-r2 flex size-12 shrink-0 items-center justify-center'>
+                <span className='bg-primitive-orange-50 radius-r2 flex size-11.5 shrink-0 items-center justify-center'>
                   <Icon icon={item.icon} className='text-primitive-orange-300 size-6' />
                 </span>
-                <span className='flex min-w-0 flex-1 flex-col gap-1'>
+                <span className='ml-1 flex min-w-0 flex-1 flex-col gap-1'>
                   <span className='body1-medium text-text-primary'>{item.label}</span>
-                  <span className='caption1-regular text-primitive-neutral-500'>{item.caption}</span>
+                  <span className='caption1-regular text-primitive-neutral-500 leading-[18px]'>{item.caption}</span>
                 </span>
                 <Icon icon='ChevronRight' className='text-primitive-neutral-500 size-4' />
               </button>
-            ))}
-          </div>
-        </section>
-
-        <Divider />
-
-        <section className='mt-5 flex flex-col gap-4'>
-          <h2 className='body2-medium text-text-secondary'>계정 정보</h2>
-          <div>
-            <div className='flex h-[76px] items-end justify-between gap-4 py-4'>
-              <div className='flex flex-col'>
-                <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
-                <span className='caption1-regular text-primitive-neutral-500'>{ttokIdDescription}</span>
-              </div>
-              <button
-                type='button'
-                className='flex items-center gap-2'
-                aria-label={`${ttokIdLabel} 복사`}
-                onClick={handleCopyUserId}
-              >
-                <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
-                <Icon icon='Copy' className='size-5 text-text-secondary' />
-              </button>
+              {index < guardianMenuItems.length - 1 ? <div className='bg-line-100 my-2 h-px' /> : null}
             </div>
+          ))}
+        </div>
+      </section>
 
-            <SocialAccountEmailField
-              provider={guardianSocialProvider}
-              email={guardianSocialEmail}
-              surfaceClassName='radius-r3 bg-bg-50'
-            />
+      <Divider size='thick' />
+
+      <section className='flex flex-col gap-4 px-4 pt-5 pb-7'>
+        <h2 className='body2-medium text-text-secondary px-1 leading-[18px]'>계정 정보</h2>
+        <div className='flex flex-col gap-2'>
+          <div className='flex h-[62px] items-center justify-between gap-4 px-3 py-2'>
+            <div className='flex flex-col'>
+              <span className='body1-medium text-text-primary'>{ttokIdLabel}</span>
+              <span className='caption1-regular text-primitive-neutral-500'>{ttokIdDescription}</span>
+            </div>
+            <button
+              type='button'
+              className='flex items-center gap-2'
+              aria-label={`${ttokIdLabel} 복사`}
+              onClick={handleCopyUserId}
+            >
+              <span className='h3-semibold text-text-primary'>#{accountInfo.userId}</span>
+              <Icon icon='Copy' className='text-text-secondary size-5' />
+            </button>
           </div>
-        </section>
-      </div>
+
+          <SocialAccountEmailField
+            provider={guardianSocialProvider}
+            email={guardianSocialEmail}
+            surfaceClassName='radius-r3 bg-bg-50'
+          />
+        </div>
+      </section>
     </div>
   );
 }

@@ -10,7 +10,7 @@ function NoDogPrompt({ nickname, showRegistrationEmptyState = false, onAddDog }:
   if (showRegistrationEmptyState) {
     return (
       <div className='flex w-full flex-col gap-4'>
-        <h2 className='body2-medium text-text-secondary'>반려견 프로필</h2>
+        <h2 className='body2-medium text-text-secondary leading-[18px]'>반려견 프로필</h2>
         <div className='flex flex-col items-center gap-4 py-4'>
           <div className='flex flex-col items-center gap-1 text-center'>
             <h1 className='h3-extrabold text-text-primary'>등록한 강아지가 없어요</h1>
