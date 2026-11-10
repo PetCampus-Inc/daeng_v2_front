@@ -222,3 +222,38 @@ describe('등원목록 탭 — 필터', () => {
     expect(screen.queryByText('선택한 조건에 맞는 원생이 없어요')).toBeNull();
   });
 });
+
+describe('연결 해제된 원생', () => {
+  test('당일 연결이 해제된 원생은 등원처리 탭에 보이지 않는다', async () => {
+    fakeAttendanceServer.seedDay(TODAY_KEY, [
+      createFakePet({ name: '콩이', status: 'NOT_CHECKED_IN' }),
+      createFakePet({ name: '별이', status: 'CHECKED_IN', checkInAt: CHECK_IN_AT, disconnected: true }),
+    ]);
+    renderOwnerDaily(<OwnerDailyPage />);
+
+    await findCard('콩이');
+    expect(getCards()).toHaveLength(1);
+    expect(getCards().some((card) => card.textContent?.includes('별이'))).toBe(false);
+  });
+
+  test('당일 등원 이력이 있는 연결 해제 원생은 등원목록에 보이지만 카드를 눌러도 이동하지 않고 하단 버튼이 없다', async () => {
+    const connectedPet = createFakePet({ name: '콩이', status: 'CHECKED_IN', checkInAt: CHECK_IN_AT });
+    fakeAttendanceServer.seedDay(TODAY_KEY, [
+      connectedPet,
+      createFakePet({ name: '별이', status: 'CHECKED_IN', checkInAt: CHECK_IN_AT, disconnected: true }),
+    ]);
+    await openListTab();
+
+    const disconnectedCard = await findCard('별이');
+    expect(within(disconnectedCard).getByText('연결해제')).toBeTruthy();
+    expect(within(disconnectedCard).queryByRole('button', { name: '하원처리' })).toBeNull();
+    expect(within(disconnectedCard).queryByRole('button', { name: '알림장 작성하기' })).toBeNull();
+
+    await user.click(within(disconnectedCard).getByText('별이'));
+    expect(pushMock).not.toHaveBeenCalled();
+
+    // 연결된 원생의 카드는 눌렀을 때 이동한다.
+    await user.click(within(await findCard('콩이')).getByText('콩이'));
+    expect(pushMock).toHaveBeenCalledTimes(1);
+  });
+});
