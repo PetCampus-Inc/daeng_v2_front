@@ -22,7 +22,7 @@ function GuardianKindergartenHistoryPage() {
   const hasNoHistory = hasNoPet || (!isPending && items.length === 0);
 
   return (
-    <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col'>
       <div className='shrink-0'>
         <Header>
           <Header.BackButton />
@@ -43,9 +43,9 @@ function GuardianKindergartenHistoryPage() {
           ) : hasNoHistory ? (
             <GuardianConnectionHistoryEmpty />
           ) : (
-            <div className='px-x4 flex flex-col gap-6 pt-5 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
-              <section aria-label={content.currentSectionTitle} className='flex flex-col gap-3'>
-                <h2 className='h3-extrabold text-text-primary'>{content.currentSectionTitle}</h2>
+            <div className='px-x4 flex flex-col gap-7 pt-5 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
+              <section aria-label={content.currentSectionTitle} className='flex flex-col gap-2.5'>
+                <h2 className='body2-bold text-text-secondary'>{content.currentSectionTitle}</h2>
                 {currentItem ? (
                   <GuardianConnectionHistoryCard
                     item={currentItem}
@@ -60,10 +60,10 @@ function GuardianKindergartenHistoryPage() {
                 )}
               </section>
 
-              <section aria-label={content.previousSectionTitle} className='flex flex-col gap-3'>
-                <h2 className='h3-extrabold text-text-primary flex items-center gap-1'>
+              <section aria-label={content.previousSectionTitle} className='flex flex-col gap-2.5'>
+                <h2 className='body2-semibold text-text-secondary flex items-center gap-1.5'>
                   {content.previousSectionTitle}
-                  <span className='text-text-accent'>{previousItems.length}</span>
+                  <span className='text-text-caption'>{previousItems.length}</span>
                 </h2>
                 {previousItems.length > 0 ? (
                   <ul className='flex flex-col gap-3'>

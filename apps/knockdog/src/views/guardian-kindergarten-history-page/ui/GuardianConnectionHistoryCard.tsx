@@ -21,6 +21,8 @@ interface GuardianConnectionHistoryCardProps {
 }
 
 interface DisconnectButtonProps {
+  /** 리뷰 작성 버튼과 나란히 놓일 때는 칸을 가득 채우고, 혼자일 때는 고정 너비로 가운데에 둔다 */
+  isAlone: boolean;
   kindergartenName: string;
   petName: string;
   placeId: string | null;
@@ -30,6 +32,7 @@ interface DisconnectButtonProps {
 }
 
 function DisconnectButton({
+  isAlone,
   kindergartenName,
   petName,
   placeId,
@@ -50,8 +53,9 @@ function DisconnectButton({
   return (
     <ActionButton
       type='button'
-      variant='secondaryLine'
+      variant='secondaryFill'
       size='medium'
+      className={cn('body2-bold', isAlone && 'w-[174px]')}
       disabled={isDisconnecting}
       onClick={() => {
         void handleDisconnectClick();
@@ -95,12 +99,7 @@ function GuardianConnectionHistoryCard({
   };
 
   return (
-    <div
-      className={cn(
-        'radius-r3 flex w-full flex-col gap-4 p-4',
-        isCurrent ? 'bg-bg-0 border-line-200 border' : 'bg-bg-50'
-      )}
-    >
+    <div className={cn('radius-r3 flex w-full flex-col gap-4 p-4', isCurrent ? 'bg-bg-0 shadow-sm' : 'bg-bg-100')}>
       <div className='flex w-full items-start gap-2'>
         <div className='gap-x2 flex min-w-0 flex-1 items-start'>
           <div className='relative size-11 shrink-0 overflow-hidden rounded-lg'>
@@ -137,17 +136,12 @@ function GuardianConnectionHistoryCard({
         </span>
       </div>
 
-      <div
-        className={cn(
-          'radius-r2 flex w-full items-center justify-center gap-1 overflow-hidden px-4 py-2',
-          isCurrent ? 'bg-fill-primary-50' : 'bg-bg-100'
-        )}
-      >
+      <div className='bg-bg-50 radius-r2 flex w-full items-center gap-1 overflow-hidden px-4 py-2'>
         {isCurrent ? (
           <>
             <span className='body2-semibold text-text-primary'>{connectedLabel}</span>
             <span className='body2-semibold text-text-primary'>~</span>
-            <span className='body2-bold text-text-accent'>{disconnectedLabel}</span>
+            <span className='body2-bold text-text-primary'>{disconnectedLabel}</span>
           </>
         ) : (
           <span className='body2-semibold text-text-secondary'>
@@ -160,6 +154,7 @@ function GuardianConnectionHistoryCard({
         <div className='flex gap-2'>
           <div className='min-w-0 flex-1'>
             <DisconnectButton
+              isAlone={false}
               kindergartenName={item.name}
               petName={petName}
               placeId={item.placeId}
@@ -175,14 +170,17 @@ function GuardianConnectionHistoryCard({
       ) : null}
 
       {isCurrent && !canWriteReview ? (
-        <DisconnectButton
-          kindergartenName={item.name}
-          petName={petName}
-          placeId={item.placeId}
-          schoolPetMembershipId={item.schoolPetMembershipId}
-          onDisconnected={onDisconnected}
-          onHistoryOutdated={onHistoryOutdated}
-        />
+        <div className='flex justify-center'>
+          <DisconnectButton
+            isAlone
+            kindergartenName={item.name}
+            petName={petName}
+            placeId={item.placeId}
+            schoolPetMembershipId={item.schoolPetMembershipId}
+            onDisconnected={onDisconnected}
+            onHistoryOutdated={onHistoryOutdated}
+          />
+        </div>
       ) : null}
 
       {!isCurrent && canWriteReview ? <WriteReviewButton onClick={handleWriteReview} /> : null}
