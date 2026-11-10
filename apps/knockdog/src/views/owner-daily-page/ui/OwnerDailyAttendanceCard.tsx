@@ -157,4 +157,4 @@ const OwnerDailyAttendanceCard = ({
   );
 };
 
-export { OwnerDailyAttendanceCard };
+export { OwnerDailyAttendanceCard, OwnerDailyRequestMemo };

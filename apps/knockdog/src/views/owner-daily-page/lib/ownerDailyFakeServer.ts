@@ -26,7 +26,8 @@ import { getKstDateKey } from '@shared/lib/calendar-date';
  *    허용되지 않는 상태면 `ATTENDANCE_CHECKINOUT-409-1`, 예약이 없으면 `ATTENDANCE_CHECKINOUT-409-4`로 거절한다(ApiError).
  *    등원 취소는 이미 하원 처리됐으면 `409-2`, 알림장이 발송됐으면 `409-3`으로 거절한다(하원 처리가 먼저).
  *    등원목록 조회는 `filter`(재원중·발송전)를 서버처럼 적용하고, 연결 해제(`disconnected`)·알림장 발송(`attendanceRecordSent`) 원생을 시드할 수 있다.
- * 4. `failNextAction(이름, 코드)`로 다음 한 번의 처리 요청을 실패시키고, `holdActions()`로 처리 요청을 붙잡아 둘 수 있다.
+ * 4. `failNextRead(이름)`으로 다음 한 번의 조회(현황·등원 대상·등원목록)를 실패시킨다.
+ * 5. `failNextAction(이름, 코드)`로 다음 한 번의 처리 요청을 실패시키고, `holdActions()`로 처리 요청을 붙잡아 둘 수 있다.
  */
 
 interface FakePet {
@@ -58,12 +59,15 @@ type ActionName =
   | 'postAttendanceCancelAbsent'
   | 'postAttendanceCancelCheckOut';
 
+type ReadName = 'summary' | 'candidates' | 'today';
+
 const DEFAULT_SETTINGS: FakeServerSettings = { dailyCapacity: null, reservationSettingConfigured: true };
 
 let nextPetId = 1;
 let settings: FakeServerSettings = { ...DEFAULT_SETTINGS };
 let petsByDate = new Map<string, FakePet[]>();
 let injectedFailures = new Map<ActionName, string>();
+let injectedReadFailures = new Set<ReadName>();
 let heldActions: Promise<void> | null = null;
 
 /** 가짜 원생 한 명을 만든다. 넘기지 않은 값은 등원 전·예약 09:00 기본값이다. */
@@ -119,7 +123,20 @@ const getPets = (dateKey: string) => petsByDate.get(dateKey) ?? [];
 
 const createResponse = <T>(data: T) => ({ status: 200, code: 'OK', message: '', data });
 
+/** 서버가 주는 오류와 같은 모양(ApiError)으로 거절한다. */
+const rejectWith = (status: number, code: string) => Promise.reject(new ApiError<string>(status, code, code));
+
+/** `failNextRead`로 예약된 조회면 한 번만 실패시킨다. 아니면 null이다. */
+const takeInjectedReadFailure = (name: ReadName) => {
+  if (!injectedReadFailures.delete(name)) return null;
+
+  return rejectWith(500, 'UNKNOWN_ERROR');
+};
+
 const getSummary = ({ date }: { date?: string } = {}) => {
+  const failure = takeInjectedReadFailure('summary');
+  if (failure) return failure;
+
   const pets = getPets(date ?? getTodayKey());
   const countOf = (statuses: CheckinoutStatus[]) => pets.filter((pet) => statuses.includes(pet.status)).length;
 
@@ -137,6 +154,9 @@ const getSummary = ({ date }: { date?: string } = {}) => {
 };
 
 const getCandidates = ({ date }: { date?: string } = {}) => {
+  const failure = takeInjectedReadFailure('candidates');
+  if (failure) return failure;
+
   const pets = getPets(date ?? getTodayKey()).filter((pet) => !pet.disconnected);
   // 서버가 정렬해서 준다: 등원 전 원생이 위, 처리한 원생이 아래. 각 묶음은 예정 시간 → 이름순
   const notCheckedIn = pets.filter((pet) => pet.status === 'NOT_CHECKED_IN').sort(compareByTimeAndName);
@@ -147,6 +167,9 @@ const getCandidates = ({ date }: { date?: string } = {}) => {
 };
 
 const getToday = ({ date, filter }: { date?: string; filter?: TodayAttendanceFilter } = {}) => {
+  const failure = takeInjectedReadFailure('today');
+  if (failure) return failure;
+
   const dateKey = date ?? getTodayKey();
   const isPast = dateKey < getTodayKey();
   const pets = getPets(dateKey)
@@ -173,9 +196,6 @@ const getToday = ({ date, filter }: { date?: string; filter?: TodayAttendanceFil
 
   return Promise.resolve(createResponse(data));
 };
-
-/** 서버가 주는 오류와 같은 모양(ApiError)으로 거절한다. */
-const rejectWith = (status: number, code: string) => Promise.reject(new ApiError<string>(status, code, code));
 
 /** 처리 API 하나를 만든다. 오늘 원생의 상태를 `nextStatus`로 바꾼다. 허용되지 않는 상태에서는 409로 거절한다. */
 const createAction = (
@@ -232,6 +252,7 @@ const fakeAttendanceServer = {
     settings = { ...DEFAULT_SETTINGS };
     petsByDate = new Map();
     injectedFailures = new Map();
+    injectedReadFailures = new Set();
     heldActions = null;
     Object.values(fakeAttendanceApi).forEach((fn) => fn.mockClear());
   },
@@ -246,6 +267,10 @@ const fakeAttendanceServer = {
   /** 그 처리 API가 다음에 한 번 받는 요청을 `code` 오류(ApiError)로 실패시킨다. */
   failNextAction: (name: ActionName, code = 'UNKNOWN_ERROR') => {
     injectedFailures.set(name, code);
+  },
+  /** 그 조회가 다음에 한 번 받는 요청을 오류(ApiError)로 실패시킨다. */
+  failNextRead: (name: ReadName) => {
+    injectedReadFailures.add(name);
   },
   /** 처리 요청을 `release()`를 부를 때까지 붙잡아 둔다. (요청 중 상태 확인용) */
   holdActions: () => {

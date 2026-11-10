@@ -14,9 +14,12 @@ import { useOwnerDailyPage } from '@views/owner-daily-page/model/useOwnerDailyPa
 import { OwnerDailyAttendanceCheckTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCheckTab';
 import { OwnerDailyAttendanceListTab } from '@views/owner-daily-page/ui/OwnerDailyAttendanceListTab';
 import {
+  OwnerDailyFutureNoticeState,
+  OwnerDailyNoReservationState,
   OwnerDailyPastCheckNoticeState,
   OwnerDailyPastNoRecordState,
 } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
+import { OwnerDailyFutureListTab } from '@views/owner-daily-page/ui/OwnerDailyFutureListTab';
 import { OwnerDailyPastListTab } from '@views/owner-daily-page/ui/OwnerDailyPastListTab';
 import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
@@ -68,6 +71,7 @@ const OwnerDailyPage = () => {
     isNextDayDisabled,
     summary,
     candidates,
+    isNoReservation,
     todayList,
     isLoading,
     isError,
@@ -106,8 +110,11 @@ const OwnerDailyPage = () => {
   // 지난 날짜에 등원·결석 기록이 하나도 없으면 날짜 줄과 안내만 보여 준다.
   const isPast = dayKind === 'past';
   const isPastNoRecord = isPast && todayList?.counts.all === 0;
+  const isFuture = dayKind === 'future';
   const summaryView =
-    summary && !isLoading && !isError && !isPastNoRecord ? toOwnerDailySummaryView(summary, dayKind) : null;
+    summary && !isLoading && !isError && !isPastNoRecord && !isNoReservation
+      ? toOwnerDailySummaryView(summary, dayKind)
+      : null;
 
   const handleBackToOwnerHome = useCallback(() => {
     if (isNativeWebView()) {
@@ -217,6 +224,8 @@ const OwnerDailyPage = () => {
           </div>
         ) : isPastNoRecord ? (
           <OwnerDailyPastNoRecordState />
+        ) : isNoReservation ? (
+          <OwnerDailyNoReservationState isFuture={isFuture} />
         ) : (
           <Tabs
             value={selectedTab}
@@ -254,6 +263,7 @@ const OwnerDailyPage = () => {
                 />
               ) : null}
               {isPast ? <OwnerDailyPastCheckNoticeState /> : null}
+              {isFuture ? <OwnerDailyFutureNoticeState /> : null}
             </TabsContent>
             <TabsContent
               ref={contentRef}
@@ -269,6 +279,7 @@ const OwnerDailyPage = () => {
                   onMemberClick={handlePastMemberClick}
                 />
               ) : null}
+              {isFuture && candidates ? <OwnerDailyFutureListTab items={candidates} dateKey={selectedDateKey} /> : null}
               {todayList && !isPast ? (
                 <OwnerDailyAttendanceListTab
                   todayList={todayList}

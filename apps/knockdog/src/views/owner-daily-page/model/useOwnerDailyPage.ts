@@ -95,6 +95,10 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
     setTodayFilter(undefined);
   };
 
+  const candidates = hasCandidates && !candidatesQuery.isPlaceholderData ? candidatesQuery.data?.items : undefined;
+  // 오늘·미래 날짜에 예약한 원생이 하나도 없다. 조회 중이거나 실패하면 candidates가 없어 false다.
+  const isNoReservation = candidates?.length === 0;
+
   return {
     now,
     today,
@@ -107,7 +111,8 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
     isPrevDayDisabled,
     isNextDayDisabled,
     summary: summaryQuery.data,
-    candidates: hasCandidates && !candidatesQuery.isPlaceholderData ? candidatesQuery.data?.items : undefined,
+    candidates,
+    isNoReservation,
     todayList: hasTodayList ? todayListQuery.data : undefined,
     isLoading,
     isError,
