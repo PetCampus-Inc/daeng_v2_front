@@ -1,5 +1,5 @@
-import { getGuardianTicketCard, getGuardianTicketManage } from '../api/guardianTicket';
-import { toGuardianTicketCard, toGuardianTicketManage } from '../model/guardianTicket';
+import { getGuardianTicketCard, getGuardianTicketDetail, getGuardianTicketManage } from '../api/guardianTicket';
+import { toGuardianTicketCard, toGuardianTicketDetail, toGuardianTicketManage } from '../model/guardianTicket';
 
 const GUARDIAN_TICKET_KEY = 'guardian-ticket';
 
@@ -7,6 +7,7 @@ const guardianTicketQueryKeys = {
   all: [GUARDIAN_TICKET_KEY] as const,
   card: (petId: string) => [GUARDIAN_TICKET_KEY, 'card', petId] as const,
   manage: (petId: string) => [GUARDIAN_TICKET_KEY, 'manage', petId] as const,
+  detail: (petId: string, ticketId: string) => [GUARDIAN_TICKET_KEY, 'detail', petId, ticketId] as const,
 };
 
 const createTicketCardOptions = (petId: string) => ({
@@ -21,4 +22,10 @@ const createTicketManageOptions = (petId: string) => ({
   select: toGuardianTicketManage,
 });
 
-export { createTicketCardOptions, createTicketManageOptions, guardianTicketQueryKeys };
+const createTicketDetailOptions = (petId: string, ticketId: string) => ({
+  queryKey: guardianTicketQueryKeys.detail(petId, ticketId),
+  queryFn: () => getGuardianTicketDetail(petId, ticketId),
+  select: toGuardianTicketDetail,
+});
+
+export { createTicketCardOptions, createTicketDetailOptions, createTicketManageOptions, guardianTicketQueryKeys };

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseGuardianTicketCard, parseGuardianTicketManage, toGuardianTicketCard, toGuardianTicketManage } from './guardianTicket';
+import {
+  parseGuardianTicketCard,
+  parseGuardianTicketDetail,
+  parseGuardianTicketManage,
+  toGuardianTicketCard,
+  toGuardianTicketDetail,
+  toGuardianTicketManage,
+} from './guardianTicket';
 
 const ticket = {
   ticketId: 12,
@@ -83,5 +90,71 @@ describe('toGuardianTicketManage', () => {
       status: 'onHold',
       hold: { startsOn: '2026-10-30', endsOn: '2026-11-10' },
     });
+  });
+});
+
+describe('toGuardianTicketDetail', () => {
+  it('사용 취소는 취소선 내역으로, 충전 시작일은 이용권 시작일로 둔다', () => {
+    const detail = toGuardianTicketDetail(
+      parseGuardianTicketDetail({
+        data: {
+          ticket,
+          history: [
+            {
+              type: 'USE',
+              occurredAt: [2026, 11, 3, 9, 30, 0],
+              countDelta: -1,
+              remainingAfter: 7,
+              reservedForDate: '2026-11-03',
+              canceled: true,
+              holdEndDate: null,
+              newExpiresOn: null,
+            },
+            {
+              type: 'CHARGE',
+              occurredAt: '2026-08-01T10:00:00',
+              countDelta: 10,
+              remainingAfter: 10,
+              reservedForDate: null,
+              canceled: false,
+              holdEndDate: null,
+              newExpiresOn: null,
+            },
+          ],
+        },
+      })
+    );
+
+    expect(detail.ticket.id).toBe('12');
+    expect(detail.history[0]).toMatchObject({
+      occurredAt: '2026-11-03T09:30:00',
+      kind: 'use',
+      isVoided: true,
+      detailOn: '2026-11-03',
+      remainingCount: 7,
+    });
+    expect(detail.history[1]).toMatchObject({ kind: 'charge', count: 10, detailOn: '2026-08-01' });
+  });
+
+  it('슬래시 등원일은 거절한다', () => {
+    expect(() =>
+      parseGuardianTicketDetail({
+        data: {
+          ticket,
+          history: [
+            {
+              type: 'USE',
+              occurredAt: '2026-11-03T09:30:00',
+              countDelta: -1,
+              remainingAfter: 7,
+              reservedForDate: '2026/11/03',
+              canceled: false,
+              holdEndDate: null,
+              newExpiresOn: null,
+            },
+          ],
+        },
+      })
+    ).toThrow();
   });
 });

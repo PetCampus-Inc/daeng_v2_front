@@ -55,6 +55,32 @@ interface GuardianTicketManage {
   expired: GuardianTicket[];
 }
 
+const HISTORY_KIND = {
+  CHARGE: 'charge',
+  USE: 'use',
+  USE_CANCEL: 'cancel',
+  HOLD: 'hold',
+  HOLD_RELEASE: 'release',
+  EXTEND: 'extend',
+} as const;
+
+type GuardianTicketHistoryKind = (typeof HISTORY_KIND)[keyof typeof HISTORY_KIND];
+
+interface GuardianTicketHistory {
+  id: string;
+  occurredAt: string;
+  kind: GuardianTicketHistoryKind;
+  count: number | null;
+  remainingCount: number;
+  detailOn: string | null;
+  isVoided: boolean;
+}
+
+interface GuardianTicketDetail {
+  ticket: GuardianTicket;
+  history: GuardianTicketHistory[];
+}
+
 const idSchema = z.union([z.number().int(), z.string()]);
 
 const toDateKey = (value: string | number[] | null | undefined, ctx: z.RefinementCtx) => {
@@ -140,11 +166,64 @@ const ticketManageResponseSchema = z.object({
   }),
 });
 
+const toDateTimeKey = (value: string | number[], ctx: z.RefinementCtx) => {
+  if (typeof value === 'string') {
+    const matched = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2}))?/.exec(value);
+    if (matched) return `${matched[1]}T${matched[2]}:${matched[3] ?? '00'}`;
+  }
+
+  if (Array.isArray(value) && value.length >= 3) {
+    const year = value[0];
+    const month = value[1];
+    const day = value[2];
+    const hour = value[3] ?? 0;
+    const minute = value[4] ?? 0;
+    const second = value[5] ?? 0;
+    if (
+      typeof year === 'number' &&
+      typeof month === 'number' &&
+      typeof day === 'number' &&
+      typeof hour === 'number' &&
+      typeof minute === 'number' &&
+      typeof second === 'number'
+    ) {
+      const pad = (part: number) => String(part).padStart(2, '0');
+      return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}`;
+    }
+  }
+
+  ctx.addIssue({ code: 'custom', message: '날짜 형식이 올바르지 않아요' });
+  return z.NEVER;
+};
+
+const dateTimeSchema = z.union([z.string(), z.array(z.number())]).transform(toDateTimeKey);
+
+const historyItemSchema = z.object({
+  type: z.enum(['CHARGE', 'USE', 'USE_CANCEL', 'HOLD', 'HOLD_RELEASE', 'EXTEND']),
+  occurredAt: dateTimeSchema,
+  countDelta: z.number().int().nullable(),
+  remainingAfter: z.number().int(),
+  reservedForDate: nullableDateSchema,
+  canceled: z.boolean(),
+  holdEndDate: nullableDateSchema,
+  newExpiresOn: nullableDateSchema,
+});
+
+const ticketDetailResponseSchema = z.object({
+  data: z.object({
+    ticket: ticketDtoSchema,
+    history: z.array(historyItemSchema),
+  }),
+});
+
 type TicketDto = z.infer<typeof ticketDtoSchema>;
+type HistoryItemDto = z.infer<typeof historyItemSchema>;
 
 const parseGuardianTicketCard = (response: unknown) => ticketCardResponseSchema.parse(response).data;
 
 const parseGuardianTicketManage = (response: unknown) => ticketManageResponseSchema.parse(response).data;
+
+const parseGuardianTicketDetail = (response: unknown) => ticketDetailResponseSchema.parse(response).data;
 
 const toGuardianTicket = (dto: TicketDto): GuardianTicket => ({
   id: String(dto.ticketId),
@@ -174,5 +253,46 @@ const toGuardianTicketManage = (dto: ReturnType<typeof parseGuardianTicketManage
   expired: dto.expired.map(toGuardianTicket),
 });
 
-export { parseGuardianTicketCard, parseGuardianTicketManage, toGuardianTicketCard, toGuardianTicketManage };
-export type { GuardianTicket, GuardianTicketCard, GuardianTicketManage, GuardianTicketStatus };
+const historyDetailOn = (item: HistoryItemDto, startsOn: string) => {
+  if (item.type === 'CHARGE') return startsOn;
+  if (item.type === 'USE' || item.type === 'USE_CANCEL') return item.reservedForDate;
+  if (item.type === 'HOLD') return item.holdEndDate;
+  if (item.type === 'EXTEND') return item.newExpiresOn;
+  return null;
+};
+
+const toGuardianTicketHistory = (item: HistoryItemDto, index: number, startsOn: string): GuardianTicketHistory => ({
+  id: `${item.occurredAt}-${item.type}-${index}`,
+  occurredAt: item.occurredAt,
+  kind: HISTORY_KIND[item.type],
+  count: item.countDelta,
+  remainingCount: item.remainingAfter,
+  detailOn: historyDetailOn(item, startsOn),
+  isVoided: item.canceled,
+});
+
+const toGuardianTicketDetail = (dto: ReturnType<typeof parseGuardianTicketDetail>): GuardianTicketDetail => {
+  const ticket = toGuardianTicket(dto.ticket);
+
+  return {
+    ticket,
+    history: dto.history.map((item, index) => toGuardianTicketHistory(item, index, ticket.startsOn)),
+  };
+};
+
+export {
+  parseGuardianTicketCard,
+  parseGuardianTicketDetail,
+  parseGuardianTicketManage,
+  toGuardianTicketCard,
+  toGuardianTicketDetail,
+  toGuardianTicketManage,
+};
+export type {
+  GuardianTicket,
+  GuardianTicketCard,
+  GuardianTicketDetail,
+  GuardianTicketHistory,
+  GuardianTicketManage,
+  GuardianTicketStatus,
+};

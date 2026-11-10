@@ -1,4 +1,4 @@
-import { parseGuardianTicketCard, parseGuardianTicketManage } from '../model/guardianTicket';
+import { parseGuardianTicketCard, parseGuardianTicketDetail, parseGuardianTicketManage } from '../model/guardianTicket';
 
 import { api } from '@shared/api';
 
@@ -14,4 +14,13 @@ const getGuardianTicketManage = async (petId: string) => {
   return parseGuardianTicketManage(response);
 };
 
-export { getGuardianTicketCard, getGuardianTicketManage };
+/** `GET` - 이용권 상세와 사용 내역. 최신순이며 만료 항목은 없다. */
+const getGuardianTicketDetail = async (petId: string, ticketId: string) => {
+  const response = await api
+    .get(`guardian/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)
+    .json();
+
+  return parseGuardianTicketDetail(response);
+};
+
+export { getGuardianTicketCard, getGuardianTicketDetail, getGuardianTicketManage };
