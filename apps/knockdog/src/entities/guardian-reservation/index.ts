@@ -9,7 +9,9 @@ export {
 export { useCancelReservationMutation } from './api/useCancelReservationMutation';
 export { useCreateReservationMutation } from './api/useCreateReservationMutation';
 export { useGuardianReservationQuery } from './api/useGuardianReservationQuery';
+export { useReservationCalendarQuery } from './api/useReservationCalendarQuery';
 export { useReservationDetailQuery } from './api/useReservationDetailQuery';
+export { useReservationSlotsQuery } from './api/useReservationSlotsQuery';
 export type { GuardianReservationCreate, ReservationPeriod, ReservationScope } from './api/guardianReservation';
 export type {
   CreatedGuardianReservation,

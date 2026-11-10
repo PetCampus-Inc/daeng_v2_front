@@ -30,6 +30,7 @@ import { useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
 const FULL_CODE = 'RESERVATION-409-4';
@@ -83,9 +84,9 @@ function ReservationConfirmPage() {
   const selection = readReserveQuery(searchParams.get('date'), searchParams.get('minutes'));
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const { pets } = useGuardianSelectedPet();
+  const { pets, isPetsReady, isPetsError } = useGuardianSelectedPet();
   const userId = useUserStore((state) => state.user?.userId);
-  const pet = pets.find((item) => item.id === petId) ?? null;
+  const pet = pets.find((item) => String(item.id) === petId) ?? null;
   const { data: home } = useGuardianHomeQuery({ userId, petId: pet?.id, enabled: Boolean(pet) });
   const createReservation = useCreateReservationMutation(petId);
   const [note, setNote] = useState('');
@@ -172,7 +173,15 @@ function ReservationConfirmPage() {
     );
   };
 
-  if (!selection || !pet || !canSubmit) return null;
+  if (!selection || !canSubmit) return null;
+
+  if (!isPetsReady) {
+    return <DelayedLoadingSpinner isLoading layout='content' className='py-10' />;
+  }
+
+  if (isPetsError || !pet) {
+    return <p className='body2-regular text-text-secondary py-10 text-center'>강아지를 불러오지 못했어요</p>;
+  }
 
   const date = dateFromKey(selection.dateKey);
   const dogName = pet.name;

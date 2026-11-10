@@ -4,6 +4,7 @@ import {
   parseGuardianReservationList,
   parseReservationResponse,
 } from '../model/guardianReservation';
+import { parseReservationCalendar, parseReservationSlots } from '../model/reservationSchedule';
 
 import { api } from '@shared/api';
 
@@ -82,12 +83,50 @@ const cancelGuardianReservation = async ({ petId, reservationId }: { petId: stri
   return parseReservationResponse(response);
 };
 
+interface GetReservationCalendarParams {
+  petId: string;
+  month: string;
+  ticketId?: string;
+}
+
+/** `GET` - 월별 예약 달력. ticketId가 있으면 그 이용권 기준으로 선택 가능일을 판단한다. */
+const getReservationCalendar = async ({ petId, month, ticketId }: GetReservationCalendarParams) => {
+  const searchParams: Record<string, string> = { month };
+  if (ticketId) searchParams.ticketId = ticketId;
+
+  const response = await api
+    .get(`guardian/pets/${encodeURIComponent(petId)}/reservations/calendar`, { searchParams })
+    .json();
+
+  return parseReservationCalendar(response);
+};
+
+interface GetReservationSlotsParams {
+  petId: string;
+  date: string;
+  ticketId?: string;
+}
+
+/** `GET` - 날짜별 등원 시간. 예약할 수 없는 날이면 슬롯이 비어 있다. */
+const getReservationSlots = async ({ petId, date, ticketId }: GetReservationSlotsParams) => {
+  const searchParams: Record<string, string> = { date };
+  if (ticketId) searchParams.ticketId = ticketId;
+
+  const response = await api
+    .get(`guardian/pets/${encodeURIComponent(petId)}/reservations/slots`, { searchParams })
+    .json();
+
+  return parseReservationSlots(response);
+};
+
 export {
   RESERVATION_PERIOD,
   RESERVATION_SCOPE,
   cancelGuardianReservation,
   getGuardianReservation,
   getGuardianReservations,
+  getReservationCalendar,
+  getReservationSlots,
   postGuardianReservation,
 };
 export type { GetGuardianReservationsParams, GuardianReservationCreate, ReservationPeriod, ReservationScope };

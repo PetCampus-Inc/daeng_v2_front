@@ -50,7 +50,7 @@ function GuardianReservationDetailPage() {
   const cancelReservation = useCancelReservationMutation();
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const detail = detailQuery.data;
-  const pet = pets.find((item) => item.id === petId);
+  const pet = pets.find((item) => String(item.id) === petId);
   const canCancel = detail?.cancelable ?? false;
   const isCancelling = cancelReservation.isPending;
 

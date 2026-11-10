@@ -6,27 +6,14 @@ import { useSearchParams } from 'next/navigation';
 import { ActionButton, RsvDateTime, RsvMonthlyCalendar, RsvTimetable } from '@knockdog/ui';
 
 import { RESERVATION_TIME_COPY } from '@views/guardian-reservation-page/config/guardianReservationTime';
-import {
-  countTicketUses,
-  isSameDayTaken,
-  remainingAfterUses,
-} from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { toDateKey } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import {
-  canContinueReserve,
   dateFromKey,
   formatReserveClock,
   formatReserveDay,
   formatSelectedPass,
-  listDisabledDates,
-  listScheduleSlots,
-  reservedDateKeys,
-  splitScheduleSlots,
-  type ScheduleSlot,
 } from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
-import { useBookedVisits } from '@views/guardian-reservation-page/model/bookedVisits';
-import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import {
   clearReserveDraft,
   readReserveDraft,
@@ -35,22 +22,46 @@ import {
 
 import { Header } from '@widgets/Header';
 
+import { useReservationCalendarQuery, useReservationSlotsQuery } from '@entities/guardian-reservation';
+import { useGuardianTicketCardQuery } from '@entities/guardian-ticket';
+
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
-function slotState(slot: ScheduleSlot, selectedMinutes: number | null) {
-  if (slot.minutes === selectedMinutes) return 'selected' as const;
-  if (slot.isDisabled) return 'disabled' as const;
+const NOON_MINUTES = 12 * 60;
+
+function monthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthDates(month: Date) {
+  const count = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  return Array.from({ length: count }, (_, index) => new Date(month.getFullYear(), month.getMonth(), index + 1));
+}
+
+function isMonthOpen(month: Date, today: Date) {
+  const target = new Date(month.getFullYear(), month.getMonth(), 1).getTime();
+  const min = new Date(today.getFullYear(), today.getMonth(), 1).getTime();
+  const max = new Date(today.getFullYear(), today.getMonth() + 12, 1).getTime();
+  return target >= min && target <= max;
+}
+
+function slotLabel(time: string) {
+  const [hourText = '0', minute = '00'] = time.split(':');
+  const hour = Number(hourText);
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(hour12).padStart(2, '0')}:${minute}`;
+}
+
+function slotState(minutes: number, selectedMinutes: number | null, isAvailable: boolean) {
+  if (minutes === selectedMinutes) return 'selected' as const;
+  if (!isAvailable) return 'disabled' as const;
   return 'default' as const;
 }
 
-function toTimetableSlots(slots: ScheduleSlot[], selectedMinutes: number | null, onSelect: (minutes: number) => void) {
-  return slots.map((slot) => ({
-    time: slot.label,
-    state: slotState(slot, selectedMinutes),
-    isReserved: slot.isReserved,
-    onSelect: () => onSelect(slot.minutes),
-  }));
+function numericId(value: string) {
+  return /^\d+$/.test(value) ? value : '';
 }
 
 function GuardianReservationTimePage() {
@@ -58,35 +69,41 @@ function GuardianReservationTimePage() {
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
   const ticketId = searchParams.get('ticketId') ?? '';
+  const petId = numericId(dogId);
+  const selectedTicketId = numericId(ticketId);
   const { back, push } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const { now, dogs } = useReservationDogs();
-  const visits = useBookedVisits();
+  const [today] = useState(() => new Date());
   const draft = readReserveDraft(dogId, ticketId);
   const restoredDate = draft ? dateFromKey(draft.dateKey) : null;
-  const dog = dogs.find((item) => item.id === dogId);
-  const ticket = dog?.tickets.find((item) => item.id === ticketId);
-  const placeName = dog?.kindergarten?.name ?? '';
-  const upcomingOn = dog?.upcoming?.startsAt.slice(0, 10) ?? null;
-  const bookedDays = visits
-    .filter((visit) => visit.dogId === dogId && !visit.isCancelled)
-    .map((visit) => visit.startsAt.slice(0, 10));
-  const reservedKeys = new Set([...reservedDateKeys(now, upcomingOn), ...bookedDays]);
-  const reservedDates = [...reservedKeys].map(dateFromKey);
   const [month, setMonth] = useState(() => {
-    const base = restoredDate ?? now;
+    const base = restoredDate ?? today;
     return new Date(base.getFullYear(), base.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(restoredDate);
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(draft?.minutes ?? null);
-  const disabledDates = listDisabledDates(month, now, now, ticket?.endsOn ?? null);
-  const selectedDateKey = selectedDate ? toDateKey(selectedDate) : null;
-  const isReservedDay = selectedDateKey ? reservedKeys.has(selectedDateKey) : false;
-  const hasActiveReservation = selectedDateKey
-    ? upcomingOn === selectedDateKey || isSameDayTaken(visits, dogId, selectedDateKey)
-    : false;
-  const slots = selectedDate ? splitScheduleSlots(listScheduleSlots(selectedDate, now, isReservedDay)) : null;
-  const canContinue = canContinueReserve(selectedDate != null, selectedMinutes != null) && !hasActiveReservation;
+  const calendarQuery = useReservationCalendarQuery(petId, monthKey(month), selectedTicketId);
+  const calendar = calendarQuery.data;
+  const selectedDateKey = selectedDate ? toDateKey(selectedDate) : '';
+  const slotsQuery = useReservationSlotsQuery(petId, selectedDateKey, selectedTicketId);
+  const slots = slotsQuery.data;
+  const ticketQuery = useGuardianTicketCardQuery(petId);
+  const ticket = ticketQuery.data?.tickets.find((item) => item.id === selectedTicketId);
+  const selectedDay = calendar?.days.find((day) => day.date === selectedDateKey) ?? null;
+  const isReservedDay = Boolean(selectedDay?.reservationId || slots?.reservationId);
+  const selectedSlot = slots?.slots.find((slot) => slot.minutes === selectedMinutes) ?? null;
+  const canContinue = Boolean(
+    selectedDate && selectedSlot?.isAvailable && slots?.isSelectable && !isReservedDay
+  );
+  const disabledDates =
+    calendar?.isReservable === true
+      ? calendar.days.filter((day) => !day.isSelectable).map((day) => dateFromKey(day.date))
+      : monthDates(month);
+  const reservedDates = (calendar?.days ?? [])
+    .filter((day) => day.reservationId)
+    .map((day) => dateFromKey(day.date));
+  const morning = (slots?.slots ?? []).filter((slot) => slot.minutes < NOON_MINUTES);
+  const afternoon = (slots?.slots ?? []).filter((slot) => slot.minutes >= NOON_MINUTES);
 
   const handleBack = () => {
     clearReserveDraft();
@@ -94,6 +111,11 @@ function GuardianReservationTimePage() {
   };
 
   useNativeBackHandler(handleBack);
+
+  const handleMonthChange = (nextMonth: Date) => {
+    if (!isMonthOpen(nextMonth, today)) return;
+    setMonth(new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1));
+  };
 
   const handleSelectDate = (date: Date) => {
     setSelectedDate(date);
@@ -117,6 +139,14 @@ function GuardianReservationTimePage() {
     }).catch(() => undefined);
   };
 
+  const toSlots = (items: typeof morning) =>
+    items.map((slot) => ({
+      time: slotLabel(slot.time),
+      state: slotState(slot.minutes, selectedMinutes, slot.isAvailable),
+      isReserved: selectedDay?.reservationTime === slot.time,
+      onSelect: slot.isAvailable ? () => handleSelectMinutes(slot.minutes) : undefined,
+    }));
+
   return (
     <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
       <Header>
@@ -127,25 +157,25 @@ function GuardianReservationTimePage() {
       </Header>
 
       <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
-        {ticket && placeName ? (
+        {ticket && calendar?.schoolName ? (
           <div className='bg-fill-primary-50 px-x4 py-x3 gap-x3 flex items-center'>
             <p className='body2-regular text-text-secondary shrink-0'>{copy.selectedLabel}</p>
             <p className='body2-semibold text-text-primary truncate'>
-              {formatSelectedPass(
-                placeName,
-                ticket.totalCount,
-                remainingAfterUses(ticket.remainingCount, countTicketUses(visits, ticket.id))
-              )}
+              {formatSelectedPass(calendar.schoolName, ticket.totalCount, ticket.remainingCount)}
             </p>
           </div>
         ) : null}
 
+        {calendarQuery.isError ? (
+          <p className='body2-regular text-text-secondary px-x4 py-x3 text-center'>{copy.loadError}</p>
+        ) : null}
+
         <RsvMonthlyCalendar
           month={month}
-          onMonthChange={setMonth}
+          onMonthChange={handleMonthChange}
           value={selectedDate ?? undefined}
           onValueChange={handleSelectDate}
-          today={now}
+          today={today}
           reservedDates={reservedDates}
           disabledDates={disabledDates}
         />
@@ -154,17 +184,17 @@ function GuardianReservationTimePage() {
           {copy.legend}
         </p>
 
-        {slots ? (
-          <div className='px-x4 py-x5 gap-x6 flex flex-col'>
-            <RsvTimetable
-              period={copy.morning}
-              slots={toTimetableSlots(slots.morning, selectedMinutes, handleSelectMinutes)}
-            />
-            <RsvTimetable
-              period={copy.afternoon}
-              slots={toTimetableSlots(slots.afternoon, selectedMinutes, handleSelectMinutes)}
-            />
-          </div>
+        {selectedDate ? (
+          slotsQuery.isLoading ? (
+            <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+          ) : slotsQuery.isError ? (
+            <p className='body2-regular text-text-secondary px-x4 py-x6 text-center'>{copy.slotError}</p>
+          ) : (
+            <div className='px-x4 py-x5 gap-x6 flex flex-col'>
+              {morning.length > 0 ? <RsvTimetable period={copy.morning} slots={toSlots(morning)} /> : null}
+              {afternoon.length > 0 ? <RsvTimetable period={copy.afternoon} slots={toSlots(afternoon)} /> : null}
+            </div>
+          )
         ) : null}
       </div>
 
