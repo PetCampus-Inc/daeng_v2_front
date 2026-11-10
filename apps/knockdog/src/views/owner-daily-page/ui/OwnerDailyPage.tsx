@@ -73,7 +73,7 @@ const OwnerDailyPage = () => {
     handleTodayClick,
     handleTabChange,
   } = useOwnerDailyPage();
-  const { pendingPetIds, handleCheckIn, handleAbsent } = useOwnerDailyActions({ userId, dateKey: selectedDateKey });
+  const { pendingPetIds, handleCheckIn, handleAbsent, handleCheckOut } = useOwnerDailyActions({ userId, dateKey: selectedDateKey });
   // 스크롤한 화면(날짜+탭)을 기억해 두고, 날짜나 탭이 바뀌면 자동으로 버튼이 사라지게 한다.
   const [scrolledViewKey, setScrolledViewKey] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -93,11 +93,23 @@ const OwnerDailyPage = () => {
     back();
   }, [back, navigateToTab, push]);
 
-  /** 원생 카드를 누르면 그 원생의 프로필로 이동한다. */
-  const handleMemberClick = ({ petId }: { petId: string }) => {
-    push({ pathname: route.owner.members.detail.root.replace('[id]', petId) }).catch(() => {
+  const pushOrToastFailure = (pathname: string) => {
+    push({ pathname }).catch(() => {
       toast({ type: 'default', shape: 'rounded', title: REQUEST_FAILED_MESSAGE, nativeTitle: REQUEST_FAILED_MESSAGE });
     });
+  };
+
+  /** 원생 카드를 누르면 그 원생의 프로필로 이동한다. */
+  const handleMemberClick = ({ petId }: { petId: string }) => {
+    pushOrToastFailure(route.owner.members.detail.root.replace('[id]', petId));
+  };
+
+  /**
+   * `알림장 작성하기`·`알림장 보기`는 같은 원생별 알림장 화면으로 이동한다.
+   * 이 화면은 오늘 알림장이 발송됐으면 읽기 전용(발송된 알림장 상세)으로 열린다.
+   */
+  const handleNoticeClick = ({ petId }: { petId: string }) => {
+    pushOrToastFailure(route.owner.daily.notice.write.root.replace('[id]', petId));
   };
 
   const handleDatePickerOpen = () => {
@@ -215,7 +227,11 @@ const OwnerDailyPage = () => {
                   todayList={todayList}
                   filter={todayFilter}
                   onFilterChange={setTodayFilter}
+                  pendingPetIds={pendingPetIds}
                   onMemberClick={handleMemberClick}
+                  onWriteRecord={handleNoticeClick}
+                  onViewRecord={handleNoticeClick}
+                  onCheckOut={handleCheckOut}
                 />
               ) : null}
             </TabsContent>

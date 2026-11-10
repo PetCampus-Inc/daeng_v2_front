@@ -19,14 +19,14 @@ interface ActionOptions {
 }
 
 /**
- * 일과 화면의 원생 처리(등원·결석) 동작을 관리한다. 취소·하원 처리도 이어서 이 훅에 붙인다.
+ * 일과 화면의 원생 처리(등원·결석·하원) 동작을 관리한다. 취소 동작도 이어서 이 훅에 붙인다.
  * - 확인 모달 없이 바로 요청하고, 성공하면 안내 토스트를 보여 준다. 목록·집계는 mutation이 다시 조회한다.
  * - 요청 중인 원생은 `pendingPetIds`로 알려 버튼을 잠그고, 같은 원생의 중복 요청은 ref로도 막는다.
  * - 실패하면 카드 상태를 바꾸지 않고 실패 토스트만 보여 준다. 에러 `code`가 409-1·409-4면 목록·집계도 다시 조회한다.
  * @param params.dateKey 지금 보는 날짜(KST, `YYYY-MM-DD`). 분석 이벤트에 실린다.
  */
 const useOwnerDailyActions = ({ userId, dateKey }: { userId?: string; dateKey: string }) => {
-  const { checkInMutation, absentMutation, invalidateAttendanceCheckinout } = useAttendanceCheckinoutMutation({
+  const { checkInMutation, absentMutation, checkOutMutation, invalidateAttendanceCheckinout } = useAttendanceCheckinoutMutation({
     userId,
   });
   const inFlightPetIdsRef = useRef(new Set<string>());
@@ -72,7 +72,15 @@ const useOwnerDailyActions = ({ userId, dateKey }: { userId?: string; dateKey: s
       successMessage: '결석 처리가 완료되었어요',
     });
 
-  return { pendingPetIds, handleCheckIn, handleAbsent };
+  /** 하원 처리. 등원목록 탭의 카드에서 확인 모달 없이 바로 처리한다. */
+  const handleCheckOut = (member: Pick<AttendanceCheckinoutCandidate, 'petId'>) =>
+    runAction(member.petId, {
+      request: () => checkOutMutation.mutateAsync({ petId: member.petId }),
+      successMessage: '하원 처리가 완료되었어요',
+      onSuccess: () => trackAttendanceAction({ action: 'check_out', pet_id: member.petId, service_date: dateKey }),
+    });
+
+  return { pendingPetIds, handleCheckIn, handleAbsent, handleCheckOut };
 };
 
 export { useOwnerDailyActions };

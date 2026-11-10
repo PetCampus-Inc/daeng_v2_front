@@ -16,7 +16,12 @@ import { DogMetaLine } from '@shared/ui/dog-meta-line';
 
 interface OwnerDailyTodayAttendanceCardProps {
   item: AttendanceCheckinoutTodayItem;
+  /** 이 원생의 처리 요청이 진행 중이면 하단 버튼을 잠근다. */
+  isPending: boolean;
   onMemberClick: (item: AttendanceCheckinoutTodayItem) => void;
+  onWriteRecord: (item: AttendanceCheckinoutTodayItem) => void;
+  onViewRecord: (item: AttendanceCheckinoutTodayItem) => void;
+  onCheckOut: (item: AttendanceCheckinoutTodayItem) => void;
 }
 
 const TAG_VIEW: Record<TodayListTag, { label: string; className: string }> = {
@@ -50,7 +55,14 @@ const toTimeText = (label: '등원' | '하원', isoTime: string | null): string 
 };
 
 /** `등원목록` 탭(오늘)의 원생 카드. 상태 태그 하나와 상태에 맞는 하단 버튼 두 개를 보여 준다. */
-const OwnerDailyTodayAttendanceCard = ({ item, onMemberClick }: OwnerDailyTodayAttendanceCardProps) => {
+const OwnerDailyTodayAttendanceCard = ({
+  item,
+  isPending,
+  onMemberClick,
+  onWriteRecord,
+  onViewRecord,
+  onCheckOut,
+}: OwnerDailyTodayAttendanceCardProps) => {
   const { tag, buttons } = getTodayListCardView({
     status: item.status,
     recordSent: item.attendanceRecordSent,
@@ -60,6 +72,12 @@ const OwnerDailyTodayAttendanceCard = ({ item, onMemberClick }: OwnerDailyTodayA
   const genderIcon = item.gender === 'MALE' ? 'Male' : item.gender === 'FEMALE' ? 'Female' : null;
   const checkInText = toTimeText('등원', item.checkInAt);
   const checkOutText = item.status === 'CHECKED_OUT' ? toTimeText('하원', item.checkOutAt) : '';
+
+  const buttonHandlers: Partial<Record<TodayListButtonKind, () => void>> = {
+    writeRecord: () => onWriteRecord(item),
+    viewRecord: () => onViewRecord(item),
+    checkOut: () => onCheckOut(item),
+  };
 
   return (
     <li className='bg-bg-0 radius-r3 flex flex-col gap-3 p-4'>
@@ -121,6 +139,8 @@ const OwnerDailyTodayAttendanceCard = ({ item, onMemberClick }: OwnerDailyTodayA
               type='button'
               variant={BUTTON_VARIANT[button.variant]}
               className='flex-1'
+              disabled={isPending}
+              onClick={buttonHandlers[button.kind]}
             >
               {BUTTON_LABEL[button.kind]}
             </ActionButton>
