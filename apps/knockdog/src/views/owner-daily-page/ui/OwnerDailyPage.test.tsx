@@ -58,7 +58,10 @@ const findDateButton = (label: RegExp) => screen.findByRole('button', { name: la
 
 const openDatePickerSheet = async () => {
   await user.click(await findDateButton(/\d+월 \d+일/));
-  return screen.findByRole('dialog');
+  const dialog = await screen.findByRole('dialog');
+  // 시트는 열린 직후 effect로 선택 날짜를 처음 값으로 맞춘다. 그 effect가 끝난 뒤에 조작해야 키 입력이 지워지지 않는다.
+  await act(async () => {});
+  return dialog;
 };
 
 const focusSpinbutton = (dialog: HTMLElement, name: string) => {
@@ -182,7 +185,7 @@ describe('날짜 선택 시트', () => {
     focusSpinbutton(dialog, '일 선택');
     await user.keyboard('{ArrowDown}');
 
-    const searchButton = within(dialog).getByRole('button', { name: /^2026년 6월 19일 \(금\) 검색$/ });
+    const searchButton = await within(dialog).findByRole('button', { name: /^2026년 6월 19일 \(금\) 검색$/ });
     await user.click(searchButton);
 
     expect(await findDateButton(/^6월 19일 금요일$/)).toBeTruthy();
@@ -195,14 +198,14 @@ describe('날짜 선택 시트', () => {
     let dialog = await openDatePickerSheet();
     focusSpinbutton(dialog, '연도 선택');
     await user.keyboard('{ArrowUp}');
-    await user.click(within(dialog).getByRole('button', { name: /^2025년 6월 18일 \(수\) 검색$/ }));
+    await user.click(await within(dialog).findByRole('button', { name: /^2025년 6월 18일 \(수\) 검색$/ }));
     expect(await findDateButton(/^2025년 6월 18일 수요일$/)).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
     dialog = await openDatePickerSheet();
     focusSpinbutton(dialog, '연도 선택');
     await user.keyboard('{ArrowDown}{ArrowDown}');
-    await user.click(within(dialog).getByRole('button', { name: /^2027년 6월 18일 \(금\) 검색$/ }));
+    await user.click(await within(dialog).findByRole('button', { name: /^2027년 6월 18일 \(금\) 검색$/ }));
     expect(await findDateButton(/^2027년 6월 18일 금요일$/)).toBeTruthy();
   });
 
