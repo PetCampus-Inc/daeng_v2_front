@@ -24,6 +24,8 @@ import { getKstDateKey } from '@shared/lib/calendar-date';
  * 2. `beforeEach`에서 `fakeAttendanceServer.reset()`을 부르고, `seedDay(날짜, 원생들)`로 날짜별 데이터를 넣는다.
  * 3. 처리 API(등원·결석·하원과 취소)는 "오늘" 원생의 상태를 실제로 바꾸고, 다음 조회에 그대로 반영된다.
  *    허용되지 않는 상태면 `ATTENDANCE_CHECKINOUT-409-1`, 예약이 없으면 `ATTENDANCE_CHECKINOUT-409-4`로 거절한다(ApiError).
+ *    등원 취소는 이미 하원 처리됐으면 `409-2`, 알림장이 발송됐으면 `409-3`으로 거절한다(하원 처리가 먼저).
+ *    등원목록 조회는 `filter`(재원중·발송전)를 서버처럼 적용하고, 연결 해제(`disconnected`)·알림장 발송(`attendanceRecordSent`) 원생을 시드할 수 있다.
  * 4. `failNextAction(이름, 코드)`로 다음 한 번의 처리 요청을 실패시키고, `holdActions()`로 처리 요청을 붙잡아 둘 수 있다.
  */
 
@@ -176,7 +178,12 @@ const getToday = ({ date, filter }: { date?: string; filter?: TodayAttendanceFil
 const rejectWith = (status: number, code: string) => Promise.reject(new ApiError<string>(status, code, code));
 
 /** 처리 API 하나를 만든다. 오늘 원생의 상태를 `nextStatus`로 바꾼다. 허용되지 않는 상태에서는 409로 거절한다. */
-const createAction = (name: ActionName, allowedFrom: CheckinoutStatus[], nextStatus: CheckinoutStatus) =>
+const createAction = (
+  name: ActionName,
+  allowedFrom: CheckinoutStatus[],
+  nextStatus: CheckinoutStatus,
+  getRejectCode?: (pet: FakePet) => string | null
+) =>
   vi.fn(async ({ petId }: { petId: string }) => {
     if (heldActions) await heldActions;
 
@@ -189,6 +196,8 @@ const createAction = (name: ActionName, allowedFrom: CheckinoutStatus[], nextSta
     const pet = getPets(getTodayKey()).find((item) => String(item.petId) === petId);
 
     if (!pet) return rejectWith(409, 'ATTENDANCE_CHECKINOUT-409-4');
+    const rejectCode = getRejectCode?.(pet);
+    if (rejectCode) return rejectWith(409, rejectCode);
     if (!allowedFrom.includes(pet.status)) return rejectWith(409, 'ATTENDANCE_CHECKINOUT-409-1');
 
     const nowIso = new Date().toISOString();
@@ -207,7 +216,11 @@ const fakeAttendanceApi = {
   postAttendanceCheckIn: createAction('postAttendanceCheckIn', ['NOT_CHECKED_IN'], 'CHECKED_IN'),
   postAttendanceAbsent: createAction('postAttendanceAbsent', ['NOT_CHECKED_IN'], 'ABSENT'),
   postAttendanceCheckOut: createAction('postAttendanceCheckOut', ['CHECKED_IN'], 'CHECKED_OUT'),
-  postAttendanceCancelCheckIn: createAction('postAttendanceCancelCheckIn', ['CHECKED_IN'], 'NOT_CHECKED_IN'),
+  postAttendanceCancelCheckIn: createAction('postAttendanceCancelCheckIn', ['CHECKED_IN'], 'NOT_CHECKED_IN', (pet) => {
+    if (pet.status === 'CHECKED_OUT') return 'ATTENDANCE_CHECKINOUT-409-2';
+    if (pet.attendanceRecordSent) return 'ATTENDANCE_CHECKINOUT-409-3';
+    return null;
+  }),
   postAttendanceCancelAbsent: createAction('postAttendanceCancelAbsent', ['ABSENT'], 'NOT_CHECKED_IN'),
   postAttendanceCancelCheckOut: createAction('postAttendanceCancelCheckOut', ['CHECKED_OUT'], 'CHECKED_IN'),
 };

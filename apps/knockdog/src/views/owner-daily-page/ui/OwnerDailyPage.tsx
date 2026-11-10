@@ -19,11 +19,13 @@ import { Header } from '@widgets/Header';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
 
+import { REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { NotificationBell } from '@shared/ui/notification-bell';
+import { toast } from '@shared/ui/toast';
 
 const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
   useNativeBackHandler(onBack);
@@ -88,6 +90,13 @@ const OwnerDailyPage = () => {
 
     back();
   }, [back, navigateToTab, push]);
+
+  /** 원생 카드를 누르면 그 원생의 프로필로 이동한다. */
+  const handleMemberClick = ({ petId }: { petId: string }) => {
+    push({ pathname: route.owner.members.detail.root.replace('[id]', petId) }).catch(() => {
+      toast({ type: 'default', shape: 'rounded', title: REQUEST_FAILED_MESSAGE, nativeTitle: REQUEST_FAILED_MESSAGE });
+    });
+  };
 
   const handleDatePickerOpen = () => {
     overlay.open(({ isOpen, close }) => (
@@ -199,7 +208,9 @@ const OwnerDailyPage = () => {
               className={TAB_CONTENT_CLASS_NAME}
               onScroll={handleContentScroll}
             >
-              {todayList ? <OwnerDailyAttendanceListTab items={todayList.items} /> : null}
+              {todayList ? (
+                <OwnerDailyAttendanceListTab todayList={todayList} onMemberClick={handleMemberClick} />
+              ) : null}
             </TabsContent>
           </Tabs>
         )}
