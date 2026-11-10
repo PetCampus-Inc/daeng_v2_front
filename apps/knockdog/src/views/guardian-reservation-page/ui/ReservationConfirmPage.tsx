@@ -30,6 +30,7 @@ import { useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
@@ -44,6 +45,17 @@ function ConfirmInfoRow({ label, value, extra }: { label: string; value: string;
         {extra ? <p className='body2-regular text-text-accent'>{extra}</p> : null}
       </div>
     </div>
+  );
+}
+
+function ConfirmDogAvatar({ name, imageUrl }: { name: string; imageUrl?: string }) {
+  return (
+    <DogProfileAvatar
+      name={name}
+      imageUrl={imageUrl}
+      className='size-full border-0'
+      pawClassName='text-fill-secondary-400'
+    />
   );
 }
 
@@ -209,7 +221,9 @@ function ReservationConfirmPage() {
           age={age}
           weight={weight}
           showIcon={false}
-        />
+        >
+          <ConfirmDogAvatar name={dogName} imageUrl={pet.profileImage} />
+        </SelectDogCard>
         <div className='px-x4 flex flex-col'>
           <ConfirmInfoRow label={copy.kindergarten} value={kindergartenName} />
           <ConfirmInfoRow label={copy.date} value={formatConfirmDate(date)} />
@@ -279,6 +293,7 @@ function ReservationConfirmPage() {
             breed={breed}
             age={age}
             weight={weight}
+            dogImage={<ConfirmDogAvatar name={dogName} imageUrl={pet.profileImage} />}
             kindergarten={kindergartenName}
             date={formatConfirmDate(date)}
             time={formatReserveClock(selection.minutes)}
