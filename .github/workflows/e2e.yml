@@ -34,11 +34,12 @@ jobs:
       pull-requests: write
 
     env:
-      NEXT_PUBLIC_API_BASE_URL: 'https://api.knockdog.net'
+      # develop PR은 개발 서버와 개발 계정(6·7)을 쓴다.
+      NEXT_PUBLIC_API_BASE_URL: 'https://dev-api.knockdog.net'
       NEXT_PUBLIC_WEB_URL: 'http://localhost:3000'
       E2E_BASE_URL: 'http://localhost:3000'
-      E2E_API_BASE_URL: 'https://api.knockdog.net'
-      E2E_DEV_LOGIN_ID: '113'
+      E2E_API_BASE_URL: 'https://dev-api.knockdog.net'
+      E2E_DEV_LOGIN_ID: '6'
       E2E_EXPECTED_EMAIL: 'hyeonsu-k@kakao.com'
       CI: 'true'
 
