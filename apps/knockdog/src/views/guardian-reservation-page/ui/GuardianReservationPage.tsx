@@ -189,7 +189,7 @@ function GuardianReservationPage() {
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread />
+                <Notification unread className='translate-y-[3px]' />
               </button>
             </div>
           </header>
@@ -214,7 +214,7 @@ function GuardianReservationPage() {
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread />
+                <Notification unread className='translate-y-[3px]' />
               </button>
             </div>
           </header>

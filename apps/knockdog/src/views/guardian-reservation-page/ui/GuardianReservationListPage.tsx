@@ -180,6 +180,15 @@ function GuardianReservationListPage() {
               <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
             ) : showLoadError ? (
               <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
+            ) : items.length === 0 ? (
+              <div className='px-x5 flex min-h-full flex-1 flex-col items-center justify-center'>
+                <div className='gap-x1 flex flex-col items-center text-center'>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={copy.upcomingEmptyImageSrc} alt='' className='size-[200px] object-contain' />
+                  <p className='h2-extrabold text-text-primary'>{copy.upcomingEmptyTitle}</p>
+                  <p className='body1-regular text-text-tertiary'>{copy.upcomingEmptyBody}</p>
+                </div>
+              </div>
             ) : (
             <div className='gap-x5 flex flex-col'>
               {upcomingGroups.map((group) => (
