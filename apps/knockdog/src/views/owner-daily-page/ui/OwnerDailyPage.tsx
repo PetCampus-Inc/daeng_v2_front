@@ -268,7 +268,7 @@ const OwnerDailyPage = () => {
             <TabsContent
               ref={contentRef}
               value='attendance-check'
-              className={isToday ? CHECK_TAB_CONTENT_CLASS_NAME : TAB_CONTENT_CLASS_NAME}
+              className={CHECK_TAB_CONTENT_CLASS_NAME}
               onScroll={handleContentScroll}
             >
               {isToday && candidates ? (

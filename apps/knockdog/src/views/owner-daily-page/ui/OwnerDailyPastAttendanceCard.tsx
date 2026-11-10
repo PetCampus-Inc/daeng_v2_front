@@ -16,7 +16,7 @@ interface OwnerDailyPastAttendanceCardProps {
 
 const PAST_TAG_VIEW: Record<PastDayTag, { label: string; className: string }> = {
   ...TAG_VIEW,
-  absent: { label: '결석', className: 'bg-fill-secondary-100 text-text-secondary' },
+  absent: { label: '결석', className: 'bg-fill-secondary-100 text-fill-secondary-500' },
 };
 
 /**
@@ -38,7 +38,7 @@ const OwnerDailyPastAttendanceCard = ({ item, onMemberClick }: OwnerDailyPastAtt
   const visibleTimeTexts = timeTexts.filter(Boolean);
 
   return (
-    <li className='bg-bg-0 radius-r3 flex flex-col gap-3 p-4'>
+    <li className='bg-bg-0 radius-r5 p-x5 gap-x3 flex flex-col'>
       <div
         {...(item.disconnected
           ? {}
@@ -52,42 +52,45 @@ const OwnerDailyPastAttendanceCard = ({ item, onMemberClick }: OwnerDailyPastAtt
                 onMemberClick(item);
               },
             })}
-        className={cn('flex flex-col gap-3', !item.disconnected && 'cursor-pointer')}
+        className={cn('gap-x3 flex flex-col', !item.disconnected && 'cursor-pointer')}
       >
-        <div className='flex items-start gap-3'>
-          <Avatar className='size-14'>
+        <div className='gap-x3 flex items-center'>
+          <Avatar className='size-x10'>
             {item.profileImageUrl ? <AvatarImage src={item.profileImageUrl} alt='' className='object-cover' /> : null}
             <AvatarFallback role='img' aria-label={`${item.name} 기본 프로필 이미지`} className='bg-bg-50'>
-              <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
+              <Icon icon='Paw' className='text-fill-secondary-300 size-x5' />
             </AvatarFallback>
           </Avatar>
-          <div className='flex min-w-0 flex-1 flex-col gap-1'>
-            <div className='flex min-w-0 items-center gap-1'>
-              <span className='body1-extrabold text-text-primary min-w-0 truncate'>{item.name}</span>
-              {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-5 shrink-0' /> : null}
+          <div className='gap-x1 flex min-w-0 flex-1 flex-col'>
+            <div className='gap-x2 flex min-w-0 items-start justify-between'>
+              <div className='gap-x1 flex min-w-0 items-center'>
+                <span className='h3-semibold text-text-primary min-w-0 truncate'>{item.name}</span>
+                {genderIcon ? <Icon icon={genderIcon} className='text-text-caption size-x4 shrink-0' /> : null}
+              </div>
+              {tagView ? (
+                <span
+                  className={cn(
+                    'caption1-semibold radius-r2 px-x2 inline-flex h-[25px] shrink-0 items-center justify-center',
+                    tagView.className
+                  )}
+                >
+                  {tagView.label}
+                </span>
+              ) : null}
             </div>
             <DogMetaLine
               breed={item.breed}
               weightKg={item.weightKg}
               birthYear={item.birthYear}
-              className='body2-regular text-text-secondary'
+              className='caption1-regular text-fill-secondary-500 leading-[18px]'
             />
           </div>
-          {tagView ? (
-            <span
-              className={cn(
-                'caption1-semibold radius-full px-x2 py-x1 inline-flex shrink-0 items-center justify-center',
-                tagView.className
-              )}
-            >
-              {tagView.label}
-            </span>
-          ) : null}
         </div>
         {visibleTimeTexts.length > 0 ? (
-          <div className='flex items-center gap-4'>
+          <div className='bg-bg-50 radius-r3 py-x3 gap-x2 px-x4 flex items-center'>
             {visibleTimeTexts.map((text) => (
-              <p key={text} className='body2-semibold text-text-primary'>
+              <p key={text} className='body2-semibold text-text-secondary gap-x2 flex items-center'>
+                <Icon icon='RsvClock' className='text-text-caption size-x4 shrink-0' />
                 {text}
               </p>
             ))}

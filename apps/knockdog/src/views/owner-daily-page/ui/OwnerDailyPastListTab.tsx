@@ -18,12 +18,7 @@ interface OwnerDailyPastListTabProps {
 }
 
 /** `등원목록` 탭(지난 날짜). 필터 칩(전체·재원중·발송전·결석)과 조회 전용 원생 카드 목록을 보여 준다. */
-const OwnerDailyPastListTab = ({
-  todayList,
-  filter,
-  onFilterChange,
-  onMemberClick,
-}: OwnerDailyPastListTabProps) => {
+const OwnerDailyPastListTab = ({ todayList, filter, onFilterChange, onMemberClick }: OwnerDailyPastListTabProps) => {
   const { counts, items } = todayList;
   const chips: { label: string; count: number; value: TodayAttendanceFilter | undefined }[] = [
     { label: '전체', count: counts.all, value: undefined },
@@ -34,7 +29,7 @@ const OwnerDailyPastListTab = ({
 
   return (
     <div className='flex min-h-full w-full flex-col'>
-      <div role='group' aria-label='필터' className='bg-bg-0 flex gap-2 px-4 py-3'>
+      <div role='group' aria-label='필터' className='bg-bg-50 gap-x2 px-x4 py-x5 flex'>
         {chips.map((chip) => (
           <StatusFilterChip
             key={chip.label}
@@ -48,7 +43,7 @@ const OwnerDailyPastListTab = ({
       {items.length === 0 ? (
         <OwnerDailyFilterEmptyState />
       ) : (
-        <ul className='flex w-full flex-col gap-3 px-4 pt-3'>
+        <ul className='gap-x5 px-x4 flex w-full flex-col'>
           {items.map((item) => (
             <OwnerDailyPastAttendanceCard key={item.petId} item={item} onMemberClick={onMemberClick} />
           ))}

@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage, Icon, RsvStatusBadge } from '@knockdog/ui';
+import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 
 import { formatReservedTimeLabel } from '@views/owner-daily-page/lib/ownerDailyTime';
 import { OwnerDailyRequestMemo } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCard';
@@ -20,30 +20,41 @@ const OwnerDailyFutureAttendanceCard = ({ item, dateKey }: OwnerDailyFutureAtten
   const timeLabel = formatReservedTimeLabel(dateKey, item.reservedTime);
 
   return (
-    <li className='bg-bg-0 radius-r3 flex flex-col gap-3 p-4'>
-      <div className='flex items-start gap-3'>
-        <Avatar className='size-14'>
+    <li className='bg-bg-0 radius-r5 p-x5 gap-x4 flex flex-col'>
+      <div className='gap-x3 flex items-center'>
+        <Avatar className='size-x10'>
           {item.profileImageUrl ? <AvatarImage src={item.profileImageUrl} alt='' className='object-cover' /> : null}
           <AvatarFallback role='img' aria-label={`${item.name} 기본 프로필 이미지`} className='bg-bg-50'>
-            <Icon icon='Paw' className='text-fill-secondary-400 size-6' />
+            <Icon icon='Paw' className='text-fill-secondary-300 size-x5' />
           </AvatarFallback>
         </Avatar>
-        <div className='flex min-w-0 flex-1 flex-col gap-1'>
-          <div className='flex min-w-0 items-center gap-1'>
-            <span className='body1-extrabold text-text-primary min-w-0 truncate'>{item.name}</span>
-            {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-5 shrink-0' /> : null}
-            {item.firstAttendance ? <RsvStatusBadge status='confirmed'>첫등원</RsvStatusBadge> : null}
+        <div className='gap-x1 flex min-w-0 flex-1 flex-col'>
+          <div className='gap-x1 flex min-w-0 items-center'>
+            <span className='h3-semibold text-text-primary min-w-0 truncate'>{item.name}</span>
+            {genderIcon ? <Icon icon={genderIcon} className='text-text-caption size-x4 shrink-0' /> : null}
+            {item.firstAttendance ? (
+              <span className='caption1-semibold bg-fill-primary-50 text-text-accent radius-r3 px-x2 inline-flex h-[26px] shrink-0 items-center'>
+                첫등원
+              </span>
+            ) : null}
           </div>
           <DogMetaLine
             breed={item.breed}
             weightKg={item.weightKg}
             birthYear={item.birthYear}
-            className='body2-regular text-text-secondary'
+            className='caption1-regular text-fill-secondary-500 leading-[18px]'
           />
         </div>
       </div>
-      {memo ? <OwnerDailyRequestMemo memo={memo} /> : null}
-      {timeLabel ? <p className='body2-semibold text-text-primary'>{`등원 예정 ${timeLabel}`}</p> : null}
+      <div className='gap-x3 flex flex-col'>
+        {memo ? <OwnerDailyRequestMemo memo={memo} /> : null}
+        {timeLabel ? (
+          <p className='body2-regular text-text-secondary gap-x2 px-x3 flex items-center'>
+            <Icon icon='RsvClock' className='text-text-caption size-x4 shrink-0' />
+            {`등원 예정 ${timeLabel}`}
+          </p>
+        ) : null}
+      </div>
     </li>
   );
 };
