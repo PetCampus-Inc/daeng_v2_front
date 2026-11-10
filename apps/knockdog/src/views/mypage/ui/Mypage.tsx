@@ -278,23 +278,14 @@ function MypageContent() {
                   showRegistrationEmptyState
                   onAddDog={() => push({ pathname: '/mypage/pet-add' })}
                 />
-                {shouldShowOwnerVerification ? <OwnerVerificationEntry requiresLogin={false} variant='banner' /> : null}
               </div>
             ) : (
-              <>
-                <DogHouseSection
-                  dogs={petListResponse?.data || []}
-                  withBottomPadding={!shouldShowOwnerVerification}
-                  onChangeRepresentative={openDogSelectSheet}
-                  onDogClick={handleDogClick}
-                  onAddDog={handleAddDog}
-                />
-                {shouldShowOwnerVerification ? (
-                  <div className='bg-bg-0 flex flex-col items-center px-4 py-5'>
-                    <OwnerVerificationEntry requiresLogin={false} variant='banner' />
-                  </div>
-                ) : null}
-              </>
+              <DogHouseSection
+                dogs={petListResponse?.data || []}
+                onChangeRepresentative={openDogSelectSheet}
+                onDogClick={handleDogClick}
+                onAddDog={handleAddDog}
+              />
             )}
 
             <Divider size='thick' />
@@ -316,6 +307,7 @@ function MypageContent() {
           }
           onProfileClick={() => push({ pathname: route.mypage.guardian.profile.root })}
           onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+          onConnectionHistoryClick={() => push({ pathname: route.kindergarten.connectionHistory.root })}
           onConnectionApplicationsClick={() => push({ pathname: route.guardian.connectionApply.status.root })}
           onMyReviewsClick={() => push({ pathname: route.mypage.guardian.reviews.root })}
           onReleasePermissionClick={() => push({ pathname: route.roleConversion.releasePermission.root })}
@@ -324,6 +316,12 @@ function MypageContent() {
         <Divider size='thick' />
 
         <QuickActionsSection />
+
+        {!isOwnerView && shouldShowOwnerVerification ? (
+          <div className='bg-bg-0 -mt-2 px-4 pb-5'>
+            <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+          </div>
+        ) : null}
 
         <SettingsSection
           otherInfoTitle={ownerMypageContent.otherInfoTitle}

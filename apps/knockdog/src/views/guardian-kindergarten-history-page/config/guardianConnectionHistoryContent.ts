@@ -1,20 +1,42 @@
 const guardianConnectionHistoryContent = {
-  pageTitle: '유치원 연결 이력',
+  pageTitle: '유치원 연결 내역',
   titleSuffix: '다녔던 유치원들이에요',
   subtitle: '그동안의 소중한 기록을 모아봤어요',
   currentLabel: '현재',
   attendanceBadgePrefix: '등원',
   attendanceBadgeSuffix: '회',
+  petSelector: {
+    listLabel: '강아지 선택 목록',
+    closeLabel: '강아지 선택 닫기',
+  },
+  currentSectionTitle: '지금 다니는 유치원',
+  currentEmpty: '연결된 유치원이 없어요.',
+  previousSectionTitle: '이전에 다녔던 유치원',
+  emptyImageSrc: '/images/img_empty_kindergarten.png',
+  emptyImageAlt: '연결된 유치원 없음',
+  emptyTitle: '아직 연결된 유치원이 없어요',
+  emptyDescription: '다니는 유치원에 똑독을 알려보세요!',
   disconnectButtonLabel: '연결 해제',
   writeReviewButtonLabel: '리뷰 작성',
   disconnectDialog: {
-    titleSuffix: '과의 연결을 해제할까요?',
+    titleSuffix: '과의\n연결을 해제할까요?',
     descriptionPrefix: '연결을 해제하면 ',
-    descriptionSuffix: '의\n유치원 소식을 더 이상 받아볼 수 없어요.',
+    descriptionSuffix: '의\n유치원 소식을 더 이상 받을 수 없어요.\n지난 알림장과 앨범은 계속 볼 수 있어요.',
     cancelLabel: '닫기',
     confirmLabel: '연결 해제하기',
     /** 유치원명 10자 초과 시 말줄임 */
     nameMaxLength: 10,
+  },
+  blockedSheet: {
+    title: '아직 연결을 해제할 수 없어요.',
+    ticketsBody:
+      '사용할 수 있는 이용권이 아직 남아 있어요. \n이용권을 다 쓰거나, 기한이 끝나야 해제할 수 있어요. \n남은 이용권 정리는 유치원에 문의해 주세요.',
+    reservationBody:
+      '아직 이용이 완료되지 않은 예약이 남아 있어요. \n예약이 이용 완료 상태가 되면 연결을 해제할 수 있어요. ',
+    reservationTitleSuffix: ' 예약',
+    reservationStatus: '등원 전',
+    ticketRemainingSuffix: '회 남음',
+    scrollableTicketCount: 3,
   },
   /** 당일 등원 기록이 있을 때 */
   disconnectBlockedToast: '오늘은 등원 기록이 있어 연결을 해제할 수 없어요',
