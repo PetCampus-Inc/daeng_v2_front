@@ -1,4 +1,4 @@
-import { parseGuardianReservationList } from '../model/guardianReservation';
+import { parseGuardianReservation, parseGuardianReservationList } from '../model/guardianReservation';
 
 import { api } from '@shared/api';
 
@@ -34,5 +34,30 @@ const getGuardianReservations = async ({ petId, scope, period }: GetGuardianRese
   return parseGuardianReservationList(response);
 };
 
-export { RESERVATION_PERIOD, RESERVATION_SCOPE, getGuardianReservations };
-export type { GetGuardianReservationsParams, ReservationPeriod, ReservationScope };
+interface GuardianReservationCreate {
+  ticketId: number;
+  date: string;
+  time: string;
+  requestMemo: string | null;
+}
+
+interface PostGuardianReservationParams {
+  petId: string;
+  idempotencyKey: string;
+  body: GuardianReservationCreate;
+}
+
+/** `POST` - 등원 예약 생성. 같은 Idempotency-Key 재시도는 최초 성공 응답 */
+const postGuardianReservation = async ({ petId, idempotencyKey, body }: PostGuardianReservationParams) => {
+  const response = await api
+    .post(`guardian/pets/${encodeURIComponent(petId)}/reservations`, {
+      json: body,
+      headers: { 'Idempotency-Key': idempotencyKey },
+    })
+    .json();
+
+  return parseGuardianReservation(response);
+};
+
+export { RESERVATION_PERIOD, RESERVATION_SCOPE, getGuardianReservations, postGuardianReservation };
+export type { GetGuardianReservationsParams, GuardianReservationCreate, ReservationPeriod, ReservationScope };

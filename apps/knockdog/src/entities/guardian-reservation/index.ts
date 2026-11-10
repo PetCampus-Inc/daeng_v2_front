@@ -1,4 +1,5 @@
-export { RESERVATION_PERIOD, RESERVATION_SCOPE, getGuardianReservations } from './api/guardianReservation';
+export { RESERVATION_PERIOD, RESERVATION_SCOPE, getGuardianReservations, postGuardianReservation } from './api/guardianReservation';
+export { useCreateReservationMutation } from './api/useCreateReservationMutation';
 export { useGuardianReservationQuery } from './api/useGuardianReservationQuery';
-export type { ReservationPeriod, ReservationScope } from './api/guardianReservation';
-export type { GuardianReservation, GuardianReservationStatus } from './model/guardianReservation';
+export type { GuardianReservationCreate, ReservationPeriod, ReservationScope } from './api/guardianReservation';
+export type { CreatedGuardianReservation, GuardianReservation, GuardianReservationStatus } from './model/guardianReservation';

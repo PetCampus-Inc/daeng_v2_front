@@ -59,7 +59,28 @@ const reservationListResponseSchema = z.object({
 
 type ReservationDto = z.infer<typeof reservationDtoSchema>;
 
+const reservationResponseSchema = z.object({
+  data: reservationDtoSchema,
+});
+
 const parseGuardianReservationList = (response: unknown) => reservationListResponseSchema.parse(response).data;
+
+interface CreatedGuardianReservation extends GuardianReservation {
+  ticketName: string;
+  remainingCount: number;
+}
+
+const parseGuardianReservation = (response: unknown): CreatedGuardianReservation => {
+  const dto = reservationResponseSchema.parse(response).data;
+  const reservation = toGuardianReservation(dto);
+  if (!reservation) throw new Error('생성된 예약 응답이 아니에요');
+
+  return {
+    ...reservation,
+    ticketName: dto.ticketName,
+    remainingCount: dto.ticketRemainingCount,
+  };
+};
 
 const toGuardianReservation = (dto: ReservationDto): GuardianReservation | null => {
   if (dto.status === 'CANCELED') return null;
@@ -79,5 +100,6 @@ const toGuardianReservations = (dto: { reservations: ReservationDto[] }) =>
     return reservation ? [reservation] : [];
   });
 
-export { parseGuardianReservationList, toGuardianReservations };
+export { parseGuardianReservation, parseGuardianReservationList, toGuardianReservations };
+export type { CreatedGuardianReservation };
 export type { GuardianReservation, GuardianReservationStatus };

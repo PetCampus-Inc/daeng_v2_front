@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseGuardianReservationList, toGuardianReservations } from './guardianReservation';
+import { parseGuardianReservation, parseGuardianReservationList, toGuardianReservations } from './guardianReservation';
 
 const response = {
   data: {
@@ -62,6 +62,20 @@ describe('toGuardianReservations', () => {
       { id: '11', petId: '332', startsAt: '2026-11-20T09:30', schoolName: '똑독 유치원', status: 'confirmed' },
       { id: '8', petId: '332', startsAt: '2026-11-03T17:00', schoolName: '똑독 유치원', status: 'attended' },
     ]);
+  });
+
+  it('생성 응답에서 이용권 잔여 횟수를 남긴다', () => {
+    const created = parseGuardianReservation({ data: response.data.reservations[0] });
+
+    expect(created).toEqual({
+      id: '11',
+      petId: '332',
+      startsAt: '2026-11-20T09:30',
+      schoolName: '똑독 유치원',
+      status: 'confirmed',
+      ticketName: '10회권',
+      remainingCount: 8,
+    });
   });
 
   it('슬래시 날짜는 응답 오류로 본다', () => {
