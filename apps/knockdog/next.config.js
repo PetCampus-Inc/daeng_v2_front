@@ -8,6 +8,10 @@ if (
 }
 
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT:
+      process.env.VERCEL_ENV === "production" ? "production" : "development",
+  },
   transpilePackages: ["@knockdog/bridge-core", "@knockdog/bridge-web"],
   async headers() {
     return [

@@ -7,9 +7,9 @@ import * as Sentry from "@sentry/nextjs";
 import { filterSentryBreadcrumb, filterSentryEvent } from "./src/shared/lib/sentry/filterSentryEvent";
 
 Sentry.init({
-  dsn: "https://363e8026f1104e3979575f4c3c9ad51e@o4512331024302080.ingest.us.sentry.io/4512350513725440",
-
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
+  enabled: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT === "production",
   tracesSampleRate: 0,
 
   // Turns off collection of data that could identify users. Adjust per category:
