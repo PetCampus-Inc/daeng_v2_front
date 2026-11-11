@@ -75,7 +75,7 @@ const GuardianHistoryPetSelector = ({
         <div
           role='region'
           aria-label={petSelector.listLabel}
-          className='bg-bg-0 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'
+          className='bg-bg-0 absolute inset-x-0 top-full z-20 max-h-[calc(100dvh-var(--safe-area-inset-top,0px)-11rem)] overflow-y-auto overscroll-contain rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'
         >
           <div className='bg-bg-0 flex flex-col'>
             {otherPets.map((pet) => (

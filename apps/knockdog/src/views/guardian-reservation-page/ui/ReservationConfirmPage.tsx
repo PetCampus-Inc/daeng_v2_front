@@ -132,7 +132,10 @@ function ReservationConfirmPage() {
     if (isLeaving.current) return;
     isLeaving.current = true;
     setIsConfirmed(false);
-    navigateToTab('/reservation').catch(() => undefined);
+    navigateToTab('/reservation').catch(() => {
+      isLeaving.current = false;
+      setIsConfirmed(true);
+    });
   };
 
   const handleBack = () => {
