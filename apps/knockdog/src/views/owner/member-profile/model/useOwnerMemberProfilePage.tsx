@@ -1,15 +1,16 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
-  isPetNotAuthorizedError,
+  isPetUnavailableError,
   useOwnerPetGuardianQuery,
   useOwnerPetQuery,
 } from '@entities/owner-pet';
 
 import { useClipboardCopy } from '@shared/lib/device';
+import { useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -23,8 +24,11 @@ import {
 function useOwnerMemberProfilePage() {
   const params = useParams<{ id: string }>();
   const petId = params?.id ?? '';
+  const hasValidPetId = /^\d+$/.test(petId.trim());
   const searchParams = useSearchParams();
   const copy = useClipboardCopy();
+  const { navigateToTab } = useTabNavigation();
+  const redirectedPetId = useRef<string | null>(null);
   const [activeTab, setActiveTab] = useState<OwnerMemberProfileTab>(() =>
     toOwnerMemberProfileTab(searchParams?.get(PROFILE_TAB_QUERY_KEY))
   );
@@ -33,8 +37,22 @@ function useOwnerMemberProfilePage() {
     data: dog,
     isLoading: isDogLoading,
     isError: isDogError,
+    isSuccess: isDogSuccess,
     error: dogError,
   } = useOwnerPetQuery({ petId, enabled: Boolean(petId) });
+  const isDogAccessDenied =
+    !hasValidPetId || isPetUnavailableError(dogError) || (isDogSuccess && !dog);
+
+  useEffect(() => {
+    if (!isDogAccessDenied || redirectedPetId.current === petId) return;
+
+    redirectedPetId.current = petId;
+    void navigateToTab('/owner/members', undefined, 'owner')
+      .then(() => toast({ title: ownerMemberProfileContent.alreadyDisconnectedToast }))
+      .catch(() => {
+        redirectedPetId.current = null;
+      });
+  }, [isDogAccessDenied, navigateToTab, petId]);
 
   const {
     data: guardian,
@@ -42,7 +60,7 @@ function useOwnerMemberProfilePage() {
     isError: isGuardianError,
   } = useOwnerPetGuardianQuery({
     petId,
-    enabled: Boolean(petId) && (activeTab === TAB.GUARDIAN || Boolean(dog)),
+    enabled: Boolean(petId) && !isDogAccessDenied && (activeTab === TAB.GUARDIAN || Boolean(dog)),
   });
 
   const handleCopy = async (label: string, value: string) => {
@@ -81,7 +99,7 @@ function useOwnerMemberProfilePage() {
     isDogLoading,
     isDogError,
     /** 연결이 해제됐거나 이 유치원 소속이 아닌 원생이라 프로필에 접근할 수 없다 */
-    isDogAccessDenied: isPetNotAuthorizedError(dogError),
+    isDogAccessDenied,
     isGuardianLoading,
     isGuardianError,
   };

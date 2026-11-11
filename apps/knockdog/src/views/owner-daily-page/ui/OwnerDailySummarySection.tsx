@@ -18,7 +18,13 @@ const OwnerDailySummarySection = ({ dateNav, summaryView }: OwnerDailySummarySec
       {summaryView ? (
         <div className='pt-x1 px-x4 pb-x5 gap-x4 flex w-full flex-col'>
           <section aria-label='등원 현황' className='bg-fill-primary-50 radius-r5 px-x5 py-x4'>
-            <p className='h3-semibold text-text-primary'>{summaryView.bannerText}</p>
+            <p className='body1-medium text-text-primary'>
+              <span className='h3-semibold text-text-accent'>{summaryView.bannerCount}</span>
+              {summaryView.bannerTotal != null ? (
+                <span className='text-fill-secondary-500'>{` / ${summaryView.bannerTotal}`}</span>
+              ) : null}{' '}
+              {summaryView.bannerDescription}
+            </p>
           </section>
           {summaryView.stats.length > 0 ? (
             <div className='bg-bg-50 radius-r3 px-x4 py-x0_5 flex w-full'>

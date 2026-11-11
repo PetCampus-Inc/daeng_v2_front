@@ -10,4 +10,9 @@ const PET_NOT_AUTHORIZED_CODE = 'PET-403-1';
 const isPetNotAuthorizedError = (error: unknown): boolean =>
   error instanceof ApiError && String(error.code) === PET_NOT_AUTHORIZED_CODE;
 
-export { isPetNotAuthorizedError };
+/** 접근 권한이 없거나 삭제·미존재 원생이라 상세를 열 수 없는 경우 */
+const isPetUnavailableError = (error: unknown): boolean =>
+  isPetNotAuthorizedError(error) ||
+  (error instanceof ApiError && String(error.code) === 'PET-404-1');
+
+export { isPetNotAuthorizedError, isPetUnavailableError };

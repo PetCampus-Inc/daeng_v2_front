@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { cn } from '@knockdog/ui/lib';
 
 import {
   AlertDialog,
@@ -74,8 +75,19 @@ function ApprovalEmptyState({ isSearchResult }: { isSearchResult: boolean }) {
         <p className='h2-extrabold text-text-primary'>{content.title}</p>
         <p className='body1-regular text-text-secondary'>{content.description}</p>
       </div>
-      <div className='absolute top-[calc(50%-208px)] h-[160px] w-[180px]'>
-        <Image src={content.imageSrc} alt={content.imageAlt} fill className='object-contain' sizes='180px' />
+      <div
+        className={cn(
+          'absolute',
+          isSearchResult ? 'top-[calc(50%-208px)] h-[160px] w-[180px]' : 'top-[calc(50%-236px)] h-[200px] w-[237px]'
+        )}
+      >
+        <Image
+          src={content.imageSrc}
+          alt={content.imageAlt}
+          fill
+          className='object-contain'
+          sizes={isSearchResult ? '180px' : '237px'}
+        />
       </div>
     </div>
   );
@@ -209,9 +221,13 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
               {`${approvedMember?.dogName ?? ''}의 유치원 연결이 완료됐어요.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction data-testid='owner-members-approved-charge' onClick={handleOpenTicketCharge}>
+          <AlertDialogFooter className='flex-col'>
+            <AlertDialogCancel className='w-full'>닫기</AlertDialogCancel>
+            <AlertDialogAction
+              className='w-full'
+              data-testid='owner-members-approved-charge'
+              onClick={handleOpenTicketCharge}
+            >
               이용권 충전하기
             </AlertDialogAction>
           </AlertDialogFooter>

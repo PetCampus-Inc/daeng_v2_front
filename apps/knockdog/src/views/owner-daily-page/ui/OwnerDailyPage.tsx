@@ -51,7 +51,7 @@ const TAB_TRIGGER_CLASS_NAME =
   'text-size-body1 h-x12 px-x4 py-x3 data-[state=inactive]:text-text-secondary border-b-0 leading-6 font-bold';
 
 const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]';
-// 오늘 `등원처리` 탭은 안내를 하단 내비게이션 위쪽 영역의 가운데에 두기 위해 아래 여백을 목록 쪽에서 둔다.
+// 오늘 탭은 안내를 하단 내비게이션 위쪽 영역의 가운데에 두기 위해 아래 여백을 목록 쪽에서 둔다.
 const CHECK_TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)';
 
 /** 원장 일과 화면. 날짜 이동·등원 현황·`등원처리`/`등원목록` 탭을 조합한다. */
@@ -80,6 +80,7 @@ const OwnerDailyPage = () => {
     isPrevDayDisabled,
     isNextDayDisabled,
     summary,
+    totalMemberCount,
     candidates,
     isNoReservation,
     isNotConfigured,
@@ -125,7 +126,7 @@ const OwnerDailyPage = () => {
   const isFuture = dayKind === 'future';
   const summaryView =
     summary && !isNotConfigured && !isLoading && !isError && !isPastNoRecord && !isNoReservation
-      ? toOwnerDailySummaryView(summary, dayKind)
+      ? toOwnerDailySummaryView(summary, dayKind, totalMemberCount)
       : null;
 
   const handleBackToOwnerHome = useCallback(() => {
@@ -287,13 +288,16 @@ const OwnerDailyPage = () => {
                   onCancelAbsent={(item) => openCancelDialog('absent', item)}
                 />
               ) : null}
-              {isPast ? <OwnerDailyPastCheckNoticeState /> : null}
-              {isFuture ? <OwnerDailyFutureNoticeState /> : null}
+              {!isToday ? (
+                <div className='flex min-h-full w-full flex-col'>
+                  {isPast ? <OwnerDailyPastCheckNoticeState /> : <OwnerDailyFutureNoticeState />}
+                </div>
+              ) : null}
             </TabsContent>
             <TabsContent
               ref={contentRef}
               value='attendance-list'
-              className={TAB_CONTENT_CLASS_NAME}
+              className={isToday ? CHECK_TAB_CONTENT_CLASS_NAME : TAB_CONTENT_CLASS_NAME}
               onScroll={handleContentScroll}
             >
               {todayList && isPast ? (

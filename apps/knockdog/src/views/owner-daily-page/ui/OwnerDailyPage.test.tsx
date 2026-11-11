@@ -166,7 +166,7 @@ describe('날짜 선택 시트', () => {
     vi.useRealTimers();
   });
 
-  test('날짜 영역이나 캘린더 아이콘을 누르면 날짜 선택 시트가 열리고 지금 보고 있는 날짜가 선택되어 있다', async () => {
+  test('날짜 영역을 누르면 날짜 선택 시트가 열리고 지금 보고 있는 날짜가 선택되어 있다', async () => {
     renderOwnerDaily(<OwnerDailyPage />);
     await user.click(await findDateButton(TODAY_LABEL));
 
@@ -274,23 +274,22 @@ describe('등원 현황 배너와 집계', () => {
     vi.useRealTimers();
   });
 
-  test('하루 정원이 있으면 배너에 `{등원 예정 원생 수} / {하루 정원 수}` 숫자가 보인다', async () => {
-    fakeAttendanceServer.setSettings({ dailyCapacity: 10 });
+  test('배너의 분모는 하루 정원이 아닌 전체 등록 원생 수다', async () => {
+    fakeAttendanceServer.setSettings({ dailyCapacity: 5, totalMemberCount: 12 });
     renderOwnerDaily(<OwnerDailyPage />);
 
     const banner = await screen.findByRole('region', { name: '등원 현황' });
 
-    expect(banner.textContent).toContain('4 / 10');
+    expect(banner.textContent).toContain('4 / 12');
   });
 
-  test('하루 정원이 없으면 배너에 분모 없이 등원 예정 원생 수만 보인다', async () => {
-    fakeAttendanceServer.setSettings({ dailyCapacity: null });
+  test('하루 정원이 없어도 전체 등록 원생 수를 분모로 보여 준다', async () => {
+    fakeAttendanceServer.setSettings({ dailyCapacity: null, totalMemberCount: 12 });
     renderOwnerDaily(<OwnerDailyPage />);
 
     const banner = await screen.findByRole('region', { name: '등원 현황' });
 
-    expect(banner.textContent).toContain('4');
-    expect(banner.textContent).not.toContain('/');
+    expect(banner.textContent).toContain('4 / 12');
   });
 
   test('집계에 등원 완료·결석 확정·하원 완료 수치가 보인다', async () => {

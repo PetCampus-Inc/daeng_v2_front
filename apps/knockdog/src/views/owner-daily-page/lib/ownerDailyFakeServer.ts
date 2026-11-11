@@ -46,6 +46,7 @@ interface FakePet {
 }
 
 interface FakeServerSettings {
+  totalMemberCount: number;
   /** 하루 정원. null이면 제한 없음 */
   dailyCapacity: number | null;
   reservationSettingConfigured: boolean;
@@ -59,9 +60,13 @@ type ActionName =
   | 'postAttendanceCancelAbsent'
   | 'postAttendanceCancelCheckOut';
 
-type ReadName = 'summary' | 'candidates' | 'today';
+type ReadName = 'summary' | 'candidates' | 'today' | 'members';
 
-const DEFAULT_SETTINGS: FakeServerSettings = { dailyCapacity: null, reservationSettingConfigured: true };
+const DEFAULT_SETTINGS: FakeServerSettings = {
+  totalMemberCount: 10,
+  dailyCapacity: null,
+  reservationSettingConfigured: true,
+};
 
 let nextPetId = 1;
 let settings: FakeServerSettings = { ...DEFAULT_SETTINGS };
@@ -245,6 +250,15 @@ const fakeAttendanceApi = {
   postAttendanceCancelCheckOut: createAction('postAttendanceCancelCheckOut', ['CHECKED_OUT'], 'CHECKED_IN'),
 };
 
+const fakeOwnerMembersApi = {
+  getOwnerMembers: vi.fn(() => {
+    const failure = takeInjectedReadFailure('members');
+    if (failure) return failure;
+
+    return Promise.resolve(createResponse({ members: [], totalStudentCount: settings.totalMemberCount }));
+  }),
+};
+
 const fakeAttendanceServer = {
   /** 날짜별 데이터와 설정을 비우고 호출 기록을 지운다. */
   reset: () => {
@@ -255,6 +269,7 @@ const fakeAttendanceServer = {
     injectedReadFailures = new Set();
     heldActions = null;
     Object.values(fakeAttendanceApi).forEach((fn) => fn.mockClear());
+    fakeOwnerMembersApi.getOwnerMembers.mockClear();
   },
   /** 그 날짜(`YYYY-MM-DD`)에 예약한 원생들을 넣는다. */
   seedDay: (dateKey: string, pets: FakePet[]) => {
@@ -287,5 +302,5 @@ const fakeAttendanceServer = {
   getPets,
 };
 
-export { createFakePet, fakeAttendanceApi, fakeAttendanceServer };
+export { createFakePet, fakeAttendanceApi, fakeAttendanceServer, fakeOwnerMembersApi };
 export type { FakePet };

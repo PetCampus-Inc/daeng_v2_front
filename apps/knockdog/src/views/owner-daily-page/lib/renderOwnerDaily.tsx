@@ -4,6 +4,12 @@ import { render, type RenderResult } from '@testing-library/react';
 import { OverlayProvider } from 'overlay-kit';
 import { vi } from 'vitest';
 
+vi.mock('@entities/owner-member/api/ownerMember', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@entities/owner-member/api/ownerMember')>();
+  const { fakeOwnerMembersApi } = await import('./ownerDailyFakeServer');
+  return { ...original, ...fakeOwnerMembersApi };
+});
+
 /** 컴포넌트 테스트용: 재시도 없는 QueryClient와 OverlayProvider로 감싸서 그린다. */
 const renderOwnerDaily = (ui: ReactElement): RenderResult => {
   // jsdom에는 요소의 scrollTo와 ResizeObserver가 없어서 비워 둔다.

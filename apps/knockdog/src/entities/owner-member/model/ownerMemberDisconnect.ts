@@ -6,16 +6,18 @@ const DISCONNECT_BLOCK_TYPE = {
   reservation: 'RESERVATION',
 } as const;
 
+/** 서버 날짜 직렬화 형식: `YYYY-MM-DD` 또는 `[year, month, day]` */
+type DisconnectDateDto = string | number[];
+
 interface OwnerMemberDisconnectTicketDto {
   name: string;
   remainingCount: number;
   /** 만료 없는 이용권이면 null */
-  expiresOn: string | null;
+  expiresOn: DisconnectDateDto | null;
 }
 
 interface OwnerMemberDisconnectReservationDto {
-  /** `YYYY-MM-DD` */
-  date: string;
+  date: DisconnectDateDto;
   /** `HH:mm` */
   time: string | null;
   status: string | null;
@@ -64,6 +66,13 @@ interface OwnerMemberDisconnectEligibility {
   bodyKind: OwnerMemberDisconnectBodyKind | null;
 }
 
+const toDisconnectDateLabel = (value: DisconnectDateDto): string => {
+  if (typeof value === 'string') return formatDotDate(value);
+
+  const [year, month, day] = value;
+  return `${year}.${String(month).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
+};
+
 /**
  * `HH:mm`을 `오전·오후 h:mm`으로 바꾼다.
  * 00시대는 오전 12시대, 12시대는 오후 12시대, 13시 이후는 12를 뺀 오후.
@@ -87,7 +96,7 @@ const toDisconnectBlock = (
       type: 'ticket',
       name,
       remainingCount,
-      expiryLabel: expiresOn == null ? NO_END_DATE_LABEL : `${formatDotDate(expiresOn)}까지`,
+      expiryLabel: expiresOn == null ? NO_END_DATE_LABEL : `${toDisconnectDateLabel(expiresOn)}까지`,
     };
   }
 
@@ -96,7 +105,7 @@ const toDisconnectBlock = (
 
     return {
       type: 'reservation',
-      dateLabel: formatDotDate(date),
+      dateLabel: toDisconnectDateLabel(date),
       // 서버 예약 시간 칸은 비어 있을 수 없다(NOT NULL). 타입이 nullable이라 빈 값만 방어한다.
       timeLabel: time == null ? '' : toTwelveHourTimeLabel(time),
     };

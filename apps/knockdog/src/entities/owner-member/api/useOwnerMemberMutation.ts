@@ -108,9 +108,10 @@ function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMuta
         }),
         queryClient.invalidateQueries({ queryKey: [OWNER_HOME_QUERY_KEY, userId] }),
         queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY] }),
-        queryClient.invalidateQueries({ queryKey: [OWNER_PET_QUERY_KEY] }),
-        queryClient.invalidateQueries({ queryKey: [OWNER_PET_GUARDIAN_QUERY_KEY] }),
-        queryClient.invalidateQueries({ queryKey: [OWNER_PET_HISTORY_QUERY_KEY] }),
+        // 해제된 프로필은 더 이상 조회 권한이 없다. 목록으로 이동하기 전 재조회하지 않는다.
+        queryClient.invalidateQueries({ queryKey: [OWNER_PET_QUERY_KEY], refetchType: 'none' }),
+        queryClient.invalidateQueries({ queryKey: [OWNER_PET_GUARDIAN_QUERY_KEY], refetchType: 'none' }),
+        queryClient.invalidateQueries({ queryKey: [OWNER_PET_HISTORY_QUERY_KEY], refetchType: 'none' }),
       ]);
     },
   });

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
 import { ApiError } from '@shared/api';
@@ -9,12 +9,19 @@ import { OwnerMemberProfilePage } from './OwnerMemberProfilePage';
 
 const searchParamsRef = vi.hoisted(() => ({ current: new URLSearchParams() }));
 const mocks = vi.hoisted(() => ({
+  petId: '1',
   getOwnerPet: vi.fn(),
   getOwnerPetGuardian: vi.fn(),
+  navigateToTab: vi.fn(),
 }));
 
+vi.mock('@shared/lib/bridge', () => ({
+  useTabNavigation: () => ({ navigateToTab: mocks.navigateToTab }),
+}));
+vi.mock('@shared/ui/toast', () => ({ toast: vi.fn() }));
+
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: '1' }),
+  useParams: () => ({ id: mocks.petId }),
   useSearchParams: () => searchParamsRef.current,
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
@@ -52,23 +59,58 @@ const renderProfilePage = () => {
   );
 };
 
-describe('해제된 원생의 프로필에 들어오면 접근 불가 화면을 보여준다', () => {
+describe('해제된 원생의 프로필에 들어오면 원생 목록으로 돌아간다', () => {
+  beforeEach(() => {
+    mocks.petId = '1';
+    mocks.navigateToTab.mockResolvedValue(undefined);
+  });
   afterEach(() => {
     cleanup();
     vi.resetAllMocks();
   });
 
-  it('해제된 원생의 프로필로 들어오면 공통 오류 화면이 보이고 프로필 내용은 보이지 않는다', async () => {
+  it('접근 권한이 없는 원생은 목록으로 이동하고 프로필 내용은 보이지 않는다', async () => {
     mocks.getOwnerPet.mockRejectedValue(new ApiError(403, 'PET-403-1', '접근 권한이 없는 원생입니다.'));
     renderProfilePage();
 
-    expect(await screen.findByRole('heading', { level: 1 })).toBeTruthy();
+    await waitFor(() => expect(mocks.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
     expect(screen.queryByRole('tab')).toBeNull();
+  });
+
+  it('일시적인 서버 오류는 목록 이동으로 처리하지 않는다', async () => {
+    mocks.getOwnerPet.mockRejectedValue(new ApiError(500, 'SERVER_ERROR', '서버 오류'));
+    renderProfilePage();
+
+    await screen.findByText('원생 프로필을 불러오지 못했어요');
+    expect(mocks.navigateToTab).not.toHaveBeenCalled();
+  });
+
+  it('존재하지 않는 원생 응답도 목록으로 돌아간다', async () => {
+    mocks.getOwnerPet.mockRejectedValue(new ApiError(404, 'PET-404-1', '해당 강아지가 존재하지 않습니다.'));
+    renderProfilePage();
+
+    await waitFor(() => expect(mocks.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
+  });
+
+  it('응답에 프로필이 없으면 목록으로 돌아간다', async () => {
+    mocks.getOwnerPet.mockResolvedValue({ data: null });
+    renderProfilePage();
+
+    await waitFor(() => expect(mocks.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
+  });
+
+  it('원생 ID가 숫자가 아닌 잘못된 주소는 조회하지 않고 목록으로 돌아간다', async () => {
+    mocks.petId = 'invalid';
+    renderProfilePage();
+
+    await waitFor(() => expect(mocks.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
+    expect(mocks.getOwnerPet).not.toHaveBeenCalled();
   });
 });
 
 describe('원생 프로필 탭 지정 열기', () => {
   beforeEach(() => {
+    mocks.petId = '1';
     searchParamsRef.current = new URLSearchParams();
     mocks.getOwnerPet.mockResolvedValue({
       data: {

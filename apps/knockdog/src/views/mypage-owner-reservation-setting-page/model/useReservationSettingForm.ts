@@ -8,9 +8,11 @@ import {
   type ReservationSetting,
 } from '@entities/owner-reservation-setting';
 import { useUserStore } from '@entities/user';
-import { mapRequestErrorMessage } from '@shared/api';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { TIME_PLACEHOLDER, type AdmissionTimeField } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
+import {
+  TIME_PLACEHOLDER,
+  type AdmissionTimeField,
+} from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
 import {
   applyConfirmedTime,
   canSaveReservationSetting,
@@ -63,10 +65,7 @@ function useReservationSettingForm(setting: ReservationSetting) {
   const isDirty = !isSameReservationSetting(values, baseline);
   const isSaveEnabled = canSaveReservationSetting(values, baseline, PEAK_DAILY_RESERVATION_COUNT) && !isSaving;
 
-  const updateValue = <Key extends keyof ReservationSettingValues>(
-    key: Key,
-    next: ReservationSettingValues[Key]
-  ) => {
+  const updateValue = <Key extends keyof ReservationSettingValues>(key: Key, next: ReservationSettingValues[Key]) => {
     setValues((prev) => ({ ...prev, [key]: next }));
   };
 
@@ -75,8 +74,7 @@ function useReservationSettingForm(setting: ReservationSetting) {
   };
 
   const activeTimeValue = activeTimeField
-    ? (values[activeTimeField] ??
-      (isStartTimeField(activeTimeField) ? TIME_PLACEHOLDER.start : TIME_PLACEHOLDER.end))
+    ? (values[activeTimeField] ?? (isStartTimeField(activeTimeField) ? TIME_PLACEHOLDER.start : TIME_PLACEHOLDER.end))
     : null;
 
   const openTimeField = (field: AdmissionTimeField) => {
@@ -104,8 +102,8 @@ function useReservationSettingForm(setting: ReservationSetting) {
       setBaseline(saved);
       setValues((current) => keepUnsavedReservationEdits(snapshot, current, saved));
       return 'saved' as const;
-    } catch (error) {
-      return mapRequestErrorMessage(error);
+    } catch {
+      return '예약 설정을 저장하지 못했어요';
     }
   };
 

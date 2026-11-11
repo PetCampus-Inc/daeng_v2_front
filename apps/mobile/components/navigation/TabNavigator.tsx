@@ -112,7 +112,7 @@ export default function TabNavigator() {
 
           return {
             tabBarIcon: ({ focused }) => {
-              const tint = focused ? '#FF6E0C' : '#8C8C94';
+              const tint = focused ? '#FF6E0C' : isOwnerMode ? '#B4B4BB' : '#8C8C94';
               // fill을 루트에 주면 stroke·마스크 아이콘이 면으로 채워진다. 색만 넘긴다.
               const fillIconProps = { fill: tint, color: tint };
               const strokeIconProps = { color: tint };
@@ -152,6 +152,14 @@ export default function TabNavigator() {
             tabBarLabelStyle: {
               fontSize: 12,
               marginTop: 2,
+              ...(isOwnerMode
+                ? {
+                    fontFamily: 'SUIT-SemiBold',
+                    lineHeight: 18,
+                    letterSpacing: -0.24,
+                    marginTop: 4,
+                  }
+                : {}),
             },
             headerShown: false,
             ...(visible ? {} : HIDDEN_TAB_OPTIONS),

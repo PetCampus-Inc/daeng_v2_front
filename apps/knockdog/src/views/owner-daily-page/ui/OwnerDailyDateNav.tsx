@@ -1,6 +1,7 @@
 'use client';
 
 import { Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 interface OwnerDailyDateNavProps {
   label: string;
@@ -37,7 +38,6 @@ const OwnerDailyDateNav = ({
         </button>
         <button type='button' className='gap-x2 flex items-center' onClick={onOpenDatePicker}>
           <span className='h3-extrabold text-text-primary whitespace-nowrap'>{label}</span>
-          <Icon icon='Calendar' className='text-text-primary size-x6' />
         </button>
         <button
           type='button'
@@ -52,8 +52,12 @@ const OwnerDailyDateNav = ({
       <button
         type='button'
         disabled={isToday}
+        aria-pressed={isToday}
         onClick={onGoToday}
-        className='border-line-400 caption1-regular text-text-secondary radius-full h-x7 w-[49px] border font-medium'
+        className={cn(
+          'caption1-regular radius-full h-x7 w-[49px] border font-medium',
+          isToday ? 'border-line-accent bg-fill-primary-50 text-text-accent' : 'border-line-400 text-text-secondary'
+        )}
       >
         오늘
       </button>
