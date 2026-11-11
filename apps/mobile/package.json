@@ -18,7 +18,7 @@
     "@knockdog/bridge-core": "workspace:*",
     "@knockdog/bridge-native": "workspace:*",
     "@react-native-firebase/analytics": "26.2.0",
-    "@react-native-firebase/app": "^26.2.0",
+    "@react-native-firebase/app": "^27.1.0",
     "@react-native-firebase/messaging": "^26.2.0",
     "@react-native-google-signin/google-signin": "^16.0.0",
     "@react-native-kakao/core": "^2.4.2",
