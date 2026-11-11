@@ -15,6 +15,7 @@ import {
   type TodayAttendanceFilter,
 } from '@entities/owner-attendance-checkinout';
 import { useUserStore } from '@entities/user';
+import { useOwnerMembersQuery } from '@entities/owner-member';
 
 import { addDays, formatDateKey, getKstDateKey, isAfterDay, isSameDay, startOfDay } from '@shared/lib/calendar-date';
 
@@ -31,6 +32,7 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * - 등원 가능 시간 미설정: 현황 응답이 미설정이면(`isNotConfigured`) 오늘 날짜만 보여 주고 날짜 이동을 막는다.
  * - 조회 실패: 필수 조회 하나라도 실패하면 `isError`이고, `handleRetry`가 실패한 조회만 다시 요청한다.
  * - 조회: 현황(summary)은 항상, 등원 대상(candidates)은 오늘·미래, 등원목록(today)은 오늘·지난 날짜만 한다.
+ *   전체 등록 원생 수는 오늘·미래 날짜에 구성원 목록의 전체 집계로 조회한다.
  */
 const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: boolean } = {}) => {
   const userId = useUserStore((state) => state.user?.userId);
@@ -67,6 +69,7 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
   const hasCandidates = dayKind !== 'past';
   const hasTodayList = dayKind !== 'future';
   const summaryQuery = useAttendanceCheckinoutSummaryQuery({ date: selectedDateKey, userId });
+  const membersQuery = useOwnerMembersQuery({ userId, enabled: hasCandidates });
   const candidatesQuery = useAttendanceCheckinoutCandidatesQuery({
     date: selectedDateKey,
     userId,
@@ -92,9 +95,15 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
 
   // 날짜가 바뀐 직후에는 이전 날짜의 목록이 잠깐 남아 있으므로(placeholder) 불러오는 중으로 본다.
   const isCandidatesLoading = hasCandidates && (candidatesQuery.isLoading || candidatesQuery.isPlaceholderData);
-  const isLoading = summaryQuery.isLoading || isCandidatesLoading || (hasTodayList && todayListQuery.isLoading);
+  const isLoading =
+    summaryQuery.isLoading ||
+    isCandidatesLoading ||
+    (hasTodayList && todayListQuery.isLoading) ||
+    (hasCandidates && membersQuery.isLoading);
   const isError =
-    summaryQuery.isError || (hasCandidates && candidatesQuery.isError) || (hasTodayList && todayListQuery.isError);
+    summaryQuery.isError ||
+    (hasCandidates && (candidatesQuery.isError || membersQuery.isError)) ||
+    (hasTodayList && todayListQuery.isError);
 
   useEffect(() => {
     const refreshNow = () => setNow(new Date());
@@ -115,6 +124,7 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
   /** 실패한 필수 조회만 다시 요청한다. */
   const handleRetry = () => {
     if (summaryQuery.isError) summaryQuery.refetch();
+    if (hasCandidates && membersQuery.isError) membersQuery.refetch();
     if (hasCandidates && candidatesQuery.isError) candidatesQuery.refetch();
     if (hasTodayList && todayListQuery.isError) todayListQuery.refetch();
   };
@@ -144,6 +154,7 @@ const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: bool
     isPrevDayDisabled,
     isNextDayDisabled,
     summary: summaryQuery.data,
+    totalMemberCount: membersQuery.data?.counts.all,
     candidates,
     isNoReservation,
     isNotConfigured,

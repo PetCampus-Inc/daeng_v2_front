@@ -96,8 +96,8 @@ describe('조회 실패와 부분 실패', () => {
     expect(screen.queryByRole('listitem')).toBeNull();
   });
 
-  test('오류 화면에서 `다시 시도하기`를 누르면 실패한 조회를 다시 요청하고 성공하면 일과 화면이 보인다', async () => {
-    fakeAttendanceServer.failNextRead('candidates');
+  test.each(['candidates', 'members'] as const)('%s 조회 실패 후 재시도하면 일과 화면이 복구된다', async (read) => {
+    fakeAttendanceServer.failNextRead(read);
     renderOwnerDaily(<OwnerDailyPage />);
     await user.click(await screen.findByRole('button', { name: '다시 시도하기' }));
 

@@ -46,7 +46,13 @@ const OwnerDailyAttendanceListTab = ({
   ];
 
   // 등원한 원생이 아예 없으면 칩 없이 안내만 보여 준다.
-  if (counts.all === 0) return <OwnerDailyNoAttendanceState />;
+  if (counts.all === 0) {
+    return (
+      <div className='flex min-h-full w-full flex-col'>
+        <OwnerDailyNoAttendanceState />
+      </div>
+    );
+  }
 
   return (
     <div className='flex min-h-full w-full flex-col'>
@@ -64,7 +70,7 @@ const OwnerDailyAttendanceListTab = ({
       {items.length === 0 ? (
         <OwnerDailyFilterEmptyState />
       ) : (
-        <ul className='flex w-full flex-col gap-3 px-4 pt-3'>
+        <ul className='mb-[88px] flex w-full flex-col gap-3 px-4 pt-3'>
           {items.map((item) => (
             <OwnerDailyTodayAttendanceCard
               key={item.petId}
