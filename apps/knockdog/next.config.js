@@ -36,6 +36,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'knockdog-dev-kindergarten-image-bucket-294556736127.s3.ap-northeast-2.amazonaws.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'knockdog-memo-attachments.s3.ap-northeast-2.amazonaws.com',
       },
       {
