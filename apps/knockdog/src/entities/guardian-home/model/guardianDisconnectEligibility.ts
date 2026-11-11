@@ -1,19 +1,70 @@
 import { z } from 'zod';
 
+/** 서버 `LocalDate`. ISO 문자열 또는 `[year, month, day]` */
+const toDateKey = (value: string | number[] | null | undefined): string | null => {
+  if (value == null) return null;
+
+  if (typeof value === 'string') {
+    const datePart = value.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
+    return null;
+  }
+
+  if (value.length < 3) return null;
+  const [year, month, day] = value;
+  if (typeof year !== 'number' || typeof month !== 'number' || typeof day !== 'number') return null;
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+
+/** 서버 시각. `HH:mm` 문자열 또는 `[hour, minute]` */
+const toClock = (value: string | number[] | null | undefined): string | null => {
+  if (value == null) return null;
+
+  if (typeof value === 'string') {
+    const matched = /^(\d{1,2}):(\d{2})/.exec(value);
+    if (!matched?.[1] || !matched[2]) return null;
+    return `${matched[1].padStart(2, '0')}:${matched[2]}`;
+  }
+
+  if (value.length < 2) return null;
+  const [hour, minute] = value;
+  if (typeof hour !== 'number' || typeof minute !== 'number') return null;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+};
+
+const nullableDateSchema = z
+  .union([z.string(), z.array(z.number()), z.null()])
+  .nullish()
+  .transform((value) => toDateKey(value));
+
+const requiredDateSchema = z.union([z.string(), z.array(z.number())]).transform((value, ctx) => {
+  const date = toDateKey(value);
+  if (!date) {
+    ctx.addIssue({ code: 'custom', message: '날짜 형식이 올바르지 않아요' });
+    return z.NEVER;
+  }
+  return date;
+});
+
+const nullableClockSchema = z
+  .union([z.string(), z.array(z.number()), z.null()])
+  .nullish()
+  .transform((value) => toClock(value));
+
 const disconnectBlockDtoSchema = z.object({
   type: z.enum(['ATTENDANCE', 'RESERVATION', 'TICKET']),
   ticket: z
     .object({
       name: z.string(),
       remainingCount: z.number(),
-      expiresOn: z.string().nullable().optional(),
+      expiresOn: nullableDateSchema,
     })
     .nullable()
     .optional(),
   reservation: z
     .object({
-      date: z.string(),
-      time: z.string().nullable().optional(),
+      date: requiredDateSchema,
+      time: nullableClockSchema,
       status: z.string().nullable().optional(),
     })
     .nullable()

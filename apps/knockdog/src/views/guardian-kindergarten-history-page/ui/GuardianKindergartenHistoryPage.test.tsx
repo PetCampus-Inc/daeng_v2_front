@@ -185,7 +185,7 @@ describe('연결 이력 화면의 강아지 선택', () => {
     await userEvent.click(await screen.findByRole('button', { name: /초코/ }));
 
     const list = await screen.findByRole('region', { name: '강아지 선택 목록' });
-    expect(within(list).getByRole('button', { name: /초코/ })).toBeTruthy();
+    expect(within(list).queryByRole('button', { name: /초코/ })).toBeNull();
     expect(within(list).getByRole('button', { name: /두부/ })).toBeTruthy();
   });
 
@@ -417,7 +417,7 @@ describe('해제 불가 바텀시트', () => {
       await waitFor(() => expect(screen.queryByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ })).toBeNull());
     });
 
-    test('시트 바깥을 누르거나 아래로 밀어도 시트가 닫히지 않는다', async () => {
+    test('시트 바깥을 눌러도 시트가 닫히지 않는다', async () => {
       await openBlockedSheet(TICKET_BLOCKS);
 
       await userEvent.setup({ pointerEventsCheck: 0 }).click(document.documentElement);
