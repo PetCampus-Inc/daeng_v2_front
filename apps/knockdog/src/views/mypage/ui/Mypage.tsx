@@ -315,7 +315,7 @@ function MypageContent() {
 
         <Divider size='thick' />
 
-        <QuickActionsSection />
+        <QuickActionsSection variant={isOwnerView ? 'owner' : 'guardian'} />
 
         {!isOwnerView && shouldShowOwnerVerification ? (
           <div className='bg-bg-0 -mt-2 px-4 pb-5'>

@@ -139,7 +139,7 @@ function AccountSection({
               type='button'
               variant='secondaryLine'
               size='large'
-              className='w-full'
+              className='border-line-200 text-primitive-neutral-500 w-full font-bold'
               onClick={onReleasePermissionClick}
             >
               {releasePermissionLabel}
