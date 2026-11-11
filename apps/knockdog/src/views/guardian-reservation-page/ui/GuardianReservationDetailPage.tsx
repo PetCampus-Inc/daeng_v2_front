@@ -217,7 +217,7 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 px-x4 pt-x4 pb-[calc(var(--bottom-bar-height)+20px)] webview:pb-x5 shrink-0'>
+      <div className='bg-bg-0 px-x4 pt-x4 pb-x8 webview:pb-x5 shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}

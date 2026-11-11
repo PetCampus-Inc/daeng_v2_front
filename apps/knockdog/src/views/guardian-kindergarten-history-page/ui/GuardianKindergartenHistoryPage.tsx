@@ -1,5 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+
+import { cn } from '@knockdog/ui/lib';
+
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 import { useGuardianConnectionHistory } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionHistory';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
@@ -20,10 +24,11 @@ function GuardianKindergartenHistoryPage() {
   const currentItem = items.find((item) => item.disconnectedAt == null);
   const previousItems = items.filter((item) => item.disconnectedAt != null);
   const hasNoHistory = hasNoPet || (!isPending && items.length === 0);
+  const [isPetListOpen, setIsPetListOpen] = useState(false);
 
   return (
     <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col'>
-      <div className='shrink-0'>
+      <div className='relative z-30 shrink-0'>
         <Header>
           <Header.BackButton />
           <Header.Title>{content.pageTitle}</Header.Title>
@@ -33,9 +38,28 @@ function GuardianKindergartenHistoryPage() {
       {isError ? (
         <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
       ) : (
-        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'>
+        <div
+          className={cn(
+            'scrollbar-hide relative min-h-0 flex-1 overscroll-y-contain',
+            isPetListOpen ? 'overflow-hidden' : 'overflow-y-auto [-webkit-overflow-scrolling:touch]'
+          )}
+        >
+          {isPetListOpen ? (
+            <button
+              type='button'
+              aria-label={content.petSelector.closeLabel}
+              className='absolute inset-0 z-10 bg-black/40'
+              onClick={() => setIsPetListOpen(false)}
+            />
+          ) : null}
           {selectedPet ? (
-            <GuardianHistoryPetSelector pets={pets} selectedPet={selectedPet} onSelect={setSelectedPetId} />
+            <GuardianHistoryPetSelector
+              pets={pets}
+              selectedPet={selectedPet}
+              isOpen={isPetListOpen}
+              onOpenChange={setIsPetListOpen}
+              onSelect={setSelectedPetId}
+            />
           ) : null}
 
           {isPending ? (

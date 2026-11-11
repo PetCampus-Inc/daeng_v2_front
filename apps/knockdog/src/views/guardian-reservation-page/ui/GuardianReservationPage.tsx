@@ -113,6 +113,7 @@ function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId:
       {pets.map((pet) => (
         <SelectDogCard
           key={pet.id}
+          showIcon={false}
           name={pet.name}
           breed={pet.breed}
           age={petAgeLabel(pet.birthYear)}
@@ -219,6 +220,7 @@ function GuardianReservationPage() {
           </header>
           <SelectDogCard
             isExpanded={isChevronOpen}
+            showIcon={false}
             name={selectedPet.name}
             breed={selectedPet.breed}
             age={petAgeLabel(selectedPet.birthYear)}
@@ -231,7 +233,10 @@ function GuardianReservationPage() {
         </div>
         {isDogListOpen ? (
           <div className='bg-bg-0 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
-            <ReservationDogList pets={pets} onSelect={handleSelectDog} />
+            <ReservationDogList
+              pets={pets.filter((pet) => pet.id !== selectedPet.id)}
+              onSelect={handleSelectDog}
+            />
           </div>
         ) : null}
       </div>
@@ -245,7 +250,7 @@ function GuardianReservationPage() {
         />
       ) : null}
 
-      <div className='px-x4 py-x8 gap-x9 flex flex-col'>
+      <div className='px-x4 py-x8 gap-x9 webview:pb-x8 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-[calc(var(--bottom-bar-height)+32px)]'>
         <section className='gap-x2_5 flex flex-col'>
           <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
           {upcomingQuery.isLoading ? (
