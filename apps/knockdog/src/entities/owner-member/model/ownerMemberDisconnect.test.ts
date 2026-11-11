@@ -23,6 +23,33 @@ const createEligibilityDto = (
 ): OwnerMemberDisconnectEligibilityDto => ({ canDisconnect: blocks.length === 0, blocks });
 
 describe('해제 불가 시트에 남은 예약·이용권을 보여준다', () => {
+  it('예약일과 만료일이 배열로 내려와도 두 사유를 서버 순서대로 날짜와 함께 표시한다', () => {
+    const eligibility = toDisconnectEligibility({
+      canDisconnect: false,
+      blocks: [
+        {
+          type: 'RESERVATION',
+          ticket: null,
+          reservation: { date: [2026, 11, 11], time: '20:30', status: '예약 확정' },
+        },
+        {
+          type: 'TICKET',
+          ticket: { name: '이용권 이름', remainingCount: 1, expiresOn: [2027, 2, 10] },
+          reservation: null,
+        },
+      ],
+    });
+
+    expect(eligibility).toEqual({
+      canDisconnect: false,
+      bodyKind: 'ticket',
+      blocks: [
+        { type: 'reservation', dateLabel: '2026.11.11', timeLabel: '오후 8:30' },
+        { type: 'ticket', name: '이용권 이름', remainingCount: 1, expiryLabel: '2027.02.10까지' },
+      ],
+    });
+  });
+
   it('만료일이 없는 이용권은 만료 없음으로, 만료일이 있는 이용권은 그 날짜까지로 표시할 값을 만든다', () => {
     const eligibility = toDisconnectEligibility(
       createEligibilityDto([createTicketBlock(null), createTicketBlock('2026-12-31')])

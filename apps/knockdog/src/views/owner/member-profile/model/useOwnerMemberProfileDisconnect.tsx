@@ -68,10 +68,33 @@ function useOwnerMemberProfileDisconnect({
     toast({ title: content.disconnectFailToast });
   };
 
+  const navigateToMembers = async (closeDialog?: () => void) => {
+    if (closeDialog) {
+      // 확인창을 닫는 history.back이 목록 이동을 되돌리지 않도록 popstate 이후에 이동한다.
+      if (window.history.state?.__knockdogOverlayId) {
+        await new Promise<void>((resolve) => {
+          const finish = () => {
+            window.removeEventListener('popstate', finish);
+            window.clearTimeout(timer);
+            resolve();
+          };
+          const timer = window.setTimeout(finish, 300);
+          window.addEventListener('popstate', finish);
+          closeDialog();
+        });
+      } else {
+        closeDialog();
+      }
+    }
+
+    await navigateToTab('/owner/members', undefined, 'owner');
+  };
+
   const resolveMemberId = async () => {
     if (memberId) return memberId;
 
     const refreshed = await membersQuery.refetch();
+    if (refreshed.isError) throw refreshed.error;
     return findOwnerMemberByPetId(refreshed.data?.members ?? [], petId)?.id ?? null;
   };
 
@@ -97,9 +120,9 @@ function useOwnerMemberProfileDisconnect({
   };
 
   /** 이미 해제된 원생이면 구성원 목록으로 이동하고 안내 토스트를 보여준다(목록은 mutation이 다시 불러온다) */
-  const handleAlreadyDisconnected = async (): Promise<'completed'> => {
+  const handleAlreadyDisconnected = async (closeDialog?: () => void): Promise<'completed'> => {
     try {
-      await navigateToTab('/owner/members', undefined, 'owner');
+      await navigateToMembers(closeDialog);
     } catch {
       // 페이지 이동 실패 무시
     }
@@ -113,19 +136,24 @@ function useOwnerMemberProfileDisconnect({
    * - `'failed'` 권한 해제 실패 — 프로필 복귀
    * - `'completed'` 권한 해제 성공 또는 이미 해제됨(이후 이동/토스트 실패 포함)
    */
-  const disconnectAndNotify = async (): Promise<'failed' | 'completed'> => {
-    const resolvedMemberId = await resolveMemberId();
-
-    if (!resolvedMemberId) {
+  const disconnectAndNotify = async (closeDialog: () => void): Promise<'failed' | 'completed'> => {
+    let resolvedMemberId: string | null;
+    try {
+      resolvedMemberId = await resolveMemberId();
+    } catch {
       showFailToast();
       return 'failed';
+    }
+
+    if (!resolvedMemberId) {
+      return handleAlreadyDisconnected(closeDialog);
     }
 
     try {
       await disconnectMutation.mutateAsync(resolvedMemberId);
     } catch (error) {
       if (isDisconnectBlockedError(error)) return handleServerBlocked(resolvedMemberId);
-      if (isAlreadyDisconnectedError(error)) return handleAlreadyDisconnected();
+      if (isAlreadyDisconnectedError(error)) return handleAlreadyDisconnected(closeDialog);
 
       // 서버 원복 가정 — 프론트는 낙관적 미적용이므로 캐시 그대로 + 프로필 복귀
       showFailToast();
@@ -145,7 +173,7 @@ function useOwnerMemberProfileDisconnect({
     }
 
     try {
-      await navigateToTab('/owner/members', undefined, 'owner');
+      await navigateToMembers(closeDialog);
     } catch {
       // 페이지 이동 실패도 해제 완료로 간주
     }
@@ -166,7 +194,7 @@ function useOwnerMemberProfileDisconnect({
         isOpen={isOpen}
         dogName={dogName}
         close={close}
-        onDisconnect={disconnectAndNotify}
+        onDisconnect={() => disconnectAndNotify(close)}
       />
     ));
   };
@@ -185,16 +213,26 @@ function useOwnerMemberProfileDisconnect({
 
   /** `연결해제`를 누르면 해제 가능 여부를 새로 조회해 시트(해제 불가) 또는 확인 모달(해제 가능)을 연다 */
   const handleDisconnectClick = async () => {
-    const resolvedMemberId = await resolveMemberId();
-    if (!resolvedMemberId) {
+    let resolvedMemberId: string | null;
+    try {
+      resolvedMemberId = await resolveMemberId();
+    } catch {
       showFailToast();
+      return;
+    }
+    if (!resolvedMemberId) {
+      await handleAlreadyDisconnected();
       return;
     }
 
     let eligibility: OwnerMemberDisconnectEligibility;
     try {
       eligibility = await eligibilityMutation.mutateAsync(resolvedMemberId);
-    } catch {
+    } catch (error) {
+      if (isAlreadyDisconnectedError(error)) {
+        await handleAlreadyDisconnected();
+        return;
+      }
       showFailToast();
       return;
     }

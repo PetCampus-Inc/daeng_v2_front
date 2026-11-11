@@ -11,7 +11,7 @@ export {
   useOwnerPetQuery,
 } from './api/useOwnerPetQuery';
 export { toOwnerPet, toOwnerPetGuardian } from './model/ownerPet';
-export { isPetNotAuthorizedError } from './model/ownerPetError';
+export { isPetNotAuthorizedError, isPetUnavailableError } from './model/ownerPetError';
 export { toOwnerPetConnections } from './model/ownerPetConnection';
 export type {
   OwnerPet,

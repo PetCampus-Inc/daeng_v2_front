@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryObserver } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OverlayProvider } from 'overlay-kit';
@@ -98,8 +98,9 @@ const BLOCKED_RESPONSE = {
   },
 };
 
-const renderDisconnectButton = () => {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const renderDisconnectButton = (
+  queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+) => {
 
   return render(
     <QueryClientProvider client={queryClient}>
@@ -137,6 +138,34 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
 
     expect(await screen.findByRole('dialog')).toBeTruthy();
     expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  it('예약일과 만료일이 배열인 해제 불가 응답도 토스트 대신 예약·이용권 시트를 연다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValue({
+      data: {
+        canDisconnect: false,
+        blocks: [
+          {
+            type: 'RESERVATION',
+            ticket: null,
+            reservation: { date: [2026, 11, 11], time: '20:30', status: '예약 확정' },
+          },
+          {
+            type: 'TICKET',
+            ticket: { name: '이용권 이름', remainingCount: 1, expiresOn: [2027, 2, 10] },
+            reservation: null,
+          },
+        ],
+      },
+    });
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+
+    expect(await screen.findByRole('dialog')).toBeTruthy();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(uiMock.toast).not.toHaveBeenCalled();
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
   });
 
   it('해제 불가 시트를 닫은 뒤 그 사이 조건이 풀렸으면 `연결해제`를 다시 눌렀을 때 해제 확인 모달이 열린다', async () => {
@@ -185,6 +214,28 @@ describe('해제 확인 모달에서 연결을 해제한다', () => {
     await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
     expect(uiMock.toast).toHaveBeenCalledWith(expect.objectContaining({ nativeTitle: expect.stringContaining('콩이') }));
   });
+
+  it('해제 직후에는 접근 권한이 없어진 프로필을 다시 조회하지 않고 캐시만 오래된 상태로 바꾼다', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const getProfile = vi.fn().mockResolvedValue({ name: '콩이' });
+    const queryKey = ['ownerPet', 'pet-1'];
+    queryClient.setQueryData(queryKey, { name: '콩이' });
+    const observer = new QueryObserver(queryClient, { queryKey, queryFn: getProfile, staleTime: Infinity });
+    const unsubscribe = observer.subscribe(() => undefined);
+    apiMock.postDisconnectOwnerMember.mockResolvedValue({ data: {} });
+    renderDisconnectButton(queryClient);
+
+    try {
+      await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+      await userEvent.click(await screen.findByRole('button', { name: '해제하기' }));
+
+      await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalled());
+      expect(getProfile).not.toHaveBeenCalled();
+      expect(queryClient.getQueryState(queryKey)?.isInvalidated).toBe(true);
+    } finally {
+      unsubscribe();
+    }
+  });
 });
 
 describe('해제 처리 중 조건이 바뀌거나 이미 해제된 경우를 나눈다', () => {
@@ -195,6 +246,26 @@ describe('해제 처리 중 조건이 바뀌거나 이미 해제된 경우를 �
   afterEach(() => {
     cleanup();
     vi.resetAllMocks();
+  });
+
+  it('해제 가능 여부를 확인할 때 이미 해제된 응답이 오면 목록으로 돌아간다', async () => {
+    apiMock.getDisconnectEligibility.mockRejectedValue(new ApiError(400, 'OWNER_MEMBER-400-2', '이미 해제됨'));
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+
+    await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
+  });
+
+  it('목록 재조회가 실패하면 연결 해제로 판단하지 않고 프로필에 머문다', async () => {
+    apiMock.getOwnerMembers.mockRejectedValue(new ApiError(500, 'SERVER_ERROR', '조회 실패'));
+    renderDisconnectButton();
+
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+
+    await waitFor(() => expect(uiMock.toast).toHaveBeenCalled());
+    expect(uiMock.navigateToTab).not.toHaveBeenCalled();
   });
 
   it('`해제하기`를 눌렀는데 그 사이 이용권·예약이 생겨 서버가 거절하면 해제 불가 시트가 열린다', async () => {
