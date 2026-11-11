@@ -126,7 +126,12 @@ function ReservationConfirmPage() {
       .catch(() => undefined);
   };
 
+  const isLeaving = useRef(false);
+
   const handleDone = () => {
+    if (isLeaving.current) return;
+    isLeaving.current = true;
+    setIsConfirmed(false);
     navigateToTab('/reservation').catch(() => undefined);
   };
 
@@ -286,7 +291,6 @@ function ReservationConfirmPage() {
 
       <BottomSheet.Root
         open={isConfirmed}
-        handleOnly
         onOpenChange={(open) => {
           if (!open) handleDone();
         }}

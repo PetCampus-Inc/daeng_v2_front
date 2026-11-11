@@ -55,19 +55,19 @@ function RsvConfirmedSheet({
   return (
     <div
       className={cn(
-        'bg-bg-0 flex w-full flex-col overflow-hidden rounded-t-[24px] shadow-[0_-16px_10px_rgba(0,0,0,0.05)]',
+        'bg-bg-0 flex max-h-[calc(100dvh-72px)] w-full flex-col overflow-hidden rounded-t-[24px] shadow-[0_-16px_10px_rgba(0,0,0,0.05)]',
         className
       )}
     >
-      <div className='flex h-x8 w-full justify-center pt-x3'>
+      <div className='flex h-x8 w-full shrink-0 justify-center pt-x3'>
         <span className='bg-fill-secondary-400 h-x1 w-x9 rounded-full' />
       </div>
-      <div className='py-x3_5 pr-x5 pl-x6 flex justify-end'>
+      <div className='py-x3_5 pr-x5 pl-x6 flex shrink-0 justify-end'>
         <button type='button' aria-label='닫기' onClick={onClose} className='inline-flex'>
           <Close className='text-text-primary' />
         </button>
       </div>
-      <div className='px-x4 pb-x4 gap-x6 flex flex-col'>
+      <div className='px-x4 pb-x4 gap-x6 flex min-h-0 flex-col overflow-y-auto'>
         <div className='gap-x2 flex flex-col items-center px-x0_5'>
           <CheckFill className='text-fill-primary-500 size-x12' />
           <p className='h1-extrabold text-text-primary text-center'>예약이 확정되었어요</p>
@@ -99,7 +99,7 @@ function RsvConfirmedSheet({
           <InfoRow label='이용권' value={ticket} extra={remaining} />
         </div>
       </div>
-      <div className='px-x4 pt-x4 pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
+      <div className='px-x4 pt-x4 pb-x8 webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)] shrink-0'>
         <button
           type='button'
           onClick={onConfirm}
