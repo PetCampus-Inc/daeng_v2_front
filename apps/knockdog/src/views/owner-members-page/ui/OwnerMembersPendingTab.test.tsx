@@ -153,12 +153,12 @@ describe('신청 인원 표시', () => {
     expectDogCountTag('3');
   });
 
-  it('신청이 0건이면 태그가 숨겨지고 `신청된 원생이 없어요` / `QR코드를 통해 원생 신청을 받아보세요.`가 보인다', async () => {
+  it('신청이 0건이면 태그가 숨겨지고 `신청한 원생이 없어요` / `QR코드를 통해 원생 신청을 받아보세요.`가 보인다', async () => {
     pendingRequests = [];
 
     renderPage('tab=pending');
 
-    expect(await screen.findByText('신청된 원생이 없어요')).toBeTruthy();
+    expect(await screen.findByText('신청한 원생이 없어요')).toBeTruthy();
     expect(screen.getByText('QR코드를 통해 원생 신청을 받아보세요.')).toBeTruthy();
     expect(screen.queryByText(/강아지수/)).toBeNull();
   });
@@ -292,7 +292,7 @@ describe('거절 확인 모달과 거절 완료 토스트', () => {
 
     fireEvent.click(within(dialog).getByRole('button', { name: '거절하기' }));
 
-    expect(await screen.findByText('신청된 원생이 없어요')).toBeTruthy();
+    expect(await screen.findByText('신청한 원생이 없어요')).toBeTruthy();
   });
 
   it('거절이 실패하면 신청 목록이 그대로이고 공통 오류 안내가 보인다', async () => {

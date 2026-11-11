@@ -9,6 +9,7 @@ import {
 } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 
 import { StudentTicketListItem } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 
 import { ownerMembersQueryKey, type OwnerMember } from '@entities/owner-member';
 import { getOwnerPet, isPetNotAuthorizedError, ownerPetQueryKey } from '@entities/owner-pet';
@@ -34,7 +35,12 @@ function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembe
   return (
     <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-[calc(var(--bottom-bar-height)+88px)]'>
       <div className='px-x4 flex w-full flex-col items-center justify-center gap-y-2 text-center'>
-        <div className='relative h-[160px] w-[200px] opacity-100'>
+        <div
+          className={cn(
+            'relative h-[160px] w-[200px] opacity-100',
+            (emptyStateType === 'emptyExpiring' || emptyStateType === 'emptyExpired') && 'h-[200px]'
+          )}
+        >
           <Image src={content.imageSrc} alt={content.imageAlt} fill className='object-contain' sizes='200px' />
         </div>
         <div className='flex flex-col items-center gap-y-1'>
