@@ -9,6 +9,8 @@ const usePutReservationMutation = (userId?: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // 오프라인 저장을 재연결까지 보류하지 않고 실패로 알려 재시도할 수 있게 한다.
+    networkMode: 'always',
     mutationFn: putReservationSetting,
     onSuccess: async () => {
       if (!userId) {

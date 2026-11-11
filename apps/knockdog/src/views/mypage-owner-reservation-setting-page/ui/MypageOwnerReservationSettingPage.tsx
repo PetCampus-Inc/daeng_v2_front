@@ -12,10 +12,7 @@ import {
   TimeRangeField,
   type TimeRangeState,
 } from '@knockdog/ui';
-import {
-  useReservationSettingQuery,
-  type ReservationSetting,
-} from '@entities/owner-reservation-setting';
+import { useReservationSettingQuery, type ReservationSetting } from '@entities/owner-reservation-setting';
 import { getUserHydrationStatus, subscribeUserHydration, useUserStore } from '@entities/user';
 import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
@@ -97,13 +94,7 @@ function ReservationSettingPending({
         <Header.Title>예약 설정</Header.Title>
       </Header>
       {isError ? (
-        <PageError
-          layout='inline'
-          title={title}
-          description={description}
-          onRetry={onRetry}
-          isRetrying={isRetrying}
-        />
+        <PageError layout='inline' title={title} description={description} onRetry={onRetry} isRetrying={isRetrying} />
       ) : (
         <DelayedLoadingSpinner isLoading layout='content' />
       )}
@@ -231,7 +222,7 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
           disabled={!form.isSaveEnabled}
           onClick={handleSave}
         >
-          저장하기
+          <span className='body1-bold'>저장하기</span>
         </ActionButton>
       </div>
 
