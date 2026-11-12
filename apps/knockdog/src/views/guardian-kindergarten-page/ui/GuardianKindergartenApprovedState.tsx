@@ -7,7 +7,6 @@ import { ActionButton, Icon } from '@knockdog/ui';
 import { GuardianKindergartenNewsSection } from '@views/guardian-kindergarten-news-page';
 import { useGuardianNewsPreview } from '@views/guardian-kindergarten-news-page/model/useGuardianKindergartenNews';
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
-import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import {
   pushGuardianDailyNoticeList,
@@ -19,6 +18,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
+import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
 import { GuardianKindergartenDayTimeline } from './GuardianKindergartenDayTimeline';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
@@ -62,19 +62,39 @@ function GuardianKindergartenApprovedState({
 
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
-      <div className='px-x4 flex w-full flex-col gap-10 py-5'>
-        {/* 일일 소식 */}
-        <section className='flex w-full flex-col gap-3'>
-          <div className='gap-x2 flex items-center'>
-            <Icon icon='Paw' className='text-fill-secondary-400 size-6' aria-hidden='true' />
-            <p className='h3-extrabold text-text-primary'>{formatKoreanDateWithWeekday(selectedDate)}</p>
-          </div>
-          <div className='bg-bg-50 radius-r3 flex h-16 w-full items-center justify-center px-4'>
-            <p className='body2-bold text-text-secondary'>{content.dailyEmptyMessage}</p>
-          </div>
-        </section>
+      <div className='px-x4 flex w-full flex-col gap-5 pt-6'>
+        <GuardianKindergartenHomeSegment />
+        <div className='bg-bg-50 radius-r3 flex h-16 w-full items-center justify-center px-4'>
+          <p className='body2-bold text-text-secondary'>{content.dailyEmptyMessage}</p>
+        </div>
+      </div>
 
-        {/* 오늘의 앨범 */}
+      <section className='flex w-full flex-col items-center'>
+        <GuardianKindergartenDateCalendar
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          schoolId={kindergarten.id}
+          firstAttendedAt={firstAttendedAt ?? undefined}
+        />
+        <GuardianKindergartenDayTimeline
+          checkInAt={checkInAt}
+          checkOutAt={checkOutAt}
+          dailyNotice={dailyNotice}
+          emptyMessage={content.calendarEmptyMessage}
+          isLoading={isCalendarDayPending}
+          onNoticeViewAllClick={() =>
+            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
+          }
+          onPastNoticesClick={() =>
+            pushGuardianDailyNoticeList(push, {
+              schoolId: kindergarten.id,
+              month: toMonthQuery(selectedDate),
+            })
+          }
+        />
+      </section>
+
+      <div className='px-x4 flex w-full flex-col gap-5 pt-5'>
         <section className='flex w-full flex-col items-center gap-5'>
           <div className='flex w-full items-center'>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
@@ -104,32 +124,6 @@ function GuardianKindergartenApprovedState({
           </div>
         </section>
       </div>
-
-      {/* 주간 캘린더 + 선택일 타임라인 */}
-      <section className='flex w-full flex-col items-center'>
-        <GuardianKindergartenDateCalendar
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          schoolId={kindergarten.id}
-          firstAttendedAt={firstAttendedAt ?? undefined}
-        />
-        <GuardianKindergartenDayTimeline
-          checkInAt={checkInAt}
-          checkOutAt={checkOutAt}
-          dailyNotice={dailyNotice}
-          emptyMessage={content.calendarEmptyMessage}
-          isLoading={isCalendarDayPending}
-          onNoticeViewAllClick={() =>
-            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
-          }
-          onPastNoticesClick={() =>
-            pushGuardianDailyNoticeList(push, {
-              schoolId: kindergarten.id,
-              month: toMonthQuery(selectedDate),
-            })
-          }
-        />
-      </section>
 
       {/* 유치원 새소식 */}
       <section className='px-x4 mt-6 flex w-full flex-col items-center'>

@@ -238,7 +238,6 @@ export function GuardianKindergartenPage() {
         ) : showDayState ? (
           <GuardianKindergartenAttendingState
             kindergarten={linkedKindergarten}
-            checkInAt={checkInAt}
             checkOutAt={checkOutAt}
             hasDailyNotice={hasDailyNotice}
             albumPhotos={albumPhotos}

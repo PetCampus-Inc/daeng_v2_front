@@ -20,6 +20,7 @@ import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianAlbumPhotoStack } from './GuardianAlbumPhotoStack';
+import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
 import { GuardianKindergartenDayTimeline } from './GuardianKindergartenDayTimeline';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
@@ -75,7 +76,8 @@ function GuardianKindergartenDisconnectedState({
 
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
-      <div className='px-x4 flex w-full flex-col gap-5 py-6'>
+      <div className='px-x4 flex w-full flex-col gap-5 pt-6'>
+        <GuardianKindergartenHomeSegment />
         {/* 선택 날짜 */}
         <div className='gap-x1 flex w-full items-center'>
           <Icon icon='Paw' className='text-fill-secondary-400 size-6' aria-hidden='true' />
