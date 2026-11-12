@@ -3,7 +3,7 @@
 - 정리일: 2026-11-09 — Notion PRD `[KD3-663] 보호자 연결 해제`(v0.3)와 Figma 섹션 `V.4.0_보호자-마이탭 / 유치원 연결이력`을 합침
 - 기준 원본: Figma
 - 문서 원본 보관: `./original/`
-- Figma 캐시 보관: `./figma/`
+- Figma 캐시 보관: `./original/figma/`
 - 구현 PR: [#792](https://github.com/PetCampus-Inc/daeng_v2_front/pull/792)
 
 ## 이 문서를 읽는 법
@@ -36,7 +36,7 @@
 | 원본 | 상태·편집일 | 원본 위치 | 보존 사본 |
 |---|---|---|---|
 | PRD `[KD3-663] 보호자 연결 해제` | `최신`, v0.3, 2026-11-05 11:30 | iCloud `똑독/개인 페이지 & 공유된 페이지 16/[KD3-663] 보호자 연결 해제 4066c15f67fb80b3bcc7d3912a35e0c7.md` (Jira KD3-663) | `./original/[KD3-663] 보호자 연결 해제 4066c15f67fb80b3bcc7d3912a35e0c7.md`, 사용자 흐름 이미지 `./original/[KD3-663] 보호자 연결 해제/스크린샷_2026-11-05_11.29.49.png` |
-| Figma 상위 섹션 `V.4.0_보호자-마이탭 / 유치원 연결이력` (`38:19172`) | 헤더 `Date 2026.11.03`, 담당 이산하 | https://www.figma.com/design/LiCUY2CN6tvNXbHziPpoh6/%EB%98%91%EB%8F%85--Dev-?node-id=38-19172 | 구조 `./figma/section-38-19172.json`, 구조 요약 `./figma/section-38-19172-tree.txt`, 화면별 문구 `./figma/section-38-19172-texts.md`, 화면 이미지 `./figma/images/<노드ID>.png` 12장 |
+| Figma 상위 섹션 `V.4.0_보호자-마이탭 / 유치원 연결이력` (`38:19172`) | 헤더 `Date 2026.11.03`, 담당 이산하 | https://www.figma.com/design/LiCUY2CN6tvNXbHziPpoh6/%EB%98%91%EB%8F%85--Dev-?node-id=38-19172 | 구조 `./original/figma/section-38-19172.json`, 구조 요약 `./original/figma/section-38-19172-tree.txt`, 화면별 문구 `./original/figma/section-38-19172-texts.md`, 화면 이미지 `./original/figma/images/<노드ID>.png` 12장 |
 | 서버 API 명세 | 2026-11-09 조회 | https://api.knockdog.net/v3/api-docs | 보존 안 함. 확인한 내용은 각 장에 적음 |
 
 ## 1. 개요

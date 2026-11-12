@@ -3,7 +3,7 @@
 - 정리일: 2026-11-09 — 기획 문서 `[KD3-643] 충전 및 관리`(최종 편집 2026년 11월 2일 오후 6:21)에서 구성원 화면과 직접 이어진 내용만 가져와 Figma `V.4.0_원장-구성원`과 통합
 - 기준 원본: Figma
 - 문서 원본 보관: `./original/`
-- Figma 캐시 보관: `./figma/`
+- Figma 캐시 보관: `./original/figma/`
 - 구현 PR: #785
 
 ## 이 문서를 읽는 법
@@ -28,7 +28,7 @@
 | 원본 | 상태·편집일 | 원본 위치 | 보존 사본 |
 |---|---|---|---|
 | PRD (기획 문서) | 문서 상태 `최신`, 최종 편집 2026년 11월 2일 오후 6:21, 담당 `PM_서현` | `/Users/yunjeongchoi/Library/Mobile Documents/com~apple~CloudDocs/똑독/개인 페이지 & 공유된 페이지 14/[KD3-643] 충전 및 관리 4006c15f67fb80ebbd74f4426582b49f.md` | `./original/[KD3-643] 충전 및 관리 4006c15f67fb80ebbd74f4426582b49f.md` (원본 폴더 구조 그대로 `./original/[KD3-643] 충전 및 관리/`) |
-| Figma 상위 섹션 | 섹션 `V.4.0_원장-구성원`(`30:12052`), Header `Version. 4.0` · `Date 2026.11.01` · `담당자 이서현` | `https://www.figma.com/design/LiCUY2CN6tvNXbHziPpoh6/%EB%98%91%EB%8F%85--Dev-?node-id=30-12052` | 구조 `./figma/LiCUY2CN6tvNXbHziPpoh6_30-12052.json`, 추출 글자 `./figma/texts.md`, 화면 이미지 `./figma/images/` (19장) |
+| Figma 상위 섹션 | 섹션 `V.4.0_원장-구성원`(`30:12052`), Header `Version. 4.0` · `Date 2026.11.01` · `담당자 이서현` | `https://www.figma.com/design/LiCUY2CN6tvNXbHziPpoh6/%EB%98%91%EB%8F%85--Dev-?node-id=30-12052` | 구조 `./original/figma/LiCUY2CN6tvNXbHziPpoh6_30-12052.json`, 추출 글자 `./original/figma/texts.md`, 화면 이미지 `./original/figma/images/` (19장) |
 
 - 기획 문서 머리말의 `지라 티켓`은 `KD3-636`이고 제목은 `[KD3-643]`이다. 이 PRD의 티켓 번호 `KD3-696`은 사용자가 지정했다.
 - 기획 문서는 이용권 충전·삭제·홀딩·이력까지 다루는 큰 문서다. 이번 범위(구성원 관리)와 직접 이어진 부분만 가져왔고, 가져오지 않은 부분은 2.2에 적었다.
