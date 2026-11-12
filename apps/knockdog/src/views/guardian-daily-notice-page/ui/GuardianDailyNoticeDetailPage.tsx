@@ -31,6 +31,7 @@ import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/m
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
+import { DIARY_WRITE_FROM, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { trackNotebookView } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import {
@@ -482,7 +483,22 @@ function GuardianDailyNoticeDetailPage() {
               />
             ) : (
               <>
-                {showDiaryNoteBanner ? <DiaryOnboardingNoteBanner dogName={selectedDogName} /> : null}
+                {showDiaryNoteBanner ? (
+                  <DiaryOnboardingNoteBanner
+                    dogName={selectedDogName}
+                    onWrite={() =>
+                      push(
+                        buildDiaryWriteTarget({
+                          date: selectedDate,
+                          from: DIARY_WRITE_FROM.notice,
+                          schoolId,
+                          petId: selectedPetId,
+                          hasNotice: true,
+                        })
+                      )
+                    }
+                  />
+                ) : null}
                 <div className='flex w-full shrink-0 items-start justify-between'>
                   <div className='flex items-center gap-3'>
                     <div className='flex flex-col gap-0.5'>

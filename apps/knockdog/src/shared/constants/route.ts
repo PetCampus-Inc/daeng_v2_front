@@ -352,6 +352,12 @@ const route = {
         root: '/kindergarten/notice/list',
       },
     },
+    diary: {
+      write: {
+        /** 보호자 일기 쓰기. query: date, from=diary|notice|onboarding, schoolId? */
+        root: '/kindergarten/diary/write',
+      },
+    },
     news: {
       /** 보호자 유치원 소식 목록. query: schoolId? */
       root: '/kindergarten/news',

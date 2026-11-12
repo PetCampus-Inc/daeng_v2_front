@@ -9,16 +9,22 @@ const DiaryOnboardingRequestContext = createContext<() => void>(() => {});
 
 interface DiaryOnboardingProviderProps {
   dogName?: string;
+  onStart?: () => void;
   children: ReactNode;
 }
 
-function DiaryOnboardingProvider({ dogName, children }: DiaryOnboardingProviderProps) {
+function DiaryOnboardingProvider({ dogName, onStart, children }: DiaryOnboardingProviderProps) {
   const { isOpen, openIfUnseen, close } = useDiaryOnboardingSheet();
+
+  function handleStart() {
+    close();
+    onStart?.();
+  }
 
   return (
     <DiaryOnboardingRequestContext.Provider value={openIfUnseen}>
       {children}
-      <DiaryOnboardingSheetPortal dogName={dogName} isOpen={isOpen} onClose={close} />
+      <DiaryOnboardingSheetPortal dogName={dogName} isOpen={isOpen} onClose={close} onStart={handleStart} />
     </DiaryOnboardingRequestContext.Provider>
   );
 }

@@ -8,6 +8,7 @@ interface GuardianDiarySegmentContextValue {
   segment: DiarySegment;
   dogName?: string;
   petId?: string | null;
+  schoolId?: string | null;
   selectSegment: (segment: DiarySegment) => void;
 }
 
@@ -19,17 +20,23 @@ const GuardianDiarySegmentContext = createContext<GuardianDiarySegmentContextVal
 interface GuardianDiarySegmentProviderProps {
   dogName?: string;
   petId?: string | null;
+  schoolId?: string | null;
   children: ReactNode;
 }
 
-function GuardianDiarySegmentProvider({ dogName, petId = null, children }: GuardianDiarySegmentProviderProps) {
+function GuardianDiarySegmentProvider({
+  dogName,
+  petId = null,
+  schoolId = null,
+  children,
+}: GuardianDiarySegmentProviderProps) {
   const [segment, setSegment] = useState<DiarySegment>(DIARY_SEGMENT.kindergarten);
   const selectSegment = useCallback((next: DiarySegment) => {
     setSegment(next);
   }, []);
 
   return (
-    <GuardianDiarySegmentContext.Provider value={{ segment, dogName, petId, selectSegment }}>
+    <GuardianDiarySegmentContext.Provider value={{ segment, dogName, petId, schoolId, selectSegment }}>
       {children}
     </GuardianDiarySegmentContext.Provider>
   );

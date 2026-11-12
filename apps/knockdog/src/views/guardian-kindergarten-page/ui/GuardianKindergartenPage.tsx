@@ -11,7 +11,9 @@ import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion'
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
 import { useTrackConnectionResults } from '@shared/lib/analytics';
-import { useTabNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { startOfDay } from '@shared/lib/calendar-date';
+import { DIARY_WRITE_FROM, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import {
   isPetIdInList,
   parseNotificationEntrySource,
@@ -34,6 +36,10 @@ export function GuardianKindergartenPage() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
+  const openOnboardingDiary = useCallback(() => {
+    push(buildDiaryWriteTarget({ date: startOfDay(new Date()), from: DIARY_WRITE_FROM.onboarding }));
+  }, [push]);
   const {
     pets,
     selectedPet,
@@ -220,9 +226,16 @@ export function GuardianKindergartenPage() {
   const shouldShowOwnerVerification =
     isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
 
+  const diarySchoolId =
+    linkedKindergarten && (status === 'approved' || status === 'disconnected') ? linkedKindergarten.id : null;
+
   return (
-    <DiaryOnboardingProvider dogName={selectedPet?.name}>
-      <GuardianDiarySegmentProvider dogName={selectedPet?.name} petId={selectedPet?.id ?? null}>
+    <DiaryOnboardingProvider dogName={selectedPet?.name} onStart={openOnboardingDiary}>
+      <GuardianDiarySegmentProvider
+        dogName={selectedPet?.name}
+        petId={selectedPet?.id ?? null}
+        schoolId={diarySchoolId}
+      >
         <div className='flex h-dvh flex-col' style={pageGradientStyle}>
           <GuardianKindergartenHeader
             status={status}

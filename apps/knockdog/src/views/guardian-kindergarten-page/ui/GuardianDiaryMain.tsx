@@ -21,6 +21,7 @@ interface GuardianDiaryMainProps {
   entries?: GuardianDiaryEntry[];
   remainingCredits?: number;
   today?: Date;
+  onWrite?: (date: Date) => void;
 }
 
 function GuardianDiaryMain({
@@ -29,6 +30,7 @@ function GuardianDiaryMain({
   entries = [],
   remainingCredits = DIARY_CREDIT_LIMIT,
   today: todayProp,
+  onWrite,
 }: GuardianDiaryMainProps) {
   const today = useMemo(() => startOfDay(todayProp ?? new Date()), [todayProp]);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -99,6 +101,7 @@ function GuardianDiaryMain({
               state={dayKind === 'spent' ? 'disabled' : dayKind}
               dogName={dogName}
               className='w-full'
+              onClick={onWrite ? () => onWrite(selectedDate) : undefined}
             />
           )}
         </div>

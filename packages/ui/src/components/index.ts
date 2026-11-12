@@ -47,6 +47,7 @@ export * from './rsv-confirmed-sheet';
 export * from './diary-top-bar';
 export * from './diary-calendar-banner';
 export * from './diary-note-banner';
+export * from './diary-import-banner';
 export * from './diary-segmented-control';
 export * from './diary-calendar-day';
 export * from './diary-calendar';

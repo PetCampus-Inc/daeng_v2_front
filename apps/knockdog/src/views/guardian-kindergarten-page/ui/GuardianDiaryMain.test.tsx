@@ -47,6 +47,17 @@ describe('일기장 메인', () => {
     expect(screen.getByText('월요일')).toBeTruthy();
   });
 
+  test('작성 배너를 누르면 선택한 날짜를 넘긴다', () => {
+    const onWrite = vi.fn();
+    render(<GuardianDiaryMain dogName='가나디' today={today} onWrite={onWrite} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '6월 15일' }));
+    fireEvent.click(screen.getByRole('button', { name: /이 날 가나디의 일기를 써볼까요/ }));
+
+    expect(onWrite).toHaveBeenCalledTimes(1);
+    expect(onWrite.mock.calls[0][0]).toEqual(new Date(2026, 5, 15));
+  });
+
   test('일기를 쓴 날은 사진과 본문 미리보기를 보여 준다', () => {
     render(<GuardianDiaryMain dogName='가나디' today={today} entries={[writtenEntry]} />);
 

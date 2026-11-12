@@ -59,15 +59,28 @@ describe('일기장 온보딩 바텀시트', () => {
     expect(screen.queryByRole('button', { name: '첫 일기 남기기' })).toBeNull();
   });
 
-  test('첫 일기 남기기는 시트를 닫고 작성 화면으로 이동하지 않는다', () => {
-    render(<DiaryOnboardingNoteBanner dogName='봄' />);
+  test('첫 일기 남기기는 시트를 닫고 작성으로 넘어간다', () => {
+    const onWrite = vi.fn();
+    render(<DiaryOnboardingNoteBanner dogName='봄' onWrite={onWrite} />);
 
     fireEvent.click(screen.getByRole('button', { name: /봄이 일기를 써본대요!/ }));
     openAfterDelay();
     fireEvent.click(screen.getByRole('button', { name: '첫 일기 남기기' }));
 
     expect(screen.queryByRole('button', { name: '첫 일기 남기기' })).toBeNull();
+    expect(onWrite).toHaveBeenCalledTimes(1);
     expect(window.localStorage.getItem(DIARY_ONBOARDING_SEEN_KEY)).toBe('seen');
+  });
+
+  test('온보딩을 본 뒤에는 배너가 바로 작성으로 넘어간다', () => {
+    window.localStorage.setItem(DIARY_ONBOARDING_SEEN_KEY, 'seen');
+    const onWrite = vi.fn();
+    render(<DiaryOnboardingNoteBanner dogName='가나디' onWrite={onWrite} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /가나디가 일기를 써본대요!/ }));
+
+    expect(onWrite).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: '첫 일기 남기기' })).toBeNull();
   });
 
   test('바깥 영역을 누르면 시트가 닫힌다', () => {
@@ -94,5 +107,21 @@ describe('일기장 온보딩 바텀시트', () => {
 
     openAfterDelay();
     expect(screen.getByRole('button', { name: '첫 일기 남기기' })).toBeTruthy();
+  });
+
+  test('일기장 탭 온보딩의 첫 일기 남기기는 작성으로 넘어간다', () => {
+    const onStart = vi.fn();
+    render(
+      <DiaryOnboardingProvider dogName='가나디' onStart={onStart}>
+        <GuardianKindergartenHomeSegment />
+      </DiaryOnboardingProvider>
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '일기장' }));
+    openAfterDelay();
+    fireEvent.click(screen.getByRole('button', { name: '첫 일기 남기기' }));
+
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: '첫 일기 남기기' })).toBeNull();
   });
 });

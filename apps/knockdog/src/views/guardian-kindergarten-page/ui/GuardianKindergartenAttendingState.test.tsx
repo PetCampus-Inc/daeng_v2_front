@@ -4,13 +4,16 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import { GuardianDiarySegmentProvider } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
+import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
+
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 
 vi.mock('next/image', () => ({ default: () => null }));
 
 vi.mock('@shared/lib/bridge', () => ({
-  useStackNavigation: () => ({ push: vi.fn() }),
+  useStackNavigation: () => ({ push }),
 }));
 
 vi.mock('@views/guardian-album-page/model/useGuardianAlbumLastViewed', () => ({
@@ -60,7 +63,7 @@ const kindergarten = {
 
 function renderAttendingState() {
   return render(
-    <GuardianDiarySegmentProvider dogName='가나디'>
+    <GuardianDiarySegmentProvider dogName='가나디' schoolId='school-1'>
       <GuardianKindergartenAttendingState
         kindergarten={kindergarten}
         hasDailyNotice
@@ -73,6 +76,7 @@ function renderAttendingState() {
 describe('GuardianKindergartenAttendingState', () => {
   afterEach(() => {
     cleanup();
+    push.mockReset();
   });
 
   test('연결된 등원 화면은 유치원 탭이 선택된 상태로 열린다', () => {
@@ -90,6 +94,17 @@ describe('GuardianKindergartenAttendingState', () => {
 
     expect(screen.getByRole('tab', { name: '일기장' }).getAttribute('aria-selected')).toBe('true');
     expect(screen.getByRole('button', { name: /오늘 가나디의 일기를 써볼까요/ })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /오늘 가나디의 일기를 써볼까요/ }));
+
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/kindergarten/diary/write',
+      query: {
+        date: formatDateKey(startOfDay(new Date())),
+        from: 'diary',
+        schoolId: 'school-1',
+      },
+    });
   });
 
   test('등원 경과 배지를 그리지 않는다', () => {

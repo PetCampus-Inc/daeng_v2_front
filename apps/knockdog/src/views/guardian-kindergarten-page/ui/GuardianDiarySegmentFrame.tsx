@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 import { DIARY_SEGMENT } from '@knockdog/ui';
 
 import { useGuardianDiarySegment } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
+import { useStackNavigation } from '@shared/lib/bridge';
+import { DIARY_WRITE_FROM, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 
 import { GuardianDiaryMain } from './GuardianDiaryMain';
 import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
@@ -14,7 +16,12 @@ interface GuardianDiarySegmentFrameProps {
 }
 
 function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps) {
-  const { segment, dogName, petId } = useGuardianDiarySegment();
+  const { push } = useStackNavigation();
+  const { segment, dogName, petId, schoolId } = useGuardianDiarySegment();
+
+  function handleWrite(date: Date) {
+    push(buildDiaryWriteTarget({ date, from: DIARY_WRITE_FROM.diary, schoolId, petId }));
+  }
 
   if (segment !== DIARY_SEGMENT.diary) return children;
 
@@ -23,7 +30,7 @@ function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps)
       <div className='px-x4 shrink-0 pt-6'>
         <GuardianKindergartenHomeSegment />
       </div>
-      <GuardianDiaryMain dogName={dogName} petId={petId} />
+      <GuardianDiaryMain dogName={dogName} petId={petId} onWrite={handleWrite} />
     </div>
   );
 }
