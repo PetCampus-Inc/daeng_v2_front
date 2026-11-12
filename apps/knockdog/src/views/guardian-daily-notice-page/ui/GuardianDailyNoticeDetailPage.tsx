@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Icon } from '@knockdog/ui';
+import { DiaryNoteBanner, Icon } from '@knockdog/ui';
 
 import {
   useGuardianSchoolConnectionsQuery,
@@ -10,6 +10,7 @@ import {
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { guardianDailyNoticeContent } from '@views/guardian-daily-notice-page/config/guardianDailyNoticeContent';
+import { shouldShowDiaryNoteBanner } from '@views/guardian-daily-notice-page/lib/shouldShowDiaryNoteBanner';
 import {
   formatNoticeClockTime,
   formatNoticeUpdatedAt,
@@ -153,6 +154,7 @@ function GuardianDailyNoticeDetailPage() {
     enabled: petIdFromQuery == null || (isPetsReady && !isQueryPetMissing),
   });
   const selectedPetId = petIdFromQuery || storePetId;
+  const selectedDogName = pets.find((pet) => pet.id === selectedPetId)?.name;
 
   const { data: connections, isPending: isConnectionsPending } = useGuardianSchoolConnectionsQuery({
     userId,
@@ -278,6 +280,9 @@ function GuardianDailyNoticeDetailPage() {
     schoolId,
     enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
+  // 해당 날짜 일기 작성 여부는 S-05 범위다. 이 화면에서는 아직 작성되지 않은 것으로 본다.
+  const hasWrittenDiary = false;
+  const showDiaryNoteBanner = shouldShowDiaryNoteBanner(Boolean(dailyNotice), hasWrittenDiary);
 
   useEffect(() => {
     if (!dailyNotice || isPending) return;
@@ -476,6 +481,7 @@ function GuardianDailyNoticeDetailPage() {
               />
             ) : (
               <>
+                {showDiaryNoteBanner ? <DiaryNoteBanner dogName={selectedDogName} /> : null}
                 <div className='flex w-full shrink-0 items-start justify-between'>
                   <div className='flex items-center gap-3'>
                     <div className='flex flex-col gap-0.5'>

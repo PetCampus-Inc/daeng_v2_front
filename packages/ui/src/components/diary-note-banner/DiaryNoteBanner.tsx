@@ -8,6 +8,15 @@ interface DiaryNoteBannerProps {
   onClick?: () => void;
 }
 
+function formatDiaryDogSubject(dogName: string) {
+  const lastChar = dogName.at(-1);
+  if (!lastChar) return dogName;
+
+  const code = lastChar.charCodeAt(0);
+  const hasBatchim = code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
+  return `${dogName}${hasBatchim ? '이' : '가'}`;
+}
+
 /** V4 / Dog Diary / Kindergarten Note Banner */
 function DiaryNoteBanner({ dogName = '콩이', className, onClick }: DiaryNoteBannerProps) {
   return (
@@ -18,7 +27,7 @@ function DiaryNoteBanner({ dogName = '콩이', className, onClick }: DiaryNoteBa
     >
       <Paw className='text-text-accent size-x8 shrink-0' />
       <span className='flex min-w-0 flex-1 flex-col'>
-        <span className='body1-bold text-text-primary'>{dogName}가 일기를 써본대요!</span>
+        <span className='body1-bold text-text-primary'>{formatDiaryDogSubject(dogName)} 일기를 써본대요!</span>
         <span className='caption1-regular text-text-secondary'>알림장으로 {dogName}의 일기를 쓸 수 있어요.</span>
       </span>
       <ChevronRight className='text-text-primary size-x5 shrink-0' />
@@ -26,5 +35,5 @@ function DiaryNoteBanner({ dogName = '콩이', className, onClick }: DiaryNoteBa
   );
 }
 
-export { DiaryNoteBanner };
+export { DiaryNoteBanner, formatDiaryDogSubject };
 export type { DiaryNoteBannerProps };

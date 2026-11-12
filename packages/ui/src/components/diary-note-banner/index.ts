@@ -1,2 +1,2 @@
-export { DiaryNoteBanner } from './DiaryNoteBanner';
+export { DiaryNoteBanner, formatDiaryDogSubject } from './DiaryNoteBanner';
 export type { DiaryNoteBannerProps } from './DiaryNoteBanner';
