@@ -3,6 +3,8 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { GuardianDiarySegmentProvider } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
+
 import { GuardianKindergartenAttendingState } from './GuardianKindergartenAttendingState';
 
 vi.mock('next/image', () => ({ default: () => null }));
@@ -58,11 +60,13 @@ const kindergarten = {
 
 function renderAttendingState() {
   return render(
-    <GuardianKindergartenAttendingState
-      kindergarten={kindergarten}
-      hasDailyNotice
-      albumPhotos={['https://example.com/dog.jpg']}
-    />
+    <GuardianDiarySegmentProvider dogName='가나디'>
+      <GuardianKindergartenAttendingState
+        kindergarten={kindergarten}
+        hasDailyNotice
+        albumPhotos={['https://example.com/dog.jpg']}
+      />
+    </GuardianDiarySegmentProvider>
   );
 }
 
@@ -78,14 +82,14 @@ describe('GuardianKindergartenAttendingState', () => {
     expect(screen.getByRole('tab', { name: '일기장' }).getAttribute('aria-selected')).toBe('false');
   });
 
-  test('일기장 탭을 눌러도 이 화면의 선택 탭은 유치원으로 남는다', async () => {
+  test('일기장 탭을 누르면 유치원 본문 대신 오늘의 일기 배너가 열린다', async () => {
     const user = userEvent.setup();
     renderAttendingState();
 
     await user.click(screen.getByRole('tab', { name: '일기장' }));
 
-    expect(screen.getByRole('tab', { name: '유치원' }).getAttribute('aria-selected')).toBe('true');
-    expect(screen.getByRole('tab', { name: '일기장' }).getAttribute('aria-selected')).toBe('false');
+    expect(screen.getByRole('tab', { name: '일기장' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('button', { name: /오늘 가나디의 일기를 써볼까요/ })).toBeTruthy();
   });
 
   test('등원 경과 배지를 그리지 않는다', () => {

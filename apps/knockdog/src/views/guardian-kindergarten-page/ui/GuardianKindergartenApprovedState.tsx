@@ -18,6 +18,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
+import { GuardianDiarySegmentFrame } from './GuardianDiarySegmentFrame';
 import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
 import { GuardianKindergartenDayTimeline } from './GuardianKindergartenDayTimeline';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
@@ -61,7 +62,8 @@ function GuardianKindergartenApprovedState({
   };
 
   return (
-    <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
+    <GuardianDiarySegmentFrame>
+      <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
       <div className='px-x4 flex w-full flex-col gap-5 pt-6'>
         <GuardianKindergartenHomeSegment />
         <div className='bg-bg-50 radius-r3 flex h-16 w-full items-center justify-center px-4'>
@@ -148,6 +150,7 @@ function GuardianKindergartenApprovedState({
         </button>
       </section>
     </div>
+    </GuardianDiarySegmentFrame>
   );
 }
 

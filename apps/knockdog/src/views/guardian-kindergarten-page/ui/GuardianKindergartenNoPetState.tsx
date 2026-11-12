@@ -7,6 +7,7 @@ import { guardianKindergartenNoPetContent } from '@views/guardian-kindergarten-p
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
+import { GuardianDiarySegmentFrame } from './GuardianDiarySegmentFrame';
 
 function GuardianKindergartenNoPetState() {
   const { push } = useStackNavigation();
@@ -16,7 +17,8 @@ function GuardianKindergartenNoPetState() {
   };
 
   return (
-    <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height)'>
+    <GuardianDiarySegmentFrame>
+      <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height)'>
       <div className='px-x4 shrink-0 pt-6'>
         <GuardianKindergartenHomeSegment />
       </div>
@@ -51,6 +53,7 @@ function GuardianKindergartenNoPetState() {
         </ActionButton>
       </div>
     </div>
+    </GuardianDiarySegmentFrame>
   );
 }
 

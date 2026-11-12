@@ -6,6 +6,7 @@ import { guardianKindergartenPendingContent } from '@views/guardian-kindergarten
 import type { GuardianLinkedKindergarten } from '@views/guardian-kindergarten-page/model/guardianKindergartenConnection';
 
 import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
+import { GuardianDiarySegmentFrame } from './GuardianDiarySegmentFrame';
 import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard';
 
 interface GuardianKindergartenPendingStateProps {
@@ -14,7 +15,8 @@ interface GuardianKindergartenPendingStateProps {
 
 function GuardianKindergartenPendingState({ kindergarten }: GuardianKindergartenPendingStateProps) {
   return (
-    <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height)'>
+    <GuardianDiarySegmentFrame>
+      <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height)'>
       <div className='px-x4 shrink-0 pt-6'>
         <GuardianKindergartenHomeSegment />
       </div>
@@ -44,6 +46,7 @@ function GuardianKindergartenPendingState({ kindergarten }: GuardianKindergarten
         <GuardianLinkedKindergartenCard kindergarten={kindergarten} />
       </div>
     </div>
+    </GuardianDiarySegmentFrame>
   );
 }
 

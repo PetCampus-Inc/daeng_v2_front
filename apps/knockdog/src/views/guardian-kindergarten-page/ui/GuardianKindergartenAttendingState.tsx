@@ -19,6 +19,7 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianAlbumPhotoStack } from './GuardianAlbumPhotoStack';
+import { GuardianDiarySegmentFrame } from './GuardianDiarySegmentFrame';
 import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
 import { GuardianDailyNoticeArrivedBanner } from './GuardianDailyNoticeCard';
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
@@ -88,7 +89,8 @@ function GuardianKindergartenAttendingState({
   }, [initialSelectedDate]);
 
   return (
-    <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
+    <GuardianDiarySegmentFrame>
+      <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
       <div className='px-x4 flex w-full flex-col gap-5 pt-6'>
         <GuardianKindergartenHomeSegment />
 
@@ -212,6 +214,7 @@ function GuardianKindergartenAttendingState({
         </button>
       </section>
     </div>
+    </GuardianDiarySegmentFrame>
   );
 }
 
