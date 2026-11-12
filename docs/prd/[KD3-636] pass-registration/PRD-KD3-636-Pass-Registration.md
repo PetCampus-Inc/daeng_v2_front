@@ -3,7 +3,7 @@
 - 정리일: 2026-11-06 — 로컬 공통 정책 원문과 확정 OQ 반영
 - 기준 원본: Figma `똑독 (Dev)`의 `V.4.0_원장-마이페이지` 섹션 (`23:4223`)
 - 문서 원본 보관: `./original/`
-- Figma 캐시 보관: `./figma/`
+- Figma 캐시 보관: `./original/figma/`
 - 담당자 전달용 질문지: `../PRD-KD3-636-Open-Questions.md`
 - 관련 에픽: [KD3-566] 4.0 유치원 이용 여정 확장
 - Jira: https://jira-knockdog.atlassian.net/browse/KD3-636
@@ -32,7 +32,7 @@
 | 원본 | 상태·편집일 | 원본 위치 | 보존 사본 |
 |---|---|---|---|
 | PRD Markdown | 문서 상태 `최신`; 최종 편집 `2026-10-29 14:41` | iCloud의 `[KD3-636] 이용권 등록 4006c15f67fb80219f7ee5a6ffa8b84b.md` | `./original/[KD3-636] 이용권 등록.md` |
-| Figma 상위 섹션 | 파일 `똑독 (Dev)`; 최종 수정 `2026-11-04T05:24:02Z`; 읽기 권한 | [섹션 `23:4223`](https://www.figma.com/design/LiCUY2CN6tvNXbHziPpoh6/%EB%98%91%EB%8F%85--Dev-?node-id=23-4223&t=R9lkN6GRT2le9UO8-4) | `./figma/` |
+| Figma 상위 섹션 | 파일 `똑독 (Dev)`; 최종 수정 `2026-11-04T05:24:02Z`; 읽기 권한 | [섹션 `23:4223`](https://www.figma.com/design/LiCUY2CN6tvNXbHziPpoh6/%EB%98%91%EB%8F%85--Dev-?node-id=23-4223&t=R9lkN6GRT2le9UO8-4) | `./original/figma/` |
 | 프로젝트 공통 정책 | 로컬 원문; 2026-11-06 확인 | `docs/policy/loading-validation-error.md` | 프로젝트 공통 문서 원본을 직접 참조 |
 | 서버 OpenAPI | 운영 Swagger 원문; 2026-11-06 확인 | [`https://api.knockdog.net/swagger-ui/index.html#/`](https://api.knockdog.net/swagger-ui/index.html#/) | 라이브 원문 직접 참조 |
 
@@ -213,7 +213,7 @@ PRD 7.1장이 링크한 입력값·오류·로딩 정책은 로컬 원문 `docs/
 
 ## 7. 화면 명세
 
-Figma의 설계번호 순서를 구현·검수 순서로 사용한다. 렌더 PNG는 `./figma/images/`에 있다.
+Figma의 설계번호 순서를 구현·검수 순서로 사용한다. 렌더 PNG는 `./original/figma/images/`에 있다.
 
 | 설계번호 | 화면·상태 | Figma 근거 | 개발 기준 |
 |---|---|---|---|

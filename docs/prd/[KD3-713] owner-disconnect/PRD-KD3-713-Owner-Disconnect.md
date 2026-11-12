@@ -3,7 +3,7 @@
 - 정리일: 2026-11-09 — 기획 문서 `[KD3-683] 원장 연결 해제`와 Figma `V.4.0_원장-원생 유치원 연결해제`를 통합
 - 기준 원본: Figma
 - 문서 원본 보관: `./original/`
-- Figma 캐시 보관: `./figma/`
+- Figma 캐시 보관: `./original/figma/`
 - 구현 PR: #791
 
 ## 이 문서를 읽는 법
@@ -25,7 +25,7 @@
 | 원본 | 상태·편집일 | 원본 위치 | 보존 사본 |
 |---|---|---|---|
 | PRD | 문서 상태 `변경 검토`, 최종 편집 2026년 11월 5일 오후 5:29, 담당 PM_서현 | Notion `[KD3-683] 원장 연결 해제` (내보낸 Markdown) | `./original/[KD3-683] 원장 연결 해제 4096c15f67fb805ebdf2c66f6ee52b20.md` |
-| Figma 상위 섹션 | Version 4.0, Date 2026.11.05, 담당자 이서현 | Figma `똑독 (Dev)` 파일 `LiCUY2CN6tvNXbHziPpoh6`, 섹션 `V.4.0_원장-원생 유치원 연결해제` (node `36:16551`) | `./figma/nodes.json`(원본 JSON), `./figma/outline.txt`(구조·문구 추출), `./figma/images/*.png`(화면 10장) |
+| Figma 상위 섹션 | Version 4.0, Date 2026.11.05, 담당자 이서현 | Figma `똑독 (Dev)` 파일 `LiCUY2CN6tvNXbHziPpoh6`, 섹션 `V.4.0_원장-원생 유치원 연결해제` (node `36:16551`) | `./original/figma/nodes.json`(원본 JSON), `./original/figma/outline.txt`(구조·문구 추출), `./original/figma/images/*.png`(화면 10장) |
 
 - 이 문서의 위치 표기는 PRD는 `문서 §번호`, Figma는 화면 프레임 node id를 쓴다.
 - Figma 화면 프레임 node id: 프로필 확인 모달 `36:16694`, 프로필 기본 `36:16771`, 실패 토스트 화면 `36:16827`, 해제 불가(이용권) `36:16945`, 해제 불가(예약) `36:17003`, 해제 불가(예약 구버전 문구) `36:16885`, 구성원 목록 이미 해제 토스트 `36:16636`, 구성원 목록 성공 토스트 `36:16665`, 설명(Description) `36:17076`, 기존 화면(AS-IS) `36:17066`.
