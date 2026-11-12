@@ -31,28 +31,24 @@ function GuardianDiaryWritePage() {
   const storePetId = useGuardianSelectedPetStore((state) => state.selectedPetId);
   const date = useMemo(() => parseDiaryDate(searchParams.get('date')) ?? startOfDay(new Date()), [searchParams]);
   const schoolId = searchParams.get('schoolId');
-  const petId = searchParams.get('petId') || storePetId || selectedPet?.id;
-  const hintedNotice = searchParams.get('hasNotice') === '1';
   const { dailyNotice } = useGuardianCalendarDay({
     selectedDate: date,
     schoolId,
-    petId,
-    enabled: Boolean(schoolId) && Boolean(petId),
+    petId: storePetId,
   });
   const [photos, setPhotos] = useState<DiaryWritePhoto[]>([]);
   const [text, setText] = useState('');
   const [isImported, setIsImported] = useState(false);
   const [isImportDismissed, setIsImportDismissed] = useState(false);
   const { pickPhotos } = useDiaryPhotoPick(photos, setPhotos);
-  const notice = dailyNotice;
-  const hasNotice = hasMockArrivedNotice(date) || Boolean(notice) || hintedNotice;
+  const hasNotice = hasMockArrivedNotice(date) || Boolean(dailyNotice);
 
   useEffect(() => {
     setIsImportDismissed(hasDismissedDiaryImport());
   }, []);
 
   const importedNotice =
-    isImported && notice ? { date: formatDiaryNoticeDate(date), body: notice.body } : null;
+    isImported && dailyNotice ? { date: formatDiaryNoticeDate(date), body: dailyNotice.body } : null;
 
   function handleAddPhoto() {
     if (photos.length >= DIARY_PHOTO_LIMIT) return;
@@ -86,7 +82,6 @@ function GuardianDiaryWritePage() {
       isTextRequired={!importedNotice}
       isImportVisible={isDiaryImportVisible({
         hasNotice,
-        isNoticeReady: true,
         isImported,
         isImportDismissed,
       })}

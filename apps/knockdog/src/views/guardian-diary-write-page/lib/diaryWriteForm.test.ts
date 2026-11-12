@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, test } from 'vitest';
 
-import { DIARY_WRITE_FROM, buildDiaryWriteTarget, parseDiaryWriteFrom } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 
 import {
   DIARY_IMPORT_BANNER_KEY,
@@ -33,16 +33,14 @@ describe('일기 쓰기 규칙', () => {
     expect(buildDiaryPrompts('봄')[0]).toBe('봄이 오늘 가장 기뻐했던 순간은 무엇인가요?');
   });
 
-  test('날짜와 진입 경로는 작성 화면 쿼리로 만든다', () => {
+  test('날짜는 작성 화면 쿼리로 만든다', () => {
     expect(parseDiaryDate('2026-06-17')).toEqual(new Date(2026, 5, 17));
     expect(parseDiaryDate('2026-02-31')).toBeNull();
-    expect(parseDiaryWriteFrom('notice')).toBe(DIARY_WRITE_FROM.notice);
-    expect(parseDiaryWriteFrom('unknown')).toBe(DIARY_WRITE_FROM.diary);
-    expect(buildDiaryWriteTarget({ date: new Date(2026, 5, 17), from: 'diary', schoolId: 'school-1' })).toEqual({
+    expect(buildDiaryWriteTarget({ date: new Date(2026, 5, 17), schoolId: 'school-1' })).toEqual({
       pathname: '/kindergarten/diary/write',
-      query: { date: '2026-06-17', from: 'diary', schoolId: 'school-1' },
+      query: { date: '2026-06-17', schoolId: 'school-1' },
     });
-    expect(buildDiaryWriteTarget({ date: new Date(2026, 5, 17), from: 'onboarding' }).query.schoolId).toBeUndefined();
+    expect(buildDiaryWriteTarget({ date: new Date(2026, 5, 17) }).query.schoolId).toBeUndefined();
   });
 
   test('알림장이 도착한 오늘은 불러오기 배너를 보여 준다', () => {
@@ -54,7 +52,6 @@ describe('일기 쓰기 규칙', () => {
   test('알림장이 있으면 불러오기 배너를 보여 준다', () => {
     const visible = {
       hasNotice: true,
-      isNoticeReady: true,
       isImported: false,
       isImportDismissed: false,
     } as const;

@@ -101,7 +101,6 @@ describe('GuardianKindergartenAttendingState', () => {
       pathname: '/kindergarten/diary/write',
       query: {
         date: formatDateKey(startOfDay(new Date())),
-        from: 'diary',
         schoolId: 'school-1',
       },
     });

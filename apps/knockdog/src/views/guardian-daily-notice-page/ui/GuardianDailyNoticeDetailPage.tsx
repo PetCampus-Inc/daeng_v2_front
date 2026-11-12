@@ -31,7 +31,7 @@ import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/m
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
-import { DIARY_WRITE_FROM, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { trackNotebookView } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import {
@@ -490,10 +490,7 @@ function GuardianDailyNoticeDetailPage() {
                       push(
                         buildDiaryWriteTarget({
                           date: selectedDate,
-                          from: DIARY_WRITE_FROM.notice,
                           schoolId,
-                          petId: selectedPetId,
-                          hasNotice: true,
                         })
                       )
                     }

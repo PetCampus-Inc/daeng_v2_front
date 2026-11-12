@@ -6,7 +6,7 @@ import { DIARY_SEGMENT } from '@knockdog/ui';
 
 import { useGuardianDiarySegment } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { DIARY_WRITE_FROM, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 
 import { GuardianDiaryMain } from './GuardianDiaryMain';
 import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
@@ -20,7 +20,7 @@ function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps)
   const { segment, dogName, petId, schoolId } = useGuardianDiarySegment();
 
   function handleWrite(date: Date) {
-    push(buildDiaryWriteTarget({ date, from: DIARY_WRITE_FROM.diary, schoolId, petId }));
+    push(buildDiaryWriteTarget({ date, schoolId }));
   }
 
   if (segment !== DIARY_SEGMENT.diary) return children;

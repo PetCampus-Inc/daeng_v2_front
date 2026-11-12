@@ -13,7 +13,7 @@ import { useUserStore } from '@entities/user';
 import { useTrackConnectionResults } from '@shared/lib/analytics';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { startOfDay } from '@shared/lib/calendar-date';
-import { DIARY_WRITE_FROM, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import {
   isPetIdInList,
   parseNotificationEntrySource,
@@ -38,7 +38,7 @@ export function GuardianKindergartenPage() {
   const { navigateToTab } = useTabNavigation();
   const { push } = useStackNavigation();
   const openOnboardingDiary = useCallback(() => {
-    push(buildDiaryWriteTarget({ date: startOfDay(new Date()), from: DIARY_WRITE_FROM.onboarding }));
+    push(buildDiaryWriteTarget({ date: startOfDay(new Date()) }));
   }, [push]);
   const {
     pets,

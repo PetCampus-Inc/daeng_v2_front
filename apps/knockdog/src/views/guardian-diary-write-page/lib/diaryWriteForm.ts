@@ -52,7 +52,6 @@ function buildDiaryPrompts(dogName: string) {
 
 interface DiaryImportVisibility {
   hasNotice: boolean;
-  isNoticeReady: boolean;
   isImported: boolean;
   isImportDismissed: boolean;
 }
@@ -61,8 +60,8 @@ function hasMockArrivedNotice(date: Date, today = new Date()) {
   return isSameDay(startOfDay(date), startOfDay(today));
 }
 
-function isDiaryImportVisible({ hasNotice, isNoticeReady, isImported, isImportDismissed }: DiaryImportVisibility) {
-  return isNoticeReady && hasNotice && !isImported && !isImportDismissed;
+function isDiaryImportVisible({ hasNotice, isImported, isImportDismissed }: DiaryImportVisibility) {
+  return hasNotice && !isImported && !isImportDismissed;
 }
 
 function canSubmitDiary(photoCount: number, text: string, isTextRequired: boolean) {

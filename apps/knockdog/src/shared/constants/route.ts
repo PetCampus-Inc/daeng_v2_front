@@ -354,7 +354,7 @@ const route = {
     },
     diary: {
       write: {
-        /** 보호자 일기 쓰기. query: date, from=diary|notice|onboarding, schoolId? */
+        /** 보호자 일기 쓰기. query: date, schoolId? */
         root: '/kindergarten/diary/write',
       },
     },
