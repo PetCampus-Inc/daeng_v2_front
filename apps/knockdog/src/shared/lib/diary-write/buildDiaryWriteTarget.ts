@@ -7,17 +7,25 @@ interface DiaryWriteTargetInput {
   schoolId?: string | null;
 }
 
-function buildDiaryWriteTarget({ date, schoolId }: DiaryWriteTargetInput) {
-  const query: Query = {
-    date: formatDateKey(date),
-  };
+function buildDiaryQuery(date: Date, schoolId?: string | null): Query {
+  const query: Query = { date: formatDateKey(date) };
   if (schoolId) query.schoolId = schoolId;
+  return query;
+}
 
+function buildDiaryWriteTarget({ date, schoolId }: DiaryWriteTargetInput) {
   return {
     pathname: route.kindergarten.diary.write.root,
-    query,
+    query: buildDiaryQuery(date, schoolId),
   };
 }
 
-export { buildDiaryWriteTarget };
+function buildDiaryGenerateTarget({ date, schoolId }: DiaryWriteTargetInput) {
+  return {
+    pathname: route.kindergarten.diary.generate.root,
+    query: buildDiaryQuery(date, schoolId),
+  };
+}
+
+export { buildDiaryGenerateTarget, buildDiaryWriteTarget };
 export type { DiaryWriteTargetInput };

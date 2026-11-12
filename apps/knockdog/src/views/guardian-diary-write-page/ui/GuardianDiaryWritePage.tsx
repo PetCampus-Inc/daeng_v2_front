@@ -8,6 +8,9 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { formatDateKey } from '@shared/lib/calendar-date';
+import { buildDiaryGenerateTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { saveDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
 import { startOfDay } from '@shared/lib/calendar-date';
 
 import {
@@ -27,7 +30,7 @@ import { GuardianDiaryWriteForm } from './GuardianDiaryWriteForm';
 
 function GuardianDiaryWritePage() {
   const searchParams = useSearchParams();
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const { selectedPet } = useGuardianSelectedPet();
   const storePetId = useGuardianSelectedPetStore((state) => state.selectedPetId);
   const date = useMemo(() => parseDiaryDate(searchParams.get('date')) ?? startOfDay(new Date()), [searchParams]);
@@ -75,6 +78,16 @@ function GuardianDiaryWritePage() {
     handleDismissImport();
   }
 
+  function handleCreateDiary() {
+    setIsImportSheetOpen(false);
+    saveDiaryGenerateDraft({
+      date: formatDateKey(date),
+      dogName: selectedPet?.name || '강아지',
+      photos: photos.map((photo) => photo.src),
+    });
+    push(buildDiaryGenerateTarget({ date, schoolId }));
+  }
+
   function handleApplyImport() {
     setIsImportSheetOpen(false);
     setIsImported(true);
@@ -99,7 +112,7 @@ function GuardianDiaryWritePage() {
         onDismissImport={handleDismissImport}
         onImportNotice={() => setIsImportSheetOpen(true)}
         onRemoveNotice={handleRemoveNotice}
-        onSubmit={() => undefined}
+        onSubmit={handleCreateDiary}
         onBack={() => {
           void back();
         }}
@@ -110,7 +123,7 @@ function GuardianDiaryWritePage() {
         date={formatDiaryNoticeDate(date)}
         onClose={() => setIsImportSheetOpen(false)}
         onAddToDiary={handleApplyImport}
-        onCreateDiary={() => setIsImportSheetOpen(false)}
+        onCreateDiary={handleCreateDiary}
       />
     </>
   );

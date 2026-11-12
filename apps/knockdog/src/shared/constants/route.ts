@@ -357,6 +357,10 @@ const route = {
         /** 보호자 일기 쓰기. query: date, schoolId? */
         root: '/kindergarten/diary/write',
       },
+      generate: {
+        /** 보호자 AI 일기 생성. query: date, schoolId? */
+        root: '/kindergarten/diary/generate',
+      },
     },
     news: {
       /** 보호자 유치원 소식 목록. query: schoolId? */
