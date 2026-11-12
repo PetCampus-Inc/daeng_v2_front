@@ -9,6 +9,7 @@ import {
   canSubmitDiary,
   dismissDiaryImport,
   formatDiaryObject,
+  getDiaryImportSheetCopy,
   hasDismissedDiaryImport,
   hasMockArrivedNotice,
   isDiaryImportVisible,
@@ -47,6 +48,20 @@ describe('일기 쓰기 규칙', () => {
     const today = new Date(2026, 10, 12);
     expect(hasMockArrivedNotice(today, today)).toBe(true);
     expect(hasMockArrivedNotice(new Date(2026, 10, 11), today)).toBe(false);
+  });
+
+  test('사진이 있으면 글·사진 추가와 바로 만들기를 보여 준다', () => {
+    expect(getDiaryImportSheetCopy(true)).toEqual({
+      title: '알림장을 불러왔어요',
+      description: '글과 사진을 직접 추가할 수 있어요',
+      primaryLabel: '바로 일기 만들기',
+      secondaryLabel: '글·사진 추가하기',
+    });
+    expect(getDiaryImportSheetCopy(false)).toEqual({
+      title: '알림장을 불러왔어요',
+      description: '사진만 고르면 일기를 완성할 수 있어요',
+      primaryLabel: '사진 추가하기',
+    });
   });
 
   test('알림장이 있으면 불러오기 배너를 보여 준다', () => {

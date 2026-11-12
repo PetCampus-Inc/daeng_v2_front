@@ -49,16 +49,19 @@ function useDiaryPrompt(dogName: string) {
 function DiaryFieldLabel({
   htmlFor,
   isRequired = true,
+  isOptional = false,
   children,
 }: {
   htmlFor?: string;
   isRequired?: boolean;
+  isOptional?: boolean;
   children: string;
 }) {
   const content = (
     <>
       <span className='body1-bold text-text-primary'>{children}</span>
       {isRequired ? <span className='body2-bold text-text-accent'>*</span> : null}
+      {isOptional ? <span className='caption1-semibold text-fill-secondary-500'>(선택)</span> : null}
     </>
   );
 
@@ -116,7 +119,7 @@ function GuardianDiaryWriteForm({
         </section>
 
         <section className='flex flex-col gap-3'>
-          <DiaryFieldLabel htmlFor='diary-write-text' isRequired={isTextRequired}>
+          <DiaryFieldLabel htmlFor='diary-write-text' isRequired={isTextRequired} isOptional={!isTextRequired}>
             {textLabel}
           </DiaryFieldLabel>
           <div className='bg-bg-50 radius-r2 px-x4 py-x3 flex w-full flex-col gap-[60px]'>
@@ -143,7 +146,10 @@ function GuardianDiaryWriteForm({
           <DiaryImportBanner dogName={dogName} onImport={onImportNotice} onDismiss={onDismissImport} />
         ) : null}
         {importedNotice ? (
-          <DiaryKindergartenNote date={importedNotice.date} body={importedNotice.body} onRemove={onRemoveNotice} />
+          <section className='gap-x2 flex flex-col'>
+            <p className='body2-bold text-text-primary'>오늘의 알림장</p>
+            <DiaryKindergartenNote date={importedNotice.date} body={importedNotice.body} onRemove={onRemoveNotice} />
+          </section>
         ) : null}
       </div>
       <div className='px-x4 pt-x4 pb-x4'>

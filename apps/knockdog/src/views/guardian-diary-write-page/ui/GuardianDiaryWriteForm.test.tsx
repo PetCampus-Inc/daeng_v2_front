@@ -71,7 +71,9 @@ describe('일기 쓰기 화면', () => {
       importedNotice: { date: '2026년 6월 17일 수요일', body: '친구들과 운동장에서 뛰어놀았어요.' },
     });
 
+    expect(document.querySelector('label[for="diary-write-text"]')?.textContent).toContain('(선택)');
     expect(document.querySelector('label[for="diary-write-text"]')?.textContent).not.toContain('*');
+    expect(screen.getByText('오늘의 알림장')).toBeTruthy();
     expect(screen.getByText('친구들과 운동장에서 뛰어놀았어요.')).toBeTruthy();
     expect((screen.getByRole('button', { name: '일기 만들기' }) as HTMLButtonElement).disabled).toBe(false);
 

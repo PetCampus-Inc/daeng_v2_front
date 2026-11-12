@@ -17,7 +17,7 @@ interface DiaryWritePhoto {
 
 interface DiaryWriteNotice {
   date: string;
-  body: string;
+  body?: string;
 }
 
 function hasBatchim(name: string) {
@@ -64,6 +64,32 @@ function isDiaryImportVisible({ hasNotice, isImported, isImportDismissed }: Diar
   return hasNotice && !isImported && !isImportDismissed;
 }
 
+const DIARY_IMPORT_SHEET_TITLE = '알림장을 불러왔어요';
+
+interface DiaryImportSheetCopy {
+  title: string;
+  description: string;
+  primaryLabel: string;
+  secondaryLabel?: string;
+}
+
+function getDiaryImportSheetCopy(hasPhoto: boolean): DiaryImportSheetCopy {
+  if (hasPhoto) {
+    return {
+      title: DIARY_IMPORT_SHEET_TITLE,
+      description: '글과 사진을 직접 추가할 수 있어요',
+      primaryLabel: '바로 일기 만들기',
+      secondaryLabel: '글·사진 추가하기',
+    };
+  }
+
+  return {
+    title: DIARY_IMPORT_SHEET_TITLE,
+    description: '사진만 고르면 일기를 완성할 수 있어요',
+    primaryLabel: '사진 추가하기',
+  };
+}
+
 function canSubmitDiary(photoCount: number, text: string, isTextRequired: boolean) {
   if (photoCount <= 0) return false;
   if (!isTextRequired) return true;
@@ -108,6 +134,7 @@ export {
   formatDiaryNoticeDate,
   formatDiaryObject,
   formatDiaryTopic,
+  getDiaryImportSheetCopy,
   hasDismissedDiaryImport,
   hasMockArrivedNotice,
   parseDiaryDate,

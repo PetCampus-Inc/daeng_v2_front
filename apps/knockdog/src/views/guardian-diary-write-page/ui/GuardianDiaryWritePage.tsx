@@ -21,6 +21,7 @@ import {
   type DiaryWritePhoto,
 } from '../lib/diaryWriteForm';
 import { useDiaryPhotoPick } from '../model/useDiaryPhotoPick';
+import { DiaryNoticeImportSheet } from './DiaryNoticeImportSheet';
 import { DiaryPhotoSourceSheet } from './DiaryPhotoSourceSheet';
 import { GuardianDiaryWriteForm } from './GuardianDiaryWriteForm';
 
@@ -40,6 +41,7 @@ function GuardianDiaryWritePage() {
   const [text, setText] = useState('');
   const [isImported, setIsImported] = useState(false);
   const [isImportDismissed, setIsImportDismissed] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const { pickPhotos } = useDiaryPhotoPick(photos, setPhotos);
   const hasNotice = hasMockArrivedNotice(date) || Boolean(dailyNotice);
 
@@ -47,8 +49,7 @@ function GuardianDiaryWritePage() {
     setIsImportDismissed(hasDismissedDiaryImport());
   }, []);
 
-  const importedNotice =
-    isImported && dailyNotice ? { date: formatDiaryNoticeDate(date), body: dailyNotice.body } : null;
+  const importedNotice = isImported ? { date: formatDiaryNoticeDate(date), body: dailyNotice?.body } : null;
 
   function handleAddPhoto() {
     if (photos.length >= DIARY_PHOTO_LIMIT) return;
@@ -74,29 +75,44 @@ function GuardianDiaryWritePage() {
     handleDismissImport();
   }
 
+  function handleApplyImport() {
+    setIsImportSheetOpen(false);
+    setIsImported(true);
+  }
+
   return (
-    <GuardianDiaryWriteForm
-      dogName={selectedPet?.name || '강아지'}
-      photos={photos}
-      text={text}
-      isTextRequired={!importedNotice}
-      isImportVisible={isDiaryImportVisible({
-        hasNotice,
-        isImported,
-        isImportDismissed,
-      })}
-      importedNotice={importedNotice}
-      onAddPhoto={handleAddPhoto}
-      onRemovePhoto={(id) => setPhotos((current) => current.filter((photo) => photo.id !== id))}
-      onTextChange={setText}
-      onDismissImport={handleDismissImport}
-      onImportNotice={() => setIsImported(true)}
-      onRemoveNotice={handleRemoveNotice}
-      onSubmit={() => undefined}
-      onBack={() => {
-        void back();
-      }}
-    />
+    <>
+      <GuardianDiaryWriteForm
+        dogName={selectedPet?.name || '강아지'}
+        photos={photos}
+        text={text}
+        isTextRequired={!importedNotice}
+        isImportVisible={isDiaryImportVisible({
+          hasNotice,
+          isImported,
+          isImportDismissed,
+        })}
+        importedNotice={importedNotice}
+        onAddPhoto={handleAddPhoto}
+        onRemovePhoto={(id) => setPhotos((current) => current.filter((photo) => photo.id !== id))}
+        onTextChange={setText}
+        onDismissImport={handleDismissImport}
+        onImportNotice={() => setIsImportSheetOpen(true)}
+        onRemoveNotice={handleRemoveNotice}
+        onSubmit={() => undefined}
+        onBack={() => {
+          void back();
+        }}
+      />
+      <DiaryNoticeImportSheet
+        isOpen={isImportSheetOpen}
+        hasPhoto={photos.length > 0}
+        date={formatDiaryNoticeDate(date)}
+        onClose={() => setIsImportSheetOpen(false)}
+        onAddToDiary={handleApplyImport}
+        onCreateDiary={() => setIsImportSheetOpen(false)}
+      />
+    </>
   );
 }
 
