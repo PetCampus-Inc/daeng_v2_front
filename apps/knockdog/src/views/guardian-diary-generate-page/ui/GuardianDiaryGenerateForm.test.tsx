@@ -12,12 +12,14 @@ function renderForm(override: Partial<GuardianDiaryGenerateFormProps> = {}) {
     status: 'generating',
     body: '',
     isEditing: false,
-    isExitOpen: false,
+    isSaved: false,
+    dialog: null,
     onBack: vi.fn(),
     onRetry: vi.fn(),
     onEdit: vi.fn(),
     onBodyChange: vi.fn(),
     onSave: vi.fn(),
+    onConfirmSave: vi.fn(),
     onKeepWriting: vi.fn(),
     onLeave: vi.fn(),
     ...override,
@@ -43,7 +45,7 @@ describe('AI 일기 생성', () => {
   });
 
   test('생성 중 뒤로 가면 계속 작성과 나가기를 나눈다', () => {
-    const props = renderForm({ isExitOpen: true });
+    const props = renderForm({ dialog: 'stop' });
 
     expect(screen.getByText('일기 쓰기를 멈출까요?')).toBeTruthy();
     expect(screen.getByText(/남은 횟수는 1회 줄어요/)).toBeTruthy();
@@ -88,5 +90,40 @@ describe('AI 일기 생성', () => {
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '오늘은 공원에 갔어' } });
     expect(props.onBodyChange).toHaveBeenCalledWith('오늘은 공원에 갔어');
     expect(screen.queryByRole('button', { name: '직접 수정' })).toBeNull();
+    expect(screen.getByRole('textbox').className).toContain('border-line-700');
+  });
+
+  test('저장하지 않고 뒤로 가면 나가기 확인을 보여 준다', () => {
+    const props = renderForm({ status: 'done', isEditing: true, dialog: 'leave', body: '오늘은 낙엽을 밟았어' });
+
+    expect(screen.getByText('저장하지 않고 나갈까요?')).toBeTruthy();
+    expect(screen.getByText(/남은 횟수는 1회 줄어요/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '계속 작성하기' }));
+    expect(props.onKeepWriting).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: '나가기' }));
+    expect(props.onLeave).toHaveBeenCalledTimes(1);
+  });
+
+  test('저장하기는 확인 후 저장한다', () => {
+    const props = renderForm({ status: 'done', dialog: 'save', body: '오늘은 낙엽을 밟았어' });
+
+    expect(screen.getByText('이대로 저장할까요?')).toBeTruthy();
+    expect(screen.getByText(/내용은 나중에 직접 수정할 수 있어요/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '계속 작성하기' }));
+    expect(props.onKeepWriting).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: '저장하기' }));
+    expect(props.onConfirmSave).toHaveBeenCalledTimes(1);
+  });
+
+  test('저장이 끝나면 본문만 남긴다', () => {
+    renderForm({ status: 'done', isSaved: true, body: '오늘은 낙엽을 밟았어' });
+
+    expect(screen.getByText('오늘은 낙엽을 밟았어')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '직접 수정' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '저장하기' })).toBeNull();
   });
 });

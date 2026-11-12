@@ -16,7 +16,14 @@ import {
   DiaryTopBar,
 } from '@knockdog/ui';
 
-import { DIARY_ERROR_TEXT, DIARY_LOADING_TEXT, getGenerateButtonLabel, type DiaryGenerateStatus } from '../lib/diaryGenerate';
+import {
+  DIARY_ERROR_TEXT,
+  DIARY_LOADING_TEXT,
+  getDiaryDialogCopy,
+  getGenerateButtonLabel,
+  type DiaryGenerateDialog,
+  type DiaryGenerateStatus,
+} from '../lib/diaryGenerate';
 
 interface GuardianDiaryGenerateFormProps {
   dogName: string;
@@ -25,12 +32,14 @@ interface GuardianDiaryGenerateFormProps {
   status: DiaryGenerateStatus;
   body: string;
   isEditing: boolean;
-  isExitOpen: boolean;
+  isSaved: boolean;
+  dialog: DiaryGenerateDialog | null;
   onBack: () => void;
   onRetry: () => void;
   onEdit: () => void;
   onBodyChange: (body: string) => void;
   onSave: () => void;
+  onConfirmSave: () => void;
   onKeepWriting: () => void;
   onLeave: () => void;
 }
@@ -52,15 +61,19 @@ function GuardianDiaryGenerateForm({
   status,
   body,
   isEditing,
-  isExitOpen,
+  isSaved,
+  dialog,
   onBack,
   onRetry,
   onEdit,
   onBodyChange,
   onSave,
+  onConfirmSave,
   onKeepWriting,
   onLeave,
 }: GuardianDiaryGenerateFormProps) {
+  const dialogCopy = dialog ? getDiaryDialogCopy(dialog) : null;
+
   return (
     <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
       <DiaryTopBar mode='plain' title='일기 쓰기' onBack={onBack} />
@@ -83,41 +96,44 @@ function GuardianDiaryGenerateForm({
             <p className='body1-regular text-fill-secondary-500 flex-1'>{DIARY_ERROR_TEXT}</p>
           </div>
         ) : null}
-        {status === 'done' ? (
+        {status === 'done' && isSaved ? <p className='body1-regular text-text-primary whitespace-pre-line px-x2 py-x4'>{body}</p> : null}
+        {status === 'done' && !isSaved ? (
           <DiaryEditText body={body} isEditing={isEditing} onEdit={onEdit} onBodyChange={isEditing ? onBodyChange : undefined} />
         ) : null}
       </div>
-      <div className='p-x4'>
-        {status === 'error' ? (
-          <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
-            <Reset className='size-x5' />
-            다시 시도하기
-          </ActionButton>
-        ) : null}
-        {status === 'done' ? (
-          <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
-            저장하기
-          </ActionButton>
-        ) : null}
-        {status === 'generating' ? (
-          <ActionButton type='button' variant='primaryFill' size='large' disabled>
-            {getGenerateButtonLabel(dogName, isExitOpen)}
-          </ActionButton>
-        ) : null}
-      </div>
-      <AlertDialog open={isExitOpen} onOpenChange={(open) => { if (!open) onKeepWriting(); }}>
+      {isSaved ? null : (
+        <div className='p-x4'>
+          {status === 'error' ? (
+            <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
+              <Reset className='size-x5' />
+              다시 시도하기
+            </ActionButton>
+          ) : null}
+          {status === 'done' ? (
+            <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
+              저장하기
+            </ActionButton>
+          ) : null}
+          {status === 'generating' ? (
+            <ActionButton type='button' variant='primaryFill' size='large' disabled>
+              {getGenerateButtonLabel(dogName, dialog === 'stop')}
+            </ActionButton>
+          ) : null}
+        </div>
+      )}
+      <AlertDialog open={dialog !== null} onOpenChange={(open) => { if (!open) onKeepWriting(); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>일기 쓰기를 멈출까요?</AlertDialogTitle>
+            <AlertDialogTitle>{dialogCopy?.title}</AlertDialogTitle>
             <AlertDialogDescription className='body2-regular'>
-              AI 일기는 하루에 세 번만 만들 수 있어요.
+              {dialogCopy?.lines[0]}
               <br />
-              지금 나가면 남은 횟수는 1회 줄어요.
+              {dialogCopy?.lines[1]}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>계속 작성하기</AlertDialogCancel>
-            <AlertDialogAction onClick={onLeave}>나가기</AlertDialogAction>
+            <AlertDialogAction onClick={dialog === 'save' ? onConfirmSave : onLeave}>{dialogCopy?.confirmLabel}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -32,7 +32,7 @@ function PencilIcon(props: SVGProps<SVGSVGElement>) {
 function DiaryEditText({ body = DEFAULT_BODY, isEditing = false, className, onEdit, onBodyChange }: DiaryEditTextProps) {
   const boxClass = cn(
     'body1-regular text-text-primary radius-r2 min-h-[234px] w-full whitespace-pre-line px-x4 py-x4',
-    isEditing ? 'border-line-accent bg-bg-0 border outline-none' : 'bg-bg-50'
+    isEditing ? 'border-line-700 bg-bg-0 border outline-none' : 'bg-bg-50'
   );
 
   return (
