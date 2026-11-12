@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { DiaryNoteBanner, Icon } from '@knockdog/ui';
+import { Icon } from '@knockdog/ui';
+import { DiaryOnboardingNoteBanner } from '@features/diary-onboarding';
 
 import {
   useGuardianSchoolConnectionsQuery,
@@ -481,7 +482,7 @@ function GuardianDailyNoticeDetailPage() {
               />
             ) : (
               <>
-                {showDiaryNoteBanner ? <DiaryNoteBanner dogName={selectedDogName} /> : null}
+                {showDiaryNoteBanner ? <DiaryOnboardingNoteBanner dogName={selectedDogName} /> : null}
                 <div className='flex w-full shrink-0 items-start justify-between'>
                   <div className='flex items-center gap-3'>
                     <div className='flex flex-col gap-0.5'>
