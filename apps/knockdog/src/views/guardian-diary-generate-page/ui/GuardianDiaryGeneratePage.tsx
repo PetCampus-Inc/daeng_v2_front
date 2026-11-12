@@ -12,6 +12,7 @@ import { toast } from '@shared/ui/toast';
 
 import {
   DIARY_GENERATE_DELAY_MS,
+  DIARY_GENERATING_TOAST,
   DIARY_WORD_INTERVAL_MS,
   MOCK_DIARY_BODY,
   formatDiaryDateLabel,
@@ -44,6 +45,7 @@ function GuardianDiaryGeneratePage() {
   const [visibleBody, setVisibleBody] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [hasTriedLeave, setHasTriedLeave] = useState(false);
   const [dialog, setDialog] = useState<DiaryGenerateDialog | null>(null);
 
   useEffect(() => {
@@ -69,7 +71,13 @@ function GuardianDiaryGeneratePage() {
 
   function handleBack() {
     if (status === 'generating') {
-      setDialog('stop');
+      setHasTriedLeave(true);
+      toast({
+        shape: 'rounded',
+        position: 'bottom',
+        title: DIARY_GENERATING_TOAST,
+        nativeTitle: DIARY_GENERATING_TOAST,
+      });
       return;
     }
     if (status === 'done' && !isSaved) {
@@ -84,6 +92,7 @@ function GuardianDiaryGeneratePage() {
     setVisibleBody('');
     setIsEditing(false);
     setIsSaved(false);
+    setHasTriedLeave(false);
     setStatus('generating');
     setRunId((current) => current + 1);
   }
@@ -123,6 +132,7 @@ function GuardianDiaryGeneratePage() {
       body={isEditing || isSaved ? body : visibleBody}
       isEditing={isEditing}
       isSaved={isSaved}
+      hasTriedLeave={hasTriedLeave}
       dialog={dialog}
       onBack={handleBack}
       onRetry={handleRetry}

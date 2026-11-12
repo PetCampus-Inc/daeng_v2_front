@@ -33,6 +33,7 @@ interface GuardianDiaryGenerateFormProps {
   body: string;
   isEditing: boolean;
   isSaved: boolean;
+  hasTriedLeave: boolean;
   dialog: DiaryGenerateDialog | null;
   onBack: () => void;
   onRetry: () => void;
@@ -62,6 +63,7 @@ function GuardianDiaryGenerateForm({
   body,
   isEditing,
   isSaved,
+  hasTriedLeave,
   dialog,
   onBack,
   onRetry,
@@ -116,7 +118,7 @@ function GuardianDiaryGenerateForm({
           ) : null}
           {status === 'generating' ? (
             <ActionButton type='button' variant='primaryFill' size='large' disabled>
-              {getGenerateButtonLabel(dogName, dialog === 'stop')}
+              {getGenerateButtonLabel(dogName, hasTriedLeave)}
             </ActionButton>
           ) : null}
         </div>

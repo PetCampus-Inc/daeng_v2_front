@@ -13,6 +13,7 @@ function renderForm(override: Partial<GuardianDiaryGenerateFormProps> = {}) {
     body: '',
     isEditing: false,
     isSaved: false,
+    hasTriedLeave: false,
     dialog: null,
     onBack: vi.fn(),
     onRetry: vi.fn(),
@@ -44,18 +45,11 @@ describe('AI 일기 생성', () => {
     expect(props.onBack).toHaveBeenCalledTimes(1);
   });
 
-  test('생성 중 뒤로 가면 계속 작성과 나가기를 나눈다', () => {
-    const props = renderForm({ dialog: 'stop' });
+  test('생성 중에 나가려 하면 버튼만 아직으로 바뀐다', () => {
+    renderForm({ hasTriedLeave: true });
 
-    expect(screen.getByText('일기 쓰기를 멈출까요?')).toBeTruthy();
-    expect(screen.getByText(/남은 횟수는 1회 줄어요/)).toBeTruthy();
-    expect(document.body.textContent).toContain('콩이가 아직 일기를 쓰고 있어요');
-
-    fireEvent.click(screen.getByRole('button', { name: '계속 작성하기' }));
-    expect(props.onKeepWriting).toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: '나가기' }));
-    expect(props.onLeave).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: '콩이가 아직 일기를 쓰고 있어요' })).toBeTruthy();
+    expect(screen.queryByText('일기 쓰기를 멈출까요?')).toBeNull();
   });
 
   test('생성 실패면 다시 시도할 수 있다', () => {

@@ -1,12 +1,16 @@
 import { describe, expect, test } from 'vitest';
 
-import { getDiaryDialogCopy, getDiarySaveToast, getGenerateButtonLabel, revealDiaryText } from './diaryGenerate';
+import { DIARY_GENERATING_TOAST, getDiaryDialogCopy, getDiarySaveToast, getGenerateButtonLabel, revealDiaryText } from './diaryGenerate';
 
 describe('일기 생성 문구', () => {
   test('생성 중 버튼은 강아지 이름과 이탈 여부에 맞춘다', () => {
     expect(getGenerateButtonLabel('콩이', false)).toBe('콩이가 열심히 일기를 쓰고 있어요');
     expect(getGenerateButtonLabel('콩이', true)).toBe('콩이가 아직 일기를 쓰고 있어요');
     expect(getGenerateButtonLabel('봄', false)).toBe('봄이 열심히 일기를 쓰고 있어요');
+  });
+
+  test('생성 중 이탈은 토스트 문구만 둔다', () => {
+    expect(DIARY_GENERATING_TOAST).toBe('일기를 만드는 중이에요. 잠시 후 다시 시도해주세요');
   });
 
   test('저장 확인과 이탈 확인은 버튼 문구를 나눈다', () => {
