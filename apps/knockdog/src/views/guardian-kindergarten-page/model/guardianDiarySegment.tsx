@@ -1,8 +1,10 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { DIARY_SEGMENT, type DiarySegment } from '@knockdog/ui';
+
+import { peekDiaryHomeReturn } from '@shared/lib/diary-write/diaryRecord';
 
 interface GuardianDiarySegmentContextValue {
   segment: DiarySegment;
@@ -33,6 +35,10 @@ function GuardianDiarySegmentProvider({
   const [segment, setSegment] = useState<DiarySegment>(DIARY_SEGMENT.kindergarten);
   const selectSegment = useCallback((next: DiarySegment) => {
     setSegment(next);
+  }, []);
+
+  useEffect(() => {
+    if (peekDiaryHomeReturn()) setSegment(DIARY_SEGMENT.diary);
   }, []);
 
   return (

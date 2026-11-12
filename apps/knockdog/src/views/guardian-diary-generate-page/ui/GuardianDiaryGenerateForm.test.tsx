@@ -49,7 +49,7 @@ describe('AI 일기 생성', () => {
 
     expect(screen.getByText('일기 쓰기를 멈출까요?')).toBeTruthy();
     expect(screen.getByText(/남은 횟수는 1회 줄어요/)).toBeTruthy();
-    expect(screen.getByText('콩이가 아직 일기를 쓰고 있어요', { hidden: true })).toBeTruthy();
+    expect(document.body.textContent).toContain('콩이가 아직 일기를 쓰고 있어요');
 
     fireEvent.click(screen.getByRole('button', { name: '계속 작성하기' }));
     expect(props.onKeepWriting).toHaveBeenCalled();

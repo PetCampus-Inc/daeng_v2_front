@@ -27,5 +27,12 @@ function buildDiaryGenerateTarget({ date, schoolId }: DiaryWriteTargetInput) {
   };
 }
 
-export { buildDiaryGenerateTarget, buildDiaryWriteTarget };
+function buildDiaryDetailTarget({ date, schoolId }: DiaryWriteTargetInput) {
+  return {
+    pathname: route.kindergarten.diary.detail.root,
+    query: buildDiaryQuery(date, schoolId),
+  };
+}
+
+export { buildDiaryDetailTarget, buildDiaryGenerateTarget, buildDiaryWriteTarget };
 export type { DiaryWriteTargetInput };

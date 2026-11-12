@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useStackNavigation } from '@shared/lib/bridge';
+import { formatDateKey } from '@shared/lib/calendar-date';
+import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { readDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
+import { saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -29,7 +32,7 @@ function parseGenerateDate(value: string | null) {
 
 function GuardianDiaryGeneratePage() {
   const searchParams = useSearchParams();
-  const { back } = useStackNavigation();
+  const { back, push } = useStackNavigation();
   const draft = useMemo(() => readDiaryGenerateDraft(), []);
   const date = useMemo(() => parseGenerateDate(searchParams.get('date') ?? draft?.date ?? null), [draft?.date, searchParams]);
   const photos = draft?.photos.length ? draft.photos : FALLBACK_PHOTOS;
@@ -87,6 +90,8 @@ function GuardianDiaryGeneratePage() {
 
   function handleConfirmSave() {
     const saved = getDiarySaveToast(dogName);
+    const dateKey = formatDateKey(date);
+    saveDiaryRecord({ dateKey, dogName, body, photos });
     setDialog(null);
     setIsEditing(false);
     setIsSaved(true);
@@ -106,6 +111,7 @@ function GuardianDiaryGeneratePage() {
         </>
       ),
     });
+    void push(buildDiaryDetailTarget({ date, schoolId: searchParams.get('schoolId') }));
   }
 
   return (

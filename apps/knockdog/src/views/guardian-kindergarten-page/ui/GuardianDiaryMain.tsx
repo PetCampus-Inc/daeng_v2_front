@@ -14,6 +14,13 @@ import {
   type GuardianDiaryEntry,
 } from '@views/guardian-kindergarten-page/lib/resolveGuardianDiaryDay';
 import { isSameDay, startOfDay } from '@shared/lib/calendar-date';
+import { takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
+
+function parseDiaryHomeDate(dateKey: string | null) {
+  if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null;
+  const [yearText, monthText, dayText] = dateKey.split('-');
+  return startOfDay(new Date(Number(yearText), Number(monthText) - 1, Number(dayText)));
+}
 
 interface GuardianDiaryMainProps {
   dogName?: string;
@@ -22,6 +29,7 @@ interface GuardianDiaryMainProps {
   remainingCredits?: number;
   today?: Date;
   onWrite?: (date: Date) => void;
+  onView?: (date: Date) => void;
 }
 
 function GuardianDiaryMain({
@@ -31,8 +39,10 @@ function GuardianDiaryMain({
   remainingCredits = DIARY_CREDIT_LIMIT,
   today: todayProp,
   onWrite,
+  onView,
 }: GuardianDiaryMainProps) {
   const today = useMemo(() => startOfDay(todayProp ?? new Date()), [todayProp]);
+  const restoredDate = useMemo(() => parseDiaryHomeDate(takeDiaryHomeDate()), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const minMonth = useMemo(() => new Date(today.getFullYear() - 5, today.getMonth(), 1), [today]);
@@ -41,9 +51,10 @@ function GuardianDiaryMain({
   const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), remainingCredits);
 
   useEffect(() => {
-    setSelectedDate(today);
-    setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
-  }, [petId, today]);
+    const next = restoredDate ?? today;
+    setSelectedDate(next);
+    setMonth(new Date(next.getFullYear(), next.getMonth(), 1));
+  }, [petId, restoredDate, today]);
 
   function handleMonthChange(nextMonth: Date) {
     setMonth(nextMonth);
@@ -95,10 +106,11 @@ function GuardianDiaryMain({
                   <img src={selectedEntry.imageSrc} alt='' className='size-full object-cover' />
                 ) : undefined
               }
+              onViewAll={onView ? () => onView(selectedDate) : undefined}
             />
           ) : (
             <DiaryCalendarBanner
-              state={dayKind === 'spent' ? 'disabled' : dayKind}
+              state={dayKind === 'past' ? 'past' : dayKind === 'spent' ? 'disabled' : 'today'}
               dogName={dogName}
               className='w-full'
               onClick={onWrite ? () => onWrite(selectedDate) : undefined}

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 const openMonthPicker = vi.fn();
 
@@ -21,9 +21,14 @@ const writtenEntry = {
 };
 
 describe('일기장 메인', () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
   afterEach(() => {
     cleanup();
     openMonthPicker.mockReset();
+    window.sessionStorage.clear();
   });
 
   test('오늘은 작성 배너가 보이고 이후 날짜와 다음 달은 고를 수 없다', () => {
@@ -55,7 +60,7 @@ describe('일기장 메인', () => {
     fireEvent.click(screen.getByRole('button', { name: /이 날 가나디의 일기를 써볼까요/ }));
 
     expect(onWrite).toHaveBeenCalledTimes(1);
-    expect(onWrite.mock.calls[0][0]).toEqual(new Date(2026, 5, 15));
+    expect(onWrite).toHaveBeenCalledWith(new Date(2026, 5, 15));
   });
 
   test('일기를 쓴 날은 사진과 본문 미리보기를 보여 준다', () => {
@@ -67,16 +72,27 @@ describe('일기장 메인', () => {
     fireEvent.click(calendarDay);
 
     expect(screen.getByRole('heading', { name: '공원에서 신나게 낙엽 밟기' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '전체 보기' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '전체 보기' }));
     expect(screen.getByText(/낙엽을 잔뜩 밟았어/)).toBeTruthy();
     const preview = screen.getByRole('heading', { name: '공원에서 신나게 낙엽 밟기' }).closest('article');
     expect(preview?.querySelector('.text-text-primary-inverse')?.textContent).toBe('3');
   });
 
+  test('전체 보기는 선택한 날짜를 넘긴다', () => {
+    const onView = vi.fn();
+    render(<GuardianDiaryMain dogName='가나디' today={today} entries={[writtenEntry]} onView={onView} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '6월 16일' }));
+    fireEvent.click(screen.getByRole('button', { name: '전체 보기' }));
+
+    expect(onView).toHaveBeenCalledTimes(1);
+    expect(onView).toHaveBeenCalledWith(new Date(2026, 5, 16));
+  });
+
   test('생성 횟수를 모두 쓰면 작성 배너 대신 안내를 보여 준다', () => {
     render(<GuardianDiaryMain dogName='가나디' today={today} remainingCredits={0} />);
 
-    expect(screen.getByText('생성 3번을 모두 썼어요. 내일 다시 만나요!')).toBeTruthy();
+    expect(screen.getByText('일기 3번을 모두 썼어요. 내일 다시 만나요!')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /일기를 써볼까요/ })).toBeNull();
   });
 
