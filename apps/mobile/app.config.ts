@@ -99,6 +99,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   plugins: [
+    [
+      '@sentry/react-native/expo',
+      {
+        url: 'https://sentry.io/',
+        organization: 'petcampus',
+        project: 'knockdog-mobile',
+      },
+    ],
     'expo-font',
     'expo-router',
     'expo-apple-authentication',

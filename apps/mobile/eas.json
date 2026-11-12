@@ -8,7 +8,9 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_NO_CAPABILITY_SYNC": "1"
+        "EXPO_NO_CAPABILITY_SYNC": "1",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://5a6108020461e63bc3a628950ec51db2@o4512331024302080.ingest.us.sentry.io/4512414648041472",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "development"
       }
     },
     "preview": {
@@ -17,7 +19,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_NO_CAPABILITY_SYNC": "1"
+        "EXPO_NO_CAPABILITY_SYNC": "1",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://5a6108020461e63bc3a628950ec51db2@o4512331024302080.ingest.us.sentry.io/4512414648041472",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "development"
       }
     },
     "production": {
@@ -30,7 +34,9 @@
         "EXPO_PUBLIC_WEBVIEW_URL": "https://app.knockdog.net",
         "EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY": "fe0efd15adb3a7392e0688cb16dcaec5",
         "EXPO_PUBLIC_IOS_URL_SCHEME": "com.googleusercontent.apps.589885832776-1g7ggi6t1pp3ijthg4ql90h6p0vdskod",
-        "EXPO_PUBLIC_ANDROID_CLIENT_ID": "589885832776-lma7fngffn9aa1lgiclk4k8n6rjdrt6g.apps.googleusercontent.com"
+        "EXPO_PUBLIC_ANDROID_CLIENT_ID": "589885832776-lma7fngffn9aa1lgiclk4k8n6rjdrt6g.apps.googleusercontent.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://5a6108020461e63bc3a628950ec51db2@o4512331024302080.ingest.us.sentry.io/4512414648041472",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "production"
       }
     }
   },

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import WebView, { type WebViewNavigation } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type RefObject, useRef, useMemo, useEffect, useState } from 'react';
@@ -157,6 +158,25 @@ export function BridgeWebView({
       source={{ uri }}
       onMessage={handleOnMessage}
       onNavigationStateChange={onNavigationStateChange}
+      onError={(event) => {
+        const failedUrl = event.nativeEvent.url;
+        if (failedUrl && failedUrl !== uri) return;
+
+        Sentry.captureException(new Error(event.nativeEvent.description || 'WebView load failed'), {
+          tags: { source: 'webview-load' },
+          extra: { url: failedUrl, code: event.nativeEvent.code },
+        });
+      }}
+      onHttpError={(event) => {
+        const failedUrl = event.nativeEvent.url;
+        const statusCode = event.nativeEvent.statusCode;
+        if (failedUrl !== uri || statusCode < 400) return;
+
+        Sentry.captureException(new Error(`WebView HTTP ${statusCode}`), {
+          tags: { source: 'webview-http' },
+          extra: { url: failedUrl, statusCode },
+        });
+      }}
       onLoadEnd={() => {
         const ref = refToUse.current;
         if (ref) {

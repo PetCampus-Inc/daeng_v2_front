@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import type { RefObject } from 'react';
 import type { WebView as RNWebView } from 'react-native-webview';
 import { wireWebView, serializeForJS } from '@knockdog/bridge-native';
@@ -23,6 +24,10 @@ function forwardEventTo(webRef: RefObject<RNWebView>, event: string, payload: un
   try {
     webRef.current?.injectJavaScript(`window.__bridge?.receive(${safe}); true;`);
   } catch (err) {
+    Sentry.captureException(err, {
+      tags: { source: 'bridge' },
+      extra: { event },
+    });
     if (__DEV__) {
       // eslint-disable-next-line no-console
       console.error('[forwardEventTo] inject failed:', err, { event });
