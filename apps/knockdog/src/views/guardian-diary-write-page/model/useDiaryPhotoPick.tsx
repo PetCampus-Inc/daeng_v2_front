@@ -45,6 +45,7 @@ function useDiaryPhotoPick(
           quality: 0.8,
           skipUpload: true,
           resizeThresholdBytes: DIARY_PHOTO_MAX_BYTES,
+          normalizeToJpeg: true,
         });
         if (result.cancelled || !result.assets) return;
 

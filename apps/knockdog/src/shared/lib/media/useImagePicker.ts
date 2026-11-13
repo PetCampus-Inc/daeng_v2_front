@@ -22,6 +22,7 @@ interface WebImageAsset extends ImageAsset {
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 const DEFAULT_MAX_SELECTION = 50;
+const WEB_CANVAS_MAX_EDGE = 2048;
 const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif']);
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif']);
 
@@ -76,10 +77,25 @@ async function getImageDimensions(file: File): Promise<{ width: number; height: 
   });
 }
 
-async function resizeWebImageIfNeeded(file: File, resizeThresholdBytes?: number, quality = 0.8): Promise<File> {
-  if (!resizeThresholdBytes || file.size < resizeThresholdBytes) return file;
+function fitCanvasSize(width: number, height: number) {
+  const longestEdge = Math.max(width, height);
+  if (longestEdge <= WEB_CANVAS_MAX_EDGE) return { width, height };
 
-  const { width, height } = await getImageDimensions(file);
+  const scale = WEB_CANVAS_MAX_EDGE / longestEdge;
+  return {
+    width: Math.max(1, Math.floor(width * scale)),
+    height: Math.max(1, Math.floor(height * scale)),
+  };
+}
+
+async function resizeWebImageIfNeeded(
+  file: File,
+  resizeThresholdBytes?: number,
+  quality = 0.8,
+  normalizeToJpeg = false
+): Promise<File> {
+  if (!normalizeToJpeg && (!resizeThresholdBytes || file.size < resizeThresholdBytes)) return file;
+
   const sourceUrl = URL.createObjectURL(file);
   const image = new Image();
 
@@ -90,12 +106,13 @@ async function resizeWebImageIfNeeded(file: File, resizeThresholdBytes?: number,
       image.src = sourceUrl;
     });
 
-    let targetWidth = width;
-    let targetHeight = height;
+    const fittedSize = fitCanvasSize(image.naturalWidth || image.width, image.naturalHeight || image.height);
+    let targetWidth = fittedSize.width;
+    let targetHeight = fittedSize.height;
     let compressionQuality = quality;
     let resizedBlob: Blob | null = null;
 
-    for (let attempt = 0; attempt < 4; attempt += 1) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
       const canvas = document.createElement('canvas');
       canvas.width = targetWidth;
       canvas.height = targetHeight;
@@ -107,15 +124,18 @@ async function resizeWebImageIfNeeded(file: File, resizeThresholdBytes?: number,
         canvas.toBlob(resolve, 'image/jpeg', compressionQuality)
       );
       if (!resizedBlob) throw new Error('이미지를 리사이징할 수 없습니다.');
-      if (resizedBlob.size <= resizeThresholdBytes) break;
+      if (!resizeThresholdBytes || resizedBlob.size <= resizeThresholdBytes) break;
 
-      const scale = Math.min(0.95, Math.sqrt(resizeThresholdBytes / resizedBlob.size) * 0.95);
+      const scale = Math.min(0.85, Math.sqrt(resizeThresholdBytes / resizedBlob.size) * 0.9);
       targetWidth = Math.max(1, Math.floor(targetWidth * scale));
       targetHeight = Math.max(1, Math.floor(targetHeight * scale));
       compressionQuality = Math.max(0.5, compressionQuality - 0.1);
     }
 
     if (!resizedBlob) throw new Error('이미지를 리사이징할 수 없습니다.');
+    if (resizeThresholdBytes && resizedBlob.size > resizeThresholdBytes) {
+      throw new Error('이미지를 제한 용량 이하로 줄이지 못했습니다.');
+    }
     const fileName = `${file.name.replace(/\.[^.]+$/, '') || 'profile'}.jpg`;
     return new File([resizedBlob], fileName, { type: 'image/jpeg' });
   } finally {
@@ -202,6 +222,7 @@ async function uploadFilesWithValidation(
     skipUpload?: boolean;
     resizeThresholdBytes?: number;
     quality?: number;
+    normalizeToJpeg?: boolean;
   }
 ): Promise<Extract<PickImageResult, { cancelled: false }>> {
   // skipUpload도 치수 계산·리사이즈가 있어, 준비 중 목록 변경을 막을 수 있게 알린다.
@@ -229,7 +250,12 @@ async function uploadFilesWithValidation(
     }
 
     try {
-      const uploadFile = await resizeWebImageIfNeeded(file, options?.resizeThresholdBytes, options?.quality);
+      const uploadFile = await resizeWebImageIfNeeded(
+        file,
+        options?.resizeThresholdBytes,
+        options?.quality,
+        options?.normalizeToJpeg
+      );
       const asset = await createWebImageAsset(uploadFile, options?.skipUpload);
       uploadedAssets.push(asset);
     } catch (error) {
@@ -311,6 +337,7 @@ async function pickImageWeb(
           skipUpload: params?.skipUpload,
           resizeThresholdBytes: params?.resizeThresholdBytes,
           quality: params?.quality,
+          normalizeToJpeg: params?.normalizeToJpeg,
         };
 
         if (!params?.allowsMultipleSelection) {

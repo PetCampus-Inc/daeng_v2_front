@@ -66,8 +66,9 @@ function GuardianDiaryWritePage() {
         isOpen={isOpen}
         onClose={close}
         onSelect={(source) => {
-          close();
           void pickPhotos(source);
+          // 같은 턴에 시트를 닫으면 iOS가 방금 연 사진 선택을 취소한다.
+          window.setTimeout(close, 300);
         }}
       />
     ));

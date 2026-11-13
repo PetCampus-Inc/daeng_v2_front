@@ -116,6 +116,7 @@ async function uploadDiaryPhotoFiles(assets: DiaryPickAsset[]): Promise<DiaryPho
         rejectedCount += 1;
         continue;
       }
+      console.error('[guardian-diary] photo upload failed', error);
       failedCount += 1;
       firstError = firstError ?? error;
     }
