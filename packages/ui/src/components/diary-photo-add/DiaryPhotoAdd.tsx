@@ -38,7 +38,7 @@ function DiaryPhotoAdd({ count = 0, maxCount = 3, image, className, onAdd, onRem
   return (
     <div className={cn('bg-bg-0 radius-r2 relative size-[88px]', className)}>
       <div className='radius-r2 size-full overflow-hidden'>{image}</div>
-      <DiaryPhotoRemove onClick={onRemove} className='absolute top-[-6px] right-[-6px]' />
+      <DiaryPhotoRemove onClick={onRemove} className='absolute top-[2px] right-[2px]' />
     </div>
   );
 }

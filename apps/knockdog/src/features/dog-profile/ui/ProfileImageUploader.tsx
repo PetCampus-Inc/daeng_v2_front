@@ -7,7 +7,7 @@ import {
   AvatarFallback,
   Icon,
 } from '@knockdog/ui';
-import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
+import { uploadPickedAssets, useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
 const PROFILE_IMAGE_RESIZE_THRESHOLD_BYTES = 10 * 1024 * 1024;
@@ -34,13 +34,17 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
         selectionLimit: 1,
         quality: 0.8,
         resizeThresholdBytes: PROFILE_IMAGE_RESIZE_THRESHOLD_BYTES,
+        skipUpload: true,
       });
 
       if (!result.cancelled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0] as WebImageAsset;
+        const { uploaded } = await uploadPickedAssets([asset]);
+        const next = uploaded[0];
+        if (!next) return;
         setIsImageLoading(true);
-        setSelectedImage(asset.uri);
-        onImageSelect?.(asset.uri, asset.key);
+        setSelectedImage(next.uri);
+        onImageSelect?.(next.uri, next.key);
       } else if (!result.cancelled && result.skipped?.oversizedCount) {
         toast({
           title: (

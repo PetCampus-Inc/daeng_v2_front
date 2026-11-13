@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ActionButton,
   Icon,
@@ -14,7 +14,7 @@ import {
 import { MiniPhotoBox } from './MiniPhotoBox';
 import { FullImageSheet } from './FullImageSheet';
 import { overlay } from 'overlay-kit';
-import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
+import { PICKED_UPLOAD_FAIL, uploadPickedAssets, useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
@@ -51,10 +51,12 @@ function PhotoUploader({
   const { pickImage } = useImagePicker();
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const assetsRef = useRef(assets);
 
   useEffect(() => {
     // undefined만 skip — 빈 배열([])도 autofill/초기화 반영
     if (defaultValue !== undefined) {
+      assetsRef.current = defaultValue;
       setAssets(defaultValue);
     }
   }, [defaultValue]);
@@ -77,15 +79,25 @@ function PhotoUploader({
           allowsMultipleSelection: true,
           selectionLimit: maxCount - assets.length,
           quality,
+          skipUpload: true,
         },
         {
           onUploading: (count) => setUploadingCount(count),
         }
       );
-      if (!result.cancelled && result.assets) {
-        const newAssets = [...assets, ...(result.assets as WebImageAsset[])].slice(0, maxCount);
-        setAssets(newAssets);
-        onChange?.(newAssets);
+      if (!result.cancelled && result.assets?.length) {
+        const picked = (result.assets as WebImageAsset[]).filter((asset) => asset.uri || asset.file);
+        setUploadingCount(picked.length);
+        const { uploaded, failedCount } = await uploadPickedAssets(picked);
+        if (uploaded.length > 0) {
+          const nextAssets = [...assetsRef.current, ...uploaded].slice(0, maxCount);
+          assetsRef.current = nextAssets;
+          setAssets(nextAssets);
+          onChange?.(nextAssets);
+        }
+        if (failedCount > 0) {
+          toast({ title: PICKED_UPLOAD_FAIL, nativeTitle: PICKED_UPLOAD_FAIL, position: 'bottom-above-nav' });
+        }
       }
     } catch (error: unknown) {
       if ((error as string) === 'NO_PERMISSION_LIBRARY' || (error as string) === 'NO_PERMISSION_CAMERA') {
@@ -117,6 +129,12 @@ function PhotoUploader({
     }
   };
 
+  function openImageSource(source: 'library' | 'camera', close: () => void) {
+    void handlePickImages(source);
+    // 같은 턴에 시트를 닫으면 iOS가 방금 연 사진 선택을 취소한다.
+    window.setTimeout(close, 300);
+  }
+
   const openSourceSelectSheet = () => {
     if (isFull || isUploading) return;
 
@@ -133,19 +151,13 @@ function PhotoUploader({
           <div className='py-x5 flex flex-col pb-[40px]'>
             <button
               className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
-              onClick={() => {
-                handlePickImages('library');
-                close();
-              }}
+              onClick={() => openImageSource('library', close)}
             >
               사진 보관함
             </button>
             <button
               className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
-              onClick={() => {
-                handlePickImages('camera');
-                close();
-              }}
+              onClick={() => openImageSource('camera', close)}
             >
               카메라로 촬영하기
             </button>
@@ -157,9 +169,10 @@ function PhotoUploader({
 
   const removeImage = (index: number) => {
     if (isUploading) return;
-    const newAssets = assets.filter((_, i) => i !== index);
-    setAssets(newAssets);
-    onChange?.(newAssets);
+    const nextAssets = assetsRef.current.filter((_, i) => i !== index);
+    assetsRef.current = nextAssets;
+    setAssets(nextAssets);
+    onChange?.(nextAssets);
   };
 
   const handleImageClick = (index: number) => {
@@ -214,9 +227,7 @@ function PhotoUploader({
             className='h-[80px] w-[80px]'
             onRemove={isUploading ? undefined : () => removeImage(index)}
             badgeLabel={
-              showRepresentativeBadge && assets.length >= 2 && index === 0
-                ? representativeBadgeLabel
-                : undefined
+              showRepresentativeBadge && assets.length >= 2 && index === 0 ? representativeBadgeLabel : undefined
             }
           />
         </div>
