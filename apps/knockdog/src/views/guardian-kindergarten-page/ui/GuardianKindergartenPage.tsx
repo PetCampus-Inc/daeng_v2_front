@@ -37,9 +37,6 @@ export function GuardianKindergartenPage() {
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
   const { push } = useStackNavigation();
-  const openOnboardingDiary = useCallback(() => {
-    push(buildDiaryWriteTarget({ date: startOfDay(new Date()) }));
-  }, [push]);
   const {
     pets,
     selectedPet,
@@ -160,6 +157,12 @@ export function GuardianKindergartenPage() {
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
+  const diarySchoolId =
+    linkedKindergarten && (status === 'approved' || status === 'disconnected') ? linkedKindergarten.id : null;
+  const openOnboardingDiary = useCallback(() => {
+    push(buildDiaryWriteTarget({ date: startOfDay(new Date()), schoolId: diarySchoolId }));
+  }, [diarySchoolId, push]);
+
   const handleRetry = useCallback(() => {
     if (isPetsError) {
       void refetchPets();
@@ -225,9 +228,6 @@ export function GuardianKindergartenPage() {
   // 강아지 미등록 또는 연결된 유치원이 아예 없는 경우에만 노출한다.
   const shouldShowOwnerVerification =
     isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
-
-  const diarySchoolId =
-    linkedKindergarten && (status === 'approved' || status === 'disconnected') ? linkedKindergarten.id : null;
 
   return (
     <DiaryOnboardingProvider dogName={selectedPet?.name} onStart={openOnboardingDiary}>

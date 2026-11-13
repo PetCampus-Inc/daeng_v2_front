@@ -24,8 +24,11 @@ function useDiaryOnboardingSheet() {
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
       if (hasSeenDiaryOnboarding()) return;
-      markDiaryOnboardingSeen();
-      setIsOpen(true);
+      try {
+        markDiaryOnboardingSeen();
+      } finally {
+        setIsOpen(true);
+      }
     }, DIARY_ONBOARDING_OPEN_DELAY_MS);
   }, []);
 

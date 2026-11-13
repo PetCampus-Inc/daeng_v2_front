@@ -32,6 +32,7 @@ import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-p
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { useDiaryRecords } from '@shared/lib/diary-write/useDiaryRecords';
 import { trackNotebookView } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import {
@@ -282,8 +283,10 @@ function GuardianDailyNoticeDetailPage() {
     schoolId,
     enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
-  // 해당 날짜 일기 작성 여부는 S-05 범위다. 이 화면에서는 아직 작성되지 않은 것으로 본다.
-  const hasWrittenDiary = false;
+  const diaryRecords = useDiaryRecords();
+  const hasWrittenDiary = diaryRecords.some(
+    (record) => record.dateKey === selectedDateKey && record.petId === selectedPetId
+  );
   const showDiaryNoteBanner = shouldShowDiaryNoteBanner(Boolean(dailyNotice), hasWrittenDiary);
 
   useEffect(() => {

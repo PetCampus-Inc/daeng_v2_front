@@ -100,7 +100,9 @@ function GuardianDiaryGeneratePage() {
   function handleConfirmSave() {
     const saved = getDiarySaveToast(dogName);
     const dateKey = formatDateKey(date);
-    saveDiaryRecord({ dateKey, dogName, body, photos });
+    const petId = draft?.petId || searchParams.get('petId') || null;
+    const savedBody = body || visibleBody;
+    saveDiaryRecord({ dateKey, petId, dogName, body: savedBody, photos });
     setDialog(null);
     setIsEditing(false);
     setIsSaved(true);
@@ -120,7 +122,7 @@ function GuardianDiaryGeneratePage() {
         </>
       ),
     });
-    void push(buildDiaryDetailTarget({ date, schoolId: searchParams.get('schoolId') }));
+    void push(buildDiaryDetailTarget({ date, schoolId: searchParams.get('schoolId'), petId }));
   }
 
   return (

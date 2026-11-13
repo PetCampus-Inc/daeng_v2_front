@@ -9,12 +9,15 @@ function renderForm(override: Partial<GuardianDiaryDetailFormProps> = {}) {
     dateLabel: '2026년 6월 16일 화요일',
     photos: ['/images/diary-sample/leaf.png'],
     body: '오늘은 낙엽을 밟았어',
+    isEditing: false,
     isMenuOpen: false,
     isDeleteOpen: false,
     onBack: vi.fn(),
     onMenu: vi.fn(),
     onCloseMenu: vi.fn(),
     onEdit: vi.fn(),
+    onBodyChange: vi.fn(),
+    onSave: vi.fn(),
     onAskDelete: vi.fn(),
     onCancelDelete: vi.fn(),
     onDelete: vi.fn(),
@@ -51,6 +54,18 @@ describe('일기 상세', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '메뉴 닫기' }));
     expect(props.onCloseMenu).toHaveBeenCalledTimes(1);
+  });
+
+  test('수정 중에는 본문을 고치고 저장한다', () => {
+    const props = renderForm({ isEditing: true });
+    const field = screen.getByRole('textbox') as HTMLTextAreaElement;
+
+    expect(field.value).toBe('오늘은 낙엽을 밟았어');
+    fireEvent.change(field, { target: { value: '고친 일기' } });
+    expect(props.onBodyChange).toHaveBeenCalledWith('고친 일기');
+
+    fireEvent.click(screen.getByRole('button', { name: '저장하기' }));
+    expect(props.onSave).toHaveBeenCalledTimes(1);
   });
 
   test('삭제는 닫기와 삭제하기로 나눈다', () => {

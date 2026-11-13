@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { useTabNavigation } from '@shared/lib/bridge';
-import { readDiaryRecord, removeDiaryRecord, saveDiaryHomeReturn } from '@shared/lib/diary-write/diaryRecord';
+import { readDiaryRecord, removeDiaryRecord, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { toast } from '@shared/ui/toast';
 
 import { formatDiaryDeleteToast, formatDiaryDetailDate } from '../lib/diaryDetail';
@@ -22,9 +22,13 @@ function GuardianDiaryDetailPage() {
   const { navigateToTab } = useTabNavigation();
   const date = useMemo(() => parseDetailDate(searchParams.get('date')), [searchParams]);
   const dateKey = formatDateKey(date);
-  const record = useMemo(() => readDiaryRecord(dateKey), [dateKey]);
+  const petId = searchParams.get('petId');
+  const record = useMemo(() => readDiaryRecord(dateKey, petId), [dateKey, petId]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [body, setBody] = useState<string | null>(null);
+  const shownBody = body ?? record?.body ?? '';
 
   function openDiaryHome() {
     saveDiaryHomeReturn(dateKey);
@@ -33,7 +37,7 @@ function GuardianDiaryDetailPage() {
 
   function handleDelete() {
     const deleted = formatDiaryDeleteToast(date);
-    removeDiaryRecord(dateKey);
+    removeDiaryRecord(dateKey, record?.petId ?? petId);
     setIsDeleteOpen(false);
     toast({
       type: 'success',
@@ -54,17 +58,40 @@ function GuardianDiaryDetailPage() {
     openDiaryHome();
   }
 
+  function handleEdit() {
+    setIsMenuOpen(false);
+    setBody(shownBody);
+    setIsEditing(true);
+  }
+
+  function handleSaveEdit() {
+    const nextBody = body ?? shownBody;
+    if (!nextBody.trim()) return;
+    saveDiaryRecord({
+      dateKey,
+      petId: record?.petId ?? petId ?? null,
+      dogName: record?.dogName || '강아지',
+      body: nextBody,
+      photos: record?.photos ?? [],
+    });
+    setBody(nextBody);
+    setIsEditing(false);
+  }
+
   return (
     <GuardianDiaryDetailForm
       dateLabel={formatDiaryDetailDate(date)}
       photos={record?.photos ?? []}
-      body={record?.body ?? ''}
+      body={shownBody}
+      isEditing={isEditing}
       isMenuOpen={isMenuOpen}
       isDeleteOpen={isDeleteOpen}
       onBack={openDiaryHome}
       onMenu={() => setIsMenuOpen((open) => !open)}
       onCloseMenu={() => setIsMenuOpen(false)}
-      onEdit={() => setIsMenuOpen(false)}
+      onEdit={handleEdit}
+      onBodyChange={setBody}
+      onSave={handleSaveEdit}
       onAskDelete={() => {
         setIsMenuOpen(false);
         setIsDeleteOpen(true);

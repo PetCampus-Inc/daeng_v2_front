@@ -8,10 +8,10 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
 import { useStackNavigation } from '@shared/lib/bridge';
-import { formatDateKey } from '@shared/lib/calendar-date';
+import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { buildDiaryGenerateTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { saveDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
-import { startOfDay } from '@shared/lib/calendar-date';
+import { toast } from '@shared/ui/toast';
 
 import {
   DIARY_PHOTO_LIMIT,
@@ -80,12 +80,22 @@ function GuardianDiaryWritePage() {
 
   function handleCreateDiary() {
     setIsImportSheetOpen(false);
-    saveDiaryGenerateDraft({
-      date: formatDateKey(date),
-      dogName: selectedPet?.name || '강아지',
-      photos: photos.map((photo) => photo.src),
-    });
-    push(buildDiaryGenerateTarget({ date, schoolId }));
+    const petId = selectedPet?.id ?? searchParams.get('petId');
+    try {
+      saveDiaryGenerateDraft({
+        date: formatDateKey(date),
+        dogName: selectedPet?.name || '강아지',
+        petId,
+        photos: photos.map((photo) => photo.src),
+      });
+    } catch {
+      toast({
+        title: '일기를 만들지 못했어요. 잠시 후 다시 시도해주세요',
+        position: 'bottom-above-nav',
+      });
+      return;
+    }
+    push(buildDiaryGenerateTarget({ date, schoolId, petId }));
   }
 
   function handleApplyImport() {

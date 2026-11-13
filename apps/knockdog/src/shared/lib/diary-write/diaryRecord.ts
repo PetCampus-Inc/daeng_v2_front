@@ -4,6 +4,7 @@ const DIARY_RECORD_EVENT = 'diary-records-change';
 
 interface DiaryRecord {
   dateKey: string;
+  petId: string | null;
   dogName: string;
   body: string;
   photos: string[];
@@ -11,7 +12,15 @@ interface DiaryRecord {
 
 function readStorage(key: string) {
   if (typeof window === 'undefined') return null;
-  return window.sessionStorage.getItem(key);
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function isDiaryRecord(record: Partial<DiaryRecord>): record is DiaryRecord {
+  return Boolean(record.dateKey && record.dogName && record.body && Array.isArray(record.photos));
 }
 
 function readDiaryRecords(): DiaryRecord[] {
@@ -19,9 +28,9 @@ function readDiaryRecords(): DiaryRecord[] {
   if (!raw) return [];
 
   try {
-    const records = JSON.parse(raw) as DiaryRecord[];
+    const records = JSON.parse(raw) as Partial<DiaryRecord>[];
     if (!Array.isArray(records)) return [];
-    return records.filter((record) => record.dateKey && record.body && Array.isArray(record.photos));
+    return records.filter(isDiaryRecord);
   } catch {
     return [];
   }
@@ -33,22 +42,40 @@ function writeDiaryRecords(records: DiaryRecord[]) {
   window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
 }
 
+function isVisibleDiary(record: DiaryRecord, petId?: string | null) {
+  if (!petId || !record.petId) return true;
+  return String(record.petId) === String(petId);
+}
+
+function isSameDiary(record: DiaryRecord, dateKey: string, petId: string | null) {
+  return record.dateKey === dateKey && (record.petId ?? null) === petId;
+}
+
 function saveDiaryRecord(record: DiaryRecord) {
-  const records = readDiaryRecords().filter((item) => item.dateKey !== record.dateKey);
-  writeDiaryRecords([record, ...records]);
+  const records = readDiaryRecords().filter((item) => !isSameDiary(item, record.dateKey, record.petId));
+  writeDiaryRecords([{ ...record, petId: record.petId ?? null }, ...records]);
 }
 
-function readDiaryRecord(dateKey: string) {
-  return readDiaryRecords().find((record) => record.dateKey === dateKey) ?? null;
+function readDiaryRecord(dateKey: string, petId?: string | null) {
+  const records = readDiaryRecords().filter((record) => record.dateKey === dateKey);
+  if (petId) {
+    const matched = records.find((record) => record.petId === petId);
+    if (matched) return matched;
+  }
+  if (!petId || records.length === 1) return records[0] ?? null;
+  return null;
 }
 
-function removeDiaryRecord(dateKey: string) {
-  writeDiaryRecords(readDiaryRecords().filter((record) => record.dateKey !== dateKey));
+function removeDiaryRecord(dateKey: string, petId?: string | null) {
+  const matched = readDiaryRecord(dateKey, petId);
+  if (!matched) return;
+  writeDiaryRecords(readDiaryRecords().filter((record) => !isSameDiary(record, matched.dateKey, matched.petId)));
 }
 
 function saveDiaryHomeReturn(dateKey: string) {
   if (typeof window === 'undefined') return;
   window.sessionStorage.setItem(DIARY_HOME_RETURN_KEY, dateKey);
+  window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
 }
 
 function peekDiaryHomeReturn() {
@@ -69,6 +96,7 @@ function diaryPreviewTitle(body: string) {
 export {
   DIARY_RECORD_EVENT,
   peekDiaryHomeReturn,
+  isVisibleDiary,
   readDiaryRecord,
   readDiaryRecords,
   removeDiaryRecord,

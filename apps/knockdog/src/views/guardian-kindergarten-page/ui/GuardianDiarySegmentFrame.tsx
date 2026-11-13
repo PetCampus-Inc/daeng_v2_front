@@ -7,7 +7,7 @@ import { DIARY_SEGMENT } from '@knockdog/ui';
 import { useGuardianDiarySegment } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { buildDiaryDetailTarget, buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
-import { diaryPreviewTitle } from '@shared/lib/diary-write/diaryRecord';
+import { diaryPreviewTitle, isVisibleDiary } from '@shared/lib/diary-write/diaryRecord';
 import { useDiaryRecords } from '@shared/lib/diary-write/useDiaryRecords';
 
 import { GuardianDiaryMain } from './GuardianDiaryMain';
@@ -21,7 +21,7 @@ function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps)
   const { push } = useStackNavigation();
   const { segment, dogName, petId, schoolId } = useGuardianDiarySegment();
   const records = useDiaryRecords();
-  const entries = records.map((record) => ({
+  const entries = records.filter((record) => isVisibleDiary(record, petId)).map((record) => ({
     dateKey: record.dateKey,
     title: diaryPreviewTitle(record.body),
     body: record.body,
@@ -30,11 +30,11 @@ function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps)
   }));
 
   function handleWrite(date: Date) {
-    push(buildDiaryWriteTarget({ date, schoolId }));
+    push(buildDiaryWriteTarget({ date, schoolId, petId }));
   }
 
   function handleView(date: Date) {
-    push(buildDiaryDetailTarget({ date, schoolId }));
+    push(buildDiaryDetailTarget({ date, schoolId, petId }));
   }
 
   if (segment !== DIARY_SEGMENT.diary) return children;

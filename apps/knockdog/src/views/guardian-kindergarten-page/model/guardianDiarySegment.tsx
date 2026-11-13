@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 import { DIARY_SEGMENT, type DiarySegment } from '@knockdog/ui';
 
-import { peekDiaryHomeReturn } from '@shared/lib/diary-write/diaryRecord';
+import { DIARY_RECORD_EVENT, peekDiaryHomeReturn } from '@shared/lib/diary-write/diaryRecord';
 
 interface GuardianDiarySegmentContextValue {
   segment: DiarySegment;
@@ -38,7 +38,18 @@ function GuardianDiarySegmentProvider({
   }, []);
 
   useEffect(() => {
-    if (peekDiaryHomeReturn()) setSegment(DIARY_SEGMENT.diary);
+    function openReturnedDiary() {
+      if (peekDiaryHomeReturn()) setSegment(DIARY_SEGMENT.diary);
+    }
+    openReturnedDiary();
+    window.addEventListener(DIARY_RECORD_EVENT, openReturnedDiary);
+    window.addEventListener('focus', openReturnedDiary);
+    document.addEventListener('visibilitychange', openReturnedDiary);
+    return () => {
+      window.removeEventListener(DIARY_RECORD_EVENT, openReturnedDiary);
+      window.removeEventListener('focus', openReturnedDiary);
+      document.removeEventListener('visibilitychange', openReturnedDiary);
+    };
   }, []);
 
   return (

@@ -14,7 +14,7 @@ import {
   type GuardianDiaryEntry,
 } from '@views/guardian-kindergarten-page/lib/resolveGuardianDiaryDay';
 import { isSameDay, startOfDay } from '@shared/lib/calendar-date';
-import { takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
+import { DIARY_RECORD_EVENT, takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
 
 function parseDiaryHomeDate(dateKey: string | null) {
   if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null;
@@ -55,6 +55,17 @@ function GuardianDiaryMain({
     setSelectedDate(next);
     setMonth(new Date(next.getFullYear(), next.getMonth(), 1));
   }, [petId, restoredDate, today]);
+
+  useEffect(() => {
+    function applyHomeDate() {
+      const next = parseDiaryHomeDate(takeDiaryHomeDate());
+      if (!next) return;
+      setSelectedDate(next);
+      setMonth(new Date(next.getFullYear(), next.getMonth(), 1));
+    }
+    window.addEventListener(DIARY_RECORD_EVENT, applyHomeDate);
+    return () => window.removeEventListener(DIARY_RECORD_EVENT, applyHomeDate);
+  }, []);
 
   function handleMonthChange(nextMonth: Date) {
     setMonth(nextMonth);

@@ -2,6 +2,7 @@
 
 import { Edit, Trash } from '@knockdog/icons';
 import {
+  ActionButton,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -10,6 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  DiaryEditText,
   DiaryImageCarousel,
   DiaryTopBar,
 } from '@knockdog/ui';
@@ -20,12 +22,15 @@ interface GuardianDiaryDetailFormProps {
   dateLabel: string;
   photos: string[];
   body: string;
+  isEditing: boolean;
   isMenuOpen: boolean;
   isDeleteOpen: boolean;
   onBack: () => void;
   onMenu: () => void;
   onCloseMenu: () => void;
   onEdit: () => void;
+  onBodyChange: (body: string) => void;
+  onSave: () => void;
   onAskDelete: () => void;
   onCancelDelete: () => void;
   onDelete: () => void;
@@ -35,12 +40,15 @@ function GuardianDiaryDetailForm({
   dateLabel,
   photos,
   body,
+  isEditing,
   isMenuOpen,
   isDeleteOpen,
   onBack,
   onMenu,
   onCloseMenu,
   onEdit,
+  onBodyChange,
+  onSave,
   onAskDelete,
   onCancelDelete,
   onDelete,
@@ -70,8 +78,19 @@ function GuardianDiaryDetailForm({
             <img key={photo} src={photo} alt='' className='size-full object-cover' />
           ))}
         />
-        <p className='body1-regular text-text-primary whitespace-pre-line px-x2 py-x4'>{body}</p>
+        {isEditing ? (
+          <DiaryEditText body={body} isEditing onBodyChange={onBodyChange} />
+        ) : (
+          <p className='body1-regular text-text-primary whitespace-pre-line px-x2 py-x4'>{body}</p>
+        )}
       </div>
+      {isEditing ? (
+        <div className='p-x4'>
+          <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
+            저장하기
+          </ActionButton>
+        </div>
+      ) : null}
       <AlertDialog open={isDeleteOpen} onOpenChange={(open) => { if (!open) onCancelDelete(); }}>
         <AlertDialogContent>
           <AlertDialogHeader>

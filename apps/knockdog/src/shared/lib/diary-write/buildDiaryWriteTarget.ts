@@ -5,32 +5,34 @@ import { formatDateKey } from '@shared/lib/calendar-date';
 interface DiaryWriteTargetInput {
   date: Date;
   schoolId?: string | null;
+  petId?: string | null;
 }
 
-function buildDiaryQuery(date: Date, schoolId?: string | null): Query {
+function buildDiaryQuery({ date, schoolId, petId }: DiaryWriteTargetInput): Query {
   const query: Query = { date: formatDateKey(date) };
   if (schoolId) query.schoolId = schoolId;
+  if (petId) query.petId = petId;
   return query;
 }
 
-function buildDiaryWriteTarget({ date, schoolId }: DiaryWriteTargetInput) {
+function buildDiaryWriteTarget(input: DiaryWriteTargetInput) {
   return {
     pathname: route.kindergarten.diary.write.root,
-    query: buildDiaryQuery(date, schoolId),
+    query: buildDiaryQuery(input),
   };
 }
 
-function buildDiaryGenerateTarget({ date, schoolId }: DiaryWriteTargetInput) {
+function buildDiaryGenerateTarget(input: DiaryWriteTargetInput) {
   return {
     pathname: route.kindergarten.diary.generate.root,
-    query: buildDiaryQuery(date, schoolId),
+    query: buildDiaryQuery(input),
   };
 }
 
-function buildDiaryDetailTarget({ date, schoolId }: DiaryWriteTargetInput) {
+function buildDiaryDetailTarget(input: DiaryWriteTargetInput) {
   return {
     pathname: route.kindergarten.diary.detail.root,
-    query: buildDiaryQuery(date, schoolId),
+    query: buildDiaryQuery(input),
   };
 }
 
