@@ -15,9 +15,10 @@ import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegme
 
 interface GuardianDiarySegmentFrameProps {
   children: ReactNode;
+  showDiary?: boolean;
 }
 
-function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps) {
+function GuardianDiarySegmentFrame({ children, showDiary = true }: GuardianDiarySegmentFrameProps) {
   const { push } = useStackNavigation();
   const { segment, dogName, petId, schoolId } = useGuardianDiarySegment();
   const records = useDiaryRecords();
@@ -37,7 +38,7 @@ function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps)
     push(buildDiaryDetailTarget({ date, schoolId, petId, diaryId }));
   }
 
-  if (segment !== DIARY_SEGMENT.diary) return children;
+  if (!showDiary || segment !== DIARY_SEGMENT.diary) return children;
 
   return (
     <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height)'>
