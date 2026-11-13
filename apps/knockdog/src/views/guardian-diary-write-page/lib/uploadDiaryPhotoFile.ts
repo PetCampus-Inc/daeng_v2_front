@@ -1,8 +1,9 @@
 import { METHODS, type ImageAsset } from '@knockdog/bridge-core';
 
 import { postDiaryPhotoUploadUrls, type DiaryPhotoUpload } from '@entities/guardian-diary';
-import { fetchWithUploadTimeout } from '@shared/api';
+import { ApiError, fetchWithUploadTimeout } from '@shared/api';
 import { getBridgeInstance } from '@shared/lib/bridge';
+import { getPreviewImage } from '@shared/lib/media';
 
 interface DiaryPickAsset extends ImageAsset {
   uri?: string;
@@ -12,18 +13,52 @@ interface DiaryPickAsset extends ImageAsset {
   fileSize?: number;
 }
 
-function resolveContentType(asset: DiaryPickAsset) {
-  const mimeType = (asset.file?.type || asset.mimeType || '').toLowerCase().trim();
-  if (mimeType === 'image/jpg') return 'image/jpeg';
-  if (mimeType === 'image/png' || mimeType === 'image/jpeg') return mimeType;
-  const extension = (asset.file?.name ?? asset.fileName ?? '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
-  if (extension === 'png') return 'image/png';
-  return 'image/jpeg';
+interface DiaryUploadedPhoto {
+  tempKey: string;
+  src: string;
 }
 
-function resolveFileName(asset: DiaryPickAsset, index: number) {
-  const name = (asset.file?.name ?? asset.fileName)?.trim();
-  return name || `diary-${Date.now()}-${index}.jpg`;
+interface DiaryPhotoUploadResult {
+  photos: DiaryUploadedPhoto[];
+  rejectedCount: number;
+}
+
+interface DiaryPhotoRequest {
+  asset: DiaryPickAsset;
+  filename: string;
+  contentType: 'image/jpeg' | 'image/png';
+  size: number;
+}
+
+const DIARY_PHOTO_MAX_BYTES = 3 * 1024 * 1024;
+
+function resolveContentType(asset: DiaryPickAsset) {
+  const mimeType = (asset.file?.type || asset.mimeType || '').toLowerCase().trim();
+  if (mimeType === 'image/jpg' || mimeType === 'image/jpeg') return 'image/jpeg';
+  if (mimeType === 'image/png') return 'image/png';
+
+  const extension = (asset.file?.name ?? asset.fileName ?? '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
+  if (extension === 'png') return 'image/png';
+  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg';
+  return null;
+}
+
+function resolveFileName(asset: DiaryPickAsset, index: number, contentType: DiaryPhotoRequest['contentType']) {
+  const extension = contentType === 'image/png' ? 'png' : 'jpg';
+  const raw = (asset.file?.name ?? asset.fileName)?.trim();
+  const base = raw?.replace(/\.[^.]+$/, '') || `diary-${Date.now()}-${index}`;
+  return `${base}.${extension}`;
+}
+
+function buildDiaryPhotoRequest(asset: DiaryPickAsset, index: number): DiaryPhotoRequest | null {
+  const contentType = resolveContentType(asset);
+  const size = asset.file?.size || asset.fileSize || 0;
+  if (!contentType || size <= 0 || size > DIARY_PHOTO_MAX_BYTES) return null;
+  return { asset, contentType, size, filename: resolveFileName(asset, index, contentType) };
+}
+
+function isPhotoSpecError(error: unknown) {
+  return error instanceof ApiError && error.status === 400;
 }
 
 async function putDiaryPhoto(asset: DiaryPickAsset, upload: DiaryPhotoUpload, contentType: string) {
@@ -43,28 +78,46 @@ async function putDiaryPhoto(asset: DiaryPickAsset, upload: DiaryPhotoUpload, co
   await bridge.request(METHODS.putFileToPresignedUrl, { uri, uploadUrl: upload.uploadUrl, contentType });
 }
 
-async function uploadDiaryPhotoFiles(assets: DiaryPickAsset[]) {
-  const files = assets.map((asset, index) => {
-    const size = asset.file?.size || asset.fileSize || 0;
-    return {
-      filename: resolveFileName(asset, index),
-      contentType: resolveContentType(asset),
-      ...(size > 0 ? { size } : {}),
-    };
-  });
-  const uploads = await postDiaryPhotoUploadUrls(files);
-  if (uploads.length !== assets.length) throw new Error('사진 업로드 주소를 받지 못했어요.');
-
-  await Promise.all(
-    assets.map((asset, index) => {
-      const upload = uploads[index];
-      const file = files[index];
-      if (!upload || !file) throw new Error('사진 업로드 주소를 받지 못했어요.');
-      return putDiaryPhoto(asset, upload, file.contentType);
-    })
-  );
-  return uploads;
+async function resolveUploadedSrc(asset: DiaryPickAsset, tempKey: string) {
+  if (asset.file) return asset.uri || asset.preSignedUrl || '';
+  const { data } = await getPreviewImage(tempKey);
+  return data?.preSignedUrl || asset.uri || '';
 }
 
-export { uploadDiaryPhotoFiles };
-export type { DiaryPickAsset };
+async function uploadDiaryPhotoFile(request: DiaryPhotoRequest): Promise<DiaryUploadedPhoto> {
+  const uploads = await postDiaryPhotoUploadUrls([
+    { filename: request.filename, contentType: request.contentType, size: request.size },
+  ]);
+  const upload = uploads[0];
+  if (!upload) throw new Error('사진 업로드 주소를 받지 못했어요.');
+  await putDiaryPhoto(request.asset, upload, request.contentType);
+  const src = await resolveUploadedSrc(request.asset, upload.tempKey);
+  if (!src) throw new Error('사진 미리보기 주소를 받지 못했어요.');
+  return { tempKey: upload.tempKey, src };
+}
+
+async function uploadDiaryPhotoFiles(assets: DiaryPickAsset[]): Promise<DiaryPhotoUploadResult> {
+  const photos: DiaryUploadedPhoto[] = [];
+  let rejectedCount = 0;
+  let firstError: unknown;
+
+  for (const [index, asset] of assets.entries()) {
+    const request = buildDiaryPhotoRequest(asset, index);
+    if (!request) {
+      rejectedCount += 1;
+      continue;
+    }
+    try {
+      photos.push(await uploadDiaryPhotoFile(request));
+    } catch (error) {
+      if (isPhotoSpecError(error)) rejectedCount += 1;
+      else firstError = firstError ?? error;
+    }
+  }
+
+  if (photos.length === 0 && firstError) throw firstError;
+  return { photos, rejectedCount };
+}
+
+export { buildDiaryPhotoRequest, uploadDiaryPhotoFiles, DIARY_PHOTO_MAX_BYTES };
+export type { DiaryPickAsset, DiaryPhotoUploadResult };

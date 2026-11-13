@@ -107,8 +107,8 @@ async function compressForUpload(asset: ImagePicker.ImagePickerAsset, targetSize
 }
 
 /** skipUpload용 — content:// 원본 직접 PUT 시 Android 네이티브 크래시 방지 */
-async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset) {
-  const compressed = await compressForUpload(asset);
+async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset, maxBytes?: number) {
+  const compressed = await compressForUpload(asset, maxBytes);
   const info = await FileSystem.getInfoAsync(compressed.uri, { size: true });
   const fileSize = info.exists && typeof info.size === 'number' ? info.size : undefined;
 
@@ -257,6 +257,30 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       let hasNetworkError = false;
 
       for (const pickedAsset of assetsToUpload) {
+        if (skipUpload) {
+          const size = await getAssetSizeBytes(pickedAsset);
+          if (size != null && size > MAX_FILE_SIZE_BYTES) {
+            oversizedCount += 1;
+            continue;
+          }
+          try {
+            const prepared = await prepareSkipUploadAsset(pickedAsset, resizeThresholdBytes);
+            if (!prepared.fileSize || prepared.fileSize <= 0) {
+              unreadableCount += 1;
+              continue;
+            }
+            if (resizeThresholdBytes && prepared.fileSize > resizeThresholdBytes) {
+              oversizedCount += 1;
+              continue;
+            }
+            uploadedAssets.push(prepared);
+          } catch (error) {
+            console.error('[APP] pickImage skipUpload item error', error);
+            unreadableCount += 1;
+          }
+          continue;
+        }
+
         const skipReason = await validateAsset(pickedAsset);
         if (skipReason === 'invalid_spec') {
           invalidSpecCount += 1;
@@ -272,15 +296,6 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         }
 
         try {
-          if (skipUpload) {
-            const prepared = await prepareSkipUploadAsset(pickedAsset);
-            if (!prepared.fileSize || prepared.fileSize <= 0) {
-              unreadableCount += 1;
-              continue;
-            }
-            uploadedAssets.push(prepared);
-            continue;
-          }
 
           const { key, preSignedUrl } = await uploadImage();
           await uploadToS3(preSignedUrl, pickedAsset, resizeThresholdBytes);

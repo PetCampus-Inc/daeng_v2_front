@@ -18,7 +18,13 @@ import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
 import { DIARY_PHOTO_LIMIT, type DiaryWritePhoto } from '../lib/diaryWriteForm';
-import { uploadDiaryPhotoFiles, type DiaryPickAsset } from '../lib/uploadDiaryPhotoFile';
+import { DIARY_PHOTO_MAX_BYTES, uploadDiaryPhotoFiles, type DiaryPickAsset } from '../lib/uploadDiaryPhotoFile';
+
+const DIARY_PHOTO_FAIL = '사진을 올리지 못했어요. 잠시 후 다시 시도해주세요';
+
+function showPhotoFailToast() {
+  toast({ title: DIARY_PHOTO_FAIL, nativeTitle: DIARY_PHOTO_FAIL, position: 'bottom-above-nav', shape: 'rounded' });
+}
 
 function useDiaryPhotoPick(
   photos: DiaryWritePhoto[],
@@ -37,17 +43,31 @@ function useDiaryPhotoPick(
           allowsMultipleSelection: true,
           selectionLimit: remaining,
           quality: 0.8,
+          skipUpload: true,
+          resizeThresholdBytes: DIARY_PHOTO_MAX_BYTES,
         });
         if (result.cancelled || !result.assets) return;
 
-        const picked = (result.assets as WebImageAsset[]).slice(0, remaining).filter((asset) => asset.uri);
-        const uploads = await uploadDiaryPhotoFiles(picked as DiaryPickAsset[]);
-        const nextPhotos: DiaryWritePhoto[] = picked.flatMap((asset, index) => {
-          const upload = uploads[index];
-          if (!asset.uri || !upload) return [];
-          return [{ id: upload.tempKey, src: asset.uri, tempKey: upload.tempKey }];
-        });
-        onChange((current) => [...current, ...nextPhotos].slice(0, DIARY_PHOTO_LIMIT));
+        const picked = (result.assets as WebImageAsset[]).slice(0, remaining).filter((asset) => asset.uri || asset.file);
+        const skippedCount =
+          (result.skipped?.invalidSpecCount ?? 0) +
+          (result.skipped?.oversizedCount ?? 0) +
+          (result.skipped?.unreadableCount ?? 0);
+        if (picked.length === 0) {
+          showPhotoFailToast();
+          return;
+        }
+
+        const uploaded = await uploadDiaryPhotoFiles(picked as DiaryPickAsset[]);
+        if (uploaded.photos.length > 0) {
+          onChange((current) =>
+            [...current, ...uploaded.photos.map((photo) => ({ id: photo.tempKey, src: photo.src, tempKey: photo.tempKey }))].slice(
+              0,
+              DIARY_PHOTO_LIMIT
+            )
+          );
+        }
+        if (uploaded.rejectedCount > 0 || skippedCount > 0) showPhotoFailToast();
       } catch (error: unknown) {
         if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') {
           overlay.open(({ isOpen, close }) => (
@@ -69,10 +89,7 @@ function useDiaryPhotoPick(
           ));
           return;
         }
-        toast({
-          title: error instanceof Error ? error.message : String(error),
-          position: 'bottom-above-nav',
-        });
+        showPhotoFailToast();
       }
     },
     [onChange, photos, pickImage]
