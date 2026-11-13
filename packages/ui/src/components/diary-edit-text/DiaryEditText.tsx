@@ -10,6 +10,7 @@ interface DiaryEditTextProps {
   isEditing?: boolean;
   className?: string;
   onEdit?: () => void;
+  onBodyChange?: (body: string) => void;
 }
 
 function PencilIcon(props: SVGProps<SVGSVGElement>) {
@@ -28,17 +29,19 @@ function PencilIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 /** V4 / Dog Diary / Edit Texts */
-function DiaryEditText({ body = DEFAULT_BODY, isEditing = false, className, onEdit }: DiaryEditTextProps) {
+function DiaryEditText({ body = DEFAULT_BODY, isEditing = false, className, onEdit, onBodyChange }: DiaryEditTextProps) {
+  const boxClass = cn(
+    'body1-regular text-text-primary radius-r2 min-h-[234px] w-full whitespace-pre-line px-x4 py-x4',
+    isEditing ? 'border-line-700 bg-bg-0 border outline-none' : 'bg-bg-50'
+  );
+
   return (
     <div className={cn('flex w-full flex-col', className)}>
-      <div
-        className={cn(
-          'body1-regular text-text-primary radius-r2 min-h-[234px] whitespace-pre-line px-x4 py-x4',
-          isEditing ? 'border-line-accent bg-bg-0 border' : 'bg-bg-50'
-        )}
-      >
-        {body}
-      </div>
+      {isEditing && onBodyChange ? (
+        <textarea autoFocus value={body} onChange={(event) => onBodyChange(event.target.value)} className={cn(boxClass, 'resize-none')} />
+      ) : (
+        <div className={boxClass}>{body}</div>
+      )}
       {isEditing ? null : (
         <button type='button' onClick={onEdit} className='body2-semibold text-fill-secondary-500 gap-x2 px-x1 py-x3 flex items-center justify-end'>
           <PencilIcon />

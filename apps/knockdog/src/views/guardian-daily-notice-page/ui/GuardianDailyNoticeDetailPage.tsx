@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
+import { DiaryOnboardingNoteBanner } from '@features/diary-onboarding';
 
 import {
   useGuardianSchoolConnectionsQuery,
@@ -10,6 +11,7 @@ import {
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { guardianDailyNoticeContent } from '@views/guardian-daily-notice-page/config/guardianDailyNoticeContent';
+import { shouldShowDiaryNoteBanner } from '@views/guardian-daily-notice-page/lib/shouldShowDiaryNoteBanner';
 import {
   formatNoticeClockTime,
   formatNoticeUpdatedAt,
@@ -29,6 +31,8 @@ import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/m
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { useDiaryRecords } from '@shared/lib/diary-write/useDiaryRecords';
 import { trackNotebookView } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import {
@@ -153,6 +157,7 @@ function GuardianDailyNoticeDetailPage() {
     enabled: petIdFromQuery == null || (isPetsReady && !isQueryPetMissing),
   });
   const selectedPetId = petIdFromQuery || storePetId;
+  const selectedDogName = pets.find((pet) => pet.id === selectedPetId)?.name;
 
   const { data: connections, isPending: isConnectionsPending } = useGuardianSchoolConnectionsQuery({
     userId,
@@ -278,6 +283,11 @@ function GuardianDailyNoticeDetailPage() {
     schoolId,
     enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
+  const diaryRecords = useDiaryRecords();
+  const hasWrittenDiary = diaryRecords.some(
+    (record) => record.dateKey === selectedDateKey && record.petId === selectedPetId
+  );
+  const showDiaryNoteBanner = shouldShowDiaryNoteBanner(Boolean(dailyNotice), hasWrittenDiary);
 
   useEffect(() => {
     if (!dailyNotice || isPending) return;
@@ -476,6 +486,19 @@ function GuardianDailyNoticeDetailPage() {
               />
             ) : (
               <>
+                {showDiaryNoteBanner ? (
+                  <DiaryOnboardingNoteBanner
+                    dogName={selectedDogName}
+                    onWrite={() =>
+                      push(
+                        buildDiaryWriteTarget({
+                          date: selectedDate,
+                          schoolId,
+                        })
+                      )
+                    }
+                  />
+                ) : null}
                 <div className='flex w-full shrink-0 items-start justify-between'>
                   <div className='flex items-center gap-3'>
                     <div className='flex flex-col gap-0.5'>

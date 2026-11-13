@@ -19,6 +19,7 @@ interface DiaryCalendarProps extends Omit<ComponentProps<'div'>, 'defaultValue'>
   onMonthChange?: (month: Date) => void;
   today?: Date;
   getImage?: (date: Date) => ReactNode;
+  onYearMonthClick?: () => void;
 }
 
 function startOfMonth(date: Date) {
@@ -71,6 +72,7 @@ function DiaryCalendar({
   onMonthChange,
   today = new Date(),
   getImage,
+  onYearMonthClick,
   className,
   ...props
 }: DiaryCalendarProps) {
@@ -79,6 +81,7 @@ function DiaryCalendar({
   const selected = value ?? innerValue;
   const visibleMonth = month ? startOfMonth(month) : innerMonth;
   const weeks = buildWeeks(visibleMonth);
+  const canGoNextMonth = startOfMonth(visibleMonth).getTime() < startOfMonth(today).getTime();
 
   function changeMonth(nextMonth: Date) {
     const normalized = startOfMonth(nextMonth);
@@ -87,6 +90,7 @@ function DiaryCalendar({
   }
 
   function selectDate(nextValue: Date) {
+    if (startOfDay(nextValue).getTime() > startOfDay(today).getTime()) return;
     setInnerValue(nextValue);
     onValueChange?.(nextValue);
   }
@@ -103,14 +107,15 @@ function DiaryCalendar({
           >
             <ChevronLeft className='text-text-primary' />
           </button>
-          <span className='h3-extrabold text-text-primary'>
+          <button type='button' onClick={onYearMonthClick} className='h3-extrabold text-text-primary'>
             {visibleMonth.getFullYear()}년 {visibleMonth.getMonth() + 1}월
-          </span>
+          </button>
           <button
             type='button'
             aria-label='다음 달'
+            disabled={!canGoNextMonth}
             onClick={() => changeMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}
-            className='inline-flex'
+            className='inline-flex disabled:opacity-30'
           >
             <ChevronRight className='text-text-primary' />
           </button>
@@ -137,6 +142,7 @@ function DiaryCalendar({
 
               const image = getImage?.(date);
               const state = resolveDayState(date, selected, today, image);
+              const isFuture = startOfDay(date).getTime() > startOfDay(today).getTime();
 
               return (
                 <DiaryCalendarDay
@@ -145,6 +151,7 @@ function DiaryCalendar({
                   image={image}
                   className='flex-1'
                   aria-label={`${date.getMonth() + 1}월 ${date.getDate()}일`}
+                  disabled={isFuture}
                   onClick={() => selectDate(date)}
                 >
                   {date.getDate()}

@@ -37,7 +37,7 @@ export const fetchDevLogin = async <T>(): Promise<ApiResponse<T>> => {
   // 서버마다 게스트 계정이 다르다. 운영(api.knockdog.net)은 96·113, 개발(dev-api.knockdog.net)은 6·7.
   // 기본은 운영 96번이고, 개발 서버는 96번이 없어서(2026-11-10 확인, 404) `.env.development`에
   // NEXT_PUBLIC_GUEST_LOGIN_ID=6 (또는 7)을 적어 쓴다.
-  const DEV_LOGIN_ID = Number(process.env.NEXT_PUBLIC_GUEST_LOGIN_ID) || 1;
+  const DEV_LOGIN_ID = Number(process.env.NEXT_PUBLIC_GUEST_LOGIN_ID) || 2;
   const api = await getApi();
   return await api.get(`auth/dev/${DEV_LOGIN_ID}`).json<ApiResponse<T>>();
 };

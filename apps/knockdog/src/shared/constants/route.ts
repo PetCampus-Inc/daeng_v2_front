@@ -352,6 +352,20 @@ const route = {
         root: '/kindergarten/notice/list',
       },
     },
+    diary: {
+      write: {
+        /** 보호자 일기 쓰기. query: date, schoolId? */
+        root: '/kindergarten/diary/write',
+      },
+      generate: {
+        /** 보호자 AI 일기 생성. query: date, schoolId? */
+        root: '/kindergarten/diary/generate',
+      },
+      detail: {
+        /** 보호자 일기 상세. query: date */
+        root: '/kindergarten/diary',
+      },
+    },
     news: {
       /** 보호자 유치원 소식 목록. query: schoolId? */
       root: '/kindergarten/news',

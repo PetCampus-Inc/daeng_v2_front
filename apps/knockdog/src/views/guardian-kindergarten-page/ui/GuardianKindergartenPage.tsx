@@ -5,11 +5,15 @@ import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { DiaryOnboardingProvider } from '@features/diary-onboarding';
+import { GuardianDiarySegmentProvider } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
 import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
 import { useTrackConnectionResults } from '@shared/lib/analytics';
-import { useTabNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { startOfDay } from '@shared/lib/calendar-date';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import {
   isPetIdInList,
   parseNotificationEntrySource,
@@ -32,8 +36,10 @@ export function GuardianKindergartenPage() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
   const {
     pets,
+    selectedPet,
     isPetsReady,
     isPetsError,
     setSelectedPetId,
@@ -151,6 +157,12 @@ export function GuardianKindergartenPage() {
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
+  const diarySchoolId =
+    linkedKindergarten && (status === 'approved' || status === 'disconnected') ? linkedKindergarten.id : null;
+  const openOnboardingDiary = useCallback(() => {
+    push(buildDiaryWriteTarget({ date: startOfDay(new Date()), schoolId: diarySchoolId }));
+  }, [diarySchoolId, push]);
+
   const handleRetry = useCallback(() => {
     if (isPetsError) {
       void refetchPets();
@@ -218,56 +230,60 @@ export function GuardianKindergartenPage() {
     isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
 
   return (
-    <div
-      className='flex h-dvh flex-col'
-      style={pageGradientStyle}
-    >
-      <GuardianKindergartenHeader
-        status={status}
-        isAttending={Boolean(showDayState && isAttending)}
-        isDismissed={Boolean(showDayState && isDismissed)}
-        checkInAt={checkInAt}
-        checkOutAt={checkOutAt}
-        hasUnreadAlarm={hasUnreadAlarm}
-        hasNoPet={hasNoPet}
-      />
-
-      <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
-        {hasNoPet ? (
-          <GuardianKindergartenNoPetState />
-        ) : showDayState ? (
-          <GuardianKindergartenAttendingState
-            kindergarten={linkedKindergarten}
+    <DiaryOnboardingProvider dogName={selectedPet?.name} onStart={openOnboardingDiary}>
+      <GuardianDiarySegmentProvider
+        dogName={selectedPet?.name}
+        petId={selectedPet?.id ?? null}
+        schoolId={diarySchoolId}
+      >
+        <div className='flex h-dvh flex-col' style={pageGradientStyle}>
+          <GuardianKindergartenHeader
+            status={status}
+            isAttending={Boolean(showDayState && isAttending)}
+            isDismissed={Boolean(showDayState && isDismissed)}
             checkInAt={checkInAt}
             checkOutAt={checkOutAt}
-            hasDailyNotice={hasDailyNotice}
-            albumPhotos={albumPhotos}
-            albumLatestCreatedAt={albumLatestCreatedAt}
-            firstAttendedAt={firstAttendedAt}
+            hasUnreadAlarm={hasUnreadAlarm}
+            hasNoPet={hasNoPet}
           />
-        ) : showDisconnected ? (
-          <GuardianKindergartenDisconnectedState
-            kindergarten={linkedKindergarten}
-            albumPhotos={albumPhotos}
-            firstAttendedAt={firstAttendedAt}
-          />
-        ) : showApproved ? (
-          <GuardianKindergartenApprovedState
-            kindergarten={linkedKindergarten}
-            firstAttendedAt={firstAttendedAt}
-          />
-        ) : showPending ? (
-          <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
-        ) : (
-          <GuardianKindergartenEmptyState />
-        )}
-      </div>
 
-      {shouldShowOwnerVerification && (
-        <div className='web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'>
-          <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+          <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
+            {hasNoPet ? (
+              <GuardianKindergartenNoPetState />
+            ) : showDayState ? (
+              <GuardianKindergartenAttendingState
+                kindergarten={linkedKindergarten}
+                checkOutAt={checkOutAt}
+                hasDailyNotice={hasDailyNotice}
+                albumPhotos={albumPhotos}
+                albumLatestCreatedAt={albumLatestCreatedAt}
+                firstAttendedAt={firstAttendedAt}
+              />
+            ) : showDisconnected ? (
+              <GuardianKindergartenDisconnectedState
+                kindergarten={linkedKindergarten}
+                albumPhotos={albumPhotos}
+                firstAttendedAt={firstAttendedAt}
+              />
+            ) : showApproved ? (
+              <GuardianKindergartenApprovedState
+                kindergarten={linkedKindergarten}
+                firstAttendedAt={firstAttendedAt}
+              />
+            ) : showPending ? (
+              <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
+            ) : (
+              <GuardianKindergartenEmptyState />
+            )}
+          </div>
+
+          {shouldShowOwnerVerification && (
+            <div className='web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'>
+              <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </GuardianDiarySegmentProvider>
+    </DiaryOnboardingProvider>
   );
 }

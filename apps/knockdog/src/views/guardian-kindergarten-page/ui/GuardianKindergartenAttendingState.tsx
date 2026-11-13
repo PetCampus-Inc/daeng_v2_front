@@ -8,8 +8,6 @@ import { useLiveAlbumLastViewedAt } from '@views/guardian-album-page/model/useGu
 import { GuardianKindergartenNewsSection } from '@views/guardian-kindergarten-news-page';
 import { useGuardianNewsPreview } from '@views/guardian-kindergarten-news-page/model/useGuardianKindergartenNews';
 import { guardianKindergartenAttendingContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenAttendingContent';
-import { formatAttendingDuration } from '@views/guardian-kindergarten-page/lib/formatGuardianAttendance';
-import { formatKoreanDateWithWeekday } from '@views/guardian-kindergarten-page/lib/formatGuardianKindergartenDate';
 import { pushGuardianDailyNoticeDetail } from '@views/guardian-kindergarten-page/lib/pushGuardianDailyNoticeDetail';
 import {
   pushGuardianDailyNoticeList,
@@ -21,6 +19,8 @@ import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 
 import { GuardianAlbumPhotoStack } from './GuardianAlbumPhotoStack';
+import { GuardianDiarySegmentFrame } from './GuardianDiarySegmentFrame';
+import { GuardianKindergartenHomeSegment } from './GuardianKindergartenHomeSegment';
 import { GuardianDailyNoticeArrivedBanner } from './GuardianDailyNoticeCard';
 import { GuardianKindergartenDateCalendar } from './GuardianKindergartenDateCalendar';
 import { GuardianKindergartenDayTimeline } from './GuardianKindergartenDayTimeline';
@@ -28,8 +28,6 @@ import { GuardianLinkedKindergartenCard } from './GuardianLinkedKindergartenCard
 
 interface GuardianKindergartenAttendingStateProps {
   kindergarten: GuardianLinkedKindergarten;
-  /** 오늘 등원 시각 (홈 API) — 헤더 배지·경과 시간 */
-  checkInAt: Date;
   checkOutAt?: Date | null;
   hasDailyNotice: boolean;
   albumPhotos: string[];
@@ -42,7 +40,6 @@ interface GuardianKindergartenAttendingStateProps {
 
 function GuardianKindergartenAttendingState({
   kindergarten,
-  checkInAt,
   checkOutAt = null,
   hasDailyNotice,
   albumPhotos,
@@ -51,7 +48,6 @@ function GuardianKindergartenAttendingState({
   initialSelectedDate = null,
 }: GuardianKindergartenAttendingStateProps) {
   const [selectedDate, setSelectedDate] = useState(() => initialSelectedDate ?? new Date());
-  const [now, setNow] = useState(() => new Date());
   const content = guardianKindergartenAttendingContent;
   const { push } = useStackNavigation();
   const lastViewedAt = useLiveAlbumLastViewedAt();
@@ -67,8 +63,6 @@ function GuardianKindergartenAttendingState({
   const hasUnseenAlbumPhotos =
     hasAlbumPhotos &&
     (albumLatestCreatedAt == null ? lastViewedAt === 0 : albumLatestCreatedAt > lastViewedAt);
-  const durationLabel = formatAttendingDuration(checkInAt, now);
-  const statusBadgeLabel = isDismissed ? content.dayFinishedLabel : durationLabel;
   const showAlbumArrived = hasUnseenAlbumPhotos && (isDismissed ? hasDailyNotice : true);
   const { items: newsPreviewItems, isPending: isNewsPreviewPending } = useGuardianNewsPreview(
     kindergarten.id
@@ -94,49 +88,47 @@ function GuardianKindergartenAttendingState({
     if (initialSelectedDate) setSelectedDate(initialSelectedDate);
   }, [initialSelectedDate]);
 
-  useEffect(() => {
-    if (isDismissed) return;
-    const timer = window.setInterval(() => setNow(new Date()), 60_000);
-    return () => window.clearInterval(timer);
-  }, [isDismissed]);
-
   return (
-    <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
-      <div className='px-x4 flex w-full flex-col gap-5 py-6'>
-        {/* 날짜 + 등원 경과 / 하루 마침 */}
-        <div className='flex w-full items-center justify-between'>
-          <div className='gap-x1 flex items-center'>
-            <Icon icon='Paw' className='text-text-accent size-6' aria-hidden='true' />
-            <p className='h3-extrabold text-text-primary'>{formatKoreanDateWithWeekday(selectedDate)}</p>
-          </div>
-          <span
-            className={
-              isDismissed
-                ? 'border-line-200 label-semibold text-text-secondary shrink-0 rounded-full border px-3.5 py-2'
-                : 'border-line-accent label-semibold text-text-accent shrink-0 rounded-full border px-3.5 py-2'
-            }
-          >
-            {statusBadgeLabel}
-          </span>
-        </div>
+    <GuardianDiarySegmentFrame>
+      <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
+      <div className='px-x4 flex w-full flex-col gap-5 pt-6'>
+        <GuardianKindergartenHomeSegment />
 
-        {/* 알림장 */}
         {hasDailyNotice ? (
           <GuardianDailyNoticeArrivedBanner onViewClick={handleNoticeViewClick} />
         ) : (
-          <div className='bg-bg-50 radius-r3 flex w-full items-center justify-center gap-2 overflow-hidden p-4'>
-            <Image
-              src={content.noticePreparingIconSrc}
-              alt={content.noticePreparingIconAlt}
-              width={32}
-              height={32}
-              className='size-8 shrink-0 object-contain'
-            />
+          <div className='bg-bg-50 radius-r3 flex h-16 w-full items-center justify-center px-4'>
             <p className='body2-bold text-text-secondary'>{content.noticePreparingMessage}</p>
           </div>
         )}
+      </div>
 
-        {/* 오늘의 앨범 */}
+      <section className='flex w-full flex-col items-center'>
+        <GuardianKindergartenDateCalendar
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          schoolId={kindergarten.id}
+          firstAttendedAt={firstAttendedAt ?? undefined}
+        />
+        <GuardianKindergartenDayTimeline
+          checkInAt={selectedCheckInAt}
+          checkOutAt={selectedCheckOutAt}
+          dailyNotice={selectedDailyNotice}
+          emptyMessage={content.calendarEmptyMessage}
+          isLoading={isCalendarDayPending}
+          onNoticeViewAllClick={() =>
+            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
+          }
+          onPastNoticesClick={() =>
+            pushGuardianDailyNoticeList(push, {
+              schoolId: kindergarten.id,
+              month: toMonthQuery(selectedDate),
+            })
+          }
+        />
+      </section>
+
+      <div className='px-x4 flex w-full flex-col gap-5 pt-5'>
         <section className='flex w-full flex-col items-center gap-5'>
           <div className={`flex w-full items-center ${hasAlbumPhotos ? 'justify-between' : ''}`}>
             <p className='h3-extrabold text-text-primary'>{content.albumTitle}</p>
@@ -199,32 +191,6 @@ function GuardianKindergartenAttendingState({
         </section>
       </div>
 
-      {/* 주간 캘린더 + 선택일 타임라인 */}
-      <section className='flex w-full flex-col items-center'>
-        <GuardianKindergartenDateCalendar
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          schoolId={kindergarten.id}
-          firstAttendedAt={firstAttendedAt ?? undefined}
-        />
-        <GuardianKindergartenDayTimeline
-          checkInAt={selectedCheckInAt}
-          checkOutAt={selectedCheckOutAt}
-          dailyNotice={selectedDailyNotice}
-          emptyMessage={content.calendarEmptyMessage}
-          isLoading={isCalendarDayPending}
-          onNoticeViewAllClick={() =>
-            pushGuardianDailyNoticeDetail(push, selectedDate, { schoolId: kindergarten.id })
-          }
-          onPastNoticesClick={() =>
-            pushGuardianDailyNoticeList(push, {
-              schoolId: kindergarten.id,
-              month: toMonthQuery(selectedDate),
-            })
-          }
-        />
-      </section>
-
       {/* 유치원 새소식 */}
       <section className='px-x4 mt-4 flex w-full flex-col items-center'>
         <GuardianKindergartenNewsSection
@@ -248,6 +214,7 @@ function GuardianKindergartenAttendingState({
         </button>
       </section>
     </div>
+    </GuardianDiarySegmentFrame>
   );
 }
 

@@ -150,9 +150,9 @@ function GuardianKindergartenHeader({
           className='bg-bg-0 shrink-0 rounded-full p-1.5'
         >
           {hasUnreadAlarm ? (
-            <Icon icon='AlarmLineActive' className='text-fill-primary-500 size-6' aria-hidden='true' />
+            <Icon icon='AlarmLineActive' className='text-text-primary size-6' aria-hidden='true' />
           ) : (
-            <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' aria-hidden='true' />
+            <Icon icon='AlarmNone' className='text-text-primary size-6' aria-hidden='true' />
           )}
         </button>
       </div>

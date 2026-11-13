@@ -31,11 +31,20 @@ interface DiaryCalendarDayProps {
   className?: string;
   children?: ReactNode;
   'aria-label'?: string;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
 /** V4 / Dog Diary / Calendar Day */
-function DiaryCalendarDay({ state = 'pastEmpty', image, className, children, 'aria-label': ariaLabel, onClick }: DiaryCalendarDayProps) {
+function DiaryCalendarDay({
+  state = 'pastEmpty',
+  image,
+  className,
+  children,
+  'aria-label': ariaLabel,
+  disabled = false,
+  onClick,
+}: DiaryCalendarDayProps) {
   if (state === 'empty') {
     return <span className={cn('inline-flex size-[44px] items-center justify-center', className)} />;
   }
@@ -68,7 +77,8 @@ function DiaryCalendarDay({ state = 'pastEmpty', image, className, children, 'ar
       type='button'
       aria-label={ariaLabel}
       aria-pressed={state === 'emptySelected' || state === 'filledSelected'}
-      onClick={onClick}
+      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
       className={cn('inline-flex size-[44px] items-center justify-center', className)}
     >
       {frame}

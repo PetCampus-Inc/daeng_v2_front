@@ -8,6 +8,7 @@ import { DiarySampleCard, type DiarySampleCardProps } from '../diary-sample-card
 
 interface DiaryOnboardingCard extends Pick<DiarySampleCardProps, 'date' | 'body' | 'image'> {
   id: string;
+  imageSrc?: string;
 }
 
 interface DiaryOnboardingSheetProps {
@@ -19,9 +20,7 @@ interface DiaryOnboardingSheetProps {
   onSkip?: () => void;
 }
 
-const DEFAULT_DESCRIPTION = '사진 한 장과 한 줄만 남기면\nAI와 함께 가나디의 일기를 만들 수 있어요.';
-
-const DEFAULT_CARDS: DiaryOnboardingCard[] = [
+const DIARY_ONBOARDING_SAMPLE_CARDS: DiaryOnboardingCard[] = [
   {
     id: 'leaf',
     date: '6월 15일 월요일',
@@ -41,11 +40,21 @@ const DEFAULT_CARDS: DiaryOnboardingCard[] = [
 
 const CARD_STEP = 314;
 
+function formatDiaryOnboardingDescription(dogName: string) {
+  return `사진 한 장과 한 줄만 남기면\nAI와 함께 ${dogName} 시절의 일기를 만들 수 있어요.`;
+}
+
+function renderSampleImage(card: DiaryOnboardingCard) {
+  if (card.image) return card.image;
+  if (!card.imageSrc) return undefined;
+  return <img src={card.imageSrc} alt='' className='block size-full object-cover' />;
+}
+
 /** V4 / Dog Diary / Bottom Sheet Diary Onboarding */
 function DiaryOnboardingSheet({
-  dogName = '강아지 이름',
-  description = DEFAULT_DESCRIPTION,
-  cards = DEFAULT_CARDS,
+  dogName = '강아지',
+  description,
+  cards = DIARY_ONBOARDING_SAMPLE_CARDS,
   className,
   onStart,
   onSkip,
@@ -70,7 +79,7 @@ function DiaryOnboardingSheet({
         className='gap-x3 px-x5 pt-x8 pb-x5 flex w-full snap-x snap-mandatory overflow-x-auto scroll-pl-[20px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       >
         {cards.map((card) => (
-          <DiarySampleCard key={card.id} date={card.date} body={card.body} image={card.image} className='shrink-0 snap-start' />
+          <DiarySampleCard key={card.id} date={card.date} body={card.body} image={renderSampleImage(card)} className='shrink-0 snap-start' />
         ))}
       </div>
       <div className='gap-x1_5 py-x1 flex w-full items-center justify-center'>
@@ -83,7 +92,9 @@ function DiaryOnboardingSheet({
       </div>
       <div className='gap-x1 px-x4 pt-x6 pb-x2 flex flex-col items-center text-center'>
         <h2 className='h2-extrabold text-text-primary'>{dogName}의 목소리로 일기를 남겨보세요</h2>
-        <p className='body2-regular text-text-secondary whitespace-pre-line'>{description}</p>
+        <p className='body2-regular text-text-secondary whitespace-pre-line'>
+          {description ?? formatDiaryOnboardingDescription(dogName)}
+        </p>
       </div>
       <div className='gap-x1 px-x4 pt-x4 flex flex-col'>
         <button type='button' onClick={onStart} className='body1-bold bg-fill-primary-500 text-text-primary-inverse radius-r3 flex h-x14 w-full items-center justify-center'>
@@ -97,5 +108,5 @@ function DiaryOnboardingSheet({
   );
 }
 
-export { DiaryOnboardingSheet };
+export { DiaryOnboardingSheet, DIARY_ONBOARDING_SAMPLE_CARDS, formatDiaryOnboardingDescription };
 export type { DiaryOnboardingCard, DiaryOnboardingSheetProps };
