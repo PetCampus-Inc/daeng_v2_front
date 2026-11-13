@@ -489,6 +489,7 @@ function GuardianDailyNoticeDetailPage() {
                 {showDiaryNoteBanner ? (
                   <DiaryOnboardingNoteBanner
                     dogName={selectedDogName}
+                    petId={selectedPetId}
                     onWrite={() =>
                       push(
                         buildDiaryWriteTarget({

@@ -86,6 +86,11 @@ function deleteGuardianDiary(diaryId: string) {
   return api.delete(`guardian/diaries/${encodeURIComponent(diaryId)}`).json().then(parseDiaryDelete);
 }
 
+/** `POST` - 온보딩 바텀시트를 보여준 것으로 기록한다. 여러 번 불러도 같다 */
+function postDiaryOnboardingShown() {
+  return api.post('guardian/diaries/onboarding').json().then(parseDiaryDelete);
+}
+
 /** `GET` - 그 달에 쓴 일기. yearMonth는 yyyy-MM */
 function getGuardianDiaryMonth(petId: string, yearMonth: string) {
   return api
@@ -101,6 +106,7 @@ export {
   getGuardianDiaryMonth,
   patchGuardianDiary,
   postDiaryGeneration,
+  postDiaryOnboardingShown,
   postDiaryPhotoUploadUrls,
   postDiarySave,
 };

@@ -5,6 +5,7 @@ export {
   getGuardianDiaryMonth,
   patchGuardianDiary,
   postDiaryGeneration,
+  postDiaryOnboardingShown,
   postDiaryPhotoUploadUrls,
   postDiarySave,
 } from './api/guardianDiary';

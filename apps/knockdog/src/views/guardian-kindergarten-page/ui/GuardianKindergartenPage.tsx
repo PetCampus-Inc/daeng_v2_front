@@ -230,7 +230,7 @@ export function GuardianKindergartenPage() {
     isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
 
   return (
-    <DiaryOnboardingProvider dogName={selectedPet?.name} onStart={openOnboardingDiary}>
+    <DiaryOnboardingProvider dogName={selectedPet?.name} petId={selectedPet?.id ?? null} onStart={openOnboardingDiary}>
       <GuardianDiarySegmentProvider
         dogName={selectedPet?.name}
         petId={selectedPet?.id ?? null}

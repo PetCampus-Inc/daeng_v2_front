@@ -2,24 +2,20 @@
 
 import { DiaryNoteBanner } from '@knockdog/ui';
 
-import { hasSeenDiaryOnboarding } from '../lib/diaryOnboardingSeen';
 import { useDiaryOnboardingSheet } from '../model/useDiaryOnboardingSheet';
 import { DiaryOnboardingSheetPortal } from './DiaryOnboardingSheetPortal';
 
 interface DiaryOnboardingNoteBannerProps {
   dogName?: string;
+  petId?: string | null;
   onWrite?: () => void;
 }
 
-function DiaryOnboardingNoteBanner({ dogName, onWrite }: DiaryOnboardingNoteBannerProps) {
-  const { isOpen, openIfUnseen, close } = useDiaryOnboardingSheet();
+function DiaryOnboardingNoteBanner({ dogName, petId, onWrite }: DiaryOnboardingNoteBannerProps) {
+  const { isOpen, openIfUnseen, close } = useDiaryOnboardingSheet(petId);
 
   function handleClick() {
-    if (hasSeenDiaryOnboarding()) {
-      onWrite?.();
-      return;
-    }
-    openIfUnseen();
+    openIfUnseen(() => onWrite?.());
   }
 
   function handleStart() {
