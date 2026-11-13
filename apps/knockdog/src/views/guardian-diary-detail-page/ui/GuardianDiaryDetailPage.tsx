@@ -12,10 +12,13 @@ import {
   patchGuardianDiary,
   useGuardianDiaryDateQuery,
   useGuardianDiaryDetailQuery,
+  type DiaryDateStatus,
+  type DiaryMonthDay,
 } from '@entities/guardian-diary';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { useTabNavigation } from '@shared/lib/bridge';
-import { readDiaryRecord, removeDiaryRecord, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
+import { markDiaryRemoved, readDiaryRecord, removeDiaryRecord, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
+import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 
 import { formatDiaryDeleteToast, formatDiaryDetailDate } from '../lib/diaryDetail';
@@ -76,7 +79,19 @@ function GuardianDiaryDetailPage() {
         // 서버 삭제는 끝났고, 이 화면의 임시 기록만 실패한 경우다.
       }
       setIsDeleteOpen(false);
-      refreshDiaryQueries(detail?.petId ?? petId, diaryId);
+      const removedPetId = detail?.petId ?? petId;
+      if (removedPetId) {
+        markDiaryRemoved(removedPetId, dateKey);
+        queryClient.setQueriesData<DiaryMonthDay[]>({ queryKey: guardianDiaryMonthQueryKey(removedPetId) }, (days) =>
+          days?.filter((day) => day.date !== dateKey)
+        );
+        queryClient.setQueriesData<DiaryDateStatus>({ queryKey: guardianDiaryDateQueryKey(removedPetId, dateKey) }, (status) =>
+          status ? { ...status, diary: null } : status
+        );
+        syncWebViewQuery.invalidate([...guardianDiaryMonthQueryKey(removedPetId)]);
+        syncWebViewQuery.invalidate([...guardianDiaryDateQueryKey(removedPetId, dateKey)]);
+      }
+      refreshDiaryQueries(removedPetId, diaryId);
       const deleted = formatDiaryDeleteToast(date);
       toast({
         type: 'success',

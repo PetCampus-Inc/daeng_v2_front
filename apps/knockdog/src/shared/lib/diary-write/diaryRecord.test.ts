@@ -1,7 +1,17 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { isVisibleDiary, readDiaryRecord, readDiaryRecords, removeDiaryRecord, saveDiaryHomeReturn, saveDiaryRecord, takeDiaryHomeDate } from './diaryRecord';
+import {
+  isDiaryRemoved,
+  isVisibleDiary,
+  markDiaryRemoved,
+  readDiaryRecord,
+  readDiaryRecords,
+  removeDiaryRecord,
+  saveDiaryHomeReturn,
+  saveDiaryRecord,
+  takeDiaryHomeDate,
+} from './diaryRecord';
 
 const record = {
   dateKey: '2026-06-16',
@@ -14,6 +24,7 @@ const record = {
 describe('저장된 일기', () => {
   afterEach(() => {
     window.sessionStorage.clear();
+    window.localStorage.clear();
   });
 
   test('같은 날짜는 덮어쓰고 지우면 없어진다', () => {
@@ -24,6 +35,13 @@ describe('저장된 일기', () => {
 
     removeDiaryRecord('2026-06-16', 'pet-1');
     expect(readDiaryRecord('2026-06-16', 'pet-1')).toBeNull();
+  });
+
+  test('지운 날짜는 그 강아지 달력에서 바로 숨긴다', () => {
+    markDiaryRemoved('pet-1', '2026-06-16');
+
+    expect(isDiaryRemoved('pet-1', '2026-06-16')).toBe(true);
+    expect(isDiaryRemoved('pet-2', '2026-06-16')).toBe(false);
   });
 
   test('달력은 같은 강아지와 강아지 없는 기록을 보여 준다', () => {

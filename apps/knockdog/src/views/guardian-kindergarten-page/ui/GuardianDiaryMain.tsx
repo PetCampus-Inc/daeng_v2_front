@@ -16,7 +16,7 @@ import {
   type GuardianDiaryEntry,
 } from '@views/guardian-kindergarten-page/lib/resolveGuardianDiaryDay';
 import { formatDateKey, isSameDay, startOfDay } from '@shared/lib/calendar-date';
-import { DIARY_RECORD_EVENT, takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
+import { DIARY_RECORD_EVENT, isDiaryRemoved, takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
 
 function formatYearMonth(date: Date) {
   const monthText = String(date.getMonth() + 1).padStart(2, '0');
@@ -58,15 +58,18 @@ function GuardianDiaryMain({
   const { data: dateStatus } = useGuardianDiaryDateQuery({ petId, date: selectedDateKey });
   const { data: monthDays } = useGuardianDiaryMonthQuery({ petId, yearMonth: formatYearMonth(month) });
   const [visitedDiaries, setVisitedDiaries] = useState<Record<string, DiaryDateSummary>>({});
-  const monthDay = monthDays?.find((day) => day.date === selectedDateKey);
+  const [removedTick, setRemovedTick] = useState(0);
+  const hidden = (dateKey: string) => removedTick >= 0 && isDiaryRemoved(petId, dateKey);
+  const monthDay = monthDays?.find((day) => day.date === selectedDateKey && !hidden(day.date));
   const sessionEntry = findDiaryEntry(entries, selectedDate);
-  const apiEntry = dateStatus?.diary
+  const visibleDiary = dateStatus?.diary && !hidden(selectedDateKey) ? dateStatus.diary : null;
+  const apiEntry = visibleDiary
     ? {
         dateKey: selectedDateKey,
-        title: dateStatus.diary.title,
-        body: dateStatus.diary.body,
-        photoCount: dateStatus.diary.photoCount,
-        imageSrc: dateStatus.diary.thumbnailUrl,
+        title: visibleDiary.title,
+        body: visibleDiary.body,
+        photoCount: visibleDiary.photoCount,
+        imageSrc: visibleDiary.thumbnailUrl,
       }
     : null;
   const monthEntry = monthDay
@@ -78,11 +81,23 @@ function GuardianDiaryMain({
         imageSrc: monthDay.thumbnailUrl,
       }
     : null;
-  const selectedEntry = apiEntry ?? monthEntry ?? (monthDays ? null : sessionEntry);
-  const selectedDiaryId = dateStatus?.diary?.id ?? monthDay?.id;
+  const selectedEntry = apiEntry ?? monthEntry ?? (monthDays || hidden(selectedDateKey) ? null : sessionEntry);
+  const selectedDiaryId = visibleDiary?.id ?? monthDay?.id;
   const reportedCredits = dateStatus?.remainingGenerations ?? remainingCredits;
   const credits = dateStatus?.blockedReason === 'LIMIT_REACHED' || reportedCredits <= 0 ? 0 : reportedCredits;
   const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), credits);
+
+  useEffect(() => {
+    function refreshRemoved() {
+      setRemovedTick((current) => current + 1);
+    }
+    window.addEventListener(DIARY_RECORD_EVENT, refreshRemoved);
+    window.addEventListener('storage', refreshRemoved);
+    return () => {
+      window.removeEventListener(DIARY_RECORD_EVENT, refreshRemoved);
+      window.removeEventListener('storage', refreshRemoved);
+    };
+  }, []);
 
   useEffect(() => {
     const diary = dateStatus?.diary;
@@ -136,6 +151,7 @@ function GuardianDiaryMain({
         today={today}
         getImage={(date) => {
           const dateKey = formatDateKey(date);
+          if (hidden(dateKey)) return undefined;
           const monthImage = monthDays?.find((day) => day.date === dateKey)?.thumbnailUrl;
           const imageSrc = monthImage ?? (monthDays ? undefined : visitedDiaries[dateKey]?.thumbnailUrl ?? findDiaryEntry(entries, date)?.imageSrc);
           if (!imageSrc) return undefined;

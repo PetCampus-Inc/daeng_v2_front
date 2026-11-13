@@ -9,7 +9,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { readDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
-import { saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
+import { clearDiaryRemoved, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -139,6 +139,7 @@ function GuardianDiaryGeneratePage() {
     isSavingRef.current = true;
     try {
       const detail = await postDiarySave({ generationId, body: savedBody });
+      clearDiaryRemoved(detail.petId, detail.date);
       const saved = getDiarySaveToast(dogName);
       try {
         saveDiaryRecord({ dateKey: detail.date, petId: detail.petId, dogName, body: detail.body, photos: detail.photos });

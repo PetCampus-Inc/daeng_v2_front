@@ -1,5 +1,6 @@
 'use client';
 
+import Lottie from 'lottie-react';
 import { InfoLine, Reset } from '@knockdog/icons';
 import {
   ActionButton,
@@ -24,6 +25,7 @@ import {
   type DiaryGenerateDialog,
   type DiaryGenerateStatus,
 } from '../lib/diaryGenerate';
+import loadingDots from '../config/loadingDots.json';
 
 interface GuardianDiaryGenerateFormProps {
   dogName: string;
@@ -46,13 +48,7 @@ interface GuardianDiaryGenerateFormProps {
 }
 
 function DiaryLoadingDots() {
-  return (
-    <span className='gap-0.5 flex h-5 w-7 items-center' aria-hidden>
-      <span className='bg-text-caption size-1 animate-bounce rounded-full [animation-delay:0ms]' />
-      <span className='bg-text-caption size-1 animate-bounce rounded-full [animation-delay:150ms]' />
-      <span className='bg-text-caption size-1 animate-bounce rounded-full [animation-delay:300ms]' />
-    </span>
-  );
+  return <Lottie animationData={loadingDots} loop autoplay aria-hidden style={{ width: 32, height: 40 }} />;
 }
 
 function GuardianDiaryGenerateForm({
