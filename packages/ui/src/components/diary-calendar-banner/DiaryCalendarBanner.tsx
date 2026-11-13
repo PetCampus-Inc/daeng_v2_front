@@ -32,12 +32,12 @@ function DiaryCalendarBanner({ state = 'today', dogName = '강아지 이름', cl
         <Paw className={cn('size-x5 shrink-0', isDisabled ? 'text-text-caption' : 'text-text-accent')} />
         <span className={cn('body2-bold whitespace-nowrap', isDisabled ? 'text-text-caption' : 'text-text-primary')}>{label}</span>
       </span>
-      {isDisabled ? null : <ChevronRight className='text-fill-secondary-500 shrink-0' />}
+      {isDisabled ? null : <ChevronRight className='text-fill-secondary-500 ml-auto shrink-0' />}
     </>
   );
 
   const itemClassName = cn(
-    'radius-r3 inline-flex h-x14 w-max shrink-0 items-center gap-x1 py-x4 pl-x5 pr-x3 whitespace-nowrap',
+    'radius-r3 flex h-x14 w-full items-center gap-x1 py-x4 pl-x5 pr-x3 whitespace-nowrap',
     isDisabled ? 'bg-bg-100' : 'bg-fill-primary-50',
     className
   );
