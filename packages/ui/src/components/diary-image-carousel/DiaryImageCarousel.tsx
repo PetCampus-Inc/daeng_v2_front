@@ -56,9 +56,9 @@ function DiaryImageCarousel({ images = [], value, defaultValue = 0, className, o
   }
 
   return (
-    <div className={cn('gap-x2 flex w-[358px] flex-col', className)}>
+    <div className={cn('gap-x2 flex w-full min-w-0 max-w-[450px] flex-col', className)}>
       <div
-        className='bg-fill-secondary-100 radius-r3 size-[358px] touch-pan-y overflow-hidden select-none [&_img]:pointer-events-none'
+        className='bg-fill-secondary-100 radius-r3 aspect-square w-full touch-pan-y overflow-hidden select-none [&_img]:pointer-events-none'
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
