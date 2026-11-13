@@ -54,7 +54,7 @@ function GuardianDiaryDetailForm({
   onDelete,
 }: GuardianDiaryDetailFormProps) {
   return (
-    <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-0 relative flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden'>
       <DiaryTopBar mode='menu' title='일기장' onBack={onBack} onMenu={onMenu} />
       {isMenuOpen ? (
         <>
@@ -71,7 +71,7 @@ function GuardianDiaryDetailForm({
           </div>
         </>
       ) : null}
-      <div className='px-x4 pt-x5 gap-x4 flex min-h-0 flex-1 flex-col overflow-y-auto'>
+      <div className='px-x4 pt-x5 gap-x4 flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto'>
         <p className='label-medium text-text-primary'>{dateLabel}</p>
         <DiaryImageCarousel
           images={photos.map((photo, index) => (

@@ -5,12 +5,16 @@ import { useRequestDiaryOnboarding } from '@features/diary-onboarding';
 
 import { useGuardianDiarySegment } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
 
-function GuardianKindergartenHomeSegment() {
+interface GuardianKindergartenHomeSegmentProps {
+  opensOnboarding?: boolean;
+}
+
+function GuardianKindergartenHomeSegment({ opensOnboarding = true }: GuardianKindergartenHomeSegmentProps) {
   const requestDiaryOnboarding = useRequestDiaryOnboarding();
   const { segment, selectSegment } = useGuardianDiarySegment();
 
   function handleValueChange(next: typeof segment) {
-    if (next === DIARY_SEGMENT.diary) requestDiaryOnboarding();
+    if (opensOnboarding && next === DIARY_SEGMENT.diary) requestDiaryOnboarding();
     selectSegment(next);
   }
 
