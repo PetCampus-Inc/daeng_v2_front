@@ -9,12 +9,13 @@ const DiaryOnboardingRequestContext = createContext<() => void>(() => {});
 
 interface DiaryOnboardingProviderProps {
   dogName?: string;
+  petId?: string | null;
   onStart?: () => void;
   children: ReactNode;
 }
 
-function DiaryOnboardingProvider({ dogName, onStart, children }: DiaryOnboardingProviderProps) {
-  const { isOpen, openIfUnseen, close } = useDiaryOnboardingSheet();
+function DiaryOnboardingProvider({ dogName, petId, onStart, children }: DiaryOnboardingProviderProps) {
+  const { isOpen, openIfUnseen, close } = useDiaryOnboardingSheet(petId);
 
   function handleStart() {
     close();

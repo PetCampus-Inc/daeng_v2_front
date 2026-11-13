@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
+import { useGuardianDiaryDateQuery } from '@entities/guardian-diary';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPetStore';
 import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/useGuardianCalendarDay';
@@ -34,7 +35,10 @@ function GuardianDiaryWritePage() {
   const { selectedPet } = useGuardianSelectedPet();
   const storePetId = useGuardianSelectedPetStore((state) => state.selectedPetId);
   const date = useMemo(() => parseDiaryDate(searchParams.get('date')) ?? startOfDay(new Date()), [searchParams]);
+  const dateKey = formatDateKey(date);
   const schoolId = searchParams.get('schoolId');
+  const petId = selectedPet?.id ?? searchParams.get('petId');
+  const { data: dateStatus } = useGuardianDiaryDateQuery({ petId, date: dateKey });
   const { dailyNotice } = useGuardianCalendarDay({
     selectedDate: date,
     schoolId,
@@ -46,13 +50,14 @@ function GuardianDiaryWritePage() {
   const [isImportDismissed, setIsImportDismissed] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const { pickPhotos } = useDiaryPhotoPick(photos, setPhotos);
-  const hasNotice = hasMockArrivedNotice(date) || Boolean(dailyNotice);
+  const noticeBody = dateStatus?.attendance?.note || dailyNotice?.body;
+  const hasNotice = dateStatus ? Boolean(dateStatus.attendance) : hasMockArrivedNotice(date) || Boolean(dailyNotice);
 
   useEffect(() => {
     setIsImportDismissed(hasDismissedDiaryImport());
   }, []);
 
-  const importedNotice = isImported ? { date: formatDiaryNoticeDate(date), body: dailyNotice?.body } : null;
+  const importedNotice = isImported ? { date: formatDiaryNoticeDate(date), body: noticeBody } : null;
 
   function handleAddPhoto() {
     if (photos.length >= DIARY_PHOTO_LIMIT) return;
@@ -78,15 +83,18 @@ function GuardianDiaryWritePage() {
     handleDismissImport();
   }
 
-  function handleCreateDiary() {
+  function handleCreateDiary(includeNotice?: boolean) {
+    const withNotice = includeNotice === true || isImported;
     setIsImportSheetOpen(false);
-    const petId = selectedPet?.id ?? searchParams.get('petId');
     try {
       saveDiaryGenerateDraft({
-        date: formatDateKey(date),
+        date: dateKey,
         dogName: selectedPet?.name || '강아지',
         petId,
         photos: photos.map((photo) => photo.src),
+        photoKeys: photos.flatMap((photo) => (photo.tempKey ? [photo.tempKey] : [])),
+        text: text.trim(),
+        attendanceRecordId: withNotice ? dateStatus?.attendance?.id ?? null : null,
       });
     } catch {
       toast({
@@ -131,9 +139,10 @@ function GuardianDiaryWritePage() {
         isOpen={isImportSheetOpen}
         hasPhoto={photos.length > 0}
         date={formatDiaryNoticeDate(date)}
+        body={noticeBody}
         onClose={() => setIsImportSheetOpen(false)}
         onAddToDiary={handleApplyImport}
-        onCreateDiary={handleCreateDiary}
+        onCreateDiary={() => handleCreateDiary(true)}
       />
     </>
   );

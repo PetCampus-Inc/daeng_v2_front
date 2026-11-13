@@ -10,6 +10,7 @@ interface DiaryNoticeImportSheetProps {
   isOpen: boolean;
   hasPhoto: boolean;
   date: string;
+  body?: string;
   onClose: () => void;
   onAddToDiary: () => void;
   onCreateDiary: () => void;
@@ -19,6 +20,7 @@ function DiaryNoticeImportSheet({
   isOpen,
   hasPhoto,
   date,
+  body,
   onClose,
   onAddToDiary,
   onCreateDiary,
@@ -38,7 +40,7 @@ function DiaryNoticeImportSheet({
           </BottomSheet.Title>
         </BottomSheet.Header>
         <div className='px-x6 pt-x1 pb-x3'>
-          <DiaryKindergartenNote date={date} isPreview />
+          <DiaryKindergartenNote date={date} body={body} isPreview />
         </div>
         <div className='p-x4 flex gap-x2'>
           {copy.secondaryLabel ? (

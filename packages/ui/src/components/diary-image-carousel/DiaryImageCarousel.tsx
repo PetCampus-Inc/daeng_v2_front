@@ -1,8 +1,10 @@
 'use client';
 
-import { useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
 
 import { cn } from '@knockdog/ui/lib';
+
+const DIARY_IMAGE_SWIPE_PX = 40;
 
 interface DiaryImageCarouselProps {
   images?: ReactNode[];
@@ -12,31 +14,63 @@ interface DiaryImageCarouselProps {
   onValueChange?: (index: number) => void;
 }
 
+function holdDiaryImagePointer(event: PointerEvent<HTMLDivElement>) {
+  const target = event.currentTarget;
+  if (typeof target.setPointerCapture !== 'function') return;
+  try {
+    target.setPointerCapture(event.pointerId);
+  } catch {
+    return;
+  }
+}
+
 /** V4 / Dog Diary / Image Carousel */
 function DiaryImageCarousel({ images = [], value, defaultValue = 0, className, onValueChange }: DiaryImageCarouselProps) {
   const [innerIndex, setInnerIndex] = useState(defaultValue);
   const selected = value ?? innerIndex;
-  const startX = useRef(0);
+  const startX = useRef<number | null>(null);
 
   function selectIndex(nextIndex: number) {
-    setInnerIndex(nextIndex);
-    onValueChange?.(nextIndex);
+    if (images.length === 0) return;
+    const clamped = Math.max(0, Math.min(images.length - 1, nextIndex));
+    setInnerIndex(clamped);
+    onValueChange?.(clamped);
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (images.length < 2) return;
+    startX.current = event.clientX;
+    holdDiaryImagePointer(event);
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (startX.current == null) return;
+    const delta = event.clientX - startX.current;
+    startX.current = null;
+    if (delta <= -DIARY_IMAGE_SWIPE_PX) selectIndex(selected + 1);
+    if (delta >= DIARY_IMAGE_SWIPE_PX) selectIndex(selected - 1);
+  }
+
+  function handlePointerCancel() {
+    startX.current = null;
   }
 
   return (
     <div className={cn('gap-x2 flex w-[358px] flex-col', className)}>
       <div
-        className='bg-fill-secondary-100 radius-r3 size-[358px] overflow-hidden'
-        onPointerDown={(event) => {
-          startX.current = event.clientX;
-        }}
-        onPointerUp={(event) => {
-          const delta = event.clientX - startX.current;
-          if (delta <= -40) selectIndex(Math.min(images.length - 1, selected + 1));
-          if (delta >= 40) selectIndex(Math.max(0, selected - 1));
-        }}
+        className='bg-fill-secondary-100 radius-r3 size-[358px] touch-pan-y overflow-hidden select-none [&_img]:pointer-events-none'
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onDragStart={(event) => event.preventDefault()}
       >
-        {images[selected]}
+        <div className='flex h-full w-full' style={{ transform: `translateX(-${selected * 100}%)` }}>
+          {images.map((image, index) => (
+            <div key={index} className='h-full w-full shrink-0'>
+              {image}
+            </div>
+          ))}
+        </div>
       </div>
       <div className='gap-x1_5 py-x1 flex h-[14px] w-full items-center justify-center'>
         {images.map((_, index) => (

@@ -66,6 +66,56 @@ function readDiaryRecord(dateKey: string, petId?: string | null) {
   return null;
 }
 
+const DIARY_REMOVED_KEY = 'diary-removed-dates';
+
+interface RemovedDiary {
+  petId: string;
+  dateKey: string;
+  diaryId: string;
+}
+
+function readRemovedDiaries(): RemovedDiary[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(DIARY_REMOVED_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Partial<RemovedDiary>[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is RemovedDiary => Boolean(item.petId && item.dateKey && item.diaryId));
+  } catch {
+    return [];
+  }
+}
+
+function writeRemovedDiaries(items: RemovedDiary[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(DIARY_REMOVED_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
+  } catch {
+    // 저장 공간이 막혀도 이미 끝난 서버 삭제를 실패로 되돌리지 않는다.
+  }
+}
+
+function markDiaryRemoved(petId: string, dateKey: string, diaryId: string) {
+  if (typeof window === 'undefined') return;
+  const next = readRemovedDiaries().filter((item) => item.petId !== petId || item.diaryId !== diaryId);
+  writeRemovedDiaries([...next, { petId, dateKey, diaryId }]);
+}
+
+function clearDiaryRemoved(petId: string, dateKey: string) {
+  if (typeof window === 'undefined') return;
+  const current = readRemovedDiaries();
+  const next = current.filter((item) => item.petId !== petId || item.dateKey !== dateKey);
+  if (next.length === current.length) return;
+  writeRemovedDiaries(next);
+}
+
+function isDiaryRemoved(petId: string | null | undefined, diaryId: string | null | undefined) {
+  if (!petId || !diaryId) return false;
+  return readRemovedDiaries().some((item) => item.petId === String(petId) && item.diaryId === diaryId);
+}
+
 function removeDiaryRecord(dateKey: string, petId?: string | null) {
   const matched = readDiaryRecord(dateKey, petId);
   if (!matched) return;
@@ -99,6 +149,10 @@ export {
   isVisibleDiary,
   readDiaryRecord,
   readDiaryRecords,
+  clearDiaryRemoved,
+  isDiaryRemoved,
+  markDiaryRemoved,
+  readRemovedDiaries,
   removeDiaryRecord,
   saveDiaryHomeReturn,
   saveDiaryRecord,

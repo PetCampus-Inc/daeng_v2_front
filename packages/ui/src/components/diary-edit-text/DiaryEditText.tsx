@@ -1,4 +1,6 @@
-import { type SVGProps } from 'react';
+'use client';
+
+import { useEffect, useRef, type SVGProps } from 'react';
 
 import { cn } from '@knockdog/ui/lib';
 
@@ -28,17 +30,33 @@ function PencilIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+function fitDiaryTextArea(element: HTMLTextAreaElement) {
+  element.style.height = 'auto';
+  element.style.height = `${element.scrollHeight}px`;
+}
+
 /** V4 / Dog Diary / Edit Texts */
 function DiaryEditText({ body = DEFAULT_BODY, isEditing = false, className, onEdit, onBodyChange }: DiaryEditTextProps) {
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const boxClass = cn(
-    'body1-regular text-text-primary radius-r2 min-h-[234px] w-full whitespace-pre-line px-x4 py-x4',
+    'body1-regular text-text-primary radius-r2 w-full whitespace-pre-line px-x4 py-x4',
     isEditing ? 'border-line-700 bg-bg-0 border outline-none' : 'bg-bg-50'
   );
+
+  useEffect(() => {
+    if (isEditing && textAreaRef.current) fitDiaryTextArea(textAreaRef.current);
+  }, [body, isEditing]);
 
   return (
     <div className={cn('flex w-full flex-col', className)}>
       {isEditing && onBodyChange ? (
-        <textarea autoFocus value={body} onChange={(event) => onBodyChange(event.target.value)} className={cn(boxClass, 'resize-none')} />
+        <textarea
+          ref={textAreaRef}
+          autoFocus
+          value={body}
+          onChange={(event) => onBodyChange(event.target.value)}
+          className={cn(boxClass, 'resize-none overflow-hidden')}
+        />
       ) : (
         <div className={boxClass}>{body}</div>
       )}

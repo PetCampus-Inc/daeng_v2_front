@@ -9,6 +9,19 @@ vi.mock('@knockdog/ui', async () => {
   return { ...actual, BottomSheet: fakeBottomSheet };
 });
 
+const dateQuery = vi.hoisted(() =>
+  vi.fn((): { data?: { onboardingShown?: boolean }; isFetched: boolean } => ({
+    data: undefined,
+    isFetched: false,
+  }))
+);
+const postOnboarding = vi.hoisted(() => vi.fn(() => Promise.resolve({ status: 200, message: 'ok' })));
+
+vi.mock('@entities/guardian-diary', () => ({
+  useGuardianDiaryDateQuery: () => dateQuery(),
+  postDiaryOnboardingShown: () => postOnboarding(),
+}));
+
 import { GuardianKindergartenHomeSegment } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenHomeSegment';
 
 import { DIARY_ONBOARDING_OPEN_DELAY_MS, DIARY_ONBOARDING_SEEN_KEY } from '../lib/diaryOnboardingSeen';
@@ -25,6 +38,9 @@ describe('일기장 온보딩 바텀시트', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     window.localStorage.clear();
+    dateQuery.mockReset();
+    dateQuery.mockReturnValue({ data: undefined, isFetched: false });
+    postOnboarding.mockClear();
   });
 
   afterEach(() => {
@@ -123,5 +139,35 @@ describe('일기장 온보딩 바텀시트', () => {
 
     expect(onStart).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('button', { name: '첫 일기 남기기' })).toBeNull();
+  });
+
+  test('서버에 온보딩을 본 기록이 있으면 시트를 열지 않는다', () => {
+    dateQuery.mockReturnValue({ data: { onboardingShown: true }, isFetched: true });
+    render(
+      <DiaryOnboardingProvider dogName='가나디' petId='1'>
+        <GuardianKindergartenHomeSegment />
+      </DiaryOnboardingProvider>
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '일기장' }));
+    openAfterDelay();
+
+    expect(screen.queryByRole('button', { name: '첫 일기 남기기' })).toBeNull();
+    expect(postOnboarding).not.toHaveBeenCalled();
+  });
+
+  test('시트를 띄우면 온보딩을 본 것으로 기록한다', () => {
+    dateQuery.mockReturnValue({ data: { onboardingShown: false }, isFetched: true });
+    render(
+      <DiaryOnboardingProvider dogName='가나디' petId='1'>
+        <GuardianKindergartenHomeSegment />
+      </DiaryOnboardingProvider>
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '일기장' }));
+    openAfterDelay();
+
+    expect(screen.getByRole('button', { name: '첫 일기 남기기' })).toBeTruthy();
+    expect(postOnboarding).toHaveBeenCalledTimes(1);
   });
 });

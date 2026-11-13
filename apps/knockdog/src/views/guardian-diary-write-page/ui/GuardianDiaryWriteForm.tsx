@@ -122,14 +122,14 @@ function GuardianDiaryWriteForm({
           <DiaryFieldLabel htmlFor='diary-write-text' isRequired={isTextRequired} isOptional={!isTextRequired}>
             {textLabel}
           </DiaryFieldLabel>
-          <div className='bg-bg-50 radius-r2 px-x4 py-x3 flex w-full flex-col gap-[60px]'>
+          <div className='bg-bg-50 radius-r2 px-x4 py-x3 flex w-full flex-col'>
             <textarea
               id='diary-write-text'
               value={text}
               maxLength={DIARY_TEXT_LIMIT}
               placeholder={DIARY_TEXT_PLACEHOLDER}
               onChange={handleTextChange}
-              className='body1-regular text-text-primary placeholder:text-text-tertiary min-h-12 w-full resize-none bg-transparent outline-none'
+              className='body1-regular text-text-primary placeholder:text-text-tertiary h-[108px] w-full resize-none overflow-y-auto bg-transparent outline-none'
             />
             <div className='flex items-center justify-between gap-2'>
               <span className='body2-regular text-text-caption shrink-0'>
