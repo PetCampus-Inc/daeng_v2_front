@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { guardianDiaryDateQueryKey, postDiaryGeneration } from '@entities/guardian-diary';
+import { guardianDiaryDateQueryKey, guardianDiaryMonthQueryKey, postDiaryGeneration, postDiarySave } from '@entities/guardian-diary';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
@@ -42,6 +42,7 @@ function GuardianDiaryGeneratePage() {
   const forcedError = searchParams.get('result') === 'error' || !draft?.petId;
   const [status, setStatus] = useState<DiaryGenerateStatus>(forcedError ? 'error' : 'generating');
   const [runId, setRunId] = useState(0);
+  const [generationId, setGenerationId] = useState<string | null>(null);
   const [body, setBody] = useState('');
   const [visibleBody, setVisibleBody] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -49,6 +50,7 @@ function GuardianDiaryGeneratePage() {
   const [hasTriedLeave, setHasTriedLeave] = useState(false);
   const [dialog, setDialog] = useState<DiaryGenerateDialog | null>(null);
   const generationRef = useRef<{ runId: number; promise: ReturnType<typeof postDiaryGeneration> } | null>(null);
+  const isSavingRef = useRef(false);
 
   useEffect(() => {
     if (status !== 'generating') return;
@@ -76,6 +78,7 @@ function GuardianDiaryGeneratePage() {
     current.promise
       .then((generation) => {
         if (ignore) return;
+        setGenerationId(generation.id);
         setBody(generation.body);
         setStatus('done');
         void queryClient.invalidateQueries({ queryKey: guardianDiaryDateQueryKey(petId, dateKey) });
@@ -120,6 +123,7 @@ function GuardianDiaryGeneratePage() {
   }
 
   function handleRetry() {
+    setGenerationId(null);
     setBody('');
     setVisibleBody('');
     setIsEditing(false);
@@ -129,32 +133,50 @@ function GuardianDiaryGeneratePage() {
     setRunId((current) => current + 1);
   }
 
-  function handleConfirmSave() {
-    const saved = getDiarySaveToast(dogName);
-    const dateKey = formatDateKey(date);
-    const petId = draft?.petId || searchParams.get('petId') || null;
+  async function handleConfirmSave() {
     const savedBody = body || visibleBody;
-    saveDiaryRecord({ dateKey, petId, dogName, body: savedBody, photos });
-    setDialog(null);
-    setIsEditing(false);
-    setIsSaved(true);
-    toast({
-      type: 'success',
-      shape: 'rounded',
-      position: 'bottom',
-      nativeTitle: saved.nativeTitle,
-      titleParts: [
-        { text: saved.name, accent: true },
-        { text: saved.suffix },
-      ],
-      title: (
-        <>
-          <span className='body1-bold text-text-accent'>{saved.name}</span>
-          <span className='text-text-primary-inverse'>{saved.suffix}</span>
-        </>
-      ),
-    });
-    void push(buildDiaryDetailTarget({ date, schoolId: searchParams.get('schoolId'), petId }));
+    if (!generationId || isSavingRef.current) return;
+    isSavingRef.current = true;
+    try {
+      const detail = await postDiarySave({ generationId, body: savedBody });
+      const saved = getDiarySaveToast(dogName);
+      try {
+        saveDiaryRecord({ dateKey: detail.date, petId: detail.petId, dogName, body: detail.body, photos: detail.photos });
+      } catch {
+        // 서버 저장은 끝났고, 이 화면의 임시 기록만 실패한 경우다.
+      }
+      setDialog(null);
+      setIsEditing(false);
+      setIsSaved(true);
+      void queryClient.invalidateQueries({ queryKey: guardianDiaryMonthQueryKey(detail.petId) });
+      void queryClient.invalidateQueries({ queryKey: guardianDiaryDateQueryKey(detail.petId, detail.date) });
+      toast({
+        type: 'success',
+        shape: 'rounded',
+        position: 'bottom',
+        nativeTitle: saved.nativeTitle,
+        titleParts: [
+          { text: saved.name, accent: true },
+          { text: saved.suffix },
+        ],
+        title: (
+          <>
+            <span className='body1-bold text-text-accent'>{saved.name}</span>
+            <span className='text-text-primary-inverse'>{saved.suffix}</span>
+          </>
+        ),
+      });
+      void push(buildDiaryDetailTarget({ date, schoolId: searchParams.get('schoolId'), petId: detail.petId, diaryId: detail.id }));
+    } catch {
+      toast({
+        shape: 'rounded',
+        position: 'bottom',
+        title: '일기를 저장하지 못했어요. 잠시 후 다시 시도해주세요',
+        nativeTitle: '일기를 저장하지 못했어요. 잠시 후 다시 시도해주세요',
+      });
+    } finally {
+      isSavingRef.current = false;
+    }
   }
 
   return (

@@ -10,6 +10,7 @@ vi.mock('overlay-kit', () => ({
 
 vi.mock('@entities/guardian-diary', () => ({
   useGuardianDiaryDateQuery: () => ({ data: undefined }),
+  useGuardianDiaryMonthQuery: () => ({ data: undefined }),
 }));
 
 import { GuardianDiaryMain } from './GuardianDiaryMain';

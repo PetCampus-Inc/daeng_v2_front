@@ -29,10 +29,12 @@ function buildDiaryGenerateTarget(input: DiaryWriteTargetInput) {
   };
 }
 
-function buildDiaryDetailTarget(input: DiaryWriteTargetInput) {
+function buildDiaryDetailTarget(input: DiaryWriteTargetInput & { diaryId?: string | null }) {
+  const query = buildDiaryQuery(input);
+  if (input.diaryId) query.diaryId = input.diaryId;
   return {
     pathname: route.kindergarten.diary.detail.root,
-    query: buildDiaryQuery(input),
+    query,
   };
 }
 

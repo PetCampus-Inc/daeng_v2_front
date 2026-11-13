@@ -1,4 +1,10 @@
-import { parseDiaryDateStatus, parseDiaryGeneration, parseDiaryPhotoUploads } from '../model/guardianDiary';
+import {
+  parseDiaryDateStatus,
+  parseDiaryDetail,
+  parseDiaryGeneration,
+  parseDiaryMonth,
+  parseDiaryPhotoUploads,
+} from '../model/guardianDiary';
 
 import { api } from '@shared/api';
 
@@ -48,5 +54,31 @@ function postDiaryGeneration({ petId, date, idempotencyKey, photoKeys, text, att
     .then(parseDiaryGeneration);
 }
 
-export { getGuardianDiaryDate, postDiaryGeneration, postDiaryPhotoUploadUrls };
-export type { DiaryPhotoUploadFile, PostDiaryGenerationParams };
+interface PostDiarySaveParams {
+  generationId: string;
+  body: string;
+}
+
+/** `POST` - 생성 결과를 일기로 저장한다 */
+function postDiarySave({ generationId, body }: PostDiarySaveParams) {
+  return api
+    .post('guardian/diaries', { json: { generationId: Number(generationId), body } })
+    .json()
+    .then(parseDiaryDetail);
+}
+
+/** `GET` - 저장한 일기 상세 */
+function getGuardianDiaryDetail(diaryId: string) {
+  return api.get(`guardian/diaries/${encodeURIComponent(diaryId)}`).json().then(parseDiaryDetail);
+}
+
+/** `GET` - 그 달에 쓴 일기. yearMonth는 yyyy-MM */
+function getGuardianDiaryMonth(petId: string, yearMonth: string) {
+  return api
+    .get(`guardian/pets/${encodeURIComponent(petId)}/diaries`, { searchParams: { yearMonth } })
+    .json()
+    .then(parseDiaryMonth);
+}
+
+export { getGuardianDiaryDate, getGuardianDiaryDetail, getGuardianDiaryMonth, postDiaryGeneration, postDiaryPhotoUploadUrls, postDiarySave };
+export type { DiaryPhotoUploadFile, PostDiaryGenerationParams, PostDiarySaveParams };

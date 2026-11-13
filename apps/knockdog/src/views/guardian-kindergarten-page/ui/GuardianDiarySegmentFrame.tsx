@@ -33,8 +33,8 @@ function GuardianDiarySegmentFrame({ children }: GuardianDiarySegmentFrameProps)
     push(buildDiaryWriteTarget({ date, schoolId, petId }));
   }
 
-  function handleView(date: Date) {
-    push(buildDiaryDetailTarget({ date, schoolId, petId }));
+  function handleView(date: Date, diaryId?: string) {
+    push(buildDiaryDetailTarget({ date, schoolId, petId, diaryId }));
   }
 
   if (segment !== DIARY_SEGMENT.diary) return children;

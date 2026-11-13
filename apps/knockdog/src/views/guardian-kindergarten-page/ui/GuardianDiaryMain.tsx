@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import { DiaryCalendar, DiaryCalendarBanner, DiaryThumbnail, Divider } from '@knockdog/ui';
 
-import { useGuardianDiaryDateQuery, type DiaryDateSummary } from '@entities/guardian-diary';
+import { useGuardianDiaryDateQuery, useGuardianDiaryMonthQuery, type DiaryDateSummary } from '@entities/guardian-diary';
 
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import {
@@ -17,6 +17,11 @@ import {
 } from '@views/guardian-kindergarten-page/lib/resolveGuardianDiaryDay';
 import { formatDateKey, isSameDay, startOfDay } from '@shared/lib/calendar-date';
 import { DIARY_RECORD_EVENT, takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
+
+function formatYearMonth(date: Date) {
+  const monthText = String(date.getMonth() + 1).padStart(2, '0');
+  return `${date.getFullYear()}-${monthText}`;
+}
 
 function parseDiaryHomeDate(dateKey: string | null) {
   if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null;
@@ -31,7 +36,7 @@ interface GuardianDiaryMainProps {
   remainingCredits?: number;
   today?: Date;
   onWrite?: (date: Date) => void;
-  onView?: (date: Date) => void;
+  onView?: (date: Date, diaryId?: string) => void;
 }
 
 function GuardianDiaryMain({
@@ -51,7 +56,10 @@ function GuardianDiaryMain({
   const maxMonth = useMemo(() => new Date(today.getFullYear(), today.getMonth(), 1), [today]);
   const selectedDateKey = formatDateKey(selectedDate);
   const { data: dateStatus } = useGuardianDiaryDateQuery({ petId, date: selectedDateKey });
+  const { data: monthDays } = useGuardianDiaryMonthQuery({ petId, yearMonth: formatYearMonth(month) });
   const [visitedDiaries, setVisitedDiaries] = useState<Record<string, DiaryDateSummary>>({});
+  const monthDay = monthDays?.find((day) => day.date === selectedDateKey);
+  const sessionEntry = findDiaryEntry(entries, selectedDate);
   const apiEntry = dateStatus?.diary
     ? {
         dateKey: selectedDateKey,
@@ -61,7 +69,17 @@ function GuardianDiaryMain({
         imageSrc: dateStatus.diary.thumbnailUrl,
       }
     : null;
-  const selectedEntry = apiEntry ?? findDiaryEntry(entries, selectedDate);
+  const monthEntry = monthDay
+    ? {
+        dateKey: selectedDateKey,
+        title: sessionEntry?.title ?? '',
+        body: sessionEntry?.body ?? '',
+        photoCount: monthDay.photoCount,
+        imageSrc: monthDay.thumbnailUrl,
+      }
+    : null;
+  const selectedEntry = apiEntry ?? monthEntry ?? (monthDays ? null : sessionEntry);
+  const selectedDiaryId = dateStatus?.diary?.id ?? monthDay?.id;
   const credits = dateStatus?.remainingGenerations ?? remainingCredits;
   const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), credits);
 
@@ -117,7 +135,8 @@ function GuardianDiaryMain({
         today={today}
         getImage={(date) => {
           const dateKey = formatDateKey(date);
-          const imageSrc = visitedDiaries[dateKey]?.thumbnailUrl ?? findDiaryEntry(entries, date)?.imageSrc;
+          const monthImage = monthDays?.find((day) => day.date === dateKey)?.thumbnailUrl;
+          const imageSrc = monthImage ?? (monthDays ? undefined : visitedDiaries[dateKey]?.thumbnailUrl ?? findDiaryEntry(entries, date)?.imageSrc);
           if (!imageSrc) return undefined;
           return <img src={imageSrc} alt='' className='size-full object-cover' />;
         }}
@@ -139,7 +158,9 @@ function GuardianDiaryMain({
                   <img src={selectedEntry.imageSrc} alt='' className='size-full object-cover' />
                 ) : undefined
               }
-              onViewAll={onView ? () => onView(selectedDate) : undefined}
+              onViewAll={
+                onView ? () => (selectedDiaryId ? onView(selectedDate, selectedDiaryId) : onView(selectedDate)) : undefined
+              }
             />
           ) : (
             <DiaryCalendarBanner

@@ -129,5 +129,91 @@ const parseDiaryGeneration = (response: unknown): DiaryGeneration => {
 const parseDiaryPhotoUploads = (response: unknown): DiaryPhotoUpload[] =>
   photoUploadResponseSchema.parse(response).data.items;
 
-export { parseDiaryDateStatus, parseDiaryGeneration, parseDiaryPhotoUploads };
-export type { DiaryDateAttendance, DiaryDateStatus, DiaryDateSummary, DiaryGeneration, DiaryPhotoUpload };
+const diaryDetailPhotoSchema = z.object({
+  url: z.string(),
+  order: z.number(),
+});
+
+const diaryDetailSchema = z.object({
+  diaryId: z.number(),
+  petId: z.number(),
+  date: z.string(),
+  title: z.string(),
+  body: z.string(),
+  photos: z.array(diaryDetailPhotoSchema),
+  edited: z.boolean(),
+  savedAt: z.string(),
+  modifiedAt: z.string(),
+});
+
+const diaryDetailResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: diaryDetailSchema,
+});
+
+const diaryMonthDaySchema = z.object({
+  date: z.string(),
+  diaryId: z.number(),
+  thumbnailUrl: z.string(),
+  photoCount: z.number(),
+});
+
+const diaryMonthResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.object({
+    days: z.array(diaryMonthDaySchema),
+  }),
+});
+
+interface DiaryDetail {
+  id: string;
+  petId: string;
+  date: string;
+  title: string;
+  body: string;
+  photos: string[];
+  isEdited: boolean;
+}
+
+interface DiaryMonthDay {
+  date: string;
+  id: string;
+  thumbnailUrl: string;
+  photoCount: number;
+}
+
+function toDiaryDetail(dto: z.infer<typeof diaryDetailSchema>): DiaryDetail {
+  const photos = [...dto.photos].sort((left, right) => left.order - right.order).map((photo) => photo.url);
+  return {
+    id: String(dto.diaryId),
+    petId: String(dto.petId),
+    date: dto.date,
+    title: dto.title,
+    body: dto.body,
+    photos,
+    isEdited: dto.edited,
+  };
+}
+
+const parseDiaryDetail = (response: unknown) => toDiaryDetail(diaryDetailResponseSchema.parse(response).data);
+
+const parseDiaryMonth = (response: unknown): DiaryMonthDay[] =>
+  diaryMonthResponseSchema.parse(response).data.days.map((day) => ({
+    date: day.date,
+    id: String(day.diaryId),
+    thumbnailUrl: day.thumbnailUrl,
+    photoCount: day.photoCount,
+  }));
+
+export { parseDiaryDateStatus, parseDiaryDetail, parseDiaryGeneration, parseDiaryMonth, parseDiaryPhotoUploads };
+export type {
+  DiaryDateAttendance,
+  DiaryDateStatus,
+  DiaryDateSummary,
+  DiaryDetail,
+  DiaryGeneration,
+  DiaryMonthDay,
+  DiaryPhotoUpload,
+};
