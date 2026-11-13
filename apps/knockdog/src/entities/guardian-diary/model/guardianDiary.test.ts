@@ -120,6 +120,18 @@ describe('보호자 일기 API', () => {
     expect(days).toEqual([{ date: '2026-06-16', id: '9', thumbnailUrl: 'https://example.com/leaf.jpg', photoCount: 2 }]);
   });
 
+  test('월간 날짜가 배열이어도 날짜 문자열로 읽는다', () => {
+    const days = parseDiaryMonth({
+      status: 200,
+      message: '정상 처리되었습니다.',
+      data: {
+        days: [{ date: [2026, 11, 13], diaryId: 4, thumbnailUrl: 'https://example.com/leaf.jpg', photoCount: 1 }],
+      },
+    });
+
+    expect(days[0]?.date).toBe('2026-11-13');
+  });
+
   test('삭제 응답은 성공 상태만 확인한다', () => {
     expect(parseDiaryDelete({ status: 200, message: '정상 처리되었습니다.', data: null }).status).toBe(200);
   });

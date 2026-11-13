@@ -171,7 +171,7 @@ const diaryDetailResponseSchema = z.object({
 });
 
 const diaryMonthDaySchema = z.object({
-  date: z.string(),
+  date: z.union([z.string(), z.array(z.number())]).transform(toDateText),
   diaryId: z.number(),
   thumbnailUrl: z.string(),
   photoCount: z.number(),

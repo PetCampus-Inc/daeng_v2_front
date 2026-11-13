@@ -20,7 +20,10 @@ import { toast } from '@shared/ui/toast';
 import { DIARY_PHOTO_LIMIT, type DiaryWritePhoto } from '../lib/diaryWriteForm';
 import { uploadDiaryPhotoFiles, type DiaryPickAsset } from '../lib/uploadDiaryPhotoFile';
 
-function useDiaryPhotoPick(photos: DiaryWritePhoto[], onChange: (photos: DiaryWritePhoto[]) => void) {
+function useDiaryPhotoPick(
+  photos: DiaryWritePhoto[],
+  onChange: (update: DiaryWritePhoto[] | ((current: DiaryWritePhoto[]) => DiaryWritePhoto[])) => void
+) {
   const { pickImage } = useImagePicker();
 
   const pickPhotos = useCallback(
@@ -44,7 +47,7 @@ function useDiaryPhotoPick(photos: DiaryWritePhoto[], onChange: (photos: DiaryWr
           if (!asset.uri || !upload) return [];
           return [{ id: upload.tempKey, src: asset.uri, tempKey: upload.tempKey }];
         });
-        onChange([...photos, ...nextPhotos].slice(0, DIARY_PHOTO_LIMIT));
+        onChange((current) => [...current, ...nextPhotos].slice(0, DIARY_PHOTO_LIMIT));
       } catch (error: unknown) {
         if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') {
           overlay.open(({ isOpen, close }) => (

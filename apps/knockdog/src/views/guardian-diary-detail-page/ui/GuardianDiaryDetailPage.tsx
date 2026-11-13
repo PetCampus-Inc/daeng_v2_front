@@ -50,6 +50,7 @@ function GuardianDiaryDetailPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [body, setBody] = useState<string | null>(null);
+  const bodyRef = useRef<string | null>(null);
   const shownBody = body ?? detail?.body ?? record?.body ?? '';
   const photos = detail?.photos ?? record?.photos ?? [];
 
@@ -81,7 +82,11 @@ function GuardianDiaryDetailPage() {
       setIsDeleteOpen(false);
       const removedPetId = detail?.petId ?? petId;
       if (removedPetId) {
-        markDiaryRemoved(removedPetId, dateKey);
+        try {
+          markDiaryRemoved(removedPetId, dateKey, diaryId);
+        } catch {
+          // 서버 삭제는 끝났고, 이 화면의 삭제 표시만 실패한 경우다.
+        }
         queryClient.setQueriesData<DiaryMonthDay[]>({ queryKey: guardianDiaryMonthQueryKey(removedPetId) }, (days) =>
           days?.filter((day) => day.date !== dateKey)
         );
@@ -119,12 +124,18 @@ function GuardianDiaryDetailPage() {
 
   function handleEdit() {
     setIsMenuOpen(false);
+    bodyRef.current = shownBody;
     setBody(shownBody);
     setIsEditing(true);
   }
 
+  function handleBodyChange(nextBody: string) {
+    bodyRef.current = nextBody;
+    setBody(nextBody);
+  }
+
   async function handleSaveEdit() {
-    const nextBody = body ?? shownBody;
+    const nextBody = bodyRef.current ?? body ?? shownBody;
     if (!nextBody.trim() || isMutatingRef.current) return;
     if (!diaryId) {
       toast({ shape: 'rounded', position: 'bottom', title: DIARY_EDIT_FAIL, nativeTitle: DIARY_EDIT_FAIL });
@@ -146,8 +157,12 @@ function GuardianDiaryDetailPage() {
       }
       queryClient.setQueryData(guardianDiaryDetailQueryKey(diaryId), updated);
       refreshDiaryQueries(updated.petId, diaryId);
-      setBody(updated.body);
-      setIsEditing(false);
+      if (updated.petId) syncWebViewQuery.invalidate(['guardianDiaryDate', updated.petId, dateKey]);
+      if (bodyRef.current === nextBody) {
+        bodyRef.current = updated.body;
+        setBody(updated.body);
+        setIsEditing(false);
+      }
     } catch {
       toast({ shape: 'rounded', position: 'bottom', title: DIARY_EDIT_FAIL, nativeTitle: DIARY_EDIT_FAIL });
     } finally {
@@ -167,7 +182,7 @@ function GuardianDiaryDetailPage() {
       onMenu={() => setIsMenuOpen((open) => !open)}
       onCloseMenu={() => setIsMenuOpen(false)}
       onEdit={handleEdit}
-      onBodyChange={setBody}
+      onBodyChange={handleBodyChange}
       onSave={handleSaveEdit}
       onAskDelete={() => {
         setIsMenuOpen(false);

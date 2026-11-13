@@ -51,13 +51,17 @@ function DiaryImageCarousel({ images = [], value, defaultValue = 0, className, o
     if (delta >= DIARY_IMAGE_SWIPE_PX) selectIndex(selected - 1);
   }
 
+  function handlePointerCancel() {
+    startX.current = null;
+  }
+
   return (
     <div className={cn('gap-x2 flex w-[358px] flex-col', className)}>
       <div
         className='bg-fill-secondary-100 radius-r3 size-[358px] touch-pan-y overflow-hidden select-none [&_img]:pointer-events-none'
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onDragStart={(event) => event.preventDefault()}
       >
         <div className='flex h-full w-full' style={{ transform: `translateX(-${selected * 100}%)` }}>

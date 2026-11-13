@@ -83,7 +83,8 @@ function GuardianDiaryWritePage() {
     handleDismissImport();
   }
 
-  function handleCreateDiary() {
+  function handleCreateDiary(includeNotice?: boolean) {
+    const withNotice = includeNotice === true || isImported;
     setIsImportSheetOpen(false);
     try {
       saveDiaryGenerateDraft({
@@ -93,7 +94,7 @@ function GuardianDiaryWritePage() {
         photos: photos.map((photo) => photo.src),
         photoKeys: photos.flatMap((photo) => (photo.tempKey ? [photo.tempKey] : [])),
         text: text.trim(),
-        attendanceRecordId: isImported ? dateStatus?.attendance?.id ?? null : null,
+        attendanceRecordId: withNotice ? dateStatus?.attendance?.id ?? null : null,
       });
     } catch {
       toast({
@@ -141,7 +142,7 @@ function GuardianDiaryWritePage() {
         body={noticeBody}
         onClose={() => setIsImportSheetOpen(false)}
         onAddToDiary={handleApplyImport}
-        onCreateDiary={handleCreateDiary}
+        onCreateDiary={() => handleCreateDiary(true)}
       />
     </>
   );

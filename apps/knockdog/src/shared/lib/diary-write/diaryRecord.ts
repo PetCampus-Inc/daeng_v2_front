@@ -71,6 +71,7 @@ const DIARY_REMOVED_KEY = 'diary-removed-dates';
 interface RemovedDiary {
   petId: string;
   dateKey: string;
+  diaryId: string;
 }
 
 function readRemovedDiaries(): RemovedDiary[] {
@@ -80,21 +81,26 @@ function readRemovedDiaries(): RemovedDiary[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Partial<RemovedDiary>[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is RemovedDiary => Boolean(item.petId && item.dateKey));
+    return parsed.filter((item): item is RemovedDiary => Boolean(item.petId && item.dateKey && item.diaryId));
   } catch {
     return [];
   }
 }
 
 function writeRemovedDiaries(items: RemovedDiary[]) {
-  window.localStorage.setItem(DIARY_REMOVED_KEY, JSON.stringify(items));
-  window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(DIARY_REMOVED_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
+  } catch {
+    // 저장 공간이 막혀도 이미 끝난 서버 삭제를 실패로 되돌리지 않는다.
+  }
 }
 
-function markDiaryRemoved(petId: string, dateKey: string) {
+function markDiaryRemoved(petId: string, dateKey: string, diaryId: string) {
   if (typeof window === 'undefined') return;
-  const next = readRemovedDiaries().filter((item) => item.petId !== petId || item.dateKey !== dateKey);
-  writeRemovedDiaries([...next, { petId, dateKey }]);
+  const next = readRemovedDiaries().filter((item) => item.petId !== petId || item.diaryId !== diaryId);
+  writeRemovedDiaries([...next, { petId, dateKey, diaryId }]);
 }
 
 function clearDiaryRemoved(petId: string, dateKey: string) {
@@ -105,9 +111,9 @@ function clearDiaryRemoved(petId: string, dateKey: string) {
   writeRemovedDiaries(next);
 }
 
-function isDiaryRemoved(petId: string | null | undefined, dateKey: string) {
-  if (!petId) return false;
-  return readRemovedDiaries().some((item) => item.petId === String(petId) && item.dateKey === dateKey);
+function isDiaryRemoved(petId: string | null | undefined, diaryId: string | null | undefined) {
+  if (!petId || !diaryId) return false;
+  return readRemovedDiaries().some((item) => item.petId === String(petId) && item.diaryId === diaryId);
 }
 
 function removeDiaryRecord(dateKey: string, petId?: string | null) {

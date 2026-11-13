@@ -59,10 +59,10 @@ function GuardianDiaryMain({
   const { data: monthDays } = useGuardianDiaryMonthQuery({ petId, yearMonth: formatYearMonth(month) });
   const [visitedDiaries, setVisitedDiaries] = useState<Record<string, DiaryDateSummary>>({});
   const [removedTick, setRemovedTick] = useState(0);
-  const hidden = (dateKey: string) => removedTick >= 0 && isDiaryRemoved(petId, dateKey);
-  const monthDay = monthDays?.find((day) => day.date === selectedDateKey && !hidden(day.date));
+  const removedDiary = (diaryId?: string | null) => removedTick >= 0 && isDiaryRemoved(petId, diaryId);
+  const monthDay = monthDays?.find((day) => day.date === selectedDateKey && !removedDiary(day.id));
   const sessionEntry = findDiaryEntry(entries, selectedDate);
-  const visibleDiary = dateStatus?.diary && !hidden(selectedDateKey) ? dateStatus.diary : null;
+  const visibleDiary = dateStatus?.diary && !removedDiary(dateStatus.diary.id) ? dateStatus.diary : null;
   const apiEntry = visibleDiary
     ? {
         dateKey: selectedDateKey,
@@ -81,7 +81,7 @@ function GuardianDiaryMain({
         imageSrc: monthDay.thumbnailUrl,
       }
     : null;
-  const selectedEntry = apiEntry ?? monthEntry ?? (monthDays || hidden(selectedDateKey) ? null : sessionEntry);
+  const selectedEntry = apiEntry ?? monthEntry ?? (monthDays ? null : sessionEntry);
   const selectedDiaryId = visibleDiary?.id ?? monthDay?.id;
   const reportedCredits = dateStatus?.remainingGenerations ?? remainingCredits;
   const credits = dateStatus?.blockedReason === 'LIMIT_REACHED' || reportedCredits <= 0 ? 0 : reportedCredits;
@@ -101,9 +101,13 @@ function GuardianDiaryMain({
 
   useEffect(() => {
     const diary = dateStatus?.diary;
-    if (!diary) return;
+    if (!diary || isDiaryRemoved(petId, diary.id)) return;
     setVisitedDiaries((current) => ({ ...current, [selectedDateKey]: diary }));
-  }, [dateStatus, selectedDateKey]);
+  }, [dateStatus, petId, selectedDateKey]);
+
+  useEffect(() => {
+    setVisitedDiaries({});
+  }, [petId]);
 
   useEffect(() => {
     const next = restoredDate ?? today;
@@ -151,9 +155,11 @@ function GuardianDiaryMain({
         today={today}
         getImage={(date) => {
           const dateKey = formatDateKey(date);
-          if (hidden(dateKey)) return undefined;
-          const monthImage = monthDays?.find((day) => day.date === dateKey)?.thumbnailUrl;
-          const imageSrc = monthImage ?? (monthDays ? undefined : visitedDiaries[dateKey]?.thumbnailUrl ?? findDiaryEntry(entries, date)?.imageSrc);
+          const monthImage = monthDays?.find((day) => day.date === dateKey);
+          if (monthImage && removedDiary(monthImage.id)) return undefined;
+          const visited = visitedDiaries[dateKey];
+          const visitedImage = visited && !removedDiary(visited.id) ? visited.thumbnailUrl : undefined;
+          const imageSrc = monthImage?.thumbnailUrl ?? (monthDays ? undefined : visitedImage ?? findDiaryEntry(entries, date)?.imageSrc);
           if (!imageSrc) return undefined;
           return <img src={imageSrc} alt='' className='size-full object-cover' />;
         }}

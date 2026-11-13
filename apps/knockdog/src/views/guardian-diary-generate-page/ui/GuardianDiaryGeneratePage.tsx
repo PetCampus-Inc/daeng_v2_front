@@ -139,7 +139,11 @@ function GuardianDiaryGeneratePage() {
     isSavingRef.current = true;
     try {
       const detail = await postDiarySave({ generationId, body: savedBody });
-      clearDiaryRemoved(detail.petId, detail.date);
+      try {
+        clearDiaryRemoved(detail.petId, detail.date);
+      } catch {
+        // 서버 저장은 끝났고, 삭제 표시 정리만 실패한 경우다.
+      }
       const saved = getDiarySaveToast(dogName);
       try {
         saveDiaryRecord({ dateKey: detail.date, petId: detail.petId, dogName, body: detail.body, photos: detail.photos });
