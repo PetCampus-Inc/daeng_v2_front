@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ActionButton,
   Icon,
@@ -51,10 +51,12 @@ function PhotoUploader({
   const { pickImage } = useImagePicker();
   const [assets, setAssets] = useState<WebImageAsset[]>(defaultValue ?? []);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const assetsRef = useRef(assets);
 
   useEffect(() => {
     // undefined만 skip — 빈 배열([])도 autofill/초기화 반영
     if (defaultValue !== undefined) {
+      assetsRef.current = defaultValue;
       setAssets(defaultValue);
     }
   }, [defaultValue]);
@@ -88,9 +90,10 @@ function PhotoUploader({
         setUploadingCount(picked.length);
         const { uploaded, failedCount } = await uploadPickedAssets(picked);
         if (uploaded.length > 0) {
-          const newAssets = [...assets, ...uploaded].slice(0, maxCount);
-          setAssets(newAssets);
-          onChange?.(newAssets);
+          const nextAssets = [...assetsRef.current, ...uploaded].slice(0, maxCount);
+          assetsRef.current = nextAssets;
+          setAssets(nextAssets);
+          onChange?.(nextAssets);
         }
         if (failedCount > 0) {
           toast({ title: PICKED_UPLOAD_FAIL, nativeTitle: PICKED_UPLOAD_FAIL, position: 'bottom-above-nav' });
@@ -166,9 +169,10 @@ function PhotoUploader({
 
   const removeImage = (index: number) => {
     if (isUploading) return;
-    const newAssets = assets.filter((_, i) => i !== index);
-    setAssets(newAssets);
-    onChange?.(newAssets);
+    const nextAssets = assetsRef.current.filter((_, i) => i !== index);
+    assetsRef.current = nextAssets;
+    setAssets(nextAssets);
+    onChange?.(nextAssets);
   };
 
   const handleImageClick = (index: number) => {
@@ -223,9 +227,7 @@ function PhotoUploader({
             className='h-[80px] w-[80px]'
             onRemove={isUploading ? undefined : () => removeImage(index)}
             badgeLabel={
-              showRepresentativeBadge && assets.length >= 2 && index === 0
-                ? representativeBadgeLabel
-                : undefined
+              showRepresentativeBadge && assets.length >= 2 && index === 0 ? representativeBadgeLabel : undefined
             }
           />
         </div>

@@ -21,6 +21,7 @@ interface DiaryUploadedPhoto {
 interface DiaryPhotoUploadResult {
   photos: DiaryUploadedPhoto[];
   rejectedCount: number;
+  failedCount: number;
 }
 
 interface DiaryPhotoRequest {
@@ -99,6 +100,7 @@ async function uploadDiaryPhotoFile(request: DiaryPhotoRequest): Promise<DiaryUp
 async function uploadDiaryPhotoFiles(assets: DiaryPickAsset[]): Promise<DiaryPhotoUploadResult> {
   const photos: DiaryUploadedPhoto[] = [];
   let rejectedCount = 0;
+  let failedCount = 0;
   let firstError: unknown;
 
   for (const [index, asset] of assets.entries()) {
@@ -110,13 +112,17 @@ async function uploadDiaryPhotoFiles(assets: DiaryPickAsset[]): Promise<DiaryPho
     try {
       photos.push(await uploadDiaryPhotoFile(request));
     } catch (error) {
-      if (isPhotoSpecError(error)) rejectedCount += 1;
-      else firstError = firstError ?? error;
+      if (isPhotoSpecError(error)) {
+        rejectedCount += 1;
+        continue;
+      }
+      failedCount += 1;
+      firstError = firstError ?? error;
     }
   }
 
   if (photos.length === 0 && firstError) throw firstError;
-  return { photos, rejectedCount };
+  return { photos, rejectedCount, failedCount };
 }
 
 export { buildDiaryPhotoRequest, uploadDiaryPhotoFiles, DIARY_PHOTO_MAX_BYTES };

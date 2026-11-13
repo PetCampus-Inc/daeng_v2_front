@@ -48,7 +48,9 @@ function useDiaryPhotoPick(
         });
         if (result.cancelled || !result.assets) return;
 
-        const picked = (result.assets as WebImageAsset[]).slice(0, remaining).filter((asset) => asset.uri || asset.file);
+        const picked = (result.assets as WebImageAsset[])
+          .slice(0, remaining)
+          .filter((asset) => asset.uri || asset.file);
         const skippedCount =
           (result.skipped?.invalidSpecCount ?? 0) +
           (result.skipped?.oversizedCount ?? 0) +
@@ -61,13 +63,13 @@ function useDiaryPhotoPick(
         const uploaded = await uploadDiaryPhotoFiles(picked as DiaryPickAsset[]);
         if (uploaded.photos.length > 0) {
           onChange((current) =>
-            [...current, ...uploaded.photos.map((photo) => ({ id: photo.tempKey, src: photo.src, tempKey: photo.tempKey }))].slice(
-              0,
-              DIARY_PHOTO_LIMIT
-            )
+            [
+              ...current,
+              ...uploaded.photos.map((photo) => ({ id: photo.tempKey, src: photo.src, tempKey: photo.tempKey })),
+            ].slice(0, DIARY_PHOTO_LIMIT)
           );
         }
-        if (uploaded.rejectedCount > 0 || skippedCount > 0) showPhotoFailToast();
+        if (uploaded.rejectedCount > 0 || uploaded.failedCount > 0 || skippedCount > 0) showPhotoFailToast();
       } catch (error: unknown) {
         if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') {
           overlay.open(({ isOpen, close }) => (
