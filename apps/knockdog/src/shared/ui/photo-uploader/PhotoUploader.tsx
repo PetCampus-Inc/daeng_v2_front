@@ -14,7 +14,7 @@ import {
 import { MiniPhotoBox } from './MiniPhotoBox';
 import { FullImageSheet } from './FullImageSheet';
 import { overlay } from 'overlay-kit';
-import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
+import { PICKED_UPLOAD_FAIL, uploadPickedAssets, useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
@@ -77,15 +77,24 @@ function PhotoUploader({
           allowsMultipleSelection: true,
           selectionLimit: maxCount - assets.length,
           quality,
+          skipUpload: true,
         },
         {
           onUploading: (count) => setUploadingCount(count),
         }
       );
-      if (!result.cancelled && result.assets) {
-        const newAssets = [...assets, ...(result.assets as WebImageAsset[])].slice(0, maxCount);
-        setAssets(newAssets);
-        onChange?.(newAssets);
+      if (!result.cancelled && result.assets?.length) {
+        const picked = (result.assets as WebImageAsset[]).filter((asset) => asset.uri || asset.file);
+        setUploadingCount(picked.length);
+        const { uploaded, failedCount } = await uploadPickedAssets(picked);
+        if (uploaded.length > 0) {
+          const newAssets = [...assets, ...uploaded].slice(0, maxCount);
+          setAssets(newAssets);
+          onChange?.(newAssets);
+        }
+        if (failedCount > 0) {
+          toast({ title: PICKED_UPLOAD_FAIL, nativeTitle: PICKED_UPLOAD_FAIL, position: 'bottom-above-nav' });
+        }
       }
     } catch (error: unknown) {
       if ((error as string) === 'NO_PERMISSION_LIBRARY' || (error as string) === 'NO_PERMISSION_CAMERA') {
@@ -117,6 +126,12 @@ function PhotoUploader({
     }
   };
 
+  function openImageSource(source: 'library' | 'camera', close: () => void) {
+    void handlePickImages(source);
+    // 같은 턴에 시트를 닫으면 iOS가 방금 연 사진 선택을 취소한다.
+    window.setTimeout(close, 300);
+  }
+
   const openSourceSelectSheet = () => {
     if (isFull || isUploading) return;
 
@@ -133,19 +148,13 @@ function PhotoUploader({
           <div className='py-x5 flex flex-col pb-[40px]'>
             <button
               className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
-              onClick={() => {
-                handlePickImages('library');
-                close();
-              }}
+              onClick={() => openImageSource('library', close)}
             >
               사진 보관함
             </button>
             <button
               className='p-x4 body1-bold text-text-primary border-line-200 active:bg-fill-secondary-50 border-b text-start'
-              onClick={() => {
-                handlePickImages('camera');
-                close();
-              }}
+              onClick={() => openImageSource('camera', close)}
             >
               카메라로 촬영하기
             </button>

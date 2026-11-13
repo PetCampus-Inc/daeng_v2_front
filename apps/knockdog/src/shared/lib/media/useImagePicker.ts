@@ -353,6 +353,11 @@ async function pickImageWeb(
       input.remove();
     };
 
+    // iOS Safari는 document에 없는 input.click()을 무시한다.
+    input.tabIndex = -1;
+    input.setAttribute('aria-hidden', 'true');
+    input.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;';
+    document.body.appendChild(input);
     input.click();
   });
 }
