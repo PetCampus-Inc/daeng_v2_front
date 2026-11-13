@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { guardianDiaryDateQueryKey, postDiaryGeneration } from '@entities/guardian-diary';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
@@ -11,10 +13,8 @@ import { saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { toast } from '@shared/ui/toast';
 
 import {
-  DIARY_GENERATE_DELAY_MS,
   DIARY_GENERATING_TOAST,
   DIARY_WORD_INTERVAL_MS,
-  MOCK_DIARY_BODY,
   formatDiaryDateLabel,
   getDiarySaveToast,
   revealDiaryText,
@@ -33,12 +33,13 @@ function parseGenerateDate(value: string | null) {
 
 function GuardianDiaryGeneratePage() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { back, push } = useStackNavigation();
   const draft = useMemo(() => readDiaryGenerateDraft(), []);
   const date = useMemo(() => parseGenerateDate(searchParams.get('date') ?? draft?.date ?? null), [draft?.date, searchParams]);
   const photos = draft?.photos.length ? draft.photos : FALLBACK_PHOTOS;
   const dogName = draft?.dogName || '강아지';
-  const forcedError = searchParams.get('result') === 'error';
+  const forcedError = searchParams.get('result') === 'error' || !draft?.petId;
   const [status, setStatus] = useState<DiaryGenerateStatus>(forcedError ? 'error' : 'generating');
   const [runId, setRunId] = useState(0);
   const [body, setBody] = useState('');
@@ -47,27 +48,58 @@ function GuardianDiaryGeneratePage() {
   const [isSaved, setIsSaved] = useState(false);
   const [hasTriedLeave, setHasTriedLeave] = useState(false);
   const [dialog, setDialog] = useState<DiaryGenerateDialog | null>(null);
+  const generationRef = useRef<{ runId: number; promise: ReturnType<typeof postDiaryGeneration> } | null>(null);
 
   useEffect(() => {
     if (status !== 'generating') return;
-    const timer = window.setTimeout(() => {
-      setBody(MOCK_DIARY_BODY);
-      setStatus('done');
-    }, DIARY_GENERATE_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [runId, status]);
+    const petId = draft?.petId;
+    const dateKey = draft?.date ?? formatDateKey(date);
+    if (!petId) return;
+
+    let current = generationRef.current;
+    if (!current || current.runId !== runId) {
+      current = {
+        runId,
+        promise: postDiaryGeneration({
+          petId,
+          date: dateKey,
+          idempotencyKey: crypto.randomUUID(),
+          photoKeys: draft?.photoKeys ?? [],
+          text: draft?.text,
+          attendanceRecordId: draft?.attendanceRecordId,
+        }),
+      };
+      generationRef.current = current;
+    }
+
+    let ignore = false;
+    current.promise
+      .then((generation) => {
+        if (ignore) return;
+        setBody(generation.body);
+        setStatus('done');
+        void queryClient.invalidateQueries({ queryKey: guardianDiaryDateQueryKey(petId, dateKey) });
+      })
+      .catch(() => {
+        if (!ignore) setStatus('error');
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [date, draft, queryClient, runId, status]);
 
   useEffect(() => {
-    if (status !== 'done' || isEditing || isSaved) return;
+    if (status !== 'done' || isEditing || isSaved || !body) return;
     let wordCount = 0;
     const timer = window.setInterval(() => {
       wordCount += 1;
-      const nextBody = revealDiaryText(MOCK_DIARY_BODY, wordCount);
+      const nextBody = revealDiaryText(body, wordCount);
       setVisibleBody(nextBody);
-      if (nextBody.length >= MOCK_DIARY_BODY.length) window.clearInterval(timer);
+      if (nextBody.length >= body.length) window.clearInterval(timer);
     }, DIARY_WORD_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [isEditing, isSaved, status]);
+  }, [body, isEditing, isSaved, status]);
 
   function handleBack() {
     if (status === 'generating') {

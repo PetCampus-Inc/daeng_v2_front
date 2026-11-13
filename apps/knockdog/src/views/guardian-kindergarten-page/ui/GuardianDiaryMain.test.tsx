@@ -8,6 +8,10 @@ vi.mock('overlay-kit', () => ({
   overlay: { open: (...args: unknown[]) => openMonthPicker(...args) },
 }));
 
+vi.mock('@entities/guardian-diary', () => ({
+  useGuardianDiaryDateQuery: () => ({ data: undefined }),
+}));
+
 import { GuardianDiaryMain } from './GuardianDiaryMain';
 
 const today = new Date(2026, 5, 17);

@@ -18,6 +18,7 @@ import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 
 import { DIARY_PHOTO_LIMIT, type DiaryWritePhoto } from '../lib/diaryWriteForm';
+import { uploadDiaryPhotoFiles, type DiaryPickAsset } from '../lib/uploadDiaryPhotoFile';
 
 function useDiaryPhotoPick(photos: DiaryWritePhoto[], onChange: (photos: DiaryWritePhoto[]) => void) {
   const { pickImage } = useImagePicker();
@@ -36,9 +37,12 @@ function useDiaryPhotoPick(photos: DiaryWritePhoto[], onChange: (photos: DiaryWr
         });
         if (result.cancelled || !result.assets) return;
 
-        const nextPhotos = (result.assets as WebImageAsset[]).slice(0, remaining).flatMap((asset, index) => {
-          if (!asset.uri) return [];
-          return [{ id: `${asset.uri}-${photos.length + index}`, src: asset.uri }];
+        const picked = (result.assets as WebImageAsset[]).slice(0, remaining).filter((asset) => asset.uri);
+        const uploads = await uploadDiaryPhotoFiles(picked as DiaryPickAsset[]);
+        const nextPhotos: DiaryWritePhoto[] = picked.flatMap((asset, index) => {
+          const upload = uploads[index];
+          if (!asset.uri || !upload) return [];
+          return [{ id: upload.tempKey, src: asset.uri, tempKey: upload.tempKey }];
         });
         onChange([...photos, ...nextPhotos].slice(0, DIARY_PHOTO_LIMIT));
       } catch (error: unknown) {

@@ -5,6 +5,9 @@ interface DiaryGenerateDraft {
   dogName: string;
   petId?: string | null;
   photos: string[];
+  photoKeys?: string[];
+  text?: string;
+  attendanceRecordId?: string | null;
 }
 
 function saveDiaryGenerateDraft(draft: DiaryGenerateDraft) {
@@ -25,6 +28,9 @@ function readDiaryGenerateDraft(): DiaryGenerateDraft | null {
       dogName: draft.dogName,
       petId: draft.petId == null || draft.petId === '' ? null : String(draft.petId),
       photos: draft.photos.filter((photo) => typeof photo === 'string'),
+      photoKeys: Array.isArray(draft.photoKeys) ? draft.photoKeys.filter((key) => typeof key === 'string') : [],
+      text: typeof draft.text === 'string' ? draft.text : '',
+      attendanceRecordId: draft.attendanceRecordId ? String(draft.attendanceRecordId) : null,
     };
   } catch {
     return null;

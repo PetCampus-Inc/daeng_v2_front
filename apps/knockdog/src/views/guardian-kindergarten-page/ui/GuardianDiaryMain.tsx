@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import { DiaryCalendar, DiaryCalendarBanner, DiaryThumbnail, Divider } from '@knockdog/ui';
 
+import { useGuardianDiaryDateQuery, type DiaryDateSummary } from '@entities/guardian-diary';
+
 import { GuardianAlbumMonthPickerSheet } from '@views/guardian-album-page/ui/GuardianAlbumMonthPickerSheet';
 import {
   DIARY_CREDIT_LIMIT,
@@ -13,7 +15,7 @@ import {
   resolveDiaryDayKind,
   type GuardianDiaryEntry,
 } from '@views/guardian-kindergarten-page/lib/resolveGuardianDiaryDay';
-import { isSameDay, startOfDay } from '@shared/lib/calendar-date';
+import { formatDateKey, isSameDay, startOfDay } from '@shared/lib/calendar-date';
 import { DIARY_RECORD_EVENT, takeDiaryHomeDate } from '@shared/lib/diary-write/diaryRecord';
 
 function parseDiaryHomeDate(dateKey: string | null) {
@@ -47,8 +49,27 @@ function GuardianDiaryMain({
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const minMonth = useMemo(() => new Date(today.getFullYear() - 5, today.getMonth(), 1), [today]);
   const maxMonth = useMemo(() => new Date(today.getFullYear(), today.getMonth(), 1), [today]);
-  const selectedEntry = findDiaryEntry(entries, selectedDate);
-  const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), remainingCredits);
+  const selectedDateKey = formatDateKey(selectedDate);
+  const { data: dateStatus } = useGuardianDiaryDateQuery({ petId, date: selectedDateKey });
+  const [visitedDiaries, setVisitedDiaries] = useState<Record<string, DiaryDateSummary>>({});
+  const apiEntry = dateStatus?.diary
+    ? {
+        dateKey: selectedDateKey,
+        title: dateStatus.diary.title,
+        body: dateStatus.diary.body,
+        photoCount: dateStatus.diary.photoCount,
+        imageSrc: dateStatus.diary.thumbnailUrl,
+      }
+    : null;
+  const selectedEntry = apiEntry ?? findDiaryEntry(entries, selectedDate);
+  const credits = dateStatus?.remainingGenerations ?? remainingCredits;
+  const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), credits);
+
+  useEffect(() => {
+    const diary = dateStatus?.diary;
+    if (!diary) return;
+    setVisitedDiaries((current) => ({ ...current, [selectedDateKey]: diary }));
+  }, [dateStatus, selectedDateKey]);
 
   useEffect(() => {
     const next = restoredDate ?? today;
@@ -95,7 +116,8 @@ function GuardianDiaryMain({
         onYearMonthClick={handleYearMonthClick}
         today={today}
         getImage={(date) => {
-          const imageSrc = findDiaryEntry(entries, date)?.imageSrc;
+          const dateKey = formatDateKey(date);
+          const imageSrc = visitedDiaries[dateKey]?.thumbnailUrl ?? findDiaryEntry(entries, date)?.imageSrc;
           if (!imageSrc) return undefined;
           return <img src={imageSrc} alt='' className='size-full object-cover' />;
         }}
