@@ -78,8 +78,8 @@ function GuardianDiaryGenerateForm({
       <div className='px-x4 pt-x6 gap-x4 flex min-h-0 flex-1 flex-col overflow-y-auto'>
         <p className='label-medium text-text-primary'>{dateLabel}</p>
         <DiaryImageCarousel
-          images={photos.map((photo) => (
-            <img key={photo} src={photo} alt='' className='size-full object-cover' />
+          images={photos.map((photo, index) => (
+            <img key={`${index}-${photo}`} src={photo} alt='' className='size-full object-cover' />
           ))}
         />
         {status === 'generating' ? (
