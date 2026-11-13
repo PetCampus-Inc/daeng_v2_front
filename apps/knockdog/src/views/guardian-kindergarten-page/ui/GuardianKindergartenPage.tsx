@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
@@ -228,6 +228,10 @@ export function GuardianKindergartenPage() {
   // 강아지 미등록 또는 연결된 유치원이 아예 없는 경우에만 노출한다.
   const shouldShowOwnerVerification =
     isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
+  const homePageStyle = {
+    ...pageGradientStyle,
+    '--floating-banner-offset': shouldShowOwnerVerification ? '112px' : '0px',
+  } as CSSProperties;
 
   return (
     <DiaryOnboardingProvider dogName={selectedPet?.name} petId={selectedPet?.id ?? null} onStart={openOnboardingDiary}>
@@ -236,7 +240,7 @@ export function GuardianKindergartenPage() {
         petId={selectedPet?.id ?? null}
         schoolId={diarySchoolId}
       >
-        <div className='flex h-dvh flex-col' style={pageGradientStyle}>
+        <div className='flex h-dvh flex-col' style={homePageStyle}>
           <GuardianKindergartenHeader
             status={status}
             isAttending={Boolean(showDayState && isAttending)}

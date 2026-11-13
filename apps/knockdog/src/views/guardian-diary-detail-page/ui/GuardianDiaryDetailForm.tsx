@@ -54,7 +54,7 @@ function GuardianDiaryDetailForm({
   onDelete,
 }: GuardianDiaryDetailFormProps) {
   return (
-    <div className='bg-bg-0 relative flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden'>
+    <div className='bg-bg-0 relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden'>
       <DiaryTopBar mode='menu' title='일기장' onBack={onBack} onMenu={onMenu} />
       {isMenuOpen ? (
         <>
@@ -85,7 +85,7 @@ function GuardianDiaryDetailForm({
         )}
       </div>
       {isEditing ? (
-        <div className='p-x4'>
+        <div className='bg-bg-0 p-x4 shrink-0'>
           <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
             저장하기
           </ActionButton>

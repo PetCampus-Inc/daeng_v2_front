@@ -73,9 +73,9 @@ function GuardianDiaryGenerateForm({
   const dialogCopy = dialog ? getDiaryDialogCopy(dialog) : null;
 
   return (
-    <div className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col overflow-hidden'>
       <DiaryTopBar mode='plain' title='일기 쓰기' onBack={onBack} />
-      <div className='px-x4 pt-x6 gap-x4 flex min-h-0 flex-1 flex-col overflow-y-auto'>
+      <div className='px-x4 pt-x6 gap-x4 flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto'>
         <p className='label-medium text-text-primary'>{dateLabel}</p>
         <DiaryImageCarousel
           images={photos.map((photo, index) => (
@@ -100,7 +100,7 @@ function GuardianDiaryGenerateForm({
         ) : null}
       </div>
       {isSaved ? null : (
-        <div className='p-x4'>
+        <div className='bg-bg-0 p-x4 shrink-0'>
           {status === 'error' ? (
             <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
               <Reset className='size-x5' />

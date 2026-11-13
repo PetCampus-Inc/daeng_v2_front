@@ -10,7 +10,7 @@ import { GuardianDiarySegmentFrame } from './GuardianDiarySegmentFrame';
 function GuardianKindergartenEmptyState() {
   return (
     <GuardianDiarySegmentFrame>
-      <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height)'>
+      <div className='flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-(--bottom-bar-height) web:pb-[calc(var(--bottom-bar-height)+var(--floating-banner-offset,0px))]'>
         <div className='px-x4 shrink-0 pt-6'>
           <GuardianKindergartenHomeSegment />
         </div>

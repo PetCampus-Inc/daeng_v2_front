@@ -56,17 +56,20 @@ function DiaryImageCarousel({ images = [], value, defaultValue = 0, className, o
   }
 
   return (
-    <div className={cn('gap-x2 flex w-full min-w-0 max-w-full flex-col', className)}>
+    <div className={cn('gap-x2 flex w-full min-w-0 flex-col', className)}>
       <div
-        className='bg-fill-secondary-100 radius-r3 aspect-square w-full min-w-0 touch-pan-y overflow-hidden select-none [&_img]:pointer-events-none [&_img]:size-full [&_img]:max-w-full [&_img]:object-cover'
+        className='bg-fill-secondary-100 radius-r3 relative aspect-square w-full min-h-0 shrink-0 touch-pan-y overflow-hidden select-none'
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         onDragStart={(event) => event.preventDefault()}
       >
-        <div className='flex h-full w-full' style={{ transform: `translateX(-${selected * 100}%)` }}>
+        <div className='absolute inset-0 flex' style={{ transform: `translateX(-${selected * 100}%)` }}>
           {images.map((image, index) => (
-            <div key={index} className='h-full w-full min-w-0 shrink-0'>
+            <div
+              key={index}
+              className='relative h-full w-full shrink-0 [&_img]:pointer-events-none [&_img]:absolute [&_img]:inset-0 [&_img]:size-full [&_img]:object-cover'
+            >
               {image}
             </div>
           ))}

@@ -77,7 +77,7 @@ function GuardianKindergartenDisconnectedState({
 
   return (
     <GuardianDiarySegmentFrame>
-      <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height)'>
+      <div className='min-h-0 w-full flex-1 overflow-y-auto pb-(--bottom-bar-height) web:pb-[calc(var(--bottom-bar-height)+var(--floating-banner-offset,0px))]'>
       <div className='px-x4 flex w-full flex-col gap-5 pt-6'>
         <GuardianKindergartenHomeSegment />
         {/* 선택 날짜 */}
