@@ -3,13 +3,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 const openMonthPicker = vi.fn();
+const dateQuery = vi.hoisted(() => vi.fn(() => ({ data: undefined as { remainingGenerations?: number; blockedReason?: string | null; diary?: null } | undefined })));
 
 vi.mock('overlay-kit', () => ({
   overlay: { open: (...args: unknown[]) => openMonthPicker(...args) },
 }));
 
 vi.mock('@entities/guardian-diary', () => ({
-  useGuardianDiaryDateQuery: () => ({ data: undefined }),
+  useGuardianDiaryDateQuery: () => dateQuery(),
   useGuardianDiaryMonthQuery: () => ({ data: undefined }),
 }));
 
@@ -27,6 +28,7 @@ const writtenEntry = {
 
 describe('일기장 메인', () => {
   beforeEach(() => {
+    dateQuery.mockReturnValue({ data: undefined });
     window.sessionStorage.clear();
   });
 
@@ -99,6 +101,14 @@ describe('일기장 메인', () => {
 
     expect(screen.getByText('일기 3번을 모두 썼어요. 내일 다시 만나요!')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /일기를 써볼까요/ })).toBeNull();
+  });
+
+  test('날짜 상태가 생성 한도면 빈 날에 안내 배너를 보여 준다', () => {
+    dateQuery.mockReturnValue({ data: { remainingGenerations: 0, blockedReason: 'LIMIT_REACHED', diary: null } });
+
+    render(<GuardianDiaryMain dogName='가나디' today={today} />);
+
+    expect(screen.getByText('일기 3번을 모두 썼어요. 내일 다시 만나요!')).toBeTruthy();
   });
 
   test('년월을 누르면 날짜 선택 시트를 연다', () => {

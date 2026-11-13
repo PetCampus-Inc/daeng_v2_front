@@ -1,7 +1,9 @@
 export {
+  deleteGuardianDiary,
   getGuardianDiaryDate,
   getGuardianDiaryDetail,
   getGuardianDiaryMonth,
+  patchGuardianDiary,
   postDiaryGeneration,
   postDiaryPhotoUploadUrls,
   postDiarySave,

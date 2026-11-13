@@ -4,8 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getGuardianDiaryMonth } from './guardianDiary';
 
-const guardianDiaryMonthQueryKey = (petId?: string | null, yearMonth?: string | null) =>
-  ['guardianDiaryMonth', petId, yearMonth] as const;
+function guardianDiaryMonthQueryKey(petId?: string | null, yearMonth?: string | null) {
+  if (!yearMonth) return ['guardianDiaryMonth', petId] as const;
+  return ['guardianDiaryMonth', petId, yearMonth] as const;
+}
 
 interface UseGuardianDiaryMonthQueryOptions {
   petId?: string | null;

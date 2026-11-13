@@ -1,9 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { useGuardianDiaryDateQuery, useGuardianDiaryDetailQuery } from '@entities/guardian-diary';
+import {
+  deleteGuardianDiary,
+  guardianDiaryDateQueryKey,
+  guardianDiaryDetailQueryKey,
+  guardianDiaryMonthQueryKey,
+  patchGuardianDiary,
+  useGuardianDiaryDateQuery,
+  useGuardianDiaryDetailQuery,
+} from '@entities/guardian-diary';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { readDiaryRecord, removeDiaryRecord, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
@@ -18,8 +27,13 @@ function parseDetailDate(value: string | null) {
   return new Date(Number(yearText), Number(monthText) - 1, Number(dayText));
 }
 
+const DIARY_EDIT_FAIL = '일기를 수정하지 못했어요. 잠시 후 다시 시도해주세요';
+const DIARY_DELETE_FAIL = '일기를 삭제하지 못했어요. 잠시 후 다시 시도해주세요';
+
 function GuardianDiaryDetailPage() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const isMutatingRef = useRef(false);
   const { navigateToTab } = useTabNavigation();
   const date = useMemo(() => parseDetailDate(searchParams.get('date')), [searchParams]);
   const dateKey = formatDateKey(date);
@@ -41,27 +55,51 @@ function GuardianDiaryDetailPage() {
     void navigateToTab('/kindergarten');
   }
 
-  function handleDelete() {
-    const deleted = formatDiaryDeleteToast(date);
-    removeDiaryRecord(dateKey, record?.petId ?? petId);
-    setIsDeleteOpen(false);
-    toast({
-      type: 'success',
-      shape: 'rounded',
-      position: 'bottom',
-      nativeTitle: deleted.nativeTitle,
-      titleParts: [
-        { text: deleted.label, accent: true },
-        { text: deleted.suffix },
-      ],
-      title: (
-        <>
-          <span className='body1-bold text-text-accent'>{deleted.label}</span>
-          <span className='text-text-primary-inverse'>{deleted.suffix}</span>
-        </>
-      ),
-    });
-    openDiaryHome();
+  function refreshDiaryQueries(nextPetId: string | null, nextDiaryId: string) {
+    void queryClient.invalidateQueries({ queryKey: guardianDiaryDetailQueryKey(nextDiaryId) });
+    void queryClient.invalidateQueries({ queryKey: guardianDiaryDateQueryKey(nextPetId, dateKey) });
+    void queryClient.invalidateQueries({ queryKey: guardianDiaryMonthQueryKey(nextPetId) });
+  }
+
+  async function handleDelete() {
+    if (isMutatingRef.current) return;
+    if (!diaryId) {
+      toast({ shape: 'rounded', position: 'bottom', title: DIARY_DELETE_FAIL, nativeTitle: DIARY_DELETE_FAIL });
+      return;
+    }
+    isMutatingRef.current = true;
+    try {
+      await deleteGuardianDiary(diaryId);
+      try {
+        removeDiaryRecord(dateKey, detail?.petId ?? record?.petId ?? petId);
+      } catch {
+        // 서버 삭제는 끝났고, 이 화면의 임시 기록만 실패한 경우다.
+      }
+      setIsDeleteOpen(false);
+      refreshDiaryQueries(detail?.petId ?? petId, diaryId);
+      const deleted = formatDiaryDeleteToast(date);
+      toast({
+        type: 'success',
+        shape: 'rounded',
+        position: 'bottom',
+        nativeTitle: deleted.nativeTitle,
+        titleParts: [
+          { text: deleted.label, accent: true },
+          { text: deleted.suffix },
+        ],
+        title: (
+          <>
+            <span className='body1-bold text-text-accent'>{deleted.label}</span>
+            <span className='text-text-primary-inverse'>{deleted.suffix}</span>
+          </>
+        ),
+      });
+      openDiaryHome();
+    } catch {
+      toast({ shape: 'rounded', position: 'bottom', title: DIARY_DELETE_FAIL, nativeTitle: DIARY_DELETE_FAIL });
+    } finally {
+      isMutatingRef.current = false;
+    }
   }
 
   function handleEdit() {
@@ -70,18 +108,36 @@ function GuardianDiaryDetailPage() {
     setIsEditing(true);
   }
 
-  function handleSaveEdit() {
+  async function handleSaveEdit() {
     const nextBody = body ?? shownBody;
-    if (!nextBody.trim()) return;
-    saveDiaryRecord({
-      dateKey,
-      petId: detail?.petId ?? record?.petId ?? petId ?? null,
-      dogName: record?.dogName || '강아지',
-      body: nextBody,
-      photos,
-    });
-    setBody(nextBody);
-    setIsEditing(false);
+    if (!nextBody.trim() || isMutatingRef.current) return;
+    if (!diaryId) {
+      toast({ shape: 'rounded', position: 'bottom', title: DIARY_EDIT_FAIL, nativeTitle: DIARY_EDIT_FAIL });
+      return;
+    }
+    isMutatingRef.current = true;
+    try {
+      const updated = await patchGuardianDiary(diaryId, nextBody);
+      try {
+        saveDiaryRecord({
+          dateKey: updated.date,
+          petId: updated.petId,
+          dogName: record?.dogName || '강아지',
+          body: updated.body,
+          photos: updated.photos,
+        });
+      } catch {
+        // 서버 수정은 끝났고, 이 화면의 임시 기록만 실패한 경우다.
+      }
+      queryClient.setQueryData(guardianDiaryDetailQueryKey(diaryId), updated);
+      refreshDiaryQueries(updated.petId, diaryId);
+      setBody(updated.body);
+      setIsEditing(false);
+    } catch {
+      toast({ shape: 'rounded', position: 'bottom', title: DIARY_EDIT_FAIL, nativeTitle: DIARY_EDIT_FAIL });
+    } finally {
+      isMutatingRef.current = false;
+    }
   }
 
   return (

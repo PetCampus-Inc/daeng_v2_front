@@ -1,5 +1,6 @@
 import {
   parseDiaryDateStatus,
+  parseDiaryDelete,
   parseDiaryDetail,
   parseDiaryGeneration,
   parseDiaryMonth,
@@ -72,6 +73,19 @@ function getGuardianDiaryDetail(diaryId: string) {
   return api.get(`guardian/diaries/${encodeURIComponent(diaryId)}`).json().then(parseDiaryDetail);
 }
 
+/** `PATCH` - 일기 본문만 수정한다. 사진과 제목은 그대로다 */
+function patchGuardianDiary(diaryId: string, body: string) {
+  return api
+    .patch(`guardian/diaries/${encodeURIComponent(diaryId)}`, { json: { body } })
+    .json()
+    .then(parseDiaryDetail);
+}
+
+/** `DELETE` - 저장한 일기를 삭제한다 */
+function deleteGuardianDiary(diaryId: string) {
+  return api.delete(`guardian/diaries/${encodeURIComponent(diaryId)}`).json().then(parseDiaryDelete);
+}
+
 /** `GET` - 그 달에 쓴 일기. yearMonth는 yyyy-MM */
 function getGuardianDiaryMonth(petId: string, yearMonth: string) {
   return api
@@ -80,5 +94,14 @@ function getGuardianDiaryMonth(petId: string, yearMonth: string) {
     .then(parseDiaryMonth);
 }
 
-export { getGuardianDiaryDate, getGuardianDiaryDetail, getGuardianDiaryMonth, postDiaryGeneration, postDiaryPhotoUploadUrls, postDiarySave };
+export {
+  deleteGuardianDiary,
+  getGuardianDiaryDate,
+  getGuardianDiaryDetail,
+  getGuardianDiaryMonth,
+  patchGuardianDiary,
+  postDiaryGeneration,
+  postDiaryPhotoUploadUrls,
+  postDiarySave,
+};
 export type { DiaryPhotoUploadFile, PostDiaryGenerationParams, PostDiarySaveParams };

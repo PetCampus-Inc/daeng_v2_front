@@ -17,13 +17,31 @@ const attendanceSchema = z
   })
   .nullable();
 
+function padDatePart(part: number) {
+  return String(part).padStart(2, '0');
+}
+
+function toDateText(value: string | number[]) {
+  if (typeof value === 'string') return value;
+  const [year, month, day, hour = 0, minute = 0, second = 0] = value;
+  if (year == null || month == null || day == null) return '';
+  const date = `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+  if (value.length < 4) return date;
+  return `${date}T${padDatePart(hour)}:${padDatePart(minute)}:${padDatePart(second)}`;
+}
+
+const nullableDateTimeSchema = z
+  .union([z.string(), z.array(z.number()), z.null()])
+  .nullish()
+  .transform((value) => (value == null ? null : toDateText(value) || null));
+
 const diaryDateSchema = z.object({
-  date: z.string(),
+  date: z.union([z.string(), z.array(z.number())]).transform(toDateText),
   diary: diarySummarySchema.nullish(),
   canWrite: z.boolean(),
   blockedReason: z.string().nullable().nullish(),
   remainingGenerations: z.number(),
-  nextAvailableAt: z.string().nullable().nullish(),
+  nextAvailableAt: nullableDateTimeSchema,
   attendance: attendanceSchema.nullish(),
   onboardingShown: z.boolean(),
 });
@@ -109,7 +127,7 @@ function toDiaryDateStatus(dto: z.infer<typeof diaryDateSchema>): DiaryDateStatu
   const attendance = dto.attendance;
   return {
     date: dto.date,
-    diary: toDiarySummary(dto.diary),
+    diary: toDiarySummary(dto.diary ?? null),
     canWrite: dto.canWrite,
     blockedReason: dto.blockedReason ?? null,
     remainingGenerations: dto.remainingGenerations,
@@ -137,13 +155,13 @@ const diaryDetailPhotoSchema = z.object({
 const diaryDetailSchema = z.object({
   diaryId: z.number(),
   petId: z.number(),
-  date: z.string(),
+  date: z.union([z.string(), z.array(z.number())]).transform(toDateText),
   title: z.string(),
   body: z.string(),
   photos: z.array(diaryDetailPhotoSchema),
   edited: z.boolean(),
-  savedAt: z.string(),
-  modifiedAt: z.string(),
+  savedAt: z.unknown().optional(),
+  modifiedAt: z.unknown().optional(),
 });
 
 const diaryDetailResponseSchema = z.object({
@@ -199,6 +217,13 @@ function toDiaryDetail(dto: z.infer<typeof diaryDetailSchema>): DiaryDetail {
 
 const parseDiaryDetail = (response: unknown) => toDiaryDetail(diaryDetailResponseSchema.parse(response).data);
 
+const diaryDeleteResponseSchema = z.object({
+  status: z.number().int(),
+  message: z.string(),
+});
+
+const parseDiaryDelete = (response: unknown) => diaryDeleteResponseSchema.parse(response);
+
 const parseDiaryMonth = (response: unknown): DiaryMonthDay[] =>
   diaryMonthResponseSchema.parse(response).data.days.map((day) => ({
     date: day.date,
@@ -207,7 +232,7 @@ const parseDiaryMonth = (response: unknown): DiaryMonthDay[] =>
     photoCount: day.photoCount,
   }));
 
-export { parseDiaryDateStatus, parseDiaryDetail, parseDiaryGeneration, parseDiaryMonth, parseDiaryPhotoUploads };
+export { parseDiaryDateStatus, parseDiaryDelete, parseDiaryDetail, parseDiaryGeneration, parseDiaryMonth, parseDiaryPhotoUploads };
 export type {
   DiaryDateAttendance,
   DiaryDateStatus,

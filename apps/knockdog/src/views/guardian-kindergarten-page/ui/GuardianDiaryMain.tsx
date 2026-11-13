@@ -80,7 +80,8 @@ function GuardianDiaryMain({
     : null;
   const selectedEntry = apiEntry ?? monthEntry ?? (monthDays ? null : sessionEntry);
   const selectedDiaryId = dateStatus?.diary?.id ?? monthDay?.id;
-  const credits = dateStatus?.remainingGenerations ?? remainingCredits;
+  const reportedCredits = dateStatus?.remainingGenerations ?? remainingCredits;
+  const credits = dateStatus?.blockedReason === 'LIMIT_REACHED' || reportedCredits <= 0 ? 0 : reportedCredits;
   const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), credits);
 
   useEffect(() => {
