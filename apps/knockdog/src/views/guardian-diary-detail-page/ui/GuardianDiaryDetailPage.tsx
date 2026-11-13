@@ -88,8 +88,8 @@ function GuardianDiaryDetailPage() {
         queryClient.setQueriesData<DiaryDateStatus>({ queryKey: guardianDiaryDateQueryKey(removedPetId, dateKey) }, (status) =>
           status ? { ...status, diary: null } : status
         );
-        syncWebViewQuery.invalidate([...guardianDiaryMonthQueryKey(removedPetId)]);
-        syncWebViewQuery.invalidate([...guardianDiaryDateQueryKey(removedPetId, dateKey)]);
+        syncWebViewQuery.invalidate(['guardianDiaryMonth', removedPetId]);
+        syncWebViewQuery.invalidate(['guardianDiaryDate', removedPetId, dateKey]);
       }
       refreshDiaryQueries(removedPetId, diaryId);
       const deleted = formatDiaryDeleteToast(date);
