@@ -42,7 +42,7 @@ function OwnerMemberTicketSection({ petId }: OwnerMemberTicketSectionProps) {
   };
 
   return (
-    <section className='flex flex-col gap-4 px-4 pt-9 pb-4'>
+    <section className='flex flex-col gap-4 px-4 py-4'>
       <div className='flex items-center justify-between px-1'>
         <TicketSectionLink
           onClick={() => {
