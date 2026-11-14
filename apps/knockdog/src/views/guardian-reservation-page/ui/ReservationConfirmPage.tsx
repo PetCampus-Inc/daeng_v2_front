@@ -8,6 +8,7 @@ import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, 
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_CONFIRM_COPY } from '@views/guardian-reservation-page/config/guardianReservationConfirm';
+import { RESERVATION_CONFIRM_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import {
   clipNote,
   formatConfirmDate,
@@ -68,6 +69,7 @@ function showFailedToast(message: string) {
     shape: 'rounded',
     position: 'bottom',
     title: message,
+    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -86,6 +88,7 @@ function showClosedToast() {
         <span className='body1-medium text-text-primary-inverse'>{copy.closedSuffix}</span>
       </>
     ),
+    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 

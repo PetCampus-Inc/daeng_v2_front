@@ -9,6 +9,7 @@ import { ActionButton } from '@knockdog/ui';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
+import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { NOTE_LIMIT, isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
@@ -108,6 +109,7 @@ function GuardianReservationDetailPage() {
           position: 'bottom',
           title: copy.phoneCopied,
           nativeTitle: copy.phoneCopied,
+          viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
         });
       })
       .catch(() => undefined);
@@ -133,7 +135,14 @@ function GuardianReservationDetailPage() {
         onError: (error) => {
           setIsCancelOpen(false);
           const message = error instanceof ApiError && error.message ? error.message : copy.cancelFailed;
-          toast({ type: 'default', shape: 'rounded', position: 'bottom', title: message, nativeTitle: message });
+          toast({
+            type: 'default',
+            shape: 'rounded',
+            position: 'bottom',
+            title: message,
+            nativeTitle: message,
+            viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
+          });
         },
       }
     );

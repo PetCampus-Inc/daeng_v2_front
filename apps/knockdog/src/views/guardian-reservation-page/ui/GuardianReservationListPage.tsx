@@ -8,6 +8,7 @@ import { ActionButton, Divider, StatusFilterChip, Tabs, TabsList, TabsTrigger } 
 import { cn } from '@knockdog/ui/lib';
 
 import { RESERVATION_LIST_COPY } from '@views/guardian-reservation-page/config/guardianReservationList';
+import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import {
   LIST_STATUS,
@@ -88,6 +89,7 @@ function showCancelToast(startsAt: string) {
         <span className='body1-medium text-text-primary-inverse'>{suffix}</span>
       </>
     ),
+    viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
   });
 }
 
