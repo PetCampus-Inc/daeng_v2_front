@@ -40,6 +40,7 @@ interface GuardianTicketSchool {
   id: string;
   name: string;
   address: string;
+  imageUrl?: string;
 }
 
 interface GuardianTicketCard {
@@ -250,7 +251,14 @@ const toGuardianTicket = (dto: TicketDto): GuardianTicket => ({
 const toGuardianTicketCard = (dto: ReturnType<typeof parseGuardianTicketCard>): GuardianTicketCard => ({
   connection: CONNECTION[dto.connection],
   manageCount: dto.manageCount,
-  school: dto.school ? { id: String(dto.school.schoolId), name: dto.school.name, address: dto.school.address } : null,
+  school: dto.school
+    ? {
+        id: String(dto.school.schoolId),
+        name: dto.school.name,
+        address: dto.school.address,
+        ...(dto.school.thumbnailImageUrl ? { imageUrl: dto.school.thumbnailImageUrl } : {}),
+      }
+    : null,
   tickets: dto.tickets.map(toGuardianTicket),
 });
 

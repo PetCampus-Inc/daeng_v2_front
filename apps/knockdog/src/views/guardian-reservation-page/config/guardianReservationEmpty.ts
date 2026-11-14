@@ -8,8 +8,8 @@ const RESERVATION_EMPTY_COPY: Record<ReservationEmpty, { imageSrc: string; title
   },
   [RESERVATION_EMPTY.pending]: {
     imageSrc: '/images/img_waiting_kindergarten.png',
-    title: '유치원 연결 승인을 기다리고 있어요',
-    body: '승인이 완료되면 알려드릴게요.',
+    title: '연결 신청을 완료했어요',
+    body: '원장님이 확인 중이에요.\n연결이 완료되면 알려드릴게요.',
   },
   [RESERVATION_EMPTY.unlinked]: {
     imageSrc: '/images/img_empty_kindergarten.png',

@@ -16,6 +16,7 @@ import {
   RESERVATION_EMPTY,
   resolveReservationEmpty,
   resolveReserveStep,
+  toReservationKindergartenLink,
   type ReservationTicket,
 } from './guardianReservationMain';
 
@@ -137,6 +138,16 @@ describe('resolveReservationEmpty', () => {
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, false, 0)).toBe(RESERVATION_EMPTY.noPass);
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, true, 0)).toBeNull();
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, false, 1)).toBeNull();
+  });
+});
+
+describe('toReservationKindergartenLink', () => {
+  it('미연결과 승인 대기, 연결됨만 예약 빈 화면으로 연결한다', () => {
+    expect(toReservationKindergartenLink('none')).toBe(KINDERGARTEN_LINK.none);
+    expect(toReservationKindergartenLink('disconnected')).toBe(KINDERGARTEN_LINK.none);
+    expect(toReservationKindergartenLink('pending')).toBe(KINDERGARTEN_LINK.pending);
+    expect(toReservationKindergartenLink('approved')).toBe(KINDERGARTEN_LINK.connected);
+    expect(toReservationKindergartenLink('connected')).toBe(KINDERGARTEN_LINK.connected);
   });
 });
 

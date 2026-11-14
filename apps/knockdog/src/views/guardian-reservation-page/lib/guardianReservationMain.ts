@@ -1,4 +1,9 @@
-import { formatHourClock, formatVisitDate, parseVisitKey, toVisitKey } from '@views/guardian-reservation-page/lib/visitClock';
+import {
+  formatHourClock,
+  formatVisitDate,
+  parseVisitKey,
+  toVisitKey,
+} from '@views/guardian-reservation-page/lib/visitClock';
 
 const EXPIRING_BADGE_DAYS = 3;
 const MS_PER_DAY = 86_400_000;
@@ -68,6 +73,7 @@ interface ReservationKindergarten {
   name: string;
   address: string;
   phone: string;
+  imageUrl?: string;
 }
 
 interface ReservationDog {
@@ -253,6 +259,13 @@ function resolveReservationEmpty(link: KindergartenLink, hasUpcoming: boolean, u
   return null;
 }
 
+function toReservationKindergartenLink(status: string) {
+  if (status === 'none' || status === 'disconnected') return KINDERGARTEN_LINK.none;
+  if (status === 'pending') return KINDERGARTEN_LINK.pending;
+  if (status === 'approved' || status === 'connected') return KINDERGARTEN_LINK.connected;
+  return null;
+}
+
 export {
   KINDERGARTEN_LINK,
   RESERVATION_EMPTY,
@@ -271,6 +284,7 @@ export {
   listUsableTickets,
   resolveReservationEmpty,
   resolveReserveStep,
+  toReservationKindergartenLink,
   toDateKey,
   toDateTimeKey,
 };

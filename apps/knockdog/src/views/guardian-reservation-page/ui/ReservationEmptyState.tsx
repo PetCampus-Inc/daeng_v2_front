@@ -19,13 +19,13 @@ function ReservationEmptyState({
   const hasKindergartenCard = kind !== RESERVATION_EMPTY.unlinked && kindergarten !== null;
 
   return (
-    <div className='px-x5 pt-x5 pb-[calc(var(--bottom-bar-height)+20px)] webview:pb-x5 gap-x5 flex min-h-0 flex-1 flex-col'>
+    <div className='px-x5 pt-x5 webview:pb-x5 gap-x5 flex min-h-0 flex-1 flex-col pb-[calc(var(--bottom-bar-height)+20px)]'>
       <div className='gap-x1 flex flex-1 flex-col items-center justify-center text-center'>
         {/* 이용권 일러스트만 svg라 next/image 최적화 대상에서 뺀다 */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={copy.imageSrc} alt='' className='size-[200px] object-contain' />
         <p className='h2-extrabold text-text-primary'>{copy.title}</p>
-        <p className='body1-regular text-text-tertiary'>{copy.body}</p>
+        <p className='body1-regular text-text-tertiary whitespace-pre-line'>{copy.body}</p>
       </div>
       {hasKindergartenCard && kindergarten ? <ReservationKindergartenCard kindergarten={kindergarten} /> : null}
     </div>
