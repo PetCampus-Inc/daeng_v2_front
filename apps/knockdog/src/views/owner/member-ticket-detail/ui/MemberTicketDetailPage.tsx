@@ -7,7 +7,7 @@ import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
-import { toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { isHoldButtonDisabled, toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
 import { toExpiryApiDate } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
 
 import { TicketConfirmDialog } from '@views/owner/member-ticket-detail/ui/TicketConfirmDialog';
@@ -71,7 +71,7 @@ function MemberTicketDetailPage() {
   const [isDeleted, setIsDeleted] = useState(false);
   const isCancelAction = detail?.holdAction === 'cancel';
   const isHoldPending = holdTicket.isPending || cancelHold.isPending;
-  const isHoldDisabled = isHoldPending || detail?.holdAction === 'disabled';
+  const isHoldDisabled = isHoldPending || (detail != null && isHoldButtonDisabled(detail));
   const endLabel = detail?.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail?.status === 'active' || detail?.status === 'onHold';
 
@@ -221,8 +221,18 @@ function MemberTicketDetailPage() {
           <button
             type='button'
             disabled={isHoldDisabled}
-            className={`body1-bold border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${isCancelAction || isHoldDisabled ? 'text-text-tertiary' : 'text-fill-secondary-500'}`}
-            onClick={() => (isCancelAction ? setIsCancelOpen(true) : setIsHoldOpen(true))}
+            className={`body1-bold bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${
+              isHoldDisabled
+                ? 'border-line-400 text-text-secondary-inverse cursor-not-allowed'
+                : isCancelAction
+                  ? 'border-line-200 text-text-tertiary'
+                  : 'border-line-200 text-fill-secondary-500'
+            }`}
+            onClick={() => {
+              if (isHoldDisabled) return;
+              if (isCancelAction) setIsCancelOpen(true);
+              else setIsHoldOpen(true);
+            }}
           >
             {isCancelAction ? content.cancelHold : content.hold}
           </button>

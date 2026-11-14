@@ -23,6 +23,12 @@ interface TicketDetail {
   holdAction: 'hold' | 'cancel' | 'disabled';
 }
 
+function isHoldButtonDisabled(ticket: Pick<TicketDetail, 'holdAction' | 'status' | 'endsOn'>) {
+  if (ticket.holdAction === 'cancel') return false;
+  if (ticket.holdAction === 'disabled') return true;
+  return ticket.status === TICKET_STATUS.expired || ticket.status === TICKET_STATUS.scheduled || ticket.endsOn == null;
+}
+
 function toTicketDetail(ticket: PetTicketDetail): TicketDetail {
   const statusBefore = ticket.status === TICKET_STATUS.onHold ? TICKET_STATUS.active : ticket.status;
 
@@ -44,5 +50,5 @@ function toTicketDetail(ticket: PetTicketDetail): TicketDetail {
   };
 }
 
-export { toTicketDetail };
+export { isHoldButtonDisabled, toTicketDetail };
 export type { TicketDetail, TicketHistoryLine };
