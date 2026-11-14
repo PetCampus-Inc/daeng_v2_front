@@ -49,6 +49,14 @@ function choiceFromPreset(duration: ChargeDuration): DurationChoice {
   return 'custom';
 }
 
+function blurActiveTextEntry() {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement)) return false;
+  if (active.disabled || active.readOnly) return false;
+  active.blur();
+  return true;
+}
+
 function toChargeDuration(choice: DurationChoice, amountText: string, unit: ChargeUnit): ChargeDuration | null {
   if (choice === null) return null;
   if (choice === 'none') return { kind: 'none' };
@@ -161,10 +169,20 @@ function MemberTicketChargePage() {
     setIsLeaveOpen(true);
   }, [back, isDateOpen, isDirty, isLeaveOpen, isPresetOpen, releaseAndLeave]);
 
+  const handleNativeBack = useCallback(() => {
+    if (isDateOpen || isPresetOpen || isLeaveOpen) {
+      handleBack();
+      return;
+    }
+    // 앱 시스템 뒤로가기는 입력 중이면 키보드만 닫는다. 모달은 칸에서 빠진 뒤의 뒤로가기에서 연다.
+    if (blurActiveTextEntry()) return;
+    handleBack();
+  }, [handleBack, isDateOpen, isLeaveOpen, isPresetOpen]);
+
   useLayoutEffect(() => {
     handleBackRef.current = handleBack;
   }, [handleBack]);
-  useNativeBackHandler(handleBack);
+  useNativeBackHandler(handleNativeBack);
 
   const handleLeave = () => {
     setIsLeaveOpen(false);
