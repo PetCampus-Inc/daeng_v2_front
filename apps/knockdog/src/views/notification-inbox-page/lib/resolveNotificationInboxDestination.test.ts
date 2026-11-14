@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { resolveNotificationInboxDestination } from './resolveNotificationInboxDestination';
 
 const GUARDIAN_TICKET_TYPES = [
-  'PET_TICKET_CHARGED',
   'PET_TICKET_HOLD_CANCELED',
   'PET_TICKET_HOLD_ENDED',
   'PET_TICKET_EXPIRY_EXTENDED',
@@ -18,10 +17,22 @@ describe('resolveNotificationInboxDestination ticket', () => {
   });
 
   it('petId가 있으면 예약 탭에서 그 강아지를 고른다', () => {
-    expect(resolveNotificationInboxDestination('PET_TICKET_CHARGED', { petId: 12 })).toEqual({
+    expect(resolveNotificationInboxDestination('PET_TICKET_EXPIRING', { petId: 12 })).toEqual({
       kind: 'guardianReservation',
       petId: '12',
     });
+  });
+
+  it('이용권 충전은 그 이용권 상세로 간다', () => {
+    expect(resolveNotificationInboxDestination('PET_TICKET_CHARGED', { petId: 4, ticketId: 8 })).toEqual({
+      kind: 'guardianTicketDetail',
+      petId: '4',
+      ticketId: '8',
+    });
+  });
+
+  it('이용권 번호가 없으면 충전 알림은 이동하지 않는다', () => {
+    expect(resolveNotificationInboxDestination('PET_TICKET_CHARGED', { petId: 4 })).toEqual({ kind: 'unavailable' });
   });
 
   it('원장 만료 예정은 구성원 만료예정으로 간다', () => {
