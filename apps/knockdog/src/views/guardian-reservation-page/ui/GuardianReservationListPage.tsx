@@ -215,7 +215,7 @@ function GuardianReservationListPage() {
             </div>
             )
           ) : (
-            <div className='px-x4 pt-x5 gap-x2 flex flex-col'>
+            <div className='px-x4 pt-x5 flex flex-col'>
               <div className='gap-x2 flex items-center'>
                 {PAST_FILTERS.map((filter) => (
                   <StatusFilterChip
@@ -227,20 +227,22 @@ function GuardianReservationListPage() {
                   </StatusFilterChip>
                 ))}
               </div>
-              {showSpinner ? (
-                <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
-              ) : showLoadError ? (
-                <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
-              ) : (
-                <>
-                  <div className='flex flex-col'>
-                    {items.map((item) => (
-                      <PastRow key={item.id} item={item} />
-                    ))}
-                  </div>
-                  <p className='body2-regular text-text-tertiary py-x8 text-center'>{copy.pastHint}</p>
-                </>
-              )}
+              <div className='mt-x5 gap-x2 flex flex-col'>
+                {showSpinner ? (
+                  <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
+                ) : showLoadError ? (
+                  <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
+                ) : (
+                  <>
+                    <div className='flex flex-col'>
+                      {items.map((item) => (
+                        <PastRow key={item.id} item={item} />
+                      ))}
+                    </div>
+                    <p className='body2-regular text-text-tertiary py-x8 text-center'>{copy.pastHint}</p>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
