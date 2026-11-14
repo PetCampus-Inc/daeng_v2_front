@@ -173,6 +173,10 @@ function canContinueReserve(hasDate: boolean, hasTime: boolean) {
   return hasDate && hasTime;
 }
 
+function isOwnerHoursUnset(reason: string | null | undefined) {
+  return reason === 'settingNotReady';
+}
+
 export {
   canContinueReserve,
   dateFromKey,
@@ -180,6 +184,7 @@ export {
   formatReserveDay,
   formatSelectedPass,
   fullDayKey,
+  isOwnerHoursUnset,
   isSlotBookable,
   listDisabledDates,
   listScheduleSlots,
