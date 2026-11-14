@@ -47,7 +47,15 @@ function BottomNavBarLinks() {
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
           const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-secondary';
-          const iconColorClassName = showOwnerBottomNav && !isActive ? 'text-text-caption' : colorClassName;
+          const usesFigmaIcon =
+            !showOwnerBottomNav &&
+            (item.href === '/' ||
+              item.href === '/save' ||
+              item.href === '/reservation' ||
+              item.href === '/kindergarten' ||
+              item.href === '/mypage');
+          const iconColorClassName =
+            !isActive && (showOwnerBottomNav || usesFigmaIcon) ? 'text-text-caption' : colorClassName;
           const labelColorClassName = showOwnerBottomNav && !isActive ? 'text-primitive-neutral-500' : colorClassName;
 
           return (
