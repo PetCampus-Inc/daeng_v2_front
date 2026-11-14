@@ -51,8 +51,9 @@ function pushGuardState() {
  *
  * 뒤로가기를 영구 차단하지 않음: 확인 시 `releaseAndLeave`로 trap 해제 후 실제 이탈
  *
- * 입력칸에 포커스가 있는 동안 pushState하면 모바일 브라우저(한글 IME)가 다음 글자에서
- * popstate를 보낸다. 이용권 이름 두 글자째에 이탈 모달이 뜨던 이유라, 포커스가 빠진 뒤에 건다.
+ * 가드는 입력칸에 포커스가 있어도 건다. 포커스가 남은 채 뒤로가면 이탈로 본다.
+ * 모바일 브라우저(한글 IME)는 pushState 직후 다음 글자에서 popstate를 보낸다.
+ * 그 popstate만 이탈로 보지 않고 가드를 다시 건다.
  */
 function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void) {
   const onAttemptLeaveRef = useRef(onAttemptLeave);
@@ -129,7 +130,7 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
     };
 
     const arm = () => {
-      if (cancelled || detachPopState || isTextEntryTarget(document.activeElement)) return;
+      if (cancelled || detachPopState) return;
 
       isComposing = false;
       pushGuardState();
