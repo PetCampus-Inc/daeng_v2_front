@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 
-import { ChevronBottom, ChevronTop } from '@knockdog/icons';
+import { ChevronBottom } from '@knockdog/icons';
 
 import { cn } from '@knockdog/ui/lib';
 
@@ -75,7 +75,12 @@ function SelectDogCard({
       )}
     >
       <span className='gap-x4 flex min-w-0 items-center'>
-        <span className={cn('bg-fill-secondary-100 block shrink-0 overflow-hidden rounded-full', PHOTO_SIZE[variant])}>
+        <span
+          className={cn(
+            'bg-fill-secondary-100 block shrink-0 overflow-hidden rounded-full',
+            isList ? PHOTO_SIZE.list : isOpen ? PHOTO_SIZE.open : PHOTO_SIZE.closed
+          )}
+        >
           {children}
         </span>
         <span className='gap-x0_5 flex min-w-0 flex-col items-start'>
@@ -85,11 +90,9 @@ function SelectDogCard({
       </span>
       {showIcon && !isList ? (
         <span className='bg-bg-50 flex size-x8 shrink-0 items-center justify-center rounded-full'>
-          {isOpen ? (
-            <ChevronTop className='text-text-secondary size-x4' />
-          ) : (
-            <ChevronBottom className='text-text-secondary size-x4' />
-          )}
+          <ChevronBottom
+            className={cn('text-text-secondary size-x4 transition-transform', isOpen && 'rotate-180')}
+          />
         </span>
       ) : null}
     </button>

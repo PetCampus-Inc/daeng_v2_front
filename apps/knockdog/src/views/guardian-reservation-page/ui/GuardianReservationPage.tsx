@@ -119,10 +119,11 @@ function PetAvatar({ pet }: { pet: Pet }) {
 
 function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId: string) => void }) {
   return (
-    <div className='bg-bg-0 flex flex-col'>
+    <div className='bg-bg-50 flex flex-col pb-x4'>
       {pets.map((pet) => (
         <SelectDogCard
           key={pet.id}
+          variant='list'
           showIcon={false}
           name={pet.name}
           breed={pet.breed}
@@ -181,6 +182,7 @@ function GuardianReservationPage() {
   const isDogListOpen = isChevronOpen && canOpenDogList;
 
   const handleToggleDogList = () => {
+    if (!canOpenDogList) return;
     setIsChevronOpen((isOpen) => !isOpen);
   };
 
@@ -260,20 +262,21 @@ function GuardianReservationPage() {
             </div>
           </header>
           <SelectDogCard
-            isExpanded={isChevronOpen}
-            showIcon={false}
+            variant={isDogListOpen ? 'open' : 'closed'}
+            isExpanded={isDogListOpen}
+            showIcon={canOpenDogList}
             name={selectedPet.name}
             breed={selectedPet.breed}
             age={petAgeLabel(selectedPet.birthYear)}
             weight={petWeightLabel(selectedPet.weight)}
             className='rounded-none shadow-none'
-            onClick={handleToggleDogList}
+            onClick={canOpenDogList ? handleToggleDogList : undefined}
           >
             <PetAvatar pet={selectedPet} />
           </SelectDogCard>
         </div>
         {isDogListOpen ? (
-          <div className='bg-bg-0 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
+          <div className='bg-bg-50 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
             <ReservationDogList pets={pets.filter((pet) => pet.id !== selectedPet.id)} onSelect={handleSelectDog} />
           </div>
         ) : null}
