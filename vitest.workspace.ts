@@ -63,4 +63,18 @@ export default [
       environment: 'jsdom',
     },
   }),
+  defineConfig({
+    test: {
+      name: 'mobile',
+      include: ['./apps/mobile/bridges/handlers/*.test.ts', './apps/mobile/components/*.test.tsx'],
+      environment: 'node',
+    },
+    esbuild: { jsx: 'automatic' },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'apps/mobile'),
+        react: path.resolve(__dirname, 'apps/knockdog/node_modules/react'),
+      },
+    },
+  }),
 ];

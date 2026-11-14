@@ -36,7 +36,26 @@ describe('승인 대기 진입점을 신청 탭으로 변경', () => {
 
     expect(push).toHaveBeenCalledWith({
       pathname: '/owner/members',
-      query: { tab: 'pending' },
+      query: { tab: 'pending', homeEntry: expect.any(String) },
     });
+  });
+
+  it('이용권 카드의 반복 진입도 만료예정 필터를 다시 적용할 수 있게 구분한다', () => {
+    const now = vi.spyOn(Date, 'now');
+    const { result } = renderHook(() => useOwnerHomePage());
+    now.mockReturnValueOnce(1).mockReturnValueOnce(2);
+
+    act(() => result.current.handleTicketsClick());
+    act(() => result.current.handleTicketsClick());
+
+    expect(push).toHaveBeenNthCalledWith(1, {
+      pathname: '/owner/members',
+      query: { tab: 'registered', filter: 'expiring', homeEntry: '1' },
+    });
+    expect(push).toHaveBeenNthCalledWith(2, {
+      pathname: '/owner/members',
+      query: { tab: 'registered', filter: 'expiring', homeEntry: '2' },
+    });
+    now.mockRestore();
   });
 });

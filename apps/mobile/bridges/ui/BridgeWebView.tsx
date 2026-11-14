@@ -15,6 +15,8 @@ interface Props {
   webviewRef?: RefObject<WebView>;
   /** navPush/navReplace/navReset로 받은 state를 주입 */
   initialState?: InitialState;
+  onLoadStart?: () => void;
+  onLoad?: () => void;
   onLoadEnd?: () => void;
   onNavigationStateChange?: (navState: WebViewNavigation) => void;
 }
@@ -88,6 +90,8 @@ export function BridgeWebView({
   uri,
   webviewRef,
   initialState,
+  onLoadStart,
+  onLoad,
   onLoadEnd,
   onNavigationStateChange,
 }: Props) {
@@ -157,6 +161,8 @@ export function BridgeWebView({
       source={{ uri }}
       onMessage={handleOnMessage}
       onNavigationStateChange={onNavigationStateChange}
+      onLoadStart={onLoadStart}
+      onLoad={onLoad}
       onLoadEnd={() => {
         const ref = refToUse.current;
         if (ref) {
